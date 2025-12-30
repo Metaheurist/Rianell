@@ -480,22 +480,25 @@ h1:hover, h2:hover {
   transition: transform var(--transition-normal);
 }
 
-.tab-btn:hover {
+.tab-btn:hover:not(.active) {
   background: rgba(76, 175, 80, 0.15);
   color: #ffffff;
   transform: translateY(-2px);
 }
 
 .tab-btn.active {
-  background: rgba(76, 175, 80, 0.2);
+  background: linear-gradient(180deg, rgba(56, 142, 60, 0.4) 0%, rgba(76, 175, 80, 0.5) 100%);
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .tab-btn.active:hover {
-  background: rgba(76, 175, 80, 0.2);
-  color: #ffffff;
+  background: linear-gradient(180deg, rgba(56, 142, 60, 0.4) 0%, rgba(76, 175, 80, 0.5) 100%) !important;
+  color: #ffffff !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 8px rgba(255, 255, 255, 0.2) !important;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
 .tab-btn.active::before {
@@ -507,13 +510,27 @@ h1:hover, h2:hover {
   transition: transform var(--transition-normal);
 }
 
-.tab-btn:hover .tab-icon,
+.tab-btn:hover:not(.active) .tab-icon {
+  transform: scale(1.1);
+}
+
 .tab-btn.active .tab-icon {
   transform: scale(1.1);
 }
 
 .tab-text {
   font-size: 0.85rem;
+  transition: color var(--transition-normal);
+}
+
+.tab-btn.active .tab-text {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.tab-btn.active:hover .tab-text {
+  color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 /* Tab Content */
@@ -523,7 +540,8 @@ h1:hover, h2:hover {
 }
 
 .tab-content.active {
-  display: block;
+  display: block !important;
+  visibility: visible !important;
 }
 
 @keyframes fadeInTab {
@@ -703,6 +721,99 @@ h1:hover, h2:hover {
   line-height: 1.6;
 }
 
+.summary-description {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  color: rgba(224, 242, 241, 0.9);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.summary-generate-btn {
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: auto;
+  width: auto;
+  margin: 0;
+}
+
+.summary-generate-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4), var(--primary-glow);
+}
+
+.ai-results-container {
+  margin-top: 1.5rem;
+}
+
+.ai-results-textbox {
+  width: 100%;
+  min-height: 500px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  color: var(--text-light);
+  font-size: 1rem;
+  font-family: 'Courier New', monospace;
+  line-height: 1.8;
+  resize: vertical;
+  transition: all var(--transition-normal);
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.ai-results-textbox:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2), 0 0 20px rgba(76, 175, 80, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ai-results-textbox::placeholder {
+  color: rgba(224, 242, 241, 0.4);
+  font-style: italic;
+}
+
+body.light-mode .ai-results-textbox {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(129, 199, 132, 0.3);
+  color: var(--text-dark);
+}
+
+body.light-mode .ai-results-textbox:focus {
+  border-color: var(--primary-color);
+  background: rgba(255, 255, 255, 1);
+}
+
+body.light-mode .ai-results-textbox::placeholder {
+  color: rgba(27, 94, 32, 0.4);
+}
+
+body.light-mode .summary-description {
+  background: rgba(76, 175, 80, 0.15);
+  border-color: var(--border-light);
+  color: var(--text-dark);
+}
+
 .save-entry-btn {
   margin-top: 1.5rem;
 }
@@ -822,7 +933,7 @@ body.light-mode .tab-btn {
   color: rgba(27, 94, 32, 0.7);
 }
 
-body.light-mode .tab-btn:hover {
+body.light-mode .tab-btn:hover:not(.active) {
   background: rgba(76, 175, 80, 0.2);
   color: #1b5e20;
 }
@@ -833,8 +944,8 @@ body.light-mode .tab-btn.active {
 }
 
 body.light-mode .tab-btn.active:hover {
-  background: rgba(76, 175, 80, 0.3);
-  color: #1b5e20;
+  background: rgba(76, 175, 80, 0.35) !important;
+  color: #1b5e20 !important;
   transform: translateY(-2px);
 }
 
