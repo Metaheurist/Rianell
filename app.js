@@ -1131,10 +1131,43 @@ function generateASAdvice(trends, logs) {
   return advice;
 }
 
-function generateAISummaryInTab() {
-  // Ensure we're on the summary tab
-  switchTab('summary');
-  
+// AI Modal functions
+function openAIModal() {
+  const modal = document.getElementById('aiModalOverlay');
+  if (modal) {
+    modal.style.display = 'flex';
+    // Clear previous results
+    const textbox = document.getElementById('aiResultsTextbox');
+    if (textbox) {
+      textbox.value = '';
+      textbox.placeholder = "Click 'Generate Analysis' to see your personalized health insights here...";
+      textbox.style.opacity = '1';
+    }
+  }
+}
+
+function closeAIModal() {
+  const modal = document.getElementById('aiModalOverlay');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape') {
+    const aiModal = document.getElementById('aiModalOverlay');
+    if (aiModal && aiModal.style.display === 'flex') {
+      closeAIModal();
+    }
+    const settingsOverlay = document.getElementById('settingsOverlay');
+    if (settingsOverlay && settingsOverlay.style.display === 'flex') {
+      toggleSettings();
+    }
+  }
+});
+
+function generateAISummary() {
   // Get last 7 entries
   const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
   
@@ -1147,40 +1180,27 @@ function generateAISummaryInTab() {
   const sortedLogs = allLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
   const last7Logs = sortedLogs.slice(0, 7).reverse();
 
-  // Get the textbox - wait a bit for tab to be visible
+  // Get the textbox
+  const textbox = document.getElementById('aiResultsTextbox');
+  if (!textbox) {
+    console.error('AI results textbox not found');
+    return;
+  }
+
+  // Ensure textbox is visible
+  textbox.style.display = 'block';
+  textbox.style.visibility = 'visible';
+  textbox.style.opacity = '1';
+
+  // Show loading state
+  textbox.value = "🧠 Analyzing your health data...\n\nPlease wait while we process your last 7 days of health metrics...";
+  textbox.style.opacity = '0.7';
+
+  // Analyze the data
   setTimeout(() => {
-    const textbox = document.getElementById('aiResultsTextbox');
-    if (!textbox) {
-      console.error('AI results textbox not found');
-      alert('Error: Could not find results textbox. Please refresh the page.');
-      return;
-    }
-
-    // Ensure textbox is visible
-    textbox.style.display = 'block';
-    textbox.style.visibility = 'visible';
-    textbox.style.opacity = '1';
-
-    // Show loading state
-    textbox.value = "🧠 Analyzing your health data...\n\nPlease wait while we process your last 7 days of health metrics...";
-    textbox.style.opacity = '0.7';
-
-    // Analyze the data
-    setTimeout(() => {
-      const analysis = analyzeHealthMetrics(last7Logs);
-      displayAnalysisInTextbox(analysis, last7Logs.length, textbox);
-    }, 1500); // Show loading animation first
-  }, 100);
-}
-
-function generateAISummary() {
-  // Legacy function - redirects to tab version
-  // Switch to summary tab first
-  switchTab('summary');
-  // Then generate
-  setTimeout(() => {
-    generateAISummaryInTab();
-  }, 300);
+    const analysis = analyzeHealthMetrics(last7Logs);
+    displayAnalysisInTextbox(analysis, last7Logs.length, textbox);
+  }, 1500); // Show loading animation first
 }
 
 function displayAnalysisInTextbox(analysis, dayCount, textbox) {
@@ -2114,12 +2134,15 @@ function initializeSections() {
 
 // Tab switching functionality
 function switchTab(tabName) {
+  console.log('Switching to tab:', tabName);
+  
   // Hide all tabs
   const allTabs = document.querySelectorAll('.tab-content');
   const allTabBtns = document.querySelectorAll('.tab-btn');
   
   allTabs.forEach(tab => {
     tab.classList.remove('active');
+    tab.style.display = 'none';
   });
   
   allTabBtns.forEach(btn => {
@@ -2130,8 +2153,16 @@ function switchTab(tabName) {
   const selectedTab = document.getElementById(tabName + 'Tab');
   const selectedBtn = document.querySelector(`[data-tab="${tabName}"]`);
   
+  console.log('Selected tab element:', selectedTab);
+  console.log('Selected button element:', selectedBtn);
+  
   if (selectedTab) {
     selectedTab.classList.add('active');
+    selectedTab.style.display = 'block';
+    selectedTab.style.visibility = 'visible';
+    console.log('Tab activated:', tabName);
+  } else {
+    console.error('Tab not found:', tabName + 'Tab');
   }
   
   if (selectedBtn) {
@@ -2148,17 +2179,6 @@ function switchTab(tabName) {
         updateCharts();
       }, 200);
     }
-  }
-  
-  // Special handling for summary tab - ensure textbox is visible
-  if (tabName === 'summary') {
-    setTimeout(() => {
-      const textbox = document.getElementById('aiResultsTextbox');
-      if (textbox) {
-        textbox.style.display = 'block';
-        textbox.style.visibility = 'visible';
-      }
-    }, 100);
   }
   
   // Special handling for logs tab - ensure it's visible
