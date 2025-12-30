@@ -1,4 +1,4 @@
-// PWA Service Worker Registration
+// PWA Service Worker Registrationt centr
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
@@ -1131,35 +1131,9 @@ function generateASAdvice(trends, logs) {
   return advice;
 }
 
-// AI Modal functions
-function openAIModal() {
-  const modal = document.getElementById('aiModalOverlay');
-  if (modal) {
-    modal.style.display = 'flex';
-    // Clear previous results
-    const textbox = document.getElementById('aiResultsTextbox');
-    if (textbox) {
-      textbox.value = '';
-      textbox.placeholder = "Click 'Generate Analysis' to see your personalized health insights here...";
-      textbox.style.opacity = '1';
-    }
-  }
-}
-
-function closeAIModal() {
-  const modal = document.getElementById('aiModalOverlay');
-  if (modal) {
-    modal.style.display = 'none';
-  }
-}
-
-// Close modal on Escape key
+// Close settings on Escape key
 document.addEventListener('keydown', function(event) {
   if (event.key === 'Escape') {
-    const aiModal = document.getElementById('aiModalOverlay');
-    if (aiModal && aiModal.style.display === 'flex') {
-      closeAIModal();
-    }
     const settingsOverlay = document.getElementById('settingsOverlay');
     if (settingsOverlay && settingsOverlay.style.display === 'flex') {
       toggleSettings();
@@ -1180,18 +1154,19 @@ function generateAISummary() {
   const sortedLogs = allLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
   const last7Logs = sortedLogs.slice(0, 7).reverse();
 
-  // Get the textbox
+  // Get the results container and textbox
+  const resultsContainer = document.getElementById('aiResultsContainer');
   const textbox = document.getElementById('aiResultsTextbox');
-  if (!textbox) {
-    console.error('AI results textbox not found');
+  
+  if (!resultsContainer || !textbox) {
+    console.error('AI results elements not found');
     return;
   }
 
-  // Ensure textbox is visible
-  textbox.style.display = 'block';
-  textbox.style.visibility = 'visible';
-  textbox.style.opacity = '1';
-
+  // Show the container
+  resultsContainer.classList.remove('hidden');
+  resultsContainer.style.display = 'block';
+  
   // Show loading state
   textbox.value = "🧠 Analyzing your health data...\n\nPlease wait while we process your last 7 days of health metrics...";
   textbox.style.opacity = '0.7';
@@ -1254,12 +1229,13 @@ function displayAnalysisInTextbox(analysis, dayCount, textbox) {
   text += "-".repeat(60) + "\n";
   text += "Remember: This analysis is for informational purposes only. Always consult with your rheumatologist before making changes to your treatment plan. Consider sharing this data during your next appointment.\n";
 
-  // Update textbox
-  textbox.value = text;
-  textbox.style.opacity = '1';
-  
-  // Scroll to top of textbox
-  textbox.scrollTop = 0;
+  // Set the text and make it fully visible
+  if (textbox) {
+    textbox.value = text;
+    textbox.style.opacity = '1';
+    // Scroll to top of textbox
+    textbox.scrollTop = 0;
+  }
 }
 
 function displayAnalysis(analysis, dayCount) {
@@ -2160,6 +2136,7 @@ function switchTab(tabName) {
     selectedTab.classList.add('active');
     selectedTab.style.display = 'block';
     selectedTab.style.visibility = 'visible';
+    selectedTab.style.opacity = '1';
     console.log('Tab activated:', tabName);
   } else {
     console.error('Tab not found:', tabName + 'Tab');
@@ -2186,13 +2163,9 @@ function switchTab(tabName) {
     // Logs are always visible in their tab
   }
   
-  // Special handling for summary tab
-  if (tabName === 'summary') {
-    const textbox = document.getElementById('aiResultsTextbox');
-    if (textbox && !textbox.value) {
-      // Ensure textbox is visible and ready
-      textbox.style.display = 'block';
-    }
+  // Special handling for AI tab - same as other tabs, no special handling needed
+  if (tabName === 'ai') {
+    // Tab will display automatically like other tabs
   }
   
   // Scroll to top smoothly
