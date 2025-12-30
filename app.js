@@ -1131,7 +1131,10 @@ function generateASAdvice(trends, logs) {
   return advice;
 }
 
-function generateAISummary() {
+function generateAISummaryInTab() {
+  // Ensure we're on the summary tab
+  switchTab('summary');
+  
   // Get last 7 entries
   const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
   
@@ -1144,23 +1147,99 @@ function generateAISummary() {
   const sortedLogs = allLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
   const last7Logs = sortedLogs.slice(0, 7).reverse();
 
-  // Close any existing overlay first
-  closeAIOverlay();
-  
-  // Create overlay
-  const overlay = createAIOverlay();
-  
-  // Ensure overlay is visible
-  if (overlay) {
-    overlay.style.display = 'flex';
-    overlay.style.zIndex = '10000';
+  // Get the textbox - wait a bit for tab to be visible
+  setTimeout(() => {
+    const textbox = document.getElementById('aiResultsTextbox');
+    if (!textbox) {
+      console.error('AI results textbox not found');
+      alert('Error: Could not find results textbox. Please refresh the page.');
+      return;
+    }
+
+    // Ensure textbox is visible
+    textbox.style.display = 'block';
+    textbox.style.visibility = 'visible';
+    textbox.style.opacity = '1';
+
+    // Show loading state
+    textbox.value = "🧠 Analyzing your health data...\n\nPlease wait while we process your last 7 days of health metrics...";
+    textbox.style.opacity = '0.7';
+
+    // Analyze the data
+    setTimeout(() => {
+      const analysis = analyzeHealthMetrics(last7Logs);
+      displayAnalysisInTextbox(analysis, last7Logs.length, textbox);
+    }, 1500); // Show loading animation first
+  }, 100);
+}
+
+function generateAISummary() {
+  // Legacy function - redirects to tab version
+  // Switch to summary tab first
+  switchTab('summary');
+  // Then generate
+  setTimeout(() => {
+    generateAISummaryInTab();
+  }, 300);
+}
+
+function displayAnalysisInTextbox(analysis, dayCount, textbox) {
+  let text = `✅ AI Health Analysis Complete (${dayCount} days analyzed)\n\n`;
+  text += "=".repeat(60) + "\n\n";
+
+  // Trends section
+  text += "📈 TREND ANALYSIS\n";
+  text += "-".repeat(60) + "\n";
+  Object.keys(analysis.trends).forEach(metric => {
+    const trend = analysis.trends[metric];
+    const trendIcon = trend.trend > 0.2 ? "📈" : trend.trend < -0.2 ? "📉" : "➡️";
+    const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    text += `${trendIcon} ${metricName}: Average ${trend.average}/10, Current ${trend.current}/10\n`;
+  });
+  text += "\n";
+
+  // Correlations section
+  if (analysis.correlations.length > 0) {
+    text += "🔗 KEY CORRELATIONS\n";
+    text += "-".repeat(60) + "\n";
+    analysis.correlations.forEach(corr => {
+      text += `• ${corr}\n`;
+    });
+    text += "\n";
   }
 
-  // Analyze the data
-  setTimeout(() => {
-    const analysis = analyzeHealthMetrics(last7Logs);
-    displayAnalysis(analysis, last7Logs.length);
-  }, 1500); // Show loading animation first
+  // Anomalies section
+  if (analysis.anomalies.length > 0) {
+    text += "⚠️ AREAS OF CONCERN\n";
+    text += "-".repeat(60) + "\n";
+    analysis.anomalies.forEach(anomaly => {
+      text += `• ${anomaly}\n`;
+    });
+    text += "\n";
+  }
+
+  // Advice section
+  if (analysis.advice.length > 0) {
+    text += "💡 PERSONALIZED RECOMMENDATIONS\n";
+    text += "-".repeat(60) + "\n";
+    analysis.advice.forEach(advice => {
+      // Remove markdown formatting for plain text
+      const cleanAdvice = advice.replace(/\*\*/g, '').replace(/#/g, '');
+      text += `${cleanAdvice}\n\n`;
+    });
+  }
+
+  text += "=".repeat(60) + "\n\n";
+  text += "🏥 GENERAL AS MANAGEMENT\n";
+  text += "-".repeat(60) + "\n";
+  text += "Remember: This analysis is for informational purposes only. Always consult with your rheumatologist before making changes to your treatment plan. Consider sharing this data during your next appointment.\n";
+
+  // Update textbox
+  textbox.value = text;
+  textbox.style.opacity = '1';
+  
+  // Scroll to top of textbox
+  textbox.scrollTop = 0;
 }
 
 function displayAnalysis(analysis, dayCount) {
@@ -2071,9 +2150,29 @@ function switchTab(tabName) {
     }
   }
   
+  // Special handling for summary tab - ensure textbox is visible
+  if (tabName === 'summary') {
+    setTimeout(() => {
+      const textbox = document.getElementById('aiResultsTextbox');
+      if (textbox) {
+        textbox.style.display = 'block';
+        textbox.style.visibility = 'visible';
+      }
+    }, 100);
+  }
+  
   // Special handling for logs tab - ensure it's visible
   if (tabName === 'logs') {
     // Logs are always visible in their tab
+  }
+  
+  // Special handling for summary tab
+  if (tabName === 'summary') {
+    const textbox = document.getElementById('aiResultsTextbox');
+    if (textbox && !textbox.value) {
+      // Ensure textbox is visible and ready
+      textbox.style.display = 'block';
+    }
   }
   
   // Scroll to top smoothly
