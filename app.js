@@ -332,10 +332,29 @@ class FormValidator {
         
         const weight = parseFloat(value);
         if (isNaN(weight)) return 'Weight must be a number';
-        if (weight < 20) return 'Weight cannot be less than 20kg';
-        if (weight > 300) return 'Weight cannot be more than 300kg';
-        if (weight < 40) return 'Weight seems low - please verify this is correct';
-        if (weight > 200) return 'Weight seems high - please verify this is correct';
+        
+        // Convert to kg for validation
+        let weightKg = weight;
+        if (appSettings.weightUnit === 'lb') {
+          weightKg = parseFloat(lbToKg(weight));
+        }
+        
+        if (weightKg < 20) {
+          const minDisplay = appSettings.weightUnit === 'lb' ? '44lb' : '20kg';
+          return `Weight cannot be less than ${minDisplay}`;
+        }
+        if (weightKg > 300) {
+          const maxDisplay = appSettings.weightUnit === 'lb' ? '661lb' : '300kg';
+          return `Weight cannot be more than ${maxDisplay}`;
+        }
+        if (weightKg < 40) {
+          const minDisplay = appSettings.weightUnit === 'lb' ? '88lb' : '40kg';
+          return `Weight seems low - please verify this is correct (min: ${minDisplay})`;
+        }
+        if (weightKg > 200) {
+          const maxDisplay = appSettings.weightUnit === 'lb' ? '441lb' : '200kg';
+          return `Weight seems high - please verify this is correct (max: ${maxDisplay})`;
+        }
         
         return null;
       }
@@ -517,6 +536,81 @@ class FormValidator {
 // Initialize form validator
 const formValidator = new FormValidator();
 
+// Weight unit conversion functions
+function kgToLb(kg) {
+  return (kg * 2.20462).toFixed(1);
+}
+
+function lbToKg(lb) {
+  return (lb / 2.20462).toFixed(1);
+}
+
+function toggleWeightUnit() {
+  const weightInput = document.getElementById('weight');
+  const unitDisplay = document.getElementById('weightUnitDisplay');
+  const currentValue = parseFloat(weightInput.value);
+  
+  if (!isNaN(currentValue) && currentValue > 0) {
+    // Convert current value
+    if (appSettings.weightUnit === 'kg') {
+      // Converting from kg to lb
+      const lbValue = parseFloat(kgToLb(currentValue));
+      weightInput.value = lbValue;
+      appSettings.weightUnit = 'lb';
+      updateWeightInputConstraints();
+    } else {
+      // Converting from lb to kg
+      const kgValue = parseFloat(lbToKg(currentValue));
+      weightInput.value = kgValue;
+      appSettings.weightUnit = 'kg';
+      updateWeightInputConstraints();
+    }
+  } else {
+    // Just toggle the unit if no value
+    appSettings.weightUnit = appSettings.weightUnit === 'kg' ? 'lb' : 'kg';
+    updateWeightInputConstraints();
+  }
+  
+  unitDisplay.textContent = appSettings.weightUnit;
+  saveSettings();
+  
+  // Trigger validation update
+  formValidator.validateField('weight');
+  
+  // Update charts and logs display to reflect new unit
+  renderLogs();
+  updateCharts();
+}
+
+function updateWeightInputConstraints() {
+  const weightInput = document.getElementById('weight');
+  const unitDisplay = document.getElementById('weightUnitDisplay');
+  
+  if (appSettings.weightUnit === 'kg') {
+    weightInput.min = 20;
+    weightInput.max = 300;
+    weightInput.step = 0.1;
+    unitDisplay.textContent = 'kg';
+  } else {
+    // Convert kg ranges to lb: 20kg = 44lb, 300kg = 661lb
+    weightInput.min = 44;
+    weightInput.max = 661;
+    weightInput.step = 0.1;
+    unitDisplay.textContent = 'lb';
+  }
+}
+
+function getWeightInDisplayUnit(weightKg) {
+  if (appSettings.weightUnit === 'lb') {
+    return parseFloat(kgToLb(weightKg));
+  }
+  return parseFloat(weightKg);
+}
+
+function getWeightUnitSuffix() {
+  return appSettings.weightUnit;
+}
+
 
 
 document.getElementById("date").valueAsDate = new Date();
@@ -606,10 +700,16 @@ sliders.forEach(sliderId => {
 function toggleChartView(showCombined) {
   const combinedContainer = document.getElementById('combinedChartContainer');
   const individualContainer = document.getElementById('individualChartsContainer');
+  const individualBtn = document.getElementById('individualViewBtn');
+  const combinedBtn = document.getElementById('combinedViewBtn');
   
   if (showCombined) {
     combinedContainer.classList.remove('hidden');
     individualContainer.classList.add('hidden');
+    
+    // Update button states
+    if (combinedBtn) combinedBtn.classList.add('active');
+    if (individualBtn) individualBtn.classList.remove('active');
     
     // Disconnect chart observer when showing combined view
     if (chartObserver) {
@@ -620,6 +720,10 @@ function toggleChartView(showCombined) {
   } else {
     combinedContainer.classList.add('hidden');
     individualContainer.classList.remove('hidden');
+    
+    // Update button states
+    if (individualBtn) individualBtn.classList.add('active');
+    if (combinedBtn) combinedBtn.classList.remove('active');
     
     // Use lazy loading for individual charts
     updateCharts();
@@ -1189,10 +1293,15 @@ function renderLogs() {
     const div = document.createElement("div");
     div.className = "entry";
     if (isExtreme(log)) div.classList.add("highlight");
+    
+    // Convert weight to display unit (stored as kg)
+    const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
+    const weightUnit = getWeightUnitSuffix();
+    
     div.innerHTML = `
       <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
       <strong>${log.date}</strong><br>
-      BPM: ${log.bpm}, Weight: ${log.weight}kg, Flare-up: ${log.flare}<br>
+      BPM: ${log.bpm}, Weight: ${weightDisplay}${weightUnit}, Flare-up: ${log.flare}<br>
       Fatigue: ${log.fatigue}, Stiffness: ${log.stiffness}, Back Pain: ${log.backPain}, Sleep: ${log.sleep},<br>
       Joint Pain: ${log.jointPain}, Mobility: ${log.mobility}, Daily Activities: ${log.dailyFunction},<br>
       Swelling: ${log.swelling}, Mood: ${log.mood}, Irritability: ${log.irritability}<br>
@@ -1228,10 +1337,17 @@ function chart(id, label, dataField, color) {
   // Prepare data and filter out invalid entries
   const chartData = logs
     .filter(log => log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '')
-    .map(log => ({
-      x: log.date,
-      y: parseFloat(log[dataField]) || 0
-    }))
+    .map(log => {
+      let value = parseFloat(log[dataField]) || 0;
+      // Convert weight to display unit if needed
+      if (dataField === 'weight' && appSettings.weightUnit === 'lb') {
+        value = parseFloat(kgToLb(value));
+      }
+      return {
+        x: log.date,
+        y: value
+      };
+    })
     .sort((a, b) => new Date(a.x) - new Date(b.x));
   
   if (chartData.length === 0) {
@@ -1351,7 +1467,7 @@ function chart(id, label, dataField, color) {
 function getYAxisLabel(dataField) {
   const labels = {
     bpm: 'BPM',
-    weight: 'Weight (kg)',
+    weight: `Weight (${appSettings.weightUnit || 'kg'})`,
     fatigue: 'Level (1-10)',
     stiffness: 'Level (1-10)',
     backPain: 'Level (1-10)',
@@ -1534,10 +1650,16 @@ form.addEventListener("submit", e => {
     return;
   }
   
+  // Get weight value and convert to kg if needed
+  let weightValue = parseFloat(document.getElementById("weight").value);
+  if (appSettings.weightUnit === 'lb') {
+    weightValue = parseFloat(lbToKg(weightValue));
+  }
+  
   const newEntry = {
     date: document.getElementById("date").value,
     bpm: document.getElementById("bpm").value,
-    weight: document.getElementById("weight").value,
+    weight: weightValue.toFixed(1), // Always store as kg
     fatigue: document.getElementById("fatigue").value,
     stiffness: document.getElementById("stiffness").value,
     backPain: document.getElementById("backPain").value,
@@ -1569,25 +1691,38 @@ form.addEventListener("submit", e => {
   renderLogs();
   updateCharts();
   
+  // Switch to logs tab after saving
+  switchTab('logs');
+  
   // Show success message
   const successMsg = document.createElement('div');
+  successMsg.className = 'success-notification';
   successMsg.style.cssText = `
     position: fixed;
     top: 20px;
     right: 20px;
-    background: var(--primary-color);
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
     color: white;
-    padding: 15px 20px;
-    border-radius: 8px;
-    font-weight: bold;
+    padding: 18px 24px;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 1rem;
     z-index: 10000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4), 0 0 20px rgba(76, 175, 80, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1), fadeOut 0.3s ease-out 2.7s forwards;
+    transform: translateX(0);
+    opacity: 1;
   `;
   successMsg.textContent = existingEntry ? 'Entry updated successfully! ✅' : 'Entry saved successfully! ✅';
   document.body.appendChild(successMsg);
   
   setTimeout(() => {
-    successMsg.remove();
+    successMsg.style.animation = 'slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+    setTimeout(() => {
+      successMsg.remove();
+    }, 300);
   }, 3000);
   
   form.reset();
@@ -1628,7 +1763,8 @@ let appSettings = {
   compress: false,
   animations: true,
   lazy: true,
-  userName: ''
+  userName: '',
+  weightUnit: 'kg' // 'kg' or 'lb', always store as kg
 };
 
 // Load settings from localStorage
@@ -1680,6 +1816,19 @@ function applySettings() {
     }, 300);
   }
   
+  // Update chart view buttons
+  const individualBtn = document.getElementById('individualViewBtn');
+  const combinedBtn = document.getElementById('combinedViewBtn');
+  if (individualBtn && combinedBtn) {
+    if (appSettings.combinedChart) {
+      combinedBtn.classList.add('active');
+      individualBtn.classList.remove('active');
+    } else {
+      individualBtn.classList.add('active');
+      combinedBtn.classList.remove('active');
+    }
+  }
+  
   // Update dashboard title
   updateDashboardTitle();
 }
@@ -1700,6 +1849,15 @@ function loadSettingsState() {
   const userNameInput = document.getElementById('userNameInput');
   if (userNameInput && appSettings.userName) {
     userNameInput.value = appSettings.userName;
+  }
+  
+  // Initialize weight unit display and constraints
+  if (appSettings.weightUnit) {
+    const unitDisplay = document.getElementById('weightUnitDisplay');
+    if (unitDisplay) {
+      unitDisplay.textContent = appSettings.weightUnit;
+    }
+    updateWeightInputConstraints();
   }
 }
 
@@ -1783,10 +1941,15 @@ function renderFilteredLogs(filteredLogs) {
     const div = document.createElement("div");
     div.className = "entry";
     if (isExtreme(log)) div.classList.add("highlight");
+    
+    // Convert weight to display unit (stored as kg)
+    const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
+    const weightUnit = getWeightUnitSuffix();
+    
     div.innerHTML = `
       <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
       <strong>${log.date}</strong><br>
-      BPM: ${log.bpm}, Weight: ${log.weight}kg, Flare-up: ${log.flare}<br>
+      BPM: ${log.bpm}, Weight: ${weightDisplay}${weightUnit}, Flare-up: ${log.flare}<br>
       Fatigue: ${log.fatigue}, Stiffness: ${log.stiffness}, Back Pain: ${log.backPain}, Sleep: ${log.sleep},<br>
       Joint Pain: ${log.jointPain}, Mobility: ${log.mobility}, Daily Activities: ${log.dailyFunction},<br>
       Swelling: ${log.swelling}, Mood: ${log.mood}, Irritability: ${log.irritability}<br>
@@ -1801,10 +1964,15 @@ function renderSortedLogs(sortedLogs) {
     const div = document.createElement("div");
     div.className = "entry";
     if (isExtreme(log)) div.classList.add("highlight");
+    
+    // Convert weight to display unit (stored as kg)
+    const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
+    const weightUnit = getWeightUnitSuffix();
+    
     div.innerHTML = `
       <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
       <strong>${log.date}</strong><br>
-      BPM: ${log.bpm}, Weight: ${log.weight}kg, Flare-up: ${log.flare}<br>
+      BPM: ${log.bpm}, Weight: ${weightDisplay}${weightUnit}, Flare-up: ${log.flare}<br>
       Fatigue: ${log.fatigue}, Stiffness: ${log.stiffness}, Back Pain: ${log.backPain}, Sleep: ${log.sleep},<br>
       Joint Pain: ${log.jointPain}, Mobility: ${log.mobility}, Daily Activities: ${log.dailyFunction},<br>
       Swelling: ${log.swelling}, Mood: ${log.mood}, Irritability: ${log.irritability}<br>
@@ -1813,19 +1981,111 @@ function renderSortedLogs(sortedLogs) {
   });
 }
 
+// Collapsible section functionality
+function toggleSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  const header = section?.previousElementSibling;
+  const arrow = header?.querySelector('.section-arrow');
+  
+  if (section && header) {
+    const isOpen = section.classList.contains('open');
+    
+    if (isOpen) {
+      section.classList.remove('open');
+      if (arrow) arrow.textContent = '▶';
+    } else {
+      section.classList.add('open');
+      if (arrow) arrow.textContent = '▼';
+    }
+  }
+}
+
+// Initialize all sections as open by default
+function initializeSections() {
+  const sections = document.querySelectorAll('.section-content');
+  sections.forEach(section => {
+    section.classList.add('open');
+    const header = section.previousElementSibling;
+    const arrow = header?.querySelector('.section-arrow');
+    if (arrow) arrow.textContent = '▼';
+  });
+}
+
+// Tab switching functionality
+function switchTab(tabName) {
+  // Hide all tabs
+  const allTabs = document.querySelectorAll('.tab-content');
+  const allTabBtns = document.querySelectorAll('.tab-btn');
+  
+  allTabs.forEach(tab => {
+    tab.classList.remove('active');
+  });
+  
+  allTabBtns.forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Show selected tab
+  const selectedTab = document.getElementById(tabName + 'Tab');
+  const selectedBtn = document.querySelector(`[data-tab="${tabName}"]`);
+  
+  if (selectedTab) {
+    selectedTab.classList.add('active');
+  }
+  
+  if (selectedBtn) {
+    selectedBtn.classList.add('active');
+  }
+  
+  // Special handling for charts tab
+  if (tabName === 'charts') {
+    const chartSection = document.getElementById('chartSection');
+    if (chartSection) {
+      chartSection.classList.remove('hidden');
+      // Update charts when switching to charts tab
+      setTimeout(() => {
+        updateCharts();
+      }, 200);
+    }
+  }
+  
+  // Special handling for logs tab - ensure it's visible
+  if (tabName === 'logs') {
+    // Logs are always visible in their tab
+  }
+  
+  // Scroll to top smoothly
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 // Initialize the app
 window.addEventListener('load', () => {
   loadSettings();
   renderLogs();
   
-  // Set initial chart state based on settings
-  if (appSettings.showCharts) {
-    document.getElementById('chartSection').classList.remove('hidden');
-    updateCharts();
+  // Initialize weight unit
+  if (!appSettings.weightUnit) {
+    appSettings.weightUnit = 'kg';
+    saveSettings();
   }
+  updateWeightInputConstraints();
   
   // Prepopulate date filters with last 7 days
   initializeDateFilters();
+  
+  // Show charts tab content if charts are enabled
+  if (appSettings.showCharts) {
+    const chartSection = document.getElementById('chartSection');
+    if (chartSection) {
+      chartSection.classList.remove('hidden');
+    }
+  }
+  
+  // Initialize on log entry tab
+  switchTab('log');
+  
+  // Initialize collapsible sections
+  initializeSections();
 });
 
 function initializeDateFilters() {
