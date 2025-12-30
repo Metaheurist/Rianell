@@ -42,31 +42,77 @@
       <h1 id="dashboardTitle">Health Dashboard</h1>
       <div class="heartbeat-line"></div>
     </div>
-    <form id="logForm">
+
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button class="tab-btn active" data-tab="log" onclick="switchTab('log')">
+        <span class="tab-icon">📝</span>
+        <span class="tab-text">Log Entry</span>
+      </button>
+      <button class="tab-btn" data-tab="logs" onclick="switchTab('logs')">
+        <span class="tab-icon">📋</span>
+        <span class="tab-text">View Logs</span>
+      </button>
+      <button class="tab-btn" data-tab="charts" onclick="switchTab('charts')">
+        <span class="tab-icon">📊</span>
+        <span class="tab-text">Charts</span>
+      </button>
+      <button class="tab-btn" data-tab="summary" onclick="switchTab('summary')">
+        <span class="tab-icon">🧠</span>
+        <span class="tab-text">AI Summary</span>
+      </button>
+    </div>
+
+    <!-- Log Entry Tab -->
+    <div id="logTab" class="tab-content active">
+      <form id="logForm">
       <div id="validationSummary" class="form-validation-summary">
         <h4>⚠️ Please fix the following errors:</h4>
         <ul id="validationList"></ul>
       </div>
 
-      <label for="date">Date</label>
-      <div class="input-container">
-        <input type="date" id="date" required autofocus />
-        <div class="validation-message" id="date-error"></div>
+      <!-- Basic Metrics Section -->
+      <div class="form-section">
+        <button type="button" class="section-header" onclick="toggleSection('basicMetrics')">
+          <span class="section-icon">📊</span>
+          <span class="section-title">Basic Metrics</span>
+          <span class="section-arrow">▼</span>
+        </button>
+        <div class="section-content" id="basicMetrics">
+          <label for="date">Date</label>
+          <div class="input-container">
+            <input type="date" id="date" required autofocus />
+            <div class="validation-message" id="date-error"></div>
+          </div>
+
+          <label for="bpm">Resting BPM</label>
+          <div class="input-container">
+            <input type="number" id="bpm" min="30" max="120" required />
+            <div class="validation-message" id="bpm-error"></div>
+          </div>
+
+          <div class="weight-label-container">
+            <label for="weight">Weight</label>
+            <button type="button" id="weightUnitToggle" class="unit-toggle-btn" onclick="toggleWeightUnit()" title="Toggle between kg and lb">
+              <span id="weightUnitDisplay">kg</span>
+            </button>
+          </div>
+          <div class="input-container">
+            <input type="number" id="weight" min="40" max="200" step="0.1" required />
+            <div class="validation-message" id="weight-error"></div>
+          </div>
+        </div>
       </div>
 
-      <label for="bpm">Resting BPM</label>
-      <div class="input-container">
-        <input type="number" id="bpm" min="30" max="120" required />
-        <div class="validation-message" id="bpm-error"></div>
-      </div>
-
-      <label for="weight">Weight (kg)</label>
-      <div class="input-container">
-        <input type="number" id="weight" min="40" max="200" step="0.1" required />
-        <div class="validation-message" id="weight-error"></div>
-      </div>
-
-      <div class="slider-container">
+      <!-- Symptoms Section -->
+      <div class="form-section">
+        <button type="button" class="section-header" onclick="toggleSection('symptoms')">
+          <span class="section-icon">🩺</span>
+          <span class="section-title">Symptoms & Pain</span>
+          <span class="section-arrow">▼</span>
+        </button>
+        <div class="section-content" id="symptoms">
+          <div class="slider-container">
         <input type="range" id="fatigue" min="1" max="10" step="1" />
         <label for="fatigue" class="slider-label">Fatigue Level</label>
       </div>
@@ -111,54 +157,86 @@
         <label for="mood" class="slider-label">Mood Level</label>
       </div>
 
-      <div class="slider-container">
-        <input type="range" id="irritability" min="1" max="10" step="1" />
-        <label for="irritability" class="slider-label">Irritability</label>
-      </div>
-
-      <label for="flare">Flare-up Today?</label>
-      <div class="input-container">
-        <select id="flare" required>
-          <option value="">Select an option</option>
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-        <div class="validation-message" id="flare-error"></div>
-      </div>
-
-      <label for="notes">Notes (Optional) <span id="notesCounter" class="character-counter">0/500</span></label>
-      <div class="input-container">
-        <textarea id="notes" placeholder="Tap here and use voice dictation to quickly add notes about your symptoms, triggers, or activities..." maxlength="500"></textarea>
-        <div class="validation-message" id="notes-error"></div>
-      </div>
-
-      <button type="submit">Save Entry</button>
-    </form>
-
-    <hr style="margin: 2rem 0; border: none; border-top: 2px solid var(--primary-color); opacity: 0.5;">
-
-    <h2>Log Entries</h2>
-    <div class="filter-section">
-      <div class="compact-filters">
-        <div class="date-range">
-          <input type="date" id="startDate" placeholder="Start Date">
-          <span class="date-separator">to</span>
-          <input type="date" id="endDate" placeholder="End Date">
+          <div class="slider-container">
+            <input type="range" id="irritability" min="1" max="10" step="1" />
+            <label for="irritability" class="slider-label">Irritability</label>
+          </div>
         </div>
-        <button onclick="filterLogs()" class="filter-btn">📅 Filter</button>
-        <button id="sortButton" onclick="toggleSort()" class="sort-btn" title="Click to toggle sort order">
-          📈 <span id="sortOrder">Newest</span>
-        </button>
       </div>
-    </div>
-    <div id="logOutput"></div>
 
-    <div class="button-container">
-      <button class="export-button" onclick="generateAISummary()">🧠 Generate AI Summary</button>
+      <!-- Additional Info Section -->
+      <div class="form-section">
+        <button type="button" class="section-header" onclick="toggleSection('additionalInfo')">
+          <span class="section-icon">📝</span>
+          <span class="section-title">Additional Information</span>
+          <span class="section-arrow">▼</span>
+        </button>
+        <div class="section-content" id="additionalInfo">
+          <label for="flare">Flare-up Today?</label>
+          <div class="input-container">
+            <select id="flare" required>
+              <option value="">Select an option</option>
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+            <div class="validation-message" id="flare-error"></div>
+          </div>
+
+          <label for="notes">Notes (Optional) <span id="notesCounter" class="character-counter">0/500</span></label>
+          <div class="input-container">
+            <textarea id="notes" placeholder="Tap here and use voice dictation to quickly add notes about your symptoms, triggers, or activities..." maxlength="500"></textarea>
+            <div class="validation-message" id="notes-error"></div>
+          </div>
+        </div>
+      </div>
+
+        <button type="submit" class="save-entry-btn">💾 Save Entry</button>
+      </form>
     </div>
-    <div id="chartSection" class="hidden">
-      <h2>Data Visualisation</h2>
-      
+
+    <!-- View Logs Tab -->
+    <div id="logsTab" class="tab-content">
+      <div class="tab-header">
+        <h2>Log Entries</h2>
+        <div class="tab-actions">
+          <button class="action-btn" onclick="exportData()" title="Export to CSV">
+            <span>📤</span> Export
+          </button>
+          <button class="action-btn" onclick="importData()" title="Import from CSV">
+            <span>📥</span> Import
+          </button>
+        </div>
+      </div>
+      <div class="filter-section">
+        <div class="compact-filters">
+          <div class="date-range">
+            <input type="date" id="startDate" placeholder="Start Date">
+            <span class="date-separator">to</span>
+            <input type="date" id="endDate" placeholder="End Date">
+          </div>
+          <button onclick="filterLogs()" class="filter-btn">📅 Filter</button>
+          <button id="sortButton" onclick="toggleSort()" class="sort-btn" title="Click to toggle sort order">
+            📈 <span id="sortOrder">Newest</span>
+          </button>
+        </div>
+      </div>
+      <div id="logOutput"></div>
+    </div>
+
+    <!-- Charts Tab -->
+    <div id="chartsTab" class="tab-content">
+      <div class="tab-header">
+        <h2>Data Visualisation</h2>
+        <div class="chart-view-toggle">
+          <button class="view-toggle-btn" onclick="toggleChartView(false)" id="individualViewBtn">
+            <span>📊</span> Individual
+          </button>
+          <button class="view-toggle-btn" onclick="toggleChartView(true)" id="combinedViewBtn">
+            <span>📈</span> Combined
+          </button>
+        </div>
+      </div>
+      <div id="chartSection">
       <!-- Combined Chart View -->
       <div id="combinedChartContainer" class="chart-container hidden">
         <div id="combinedChart"></div>
