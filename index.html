@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Health Dashboard</title>
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#4caf50">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Health Tracker">
+  <meta name="msapplication-TileColor" content="#4caf50">
+  <meta name="msapplication-tap-highlight" content="no">
+  
+  <!-- Apple Touch Icons -->
+  <link rel="apple-touch-icon" href="Icons/Icon-180.png">
+  <link rel="apple-touch-icon" sizes="57x57" href="Icons/Icon-57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="Icons/Icon-60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="Icons/Icon-72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="Icons/Icon-76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="Icons/Icon-114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="Icons/Icon-120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="Icons/Icon-144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="Icons/Icon-152.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="Icons/Icon-167.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="Icons/Icon-180.png">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="Icons/Icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="Icons/Icon-16.png">
+  
+  <script src="apexcharts.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="title-container">
+      <h1 id="dashboardTitle">Health Dashboard</h1>
+      <div class="heartbeat-line"></div>
+    </div>
+    <form id="logForm">
+      <div id="validationSummary" class="form-validation-summary">
+        <h4>⚠️ Please fix the following errors:</h4>
+        <ul id="validationList"></ul>
+      </div>
+
+      <label for="date">Date</label>
+      <div class="input-container">
+        <input type="date" id="date" required autofocus />
+        <div class="validation-message" id="date-error"></div>
+      </div>
+
+      <label for="bpm">Resting BPM</label>
+      <div class="input-container">
+        <input type="number" id="bpm" min="30" max="120" required />
+        <div class="validation-message" id="bpm-error"></div>
+      </div>
+
+      <label for="weight">Weight (kg)</label>
+      <div class="input-container">
+        <input type="number" id="weight" min="40" max="200" step="0.1" required />
+        <div class="validation-message" id="weight-error"></div>
+      </div>
+
+      <div class="slider-container">
+        <input type="range" id="fatigue" min="1" max="10" step="1" />
+        <label for="fatigue" class="slider-label">Fatigue Level</label>
+      </div>
+
+      <div class="slider-container">
+        <input type="range" id="stiffness" min="1" max="10" step="1" />
+        <label for="stiffness" class="slider-label">Stiffness Level</label>
+      </div>
+
+      <div class="slider-container">
+        <input type="range" id="backPain" min="1" max="10" step="1" />
+        <label for="backPain" class="slider-label">Back Pain Level</label>
+      </div>
+
+      <div class="slider-container">
+        <input type="range" id="sleep" min="1" max="10" step="1" />
+        <label for="sleep" class="slider-label">Sleep Quality</label>
+      </div>
+
+      <div class="slider-container">
+        <input type="range" id="jointPain" min="1" max="10" step="1" />
+        <label for="jointPain" class="slider-label">Joint Pain</label>
+      </div>
+
+      <div class="slider-container">
+        <input type="range" id="mobility" min="1" max="10" step="1" />
+        <label for="mobility" class="slider-label">Mobility</label>
+      </div>
+
+      <div class="slider-container">
+        <input type="range" id="dailyFunction" min="1" max="10" step="1" />
+        <label for="dailyFunction" class="slider-label">Daily Activities</label>
+      </div>
+
+      <div class="slider-container">
+        <input type="range" id="swelling" min="1" max="10" step="1" />
+        <label for="swelling" class="slider-label">Joint Swelling</label>
+      </div>
+
+      <div class="slider-container">
+        <input type="range" id="mood" min="1" max="10" step="1" />
+        <label for="mood" class="slider-label">Mood Level</label>
+      </div>
+
+      <div class="slider-container">
+        <input type="range" id="irritability" min="1" max="10" step="1" />
+        <label for="irritability" class="slider-label">Irritability</label>
+      </div>
+
+      <label for="flare">Flare-up Today?</label>
+      <div class="input-container">
+        <select id="flare" required>
+          <option value="">Select an option</option>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+        <div class="validation-message" id="flare-error"></div>
+      </div>
+
+      <label for="notes">Notes (Optional) <span id="notesCounter" class="character-counter">0/500</span></label>
+      <div class="input-container">
+        <textarea id="notes" placeholder="Tap here and use voice dictation to quickly add notes about your symptoms, triggers, or activities..." maxlength="500"></textarea>
+        <div class="validation-message" id="notes-error"></div>
+      </div>
+
+      <button type="submit">Save Entry</button>
+    </form>
+
+    <hr style="margin: 2rem 0; border: none; border-top: 2px solid var(--primary-color); opacity: 0.5;">
+
+    <h2>Log Entries</h2>
+    <div class="filter-section">
+      <div class="compact-filters">
+        <div class="date-range">
+          <input type="date" id="startDate" placeholder="Start Date">
+          <span class="date-separator">to</span>
+          <input type="date" id="endDate" placeholder="End Date">
+        </div>
+        <button onclick="filterLogs()" class="filter-btn">📅 Filter</button>
+        <button id="sortButton" onclick="toggleSort()" class="sort-btn" title="Click to toggle sort order">
+          📈 <span id="sortOrder">Newest</span>
+        </button>
+      </div>
+    </div>
+    <div id="logOutput"></div>
+
+    <div class="button-container">
+      <button class="export-button" onclick="generateAISummary()">🧠 Generate AI Summary</button>
+    </div>
+    <div id="chartSection" class="hidden">
+      <h2>Data Visualisation</h2>
+      
+      <!-- Combined Chart View -->
+      <div id="combinedChartContainer" class="chart-container hidden">
+        <div id="combinedChart"></div>
+      </div>
+      
+      <!-- Individual Charts View -->
+      <div id="individualChartsContainer">
+        <div id="bpmChart" class="chart-container lazy-chart" data-chart-type="bpm">
+          <div class="chart-loading">📊 Loading BPM Chart...</div>
+        </div>
+        <div id="weightChart" class="chart-container lazy-chart" data-chart-type="weight">
+          <div class="chart-loading">📊 Loading Weight Chart...</div>
+        </div>
+        <div id="fatigueChart" class="chart-container lazy-chart" data-chart-type="fatigue">
+          <div class="chart-loading">📊 Loading Fatigue Chart...</div>
+        </div>
+        <div id="stiffnessChart" class="chart-container lazy-chart" data-chart-type="stiffness">
+          <div class="chart-loading">📊 Loading Stiffness Chart...</div>
+        </div>
+        <div id="backPainChart" class="chart-container lazy-chart" data-chart-type="backPain">
+          <div class="chart-loading">📊 Loading Back Pain Chart...</div>
+        </div>
+        <div id="sleepChart" class="chart-container lazy-chart" data-chart-type="sleep">
+          <div class="chart-loading">📊 Loading Sleep Chart...</div>
+        </div>
+        <div id="jointPainChart" class="chart-container lazy-chart" data-chart-type="jointPain">
+          <div class="chart-loading">📊 Loading Joint Pain Chart...</div>
+        </div>
+        <div id="mobilityChart" class="chart-container lazy-chart" data-chart-type="mobility">
+          <div class="chart-loading">📊 Loading Mobility Chart...</div>
+        </div>
+        <div id="dailyFunctionChart" class="chart-container lazy-chart" data-chart-type="dailyFunction">
+          <div class="chart-loading">📊 Loading Daily Function Chart...</div>
+        </div>
+        <div id="swellingChart" class="chart-container lazy-chart" data-chart-type="swelling">
+          <div class="chart-loading">📊 Loading Swelling Chart...</div>
+        </div>
+        <div id="moodChart" class="chart-container lazy-chart" data-chart-type="mood">
+          <div class="chart-loading">📊 Loading Mood Chart...</div>
+        </div>
+        <div id="irritabilityChart" class="chart-container lazy-chart" data-chart-type="irritability">
+          <div class="chart-loading">📊 Loading Irritability Chart...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Settings Button -->
+  <button class="settings-button" onclick="toggleSettings()">
+    <div class="gear-icon"></div>
+  </button>
+
+  <!-- Settings Menu Overlay -->
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-menu">
+      <div class="settings-header">
+        <h3 class="settings-title">Settings</h3>
+        <button class="settings-close" onclick="toggleSettings()">&times;</button>
+      </div>
+      
+      <div class="settings-section">
+        <h4>👤 Personal Settings</h4>
+        <div class="settings-option">
+          <label for="userNameInput">Your Name</label>
+          <input type="text" id="userNameInput" placeholder="Enter your name..." onchange="updateUserName()" />
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>📊 Display Options</h4>
+        <div class="settings-option">
+          <label>Show charts</label>
+          <div class="toggle-switch" id="showChartsToggle" onclick="toggleSetting('showCharts')"></div>
+        </div>
+        <div class="settings-option">
+          <label>Combined chart view</label>
+          <div class="toggle-switch" id="combinedChartToggle" onclick="toggleSetting('combinedChart')"></div>
+        </div>
+        <div class="settings-option">
+          <label>Show today's reminder</label>
+          <div class="toggle-switch" id="reminderToggle" onclick="toggleSetting('reminder')"></div>
+        </div>
+        <div class="settings-option">
+          <label>Enable sound notifications</label>
+          <div class="toggle-switch" id="soundToggle" onclick="toggleSetting('sound')"></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>🎨 Theme Options</h4>
+        <div class="settings-option">
+          <label>Dark mode</label>
+          <div class="toggle-switch active" id="darkModeToggle" onclick="toggleSetting('darkMode')"></div>
+        </div>
+
+      </div>
+
+      <div class="settings-section">
+        <h4>📱 Data Options</h4>
+        <div class="settings-option">
+          <label>Auto-backup to localStorage</label>
+          <div class="toggle-switch active" id="backupToggle" onclick="toggleSetting('backup')"></div>
+        </div>
+        <div class="settings-option">
+          <label>Compress chart data</label>
+          <div class="toggle-switch" id="compressToggle" onclick="toggleSetting('compress')"></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>⚡ Performance</h4>
+        <div class="settings-option">
+          <label>Enable animations</label>
+          <div class="toggle-switch active" id="animationsToggle" onclick="toggleSetting('animations')"></div>
+        </div>
+        <div class="settings-option">
+          <label>Lazy load charts</label>
+          <div class="toggle-switch active" id="lazyToggle" onclick="toggleSetting('lazy')"></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>📱 App Installation</h4>
+        <div class="settings-option">
+          <button class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA()">📱 Install as Standalone App</button>
+        </div>
+        <div class="settings-option">
+          <button class="settings-data-btn launch-app-btn" onclick="openInStandalone()">🚀 Open in Standalone Mode</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>💾 Data Management</h4>
+        <div class="data-management-buttons">
+          <button class="settings-data-btn export-btn" onclick="exportData()">📤 Export Data</button>
+          <button class="settings-data-btn import-btn" onclick="importData()">📥 Import Data</button>
+        </div>
+        <div class="danger-zone">
+          <button class="settings-data-btn danger-btn" onclick="clearData()">🗑️ Clear All Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

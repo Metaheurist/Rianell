@@ -1,0 +1,1856 @@
+// PWA Service Worker Registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => {
+        console.log('PWA: Service Worker registered successfully:', registration.scope);
+        
+        // Check for updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New content is available, notify user
+              showUpdateNotification();
+            }
+          });
+        });
+      })
+      .catch(error => {
+        console.log('PWA: Service Worker registration failed:', error);
+      });
+  });
+}
+
+// PWA Install Prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  console.log('PWA: Install prompt triggered');
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallButton();
+});
+
+function showInstallButton() {
+  // Create install button if it doesn't exist
+  if (!document.getElementById('installButton')) {
+    const installButton = document.createElement('button');
+    installButton.id = 'installButton';
+    installButton.textContent = '📱 Install App';
+    installButton.className = 'export-button';
+    installButton.style.marginTop = '10px';
+    installButton.onclick = installPWA;
+    
+    // Add to button container
+    const buttonContainer = document.querySelector('.button-container');
+    buttonContainer.appendChild(installButton);
+  }
+}
+
+function installPWA() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('PWA: User accepted the install prompt');
+        hideInstallButton();
+      } else {
+        console.log('PWA: User dismissed the install prompt');
+      }
+      deferredPrompt = null;
+    });
+  }
+}
+
+function hideInstallButton() {
+  const installButton = document.getElementById('installButton');
+  if (installButton) {
+    installButton.remove();
+  }
+}
+
+// Enhanced PWA functions for settings menu
+function installOrLaunchPWA() {
+  // Debug info
+  console.log('PWA Install Debug:', {
+    isStandalone: window.matchMedia('(display-mode: standalone)').matches,
+    isAppleStandalone: window.navigator.standalone,
+    hasDeferredPrompt: !!deferredPrompt,
+    protocol: window.location.protocol,
+    userAgent: navigator.userAgent
+  });
+  
+  // Check if app is already installed
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    alert('App is already running in standalone mode! 🎉');
+    return;
+  }
+  
+  // Check if running as PWA (Safari)
+  if (window.navigator.standalone === true) {
+    alert('App is already installed as PWA! 🎉');
+    return;
+  }
+  
+  // Try to install if prompt is available
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('PWA: User accepted the install prompt');
+        alert('App installed successfully! 📱\nLook for "Jan\'s Health Dashboard" in your apps.');
+        hideInstallButton();
+      } else {
+        console.log('PWA: User dismissed the install prompt');
+      }
+      deferredPrompt = null;
+    });
+  } else {
+    // Check why install prompt is not available
+    const protocol = window.location.protocol;
+    if (protocol === 'file:') {
+      showFileProtocolHelp();
+    } else {
+      showInstallInstructions();
+    }
+  }
+}
+
+function showFileProtocolHelp() {
+  const helpText = `⚠️ PWA Installation Limitation
+
+Chrome requires HTTPS or localhost to show the automatic install prompt.
+
+🔧 Solutions:
+
+1. **Run a Local Server** (Recommended):
+   • Open Command Prompt in this folder
+   • Run: python -m http.server 8000
+   • Open: http://localhost:8000
+
+2. **Manual Installation**:
+   • Chrome Menu (⋮) → More Tools → Create Shortcut
+   • Check "Open as window" ✅
+   
+3. **Use Edge Browser**:
+   • Edge works better with file:// for PWA installation
+
+4. **Upload to Web Hosting**:
+   • Host on GitHub Pages, Netlify, etc.
+
+Would you like manual installation instructions instead?`;
+  
+  if (confirm(helpText + '\n\nShow manual installation steps?')) {
+    showInstallInstructions();
+  }
+}
+
+function openInStandalone() {
+  const currentUrl = window.location.href;
+  const standaloneUrl = currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'standalone=true';
+  
+  // Try to open in new window with app-like properties
+  const newWindow = window.open(standaloneUrl, 'HealthDashboard', 
+    'width=400,height=800,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes'
+  );
+  
+  if (newWindow) {
+    alert('Opening in standalone mode! 🚀\nClose this window and use the new one.');
+    // Focus the new window
+    newWindow.focus();
+  } else {
+    alert('⚠️ Popup blocked!\nPlease allow popups for this site and try again.');
+  }
+}
+
+function showInstallInstructions() {
+  const userAgent = navigator.userAgent.toLowerCase();
+  let instructions = '';
+  
+  if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
+    instructions = `
+📱 Install on Chrome:
+
+METHOD 1 - Create Shortcut:
+1. Click ⋮ menu (top right)
+2. More Tools → Create Shortcut
+3. Name: "Your's Health Dashboard"
+4. ✅ Check "Open as window"
+5. Click "Create"
+
+METHOD 2 - Install Button:
+• Look for install icon (⊞) in address bar
+• Or ⋮ menu → "Install Jan's Health Dashboard"
+
+NOTE: Automatic install works best with:
+• http://localhost:8000 (local server)
+• Or hosted website (https://)
+    `;
+  } else if (userAgent.includes('firefox')) {
+    instructions = `
+📱 Install on Firefox:
+1. Click the ☰ menu (top right)
+2. Select "Install this site as an app"
+3. Choose a name and click "Install"
+    `;
+  } else if (userAgent.includes('safari')) {
+    instructions = `
+📱 Install on Safari:
+1. Tap the Share button (□↗)
+2. Scroll down and tap "Add to Home Screen"
+3. Tap "Add" to install
+    `;
+  } else if (userAgent.includes('edg')) {
+    instructions = `
+📱 Install on Edge:
+1. Click the ⋯ menu (top right)
+2. Select "Apps" > "Install this site as an app"
+3. Click "Install"
+    `;
+  } else {
+    instructions = `
+📱 Install Instructions:
+Look for an "Install" or "Add to Home Screen" option in your browser's menu.
+
+Most modern browsers support installing web apps!
+    `;
+  }
+  
+  alert(instructions);
+}
+
+function showUpdateNotification() {
+  const updateBanner = document.createElement('div');
+  updateBanner.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--primary-color);
+    color: white;
+    padding: 15px;
+    text-align: center;
+    z-index: 10000;
+    font-weight: bold;
+  `;
+  updateBanner.innerHTML = `
+    New version available! 
+    <button onclick="location.reload()" style="margin-left: 10px; padding: 5px 10px; background: white; color: var(--primary-color); border: none; border-radius: 4px; cursor: pointer;">
+      Update Now
+    </button>
+    <button onclick="this.parentElement.remove()" style="margin-left: 5px; padding: 5px 10px; background: transparent; color: white; border: 1px solid white; border-radius: 4px; cursor: pointer;">
+      Later
+    </button>
+  `;
+  document.body.insertBefore(updateBanner, document.body.firstChild);
+}
+
+// Handle PWA shortcuts
+window.addEventListener('DOMContentLoaded', function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  if (urlParams.get('quick') === 'true') {
+    // Focus on first input for quick entry
+    document.getElementById('date').focus();
+  }
+  
+  if (urlParams.get('charts') === 'true') {
+    // Show charts immediately
+    document.getElementById('chartSection').classList.remove('hidden');
+  }
+
+  // Check if there's a log entry for today, and if not, show an alert
+  const logs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${yyyy}-${mm}-${dd}`;
+  const hasToday = logs.some(log => log.date === todayStr);
+  if (!hasToday) {
+    // Only show alert if not installed as PWA to avoid annoying notifications
+    if (!window.matchMedia('(display-mode: standalone)').matches) {
+      alert("You have not logged an entry for today.");
+    }
+  }
+});
+
+// Form Validation System
+class FormValidator {
+  constructor() {
+    this.errors = new Map();
+    this.rules = new Map();
+    this.setupValidationRules();
+    this.bindValidationEvents();
+  }
+
+  setupValidationRules() {
+    // Date validation
+    this.rules.set('date', {
+      required: true,
+      validate: (value) => {
+        if (!value) return 'Date is required';
+        
+        const selectedDate = new Date(value);
+        const today = new Date();
+        const maxPastDate = new Date();
+        maxPastDate.setFullYear(today.getFullYear() - 5); // 5 years ago max
+        
+        if (selectedDate > today) {
+          return 'Date cannot be in the future';
+        }
+        
+        if (selectedDate < maxPastDate) {
+          return 'Date cannot be more than 5 years ago';
+        }
+        
+        return null;
+      }
+    });
+
+    // BPM validation
+    this.rules.set('bpm', {
+      required: true,
+      validate: (value) => {
+        if (!value) return 'Resting BPM is required';
+        
+        const bpm = parseInt(value);
+        if (isNaN(bpm)) return 'BPM must be a number';
+        if (bpm < 30) return 'BPM cannot be less than 30';
+        if (bpm > 200) return 'BPM cannot be more than 200 (please check this value)';
+        if (bpm > 120) return 'High BPM detected - please verify this is correct';
+        
+        return null;
+      }
+    });
+
+    // Weight validation
+    this.rules.set('weight', {
+      required: true,
+      validate: (value) => {
+        if (!value) return 'Weight is required';
+        
+        const weight = parseFloat(value);
+        if (isNaN(weight)) return 'Weight must be a number';
+        if (weight < 20) return 'Weight cannot be less than 20kg';
+        if (weight > 300) return 'Weight cannot be more than 300kg';
+        if (weight < 40) return 'Weight seems low - please verify this is correct';
+        if (weight > 200) return 'Weight seems high - please verify this is correct';
+        
+        return null;
+      }
+    });
+
+    // Flare validation
+    this.rules.set('flare', {
+      required: true,
+      validate: (value) => {
+        if (!value || value === '') return 'Please select if you had a flare-up today';
+        if (!['Yes', 'No'].includes(value)) return 'Invalid flare-up selection';
+        return null;
+      }
+    });
+
+    // Notes validation (optional but with length limit)
+    this.rules.set('notes', {
+      required: false,
+      validate: (value) => {
+        if (value && value.length > 500) {
+          return 'Notes cannot be longer than 500 characters';
+        }
+        return null;
+      }
+    });
+
+    // Slider validations (fatigue, stiffness, etc.)
+    const sliderFields = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability'];
+    sliderFields.forEach(field => {
+      this.rules.set(field, {
+        required: true,
+        validate: (value) => {
+          const val = parseInt(value);
+          if (isNaN(val)) return `${this.getFieldDisplayName(field)} level is required`;
+          if (val < 1 || val > 10) return `${this.getFieldDisplayName(field)} level must be between 1 and 10`;
+          return null;
+        }
+      });
+    });
+  }
+
+  getFieldDisplayName(fieldId) {
+    const names = {
+      'fatigue': 'Fatigue',
+      'stiffness': 'Stiffness',
+      'backPain': 'Back Pain',
+      'sleep': 'Sleep Quality',
+      'jointPain': 'Joint Pain',
+      'mobility': 'Mobility',
+      'dailyFunction': 'Daily Function',
+      'swelling': 'Swelling',
+      'mood': 'Mood',
+      'irritability': 'Irritability'
+    };
+    return names[fieldId] || fieldId;
+  }
+
+  bindValidationEvents() {
+    // Real-time validation on input/change events
+    this.rules.forEach((rule, fieldId) => {
+      const element = document.getElementById(fieldId);
+      if (element) {
+        const events = element.tagName === 'SELECT' ? ['change'] : ['input', 'blur'];
+        events.forEach(event => {
+          element.addEventListener(event, () => {
+            this.validateField(fieldId);
+          });
+        });
+      }
+    });
+  }
+
+  validateField(fieldId) {
+    const element = document.getElementById(fieldId);
+    const rule = this.rules.get(fieldId);
+    
+    if (!element || !rule) return true;
+
+    const value = element.value.trim();
+    const error = rule.validate(value);
+
+    if (error) {
+      this.setFieldError(fieldId, error);
+      return false;
+    } else {
+      this.clearFieldError(fieldId);
+      return true;
+    }
+  }
+
+  setFieldError(fieldId, message) {
+    this.errors.set(fieldId, message);
+    
+    const element = document.getElementById(fieldId);
+    const errorElement = document.getElementById(`${fieldId}-error`);
+    
+    if (element) {
+      element.classList.remove('valid');
+      element.classList.add('invalid');
+    }
+    
+    if (errorElement) {
+      errorElement.textContent = message;
+      errorElement.classList.add('show');
+    }
+    
+    this.updateValidationSummary();
+  }
+
+  clearFieldError(fieldId) {
+    this.errors.delete(fieldId);
+    
+    const element = document.getElementById(fieldId);
+    const errorElement = document.getElementById(`${fieldId}-error`);
+    
+    if (element) {
+      element.classList.remove('invalid');
+      element.classList.add('valid');
+    }
+    
+    if (errorElement) {
+      errorElement.classList.remove('show');
+    }
+    
+    this.updateValidationSummary();
+  }
+
+  updateValidationSummary() {
+    const summaryElement = document.getElementById('validationSummary');
+    const listElement = document.getElementById('validationList');
+    
+    if (this.errors.size === 0) {
+      summaryElement.classList.remove('show');
+      return;
+    }
+    
+    listElement.innerHTML = '';
+    this.errors.forEach((message, fieldId) => {
+      const li = document.createElement('li');
+      li.textContent = message;
+      listElement.appendChild(li);
+    });
+    
+    summaryElement.classList.add('show');
+  }
+
+  validateForm() {
+    let isValid = true;
+    
+    this.rules.forEach((rule, fieldId) => {
+      if (!this.validateField(fieldId)) {
+        isValid = false;
+      }
+    });
+    
+    return isValid;
+  }
+
+  clearAllErrors() {
+    this.errors.clear();
+    
+    this.rules.forEach((rule, fieldId) => {
+      const element = document.getElementById(fieldId);
+      const errorElement = document.getElementById(`${fieldId}-error`);
+      
+      if (element) {
+        element.classList.remove('valid', 'invalid');
+      }
+      
+      if (errorElement) {
+        errorElement.classList.remove('show');
+      }
+    });
+    
+    this.updateValidationSummary();
+  }
+}
+
+// Initialize form validator
+const formValidator = new FormValidator();
+
+
+
+document.getElementById("date").valueAsDate = new Date();
+document.getElementById("flare").value = "No"; // Set default flare value
+
+// Add character counter for notes field
+const notesField = document.getElementById("notes");
+const notesCounter = document.getElementById("notesCounter");
+
+function updateNotesCounter() {
+  const currentLength = notesField.value.length;
+  notesCounter.textContent = `${currentLength}/500`;
+  
+  if (currentLength > 450) {
+    notesCounter.style.color = '#f44336';
+  } else if (currentLength > 400) {
+    notesCounter.style.color = '#ff9800';
+  } else {
+    notesCounter.style.color = '';
+  }
+}
+
+notesField.addEventListener('input', updateNotesCounter);
+
+const form = document.getElementById("logForm");
+const output = document.getElementById("logOutput");
+const chartSection = document.getElementById("chartSection");
+
+// Initialize slider colors and add event listeners
+const sliders = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability'];
+
+function updateSliderColor(slider) {
+  const value = parseInt(slider.value);
+  const percentage = (value / 10) * 100;
+  
+  // Sliders where HIGH values are GOOD (inverted colors)
+  const invertedSliders = ['sleep', 'mobility', 'dailyFunction'];
+  const isInverted = invertedSliders.includes(slider.id);
+  
+  let fillColor;
+  
+  if (isInverted) {
+    // For positive metrics: high = green, low = red
+    if (value >= 8 && value <= 10) {
+      fillColor = '#4CAF50'; // Green
+    } else if (value >= 4 && value <= 7) {
+      fillColor = '#FF9800'; // Orange
+    } else if (value >= 1 && value <= 3) {
+      fillColor = '#F44336'; // Red
+    }
+  } else {
+    // For negative metrics: high = red, low = green
+    if (value >= 1 && value <= 3) {
+      fillColor = '#4CAF50'; // Green
+    } else if (value >= 4 && value <= 7) {
+      fillColor = '#FF9800'; // Orange
+    } else if (value >= 8 && value <= 10) {
+      fillColor = '#F44336'; // Red
+    }
+  }
+  
+  // Create gradient background that fills to the current value
+  const gradient = `linear-gradient(to right, ${fillColor} 0%, ${fillColor} ${percentage}%, #333 ${percentage}%, #333 100%)`;
+  slider.style.background = gradient;
+  
+  // Remove old classes and add new one for any additional styling
+  slider.classList.remove('green', 'orange', 'red');
+  if (fillColor === '#4CAF50') {
+    slider.classList.add('green');
+  } else if (fillColor === '#FF9800') {
+    slider.classList.add('orange');
+  } else if (fillColor === '#F44336') {
+    slider.classList.add('red');
+  }
+}
+
+sliders.forEach(sliderId => {
+  const slider = document.getElementById(sliderId);
+  slider.value = 5; // Set default value
+  updateSliderColor(slider);
+  
+  slider.addEventListener('input', function() {
+    updateSliderColor(this);
+  });
+});
+
+function toggleChartView(showCombined) {
+  const combinedContainer = document.getElementById('combinedChartContainer');
+  const individualContainer = document.getElementById('individualChartsContainer');
+  
+  if (showCombined) {
+    combinedContainer.classList.remove('hidden');
+    individualContainer.classList.add('hidden');
+    
+    // Disconnect chart observer when showing combined view
+    if (chartObserver) {
+      chartObserver.disconnect();
+    }
+    
+    createCombinedChart();
+  } else {
+    combinedContainer.classList.add('hidden');
+    individualContainer.classList.remove('hidden');
+    
+    // Use lazy loading for individual charts
+    updateCharts();
+  }
+}
+
+function createCombinedChart() {
+  // Check if ApexCharts is available
+  if (typeof ApexCharts === 'undefined') {
+    console.error('ApexCharts is not loaded! Cannot create combined chart.');
+    return;
+  }
+  
+  const container = document.getElementById('combinedChart');
+  if (!container) {
+    console.error('Combined chart container not found');
+    return;
+  }
+  
+  // Check if we have data
+  if (!logs || logs.length === 0) {
+    console.warn('No data available for combined chart');
+    return;
+  }
+  
+  // Destroy existing chart if it exists
+  if (container.chart) {
+    container.chart.destroy();
+  }
+  
+  // Prepare data for all metrics (excluding weight and bpm as they use different scales)
+  const metrics = [
+    { field: 'fatigue', name: 'Fatigue', color: '#ff9800' },
+    { field: 'stiffness', name: 'Stiffness', color: '#ffc107' },
+    { field: 'backPain', name: 'Back Pain', color: '#f44336' },
+    { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5' },
+    { field: 'jointPain', name: 'Joint Pain', color: '#ff5722' },
+    { field: 'mobility', name: 'Mobility', color: '#00bcd4' },
+    { field: 'dailyFunction', name: 'Daily Function', color: '#8bc34a' },
+    { field: 'swelling', name: 'Swelling', color: '#9c27b0' },
+    { field: 'mood', name: 'Mood', color: '#673ab7' },
+    { field: 'irritability', name: 'Irritability', color: '#795548' }
+  ];
+  
+  const series = metrics.map(metric => {
+    const data = logs
+      .filter(log => log[metric.field] !== undefined && log[metric.field] !== null && log[metric.field] !== '')
+      .map(log => ({
+        x: log.date,
+        y: parseFloat(log[metric.field]) || 0
+      }))
+      .sort((a, b) => new Date(a.x) - new Date(b.x));
+    
+    return {
+      name: metric.name,
+      data: data,
+      color: metric.color
+    };
+  });
+  
+  console.log(`Creating combined chart with ${series.length} metrics`);
+  
+  const options = {
+    series: series,
+    chart: {
+      type: 'line',
+      height: 500,
+      toolbar: {
+        show: false
+      },
+      background: 'transparent',
+      selection: {
+        enabled: false
+      },
+      zoom: {
+        enabled: false
+      },
+      pan: {
+        enabled: false
+      },
+      animations: {
+        enabled: false
+      }
+    },
+    title: {
+      text: 'Combined Health Metrics Overview',
+      align: 'center',
+      style: {
+        fontSize: '20px',
+        fontWeight: 'bold',
+        color: '#e0f2f1'
+      }
+    },
+    stroke: {
+      curve: 'smooth',
+      width: 2
+    },
+    markers: {
+      size: 4,
+      strokeWidth: 2,
+      hover: {
+        size: 6
+      }
+    },
+    xaxis: {
+      type: 'datetime',
+      title: {
+        text: 'Date',
+        style: {
+          color: '#e0f2f1',
+          fontSize: '14px',
+          fontWeight: 'bold'
+        }
+      },
+      labels: {
+        style: {
+          colors: '#e0f2f1'
+        }
+      }
+    },
+    yaxis: {
+      title: {
+        text: 'Level (1-10)',
+        style: {
+          color: '#e0f2f1',
+          fontSize: '14px',
+          fontWeight: 'bold'
+        }
+      },
+      labels: {
+        style: {
+          colors: '#e0f2f1'
+        }
+      },
+      min: 0,
+      max: 10
+    },
+    grid: {
+      borderColor: '#374151'
+    },
+    legend: {
+      labels: {
+        colors: '#e0f2f1'
+      },
+      position: 'bottom'
+    },
+    tooltip: {
+      theme: 'dark',
+      x: {
+        format: 'dd MMM yyyy'
+      }
+    }
+  };
+  
+  // Apply light mode styles if in light mode
+  if (document.body.classList.contains('light-mode')) {
+    options.title.style.color = '#1b5e20';
+    options.xaxis.title.style.color = '#1b5e20';
+    options.xaxis.labels.style.colors = '#1b5e20';
+    options.yaxis.title.style.color = '#1b5e20';
+    options.yaxis.labels.style.colors = '#1b5e20';
+    options.grid.borderColor = '#81c784';
+    options.legend.labels.colors = '#1b5e20';
+    options.tooltip.theme = 'light';
+  }
+  
+  container.chart = new ApexCharts(container, options);
+  container.chart.render();
+}
+
+function clearData() {
+  logs = [];
+  localStorage.removeItem("healthLogs");
+  renderLogs();
+  updateCharts();
+}
+
+function exportData() {
+  const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily Function,Swelling,Flare,Mood,Irritability,Notes";
+  const csvContent = "data:text/csv;charset=utf-8," 
+    + headers + "\n"
+    + logs.map(log => Object.values(log).join(",")).join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "health_logs.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.csv';
+  input.onchange = function(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const csv = e.target.result;
+          const lines = csv.split('\n');
+          const headers = lines[0].split(',');
+          
+          // Validate headers
+          const expectedHeaders = ['Date', 'BPM', 'Weight', 'Fatigue', 'Stiffness', 'Back Pain', 'Sleep', 'Joint Pain', 'Mobility', 'Daily Function', 'Swelling', 'Flare', 'Mood', 'Irritability', 'Notes'];
+          if (!expectedHeaders.every(header => headers.includes(header))) {
+            alert('Invalid CSV format. Please use a file exported from this app.');
+            return;
+          }
+          
+          const importedLogs = [];
+          for (let i = 1; i < lines.length; i++) {
+            if (lines[i].trim() === '') continue;
+            
+            const values = lines[i].split(',');
+            const log = {
+              date: values[0],
+              bpm: values[1],
+              weight: values[2],
+              fatigue: values[3],
+              stiffness: values[4],
+              backPain: values[5],
+              sleep: values[6],
+              jointPain: values[7],
+              mobility: values[8],
+              dailyFunction: values[9],
+              swelling: values[10],
+              flare: values[11],
+              mood: values[12],
+              irritability: values[13],
+              notes: values[14] || ''
+            };
+            importedLogs.push(log);
+          }
+          
+          // Merge with existing data (avoid duplicates by date)
+          const existingDates = logs.map(log => log.date);
+          const newLogs = importedLogs.filter(log => !existingDates.includes(log.date));
+          
+          if (newLogs.length === 0) {
+            alert('No new entries to import. All entries in the file already exist.');
+            return;
+          }
+          
+          logs.push(...newLogs);
+          localStorage.setItem("healthLogs", JSON.stringify(logs));
+          renderLogs();
+          updateCharts();
+          
+          alert(`Successfully imported ${newLogs.length} new health entries!`);
+          
+        } catch (error) {
+          alert('Error reading file. Please make sure it\'s a valid CSV file exported from this app.');
+          console.error('Import error:', error);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+  input.click();
+}
+
+function createAIOverlay() {
+  const overlay = document.createElement('div');
+  overlay.className = 'ai-overlay';
+  overlay.innerHTML = `
+    <div class="ai-modal">
+      <div class="ai-modal-header">
+        <h3 class="ai-modal-title">AI Health Analysis</h3>
+        <button class="ai-close-btn" onclick="closeAIOverlay()">&times;</button>
+      </div>
+      <div class="ai-content" id="aiContent">
+        <div class="security-warning">
+          🧠 Custom AI Analysis Engine - Analyzing your health metrics...
+        </div>
+        <div class="ai-loading">
+          <div class="spinner"></div>
+          <p>Processing your health data with built-in AI...</p>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function closeAIOverlay() {
+  const overlay = document.querySelector('.ai-overlay');
+  if (overlay) {
+    overlay.remove();
+  }
+}
+
+// Custom AI Analysis Engine for Ankylosing Spondylitis
+function analyzeHealthMetrics(logs) {
+  const analysis = {
+    trends: {},
+    correlations: [],
+    anomalies: [],
+    advice: [],
+    summary: ""
+  };
+
+  if (logs.length === 0) return analysis;
+
+  // Calculate averages and trends
+  const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability'];
+  
+  metrics.forEach(metric => {
+    const values = logs.map(log => parseInt(log[metric]));
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    const trend = values.length > 1 ? (values[values.length - 1] - values[0]) / (values.length - 1) : 0;
+    
+    analysis.trends[metric] = {
+      average: Math.round(avg * 10) / 10,
+      trend: Math.round(trend * 100) / 100,
+      current: values[values.length - 1],
+      min: Math.min(...values),
+      max: Math.max(...values)
+    };
+  });
+
+  // Detect correlations
+  const sleepValues = logs.map(log => parseInt(log.sleep));
+  const fatigueValues = logs.map(log => parseInt(log.fatigue));
+  const painValues = logs.map(log => parseInt(log.backPain));
+  const moodValues = logs.map(log => parseInt(log.mood));
+
+  if (calculateCorrelation(sleepValues, fatigueValues) < -0.5) {
+    analysis.correlations.push("Poor sleep strongly correlates with increased fatigue");
+  }
+  
+  if (calculateCorrelation(painValues, moodValues) < -0.4) {
+    analysis.correlations.push("Higher pain levels correlate with lower mood");
+  }
+
+  // Detect anomalies
+  const flareUps = logs.filter(log => log.flare === 'Yes').length;
+  if (flareUps > logs.length * 0.4) {
+    analysis.anomalies.push(`High flare-up frequency: ${flareUps} out of ${logs.length} days`);
+  }
+
+  const highPainDays = logs.filter(log => parseInt(log.backPain) >= 8).length;
+  if (highPainDays > logs.length * 0.3) {
+    analysis.anomalies.push(`Severe pain episodes: ${highPainDays} out of ${logs.length} days`);
+  }
+
+  const poorSleepDays = logs.filter(log => parseInt(log.sleep) <= 4).length;
+  if (poorSleepDays > logs.length * 0.3) {
+    analysis.anomalies.push(`Poor sleep quality: ${poorSleepDays} out of ${logs.length} days`);
+  }
+
+  // Generate AS-specific advice
+  analysis.advice = generateASAdvice(analysis.trends, logs);
+  
+  return analysis;
+}
+
+function calculateCorrelation(x, y) {
+  const n = x.length;
+  const sumX = x.reduce((a, b) => a + b, 0);
+  const sumY = y.reduce((a, b) => a + b, 0);
+  const sumXY = x.reduce((total, xi, i) => total + xi * y[i], 0);
+  const sumX2 = x.reduce((total, xi) => total + xi * xi, 0);
+  const sumY2 = y.reduce((total, yi) => total + yi * yi, 0);
+  
+  return (n * sumXY - sumX * sumY) / Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+}
+
+function generateASAdvice(trends, logs) {
+  const advice = [];
+
+  // Sleep advice
+  if (trends.sleep.average < 6) {
+    advice.push("🛏️ **Sleep Improvement**: Your sleep quality is below optimal. Consider establishing a consistent bedtime routine, avoiding screens before bed, and discussing sleep aids with your doctor.");
+  }
+
+  // Pain management
+  if (trends.backPain.average > 6) {
+    advice.push("🔥 **Pain Management**: High pain levels detected. Consider heat therapy, gentle stretching, anti-inflammatory medications, and discuss biologics with your rheumatologist if not already prescribed.");
+  }
+
+  // Exercise and mobility
+  if (trends.mobility.average < 6) {
+    advice.push("🏃 **Mobility Focus**: Low mobility scores suggest need for gentle exercise. Try swimming, yoga, or physical therapy exercises specifically designed for ankylosing spondylitis.");
+  }
+
+  // Stiffness management
+  if (trends.stiffness.average > 6) {
+    advice.push("🧘 **Morning Stiffness**: High stiffness levels indicate need for morning stretches, hot showers, and potentially adjusting medication timing with your doctor.");
+  }
+
+  // Fatigue management
+  if (trends.fatigue.average > 6) {
+    advice.push("⚡ **Energy Management**: Chronic fatigue detected. Focus on pacing activities, short naps (20-30 min), and discussing fatigue with your healthcare team as it may indicate disease activity.");
+  }
+
+  // Mood support
+  if (trends.mood.average < 6) {
+    advice.push("😊 **Mental Health**: Low mood scores suggest connecting with support groups, considering counseling, and ensuring you're getting adequate vitamin D and social interaction.");
+  }
+
+  return advice;
+}
+
+function generateAISummary() {
+  // Get last 7 entries
+  const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
+  
+  if (allLogs.length === 0) {
+    alert("No health data found. Please log some entries first.");
+    return;
+  }
+
+  // Get last 7 entries, sorted by date descending, then take first 7
+  const sortedLogs = allLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
+  const last7Logs = sortedLogs.slice(0, 7).reverse();
+
+  // Create overlay
+  createAIOverlay();
+
+  // Analyze the data
+  setTimeout(() => {
+    const analysis = analyzeHealthMetrics(last7Logs);
+    displayAnalysis(analysis, last7Logs.length);
+  }, 1500); // Show loading animation first
+}
+
+function displayAnalysis(analysis, dayCount) {
+  const aiContent = document.getElementById('aiContent');
+  
+  let html = `
+    <div class="security-warning">
+      ✅ AI Health Analysis Complete (${dayCount} days analyzed)
+    </div>
+    <div style="line-height: 1.6; padding: 10px;">
+  `;
+
+  // Trends section
+  html += `<h3 style="color: var(--primary-color); margin-top: 20px;">📈 Trend Analysis</h3>`;
+  Object.keys(analysis.trends).forEach(metric => {
+    const trend = analysis.trends[metric];
+    const trendIcon = trend.trend > 0.2 ? "📈" : trend.trend < -0.2 ? "📉" : "➡️";
+    const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    html += `<p><strong>${trendIcon} ${metricName}:</strong> Average ${trend.average}/10, Current ${trend.current}/10</p>`;
+  });
+
+  // Correlations section
+  if (analysis.correlations.length > 0) {
+    html += `<h3 style="color: var(--primary-color); margin-top: 20px;">🔗 Key Correlations</h3>`;
+    analysis.correlations.forEach(corr => {
+      html += `<p>• ${corr}</p>`;
+    });
+  }
+
+  // Anomalies section
+  if (analysis.anomalies.length > 0) {
+    html += `<h3 style="color: #ff9800; margin-top: 20px;">⚠️ Areas of Concern</h3>`;
+    analysis.anomalies.forEach(anomaly => {
+      html += `<p style="color: #ff9800;">• ${anomaly}</p>`;
+    });
+  }
+
+  // Advice section
+  if (analysis.advice.length > 0) {
+    html += `<h3 style="color: var(--primary-color); margin-top: 20px;">💡 Personalized Recommendations</h3>`;
+    analysis.advice.forEach(advice => {
+      html += `<p>${advice}</p>`;
+    });
+  }
+
+  html += `
+    <h3 style="color: var(--primary-color); margin-top: 20px;">🏥 General AS Management</h3>
+    <p><strong>Remember:</strong> This analysis is for informational purposes only. Always consult with your rheumatologist before making changes to your treatment plan. Consider sharing this data during your next appointment.</p>
+    </div>
+  `;
+
+  aiContent.innerHTML = html;
+}
+
+let logs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
+
+// Add sample data if no data exists
+if (logs.length === 0) {
+  const sampleData = [
+    {
+      date: "2024-01-15",
+      bpm: 72,
+      weight: 75,
+      fatigue: 4,
+      stiffness: 6,
+      backPain: 5,
+      sleep: 7,
+      jointPain: 3,
+      mobility: 8,
+      dailyFunction: 7,
+      swelling: 2,
+      flare: "No",
+      mood: 6,
+      irritability: 3,
+      notes: "Feeling better today"
+    },
+    {
+      date: "2024-01-16",
+      bpm: 75,
+      weight: 74.8,
+      fatigue: 6,
+      stiffness: 7,
+      backPain: 6,
+      sleep: 5,
+      jointPain: 5,
+      mobility: 6,
+      dailyFunction: 5,
+      swelling: 4,
+      flare: "No",
+      mood: 4,
+      irritability: 5,
+      notes: "Rough night sleep"
+    },
+    {
+      date: "2024-01-17",
+      bpm: 68,
+      weight: 74.9,
+      fatigue: 3,
+      stiffness: 4,
+      backPain: 3,
+      sleep: 8,
+      jointPain: 2,
+      mobility: 9,
+      dailyFunction: 8,
+      swelling: 1,
+      flare: "No",
+      mood: 8,
+      irritability: 2,
+      notes: "Great day!"
+    }
+  ];
+  
+  logs = sampleData;
+  localStorage.setItem("healthLogs", JSON.stringify(logs));
+  console.log("Added sample data for demonstration");
+}
+
+function deleteLogEntry(logDate) {
+  if (confirm(`Are you sure you want to delete the entry for ${logDate}?`)) {
+    // Remove from logs array
+    logs = logs.filter(log => log.date !== logDate);
+    
+    // Update localStorage
+    localStorage.setItem("healthLogs", JSON.stringify(logs));
+    
+    // Re-render logs and update charts
+    renderLogs();
+    updateCharts();
+    
+    console.log(`Deleted log entry for ${logDate}`);
+  }
+}
+
+
+
+function renderLogs() {
+  output.innerHTML = "";
+  logs.forEach(log => {
+    const div = document.createElement("div");
+    div.className = "entry";
+    if (isExtreme(log)) div.classList.add("highlight");
+    div.innerHTML = `
+      <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
+      <strong>${log.date}</strong><br>
+      BPM: ${log.bpm}, Weight: ${log.weight}kg, Flare-up: ${log.flare}<br>
+      Fatigue: ${log.fatigue}, Stiffness: ${log.stiffness}, Back Pain: ${log.backPain}, Sleep: ${log.sleep},<br>
+      Joint Pain: ${log.jointPain}, Mobility: ${log.mobility}, Daily Activities: ${log.dailyFunction},<br>
+      Swelling: ${log.swelling}, Mood: ${log.mood}, Irritability: ${log.irritability}<br>
+      ${log.notes ? '<em>' + log.notes + '</em>' : ''}`;
+    output.appendChild(div);
+  });
+}
+
+function chart(id, label, dataField, color) {
+  // Check if ApexCharts is available
+  if (typeof ApexCharts === 'undefined') {
+    console.error('ApexCharts is not loaded! Cannot create charts.');
+    return;
+  }
+  
+  const container = document.getElementById(id);
+  if (!container) {
+    console.error(`Container element with id '${id}' not found`);
+    return;
+  }
+  
+  // Check if we have data
+  if (!logs || logs.length === 0) {
+    console.warn(`No data available for chart: ${label}`);
+    return;
+  }
+  
+  // Destroy existing chart if it exists
+  if (container.chart) {
+    container.chart.destroy();
+  }
+  
+  // Prepare data and filter out invalid entries
+  const chartData = logs
+    .filter(log => log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '')
+    .map(log => ({
+      x: log.date,
+      y: parseFloat(log[dataField]) || 0
+    }))
+    .sort((a, b) => new Date(a.x) - new Date(b.x));
+  
+  if (chartData.length === 0) {
+    console.warn(`No valid data for chart: ${label}`);
+    return;
+  }
+  
+  console.log(`Creating ApexChart for ${label} with ${chartData.length} data points`);
+  
+  const options = {
+    series: [{
+      name: label,
+      data: chartData
+    }],
+    chart: {
+      type: 'line',
+      height: 300,
+      toolbar: {
+        show: false
+      },
+      background: 'transparent',
+      selection: {
+        enabled: false
+      },
+      zoom: {
+        enabled: false
+      },
+      pan: {
+        enabled: false
+      },
+      animations: {
+        enabled: false
+      }
+    },
+    title: {
+      text: label,
+      align: 'center',
+      style: {
+        fontSize: '18px',
+        fontWeight: 'bold',
+        color: '#e0f2f1'
+      }
+    },
+    stroke: {
+      curve: 'smooth',
+      width: 3
+    },
+    markers: {
+      size: 5,
+      colors: [color],
+      strokeColors: '#fff',
+      strokeWidth: 2,
+      hover: {
+        size: 7
+      }
+    },
+    colors: [color],
+    xaxis: {
+      type: 'datetime',
+      title: {
+        text: 'Date',
+        style: {
+          color: '#e0f2f1',
+          fontSize: '14px',
+          fontWeight: 'bold'
+        }
+      },
+      labels: {
+        style: {
+          colors: '#e0f2f1'
+        }
+      }
+    },
+    yaxis: {
+      title: {
+        text: getYAxisLabel(dataField),
+        style: {
+          color: '#e0f2f1',
+          fontSize: '14px',
+          fontWeight: 'bold'
+        }
+      },
+      labels: {
+        style: {
+          colors: '#e0f2f1'
+        }
+      },
+      min: dataField === 'weight' ? undefined : 0,
+      max: getMaxValue(dataField)
+    },
+    grid: {
+      borderColor: '#374151'
+    },
+    tooltip: {
+      theme: 'dark',
+      x: {
+        format: 'dd MMM yyyy'
+      }
+    }
+  };
+  
+  // Apply light mode styles if in light mode
+  if (document.body.classList.contains('light-mode')) {
+    options.title.style.color = '#1b5e20';
+    options.xaxis.title.style.color = '#1b5e20';
+    options.xaxis.labels.style.colors = '#1b5e20';
+    options.yaxis.title.style.color = '#1b5e20';
+    options.yaxis.labels.style.colors = '#1b5e20';
+    options.grid.borderColor = '#81c784';
+    options.tooltip.theme = 'light';
+  }
+  
+  container.chart = new ApexCharts(container, options);
+  container.chart.render();
+}
+
+function getYAxisLabel(dataField) {
+  const labels = {
+    bpm: 'BPM',
+    weight: 'Weight (kg)',
+    fatigue: 'Level (1-10)',
+    stiffness: 'Level (1-10)',
+    backPain: 'Level (1-10)',
+    sleep: 'Quality (1-10)',
+    jointPain: 'Level (1-10)',
+    mobility: 'Level (1-10)',
+    dailyFunction: 'Level (1-10)',
+    swelling: 'Level (1-10)',
+    mood: 'Level (1-10)',
+    irritability: 'Level (1-10)'
+  };
+  return labels[dataField] || 'Value';
+}
+
+function getMaxValue(dataField) {
+  if (dataField === 'bpm') return 120;
+  if (dataField === 'weight') return null; // Auto scale
+  return 10; // Most metrics are 1-10 scale
+}
+
+// Lazy loading system
+let chartObserver;
+const loadedCharts = new Set();
+
+function initializeLazyLoading() {
+  // Check if Intersection Observer is supported
+  if (!('IntersectionObserver' in window)) {
+    console.warn('IntersectionObserver not supported, falling back to immediate chart loading');
+    updateChartsImmediate();
+    return;
+  }
+
+  // Create intersection observer for lazy loading
+  chartObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const container = entry.target;
+        const chartType = container.dataset.chartType;
+        
+        if (!loadedCharts.has(chartType)) {
+          loadedCharts.add(chartType);
+          loadChart(container, chartType);
+          
+          // Stop observing this chart
+          chartObserver.unobserve(container);
+        }
+      }
+    });
+  }, {
+    rootMargin: '100px', // Start loading 100px before chart becomes visible
+    threshold: 0.01 // Lower threshold for better detection
+  });
+
+  // Start observing all lazy charts
+  const lazyCharts = document.querySelectorAll('.lazy-chart');
+  lazyCharts.forEach(chart => {
+    chartObserver.observe(chart);
+  });
+  
+  // Fallback: load charts immediately if they're already visible
+  setTimeout(() => {
+    const visibleCharts = Array.from(lazyCharts).filter(chart => {
+      const rect = chart.getBoundingClientRect();
+      return rect.top < window.innerHeight && rect.bottom > 0;
+    });
+    
+    visibleCharts.forEach(chart => {
+      const chartType = chart.dataset.chartType;
+      if (!loadedCharts.has(chartType)) {
+        console.log(`Force loading visible chart: ${chartType}`);
+        loadedCharts.add(chartType);
+        loadChart(chart, chartType);
+        chartObserver.unobserve(chart);
+      }
+    });
+  }, 500);
+}
+
+function loadChart(container, chartType) {
+  const chartConfig = {
+    bpm: { label: "Resting Heart Rate", field: "bpm", color: "rgb(76,175,80)" },
+    weight: { label: "Weight", field: "weight", color: "rgb(33,150,243)" },
+    fatigue: { label: "Fatigue Level", field: "fatigue", color: "rgb(255,152,0)" },
+    stiffness: { label: "Stiffness Level", field: "stiffness", color: "rgb(255,193,7)" },
+    backPain: { label: "Back Pain Level", field: "backPain", color: "rgb(244,67,54)" },
+    sleep: { label: "Sleep Quality", field: "sleep", color: "rgb(63,81,181)" },
+    jointPain: { label: "Joint Pain Level", field: "jointPain", color: "rgb(255,87,34)" },
+    mobility: { label: "Mobility Level", field: "mobility", color: "rgb(0,188,212)" },
+    dailyFunction: { label: "Daily Function Level", field: "dailyFunction", color: "rgb(139,195,74)" },
+    swelling: { label: "Joint Swelling Level", field: "swelling", color: "rgb(156,39,176)" },
+    mood: { label: "Mood Level", field: "mood", color: "rgb(103,58,183)" },
+    irritability: { label: "Irritability Level", field: "irritability", color: "rgb(121,85,72)" }
+  };
+
+  const config = chartConfig[chartType];
+  if (config) {
+    setTimeout(() => {
+      chart(container.id, config.label, config.field, config.color);
+      container.classList.add('loaded');
+    }, 100); // Small delay for smooth loading effect
+  }
+}
+
+function updateChartsImmediate() {
+  // Create all individual charts immediately
+  chart("bpmChart", "Resting Heart Rate", "bpm", "rgb(76,175,80)");
+  chart("weightChart", "Weight", "weight", "rgb(33,150,243)");
+  chart("fatigueChart", "Fatigue Level", "fatigue", "rgb(255,152,0)");
+  chart("stiffnessChart", "Stiffness Level", "stiffness", "rgb(255,193,7)");
+  chart("backPainChart", "Back Pain Level", "backPain", "rgb(244,67,54)");
+  chart("sleepChart", "Sleep Quality", "sleep", "rgb(63,81,181)");
+  chart("jointPainChart", "Joint Pain Level", "jointPain", "rgb(255,87,34)");
+  chart("mobilityChart", "Mobility Level", "mobility", "rgb(0,188,212)");
+  chart("dailyFunctionChart", "Daily Function Level", "dailyFunction", "rgb(139,195,74)");
+  chart("swellingChart", "Joint Swelling Level", "swelling", "rgb(156,39,176)");
+  chart("moodChart", "Mood Level", "mood", "rgb(103,58,183)");
+  chart("irritabilityChart", "Irritability Level", "irritability", "rgb(121,85,72)");
+}
+
+function updateCharts() {
+  // Check if ApexCharts is loaded
+  if (typeof ApexCharts === 'undefined') {
+    console.warn('ApexCharts not loaded yet, retrying in 500ms...');
+    setTimeout(updateCharts, 500);
+    return;
+  }
+  
+  console.log('Updating charts with', logs.length, 'log entries');
+  
+  // Check if we should show combined or individual charts
+  if (appSettings.combinedChart) {
+    createCombinedChart();
+  } else {
+    // Use lazy loading if enabled (default), otherwise load immediately
+    if (appSettings.lazy !== false) {
+      // Clear loaded charts set to allow reloading
+      loadedCharts.clear();
+      
+      // Reset chart containers to show loading state
+      const lazyCharts = document.querySelectorAll('.lazy-chart');
+      lazyCharts.forEach(chart => {
+        chart.classList.remove('loaded');
+        // Destroy existing chart if it exists
+        if (chart.chart) {
+          chart.chart.destroy();
+          chart.chart = null;
+        }
+      });
+      
+      // Reinitialize lazy loading
+      if (chartObserver) {
+        chartObserver.disconnect();
+      }
+      
+      // Check if charts are visible, if so initialize lazy loading
+      const chartSection = document.getElementById('chartSection');
+      if (!chartSection.classList.contains('hidden')) {
+        setTimeout(() => {
+          initializeLazyLoading();
+        }, 100); // Small delay to ensure DOM is ready
+      }
+    } else {
+      // Load all charts immediately if lazy loading is disabled
+      updateChartsImmediate();
+    }
+  }
+}
+
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  
+  // Validate form before submission
+  if (!formValidator.validateForm()) {
+    console.log('Form validation failed');
+    // Scroll to validation summary
+    const summaryElement = document.getElementById('validationSummary');
+    if (summaryElement && summaryElement.classList.contains('show')) {
+      summaryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+  
+  const newEntry = {
+    date: document.getElementById("date").value,
+    bpm: document.getElementById("bpm").value,
+    weight: document.getElementById("weight").value,
+    fatigue: document.getElementById("fatigue").value,
+    stiffness: document.getElementById("stiffness").value,
+    backPain: document.getElementById("backPain").value,
+    sleep: document.getElementById("sleep").value,
+    jointPain: document.getElementById("jointPain").value,
+    mobility: document.getElementById("mobility").value,
+    dailyFunction: document.getElementById("dailyFunction").value,
+    swelling: document.getElementById("swelling").value,
+    flare: document.getElementById("flare").value,
+    mood: document.getElementById("mood").value,
+    irritability: document.getElementById("irritability").value,
+    notes: document.getElementById("notes").value
+  };
+  
+  // Check for duplicate dates
+  const existingEntry = logs.find(log => log.date === newEntry.date);
+  if (existingEntry) {
+    if (confirm(`An entry for ${newEntry.date} already exists. Do you want to update it?`)) {
+      const index = logs.findIndex(log => log.date === newEntry.date);
+      logs[index] = newEntry;
+    } else {
+      return;
+    }
+  } else {
+    logs.push(newEntry);
+  }
+  
+  localStorage.setItem("healthLogs", JSON.stringify(logs));
+  renderLogs();
+  updateCharts();
+  
+  // Show success message
+  const successMsg = document.createElement('div');
+  successMsg.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--primary-color);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  `;
+  successMsg.textContent = existingEntry ? 'Entry updated successfully! ✅' : 'Entry saved successfully! ✅';
+  document.body.appendChild(successMsg);
+  
+  setTimeout(() => {
+    successMsg.remove();
+  }, 3000);
+  
+  form.reset();
+  document.getElementById("date").valueAsDate = new Date();
+  document.getElementById("flare").value = "No"; // Set default flare value
+  
+  // Clear validation errors after successful submission
+  formValidator.clearAllErrors();
+  
+  // Reset sliders to default values and update their colors
+  sliders.forEach(sliderId => {
+    const slider = document.getElementById(sliderId);
+    slider.value = 5;
+    updateSliderColor(slider);
+  });
+});
+
+function isExtreme(log) {
+  let extremeCount = 0;
+  
+  if (log.backPain >= 8) extremeCount++;
+  if (log.fatigue >= 8) extremeCount++;
+  if (log.stiffness >= 8) extremeCount++;
+  if (log.jointPain >= 8) extremeCount++;
+  if (log.flare === "Yes") extremeCount++;
+  
+  return extremeCount >= 3;
+}
+
+// Settings functionality
+let appSettings = {
+  showCharts: true, // Enable charts by default
+  combinedChart: false,
+  reminder: true,
+  sound: false,
+  darkMode: true,
+  backup: true,
+  compress: false,
+  animations: true,
+  lazy: true,
+  userName: ''
+};
+
+// Load settings from localStorage
+function loadSettings() {
+  const savedSettings = localStorage.getItem('healthAppSettings');
+  if (savedSettings) {
+    appSettings = { ...appSettings, ...JSON.parse(savedSettings) };
+  }
+  
+  // Apply loaded settings to UI
+  applySettings();
+  loadSettingsState();
+}
+
+function saveSettings() {
+  localStorage.setItem('healthAppSettings', JSON.stringify(appSettings));
+}
+
+function applySettings() {
+  // Apply dark mode
+  if (appSettings.darkMode) {
+    document.body.classList.remove('light-mode');
+    document.body.classList.add('dark-mode');
+  } else {
+    document.body.classList.remove('dark-mode');
+    document.body.classList.add('light-mode');
+  }
+  
+  // Apply chart visibility
+  const chartSection = document.getElementById('chartSection');
+  if (appSettings.showCharts) {
+    chartSection.classList.remove('hidden');
+    // Force update charts after making them visible
+    setTimeout(() => {
+      updateCharts();
+    }, 200);
+  } else {
+    chartSection.classList.add('hidden');
+  }
+  
+  // Apply combined chart setting
+  if (appSettings.combinedChart) {
+    setTimeout(() => {
+      toggleChartView(true);
+    }, 300);
+  } else {
+    setTimeout(() => {
+      toggleChartView(false);
+    }, 300);
+  }
+  
+  // Update dashboard title
+  updateDashboardTitle();
+}
+
+function loadSettingsState() {
+  // Update toggle switches to reflect current settings
+  document.getElementById('showChartsToggle').classList.toggle('active', appSettings.showCharts);
+  document.getElementById('combinedChartToggle').classList.toggle('active', appSettings.combinedChart);
+  document.getElementById('reminderToggle').classList.toggle('active', appSettings.reminder);
+  document.getElementById('soundToggle').classList.toggle('active', appSettings.sound);
+  document.getElementById('darkModeToggle').classList.toggle('active', appSettings.darkMode);
+  document.getElementById('backupToggle').classList.toggle('active', appSettings.backup);
+  document.getElementById('compressToggle').classList.toggle('active', appSettings.compress);
+  document.getElementById('animationsToggle').classList.toggle('active', appSettings.animations);
+  document.getElementById('lazyToggle').classList.toggle('active', appSettings.lazy);
+  
+  // Load user name
+  const userNameInput = document.getElementById('userNameInput');
+  if (userNameInput && appSettings.userName) {
+    userNameInput.value = appSettings.userName;
+  }
+}
+
+function toggleSetting(setting) {
+  appSettings[setting] = !appSettings[setting];
+  saveSettings();
+  applySettings();
+  loadSettingsState();
+}
+
+function toggleSettings() {
+  const overlay = document.getElementById('settingsOverlay');
+  if (overlay.style.display === 'flex') {
+    overlay.style.display = 'none';
+  } else {
+    overlay.style.display = 'flex';
+    loadSettingsState();
+  }
+}
+
+function updateUserName() {
+  const userNameInput = document.getElementById('userNameInput');
+  appSettings.userName = userNameInput.value;
+  saveSettings();
+  updateDashboardTitle();
+}
+
+function updateDashboardTitle() {
+  const titleElement = document.getElementById('dashboardTitle');
+  const userName = appSettings.userName;
+  
+  if (userName && userName.trim() !== '') {
+    const newTitle = `Welcome to ${userName}'s health`;
+    titleElement.textContent = newTitle;
+    document.title = `${userName.charAt(0).toUpperCase() + userName.slice(1)}'s Health Dashboard`;
+  } else {
+    titleElement.textContent = 'Health Dashboard';
+    document.title = 'Health Dashboard';
+  }
+}
+
+// Filtering and sorting functionality
+let currentSortOrder = 'newest'; // 'newest' or 'oldest'
+
+function filterLogs() {
+  const startDate = document.getElementById('startDate').value;
+  const endDate = document.getElementById('endDate').value;
+  
+  if (!startDate && !endDate) {
+    renderLogs();
+    return;
+  }
+  
+  const filteredLogs = logs.filter(log => {
+    const logDate = new Date(log.date);
+    const start = startDate ? new Date(startDate) : new Date('1900-01-01');
+    const end = endDate ? new Date(endDate) : new Date('2100-12-31');
+    
+    return logDate >= start && logDate <= end;
+  });
+  
+  renderFilteredLogs(filteredLogs);
+}
+
+function toggleSort() {
+  currentSortOrder = currentSortOrder === 'newest' ? 'oldest' : 'newest';
+  document.getElementById('sortOrder').textContent = currentSortOrder === 'newest' ? 'Newest' : 'Oldest';
+  
+  const sortedLogs = [...logs].sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    return currentSortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  });
+  
+  renderSortedLogs(sortedLogs);
+}
+
+function renderFilteredLogs(filteredLogs) {
+  output.innerHTML = "";
+  filteredLogs.forEach(log => {
+    const div = document.createElement("div");
+    div.className = "entry";
+    if (isExtreme(log)) div.classList.add("highlight");
+    div.innerHTML = `
+      <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
+      <strong>${log.date}</strong><br>
+      BPM: ${log.bpm}, Weight: ${log.weight}kg, Flare-up: ${log.flare}<br>
+      Fatigue: ${log.fatigue}, Stiffness: ${log.stiffness}, Back Pain: ${log.backPain}, Sleep: ${log.sleep},<br>
+      Joint Pain: ${log.jointPain}, Mobility: ${log.mobility}, Daily Activities: ${log.dailyFunction},<br>
+      Swelling: ${log.swelling}, Mood: ${log.mood}, Irritability: ${log.irritability}<br>
+      ${log.notes ? '<em>' + log.notes + '</em>' : ''}`;
+    output.appendChild(div);
+  });
+}
+
+function renderSortedLogs(sortedLogs) {
+  output.innerHTML = "";
+  sortedLogs.forEach(log => {
+    const div = document.createElement("div");
+    div.className = "entry";
+    if (isExtreme(log)) div.classList.add("highlight");
+    div.innerHTML = `
+      <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
+      <strong>${log.date}</strong><br>
+      BPM: ${log.bpm}, Weight: ${log.weight}kg, Flare-up: ${log.flare}<br>
+      Fatigue: ${log.fatigue}, Stiffness: ${log.stiffness}, Back Pain: ${log.backPain}, Sleep: ${log.sleep},<br>
+      Joint Pain: ${log.jointPain}, Mobility: ${log.mobility}, Daily Activities: ${log.dailyFunction},<br>
+      Swelling: ${log.swelling}, Mood: ${log.mood}, Irritability: ${log.irritability}<br>
+      ${log.notes ? '<em>' + log.notes + '</em>' : ''}`;
+    output.appendChild(div);
+  });
+}
+
+// Initialize the app
+window.addEventListener('load', () => {
+  loadSettings();
+  renderLogs();
+  
+  // Set initial chart state based on settings
+  if (appSettings.showCharts) {
+    document.getElementById('chartSection').classList.remove('hidden');
+    updateCharts();
+  }
+  
+  // Prepopulate date filters with last 7 days
+  initializeDateFilters();
+});
+
+function initializeDateFilters() {
+  const today = new Date();
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(today.getDate() - 7);
+  
+  // Format dates for input[type="date"]
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
+  const startDateInput = document.getElementById('startDate');
+  const endDateInput = document.getElementById('endDate');
+  
+  if (startDateInput && endDateInput) {
+    startDateInput.value = formatDate(sevenDaysAgo);
+    endDateInput.value = formatDate(today);
+    
+    // Automatically apply the filter
+    setTimeout(() => {
+      filterLogs();
+    }, 100);
+  }
+}
