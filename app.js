@@ -1144,8 +1144,17 @@ function generateAISummary() {
   const sortedLogs = allLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
   const last7Logs = sortedLogs.slice(0, 7).reverse();
 
+  // Close any existing overlay first
+  closeAIOverlay();
+  
   // Create overlay
-  createAIOverlay();
+  const overlay = createAIOverlay();
+  
+  // Ensure overlay is visible
+  if (overlay) {
+    overlay.style.display = 'flex';
+    overlay.style.zIndex = '10000';
+  }
 
   // Analyze the data
   setTimeout(() => {
@@ -1156,6 +1165,19 @@ function generateAISummary() {
 
 function displayAnalysis(analysis, dayCount) {
   const aiContent = document.getElementById('aiContent');
+  
+  if (!aiContent) {
+    console.error('AI content element not found, recreating overlay...');
+    // Recreate overlay if content element is missing
+    createAIOverlay();
+    setTimeout(() => {
+      const newAiContent = document.getElementById('aiContent');
+      if (newAiContent) {
+        displayAnalysis(analysis, dayCount);
+      }
+    }, 100);
+    return;
+  }
   
   let html = `
     <div class="security-warning">
