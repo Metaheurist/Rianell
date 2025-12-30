@@ -757,18 +757,22 @@ h1:hover, h2:hover {
 
 .ai-results-container {
   margin-top: 1.5rem;
+  width: 100%;
+  display: block;
 }
+
 
 .ai-results-textbox {
   width: 100%;
-  min-height: 500px;
+  min-height: 400px;
+  max-height: 50vh;
   padding: 20px;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   color: var(--text-light);
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-family: 'Courier New', monospace;
   line-height: 1.8;
   resize: vertical;
@@ -779,6 +783,7 @@ h1:hover, h2:hover {
   display: block !important;
   opacity: 1 !important;
   visibility: visible !important;
+  overflow-y: auto;
 }
 
 .ai-results-textbox:focus {
@@ -808,10 +813,28 @@ body.light-mode .ai-results-textbox::placeholder {
   color: rgba(27, 94, 32, 0.4);
 }
 
-body.light-mode .summary-description {
-  background: rgba(76, 175, 80, 0.15);
+body.light-mode .ai-modal-content {
+  background: var(--card-bg-light);
   border-color: var(--border-light);
+}
+
+body.light-mode .ai-modal-description {
+  background: rgba(233, 30, 99, 0.15);
+  border-color: rgba(233, 30, 99, 0.3);
   color: var(--text-dark);
+}
+
+body.light-mode .ai-modal-title {
+  color: #e91e63;
+  -webkit-text-fill-color: #e91e63;
+}
+
+body.light-mode .ai-modal-close {
+  color: var(--text-dark);
+}
+
+body.light-mode .ai-modal-close:hover {
+  color: #e91e63;
 }
 
 .save-entry-btn {
@@ -1803,6 +1826,184 @@ body.light-mode .settings-button-top:hover {
   background: rgba(76, 175, 80, 0.15);
 }
 
+/* AI Brain Button - Floating */
+.ai-brain-button {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #e91e63, #f06292);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 1000;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  min-height: auto;
+  box-shadow: 0 8px 24px rgba(233, 30, 99, 0.4), 0 0 20px rgba(233, 30, 99, 0.3);
+  animation: brainPulse 3s ease-in-out infinite;
+}
+
+.ai-brain-button:hover {
+  transform: scale(1.15);
+  background: linear-gradient(135deg, #c2185b, #e91e63);
+  box-shadow: 0 12px 32px rgba(233, 30, 99, 0.6), 0 0 30px rgba(233, 30, 99, 0.5);
+  animation: none;
+}
+
+.ai-brain-button:active {
+  transform: scale(1.05);
+}
+
+.brain-icon {
+  width: 32px;
+  height: 32px;
+  color: white;
+  transition: all var(--transition-normal);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.ai-brain-button:hover .brain-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+@keyframes brainPulse {
+  0%, 100% {
+    box-shadow: 0 8px 24px rgba(233, 30, 99, 0.4), 0 0 20px rgba(233, 30, 99, 0.3);
+  }
+  50% {
+    box-shadow: 0 8px 24px rgba(233, 30, 99, 0.6), 0 0 30px rgba(233, 30, 99, 0.5);
+  }
+}
+
+/* AI Modal Overlay */
+.ai-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10001;
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ai-modal-content {
+  background: var(--card-bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 30px;
+  max-width: 700px;
+  max-height: 85vh;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(233, 30, 99, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ai-modal-title {
+  color: #e91e63;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #e91e63, #f06292);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ai-modal-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 5px 10px;
+  width: auto;
+  min-height: auto;
+  margin: 0;
+  transition: all var(--transition-normal);
+  border-radius: 8px;
+}
+
+.ai-modal-close:hover {
+  color: #e91e63;
+  background: rgba(233, 30, 99, 0.1);
+  transform: scale(1.1);
+}
+
+.ai-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.ai-modal-description {
+  background: rgba(233, 30, 99, 0.1);
+  border: 1px solid rgba(233, 30, 99, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  color: rgba(224, 242, 241, 0.9);
+  line-height: 1.6;
+}
+
+.ai-generate-btn {
+  background: linear-gradient(135deg, #e91e63, #f06292);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 32px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: auto;
+  width: auto;
+  margin: 0;
+  align-self: center;
+}
+
+.ai-generate-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4), 0 0 20px rgba(233, 30, 99, 0.3);
+  background: linear-gradient(135deg, #c2185b, #e91e63);
+}
+
+.ai-results-wrapper {
+  width: 100%;
+  margin-top: 1rem;
+}
+
 /* Settings Menu */
 .settings-overlay {
   position: fixed;
@@ -2330,6 +2531,18 @@ body.light-mode .date-separator {
     width: 22px;
     height: 22px;
   }
+  
+  .ai-brain-button {
+    bottom: 20px;
+    left: 20px;
+    width: 56px;
+    height: 56px;
+  }
+  
+  .brain-icon {
+    width: 28px;
+    height: 28px;
+  }
 
   .ai-modal {
     width: 95%;
@@ -2389,6 +2602,18 @@ body.light-mode .date-separator {
   .settings-cog {
     width: 20px;
     height: 20px;
+  }
+  
+  .ai-brain-button {
+    bottom: 15px;
+    left: 15px;
+    width: 50px;
+    height: 50px;
+  }
+  
+  .brain-icon {
+    width: 24px;
+    height: 24px;
   }
 }
 
