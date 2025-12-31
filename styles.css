@@ -327,7 +327,7 @@ h1:hover, h2:hover {
 }
 
 @keyframes heartbeatDraw {
-  0% {
+  0% { 
     stroke-dashoffset: 1200;
     opacity: 0.2;
   }
@@ -3221,7 +3221,7 @@ body.light-mode .date-separator {
     width: 40px;
     height: 40px;
   }
-  
+
   .settings-cog {
     width: 22px;
     height: 22px;
@@ -3372,7 +3372,7 @@ body.light-mode .date-separator {
     width: 36px;
     height: 36px;
   }
-  
+
   .settings-cog {
     width: 20px;
     height: 20px;

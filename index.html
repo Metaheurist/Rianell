@@ -138,7 +138,7 @@
 
     <!-- Log Entry Tab -->
     <div id="logTab" class="tab-content active">
-      <form id="logForm">
+    <form id="logForm">
       <div id="validationSummary" class="form-validation-summary">
         <h4>⚠️ Please fix the following errors:</h4>
         <ul id="validationList"></ul>
@@ -152,17 +152,17 @@
           <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="basicMetrics">
-          <label for="date">Date</label>
-          <div class="input-container">
-            <input type="date" id="date" required autofocus />
-            <div class="validation-message" id="date-error"></div>
-          </div>
+      <label for="date">Date</label>
+      <div class="input-container">
+        <input type="date" id="date" required autofocus />
+        <div class="validation-message" id="date-error"></div>
+      </div>
 
-          <label for="bpm">Resting BPM</label>
-          <div class="input-container">
-            <input type="number" id="bpm" min="30" max="120" required />
-            <div class="validation-message" id="bpm-error"></div>
-          </div>
+      <label for="bpm">Resting BPM</label>
+      <div class="input-container">
+        <input type="number" id="bpm" min="30" max="120" required />
+        <div class="validation-message" id="bpm-error"></div>
+      </div>
 
           <div class="weight-label-container">
             <label for="weight">Weight</label>
@@ -170,9 +170,9 @@
               <span id="weightUnitDisplay">kg</span>
             </button>
           </div>
-          <div class="input-container">
-            <input type="number" id="weight" min="40" max="200" step="0.1" required />
-            <div class="validation-message" id="weight-error"></div>
+      <div class="input-container">
+        <input type="number" id="weight" min="40" max="200" step="0.1" required />
+        <div class="validation-message" id="weight-error"></div>
           </div>
         </div>
       </div>
@@ -185,7 +185,7 @@
           <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="symptoms">
-          <div class="slider-container">
+      <div class="slider-container">
         <input type="range" id="fatigue" min="1" max="10" step="1" />
         <label for="fatigue" class="slider-label">Fatigue Level</label>
       </div>
@@ -230,9 +230,9 @@
         <label for="mood" class="slider-label">Mood Level</label>
       </div>
 
-          <div class="slider-container">
-            <input type="range" id="irritability" min="1" max="10" step="1" />
-            <label for="irritability" class="slider-label">Irritability</label>
+      <div class="slider-container">
+        <input type="range" id="irritability" min="1" max="10" step="1" />
+        <label for="irritability" class="slider-label">Irritability</label>
           </div>
         </div>
       </div>
@@ -245,32 +245,32 @@
           <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="additionalInfo">
-          <label for="flare">Flare-up Today?</label>
-          <div class="input-container">
-            <select id="flare" required>
-              <option value="">Select an option</option>
-              <option value="No">No</option>
-              <option value="Yes">Yes</option>
-            </select>
-            <div class="validation-message" id="flare-error"></div>
-          </div>
+      <label for="flare">Flare-up Today?</label>
+      <div class="input-container">
+        <select id="flare" required>
+          <option value="">Select an option</option>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+        <div class="validation-message" id="flare-error"></div>
+      </div>
 
-          <label for="notes">Notes (Optional) <span id="notesCounter" class="character-counter">0/500</span></label>
-          <div class="input-container">
-            <textarea id="notes" placeholder="Tap here and use voice dictation to quickly add notes about your symptoms, triggers, or activities..." maxlength="500"></textarea>
-            <div class="validation-message" id="notes-error"></div>
+      <label for="notes">Notes (Optional) <span id="notesCounter" class="character-counter">0/500</span></label>
+      <div class="input-container">
+        <textarea id="notes" placeholder="Tap here and use voice dictation to quickly add notes about your symptoms, triggers, or activities..." maxlength="500"></textarea>
+        <div class="validation-message" id="notes-error"></div>
           </div>
         </div>
       </div>
 
         <button type="submit" class="save-entry-btn">💾 Save Entry</button>
-      </form>
+    </form>
     </div>
 
     <!-- View Logs Tab -->
     <div id="logsTab" class="tab-content">
       <div class="tab-header">
-        <h2>Log Entries</h2>
+    <h2>Log Entries</h2>
         <div class="tab-actions">
           <button class="action-btn" onclick="exportData()" title="Export to CSV">
             <span>📤</span> Export
@@ -283,19 +283,19 @@
           </button>
         </div>
       </div>
-      <div class="filter-section">
-        <div class="compact-filters">
-          <div class="date-range">
-            <input type="date" id="startDate" placeholder="Start Date">
-            <span class="date-separator">to</span>
-            <input type="date" id="endDate" placeholder="End Date">
-          </div>
-          <button onclick="filterLogs()" class="filter-btn">📅 Filter</button>
-          <button id="sortButton" onclick="toggleSort()" class="sort-btn" title="Click to toggle sort order">
-            📈 <span id="sortOrder">Newest</span>
-          </button>
+    <div class="filter-section">
+      <div class="compact-filters">
+        <div class="date-range">
+          <input type="date" id="startDate" placeholder="Start Date">
+          <span class="date-separator">to</span>
+          <input type="date" id="endDate" placeholder="End Date">
         </div>
+        <button onclick="filterLogs()" class="filter-btn">📅 Filter</button>
+        <button id="sortButton" onclick="toggleSort()" class="sort-btn" title="Click to toggle sort order">
+          📈 <span id="sortOrder">Newest</span>
+        </button>
       </div>
+    </div>
       
       <!-- AI Summary Collapsible Section -->
       <div class="form-section" style="margin-top: 2rem;">
@@ -309,13 +309,13 @@
         </div>
       </div>
       
-      <div id="logOutput"></div>
+    <div id="logOutput"></div>
     </div>
 
     <!-- Charts Tab -->
     <div id="chartsTab" class="tab-content">
       <div class="tab-header">
-        <h2>Data Visualisation</h2>
+      <h2>Data Visualisation</h2>
         <div class="chart-view-toggle">
           <button class="view-toggle-btn" onclick="toggleChartView(false)" id="individualViewBtn">
             <span>📊</span> Individual
