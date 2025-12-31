@@ -2852,6 +2852,8 @@ body.light-mode .settings-button-top:hover {
   position: fixed;
   top: 0;
   left: 0;
+  right: 0;
+  bottom: 0;
   width: 100vw;
   height: 100vh;
   background: rgba(0, 0, 0, 0.85);
@@ -2861,6 +2863,17 @@ body.light-mode .settings-button-top:hover {
   align-items: center;
   z-index: 1002;
   animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px;
+  box-sizing: border-box;
+  /* Ensure centering works */
+  flex-wrap: nowrap;
+}
+
+.settings-overlay[style*="display: flex"],
+.settings-overlay[style*="display:flex"] {
+  display: flex !important;
 }
 
 .settings-menu {
@@ -2877,6 +2890,10 @@ body.light-mode .settings-button-top:hover {
   max-height: 80vh;
   overflow-y: auto;
   animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Ensure proper centering */
+  margin: auto;
+  align-self: center;
+  flex-shrink: 0;
 }
 
 .settings-header {
@@ -3427,10 +3444,17 @@ body.light-mode .date-separator {
     margin: 10px;
   }
 
+  .settings-overlay {
+    padding: 10px;
+    align-items: center;
+    justify-content: center;
+  }
+  
   .settings-menu {
     width: 95%;
     max-height: 85vh;
-    margin: 10px;
+    margin: auto;
+    align-self: center;
   }
 
   .entry {

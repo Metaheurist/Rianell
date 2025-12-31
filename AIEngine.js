@@ -71,8 +71,9 @@ const AIEngine = {
       // Perform linear regression on ALL training data for better predictions
       const regression = this.performLinearRegression(trainingDataPoints);
       
-      // Check if this is BPM (different scale and thresholds)
+      // Check if this is BPM or Weight (different scale and thresholds)
       const isBPM = metric === 'bpm';
+      const isWeight = metric === 'weight';
       
       // Calculate predictions for next 7 days using last x value
       // Pass metric-specific data for unique prediction patterns
@@ -85,7 +86,7 @@ const AIEngine = {
       };
       
       // Use metric context for predictions (with fallback if context is null)
-      const predictions = this.predictFutureValues(regression, lastXValue, 7, isBPM, metricContext || null);
+      const predictions = this.predictFutureValues(regression, lastXValue, 7, isBPM, isWeight, metricContext || null);
       
       // Determine trend significance (R² > 0.5 indicates strong trend)
       const trendSignificance = regression.rSquared > 0.5 ? 'strong' : regression.rSquared > 0.3 ? 'moderate' : 'weak';
@@ -283,11 +284,23 @@ const AIEngine = {
   // Predict future values using linear regression with AGGRESSIVE trend-preserving rounding
   // lastX: the x value of the last data point (days since start)
   // daysAhead: number of days to predict
+  // isBPM: whether this is BPM metric (30-200 range)
+  // isWeight: whether this is weight metric (30-300 kg range)
   // metricContext: optional object with {variance, average, metricName, trainingValues} for metric-specific patterns
-  predictFutureValues: function(regression, lastX, daysAhead, isBPM = false, metricContext = null) {
+  predictFutureValues: function(regression, lastX, daysAhead, isBPM = false, isWeight = false, metricContext = null) {
     const predictions = [];
-    const minValue = isBPM ? 30 : 0;
-    const maxValue = isBPM ? 200 : 10;
+    // Set min/max values based on metric type
+    let minValue, maxValue;
+    if (isBPM) {
+      minValue = 30;
+      maxValue = 200;
+    } else if (isWeight) {
+      minValue = 30; // Minimum reasonable weight in kg
+      maxValue = 300; // Maximum reasonable weight in kg
+    } else {
+      minValue = 0;
+      maxValue = 10; // 0-10 scale for other metrics
+    }
     
     // Calculate raw predicted values for all days (keep full precision)
     const rawPredictions = [];

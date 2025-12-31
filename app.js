@@ -832,6 +832,7 @@ function createCombinedChart() {
       if (trend.regression && lastDate) {
         const regression = trend.regression;
         const isBPM = metric.field === 'bpm';
+        const isWeight = metric.field === 'weight';
         
         // Get ALL historical logs for this metric (no date filtering - use everything available)
         const allLogsForMetric = JSON.parse(localStorage.getItem("healthLogs") || "[]")
@@ -862,6 +863,7 @@ function createCombinedChart() {
             lastXValue,
             daysToPredict,
             isBPM,
+            isWeight,
             metricContext
           );
           
@@ -1554,17 +1556,46 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     }
     
     const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    const isWeight = metric === 'weight';
     
-    // Format values differently for BPM vs other metrics (all whole numbers)
-    const averageDisplay = isBPM ? Math.round(trend.average) : Math.round(trend.average) + '/10';
-    const currentDisplay = isBPM ? Math.round(trend.current) : Math.round(trend.current) + '/10';
+    // Format values differently for BPM, Weight vs other metrics
+    let averageDisplay, currentDisplay, predictedDisplay = '';
     
-    // Get predicted 7-day value (whole numbers)
-    let predictedDisplay = '';
-    if (trend.projected7Days !== undefined && trend.projected7Days !== null) {
-      if (isBPM) {
+    if (isBPM) {
+      // BPM: whole numbers only
+      averageDisplay = Math.round(trend.average).toString();
+      currentDisplay = Math.round(trend.current).toString();
+      if (trend.projected7Days !== undefined && trend.projected7Days !== null) {
         predictedDisplay = Math.round(trend.projected7Days).toString();
-      } else {
+      }
+    } else if (isWeight) {
+      // Weight: show actual weight value with unit (1 decimal place)
+      const weightUnit = appSettings.weightUnit || 'kg';
+      const weightUnitSuffix = weightUnit === 'lb' ? 'lb' : 'kg';
+      
+      // Convert to display unit if needed
+      let avgWeight = trend.average;
+      let currentWeight = trend.current;
+      let predictedWeight = trend.projected7Days;
+      
+      if (weightUnit === 'lb') {
+        avgWeight = parseFloat(kgToLb(avgWeight));
+        currentWeight = parseFloat(kgToLb(currentWeight));
+        if (predictedWeight !== undefined && predictedWeight !== null) {
+          predictedWeight = parseFloat(kgToLb(predictedWeight));
+        }
+      }
+      
+      averageDisplay = avgWeight.toFixed(1) + weightUnitSuffix;
+      currentDisplay = currentWeight.toFixed(1) + weightUnitSuffix;
+      if (predictedWeight !== undefined && predictedWeight !== null) {
+        predictedDisplay = predictedWeight.toFixed(1) + weightUnitSuffix;
+      }
+    } else {
+      // Other metrics: 0-10 scale
+      averageDisplay = Math.round(trend.average) + '/10';
+      currentDisplay = Math.round(trend.current) + '/10';
+      if (trend.projected7Days !== undefined && trend.projected7Days !== null) {
         predictedDisplay = Math.round(trend.projected7Days) + '/10';
       }
     }
@@ -2091,6 +2122,7 @@ function chart(id, label, dataField, color) {
             // Generate predictions for the selected period using regression from all data
             if (trend.regression) {
               const regression = trend.regression;
+              const isWeight = dataField === 'weight';
               
               // Get the last date from training data to calculate days since start
               const firstTrainingDate = new Date(allLogs[0].date);
@@ -2116,6 +2148,7 @@ function chart(id, label, dataField, color) {
                 lastX,
                 daysToPredict,
                 isBPM,
+                isWeight,
                 metricContext
               );
               
@@ -2696,6 +2729,10 @@ function loadSettingsState() {
   document.getElementById('compressToggle').classList.toggle('active', appSettings.compress);
   document.getElementById('animationsToggle').classList.toggle('active', appSettings.animations);
   document.getElementById('lazyToggle').classList.toggle('active', appSettings.lazy);
+  const demoModeToggle = document.getElementById('demoModeToggle');
+  if (demoModeToggle) {
+    demoModeToggle.classList.toggle('active', appSettings.demoMode || false);
+  }
   
   // Load user name
   const userNameInput = document.getElementById('userNameInput');
@@ -2757,9 +2794,277 @@ function updateMedicalCondition() {
     // Update CONDITION_CONTEXT for AI analysis
     updateConditionContext(condition);
     
-    // Sync to cloud if authenticated
-    if (typeof cloudSyncState !== 'undefined' && cloudSyncState.isAuthenticated && typeof syncToCloud === 'function') {
-      setTimeout(() => syncToCloud(), 500);
+      // Sync to cloud if authenticated (but not in demo mode)
+      if (!appSettings.demoMode && typeof cloudSyncState !== 'undefined' && cloudSyncState.isAuthenticated && typeof syncToCloud === 'function') {
+        setTimeout(() => syncToCloud(), 500);
+      }
+  }
+}
+
+// Demo Mode Functions - Optimized for performance
+function generateDemoData(numDays = 3650) {
+  // Generate 10 years of demo data (3650 days) - Optimized version
+  const demoLogs = new Array(numDays); // Pre-allocate array for better performance
+  const today = new Date();
+  const endDate = new Date(today);
+  endDate.setDate(endDate.getDate() - 1); // Yesterday
+  const startDate = new Date(endDate);
+  startDate.setDate(startDate.getDate() - (numDays - 1));
+  
+  // Pre-calculate date strings to avoid repeated Date operations
+  const startTimestamp = startDate.getTime();
+  const oneDayMs = 86400000; // Milliseconds in a day
+  
+  // Track state for realistic trends
+  let currentWeight = 75.0;
+  let flareState = false;
+  let flareDuration = 0;
+  
+  // Pre-generate random numbers in batches for better performance
+  const batchSize = 1000;
+  let randomBatch = [];
+  let randomIndex = 0;
+  
+  function getRandom() {
+    if (randomIndex >= randomBatch.length) {
+      randomBatch = new Array(batchSize);
+      for (let i = 0; i < batchSize; i++) {
+        randomBatch[i] = Math.random();
+      }
+      randomIndex = 0;
+    }
+    return randomBatch[randomIndex++];
+  }
+  
+  // Pre-define note templates
+  const noteTemplates = [
+    'Feeling better today',
+    'Morning stiffness was manageable',
+    'Had a good night\'s sleep',
+    'Some joint pain in the morning',
+    'Feeling tired',
+    'Good day overall',
+    'Minor flare symptoms',
+    'Exercised today, feeling good'
+  ];
+  
+  // Generate consecutive daily entries - optimized loop
+  for (let day = 0; day < numDays; day++) {
+    // Calculate date more efficiently
+    const dateTimestamp = startTimestamp + (day * oneDayMs);
+    const date = new Date(dateTimestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const dayOfMonth = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${dayOfMonth}`;
+    
+    // Simulate flare-ups (flare can last 2-5 days) - optimized
+    if (flareDuration > 0) {
+      flareDuration--;
+      if (flareDuration === 0) {
+        flareState = false;
+      }
+    } else if (getRandom() < 0.15) { // 15% chance of starting a flare
+      flareState = true;
+      flareDuration = Math.floor(getRandom() * 4) + 2; // 2-5 days
+    }
+    
+    // Pre-calculate random values
+    const r1 = getRandom();
+    const r2 = getRandom();
+    const r3 = getRandom();
+    const r4 = getRandom();
+    const r5 = getRandom();
+    const r6 = getRandom();
+    const r7 = getRandom();
+    const r8 = getRandom();
+    const r9 = getRandom();
+    const r10 = getRandom();
+    const r11 = getRandom();
+    const r12 = getRandom();
+    
+    // During flare-ups, symptoms are worse - use pre-calculated randoms
+    let fatigue, stiffness, backPain, jointPain, sleep, mobility, dailyFunction, swelling, mood, irritability, bpm;
+    
+    if (flareState) {
+      fatigue = Math.floor(r1 * 5) + 5; // 5-9
+      stiffness = Math.floor(r2 * 5) + 6; // 6-10
+      backPain = Math.floor(r3 * 5) + 6; // 6-10
+      jointPain = Math.floor(r4 * 5) + 5; // 5-9
+      sleep = Math.floor(r5 * 4) + 3; // 3-6
+      mobility = Math.floor(r6 * 4) + 3; // 3-6
+      dailyFunction = Math.floor(r7 * 5) + 3; // 3-7
+      swelling = Math.floor(r8 * 5) + 4; // 4-8
+      mood = Math.floor(r9 * 4) + 3; // 3-6
+      irritability = Math.floor(r10 * 5) + 5; // 5-9
+      bpm = Math.floor(r11 * 26) + 70; // 70-95
+    } else {
+      fatigue = Math.floor(r1 * 5) + 2; // 2-6
+      stiffness = Math.floor(r2 * 5) + 1; // 1-5
+      backPain = Math.floor(r3 * 5) + 1; // 1-5
+      jointPain = Math.floor(r4 * 4) + 1; // 1-4
+      sleep = Math.floor(r5 * 4) + 6; // 6-9
+      mobility = Math.floor(r6 * 4) + 6; // 6-9
+      dailyFunction = Math.floor(r7 * 4) + 6; // 6-9
+      swelling = Math.floor(r8 * 3) + 1; // 1-3
+      mood = Math.floor(r9 * 5) + 5; // 5-9
+      irritability = Math.floor(r10 * 4) + 1; // 1-4
+      bpm = Math.floor(r11 * 26) + 60; // 60-85
+    }
+    
+    // Weight: Slight variation around base (within ±2kg) - optimized
+    const weightChange = (r12 - 0.5) * 0.6; // -0.3 to 0.3
+    currentWeight += weightChange;
+    currentWeight = currentWeight < 70 ? 70 : (currentWeight > 80 ? 80 : currentWeight); // Clamp between 70-80kg
+    const weight = Math.round(currentWeight * 10) / 10;
+    
+    // Notes: Occasionally add notes (only check if needed)
+    let notes = '';
+    if (getRandom() < 0.1) { // 10% chance of note
+      notes = noteTemplates[Math.floor(getRandom() * noteTemplates.length)];
+    }
+    
+    // Create object directly (avoiding push for better performance)
+    demoLogs[day] = {
+      date: dateStr,
+      bpm: String(bpm),
+      weight: weight.toFixed(1),
+      flare: flareState ? 'Yes' : 'No',
+      fatigue: String(fatigue),
+      stiffness: String(stiffness),
+      backPain: String(backPain),
+      sleep: String(sleep),
+      jointPain: String(jointPain),
+      mobility: String(mobility),
+      dailyFunction: String(dailyFunction),
+      swelling: String(swelling),
+      mood: String(mood),
+      irritability: String(irritability),
+      notes: notes
+    };
+  }
+  
+  return demoLogs;
+}
+
+function toggleDemoMode() {
+  const isDemoMode = appSettings.demoMode || false;
+  
+  if (isDemoMode) {
+    // Disable demo mode - restore original data
+    const originalLogs = localStorage.getItem('healthLogs_backup');
+    const originalSettings = localStorage.getItem('appSettings_backup');
+    
+    if (originalLogs) {
+      localStorage.setItem('healthLogs', originalLogs);
+      logs = JSON.parse(originalLogs);
+    }
+    
+    if (originalSettings) {
+      const restoredSettings = JSON.parse(originalSettings);
+      appSettings = { ...appSettings, ...restoredSettings };
+      saveSettings();
+      
+      // Update UI
+      const userNameInput = document.getElementById('userNameInput');
+      const medicalConditionInput = document.getElementById('medicalConditionInput');
+      if (userNameInput) userNameInput.value = appSettings.userName || '';
+      if (medicalConditionInput) medicalConditionInput.value = appSettings.medicalCondition || '';
+      updateDashboardTitle();
+      updateConditionContext(appSettings.medicalCondition || 'Ankylosing Spondylitis');
+    }
+    
+    // Clear backup
+    localStorage.removeItem('healthLogs_backup');
+    localStorage.removeItem('appSettings_backup');
+    
+    appSettings.demoMode = false;
+    saveSettings();
+    
+    // Refresh UI
+    renderLogs();
+    updateCharts();
+    updateHeartbeatAnimation();
+    loadSettingsState();
+    
+    alert('Demo mode disabled. Your original data has been restored.');
+  } else {
+    // Enable demo mode - backup current data and load demo data
+    if (confirm('Enable demo mode? This will temporarily replace your data with 10 years of sample data. Your original data will be restored when you disable demo mode.')) {
+      // Show loading indicator
+      const loadingMsg = document.createElement('div');
+      loadingMsg.className = 'success-notification';
+      loadingMsg.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #4caf50, #66bb6a);
+        color: white;
+        padding: 24px 32px;
+        border-radius: 16px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        z-index: 10001;
+        box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
+        text-align: center;
+      `;
+      loadingMsg.textContent = '🔄 Generating demo data... This may take a moment.';
+      document.body.appendChild(loadingMsg);
+      
+      // Backup current data
+      const currentLogs = localStorage.getItem('healthLogs');
+      const currentSettings = JSON.stringify(appSettings);
+      
+      if (currentLogs) {
+        localStorage.setItem('healthLogs_backup', currentLogs);
+      }
+      localStorage.setItem('appSettings_backup', currentSettings);
+      
+      // Use setTimeout to allow UI to update before heavy computation
+      setTimeout(() => {
+        try {
+          // Generate and load demo data (optimized)
+          const demoLogs = generateDemoData(3650); // 10 years
+          
+          // Store data efficiently
+          localStorage.setItem('healthLogs', JSON.stringify(demoLogs));
+          logs = demoLogs;
+          
+          // Update settings for demo
+          appSettings.userName = 'John Doe';
+          appSettings.medicalCondition = 'Arthritis';
+          appSettings.demoMode = true;
+          saveSettings();
+          
+          // Update UI
+          const userNameInput = document.getElementById('userNameInput');
+          const medicalConditionInput = document.getElementById('medicalConditionInput');
+          if (userNameInput) userNameInput.value = 'John Doe';
+          if (medicalConditionInput) medicalConditionInput.value = 'Arthritis';
+          updateDashboardTitle();
+          updateConditionContext('Arthritis');
+          
+          // Refresh UI
+          renderLogs();
+          updateCharts();
+          updateHeartbeatAnimation();
+          loadSettingsState();
+          
+          // Remove loading indicator
+          if (document.body.contains(loadingMsg)) {
+            document.body.removeChild(loadingMsg);
+          }
+          
+          alert('Demo mode enabled! 10 years of sample data loaded. Your original data is safely backed up.');
+        } catch (error) {
+          console.error('Error generating demo data:', error);
+          if (document.body.contains(loadingMsg)) {
+            document.body.removeChild(loadingMsg);
+          }
+          alert('Error generating demo data. Please try again.');
+        }
+      }, 100); // Small delay to allow UI update
     }
   }
 }
@@ -2773,6 +3078,7 @@ function updateConditionContext(conditionName) {
     'Ankylosing Spondylitis': 'A chronic inflammatory arthritis affecting the spine and joints',
     'Rheumatoid Arthritis': 'An autoimmune disorder causing joint inflammation and pain',
     'Fibromyalgia': 'A condition characterized by widespread pain and fatigue',
+    'Arthritis': 'A general term for conditions affecting joints and surrounding tissues',
     'Lupus': 'An autoimmune disease that can affect various body systems',
     'Osteoarthritis': 'A degenerative joint disease causing cartilage breakdown',
     'Psoriatic Arthritis': 'A form of arthritis associated with psoriasis'
