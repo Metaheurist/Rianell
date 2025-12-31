@@ -1544,10 +1544,15 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
             const trimmed = para.trim();
             if (!trimmed) return '';
             // Format markdown-style bold text
-            const formatted = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            let formatted = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             // Format bullet points
             if (trimmed.startsWith('- ')) {
-              return `<p style="margin-left: 1em;">${formatted.substring(2)}</p>`;
+              formatted = formatted.substring(2);
+              return `<p class="ai-bullet-point">• ${formatted}</p>`;
+            }
+            // Format section headers (lines that end with colon and are short)
+            if (trimmed.endsWith(':') && trimmed.length < 50) {
+              return `<h4 class="ai-subsection-title">${formatted}</h4>`;
             }
             return `<p>${formatted}</p>`;
           }).join('')}
@@ -1696,6 +1701,27 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
 
 let logs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
 
+// Migrate existing logs to include food and exercise arrays
+function migrateLogs() {
+  let needsMigration = false;
+  logs.forEach(log => {
+    if (!log.food) {
+      log.food = [];
+      needsMigration = true;
+    }
+    if (!log.exercise) {
+      log.exercise = [];
+      needsMigration = true;
+    }
+  });
+  if (needsMigration) {
+    localStorage.setItem("healthLogs", JSON.stringify(logs));
+  }
+}
+
+// Run migration on load
+migrateLogs();
+
 // Function to update heartbeat animation speed based on BPM
 function updateHeartbeatAnimation() {
   const heartbeatPath = document.querySelector('.heartbeat-path');
@@ -1748,7 +1774,9 @@ if (logs.length === 0) {
       flare: "No",
       mood: 6,
       irritability: 3,
-      notes: "Feeling better today"
+      notes: "Feeling better today",
+      food: ["Grilled chicken, 200g", "Brown rice, 150g", "Steamed vegetables"],
+      exercise: ["Walking, 30 minutes", "Yoga, 20 minutes"]
     },
     {
       date: "2024-01-16",
@@ -1765,7 +1793,9 @@ if (logs.length === 0) {
       flare: "No",
       mood: 4,
       irritability: 5,
-      notes: "Rough night sleep"
+      notes: "Rough night sleep",
+      food: ["Oatmeal with berries", "Greek yogurt, 150g"],
+      exercise: []
     },
     {
       date: "2024-01-17",
@@ -1782,7 +1812,9 @@ if (logs.length === 0) {
       flare: "No",
       mood: 8,
       irritability: 2,
-      notes: "Great day!"
+      notes: "Great day!",
+      food: ["Salmon fillet, 180g", "Quinoa salad", "Fresh fruit salad"],
+      exercise: ["Swimming, 25 minutes", "Stretching, 15 minutes"]
     }
   ];
   
@@ -1809,6 +1841,320 @@ function deleteLogEntry(logDate) {
     
     console.log(`Deleted log entry for ${logDate}`);
   }
+}
+
+// Food and Exercise Logging Functions
+let currentEditingDate = null;
+let currentFoodItems = [];
+let currentExerciseItems = [];
+
+function openFoodModal(logDate) {
+  currentEditingDate = logDate;
+  const log = logs.find(l => l.date === logDate);
+  currentFoodItems = log && log.food ? [...log.food] : [];
+  renderFoodItems();
+  document.getElementById('foodModalOverlay').style.display = 'flex';
+  const input = document.getElementById('newFoodItem');
+  input.focus();
+  // Add Enter key support
+  input.onkeypress = function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addFoodItem();
+    }
+  };
+}
+
+function closeFoodModal() {
+  document.getElementById('foodModalOverlay').style.display = 'none';
+  currentEditingDate = null;
+  currentFoodItems = [];
+  document.getElementById('newFoodItem').value = '';
+}
+
+function addFoodItem() {
+  const input = document.getElementById('newFoodItem');
+  const item = input.value.trim();
+  if (item) {
+    currentFoodItems.push(item);
+    input.value = '';
+    renderFoodItems();
+    input.focus();
+  }
+}
+
+function removeFoodItem(index) {
+  currentFoodItems.splice(index, 1);
+  renderFoodItems();
+}
+
+function renderFoodItems() {
+  const list = document.getElementById('foodItemsList');
+  if (currentFoodItems.length === 0) {
+    list.innerHTML = '<p class="empty-items">No food items logged yet.</p>';
+    return;
+  }
+  list.innerHTML = currentFoodItems.map((item, index) => `
+    <div class="item-entry">
+      <span class="item-text">${item}</span>
+      <button class="remove-item-btn" onclick="removeFoodItem(${index})" title="Remove">×</button>
+    </div>
+  `).join('');
+}
+
+function saveFoodLog() {
+  if (!currentEditingDate) return;
+  const log = logs.find(l => l.date === currentEditingDate);
+  if (log) {
+    log.food = [...currentFoodItems];
+    localStorage.setItem("healthLogs", JSON.stringify(logs));
+    renderLogs();
+    closeFoodModal();
+  }
+}
+
+function openExerciseModal(logDate) {
+  currentEditingDate = logDate;
+  const log = logs.find(l => l.date === logDate);
+  currentExerciseItems = log && log.exercise ? [...log.exercise] : [];
+  renderExerciseItems();
+  document.getElementById('exerciseModalOverlay').style.display = 'flex';
+  const input = document.getElementById('newExerciseItem');
+  input.focus();
+  // Add Enter key support
+  input.onkeypress = function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addExerciseItem();
+    }
+  };
+}
+
+function closeExerciseModal() {
+  document.getElementById('exerciseModalOverlay').style.display = 'none';
+  currentEditingDate = null;
+  currentExerciseItems = [];
+  document.getElementById('newExerciseItem').value = '';
+}
+
+function addExerciseItem() {
+  const input = document.getElementById('newExerciseItem');
+  const item = input.value.trim();
+  if (item) {
+    currentExerciseItems.push(item);
+    input.value = '';
+    renderExerciseItems();
+    input.focus();
+  }
+}
+
+function removeExerciseItem(index) {
+  currentExerciseItems.splice(index, 1);
+  renderExerciseItems();
+}
+
+function renderExerciseItems() {
+  const list = document.getElementById('exerciseItemsList');
+  if (currentExerciseItems.length === 0) {
+    list.innerHTML = '<p class="empty-items">No exercise logged yet.</p>';
+    return;
+  }
+  list.innerHTML = currentExerciseItems.map((item, index) => `
+    <div class="item-entry">
+      <span class="item-text">${item}</span>
+      <button class="remove-item-btn" onclick="removeExerciseItem(${index})" title="Remove">×</button>
+    </div>
+  `).join('');
+}
+
+function saveExerciseLog() {
+  if (!currentEditingDate) return;
+  const log = logs.find(l => l.date === currentEditingDate);
+  if (log) {
+    log.exercise = [...currentExerciseItems];
+    localStorage.setItem("healthLogs", JSON.stringify(logs));
+    renderLogs();
+    closeExerciseModal();
+  }
+}
+
+// Edit Entry Functions
+let editingEntryDate = null;
+
+function openEditEntryModal(logDate) {
+  editingEntryDate = logDate;
+  const log = logs.find(l => l.date === logDate);
+  if (!log) return;
+  
+  // Populate form with existing data
+  document.getElementById('editDate').value = log.date;
+  document.getElementById('editBpm').value = log.bpm;
+  
+  // Handle weight conversion for display
+  const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
+  document.getElementById('editWeight').value = weightDisplay;
+  document.getElementById('editWeightUnitDisplay').textContent = appSettings.weightUnit || 'kg';
+  
+  document.getElementById('editFatigue').value = log.fatigue;
+  document.getElementById('editFatigueValue').textContent = log.fatigue;
+  updateEditSliderColor('editFatigue');
+  
+  document.getElementById('editStiffness').value = log.stiffness;
+  document.getElementById('editStiffnessValue').textContent = log.stiffness;
+  updateEditSliderColor('editStiffness');
+  
+  document.getElementById('editBackPain').value = log.backPain;
+  document.getElementById('editBackPainValue').textContent = log.backPain;
+  updateEditSliderColor('editBackPain');
+  
+  document.getElementById('editSleep').value = log.sleep;
+  document.getElementById('editSleepValue').textContent = log.sleep;
+  updateEditSliderColor('editSleep');
+  
+  document.getElementById('editJointPain').value = log.jointPain;
+  document.getElementById('editJointPainValue').textContent = log.jointPain;
+  updateEditSliderColor('editJointPain');
+  
+  document.getElementById('editMobility').value = log.mobility;
+  document.getElementById('editMobilityValue').textContent = log.mobility;
+  updateEditSliderColor('editMobility');
+  
+  document.getElementById('editDailyFunction').value = log.dailyFunction;
+  document.getElementById('editDailyFunctionValue').textContent = log.dailyFunction;
+  updateEditSliderColor('editDailyFunction');
+  
+  document.getElementById('editSwelling').value = log.swelling;
+  document.getElementById('editSwellingValue').textContent = log.swelling;
+  updateEditSliderColor('editSwelling');
+  
+  document.getElementById('editFlare').value = log.flare || 'No';
+  document.getElementById('editMood').value = log.mood;
+  document.getElementById('editMoodValue').textContent = log.mood;
+  updateEditSliderColor('editMood');
+  
+  document.getElementById('editIrritability').value = log.irritability;
+  document.getElementById('editIrritabilityValue').textContent = log.irritability;
+  updateEditSliderColor('editIrritability');
+  
+  document.getElementById('editNotes').value = log.notes || '';
+  
+  // Initialize sliders
+  const editSliders = ['editFatigue', 'editStiffness', 'editBackPain', 'editSleep', 'editJointPain', 'editMobility', 'editDailyFunction', 'editSwelling', 'editMood', 'editIrritability'];
+  editSliders.forEach(sliderId => {
+    const slider = document.getElementById(sliderId);
+    if (slider) {
+      slider.addEventListener('input', function() {
+        const valueSpan = document.getElementById(sliderId + 'Value');
+        if (valueSpan) valueSpan.textContent = this.value;
+        updateEditSliderColor(sliderId);
+      });
+    }
+  });
+  
+  document.getElementById('editEntryModalOverlay').style.display = 'flex';
+}
+
+function closeEditEntryModal() {
+  document.getElementById('editEntryModalOverlay').style.display = 'none';
+  editingEntryDate = null;
+}
+
+function updateEditSliderColor(sliderId) {
+  const slider = document.getElementById(sliderId);
+  if (!slider) return;
+  const value = parseInt(slider.value);
+  const percentage = (value / 10) * 100;
+  slider.style.background = `linear-gradient(to right, #4caf50 0%, #4caf50 ${percentage}%, rgba(255, 255, 255, 0.1) ${percentage}%, rgba(255, 255, 255, 0.1) 100%)`;
+}
+
+function toggleEditWeightUnit() {
+  const currentUnit = appSettings.weightUnit || 'kg';
+  const newUnit = currentUnit === 'kg' ? 'lb' : 'kg';
+  appSettings.weightUnit = newUnit;
+  localStorage.setItem('appSettings', JSON.stringify(appSettings));
+  
+  const weightInput = document.getElementById('editWeight');
+  const currentValue = parseFloat(weightInput.value);
+  
+  if (currentUnit === 'kg') {
+    weightInput.value = kgToLb(currentValue).toFixed(1);
+  } else {
+    weightInput.value = lbToKg(currentValue).toFixed(1);
+  }
+  
+  document.getElementById('editWeightUnitDisplay').textContent = newUnit;
+}
+
+function saveEditedEntry() {
+  if (!editingEntryDate) return;
+  
+  const form = document.getElementById('editEntryForm');
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+  
+  const log = logs.find(l => l.date === editingEntryDate);
+  if (!log) return;
+  
+  // Get weight value and convert to kg if needed
+  let weightValue = parseFloat(document.getElementById("editWeight").value);
+  if (appSettings.weightUnit === 'lb') {
+    weightValue = parseFloat(lbToKg(weightValue));
+  }
+  
+  // Update log entry
+  log.date = document.getElementById("editDate").value;
+  log.bpm = document.getElementById("editBpm").value;
+  log.weight = weightValue.toFixed(1);
+  log.fatigue = document.getElementById("editFatigue").value;
+  log.stiffness = document.getElementById("editStiffness").value;
+  log.backPain = document.getElementById("editBackPain").value;
+  log.sleep = document.getElementById("editSleep").value;
+  log.jointPain = document.getElementById("editJointPain").value;
+  log.mobility = document.getElementById("editMobility").value;
+  log.dailyFunction = document.getElementById("editDailyFunction").value;
+  log.swelling = document.getElementById("editSwelling").value;
+  log.flare = document.getElementById("editFlare").value;
+  log.mood = document.getElementById("editMood").value;
+  log.irritability = document.getElementById("editIrritability").value;
+  log.notes = document.getElementById("editNotes").value;
+  
+  // Preserve food and exercise arrays if they exist
+  if (!log.food) log.food = [];
+  if (!log.exercise) log.exercise = [];
+  
+  localStorage.setItem("healthLogs", JSON.stringify(logs));
+  renderLogs();
+  updateCharts();
+  updateHeartbeatAnimation();
+  closeEditEntryModal();
+  
+  // Show success message
+  const successMsg = document.createElement('div');
+  successMsg.className = 'success-notification';
+  successMsg.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
+    color: white;
+    padding: 18px 24px;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 1rem;
+    z-index: 10000;
+    box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4), 0 0 20px rgba(76, 175, 80, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1), fadeOut 0.3s ease-out 2.7s forwards;
+  `;
+  successMsg.textContent = 'Entry updated successfully! ✅';
+  document.body.appendChild(successMsg);
+  setTimeout(() => {
+    successMsg.style.animation = 'slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+    setTimeout(() => successMsg.remove(), 300);
+  }, 3000);
 }
 
 
@@ -1838,11 +2184,24 @@ function renderLogs() {
     // Format flare-up status
     const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">Flare-up</span>' : '<span class="flare-badge flare-no">No Flare-up</span>';
     
+    // Count food and exercise items
+    const foodCount = log.food && log.food.length > 0 ? log.food.length : 0;
+    const exerciseCount = log.exercise && log.exercise.length > 0 ? log.exercise.length : 0;
+    
     div.innerHTML = `
       <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
+      <button class="edit-btn" onclick="openEditEntryModal('${log.date}')" title="Edit this entry">✏️</button>
       <div class="log-entry-header">
         <h3 class="log-date">${formattedDate}</h3>
         ${flareStatus}
+      </div>
+      <div class="log-actions">
+        <button class="action-button food-btn" onclick="openFoodModal('${log.date}')" title="View/Edit Food Log">
+          🍽️ Food ${foodCount > 0 ? `(${foodCount})` : ''}
+        </button>
+        <button class="action-button exercise-btn" onclick="openExerciseModal('${log.date}')" title="View/Edit Exercise Log">
+          🏃 Exercise ${exerciseCount > 0 ? `(${exerciseCount})` : ''}
+        </button>
       </div>
       <div class="log-metrics-grid">
         <div class="metric-group vital-signs">
@@ -2696,7 +3055,9 @@ form.addEventListener("submit", e => {
     flare: document.getElementById("flare").value,
     mood: document.getElementById("mood").value,
     irritability: document.getElementById("irritability").value,
-    notes: document.getElementById("notes").value
+    notes: document.getElementById("notes").value,
+    food: [], // Initialize food array
+    exercise: [] // Initialize exercise array
   };
   
   // Check for duplicate dates
@@ -3025,6 +3386,61 @@ function generateDemoData(numDays = 3650) {
       notes = noteTemplates[Math.floor(getRandom() * noteTemplates.length)];
     }
     
+    // Generate food and exercise data
+    const foodItems = [];
+    const exerciseItems = [];
+    
+    // Food items - 60% chance of having food logged
+    if (getRandom() < 0.6) {
+      const numFoodItems = Math.floor(getRandom() * 4) + 1; // 1-4 items
+      const foodTemplates = [
+        'Grilled chicken, 200g',
+        'Brown rice, 150g',
+        'Steamed vegetables',
+        'Salmon fillet, 180g',
+        'Quinoa salad',
+        'Greek yogurt, 150g',
+        'Oatmeal with berries',
+        'Whole grain bread, 2 slices',
+        'Mixed nuts, 30g',
+        'Fresh fruit salad',
+        'Eggs, 2 large',
+        'Avocado toast',
+        'Grilled fish, 200g',
+        'Sweet potato, 200g',
+        'Green smoothie'
+      ];
+      
+      for (let i = 0; i < numFoodItems; i++) {
+        const foodIndex = Math.floor(getRandom() * foodTemplates.length);
+        foodItems.push(foodTemplates[foodIndex]);
+      }
+    }
+    
+    // Exercise items - 40% chance of having exercise logged
+    if (getRandom() < 0.4) {
+      const numExerciseItems = Math.floor(getRandom() * 3) + 1; // 1-3 items
+      const exerciseTemplates = [
+        'Walking, 30 minutes',
+        'Yoga, 20 minutes',
+        'Swimming, 25 minutes',
+        'Cycling, 40 minutes',
+        'Stretching, 15 minutes',
+        'Light jogging, 20 minutes',
+        'Pilates, 30 minutes',
+        'Tai Chi, 25 minutes',
+        'Water aerobics, 30 minutes',
+        'Physical therapy exercises, 20 minutes',
+        'Gentle strength training, 15 minutes',
+        'Balance exercises, 10 minutes'
+      ];
+      
+      for (let i = 0; i < numExerciseItems; i++) {
+        const exerciseIndex = Math.floor(getRandom() * exerciseTemplates.length);
+        exerciseItems.push(exerciseTemplates[exerciseIndex]);
+      }
+    }
+    
     // Create object directly (avoiding push for better performance)
     demoLogs[day] = {
       date: dateStr,
@@ -3041,7 +3457,9 @@ function generateDemoData(numDays = 3650) {
       swelling: String(swelling),
       mood: String(mood),
       irritability: String(irritability),
-      notes: notes
+      notes: notes,
+      food: foodItems,
+      exercise: exerciseItems
     };
   }
   
@@ -3450,11 +3868,24 @@ function renderFilteredLogs(filteredLogs) {
     // Format flare-up status
     const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">Flare-up</span>' : '<span class="flare-badge flare-no">No Flare-up</span>';
     
+    // Count food and exercise items
+    const foodCount = log.food && log.food.length > 0 ? log.food.length : 0;
+    const exerciseCount = log.exercise && log.exercise.length > 0 ? log.exercise.length : 0;
+    
     div.innerHTML = `
       <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
+      <button class="edit-btn" onclick="openEditEntryModal('${log.date}')" title="Edit this entry">✏️</button>
       <div class="log-entry-header">
         <h3 class="log-date">${formattedDate}</h3>
         ${flareStatus}
+      </div>
+      <div class="log-actions">
+        <button class="action-button food-btn" onclick="openFoodModal('${log.date}')" title="View/Edit Food Log">
+          🍽️ Food ${foodCount > 0 ? `(${foodCount})` : ''}
+        </button>
+        <button class="action-button exercise-btn" onclick="openExerciseModal('${log.date}')" title="View/Edit Exercise Log">
+          🏃 Exercise ${exerciseCount > 0 ? `(${exerciseCount})` : ''}
+        </button>
       </div>
       <div class="log-metrics-grid">
         <div class="metric-group vital-signs">
@@ -3548,11 +3979,24 @@ function renderSortedLogs(sortedLogs) {
     // Format flare-up status
     const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">Flare-up</span>' : '<span class="flare-badge flare-no">No Flare-up</span>';
     
+    // Count food and exercise items
+    const foodCount = log.food && log.food.length > 0 ? log.food.length : 0;
+    const exerciseCount = log.exercise && log.exercise.length > 0 ? log.exercise.length : 0;
+    
     div.innerHTML = `
       <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
+      <button class="edit-btn" onclick="openEditEntryModal('${log.date}')" title="Edit this entry">✏️</button>
       <div class="log-entry-header">
         <h3 class="log-date">${formattedDate}</h3>
         ${flareStatus}
+      </div>
+      <div class="log-actions">
+        <button class="action-button food-btn" onclick="openFoodModal('${log.date}')" title="View/Edit Food Log">
+          🍽️ Food ${foodCount > 0 ? `(${foodCount})` : ''}
+        </button>
+        <button class="action-button exercise-btn" onclick="openExerciseModal('${log.date}')" title="View/Edit Exercise Log">
+          🏃 Exercise ${exerciseCount > 0 ? `(${exerciseCount})` : ''}
+        </button>
       </div>
       <div class="log-metrics-grid">
         <div class="metric-group vital-signs">
