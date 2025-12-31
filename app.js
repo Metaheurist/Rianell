@@ -1164,7 +1164,6 @@ function generateAISummary() {
   }
 
   // Show the container
-  resultsContainer.classList.remove('hidden');
   resultsContainer.style.display = 'block';
   
   // Show loading state
@@ -2151,10 +2150,13 @@ function switchTab(tabName) {
     const chartSection = document.getElementById('chartSection');
     if (chartSection) {
       chartSection.classList.remove('hidden');
-      // Update charts when switching to charts tab
+      chartSection.style.width = '100%';
+      chartSection.style.maxWidth = '100%';
+      chartSection.style.overflowX = 'hidden';
+      // Update charts when switching to charts tab - delay to ensure tab is visible
       setTimeout(() => {
         updateCharts();
-      }, 200);
+      }, 300);
     }
   }
   
