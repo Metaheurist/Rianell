@@ -1010,7 +1010,219 @@ function importData() {
 }
 
 
-// Custom AI Analysis Engine for Ankylosing Spondylitis
+// ============================================
+// LLM AI ENHANCEMENT - NO API KEY REQUIRED!
+// ============================================
+
+// WebLLM Configuration - Runs LLM directly in browser, completely free, no API key needed!
+const WEBLLM_CONFIG = {
+  enabled: true, // Set to false to disable LLM and use local analysis only
+  model: 'Llama-3.1-8B-Instruct-q4f32_1', // Fast, free model that runs in browser
+  // Other available models (slower but better quality):
+  // 'Llama-3.1-70B-Instruct-q4f16_1' (larger, slower)
+  // 'Mistral-7B-Instruct-v0.2-q4f32_1' (alternative)
+  maxTokens: 500,
+  temperature: 0.7
+};
+
+// WebLLM instance (will be initialized on first use)
+let webLLMEngine = null;
+let webLLMInitializing = false;
+
+// Condition context for the LLM (will be updated from user settings)
+let CONDITION_CONTEXT = {
+  name: 'Ankylosing Spondylitis',
+  description: 'A chronic inflammatory arthritis affecting the spine and joints',
+  keyMetrics: ['backPain', 'stiffness', 'mobility', 'fatigue', 'sleep', 'flare'],
+  treatmentAreas: ['pain management', 'mobility exercises', 'sleep quality', 'medication timing', 'flare prevention']
+};
+
+// Initialize WebLLM engine (runs in browser, no API key needed!)
+async function initWebLLM() {
+  if (webLLMEngine || webLLMInitializing) {
+    return webLLMEngine;
+  }
+
+  if (!WEBLLM_CONFIG.enabled) {
+    return null;
+  }
+
+  // Check if WebLLM is available - try multiple possible export names and wait if needed
+  let WebLLM = window.webllm || window.WebLLM || window.webllmGlobal || (typeof webllm !== 'undefined' ? webllm : null);
+  
+  // If not available, wait for it to load (max 5 seconds)
+  if (!WebLLM) {
+    console.log('WebLLM library not immediately available, waiting for script to load...');
+    for (let i = 0; i < 10; i++) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      WebLLM = window.webllm || window.WebLLM || window.webllmGlobal || (typeof webllm !== 'undefined' ? webllm : null);
+      if (WebLLM) {
+        console.log('WebLLM library loaded successfully!');
+        break;
+      }
+    }
+  }
+  
+  if (!WebLLM) {
+    console.error('WebLLM library failed to load after waiting. The CDN script may not be compatible. Consider using a different approach or disabling WebLLM.');
+    return null;
+  }
+
+  try {
+    webLLMInitializing = true;
+    console.log('Initializing WebLLM engine (this may take a moment on first load)...');
+    
+    // Create WebLLM engine - downloads model on first use
+    // Check if CreateWebLLMEngine exists, otherwise try alternative method
+    if (typeof WebLLM.CreateWebLLMEngine === 'function') {
+      webLLMEngine = await WebLLM.CreateWebLLMEngine(WEBLLM_CONFIG.model, {
+        initProgressCallback: (report) => {
+          // Update progress bar during model download
+          const progressBar = document.getElementById('aiModelProgressBar');
+          const progressText = document.getElementById('aiModelProgressText');
+          const progressPercent = Math.round(report.progress * 100);
+          
+          if (progressBar) {
+            progressBar.style.width = `${progressPercent}%`;
+          }
+          
+          if (progressText) {
+            if (report.progress < 1) {
+              progressText.textContent = `Downloading model: ${progressPercent}%`;
+            } else {
+              progressText.textContent = 'Initializing AI model...';
+            }
+          }
+          
+          console.log(`Loading model: ${progressPercent}%`);
+        }
+      });
+    } else {
+      // Alternative: try direct instantiation
+      console.warn('CreateWebLLMEngine not found, trying alternative initialization...');
+      return null;
+    }
+    
+    // Hide progress bar when done
+    const progressBar = document.getElementById('aiModelProgressBar');
+    const progressText = document.getElementById('aiModelProgressText');
+    if (progressBar) progressBar.style.width = '100%';
+    if (progressText) progressText.textContent = 'Model ready!';
+    
+    console.log('WebLLM engine initialized successfully!');
+    webLLMInitializing = false;
+    return webLLMEngine;
+  } catch (error) {
+    console.error('WebLLM initialization error:', error);
+    webLLMInitializing = false;
+    return null;
+  }
+}
+
+// Get AI insights using WebLLM (runs locally in browser, no API key!)
+async function getWebLLMInsights(analysis, logs, dayCount) {
+  // If disabled, return null to use local analysis only
+  if (!WEBLLM_CONFIG.enabled) {
+    return null;
+  }
+
+  try {
+    // Initialize engine if needed
+    const engine = await initWebLLM();
+    if (!engine) {
+      return null;
+    }
+
+    // Prepare the prompt
+    const prompt = buildLLMPrompt(analysis, logs, dayCount);
+    
+    // Generate response using WebLLM
+    const response = await engine.chat.completions.create({
+      messages: [
+        {
+          role: 'system',
+          content: `You are a helpful medical AI assistant specializing in ${CONDITION_CONTEXT.name} (${CONDITION_CONTEXT.description}). Provide empathetic, evidence-based insights without making diagnoses.`
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      max_tokens: WEBLLM_CONFIG.maxTokens,
+      temperature: WEBLLM_CONFIG.temperature
+    });
+
+    if (response && response.choices && response.choices[0] && response.choices[0].message) {
+      return response.choices[0].message.content.trim();
+    }
+    
+    throw new Error('Unexpected response format from WebLLM');
+  } catch (error) {
+    console.error('WebLLM error:', error);
+    // Return null to fall back to local analysis
+    return null;
+  }
+}
+
+function buildLLMPrompt(analysis, logs, dayCount) {
+  // Format the analysis data for the LLM
+  const trendsSummary = Object.entries(analysis.trends)
+    .map(([metric, data]) => {
+      const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+      const direction = data.trend > 0.2 ? 'improving' : data.trend < -0.2 ? 'worsening' : 'stable';
+      return `- ${metricName}: Average ${data.average}/10, Current ${data.current}/10, Trend: ${direction}`;
+    })
+    .join('\n');
+
+  const recentData = logs.slice(-3).map(log => ({
+    date: log.date,
+    bpm: log.bpm,
+    backPain: log.backPain,
+    stiffness: log.stiffness,
+    fatigue: log.fatigue,
+    sleep: log.sleep,
+    mobility: log.mobility,
+    flare: log.flare === 'Yes' ? 'Yes' : 'No'
+  }));
+
+  const flareCount = logs.filter(log => log.flare === 'Yes').length;
+  const avgBPM = logs.reduce((sum, log) => sum + parseInt(log.bpm || 0), 0) / logs.length;
+
+  return `You are a helpful medical AI assistant specializing in ${CONDITION_CONTEXT.name} (${CONDITION_CONTEXT.description}).
+
+Analyze the following health data from the last ${dayCount} days and provide a brief, personalized synopsis (2-3 paragraphs, maximum 400 words):
+
+**Health Metrics Trends:**
+${trendsSummary}
+
+**Key Patterns:**
+${analysis.correlations.length > 0 ? analysis.correlations.join('\n') : 'No significant correlations detected'}
+
+**Concerns:**
+${analysis.anomalies.length > 0 ? analysis.anomalies.join('\n') : 'No major anomalies detected'}
+
+**Recent Data (last 3 days):**
+${JSON.stringify(recentData, null, 2)}
+
+**Summary Stats:**
+- Flare-ups: ${flareCount} out of ${dayCount} days
+- Average BPM: ${Math.round(avgBPM)}
+
+Please provide:
+1. A brief summary of their overall health status (1 paragraph)
+2. Key patterns or concerns to watch (1 paragraph)
+3. Personalized recommendations specific to ${CONDITION_CONTEXT.name} management (1 paragraph)
+
+Keep it:
+- Concise and empathetic
+- Actionable and specific
+- Focused on what they can do
+- Encouraging if trends are positive
+
+IMPORTANT: Do not provide medical diagnoses - only observations and lifestyle suggestions. Always remind them to consult their healthcare provider for medical advice.`;
+}
+
+// Custom AI Analysis Engine (condition-agnostic)
 function analyzeHealthMetrics(logs) {
   const analysis = {
     trends: {},
@@ -1069,8 +1281,8 @@ function analyzeHealthMetrics(logs) {
     analysis.anomalies.push(`Poor sleep quality: ${poorSleepDays} out of ${logs.length} days`);
   }
 
-  // Generate AS-specific advice
-  analysis.advice = generateASAdvice(analysis.trends, logs);
+  // Generate condition-specific advice
+  analysis.advice = generateConditionAdvice(analysis.trends, logs);
   
   return analysis;
 }
@@ -1086,7 +1298,7 @@ function calculateCorrelation(x, y) {
   return (n * sumXY - sumX * sumY) / Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
 }
 
-function generateASAdvice(trends, logs) {
+function generateConditionAdvice(trends, logs) {
   const advice = [];
 
   // Sleep advice
@@ -1101,7 +1313,7 @@ function generateASAdvice(trends, logs) {
 
   // Exercise and mobility
   if (trends.mobility.average < 6) {
-    advice.push("🏃 **Mobility Focus**: Low mobility scores suggest need for gentle exercise. Try swimming, yoga, or physical therapy exercises specifically designed for ankylosing spondylitis.");
+    advice.push(`🏃 **Mobility Focus**: Low mobility scores suggest need for gentle exercise. Try swimming, yoga, or physical therapy exercises appropriate for ${CONDITION_CONTEXT.name}.`);
   }
 
   // Stiffness management
@@ -1174,13 +1386,35 @@ function generateAISummary() {
   const last7Logs = sortedLogs.slice(0, 7).reverse();
 
   // Analyze the data after a short delay for UX
-  setTimeout(() => {
+  setTimeout(async () => {
     const analysis = analyzeHealthMetrics(last7Logs);
-    displayAISummary(analysis, last7Logs.length);
+    
+    // Try to get WebLLM AI insights (runs locally in browser, no API key!)
+    let geminiInsights = null;
+    try {
+      resultsContent.innerHTML = `
+        <div class="ai-loading-state">
+          <div class="ai-loading-icon">🧠</div>
+          <p class="ai-loading-text">Loading AI model...</p>
+          <p class="ai-loading-subtext" id="aiModelProgressText">Preparing download...</p>
+          <div class="ai-progress-container">
+            <div class="ai-progress-bar" id="aiModelProgressBar"></div>
+          </div>
+          <p class="ai-loading-note">First time: downloading model (~500MB). Subsequent uses are instant!</p>
+        </div>
+      `;
+      geminiInsights = await getWebLLMInsights(analysis, last7Logs, last7Logs.length);
+    } catch (error) {
+      console.error('WebLLM AI error:', error);
+      // Continue with local analysis only
+    }
+    
+    // Display the combined results
+    displayAISummary(analysis, last7Logs.length, geminiInsights);
   }, 1500);
 }
 
-function displayAISummary(analysis, dayCount) {
+function displayAISummary(analysis, dayCount, geminiInsights = null) {
   const resultsContent = document.getElementById('aiResultsContent');
   
   if (!resultsContent) {
@@ -1200,6 +1434,19 @@ function displayAISummary(analysis, dayCount) {
     </div>
   `;
   animationDelay += 200;
+
+  // AI Insights Section (if available)
+  if (geminiInsights) {
+    html += `
+      <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+        <h3 class="ai-section-title">🤖 AI-Powered Insights</h3>
+        <div class="ai-llm-synopsis">
+          ${geminiInsights.split('\n\n').map(para => para.trim() ? `<p>${para.trim()}</p>` : '').join('')}
+        </div>
+      </div>
+    `;
+    animationDelay += 200;
+  }
 
   // Trends section
   html += `
@@ -1283,10 +1530,20 @@ function displayAISummary(analysis, dayCount) {
     <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
       <h3 class="ai-section-title ai-section-green">🏥 General AS Management</h3>
       <p class="ai-disclaimer">
-        <strong>Remember:</strong> This analysis is for informational purposes only. Always consult with your rheumatologist before making changes to your treatment plan. Consider sharing this data during your next appointment.
+        <strong>Remember:</strong> This analysis is for informational purposes only. Always consult with your healthcare provider before making changes to your treatment plan. Consider sharing this data during your next appointment.
       </p>
     </div>
   `;
+
+  // Add a note if WebLLM wasn't used but is enabled
+  if (!geminiInsights && WEBLLM_CONFIG.enabled) {
+    html += `
+      <div class="ai-summary-section" style="opacity: 0.7; font-size: 0.9rem; margin-top: 1rem;">
+        <p>💡 <em>AI insights are loading or temporarily unavailable.</em></p>
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">Note: First-time use downloads the AI model (~500MB). Subsequent uses are instant.</p>
+      </div>
+    `;
+  }
 
   // Set the HTML content
   resultsContent.innerHTML = html;
@@ -1916,7 +2173,8 @@ let appSettings = {
   animations: true,
   lazy: true,
   userName: '',
-  weightUnit: 'kg' // 'kg' or 'lb', always store as kg
+  weightUnit: 'kg', // 'kg' or 'lb', always store as kg
+  medicalCondition: 'Ankylosing Spondylitis' // Default condition, user can change
 };
 
 // Load settings from localStorage
@@ -1968,6 +2226,16 @@ function loadSettingsState() {
     userNameInput.value = appSettings.userName;
   }
   
+  const medicalConditionInput = document.getElementById('medicalConditionInput');
+  if (medicalConditionInput) {
+    medicalConditionInput.value = appSettings.medicalCondition || 'Ankylosing Spondylitis';
+  }
+  
+  // Update condition context with stored value
+  if (appSettings.medicalCondition) {
+    updateConditionContext(appSettings.medicalCondition);
+  }
+  
   // Initialize weight unit display and constraints
   if (appSettings.weightUnit) {
     const unitDisplay = document.getElementById('weightUnitDisplay');
@@ -2000,6 +2268,102 @@ function updateUserName() {
   appSettings.userName = userNameInput.value;
   saveSettings();
   updateDashboardTitle();
+}
+
+function updateMedicalCondition() {
+  const medicalConditionInput = document.getElementById('medicalConditionInput');
+  if (medicalConditionInput) {
+    const condition = medicalConditionInput.value.trim() || 'Ankylosing Spondylitis';
+    appSettings.medicalCondition = condition;
+    saveSettings();
+    
+    // Update CONDITION_CONTEXT for AI analysis
+    updateConditionContext(condition);
+    
+    // Sync to cloud if authenticated
+    if (typeof cloudSyncState !== 'undefined' && cloudSyncState.isAuthenticated && typeof syncToCloud === 'function') {
+      setTimeout(() => syncToCloud(), 500);
+    }
+  }
+}
+
+function updateConditionContext(conditionName) {
+  // Update the condition context with user's condition
+  CONDITION_CONTEXT.name = conditionName;
+  
+  // Update description based on common conditions (can be expanded)
+  const conditionDescriptions = {
+    'Ankylosing Spondylitis': 'A chronic inflammatory arthritis affecting the spine and joints',
+    'Rheumatoid Arthritis': 'An autoimmune disorder causing joint inflammation and pain',
+    'Fibromyalgia': 'A condition characterized by widespread pain and fatigue',
+    'Lupus': 'An autoimmune disease that can affect various body systems',
+    'Osteoarthritis': 'A degenerative joint disease causing cartilage breakdown',
+    'Psoriatic Arthritis': 'A form of arthritis associated with psoriasis'
+  };
+  
+  CONDITION_CONTEXT.description = conditionDescriptions[conditionName] || 'A chronic health condition requiring ongoing management';
+  
+  // Keep existing metrics and treatment areas (can be customized per condition later)
+  console.log(`Condition context updated to: ${conditionName}`);
+}
+
+// Initialize condition context from settings
+function initializeConditionContext() {
+  const condition = appSettings.medicalCondition || 'Ankylosing Spondylitis';
+  updateConditionContext(condition);
+}
+
+// Old function - keeping for backward compatibility but updating it
+function updateMedicalConditionOld() {
+  const medicalConditionInput = document.getElementById('medicalConditionInput');
+  const condition = medicalConditionInput.value.trim() || 'Ankylosing Spondylitis';
+  appSettings.medicalCondition = condition;
+  saveSettings();
+  updateConditionContext(condition);
+  
+  // Show confirmation
+  const successMsg = document.createElement('div');
+  successMsg.className = 'success-notification';
+  successMsg.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    z-index: 10000;
+    box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
+    animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  `;
+  successMsg.textContent = `Medical condition updated to: ${condition}`;
+  document.body.appendChild(successMsg);
+  
+  setTimeout(() => {
+    successMsg.style.animation = 'slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+    setTimeout(() => successMsg.remove(), 300);
+  }, 2000);
+}
+
+// Update condition context dynamically
+function updateConditionContext(conditionName) {
+  CONDITION_CONTEXT.name = conditionName;
+  // Update description based on condition (you can expand this)
+  if (conditionName.toLowerCase().includes('ankylosing') || conditionName.toLowerCase().includes('spondylitis')) {
+    CONDITION_CONTEXT.description = 'A chronic inflammatory arthritis affecting the spine and joints';
+  } else if (conditionName.toLowerCase().includes('arthritis')) {
+    CONDITION_CONTEXT.description = 'A condition affecting joints and mobility';
+  } else if (conditionName.toLowerCase().includes('fibromyalgia')) {
+    CONDITION_CONTEXT.description = 'A condition characterized by widespread pain and fatigue';
+  } else if (conditionName.toLowerCase().includes('lupus')) {
+    CONDITION_CONTEXT.description = 'An autoimmune disease that can affect various parts of the body';
+  } else if (conditionName.toLowerCase().includes('rheumatoid')) {
+    CONDITION_CONTEXT.description = 'An autoimmune condition causing joint inflammation and pain';
+  } else {
+    CONDITION_CONTEXT.description = 'A chronic health condition requiring ongoing management';
+  }
 }
 
 function updateDashboardTitle() {
@@ -2231,6 +2595,18 @@ window.addEventListener('load', () => {
     appSettings.weightUnit = 'kg';
     saveSettings();
   }
+  
+  // Initialize medical condition
+  if (!appSettings.medicalCondition) {
+    appSettings.medicalCondition = 'Ankylosing Spondylitis';
+    saveSettings();
+  }
+  
+  // Update condition context with stored value
+  if (appSettings.medicalCondition) {
+    updateConditionContext(appSettings.medicalCondition);
+  }
+  
   updateWeightInputConstraints();
   updateHeartbeatAnimation(); // Initialize heartbeat animation speed
   
