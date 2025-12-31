@@ -663,6 +663,91 @@ h1:hover, h2:hover {
   box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
 }
 
+/* Date Range Filter */
+.chart-date-range-filter {
+  margin: 15px 0;
+  padding: 0;
+  background: transparent;
+}
+
+.date-range-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.date-range-btn {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(224, 242, 241, 0.7);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  white-space: nowrap;
+  min-width: auto;
+}
+
+.date-range-btn:hover {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.3);
+  color: var(--text-light);
+}
+
+.date-range-btn.active {
+  background: var(--primary-gradient);
+  color: white;
+  border-color: rgba(76, 175, 80, 0.5);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.custom-date-range {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(28, 28, 28, 0.6);
+  border-radius: 8px;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.custom-date-range label {
+  color: var(--text-light);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.custom-date-range input[type="date"] {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.custom-date-range input[type="date"]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.custom-date-range input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.custom-date-range.hidden {
+  display: none;
+}
+
 /* Summary Tab Styles */
 .summary-content {
   display: flex;
