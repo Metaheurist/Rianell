@@ -722,7 +722,7 @@ function toggleChartView(showCombined) {
     
     // Small delay to prevent jump
     setTimeout(() => {
-      createCombinedChart();
+    createCombinedChart();
     }, 50);
   } else {
     combinedContainer.classList.add('hidden');
@@ -1018,12 +1018,15 @@ function importData() {
 // Now served locally from your server with progress tracking!
 const TRANSFORMERS_CONFIG = {
   enabled: true, // Enabled - served locally from your server
+  task: 'text2text-generation', // Task type for Transformers.js pipeline (T5 models use text2text-generation)
   // Recommended models for health analysis (smaller = faster, larger = better quality):
-  model: 'Xenova/Qwen2.5-0.5B-Instruct', // Fast, small model (~200MB) - good for health analysis
-  // Alternative models:
-  // 'Xenova/Qwen2.5-1.5B-Instruct' - Better quality, larger (~600MB)
-  // 'Xenova/Phi-3-mini-4k-instruct' - Microsoft's efficient model
-  // 'Xenova/TinyLlama-1.1B-Chat-v1.0' - Very fast, basic quality
+  // Using models that are confirmed to work with Transformers.js
+  // Note: Medical-specific models aren't available in browser format, but we use strong medical prompting
+  model: 'Xenova/LaMini-Flan-T5-783M', // Fast, efficient instruction-following model (~200MB)
+  // Alternative models that should work:
+  // 'Xenova/TinyLlama-1.1B-Chat-v1.0' - Very fast, basic quality (~500MB) - use task: 'text-generation'
+  // 'Xenova/Phi-3-mini-4k-instruct' - Microsoft's efficient model (~2GB) - use task: 'text-generation'
+  // 'Xenova/gpt2' - Very small, fast baseline model - use task: 'text-generation'
   maxNewTokens: 500,
   temperature: 0.7,
   topK: 50,
@@ -1326,33 +1329,47 @@ async function initTransformers() {
       {
         progress_callback: (progress) => {
           // Update progress bar during model download
-          if (progressBar && progress.progress !== undefined) {
-            const percent = Math.round(progress.progress * 100);
+          // Transformers.js progress object has: {status, name, file, progress, loaded, total}
+          let percent = 0;
+          let statusText = 'Initializing...';
+          
+          // Handle different progress formats
+          if (progress.progress !== undefined) {
+            // Progress is a percentage (0-1)
+            percent = Math.round(progress.progress * 100);
+          } else if (progress.loaded && progress.total) {
+            // Calculate from loaded/total bytes
+            percent = Math.round((progress.loaded / progress.total) * 100);
+          }
+          
+          // Update progress bar
+          if (progressBar) {
             progressBar.style.width = `${percent}%`;
           }
           
+          // Update progress text
           if (progressText) {
-            if (progress.status === 'downloading') {
-              const downloaded = progress.loaded || 0;
+            if (progress.status === 'progress' || progress.status === 'downloading') {
+              const loaded = progress.loaded || 0;
               const total = progress.total || 0;
               if (total > 0) {
-                const mbDownloaded = (downloaded / 1024 / 1024).toFixed(2);
+                const mbDownloaded = (loaded / 1024 / 1024).toFixed(2);
                 const mbTotal = (total / 1024 / 1024).toFixed(2);
-                const percent = Math.round((downloaded / total) * 100);
-                progressText.textContent = `Downloading model: ${percent}% (${mbDownloaded} MB / ${mbTotal} MB)`;
+                statusText = `Downloading ${progress.file || 'model'}: ${percent}% (${mbDownloaded} MB / ${mbTotal} MB)`;
               } else {
-                progressText.textContent = `Downloading model: ${progress.status || 'Loading...'}`;
+                statusText = `Downloading ${progress.file || 'model'}: ${percent}%`;
               }
-            } else if (progress.status === 'loading') {
-              progressText.textContent = 'Loading model into memory...';
-            } else if (progress.status === 'ready') {
-              progressText.textContent = 'Model ready!';
+            } else if (progress.status === 'loading' || progress.status === 'ready') {
+              statusText = progress.status === 'ready' ? 'Model ready!' : 'Loading model into memory...';
+            } else if (progress.file) {
+              statusText = `Loading ${progress.file}: ${percent}%`;
             } else {
-              progressText.textContent = progress.status || 'Initializing...';
+              statusText = `Loading model: ${percent}%`;
             }
+            progressText.textContent = statusText;
           }
           
-          console.log('Model loading progress:', progress);
+          console.log('Model loading progress:', progress, `(${percent}%)`);
         }
       }
     );
@@ -1392,7 +1409,7 @@ async function getTransformersInsights(analysis, logs, dayCount) {
     const prompt = buildLLMPrompt(analysis, logs, dayCount);
     
     // Create full prompt with system message
-    const fullPrompt = `You are a helpful medical AI assistant specializing in ${CONDITION_CONTEXT.name} (${CONDITION_CONTEXT.description}). Provide empathetic, evidence-based insights without making diagnoses.\n\n${prompt}`;
+    const fullPrompt = `You are an experienced medical AI assistant with specialized expertise in autoimmune diseases, particularly ${CONDITION_CONTEXT.name} (${CONDITION_CONTEXT.description}). You have deep knowledge of rheumatology, immunology, chronic inflammation, and autoimmune disease management. Provide empathetic, evidence-based medical insights without making diagnoses. Focus on patterns, trends, and management strategies relevant to autoimmune conditions.\n\n${prompt}`;
     
     // Generate response using Transformers.js
     const output = await transformersPipeline(fullPrompt, {
@@ -1443,9 +1460,9 @@ function buildLLMPrompt(analysis, logs, dayCount) {
   const flareCount = logs.filter(log => log.flare === 'Yes').length;
   const avgBPM = logs.reduce((sum, log) => sum + parseInt(log.bpm || 0), 0) / logs.length;
 
-  return `You are a helpful medical AI assistant specializing in ${CONDITION_CONTEXT.name} (${CONDITION_CONTEXT.description}).
+  return `You are an experienced medical AI assistant with specialized expertise in autoimmune diseases, particularly ${CONDITION_CONTEXT.name} (${CONDITION_CONTEXT.description}). You have deep knowledge of rheumatology, immunology, chronic inflammation, and autoimmune disease management.
 
-Analyze the following health data from the last ${dayCount} days and provide a brief, personalized synopsis (2-3 paragraphs, maximum 400 words):
+Analyze the following health data from the last ${dayCount} days and provide a brief, personalized medical synopsis (2-3 paragraphs, maximum 400 words):
 
 **Health Metrics Trends:**
 ${trendsSummary}
@@ -2000,7 +2017,7 @@ function chart(id, label, dataField, color) {
         value = parseFloat(kgToLb(value));
       }
       return {
-        x: log.date,
+      x: log.date,
         y: value
       };
     })
@@ -2278,37 +2295,37 @@ function updateCharts() {
   console.log('Updating charts with', logs.length, 'log entries');
   
   // Only handle individual charts - combined is handled by toggleChartView
-  // Use lazy loading if enabled (default), otherwise load immediately
-  if (appSettings.lazy !== false) {
-    // Clear loaded charts set to allow reloading
-    loadedCharts.clear();
-    
-    // Reset chart containers to show loading state
-    const lazyCharts = document.querySelectorAll('.lazy-chart');
-    lazyCharts.forEach(chart => {
-      chart.classList.remove('loaded');
-      // Destroy existing chart if it exists
-      if (chart.chart) {
-        chart.chart.destroy();
-        chart.chart = null;
+    // Use lazy loading if enabled (default), otherwise load immediately
+    if (appSettings.lazy !== false) {
+      // Clear loaded charts set to allow reloading
+      loadedCharts.clear();
+      
+      // Reset chart containers to show loading state
+      const lazyCharts = document.querySelectorAll('.lazy-chart');
+      lazyCharts.forEach(chart => {
+        chart.classList.remove('loaded');
+        // Destroy existing chart if it exists
+        if (chart.chart) {
+          chart.chart.destroy();
+          chart.chart = null;
+        }
+      });
+      
+      // Reinitialize lazy loading
+      if (chartObserver) {
+        chartObserver.disconnect();
       }
-    });
-    
-    // Reinitialize lazy loading
-    if (chartObserver) {
-      chartObserver.disconnect();
-    }
-    
-    // Check if charts are visible, if so initialize lazy loading
-    const chartSection = document.getElementById('chartSection');
-    if (!chartSection.classList.contains('hidden')) {
-      setTimeout(() => {
-        initializeLazyLoading();
-      }, 100); // Small delay to ensure DOM is ready
-    }
-  } else {
-    // Load all charts immediately if lazy loading is disabled
-    updateChartsImmediate();
+      
+      // Check if charts are visible, if so initialize lazy loading
+      const chartSection = document.getElementById('chartSection');
+      if (!chartSection.classList.contains('hidden')) {
+        setTimeout(() => {
+          initializeLazyLoading();
+        }, 100); // Small delay to ensure DOM is ready
+      }
+    } else {
+      // Load all charts immediately if lazy loading is disabled
+      updateChartsImmediate();
   }
 }
 
@@ -2397,8 +2414,8 @@ form.addEventListener("submit", e => {
   
   setTimeout(() => {
     successMsg.style.animation = 'slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
-    setTimeout(() => {
-      successMsg.remove();
+  setTimeout(() => {
+    successMsg.remove();
     }, 300);
   }, 3000);
   
