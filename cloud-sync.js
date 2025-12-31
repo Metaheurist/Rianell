@@ -219,6 +219,14 @@ function showCloudSyncSection(email) {
   if (authSection) authSection.style.display = 'none';
   if (syncSection) syncSection.style.display = 'block';
   if (userEmail) userEmail.textContent = email;
+  
+  // Initialize checkbox state
+  const checkbox = document.getElementById('cloudAutoSync');
+  if (checkbox) {
+    const autoSync = localStorage.getItem('cloudAutoSync');
+    checkbox.checked = autoSync === 'true';
+    checkbox.disabled = false;
+  }
 }
 
 // Handle sign up
