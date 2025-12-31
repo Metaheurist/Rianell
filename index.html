@@ -36,22 +36,9 @@
   <script src="apexcharts.min.js"></script>
   <!-- Supabase Client Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- WebLLM - Run LLM directly in browser, no API key needed -->
-  <!-- Using unpkg CDN which may work better for UMD builds -->
-  <script src="https://unpkg.com/@mlc-ai/web-llm@0.2.40/dist/index.js"></script>
-  <script>
-    // Expose WebLLM globally after script loads
-    window.addEventListener('load', () => {
-      // Check for WebLLM in various possible locations
-      if (typeof webllm !== 'undefined') {
-        window.webllmGlobal = webllm;
-        console.log('WebLLM library detected');
-      } else if (window.webllm) {
-        window.webllmGlobal = window.webllm;
-        console.log('WebLLM library detected on window');
-      }
-    });
-  </script>
+  <!-- Transformers.js - Run LLM directly in browser, no API key needed! -->
+  <!-- Now loaded from local server with progress tracking -->
+  <!-- The script will be loaded dynamically with progress bar in app.js -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -406,7 +393,10 @@
         <div class="settings-option">
           <label for="medicalConditionInput">Medical Condition</label>
           <input type="text" id="medicalConditionInput" placeholder="e.g., Ankylosing Spondylitis" onchange="updateMedicalCondition()" />
-          <small style="display: block; margin-top: 0.5rem; opacity: 0.7; font-size: 0.85rem;">Used for personalized AI analysis and advice</small>
+        </div>
+        <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
+          <label style="visibility: hidden;">Helper</label>
+          <small style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Used for personalized AI analysis and advice</small>
         </div>
       </div>
 
