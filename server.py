@@ -21,9 +21,17 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
         # Add CORS headers if needed
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
-        self.send_header('Pragma', 'no-cache')
-        self.send_header('Expires', '0')
+        
+        # Cache Transformers.js file aggressively (it's a large library)
+        if self.path.endswith('transformers.js'):
+            self.send_header('Cache-Control', 'public, max-age=31536000, immutable')
+            self.send_header('Pragma', 'public')
+        else:
+            # No cache for other files
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Expires', '0')
+        
         super().end_headers()
     
     def guess_type(self, path):

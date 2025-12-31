@@ -1014,20 +1014,25 @@ function importData() {
 // LLM AI ENHANCEMENT - NO API KEY REQUIRED!
 // ============================================
 
-// WebLLM Configuration - Runs LLM directly in browser, completely free, no API key needed!
-const WEBLLM_CONFIG = {
-  enabled: true, // Set to false to disable LLM and use local analysis only
-  model: 'Llama-3.1-8B-Instruct-q4f32_1', // Fast, free model that runs in browser
-  // Other available models (slower but better quality):
-  // 'Llama-3.1-70B-Instruct-q4f16_1' (larger, slower)
-  // 'Mistral-7B-Instruct-v0.2-q4f32_1' (alternative)
-  maxTokens: 500,
-  temperature: 0.7
+// Transformers.js Configuration - Runs LLM directly in browser, completely free, no API key needed!
+// Now served locally from your server with progress tracking!
+const TRANSFORMERS_CONFIG = {
+  enabled: true, // Enabled - served locally from your server
+  // Recommended models for health analysis (smaller = faster, larger = better quality):
+  model: 'Xenova/Qwen2.5-0.5B-Instruct', // Fast, small model (~200MB) - good for health analysis
+  // Alternative models:
+  // 'Xenova/Qwen2.5-1.5B-Instruct' - Better quality, larger (~600MB)
+  // 'Xenova/Phi-3-mini-4k-instruct' - Microsoft's efficient model
+  // 'Xenova/TinyLlama-1.1B-Chat-v1.0' - Very fast, basic quality
+  maxNewTokens: 500,
+  temperature: 0.7,
+  topK: 50,
+  topP: 0.95
 };
 
-// WebLLM instance (will be initialized on first use)
-let webLLMEngine = null;
-let webLLMInitializing = false;
+// Transformers.js pipeline instance (will be initialized on first use)
+let transformersPipeline = null;
+let transformersInitializing = false;
 
 // Condition context for the LLM (will be updated from user settings)
 let CONDITION_CONTEXT = {
@@ -1037,128 +1042,378 @@ let CONDITION_CONTEXT = {
   treatmentAreas: ['pain management', 'mobility exercises', 'sleep quality', 'medication timing', 'flare prevention']
 };
 
-// Initialize WebLLM engine (runs in browser, no API key needed!)
-async function initWebLLM() {
-  if (webLLMEngine || webLLMInitializing) {
-    return webLLMEngine;
+// Download and load Transformers.js script from local server with progress tracking
+async function loadTransformersScript(progressCallback) {
+  // Check if already loaded
+  if (window.transformers || window.pipeline || typeof pipeline !== 'undefined') {
+    return true;
+  }
+  
+  // Check cache first
+  try {
+    const cache = await caches.open('transformers-cache-v1');
+    const cached = await cache.match('/transformers.js');
+    if (cached) {
+      console.log('Loading Transformers.js from cache...');
+      const blob = await cached.blob();
+      const url = URL.createObjectURL(blob);
+      await loadScriptFromBlob(url);
+      return true;
+    }
+  } catch (e) {
+    console.log('Cache not available, downloading...');
+  }
+  
+  // Download from server with progress
+  try {
+    const response = await fetch('/transformers.js');
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const contentLength = +response.headers.get('Content-Length');
+    const reader = response.body.getReader();
+    const chunks = [];
+    let receivedLength = 0;
+    
+    // Update progress bar elements
+    const progressBar = document.getElementById('aiModelProgressBar');
+    const progressText = document.getElementById('aiModelProgressText');
+    
+    if (progressText) {
+      progressText.textContent = 'Downloading Transformers.js library...';
+    }
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      chunks.push(value);
+      receivedLength += value.length;
+      
+      if (contentLength) {
+        const percent = Math.round((receivedLength / contentLength) * 100);
+        
+        // Update progress bar
+        if (progressBar) {
+          progressBar.style.width = `${percent}%`;
+        }
+        
+        if (progressText) {
+          const mbReceived = (receivedLength / 1024 / 1024).toFixed(2);
+          const mbTotal = (contentLength / 1024 / 1024).toFixed(2);
+          progressText.textContent = `${percent}% (${mbReceived} MB / ${mbTotal} MB)`;
+        }
+        
+        if (progressCallback) {
+          progressCallback(percent, receivedLength, contentLength);
+        }
+      }
+    }
+    
+    if (progressText) {
+      progressText.textContent = 'Loading library...';
+    }
+    
+    // Create blob and cache it
+    const blob = new Blob(chunks, { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    
+    // Cache for future use
+    try {
+      const cache = await caches.open('transformers-cache-v1');
+      await cache.put('/transformers.js', new Response(blob));
+      console.log('✅ Transformers.js cached for future use');
+    } catch (e) {
+      console.warn('Could not cache Transformers.js:', e);
+    }
+    
+    // Load the script
+    await loadScriptFromBlob(url);
+    return true;
+  } catch (error) {
+    console.error('Failed to download Transformers.js:', error);
+    const progressText = document.getElementById('aiModelProgressText');
+    if (progressText) {
+      progressText.textContent = 'Download failed - using local analysis';
+    }
+    return false;
+  }
+}
+
+// Load script from blob URL - Transformers.js is an ES module
+async function loadScriptFromBlob(blobUrl) {
+  try {
+    // Transformers.js is an ES module, so we need to import it dynamically
+    console.log('Loading Transformers.js as ES module from blob URL...');
+    const module = await import(blobUrl);
+    
+    // Check what's exported - Transformers.js exports { pipeline, ... }
+    if (module.pipeline) {
+      window.transformers = module;
+      window.transformersPipeline = module.pipeline;
+      window.transformersLoaded = true;
+      console.log('✅ Transformers.js loaded successfully! pipeline function available.');
+      return true;
+    } else if (module.default && module.default.pipeline) {
+      window.transformers = module.default;
+      window.transformersPipeline = module.default.pipeline;
+      window.transformersLoaded = true;
+      console.log('✅ Transformers.js loaded successfully! (default export)');
+      return true;
+    } else {
+      console.warn('⚠️ Transformers.js module loaded but pipeline not found. Available exports:', Object.keys(module));
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Error loading Transformers.js as ES module:', error);
+    // Fallback: try loading as regular script tag with type="module"
+    console.log('Trying fallback: loading as script tag with type="module"...');
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = blobUrl;
+      script.type = 'module';
+      script.async = true;
+      
+      script.onload = () => {
+        // Give it a moment to initialize, then check
+        setTimeout(() => {
+          if (checkAndExposeTransformers()) {
+            resolve(true);
+          } else {
+            console.warn('⚠️ Script loaded but Transformers.js not detected');
+            resolve(false);
+          }
+        }, 1000);
+      };
+      
+      script.onerror = (err) => {
+        console.error('❌ Failed to load Transformers.js script:', err);
+        reject(new Error('Failed to load Transformers.js script'));
+      };
+      
+      document.head.appendChild(script);
+    });
+  }
+}
+
+// Check and expose Transformers.js globally
+function checkAndExposeTransformers() {
+  // Check multiple possible locations for Transformers.js
+  // Transformers.js from @xenova/transformers exports { pipeline, env, ... }
+  
+  // Check if already exposed
+  if (window.transformers && window.transformers.pipeline) {
+    window.transformersPipeline = window.transformers.pipeline;
+    console.log('✅ Transformers.js detected (window.transformers)');
+    return true;
+  }
+  
+  // Check for pipeline function directly
+  if (typeof pipeline !== 'undefined') {
+    window.transformersPipeline = pipeline;
+    window.transformers = { pipeline };
+    console.log('✅ Transformers.js pipeline detected (global pipeline)');
+    return true;
+  } else if (window.pipeline) {
+    window.transformersPipeline = window.pipeline;
+    window.transformers = { pipeline: window.pipeline };
+    console.log('✅ Transformers.js pipeline detected (window.pipeline)');
+    return true;
+  }
+  
+  // Check for Xenova namespace
+  if (window.Xenova && window.Xenova.transformers) {
+    window.transformers = window.Xenova.transformers;
+    window.transformersPipeline = window.Xenova.transformers.pipeline;
+    console.log('✅ Transformers.js detected (window.Xenova)');
+    return true;
+  }
+  
+  // Check for any global transformers object
+  const possibleNames = ['transformers', 'Transformers', 'TRANSFORMERS', 'hf_transformers'];
+  for (const name of possibleNames) {
+    if (window[name] && window[name].pipeline) {
+      window.transformers = window[name];
+      window.transformersPipeline = window[name].pipeline;
+      console.log(`✅ Transformers.js detected (window.${name})`);
+      return true;
+    }
+  }
+  
+  console.warn('⚠️ Transformers.js not found. Available window keys:', 
+    Object.keys(window).filter(k => k.toLowerCase().includes('transform') || k.toLowerCase().includes('pipeline')));
+  return false;
+}
+
+// Initialize Transformers.js pipeline (runs in browser, no API key needed!)
+async function initTransformers() {
+  if (transformersPipeline || transformersInitializing) {
+    return transformersPipeline;
   }
 
-  if (!WEBLLM_CONFIG.enabled) {
+  if (!TRANSFORMERS_CONFIG.enabled) {
     return null;
   }
 
-  // Check if WebLLM is available - try multiple possible export names and wait if needed
-  let WebLLM = window.webllm || window.WebLLM || window.webllmGlobal || (typeof webllm !== 'undefined' ? webllm : null);
+  // First, ensure the script is loaded
+  let pipelineFn = window.transformersPipeline || window.pipeline || 
+                   (typeof pipeline !== 'undefined' ? pipeline : null) ||
+                   (window.transformers && window.transformers.pipeline ? window.transformers.pipeline : null);
   
-  // If not available, wait for it to load (max 5 seconds)
-  if (!WebLLM) {
-    console.log('WebLLM library not immediately available, waiting for script to load...');
-    for (let i = 0; i < 10; i++) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      WebLLM = window.webllm || window.WebLLM || window.webllmGlobal || (typeof webllm !== 'undefined' ? webllm : null);
-      if (WebLLM) {
-        console.log('WebLLM library loaded successfully!');
-        break;
+  // If not loaded, download it with progress
+  if (!pipelineFn) {
+    console.log('Downloading Transformers.js library from server...');
+    
+    // Show progress in console (progress bar will be shown when model downloads)
+    const loaded = await loadTransformersScript((percent, received, total) => {
+      console.log(`Downloading Transformers.js: ${percent}% (${(received / 1024 / 1024).toFixed(2)} MB / ${(total / 1024 / 1024).toFixed(2)} MB)`);
+    });
+    
+    if (!loaded) {
+      console.warn('⚠️ Failed to load Transformers.js script. Using local analysis only.');
+      TRANSFORMERS_CONFIG.enabled = false;
+      return null;
+    }
+    
+    // Check again after loading
+    checkAndExposeTransformers();
+    pipelineFn = window.transformersPipeline || window.pipeline || 
+                 (typeof pipeline !== 'undefined' ? pipeline : null) ||
+                 (window.transformers && window.transformers.pipeline ? window.transformers.pipeline : null);
+    
+    if (!pipelineFn) {
+      // Wait a bit more for initialization
+      for (let i = 0; i < 10; i++) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+        checkAndExposeTransformers();
+        pipelineFn = window.transformersPipeline || window.pipeline || 
+                     (typeof pipeline !== 'undefined' ? pipeline : null) ||
+                     (window.transformers && window.transformers.pipeline ? window.transformers.pipeline : null);
+        if (pipelineFn) {
+          console.log('✅ Transformers.js library loaded successfully!');
+          break;
+        }
       }
     }
   }
   
-  if (!WebLLM) {
-    console.error('WebLLM library failed to load after waiting. The CDN script may not be compatible. Consider using a different approach or disabling WebLLM.');
+  if (!pipelineFn) {
+    // Silently fail - local analysis is comprehensive enough
+    if (TRANSFORMERS_CONFIG.enabled) {
+      console.info('ℹ️ Transformers.js library not found. Using local analysis (comprehensive insights available).');
+      TRANSFORMERS_CONFIG.enabled = false;
+    }
     return null;
   }
 
   try {
-    webLLMInitializing = true;
-    console.log('Initializing WebLLM engine (this may take a moment on first load)...');
+    transformersInitializing = true;
+    console.log('Initializing Transformers.js pipeline (this may take a moment on first load)...');
     
-    // Create WebLLM engine - downloads model on first use
-    // Check if CreateWebLLMEngine exists, otherwise try alternative method
-    if (typeof WebLLM.CreateWebLLMEngine === 'function') {
-      webLLMEngine = await WebLLM.CreateWebLLMEngine(WEBLLM_CONFIG.model, {
-        initProgressCallback: (report) => {
+    // Update progress bar
+    const progressBar = document.getElementById('aiModelProgressBar');
+    const progressText = document.getElementById('aiModelProgressText');
+    if (progressText) {
+      progressText.textContent = 'Loading AI model...';
+    }
+    
+    // Create pipeline with progress callback
+    // Transformers.js automatically downloads and caches models
+    transformersPipeline = await pipelineFn(
+      TRANSFORMERS_CONFIG.task,
+      TRANSFORMERS_CONFIG.model,
+      {
+        progress_callback: (progress) => {
           // Update progress bar during model download
-          const progressBar = document.getElementById('aiModelProgressBar');
-          const progressText = document.getElementById('aiModelProgressText');
-          const progressPercent = Math.round(report.progress * 100);
-          
-          if (progressBar) {
-            progressBar.style.width = `${progressPercent}%`;
+          if (progressBar && progress.progress !== undefined) {
+            const percent = Math.round(progress.progress * 100);
+            progressBar.style.width = `${percent}%`;
           }
           
           if (progressText) {
-            if (report.progress < 1) {
-              progressText.textContent = `Downloading model: ${progressPercent}%`;
+            if (progress.status === 'downloading') {
+              const downloaded = progress.loaded || 0;
+              const total = progress.total || 0;
+              if (total > 0) {
+                const mbDownloaded = (downloaded / 1024 / 1024).toFixed(2);
+                const mbTotal = (total / 1024 / 1024).toFixed(2);
+                const percent = Math.round((downloaded / total) * 100);
+                progressText.textContent = `Downloading model: ${percent}% (${mbDownloaded} MB / ${mbTotal} MB)`;
+              } else {
+                progressText.textContent = `Downloading model: ${progress.status || 'Loading...'}`;
+              }
+            } else if (progress.status === 'loading') {
+              progressText.textContent = 'Loading model into memory...';
+            } else if (progress.status === 'ready') {
+              progressText.textContent = 'Model ready!';
             } else {
-              progressText.textContent = 'Initializing AI model...';
+              progressText.textContent = progress.status || 'Initializing...';
             }
           }
           
-          console.log(`Loading model: ${progressPercent}%`);
+          console.log('Model loading progress:', progress);
         }
-      });
-    } else {
-      // Alternative: try direct instantiation
-      console.warn('CreateWebLLMEngine not found, trying alternative initialization...');
-      return null;
-    }
+      }
+    );
     
     // Hide progress bar when done
-    const progressBar = document.getElementById('aiModelProgressBar');
-    const progressText = document.getElementById('aiModelProgressText');
     if (progressBar) progressBar.style.width = '100%';
     if (progressText) progressText.textContent = 'Model ready!';
     
-    console.log('WebLLM engine initialized successfully!');
-    webLLMInitializing = false;
-    return webLLMEngine;
+    console.log('✅ Transformers.js pipeline initialized successfully!');
+    transformersInitializing = false;
+    return transformersPipeline;
   } catch (error) {
-    console.error('WebLLM initialization error:', error);
-    webLLMInitializing = false;
+    console.error('Transformers.js initialization error:', error);
+    transformersInitializing = false;
+    // Disable Transformers.js for this session
+    TRANSFORMERS_CONFIG.enabled = false;
+    console.info('ℹ️ Transformers.js disabled. AI analysis will use local analysis only (still provides comprehensive insights).');
     return null;
   }
 }
 
-// Get AI insights using WebLLM (runs locally in browser, no API key!)
-async function getWebLLMInsights(analysis, logs, dayCount) {
+// Get AI insights using Transformers.js (runs locally in browser, no API key!)
+async function getTransformersInsights(analysis, logs, dayCount) {
   // If disabled, return null to use local analysis only
-  if (!WEBLLM_CONFIG.enabled) {
+  if (!TRANSFORMERS_CONFIG.enabled) {
     return null;
   }
 
   try {
-    // Initialize engine if needed
-    const engine = await initWebLLM();
-    if (!engine) {
+    // Initialize pipeline if needed
+    const pipeline = await initTransformers();
+    if (!pipeline) {
       return null;
     }
 
     // Prepare the prompt
     const prompt = buildLLMPrompt(analysis, logs, dayCount);
     
-    // Generate response using WebLLM
-    const response = await engine.chat.completions.create({
-      messages: [
-        {
-          role: 'system',
-          content: `You are a helpful medical AI assistant specializing in ${CONDITION_CONTEXT.name} (${CONDITION_CONTEXT.description}). Provide empathetic, evidence-based insights without making diagnoses.`
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      max_tokens: WEBLLM_CONFIG.maxTokens,
-      temperature: WEBLLM_CONFIG.temperature
+    // Create full prompt with system message
+    const fullPrompt = `You are a helpful medical AI assistant specializing in ${CONDITION_CONTEXT.name} (${CONDITION_CONTEXT.description}). Provide empathetic, evidence-based insights without making diagnoses.\n\n${prompt}`;
+    
+    // Generate response using Transformers.js
+    const output = await transformersPipeline(fullPrompt, {
+      max_new_tokens: TRANSFORMERS_CONFIG.maxNewTokens,
+      temperature: TRANSFORMERS_CONFIG.temperature,
+      do_sample: true,
+      return_full_text: false
     });
 
-    if (response && response.choices && response.choices[0] && response.choices[0].message) {
-      return response.choices[0].message.content.trim();
+    // Transformers.js returns an array of generated text objects
+    if (output && Array.isArray(output) && output.length > 0) {
+      // Get the generated text from the first result
+      const generatedText = output[0].generated_text || output[0].text || output[0];
+      return typeof generatedText === 'string' ? generatedText.trim() : String(generatedText).trim();
+    } else if (output && typeof output === 'string') {
+      return output.trim();
     }
     
-    throw new Error('Unexpected response format from WebLLM');
+    throw new Error('Unexpected response format from Transformers.js');
   } catch (error) {
-    console.error('WebLLM error:', error);
+    console.error('Transformers.js error:', error);
     // Return null to fall back to local analysis
     return null;
   }
@@ -1389,32 +1644,45 @@ function generateAISummary() {
   setTimeout(async () => {
     const analysis = analyzeHealthMetrics(last7Logs);
     
-    // Try to get WebLLM AI insights (runs locally in browser, no API key!)
-    let geminiInsights = null;
-    try {
-      resultsContent.innerHTML = `
-        <div class="ai-loading-state">
-          <div class="ai-loading-icon">🧠</div>
-          <p class="ai-loading-text">Loading AI model...</p>
-          <p class="ai-loading-subtext" id="aiModelProgressText">Preparing download...</p>
-          <div class="ai-progress-container">
-            <div class="ai-progress-bar" id="aiModelProgressBar"></div>
+    // Try to get Transformers.js AI insights (runs locally in browser, no API key!)
+    // Note: Transformers.js is optional - local analysis provides comprehensive insights
+    let webLLMInsights = null; // Keep variable name for compatibility
+    if (TRANSFORMERS_CONFIG.enabled) {
+      try {
+        // Show loading state with progress bar
+        resultsContent.innerHTML = `
+          <div class="ai-loading-state">
+            <div class="ai-loading-icon">🧠</div>
+            <p class="ai-loading-text">Loading AI model...</p>
+            <p class="ai-loading-subtext" id="aiModelProgressText">Initializing...</p>
+            <div id="aiModelProgressBarContainer" class="ai-progress-bar-container">
+              <div id="aiModelProgressBar" class="ai-progress-bar"></div>
+              <span id="aiModelProgressText" class="ai-progress-text">0%</span>
+            </div>
+            <p class="ai-loading-note">First time: downloading model (~500MB). Subsequent uses are instant!</p>
           </div>
-          <p class="ai-loading-note">First time: downloading model (~500MB). Subsequent uses are instant!</p>
-        </div>
-      `;
-      geminiInsights = await getWebLLMInsights(analysis, last7Logs, last7Logs.length);
-    } catch (error) {
-      console.error('WebLLM AI error:', error);
-      // Continue with local analysis only
+        `;
+        
+        // Initialize Transformers.js (will download script if needed, then model)
+        await initTransformers();
+        
+        // Get insights
+        transformersInsights = await getTransformersInsights(analysis, last7Logs, last7Logs.length);
+      } catch (error) {
+        console.error('Transformers.js AI error:', error);
+        // Continue with local analysis only
+      }
+    } else {
+      // Transformers.js is disabled - use local analysis only (still comprehensive!)
+      console.log('ℹ️ Transformers.js is disabled. Using local analysis (comprehensive insights available).');
     }
     
     // Display the combined results
-    displayAISummary(analysis, last7Logs.length, geminiInsights);
+    displayAISummary(analysis, last7Logs.length, transformersInsights);
   }, 1500);
 }
 
-function displayAISummary(analysis, dayCount, geminiInsights = null) {
+function displayAISummary(analysis, dayCount, webLLMInsights = null) {
   const resultsContent = document.getElementById('aiResultsContent');
   
   if (!resultsContent) {
@@ -1435,13 +1703,13 @@ function displayAISummary(analysis, dayCount, geminiInsights = null) {
   `;
   animationDelay += 200;
 
-  // AI Insights Section (if available)
-  if (geminiInsights) {
+  // AI Insights Section (if available from Transformers.js)
+  if (webLLMInsights) {
     html += `
       <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title">🤖 AI-Powered Insights</h3>
         <div class="ai-llm-synopsis">
-          ${geminiInsights.split('\n\n').map(para => para.trim() ? `<p>${para.trim()}</p>` : '').join('')}
+          ${webLLMInsights.split('\n\n').map(para => para.trim() ? `<p>${para.trim()}</p>` : '').join('')}
         </div>
       </div>
     `;
@@ -1528,7 +1796,7 @@ function displayAISummary(analysis, dayCount, geminiInsights = null) {
   // General management section
   html += `
     <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title ai-section-green">🏥 General AS Management</h3>
+      <h3 class="ai-section-title ai-section-green">🏥 General ${CONDITION_CONTEXT.name} Management</h3>
       <p class="ai-disclaimer">
         <strong>Remember:</strong> This analysis is for informational purposes only. Always consult with your healthcare provider before making changes to your treatment plan. Consider sharing this data during your next appointment.
       </p>
@@ -1536,7 +1804,7 @@ function displayAISummary(analysis, dayCount, geminiInsights = null) {
   `;
 
   // Add a note if WebLLM wasn't used but is enabled
-  if (!geminiInsights && WEBLLM_CONFIG.enabled) {
+  if (!webLLMInsights && TRANSFORMERS_CONFIG.enabled) {
     html += `
       <div class="ai-summary-section" style="opacity: 0.7; font-size: 0.9rem; margin-top: 1rem;">
         <p>💡 <em>AI insights are loading or temporarily unavailable.</em></p>
