@@ -47,7 +47,72 @@
     
     <div class="title-container">
       <h1 id="dashboardTitle">Health Dashboard</h1>
-      <div class="heartbeat-line"></div>
+      <div class="heartbeat-line">
+        <svg class="heartbeat-svg" viewBox="0 0 400 60" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <linearGradient id="heartbeatGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:rgba(76, 175, 80, 0.2);stop-opacity:1" />
+              <stop offset="50%" style="stop-color:rgba(76, 175, 80, 1);stop-opacity:1" />
+              <stop offset="100%" style="stop-color:rgba(76, 175, 80, 0.2);stop-opacity:1" />
+            </linearGradient>
+            <filter id="heartbeatGlow">
+              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <!-- Base line (subtle) -->
+          <line x1="0" y1="30" x2="400" y2="30" stroke="rgba(76, 175, 80, 0.15)" stroke-width="1.5"/>
+          <!-- ECG Heartbeat pattern - realistic waveform -->
+          <path class="heartbeat-path" 
+                d="M 0,30 
+                   L 40,30 
+                   L 45,5 
+                   L 50,30 
+                   L 55,30 
+                   L 60,20 
+                   L 65,30 
+                   L 100,30 
+                   L 105,5 
+                   L 110,30 
+                   L 115,30 
+                   L 120,20 
+                   L 125,30 
+                   L 160,30 
+                   L 165,5 
+                   L 170,30 
+                   L 175,30 
+                   L 180,20 
+                   L 185,30 
+                   L 220,30 
+                   L 225,5 
+                   L 230,30 
+                   L 235,30 
+                   L 240,20 
+                   L 245,30 
+                   L 280,30 
+                   L 285,5 
+                   L 290,30 
+                   L 295,30 
+                   L 300,20 
+                   L 305,30 
+                   L 340,30 
+                   L 345,5 
+                   L 350,30 
+                   L 355,30 
+                   L 360,20 
+                   L 365,30 
+                   L 400,30" 
+                fill="none" 
+                stroke="url(#heartbeatGradient)" 
+                stroke-width="3" 
+                stroke-linecap="round" 
+                stroke-linejoin="round"
+                filter="url(#heartbeatGlow)"/>
+        </svg>
+      </div>
     </div>
 
     <!-- Tab Navigation -->
@@ -63,10 +128,6 @@
       <button class="tab-btn" data-tab="charts" onclick="switchTab('charts')">
         <span class="tab-icon">📊</span>
         <span class="tab-text">Charts</span>
-      </button>
-      <button class="tab-btn ai-tab-btn" data-tab="ai" onclick="switchTab('ai')">
-        <span class="tab-icon">🧠</span>
-        <span class="tab-text">AI Summary</span>
       </button>
     </div>
 
@@ -212,6 +273,9 @@
           <button class="action-btn" onclick="importData()" title="Import from CSV">
             <span>📥</span> Import
           </button>
+          <button class="action-btn ai-action-btn" onclick="generateAISummary()" title="Generate AI Health Analysis">
+            <span>🧠</span> AI Summary
+          </button>
         </div>
       </div>
       <div class="filter-section">
@@ -228,6 +292,18 @@
         </div>
       </div>
       <div id="logOutput"></div>
+      
+      <!-- AI Summary Collapsible Section -->
+      <div class="form-section" style="margin-top: 2rem;">
+        <button type="button" class="section-header" onclick="toggleSection('aiSummarySection')">
+          <span class="section-icon">🧠</span>
+          <span class="section-title">AI Health Analysis</span>
+          <span class="section-arrow">▶</span>
+        </button>
+        <div class="section-content" id="aiSummarySection">
+          <div id="aiResultsContent"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Charts Tab -->
@@ -290,23 +366,8 @@
       </div>
     </div>
 
-    <!-- AI Summary Tab -->
-    <div id="aiTab" class="tab-content">
-      <div class="tab-header">
-        <h2>🧠 AI Health Analysis</h2>
-      </div>
-      <div style="background: rgba(233, 30, 99, 0.1); border: 1px solid rgba(233, 30, 99, 0.3); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; color: rgba(224, 242, 241, 0.9); line-height: 1.6;">
-        <p>💡 <strong>Tip:</strong> The AI analysis looks at trends, correlations, and patterns in your health metrics to provide actionable advice.</p>
-      </div>
-      <button onclick="generateAISummary()" style="background: linear-gradient(135deg, #e91e63, #f06292); color: white; border: none; border-radius: 12px; padding: 16px 32px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3); display: inline-flex; align-items: center; justify-content: center; gap: 10px; margin: 1.5rem 0;">
-        <span>✨</span> Generate Analysis
-      </button>
-      <div id="aiResultsContainer" style="display: none; width: 100%; margin-top: 1.5rem;">
-        <textarea id="aiResultsTextbox" readonly placeholder="Click 'Generate Analysis' to see your personalized health insights here..." style="width: 100%; min-height: 400px; max-height: 50vh; padding: 20px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 16px; color: var(--text-light); font-size: 0.95rem; font-family: 'Courier New', monospace; line-height: 1.8; resize: vertical; box-sizing: border-box;"></textarea>
-      </div>
-    </div>
-
   </div>
+
 
 
   <!-- Settings Menu Overlay -->
@@ -327,14 +388,6 @@
 
       <div class="settings-section">
         <h4>📊 Display Options</h4>
-        <div class="settings-option">
-          <label>Show charts</label>
-          <div class="toggle-switch" id="showChartsToggle" onclick="toggleSetting('showCharts')"></div>
-        </div>
-        <div class="settings-option">
-          <label>Combined chart view</label>
-          <div class="toggle-switch" id="combinedChartToggle" onclick="toggleSetting('combinedChart')"></div>
-        </div>
         <div class="settings-option">
           <label>Show today's reminder</label>
           <div class="toggle-switch" id="reminderToggle" onclick="toggleSetting('reminder')"></div>
