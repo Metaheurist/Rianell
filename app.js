@@ -1112,14 +1112,16 @@ function importData() {
 // Now served locally from your server with progress tracking!
 const TRANSFORMERS_CONFIG = {
   enabled: true, // Enabled - served locally from your server
-  task: 'text-generation', // Task type for GPT-2
-  // Using base GPT-2 - confirmed publicly available and working with Transformers.js
-  // Many larger Xenova models require authentication. Base GPT-2 is reliable and publicly accessible.
-  model: 'Xenova/gpt2', // Base GPT-2 (~500MB), publicly available, reliable
-  // This is the largest model that's confirmed to work without authentication
-  // Alternative models (if needed):
-  // 'Xenova/distilgpt2' - Smaller distilled version (~350MB), faster but lower quality (use task: 'text-generation')
-  // 'Xenova/LaMini-Flan-T5-783M' - Smaller (~200MB) but lower quality (use task: 'text2text-generation')
+  task: 'text-generation', // Task type for text generation models
+  // Using medical-focused Llama model - perfect for health advice!
+  // This is a 1B parameter model fine-tuned on medical notes, in ONNX format for Transformers.js
+  model: 'onnx-community/llama-3.2-1b-medical-notes-ONNX', // Medical Llama 3.2 (~1B params, ~2GB)
+  // This model is specifically trained for medical/health contexts - much better than generic GPT-2!
+  // Fallback chain if authentication fails:
+  // 'Xenova/gpt2-xl' - GPT-2 XL (~3GB) - generic but large
+  // 'Xenova/gpt2-large' - Large GPT-2 variant (~1.5GB)
+  // 'Xenova/gpt2-medium' - Medium GPT-2 variant (~500MB)
+  // 'Xenova/gpt2' - Base GPT-2 (~500MB)
   maxNewTokens: 200, // Limited for concise responses
   temperature: 0.7,
   topK: 50,
@@ -1419,6 +1421,8 @@ async function initTransformers() {
     
     // Get estimated model size based on model name
     const getModelSize = (modelName) => {
+      if (modelName.includes('llama-3.2-1b') || modelName.includes('llama-3.2-1B')) return 2000; // ~2GB (1B params)
+      if (modelName.includes('llama')) return 2000; // ~2GB for Llama models
       if (modelName.includes('TinyLlama')) return 500; // ~500MB
       if (modelName.includes('LaMini-Flan-T5')) return 200; // ~200MB
       if (modelName.includes('Phi-3-mini')) return 2000; // ~2GB
@@ -1573,6 +1577,35 @@ async function initTransformers() {
     return transformersPipeline;
   } catch (error) {
     console.error('Transformers.js initialization error:', error);
+    
+    // Try fallback models in order of size if authentication fails
+    // Start with largest and work down to smallest
+    const fallbackModels = [
+      'Xenova/gpt2-xl',     // ~3GB (largest)
+      'Xenova/gpt2-large',  // ~1.5GB
+      'Xenova/gpt2-medium', // ~500MB
+      'Xenova/gpt2'         // ~500MB base (smallest)
+    ];
+    
+    if (error.message && error.message.includes('Unauthorized')) {
+      const currentModelIndex = fallbackModels.indexOf(TRANSFORMERS_CONFIG.model);
+      const nextModelIndex = currentModelIndex + 1;
+      
+      if (nextModelIndex < fallbackModels.length) {
+        console.warn(`⚠️ ${TRANSFORMERS_CONFIG.model} requires authentication. Trying fallback: ${fallbackModels[nextModelIndex]}...`);
+        const originalModel = TRANSFORMERS_CONFIG.model;
+        TRANSFORMERS_CONFIG.model = fallbackModels[nextModelIndex];
+        
+        try {
+          transformersInitializing = false; // Reset flag
+          return await initTransformers(); // Recursive call with fallback model
+        } catch (fallbackError) {
+          console.error(`Fallback to ${fallbackModels[nextModelIndex]} also failed:`, fallbackError);
+          TRANSFORMERS_CONFIG.model = originalModel; // Restore original
+        }
+      }
+    }
+    
     transformersInitializing = false;
     // Disable Transformers.js for this session
     TRANSFORMERS_CONFIG.enabled = false;
@@ -1599,28 +1632,43 @@ async function getTransformersInsights(analysis, logs, dayCount) {
     // Prepare the prompt (now concise summary)
     const prompt = buildLLMPrompt(analysis, logs, dayCount);
     
-    // Format prompt for GPT-2 - simple, focused question
-    const systemMessage = `You are a health advisor for ${CONDITION_CONTEXT.name}. Give practical advice.`;
+    // Check if this is a Llama model (uses chat format) or GPT-2 (uses text completion)
+    const isLlamaModel = TRANSFORMERS_CONFIG.model.includes('llama') || TRANSFORMERS_CONFIG.model.includes('Llama');
     
-    // Keep prompt short and focused
-    const maxPromptLength = 500; // Much shorter limit - just summary and question
-    const truncatedPrompt = prompt.length > maxPromptLength 
-      ? prompt.substring(0, maxPromptLength) + '...'
-      : prompt;
-    
-    // GPT-2 uses simple text generation format
-    const fullPrompt = `${systemMessage}\n\n${truncatedPrompt}`;
+    let fullPrompt;
+    if (isLlamaModel) {
+      // Llama models use chat format with messages
+      const systemMessage = `You are a health advisor specializing in ${CONDITION_CONTEXT.name}. Provide practical, data-driven advice.`;
+      const maxPromptLength = 400; // Short limit
+      const truncatedPrompt = prompt.length > maxPromptLength 
+        ? prompt.substring(0, maxPromptLength) + '...'
+        : prompt;
+      
+      // Format as chat messages for Llama
+      fullPrompt = [
+        { role: 'system', content: systemMessage },
+        { role: 'user', content: truncatedPrompt }
+      ];
+    } else {
+      // GPT-2 uses simple text completion
+      const maxPromptLength = 400;
+      const truncatedPrompt = prompt.length > maxPromptLength 
+        ? prompt.substring(0, maxPromptLength) + '...'
+        : prompt;
+      fullPrompt = truncatedPrompt;
+    }
     
     console.log('Generating AI insights with Transformers.js...');
     console.log('Model:', TRANSFORMERS_CONFIG.model);
-    console.log('Prompt length:', fullPrompt.length);
+    console.log('Format:', isLlamaModel ? 'chat (Llama)' : 'text completion (GPT-2)');
+    console.log('Prompt length:', typeof fullPrompt === 'string' ? fullPrompt.length : 'chat messages');
     
     // Generate response with limited tokens for concise output
     const output = await pipeline(fullPrompt, {
-      max_new_tokens: 200, // Limit output to ~200 tokens (shorter response)
-      temperature: TRANSFORMERS_CONFIG.temperature,
+      max_new_tokens: 150, // Limit output to ~150 tokens (concise response)
+      temperature: 0.8, // Slightly higher for more varied responses
       do_sample: true,
-      return_full_text: false,
+      return_full_text: false, // Important: only return new text, not the prompt
       top_k: TRANSFORMERS_CONFIG.topK,
       top_p: TRANSFORMERS_CONFIG.topP
     });
@@ -1641,7 +1689,36 @@ async function getTransformersInsights(analysis, logs, dayCount) {
     }
     
     if (generatedText) {
-      const result = typeof generatedText === 'string' ? generatedText.trim() : String(generatedText).trim();
+      let result;
+      
+      // Handle different output formats (Llama chat vs GPT-2 text)
+      if (isLlamaModel && typeof generatedText === 'object' && generatedText.content) {
+        // Llama returns chat message objects
+        result = generatedText.content.trim();
+      } else if (Array.isArray(generatedText) && generatedText.length > 0) {
+        // Handle array responses
+        const lastMessage = generatedText[generatedText.length - 1];
+        result = (lastMessage.content || lastMessage.generated_text || lastMessage.text || lastMessage).trim();
+      } else {
+        result = typeof generatedText === 'string' ? generatedText.trim() : String(generatedText).trim();
+      }
+      
+      // Clean up: Remove the prompt if it was included (GPT-2 sometimes includes it)
+      if (typeof fullPrompt === 'string') {
+        const promptStart = fullPrompt.substring(0, 50).toLowerCase();
+        if (result.toLowerCase().startsWith(promptStart)) {
+          result = result.substring(fullPrompt.length).trim();
+        }
+        
+        // Remove any repeated prompt text
+        if (result.includes('Based on this data')) {
+          const idx = result.indexOf('Based on this data');
+          if (idx > 0 && idx < 50) {
+            result = result.substring(idx).trim();
+          }
+        }
+      }
+      
       console.log('AI insights generated successfully, length:', result.length);
       if (result.length === 0) {
         console.warn('AI generated empty response');
@@ -1680,10 +1757,11 @@ function buildLLMPrompt(analysis, logs, dayCount) {
   const topCorrelation = analysis.correlations[0] || 'No patterns detected';
   const topAnomaly = analysis.anomalies[0] || 'No concerns';
 
-  // Concise, question-focused prompt
-  return `Patient with ${CONDITION_CONTEXT.name} tracked ${dayCount} days. Summary: ${trendsSummary}. Flare-ups: ${flareCount}/${dayCount} days (${flarePercent}%). Pattern: ${topCorrelation}. Concern: ${topAnomaly}.
+  // Format for GPT-2 text completion - start the advice as if it's already being given
+  // GPT-2 works by continuing text, so we format it as advice that's already started
+  return `Health advice for ${CONDITION_CONTEXT.name} patient: ${dayCount} days tracked. ${trendsSummary}. Flare-ups: ${flareCount}/${dayCount} days (${flarePercent}%). Pattern: ${topCorrelation}. Concern: ${topAnomaly}.
 
-What advice do you have for managing ${CONDITION_CONTEXT.name} based on this data? Write 2-3 short paragraphs (max 200 words) with practical recommendations.`;
+Based on this data, here is practical advice for managing ${CONDITION_CONTEXT.name}:`;
 }
 
 // Custom AI Analysis Engine (condition-agnostic)
