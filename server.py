@@ -20,6 +20,29 @@ HOST = ""  # Empty string means bind to all interfaces (0.0.0.0), accessible ove
 class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
     """Custom handler to set proper MIME types and handle SPA routing"""
     
+    def log_message(self, format, *args):
+        """Override to suppress 404 errors for optional files"""
+        # Suppress 404 errors for source maps and Chrome DevTools files (they're optional)
+        # log_message format: "code message" where code is like "404"
+        if len(args) >= 2:
+            status_code = str(args[1])
+            path = str(args[0]) if args else ""
+            if status_code == "404" and ('.map' in path or '.well-known' in path or 'devtools' in path.lower()):
+                return  # Don't log these 404s
+        # Log all other messages normally
+        super().log_message(format, *args)
+    
+    def do_GET(self):
+        """Override to handle optional files gracefully"""
+        # Return 204 (No Content) for optional files instead of 404
+        optional_files = ['.map', '.well-known', 'devtools']
+        if any(opt in self.path.lower() for opt in optional_files):
+            self.send_response(204)  # No Content - file is optional
+            self.end_headers()
+            return
+        # Handle normal requests
+        super().do_GET()
+    
     def end_headers(self):
         # Add CORS headers if needed
         self.send_header('Access-Control-Allow-Origin', '*')
