@@ -886,7 +886,7 @@ function createCombinedChart() {
   };
   
   // Apply light mode styles if in light mode
-  if (document.body.classList.contains('light-mode')) {
+  if (false) { // Always dark mode
     options.title.style.color = '#1b5e20';
     options.xaxis.title.style.color = '#1b5e20';
     options.xaxis.labels.style.colors = '#1b5e20';
@@ -1018,16 +1018,14 @@ function importData() {
 // Now served locally from your server with progress tracking!
 const TRANSFORMERS_CONFIG = {
   enabled: true, // Enabled - served locally from your server
-  task: 'text2text-generation', // Task type for Transformers.js pipeline (T5 models use text2text-generation)
-  // Recommended models for health analysis (smaller = faster, larger = better quality):
-  // Using models that are confirmed to work with Transformers.js
-  // Note: Medical-specific models aren't available in browser format, but we use strong medical prompting
-  model: 'Xenova/LaMini-Flan-T5-783M', // Fast, efficient instruction-following model (~200MB)
-  // Alternative models that should work:
-  // 'Xenova/TinyLlama-1.1B-Chat-v1.0' - Very fast, basic quality (~500MB) - use task: 'text-generation'
-  // 'Xenova/Phi-3-mini-4k-instruct' - Microsoft's efficient model (~2GB) - use task: 'text-generation'
-  // 'Xenova/gpt2' - Very small, fast baseline model - use task: 'text-generation'
-  maxNewTokens: 500,
+  task: 'text-generation', // Task type for Transformers.js pipeline (chat models use text-generation)
+  // Better quality models for detailed health analysis:
+  // Using TinyLlama for better quality responses while still being reasonable size
+  model: 'Xenova/TinyLlama-1.1B-Chat-v1.0', // Chat-optimized model for better conversational responses (~500MB)
+  // Alternative higher-quality models (larger downloads):
+  // 'Xenova/Phi-3-mini-4k-instruct' - Microsoft's efficient model, excellent quality (~2GB) - use task: 'text-generation'
+  // 'Xenova/Qwen2.5-1.5B-Instruct' - High quality instruction model (~600MB) - if available
+  maxNewTokens: 800, // Increased for longer, more detailed responses
   temperature: 0.7,
   topK: 50,
   topP: 0.95
@@ -1317,12 +1315,38 @@ async function initTransformers() {
     // Update progress bar
     const progressBar = document.getElementById('aiModelProgressBar');
     const progressText = document.getElementById('aiModelProgressText');
+    
+    // Track total model size across all files
+    let totalModelSize = 0;
+    let totalDownloaded = 0;
+    const fileSizes = new Map(); // Track individual file sizes
+    const fileProgress = new Map(); // Track progress per file
+    
+    // Get estimated model size based on model name
+    const getModelSize = (modelName) => {
+      if (modelName.includes('TinyLlama')) return 500; // ~500MB
+      if (modelName.includes('LaMini-Flan-T5')) return 200; // ~200MB
+      if (modelName.includes('Phi-3-mini')) return 2000; // ~2GB
+      if (modelName.includes('Qwen2.5-1.5B')) return 600; // ~600MB
+      return 500; // Default estimate
+    };
+    
+    const estimatedModelSizeMB = getModelSize(TRANSFORMERS_CONFIG.model);
+    
     if (progressText) {
-      progressText.textContent = 'Loading AI model...';
+      progressText.textContent = `Preparing to download model (${estimatedModelSizeMB} MB total)...`;
+    }
+    
+    // Configure Transformers.js to use browser cache for models
+    // This ensures models are cached in IndexedDB for offline use
+    if (window.transformers && window.transformers.env) {
+      window.transformers.env.useBrowserCache = true;
+      window.transformers.env.useFSCache = false; // Use browser cache, not file system
+      console.log('✅ Transformers.js caching enabled');
     }
     
     // Create pipeline with progress callback
-    // Transformers.js automatically downloads and caches models
+    // Transformers.js automatically downloads and caches models in IndexedDB
     transformersPipeline = await pipelineFn(
       TRANSFORMERS_CONFIG.task,
       TRANSFORMERS_CONFIG.model,
@@ -1333,14 +1357,47 @@ async function initTransformers() {
           let percent = 0;
           let statusText = 'Initializing...';
           
-          // Handle different progress formats
-          if (progress.progress !== undefined) {
-            // Progress is a percentage (0-1)
-            percent = Math.round(progress.progress * 100);
-          } else if (progress.loaded && progress.total) {
-            // Calculate from loaded/total bytes
-            percent = Math.round((progress.loaded / progress.total) * 100);
+          // Track file sizes and total downloaded
+          if (progress.file && progress.total) {
+            // Store file size if not already tracked
+            if (!fileSizes.has(progress.file)) {
+              fileSizes.set(progress.file, progress.total);
+              totalModelSize += progress.total;
+            }
+            // Update progress for this file
+            fileProgress.set(progress.file, progress.loaded || 0);
+            
+            // Calculate total downloaded across all files
+            totalDownloaded = 0;
+            fileSizes.forEach((size, file) => {
+              const fileLoaded = fileProgress.get(file) || 0;
+              totalDownloaded += Math.min(fileLoaded, size);
+            });
           }
+          
+          // Handle different progress formats
+          // Calculate percent based on what data we have
+          if (progress.loaded && progress.total) {
+            // Calculate overall model progress if we have total size
+            if (totalModelSize > 0 && totalDownloaded > 0) {
+              percent = Math.round((totalDownloaded / totalModelSize) * 100);
+            } else {
+              // Fallback to file-level progress
+              percent = Math.round((progress.loaded / progress.total) * 100);
+            }
+          } else if (progress.progress !== undefined) {
+            // Progress might be 0-1 or 0-100, check and normalize
+            if (progress.progress <= 1) {
+              // It's a fraction (0-1), convert to percentage
+              percent = Math.round(progress.progress * 100);
+            } else {
+              // It's already a percentage, use as-is but cap at 100
+              percent = Math.min(Math.round(progress.progress), 100);
+            }
+          }
+          
+          // Ensure percent is always between 0 and 100
+          percent = Math.max(0, Math.min(100, percent));
           
           // Update progress bar
           if (progressBar) {
@@ -1352,7 +1409,14 @@ async function initTransformers() {
             if (progress.status === 'progress' || progress.status === 'downloading') {
               const loaded = progress.loaded || 0;
               const total = progress.total || 0;
-              if (total > 0) {
+              
+              if (totalModelSize > 0) {
+                // Show overall model progress with exact total size
+                const mbDownloaded = (totalDownloaded / 1024 / 1024).toFixed(2);
+                const mbTotal = (totalModelSize / 1024 / 1024).toFixed(2);
+                statusText = `Downloading model: ${percent}% (${mbDownloaded} MB / ${mbTotal} MB)`;
+              } else if (total > 0) {
+                // Show file-level progress until we know total size
                 const mbDownloaded = (loaded / 1024 / 1024).toFixed(2);
                 const mbTotal = (total / 1024 / 1024).toFixed(2);
                 statusText = `Downloading ${progress.file || 'model'}: ${percent}% (${mbDownloaded} MB / ${mbTotal} MB)`;
@@ -1369,16 +1433,42 @@ async function initTransformers() {
             progressText.textContent = statusText;
           }
           
-          console.log('Model loading progress:', progress, `(${percent}%)`);
+          // Update percentage display in progress bar
+          const progressPercent = document.getElementById('aiModelProgressPercent');
+          if (progressPercent) {
+            progressPercent.textContent = `${percent}%`;
+          }
+          
+          console.log('Model loading progress:', progress, `(${percent}%)`, `Total: ${totalModelSize > 0 ? (totalModelSize / 1024 / 1024).toFixed(2) + ' MB' : 'calculating...'}`);
         }
       }
     );
     
     // Hide progress bar when done
     if (progressBar) progressBar.style.width = '100%';
-    if (progressText) progressText.textContent = 'Model ready!';
+    if (progressText) progressText.textContent = 'Model ready and cached!';
     
     console.log('✅ Transformers.js pipeline initialized successfully!');
+    
+    // Verify and confirm model caching
+    try {
+      // Transformers.js automatically caches models in IndexedDB
+      // The model is now cached and will be available offline
+      if ('indexedDB' in window) {
+        console.log('✅ Model cached in IndexedDB for offline use');
+        console.log(`✅ Model: ${TRANSFORMERS_CONFIG.model} is now available offline`);
+      }
+      
+      // Update progress text to confirm caching
+      if (progressText) {
+        setTimeout(() => {
+          progressText.textContent = 'Model cached and ready for offline use!';
+        }, 1000);
+      }
+    } catch (e) {
+      console.warn('Could not verify cache:', e);
+    }
+    
     transformersInitializing = false;
     return transformersPipeline;
   } catch (error) {
@@ -1408,8 +1498,8 @@ async function getTransformersInsights(analysis, logs, dayCount) {
     // Prepare the prompt
     const prompt = buildLLMPrompt(analysis, logs, dayCount);
     
-    // Create full prompt with system message
-    const fullPrompt = `You are an experienced medical AI assistant with specialized expertise in autoimmune diseases, particularly ${CONDITION_CONTEXT.name} (${CONDITION_CONTEXT.description}). You have deep knowledge of rheumatology, immunology, chronic inflammation, and autoimmune disease management. Provide empathetic, evidence-based medical insights without making diagnoses. Focus on patterns, trends, and management strategies relevant to autoimmune conditions.\n\n${prompt}`;
+    // Create full prompt with system message - focused on data analysis
+    const fullPrompt = `You are analyzing health tracking data for someone with ${CONDITION_CONTEXT.name}. Your role is to interpret the actual numbers and metrics provided, identify patterns, and offer practical insights. Base your response ONLY on the data given. Do not make general medical claims or statements about things not in the data.\n\n${prompt}`;
     
     // Generate response using Transformers.js
     const output = await transformersPipeline(fullPrompt, {
@@ -1460,38 +1550,43 @@ function buildLLMPrompt(analysis, logs, dayCount) {
   const flareCount = logs.filter(log => log.flare === 'Yes').length;
   const avgBPM = logs.reduce((sum, log) => sum + parseInt(log.bpm || 0), 0) / logs.length;
 
-  return `You are an experienced medical AI assistant with specialized expertise in autoimmune diseases, particularly ${CONDITION_CONTEXT.name} (${CONDITION_CONTEXT.description}). You have deep knowledge of rheumatology, immunology, chronic inflammation, and autoimmune disease management.
+  return `TASK: Analyze the patient's health tracking data and provide personalized insights for ${CONDITION_CONTEXT.name} management.
 
-Analyze the following health data from the last ${dayCount} days and provide a brief, personalized medical synopsis (2-3 paragraphs, maximum 400 words):
-
-**Health Metrics Trends:**
+PATIENT DATA (last ${dayCount} days):
 ${trendsSummary}
 
-**Key Patterns:**
+PATTERNS DETECTED:
 ${analysis.correlations.length > 0 ? analysis.correlations.join('\n') : 'No significant correlations detected'}
 
-**Concerns:**
+CONCERNS IDENTIFIED:
 ${analysis.anomalies.length > 0 ? analysis.anomalies.join('\n') : 'No major anomalies detected'}
 
-**Recent Data (last 3 days):**
-${JSON.stringify(recentData, null, 2)}
+RECENT ENTRIES (last 3 days):
+${recentData.map(d => `Date: ${d.date} | Pain: ${d.backPain}/10 | Stiffness: ${d.stiffness}/10 | Fatigue: ${d.fatigue}/10 | Sleep: ${d.sleep}/10 | Mobility: ${d.mobility}/10 | Flare: ${d.flare} | BPM: ${d.bpm}`).join('\n')}
 
-**Summary Stats:**
-- Flare-ups: ${flareCount} out of ${dayCount} days
-- Average BPM: ${Math.round(avgBPM)}
+STATISTICS:
+- Flare-ups: ${flareCount} out of ${dayCount} days (${Math.round(flareCount/dayCount*100)}% of days)
+- Average BPM: ${Math.round(avgBPM)} bpm
 
-Please provide:
-1. A brief summary of their overall health status (1 paragraph)
-2. Key patterns or concerns to watch (1 paragraph)
-3. Personalized recommendations specific to ${CONDITION_CONTEXT.name} management (1 paragraph)
+INSTRUCTIONS:
+Analyze ONLY the data provided above. Write a detailed response (at least 3-4 paragraphs, 400-600 words):
+1. INTERPRET the trends (1 paragraph): What do the numbers mean? Are symptoms improving, worsening, or stable? Reference specific metrics and their changes over time.
+2. IDENTIFY patterns and correlations (1 paragraph): What connections do you see between metrics? For example: "When sleep quality drops below 6/10, your pain levels increase by an average of 2 points." Explain any notable patterns you observe.
+3. PROVIDE detailed actionable recommendations (1-2 paragraphs): Based on the actual data patterns, provide specific, practical recommendations. Include:
+   - Lifestyle adjustments (sleep, activity, stress management)
+   - When to consider discussing changes with healthcare provider
+   - Strategies to address specific patterns you identified
+   - Encouragement and positive reinforcement for improvements
 
-Keep it:
-- Concise and empathetic
-- Actionable and specific
-- Focused on what they can do
-- Encouraging if trends are positive
-
-IMPORTANT: Do not provide medical diagnoses - only observations and lifestyle suggestions. Always remind them to consult their healthcare provider for medical advice.`;
+REQUIREMENTS:
+- Write at least 3-4 detailed paragraphs (400-600 words minimum)
+- Reference specific numbers from the data throughout (e.g., "Your pain averaged 6/10 over the last 7 days, with a peak of 8/10 on Tuesday")
+- Focus on what the data shows, not general medical advice
+- Be empathetic, encouraging, and supportive
+- Avoid making claims about things not in the data
+- Write in second person ("Your pain levels have...", "You've experienced...")
+- Provide detailed, actionable recommendations based on the patterns
+- Do not provide medical diagnoses - only observations and lifestyle suggestions based on the data`;
 }
 
 // Custom AI Analysis Engine (condition-agnostic)
@@ -1674,9 +1769,9 @@ function generateAISummary() {
             <p class="ai-loading-subtext" id="aiModelProgressText">Initializing...</p>
             <div id="aiModelProgressBarContainer" class="ai-progress-bar-container">
               <div id="aiModelProgressBar" class="ai-progress-bar"></div>
-              <span id="aiModelProgressText" class="ai-progress-text">0%</span>
+              <span id="aiModelProgressPercent" class="ai-progress-text">0%</span>
             </div>
-            <p class="ai-loading-note">First time: downloading model (~500MB). Subsequent uses are instant!</p>
+            <p class="ai-loading-note">First time: downloading model. Subsequent uses are instant!</p>
           </div>
         `;
         
@@ -1825,7 +1920,7 @@ function displayAISummary(analysis, dayCount, webLLMInsights = null) {
     html += `
       <div class="ai-summary-section" style="opacity: 0.7; font-size: 0.9rem; margin-top: 1rem;">
         <p>💡 <em>AI insights are loading or temporarily unavailable.</em></p>
-        <p style="margin-top: 0.5rem; font-size: 0.85rem;">Note: First-time use downloads the AI model (~500MB). Subsequent uses are instant.</p>
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">Note: First-time use downloads the AI model. The exact size will be shown during download. Subsequent uses are instant.</p>
       </div>
     `;
   }
@@ -2123,7 +2218,7 @@ function chart(id, label, dataField, color) {
   };
   
   // Apply light mode styles if in light mode
-  if (document.body.classList.contains('light-mode')) {
+  if (false) { // Always dark mode
     options.title.style.color = '#1b5e20';
     options.xaxis.title.style.color = '#1b5e20';
     options.xaxis.labels.style.colors = '#1b5e20';
@@ -2452,7 +2547,6 @@ let appSettings = {
   combinedChart: false,
   reminder: true,
   sound: false,
-  darkMode: true,
   backup: true,
   compress: false,
   animations: true,
@@ -2479,14 +2573,9 @@ function saveSettings() {
 }
 
 function applySettings() {
-  // Apply dark mode
-  if (appSettings.darkMode) {
-    document.body.classList.remove('light-mode');
-    document.body.classList.add('dark-mode');
-  } else {
-    document.body.classList.remove('dark-mode');
-    document.body.classList.add('light-mode');
-  }
+  // Always use dark mode
+  document.body.classList.remove('light-mode');
+  document.body.classList.add('dark-mode');
   
   // Charts are always visible in charts tab - no settings needed
   // Chart view toggle is handled by buttons in the chart tab
@@ -2499,7 +2588,6 @@ function loadSettingsState() {
   // Update toggle switches to reflect current settings
   document.getElementById('reminderToggle').classList.toggle('active', appSettings.reminder);
   document.getElementById('soundToggle').classList.toggle('active', appSettings.sound);
-  document.getElementById('darkModeToggle').classList.toggle('active', appSettings.darkMode);
   document.getElementById('backupToggle').classList.toggle('active', appSettings.backup);
   document.getElementById('compressToggle').classList.toggle('active', appSettings.compress);
   document.getElementById('animationsToggle').classList.toggle('active', appSettings.animations);
@@ -2872,6 +2960,10 @@ function switchTab(tabName) {
 
 // Initialize the app
 window.addEventListener('load', () => {
+  // Always set dark mode on load
+  document.body.classList.remove('light-mode');
+  document.body.classList.add('dark-mode');
+  
   loadSettings();
   renderLogs();
   

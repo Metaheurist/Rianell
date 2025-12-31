@@ -2,6 +2,7 @@
 """
 Simple HTTP Server for Health App
 Serves the Health Dashboard application on http://localhost:8080
+Also accessible over LAN using your computer's local IP address
 """
 
 import http.server
@@ -9,11 +10,12 @@ import socketserver
 import os
 import sys
 import webbrowser
+import socket
 from pathlib import Path
 
 # Configuration
 PORT = 8080
-HOST = "localhost"
+HOST = ""  # Empty string means bind to all interfaces (0.0.0.0), accessible over LAN
 
 class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
     """Custom handler to set proper MIME types and handle SPA routing"""
@@ -72,10 +74,29 @@ def main():
     # Allow address reuse to prevent "Address already in use" errors
     httpd.allow_reuse_address = True
     
+    # Get local IP addresses for LAN access
+    def get_local_ip():
+        """Get the local IP address of this machine"""
+        try:
+            # Connect to a remote address to determine local IP
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            ip = s.getsockname()[0]
+            s.close()
+            return ip
+        except Exception:
+            return "Unable to determine"
+    
+    local_ip = get_local_ip()
+    lan_url = f"http://{local_ip}:{PORT}"
+    
     print("=" * 60)
     print("Health App Web Server")
     print("=" * 60)
     print(f"Server running at: {server_url}")
+    if local_ip != "Unable to determine":
+        print(f"LAN access: {lan_url}")
+        print(f"  (Use this URL from other devices on your network)")
     print(f"Serving directory: {script_dir}")
     print("=" * 60)
     print("\nPress Ctrl+C to stop the server\n")
