@@ -33,7 +33,7 @@ def generate_sample_data(num_days=30, start_date=None, base_weight=75.0):
     
     for day in range(num_days):
         date = start_date + timedelta(days=day)
-        date_str = date.strftime('%Y-%m-%d')
+        date_str = date.strftime('%Y-%m-%d')  # Format: YYYY-MM-DD (matches app's date input format)
         
         # Simulate flare-ups (flare can last 2-5 days)
         if flare_duration > 0:
@@ -148,8 +148,8 @@ def save_to_csv(entries, filename='health_data_sample.csv'):
         writer.writeheader()
         writer.writerows(entries)
     
-    print(f"✅ Generated {len(entries)} entries and saved to '{filename}'")
-    print(f"📁 File location: {os.path.abspath(filename)}")
+    print(f"Generated {len(entries)} entries and saved to '{filename}'")
+    print(f"File location: {os.path.abspath(filename)}")
 
 def main():
     """Main function to generate sample data."""
@@ -178,14 +178,14 @@ def main():
     
     print()
     print("=" * 60)
-    print("📋 Sample Data Summary:")
+    print("Sample Data Summary:")
     print("=" * 60)
-    print(f"  • Total entries: {len(entries)}")
-    print(f"  • Date range: {entries[0]['Date']} to {entries[-1]['Date']}")
+    print(f"  - Total entries: {len(entries)}")
+    print(f"  - Date range: {entries[0]['Date']} to {entries[-1]['Date']}")
     
     # Count flares
     flares = sum(1 for e in entries if e['Flare'] == 'Yes')
-    print(f"  • Flare-up days: {flares} ({flares/len(entries)*100:.1f}%)")
+    print(f"  - Flare-up days: {flares} ({flares/len(entries)*100:.1f}%)")
     
     # Average metrics
     avg_bpm = sum(int(e['BPM']) for e in entries) / len(entries)
@@ -193,16 +193,16 @@ def main():
     avg_fatigue = sum(int(e['Fatigue']) for e in entries) / len(entries)
     avg_sleep = sum(int(e['Sleep']) for e in entries) / len(entries)
     
-    print(f"  • Average BPM: {avg_bpm:.0f}")
-    print(f"  • Average Weight: {avg_weight:.1f} kg")
-    print(f"  • Average Fatigue: {avg_fatigue:.1f}/10")
-    print(f"  • Average Sleep: {avg_sleep:.1f}/10")
+    print(f"  - Average BPM: {avg_bpm:.0f}")
+    print(f"  - Average Weight: {avg_weight:.1f} kg")
+    print(f"  - Average Fatigue: {avg_fatigue:.1f}/10")
+    print(f"  - Average Sleep: {avg_sleep:.1f}/10")
     print()
-    print("💡 To import this data:")
-    print("   1. Open your Health App")
-    print("   2. Go to 'View Logs' tab")
-    print("   3. Click '📥 Import Data'")
-    print(f"   4. Select '{filename}'")
+    print("To import this data:")
+    print("  1. Open your Health App")
+    print("  2. Go to 'View Logs' tab")
+    print("  3. Click 'Import Data'")
+    print(f"  4. Select '{filename}'")
     print()
     print("=" * 60)
 
