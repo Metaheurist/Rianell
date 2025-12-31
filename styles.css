@@ -278,15 +278,70 @@ h1:hover, h2:hover {
   transform: scale(1.02);
 }
 
-#dashboardTitle {
-  animation: titleFadeIn 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+/* Exclude dashboard title from general h1 styles */
+h1#dashboardTitle {
   margin-bottom: 0.5rem;
-  background: var(--primary-gradient);
+  text-shadow: none; /* Remove default shadow, using custom one */
+}
+
+h1#dashboardTitle:hover {
+  text-shadow: none; /* Use custom shadow from #dashboardTitle:hover */
+}
+
+#dashboardTitle {
+  animation: titleFadeIn 1.5s cubic-bezier(0.4, 0, 0.2, 1), titleGlow 3s ease-in-out infinite;
+  margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 25%, #81c784 50%, #a5d6a7 75%, #c8e6c9 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  font-weight: 700;
-  letter-spacing: -0.5px;
+  background-size: 200% 200%;
+  text-shadow: 
+    0 0 20px rgba(76, 175, 80, 0.5),
+    0 0 40px rgba(76, 175, 80, 0.3),
+    0 0 60px rgba(76, 175, 80, 0.2);
+  filter: drop-shadow(0 0 10px rgba(76, 175, 80, 0.4));
+  transition: all 0.3s ease;
+}
+
+#dashboardTitle::before {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, #4caf50 0%, #66bb6a 50%, #81c784 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: blur(15px);
+  opacity: 0.6;
+  animation: titleGlow 3s ease-in-out infinite;
+}
+
+#dashboardTitle:hover {
+  transform: scale(1.05);
+  text-shadow: 
+    0 0 30px rgba(76, 175, 80, 0.8),
+    0 0 60px rgba(76, 175, 80, 0.5),
+    0 0 90px rgba(76, 175, 80, 0.3);
+  filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.6));
+}
+
+@keyframes titleGlow {
+  0%, 100% {
+    background-position: 0% 50%;
+    filter: drop-shadow(0 0 10px rgba(76, 175, 80, 0.4));
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.7));
+  }
 }
 
 .heartbeat-line {
@@ -2418,6 +2473,68 @@ body.light-mode .chart-loading {
   display: none;
 }
 
+/* ApexCharts Toolbar Menu Styling for Dark Theme */
+.apexcharts-menu {
+  background: rgba(38, 50, 56, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+  padding: 4px 0 !important;
+}
+
+.apexcharts-menu-item {
+  color: #e0f2f1 !important;
+  background: transparent !important;
+  padding: 8px 16px !important;
+  font-size: 13px !important;
+  transition: all 0.2s ease !important;
+}
+
+.apexcharts-menu-item:hover {
+  background: rgba(76, 175, 80, 0.2) !important;
+  color: #81c784 !important;
+}
+
+.apexcharts-menu-icon {
+  color: #e0f2f1 !important;
+}
+
+.apexcharts-menu-icon:hover {
+  color: #81c784 !important;
+}
+
+/* ApexCharts Toolbar Buttons Styling */
+.apexcharts-toolbar {
+  z-index: 10 !important;
+}
+
+.apexcharts-toolbar svg {
+  fill: #e0f2f1 !important;
+}
+
+.apexcharts-toolbar svg:hover {
+  fill: #81c784 !important;
+}
+
+.apexcharts-zoom-icon,
+.apexcharts-zoom-in-icon,
+.apexcharts-zoom-out-icon,
+.apexcharts-pan-icon,
+.apexcharts-reset-icon,
+.apexcharts-menu-icon {
+  fill: #e0f2f1 !important;
+}
+
+.apexcharts-zoom-icon:hover,
+.apexcharts-zoom-in-icon:hover,
+.apexcharts-zoom-out-icon:hover,
+.apexcharts-pan-icon:hover,
+.apexcharts-reset-icon:hover,
+.apexcharts-menu-icon:hover {
+  fill: #81c784 !important;
+}
+
 .button-container {
   display: flex;
   flex-direction: column;
@@ -2480,6 +2597,44 @@ body.light-mode .chart-loading {
   border-color: rgba(255, 87, 34, 0.5);
   animation: glow 2s ease-in-out infinite;
   box-shadow: 0 0 20px rgba(255, 87, 34, 0.3);
+}
+
+/* Flare-up entry styling - Red glow effect */
+.entry.flare-up-entry {
+  background: linear-gradient(135deg, rgba(244, 67, 54, 0.25), rgba(229, 57, 53, 0.15));
+  border-color: rgba(244, 67, 54, 0.6);
+  animation: redGlow 2s ease-in-out infinite;
+  box-shadow: 
+    0 0 20px rgba(244, 67, 54, 0.4),
+    0 0 40px rgba(244, 67, 54, 0.2),
+    0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.entry.flare-up-entry:hover {
+  box-shadow: 
+    0 0 30px rgba(244, 67, 54, 0.6),
+    0 0 60px rgba(244, 67, 54, 0.3),
+    0 8px 25px rgba(244, 67, 54, 0.2);
+  border-color: rgba(244, 67, 54, 0.8);
+}
+
+.entry.flare-up-entry::before {
+  background: linear-gradient(90deg, transparent, rgba(244, 67, 54, 0.15), transparent);
+}
+
+@keyframes redGlow {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(244, 67, 54, 0.4),
+      0 0 40px rgba(244, 67, 54, 0.2),
+      0 4px 15px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(244, 67, 54, 0.6),
+      0 0 60px rgba(244, 67, 54, 0.4),
+      0 4px 15px rgba(0, 0, 0, 0.3);
+  }
 }
 
 /* AI Summary Overlay */
