@@ -707,6 +707,13 @@ function toggleChartView(showCombined) {
   appSettings.combinedChart = showCombined;
   saveSettings();
   
+  // Check if we have data first
+  const hasData = logs && logs.length > 0;
+  if (!hasData) {
+    updateChartEmptyState(false);
+    return;
+  }
+  
   if (showCombined) {
     combinedContainer.classList.remove('hidden');
     individualContainer.classList.add('hidden');
@@ -753,8 +760,11 @@ function createCombinedChart() {
   // Check if we have data
   if (!logs || logs.length === 0) {
     console.warn('No data available for combined chart');
+    updateChartEmptyState(false);
     return;
   }
+  
+  updateChartEmptyState(true);
   
   // Destroy existing chart if it exists
   if (container.chart) {
@@ -914,11 +924,91 @@ function createCombinedChart() {
   });
 }
 
-function clearData() {
+async function clearData() {
+  // Confirm with user before clearing all data
+  if (!confirm('⚠️ WARNING: This will permanently delete ALL your health data, settings, and log you out of cloud sync.\n\nThis action cannot be undone!\n\nAre you sure you want to continue?')) {
+    return;
+  }
+  
+  // Clear all health logs
   logs = [];
   localStorage.removeItem("healthLogs");
+  
+  // Clear all app settings - reset to defaults
+  appSettings = {
+    showCharts: true,
+    combinedChart: false,
+    reminder: true,
+    sound: false,
+    backup: true,
+    compress: false,
+    animations: true,
+    lazy: true,
+    userName: '',
+    weightUnit: 'kg',
+    medicalCondition: '' // Clear medical condition
+  };
+  localStorage.removeItem('healthAppSettings');
+  
+  // Clear cloud sync data and logout
+  if (typeof handleCloudLogout === 'function') {
+    try {
+      await handleCloudLogout();
+    } catch (error) {
+      console.warn('Cloud logout error (may not be logged in):', error);
+    }
+  }
+  
+  // Clear all cloud-related localStorage items
+  localStorage.removeItem('cloudAutoSync');
+  localStorage.removeItem('cloudLastSync');
+  localStorage.removeItem('currentCloudUserId');
+  
+  // Clear any other localStorage items related to the app
+  // (keeping service worker registration and other browser data)
+  
+  // Reset UI
   renderLogs();
   updateCharts();
+  updateAISummaryButtonState(); // Update AI button state
+  
+  // Reload settings
+  if (typeof loadSettings === 'function') {
+    loadSettings();
+  }
+  
+  // Apply settings to UI
+  if (typeof applySettings === 'function') {
+    applySettings();
+  }
+  
+  // Update settings state (toggles, etc.)
+  if (typeof loadSettingsState === 'function') {
+    loadSettingsState();
+  }
+  
+  // Explicitly clear input fields in UI (after loadSettingsState to override any defaults)
+  const userNameInput = document.getElementById('userNameInput');
+  if (userNameInput) {
+    userNameInput.value = '';
+  }
+  
+  const medicalConditionInput = document.getElementById('medicalConditionInput');
+  if (medicalConditionInput) {
+    medicalConditionInput.value = '';
+  }
+  
+  // Update dashboard title and condition context
+  if (typeof updateDashboardTitle === 'function') {
+    updateDashboardTitle();
+  }
+  
+  if (typeof updateConditionContext === 'function') {
+    updateConditionContext('');
+  }
+  
+  // Show confirmation
+  alert('✅ All data cleared successfully!\n\n- Health logs deleted\n- Settings reset\n- Cloud sync logged out\n\nThe app has been reset to default state.');
 }
 
 function exportData() {
@@ -995,6 +1085,7 @@ function importData() {
           renderLogs();
           updateCharts();
           updateHeartbeatAnimation(); // Update heartbeat speed after import
+          updateAISummaryButtonState(); // Update AI button state
           
           alert(`Successfully imported ${newLogs.length} new health entries!`);
           
@@ -1715,13 +1806,36 @@ document.addEventListener('keydown', function(event) {
 // AI SUMMARY - REBUILT FROM SCRATCH
 // ============================================
 
+// Update AI Summary button state based on data availability
+function updateAISummaryButtonState() {
+  const aiButton = document.querySelector('.ai-action-btn');
+  if (!aiButton) return;
+  
+  const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
+  const hasData = allLogs && allLogs.length > 0;
+  
+  if (hasData) {
+    aiButton.disabled = false;
+    aiButton.classList.remove('disabled');
+    aiButton.style.opacity = '1';
+    aiButton.style.cursor = 'pointer';
+    aiButton.title = 'Generate AI Health Analysis';
+  } else {
+    aiButton.disabled = true;
+    aiButton.classList.add('disabled');
+    aiButton.style.opacity = '0.5';
+    aiButton.style.cursor = 'not-allowed';
+    aiButton.title = 'No data available. Start logging to generate AI analysis.';
+  }
+}
+
 function generateAISummary() {
   // Get health logs from localStorage
   const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
   
   // Check if we have data
   if (allLogs.length === 0) {
-    alert("No health data found. Please log some entries first.");
+    alert('No health data available. Please log some entries first before generating an AI summary.');
     return;
   }
 
@@ -2048,6 +2162,7 @@ function deleteLogEntry(logDate) {
     renderLogs();
     updateCharts();
     updateHeartbeatAnimation(); // Update heartbeat speed after deletion
+    updateAISummaryButtonState(); // Update AI button state
     
     console.log(`Deleted log entry for ${logDate}`);
   }
@@ -2359,6 +2474,18 @@ function loadChart(container, chartType) {
 }
 
 function updateChartsImmediate() {
+  // Check if we have data
+  const hasData = logs && logs.length > 0;
+  updateChartEmptyState(hasData);
+  
+  if (!hasData) {
+    // Hide all loading placeholders
+    document.querySelectorAll('.chart-loading').forEach(loading => {
+      loading.style.display = 'none';
+    });
+    return;
+  }
+  
   // Hide all loading placeholders first
   document.querySelectorAll('.chart-loading').forEach(loading => {
     loading.style.display = 'none';
@@ -2379,6 +2506,26 @@ function updateChartsImmediate() {
   chart("irritabilityChart", "Irritability Level", "irritability", "rgb(121,85,72)");
 }
 
+// Update empty state placeholder visibility
+function updateChartEmptyState(hasData) {
+  const placeholder = document.getElementById('chartEmptyPlaceholder');
+  const combinedContainer = document.getElementById('combinedChartContainer');
+  const individualContainer = document.getElementById('individualChartsContainer');
+  
+  if (!placeholder) return;
+  
+  if (!hasData) {
+    // Show placeholder, hide chart containers
+    placeholder.classList.remove('hidden');
+    if (combinedContainer) combinedContainer.classList.add('hidden');
+    if (individualContainer) individualContainer.classList.add('hidden');
+  } else {
+    // Hide placeholder, show appropriate chart container based on view
+    placeholder.classList.add('hidden');
+    // Chart containers will be shown/hidden by toggleChartView
+  }
+}
+
 function updateCharts() {
   // Check if ApexCharts is loaded
   if (typeof ApexCharts === 'undefined') {
@@ -2388,6 +2535,10 @@ function updateCharts() {
   }
   
   console.log('Updating charts with', logs.length, 'log entries');
+  
+  // Check if we have any data to display
+  const hasData = logs && logs.length > 0;
+  updateChartEmptyState(hasData);
   
   // Only handle individual charts - combined is handled by toggleChartView
     // Use lazy loading if enabled (default), otherwise load immediately
@@ -2479,6 +2630,7 @@ form.addEventListener("submit", e => {
   renderLogs();
   updateCharts();
   updateHeartbeatAnimation(); // Update heartbeat speed based on new BPM
+  updateAISummaryButtonState(); // Update AI button state
   
   // Switch to logs tab after saving
   switchTab('logs');
@@ -2574,8 +2726,8 @@ function saveSettings() {
 
 function applySettings() {
   // Always use dark mode
-  document.body.classList.remove('light-mode');
-  document.body.classList.add('dark-mode');
+    document.body.classList.remove('light-mode');
+    document.body.classList.add('dark-mode');
   
   // Charts are always visible in charts tab - no settings needed
   // Chart view toggle is handled by buttons in the chart tab
@@ -2966,6 +3118,8 @@ window.addEventListener('load', () => {
   
   loadSettings();
   renderLogs();
+  updateCharts(); // Check for empty state on page load
+  updateAISummaryButtonState(); // Update AI button state on page load
   
   // Initialize weight unit
   if (!appSettings.weightUnit) {
