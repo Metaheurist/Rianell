@@ -34,6 +34,9 @@
   <link rel="icon" type="image/png" sizes="16x16" href="Icons/Icon-16.png">
   
   <script src="apexcharts.min.js"></script>
+  <!-- Google API Client Library -->
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://accounts.google.com/gsi/client"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -144,7 +147,7 @@
         <button type="button" class="section-header" onclick="toggleSection('basicMetrics')">
           <span class="section-icon">📊</span>
           <span class="section-title">Basic Metrics</span>
-          <span class="section-arrow">▼</span>
+          <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="basicMetrics">
           <label for="date">Date</label>
@@ -177,7 +180,7 @@
         <button type="button" class="section-header" onclick="toggleSection('symptoms')">
           <span class="section-icon">🩺</span>
           <span class="section-title">Symptoms & Pain</span>
-          <span class="section-arrow">▼</span>
+          <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="symptoms">
           <div class="slider-container">
@@ -237,7 +240,7 @@
         <button type="button" class="section-header" onclick="toggleSection('additionalInfo')">
           <span class="section-icon">📝</span>
           <span class="section-title">Additional Information</span>
-          <span class="section-arrow">▼</span>
+          <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="additionalInfo">
           <label for="flare">Flare-up Today?</label>
@@ -438,6 +441,24 @@
         </div>
         <div class="settings-option">
           <button class="settings-data-btn launch-app-btn" onclick="openInStandalone()">🚀 Open in Standalone Mode</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>☁️ Google Drive Sync</h4>
+        <div id="googleDriveStatus" class="drive-status">
+          <div class="drive-status-text" id="driveStatusText">Not connected</div>
+        </div>
+        <div class="data-management-buttons">
+          <button id="googleDriveLoginBtn" class="settings-data-btn drive-btn" onclick="handleGoogleDriveAuth()">
+            <span id="driveButtonText">🔐 Sign in with Google</span>
+          </button>
+          <button id="googleDriveSyncBtn" class="settings-data-btn sync-btn" onclick="syncToGoogleDrive()" style="display: none;">
+            <span>🔄 Sync to Google Drive</span>
+          </button>
+          <button id="googleDriveLogoutBtn" class="settings-data-btn logout-btn" onclick="handleGoogleDriveLogout()" style="display: none;">
+            <span>🚪 Sign Out</span>
+          </button>
         </div>
       </div>
 
