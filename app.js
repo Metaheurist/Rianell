@@ -25,7 +25,21 @@ const Logger = {
     console[consoleMethod](`[${level}] ${message}`, details);
     
     // Only send to server if demo mode is enabled
-    const isDemoMode = typeof appSettings !== 'undefined' && appSettings.demoMode === true;
+    // Check demo mode from localStorage (avoids temporal dead zone issues with appSettings)
+    let isDemoMode = false;
+    try {
+      const savedSettings = localStorage.getItem('healthAppSettings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        if (settings.demoMode === true) {
+          isDemoMode = true;
+        }
+      }
+    } catch (e) {
+      // If we can't read settings, skip server logging
+      return;
+    }
+    
     if (!isDemoMode) {
       return; // Skip server logging when not in demo mode
     }
@@ -324,6 +338,42 @@ function showUpdateNotification() {
 
 // Handle PWA shortcuts
 window.addEventListener('DOMContentLoaded', function() {
+  // Clear cache for CSS and JS files on startup
+  if ('caches' in window) {
+    caches.keys().then(function(names) {
+      for (let name of names) {
+        caches.delete(name);
+      }
+      Logger.debug('Cache cleared on startup');
+    }).catch(function(err) {
+      Logger.warn('Error clearing cache', { error: err.message });
+    });
+  }
+  
+  // Force reload CSS and JS files with cache-busting timestamp
+  const timestamp = new Date().getTime();
+  const links = document.querySelectorAll('link[rel="stylesheet"]');
+  links.forEach(function(link) {
+    const href = link.getAttribute('href');
+    if (href && href.includes('styles.css')) {
+      // Remove existing version parameter and add new timestamp
+      const baseHref = href.split('?')[0];
+      link.setAttribute('href', baseHref + '?v=' + timestamp);
+      Logger.debug('CSS cache-busted', { href: baseHref });
+    }
+  });
+  
+  const scripts = document.querySelectorAll('script[src]');
+  scripts.forEach(function(script) {
+    const src = script.getAttribute('src');
+    if (src && (src.includes('app.js') || src.includes('apexcharts.min.js')) && !src.startsWith('http')) {
+      // Remove existing version parameter and add new timestamp
+      const baseSrc = src.split('?')[0];
+      script.setAttribute('src', baseSrc + '?v=' + timestamp);
+      Logger.debug('JS cache-busted', { src: baseSrc });
+    }
+  });
+  
   const urlParams = new URLSearchParams(window.location.search);
   
   if (urlParams.get('quick') === 'true') {
@@ -2165,6 +2215,7 @@ function saveExerciseLog() {
 
 // Edit Entry Functions
 let editingEntryDate = null;
+let inlineEditingDate = null; // Track which entry is being edited inline
 
 function openEditEntryModal(logDate) {
   editingEntryDate = logDate;
@@ -2242,21 +2293,45 @@ function openEditEntryModal(logDate) {
   });
   
   const overlay = document.getElementById('editEntryModalOverlay');
-  overlay.style.display = 'block';
-  document.body.classList.add('modal-active');
-  
-  // Reset overlay scroll position to ensure modal is visible
-  overlay.scrollTop = 0;
-  
-  // Ensure modal content is properly positioned in viewport (always centered)
-  const modalContent = overlay.querySelector('.modal-content');
-  if (modalContent) {
-    // Force recalculation of position to center in viewport
-    modalContent.style.position = 'fixed';
-    modalContent.style.top = '50%';
-    modalContent.style.left = '50%';
-    modalContent.style.transform = 'translate(-50%, -50%)';
+  if (!overlay) {
+    console.error('Edit entry modal overlay not found!');
+    Logger.error('Edit entry modal overlay not found');
+    return;
   }
+  
+  // Get modal content before showing overlay
+  const modalContent = overlay.querySelector('.modal-content');
+  if (!modalContent) {
+    console.error('Edit entry modal content not found!');
+    Logger.error('Edit entry modal content not found');
+    return;
+  }
+  
+  // Set overlay properties first
+  overlay.style.display = 'block';
+  overlay.style.position = 'fixed';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.width = '100vw';
+  overlay.style.height = '100vh';
+  overlay.style.margin = '0';
+  overlay.style.padding = '0';
+  overlay.style.zIndex = '10000';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  
+  // Set modal content properties
+  modalContent.style.position = 'fixed';
+  modalContent.style.top = '50%';
+  modalContent.style.left = '50%';
+  modalContent.style.transform = 'translate(-50%, -50%)';
+  modalContent.style.margin = '0';
+  modalContent.style.zIndex = '10001';
+  modalContent.style.display = 'flex';
+  modalContent.style.visibility = 'visible';
+  modalContent.style.opacity = '1';
+  
+  document.body.classList.add('modal-active');
   
   // Close on overlay click
   overlay.onclick = function(e) {
@@ -2271,6 +2346,170 @@ function closeEditEntryModal() {
   document.getElementById('editEntryModalOverlay').style.display = 'none';
   document.body.classList.remove('modal-active');
   editingEntryDate = null;
+}
+
+// Inline editing functions
+function enableInlineEdit(logDate) {
+  if (!logDate) {
+    console.error('enableInlineEdit: logDate is required');
+    return;
+  }
+  
+  inlineEditingDate = logDate;
+  Logger.debug('Inline edit enabled', { date: logDate });
+  
+  // Check if date filtering is active
+  const startDate = document.getElementById('startDate')?.value;
+  const endDate = document.getElementById('endDate')?.value;
+  
+  if (startDate || endDate) {
+    // Date filtering is active - use filterLogs which will call renderFilteredLogs
+    filterLogs();
+  } else {
+    // Check if sorting is active
+    const sortBtn = document.querySelector('.sort-btn');
+    const isSorted = sortBtn && sortBtn.textContent.includes('Oldest');
+    
+    if (isSorted) {
+      // Re-render sorted logs
+      const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+      renderSortedLogs(sorted);
+    } else {
+      // Use regular renderLogs
+      renderLogs();
+    }
+  }
+  
+  // Scroll the entry into view
+  setTimeout(() => {
+    const entry = document.querySelector(`[data-log-date="${logDate}"]`);
+    if (entry) {
+      entry.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      console.warn('Entry not found after render:', logDate);
+    }
+  }, 100);
+}
+
+function saveInlineEdit(logDate) {
+  const log = logs.find(l => l.date === logDate);
+  if (!log) {
+    Logger.warn('Log entry not found for inline edit', { date: logDate });
+    return;
+  }
+  
+  // Get the entry element
+  const entryElement = document.querySelector(`[data-log-date="${logDate}"]`);
+  if (!entryElement) {
+    Logger.warn('Entry element not found for inline edit', { date: logDate });
+    inlineEditingDate = null;
+    renderLogs();
+    return;
+  }
+  
+  // Get all input values from the editable fields
+  const dateInput = entryElement.querySelector('.inline-edit-date');
+  const bpmInput = entryElement.querySelector('.inline-edit-bpm');
+  const weightInput = entryElement.querySelector('.inline-edit-weight');
+  const fatigueInput = entryElement.querySelector('.inline-edit-fatigue');
+  const stiffnessInput = entryElement.querySelector('.inline-edit-stiffness');
+  const backPainInput = entryElement.querySelector('.inline-edit-backPain');
+  const sleepInput = entryElement.querySelector('.inline-edit-sleep');
+  const jointPainInput = entryElement.querySelector('.inline-edit-jointPain');
+  const mobilityInput = entryElement.querySelector('.inline-edit-mobility');
+  const dailyFunctionInput = entryElement.querySelector('.inline-edit-dailyFunction');
+  const swellingInput = entryElement.querySelector('.inline-edit-swelling');
+  const flareSelect = entryElement.querySelector('.inline-edit-flare');
+  const moodInput = entryElement.querySelector('.inline-edit-mood');
+  const irritabilityInput = entryElement.querySelector('.inline-edit-irritability');
+  const notesTextarea = entryElement.querySelector('.inline-edit-notes');
+  
+  // Update log entry
+  if (dateInput) log.date = dateInput.value;
+  if (bpmInput) log.bpm = bpmInput.value;
+  
+  if (weightInput) {
+    let weightValue = parseFloat(weightInput.value);
+    if (appSettings.weightUnit === 'lb') {
+      weightValue = parseFloat(lbToKg(weightValue));
+    }
+    log.weight = weightValue.toFixed(1);
+  }
+  
+  if (fatigueInput) log.fatigue = fatigueInput.value;
+  if (stiffnessInput) log.stiffness = stiffnessInput.value;
+  if (backPainInput) log.backPain = backPainInput.value;
+  if (sleepInput) log.sleep = sleepInput.value;
+  if (jointPainInput) log.jointPain = jointPainInput.value;
+  if (mobilityInput) log.mobility = mobilityInput.value;
+  if (dailyFunctionInput) log.dailyFunction = dailyFunctionInput.value;
+  if (swellingInput) log.swelling = swellingInput.value;
+  if (flareSelect) log.flare = flareSelect.value;
+  if (moodInput) log.mood = moodInput.value;
+  if (irritabilityInput) log.irritability = irritabilityInput.value;
+  if (notesTextarea) log.notes = notesTextarea.value || '';
+  
+  // Preserve food and exercise arrays
+  if (!log.food) log.food = [];
+  if (!log.exercise) log.exercise = [];
+  
+  // Save to localStorage
+  localStorage.setItem("healthLogs", JSON.stringify(logs));
+  Logger.info('Health log entry edited inline and saved', { date: logDate });
+  
+  // Exit edit mode and re-render
+  inlineEditingDate = null;
+  
+  // Check if date filtering is active
+  const startDate = document.getElementById('startDate')?.value;
+  const endDate = document.getElementById('endDate')?.value;
+  
+  if (startDate || endDate) {
+    // Date filtering is active - use filterLogs which will call renderFilteredLogs
+    filterLogs();
+  } else {
+    // Check if sorting is active
+    const sortBtn = document.querySelector('.sort-btn');
+    const isSorted = sortBtn && sortBtn.textContent.includes('Oldest');
+    
+    if (isSorted) {
+      // Re-render sorted logs
+      const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+      renderSortedLogs(sorted);
+    } else {
+      // Use regular renderLogs
+      renderLogs();
+    }
+  }
+  
+  updateCharts();
+  updateHeartbeatAnimation();
+  
+  // Show success message
+  const successMsg = document.createElement('div');
+  successMsg.className = 'success-notification';
+  successMsg.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
+    color: white;
+    padding: 18px 24px;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 1rem;
+    z-index: 10000;
+    box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4), 0 0 20px rgba(76, 175, 80, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1), fadeOut 0.3s ease-out 2.7s forwards;
+  `;
+  successMsg.textContent = 'Entry updated successfully! ✅';
+  document.body.appendChild(successMsg);
+  setTimeout(() => {
+    successMsg.style.animation = 'slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+    setTimeout(() => successMsg.remove(), 300);
+  }, 3000);
 }
 
 function updateEditSliderColor(sliderId) {
@@ -2378,117 +2617,173 @@ function saveEditedEntry() {
 
 
 
+// Helper function to generate log entry HTML
+function generateLogEntryHTML(log) {
+  const isEditing = inlineEditingDate === log.date;
+  const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
+  const weightUnit = getWeightUnitSuffix();
+  
+  const dateObj = new Date(log.date);
+  const formattedDate = dateObj.toLocaleDateString('en-US', { 
+    weekday: 'short', 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  });
+  
+  const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">Flare-up</span>' : '<span class="flare-badge flare-no">No Flare-up</span>';
+  const foodCount = log.food && log.food.length > 0 ? log.food.length : 0;
+  const exerciseCount = log.exercise && log.exercise.length > 0 ? log.exercise.length : 0;
+  
+  const editButton = isEditing 
+    ? `<button class="edit-btn save-btn" onclick="saveInlineEdit('${log.date}')" title="Save changes">💾</button>`
+    : `<button class="edit-btn" onclick="enableInlineEdit('${log.date}')" title="Edit this entry">✏️</button>`;
+  
+  return `
+    <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
+    ${editButton}
+    <div class="log-entry-header">
+      ${isEditing 
+        ? `<input type="date" class="inline-edit-date" value="${log.date}" style="font-size: 1.2rem; padding: 5px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1;" />`
+        : `<h3 class="log-date">${formattedDate}</h3>`
+      }
+      <div class="header-badges">
+        <button class="header-icon-btn food-btn" onclick="openFoodModal('${log.date}')" title="Food Log ${foodCount > 0 ? `(${foodCount} items)` : ''}">
+          🍽️${foodCount > 0 ? `<span class="badge-count">${foodCount}</span>` : ''}
+        </button>
+        <button class="header-icon-btn exercise-btn" onclick="openExerciseModal('${log.date}')" title="Exercise Log ${exerciseCount > 0 ? `(${exerciseCount} items)` : ''}">
+          🏃${exerciseCount > 0 ? `<span class="badge-count">${exerciseCount}</span>` : ''}
+        </button>
+        ${isEditing 
+          ? `<select class="inline-edit-flare" style="padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1;">
+              <option value="No" ${log.flare === 'No' ? 'selected' : ''}>No Flare-up</option>
+              <option value="Yes" ${log.flare === 'Yes' ? 'selected' : ''}>Flare-up</option>
+            </select>`
+          : flareStatus
+        }
+      </div>
+    </div>
+    <div class="log-metrics-grid">
+      <div class="metric-group vital-signs">
+        <h4 class="metric-group-title">Vital Signs</h4>
+        <div class="metric-item">
+          <span class="metric-label">❤️ Heart Rate</span>
+          ${isEditing 
+            ? `<input type="number" class="inline-edit-bpm" value="${log.bpm}" min="30" max="120" style="width: 80px; padding: 4px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /> BPM`
+            : `<span class="metric-value">${log.bpm} BPM</span>`
+          }
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">⚖️ Weight</span>
+          ${isEditing 
+            ? `<input type="number" class="inline-edit-weight" value="${weightDisplay}" min="40" max="200" step="0.1" style="width: 80px; padding: 4px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /> ${weightUnit}`
+            : `<span class="metric-value">${weightDisplay}${weightUnit}</span>`
+          }
+        </div>
+      </div>
+      <div class="metric-group symptoms">
+        <h4 class="metric-group-title">Symptoms</h4>
+        <div class="metric-item">
+          <span class="metric-label">😴 Fatigue</span>
+          ${isEditing 
+            ? `<input type="number" class="inline-edit-fatigue" value="${log.fatigue}" min="0" max="10" style="width: 60px; padding: 4px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" />/10`
+            : `<span class="metric-value">${log.fatigue}/10</span>`
+          }
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">🔒 Stiffness</span>
+          ${isEditing 
+            ? `<input type="number" class="inline-edit-stiffness" value="${log.stiffness}" min="0" max="10" style="width: 60px; padding: 4px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" />/10`
+            : `<span class="metric-value">${log.stiffness}/10</span>`
+          }
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">💢 Back Pain</span>
+          ${isEditing 
+            ? `<input type="number" class="inline-edit-backPain" value="${log.backPain}" min="0" max="10" style="width: 60px; padding: 4px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" />/10`
+            : `<span class="metric-value">${log.backPain}/10</span>`
+          }
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">🦴 Joint Pain</span>
+          ${isEditing 
+            ? `<input type="number" class="inline-edit-jointPain" value="${log.jointPain}" min="0" max="10" style="width: 60px; padding: 4px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" />/10`
+            : `<span class="metric-value">${log.jointPain}/10</span>`
+          }
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">💧 Swelling</span>
+          ${isEditing 
+            ? `<input type="number" class="inline-edit-swelling" value="${log.swelling}" min="0" max="10" style="width: 60px; padding: 4px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" />/10`
+            : `<span class="metric-value">${log.swelling}/10</span>`
+          }
+        </div>
+      </div>
+      <div class="metric-group wellbeing">
+        <h4 class="metric-group-title">Wellbeing</h4>
+        <div class="metric-item">
+          <span class="metric-label">🌙 Sleep</span>
+          ${isEditing 
+            ? `<input type="number" class="inline-edit-sleep" value="${log.sleep}" min="0" max="10" style="width: 60px; padding: 4px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" />/10`
+            : `<span class="metric-value">${log.sleep}/10</span>`
+          }
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">😊 Mood</span>
+          ${isEditing 
+            ? `<input type="number" class="inline-edit-mood" value="${log.mood}" min="0" max="10" style="width: 60px; padding: 4px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" />/10`
+            : `<span class="metric-value">${log.mood}/10</span>`
+          }
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">😤 Irritability</span>
+          ${isEditing 
+            ? `<input type="number" class="inline-edit-irritability" value="${log.irritability}" min="0" max="10" style="width: 60px; padding: 4px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" />/10`
+            : `<span class="metric-value">${log.irritability}/10</span>`
+          }
+        </div>
+      </div>
+      <div class="metric-group function">
+        <h4 class="metric-group-title">Function</h4>
+        <div class="metric-item">
+          <span class="metric-label">🚶 Mobility</span>
+          ${isEditing 
+            ? `<input type="number" class="inline-edit-mobility" value="${log.mobility}" min="0" max="10" style="width: 60px; padding: 4px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" />/10`
+            : `<span class="metric-value">${log.mobility}/10</span>`
+          }
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">📋 Daily Activities</span>
+          ${isEditing 
+            ? `<input type="number" class="inline-edit-dailyFunction" value="${log.dailyFunction}" min="0" max="10" style="width: 60px; padding: 4px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" />/10`
+            : `<span class="metric-value">${log.dailyFunction}/10</span>`
+          }
+        </div>
+      </div>
+    </div>
+    ${isEditing 
+      ? `<div class="log-notes"><strong>📝 Note:</strong> <textarea class="inline-edit-notes" style="width: 100%; min-height: 60px; padding: 8px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-top: 8px; resize: vertical;">${log.notes || ''}</textarea></div>`
+      : (log.notes ? `<div class="log-notes"><strong>📝 Note:</strong> ${log.notes}</div>` : '')
+    }
+  `;
+}
+
 function renderLogs() {
   output.innerHTML = "";
   logs.forEach(log => {
     const div = document.createElement("div");
     div.className = "entry";
+    div.setAttribute('data-log-date', log.date);
     if (isExtreme(log)) div.classList.add("highlight");
-    // Add flare-up class for red glow effect
     if (log.flare === 'Yes') div.classList.add("flare-up-entry");
+    if (inlineEditingDate === log.date) div.classList.add("editing");
     
-    // Convert weight to display unit (stored as kg)
-    const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
-    const weightUnit = getWeightUnitSuffix();
-    
-    // Format date nicely
-    const dateObj = new Date(log.date);
-    const formattedDate = dateObj.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-    
-    // Format flare-up status
-    const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">Flare-up</span>' : '<span class="flare-badge flare-no">No Flare-up</span>';
-    
-    // Count food and exercise items
-    const foodCount = log.food && log.food.length > 0 ? log.food.length : 0;
-    const exerciseCount = log.exercise && log.exercise.length > 0 ? log.exercise.length : 0;
-    
-    div.innerHTML = `
-      <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
-      <button class="edit-btn" onclick="openEditEntryModal('${log.date}')" title="Edit this entry">✏️</button>
-      <div class="log-entry-header">
-        <h3 class="log-date">${formattedDate}</h3>
-        <div class="header-badges">
-          <button class="header-icon-btn food-btn" onclick="openFoodModal('${log.date}')" title="Food Log ${foodCount > 0 ? `(${foodCount} items)` : ''}">
-            🍽️${foodCount > 0 ? `<span class="badge-count">${foodCount}</span>` : ''}
-          </button>
-          <button class="header-icon-btn exercise-btn" onclick="openExerciseModal('${log.date}')" title="Exercise Log ${exerciseCount > 0 ? `(${exerciseCount} items)` : ''}">
-            🏃${exerciseCount > 0 ? `<span class="badge-count">${exerciseCount}</span>` : ''}
-          </button>
-          ${flareStatus}
-        </div>
-      </div>
-      <div class="log-metrics-grid">
-        <div class="metric-group vital-signs">
-          <h4 class="metric-group-title">Vital Signs</h4>
-          <div class="metric-item">
-            <span class="metric-label">❤️ Heart Rate</span>
-            <span class="metric-value">${log.bpm} BPM</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">⚖️ Weight</span>
-            <span class="metric-value">${weightDisplay}${weightUnit}</span>
-          </div>
-        </div>
-        <div class="metric-group symptoms">
-          <h4 class="metric-group-title">Symptoms</h4>
-          <div class="metric-item">
-            <span class="metric-label">😴 Fatigue</span>
-            <span class="metric-value">${log.fatigue}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">🔒 Stiffness</span>
-            <span class="metric-value">${log.stiffness}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">💢 Back Pain</span>
-            <span class="metric-value">${log.backPain}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">🦴 Joint Pain</span>
-            <span class="metric-value">${log.jointPain}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">💧 Swelling</span>
-            <span class="metric-value">${log.swelling}/10</span>
-          </div>
-        </div>
-        <div class="metric-group wellbeing">
-          <h4 class="metric-group-title">Wellbeing</h4>
-          <div class="metric-item">
-            <span class="metric-label">🌙 Sleep</span>
-            <span class="metric-value">${log.sleep}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">😊 Mood</span>
-            <span class="metric-value">${log.mood}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">😤 Irritability</span>
-            <span class="metric-value">${log.irritability}/10</span>
-          </div>
-        </div>
-        <div class="metric-group function">
-          <h4 class="metric-group-title">Function</h4>
-          <div class="metric-item">
-            <span class="metric-label">🚶 Mobility</span>
-            <span class="metric-value">${log.mobility}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">📋 Daily Activities</span>
-            <span class="metric-value">${log.dailyFunction}/10</span>
-          </div>
-        </div>
-      </div>
-      ${log.notes ? `<div class="log-notes"><strong>📝 Note:</strong> ${log.notes}</div>` : ''}`;
+    div.innerHTML = generateLogEntryHTML(log);
     output.appendChild(div);
   });
 }
 
+// Old renderLogs code kept for reference - can be removed
 // Chart date range filter state
 let chartDateRange = {
   type: 30, // 7, 30, 90, or 'custom'
@@ -3386,11 +3681,21 @@ let appSettings = {
   medicalCondition: 'Ankylosing Spondylitis' // Default condition, user can change
 };
 
+// Make appSettings available on window for safe access
+if (typeof window !== 'undefined') {
+  window.appSettings = appSettings;
+}
+
 // Load settings from localStorage
 function loadSettings() {
   const savedSettings = localStorage.getItem('healthAppSettings');
   if (savedSettings) {
     appSettings = { ...appSettings, ...JSON.parse(savedSettings) };
+  }
+  
+  // Make appSettings available on window for Logger to access safely
+  if (typeof window !== 'undefined') {
+    window.appSettings = appSettings;
   }
   
   // Apply loaded settings to UI
@@ -3400,6 +3705,10 @@ function loadSettings() {
 
 function saveSettings() {
   localStorage.setItem('healthAppSettings', JSON.stringify(appSettings));
+  // Keep window.appSettings in sync
+  if (typeof window !== 'undefined') {
+    window.appSettings = appSettings;
+  }
   Logger.debug('Settings saved', { settings: appSettings });
 }
 
@@ -3477,19 +3786,31 @@ function toggleSettings() {
     document.body.classList.remove('modal-active');
   } else {
     Logger.debug('Settings modal opened');
-    // Ensure overlay is visible
     overlay.style.display = 'block';
     document.body.classList.add('modal-active');
     
-    // Ensure menu is visible
+    // Ensure overlay is fixed to viewport
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100vw';
+    overlay.style.height = '100vh';
+    overlay.style.margin = '0';
+    overlay.style.padding = '0';
+    
+    // Ensure settings menu is centered in viewport
     const menu = overlay.querySelector('.settings-menu');
     if (menu) {
-      menu.style.display = 'flex';
-      menu.style.visibility = 'visible';
-      menu.style.opacity = '1';
+      menu.style.position = 'fixed';
+      menu.style.top = '50%';
+      menu.style.left = '50%';
+      menu.style.transform = 'translate(-50%, -50%)';
+      menu.style.margin = '0';
+      menu.style.zIndex = '10001';
     }
     
     loadSettingsState();
+    
     // Close on overlay click
     overlay.onclick = function(e) {
       if (e.target === overlay) {
@@ -4110,9 +4431,10 @@ function renderFilteredLogs(filteredLogs) {
   filteredLogs.forEach(log => {
     const div = document.createElement("div");
     div.className = "entry";
+    div.setAttribute('data-log-date', log.date);
     if (isExtreme(log)) div.classList.add("highlight");
-    // Add flare-up class for red glow effect
     if (log.flare === 'Yes') div.classList.add("flare-up-entry");
+    if (inlineEditingDate === log.date) div.classList.add("editing");
     
     // Convert weight to display unit (stored as kg)
     const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
@@ -4130,88 +4452,7 @@ function renderFilteredLogs(filteredLogs) {
     // Format flare-up status
     const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">Flare-up</span>' : '<span class="flare-badge flare-no">No Flare-up</span>';
     
-    // Count food and exercise items
-    const foodCount = log.food && log.food.length > 0 ? log.food.length : 0;
-    const exerciseCount = log.exercise && log.exercise.length > 0 ? log.exercise.length : 0;
-    
-    div.innerHTML = `
-      <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
-      <button class="edit-btn" onclick="openEditEntryModal('${log.date}')" title="Edit this entry">✏️</button>
-      <div class="log-entry-header">
-        <h3 class="log-date">${formattedDate}</h3>
-        <div class="header-badges">
-          <button class="header-icon-btn food-btn" onclick="openFoodModal('${log.date}')" title="Food Log ${foodCount > 0 ? `(${foodCount} items)` : ''}">
-            🍽️${foodCount > 0 ? `<span class="badge-count">${foodCount}</span>` : ''}
-          </button>
-          <button class="header-icon-btn exercise-btn" onclick="openExerciseModal('${log.date}')" title="Exercise Log ${exerciseCount > 0 ? `(${exerciseCount} items)` : ''}">
-            🏃${exerciseCount > 0 ? `<span class="badge-count">${exerciseCount}</span>` : ''}
-          </button>
-          ${flareStatus}
-        </div>
-      </div>
-      <div class="log-metrics-grid">
-        <div class="metric-group vital-signs">
-          <h4 class="metric-group-title">Vital Signs</h4>
-          <div class="metric-item">
-            <span class="metric-label">❤️ Heart Rate</span>
-            <span class="metric-value">${log.bpm} BPM</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">⚖️ Weight</span>
-            <span class="metric-value">${weightDisplay}${weightUnit}</span>
-          </div>
-        </div>
-        <div class="metric-group symptoms">
-          <h4 class="metric-group-title">Symptoms</h4>
-          <div class="metric-item">
-            <span class="metric-label">😴 Fatigue</span>
-            <span class="metric-value">${log.fatigue}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">🔒 Stiffness</span>
-            <span class="metric-value">${log.stiffness}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">💢 Back Pain</span>
-            <span class="metric-value">${log.backPain}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">🦴 Joint Pain</span>
-            <span class="metric-value">${log.jointPain}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">💧 Swelling</span>
-            <span class="metric-value">${log.swelling}/10</span>
-          </div>
-        </div>
-        <div class="metric-group wellbeing">
-          <h4 class="metric-group-title">Wellbeing</h4>
-          <div class="metric-item">
-            <span class="metric-label">🌙 Sleep</span>
-            <span class="metric-value">${log.sleep}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">😊 Mood</span>
-            <span class="metric-value">${log.mood}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">😤 Irritability</span>
-            <span class="metric-value">${log.irritability}/10</span>
-          </div>
-        </div>
-        <div class="metric-group function">
-          <h4 class="metric-group-title">Function</h4>
-          <div class="metric-item">
-            <span class="metric-label">🚶 Mobility</span>
-            <span class="metric-value">${log.mobility}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">📋 Daily Activities</span>
-            <span class="metric-value">${log.dailyFunction}/10</span>
-          </div>
-        </div>
-      </div>
-      ${log.notes ? `<div class="log-notes"><strong>📝 Note:</strong> ${log.notes}</div>` : ''}`;
+    div.innerHTML = generateLogEntryHTML(log);
     output.appendChild(div);
   });
 }
@@ -4221,108 +4462,12 @@ function renderSortedLogs(sortedLogs) {
   sortedLogs.forEach(log => {
     const div = document.createElement("div");
     div.className = "entry";
+    div.setAttribute('data-log-date', log.date);
     if (isExtreme(log)) div.classList.add("highlight");
-    // Add flare-up class for red glow effect
     if (log.flare === 'Yes') div.classList.add("flare-up-entry");
+    if (inlineEditingDate === log.date) div.classList.add("editing");
     
-    // Convert weight to display unit (stored as kg)
-    const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
-    const weightUnit = getWeightUnitSuffix();
-    
-    // Format date nicely
-    const dateObj = new Date(log.date);
-    const formattedDate = dateObj.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-    
-    // Format flare-up status
-    const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">Flare-up</span>' : '<span class="flare-badge flare-no">No Flare-up</span>';
-    
-    // Count food and exercise items
-    const foodCount = log.food && log.food.length > 0 ? log.food.length : 0;
-    const exerciseCount = log.exercise && log.exercise.length > 0 ? log.exercise.length : 0;
-    
-    div.innerHTML = `
-      <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
-      <button class="edit-btn" onclick="openEditEntryModal('${log.date}')" title="Edit this entry">✏️</button>
-      <div class="log-entry-header">
-        <h3 class="log-date">${formattedDate}</h3>
-        <div class="header-badges">
-          <button class="header-icon-btn food-btn" onclick="openFoodModal('${log.date}')" title="Food Log ${foodCount > 0 ? `(${foodCount} items)` : ''}">
-            🍽️${foodCount > 0 ? `<span class="badge-count">${foodCount}</span>` : ''}
-          </button>
-          <button class="header-icon-btn exercise-btn" onclick="openExerciseModal('${log.date}')" title="Exercise Log ${exerciseCount > 0 ? `(${exerciseCount} items)` : ''}">
-            🏃${exerciseCount > 0 ? `<span class="badge-count">${exerciseCount}</span>` : ''}
-          </button>
-          ${flareStatus}
-        </div>
-      </div>
-      <div class="log-metrics-grid">
-        <div class="metric-group vital-signs">
-          <h4 class="metric-group-title">Vital Signs</h4>
-          <div class="metric-item">
-            <span class="metric-label">❤️ Heart Rate</span>
-            <span class="metric-value">${log.bpm} BPM</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">⚖️ Weight</span>
-            <span class="metric-value">${weightDisplay}${weightUnit}</span>
-          </div>
-        </div>
-        <div class="metric-group symptoms">
-          <h4 class="metric-group-title">Symptoms</h4>
-          <div class="metric-item">
-            <span class="metric-label">😴 Fatigue</span>
-            <span class="metric-value">${log.fatigue}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">🔒 Stiffness</span>
-            <span class="metric-value">${log.stiffness}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">💢 Back Pain</span>
-            <span class="metric-value">${log.backPain}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">🦴 Joint Pain</span>
-            <span class="metric-value">${log.jointPain}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">💧 Swelling</span>
-            <span class="metric-value">${log.swelling}/10</span>
-          </div>
-        </div>
-        <div class="metric-group wellbeing">
-          <h4 class="metric-group-title">Wellbeing</h4>
-          <div class="metric-item">
-            <span class="metric-label">🌙 Sleep</span>
-            <span class="metric-value">${log.sleep}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">😊 Mood</span>
-            <span class="metric-value">${log.mood}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">😤 Irritability</span>
-            <span class="metric-value">${log.irritability}/10</span>
-          </div>
-        </div>
-        <div class="metric-group function">
-          <h4 class="metric-group-title">Function</h4>
-          <div class="metric-item">
-            <span class="metric-label">🚶 Mobility</span>
-            <span class="metric-value">${log.mobility}/10</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">📋 Daily Activities</span>
-            <span class="metric-value">${log.dailyFunction}/10</span>
-          </div>
-        </div>
-      </div>
-      ${log.notes ? `<div class="log-notes"><strong>📝 Note:</strong> ${log.notes}</div>` : ''}`;
+    div.innerHTML = generateLogEntryHTML(log);
     output.appendChild(div);
   });
 }

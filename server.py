@@ -30,9 +30,12 @@ LOG_FILE = LOG_DIR / f"health_app_{datetime.now().strftime('%Y%m%d')}.log"
 logger = logging.getLogger('HealthApp')
 logger.setLevel(logging.DEBUG)
 
-# File handler for persistent logging
-file_handler = logging.FileHandler(LOG_FILE, encoding='utf-8')
+# File handler for persistent logging (unbuffered for immediate writes)
+file_handler = logging.FileHandler(LOG_FILE, encoding='utf-8', mode='a', delay=False)  # 'a' for append mode
 file_handler.setLevel(logging.DEBUG)
+# Make the stream unbuffered for immediate writes
+if hasattr(file_handler.stream, 'reconfigure'):
+    file_handler.stream.reconfigure(line_buffering=True)
 
 # Console handler for immediate feedback
 console_handler = logging.StreamHandler()
@@ -52,6 +55,7 @@ logger.addHandler(console_handler)
 logger.info("=" * 60)
 logger.info("Health App Server - Logging Initialized")
 logger.info(f"Log file: {LOG_FILE}")
+logger.info("Note: Client-side logs are only sent when demo mode is enabled")
 logger.info("=" * 60)
 
 class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
@@ -73,6 +77,8 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
                 logger.warning(log_msg)
             else:
                 logger.info(log_msg)
+            # Force flush to ensure log is written immediately
+            file_handler.flush()
         # Log all other messages normally
         super().log_message(format, *args)
     
@@ -86,12 +92,16 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
         
         log_msg = f"REQUEST | {method} {path} | Status: {code} | Size: {size} | Client: {client_ip} | UA: {user_agent[:50]}"
         logger.info(log_msg)
+        # Force flush to ensure log is written immediately
+        file_handler.flush()
     
     def log_error(self, format, *args):
         """Override to log errors to file"""
         error_msg = format % args
         client_ip = self.client_address[0]
         logger.error(f"ERROR | {error_msg} | Client: {client_ip} | Path: {self.path}")
+        # Force flush to ensure log is written immediately
+        file_handler.flush()
         super().log_error(format, *args)
     
     def do_GET(self):
@@ -156,6 +166,9 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
                 else:
                     logger.info(log_msg)
                 
+                # Force flush to ensure log is written immediately
+                file_handler.flush()
+                
                 # Send success response
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
@@ -214,7 +227,8 @@ def main():
     script_dir = Path(__file__).parent.absolute()
     os.chdir(script_dir)
     
-    server_url = f"http://{HOST}:{PORT}"
+    # Use localhost explicitly for browser opening
+    server_url = f"http://localhost:{PORT}"
     
     logger.info("Starting Health App Server")
     logger.info(f"Server directory: {script_dir}")
@@ -282,8 +296,10 @@ def main():
     logger.info("=" * 60)
     
     # Try to open browser automatically
+    # Use new=0 to open in existing tab if available, otherwise new tab
     try:
-        webbrowser.open(server_url)
+        # Open in existing tab if URL is already open, otherwise new tab
+        webbrowser.open(server_url, new=0)
         logger.info(f"Browser opened at {server_url}")
         print(f"Opening browser at {server_url}...")
     except Exception as e:
