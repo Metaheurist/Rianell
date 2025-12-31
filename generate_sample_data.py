@@ -9,25 +9,25 @@ import random
 from datetime import datetime, timedelta
 import os
 
-def generate_sample_data(num_days=30, start_date=None, base_weight=75.0):
+def generate_sample_data(num_days=90, start_date=None, base_weight=75.0):
     """
     Generate randomized health data entries.
     
     Args:
-        num_days: Number of days of data to generate (default: 30)
+        num_days: Number of days of data to generate (default: 90)
         start_date: Start date (default: today - num_days)
         base_weight: Base weight in kg (default: 75.0)
     
     Returns:
         List of dictionaries containing health log entries
     """
-    # Generate dates for the past 30 days, ending yesterday (most recent entry)
+    # Generate dates for the past 90 days, ending yesterday (most recent entry)
     if start_date is None:
         # Get today's date - use actual current date, not hardcoded
         today = datetime.now()
-        # Start from 30 days ago, end yesterday (so we have 30 days total)
+        # Start from num_days ago, end yesterday (so we have num_days total)
         end_date = today - timedelta(days=1)  # Yesterday
-        start_date = end_date - timedelta(days=num_days - 1)  # 30 days before yesterday
+        start_date = end_date - timedelta(days=num_days - 1)  # num_days before yesterday
         
         # Validate dates are reasonable (within current year/month context)
         # This prevents issues if system date is wrong
@@ -201,7 +201,7 @@ def main():
     print()
     
     # Configuration
-    num_days = 30  # Generate 30 days of data
+    num_days = 90  # Generate 90 days of data
     base_weight = 75.0  # Starting weight in kg
     
     print(f"Generating {num_days} days of randomized health data...")
