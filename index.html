@@ -551,6 +551,125 @@
     </div>
   </div>
 
+  <!-- Food Log Modal -->
+  <div class="modal-overlay" id="foodModalOverlay" onclick="closeFoodModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>🍽️ Food Log</h3>
+        <button class="modal-close" onclick="closeFoodModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="foodItemsList" class="items-list"></div>
+        <div class="add-item-section">
+          <input type="text" id="newFoodItem" class="item-input" placeholder="Enter food item (e.g., Grilled chicken, 200g)" />
+          <button class="add-item-btn" onclick="addFoodItem()">➕ Add</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-save-btn" onclick="saveFoodLog()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exercise Log Modal -->
+  <div class="modal-overlay" id="exerciseModalOverlay" onclick="closeExerciseModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>🏃 Exercise Log</h3>
+        <button class="modal-close" onclick="closeExerciseModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="exerciseItemsList" class="items-list"></div>
+        <div class="add-item-section">
+          <input type="text" id="newExerciseItem" class="item-input" placeholder="Enter exercise (e.g., Walking, 30 minutes)" />
+          <button class="add-item-btn" onclick="addExerciseItem()">➕ Add</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-save-btn" onclick="saveExerciseLog()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Entry Modal -->
+  <div class="modal-overlay" id="editEntryModalOverlay" onclick="closeEditEntryModal()">
+    <div class="modal-content edit-entry-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>✏️ Edit Entry</h3>
+        <button class="modal-close" onclick="closeEditEntryModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="editEntryForm">
+          <label for="editDate">Date</label>
+          <input type="date" id="editDate" required />
+          
+          <label for="editBpm">Resting BPM</label>
+          <input type="number" id="editBpm" min="30" max="120" required />
+          
+          <div class="weight-label-container">
+            <label for="editWeight">Weight</label>
+            <button type="button" id="editWeightUnitToggle" class="unit-toggle-btn" onclick="toggleEditWeightUnit()" title="Toggle between kg and lb">
+              <span id="editWeightUnitDisplay">kg</span>
+            </button>
+          </div>
+          <input type="number" id="editWeight" min="40" max="200" step="0.1" required />
+          
+          <label for="editFatigue">Fatigue (0-10)</label>
+          <input type="range" id="editFatigue" min="0" max="10" value="5" oninput="updateEditSliderColor('editFatigue')" />
+          <span class="slider-value" id="editFatigueValue">5</span>
+          
+          <label for="editStiffness">Stiffness (0-10)</label>
+          <input type="range" id="editStiffness" min="0" max="10" value="5" oninput="updateEditSliderColor('editStiffness')" />
+          <span class="slider-value" id="editStiffnessValue">5</span>
+          
+          <label for="editBackPain">Back Pain (0-10)</label>
+          <input type="range" id="editBackPain" min="0" max="10" value="5" oninput="updateEditSliderColor('editBackPain')" />
+          <span class="slider-value" id="editBackPainValue">5</span>
+          
+          <label for="editSleep">Sleep Quality (0-10)</label>
+          <input type="range" id="editSleep" min="0" max="10" value="5" oninput="updateEditSliderColor('editSleep')" />
+          <span class="slider-value" id="editSleepValue">5</span>
+          
+          <label for="editJointPain">Joint Pain (0-10)</label>
+          <input type="range" id="editJointPain" min="0" max="10" value="5" oninput="updateEditSliderColor('editJointPain')" />
+          <span class="slider-value" id="editJointPainValue">5</span>
+          
+          <label for="editMobility">Mobility (0-10)</label>
+          <input type="range" id="editMobility" min="0" max="10" value="5" oninput="updateEditSliderColor('editMobility')" />
+          <span class="slider-value" id="editMobilityValue">5</span>
+          
+          <label for="editDailyFunction">Daily Function (0-10)</label>
+          <input type="range" id="editDailyFunction" min="0" max="10" value="5" oninput="updateEditSliderColor('editDailyFunction')" />
+          <span class="slider-value" id="editDailyFunctionValue">5</span>
+          
+          <label for="editSwelling">Swelling (0-10)</label>
+          <input type="range" id="editSwelling" min="0" max="10" value="5" oninput="updateEditSliderColor('editSwelling')" />
+          <span class="slider-value" id="editSwellingValue">5</span>
+          
+          <label for="editFlare">Flare-up</label>
+          <select id="editFlare">
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+          
+          <label for="editMood">Mood (0-10)</label>
+          <input type="range" id="editMood" min="0" max="10" value="5" oninput="updateEditSliderColor('editMood')" />
+          <span class="slider-value" id="editMoodValue">5</span>
+          
+          <label for="editIrritability">Irritability (0-10)</label>
+          <input type="range" id="editIrritability" min="0" max="10" value="5" oninput="updateEditSliderColor('editIrritability')" />
+          <span class="slider-value" id="editIrritabilityValue">5</span>
+          
+          <label for="editNotes">Notes</label>
+          <textarea id="editNotes" maxlength="500"></textarea>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-save-btn" onclick="saveEditedEntry()">💾 Save Changes</button>
+      </div>
+    </div>
+  </div>
+
   <script src="AIEngine.js"></script>
   <script src="app.js"></script>
   <script src="cloud-sync.js"></script>
