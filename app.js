@@ -788,6 +788,29 @@ function createCombinedChart() {
     { field: 'irritability', name: 'Irritability', color: '#795548' }
   ];
   
+  // Use prediction range setting
+  const daysToPredict = predictionRange;
+  
+  // Get predictions for all metrics using all available data for training
+  let predictionsData = null;
+  if (window.AIEngine && filteredLogs.length >= 2) {
+    try {
+      const sortedLogs = [...filteredLogs].sort((a, b) => new Date(a.date) - new Date(b.date));
+      // Get ALL historical logs for better training
+      const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]")
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+      const analysis = window.AIEngine.analyzeHealthMetrics(sortedLogs, allLogs);
+      predictionsData = {
+        trends: analysis.trends,
+        daysToPredict: daysToPredict,
+        lastDate: sortedLogs.length > 0 ? new Date(sortedLogs[sortedLogs.length - 1].date) : null,
+        allLogsLength: allLogs.length
+      };
+    } catch (error) {
+      console.warn('Error generating predictions for combined chart:', error);
+    }
+  }
+  
   const series = metrics.map(metric => {
     const data = filteredLogs
       .filter(log => log[metric.field] !== undefined && log[metric.field] !== null && log[metric.field] !== '')
@@ -797,12 +820,81 @@ function createCombinedChart() {
       }))
       .sort((a, b) => a.x - b.x); // Sort by timestamp
     
-    return {
+    // Add predicted data if available
+    let predictedData = [];
+    if (predictionsData && predictionsData.trends && predictionsData.trends[metric.field]) {
+      const trend = predictionsData.trends[metric.field];
+      const lastDate = predictionsData.lastDate;
+      const daysToPredict = predictionsData.daysToPredict;
+      const trainingDataLength = predictionsData.allLogsLength;
+      
+      if (trend.regression && lastDate) {
+        const regression = trend.regression;
+        const isBPM = metric.field === 'bpm';
+        
+        // Get the last date from all logs to calculate days since start
+        const allLogsForMetric = JSON.parse(localStorage.getItem("healthLogs") || "[]")
+          .filter(log => log[metric.field] !== undefined && log[metric.field] !== null && log[metric.field] !== '')
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        if (allLogsForMetric.length > 0) {
+          const firstDate = new Date(allLogsForMetric[0].date);
+          const lastDateForCalc = new Date(allLogsForMetric[allLogsForMetric.length - 1].date);
+          const lastXValue = Math.floor((lastDateForCalc - firstDate) / (1000 * 60 * 60 * 24));
+          
+          // Generate predictions for the selected period using regression from all data
+          for (let i = 1; i <= daysToPredict; i++) {
+            const futureX = lastXValue + i; // Days ahead from last data point
+            const predictedY = regression.slope * futureX + regression.intercept;
+            
+            // Keep precision until final rounding
+            let value = predictedY;
+            
+            // Clamp based on metric type (before rounding to preserve differences)
+            if (isBPM) {
+              value = Math.max(30, Math.min(200, value));
+            } else {
+              value = Math.max(0, Math.min(10, value));
+            }
+            
+            // Round to whole number at the end
+            value = Math.round(value);
+            
+            const futureDate = new Date(lastDate);
+            futureDate.setDate(futureDate.getDate() + i);
+            
+            predictedData.push({
+              x: futureDate.getTime(),
+              y: value
+            });
+          }
+        }
+      }
+    }
+    
+    const seriesArray = [{
       name: metric.name,
       data: data,
       color: metric.color
-    };
-  });
+    }];
+    
+    // Add predicted series if available
+    if (predictedData.length > 0) {
+      const rgbMatch = metric.color.match(/\d+/g);
+      const predictionColor = rgbMatch ? `rgba(${rgbMatch.join(', ')}, 0.5)` : metric.color;
+      
+    seriesArray.push({
+      name: `${metric.name} (Predicted)`,
+      data: predictedData,
+      color: predictionColor,
+      stroke: {
+        dashArray: 5
+      }
+    });
+    }
+    
+    return seriesArray;
+  }).flat(); // Flatten the array of series arrays
   
   console.log(`Creating combined chart with ${series.length} metrics`);
   
@@ -967,11 +1059,11 @@ async function clearData() {
   localStorage.removeItem('cloudLastSync');
   localStorage.removeItem('currentCloudUserId');
   
-  // Clear AI model cache from IndexedDB (Transformers.js stores models here)
+  // Clear AI model cache from IndexedDB
   try {
     if ('indexedDB' in window) {
-      // Transformers.js uses IndexedDB to cache models
-      // Try to delete common database names used by Transformers.js
+      // AI models may use IndexedDB to cache models
+      // Try to delete common database names used by AI model caches
       const dbNames = [
         'transformers-cache',
         'transformersjs-cache',
@@ -979,7 +1071,7 @@ async function clearData() {
         'xenova-transformers-cache'
       ];
       
-      // Also try to get all database names and delete any that look like Transformers.js caches
+      // Also try to get all database names and delete any that look like AI model caches
       if (indexedDB.databases) {
         const databases = await indexedDB.databases();
         for (const db of databases) {
@@ -1020,13 +1112,6 @@ async function clearData() {
     // Don't fail the whole operation if this fails
   }
   
-  // Reset Transformers.js pipeline (force reload on next use)
-  if (typeof transformersPipeline !== 'undefined') {
-    transformersPipeline = null;
-  }
-  if (typeof transformersInitializing !== 'undefined') {
-    transformersInitializing = false;
-  }
   
   // Clear any other localStorage items related to the app
   // (keeping service worker registration and other browser data)
@@ -1075,122 +1160,6 @@ async function clearData() {
   alert('✅ All data cleared successfully!\n\n- Health logs deleted\n- Settings reset\n- Cloud sync logged out\n- AI model cache deleted\n\nThe app has been reset to default state.');
 }
 
-// Reset AI Model - clears only the cached AI model from IndexedDB
-async function resetAIModel() {
-  // Confirm with user before clearing AI model cache
-  if (!confirm('⚠️ This will delete the cached AI model (~1-2GB).\n\nThe model will be re-downloaded the next time you generate an AI summary.\n\nContinue?')) {
-    return;
-  }
-  
-  try {
-    let deletedCount = 0;
-    
-    // Method 1: Use Transformers.js cache API if available
-    if (window.transformers && window.transformers.env && window.transformers.env.cacheDir) {
-      try {
-        // Try to clear cache through Transformers.js API
-        if (window.transformers.env.clearCache) {
-          await window.transformers.env.clearCache();
-          console.log('✅ Cleared cache via Transformers.js API');
-          deletedCount++;
-        }
-      } catch (e) {
-        console.warn('Transformers.js cache API not available:', e);
-      }
-    }
-    
-    // Method 2: Delete IndexedDB databases directly
-    if ('indexedDB' in window) {
-      // Get all databases first
-      let allDbNames = [];
-      
-      if (indexedDB.databases) {
-        try {
-          const databases = await indexedDB.databases();
-          allDbNames = databases.map(db => db.name).filter(name => name);
-          console.log('Found IndexedDB databases:', allDbNames);
-        } catch (e) {
-          console.warn('Could not list databases:', e);
-        }
-      }
-      
-      // Add common Transformers.js database names
-      const commonNames = [
-        'transformers-cache',
-        'transformersjs-cache',
-        'hf-transformers-cache',
-        'xenova-transformers-cache',
-        'hf-cache',
-        'cache'
-      ];
-      
-      // Filter databases that might be Transformers.js related
-      const transformersDbNames = allDbNames.filter(name => {
-        const lowerName = name.toLowerCase();
-        return lowerName.includes('transformers') ||
-               lowerName.includes('xenova') ||
-               lowerName.includes('hf-') ||
-               lowerName.includes('onnx') ||
-               lowerName === 'cache';
-      });
-      
-      // Combine all potential database names
-      const dbNamesToDelete = [...new Set([...commonNames, ...transformersDbNames])];
-      console.log('Attempting to delete databases:', dbNamesToDelete);
-      
-      // Delete all found databases
-      const deletePromises = dbNamesToDelete.map(dbName => {
-        return new Promise((resolve) => {
-          try {
-            const deleteDB = indexedDB.deleteDatabase(dbName);
-            deleteDB.onsuccess = () => {
-              console.log(`✅ Deleted database: ${dbName}`);
-              deletedCount++;
-              resolve(true);
-            };
-            deleteDB.onerror = () => {
-              // Database might not exist, that's okay
-              resolve(false);
-            };
-            deleteDB.onblocked = () => {
-              console.warn(`⚠️ Deletion blocked for ${dbName} - close other tabs and try again`);
-              resolve(false);
-            };
-          } catch (e) {
-            console.warn(`Error deleting ${dbName}:`, e);
-            resolve(false);
-          }
-        });
-      });
-      
-      await Promise.all(deletePromises);
-    }
-    
-    // Reset Transformers.js pipeline (force reload on next use)
-    if (typeof transformersPipeline !== 'undefined') {
-      transformersPipeline = null;
-    }
-    if (typeof transformersInitializing !== 'undefined') {
-      transformersInitializing = false;
-    }
-    
-    // Reset TRANSFORMERS_CONFIG enabled state to allow re-initialization
-    if (typeof TRANSFORMERS_CONFIG !== 'undefined') {
-      TRANSFORMERS_CONFIG.enabled = true;
-    }
-    
-    if (deletedCount > 0) {
-      console.log(`✅ AI model cache cleared (${deletedCount} databases deleted)`);
-      alert(`✅ AI model cache cleared successfully!\n\n${deletedCount} cache database(s) deleted.\n\nThe model will be re-downloaded the next time you generate an AI summary.`);
-    } else {
-      console.warn('⚠️ No cache databases found or deleted');
-      alert('⚠️ No cache databases were found to delete.\n\nThe model cache may already be cleared, or it may be stored in a different location.');
-    }
-  } catch (error) {
-    console.error('Error clearing AI model cache:', error);
-    alert('⚠️ Error clearing AI model cache:\n\n' + error.message + '\n\nCheck the console for details.');
-  }
-}
 
 function exportData() {
   const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily Function,Swelling,Flare,Mood,Irritability,Notes";
@@ -1283,34 +1252,11 @@ function importData() {
 
 
 // ============================================
-// LLM AI ENHANCEMENT - NO API KEY REQUIRED!
+// AI ANALYSIS ENGINE
+// Uses AIEngine.js for comprehensive local analysis
 // ============================================
 
-// Transformers.js Configuration - Runs LLM directly in browser, completely free, no API key needed!
-// Now served locally from your server with progress tracking!
-const TRANSFORMERS_CONFIG = {
-  enabled: true, // Enabled - served locally from your server
-  task: 'text-generation', // Task type for text generation models
-  // Using GPT-2 base as primary - confirmed working and publicly available
-  // Llama models have missing ONNX files, so using reliable GPT-2 instead
-  model: 'Xenova/gpt2', // Base GPT-2 (~500MB) - confirmed working, publicly available
-  // This is the most reliable model that works without authentication or missing files
-  // Alternative models (may require authentication or have missing files):
-  // 'onnx-community/Llama-3.2-1B-Instruct-ONNX' - Llama 3.2 1B (~2GB) - has missing files
-  // 'Xenova/gpt2-xl' - GPT-2 XL (~3GB) - may require authentication
-  // 'Xenova/gpt2-large' - Large GPT-2 variant (~1.5GB) - may require authentication
-  // 'Xenova/gpt2-medium' - Medium GPT-2 variant (~500MB) - may require authentication
-  maxNewTokens: 200, // Limited for concise responses
-  temperature: 0.7,
-  topK: 50,
-  topP: 0.95
-};
-
-// Transformers.js pipeline instance (will be initialized on first use)
-let transformersPipeline = null;
-let transformersInitializing = false;
-
-// Condition context for the LLM (will be updated from user settings)
+// Condition context (used by AIEngine)
 let CONDITION_CONTEXT = {
   name: 'Ankylosing Spondylitis',
   description: 'A chronic inflammatory arthritis affecting the spine and joints',
@@ -1318,797 +1264,43 @@ let CONDITION_CONTEXT = {
   treatmentAreas: ['pain management', 'mobility exercises', 'sleep quality', 'medication timing', 'flare prevention']
 };
 
-// Download and load Transformers.js script from local server with progress tracking
-async function loadTransformersScript(progressCallback) {
-  // Check if already loaded
-  if (window.transformers || window.pipeline || typeof pipeline !== 'undefined') {
-    return true;
-  }
-  
-  // Check cache first
-  try {
-    const cache = await caches.open('transformers-cache-v1');
-    const cached = await cache.match('/transformers.js');
-    if (cached) {
-      console.log('Loading Transformers.js from cache...');
-      const blob = await cached.blob();
-      const url = URL.createObjectURL(blob);
-      await loadScriptFromBlob(url);
-      return true;
-    }
-  } catch (e) {
-    console.log('Cache not available, downloading...');
-  }
-  
-  // Download from server with progress
-  try {
-    const response = await fetch('/transformers.js');
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    const contentLength = +response.headers.get('Content-Length');
-    const reader = response.body.getReader();
-    const chunks = [];
-    let receivedLength = 0;
-    
-    // Update progress bar elements
-    const progressBar = document.getElementById('aiModelProgressBar');
-    const progressText = document.getElementById('aiModelProgressText');
-    
-    if (progressText) {
-      progressText.textContent = 'Downloading Transformers.js library...';
-    }
-    
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      chunks.push(value);
-      receivedLength += value.length;
-      
-      if (contentLength) {
-        const percent = Math.round((receivedLength / contentLength) * 100);
-        
-        // Update progress bar
-        if (progressBar) {
-          progressBar.style.width = `${percent}%`;
-        }
-        
-        if (progressText) {
-          const mbReceived = (receivedLength / 1024 / 1024).toFixed(2);
-          const mbTotal = (contentLength / 1024 / 1024).toFixed(2);
-          progressText.textContent = `${percent}% (${mbReceived} MB / ${mbTotal} MB)`;
-        }
-        
-        if (progressCallback) {
-          progressCallback(percent, receivedLength, contentLength);
-        }
-      }
-    }
-    
-    if (progressText) {
-      progressText.textContent = 'Loading library...';
-    }
-    
-    // Create blob and cache it
-    const blob = new Blob(chunks, { type: 'application/javascript' });
-    const url = URL.createObjectURL(blob);
-    
-    // Cache for future use
-    try {
-      const cache = await caches.open('transformers-cache-v1');
-      await cache.put('/transformers.js', new Response(blob));
-      console.log('✅ Transformers.js cached for future use');
-    } catch (e) {
-      console.warn('Could not cache Transformers.js:', e);
-    }
-    
-    // Load the script
-    await loadScriptFromBlob(url);
-    return true;
-  } catch (error) {
-    console.error('Failed to download Transformers.js:', error);
-    const progressText = document.getElementById('aiModelProgressText');
-    if (progressText) {
-      progressText.textContent = 'Download failed - using local analysis';
-    }
-    return false;
-  }
-}
+// Make CONDITION_CONTEXT available globally for AIEngine
+window.CONDITION_CONTEXT = CONDITION_CONTEXT;
 
-// Load script from blob URL - Transformers.js is an ES module
-async function loadScriptFromBlob(blobUrl) {
-  try {
-    // Transformers.js is an ES module, so we need to import it dynamically
-    console.log('Loading Transformers.js as ES module from blob URL...');
-    const module = await import(blobUrl);
-    
-    // Check what's exported - Transformers.js exports { pipeline, ... }
-    if (module.pipeline) {
-      window.transformers = module;
-      window.transformersPipeline = module.pipeline;
-      window.transformersLoaded = true;
-      console.log('✅ Transformers.js loaded successfully! pipeline function available.');
-      return true;
-    } else if (module.default && module.default.pipeline) {
-      window.transformers = module.default;
-      window.transformersPipeline = module.default.pipeline;
-      window.transformersLoaded = true;
-      console.log('✅ Transformers.js loaded successfully! (default export)');
-      return true;
-    } else {
-      console.warn('⚠️ Transformers.js module loaded but pipeline not found. Available exports:', Object.keys(module));
-      return false;
-    }
-  } catch (error) {
-    console.error('❌ Error loading Transformers.js as ES module:', error);
-    // Fallback: try loading as regular script tag with type="module"
-    console.log('Trying fallback: loading as script tag with type="module"...');
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = blobUrl;
-      script.type = 'module';
-      script.async = true;
-      
-      script.onload = () => {
-        // Give it a moment to initialize, then check
-        setTimeout(() => {
-          if (checkAndExposeTransformers()) {
-            resolve(true);
-          } else {
-            console.warn('⚠️ Script loaded but Transformers.js not detected');
-            resolve(false);
-          }
-        }, 1000);
-      };
-      
-      script.onerror = (err) => {
-        console.error('❌ Failed to load Transformers.js script:', err);
-        reject(new Error('Failed to load Transformers.js script'));
-      };
-      
-      document.head.appendChild(script);
-    });
-  }
-}
+// AI Analysis functions are now in AIEngine.js
+// Use AIEngine.analyzeHealthMetrics() and AIEngine.generateComprehensiveInsights()
 
-// Check and expose Transformers.js globally
-function checkAndExposeTransformers() {
-  // Check multiple possible locations for Transformers.js
-  // Transformers.js from @xenova/transformers exports { pipeline, env, ... }
-  
-  // Check if already exposed
-  if (window.transformers && window.transformers.pipeline) {
-    window.transformersPipeline = window.transformers.pipeline;
-    console.log('✅ Transformers.js detected (window.transformers)');
-    return true;
-  }
-  
-  // Check for pipeline function directly
-  if (typeof pipeline !== 'undefined') {
-    window.transformersPipeline = pipeline;
-    window.transformers = { pipeline };
-    console.log('✅ Transformers.js pipeline detected (global pipeline)');
-    return true;
-  } else if (window.pipeline) {
-    window.transformersPipeline = window.pipeline;
-    window.transformers = { pipeline: window.pipeline };
-    console.log('✅ Transformers.js pipeline detected (window.pipeline)');
-    return true;
-  }
-  
-  // Check for Xenova namespace
-  if (window.Xenova && window.Xenova.transformers) {
-    window.transformers = window.Xenova.transformers;
-    window.transformersPipeline = window.Xenova.transformers.pipeline;
-    console.log('✅ Transformers.js detected (window.Xenova)');
-    return true;
-  }
-  
-  // Check for any global transformers object
-  const possibleNames = ['transformers', 'Transformers', 'TRANSFORMERS', 'hf_transformers'];
-  for (const name of possibleNames) {
-    if (window[name] && window[name].pipeline) {
-      window.transformers = window[name];
-      window.transformersPipeline = window[name].pipeline;
-      console.log(`✅ Transformers.js detected (window.${name})`);
-      return true;
-    }
-  }
-  
-  console.warn('⚠️ Transformers.js not found. Available window keys:', 
-    Object.keys(window).filter(k => k.toLowerCase().includes('transform') || k.toLowerCase().includes('pipeline')));
-  return false;
-}
-
-// Initialize Transformers.js pipeline (runs in browser, no API key needed!)
-async function initTransformers() {
-  if (transformersPipeline || transformersInitializing) {
-    return transformersPipeline;
-  }
-
-  if (!TRANSFORMERS_CONFIG.enabled) {
-    return null;
-  }
-
-  // First, ensure the script is loaded
-  let pipelineFn = window.transformersPipeline || window.pipeline || 
-                   (typeof pipeline !== 'undefined' ? pipeline : null) ||
-                   (window.transformers && window.transformers.pipeline ? window.transformers.pipeline : null);
-  
-  // If not loaded, download it with progress
-  if (!pipelineFn) {
-    console.log('Downloading Transformers.js library from server...');
-    
-    // Show progress in console (progress bar will be shown when model downloads)
-    const loaded = await loadTransformersScript((percent, received, total) => {
-      console.log(`Downloading Transformers.js: ${percent}% (${(received / 1024 / 1024).toFixed(2)} MB / ${(total / 1024 / 1024).toFixed(2)} MB)`);
-    });
-    
-    if (!loaded) {
-      console.warn('⚠️ Failed to load Transformers.js script. Using local analysis only.');
-      TRANSFORMERS_CONFIG.enabled = false;
-      return null;
-    }
-    
-    // Check again after loading
-    checkAndExposeTransformers();
-    pipelineFn = window.transformersPipeline || window.pipeline || 
-                 (typeof pipeline !== 'undefined' ? pipeline : null) ||
-                 (window.transformers && window.transformers.pipeline ? window.transformers.pipeline : null);
-    
-    if (!pipelineFn) {
-      // Wait a bit more for initialization
-      for (let i = 0; i < 10; i++) {
-        await new Promise(resolve => setTimeout(resolve, 200));
-        checkAndExposeTransformers();
-        pipelineFn = window.transformersPipeline || window.pipeline || 
-                     (typeof pipeline !== 'undefined' ? pipeline : null) ||
-                     (window.transformers && window.transformers.pipeline ? window.transformers.pipeline : null);
-        if (pipelineFn) {
-          console.log('✅ Transformers.js library loaded successfully!');
-          break;
-        }
-      }
-    }
-  }
-  
-  if (!pipelineFn) {
-    // Silently fail - local analysis is comprehensive enough
-    if (TRANSFORMERS_CONFIG.enabled) {
-      console.info('ℹ️ Transformers.js library not found. Using local analysis (comprehensive insights available).');
-      TRANSFORMERS_CONFIG.enabled = false;
-    }
-    return null;
-  }
-
-  try {
-    transformersInitializing = true;
-    console.log('Initializing Transformers.js pipeline (this may take a moment on first load)...');
-    
-    // Update progress bar
-    const progressBar = document.getElementById('aiModelProgressBar');
-    const progressText = document.getElementById('aiModelProgressText');
-    
-    // Track total model size across all files
-    let totalModelSize = 0;
-    let totalDownloaded = 0;
-    const fileSizes = new Map(); // Track individual file sizes
-    const fileProgress = new Map(); // Track progress per file
-    
-    // Get estimated model size based on model name
-    const getModelSize = (modelName) => {
-      if (modelName.includes('llama-3.2-1b') || modelName.includes('llama-3.2-1B') || modelName.includes('Llama-3.2-1B')) return 2000; // ~2GB (1B params)
-      if (modelName.includes('llama') || modelName.includes('Llama')) return 2000; // ~2GB for Llama models
-      if (modelName.includes('TinyLlama')) return 500; // ~500MB
-      if (modelName.includes('LaMini-Flan-T5')) return 200; // ~200MB
-      if (modelName.includes('Phi-3-mini')) return 2000; // ~2GB
-      if (modelName.includes('Qwen2.5-1.5B')) return 600; // ~600MB
-      if (modelName.includes('gpt2-xl')) return 3000; // ~3GB
-      if (modelName.includes('gpt2-large')) return 1500; // ~1.5GB
-      if (modelName.includes('gpt2-medium')) return 500; // ~500MB
-      if (modelName.includes('distilgpt2')) return 350; // ~350MB
-      if (modelName.includes('gpt2')) return 500; // ~500MB (base GPT-2)
-      return 500; // Default estimate
-    };
-    
-    const estimatedModelSizeMB = getModelSize(TRANSFORMERS_CONFIG.model);
-    
-    if (progressText) {
-      progressText.textContent = `Preparing to download model (${estimatedModelSizeMB} MB total)...`;
-    }
-    
-    // Configure Transformers.js to use browser cache for models
-    // This ensures models are cached in IndexedDB for offline use
-    if (window.transformers && window.transformers.env) {
-      window.transformers.env.useBrowserCache = true;
-      window.transformers.env.useFSCache = false; // Use browser cache, not file system
-      console.log('✅ Transformers.js caching enabled');
-    }
-    
-    // Create pipeline with progress callback
-    // Transformers.js automatically downloads and caches models in IndexedDB
-    transformersPipeline = await pipelineFn(
-      TRANSFORMERS_CONFIG.task,
-      TRANSFORMERS_CONFIG.model,
-      {
-        progress_callback: (progress) => {
-          // Update progress bar during model download
-          // Transformers.js progress object has: {status, name, file, progress, loaded, total}
-          let percent = 0;
-          let statusText = 'Initializing...';
-          
-          // Track file sizes and total downloaded
-          if (progress.file && progress.total) {
-            // Store file size if not already tracked
-            if (!fileSizes.has(progress.file)) {
-              fileSizes.set(progress.file, progress.total);
-              totalModelSize += progress.total;
-            }
-            // Update progress for this file
-            fileProgress.set(progress.file, progress.loaded || 0);
-            
-            // Calculate total downloaded across all files
-            totalDownloaded = 0;
-            fileSizes.forEach((size, file) => {
-              const fileLoaded = fileProgress.get(file) || 0;
-              totalDownloaded += Math.min(fileLoaded, size);
-            });
-          }
-          
-          // Handle different progress formats
-          // Calculate percent based on what data we have
-          if (progress.loaded && progress.total) {
-            // Calculate overall model progress if we have total size
-            if (totalModelSize > 0 && totalDownloaded > 0) {
-              percent = Math.round((totalDownloaded / totalModelSize) * 100);
-            } else {
-              // Fallback to file-level progress
-              percent = Math.round((progress.loaded / progress.total) * 100);
-            }
-          } else if (progress.progress !== undefined) {
-            // Progress might be 0-1 or 0-100, check and normalize
-            if (progress.progress <= 1) {
-              // It's a fraction (0-1), convert to percentage
-              percent = Math.round(progress.progress * 100);
-            } else {
-              // It's already a percentage, use as-is but cap at 100
-              percent = Math.min(Math.round(progress.progress), 100);
-            }
-          }
-          
-          // Ensure percent is always between 0 and 100
-          percent = Math.max(0, Math.min(100, percent));
-          
-          // Update progress bar
-          if (progressBar) {
-            progressBar.style.width = `${percent}%`;
-          }
-          
-          // Update progress text
-          if (progressText) {
-            if (progress.status === 'progress' || progress.status === 'downloading') {
-              const loaded = progress.loaded || 0;
-              const total = progress.total || 0;
-              
-              if (totalModelSize > 0 && totalDownloaded > 0) {
-                // Show overall model progress with exact total size
-                const mbDownloaded = (totalDownloaded / 1024 / 1024).toFixed(2);
-                const mbTotal = (totalModelSize / 1024 / 1024).toFixed(2);
-                statusText = `Downloading model: ${percent}% (${mbDownloaded} MB / ${mbTotal} MB)`;
-              } else if (total > 0 && loaded > 0) {
-                // Show file-level progress with size
-                const mbDownloaded = (loaded / 1024 / 1024).toFixed(2);
-                const mbTotal = (total / 1024 / 1024).toFixed(2);
-                statusText = `Downloading ${progress.file || 'model'}: ${percent}% (${mbDownloaded} MB / ${mbTotal} MB)`;
-              } else if (totalModelSize > 0) {
-                // We know total size but not current download
-                const mbTotal = (totalModelSize / 1024 / 1024).toFixed(2);
-                statusText = `Downloading model: ${percent}% (Total: ${mbTotal} MB)`;
-              } else if (estimatedModelSizeMB > 0) {
-                // Use estimated size if we have it
-                statusText = `Downloading model: ${percent}% (Estimated: ${estimatedModelSizeMB} MB)`;
-              } else {
-                statusText = `Downloading ${progress.file || 'model'}: ${percent}%`;
-              }
-            } else if (progress.status === 'loading' || progress.status === 'ready') {
-              statusText = progress.status === 'ready' ? 'Model ready!' : 'Loading model into memory...';
-            } else if (progress.file) {
-              statusText = `Loading ${progress.file}: ${percent}%`;
-            } else {
-              statusText = `Loading model: ${percent}%`;
-            }
-            progressText.textContent = statusText;
-          }
-          
-          // Update percentage display in progress bar
-          const progressPercent = document.getElementById('aiModelProgressPercent');
-          if (progressPercent) {
-            progressPercent.textContent = `${percent}%`;
-          }
-          
-          console.log('Model loading progress:', progress, `(${percent}%)`, `Total: ${totalModelSize > 0 ? (totalModelSize / 1024 / 1024).toFixed(2) + ' MB' : 'calculating...'}`);
-        }
-      }
-    );
-    
-    // Hide progress bar when done
-    if (progressBar) progressBar.style.width = '100%';
-    if (progressText) progressText.textContent = 'Model ready and cached!';
-    
-    console.log('✅ Transformers.js pipeline initialized successfully!');
-    
-    // Verify and confirm model caching
-    try {
-      // Transformers.js automatically caches models in IndexedDB
-      // The model is now cached and will be available offline
-      if ('indexedDB' in window) {
-        console.log('✅ Model cached in IndexedDB for offline use');
-        console.log(`✅ Model: ${TRANSFORMERS_CONFIG.model} is now available offline`);
-      }
-      
-      // Update progress text to confirm caching
-      if (progressText) {
-        setTimeout(() => {
-          progressText.textContent = 'Model cached and ready for offline use!';
-        }, 1000);
-      }
-    } catch (e) {
-      console.warn('Could not verify cache:', e);
-    }
-    
-    transformersInitializing = false;
-    return transformersPipeline;
-  } catch (error) {
-    console.error('Transformers.js initialization error:', error);
-    
-    // Try fallback models in order of size if authentication fails or model files missing
-    // Start with largest and work down to smallest
-    const fallbackModels = [
-      'Xenova/gpt2-xl',     // ~3GB (largest)
-      'Xenova/gpt2-large',  // ~1.5GB
-      'Xenova/gpt2-medium', // ~500MB
-      'Xenova/gpt2'         // ~500MB base (smallest)
-    ];
-    
-    // Check if it's a file not found error, configuration error, or authentication error
-    const errorString = error.toString() + (error.message || '') + (error.stack || '');
-    const isFileNotFound = errorString.includes('Could not locate file') || 
-                          errorString.includes('File not found') ||
-                          errorString.includes('404') ||
-                          errorString.includes('Not Found');
-    const isConfigError = errorString.includes('split is not a function') ||
-                         errorString.includes('Cannot read') ||
-                         errorString.includes('is not a function');
-    const isUnauthorized = errorString.includes('Unauthorized') || errorString.includes('401');
-    
-    // If it's any of these errors and we're not already using a fallback model, try fallback
-    if ((isUnauthorized || isFileNotFound || isConfigError) && !fallbackModels.includes(TRANSFORMERS_CONFIG.model)) {
-      console.warn(`⚠️ ${TRANSFORMERS_CONFIG.model} failed (${isFileNotFound ? 'missing files' : isConfigError ? 'config error' : 'auth required'}). Trying fallback models...`);
-      
-      // Try each fallback model in order
-      for (const fallbackModel of fallbackModels) {
-        try {
-          console.log(`Trying fallback model: ${fallbackModel}...`);
-          const originalModel = TRANSFORMERS_CONFIG.model;
-          TRANSFORMERS_CONFIG.model = fallbackModel;
-          transformersInitializing = false; // Reset flag
-          
-          const result = await initTransformers(); // Recursive call with fallback model
-          if (result) {
-            console.log(`✅ Successfully loaded fallback model: ${fallbackModel}`);
-            return result;
-          }
-        } catch (fallbackError) {
-          console.warn(`Fallback to ${fallbackModel} failed:`, fallbackError);
-          // Continue to next fallback
-        }
-      }
-      
-      // All fallbacks failed, restore original
-      console.error('All fallback models failed');
-    }
-    
-    transformersInitializing = false;
-    // Disable Transformers.js for this session
-    TRANSFORMERS_CONFIG.enabled = false;
-    console.info('ℹ️ Transformers.js disabled. AI analysis will use local analysis only (still provides comprehensive insights).');
-    return null;
-  }
-}
-
-// Get AI insights using Transformers.js (runs locally in browser, no API key!)
-async function getTransformersInsights(analysis, logs, dayCount) {
-  // If disabled, return null to use local analysis only
-  if (!TRANSFORMERS_CONFIG.enabled) {
-    return null;
-  }
-
-  try {
-    // Initialize pipeline if needed
-    const pipeline = await initTransformers();
-    if (!pipeline) {
-      console.warn('Transformers.js pipeline not available');
-      return null;
-    }
-
-    // Prepare the prompt (now concise summary)
-    const prompt = buildLLMPrompt(analysis, logs, dayCount);
-    
-    // Check if this is a Llama model (uses chat format) or GPT-2 (uses text completion)
-    // Check if this is a Llama model (uses chat format) - case insensitive
-    const isLlamaModel = TRANSFORMERS_CONFIG.model.toLowerCase().includes('llama');
-    
-    let fullPrompt;
-    if (isLlamaModel) {
-      // Llama models use chat format with messages
-      const systemMessage = `You are a health advisor for ${CONDITION_CONTEXT.name}. Give practical advice.`;
-      const maxPromptLength = 300; // Very short limit to avoid context window issues
-      const truncatedPrompt = prompt.length > maxPromptLength 
-        ? prompt.substring(0, maxPromptLength) + '...'
-        : prompt;
-      
-      // Format as chat messages for Llama
-      fullPrompt = [
-        { role: 'system', content: systemMessage },
-        { role: 'user', content: truncatedPrompt }
-      ];
-    } else {
-      // GPT-2 uses simple text completion
-      const maxPromptLength = 250; // Very short limit to avoid context window issues
-      const truncatedPrompt = prompt.length > maxPromptLength 
-        ? prompt.substring(0, maxPromptLength) + '...'
-        : prompt;
-      fullPrompt = truncatedPrompt;
-    }
-    
-    console.log('Generating AI insights with Transformers.js...');
-    console.log('Model:', TRANSFORMERS_CONFIG.model);
-    console.log('Format:', isLlamaModel ? 'chat (Llama)' : 'text completion (GPT-2)');
-    console.log('Prompt length:', typeof fullPrompt === 'string' ? fullPrompt.length : 'chat messages');
-    
-    // Generate response with limited tokens for concise output
-    const output = await pipeline(fullPrompt, {
-      max_new_tokens: 80, // Very limited to avoid context window errors and keep it focused
-      temperature: 0.5, // Lower temperature for more focused, less random responses
-      do_sample: true,
-      return_full_text: false, // Important: only return new text, not the prompt
-      top_k: 40, // Lower top_k for more focused sampling
-      top_p: 0.9, // Slightly lower top_p
-      repetition_penalty: 1.2 // Add repetition penalty to avoid repetitive text
-    });
-
-    console.log('Transformers.js output received:', output);
-    
-    // Transformers.js returns different formats depending on the model
-    let generatedText = null;
-    
-    if (output && Array.isArray(output) && output.length > 0) {
-      // Get the generated text from the first result
-      generatedText = output[0].generated_text || output[0].text || output[0];
-    } else if (output && typeof output === 'string') {
-      generatedText = output;
-    } else if (output && output[0] && typeof output[0] === 'object') {
-      // Some models return objects with different structure
-      generatedText = output[0].generated_text || output[0].text || JSON.stringify(output[0]);
-    }
-    
-    if (generatedText) {
-      let result;
-      
-      // Handle different output formats (Llama chat vs GPT-2 text)
-      if (isLlamaModel && typeof generatedText === 'object' && generatedText.content) {
-        // Llama returns chat message objects
-        result = generatedText.content.trim();
-      } else if (Array.isArray(generatedText) && generatedText.length > 0) {
-        // Handle array responses
-        const lastMessage = generatedText[generatedText.length - 1];
-        result = (lastMessage.content || lastMessage.generated_text || lastMessage.text || lastMessage).trim();
-      } else {
-        result = typeof generatedText === 'string' ? generatedText.trim() : String(generatedText).trim();
-      }
-      
-      // Clean up: Remove the prompt if it was included (GPT-2 sometimes includes it)
-      if (typeof fullPrompt === 'string') {
-        const promptStart = fullPrompt.substring(0, 50).toLowerCase();
-        if (result.toLowerCase().startsWith(promptStart)) {
-          result = result.substring(fullPrompt.length).trim();
-        }
-        
-        // Remove common prompt fragments that GPT-2 might repeat
-        const promptFragments = ['Recommendations:', 'Advice:', 'Based on this data', 'Health advice for'];
-        for (const fragment of promptFragments) {
-          if (result.includes(fragment)) {
-            const idx = result.indexOf(fragment);
-            if (idx > 0 && idx < 100) {
-              result = result.substring(idx + fragment.length).trim();
-            }
-          }
-        }
-        
-        // Filter out irrelevant text (like "editions" gibberish)
-        if (result.toLowerCase().includes('edition') || result.toLowerCase().includes('3rd') || result.toLowerCase().includes('4th')) {
-          console.warn('AI generated irrelevant text about "editions", filtering...');
-          // Check if there's any health-related content
-          const healthKeywords = ['pain', 'symptom', 'flare', 'stiffness', 'fatigue', 'sleep', 'mobility', 'exercise', 'medication', 'rest', 'manage', 'improve', 'reduce'];
-          const hasHealthContent = healthKeywords.some(keyword => result.toLowerCase().includes(keyword));
-          if (!hasHealthContent) {
-            console.warn('No health-related content found in AI response, using local analysis instead');
-            return null; // Return null to fall back to local analysis
-          }
-          // If it has some health content, try to extract just that part
-          const sentences = result.split(/[.!?]+/).filter(s => {
-            const lower = s.toLowerCase();
-            return healthKeywords.some(kw => lower.includes(kw)) && 
-                   !lower.includes('edition') && 
-                   !lower.includes('3rd') && 
-                   !lower.includes('4th');
-          });
-          if (sentences.length > 0) {
-            result = sentences.join('. ').trim() + '.';
-          } else {
-            return null; // No valid health content found
-          }
-        }
-      }
-      
-      console.log('AI insights generated successfully, length:', result.length);
-      if (result.length === 0) {
-        console.warn('AI generated empty response');
-        return null;
-      }
-      return result;
-    }
-    
-    console.error('Unexpected response format from Transformers.js:', output);
-    throw new Error('Unexpected response format from Transformers.js');
-  } catch (error) {
-    console.error('Transformers.js error:', error);
-    // Return null to fall back to local analysis
-    return null;
-  }
-}
-
-function buildLLMPrompt(analysis, logs, dayCount) {
-  // Create a concise summary instead of all the data
-  // Focus on key metrics only
-  const keyMetrics = ['backPain', 'stiffness', 'fatigue', 'sleep', 'mobility'];
-  const trendsSummary = keyMetrics
-    .filter(metric => analysis.trends[metric])
-    .map(metric => {
-      const data = analysis.trends[metric];
-      const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-      const direction = data.trend > 0.2 ? 'improving' : data.trend < -0.2 ? 'worsening' : 'stable';
-      return `${metricName}: ${data.average}/10 avg, ${direction}`;
-    })
-    .join('; ');
-
-  const flareCount = logs.filter(log => log.flare === 'Yes').length;
-  const flarePercent = Math.round(flareCount / dayCount * 100);
-  
-  // Only include top 2 correlations and anomalies
-  const topCorrelation = analysis.correlations[0] || 'No patterns detected';
-  const topAnomaly = analysis.anomalies[0] || 'No concerns';
-
-  // Format for GPT-2 text completion - be very specific to guide the model
-  // GPT-2 works by continuing text, so we need to give it a clear context
-  // Keep prompt short but specific to avoid context window issues
-  return `Health advice for ${CONDITION_CONTEXT.name} patient. Tracked ${dayCount} days. Symptoms: ${trendsSummary}. Flare-ups: ${flareCount}/${dayCount} days (${flarePercent}%). Pattern: ${topCorrelation}. 
-
-Recommendations:`;
-}
-
-// Custom AI Analysis Engine (condition-agnostic)
+// Legacy function wrappers for compatibility (delegate to AIEngine)
 function analyzeHealthMetrics(logs) {
-  const analysis = {
-    trends: {},
-    correlations: [],
-    anomalies: [],
-    advice: [],
-    summary: ""
-  };
-
-  if (logs.length === 0) return analysis;
-
-  // Calculate averages and trends
-  const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability'];
-  
-  metrics.forEach(metric => {
-    const values = logs.map(log => parseInt(log[metric]));
-    const avg = values.reduce((a, b) => a + b, 0) / values.length;
-    const trend = values.length > 1 ? (values[values.length - 1] - values[0]) / (values.length - 1) : 0;
-    
-    analysis.trends[metric] = {
-      average: Math.round(avg * 10) / 10,
-      trend: Math.round(trend * 100) / 100,
-      current: values[values.length - 1],
-      min: Math.min(...values),
-      max: Math.max(...values)
-    };
-  });
-
-  // Detect correlations
-  const sleepValues = logs.map(log => parseInt(log.sleep));
-  const fatigueValues = logs.map(log => parseInt(log.fatigue));
-  const painValues = logs.map(log => parseInt(log.backPain));
-  const moodValues = logs.map(log => parseInt(log.mood));
-
-  if (calculateCorrelation(sleepValues, fatigueValues) < -0.5) {
-    analysis.correlations.push("Poor sleep strongly correlates with increased fatigue");
+  if (window.AIEngine) {
+    return window.AIEngine.analyzeHealthMetrics(logs);
   }
-  
-  if (calculateCorrelation(painValues, moodValues) < -0.4) {
-    analysis.correlations.push("Higher pain levels correlate with lower mood");
-  }
-
-  // Detect anomalies
-  const flareUps = logs.filter(log => log.flare === 'Yes').length;
-  if (flareUps > logs.length * 0.4) {
-    analysis.anomalies.push(`High flare-up frequency: ${flareUps} out of ${logs.length} days`);
-  }
-
-  const highPainDays = logs.filter(log => parseInt(log.backPain) >= 8).length;
-  if (highPainDays > logs.length * 0.3) {
-    analysis.anomalies.push(`Severe pain episodes: ${highPainDays} out of ${logs.length} days`);
-  }
-
-  const poorSleepDays = logs.filter(log => parseInt(log.sleep) <= 4).length;
-  if (poorSleepDays > logs.length * 0.3) {
-    analysis.anomalies.push(`Poor sleep quality: ${poorSleepDays} out of ${logs.length} days`);
-  }
-
-  // Generate condition-specific advice
-  analysis.advice = generateConditionAdvice(analysis.trends, logs);
-  
-  return analysis;
+  // Fallback if AIEngine not loaded
+  return { trends: {}, correlations: [], anomalies: [], advice: [], patterns: [], riskFactors: [] };
 }
 
-function calculateCorrelation(x, y) {
-  const n = x.length;
-  const sumX = x.reduce((a, b) => a + b, 0);
-  const sumY = y.reduce((a, b) => a + b, 0);
-  const sumXY = x.reduce((total, xi, i) => total + xi * y[i], 0);
-  const sumX2 = x.reduce((total, xi) => total + xi * xi, 0);
-  const sumY2 = y.reduce((total, yi) => total + yi * yi, 0);
-  
-  return (n * sumXY - sumX * sumY) / Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+function generateComprehensiveInsights(analysis, logs, dayCount) {
+  if (window.AIEngine) {
+    return window.AIEngine.generateComprehensiveInsights(analysis, logs, dayCount);
+  }
+  return "AI Engine not loaded. Please refresh the page.";
 }
 
+// Legacy function (kept for any direct calls, but AIEngine has enhanced version)
 function generateConditionAdvice(trends, logs) {
-  const advice = [];
-
-  // Sleep advice
-  if (trends.sleep.average < 6) {
-    advice.push("🛏️ **Sleep Improvement**: Your sleep quality is below optimal. Consider establishing a consistent bedtime routine, avoiding screens before bed, and discussing sleep aids with your doctor.");
+  if (window.AIEngine) {
+    const conditionContext = window.CONDITION_CONTEXT || { name: 'your condition' };
+    return window.AIEngine.generateConditionAdvice(trends, logs, conditionContext);
   }
+  return [];
+}
 
-  // Pain management
-  if (trends.backPain.average > 6) {
-    advice.push("🔥 **Pain Management**: High pain levels detected. Consider heat therapy, gentle stretching, anti-inflammatory medications, and discuss biologics with your rheumatologist if not already prescribed.");
+// Legacy function (kept for compatibility)
+function calculateCorrelation(x, y) {
+  if (window.AIEngine) {
+    return window.AIEngine.calculateCorrelation(x, y);
   }
-
-  // Exercise and mobility
-  if (trends.mobility.average < 6) {
-    advice.push(`🏃 **Mobility Focus**: Low mobility scores suggest need for gentle exercise. Try swimming, yoga, or physical therapy exercises appropriate for ${CONDITION_CONTEXT.name}.`);
-  }
-
-  // Stiffness management
-  if (trends.stiffness.average > 6) {
-    advice.push("🧘 **Morning Stiffness**: High stiffness levels indicate need for morning stretches, hot showers, and potentially adjusting medication timing with your doctor.");
-  }
-
-  // Fatigue management
-  if (trends.fatigue.average > 6) {
-    advice.push("⚡ **Energy Management**: Chronic fatigue detected. Focus on pacing activities, short naps (20-30 min), and discussing fatigue with your healthcare team as it may indicate disease activity.");
-  }
-
-  // Mood support
-  if (trends.mood.average < 6) {
-    advice.push("😊 **Mental Health**: Low mood scores suggest connecting with support groups, considering counseling, and ensuring you're getting adequate vitamin D and social interaction.");
-  }
-
-  return advice;
+  return 0;
 }
 
 // Close settings on Escape key
@@ -2172,69 +1364,84 @@ function generateAISummary() {
     toggleSection('aiSummarySection');
   }
   
+  // Get filtered logs based on log view date range (from startDate/endDate inputs)
+  // This defines the range for AI analysis
+  const startDateInput = document.getElementById('startDate');
+  const endDateInput = document.getElementById('endDate');
+  
+  let filteredLogs = logs;
+  let dateRangeText = '';
+  
+  // Use log view date range if set, otherwise use chart date range
+  if (startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+    
+    filteredLogs = logs.filter(log => {
+      const logDate = new Date(log.date);
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      return logDate >= start && logDate <= end;
+    });
+    
+    // Format date range text
+    const start = new Date(startDate).toLocaleDateString();
+    const end = new Date(endDate).toLocaleDateString();
+    dateRangeText = `${start} to ${end}`;
+  } else {
+    // Fallback to chart date range
+    filteredLogs = getFilteredLogs();
+    
+    // Determine date range description for loading message
+    if (chartDateRange.type === 'custom') {
+      if (chartDateRange.startDate && chartDateRange.endDate) {
+        const start = new Date(chartDateRange.startDate).toLocaleDateString();
+        const end = new Date(chartDateRange.endDate).toLocaleDateString();
+        dateRangeText = `${start} to ${end}`;
+      } else {
+        dateRangeText = 'selected date range';
+      }
+    } else {
+      dateRangeText = `last ${chartDateRange.type} days`;
+    }
+  }
+  
+  if (filteredLogs.length === 0) {
+    alert('No health data available in the selected date range. Please adjust your date range or log some entries.');
+    return;
+  }
+  
+  // Sort logs chronologically (oldest first)
+  const sortedLogs = filteredLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
+  
   // Show loading state
   resultsContent.innerHTML = `
     <div class="ai-loading-state">
       <div class="ai-loading-icon">🧠</div>
       <p class="ai-loading-text">Analyzing your health data...</p>
-      <p class="ai-loading-subtext">Processing your last 7 days of health metrics</p>
+      <p class="ai-loading-subtext">Processing ${sortedLogs.length} days of health metrics (${dateRangeText})</p>
     </div>
   `;
 
-  // Get last 7 entries (most recent first, then reverse for chronological order)
-  const sortedLogs = allLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
-  const last7Logs = sortedLogs.slice(0, 7).reverse();
-
   // Analyze the data after a short delay for UX
+  // Use all logs for training, filtered logs for display
   setTimeout(async () => {
-    const analysis = analyzeHealthMetrics(last7Logs);
+    const allLogsForTraining = JSON.parse(localStorage.getItem("healthLogs") || "[]")
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    const analysis = window.AIEngine ? 
+      window.AIEngine.analyzeHealthMetrics(sortedLogs, allLogsForTraining) : 
+      analyzeHealthMetrics(sortedLogs);
     
-    // Try to get Transformers.js AI insights (runs locally in browser, no API key!)
-    // Note: Transformers.js is optional - local analysis provides comprehensive insights
-    let webLLMInsights = null; // Keep variable name for compatibility
-    if (TRANSFORMERS_CONFIG.enabled) {
-      try {
-        // Show loading state with progress bar
-        resultsContent.innerHTML = `
-          <div class="ai-loading-state">
-            <div class="ai-loading-icon">🧠</div>
-            <p class="ai-loading-text">Loading AI model...</p>
-            <p class="ai-loading-subtext" id="aiModelProgressText">Initializing...</p>
-            <div id="aiModelProgressBarContainer" class="ai-progress-bar-container">
-              <div id="aiModelProgressBar" class="ai-progress-bar"></div>
-              <span id="aiModelProgressPercent" class="ai-progress-text">0%</span>
-            </div>
-            <p class="ai-loading-note">First time: downloading model. Subsequent uses are instant!</p>
-          </div>
-        `;
-        
-        // Initialize Transformers.js (will download script if needed, then model)
-        await initTransformers();
-        
-        // Get insights
-        transformersInsights = await getTransformersInsights(analysis, last7Logs, last7Logs.length);
-        if (transformersInsights) {
-          console.log('✅ AI insights received, length:', transformersInsights.length);
-        } else {
-          console.warn('⚠️ AI insights returned null or empty');
-        }
-      } catch (error) {
-        console.error('Transformers.js AI error:', error);
-        console.error('Error stack:', error.stack);
-        transformersInsights = null; // Ensure it's null on error
-        // Continue with local analysis only
-      }
-    } else {
-      // Transformers.js is disabled - use local analysis only (still comprehensive!)
-      console.log('ℹ️ Transformers.js is disabled. Using local analysis (comprehensive insights available).');
-    }
+    // Use enhanced local analysis from AIEngine
+    let webLLMInsights = null;
     
-    // Display the combined results
-    displayAISummary(analysis, last7Logs.length, transformersInsights);
+    // Display the combined results (with enhanced local insights)
+    displayAISummary(analysis, sortedLogs, sortedLogs.length, webLLMInsights);
   }, 1500);
 }
 
-function displayAISummary(analysis, dayCount, webLLMInsights = null) {
+function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
   const resultsContent = document.getElementById('aiResultsContent');
   
   if (!resultsContent) {
@@ -2255,13 +1462,30 @@ function displayAISummary(analysis, dayCount, webLLMInsights = null) {
   `;
   animationDelay += 200;
 
-  // AI Insights Section (if available from Transformers.js)
-  if (webLLMInsights) {
+  // AI Insights Section (from enhanced local analysis)
+  let insightsText = webLLMInsights;
+  
+  // If no LLM insights, use enhanced local analysis
+  if (!insightsText) {
+    insightsText = generateComprehensiveInsights(analysis, logs, dayCount);
+  }
+  
+  if (insightsText) {
     html += `
       <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title">🤖 AI-Powered Insights</h3>
         <div class="ai-llm-synopsis">
-          ${webLLMInsights.split('\n\n').map(para => para.trim() ? `<p>${para.trim()}</p>` : '').join('')}
+          ${insightsText.split('\n\n').map(para => {
+            const trimmed = para.trim();
+            if (!trimmed) return '';
+            // Format markdown-style bold text
+            const formatted = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Format bullet points
+            if (trimmed.startsWith('- ')) {
+              return `<p style="margin-left: 1em;">${formatted.substring(2)}</p>`;
+            }
+            return `<p>${formatted}</p>`;
+          }).join('')}
         </div>
       </div>
     `;
@@ -2278,9 +1502,50 @@ function displayAISummary(analysis, dayCount, webLLMInsights = null) {
   
   Object.keys(analysis.trends).forEach((metric, index) => {
     const trend = analysis.trends[metric];
-    const trendIcon = trend.trend > 0.2 ? "📈" : trend.trend < -0.2 ? "📉" : "➡️";
+    const isBPM = metric === 'bpm';
+    
+    // Determine status and colors based on average vs current comparison
+    // Use predictedStatus for predicted value, statusFromAverage for current trend
+    const currentStatus = trend.statusFromAverage || 'stable';
+    const predictedStatus = trend.predictedStatus || 'stable';
+    
+    // Set icon and color based on status
+    let trendIcon, trendColor, predictedColor;
+    if (currentStatus === 'improving') {
+      trendIcon = "📈";
+      trendColor = "#4caf50"; // Green
+    } else if (currentStatus === 'worsening') {
+      trendIcon = "📉";
+      trendColor = "#f44336"; // Red
+    } else {
+      trendIcon = "➡️";
+      trendColor = "#2196f3"; // Blue
+    }
+    
+    // Predicted color based on predicted status
+    if (predictedStatus === 'improving') {
+      predictedColor = "#4caf50"; // Green
+    } else if (predictedStatus === 'worsening') {
+      predictedColor = "#f44336"; // Red
+    } else {
+      predictedColor = "#2196f3"; // Blue
+    }
+    
     const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-    const trendColor = trend.trend > 0.2 ? "#4caf50" : trend.trend < -0.2 ? "#ff9800" : "#2196f3";
+    
+    // Format values differently for BPM vs other metrics (all whole numbers)
+    const averageDisplay = isBPM ? Math.round(trend.average) : Math.round(trend.average) + '/10';
+    const currentDisplay = isBPM ? Math.round(trend.current) : Math.round(trend.current) + '/10';
+    
+    // Get predicted 7-day value (whole numbers)
+    let predictedDisplay = '';
+    if (trend.projected7Days !== undefined && trend.projected7Days !== null) {
+      if (isBPM) {
+        predictedDisplay = Math.round(trend.projected7Days).toString();
+      } else {
+        predictedDisplay = Math.round(trend.projected7Days) + '/10';
+      }
+    }
     
     html += `
       <div class="ai-trend-card ai-animate-in" style="border-left-color: ${trendColor}; animation-delay: ${animationDelay + (index * 100)}ms;">
@@ -2288,8 +1553,9 @@ function displayAISummary(analysis, dayCount, webLLMInsights = null) {
           <strong>${trendIcon} ${metricName}</strong>
         </div>
         <div class="ai-trend-stats">
-          <span>Average: <strong style="color: ${trendColor};">${trend.average}/10</strong></span>
-          <span>Current: <strong style="color: ${trendColor};">${trend.current}/10</strong></span>
+          <span>Average: <strong style="color: ${trendColor};">${averageDisplay}</strong></span>
+          <span>Current: <strong style="color: ${trendColor};">${currentDisplay}</strong></span>
+          ${predictedDisplay ? `<span>Predicted (7d): <strong style="color: ${predictedColor};">${predictedDisplay}</strong></span>` : ''}
         </div>
       </div>
     `;
@@ -2297,20 +1563,6 @@ function displayAISummary(analysis, dayCount, webLLMInsights = null) {
   
   html += `</div></div>`;
   animationDelay += 300;
-
-  // Correlations section
-  if (analysis.correlations.length > 0) {
-    html += `
-      <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-blue">🔗 Key Correlations</h3>
-        <ul class="ai-list">
-    `;
-    analysis.correlations.forEach((corr, index) => {
-      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 200 + (index * 100)}ms;">${corr}</li>`;
-    });
-    html += `</ul></div>`;
-    animationDelay += 300;
-  }
 
   // Anomalies section
   if (analysis.anomalies.length > 0) {
@@ -2326,25 +1578,6 @@ function displayAISummary(analysis, dayCount, webLLMInsights = null) {
     animationDelay += 300;
   }
 
-  // Advice section
-  if (analysis.advice.length > 0) {
-    html += `
-      <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-pink">💡 Personalized Recommendations</h3>
-        <div class="ai-advice-list">
-    `;
-    analysis.advice.forEach((advice, index) => {
-      const cleanAdvice = advice.replace(/\*\*/g, '').replace(/#/g, '');
-      html += `
-        <div class="ai-advice-card ai-animate-in" style="animation-delay: ${animationDelay + 200 + (index * 150)}ms;">
-          <p>${cleanAdvice}</p>
-        </div>
-      `;
-    });
-    html += `</div></div>`;
-    animationDelay += 300;
-  }
-
   // General management section
   html += `
     <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
@@ -2354,16 +1587,6 @@ function displayAISummary(analysis, dayCount, webLLMInsights = null) {
       </p>
     </div>
   `;
-
-  // Add a note if WebLLM wasn't used but is enabled
-  if (!webLLMInsights && TRANSFORMERS_CONFIG.enabled) {
-    html += `
-      <div class="ai-summary-section" style="opacity: 0.7; font-size: 0.9rem; margin-top: 1rem;">
-        <p>💡 <em>AI insights are loading or temporarily unavailable.</em></p>
-        <p style="margin-top: 0.5rem; font-size: 0.85rem;">Note: First-time use downloads the AI model. The exact size will be shown during download. Subsequent uses are instant.</p>
-      </div>
-    `;
-  }
 
   // Set the HTML content
   resultsContent.innerHTML = html;
@@ -2526,6 +1749,9 @@ let chartDateRange = {
   endDate: null
 };
 
+// Prediction range state
+let predictionRange = 7; // 7, 30, or 90 days
+
 // Get filtered logs based on current date range
 function getFilteredLogs() {
   if (!logs || logs.length === 0) return [];
@@ -2612,6 +1838,28 @@ function applyCustomDateRange() {
   }
 }
 
+// Set prediction range
+function setPredictionRange(range) {
+  predictionRange = range;
+  console.log(`Prediction range set to: ${range} days`);
+  
+  // Update button states
+  document.querySelectorAll('.prediction-range-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  const buttonId = `predRange${range}Days`;
+  const button = document.getElementById(buttonId);
+  if (button) {
+    button.classList.add('active');
+  } else {
+    console.warn(`Button with id '${buttonId}' not found`);
+  }
+  
+  // Refresh charts with new prediction range
+  refreshCharts();
+}
+
 // Refresh all charts with current filter
 function refreshCharts() {
   if (appSettings.combinedChart) {
@@ -2676,6 +1924,83 @@ function chart(id, label, dataField, color) {
     return;
   }
   
+  // Generate predicted data for the selected date range period
+  let predictedData = [];
+  if (window.AIEngine && chartData.length >= 2) {
+    try {
+      // Use prediction range setting
+      const daysToPredict = predictionRange;
+      
+      // Get ALL historical logs for training (better predictions)
+      const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]")
+        .filter(log => log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '')
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      if (allLogs.length >= 2) {
+        // Sort filtered logs chronologically for getting the last date
+        const sortedLogs = filteredLogs
+          .filter(log => log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '')
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        if (sortedLogs.length >= 2) {
+          // Analyze with AIEngine: use all logs for training, filtered logs just for last date
+          const analysis = window.AIEngine.analyzeHealthMetrics(sortedLogs, allLogs);
+          
+          if (analysis.trends[dataField]) {
+            const trend = analysis.trends[dataField];
+            const lastDate = new Date(sortedLogs[sortedLogs.length - 1].date);
+            const isBPM = dataField === 'bpm';
+            
+            // Generate predictions for the selected period using regression from all data
+            if (trend.regression) {
+              const regression = trend.regression;
+              
+              // Get the last date from training data to calculate days since start
+              const firstTrainingDate = new Date(allLogs[0].date);
+              const lastTrainingDate = new Date(allLogs[allLogs.length - 1].date);
+              const lastX = Math.floor((lastTrainingDate - firstTrainingDate) / (1000 * 60 * 60 * 24));
+              
+              // Generate predictions for the selected number of days
+              for (let i = 1; i <= daysToPredict; i++) {
+                const futureX = lastX + i; // Days ahead from last data point
+                const predictedY = regression.slope * futureX + regression.intercept;
+                
+                // Keep precision until final rounding
+                let value = predictedY;
+                
+                // Clamp based on metric type (before rounding to preserve differences)
+                if (isBPM) {
+                  value = Math.max(30, Math.min(200, value));
+                } else {
+                  value = Math.max(0, Math.min(10, value));
+                }
+                
+                // Round to whole number at the end
+                value = Math.round(value);
+                
+                // Convert weight to display unit if needed
+                if (dataField === 'weight' && appSettings.weightUnit === 'lb') {
+                  value = parseFloat(kgToLb(value));
+                  value = Math.round(value * 10) / 10; // Weight: 1 decimal place
+                }
+                
+                const futureDate = new Date(lastDate);
+                futureDate.setDate(futureDate.getDate() + i);
+                
+                predictedData.push({
+                  x: futureDate.getTime(),
+                  y: value
+                });
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn(`Error generating predictions for ${dataField}:`, error);
+    }
+  }
+  
   // Debug logging for weight chart
   if (dataField === 'weight') {
     console.log(`Weight chart data:`, chartData.slice(0, 5));
@@ -2688,11 +2013,42 @@ function chart(id, label, dataField, color) {
   
   console.log(`Creating ApexChart for ${label} with ${chartData.length} data points`);
   
+  // Prepare series array
+  const series = [{
+    name: label,
+    data: chartData
+  }];
+  
+  // Add predicted data as a separate series if available
+  if (predictedData.length > 0) {
+    // Create a lighter/different color for predictions
+    let predictionColor = color;
+    if (color.includes('rgb(')) {
+      const rgbMatch = color.match(/\d+/g);
+      if (rgbMatch) {
+        predictionColor = `rgba(${rgbMatch.join(', ')}, 0.6)`;
+      }
+    } else if (color.includes('#')) {
+      // Convert hex to rgba
+      const hex = color.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      predictionColor = `rgba(${r}, ${g}, ${b}, 0.6)`;
+    }
+    
+    series.push({
+      name: `${label} (Predicted)`,
+      data: predictedData,
+      color: predictionColor,
+      stroke: {
+        dashArray: 5
+      }
+    });
+  }
+  
   const options = {
-    series: [{
-      name: label,
-      data: chartData
-    }],
+    series: series,
     chart: {
       type: 'line',
       height: 300,
@@ -2728,14 +2084,14 @@ function chart(id, label, dataField, color) {
     },
     markers: {
       size: 5,
-      colors: [color],
+      colors: series.map((s, i) => i === 0 ? color : (s.color || color)),
       strokeColors: '#fff',
       strokeWidth: 2,
       hover: {
         size: 7
       }
     },
-    colors: [color],
+    colors: series.map((s, i) => i === 0 ? color : (s.color || color)),
     xaxis: {
       type: 'datetime',
       title: {
@@ -3359,6 +2715,59 @@ function updateDashboardTitle() {
 // Filtering and sorting functionality
 let currentSortOrder = 'newest'; // 'newest' or 'oldest'
 
+// Set log view date range (7, 30, or 90 days)
+function setLogViewRange(days) {
+  // Calculate date range
+  const endDate = new Date();
+  endDate.setHours(23, 59, 59, 999);
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - (days - 1));
+  startDate.setHours(0, 0, 0, 0);
+  
+  // Update date inputs
+  const startDateInput = document.getElementById('startDate');
+  const endDateInput = document.getElementById('endDate');
+  
+  if (startDateInput && endDateInput) {
+    startDateInput.value = startDate.toISOString().split('T')[0];
+    endDateInput.value = endDate.toISOString().split('T')[0];
+  }
+  
+  // Update chart date range to match
+  chartDateRange.type = days;
+  chartDateRange.startDate = startDateInput.value;
+  chartDateRange.endDate = endDateInput.value;
+  
+  // Update chart date range buttons
+  document.querySelectorAll('.date-range-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  const chartButtonId = `range${days}Days`;
+  const chartButton = document.getElementById(chartButtonId);
+  if (chartButton) {
+    chartButton.classList.add('active');
+  }
+  
+  // Update log view range buttons
+  document.querySelectorAll('.log-date-range-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  const logButtonId = `logRange${days}Days`;
+  const logButton = document.getElementById(logButtonId);
+  if (logButton) {
+    logButton.classList.add('active');
+  }
+  
+  // Hide custom date range selector if it was showing
+  document.getElementById('customDateRangeSelector').classList.add('hidden');
+  
+  // Filter and render logs
+  filterLogs();
+  
+  // Refresh charts to match the new range
+  refreshCharts();
+}
+
 function filterLogs() {
   const startDate = document.getElementById('startDate').value;
   const endDate = document.getElementById('endDate').value;
@@ -3611,6 +3020,8 @@ window.addEventListener('load', () => {
   
   // Initialize chart date range to 30 days
   setChartDateRange(30);
+  setPredictionRange(7); // Initialize prediction range to 7 days
+  setLogViewRange(30); // Initialize log view range to 30 days
 });
 
 function initializeDateFilters() {

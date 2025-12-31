@@ -36,7 +36,6 @@
   <script src="apexcharts.min.js"></script>
   <!-- Supabase Client Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Transformers.js - Run LLM directly in browser, no API key needed! -->
   <!-- Now loaded from local server with progress tracking -->
   <!-- The script will be loaded dynamically with progress bar in app.js -->
   <link rel="stylesheet" href="styles.css">
@@ -284,6 +283,14 @@
         </div>
       </div>
     <div class="filter-section">
+      <div class="log-view-range-buttons">
+        <label class="filter-label">View Range:</label>
+        <div class="log-date-range-buttons">
+          <button class="log-date-range-btn active" onclick="setLogViewRange(7)" id="logRange7Days">7 Days</button>
+          <button class="log-date-range-btn" onclick="setLogViewRange(30)" id="logRange30Days">30 Days</button>
+          <button class="log-date-range-btn" onclick="setLogViewRange(90)" id="logRange90Days">90 Days</button>
+        </div>
+      </div>
       <div class="compact-filters">
         <div class="date-range">
           <input type="date" id="startDate" placeholder="Start Date">
@@ -327,11 +334,24 @@
       </div>
       <!-- Date Range Filter -->
       <div class="chart-date-range-filter">
-        <div class="date-range-buttons">
-          <button class="date-range-btn active" onclick="setChartDateRange(7)" id="range7Days">7 Days</button>
-          <button class="date-range-btn" onclick="setChartDateRange(30)" id="range30Days">30 Days</button>
-          <button class="date-range-btn" onclick="setChartDateRange(90)" id="range90Days">90 Days</button>
-          <button class="date-range-btn" onclick="setChartDateRange('custom')" id="rangeCustom">Custom</button>
+        <div class="filter-row">
+          <div class="filter-group">
+            <label class="filter-label">View Range:</label>
+            <div class="date-range-buttons">
+              <button class="date-range-btn active" onclick="setChartDateRange(7)" id="range7Days">7 Days</button>
+              <button class="date-range-btn" onclick="setChartDateRange(30)" id="range30Days">30 Days</button>
+              <button class="date-range-btn" onclick="setChartDateRange(90)" id="range90Days">90 Days</button>
+              <button class="date-range-btn" onclick="setChartDateRange('custom')" id="rangeCustom">Custom</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Prediction Range:</label>
+            <div class="prediction-range-buttons">
+              <button class="prediction-range-btn active" onclick="setPredictionRange(7)" id="predRange7Days">7 Days</button>
+              <button class="prediction-range-btn" onclick="setPredictionRange(30)" id="predRange30Days">30 Days</button>
+              <button class="prediction-range-btn" onclick="setPredictionRange(90)" id="predRange90Days">90 Days</button>
+            </div>
+          </div>
         </div>
         <div id="customDateRangeSelector" class="custom-date-range hidden">
           <label for="chartStartDate">From:</label>
@@ -515,7 +535,6 @@
         <div class="data-management-buttons">
           <button class="settings-data-btn export-btn" onclick="exportData()">📤 Export Data</button>
           <button class="settings-data-btn import-btn" onclick="importData()">📥 Import Data</button>
-          <button class="settings-data-btn" onclick="resetAIModel()">🤖 Reset AI Model</button>
         </div>
         <div class="danger-zone">
           <button class="settings-data-btn danger-btn" onclick="clearData()">🗑️ Clear All Data</button>
@@ -524,6 +543,7 @@
     </div>
   </div>
 
+  <script src="AIEngine.js"></script>
   <script src="app.js"></script>
   <script src="cloud-sync.js"></script>
 </body>
