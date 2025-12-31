@@ -703,6 +703,10 @@ function toggleChartView(showCombined) {
   const individualBtn = document.getElementById('individualViewBtn');
   const combinedBtn = document.getElementById('combinedViewBtn');
   
+  // Save the preference but don't let settings interfere
+  appSettings.combinedChart = showCombined;
+  saveSettings();
+  
   if (showCombined) {
     combinedContainer.classList.remove('hidden');
     individualContainer.classList.add('hidden');
@@ -716,7 +720,10 @@ function toggleChartView(showCombined) {
       chartObserver.disconnect();
     }
     
-    createCombinedChart();
+    // Small delay to prevent jump
+    setTimeout(() => {
+      createCombinedChart();
+    }, 50);
   } else {
     combinedContainer.classList.add('hidden');
     individualContainer.classList.remove('hidden');
@@ -890,8 +897,21 @@ function createCombinedChart() {
     options.tooltip.theme = 'light';
   }
   
+  // Hide any loading placeholder
+  const loadingElement = container.querySelector('.chart-loading');
+  if (loadingElement) {
+    loadingElement.style.display = 'none';
+  }
+  
   container.chart = new ApexCharts(container, options);
-  container.chart.render();
+  container.chart.render().then(() => {
+    // Ensure loading is hidden after render
+    if (loadingElement) {
+      loadingElement.style.display = 'none';
+    }
+    // Mark container as loaded
+    container.classList.add('loaded');
+  });
 }
 
 function clearData() {
@@ -988,36 +1008,6 @@ function importData() {
   input.click();
 }
 
-function createAIOverlay() {
-  const overlay = document.createElement('div');
-  overlay.className = 'ai-overlay';
-  overlay.innerHTML = `
-    <div class="ai-modal">
-      <div class="ai-modal-header">
-        <h3 class="ai-modal-title">AI Health Analysis</h3>
-        <button class="ai-close-btn" onclick="closeAIOverlay()">&times;</button>
-      </div>
-      <div class="ai-content" id="aiContent">
-        <div class="security-warning">
-          🧠 Custom AI Analysis Engine - Analyzing your health metrics...
-        </div>
-        <div class="ai-loading">
-          <div class="spinner"></div>
-          <p>Processing your health data with built-in AI...</p>
-        </div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-  return overlay;
-}
-
-function closeAIOverlay() {
-  const overlay = document.querySelector('.ai-overlay');
-  if (overlay) {
-    overlay.remove();
-  }
-}
 
 // Custom AI Analysis Engine for Ankylosing Spondylitis
 function analyzeHealthMetrics(logs) {
@@ -1141,165 +1131,172 @@ document.addEventListener('keydown', function(event) {
   }
 });
 
+// ============================================
+// AI SUMMARY - REBUILT FROM SCRATCH
+// ============================================
+
 function generateAISummary() {
-  // Get last 7 entries
+  // Get health logs from localStorage
   const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
   
+  // Check if we have data
   if (allLogs.length === 0) {
     alert("No health data found. Please log some entries first.");
     return;
   }
 
-  // Get last 7 entries, sorted by date descending, then take first 7
+  // Get the results content element
+  const resultsContent = document.getElementById('aiResultsContent');
+  const aiSection = document.getElementById('aiSummarySection');
+  
+  if (!resultsContent) {
+    console.error('AI results content element not found');
+    return;
+  }
+
+  // Open the collapsible section if it's closed
+  if (aiSection && !aiSection.classList.contains('open')) {
+    toggleSection('aiSummarySection');
+  }
+  
+  // Show loading state
+  resultsContent.innerHTML = `
+    <div class="ai-loading-state">
+      <div class="ai-loading-icon">🧠</div>
+      <p class="ai-loading-text">Analyzing your health data...</p>
+      <p class="ai-loading-subtext">Processing your last 7 days of health metrics</p>
+    </div>
+  `;
+
+  // Get last 7 entries (most recent first, then reverse for chronological order)
   const sortedLogs = allLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
   const last7Logs = sortedLogs.slice(0, 7).reverse();
 
-  // Get the results container and textbox
-  const resultsContainer = document.getElementById('aiResultsContainer');
-  const textbox = document.getElementById('aiResultsTextbox');
-  
-  if (!resultsContainer || !textbox) {
-    console.error('AI results elements not found');
-    return;
-  }
-
-  // Show the container
-  resultsContainer.style.display = 'block';
-  
-  // Show loading state
-  textbox.value = "🧠 Analyzing your health data...\n\nPlease wait while we process your last 7 days of health metrics...";
-  textbox.style.opacity = '0.7';
-
-  // Analyze the data
+  // Analyze the data after a short delay for UX
   setTimeout(() => {
     const analysis = analyzeHealthMetrics(last7Logs);
-    displayAnalysisInTextbox(analysis, last7Logs.length, textbox);
-  }, 1500); // Show loading animation first
+    displayAISummary(analysis, last7Logs.length);
+  }, 1500);
 }
 
-function displayAnalysisInTextbox(analysis, dayCount, textbox) {
-  let text = `✅ AI Health Analysis Complete (${dayCount} days analyzed)\n\n`;
-  text += "=".repeat(60) + "\n\n";
-
-  // Trends section
-  text += "📈 TREND ANALYSIS\n";
-  text += "-".repeat(60) + "\n";
-  Object.keys(analysis.trends).forEach(metric => {
-    const trend = analysis.trends[metric];
-    const trendIcon = trend.trend > 0.2 ? "📈" : trend.trend < -0.2 ? "📉" : "➡️";
-    const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-    text += `${trendIcon} ${metricName}: Average ${trend.average}/10, Current ${trend.current}/10\n`;
-  });
-  text += "\n";
-
-  // Correlations section
-  if (analysis.correlations.length > 0) {
-    text += "🔗 KEY CORRELATIONS\n";
-    text += "-".repeat(60) + "\n";
-    analysis.correlations.forEach(corr => {
-      text += `• ${corr}\n`;
-    });
-    text += "\n";
-  }
-
-  // Anomalies section
-  if (analysis.anomalies.length > 0) {
-    text += "⚠️ AREAS OF CONCERN\n";
-    text += "-".repeat(60) + "\n";
-    analysis.anomalies.forEach(anomaly => {
-      text += `• ${anomaly}\n`;
-    });
-    text += "\n";
-  }
-
-  // Advice section
-  if (analysis.advice.length > 0) {
-    text += "💡 PERSONALIZED RECOMMENDATIONS\n";
-    text += "-".repeat(60) + "\n";
-    analysis.advice.forEach(advice => {
-      // Remove markdown formatting for plain text
-      const cleanAdvice = advice.replace(/\*\*/g, '').replace(/#/g, '');
-      text += `${cleanAdvice}\n\n`;
-    });
-  }
-
-  text += "=".repeat(60) + "\n\n";
-  text += "🏥 GENERAL AS MANAGEMENT\n";
-  text += "-".repeat(60) + "\n";
-  text += "Remember: This analysis is for informational purposes only. Always consult with your rheumatologist before making changes to your treatment plan. Consider sharing this data during your next appointment.\n";
-
-  // Set the text and make it fully visible
-  if (textbox) {
-    textbox.value = text;
-    textbox.style.opacity = '1';
-    // Scroll to top of textbox
-    textbox.scrollTop = 0;
-  }
-}
-
-function displayAnalysis(analysis, dayCount) {
-  const aiContent = document.getElementById('aiContent');
+function displayAISummary(analysis, dayCount) {
+  const resultsContent = document.getElementById('aiResultsContent');
   
-  if (!aiContent) {
-    console.error('AI content element not found, recreating overlay...');
-    // Recreate overlay if content element is missing
-    createAIOverlay();
-    setTimeout(() => {
-      const newAiContent = document.getElementById('aiContent');
-      if (newAiContent) {
-        displayAnalysis(analysis, dayCount);
-      }
-    }, 100);
+  if (!resultsContent) {
+    console.error('AI results content element not found');
     return;
   }
-  
-  let html = `
-    <div class="security-warning">
-      ✅ AI Health Analysis Complete (${dayCount} days analyzed)
+
+  // Build the summary HTML with animation classes
+  let html = '';
+  let animationDelay = 0;
+
+  // Header card - animate first
+  html += `
+    <div class="ai-summary-header ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+      <h3>✅ AI Health Analysis Complete</h3>
+      <p>${dayCount} days analyzed</p>
     </div>
-    <div style="line-height: 1.6; padding: 10px;">
   `;
+  animationDelay += 200;
 
   // Trends section
-  html += `<h3 style="color: var(--primary-color); margin-top: 20px;">📈 Trend Analysis</h3>`;
-  Object.keys(analysis.trends).forEach(metric => {
+  html += `
+    <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+      <h3 class="ai-section-title">📈 Trend Analysis</h3>
+      <div class="ai-trends-grid">
+  `;
+  animationDelay += 200;
+  
+  Object.keys(analysis.trends).forEach((metric, index) => {
     const trend = analysis.trends[metric];
     const trendIcon = trend.trend > 0.2 ? "📈" : trend.trend < -0.2 ? "📉" : "➡️";
     const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-    html += `<p><strong>${trendIcon} ${metricName}:</strong> Average ${trend.average}/10, Current ${trend.current}/10</p>`;
+    const trendColor = trend.trend > 0.2 ? "#4caf50" : trend.trend < -0.2 ? "#ff9800" : "#2196f3";
+    
+    html += `
+      <div class="ai-trend-card ai-animate-in" style="border-left-color: ${trendColor}; animation-delay: ${animationDelay + (index * 100)}ms;">
+        <div class="ai-trend-header">
+          <strong>${trendIcon} ${metricName}</strong>
+        </div>
+        <div class="ai-trend-stats">
+          <span>Average: <strong style="color: ${trendColor};">${trend.average}/10</strong></span>
+          <span>Current: <strong style="color: ${trendColor};">${trend.current}/10</strong></span>
+        </div>
+      </div>
+    `;
   });
+  
+  html += `</div></div>`;
+  animationDelay += 300;
 
   // Correlations section
   if (analysis.correlations.length > 0) {
-    html += `<h3 style="color: var(--primary-color); margin-top: 20px;">🔗 Key Correlations</h3>`;
-    analysis.correlations.forEach(corr => {
-      html += `<p>• ${corr}</p>`;
+    html += `
+      <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+        <h3 class="ai-section-title ai-section-blue">🔗 Key Correlations</h3>
+        <ul class="ai-list">
+    `;
+    analysis.correlations.forEach((corr, index) => {
+      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 200 + (index * 100)}ms;">${corr}</li>`;
     });
+    html += `</ul></div>`;
+    animationDelay += 300;
   }
 
   // Anomalies section
   if (analysis.anomalies.length > 0) {
-    html += `<h3 style="color: #ff9800; margin-top: 20px;">⚠️ Areas of Concern</h3>`;
-    analysis.anomalies.forEach(anomaly => {
-      html += `<p style="color: #ff9800;">• ${anomaly}</p>`;
+    html += `
+      <div class="ai-summary-section ai-section-warning ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+        <h3 class="ai-section-title ai-section-orange">⚠️ Areas of Concern</h3>
+        <ul class="ai-list ai-list-warning">
+    `;
+    analysis.anomalies.forEach((anomaly, index) => {
+      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 200 + (index * 100)}ms;">${anomaly}</li>`;
     });
+    html += `</ul></div>`;
+    animationDelay += 300;
   }
 
   // Advice section
   if (analysis.advice.length > 0) {
-    html += `<h3 style="color: var(--primary-color); margin-top: 20px;">💡 Personalized Recommendations</h3>`;
-    analysis.advice.forEach(advice => {
-      html += `<p>${advice}</p>`;
+    html += `
+      <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+        <h3 class="ai-section-title ai-section-pink">💡 Personalized Recommendations</h3>
+        <div class="ai-advice-list">
+    `;
+    analysis.advice.forEach((advice, index) => {
+      const cleanAdvice = advice.replace(/\*\*/g, '').replace(/#/g, '');
+      html += `
+        <div class="ai-advice-card ai-animate-in" style="animation-delay: ${animationDelay + 200 + (index * 150)}ms;">
+          <p>${cleanAdvice}</p>
+        </div>
+      `;
     });
+    html += `</div></div>`;
+    animationDelay += 300;
   }
 
+  // General management section
   html += `
-    <h3 style="color: var(--primary-color); margin-top: 20px;">🏥 General AS Management</h3>
-    <p><strong>Remember:</strong> This analysis is for informational purposes only. Always consult with your rheumatologist before making changes to your treatment plan. Consider sharing this data during your next appointment.</p>
+    <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+      <h3 class="ai-section-title ai-section-green">🏥 General AS Management</h3>
+      <p class="ai-disclaimer">
+        <strong>Remember:</strong> This analysis is for informational purposes only. Always consult with your rheumatologist before making changes to your treatment plan. Consider sharing this data during your next appointment.
+      </p>
     </div>
   `;
 
-  aiContent.innerHTML = html;
+  // Set the HTML content
+  resultsContent.innerHTML = html;
+  
+  // Scroll to the AI section smoothly
+  const aiSection = document.getElementById('aiSummarySection');
+  if (aiSection) {
+    setTimeout(() => {
+      aiSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
+  }
 }
 
 let logs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
@@ -1556,8 +1553,21 @@ function chart(id, label, dataField, color) {
     options.tooltip.theme = 'light';
   }
   
+  // Hide loading placeholder before creating chart
+  const loadingElement = container.querySelector('.chart-loading');
+  if (loadingElement) {
+    loadingElement.style.display = 'none';
+  }
+  
   container.chart = new ApexCharts(container, options);
-  container.chart.render();
+  container.chart.render().then(() => {
+    // Ensure loading is hidden after render
+    if (loadingElement) {
+      loadingElement.style.display = 'none';
+    }
+    // Mark container as loaded
+    container.classList.add('loaded');
+  });
 }
 
 function getYAxisLabel(dataField) {
@@ -1660,6 +1670,12 @@ function loadChart(container, chartType) {
 
   const config = chartConfig[chartType];
   if (config) {
+    // Hide loading placeholder immediately
+    const loadingElement = container.querySelector('.chart-loading');
+    if (loadingElement) {
+      loadingElement.style.display = 'none';
+    }
+    
     setTimeout(() => {
       chart(container.id, config.label, config.field, config.color);
       container.classList.add('loaded');
@@ -1668,6 +1684,11 @@ function loadChart(container, chartType) {
 }
 
 function updateChartsImmediate() {
+  // Hide all loading placeholders first
+  document.querySelectorAll('.chart-loading').forEach(loading => {
+    loading.style.display = 'none';
+  });
+  
   // Create all individual charts immediately
   chart("bpmChart", "Resting Heart Rate", "bpm", "rgb(76,175,80)");
   chart("weightChart", "Weight", "weight", "rgb(33,150,243)");
@@ -1693,42 +1714,38 @@ function updateCharts() {
   
   console.log('Updating charts with', logs.length, 'log entries');
   
-  // Check if we should show combined or individual charts
-  if (appSettings.combinedChart) {
-    createCombinedChart();
-  } else {
-    // Use lazy loading if enabled (default), otherwise load immediately
-    if (appSettings.lazy !== false) {
-      // Clear loaded charts set to allow reloading
-      loadedCharts.clear();
-      
-      // Reset chart containers to show loading state
-      const lazyCharts = document.querySelectorAll('.lazy-chart');
-      lazyCharts.forEach(chart => {
-        chart.classList.remove('loaded');
-        // Destroy existing chart if it exists
-        if (chart.chart) {
-          chart.chart.destroy();
-          chart.chart = null;
-        }
-      });
-      
-      // Reinitialize lazy loading
-      if (chartObserver) {
-        chartObserver.disconnect();
+  // Only handle individual charts - combined is handled by toggleChartView
+  // Use lazy loading if enabled (default), otherwise load immediately
+  if (appSettings.lazy !== false) {
+    // Clear loaded charts set to allow reloading
+    loadedCharts.clear();
+    
+    // Reset chart containers to show loading state
+    const lazyCharts = document.querySelectorAll('.lazy-chart');
+    lazyCharts.forEach(chart => {
+      chart.classList.remove('loaded');
+      // Destroy existing chart if it exists
+      if (chart.chart) {
+        chart.chart.destroy();
+        chart.chart = null;
       }
-      
-      // Check if charts are visible, if so initialize lazy loading
-      const chartSection = document.getElementById('chartSection');
-      if (!chartSection.classList.contains('hidden')) {
-        setTimeout(() => {
-          initializeLazyLoading();
-        }, 100); // Small delay to ensure DOM is ready
-      }
-    } else {
-      // Load all charts immediately if lazy loading is disabled
-      updateChartsImmediate();
+    });
+    
+    // Reinitialize lazy loading
+    if (chartObserver) {
+      chartObserver.disconnect();
     }
+    
+    // Check if charts are visible, if so initialize lazy loading
+    const chartSection = document.getElementById('chartSection');
+    if (!chartSection.classList.contains('hidden')) {
+      setTimeout(() => {
+        initializeLazyLoading();
+      }, 100); // Small delay to ensure DOM is ready
+    }
+  } else {
+    // Load all charts immediately if lazy loading is disabled
+    updateChartsImmediate();
   }
 }
 
@@ -1889,41 +1906,8 @@ function applySettings() {
     document.body.classList.add('light-mode');
   }
   
-  // Apply chart visibility
-  const chartSection = document.getElementById('chartSection');
-  if (appSettings.showCharts) {
-    chartSection.classList.remove('hidden');
-    // Force update charts after making them visible
-    setTimeout(() => {
-      updateCharts();
-    }, 200);
-  } else {
-    chartSection.classList.add('hidden');
-  }
-  
-  // Apply combined chart setting
-  if (appSettings.combinedChart) {
-    setTimeout(() => {
-      toggleChartView(true);
-    }, 300);
-  } else {
-    setTimeout(() => {
-      toggleChartView(false);
-    }, 300);
-  }
-  
-  // Update chart view buttons
-  const individualBtn = document.getElementById('individualViewBtn');
-  const combinedBtn = document.getElementById('combinedViewBtn');
-  if (individualBtn && combinedBtn) {
-    if (appSettings.combinedChart) {
-      combinedBtn.classList.add('active');
-      individualBtn.classList.remove('active');
-    } else {
-      individualBtn.classList.add('active');
-      combinedBtn.classList.remove('active');
-    }
-  }
+  // Charts are always visible in charts tab - no settings needed
+  // Chart view toggle is handled by buttons in the chart tab
   
   // Update dashboard title
   updateDashboardTitle();
@@ -1931,8 +1915,6 @@ function applySettings() {
 
 function loadSettingsState() {
   // Update toggle switches to reflect current settings
-  document.getElementById('showChartsToggle').classList.toggle('active', appSettings.showCharts);
-  document.getElementById('combinedChartToggle').classList.toggle('active', appSettings.combinedChart);
   document.getElementById('reminderToggle').classList.toggle('active', appSettings.reminder);
   document.getElementById('soundToggle').classList.toggle('active', appSettings.sound);
   document.getElementById('darkModeToggle').classList.toggle('active', appSettings.darkMode);
@@ -2124,6 +2106,9 @@ function switchTab(tabName) {
     btn.classList.remove('active');
   });
   
+  // AI results container is always visible at bottom of container when it has content
+  // No need to hide/show based on tab switching - it stays at the bottom
+  
   // Show selected tab
   const selectedTab = document.getElementById(tabName + 'Tab');
   const selectedBtn = document.querySelector(`[data-tab="${tabName}"]`);
@@ -2150,24 +2135,46 @@ function switchTab(tabName) {
     const chartSection = document.getElementById('chartSection');
     if (chartSection) {
       chartSection.classList.remove('hidden');
-      chartSection.style.width = '100%';
-      chartSection.style.maxWidth = '100%';
-      chartSection.style.overflowX = 'hidden';
-      // Update charts when switching to charts tab - delay to ensure tab is visible
-      setTimeout(() => {
-        updateCharts();
-      }, 300);
+      
+      // Initialize chart view based on saved preference without jumping
+      const combinedContainer = document.getElementById('combinedChartContainer');
+      const individualContainer = document.getElementById('individualChartsContainer');
+      const individualBtn = document.getElementById('individualViewBtn');
+      const combinedBtn = document.getElementById('combinedViewBtn');
+      
+      // Set default if not set
+      if (appSettings.combinedChart === undefined) {
+        appSettings.combinedChart = false;
+        saveSettings();
+      }
+      
+      if (appSettings.combinedChart) {
+        // Show combined view
+        combinedContainer.classList.remove('hidden');
+        individualContainer.classList.add('hidden');
+        if (combinedBtn) combinedBtn.classList.add('active');
+        if (individualBtn) individualBtn.classList.remove('active');
+        // Small delay to prevent jump
+        setTimeout(() => {
+          createCombinedChart();
+        }, 100);
+      } else {
+        // Show individual view
+        combinedContainer.classList.add('hidden');
+        individualContainer.classList.remove('hidden');
+        if (individualBtn) individualBtn.classList.add('active');
+        if (combinedBtn) combinedBtn.classList.remove('active');
+        // Update charts when switching to charts tab
+        setTimeout(() => {
+          updateCharts();
+        }, 200);
+      }
     }
   }
   
   // Special handling for logs tab - ensure it's visible
   if (tabName === 'logs') {
     // Logs are always visible in their tab
-  }
-  
-  // Special handling for AI tab - same as other tabs, no special handling needed
-  if (tabName === 'ai') {
-    // Tab will display automatically like other tabs
   }
   
   // Scroll to top smoothly
