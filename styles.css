@@ -670,20 +670,42 @@ h1:hover, h2:hover {
   background: transparent;
 }
 
-.date-range-buttons {
+.filter-row {
   display: flex;
-  gap: 6px;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 0.75rem;
+  color: rgba(224, 242, 241, 0.6);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.date-range-buttons,
+.prediction-range-buttons {
+  display: flex;
+  gap: 4px;
   flex-wrap: nowrap;
   align-items: center;
 }
 
-.date-range-btn {
-  padding: 6px 12px;
+.date-range-btn,
+.prediction-range-btn {
+  padding: 4px 8px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border-radius: 6px;
   color: rgba(224, 242, 241, 0.7);
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-normal);
@@ -702,6 +724,68 @@ h1:hover, h2:hover {
   color: white;
   border-color: rgba(76, 175, 80, 0.5);
   box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.log-view-range-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+
+.log-date-range-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.log-date-range-btn {
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: rgba(224, 242, 241, 0.7);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  white-space: nowrap;
+  min-width: auto;
+}
+
+.log-date-range-btn:hover {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.3);
+  color: var(--text-light);
+}
+
+.log-date-range-btn.active {
+  background: var(--primary-gradient);
+  color: white;
+  border-color: rgba(76, 175, 80, 0.5);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.prediction-range-btn {
+  background: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.3);
+  color: rgba(255, 235, 59, 0.8);
+}
+
+.prediction-range-btn:hover {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.5);
+  color: #ffeb3b;
+}
+
+.prediction-range-btn.active {
+  background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+  color: #1a1a1a;
+  border-color: rgba(255, 193, 7, 0.8);
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.4);
+  font-weight: 700;
 }
 
 .custom-date-range {
