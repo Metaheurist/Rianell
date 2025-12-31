@@ -2468,6 +2468,22 @@ button:focus {
   transform: scale(0.95);
 }
 
+/* Save Button (when editing inline) */
+.save-btn {
+  background: linear-gradient(135deg, #4caf50, #388e3c) !important;
+}
+
+.save-btn:hover {
+  background: linear-gradient(135deg, #388e3c, #2e7d32) !important;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.5);
+}
+
+/* Entry in editing mode */
+.entry.editing {
+  border: 2px solid rgba(76, 175, 80, 0.6);
+  box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+}
+
 
 /* Modal Overlay - Transparent parent that disables background interaction */
 .modal-overlay {
@@ -2486,6 +2502,9 @@ button:focus {
   overflow-x: hidden;
   box-sizing: border-box;
   /* Prevent overlay from scrolling - modal content is fixed position */
+  /* Ensure overlay is always relative to viewport, not document */
+  margin: 0;
+  padding: 0;
 }
 
 .modal-overlay[style*="block"] {
@@ -2593,6 +2612,9 @@ body.loading .loading-overlay {
   transform: translate(-50%, -50%);
   z-index: 10001;
   pointer-events: all;
+  margin: 0;
+  /* Ensure modal is always centered relative to viewport, not document */
+  box-sizing: border-box;
 }
 
 .edit-entry-modal {
@@ -3649,10 +3671,11 @@ body.light-mode .settings-button-top:hover {
   display: none;
   z-index: 10000;
   pointer-events: all;
-  overflow-y: auto;
+  overflow: hidden;
   overflow-x: hidden;
   box-sizing: border-box;
-  -webkit-overflow-scrolling: touch;
+  margin: 0;
+  padding: 0;
 }
 
 .settings-overlay[style*="display: flex"],
@@ -3672,7 +3695,6 @@ body.light-mode .settings-button-top:hover {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 24px;
-  padding: 30px;
   max-width: 450px;
   width: 90%;
   position: fixed;
@@ -3682,7 +3704,7 @@ body.light-mode .settings-button-top:hover {
   box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(76, 175, 80, 0.3);
   border: 2px solid rgba(76, 175, 80, 0.5);
   max-height: 85vh;
-  overflow-y: auto;
+  overflow: hidden;
   animation: modalFloatIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10001;
   pointer-events: all;
@@ -3695,21 +3717,19 @@ body.light-mode .settings-button-top:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
+  padding: 30px 30px 20px 30px;
   border-bottom: 1px solid #333;
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   background: linear-gradient(135deg, #263238, #37474f);
-  z-index: 10;
-  margin-top: -30px;
-  margin-left: -30px;
-  margin-right: -30px;
-  padding-left: 30px;
-  padding-right: 30px;
-  padding-top: 30px;
-  padding-bottom: 20px;
   border-radius: 24px 24px 0 0;
+}
+
+.settings-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  padding: 0 30px 30px 30px;
+  min-height: 0;
 }
 
 .settings-title {

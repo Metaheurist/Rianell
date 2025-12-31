@@ -33,12 +33,17 @@
   <link rel="icon" type="image/png" sizes="32x32" href="Icons/Icon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="Icons/Icon-16.png">
   
-  <script src="apexcharts.min.js"></script>
+  <!-- Cache control meta tags to prevent caching of CSS and JS -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
+  <script src="apexcharts.min.js?v=1"></script>
   <!-- Supabase Client Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Now loaded from local server with progress tracking -->
   <!-- The script will be loaded dynamically with progress bar in app.js -->
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=1">
   <style>
     /* Prevent flash of unstyled content - hide body until loaded */
     body:not(.loaded) {
@@ -476,6 +481,7 @@
         <button class="settings-close" onclick="toggleSettings()">&times;</button>
       </div>
       
+      <div class="settings-content">
       <div class="settings-section">
         <h4>👤 Personal Settings</h4>
         <div class="settings-option">
@@ -598,6 +604,7 @@
         <div class="danger-zone">
           <button class="settings-data-btn danger-btn" onclick="clearData()">🗑️ Clear All Data</button>
         </div>
+      </div>
       </div>
     </div>
   </div>
@@ -722,7 +729,7 @@
   </div>
 
   <script src="AIEngine.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=1"></script>
   <script src="cloud-sync.js"></script>
 </body>
 </html>
