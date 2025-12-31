@@ -1,31 +1,31 @@
 Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily Function,Swelling,Flare,Mood,Irritability,Notes
-2025-12-01,67,74.9,2,3,3,7,1,6,9,3,No,9,4,Slept well
-2025-12-02,75,75.2,2,2,2,7,2,6,8,2,No,5,3,
-2025-12-03,63,75.0,4,2,1,8,1,6,9,3,No,9,1,Good mobility today
-2025-12-04,69,75.1,2,3,5,7,2,7,7,2,No,6,4,Feeling good today
-2025-12-05,64,75.2,3,5,2,7,3,7,8,2,No,6,3,Feeling tired
-2025-12-06,78,75.5,4,1,5,6,3,9,8,1,No,5,4,Slept well
-2025-12-07,74,75.5,4,5,2,7,2,7,6,3,No,7,1,Slept well
-2025-12-08,84,75.8,6,3,4,6,3,8,6,3,No,7,2,Need more rest
-2025-12-09,89,75.5,7,9,10,4,5,5,3,5,Yes,4,7,Rest day
-2025-12-10,94,75.6,7,7,8,3,5,4,5,6,Yes,4,5,Some joint swelling
-2025-12-11,72,75.4,5,4,3,6,1,9,8,1,No,8,4,Feeling tired
-2025-12-12,87,75.6,6,6,9,4,8,4,6,6,Yes,3,8,Good mobility today
-2025-12-13,76,75.4,9,7,7,6,6,4,3,4,Yes,3,9,Morning stiffness was manageable
-2025-12-14,81,75.4,8,6,6,6,9,5,4,6,Yes,6,9,
-2025-12-15,70,75.2,7,8,9,5,5,4,4,4,Yes,3,7,Feeling tired
-2025-12-16,70,75.5,4,1,1,9,4,7,6,2,No,8,2,Rest day
-2025-12-17,83,75.8,3,2,1,9,4,8,7,3,No,9,2,Feeling tired
-2025-12-18,65,75.7,2,3,2,9,1,8,6,2,No,7,3,Weather change affecting symptoms
-2025-12-19,75,75.5,4,4,5,9,4,7,9,3,No,9,3,Morning stiffness was manageable
-2025-12-20,74,75.2,6,5,3,6,1,8,8,3,No,8,2,Good mobility today
-2025-12-21,63,75.0,2,5,3,7,3,8,8,2,No,8,3,Pain medication helped
-2025-12-22,82,75.2,3,3,1,8,3,7,9,2,No,5,2,Had a good workout
-2025-12-23,84,75.4,3,1,5,9,2,7,6,1,No,9,4,Had a good workout
-2025-12-24,91,75.6,7,10,8,3,9,5,3,6,Yes,5,6,Pain medication helped
-2025-12-25,78,75.8,8,6,8,4,8,5,4,7,Yes,3,6,Challenging day
-2025-12-26,83,76.1,6,7,8,3,8,4,3,5,Yes,6,8,Challenging day
-2025-12-27,74,76.0,9,8,8,6,8,3,6,6,Yes,4,6,Pain medication helped
-2025-12-28,92,76.2,6,7,8,6,9,3,7,8,Yes,5,5,Had a good workout
-2025-12-29,66,76.0,4,5,2,8,1,6,9,2,No,7,3,Need more rest
-2025-12-30,83,76.2,4,3,4,6,1,9,7,1,No,9,3,Feeling optimistic
+2025-12-01,86,75.1,9,6,10,6,5,5,7,8,Yes,3,6,Morning stiffness was manageable
+2025-12-02,95,75.3,6,10,7,5,9,6,6,5,Yes,4,9,Challenging day
+2025-12-03,90,75.1,5,7,8,6,9,6,5,8,Yes,3,5,Feeling tired
+2025-12-04,84,75.3,2,3,3,9,3,7,7,2,No,5,4,Rest day
+2025-12-05,77,75.0,3,5,2,8,4,9,6,2,No,9,4,Slept well
+2025-12-06,69,75.1,3,5,1,6,2,9,9,2,No,6,2,Feeling good today
+2025-12-07,66,75.3,4,3,1,9,3,9,8,2,No,9,4,Had a good workout
+2025-12-08,75,75.0,5,9,9,5,9,4,6,5,Yes,5,5,Rest day
+2025-12-09,85,74.8,6,8,8,6,7,3,7,8,Yes,5,6,Feeling optimistic
+2025-12-10,76,75.0,5,8,10,5,9,5,6,5,Yes,4,6,Challenging day
+2025-12-11,80,74.9,2,5,1,9,1,9,8,3,No,7,4,Pain medication helped
+2025-12-12,80,75.0,4,3,5,9,2,8,7,2,No,9,2,Morning stiffness was manageable
+2025-12-13,60,75.1,4,2,1,6,3,8,7,1,No,7,1,Symptoms improving
+2025-12-14,91,75.1,6,9,6,3,8,4,3,4,Yes,4,8,Feeling tired
+2025-12-15,93,74.9,9,8,6,5,6,5,5,4,Yes,5,7,Need more rest
+2025-12-16,88,74.7,7,6,8,5,7,5,4,6,Yes,5,5,Challenging day
+2025-12-17,74,74.9,9,6,10,6,9,4,3,8,Yes,4,5,Feeling good today
+2025-12-18,83,75.0,4,3,3,7,1,6,9,2,No,7,4,Feeling good today
+2025-12-19,68,75.0,5,4,5,7,1,6,9,2,No,7,1,Feeling good today
+2025-12-20,64,74.7,5,3,4,6,2,7,7,1,No,8,3,Morning stiffness was manageable
+2025-12-21,76,74.8,3,2,3,9,1,6,9,3,No,9,2,Symptoms improving
+2025-12-22,92,74.9,5,6,10,5,9,5,4,6,Yes,3,8,Feeling good today
+2025-12-23,73,75.1,9,7,6,6,5,4,3,7,Yes,4,9,Morning stiffness was manageable
+2025-12-24,80,75.2,5,9,6,4,5,3,5,4,Yes,3,6,Some joint swelling
+2025-12-25,76,75.1,7,8,6,6,5,3,3,4,Yes,4,6,Had a good workout
+2025-12-26,74,74.8,3,4,3,6,1,6,9,1,No,7,4,
+2025-12-27,77,74.7,5,1,5,7,1,6,6,3,No,9,1,Morning stiffness was manageable
+2025-12-28,64,74.5,6,5,2,9,2,6,7,1,No,5,1,Feeling optimistic
+2025-12-29,72,74.8,5,1,1,9,3,8,6,3,No,8,4,Had a good workout
+2025-12-30,78,75.0,3,3,3,9,4,7,6,1,No,5,3,Feeling good today

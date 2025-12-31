@@ -757,9 +757,12 @@ function createCombinedChart() {
     return;
   }
   
+  // Get filtered logs based on date range
+  const filteredLogs = getFilteredLogs();
+  
   // Check if we have data
-  if (!logs || logs.length === 0) {
-    console.warn('No data available for combined chart');
+  if (!filteredLogs || filteredLogs.length === 0) {
+    console.warn('No data available for combined chart (after date filter)');
     updateChartEmptyState(false);
     return;
   }
@@ -786,13 +789,13 @@ function createCombinedChart() {
   ];
   
   const series = metrics.map(metric => {
-    const data = logs
+    const data = filteredLogs
       .filter(log => log[metric.field] !== undefined && log[metric.field] !== null && log[metric.field] !== '')
       .map(log => ({
-        x: log.date,
+        x: new Date(log.date).getTime(), // Use timestamp for datetime axis
         y: parseFloat(log[metric.field]) || 0
       }))
-      .sort((a, b) => new Date(a.x) - new Date(b.x));
+      .sort((a, b) => a.x - b.x); // Sort by timestamp
     
     return {
       name: metric.name,
@@ -1583,32 +1586,62 @@ async function getTransformersInsights(analysis, logs, dayCount) {
     // Initialize pipeline if needed
     const pipeline = await initTransformers();
     if (!pipeline) {
+      console.warn('Transformers.js pipeline not available');
       return null;
     }
 
     // Prepare the prompt
     const prompt = buildLLMPrompt(analysis, logs, dayCount);
     
-    // Create full prompt with system message - focused on data analysis
-    const fullPrompt = `You are analyzing health tracking data for someone with ${CONDITION_CONTEXT.name}. Your role is to interpret the actual numbers and metrics provided, identify patterns, and offer practical insights. Base your response ONLY on the data given. Do not make general medical claims or statements about things not in the data.\n\n${prompt}`;
+    // Create shorter system message for TinyLlama
+    const fullPrompt = `Analyze health data for ${CONDITION_CONTEXT.name}. Interpret numbers, identify patterns, offer insights.\n\n${prompt}`;
     
-    // Generate response using Transformers.js
-    const output = await transformersPipeline(fullPrompt, {
-      max_new_tokens: TRANSFORMERS_CONFIG.maxNewTokens,
+    // Truncate prompt if too long (TinyLlama has ~2048 token limit, roughly 1500 chars)
+    const maxPromptLength = 1200; // Conservative limit
+    const truncatedPrompt = fullPrompt.length > maxPromptLength 
+      ? fullPrompt.substring(0, maxPromptLength) + '...'
+      : fullPrompt;
+    
+    console.log('Generating AI insights with Transformers.js...');
+    console.log('Prompt length:', truncatedPrompt.length, '(original:', fullPrompt.length, ')');
+    
+    // Generate response using Transformers.js - use the pipeline variable returned from initTransformers
+    // Use truncated prompt and reduce max tokens for TinyLlama
+    const output = await pipeline(truncatedPrompt, {
+      max_new_tokens: Math.min(TRANSFORMERS_CONFIG.maxNewTokens, 400), // Reduce for TinyLlama
       temperature: TRANSFORMERS_CONFIG.temperature,
       do_sample: true,
-      return_full_text: false
+      return_full_text: false,
+      top_k: TRANSFORMERS_CONFIG.topK,
+      top_p: TRANSFORMERS_CONFIG.topP
     });
 
-    // Transformers.js returns an array of generated text objects
+    console.log('Transformers.js output received:', output);
+    
+    // Transformers.js returns different formats depending on the model
+    let generatedText = null;
+    
     if (output && Array.isArray(output) && output.length > 0) {
       // Get the generated text from the first result
-      const generatedText = output[0].generated_text || output[0].text || output[0];
-      return typeof generatedText === 'string' ? generatedText.trim() : String(generatedText).trim();
+      generatedText = output[0].generated_text || output[0].text || output[0];
     } else if (output && typeof output === 'string') {
-      return output.trim();
+      generatedText = output;
+    } else if (output && output[0] && typeof output[0] === 'object') {
+      // Some models return objects with different structure
+      generatedText = output[0].generated_text || output[0].text || JSON.stringify(output[0]);
     }
     
+    if (generatedText) {
+      const result = typeof generatedText === 'string' ? generatedText.trim() : String(generatedText).trim();
+      console.log('AI insights generated successfully, length:', result.length);
+      if (result.length === 0) {
+        console.warn('AI generated empty response');
+        return null;
+      }
+      return result;
+    }
+    
+    console.error('Unexpected response format from Transformers.js:', output);
     throw new Error('Unexpected response format from Transformers.js');
   } catch (error) {
     console.error('Transformers.js error:', error);
@@ -1618,66 +1651,32 @@ async function getTransformersInsights(analysis, logs, dayCount) {
 }
 
 function buildLLMPrompt(analysis, logs, dayCount) {
-  // Format the analysis data for the LLM
+  // Format the analysis data for the LLM - keep it concise for TinyLlama's context window
   const trendsSummary = Object.entries(analysis.trends)
+    .slice(0, 8) // Limit to 8 key metrics to reduce prompt size
     .map(([metric, data]) => {
       const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
       const direction = data.trend > 0.2 ? 'improving' : data.trend < -0.2 ? 'worsening' : 'stable';
-      return `- ${metricName}: Average ${data.average}/10, Current ${data.current}/10, Trend: ${direction}`;
+      return `${metricName}: avg ${data.average}/10, trend: ${direction}`;
     })
-    .join('\n');
+    .join('; ');
 
-  const recentData = logs.slice(-3).map(log => ({
-    date: log.date,
-    bpm: log.bpm,
-    backPain: log.backPain,
-    stiffness: log.stiffness,
-    fatigue: log.fatigue,
-    sleep: log.sleep,
-    mobility: log.mobility,
-    flare: log.flare === 'Yes' ? 'Yes' : 'No'
-  }));
+  // Only include last 2 days to reduce prompt size
+  const recentData = logs.slice(-2).map(log => 
+    `${log.date}: Pain ${log.backPain}/10, Sleep ${log.sleep}/10, Flare ${log.flare === 'Yes' ? 'Yes' : 'No'}`
+  ).join('; ');
 
   const flareCount = logs.filter(log => log.flare === 'Yes').length;
-  const avgBPM = logs.reduce((sum, log) => sum + parseInt(log.bpm || 0), 0) / logs.length;
+  const avgBPM = Math.round(logs.reduce((sum, log) => sum + parseInt(log.bpm || 0), 0) / logs.length);
+  
+  // Limit correlations and anomalies to top 3 each
+  const topCorrelations = analysis.correlations.slice(0, 3).join('; ') || 'None';
+  const topAnomalies = analysis.anomalies.slice(0, 3).join('; ') || 'None';
 
-  return `TASK: Analyze the patient's health tracking data and provide personalized insights for ${CONDITION_CONTEXT.name} management.
+  // Shorter, more concise prompt for TinyLlama
+  return `Analyze health data for ${CONDITION_CONTEXT.name}. Data (${dayCount} days): ${trendsSummary}. Patterns: ${topCorrelations}. Concerns: ${topAnomalies}. Recent: ${recentData}. Stats: ${flareCount}/${dayCount} flare days, ${avgBPM} bpm avg.
 
-PATIENT DATA (last ${dayCount} days):
-${trendsSummary}
-
-PATTERNS DETECTED:
-${analysis.correlations.length > 0 ? analysis.correlations.join('\n') : 'No significant correlations detected'}
-
-CONCERNS IDENTIFIED:
-${analysis.anomalies.length > 0 ? analysis.anomalies.join('\n') : 'No major anomalies detected'}
-
-RECENT ENTRIES (last 3 days):
-${recentData.map(d => `Date: ${d.date} | Pain: ${d.backPain}/10 | Stiffness: ${d.stiffness}/10 | Fatigue: ${d.fatigue}/10 | Sleep: ${d.sleep}/10 | Mobility: ${d.mobility}/10 | Flare: ${d.flare} | BPM: ${d.bpm}`).join('\n')}
-
-STATISTICS:
-- Flare-ups: ${flareCount} out of ${dayCount} days (${Math.round(flareCount/dayCount*100)}% of days)
-- Average BPM: ${Math.round(avgBPM)} bpm
-
-INSTRUCTIONS:
-Analyze ONLY the data provided above. Write a detailed response (at least 3-4 paragraphs, 400-600 words):
-1. INTERPRET the trends (1 paragraph): What do the numbers mean? Are symptoms improving, worsening, or stable? Reference specific metrics and their changes over time.
-2. IDENTIFY patterns and correlations (1 paragraph): What connections do you see between metrics? For example: "When sleep quality drops below 6/10, your pain levels increase by an average of 2 points." Explain any notable patterns you observe.
-3. PROVIDE detailed actionable recommendations (1-2 paragraphs): Based on the actual data patterns, provide specific, practical recommendations. Include:
-   - Lifestyle adjustments (sleep, activity, stress management)
-   - When to consider discussing changes with healthcare provider
-   - Strategies to address specific patterns you identified
-   - Encouragement and positive reinforcement for improvements
-
-REQUIREMENTS:
-- Write at least 3-4 detailed paragraphs (400-600 words minimum)
-- Reference specific numbers from the data throughout (e.g., "Your pain averaged 6/10 over the last 7 days, with a peak of 8/10 on Tuesday")
-- Focus on what the data shows, not general medical advice
-- Be empathetic, encouraging, and supportive
-- Avoid making claims about things not in the data
-- Write in second person ("Your pain levels have...", "You've experienced...")
-- Provide detailed, actionable recommendations based on the patterns
-- Do not provide medical diagnoses - only observations and lifestyle suggestions based on the data`;
+Write 2-3 paragraphs analyzing trends, patterns, and actionable advice based on the data. Reference specific numbers. Be encouraging.`;
 }
 
 // Custom AI Analysis Engine (condition-agnostic)
@@ -1894,8 +1893,15 @@ function generateAISummary() {
         
         // Get insights
         transformersInsights = await getTransformersInsights(analysis, last7Logs, last7Logs.length);
+        if (transformersInsights) {
+          console.log('✅ AI insights received, length:', transformersInsights.length);
+        } else {
+          console.warn('⚠️ AI insights returned null or empty');
+        }
       } catch (error) {
         console.error('Transformers.js AI error:', error);
+        console.error('Error stack:', error.stack);
+        transformersInsights = null; // Ensure it's null on error
         // Continue with local analysis only
       }
     } else {
@@ -2193,6 +2199,108 @@ function renderLogs() {
   });
 }
 
+// Chart date range filter state
+let chartDateRange = {
+  type: 30, // 7, 30, 90, or 'custom'
+  startDate: null,
+  endDate: null
+};
+
+// Get filtered logs based on current date range
+function getFilteredLogs() {
+  if (!logs || logs.length === 0) return [];
+  
+  let filtered = [...logs];
+  
+  if (chartDateRange.type === 'custom') {
+    if (chartDateRange.startDate && chartDateRange.endDate) {
+      const start = new Date(chartDateRange.startDate);
+      const end = new Date(chartDateRange.endDate);
+      end.setHours(23, 59, 59, 999); // Include entire end date
+      
+      filtered = filtered.filter(log => {
+        const logDate = new Date(log.date);
+        return logDate >= start && logDate <= end;
+      });
+    }
+  } else {
+    // Days range (7, 30, 90)
+    const days = chartDateRange.type;
+    const endDate = new Date();
+    endDate.setHours(23, 59, 59, 999);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    startDate.setHours(0, 0, 0, 0);
+    
+    filtered = filtered.filter(log => {
+      const logDate = new Date(log.date);
+      return logDate >= startDate && logDate <= endDate;
+    });
+  }
+  
+  return filtered;
+}
+
+// Set chart date range
+function setChartDateRange(range) {
+  chartDateRange.type = range;
+  
+  // Update button states
+  document.querySelectorAll('.date-range-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  if (range === 'custom') {
+    document.getElementById('rangeCustom').classList.add('active');
+    document.getElementById('customDateRangeSelector').classList.remove('hidden');
+    
+    // Set default dates if not already set
+    const startInput = document.getElementById('chartStartDate');
+    const endInput = document.getElementById('chartEndDate');
+    
+    if (!startInput.value || !endInput.value) {
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30); // Default to last 30 days
+      
+      startInput.value = startDate.toISOString().split('T')[0];
+      endInput.value = endDate.toISOString().split('T')[0];
+      
+      chartDateRange.startDate = startInput.value;
+      chartDateRange.endDate = endInput.value;
+    }
+  } else {
+    document.getElementById(`range${range}Days`).classList.add('active');
+    document.getElementById('customDateRangeSelector').classList.add('hidden');
+    chartDateRange.startDate = null;
+    chartDateRange.endDate = null;
+  }
+  
+  // Refresh charts with filtered data
+  refreshCharts();
+}
+
+// Apply custom date range
+function applyCustomDateRange() {
+  const startInput = document.getElementById('chartStartDate');
+  const endInput = document.getElementById('chartEndDate');
+  
+  if (startInput.value && endInput.value) {
+    chartDateRange.startDate = startInput.value;
+    chartDateRange.endDate = endInput.value;
+    refreshCharts();
+  }
+}
+
+// Refresh all charts with current filter
+function refreshCharts() {
+  if (appSettings.combinedChart) {
+    createCombinedChart();
+  } else {
+    updateCharts();
+  }
+}
+
 function chart(id, label, dataField, color) {
   // Check if ApexCharts is available
   if (typeof ApexCharts === 'undefined') {
@@ -2206,9 +2314,17 @@ function chart(id, label, dataField, color) {
     return;
   }
   
+  // Get filtered logs based on date range
+  const filteredLogs = getFilteredLogs();
+  
   // Check if we have data
-  if (!logs || logs.length === 0) {
-    console.warn(`No data available for chart: ${label}`);
+  if (!filteredLogs || filteredLogs.length === 0) {
+    console.warn(`No data available for chart: ${label} (after date filter)`);
+    // Show empty state message
+    if (container.querySelector('.chart-loading')) {
+      container.querySelector('.chart-loading').textContent = 'No data in selected date range';
+      container.querySelector('.chart-loading').style.display = 'flex';
+    }
     return;
   }
   
@@ -2218,7 +2334,7 @@ function chart(id, label, dataField, color) {
   }
   
   // Prepare data and filter out invalid entries
-  const chartData = logs
+  const chartData = filteredLogs
     .filter(log => log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '')
     .map(log => {
       let value = parseFloat(log[dataField]) || 0;
@@ -2226,16 +2342,28 @@ function chart(id, label, dataField, color) {
       if (dataField === 'weight' && appSettings.weightUnit === 'lb') {
         value = parseFloat(kgToLb(value));
       }
+      // Parse date properly for ApexCharts datetime type
+      const dateValue = new Date(log.date).getTime();
       return {
-      x: log.date,
+        x: dateValue, // Use timestamp for datetime axis
         y: value
       };
     })
-    .sort((a, b) => new Date(a.x) - new Date(b.x));
+    .sort((a, b) => a.x - b.x); // Sort by timestamp
   
   if (chartData.length === 0) {
     console.warn(`No valid data for chart: ${label}`);
     return;
+  }
+  
+  // Debug logging for weight chart
+  if (dataField === 'weight') {
+    console.log(`Weight chart data:`, chartData.slice(0, 5));
+    console.log(`Weight values range:`, {
+      min: Math.min(...chartData.map(d => d.y)),
+      max: Math.max(...chartData.map(d => d.y)),
+      count: chartData.length
+    });
   }
   
   console.log(`Creating ApexChart for ${label} with ${chartData.length} data points`);
@@ -2316,7 +2444,10 @@ function chart(id, label, dataField, color) {
       labels: {
         style: {
           colors: '#e0f2f1'
-        }
+        },
+        formatter: dataField === 'weight' ? function(val) {
+          return val.toFixed(1);
+        } : undefined
       },
       min: dataField === 'weight' ? undefined : 0,
       max: getMaxValue(dataField)
@@ -3157,6 +3288,9 @@ window.addEventListener('load', () => {
   
   // Initialize collapsible sections
   initializeSections();
+  
+  // Initialize chart date range to 30 days
+  setChartDateRange(30);
 });
 
 function initializeDateFilters() {
