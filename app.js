@@ -1083,72 +1083,112 @@ async function resetAIModel() {
   }
   
   try {
+    let deletedCount = 0;
+    
+    // Method 1: Use Transformers.js cache API if available
+    if (window.transformers && window.transformers.env && window.transformers.env.cacheDir) {
+      try {
+        // Try to clear cache through Transformers.js API
+        if (window.transformers.env.clearCache) {
+          await window.transformers.env.clearCache();
+          console.log('✅ Cleared cache via Transformers.js API');
+          deletedCount++;
+        }
+      } catch (e) {
+        console.warn('Transformers.js cache API not available:', e);
+      }
+    }
+    
+    // Method 2: Delete IndexedDB databases directly
     if ('indexedDB' in window) {
-      // Transformers.js uses IndexedDB to cache models
-      // Try to delete common database names used by Transformers.js
-      const dbNames = [
-        'transformers-cache',
-        'transformersjs-cache',
-        'hf-transformers-cache',
-        'xenova-transformers-cache'
-      ];
+      // Get all databases first
+      let allDbNames = [];
       
-      // Also try to get all database names and delete any that look like Transformers.js caches
       if (indexedDB.databases) {
-        const databases = await indexedDB.databases();
-        for (const db of databases) {
-          if (db.name && (
-            db.name.toLowerCase().includes('transformers') ||
-            db.name.toLowerCase().includes('xenova') ||
-            db.name.toLowerCase().includes('hf-')
-          )) {
-            dbNames.push(db.name);
-          }
+        try {
+          const databases = await indexedDB.databases();
+          allDbNames = databases.map(db => db.name).filter(name => name);
+          console.log('Found IndexedDB databases:', allDbNames);
+        } catch (e) {
+          console.warn('Could not list databases:', e);
         }
       }
       
+      // Add common Transformers.js database names
+      const commonNames = [
+        'transformers-cache',
+        'transformersjs-cache',
+        'hf-transformers-cache',
+        'xenova-transformers-cache',
+        'hf-cache',
+        'cache'
+      ];
+      
+      // Filter databases that might be Transformers.js related
+      const transformersDbNames = allDbNames.filter(name => {
+        const lowerName = name.toLowerCase();
+        return lowerName.includes('transformers') ||
+               lowerName.includes('xenova') ||
+               lowerName.includes('hf-') ||
+               lowerName.includes('onnx') ||
+               lowerName === 'cache';
+      });
+      
+      // Combine all potential database names
+      const dbNamesToDelete = [...new Set([...commonNames, ...transformersDbNames])];
+      console.log('Attempting to delete databases:', dbNamesToDelete);
+      
       // Delete all found databases
-      const deletePromises = [...new Set(dbNames)].map(dbName => {
+      const deletePromises = dbNamesToDelete.map(dbName => {
         return new Promise((resolve) => {
-          const deleteDB = indexedDB.deleteDatabase(dbName);
-          deleteDB.onsuccess = () => {
-            console.log(`✅ Cleared AI model cache: ${dbName}`);
-            resolve();
-          };
-          deleteDB.onerror = () => {
-            // Database might not exist, that's okay
-            resolve();
-          };
-          deleteDB.onblocked = () => {
-            console.warn(`⚠️ IndexedDB deletion blocked for ${dbName} - may need to close other tabs`);
-            resolve(); // Don't fail the whole operation
-          };
+          try {
+            const deleteDB = indexedDB.deleteDatabase(dbName);
+            deleteDB.onsuccess = () => {
+              console.log(`✅ Deleted database: ${dbName}`);
+              deletedCount++;
+              resolve(true);
+            };
+            deleteDB.onerror = () => {
+              // Database might not exist, that's okay
+              resolve(false);
+            };
+            deleteDB.onblocked = () => {
+              console.warn(`⚠️ Deletion blocked for ${dbName} - close other tabs and try again`);
+              resolve(false);
+            };
+          } catch (e) {
+            console.warn(`Error deleting ${dbName}:`, e);
+            resolve(false);
+          }
         });
       });
       
       await Promise.all(deletePromises);
-      
-      // Reset Transformers.js pipeline (force reload on next use)
-      if (typeof transformersPipeline !== 'undefined') {
-        transformersPipeline = null;
-      }
-      if (typeof transformersInitializing !== 'undefined') {
-        transformersInitializing = false;
-      }
-      
-      // Reset TRANSFORMERS_CONFIG enabled state to allow re-initialization
-      if (typeof TRANSFORMERS_CONFIG !== 'undefined') {
-        TRANSFORMERS_CONFIG.enabled = true;
-      }
-      
-      console.log('✅ AI model cache cleared from IndexedDB');
-      alert('✅ AI model cache cleared successfully!\n\nThe model will be re-downloaded the next time you generate an AI summary.');
+    }
+    
+    // Reset Transformers.js pipeline (force reload on next use)
+    if (typeof transformersPipeline !== 'undefined') {
+      transformersPipeline = null;
+    }
+    if (typeof transformersInitializing !== 'undefined') {
+      transformersInitializing = false;
+    }
+    
+    // Reset TRANSFORMERS_CONFIG enabled state to allow re-initialization
+    if (typeof TRANSFORMERS_CONFIG !== 'undefined') {
+      TRANSFORMERS_CONFIG.enabled = true;
+    }
+    
+    if (deletedCount > 0) {
+      console.log(`✅ AI model cache cleared (${deletedCount} databases deleted)`);
+      alert(`✅ AI model cache cleared successfully!\n\n${deletedCount} cache database(s) deleted.\n\nThe model will be re-downloaded the next time you generate an AI summary.`);
     } else {
-      alert('⚠️ IndexedDB is not available in this browser.\n\nCannot clear AI model cache.');
+      console.warn('⚠️ No cache databases found or deleted');
+      alert('⚠️ No cache databases were found to delete.\n\nThe model cache may already be cleared, or it may be stored in a different location.');
     }
   } catch (error) {
     console.error('Error clearing AI model cache:', error);
-    alert('⚠️ Error clearing AI model cache:\n\n' + error.message);
+    alert('⚠️ Error clearing AI model cache:\n\n' + error.message + '\n\nCheck the console for details.');
   }
 }
 
@@ -1251,15 +1291,15 @@ function importData() {
 const TRANSFORMERS_CONFIG = {
   enabled: true, // Enabled - served locally from your server
   task: 'text-generation', // Task type for text generation models
-  // Using Llama 3.2 1B Instruct - confirmed working with Transformers.js!
-  // This is a 1B parameter instruction-tuned model, in ONNX format for Transformers.js
-  model: 'onnx-community/Llama-3.2-1B-Instruct-ONNX', // Llama 3.2 1B Instruct (~1B params, ~2GB)
-  // This model is instruction-tuned and works well for providing advice and analysis
-  // Fallback chain if authentication fails or files missing:
-  // 'Xenova/gpt2-xl' - GPT-2 XL (~3GB) - generic but large
-  // 'Xenova/gpt2-large' - Large GPT-2 variant (~1.5GB)
-  // 'Xenova/gpt2-medium' - Medium GPT-2 variant (~500MB)
-  // 'Xenova/gpt2' - Base GPT-2 (~500MB) - confirmed working
+  // Using GPT-2 base as primary - confirmed working and publicly available
+  // Llama models have missing ONNX files, so using reliable GPT-2 instead
+  model: 'Xenova/gpt2', // Base GPT-2 (~500MB) - confirmed working, publicly available
+  // This is the most reliable model that works without authentication or missing files
+  // Alternative models (may require authentication or have missing files):
+  // 'onnx-community/Llama-3.2-1B-Instruct-ONNX' - Llama 3.2 1B (~2GB) - has missing files
+  // 'Xenova/gpt2-xl' - GPT-2 XL (~3GB) - may require authentication
+  // 'Xenova/gpt2-large' - Large GPT-2 variant (~1.5GB) - may require authentication
+  // 'Xenova/gpt2-medium' - Medium GPT-2 variant (~500MB) - may require authentication
   maxNewTokens: 200, // Limited for concise responses
   temperature: 0.7,
   topK: 50,
@@ -1652,16 +1692,23 @@ async function initTransformers() {
               const loaded = progress.loaded || 0;
               const total = progress.total || 0;
               
-              if (totalModelSize > 0) {
+              if (totalModelSize > 0 && totalDownloaded > 0) {
                 // Show overall model progress with exact total size
                 const mbDownloaded = (totalDownloaded / 1024 / 1024).toFixed(2);
                 const mbTotal = (totalModelSize / 1024 / 1024).toFixed(2);
                 statusText = `Downloading model: ${percent}% (${mbDownloaded} MB / ${mbTotal} MB)`;
-              } else if (total > 0) {
-                // Show file-level progress until we know total size
+              } else if (total > 0 && loaded > 0) {
+                // Show file-level progress with size
                 const mbDownloaded = (loaded / 1024 / 1024).toFixed(2);
                 const mbTotal = (total / 1024 / 1024).toFixed(2);
                 statusText = `Downloading ${progress.file || 'model'}: ${percent}% (${mbDownloaded} MB / ${mbTotal} MB)`;
+              } else if (totalModelSize > 0) {
+                // We know total size but not current download
+                const mbTotal = (totalModelSize / 1024 / 1024).toFixed(2);
+                statusText = `Downloading model: ${percent}% (Total: ${mbTotal} MB)`;
+              } else if (estimatedModelSizeMB > 0) {
+                // Use estimated size if we have it
+                statusText = `Downloading model: ${percent}% (Estimated: ${estimatedModelSizeMB} MB)`;
               } else {
                 statusText = `Downloading ${progress.file || 'model'}: ${percent}%`;
               }
@@ -1725,32 +1772,42 @@ async function initTransformers() {
       'Xenova/gpt2'         // ~500MB base (smallest)
     ];
     
-    // Check if it's a file not found error (model structure issue) or authentication error
-    const isFileNotFound = error.message && (
-      error.message.includes('Could not locate file') || 
-      error.message.includes('File not found') ||
-      error.message.includes('404')
-    );
-    const isUnauthorized = error.message && error.message.includes('Unauthorized');
+    // Check if it's a file not found error, configuration error, or authentication error
+    const errorString = error.toString() + (error.message || '') + (error.stack || '');
+    const isFileNotFound = errorString.includes('Could not locate file') || 
+                          errorString.includes('File not found') ||
+                          errorString.includes('404') ||
+                          errorString.includes('Not Found');
+    const isConfigError = errorString.includes('split is not a function') ||
+                         errorString.includes('Cannot read') ||
+                         errorString.includes('is not a function');
+    const isUnauthorized = errorString.includes('Unauthorized') || errorString.includes('401');
     
-    if (isUnauthorized || isFileNotFound) {
-      const currentModelIndex = fallbackModels.indexOf(TRANSFORMERS_CONFIG.model);
-      const nextModelIndex = currentModelIndex + 1;
+    // If it's any of these errors and we're not already using a fallback model, try fallback
+    if ((isUnauthorized || isFileNotFound || isConfigError) && !fallbackModels.includes(TRANSFORMERS_CONFIG.model)) {
+      console.warn(`⚠️ ${TRANSFORMERS_CONFIG.model} failed (${isFileNotFound ? 'missing files' : isConfigError ? 'config error' : 'auth required'}). Trying fallback models...`);
       
-      if (nextModelIndex < fallbackModels.length) {
-        const errorType = isFileNotFound ? 'has missing files' : 'requires authentication';
-        console.warn(`⚠️ ${TRANSFORMERS_CONFIG.model} ${errorType}. Trying fallback: ${fallbackModels[nextModelIndex]}...`);
-        const originalModel = TRANSFORMERS_CONFIG.model;
-        TRANSFORMERS_CONFIG.model = fallbackModels[nextModelIndex];
-        
+      // Try each fallback model in order
+      for (const fallbackModel of fallbackModels) {
         try {
+          console.log(`Trying fallback model: ${fallbackModel}...`);
+          const originalModel = TRANSFORMERS_CONFIG.model;
+          TRANSFORMERS_CONFIG.model = fallbackModel;
           transformersInitializing = false; // Reset flag
-          return await initTransformers(); // Recursive call with fallback model
+          
+          const result = await initTransformers(); // Recursive call with fallback model
+          if (result) {
+            console.log(`✅ Successfully loaded fallback model: ${fallbackModel}`);
+            return result;
+          }
         } catch (fallbackError) {
-          console.error(`Fallback to ${fallbackModels[nextModelIndex]} also failed:`, fallbackError);
-          TRANSFORMERS_CONFIG.model = originalModel; // Restore original
+          console.warn(`Fallback to ${fallbackModel} failed:`, fallbackError);
+          // Continue to next fallback
         }
       }
+      
+      // All fallbacks failed, restore original
+      console.error('All fallback models failed');
     }
     
     transformersInitializing = false;
@@ -1813,12 +1870,13 @@ async function getTransformersInsights(analysis, logs, dayCount) {
     
     // Generate response with limited tokens for concise output
     const output = await pipeline(fullPrompt, {
-      max_new_tokens: 100, // Very limited to avoid context window errors
-      temperature: 0.8, // Slightly higher for more varied responses
+      max_new_tokens: 80, // Very limited to avoid context window errors and keep it focused
+      temperature: 0.5, // Lower temperature for more focused, less random responses
       do_sample: true,
       return_full_text: false, // Important: only return new text, not the prompt
-      top_k: TRANSFORMERS_CONFIG.topK,
-      top_p: TRANSFORMERS_CONFIG.topP
+      top_k: 40, // Lower top_k for more focused sampling
+      top_p: 0.9, // Slightly lower top_p
+      repetition_penalty: 1.2 // Add repetition penalty to avoid repetitive text
     });
 
     console.log('Transformers.js output received:', output);
@@ -1858,11 +1916,39 @@ async function getTransformersInsights(analysis, logs, dayCount) {
           result = result.substring(fullPrompt.length).trim();
         }
         
-        // Remove any repeated prompt text
-        if (result.includes('Based on this data')) {
-          const idx = result.indexOf('Based on this data');
-          if (idx > 0 && idx < 50) {
-            result = result.substring(idx).trim();
+        // Remove common prompt fragments that GPT-2 might repeat
+        const promptFragments = ['Recommendations:', 'Advice:', 'Based on this data', 'Health advice for'];
+        for (const fragment of promptFragments) {
+          if (result.includes(fragment)) {
+            const idx = result.indexOf(fragment);
+            if (idx > 0 && idx < 100) {
+              result = result.substring(idx + fragment.length).trim();
+            }
+          }
+        }
+        
+        // Filter out irrelevant text (like "editions" gibberish)
+        if (result.toLowerCase().includes('edition') || result.toLowerCase().includes('3rd') || result.toLowerCase().includes('4th')) {
+          console.warn('AI generated irrelevant text about "editions", filtering...');
+          // Check if there's any health-related content
+          const healthKeywords = ['pain', 'symptom', 'flare', 'stiffness', 'fatigue', 'sleep', 'mobility', 'exercise', 'medication', 'rest', 'manage', 'improve', 'reduce'];
+          const hasHealthContent = healthKeywords.some(keyword => result.toLowerCase().includes(keyword));
+          if (!hasHealthContent) {
+            console.warn('No health-related content found in AI response, using local analysis instead');
+            return null; // Return null to fall back to local analysis
+          }
+          // If it has some health content, try to extract just that part
+          const sentences = result.split(/[.!?]+/).filter(s => {
+            const lower = s.toLowerCase();
+            return healthKeywords.some(kw => lower.includes(kw)) && 
+                   !lower.includes('edition') && 
+                   !lower.includes('3rd') && 
+                   !lower.includes('4th');
+          });
+          if (sentences.length > 0) {
+            result = sentences.join('. ').trim() + '.';
+          } else {
+            return null; // No valid health content found
           }
         }
       }
@@ -1905,10 +1991,12 @@ function buildLLMPrompt(analysis, logs, dayCount) {
   const topCorrelation = analysis.correlations[0] || 'No patterns detected';
   const topAnomaly = analysis.anomalies[0] || 'No concerns';
 
-  // Format for GPT-2 text completion - start the advice as if it's already being given
-  // GPT-2 works by continuing text, so we format it as advice that's already started
-  // Keep prompt very short to avoid context window issues
-  return `${CONDITION_CONTEXT.name}: ${dayCount} days. ${trendsSummary}. Flares: ${flareCount}/${dayCount} (${flarePercent}%). Pattern: ${topCorrelation}. Advice:`;
+  // Format for GPT-2 text completion - be very specific to guide the model
+  // GPT-2 works by continuing text, so we need to give it a clear context
+  // Keep prompt short but specific to avoid context window issues
+  return `Health advice for ${CONDITION_CONTEXT.name} patient. Tracked ${dayCount} days. Symptoms: ${trendsSummary}. Flare-ups: ${flareCount}/${dayCount} days (${flarePercent}%). Pattern: ${topCorrelation}. 
+
+Recommendations:`;
 }
 
 // Custom AI Analysis Engine (condition-agnostic)
