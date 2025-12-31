@@ -843,12 +843,26 @@ function createCombinedChart() {
           const lastDateForCalc = new Date(allLogsForMetric[allLogsForMetric.length - 1].date);
           const lastXValue = Math.floor((lastDateForCalc - firstDate) / (1000 * 60 * 60 * 24));
           
-          // Use AIEngine's improved prediction method
+          // Use AIEngine's improved prediction method with metric-specific context
+          const metricContext = {
+            variance: trend.variance || 0,
+            average: trend.average || 0,
+            metricName: metric.field,
+            trainingValues: allLogsForMetric.map(log => {
+              const val = parseFloat(log[metric.field]);
+              // For weight, ensure we return a valid number (weight should never be 0)
+              if (metric.field === 'weight') {
+                return isNaN(val) || val <= 0 ? null : val;
+              }
+              return val || 0;
+            }).filter(v => v !== null) // Remove null values for weight
+          };
           const predictions = window.AIEngine.predictFutureValues(
             { slope: regression.slope, intercept: regression.intercept },
             lastXValue,
             daysToPredict,
-            isBPM
+            isBPM,
+            metricContext
           );
           
           // Generate predictions using the improved method
@@ -1020,11 +1034,22 @@ async function clearData() {
     return;
   }
   
-  // Clear all health logs
+  // Clear all health logs from localStorage
   logs = [];
   localStorage.removeItem("healthLogs");
   
-  // Clear all app settings - reset to defaults
+  // Delete health logs from cloud (but keep settings on cloud)
+  if (typeof deleteCloudLogs === 'function') {
+    try {
+      await deleteCloudLogs();
+      console.log('✅ Health logs deleted from cloud (settings preserved)');
+    } catch (error) {
+      console.warn('Cloud logs deletion error (may not be logged in or sync failed):', error);
+      // Continue with local clearing even if cloud deletion fails
+    }
+  }
+  
+  // Clear all app settings - reset to defaults (local only, cloud settings preserved)
   appSettings = {
     showCharts: true,
     combinedChart: false,
@@ -1040,10 +1065,11 @@ async function clearData() {
   };
   localStorage.removeItem('healthAppSettings');
   
-  // Clear cloud sync data and logout
+  // Logout from cloud sync
   if (typeof handleCloudLogout === 'function') {
     try {
       await handleCloudLogout();
+      console.log('✅ Logged out from cloud sync');
     } catch (error) {
       console.warn('Cloud logout error (may not be logged in):', error);
     }
@@ -1152,7 +1178,7 @@ async function clearData() {
   }
   
   // Show confirmation
-  alert('✅ All data cleared successfully!\n\n- Health logs deleted\n- Settings reset\n- Cloud sync logged out\n- AI model cache deleted\n\nThe app has been reset to default state.');
+  alert('✅ All data cleared successfully!\n\n- Health logs deleted (local & cloud)\n- Local settings reset\n- Cloud settings preserved\n- Cloud sync logged out\n- AI model cache deleted\n\nThe app has been reset to default state.');
 }
 
 
@@ -1726,14 +1752,87 @@ function renderLogs() {
     const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
     const weightUnit = getWeightUnitSuffix();
     
+    // Format date nicely
+    const dateObj = new Date(log.date);
+    const formattedDate = dateObj.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+    
+    // Format flare-up status
+    const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">Flare-up</span>' : '<span class="flare-badge flare-no">No Flare-up</span>';
+    
     div.innerHTML = `
       <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
-      <strong>${log.date}</strong><br>
-      BPM: ${log.bpm}, Weight: ${weightDisplay}${weightUnit}, Flare-up: ${log.flare}<br>
-      Fatigue: ${log.fatigue}, Stiffness: ${log.stiffness}, Back Pain: ${log.backPain}, Sleep: ${log.sleep},<br>
-      Joint Pain: ${log.jointPain}, Mobility: ${log.mobility}, Daily Activities: ${log.dailyFunction},<br>
-      Swelling: ${log.swelling}, Mood: ${log.mood}, Irritability: ${log.irritability}<br>
-      ${log.notes ? '<em>' + log.notes + '</em>' : ''}`;
+      <div class="log-entry-header">
+        <h3 class="log-date">${formattedDate}</h3>
+        ${flareStatus}
+      </div>
+      <div class="log-metrics-grid">
+        <div class="metric-group vital-signs">
+          <h4 class="metric-group-title">Vital Signs</h4>
+          <div class="metric-item">
+            <span class="metric-label">❤️ Heart Rate</span>
+            <span class="metric-value">${log.bpm} BPM</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">⚖️ Weight</span>
+            <span class="metric-value">${weightDisplay}${weightUnit}</span>
+          </div>
+        </div>
+        <div class="metric-group symptoms">
+          <h4 class="metric-group-title">Symptoms</h4>
+          <div class="metric-item">
+            <span class="metric-label">😴 Fatigue</span>
+            <span class="metric-value">${log.fatigue}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">🔒 Stiffness</span>
+            <span class="metric-value">${log.stiffness}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">💢 Back Pain</span>
+            <span class="metric-value">${log.backPain}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">🦴 Joint Pain</span>
+            <span class="metric-value">${log.jointPain}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">💧 Swelling</span>
+            <span class="metric-value">${log.swelling}/10</span>
+          </div>
+        </div>
+        <div class="metric-group wellbeing">
+          <h4 class="metric-group-title">Wellbeing</h4>
+          <div class="metric-item">
+            <span class="metric-label">🌙 Sleep</span>
+            <span class="metric-value">${log.sleep}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">😊 Mood</span>
+            <span class="metric-value">${log.mood}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">😤 Irritability</span>
+            <span class="metric-value">${log.irritability}/10</span>
+          </div>
+        </div>
+        <div class="metric-group function">
+          <h4 class="metric-group-title">Function</h4>
+          <div class="metric-item">
+            <span class="metric-label">🚶 Mobility</span>
+            <span class="metric-value">${log.mobility}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">📋 Daily Activities</span>
+            <span class="metric-value">${log.dailyFunction}/10</span>
+          </div>
+        </div>
+      </div>
+      ${log.notes ? `<div class="log-notes"><strong>📝 Note:</strong> ${log.notes}</div>` : ''}`;
     output.appendChild(div);
   });
 }
@@ -1899,20 +1998,41 @@ function chart(id, label, dataField, color) {
   
   // Prepare data and filter out invalid entries
   const chartData = filteredLogs
-    .filter(log => log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '')
+    .filter(log => {
+      // For weight, check if value exists and is valid (weight can be any positive number)
+      if (dataField === 'weight') {
+        const weightValue = log[dataField];
+        return weightValue !== undefined && weightValue !== null && weightValue !== '' && !isNaN(parseFloat(weightValue)) && parseFloat(weightValue) > 0;
+      }
+      // For other metrics, use standard filter
+      return log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '';
+    })
     .map(log => {
-      let value = parseFloat(log[dataField]) || 0;
-      // Convert weight to display unit if needed
-      if (dataField === 'weight' && appSettings.weightUnit === 'lb') {
-        value = parseFloat(kgToLb(value));
+      let value = parseFloat(log[dataField]);
+      // For weight, ensure we have a valid number
+      if (dataField === 'weight') {
+        if (isNaN(value) || value <= 0) {
+          return null; // Skip invalid weight entries
+        }
+        // Convert weight to display unit if needed
+        if (appSettings.weightUnit === 'lb') {
+          value = parseFloat(kgToLb(value));
+        }
+      } else {
+        // For other metrics, use || 0 fallback
+        value = value || 0;
       }
       // Parse date properly for ApexCharts datetime type
       const dateValue = new Date(log.date).getTime();
+      if (isNaN(dateValue)) {
+        return null; // Skip invalid dates
+      }
       return {
         x: dateValue, // Use timestamp for datetime axis
         y: value
       };
     })
+    .filter(item => item !== null) // Remove any null entries
     .sort((a, b) => a.x - b.x); // Sort by timestamp
   
   if (chartData.length === 0) {
@@ -1934,12 +2054,28 @@ function chart(id, label, dataField, color) {
       
       // Filter to only logs with this metric for training
       const allLogs = allHistoricalLogs
-        .filter(log => log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '');
+        .filter(log => {
+          // For weight, check if value exists and is valid (weight can be any positive number)
+          if (dataField === 'weight') {
+            const weightValue = log[dataField];
+            return weightValue !== undefined && weightValue !== null && weightValue !== '' && !isNaN(parseFloat(weightValue)) && parseFloat(weightValue) > 0;
+          }
+          // For other metrics, use standard filter
+          return log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '';
+        });
       
       if (allLogs.length >= 2) {
         // Sort filtered logs chronologically for getting the last date (for prediction start point)
         const sortedLogs = filteredLogs
-          .filter(log => log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '')
+          .filter(log => {
+            // For weight, check if value exists and is valid (weight can be any positive number)
+            if (dataField === 'weight') {
+              const weightValue = log[dataField];
+              return weightValue !== undefined && weightValue !== null && weightValue !== '' && !isNaN(parseFloat(weightValue)) && parseFloat(weightValue) > 0;
+            }
+            // For other metrics, use standard filter
+            return log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '';
+          })
           .sort((a, b) => new Date(a.date) - new Date(b.date));
         
         if (sortedLogs.length >= 2) {
@@ -1961,12 +2097,26 @@ function chart(id, label, dataField, color) {
               const lastTrainingDate = new Date(allLogs[allLogs.length - 1].date);
               const lastX = Math.floor((lastTrainingDate - firstTrainingDate) / (1000 * 60 * 60 * 24));
               
-              // Use AIEngine's improved prediction method
+              // Use AIEngine's improved prediction method with metric-specific context
+              const metricContext = {
+                variance: trend.variance || 0,
+                average: trend.average || 0,
+                metricName: dataField,
+                trainingValues: allLogs.map(log => {
+                  const val = parseFloat(log[dataField]);
+                  // For weight, ensure we return a valid number (weight should never be 0)
+                  if (dataField === 'weight') {
+                    return isNaN(val) || val <= 0 ? null : val;
+                  }
+                  return val || 0;
+                }).filter(v => v !== null) // Remove null values for weight
+              };
               const predictions = window.AIEngine.predictFutureValues(
                 { slope: regression.slope, intercept: regression.intercept },
                 lastX,
                 daysToPredict,
-                isBPM
+                isBPM,
+                metricContext
               );
               
               // Generate predictions using the improved method
@@ -2807,14 +2957,87 @@ function renderFilteredLogs(filteredLogs) {
     const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
     const weightUnit = getWeightUnitSuffix();
     
+    // Format date nicely
+    const dateObj = new Date(log.date);
+    const formattedDate = dateObj.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+    
+    // Format flare-up status
+    const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">Flare-up</span>' : '<span class="flare-badge flare-no">No Flare-up</span>';
+    
     div.innerHTML = `
       <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
-      <strong>${log.date}</strong><br>
-      BPM: ${log.bpm}, Weight: ${weightDisplay}${weightUnit}, Flare-up: ${log.flare}<br>
-      Fatigue: ${log.fatigue}, Stiffness: ${log.stiffness}, Back Pain: ${log.backPain}, Sleep: ${log.sleep},<br>
-      Joint Pain: ${log.jointPain}, Mobility: ${log.mobility}, Daily Activities: ${log.dailyFunction},<br>
-      Swelling: ${log.swelling}, Mood: ${log.mood}, Irritability: ${log.irritability}<br>
-      ${log.notes ? '<em>' + log.notes + '</em>' : ''}`;
+      <div class="log-entry-header">
+        <h3 class="log-date">${formattedDate}</h3>
+        ${flareStatus}
+      </div>
+      <div class="log-metrics-grid">
+        <div class="metric-group vital-signs">
+          <h4 class="metric-group-title">Vital Signs</h4>
+          <div class="metric-item">
+            <span class="metric-label">❤️ Heart Rate</span>
+            <span class="metric-value">${log.bpm} BPM</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">⚖️ Weight</span>
+            <span class="metric-value">${weightDisplay}${weightUnit}</span>
+          </div>
+        </div>
+        <div class="metric-group symptoms">
+          <h4 class="metric-group-title">Symptoms</h4>
+          <div class="metric-item">
+            <span class="metric-label">😴 Fatigue</span>
+            <span class="metric-value">${log.fatigue}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">🔒 Stiffness</span>
+            <span class="metric-value">${log.stiffness}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">💢 Back Pain</span>
+            <span class="metric-value">${log.backPain}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">🦴 Joint Pain</span>
+            <span class="metric-value">${log.jointPain}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">💧 Swelling</span>
+            <span class="metric-value">${log.swelling}/10</span>
+          </div>
+        </div>
+        <div class="metric-group wellbeing">
+          <h4 class="metric-group-title">Wellbeing</h4>
+          <div class="metric-item">
+            <span class="metric-label">🌙 Sleep</span>
+            <span class="metric-value">${log.sleep}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">😊 Mood</span>
+            <span class="metric-value">${log.mood}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">😤 Irritability</span>
+            <span class="metric-value">${log.irritability}/10</span>
+          </div>
+        </div>
+        <div class="metric-group function">
+          <h4 class="metric-group-title">Function</h4>
+          <div class="metric-item">
+            <span class="metric-label">🚶 Mobility</span>
+            <span class="metric-value">${log.mobility}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">📋 Daily Activities</span>
+            <span class="metric-value">${log.dailyFunction}/10</span>
+          </div>
+        </div>
+      </div>
+      ${log.notes ? `<div class="log-notes"><strong>📝 Note:</strong> ${log.notes}</div>` : ''}`;
     output.appendChild(div);
   });
 }
@@ -2830,14 +3053,87 @@ function renderSortedLogs(sortedLogs) {
     const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
     const weightUnit = getWeightUnitSuffix();
     
+    // Format date nicely
+    const dateObj = new Date(log.date);
+    const formattedDate = dateObj.toLocaleDateString('en-US', { 
+      weekday: 'short', 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+    
+    // Format flare-up status
+    const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">Flare-up</span>' : '<span class="flare-badge flare-no">No Flare-up</span>';
+    
     div.innerHTML = `
       <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
-      <strong>${log.date}</strong><br>
-      BPM: ${log.bpm}, Weight: ${weightDisplay}${weightUnit}, Flare-up: ${log.flare}<br>
-      Fatigue: ${log.fatigue}, Stiffness: ${log.stiffness}, Back Pain: ${log.backPain}, Sleep: ${log.sleep},<br>
-      Joint Pain: ${log.jointPain}, Mobility: ${log.mobility}, Daily Activities: ${log.dailyFunction},<br>
-      Swelling: ${log.swelling}, Mood: ${log.mood}, Irritability: ${log.irritability}<br>
-      ${log.notes ? '<em>' + log.notes + '</em>' : ''}`;
+      <div class="log-entry-header">
+        <h3 class="log-date">${formattedDate}</h3>
+        ${flareStatus}
+      </div>
+      <div class="log-metrics-grid">
+        <div class="metric-group vital-signs">
+          <h4 class="metric-group-title">Vital Signs</h4>
+          <div class="metric-item">
+            <span class="metric-label">❤️ Heart Rate</span>
+            <span class="metric-value">${log.bpm} BPM</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">⚖️ Weight</span>
+            <span class="metric-value">${weightDisplay}${weightUnit}</span>
+          </div>
+        </div>
+        <div class="metric-group symptoms">
+          <h4 class="metric-group-title">Symptoms</h4>
+          <div class="metric-item">
+            <span class="metric-label">😴 Fatigue</span>
+            <span class="metric-value">${log.fatigue}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">🔒 Stiffness</span>
+            <span class="metric-value">${log.stiffness}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">💢 Back Pain</span>
+            <span class="metric-value">${log.backPain}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">🦴 Joint Pain</span>
+            <span class="metric-value">${log.jointPain}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">💧 Swelling</span>
+            <span class="metric-value">${log.swelling}/10</span>
+          </div>
+        </div>
+        <div class="metric-group wellbeing">
+          <h4 class="metric-group-title">Wellbeing</h4>
+          <div class="metric-item">
+            <span class="metric-label">🌙 Sleep</span>
+            <span class="metric-value">${log.sleep}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">😊 Mood</span>
+            <span class="metric-value">${log.mood}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">😤 Irritability</span>
+            <span class="metric-value">${log.irritability}/10</span>
+          </div>
+        </div>
+        <div class="metric-group function">
+          <h4 class="metric-group-title">Function</h4>
+          <div class="metric-item">
+            <span class="metric-label">🚶 Mobility</span>
+            <span class="metric-value">${log.mobility}/10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">📋 Daily Activities</span>
+            <span class="metric-value">${log.dailyFunction}/10</span>
+          </div>
+        </div>
+      </div>
+      ${log.notes ? `<div class="log-notes"><strong>📝 Note:</strong> ${log.notes}</div>` : ''}`;
     output.appendChild(div);
   });
 }

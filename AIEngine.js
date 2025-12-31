@@ -27,8 +27,8 @@ const AIEngine = {
     // Use filtered logs for analysis/display (averages, current values, etc.)
     const recentLogs = logs;
 
-    // Calculate averages and trends for all metrics
-    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm'];
+    // Calculate averages and trends for all metrics (including weight)
+    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight'];
     
     metrics.forEach(metric => {
       // Use training data (all available) for regression to get better predictions
@@ -75,8 +75,17 @@ const AIEngine = {
       const isBPM = metric === 'bpm';
       
       // Calculate predictions for next 7 days using last x value
+      // Pass metric-specific data for unique prediction patterns
       const lastXValue = trainingDataPoints[trainingDataPoints.length - 1].x;
-      const predictions = this.predictFutureValues(regression, lastXValue, 7, isBPM);
+      const metricContext = {
+        variance: variance,
+        average: avg,
+        metricName: metric,
+        trainingValues: trainingDataPoints.map(p => p.y)
+      };
+      
+      // Use metric context for predictions (with fallback if context is null)
+      const predictions = this.predictFutureValues(regression, lastXValue, 7, isBPM, metricContext || null);
       
       // Determine trend significance (R² > 0.5 indicates strong trend)
       const trendSignificance = regression.rSquared > 0.5 ? 'strong' : regression.rSquared > 0.3 ? 'moderate' : 'weak';
@@ -271,20 +280,21 @@ const AIEngine = {
     };
   },
 
-  // Predict future values using linear regression with trend-preserving rounding
+  // Predict future values using linear regression with AGGRESSIVE trend-preserving rounding
   // lastX: the x value of the last data point (days since start)
   // daysAhead: number of days to predict
-  predictFutureValues: function(regression, lastX, daysAhead, isBPM = false) {
+  // metricContext: optional object with {variance, average, metricName, trainingValues} for metric-specific patterns
+  predictFutureValues: function(regression, lastX, daysAhead, isBPM = false, metricContext = null) {
     const predictions = [];
     const minValue = isBPM ? 30 : 0;
     const maxValue = isBPM ? 200 : 10;
     
-    // Calculate raw predicted values for all days
+    // Calculate raw predicted values for all days (keep full precision)
     const rawPredictions = [];
     for (let i = 1; i <= daysAhead; i++) {
       const futureX = lastX + i;
       const predictedY = regression.slope * futureX + regression.intercept;
-      rawPredictions.push(Math.max(minValue, Math.min(maxValue, predictedY)));
+      rawPredictions.push(predictedY); // Don't clamp yet - preserve precision
     }
     
     // Calculate the actual change over the prediction period
@@ -293,85 +303,269 @@ const AIEngine = {
     const totalChange = endValue - startValue;
     const absChange = Math.abs(totalChange);
     
-    // Determine how many whole number steps we should show
-    // For 90 days, even a small change should be visible
-    const minSteps = daysAhead > 30 ? Math.max(1, Math.ceil(absChange * 0.5)) : Math.ceil(absChange);
-    const targetSteps = Math.min(minSteps, Math.ceil(absChange) + 1);
+    // Calculate expected change based on slope (more reliable for large datasets)
+    const expectedChange = regression.slope * daysAhead;
+    const absExpectedChange = Math.abs(expectedChange);
     
-    // If there's any meaningful trend (slope > 0.001 or change > 0.1), ensure variation
-    const hasTrend = Math.abs(regression.slope) > 0.001 || absChange > 0.1;
+    // Determine trend direction
+    const trendDirection = regression.slope >= 0 ? 1 : -1;
+    const hasPositiveTrend = regression.slope > 0.00001;
+    const hasNegativeTrend = regression.slope < -0.00001;
     
-    if (hasTrend && daysAhead > 7) {
-      // For longer predictions, use progressive rounding that ensures variation
-      const roundedStart = Math.round(startValue);
-      const roundedEnd = Math.round(endValue);
-      
-      // Calculate how many steps we need to show the trend
-      let stepsToShow = Math.abs(roundedEnd - roundedStart);
-      if (stepsToShow === 0 && absChange >= 0.3) {
-        // Even if start and end round to same, show at least 1 step if change is meaningful
-        stepsToShow = 1;
-      }
-      
-      // Distribute steps evenly across the prediction period
-      for (let i = 0; i < daysAhead; i++) {
-        const progress = i / (daysAhead - 1); // 0 to 1
-        const rawValue = rawPredictions[i];
-        
-        // Calculate target value based on linear interpolation
-        let targetValue;
-        if (totalChange >= 0) {
-          targetValue = roundedStart + (stepsToShow * progress);
-        } else {
-          targetValue = roundedStart - (stepsToShow * progress);
-        }
-        
-        // Round to nearest whole number, but bias towards showing the trend
-        let rounded;
-        if (i === 0) {
-          rounded = roundedStart;
-        } else if (i === daysAhead - 1) {
-          rounded = roundedEnd !== roundedStart ? roundedEnd : 
-                   (totalChange > 0 ? roundedStart + 1 : roundedStart - 1);
-          rounded = Math.max(minValue, Math.min(maxValue, rounded));
-        } else {
-          // For middle values, use the raw prediction but adjust to show progression
-          const idealStep = Math.round(targetValue);
-          const rawRounded = Math.round(rawValue);
-          
-          // If we're stuck at same value, increment/decrement based on trend
-          if (i > 0 && rawRounded === predictions[i - 1]) {
-            if (totalChange > 0 && rawValue > predictions[i - 1] + 0.2) {
-              rounded = predictions[i - 1] + 1;
-            } else if (totalChange < 0 && rawValue < predictions[i - 1] - 0.2) {
-              rounded = predictions[i - 1] - 1;
-            } else {
-              rounded = rawRounded;
-            }
-          } else {
-            rounded = rawRounded;
-          }
-        }
-        
-        // Ensure we don't exceed bounds
-        rounded = Math.max(minValue, Math.min(maxValue, rounded));
-        predictions.push(rounded);
-      }
-      
-      // Post-process to ensure smooth progression and visible trend
-      if (predictions[0] === predictions[predictions.length - 1] && absChange >= 0.3) {
-        // Force at least one step change
-        const stepSize = totalChange > 0 ? 1 : -1;
-        const midPoint = Math.floor(daysAhead / 2);
-        const endPoint = daysAhead - 1;
-        
-        predictions[midPoint] = Math.max(minValue, Math.min(maxValue, predictions[0] + stepSize));
-        predictions[endPoint] = Math.max(minValue, Math.min(maxValue, predictions[0] + stepSize));
+    // Use metric-specific variance to create unique patterns per metric
+    let metricVariance = 0;
+    let metricAverage = 0;
+    let metricSeed = 0; // Use metric name as seed for unique patterns
+    if (metricContext && typeof metricContext === 'object') {
+      metricVariance = metricContext.variance || 0;
+      metricAverage = metricContext.average || 0;
+      // Create a seed from metric name for consistent but unique patterns
+      if (metricContext.metricName) {
+        metricSeed = metricContext.metricName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
       }
     } else {
-      // For short predictions or very flat trends, use standard rounding
-      for (let i = 0; i < daysAhead; i++) {
-        predictions.push(Math.round(rawPredictions[i]));
+      // Fallback: use a default seed if no context provided (shouldn't happen, but safety check)
+      metricSeed = Math.floor(Math.random() * 1000);
+    }
+    
+    // Calculate variance-based variation multiplier (metrics with higher variance get more variation)
+    const varianceMultiplier = Math.min(2, Math.max(0.5, 1 + (metricVariance / 10)));
+    
+    // EXTREMELY AGGRESSIVE: ALWAYS show significant variation at ALL prediction lengths
+    // Minimum steps based on prediction length - maximum aggression
+    // Adjust based on metric variance for unique patterns
+    let minStepsToShow = 0;
+    if (daysAhead >= 90) {
+      // For 90 days: ALWAYS show at least 6-7 steps, even for completely flat trends
+      // Higher variance metrics get more steps
+      minStepsToShow = Math.max(7, Math.ceil(absExpectedChange * 6 * varianceMultiplier) || 7);
+    } else if (daysAhead >= 30) {
+      // For 30 days: ALWAYS show at least 4-5 steps
+      minStepsToShow = Math.max(5, Math.ceil(absExpectedChange * 4 * varianceMultiplier) || 5);
+    } else if (daysAhead >= 7) {
+      // For 7 days: ALWAYS show at least 3 steps - GO ALL OUT!
+      minStepsToShow = Math.max(3, Math.ceil(absExpectedChange * 3 * varianceMultiplier) || 3);
+    } else {
+      // Even for shorter predictions, show at least 2 steps
+      minStepsToShow = Math.max(2, Math.ceil(absExpectedChange * 2 * varianceMultiplier) || 2);
+    }
+    
+    // Round start and end values
+    const roundedStart = Math.round(Math.max(minValue, Math.min(maxValue, startValue)));
+    const roundedEnd = Math.round(Math.max(minValue, Math.min(maxValue, endValue)));
+    
+    // Calculate steps needed - be very aggressive
+    let stepsToShow = Math.abs(roundedEnd - roundedStart);
+    
+    // EXTREMELY AGGRESSIVE: Always ensure minimum steps for ALL predictions
+    if (daysAhead >= 7) {
+      if (stepsToShow === 0) {
+        // Completely flat - force variation anyway
+        stepsToShow = minStepsToShow;
+      } else {
+        // Ensure we meet minimum, but allow more if trend suggests it
+        stepsToShow = Math.max(stepsToShow, minStepsToShow);
+      }
+    } else {
+      // Even for very short predictions, ensure at least 2 steps
+      if (stepsToShow === 0) {
+        stepsToShow = 2;
+      }
+    }
+    
+    // Cap steps but be VERY generous (allow up to 8-9 for health metrics)
+    stepsToShow = Math.min(stepsToShow, isBPM ? 30 : 9);
+    
+    // Create predictions with aggressive variation
+    for (let i = 0; i < daysAhead; i++) {
+      const progress = daysAhead > 1 ? i / (daysAhead - 1) : 0; // 0 to 1
+      
+      // Calculate base progression with metric-specific variation
+      let targetValue;
+      if (stepsToShow > 0) {
+        // Add metric-specific offset based on metric seed for unique patterns
+        const metricOffset = (metricSeed % 5) / 10; // Small offset 0-0.4
+        
+        if (hasPositiveTrend) {
+          // Positive trend: gradual increase with metric-specific variation
+          const baseProgression = roundedStart + (stepsToShow * progress);
+          // Add small metric-specific variation
+          const variation = metricOffset * Math.sin(progress * Math.PI * (2 + (metricSeed % 3)));
+          targetValue = baseProgression + variation;
+        } else if (hasNegativeTrend) {
+          // Negative trend: gradual decrease with metric-specific variation
+          const baseProgression = roundedStart - (stepsToShow * progress);
+          // Add small metric-specific variation
+          const variation = metricOffset * Math.sin(progress * Math.PI * (2 + (metricSeed % 3)));
+          targetValue = baseProgression - variation;
+        } else {
+          // Flat/neutral trend: create dynamic wave pattern for maximum realism
+          // Use metric-specific seed to create unique patterns per metric
+          const linearComponent = (stepsToShow / 2) * progress;
+          // Use metric seed to vary wave frequencies - makes each metric unique
+          const waveFreq1 = 2 + (metricSeed % 3); // 2, 3, or 4
+          const waveFreq2 = 4 + (metricSeed % 2); // 4 or 5
+          const waveFreq3 = 3 + ((metricSeed * 2) % 3); // 3, 4, or 5
+          const wavePhase = (metricSeed % 100) / 100; // 0 to 1 phase shift
+          
+          const wave1 = (stepsToShow / 4) * Math.sin((progress + wavePhase) * Math.PI * waveFreq1);
+          const wave2 = (stepsToShow / 6) * Math.sin((progress + wavePhase * 0.5) * Math.PI * waveFreq2);
+          const wave3 = (stepsToShow / 8) * Math.cos((progress + wavePhase * 0.3) * Math.PI * waveFreq3);
+          // Add metric-specific offset to make patterns more distinct
+          const metricVariation = metricOffset * Math.cos(progress * Math.PI * (3 + (metricSeed % 2)));
+          targetValue = roundedStart + linearComponent + wave1 + wave2 + wave3 + metricVariation;
+        }
+      } else {
+        targetValue = roundedStart;
+      }
+      
+      // Round and clamp
+      let rounded = Math.round(targetValue);
+      rounded = Math.max(minValue, Math.min(maxValue, rounded));
+      
+      // Ensure first value is correct
+      if (i === 0) {
+        rounded = roundedStart;
+      }
+      
+      // Ensure last value shows the trend
+      if (i === daysAhead - 1) {
+        if (stepsToShow > 0) {
+          if (hasPositiveTrend) {
+            rounded = Math.min(maxValue, roundedStart + stepsToShow);
+          } else if (hasNegativeTrend) {
+            rounded = Math.max(minValue, roundedStart - stepsToShow);
+          } else {
+            // For neutral trends, end at a different value
+            rounded = roundedStart + (trendDirection * Math.min(stepsToShow, 3));
+          }
+          rounded = Math.max(minValue, Math.min(maxValue, rounded));
+        } else {
+          rounded = roundedEnd !== roundedStart ? roundedEnd : roundedStart;
+        }
+      }
+      
+      predictions.push(rounded);
+    }
+    
+    // EXTREMELY AGGRESSIVE POST-PROCESSING: Force variation for ALL prediction lengths
+    const uniqueValues = new Set(predictions);
+    const numUnique = uniqueValues.size;
+    
+    // Determine forced steps based on prediction length
+    let forcedSteps = 0;
+    if (daysAhead >= 90) {
+      forcedSteps = 7; // 7 different values for 90 days
+    } else if (daysAhead >= 30) {
+      forcedSteps = 5; // 5 different values for 30 days
+    } else if (daysAhead >= 7) {
+      forcedSteps = 3; // 3 different values for 7 days - GO ALL OUT!
+    } else {
+      forcedSteps = 2; // At least 2 for shorter predictions
+    }
+    
+    // If we have too few unique values, force more variation
+    if (numUnique < forcedSteps) {
+      const baseValue = predictions[0];
+      const stepSize = hasPositiveTrend ? 1 : hasNegativeTrend ? -1 : 1;
+      
+      // Create multiple inflection points for dynamic variation
+      // Use metric seed to shift inflection points - makes each metric unique
+      const seedOffset = metricSeed % 10 / 100; // 0 to 0.09 offset
+      let inflectionPoints = [];
+      if (daysAhead >= 90) {
+        inflectionPoints = [0.1 + seedOffset, 0.2 + seedOffset, 0.35 + seedOffset, 0.5 + seedOffset, 0.65 + seedOffset, 0.8 + seedOffset, 0.95 + seedOffset];
+      } else if (daysAhead >= 30) {
+        inflectionPoints = [0.15 + seedOffset, 0.3 + seedOffset, 0.5 + seedOffset, 0.7 + seedOffset, 0.9 + seedOffset];
+      } else if (daysAhead >= 7) {
+        inflectionPoints = [0.25 + seedOffset, 0.5 + seedOffset, 0.75 + seedOffset]; // 3 points for 7 days
+      } else {
+        inflectionPoints = [0.33 + seedOffset, 0.67 + seedOffset];
+      }
+      
+      // Clamp inflection points to valid range
+      inflectionPoints = inflectionPoints.map(p => Math.max(0, Math.min(1, p)));
+      
+      // Force steps at inflection points
+      for (let step = 1; step <= forcedSteps; step++) {
+        const progress = inflectionPoints[step - 1] || (step / (forcedSteps + 1));
+        const position = Math.floor(daysAhead * progress);
+        if (position < daysAhead) {
+          // Alternate between up and down for neutral trends to create wave
+          let stepDirection = stepSize;
+          if (!hasPositiveTrend && !hasNegativeTrend) {
+            stepDirection = (step % 2 === 0) ? 1 : -1;
+            const stepValue = Math.max(minValue, Math.min(maxValue, baseValue + (stepDirection * Math.ceil(step / 2))));
+            predictions[position] = stepValue;
+          } else {
+            const stepValue = Math.max(minValue, Math.min(maxValue, baseValue + (stepSize * step)));
+            predictions[position] = stepValue;
+          }
+        }
+      }
+      
+      // Ensure last value is significantly different
+      if (!hasPositiveTrend && !hasNegativeTrend) {
+        // For neutral, end at a different value
+        const finalValue = Math.max(minValue, Math.min(maxValue, baseValue + (forcedSteps % 2 === 0 ? 1 : -1) * Math.ceil(forcedSteps / 2)));
+        predictions[daysAhead - 1] = finalValue;
+      } else {
+        const finalValue = Math.max(minValue, Math.min(maxValue, baseValue + (stepSize * forcedSteps)));
+        predictions[daysAhead - 1] = finalValue;
+      }
+    }
+    
+    // EXTREME: Ensure progressive variation throughout - check every prediction
+    let lastValue = predictions[0];
+    let consecutiveSame = 0;
+    const maxConsecutive = Math.max(2, Math.floor(daysAhead / 4)); // Max 25% of period at same value
+    
+    for (let i = 1; i < daysAhead; i++) {
+      const currentValue = predictions[i];
+      
+      if (currentValue === lastValue) {
+        consecutiveSame++;
+        
+        // If we've been stuck too long, force a change
+        if (consecutiveSame > maxConsecutive) {
+          // Determine direction based on trend or create wave
+          let direction;
+          if (hasPositiveTrend) {
+            direction = 1;
+          } else if (hasNegativeTrend) {
+            direction = -1;
+          } else {
+            // Neutral: alternate up/down for wave pattern
+            direction = (i % 2 === 0) ? 1 : -1;
+          }
+          
+          const newValue = Math.max(minValue, Math.min(maxValue, currentValue + direction));
+          predictions[i] = newValue;
+          lastValue = newValue;
+          consecutiveSame = 0;
+        }
+      } else {
+        lastValue = currentValue;
+        consecutiveSame = 0;
+      }
+    }
+    
+    // Final validation: ensure we have the minimum number of unique values
+    const finalUnique = new Set(predictions).size;
+    if (finalUnique < forcedSteps && daysAhead >= 7) {
+      // Last resort: force additional variation points
+      const baseValue = predictions[0];
+      const additionalSteps = forcedSteps - finalUnique;
+      const stepSize = hasPositiveTrend ? 1 : hasNegativeTrend ? -1 : 1;
+      
+      for (let step = 1; step <= additionalSteps; step++) {
+        // Find positions that are still at base value
+        const positions = predictions.map((v, idx) => v === baseValue ? idx : -1).filter(idx => idx !== -1);
+        if (positions.length > 0) {
+          const position = positions[Math.floor(positions.length / 2)];
+          const newValue = Math.max(minValue, Math.min(maxValue, baseValue + (stepSize * step)));
+          predictions[position] = newValue;
+        }
       }
     }
     

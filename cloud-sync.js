@@ -419,6 +419,92 @@ function toggleAutoSync() {
   }
 }
 
+// Delete only health logs from cloud (keeps app settings)
+async function deleteCloudLogs() {
+  if (!supabaseClient || !cloudSyncState.isAuthenticated) {
+    return; // Not logged in, nothing to delete
+  }
+
+  try {
+    updateCloudStatus('Deleting logs from cloud...', 'syncing');
+    
+    // Get user
+    let userId = cloudSyncState.userId;
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    
+    if (userError) {
+      console.warn('getUser error:', userError);
+      if (userError.message.includes('JWT') || userError.message.includes('session')) {
+        await checkCloudAuth();
+        userId = cloudSyncState.userId;
+      }
+    }
+    
+    if (user) {
+      userId = user.id;
+      cloudSyncState.userId = userId;
+    } else if (!userId) {
+      throw new Error('User not authenticated. Please sign in again.');
+    }
+    
+    // Get current settings from cloud to preserve them
+    const encryptionKey = await deriveEncryptionKey(userId, 'health-app-key');
+    const { data: existingData } = await supabaseClient
+      .from('health_data')
+      .select('app_settings')
+      .eq('user_id', userId)
+      .single();
+    
+    // Encrypt empty logs array
+    const emptyLogs = [];
+    const encryptedLogs = await encryptData(emptyLogs, encryptionKey);
+    
+    // Keep existing settings or use empty object if none exist
+    let encryptedSettings;
+    if (existingData && existingData.app_settings) {
+      // Keep existing settings
+      encryptedSettings = existingData.app_settings;
+    } else {
+      // No existing settings, use empty encrypted object
+      const emptySettings = {};
+      encryptedSettings = await encryptData(emptySettings, encryptionKey);
+    }
+    
+    // Update cloud with empty logs but preserved settings
+    const { error: updateError } = await supabaseClient
+      .from('health_data')
+      .upsert({
+        user_id: userId,
+        health_logs: encryptedLogs, // Empty logs
+        app_settings: encryptedSettings, // Preserved settings
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      });
+
+    if (updateError) throw updateError;
+
+    const now = new Date().toISOString();
+    cloudSyncState.lastSync = now;
+    localStorage.setItem('cloudLastSync', now);
+    const lastSyncEl = document.getElementById('cloudLastSync');
+    if (lastSyncEl) lastSyncEl.textContent = `Last sync: ${new Date(now).toLocaleString()}`;
+    
+    updateCloudStatus('Logs deleted from cloud', 'success');
+    setTimeout(() => updateCloudStatus('Connected', 'success'), 2000);
+  } catch (error) {
+    console.error('Delete cloud logs error:', error);
+    let errorMessage = error.message;
+    
+    if (errorMessage.includes('secure context') || errorMessage.includes('crypto.subtle') || errorMessage.includes('importKey')) {
+      errorMessage = 'Cloud sync requires HTTPS or localhost. You are accessing via LAN IP (http://).\n\nSolutions:\n1. Use localhost: http://localhost:8080\n2. Set up HTTPS for LAN access\n3. Cloud sync will not work over HTTP from LAN IP';
+    }
+    
+    updateCloudStatus('Failed to delete cloud logs', 'error');
+    throw error; // Re-throw so caller knows it failed
+  }
+}
+
 // Sync data to cloud
 async function syncToCloud() {
   if (!supabaseClient || !cloudSyncState.isAuthenticated) {
