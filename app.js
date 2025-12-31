@@ -967,6 +967,67 @@ async function clearData() {
   localStorage.removeItem('cloudLastSync');
   localStorage.removeItem('currentCloudUserId');
   
+  // Clear AI model cache from IndexedDB (Transformers.js stores models here)
+  try {
+    if ('indexedDB' in window) {
+      // Transformers.js uses IndexedDB to cache models
+      // Try to delete common database names used by Transformers.js
+      const dbNames = [
+        'transformers-cache',
+        'transformersjs-cache',
+        'hf-transformers-cache',
+        'xenova-transformers-cache'
+      ];
+      
+      // Also try to get all database names and delete any that look like Transformers.js caches
+      if (indexedDB.databases) {
+        const databases = await indexedDB.databases();
+        for (const db of databases) {
+          if (db.name && (
+            db.name.toLowerCase().includes('transformers') ||
+            db.name.toLowerCase().includes('xenova') ||
+            db.name.toLowerCase().includes('hf-')
+          )) {
+            dbNames.push(db.name);
+          }
+        }
+      }
+      
+      // Delete all found databases
+      const deletePromises = [...new Set(dbNames)].map(dbName => {
+        return new Promise((resolve) => {
+          const deleteDB = indexedDB.deleteDatabase(dbName);
+          deleteDB.onsuccess = () => {
+            console.log(`✅ Cleared AI model cache: ${dbName}`);
+            resolve();
+          };
+          deleteDB.onerror = () => {
+            // Database might not exist, that's okay
+            resolve();
+          };
+          deleteDB.onblocked = () => {
+            console.warn(`⚠️ IndexedDB deletion blocked for ${dbName} - may need to close other tabs`);
+            resolve(); // Don't fail the whole operation
+          };
+        });
+      });
+      
+      await Promise.all(deletePromises);
+      console.log('✅ AI model cache cleared from IndexedDB');
+    }
+  } catch (error) {
+    console.warn('⚠️ Error clearing AI model cache:', error);
+    // Don't fail the whole operation if this fails
+  }
+  
+  // Reset Transformers.js pipeline (force reload on next use)
+  if (typeof transformersPipeline !== 'undefined') {
+    transformersPipeline = null;
+  }
+  if (typeof transformersInitializing !== 'undefined') {
+    transformersInitializing = false;
+  }
+  
   // Clear any other localStorage items related to the app
   // (keeping service worker registration and other browser data)
   
@@ -1011,7 +1072,84 @@ async function clearData() {
   }
   
   // Show confirmation
-  alert('✅ All data cleared successfully!\n\n- Health logs deleted\n- Settings reset\n- Cloud sync logged out\n\nThe app has been reset to default state.');
+  alert('✅ All data cleared successfully!\n\n- Health logs deleted\n- Settings reset\n- Cloud sync logged out\n- AI model cache deleted\n\nThe app has been reset to default state.');
+}
+
+// Reset AI Model - clears only the cached AI model from IndexedDB
+async function resetAIModel() {
+  // Confirm with user before clearing AI model cache
+  if (!confirm('⚠️ This will delete the cached AI model (~1-2GB).\n\nThe model will be re-downloaded the next time you generate an AI summary.\n\nContinue?')) {
+    return;
+  }
+  
+  try {
+    if ('indexedDB' in window) {
+      // Transformers.js uses IndexedDB to cache models
+      // Try to delete common database names used by Transformers.js
+      const dbNames = [
+        'transformers-cache',
+        'transformersjs-cache',
+        'hf-transformers-cache',
+        'xenova-transformers-cache'
+      ];
+      
+      // Also try to get all database names and delete any that look like Transformers.js caches
+      if (indexedDB.databases) {
+        const databases = await indexedDB.databases();
+        for (const db of databases) {
+          if (db.name && (
+            db.name.toLowerCase().includes('transformers') ||
+            db.name.toLowerCase().includes('xenova') ||
+            db.name.toLowerCase().includes('hf-')
+          )) {
+            dbNames.push(db.name);
+          }
+        }
+      }
+      
+      // Delete all found databases
+      const deletePromises = [...new Set(dbNames)].map(dbName => {
+        return new Promise((resolve) => {
+          const deleteDB = indexedDB.deleteDatabase(dbName);
+          deleteDB.onsuccess = () => {
+            console.log(`✅ Cleared AI model cache: ${dbName}`);
+            resolve();
+          };
+          deleteDB.onerror = () => {
+            // Database might not exist, that's okay
+            resolve();
+          };
+          deleteDB.onblocked = () => {
+            console.warn(`⚠️ IndexedDB deletion blocked for ${dbName} - may need to close other tabs`);
+            resolve(); // Don't fail the whole operation
+          };
+        });
+      });
+      
+      await Promise.all(deletePromises);
+      
+      // Reset Transformers.js pipeline (force reload on next use)
+      if (typeof transformersPipeline !== 'undefined') {
+        transformersPipeline = null;
+      }
+      if (typeof transformersInitializing !== 'undefined') {
+        transformersInitializing = false;
+      }
+      
+      // Reset TRANSFORMERS_CONFIG enabled state to allow re-initialization
+      if (typeof TRANSFORMERS_CONFIG !== 'undefined') {
+        TRANSFORMERS_CONFIG.enabled = true;
+      }
+      
+      console.log('✅ AI model cache cleared from IndexedDB');
+      alert('✅ AI model cache cleared successfully!\n\nThe model will be re-downloaded the next time you generate an AI summary.');
+    } else {
+      alert('⚠️ IndexedDB is not available in this browser.\n\nCannot clear AI model cache.');
+    }
+  } catch (error) {
+    console.error('Error clearing AI model cache:', error);
+    alert('⚠️ Error clearing AI model cache:\n\n' + error.message);
+  }
 }
 
 function exportData() {
@@ -1113,15 +1251,15 @@ function importData() {
 const TRANSFORMERS_CONFIG = {
   enabled: true, // Enabled - served locally from your server
   task: 'text-generation', // Task type for text generation models
-  // Using medical-focused Llama model - perfect for health advice!
-  // This is a 1B parameter model fine-tuned on medical notes, in ONNX format for Transformers.js
-  model: 'onnx-community/llama-3.2-1b-medical-notes-ONNX', // Medical Llama 3.2 (~1B params, ~2GB)
-  // This model is specifically trained for medical/health contexts - much better than generic GPT-2!
-  // Fallback chain if authentication fails:
+  // Using Llama 3.2 1B Instruct - confirmed working with Transformers.js!
+  // This is a 1B parameter instruction-tuned model, in ONNX format for Transformers.js
+  model: 'onnx-community/Llama-3.2-1B-Instruct-ONNX', // Llama 3.2 1B Instruct (~1B params, ~2GB)
+  // This model is instruction-tuned and works well for providing advice and analysis
+  // Fallback chain if authentication fails or files missing:
   // 'Xenova/gpt2-xl' - GPT-2 XL (~3GB) - generic but large
   // 'Xenova/gpt2-large' - Large GPT-2 variant (~1.5GB)
   // 'Xenova/gpt2-medium' - Medium GPT-2 variant (~500MB)
-  // 'Xenova/gpt2' - Base GPT-2 (~500MB)
+  // 'Xenova/gpt2' - Base GPT-2 (~500MB) - confirmed working
   maxNewTokens: 200, // Limited for concise responses
   temperature: 0.7,
   topK: 50,
@@ -1421,8 +1559,8 @@ async function initTransformers() {
     
     // Get estimated model size based on model name
     const getModelSize = (modelName) => {
-      if (modelName.includes('llama-3.2-1b') || modelName.includes('llama-3.2-1B')) return 2000; // ~2GB (1B params)
-      if (modelName.includes('llama')) return 2000; // ~2GB for Llama models
+      if (modelName.includes('llama-3.2-1b') || modelName.includes('llama-3.2-1B') || modelName.includes('Llama-3.2-1B')) return 2000; // ~2GB (1B params)
+      if (modelName.includes('llama') || modelName.includes('Llama')) return 2000; // ~2GB for Llama models
       if (modelName.includes('TinyLlama')) return 500; // ~500MB
       if (modelName.includes('LaMini-Flan-T5')) return 200; // ~200MB
       if (modelName.includes('Phi-3-mini')) return 2000; // ~2GB
@@ -1578,7 +1716,7 @@ async function initTransformers() {
   } catch (error) {
     console.error('Transformers.js initialization error:', error);
     
-    // Try fallback models in order of size if authentication fails
+    // Try fallback models in order of size if authentication fails or model files missing
     // Start with largest and work down to smallest
     const fallbackModels = [
       'Xenova/gpt2-xl',     // ~3GB (largest)
@@ -1587,12 +1725,21 @@ async function initTransformers() {
       'Xenova/gpt2'         // ~500MB base (smallest)
     ];
     
-    if (error.message && error.message.includes('Unauthorized')) {
+    // Check if it's a file not found error (model structure issue) or authentication error
+    const isFileNotFound = error.message && (
+      error.message.includes('Could not locate file') || 
+      error.message.includes('File not found') ||
+      error.message.includes('404')
+    );
+    const isUnauthorized = error.message && error.message.includes('Unauthorized');
+    
+    if (isUnauthorized || isFileNotFound) {
       const currentModelIndex = fallbackModels.indexOf(TRANSFORMERS_CONFIG.model);
       const nextModelIndex = currentModelIndex + 1;
       
       if (nextModelIndex < fallbackModels.length) {
-        console.warn(`⚠️ ${TRANSFORMERS_CONFIG.model} requires authentication. Trying fallback: ${fallbackModels[nextModelIndex]}...`);
+        const errorType = isFileNotFound ? 'has missing files' : 'requires authentication';
+        console.warn(`⚠️ ${TRANSFORMERS_CONFIG.model} ${errorType}. Trying fallback: ${fallbackModels[nextModelIndex]}...`);
         const originalModel = TRANSFORMERS_CONFIG.model;
         TRANSFORMERS_CONFIG.model = fallbackModels[nextModelIndex];
         
@@ -1633,13 +1780,14 @@ async function getTransformersInsights(analysis, logs, dayCount) {
     const prompt = buildLLMPrompt(analysis, logs, dayCount);
     
     // Check if this is a Llama model (uses chat format) or GPT-2 (uses text completion)
-    const isLlamaModel = TRANSFORMERS_CONFIG.model.includes('llama') || TRANSFORMERS_CONFIG.model.includes('Llama');
+    // Check if this is a Llama model (uses chat format) - case insensitive
+    const isLlamaModel = TRANSFORMERS_CONFIG.model.toLowerCase().includes('llama');
     
     let fullPrompt;
     if (isLlamaModel) {
       // Llama models use chat format with messages
-      const systemMessage = `You are a health advisor specializing in ${CONDITION_CONTEXT.name}. Provide practical, data-driven advice.`;
-      const maxPromptLength = 400; // Short limit
+      const systemMessage = `You are a health advisor for ${CONDITION_CONTEXT.name}. Give practical advice.`;
+      const maxPromptLength = 300; // Very short limit to avoid context window issues
       const truncatedPrompt = prompt.length > maxPromptLength 
         ? prompt.substring(0, maxPromptLength) + '...'
         : prompt;
@@ -1651,7 +1799,7 @@ async function getTransformersInsights(analysis, logs, dayCount) {
       ];
     } else {
       // GPT-2 uses simple text completion
-      const maxPromptLength = 400;
+      const maxPromptLength = 250; // Very short limit to avoid context window issues
       const truncatedPrompt = prompt.length > maxPromptLength 
         ? prompt.substring(0, maxPromptLength) + '...'
         : prompt;
@@ -1665,7 +1813,7 @@ async function getTransformersInsights(analysis, logs, dayCount) {
     
     // Generate response with limited tokens for concise output
     const output = await pipeline(fullPrompt, {
-      max_new_tokens: 150, // Limit output to ~150 tokens (concise response)
+      max_new_tokens: 100, // Very limited to avoid context window errors
       temperature: 0.8, // Slightly higher for more varied responses
       do_sample: true,
       return_full_text: false, // Important: only return new text, not the prompt
@@ -1759,9 +1907,8 @@ function buildLLMPrompt(analysis, logs, dayCount) {
 
   // Format for GPT-2 text completion - start the advice as if it's already being given
   // GPT-2 works by continuing text, so we format it as advice that's already started
-  return `Health advice for ${CONDITION_CONTEXT.name} patient: ${dayCount} days tracked. ${trendsSummary}. Flare-ups: ${flareCount}/${dayCount} days (${flarePercent}%). Pattern: ${topCorrelation}. Concern: ${topAnomaly}.
-
-Based on this data, here is practical advice for managing ${CONDITION_CONTEXT.name}:`;
+  // Keep prompt very short to avoid context window issues
+  return `${CONDITION_CONTEXT.name}: ${dayCount} days. ${trendsSummary}. Flares: ${flareCount}/${dayCount} (${flarePercent}%). Pattern: ${topCorrelation}. Advice:`;
 }
 
 // Custom AI Analysis Engine (condition-agnostic)
