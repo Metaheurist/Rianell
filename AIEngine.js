@@ -125,7 +125,12 @@ const AIEngine = {
       if (isBPM) {
         projected7Days = Math.round(Math.max(30, Math.min(200, projected7DaysRaw)));
         projected30Days = Math.round(Math.max(30, Math.min(200, projected30DaysRaw)));
+      } else if (isWeight) {
+        // Weight: 30-300 kg range, keep 1 decimal place
+        projected7Days = Math.round(Math.max(30, Math.min(300, projected7DaysRaw)) * 10) / 10;
+        projected30Days = Math.round(Math.max(30, Math.min(300, projected30DaysRaw)) * 10) / 10;
       } else {
+        // Other metrics: 0-10 scale
         projected7Days = Math.round(Math.max(0, Math.min(10, projected7DaysRaw)) * 10) / 10;
         projected30Days = Math.round(Math.max(0, Math.min(10, projected30DaysRaw)) * 10) / 10;
       }

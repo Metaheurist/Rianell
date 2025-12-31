@@ -942,14 +942,18 @@ function createCombinedChart() {
     },
     stroke: {
       curve: 'smooth',
-      width: 2
+      width: 2.5,
+      lineCap: 'round'
     },
     markers: {
-      size: 4,
+      size: 3,
       strokeWidth: 2,
       hover: {
-        size: 6
-      }
+        size: 5,
+        sizeOffset: 2
+      },
+      shape: 'circle',
+      showNullDataPoints: false
     },
     xaxis: {
       type: 'datetime',
@@ -985,7 +989,24 @@ function createCombinedChart() {
       max: 10
     },
     grid: {
-      borderColor: '#374151'
+      borderColor: '#374151',
+      strokeDashArray: 4,
+      xaxis: {
+        lines: {
+          show: true
+        }
+      },
+      yaxis: {
+        lines: {
+          show: true
+        }
+      },
+      padding: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0
+      }
     },
     legend: {
       labels: {
@@ -995,8 +1016,28 @@ function createCombinedChart() {
     },
     tooltip: {
       theme: 'dark',
+      shared: true,
+      intersect: false,
       x: {
         format: 'dd MMM yyyy'
+      },
+      marker: {
+        show: true
+      },
+      style: {
+        fontSize: '13px'
+      }
+    },
+    dataLabels: {
+      enabled: false
+    },
+    crosshairs: {
+      show: true,
+      position: 'front',
+      stroke: {
+        color: '#b0bec5',
+        width: 1,
+        dashArray: 3
       }
     }
   };
@@ -1778,6 +1819,8 @@ function renderLogs() {
     const div = document.createElement("div");
     div.className = "entry";
     if (isExtreme(log)) div.classList.add("highlight");
+    // Add flare-up class for red glow effect
+    if (log.flare === 'Yes') div.classList.add("flare-up-entry");
     
     // Convert weight to display unit (stored as kg)
     const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
@@ -2229,22 +2272,59 @@ function chart(id, label, dataField, color) {
     series: series,
     chart: {
       type: 'line',
-      height: 300,
+      height: 350,
       toolbar: {
-        show: false
+        show: true,
+        tools: {
+          download: true,
+          selection: false,
+          zoom: true,
+          zoomin: true,
+          zoomout: true,
+          pan: false,
+          reset: true
+        }
       },
       background: 'transparent',
       selection: {
-        enabled: false
+        enabled: true,
+        type: 'x',
+        fill: {
+          color: 'rgba(76, 175, 80, 0.1)'
+        },
+        stroke: {
+          width: 1,
+          dashArray: 3,
+          color: '#4caf50',
+          opacity: 0.4
+        }
       },
       zoom: {
-        enabled: false
+        enabled: true,
+        type: 'x',
+        autoScaleYaxis: true
       },
       pan: {
-        enabled: false
+        enabled: true,
+        type: 'x'
       },
       animations: {
-        enabled: false
+        enabled: true,
+        easing: 'easeinout',
+        speed: 800,
+        animateGradually: {
+          enabled: true,
+          delay: 150
+        },
+        dynamicAnimation: {
+          enabled: true,
+          speed: 350
+        }
+      },
+      events: {
+        dataPointSelection: function(event, chartContext, config) {
+          // Optional: Add click handler for data points
+        }
       }
     },
     title: {
@@ -2258,16 +2338,20 @@ function chart(id, label, dataField, color) {
     },
     stroke: {
       curve: 'smooth',
-      width: 3
+      width: 3,
+      lineCap: 'round'
     },
     markers: {
-      size: 5,
+      size: 4,
       colors: series.map((s, i) => i === 0 ? color : (s.color || color)),
       strokeColors: '#fff',
       strokeWidth: 2,
       hover: {
-        size: 7
-      }
+        size: 6,
+        sizeOffset: 2
+      },
+      shape: 'circle',
+      showNullDataPoints: false
     },
     colors: series.map((s, i) => i === 0 ? color : (s.color || color)),
     xaxis: {
@@ -2307,7 +2391,24 @@ function chart(id, label, dataField, color) {
       max: getMaxValue(dataField)
     },
     grid: {
-      borderColor: '#374151'
+      borderColor: '#374151',
+      strokeDashArray: 4,
+      xaxis: {
+        lines: {
+          show: true
+        }
+      },
+      yaxis: {
+        lines: {
+          show: true
+        }
+      },
+      padding: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0
+      }
     },
     tooltip: {
       theme: 'dark',
@@ -3156,9 +3257,11 @@ function updateDashboardTitle() {
   if (userName && userName.trim() !== '') {
     const newTitle = `Welcome to ${userName}'s health`;
     titleElement.textContent = newTitle;
+    titleElement.setAttribute('data-text', newTitle);
     document.title = `${userName.charAt(0).toUpperCase() + userName.slice(1)}'s Health Dashboard`;
   } else {
     titleElement.textContent = 'Health Dashboard';
+    titleElement.setAttribute('data-text', 'Health Dashboard');
     document.title = 'Health Dashboard';
   }
 }
@@ -3219,9 +3322,79 @@ function setLogViewRange(days) {
   refreshCharts();
 }
 
+function checkAndUpdateViewRangeButtons() {
+  // Check if the current date range matches any predefined range (7, 30, 90 days)
+  const startDateInput = document.getElementById('startDate');
+  const endDateInput = document.getElementById('endDate');
+  
+  if (!startDateInput || !endDateInput || !startDateInput.value || !endDateInput.value) {
+    // If dates are empty, deselect all buttons
+    document.querySelectorAll('.log-date-range-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    return;
+  }
+  
+  const startDate = new Date(startDateInput.value);
+  const endDate = new Date(endDateInput.value);
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  
+  // Check if end date is today (or very close to today)
+  const endDateDiff = Math.abs(today - endDate);
+  const oneDayMs = 86400000;
+  const isEndDateToday = endDateDiff < oneDayMs;
+  
+  if (!isEndDateToday) {
+    // End date is not today, so it's a custom range - deselect all buttons
+    document.querySelectorAll('.log-date-range-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    return;
+  }
+  
+  // Calculate the number of days between start and end
+  const daysDiff = Math.ceil((endDate - startDate) / oneDayMs) + 1; // +1 to include both start and end days
+  
+  // Check if it matches any predefined range
+  if (daysDiff === 7 || daysDiff === 30 || daysDiff === 90) {
+    // Check if start date matches the expected start date for this range
+    const expectedStartDate = new Date(today);
+    expectedStartDate.setDate(expectedStartDate.getDate() - (daysDiff - 1));
+    expectedStartDate.setHours(0, 0, 0, 0);
+    
+    const startDateMatch = Math.abs(startDate - expectedStartDate) < oneDayMs;
+    
+    if (startDateMatch) {
+      // Matches a predefined range - select the appropriate button
+      document.querySelectorAll('.log-date-range-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      const logButtonId = `logRange${daysDiff}Days`;
+      const logButton = document.getElementById(logButtonId);
+      if (logButton) {
+        logButton.classList.add('active');
+      }
+    } else {
+      // Doesn't match exactly - deselect all buttons
+      document.querySelectorAll('.log-date-range-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+    }
+  } else {
+    // Doesn't match any predefined range - deselect all buttons
+    document.querySelectorAll('.log-date-range-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+  }
+}
+
 function filterLogs() {
   const startDate = document.getElementById('startDate').value;
   const endDate = document.getElementById('endDate').value;
+  
+  // Check and update View Range buttons based on current date selection
+  checkAndUpdateViewRangeButtons();
   
   if (!startDate && !endDate) {
     renderLogs();
@@ -3258,6 +3431,8 @@ function renderFilteredLogs(filteredLogs) {
     const div = document.createElement("div");
     div.className = "entry";
     if (isExtreme(log)) div.classList.add("highlight");
+    // Add flare-up class for red glow effect
+    if (log.flare === 'Yes') div.classList.add("flare-up-entry");
     
     // Convert weight to display unit (stored as kg)
     const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
@@ -3354,6 +3529,8 @@ function renderSortedLogs(sortedLogs) {
     const div = document.createElement("div");
     div.className = "entry";
     if (isExtreme(log)) div.classList.add("highlight");
+    // Add flare-up class for red glow effect
+    if (log.flare === 'Yes') div.classList.add("flare-up-entry");
     
     // Convert weight to display unit (stored as kg)
     const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
@@ -3640,6 +3817,15 @@ function initializeDateFilters() {
   if (startDateInput && endDateInput) {
     startDateInput.value = formatDate(sevenDaysAgo);
     endDateInput.value = formatDate(today);
+    
+    // Add event listeners to detect manual date changes
+    startDateInput.addEventListener('change', () => {
+      checkAndUpdateViewRangeButtons();
+    });
+    
+    endDateInput.addEventListener('change', () => {
+      checkAndUpdateViewRangeButtons();
+    });
     
     // Automatically apply the filter
     setTimeout(() => {
