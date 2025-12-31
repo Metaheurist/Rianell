@@ -1112,14 +1112,15 @@ function importData() {
 // Now served locally from your server with progress tracking!
 const TRANSFORMERS_CONFIG = {
   enabled: true, // Enabled - served locally from your server
-  task: 'text-generation', // Task type for Transformers.js pipeline (chat models use text-generation)
-  // Better quality models for detailed health analysis:
-  // Using TinyLlama for better quality responses while still being reasonable size
-  model: 'Xenova/TinyLlama-1.1B-Chat-v1.0', // Chat-optimized model for better conversational responses (~500MB)
-  // Alternative higher-quality models (larger downloads):
-  // 'Xenova/Phi-3-mini-4k-instruct' - Microsoft's efficient model, excellent quality (~2GB) - use task: 'text-generation'
-  // 'Xenova/Qwen2.5-1.5B-Instruct' - High quality instruction model (~600MB) - if available
-  maxNewTokens: 800, // Increased for longer, more detailed responses
+  task: 'text-generation', // Task type for GPT-2
+  // Using base GPT-2 - confirmed publicly available and working with Transformers.js
+  // Many larger Xenova models require authentication. Base GPT-2 is reliable and publicly accessible.
+  model: 'Xenova/gpt2', // Base GPT-2 (~500MB), publicly available, reliable
+  // This is the largest model that's confirmed to work without authentication
+  // Alternative models (if needed):
+  // 'Xenova/distilgpt2' - Smaller distilled version (~350MB), faster but lower quality (use task: 'text-generation')
+  // 'Xenova/LaMini-Flan-T5-783M' - Smaller (~200MB) but lower quality (use task: 'text2text-generation')
+  maxNewTokens: 200, // Limited for concise responses
   temperature: 0.7,
   topK: 50,
   topP: 0.95
@@ -1422,6 +1423,11 @@ async function initTransformers() {
       if (modelName.includes('LaMini-Flan-T5')) return 200; // ~200MB
       if (modelName.includes('Phi-3-mini')) return 2000; // ~2GB
       if (modelName.includes('Qwen2.5-1.5B')) return 600; // ~600MB
+      if (modelName.includes('gpt2-xl')) return 3000; // ~3GB
+      if (modelName.includes('gpt2-large')) return 1500; // ~1.5GB
+      if (modelName.includes('gpt2-medium')) return 500; // ~500MB
+      if (modelName.includes('distilgpt2')) return 350; // ~350MB
+      if (modelName.includes('gpt2')) return 500; // ~500MB (base GPT-2)
       return 500; // Default estimate
     };
     
@@ -1590,25 +1596,28 @@ async function getTransformersInsights(analysis, logs, dayCount) {
       return null;
     }
 
-    // Prepare the prompt
+    // Prepare the prompt (now concise summary)
     const prompt = buildLLMPrompt(analysis, logs, dayCount);
     
-    // Create shorter system message for TinyLlama
-    const fullPrompt = `Analyze health data for ${CONDITION_CONTEXT.name}. Interpret numbers, identify patterns, offer insights.\n\n${prompt}`;
+    // Format prompt for GPT-2 - simple, focused question
+    const systemMessage = `You are a health advisor for ${CONDITION_CONTEXT.name}. Give practical advice.`;
     
-    // Truncate prompt if too long (TinyLlama has ~2048 token limit, roughly 1500 chars)
-    const maxPromptLength = 1200; // Conservative limit
-    const truncatedPrompt = fullPrompt.length > maxPromptLength 
-      ? fullPrompt.substring(0, maxPromptLength) + '...'
-      : fullPrompt;
+    // Keep prompt short and focused
+    const maxPromptLength = 500; // Much shorter limit - just summary and question
+    const truncatedPrompt = prompt.length > maxPromptLength 
+      ? prompt.substring(0, maxPromptLength) + '...'
+      : prompt;
+    
+    // GPT-2 uses simple text generation format
+    const fullPrompt = `${systemMessage}\n\n${truncatedPrompt}`;
     
     console.log('Generating AI insights with Transformers.js...');
-    console.log('Prompt length:', truncatedPrompt.length, '(original:', fullPrompt.length, ')');
+    console.log('Model:', TRANSFORMERS_CONFIG.model);
+    console.log('Prompt length:', fullPrompt.length);
     
-    // Generate response using Transformers.js - use the pipeline variable returned from initTransformers
-    // Use truncated prompt and reduce max tokens for TinyLlama
-    const output = await pipeline(truncatedPrompt, {
-      max_new_tokens: Math.min(TRANSFORMERS_CONFIG.maxNewTokens, 400), // Reduce for TinyLlama
+    // Generate response with limited tokens for concise output
+    const output = await pipeline(fullPrompt, {
+      max_new_tokens: 200, // Limit output to ~200 tokens (shorter response)
       temperature: TRANSFORMERS_CONFIG.temperature,
       do_sample: true,
       return_full_text: false,
@@ -1651,32 +1660,30 @@ async function getTransformersInsights(analysis, logs, dayCount) {
 }
 
 function buildLLMPrompt(analysis, logs, dayCount) {
-  // Format the analysis data for the LLM - keep it concise for TinyLlama's context window
-  const trendsSummary = Object.entries(analysis.trends)
-    .slice(0, 8) // Limit to 8 key metrics to reduce prompt size
-    .map(([metric, data]) => {
+  // Create a concise summary instead of all the data
+  // Focus on key metrics only
+  const keyMetrics = ['backPain', 'stiffness', 'fatigue', 'sleep', 'mobility'];
+  const trendsSummary = keyMetrics
+    .filter(metric => analysis.trends[metric])
+    .map(metric => {
+      const data = analysis.trends[metric];
       const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
       const direction = data.trend > 0.2 ? 'improving' : data.trend < -0.2 ? 'worsening' : 'stable';
-      return `${metricName}: avg ${data.average}/10, trend: ${direction}`;
+      return `${metricName}: ${data.average}/10 avg, ${direction}`;
     })
     .join('; ');
 
-  // Only include last 2 days to reduce prompt size
-  const recentData = logs.slice(-2).map(log => 
-    `${log.date}: Pain ${log.backPain}/10, Sleep ${log.sleep}/10, Flare ${log.flare === 'Yes' ? 'Yes' : 'No'}`
-  ).join('; ');
-
   const flareCount = logs.filter(log => log.flare === 'Yes').length;
-  const avgBPM = Math.round(logs.reduce((sum, log) => sum + parseInt(log.bpm || 0), 0) / logs.length);
+  const flarePercent = Math.round(flareCount / dayCount * 100);
   
-  // Limit correlations and anomalies to top 3 each
-  const topCorrelations = analysis.correlations.slice(0, 3).join('; ') || 'None';
-  const topAnomalies = analysis.anomalies.slice(0, 3).join('; ') || 'None';
+  // Only include top 2 correlations and anomalies
+  const topCorrelation = analysis.correlations[0] || 'No patterns detected';
+  const topAnomaly = analysis.anomalies[0] || 'No concerns';
 
-  // Shorter, more concise prompt for TinyLlama
-  return `Analyze health data for ${CONDITION_CONTEXT.name}. Data (${dayCount} days): ${trendsSummary}. Patterns: ${topCorrelations}. Concerns: ${topAnomalies}. Recent: ${recentData}. Stats: ${flareCount}/${dayCount} flare days, ${avgBPM} bpm avg.
+  // Concise, question-focused prompt
+  return `Patient with ${CONDITION_CONTEXT.name} tracked ${dayCount} days. Summary: ${trendsSummary}. Flare-ups: ${flareCount}/${dayCount} days (${flarePercent}%). Pattern: ${topCorrelation}. Concern: ${topAnomaly}.
 
-Write 2-3 paragraphs analyzing trends, patterns, and actionable advice based on the data. Reference specific numbers. Be encouraging.`;
+What advice do you have for managing ${CONDITION_CONTEXT.name} based on this data? Write 2-3 short paragraphs (max 200 words) with practical recommendations.`;
 }
 
 // Custom AI Analysis Engine (condition-agnostic)
