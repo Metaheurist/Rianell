@@ -36,8 +36,26 @@ function initSupabase() {
 // Strong AES-256-GCM encryption using Web Crypto API
 // This provides authenticated encryption with proper security
 
+// Check if Web Crypto API is available (requires secure context - HTTPS or localhost)
+function isSecureContext() {
+  return typeof crypto !== 'undefined' && 
+         typeof crypto.subtle !== 'undefined' &&
+         (window.isSecureContext || window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+}
+
 // Derive encryption key using PBKDF2 (Password-Based Key Derivation Function 2)
 async function deriveEncryptionKey(userId, password) {
+  // Check if Web Crypto API is available
+  if (!isSecureContext()) {
+    const error = new Error('Web Crypto API requires a secure context (HTTPS or localhost). Cloud sync is not available when accessing via LAN IP (http://). Please use https:// or access via localhost.');
+    console.error('❌ Cloud sync error:', error.message);
+    console.warn('💡 Solutions:');
+    console.warn('   1. Access via localhost: http://localhost:8080');
+    console.warn('   2. Set up HTTPS for LAN access');
+    console.warn('   3. Use a reverse proxy with SSL certificate');
+    throw error;
+  }
+  
   // Combine user ID and password for key material
   const keyMaterial = userId + password;
   
@@ -150,8 +168,22 @@ async function checkCloudAuth() {
   try {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
+      const currentUserId = session.user.id;
+      
+      // SECURITY: Clear previous user's data if user changed
+      const storedUserId = localStorage.getItem('currentCloudUserId');
+      if (storedUserId && storedUserId !== currentUserId) {
+        console.log('⚠️ User change detected - clearing previous user data');
+        localStorage.setItem("healthLogs", JSON.stringify([]));
+        localStorage.setItem('healthAppSettings', JSON.stringify({}));
+        if (typeof renderLogs === 'function') {
+          renderLogs();
+        }
+      }
+      localStorage.setItem('currentCloudUserId', currentUserId);
+      
       cloudSyncState.isAuthenticated = true;
-      cloudSyncState.userId = session.user.id;
+      cloudSyncState.userId = currentUserId;
       updateCloudStatus('Connected', 'success');
       showCloudSyncSection(session.user.email);
       
@@ -250,6 +282,13 @@ async function handleCloudSignUp() {
   }
 
   try {
+    // Check secure context before attempting sign up
+    if (!isSecureContext()) {
+      alert('Cloud sync requires HTTPS or localhost.\n\nYou are accessing via LAN IP (http://).\n\nSolutions:\n1. Use localhost: http://localhost:8080\n2. Set up HTTPS for LAN access\n\nCloud sync will not work over HTTP from LAN IP.');
+      updateCloudStatus('Requires HTTPS/localhost', 'error');
+      return;
+    }
+    
     updateCloudStatus('Creating account...', 'syncing');
     const { data, error } = await supabaseClient.auth.signUp({
       email: email,
@@ -266,7 +305,14 @@ async function handleCloudSignUp() {
     }
   } catch (error) {
     console.error('Sign up error:', error);
-    alert('Error creating account: ' + error.message);
+    let errorMessage = error.message;
+    
+    // Provide helpful message for secure context errors
+    if (errorMessage.includes('secure context') || errorMessage.includes('crypto.subtle') || errorMessage.includes('importKey')) {
+      errorMessage = 'Cloud sync requires HTTPS or localhost. Please access via localhost or set up HTTPS.';
+    }
+    
+    alert('Error creating account: ' + errorMessage);
     updateCloudStatus('Sign up failed', 'error');
   }
 }
@@ -287,6 +333,13 @@ async function handleCloudLogin() {
   }
 
   try {
+    // Check secure context before attempting login/sync
+    if (!isSecureContext()) {
+      alert('Cloud sync requires HTTPS or localhost.\n\nYou are accessing via LAN IP (http://).\n\nSolutions:\n1. Use localhost: http://localhost:8080\n2. Set up HTTPS for LAN access\n\nCloud sync will not work over HTTP from LAN IP.');
+      updateCloudStatus('Requires HTTPS/localhost', 'error');
+      return;
+    }
+    
     updateCloudStatus('Signing in...', 'syncing');
     const { data, error } = await supabaseClient.auth.signInWithPassword({
       email: email,
@@ -296,17 +349,38 @@ async function handleCloudLogin() {
     if (error) throw error;
 
     if (data.session) {
+      const newUserId = data.user.id;
+      
+      // SECURITY: Clear previous user's data when switching users
+      const storedUserId = localStorage.getItem('currentCloudUserId');
+      if (storedUserId && storedUserId !== newUserId) {
+        console.log('⚠️ User switch detected on login - clearing previous user data');
+        localStorage.setItem("healthLogs", JSON.stringify([]));
+        localStorage.setItem('healthAppSettings', JSON.stringify({}));
+        if (typeof renderLogs === 'function') {
+          renderLogs();
+        }
+      }
+      localStorage.setItem('currentCloudUserId', newUserId);
+      
       cloudSyncState.isAuthenticated = true;
-      cloudSyncState.userId = data.user.id;
+      cloudSyncState.userId = newUserId;
       updateCloudStatus('Connected', 'success');
       showCloudSyncSection(data.user.email);
       
-      // Auto-sync on login
+      // Auto-sync on login - this will load ONLY the current user's data
       await syncFromCloud();
     }
   } catch (error) {
     console.error('Login error:', error);
-    alert('Error signing in: ' + error.message);
+    let errorMessage = error.message;
+    
+    // Provide helpful message for secure context errors
+    if (errorMessage.includes('secure context') || errorMessage.includes('crypto.subtle') || errorMessage.includes('importKey')) {
+      errorMessage = 'Cloud sync requires HTTPS or localhost. Please access via localhost or set up HTTPS.';
+    }
+    
+    alert('Error signing in: ' + errorMessage);
     updateCloudStatus('Sign in failed', 'error');
   }
 }
@@ -351,8 +425,28 @@ async function syncToCloud() {
     const healthLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
     const appSettings = JSON.parse(localStorage.getItem('healthAppSettings') || "{}");
     
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    const encryptionKey = await deriveEncryptionKey(user.id, 'health-app-key');
+    // Get user - try getUser first, fallback to stored userId
+    let userId = cloudSyncState.userId;
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    
+    if (userError) {
+      console.warn('getUser error:', userError);
+      // Session might be expired, try to refresh
+      if (userError.message.includes('JWT') || userError.message.includes('session')) {
+        // Re-check auth status
+        await checkCloudAuth();
+        userId = cloudSyncState.userId;
+      }
+    }
+    
+    if (user) {
+      userId = user.id;
+      cloudSyncState.userId = userId; // Update stored userId
+    } else if (!userId) {
+      throw new Error('User not authenticated. Please sign in again.');
+    }
+    
+    const encryptionKey = await deriveEncryptionKey(userId, 'health-app-key');
     
     const encryptedLogs = await encryptData(healthLogs, encryptionKey);
     const encryptedSettings = await encryptData(appSettings, encryptionKey);
@@ -360,7 +454,7 @@ async function syncToCloud() {
     const { error: logsError } = await supabaseClient
       .from('health_data')
       .upsert({
-        user_id: user.id,
+        user_id: userId,
         health_logs: encryptedLogs,
         app_settings: encryptedSettings,
         updated_at: new Date().toISOString()
@@ -380,8 +474,15 @@ async function syncToCloud() {
     setTimeout(() => updateCloudStatus('Connected', 'success'), 2000);
   } catch (error) {
     console.error('Sync error:', error);
-    alert('Error syncing to cloud: ' + error.message);
-    updateCloudStatus('Sync failed', 'error');
+    let errorMessage = error.message;
+    
+    // Provide helpful message for secure context errors
+    if (errorMessage.includes('secure context') || errorMessage.includes('crypto.subtle') || errorMessage.includes('importKey')) {
+      errorMessage = 'Cloud sync requires HTTPS or localhost. You are accessing via LAN IP (http://).\n\nSolutions:\n1. Use localhost: http://localhost:8080\n2. Set up HTTPS for LAN access\n3. Cloud sync will not work over HTTP from LAN IP';
+    }
+    
+    alert('Error syncing to cloud: ' + errorMessage);
+    updateCloudStatus('Sync failed - requires HTTPS/localhost', 'error');
   }
 }
 
@@ -390,42 +491,94 @@ async function syncFromCloud() {
   if (!supabaseClient || !cloudSyncState.isAuthenticated) {
     return;
   }
+  
+  // Check secure context before attempting sync
+  if (!isSecureContext()) {
+    console.warn('⚠️ Cloud sync skipped: Requires HTTPS or localhost (currently accessing via LAN IP)');
+    updateCloudStatus('Requires HTTPS/localhost', 'error');
+    return;
+  }
 
   try {
     updateCloudStatus('Syncing from cloud...', 'syncing');
     
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    const encryptionKey = await deriveEncryptionKey(user.id, 'health-app-key');
+    // Get user - try getUser first, fallback to stored userId
+    let userId = cloudSyncState.userId;
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     
+    if (userError) {
+      console.warn('getUser error:', userError);
+      // Session might be expired, try to refresh
+      if (userError.message.includes('JWT') || userError.message.includes('session')) {
+        // Re-check auth status
+        await checkCloudAuth();
+        userId = cloudSyncState.userId;
+      }
+    }
+    
+    if (user) {
+      userId = user.id;
+      cloudSyncState.userId = userId; // Update stored userId
+    } else if (!userId) {
+      throw new Error('User not authenticated. Please sign in again.');
+    }
+    
+    // Check secure context before attempting encryption
+    if (!isSecureContext()) {
+      throw new Error('Cloud sync requires HTTPS or localhost. Please access via localhost or set up HTTPS.');
+    }
+    
+    const encryptionKey = await deriveEncryptionKey(userId, 'health-app-key');
+    
+    // CRITICAL: Always filter by current user's ID to ensure data isolation
+    // Use RLS (Row Level Security) and explicit filtering
     const { data, error } = await supabaseClient
       .from('health_data')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId) // Explicitly filter by current user
       .single();
 
     if (error && error.code !== 'PGRST116') throw error;
 
+    // SECURITY: Double-check that the data belongs to the current user
     if (data) {
+      // Verify the data actually belongs to this user (defense in depth)
+      if (data.user_id !== userId) {
+        console.error('SECURITY ERROR: Data user_id mismatch!', {
+          expected: userId,
+          received: data.user_id
+        });
+        throw new Error('Security error: Data does not belong to current user. Please sign out and sign in again.');
+      }
+      
       const decryptedLogs = await decryptData(data.health_logs, encryptionKey);
       const decryptedSettings = await decryptData(data.app_settings, encryptionKey);
       
+      // SECURITY: Clear localStorage before loading new user's data to prevent data leakage
+      // Store the current user ID in localStorage to detect user switches
+      const storedUserId = localStorage.getItem('currentCloudUserId');
+      if (storedUserId && storedUserId !== userId) {
+        console.log('⚠️ User switch detected - clearing previous user data from localStorage');
+        localStorage.setItem("healthLogs", JSON.stringify([]));
+        localStorage.setItem('healthAppSettings', JSON.stringify({}));
+      }
+      localStorage.setItem('currentCloudUserId', userId);
+      
       if (decryptedLogs) {
-        const localLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
-        const mergedLogs = mergeLogs(localLogs, decryptedLogs);
-        localStorage.setItem("healthLogs", JSON.stringify(mergedLogs));
+        // Replace local data with cloud data (don't merge to prevent data leakage)
+        localStorage.setItem("healthLogs", JSON.stringify(decryptedLogs));
         if (typeof logs !== 'undefined') {
-          logs = mergedLogs;
+          logs = decryptedLogs;
           if (typeof renderLogs === 'function') renderLogs();
           if (typeof updateCharts === 'function') updateCharts();
         }
       }
       
       if (decryptedSettings) {
-        const localSettings = JSON.parse(localStorage.getItem('healthAppSettings') || "{}");
-        const mergedSettings = { ...localSettings, ...decryptedSettings };
-        localStorage.setItem('healthAppSettings', JSON.stringify(mergedSettings));
+        // Replace local settings with cloud settings (don't merge to prevent data leakage)
+        localStorage.setItem('healthAppSettings', JSON.stringify(decryptedSettings));
         if (typeof appSettings !== 'undefined') {
-          appSettings = { ...appSettings, ...mergedSettings };
+          appSettings = { ...appSettings, ...decryptedSettings };
           if (typeof loadSettings === 'function') loadSettings();
         }
       }
@@ -441,7 +594,17 @@ async function syncFromCloud() {
     setTimeout(() => updateCloudStatus('Connected', 'success'), 2000);
   } catch (error) {
     console.error('Sync from cloud error:', error);
-    updateCloudStatus('Sync failed', 'error');
+    let errorMessage = error.message;
+    
+    // Provide helpful message for secure context errors
+    if (errorMessage.includes('secure context') || errorMessage.includes('crypto.subtle') || errorMessage.includes('importKey')) {
+      errorMessage = 'Cloud sync requires HTTPS or localhost. You are accessing via LAN IP (http://).\n\nSolutions:\n1. Use localhost: http://localhost:8080\n2. Set up HTTPS for LAN access\n3. Cloud sync will not work over HTTP from LAN IP';
+      updateCloudStatus('Sync failed - requires HTTPS/localhost', 'error');
+    } else {
+      updateCloudStatus('Sync failed', 'error');
+    }
+    
+    console.warn('💡 To use cloud sync, access the app via localhost or set up HTTPS');
   }
 }
 
