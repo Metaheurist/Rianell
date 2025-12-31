@@ -994,6 +994,7 @@ function importData() {
           localStorage.setItem("healthLogs", JSON.stringify(logs));
           renderLogs();
           updateCharts();
+          updateHeartbeatAnimation(); // Update heartbeat speed after import
           
           alert(`Successfully imported ${newLogs.length} new health entries!`);
           
@@ -1301,6 +1302,40 @@ function displayAISummary(analysis, dayCount) {
 
 let logs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
 
+// Function to update heartbeat animation speed based on BPM
+function updateHeartbeatAnimation() {
+  const heartbeatPath = document.querySelector('.heartbeat-path');
+  if (!heartbeatPath) return;
+  
+  // Get the most recent BPM from logs
+  if (logs.length === 0) {
+    // Default to 72 BPM if no logs exist
+    const defaultBPM = 72;
+    const duration = Math.max(0.3, Math.min(2.0, 60 / defaultBPM));
+    heartbeatPath.style.animationDuration = `${duration}s`;
+    return;
+  }
+  
+  // Sort logs by date (most recent first) and get the latest BPM
+  const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const latestBPM = parseInt(sortedLogs[0].bpm);
+  
+  if (isNaN(latestBPM) || latestBPM < 30 || latestBPM > 200) {
+    // Invalid BPM, use default
+    const defaultBPM = 72;
+    const duration = Math.max(0.3, Math.min(2.0, 60 / defaultBPM));
+    heartbeatPath.style.animationDuration = `${duration}s`;
+    return;
+  }
+  
+  // Calculate animation duration: 60 seconds / BPM = seconds per beat
+  // Clamp between 0.3s (200 BPM) and 2.0s (30 BPM) for reasonable visual range
+  const duration = Math.max(0.3, Math.min(2.0, 60 / latestBPM));
+  heartbeatPath.style.animationDuration = `${duration}s`;
+  
+  console.log(`Heartbeat animation updated: ${latestBPM} BPM = ${duration.toFixed(2)}s per beat`);
+}
+
 // Add sample data if no data exists
 if (logs.length === 0) {
   const sampleData = [
@@ -1360,6 +1395,8 @@ if (logs.length === 0) {
   logs = sampleData;
   localStorage.setItem("healthLogs", JSON.stringify(logs));
   console.log("Added sample data for demonstration");
+  // Update heartbeat animation after sample data is added
+  setTimeout(() => updateHeartbeatAnimation(), 100);
 }
 
 function deleteLogEntry(logDate) {
@@ -1373,6 +1410,7 @@ function deleteLogEntry(logDate) {
     // Re-render logs and update charts
     renderLogs();
     updateCharts();
+    updateHeartbeatAnimation(); // Update heartbeat speed after deletion
     
     console.log(`Deleted log entry for ${logDate}`);
   }
@@ -1803,6 +1841,7 @@ form.addEventListener("submit", e => {
   localStorage.setItem("healthLogs", JSON.stringify(logs));
   renderLogs();
   updateCharts();
+  updateHeartbeatAnimation(); // Update heartbeat speed based on new BPM
   
   // Switch to logs tab after saving
   switchTab('logs');
@@ -1963,6 +2002,327 @@ function updateUserName() {
   updateDashboardTitle();
 }
 
+// ============================================
+// GOOGLE DRIVE INTEGRATION
+// ============================================
+
+// Google Drive API Configuration
+// NOTE: You need to set up a Google Cloud Project and get a Client ID
+// 1. Go to https://console.cloud.google.com/
+// 2. Create a new project or select existing
+// 3. Enable Google Drive API
+// 4. Create OAuth 2.0 credentials
+// 5. Add your domain to authorized origins
+// 6. Replace the CLIENT_ID below with your actual Client ID
+
+const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com';
+const GOOGLE_API_KEY = 'YOUR_GOOGLE_API_KEY_HERE';
+const DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+let googleAccessToken = null;
+let googleDriveFileId = null;
+const DRIVE_FILENAME = 'HealthAppData.json';
+
+// Initialize Google API
+function initGoogleDrive() {
+  if (typeof gapi === 'undefined') {
+    console.warn('Google API not loaded');
+    return;
+  }
+  
+  gapi.load('client:auth2', () => {
+    gapi.client.init({
+      apiKey: GOOGLE_API_KEY,
+      clientId: GOOGLE_CLIENT_ID,
+      discoveryDocs: DISCOVERY_DOCS,
+      scope: SCOPES
+    }).then(() => {
+      // Check if user is already signed in
+      const authInstance = gapi.auth2.getAuthInstance();
+      if (authInstance && authInstance.isSignedIn.get()) {
+        handleGoogleDriveSignIn(authInstance.currentUser.get());
+      } else {
+        updateDriveUI(false);
+      }
+    }).catch(error => {
+      console.error('Error initializing Google Drive:', error);
+      updateDriveUI(false);
+    });
+  });
+}
+
+// Handle Google Drive Authentication
+async function handleGoogleDriveAuth() {
+  try {
+    if (typeof gapi === 'undefined') {
+      alert('Google API not loaded. Please check your internet connection and refresh the page.');
+      return;
+    }
+    
+    const authInstance = gapi.auth2.getAuthInstance();
+    const user = await authInstance.signIn();
+    handleGoogleDriveSignIn(user);
+  } catch (error) {
+    console.error('Error signing in:', error);
+    alert('Failed to sign in to Google Drive. Please check your credentials and try again.');
+  }
+}
+
+// Handle successful sign in
+function handleGoogleDriveSignIn(user) {
+  const authResult = user.getAuthResponse(true);
+  googleAccessToken = authResult.access_token;
+  
+  // Load file ID from localStorage if exists
+  googleDriveFileId = localStorage.getItem('googleDriveFileId');
+  
+  updateDriveUI(true);
+  
+  // Auto-sync on sign in
+  syncToGoogleDrive();
+}
+
+// Handle Google Drive Logout
+function handleGoogleDriveLogout() {
+  if (typeof gapi === 'undefined') {
+    googleAccessToken = null;
+    googleDriveFileId = null;
+    localStorage.removeItem('googleDriveFileId');
+    updateDriveUI(false);
+    updateDriveStatus('Signed out', false);
+    return;
+  }
+  
+  const authInstance = gapi.auth2.getAuthInstance();
+  if (authInstance) {
+    authInstance.signOut().then(() => {
+      googleAccessToken = null;
+      googleDriveFileId = null;
+      localStorage.removeItem('googleDriveFileId');
+      updateDriveUI(false);
+      updateDriveStatus('Signed out', false);
+    });
+  } else {
+    googleAccessToken = null;
+    googleDriveFileId = null;
+    localStorage.removeItem('googleDriveFileId');
+    updateDriveUI(false);
+    updateDriveStatus('Signed out', false);
+  }
+}
+
+// Update Drive UI based on sign-in status
+function updateDriveUI(isSignedIn) {
+  const loginBtn = document.getElementById('googleDriveLoginBtn');
+  const syncBtn = document.getElementById('googleDriveSyncBtn');
+  const logoutBtn = document.getElementById('googleDriveLogoutBtn');
+  const statusText = document.getElementById('driveStatusText');
+  
+  if (isSignedIn) {
+    if (loginBtn) loginBtn.style.display = 'none';
+    if (syncBtn) syncBtn.style.display = 'block';
+    if (logoutBtn) logoutBtn.style.display = 'block';
+    if (statusText) statusText.textContent = 'Connected to Google Drive';
+    updateDriveStatus('Connected', true);
+  } else {
+    if (loginBtn) loginBtn.style.display = 'block';
+    if (syncBtn) syncBtn.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+    if (statusText) statusText.textContent = 'Not connected';
+    updateDriveStatus('Not connected', false);
+  }
+}
+
+// Update drive status display
+function updateDriveStatus(text, isConnected) {
+  const statusText = document.getElementById('driveStatusText');
+  const statusDiv = document.getElementById('googleDriveStatus');
+  
+  if (statusText) {
+    statusText.textContent = text;
+  }
+  
+  if (statusDiv) {
+    if (isConnected) {
+      statusDiv.classList.add('connected');
+      statusDiv.classList.remove('disconnected');
+    } else {
+      statusDiv.classList.add('disconnected');
+      statusDiv.classList.remove('connected');
+    }
+  }
+}
+
+// Sync data to Google Drive
+async function syncToGoogleDrive() {
+  if (!googleAccessToken) {
+    alert('Please sign in to Google Drive first.');
+    return;
+  }
+  
+  updateDriveStatus('Syncing...', true);
+  
+  try {
+    // Prepare all data to sync
+    const syncData = {
+      healthLogs: JSON.parse(localStorage.getItem("healthLogs") || "[]"),
+      settings: appSettings,
+      syncTimestamp: new Date().toISOString(),
+      version: '1.0'
+    };
+    
+    const fileContent = JSON.stringify(syncData, null, 2);
+    const blob = new Blob([fileContent], { type: 'application/json' });
+    
+    // Check if file exists
+    if (googleDriveFileId) {
+      // Update existing file
+      await updateDriveFile(googleDriveFileId, blob);
+    } else {
+      // Create new file
+      const fileId = await createDriveFile(blob);
+      if (fileId) {
+        googleDriveFileId = fileId;
+        localStorage.setItem('googleDriveFileId', fileId);
+      }
+    }
+    
+    updateDriveStatus('Synced successfully', true);
+    
+    // Show success notification
+    showDriveNotification('Data synced to Google Drive successfully! ✅', 'success');
+    
+  } catch (error) {
+    console.error('Error syncing to Google Drive:', error);
+    updateDriveStatus('Sync failed', false);
+    alert('Failed to sync to Google Drive: ' + error.message);
+  }
+}
+
+// Create a new file on Google Drive
+async function createDriveFile(blob) {
+  const metadata = {
+    name: DRIVE_FILENAME,
+    mimeType: 'application/json'
+  };
+  
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+  form.append('file', blob);
+  
+  const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${googleAccessToken}`
+    },
+    body: form
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to create file: ${response.statusText} - ${errorText}`);
+  }
+  
+  const file = await response.json();
+  return file.id;
+}
+
+// Update existing file on Google Drive
+async function updateDriveFile(fileId, blob) {
+  const form = new FormData();
+  form.append('file', blob);
+  
+  const response = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${googleAccessToken}`
+    },
+    body: form
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to update file: ${response.statusText} - ${errorText}`);
+  }
+  
+  return await response.json();
+}
+
+// Load data from Google Drive
+async function loadFromGoogleDrive() {
+  if (!googleAccessToken || !googleDriveFileId) {
+    return null;
+  }
+  
+  try {
+    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${googleDriveFileId}?alt=media`, {
+      headers: {
+        'Authorization': `Bearer ${googleAccessToken}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to load file: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    // Restore data
+    if (data.healthLogs) {
+      localStorage.setItem("healthLogs", JSON.stringify(data.healthLogs));
+      logs = data.healthLogs;
+      renderLogs();
+      updateCharts();
+    }
+    
+    if (data.settings) {
+      appSettings = { ...appSettings, ...data.settings };
+      saveSettings();
+      applySettings();
+      loadSettingsState();
+    }
+    
+    showDriveNotification('Data loaded from Google Drive successfully! ✅', 'success');
+    return data;
+    
+  } catch (error) {
+    console.error('Error loading from Google Drive:', error);
+    alert('Failed to load from Google Drive: ' + error.message);
+    return null;
+  }
+}
+
+// Show notification
+function showDriveNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `drive-notification ${type}`;
+  notification.textContent = message;
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${type === 'success' ? 'linear-gradient(135deg, #4caf50, #66bb6a)' : 'linear-gradient(135deg, #2196F3, #42A5F5)'};
+    color: white;
+    padding: 18px 24px;
+    border-radius: 16px;
+    font-weight: 600;
+    font-size: 1rem;
+    z-index: 10000;
+    box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4), 0 0 20px rgba(76, 175, 80, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+    setTimeout(() => notification.remove(), 300);
+  }, 3000);
+}
+
 function updateDashboardTitle() {
   const titleElement = document.getElementById('dashboardTitle');
   const userName = appSettings.userName;
@@ -2078,14 +2438,15 @@ function toggleSection(sectionId) {
   }
 }
 
-// Initialize all sections as open by default
+// Initialize all sections as collapsed by default
 function initializeSections() {
   const sections = document.querySelectorAll('.section-content');
   sections.forEach(section => {
-    section.classList.add('open');
+    // Remove 'open' class to keep sections collapsed
+    section.classList.remove('open');
     const header = section.previousElementSibling;
     const arrow = header?.querySelector('.section-arrow');
-    if (arrow) arrow.textContent = '▼';
+    if (arrow) arrow.textContent = '▶';
   });
 }
 
@@ -2192,6 +2553,7 @@ window.addEventListener('load', () => {
     saveSettings();
   }
   updateWeightInputConstraints();
+  updateHeartbeatAnimation(); // Initialize heartbeat animation speed
   
   // Prepopulate date filters with last 7 days
   initializeDateFilters();
@@ -2209,6 +2571,23 @@ window.addEventListener('load', () => {
   
   // Initialize collapsible sections
   initializeSections();
+  
+  // Initialize Google Drive (only if credentials are set)
+  if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID_HERE.apps.googleusercontent.com') {
+    // Wait a bit for Google API to load
+    setTimeout(() => {
+      if (typeof gapi !== 'undefined') {
+        initGoogleDrive();
+      }
+    }, 1000);
+  } else {
+    // Show message that Google Drive needs to be configured
+    const statusText = document.getElementById('driveStatusText');
+    if (statusText) {
+      statusText.textContent = 'Configure Google Drive API';
+      statusText.title = 'Set GOOGLE_CLIENT_ID in app.js to enable Google Drive sync';
+    }
+  }
 });
 
 function initializeDateFilters() {
