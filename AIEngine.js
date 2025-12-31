@@ -5,6 +5,7 @@
 
 // AI Engine Configuration
 const AIEngine = {
+  // Analyze health metrics and generate comprehensive insights
   // logs: filtered logs for analysis display
   // allLogs: all available logs for training/prediction (optional, defaults to logs)
   analyzeHealthMetrics: function(logs, allLogs = null) {
