@@ -295,14 +295,14 @@
       <div class="tab-header">
         <h2>🧠 AI Health Analysis</h2>
       </div>
-      <div class="ai-modal-description">
+      <div style="background: rgba(233, 30, 99, 0.1); border: 1px solid rgba(233, 30, 99, 0.3); border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; color: rgba(224, 242, 241, 0.9); line-height: 1.6;">
         <p>💡 <strong>Tip:</strong> The AI analysis looks at trends, correlations, and patterns in your health metrics to provide actionable advice.</p>
       </div>
-      <button class="ai-generate-btn" onclick="generateAISummary()">
+      <button onclick="generateAISummary()" style="background: linear-gradient(135deg, #e91e63, #f06292); color: white; border: none; border-radius: 12px; padding: 16px 32px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3); display: inline-flex; align-items: center; justify-content: center; gap: 10px; margin: 1.5rem 0;">
         <span>✨</span> Generate Analysis
       </button>
-      <div id="aiResultsContainer" class="ai-results-container hidden">
-        <textarea id="aiResultsTextbox" class="ai-results-textbox" readonly placeholder="Click 'Generate Analysis' to see your personalized health insights here..."></textarea>
+      <div id="aiResultsContainer" style="display: none; width: 100%; margin-top: 1.5rem;">
+        <textarea id="aiResultsTextbox" readonly placeholder="Click 'Generate Analysis' to see your personalized health insights here..." style="width: 100%; min-height: 400px; max-height: 50vh; padding: 20px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 2px solid rgba(255, 255, 255, 0.1); border-radius: 16px; color: var(--text-light); font-size: 0.95rem; font-family: 'Courier New', monospace; line-height: 1.8; resize: vertical; box-sizing: border-box;"></textarea>
       </div>
     </div>
 
