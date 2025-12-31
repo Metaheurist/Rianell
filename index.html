@@ -34,9 +34,8 @@
   <link rel="icon" type="image/png" sizes="16x16" href="Icons/Icon-16.png">
   
   <script src="apexcharts.min.js"></script>
-  <!-- Google API Client Library -->
-  <script src="https://apis.google.com/js/api.js"></script>
-  <script src="https://accounts.google.com/gsi/client"></script>
+  <!-- Supabase Client Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -411,6 +410,51 @@
       </div>
 
       <div class="settings-section">
+        <h4>☁️ Cloud Sync</h4>
+        <div id="cloudSyncStatus" class="cloud-status">
+          <div class="cloud-status-text" id="cloudStatusText">Not connected</div>
+          <div class="cloud-status-indicator" id="cloudStatusIndicator"></div>
+        </div>
+        <div id="cloudAuthSection" class="cloud-auth-section">
+          <div class="cloud-auth-form">
+            <input type="email" id="cloudEmail" placeholder="Email address" class="cloud-input" />
+            <input type="password" id="cloudPassword" placeholder="Password" class="cloud-input" />
+            <div class="cloud-auth-buttons">
+              <button id="cloudSignUpBtn" class="cloud-btn signup-btn" onclick="handleCloudSignUp()">
+                <span>📝 Sign Up</span>
+              </button>
+              <button id="cloudLoginBtn" class="cloud-btn login-btn" onclick="handleCloudLogin()">
+                <span>🔐 Sign In</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="cloudSyncSection" class="cloud-sync-section" style="display: none;">
+          <div class="cloud-user-info">
+            <span id="cloudUserEmail"></span>
+          </div>
+          <div class="cloud-sync-buttons">
+            <button id="cloudSyncBtn" class="cloud-btn sync-btn" onclick="syncToCloud()">
+              <span>🔄 Sync Now</span>
+            </button>
+            <button id="cloudLogoutBtn" class="cloud-btn logout-btn" onclick="handleCloudLogout()">
+              <span>🚪 Sign Out</span>
+            </button>
+          </div>
+          <div class="cloud-sync-info">
+            <small id="cloudLastSync">Last sync: Never</small>
+            <label class="cloud-auto-sync">
+              <input type="checkbox" id="cloudAutoSync" onchange="toggleAutoSync()" />
+              <span>Auto-sync on changes</span>
+            </label>
+          </div>
+        </div>
+        <div class="cloud-setup-info">
+          <small>💡 <strong>Free cloud storage</strong> - Your data is encrypted and synced securely. Create an account to get started.</small>
+        </div>
+      </div>
+
+      <div class="settings-section">
         <h4>📱 Data Options</h4>
         <div class="settings-option">
           <label>Auto-backup to localStorage</label>
@@ -445,24 +489,6 @@
       </div>
 
       <div class="settings-section">
-        <h4>☁️ Google Drive Sync</h4>
-        <div id="googleDriveStatus" class="drive-status">
-          <div class="drive-status-text" id="driveStatusText">Not connected</div>
-        </div>
-        <div class="data-management-buttons">
-          <button id="googleDriveLoginBtn" class="settings-data-btn drive-btn" onclick="handleGoogleDriveAuth()">
-            <span id="driveButtonText">🔐 Sign in with Google</span>
-          </button>
-          <button id="googleDriveSyncBtn" class="settings-data-btn sync-btn" onclick="syncToGoogleDrive()" style="display: none;">
-            <span>🔄 Sync to Google Drive</span>
-          </button>
-          <button id="googleDriveLogoutBtn" class="settings-data-btn logout-btn" onclick="handleGoogleDriveLogout()" style="display: none;">
-            <span>🚪 Sign Out</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="settings-section">
         <h4>💾 Data Management</h4>
         <div class="data-management-buttons">
           <button class="settings-data-btn export-btn" onclick="exportData()">📤 Export Data</button>
@@ -476,5 +502,6 @@
   </div>
 
   <script src="app.js"></script>
+  <script src="cloud-sync.js"></script>
 </body>
 </html>
