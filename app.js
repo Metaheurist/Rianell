@@ -796,10 +796,11 @@ function createCombinedChart() {
   if (window.AIEngine && filteredLogs.length >= 2) {
     try {
       const sortedLogs = [...filteredLogs].sort((a, b) => new Date(a.date) - new Date(b.date));
-      // Get ALL historical logs for better training
-      const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]")
+      // Get ALL historical logs for training (no date filtering - use everything available, up to 10 years)
+      const allHistoricalLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]")
         .sort((a, b) => new Date(a.date) - new Date(b.date));
-      const analysis = window.AIEngine.analyzeHealthMetrics(sortedLogs, allLogs);
+      // Use all historical data for training to get better predictions
+      const analysis = window.AIEngine.analyzeHealthMetrics(sortedLogs, allHistoricalLogs);
       predictionsData = {
         trends: analysis.trends,
         daysToPredict: daysToPredict,
@@ -832,7 +833,7 @@ function createCombinedChart() {
         const regression = trend.regression;
         const isBPM = metric.field === 'bpm';
         
-        // Get the last date from all logs to calculate days since start
+        // Get ALL historical logs for this metric (no date filtering - use everything available)
         const allLogsForMetric = JSON.parse(localStorage.getItem("healthLogs") || "[]")
           .filter(log => log[metric.field] !== undefined && log[metric.field] !== null && log[metric.field] !== '')
           .sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -842,26 +843,20 @@ function createCombinedChart() {
           const lastDateForCalc = new Date(allLogsForMetric[allLogsForMetric.length - 1].date);
           const lastXValue = Math.floor((lastDateForCalc - firstDate) / (1000 * 60 * 60 * 24));
           
-          // Generate predictions for the selected period using regression from all data
-          for (let i = 1; i <= daysToPredict; i++) {
-            const futureX = lastXValue + i; // Days ahead from last data point
-            const predictedY = regression.slope * futureX + regression.intercept;
-            
-            // Keep precision until final rounding
-            let value = predictedY;
-            
-            // Clamp based on metric type (before rounding to preserve differences)
-            if (isBPM) {
-              value = Math.max(30, Math.min(200, value));
-            } else {
-              value = Math.max(0, Math.min(10, value));
-            }
-            
-            // Round to whole number at the end
-            value = Math.round(value);
+          // Use AIEngine's improved prediction method
+          const predictions = window.AIEngine.predictFutureValues(
+            { slope: regression.slope, intercept: regression.intercept },
+            lastXValue,
+            daysToPredict,
+            isBPM
+          );
+          
+          // Generate predictions using the improved method
+          for (let i = 0; i < daysToPredict; i++) {
+            const value = predictions[i];
             
             const futureDate = new Date(lastDate);
-            futureDate.setDate(futureDate.getDate() + i);
+            futureDate.setDate(futureDate.getDate() + (i + 1)); // i+1 because predictions start from day 1
             
             predictedData.push({
               x: futureDate.getTime(),
@@ -1425,8 +1420,9 @@ function generateAISummary() {
   `;
 
   // Analyze the data after a short delay for UX
-  // Use all logs for training, filtered logs for display
+  // Use ALL historical logs for training (up to 10 years), filtered logs for display
   setTimeout(async () => {
+    // Get ALL historical data from localStorage (no date filtering)
     const allLogsForTraining = JSON.parse(localStorage.getItem("healthLogs") || "[]")
       .sort((a, b) => new Date(a.date) - new Date(b.date));
     const analysis = window.AIEngine ? 
@@ -1931,19 +1927,24 @@ function chart(id, label, dataField, color) {
       // Use prediction range setting
       const daysToPredict = predictionRange;
       
-      // Get ALL historical logs for training (better predictions)
-      const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]")
-        .filter(log => log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '')
+      // Get ALL historical logs for training (no date filtering - use everything available)
+      // This ensures we use up to 10 years of data for better predictions
+      const allHistoricalLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]")
         .sort((a, b) => new Date(a.date) - new Date(b.date));
       
+      // Filter to only logs with this metric for training
+      const allLogs = allHistoricalLogs
+        .filter(log => log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '');
+      
       if (allLogs.length >= 2) {
-        // Sort filtered logs chronologically for getting the last date
+        // Sort filtered logs chronologically for getting the last date (for prediction start point)
         const sortedLogs = filteredLogs
           .filter(log => log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '')
           .sort((a, b) => new Date(a.date) - new Date(b.date));
         
         if (sortedLogs.length >= 2) {
-          // Analyze with AIEngine: use all logs for training, filtered logs just for last date
+          // Analyze with AIEngine: use ALL historical logs for training (up to 10 years),
+          // filtered logs just for determining last date and display
           const analysis = window.AIEngine.analyzeHealthMetrics(sortedLogs, allLogs);
           
           if (analysis.trends[dataField]) {
@@ -1960,23 +1961,17 @@ function chart(id, label, dataField, color) {
               const lastTrainingDate = new Date(allLogs[allLogs.length - 1].date);
               const lastX = Math.floor((lastTrainingDate - firstTrainingDate) / (1000 * 60 * 60 * 24));
               
-              // Generate predictions for the selected number of days
-              for (let i = 1; i <= daysToPredict; i++) {
-                const futureX = lastX + i; // Days ahead from last data point
-                const predictedY = regression.slope * futureX + regression.intercept;
-                
-                // Keep precision until final rounding
-                let value = predictedY;
-                
-                // Clamp based on metric type (before rounding to preserve differences)
-                if (isBPM) {
-                  value = Math.max(30, Math.min(200, value));
-                } else {
-                  value = Math.max(0, Math.min(10, value));
-                }
-                
-                // Round to whole number at the end
-                value = Math.round(value);
+              // Use AIEngine's improved prediction method
+              const predictions = window.AIEngine.predictFutureValues(
+                { slope: regression.slope, intercept: regression.intercept },
+                lastX,
+                daysToPredict,
+                isBPM
+              );
+              
+              // Generate predictions using the improved method
+              for (let i = 0; i < daysToPredict; i++) {
+                const value = predictions[i];
                 
                 // Convert weight to display unit if needed
                 if (dataField === 'weight' && appSettings.weightUnit === 'lb') {
@@ -1985,7 +1980,7 @@ function chart(id, label, dataField, color) {
                 }
                 
                 const futureDate = new Date(lastDate);
-                futureDate.setDate(futureDate.getDate() + i);
+                futureDate.setDate(futureDate.getDate() + (i + 1)); // i+1 because predictions start from day 1
                 
                 predictedData.push({
                   x: futureDate.getTime(),

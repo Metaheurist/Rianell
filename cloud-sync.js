@@ -116,7 +116,14 @@ async function encryptData(data, key) {
     combined.set(new Uint8Array(encryptedBuffer), iv.length);
     
     // Convert to base64 for storage
-    return btoa(String.fromCharCode(...combined));
+    // Use chunked conversion to avoid stack overflow with large datasets
+    const chunkSize = 8192; // Process in 8KB chunks
+    let binaryString = '';
+    for (let i = 0; i < combined.length; i += chunkSize) {
+      const chunk = combined.slice(i, i + chunkSize);
+      binaryString += String.fromCharCode.apply(null, chunk);
+    }
+    return btoa(binaryString);
   } catch (error) {
     console.error('Encryption error:', error);
     throw new Error('Failed to encrypt data: ' + error.message);

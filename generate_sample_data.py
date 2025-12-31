@@ -29,9 +29,9 @@ def generate_sample_data(num_days=90, start_date=None, base_weight=75.0):
         end_date = today - timedelta(days=1)  # Yesterday
         start_date = end_date - timedelta(days=num_days - 1)  # num_days before yesterday
         
-        # Validate dates are reasonable (within current year/month context)
+        # Validate dates are reasonable (supports up to 10 years back)
         # This prevents issues if system date is wrong
-        if start_date.year < 2020 or start_date.year > 2030:
+        if start_date.year < 2014 or start_date.year > 2035:
             print(f"Warning: Generated start date {start_date.strftime('%Y-%m-%d')} seems incorrect.")
             print(f"Current system date: {today.strftime('%Y-%m-%d')}")
             # Recalculate from a safe date
@@ -200,15 +200,42 @@ def main():
     print("=" * 60)
     print()
     
+    # Prompt for number of days (supports up to 10 years = ~3,650 days)
+    max_days = 3650  # 10 years
+    while True:
+        try:
+            days_input = input(f"Enter number of days to generate (1-{max_days}, default: 90): ").strip()
+            if days_input == "":
+                num_days = 90
+                break
+            num_days = int(days_input)
+            if num_days <= 0:
+                print("Please enter a positive number.")
+                continue
+            if num_days > max_days:
+                print(f"Maximum supported: {max_days} days (10 years). Please enter a smaller number.")
+                continue
+            if num_days > 1000:
+                years = num_days / 365.25
+                print(f"Generating {num_days} days (~{years:.1f} years) of data. This may take a moment...")
+            break
+        except ValueError:
+            print("Please enter a valid number.")
+    
     # Configuration
-    num_days = 90  # Generate 90 days of data
     base_weight = 75.0  # Starting weight in kg
     
-    print(f"Generating {num_days} days of randomized health data...")
+    print()
+    if num_days <= 1000:
+        print(f"Generating {num_days} days of randomized health data...")
+    else:
+        years = num_days / 365.25
+        print(f"Generating {num_days} days (~{years:.1f} years) of randomized health data...")
+        print("This may take a moment for large datasets...")
     print(f"Base weight: {base_weight} kg")
     print()
     
-    # Generate data
+    # Generate data (supports up to 10 years / 3650 days)
     entries = generate_sample_data(
         num_days=num_days,
         base_weight=base_weight

@@ -21,9 +21,10 @@ const AIEngine = {
 
     if (logs.length === 0) return analysis;
 
-    // Use all available data for training if provided, otherwise use filtered logs
-    const trainingLogs = allLogs && allLogs.length > logs.length ? allLogs : logs;
-    // Use filtered logs for analysis/display
+    // Use all available data for training if provided (prioritize allLogs for better predictions)
+    // This ensures we use up to 10 years of historical data for regression training
+    const trainingLogs = allLogs && allLogs.length > 0 ? allLogs : logs;
+    // Use filtered logs for analysis/display (averages, current values, etc.)
     const recentLogs = logs;
 
     // Calculate averages and trends for all metrics
@@ -270,28 +271,110 @@ const AIEngine = {
     };
   },
 
-  // Predict future values using linear regression
+  // Predict future values using linear regression with trend-preserving rounding
   // lastX: the x value of the last data point (days since start)
   // daysAhead: number of days to predict
   predictFutureValues: function(regression, lastX, daysAhead, isBPM = false) {
     const predictions = [];
+    const minValue = isBPM ? 30 : 0;
+    const maxValue = isBPM ? 200 : 10;
+    
+    // Calculate raw predicted values for all days
+    const rawPredictions = [];
     for (let i = 1; i <= daysAhead; i++) {
-      const futureX = lastX + i; // Days ahead from last data point
+      const futureX = lastX + i;
       const predictedY = regression.slope * futureX + regression.intercept;
+      rawPredictions.push(Math.max(minValue, Math.min(maxValue, predictedY)));
+    }
+    
+    // Calculate the actual change over the prediction period
+    const startValue = rawPredictions[0];
+    const endValue = rawPredictions[rawPredictions.length - 1];
+    const totalChange = endValue - startValue;
+    const absChange = Math.abs(totalChange);
+    
+    // Determine how many whole number steps we should show
+    // For 90 days, even a small change should be visible
+    const minSteps = daysAhead > 30 ? Math.max(1, Math.ceil(absChange * 0.5)) : Math.ceil(absChange);
+    const targetSteps = Math.min(minSteps, Math.ceil(absChange) + 1);
+    
+    // If there's any meaningful trend (slope > 0.001 or change > 0.1), ensure variation
+    const hasTrend = Math.abs(regression.slope) > 0.001 || absChange > 0.1;
+    
+    if (hasTrend && daysAhead > 7) {
+      // For longer predictions, use progressive rounding that ensures variation
+      const roundedStart = Math.round(startValue);
+      const roundedEnd = Math.round(endValue);
       
-      // Keep precision until final rounding
-      let value = predictedY;
-      
-      // Clamp based on metric type (before rounding to preserve differences)
-      if (isBPM) {
-        value = Math.max(30, Math.min(200, value));
-      } else {
-        value = Math.max(0, Math.min(10, value));
+      // Calculate how many steps we need to show the trend
+      let stepsToShow = Math.abs(roundedEnd - roundedStart);
+      if (stepsToShow === 0 && absChange >= 0.3) {
+        // Even if start and end round to same, show at least 1 step if change is meaningful
+        stepsToShow = 1;
       }
       
-      // Round to whole number at the end
-      predictions.push(Math.round(value));
+      // Distribute steps evenly across the prediction period
+      for (let i = 0; i < daysAhead; i++) {
+        const progress = i / (daysAhead - 1); // 0 to 1
+        const rawValue = rawPredictions[i];
+        
+        // Calculate target value based on linear interpolation
+        let targetValue;
+        if (totalChange >= 0) {
+          targetValue = roundedStart + (stepsToShow * progress);
+        } else {
+          targetValue = roundedStart - (stepsToShow * progress);
+        }
+        
+        // Round to nearest whole number, but bias towards showing the trend
+        let rounded;
+        if (i === 0) {
+          rounded = roundedStart;
+        } else if (i === daysAhead - 1) {
+          rounded = roundedEnd !== roundedStart ? roundedEnd : 
+                   (totalChange > 0 ? roundedStart + 1 : roundedStart - 1);
+          rounded = Math.max(minValue, Math.min(maxValue, rounded));
+        } else {
+          // For middle values, use the raw prediction but adjust to show progression
+          const idealStep = Math.round(targetValue);
+          const rawRounded = Math.round(rawValue);
+          
+          // If we're stuck at same value, increment/decrement based on trend
+          if (i > 0 && rawRounded === predictions[i - 1]) {
+            if (totalChange > 0 && rawValue > predictions[i - 1] + 0.2) {
+              rounded = predictions[i - 1] + 1;
+            } else if (totalChange < 0 && rawValue < predictions[i - 1] - 0.2) {
+              rounded = predictions[i - 1] - 1;
+            } else {
+              rounded = rawRounded;
+            }
+          } else {
+            rounded = rawRounded;
+          }
+        }
+        
+        // Ensure we don't exceed bounds
+        rounded = Math.max(minValue, Math.min(maxValue, rounded));
+        predictions.push(rounded);
+      }
+      
+      // Post-process to ensure smooth progression and visible trend
+      if (predictions[0] === predictions[predictions.length - 1] && absChange >= 0.3) {
+        // Force at least one step change
+        const stepSize = totalChange > 0 ? 1 : -1;
+        const midPoint = Math.floor(daysAhead / 2);
+        const endPoint = daysAhead - 1;
+        
+        predictions[midPoint] = Math.max(minValue, Math.min(maxValue, predictions[0] + stepSize));
+        predictions[endPoint] = Math.max(minValue, Math.min(maxValue, predictions[0] + stepSize));
+      }
+    } else {
+      // For short predictions or very flat trends, use standard rounding
+      for (let i = 0; i < daysAhead; i++) {
+        predictions.push(Math.round(rawPredictions[i]));
+      }
     }
+    
     return predictions;
   },
 
