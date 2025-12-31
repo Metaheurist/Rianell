@@ -21,8 +21,23 @@ def generate_sample_data(num_days=30, start_date=None, base_weight=75.0):
     Returns:
         List of dictionaries containing health log entries
     """
+    # Generate dates for the past 30 days, ending yesterday (most recent entry)
     if start_date is None:
-        start_date = datetime.now() - timedelta(days=num_days)
+        # Get today's date - use actual current date, not hardcoded
+        today = datetime.now()
+        # Start from 30 days ago, end yesterday (so we have 30 days total)
+        end_date = today - timedelta(days=1)  # Yesterday
+        start_date = end_date - timedelta(days=num_days - 1)  # 30 days before yesterday
+        
+        # Validate dates are reasonable (within current year/month context)
+        # This prevents issues if system date is wrong
+        if start_date.year < 2020 or start_date.year > 2030:
+            print(f"Warning: Generated start date {start_date.strftime('%Y-%m-%d')} seems incorrect.")
+            print(f"Current system date: {today.strftime('%Y-%m-%d')}")
+            # Recalculate from a safe date
+            today = datetime(2024, 12, 31) if today.year < 2024 else today
+            end_date = today - timedelta(days=1)
+            start_date = end_date - timedelta(days=num_days - 1)
     
     entries = []
     
@@ -31,6 +46,7 @@ def generate_sample_data(num_days=30, start_date=None, base_weight=75.0):
     flare_state = False
     flare_duration = 0
     
+    # Generate exactly num_days of consecutive daily entries
     for day in range(num_days):
         date = start_date + timedelta(days=day)
         date_str = date.strftime('%Y-%m-%d')  # Format: YYYY-MM-DD (matches app's date input format)
@@ -127,6 +143,7 @@ def generate_sample_data(num_days=30, start_date=None, base_weight=75.0):
 def save_to_csv(entries, filename='health_data_sample.csv'):
     """
     Save entries to CSV file in the format expected by the Health App.
+    Overwrites existing file if it exists.
     
     Args:
         entries: List of dictionaries containing health log entries
@@ -136,6 +153,10 @@ def save_to_csv(entries, filename='health_data_sample.csv'):
         print("No entries to save.")
         return
     
+    # Check if file exists and will be overwritten
+    if os.path.exists(filename):
+        print(f"Note: '{filename}' already exists. Overwriting with new data...")
+    
     # CSV headers matching the app's export format
     headers = [
         'Date', 'BPM', 'Weight', 'Fatigue', 'Stiffness', 'Back Pain',
@@ -143,10 +164,31 @@ def save_to_csv(entries, filename='health_data_sample.csv'):
         'Flare', 'Mood', 'Irritability', 'Notes'
     ]
     
+    # Write CSV manually to match app's exact format (no CSV module quirks)
+    # 'w' mode automatically overwrites existing files
     with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=headers)
-        writer.writeheader()
-        writer.writerows(entries)
+        # Write header exactly as app exports it
+        csvfile.write(','.join(headers) + '\n')
+        # Write data rows
+        for entry in entries:
+            row = [
+                entry['Date'],
+                entry['BPM'],
+                entry['Weight'],
+                entry['Fatigue'],
+                entry['Stiffness'],
+                entry['Back Pain'],
+                entry['Sleep'],
+                entry['Joint Pain'],
+                entry['Mobility'],
+                entry['Daily Function'],
+                entry['Swelling'],
+                entry['Flare'],
+                entry['Mood'],
+                entry['Irritability'],
+                entry['Notes']
+            ]
+            csvfile.write(','.join(row) + '\n')
     
     print(f"Generated {len(entries)} entries and saved to '{filename}'")
     print(f"File location: {os.path.abspath(filename)}")

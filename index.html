@@ -325,6 +325,21 @@
           </button>
         </div>
       </div>
+      <!-- Date Range Filter -->
+      <div class="chart-date-range-filter">
+        <div class="date-range-buttons">
+          <button class="date-range-btn active" onclick="setChartDateRange(7)" id="range7Days">7 Days</button>
+          <button class="date-range-btn" onclick="setChartDateRange(30)" id="range30Days">30 Days</button>
+          <button class="date-range-btn" onclick="setChartDateRange(90)" id="range90Days">90 Days</button>
+          <button class="date-range-btn" onclick="setChartDateRange('custom')" id="rangeCustom">Custom</button>
+        </div>
+        <div id="customDateRangeSelector" class="custom-date-range hidden">
+          <label for="chartStartDate">From:</label>
+          <input type="date" id="chartStartDate" onchange="applyCustomDateRange()">
+          <label for="chartEndDate">To:</label>
+          <input type="date" id="chartEndDate" onchange="applyCustomDateRange()">
+        </div>
+      </div>
       <div id="chartSection">
       <!-- Empty State Placeholder -->
       <div id="chartEmptyPlaceholder" class="chart-empty-placeholder hidden">
