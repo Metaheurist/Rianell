@@ -466,3 +466,207 @@
 2026-01-01 20:11:48 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
 2026-01-01 20:11:48 | DEBUG    | HealthApp | CLIENT | DEBUG | Settings modal opened | IP: 127.0.0.1 | Time: 2026-01-01T20:10:10.105Z
 2026-01-01 20:11:48 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:16 | INFO     | HealthApp | ============================================================
+2026-01-01 20:14:16 | INFO     | HealthApp | Health App Server - Logging Initialized
+2026-01-01 20:14:16 | INFO     | HealthApp | Log file: e:\Health App\logs\health_app_20260101.log
+2026-01-01 20:14:16 | INFO     | HealthApp | Note: Client-side logs are only sent when demo mode is enabled
+2026-01-01 20:14:16 | INFO     | HealthApp | ============================================================
+2026-01-01 20:14:16 | INFO     | HealthApp | Starting Health App Server
+2026-01-01 20:14:16 | INFO     | HealthApp | Server directory: e:\Health App
+2026-01-01 20:14:16 | INFO     | HealthApp | Port: 8080
+2026-01-01 20:14:16 | INFO     | HealthApp | Max connections per IP: 50
+2026-01-01 20:14:16 | INFO     | HealthApp | Connection timeout: 300s
+2026-01-01 20:14:16 | INFO     | HealthApp | Connection cleanup thread started
+2026-01-01 20:14:16 | INFO     | HealthApp | Server socket created successfully
+2026-01-01 20:14:16 | INFO     | HealthApp | Server configured for concurrent connections
+2026-01-01 20:14:16 | INFO     | HealthApp | Local IP determined: 192.168.1.110
+2026-01-01 20:14:16 | INFO     | HealthApp | ============================================================
+2026-01-01 20:14:16 | INFO     | HealthApp | Server ready to accept connections
+2026-01-01 20:14:16 | INFO     | HealthApp | Server URL: http://localhost:8080
+2026-01-01 20:14:16 | INFO     | HealthApp | LAN URL: http://192.168.1.110:8080
+2026-01-01 20:14:16 | INFO     | HealthApp | ============================================================
+2026-01-01 20:14:16 | INFO     | HealthApp | Browser opened at http://localhost:8080
+2026-01-01 20:14:16 | INFO     | HealthApp | Server entering serve_forever() loop
+2026-01-01 20:14:16 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 21080, Total connections for IP: 1
+2026-01-01 20:14:16 | INFO     | HealthApp | REQUEST | GET / | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:16 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 21080, Remaining connections for IP: 0
+2026-01-01 20:14:16 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 27860, Total connections for IP: 1
+2026-01-01 20:14:16 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 9952, Total connections for IP: 2
+2026-01-01 20:14:16 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:16 | INFO     | HealthApp | REQUEST | GET /apexcharts.min.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:16 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 27860, Remaining connections for IP: 1
+2026-01-01 20:14:16 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 9952, Remaining connections for IP: 0
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 24712, Total connections for IP: 1
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 11740, Total connections for IP: 2
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 27660, Total connections for IP: 3
+2026-01-01 20:14:17 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 27916, Total connections for IP: 4
+2026-01-01 20:14:17 | INFO     | HealthApp | REQUEST | GET /AIEngine.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:17 | INFO     | HealthApp | REQUEST | GET /app.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 24712, Remaining connections for IP: 3
+2026-01-01 20:14:17 | INFO     | HealthApp | REQUEST | GET /cloud-sync.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 11740, Remaining connections for IP: 2
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 27660, Remaining connections for IP: 1
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 27916, Remaining connections for IP: 0
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 31320, Total connections for IP: 1
+2026-01-01 20:14:17 | INFO     | HealthApp | REQUEST | GET /apexcharts.min.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 31320, Remaining connections for IP: 0
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 17724, Total connections for IP: 1
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 13412, Total connections for IP: 2
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 21436, Total connections for IP: 3
+2026-01-01 20:14:17 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1767298457357 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:17 | INFO     | HealthApp | REQUEST | GET /AIEngine.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:17 | INFO     | HealthApp | REQUEST | GET /app.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 17724, Remaining connections for IP: 2
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 13412, Remaining connections for IP: 1
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 21436, Remaining connections for IP: 0
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 27836, Total connections for IP: 1
+2026-01-01 20:14:17 | INFO     | HealthApp | REQUEST | GET /cloud-sync.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 27836, Remaining connections for IP: 0
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 5756, Total connections for IP: 1
+2026-01-01 20:14:17 | INFO     | HealthApp | CLIENT | INFO | Health App initialized | Details: {"timestamp": "2026-01-01T20:14:17.302Z", "localStorageAvailable": true} | IP: 127.0.0.1 | Time: 2026-01-01T20:14:17.303Z
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 15236, Total connections for IP: 2
+2026-01-01 20:14:17 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:17 | DEBUG    | HealthApp | CLIENT | DEBUG | CSS cache-busted | Details: {"href": "styles.css"} | IP: 127.0.0.1 | Time: 2026-01-01T20:14:17.357Z
+2026-01-01 20:14:17 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 15236, Remaining connections for IP: 1
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 5756, Remaining connections for IP: 0
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 19368, Total connections for IP: 1
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 27744, Total connections for IP: 2
+2026-01-01 20:14:17 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "apexcharts.min.js"} | IP: 127.0.0.1 | Time: 2026-01-01T20:14:17.358Z
+2026-01-01 20:14:17 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:17 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1767298457737 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 27744, Remaining connections for IP: 1
+2026-01-01 20:14:17 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 19368, Remaining connections for IP: 0
+2026-01-01 20:14:18 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 26480, Total connections for IP: 1
+2026-01-01 20:14:18 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "app.js"} | IP: 127.0.0.1 | Time: 2026-01-01T20:14:17.358Z
+2026-01-01 20:14:18 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:18 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 26480, Remaining connections for IP: 0
+2026-01-01 20:14:18 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 15464, Total connections for IP: 1
+2026-01-01 20:14:18 | INFO     | HealthApp | CLIENT | INFO | Health App initialized | Details: {"timestamp": "2026-01-01T20:14:17.719Z", "localStorageAvailable": true} | IP: 127.0.0.1 | Time: 2026-01-01T20:14:17.719Z
+2026-01-01 20:14:18 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 21884, Total connections for IP: 2
+2026-01-01 20:14:18 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:18 | DEBUG    | HealthApp | CLIENT | DEBUG | CSS cache-busted | Details: {"href": "styles.css"} | IP: 127.0.0.1 | Time: 2026-01-01T20:14:17.737Z
+2026-01-01 20:14:18 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 18200, Total connections for IP: 3
+2026-01-01 20:14:18 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "apexcharts.min.js"} | IP: 127.0.0.1 | Time: 2026-01-01T20:14:17.737Z
+2026-01-01 20:14:18 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:18 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 15464, Remaining connections for IP: 2
+2026-01-01 20:14:18 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:18 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 21884, Remaining connections for IP: 1
+2026-01-01 20:14:18 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 18200, Remaining connections for IP: 0
+2026-01-01 20:14:18 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 13824, Total connections for IP: 1
+2026-01-01 20:14:18 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "app.js"} | IP: 127.0.0.1 | Time: 2026-01-01T20:14:17.738Z
+2026-01-01 20:14:18 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:18 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 13824, Remaining connections for IP: 0
+2026-01-01 20:14:18 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 17844, Total connections for IP: 1
+2026-01-01 20:14:19 | DEBUG    | HealthApp | CLIENT | DEBUG | Cache cleared on startup | IP: 127.0.0.1 | Time: 2026-01-01T20:14:19.885Z
+2026-01-01 20:14:19 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:19 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 17844, Remaining connections for IP: 0
+2026-01-01 20:14:20 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 22992, Total connections for IP: 1
+2026-01-01 20:14:20 | INFO     | HealthApp | REQUEST | GET /manifest.json | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:20 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 22992, Remaining connections for IP: 0
+2026-01-01 20:14:20 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 18248, Total connections for IP: 1
+2026-01-01 20:14:21 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 13004, Total connections for IP: 2
+2026-01-01 20:14:21 | INFO     | HealthApp | CLIENT | INFO | Service Worker registered | Details: {"scope": "http://localhost:8080/"} | IP: 127.0.0.1 | Time: 2026-01-01T20:14:21.415Z
+2026-01-01 20:14:21 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:21 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 13004, Remaining connections for IP: 1
+2026-01-01 20:14:21 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 25612, Total connections for IP: 2
+2026-01-01 20:14:21 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 127.0.0.1 | Path: /Icons/Icon-144.png
+2026-01-01 20:14:21 | INFO     | HealthApp | HTTP File not found | 404 | Client: 127.0.0.1
+2026-01-01 20:14:21 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-144.png | Status: 404 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:21 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 25612, Remaining connections for IP: 1
+2026-01-01 20:14:21 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 8568, Total connections for IP: 2
+2026-01-01 20:14:25 | INFO     | HealthApp | REQUEST | GET / | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:25 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 8568, Remaining connections for IP: 1
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 28852, Total connections for IP: 2
+2026-01-01 20:14:26 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 28852, Remaining connections for IP: 1
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 26316, Total connections for IP: 2
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 30380, Total connections for IP: 3
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 15340, Total connections for IP: 4
+2026-01-01 20:14:26 | INFO     | HealthApp | REQUEST | GET /apexcharts.min.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 17696, Total connections for IP: 5
+2026-01-01 20:14:26 | INFO     | HealthApp | REQUEST | GET /AIEngine.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:26 | INFO     | HealthApp | REQUEST | GET /app.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:26 | INFO     | HealthApp | REQUEST | GET /cloud-sync.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 26316, Remaining connections for IP: 4
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 30380, Remaining connections for IP: 3
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 15340, Remaining connections for IP: 2
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 17696, Remaining connections for IP: 1
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 12960, Total connections for IP: 2
+2026-01-01 20:14:26 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1767298466187 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 12960, Remaining connections for IP: 1
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 26788, Total connections for IP: 2
+2026-01-01 20:14:26 | INFO     | HealthApp | CLIENT | INFO | Health App initialized | Details: {"timestamp": "2026-01-01T20:14:26.175Z", "localStorageAvailable": true} | IP: 127.0.0.1 | Time: 2026-01-01T20:14:26.175Z
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 2800, Total connections for IP: 3
+2026-01-01 20:14:26 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:26 | DEBUG    | HealthApp | CLIENT | DEBUG | CSS cache-busted | Details: {"href": "styles.css"} | IP: 127.0.0.1 | Time: 2026-01-01T20:14:26.188Z
+2026-01-01 20:14:26 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 16200, Total connections for IP: 4
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 25592, Total connections for IP: 5
+2026-01-01 20:14:26 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "apexcharts.min.js"} | IP: 127.0.0.1 | Time: 2026-01-01T20:14:26.188Z
+2026-01-01 20:14:26 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:26 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "app.js"} | IP: 127.0.0.1 | Time: 2026-01-01T20:14:26.188Z
+2026-01-01 20:14:26 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 2800, Remaining connections for IP: 4
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 26788, Remaining connections for IP: 3
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 16200, Remaining connections for IP: 2
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 25592, Remaining connections for IP: 1
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 5704, Total connections for IP: 2
+2026-01-01 20:14:26 | INFO     | HealthApp | REQUEST | GET /sw.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:26 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 5704, Remaining connections for IP: 1
+2026-01-01 20:14:27 | INFO     | HealthApp | REQUEST | GET /manifest.json | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:27 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 18248, Remaining connections for IP: 0
+2026-01-01 20:14:27 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 6012, Total connections for IP: 1
+2026-01-01 20:14:27 | DEBUG    | HealthApp | CLIENT | DEBUG | Cache cleared on startup | IP: 127.0.0.1 | Time: 2026-01-01T20:14:27.230Z
+2026-01-01 20:14:27 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:27 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 6012, Remaining connections for IP: 0
+2026-01-01 20:14:27 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 30048, Total connections for IP: 1
+2026-01-01 20:14:28 | INFO     | HealthApp | CLIENT | INFO | Service Worker registered | Details: {"scope": "http://localhost:8080/"} | IP: 127.0.0.1 | Time: 2026-01-01T20:14:28.549Z
+2026-01-01 20:14:28 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:28 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 30048, Remaining connections for IP: 0
+2026-01-01 20:14:28 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 14620, Total connections for IP: 1
+2026-01-01 20:14:28 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 127.0.0.1 | Path: /Icons/Icon-144.png
+2026-01-01 20:14:28 | INFO     | HealthApp | HTTP File not found | 404 | Client: 127.0.0.1
+2026-01-01 20:14:28 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-144.png | Status: 404 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:14:28 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 14620, Remaining connections for IP: 0
+2026-01-01 20:14:29 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 5960, Total connections for IP: 1
+2026-01-01 20:14:59 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 5960, Remaining connections for IP: 0
+2026-01-01 20:15:24 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 25036, Total connections for IP: 1
+2026-01-01 20:15:24 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 28776, Total connections for IP: 2
+2026-01-01 20:15:24 | INFO     | HealthApp | REQUEST | GET / | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:15:24 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 25036, Remaining connections for IP: 1
+2026-01-01 20:15:24 | INFO     | HealthApp | REQUEST | GET /apexcharts.min.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:15:24 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 28776, Remaining connections for IP: 0
+2026-01-01 20:15:24 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 25448, Total connections for IP: 1
+2026-01-01 20:15:24 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:15:24 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 25448, Remaining connections for IP: 0
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 11720, Total connections for IP: 1
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 5948, Total connections for IP: 2
+2026-01-01 20:15:25 | INFO     | HealthApp | REQUEST | GET /AIEngine.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 24184, Total connections for IP: 3
+2026-01-01 20:15:25 | INFO     | HealthApp | REQUEST | GET /app.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:15:25 | INFO     | HealthApp | REQUEST | GET /cloud-sync.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 11720, Remaining connections for IP: 2
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 5948, Remaining connections for IP: 1
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 24184, Remaining connections for IP: 0
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 28184, Total connections for IP: 1
+2026-01-01 20:15:25 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1767298525076 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 28184, Remaining connections for IP: 0
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 7612, Total connections for IP: 1
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 21268, Total connections for IP: 2
+2026-01-01 20:15:25 | INFO     | HealthApp | CLIENT | INFO | Health App initialized | Details: {"timestamp": "2026-01-01T20:15:25.053Z", "localStorageAvailable": true} | IP: 127.0.0.1 | Time: 2026-01-01T20:15:25.053Z
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 26888, Total connections for IP: 3
+2026-01-01 20:15:25 | DEBUG    | HealthApp | CLIENT | DEBUG | CSS cache-busted | Details: {"href": "styles.css"} | IP: 127.0.0.1 | Time: 2026-01-01T20:15:25.076Z
+2026-01-01 20:15:25 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:15:25 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "apexcharts.min.js"} | IP: 127.0.0.1 | Time: 2026-01-01T20:15:25.077Z
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 26228, Total connections for IP: 4
+2026-01-01 20:15:25 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:15:25 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:15:25 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "app.js"} | IP: 127.0.0.1 | Time: 2026-01-01T20:15:25.077Z
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 21268, Remaining connections for IP: 3
+2026-01-01 20:15:25 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 26888, Remaining connections for IP: 2
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 7612, Remaining connections for IP: 1
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection closed: IP 127.0.0.1, Thread 26228, Remaining connections for IP: 0
+2026-01-01 20:15:25 | DEBUG    | HealthApp | Connection opened: IP 127.0.0.1, Thread 20676, Total connections for IP: 1
