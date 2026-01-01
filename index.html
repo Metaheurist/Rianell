@@ -82,6 +82,142 @@
       <p class="loading-text">Loading Health Dashboard...</p>
     </div>
   </div>
+
+  <!-- Settings Menu Overlay - Full Page Container -->
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-menu" onclick="event.stopPropagation()">
+      <div class="settings-header">
+        <h3 class="settings-title">Settings</h3>
+        <button class="settings-close" onclick="toggleSettings()">&times;</button>
+      </div>
+      
+      <div class="settings-content">
+      <div class="settings-section">
+        <h4>👤 Personal Settings</h4>
+        <div class="settings-option">
+          <label for="userNameInput">Your Name</label>
+          <input type="text" id="userNameInput" placeholder="Enter your name..." onchange="updateUserName()" />
+        </div>
+        <div class="settings-option">
+          <label for="medicalConditionInput">Medical Condition</label>
+          <input type="text" id="medicalConditionInput" placeholder="e.g., Ankylosing Spondylitis" onchange="updateMedicalCondition()" />
+        </div>
+        <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
+          <label style="visibility: hidden;">Helper</label>
+          <small style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Used for personalized AI analysis and advice</small>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>📊 Display Options</h4>
+        <div class="settings-option">
+          <label>Show today's reminder</label>
+          <div class="toggle-switch" id="reminderToggle" onclick="toggleSetting('reminder')"></div>
+        </div>
+        <div class="settings-option">
+          <label>Enable sound notifications</label>
+          <div class="toggle-switch" id="soundToggle" onclick="toggleSetting('sound')"></div>
+        </div>
+      </div>
+
+
+      <div class="settings-section">
+        <h4>☁️ Cloud Sync</h4>
+        <div id="cloudSyncStatus" class="cloud-status">
+          <div class="cloud-status-text" id="cloudStatusText">Not connected</div>
+          <div class="cloud-status-indicator" id="cloudStatusIndicator"></div>
+        </div>
+        <div id="cloudAuthSection" class="cloud-auth-section">
+          <div class="cloud-auth-form">
+            <input type="email" id="cloudEmail" placeholder="Email address" class="cloud-input" />
+            <input type="password" id="cloudPassword" placeholder="Password" class="cloud-input" />
+            <div class="cloud-auth-buttons">
+              <button id="cloudSignUpBtn" class="cloud-btn signup-btn" onclick="handleCloudSignUp()">
+                <span>📝 Sign Up</span>
+              </button>
+              <button id="cloudLoginBtn" class="cloud-btn login-btn" onclick="handleCloudLogin()">
+                <span>🔐 Sign In</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="cloudSyncSection" class="cloud-sync-section" style="display: none;">
+          <div class="cloud-user-info">
+            <span id="cloudUserEmail"></span>
+          </div>
+          <div class="cloud-sync-buttons">
+            <button id="cloudSyncBtn" class="cloud-btn sync-btn" onclick="syncToCloud()">
+              <span>🔄 Sync Now</span>
+            </button>
+            <button id="cloudLogoutBtn" class="cloud-btn logout-btn" onclick="handleCloudLogout()">
+              <span>🚪 Sign Out</span>
+            </button>
+          </div>
+          <div class="cloud-sync-info">
+            <small id="cloudLastSync">Last sync: Never</small>
+            <label class="cloud-auto-sync">
+              <input type="checkbox" id="cloudAutoSync" onchange="toggleAutoSync()" />
+              <span>Auto-sync on changes</span>
+            </label>
+          </div>
+        </div>
+        <div class="cloud-setup-info">
+          <small>💡 <strong>Free cloud storage</strong> - Your data is encrypted and synced securely. Create an account to get started.</small>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>📱 Data Options</h4>
+        <div class="settings-option">
+          <label>Auto-backup to localStorage</label>
+          <div class="toggle-switch active" id="backupToggle" onclick="toggleSetting('backup')"></div>
+        </div>
+        <div class="settings-option">
+          <label>Compress chart data</label>
+          <div class="toggle-switch" id="compressToggle" onclick="toggleSetting('compress')"></div>
+        </div>
+        <div class="settings-option">
+          <label>Demo Mode (10 years of sample data)</label>
+          <div class="toggle-switch" id="demoModeToggle" onclick="toggleDemoMode()"></div>
+        </div>
+        <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
+          <label style="visibility: hidden;">Helper</label>
+          <small style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Demo data is not saved or synced</small>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>⚡ Performance</h4>
+        <div class="settings-option">
+          <label>Enable animations</label>
+          <div class="toggle-switch active" id="animationsToggle" onclick="toggleSetting('animations')"></div>
+        </div>
+        <div class="settings-option">
+          <label>Lazy load charts</label>
+          <div class="toggle-switch active" id="lazyToggle" onclick="toggleSetting('lazy')"></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>📱 App Installation</h4>
+        <div class="settings-option">
+          <button class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA()">📱 Install as Standalone App</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>💾 Data Management</h4>
+        <div class="data-management-buttons">
+          <button class="settings-data-btn export-btn" onclick="exportData()">📤 Export Data</button>
+          <button class="settings-data-btn import-btn" onclick="importData()">📥 Import Data</button>
+        </div>
+        <div class="danger-zone">
+          <button class="settings-data-btn danger-btn" onclick="clearData()">🗑️ Clear All Data</button>
+        </div>
+      </div>
+      </div>
+    </div>
+  </div>
   
   <div class="container">
     <!-- Settings Button - Top Right -->
@@ -487,144 +623,6 @@
       </div>
     </div>
 
-  </div>
-
-
-
-  <!-- Settings Menu Overlay -->
-  <div class="settings-overlay" id="settingsOverlay">
-    <div class="settings-menu" onclick="event.stopPropagation()">
-      <div class="settings-header">
-        <h3 class="settings-title">Settings</h3>
-        <button class="settings-close" onclick="toggleSettings()">&times;</button>
-      </div>
-      
-      <div class="settings-content">
-      <div class="settings-section">
-        <h4>👤 Personal Settings</h4>
-        <div class="settings-option">
-          <label for="userNameInput">Your Name</label>
-          <input type="text" id="userNameInput" placeholder="Enter your name..." onchange="updateUserName()" />
-        </div>
-        <div class="settings-option">
-          <label for="medicalConditionInput">Medical Condition</label>
-          <input type="text" id="medicalConditionInput" placeholder="e.g., Ankylosing Spondylitis" onchange="updateMedicalCondition()" />
-        </div>
-        <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
-          <label style="visibility: hidden;">Helper</label>
-          <small style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Used for personalized AI analysis and advice</small>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <h4>📊 Display Options</h4>
-        <div class="settings-option">
-          <label>Show today's reminder</label>
-          <div class="toggle-switch" id="reminderToggle" onclick="toggleSetting('reminder')"></div>
-        </div>
-        <div class="settings-option">
-          <label>Enable sound notifications</label>
-          <div class="toggle-switch" id="soundToggle" onclick="toggleSetting('sound')"></div>
-        </div>
-      </div>
-
-
-      <div class="settings-section">
-        <h4>☁️ Cloud Sync</h4>
-        <div id="cloudSyncStatus" class="cloud-status">
-          <div class="cloud-status-text" id="cloudStatusText">Not connected</div>
-          <div class="cloud-status-indicator" id="cloudStatusIndicator"></div>
-        </div>
-        <div id="cloudAuthSection" class="cloud-auth-section">
-          <div class="cloud-auth-form">
-            <input type="email" id="cloudEmail" placeholder="Email address" class="cloud-input" />
-            <input type="password" id="cloudPassword" placeholder="Password" class="cloud-input" />
-            <div class="cloud-auth-buttons">
-              <button id="cloudSignUpBtn" class="cloud-btn signup-btn" onclick="handleCloudSignUp()">
-                <span>📝 Sign Up</span>
-              </button>
-              <button id="cloudLoginBtn" class="cloud-btn login-btn" onclick="handleCloudLogin()">
-                <span>🔐 Sign In</span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div id="cloudSyncSection" class="cloud-sync-section" style="display: none;">
-          <div class="cloud-user-info">
-            <span id="cloudUserEmail"></span>
-          </div>
-          <div class="cloud-sync-buttons">
-            <button id="cloudSyncBtn" class="cloud-btn sync-btn" onclick="syncToCloud()">
-              <span>🔄 Sync Now</span>
-            </button>
-            <button id="cloudLogoutBtn" class="cloud-btn logout-btn" onclick="handleCloudLogout()">
-              <span>🚪 Sign Out</span>
-            </button>
-          </div>
-          <div class="cloud-sync-info">
-            <small id="cloudLastSync">Last sync: Never</small>
-            <label class="cloud-auto-sync">
-              <input type="checkbox" id="cloudAutoSync" onchange="toggleAutoSync()" />
-              <span>Auto-sync on changes</span>
-            </label>
-          </div>
-        </div>
-        <div class="cloud-setup-info">
-          <small>💡 <strong>Free cloud storage</strong> - Your data is encrypted and synced securely. Create an account to get started.</small>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <h4>📱 Data Options</h4>
-        <div class="settings-option">
-          <label>Auto-backup to localStorage</label>
-          <div class="toggle-switch active" id="backupToggle" onclick="toggleSetting('backup')"></div>
-        </div>
-        <div class="settings-option">
-          <label>Compress chart data</label>
-          <div class="toggle-switch" id="compressToggle" onclick="toggleSetting('compress')"></div>
-        </div>
-        <div class="settings-option">
-          <label>Demo Mode (10 years of sample data)</label>
-          <div class="toggle-switch" id="demoModeToggle" onclick="toggleDemoMode()"></div>
-        </div>
-        <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
-          <label style="visibility: hidden;">Helper</label>
-          <small style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Demo data is not saved or synced</small>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <h4>⚡ Performance</h4>
-        <div class="settings-option">
-          <label>Enable animations</label>
-          <div class="toggle-switch active" id="animationsToggle" onclick="toggleSetting('animations')"></div>
-        </div>
-        <div class="settings-option">
-          <label>Lazy load charts</label>
-          <div class="toggle-switch active" id="lazyToggle" onclick="toggleSetting('lazy')"></div>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <h4>📱 App Installation</h4>
-        <div class="settings-option">
-          <button class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA()">📱 Install as Standalone App</button>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <h4>💾 Data Management</h4>
-        <div class="data-management-buttons">
-          <button class="settings-data-btn export-btn" onclick="exportData()">📤 Export Data</button>
-          <button class="settings-data-btn import-btn" onclick="importData()">📥 Import Data</button>
-        </div>
-        <div class="danger-zone">
-          <button class="settings-data-btn danger-btn" onclick="clearData()">🗑️ Clear All Data</button>
-        </div>
-      </div>
-      </div>
-    </div>
   </div>
 
   <!-- Food Log Modal -->

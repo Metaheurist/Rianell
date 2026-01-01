@@ -2626,6 +2626,18 @@ body.modal-active .ai-modal-content {
   pointer-events: all;
 }
 
+/* Prevent interaction with page content when settings is open */
+body.modal-active .container,
+body.modal-active .tab-content {
+  pointer-events: none;
+}
+
+/* Settings button should always be clickable */
+.settings-button-top {
+  pointer-events: all !important;
+  z-index: 100001 !important;
+}
+
 /* Loading Overlay */
 .loading-overlay {
   position: fixed;
@@ -3567,6 +3579,7 @@ body.light-mode .chart-loading {
   pointer-events: all;
 }
 
+
 .settings-button-top:hover {
   background: rgba(76, 175, 80, 0.1);
   transform: scale(1.1) rotate(90deg);
@@ -3790,22 +3803,23 @@ body.light-mode .settings-button-top:hover {
 
 /* Settings Menu */
 .settings-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100vw;
-  height: 100vh;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
   background: transparent;
   display: none;
-  z-index: 10000;
+  z-index: 99999 !important;
   pointer-events: all;
   overflow: hidden;
   overflow-x: hidden;
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  isolation: isolate;
 }
 
 .settings-overlay[style*="display: flex"],
@@ -3827,20 +3841,23 @@ body.light-mode .settings-button-top:hover {
   border-radius: 24px;
   max-width: 450px;
   width: 90%;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
   box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(76, 175, 80, 0.3);
   border: 2px solid rgba(76, 175, 80, 0.5);
   max-height: calc(85vh - env(safe-area-inset-bottom, 0px));
   overflow: hidden;
   animation: modalFloatIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 10001;
+  z-index: 100000 !important;
   pointer-events: all;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  margin: 0 !important;
+  padding: 0 !important;
+  isolation: isolate;
 }
 
 .settings-header {

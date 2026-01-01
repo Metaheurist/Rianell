@@ -3347,7 +3347,7 @@ function chart(id, label, dataField, color) {
     // Container is ready, create and render chart
     // Use requestAnimationFrame to ensure DOM is fully painted
     requestAnimationFrame(() => {
-      container.chart = new ApexCharts(container, options);
+  container.chart = new ApexCharts(container, options);
       container.chart.render().then(() => {
         // Ensure loading is hidden after render
         if (loadingElement) {
@@ -3835,29 +3835,47 @@ function toggleSettings() {
     Logger.debug('Settings modal closed');
     overlay.style.display = 'none';
     document.body.classList.remove('modal-active');
+    document.body.style.overflow = '';
   } else {
     Logger.debug('Settings modal opened');
-    overlay.style.display = 'block';
-    document.body.classList.add('modal-active');
     
-    // Ensure overlay is fixed to viewport
+    // Prevent body scroll when settings is open
+    document.body.style.overflow = 'hidden';
+    
+    // Reset scroll position to ensure consistent modal positioning
+    overlay.scrollTop = 0;
+    window.scrollTo(0, 0);
+    
+    // Ensure overlay is fixed to viewport with explicit values - full page container
     overlay.style.position = 'fixed';
     overlay.style.top = '0';
     overlay.style.left = '0';
+    overlay.style.right = '0';
+    overlay.style.bottom = '0';
     overlay.style.width = '100vw';
     overlay.style.height = '100vh';
     overlay.style.margin = '0';
     overlay.style.padding = '0';
+    overlay.style.display = 'block';
+    overlay.style.zIndex = '99999';
     
-    // Ensure settings menu is centered in viewport
+    document.body.classList.add('modal-active');
+    
+    // Ensure settings menu is centered in viewport with explicit values
     const menu = overlay.querySelector('.settings-menu');
     if (menu) {
       menu.style.position = 'fixed';
       menu.style.top = '50%';
       menu.style.left = '50%';
+      menu.style.right = 'auto';
+      menu.style.bottom = 'auto';
       menu.style.transform = 'translate(-50%, -50%)';
       menu.style.margin = '0';
-      menu.style.zIndex = '10001';
+      menu.style.padding = '0';
+      menu.style.zIndex = '100000';
+      menu.style.visibility = 'visible';
+      menu.style.opacity = '1';
+      menu.style.display = 'flex';
     }
     
     loadSettingsState();
