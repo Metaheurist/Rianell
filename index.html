@@ -478,24 +478,11 @@
 
     <!-- View Logs Tab -->
     <div id="logsTab" class="tab-content">
-      <div class="tab-header">
-    <h2>Log Entries</h2>
-        <div class="tab-actions">
-          <button class="action-btn" onclick="exportData()" title="Export to CSV">
-            <span>📤</span> Export
-          </button>
-          <button class="action-btn" onclick="importData()" title="Import from CSV">
-            <span>📥</span> Import
-          </button>
-          <button class="action-btn ai-action-btn" onclick="generateAISummary()" title="Generate AI Health Analysis">
-            <span>🧠</span> AI Summary
-          </button>
-        </div>
-      </div>
-    <div class="filter-section">
+      <div class="filter-section">
       <div class="log-view-range-buttons">
         <label class="filter-label">View Range:</label>
         <div class="log-date-range-buttons">
+          <button class="log-date-range-btn" onclick="setLogViewRange(1)" id="logRange1Day">Today</button>
           <button class="log-date-range-btn active" onclick="setLogViewRange(7)" id="logRange7Days">7 Days</button>
           <button class="log-date-range-btn" onclick="setLogViewRange(30)" id="logRange30Days">30 Days</button>
           <button class="log-date-range-btn" onclick="setLogViewRange(90)" id="logRange90Days">90 Days</button>
@@ -511,11 +498,14 @@
         <button id="sortButton" onclick="toggleSort()" class="sort-btn" title="Click to toggle sort order">
           📈 <span id="sortOrder">Newest</span>
         </button>
+        <button class="action-btn ai-action-btn" onclick="generateAISummary()" title="Generate AI Health Analysis">
+          <span>🧠</span> AI Summary
+        </button>
       </div>
     </div>
       
       <!-- AI Summary Collapsible Section -->
-      <div class="form-section" style="margin-top: 2rem;">
+      <div class="form-section ai-analysis-section" id="aiAnalysisFormSection" style="margin-top: 2rem; display: none;">
         <button type="button" class="section-header" onclick="toggleSection('aiSummarySection')">
           <span class="section-icon">🧠</span>
           <span class="section-title">AI Health Analysis</span>
@@ -548,6 +538,7 @@
           <div class="filter-group">
             <label class="filter-label">View Range:</label>
             <div class="date-range-buttons">
+              <button class="date-range-btn" onclick="setChartDateRange(1)" id="range1Day">Today</button>
               <button class="date-range-btn active" onclick="setChartDateRange(7)" id="range7Days">7 Days</button>
               <button class="date-range-btn" onclick="setChartDateRange(30)" id="range30Days">30 Days</button>
               <button class="date-range-btn" onclick="setChartDateRange(90)" id="range90Days">90 Days</button>

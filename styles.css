@@ -1683,6 +1683,23 @@ body.light-mode .tab-btn.ai-tab-btn.active {
   transition: transform 0.1s ease;
 }
 
+/* Disable hover animations on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .section-header:hover {
+    background: rgba(76, 175, 80, 0.05);
+    color: var(--text-light);
+  }
+  
+  .section-header:hover .section-icon {
+    transform: scale(1);
+  }
+  
+  body.light-mode .section-header:hover {
+    background: rgba(76, 175, 80, 0.05);
+    color: var(--text-light);
+  }
+}
+
 .section-title {
   flex: 1;
 }
@@ -1714,6 +1731,18 @@ body.light-mode .tab-btn.ai-tab-btn.active {
 .section-content.open {
   max-height: 5000px;
   padding: 20px;
+}
+
+/* Hide AI section by default - only show when content is generated */
+#aiSummarySection:not(.open) {
+  max-height: 0 !important;
+  padding: 0 20px !important;
+  overflow: hidden !important;
+}
+
+/* Hide the entire AI Analysis form-section by default */
+#aiAnalysisFormSection {
+  display: none !important;
 }
 
 /* Remove will-change after animation completes to prevent stuck animations */
@@ -2284,7 +2313,92 @@ button:focus {
   left: 100%;
 }
 
-/* Log Entry Header */
+/* Log Entry Header - Collapsible */
+.log-entry-header-collapsible {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  margin: 0 -20px 0 -20px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background-color 0.2s ease;
+  border-radius: 0;
+  position: relative;
+}
+
+.log-entry-header-collapsible:hover {
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.log-entry-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+  padding-right: 20px;
+  min-width: 0;
+}
+
+.log-entry-arrow {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: rgba(76, 175, 80, 0.8);
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+  font-family: Arial, sans-serif;
+  line-height: 1;
+  display: inline-block;
+}
+
+.entry.expanded .log-entry-arrow {
+  transform: rotate(90deg);
+}
+
+.entry:not(.expanded) .log-entry-arrow {
+  transform: rotate(0deg);
+}
+
+/* Log Entry Content - Hidden by default */
+.log-entry-content {
+  display: none;
+  padding-top: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.entry.expanded .log-entry-content {
+  display: block;
+}
+
+/* Log Entry Actions - Edit and Delete buttons */
+.log-entry-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  border-radius: 16px 16px 0 0;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.2);
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, padding 0.3s ease, margin 0.3s ease;
+}
+
+.entry.expanded .log-entry-actions {
+  height: auto;
+  min-height: 52px;
+  opacity: 1;
+  pointer-events: all;
+  padding: 10px 20px;
+  margin: -20px -20px 10px -20px;
+}
+
+
+/* Log Entry Header - Legacy support */
 .log-entry-header {
   display: flex;
   justify-content: space-between;
@@ -2316,23 +2430,23 @@ button:focus {
   border: 1px solid rgba(76, 175, 80, 0.3);
   border-radius: 50%;
   padding: 0;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   cursor: pointer;
   transition: all var(--transition-normal);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  width: 28px !important;
-  height: 28px !important;
-  min-width: 28px !important;
-  max-width: 28px !important;
-  min-height: 28px !important;
-  max-height: 28px !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
   line-height: 1;
   flex-shrink: 0;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .header-icon-btn * {
@@ -2376,18 +2490,20 @@ button:focus {
 
 .badge-count {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  top: -8px;
+  right: -8px;
   background: linear-gradient(135deg, #f44336, #e53935);
   color: white;
-  border-radius: 8px;
-  font-size: 0.6rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
   font-weight: 700;
-  padding: 1px 4px;
-  min-width: 14px;
+  padding: 3px 6px;
+  min-width: 20px;
   text-align: center;
-  line-height: 1.2;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1.3;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  white-space: nowrap;
 }
 
 .log-date {
@@ -2494,9 +2610,7 @@ button:focus {
 }
 
 .delete-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
+  position: relative;
   background: linear-gradient(135deg, #f44336, #e53935);
   color: white;
   border: none;
@@ -2530,9 +2644,7 @@ button:focus {
 
 /* Edit Button */
 .edit-btn {
-  position: absolute;
-  top: 12px;
-  right: 50px;
+  position: relative;
   background: linear-gradient(135deg, #2196f3, #1976d2);
   color: white;
   border: none;
@@ -2584,23 +2696,23 @@ button:focus {
 /* Modal Overlay - Transparent parent that disables background interaction */
 .modal-overlay {
   display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100vw;
-  height: 100vh;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
   background: transparent;
   z-index: 10000;
   pointer-events: all;
-  overflow: hidden;
-  overflow-x: hidden;
+  overflow: hidden !important;
+  overflow-x: hidden !important;
   box-sizing: border-box;
   /* Prevent overlay from scrolling - modal content is fixed position */
   /* Ensure overlay is always relative to viewport, not document */
-  margin: 0;
-  padding: 0;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .modal-overlay[style*="block"] {
@@ -2714,18 +2826,24 @@ body.loading .loading-overlay {
   border: 2px solid rgba(76, 175, 80, 0.5);
   animation: modalFloatIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10001;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 10001 !important;
   pointer-events: all;
-  margin: 0;
+  margin: 0 !important;
+  padding: 0 !important;
   /* Ensure modal is always centered relative to viewport, not document */
   box-sizing: border-box;
 }
 
 .edit-entry-modal {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 10001 !important;
   max-width: 700px;
 }
 
@@ -2936,27 +3054,43 @@ body.loading .loading-overlay {
 }
 
 .remove-item-btn {
-  background: rgba(244, 67, 54, 0.2);
-  border: 1px solid rgba(244, 67, 54, 0.4);
-  color: #ffcdd2;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  font-size: 20px;
+  background: rgba(244, 67, 54, 0.3);
+  border: 2px solid rgba(244, 67, 54, 0.6);
+  color: #ffffff;
+  border-radius: 50% !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  max-width: 28px !important;
+  max-height: 28px !important;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 1;
   cursor: pointer;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   transition: all var(--transition-normal);
-  padding: 0;
-  margin-left: 12px;
+  padding: 0 !important;
+  margin: 0 0 0 12px !important;
   flex-shrink: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  box-shadow: 0 0 8px rgba(244, 67, 54, 0.3);
 }
 
 .remove-item-btn:hover {
-  background: rgba(244, 67, 54, 0.4);
-  border-color: rgba(244, 67, 54, 0.6);
-  transform: scale(1.1) rotate(90deg);
+  background: rgba(244, 67, 54, 0.5);
+  border-color: rgba(244, 67, 54, 0.8);
+  color: #ffffff;
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(244, 67, 54, 0.5);
+}
+
+.remove-item-btn:active {
+  transform: scale(0.95);
+  background: rgba(244, 67, 54, 0.6);
 }
 
 /* Add Item Section */
@@ -4491,7 +4625,7 @@ body.light-mode .date-separator {
   }
   
   .header-badges {
-    gap: 5px;
+    gap: 6px;
     flex-wrap: nowrap;
   }
   
@@ -4508,6 +4642,9 @@ body.light-mode .date-separator {
   }
   
   .badge-count {
+    font-size: 0.8rem;
+    padding: 4px 7px;
+    min-width: 22px;
     font-size: 0.55rem;
     padding: 1px 3px;
     min-width: 12px;
@@ -4541,20 +4678,23 @@ body.light-mode .date-separator {
     font-size: 0.9rem;
   }
 
+  .log-entry-actions {
+    gap: 6px;
+    padding: 8px 15px !important;
+    margin: -18px -18px 8px -18px !important;
+    min-height: 48px !important;
+  }
+
   .delete-btn {
     width: 28px;
     height: 28px;
     font-size: 16px;
-    top: 10px;
-    right: 10px;
   }
   
   .edit-btn {
     width: 28px;
     height: 28px;
     font-size: 14px;
-    top: 10px;
-    right: 44px;
   }
   
   .log-actions {

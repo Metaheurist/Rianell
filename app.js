@@ -1527,48 +1527,93 @@ document.addEventListener('keydown', function(event) {
 // Update AI Summary button state based on data availability
 function updateAISummaryButtonState() {
   const aiButton = document.querySelector('.ai-action-btn');
-  if (!aiButton) return;
+  if (!aiButton) {
+    Logger.debug('AI Summary button not found for state update');
+    return;
+  }
   
   const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
   const hasData = allLogs && allLogs.length > 0;
   
+  Logger.debug('AI Summary button state update', { hasData, logCount: allLogs.length });
+  
   if (hasData) {
     aiButton.disabled = false;
+    aiButton.removeAttribute('disabled');
     aiButton.classList.remove('disabled');
     aiButton.style.opacity = '1';
     aiButton.style.cursor = 'pointer';
+    aiButton.style.pointerEvents = 'auto';
     aiButton.title = 'Generate AI Health Analysis';
+    Logger.debug('AI Summary button enabled');
   } else {
     aiButton.disabled = true;
+    aiButton.setAttribute('disabled', 'disabled');
     aiButton.classList.add('disabled');
     aiButton.style.opacity = '0.5';
     aiButton.style.cursor = 'not-allowed';
+    aiButton.style.pointerEvents = 'none';
     aiButton.title = 'No data available. Start logging to generate AI analysis.';
+    Logger.debug('AI Summary button disabled');
   }
 }
 
 function generateAISummary() {
-  // Get health logs from localStorage
-  const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
-  
-  // Check if we have data
-  if (allLogs.length === 0) {
-    alert('No health data available. Please log some entries first before generating an AI summary.');
-    return;
-  }
+  try {
+    Logger.info('AI Summary button clicked');
+    
+    // Get health logs from localStorage
+    const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
+    
+    Logger.debug('AI Summary - Checking data', { logCount: allLogs.length });
+    
+    // Check if we have data
+    if (allLogs.length === 0) {
+      alert('No health data available. Please log some entries first before generating an AI summary.');
+      Logger.warn('AI Summary - No data available');
+      return;
+    }
 
-  // Get the results content element
-  const resultsContent = document.getElementById('aiResultsContent');
-  const aiSection = document.getElementById('aiSummarySection');
-  
-  if (!resultsContent) {
-    console.error('AI results content element not found');
-    return;
-  }
+    // Get the results content element
+    const resultsContent = document.getElementById('aiResultsContent');
+    const aiSection = document.getElementById('aiSummarySection');
+    
+    if (!resultsContent) {
+      console.error('AI results content element not found');
+      Logger.error('AI Summary - Results content element not found');
+      alert('Error: AI results container not found. Please refresh the page.');
+      return;
+    }
 
-  // Open the collapsible section if it's closed
-  if (aiSection && !aiSection.classList.contains('open')) {
-    toggleSection('aiSummarySection');
+    Logger.debug('AI Summary - Showing form section');
+
+    // Show the AI Analysis form-section (it's hidden by default)
+    const aiFormSection = document.getElementById('aiAnalysisFormSection');
+    if (aiFormSection) {
+      aiFormSection.style.display = 'block';
+      Logger.debug('AI Summary - Form section displayed');
+    } else {
+      Logger.warn('AI Summary - Form section element not found');
+      console.error('AI Analysis form section not found');
+    }
+
+    // Open the collapsible section if it's closed
+    if (aiSection) {
+      if (!aiSection.classList.contains('open')) {
+        toggleSection('aiSummarySection');
+        Logger.debug('AI Summary - Section opened');
+      } else {
+        Logger.debug('AI Summary - Section already open');
+      }
+    } else {
+      Logger.warn('AI Summary - Section element not found');
+      console.error('AI Summary section element not found');
+    }
+  } catch (error) {
+    console.error('Error in generateAISummary (initial setup):', error);
+    Logger.error('AI Summary - Error in initial setup', { error: error.message, stack: error.stack });
+    alert('An error occurred while starting AI analysis. Please check the console for details.');
+    return;
   }
   
   // Get filtered logs based on log view date range (from startDate/endDate inputs)
@@ -1576,7 +1621,12 @@ function generateAISummary() {
   const startDateInput = document.getElementById('startDate');
   const endDateInput = document.getElementById('endDate');
   
-  let filteredLogs = logs;
+  // Ensure logs variable is available (use allLogs if logs is not defined)
+  const logsToUse = typeof logs !== 'undefined' && logs.length > 0 ? logs : allLogs;
+  
+  Logger.debug('AI Summary - Using logs', { logsCount: logsToUse.length, allLogsCount: allLogs.length });
+  
+  let filteredLogs = logsToUse;
   let dateRangeText = '';
   
   // Use log view date range if set, otherwise use chart date range
@@ -1584,7 +1634,7 @@ function generateAISummary() {
     const startDate = startDateInput.value;
     const endDate = endDateInput.value;
     
-    filteredLogs = logs.filter(log => {
+    filteredLogs = logsToUse.filter(log => {
       const logDate = new Date(log.date);
       const start = new Date(startDate);
       const end = new Date(endDate);
@@ -1597,11 +1647,15 @@ function generateAISummary() {
     const end = new Date(endDate).toLocaleDateString();
     dateRangeText = `${start} to ${end}`;
   } else {
-    // Fallback to chart date range
-    filteredLogs = getFilteredLogs();
+    // Fallback to chart date range or use all logs
+    if (typeof getFilteredLogs === 'function') {
+      filteredLogs = getFilteredLogs();
+    } else {
+      filteredLogs = logsToUse;
+    }
     
     // Determine date range description for loading message
-    if (chartDateRange.type === 'custom') {
+    if (typeof chartDateRange !== 'undefined' && chartDateRange.type === 'custom') {
       if (chartDateRange.startDate && chartDateRange.endDate) {
         const start = new Date(chartDateRange.startDate).toLocaleDateString();
         const end = new Date(chartDateRange.endDate).toLocaleDateString();
@@ -1609,13 +1663,18 @@ function generateAISummary() {
       } else {
         dateRangeText = 'selected date range';
       }
-    } else {
+    } else if (typeof chartDateRange !== 'undefined') {
       dateRangeText = `last ${chartDateRange.type} days`;
+    } else {
+      dateRangeText = `all available data`;
     }
   }
   
+  Logger.debug('AI Summary - Filtered logs', { filteredCount: filteredLogs.length, dateRange: dateRangeText });
+  
   if (filteredLogs.length === 0) {
     alert('No health data available in the selected date range. Please adjust your date range or log some entries.');
+    Logger.warn('AI Summary - No filtered logs available');
     return;
   }
   
@@ -1634,18 +1693,51 @@ function generateAISummary() {
   // Analyze the data after a short delay for UX
   // Use ALL historical logs for training (up to 10 years), filtered logs for display
   setTimeout(async () => {
-    // Get ALL historical data from localStorage (no date filtering)
-    const allLogsForTraining = JSON.parse(localStorage.getItem("healthLogs") || "[]")
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
-    const analysis = window.AIEngine ? 
-      window.AIEngine.analyzeHealthMetrics(sortedLogs, allLogsForTraining) : 
-      analyzeHealthMetrics(sortedLogs);
-    
-    // Use enhanced local analysis from AIEngine
-    let webLLMInsights = null;
-    
-    // Display the combined results (with enhanced local insights)
-    displayAISummary(analysis, sortedLogs, sortedLogs.length, webLLMInsights);
+    try {
+      Logger.debug('AI Summary - Starting analysis', { sortedLogsCount: sortedLogs.length });
+      
+      // Get ALL historical data from localStorage (no date filtering)
+      const allLogsForTraining = JSON.parse(localStorage.getItem("healthLogs") || "[]")
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      Logger.debug('AI Summary - Training logs loaded', { trainingLogsCount: allLogsForTraining.length });
+      
+      let analysis;
+      if (window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function') {
+        Logger.debug('AI Summary - Using AIEngine for analysis');
+        analysis = window.AIEngine.analyzeHealthMetrics(sortedLogs, allLogsForTraining);
+      } else if (typeof analyzeHealthMetrics === 'function') {
+        Logger.debug('AI Summary - Using fallback analyzeHealthMetrics');
+        analysis = analyzeHealthMetrics(sortedLogs);
+      } else {
+        Logger.error('AI Summary - No analysis function available');
+        throw new Error('No analysis function available. AIEngine may not be loaded.');
+      }
+      
+      Logger.debug('AI Summary - Analysis complete', { trendsCount: analysis?.trends ? Object.keys(analysis.trends).length : 0 });
+      
+      // Use enhanced local analysis from AIEngine
+      let webLLMInsights = null;
+      
+      // Display the combined results (with enhanced local insights)
+      displayAISummary(analysis, sortedLogs, sortedLogs.length, webLLMInsights);
+      
+      Logger.info('AI Summary - Display complete');
+    } catch (error) {
+      console.error('Error in AI Summary analysis:', error);
+      Logger.error('AI Summary - Error during analysis', { error: error.message, stack: error.stack });
+      
+      const resultsContent = document.getElementById('aiResultsContent');
+      if (resultsContent) {
+        resultsContent.innerHTML = `
+          <div class="ai-error">
+            <h3>❌ Error Generating AI Summary</h3>
+            <p>An error occurred while analyzing your health data. Please try again.</p>
+            <p style="font-size: 0.9rem; color: #78909c; margin-top: 10px;">Error: ${error.message}</p>
+          </div>
+        `;
+      }
+    }
   }, 1500);
 }
 
@@ -2074,9 +2166,48 @@ function openFoodModal(logDate) {
   currentFoodItems = log && log.food ? [...log.food] : [];
   renderFoodItems();
   Logger.debug('Food modal opened', { date: logDate, itemCount: currentFoodItems.length });
+  
+  // Prevent body scroll when modal is open
+  document.body.style.overflow = 'hidden';
+  
   const overlay = document.getElementById('foodModalOverlay');
+  const modalContent = overlay.querySelector('.modal-content');
+  
+  // Reset scroll position to ensure consistent modal positioning
+  overlay.scrollTop = 0;
+  window.scrollTo(0, 0);
+  
+  // Ensure overlay is fixed to viewport with explicit values
+  overlay.style.position = 'fixed';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.right = '0';
+  overlay.style.bottom = '0';
+  overlay.style.width = '100vw';
+  overlay.style.height = '100vh';
+  overlay.style.margin = '0';
+  overlay.style.padding = '0';
   overlay.style.display = 'block';
+  overlay.style.zIndex = '10000';
+  
+  // Ensure modal content is centered in viewport with explicit values
+  if (modalContent) {
+    modalContent.style.position = 'fixed';
+    modalContent.style.top = '50%';
+    modalContent.style.left = '50%';
+    modalContent.style.right = 'auto';
+    modalContent.style.bottom = 'auto';
+    modalContent.style.transform = 'translate(-50%, -50%)';
+    modalContent.style.margin = '0';
+    modalContent.style.padding = '0';
+    modalContent.style.zIndex = '10001';
+    modalContent.style.visibility = 'visible';
+    modalContent.style.opacity = '1';
+    modalContent.style.display = 'flex';
+  }
+  
   document.body.classList.add('modal-active');
+  
   const input = document.getElementById('newFoodItem');
   input.focus();
   // Add Enter key support
@@ -2098,6 +2229,7 @@ function closeFoodModal() {
   Logger.debug('Food modal closed', { date: currentEditingDate });
   document.getElementById('foodModalOverlay').style.display = 'none';
   document.body.classList.remove('modal-active');
+  document.body.style.overflow = '';
   currentEditingDate = null;
   currentFoodItems = [];
   document.getElementById('newFoodItem').value = '';
@@ -2151,9 +2283,48 @@ function openExerciseModal(logDate) {
   currentExerciseItems = log && log.exercise ? [...log.exercise] : [];
   renderExerciseItems();
   Logger.debug('Exercise modal opened', { date: logDate, itemCount: currentExerciseItems.length });
+  
+  // Prevent body scroll when modal is open
+  document.body.style.overflow = 'hidden';
+  
   const overlay = document.getElementById('exerciseModalOverlay');
+  const modalContent = overlay.querySelector('.modal-content');
+  
+  // Reset scroll position to ensure consistent modal positioning
+  overlay.scrollTop = 0;
+  window.scrollTo(0, 0);
+  
+  // Ensure overlay is fixed to viewport with explicit values
+  overlay.style.position = 'fixed';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.right = '0';
+  overlay.style.bottom = '0';
+  overlay.style.width = '100vw';
+  overlay.style.height = '100vh';
+  overlay.style.margin = '0';
+  overlay.style.padding = '0';
   overlay.style.display = 'block';
+  overlay.style.zIndex = '10000';
+  
+  // Ensure modal content is centered in viewport with explicit values
+  if (modalContent) {
+    modalContent.style.position = 'fixed';
+    modalContent.style.top = '50%';
+    modalContent.style.left = '50%';
+    modalContent.style.right = 'auto';
+    modalContent.style.bottom = 'auto';
+    modalContent.style.transform = 'translate(-50%, -50%)';
+    modalContent.style.margin = '0';
+    modalContent.style.padding = '0';
+    modalContent.style.zIndex = '10001';
+    modalContent.style.visibility = 'visible';
+    modalContent.style.opacity = '1';
+    modalContent.style.display = 'flex';
+  }
+  
   document.body.classList.add('modal-active');
+  
   const input = document.getElementById('newExerciseItem');
   input.focus();
   // Add Enter key support
@@ -2175,6 +2346,7 @@ function closeExerciseModal() {
   Logger.debug('Exercise modal closed', { date: currentEditingDate });
   document.getElementById('exerciseModalOverlay').style.display = 'none';
   document.body.classList.remove('modal-active');
+  document.body.style.overflow = '';
   currentEditingDate = null;
   currentExerciseItems = [];
   document.getElementById('newExerciseItem').value = '';
@@ -2316,25 +2488,38 @@ function openEditEntryModal(logDate) {
     return;
   }
   
-  // Set overlay properties first
-  overlay.style.display = 'block';
+  // Prevent body scroll when modal is open
+  document.body.style.overflow = 'hidden';
+  
+  // Reset scroll position to ensure consistent modal positioning
+  overlay.scrollTop = 0;
+  window.scrollTo(0, 0);
+  
+  // Ensure overlay is fixed to viewport with explicit values - full page container
   overlay.style.position = 'fixed';
   overlay.style.top = '0';
   overlay.style.left = '0';
+  overlay.style.right = '0';
+  overlay.style.bottom = '0';
   overlay.style.width = '100vw';
   overlay.style.height = '100vh';
-  overlay.style.margin = '0';
-  overlay.style.padding = '0';
   overlay.style.zIndex = '10000';
   overlay.style.visibility = 'visible';
   overlay.style.opacity = '1';
+  overlay.style.display = 'block';
+  overlay.style.overflow = 'hidden';
+  overlay.style.margin = '0';
+  overlay.style.padding = '0';
   
-  // Set modal content properties
+  // Set modal content properties - fixed center position
   modalContent.style.position = 'fixed';
   modalContent.style.top = '50%';
   modalContent.style.left = '50%';
+  modalContent.style.right = 'auto';
+  modalContent.style.bottom = 'auto';
   modalContent.style.transform = 'translate(-50%, -50%)';
   modalContent.style.margin = '0';
+  modalContent.style.padding = '0';
   modalContent.style.zIndex = '10001';
   modalContent.style.display = 'flex';
   modalContent.style.visibility = 'visible';
@@ -2354,6 +2539,7 @@ function closeEditEntryModal() {
   Logger.debug('Edit entry modal closed', { date: editingEntryDate });
   document.getElementById('editEntryModalOverlay').style.display = 'none';
   document.body.classList.remove('modal-active');
+  document.body.style.overflow = '';
   editingEntryDate = null;
 }
 
@@ -2645,34 +2831,40 @@ function generateLogEntryHTML(log) {
   const exerciseCount = log.exercise && log.exercise.length > 0 ? log.exercise.length : 0;
   
   const editButton = isEditing 
-    ? `<button class="edit-btn save-btn" onclick="saveInlineEdit('${log.date}')" title="Save changes">💾</button>`
-    : `<button class="edit-btn" onclick="enableInlineEdit('${log.date}')" title="Edit this entry">✏️</button>`;
+    ? `<button class="edit-btn save-btn" onclick="event.stopPropagation(); saveInlineEdit('${log.date}')" title="Save changes">💾</button>`
+    : `<button class="edit-btn" onclick="event.stopPropagation(); enableInlineEdit('${log.date}')" title="Edit this entry">✏️</button>`;
   
   return `
-    <button class="delete-btn" onclick="deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
-    ${editButton}
-    <div class="log-entry-header">
-      ${isEditing 
-        ? `<input type="date" class="inline-edit-date" value="${log.date}" style="font-size: 1.2rem; padding: 5px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; width: auto; max-width: 200px; margin-right: 20px;" />`
-        : `<h3 class="log-date">${formattedDate}</h3>`
-      }
-      <div class="header-badges">
-        <button class="header-icon-btn food-btn" onclick="openFoodModal('${log.date}')" title="Food Log ${foodCount > 0 ? `(${foodCount} items)` : ''}">
-          🍽️${foodCount > 0 ? `<span class="badge-count">${foodCount}</span>` : ''}
-        </button>
-        <button class="header-icon-btn exercise-btn" onclick="openExerciseModal('${log.date}')" title="Exercise Log ${exerciseCount > 0 ? `(${exerciseCount} items)` : ''}">
-          🏃${exerciseCount > 0 ? `<span class="badge-count">${exerciseCount}</span>` : ''}
-        </button>
-        ${isEditing 
-          ? `<select class="inline-edit-flare" style="padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1;">
-              <option value="No" ${log.flare === 'No' ? 'selected' : ''}>No Flare-up</option>
-              <option value="Yes" ${log.flare === 'Yes' ? 'selected' : ''}>Flare-up</option>
-            </select>`
-          : flareStatus
-        }
-      </div>
+    <div class="log-entry-actions">
+      <button class="delete-btn" onclick="event.stopPropagation(); deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
+      ${editButton}
     </div>
-    <div class="log-metrics-grid">
+    <div class="log-entry-header-collapsible" onclick="toggleLogEntry('${log.date}')">
+      <div class="log-entry-header-content">
+        ${isEditing 
+          ? `<input type="date" class="inline-edit-date" value="${log.date}" onclick="event.stopPropagation();" style="font-size: 1.2rem; padding: 5px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; width: auto; max-width: 200px; margin-right: 20px;" />`
+          : `<h3 class="log-date">${formattedDate}</h3>`
+        }
+        <div class="header-badges">
+          <button class="header-icon-btn food-btn" onclick="event.stopPropagation(); openFoodModal('${log.date}')" title="Food Log ${foodCount > 0 ? `(${foodCount} items)` : ''}">
+            🍽️${foodCount > 0 ? `<span class="badge-count">${foodCount}</span>` : ''}
+          </button>
+          <button class="header-icon-btn exercise-btn" onclick="event.stopPropagation(); openExerciseModal('${log.date}')" title="Exercise Log ${exerciseCount > 0 ? `(${exerciseCount} items)` : ''}">
+            🏃${exerciseCount > 0 ? `<span class="badge-count">${exerciseCount}</span>` : ''}
+          </button>
+          ${isEditing 
+            ? `<select class="inline-edit-flare" onclick="event.stopPropagation();" style="padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1;">
+                <option value="No" ${log.flare === 'No' ? 'selected' : ''}>No Flare-up</option>
+                <option value="Yes" ${log.flare === 'Yes' ? 'selected' : ''}>Flare-up</option>
+              </select>`
+            : flareStatus
+          }
+        </div>
+      </div>
+      <span class="log-entry-arrow">></span>
+    </div>
+    <div class="log-entry-content">
+      <div class="log-metrics-grid">
       <div class="metric-group vital-signs">
         <h4 class="metric-group-title">Vital Signs</h4>
         <div class="metric-item">
@@ -2769,12 +2961,31 @@ function generateLogEntryHTML(log) {
           }
         </div>
       </div>
+      </div>
+      ${isEditing 
+        ? `<div class="log-notes"><strong>📝 Note:</strong> <textarea class="inline-edit-notes" onclick="event.stopPropagation();" style="width: 100%; min-height: 60px; padding: 8px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-top: 8px; resize: vertical;">${log.notes || ''}</textarea></div>`
+        : (log.notes ? `<div class="log-notes"><strong>📝 Note:</strong> ${log.notes}</div>` : '')
+      }
     </div>
-    ${isEditing 
-      ? `<div class="log-notes"><strong>📝 Note:</strong> <textarea class="inline-edit-notes" style="width: 100%; min-height: 60px; padding: 8px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-top: 8px; resize: vertical;">${log.notes || ''}</textarea></div>`
-      : (log.notes ? `<div class="log-notes"><strong>📝 Note:</strong> ${log.notes}</div>` : '')
-    }
   `;
+}
+
+function toggleLogEntry(logDate) {
+  const entry = document.querySelector(`.entry[data-log-date="${logDate}"]`);
+  if (!entry) return;
+  
+  const content = entry.querySelector('.log-entry-content');
+  const arrow = entry.querySelector('.log-entry-arrow');
+  
+  if (entry.classList.contains('expanded')) {
+    entry.classList.remove('expanded');
+    if (content) content.style.display = 'none';
+    if (arrow) arrow.textContent = '>';
+  } else {
+    entry.classList.add('expanded');
+    if (content) content.style.display = 'block';
+    if (arrow) arrow.textContent = 'v';
+  }
 }
 
 function renderLogs() {
@@ -2785,9 +2996,25 @@ function renderLogs() {
     div.setAttribute('data-log-date', log.date);
     if (isExtreme(log)) div.classList.add("highlight");
     if (log.flare === 'Yes') div.classList.add("flare-up-entry");
-    if (inlineEditingDate === log.date) div.classList.add("editing");
+    if (inlineEditingDate === log.date) {
+      div.classList.add("editing");
+      div.classList.add("expanded"); // Auto-expand when editing
+    }
     
     div.innerHTML = generateLogEntryHTML(log);
+    
+    // Hide content by default (collapsed), unless editing
+    const content = div.querySelector('.log-entry-content');
+    if (content) {
+      if (inlineEditingDate === log.date) {
+        content.style.display = 'block';
+        const arrow = div.querySelector('.log-entry-arrow');
+        if (arrow) arrow.textContent = 'v';
+      } else {
+        content.style.display = 'none';
+      }
+    }
+    
     output.appendChild(div);
   });
 }
@@ -2795,7 +3022,7 @@ function renderLogs() {
 // Old renderLogs code kept for reference - can be removed
 // Chart date range filter state
 let chartDateRange = {
-  type: 30, // 7, 30, 90, or 'custom'
+  type: 7, // 1 (Today), 7, 30, 90, or 'custom'
   startDate: null,
   endDate: null
 };
@@ -2809,24 +3036,27 @@ function getFilteredLogs() {
   
   let filtered = [...logs];
   
-  if (chartDateRange.type === 'custom') {
-    if (chartDateRange.startDate && chartDateRange.endDate) {
-      const start = new Date(chartDateRange.startDate);
-      const end = new Date(chartDateRange.endDate);
-      end.setHours(23, 59, 59, 999); // Include entire end date
-      
-      filtered = filtered.filter(log => {
-        const logDate = new Date(log.date);
-        return logDate >= start && logDate <= end;
-      });
-    }
+  // If startDate and endDate are explicitly set (for custom or "Today"), use them
+  if (chartDateRange.startDate && chartDateRange.endDate) {
+    const start = new Date(chartDateRange.startDate);
+    const end = new Date(chartDateRange.endDate);
+    end.setHours(23, 59, 59, 999); // Include entire end date
+    start.setHours(0, 0, 0, 0);
+    
+    filtered = filtered.filter(log => {
+      const logDate = new Date(log.date);
+      return logDate >= start && logDate <= end;
+    });
+  } else if (chartDateRange.type === 'custom') {
+    // Custom range but dates not set yet - return all logs
+    return filtered;
   } else {
-    // Days range (7, 30, 90)
+    // Days range (1, 7, 30, 90)
     const days = chartDateRange.type;
     const endDate = new Date();
     endDate.setHours(23, 59, 59, 999);
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    startDate.setDate(startDate.getDate() - (days - 1)); // -1 to include today
     startDate.setHours(0, 0, 0, 0);
     
     filtered = filtered.filter(log => {
@@ -2867,10 +3097,27 @@ function setChartDateRange(range) {
       chartDateRange.endDate = endInput.value;
     }
   } else {
-    document.getElementById(`range${range}Days`).classList.add('active');
+    // Handle "Today" (1 day) or other day ranges
+    const buttonId = range === 1 ? 'range1Day' : `range${range}Days`;
+    const button = document.getElementById(buttonId);
+    if (button) {
+      button.classList.add('active');
+    }
     document.getElementById('customDateRangeSelector').classList.add('hidden');
-    chartDateRange.startDate = null;
-    chartDateRange.endDate = null;
+    
+    // Set date range for charts
+    if (range === 1) {
+      // Today only
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      chartDateRange.startDate = todayStart.toISOString().split('T')[0];
+      chartDateRange.endDate = today.toISOString().split('T')[0];
+    } else {
+      chartDateRange.startDate = null;
+      chartDateRange.endDate = null;
+    }
   }
   
   // Refresh charts with filtered data
@@ -3397,6 +3644,9 @@ function getMaxValue(dataField) {
 // Lazy loading system
 let chartObserver;
 const loadedCharts = new Set();
+const activeTimers = new Set(); // Track active timers for cleanup
+const activeIntervals = new Set(); // Track active intervals for cleanup
+const activeAnimationFrames = new Set(); // Track active animation frames
 
 function initializeLazyLoading() {
   // Check if Intersection Observer is supported
@@ -4227,7 +4477,12 @@ function toggleDemoMode() {
             document.body.removeChild(loadingMsg);
           }
           
-          alert('Demo mode enabled! 10 years of sample data loaded. Your original data is safely backed up.');
+          alert('Demo mode enabled! 10 years of sample data loaded. Your original data is safely backed up. The app will now restart.');
+          
+          // Reload the app to ensure everything is properly initialized
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
         } catch (error) {
           console.error('Error generating demo data:', error);
           if (document.body.contains(loadingMsg)) {
@@ -4340,7 +4595,35 @@ function updateDashboardTitle() {
 let currentSortOrder = 'newest'; // 'newest' or 'oldest'
 
 // Set log view date range (7, 30, or 90 days)
+function clearAISection() {
+  // Clear AI results content
+  const resultsContent = document.getElementById('aiResultsContent');
+  if (resultsContent) {
+    resultsContent.innerHTML = '';
+  }
+  
+  // Hide and close the AI section
+  const aiSection = document.getElementById('aiSummarySection');
+  if (aiSection) {
+    aiSection.classList.remove('open');
+    const header = aiSection.previousElementSibling;
+    if (header && header.classList.contains('section-header')) {
+      const arrow = header.querySelector('.section-arrow');
+      if (arrow) arrow.textContent = '>';
+    }
+  }
+  
+  // Hide the entire AI Analysis form-section
+  const aiFormSection = document.getElementById('aiAnalysisFormSection');
+  if (aiFormSection) {
+    aiFormSection.style.display = 'none';
+  }
+}
+
 function setLogViewRange(days) {
+  // Clear and hide AI section when range changes
+  clearAISection();
+  
   // Calculate date range
   const endDate = new Date();
   endDate.setHours(23, 59, 59, 999);
@@ -4366,7 +4649,7 @@ function setLogViewRange(days) {
   document.querySelectorAll('.date-range-btn').forEach(btn => {
     btn.classList.remove('active');
   });
-  const chartButtonId = `range${days}Days`;
+  const chartButtonId = days === 1 ? 'range1Day' : `range${days}Days`;
   const chartButton = document.getElementById(chartButtonId);
   if (chartButton) {
     chartButton.classList.add('active');
@@ -4376,7 +4659,7 @@ function setLogViewRange(days) {
   document.querySelectorAll('.log-date-range-btn').forEach(btn => {
     btn.classList.remove('active');
   });
-  const logButtonId = `logRange${days}Days`;
+  const logButtonId = days === 1 ? 'logRange1Day' : `logRange${days}Days`;
   const logButton = document.getElementById(logButtonId);
   if (logButton) {
     logButton.classList.add('active');
@@ -4426,8 +4709,8 @@ function checkAndUpdateViewRangeButtons() {
   // Calculate the number of days between start and end
   const daysDiff = Math.ceil((endDate - startDate) / oneDayMs) + 1; // +1 to include both start and end days
   
-  // Check if it matches any predefined range
-  if (daysDiff === 7 || daysDiff === 30 || daysDiff === 90) {
+  // Check if it matches any predefined range (1, 7, 30, 90 days)
+  if (daysDiff === 1 || daysDiff === 7 || daysDiff === 30 || daysDiff === 90) {
     // Check if start date matches the expected start date for this range
     const expectedStartDate = new Date(today);
     expectedStartDate.setDate(expectedStartDate.getDate() - (daysDiff - 1));
@@ -4440,10 +4723,20 @@ function checkAndUpdateViewRangeButtons() {
       document.querySelectorAll('.log-date-range-btn').forEach(btn => {
         btn.classList.remove('active');
       });
-      const logButtonId = `logRange${daysDiff}Days`;
+      const logButtonId = daysDiff === 1 ? 'logRange1Day' : `logRange${daysDiff}Days`;
       const logButton = document.getElementById(logButtonId);
       if (logButton) {
         logButton.classList.add('active');
+      }
+      
+      // Also update chart date range buttons
+      document.querySelectorAll('.date-range-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      const chartButtonId = daysDiff === 1 ? 'range1Day' : `range${daysDiff}Days`;
+      const chartButton = document.getElementById(chartButtonId);
+      if (chartButton) {
+        chartButton.classList.add('active');
       }
     } else {
       // Doesn't match exactly - deselect all buttons
@@ -4460,6 +4753,9 @@ function checkAndUpdateViewRangeButtons() {
 }
 
 function filterLogs() {
+  // Clear and hide AI section when filter changes
+  clearAISection();
+  
   const startDate = document.getElementById('startDate').value;
   const endDate = document.getElementById('endDate').value;
   
@@ -4503,25 +4799,25 @@ function renderFilteredLogs(filteredLogs) {
     div.setAttribute('data-log-date', log.date);
     if (isExtreme(log)) div.classList.add("highlight");
     if (log.flare === 'Yes') div.classList.add("flare-up-entry");
-    if (inlineEditingDate === log.date) div.classList.add("editing");
-    
-    // Convert weight to display unit (stored as kg)
-    const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
-    const weightUnit = getWeightUnitSuffix();
-    
-    // Format date nicely
-    const dateObj = new Date(log.date);
-    const formattedDate = dateObj.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-    
-    // Format flare-up status
-    const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">Flare-up</span>' : '<span class="flare-badge flare-no">No Flare-up</span>';
+    if (inlineEditingDate === log.date) {
+      div.classList.add("editing");
+      div.classList.add("expanded"); // Auto-expand when editing
+    }
     
     div.innerHTML = generateLogEntryHTML(log);
+    
+    // Hide content by default (collapsed), unless editing
+    const content = div.querySelector('.log-entry-content');
+    if (content) {
+      if (inlineEditingDate === log.date) {
+        content.style.display = 'block';
+        const arrow = div.querySelector('.log-entry-arrow');
+        if (arrow) arrow.textContent = 'v';
+      } else {
+        content.style.display = 'none';
+      }
+    }
+    
     output.appendChild(div);
   });
 }
@@ -4534,9 +4830,25 @@ function renderSortedLogs(sortedLogs) {
     div.setAttribute('data-log-date', log.date);
     if (isExtreme(log)) div.classList.add("highlight");
     if (log.flare === 'Yes') div.classList.add("flare-up-entry");
-    if (inlineEditingDate === log.date) div.classList.add("editing");
+    if (inlineEditingDate === log.date) {
+      div.classList.add("editing");
+      div.classList.add("expanded"); // Auto-expand when editing
+    }
     
     div.innerHTML = generateLogEntryHTML(log);
+    
+    // Hide content by default (collapsed), unless editing
+    const content = div.querySelector('.log-entry-content');
+    if (content) {
+      if (inlineEditingDate === log.date) {
+        content.style.display = 'block';
+        const arrow = div.querySelector('.log-entry-arrow');
+        if (arrow) arrow.textContent = 'v';
+      } else {
+        content.style.display = 'none';
+      }
+    }
+    
     output.appendChild(div);
   });
 }
@@ -4557,14 +4869,14 @@ function toggleSection(sectionId) {
     requestAnimationFrame(() => {
       if (isOpen) {
         section.classList.remove('open');
-        if (arrow) arrow.textContent = '▶';
+        if (arrow) arrow.textContent = '>';
         // Remove will-change after animation
         setTimeout(() => {
           section.style.willChange = 'auto';
         }, 300);
       } else {
         section.classList.add('open');
-        if (arrow) arrow.textContent = '▼';
+        if (arrow) arrow.textContent = 'v';
         // Remove will-change after animation completes
         setTimeout(() => {
           section.style.willChange = 'auto';
@@ -4615,7 +4927,7 @@ function initializeSections() {
     section.classList.remove('open');
     const header = section.previousElementSibling;
     const arrow = header?.querySelector('.section-arrow');
-    if (arrow) arrow.textContent = '▶';
+    if (arrow) arrow.textContent = '>';
   });
 }
 
@@ -4685,9 +4997,11 @@ function switchTab(tabName) {
         if (combinedBtn) combinedBtn.classList.add('active');
         if (individualBtn) individualBtn.classList.remove('active');
         // Small delay to prevent jump
-        setTimeout(() => {
+        const timer1 = setTimeout(() => {
           createCombinedChart();
+          activeTimers.delete(timer1);
         }, 100);
+        activeTimers.add(timer1);
       } else {
         // Show individual view
         combinedContainer.classList.add('hidden');
@@ -4695,9 +5009,11 @@ function switchTab(tabName) {
         if (individualBtn) individualBtn.classList.add('active');
         if (combinedBtn) combinedBtn.classList.remove('active');
         // Update charts when switching to charts tab
-        setTimeout(() => {
+        const timer2 = setTimeout(() => {
           updateCharts();
+          activeTimers.delete(timer2);
         }, 200);
+        activeTimers.add(timer2);
       }
     }
   }
@@ -4740,6 +5056,9 @@ window.addEventListener('load', () => {
   updateCharts(); // Check for empty state on page load
   updateAISummaryButtonState(); // Update AI button state on page load
   
+  // Hide AI section by default
+  clearAISection();
+  
   // Initialize weight unit
   if (!appSettings.weightUnit) {
     appSettings.weightUnit = 'kg';
@@ -4777,10 +5096,10 @@ window.addEventListener('load', () => {
   // Initialize collapsible sections
   initializeSections();
   
-  // Initialize chart date range to 30 days
-  setChartDateRange(30);
+  // Initialize chart date range to 7 days
+  setChartDateRange(7);
   setPredictionRange(7); // Initialize prediction range to 7 days
-  setLogViewRange(30); // Initialize log view range to 30 days
+  setLogViewRange(7); // Initialize log view range to 7 days
 });
 
 function initializeDateFilters() {
@@ -4805,10 +5124,12 @@ function initializeDateFilters() {
     
     // Add event listeners to detect manual date changes
     startDateInput.addEventListener('change', () => {
+      clearAISection(); // Clear AI section when date changes
       checkAndUpdateViewRangeButtons();
     });
     
     endDateInput.addEventListener('change', () => {
+      clearAISection(); // Clear AI section when date changes
       checkAndUpdateViewRangeButtons();
     });
     
