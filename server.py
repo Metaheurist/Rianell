@@ -212,17 +212,60 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
     def handle_client_log(self):
         """Handle client-side log submissions"""
         try:
+            # Security: Limit content length to prevent DoS
+            MAX_CONTENT_LENGTH = 1024 * 10  # 10KB max
             content_length = int(self.headers.get('Content-Length', 0))
+            
+            if content_length > MAX_CONTENT_LENGTH:
+                self.send_response(413)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Payload too large'}).encode('utf-8'))
+                logger.warning(f"Request rejected: Content-Length {content_length} exceeds {MAX_CONTENT_LENGTH}")
+                return
+            
             if content_length > 0:
                 post_data = self.rfile.read(content_length)
-                log_data = json.loads(post_data.decode('utf-8'))
+                try:
+                    log_data = json.loads(post_data.decode('utf-8'))
+                except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                    logger.warning(f"Invalid JSON in log request: {e}")
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'Invalid JSON'}).encode('utf-8'))
+                    return
                 
-                # Extract log information
+                # Extract and validate log information
                 level = log_data.get('level', 'INFO').upper()
+                # Security: Validate level is one of allowed values
+                allowed_levels = ['INFO', 'WARN', 'WARNING', 'ERROR', 'DEBUG']
+                if level not in allowed_levels:
+                    level = 'INFO'
+                
                 message = log_data.get('message', '')
+                # Security: Limit message length and sanitize
+                message = message[:500] if len(message) > 500 else message
+                message = message.replace('\n', ' ').replace('\r', '')  # Remove newlines
+                
                 timestamp = log_data.get('timestamp', datetime.now().isoformat())
+                # Security: Validate timestamp format (basic check)
+                if len(timestamp) > 50:
+                    timestamp = datetime.now().isoformat()
+                
                 source = log_data.get('source', 'client')
+                # Security: Limit source length
+                source = source[:20] if len(source) > 20 else source
+                
                 details = log_data.get('details', {})
+                # Security: Limit details size (convert to string and check length)
+                if isinstance(details, dict):
+                    details_str = json.dumps(details)
+                    if len(details_str) > 1000:
+                        details = {'error': 'Details too large'}
+                else:
+                    details = {}
+                
                 client_ip = self.client_address[0]
                 
                 # Update last activity timestamp
@@ -248,10 +291,24 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
                 # Force flush to ensure log is written immediately
                 file_handler.flush()
                 
-                # Send success response
+                # Security: Validate and sanitize input
+                level = level[:10] if len(level) > 10 else level  # Limit length
+                message = message[:500] if len(message) > 500 else message  # Limit message length
+                
+                # Send success response with security headers
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
+                # Security: Restrict CORS to localhost for development
+                origin = self.headers.get('Origin', '')
+                allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
+                if origin in allowed_origins:
+                    self.send_header('Access-Control-Allow-Origin', origin)
+                else:
+                    self.send_header('Access-Control-Allow-Origin', 'null')
+                self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+                self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+                self.send_header('X-Content-Type-Options', 'nosniff')
+                self.send_header('X-Frame-Options', 'DENY')
                 self.end_headers()
                 self.wfile.write(json.dumps({'status': 'logged'}).encode('utf-8'))
             else:
@@ -270,8 +327,21 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
     
     def end_headers(self):
-        # Add CORS headers if needed
-        self.send_header('Access-Control-Allow-Origin', '*')
+        # Security: Add security headers to all responses
+        self.send_header('X-Content-Type-Options', 'nosniff')
+        self.send_header('X-Frame-Options', 'DENY')
+        self.send_header('X-XSS-Protection', '1; mode=block')
+        self.send_header('Referrer-Policy', 'strict-origin-when-cross-origin')
+        
+        # CORS: Only allow localhost for security
+        origin = self.headers.get('Origin', '')
+        allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
+        if origin in allowed_origins:
+            self.send_header('Access-Control-Allow-Origin', origin)
+        elif not origin:  # Same-origin request
+            pass  # Don't add CORS header
+        else:
+            self.send_header('Access-Control-Allow-Origin', 'null')
         
         # Cache Transformers.js file aggressively (it's a large library)
         if self.path.endswith('transformers.js'):

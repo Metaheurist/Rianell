@@ -2,10 +2,33 @@
 // CLOUD SYNC WITH SUPABASE
 // ============================================
 
-// IMPORTANT: Replace these with your Supabase project credentials
-// Get them from: https://app.supabase.com/project/_/settings/api
-const SUPABASE_URL = 'https://tcoynycktablxankyriw.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_xZFsqfvvS1zVLpDMYnCJrQ_zDoFMdOr';
+// Load Supabase credentials from external config file
+// The config file is excluded from Git for security
+let SUPABASE_URL = null;
+let SUPABASE_ANON_KEY = null;
+
+// Try to load from supabase-config.js (if it exists)
+try {
+  // Check if config is available (loaded via script tag or module)
+  if (typeof SUPABASE_CONFIG !== 'undefined') {
+    SUPABASE_URL = SUPABASE_CONFIG.url;
+    SUPABASE_ANON_KEY = SUPABASE_CONFIG.anonKey;
+  } else if (typeof window !== 'undefined' && window.SUPABASE_CONFIG) {
+    SUPABASE_URL = window.SUPABASE_CONFIG.url;
+    SUPABASE_ANON_KEY = window.SUPABASE_CONFIG.anonKey;
+  }
+} catch (e) {
+  console.warn('Could not load Supabase config:', e);
+}
+
+// Fallback: If config file not loaded or contains placeholders, show warning
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY || 
+    SUPABASE_URL === 'YOUR_SUPABASE_URL_HERE' || 
+    SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY_HERE') {
+  console.warn('⚠️ Supabase credentials not configured. Please update supabase-config.js with your credentials.');
+  console.warn('   See supabase-config.example.js for a template.');
+  console.warn('   Cloud sync will not be available until credentials are configured.');
+}
 
 // Initialize Supabase client (only if credentials are set)
 // Use a different name to avoid conflicts with global supabase from CDN
@@ -21,15 +44,21 @@ let cloudSyncState = {
 
 // Initialize Supabase when library loads
 function initSupabase() {
-  if (SUPABASE_URL && SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY') {
-    // Check for Supabase in various possible locations
-    const SupabaseLib = window.supabase || window.supabaseClient || (typeof supabase !== 'undefined' ? supabase : null);
-    if (SupabaseLib && typeof SupabaseLib.createClient === 'function') {
-      supabaseClient = SupabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      checkCloudAuth();
-    } else {
-      console.warn('Supabase library not loaded yet');
-    }
+  // Check if credentials are configured (not placeholders)
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || 
+      SUPABASE_URL === 'YOUR_SUPABASE_URL_HERE' || 
+      SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY_HERE') {
+    console.warn('⚠️ Supabase credentials not configured. Cloud sync will not be available.');
+    return;
+  }
+  
+  // Check for Supabase library in various possible locations
+  const SupabaseLib = window.supabase || window.supabaseClient || (typeof supabase !== 'undefined' ? supabase : null);
+  if (SupabaseLib && typeof SupabaseLib.createClient === 'function') {
+    supabaseClient = SupabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    checkCloudAuth();
+  } else {
+    console.warn('Supabase library not loaded yet');
   }
 }
 
@@ -271,7 +300,15 @@ function showCloudSyncSection(email) {
 // Handle sign up
 async function handleCloudSignUp() {
   if (!supabaseClient) {
-    alert('Cloud sync is not configured. Please set up Supabase credentials. See SETUP.md for instructions.');
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Cloud sync is not configured. Please set up Supabase credentials. See SETUP.md for instructions.', 'Cloud Sync');
+    } else {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('Cloud sync is not configured. Please set up Supabase credentials. See SETUP.md for instructions.', 'Cloud Sync');
+      } else {
+        alert('Cloud sync is not configured. Please set up Supabase credentials. See SETUP.md for instructions.');
+      }
+    }
     return;
   }
 
@@ -279,19 +316,44 @@ async function handleCloudSignUp() {
   const password = document.getElementById('cloudPassword').value;
 
   if (!email || !password) {
-    alert('Please enter both email and password');
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Please enter both email and password', 'Cloud Sync');
+    } else {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('Please enter both email and password', 'Cloud Sync');
+      } else {
+        alert('Please enter both email and password');
+      }
+    }
     return;
   }
 
   if (password.length < 6) {
-    alert('Password must be at least 6 characters');
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Password must be at least 6 characters', 'Cloud Sync');
+    } else {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('Password must be at least 6 characters', 'Cloud Sync');
+      } else {
+        alert('Password must be at least 6 characters');
+      }
+    }
     return;
   }
 
   try {
     // Check secure context before attempting sign up
     if (!isSecureContext()) {
-      alert('Cloud sync requires HTTPS or localhost.\n\nYou are accessing via LAN IP (http://).\n\nSolutions:\n1. Use localhost: http://localhost:8080\n2. Set up HTTPS for LAN access\n\nCloud sync will not work over HTTP from LAN IP.');
+      const message = 'Cloud sync requires HTTPS or localhost.\n\nYou are accessing via LAN IP (http://).\n\nSolutions:\n1. Use localhost: http://localhost:8080\n2. Set up HTTPS for LAN access\n\nCloud sync will not work over HTTP from LAN IP.';
+      if (typeof showAlertModal === 'function') {
+        showAlertModal(message, 'Cloud Sync');
+      } else {
+        if (typeof showAlertModal === 'function') {
+          showAlertModal(message, 'Cloud Sync');
+        } else {
+          alert(message);
+        }
+      }
       updateCloudStatus('Requires HTTPS/localhost', 'error');
       return;
     }
@@ -305,7 +367,15 @@ async function handleCloudSignUp() {
     if (error) throw error;
 
     if (data.user) {
-      alert('Account created! Please check your email to verify your account, then sign in.');
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('Account created! Please check your email to verify your account, then sign in.', 'Account Created');
+      } else {
+        if (typeof showAlertModal === 'function') {
+          showAlertModal('Account created! Please check your email to verify your account, then sign in.', 'Account Created');
+        } else {
+          alert('Account created! Please check your email to verify your account, then sign in.');
+        }
+      }
       document.getElementById('cloudEmail').value = '';
       document.getElementById('cloudPassword').value = '';
       updateCloudStatus('Please verify email', 'error');
@@ -319,7 +389,15 @@ async function handleCloudSignUp() {
       errorMessage = 'Cloud sync requires HTTPS or localhost. Please access via localhost or set up HTTPS.';
     }
     
-    alert('Error creating account: ' + errorMessage);
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Error creating account: ' + errorMessage, 'Sign Up Error');
+    } else {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('Error creating account: ' + errorMessage, 'Sign Up Error');
+      } else {
+        alert('Error creating account: ' + errorMessage);
+      }
+    }
     updateCloudStatus('Sign up failed', 'error');
   }
 }
@@ -327,7 +405,15 @@ async function handleCloudSignUp() {
 // Handle login
 async function handleCloudLogin() {
   if (!supabaseClient) {
-    alert('Cloud sync is not configured. Please set up Supabase credentials. See SETUP.md for instructions.');
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Cloud sync is not configured. Please set up Supabase credentials. See SETUP.md for instructions.', 'Cloud Sync');
+    } else {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('Cloud sync is not configured. Please set up Supabase credentials. See SETUP.md for instructions.', 'Cloud Sync');
+      } else {
+        alert('Cloud sync is not configured. Please set up Supabase credentials. See SETUP.md for instructions.');
+      }
+    }
     return;
   }
 
@@ -335,14 +421,31 @@ async function handleCloudLogin() {
   const password = document.getElementById('cloudPassword').value;
 
   if (!email || !password) {
-    alert('Please enter both email and password');
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Please enter both email and password', 'Cloud Sync');
+    } else {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('Please enter both email and password', 'Cloud Sync');
+      } else {
+        alert('Please enter both email and password');
+      }
+    }
     return;
   }
 
   try {
     // Check secure context before attempting login/sync
     if (!isSecureContext()) {
-      alert('Cloud sync requires HTTPS or localhost.\n\nYou are accessing via LAN IP (http://).\n\nSolutions:\n1. Use localhost: http://localhost:8080\n2. Set up HTTPS for LAN access\n\nCloud sync will not work over HTTP from LAN IP.');
+      const message = 'Cloud sync requires HTTPS or localhost.\n\nYou are accessing via LAN IP (http://).\n\nSolutions:\n1. Use localhost: http://localhost:8080\n2. Set up HTTPS for LAN access\n\nCloud sync will not work over HTTP from LAN IP.';
+      if (typeof showAlertModal === 'function') {
+        showAlertModal(message, 'Cloud Sync');
+      } else {
+        if (typeof showAlertModal === 'function') {
+          showAlertModal(message, 'Cloud Sync');
+        } else {
+          alert(message);
+        }
+      }
       updateCloudStatus('Requires HTTPS/localhost', 'error');
       return;
     }
@@ -387,7 +490,15 @@ async function handleCloudLogin() {
       errorMessage = 'Cloud sync requires HTTPS or localhost. Please access via localhost or set up HTTPS.';
     }
     
-    alert('Error signing in: ' + errorMessage);
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Error signing in: ' + errorMessage, 'Sign In Error');
+    } else {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('Error signing in: ' + errorMessage, 'Sign In Error');
+      } else {
+        alert('Error signing in: ' + errorMessage);
+      }
+    }
     updateCloudStatus('Sign in failed', 'error');
   }
 }
@@ -406,7 +517,11 @@ async function handleCloudLogout() {
     if (lastSyncEl) lastSyncEl.textContent = 'Last sync: Never';
   } catch (error) {
     console.error('Logout error:', error);
-    alert('Error signing out: ' + error.message);
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Error signing out: ' + error.message, 'Sign Out Error');
+    } else {
+      alert('Error signing out: ' + error.message);
+    }
   }
 }
 
@@ -508,7 +623,15 @@ async function deleteCloudLogs() {
 // Sync data to cloud
 async function syncToCloud() {
   if (!supabaseClient || !cloudSyncState.isAuthenticated) {
-    alert('Please sign in to sync data');
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Please sign in to sync data', 'Cloud Sync');
+    } else {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('Please sign in to sync data', 'Cloud Sync');
+      } else {
+        alert('Please sign in to sync data');
+      }
+    }
     return;
   }
 
@@ -574,7 +697,15 @@ async function syncToCloud() {
       errorMessage = 'Cloud sync requires HTTPS or localhost. You are accessing via LAN IP (http://).\n\nSolutions:\n1. Use localhost: http://localhost:8080\n2. Set up HTTPS for LAN access\n3. Cloud sync will not work over HTTP from LAN IP';
     }
     
-    alert('Error syncing to cloud: ' + errorMessage);
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Error syncing to cloud: ' + errorMessage, 'Sync Error');
+    } else {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('Error syncing to cloud: ' + errorMessage, 'Sync Error');
+      } else {
+        alert('Error syncing to cloud: ' + errorMessage);
+      }
+    }
     updateCloudStatus('Sync failed - requires HTTPS/localhost', 'error');
   }
 }
