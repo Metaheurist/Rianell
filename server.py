@@ -13,6 +13,9 @@ import webbrowser
 import socket
 import logging
 import json
+import threading
+import time
+from collections import defaultdict
 from pathlib import Path
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
@@ -58,8 +61,71 @@ logger.info(f"Log file: {LOG_FILE}")
 logger.info("Note: Client-side logs are only sent when demo mode is enabled")
 logger.info("=" * 60)
 
+# Connection tracking for multiple concurrent connections
+active_connections = defaultdict(set)  # IP -> set of connection threads
+connection_lock = threading.Lock()
+last_activity = defaultdict(float)  # IP -> last activity timestamp
+CONNECTION_TIMEOUT = 300  # 5 minutes of inactivity before cleanup
+CLEANUP_INTERVAL = 60  # Run cleanup every 60 seconds
+MAX_CONNECTIONS_PER_IP = 50  # Maximum concurrent connections per IP
+
+class ThreadingHTTPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    """Threaded HTTP server that handles multiple concurrent connections"""
+    daemon_threads = True
+    allow_reuse_address = True
+    timeout = 30  # Socket timeout in seconds
+    
+    def server_bind(self):
+        """Override to set socket options for better connection handling"""
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+        # Set TCP keepalive options (Linux/Unix)
+        if hasattr(socket, 'TCP_KEEPIDLE'):
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 30)
+        if hasattr(socket, 'TCP_KEEPINTVL'):
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 10)
+        if hasattr(socket, 'TCP_KEEPCNT'):
+            self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
+        super().server_bind()
+
 class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
     """Custom handler to set proper MIME types and handle SPA routing"""
+    
+    timeout = 30  # Request timeout
+    
+    def __init__(self, *args, **kwargs):
+        self.connection_start_time = time.time()
+        self.client_ip = None
+        super().__init__(*args, **kwargs)
+    
+    def handle(self):
+        """Override handle to track connections"""
+        self.client_ip = self.client_address[0]
+        thread_id = threading.current_thread().ident
+        
+        # Check connection limit per IP
+        with connection_lock:
+            ip_connections = active_connections.get(self.client_ip, set())
+            if len(ip_connections) >= MAX_CONNECTIONS_PER_IP:
+                logger.warning(f"Connection limit reached for IP {self.client_ip} ({len(ip_connections)} connections)")
+                self.send_error(503, "Too many connections from this IP")
+                return
+            
+            # Track this connection
+            active_connections[self.client_ip].add(thread_id)
+            last_activity[self.client_ip] = time.time()
+            logger.debug(f"Connection opened: IP {self.client_ip}, Thread {thread_id}, Total connections for IP: {len(active_connections[self.client_ip])}")
+        
+        try:
+            super().handle()
+        finally:
+            # Remove connection tracking
+            with connection_lock:
+                if self.client_ip in active_connections:
+                    active_connections[self.client_ip].discard(thread_id)
+                    if not active_connections[self.client_ip]:
+                        del active_connections[self.client_ip]
+                    logger.debug(f"Connection closed: IP {self.client_ip}, Thread {thread_id}, Remaining connections for IP: {len(active_connections.get(self.client_ip, set()))}")
     
     def log_message(self, format, *args):
         """Override to suppress 404 errors for optional files and log to file"""
@@ -72,6 +138,9 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
                 return  # Don't log these 404s
             # Log to file with detailed information
             client_ip = self.client_address[0]
+            # Update last activity timestamp
+            with connection_lock:
+                last_activity[client_ip] = time.time()
             log_msg = f"HTTP {status_code} | {path} | Client: {client_ip}"
             if status_code.startswith('4') or status_code.startswith('5'):
                 logger.warning(log_msg)
@@ -89,6 +158,10 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
         path = self.path
         user_agent = self.headers.get('User-Agent', 'Unknown')
         referer = self.headers.get('Referer', 'None')
+        
+        # Update last activity timestamp
+        with connection_lock:
+            last_activity[client_ip] = time.time()
         
         log_msg = f"REQUEST | {method} {path} | Status: {code} | Size: {size} | Client: {client_ip} | UA: {user_agent[:50]}"
         logger.info(log_msg)
@@ -149,6 +222,10 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
                 source = log_data.get('source', 'client')
                 details = log_data.get('details', {})
                 client_ip = self.client_address[0]
+                
+                # Update last activity timestamp
+                with connection_lock:
+                    last_activity[client_ip] = time.time()
                 
                 # Format log message
                 log_msg = f"CLIENT | {level} | {message}"
@@ -221,6 +298,32 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
         # For other files, use parent's guess_type
         return super().guess_type(path)
 
+def cleanup_inactive_connections():
+    """Periodically clean up inactive connections"""
+    while True:
+        try:
+            time.sleep(CLEANUP_INTERVAL)
+            current_time = time.time()
+            inactive_ips = []
+            
+            with connection_lock:
+                for ip, last_time in list(last_activity.items()):
+                    if current_time - last_time > CONNECTION_TIMEOUT:
+                        inactive_ips.append(ip)
+                        # Clean up inactive IPs
+                        if ip in active_connections:
+                            connection_count = len(active_connections[ip])
+                            if connection_count > 0:
+                                logger.info(f"Cleaning up inactive connections for IP {ip} ({connection_count} connections inactive for {int(current_time - last_time)}s)")
+                            del active_connections[ip]
+                        if ip in last_activity:
+                            del last_activity[ip]
+                
+                if inactive_ips:
+                    logger.info(f"Cleaned up {len(inactive_ips)} inactive IP(s)")
+        except Exception as e:
+            logger.error(f"Error in cleanup thread: {e}", exc_info=True)
+
 def main():
     """Start the web server"""
     # Get the directory where this script is located
@@ -233,10 +336,17 @@ def main():
     logger.info("Starting Health App Server")
     logger.info(f"Server directory: {script_dir}")
     logger.info(f"Port: {PORT}")
+    logger.info(f"Max connections per IP: {MAX_CONNECTIONS_PER_IP}")
+    logger.info(f"Connection timeout: {CONNECTION_TIMEOUT}s")
+    
+    # Start cleanup thread for inactive connections
+    cleanup_thread = threading.Thread(target=cleanup_inactive_connections, daemon=True)
+    cleanup_thread.start()
+    logger.info("Connection cleanup thread started")
     
     # Create server with error handling
     try:
-        httpd = socketserver.TCPServer((HOST, PORT), HealthAppHandler)
+        httpd = ThreadingHTTPServer((HOST, PORT), HealthAppHandler)
         logger.info("Server socket created successfully")
     except OSError as e:
         error_msg = f"Error: Port {PORT} is already in use."
@@ -254,9 +364,8 @@ def main():
         print(error_msg)
         sys.exit(1)
     
-    # Allow address reuse to prevent "Address already in use" errors
-    httpd.allow_reuse_address = True
-    logger.info("Server address reuse enabled")
+    # Server options are set in ThreadingHTTPServer class
+    logger.info("Server configured for concurrent connections")
     
     # Get local IP addresses for LAN access
     def get_local_ip():

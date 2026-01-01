@@ -10,6 +10,7 @@
   
   <!-- PWA Meta Tags -->
   <meta name="theme-color" content="#4caf50">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Health Tracker">
@@ -30,8 +31,9 @@
   <link rel="apple-touch-icon" sizes="180x180" href="Icons/Icon-180.png">
   
   <!-- Favicon -->
-  <link rel="icon" type="image/png" sizes="32x32" href="Icons/Icon-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="Icons/Icon-16.png">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%234caf50'/><text x='50' y='65' font-size='60' text-anchor='middle' fill='white'>❤️</text></svg>">
+  <link rel="icon" type="image/png" sizes="32x32" href="Icons/Icon-32.png" onerror="this.onerror=null; this.href='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%234caf50\'/><text x=\'50\' y=\'65\' font-size=\'60\' text-anchor=\'middle\' fill=\'white\'>❤️</text></svg>';">
+  <link rel="icon" type="image/png" sizes="16x16" href="Icons/Icon-16.png" onerror="this.onerror=null; this.href='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%234caf50\'/><text x=\'50\' y=\'65\' font-size=\'60\' text-anchor=\'middle\' fill=\'white\'>❤️</text></svg>';">
   
   <!-- Cache control meta tags to prevent caching of CSS and JS -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -44,6 +46,22 @@
   <!-- Now loaded from local server with progress tracking -->
   <!-- The script will be loaded dynamically with progress bar in app.js -->
   <link rel="stylesheet" href="styles.css?v=1">
+  <script>
+    // Remove unwanted preload links injected by browser extensions
+    (function() {
+      const preloadLinks = document.querySelectorAll('link[rel="preload"]');
+      preloadLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        // Remove any preload links not from our domain
+        if (href && !href.startsWith(window.location.origin) && !href.startsWith('/') && !href.startsWith('data:')) {
+          // Check if it's from a known extension domain (like rokt.com)
+          if (href.includes('rokt.com') || href.includes('extension://') || href.includes('chrome-extension://')) {
+            link.remove();
+          }
+        }
+      });
+    })();
+  </script>
   <style>
     /* Prevent flash of unstyled content - hide body until loaded */
     body:not(.loaded) {

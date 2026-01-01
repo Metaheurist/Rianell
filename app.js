@@ -337,6 +337,15 @@ function showUpdateNotification() {
 }
 
 // Handle PWA shortcuts
+// Suppress harmless browser extension errors
+window.addEventListener('error', function(e) {
+  // Suppress errors from browser extensions (inpage.js, etc.)
+  if (e.filename && (e.filename.includes('inpage.js') || e.filename.includes('extension://') || e.filename.includes('data:;base64'))) {
+    e.preventDefault();
+    return false;
+  }
+}, true);
+
 window.addEventListener('DOMContentLoaded', function() {
   // Clear cache for CSS and JS files on startup
   if ('caches' in window) {
@@ -2644,7 +2653,7 @@ function generateLogEntryHTML(log) {
     ${editButton}
     <div class="log-entry-header">
       ${isEditing 
-        ? `<input type="date" class="inline-edit-date" value="${log.date}" style="font-size: 1.2rem; padding: 5px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1;" />`
+        ? `<input type="date" class="inline-edit-date" value="${log.date}" style="font-size: 1.2rem; padding: 5px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; width: auto; max-width: 200px; margin-right: 20px;" />`
         : `<h3 class="log-date">${formattedDate}</h3>`
       }
       <div class="header-badges">
@@ -3184,14 +3193,14 @@ function chart(id, label, dataField, color) {
       animations: {
         enabled: true,
         easing: 'easeinout',
-        speed: 800,
+        speed: 600,
         animateGradually: {
           enabled: true,
-          delay: 150
+          delay: 100
         },
         dynamicAnimation: {
           enabled: true,
-          speed: 350
+          speed: 400
         }
       },
       events: {
@@ -3308,15 +3317,50 @@ function chart(id, label, dataField, color) {
     loadingElement.style.display = 'none';
   }
   
-  container.chart = new ApexCharts(container, options);
-  container.chart.render().then(() => {
-    // Ensure loading is hidden after render
-    if (loadingElement) {
-      loadingElement.style.display = 'none';
+  // Ensure container is visible and has dimensions before rendering
+  const ensureContainerReady = () => {
+    const rect = container.getBoundingClientRect();
+    const computedStyle = window.getComputedStyle(container);
+    
+    // Check if container is ready: has dimensions, is visible, and not animating
+    if (rect.width === 0 || rect.height === 0 || 
+        computedStyle.display === 'none' || 
+        computedStyle.visibility === 'hidden' ||
+        computedStyle.opacity === '0') {
+      // Container not ready yet, wait a bit
+      setTimeout(ensureContainerReady, 50);
+      return;
     }
-    // Mark container as loaded
-    container.classList.add('loaded');
-  });
+    
+    // Ensure container has proper positioning context
+    if (computedStyle.position === 'static') {
+      container.style.position = 'relative';
+    }
+    
+    // Container is ready, create and render chart
+    // Use requestAnimationFrame to ensure DOM is fully painted
+    requestAnimationFrame(() => {
+      container.chart = new ApexCharts(container, options);
+      container.chart.render().then(() => {
+        // Ensure loading is hidden after render
+        if (loadingElement) {
+          loadingElement.style.display = 'none';
+        }
+        // Mark container as loaded
+        container.classList.add('loaded');
+        // Force a resize to ensure chart fits container
+        setTimeout(() => {
+          if (container.chart) {
+            container.chart.updateOptions({}, false, true);
+          }
+        }, 100);
+      });
+    });
+  };
+  
+  // Wait for container to be ready and visible before rendering chart
+  // Use a small delay to ensure CSS animations have started
+  setTimeout(ensureContainerReady, 150);
 }
 
 function getYAxisLabel(dataField) {
@@ -4481,15 +4525,61 @@ function toggleSection(sectionId) {
   if (section && header) {
     const isOpen = section.classList.contains('open');
     
-    if (isOpen) {
-      section.classList.remove('open');
-      if (arrow) arrow.textContent = '▶';
-    } else {
-      section.classList.add('open');
-      if (arrow) arrow.textContent = '▼';
-    }
+    // Remove active state from header to prevent stuck states
+    header.classList.remove('active');
+    
+    // Use requestAnimationFrame to ensure smooth animation
+    requestAnimationFrame(() => {
+      if (isOpen) {
+        section.classList.remove('open');
+        if (arrow) arrow.textContent = '▶';
+        // Remove will-change after animation
+        setTimeout(() => {
+          section.style.willChange = 'auto';
+        }, 300);
+      } else {
+        section.classList.add('open');
+        if (arrow) arrow.textContent = '▼';
+        // Remove will-change after animation completes
+        setTimeout(() => {
+          section.style.willChange = 'auto';
+        }, 300);
+      }
+    });
+    
+    // Remove active state after a short delay
+    setTimeout(() => {
+      header.classList.remove('active');
+    }, 200);
   }
 }
+
+// Add touch event handling for mobile to prevent stuck animations
+document.addEventListener('DOMContentLoaded', function() {
+  const sectionHeaders = document.querySelectorAll('.section-header');
+  
+  sectionHeaders.forEach(header => {
+    // Handle touch start
+    header.addEventListener('touchstart', function(e) {
+      this.classList.add('active');
+      // Prevent default to avoid double-tap zoom and other touch behaviors
+      e.preventDefault();
+    }, { passive: false });
+    
+    // Handle touch end
+    header.addEventListener('touchend', function(e) {
+      // Small delay to ensure click event fires
+      setTimeout(() => {
+        this.classList.remove('active');
+      }, 100);
+    }, { passive: true });
+    
+    // Handle touch cancel (when touch is interrupted)
+    header.addEventListener('touchcancel', function() {
+      this.classList.remove('active');
+    }, { passive: true });
+  });
+});
 
 // Initialize all sections as collapsed by default
 function initializeSections() {
