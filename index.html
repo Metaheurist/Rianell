@@ -17,6 +17,12 @@
   <meta name="msapplication-TileColor" content="#4caf50">
   <meta name="msapplication-tap-highlight" content="no">
   
+  <!-- Security Headers -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+  
   <!-- Apple Touch Icons -->
   <link rel="apple-touch-icon" href="Icons/Icon-180.png">
   <link rel="apple-touch-icon" sizes="57x57" href="Icons/Icon-57.png">
@@ -130,7 +136,12 @@
         <div id="cloudAuthSection" class="cloud-auth-section">
           <div class="cloud-auth-form">
             <input type="email" id="cloudEmail" placeholder="Email address" class="cloud-input" />
-            <input type="password" id="cloudPassword" placeholder="Password" class="cloud-input" />
+            <div class="password-input-wrapper">
+              <input type="password" id="cloudPassword" placeholder="Password" class="cloud-input" />
+              <button type="button" class="password-toggle-btn" id="passwordToggle" onclick="togglePasswordVisibility()" title="Show/Hide password">
+                <span class="password-toggle-icon">👁️</span>
+              </button>
+            </div>
             <div class="cloud-auth-buttons">
               <button id="cloudSignUpBtn" class="cloud-btn signup-btn" onclick="handleCloudSignUp()">
                 <span>📝 Sign Up</span>
@@ -735,6 +746,24 @@
     </div>
   </div>
 
+  <!-- Custom Alert Modal -->
+  <div class="modal-overlay" id="alertModalOverlay">
+    <div class="modal-content alert-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="alertModalTitle">Alert</h3>
+        <button class="modal-close" onclick="closeAlertModal()">&times;</button>
+      </div>
+      <div class="modal-body alert-modal-body">
+        <p id="alertModalMessage"></p>
+      </div>
+      <div class="modal-footer alert-modal-footer">
+        <button class="modal-save-btn" onclick="closeAlertModal()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase Configuration (excluded from Git - add your credentials here) -->
+  <script src="supabase-config.js"></script>
   <script src="AIEngine.js"></script>
   <script src="app.js?v=1"></script>
   <script src="cloud-sync.js"></script>

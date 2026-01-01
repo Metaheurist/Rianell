@@ -5,6 +5,38 @@ const Logger = {
   enabled: true,
   serverEndpoint: '/api/log',
   
+  _demoModeCache: null,
+  _demoModeCacheTime: 0,
+  _cacheTimeout: 5000, // Cache for 5 seconds
+  
+  _getDemoMode() {
+    const now = Date.now();
+    // Use cached value if still valid
+    if (this._demoModeCache !== null && (now - this._demoModeCacheTime) < this._cacheTimeout) {
+      return this._demoModeCache;
+    }
+    
+    // Check demo mode from localStorage (avoids temporal dead zone issues with appSettings)
+    let isDemoMode = false;
+    try {
+      const savedSettings = localStorage.getItem('healthAppSettings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        isDemoMode = settings.demoMode === true;
+      }
+    } catch (e) {
+      // If we can't read settings, skip server logging
+      this._demoModeCache = false;
+      this._demoModeCacheTime = now;
+      return false;
+    }
+    
+    // Cache the result
+    this._demoModeCache = isDemoMode;
+    this._demoModeCacheTime = now;
+    return isDemoMode;
+  },
+  
   log(level, message, details = {}) {
     if (!this.enabled) return;
     
@@ -24,23 +56,8 @@ const Logger = {
                          level.toLowerCase() === 'debug' ? 'debug' : 'log';
     console[consoleMethod](`[${level}] ${message}`, details);
     
-    // Only send to server if demo mode is enabled
-    // Check demo mode from localStorage (avoids temporal dead zone issues with appSettings)
-    let isDemoMode = false;
-    try {
-      const savedSettings = localStorage.getItem('healthAppSettings');
-      if (savedSettings) {
-        const settings = JSON.parse(savedSettings);
-        if (settings.demoMode === true) {
-          isDemoMode = true;
-        }
-      }
-    } catch (e) {
-      // If we can't read settings, skip server logging
-      return;
-    }
-    
-    if (!isDemoMode) {
+    // Only send to server if demo mode is enabled (using cached check)
+    if (!this._getDemoMode()) {
       return; // Skip server logging when not in demo mode
     }
     
@@ -77,6 +94,118 @@ const Logger = {
     this.log('DEBUG', message, details);
   }
 };
+
+// ============================================
+// Custom Alert Modal
+// ============================================
+function showAlertModal(message, title = 'Alert') {
+  const overlay = document.getElementById('alertModalOverlay');
+  const titleEl = document.getElementById('alertModalTitle');
+  const messageEl = document.getElementById('alertModalMessage');
+  
+  if (!overlay || !titleEl || !messageEl) {
+    // Fallback to native alert if modal elements not found
+    console.warn('Alert modal elements not found, using native alert');
+    alert(message);
+    return;
+  }
+  
+  // Set content
+  titleEl.textContent = title;
+  messageEl.textContent = message;
+  
+  // Show modal
+  overlay.style.display = 'block';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  document.body.classList.add('modal-active');
+  
+  // Center modal
+  const modalContent = overlay.querySelector('.modal-content');
+  if (modalContent) {
+    modalContent.style.position = 'fixed';
+    modalContent.style.top = '50%';
+    modalContent.style.left = '50%';
+    modalContent.style.transform = 'translate(-50%, -50%)';
+    modalContent.style.margin = '0';
+    modalContent.style.padding = '0';
+    modalContent.style.zIndex = '10001';
+  }
+  
+  // Close on overlay click
+  overlay.onclick = function(e) {
+    if (e.target === overlay) {
+      closeAlertModal();
+    }
+  };
+  
+  // Close on Escape key
+  const escapeHandler = function(e) {
+    if (e.key === 'Escape') {
+      closeAlertModal();
+      document.removeEventListener('keydown', escapeHandler);
+    }
+  };
+  document.addEventListener('keydown', escapeHandler);
+}
+
+function closeAlertModal() {
+  const overlay = document.getElementById('alertModalOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    overlay.style.visibility = 'hidden';
+    overlay.style.opacity = '0';
+    document.body.classList.remove('modal-active');
+    document.body.style.overflow = '';
+  }
+}
+
+// ============================================
+// Password Visibility Toggle
+// ============================================
+function togglePasswordVisibility() {
+  const passwordInput = document.getElementById('cloudPassword');
+  const toggleBtn = document.getElementById('passwordToggle');
+  const toggleIcon = toggleBtn.querySelector('.password-toggle-icon');
+  
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    toggleIcon.textContent = '🙈';
+    toggleBtn.setAttribute('title', 'Hide password');
+  } else {
+    passwordInput.type = 'password';
+    toggleIcon.textContent = '👁️';
+    toggleBtn.setAttribute('title', 'Show password');
+  }
+}
+
+// ============================================
+// Security: HTML Sanitization Utility
+// ============================================
+function escapeHTML(str) {
+  if (typeof str !== 'string') return str;
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function sanitizeHTML(html) {
+  if (typeof html !== 'string') return '';
+  // Escape HTML special characters
+  return html
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+}
+
+// Safe innerHTML setter that escapes user content
+function setSafeHTML(element, html) {
+  if (!element) return;
+  element.innerHTML = html;
+}
 
 // Log app initialization
 Logger.info('Health App initialized', {
@@ -173,13 +302,13 @@ function installOrLaunchPWA() {
   
   // Check if app is already installed
   if (window.matchMedia('(display-mode: standalone)').matches) {
-    alert('App is already running in standalone mode! 🎉');
+    showAlertModal('App is already running in standalone mode! 🎉', 'PWA Status');
     return;
   }
   
   // Check if running as PWA (Safari)
   if (window.navigator.standalone === true) {
-    alert('App is already installed as PWA! 🎉');
+    showAlertModal('App is already installed as PWA! 🎉', 'PWA Status');
     return;
   }
   
@@ -189,7 +318,7 @@ function installOrLaunchPWA() {
     deferredPrompt.userChoice.then((choiceResult) => {
       if (choiceResult.outcome === 'accepted') {
         console.log('PWA: User accepted the install prompt');
-        alert('App installed successfully! 📱\nLook for "Jan\'s Health Dashboard" in your apps.');
+        showAlertModal('App installed successfully! 📱\nLook for "Jan\'s Health Dashboard" in your apps.', 'Installation Complete');
         hideInstallButton();
       } else {
         console.log('PWA: User dismissed the install prompt');
@@ -246,11 +375,11 @@ function openInStandalone() {
   );
   
   if (newWindow) {
-    alert('Opening in standalone mode! 🚀\nClose this window and use the new one.');
+    showAlertModal('Opening in standalone mode! 🚀\nClose this window and use the new one.', 'Standalone Mode');
     // Focus the new window
     newWindow.focus();
   } else {
-    alert('⚠️ Popup blocked!\nPlease allow popups for this site and try again.');
+    showAlertModal('⚠️ Popup blocked!\nPlease allow popups for this site and try again.', 'Popup Blocked');
   }
 }
 
@@ -307,7 +436,7 @@ Most modern browsers support installing web apps!
     `;
   }
   
-  alert(instructions);
+  showAlertModal(instructions, 'Installation Instructions');
 }
 
 function showUpdateNotification() {
@@ -398,21 +527,6 @@ window.addEventListener('DOMContentLoaded', function() {
   // Initialize food and exercise lists on page load
   renderLogFoodItems();
   renderLogExerciseItems();
-
-  // Check if there's a log entry for today, and if not, show an alert
-  const logs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  const todayStr = `${yyyy}-${mm}-${dd}`;
-  const hasToday = logs.some(log => log.date === todayStr);
-  if (!hasToday) {
-    // Only show alert if not installed as PWA to avoid annoying notifications
-    if (!window.matchMedia('(display-mode: standalone)').matches) {
-      alert("You have not logged an entry for today.");
-    }
-  }
 });
 
 // Form Validation System
@@ -1363,7 +1477,7 @@ async function clearData() {
   }
   
   // Show confirmation
-  alert('✅ All data cleared successfully!\n\n- Health logs deleted (local & cloud)\n- Local settings reset\n- Cloud settings preserved\n- Cloud sync logged out\n- AI model cache deleted\n\nThe app has been reset to default state.');
+  showAlertModal('✅ All data cleared successfully!\n\n- Health logs deleted (local & cloud)\n- Local settings reset\n- Cloud settings preserved\n- Cloud sync logged out\n- AI model cache deleted\n\nThe app has been reset to default state.', 'Data Cleared');
 }
 
 
@@ -1398,7 +1512,7 @@ function importData() {
           // Validate headers
           const expectedHeaders = ['Date', 'BPM', 'Weight', 'Fatigue', 'Stiffness', 'Back Pain', 'Sleep', 'Joint Pain', 'Mobility', 'Daily Function', 'Swelling', 'Flare', 'Mood', 'Irritability', 'Notes'];
           if (!expectedHeaders.every(header => headers.includes(header))) {
-            alert('Invalid CSV format. Please use a file exported from this app.');
+            showAlertModal('Invalid CSV format. Please use a file exported from this app.', 'Import Error');
             return;
           }
           
@@ -1432,7 +1546,7 @@ function importData() {
           const newLogs = importedLogs.filter(log => !existingDates.includes(log.date));
           
           if (newLogs.length === 0) {
-            alert('No new entries to import. All entries in the file already exist.');
+            showAlertModal('No new entries to import. All entries in the file already exist.', 'Import Info');
             return;
           }
           
@@ -1443,10 +1557,10 @@ function importData() {
           updateHeartbeatAnimation(); // Update heartbeat speed after import
           updateAISummaryButtonState(); // Update AI button state
           
-          alert(`Successfully imported ${newLogs.length} new health entries!`);
+          showAlertModal(`Successfully imported ${newLogs.length} new health entries!`, 'Import Success');
           
         } catch (error) {
-          alert('Error reading file. Please make sure it\'s a valid CSV file exported from this app.');
+          showAlertModal('Error reading file. Please make sure it\'s a valid CSV file exported from this app.', 'Import Error');
           console.error('Import error:', error);
           Logger.error('CSV import error', { error: error.message, stack: error.stack });
         }
@@ -1562,14 +1676,12 @@ function generateAISummary() {
   try {
     Logger.info('AI Summary button clicked');
     
-    // Get health logs from localStorage
-    const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
-    
-    Logger.debug('AI Summary - Checking data', { logCount: allLogs.length });
-    
-    // Check if we have data
-    if (allLogs.length === 0) {
-      alert('No health data available. Please log some entries first before generating an AI summary.');
+  // Use global logs variable instead of re-reading from localStorage
+  Logger.debug('AI Summary - Checking data', { logCount: logs.length });
+  
+  // Check if we have data
+  if (logs.length === 0) {
+      showAlertModal('No health data available. Please log some entries first before generating an AI summary.', 'AI Summary');
       Logger.warn('AI Summary - No data available');
       return;
     }
@@ -1581,7 +1693,7 @@ function generateAISummary() {
     if (!resultsContent) {
       console.error('AI results content element not found');
       Logger.error('AI Summary - Results content element not found');
-      alert('Error: AI results container not found. Please refresh the page.');
+      showAlertModal('Error: AI results container not found. Please refresh the page.', 'AI Summary Error');
       return;
     }
 
@@ -1612,7 +1724,7 @@ function generateAISummary() {
   } catch (error) {
     console.error('Error in generateAISummary (initial setup):', error);
     Logger.error('AI Summary - Error in initial setup', { error: error.message, stack: error.stack });
-    alert('An error occurred while starting AI analysis. Please check the console for details.');
+    showAlertModal('An error occurred while starting AI analysis. Please check the console for details.', 'AI Analysis Error');
     return;
   }
   
@@ -1624,7 +1736,7 @@ function generateAISummary() {
   // Ensure logs variable is available (use allLogs if logs is not defined)
   const logsToUse = typeof logs !== 'undefined' && logs.length > 0 ? logs : allLogs;
   
-  Logger.debug('AI Summary - Using logs', { logsCount: logsToUse.length, allLogsCount: allLogs.length });
+  Logger.debug('AI Summary - Using logs', { logsCount: logsToUse.length, allLogsCount: logs.length });
   
   let filteredLogs = logsToUse;
   let dateRangeText = '';
@@ -1673,7 +1785,7 @@ function generateAISummary() {
   Logger.debug('AI Summary - Filtered logs', { filteredCount: filteredLogs.length, dateRange: dateRangeText });
   
   if (filteredLogs.length === 0) {
-    alert('No health data available in the selected date range. Please adjust your date range or log some entries.');
+    showAlertModal('No health data available in the selected date range. Please adjust your date range or log some entries.', 'AI Summary');
     Logger.warn('AI Summary - No filtered logs available');
     return;
   }
@@ -1681,12 +1793,12 @@ function generateAISummary() {
   // Sort logs chronologically (oldest first)
   const sortedLogs = filteredLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
   
-  // Show loading state
+  // Show loading state (safe - no user input)
   resultsContent.innerHTML = `
     <div class="ai-loading-state">
       <div class="ai-loading-icon">🧠</div>
       <p class="ai-loading-text">Analyzing your health data...</p>
-      <p class="ai-loading-subtext">Processing ${sortedLogs.length} days of health metrics (${dateRangeText})</p>
+      <p class="ai-loading-subtext">Processing ${sortedLogs.length} days of health metrics (${escapeHTML(dateRangeText)})</p>
     </div>
   `;
 
@@ -1696,9 +1808,8 @@ function generateAISummary() {
     try {
       Logger.debug('AI Summary - Starting analysis', { sortedLogsCount: sortedLogs.length });
       
-      // Get ALL historical data from localStorage (no date filtering)
-      const allLogsForTraining = JSON.parse(localStorage.getItem("healthLogs") || "[]")
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+  // Get ALL historical data - use global logs variable (already sorted)
+  const allLogsForTraining = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
       
       Logger.debug('AI Summary - Training logs loaded', { trainingLogsCount: allLogsForTraining.length });
       
@@ -1733,7 +1844,7 @@ function generateAISummary() {
           <div class="ai-error">
             <h3>❌ Error Generating AI Summary</h3>
             <p>An error occurred while analyzing your health data. Please try again.</p>
-            <p style="font-size: 0.9rem; color: #78909c; margin-top: 10px;">Error: ${error.message}</p>
+            <p style="font-size: 0.9rem; color: #78909c; margin-top: 10px;">Error: ${escapeHTML(error.message)}</p>
           </div>
         `;
       }
@@ -1778,8 +1889,9 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
           ${insightsText.split('\n\n').map(para => {
             const trimmed = para.trim();
             if (!trimmed) return '';
-            // Format markdown-style bold text
-            let formatted = trimmed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Escape HTML first, then format markdown-style bold text
+            const escaped = escapeHTML(trimmed);
+            let formatted = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             // Format bullet points
             if (trimmed.startsWith('- ')) {
               formatted = formatted.substring(2);
@@ -2117,12 +2229,15 @@ function renderLogFoodItems() {
     list.innerHTML = '<p class="empty-items">No food items logged yet.</p>';
     return;
   }
-  list.innerHTML = logFormFoodItems.map((item, index) => `
+  list.innerHTML = logFormFoodItems.map((item, index) => {
+    const safeItem = escapeHTML(item);
+    return `
     <div class="item-entry">
-      <span class="item-text">${item}</span>
+      <span class="item-text">${safeItem}</span>
       <button type="button" class="remove-item-btn" onclick="removeLogFoodItem(${index})" title="Remove">×</button>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 // Add exercise item to log entry form
@@ -2152,12 +2267,15 @@ function renderLogExerciseItems() {
     list.innerHTML = '<p class="empty-items">No exercise logged yet.</p>';
     return;
   }
-  list.innerHTML = logFormExerciseItems.map((item, index) => `
+  list.innerHTML = logFormExerciseItems.map((item, index) => {
+    const safeItem = escapeHTML(item);
+    return `
     <div class="item-entry">
-      <span class="item-text">${item}</span>
+      <span class="item-text">${safeItem}</span>
       <button type="button" class="remove-item-btn" onclick="removeLogExerciseItem(${index})" title="Remove">×</button>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function openFoodModal(logDate) {
@@ -2173,40 +2291,62 @@ function openFoodModal(logDate) {
   const overlay = document.getElementById('foodModalOverlay');
   const modalContent = overlay.querySelector('.modal-content');
   
-  // Reset scroll position to ensure consistent modal positioning
-  overlay.scrollTop = 0;
-  window.scrollTo(0, 0);
+  // Move modal to body if it's not already there (ensures viewport-relative positioning)
+  if (overlay.parentElement !== document.body) {
+    document.body.appendChild(overlay);
+  }
   
-  // Ensure overlay is fixed to viewport with explicit values
-  overlay.style.position = 'fixed';
-  overlay.style.top = '0';
-  overlay.style.left = '0';
-  overlay.style.right = '0';
-  overlay.style.bottom = '0';
-  overlay.style.width = '100vw';
-  overlay.style.height = '100vh';
-  overlay.style.margin = '0';
-  overlay.style.padding = '0';
-  overlay.style.display = 'block';
-  overlay.style.zIndex = '10000';
+  // Reset overlay scroll position (not page scroll - keep user's current view)
+  overlay.scrollTop = 0;
+  
+  // Ensure overlay is fixed to viewport with explicit values using cssText for stronger override
+  overlay.style.cssText = `
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    z-index: 10000 !important;
+    overflow: hidden !important;
+    background: transparent;
+    pointer-events: all;
+    box-sizing: border-box;
+  `;
   
   // Ensure modal content is centered in viewport with explicit values
   if (modalContent) {
-    modalContent.style.position = 'fixed';
-    modalContent.style.top = '50%';
-    modalContent.style.left = '50%';
-    modalContent.style.right = 'auto';
-    modalContent.style.bottom = 'auto';
-    modalContent.style.transform = 'translate(-50%, -50%)';
-    modalContent.style.margin = '0';
-    modalContent.style.padding = '0';
-    modalContent.style.zIndex = '10001';
-    modalContent.style.visibility = 'visible';
-    modalContent.style.opacity = '1';
-    modalContent.style.display = 'flex';
+    modalContent.style.cssText = `
+      position: fixed !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      z-index: 10001 !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      display: flex !important;
+      right: auto !important;
+      bottom: auto !important;
+      box-sizing: border-box;
+    `;
   }
   
   document.body.classList.add('modal-active');
+  
+  // Force re-calculation of position after a brief delay to ensure viewport centering
+  requestAnimationFrame(() => {
+    if (overlay && modalContent) {
+      // Re-apply positioning to ensure it's relative to viewport
+      overlay.style.cssText = overlay.style.cssText; // Force recalculation
+      modalContent.style.cssText = modalContent.style.cssText; // Force recalculation
+    }
+  });
   
   const input = document.getElementById('newFoodItem');
   input.focus();
@@ -2257,12 +2397,15 @@ function renderFoodItems() {
     list.innerHTML = '<p class="empty-items">No food items logged yet.</p>';
     return;
   }
-  list.innerHTML = currentFoodItems.map((item, index) => `
+  list.innerHTML = currentFoodItems.map((item, index) => {
+    const safeItem = escapeHTML(item);
+    return `
     <div class="item-entry">
-      <span class="item-text">${item}</span>
+      <span class="item-text">${safeItem}</span>
       <button class="remove-item-btn" onclick="removeFoodItem(${index})" title="Remove">×</button>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function saveFoodLog() {
@@ -2290,40 +2433,62 @@ function openExerciseModal(logDate) {
   const overlay = document.getElementById('exerciseModalOverlay');
   const modalContent = overlay.querySelector('.modal-content');
   
-  // Reset scroll position to ensure consistent modal positioning
-  overlay.scrollTop = 0;
-  window.scrollTo(0, 0);
+  // Move modal to body if it's not already there (ensures viewport-relative positioning)
+  if (overlay.parentElement !== document.body) {
+    document.body.appendChild(overlay);
+  }
   
-  // Ensure overlay is fixed to viewport with explicit values
-  overlay.style.position = 'fixed';
-  overlay.style.top = '0';
-  overlay.style.left = '0';
-  overlay.style.right = '0';
-  overlay.style.bottom = '0';
-  overlay.style.width = '100vw';
-  overlay.style.height = '100vh';
-  overlay.style.margin = '0';
-  overlay.style.padding = '0';
-  overlay.style.display = 'block';
-  overlay.style.zIndex = '10000';
+  // Reset overlay scroll position (not page scroll - keep user's current view)
+  overlay.scrollTop = 0;
+  
+  // Ensure overlay is fixed to viewport with explicit values using cssText for stronger override
+  overlay.style.cssText = `
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    z-index: 10000 !important;
+    overflow: hidden !important;
+    background: transparent;
+    pointer-events: all;
+    box-sizing: border-box;
+  `;
   
   // Ensure modal content is centered in viewport with explicit values
   if (modalContent) {
-    modalContent.style.position = 'fixed';
-    modalContent.style.top = '50%';
-    modalContent.style.left = '50%';
-    modalContent.style.right = 'auto';
-    modalContent.style.bottom = 'auto';
-    modalContent.style.transform = 'translate(-50%, -50%)';
-    modalContent.style.margin = '0';
-    modalContent.style.padding = '0';
-    modalContent.style.zIndex = '10001';
-    modalContent.style.visibility = 'visible';
-    modalContent.style.opacity = '1';
-    modalContent.style.display = 'flex';
+    modalContent.style.cssText = `
+      position: fixed !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      z-index: 10001 !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      display: flex !important;
+      right: auto !important;
+      bottom: auto !important;
+      box-sizing: border-box;
+    `;
   }
   
   document.body.classList.add('modal-active');
+  
+  // Force re-calculation of position after a brief delay to ensure viewport centering
+  requestAnimationFrame(() => {
+    if (overlay && modalContent) {
+      // Re-apply positioning to ensure it's relative to viewport
+      overlay.style.cssText = overlay.style.cssText; // Force recalculation
+      modalContent.style.cssText = modalContent.style.cssText; // Force recalculation
+    }
+  });
   
   const input = document.getElementById('newExerciseItem');
   input.focus();
@@ -2374,12 +2539,15 @@ function renderExerciseItems() {
     list.innerHTML = '<p class="empty-items">No exercise logged yet.</p>';
     return;
   }
-  list.innerHTML = currentExerciseItems.map((item, index) => `
+  list.innerHTML = currentExerciseItems.map((item, index) => {
+    const safeItem = escapeHTML(item);
+    return `
     <div class="item-entry">
-      <span class="item-text">${item}</span>
+      <span class="item-text">${safeItem}</span>
       <button class="remove-item-btn" onclick="removeExerciseItem(${index})" title="Remove">×</button>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function saveExerciseLog() {
@@ -2830,26 +2998,27 @@ function generateLogEntryHTML(log) {
   const foodCount = log.food && log.food.length > 0 ? log.food.length : 0;
   const exerciseCount = log.exercise && log.exercise.length > 0 ? log.exercise.length : 0;
   
+  const safeDate = escapeHTML(log.date);
   const editButton = isEditing 
-    ? `<button class="edit-btn save-btn" onclick="event.stopPropagation(); saveInlineEdit('${log.date}')" title="Save changes">💾</button>`
-    : `<button class="edit-btn" onclick="event.stopPropagation(); enableInlineEdit('${log.date}')" title="Edit this entry">✏️</button>`;
+    ? `<button class="edit-btn save-btn" onclick="event.stopPropagation(); saveInlineEdit('${safeDate}')" title="Save changes">💾</button>`
+    : `<button class="edit-btn" onclick="event.stopPropagation(); enableInlineEdit('${safeDate}')" title="Edit this entry">✏️</button>`;
   
   return `
     <div class="log-entry-actions">
-      <button class="delete-btn" onclick="event.stopPropagation(); deleteLogEntry('${log.date}')" title="Delete this entry">&times;</button>
+      <button class="delete-btn" onclick="event.stopPropagation(); deleteLogEntry('${escapeHTML(log.date)}')" title="Delete this entry">&times;</button>
       ${editButton}
     </div>
-    <div class="log-entry-header-collapsible" onclick="toggleLogEntry('${log.date}')">
+    <div class="log-entry-header-collapsible" onclick="toggleLogEntry('${escapeHTML(log.date)}')">
       <div class="log-entry-header-content">
         ${isEditing 
           ? `<input type="date" class="inline-edit-date" value="${log.date}" onclick="event.stopPropagation();" style="font-size: 1.2rem; padding: 5px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; width: auto; max-width: 200px; margin-right: 20px;" />`
           : `<h3 class="log-date">${formattedDate}</h3>`
         }
         <div class="header-badges">
-          <button class="header-icon-btn food-btn" onclick="event.stopPropagation(); openFoodModal('${log.date}')" title="Food Log ${foodCount > 0 ? `(${foodCount} items)` : ''}">
+          <button class="header-icon-btn food-btn" onclick="event.stopPropagation(); openFoodModal('${escapeHTML(log.date)}')" title="Food Log ${foodCount > 0 ? `(${foodCount} items)` : ''}">
             🍽️${foodCount > 0 ? `<span class="badge-count">${foodCount}</span>` : ''}
           </button>
-          <button class="header-icon-btn exercise-btn" onclick="event.stopPropagation(); openExerciseModal('${log.date}')" title="Exercise Log ${exerciseCount > 0 ? `(${exerciseCount} items)` : ''}">
+          <button class="header-icon-btn exercise-btn" onclick="event.stopPropagation(); openExerciseModal('${escapeHTML(log.date)}')" title="Exercise Log ${exerciseCount > 0 ? `(${exerciseCount} items)` : ''}">
             🏃${exerciseCount > 0 ? `<span class="badge-count">${exerciseCount}</span>` : ''}
           </button>
           ${isEditing 
@@ -2861,7 +3030,7 @@ function generateLogEntryHTML(log) {
           }
         </div>
       </div>
-      <span class="log-entry-arrow">></span>
+      <span class="log-entry-arrow"></span>
     </div>
     <div class="log-entry-content">
       <div class="log-metrics-grid">
@@ -2964,7 +3133,7 @@ function generateLogEntryHTML(log) {
       </div>
       ${isEditing 
         ? `<div class="log-notes"><strong>📝 Note:</strong> <textarea class="inline-edit-notes" onclick="event.stopPropagation();" style="width: 100%; min-height: 60px; padding: 8px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-top: 8px; resize: vertical;">${log.notes || ''}</textarea></div>`
-        : (log.notes ? `<div class="log-notes"><strong>📝 Note:</strong> ${log.notes}</div>` : '')
+        : (log.notes ? `<div class="log-notes"><strong>📝 Note:</strong> ${escapeHTML(log.notes)}</div>` : '')
       }
     </div>
   `;
@@ -2980,17 +3149,22 @@ function toggleLogEntry(logDate) {
   if (entry.classList.contains('expanded')) {
     entry.classList.remove('expanded');
     if (content) content.style.display = 'none';
-    if (arrow) arrow.textContent = '>';
+    if (arrow) arrow.textContent = '';
   } else {
     entry.classList.add('expanded');
     if (content) content.style.display = 'block';
-    if (arrow) arrow.textContent = 'v';
+    if (arrow) arrow.textContent = '';
   }
 }
 
-function renderLogs() {
-  output.innerHTML = "";
-  logs.forEach(log => {
+// Shared render function to reduce code duplication
+function renderLogEntries(logsToRender) {
+  // Use requestAnimationFrame for smooth DOM updates
+  requestAnimationFrame(() => {
+    const fragment = document.createDocumentFragment();
+    output.innerHTML = "";
+    
+    logsToRender.forEach(log => {
     const div = document.createElement("div");
     div.className = "entry";
     div.setAttribute('data-log-date', log.date);
@@ -3009,14 +3183,21 @@ function renderLogs() {
       if (inlineEditingDate === log.date) {
         content.style.display = 'block';
         const arrow = div.querySelector('.log-entry-arrow');
-        if (arrow) arrow.textContent = 'v';
+        if (arrow) arrow.textContent = '';
       } else {
         content.style.display = 'none';
       }
     }
     
-    output.appendChild(div);
+      fragment.appendChild(div);
+    });
+    
+    output.appendChild(fragment);
   });
+}
+
+function renderLogs() {
+  renderLogEntries(logs);
 }
 
 // Old renderLogs code kept for reference - can be removed
@@ -3029,6 +3210,23 @@ let chartDateRange = {
 
 // Prediction range state
 let predictionRange = 7; // 7, 30, or 90 days
+
+// Debounce/throttle utilities for performance
+let chartUpdateTimer = null;
+let chartUpdatePending = false;
+
+function debounceChartUpdate() {
+  if (chartUpdateTimer) {
+    clearTimeout(chartUpdateTimer);
+  }
+  chartUpdatePending = true;
+  chartUpdateTimer = setTimeout(() => {
+    if (chartUpdatePending) {
+      chartUpdatePending = false;
+      updateCharts();
+    }
+  }, 300); // 300ms debounce
+}
 
 // Get filtered logs based on current date range
 function getFilteredLogs() {
@@ -3645,8 +3843,6 @@ function getMaxValue(dataField) {
 let chartObserver;
 const loadedCharts = new Set();
 const activeTimers = new Set(); // Track active timers for cleanup
-const activeIntervals = new Set(); // Track active intervals for cleanup
-const activeAnimationFrames = new Set(); // Track active animation frames
 
 function initializeLazyLoading() {
   // Check if Intersection Observer is supported
@@ -3856,24 +4052,36 @@ form.addEventListener("submit", e => {
     weightValue = parseFloat(lbToKg(weightValue));
   }
   
+  // Security: Sanitize and validate form inputs
+  const dateValue = document.getElementById("date").value.trim();
+  // Validate date format (YYYY-MM-DD)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+    showAlertModal('Invalid date format', 'Validation Error');
+    return;
+  }
+  
+  // Sanitize food and exercise items
+  const sanitizedFood = logFormFoodItems.map(item => escapeHTML(item.trim())).filter(item => item.length > 0);
+  const sanitizedExercise = logFormExerciseItems.map(item => escapeHTML(item.trim())).filter(item => item.length > 0);
+  
   const newEntry = {
-    date: document.getElementById("date").value,
-    bpm: document.getElementById("bpm").value,
+    date: dateValue,
+    bpm: Math.max(30, Math.min(120, parseInt(document.getElementById("bpm").value) || 0)), // Clamp between 30-120
     weight: weightValue.toFixed(1), // Always store as kg
-    fatigue: document.getElementById("fatigue").value,
-    stiffness: document.getElementById("stiffness").value,
-    backPain: document.getElementById("backPain").value,
-    sleep: document.getElementById("sleep").value,
-    jointPain: document.getElementById("jointPain").value,
-    mobility: document.getElementById("mobility").value,
-    dailyFunction: document.getElementById("dailyFunction").value,
-    swelling: document.getElementById("swelling").value,
-    flare: document.getElementById("flare").value,
-    mood: document.getElementById("mood").value,
-    irritability: document.getElementById("irritability").value,
-    notes: document.getElementById("notes").value,
-    food: [...logFormFoodItems], // Include food items from form
-    exercise: [...logFormExerciseItems] // Include exercise items from form
+    fatigue: Math.max(0, Math.min(10, parseInt(document.getElementById("fatigue").value) || 0)), // Clamp 0-10
+    stiffness: Math.max(0, Math.min(10, parseInt(document.getElementById("stiffness").value) || 0)), // Clamp 0-10
+    backPain: Math.max(0, Math.min(10, parseInt(document.getElementById("backPain").value) || 0)), // Clamp 0-10
+    sleep: Math.max(0, Math.min(10, parseInt(document.getElementById("sleep").value) || 0)), // Clamp 0-10
+    jointPain: Math.max(0, Math.min(10, parseInt(document.getElementById("jointPain").value) || 0)), // Clamp 0-10
+    mobility: Math.max(0, Math.min(10, parseInt(document.getElementById("mobility").value) || 0)), // Clamp 0-10
+    dailyFunction: Math.max(0, Math.min(10, parseInt(document.getElementById("dailyFunction").value) || 0)), // Clamp 0-10
+    swelling: Math.max(0, Math.min(10, parseInt(document.getElementById("swelling").value) || 0)), // Clamp 0-10
+    flare: document.getElementById("flare").value === 'Yes' ? 'Yes' : 'No', // Validate flare value
+    mood: Math.max(0, Math.min(10, parseInt(document.getElementById("mood").value) || 0)), // Clamp 0-10
+    irritability: Math.max(0, Math.min(10, parseInt(document.getElementById("irritability").value) || 0)), // Clamp 0-10
+    notes: escapeHTML(document.getElementById("notes").value.trim().substring(0, 500)), // Sanitize and limit notes
+    food: sanitizedFood, // Include sanitized food items
+    exercise: sanitizedExercise // Include sanitized exercise items
   };
   
   // Check for duplicate dates
@@ -4408,7 +4616,7 @@ function toggleDemoMode() {
     updateHeartbeatAnimation();
     loadSettingsState();
     
-    alert('Demo mode disabled. Your original data has been restored.');
+    showAlertModal('Demo mode disabled. Your original data has been restored.', 'Demo Mode');
   } else {
     // Enable demo mode - backup current data and load demo data
     if (confirm('Enable demo mode? This will temporarily replace your data with 10 years of sample data. Your original data will be restored when you disable demo mode.')) {
@@ -4477,7 +4685,7 @@ function toggleDemoMode() {
             document.body.removeChild(loadingMsg);
           }
           
-          alert('Demo mode enabled! 10 years of sample data loaded. Your original data is safely backed up. The app will now restart.');
+          showAlertModal('Demo mode enabled! 10 years of sample data loaded. Your original data is safely backed up. The app will now restart.', 'Demo Mode');
           
           // Reload the app to ensure everything is properly initialized
           setTimeout(() => {
@@ -4488,7 +4696,7 @@ function toggleDemoMode() {
           if (document.body.contains(loadingMsg)) {
             document.body.removeChild(loadingMsg);
           }
-          alert('Error generating demo data. Please try again.');
+          showAlertModal('Error generating demo data. Please try again.', 'Demo Mode Error');
         }
       }, 100); // Small delay to allow UI update
     }
@@ -4792,65 +5000,11 @@ function toggleSort() {
 }
 
 function renderFilteredLogs(filteredLogs) {
-  output.innerHTML = "";
-  filteredLogs.forEach(log => {
-    const div = document.createElement("div");
-    div.className = "entry";
-    div.setAttribute('data-log-date', log.date);
-    if (isExtreme(log)) div.classList.add("highlight");
-    if (log.flare === 'Yes') div.classList.add("flare-up-entry");
-    if (inlineEditingDate === log.date) {
-      div.classList.add("editing");
-      div.classList.add("expanded"); // Auto-expand when editing
-    }
-    
-    div.innerHTML = generateLogEntryHTML(log);
-    
-    // Hide content by default (collapsed), unless editing
-    const content = div.querySelector('.log-entry-content');
-    if (content) {
-      if (inlineEditingDate === log.date) {
-        content.style.display = 'block';
-        const arrow = div.querySelector('.log-entry-arrow');
-        if (arrow) arrow.textContent = 'v';
-      } else {
-        content.style.display = 'none';
-      }
-    }
-    
-    output.appendChild(div);
-  });
+  renderLogEntries(filteredLogs);
 }
 
 function renderSortedLogs(sortedLogs) {
-  output.innerHTML = "";
-  sortedLogs.forEach(log => {
-    const div = document.createElement("div");
-    div.className = "entry";
-    div.setAttribute('data-log-date', log.date);
-    if (isExtreme(log)) div.classList.add("highlight");
-    if (log.flare === 'Yes') div.classList.add("flare-up-entry");
-    if (inlineEditingDate === log.date) {
-      div.classList.add("editing");
-      div.classList.add("expanded"); // Auto-expand when editing
-    }
-    
-    div.innerHTML = generateLogEntryHTML(log);
-    
-    // Hide content by default (collapsed), unless editing
-    const content = div.querySelector('.log-entry-content');
-    if (content) {
-      if (inlineEditingDate === log.date) {
-        content.style.display = 'block';
-        const arrow = div.querySelector('.log-entry-arrow');
-        if (arrow) arrow.textContent = 'v';
-      } else {
-        content.style.display = 'none';
-      }
-    }
-    
-    output.appendChild(div);
-  });
+  renderLogEntries(sortedLogs);
 }
 
 // Collapsible section functionality
@@ -4869,14 +5023,14 @@ function toggleSection(sectionId) {
     requestAnimationFrame(() => {
       if (isOpen) {
         section.classList.remove('open');
-        if (arrow) arrow.textContent = '>';
+        if (arrow) arrow.textContent = '';
         // Remove will-change after animation
         setTimeout(() => {
           section.style.willChange = 'auto';
         }, 300);
       } else {
         section.classList.add('open');
-        if (arrow) arrow.textContent = 'v';
+        if (arrow) arrow.textContent = '';
         // Remove will-change after animation completes
         setTimeout(() => {
           section.style.willChange = 'auto';
@@ -4997,11 +5151,9 @@ function switchTab(tabName) {
         if (combinedBtn) combinedBtn.classList.add('active');
         if (individualBtn) individualBtn.classList.remove('active');
         // Small delay to prevent jump
-        const timer1 = setTimeout(() => {
+        setTimeout(() => {
           createCombinedChart();
-          activeTimers.delete(timer1);
         }, 100);
-        activeTimers.add(timer1);
       } else {
         // Show individual view
         combinedContainer.classList.add('hidden');
@@ -5009,11 +5161,9 @@ function switchTab(tabName) {
         if (individualBtn) individualBtn.classList.add('active');
         if (combinedBtn) combinedBtn.classList.remove('active');
         // Update charts when switching to charts tab
-        const timer2 = setTimeout(() => {
+        setTimeout(() => {
           updateCharts();
-          activeTimers.delete(timer2);
         }, 200);
-        activeTimers.add(timer2);
       }
     }
   }
@@ -5100,6 +5250,23 @@ window.addEventListener('load', () => {
   setChartDateRange(7);
   setPredictionRange(7); // Initialize prediction range to 7 days
   setLogViewRange(7); // Initialize log view range to 7 days
+  
+  // Check if there's a log entry for today, and if not, show an alert
+  // Do this after everything is loaded to ensure modal HTML is ready
+  setTimeout(() => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+    const hasToday = logs.some(log => log.date === todayStr);
+    if (!hasToday) {
+      // Only show alert if not installed as PWA to avoid annoying notifications
+      if (!window.matchMedia('(display-mode: standalone)').matches) {
+        showAlertModal("You have not logged an entry for today.");
+      }
+    }
+  }, 500); // Small delay to ensure modal HTML is in DOM
 });
 
 function initializeDateFilters() {
