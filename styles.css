@@ -468,7 +468,7 @@ h1#dashboardTitle:hover {
   background: var(--card-bg-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  padding: 25px;
+  padding: 25px 25px 10px 25px;
   border-radius: 24px;
   max-width: 1000px;
   margin: auto;
@@ -480,6 +480,7 @@ h1#dashboardTitle:hover {
   z-index: 1;
   animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  overflow: visible; /* Ensure settings button is not clipped */
 }
 
 .container:hover {
@@ -590,12 +591,16 @@ h1#dashboardTitle:hover {
 .tab-content {
   display: none;
   animation: fadeInTab 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-bottom: 10px;
+  margin-bottom: 0;
 }
 
 .tab-content.active {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+  padding-bottom: 10px;
+  margin-bottom: 0;
 }
 
 
@@ -1594,6 +1599,7 @@ body.light-mode .tab-btn.ai-tab-btn.active {
 
 .save-entry-btn {
   margin-top: 1.5rem;
+  margin-bottom: 0;
 }
 
 /* Collapsible Form Sections */
@@ -1604,6 +1610,24 @@ body.light-mode .tab-btn.ai-tab-btn.active {
   border: 1px solid rgba(255, 255, 255, 0.05);
   overflow: hidden;
   transition: all var(--transition-normal);
+}
+
+/* Remove bottom spacing from last elements in tabs (but keep tab-content padding) */
+.tab-content .form-section:last-child,
+.tab-content .entry:last-child,
+.tab-content .chart-container:last-child,
+.tab-content .save-entry-btn:last-child,
+#output > *:last-child,
+#individualChartsContainer > *:last-child,
+#combinedChartContainer:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Tab content containers have 10px bottom padding to prevent content cutoff */
+#output,
+#individualChartsContainer,
+#combinedChartContainer {
+  margin-bottom: 0 !important;
 }
 
 .form-section:hover {
@@ -2225,6 +2249,7 @@ button:focus {
   backdrop-filter: blur(10px);
   padding: 20px;
   margin-top: 15px;
+  margin-bottom: 0;
   border-radius: 16px;
   animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -3010,7 +3035,8 @@ body.loading .loading-overlay {
 }
 
 .chart-container {
-  margin: 30px 0;
+  margin: 30px 0 0 0;
+  margin-bottom: 0;
   background: rgba(28, 28, 28, 0.6);
   backdrop-filter: blur(15px);
   border-radius: 20px;
@@ -3104,6 +3130,19 @@ body.loading .loading-overlay {
   border-radius: 50%;
   transform: translate(-50%, -50%);
   animation: spin 1s linear infinite;
+}
+
+/* Static "No data" message - no animations or spinner */
+.chart-loading.no-data-message {
+  animation: none !important;
+  background: transparent !important;
+  border: none !important;
+  color: rgba(224, 242, 241, 0.6);
+  font-weight: normal;
+}
+
+.chart-loading.no-data-message::after {
+  display: none !important;
 }
 
 body.light-mode .chart-loading {
@@ -3508,7 +3547,7 @@ body.light-mode .chart-loading {
 /* Floating Settings Button */
 /* Settings Button - Top Right */
 .settings-button-top {
-  position: absolute;
+  position: fixed;
   top: 20px;
   right: 20px;
   width: 44px;
@@ -3517,7 +3556,7 @@ body.light-mode .chart-loading {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  z-index: 1000;
+  z-index: 10002;
   transition: all var(--transition-normal);
   display: flex;
   align-items: center;
@@ -3525,6 +3564,7 @@ body.light-mode .chart-loading {
   padding: 0;
   margin: 0;
   min-height: auto;
+  pointer-events: all;
 }
 
 .settings-button-top:hover {
@@ -3793,7 +3833,7 @@ body.light-mode .settings-button-top:hover {
   transform: translate(-50%, -50%);
   box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(76, 175, 80, 0.3);
   border: 2px solid rgba(76, 175, 80, 0.5);
-  max-height: 85vh;
+  max-height: calc(85vh - env(safe-area-inset-bottom, 0px));
   overflow: hidden;
   animation: modalFloatIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 10001;
@@ -3818,8 +3858,11 @@ body.light-mode .settings-button-top:hover {
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1;
-  padding: 0 30px 30px 30px;
+  padding: 10px 30px 0 30px;
+  padding-top: 10px;
+  padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom, 0px)));
   min-height: 0;
+  margin-bottom: env(safe-area-inset-bottom, 0);
 }
 
 .settings-title {
@@ -4159,7 +4202,8 @@ body.light-mode .date-separator {
 /* Enhanced mobile optimizations */
 @media (max-width: 768px) {
   body {
-    padding: 5px;
+    padding: 5px 5px 0 5px;
+    padding-bottom: 0;
     font-size: 16px; /* Prevents zoom on iOS */
   }
 
@@ -4213,9 +4257,28 @@ body.light-mode .date-separator {
   }
 
   .container {
-    padding: 18px;
-    margin: 0;
+    padding: 18px 18px 10px 18px;
+    padding-bottom: 10px;
+    margin: 0 0 0 0;
+    margin-bottom: 0;
     border-radius: 20px;
+  }
+  
+  .tab-content {
+    padding-bottom: 10px;
+    margin-bottom: 0;
+  }
+  
+  .entry {
+    margin-bottom: 0;
+  }
+  
+  .chart-container {
+    margin-bottom: 0;
+  }
+  
+  .form-section:last-child {
+    margin-bottom: 0;
   }
   
   .container:hover {
@@ -4493,7 +4556,12 @@ body.light-mode .date-separator {
   
   .settings-menu {
     width: 95%;
-    max-height: 90vh;
+    max-height: calc(90vh - env(safe-area-inset-bottom, 0px));
+  }
+  
+  .settings-content {
+    padding-top: 0;
+    padding-bottom: max(100px, calc(100px + env(safe-area-inset-bottom, 0px)));
   }
   
   .ai-modal-content {

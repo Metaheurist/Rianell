@@ -2939,10 +2939,17 @@ function chart(id, label, dataField, color) {
   // Check if we have data
   if (!filteredLogs || filteredLogs.length === 0) {
     console.warn(`No data available for chart: ${label} (after date filter)`);
-    // Show empty state message
-    if (container.querySelector('.chart-loading')) {
-      container.querySelector('.chart-loading').textContent = 'No data in selected date range';
-      container.querySelector('.chart-loading').style.display = 'flex';
+    // Show empty state message without animations or spinner
+    const loadingElement = container.querySelector('.chart-loading');
+    if (loadingElement) {
+      loadingElement.textContent = 'No data in selected date range';
+      loadingElement.style.display = 'flex';
+      loadingElement.classList.add('no-data-message');
+      // Remove animations and spinner
+      loadingElement.style.animation = 'none';
+      loadingElement.style.background = 'transparent';
+      // Hide the spinner (::after pseudo-element)
+      loadingElement.style.position = 'relative';
     }
     return;
   }
@@ -4556,29 +4563,30 @@ function toggleSection(sectionId) {
 
 // Add touch event handling for mobile to prevent stuck animations
 document.addEventListener('DOMContentLoaded', function() {
-  const sectionHeaders = document.querySelectorAll('.section-header');
+  // Use event delegation to handle dynamically added section headers
+  document.addEventListener('touchstart', function(e) {
+    const header = e.target.closest('.section-header');
+    if (header) {
+      header.classList.add('active');
+    }
+  }, { passive: true });
   
-  sectionHeaders.forEach(header => {
-    // Handle touch start
-    header.addEventListener('touchstart', function(e) {
-      this.classList.add('active');
-      // Prevent default to avoid double-tap zoom and other touch behaviors
-      e.preventDefault();
-    }, { passive: false });
-    
-    // Handle touch end
-    header.addEventListener('touchend', function(e) {
+  document.addEventListener('touchend', function(e) {
+    const header = e.target.closest('.section-header');
+    if (header) {
       // Small delay to ensure click event fires
       setTimeout(() => {
-        this.classList.remove('active');
+        header.classList.remove('active');
       }, 100);
-    }, { passive: true });
-    
-    // Handle touch cancel (when touch is interrupted)
-    header.addEventListener('touchcancel', function() {
-      this.classList.remove('active');
-    }, { passive: true });
-  });
+    }
+  }, { passive: true });
+  
+  document.addEventListener('touchcancel', function(e) {
+    const header = e.target.closest('.section-header');
+    if (header) {
+      header.classList.remove('active');
+    }
+  }, { passive: true });
 });
 
 // Initialize all sections as collapsed by default
