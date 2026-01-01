@@ -171,8 +171,10 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
     def log_error(self, format, *args):
         """Override to log errors to file"""
         error_msg = format % args
-        client_ip = self.client_address[0]
-        logger.error(f"ERROR | {error_msg} | Client: {client_ip} | Path: {self.path}")
+        client_ip = getattr(self, 'client_address', ['Unknown'])[0] if hasattr(self, 'client_address') else 'Unknown'
+        # self.path might not exist if request timed out before parsing
+        path = getattr(self, 'path', 'Unknown')
+        logger.error(f"ERROR | {error_msg} | Client: {client_ip} | Path: {path}")
         # Force flush to ensure log is written immediately
         file_handler.flush()
         super().log_error(format, *args)
