@@ -1027,3 +1027,240 @@
 2025-12-31 17:09:49 | DEBUG    | HealthApp | CLIENT | DEBUG | Edit entry modal opened | Details: {"date": "2016-01-03"} | IP: 127.0.0.1 | Time: 2025-12-31T17:09:48.973Z
 2025-12-31 17:09:49 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
 2025-12-31 17:09:53 | INFO     | HealthApp | REQUEST | GET /sw.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:39 | INFO     | HealthApp | ============================================================
+2025-12-31 17:16:39 | INFO     | HealthApp | Health App Server - Logging Initialized
+2025-12-31 17:16:39 | INFO     | HealthApp | Log file: e:\Health App\logs\health_app_20251231.log
+2025-12-31 17:16:39 | INFO     | HealthApp | Note: Client-side logs are only sent when demo mode is enabled
+2025-12-31 17:16:39 | INFO     | HealthApp | ============================================================
+2025-12-31 17:16:39 | INFO     | HealthApp | Starting Health App Server
+2025-12-31 17:16:39 | INFO     | HealthApp | Server directory: e:\Health App
+2025-12-31 17:16:39 | INFO     | HealthApp | Port: 8080
+2025-12-31 17:16:39 | INFO     | HealthApp | Server socket created successfully
+2025-12-31 17:16:39 | INFO     | HealthApp | Server address reuse enabled
+2025-12-31 17:16:39 | INFO     | HealthApp | Local IP determined: 192.168.1.110
+2025-12-31 17:16:39 | INFO     | HealthApp | ============================================================
+2025-12-31 17:16:39 | INFO     | HealthApp | Server ready to accept connections
+2025-12-31 17:16:39 | INFO     | HealthApp | Server URL: http://localhost:8080
+2025-12-31 17:16:39 | INFO     | HealthApp | LAN URL: http://192.168.1.110:8080
+2025-12-31 17:16:39 | INFO     | HealthApp | ============================================================
+2025-12-31 17:16:39 | INFO     | HealthApp | Browser opened at http://localhost:8080
+2025-12-31 17:16:39 | INFO     | HealthApp | Server entering serve_forever() loop
+2025-12-31 17:16:39 | INFO     | HealthApp | REQUEST | GET / | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:39 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:39 | INFO     | HealthApp | REQUEST | GET /apexcharts.min.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:39 | INFO     | HealthApp | REQUEST | GET /AIEngine.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:39 | INFO     | HealthApp | REQUEST | GET /app.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:39 | INFO     | HealthApp | REQUEST | GET /cloud-sync.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:40 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1767201399974 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:40 | INFO     | HealthApp | CLIENT | INFO | Health App initialized | Details: {"timestamp": "2025-12-31T17:16:39.969Z", "localStorageAvailable": true} | IP: 127.0.0.1 | Time: 2025-12-31T17:16:39.969Z
+2025-12-31 17:16:40 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:40 | DEBUG    | HealthApp | CLIENT | DEBUG | CSS cache-busted | Details: {"href": "styles.css"} | IP: 127.0.0.1 | Time: 2025-12-31T17:16:39.974Z
+2025-12-31 17:16:40 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:40 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "apexcharts.min.js"} | IP: 127.0.0.1 | Time: 2025-12-31T17:16:39.974Z
+2025-12-31 17:16:40 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:40 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "app.js"} | IP: 127.0.0.1 | Time: 2025-12-31T17:16:39.975Z
+2025-12-31 17:16:40 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:40 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 127.0.0.1 | Path: /Icons/Icon-32.png
+2025-12-31 17:16:40 | INFO     | HealthApp | HTTP File not found | 404 | Client: 127.0.0.1
+2025-12-31 17:16:40 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-32.png | Status: 404 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:40 | INFO     | HealthApp | REQUEST | GET /sw.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:42 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 127.0.0.1 | Path: /Icons/Icon-16.png
+2025-12-31 17:16:42 | INFO     | HealthApp | HTTP File not found | 404 | Client: 127.0.0.1
+2025-12-31 17:16:42 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-16.png | Status: 404 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:42 | DEBUG    | HealthApp | CLIENT | DEBUG | Cache cleared on startup | IP: 127.0.0.1 | Time: 2025-12-31T17:16:42.140Z
+2025-12-31 17:16:42 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:42 | INFO     | HealthApp | REQUEST | GET / | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:16:42 | INFO     | HealthApp | REQUEST | GET /manifest.json | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:43 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:43 | INFO     | HealthApp | REQUEST | GET /apexcharts.min.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:43 | INFO     | HealthApp | REQUEST | GET /AIEngine.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:43 | INFO     | HealthApp | REQUEST | GET /app.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:43 | INFO     | HealthApp | REQUEST | GET /cloud-sync.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:43 | INFO     | HealthApp | REQUEST | GET / | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:43 | INFO     | HealthApp | REQUEST | GET /sw.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:44 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:44 | INFO     | HealthApp | REQUEST | GET /apexcharts.min.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:44 | INFO     | HealthApp | REQUEST | GET /AIEngine.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:44 | INFO     | HealthApp | REQUEST | GET /app.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:44 | INFO     | HealthApp | REQUEST | GET /cloud-sync.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:44 | INFO     | HealthApp | CLIENT | INFO | Health App initialized | Details: {"timestamp": "2025-12-31T17:17:44.311Z", "localStorageAvailable": true} | IP: 127.0.0.1 | Time: 2025-12-31T17:17:44.311Z
+2025-12-31 17:17:44 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:44 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1767201464435 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:44 | DEBUG    | HealthApp | CLIENT | DEBUG | CSS cache-busted | Details: {"href": "styles.css"} | IP: 127.0.0.1 | Time: 2025-12-31T17:17:44.436Z
+2025-12-31 17:17:44 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:44 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "apexcharts.min.js"} | IP: 127.0.0.1 | Time: 2025-12-31T17:17:44.436Z
+2025-12-31 17:17:44 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:44 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "app.js"} | IP: 127.0.0.1 | Time: 2025-12-31T17:17:44.436Z
+2025-12-31 17:17:44 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:44 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 127.0.0.1 | Path: /Icons/Icon-32.png
+2025-12-31 17:17:44 | INFO     | HealthApp | HTTP File not found | 404 | Client: 127.0.0.1
+2025-12-31 17:17:44 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-32.png | Status: 404 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:45 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 127.0.0.1 | Path: /Icons/Icon-16.png
+2025-12-31 17:17:45 | INFO     | HealthApp | HTTP File not found | 404 | Client: 127.0.0.1
+2025-12-31 17:17:45 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-16.png | Status: 404 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:46 | DEBUG    | HealthApp | CLIENT | DEBUG | Cache cleared on startup | IP: 127.0.0.1 | Time: 2025-12-31T17:17:45.889Z
+2025-12-31 17:17:46 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:46 | INFO     | HealthApp | REQUEST | GET /manifest.json | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:17:46 | INFO     | HealthApp | CLIENT | INFO | Service Worker registered | Details: {"scope": "http://localhost:8080/"} | IP: 127.0.0.1 | Time: 2025-12-31T17:17:46.936Z
+2025-12-31 17:17:46 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:18:37 | INFO     | HealthApp | ============================================================
+2025-12-31 17:18:37 | INFO     | HealthApp | Health App Server - Logging Initialized
+2025-12-31 17:18:37 | INFO     | HealthApp | Log file: e:\Health App\logs\health_app_20251231.log
+2025-12-31 17:18:37 | INFO     | HealthApp | Note: Client-side logs are only sent when demo mode is enabled
+2025-12-31 17:18:37 | INFO     | HealthApp | ============================================================
+2025-12-31 17:18:37 | INFO     | HealthApp | Starting Health App Server
+2025-12-31 17:18:37 | INFO     | HealthApp | Server directory: e:\Health App
+2025-12-31 17:18:37 | INFO     | HealthApp | Port: 8080
+2025-12-31 17:18:37 | INFO     | HealthApp | Server socket created successfully
+2025-12-31 17:18:37 | INFO     | HealthApp | Server address reuse enabled
+2025-12-31 17:18:37 | INFO     | HealthApp | Local IP determined: 192.168.1.110
+2025-12-31 17:18:37 | INFO     | HealthApp | ============================================================
+2025-12-31 17:18:37 | INFO     | HealthApp | Server ready to accept connections
+2025-12-31 17:18:37 | INFO     | HealthApp | Server URL: http://localhost:8080
+2025-12-31 17:18:37 | INFO     | HealthApp | LAN URL: http://192.168.1.110:8080
+2025-12-31 17:18:37 | INFO     | HealthApp | ============================================================
+2025-12-31 17:18:37 | INFO     | HealthApp | Browser opened at http://localhost:8080
+2025-12-31 17:18:37 | INFO     | HealthApp | Server entering serve_forever() loop
+2025-12-31 17:18:37 | INFO     | HealthApp | REQUEST | GET / | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:18:37 | DEBUG    | HealthApp | CLIENT | DEBUG | Settings modal opened | IP: 127.0.0.1 | Time: 2025-12-31T17:17:51.496Z
+2025-12-31 17:18:37 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:18:37 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:18:37 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 127.0.0.1 | Path: /Icons/Icon-16.png
+2025-12-31 17:18:37 | INFO     | HealthApp | HTTP File not found | 404 | Client: 127.0.0.1
+2025-12-31 17:18:37 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-16.png | Status: 404 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:18:37 | INFO     | HealthApp | REQUEST | GET /apexcharts.min.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:18:37 | INFO     | HealthApp | REQUEST | GET /AIEngine.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:18:37 | INFO     | HealthApp | REQUEST | GET /app.js?v=1 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:18:37 | INFO     | HealthApp | REQUEST | GET /cloud-sync.js | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:18:38 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1767201518039 | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:18:38 | INFO     | HealthApp | CLIENT | INFO | Health App initialized | Details: {"timestamp": "2025-12-31T17:18:37.900Z", "localStorageAvailable": true} | IP: 127.0.0.1 | Time: 2025-12-31T17:18:37.900Z
+2025-12-31 17:18:38 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:18:38 | DEBUG    | HealthApp | CLIENT | DEBUG | CSS cache-busted | Details: {"href": "styles.css"} | IP: 127.0.0.1 | Time: 2025-12-31T17:18:38.039Z
+2025-12-31 17:18:38 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:18:38 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "apexcharts.min.js"} | IP: 127.0.0.1 | Time: 2025-12-31T17:18:38.039Z
+2025-12-31 17:18:38 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:18:38 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "app.js"} | IP: 127.0.0.1 | Time: 2025-12-31T17:18:38.040Z
+2025-12-31 17:18:38 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:18:38 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 127.0.0.1 | Path: /Icons/Icon-32.png
+2025-12-31 17:18:38 | INFO     | HealthApp | HTTP File not found | 404 | Client: 127.0.0.1
+2025-12-31 17:18:38 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-32.png | Status: 404 | Size: - | Client: 127.0.0.1 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb
+2025-12-31 17:19:20 | INFO     | HealthApp | REQUEST | GET / | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:19:20 | INFO     | HealthApp | REQUEST | GET /manifest.json | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:19:20 | INFO     | HealthApp | REQUEST | GET /AIEngine.js | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:19:20 | INFO     | HealthApp | REQUEST | GET /apexcharts.min.js?v=1 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:19:20 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:19:20 | INFO     | HealthApp | REQUEST | GET /app.js?v=1 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:19:20 | INFO     | HealthApp | REQUEST | GET /cloud-sync.js | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:19:21 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1767201560933 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:19:49 | DEBUG    | HealthApp | CLIENT | DEBUG | Settings saved | Details: {"settings": {"showCharts": true, "combinedChart": false, "reminder": true, "sound": false, "backup": true, "compress": false, "animations": true, "lazy": true, "userName": "John Doe", "weightUnit": "kg", "medicalCondition": "Arthritis", "demoMode": true}} | IP: 192.168.1.152 | Time: 2025-12-31T17:19:49.651Z
+2025-12-31 17:19:49 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:04 | DEBUG    | HealthApp | CLIENT | DEBUG | Settings modal closed | IP: 192.168.1.152 | Time: 2025-12-31T17:20:04.369Z
+2025-12-31 17:20:04 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:15 | DEBUG    | HealthApp | CLIENT | DEBUG | Settings saved | Details: {"settings": {"showCharts": true, "combinedChart": false, "reminder": true, "sound": false, "backup": true, "compress": false, "animations": true, "lazy": true, "userName": "John Doe", "weightUnit": "lb", "medicalCondition": "Arthritis", "demoMode": true}} | IP: 192.168.1.152 | Time: 2025-12-31T17:20:15.476Z
+2025-12-31 17:20:15 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:32 | INFO     | HealthApp | REQUEST | GET / | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:32 | INFO     | HealthApp | REQUEST | GET /apexcharts.min.js?v=1 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:32 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:32 | INFO     | HealthApp | REQUEST | GET /manifest.json | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:32 | INFO     | HealthApp | REQUEST | GET /AIEngine.js | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:32 | INFO     | HealthApp | REQUEST | GET /app.js?v=1 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:32 | INFO     | HealthApp | REQUEST | GET /cloud-sync.js | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:32 | INFO     | HealthApp | CLIENT | INFO | Health App initialized | Details: {"timestamp": "2025-12-31T17:20:32.716Z", "localStorageAvailable": true} | IP: 192.168.1.152 | Time: 2025-12-31T17:20:32.716Z
+2025-12-31 17:20:32 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:32 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1767201632719 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:32 | DEBUG    | HealthApp | CLIENT | DEBUG | CSS cache-busted | Details: {"href": "styles.css"} | IP: 192.168.1.152 | Time: 2025-12-31T17:20:32.719Z
+2025-12-31 17:20:32 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:32 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "apexcharts.min.js"} | IP: 192.168.1.152 | Time: 2025-12-31T17:20:32.719Z
+2025-12-31 17:20:32 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:32 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "app.js"} | IP: 192.168.1.152 | Time: 2025-12-31T17:20:32.719Z
+2025-12-31 17:20:32 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:34 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 192.168.1.152 | Path: /Icons/Icon-32.png
+2025-12-31 17:20:34 | INFO     | HealthApp | HTTP File not found | 404 | Client: 192.168.1.152
+2025-12-31 17:20:34 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-32.png | Status: 404 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:34 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 192.168.1.152 | Path: /Icons/Icon-180.png
+2025-12-31 17:20:34 | INFO     | HealthApp | HTTP File not found | 404 | Client: 192.168.1.152
+2025-12-31 17:20:34 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-180.png | Status: 404 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:34 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 192.168.1.152 | Path: /Icons/Icon-16.png
+2025-12-31 17:20:34 | INFO     | HealthApp | HTTP File not found | 404 | Client: 192.168.1.152
+2025-12-31 17:20:34 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-16.png | Status: 404 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:34 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 192.168.1.152 | Path: /Icons/Icon-167.png
+2025-12-31 17:20:34 | INFO     | HealthApp | HTTP File not found | 404 | Client: 192.168.1.152
+2025-12-31 17:20:34 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-167.png | Status: 404 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:34 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 192.168.1.152 | Path: /Icons/Icon-152.png
+2025-12-31 17:20:34 | INFO     | HealthApp | HTTP File not found | 404 | Client: 192.168.1.152
+2025-12-31 17:20:34 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-152.png | Status: 404 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:34 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 192.168.1.152 | Path: /Icons/Icon-144.png
+2025-12-31 17:20:34 | INFO     | HealthApp | HTTP File not found | 404 | Client: 192.168.1.152
+2025-12-31 17:20:34 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-144.png | Status: 404 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:34 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 192.168.1.152 | Path: /Icons/Icon-120.png
+2025-12-31 17:20:34 | INFO     | HealthApp | HTTP File not found | 404 | Client: 192.168.1.152
+2025-12-31 17:20:34 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-120.png | Status: 404 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:34 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 192.168.1.152 | Path: /Icons/Icon-114.png
+2025-12-31 17:20:34 | INFO     | HealthApp | HTTP File not found | 404 | Client: 192.168.1.152
+2025-12-31 17:20:34 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-114.png | Status: 404 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:34 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 192.168.1.152 | Path: /Icons/Icon-76.png
+2025-12-31 17:20:34 | INFO     | HealthApp | HTTP File not found | 404 | Client: 192.168.1.152
+2025-12-31 17:20:34 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-76.png | Status: 404 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:34 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 192.168.1.152 | Path: /Icons/Icon-72.png
+2025-12-31 17:20:34 | INFO     | HealthApp | HTTP File not found | 404 | Client: 192.168.1.152
+2025-12-31 17:20:34 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-72.png | Status: 404 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:34 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 192.168.1.152 | Path: /Icons/Icon-60.png
+2025-12-31 17:20:34 | INFO     | HealthApp | HTTP File not found | 404 | Client: 192.168.1.152
+2025-12-31 17:20:34 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-60.png | Status: 404 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:20:34 | ERROR    | HealthApp | ERROR | code 404, message File not found | Client: 192.168.1.152 | Path: /Icons/Icon-57.png
+2025-12-31 17:20:34 | INFO     | HealthApp | HTTP File not found | 404 | Client: 192.168.1.152
+2025-12-31 17:20:34 | INFO     | HealthApp | REQUEST | GET /Icons/Icon-57.png | Status: 404 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:17 | DEBUG    | HealthApp | CLIENT | DEBUG | Exercise modal opened | Details: {"date": "2025-12-25", "itemCount": 3} | IP: 192.168.1.152 | Time: 2025-12-31T17:21:17.483Z
+2025-12-31 17:21:17 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:35 | INFO     | HealthApp | REQUEST | GET / | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:35 | INFO     | HealthApp | REQUEST | GET /manifest.json | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:35 | INFO     | HealthApp | REQUEST | GET /apexcharts.min.js?v=1 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:35 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:35 | INFO     | HealthApp | REQUEST | GET /AIEngine.js | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:35 | INFO     | HealthApp | REQUEST | GET /cloud-sync.js | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:35 | INFO     | HealthApp | REQUEST | GET /app.js?v=1 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:35 | INFO     | HealthApp | CLIENT | INFO | Health App initialized | Details: {"timestamp": "2025-12-31T17:21:35.041Z", "localStorageAvailable": true} | IP: 192.168.1.152 | Time: 2025-12-31T17:21:35.041Z
+2025-12-31 17:21:35 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:35 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1767201695046 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:35 | DEBUG    | HealthApp | CLIENT | DEBUG | CSS cache-busted | Details: {"href": "styles.css"} | IP: 192.168.1.152 | Time: 2025-12-31T17:21:35.046Z
+2025-12-31 17:21:35 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:35 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "apexcharts.min.js"} | IP: 192.168.1.152 | Time: 2025-12-31T17:21:35.046Z
+2025-12-31 17:21:35 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:35 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "app.js"} | IP: 192.168.1.152 | Time: 2025-12-31T17:21:35.046Z
+2025-12-31 17:21:35 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:44 | DEBUG    | HealthApp | CLIENT | DEBUG | Inline edit enabled | Details: {"date": "2025-12-02"} | IP: 192.168.1.152 | Time: 2025-12-31T17:21:44.448Z
+2025-12-31 17:21:44 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:21:48 | DEBUG    | HealthApp | CLIENT | DEBUG | Exercise modal opened | Details: {"date": "2025-12-02", "itemCount": 0} | IP: 192.168.1.152 | Time: 2025-12-31T17:21:47.940Z
+2025-12-31 17:21:48 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:22:00 | DEBUG    | HealthApp | CLIENT | DEBUG | Exercise modal closed | Details: {"date": "2025-12-02"} | IP: 192.168.1.152 | Time: 2025-12-31T17:22:00.232Z
+2025-12-31 17:22:00 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:22:02 | INFO     | HealthApp | REQUEST | GET / | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:22:02 | INFO     | HealthApp | REQUEST | GET /manifest.json | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:22:02 | INFO     | HealthApp | REQUEST | GET /AIEngine.js | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:22:02 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:22:02 | INFO     | HealthApp | REQUEST | GET /apexcharts.min.js?v=1 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:22:02 | INFO     | HealthApp | REQUEST | GET /cloud-sync.js | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:22:02 | INFO     | HealthApp | REQUEST | GET /app.js?v=1 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:22:02 | INFO     | HealthApp | CLIENT | INFO | Health App initialized | Details: {"timestamp": "2025-12-31T17:22:01.996Z", "localStorageAvailable": true} | IP: 192.168.1.152 | Time: 2025-12-31T17:22:01.996Z
+2025-12-31 17:22:02 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:22:02 | INFO     | HealthApp | REQUEST | GET /styles.css?v=1767201722000 | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:22:02 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "apexcharts.min.js"} | IP: 192.168.1.152 | Time: 2025-12-31T17:22:02.000Z
+2025-12-31 17:22:02 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:22:02 | DEBUG    | HealthApp | CLIENT | DEBUG | CSS cache-busted | Details: {"href": "styles.css"} | IP: 192.168.1.152 | Time: 2025-12-31T17:22:02.000Z
+2025-12-31 17:22:02 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:22:02 | DEBUG    | HealthApp | CLIENT | DEBUG | JS cache-busted | Details: {"src": "app.js"} | IP: 192.168.1.152 | Time: 2025-12-31T17:22:02.000Z
+2025-12-31 17:22:02 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:22:38 | DEBUG    | HealthApp | CLIENT | DEBUG | Inline edit enabled | Details: {"date": "2025-10-03"} | IP: 192.168.1.152 | Time: 2025-12-31T17:22:37.896Z
+2025-12-31 17:22:38 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:23:48 | DEBUG    | HealthApp | CLIENT | DEBUG | Settings modal opened | IP: 192.168.1.152 | Time: 2025-12-31T17:23:48.815Z
+2025-12-31 17:23:48 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:24:32 | DEBUG    | HealthApp | CLIENT | DEBUG | Settings modal closed | IP: 192.168.1.152 | Time: 2025-12-31T17:24:32.254Z
+2025-12-31 17:24:32 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:24:41 | DEBUG    | HealthApp | CLIENT | DEBUG | Settings saved | Details: {"settings": {"showCharts": true, "combinedChart": true, "reminder": true, "sound": false, "backup": true, "compress": false, "animations": true, "lazy": true, "userName": "John Doe", "weightUnit": "lb", "medicalCondition": "Arthritis", "demoMode": true}} | IP: 192.168.1.152 | Time: 2025-12-31T17:24:41.464Z
+2025-12-31 17:24:41 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:24:41 | ERROR    | HealthApp | CLIENT | ERROR | Error generating predictions for combined chart | Details: {"error": "Can't find variable: allLogs", "stack": "createCombinedChart@http://192.168.1.110:8080/app.js:939:31\n@http://192.168.1.110:8080/app.js:863:24"} | IP: 192.168.1.152 | Time: 2025-12-31T17:24:41.534Z
+2025-12-31 17:24:41 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:24:44 | ERROR    | HealthApp | CLIENT | ERROR | Error generating predictions for combined chart | Details: {"error": "Can't find variable: allLogs", "stack": "createCombinedChart@http://192.168.1.110:8080/app.js:939:31\nrefreshCharts@http://192.168.1.110:8080/app.js:2908:24\nsetChartDateRange@http://192.168.1.110:8080/app.js:2868:16\nonclick@http://192.168.1.110:8080/:398:18"} | IP: 192.168.1.152 | Time: 2025-12-31T17:24:44.148Z
+2025-12-31 17:24:44 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
+2025-12-31 17:24:44 | ERROR    | HealthApp | CLIENT | ERROR | Error generating predictions for combined chart | Details: {"error": "Can't find variable: allLogs", "stack": "createCombinedChart@http://192.168.1.110:8080/app.js:939:31\nrefreshCharts@http://192.168.1.110:8080/app.js:2908:24\nsetChartDateRange@http://192.168.1.110:8080/app.js:2868:16\nonclick@http://192.168.1.110:8080/:397:18"} | IP: 192.168.1.152 | Time: 2025-12-31T17:24:44.852Z
+2025-12-31 17:24:44 | INFO     | HealthApp | REQUEST | POST /api/log | Status: 200 | Size: - | Client: 192.168.1.152 | UA: Mozilla/5.0 (iPhone; CPU iPhone OS 26_1_0 like Mac
