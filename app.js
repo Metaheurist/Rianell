@@ -96,6 +96,40 @@ const Logger = {
 };
 
 // ============================================
+// Helper: Close Settings Modal
+// ============================================
+function closeSettingsModalIfOpen() {
+  const settingsOverlay = document.getElementById('settingsOverlay');
+  if (settingsOverlay && (settingsOverlay.style.display === 'flex' || settingsOverlay.style.display === 'block')) {
+    // Preserve state before closing
+    const settingsContent = settingsOverlay.querySelector('.settings-content');
+    if (settingsContent) {
+      window.settingsModalScrollPosition = settingsContent.scrollTop;
+    }
+    
+    const conditionSelector = document.getElementById('medicalConditionSelector');
+    if (conditionSelector) {
+      window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
+    }
+    
+    if (typeof closeSettings === 'function') {
+      closeSettings();
+    } else if (typeof toggleSettings === 'function') {
+      toggleSettings(); // Toggle will close it if it's open
+    } else {
+      settingsOverlay.style.display = 'none';
+      settingsOverlay.style.visibility = 'hidden';
+      document.body.classList.remove('modal-active');
+    }
+  }
+}
+
+// Make helper function globally available for other scripts
+if (typeof window !== 'undefined') {
+  window.closeSettingsModalIfOpen = closeSettingsModalIfOpen;
+}
+
+// ============================================
 // Custom Alert Modal
 // ============================================
 function showAlertModal(message, title = 'Alert') {
@@ -111,14 +145,7 @@ function showAlertModal(message, title = 'Alert') {
   }
   
   // Close settings modal if open
-  const settingsOverlay = document.getElementById('settingsOverlay');
-  if (settingsOverlay && settingsOverlay.style.display === 'flex') {
-    if (typeof toggleSettings === 'function') {
-      toggleSettings();
-    } else {
-      settingsOverlay.style.display = 'none';
-    }
-  }
+  closeSettingsModalIfOpen();
   
   // Set content
   titleEl.textContent = title;
@@ -202,18 +229,7 @@ function showGDPRAgreementModal(onAgree, onDecline) {
   }
   
   // Close settings modal if open
-  const settingsOverlay = document.getElementById('settingsOverlay');
-  if (settingsOverlay && (settingsOverlay.style.display === 'flex' || settingsOverlay.style.display === 'block')) {
-    if (typeof closeSettings === 'function') {
-      closeSettings();
-    } else if (typeof toggleSettings === 'function') {
-      toggleSettings(); // Toggle will close it if it's open
-    } else {
-      settingsOverlay.style.display = 'none';
-      settingsOverlay.style.visibility = 'hidden';
-      document.body.classList.remove('modal-active');
-    }
-  }
+  closeSettingsModalIfOpen();
   
   // Show GDPR modal
   overlay.style.display = 'block';
@@ -223,21 +239,29 @@ function showGDPRAgreementModal(onAgree, onDecline) {
   document.body.classList.add('modal-active');
   document.body.style.overflow = 'hidden';
   
-  // Center modal, positioned slightly higher
+  // Center modal, positioned much higher to ensure buttons are visible
   const modalContent = overlay.querySelector('.modal-content');
   if (modalContent) {
     modalContent.style.position = 'fixed';
-    modalContent.style.top = '45%'; // Positioned higher than center (was 50%)
+    modalContent.style.top = '25%'; // Positioned much higher to ensure buttons are visible
     modalContent.style.left = '50%';
     modalContent.style.transform = 'translate(-50%, -50%)';
     modalContent.style.margin = '0';
     modalContent.style.padding = '0';
     modalContent.style.zIndex = '100011'; // Higher than overlay
+    modalContent.style.maxHeight = '75vh'; // Ensure modal doesn't exceed viewport
+    modalContent.style.overflow = 'hidden'; // Prevent content overflow
+    modalContent.style.display = 'flex'; // Use flexbox
+    modalContent.style.flexDirection = 'column'; // Column layout
   }
   
-  // Scroll to top of agreement content
+  // Ensure body has proper max-height to leave room for footer
   const agreementBody = overlay.querySelector('.gdpr-agreement-body');
   if (agreementBody) {
+    agreementBody.style.maxHeight = 'calc(75vh - 180px)'; // Leave room for header and footer
+    agreementBody.style.overflowY = 'auto';
+    agreementBody.style.overflowX = 'hidden';
+    // Scroll to top of agreement content
     agreementBody.scrollTop = 0;
   }
   
@@ -313,14 +337,7 @@ function showConfirmModal(message, title = 'Confirm', onConfirm, onCancel) {
   }
   
   // Close settings modal if open
-  const settingsOverlay = document.getElementById('settingsOverlay');
-  if (settingsOverlay && settingsOverlay.style.display === 'flex') {
-    if (typeof toggleSettings === 'function') {
-      toggleSettings();
-    } else {
-      settingsOverlay.style.display = 'none';
-    }
-  }
+  closeSettingsModalIfOpen();
   
   // Set content
   titleEl.textContent = title;
@@ -2611,7 +2628,7 @@ async function clearData() {
     }
   }
   
-  // Clear all app settings - reset to defaults (local only, cloud settings preserved)
+  // Clear all app settings - reset to complete defaults
   appSettings = {
     showCharts: true,
     combinedChart: false,
@@ -2623,7 +2640,15 @@ async function clearData() {
     lazy: true,
     userName: '',
     weightUnit: 'kg',
-    medicalCondition: '' // Clear medical condition
+    medicalCondition: '', // Clear medical condition
+    contributeAnonData: false, // Reset data contribution
+    useOpenData: false, // Reset open data usage
+    demoMode: false, // Reset demo mode
+    chartView: 'individual', // Reset chart view
+    combinedChartSelectedMetrics: undefined, // Clear metric selections
+    balanceChartSelectedMetrics: undefined, // Clear balance chart selections
+    reminderTime: '20:00', // Reset reminder time to default
+    optimizedAI: false // Reset optimized AI setting
   };
   localStorage.removeItem('healthAppSettings');
   
@@ -2739,8 +2764,16 @@ async function clearData() {
     updateConditionContext('');
   }
   
-  // Show confirmation
-  showAlertModal('✅ All data cleared successfully!\n\n- Health logs deleted (local & cloud)\n- Local settings reset\n- Cloud settings preserved\n- Cloud sync logged out\n- AI model cache deleted\n\nThe app has been reset to default state.', 'Data Cleared');
+  // Save default settings
+  saveSettings();
+  
+  // Show confirmation and reload app
+  showAlertModal('✅ All data and settings cleared successfully!\n\nThe app will reload in a moment to reset to default state.', 'Data Cleared');
+  
+  // Reload the app to fully reset to default state
+  setTimeout(() => {
+    window.location.reload();
+  }, 1500);
 }
 
 
@@ -4751,6 +4784,9 @@ function toggleCollapsibleSection(sectionId) {
 }
 
 function openFoodModal(logDate) {
+  // Close settings modal if open
+  closeSettingsModalIfOpen();
+  
   currentEditingDate = logDate;
   const log = logs.find(l => l.date === logDate);
   // Migrate old string format to new object format
@@ -4963,6 +4999,9 @@ function saveFoodLog() {
 }
 
 function openExerciseModal(logDate) {
+  // Close settings modal if open
+  closeSettingsModalIfOpen();
+  
   currentEditingDate = logDate;
   const log = logs.find(l => l.date === logDate);
   currentExerciseItems = log && log.exercise ? [...log.exercise] : [];
@@ -5131,6 +5170,9 @@ let editingEntryDate = null;
 let inlineEditingDate = null; // Track which entry is being edited inline
 
 function openEditEntryModal(logDate) {
+  // Close settings modal if open
+  closeSettingsModalIfOpen();
+  
   editingEntryDate = logDate;
   const log = logs.find(l => l.date === logDate);
   if (!log) {
@@ -7708,21 +7750,21 @@ async function toggleContributeAnonData() {
     async () => {
       // Enable the feature
       appSettings.contributeAnonData = true;
-      saveSettings();
-      
-      // Update toggle state
-      const toggle = document.getElementById('contributeAnonDataToggle');
-      if (toggle) {
-        toggle.classList.toggle('active', appSettings.contributeAnonData);
-      }
-      
-      // If enabling, sync data immediately
+  saveSettings();
+  
+  // Update toggle state
+  const toggle = document.getElementById('contributeAnonDataToggle');
+  if (toggle) {
+    toggle.classList.toggle('active', appSettings.contributeAnonData);
+  }
+  
+  // If enabling, sync data immediately
       if (typeof syncAnonymizedData === 'function') {
-        syncAnonymizedData();
-      }
-      
-      // Update hint text
-      loadSettingsState();
+    syncAnonymizedData();
+  }
+  
+  // Update hint text
+  loadSettingsState();
       
       // Show confirmation
       showAlertModal('Anonymised data contribution has been enabled. Your data will be anonymised and used to improve AI predictions.', 'Feature Enabled');
@@ -7824,17 +7866,31 @@ function toggleSetting(setting) {
     console.log('Settings modal isVisible:', isVisible, 'current display:', overlay.style.display);
     
     if (isVisible) {
-      // Close modal
+      // Close modal - preserve state
       console.log('Closing settings modal');
+      
+      // Preserve scroll position and state before closing
+      const settingsContent = overlay.querySelector('.settings-content');
+      if (settingsContent) {
+        window.settingsModalScrollPosition = settingsContent.scrollTop;
+      }
+      
+      // Preserve expanded sections state
+      const conditionSelector = document.getElementById('medicalConditionSelector');
+      if (conditionSelector) {
+        window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
+      }
+      
     overlay.style.display = 'none';
       overlay.style.visibility = 'hidden';
       document.body.classList.remove('modal-active');
       document.body.style.overflow = '';
   } else {
-      // Open modal
+      // Open modal - restore state
       console.log('Opening settings modal');
       document.body.style.overflow = 'hidden';
-      overlay.scrollTop = 0;
+      
+      // Don't reset scroll position - will restore it after opening
       window.scrollTo(0, 0);
       
       overlay.style.position = 'fixed';
@@ -7872,6 +7928,26 @@ function toggleSetting(setting) {
       if (typeof loadSettingsState === 'function') {
     loadSettingsState();
   }
+      
+      // Restore scroll position if it was saved
+      const settingsContent = overlay.querySelector('.settings-content');
+      if (settingsContent && window.settingsModalScrollPosition !== undefined) {
+        // Use setTimeout to ensure DOM is fully rendered
+        setTimeout(() => {
+          settingsContent.scrollTop = window.settingsModalScrollPosition;
+        }, 50);
+      } else if (settingsContent) {
+        // Reset to top if no saved position
+        settingsContent.scrollTop = 0;
+      }
+      
+      // Restore expanded sections state
+      if (window.settingsModalConditionSelectorOpen) {
+        const conditionSelector = document.getElementById('medicalConditionSelector');
+        if (conditionSelector) {
+          conditionSelector.style.display = 'block';
+        }
+  }
 }
   };
   
@@ -7885,6 +7961,18 @@ function toggleSetting(setting) {
     if (!overlay) {
       console.error('Settings overlay not found!');
       return;
+    }
+    
+    // Preserve scroll position and state before closing
+    const settingsContent = overlay.querySelector('.settings-content');
+    if (settingsContent) {
+      window.settingsModalScrollPosition = settingsContent.scrollTop;
+    }
+    
+    // Preserve expanded sections state
+    const conditionSelector = document.getElementById('medicalConditionSelector');
+    if (conditionSelector) {
+      window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
     }
     
     // Always close, don't toggle
