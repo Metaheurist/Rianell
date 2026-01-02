@@ -817,12 +817,15 @@ h1#dashboardTitle:hover {
   transition: all var(--transition-normal);
   white-space: nowrap;
   min-width: auto;
+  margin: 0;
+  box-shadow: none;
 }
 
 .log-date-range-btn:hover {
   background: rgba(76, 175, 80, 0.1);
   border-color: rgba(76, 175, 80, 0.3);
   color: var(--text-light);
+  box-shadow: none;
 }
 
 .log-date-range-btn.active {
@@ -830,6 +833,23 @@ h1#dashboardTitle:hover {
   color: white;
   border-color: rgba(76, 175, 80, 0.5);
   box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.log-date-range-btn.active:hover {
+  background: var(--primary-gradient);
+  color: white;
+  border-color: rgba(76, 175, 80, 0.5);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.log-date-range-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(76, 175, 80, 0.2);
+}
+
+.log-date-range-btn.active:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(76, 175, 80, 0.4);
 }
 
 .prediction-range-btn {
@@ -2397,7 +2417,7 @@ button:focus {
 
 /* Log Entry Actions - Edit and Delete buttons */
 .log-entry-actions {
-  display: flex;
+  display: none; /* Completely hidden when collapsed */
   gap: 8px;
   justify-content: flex-start;
   align-items: center;
@@ -2409,16 +2429,22 @@ button:focus {
   height: 0;
   overflow: hidden;
   opacity: 0;
-  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, padding 0.3s ease, margin 0.3s ease;
+  visibility: hidden;
+  /* Smooth strip animation - buttons appear instantly with the strip */
+  transition: display 0s 0.2s, height 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding 0.2s ease, margin 0.2s ease, visibility 0s 0.2s;
 }
 
 .entry.expanded .log-entry-actions {
+  display: flex; /* Show when expanded */
   height: auto;
   min-height: 52px;
   opacity: 1;
+  visibility: visible;
   pointer-events: all;
   padding: 10px 20px;
   margin: -20px -20px 10px -20px;
+  /* Strip appears smoothly, buttons are already visible */
+  transition: display 0s, height 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding 0.2s ease, margin 0.2s ease, visibility 0s;
 }
 
 
@@ -2653,7 +2679,7 @@ button:focus {
   margin: 0;
   min-height: auto;
   box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
-  animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Removed scaleIn animation - buttons appear instantly with the strip */
 }
 
 .delete-btn:hover {
@@ -2687,7 +2713,7 @@ button:focus {
   margin: 0;
   min-height: auto;
   box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
-  animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Removed scaleIn animation - buttons appear instantly with the strip */
 }
 
 .edit-btn:hover {
@@ -4730,11 +4756,24 @@ body.light-mode .date-separator {
     font-size: 0.9rem;
   }
 
+  /* Ensure actions are hidden when collapsed on mobile */
   .log-entry-actions {
+    display: none !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+  
+  .entry.expanded .log-entry-actions {
+    display: flex !important;
     gap: 6px;
     padding: 8px 15px !important;
     margin: -18px -18px 8px -18px !important;
     min-height: 48px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 
   .delete-btn {

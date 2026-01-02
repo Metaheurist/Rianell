@@ -4996,12 +4996,18 @@ function setLogViewRange(days) {
   const logButton = document.getElementById(logButtonId);
   if (logButton) {
     logButton.classList.add('active');
+    Logger.debug('View range button activated', { days, buttonId: logButtonId });
+  } else {
+    Logger.warn('View range button not found', { days, buttonId: logButtonId });
   }
   
   // Hide custom date range selector if it was showing
-  document.getElementById('customDateRangeSelector').classList.add('hidden');
+  const customDateRangeSelector = document.getElementById('customDateRangeSelector');
+  if (customDateRangeSelector) {
+    customDateRangeSelector.classList.add('hidden');
+  }
   
-  // Filter and render logs
+  // Filter and render logs (this will call checkAndUpdateViewRangeButtons, but our button should stay active)
   filterLogs();
   
   // Refresh charts to match the new range
@@ -5023,6 +5029,10 @@ function checkAndUpdateViewRangeButtons() {
   
   const startDate = new Date(startDateInput.value);
   const endDate = new Date(endDateInput.value);
+  // Set proper hours for accurate comparison
+  startDate.setHours(0, 0, 0, 0);
+  endDate.setHours(23, 59, 59, 999);
+  
   const today = new Date();
   today.setHours(23, 59, 59, 999);
   
@@ -5040,6 +5050,7 @@ function checkAndUpdateViewRangeButtons() {
   }
   
   // Calculate the number of days between start and end
+  // Both dates now have proper hours set, so calculation should be accurate
   const daysDiff = Math.ceil((endDate - startDate) / oneDayMs) + 1; // +1 to include both start and end days
   
   // Check if it matches any predefined range (1, 7, 30, 90 days)
@@ -5049,7 +5060,18 @@ function checkAndUpdateViewRangeButtons() {
     expectedStartDate.setDate(expectedStartDate.getDate() - (daysDiff - 1));
     expectedStartDate.setHours(0, 0, 0, 0);
     
-    const startDateMatch = Math.abs(startDate - expectedStartDate) < oneDayMs;
+    // Create a copy of startDate for comparison (since we already set hours above)
+    const startDateForComparison = new Date(startDate);
+    startDateForComparison.setHours(0, 0, 0, 0);
+    
+    const startDateMatch = Math.abs(startDateForComparison.getTime() - expectedStartDate.getTime()) < oneDayMs;
+    
+    Logger.debug('View range button check', { 
+      daysDiff, 
+      startDate: startDateForComparison.toISOString().split('T')[0],
+      expectedStartDate: expectedStartDate.toISOString().split('T')[0],
+      match: startDateMatch 
+    });
     
     if (startDateMatch) {
       // Matches a predefined range - select the appropriate button
