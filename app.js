@@ -527,7 +527,60 @@ window.addEventListener('DOMContentLoaded', function() {
   // Initialize food and exercise lists on page load
   renderLogFoodItems();
   renderLogExerciseItems();
+  
+  // Connect to Server-Sent Events for auto-reload on file changes
+  connectToReloadStream();
 });
+
+// Server-Sent Events connection for auto-reload
+function connectToReloadStream() {
+  if (typeof EventSource === 'undefined') {
+    Logger.warn('EventSource not supported, auto-reload disabled');
+    return;
+  }
+  
+  try {
+    const eventSource = new EventSource('/api/reload');
+    
+    eventSource.onopen = function() {
+      Logger.debug('Connected to reload stream');
+    };
+    
+    eventSource.onmessage = function(event) {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'reload') {
+          Logger.info('File change detected, reloading page...');
+          // Small delay to ensure file is fully written
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
+        } else if (data.type === 'connected') {
+          Logger.debug('Reload stream connected');
+        }
+      } catch (e) {
+        Logger.warn('Error parsing reload message', { error: e.message });
+      }
+    };
+    
+    eventSource.onerror = function(error) {
+      Logger.debug('Reload stream error, reconnecting...', { error: error });
+      // EventSource will automatically reconnect
+      setTimeout(() => {
+        if (eventSource.readyState === EventSource.CLOSED) {
+          eventSource.close();
+          // Reconnect after a delay
+          setTimeout(connectToReloadStream, 5000);
+        }
+      }, 1000);
+    };
+    
+    // Store reference for cleanup if needed
+    window._reloadEventSource = eventSource;
+  } catch (e) {
+    Logger.warn('Failed to connect to reload stream', { error: e.message });
+  }
+}
 
 // Form Validation System
 class FormValidator {
@@ -1673,6 +1726,11 @@ function updateAISummaryButtonState() {
 }
 
 function generateAISummary() {
+  // Declare resultsContent outside try block so it's accessible throughout the function
+  let resultsContent = null;
+  let aiSection = null;
+  let aiFormSection = null;
+  
   try {
     Logger.info('AI Summary button clicked');
     
@@ -1687,8 +1745,8 @@ function generateAISummary() {
     }
 
     // Get the results content element
-    const resultsContent = document.getElementById('aiResultsContent');
-    const aiSection = document.getElementById('aiSummarySection');
+    resultsContent = document.getElementById('aiResultsContent');
+    aiSection = document.getElementById('aiSummarySection');
     
     if (!resultsContent) {
       console.error('AI results content element not found');
@@ -1700,27 +1758,37 @@ function generateAISummary() {
     Logger.debug('AI Summary - Showing form section');
 
     // Show the AI Analysis form-section (it's hidden by default)
-    const aiFormSection = document.getElementById('aiAnalysisFormSection');
-    if (aiFormSection) {
-      aiFormSection.style.display = 'block';
-      Logger.debug('AI Summary - Form section displayed');
-    } else {
+    aiFormSection = document.getElementById('aiAnalysisFormSection');
+    if (!aiFormSection) {
       Logger.warn('AI Summary - Form section element not found');
       console.error('AI Analysis form section not found');
+      showAlertModal('Error: AI Analysis section not found. Please refresh the page.', 'AI Summary Error');
+      return;
     }
+    
+    // Use cssText with !important to override CSS !important rule
+    aiFormSection.style.cssText = 'display: block !important; margin-top: 2rem;';
+    Logger.debug('AI Summary - Form section displayed');
 
-    // Open the collapsible section if it's closed
-    if (aiSection) {
-      if (!aiSection.classList.contains('open')) {
-        toggleSection('aiSummarySection');
-        Logger.debug('AI Summary - Section opened');
-      } else {
-        Logger.debug('AI Summary - Section already open');
-      }
-    } else {
+    // Open the collapsible section immediately - don't wait for animation
+    if (!aiSection) {
       Logger.warn('AI Summary - Section element not found');
       console.error('AI Summary section element not found');
+      showAlertModal('Error: AI Summary section not found. Please refresh the page.', 'AI Summary Error');
+      return;
     }
+    
+    // Force open the section immediately (before analysis starts)
+    // Use toggleSection to properly open it with animation
+    if (!aiSection.classList.contains('open')) {
+      toggleSection('aiSummarySection');
+    }
+    Logger.debug('AI Summary - Section opened');
+    
+    // Scroll to the section to ensure it's visible
+    requestAnimationFrame(() => {
+      aiFormSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
   } catch (error) {
     console.error('Error in generateAISummary (initial setup):', error);
     Logger.error('AI Summary - Error in initial setup', { error: error.message, stack: error.stack });
@@ -1793,7 +1861,17 @@ function generateAISummary() {
   // Sort logs chronologically (oldest first)
   const sortedLogs = filteredLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
   
-  // Show loading state (safe - no user input)
+  // Ensure resultsContent is still available (re-fetch if needed)
+  if (!resultsContent) {
+    resultsContent = document.getElementById('aiResultsContent');
+    if (!resultsContent) {
+      Logger.error('AI Summary - Results content not available after filtering');
+      showAlertModal('Error: AI results container not available. Please refresh the page.', 'AI Summary Error');
+      return;
+    }
+  }
+  
+  // Show loading state immediately (safe - no user input)
   resultsContent.innerHTML = `
     <div class="ai-loading-state">
       <div class="ai-loading-icon">🧠</div>
@@ -1801,9 +1879,12 @@ function generateAISummary() {
       <p class="ai-loading-subtext">Processing ${sortedLogs.length} days of health metrics (${escapeHTML(dateRangeText)})</p>
     </div>
   `;
+  
+  Logger.debug('AI Summary - Loading state displayed', { logCount: sortedLogs.length });
 
   // Analyze the data after a short delay for UX
   // Use ALL historical logs for training (up to 10 years), filtered logs for display
+  // Use a small delay to ensure section is visible before starting analysis
   setTimeout(async () => {
     try {
       Logger.debug('AI Summary - Starting analysis', { sortedLogsCount: sortedLogs.length });
@@ -4813,11 +4894,16 @@ function clearAISection() {
   // Hide and close the AI section
   const aiSection = document.getElementById('aiSummarySection');
   if (aiSection) {
+    // Use toggleSection to properly close it if it's open
+    if (aiSection.classList.contains('open')) {
+      toggleSection('aiSummarySection');
+    }
+    // Ensure it's closed
     aiSection.classList.remove('open');
     const header = aiSection.previousElementSibling;
     if (header && header.classList.contains('section-header')) {
       const arrow = header.querySelector('.section-arrow');
-      if (arrow) arrow.textContent = '>';
+      if (arrow) arrow.textContent = '';
     }
   }
   
@@ -5081,7 +5167,7 @@ function initializeSections() {
     section.classList.remove('open');
     const header = section.previousElementSibling;
     const arrow = header?.querySelector('.section-arrow');
-    if (arrow) arrow.textContent = '>';
+    if (arrow) arrow.textContent = ''; // Keep arrow empty
   });
 }
 

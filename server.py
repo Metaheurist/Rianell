@@ -20,6 +20,16 @@ from pathlib import Path
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 
+# Try to import watchdog for file watching
+try:
+    from watchdog.observers import Observer  # type: ignore
+    from watchdog.events import FileSystemEventHandler  # type: ignore
+    WATCHDOG_AVAILABLE = True
+except ImportError:
+    WATCHDOG_AVAILABLE = False
+    print("Warning: watchdog library not installed. File watching disabled.")
+    print("Install with: pip install watchdog")
+
 # Configuration
 PORT = 8080
 HOST = ""  # Empty string means bind to all interfaces (0.0.0.0), accessible over LAN
@@ -68,6 +78,12 @@ last_activity = defaultdict(float)  # IP -> last activity timestamp
 CONNECTION_TIMEOUT = 300  # 5 minutes of inactivity before cleanup
 CLEANUP_INTERVAL = 60  # Run cleanup every 60 seconds
 MAX_CONNECTIONS_PER_IP = 50  # Maximum concurrent connections per IP
+
+# SSE (Server-Sent Events) clients for auto-refresh
+sse_clients = []  # List of (client_ip, response_writer) tuples
+sse_lock = threading.Lock()
+file_change_event = threading.Event()
+last_file_change_time = None
 
 class ThreadingHTTPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     """Threaded HTTP server that handles multiple concurrent connections"""
@@ -183,6 +199,11 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
         """Override to handle optional files gracefully and log client events"""
         parsed_path = urlparse(self.path)
         
+        # Handle Server-Sent Events endpoint for auto-refresh
+        if parsed_path.path == '/api/reload':
+            self.handle_sse_reload()
+            return
+        
         # Handle client-side logging endpoint
         if parsed_path.path == '/api/log':
             self.handle_client_log()
@@ -208,6 +229,67 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
         # For other POST requests, return 405 Method Not Allowed
         self.send_response(405)
         self.end_headers()
+    
+    def handle_sse_reload(self):
+        """Handle Server-Sent Events for auto-refresh on file changes"""
+        try:
+            # Set up SSE headers
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/event-stream')
+            self.send_header('Cache-Control', 'no-cache')
+            self.send_header('Connection', 'keep-alive')
+            self.send_header('X-Accel-Buffering', 'no')  # Disable buffering in nginx if present
+            # CORS for SSE
+            origin = self.headers.get('Origin', '')
+            allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
+            if origin in allowed_origins or not origin:
+                self.send_header('Access-Control-Allow-Origin', origin if origin else '*')
+            self.end_headers()
+            
+            client_ip = self.client_address[0]
+            logger.info(f"SSE client connected: {client_ip}")
+            
+            # Add client to list
+            with sse_lock:
+                sse_clients.append((client_ip, self.wfile))
+                logger.debug(f"SSE clients: {len(sse_clients)}")
+            
+            # Send initial connection message
+            try:
+                self.wfile.write(b'data: {"type":"connected"}\n\n')
+                self.wfile.flush()
+            except (BrokenPipeError, ConnectionResetError, OSError):
+                # Client disconnected
+                with sse_lock:
+                    sse_clients[:] = [(ip, w) for ip, w in sse_clients if w != self.wfile]
+                return
+            
+            # Keep connection alive and wait for file change events
+            while True:
+                try:
+                    # Wait for file change event (with timeout to send keepalive)
+                    if file_change_event.wait(timeout=30):
+                        # File changed - send reload message
+                        message = json.dumps({"type": "reload", "timestamp": time.time()})
+                        self.wfile.write(f'data: {message}\n\n'.encode('utf-8'))
+                        self.wfile.flush()
+                        file_change_event.clear()
+                        logger.info(f"Sent reload signal to SSE client: {client_ip}")
+                    else:
+                        # Timeout - send keepalive ping
+                        self.wfile.write(b': keepalive\n\n')
+                        self.wfile.flush()
+                except (BrokenPipeError, ConnectionResetError, OSError):
+                    # Client disconnected
+                    logger.debug(f"SSE client disconnected: {client_ip}")
+                    break
+        except Exception as e:
+            logger.error(f"Error in SSE handler: {e}", exc_info=True)
+        finally:
+            # Remove client from list
+            with sse_lock:
+                sse_clients[:] = [(ip, w) for ip, w in sse_clients if w != self.wfile]
+            logger.debug(f"SSE client removed: {client_ip}, remaining: {len(sse_clients)}")
     
     def handle_client_log(self):
         """Handle client-side log submissions"""
@@ -370,6 +452,89 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
         # For other files, use parent's guess_type
         return super().guess_type(path)
 
+def notify_sse_clients():
+    """Notify all SSE clients to reload"""
+    global last_file_change_time
+    last_file_change_time = time.time()
+    file_change_event.set()
+    with sse_lock:
+        logger.info(f"Notifying {len(sse_clients)} SSE client(s) to reload")
+    
+    # Clean up dead connections
+    with sse_lock:
+        alive_clients = []
+        for client_ip, wfile in sse_clients:
+            try:
+                # Try to write a keepalive to check if connection is alive
+                wfile.write(b': keepalive\n\n')
+                wfile.flush()
+                alive_clients.append((client_ip, wfile))
+            except (BrokenPipeError, ConnectionResetError, OSError):
+                logger.debug(f"Removed dead SSE connection: {client_ip}")
+        sse_clients[:] = alive_clients
+
+# FileChangeHandler class - only defined if watchdog is available
+if WATCHDOG_AVAILABLE:
+    class FileChangeHandler(FileSystemEventHandler):
+        """Handler for file system events"""
+        
+        def __init__(self):
+            super().__init__()
+            self.last_modified = {}
+            # Files/directories to ignore
+            self.ignore_patterns = [
+                '.git', '__pycache__', '.pyc', '.log', 'logs',
+                '.DS_Store', 'Thumbs.db', '.swp', '.tmp'
+            ]
+        
+        def should_ignore(self, path):
+            """Check if path should be ignored"""
+            path_str = str(path).lower()
+            return any(pattern.lower() in path_str for pattern in self.ignore_patterns)
+        
+        def on_modified(self, event):
+            """Called when a file or directory is modified"""
+            if event.is_directory:
+                return
+            
+            if self.should_ignore(event.src_path):
+                return
+            
+            # Only watch relevant file types
+            if not any(event.src_path.endswith(ext) for ext in ['.html', '.js', '.css', '.json', '.py']):
+                return
+            
+            # Debounce rapid changes (same file modified multiple times)
+            current_time = time.time()
+            if event.src_path in self.last_modified:
+                if current_time - self.last_modified[event.src_path] < 0.5:
+                    return  # Ignore if modified less than 0.5s ago
+            
+            self.last_modified[event.src_path] = current_time
+            
+            logger.info(f"File changed: {event.src_path}")
+            logger.info("Notifying all connected clients to reload...")
+            notify_sse_clients()
+        
+        def on_created(self, event):
+            """Called when a file or directory is created"""
+            if event.is_directory or self.should_ignore(event.src_path):
+                return
+            logger.info(f"File created: {event.src_path}")
+            notify_sse_clients()
+        
+        def on_deleted(self, event):
+            """Called when a file or directory is deleted"""
+            if event.is_directory or self.should_ignore(event.src_path):
+                return
+            logger.info(f"File deleted: {event.src_path}")
+            notify_sse_clients()
+else:
+    # Dummy class when watchdog is not available
+    class FileChangeHandler:
+        """Dummy handler when watchdog is not available"""
+        pass
+
 def cleanup_inactive_connections():
     """Periodically clean up inactive connections"""
     while True:
@@ -415,6 +580,24 @@ def main():
     cleanup_thread = threading.Thread(target=cleanup_inactive_connections, daemon=True)
     cleanup_thread.start()
     logger.info("Connection cleanup thread started")
+    
+    # Start file watcher if watchdog is available
+    file_observer = None
+    if WATCHDOG_AVAILABLE:
+        try:
+            event_handler = FileChangeHandler()
+            file_observer = Observer()
+            file_observer.schedule(event_handler, str(script_dir), recursive=True)
+            file_observer.start()
+            logger.info(f"File watcher started for: {script_dir}")
+            print(f"File watcher active - changes will trigger auto-reload on all connected devices")
+        except Exception as e:
+            logger.error(f"Failed to start file watcher: {e}", exc_info=True)
+            print(f"Warning: File watcher failed to start: {e}")
+    else:
+        logger.warning("File watcher not available (watchdog not installed)")
+        print("Note: Install 'watchdog' package for auto-reload on file changes:")
+        print("  pip install watchdog")
     
     # Create server with error handling
     try:
@@ -496,6 +679,22 @@ def main():
         logger.info("Server shutdown initiated by user (Ctrl+C)")
         print("\n\nServer stopped by user")
         print("Goodbye!")
+        
+        # Stop file watcher if running
+        if file_observer and file_observer.is_alive():
+            file_observer.stop()
+            file_observer.join()
+            logger.info("File watcher stopped")
+        
+        # Close all SSE connections
+        with sse_lock:
+            for client_ip, wfile in sse_clients:
+                try:
+                    wfile.close()
+                except:
+                    pass
+            sse_clients.clear()
+        
         httpd.shutdown()
         logger.info("Server shutdown complete")
         sys.exit(0)
