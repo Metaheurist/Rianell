@@ -1,0 +1,147 @@
+/* ============================================
+   PRINT STYLESHEET
+   Optimized for A4/page printing
+   ============================================ */
+
+@media print {
+  /* Reset page margins and background */
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+  
+  /* Hide non-essential elements */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Show only print content */
+  .print-content,
+  .print-content * {
+    visibility: visible;
+  }
+  
+  .print-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  
+  /* Hide UI elements */
+  .settings-button-top,
+  .tab-navigation,
+  .filter-group,
+  .prediction-range-buttons,
+  .date-range-buttons,
+  .chart-view-toggle,
+  .action-btn,
+  .modal-overlay,
+  .settings-overlay,
+  .loading-overlay {
+    display: none !important;
+  }
+  
+  /* Print-friendly colors */
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .print-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #333;
+  }
+  
+  .print-header h1 {
+    color: #1b5e20;
+    margin: 0 0 0.5rem 0;
+    font-size: 24pt;
+  }
+  
+  .print-header .print-meta {
+    color: #666;
+    font-size: 10pt;
+  }
+  
+  /* Charts - simplified for print */
+  .print-chart {
+    page-break-inside: avoid;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .print-chart h3 {
+    color: #1b5e20;
+    margin: 0 0 0.5rem 0;
+    font-size: 14pt;
+  }
+  
+  /* Summary sections */
+  .print-summary {
+    page-break-inside: avoid;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: #f9f9f9;
+    border-left: 4px solid #4caf50;
+  }
+  
+  .print-summary h3 {
+    color: #1b5e20;
+    margin: 0 0 0.75rem 0;
+    font-size: 14pt;
+  }
+  
+  .print-summary ul {
+    margin: 0;
+    padding-left: 1.5rem;
+  }
+  
+  .print-summary li {
+    margin: 0.5rem 0;
+    color: #333;
+  }
+  
+  /* Data table */
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 9pt;
+  }
+  
+  .print-table th,
+  .print-table td {
+    padding: 6px;
+    text-align: left;
+    border: 1px solid #ddd;
+  }
+  
+  .print-table th {
+    background: #4caf50;
+    color: white;
+    font-weight: 600;
+  }
+  
+  .print-table tr:nth-child(even) {
+    background: #f9f9f9;
+  }
+  
+  /* Page breaks */
+  .print-page-break {
+    page-break-before: always;
+  }
+  
+  /* Footer */
+  .print-footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ddd;
+    font-size: 8pt;
+    color: #666;
+    text-align: center;
+  }
+}
