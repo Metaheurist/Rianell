@@ -134,6 +134,13 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
         
         try:
             super().handle()
+        except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError, OSError) as e:
+            # These are normal when clients disconnect (page reload, tab close, etc.)
+            # Only log at debug level to reduce noise
+            logger.debug(f"Client disconnected: IP {self.client_ip}, Thread {thread_id}, Error: {type(e).__name__}")
+        except Exception as e:
+            # Log unexpected errors
+            logger.error(f"Unexpected error handling request: IP {self.client_ip}, Thread {thread_id}, Error: {e}", exc_info=True)
         finally:
             # Remove connection tracking
             with connection_lock:
@@ -187,6 +194,17 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
     def log_error(self, format, *args):
         """Override to log errors to file"""
         error_msg = format % args
+        
+        # Suppress common connection errors that are normal (client disconnects)
+        if 'ConnectionAbortedError' in error_msg or 'ConnectionResetError' in error_msg or 'BrokenPipeError' in error_msg:
+            # These are normal when clients disconnect - only log at debug level
+            client_ip = getattr(self, 'client_address', ['Unknown'])[0] if hasattr(self, 'client_address') else 'Unknown'
+            path = getattr(self, 'path', 'Unknown')
+            logger.debug(f"Client disconnect (normal): {error_msg} | Client: {client_ip} | Path: {path}")
+            file_handler.flush()
+            return  # Don't call super().log_error() to suppress the exception traceback
+        
+        # Log other errors normally
         client_ip = getattr(self, 'client_address', ['Unknown'])[0] if hasattr(self, 'client_address') else 'Unknown'
         # self.path might not exist if request timed out before parsing
         path = getattr(self, 'path', 'Unknown')
@@ -258,8 +276,9 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 self.wfile.write(b'data: {"type":"connected"}\n\n')
                 self.wfile.flush()
-            except (BrokenPipeError, ConnectionResetError, OSError):
-                # Client disconnected
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, OSError):
+                # Client disconnected - normal when page reloads
+                logger.debug(f"SSE client disconnected during initial connection: {client_ip}")
                 with sse_lock:
                     sse_clients[:] = [(ip, w) for ip, w in sse_clients if w != self.wfile]
                 return
@@ -279,9 +298,17 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
                         # Timeout - send keepalive ping
                         self.wfile.write(b': keepalive\n\n')
                         self.wfile.flush()
-                except (BrokenPipeError, ConnectionResetError, OSError):
-                    # Client disconnected
-                    logger.debug(f"SSE client disconnected: {client_ip}")
+                except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, OSError) as e:
+                    # Client disconnected - normal when page reloads or tab closes
+                    error_code = getattr(e, 'winerror', None) or getattr(e, 'errno', None)
+                    if error_code == 10053:  # Windows: Connection aborted
+                        logger.debug(f"SSE client disconnected (normal): {client_ip}")
+                    else:
+                        logger.debug(f"SSE client disconnected: {client_ip}, Error: {type(e).__name__}")
+                    break
+                except Exception as e:
+                    # Unexpected error - log and break
+                    logger.error(f"Unexpected error in SSE loop: {client_ip}, Error: {e}", exc_info=True)
                     break
         except Exception as e:
             logger.error(f"Error in SSE handler: {e}", exc_info=True)
