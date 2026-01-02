@@ -3157,7 +3157,12 @@ body.loading .loading-overlay {
 .gdpr-agreement-modal {
   max-width: 800px;
   width: 90vw;
+  max-height: 75vh !important; /* Ensure modal fits in viewport */
   z-index: 100011 !important; /* Higher than overlay */
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  position: relative !important;
 }
 
 .gdpr-agreement-body {
@@ -3166,6 +3171,11 @@ body.loading .loading-overlay {
   font-size: 0.95rem;
   line-height: 1.7;
   text-align: left;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0; /* Allow flex shrinking */
+  max-height: calc(75vh - 180px); /* Leave room for header and footer */
 }
 
 .gdpr-agreement-content {
@@ -3213,6 +3223,11 @@ body.loading .loading-overlay {
   gap: 12px;
   padding: 16px 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0 !important; /* Prevent footer from shrinking */
+  flex-grow: 0 !important; /* Don't allow footer to grow */
+  background: inherit; /* Ensure footer is visible */
+  position: relative !important; /* Ensure footer stays in place */
+  z-index: 10; /* Ensure footer is above content */
 }
 
 .gdpr-agreement-footer button {

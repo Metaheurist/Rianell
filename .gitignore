@@ -1,6 +1,9 @@
 # Supabase API Configuration (contains sensitive credentials)
 supabase-config.js
 
+# Environment variables (contains sensitive credentials)
+.env
+
 # Logs
 logs/
 *.log

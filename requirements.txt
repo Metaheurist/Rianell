@@ -1,0 +1,12 @@
+# Health App Server - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Supabase client library (required for database operations)
+supabase>=2.0.0
+
+# File watching for auto-reload (optional but recommended)
+watchdog>=3.0.0
+
+# Environment variable management (required for .env file support)
+python-dotenv>=1.0.0
+
