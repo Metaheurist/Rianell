@@ -457,10 +457,8 @@ def notify_sse_clients():
     global last_file_change_time
     last_file_change_time = time.time()
     file_change_event.set()
-    with sse_lock:
-        logger.info(f"Notifying {len(sse_clients)} SSE client(s) to reload")
     
-    # Clean up dead connections
+    # Clean up dead connections first, then notify
     with sse_lock:
         alive_clients = []
         for client_ip, wfile in sse_clients:
@@ -472,6 +470,7 @@ def notify_sse_clients():
             except (BrokenPipeError, ConnectionResetError, OSError):
                 logger.debug(f"Removed dead SSE connection: {client_ip}")
         sse_clients[:] = alive_clients
+        logger.info(f"Notifying {len(sse_clients)} SSE client(s) to reload")
 
 # FileChangeHandler class - only defined if watchdog is available
 if WATCHDOG_AVAILABLE:

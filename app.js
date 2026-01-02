@@ -539,6 +539,17 @@ function connectToReloadStream() {
     return;
   }
   
+  // Close any existing connection first to prevent duplicates
+  if (window._reloadEventSource) {
+    try {
+      window._reloadEventSource.close();
+      Logger.debug('Closed existing reload stream connection');
+    } catch (e) {
+      // Ignore errors when closing
+    }
+    window._reloadEventSource = null;
+  }
+  
   try {
     const eventSource = new EventSource('/api/reload');
     
@@ -551,6 +562,9 @@ function connectToReloadStream() {
         const data = JSON.parse(event.data);
         if (data.type === 'reload') {
           Logger.info('File change detected, reloading page...');
+          // Close connection before reloading
+          eventSource.close();
+          window._reloadEventSource = null;
           // Small delay to ensure file is fully written
           setTimeout(() => {
             window.location.reload();
@@ -564,21 +578,25 @@ function connectToReloadStream() {
     };
     
     eventSource.onerror = function(error) {
-      Logger.debug('Reload stream error, reconnecting...', { error: error });
-      // EventSource will automatically reconnect
-      setTimeout(() => {
-        if (eventSource.readyState === EventSource.CLOSED) {
-          eventSource.close();
-          // Reconnect after a delay
-          setTimeout(connectToReloadStream, 5000);
-        }
-      }, 1000);
+      // Only reconnect if connection is actually closed
+      // EventSource automatically reconnects for CONNECTING state
+      if (eventSource.readyState === EventSource.CLOSED) {
+        Logger.debug('Reload stream closed, will reconnect after delay');
+        eventSource.close();
+        window._reloadEventSource = null;
+        // Reconnect after a delay only if closed
+        setTimeout(connectToReloadStream, 5000);
+      } else {
+        // Connection is in CONNECTING state, EventSource will auto-reconnect
+        Logger.debug('Reload stream error (auto-reconnecting)', { readyState: eventSource.readyState });
+      }
     };
     
-    // Store reference for cleanup if needed
+    // Store reference for cleanup
     window._reloadEventSource = eventSource;
   } catch (e) {
     Logger.warn('Failed to connect to reload stream', { error: e.message });
+    window._reloadEventSource = null;
   }
 }
 
@@ -3526,6 +3544,11 @@ function chart(id, label, dataField, color) {
   
   if (chartData.length === 0) {
     console.warn(`No valid data for chart: ${label}`);
+    // Show a message in the chart container instead of just returning
+    const container = document.getElementById(id);
+    if (container) {
+      container.innerHTML = `<div class="chart-loading no-data-message">No ${label.toLowerCase()} data available</div>`;
+    }
     return;
   }
   
@@ -3612,7 +3635,7 @@ function chart(id, label, dataField, color) {
               
               // Generate predictions using the improved method
               for (let i = 0; i < daysToPredict; i++) {
-                const value = predictions[i];
+                let value = predictions[i];
                 
                 // Convert weight to display unit if needed
                 if (dataField === 'weight' && appSettings.weightUnit === 'lb') {
@@ -3640,14 +3663,30 @@ function chart(id, label, dataField, color) {
   // Debug logging for weight chart
   if (dataField === 'weight') {
     console.log(`Weight chart data:`, chartData.slice(0, 5));
-    console.log(`Weight values range:`, {
-      min: Math.min(...chartData.map(d => d.y)),
-      max: Math.max(...chartData.map(d => d.y)),
-      count: chartData.length
-    });
+    if (chartData.length > 0) {
+      console.log(`Weight values range:`, {
+        min: Math.min(...chartData.map(d => d.y)),
+        max: Math.max(...chartData.map(d => d.y)),
+        count: chartData.length
+      });
+    } else {
+      console.warn('Weight chart has no valid data points');
+      // Check what filtered logs contain
+      console.log('Filtered logs sample:', filteredLogs.slice(0, 3).map(log => ({
+        date: log.date,
+        weight: log.weight,
+        hasWeight: log.weight !== undefined && log.weight !== null && log.weight !== ''
+      })));
+    }
   }
   
   console.log(`Creating ApexChart for ${label} with ${chartData.length} data points`);
+  
+  // Additional debug for weight chart
+  if (dataField === 'weight') {
+    console.log(`Weight chart container:`, container);
+    console.log(`Weight chart container visible:`, container ? window.getComputedStyle(container).display !== 'none' : 'N/A');
+  }
   
   // Prepare series array
   const series = [{
@@ -5065,6 +5104,8 @@ function filterLogs() {
     const logDate = new Date(log.date);
     const start = startDate ? new Date(startDate) : new Date('1900-01-01');
     const end = endDate ? new Date(endDate) : new Date('2100-12-31');
+    end.setHours(23, 59, 59, 999); // Include entire end date
+    start.setHours(0, 0, 0, 0);
     
     return logDate >= start && logDate <= end;
   });
@@ -5076,7 +5117,53 @@ function toggleSort() {
   currentSortOrder = currentSortOrder === 'newest' ? 'oldest' : 'newest';
   document.getElementById('sortOrder').textContent = currentSortOrder === 'newest' ? 'Newest' : 'Oldest';
   
-  const sortedLogs = [...logs].sort((a, b) => {
+  // Get the currently filtered logs (respecting date range)
+  const startDate = document.getElementById('startDate').value;
+  const endDate = document.getElementById('endDate').value;
+  
+  let logsToSort = [];
+  
+  // If date range is set, filter first, then sort
+  if (startDate || endDate) {
+    logsToSort = logs.filter(log => {
+      const logDate = new Date(log.date);
+      const start = startDate ? new Date(startDate) : new Date('1900-01-01');
+      const end = endDate ? new Date(endDate) : new Date('2100-12-31');
+      end.setHours(23, 59, 59, 999); // Include entire end date
+      start.setHours(0, 0, 0, 0);
+      return logDate >= start && logDate <= end;
+    });
+  } else {
+    // No date filter - check if a view range button is active
+    const activeRangeBtn = document.querySelector('.log-date-range-btn.active');
+    if (activeRangeBtn) {
+      // Get the range from the button
+      const btnId = activeRangeBtn.id;
+      let days = 7; // default
+      if (btnId === 'logRange1Day') days = 1;
+      else if (btnId === 'logRange7Days') days = 7;
+      else if (btnId === 'logRange30Days') days = 30;
+      else if (btnId === 'logRange90Days') days = 90;
+      
+      // Filter by the selected range
+      const endDate = new Date();
+      endDate.setHours(23, 59, 59, 999);
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - (days - 1));
+      startDate.setHours(0, 0, 0, 0);
+      
+      logsToSort = logs.filter(log => {
+        const logDate = new Date(log.date);
+        return logDate >= startDate && logDate <= endDate;
+      });
+    } else {
+      // No filter at all - use all logs
+      logsToSort = [...logs];
+    }
+  }
+  
+  // Sort the filtered logs
+  const sortedLogs = logsToSort.sort((a, b) => {
     const dateA = new Date(a.date);
     const dateB = new Date(b.date);
     return currentSortOrder === 'newest' ? dateB - dateA : dateA - dateB;
