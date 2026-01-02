@@ -443,13 +443,12 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Referrer-Policy', 'strict-origin-when-cross-origin')
         
         # Permissions-Policy: Restrict browser features for security
+        # Note: Removed 'ambient-light-sensor' and 'document-domain' as they are not recognized features
         permissions_policy = (
             'accelerometer=(), '
-            'ambient-light-sensor=(), '
             'autoplay=(), '
             'camera=(), '
             'display-capture=(), '
-            'document-domain=(), '
             'encrypted-media=(), '
             'fullscreen=(self), '
             'geolocation=(), '

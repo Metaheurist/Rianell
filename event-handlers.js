@@ -20,7 +20,15 @@ function initializeEventHandlers() {
   }
   
   if (settingsClose) {
-    settingsClose.addEventListener('click', toggleSettings);
+    settingsClose.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof closeSettings === 'function') {
+        closeSettings();
+      } else {
+        toggleSettings();
+      }
+    });
   }
   
   if (settingsButtonTop) {
@@ -34,7 +42,6 @@ function initializeEventHandlers() {
   const soundToggle = document.getElementById('soundToggle');
   const backupToggle = document.getElementById('backupToggle');
   const compressToggle = document.getElementById('compressToggle');
-  const demoModeToggle = document.getElementById('demoModeToggle');
   const animationsToggle = document.getElementById('animationsToggle');
   const lazyToggle = document.getElementById('lazyToggle');
   const cloudAutoSync = document.getElementById('cloudAutoSync');
@@ -83,8 +90,14 @@ function initializeEventHandlers() {
     compressToggle.addEventListener('click', () => toggleSetting('compress'));
   }
   
+  // Demo mode toggle - enabled on mobile devices only
+  const demoModeToggle = document.getElementById('demoModeToggle');
   if (demoModeToggle) {
-    demoModeToggle.addEventListener('click', toggleDemoMode);
+    demoModeToggle.addEventListener('click', function() {
+      if (typeof toggleDemoMode === 'function') {
+        toggleDemoMode();
+      }
+    });
   }
   
   if (animationsToggle) {
@@ -201,8 +214,7 @@ function initializeEventHandlers() {
   if (rangeCustom) {
     rangeCustom.addEventListener('click', () => setChartDateRange('custom'));
   }
-}
-
+  
   // Tab navigation handlers
   const tabButtons = document.querySelectorAll('.tab-btn');
   tabButtons.forEach(btn => {
@@ -211,6 +223,24 @@ function initializeEventHandlers() {
       switchTab(tab);
     });
   });
+  
+  // AI date range input change handlers
+  const aiStartDate = document.getElementById('aiStartDate');
+  const aiEndDate = document.getElementById('aiEndDate');
+  if (aiStartDate) {
+    aiStartDate.addEventListener('change', function() {
+      if (aiStartDate.value && aiEndDate && aiEndDate.value) {
+        applyAICustomDateRange();
+      }
+    });
+  }
+  if (aiEndDate) {
+    aiEndDate.addEventListener('change', function() {
+      if (aiStartDate && aiStartDate.value && aiEndDate.value) {
+        applyAICustomDateRange();
+      }
+    });
+  }
   
   // Section toggle handlers
   const sectionHeaders = document.querySelectorAll('.section-header');
@@ -274,8 +304,11 @@ function initializeEventHandlers() {
   const individualViewBtn = document.getElementById('individualViewBtn');
   const combinedViewBtn = document.getElementById('combinedViewBtn');
   
-  if (individualViewBtn) individualViewBtn.addEventListener('click', () => toggleChartView(false));
-  if (combinedViewBtn) combinedViewBtn.addEventListener('click', () => toggleChartView(true));
+  const balanceViewBtn = document.getElementById('balanceViewBtn');
+  
+  if (individualViewBtn) individualViewBtn.addEventListener('click', () => toggleChartView('individual'));
+  if (combinedViewBtn) combinedViewBtn.addEventListener('click', () => toggleChartView('combined'));
+  if (balanceViewBtn) balanceViewBtn.addEventListener('click', () => toggleChartView('balance'));
   
   // Custom date range inputs
   const chartStartDate = document.getElementById('chartStartDate');

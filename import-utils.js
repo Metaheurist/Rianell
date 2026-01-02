@@ -50,10 +50,22 @@ function showImportModal() {
     }
     if (fileName) {
       fileName.textContent = '';
+      fileName.className = 'import-file-name';
     }
     if (preview) {
       preview.style.display = 'none';
     }
+    
+    // Reset option cards visual state
+    const optionCards = document.querySelectorAll('.import-option-card');
+    optionCards.forEach(card => {
+      const radio = card.querySelector('input[type="radio"]');
+      if (radio && radio.checked) {
+        card.classList.add('selected');
+      } else {
+        card.classList.remove('selected');
+      }
+    });
   }
 }
 
@@ -122,7 +134,12 @@ function parseCSV(csvContent) {
   }
   
   const headers = lines[0].split(',').map(h => h.trim());
-  const expectedHeaders = ['Date', 'BPM', 'Weight', 'Fatigue', 'Stiffness', 'Back Pain', 'Sleep', 'Joint Pain', 'Mobility', 'Daily Function', 'Swelling', 'Flare', 'Mood', 'Irritability', 'Notes'];
+  const expectedHeaders = [
+    'Date', 'BPM', 'Weight', 'Fatigue', 'Stiffness', 'Back Pain', 'Sleep', 'Joint Pain', 
+    'Mobility', 'Daily Function', 'Swelling', 'Flare', 'Mood', 'Irritability', 
+    'Weather Sensitivity', 'Steps', 'Hydration', 'Energy Clarity', 'Stressors', 
+    'Symptoms', 'Pain Location', 'Food', 'Exercise', 'Notes'
+  ];
   
   // Flexible header matching
   const headerMap = {};
@@ -137,18 +154,74 @@ function parseCSV(csvContent) {
   for (let i = 1; i < lines.length; i++) {
     if (!lines[i].trim()) continue;
     
-    const values = lines[i].split(',');
+    // Parse CSV line properly (handles quoted values with commas)
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+    for (let j = 0; j < lines[i].length; j++) {
+      const char = lines[i][j];
+      if (char === '"') {
+        if (inQuotes && lines[i][j + 1] === '"') {
+          current += '"';
+          j++; // Skip next quote
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        values.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    values.push(current.trim()); // Add last value
+    
     const log = {};
     
     expectedHeaders.forEach(header => {
       const index = headerMap[header];
       if (index !== undefined && values[index] !== undefined) {
-        const value = values[index].trim();
+        let value = values[index].trim();
+        // Remove surrounding quotes if present
+        if (value.startsWith('"') && value.endsWith('"')) {
+          value = value.slice(1, -1).replace(/""/g, '"');
+        }
+        
         const fieldName = header.toLowerCase().replace(/\s+/g, '');
         if (fieldName === 'backpain') {
           log.backPain = value;
         } else if (fieldName === 'dailyfunction') {
           log.dailyFunction = value;
+        } else if (fieldName === 'weathersensitivity') {
+          log.weatherSensitivity = value;
+        } else if (fieldName === 'energyclarity') {
+          log.energyClarity = value;
+        } else if (fieldName === 'painlocation') {
+          log.painLocation = value;
+        } else if (fieldName === 'food') {
+          // Try to parse as JSON array, otherwise leave as string
+          if (value) {
+            try {
+              log.food = JSON.parse(value);
+            } catch (e) {
+              log.food = value; // Keep as string if not valid JSON
+            }
+          }
+        } else if (fieldName === 'exercise') {
+          // Try to parse as JSON array, otherwise leave as string
+          if (value) {
+            try {
+              log.exercise = JSON.parse(value);
+            } catch (e) {
+              log.exercise = value; // Keep as string if not valid JSON
+            }
+          }
+        } else if (fieldName === 'stressors') {
+          // Parse comma-separated list
+          log.stressors = value ? value.split(',').map(s => s.trim()).filter(s => s) : undefined;
+        } else if (fieldName === 'symptoms') {
+          // Parse comma-separated list
+          log.symptoms = value ? value.split(',').map(s => s.trim()).filter(s => s) : undefined;
         } else {
           log[fieldName] = value;
         }
@@ -414,17 +487,32 @@ async function performImport() {
   }
 }
 
-// Initialize import file input handler
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() {
-    const importFileInput = document.getElementById('importFileInput');
-    if (importFileInput) {
-      importFileInput.addEventListener('change', handleImportFileSelect);
-    }
-  });
-} else {
+// Initialize import file input handler and option cards
+function initializeImportHandlers() {
   const importFileInput = document.getElementById('importFileInput');
   if (importFileInput) {
     importFileInput.addEventListener('change', handleImportFileSelect);
   }
+  
+  // Handle import option card clicks
+  const optionCards = document.querySelectorAll('.import-option-card');
+  optionCards.forEach(card => {
+    card.addEventListener('click', function() {
+      const radio = this.querySelector('input[type="radio"]');
+      if (radio) {
+        radio.checked = true;
+        // Update visual state of all cards
+        optionCards.forEach(c => {
+          c.classList.remove('selected');
+        });
+        this.classList.add('selected');
+      }
+    });
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeImportHandlers);
+} else {
+  initializeImportHandlers();
 }

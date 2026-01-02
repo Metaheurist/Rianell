@@ -206,6 +206,16 @@ function generateExcel(logs) {
 
 // Main export function - shows modal and handles format selection
 function showExportModal() {
+  // Disable export in demo mode
+  if (typeof appSettings !== 'undefined' && appSettings.demoMode) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Data export is disabled in demo mode. Demo data is not saved or synced.', 'Demo Mode');
+    } else {
+      alert('Data export is disabled in demo mode. Demo data is not saved or synced.');
+    }
+    return;
+  }
+  
   // Close settings modal if open
   const settingsOverlay = document.getElementById('settingsOverlay');
   if (settingsOverlay) {
@@ -248,6 +258,17 @@ function closeExportModal() {
 
 // Perform export based on format
 function performExport(format) {
+  // Disable export in demo mode
+  if (typeof appSettings !== 'undefined' && appSettings.demoMode) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Data export is disabled in demo mode. Demo data is not saved or synced.', 'Demo Mode');
+    } else {
+      alert('Data export is disabled in demo mode. Demo data is not saved or synced.');
+    }
+    closeExportModal();
+    return;
+  }
+  
   const logs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
   
   if (logs.length === 0) {

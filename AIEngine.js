@@ -27,8 +27,11 @@ const AIEngine = {
     // Use filtered logs for analysis/display (averages, current values, etc.)
     const recentLogs = logs;
 
-    // Calculate averages and trends for all metrics (including weight)
-    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight'];
+    // Calculate averages and trends for all metrics (including weight and new metrics)
+    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight',
+                     'energyLevel', 'brainFog', 'concentration', 'stressLevel', 'weatherSensitivity', 
+                     'nausea', 'appetite', 'digestiveIssues', 'breathingDifficulty',
+                     'steps', 'hydration'];
     
     metrics.forEach(metric => {
       // Use training data (all available) for regression to get better predictions
@@ -71,6 +74,8 @@ const AIEngine = {
       // Check if this is BPM or Weight (different scale and thresholds)
       const isBPM = metric === 'bpm';
       const isWeight = metric === 'weight';
+      const isSteps = metric === 'steps';
+      const isHydration = metric === 'hydration';
       
       // Perform linear regression on ALL training data for better predictions
       const linearRegression = this.performLinearRegression(trainingDataPoints);
@@ -141,6 +146,8 @@ const AIEngine = {
           // Clamp values
           if (isBPM) return Math.round(Math.max(30, Math.min(200, v)));
           if (isWeight) return Math.round(Math.max(30, Math.min(300, v)) * 10) / 10;
+          if (isSteps) return Math.round(Math.max(0, Math.min(50000, v)));
+          if (isHydration) return Math.round(Math.max(0, Math.min(20, v)) * 10) / 10;
           return Math.round(Math.max(0, Math.min(10, v)) * 10) / 10;
         });
       } else {
@@ -283,6 +290,12 @@ const AIEngine = {
     
     // Food/Exercise impact analysis
     this.analyzeFoodExerciseImpact(recentLogs, analysis);
+    
+    // Stressors impact analysis
+    this.analyzeStressorsImpact(recentLogs, analysis);
+    
+    // Symptoms and pain location analysis
+    this.analyzeSymptomsAndPainLocation(recentLogs, analysis);
     
     // Data clustering for pattern identification
     this.performClustering(recentLogs, analysis);
@@ -519,6 +532,10 @@ const AIEngine = {
   // metricContext: optional object with {variance, average, metricName, trainingValues} for metric-specific patterns
   predictFutureValues: function(regression, lastX, daysAhead, isBPM = false, isWeight = false, metricContext = null) {
     const predictions = [];
+    // Check for steps and hydration in metricContext
+    const isSteps = metricContext && metricContext.isSteps === true;
+    const isHydration = metricContext && metricContext.isHydration === true;
+    
     // Set min/max values based on metric type
     let minValue, maxValue;
     if (isBPM) {
@@ -527,6 +544,12 @@ const AIEngine = {
     } else if (isWeight) {
       minValue = 30; // Minimum reasonable weight in kg
       maxValue = 300; // Maximum reasonable weight in kg
+    } else if (isSteps) {
+      minValue = 0;
+      maxValue = 50000; // Steps can range from 0 to 50000
+    } else if (isHydration) {
+      minValue = 0;
+      maxValue = 20; // Hydration in glasses (0-20)
     } else {
       minValue = 0;
       maxValue = 10; // 0-10 scale for other metrics
@@ -821,6 +844,10 @@ const AIEngine = {
     // Get base predictions
     const basePredictions = this.predictFutureValues(regression, lastX, daysAhead, isBPM, isWeight, metricContext);
     
+    // Check for steps and hydration in metricContext
+    const isSteps = metricContext && metricContext.isSteps === true;
+    const isHydration = metricContext && metricContext.isHydration === true;
+    
     // Calculate prediction intervals using standard error and t-distribution
     // For 95% confidence, t-value ≈ 1.96 (simplified, assumes large sample)
     const tValue = confidenceLevel === 0.95 ? 1.96 : confidenceLevel === 0.90 ? 1.645 : 2.576;
@@ -840,6 +867,12 @@ const AIEngine = {
       } else if (isWeight) {
         minValue = 30;
         maxValue = 300;
+      } else if (isSteps) {
+        minValue = 0;
+        maxValue = 50000; // Steps can range from 0 to 50000
+      } else if (isHydration) {
+        minValue = 0;
+        maxValue = 20; // Hydration in glasses (0-20)
       } else {
         minValue = 0;
         maxValue = 10;
@@ -1296,6 +1329,259 @@ const AIEngine = {
     }
   },
 
+  // Analyze impact of stressors on symptoms and flare-ups
+  analyzeStressorsImpact: function(logs, analysis) {
+    if (logs.length < 7) return; // Need minimum data
+    
+    // Collect all stressors and their frequencies
+    const stressorFrequency = {};
+    const logsWithStressors = logs.filter(log => log.stressors && Array.isArray(log.stressors) && log.stressors.length > 0);
+    const logsWithoutStressors = logs.filter(log => !log.stressors || !Array.isArray(log.stressors) || log.stressors.length === 0);
+    
+    // Count frequency of each stressor
+    logsWithStressors.forEach(log => {
+      if (log.stressors && Array.isArray(log.stressors)) {
+        log.stressors.forEach(stressor => {
+          stressorFrequency[stressor] = (stressorFrequency[stressor] || 0) + 1;
+        });
+      }
+    });
+    
+    // Analyze impact of stressors on symptoms
+    const metrics = ['backPain', 'fatigue', 'stiffness', 'mobility', 'mood', 'irritability', 'swelling'];
+    const impacts = [];
+    
+    if (logsWithStressors.length > 0 && logsWithoutStressors.length > 0) {
+      metrics.forEach(metric => {
+        const withStressorsValues = logsWithStressors
+          .map(log => parseInt(log[metric]) || 0)
+          .filter(val => val > 0);
+        const withoutStressorsValues = logsWithoutStressors
+          .map(log => parseInt(log[metric]) || 0)
+          .filter(val => val > 0);
+        
+        if (withStressorsValues.length > 0 && withoutStressorsValues.length > 0) {
+          const withAvg = withStressorsValues.reduce((a, b) => a + b, 0) / withStressorsValues.length;
+          const withoutAvg = withoutStressorsValues.reduce((a, b) => a + b, 0) / withoutStressorsValues.length;
+          const diff = withAvg - withoutAvg;
+          
+          // For negative metrics (pain, fatigue, etc.), higher with stressors is worse
+          // For positive metrics (mood, mobility), lower with stressors is worse
+          const isNegativeMetric = ['backPain', 'fatigue', 'stiffness', 'irritability', 'swelling'].includes(metric);
+          const isSignificant = Math.abs(diff) > 0.5;
+          
+          if (isSignificant) {
+            const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            if (isNegativeMetric && diff > 0) {
+              impacts.push(`When stressors present, ${metricName} is ${diff.toFixed(1)} points higher (${withAvg.toFixed(1)} vs ${withoutAvg.toFixed(1)})`);
+            } else if (!isNegativeMetric && diff < 0) {
+              impacts.push(`When stressors present, ${metricName} is ${Math.abs(diff).toFixed(1)} points lower (${withAvg.toFixed(1)} vs ${withoutAvg.toFixed(1)})`);
+            }
+          }
+        }
+      });
+      
+      // Analyze flare-up correlation with stressors
+      const flaresWithStressors = logsWithStressors.filter(log => log.flare === 'Yes').length;
+      const flaresWithoutStressors = logsWithoutStressors.filter(log => log.flare === 'Yes').length;
+      const flareRateWith = logsWithStressors.length > 0 ? flaresWithStressors / logsWithStressors.length : 0;
+      const flareRateWithout = logsWithoutStressors.length > 0 ? flaresWithoutStressors / logsWithoutStressors.length : 0;
+      
+      if (flareRateWith > flareRateWithout + 0.1) {
+        const percentWith = Math.round(flareRateWith * 100);
+        const percentWithout = Math.round(flareRateWithout * 100);
+        impacts.push(`Flare-ups more common when stressors present: ${percentWith}% vs ${percentWithout}%`);
+      }
+    }
+    
+    // Add most common stressors to insights
+    const sortedStressors = Object.entries(stressorFrequency)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5); // Top 5 most common
+    
+    if (sortedStressors.length > 0) {
+      const topStressors = sortedStressors.map(([stressor, count]) => {
+        const percent = Math.round((count / logs.length) * 100);
+        return `${stressor} (${percent}%)`;
+      }).join(', ');
+      
+      analysis.stressorAnalysis = {
+        topStressors: sortedStressors.map(([stressor]) => stressor),
+        frequency: stressorFrequency,
+        impacts: impacts,
+        summary: `Most common stressors: ${topStressors}`
+      };
+    } else {
+      analysis.stressorAnalysis = {
+        topStressors: [],
+        frequency: {},
+        impacts: impacts,
+        summary: 'No stressors logged'
+      };
+    }
+  },
+
+  // Analyze symptoms and pain location patterns
+  analyzeSymptomsAndPainLocation: function(logs, analysis) {
+    if (logs.length < 7) return; // Need minimum data
+    
+    // Collect all symptoms and their frequencies
+    const symptomFrequency = {};
+    const logsWithSymptoms = logs.filter(log => log.symptoms && Array.isArray(log.symptoms) && log.symptoms.length > 0);
+    
+    // Count frequency of each symptom
+    logsWithSymptoms.forEach(log => {
+      if (log.symptoms && Array.isArray(log.symptoms)) {
+        log.symptoms.forEach(symptom => {
+          symptomFrequency[symptom] = (symptomFrequency[symptom] || 0) + 1;
+        });
+      }
+    });
+    
+    // Collect pain locations and their frequencies
+    const painLocationFrequency = {};
+    const logsWithPainLocation = logs.filter(log => log.painLocation && log.painLocation.trim().length > 0);
+    
+    logsWithPainLocation.forEach(log => {
+      if (log.painLocation && log.painLocation.trim().length > 0) {
+        // Split pain locations by comma and count each
+        const locations = log.painLocation.split(',').map(loc => loc.trim()).filter(loc => loc.length > 0);
+        locations.forEach(location => {
+          painLocationFrequency[location] = (painLocationFrequency[location] || 0) + 1;
+        });
+      }
+    });
+    
+    // Analyze impact of symptoms on other metrics
+    const metrics = ['backPain', 'fatigue', 'stiffness', 'mobility', 'mood', 'irritability', 'swelling'];
+    const symptomImpacts = [];
+    
+    if (logsWithSymptoms.length > 0) {
+      const logsWithoutSymptoms = logs.filter(log => !log.symptoms || !Array.isArray(log.symptoms) || log.symptoms.length === 0);
+      
+      if (logsWithoutSymptoms.length > 0) {
+        metrics.forEach(metric => {
+          const withSymptomsValues = logsWithSymptoms
+            .map(log => parseInt(log[metric]) || 0)
+            .filter(val => val > 0);
+          const withoutSymptomsValues = logsWithoutSymptoms
+            .map(log => parseInt(log[metric]) || 0)
+            .filter(val => val > 0);
+          
+          if (withSymptomsValues.length > 0 && withoutSymptomsValues.length > 0) {
+            const withAvg = withSymptomsValues.reduce((a, b) => a + b, 0) / withSymptomsValues.length;
+            const withoutAvg = withoutSymptomsValues.reduce((a, b) => a + b, 0) / withoutSymptomsValues.length;
+            const diff = withAvg - withoutAvg;
+            
+            const isNegativeMetric = ['backPain', 'fatigue', 'stiffness', 'irritability', 'swelling'].includes(metric);
+            const isSignificant = Math.abs(diff) > 0.5;
+            
+            if (isSignificant) {
+              const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+              if (isNegativeMetric && diff > 0) {
+                symptomImpacts.push(`When additional symptoms present, ${metricName} is ${diff.toFixed(1)} points higher (${withAvg.toFixed(1)} vs ${withoutAvg.toFixed(1)})`);
+              } else if (!isNegativeMetric && diff < 0) {
+                symptomImpacts.push(`When additional symptoms present, ${metricName} is ${Math.abs(diff).toFixed(1)} points lower (${withAvg.toFixed(1)} vs ${withoutAvg.toFixed(1)})`);
+              }
+            }
+          }
+        });
+        
+        // Analyze flare-up correlation with symptoms
+        const flaresWithSymptoms = logsWithSymptoms.filter(log => log.flare === 'Yes').length;
+        const flaresWithoutSymptoms = logsWithoutSymptoms.filter(log => log.flare === 'Yes').length;
+        const flareRateWith = logsWithSymptoms.length > 0 ? flaresWithSymptoms / logsWithSymptoms.length : 0;
+        const flareRateWithout = logsWithoutSymptoms.length > 0 ? flaresWithoutSymptoms / logsWithoutSymptoms.length : 0;
+        
+        if (flareRateWith > flareRateWithout + 0.1) {
+          const percentWith = Math.round(flareRateWith * 100);
+          const percentWithout = Math.round(flareRateWithout * 100);
+          symptomImpacts.push(`Flare-ups more common when additional symptoms present: ${percentWith}% vs ${percentWithout}%`);
+        }
+      }
+    }
+    
+    // Analyze pain location patterns
+    const painLocationImpacts = [];
+    if (logsWithPainLocation.length > 0) {
+      const logsWithoutPainLocation = logs.filter(log => !log.painLocation || log.painLocation.trim().length === 0);
+      
+      if (logsWithoutPainLocation.length > 0) {
+        metrics.forEach(metric => {
+          const withPainValues = logsWithPainLocation
+            .map(log => parseInt(log[metric]) || 0)
+            .filter(val => val > 0);
+          const withoutPainValues = logsWithoutPainLocation
+            .map(log => parseInt(log[metric]) || 0)
+            .filter(val => val > 0);
+          
+          if (withPainValues.length > 0 && withoutPainValues.length > 0) {
+            const withAvg = withPainValues.reduce((a, b) => a + b, 0) / withPainValues.length;
+            const withoutAvg = withoutPainValues.reduce((a, b) => a + b, 0) / withoutPainValues.length;
+            const diff = withAvg - withoutAvg;
+            
+            const isNegativeMetric = ['backPain', 'fatigue', 'stiffness', 'irritability', 'swelling'].includes(metric);
+            const isSignificant = Math.abs(diff) > 0.5;
+            
+            if (isSignificant) {
+              const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+              if (isNegativeMetric && diff > 0) {
+                painLocationImpacts.push(`When pain location logged, ${metricName} is ${diff.toFixed(1)} points higher (${withAvg.toFixed(1)} vs ${withoutAvg.toFixed(1)})`);
+              } else if (!isNegativeMetric && diff < 0) {
+                painLocationImpacts.push(`When pain location logged, ${metricName} is ${Math.abs(diff).toFixed(1)} points lower (${withAvg.toFixed(1)} vs ${withoutAvg.toFixed(1)})`);
+              }
+            }
+          }
+        });
+      }
+    }
+    
+    // Add most common symptoms to insights
+    const sortedSymptoms = Object.entries(symptomFrequency)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5); // Top 5 most common
+    
+    // Add most common pain locations to insights
+    const sortedPainLocations = Object.entries(painLocationFrequency)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5); // Top 5 most common
+    
+    const analysisData = {
+      topSymptoms: sortedSymptoms.map(([symptom]) => symptom),
+      symptomFrequency: symptomFrequency,
+      symptomImpacts: symptomImpacts,
+      topPainLocations: sortedPainLocations.map(([location]) => location),
+      painLocationFrequency: painLocationFrequency,
+      painLocationImpacts: painLocationImpacts
+    };
+    
+    // Build summary
+    const summaryParts = [];
+    if (sortedSymptoms.length > 0) {
+      const topSymptoms = sortedSymptoms.map(([symptom, count]) => {
+        const percent = Math.round((count / logs.length) * 100);
+        return `${symptom} (${percent}%)`;
+      }).join(', ');
+      summaryParts.push(`Most common symptoms: ${topSymptoms}`);
+    }
+    
+    if (sortedPainLocations.length > 0) {
+      const topLocations = sortedPainLocations.map(([location, count]) => {
+        const percent = Math.round((count / logs.length) * 100);
+        return `${location} (${percent}%)`;
+      }).join(', ');
+      summaryParts.push(`Most common pain locations: ${topLocations}`);
+    }
+    
+    if (summaryParts.length > 0) {
+      analysisData.summary = summaryParts.join('. ');
+    } else {
+      analysisData.summary = 'No additional symptoms or pain locations logged';
+    }
+    
+    analysis.symptomsAndPainAnalysis = analysisData;
+  },
+
   // Analyze impact of food and exercise logging on symptoms
   analyzeFoodExerciseImpact: function(logs, analysis) {
     if (logs.length < 7) return; // Need minimum data
@@ -1305,6 +1591,26 @@ const AIEngine = {
     const withoutFood = logs.filter(log => !log.food || !Array.isArray(log.food) || log.food.length === 0);
     const withExercise = logs.filter(log => log.exercise && Array.isArray(log.exercise) && log.exercise.length > 0);
     const withoutExercise = logs.filter(log => !log.exercise || !Array.isArray(log.exercise) || log.exercise.length === 0);
+    
+    // Calculate daily calorie and protein totals
+    const dailyCalories = [];
+    const dailyProtein = [];
+    logs.forEach(log => {
+      if (log.food && Array.isArray(log.food) && log.food.length > 0) {
+        let dayCalories = 0;
+        let dayProtein = 0;
+        log.food.forEach(item => {
+          // Handle both old string format and new object format
+          if (typeof item === 'object' && item.calories !== undefined) {
+            dayCalories += item.calories || 0;
+          }
+          if (typeof item === 'object' && item.protein !== undefined) {
+            dayProtein += item.protein || 0;
+          }
+        });
+        if (dayCalories > 0) dailyCalories.push({ date: log.date, calories: dayCalories, protein: dayProtein });
+      }
+    });
     
     const metrics = ['backPain', 'fatigue', 'stiffness', 'mobility', 'mood', 'swelling'];
     const impacts = [];
@@ -1646,54 +1952,19 @@ const AIEngine = {
       insights.push(`**Worsening**: ${worseningMetrics.join(', ')}`);
     }
     
-    // Key metrics with Average, Current, and Predicted scores
-    const keyMetrics = ['backPain', 'stiffness', 'fatigue', 'sleep', 'mobility', 'bpm'];
-    const metricScores = [];
-    
-    keyMetrics.forEach(metric => {
-      if (analysis.trends[metric]) {
-        const trend = analysis.trends[metric];
-        const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-        const isBPM = metric === 'bpm';
-        
-        if (isBPM) {
-          // BPM: show actual values without /10
-          const average = Math.round(trend.average);
-          const current = Math.round(trend.current);
-          const predicted = trend.projected7Days ? Math.round(trend.projected7Days) : null;
-          
-          let scoreLine = `${metricName}: Average ${average}, Current ${current}`;
-          if (predicted !== null) {
-            scoreLine += `, Predicted ${predicted}`;
-          }
-          metricScores.push(scoreLine);
-        } else {
-          // Other metrics: show with /10 scale (whole numbers)
-          const average = Math.round(trend.average);
-          const current = Math.round(trend.current);
-          const predicted = trend.projected7Days ? Math.round(trend.projected7Days) : null;
-          
-          let scoreLine = `${metricName}: Average ${average}/10, Current ${current}/10`;
-          if (predicted !== null) {
-            scoreLine += `, Predicted ${predicted}`;
-          }
-          metricScores.push(scoreLine);
-        }
-      }
-    });
-    
-    if (metricScores.length > 0) {
-      insights.push(`**Key Metrics**:\n${metricScores.join('\n')}`);
-    }
-    
     // Critical issues (concise)
     const criticalIssues = [];
     
+    // Define key metrics for critical issue checking
+    const keyMetrics = ['backPain', 'stiffness', 'fatigue', 'sleep', 'mobility', 'bpm', 'steps', 'hydration'];
+    
     keyMetrics.forEach(metric => {
       if (analysis.trends[metric]) {
         const trend = analysis.trends[metric];
         const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
         const isBPM = metric === 'bpm';
+        const isSteps = metric === 'steps';
+        const isHydration = metric === 'hydration';
         
         if (isBPM) {
           // BPM: check for abnormal values (high >100 or low <50)
@@ -1702,13 +1973,27 @@ const AIEngine = {
           } else if (trend.average < 50) {
             criticalIssues.push(`${metricName} low (${Math.round(trend.average)})`);
           }
+        } else if (isSteps) {
+          // Steps: check for very high values (>15000) or very low values (<1000)
+          if (trend.average > 15000) {
+            criticalIssues.push(`${metricName} high (${Math.round(trend.average).toLocaleString()})`);
+          } else if (trend.average < 1000) {
+            criticalIssues.push(`${metricName} low (${Math.round(trend.average).toLocaleString()})`);
+          }
+        } else if (isHydration) {
+          // Hydration: check for high (>15 glasses) or low (<3 glasses)
+          if (trend.average > 15) {
+            criticalIssues.push(`${metricName} high (${trend.average.toFixed(1)} glasses)`);
+          } else if (trend.average < 3) {
+            criticalIssues.push(`${metricName} low (${trend.average.toFixed(1)} glasses)`);
+          }
         } else {
           // Health metrics: use 0-10 scale
-        if (trend.average >= 7 && (metric !== 'sleep' && metric !== 'mobility')) {
-          criticalIssues.push(`${metricName} high (${Math.round(trend.average)}/10)`);
-        } else if (trend.average <= 4 && (metric === 'sleep' || metric === 'mobility')) {
-          criticalIssues.push(`${metricName} low (${Math.round(trend.average)}/10)`);
-        }
+          if (trend.average >= 7 && (metric !== 'sleep' && metric !== 'mobility')) {
+            criticalIssues.push(`${metricName} high (${Math.round(trend.average)}/10)`);
+          } else if (trend.average <= 4 && (metric === 'sleep' || metric === 'mobility')) {
+            criticalIssues.push(`${metricName} low (${Math.round(trend.average)}/10)`);
+          }
         }
       }
     });
@@ -1737,14 +2022,23 @@ const AIEngine = {
         const trend = analysis.trends[metric];
         const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
         const isBPM = metric === 'bpm';
+        const isSteps = metric === 'steps';
+        const isHydration = metric === 'hydration';
         const direction = trend.regression.slope > 0 ? '↑' : '↓';
         const projected7 = trend.projected7Days;
         const current = trend.current;
-        const threshold = isBPM ? 2 : 0.5; // BPM needs larger change to be significant
+        const threshold = isBPM ? 2 : (isSteps ? 500 : (isHydration ? 1 : 0.5)); // Different thresholds for different metrics
         
         if (Math.abs(projected7 - current) > threshold) {
-          // All metrics: show whole numbers
-          predictions.push(`${metricName} ${direction} ${Math.round(current)}→${Math.round(projected7)}`);
+          // Format based on metric type
+          if (isSteps) {
+            predictions.push(`${metricName} ${direction} ${Math.round(current).toLocaleString()}→${Math.round(projected7).toLocaleString()}`);
+          } else if (isHydration) {
+            predictions.push(`${metricName} ${direction} ${current.toFixed(1)}→${projected7.toFixed(1)} glasses`);
+          } else {
+            // Other metrics: show whole numbers
+            predictions.push(`${metricName} ${direction} ${Math.round(current)}→${Math.round(projected7)}`);
+          }
         }
       });
       
@@ -1758,7 +2052,52 @@ const AIEngine = {
       insights.push(`**Patterns**: ${analysis.patterns.slice(0, 2).join('. ')}`);
     }
     
+    // Stressors analysis
+    if (analysis.stressorAnalysis) {
+      const stressorAnalysis = analysis.stressorAnalysis;
+      if (stressorAnalysis.topStressors.length > 0) {
+        insights.push(`**Stressors**: ${stressorAnalysis.summary}`);
+        
+        if (stressorAnalysis.impacts.length > 0) {
+          insights.push(`**Stress Impact**: ${stressorAnalysis.impacts.slice(0, 2).join('. ')}`);
+        }
+      }
+    }
     
+    // Symptoms and pain location analysis
+    if (analysis.symptomsAndPainAnalysis) {
+      const symptomsAnalysis = analysis.symptomsAndPainAnalysis;
+      if (symptomsAnalysis.topSymptoms.length > 0 || symptomsAnalysis.topPainLocations.length > 0) {
+        insights.push(`**Symptoms & Pain**: ${symptomsAnalysis.summary}`);
+        
+        if (symptomsAnalysis.symptomImpacts.length > 0) {
+          insights.push(`**Symptom Impact**: ${symptomsAnalysis.symptomImpacts.slice(0, 2).join('. ')}`);
+        }
+        
+        if (symptomsAnalysis.painLocationImpacts.length > 0) {
+          insights.push(`**Pain Location Impact**: ${symptomsAnalysis.painLocationImpacts.slice(0, 2).join('. ')}`);
+        }
+      }
+    }
+    
+    // Food and exercise analysis
+    if (analysis.nutritionAnalysis && analysis.nutritionAnalysis.avgCalories > 0) {
+      const nutrition = analysis.nutritionAnalysis;
+      insights.push(`**Nutrition**: Average ${nutrition.avgCalories} calories/day, ${nutrition.avgProtein}g protein/day`);
+    }
+    
+    if (analysis.foodExerciseImpacts && analysis.foodExerciseImpacts.length > 0) {
+      const foodImpacts = analysis.foodExerciseImpacts.filter(i => i.type === 'food' || i.type === 'nutrition');
+      const exerciseImpacts = analysis.foodExerciseImpacts.filter(i => i.type === 'exercise');
+      
+      if (foodImpacts.length > 0) {
+        insights.push(`**Food Impact**: ${foodImpacts.slice(0, 2).map(i => i.description || `${i.metric} ${i.direction} when logging food`).join('. ')}`);
+      }
+      
+      if (exerciseImpacts.length > 0) {
+        insights.push(`**Exercise Impact**: ${exerciseImpacts.slice(0, 2).map(i => `${i.metric} ${i.direction} when exercising`).join('. ')}`);
+      }
+    }
     
     return insights.join('\n\n');
   },

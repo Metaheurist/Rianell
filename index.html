@@ -99,7 +99,7 @@
     <div class="settings-menu" onclick="event.stopPropagation()">
       <div class="settings-header">
         <h3 class="settings-title">Settings</h3>
-        <button class="settings-close" onclick="toggleSettings()">&times;</button>
+        <button type="button" class="settings-close" onclick="event.preventDefault(); event.stopPropagation(); closeSettings();">&times;</button>
       </div>
       
       <div class="settings-content">
@@ -111,11 +111,57 @@
         </div>
         <div class="settings-option">
           <label for="medicalConditionInput">Medical Condition</label>
-          <input type="text" id="medicalConditionInput" placeholder="e.g., Ankylosing Spondylitis" onchange="updateMedicalCondition()" />
+          <div id="medicalConditionDisplayContainer" style="width: 100%;">
+            <button type="button" class="settings-data-btn" id="medicalConditionBtn" onclick="toggleConditionSelector()" style="width: 100%; text-align: left; justify-content: space-between;">
+              <span id="medicalConditionDisplay">Medical Condition</span>
+            </button>
+          </div>
+          <div id="medicalConditionSelector" style="display: none; margin-top: 16px; padding: 16px; background: rgba(55, 65, 81, 0.3); border-radius: 8px; width: 100%;">
+            <div style="margin-bottom: 20px;">
+              <label style="font-size: 0.9rem; display: block; margin-bottom: 8px; color: rgba(224, 242, 241, 0.9);">Choose from existing conditions:</label>
+              <select id="existingConditionsSelect" class="item-input" style="width: 100%; padding: 10px;" onchange="selectExistingCondition()">
+                <option value="">-- Select a condition --</option>
+              </select>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0; color: rgba(224, 242, 241, 0.7); font-size: 0.9rem;">OR</div>
+            
+            <div style="margin-bottom: 20px;">
+              <label style="font-size: 0.9rem; display: block; margin-bottom: 8px; color: rgba(224, 242, 241, 0.9);">Add new condition:</label>
+              <div style="display: flex; gap: 8px; width: 100%;">
+                <input type="text" id="newConditionInput" class="item-input" placeholder="e.g., Rheumatoid Arthritis" style="flex: 1; padding: 10px;" />
+                <button class="add-item-btn" onclick="addNewCondition()" title="Add condition" style="padding: 10px 16px;">➕</button>
+              </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 12px; background: rgba(233, 30, 99, 0.1); border-radius: 8px; border: 1px solid rgba(233, 30, 99, 0.3);">
+              <h4 style="color: #e91e63; margin: 0 0 8px 0; font-size: 0.9rem;">📋 AI Data Processing Policy</h4>
+              <p style="font-size: 0.8rem; color: rgba(224, 242, 241, 0.8); margin: 0; line-height: 1.5;">
+                When anonymised data contribution is enabled, your health data is anonymised and pooled with other users who have the same condition. 
+                This helps improve AI predictions for everyone. All personally identifiable information is removed before sharing.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="settings-option" style="margin-top: 16px;">
+          <label>Contribute anonymised data</label>
+          <div class="toggle-switch" id="contributeAnonDataToggle" onclick="toggleContributeAnonData()"></div>
         </div>
         <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
           <label style="visibility: hidden;">Helper</label>
-          <small style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Used for personalized AI analysis and advice</small>
+          <small id="contributeAnonDataHint" style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Contribute your anonymised data to help improve AI models</small>
+        </div>
+        <div class="settings-option" style="margin-top: 16px;">
+          <label>Use open data for training</label>
+          <div class="toggle-switch" id="useOpenDataToggle" onclick="toggleUseOpenData()"></div>
+        </div>
+        <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
+          <label style="visibility: hidden;">Helper</label>
+          <small id="useOpenDataHint" style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Use anonymised data pool for AI training (requires 90+ days of data)</small>
+        </div>
+        <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
+          <label style="visibility: hidden;">Helper</label>
+          <small style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Used for personalised AI analysis and advice</small>
         </div>
       </div>
 
@@ -209,11 +255,11 @@
           <label>Compress chart data</label>
           <div class="toggle-switch" id="compressToggle" onclick="toggleSetting('compress')"></div>
         </div>
-        <div class="settings-option">
+        <div class="settings-option demo-mode-mobile-only">
           <label>Demo Mode (10 years of sample data)</label>
           <div class="toggle-switch" id="demoModeToggle" onclick="toggleDemoMode()"></div>
         </div>
-        <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
+        <div class="settings-option demo-mode-mobile-only" style="margin-top: -10px; padding-top: 0;">
           <label style="visibility: hidden;">Helper</label>
           <small style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Demo data is not saved or synced</small>
         </div>
@@ -344,6 +390,10 @@
         <span class="tab-icon">📊</span>
         <span class="tab-text">Charts</span>
       </button>
+      <button class="tab-btn" data-tab="ai" onclick="switchTab('ai')">
+        <span class="tab-icon">🧠</span>
+        <span class="tab-text">AI Analysis</span>
+      </button>
     </div>
 
     <!-- Log Entry Tab -->
@@ -396,23 +446,8 @@
         </button>
         <div class="section-content" id="symptoms">
       <div class="slider-container">
-        <input type="range" id="fatigue" min="1" max="10" step="1" />
-        <label for="fatigue" class="slider-label">Fatigue Level</label>
-      </div>
-
-      <div class="slider-container">
         <input type="range" id="stiffness" min="1" max="10" step="1" />
         <label for="stiffness" class="slider-label">Stiffness Level</label>
-      </div>
-
-      <div class="slider-container">
-        <input type="range" id="backPain" min="1" max="10" step="1" />
-        <label for="backPain" class="slider-label">Back Pain Level</label>
-      </div>
-
-      <div class="slider-container">
-        <input type="range" id="sleep" min="1" max="10" step="1" />
-        <label for="sleep" class="slider-label">Sleep Quality</label>
       </div>
 
       <div class="slider-container">
@@ -426,11 +461,6 @@
       </div>
 
       <div class="slider-container">
-        <input type="range" id="dailyFunction" min="1" max="10" step="1" />
-        <label for="dailyFunction" class="slider-label">Daily Activities</label>
-      </div>
-
-      <div class="slider-container">
         <input type="range" id="swelling" min="1" max="10" step="1" />
         <label for="swelling" class="slider-label">Joint Swelling</label>
       </div>
@@ -439,10 +469,136 @@
         <input type="range" id="mood" min="1" max="10" step="1" />
         <label for="mood" class="slider-label">Mood Level</label>
       </div>
+        </div>
+      </div>
 
-      <div class="slider-container">
-        <input type="range" id="irritability" min="1" max="10" step="1" />
-        <label for="irritability" class="slider-label">Irritability</label>
+      <!-- Energy & Cognitive Section -->
+      <div class="form-section">
+        <button type="button" class="section-header" onclick="toggleSection('energyCognitive')">
+          <span class="section-icon">⚡</span>
+          <span class="section-title">Energy & Mental Clarity <span class="optional-hint">(Optional)</span></span>
+          <span class="section-arrow">▶</span>
+        </button>
+        <div class="section-content" id="energyCognitive">
+          <div class="slider-container">
+            <input type="range" id="fatigue" min="1" max="10" step="1" />
+            <label for="fatigue" class="slider-label">Fatigue Level</label>
+          </div>
+          <div class="slider-container">
+            <input type="range" id="sleep" min="1" max="10" step="1" />
+            <label for="sleep" class="slider-label">Sleep Quality</label>
+          </div>
+          <div class="input-container">
+            <label for="energyClarity">Energy & Mental Clarity</label>
+            <select id="energyClarity" class="item-select">
+              <option value="">Select energy/clarity...</option>
+              <option value="High Energy">High Energy</option>
+              <option value="Moderate Energy">Moderate Energy</option>
+              <option value="Low Energy">Low Energy</option>
+              <option value="Mental Clarity">Mental Clarity</option>
+              <option value="Brain Fog">Brain Fog</option>
+              <option value="Good Concentration">Good Concentration</option>
+              <option value="Poor Concentration">Poor Concentration</option>
+              <option value="Mental Fatigue">Mental Fatigue</option>
+              <option value="Focused">Focused</option>
+              <option value="Distracted">Distracted</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stress & Triggers Section -->
+      <div class="form-section">
+        <button type="button" class="section-header" onclick="toggleSection('stressTriggers')">
+          <span class="section-icon">😰</span>
+          <span class="section-title">Stress & Triggers <span class="optional-hint">(Optional)</span></span>
+          <span class="section-arrow">▶</span>
+        </button>
+        <div class="section-content" id="stressTriggers">
+          <div class="slider-container">
+            <input type="range" id="irritability" min="1" max="10" step="1" />
+            <label for="irritability" class="slider-label">Irritability</label>
+          </div>
+          <div class="slider-container">
+            <input type="range" id="weatherSensitivity" min="1" max="10" step="1" value="5" />
+            <label for="weatherSensitivity" class="slider-label">Weather Sensitivity</label>
+          </div>
+          <div id="logStressorsList" class="items-list"></div>
+          <div class="add-item-section">
+            <select id="logNewStressorItem" class="item-select">
+              <option value="">Select stressor...</option>
+              <option value="Work deadline">Work deadline</option>
+              <option value="Family conflict">Family conflict</option>
+              <option value="Financial stress">Financial stress</option>
+              <option value="Social event">Social event</option>
+              <option value="Travel">Travel</option>
+              <option value="Weather change">Weather change</option>
+              <option value="Sleep disruption">Sleep disruption</option>
+              <option value="Physical overexertion">Physical overexertion</option>
+              <option value="Emotional stress">Emotional stress</option>
+              <option value="Health concern">Health concern</option>
+              <option value="Relationship issue">Relationship issue</option>
+              <option value="Other">Other</option>
+            </select>
+            <button type="button" class="add-item-btn" onclick="addLogStressorItem()" title="Add stressor">➕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Symptoms Section -->
+      <div class="form-section">
+        <button type="button" class="section-header" onclick="toggleSection('additionalSymptoms')">
+          <span class="section-icon">🩹</span>
+          <span class="section-title">Additional Symptoms <span class="optional-hint">(Optional)</span></span>
+          <span class="section-arrow">▶</span>
+        </button>
+        <div class="section-content" id="additionalSymptoms">
+          <div id="logSymptomsList" class="items-list"></div>
+          <div class="add-item-section">
+            <select id="logNewSymptomItem" class="item-select">
+              <option value="">Select symptom...</option>
+              <option value="Nausea">Nausea</option>
+              <option value="Appetite loss">Appetite loss</option>
+              <option value="Digestive issues">Digestive issues</option>
+              <option value="Breathing difficulty">Breathing difficulty</option>
+              <option value="Dizziness">Dizziness</option>
+              <option value="Headache">Headache</option>
+              <option value="Fever">Fever</option>
+              <option value="Chills">Chills</option>
+              <option value="Skin rash">Skin rash</option>
+              <option value="Eye irritation">Eye irritation</option>
+              <option value="Other">Other</option>
+            </select>
+            <button type="button" class="add-item-btn" onclick="addLogSymptomItem()" title="Add symptom">➕</button>
+          </div>
+          <div class="input-container" style="margin-top: 1rem;">
+            <label for="painLocation">Pain Location (Where did you feel pain?)</label>
+            <input type="text" id="painLocation" placeholder="e.g., Lower back, right knee, neck" maxlength="150" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Lifestyle Factors Section -->
+      <div class="form-section">
+        <button type="button" class="section-header" onclick="toggleSection('lifestyleFactors')">
+          <span class="section-icon">🏃</span>
+          <span class="section-title">Lifestyle Factors <span class="optional-hint">(Optional)</span></span>
+          <span class="section-arrow">▶</span>
+        </button>
+        <div class="section-content" id="lifestyleFactors">
+          <div class="slider-container">
+            <input type="range" id="dailyFunction" min="1" max="10" step="1" />
+            <label for="dailyFunction" class="slider-label">Daily Activities</label>
+          </div>
+          <div class="input-container">
+            <label for="steps">Steps (if tracked)</label>
+            <input type="number" id="steps" min="0" max="50000" step="100" placeholder="0" />
+          </div>
+          <div class="input-container">
+            <label for="hydration">Hydration (glasses/cups of water)</label>
+            <input type="number" id="hydration" min="0" max="20" step="0.5" placeholder="0" />
+          </div>
+          <div class="input-container">
           </div>
         </div>
       </div>
@@ -531,35 +687,57 @@
         <button id="sortButton" onclick="toggleSort()" class="sort-btn" title="Click to toggle sort order">
           📈 <span id="sortOrder">Newest</span>
         </button>
-        <button class="action-btn ai-action-btn" onclick="generateAISummary()" title="Generate AI Health Analysis">
-          <span>🧠</span> AI Summary
-        </button>
       </div>
     </div>
       
-      <!-- AI Summary Collapsible Section -->
-      <div class="form-section ai-analysis-section" id="aiAnalysisFormSection" style="margin-top: 2rem; display: none;">
-        <button type="button" class="section-header" onclick="toggleSection('aiSummarySection')">
-          <span class="section-icon">🧠</span>
-          <span class="section-title">AI Health Analysis</span>
-          <span class="section-arrow"></span>
-        </button>
-        <div class="section-content" id="aiSummarySection">
-          <div id="aiResultsContent"></div>
+    <div id="logOutput"></div>
+    </div>
+
+    <!-- AI Analysis Tab -->
+    <div id="aiTab" class="tab-content">
+      <div class="tab-header">
+        <p class="tab-description">Get personalized insights and predictions based on your health data</p>
+      </div>
+      
+      <!-- Date Range Filter for AI Analysis -->
+      <div class="chart-date-range-filter">
+        <div class="filter-row">
+          <div class="filter-group">
+            <label class="filter-label">Analysis Range:</label>
+            <label class="filter-label-mobile">Analysis Range:</label>
+            <div class="date-range-buttons">
+              <button class="date-range-btn active" onclick="setAIDateRange(7)" id="aiRange7Days">7 Days</button>
+              <button class="date-range-btn" onclick="setAIDateRange(30)" id="aiRange30Days">30 Days</button>
+              <button class="date-range-btn" onclick="setAIDateRange(90)" id="aiRange90Days">90 Days</button>
+              <button class="date-range-btn" onclick="setAIDateRange('custom')" id="aiRangeCustom">Custom</button>
+            </div>
+          </div>
+        </div>
+        <div id="aiCustomDateRangeSelector" class="custom-date-range hidden">
+          <div class="date-range">
+            <input type="date" id="aiStartDate" placeholder="Start Date">
+            <span class="date-separator">to</span>
+            <input type="date" id="aiEndDate" placeholder="End Date">
+          </div>
+          <button onclick="applyAICustomDateRange()" class="filter-btn">Apply</button>
         </div>
       </div>
       
-    <div id="logOutput"></div>
+      <!-- AI Results Section -->
+      <div id="aiResultsContent"></div>
     </div>
 
     <!-- Charts Tab -->
     <div id="chartsTab" class="tab-content">
       <div class="tab-header">
         <div class="chart-view-toggle">
-          <button class="view-toggle-btn" onclick="toggleChartView(false)" id="individualViewBtn">
+          <button class="view-toggle-btn" onclick="toggleChartView('balance')" id="balanceViewBtn">
+            <span>⚖️</span> Balance
+          </button>
+          <button class="view-toggle-btn" onclick="toggleChartView('individual')" id="individualViewBtn">
             <span>📊</span> Individual
           </button>
-          <button class="view-toggle-btn" onclick="toggleChartView(true)" id="combinedViewBtn">
+          <button class="view-toggle-btn" onclick="toggleChartView('combined')" id="combinedViewBtn">
             <span>📈</span> Combined
           </button>
         </div>
@@ -609,6 +787,32 @@
       <!-- Combined Chart View -->
       <div id="combinedChartContainer" class="chart-container hidden">
         <div id="combinedChart"></div>
+        <!-- Metric Selection UI -->
+        <div id="combinedChartMetricSelector" class="metric-selector-container">
+          <div class="metric-selector-header">
+            <span class="metric-selector-title">Select Metrics to Display:</span>
+            <div class="metric-selector-actions">
+              <button type="button" class="metric-select-btn" onclick="selectAllMetrics()">Select All</button>
+              <button type="button" class="metric-select-btn" onclick="deselectAllMetrics()">Deselect All</button>
+            </div>
+          </div>
+          <div id="metricCheckboxes" class="metric-checkboxes-grid"></div>
+        </div>
+      </div>
+      
+      <!-- Balance Chart View -->
+      <div id="balanceChartContainer" class="chart-container hidden">
+        <div id="balanceChart"></div>
+        <!-- Metric Selection UI -->
+        <div id="balanceChartMetricSelector" class="metric-selector-container">
+          <div class="metric-selector-header">
+            <span class="metric-selector-title">Select Metrics to Display:</span>
+            <div class="metric-selector-actions">
+              <button type="button" class="metric-select-btn" onclick="selectAllBalanceMetrics()">Select All</button>
+            </div>
+          </div>
+          <div id="balanceMetricCheckboxes" class="metric-checkboxes-grid"></div>
+        </div>
       </div>
       
       <!-- Individual Charts View -->
@@ -646,6 +850,15 @@
         <div id="irritabilityChart" class="chart-container lazy-chart" data-chart-type="irritability">
           <div class="chart-loading">📊 Loading Irritability Chart...</div>
         </div>
+        <div id="weatherSensitivityChart" class="chart-container lazy-chart" data-chart-type="weatherSensitivity">
+          <div class="chart-loading">📊 Loading Weather Sensitivity Chart...</div>
+        </div>
+        <div id="stepsChart" class="chart-container lazy-chart" data-chart-type="steps">
+          <div class="chart-loading">📊 Loading Steps Chart...</div>
+        </div>
+        <div id="hydrationChart" class="chart-container lazy-chart" data-chart-type="hydration">
+          <div class="chart-loading">📊 Loading Hydration Chart...</div>
+        </div>
       </div>
     </div>
 
@@ -661,7 +874,13 @@
       <div class="modal-body">
         <div id="foodItemsList" class="items-list"></div>
         <div class="add-item-section">
-          <input type="text" id="newFoodItem" class="item-input" placeholder="Enter food item (e.g., Grilled chicken, 200g)" />
+          <div style="display: flex; gap: 8px; flex: 1; align-items: flex-start;">
+            <input type="text" id="newFoodItem" class="item-input" placeholder="Food name (e.g., Grilled chicken, 200g)" style="flex: 1;" />
+            <div style="display: flex; flex-direction: column; gap: 8px; flex: 1;">
+              <input type="number" id="newFoodCalories" class="item-input" placeholder="Calories (optional)" min="0" step="1" />
+              <input type="number" id="newFoodProtein" class="item-input" placeholder="Protein (g, optional)" min="0" step="0.1" />
+            </div>
+          </div>
           <button class="add-item-btn" onclick="addFoodItem()" title="Add food item">➕</button>
         </div>
       </div>
@@ -722,10 +941,6 @@
           <input type="range" id="editStiffness" min="0" max="10" value="5" oninput="updateEditSliderColor('editStiffness')" />
           <span class="slider-value" id="editStiffnessValue">5</span>
           
-          <label for="editBackPain">Back Pain (0-10)</label>
-          <input type="range" id="editBackPain" min="0" max="10" value="5" oninput="updateEditSliderColor('editBackPain')" />
-          <span class="slider-value" id="editBackPainValue">5</span>
-          
           <label for="editSleep">Sleep Quality (0-10)</label>
           <input type="range" id="editSleep" min="0" max="10" value="5" oninput="updateEditSliderColor('editSleep')" />
           <span class="slider-value" id="editSleepValue">5</span>
@@ -760,6 +975,119 @@
           <input type="range" id="editIrritability" min="0" max="10" value="5" oninput="updateEditSliderColor('editIrritability')" />
           <span class="slider-value" id="editIrritabilityValue">5</span>
           
+          <!-- Collapsible Section: Energy & Mental Clarity -->
+          <div class="collapsible-section">
+            <div class="collapsible-header" onclick="toggleCollapsibleSection('editEnergySection')">
+              <span class="section-icon">⚡</span>
+              <span class="section-title">Energy & Mental Clarity (Optional)</span>
+              <span class="collapsible-arrow" id="editEnergySectionArrow">▼</span>
+            </div>
+            <div class="collapsible-content" id="editEnergySection" style="display: none;">
+              <label for="editEnergyClarity">Energy & Mental Clarity</label>
+              <select id="editEnergyClarity">
+                <option value="">Select energy/clarity...</option>
+                <option value="High Energy">High Energy</option>
+                <option value="Moderate Energy">Moderate Energy</option>
+                <option value="Low Energy">Low Energy</option>
+                <option value="Mental Clarity">Mental Clarity</option>
+                <option value="Brain Fog">Brain Fog</option>
+                <option value="Good Concentration">Good Concentration</option>
+                <option value="Poor Concentration">Poor Concentration</option>
+                <option value="Mental Fatigue">Mental Fatigue</option>
+                <option value="Focused">Focused</option>
+                <option value="Distracted">Distracted</option>
+              </select>
+              
+              <label for="editWeatherSensitivity">Weather Sensitivity (1-10)</label>
+              <input type="range" id="editWeatherSensitivity" min="1" max="10" value="5" oninput="updateEditSliderColor('editWeatherSensitivity')" />
+              <span class="slider-value" id="editWeatherSensitivityValue">5</span>
+            </div>
+          </div>
+          
+          <!-- Collapsible Section: Stress & Triggers -->
+          <div class="collapsible-section">
+            <div class="collapsible-header" onclick="toggleCollapsibleSection('editStressSection')">
+              <span class="section-icon">😰</span>
+              <span class="section-title">Stress & Triggers (Optional)</span>
+              <span class="collapsible-arrow" id="editStressSectionArrow">▼</span>
+            </div>
+            <div class="collapsible-content" id="editStressSection" style="display: none;">
+              <label>Stressors</label>
+              <div class="add-item-list" id="editStressorsList">
+                <div class="add-item-controls">
+                  <select id="editStressorSelect" class="add-item-select">
+                    <option value="">Select stressor...</option>
+                    <option value="Work deadline">Work deadline</option>
+                    <option value="Family conflict">Family conflict</option>
+                    <option value="Financial stress">Financial stress</option>
+                    <option value="Social event">Social event</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Weather change">Weather change</option>
+                    <option value="Sleep disruption">Sleep disruption</option>
+                    <option value="Physical overexertion">Physical overexertion</option>
+                    <option value="Emotional stress">Emotional stress</option>
+                    <option value="Health concern">Health concern</option>
+                    <option value="Relationship issue">Relationship issue</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <button type="button" class="add-item-btn" onclick="addEditStressor()">+</button>
+                </div>
+                <div class="item-list" id="editStressorsItems"></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Collapsible Section: Additional Symptoms -->
+          <div class="collapsible-section">
+            <div class="collapsible-header" onclick="toggleCollapsibleSection('editSymptomsSection')">
+              <span class="section-icon">💉</span>
+              <span class="section-title">Additional Symptoms (Optional)</span>
+              <span class="collapsible-arrow" id="editSymptomsSectionArrow">▼</span>
+            </div>
+            <div class="collapsible-content" id="editSymptomsSection" style="display: none;">
+              <label>Symptoms</label>
+              <div class="add-item-list" id="editSymptomsList">
+                <div class="add-item-controls">
+                  <select id="editSymptomSelect" class="add-item-select">
+                    <option value="">Select symptom...</option>
+                    <option value="Nausea">Nausea</option>
+                    <option value="Appetite loss">Appetite loss</option>
+                    <option value="Digestive issues">Digestive issues</option>
+                    <option value="Breathing difficulty">Breathing difficulty</option>
+                    <option value="Dizziness">Dizziness</option>
+                    <option value="Headache">Headache</option>
+                    <option value="Fever">Fever</option>
+                    <option value="Chills">Chills</option>
+                    <option value="Skin rash">Skin rash</option>
+                    <option value="Eye irritation">Eye irritation</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <button type="button" class="add-item-btn" onclick="addEditSymptom()">+</button>
+                </div>
+                <div class="item-list" id="editSymptomsItems"></div>
+              </div>
+              
+              <label for="editPainLocation">Pain Location</label>
+              <input type="text" id="editPainLocation" maxlength="150" placeholder="e.g., Lower back, Knees" />
+            </div>
+          </div>
+          
+          <!-- Collapsible Section: Lifestyle Factors -->
+          <div class="collapsible-section">
+            <div class="collapsible-header" onclick="toggleCollapsibleSection('editLifestyleSection')">
+              <span class="section-icon">🏃</span>
+              <span class="section-title">Lifestyle Factors (Optional)</span>
+              <span class="collapsible-arrow" id="editLifestyleSectionArrow">▼</span>
+            </div>
+            <div class="collapsible-content" id="editLifestyleSection" style="display: none;">
+              <label for="editSteps">Steps (if tracked)</label>
+              <input type="number" id="editSteps" min="0" max="50000" step="100" placeholder="0" />
+              
+              <label for="editHydration">Hydration (glasses/cups of water)</label>
+              <input type="number" id="editHydration" min="0" max="20" step="0.5" placeholder="0" />
+            </div>
+          </div>
+          
           <label for="editNotes">Notes</label>
           <textarea id="editNotes" maxlength="500"></textarea>
         </form>
@@ -782,6 +1110,160 @@
       </div>
       <div class="modal-footer alert-modal-footer">
         <button class="modal-save-btn" onclick="closeAlertModal()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GDPR Data Agreement Modal -->
+  <div class="modal-overlay" id="gdprAgreementModalOverlay" style="display: none;">
+    <div class="modal-content gdpr-agreement-modal" onclick="event.stopPropagation()" style="max-width: 800px; max-height: 90vh;">
+      <div class="modal-header">
+        <h3>📋 GDPR Data Processing Agreement</h3>
+        <button class="modal-close" onclick="closeGDPRAgreementModal()">&times;</button>
+      </div>
+      <div class="modal-body gdpr-agreement-body" style="max-height: calc(90vh - 140px); overflow-y: auto;">
+        <div class="gdpr-agreement-content">
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50; margin-top: 0;">1. Overview</h4>
+            <p>By enabling "Contribute anonymised data", you consent to the processing of anonymized health data as described in this agreement. This feature allows your anonymized health data to be pooled with data from other users who have the same medical condition, helping to improve AI predictions and analysis for everyone.</p>
+          </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">2. Legal Basis for Processing (GDPR Article 6)</h4>
+            <p><strong>Consent (Article 6(1)(a)):</strong> Your explicit consent is required to enable this feature. You may withdraw your consent at any time by disabling this setting.</p>
+            <p><strong>Legitimate Interest (Article 6(1)(f)):</strong> Processing anonymized data for improving health predictions serves a legitimate interest in advancing medical research and improving healthcare outcomes.</p>
+          </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">3. Data Controller Information</h4>
+            <p><strong>Data Controller:</strong> Health App Service Provider</p>
+            <p><strong>Purpose:</strong> Processing anonymized health data to improve AI prediction accuracy and provide better health insights for users with similar medical conditions.</p>
+            <p><strong>Data Protection Officer:</strong> Available through app settings or support contact.</p>
+          </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">4. What Data is Processed</h4>
+            <p><strong>Anonymized Health Metrics Collected:</strong></p>
+            <ul>
+              <li>Health metrics: BPM, weight, fatigue, stiffness, back pain, sleep quality, joint pain, mobility, daily function, swelling, mood, irritability, weather sensitivity, steps, hydration, flare status</li>
+              <li>Arrays: stressors, symptoms, food (with calories/protein), exercise</li>
+              <li>Text fields: pain location, energy/clarity status</li>
+            </ul>
+            <p><strong>Data NOT Collected:</strong></p>
+            <ul>
+              <li>User name or any personal identifiers</li>
+              <li>Notes (which may contain personal information)</li>
+              <li>User account information</li>
+              <li>Email addresses</li>
+              <li>Any other personally identifiable data</li>
+            </ul>
+          </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">5. Data Anonymization Process</h4>
+            <p>All data is processed through strict anonymization procedures:</p>
+            <ol>
+              <li>Personal identifiers are stripped before data leaves your device</li>
+              <li>Data is grouped by medical condition (not by user)</li>
+              <li>Each anonymized entry is stored separately in the database</li>
+              <li>No user-specific tracking or identification is possible</li>
+            </ol>
+          </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">6. How Your Data is Used</h4>
+            <p>Anonymized data is used exclusively to:</p>
+            <ul>
+              <li>Improve AI prediction accuracy for users with the same medical condition</li>
+              <li>Train machine learning models for better health trend analysis</li>
+              <li>Provide more accurate predictions based on aggregated patterns</li>
+            </ul>
+            <p><strong>Data Access:</strong> Anonymized data is publicly readable (it contains no personal information) and can be used by any user with the same medical condition. No authentication is required to read anonymized data.</p>
+          </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">7. Data Storage and Security</h4>
+            <p><strong>Storage Location:</strong> Data is stored in Supabase cloud infrastructure with Row Level Security (RLS) enabled.</p>
+            <p><strong>Security Measures:</strong></p>
+            <ul>
+              <li>Data is encrypted in transit and at rest</li>
+              <li>Anonymous read access is allowed (data is already anonymized)</li>
+              <li>Anonymous insert access is allowed (for data contribution)</li>
+              <li>Each anonymized entry is timestamped</li>
+              <li>Data cannot be updated after insertion (append-only)</li>
+            </ul>
+          </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">8. Your Rights Under GDPR</h4>
+            <p>As a data subject, you have the following rights:</p>
+            <ul>
+              <li><strong>Right of Access (Article 15):</strong> You can request information about what data is being processed</li>
+              <li><strong>Right to Rectification (Article 16):</strong> You can correct inaccurate data</li>
+              <li><strong>Right to Erasure (Article 17):</strong> You can request deletion of your data (note: anonymized pooled data cannot be individually deleted)</li>
+              <li><strong>Right to Restrict Processing (Article 18):</strong> You can limit how your data is processed</li>
+              <li><strong>Right to Data Portability (Article 20):</strong> You can export your data</li>
+              <li><strong>Right to Object (Article 21):</strong> You can object to processing at any time</li>
+              <li><strong>Right to Withdraw Consent (Article 7(3)):</strong> You can withdraw consent at any time by disabling this feature</li>
+            </ul>
+          </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">9. Data Retention</h4>
+            <p>Anonymized data is retained indefinitely as it contributes to ongoing research and model improvement. Once data is anonymized and pooled, individual deletion is not possible. However, you can stop contributing new data at any time by disabling this feature.</p>
+          </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">10. Data Sharing and Transfers</h4>
+            <p>Anonymized data may be:</p>
+            <ul>
+              <li>Stored in cloud infrastructure (Supabase) which may process data outside the EU/EEA</li>
+              <li>Used by other users with the same medical condition for AI training</li>
+              <li>Processed by third-party AI services for model training</li>
+            </ul>
+            <p>All data transfers comply with GDPR requirements and appropriate safeguards are in place.</p>
+          </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">11. Minimum Data Requirements</h4>
+            <p>A minimum of 90 days of anonymized data is required before this feature becomes fully available. Until this threshold is met, the system will show "Helping the model" status.</p>
+          </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">12. Withdrawal of Consent</h4>
+            <p>You may withdraw your consent at any time by:</p>
+            <ol>
+              <li>Disabling the "Use open data for training" setting in app settings</li>
+              <li>This will stop future data contribution</li>
+              <li>Note: Previously contributed anonymized data cannot be individually deleted as it is anonymized and pooled</li>
+            </ol>
+          </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">13. Contact and Complaints</h4>
+            <p>For questions, concerns, or to exercise your rights:</p>
+            <ul>
+              <li>Contact us through the app settings</li>
+              <li>You have the right to lodge a complaint with your local data protection authority (DPA)</li>
+              <li>For EU users: Contact your national DPA or the lead supervisory authority</li>
+            </ul>
+          </div>
+
+          <div class="gdpr-section" style="background: rgba(233, 30, 99, 0.1); padding: 16px; border-radius: 8px; border: 1px solid rgba(233, 30, 99, 0.3); margin-top: 20px;">
+            <h4 style="color: #e91e63; margin-top: 0;">⚠️ Important Notice</h4>
+            <p style="margin-bottom: 0;">By clicking "I Agree", you acknowledge that you have read, understood, and agree to this GDPR Data Processing Agreement. You understand that:</p>
+            <ul style="margin-top: 8px;">
+              <li>Your anonymized health data will be processed as described</li>
+              <li>You can withdraw consent at any time by disabling this setting</li>
+              <li>Previously contributed anonymized data cannot be individually deleted (it's anonymized and pooled)</li>
+              <li>Your data will be anonymized before leaving your device</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer gdpr-agreement-footer">
+        <button class="modal-save-btn" id="gdprAgreeBtn" style="background: rgba(76, 175, 80, 0.8);">✓ I Agree and Enable</button>
+        <button class="modal-save-btn" id="gdprDeclineBtn" style="background: rgba(255, 255, 255, 0.1);" onclick="closeGDPRAgreementModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -832,34 +1314,54 @@
         <button class="modal-close" onclick="closeImportModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="import-format-selection" style="margin-bottom: 1rem;">
-          <label style="display: block; margin-bottom: 0.5rem;">File Format:</label>
-          <select id="importFormat" class="cloud-input" style="width: 100%;">
+        <div class="import-format-selection" style="margin-bottom: 1.5rem;">
+          <label style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: var(--text-light);">File Format:</label>
+          <select id="importFormat" class="cloud-input" style="width: 100%; padding: 12px;">
             <option value="csv">CSV</option>
             <option value="json">JSON</option>
           </select>
         </div>
-        <div class="import-merge-options" style="margin-bottom: 1rem;">
-          <label style="display: block; margin-bottom: 0.5rem;">Import Option:</label>
-          <div class="radio-options">
-            <label class="radio-option">
-              <input type="radio" name="importOption" value="replace" checked>
-              <span>Replace all existing data</span>
+        
+        <div class="import-merge-options" style="margin-bottom: 1.5rem;">
+          <label style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: var(--text-light);">Import Option:</label>
+          <div class="import-option-cards">
+            <label class="import-option-card" data-option="replace">
+              <input type="radio" name="importOption" value="replace" checked style="display: none;">
+              <div class="import-option-icon">🔄</div>
+              <div class="import-option-content">
+                <div class="import-option-title">Replace All</div>
+                <div class="import-option-desc">Replace all existing data with imported data</div>
+              </div>
             </label>
-            <label class="radio-option">
-              <input type="radio" name="importOption" value="append">
-              <span>Append new entries only</span>
+            <label class="import-option-card" data-option="append">
+              <input type="radio" name="importOption" value="append" style="display: none;">
+              <div class="import-option-icon">➕</div>
+              <div class="import-option-content">
+                <div class="import-option-title">Append New</div>
+                <div class="import-option-desc">Add only new entries (skip duplicates)</div>
+              </div>
             </label>
-            <label class="radio-option">
-              <input type="radio" name="importOption" value="merge">
-              <span>Merge by date (update existing, add new)</span>
+            <label class="import-option-card" data-option="merge">
+              <input type="radio" name="importOption" value="merge" style="display: none;">
+              <div class="import-option-icon">🔀</div>
+              <div class="import-option-content">
+                <div class="import-option-title">Merge by Date</div>
+                <div class="import-option-desc">Update existing entries and add new ones</div>
+              </div>
             </label>
           </div>
         </div>
-        <div class="import-file-input">
-          <input type="file" id="importFileInput" accept=".csv,.json" style="display: none;">
-          <button class="modal-save-btn" onclick="document.getElementById('importFileInput').click()">Choose File</button>
-          <span id="importFileName" style="margin-left: 1rem; color: rgba(224, 242, 241, 0.7);"></span>
+        
+        <div class="import-file-section">
+          <label style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: var(--text-light);">Select File:</label>
+          <div class="import-file-input-wrapper">
+            <input type="file" id="importFileInput" accept=".csv,.json" style="display: none;">
+            <button class="import-file-btn" onclick="document.getElementById('importFileInput').click()">
+              <span class="import-file-icon">📁</span>
+              <span class="import-file-text">Choose File</span>
+            </button>
+            <div id="importFileName" class="import-file-name"></div>
+          </div>
         </div>
         <div id="importPreview" style="margin-top: 1rem; display: none;">
           <h4 style="margin-bottom: 0.5rem;">Preview:</h4>
