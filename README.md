@@ -2,6 +2,8 @@
 
 A comprehensive web-based health tracking application with data visualization, analytics, and cloud synchronization capabilities.
 
+**Repository**: [https://github.com/Metaheurist/Health-app](https://github.com/Metaheurist/Health-app)
+
 ## Features
 
 ### Core Functionality
@@ -54,8 +56,8 @@ A comprehensive web-based health tracking application with data visualization, a
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd "Health App"
+   git clone https://github.com/Metaheurist/Health-app.git
+   cd Health-app
    ```
 
 2. **Install Python dependencies**
@@ -284,13 +286,20 @@ The app includes GDPR-compliant data sharing:
 
 4. **Data Privacy**: Anonymized data sharing is opt-in only
 
+## Author
+
+**Metaheurist** - Sole developer and maintainer
+
+- GitHub: [@Metaheurist](https://github.com/Metaheurist)
+- Repository: [https://github.com/Metaheurist/Health-app](https://github.com/Metaheurist/Health-app)
+
 ## License
 
-[Add your license here]
+This project is open source and available under an open source license.
 
-## Contributing
+## Repository
 
-[Add contribution guidelines here]
+**GitHub**: [https://github.com/Metaheurist/Health-app](https://github.com/Metaheurist/Health-app)
 
 ## Support
 
