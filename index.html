@@ -1116,23 +1116,23 @@
 
   <!-- GDPR Data Agreement Modal -->
   <div class="modal-overlay" id="gdprAgreementModalOverlay" style="display: none;">
-    <div class="modal-content gdpr-agreement-modal" onclick="event.stopPropagation()" style="max-width: 800px; max-height: 90vh;">
+    <div class="modal-content gdpr-agreement-modal" onclick="event.stopPropagation()" style="max-width: 800px; max-height: 75vh; display: flex; flex-direction: column;">
       <div class="modal-header">
         <h3>📋 GDPR Data Processing Agreement</h3>
         <button class="modal-close" onclick="closeGDPRAgreementModal()">&times;</button>
       </div>
-      <div class="modal-body gdpr-agreement-body" style="max-height: calc(90vh - 140px); overflow-y: auto;">
+      <div class="modal-body gdpr-agreement-body" style="max-height: calc(75vh - 180px); overflow-y: auto; overflow-x: hidden;">
         <div class="gdpr-agreement-content">
           <div class="gdpr-section">
             <h4 style="color: #4caf50; margin-top: 0;">1. Overview</h4>
             <p>By enabling "Contribute anonymised data", you consent to the processing of anonymized health data as described in this agreement. This feature allows your anonymized health data to be pooled with data from other users who have the same medical condition, helping to improve AI predictions and analysis for everyone.</p>
-          </div>
+        </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">2. Legal Basis for Processing (GDPR Article 6)</h4>
             <p><strong>Consent (Article 6(1)(a)):</strong> Your explicit consent is required to enable this feature. You may withdraw your consent at any time by disabling this setting.</p>
             <p><strong>Legitimate Interest (Article 6(1)(f)):</strong> Processing anonymized data for improving health predictions serves a legitimate interest in advancing medical research and improving healthcare outcomes.</p>
-          </div>
+        </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">3. Data Controller Information</h4>
@@ -1148,7 +1148,7 @@
               <li>Health metrics: BPM, weight, fatigue, stiffness, back pain, sleep quality, joint pain, mobility, daily function, swelling, mood, irritability, weather sensitivity, steps, hydration, flare status</li>
               <li>Arrays: stressors, symptoms, food (with calories/protein), exercise</li>
               <li>Text fields: pain location, energy/clarity status</li>
-            </ul>
+          </ul>
             <p><strong>Data NOT Collected:</strong></p>
             <ul>
               <li>User name or any personal identifiers</li>
@@ -1157,7 +1157,7 @@
               <li>Email addresses</li>
               <li>Any other personally identifiable data</li>
             </ul>
-          </div>
+        </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">5. Data Anonymization Process</h4>
@@ -1166,7 +1166,7 @@
               <li>Personal identifiers are stripped before data leaves your device</li>
               <li>Data is grouped by medical condition (not by user)</li>
               <li>Each anonymized entry is stored separately in the database</li>
-              <li>No user-specific tracking or identification is possible</li>
+            <li>No user-specific tracking or identification is possible</li>
             </ol>
           </div>
 
@@ -1177,9 +1177,9 @@
               <li>Improve AI prediction accuracy for users with the same medical condition</li>
               <li>Train machine learning models for better health trend analysis</li>
               <li>Provide more accurate predictions based on aggregated patterns</li>
-            </ul>
+          </ul>
             <p><strong>Data Access:</strong> Anonymized data is publicly readable (it contains no personal information) and can be used by any user with the same medical condition. No authentication is required to read anonymized data.</p>
-          </div>
+        </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">7. Data Storage and Security</h4>
@@ -1191,8 +1191,8 @@
               <li>Anonymous insert access is allowed (for data contribution)</li>
               <li>Each anonymized entry is timestamped</li>
               <li>Data cannot be updated after insertion (append-only)</li>
-            </ul>
-          </div>
+          </ul>
+        </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">8. Your Rights Under GDPR</h4>
@@ -1205,13 +1205,13 @@
               <li><strong>Right to Data Portability (Article 20):</strong> You can export your data</li>
               <li><strong>Right to Object (Article 21):</strong> You can object to processing at any time</li>
               <li><strong>Right to Withdraw Consent (Article 7(3)):</strong> You can withdraw consent at any time by disabling this feature</li>
-            </ul>
-          </div>
+          </ul>
+        </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">9. Data Retention</h4>
             <p>Anonymized data is retained indefinitely as it contributes to ongoing research and model improvement. Once data is anonymized and pooled, individual deletion is not possible. However, you can stop contributing new data at any time by disabling this feature.</p>
-          </div>
+        </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">10. Data Sharing and Transfers</h4>
@@ -1220,14 +1220,14 @@
               <li>Stored in cloud infrastructure (Supabase) which may process data outside the EU/EEA</li>
               <li>Used by other users with the same medical condition for AI training</li>
               <li>Processed by third-party AI services for model training</li>
-            </ul>
+          </ul>
             <p>All data transfers comply with GDPR requirements and appropriate safeguards are in place.</p>
-          </div>
+        </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">11. Minimum Data Requirements</h4>
             <p>A minimum of 90 days of anonymized data is required before this feature becomes fully available. Until this threshold is met, the system will show "Helping the model" status.</p>
-          </div>
+        </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">12. Withdrawal of Consent</h4>
@@ -1237,7 +1237,7 @@
               <li>This will stop future data contribution</li>
               <li>Note: Previously contributed anonymized data cannot be individually deleted as it is anonymized and pooled</li>
             </ol>
-          </div>
+        </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">13. Contact and Complaints</h4>
@@ -1247,7 +1247,7 @@
               <li>You have the right to lodge a complaint with your local data protection authority (DPA)</li>
               <li>For EU users: Contact your national DPA or the lead supervisory authority</li>
             </ul>
-          </div>
+      </div>
 
           <div class="gdpr-section" style="background: rgba(233, 30, 99, 0.1); padding: 16px; border-radius: 8px; border: 1px solid rgba(233, 30, 99, 0.3); margin-top: 20px;">
             <h4 style="color: #e91e63; margin-top: 0;">⚠️ Important Notice</h4>

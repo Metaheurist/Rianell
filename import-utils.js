@@ -9,18 +9,22 @@ let importPreviewData = null;
 // Show import modal
 function showImportModal() {
   // Close settings modal if open
-  const settingsOverlay = document.getElementById('settingsOverlay');
-  if (settingsOverlay) {
-    // Check if settings modal is visible (same check as toggleSettings uses)
-    const isVisible = settingsOverlay.style.display === 'block' || 
-                      settingsOverlay.style.display === 'flex';
-    if (isVisible) {
-      if (typeof toggleSettings === 'function') {
-        toggleSettings();
-      } else {
-        settingsOverlay.style.display = 'none';
-        document.body.classList.remove('modal-active');
-        document.body.style.overflow = '';
+  if (typeof closeSettingsModalIfOpen === 'function') {
+    closeSettingsModalIfOpen();
+  } else {
+    // Fallback if helper function not available
+    const settingsOverlay = document.getElementById('settingsOverlay');
+    if (settingsOverlay) {
+      const isVisible = settingsOverlay.style.display === 'block' || 
+                        settingsOverlay.style.display === 'flex';
+      if (isVisible) {
+        if (typeof toggleSettings === 'function') {
+          toggleSettings();
+        } else {
+          settingsOverlay.style.display = 'none';
+          document.body.classList.remove('modal-active');
+          document.body.style.overflow = '';
+        }
       }
     }
   }
