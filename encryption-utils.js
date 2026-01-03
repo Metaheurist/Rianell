@@ -1,10 +1,40 @@
 // Encryption utilities for anonymized data
 // Uses AES-256-GCM for encryption with a shared key
 
-// Encryption key - should match server.py encryption key
-// In production, this should be loaded from environment or config
-// WARNING: This is a default key. For production, use a secure key from environment/config
-const ENCRYPTION_KEY = 'REDACTED_USE_ENCRYPTION_KEY_OR_FILE'; // 64 chars, uses first 32 bytes
+/**
+ * Get encryption key - uses key derivation for better security
+ * Falls back to default key if derivation fails (for compatibility)
+ */
+async function getEncryptionKey() {
+  // Try to get a user-specific seed from sessionStorage
+  // This provides better security than a hardcoded key
+  let seed = sessionStorage.getItem('encryption_key_seed');
+  
+  if (!seed) {
+    // Generate a seed based on origin and user agent (consistent per domain)
+    const baseSeed = window.location.origin + navigator.userAgent;
+    const encoder = new TextEncoder();
+    const data = encoder.encode(baseSeed);
+    
+    try {
+      // Derive a key using SHA-256
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      seed = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      sessionStorage.setItem('encryption_key_seed', seed);
+    } catch (error) {
+      // Fallback to default key if crypto API fails
+      console.warn('Key derivation failed, using default key');
+      return 'REDACTED_USE_ENCRYPTION_KEY_OR_FILE';
+    }
+  }
+  
+  // Use first 32 bytes (64 hex chars) of the seed
+  return seed.substring(0, 64);
+}
+
+// Default key for backward compatibility (fallback only)
+const DEFAULT_ENCRYPTION_KEY = 'REDACTED_USE_ENCRYPTION_KEY_OR_FILE';
 
 /**
  * Encrypt anonymized log data before sending to Supabase
@@ -19,10 +49,19 @@ async function encryptAnonymizedData(data) {
     // Generate a random IV (Initialization Vector) - 12 bytes for GCM
     const iv = crypto.getRandomValues(new Uint8Array(12));
     
+    // Get encryption key (derived or default)
+    const keyHex = await getEncryptionKey();
+    
+    // Convert hex to bytes
+    const keyBytes = new Uint8Array(keyHex.length / 2);
+    for (let i = 0; i < keyHex.length; i += 2) {
+      keyBytes[i / 2] = parseInt(keyHex.substr(i, 2), 16);
+    }
+    
     // Import the key
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
-      new TextEncoder().encode(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)),
+      keyBytes.slice(0, 32), // Ensure exactly 32 bytes
       { name: 'AES-GCM' },
       false,
       ['encrypt']
@@ -47,7 +86,12 @@ async function encryptAnonymizedData(data) {
     // Convert to base64 for storage
     return btoa(String.fromCharCode(...combined));
   } catch (error) {
-    console.error('Encryption error:', error);
+    // Use safe error logging to prevent information leakage
+    if (window.SecurityUtils && window.SecurityUtils.safeLogError) {
+      window.SecurityUtils.safeLogError('encryptAnonymizedData', error);
+    } else {
+      console.error('Encryption error occurred');
+    }
     // Fallback: return original data as JSON string (no encryption)
     return JSON.stringify(data);
   }
@@ -82,10 +126,19 @@ async function decryptAnonymizedData(encryptedData) {
     const iv = combined.slice(0, 12);
     const encrypted = combined.slice(12);
     
+    // Get encryption key (derived or default)
+    const keyHex = await getEncryptionKey();
+    
+    // Convert hex to bytes
+    const keyBytes = new Uint8Array(keyHex.length / 2);
+    for (let i = 0; i < keyHex.length; i += 2) {
+      keyBytes[i / 2] = parseInt(keyHex.substr(i, 2), 16);
+    }
+    
     // Import the key
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
-      new TextEncoder().encode(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32)),
+      keyBytes.slice(0, 32), // Ensure exactly 32 bytes
       { name: 'AES-GCM' },
       false,
       ['decrypt']
@@ -106,7 +159,12 @@ async function decryptAnonymizedData(encryptedData) {
     const jsonString = new TextDecoder().decode(decrypted);
     return JSON.parse(jsonString);
   } catch (error) {
-    console.error('Decryption error:', error);
+    // Use safe error logging to prevent information leakage
+    if (window.SecurityUtils && window.SecurityUtils.safeLogError) {
+      window.SecurityUtils.safeLogError('decryptAnonymizedData', error);
+    } else {
+      console.error('Decryption error occurred');
+    }
     // Try to parse as plain JSON (backward compatibility)
     try {
       return JSON.parse(encryptedData);

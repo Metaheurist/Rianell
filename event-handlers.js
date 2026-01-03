@@ -136,7 +136,13 @@ function initializeEventHandlers() {
   }
   
   if (cloudLoginBtn) {
-    cloudLoginBtn.addEventListener('click', handleCloudLogin);
+    cloudLoginBtn.addEventListener('click', function() {
+      if (typeof handleCloudLogin === 'function') {
+        handleCloudLogin();
+      } else {
+        console.error('handleCloudLogin function not available');
+      }
+    });
   }
   
   if (cloudSyncBtn) {
@@ -144,7 +150,13 @@ function initializeEventHandlers() {
   }
   
   if (cloudLogoutBtn) {
-    cloudLogoutBtn.addEventListener('click', handleCloudLogout);
+    cloudLogoutBtn.addEventListener('click', function() {
+      if (typeof handleCloudLogout === 'function') {
+        handleCloudLogout();
+      } else {
+        console.error('handleCloudLogout function not available');
+      }
+    });
   }
   
   // Settings action buttons
