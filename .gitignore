@@ -1,14 +1,49 @@
+# ============================================
+# Sensitive Credentials & Keys
+# ============================================
+
 # Supabase API Configuration (contains sensitive credentials)
 supabase-config.js
+*supabase*config*.js
+*config*.js
 
 # Environment variables (contains sensitive credentials)
 .env
+.env.*
+*.env
+*.env.local
+*.env.*.local
 
+# Encryption keys (contains sensitive encryption keys)
+.encryption_key
+encryption.key
+*.key
+*_key
+*_keys
+*.pem
+*.p12
+*.pfx
+
+# API Keys and Secrets
+*secret*
+*secrets*
+*credential*
+*credentials*
+*api_key*
+*apikey*
+*token*
+*.token
+
+# ============================================
 # Logs
+# ============================================
 logs/
 *.log
+*.log.*
 
+# ============================================
 # Python
+# ============================================
 __pycache__/
 *.py[cod]
 *$py.class
@@ -17,18 +52,38 @@ __pycache__/
 env/
 venv/
 ENV/
+.venv/
+*.egg-info/
+dist/
+build/
 
+# Local package installation directory
+lib/
+
+# ============================================
 # IDE
+# ============================================
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.project
+.classpath
+.settings/
 
+# ============================================
 # OS
+# ============================================
 .DS_Store
 Thumbs.db
+desktop.ini
 
+# ============================================
 # Temporary files
+# ============================================
 *.tmp
 *.temp
+*.bak
+*.backup
+*~

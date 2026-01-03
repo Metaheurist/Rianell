@@ -109,7 +109,11 @@ function initializeEventHandlers() {
   }
   
   if (cloudAutoSync) {
-    cloudAutoSync.addEventListener('change', toggleAutoSync);
+    cloudAutoSync.addEventListener('change', function() {
+      if (typeof toggleAutoSync === 'function') {
+        toggleAutoSync();
+      }
+    });
   }
   
   // Cloud sync handlers
@@ -124,7 +128,11 @@ function initializeEventHandlers() {
   }
   
   if (cloudSignUpBtn) {
-    cloudSignUpBtn.addEventListener('click', handleCloudSignUp);
+    cloudSignUpBtn.addEventListener('click', function() {
+      if (typeof handleCloudSignUp === 'function') {
+        handleCloudSignUp();
+      }
+    });
   }
   
   if (cloudLoginBtn) {

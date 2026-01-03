@@ -2612,9 +2612,12 @@ async function clearData() {
     return;
   }
   
-  // Clear all health logs from localStorage
+  // Clear all health logs from localStorage and any backups
+  // Clear the logs array completely to prevent any in-memory references
+  if (Array.isArray(logs)) {
+    logs.length = 0;
+  }
   logs = [];
-  localStorage.removeItem("healthLogs");
   
   // Delete health logs from cloud (but keep settings on cloud)
   if (typeof deleteCloudLogs === 'function') {
@@ -2666,6 +2669,10 @@ async function clearData() {
   localStorage.removeItem('cloudAutoSync');
   localStorage.removeItem('cloudLastSync');
   localStorage.removeItem('currentCloudUserId');
+  
+  // Clear anonymized data sync tracking
+  localStorage.removeItem('anonymizedDataSyncedKeys');
+  localStorage.removeItem('anonymizedDataSyncedDates');
   
   // Clear AI model cache from IndexedDB
   try {
@@ -2720,9 +2727,89 @@ async function clearData() {
     // Don't fail the whole operation if this fails
   }
   
+  // Clear ALL IndexedDB databases (comprehensive cleanup)
+  try {
+    if ('indexedDB' in window && indexedDB.databases) {
+      const databases = await indexedDB.databases();
+      const deletePromises = databases.map(db => {
+        return new Promise((resolve) => {
+          const deleteDB = indexedDB.deleteDatabase(db.name);
+          deleteDB.onsuccess = () => resolve();
+          deleteDB.onerror = () => resolve();
+          deleteDB.onblocked = () => resolve();
+        });
+      });
+      await Promise.all(deletePromises);
+      console.log('✅ All IndexedDB databases cleared');
+    }
+  } catch (error) {
+    console.warn('⚠️ Error clearing all IndexedDB:', error);
+  }
   
-  // Clear any other localStorage items related to the app
-  // (keeping service worker registration and other browser data)
+  // Clear Cache Storage (Service Worker caches)
+  try {
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+      console.log('✅ All cache storage cleared');
+    }
+  } catch (error) {
+    console.warn('⚠️ Error clearing cache storage:', error);
+  }
+  
+  // Clear sessionStorage completely
+  try {
+    sessionStorage.clear();
+    console.log('✅ Session storage cleared');
+  } catch (error) {
+    console.warn('⚠️ Error clearing sessionStorage:', error);
+  }
+  
+  // Clear ALL localStorage items related to the app (comprehensive cleanup)
+  const localStorageKeysToRemove = [
+    'healthLogs',
+    'healthLogs_backup',
+    'healthAppSettings',
+    'appSettings_backup',
+    'cloudAutoSync',
+    'cloudLastSync',
+    'currentCloudUserId',
+    'anonymizedDataSyncedKeys',
+    'anonymizedDataSyncedDates',
+    'healthLogs_compressed',
+    'healthAppSettings_compressed'
+  ];
+  
+  // Remove all known keys
+  localStorageKeysToRemove.forEach(key => {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      // Ignore errors
+    }
+  });
+  
+  // Also clear any other localStorage items that might be app-related
+  try {
+    const allKeys = Object.keys(localStorage);
+    allKeys.forEach(key => {
+      // Remove any key that looks like it's related to the health app
+      if (key.toLowerCase().includes('health') || 
+          key.toLowerCase().includes('log') ||
+          key.toLowerCase().includes('sync') ||
+          key.toLowerCase().includes('anon') ||
+          key.toLowerCase().includes('cloud')) {
+        try {
+          localStorage.removeItem(key);
+        } catch (e) {
+          // Ignore errors
+        }
+      }
+    });
+    console.log('✅ All app-related localStorage items cleared');
+  } catch (error) {
+    console.warn('⚠️ Error clearing additional localStorage items:', error);
+  }
   
   // Reset UI
   renderLogs();
@@ -7583,6 +7670,14 @@ function loadSettings() {
   // Apply loaded settings to UI
   applySettings();
   loadSettingsState();
+  
+  // Set up background sync if contribution is enabled
+  if (appSettings.contributeAnonData && typeof setupBackgroundSync === 'function') {
+    // Delay slightly to ensure cloud-sync.js is loaded
+    setTimeout(() => {
+      setupBackgroundSync();
+    }, 500);
+  }
 }
 
 function saveSettings() {
@@ -7624,10 +7719,21 @@ function loadSettingsState() {
       medicalConditionBtn.style.opacity = '0.5';
       medicalConditionBtn.style.cursor = 'not-allowed';
     } else {
-      medicalConditionDisplay.textContent = appSettings.medicalCondition || 'Medical Condition';
+      // Always show the condition if it exists, otherwise show placeholder
+      const conditionText = appSettings.medicalCondition && appSettings.medicalCondition.trim() 
+        ? appSettings.medicalCondition 
+        : 'Medical Condition';
+      medicalConditionDisplay.textContent = conditionText;
       medicalConditionBtn.disabled = false;
       medicalConditionBtn.style.opacity = '1';
       medicalConditionBtn.style.cursor = 'pointer';
+      
+      // Ensure display container is visible
+      const displayContainer = document.getElementById('medicalConditionDisplayContainer');
+      if (displayContainer) {
+        displayContainer.style.display = 'block';
+        displayContainer.style.visibility = 'visible';
+      }
     }
   }
   
@@ -7677,6 +7783,32 @@ function loadSettingsState() {
   
   document.getElementById('animationsToggle').classList.toggle('active', appSettings.animations);
   document.getElementById('lazyToggle').classList.toggle('active', appSettings.lazy);
+  
+  // Update contribute anonymised data toggle
+  const contributeAnonDataToggle = document.getElementById('contributeAnonDataToggle');
+  if (contributeAnonDataToggle) {
+    if (appSettings.demoMode) {
+      contributeAnonDataToggle.style.opacity = '0.5';
+      contributeAnonDataToggle.style.cursor = 'not-allowed';
+      contributeAnonDataToggle.classList.remove('active');
+      appSettings.contributeAnonData = false;
+    } else {
+      contributeAnonDataToggle.style.opacity = '1';
+      contributeAnonDataToggle.style.cursor = 'pointer';
+      contributeAnonDataToggle.classList.toggle('active', appSettings.contributeAnonData || false);
+      
+      // Update hint text
+      const hint = document.getElementById('contributeAnonDataHint');
+      if (hint) {
+        if (appSettings.contributeAnonData) {
+          hint.textContent = 'Your anonymised data is being contributed to help improve AI models.';
+        } else {
+          hint.textContent = 'Contribute your anonymised data to help improve AI models';
+        }
+      }
+    }
+  }
+  
   // Demo mode toggle removed from settings - now controlled by F4 key only
   // const demoModeToggle = document.getElementById('demoModeToggle');
   // if (demoModeToggle) {
@@ -7733,6 +7865,12 @@ async function toggleContributeAnonData() {
     appSettings.contributeAnonData = false;
     saveSettings();
     
+    // Stop background syncing
+    if (window.anonymizedDataSyncInterval) {
+      clearInterval(window.anonymizedDataSyncInterval);
+      window.anonymizedDataSyncInterval = null;
+    }
+    
     // Update toggle state
     const toggle = document.getElementById('contributeAnonDataToggle');
     if (toggle) {
@@ -7750,21 +7888,55 @@ async function toggleContributeAnonData() {
     async () => {
       // Enable the feature
       appSettings.contributeAnonData = true;
-  saveSettings();
-  
-  // Update toggle state
-  const toggle = document.getElementById('contributeAnonDataToggle');
-  if (toggle) {
-    toggle.classList.toggle('active', appSettings.contributeAnonData);
-  }
-  
-  // If enabling, sync data immediately
+      saveSettings();
+      
+      // Clear synced keys for current condition to allow fresh sync
+      // This ensures logs will be re-synced even if they were previously marked as synced
+      const condition = appSettings.medicalCondition;
+      if (condition) {
+        // Clear both synced keys and dates for this condition
+        const syncedKeysJson = localStorage.getItem('anonymizedDataSyncedKeys');
+        if (syncedKeysJson) {
+          const syncedKeys = JSON.parse(syncedKeysJson);
+          const beforeCount = syncedKeys.length;
+          // Remove all keys for this condition
+          const filteredKeys = syncedKeys.filter(key => !key.endsWith(`_${condition}`));
+          localStorage.setItem('anonymizedDataSyncedKeys', JSON.stringify(filteredKeys));
+          console.log(`[toggleContributeAnonData] Cleared ${beforeCount - filteredKeys.length} synced key(s) for condition: ${condition}`);
+        }
+        // Also clear synced dates to ensure fresh sync
+        localStorage.removeItem('anonymizedDataSyncedDates');
+        console.log(`[toggleContributeAnonData] Cleared synced dates to allow fresh sync`);
+      }
+      
+      // Update toggle state
+      const toggle = document.getElementById('contributeAnonDataToggle');
+      if (toggle) {
+        toggle.classList.add('active');
+      }
+      
+      // Set up automatic background syncing first
+      if (typeof setupBackgroundSync === 'function') {
+        setupBackgroundSync();
+      } else {
+        console.error('[toggleContributeAnonData] setupBackgroundSync function not available!');
+      }
+      
+      // If enabling, sync data immediately
       if (typeof syncAnonymizedData === 'function') {
-    syncAnonymizedData();
-  }
-  
-  // Update hint text
-  loadSettingsState();
+        // Delay slightly to ensure toggle state is updated and Supabase is ready
+        setTimeout(() => {
+          console.log('[toggleContributeAnonData] Triggering immediate sync...');
+          syncAnonymizedData().catch(error => {
+            console.error('[toggleContributeAnonData] Error in immediate sync:', error);
+          });
+        }, 1000);
+      } else {
+        console.error('[toggleContributeAnonData] syncAnonymizedData function not available!');
+      }
+      
+      // Update hint text
+      loadSettingsState();
       
       // Show confirmation
       showAlertModal('Anonymised data contribution has been enabled. Your data will be anonymised and used to improve AI predictions.', 'Feature Enabled');
@@ -8038,33 +8210,78 @@ async function loadAvailableConditions() {
   const select = document.getElementById('existingConditionsSelect');
   if (!select) return;
   
+  // Show loading state
+  select.innerHTML = '<option value="">Loading conditions...</option>';
+  select.disabled = true;
+  
   try {
-    if (!supabaseClient) {
-      initSupabase();
+    // Initialize Supabase client if needed
+    let client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
+    
+    if (!client) {
+      // Try to initialize from SUPABASE_CONFIG
+      if (window.SUPABASE_CONFIG && typeof supabase !== 'undefined') {
+        client = supabase.createClient(
+          window.SUPABASE_CONFIG.url,
+          window.SUPABASE_CONFIG.anonKey
+        );
+        window.supabaseClient = client;
+      } else {
+        console.warn('Supabase client not available - SUPABASE_CONFIG or supabase library not found');
+        select.innerHTML = '<option value="">-- Select a condition --</option>';
+        select.disabled = false;
+        return;
+      }
     }
     
-    if (supabaseClient) {
-      // Call the function to get available conditions
-      const { data, error } = await supabaseClient.rpc('get_available_conditions');
+    // Fetch unique conditions directly from anonymized_data table
+    // Use pagination to handle large datasets
+    let allConditions = [];
+    let from = 0;
+    const pageSize = 1000;
+    let hasMore = true;
+    
+    while (hasMore) {
+      const { data, error } = await client
+        .from('anonymized_data')
+        .select('medical_condition')
+        .range(from, from + pageSize - 1)
+        .order('medical_condition', { ascending: true });
       
       if (error) {
         console.warn('Error loading conditions:', error);
-        // Fallback: try direct query
-        const { data: directData, error: directError } = await supabaseClient
-          .from('anonymized_data')
-          .select('medical_condition')
-          .order('medical_condition');
-        
-        if (!directError && directData) {
-          const uniqueConditions = [...new Set(directData.map(d => d.medical_condition))];
-          populateConditionsSelect(uniqueConditions);
-        }
-      } else if (data) {
-        populateConditionsSelect(data.map(d => d.condition_name));
+        break;
+      }
+      
+      if (data && data.length > 0) {
+        // Extract and filter out null/empty conditions
+        const conditions = data
+          .map(d => d.medical_condition)
+          .filter(c => c && c.trim() !== '');
+        allConditions = allConditions.concat(conditions);
+        hasMore = data.length === pageSize;
+        from += pageSize;
+      } else {
+        hasMore = false;
       }
     }
+    
+    // Get unique conditions and populate dropdown
+    if (allConditions.length > 0) {
+      const uniqueConditions = [...new Set(allConditions)].sort();
+      populateConditionsSelect(uniqueConditions);
+      console.log(`Loaded ${uniqueConditions.length} unique conditions from Supabase`);
+    } else {
+      // No conditions found, just show the default option
+      populateConditionsSelect([]);
+      console.log('No conditions found in Supabase');
+    }
+    
+    select.disabled = false;
   } catch (error) {
-    console.warn('Error loading conditions:', error);
+    console.error('Error loading conditions:', error);
+    select.innerHTML = '<option value="">Error loading conditions</option>';
+    select.disabled = false;
   }
 }
 
@@ -8293,18 +8510,28 @@ function updateMedicalCondition(condition = null) {
   
   if (display) {
     display.textContent = condition;
+    // Force update to ensure it persists
+    display.style.display = 'block';
+    display.style.visibility = 'visible';
   }
   
   // Hide selector if it's open, show display button
   if (selector) {
     selector.style.display = 'none';
   }
-  if (arrow) {
-    arrow.textContent = '▶';
-  }
   if (displayContainer) {
     displayContainer.style.display = 'block';
+    displayContainer.style.visibility = 'visible';
   }
+  
+  // Force update the display text again after a brief delay to ensure it persists
+  // This prevents it from being overwritten by loadSettingsState() or other functions
+  setTimeout(() => {
+    const displayCheck = document.getElementById('medicalConditionDisplay');
+    if (displayCheck && appSettings.medicalCondition) {
+      displayCheck.textContent = appSettings.medicalCondition;
+    }
+  }, 100);
   
   // Update CONDITION_CONTEXT for AI analysis
   updateConditionContext(condition);
@@ -8316,6 +8543,15 @@ function updateMedicalCondition(condition = null) {
   
   // Sync anonymized data if contribution is enabled (but not in demo mode)
   if (appSettings.contributeAnonData && !appSettings.demoMode && typeof syncAnonymizedData === 'function') {
+    // Clear synced keys for this condition to allow re-syncing with new condition
+    const syncedKeysJson = localStorage.getItem('anonymizedDataSyncedKeys');
+    if (syncedKeysJson) {
+      const syncedKeys = JSON.parse(syncedKeysJson);
+      const condition = appSettings.medicalCondition;
+      // Remove all keys for this condition
+      const filteredKeys = syncedKeys.filter(key => !key.endsWith(`_${condition}`));
+      localStorage.setItem('anonymizedDataSyncedKeys', JSON.stringify(filteredKeys));
+    }
     syncAnonymizedData();
   }
   

@@ -128,7 +128,7 @@
             
             <div style="margin-bottom: 20px;">
               <label style="font-size: 0.9rem; display: block; margin-bottom: 8px; color: rgba(224, 242, 241, 0.9);">Add new condition:</label>
-              <div style="display: flex; gap: 8px; width: 100%;">
+              <div id="conditionInputContainer" style="display: flex; gap: 8px; width: 100%;">
                 <input type="text" id="newConditionInput" class="item-input" placeholder="e.g., Rheumatoid Arthritis" style="flex: 1; padding: 10px;" />
                 <button class="add-item-btn" onclick="addNewCondition()" title="Add condition" style="padding: 10px 16px;">➕</button>
               </div>
@@ -1137,6 +1137,7 @@
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">3. Data Controller Information</h4>
             <p><strong>Data Controller:</strong> Health App Service Provider</p>
+            <p><strong>Contact:</strong> <a href="mailto:data@app.com" style="color: #4caf50; text-decoration: underline;">data@app.com</a></p>
             <p><strong>Purpose:</strong> Processing anonymized health data to improve AI prediction accuracy and provide better health insights for users with similar medical conditions.</p>
             <p><strong>Data Protection Officer:</strong> Available through app settings or support contact.</p>
           </div>
@@ -1243,6 +1244,7 @@
             <h4 style="color: #4caf50;">13. Contact and Complaints</h4>
             <p>For questions, concerns, or to exercise your rights:</p>
             <ul>
+              <li>Contact the Data Controller at: <a href="mailto:data@app.com" style="color: #4caf50; text-decoration: underline;">data@app.com</a></li>
               <li>Contact us through the app settings</li>
               <li>You have the right to lodge a complaint with your local data protection authority (DPA)</li>
               <li>For EU users: Contact your national DPA or the lead supervisory authority</li>
@@ -1395,6 +1397,7 @@
   <script src="import-utils.js?v=1"></script>
   <script src="print-utils.js?v=1"></script>
   <script src="app.js?v=1"></script>
+  <script src="encryption-utils.js"></script>
   <script src="cloud-sync.js"></script>
 </body>
 </html>

@@ -3250,20 +3250,20 @@ body.loading .loading-overlay {
   .gdpr-agreement-modal {
     max-width: 95%;
     width: 95vw;
-  }
-  
+}
+
   .gdpr-agreement-body {
     padding: 16px 20px;
     font-size: 0.9rem;
-  }
-  
+}
+
   .gdpr-agreement-footer {
     flex-direction: column;
-  }
-  
+}
+
   .gdpr-agreement-footer button {
     width: 100%;
-  }
+}
 }
   padding: 20px 30px 30px 30px;
   gap: 12px;
@@ -5336,6 +5336,16 @@ body.light-mode .date-separator {
   
   .add-item-btn {
     width: 100%;
+  }
+  
+  /* Condition input container - stack input above button on mobile */
+  #conditionInputContainer {
+    flex-direction: column;
+  }
+  
+  #conditionInputContainer .add-item-btn {
+    width: 100%;
+    margin-top: 8px;
   }
 
   .ai-modal-title {

@@ -10,3 +10,6 @@ watchdog>=3.0.0
 # Environment variable management (required for .env file support)
 python-dotenv>=1.0.0
 
+# Cryptography for data encryption/decryption (required for encrypted anonymized data)
+cryptography>=41.0.0
+

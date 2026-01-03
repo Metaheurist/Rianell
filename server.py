@@ -22,6 +22,103 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from urllib.parse import urlparse, parse_qs, unquote
 import re
+import subprocess
+
+# ============================================
+# Local Package Installation
+# ============================================
+
+# Add local lib directory to Python path for bundled packages
+APP_DIR = Path(__file__).parent.absolute()
+LOCAL_LIB_DIR = APP_DIR / 'lib'
+
+# Add local lib to sys.path if it exists
+if LOCAL_LIB_DIR.exists():
+    if str(LOCAL_LIB_DIR) not in sys.path:
+        sys.path.insert(0, str(LOCAL_LIB_DIR))
+        # Note: logger not yet defined at this point, using print for early initialization
+        print(f"Added local lib directory to Python path: {LOCAL_LIB_DIR}")
+
+def install_requirements_local():
+    """Install requirements.txt into local lib directory"""
+    try:
+        requirements_file = APP_DIR / 'requirements.txt'
+        if not requirements_file.exists():
+            logger.warning(f"requirements.txt not found at {requirements_file}")
+            return False
+        
+        # Create lib directory if it doesn't exist
+        LOCAL_LIB_DIR.mkdir(exist_ok=True)
+        
+        # Use the same Python interpreter that's running this script
+        python_exe = sys.executable
+        logger.info(f"Installing requirements to local lib directory: {LOCAL_LIB_DIR}")
+        logger.info(f"Using Python: {python_exe}")
+        
+        # Install packages to local lib directory
+        result = subprocess.run(
+            [python_exe, '-m', 'pip', 'install', '-r', str(requirements_file), 
+             '--target', str(LOCAL_LIB_DIR), '--upgrade'],
+            capture_output=True,
+            text=True,
+            timeout=600  # 10 minute timeout for first install
+        )
+        
+        if result.returncode == 0:
+            # Add to sys.path if not already there
+            if str(LOCAL_LIB_DIR) not in sys.path:
+                sys.path.insert(0, str(LOCAL_LIB_DIR))
+            logger.info(f"Requirements installed successfully to {LOCAL_LIB_DIR}")
+            if result.stdout:
+                logger.debug(f"Install output: {result.stdout}")
+            return True
+        else:
+            logger.error(f"Failed to install requirements. Return code: {result.returncode}")
+            if result.stderr:
+                logger.error(f"Error output: {result.stderr}")
+            return False
+    except subprocess.TimeoutExpired:
+        logger.error("Requirements installation timed out after 10 minutes")
+        return False
+    except Exception as e:
+        logger.error(f"Error installing requirements: {e}", exc_info=True)
+        return False
+
+def install_requirements():
+    """Install requirements.txt - tries local first, falls back to system"""
+    # Try local installation first
+    if install_requirements_local():
+        return True
+    
+    # Fallback to system installation
+    logger.info("Local installation failed, trying system-wide installation...")
+    try:
+        requirements_file = APP_DIR / 'requirements.txt'
+        if not requirements_file.exists():
+            logger.warning(f"requirements.txt not found at {requirements_file}")
+            return False
+        
+        python_exe = sys.executable
+        logger.info(f"Installing requirements system-wide using: {python_exe}")
+        
+        result = subprocess.run(
+            [python_exe, '-m', 'pip', 'install', '-r', str(requirements_file)],
+            capture_output=True,
+            text=True,
+            timeout=300
+        )
+        
+        if result.returncode == 0:
+            logger.info("Requirements installed successfully (system-wide)")
+            return True
+        else:
+            logger.error(f"Failed to install requirements. Return code: {result.returncode}")
+            if result.stderr:
+                logger.error(f"Error output: {result.stderr}")
+            return False
+    except Exception as e:
+        logger.error(f"Error installing requirements: {e}", exc_info=True)
+        return False
 
 # Try to import Supabase client
 try:
@@ -60,6 +157,17 @@ except ImportError:
     DOTENV_AVAILABLE = False
     print("Warning: python-dotenv not installed. Using default configuration.")
     print("Install with: pip install python-dotenv")
+
+# Try to import cryptography for encryption
+try:
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    from cryptography.hazmat.backends import default_backend
+    import base64
+    CRYPTOGRAPHY_AVAILABLE = True
+except ImportError:
+    CRYPTOGRAPHY_AVAILABLE = False
+    print("Warning: cryptography library not installed. Encryption features will be disabled.")
+    print("Install with: pip install cryptography")
 
 # Setup logging first (needed for environment variable loading messages)
 LOG_DIR = Path(__file__).parent / "logs"
@@ -135,16 +243,154 @@ last_file_change_time = None
 server_instance = None
 server_thread = None
 server_lock = threading.Lock()
+restarting = False
+browser_opened = False
 
 # ============================================
 # Supabase Functions
 # ============================================
 
+# ============================================
+# Encryption/Decryption Functions
+# ============================================
+
+# Cache encryption key warning to avoid spam
+_encryption_key_warning_shown = False
+
+def get_encryption_key():
+    """Get encryption key from file, environment variable, or use default"""
+    global _encryption_key_warning_shown
+    key = None
+    
+    # Try to read from encryption key file first
+    key_file_paths = [
+        Path(__file__).parent / '.encryption_key',
+        Path(__file__).parent / 'encryption.key'
+    ]
+    
+    for key_file_path in key_file_paths:
+        if key_file_path.exists():
+            try:
+                with open(key_file_path, 'r', encoding='utf-8') as f:
+                    key = f.read().strip()
+                if key:
+                    if not _encryption_key_warning_shown:
+                        logger.info(f"Loaded encryption key from {key_file_path.name}")
+                    break
+            except Exception as e:
+                if not _encryption_key_warning_shown:
+                    logger.warning(f"Error reading encryption key file {key_file_path}: {e}")
+    
+    # Fallback to environment variable
+    if not key:
+        key = os.getenv('ENCRYPTION_KEY')
+        if key:
+            if not _encryption_key_warning_shown:
+                logger.info("Loaded encryption key from environment variable")
+    
+    # Final fallback to default (not recommended for production)
+    if not key:
+        # More secure default key (still not recommended for production - use .encryption_key file)
+        key = 'REDACTED_USE_ENCRYPTION_KEY_OR_FILE'
+        if not _encryption_key_warning_shown:
+            logger.warning("Using default encryption key. For production, create .encryption_key file with a secure key.")
+            _encryption_key_warning_shown = True
+    
+    # Ensure key is exactly 32 bytes for AES-256
+    key_bytes = key.encode('utf-8')[:32].ljust(32, b'0')
+    return key_bytes
+
+def encrypt_anonymized_data(data):
+    """Encrypt anonymized log data using AES-GCM"""
+    if not CRYPTOGRAPHY_AVAILABLE:
+        # Fallback: return as JSON string (no encryption)
+        return json.dumps(data)
+    
+    try:
+        key = get_encryption_key()
+        aesgcm = AESGCM(key)
+        
+        # Convert data to JSON string
+        json_string = json.dumps(data)
+        plaintext = json_string.encode('utf-8')
+        
+        # Generate random nonce (12 bytes for GCM)
+        import secrets
+        nonce = secrets.token_bytes(12)
+        
+        # Encrypt
+        ciphertext = aesgcm.encrypt(nonce, plaintext, None)
+        
+        # Combine nonce + ciphertext and encode as base64
+        combined = nonce + ciphertext
+        return base64.b64encode(combined).decode('utf-8')
+    except Exception as e:
+        logger.error(f"Encryption error: {e}", exc_info=True)
+        # Fallback: return as JSON string
+        return json.dumps(data)
+
+def decrypt_anonymized_data(encrypted_data):
+    """Decrypt anonymized log data using AES-GCM"""
+    if not CRYPTOGRAPHY_AVAILABLE:
+        # Try to parse as JSON (backward compatibility)
+        try:
+            return json.loads(encrypted_data)
+        except:
+            return None
+    
+    try:
+        # Check if data is already JSON (backward compatibility with unencrypted data)
+        if isinstance(encrypted_data, dict):
+            return encrypted_data
+        if isinstance(encrypted_data, str):
+            # Try parsing as JSON first
+            try:
+                parsed = json.loads(encrypted_data)
+                if isinstance(parsed, dict):
+                    return parsed  # Already decrypted/unencrypted
+            except:
+                pass
+            
+            # Decode from base64
+            try:
+                combined = base64.b64decode(encrypted_data)
+            except:
+                # Not base64, try JSON again
+                try:
+                    return json.loads(encrypted_data)
+                except:
+                    return None
+            
+            key = get_encryption_key()
+            aesgcm = AESGCM(key)
+            
+            # Extract nonce (first 12 bytes) and ciphertext
+            nonce = combined[:12]
+            ciphertext = combined[12:]
+            
+            # Decrypt
+            plaintext = aesgcm.decrypt(nonce, ciphertext, None)
+            
+            # Convert back to JSON object
+            json_string = plaintext.decode('utf-8')
+            return json.loads(json_string)
+    except Exception as e:
+        logger.warning(f"Decryption error (trying JSON fallback): {e}")
+        # Fallback: try to parse as JSON
+        try:
+            return json.loads(encrypted_data)
+        except:
+            return None
+
 def init_supabase_client():
     """Initialize Supabase client"""
     global supabase_client
-    if not SUPABASE_AVAILABLE:
-        logger.error("Supabase library not available")
+    
+    # Try to import supabase (works even if SUPABASE_AVAILABLE was False at startup)
+    try:
+        from supabase import create_client, Client
+    except ImportError:
+        logger.error("Supabase library not available - install with: pip install supabase")
         return None
     
     try:
@@ -171,35 +417,22 @@ def search_supabase_data(condition=None, limit=100):
         query = query.limit(limit).order('created_at', desc=True)
         
         response = query.execute()
-        return response.data
+        data = response.data
+        
+        # Decrypt anonymized_log data if encrypted
+        if data:
+            for record in data:
+                encrypted_log = record.get('anonymized_log')
+                if encrypted_log:
+                    decrypted_log = decrypt_anonymized_data(encrypted_log)
+                    if decrypted_log:
+                        record['anonymized_log'] = decrypted_log
+        
+        return data
     except Exception as e:
         logger.error(f"Error searching Supabase: {e}", exc_info=True)
         return None
 
-def delete_supabase_data(ids=None, condition=None):
-    """Delete data from Supabase"""
-    client = init_supabase_client()
-    if not client:
-        return False
-    
-    try:
-        if ids:
-            # Delete specific IDs
-            for record_id in ids:
-                client.table('anonymized_data').delete().eq('id', record_id).execute()
-            logger.info(f"Deleted {len(ids)} record(s) from Supabase")
-            return True
-        elif condition:
-            # Delete by condition
-            response = client.table('anonymized_data').delete().eq('medical_condition', condition).execute()
-            logger.info(f"Deleted records for condition: {condition}")
-            return True
-        else:
-            logger.warning("No IDs or condition provided for deletion")
-            return False
-    except Exception as e:
-        logger.error(f"Error deleting from Supabase: {e}", exc_info=True)
-        return False
 
 def export_supabase_data(output_path=None, condition=None):
     """Export Supabase data to CSV"""
@@ -237,8 +470,9 @@ def export_supabase_data(output_path=None, condition=None):
                     'updated_at': record.get('updated_at', '')
                 }
                 
-                # Add anonymized_log fields
-                log_data = record.get('anonymized_log', {})
+                # Add anonymized_log fields (decrypt if needed)
+                encrypted_log = record.get('anonymized_log')
+                log_data = decrypt_anonymized_data(encrypted_log) if encrypted_log else {}
                 if isinstance(log_data, dict):
                     for key in log_headers:
                         value = log_data.get(key, '')
@@ -253,6 +487,186 @@ def export_supabase_data(output_path=None, condition=None):
     except Exception as e:
         logger.error(f"Error exporting Supabase data: {e}", exc_info=True)
         return None
+
+def generate_and_post_sample_data_to_supabase(num_days=90, medical_condition="Ankylosing Spondylitis", base_weight=75.0):
+    """
+    Generate randomized anonymized health data and post to Supabase.
+    Returns number of records posted.
+    """
+    if not SUPABASE_AVAILABLE:
+        logger.error("Cannot post sample data: Supabase library not available")
+        return 0
+    
+    client = init_supabase_client()
+    if not client:
+        logger.error("Cannot post sample data: Supabase client not initialized")
+        return 0
+    
+    try:
+        # Generate dates
+        today = datetime.now()
+        end_date = today - timedelta(days=1)
+        start_date = end_date - timedelta(days=num_days - 1)
+        
+        # Food and exercise templates
+        healthy_foods = [
+            {'name': 'Grilled chicken, 200g', 'calories': 330, 'protein': 62},
+            {'name': 'Brown rice, 150g', 'calories': 165, 'protein': 3.5},
+            {'name': 'Steamed vegetables', 'calories': 50, 'protein': 2},
+            {'name': 'Salmon fillet, 180g', 'calories': 360, 'protein': 50},
+        ]
+        exercise_templates = [
+            'Walking, 30 minutes', 'Yoga, 20 minutes', 'Swimming, 25 minutes',
+            'Cycling, 40 minutes', 'Stretching, 15 minutes'
+        ]
+        
+        # Pre-generate random numbers in batches for better performance
+        random_batch_size = 1000
+        random_batch = [random.random() for _ in range(random_batch_size)]
+        random_index = 0
+        
+        def get_random():
+            nonlocal random_index, random_batch
+            if random_index >= len(random_batch):
+                random_batch = [random.random() for _ in range(random_batch_size)]
+                random_index = 0
+            result = random_batch[random_index]
+            random_index += 1
+            return result
+        
+        # State tracking
+        current_weight = base_weight
+        flare_state = False
+        flare_duration = 0
+        recovery_phase = 0
+        baseline_health = 6.0
+        
+        posted_count = 0
+        batch_size_db = 100  # Post in batches for better performance
+        batch_data = []
+        
+        for day in range(num_days):
+            date = start_date + timedelta(days=day)
+            date_str = date.strftime('%Y-%m-%d')
+            month = date.month - 1
+            day_of_week = date.weekday()
+            
+            seasonal_factor = get_seasonal_factor(month)
+            weekly_pattern = get_weekly_pattern(day_of_week)
+            years_progress = day / 365.25
+            baseline_health = min(7.5, 6.0 + (years_progress / 10) * 1.5)
+            
+            # Flare pattern (using optimized random)
+            flare_chance = 0.12 + (seasonal_factor * 0.1)
+            if flare_duration > 0:
+                flare_duration -= 1
+                if flare_duration == 0:
+                    flare_state = False
+                    recovery_phase = 1
+            elif get_random() < flare_chance:
+                flare_state = True
+                flare_duration = random.randint(2, 5)
+            else:
+                recovery_phase += 1
+            
+            recovery_boost = min(0.3, recovery_phase * 0.05) if recovery_phase > 0 and recovery_phase < 7 else 0
+            
+            # Generate metrics (using optimized random - batch get multiple at once)
+            r_vals = [get_random() for _ in range(10)]
+            
+            if flare_state:
+                fatigue = max(1, min(10, round(baseline_health - 3 + (r_vals[0] * 3))))
+                stiffness = max(1, min(10, round(baseline_health - 2.5 + (r_vals[1] * 3))))
+                back_pain = max(1, min(10, round(baseline_health - 2 + (r_vals[2] * 3))))
+                sleep = max(1, min(10, round(baseline_health - 4 + (r_vals[3] * 2))))
+                mood = max(1, min(10, round(baseline_health - 3.5 + (r_vals[4] * 2))))
+            else:
+                sleep = max(1, min(10, round(baseline_health + (r_vals[0] * 2) + seasonal_factor + weekly_pattern + recovery_boost)))
+                fatigue = max(1, min(10, round(baseline_health - (sleep - 5) * 0.8 + (r_vals[1] * 1.5))))
+                stiffness = max(1, min(10, round(baseline_health - 2 - (seasonal_factor * 2) + (r_vals[2] * 1.5))))
+                back_pain = max(1, min(10, round(stiffness + (r_vals[3] * 1) - 0.5)))
+                mood = max(1, min(10, round(baseline_health + 0.5 + (sleep - 5) * 0.6 - (fatigue - 5) * 0.4 + (r_vals[4] * 1))))
+            
+            # Weight
+            has_exercise = get_random() < 0.4
+            current_weight += -0.02 if has_exercise else 0.01
+            current_weight = max(70, min(80, current_weight))
+            weight = round(current_weight, 1)
+            
+            # Food and exercise
+            food_items = []
+            exercise_items = []
+            
+            if get_random() < 0.65:
+                num_food = random.randint(1, 3)
+                for _ in range(num_food):
+                    template = random.choice(healthy_foods)
+                    food_items.append({
+                        'name': template['name'],
+                        'calories': round(template['calories'] * (1 + (get_random() - 0.5) * 0.15)),
+                        'protein': round(template['protein'] * (1 + (get_random() - 0.5) * 0.15), 1)
+                    })
+            
+            if get_random() < (0.15 if flare_state else 0.6):
+                exercise_items = random.sample(exercise_templates, min(1 if flare_state else random.randint(1, 2), len(exercise_templates)))
+            
+            # Create anonymized_log JSON (using optimized random)
+            r_extra = [get_random() for _ in range(5)]
+            anonymized_log = {
+                'date': date_str,
+                'bpm': int(65 + (fatigue - 5) * 2 + (r_extra[0] * 8)),
+                'weight': weight,
+                'fatigue': fatigue,
+                'stiffness': stiffness,
+                'backPain': back_pain,
+                'sleep': sleep,
+                'jointPain': max(1, min(10, round(stiffness * 0.7 + (r_extra[1] * 1.2)))),
+                'mobility': max(1, min(10, round(baseline_health + 1 - (stiffness - 5) * 0.5 + (r_extra[2] * 1)))),
+                'dailyFunction': max(1, min(10, round(baseline_health + 0.5 + (r_extra[3] * 1)))),
+                'swelling': max(1, min(10, round(baseline_health - 1 + (r_extra[4] * 1.5)))),
+                'flare': 'Yes' if flare_state else 'No',
+                'mood': mood,
+                'irritability': max(1, min(10, round(baseline_health - 2 - (mood - 5) * 0.5 + (get_random() * 1.5)))),
+                'weatherSensitivity': max(1, min(10, round(5 + (stiffness - 5) * 0.5))),
+                'steps': max(1000, min(15000, round(6000 + (get_random() * 2000 - 1000)))),
+                'hydration': round(6 + (get_random() * 2 - 1), 1),
+                'food': food_items,
+                'exercise': exercise_items
+            }
+            
+            # Add to batch
+            # Encrypt anonymized_log before adding to batch
+            encrypted_log = encrypt_anonymized_data(anonymized_log)
+            
+            batch_data.append({
+                'medical_condition': medical_condition,
+                'anonymized_log': encrypted_log
+            })
+            
+            # Post batch when it reaches batch_size or at the end
+            if len(batch_data) >= batch_size_db or day == num_days - 1:
+                try:
+                    response = client.table('anonymized_data').insert(batch_data).execute()
+                    posted_count += len(batch_data)
+                    logger.info(f"Posted batch: {posted_count}/{num_days} records to Supabase...")
+                    batch_data = []  # Clear batch
+                except Exception as e:
+                    logger.error(f"Error posting batch to Supabase: {e}")
+                    # Try individual inserts if batch fails
+                    for record in batch_data:
+                        try:
+                            client.table('anonymized_data').insert(record).execute()
+                            posted_count += 1
+                        except Exception as e2:
+                            logger.error(f"Error posting individual record: {e2}")
+                    batch_data = []
+        
+        logger.info(f"Generated and posted {posted_count} sample records for {medical_condition} to Supabase")
+        return posted_count
+        
+    except Exception as e:
+        logger.error(f"Error generating and posting sample data: {e}", exc_info=True)
+        return 0
 
 
 # ============================================
@@ -278,18 +692,33 @@ def get_weekly_pattern(day_of_week):
 
 def generate_sample_csv_data(num_days=90, base_weight=75.0, output_path=None):
     """
-    Generate randomized health data and save to CSV file.
+    Generate randomized health data and save to CSV file (optimized for performance).
     Returns the path to the generated CSV file.
+    Outputs to the same directory as server.py by default.
     """
     if output_path is None:
         script_dir = Path(__file__).parent.absolute()
-        output_path = script_dir / 'health_data_sample.csv'
+        output_path = script_dir / f'health_data_sample_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
     
     try:
-        # Generate dates
+        # Pre-calculate dates for better performance
         today = datetime.now()
         end_date = today - timedelta(days=1)
         start_date = end_date - timedelta(days=num_days - 1)
+        
+        # Pre-generate random numbers in batches for better performance
+        batch_size = 1000
+        random_batch = [random.random() for _ in range(batch_size)]
+        random_index = 0
+        
+        def get_random():
+            nonlocal random_index, random_batch
+            if random_index >= len(random_batch):
+                random_batch = [random.random() for _ in range(batch_size)]
+                random_index = 0
+            result = random_batch[random_index]
+            random_index += 1
+            return result
         
         # Food and exercise templates
         healthy_foods = [
@@ -338,14 +767,14 @@ def generate_sample_csv_data(num_days=90, base_weight=75.0, output_path=None):
             years_progress = day / 365.25
             baseline_health = min(7.5, 6.0 + (years_progress / 10) * 1.5)
             
-            # Flare pattern
+            # Flare pattern (using optimized random)
             flare_chance = 0.12 + (seasonal_factor * 0.1)
             if flare_duration > 0:
                 flare_duration -= 1
                 if flare_duration == 0:
                     flare_state = False
                     recovery_phase = 1
-            elif random.random() < flare_chance:
+            elif get_random() < flare_chance:
                 flare_state = True
                 flare_duration = random.randint(2, 5)
             else:
@@ -353,34 +782,36 @@ def generate_sample_csv_data(num_days=90, base_weight=75.0, output_path=None):
             
             recovery_boost = min(0.3, recovery_phase * 0.05) if recovery_phase > 0 and recovery_phase < 7 else 0
             
-            # Generate metrics
+            # Generate metrics (using optimized random)
+            r1, r2, r3, r4, r5, r6, r7, r8, r9, r10 = [get_random() for _ in range(10)]
+            
             if flare_state:
-                fatigue = max(1, min(10, round(baseline_health - 3 + (random.random() * 3))))
-                stiffness = max(1, min(10, round(baseline_health - 2.5 + (random.random() * 3))))
-                back_pain = max(1, min(10, round(baseline_health - 2 + (random.random() * 3))))
-                joint_pain = max(1, min(10, round(baseline_health - 2.5 + (random.random() * 2.5))))
-                sleep = max(1, min(10, round(baseline_health - 4 + (random.random() * 2))))
-                mobility = max(1, min(10, round(baseline_health - 4 + (random.random() * 2))))
-                daily_function = max(1, min(10, round(baseline_health - 3.5 + (random.random() * 2.5))))
-                swelling = max(1, min(10, round(baseline_health - 3 + (random.random() * 2.5))))
-                mood = max(1, min(10, round(baseline_health - 3.5 + (random.random() * 2))))
-                irritability = max(1, min(10, round(baseline_health - 2 + (random.random() * 3))))
-                bpm = int(70 + (random.random() * 15))
+                fatigue = max(1, min(10, round(baseline_health - 3 + (r1 * 3))))
+                stiffness = max(1, min(10, round(baseline_health - 2.5 + (r2 * 3))))
+                back_pain = max(1, min(10, round(baseline_health - 2 + (r3 * 3))))
+                joint_pain = max(1, min(10, round(baseline_health - 2.5 + (r4 * 2.5))))
+                sleep = max(1, min(10, round(baseline_health - 4 + (r5 * 2))))
+                mobility = max(1, min(10, round(baseline_health - 4 + (r6 * 2))))
+                daily_function = max(1, min(10, round(baseline_health - 3.5 + (r7 * 2.5))))
+                swelling = max(1, min(10, round(baseline_health - 3 + (r8 * 2.5))))
+                mood = max(1, min(10, round(baseline_health - 3.5 + (r9 * 2))))
+                irritability = max(1, min(10, round(baseline_health - 2 + (r10 * 3))))
+                bpm = int(70 + (get_random() * 15))
             else:
-                sleep = max(1, min(10, round(baseline_health + (random.random() * 2) + seasonal_factor + weekly_pattern + recovery_boost)))
-                fatigue = max(1, min(10, round(baseline_health - (sleep - 5) * 0.8 + (random.random() * 1.5))))
-                stiffness = max(1, min(10, round(baseline_health - 2 - (seasonal_factor * 2) + (random.random() * 1.5) + recovery_boost)))
-                back_pain = max(1, min(10, round(stiffness + (random.random() * 1) - 0.5)))
-                joint_pain = max(1, min(10, round(stiffness * 0.7 + (random.random() * 1.2))))
-                mobility = max(1, min(10, round(baseline_health + 1 - (stiffness - 5) * 0.5 - (fatigue - 5) * 0.3 + (random.random() * 1) + recovery_boost)))
-                daily_function = max(1, min(10, round(mobility * 0.9 + (random.random() * 1))))
-                swelling = max(1, min(10, round(joint_pain * 0.6 + (random.random() * 1))))
-                mood = max(1, min(10, round(baseline_health + 0.5 + (sleep - 5) * 0.6 - (fatigue - 5) * 0.4 + (random.random() * 1) + weekly_pattern + recovery_boost)))
-                irritability = max(1, min(10, round(baseline_health - 2 - (mood - 5) * 0.5 - (sleep - 5) * 0.3 + (random.random() * 1.5))))
-                bpm = int(65 + (fatigue - 5) * 2 + (random.random() * 8) + (seasonal_factor * 3))
+                sleep = max(1, min(10, round(baseline_health + (r1 * 2) + seasonal_factor + weekly_pattern + recovery_boost)))
+                fatigue = max(1, min(10, round(baseline_health - (sleep - 5) * 0.8 + (r2 * 1.5))))
+                stiffness = max(1, min(10, round(baseline_health - 2 - (seasonal_factor * 2) + (r3 * 1.5) + recovery_boost)))
+                back_pain = max(1, min(10, round(stiffness + (r4 * 1) - 0.5)))
+                joint_pain = max(1, min(10, round(stiffness * 0.7 + (r5 * 1.2))))
+                mobility = max(1, min(10, round(baseline_health + 1 - (stiffness - 5) * 0.5 - (fatigue - 5) * 0.3 + (r6 * 1) + recovery_boost)))
+                daily_function = max(1, min(10, round(mobility * 0.9 + (r7 * 1))))
+                swelling = max(1, min(10, round(joint_pain * 0.6 + (r8 * 1))))
+                mood = max(1, min(10, round(baseline_health + 0.5 + (sleep - 5) * 0.6 - (fatigue - 5) * 0.4 + (r9 * 1) + weekly_pattern + recovery_boost)))
+                irritability = max(1, min(10, round(baseline_health - 2 - (mood - 5) * 0.5 - (sleep - 5) * 0.3 + (r10 * 1.5))))
+                bpm = int(65 + (fatigue - 5) * 2 + (get_random() * 8) + (seasonal_factor * 3))
             
             # Weight
-            has_exercise = random.random() < 0.4
+            has_exercise = get_random() < 0.4
             current_weight += -0.02 if has_exercise else 0.01
             current_weight = max(70, min(80, current_weight))
             weight = round(current_weight, 1)
@@ -390,39 +821,40 @@ def generate_sample_csv_data(num_days=90, base_weight=75.0, output_path=None):
             exercise_items = []
             
             exercise_chance = 0.15 if flare_state else (0.6 if mood > 6 else 0.3)
-            if random.random() < exercise_chance:
+            if get_random() < exercise_chance:
                 num_exercise = 1 if flare_state else random.randint(1, 2)
                 exercise_items = random.sample(exercise_templates, min(num_exercise, len(exercise_templates)))
             
-            if random.random() < 0.65:
+            if get_random() < 0.65:
                 num_food = random.randint(1, 3)
                 food_pool = healthy_foods if (mood > 6 and not flare_state) else (healthy_foods + comfort_foods if flare_state else healthy_foods)
                 for _ in range(num_food):
                     template = random.choice(food_pool)
                     food_items.append({
                         'name': template['name'],
-                        'calories': round(template['calories'] * (1 + (random.random() - 0.5) * 0.15)),
-                        'protein': round(template['protein'] * (1 + (random.random() - 0.5) * 0.15), 1)
+                        'calories': round(template['calories'] * (1 + (get_random() - 0.5) * 0.15)),
+                        'protein': round(template['protein'] * (1 + (get_random() - 0.5) * 0.15), 1)
                     })
             
-            # Additional fields
+            # Additional fields (using optimized random)
             weather_sensitivity = max(1, min(10, round(5 + (stiffness - 5) * 0.5 - seasonal_factor * 2)))
-            steps = max(1000, min(15000, round(6000 + (mobility - 5) * 800 + (mood - 5) * 500 - (fatigue - 5) * 400 + (random.random() * 2000 - 1000))))
-            hydration = round(6 + (1 if exercise_items else 0) + (random.random() * 2 - 1), 1)
+            steps = max(1000, min(15000, round(6000 + (mobility - 5) * 800 + (mood - 5) * 500 - (fatigue - 5) * 400 + (get_random() * 2000 - 1000))))
+            hydration = round(6 + (1 if exercise_items else 0) + (get_random() * 2 - 1), 1)
             
             # Energy/Clarity
             energy_clarity_options = ["High Energy", "Moderate Energy", "Low Energy", "Mental Clarity", "Brain Fog", "Good Concentration", "Poor Concentration", "Mental Fatigue", "Focused", "Distracted"]
             energy_clarity = ""
+            r_energy = get_random()
             if sleep >= 7 and mood >= 7:
-                energy_clarity = random.choice(["High Energy", "Mental Clarity", "Good Concentration"]) if random.random() < 0.7 else random.choice(energy_clarity_options)
+                energy_clarity = random.choice(["High Energy", "Mental Clarity", "Good Concentration"]) if r_energy < 0.7 else random.choice(energy_clarity_options)
             elif sleep < 5 or mood < 5:
-                energy_clarity = random.choice(["Low Energy", "Brain Fog", "Mental Fatigue"]) if random.random() < 0.6 else random.choice(energy_clarity_options)
+                energy_clarity = random.choice(["Low Energy", "Brain Fog", "Mental Fatigue"]) if r_energy < 0.6 else random.choice(energy_clarity_options)
             else:
-                energy_clarity = random.choice(energy_clarity_options) if random.random() < 0.4 else ""
+                energy_clarity = random.choice(energy_clarity_options) if r_energy < 0.4 else ""
             
             # Notes
             notes = ""
-            if random.random() < 0.12:
+            if get_random() < 0.12:
                 if flare_state:
                     notes = "Flare-up day - increased symptoms"
                 elif recovery_phase > 0 and recovery_phase < 3:
@@ -644,6 +1076,10 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_client_log()
             return
         
+        # Handle Supabase status endpoint
+        if parsed_path.path == '/api/supabase-status':
+            self.handle_supabase_status()
+            return
         
         # Return 204 (No Content) for optional files instead of 404
         optional_files = ['.map', '.well-known', 'devtools']
@@ -662,10 +1098,49 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_client_log()
             return
         
+        if parsed_path.path == '/api/sync-log':
+            self.handle_sync_log()
+            return
         
         # For other POST requests, return 405 Method Not Allowed
         self.send_response(405)
         self.end_headers()
+    
+    def handle_supabase_status(self):
+        """Handle Supabase status check endpoint"""
+        try:
+            client = init_supabase_client()
+            status = {
+                'connected': client is not None,
+                'available': SUPABASE_AVAILABLE
+            }
+            
+            # Try a simple query to verify connection
+            if client:
+                try:
+                    test_response = client.table('anonymized_data').select('id').limit(1).execute()
+                    status['connection_test'] = 'success'
+                except Exception as e:
+                    status['connection_test'] = 'failed'
+                    status['error'] = str(e)[:100]
+            else:
+                status['connection_test'] = 'not_available'
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            origin = self.headers.get('Origin', '')
+            allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
+            if origin in allowed_origins:
+                self.send_header('Access-Control-Allow-Origin', origin)
+            self.end_headers()
+            self.wfile.write(json.dumps(status).encode('utf-8'))
+        except Exception as e:
+            logger.error(f"Error handling supabase status: {e}")
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
     
     def handle_sse_reload(self):
         """Handle Server-Sent Events for auto-refresh on file changes"""
@@ -854,6 +1329,69 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
     
+    def handle_sync_log(self):
+        """Handle sync event logging from client"""
+        try:
+            # Security: Limit content length
+            MAX_CONTENT_LENGTH = 1024 * 5  # 5KB max
+            content_length = int(self.headers.get('Content-Length', 0))
+            
+            if content_length > MAX_CONTENT_LENGTH:
+                self.send_response(413)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Payload too large'}).encode('utf-8'))
+                return
+            
+            if content_length > 0:
+                post_data = self.rfile.read(content_length)
+                try:
+                    sync_data = json.loads(post_data.decode('utf-8'))
+                except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                    logger.warning(f"Invalid JSON in sync log request: {e}")
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'Invalid JSON'}).encode('utf-8'))
+                    return
+                
+                # Extract sync information (support both field names)
+                records_synced = sync_data.get('records_synced', sync_data.get('synced_count', 0))
+                condition = sync_data.get('condition', 'Unknown')
+                timestamp = sync_data.get('timestamp', datetime.now().isoformat())
+                client_ip = self.client_address[0]
+                
+                # Log sync event
+                logger.info(f"SYNC | Anonymized data synced to Supabase | Condition: {condition} | Records: {records_synced} | IP: {client_ip} | Time: {timestamp}")
+                print(f"[SYNC] {records_synced} record(s) synced to Supabase anonymized_data for condition: {condition}")
+                
+                # Update last activity
+                with connection_lock:
+                    last_activity[client_ip] = time.time()
+                
+                # Send success response
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                origin = self.headers.get('Origin', '')
+                allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
+                if origin in allowed_origins:
+                    self.send_header('Access-Control-Allow-Origin', origin)
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'logged'}).encode('utf-8'))
+            else:
+                # GET request to /api/sync-log - return status
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'sync_logging_endpoint_active'}).encode('utf-8'))
+        except Exception as e:
+            logger.error(f"Error handling sync log: {e}")
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
     
     def do_OPTIONS(self):
         """Handle CORS preflight requests"""
@@ -1094,8 +1632,10 @@ def create_server_dashboard():
     # Style
     style = ttk.Style()
     style.theme_use('clam')
-    style.configure('Title.TLabel', font=('Arial', 16, 'bold'), background='#1e1e1e', foreground='#4caf50')
-    style.configure('Status.TLabel', font=('Arial', 10), background='#1e1e1e', foreground='#e0f2f1')
+    # Title: gray text, no explicit background (will inherit from parent frame)
+    style.configure('Title.TLabel', font=('Arial', 16, 'bold'), foreground='#808080')
+    # Status labels: gray text, no explicit background (will inherit from parent frame)
+    style.configure('Status.TLabel', font=('Arial', 10), foreground='#808080')
     style.configure('Toggle.TCheckbutton', background='#1e1e1e', foreground='#e0f2f1')
     
     # Main frame
@@ -1115,7 +1655,15 @@ def create_server_dashboard():
     
     def restart_server():
         """Restart the server without terminating the process"""
+        global restarting, browser_opened
+        
+        if restarting:
+            logger.warning("Server restart already in progress, ignoring request")
+            return
+        
         try:
+            restarting = True
+            browser_opened = False
             logger.info("Server restart requested from dashboard")
             
             # Save window position
@@ -1129,7 +1677,7 @@ def create_server_dashboard():
             
             # Restart server in background thread
             def restart_thread():
-                global server_instance
+                global server_instance, restarting, browser_opened
                 try:
                     # Shutdown existing server
                     if server_instance is not None:
@@ -1142,16 +1690,48 @@ def create_server_dashboard():
                     logger.info("Starting new server instance...")
                     start_server_thread()
                     
-                    # Wait a moment for server to be ready
-                    time.sleep(0.5)
-                    
-                    # Open browser tab with served page
+                    # Wait for server to be ready - check if it's actually accepting connections
                     server_url = f"http://localhost:{PORT}"
-                    try:
-                        webbrowser.open(server_url, new=0)
-                        logger.info(f"Browser opened at {server_url} after restart")
-                    except Exception as e:
-                        logger.warning(f"Could not open browser automatically after restart: {e}")
+                    max_attempts = 15
+                    attempt = 0
+                    server_ready = False
+                    
+                    while attempt < max_attempts and not server_ready:
+                        try:
+                            # Try to connect to the server port to verify it's ready
+                            test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                            test_socket.settimeout(1)
+                            result = test_socket.connect_ex(('localhost', PORT))
+                            test_socket.close()
+                            if result == 0:
+                                server_ready = True
+                                logger.info("Server is ready and accepting connections")
+                            else:
+                                attempt += 1
+                                time.sleep(0.2)  # Wait 200ms between attempts
+                        except Exception as e:
+                            attempt += 1
+                            time.sleep(0.2)  # Wait 200ms between attempts
+                    
+                    if not server_ready:
+                        logger.warning("Server may not be fully ready, but opening browser anyway")
+                        time.sleep(1.0)  # Extra safety delay
+                    else:
+                        # Small additional delay to ensure server is fully initialized
+                        time.sleep(0.3)
+                    
+                    # Open browser tab with served page (new tab with cache-busting) - only once
+                    if not browser_opened:
+                        try:
+                            # Add cache-busting parameter to force fresh load
+                            cache_bust_url = f"{server_url}?restart={int(time.time())}"
+                            webbrowser.open(cache_bust_url, new=2)  # new=2 opens in new tab
+                            browser_opened = True
+                            logger.info(f"Browser opened at {server_url} after restart (new tab)")
+                        except Exception as e:
+                            logger.warning(f"Could not open browser automatically after restart: {e}")
+                    else:
+                        logger.info("Browser already opened, skipping duplicate tab")
                     
                     # Update status and restore window position on main thread
                     root.after(0, lambda: server_status.config(text=f"Server: http://localhost:{PORT}"))
@@ -1162,6 +1742,10 @@ def create_server_dashboard():
                     logger.error(f"Error restarting server: {e}", exc_info=True)
                     root.after(0, lambda: messagebox.showerror("Error", f"Failed to restart server: {e}"))
                     root.after(0, lambda: server_status.config(text=f"Server: http://localhost:{PORT} (Error)"))
+                finally:
+                    # Reset restart flag and browser flag
+                    restarting = False
+                    browser_opened = False
             
             threading.Thread(target=restart_thread, daemon=True).start()
             
@@ -1169,6 +1753,8 @@ def create_server_dashboard():
             logger.error(f"Error in restart function: {e}", exc_info=True)
             messagebox.showerror("Error", f"Failed to restart server: {e}")
             server_status.config(text=f"Server: http://localhost:{PORT}")
+            restarting = False
+            browser_opened = False
     
     restart_btn = ttk.Button(status_frame, text="Restart Server", command=restart_server)
     restart_btn.pack(side=tk.LEFT, padx=5, pady=5)
@@ -1177,19 +1763,77 @@ def create_server_dashboard():
     supabase_frame = ttk.LabelFrame(main_frame, text="Supabase Database", padding="10")
     supabase_frame.pack(fill=tk.X, pady=5)
     
-    # Connection status
-    connection_status = ttk.Label(supabase_frame, text="Status: Not Connected", style='Status.TLabel')
-    connection_status.pack(anchor=tk.W, pady=(0, 5))
+    # Connection status frame
+    connection_frame = ttk.Frame(supabase_frame)
+    connection_frame.pack(fill=tk.X, pady=(0, 5))
+    
+    connection_status = ttk.Label(connection_frame, text="Status: Not Connected", style='Status.TLabel')
+    connection_status.pack(side=tk.LEFT, anchor=tk.W)
     
     def check_connection():
         """Check Supabase connection"""
-        client = init_supabase_client()
-        if client:
-            connection_status.config(text="Status: Connected", foreground='#4caf50')
-            return True
-        else:
+        # Re-check if supabase is available at runtime (in case it was installed after server started)
+        supabase_available = SUPABASE_AVAILABLE
+        if not supabase_available:
+            # Try to import at runtime to see if it's available now
+            try:
+                from supabase import create_client, Client
+                supabase_available = True
+                logger.info("Supabase library found at runtime (was not available at startup)")
+            except ImportError:
+                connection_status.config(text="Status: Not Connected - Click 'Install Requirements'", foreground='#ff9800')
+                return False
+        
+        if not supabase_available:
             connection_status.config(text="Status: Not Connected (Install: pip install supabase)", foreground='#ff9800')
             return False
+        
+        client = init_supabase_client()
+        if not client:
+            connection_status.config(text="Status: Not Connected (Failed to initialize)", foreground='#ff9800')
+            return False
+        
+        # Test actual connection by making a simple query
+        try:
+            # Try to fetch one record to verify connection works
+            test_response = client.table('anonymized_data').select('id').limit(1).execute()
+            connection_status.config(text="Status: Connected", foreground='#4caf50')
+            return True
+        except Exception as e:
+            logger.error(f"Supabase connection test failed: {e}")
+            connection_status.config(text=f"Status: Not Connected (Error: {str(e)[:50]})", foreground='#ff9800')
+            return False
+    
+    # Refresh connection button
+    refresh_connection_btn = ttk.Button(connection_frame, text="Refresh Connection", command=check_connection)
+    refresh_connection_btn.pack(side=tk.LEFT, padx=(10, 0))
+    
+    def install_requirements_ui():
+        """Install requirements from UI"""
+        connection_status.config(text="Status: Installing requirements...", foreground='#ff9800')
+        root.update()
+        
+        def install_thread():
+            try:
+                success = install_requirements()
+                if success:
+                    root.after(0, lambda: connection_status.config(text="Status: Requirements installed - Click Refresh", foreground='#4caf50'))
+                    root.after(0, lambda: messagebox.showinfo("Success", "Requirements installed successfully!\n\nClick 'Refresh Connection' to test the connection."))
+                    # Auto-refresh connection after a short delay
+                    root.after(2000, check_connection)
+                else:
+                    root.after(0, lambda: connection_status.config(text="Status: Installation failed - Check logs", foreground='#ff9800'))
+                    root.after(0, lambda: messagebox.showerror("Error", "Failed to install requirements.\n\nCheck the server logs for details."))
+            except Exception as e:
+                logger.error(f"Error in install_requirements_ui: {e}", exc_info=True)
+                root.after(0, lambda: connection_status.config(text="Status: Installation error", foreground='#ff9800'))
+                root.after(0, lambda: messagebox.showerror("Error", f"Error installing requirements: {e}"))
+        
+        threading.Thread(target=install_thread, daemon=True).start()
+    
+    # Install requirements button
+    install_requirements_btn = ttk.Button(connection_frame, text="Install Requirements", command=install_requirements_ui)
+    install_requirements_btn.pack(side=tk.LEFT, padx=(10, 0))
     
     check_connection()
     
@@ -1199,10 +1843,53 @@ def create_server_dashboard():
     
     ttk.Label(search_frame, text="Search by Condition:", style='Status.TLabel').pack(side=tk.LEFT, padx=5)
     search_var = tk.StringVar()
-    search_entry = ttk.Entry(search_frame, textvariable=search_var, width=20)
-    search_entry.pack(side=tk.LEFT, padx=5)
+    search_dropdown = ttk.Combobox(search_frame, textvariable=search_var, width=25, state='readonly')
+    search_dropdown.pack(side=tk.LEFT, padx=5)
     
     search_results = []
+    
+    def load_available_conditions():
+        """Load all unique conditions from Supabase and populate dropdown"""
+        if not SUPABASE_AVAILABLE:
+            search_dropdown['values'] = []
+            return
+        
+        try:
+            client = init_supabase_client()
+            if not client:
+                search_dropdown['values'] = []
+                return
+            
+            # Fetch all unique conditions
+            all_conditions = []
+            from_range = 0
+            page_size = 1000
+            has_more = True
+            
+            while has_more:
+                try:
+                    response = client.table('anonymized_data').select('medical_condition').range(from_range, from_range + page_size - 1).execute()
+                    if response.data:
+                        conditions = [d['medical_condition'] for d in response.data if d.get('medical_condition')]
+                        all_conditions.extend(conditions)
+                        has_more = len(response.data) == page_size
+                        from_range += page_size
+                    else:
+                        has_more = False
+                except Exception as e:
+                    logger.error(f"Error fetching conditions: {e}")
+                    has_more = False
+            
+            # Get unique conditions and sort
+            unique_conditions = sorted(list(set(all_conditions)))
+            search_dropdown['values'] = [''] + unique_conditions  # Add empty option for "all"
+            logger.info(f"Loaded {len(unique_conditions)} unique conditions for dropdown")
+        except Exception as e:
+            logger.error(f"Error loading conditions: {e}", exc_info=True)
+            search_dropdown['values'] = []
+    
+    # Load conditions when UI is created
+    load_available_conditions()
     
     def perform_search():
         """Search Supabase data"""
@@ -1225,7 +1912,8 @@ def create_server_dashboard():
             # Update viewer
             refresh_db_viewer()
             
-            messagebox.showinfo("Search Complete", f"Found {len(results)} record(s)")
+            # Show result count in status or silently update (no popup)
+            logger.info(f"Search complete: Found {len(results)} record(s) for condition: {condition_filter or 'All'}")
         except Exception as e:
             logger.error(f"Error searching Supabase: {e}", exc_info=True)
             messagebox.showerror("Error", f"Search failed: {e}")
@@ -1233,96 +1921,13 @@ def create_server_dashboard():
     search_btn = ttk.Button(search_frame, text="Search", command=perform_search)
     search_btn.pack(side=tk.LEFT, padx=5)
     
-    # Delete frame
-    delete_frame = ttk.Frame(supabase_frame)
-    delete_frame.pack(fill=tk.X, pady=5)
+    # Add refresh button to reload conditions
+    refresh_conditions_btn = ttk.Button(search_frame, text="Refresh Conditions", command=load_available_conditions)
+    refresh_conditions_btn.pack(side=tk.LEFT, padx=5)
     
-    def delete_data():
-        """Delete data from Supabase"""
-        if not SUPABASE_AVAILABLE:
-            messagebox.showerror("Error", "Supabase library not installed.\nInstall with: pip install supabase")
-            return
-        
-        # Ask what to delete
-        dialog = tk.Toplevel(root)
-        dialog.title("Delete Data")
-        dialog.geometry("400x200")
-        dialog.configure(bg='#1e1e1e')
-        dialog.transient(root)
-        dialog.grab_set()
-        
-        ttk.Label(dialog, text="Delete by:", background='#1e1e1e', foreground='#e0f2f1').pack(pady=5)
-        
-        delete_option = tk.StringVar(value="condition")
-        ttk.Radiobutton(dialog, text="All data", variable=delete_option, value="all", 
-                       background='#1e1e1e', foreground='#e0f2f1').pack(anchor=tk.W, padx=20)
-        ttk.Radiobutton(dialog, text="By condition", variable=delete_option, value="condition",
-                       background='#1e1e1e', foreground='#e0f2f1').pack(anchor=tk.W, padx=20)
-        ttk.Radiobutton(dialog, text="Selected IDs", variable=delete_option, value="ids",
-                       background='#1e1e1e', foreground='#e0f2f1').pack(anchor=tk.W, padx=20)
-        
-        condition_var = tk.StringVar()
-        ttk.Label(dialog, text="Condition name (if applicable):", background='#1e1e1e', foreground='#e0f2f1').pack(pady=5)
-        ttk.Entry(dialog, textvariable=condition_var, width=30).pack(pady=5)
-        
-        ids_var = tk.StringVar()
-        ttk.Label(dialog, text="IDs (comma-separated):", background='#1e1e1e', foreground='#e0f2f1').pack(pady=5)
-        ttk.Entry(dialog, textvariable=ids_var, width=30).pack(pady=5)
-        
-        def do_delete():
-            option = delete_option.get()
-            try:
-                if option == "all":
-                    if messagebox.askyesno("Confirm", "Delete ALL data from Supabase? This cannot be undone!"):
-                        # Get all records first
-                        all_data = search_supabase_data(limit=10000)
-                        if all_data:
-                            ids = [r['id'] for r in all_data]
-                            if delete_supabase_data(ids=ids):
-                                dialog.destroy()
-                                messagebox.showinfo("Success", f"Deleted {len(ids)} record(s)")
-                                perform_search()  # Refresh
-                            else:
-                                messagebox.showerror("Error", "Failed to delete data")
-                        else:
-                            messagebox.showinfo("Info", "No data to delete")
-                elif option == "condition":
-                    condition = condition_var.get().strip()
-                    if not condition:
-                        messagebox.showerror("Error", "Please enter a condition name")
-                        return
-                    if messagebox.askyesno("Confirm", f"Delete all data for condition '{condition}'?"):
-                        if delete_supabase_data(condition=condition):
-                            dialog.destroy()
-                            messagebox.showinfo("Success", f"Deleted data for condition: {condition}")
-                            perform_search()  # Refresh
-                        else:
-                            messagebox.showerror("Error", "Failed to delete data")
-                elif option == "ids":
-                    ids_str = ids_var.get().strip()
-                    if not ids_str:
-                        messagebox.showerror("Error", "Please enter IDs")
-                        return
-                    try:
-                        ids = [int(id.strip()) for id in ids_str.split(',')]
-                        if messagebox.askyesno("Confirm", f"Delete {len(ids)} record(s)?"):
-                            if delete_supabase_data(ids=ids):
-                                dialog.destroy()
-                                messagebox.showinfo("Success", f"Deleted {len(ids)} record(s)")
-                                perform_search()  # Refresh
-                            else:
-                                messagebox.showerror("Error", "Failed to delete data")
-                    except ValueError:
-                        messagebox.showerror("Error", "Invalid ID format. Use comma-separated numbers.")
-            except Exception as e:
-                logger.error(f"Error deleting data: {e}", exc_info=True)
-                messagebox.showerror("Error", f"Delete failed: {e}")
-        
-        ttk.Button(dialog, text="Delete", command=do_delete).pack(pady=10)
-        ttk.Button(dialog, text="Cancel", command=dialog.destroy).pack()
-    
-    delete_btn = ttk.Button(delete_frame, text="Delete Data", command=delete_data)
-    delete_btn.pack(side=tk.LEFT, padx=5)
+    # Action frame (renamed from delete_frame, contains export and generate buttons)
+    action_frame = ttk.Frame(supabase_frame)
+    action_frame.pack(fill=tk.X, pady=5)
     
     # Export frame
     def export_data():
@@ -1367,16 +1972,173 @@ def create_server_dashboard():
         ttk.Button(dialog, text="Export CSV", command=do_export).pack(pady=10)
         ttk.Button(dialog, text="Cancel", command=dialog.destroy).pack()
     
-    export_btn = ttk.Button(delete_frame, text="Export to CSV", command=export_data)
+    export_btn = ttk.Button(action_frame, text="Export to CSV", command=export_data)
     export_btn.pack(side=tk.LEFT, padx=5)
     
+    # Generate and post sample data frame
+    def generate_sample_data():
+        """Generate sample data and post to Supabase"""
+        if not SUPABASE_AVAILABLE:
+            messagebox.showerror("Error", "Supabase library not installed.\nInstall with: pip install supabase")
+            return
+        
+        # Ask for parameters
+        dialog = tk.Toplevel(root)
+        dialog.title("Generate Sample Data to Supabase")
+        dialog.geometry("400x250")
+        dialog.configure(bg='#1e1e1e')
+        dialog.transient(root)
+        dialog.grab_set()
+        
+        ttk.Label(dialog, text="Number of days:", background='#1e1e1e', foreground='#e0f2f1').pack(pady=5)
+        days_var = tk.StringVar(value="90")
+        days_entry = ttk.Entry(dialog, textvariable=days_var, width=20)
+        days_entry.pack(pady=5)
+        
+        ttk.Label(dialog, text="Medical Condition:", background='#1e1e1e', foreground='#e0f2f1').pack(pady=5)
+        condition_var = tk.StringVar(value="Ankylosing Spondylitis")
+        condition_entry = ttk.Entry(dialog, textvariable=condition_var, width=30)
+        condition_entry.pack(pady=5)
+        
+        ttk.Label(dialog, text="Base Weight (kg):", background='#1e1e1e', foreground='#e0f2f1').pack(pady=5)
+        weight_var = tk.StringVar(value="75.0")
+        weight_entry = ttk.Entry(dialog, textvariable=weight_var, width=20)
+        weight_entry.pack(pady=5)
+        
+        def do_generate():
+            try:
+                num_days = int(days_var.get())
+                condition = condition_var.get().strip()
+                weight = float(weight_var.get())
+                
+                if num_days <= 0 or num_days > 3650:
+                    messagebox.showerror("Error", "Number of days must be between 1 and 3650")
+                    return
+                
+                if not condition:
+                    messagebox.showerror("Error", "Medical condition cannot be empty")
+                    return
+                
+                # Start generation immediately without confirmation
+                # Disable buttons and show progress
+                for widget in dialog.winfo_children():
+                    if isinstance(widget, ttk.Button) and widget.cget('text') in ['Generate & Post', 'Cancel']:
+                        widget.config(state='disabled')
+                
+                progress_label = ttk.Label(dialog, text="Generating data...", background='#1e1e1e', foreground='#4caf50')
+                progress_label.pack(pady=5)
+                
+                # Generate in background thread to avoid blocking UI
+                def generate_thread():
+                    try:
+                        def safe_update_progress(text):
+                            try:
+                                if dialog.winfo_exists():
+                                    progress_label.config(text=text)
+                            except:
+                                pass
+                        
+                        root.after(0, lambda: safe_update_progress("Generating and posting data..."))
+                        count = generate_and_post_sample_data_to_supabase(num_days, condition, weight)
+                        root.after(0, lambda: safe_update_progress(f"Complete! Posted {count} records."))
+                        root.after(0, perform_search)  # Refresh search
+                        root.after(0, refresh_db_viewer)  # Refresh viewer
+                        root.after(1000, dialog.destroy)  # Auto-close after 1 second
+                    except Exception as e:
+                        logger.error(f"Error in generate thread: {e}", exc_info=True)
+                        root.after(0, lambda: safe_update_progress(f"Error: {str(e)[:50]}"))
+                        root.after(2000, dialog.destroy)  # Auto-close after error
+                    
+                threading.Thread(target=generate_thread, daemon=True).start()
+                
+            except ValueError:
+                messagebox.showerror("Error", "Please enter valid numbers")
+        
+        ttk.Button(dialog, text="Generate & Post", command=do_generate).pack(pady=10)
+        ttk.Button(dialog, text="Cancel", command=dialog.destroy).pack()
+    
+    generate_btn = ttk.Button(action_frame, text="Generate Sample Data", command=generate_sample_data)
+    generate_btn.pack(side=tk.LEFT, padx=5)
+    
+    # Generate CSV sample data
+    def generate_csv_sample():
+        """Generate sample CSV data"""
+        # Ask for parameters
+        dialog = tk.Toplevel(root)
+        dialog.title("Generate CSV Sample Data")
+        dialog.geometry("400x200")
+        dialog.configure(bg='#1e1e1e')
+        dialog.transient(root)
+        dialog.grab_set()
+        
+        ttk.Label(dialog, text="Number of days:", background='#1e1e1e', foreground='#e0f2f1').pack(pady=5)
+        days_var = tk.StringVar(value="90")
+        days_entry = ttk.Entry(dialog, textvariable=days_var, width=20)
+        days_entry.pack(pady=5)
+        
+        ttk.Label(dialog, text="Base Weight (kg):", background='#1e1e1e', foreground='#e0f2f1').pack(pady=5)
+        weight_var = tk.StringVar(value="75.0")
+        weight_entry = ttk.Entry(dialog, textvariable=weight_var, width=20)
+        weight_entry.pack(pady=5)
+        
+        def do_generate_csv():
+            try:
+                num_days = int(days_var.get())
+                weight = float(weight_var.get())
+                
+                if num_days <= 0 or num_days > 3650:
+                    messagebox.showerror("Error", "Number of days must be between 1 and 3650")
+                    return
+                
+                # Disable buttons and show progress
+                for widget in dialog.winfo_children():
+                    if isinstance(widget, ttk.Button) and widget.cget('text') in ['Generate CSV', 'Cancel']:
+                        widget.config(state='disabled')
+                
+                progress_label = ttk.Label(dialog, text="Generating CSV data...", background='#1e1e1e', foreground='#4caf50')
+                progress_label.pack(pady=5)
+                
+                def generate_csv_thread():
+                    try:
+                        def safe_update_progress(text):
+                            try:
+                                if dialog.winfo_exists():
+                                    progress_label.config(text=text)
+                            except:
+                                pass
+                        
+                        root.after(0, lambda: safe_update_progress("Generating data..."))
+                        script_dir = Path(__file__).parent.absolute()
+                        output_path = script_dir / f'health_data_sample_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+                        result = generate_sample_csv_data(num_days, weight, output_path)
+                        if result:
+                            root.after(0, lambda: safe_update_progress(f"Complete! Saved to:\n{Path(result).name}"))
+                            logger.info(f"CSV generated: {result}")
+                        else:
+                            root.after(0, lambda: safe_update_progress("Error generating CSV!"))
+                        root.after(1500, dialog.destroy)  # Auto-close after showing completion
+                    except Exception as e:
+                        logger.error(f"Error generating CSV: {e}", exc_info=True)
+                        root.after(0, lambda: safe_update_progress(f"Error: {str(e)[:50]}"))
+                        root.after(2000, dialog.destroy)  # Auto-close after error
+                
+                threading.Thread(target=generate_csv_thread, daemon=True).start()
+                
+            except ValueError:
+                messagebox.showerror("Error", "Please enter valid numbers")
+        
+        ttk.Button(dialog, text="Generate CSV", command=do_generate_csv).pack(pady=10)
+        ttk.Button(dialog, text="Cancel", command=dialog.destroy).pack()
+    
+    generate_csv_btn = ttk.Button(action_frame, text="Generate CSV File", command=generate_csv_sample)
+    generate_csv_btn.pack(side=tk.LEFT, padx=5)
     
     # Database Viewer
     db_viewer_frame = ttk.LabelFrame(main_frame, text="Database Viewer", padding="10")
     db_viewer_frame.pack(fill=tk.BOTH, expand=True, pady=5)
     
-    # Treeview for database records
-    viewer_tree = ttk.Treeview(db_viewer_frame, columns=('id', 'condition', 'date', 'bpm', 'weight'), show='headings', height=8)
+    # Treeview for database records (with multi-select enabled)
+    viewer_tree = ttk.Treeview(db_viewer_frame, columns=('id', 'condition', 'date', 'bpm', 'weight'), show='headings', height=8, selectmode='extended')
     viewer_tree.heading('id', text='ID')
     viewer_tree.heading('condition', text='Condition')
     viewer_tree.heading('date', text='Date')
@@ -1400,6 +2162,12 @@ def create_server_dashboard():
             # Clear existing items
             for item in viewer_tree.get_children():
                 viewer_tree.delete(item)
+            
+            # Clear selection count if label exists
+            try:
+                selection_count_label.config(text="0 selected")
+            except (NameError, AttributeError):
+                pass  # Label not created yet
             
             if not SUPABASE_AVAILABLE:
                 return
@@ -1438,8 +2206,26 @@ def create_server_dashboard():
         except Exception as e:
             logger.error(f"Error refreshing database viewer: {e}")
     
-    refresh_viewer_btn = ttk.Button(db_viewer_frame, text="Refresh View", command=refresh_db_viewer)
-    refresh_viewer_btn.pack(pady=5)
+    # Viewer control buttons frame
+    viewer_controls_frame = ttk.Frame(db_viewer_frame)
+    viewer_controls_frame.pack(fill=tk.X, pady=5)
+    
+    refresh_viewer_btn = ttk.Button(viewer_controls_frame, text="Refresh View", command=refresh_db_viewer)
+    refresh_viewer_btn.pack(side=tk.LEFT, padx=5)
+    
+    
+    # Label showing selection count
+    selection_count_label = ttk.Label(viewer_controls_frame, text="0 selected", style='Status.TLabel')
+    selection_count_label.pack(side=tk.LEFT, padx=10)
+    
+    def update_selection_count(event=None):
+        """Update the selection count label"""
+        selected_count = len(viewer_tree.selection())
+        selection_count_label.config(text=f"{selected_count} selected")
+    
+    # Bind selection events to update count
+    viewer_tree.bind('<<TreeviewSelect>>', update_selection_count)
+    viewer_tree.bind('<<TreeviewDeselect>>', update_selection_count)
     
     
     # Logs display
@@ -1458,22 +2244,65 @@ def create_server_dashboard():
     
     # Custom log handler to update text widget
     class TextHandler(logging.Handler):
-        def __init__(self, text_widget):
+        def __init__(self, text_widget, root_window):
             super().__init__()
             self.text_widget = text_widget
+            self.root = root_window
         
         def emit(self, record):
             msg = self.format(record)
-            self.text_widget.insert(tk.END, msg + '\n')
-            self.text_widget.see(tk.END)
+            # Schedule update on main thread to avoid threading issues
+            try:
+                if self.root and self.root.winfo_exists():
+                    self.root.after(0, self._update_widget, msg)
+            except:
+                # If root doesn't exist or is destroyed, skip widget update
+                pass
+        
+        def _update_widget(self, msg):
+            """Update widget on main thread"""
+            try:
+                if self.text_widget.winfo_exists():
+                    self.text_widget.insert(tk.END, msg + '\n')
+                    self.text_widget.see(tk.END)
+            except:
+                # Widget may have been destroyed
+                pass
     
-    text_handler = TextHandler(logs_text)
+    text_handler = TextHandler(logs_text, root)
     text_handler.setFormatter(formatter)
     text_handler.setLevel(logging.INFO)
     logger.addHandler(text_handler)
     
     # Initial viewer refresh
     refresh_db_viewer()
+    
+    # Handle window close - terminate server
+    def on_closing():
+        """Handle window close event - shutdown server and exit"""
+        logger.info("Dashboard window closed - shutting down server...")
+        try:
+            # Shutdown the server
+            with server_lock:
+                if server_instance:
+                    logger.info("Shutting down HTTP server...")
+                    server_instance.shutdown()
+                    server_instance.server_close()
+                    logger.info("HTTP server shut down")
+            
+            # Close the window
+            root.destroy()
+            
+            # Exit the process
+            logger.info("Server terminated by user")
+            os._exit(0)  # Force exit all threads
+        
+        except Exception as e:
+            logger.error(f"Error during shutdown: {e}", exc_info=True)
+            root.destroy()
+            os._exit(0)
+    
+    root.protocol("WM_DELETE_WINDOW", on_closing)
     
     return root
 
@@ -1483,6 +2312,25 @@ def main():
     # Get the directory where this script is located
     script_dir = Path(__file__).parent.absolute()
     os.chdir(script_dir)
+    
+    # Check if local lib directory exists and has packages, if not, install them
+    global SUPABASE_AVAILABLE
+    if not SUPABASE_AVAILABLE and not (LOCAL_LIB_DIR.exists() and any(LOCAL_LIB_DIR.iterdir())):
+        logger.info("Required packages not found. Installing to local lib directory...")
+        print("Installing required packages to local lib directory (first time only)...")
+        try:
+            if install_requirements_local():
+                logger.info("Packages installed to local lib directory. Restarting imports...")
+                # Re-import after installation
+                try:
+                    from supabase import create_client, Client
+                    SUPABASE_AVAILABLE = True
+                    logger.info("Supabase now available after local installation")
+                except ImportError:
+                    logger.warning("Supabase still not available after installation")
+        except Exception as e:
+            logger.error(f"Error during automatic package installation: {e}", exc_info=True)
+            print(f"Warning: Could not auto-install packages. Use 'Install Requirements' button in dashboard.")
     
     # Use localhost explicitly for browser opening
     server_url = f"http://localhost:{PORT}"
