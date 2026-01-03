@@ -975,20 +975,23 @@ function connectToReloadStream() {
     
     eventSource.onopen = function() {
       Logger.debug('Connected to reload stream');
+      // Reset backoff counter on successful connection
+      window._reloadStreamRetries = 0;
     };
     
     eventSource.onmessage = function(event) {
       try {
         const data = JSON.parse(event.data);
         if (data.type === 'reload') {
-          Logger.info('File change detected, reloading page...');
-          // Close connection before reloading
-          eventSource.close();
+          Logger.info('Server restart detected, closing this connection...');
+          // Close connection gracefully - server will open a new tab
+          try {
+            eventSource.close();
+          } catch (e) {
+            // Ignore close errors
+          }
           window._reloadEventSource = null;
-          // Small delay to ensure file is fully written
-          setTimeout(() => {
-            window.location.reload();
-          }, 100);
+          // Don't reload - server will open a fresh tab
         } else if (data.type === 'connected') {
           Logger.debug('Reload stream connected');
         }
@@ -998,18 +1001,31 @@ function connectToReloadStream() {
     };
     
     eventSource.onerror = function(error) {
-      // Only reconnect if connection is actually closed
-      // EventSource automatically reconnects for CONNECTING state
+      Logger.debug('Reload stream error', { 
+        readyState: eventSource.readyState,
+        CONNECTING: EventSource.CONNECTING,
+        OPEN: EventSource.OPEN,
+        CLOSED: EventSource.CLOSED
+      });
+      
+      // If connection was closed (not just temporarily disconnected)
       if (eventSource.readyState === EventSource.CLOSED) {
-        Logger.debug('Reload stream closed, will reconnect after delay');
-        eventSource.close();
+        Logger.info('Reload stream closed, will attempt to reconnect...');
+        try {
+          eventSource.close();
+        } catch (e) {
+          // Ignore close errors
+        }
         window._reloadEventSource = null;
-        // Reconnect after a delay only if closed
-        setTimeout(connectToReloadStream, 5000);
-      } else {
-        // Connection is in CONNECTING state, EventSource will auto-reconnect
-        Logger.debug('Reload stream error (auto-reconnecting)', { readyState: eventSource.readyState });
+        
+        // Exponential backoff: 2s, 4s, 8s, 16s max
+        window._reloadStreamRetries = (window._reloadStreamRetries || 0) + 1;
+        const backoffTime = Math.min(2000 * Math.pow(2, window._reloadStreamRetries - 1), 16000);
+        Logger.debug(`Retrying reload stream connection in ${backoffTime}ms (attempt ${window._reloadStreamRetries})`);
+        
+        setTimeout(connectToReloadStream, backoffTime);
       }
+      // If CONNECTING, EventSource auto-reconnects, don't manually reconnect
     };
     
     // Store reference for cleanup
@@ -1017,6 +1033,10 @@ function connectToReloadStream() {
   } catch (e) {
     Logger.warn('Failed to connect to reload stream', { error: e.message });
     window._reloadEventSource = null;
+    // Retry connection after delay
+    window._reloadStreamRetries = (window._reloadStreamRetries || 0) + 1;
+    const backoffTime = Math.min(2000 * Math.pow(2, window._reloadStreamRetries - 1), 16000);
+    setTimeout(connectToReloadStream, backoffTime);
   }
 }
 
@@ -2625,15 +2645,14 @@ async function clearData() {
   }
   logs = [];
   
-  // Delete health logs from cloud (but keep settings on cloud)
-  if (typeof deleteCloudLogs === 'function') {
+  // Delete cloud data (health logs and encryption keys) while preserving anonymized research data
+  if (typeof deleteAllUserDataFromCloud === 'function') {
     try {
-      await deleteCloudLogs();
-      console.log('✅ Health logs deleted from cloud (settings preserved)');
+      await deleteAllUserDataFromCloud();
+      console.log('✅ Health data and encryption keys deleted from cloud backup (anonymized research data preserved)');
     } catch (error) {
-      console.warn('Cloud logs deletion error (may not be logged in or sync failed):', error);
-      Logger.warn('Cloud logs deletion error', { error: error.message });
-      // Continue with local clearing even if cloud deletion fails
+      console.warn('Cloud data deletion error (may not be logged in or sync failed):', error);
+      Logger.warn('Cloud data deletion error', { error: error.message });
     }
   }
   
@@ -4575,6 +4594,14 @@ function deleteLogEntry(logDate) {
       window.PerformanceUtils.StorageBatcher.setItem("healthLogs", JSON.stringify(logs));
     } else {
       localStorage.setItem("healthLogs", JSON.stringify(logs));
+    }
+    
+    // Sync deletion to cloud (if syncing is enabled)
+    if (typeof syncDeletedLogToCloud === 'function') {
+      syncDeletedLogToCloud(logDate).catch(error => {
+        console.error('Failed to sync deletion to cloud:', error);
+        // Don't block UI - deletion already happened locally
+      });
     }
     
     // Re-render logs and update charts (debounced)
@@ -7732,6 +7759,13 @@ function loadSettings() {
     // Delay slightly to ensure cloud-sync.js is loaded
     setTimeout(() => {
       setupBackgroundSync();
+      // Also sync immediately on app load
+      if (typeof syncAnonymizedData === 'function') {
+        console.log('[loadSettings] Triggering immediate sync on app load...');
+        syncAnonymizedData().catch(error => {
+          console.error('[loadSettings] Error in immediate sync on load:', error);
+        });
+      }
     }, 500);
   }
 }

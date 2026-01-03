@@ -1,36 +1,44 @@
 // Encryption utilities for anonymized data
 // Uses AES-256-GCM for encryption with a shared key
 
+let cachedEncryptionKey = null; // Cache the key after first fetch
+
 /**
- * Get encryption key - uses key derivation for better security
- * Falls back to default key if derivation fails (for compatibility)
+ * Get encryption key - fetches from server for client-server synchronization
+ * Falls back to default key if server is unavailable
  */
 async function getEncryptionKey() {
-  // Try to get a user-specific seed from sessionStorage
-  // This provides better security than a hardcoded key
-  let seed = sessionStorage.getItem('encryption_key_seed');
-  
-  if (!seed) {
-    // Generate a seed based on origin and user agent (consistent per domain)
-    const baseSeed = window.location.origin + navigator.userAgent;
-    const encoder = new TextEncoder();
-    const data = encoder.encode(baseSeed);
-    
-    try {
-      // Derive a key using SHA-256
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      seed = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      sessionStorage.setItem('encryption_key_seed', seed);
-    } catch (error) {
-      // Fallback to default key if crypto API fails
-      console.warn('Key derivation failed, using default key');
-      return 'REDACTED_USE_ENCRYPTION_KEY_OR_FILE';
-    }
+  // Return cached key if available
+  if (cachedEncryptionKey) {
+    return cachedEncryptionKey;
   }
   
-  // Use first 32 bytes (64 hex chars) of the seed
-  return seed.substring(0, 64);
+  // Try to fetch key from server (for client-server sync)
+  try {
+    const response = await fetch('/api/encryption-key', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.key) {
+        cachedEncryptionKey = data.key;
+        console.log('Encryption key synchronized with server');
+        return data.key;
+      }
+    }
+  } catch (error) {
+    console.warn('Could not fetch encryption key from server:', error);
+    // Fallback to default
+  }
+  
+  // Fallback to default key if server unavailable
+  const defaultKey = 'REDACTED_USE_ENCRYPTION_KEY_OR_FILE';
+  cachedEncryptionKey = defaultKey;
+  return defaultKey;
 }
 
 // Default key for backward compatibility (fallback only)
