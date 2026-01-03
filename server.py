@@ -278,8 +278,6 @@ last_file_change_time = None
 server_instance = None
 server_thread = None
 server_lock = threading.Lock()
-restarting = False
-browser_opened = False
 
 # ============================================
 # Supabase Functions
@@ -1138,6 +1136,16 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_supabase_status()
             return
         
+        # Handle encryption key endpoint (for client-server key sync)
+        if parsed_path.path == '/api/encryption-key':
+            self.handle_encryption_key()
+            return
+        
+        # Handle anonymized training data endpoint
+        if parsed_path.path.startswith('/api/anonymized-data'):
+            self.handle_anonymized_data()
+            return
+        
         # Return 204 (No Content) for optional files instead of 404
         optional_files = ['.map', '.well-known', 'devtools']
         if any(opt in self.path.lower() for opt in optional_files):
@@ -1162,6 +1170,7 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
         # For other POST requests, return 405 Method Not Allowed
         self.send_response(405)
         self.end_headers()
+    
     
     def handle_supabase_status(self):
         """Handle Supabase status check endpoint"""
@@ -1207,6 +1216,35 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
     
+    def handle_encryption_key(self):
+        """Handle encryption key endpoint for client-server synchronization"""
+        try:
+            key = get_encryption_key()
+            # Convert bytes back to hex string for transmission
+            key_hex = key.hex()
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            origin = self.headers.get('Origin', '')
+            allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
+            if origin in allowed_origins:
+                self.send_header('Access-Control-Allow-Origin', origin)
+            self.end_headers()
+            
+            response = {
+                'success': True,
+                'key': key_hex,
+                'algorithm': 'AES-256-GCM'
+            }
+            self.wfile.write(json.dumps(response).encode('utf-8'))
+            logger.debug("Encryption key served to client")
+        except Exception as e:
+            logger.error(f"Error handling encryption key request: {e}", exc_info=True)
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+    
     def handle_sse_reload(self):
         """Handle Server-Sent Events for auto-refresh on file changes"""
         try:
@@ -1245,8 +1283,8 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             # Keep connection alive and wait for file change events
             while True:
                 try:
-                    # Wait for file change event (with timeout to send keepalive)
-                    if file_change_event.wait(timeout=30):
+                    # Wait for file change event (with short timeout to allow quick recovery)
+                    if file_change_event.wait(timeout=5):
                         # File changed - send reload message
                         message = json.dumps({"type": "reload", "timestamp": time.time()})
                         self.wfile.write(f'data: {message}\n\n'.encode('utf-8'))
@@ -1254,7 +1292,7 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
                         file_change_event.clear()
                         logger.info(f"Sent reload signal to SSE client: {client_ip}")
                     else:
-                        # Timeout - send keepalive ping
+                        # Timeout - send keepalive ping to detect dead connections
                         self.wfile.write(b': keepalive\n\n')
                         self.wfile.flush()
                 except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, OSError) as e:
@@ -1458,6 +1496,81 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
     
+    def handle_anonymized_data(self):
+        """Handle fetching decrypted anonymized training data"""
+        try:
+            parsed_path = urlparse(self.path)
+            query_params = parse_qs(parsed_path.query)
+            
+            # Extract condition parameter
+            condition = None
+            if 'condition' in query_params:
+                condition = unquote(query_params['condition'][0]).strip()
+            
+            # Security: Validate condition parameter length
+            if condition and len(condition) > 200:
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Condition parameter too long'}).encode('utf-8'))
+                return
+            
+            # Get limit parameter (default 1000)
+            limit = 1000
+            if 'limit' in query_params:
+                try:
+                    limit = min(int(query_params['limit'][0]), 10000)  # Max 10000
+                except (ValueError, IndexError):
+                    pass
+            
+            global SUPABASE_AVAILABLE
+            SUPABASE_AVAILABLE = check_supabase_availability()
+            if not SUPABASE_AVAILABLE:
+                self.send_response(503)
+                self.send_header('Content-Type', 'application/json')
+                origin = self.headers.get('Origin', '')
+                allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
+                if origin in allowed_origins:
+                    self.send_header('Access-Control-Allow-Origin', origin)
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Supabase not available'}).encode('utf-8'))
+                return
+            
+            # Fetch and decrypt anonymized data
+            data = search_supabase_data(condition=condition, limit=limit)
+            
+            # Transform data for training: extract only anonymized_log fields
+            training_data = []
+            if data:
+                for record in data:
+                    log_data = record.get('anonymized_log', {})
+                    if isinstance(log_data, dict):
+                        training_data.append(log_data)
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            origin = self.headers.get('Origin', '')
+            allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
+            if origin in allowed_origins:
+                self.send_header('Access-Control-Allow-Origin', origin)
+            self.end_headers()
+            
+            response = {
+                'success': True,
+                'condition': condition,
+                'count': len(training_data),
+                'data': training_data
+            }
+            self.wfile.write(json.dumps(response).encode('utf-8'))
+            logger.info(f"Anonymized training data fetched: condition={condition}, records={len(training_data)}")
+        
+        except Exception as e:
+            logger.error(f"Error handling anonymized data request: {e}", exc_info=True)
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+    
     def do_OPTIONS(self):
         """Handle CORS preflight requests"""
         self.send_response(200)
@@ -1546,14 +1659,19 @@ def notify_sse_clients():
         alive_clients = []
         for client_ip, wfile in sse_clients:
             try:
-                # Try to write a keepalive to check if connection is alive
-                wfile.write(b': keepalive\n\n')
+                # Send reload message to client
+                reload_message = json.dumps({'type': 'reload'})
+                wfile.write(f'data: {reload_message}\n\n'.encode('utf-8'))
                 wfile.flush()
-                alive_clients.append((client_ip, wfile))
+                logger.debug(f"Sent reload notification to {client_ip}")
             except (BrokenPipeError, ConnectionResetError, OSError):
                 logger.debug(f"Removed dead SSE connection: {client_ip}")
+                continue  # Don't add to alive_clients
+            
+            alive_clients.append((client_ip, wfile))
+        
         sse_clients[:] = alive_clients
-        logger.info(f"Notifying {len(sse_clients)} SSE client(s) to reload")
+        logger.info(f"Notified {len(alive_clients)} SSE client(s) to reload")
 
 # FileChangeHandler class - only defined if watchdog is available
 if WATCHDOG_AVAILABLE:
@@ -1718,111 +1836,6 @@ def create_server_dashboard():
     server_status = ttk.Label(status_frame, text=f"Server: http://localhost:{PORT}", style='Status.TLabel')
     server_status.pack(anchor=tk.W)
     
-    def restart_server():
-        """Restart the server without terminating the process"""
-        global restarting, browser_opened
-        
-        if restarting:
-            logger.warning("Server restart already in progress, ignoring request")
-            return
-        
-        try:
-            restarting = True
-            browser_opened = False
-            logger.info("Server restart requested from dashboard")
-            
-            # Save window position
-            window_geometry = root.geometry()
-            window_x = root.winfo_x()
-            window_y = root.winfo_y()
-    
-            # Update status
-            server_status.config(text="Server: Restarting...")
-            root.update()
-            
-            # Restart server in background thread
-            def restart_thread():
-                global server_instance, restarting, browser_opened
-                try:
-                    # Shutdown existing server
-                    if server_instance is not None:
-                        logger.info("Shutting down server...")
-                        server_instance.shutdown()
-                        time.sleep(0.5)  # Brief pause for cleanup
-                    
-                    
-                    # Start new server
-                    logger.info("Starting new server instance...")
-                    start_server_thread()
-                    
-                    # Wait for server to be ready - check if it's actually accepting connections
-                    server_url = f"http://localhost:{PORT}"
-                    max_attempts = 15
-                    attempt = 0
-                    server_ready = False
-                    
-                    while attempt < max_attempts and not server_ready:
-                        try:
-                            # Try to connect to the server port to verify it's ready
-                            test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                            test_socket.settimeout(1)
-                            result = test_socket.connect_ex(('localhost', PORT))
-                            test_socket.close()
-                            if result == 0:
-                                server_ready = True
-                                logger.info("Server is ready and accepting connections")
-                            else:
-                                attempt += 1
-                                time.sleep(0.2)  # Wait 200ms between attempts
-                        except Exception as e:
-                            attempt += 1
-                            time.sleep(0.2)  # Wait 200ms between attempts
-                    
-                    if not server_ready:
-                        logger.warning("Server may not be fully ready, but opening browser anyway")
-                        time.sleep(1.0)  # Extra safety delay
-                    else:
-                        # Small additional delay to ensure server is fully initialized
-                        time.sleep(0.3)
-                    
-                    # Open browser tab with served page (new tab with cache-busting) - only once
-                    if not browser_opened:
-                        try:
-                            # Add cache-busting parameter to force fresh load
-                            cache_bust_url = f"{server_url}?restart={int(time.time())}"
-                            webbrowser.open(cache_bust_url, new=2)  # new=2 opens in new tab
-                            browser_opened = True
-                            logger.info(f"Browser opened at {server_url} after restart (new tab)")
-                        except Exception as e:
-                            logger.warning(f"Could not open browser automatically after restart: {e}")
-                    else:
-                        logger.info("Browser already opened, skipping duplicate tab")
-    
-                    # Update status and restore window position on main thread
-                    root.after(0, lambda: server_status.config(text=f"Server: http://localhost:{PORT}"))
-                    root.after(0, lambda: root.geometry(window_geometry))
-                    root.after(0, lambda: root.update_idletasks())
-                    logger.info("Server restarted successfully")
-                except Exception as e:
-                    logger.error(f"Error restarting server: {e}", exc_info=True)
-                    root.after(0, lambda: messagebox.showerror("Error", f"Failed to restart server: {e}"))
-                    root.after(0, lambda: server_status.config(text=f"Server: http://localhost:{PORT} (Error)"))
-                finally:
-                    # Reset restart flag and browser flag
-                    restarting = False
-                    browser_opened = False
-            
-            threading.Thread(target=restart_thread, daemon=True).start()
-            
-        except Exception as e:
-            logger.error(f"Error in restart function: {e}", exc_info=True)
-            messagebox.showerror("Error", f"Failed to restart server: {e}")
-            server_status.config(text=f"Server: http://localhost:{PORT}")
-            restarting = False
-            browser_opened = False
-    
-    restart_btn = ttk.Button(status_frame, text="Restart Server", command=restart_server)
-    restart_btn.pack(side=tk.LEFT, padx=5, pady=5)
     
     # Supabase Database Controls
     supabase_frame = ttk.LabelFrame(main_frame, text="Supabase Database", padding="10")
@@ -2175,7 +2188,7 @@ def create_server_dashboard():
                             try:
                                 if dialog.winfo_exists():
                                     progress_label.config(text=text)
-                            except:
+                            except Exception:
                                 pass
                         
                         root.after(0, lambda: safe_update_progress("Generating data..."))

@@ -376,9 +376,8 @@ async function syncAnonymizedData() {
             }
           });
           
-          // Encrypt the anonymized log
+          // Encrypt the anonymized log using the shared encryption key
           let encryptedLog;
-          // Check for encryption function in multiple ways (window, global, or direct)
           const encryptFn = window.encryptAnonymizedData || (typeof encryptAnonymizedData !== 'undefined' ? encryptAnonymizedData : null);
           
           if (encryptFn && typeof encryptFn === 'function') {
@@ -386,17 +385,16 @@ async function syncAnonymizedData() {
               encryptedLog = await encryptFn(anonymizedLog);
               if (!encryptedLog) {
                 console.error(`[syncAnonymizedData] Encryption returned null/undefined for date ${log.date}`);
-                continue; // Skip this log
+                continue;
               }
               console.log(`[syncAnonymizedData] Successfully encrypted log for date ${log.date}`);
             } catch (encryptError) {
               console.error(`[syncAnonymizedData] Encryption error for date ${log.date}:`, encryptError);
-              continue; // Skip this log
+              continue;
             }
           } else {
             // Fallback: use JSON string if encryption not available
             console.warn('[syncAnonymizedData] encryptAnonymizedData not available, using plain JSON');
-            console.warn('[syncAnonymizedData] window.encryptAnonymizedData:', typeof window.encryptAnonymizedData);
             encryptedLog = JSON.stringify(anonymizedLog);
           }
           
@@ -1099,6 +1097,179 @@ async function handleCloudLogout() {
   }
 }
 
+// Get or create user-specific encryption key
+async function getUserEncryptionKey() {
+  try {
+    const client = initSupabase();
+    if (!client || !cloudSyncState.user) {
+      console.warn('Cannot get user encryption key: not authenticated');
+      return null;
+    }
+    
+    // Check if user already has a key stored in user_keys table
+    const { data: keyData, error: keyError } = await client
+      .from('user_keys')
+      .select('encryption_key')
+      .eq('user_id', cloudSyncState.user.id)
+      .single();
+    
+    if (keyData && keyData.encryption_key) {
+      console.log('Using existing user encryption key');
+      return keyData.encryption_key;
+    }
+    
+    if (keyError && keyError.code !== 'PGRST116') {
+      // PGRST116 means no rows found, which is expected for new users
+      console.warn('Error fetching user key:', keyError);
+    }
+    
+    // Generate new user-specific key if doesn't exist
+    console.log('Generating new user encryption key...');
+    const newKey = generateUserEncryptionKey();
+    
+    // Store the key in user_keys table
+    const { error: insertError } = await client
+      .from('user_keys')
+      .insert({
+        user_id: cloudSyncState.user.id,
+        encryption_key: newKey,
+        created_at: new Date().toISOString()
+      });
+    
+    if (insertError) {
+      console.error('Error storing user key:', insertError);
+      return null;
+    }
+    
+    console.log('User encryption key created and stored');
+    return newKey;
+  } catch (error) {
+    console.error('Error in getUserEncryptionKey:', error);
+    return null;
+  }
+}
+
+// Generate a random encryption key for the user
+function generateUserEncryptionKey() {
+  // Generate a 32-byte (256-bit) random key in hex format
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+// Encrypt data with user-specific key
+async function encryptWithUserKey(data, userKey) {
+  if (!userKey) {
+    console.warn('No user key provided, falling back to default encryption');
+    return window.encryptAnonymizedData ? await window.encryptAnonymizedData(data) : JSON.stringify(data);
+  }
+  
+  try {
+    const jsonString = JSON.stringify(data);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    
+    // Convert hex key to bytes
+    const keyBytes = new Uint8Array(userKey.length / 2);
+    for (let i = 0; i < userKey.length; i += 2) {
+      keyBytes[i / 2] = parseInt(userKey.substr(i, 2), 16);
+    }
+    
+    // Import the key
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      keyBytes.slice(0, 32),
+      { name: 'AES-GCM' },
+      false,
+      ['encrypt']
+    );
+    
+    // Encrypt
+    const encrypted = await crypto.subtle.encrypt(
+      {
+        name: 'AES-GCM',
+        iv: iv,
+        tagLength: 128
+      },
+      keyMaterial,
+      new TextEncoder().encode(jsonString)
+    );
+    
+    // Combine IV + ciphertext and base64 encode
+    const combined = new Uint8Array(iv.length + encrypted.byteLength);
+    combined.set(iv, 0);
+    combined.set(new Uint8Array(encrypted), iv.length);
+    
+    // Convert to base64 without stack overflow
+    let binary = '';
+    for (let i = 0; i < combined.length; i++) {
+      binary += String.fromCharCode(combined[i]);
+    }
+    return btoa(binary);
+  } catch (error) {
+    console.error('Error encrypting with user key:', error);
+    throw error;
+  }
+}
+
+// Decrypt data with user-specific key
+async function decryptWithUserKey(encryptedData, userKey) {
+  if (!userKey || !encryptedData) {
+    console.warn('Cannot decrypt: missing key or data');
+    return null;
+  }
+  
+  try {
+    // Try to parse as JSON first (backward compatibility)
+    try {
+      const parsed = JSON.parse(encryptedData);
+      if (typeof parsed === 'object' && parsed !== null) {
+        return parsed;
+      }
+    } catch (e) {
+      // Not JSON, proceed with decryption
+    }
+    
+    // Decode from base64
+    const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+    
+    // Extract IV and ciphertext
+    const iv = combined.slice(0, 12);
+    const ciphertext = combined.slice(12);
+    
+    // Convert hex key to bytes
+    const keyBytes = new Uint8Array(userKey.length / 2);
+    for (let i = 0; i < userKey.length; i += 2) {
+      keyBytes[i / 2] = parseInt(userKey.substr(i, 2), 16);
+    }
+    
+    // Import the key
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      keyBytes.slice(0, 32),
+      { name: 'AES-GCM' },
+      false,
+      ['decrypt']
+    );
+    
+    // Decrypt
+    const decrypted = await crypto.subtle.decrypt(
+      {
+        name: 'AES-GCM',
+        iv: iv,
+        tagLength: 128
+      },
+      keyMaterial,
+      ciphertext
+    );
+    
+    const jsonString = new TextDecoder().decode(decrypted);
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.error('Error decrypting with user key:', error);
+    return null;
+  }
+}
+
 // Sync user's health data to cloud (health_data table)
 async function syncToCloud() {
   if (!cloudSyncState.isAuthenticated || !cloudSyncState.user) {
@@ -1121,27 +1292,6 @@ async function syncToCloud() {
   }
   
   try {
-    // Get logs from localStorage
-    const logsJson = localStorage.getItem('healthLogs');
-    if (!logsJson) {
-      if (typeof showAlertModal === 'function') {
-        showAlertModal('No health data to sync.', 'No Data');
-      }
-      return;
-    }
-    
-    const logs = JSON.parse(logsJson);
-    if (!Array.isArray(logs) || logs.length === 0) {
-      if (typeof showAlertModal === 'function') {
-        showAlertModal('No health data to sync.', 'No Data');
-      }
-      return;
-    }
-    
-    // Get app settings
-    const settingsJson = localStorage.getItem('healthAppSettings');
-    const appSettings = settingsJson ? JSON.parse(settingsJson) : {};
-    
     // Show loading state
     const syncBtn = document.getElementById('cloudSyncBtn');
     if (syncBtn) {
@@ -1149,30 +1299,88 @@ async function syncToCloud() {
       syncBtn.innerHTML = '<span>🔄 Syncing...</span>';
     }
     
-    // Encrypt health logs if encryption is available
-    let encryptedLogs = logsJson;
-    if (typeof window !== 'undefined' && window.encryptAnonymizedData) {
+    // Get local logs from localStorage
+    let localLogsJson = localStorage.getItem('healthLogs');
+    if (!localLogsJson) {
+      throw new Error('No health data to sync.');
+    }
+    
+    // Decompress if needed (healthLogs is stored compressed)
+    if (localLogsJson.startsWith('H4sI')) {
+      const decompressed = await decompressData(localLogsJson);
+      localLogsJson = JSON.stringify(decompressed);
+    }
+    
+    const localLogs = JSON.parse(localLogsJson);
+    if (!Array.isArray(localLogs)) {
+      throw new Error('Invalid health logs format');
+    }
+    
+    // Get or create user-specific encryption key
+    const userKey = await getUserEncryptionKey();
+    if (!userKey) {
+      throw new Error('Could not obtain encryption key for your account');
+    }
+    
+    // Fetch cloud data
+    const { data: cloudData, error: fetchError } = await client
+      .from('health_data')
+      .select('health_logs, app_settings')
+      .eq('user_id', cloudSyncState.user.id)
+      .single();
+    
+    let cloudLogs = [];
+    let cloudSettings = {};
+    
+    // If data exists on cloud, decrypt and parse it
+    if (cloudData) {
       try {
-        encryptedLogs = window.encryptAnonymizedData(logs);
-      } catch (encryptError) {
-        console.warn('Encryption failed, storing as plain JSON:', encryptError);
-        encryptedLogs = logsJson;
+        if (cloudData.health_logs) {
+          const decrypted = await decryptWithUserKey(cloudData.health_logs, userKey);
+          if (Array.isArray(decrypted)) {
+            cloudLogs = decrypted;
+          } else if (typeof decrypted === 'string') {
+            cloudLogs = JSON.parse(decrypted);
+          }
+        }
+        if (cloudData.app_settings) {
+          const decrypted = await decryptWithUserKey(cloudData.app_settings, userKey);
+          cloudSettings = typeof decrypted === 'object' ? decrypted : JSON.parse(decrypted);
+        }
+      } catch (decryptError) {
+        console.warn('Failed to decrypt cloud data:', decryptError);
       }
     }
     
-    // Encrypt app settings if encryption is available
-    let encryptedSettings = settingsJson || '{}';
-    if (typeof window !== 'undefined' && window.encryptAnonymizedData) {
-      try {
-        encryptedSettings = window.encryptAnonymizedData(appSettings);
-      } catch (encryptError) {
-        console.warn('Settings encryption failed, storing as plain JSON:', encryptError);
-        encryptedSettings = settingsJson || '{}';
-      }
+    // Merge logs: combine cloud and local, remove duplicates by date
+    const mergedLogs = mergeHealthLogs(localLogs, cloudLogs);
+    
+    // Merge settings: local takes precedence over cloud
+    const settingsJson = localStorage.getItem('healthAppSettings');
+    const localSettings = settingsJson ? JSON.parse(settingsJson) : {};
+    const mergedSettings = { ...cloudSettings, ...localSettings };
+    
+    // Encrypt merged data with USER-SPECIFIC key
+    let encryptedLogs;
+    try {
+      encryptedLogs = await encryptWithUserKey(mergedLogs, userKey);
+      console.log('Merged health logs encrypted with user-specific key');
+    } catch (encryptError) {
+      console.error('Encryption failed:', encryptError);
+      throw new Error('Failed to encrypt health logs: ' + encryptError.message);
     }
     
-    // Upsert data (insert or update if exists) - table structure: user_id, health_logs (text), app_settings (text), updated_at
-    const { data, error } = await client
+    let encryptedSettings;
+    try {
+      encryptedSettings = await encryptWithUserKey(mergedSettings, userKey);
+      console.log('App settings encrypted with user-specific key');
+    } catch (encryptError) {
+      console.error('Settings encryption failed:', encryptError);
+      throw new Error('Failed to encrypt app settings: ' + encryptError.message);
+    }
+    
+    // Upsert merged data to cloud
+    const { error: upsertError } = await client
       .from('health_data')
       .upsert({
         user_id: cloudSyncState.user.id,
@@ -1184,8 +1392,22 @@ async function syncToCloud() {
         ignoreDuplicates: false
       });
     
-    if (error) {
-      throw error;
+    if (upsertError) {
+      throw upsertError;
+    }
+    
+    // Update local storage with merged data (compressed)
+    if (typeof compressData === 'function') {
+      try {
+        const compressedLogs = await compressData(mergedLogs);
+        localStorage.setItem('healthLogs', compressedLogs);
+        console.log('Local storage updated with merged logs');
+      } catch (compressError) {
+        console.warn('Failed to compress data, storing as JSON:', compressError);
+        localStorage.setItem('healthLogs', JSON.stringify(mergedLogs));
+      }
+    } else {
+      localStorage.setItem('healthLogs', JSON.stringify(mergedLogs));
     }
     
     // Update sync state
@@ -1195,14 +1417,14 @@ async function syncToCloud() {
     
     if (typeof showAlertModal === 'function') {
       showAlertModal(
-        `Successfully synced ${logs.length} health log(s) to the cloud.`,
+        `Successfully synced ${mergedLogs.length} health log(s). Cloud and local data are now in sync.`,
         'Sync Complete'
       );
     } else {
-      alert(`Synced ${logs.length} health log(s) to the cloud.`);
+      alert(`Synced ${mergedLogs.length} health log(s) to the cloud.`);
     }
     
-    console.log(`Synced ${logs.length} health log(s) to cloud`);
+    console.log(`Synced ${mergedLogs.length} health log(s) to cloud (merged with ${cloudLogs.length} cloud logs)`);
   } catch (error) {
     console.error('Sync error:', error);
     let errorMessage = 'Failed to sync data to cloud. Please try again.';
@@ -1212,6 +1434,8 @@ async function syncToCloud() {
         errorMessage = 'Permission denied. Please check your account permissions.';
       } else if (error.message.includes('network') || error.message.includes('fetch')) {
         errorMessage = 'Network error. Please check your internet connection.';
+      } else if (error.message.includes('No health data')) {
+        errorMessage = 'No health data to sync. Please log your health first.';
       } else {
         errorMessage = error.message;
       }
@@ -1229,6 +1453,127 @@ async function syncToCloud() {
       syncBtn.disabled = false;
       syncBtn.innerHTML = '<span>🔄 Sync Now</span>';
     }
+  }
+}
+
+// Merge health logs from local and cloud, removing duplicates by date
+function mergeHealthLogs(localLogs, cloudLogs) {
+  const logsMap = new Map();
+  
+  // Add cloud logs first
+  if (Array.isArray(cloudLogs)) {
+    cloudLogs.forEach(log => {
+      if (log && log.date) {
+        logsMap.set(log.date, log);
+      }
+    });
+  }
+  
+  // Add/override with local logs
+  if (Array.isArray(localLogs)) {
+    localLogs.forEach(log => {
+      if (log && log.date) {
+        logsMap.set(log.date, log);
+      }
+    });
+  }
+  
+  // Convert map back to sorted array by date
+  const merged = Array.from(logsMap.values());
+  merged.sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    return dateA - dateB;
+  });
+  
+  console.log(`Merged ${localLogs.length} local logs with ${cloudLogs.length} cloud logs = ${merged.length} total`);
+  return merged;
+}
+
+// Sync deleted log entry to cloud
+async function syncDeletedLogToCloud(deletedDate) {
+  if (!cloudSyncState.isAuthenticated || !cloudSyncState.user) {
+    console.warn('Cannot sync deletion: not authenticated');
+    return;
+  }
+  
+  const client = initSupabase();
+  if (!client) {
+    console.error('Supabase client not available for deletion sync');
+    return;
+  }
+  
+  try {
+    // Get user's encryption key
+    const userKey = await getUserEncryptionKey();
+    if (!userKey) {
+      console.warn('Cannot sync deletion: no encryption key');
+      return;
+    }
+    
+    // Fetch current cloud data
+    const { data: cloudData, error: fetchError } = await client
+      .from('health_data')
+      .select('health_logs, app_settings')
+      .eq('user_id', cloudSyncState.user.id)
+      .single();
+    
+    if (!cloudData) {
+      console.log('No cloud data found - deletion already synced or first sync');
+      return;
+    }
+    
+    // Decrypt cloud logs
+    let cloudLogs = [];
+    try {
+      if (cloudData.health_logs) {
+        const decrypted = await decryptWithUserKey(cloudData.health_logs, userKey);
+        if (Array.isArray(decrypted)) {
+          cloudLogs = decrypted;
+        } else if (typeof decrypted === 'string') {
+          cloudLogs = JSON.parse(decrypted);
+        }
+      }
+    } catch (decryptError) {
+      console.warn('Failed to decrypt cloud logs:', decryptError);
+      return;
+    }
+    
+    // Remove the deleted log from cloud logs
+    const originalLength = cloudLogs.length;
+    cloudLogs = cloudLogs.filter(log => log && log.date !== deletedDate);
+    
+    if (cloudLogs.length === originalLength) {
+      console.log('Deletion already synced or log not found in cloud:', deletedDate);
+      return;
+    }
+    
+    // Encrypt updated logs
+    let encryptedLogs;
+    try {
+      encryptedLogs = await encryptWithUserKey(cloudLogs, userKey);
+    } catch (encryptError) {
+      console.error('Failed to encrypt logs for deletion sync:', encryptError);
+      return;
+    }
+    
+    // Update cloud data with deleted log removed
+    const { error: updateError } = await client
+      .from('health_data')
+      .update({
+        health_logs: encryptedLogs,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', cloudSyncState.user.id);
+    
+    if (updateError) {
+      console.error('Failed to sync deletion to cloud:', updateError);
+      return;
+    }
+    
+    console.log(`Deletion synced to cloud: removed log for ${deletedDate}`);
+  } catch (error) {
+    console.error('Error syncing deletion to cloud:', error);
   }
 }
 
@@ -1262,19 +1607,28 @@ async function loadFromCloud() {
     }
     
     if (data) {
-      // Decrypt health logs if encrypted
+      // Get user's encryption key for decryption
+      const userKey = await getUserEncryptionKey();
+      if (!userKey) {
+        console.warn('Cannot decrypt data: no encryption key available');
+        return;
+      }
+      
+      // Decrypt health logs with USER-SPECIFIC key
       let cloudLogsJson = data.health_logs;
-      if (typeof window !== 'undefined' && window.decryptAnonymizedData && typeof cloudLogsJson === 'string') {
+      if (typeof cloudLogsJson === 'string') {
         try {
-          const decrypted = window.decryptAnonymizedData(cloudLogsJson);
+          const decrypted = await decryptWithUserKey(cloudLogsJson, userKey);
           if (decrypted && Array.isArray(decrypted)) {
             cloudLogsJson = JSON.stringify(decrypted);
+            console.log('Health logs decrypted successfully');
           } else if (decrypted && typeof decrypted === 'object') {
             cloudLogsJson = JSON.stringify(decrypted);
+            console.log('Health logs decrypted successfully');
           }
         } catch (decryptError) {
           console.warn('Decryption failed, trying as plain JSON:', decryptError);
-          // Try parsing as plain JSON
+          // Try parsing as plain JSON for backward compatibility
           try {
             JSON.parse(cloudLogsJson);
           } catch (parseError) {
@@ -1302,18 +1656,17 @@ async function loadFromCloud() {
         return;
       }
       
-      // Decrypt and merge app settings
+      // Decrypt and merge app settings with USER-SPECIFIC key
       if (data.app_settings) {
         let cloudSettingsJson = data.app_settings;
-        if (typeof window !== 'undefined' && window.decryptAnonymizedData && typeof cloudSettingsJson === 'string') {
-          try {
-            const decrypted = window.decryptAnonymizedData(cloudSettingsJson);
-            if (decrypted && typeof decrypted === 'object') {
-              cloudSettingsJson = JSON.stringify(decrypted);
-            }
-          } catch (decryptError) {
-            console.warn('Settings decryption failed, trying as plain JSON:', decryptError);
+        try {
+          const decrypted = await decryptWithUserKey(cloudSettingsJson, userKey);
+          if (decrypted && typeof decrypted === 'object') {
+            cloudSettingsJson = JSON.stringify(decrypted);
+            console.log('App settings decrypted successfully');
           }
+        } catch (decryptError) {
+          console.warn('Settings decryption failed, trying as plain JSON:', decryptError);
         }
         
         try {
@@ -1330,43 +1683,35 @@ async function loadFromCloud() {
         }
       }
       
-      // Merge cloud logs with local logs (cloud takes precedence for conflicts)
-      const localLogs = JSON.parse(localStorage.getItem('healthLogs') || '[]');
-      
-      // Create a map of dates to logs (cloud data)
-      const cloudLogsMap = new Map();
-      cloudLogs.forEach(log => {
-        if (log && log.date) {
-          cloudLogsMap.set(log.date, log);
+      // Merge cloud logs with local logs
+      let localLogs = [];
+      try {
+        const localLogsJson = localStorage.getItem('healthLogs');
+        if (localLogsJson) {
+          if (localLogsJson.startsWith('H4sI')) {
+            const decompressed = await decompressData(localLogsJson);
+            localLogs = Array.isArray(decompressed) ? decompressed : JSON.parse(JSON.stringify(decompressed));
+          } else {
+            localLogs = JSON.parse(localLogsJson);
+          }
         }
-      });
+      } catch (parseError) {
+        console.warn('Failed to parse local logs:', parseError);
+        localLogs = [];
+      }
       
-      // Merge: keep local logs that don't exist in cloud, use cloud logs for conflicts
-      const mergedLogs = [];
-      const processedDates = new Set();
+      // Merge using the merge function
+      const mergedLogs = mergeHealthLogs(localLogs, cloudLogs);
       
-      // Add cloud logs first (they take precedence)
-      cloudLogs.forEach(log => {
-        if (log && log.date) {
-          mergedLogs.push(log);
-          processedDates.add(log.date);
+      // Save merged data (compressed)
+      if (typeof compressData === 'function') {
+        try {
+          const compressedLogs = await compressData(mergedLogs);
+          localStorage.setItem('healthLogs', compressedLogs);
+        } catch (compressError) {
+          console.warn('Failed to compress data, storing as JSON:', compressError);
+          localStorage.setItem('healthLogs', JSON.stringify(mergedLogs));
         }
-      });
-      
-      // Add local logs that don't exist in cloud
-      localLogs.forEach(log => {
-        if (log && log.date && !processedDates.has(log.date)) {
-          mergedLogs.push(log);
-          processedDates.add(log.date);
-        }
-      });
-      
-      // Sort by date (newest first)
-      mergedLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
-      
-      // Save merged data
-      if (window.PerformanceUtils?.StorageBatcher) {
-        window.PerformanceUtils.StorageBatcher.setItem('healthLogs', JSON.stringify(mergedLogs));
       } else {
         localStorage.setItem('healthLogs', JSON.stringify(mergedLogs));
       }
@@ -1396,15 +1741,124 @@ async function loadFromCloud() {
   }
 }
 
+async function getAnonymizedTrainingData(medicalCondition) {
+  try {
+    // Fetch decrypted anonymized data from server endpoint
+    const url = `/api/anonymized-data?condition=${encodeURIComponent(medicalCondition)}&limit=1000`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.warn(`Failed to fetch anonymized training data: ${response.status}`);
+      return [];
+    }
+    
+    const responseData = await response.json();
+    
+    if (!responseData.success || !Array.isArray(responseData.data)) {
+      console.warn('Invalid response format from anonymized data endpoint');
+      return [];
+    }
+    
+    console.log(`Fetched ${responseData.data.length} anonymized training records for condition: ${medicalCondition}`);
+    return responseData.data;
+  } catch (error) {
+    console.error('Error fetching anonymized training data:', error);
+    return [];
+  }
+}
+
+async function deleteCloudLogs() {
+  try {
+    const client = initSupabase();
+    if (!client || !cloudSyncState.user) {
+      console.warn('Cannot delete cloud logs: not authenticated');
+      return;
+    }
+    
+    const userId = cloudSyncState.user.id;
+    console.log('Starting deletion of all cloud health data for user:', userId);
+    
+    const { error: deleteHealthError } = await client
+      .from('health_data')
+      .delete()
+      .eq('user_id', userId);
+    
+    if (deleteHealthError) {
+      console.error('Error deleting health_data from cloud:', deleteHealthError);
+      throw deleteHealthError;
+    }
+    
+    console.log('✅ All health data deleted from cloud');
+  } catch (error) {
+    console.error('Error in deleteCloudLogs:', error);
+    throw error;
+  }
+}
+
+async function deleteAllUserDataFromCloud() {
+  try {
+    const client = initSupabase();
+    if (!client || !cloudSyncState.user) {
+      console.warn('Cannot delete user data: not authenticated');
+      return;
+    }
+    
+    const userId = cloudSyncState.user.id;
+    console.log('Starting deletion of user data from cloud:', userId);
+    console.log('Note: Anonymized data will be preserved for research purposes');
+    
+    const deleteOperations = [];
+    
+    deleteOperations.push(
+      client
+        .from('health_data')
+        .delete()
+        .eq('user_id', userId)
+        .then(result => {
+          if (result.error) {
+            console.error('Error deleting health_data:', result.error);
+            throw result.error;
+          }
+          console.log('✅ Deleted health_data');
+        })
+    );
+    
+    deleteOperations.push(
+      client
+        .from('user_keys')
+        .delete()
+        .eq('user_id', userId)
+        .then(result => {
+          if (result.error) {
+            console.error('Error deleting user_keys:', result.error);
+            throw result.error;
+          }
+          console.log('✅ Deleted user encryption keys');
+        })
+    );
+    
+    await Promise.all(deleteOperations);
+    console.log('✅ User health data and encryption keys deleted from cloud');
+    console.log('✅ Anonymized data preserved for research purposes');
+  } catch (error) {
+    console.error('Error in deleteAllUserDataFromCloud:', error);
+    throw error;
+  }
+}
+
 // Make functions globally available
 if (typeof window !== 'undefined') {
   window.handleCloudLogin = handleCloudLogin;
   window.handleCloudSignUp = handleCloudSignUp;
   window.handleCloudLogout = handleCloudLogout;
   window.syncToCloud = syncToCloud;
+  window.syncDeletedLogToCloud = syncDeletedLogToCloud;
   window.loadFromCloud = loadFromCloud;
   window.cloudSyncState = cloudSyncState;
   window.updateCloudSyncUI = updateCloudSyncUI;
+  window.getAnonymizedTrainingData = getAnonymizedTrainingData;
+  window.deleteCloudLogs = deleteCloudLogs;
+  window.deleteAllUserDataFromCloud = deleteAllUserDataFromCloud;
   
   // Initialize cloud sync state and check auth on load
   loadCloudSyncState();
