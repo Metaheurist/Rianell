@@ -1,89 +1,54 @@
-# ============================================
-# Sensitive Credentials & Keys
-# ============================================
-
-# Supabase API Configuration (contains sensitive credentials)
-supabase-config.js
-*supabase*config*.js
-*config*.js
-
-# Environment variables (contains sensitive credentials)
+# Environment files
 .env
-.env.*
-*.env
-*.env.local
-*.env.*.local
+.env.local
+.env.production
 
-# Encryption keys (contains sensitive encryption keys)
+# Encryption keys
 .encryption_key
-encryption.key
 *.key
-*_key
-*_keys
-*.pem
-*.p12
-*.pfx
 
-# API Keys and Secrets
-*secret*
-*secrets*
-*credential*
-*credentials*
-*api_key*
-*apikey*
-*token*
-*.token
+# API keys and secrets
+**/config/secrets.*
+**/config/keys.*
 
-# ============================================
 # Logs
-# ============================================
 logs/
 *.log
-*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# ============================================
 # Python
-# ============================================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-env/
 venv/
 ENV/
-.venv/
-*.egg-info/
-dist/
-build/
+env/
+.venv
 
-# Local package installation directory
-lib/
-
-# ============================================
-# IDE
-# ============================================
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.project
-.classpath
-.settings/
 
-# ============================================
-# OS
-# ============================================
+# OS files
 .DS_Store
 Thumbs.db
-desktop.ini
 
-# ============================================
-# Temporary files
-# ============================================
-*.tmp
-*.temp
-*.bak
-*.backup
-*~
+# Local library installations
+lib/
+
+# Supabase local
+.supabase/
+
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/

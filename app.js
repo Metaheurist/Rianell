@@ -6012,10 +6012,7 @@ function toggleLogEntry(logDate) {
 // Shared render function to reduce code duplication (optimized)
 function renderLogEntries(logsToRender) {
   // Use DOMCache for output element
-  const outputEl = window.PerformanceUtils?.DOMCache?.getElement('output') || document.getElementById('output');
-  if (!outputEl) return;
-  
-  // Use DOMBatcher for better performance
+    const outputEl = window.PerformanceUtils?.DOMCache?.getElement('logOutput') || document.getElementById('logOutput');
   if (window.PerformanceUtils?.domBatcher) {
     window.PerformanceUtils.domBatcher.schedule(() => {
       const fragment = document.createDocumentFragment();

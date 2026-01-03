@@ -28,46 +28,55 @@ import subprocess
 # Local Package Installation
 # ============================================
 
-# Add local lib directory to Python path for bundled packages
+# Add local lib directory to Python path for bundled packages (if needed)
 APP_DIR = Path(__file__).parent.absolute()
 LOCAL_LIB_DIR = APP_DIR / 'lib'
 
-# Add local lib to sys.path if it exists
-if LOCAL_LIB_DIR.exists():
-    if str(LOCAL_LIB_DIR) not in sys.path:
-        sys.path.insert(0, str(LOCAL_LIB_DIR))
-        # Note: logger not yet defined at this point, using print for early initialization
-        print(f"Added local lib directory to Python path: {LOCAL_LIB_DIR}")
+# Note: Local lib installation is disabled by default to avoid permission issues
+# Users should install packages using: pip install -r requirements.txt
+
+# Try to import required packages from the current Python environment
+def check_requirements():
+    """Check if all required packages are installed in the current Python environment"""
+    missing_packages = []
+    
+    # Try importing key packages
+    packages_to_check = [
+        ('supabase', 'supabase'),
+        ('cryptography', 'cryptography'),
+    ]
+    
+    for import_name, display_name in packages_to_check:
+        try:
+            __import__(import_name)
+        except ImportError:
+            missing_packages.append((import_name, display_name))
+    
+    return missing_packages
 
 def install_requirements_local():
-    """Install requirements.txt into local lib directory"""
+    """Install requirements.txt to local lib directory"""
     try:
         requirements_file = APP_DIR / 'requirements.txt'
         if not requirements_file.exists():
             logger.warning(f"requirements.txt not found at {requirements_file}")
             return False
         
-        # Create lib directory if it doesn't exist
+        # Create local lib directory if it doesn't exist
         LOCAL_LIB_DIR.mkdir(exist_ok=True)
         
-        # Use the same Python interpreter that's running this script
         python_exe = sys.executable
-        logger.info(f"Installing requirements to local lib directory: {LOCAL_LIB_DIR}")
-        logger.info(f"Using Python: {python_exe}")
+        logger.info(f"Installing requirements to {LOCAL_LIB_DIR} using: {python_exe}")
         
-        # Install packages to local lib directory
         result = subprocess.run(
             [python_exe, '-m', 'pip', 'install', '-r', str(requirements_file), 
              '--target', str(LOCAL_LIB_DIR), '--upgrade'],
             capture_output=True,
             text=True,
-            timeout=600  # 10 minute timeout for first install
+            timeout=600
         )
         
         if result.returncode == 0:
-            # Add to sys.path if not already there
-            if str(LOCAL_LIB_DIR) not in sys.path:
-                sys.path.insert(0, str(LOCAL_LIB_DIR))
             logger.info(f"Requirements installed successfully to {LOCAL_LIB_DIR}")
             if result.stdout:
                 logger.debug(f"Install output: {result.stdout}")
@@ -109,29 +118,59 @@ def install_requirements():
         )
         
         if result.returncode == 0:
-            logger.info("Requirements installed successfully (system-wide)")
+            print("Requirements installed successfully (system-wide)")
             return True
         else:
-            logger.error(f"Failed to install requirements. Return code: {result.returncode}")
+            print(f"Failed to install requirements. Return code: {result.returncode}")
             if result.stderr:
-                logger.error(f"Error output: {result.stderr}")
+                print(f"Error output: {result.stderr}")
             return False
     except Exception as e:
-        logger.error(f"Error installing requirements: {e}", exc_info=True)
+        print(f"Error installing requirements: {e}")
         return False
 
-# Function to check Supabase availability (tries both local lib and system/venv)
+# Setup logging BEFORE checking for Supabase (needed for early initialization messages)
+LOG_DIR = Path(__file__).parent / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+LOG_FILE = LOG_DIR / f"health_app_{datetime.now().strftime('%Y%m%d')}.log"
+
+# Configure logger
+logger = logging.getLogger('HealthApp')
+logger.setLevel(logging.DEBUG)
+
+# File handler for persistent logging (unbuffered for immediate writes)
+file_handler = logging.FileHandler(LOG_FILE, encoding='utf-8', mode='a', delay=False)
+file_handler.setLevel(logging.DEBUG)
+if hasattr(file_handler.stream, 'reconfigure'):
+    file_handler.stream.reconfigure(line_buffering=True)
+
+# Console handler for immediate feedback
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+# Formatter with detailed information
+formatter = logging.Formatter(
+    '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
+
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+
+# Function to check Supabase availability (tries system/venv first, then local lib)
 def check_supabase_availability():
     """Check if Supabase is available, trying system/venv first, then local lib"""
     # First try system/venv (most common case, especially with virtual environments)
     try:
         from supabase import create_client, Client
+        logger.debug("Supabase found in system/venv Python")
         return True
-    except ImportError:
-        pass
-    except Exception:
-        # If there's an import error due to missing dependencies, still try local lib
-        pass
+    except ImportError as e:
+        logger.debug(f"Supabase not found in system/venv: {e}")
+    except Exception as e:
+        logger.debug(f"Error importing supabase from system/venv: {e}")
     
     # Then try local lib (for bundled installations)
     if LOCAL_LIB_DIR.exists():
@@ -140,12 +179,12 @@ def check_supabase_availability():
             if str(LOCAL_LIB_DIR) not in sys.path:
                 sys.path.insert(0, str(LOCAL_LIB_DIR))
             from supabase import create_client, Client
+            logger.debug("Supabase found in local lib directory")
             return True
-        except (ImportError, ModuleNotFoundError):
-            pass
-        except Exception:
-            # If there's an error due to broken dependencies in local lib, still return False
-            pass
+        except (ImportError, ModuleNotFoundError) as e:
+            logger.debug(f"Supabase not found in local lib: {e}")
+        except Exception as e:
+            logger.debug(f"Error importing supabase from local lib: {e}")
     
     return False
 
@@ -194,36 +233,6 @@ except ImportError:
     CRYPTOGRAPHY_AVAILABLE = False
     print("Warning: cryptography library not installed. Encryption features will be disabled.")
     print("Install with: pip install cryptography")
-
-# Setup logging first (needed for environment variable loading messages)
-LOG_DIR = Path(__file__).parent / "logs"
-LOG_DIR.mkdir(exist_ok=True)
-LOG_FILE = LOG_DIR / f"health_app_{datetime.now().strftime('%Y%m%d')}.log"
-
-# Configure logger
-logger = logging.getLogger('HealthApp')
-logger.setLevel(logging.DEBUG)
-
-# File handler for persistent logging (unbuffered for immediate writes)
-file_handler = logging.FileHandler(LOG_FILE, encoding='utf-8', mode='a', delay=False)
-file_handler.setLevel(logging.DEBUG)
-if hasattr(file_handler.stream, 'reconfigure'):
-    file_handler.stream.reconfigure(line_buffering=True)
-
-# Console handler for immediate feedback
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-
-# Formatter with detailed information
-formatter = logging.Formatter(
-    '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-file_handler.setFormatter(formatter)
-console_handler.setFormatter(formatter)
-
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
 
 # Load environment variables from .env file
 if DOTENV_AVAILABLE:
@@ -415,25 +424,34 @@ def init_supabase_client():
     # Try to import supabase (works even if SUPABASE_AVAILABLE was False at startup)
     global SUPABASE_AVAILABLE
     try:
+        # First ensure the system supabase is available
         from supabase import create_client, Client
-        # Update global flag if we successfully imported
-        if not SUPABASE_AVAILABLE:
-            SUPABASE_AVAILABLE = True
-            logger.info("Supabase library now available (was not available at startup)")
-    except ImportError:
-        # Re-check availability in case it was installed
-        SUPABASE_AVAILABLE = check_supabase_availability()
-        if not SUPABASE_AVAILABLE:
-            logger.error("Supabase library not available - install with: pip install supabase")
-            return None
+        SUPABASE_AVAILABLE = True
+        logger.debug("Supabase library imported successfully from system Python")
+    except ImportError as e:
+        logger.warning(f"Could not import supabase from system Python: {e}")
+        # Try local lib as fallback
+        if LOCAL_LIB_DIR.exists() and str(LOCAL_LIB_DIR) not in sys.path:
+            sys.path.insert(0, str(LOCAL_LIB_DIR))
+            try:
+                from supabase import create_client, Client
+                SUPABASE_AVAILABLE = True
+                logger.info("Supabase library imported from local lib directory")
+            except ImportError:
+                logger.error("Supabase library not found in system Python or local lib")
+                return None
         else:
-            logger.info("Supabase library found after re-check")
-            from supabase import create_client, Client
+            logger.error("Supabase library not available and local lib not configured")
+            return None
+    except Exception as e:
+        logger.error(f"Unexpected error importing supabase: {e}", exc_info=True)
+        return None
     
     try:
         if supabase_client is None:
+            from supabase import create_client
             supabase_client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
-            logger.info("Supabase client initialized")
+            logger.info("Supabase client initialized successfully")
         return supabase_client
     except Exception as e:
         logger.error(f"Error initializing Supabase client: {e}", exc_info=True)
@@ -1915,18 +1933,24 @@ def create_server_dashboard():
                 if response.data:
                     conditions = [d['medical_condition'] for d in response.data if d.get('medical_condition')]
                     all_conditions.extend(conditions)
+                    if len(response.data) < page_size:
+                        has_more = False
+                    else:
+                        from_range += page_size
+                else:
+                    has_more = False
             except Exception as e:
                 logger.error(f"Error fetching conditions: {e}")
                 has_more = False
         
         # Get unique conditions and sort
-            unique_conditions = sorted(list(set(all_conditions)))
-            try:
-                search_dropdown['values'] = [''] + unique_conditions  # Add empty option for "all"
-                logger.info(f"Loaded {len(unique_conditions)} unique conditions for dropdown")
-            except Exception as e:
-                logger.error(f"Error loading conditions: {e}", exc_info=True)
-                search_dropdown['values'] = []
+        unique_conditions = sorted(list(set(all_conditions)))
+        try:
+            search_dropdown['values'] = [''] + unique_conditions  # Add empty option for "all"
+            logger.info(f"Loaded {len(unique_conditions)} unique conditions for dropdown")
+        except Exception as e:
+            logger.error(f"Error loading conditions: {e}", exc_info=True)
+            search_dropdown['values'] = []
     load_available_conditions()
     
     def perform_search():
@@ -2230,12 +2254,25 @@ def create_server_dashboard():
             for record in data_to_show[:100]:  # Limit to 100 for display
                 try:
                     log_data = record.get('anonymized_log', {})
-                    if isinstance(log_data, str):
-                        log_data = json.loads(log_data)
                     
-                    date = log_data.get('date', 'N/A') if isinstance(log_data, dict) else 'N/A'
-                    bpm = log_data.get('bpm', 'N/A') if isinstance(log_data, dict) else 'N/A'
-                    weight = log_data.get('weight', 'N/A') if isinstance(log_data, dict) else 'N/A'
+                    # Handle if log_data is a string (should already be decrypted by search_supabase_data)
+                    if isinstance(log_data, str):
+                        try:
+                            log_data = json.loads(log_data)
+                        except:
+                            logger.warning(f"Failed to parse anonymized_log for record {record.get('id')}: {log_data[:100]}")
+                            log_data = {}
+                    
+                    # Extract values with better error handling
+                    if isinstance(log_data, dict):
+                        date = log_data.get('date', 'N/A')
+                        bpm = log_data.get('bpm', 'N/A')
+                        weight = log_data.get('weight', 'N/A')
+                    else:
+                        logger.warning(f"anonymized_log is not a dict for record {record.get('id')}: {type(log_data)}")
+                        date = 'Error'
+                        bpm = 'N/A'
+                        weight = 'N/A'
                     
                     viewer_tree.insert('', 'end', values=(
                         record.get('id', 'N/A'),
@@ -2245,6 +2282,7 @@ def create_server_dashboard():
                         weight
                     ))
                 except Exception as e:
+                    logger.error(f"Error processing record {record.get('id', 'unknown')}: {e}")
                     viewer_tree.insert('', 'end', values=(
                         record.get('id', 'N/A'),
                         record.get('medical_condition', 'N/A'),
@@ -2253,7 +2291,7 @@ def create_server_dashboard():
                         'N/A'
                     ))
         except Exception as e:
-            logger.error(f"Error refreshing database viewer: {e}")
+            logger.error(f"Error refreshing database viewer: {e}", exc_info=True)
     
     # Viewer control buttons frame
     viewer_controls_frame = ttk.Frame(db_viewer_frame)
@@ -2555,8 +2593,10 @@ def main():
             if dashboard:
                 dashboard.mainloop()
         
-        dashboard_thread = threading.Thread(target=run_dashboard, daemon=True)
+        dashboard_thread = threading.Thread(target=run_dashboard, daemon=False)
         dashboard_thread.start()
+        # Give the dashboard time to initialize
+        time.sleep(0.5)
         logger.info("Server dashboard started")
     
     # Server options are set in ThreadingHTTPServer class

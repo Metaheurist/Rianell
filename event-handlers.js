@@ -421,3 +421,22 @@ if (document.readyState === 'loading') {
 } else {
   initializeEventHandlers();
 }
+// Event handlers for Health App
+
+(function() {
+  function setupEventHandlers() {
+    // Bind range buttons
+    document.querySelectorAll('[data-set-range]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const days = parseInt(btn.getAttribute('data-set-range'), 10);
+        if (window.setLogViewRange) window.setLogViewRange(days);
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupEventHandlers);
+  } else {
+    setupEventHandlers();
+  }
+})();
