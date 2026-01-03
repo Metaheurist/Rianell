@@ -255,11 +255,11 @@
           <label>Compress chart data</label>
           <div class="toggle-switch" id="compressToggle" onclick="toggleSetting('compress')"></div>
         </div>
-        <div class="settings-option demo-mode-mobile-only">
+        <div class="settings-option">
           <label>Demo Mode (10 years of sample data)</label>
           <div class="toggle-switch" id="demoModeToggle" onclick="toggleDemoMode()"></div>
         </div>
-        <div class="settings-option demo-mode-mobile-only" style="margin-top: -10px; padding-top: 0;">
+        <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
           <label style="visibility: hidden;">Helper</label>
           <small style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Demo data is not saved or synced</small>
         </div>
@@ -613,7 +613,13 @@
         <div class="section-content" id="foodLog">
           <div id="logFoodItemsList" class="items-list"></div>
           <div class="add-item-section">
-            <input type="text" id="logNewFoodItem" class="item-input" placeholder="Enter food item (e.g., Grilled chicken, 200g)" />
+            <div style="display: flex; gap: 8px; flex: 1; align-items: flex-start;">
+              <input type="text" id="logNewFoodItem" class="item-input" placeholder="Food name (e.g., Grilled chicken, 200g)" style="flex: 1;" />
+              <div style="display: flex; flex-direction: column; gap: 8px; flex: 1;">
+                <input type="number" id="logNewFoodCalories" class="item-input" placeholder="Calories (optional)" min="0" step="1" />
+                <input type="number" id="logNewFoodProtein" class="item-input" placeholder="Protein (g, optional)" min="0" step="0.1" />
+              </div>
+            </div>
             <button type="button" class="add-item-btn" onclick="addLogFoodItem()" title="Add food item">➕</button>
           </div>
         </div>
@@ -1396,7 +1402,9 @@
   <script src="export-utils.js?v=1"></script>
   <script src="import-utils.js?v=1"></script>
   <script src="print-utils.js?v=1"></script>
+  <script src="performance-utils.js"></script>
   <script src="app.js?v=1"></script>
+  <script src="security-utils.js"></script>
   <script src="encryption-utils.js"></script>
   <script src="cloud-sync.js"></script>
 </body>

@@ -185,26 +185,6 @@ function showAlertModal(message, title = 'Alert') {
     }
   };
   document.addEventListener('keydown', escapeHandler);
-  
-  // F4 shortcut to toggle demo mode on/off
-  document.addEventListener('keydown', function(e) {
-    // Check for F4 key (supports both key and keyCode for browser compatibility)
-    const isF4 = e.key === 'F4' || e.keyCode === 115 || e.code === 'F4';
-    
-    if (isF4) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      console.log('F4 pressed - toggling demo mode...');
-      
-      // Call toggleDemoMode function to handle enabling/disabling
-      if (typeof toggleDemoMode === 'function') {
-        toggleDemoMode();
-      } else {
-        console.error('toggleDemoMode function not available');
-      }
-    }
-  });
 }
 
 function closeAlertModal() {
@@ -416,9 +396,24 @@ function showConfirmModal(message, title = 'Confirm', onConfirm, onCancel) {
 // ============================================
 function togglePasswordVisibility() {
   const passwordInput = document.getElementById('cloudPassword');
-  const toggleBtn = document.getElementById('passwordToggle');
-  const toggleIcon = toggleBtn.querySelector('.password-toggle-icon');
+  if (!passwordInput) {
+    console.error('Password input not found');
+    return;
+  }
   
+  const toggleBtn = document.getElementById('passwordToggle');
+  if (!toggleBtn) {
+    console.error('Password toggle button not found');
+    return;
+  }
+  
+  const toggleIcon = toggleBtn.querySelector('.password-toggle-icon');
+  if (!toggleIcon) {
+    console.error('Password toggle icon not found');
+    return;
+  }
+  
+  // Toggle password visibility
   if (passwordInput.type === 'password') {
     passwordInput.type = 'text';
     toggleIcon.textContent = '🙈';
@@ -428,6 +423,11 @@ function togglePasswordVisibility() {
     toggleIcon.textContent = '👁️';
     toggleBtn.setAttribute('title', 'Show password');
   }
+}
+
+// Make function globally available
+if (typeof window !== 'undefined') {
+  window.togglePasswordVisibility = togglePasswordVisibility;
 }
 
 // ============================================
@@ -1604,10 +1604,16 @@ async function createCombinedChart() {
   let predictionsData = null;
   if (window.AIEngine && filteredLogs.length >= 2) {
     try {
-      const sortedLogs = [...filteredLogs].sort((a, b) => new Date(a.date) - new Date(b.date));
-      // Get ALL historical logs for training (no date filtering - use everything available, up to 10 years)
-      const allHistoricalLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]")
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+      // Use cached sorted logs if available
+      const sortedLogs = window.PerformanceUtils?.memoizedSort 
+        ? window.PerformanceUtils.memoizedSort(filteredLogs, (a, b) => new Date(a.date) - new Date(b.date), 'sortedFilteredLogs')
+        : [...filteredLogs].sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      // Get ALL historical logs for training (cached)
+      const allHistoricalLogs = window.PerformanceUtils?.DataCache?.get('allHistoricalLogs', () => {
+        const stored = localStorage.getItem("healthLogs") || "[]";
+        return JSON.parse(stored).sort((a, b) => new Date(a.date) - new Date(b.date));
+      }, 60000) || JSON.parse(localStorage.getItem("healthLogs") || "[]").sort((a, b) => new Date(a.date) - new Date(b.date));
       
       // Get anonymized training data if Use Open Data is enabled
       let anonymizedTrainingData = [];
@@ -2956,9 +2962,9 @@ function importData() {
           }
           
           logs.push(...newLogs);
-          localStorage.setItem("healthLogs", JSON.stringify(logs));
+          saveLogsToStorage();
           renderLogs();
-          updateCharts();
+          debounceChartUpdate();
             updateHeartbeatAnimation();
             updateAISummaryButtonState();
           
@@ -2985,8 +2991,8 @@ function importData() {
 
 // Condition context (used by AIEngine)
 let CONDITION_CONTEXT = {
-  name: 'Ankylosing Spondylitis',
-  description: 'A chronic inflammatory arthritis affecting the spine and joints',
+  name: '',
+  description: '',
   keyMetrics: ['backPain', 'stiffness', 'mobility', 'fatigue', 'sleep', 'flare'],
   treatmentAreas: ['pain management', 'mobility exercises', 'sleep quality', 'medication timing', 'flare prevention']
 };
@@ -3213,8 +3219,10 @@ function generateAISummary() {
     try {
       Logger.debug('AI Summary - Starting analysis', { sortedLogsCount: sortedLogs.length });
       
-  // Get ALL historical data - use global logs variable (already sorted)
-  const allLogsForTraining = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+  // Get ALL historical data - use cached sorted logs if available
+  const allLogsForTraining = window.PerformanceUtils?.memoizedSort
+    ? window.PerformanceUtils.memoizedSort(logs, (a, b) => new Date(a.date) - new Date(b.date), 'allLogsForTraining')
+    : [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
       
       Logger.debug('AI Summary - Training logs loaded', { trainingLogsCount: allLogsForTraining.length });
       
@@ -4395,6 +4403,24 @@ let logFormSymptomsItems = [];
 let editStressorsItems = [];
 let editSymptomsItems = [];
 
+// Optimized localStorage helper function
+function saveLogsToStorage() {
+  // Invalidate filtered logs cache
+  invalidateFilteredLogsCache();
+  
+  // Invalidate data cache
+  if (window.PerformanceUtils?.DataCache) {
+    window.PerformanceUtils.DataCache.invalidate('allHistoricalLogs');
+  }
+  
+  // Use batched storage for better performance
+  if (window.PerformanceUtils?.StorageBatcher) {
+    window.PerformanceUtils.StorageBatcher.setItem("healthLogs", JSON.stringify(logs));
+  } else {
+    localStorage.setItem("healthLogs", JSON.stringify(logs));
+  }
+}
+
 // Load logs - handle both compressed and uncompressed data
 let logs = [];
 try {
@@ -4408,26 +4434,53 @@ try {
         decompressData(stored).then(decompressed => {
           if (decompressed) {
             logs = decompressed;
+            // Make logs globally available
+            if (typeof window !== 'undefined') {
+              window.logs = logs;
+            }
             if (typeof renderLogs === 'function') renderLogs();
             if (typeof updateCharts === 'function') updateCharts();
           }
         }).catch(err => {
           console.error('Decompression error:', err);
           logs = [];
+          if (typeof window !== 'undefined') {
+            window.logs = logs;
+          }
         });
       } else {
         // Compression enabled but decompression not available - return empty
         console.warn('Compressed data found but decompression function not available');
         logs = [];
+        if (typeof window !== 'undefined') {
+          window.logs = logs;
+        }
       }
     } else {
       // Uncompressed JSON
       logs = JSON.parse(stored);
+      // Make logs globally available
+      if (typeof window !== 'undefined') {
+        window.logs = logs;
+      }
+    }
+  } else {
+    // No stored logs - make sure window.logs is set
+    if (typeof window !== 'undefined') {
+      window.logs = logs;
     }
   }
 } catch (error) {
-  console.error('Error loading logs:', error);
+  // Use safe error logging to prevent information leakage
+  if (window.SecurityUtils && window.SecurityUtils.safeLogError) {
+    window.SecurityUtils.safeLogError('Error loading logs', error);
+  } else {
+    console.error('Error loading logs');
+  }
   logs = [];
+  if (typeof window !== 'undefined') {
+    window.logs = logs;
+  }
 }
 
 // Migrate existing logs to include food and exercise arrays
@@ -4456,7 +4509,13 @@ function migrateLogs() {
     }
   });
   if (needsMigration) {
-    localStorage.setItem("healthLogs", JSON.stringify(logs));
+    // Use batched storage for better performance
+    if (window.PerformanceUtils?.StorageBatcher) {
+      window.PerformanceUtils.StorageBatcher.setItem("healthLogs", JSON.stringify(logs));
+    } else {
+      localStorage.setItem("healthLogs", JSON.stringify(logs));
+    }
+    invalidateFilteredLogsCache();
   }
 }
 
@@ -4497,86 +4556,30 @@ function updateHeartbeatAnimation() {
   console.log(`Heartbeat animation updated: ${latestBPM} BPM = ${duration.toFixed(2)}s per beat`);
 }
 
-// Add sample data if no data exists
-if (logs.length === 0) {
-  const sampleData = [
-    {
-      date: "2024-01-15",
-      bpm: 72,
-      weight: 75,
-      fatigue: 4,
-      stiffness: 6,
-      backPain: 5,
-      sleep: 7,
-      jointPain: 3,
-      mobility: 8,
-      dailyFunction: 7,
-      swelling: 2,
-      flare: "No",
-      mood: 6,
-      irritability: 3,
-      notes: "Feeling better today",
-      food: ["Grilled chicken, 200g", "Brown rice, 150g", "Steamed vegetables"],
-      exercise: ["Walking, 30 minutes", "Yoga, 20 minutes"]
-    },
-    {
-      date: "2024-01-16",
-      bpm: 75,
-      weight: 74.8,
-      fatigue: 6,
-      stiffness: 7,
-      backPain: 6,
-      sleep: 5,
-      jointPain: 5,
-      mobility: 6,
-      dailyFunction: 5,
-      swelling: 4,
-      flare: "No",
-      mood: 4,
-      irritability: 5,
-      notes: "Rough night sleep",
-      food: ["Oatmeal with berries", "Greek yogurt, 150g"],
-      exercise: []
-    },
-    {
-      date: "2024-01-17",
-      bpm: 68,
-      weight: 74.9,
-      fatigue: 3,
-      stiffness: 4,
-      backPain: 3,
-      sleep: 8,
-      jointPain: 2,
-      mobility: 9,
-      dailyFunction: 8,
-      swelling: 1,
-      flare: "No",
-      mood: 8,
-      irritability: 2,
-      notes: "Great day!",
-      food: ["Salmon fillet, 180g", "Quinoa salad", "Fresh fruit salad"],
-      exercise: ["Swimming, 25 minutes", "Stretching, 15 minutes"]
-    }
-  ];
-  
-  logs = sampleData;
-  localStorage.setItem("healthLogs", JSON.stringify(logs));
-  console.log("Added sample data for demonstration");
-  // Update heartbeat animation after sample data is added
-  setTimeout(() => updateHeartbeatAnimation(), 100);
-}
+// Sample data auto-insertion removed - was causing ghost entries from 2024-01-15 to 2024-01-17
+// Users should use the "Generate Demo Data" feature in settings if they want sample data
 
 function deleteLogEntry(logDate) {
   if (confirm(`Are you sure you want to delete the entry for ${logDate}?`)) {
-    // Remove from logs array
-    logs = logs.filter(log => log.date !== logDate);
+    // Remove from logs array (optimized - find index first)
+    const index = logs.findIndex(log => log.date === logDate);
+    if (index !== -1) {
+      logs.splice(index, 1);
+    }
     
-    // Update localStorage
-    localStorage.setItem("healthLogs", JSON.stringify(logs));
+    // Invalidate filtered logs cache
+    invalidateFilteredLogsCache();
     
-    // Re-render logs and update charts
+    // Update localStorage (batched)
+    if (window.PerformanceUtils?.StorageBatcher) {
+      window.PerformanceUtils.StorageBatcher.setItem("healthLogs", JSON.stringify(logs));
+    } else {
+      localStorage.setItem("healthLogs", JSON.stringify(logs));
+    }
+    
+    // Re-render logs and update charts (debounced)
     renderLogs();
-    updateCharts();
+    debounceChartUpdate();
     updateHeartbeatAnimation(); // Update heartbeat speed after deletion
     updateAISummaryButtonState(); // Update AI button state
     
@@ -5056,7 +5059,7 @@ function saveFoodLog() {
   const log = logs.find(l => l.date === currentEditingDate);
   if (log) {
     log.food = [...currentFoodItems];
-    localStorage.setItem("healthLogs", JSON.stringify(logs));
+    saveLogsToStorage();
     Logger.info('Food log saved', { date: currentEditingDate, itemCount: currentFoodItems.length });
     
     // Check if date filtering is active
@@ -5223,7 +5226,7 @@ function saveExerciseLog() {
   const log = logs.find(l => l.date === currentEditingDate);
   if (log) {
     log.exercise = [...currentExerciseItems];
-    localStorage.setItem("healthLogs", JSON.stringify(logs));
+    saveLogsToStorage();
     Logger.info('Exercise log saved', { date: currentEditingDate, itemCount: currentExerciseItems.length });
     
     // Check if date filtering is active
@@ -5583,7 +5586,7 @@ function saveInlineEdit(logDate) {
   if (!log.exercise) log.exercise = [];
   
   // Save to localStorage
-  localStorage.setItem("healthLogs", JSON.stringify(logs));
+  saveLogsToStorage();
   Logger.info('Health log entry edited inline and saved', { date: logDate });
   
   // Exit edit mode and re-render
@@ -5726,7 +5729,7 @@ function saveEditedEntry() {
   if (!log.food) log.food = [];
   if (!log.exercise) log.exercise = [];
   
-  localStorage.setItem("healthLogs", JSON.stringify(logs));
+  saveLogsToStorage();
   Logger.info('Health log entry edited and saved', { 
     originalDate: editingEntryDate, 
     newDate: log.date,
@@ -6006,47 +6009,97 @@ function toggleLogEntry(logDate) {
   }
 }
 
-// Shared render function to reduce code duplication
+// Shared render function to reduce code duplication (optimized)
 function renderLogEntries(logsToRender) {
-  // Use requestAnimationFrame for smooth DOM updates
-  requestAnimationFrame(() => {
-    const fragment = document.createDocumentFragment();
-  output.innerHTML = "";
-    
-    logsToRender.forEach(log => {
-    const div = document.createElement("div");
-    div.className = "entry";
-    div.setAttribute('data-log-date', log.date);
-    if (isExtreme(log)) div.classList.add("highlight");
-    if (log.flare === 'Yes') div.classList.add("flare-up-entry");
-    if (inlineEditingDate === log.date) {
-      div.classList.add("editing");
-      div.classList.add("expanded"); // Auto-expand when editing
-    }
-    
-    div.innerHTML = generateLogEntryHTML(log);
-    
-    // Hide content by default (collapsed), unless editing
-    const content = div.querySelector('.log-entry-content');
-    if (content) {
-      if (inlineEditingDate === log.date) {
-        content.style.display = 'block';
-        const arrow = div.querySelector('.log-entry-arrow');
-        if (arrow) arrow.textContent = '';
-      } else {
-        content.style.display = 'none';
-      }
-    }
-    
-      fragment.appendChild(div);
+  // Use DOMCache for output element
+  const outputEl = window.PerformanceUtils?.DOMCache?.getElement('output') || document.getElementById('output');
+  if (!outputEl) return;
+  
+  // Use DOMBatcher for better performance
+  if (window.PerformanceUtils?.domBatcher) {
+    window.PerformanceUtils.domBatcher.schedule(() => {
+      const fragment = document.createDocumentFragment();
+      outputEl.innerHTML = "";
+      
+      // Pre-compute HTML strings for better performance
+      const entries = logsToRender.map(log => {
+        const div = document.createElement("div");
+        div.className = "entry";
+        div.setAttribute('data-log-date', log.date);
+        if (isExtreme(log)) div.classList.add("highlight");
+        if (log.flare === 'Yes') div.classList.add("flare-up-entry");
+        if (inlineEditingDate === log.date) {
+          div.classList.add("editing");
+          div.classList.add("expanded");
+        }
+        
+        div.innerHTML = generateLogEntryHTML(log);
+        
+        // Hide content by default (collapsed), unless editing
+        const content = div.querySelector('.log-entry-content');
+        if (content) {
+          if (inlineEditingDate === log.date) {
+            content.style.display = 'block';
+            const arrow = div.querySelector('.log-entry-arrow');
+            if (arrow) arrow.textContent = '';
+          } else {
+            content.style.display = 'none';
+          }
+        }
+        
+        return div;
+      });
+      
+      entries.forEach(div => fragment.appendChild(div));
+      outputEl.appendChild(fragment);
     });
-    
-    output.appendChild(fragment);
-  });
+  } else {
+    // Fallback to requestAnimationFrame
+    requestAnimationFrame(() => {
+      const fragment = document.createDocumentFragment();
+      outputEl.innerHTML = "";
+      
+      logsToRender.forEach(log => {
+        const div = document.createElement("div");
+        div.className = "entry";
+        div.setAttribute('data-log-date', log.date);
+        if (isExtreme(log)) div.classList.add("highlight");
+        if (log.flare === 'Yes') div.classList.add("flare-up-entry");
+        if (inlineEditingDate === log.date) {
+          div.classList.add("editing");
+          div.classList.add("expanded");
+        }
+        
+        div.innerHTML = generateLogEntryHTML(log);
+        
+        const content = div.querySelector('.log-entry-content');
+        if (content) {
+          if (inlineEditingDate === log.date) {
+            content.style.display = 'block';
+            const arrow = div.querySelector('.log-entry-arrow');
+            if (arrow) arrow.textContent = '';
+          } else {
+            content.style.display = 'none';
+          }
+        }
+        
+        fragment.appendChild(div);
+      });
+      
+      outputEl.appendChild(fragment);
+    });
+  }
 }
 
 function renderLogs() {
-  renderLogEntries(logs);
+  // Ensure we're using the most up-to-date logs array
+  const currentLogs = (typeof window !== 'undefined' && window.logs) ? window.logs : logs;
+  if (!Array.isArray(currentLogs)) {
+    console.warn('renderLogs: logs is not an array', typeof currentLogs, currentLogs);
+    renderLogEntries([]);
+    return;
+  }
+  renderLogEntries(currentLogs);
 }
 
 // Old renderLogs code kept for reference - can be removed
@@ -6078,9 +6131,20 @@ function debounceChartUpdate() {
   }, 300); // 300ms debounce
 }
 
-// Get filtered logs based on current date range
+// Get filtered logs based on current date range (with caching)
+let _filteredLogsCache = null;
+let _filteredLogsCacheKey = null;
+
 function getFilteredLogs() {
   if (!logs || logs.length === 0) return [];
+  
+  // Create cache key from date range settings
+  const cacheKey = `${chartDateRange.type}_${chartDateRange.startDate}_${chartDateRange.endDate}_${logs.length}`;
+  
+  // Return cached if available and valid
+  if (_filteredLogsCache && _filteredLogsCacheKey === cacheKey) {
+    return _filteredLogsCache;
+  }
   
   let filtered = [...logs];
   
@@ -6097,6 +6161,8 @@ function getFilteredLogs() {
     });
   } else if (chartDateRange.type === 'custom') {
     // Custom range but dates not set yet - return all logs
+    _filteredLogsCache = filtered;
+    _filteredLogsCacheKey = cacheKey;
     return filtered;
   } else {
     // Days range (1, 7, 30, 90)
@@ -6113,21 +6179,35 @@ function getFilteredLogs() {
     });
   }
   
-  return filtered;
+  // Sort by date (newest first for display) - cache the sorted result
+  const sorted = filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+  _filteredLogsCache = sorted;
+  _filteredLogsCacheKey = cacheKey;
+  return sorted;
+}
+
+// Invalidate filtered logs cache when logs change
+function invalidateFilteredLogsCache() {
+  _filteredLogsCache = null;
+  _filteredLogsCacheKey = null;
 }
 
 // Set chart date range
 function setChartDateRange(range) {
   chartDateRange.type = range;
   
-  // Update button states
-  document.querySelectorAll('.date-range-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
+  // Invalidate filtered logs cache
+  invalidateFilteredLogsCache();
+  
+  // Update button states (use DOMCache if available)
+  const buttons = document.querySelectorAll('.date-range-btn');
+  buttons.forEach(btn => btn.classList.remove('active'));
   
   if (range === 'custom') {
-    document.getElementById('rangeCustom').classList.add('active');
-    document.getElementById('customDateRangeSelector').classList.remove('hidden');
+    const customBtn = window.PerformanceUtils?.DOMCache?.getElement('rangeCustom') || document.getElementById('rangeCustom');
+    const customSelector = window.PerformanceUtils?.DOMCache?.getElement('customDateRangeSelector') || document.getElementById('customDateRangeSelector');
+    if (customBtn) customBtn.classList.add('active');
+    if (customSelector) customSelector.classList.remove('hidden');
     
     // Set default dates if not already set
     const startInput = document.getElementById('chartStartDate');
@@ -6257,17 +6337,18 @@ function chart(id, label, dataField, color) {
     return;
   }
   
-  const container = document.getElementById(id);
+  // Use DOMCache for container
+  const container = window.PerformanceUtils?.DOMCache?.getElement(id) || document.getElementById(id);
   if (!container) {
     console.error(`Container element with id '${id}' not found`);
     return;
   }
   
-  // Detect mobile device
+  // Detect mobile device (cache window size check)
   const isMobile = window.innerWidth <= 768;
   const isSmallScreen = window.innerWidth <= 480;
   
-  // Get filtered logs based on date range
+  // Get filtered logs based on date range (cached)
   const filteredLogs = getFilteredLogs();
   
   // Check if we have data
@@ -6287,70 +6368,48 @@ function chart(id, label, dataField, color) {
     container.chart.destroy();
   }
   
-  // Prepare data and filter out invalid entries
-  const chartData = filteredLogs
-    .filter(log => {
-      // For weight, check if value exists and is valid (weight can be any positive number)
-      if (dataField === 'weight') {
-        const weightValue = log[dataField];
-        return weightValue !== undefined && weightValue !== null && weightValue !== '' && !isNaN(parseFloat(weightValue)) && parseFloat(weightValue) > 0;
+  // Prepare data and filter out invalid entries (optimized single-pass)
+  const chartData = [];
+  const dateCache = new Map(); // Cache date parsing
+  
+  for (let i = 0; i < filteredLogs.length; i++) {
+    const log = filteredLogs[i];
+    let value = log[dataField];
+    
+    // Validate and process value based on field type
+    if (dataField === 'weight') {
+      value = parseFloat(value);
+      if (isNaN(value) || value <= 0) continue;
+      if (appSettings.weightUnit === 'lb') {
+        value = parseFloat(kgToLb(value));
       }
-      // For steps, check if value exists and is valid (steps can be 0 or positive)
-      if (dataField === 'steps') {
-        const stepsValue = log[dataField];
-        return stepsValue !== undefined && stepsValue !== null && stepsValue !== '' && !isNaN(parseInt(stepsValue)) && parseInt(stepsValue) >= 0;
-      }
-      // For hydration, check if value exists and is valid (hydration can be 0 or positive)
-      if (dataField === 'hydration') {
-        const hydrationValue = log[dataField];
-        return hydrationValue !== undefined && hydrationValue !== null && hydrationValue !== '' && !isNaN(parseFloat(hydrationValue)) && parseFloat(hydrationValue) >= 0;
-      }
-      // For weatherSensitivity, check if value exists and is valid (can be 0-10)
-      if (dataField === 'weatherSensitivity') {
-        const weatherValue = log[dataField];
-        return weatherValue !== undefined && weatherValue !== null && weatherValue !== '' && !isNaN(parseFloat(weatherValue)) && parseFloat(weatherValue) >= 0 && parseFloat(weatherValue) <= 10;
-      }
-      // For other metrics, use standard filter
-      return log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '';
-    })
-    .map(log => {
-      let value = parseFloat(log[dataField]);
-      // For weight, ensure we have a valid number
-      if (dataField === 'weight') {
-        if (isNaN(value) || value <= 0) {
-          return null; // Skip invalid weight entries
-        }
-        // Convert weight to display unit if needed
-        if (appSettings.weightUnit === 'lb') {
-          value = parseFloat(kgToLb(value));
-        }
-      } else if (dataField === 'steps') {
-        // Steps: integer value, can be 0
-        value = parseInt(value) || 0;
-      } else if (dataField === 'hydration') {
-        // Hydration: float value, can be 0
-        value = parseFloat(value) || 0;
-      } else if (dataField === 'weatherSensitivity') {
-        // Weather Sensitivity: float value, 0-10 scale
-        value = parseFloat(value);
-        if (isNaN(value) || value < 0) value = 0;
-        if (value > 10) value = 10;
-      } else {
-        // For other metrics, use || 0 fallback
-        value = value || 0;
-      }
-      // Parse date properly for ApexCharts datetime type
-      const dateValue = new Date(log.date).getTime();
-      if (isNaN(dateValue)) {
-        return null; // Skip invalid dates
-      }
-      return {
-        x: dateValue, // Use timestamp for datetime axis
-        y: value
-      };
-    })
-    .filter(item => item !== null) // Remove any null entries
-    .sort((a, b) => a.x - b.x); // Sort by timestamp
+    } else if (dataField === 'steps') {
+      value = parseInt(value);
+      if (isNaN(value) || value < 0) continue;
+    } else if (dataField === 'hydration') {
+      value = parseFloat(value);
+      if (isNaN(value) || value < 0) continue;
+    } else if (dataField === 'weatherSensitivity') {
+      value = parseFloat(value);
+      if (isNaN(value) || value < 0 || value > 10) continue;
+    } else {
+      if (value === undefined || value === null || value === '') continue;
+      value = parseFloat(value) || 0;
+    }
+    
+    // Parse date (with caching)
+    let dateValue = dateCache.get(log.date);
+    if (!dateValue) {
+      dateValue = new Date(log.date).getTime();
+      if (isNaN(dateValue)) continue;
+      dateCache.set(log.date, dateValue);
+    }
+    
+    chartData.push({ x: dateValue, y: value });
+  }
+  
+  // Sort by timestamp
+  chartData.sort((a, b) => a.x - b.x);
   
   // Reduce data points on mobile for better performance
   let optimizedChartData = chartData;
@@ -7545,7 +7604,7 @@ form.addEventListener("submit", e => {
     logs.push(newEntry);
   Logger.info('Health log entry created', { date: newEntry.date, totalEntries: logs.length });
   
-  localStorage.setItem("healthLogs", JSON.stringify(logs));
+  saveLogsToStorage();
   Logger.debug('Health logs saved to localStorage', { entryCount: logs.length });
   
   // Sync anonymized data if contribution is enabled (but not in demo mode)
@@ -7645,7 +7704,7 @@ let appSettings = {
   lazy: true,
   userName: '',
   weightUnit: 'kg', // 'kg' or 'lb', always store as kg
-  medicalCondition: 'Ankylosing Spondylitis', // Default condition, user can change
+  medicalCondition: '', // Empty by default - user must set a condition
   contributeAnonData: false, // Contribute anonymised data to pool
   useOpenData: false // Use anonymised data pool for AI training (requires 90+ days)
 };
@@ -7707,6 +7766,24 @@ function loadSettingsState() {
   document.getElementById('soundToggle').classList.toggle('active', appSettings.sound);
   document.getElementById('backupToggle').classList.toggle('active', appSettings.backup);
   document.getElementById('compressToggle').classList.toggle('active', appSettings.compress);
+  
+  // Update demo mode toggle
+  const demoModeToggle = document.getElementById('demoModeToggle');
+  if (demoModeToggle) {
+    demoModeToggle.classList.toggle('active', appSettings.demoMode || false);
+    
+    // Disable toggle if it's already been clicked in this session
+    const demoToggleClicked = sessionStorage.getItem('demoToggleClicked') === 'true';
+    if (demoToggleClicked) {
+      demoModeToggle.style.opacity = '0.5';
+      demoModeToggle.style.cursor = 'not-allowed';
+      demoModeToggle.style.pointerEvents = 'none';
+    } else {
+      demoModeToggle.style.opacity = '1';
+      demoModeToggle.style.cursor = 'pointer';
+      demoModeToggle.style.pointerEvents = 'auto';
+    }
+  }
   
   // Update medical condition display and disable in demo mode
   const medicalConditionDisplay = document.getElementById('medicalConditionDisplay');
@@ -7809,11 +7886,7 @@ function loadSettingsState() {
     }
   }
   
-  // Demo mode toggle removed from settings - now controlled by F4 key only
-  // const demoModeToggle = document.getElementById('demoModeToggle');
-  // if (demoModeToggle) {
-  //   demoModeToggle.classList.toggle('active', appSettings.demoMode || false);
-  // }
+  // Demo mode toggle is now handled in loadSettingsState() above
   
   // Update reminder time input
   const reminderTimeInput = document.getElementById('reminderTime');
@@ -7855,8 +7928,12 @@ async function toggleContributeAnonData() {
     return;
   }
   
-  if (!appSettings.medicalCondition) {
-    showAlertModal('Please set a medical condition first to contribute anonymised data.', 'Condition Required');
+  // Check if medical condition is set and not the placeholder
+  const condition = appSettings.medicalCondition || '';
+  const isPlaceholder = !condition || condition.trim() === '' || condition.trim().toLowerCase() === 'medical condition';
+  
+  if (isPlaceholder) {
+    showAlertModal('Please set a medical condition first to contribute anonymised data.\n\nGo to Settings > Medical Condition to add your condition.', 'Condition Required');
     return;
   }
   
@@ -8490,15 +8567,22 @@ function updateMedicalCondition(condition = null) {
   
   // If condition is provided as parameter, use it; otherwise get from input
   if (!condition) {
-    const medicalConditionInput = document.getElementById('medicalConditionInput');
-    if (medicalConditionInput) {
-      condition = medicalConditionInput.value.trim() || 'Ankylosing Spondylitis';
+    const newConditionInput = document.getElementById('newConditionInput');
+    if (newConditionInput && newConditionInput.value.trim()) {
+      condition = newConditionInput.value.trim();
     } else {
-      condition = 'Ankylosing Spondylitis';
+      // No condition provided and input is empty - don't set a default
+      showAlertModal('Please enter a medical condition name.', 'Condition Required');
+      return;
     }
   }
   
-  if (!condition) return;
+  // Validate condition is not empty or placeholder
+  condition = condition.trim();
+  if (!condition || condition.toLowerCase() === 'medical condition') {
+    showAlertModal('Please enter a valid medical condition name.', 'Invalid Condition');
+    return;
+  }
   
   appSettings.medicalCondition = condition;
   saveSettings();
@@ -8907,6 +8991,25 @@ function generateDemoData(numDays = 3650) {
 }
 
 function toggleDemoMode() {
+  // Check if demo toggle has already been clicked in this session
+  const demoToggleClicked = sessionStorage.getItem('demoToggleClicked') === 'true';
+  
+  if (demoToggleClicked) {
+    // Silently ignore - toggle is already disabled
+    return;
+  }
+  
+  // Mark as clicked before proceeding
+  sessionStorage.setItem('demoToggleClicked', 'true');
+  
+  // Disable the toggle visually
+  const demoModeToggle = document.getElementById('demoModeToggle');
+  if (demoModeToggle) {
+    demoModeToggle.style.opacity = '0.5';
+    demoModeToggle.style.cursor = 'not-allowed';
+    demoModeToggle.style.pointerEvents = 'none';
+  }
+  
   const isDemoMode = appSettings.demoMode || false;
   
   Logger.info('Demo mode toggle initiated', { currentState: isDemoMode });
@@ -8919,6 +9022,10 @@ function toggleDemoMode() {
     if (originalLogs) {
       localStorage.setItem('healthLogs', originalLogs);
       logs = JSON.parse(originalLogs);
+      // Make logs globally available
+      if (typeof window !== 'undefined') {
+        window.logs = logs;
+      }
     }
     
     if (originalSettings) {
@@ -8933,7 +9040,9 @@ function toggleDemoMode() {
       if (userNameInput) userNameInput.value = appSettings.userName || '';
       if (medicalConditionInput) medicalConditionInput.value = appSettings.medicalCondition || '';
       updateDashboardTitle();
-      updateConditionContext(appSettings.medicalCondition || 'Ankylosing Spondylitis');
+      if (appSettings.medicalCondition && appSettings.medicalCondition.trim() !== '' && appSettings.medicalCondition.toLowerCase() !== 'medical condition') {
+        updateConditionContext(appSettings.medicalCondition);
+      }
     } else {
       // Even if no backup, ensure demoMode is false
       appSettings.demoMode = false;
@@ -8970,6 +9079,9 @@ function toggleDemoMode() {
     if (demoModeToggle) {
       demoModeToggle.classList.remove('active');
     }
+    
+    // Update settings state
+    loadSettingsState();
     
     // Final verification - read from localStorage one more time
     const verifySettings = JSON.parse(localStorage.getItem('healthAppSettings') || '{}');
@@ -9024,6 +9136,11 @@ function toggleDemoMode() {
           localStorage.setItem('healthLogs', JSON.stringify(demoLogs));
           logs = demoLogs;
           
+          // Make logs globally available
+          if (typeof window !== 'undefined') {
+            window.logs = logs;
+          }
+          
           // Update settings for demo
           appSettings.userName = 'John Doe';
           appSettings.medicalCondition = 'Arthritis';
@@ -9038,11 +9155,19 @@ function toggleDemoMode() {
           updateDashboardTitle();
           updateConditionContext('Arthritis');
           
-          // Refresh UI
-          renderLogs();
-          updateCharts();
-          updateHeartbeatAnimation();
-          loadSettingsState();
+          // Refresh UI - ensure logs are rendered
+          if (typeof renderLogs === 'function') {
+            renderLogs();
+          }
+          if (typeof updateCharts === 'function') {
+            updateCharts();
+          }
+          if (typeof updateHeartbeatAnimation === 'function') {
+            updateHeartbeatAnimation();
+          }
+          if (typeof loadSettingsState === 'function') {
+            loadSettingsState();
+          }
           
           // Remove loading indicator
           if (document.body.contains(loadingMsg)) {
@@ -9096,14 +9221,19 @@ function updateConditionContext(conditionName) {
 
 // Initialize condition context from settings
 function initializeConditionContext() {
-  const condition = appSettings.medicalCondition || 'Ankylosing Spondylitis';
-  updateConditionContext(condition);
+  const condition = appSettings.medicalCondition || '';
+  if (condition && condition.trim() !== '' && condition.toLowerCase() !== 'medical condition') {
+    updateConditionContext(condition);
+  }
 }
 
 // Old function - keeping for backward compatibility but updating it
 function updateMedicalConditionOld() {
-  const medicalConditionInput = document.getElementById('medicalConditionInput');
-  const condition = medicalConditionInput.value.trim() || 'Ankylosing Spondylitis';
+  const newConditionInput = document.getElementById('newConditionInput');
+  const condition = newConditionInput ? newConditionInput.value.trim() : '';
+  if (!condition || condition.toLowerCase() === 'medical condition') {
+    return; // Don't set placeholder as condition
+  }
   appSettings.medicalCondition = condition;
   saveSettings();
   updateConditionContext(condition);
@@ -9794,6 +9924,41 @@ window.addEventListener('load', () => {
   }
   
   loadSettings();
+  
+  // Check if demo mode is enabled and ensure demo data is loaded
+  if (appSettings.demoMode) {
+    const storedLogs = localStorage.getItem('healthLogs');
+    if (!storedLogs || storedLogs === '[]' || (storedLogs.startsWith('[') && JSON.parse(storedLogs).length === 0)) {
+      // Demo mode is enabled but no logs found - regenerate demo data
+      console.log('Demo mode enabled but no logs found, generating demo data...');
+      const demoLogs = generateDemoData(3650);
+      localStorage.setItem('healthLogs', JSON.stringify(demoLogs));
+      logs = demoLogs;
+      if (typeof window !== 'undefined') {
+        window.logs = logs;
+      }
+    } else {
+      // Load existing logs and ensure they're available
+      try {
+        if (storedLogs.startsWith('H4sI')) {
+          // Compressed - handled by async decompression above
+          // Will be set when decompression completes
+        } else {
+          logs = JSON.parse(storedLogs);
+          if (typeof window !== 'undefined') {
+            window.logs = logs;
+          }
+        }
+      } catch (e) {
+        console.error('Error loading demo logs:', e);
+        logs = [];
+        if (typeof window !== 'undefined') {
+          window.logs = logs;
+        }
+      }
+    }
+  }
+  
   renderLogs();
   updateCharts(); // Check for empty state on page load
   updateAISummaryButtonState(); // Update AI button state on page load
@@ -9807,11 +9972,8 @@ window.addEventListener('load', () => {
     saveSettings();
   }
   
-  // Initialize medical condition
-  if (!appSettings.medicalCondition) {
-    appSettings.medicalCondition = 'Ankylosing Spondylitis';
-    saveSettings();
-  }
+  // Don't initialize medical condition - user must set their own
+  // Medical condition will be empty by default, showing "Medical Condition" placeholder
   
   // Update condition context with stored value
   if (appSettings.medicalCondition) {

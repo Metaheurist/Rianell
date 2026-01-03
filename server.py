@@ -120,12 +120,38 @@ def install_requirements():
         logger.error(f"Error installing requirements: {e}", exc_info=True)
         return False
 
+# Function to check Supabase availability (tries both local lib and system/venv)
+def check_supabase_availability():
+    """Check if Supabase is available, trying system/venv first, then local lib"""
+    # First try system/venv (most common case, especially with virtual environments)
+    try:
+        from supabase import create_client, Client
+        return True
+    except ImportError:
+        pass
+    except Exception:
+        # If there's an import error due to missing dependencies, still try local lib
+        pass
+    
+    # Then try local lib (for bundled installations)
+    if LOCAL_LIB_DIR.exists():
+        try:
+            # Temporarily add to path if not already there
+            if str(LOCAL_LIB_DIR) not in sys.path:
+                sys.path.insert(0, str(LOCAL_LIB_DIR))
+            from supabase import create_client, Client
+            return True
+        except (ImportError, ModuleNotFoundError):
+            pass
+        except Exception:
+            # If there's an error due to broken dependencies in local lib, still return False
+            pass
+    
+    return False
+
 # Try to import Supabase client
-try:
-    from supabase import create_client, Client
-    SUPABASE_AVAILABLE = True
-except ImportError:
-    SUPABASE_AVAILABLE = False
+SUPABASE_AVAILABLE = check_supabase_availability()
+if not SUPABASE_AVAILABLE:
     print("Warning: supabase library not installed. Supabase features will be disabled.")
     print("Install with: pip install supabase")
 
@@ -215,8 +241,8 @@ PORT = int(os.getenv('PORT', '8080'))
 HOST = os.getenv('HOST', '')  # Empty string means bind to all interfaces (0.0.0.0), accessible over LAN
 
 # Supabase Configuration - Load from environment variables
-SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://tcoynycktablxankyriw.supabase.co')
-SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY', 'sb_publishable_nXggVFr8IphXxgOWQFlz4A_Ot79HO4e')
+SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://YOUR_PROJECT_REF.supabase.co')
+SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY', 'YOUR_SUPABASE_ANON_KEY')
 supabase_client = None
 
 logger.info("=" * 60)
@@ -387,11 +413,22 @@ def init_supabase_client():
     global supabase_client
     
     # Try to import supabase (works even if SUPABASE_AVAILABLE was False at startup)
+    global SUPABASE_AVAILABLE
     try:
         from supabase import create_client, Client
+        # Update global flag if we successfully imported
+        if not SUPABASE_AVAILABLE:
+            SUPABASE_AVAILABLE = True
+            logger.info("Supabase library now available (was not available at startup)")
     except ImportError:
-        logger.error("Supabase library not available - install with: pip install supabase")
-        return None
+        # Re-check availability in case it was installed
+        SUPABASE_AVAILABLE = check_supabase_availability()
+        if not SUPABASE_AVAILABLE:
+            logger.error("Supabase library not available - install with: pip install supabase")
+            return None
+        else:
+            logger.info("Supabase library found after re-check")
+            from supabase import create_client, Client
     
     try:
         if supabase_client is None:
@@ -488,11 +525,13 @@ def export_supabase_data(output_path=None, condition=None):
         logger.error(f"Error exporting Supabase data: {e}", exc_info=True)
         return None
 
-def generate_and_post_sample_data_to_supabase(num_days=90, medical_condition="Ankylosing Spondylitis", base_weight=75.0):
+def generate_and_post_sample_data_to_supabase(num_days=90, medical_condition="Medical Condition", base_weight=75.0):
     """
     Generate randomized anonymized health data and post to Supabase.
     Returns number of records posted.
     """
+    global SUPABASE_AVAILABLE
+    SUPABASE_AVAILABLE = check_supabase_availability()
     if not SUPABASE_AVAILABLE:
         logger.error("Cannot post sample data: Supabase library not available")
         return 0
@@ -1109,6 +1148,14 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
     def handle_supabase_status(self):
         """Handle Supabase status check endpoint"""
         try:
+            # Re-check Supabase availability
+            global SUPABASE_AVAILABLE
+            current_available = check_supabase_availability()
+            if current_available != SUPABASE_AVAILABLE:
+                SUPABASE_AVAILABLE = current_available
+                if current_available:
+                    logger.info("Supabase availability updated: now available")
+            
             client = init_supabase_client()
             status = {
                 'connected': client is not None,
@@ -1670,7 +1717,7 @@ def create_server_dashboard():
             window_geometry = root.geometry()
             window_x = root.winfo_x()
             window_y = root.winfo_y()
-            
+    
             # Update status
             server_status.config(text="Server: Restarting...")
             root.update()
@@ -1732,7 +1779,7 @@ def create_server_dashboard():
                             logger.warning(f"Could not open browser automatically after restart: {e}")
                     else:
                         logger.info("Browser already opened, skipping duplicate tab")
-                    
+    
                     # Update status and restore window position on main thread
                     root.after(0, lambda: server_status.config(text=f"Server: http://localhost:{PORT}"))
                     root.after(0, lambda: root.geometry(window_geometry))
@@ -1773,16 +1820,13 @@ def create_server_dashboard():
     def check_connection():
         """Check Supabase connection"""
         # Re-check if supabase is available at runtime (in case it was installed after server started)
-        supabase_available = SUPABASE_AVAILABLE
-        if not supabase_available:
-            # Try to import at runtime to see if it's available now
-            try:
-                from supabase import create_client, Client
-                supabase_available = True
-                logger.info("Supabase library found at runtime (was not available at startup)")
-            except ImportError:
-                connection_status.config(text="Status: Not Connected - Click 'Install Requirements'", foreground='#ff9800')
-                return False
+        global SUPABASE_AVAILABLE
+        supabase_available = check_supabase_availability()
+        if supabase_available and not SUPABASE_AVAILABLE:
+            SUPABASE_AVAILABLE = True
+            logger.info("Supabase library found at runtime (was not available at startup)")
+        elif not supabase_available:
+            SUPABASE_AVAILABLE = False
         
         if not supabase_available:
             connection_status.config(text="Status: Not Connected (Install: pip install supabase)", foreground='#ff9800')
@@ -1803,7 +1847,6 @@ def create_server_dashboard():
             logger.error(f"Supabase connection test failed: {e}")
             connection_status.config(text=f"Status: Not Connected (Error: {str(e)[:50]})", foreground='#ff9800')
             return False
-    
     # Refresh connection button
     refresh_connection_btn = ttk.Button(connection_frame, text="Refresh Connection", command=check_connection)
     refresh_connection_btn.pack(side=tk.LEFT, padx=(10, 0))
@@ -1850,49 +1893,46 @@ def create_server_dashboard():
     
     def load_available_conditions():
         """Load all unique conditions from Supabase and populate dropdown"""
+        global SUPABASE_AVAILABLE
+        SUPABASE_AVAILABLE = check_supabase_availability()
         if not SUPABASE_AVAILABLE:
             search_dropdown['values'] = []
             return
-        
-        try:
-            client = init_supabase_client()
-            if not client:
-                search_dropdown['values'] = []
-                return
-            
-            # Fetch all unique conditions
-            all_conditions = []
-            from_range = 0
-            page_size = 1000
-            has_more = True
-            
-            while has_more:
-                try:
-                    response = client.table('anonymized_data').select('medical_condition').range(from_range, from_range + page_size - 1).execute()
-                    if response.data:
-                        conditions = [d['medical_condition'] for d in response.data if d.get('medical_condition')]
-                        all_conditions.extend(conditions)
-                        has_more = len(response.data) == page_size
-                        from_range += page_size
-                    else:
-                        has_more = False
-                except Exception as e:
-                    logger.error(f"Error fetching conditions: {e}")
-                    has_more = False
-            
-            # Get unique conditions and sort
-            unique_conditions = sorted(list(set(all_conditions)))
-            search_dropdown['values'] = [''] + unique_conditions  # Add empty option for "all"
-            logger.info(f"Loaded {len(unique_conditions)} unique conditions for dropdown")
-        except Exception as e:
-            logger.error(f"Error loading conditions: {e}", exc_info=True)
+
+        client = init_supabase_client()
+        if not client:
             search_dropdown['values'] = []
-    
-    # Load conditions when UI is created
+            return
+        
+        # Fetch all unique conditions
+        all_conditions = []
+        from_range = 0
+        page_size = 1000
+        has_more = True
+        while has_more:
+            try:
+                response = client.table('anonymized_data').select('medical_condition').range(from_range, from_range + page_size - 1).execute()
+                if response.data:
+                    conditions = [d['medical_condition'] for d in response.data if d.get('medical_condition')]
+                    all_conditions.extend(conditions)
+            except Exception as e:
+                logger.error(f"Error fetching conditions: {e}")
+                has_more = False
+        
+        # Get unique conditions and sort
+            unique_conditions = sorted(list(set(all_conditions)))
+            try:
+                search_dropdown['values'] = [''] + unique_conditions  # Add empty option for "all"
+                logger.info(f"Loaded {len(unique_conditions)} unique conditions for dropdown")
+            except Exception as e:
+                logger.error(f"Error loading conditions: {e}", exc_info=True)
+                search_dropdown['values'] = []
     load_available_conditions()
     
     def perform_search():
         """Search Supabase data"""
+        global SUPABASE_AVAILABLE
+        SUPABASE_AVAILABLE = check_supabase_availability()
         if not SUPABASE_AVAILABLE:
             messagebox.showerror("Error", "Supabase library not installed.\nInstall with: pip install supabase")
             return
@@ -1932,6 +1972,8 @@ def create_server_dashboard():
     # Export frame
     def export_data():
         """Export Supabase data to CSV"""
+        global SUPABASE_AVAILABLE
+        SUPABASE_AVAILABLE = check_supabase_availability()
         if not SUPABASE_AVAILABLE:
             messagebox.showerror("Error", "Supabase library not installed.\nInstall with: pip install supabase")
             return
@@ -1951,13 +1993,13 @@ def create_server_dashboard():
         
         def do_export():
             condition = condition_var.get().strip() if condition_var.get().strip() else None
-            
+
             def export_thread():
                 try:
                     output_path = export_supabase_data(condition=condition)
                     if output_path:
                         root.after(0, lambda: messagebox.showinfo(
-                            "Success", 
+                            "Success",
                             f"Data exported successfully!\n\nSaved to:\n{output_path}"
                         ))
                     else:
@@ -1965,8 +2007,9 @@ def create_server_dashboard():
                 except Exception as e:
                     logger.error(f"Error exporting: {e}", exc_info=True)
                     root.after(0, lambda: messagebox.showerror("Error", f"Export failed: {e}"))
+                finally:
+                    dialog.destroy()
             
-            dialog.destroy()
             threading.Thread(target=export_thread, daemon=True).start()
         
         ttk.Button(dialog, text="Export CSV", command=do_export).pack(pady=10)
@@ -1978,6 +2021,8 @@ def create_server_dashboard():
     # Generate and post sample data frame
     def generate_sample_data():
         """Generate sample data and post to Supabase"""
+        global SUPABASE_AVAILABLE
+        SUPABASE_AVAILABLE = check_supabase_availability()
         if not SUPABASE_AVAILABLE:
             messagebox.showerror("Error", "Supabase library not installed.\nInstall with: pip install supabase")
             return
@@ -1996,7 +2041,7 @@ def create_server_dashboard():
         days_entry.pack(pady=5)
         
         ttk.Label(dialog, text="Medical Condition:", background='#1e1e1e', foreground='#e0f2f1').pack(pady=5)
-        condition_var = tk.StringVar(value="Ankylosing Spondylitis")
+        condition_var = tk.StringVar(value="Medical Condition")
         condition_entry = ttk.Entry(dialog, textvariable=condition_var, width=30)
         condition_entry.pack(pady=5)
         
@@ -2010,7 +2055,9 @@ def create_server_dashboard():
                 num_days = int(days_var.get())
                 condition = condition_var.get().strip()
                 weight = float(weight_var.get())
-                
+            except ValueError:
+                messagebox.showerror("Error", "Please enter valid numbers")
+                return
                 if num_days <= 0 or num_days > 3650:
                     messagebox.showerror("Error", "Number of days must be between 1 and 3650")
                     return
@@ -2030,14 +2077,14 @@ def create_server_dashboard():
                 
                 # Generate in background thread to avoid blocking UI
                 def generate_thread():
+                    def safe_update_progress(text):
+                        try:
+                            if dialog.winfo_exists():
+                                progress_label.config(text=text)
+                        except Exception:
+                            pass
+
                     try:
-                        def safe_update_progress(text):
-                            try:
-                                if dialog.winfo_exists():
-                                    progress_label.config(text=text)
-                            except:
-                                pass
-                        
                         root.after(0, lambda: safe_update_progress("Generating and posting data..."))
                         count = generate_and_post_sample_data_to_supabase(num_days, condition, weight)
                         root.after(0, lambda: safe_update_progress(f"Complete! Posted {count} records."))
@@ -2048,7 +2095,7 @@ def create_server_dashboard():
                         logger.error(f"Error in generate thread: {e}", exc_info=True)
                         root.after(0, lambda: safe_update_progress(f"Error: {str(e)[:50]}"))
                         root.after(2000, dialog.destroy)  # Auto-close after error
-                    
+                
                 threading.Thread(target=generate_thread, daemon=True).start()
                 
             except ValueError:
@@ -2080,7 +2127,7 @@ def create_server_dashboard():
         weight_var = tk.StringVar(value="75.0")
         weight_entry = ttk.Entry(dialog, textvariable=weight_var, width=20)
         weight_entry.pack(pady=5)
-        
+    
         def do_generate_csv():
             try:
                 num_days = int(days_var.get())
@@ -2169,6 +2216,8 @@ def create_server_dashboard():
             except (NameError, AttributeError):
                 pass  # Label not created yet
             
+            global SUPABASE_AVAILABLE
+            SUPABASE_AVAILABLE = check_supabase_availability()
             if not SUPABASE_AVAILABLE:
                 return
             
@@ -2242,7 +2291,20 @@ def create_server_dashboard():
     )
     logs_text.pack(fill=tk.BOTH, expand=True)
     
-    # Custom log handler to update text widget
+    # Configure color tags for different parts of log messages (partial highlighting)
+    logs_text.tag_config('TIMESTAMP', foreground='#808080', font=('Consolas', 9))  # Gray for timestamps
+    logs_text.tag_config('DEBUG', foreground='#808080', font=('Consolas', 9))  # Gray
+    logs_text.tag_config('INFO', foreground='#4caf50', font=('Consolas', 9))  # Green for INFO level
+    logs_text.tag_config('WARNING', foreground='#ff9800', font=('Consolas', 9))  # Orange
+    logs_text.tag_config('WARN', foreground='#ff9800', font=('Consolas', 9))  # Orange (alias)
+    logs_text.tag_config('ERROR', foreground='#f44336', font=('Consolas', 9, 'bold'))  # Red, bold
+    logs_text.tag_config('CRITICAL', foreground='#e91e63', font=('Consolas', 9, 'bold'))  # Pink, bold
+    logs_text.tag_config('SYNC', foreground='#2196f3', font=('Consolas', 9))  # Blue for sync keywords
+    logs_text.tag_config('REQUEST', foreground='#9c27b0', font=('Consolas', 9))  # Purple for HTTP methods
+    logs_text.tag_config('PATH', foreground='#00bcd4', font=('Consolas', 9))  # Cyan for paths
+    logs_text.tag_config('DEFAULT', foreground='#e0f2f1', font=('Consolas', 9))  # Default color
+    
+    # Custom log handler to update text widget with color coding
     class TextHandler(logging.Handler):
         def __init__(self, text_widget, root_window):
             super().__init__()
@@ -2254,20 +2316,117 @@ def create_server_dashboard():
             # Schedule update on main thread to avoid threading issues
             try:
                 if self.root and self.root.winfo_exists():
-                    self.root.after(0, self._update_widget, msg)
+                    self.root.after(0, self._update_widget, msg, record.levelname)
             except:
                 # If root doesn't exist or is destroyed, skip widget update
                 pass
         
-        def _update_widget(self, msg):
-            """Update widget on main thread"""
+        def _update_widget(self, msg, levelname):
+            """Update widget on main thread with partial color coding"""
             try:
                 if self.text_widget.winfo_exists():
-                    self.text_widget.insert(tk.END, msg + '\n')
+                    # Insert message with default color first
+                    start_pos = self.text_widget.index(tk.END)
+                    self.text_widget.insert(tk.END, msg + '\n', 'DEFAULT')
+                    
+                    # Apply partial highlighting to specific parts
+                    self._apply_partial_highlighting(start_pos, msg, levelname)
+                    
                     self.text_widget.see(tk.END)
+                    
+                    # Limit log size to prevent memory issues (keep last 1000 lines)
+                    line_count = int(self.text_widget.index('end-1c').split('.')[0])
+                    if line_count > 1000:
+                        self.text_widget.delete('1.0', f'{line_count - 1000}.0')
             except:
                 # Widget may have been destroyed
                 pass
+        
+        def _apply_partial_highlighting(self, start_pos, msg, levelname):
+            """Apply color tags to specific parts of the log message"""
+            import re
+            
+            # Parse the log format: "YYYY-MM-DD HH:MM:SS | LEVEL | Name | Message"
+            # Example: "2026-01-03 03:10:02 | INFO | HealthApp | SYNC | Anonymized data synced..."
+            
+            # Find timestamp (format: YYYY-MM-DD HH:MM:SS)
+            timestamp_pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+            timestamp_match = re.search(timestamp_pattern, msg)
+            if timestamp_match:
+                ts_start = start_pos + f"+{timestamp_match.start()}c"
+                ts_end = start_pos + f"+{timestamp_match.end()}c"
+                self.text_widget.tag_add('TIMESTAMP', ts_start, ts_end)
+            
+            # Find log level (format: | LEVEL |)
+            level_pattern = r'\|\s*(\w+)\s*\|'
+            level_matches = list(re.finditer(level_pattern, msg))
+            if level_matches:
+                # Usually the second match is the log level
+                for i, match in enumerate(level_matches):
+                    level_text = match.group(1).upper()
+                    level_start = start_pos + f"+{match.start()}c"
+                    level_end = start_pos + f"+{match.end()}c"
+                    
+                    # Apply color based on level
+                    if level_text == 'DEBUG':
+                        self.text_widget.tag_add('DEBUG', level_start, level_end)
+                    elif level_text == 'INFO':
+                        self.text_widget.tag_add('INFO', level_start, level_end)
+                    elif level_text in ('WARNING', 'WARN'):
+                        self.text_widget.tag_add('WARNING', level_start, level_end)
+                    elif level_text == 'ERROR':
+                        self.text_widget.tag_add('ERROR', level_start, level_end)
+                    elif level_text == 'CRITICAL':
+                        self.text_widget.tag_add('CRITICAL', level_start, level_end)
+            
+            # Highlight SYNC keywords
+            sync_pattern = r'\b(SYNC|synced|sync)\b'
+            for match in re.finditer(sync_pattern, msg, re.IGNORECASE):
+                sync_start = start_pos + f"+{match.start()}c"
+                sync_end = start_pos + f"+{match.end()}c"
+                self.text_widget.tag_add('SYNC', sync_start, sync_end)
+            
+            # Highlight HTTP methods (GET, POST, PUT, DELETE, etc.)
+            http_pattern = r'\b(GET|POST|PUT|DELETE|PATCH|OPTIONS)\b'
+            for match in re.finditer(http_pattern, msg, re.IGNORECASE):
+                http_start = start_pos + f"+{match.start()}c"
+                http_end = start_pos + f"+{match.end()}c"
+                self.text_widget.tag_add('REQUEST', http_start, http_end)
+            
+            # Highlight paths (e.g., /api/sync-log, /index.html)
+            path_pattern = r'(/[a-zA-Z0-9_\-./]+)'
+            for match in re.finditer(path_pattern, msg):
+                path_text = match.group(1)
+                # Only highlight actual file paths, not parts of other text
+                if '/' in path_text and (path_text.startswith('/api/') or path_text.endswith('.html') or path_text.endswith('.js') or path_text.endswith('.css')):
+                    path_start = start_pos + f"+{match.start()}c"
+                    path_end = start_pos + f"+{match.end()}c"
+                    self.text_widget.tag_add('PATH', path_start, path_end)
+        
+        def _get_tag_for_message(self, msg, levelname):
+            """Determine the appropriate color tag based on message content and level"""
+            msg_upper = msg.upper()
+            
+            # Check for specific message types first
+            if 'SYNC' in msg_upper or 'synced' in msg_upper.lower():
+                return 'SYNC'
+            elif 'REQUEST' in msg_upper or 'GET' in msg_upper or 'POST' in msg_upper:
+                return 'REQUEST'
+            
+            # Then check log level
+            levelname_upper = levelname.upper()
+            if levelname_upper == 'DEBUG':
+                return 'DEBUG'
+            elif levelname_upper == 'INFO':
+                return 'INFO'
+            elif levelname_upper in ('WARNING', 'WARN'):
+                return 'WARNING'
+            elif levelname_upper == 'ERROR':
+                return 'ERROR'
+            elif levelname_upper == 'CRITICAL':
+                return 'CRITICAL'
+            else:
+                return 'DEFAULT'
     
     text_handler = TextHandler(logs_text, root)
     text_handler.setFormatter(formatter)
@@ -2322,11 +2481,11 @@ def main():
             if install_requirements_local():
                 logger.info("Packages installed to local lib directory. Restarting imports...")
                 # Re-import after installation
-                try:
-                    from supabase import create_client, Client
-                    SUPABASE_AVAILABLE = True
+                # Re-check availability using the function
+                SUPABASE_AVAILABLE = check_supabase_availability()
+                if SUPABASE_AVAILABLE:
                     logger.info("Supabase now available after local installation")
-                except ImportError:
+                else:
                     logger.warning("Supabase still not available after installation")
         except Exception as e:
             logger.error(f"Error during automatic package installation: {e}", exc_info=True)

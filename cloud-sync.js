@@ -12,8 +12,8 @@ function initSupabase() {
   try {
     // Get config from window or use default
     const config = window.SUPABASE_CONFIG || {
-      url: 'https://tcoynycktablxankyriw.supabase.co',
-      anonKey: 'sb_publishable_nXggVFr8IphXxgOWQFlz4A_Ot79HO4e'
+      url: 'https://YOUR_PROJECT_REF.supabase.co',
+      anonKey: 'YOUR_SUPABASE_ANON_KEY'
     };
     
     if (typeof supabase !== 'undefined') {
@@ -55,9 +55,12 @@ async function syncAnonymizedData() {
     return;
   }
   
-  // Check if medical condition is set
-  if (!window.appSettings || !window.appSettings.medicalCondition) {
-    console.warn('[syncAnonymizedData] Medical condition not set. Cannot sync anonymized data.');
+  // Check if medical condition is set and not the placeholder
+  const medicalCondition = window.appSettings?.medicalCondition || '';
+  const isPlaceholder = !medicalCondition || medicalCondition.trim() === '' || medicalCondition.trim().toLowerCase() === 'medical condition';
+  
+  if (isPlaceholder) {
+    console.warn('[syncAnonymizedData] Medical condition not set or is placeholder. Cannot sync anonymized data.');
     return;
   }
   
@@ -102,8 +105,8 @@ async function syncAnonymizedData() {
     const syncedKeys = syncedKeysJson ? JSON.parse(syncedKeysJson) : [];
     const syncedKeysSet = new Set(syncedKeys);
     
-    // Get medical condition
-    const medicalCondition = window.appSettings.medicalCondition;
+    // Get medical condition (already validated above, but use the validated variable)
+    // medicalCondition was already validated and set above
     
     console.log(`[syncAnonymizedData] Medical condition: ${medicalCondition}`);
     console.log(`[syncAnonymizedData] Synced dates count: ${syncedDates.length}`);
@@ -375,13 +378,17 @@ async function syncAnonymizedData() {
           
           // Encrypt the anonymized log
           let encryptedLog;
-          if (typeof encryptAnonymizedData === 'function') {
+          // Check for encryption function in multiple ways (window, global, or direct)
+          const encryptFn = window.encryptAnonymizedData || (typeof encryptAnonymizedData !== 'undefined' ? encryptAnonymizedData : null);
+          
+          if (encryptFn && typeof encryptFn === 'function') {
             try {
-              encryptedLog = await encryptAnonymizedData(anonymizedLog);
+              encryptedLog = await encryptFn(anonymizedLog);
               if (!encryptedLog) {
                 console.error(`[syncAnonymizedData] Encryption returned null/undefined for date ${log.date}`);
                 continue; // Skip this log
               }
+              console.log(`[syncAnonymizedData] Successfully encrypted log for date ${log.date}`);
             } catch (encryptError) {
               console.error(`[syncAnonymizedData] Encryption error for date ${log.date}:`, encryptError);
               continue; // Skip this log
@@ -389,6 +396,7 @@ async function syncAnonymizedData() {
           } else {
             // Fallback: use JSON string if encryption not available
             console.warn('[syncAnonymizedData] encryptAnonymizedData not available, using plain JSON');
+            console.warn('[syncAnonymizedData] window.encryptAnonymizedData:', typeof window.encryptAnonymizedData);
             encryptedLog = JSON.stringify(anonymizedLog);
           }
           
@@ -402,7 +410,12 @@ async function syncAnonymizedData() {
           batchDates.push(log.date);
           batchKeys.push(`${log.date}_${medicalCondition}`);
         } catch (error) {
-          console.error(`[syncAnonymizedData] Error processing log for date ${log.date}:`, error);
+          // Use safe error logging to prevent information leakage
+          if (window.SecurityUtils && window.SecurityUtils.safeLogError) {
+            window.SecurityUtils.safeLogError(`[syncAnonymizedData] Error processing log for date ${log.date}`, error);
+          } else {
+            console.error(`[syncAnonymizedData] Error processing log for date ${log.date}`);
+          }
         }
       }
       
@@ -415,8 +428,12 @@ async function syncAnonymizedData() {
             .select();
           
           if (error) {
-            console.error('[syncAnonymizedData] Error syncing batch to Supabase:', error);
-            console.error('[syncAnonymizedData] Error details:', JSON.stringify(error, null, 2));
+            // Use safe error logging to prevent information leakage
+            if (window.SecurityUtils && window.SecurityUtils.safeLogError) {
+              window.SecurityUtils.safeLogError('[syncAnonymizedData] Error syncing batch to Supabase', error);
+            } else {
+              console.error('[syncAnonymizedData] Error syncing batch to Supabase');
+            }
             
             // Check if error is due to duplicate key/unique constraint violation
             const errorMessage = error.message || JSON.stringify(error);
@@ -449,9 +466,15 @@ async function syncAnonymizedData() {
             
             // Send sync log to server
             try {
+              // Add CSRF protection
+              const headers = { 'Content-Type': 'application/json' };
+              if (window.SecurityUtils && window.SecurityUtils.addCSRFHeader) {
+                window.SecurityUtils.addCSRFHeader(headers);
+              }
+              
               const logResponse = await fetch('/api/sync-log', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headers,
                 body: JSON.stringify({ 
                   synced_count: batchData.length, 
                   condition: medicalCondition 
@@ -461,12 +484,21 @@ async function syncAnonymizedData() {
                 console.warn(`[syncAnonymizedData] Server log response not OK: ${logResponse.status}`);
               }
             } catch (logError) {
-              console.error('[syncAnonymizedData] Error sending sync log to server:', logError);
+              // Use safe error logging
+              if (window.SecurityUtils && window.SecurityUtils.safeLogError) {
+                window.SecurityUtils.safeLogError('[syncAnonymizedData] Error sending sync log to server', logError);
+              } else {
+                console.error('[syncAnonymizedData] Error sending sync log to server');
+              }
             }
           }
         } catch (error) {
-          console.error('[syncAnonymizedData] Error posting batch to Supabase:', error);
-          console.error('[syncAnonymizedData] Error details:', error.message, error.stack);
+          // Use safe error logging to prevent information leakage
+          if (window.SecurityUtils && window.SecurityUtils.safeLogError) {
+            window.SecurityUtils.safeLogError('[syncAnonymizedData] Error posting batch to Supabase', error);
+          } else {
+            console.error('[syncAnonymizedData] Error posting batch to Supabase');
+          }
           // Don't mark dates as synced if there was an error - batchDates and batchKeys are not added
           console.log(`[syncAnonymizedData] Batch exception, not marking ${batchDates.length} log(s) as synced`);
         }
@@ -495,8 +527,13 @@ async function syncAnonymizedData() {
       logSyncToServer(newlySyncedDates.length, medicalCondition);
     }
     
-  } catch (error) {
-    console.error('[syncAnonymizedData] Error in syncAnonymizedData:', error);
+    } catch (error) {
+      // Use safe error logging to prevent information leakage
+      if (window.SecurityUtils && window.SecurityUtils.safeLogError) {
+        window.SecurityUtils.safeLogError('[syncAnonymizedData] Error in syncAnonymizedData', error);
+      } else {
+        console.error('[syncAnonymizedData] Error in syncAnonymizedData');
+      }
   }
 }
 
@@ -657,31 +694,783 @@ async function checkConditionDataAvailability(condition) {
 }
 
 /**
- * Clear synced keys for a condition (for debugging/re-syncing)
- * @param {string} condition - Medical condition to clear keys for (optional, clears all if not provided)
+ * Cloud authentication functions
+ * Implements Supabase Auth with email verification
  */
-function clearSyncedKeys(condition = null) {
-  if (condition) {
-    const syncedKeysJson = localStorage.getItem('anonymizedDataSyncedKeys');
-    if (syncedKeysJson) {
-      const syncedKeys = JSON.parse(syncedKeysJson);
-      const filteredKeys = syncedKeys.filter(key => !key.endsWith(`_${condition}`));
-      localStorage.setItem('anonymizedDataSyncedKeys', JSON.stringify(filteredKeys));
-      console.log(`[clearSyncedKeys] Cleared synced keys for condition: ${condition}`);
+
+// Cloud sync state management
+const cloudSyncState = {
+  isAuthenticated: false,
+  user: null,
+  autoSync: false,
+  lastSync: null
+};
+
+// Initialize cloud sync state from localStorage
+function loadCloudSyncState() {
+  try {
+    const saved = localStorage.getItem('cloudSyncState');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      cloudSyncState.isAuthenticated = parsed.isAuthenticated || false;
+      cloudSyncState.autoSync = parsed.autoSync || false;
+      cloudSyncState.lastSync = parsed.lastSync || null;
     }
-  } else {
-    localStorage.removeItem('anonymizedDataSyncedKeys');
-    localStorage.removeItem('anonymizedDataSyncedDates');
-    console.log('[clearSyncedKeys] Cleared all synced keys and dates');
+  } catch (error) {
+    console.error('Error loading cloud sync state:', error);
   }
 }
 
-// Make functions available globally
+// Save cloud sync state to localStorage
+function saveCloudSyncState() {
+  try {
+    localStorage.setItem('cloudSyncState', JSON.stringify({
+      isAuthenticated: cloudSyncState.isAuthenticated,
+      autoSync: cloudSyncState.autoSync,
+      lastSync: cloudSyncState.lastSync
+    }));
+  } catch (error) {
+    console.error('Error saving cloud sync state:', error);
+  }
+}
+
+// Update cloud sync UI
+function updateCloudSyncUI() {
+  const authSection = document.getElementById('cloudAuthSection');
+  const syncSection = document.getElementById('cloudSyncSection');
+  const statusText = document.getElementById('cloudStatusText');
+  const statusIndicator = document.getElementById('cloudStatusIndicator');
+  const userEmail = document.getElementById('cloudUserEmail');
+  const autoSyncCheckbox = document.getElementById('cloudAutoSync');
+  const lastSyncText = document.getElementById('cloudLastSync');
+  
+  if (cloudSyncState.isAuthenticated && cloudSyncState.user) {
+    // Show sync section, hide auth section
+    if (authSection) authSection.style.display = 'none';
+    if (syncSection) syncSection.style.display = 'block';
+    if (statusText) statusText.textContent = 'Connected';
+    if (statusIndicator) {
+      statusIndicator.style.backgroundColor = '#4caf50';
+      statusIndicator.title = 'Connected to cloud';
+    }
+    if (userEmail && cloudSyncState.user.email) {
+      userEmail.textContent = cloudSyncState.user.email;
+    }
+    if (autoSyncCheckbox) {
+      autoSyncCheckbox.checked = cloudSyncState.autoSync;
+    }
+    if (lastSyncText) {
+      if (cloudSyncState.lastSync) {
+        const lastSyncDate = new Date(cloudSyncState.lastSync);
+        lastSyncText.textContent = `Last sync: ${lastSyncDate.toLocaleString()}`;
+      } else {
+        lastSyncText.textContent = 'Last sync: Never';
+      }
+    }
+  } else {
+    // Show auth section, hide sync section
+    if (authSection) authSection.style.display = 'block';
+    if (syncSection) syncSection.style.display = 'none';
+    if (statusText) statusText.textContent = 'Not connected';
+    if (statusIndicator) {
+      statusIndicator.style.backgroundColor = '#f44336';
+      statusIndicator.title = 'Not connected';
+    }
+    // Clear email field
+    const emailInput = document.getElementById('cloudEmail');
+    const passwordInput = document.getElementById('cloudPassword');
+    if (emailInput) emailInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+  }
+}
+
+// Check authentication status on load
+async function checkAuthStatus() {
+  const client = initSupabase();
+  if (!client) {
+    console.error('Supabase client not available');
+    return;
+  }
+  
+  try {
+    const { data: { session }, error } = await client.auth.getSession();
+    if (error) {
+      console.error('Error checking auth status:', error);
+      cloudSyncState.isAuthenticated = false;
+      cloudSyncState.user = null;
+      updateCloudSyncUI();
+      return;
+    }
+    
+    if (session && session.user) {
+      cloudSyncState.isAuthenticated = true;
+      cloudSyncState.user = {
+        id: session.user.id,
+        email: session.user.email
+      };
+      saveCloudSyncState();
+      updateCloudSyncUI();
+      
+      // Check if email is verified
+      if (!session.user.email_confirmed_at) {
+        if (typeof showAlertModal === 'function') {
+          showAlertModal('Please verify your email address. Check your inbox for the verification email.', 'Email Verification Required');
+        }
+      }
+    } else {
+      cloudSyncState.isAuthenticated = false;
+      cloudSyncState.user = null;
+      updateCloudSyncUI();
+    }
+  } catch (error) {
+    console.error('Error checking auth status:', error);
+    cloudSyncState.isAuthenticated = false;
+    cloudSyncState.user = null;
+    updateCloudSyncUI();
+  }
+}
+
+// Handle cloud signup with email verification
+async function handleCloudSignUp() {
+  const email = document.getElementById('cloudEmail')?.value?.trim();
+  const password = document.getElementById('cloudPassword')?.value;
+  
+  if (!email || !password) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Please enter both email and password', 'Sign Up Error');
+    } else {
+      alert('Please enter both email and password');
+    }
+    return;
+  }
+  
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Please enter a valid email address', 'Invalid Email');
+    } else {
+      alert('Please enter a valid email address');
+    }
+    return;
+  }
+  
+  // Validate password strength
+  if (password.length < 6) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Password must be at least 6 characters long', 'Password Too Short');
+    } else {
+      alert('Password must be at least 6 characters long');
+    }
+    return;
+  }
+  
+  const client = initSupabase();
+  if (!client) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Supabase client not available. Please check your connection.', 'Connection Error');
+    } else {
+      alert('Supabase client not available');
+    }
+    return;
+  }
+  
+  try {
+    // Show loading state
+    const signUpBtn = document.getElementById('cloudSignUpBtn');
+    if (signUpBtn) {
+      signUpBtn.disabled = true;
+      signUpBtn.textContent = 'Creating account...';
+    }
+    
+    // Sign up with email verification
+    const { data, error } = await client.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        emailRedirectTo: window.location.origin + window.location.pathname,
+        data: {
+          // Optional: Add any additional user metadata here
+        }
+      }
+    });
+    
+    if (error) {
+      // Log full error for debugging (but sanitize in user message)
+      console.error('Supabase signup error details:', {
+        message: error.message,
+        status: error.status,
+        name: error.name
+      });
+      throw error;
+    }
+    
+    if (data.user) {
+      // Success - email verification sent
+      if (typeof showAlertModal === 'function') {
+        showAlertModal(
+          'Account created successfully! Please check your email to verify your account. You can sign in after verification.',
+          'Account Created'
+        );
+      } else {
+        alert('Account created! Please check your email to verify your account.');
+      }
+      
+      // Clear password field
+      const passwordInput = document.getElementById('cloudPassword');
+      if (passwordInput) passwordInput.value = '';
+      
+      console.log('Account created:', data.user.email);
+    }
+  } catch (error) {
+    console.error('Sign up error:', error);
+    let errorMessage = 'Failed to create account. Please try again.';
+    
+    if (error.message) {
+      if (error.message.includes('already registered') || error.message.includes('already exists') || error.message.includes('User already registered')) {
+        errorMessage = 'This email is already registered. Please sign in instead.';
+      } else if (error.message.includes('Invalid email') || error.message.includes('invalid email')) {
+        errorMessage = 'Please enter a valid email address.';
+      } else if (error.message.includes('Password') || error.message.includes('password')) {
+        errorMessage = 'Password does not meet requirements.';
+      } else if (error.message.includes('Database error') || error.message.includes('database error') || error.message.includes('finding user')) {
+        errorMessage = 'Database configuration error. Please contact support or try again later.';
+      } else if (error.message.includes('rate limit') || error.message.includes('too many requests')) {
+        errorMessage = 'Too many signup attempts. Please wait a moment and try again.';
+      } else if (error.message.includes('network') || error.message.includes('fetch')) {
+        errorMessage = 'Network error. Please check your internet connection and try again.';
+      } else {
+        // Don't expose internal error messages to users - use generic message
+        errorMessage = 'Failed to create account. Please check your email and password, then try again.';
+      }
+    }
+    
+    // Use safe error logging
+    if (window.SecurityUtils && window.SecurityUtils.safeLogError) {
+      window.SecurityUtils.safeLogError('Sign up error', error);
+    } else {
+      console.error('Sign up error:', error);
+    }
+    
+    if (typeof showAlertModal === 'function') {
+      showAlertModal(errorMessage, 'Sign Up Error');
+    } else {
+      alert(errorMessage);
+    }
+  } finally {
+    // Reset button state
+    const signUpBtn = document.getElementById('cloudSignUpBtn');
+    if (signUpBtn) {
+      signUpBtn.disabled = false;
+      signUpBtn.innerHTML = '<span>📝 Sign Up</span>';
+    }
+  }
+}
+
+// Handle cloud login
+async function handleCloudLogin() {
+  const email = document.getElementById('cloudEmail')?.value?.trim();
+  const password = document.getElementById('cloudPassword')?.value;
+  
+  if (!email || !password) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Please enter both email and password', 'Login Error');
+    } else {
+      alert('Please enter both email and password');
+    }
+    return;
+  }
+  
+  const client = initSupabase();
+  if (!client) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Supabase client not available. Please check your connection.', 'Connection Error');
+    } else {
+      alert('Supabase client not available');
+    }
+    return;
+  }
+  
+  try {
+    // Show loading state
+    const loginBtn = document.getElementById('cloudLoginBtn');
+    if (loginBtn) {
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in...';
+    }
+    
+    // Sign in
+    const { data, error } = await client.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+    
+    if (error) {
+      throw error;
+    }
+    
+    if (data.user) {
+      // Check if email is verified
+      if (!data.user.email_confirmed_at) {
+        if (typeof showAlertModal === 'function') {
+          showAlertModal(
+            'Please verify your email address before signing in. Check your inbox for the verification email.',
+            'Email Verification Required'
+          );
+        } else {
+          alert('Please verify your email address before signing in.');
+        }
+        await client.auth.signOut();
+        return;
+      }
+      
+      // Success - user logged in
+      cloudSyncState.isAuthenticated = true;
+      cloudSyncState.user = {
+        id: data.user.id,
+        email: data.user.email
+      };
+      saveCloudSyncState();
+      updateCloudSyncUI();
+      
+      // Clear password field
+      const passwordInput = document.getElementById('cloudPassword');
+      if (passwordInput) passwordInput.value = '';
+      
+      // Sync data if auto-sync is enabled
+      if (cloudSyncState.autoSync) {
+        setTimeout(() => syncToCloud(), 500);
+      }
+      
+      console.log('User logged in:', data.user.email);
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    let errorMessage = 'Failed to sign in. Please check your credentials and try again.';
+    
+    if (error.message) {
+      if (error.message.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid email or password. Please try again.';
+      } else if (error.message.includes('Email not confirmed')) {
+        errorMessage = 'Please verify your email address before signing in. Check your inbox for the verification email.';
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
+    if (typeof showAlertModal === 'function') {
+      showAlertModal(errorMessage, 'Login Error');
+    } else {
+      alert(errorMessage);
+    }
+  } finally {
+    // Reset button state
+    const loginBtn = document.getElementById('cloudLoginBtn');
+    if (loginBtn) {
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = '<span>🔐 Sign In</span>';
+    }
+  }
+}
+
+// Handle cloud logout
+async function handleCloudLogout() {
+  const client = initSupabase();
+  if (!client) {
+    console.error('Supabase client not available');
+    return;
+  }
+  
+  try {
+    await client.auth.signOut();
+    cloudSyncState.isAuthenticated = false;
+    cloudSyncState.user = null;
+    saveCloudSyncState();
+    updateCloudSyncUI();
+    
+    console.log('User logged out');
+  } catch (error) {
+    console.error('Logout error:', error);
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Failed to sign out. Please try again.', 'Logout Error');
+    } else {
+      alert('Failed to sign out');
+    }
+  }
+}
+
+// Sync user's health data to cloud (health_data table)
+async function syncToCloud() {
+  if (!cloudSyncState.isAuthenticated || !cloudSyncState.user) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Please sign in to sync your data to the cloud.', 'Not Signed In');
+    } else {
+      alert('Please sign in to sync your data');
+    }
+    return;
+  }
+  
+  const client = initSupabase();
+  if (!client) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Supabase client not available. Please check your connection.', 'Connection Error');
+    } else {
+      alert('Supabase client not available');
+    }
+    return;
+  }
+  
+  try {
+    // Get logs from localStorage
+    const logsJson = localStorage.getItem('healthLogs');
+    if (!logsJson) {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('No health data to sync.', 'No Data');
+      }
+      return;
+    }
+    
+    const logs = JSON.parse(logsJson);
+    if (!Array.isArray(logs) || logs.length === 0) {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('No health data to sync.', 'No Data');
+      }
+      return;
+    }
+    
+    // Get app settings
+    const settingsJson = localStorage.getItem('healthAppSettings');
+    const appSettings = settingsJson ? JSON.parse(settingsJson) : {};
+    
+    // Show loading state
+    const syncBtn = document.getElementById('cloudSyncBtn');
+    if (syncBtn) {
+      syncBtn.disabled = true;
+      syncBtn.innerHTML = '<span>🔄 Syncing...</span>';
+    }
+    
+    // Encrypt health logs if encryption is available
+    let encryptedLogs = logsJson;
+    if (typeof window !== 'undefined' && window.encryptAnonymizedData) {
+      try {
+        encryptedLogs = window.encryptAnonymizedData(logs);
+      } catch (encryptError) {
+        console.warn('Encryption failed, storing as plain JSON:', encryptError);
+        encryptedLogs = logsJson;
+      }
+    }
+    
+    // Encrypt app settings if encryption is available
+    let encryptedSettings = settingsJson || '{}';
+    if (typeof window !== 'undefined' && window.encryptAnonymizedData) {
+      try {
+        encryptedSettings = window.encryptAnonymizedData(appSettings);
+      } catch (encryptError) {
+        console.warn('Settings encryption failed, storing as plain JSON:', encryptError);
+        encryptedSettings = settingsJson || '{}';
+      }
+    }
+    
+    // Upsert data (insert or update if exists) - table structure: user_id, health_logs (text), app_settings (text), updated_at
+    const { data, error } = await client
+      .from('health_data')
+      .upsert({
+        user_id: cloudSyncState.user.id,
+        health_logs: encryptedLogs,
+        app_settings: encryptedSettings,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id',
+        ignoreDuplicates: false
+      });
+    
+    if (error) {
+      throw error;
+    }
+    
+    // Update sync state
+    cloudSyncState.lastSync = new Date().toISOString();
+    saveCloudSyncState();
+    updateCloudSyncUI();
+    
+    if (typeof showAlertModal === 'function') {
+      showAlertModal(
+        `Successfully synced ${logs.length} health log(s) to the cloud.`,
+        'Sync Complete'
+      );
+    } else {
+      alert(`Synced ${logs.length} health log(s) to the cloud.`);
+    }
+    
+    console.log(`Synced ${logs.length} health log(s) to cloud`);
+  } catch (error) {
+    console.error('Sync error:', error);
+    let errorMessage = 'Failed to sync data to cloud. Please try again.';
+    
+    if (error.message) {
+      if (error.message.includes('permission') || error.message.includes('policy')) {
+        errorMessage = 'Permission denied. Please check your account permissions.';
+      } else if (error.message.includes('network') || error.message.includes('fetch')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
+    if (typeof showAlertModal === 'function') {
+      showAlertModal(errorMessage, 'Sync Error');
+    } else {
+      alert(errorMessage);
+    }
+  } finally {
+    // Reset button state
+    const syncBtn = document.getElementById('cloudSyncBtn');
+    if (syncBtn) {
+      syncBtn.disabled = false;
+      syncBtn.innerHTML = '<span>🔄 Sync Now</span>';
+    }
+  }
+}
+
+// Load user's health data from cloud
+async function loadFromCloud() {
+  if (!cloudSyncState.isAuthenticated || !cloudSyncState.user) {
+    console.warn('Cannot load from cloud: not authenticated');
+    return;
+  }
+  
+  const client = initSupabase();
+  if (!client) {
+    console.error('Supabase client not available');
+    return;
+  }
+  
+  try {
+    const { data, error } = await client
+      .from('health_data')
+      .select('health_logs, app_settings')
+      .eq('user_id', cloudSyncState.user.id)
+      .single();
+    
+    if (error) {
+      // If no data found (PGRST116), that's okay - user hasn't synced yet
+      if (error.code === 'PGRST116') {
+        console.log('No cloud data found for user - first time sync');
+        return;
+      }
+      throw error;
+    }
+    
+    if (data) {
+      // Decrypt health logs if encrypted
+      let cloudLogsJson = data.health_logs;
+      if (typeof window !== 'undefined' && window.decryptAnonymizedData && typeof cloudLogsJson === 'string') {
+        try {
+          const decrypted = window.decryptAnonymizedData(cloudLogsJson);
+          if (decrypted && Array.isArray(decrypted)) {
+            cloudLogsJson = JSON.stringify(decrypted);
+          } else if (decrypted && typeof decrypted === 'object') {
+            cloudLogsJson = JSON.stringify(decrypted);
+          }
+        } catch (decryptError) {
+          console.warn('Decryption failed, trying as plain JSON:', decryptError);
+          // Try parsing as plain JSON
+          try {
+            JSON.parse(cloudLogsJson);
+          } catch (parseError) {
+            console.error('Failed to parse cloud logs:', parseError);
+            return;
+          }
+        }
+      }
+      
+      // Parse cloud logs
+      let cloudLogs = [];
+      try {
+        if (typeof cloudLogsJson === 'string') {
+          cloudLogs = JSON.parse(cloudLogsJson);
+        } else if (Array.isArray(cloudLogsJson)) {
+          cloudLogs = cloudLogsJson;
+        }
+      } catch (parseError) {
+        console.error('Failed to parse cloud logs:', parseError);
+        return;
+      }
+      
+      if (!Array.isArray(cloudLogs)) {
+        console.error('Cloud logs is not an array');
+        return;
+      }
+      
+      // Decrypt and merge app settings
+      if (data.app_settings) {
+        let cloudSettingsJson = data.app_settings;
+        if (typeof window !== 'undefined' && window.decryptAnonymizedData && typeof cloudSettingsJson === 'string') {
+          try {
+            const decrypted = window.decryptAnonymizedData(cloudSettingsJson);
+            if (decrypted && typeof decrypted === 'object') {
+              cloudSettingsJson = JSON.stringify(decrypted);
+            }
+          } catch (decryptError) {
+            console.warn('Settings decryption failed, trying as plain JSON:', decryptError);
+          }
+        }
+        
+        try {
+          const cloudSettings = JSON.parse(cloudSettingsJson);
+          // Merge cloud settings with local settings (cloud takes precedence)
+          if (window.appSettings && typeof window.appSettings === 'object') {
+            window.appSettings = { ...window.appSettings, ...cloudSettings };
+            if (typeof saveSettings === 'function') {
+              saveSettings();
+            }
+          }
+        } catch (parseError) {
+          console.warn('Failed to parse cloud settings:', parseError);
+        }
+      }
+      
+      // Merge cloud logs with local logs (cloud takes precedence for conflicts)
+      const localLogs = JSON.parse(localStorage.getItem('healthLogs') || '[]');
+      
+      // Create a map of dates to logs (cloud data)
+      const cloudLogsMap = new Map();
+      cloudLogs.forEach(log => {
+        if (log && log.date) {
+          cloudLogsMap.set(log.date, log);
+        }
+      });
+      
+      // Merge: keep local logs that don't exist in cloud, use cloud logs for conflicts
+      const mergedLogs = [];
+      const processedDates = new Set();
+      
+      // Add cloud logs first (they take precedence)
+      cloudLogs.forEach(log => {
+        if (log && log.date) {
+          mergedLogs.push(log);
+          processedDates.add(log.date);
+        }
+      });
+      
+      // Add local logs that don't exist in cloud
+      localLogs.forEach(log => {
+        if (log && log.date && !processedDates.has(log.date)) {
+          mergedLogs.push(log);
+          processedDates.add(log.date);
+        }
+      });
+      
+      // Sort by date (newest first)
+      mergedLogs.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      // Save merged data
+      if (window.PerformanceUtils?.StorageBatcher) {
+        window.PerformanceUtils.StorageBatcher.setItem('healthLogs', JSON.stringify(mergedLogs));
+      } else {
+        localStorage.setItem('healthLogs', JSON.stringify(mergedLogs));
+      }
+      
+      // Update app logs array
+      if (typeof window !== 'undefined' && window.logs) {
+        window.logs = mergedLogs;
+      }
+      
+      // Refresh UI
+      if (typeof renderLogs === 'function') {
+        renderLogs();
+      }
+      if (typeof debounceChartUpdate === 'function') {
+        debounceChartUpdate();
+      } else if (typeof updateCharts === 'function') {
+        updateCharts();
+      }
+      
+      console.log(`Loaded ${cloudLogs.length} health log(s) from cloud`);
+    }
+  } catch (error) {
+    console.error('Load from cloud error:', error);
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Failed to load data from cloud. Please try again.', 'Load Error');
+    }
+  }
+}
+
+// Make functions globally available
 if (typeof window !== 'undefined') {
+  window.handleCloudLogin = handleCloudLogin;
+  window.handleCloudSignUp = handleCloudSignUp;
+  window.handleCloudLogout = handleCloudLogout;
+  window.syncToCloud = syncToCloud;
+  window.loadFromCloud = loadFromCloud;
+  window.cloudSyncState = cloudSyncState;
+  window.updateCloudSyncUI = updateCloudSyncUI;
+  
+  // Initialize cloud sync state and check auth on load
+  loadCloudSyncState();
+  
+  // Check auth status when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        checkAuthStatus().then(() => {
+          updateCloudSyncUI();
+          // Load data from cloud if authenticated
+          if (cloudSyncState.isAuthenticated) {
+            loadFromCloud();
+          }
+        });
+      }, 500);
+    });
+  } else {
+    setTimeout(() => {
+      checkAuthStatus().then(() => {
+        updateCloudSyncUI();
+        // Load data from cloud if authenticated
+        if (cloudSyncState.isAuthenticated) {
+          loadFromCloud();
+        }
+      });
+    }, 500);
+  }
+  
+  // Listen for auth state changes
+  if (typeof supabase !== 'undefined') {
+    const client = initSupabase();
+    if (client) {
+      client.auth.onAuthStateChange((event, session) => {
+        console.log('Auth state changed:', event);
+        if (event === 'SIGNED_IN' && session && session.user) {
+          cloudSyncState.isAuthenticated = true;
+          cloudSyncState.user = {
+            id: session.user.id,
+            email: session.user.email
+          };
+          saveCloudSyncState();
+          updateCloudSyncUI();
+          // Load data from cloud
+          loadFromCloud();
+        } else if (event === 'SIGNED_OUT') {
+          cloudSyncState.isAuthenticated = false;
+          cloudSyncState.user = null;
+          saveCloudSyncState();
+          updateCloudSyncUI();
+        } else if (event === 'TOKEN_REFRESHED' && session && session.user) {
+          cloudSyncState.isAuthenticated = true;
+          cloudSyncState.user = {
+            id: session.user.id,
+            email: session.user.email
+          };
+          saveCloudSyncState();
+        }
+      });
+    }
+  }
+  
+  // Anonymized data sync functions
   window.syncAnonymizedData = syncAnonymizedData;
   window.initSupabase = initSupabase;
   window.setupBackgroundSync = setupBackgroundSync;
-  window.toggleAutoSync = toggleAutoSync;
   window.checkConditionDataAvailability = checkConditionDataAvailability;
   window.clearSyncedKeys = clearSyncedKeys; // For debugging
   
@@ -698,6 +1487,46 @@ if (typeof window !== 'undefined') {
     setTimeout(() => {
       setupBackgroundSync();
     }, 1000);
+  }
+  
+  // Update toggleAutoSync to work with cloud sync state
+  const originalToggleAutoSync = window.toggleAutoSync;
+  window.toggleAutoSync = function() {
+    const checkbox = document.getElementById('cloudAutoSync');
+    if (checkbox) {
+      cloudSyncState.autoSync = checkbox.checked;
+      saveCloudSyncState();
+      console.log('Cloud auto-sync:', checkbox.checked ? 'enabled' : 'disabled');
+      
+      // If enabling auto-sync and authenticated, sync immediately
+      if (checkbox.checked && cloudSyncState.isAuthenticated) {
+        setTimeout(() => syncToCloud(), 500);
+      }
+    }
+    // Also call original function for anonymized data sync
+    if (originalToggleAutoSync) {
+      originalToggleAutoSync();
+    }
+  };
+}
+
+/**
+ * Clear synced keys for a condition (for debugging/re-syncing)
+ * @param {string} condition - Medical condition to clear keys for (optional, clears all if not provided)
+ */
+function clearSyncedKeys(condition = null) {
+  if (condition) {
+    const syncedKeysJson = localStorage.getItem('anonymizedDataSyncedKeys');
+    if (syncedKeysJson) {
+      const syncedKeys = JSON.parse(syncedKeysJson);
+      const filteredKeys = syncedKeys.filter(key => !key.endsWith(`_${condition}`));
+      localStorage.setItem('anonymizedDataSyncedKeys', JSON.stringify(filteredKeys));
+      console.log(`[clearSyncedKeys] Cleared synced keys for condition: ${condition}`);
+    }
+  } else {
+    localStorage.removeItem('anonymizedDataSyncedKeys');
+    localStorage.removeItem('anonymizedDataSyncedDates');
+    console.log('[clearSyncedKeys] Cleared all synced keys and dates');
   }
 }
 
