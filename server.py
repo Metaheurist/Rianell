@@ -55,43 +55,11 @@ def check_requirements():
     return missing_packages
 
 def install_requirements_local():
-    """Install requirements.txt to local lib directory"""
-    try:
-        requirements_file = APP_DIR / 'requirements.txt'
-        if not requirements_file.exists():
-            logger.warning(f"requirements.txt not found at {requirements_file}")
-            return False
-        
-        # Create local lib directory if it doesn't exist
-        LOCAL_LIB_DIR.mkdir(exist_ok=True)
-        
-        python_exe = sys.executable
-        logger.info(f"Installing requirements to {LOCAL_LIB_DIR} using: {python_exe}")
-        
-        result = subprocess.run(
-            [python_exe, '-m', 'pip', 'install', '-r', str(requirements_file), 
-             '--target', str(LOCAL_LIB_DIR), '--upgrade'],
-            capture_output=True,
-            text=True,
-            timeout=600
-        )
-        
-        if result.returncode == 0:
-            logger.info(f"Requirements installed successfully to {LOCAL_LIB_DIR}")
-            if result.stdout:
-                logger.debug(f"Install output: {result.stdout}")
-            return True
-        else:
-            logger.error(f"Failed to install requirements. Return code: {result.returncode}")
-            if result.stderr:
-                logger.error(f"Error output: {result.stderr}")
-            return False
-    except subprocess.TimeoutExpired:
-        logger.error("Requirements installation timed out after 10 minutes")
-        return False
-    except Exception as e:
-        logger.error(f"Error installing requirements: {e}", exc_info=True)
-        return False
+    """Install requirements.txt to local lib directory - DISABLED due to permission issues"""
+    # Local lib installation is disabled by default to avoid permission issues
+    # Users should install packages using: pip install -r requirements.txt
+    logger.debug("Local lib installation disabled - using system-wide installation instead")
+    return False
 
 def install_requirements():
     """Install requirements.txt - tries local first, falls back to system"""
@@ -252,6 +220,8 @@ HOST = os.getenv('HOST', '')  # Empty string means bind to all interfaces (0.0.0
 # Supabase Configuration - Load from environment variables
 SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://YOUR_PROJECT_REF.supabase.co')
 SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY', 'YOUR_SUPABASE_ANON_KEY')
+SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')
+DATABASE_URL = os.getenv('DATABASE_URL')  # Optional: postgres connection string for direct SQL execution
 supabase_client = None
 
 logger.info("=" * 60)
@@ -445,15 +415,69 @@ def init_supabase_client():
         logger.error(f"Unexpected error importing supabase: {e}", exc_info=True)
         return None
     
-    try:
-        if supabase_client is None:
-            from supabase import create_client
-            supabase_client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
-            logger.info("Supabase client initialized successfully")
-        return supabase_client
-    except Exception as e:
-        logger.error(f"Error initializing Supabase client: {e}", exc_info=True)
-        return None
+    if supabase_client is None:
+        from supabase import create_client
+        supabase_client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+        logger.info("Supabase client initialized successfully")
+    return supabase_client
+
+
+def run_sql(sql):
+    """Execute arbitrary SQL safely.
+
+    Preference order:
+    1. If `DATABASE_URL` is set and `psycopg2`/`psycopg` is available, connect directly to Postgres and execute.
+    2. Otherwise, if `SUPABASE_SERVICE_KEY` is present, caller may create an RPC function in the DB
+       (e.g. a pg function `exec_sql(text)`) and then call it via PostgREST `/rpc/exec_sql` with
+       the service key. This code includes a helper to attempt direct RPC but the RPC must
+       exist server-side and be security-reviewed.
+
+    Returns query rows for SELECT, or {'status': 'ok'} for non-SELECT, or raises Exception.
+    """
+    # Try direct DB connection via DATABASE_URL
+    if DATABASE_URL:
+        try:
+            try:
+                import psycopg
+                conn = psycopg.connect(DATABASE_URL)
+                cur = conn.cursor()
+            except Exception:
+                import psycopg2
+                conn = psycopg2.connect(DATABASE_URL)
+                cur = conn.cursor()
+
+            cur.execute(sql)
+            if cur.description:
+                rows = cur.fetchall()
+            else:
+                rows = None
+            conn.commit()
+            cur.close()
+            conn.close()
+            return rows if rows is not None else {'status': 'ok'}
+        except Exception as e:
+            logger.error(f"Direct SQL execution failed: {e}")
+            raise
+
+    # Fallback: attempt RPC call using SUPABASE_SERVICE_KEY (requires server-side RPC function)
+    if SUPABASE_SERVICE_KEY:
+        try:
+            import requests
+            rpc_url = SUPABASE_URL.rstrip('/') + '/rpc/exec_sql'
+            headers = {
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': f'Bearer {SUPABASE_SERVICE_KEY}',
+                'Content-Type': 'application/json'
+            }
+            payload = {'q': sql}
+            resp = requests.post(rpc_url, headers=headers, json=payload, timeout=30)
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:
+            logger.error(f"RPC SQL execution failed: {e}")
+            raise
+
+    raise RuntimeError('No method available to execute SQL. Set DATABASE_URL or SUPABASE_SERVICE_KEY and create a DB RPC.')
 
 def search_supabase_data(condition=None, limit=100):
     """Search anonymized_data in Supabase"""
@@ -472,14 +496,21 @@ def search_supabase_data(condition=None, limit=100):
         response = query.execute()
         data = response.data
         
-        # Decrypt anonymized_log data if encrypted
+        # Decrypt anonymized_logs data if encrypted
         if data:
             for record in data:
-                encrypted_log = record.get('anonymized_log')
-                if encrypted_log:
-                    decrypted_log = decrypt_anonymized_data(encrypted_log)
-                    if decrypted_log:
-                        record['anonymized_log'] = decrypted_log
+                encrypted_log = record.get('anonymized_logs') or record.get('anonymized_log')
+                if encrypted_log and isinstance(encrypted_log, str):
+                    try:
+                        decrypted_log = decrypt_anonymized_data(encrypted_log)
+                        if decrypted_log:
+                            # Store in both field names for compatibility
+                            record['anonymized_logs'] = decrypted_log
+                            record['anonymized_log'] = decrypted_log
+                        else:
+                            logger.debug(f"Decryption returned None for record {record.get('id')}")
+                    except Exception as e:
+                        logger.warning(f"Error decrypting record {record.get('id')}: {e}")
         
         return data
     except Exception as e:
@@ -506,7 +537,7 @@ def export_supabase_data(output_path=None, condition=None):
             headers = ['id', 'medical_condition', 'created_at', 'updated_at']
             log_headers = []
             if data and len(data) > 0:
-                first_log = data[0].get('anonymized_log', {})
+                first_log = data[0].get('anonymized_logs') or data[0].get('anonymized_log', {})
                 if isinstance(first_log, dict):
                     log_headers = list(first_log.keys())
             
@@ -523,8 +554,8 @@ def export_supabase_data(output_path=None, condition=None):
                     'updated_at': record.get('updated_at', '')
                 }
                 
-                # Add anonymized_log fields (decrypt if needed)
-                encrypted_log = record.get('anonymized_log')
+                # Add anonymized_logs fields (decrypt if needed)
+                encrypted_log = record.get('anonymized_logs') or record.get('anonymized_log')
                 log_data = decrypt_anonymized_data(encrypted_log) if encrypted_log else {}
                 if isinstance(log_data, dict):
                     for key in log_headers:
@@ -695,7 +726,7 @@ def generate_and_post_sample_data_to_supabase(num_days=90, medical_condition="Me
             
             batch_data.append({
                 'medical_condition': medical_condition,
-                'anonymized_log': encrypted_log
+                'anonymized_logs': encrypted_log
             })
             
             # Post batch when it reaches batch_size or at the end
@@ -1539,11 +1570,11 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             # Fetch and decrypt anonymized data
             data = search_supabase_data(condition=condition, limit=limit)
             
-            # Transform data for training: extract only anonymized_log fields
+            # Transform data for training: extract only anonymized_logs fields
             training_data = []
             if data:
                 for record in data:
-                    log_data = record.get('anonymized_log', {})
+                    log_data = record.get('anonymized_logs') or record.get('anonymized_log', {})
                     if isinstance(log_data, dict):
                         training_data.append(log_data)
             
@@ -2055,6 +2086,87 @@ def create_server_dashboard():
     export_btn = ttk.Button(action_frame, text="Export to CSV", command=export_data)
     export_btn.pack(side=tk.LEFT, padx=5)
     
+    # Wipe database function
+    def wipe_database():
+        """Wipe all data from anonymized_data table"""
+        global SUPABASE_AVAILABLE
+        SUPABASE_AVAILABLE = check_supabase_availability()
+        if not SUPABASE_AVAILABLE:
+            messagebox.showerror("Error", "Supabase library not installed.")
+            return
+        
+        # Confirmation dialog
+        if not messagebox.askyesno("Confirm Wipe", 
+            "WARNING: This will delete ALL data from the database!\n\n"
+            "Are you sure you want to continue?"):
+            return
+        
+        try:
+            client = init_supabase_client()
+            if not client:
+                messagebox.showerror("Error", "Supabase client not initialized")
+                return
+            
+            logger.info("Wiping database: deleting all records from anonymized_data...")
+
+            # Prefer using the Supabase service key to perform a server-side delete in one request.
+            # This avoids slow client-side loops and bypasses RLS when using the SERVICE KEY.
+            if SUPABASE_SERVICE_KEY:
+                try:
+                    from supabase import create_client as create_service_client
+                    svc = create_service_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+                    # Delete all rows where id != 0 (serial IDs start at 1) to remove all records
+                    resp = svc.table('anonymized_data').delete().neq('id', 0).execute()
+                    # resp may contain error info depending on client version
+                    deleted = 0
+                    if hasattr(resp, 'error') and resp.error:
+                        logger.error(f"Service-key delete returned error: {resp.error}")
+                        raise Exception(resp.error)
+                    if hasattr(resp, 'count') and resp.count is not None:
+                        deleted = resp.count
+                    elif getattr(resp, 'data', None) is not None:
+                        deleted = len(resp.data)
+                    logger.info(f"Successfully deleted {deleted} records using service key")
+                    messagebox.showinfo("Success", f"Database wiped!\nDeleted {deleted} records\n\n"
+                        "Note: To fully reset the ID counter, run in Supabase SQL Editor:\n"
+                        "ALTER SEQUENCE anonymized_data_id_seq RESTART WITH 1;")
+                except Exception as e:
+                    logger.warning(f"Service-key delete failed, falling back to client-side deletes: {e}")
+                    # Fall through to client-side deletion below
+
+            # If service-key path not used or failed, fall back to fetching IDs and deleting one-by-one
+            all_records = client.table('anonymized_data').select('id').execute()
+            if all_records and all_records.data:
+                record_count = len(all_records.data)
+                logger.info(f"Found {record_count} records to delete (client-side)")
+                deleted = 0
+                for record in all_records.data:
+                    try:
+                        client.table('anonymized_data').delete().eq('id', record['id']).execute()
+                        deleted += 1
+                    except Exception as e:
+                        logger.warning(f"Failed to delete record {record.get('id')}: {e}")
+                logger.info(f"Successfully deleted {deleted}/{record_count} records")
+                messagebox.showinfo("Success", f"Database wiped!\nDeleted {deleted} records\n\n"
+                    "Note: To fully reset the ID counter, run in Supabase SQL Editor:\n"
+                    "ALTER SEQUENCE anonymized_data_id_seq RESTART WITH 1;")
+            else:
+                logger.info("Database already empty")
+                messagebox.showinfo("Info", "Database is already empty")
+            
+            # Refresh the viewer
+            search_results.clear()
+            refresh_db_viewer()
+            perform_search()
+            logger.info("Database wipe complete")
+            
+        except Exception as e:
+            logger.error(f"Error wiping database: {e}", exc_info=True)
+            messagebox.showerror("Error", f"Failed to wipe database:\n{str(e)[:100]}")
+    
+    wipe_btn = ttk.Button(action_frame, text="Wipe Database", command=wipe_database)
+    wipe_btn.pack(side=tk.LEFT, padx=5)
+    
     # Generate and post sample data frame
     def generate_sample_data():
         """Generate sample data and post to Supabase"""
@@ -2067,34 +2179,52 @@ def create_server_dashboard():
         # Ask for parameters
         dialog = tk.Toplevel(root)
         dialog.title("Generate Sample Data to Supabase")
-        dialog.geometry("400x250")
+        dialog.geometry("550x360")
         dialog.configure(bg='#1e1e1e')
         dialog.transient(root)
         dialog.grab_set()
         
-        ttk.Label(dialog, text="Number of days:", background='#1e1e1e', foreground='#e0f2f1').pack(pady=5)
+        # Title frame
+        title_frame = ttk.Frame(dialog)
+        title_frame.pack(fill=tk.X, padx=20, pady=(20, 10))
+        ttk.Label(title_frame, text="Sample Data Generation", background='#1e1e1e', foreground='#4caf50', font=('Arial', 12, 'bold')).pack(anchor=tk.W)
+        ttk.Label(title_frame, text="Configure parameters for generating realistic health data", background='#1e1e1e', foreground='#999999', font=('Arial', 9)).pack(anchor=tk.W)
+        
+        # Input frame
+        input_frame = ttk.Frame(dialog)
+        input_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        
+        # Days row
+        days_label_frame = ttk.Frame(input_frame)
+        days_label_frame.pack(fill=tk.X, pady=10)
+        ttk.Label(days_label_frame, text="Number of days:", background='#1e1e1e', foreground='#e0f2f1', width=18).pack(side=tk.LEFT, anchor=tk.W)
         days_var = tk.StringVar(value="90")
-        days_entry = ttk.Entry(dialog, textvariable=days_var, width=20)
-        days_entry.pack(pady=5)
+        days_entry = ttk.Entry(days_label_frame, textvariable=days_var, width=25)
+        days_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(10, 0))
+        ttk.Label(days_label_frame, text="(1-3650)", background='#1e1e1e', foreground='#666666', font=('Arial', 9)).pack(side=tk.LEFT, padx=5)
         
-        ttk.Label(dialog, text="Medical Condition:", background='#1e1e1e', foreground='#e0f2f1').pack(pady=5)
+        # Condition row
+        condition_label_frame = ttk.Frame(input_frame)
+        condition_label_frame.pack(fill=tk.X, pady=10)
+        ttk.Label(condition_label_frame, text="Medical Condition:", background='#1e1e1e', foreground='#e0f2f1', width=18).pack(side=tk.LEFT, anchor=tk.W)
         condition_var = tk.StringVar(value="Medical Condition")
-        condition_entry = ttk.Entry(dialog, textvariable=condition_var, width=30)
-        condition_entry.pack(pady=5)
+        condition_entry = ttk.Entry(condition_label_frame, textvariable=condition_var, width=25)
+        condition_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(10, 0))
         
-        ttk.Label(dialog, text="Base Weight (kg):", background='#1e1e1e', foreground='#e0f2f1').pack(pady=5)
+        # Weight row
+        weight_label_frame = ttk.Frame(input_frame)
+        weight_label_frame.pack(fill=tk.X, pady=10)
+        ttk.Label(weight_label_frame, text="Base Weight (kg):", background='#1e1e1e', foreground='#e0f2f1', width=18).pack(side=tk.LEFT, anchor=tk.W)
         weight_var = tk.StringVar(value="75.0")
-        weight_entry = ttk.Entry(dialog, textvariable=weight_var, width=20)
-        weight_entry.pack(pady=5)
+        weight_entry = ttk.Entry(weight_label_frame, textvariable=weight_var, width=25)
+        weight_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(10, 0))
         
         def do_generate():
             try:
                 num_days = int(days_var.get())
                 condition = condition_var.get().strip()
                 weight = float(weight_var.get())
-            except ValueError:
-                messagebox.showerror("Error", "Please enter valid numbers")
-                return
+                
                 if num_days <= 0 or num_days > 3650:
                     messagebox.showerror("Error", "Number of days must be between 1 and 3650")
                     return
@@ -2138,8 +2268,11 @@ def create_server_dashboard():
             except ValueError:
                 messagebox.showerror("Error", "Please enter valid numbers")
         
-        ttk.Button(dialog, text="Generate & Post", command=do_generate).pack(pady=10)
-        ttk.Button(dialog, text="Cancel", command=dialog.destroy).pack()
+        # Button frame
+        button_frame = ttk.Frame(dialog)
+        button_frame.pack(fill=tk.X, padx=20, pady=(10, 20))
+        ttk.Button(button_frame, text="Generate & Post", command=do_generate).pack(side=tk.LEFT, padx=5, expand=True, fill=tk.X)
+        ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5, expand=True, fill=tk.X)
     
     generate_btn = ttk.Button(action_frame, text="Generate Sample Data", command=generate_sample_data)
     generate_btn.pack(side=tk.LEFT, padx=5)
@@ -2222,17 +2355,29 @@ def create_server_dashboard():
     db_viewer_frame.pack(fill=tk.BOTH, expand=True, pady=5)
     
     # Treeview for database records (with multi-select enabled)
-    viewer_tree = ttk.Treeview(db_viewer_frame, columns=('id', 'condition', 'date', 'bpm', 'weight'), show='headings', height=8, selectmode='extended')
+    viewer_tree = ttk.Treeview(db_viewer_frame, columns=('id', 'condition', 'date', 'bpm', 'weight', 'fatigue', 'stiffness', 'sleep', 'mood', 'steps', 'flare'), show='headings', height=8, selectmode='extended')
     viewer_tree.heading('id', text='ID')
     viewer_tree.heading('condition', text='Condition')
     viewer_tree.heading('date', text='Date')
     viewer_tree.heading('bpm', text='BPM')
     viewer_tree.heading('weight', text='Weight')
-    viewer_tree.column('id', width=50)
-    viewer_tree.column('condition', width=200)
-    viewer_tree.column('date', width=100)
-    viewer_tree.column('bpm', width=60)
-    viewer_tree.column('weight', width=70)
+    viewer_tree.heading('fatigue', text='Fatigue')
+    viewer_tree.heading('stiffness', text='Stiffness')
+    viewer_tree.heading('sleep', text='Sleep')
+    viewer_tree.heading('mood', text='Mood')
+    viewer_tree.heading('steps', text='Steps')
+    viewer_tree.heading('flare', text='Flare')
+    viewer_tree.column('id', width=40)
+    viewer_tree.column('condition', width=140)
+    viewer_tree.column('date', width=90)
+    viewer_tree.column('bpm', width=50)
+    viewer_tree.column('weight', width=60)
+    viewer_tree.column('fatigue', width=60)
+    viewer_tree.column('stiffness', width=70)
+    viewer_tree.column('sleep', width=50)
+    viewer_tree.column('mood', width=50)
+    viewer_tree.column('steps', width=60)
+    viewer_tree.column('flare', width=50)
     
     viewer_scroll = ttk.Scrollbar(db_viewer_frame, orient=tk.VERTICAL, command=viewer_tree.yview)
     viewer_tree.configure(yscrollcommand=viewer_scroll.set)
@@ -2262,18 +2407,30 @@ def create_server_dashboard():
             data_to_show = search_results if search_results else search_supabase_data(limit=100)
             
             if not data_to_show:
+                logger.info("No data to display in database viewer")
                 return
+            
+            logger.info(f"Database viewer: Loading {len(data_to_show)} records")
             
             for record in data_to_show[:100]:  # Limit to 100 for display
                 try:
-                    log_data = record.get('anonymized_log', {})
+                    log_data = record.get('anonymized_logs') or record.get('anonymized_log', {})
                     
-                    # Handle if log_data is a string (should already be decrypted by search_supabase_data)
-                    if isinstance(log_data, str):
+                    # If log_data is a string (encrypted), decrypt it
+                    if isinstance(log_data, str) and log_data:
                         try:
-                            log_data = json.loads(log_data)
-                        except:
-                            logger.warning(f"Failed to parse anonymized_log for record {record.get('id')}: {log_data[:100]}")
+                            # Try to decrypt if it looks encrypted (base64 encoded)
+                            decrypted = decrypt_anonymized_data(log_data)
+                            if decrypted and isinstance(decrypted, dict):
+                                log_data = decrypted
+                            else:
+                                # Try JSON parse as fallback
+                                log_data = json.loads(log_data)
+                        except json.JSONDecodeError:
+                            logger.debug(f"Could not parse log_data for record {record.get('id')}")
+                            log_data = {}
+                        except Exception as e:
+                            logger.warning(f"Decryption error for record {record.get('id')}: {e}")
                             log_data = {}
                     
                     # Extract values with better error handling
@@ -2281,18 +2438,36 @@ def create_server_dashboard():
                         date = log_data.get('date', 'N/A')
                         bpm = log_data.get('bpm', 'N/A')
                         weight = log_data.get('weight', 'N/A')
+                        fatigue = log_data.get('fatigue', 'N/A')
+                        stiffness = log_data.get('stiffness', 'N/A')
+                        sleep = log_data.get('sleep', 'N/A')
+                        mood = log_data.get('mood', 'N/A')
+                        steps = log_data.get('steps', 'N/A')
+                        flare = log_data.get('flare', 'N/A')
                     else:
-                        logger.warning(f"anonymized_log is not a dict for record {record.get('id')}: {type(log_data)}")
-                        date = 'Error'
+                        logger.warning(f"anonymized_logs is not a dict for record {record.get('id')}: {type(log_data)}")
+                        date = 'N/A'
                         bpm = 'N/A'
                         weight = 'N/A'
+                        fatigue = 'N/A'
+                        stiffness = 'N/A'
+                        sleep = 'N/A'
+                        mood = 'N/A'
+                        steps = 'N/A'
+                        flare = 'N/A'
                     
                     viewer_tree.insert('', 'end', values=(
                         record.get('id', 'N/A'),
                         record.get('medical_condition', 'N/A'),
                         date,
                         bpm,
-                        weight
+                        weight,
+                        fatigue,
+                        stiffness,
+                        sleep,
+                        mood,
+                        steps,
+                        flare
                     ))
                 except Exception as e:
                     logger.error(f"Error processing record {record.get('id', 'unknown')}: {e}")
@@ -2301,8 +2476,16 @@ def create_server_dashboard():
                         record.get('medical_condition', 'N/A'),
                         'Error',
                         'N/A',
+                        'N/A',
+                        'N/A',
+                        'N/A',
+                        'N/A',
+                        'N/A',
+                        'N/A',
                         'N/A'
                     ))
+            
+            logger.info(f"Database viewer: Displayed {min(len(data_to_show), 100)} records successfully")
         except Exception as e:
             logger.error(f"Error refreshing database viewer: {e}", exc_info=True)
     
