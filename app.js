@@ -4482,7 +4482,23 @@ const FOOD_ICONS = {
   chocolate_bar: 'fa-solid fa-candy-bar',
   fruit_salad: 'fa-solid fa-apple-whole',
   pizza_slice: 'fa-solid fa-pizza-slice',
-  bread_slices: 'fa-solid fa-bread-slice'
+  bread_slices: 'fa-solid fa-bread-slice',
+  milk: 'fa-solid fa-mug-saucer',
+  cottage_cheese: 'fa-solid fa-cheese',
+  cheese_slice: 'fa-solid fa-cheese',
+  yogurt_drink: 'fa-solid fa-bottle-water',
+  kefir: 'fa-solid fa-blender',
+  cream_cheese_bagel: 'fa-solid fa-bread-slice',
+  latte: 'fa-solid fa-mug-hot',
+  ice_cream: 'fa-solid fa-ice-cream',
+  stir_fry: 'fa-solid fa-bowl-food',
+  burrito: 'fa-solid fa-burrito',
+  sandwich: 'fa-solid fa-burger',
+  curry: 'fa-solid fa-bowl-food',
+  casserole: 'fa-solid fa-plate-wheat',
+  omelette: 'fa-solid fa-egg',
+  wrap: 'fa-solid fa-burrito',
+  mac_cheese: 'fa-solid fa-cheese'
 };
 
 // Energy & Mental Clarity options for tile picker — mood = positive (green), neutral (blue), negative (amber/red)
@@ -4521,36 +4537,54 @@ const ENERGY_CLARITY_ICONS = {
 };
 
 // Food group ids for tile colours (grains, protein, dairy, fruits, vegetables, snacks, mixed)
-// Predefined food items with calories and nutrients (selectable in food log)
+// Predefined food items with calories and nutrients (selectable in food log). meals = which meal(s) show this item.
 const PREDEFINED_FOODS = [
-  { id: 'oatmeal', name: 'Oatmeal with berries', calories: 200, protein: 5, carbs: 36, fat: 4, group: 'grains' },
-  { id: 'eggs2', name: 'Eggs, 2 large', calories: 140, protein: 12, carbs: 1, fat: 10, group: 'protein' },
-  { id: 'greek_yogurt', name: 'Greek yogurt, 150g', calories: 130, protein: 11, carbs: 6, fat: 5, group: 'dairy' },
-  { id: 'avocado_toast', name: 'Avocado toast', calories: 250, protein: 6, carbs: 22, fat: 16, group: 'mixed' },
-  { id: 'smoothie', name: 'Green smoothie', calories: 150, protein: 3, carbs: 28, fat: 2, group: 'fruits' },
-  { id: 'cereal_milk', name: 'Cereal with milk', calories: 220, protein: 8, carbs: 38, fat: 5, group: 'grains' },
-  { id: 'banana', name: 'Banana', calories: 105, protein: 1.3, carbs: 27, fat: 0.4, group: 'fruits' },
-  { id: 'toast_butter', name: 'Whole grain toast with butter', calories: 180, protein: 6, carbs: 24, fat: 7, group: 'grains' },
-  { id: 'grilled_chicken', name: 'Grilled chicken, 200g', calories: 330, protein: 62, carbs: 0, fat: 7, group: 'protein' },
-  { id: 'brown_rice', name: 'Brown rice, 150g', calories: 165, protein: 3.5, carbs: 34, fat: 1.5, group: 'grains' },
-  { id: 'salmon', name: 'Salmon fillet, 180g', calories: 360, protein: 50, carbs: 0, fat: 16, group: 'protein' },
-  { id: 'quinoa_salad', name: 'Quinoa salad', calories: 220, protein: 8, carbs: 32, fat: 6, group: 'vegetables' },
-  { id: 'steamed_veg', name: 'Steamed vegetables', calories: 50, protein: 2, carbs: 10, fat: 0, group: 'vegetables' },
-  { id: 'turkey_sandwich', name: 'Turkey sandwich', calories: 320, protein: 24, carbs: 35, fat: 10, group: 'protein' },
-  { id: 'soup_veg', name: 'Vegetable soup', calories: 120, protein: 4, carbs: 18, fat: 3, group: 'vegetables' },
-  { id: 'tuna_salad', name: 'Tuna salad', calories: 280, protein: 30, carbs: 8, fat: 14, group: 'protein' },
-  { id: 'pasta', name: 'Pasta, 200g', calories: 250, protein: 8, carbs: 42, fat: 4, group: 'grains' },
-  { id: 'grilled_fish', name: 'Grilled fish, 200g', calories: 280, protein: 45, carbs: 0, fat: 10, group: 'protein' },
-  { id: 'sweet_potato', name: 'Sweet potato, 200g', calories: 180, protein: 4, carbs: 42, fat: 0, group: 'vegetables' },
-  { id: 'mixed_nuts', name: 'Mixed nuts, 30g', calories: 180, protein: 5, carbs: 6, fat: 16, group: 'snacks' },
-  { id: 'apple', name: 'Apple', calories: 95, protein: 0.5, carbs: 25, fat: 0.3, group: 'fruits' },
-  { id: 'hummus_veg', name: 'Hummus with vegetables', calories: 160, protein: 5, carbs: 18, fat: 8, group: 'vegetables' },
-  { id: 'protein_bar', name: 'Protein bar', calories: 200, protein: 20, carbs: 22, fat: 6, group: 'snacks' },
-  { id: 'cheese_crackers', name: 'Cheese and crackers', calories: 220, protein: 10, carbs: 18, fat: 12, group: 'snacks' },
-  { id: 'chocolate_bar', name: 'Chocolate bar', calories: 220, protein: 3, carbs: 26, fat: 13, group: 'snacks' },
-  { id: 'fruit_salad', name: 'Fresh fruit salad', calories: 80, protein: 1, carbs: 20, fat: 0, group: 'fruits' },
-  { id: 'pizza_slice', name: 'Pizza slice', calories: 280, protein: 12, carbs: 33, fat: 11, group: 'mixed' },
-  { id: 'bread_slices', name: 'Bread, 2 slices', calories: 160, protein: 6, carbs: 28, fat: 2, group: 'grains' }
+  { id: 'oatmeal', name: 'Oatmeal with berries', calories: 200, protein: 5, carbs: 36, fat: 4, group: 'grains', meals: ['breakfast'] },
+  { id: 'eggs2', name: 'Eggs, 2 large', calories: 140, protein: 12, carbs: 1, fat: 10, group: 'protein', meals: ['breakfast'] },
+  { id: 'greek_yogurt', name: 'Greek yogurt, 150g', calories: 130, protein: 11, carbs: 6, fat: 5, group: 'dairy', meals: ['breakfast', 'snack'] },
+  { id: 'avocado_toast', name: 'Avocado toast', calories: 250, protein: 6, carbs: 22, fat: 16, group: 'mixed', meals: ['breakfast'] },
+  { id: 'smoothie', name: 'Green smoothie', calories: 150, protein: 3, carbs: 28, fat: 2, group: 'fruits', meals: ['breakfast', 'snack'] },
+  { id: 'cereal_milk', name: 'Cereal with milk', calories: 220, protein: 8, carbs: 38, fat: 5, group: 'grains', meals: ['breakfast'] },
+  { id: 'banana', name: 'Banana', calories: 105, protein: 1.3, carbs: 27, fat: 0.4, group: 'fruits', meals: ['breakfast', 'snack'] },
+  { id: 'toast_butter', name: 'Whole grain toast with butter', calories: 180, protein: 6, carbs: 24, fat: 7, group: 'grains', meals: ['breakfast'] },
+  { id: 'grilled_chicken', name: 'Grilled chicken, 200g', calories: 330, protein: 62, carbs: 0, fat: 7, group: 'protein', meals: ['lunch', 'dinner'] },
+  { id: 'brown_rice', name: 'Brown rice, 150g', calories: 165, protein: 3.5, carbs: 34, fat: 1.5, group: 'grains', meals: ['lunch', 'dinner'] },
+  { id: 'salmon', name: 'Salmon fillet, 180g', calories: 360, protein: 50, carbs: 0, fat: 16, group: 'protein', meals: ['lunch', 'dinner'] },
+  { id: 'quinoa_salad', name: 'Quinoa salad', calories: 220, protein: 8, carbs: 32, fat: 6, group: 'vegetables', meals: ['lunch', 'dinner'] },
+  { id: 'steamed_veg', name: 'Steamed vegetables', calories: 50, protein: 2, carbs: 10, fat: 0, group: 'vegetables', meals: ['lunch', 'dinner'] },
+  { id: 'turkey_sandwich', name: 'Turkey sandwich', calories: 320, protein: 24, carbs: 35, fat: 10, group: 'protein', meals: ['lunch'] },
+  { id: 'soup_veg', name: 'Vegetable soup', calories: 120, protein: 4, carbs: 18, fat: 3, group: 'vegetables', meals: ['lunch', 'dinner'] },
+  { id: 'tuna_salad', name: 'Tuna salad', calories: 280, protein: 30, carbs: 8, fat: 14, group: 'protein', meals: ['lunch'] },
+  { id: 'pasta', name: 'Pasta, 200g', calories: 250, protein: 8, carbs: 42, fat: 4, group: 'grains', meals: ['lunch', 'dinner'] },
+  { id: 'grilled_fish', name: 'Grilled fish, 200g', calories: 280, protein: 45, carbs: 0, fat: 10, group: 'protein', meals: ['lunch', 'dinner'] },
+  { id: 'sweet_potato', name: 'Sweet potato, 200g', calories: 180, protein: 4, carbs: 42, fat: 0, group: 'vegetables', meals: ['lunch', 'dinner'] },
+  { id: 'mixed_nuts', name: 'Mixed nuts, 30g', calories: 180, protein: 5, carbs: 6, fat: 16, group: 'snacks', meals: ['snack'] },
+  { id: 'apple', name: 'Apple', calories: 95, protein: 0.5, carbs: 25, fat: 0.3, group: 'fruits', meals: ['breakfast', 'snack'] },
+  { id: 'hummus_veg', name: 'Hummus with vegetables', calories: 160, protein: 5, carbs: 18, fat: 8, group: 'vegetables', meals: ['lunch', 'snack'] },
+  { id: 'protein_bar', name: 'Protein bar', calories: 200, protein: 20, carbs: 22, fat: 6, group: 'snacks', meals: ['snack'] },
+  { id: 'cheese_crackers', name: 'Cheese and crackers', calories: 220, protein: 10, carbs: 18, fat: 12, group: 'snacks', meals: ['snack'] },
+  { id: 'chocolate_bar', name: 'Chocolate bar', calories: 220, protein: 3, carbs: 26, fat: 13, group: 'snacks', meals: ['snack'] },
+  { id: 'fruit_salad', name: 'Fresh fruit salad', calories: 80, protein: 1, carbs: 20, fat: 0, group: 'fruits', meals: ['breakfast', 'snack'] },
+  { id: 'pizza_slice', name: 'Pizza slice', calories: 280, protein: 12, carbs: 33, fat: 11, group: 'mixed', meals: ['lunch', 'dinner'] },
+  { id: 'bread_slices', name: 'Bread, 2 slices', calories: 160, protein: 6, carbs: 28, fat: 2, group: 'grains', meals: ['breakfast', 'lunch'] },
+  // Dairy (expanded)
+  { id: 'milk', name: 'Milk, 1 cup', calories: 150, protein: 8, carbs: 12, fat: 8, group: 'dairy', meals: ['breakfast', 'snack'] },
+  { id: 'cottage_cheese', name: 'Cottage cheese, 150g', calories: 120, protein: 15, carbs: 6, fat: 4, group: 'dairy', meals: ['breakfast', 'lunch', 'snack'] },
+  { id: 'cheese_slice', name: 'Cheese slice', calories: 70, protein: 4, carbs: 1, fat: 6, group: 'dairy', meals: ['lunch', 'snack'] },
+  { id: 'yogurt_drink', name: 'Yogurt drink, 200ml', calories: 140, protein: 6, carbs: 22, fat: 3, group: 'dairy', meals: ['breakfast', 'snack'] },
+  { id: 'kefir', name: 'Kefir, 1 cup', calories: 110, protein: 9, carbs: 12, fat: 2, group: 'dairy', meals: ['breakfast'] },
+  { id: 'cream_cheese_bagel', name: 'Cream cheese on bagel', calories: 320, protein: 11, carbs: 38, fat: 14, group: 'dairy', meals: ['breakfast'] },
+  { id: 'latte', name: 'Latte', calories: 190, protein: 10, carbs: 18, fat: 8, group: 'dairy', meals: ['breakfast', 'snack'] },
+  { id: 'ice_cream', name: 'Ice cream, 1 scoop', calories: 140, protein: 2, carbs: 20, fat: 6, group: 'dairy', meals: ['snack'] },
+  // Mixed (expanded)
+  { id: 'stir_fry', name: 'Vegetable stir-fry', calories: 280, protein: 12, carbs: 32, fat: 10, group: 'mixed', meals: ['lunch', 'dinner'] },
+  { id: 'burrito', name: 'Burrito', calories: 450, protein: 20, carbs: 48, fat: 18, group: 'mixed', meals: ['lunch', 'dinner'] },
+  { id: 'sandwich', name: 'Sandwich', calories: 350, protein: 18, carbs: 38, fat: 12, group: 'mixed', meals: ['lunch'] },
+  { id: 'curry', name: 'Curry with rice', calories: 420, protein: 16, carbs: 52, fat: 14, group: 'mixed', meals: ['dinner'] },
+  { id: 'casserole', name: 'Casserole', calories: 380, protein: 22, carbs: 28, fat: 18, group: 'mixed', meals: ['dinner'] },
+  { id: 'omelette', name: 'Omelette', calories: 280, protein: 18, carbs: 4, fat: 20, group: 'mixed', meals: ['breakfast', 'lunch'] },
+  { id: 'wrap', name: 'Wrap', calories: 320, protein: 16, carbs: 36, fat: 10, group: 'mixed', meals: ['lunch', 'dinner'] },
+  { id: 'mac_cheese', name: 'Mac and cheese', calories: 400, protein: 14, carbs: 42, fat: 20, group: 'mixed', meals: ['lunch', 'dinner'] }
 ];
 
 // Food groups for grouping tiles (order + label)
@@ -4943,7 +4977,7 @@ function renderFoodChipsForCategory(category, containerId) {
   const mealLabel = category.charAt(0).toUpperCase() + category.slice(1);
   container.innerHTML = '';
   FOOD_GROUPS.forEach(grp => {
-    const foods = PREDEFINED_FOODS.filter(f => (f.group || 'mixed') === grp.id);
+    const foods = PREDEFINED_FOODS.filter(f => (f.group || 'mixed') === grp.id && (!f.meals || f.meals.length === 0 || f.meals.includes(category)));
     if (foods.length === 0) return;
     const groupDiv = document.createElement('div');
     groupDiv.className = 'food-group';
@@ -5259,7 +5293,7 @@ const SYMPTOM_ICONS = {
   'Other': 'fa-solid fa-ellipsis'
 };
 
-// Pain body diagram: region id -> display label (front view, wider with more areas)
+// Pain body diagram: region id -> display label (front view; includes joint points as circles)
 const PAIN_BODY_REGIONS = [
   { id: 'head', label: 'Head' },
   { id: 'neck', label: 'Neck' },
@@ -5267,21 +5301,27 @@ const PAIN_BODY_REGIONS = [
   { id: 'abdomen', label: 'Abdomen' },
   { id: 'left_shoulder', label: 'Left shoulder' },
   { id: 'left_upper_arm', label: 'Left upper arm' },
+  { id: 'left_elbow', label: 'Left elbow' },
   { id: 'left_forearm', label: 'Left forearm' },
+  { id: 'left_wrist', label: 'Left wrist' },
   { id: 'left_hand', label: 'Left hand' },
   { id: 'right_shoulder', label: 'Right shoulder' },
   { id: 'right_upper_arm', label: 'Right upper arm' },
+  { id: 'right_elbow', label: 'Right elbow' },
   { id: 'right_forearm', label: 'Right forearm' },
+  { id: 'right_wrist', label: 'Right wrist' },
   { id: 'right_hand', label: 'Right hand' },
   { id: 'left_hip', label: 'Left hip' },
   { id: 'left_thigh', label: 'Left thigh' },
   { id: 'left_knee', label: 'Left knee' },
   { id: 'left_lower_leg', label: 'Left lower leg' },
+  { id: 'left_ankle', label: 'Left ankle' },
   { id: 'left_foot', label: 'Left foot' },
   { id: 'right_hip', label: 'Right hip' },
   { id: 'right_thigh', label: 'Right thigh' },
   { id: 'right_knee', label: 'Right knee' },
   { id: 'right_lower_leg', label: 'Right lower leg' },
+  { id: 'right_ankle', label: 'Right ankle' },
   { id: 'right_foot', label: 'Right foot' }
 ];
 
@@ -5662,7 +5702,7 @@ function renderEditFoodChipsForCategory(category, containerId) {
   if (!container) return;
   container.innerHTML = '';
   FOOD_GROUPS.forEach(grp => {
-    const foods = PREDEFINED_FOODS.filter(f => (f.group || 'mixed') === grp.id);
+    const foods = PREDEFINED_FOODS.filter(f => (f.group || 'mixed') === grp.id && (!f.meals || f.meals.length === 0 || f.meals.includes(category)));
     if (foods.length === 0) return;
     const groupDiv = document.createElement('div');
     groupDiv.className = 'food-group';
@@ -5915,7 +5955,7 @@ function renderFoodItems() {
     </div>`;
         }).join('');
     const groupsHtml = FOOD_GROUPS.map(grp => {
-      const foods = PREDEFINED_FOODS.filter(f => (f.group || 'mixed') === grp.id);
+      const foods = PREDEFINED_FOODS.filter(f => (f.group || 'mixed') === grp.id && (!f.meals || f.meals.length === 0 || f.meals.includes(cat)));
       if (foods.length === 0) return '';
       const chipsHtml = foods.map(f => {
         const iconClass = FOOD_ICONS[f.id] || 'fa-solid fa-utensils';
@@ -9827,19 +9867,28 @@ function generateDemoData(numDays = 3650) {
     const dinnerItems = [];
     const snackItems = [];
     
-    // Food - 60% chance of having food logged; use PREDEFINED_FOODS and category object
+    // Food - 60% chance of having food logged; use meal-specific pools from PREDEFINED_FOODS
     if (getRandom() < 0.6) {
-      const numTotal = Math.floor(getRandom() * 6) + 1; // 1-6 items across meals
+      const mealPools = {
+        breakfast: PREDEFINED_FOODS.filter(f => !f.meals || f.meals.length === 0 || f.meals.includes('breakfast')),
+        lunch: PREDEFINED_FOODS.filter(f => !f.meals || f.meals.length === 0 || f.meals.includes('lunch')),
+        dinner: PREDEFINED_FOODS.filter(f => !f.meals || f.meals.length === 0 || f.meals.includes('dinner')),
+        snack: PREDEFINED_FOODS.filter(f => !f.meals || f.meals.length === 0 || f.meals.includes('snack'))
+      };
+      const mealKeys = ['breakfast', 'lunch', 'dinner', 'snack'];
+      const numTotal = Math.floor(getRandom() * 6) + 1;
       const used = new Set();
-      for (let i = 0; i < numTotal && used.size < PREDEFINED_FOODS.length; i++) {
-        const f = PREDEFINED_FOODS[Math.floor(getRandom() * PREDEFINED_FOODS.length)];
+      for (let i = 0; i < numTotal; i++) {
+        const meal = mealKeys[i % 4];
+        const pool = mealPools[meal];
+        if (!pool || pool.length === 0) continue;
+        const f = pool[Math.floor(getRandom() * pool.length)];
         if (used.has(f.id)) continue;
         used.add(f.id);
         const item = { name: f.name, calories: f.calories, protein: f.protein };
-        const slot = i % 4;
-        if (slot === 0) breakfastItems.push(item);
-        else if (slot === 1) lunchItems.push(item);
-        else if (slot === 2) dinnerItems.push(item);
+        if (meal === 'breakfast') breakfastItems.push(item);
+        else if (meal === 'lunch') lunchItems.push(item);
+        else if (meal === 'dinner') dinnerItems.push(item);
         else snackItems.push(item);
       }
     }
