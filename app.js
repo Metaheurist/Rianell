@@ -6272,6 +6272,10 @@ function openEditEntryModal(logDate) {
     renderEditExerciseChipsForCategory(cat.id, containerId);
   });
 
+  // One exercise category open at a time in edit modal (same as main form)
+  makeAccordion('#editExerciseSection', 'details.exercise-meal-collapsible');
+  makeAccordion('#editFoodSection', 'details.food-meal-collapsible');
+
   document.getElementById('editNotes').value = log.notes || '';
   
   // Initialize sliders
@@ -9935,13 +9939,25 @@ function toggleDemoMode() {
   const isDemoMode = appSettings.demoMode || false;
   Logger.info('Demo mode toggle initiated', { currentState: isDemoMode });
 
-  const doReload = (forceDemoOff) => {
+  const doReload = (forceDemoOff, restoredLogsJson, restoredSettingsJson) => {
     if (forceDemoOff) {
       try {
-        const raw = localStorage.getItem('healthAppSettings');
-        const settings = raw ? JSON.parse(raw) : {};
-        settings.demoMode = false;
-        localStorage.setItem('healthAppSettings', JSON.stringify(settings));
+        // Re-apply restored data right before reload so nothing can overwrite it
+        if (restoredLogsJson != null) {
+          localStorage.setItem('healthLogs', restoredLogsJson);
+        }
+        if (restoredSettingsJson != null) {
+          const settings = JSON.parse(restoredSettingsJson);
+          settings.demoMode = false;
+          localStorage.setItem('healthAppSettings', JSON.stringify(settings));
+        } else {
+          const raw = localStorage.getItem('healthAppSettings');
+          const settings = raw ? JSON.parse(raw) : {};
+          settings.demoMode = false;
+          settings.userName = '';
+          settings.medicalCondition = '';
+          localStorage.setItem('healthAppSettings', JSON.stringify(settings));
+        }
       } catch (e) {
         console.warn('Demo off: could not persist', e);
       }
@@ -9951,7 +9967,7 @@ function toggleDemoMode() {
   };
 
   if (isDemoMode) {
-    // Disable demo mode - restore original data
+    // Disable demo mode - restore original data (or clear demo data if no backup)
     const originalLogs = localStorage.getItem('healthLogs_backup');
     const originalSettings = localStorage.getItem('appSettings_backup');
 
@@ -9962,6 +9978,13 @@ function toggleDemoMode() {
         if (typeof window !== 'undefined') {
           window.logs = logs;
         }
+      } else {
+        // No backup: clear demo data so AI and UI don't keep showing it
+        logs = [];
+        if (typeof window !== 'undefined') {
+          window.logs = logs;
+        }
+        localStorage.setItem('healthLogs', '[]');
       }
 
       if (originalSettings) {
@@ -9977,7 +10000,10 @@ function toggleDemoMode() {
           updateConditionContext(appSettings.medicalCondition);
         }
       } else {
+        // No backup: clear demo username and condition
         appSettings.demoMode = false;
+        appSettings.userName = '';
+        appSettings.medicalCondition = '';
         saveSettings();
       }
 
@@ -10010,7 +10036,10 @@ function toggleDemoMode() {
     } catch (e) {
       console.error('Demo mode off error:', e);
     }
-    setTimeout(() => doReload(true), 400);
+    // Pass restored (or cleared) data so doReload can re-apply right before reload
+    const logsToRestore = originalLogs != null ? originalLogs : '[]';
+    const settingsToRestore = originalSettings != null ? originalSettings : null;
+    setTimeout(() => doReload(true, logsToRestore, settingsToRestore), 400);
   } else {
     // Enable demo mode - backup current data and load demo data
     // Show loading indicator
