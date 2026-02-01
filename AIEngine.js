@@ -3,7 +3,7 @@
 // Comprehensive, rule-based health analysis
 // ============================================
 
-// Pain body diagram regions (must match app.js PAIN_BODY_REGIONS for parsing stored text)
+// Pain body diagram regions (must match app.js PAIN_BODY_REGIONS for parsing stored text; includes joint points)
 const PAIN_REGIONS = [
   { id: 'head', label: 'Head' },
   { id: 'neck', label: 'Neck' },
@@ -11,21 +11,27 @@ const PAIN_REGIONS = [
   { id: 'abdomen', label: 'Abdomen' },
   { id: 'left_shoulder', label: 'Left shoulder' },
   { id: 'left_upper_arm', label: 'Left upper arm' },
+  { id: 'left_elbow', label: 'Left elbow' },
   { id: 'left_forearm', label: 'Left forearm' },
+  { id: 'left_wrist', label: 'Left wrist' },
   { id: 'left_hand', label: 'Left hand' },
   { id: 'right_shoulder', label: 'Right shoulder' },
   { id: 'right_upper_arm', label: 'Right upper arm' },
+  { id: 'right_elbow', label: 'Right elbow' },
   { id: 'right_forearm', label: 'Right forearm' },
+  { id: 'right_wrist', label: 'Right wrist' },
   { id: 'right_hand', label: 'Right hand' },
   { id: 'left_hip', label: 'Left hip' },
   { id: 'left_thigh', label: 'Left thigh' },
   { id: 'left_knee', label: 'Left knee' },
   { id: 'left_lower_leg', label: 'Left lower leg' },
+  { id: 'left_ankle', label: 'Left ankle' },
   { id: 'left_foot', label: 'Left foot' },
   { id: 'right_hip', label: 'Right hip' },
   { id: 'right_thigh', label: 'Right thigh' },
   { id: 'right_knee', label: 'Right knee' },
   { id: 'right_lower_leg', label: 'Right lower leg' },
+  { id: 'right_ankle', label: 'Right ankle' },
   { id: 'right_foot', label: 'Right foot' }
 ];
 
