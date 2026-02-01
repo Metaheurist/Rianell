@@ -10641,7 +10641,15 @@ function renderSortedLogs(sortedLogs) {
   renderLogEntries(sortedLogs);
 }
 
-// Collapsible section functionality
+// Close all nested collapsibles (details) inside a section so content is fully collapsed
+function collapseSectionContent(sectionEl) {
+  if (!sectionEl) return;
+  sectionEl.querySelectorAll('details[open]').forEach(details => {
+    details.removeAttribute('open');
+  });
+}
+
+// Collapsible section functionality — only one section open at a time in Log Entry tab
 function toggleSection(sectionId) {
   const section = document.getElementById(sectionId);
   const header = section?.previousElementSibling;
@@ -10656,23 +10664,35 @@ function toggleSection(sectionId) {
     // Use requestAnimationFrame to ensure smooth animation
     requestAnimationFrame(() => {
       if (isOpen) {
+        collapseSectionContent(section);
         section.classList.remove('open');
-        if (arrow) arrow.textContent = '';
-        // Remove will-change after animation
+        if (arrow) arrow.textContent = '▶';
         setTimeout(() => {
           section.style.willChange = 'auto';
         }, 300);
       } else {
+        // Close any other open section in the Log Entry tab (accordion: one open at a time)
+        const logTab = document.getElementById('logTab');
+        if (logTab) {
+          logTab.querySelectorAll('.section-content.open').forEach(content => {
+            if (content.id !== sectionId) {
+              collapseSectionContent(content);
+              content.classList.remove('open');
+              const prev = content.previousElementSibling;
+              const otherArrow = prev?.querySelector('.section-arrow');
+              if (otherArrow) otherArrow.textContent = '▶';
+              content.style.willChange = 'auto';
+            }
+          });
+        }
         section.classList.add('open');
         if (arrow) arrow.textContent = '';
-        // Remove will-change after animation completes
         setTimeout(() => {
           section.style.willChange = 'auto';
         }, 300);
       }
     });
     
-    // Remove active state after a short delay
     setTimeout(() => {
       header.classList.remove('active');
     }, 200);
