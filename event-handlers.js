@@ -90,16 +90,7 @@ function initializeEventHandlers() {
     compressToggle.addEventListener('click', () => toggleSetting('compress'));
   }
   
-  // Demo mode toggle - enabled on mobile devices only
-  const demoModeToggle = document.getElementById('demoModeToggle');
-  if (demoModeToggle) {
-    demoModeToggle.addEventListener('click', function() {
-      if (typeof toggleDemoMode === 'function') {
-        toggleDemoMode();
-      }
-    });
-  }
-  
+  // Demo mode toggle - uses onclick in HTML (button) for reliable click handling
   if (animationsToggle) {
     animationsToggle.addEventListener('click', () => toggleSetting('animations'));
   }
