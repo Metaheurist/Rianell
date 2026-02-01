@@ -947,7 +947,12 @@ window.addEventListener('DOMContentLoaded', function() {
   // Initialize food and exercise lists on page load
   renderLogFoodItems();
   renderLogExerciseItems();
-  
+  renderEnergyClarityTiles();
+  renderStressorTiles('logStressorsTiles');
+  renderLogSymptomsItems(); // also populates logSymptomsTiles
+  initPainBodyDiagram('painBodyDiagram', 'painLocation');
+  initPainBodyDiagram('editPainBodyDiagram', 'editPainLocation');
+
   // Connect to Server-Sent Events for auto-reload on file changes
   connectToReloadStream();
 });
@@ -983,15 +988,14 @@ function connectToReloadStream() {
       try {
         const data = JSON.parse(event.data);
         if (data.type === 'reload') {
-          Logger.info('Server restart detected, closing this connection...');
-          // Close connection gracefully - server will open a new tab
+          Logger.info('File change detected, reloading...');
           try {
             eventSource.close();
           } catch (e) {
             // Ignore close errors
           }
           window._reloadEventSource = null;
-          // Don't reload - server will open a fresh tab
+          window.location.reload();
         } else if (data.type === 'connected') {
           Logger.debug('Reload stream connected');
         }
@@ -3722,41 +3726,17 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     animationDelay += 300;
   }
   
-  // Nutrition analysis section
-  if (analysis.nutritionAnalysis && analysis.nutritionAnalysis.avgCalories > 0) {
-    const nutrition = analysis.nutritionAnalysis;
+  // Exercise summary (avg minutes on days with exercise)
+  if (analysis.exerciseSummary && analysis.exerciseSummary.daysWithExercise > 0) {
+    const ex = analysis.exerciseSummary;
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">🍽️ Nutrition Analysis</h3>
-        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">
-          Average daily calories: <strong>${nutrition.avgCalories} cal</strong> | 
-          Average daily protein: <strong>${nutrition.avgProtein}g</strong>
+        <h3 class="ai-section-title ai-section-green">🏃 Exercise Summary</h3>
+        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 0;">
+          On days you log exercise: <strong>~${ex.avgMinutesPerDay} min</strong> average (${ex.daysWithExercise} days in range)
         </p>
+      </div>
     `;
-    
-    if (nutrition.highCalorieDays > 0 || nutrition.lowCalorieDays > 0) {
-      html += `<p style="color: rgba(224, 242, 241, 0.7); font-size: 0.9rem;">`;
-      if (nutrition.highCalorieDays > 0) {
-        html += `High calorie days (>2500): ${nutrition.highCalorieDays} | `;
-      }
-      if (nutrition.lowCalorieDays > 0) {
-        html += `Low calorie days (<1500): ${nutrition.lowCalorieDays}`;
-      }
-      html += `</p>`;
-    }
-    
-    if (nutrition.highProteinDays > 0 || nutrition.lowProteinDays > 0) {
-      html += `<p style="color: rgba(224, 242, 241, 0.7); font-size: 0.9rem;">`;
-      if (nutrition.highProteinDays > 0) {
-        html += `High protein days (>100g): ${nutrition.highProteinDays} | `;
-      }
-      if (nutrition.lowProteinDays > 0) {
-        html += `Low protein days (<50g): ${nutrition.lowProteinDays}`;
-      }
-      html += `</p>`;
-    }
-    
-    html += `</div>`;
     animationDelay += 300;
   }
   
@@ -4414,13 +4394,224 @@ function renderCorrelationRadarChart(metric1, metric2, metric3, container) {
   container.chart.render();
 }
 
+// Food id -> Font Awesome 6 free icon class (fa-solid fa-*)
+const FOOD_ICONS = {
+  oatmeal: 'fa-solid fa-bowl-food',
+  eggs2: 'fa-solid fa-egg',
+  greek_yogurt: 'fa-solid fa-cheese',
+  avocado_toast: 'fa-solid fa-bread-slice',
+  smoothie: 'fa-solid fa-blender',
+  cereal_milk: 'fa-solid fa-bowl-rice',
+  banana: 'fa-solid fa-apple-whole',
+  toast_butter: 'fa-solid fa-bread-slice',
+  grilled_chicken: 'fa-solid fa-drumstick-bite',
+  brown_rice: 'fa-solid fa-bowl-rice',
+  salmon: 'fa-solid fa-fish',
+  quinoa_salad: 'fa-solid fa-bowl-food',
+  steamed_veg: 'fa-solid fa-carrot',
+  turkey_sandwich: 'fa-solid fa-burger',
+  soup_veg: 'fa-solid fa-bowl-food',
+  tuna_salad: 'fa-solid fa-fish',
+  pasta: 'fa-solid fa-plate-wheat',
+  grilled_fish: 'fa-solid fa-fish',
+  sweet_potato: 'fa-solid fa-potato',
+  mixed_nuts: 'fa-solid fa-seedling',
+  apple: 'fa-solid fa-apple-whole',
+  hummus_veg: 'fa-solid fa-bowl-food',
+  protein_bar: 'fa-solid fa-candy-bar',
+  cheese_crackers: 'fa-solid fa-cheese',
+  chocolate_bar: 'fa-solid fa-candy-bar',
+  fruit_salad: 'fa-solid fa-apple-whole',
+  pizza_slice: 'fa-solid fa-pizza-slice',
+  bread_slices: 'fa-solid fa-bread-slice'
+};
+
+// Energy & Mental Clarity options for tile picker — mood = positive (green), neutral (blue), negative (amber/red)
+const ENERGY_CLARITY_OPTIONS = [
+  { value: 'High Energy', label: 'High Energy', mood: 'positive' },
+  { value: 'Moderate Energy', label: 'Moderate Energy', mood: 'neutral' },
+  { value: 'Low Energy', label: 'Low Energy', mood: 'negative' },
+  { value: 'Mental Clarity', label: 'Mental Clarity', mood: 'positive' },
+  { value: 'Brain Fog', label: 'Brain Fog', mood: 'negative' },
+  { value: 'Good Concentration', label: 'Good Concentration', mood: 'positive' },
+  { value: 'Poor Concentration', label: 'Poor Concentration', mood: 'negative' },
+  { value: 'Mental Fatigue', label: 'Mental Fatigue', mood: 'negative' },
+  { value: 'Focused', label: 'Focused', mood: 'positive' },
+  { value: 'Distracted', label: 'Distracted', mood: 'negative' }
+];
+
+// Energy/clarity groups for grouping tiles by colour (positive, neutral, negative)
+const ENERGY_CLARITY_GROUPS = [
+  { id: 'positive', label: 'Positive' },
+  { id: 'neutral', label: 'Neutral' },
+  { id: 'negative', label: 'Negative' }
+];
+
+// Energy/clarity value -> Font Awesome 6 icon (square tiles, same style as food/stressor)
+const ENERGY_CLARITY_ICONS = {
+  'High Energy': 'fa-solid fa-bolt',
+  'Moderate Energy': 'fa-solid fa-battery-half',
+  'Low Energy': 'fa-solid fa-battery-quarter',
+  'Mental Clarity': 'fa-solid fa-lightbulb',
+  'Brain Fog': 'fa-solid fa-cloud',
+  'Good Concentration': 'fa-solid fa-bullseye',
+  'Poor Concentration': 'fa-solid fa-wand-magic-sparkles',
+  'Mental Fatigue': 'fa-solid fa-brain',
+  'Focused': 'fa-solid fa-crosshairs',
+  'Distracted': 'fa-solid fa-arrows-up-down-left-right'
+};
+
+// Food group ids for tile colours (grains, protein, dairy, fruits, vegetables, snacks, mixed)
+// Predefined food items with calories and nutrients (selectable in food log)
+const PREDEFINED_FOODS = [
+  { id: 'oatmeal', name: 'Oatmeal with berries', calories: 200, protein: 5, carbs: 36, fat: 4, group: 'grains' },
+  { id: 'eggs2', name: 'Eggs, 2 large', calories: 140, protein: 12, carbs: 1, fat: 10, group: 'protein' },
+  { id: 'greek_yogurt', name: 'Greek yogurt, 150g', calories: 130, protein: 11, carbs: 6, fat: 5, group: 'dairy' },
+  { id: 'avocado_toast', name: 'Avocado toast', calories: 250, protein: 6, carbs: 22, fat: 16, group: 'mixed' },
+  { id: 'smoothie', name: 'Green smoothie', calories: 150, protein: 3, carbs: 28, fat: 2, group: 'fruits' },
+  { id: 'cereal_milk', name: 'Cereal with milk', calories: 220, protein: 8, carbs: 38, fat: 5, group: 'grains' },
+  { id: 'banana', name: 'Banana', calories: 105, protein: 1.3, carbs: 27, fat: 0.4, group: 'fruits' },
+  { id: 'toast_butter', name: 'Whole grain toast with butter', calories: 180, protein: 6, carbs: 24, fat: 7, group: 'grains' },
+  { id: 'grilled_chicken', name: 'Grilled chicken, 200g', calories: 330, protein: 62, carbs: 0, fat: 7, group: 'protein' },
+  { id: 'brown_rice', name: 'Brown rice, 150g', calories: 165, protein: 3.5, carbs: 34, fat: 1.5, group: 'grains' },
+  { id: 'salmon', name: 'Salmon fillet, 180g', calories: 360, protein: 50, carbs: 0, fat: 16, group: 'protein' },
+  { id: 'quinoa_salad', name: 'Quinoa salad', calories: 220, protein: 8, carbs: 32, fat: 6, group: 'vegetables' },
+  { id: 'steamed_veg', name: 'Steamed vegetables', calories: 50, protein: 2, carbs: 10, fat: 0, group: 'vegetables' },
+  { id: 'turkey_sandwich', name: 'Turkey sandwich', calories: 320, protein: 24, carbs: 35, fat: 10, group: 'protein' },
+  { id: 'soup_veg', name: 'Vegetable soup', calories: 120, protein: 4, carbs: 18, fat: 3, group: 'vegetables' },
+  { id: 'tuna_salad', name: 'Tuna salad', calories: 280, protein: 30, carbs: 8, fat: 14, group: 'protein' },
+  { id: 'pasta', name: 'Pasta, 200g', calories: 250, protein: 8, carbs: 42, fat: 4, group: 'grains' },
+  { id: 'grilled_fish', name: 'Grilled fish, 200g', calories: 280, protein: 45, carbs: 0, fat: 10, group: 'protein' },
+  { id: 'sweet_potato', name: 'Sweet potato, 200g', calories: 180, protein: 4, carbs: 42, fat: 0, group: 'vegetables' },
+  { id: 'mixed_nuts', name: 'Mixed nuts, 30g', calories: 180, protein: 5, carbs: 6, fat: 16, group: 'snacks' },
+  { id: 'apple', name: 'Apple', calories: 95, protein: 0.5, carbs: 25, fat: 0.3, group: 'fruits' },
+  { id: 'hummus_veg', name: 'Hummus with vegetables', calories: 160, protein: 5, carbs: 18, fat: 8, group: 'vegetables' },
+  { id: 'protein_bar', name: 'Protein bar', calories: 200, protein: 20, carbs: 22, fat: 6, group: 'snacks' },
+  { id: 'cheese_crackers', name: 'Cheese and crackers', calories: 220, protein: 10, carbs: 18, fat: 12, group: 'snacks' },
+  { id: 'chocolate_bar', name: 'Chocolate bar', calories: 220, protein: 3, carbs: 26, fat: 13, group: 'snacks' },
+  { id: 'fruit_salad', name: 'Fresh fruit salad', calories: 80, protein: 1, carbs: 20, fat: 0, group: 'fruits' },
+  { id: 'pizza_slice', name: 'Pizza slice', calories: 280, protein: 12, carbs: 33, fat: 11, group: 'mixed' },
+  { id: 'bread_slices', name: 'Bread, 2 slices', calories: 160, protein: 6, carbs: 28, fat: 2, group: 'grains' }
+];
+
+// Food groups for grouping tiles (order + label)
+const FOOD_GROUPS = [
+  { id: 'grains', label: 'Grains & carbs' },
+  { id: 'protein', label: 'Protein' },
+  { id: 'dairy', label: 'Dairy' },
+  { id: 'fruits', label: 'Fruits' },
+  { id: 'vegetables', label: 'Vegetables' },
+  { id: 'snacks', label: 'Snacks' },
+  { id: 'mixed', label: 'Mixed' }
+];
+
+// Return flat array of all food items from a log (handles both category object and legacy array)
+function getAllFoodItems(log) {
+  if (!log || !log.food) return [];
+  const f = log.food;
+  if (Array.isArray(f)) return f;
+  return [...(f.breakfast || []), ...(f.lunch || []), ...(f.dinner || []), ...(f.snack || [])];
+}
+
+function formatFoodLogForView(log) {
+  if (!log || !log.food) return '';
+  const f = log.food;
+  const meals = [
+    { id: 'breakfast', label: 'Breakfast', items: Array.isArray(f) ? [] : (f.breakfast || []) },
+    { id: 'lunch', label: 'Lunch', items: Array.isArray(f) ? [] : (f.lunch || []) },
+    { id: 'dinner', label: 'Dinner', items: Array.isArray(f) ? [] : (f.dinner || []) },
+    { id: 'snack', label: 'Snack', items: Array.isArray(f) ? [] : (f.snack || []) }
+  ];
+  if (Array.isArray(f)) meals[0].items = f;
+  const parts = meals.filter(m => m.items.length > 0).map(m => {
+    const itemStrs = m.items.map(item => {
+      const name = typeof item === 'string' ? item : (item.name || '');
+      const cal = typeof item === 'object' && item.calories !== undefined ? item.calories : null;
+      const pro = typeof item === 'object' && item.protein !== undefined ? item.protein : null;
+      let s = escapeHTML(name);
+      if (cal != null || pro != null) s += ' <span class="metric-detail">(' + [cal != null ? cal + ' cal' : '', pro != null ? pro + 'g P' : ''].filter(Boolean).join(', ') + ')</span>';
+      return s;
+    });
+    return `<div class="metric-item"><span class="metric-label">${m.label}</span><span class="metric-value metric-value-list">${itemStrs.join('; ')}</span></div>`;
+  });
+  return parts.join('');
+}
+
+function normalizeFoodItem(item) {
+  if (typeof item === 'string') return { name: item, calories: undefined, protein: undefined };
+  return {
+    name: item.name || '',
+    calories: item.calories !== undefined ? item.calories : undefined,
+    protein: item.protein !== undefined ? item.protein : undefined
+  };
+}
+
+// Exercise category ids and display order
+const EXERCISE_CATEGORIES = [
+  { id: 'cardio', label: 'Cardio' },
+  { id: 'strength', label: 'Strength' },
+  { id: 'flexibility', label: 'Flexibility' },
+  { id: 'balance', label: 'Balance' },
+  { id: 'recovery', label: 'Recovery' }
+];
+
+// Exercise id -> Font Awesome 6 free icon class
+const EXERCISE_ICONS = {
+  walking: 'fa-solid fa-person-walking',
+  jogging: 'fa-solid fa-person-running',
+  cycling: 'fa-solid fa-bicycle',
+  swimming: 'fa-solid fa-person-swimming',
+  yoga: 'fa-solid fa-spa',
+  pilates: 'fa-solid fa-person-walking',
+  stretching: 'fa-solid fa-person-walking',
+  tai_chi: 'fa-solid fa-person-walking',
+  water_aerobics: 'fa-solid fa-person-swimming',
+  pt_exercises: 'fa-solid fa-heart-pulse',
+  strength_gentle: 'fa-solid fa-dumbbell',
+  balance: 'fa-solid fa-scale-balanced',
+  elliptical: 'fa-solid fa-person-walking',
+  dancing: 'fa-solid fa-music',
+  hiking: 'fa-solid fa-person-hiking',
+  chair_yoga: 'fa-solid fa-chair',
+  resistance_bands: 'fa-solid fa-dumbbell',
+  breathing: 'fa-solid fa-wind',
+  core: 'fa-solid fa-dumbbell',
+  upper_body: 'fa-solid fa-dumbbell'
+};
+
+// Predefined exercises with suggested duration (minutes) - selectable in exercise log
+const PREDEFINED_EXERCISES = [
+  { id: 'walking', name: 'Walking', defaultDuration: 30, category: 'cardio' },
+  { id: 'jogging', name: 'Light jogging', defaultDuration: 20, category: 'cardio' },
+  { id: 'cycling', name: 'Cycling', defaultDuration: 40, category: 'cardio' },
+  { id: 'swimming', name: 'Swimming', defaultDuration: 25, category: 'cardio' },
+  { id: 'elliptical', name: 'Elliptical', defaultDuration: 25, category: 'cardio' },
+  { id: 'dancing', name: 'Dancing', defaultDuration: 20, category: 'cardio' },
+  { id: 'hiking', name: 'Hiking', defaultDuration: 45, category: 'cardio' },
+  { id: 'water_aerobics', name: 'Water aerobics', defaultDuration: 30, category: 'cardio' },
+  { id: 'strength_gentle', name: 'Gentle strength training', defaultDuration: 15, category: 'strength' },
+  { id: 'resistance_bands', name: 'Resistance band exercises', defaultDuration: 15, category: 'strength' },
+  { id: 'core', name: 'Core exercises', defaultDuration: 15, category: 'strength' },
+  { id: 'upper_body', name: 'Upper body strength', defaultDuration: 20, category: 'strength' },
+  { id: 'yoga', name: 'Yoga', defaultDuration: 30, category: 'flexibility' },
+  { id: 'pilates', name: 'Pilates', defaultDuration: 30, category: 'flexibility' },
+  { id: 'stretching', name: 'Stretching', defaultDuration: 15, category: 'flexibility' },
+  { id: 'tai_chi', name: 'Tai Chi', defaultDuration: 25, category: 'flexibility' },
+  { id: 'chair_yoga', name: 'Chair yoga', defaultDuration: 20, category: 'flexibility' },
+  { id: 'balance', name: 'Balance exercises', defaultDuration: 10, category: 'balance' },
+  { id: 'pt_exercises', name: 'Physical therapy exercises', defaultDuration: 20, category: 'recovery' },
+  { id: 'breathing', name: 'Breathing exercises', defaultDuration: 10, category: 'recovery' }
+];
+
 // Initialize food and exercise arrays early (before DOMContentLoaded)
-let logFormFoodItems = [];
-let logFormExerciseItems = [];
+let logFormFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
+let logFormExerciseItems = []; // array of { name, duration } (duration in minutes)
 let logFormStressorsItems = [];
 let logFormSymptomsItems = [];
 let editStressorsItems = [];
 let editSymptomsItems = [];
+let editFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
+let editExerciseItems = [];
 
 // Optimized localStorage helper function
 function saveLogsToStorage() {
@@ -4502,29 +4693,42 @@ try {
   }
 }
 
-// Migrate existing logs to include food and exercise arrays
+// Migrate existing logs to include food (category object) and exercise arrays
 function migrateLogs() {
   let needsMigration = false;
   logs.forEach(log => {
     if (!log.food) {
-      log.food = [];
+      log.food = { breakfast: [], lunch: [], dinner: [], snack: [] };
+      needsMigration = true;
+    } else if (Array.isArray(log.food)) {
+      // Migrate legacy array to category object (put all in breakfast)
+      const items = log.food.map(item => {
+        if (typeof item === 'string') return { name: item, calories: undefined, protein: undefined };
+        return item;
+      });
+      log.food = { breakfast: items, lunch: [], dinner: [], snack: [] };
       needsMigration = true;
     } else {
-      // Migrate old string format to new object format
-      const hasStringItems = log.food.some(item => typeof item === 'string');
-      if (hasStringItems) {
-        log.food = log.food.map(item => {
-          if (typeof item === 'string') {
-            return { name: item, calories: undefined, protein: undefined };
-          }
-          return item;
-        });
-        needsMigration = true;
-      }
+      // Ensure category object has all keys
+      const f = log.food;
+      if (!f.breakfast) f.breakfast = [];
+      if (!f.lunch) f.lunch = [];
+      if (!f.dinner) f.dinner = [];
+      if (!f.snack) f.snack = [];
     }
     if (!log.exercise) {
       log.exercise = [];
       needsMigration = true;
+    } else {
+      // Migrate old string format to { name, duration }
+      const hasStringItems = log.exercise.some(item => typeof item === 'string');
+      if (hasStringItems) {
+        log.exercise = log.exercise.map(item => {
+          if (typeof item === 'string') return { name: item, duration: undefined };
+          return item;
+        });
+        needsMigration = true;
+      }
     }
   });
   if (needsMigration) {
@@ -4619,65 +4823,40 @@ function deleteLogEntry(logDate) {
 
 // Food and Exercise Logging Functions
 let currentEditingDate = null;
-let currentFoodItems = [];
+let currentFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
 let currentExerciseItems = [];
 
 // Log Entry Form Food and Exercise Arrays (already declared earlier in file)
 
-// Add food item to log entry form
-function addLogFoodItem() {
-  const nameInput = document.getElementById('logNewFoodItem');
-  const caloriesInput = document.getElementById('logNewFoodCalories');
-  const proteinInput = document.getElementById('logNewFoodProtein');
-  
-  if (!nameInput) return;
-  
-  const name = nameInput.value.trim();
-  const calories = caloriesInput && caloriesInput.value ? parseFloat(caloriesInput.value) : undefined;
-  const protein = proteinInput && proteinInput.value ? parseFloat(proteinInput.value) : undefined;
-  
-  if (name) {
-    const foodItem = {
-      name: name,
-      calories: calories,
-      protein: protein
-    };
-    logFormFoodItems.push(foodItem);
-    nameInput.value = '';
-    if (caloriesInput) caloriesInput.value = '';
-    if (proteinInput) proteinInput.value = '';
-    renderLogFoodItems();
-    nameInput.focus();
-  }
-}
-
-// Remove food item from log entry form
-function removeLogFoodItem(index) {
-  logFormFoodItems.splice(index, 1);
+// Add food item to log entry form (category, foodId from chip tap)
+function addLogFoodItem(category, foodId) {
+  if (!foodId) return;
+  const predefined = PREDEFINED_FOODS.find(f => f.id === foodId);
+  if (!predefined) return;
+  const foodItem = { name: predefined.name, calories: predefined.calories, protein: predefined.protein };
+  logFormFoodByCategory[category].push(foodItem);
   renderLogFoodItems();
 }
 
-// Render food items in log entry form
-function renderLogFoodItems() {
-  const list = document.getElementById('logFoodItemsList');
+// Remove food item from log entry form
+function removeLogFoodItem(category, index) {
+  logFormFoodByCategory[category].splice(index, 1);
+  renderLogFoodItems();
+}
+
+// Render one category's food list
+function renderLogFoodCategoryList(category, listId) {
+  const list = document.getElementById(listId);
   if (!list) return;
-  if (logFormFoodItems.length === 0) {
-    list.innerHTML = '<p class="empty-items">No food items logged yet.</p>';
+  const items = logFormFoodByCategory[category] || [];
+  if (items.length === 0) {
+    list.innerHTML = '<p class="empty-items">None</p>';
     return;
   }
-  list.innerHTML = logFormFoodItems.map((item, index) => {
-    // Handle both old string format and new object format
-    let name, calories, protein;
-    if (typeof item === 'string') {
-      name = item;
-      calories = undefined;
-      protein = undefined;
-    } else {
-      name = item.name || '';
-      calories = item.calories;
-      protein = item.protein;
-    }
-    
+  list.innerHTML = items.map((item, index) => {
+    const name = typeof item === 'string' ? item : (item.name || '');
+    const calories = typeof item === 'object' && item.calories !== undefined ? item.calories : undefined;
+    const protein = typeof item === 'object' && item.protein !== undefined ? item.protein : undefined;
     const safeName = escapeHTML(name);
     let details = '';
     if (calories !== undefined || protein !== undefined) {
@@ -4686,30 +4865,111 @@ function renderLogFoodItems() {
       if (protein !== undefined) parts.push(`${protein}g protein`);
       details = `<span style="font-size: 0.85rem; color: rgba(224, 242, 241, 0.7); margin-left: 8px;">(${parts.join(', ')})</span>`;
     }
-    
     return `
     <div class="item-entry">
       <div style="flex: 1;">
         <span class="item-text">${safeName}</span>
         ${details}
       </div>
-      <button type="button" class="remove-item-btn" onclick="removeLogFoodItem(${index})" title="Remove">×</button>
+      <button type="button" class="remove-item-btn" onclick="removeLogFoodItem('${category}', ${index})" title="Remove">×</button>
     </div>
   `;
   }).join('');
 }
 
-// Add exercise item to log entry form
-function addLogExerciseItem() {
-  const input = document.getElementById('logNewExerciseItem');
-  if (!input) return;
-  const item = input.value.trim();
-  if (item) {
-    logFormExerciseItems.push(item);
-    input.value = '';
-    renderLogExerciseItems();
-    input.focus();
-  }
+// Build chip grid for one meal (log form) — grouped by food group, three sections per tile: icon, name, nutrition
+function renderFoodChipsForCategory(category, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const mealLabel = category.charAt(0).toUpperCase() + category.slice(1);
+  container.innerHTML = '';
+  FOOD_GROUPS.forEach(grp => {
+    const foods = PREDEFINED_FOODS.filter(f => (f.group || 'mixed') === grp.id);
+    if (foods.length === 0) return;
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'food-group';
+    groupDiv.setAttribute('data-group', grp.id);
+    const heading = document.createElement('div');
+    heading.className = 'food-group__title';
+    heading.textContent = grp.label;
+    groupDiv.appendChild(heading);
+    const chipsDiv = document.createElement('div');
+    chipsDiv.className = 'food-chips';
+    foods.forEach(f => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'food-chip food-chip--' + (f.group || 'mixed');
+      btn.setAttribute('data-food-id', f.id);
+      btn.title = `Add ${f.name}, ${f.calories} cal to ${mealLabel}`;
+      const iconClass = FOOD_ICONS[f.id] || 'fa-solid fa-utensils';
+      const iconEl = document.createElement('span');
+      iconEl.className = 'food-chip-icon';
+      iconEl.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i>`;
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'food-chip-name';
+      nameSpan.textContent = f.name;
+      const nutritionSpan = document.createElement('span');
+      nutritionSpan.className = 'food-chip-nutrition';
+      nutritionSpan.textContent = `${f.calories} cal · ${f.protein}g P`;
+      btn.appendChild(iconEl);
+      btn.appendChild(nameSpan);
+      btn.appendChild(nutritionSpan);
+      btn.addEventListener('click', () => addLogFoodItem(category, f.id));
+      chipsDiv.appendChild(btn);
+    });
+    groupDiv.appendChild(chipsDiv);
+    container.appendChild(groupDiv);
+  });
+}
+
+// Render food items in log entry form (all 4 categories + chip grids)
+function renderLogFoodItems() {
+  renderLogFoodCategoryList('breakfast', 'logFoodBreakfastList');
+  renderLogFoodCategoryList('lunch', 'logFoodLunchList');
+  renderLogFoodCategoryList('dinner', 'logFoodDinnerList');
+  renderLogFoodCategoryList('snack', 'logFoodSnackList');
+  renderFoodChipsForCategory('breakfast', 'logFoodBreakfastChips');
+  renderFoodChipsForCategory('lunch', 'logFoodLunchChips');
+  renderFoodChipsForCategory('dinner', 'logFoodDinnerChips');
+  renderFoodChipsForCategory('snack', 'logFoodSnackChips');
+}
+
+// Build exercise tile grid for one category (log form) — three sections: icon (top), name (middle), duration (bottom)
+function renderExerciseChipsForCategory(category, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const exercises = PREDEFINED_EXERCISES.filter(e => (e.category || 'cardio') === category);
+  container.innerHTML = '';
+  exercises.forEach(ex => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'exercise-chip exercise-chip--' + (ex.category || 'cardio');
+    btn.setAttribute('data-exercise-id', ex.id);
+    btn.title = `Add ${ex.name}, ${ex.defaultDuration} min`;
+    const iconClass = EXERCISE_ICONS[ex.id] || 'fa-solid fa-dumbbell';
+    const iconEl = document.createElement('span');
+    iconEl.className = 'exercise-chip-icon';
+    iconEl.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i>`;
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'exercise-chip-name';
+    nameSpan.textContent = ex.name;
+    const durationSpan = document.createElement('span');
+    durationSpan.className = 'exercise-chip-duration';
+    durationSpan.textContent = `${ex.defaultDuration} min`;
+    btn.appendChild(iconEl);
+    btn.appendChild(nameSpan);
+    btn.appendChild(durationSpan);
+    btn.addEventListener('click', () => addLogExerciseItem(ex.id));
+    container.appendChild(btn);
+  });
+}
+
+// Add exercise item to log entry form (from tile click — uses default duration)
+function addLogExerciseItem(exerciseId) {
+  const predefined = PREDEFINED_EXERCISES.find(e => e.id === exerciseId);
+  if (!predefined) return;
+  logFormExerciseItems.push({ name: predefined.name, duration: predefined.defaultDuration });
+  renderLogExerciseItems();
 }
 
 // Remove exercise item from log entry form
@@ -4718,41 +4978,405 @@ function removeLogExerciseItem(index) {
   renderLogExerciseItems();
 }
 
-// Render exercise items in log entry form
+// Format single exercise for display (handles string or { name, duration })
+function formatExerciseDisplay(item) {
+  const name = typeof item === 'string' ? item : (item.name || '');
+  const duration = typeof item === 'object' && item.duration != null ? item.duration : undefined;
+  const safeName = escapeHTML(name);
+  if (duration !== undefined && duration !== '') return `${safeName} — ${duration} min`;
+  return safeName;
+}
+
+// Render exercise items in log entry form (list + category tile grids)
 function renderLogExerciseItems() {
   const list = document.getElementById('logExerciseItemsList');
-  if (!list) return;
-  if (logFormExerciseItems.length === 0) {
-    list.innerHTML = '<p class="empty-items">No exercise logged yet.</p>';
-    return;
+  if (list) {
+    if (logFormExerciseItems.length === 0) {
+      list.innerHTML = '<p class="empty-items">No exercise logged yet.</p>';
+    } else {
+      list.innerHTML = logFormExerciseItems.map((item, index) => `
+        <div class="item-entry">
+          <span class="item-text">${formatExerciseDisplay(item)}</span>
+          <button type="button" class="remove-item-btn" onclick="removeLogExerciseItem(${index})" title="Remove">×</button>
+        </div>
+      `).join('');
+    }
   }
-  list.innerHTML = logFormExerciseItems.map((item, index) => {
-    const safeItem = escapeHTML(item);
-    return `
-    <div class="item-entry">
-      <span class="item-text">${safeItem}</span>
-      <button type="button" class="remove-item-btn" onclick="removeLogExerciseItem(${index})" title="Remove">×</button>
-    </div>
-  `;
-  }).join('');
+  EXERCISE_CATEGORIES.forEach(cat => {
+    const containerId = 'logExercise' + cat.label.charAt(0).toUpperCase() + cat.label.slice(1) + 'Chips';
+    renderExerciseChipsForCategory(cat.id, containerId);
+  });
+}
+
+// Energy & Mental Clarity tile picker (log form)
+function setEnergyClaritySelection(value) {
+  const hidden = document.getElementById('energyClarity');
+  const label = document.getElementById('energyClaritySelectedLabel');
+  if (hidden) hidden.value = value || '';
+  if (label) label.textContent = value ? value : 'None selected';
+  document.querySelectorAll('.energy-clarity-chip').forEach(tile => {
+    tile.classList.toggle('selected', tile.getAttribute('data-value') === value);
+  });
+}
+
+function renderEnergyClarityTiles() {
+  const container = document.getElementById('energyClarityTiles');
+  const hidden = document.getElementById('energyClarity');
+  if (!container) return;
+  const currentValue = hidden ? hidden.value : '';
+  container.innerHTML = '';
+  ENERGY_CLARITY_GROUPS.forEach(grp => {
+    const opts = ENERGY_CLARITY_OPTIONS.filter(o => o.mood === grp.id);
+    if (opts.length === 0) return;
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'tile-group tile-group--energy';
+    groupDiv.setAttribute('data-group', grp.id);
+    const heading = document.createElement('div');
+    heading.className = 'tile-group__title';
+    heading.textContent = grp.label;
+    groupDiv.appendChild(heading);
+    const chipsDiv = document.createElement('div');
+    chipsDiv.className = 'energy-clarity-chips';
+    opts.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'energy-clarity-chip energy-clarity-chip--' + opt.mood;
+      btn.setAttribute('data-value', opt.value);
+      btn.setAttribute('role', 'option');
+      btn.setAttribute('aria-selected', currentValue === opt.value ? 'true' : 'false');
+      if (currentValue === opt.value) btn.classList.add('selected');
+      const iconClass = ENERGY_CLARITY_ICONS[opt.value] || 'fa-solid fa-bolt';
+      const iconEl = document.createElement('span');
+      iconEl.className = 'energy-clarity-chip-icon';
+      iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'energy-clarity-chip-name';
+      nameSpan.textContent = opt.label;
+      btn.appendChild(iconEl);
+      btn.appendChild(nameSpan);
+      btn.addEventListener('click', () => setEnergyClaritySelection(opt.value));
+      chipsDiv.appendChild(btn);
+    });
+    groupDiv.appendChild(chipsDiv);
+    container.appendChild(groupDiv);
+  });
+  const label = document.getElementById('energyClaritySelectedLabel');
+  if (label && !label.textContent) label.textContent = currentValue ? currentValue : 'None selected';
+}
+
+// Energy & Mental Clarity tile picker (edit modal)
+function setEditEnergyClaritySelection(value) {
+  const hidden = document.getElementById('editEnergyClarity');
+  const label = document.getElementById('editEnergyClaritySelectedLabel');
+  if (hidden) hidden.value = value || '';
+  if (label) label.textContent = value ? value : 'None selected';
+  document.querySelectorAll('#editEnergyClarityTiles .energy-clarity-chip').forEach(tile => {
+    tile.classList.toggle('selected', tile.getAttribute('data-value') === value);
+  });
+}
+
+function renderEditEnergyClarityTiles() {
+  const container = document.getElementById('editEnergyClarityTiles');
+  const hidden = document.getElementById('editEnergyClarity');
+  if (!container) return;
+  const currentValue = hidden ? hidden.value : '';
+  container.innerHTML = '';
+  ENERGY_CLARITY_GROUPS.forEach(grp => {
+    const opts = ENERGY_CLARITY_OPTIONS.filter(o => o.mood === grp.id);
+    if (opts.length === 0) return;
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'tile-group tile-group--energy';
+    groupDiv.setAttribute('data-group', grp.id);
+    const heading = document.createElement('div');
+    heading.className = 'tile-group__title';
+    heading.textContent = grp.label;
+    groupDiv.appendChild(heading);
+    const chipsDiv = document.createElement('div');
+    chipsDiv.className = 'energy-clarity-chips';
+    opts.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'energy-clarity-chip energy-clarity-chip--' + opt.mood;
+      btn.setAttribute('data-value', opt.value);
+      btn.setAttribute('role', 'option');
+      btn.setAttribute('aria-selected', currentValue === opt.value ? 'true' : 'false');
+      if (currentValue === opt.value) btn.classList.add('selected');
+      const iconClass = ENERGY_CLARITY_ICONS[opt.value] || 'fa-solid fa-bolt';
+      const iconEl = document.createElement('span');
+      iconEl.className = 'energy-clarity-chip-icon';
+      iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'energy-clarity-chip-name';
+      nameSpan.textContent = opt.label;
+      btn.appendChild(iconEl);
+      btn.appendChild(nameSpan);
+      btn.addEventListener('click', () => setEditEnergyClaritySelection(opt.value));
+      chipsDiv.appendChild(btn);
+    });
+    groupDiv.appendChild(chipsDiv);
+    container.appendChild(groupDiv);
+  });
+  const label = document.getElementById('editEnergyClaritySelectedLabel');
+  if (label) label.textContent = currentValue ? currentValue : 'None selected';
+}
+
+// Stressor options grouped by category (for coloured tile sections)
+const STRESSOR_GROUPS = [
+  { id: 'work', label: 'Work & demands', color: 'work' },
+  { id: 'relationship', label: 'Relationships', color: 'relationship' },
+  { id: 'physical', label: 'Physical', color: 'physical' },
+  { id: 'environment', label: 'Environment', color: 'environment' },
+  { id: 'emotional', label: 'Emotional & health', color: 'emotional' },
+  { id: 'other', label: 'Other', color: 'other' }
+];
+
+const STRESSOR_OPTIONS = [
+  { value: 'Work deadline', label: 'Work deadline', group: 'work' },
+  { value: 'Financial stress', label: 'Financial stress', group: 'work' },
+  { value: 'Family conflict', label: 'Family conflict', group: 'relationship' },
+  { value: 'Relationship issue', label: 'Relationship issue', group: 'relationship' },
+  { value: 'Social event', label: 'Social event', group: 'relationship' },
+  { value: 'Physical overexertion', label: 'Physical overexertion', group: 'physical' },
+  { value: 'Sleep disruption', label: 'Sleep disruption', group: 'physical' },
+  { value: 'Weather change', label: 'Weather change', group: 'environment' },
+  { value: 'Travel', label: 'Travel', group: 'environment' },
+  { value: 'Emotional stress', label: 'Emotional stress', group: 'emotional' },
+  { value: 'Health concern', label: 'Health concern', group: 'emotional' },
+  { value: 'Other', label: 'Other', group: 'other' }
+];
+
+// Stressor value -> Font Awesome 6 free icon class (square tiles same style as food/exercise)
+const STRESSOR_ICONS = {
+  'Work deadline': 'fa-solid fa-briefcase',
+  'Financial stress': 'fa-solid fa-coins',
+  'Family conflict': 'fa-solid fa-people-group',
+  'Relationship issue': 'fa-solid fa-heart',
+  'Social event': 'fa-solid fa-champagne-glasses',
+  'Physical overexertion': 'fa-solid fa-dumbbell',
+  'Sleep disruption': 'fa-solid fa-moon',
+  'Weather change': 'fa-solid fa-cloud-sun',
+  'Travel': 'fa-solid fa-plane',
+  'Emotional stress': 'fa-solid fa-face-sad-cry',
+  'Health concern': 'fa-solid fa-heart-pulse',
+  'Other': 'fa-solid fa-ellipsis'
+};
+
+// Symptom groups for coloured tiles (same pattern as stressors)
+const SYMPTOM_GROUPS = [
+  { id: 'digestive', label: 'Digestive', color: 'digestive' },
+  { id: 'respiratory', label: 'Respiratory', color: 'respiratory' },
+  { id: 'neurological', label: 'Neurological', color: 'neurological' },
+  { id: 'systemic', label: 'Systemic', color: 'systemic' },
+  { id: 'skin', label: 'Skin & eyes', color: 'skin' },
+  { id: 'other', label: 'Other', color: 'other' }
+];
+
+const SYMPTOM_OPTIONS = [
+  { value: 'Nausea', label: 'Nausea', group: 'digestive' },
+  { value: 'Appetite loss', label: 'Appetite loss', group: 'digestive' },
+  { value: 'Digestive issues', label: 'Digestive issues', group: 'digestive' },
+  { value: 'Breathing difficulty', label: 'Breathing difficulty', group: 'respiratory' },
+  { value: 'Dizziness', label: 'Dizziness', group: 'neurological' },
+  { value: 'Headache', label: 'Headache', group: 'neurological' },
+  { value: 'Fever', label: 'Fever', group: 'systemic' },
+  { value: 'Chills', label: 'Chills', group: 'systemic' },
+  { value: 'Skin rash', label: 'Skin rash', group: 'skin' },
+  { value: 'Eye irritation', label: 'Eye irritation', group: 'skin' },
+  { value: 'Other', label: 'Other', group: 'other' }
+];
+
+// Symptom value -> Font Awesome 6 icon (square tiles same style as food/stressor)
+const SYMPTOM_ICONS = {
+  'Nausea': 'fa-solid fa-face-nauseated',
+  'Appetite loss': 'fa-solid fa-utensils',
+  'Digestive issues': 'fa-solid fa-stomach',
+  'Breathing difficulty': 'fa-solid fa-lungs',
+  'Dizziness': 'fa-solid fa-spinner',
+  'Headache': 'fa-solid fa-head-side-virus',
+  'Fever': 'fa-solid fa-temperature-high',
+  'Chills': 'fa-solid fa-snowflake',
+  'Skin rash': 'fa-solid fa-hand-sparkles',
+  'Eye irritation': 'fa-solid fa-eye',
+  'Other': 'fa-solid fa-ellipsis'
+};
+
+// Pain body diagram: region id -> display label (front view)
+const PAIN_BODY_REGIONS = [
+  { id: 'head', label: 'Head' },
+  { id: 'neck', label: 'Neck' },
+  { id: 'chest', label: 'Chest' },
+  { id: 'abdomen', label: 'Abdomen' },
+  { id: 'left_arm', label: 'Left arm' },
+  { id: 'right_arm', label: 'Right arm' },
+  { id: 'left_leg', label: 'Left leg' },
+  { id: 'right_leg', label: 'Right leg' }
+];
+
+// Pain body state: 0 = green (none), 1 = yellow (mild), 2 = red (pain). Keyed by containerId so edit modal can load from text.
+const painBodyStates = {};
+const PAIN_STATE_LABELS = ['', 'mild', 'pain'];
+
+function getPainLocationTextFromState(state) {
+  const parts = [];
+  PAIN_BODY_REGIONS.forEach(r => {
+    const s = state[r.id];
+    if (s === 1) parts.push(r.label + ' (mild)');
+    else if (s === 2) parts.push(r.label + ' (pain)');
+  });
+  return parts.join(', ');
+}
+
+function setPainLocationFromText(text, stateObj) {
+  if (!text || !text.trim()) return;
+  const parts = text.split(',').map(p => p.trim());
+  parts.forEach(part => {
+    const lower = part.toLowerCase();
+    const mild = lower.endsWith('(mild)');
+    const pain = lower.endsWith('(pain)');
+    const labelPart = lower.replace(/\s*\(mild\)\s*$/, '').replace(/\s*\(pain\)\s*$/, '').trim();
+    PAIN_BODY_REGIONS.forEach(r => {
+      if (r.label.toLowerCase() === labelPart || (labelPart && r.label.toLowerCase().indexOf(labelPart) >= 0)) {
+        stateObj[r.id] = mild ? 1 : 2;
+      }
+    });
+  });
+}
+
+function initPainBodyDiagram(containerId, hiddenInputId) {
+  const container = document.getElementById(containerId);
+  const hidden = document.getElementById(hiddenInputId);
+  if (!container || !hidden) return;
+  if (!painBodyStates[containerId]) {
+    painBodyStates[containerId] = {};
+    PAIN_BODY_REGIONS.forEach(r => { painBodyStates[containerId][r.id] = 0; });
+  }
+  const state = painBodyStates[containerId];
+  const svg = container.querySelector('.pain-body-svg');
+  if (!svg) return;
+
+  function applyStateToSvg() {
+    PAIN_BODY_REGIONS.forEach(r => {
+      const el = svg.querySelector('[data-region="' + r.id + '"]');
+      if (el) {
+        el.classList.remove('pain-state-0', 'pain-state-1', 'pain-state-2');
+        el.classList.add('pain-state-' + (state[r.id] || 0));
+      }
+    });
+    hidden.value = getPainLocationTextFromState(state);
+  }
+
+  container.querySelectorAll('.pain-region').forEach(el => {
+    const regionId = el.getAttribute('data-region');
+    if (!regionId) return;
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('aria-label', (PAIN_BODY_REGIONS.find(r => r.id === regionId) || {}).label + ', click to cycle pain level');
+    el.addEventListener('click', function () {
+      state[regionId] = ((state[regionId] || 0) + 1) % 3;
+      applyStateToSvg();
+    });
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
+    });
+  });
+
+  const existingText = (hidden.value || '').trim();
+  if (existingText) setPainLocationFromText(existingText, state);
+  applyStateToSvg();
+  return state;
+}
+
+function setPainBodyStateFromText(containerId, hiddenInputId, text) {
+  const container = document.getElementById(containerId);
+  const hidden = document.getElementById(hiddenInputId);
+  if (!container || !hidden) return;
+  if (!painBodyStates[containerId]) {
+    painBodyStates[containerId] = {};
+    PAIN_BODY_REGIONS.forEach(r => { painBodyStates[containerId][r.id] = 0; });
+  }
+  const state = painBodyStates[containerId];
+  PAIN_BODY_REGIONS.forEach(r => { state[r.id] = 0; });
+  if (text && text.trim()) setPainLocationFromText(text, state);
+  hidden.value = text || '';
+  const svg = container.querySelector('.pain-body-svg');
+  if (svg) {
+    PAIN_BODY_REGIONS.forEach(r => {
+      const el = svg.querySelector('[data-region="' + r.id + '"]');
+      if (el) {
+        el.classList.remove('pain-state-0', 'pain-state-1', 'pain-state-2');
+        el.classList.add('pain-state-' + (state[r.id] || 0));
+      }
+    });
+  }
+}
+
+function resetPainBodyDiagram(containerId, hiddenInputId) {
+  const container = document.getElementById(containerId);
+  const hidden = document.getElementById(hiddenInputId);
+  if (!container || !hidden) return;
+  hidden.value = '';
+  const svg = container.querySelector('.pain-body-svg');
+  if (svg) {
+    svg.querySelectorAll('.pain-region').forEach(el => {
+      el.classList.remove('pain-state-1', 'pain-state-2');
+      el.classList.add('pain-state-0');
+    });
+  }
 }
 
 // Stressors and Symptoms functions for main form
-function addLogStressorItem() {
-  const select = document.getElementById('logNewStressorItem');
-  if (!select || !select.value) return;
-  
-  const value = select.value.trim();
-  if (value && !logFormStressorsItems.includes(value)) {
-    logFormStressorsItems.push(value);
-    renderLogStressorsItems();
-    select.value = '';
-  }
+function addLogStressorItem(value) {
+  const toAdd = (typeof value === 'string' ? value : (document.getElementById('logNewStressorItem')?.value || '').trim());
+  if (!toAdd || logFormStressorsItems.includes(toAdd)) return;
+  logFormStressorsItems.push(toAdd);
+  renderLogStressorsItems();
 }
 
 function removeLogStressorItem(index) {
   logFormStressorsItems.splice(index, 1);
   renderLogStressorsItems();
+}
+
+function renderStressorTiles(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  STRESSOR_GROUPS.forEach(grp => {
+    const opts = STRESSOR_OPTIONS.filter(o => o.group === grp.id);
+    if (opts.length === 0) return;
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'stressor-group';
+    groupDiv.setAttribute('data-group', grp.id);
+    const heading = document.createElement('div');
+    heading.className = 'stressor-group__title';
+    heading.textContent = grp.label;
+    groupDiv.appendChild(heading);
+    const chipsDiv = document.createElement('div');
+    chipsDiv.className = 'stressor-chips';
+    opts.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'stressor-chip stressor-chip--' + grp.color;
+      btn.setAttribute('data-value', opt.value);
+      btn.title = 'Add: ' + opt.label;
+      const iconClass = STRESSOR_ICONS[opt.value] || 'fa-solid fa-bolt';
+      const iconEl = document.createElement('span');
+      iconEl.className = 'stressor-chip-icon';
+      iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'stressor-chip-name';
+      nameSpan.textContent = opt.label;
+      btn.appendChild(iconEl);
+      btn.appendChild(nameSpan);
+      btn.addEventListener('click', () => {
+        if (containerId === 'logStressorsTiles') addLogStressorItem(opt.value);
+        else addEditStressor(opt.value);
+      });
+      chipsDiv.appendChild(btn);
+    });
+    groupDiv.appendChild(chipsDiv);
+    container.appendChild(groupDiv);
+  });
 }
 
 function renderLogStressorsItems() {
@@ -4775,21 +5399,58 @@ function renderLogStressorsItems() {
   });
 }
 
-function addLogSymptomItem() {
-  const select = document.getElementById('logNewSymptomItem');
-  if (!select || !select.value) return;
-  
-  const value = select.value.trim();
-  if (value && !logFormSymptomsItems.includes(value)) {
-    logFormSymptomsItems.push(value);
-    renderLogSymptomsItems();
-    select.value = '';
-  }
+function addLogSymptomItem(value) {
+  const toAdd = (typeof value === 'string' ? value : (document.getElementById('logNewSymptomItem')?.value || '').trim());
+  if (!toAdd || logFormSymptomsItems.includes(toAdd)) return;
+  logFormSymptomsItems.push(toAdd);
+  renderLogSymptomsItems();
 }
 
 function removeLogSymptomItem(index) {
   logFormSymptomsItems.splice(index, 1);
   renderLogSymptomsItems();
+}
+
+function renderSymptomTiles(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  SYMPTOM_GROUPS.forEach(grp => {
+    const opts = SYMPTOM_OPTIONS.filter(o => o.group === grp.id);
+    if (opts.length === 0) return;
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'symptom-group';
+    groupDiv.setAttribute('data-group', grp.id);
+    const heading = document.createElement('div');
+    heading.className = 'symptom-group__title';
+    heading.textContent = grp.label;
+    groupDiv.appendChild(heading);
+    const chipsDiv = document.createElement('div');
+    chipsDiv.className = 'symptom-chips';
+    opts.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'symptom-chip symptom-chip--' + grp.color;
+      btn.setAttribute('data-value', opt.value);
+      btn.title = 'Add: ' + opt.label;
+      const iconClass = SYMPTOM_ICONS[opt.value] || 'fa-solid fa-circle-dot';
+      const iconEl = document.createElement('span');
+      iconEl.className = 'symptom-chip-icon';
+      iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'symptom-chip-name';
+      nameSpan.textContent = opt.label;
+      btn.appendChild(iconEl);
+      btn.appendChild(nameSpan);
+      btn.addEventListener('click', () => {
+        if (containerId === 'logSymptomsTiles') addLogSymptomItem(opt.value);
+        else addEditSymptom(opt.value);
+      });
+      chipsDiv.appendChild(btn);
+    });
+    groupDiv.appendChild(chipsDiv);
+    container.appendChild(groupDiv);
+  });
 }
 
 function renderLogSymptomsItems() {
@@ -4799,30 +5460,27 @@ function renderLogSymptomsItems() {
   container.innerHTML = '';
   if (logFormSymptomsItems.length === 0) {
     container.innerHTML = '<p class="empty-items">No symptoms added yet.</p>';
-    return;
+  } else {
+    logFormSymptomsItems.forEach((item, index) => {
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'item-tag';
+      itemDiv.innerHTML = `
+        <span>${escapeHTML(item)}</span>
+        <button type="button" class="remove-item-btn" onclick="removeLogSymptomItem(${index})" title="Remove">×</button>
+      `;
+      container.appendChild(itemDiv);
+    });
   }
-  logFormSymptomsItems.forEach((item, index) => {
-    const itemDiv = document.createElement('div');
-    itemDiv.className = 'item-tag';
-    itemDiv.innerHTML = `
-      <span>${escapeHTML(item)}</span>
-      <button type="button" class="remove-item-btn" onclick="removeLogSymptomItem(${index})" title="Remove">×</button>
-    `;
-    container.appendChild(itemDiv);
-  });
+  // Always populate the Add symptom tiles (so they show on initial load and after changes)
+  renderSymptomTiles('logSymptomsTiles');
 }
 
 // Edit modal functions for stressors and symptoms
-function addEditStressor() {
-  const select = document.getElementById('editStressorSelect');
-  if (!select || !select.value) return;
-  
-  const value = select.value.trim();
-  if (value && !editStressorsItems.includes(value)) {
-    editStressorsItems.push(value);
-    renderEditStressorsList();
-    select.value = '';
-  }
+function addEditStressor(value) {
+  const toAdd = (typeof value === 'string' ? value : (document.getElementById('editStressorSelect')?.value || '').trim());
+  if (!toAdd || editStressorsItems.includes(toAdd)) return;
+  editStressorsItems.push(toAdd);
+  renderEditStressorsList();
 }
 
 function removeEditStressor(index) {
@@ -4850,16 +5508,11 @@ function renderEditStressorsList() {
   });
 }
 
-function addEditSymptom() {
-  const select = document.getElementById('editSymptomSelect');
-  if (!select || !select.value) return;
-  
-  const value = select.value.trim();
-  if (value && !editSymptomsItems.includes(value)) {
-    editSymptomsItems.push(value);
-    renderEditSymptomsList();
-    select.value = '';
-  }
+function addEditSymptom(value) {
+  const toAdd = (typeof value === 'string' ? value : (document.getElementById('editSymptomSelect')?.value || '').trim());
+  if (!toAdd || editSymptomsItems.includes(toAdd)) return;
+  editSymptomsItems.push(toAdd);
+  renderEditSymptomsList();
 }
 
 function removeEditSymptom(index) {
@@ -4887,6 +5540,146 @@ function renderEditSymptomsList() {
   });
 }
 
+function sanitizeEditFoodItem(item) {
+  const name = typeof item === 'string' ? item : (item.name || '');
+  const calories = typeof item === 'object' && item.calories !== undefined ? item.calories : undefined;
+  const protein = typeof item === 'object' && item.protein !== undefined ? item.protein : undefined;
+  return { name: escapeHTML(name.trim()), calories, protein };
+}
+
+// Edit modal: food (same tile selector as main form)
+function addEditFoodItem(category, foodId) {
+  if (!foodId) return;
+  const predefined = PREDEFINED_FOODS.find(f => f.id === foodId);
+  if (!predefined) return;
+  const item = { name: predefined.name, calories: predefined.calories, protein: predefined.protein };
+  editFoodByCategory[category].push(item);
+  renderEditFoodCategoryList(category);
+}
+
+function removeEditFoodItem(category, index) {
+  editFoodByCategory[category].splice(index, 1);
+  renderEditFoodCategoryList(category);
+}
+
+function renderEditFoodCategoryList(category) {
+  const listId = 'editFood' + category.charAt(0).toUpperCase() + category.slice(1) + 'List';
+  const container = document.getElementById(listId);
+  if (!container) return;
+  const items = editFoodByCategory[category] || [];
+  container.innerHTML = items.length === 0
+    ? '<p class="empty-items">None</p>'
+    : items.map((item, index) => {
+        const name = typeof item === 'string' ? item : (item.name || '');
+        const calories = typeof item === 'object' && item.calories !== undefined ? item.calories : undefined;
+        const protein = typeof item === 'object' && item.protein !== undefined ? item.protein : undefined;
+        let details = '';
+        if (calories !== undefined || protein !== undefined) {
+          const parts = [];
+          if (calories !== undefined) parts.push(calories + ' cal');
+          if (protein !== undefined) parts.push(protein + 'g P');
+          details = '<span class="item-detail">(' + parts.join(', ') + ')</span>';
+        }
+        return `<div class="item-entry"><div style="flex:1;"><span class="item-text">${escapeHTML(name)}</span>${details}</div><button type="button" class="remove-item-btn" onclick="removeEditFoodItem('${category}', ${index})" title="Remove">×</button></div>`;
+      }).join('');
+}
+
+function renderEditFoodChipsForCategory(category, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  FOOD_GROUPS.forEach(grp => {
+    const foods = PREDEFINED_FOODS.filter(f => (f.group || 'mixed') === grp.id);
+    if (foods.length === 0) return;
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'food-group';
+    groupDiv.setAttribute('data-group', grp.id);
+    const heading = document.createElement('div');
+    heading.className = 'food-group__title';
+    heading.textContent = grp.label;
+    groupDiv.appendChild(heading);
+    const chipsDiv = document.createElement('div');
+    chipsDiv.className = 'food-chips';
+    foods.forEach(f => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'food-chip food-chip--' + (f.group || 'mixed');
+      btn.setAttribute('data-food-id', f.id);
+      const iconClass = FOOD_ICONS[f.id] || 'fa-solid fa-utensils';
+      const iconEl = document.createElement('span');
+      iconEl.className = 'food-chip-icon';
+      iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'food-chip-name';
+      nameSpan.textContent = f.name;
+      const nutritionSpan = document.createElement('span');
+      nutritionSpan.className = 'food-chip-nutrition';
+      nutritionSpan.textContent = f.calories + ' cal · ' + f.protein + 'g P';
+      btn.appendChild(iconEl);
+      btn.appendChild(nameSpan);
+      btn.appendChild(nutritionSpan);
+      btn.addEventListener('click', () => addEditFoodItem(category, f.id));
+      chipsDiv.appendChild(btn);
+    });
+    groupDiv.appendChild(chipsDiv);
+    container.appendChild(groupDiv);
+  });
+}
+
+// Edit modal: exercise (same tile selector as main form)
+function addEditExerciseItem(exerciseId) {
+  const predefined = PREDEFINED_EXERCISES.find(e => e.id === exerciseId);
+  if (!predefined) return;
+  editExerciseItems.push({ name: predefined.name, duration: predefined.defaultDuration });
+  renderEditExerciseItemsList();
+}
+
+function removeEditExerciseItem(index) {
+  editExerciseItems.splice(index, 1);
+  renderEditExerciseItemsList();
+}
+
+function renderEditExerciseItemsList() {
+  const list = document.getElementById('editExerciseItemsList');
+  if (!list) return;
+  list.innerHTML = editExerciseItems.length === 0
+    ? '<p class="empty-items">No exercise logged yet.</p>'
+    : editExerciseItems.map((item, index) => `
+    <div class="item-entry">
+      <span class="item-text">${escapeHTML(formatExerciseDisplay(item))}</span>
+      <button type="button" class="remove-item-btn" onclick="removeEditExerciseItem(${index})" title="Remove">×</button>
+    </div>
+  `).join('');
+}
+
+function renderEditExerciseChipsForCategory(category, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const exercises = PREDEFINED_EXERCISES.filter(e => (e.category || 'cardio') === category);
+  container.innerHTML = '';
+  exercises.forEach(ex => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'exercise-chip exercise-chip--' + (ex.category || 'cardio');
+    btn.setAttribute('data-exercise-id', ex.id);
+    const iconClass = EXERCISE_ICONS[ex.id] || 'fa-solid fa-dumbbell';
+    const iconEl = document.createElement('span');
+    iconEl.className = 'exercise-chip-icon';
+    iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'exercise-chip-name';
+    nameSpan.textContent = ex.name;
+    const durationSpan = document.createElement('span');
+    durationSpan.className = 'exercise-chip-duration';
+    durationSpan.textContent = ex.defaultDuration + ' min';
+    btn.appendChild(iconEl);
+    btn.appendChild(nameSpan);
+    btn.appendChild(durationSpan);
+    btn.addEventListener('click', () => addEditExerciseItem(ex.id));
+    container.appendChild(btn);
+  });
+}
+
 // Collapsible section toggle for edit modal
 function toggleCollapsibleSection(sectionId) {
   const section = document.getElementById(sectionId);
@@ -4906,19 +5699,20 @@ function openFoodModal(logDate) {
   
   currentEditingDate = logDate;
   const log = logs.find(l => l.date === logDate);
-  // Migrate old string format to new object format
-  if (log && log.food) {
-    currentFoodItems = log.food.map(item => {
-      if (typeof item === 'string') {
-        return { name: item, calories: undefined, protein: undefined };
-      }
-      return item;
-    });
+  if (log && log.food && typeof log.food === 'object' && !Array.isArray(log.food)) {
+    currentFoodByCategory = {
+      breakfast: [...(log.food.breakfast || [])],
+      lunch: [...(log.food.lunch || [])],
+      dinner: [...(log.food.dinner || [])],
+      snack: [...(log.food.snack || [])]
+    };
+  } else if (log && log.food && Array.isArray(log.food)) {
+    currentFoodByCategory = { breakfast: [...log.food], lunch: [], dinner: [], snack: [] };
   } else {
-    currentFoodItems = [];
+    currentFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
   }
   renderFoodItems();
-  Logger.debug('Food modal opened', { date: logDate, itemCount: currentFoodItems.length });
+  Logger.debug('Food modal opened', { date: logDate, itemCount: getAllFoodItems({ food: currentFoodByCategory }).length });
   
   // Prevent body scroll when modal is open
   document.body.style.overflow = 'hidden';
@@ -4983,15 +5777,8 @@ function openFoodModal(logDate) {
     }
   });
   
-  const input = document.getElementById('newFoodItem');
-  input.focus();
-  // Add Enter key support
-  input.onkeypress = function(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addFoodItem();
-    }
-  };
+  const firstChip = document.querySelector('#foodModalOverlay .food-chip');
+  if (firstChip) firstChip.focus();
   // Close on overlay click
   overlay.onclick = function(e) {
     if (e.target === overlay) {
@@ -5006,78 +5793,70 @@ function closeFoodModal() {
   document.body.classList.remove('modal-active');
   document.body.style.overflow = '';
   currentEditingDate = null;
-  currentFoodItems = [];
-  document.getElementById('newFoodItem').value = '';
-  document.getElementById('newFoodCalories').value = '';
-  document.getElementById('newFoodProtein').value = '';
+  currentFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
 }
 
-function addFoodItem() {
-  const nameInput = document.getElementById('newFoodItem');
-  const caloriesInput = document.getElementById('newFoodCalories');
-  const proteinInput = document.getElementById('newFoodProtein');
-  
-  const name = nameInput.value.trim();
-  const calories = caloriesInput.value ? parseFloat(caloriesInput.value) : undefined;
-  const protein = proteinInput.value ? parseFloat(proteinInput.value) : undefined;
-  
-  if (name) {
-    const foodItem = {
-      name: name,
-      calories: calories,
-      protein: protein
-    };
-    currentFoodItems.push(foodItem);
-    nameInput.value = '';
-    caloriesInput.value = '';
-    proteinInput.value = '';
-    renderFoodItems();
-    nameInput.focus();
-  }
+function addFoodItemModal(category, foodId) {
+  if (!foodId) return;
+  const predefined = PREDEFINED_FOODS.find(f => f.id === foodId);
+  if (!predefined) return;
+  const foodItem = { name: predefined.name, calories: predefined.calories, protein: predefined.protein };
+  currentFoodByCategory[category].push(foodItem);
+  renderFoodItems();
 }
 
-function removeFoodItem(index) {
-  currentFoodItems.splice(index, 1);
+function removeFoodItemModal(category, index) {
+  currentFoodByCategory[category].splice(index, 1);
   renderFoodItems();
 }
 
 function renderFoodItems() {
-  const list = document.getElementById('foodItemsList');
-  if (currentFoodItems.length === 0) {
-    list.innerHTML = '<p class="empty-items">No food items logged yet.</p>';
-    return;
-  }
-  list.innerHTML = currentFoodItems.map((item, index) => {
-    // Handle both old string format and new object format
-    let name, calories, protein;
-    if (typeof item === 'string') {
-      name = item;
-      calories = undefined;
-      protein = undefined;
-    } else {
-      name = item.name || '';
-      calories = item.calories;
-      protein = item.protein;
-    }
-    
-    const safeName = escapeHTML(name);
-    let details = '';
-    if (calories !== undefined || protein !== undefined) {
-      const parts = [];
-      if (calories !== undefined) parts.push(`${calories} cal`);
-      if (protein !== undefined) parts.push(`${protein}g protein`);
-      details = `<span style="font-size: 0.85rem; color: rgba(224, 242, 241, 0.7); margin-left: 8px;">(${parts.join(', ')})</span>`;
-    }
-    
-    return `
+  const categories = ['breakfast', 'lunch', 'dinner', 'snack'];
+  const labels = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Snack' };
+  const container = document.getElementById('foodItemsList');
+  if (!container) return;
+  container.innerHTML = categories.map(cat => {
+    const items = currentFoodByCategory[cat] || [];
+    const listId = 'modalFood' + labels[cat] + 'List';
+    const itemsHtml = items.length === 0
+      ? '<p class="empty-items">None</p>'
+      : items.map((item, index) => {
+          const name = typeof item === 'string' ? item : (item.name || '');
+          const calories = typeof item === 'object' && item.calories !== undefined ? item.calories : undefined;
+          const protein = typeof item === 'object' && item.protein !== undefined ? item.protein : undefined;
+          const safeName = escapeHTML(name);
+          let details = '';
+          if (calories !== undefined || protein !== undefined) {
+            const parts = [];
+            if (calories !== undefined) parts.push(`${calories} cal`);
+            if (protein !== undefined) parts.push(`${protein}g protein`);
+            details = `<span style="font-size: 0.85rem; color: rgba(224, 242, 241, 0.7); margin-left: 8px;">(${parts.join(', ')})</span>`;
+          }
+          return `
     <div class="item-entry">
       <div style="flex: 1;">
         <span class="item-text">${safeName}</span>
         ${details}
       </div>
-      <button class="remove-item-btn" onclick="removeFoodItem(${index})" title="Remove">×</button>
-    </div>
-  `;
+      <button class="remove-item-btn" onclick="removeFoodItemModal('${cat}', ${index})" title="Remove">×</button>
+    </div>`;
+        }).join('');
+    const groupsHtml = FOOD_GROUPS.map(grp => {
+      const foods = PREDEFINED_FOODS.filter(f => (f.group || 'mixed') === grp.id);
+      if (foods.length === 0) return '';
+      const chipsHtml = foods.map(f => {
+        const iconClass = FOOD_ICONS[f.id] || 'fa-solid fa-utensils';
+        const groupClass = 'food-chip--' + (f.group || 'mixed');
+        return `<button type="button" class="food-chip ${groupClass}" data-food-id="${escapeHTML(f.id)}" title="Add ${escapeHTML(f.name)}, ${f.calories} cal to ${labels[cat]}" onclick="addFoodItemModal('${cat}', '${escapeHTML(f.id)}')"><span class="food-chip-icon"><i class="${iconClass}" aria-hidden="true"></i></span><span class="food-chip-name">${escapeHTML(f.name)}</span><span class="food-chip-nutrition">${f.calories} cal · ${f.protein}g P</span></button>`;
+      }).join('');
+      return `<div class="food-group" data-group="${escapeHTML(grp.id)}"><div class="food-group__title">${escapeHTML(grp.label)}</div><div class="food-chips">${chipsHtml}</div></div>`;
+    }).join('');
+    return `
+    <div class="food-category-block" style="margin-bottom: 1rem;">
+      <h4 style="font-size: 0.95rem; margin: 0 0 6px 0; color: rgba(224, 242, 241, 0.9);">${labels[cat]}</h4>
+      <div id="${listId}" class="items-list" style="min-height: 24px;">${itemsHtml}</div>
+      <div class="food-tiles-by-group" style="margin-top: 8px;">${groupsHtml}</div>
+    </div>`;
   }).join('');
 }
 
@@ -5085,9 +5864,14 @@ function saveFoodLog() {
   if (!currentEditingDate) return;
   const log = logs.find(l => l.date === currentEditingDate);
   if (log) {
-    log.food = [...currentFoodItems];
+    log.food = {
+      breakfast: [...(currentFoodByCategory.breakfast || [])],
+      lunch: [...(currentFoodByCategory.lunch || [])],
+      dinner: [...(currentFoodByCategory.dinner || [])],
+      snack: [...(currentFoodByCategory.snack || [])]
+    };
     saveLogsToStorage();
-    Logger.info('Food log saved', { date: currentEditingDate, itemCount: currentFoodItems.length });
+    Logger.info('Food log saved', { date: currentEditingDate, itemCount: getAllFoodItems({ food: log.food }).length });
     
     // Check if date filtering is active
     const startDate = document.getElementById('startDate')?.value;
@@ -5121,7 +5905,7 @@ function openExerciseModal(logDate) {
   
   currentEditingDate = logDate;
   const log = logs.find(l => l.date === logDate);
-  currentExerciseItems = log && log.exercise ? [...log.exercise] : [];
+  currentExerciseItems = log && log.exercise ? log.exercise.map(item => typeof item === 'string' ? { name: item, duration: undefined } : { ...item }) : [];
   renderExerciseItems();
   Logger.debug('Exercise modal opened', { date: logDate, itemCount: currentExerciseItems.length });
   
@@ -5188,15 +5972,9 @@ function openExerciseModal(logDate) {
     }
   });
   
-  const input = document.getElementById('newExerciseItem');
-  input.focus();
-  // Add Enter key support
-  input.onkeypress = function(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addExerciseItem();
-    }
-  };
+  // Focus first focusable in modal (e.g. close button or first chip)
+  const firstFocusable = modalContent?.querySelector('button.modal-close, .exercise-chip');
+  if (firstFocusable) firstFocusable.focus();
   // Close on overlay click
   overlay.onclick = function(e) {
     if (e.target === overlay) {
@@ -5212,18 +5990,14 @@ function closeExerciseModal() {
   document.body.style.overflow = '';
   currentEditingDate = null;
   currentExerciseItems = [];
-  document.getElementById('newExerciseItem').value = '';
 }
 
-function addExerciseItem() {
-  const input = document.getElementById('newExerciseItem');
-  const item = input.value.trim();
-  if (item) {
-    currentExerciseItems.push(item);
-    input.value = '';
-    renderExerciseItems();
-    input.focus();
-  }
+// Add exercise in modal (by tile click — uses default duration)
+function addExerciseItem(exerciseId) {
+  const predefined = PREDEFINED_EXERCISES.find(e => e.id === exerciseId);
+  if (!predefined) return;
+  currentExerciseItems.push({ name: predefined.name, duration: predefined.defaultDuration });
+  renderExerciseItems();
 }
 
 function removeExerciseItem(index) {
@@ -5233,19 +6007,34 @@ function removeExerciseItem(index) {
 
 function renderExerciseItems() {
   const list = document.getElementById('exerciseItemsList');
-  if (currentExerciseItems.length === 0) {
-    list.innerHTML = '<p class="empty-items">No exercise logged yet.</p>';
-    return;
-  }
-  list.innerHTML = currentExerciseItems.map((item, index) => {
-    const safeItem = escapeHTML(item);
-    return `
+  if (!list) return;
+  const itemsHtml = currentExerciseItems.length === 0
+    ? '<p class="empty-items">No exercise logged yet.</p>'
+    : currentExerciseItems.map((item, index) => `
     <div class="item-entry">
-      <span class="item-text">${safeItem}</span>
+      <span class="item-text">${formatExerciseDisplay(item)}</span>
       <button class="remove-item-btn" onclick="removeExerciseItem(${index})" title="Remove">×</button>
     </div>
-  `;
+  `).join('');
+  const categoryBlocks = EXERCISE_CATEGORIES.map(cat => {
+    const exercises = PREDEFINED_EXERCISES.filter(e => (e.category || 'cardio') === cat.id);
+    const chipsHtml = exercises.map(ex => {
+      const iconClass = EXERCISE_ICONS[ex.id] || 'fa-solid fa-dumbbell';
+      const groupClass = 'exercise-chip--' + (ex.category || 'cardio');
+      return `<button type="button" class="exercise-chip ${groupClass}" data-exercise-id="${escapeHTML(ex.id)}" title="Add ${escapeHTML(ex.name)}, ${ex.defaultDuration} min" onclick="addExerciseItem('${escapeHTML(ex.id)}')"><span class="exercise-chip-icon"><i class="${iconClass}" aria-hidden="true"></i></span><span class="exercise-chip-name">${escapeHTML(ex.name)}</span><span class="exercise-chip-duration">${ex.defaultDuration} min</span></button>`;
+    }).join('');
+    return `
+    <details class="exercise-category-block exercise-meal-collapsible">
+      <summary class="exercise-category-summary"><span class="exercise-meal-label">${escapeHTML(cat.label)}</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
+      <div class="exercise-category-body">
+        <div class="exercise-chips">${chipsHtml}</div>
+      </div>
+    </details>`;
   }).join('');
+  list.innerHTML = `
+    <div class="items-list" style="min-height: 24px; margin-bottom: 12px;">${itemsHtml}</div>
+    ${categoryBlocks}
+  `;
 }
 
 function saveExerciseLog() {
@@ -5348,6 +6137,8 @@ function openEditEntryModal(logDate) {
   // Populate new metrics
   const editEnergyClarity = document.getElementById('editEnergyClarity');
   if (editEnergyClarity) editEnergyClarity.value = log.energyClarity || '';
+  renderEditEnergyClarityTiles();
+  setEditEnergyClaritySelection(log.energyClarity || '');
   
   const editWeatherSensitivity = document.getElementById('editWeatherSensitivity');
   if (editWeatherSensitivity) {
@@ -5365,15 +6156,45 @@ function openEditEntryModal(logDate) {
   
   const editPainLocation = document.getElementById('editPainLocation');
   if (editPainLocation) editPainLocation.value = log.painLocation || '';
-  
+  setPainBodyStateFromText('editPainBodyDiagram', 'editPainLocation', log.painLocation || '');
+
   // Populate stressors list
   editStressorsItems = log.stressors ? [...log.stressors] : [];
   renderEditStressorsList();
+  renderStressorTiles('editStressorsTiles');
   
   // Populate symptoms list
   editSymptomsItems = log.symptoms ? [...log.symptoms] : [];
   renderEditSymptomsList();
-  
+  renderSymptomTiles('editSymptomsTiles');
+
+  // Populate food (same tile selector as main form)
+  if (log.food && typeof log.food === 'object' && !Array.isArray(log.food)) {
+    editFoodByCategory = {
+      breakfast: (log.food.breakfast || []).map(normalizeFoodItem),
+      lunch: (log.food.lunch || []).map(normalizeFoodItem),
+      dinner: (log.food.dinner || []).map(normalizeFoodItem),
+      snack: (log.food.snack || []).map(normalizeFoodItem)
+    };
+  } else if (log.food && Array.isArray(log.food)) {
+    editFoodByCategory = { breakfast: log.food.map(normalizeFoodItem), lunch: [], dinner: [], snack: [] };
+  } else {
+    editFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
+  }
+  ['breakfast', 'lunch', 'dinner', 'snack'].forEach(cat => {
+    renderEditFoodCategoryList(cat);
+    const containerId = 'editFood' + cat.charAt(0).toUpperCase() + cat.slice(1) + 'Chips';
+    renderEditFoodChipsForCategory(cat, containerId);
+  });
+
+  // Populate exercise (same tile selector as main form)
+  editExerciseItems = log.exercise ? log.exercise.map(item => typeof item === 'string' ? { name: item, duration: undefined } : { ...item }) : [];
+  renderEditExerciseItemsList();
+  EXERCISE_CATEGORIES.forEach(cat => {
+    const containerId = 'editExercise' + cat.label + 'Chips';
+    renderEditExerciseChipsForCategory(cat.id, containerId);
+  });
+
   document.getElementById('editNotes').value = log.notes || '';
   
   // Initialize sliders
@@ -5608,8 +6429,8 @@ function saveInlineEdit(logDate) {
     }
   });
   
-  // Preserve food and exercise arrays
-  if (!log.food) log.food = [];
+  // Preserve food (category object) and exercise arrays
+  if (!log.food) log.food = { breakfast: [], lunch: [], dinner: [], snack: [] };
   if (!log.exercise) log.exercise = [];
   
   // Save to localStorage
@@ -5750,11 +6571,20 @@ function saveEditedEntry() {
   log.stressors = editStressorsItems.length > 0 ? editStressorsItems.map(item => escapeHTML(item.trim())) : undefined;
   log.symptoms = editSymptomsItems.length > 0 ? editSymptomsItems.map(item => escapeHTML(item.trim())) : undefined;
   
-  log.notes = document.getElementById("editNotes").value || '';
+  // Update food and exercise from edit modal (same tile selector as main form)
+  log.food = {
+    breakfast: (editFoodByCategory.breakfast || []).map(sanitizeEditFoodItem),
+    lunch: (editFoodByCategory.lunch || []).map(sanitizeEditFoodItem),
+    dinner: (editFoodByCategory.dinner || []).map(sanitizeEditFoodItem),
+    snack: (editFoodByCategory.snack || []).map(sanitizeEditFoodItem)
+  };
+  log.exercise = (editExerciseItems || []).map(item => {
+    const name = typeof item === 'string' ? item.trim() : (item.name || '').trim();
+    const duration = typeof item === 'object' && item.duration != null ? Math.max(1, Math.min(300, parseInt(item.duration, 10) || 0)) : undefined;
+    return { name: escapeHTML(name), duration: name ? (duration || undefined) : undefined };
+  }).filter(item => item.name.length > 0);
   
-  // Preserve food and exercise arrays if they exist
-  if (!log.food) log.food = [];
-  if (!log.exercise) log.exercise = [];
+  log.notes = document.getElementById("editNotes").value || '';
   
   saveLogsToStorage();
   Logger.info('Health log entry edited and saved', { 
@@ -5811,7 +6641,7 @@ function generateLogEntryHTML(log) {
   });
   
   const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">Flare-up</span>' : '<span class="flare-badge flare-no">No Flare-up</span>';
-  const foodCount = log.food && log.food.length > 0 ? log.food.length : 0;
+  const foodCount = getAllFoodItems(log).length;
   const exerciseCount = log.exercise && log.exercise.length > 0 ? log.exercise.length : 0;
   
   const safeDate = escapeHTML(log.date);
@@ -5982,6 +6812,21 @@ function generateLogEntryHTML(log) {
               : `<span class="metric-value">${log.hydration} glasses</span>`
             }
           </div>` : ''}
+        </div>` : ''
+      }
+      ${getAllFoodItems(log).length > 0
+        ? `<div class="metric-group food-log">
+          <h4 class="metric-group-title">🍽️ Food Log</h4>
+          ${formatFoodLogForView(log)}
+        </div>` : ''
+      }
+      ${(log.exercise && log.exercise.length > 0)
+        ? `<div class="metric-group exercise-log">
+          <h4 class="metric-group-title">🏃 Exercise Log</h4>
+          <div class="metric-item">
+            <span class="metric-label">Activities</span>
+            <span class="metric-value metric-value-list">${log.exercise.map(item => escapeHTML(formatExerciseDisplay(item))).join('; ')}</span>
+          </div>
         </div>` : ''
       }
       ${(log.stressors && log.stressors.length > 0) 
@@ -7559,20 +8404,28 @@ form.addEventListener("submit", e => {
     return;
   }
   
-  // Sanitize food and exercise items
-  // Sanitize food items (handle both old string format and new object format)
-  const sanitizedFood = logFormFoodItems.map(item => {
-    if (typeof item === 'string') {
-      return { name: escapeHTML(item.trim()), calories: undefined, protein: undefined };
-    } else {
-      return {
-        name: escapeHTML((item.name || '').trim()),
-        calories: item.calories !== undefined ? parseFloat(item.calories) : undefined,
-        protein: item.protein !== undefined ? parseFloat(item.protein) : undefined
-      };
-    }
-  }).filter(item => item.name.length > 0);
-  const sanitizedExercise = logFormExerciseItems.map(item => escapeHTML(item.trim())).filter(item => item.length > 0);
+  // Sanitize food by category and exercise items
+  const sanitizeFoodItem = (item) => {
+    if (typeof item === 'string') return { name: escapeHTML(item.trim()), calories: undefined, protein: undefined };
+    return {
+      name: escapeHTML((item.name || '').trim()),
+      calories: item.calories !== undefined ? parseFloat(item.calories) : undefined,
+      protein: item.protein !== undefined ? parseFloat(item.protein) : undefined
+    };
+  };
+  const sanitizedFood = {
+    breakfast: (logFormFoodByCategory.breakfast || []).map(sanitizeFoodItem).filter(item => item.name.length > 0),
+    lunch: (logFormFoodByCategory.lunch || []).map(sanitizeFoodItem).filter(item => item.name.length > 0),
+    dinner: (logFormFoodByCategory.dinner || []).map(sanitizeFoodItem).filter(item => item.name.length > 0),
+    snack: (logFormFoodByCategory.snack || []).map(sanitizeFoodItem).filter(item => item.name.length > 0)
+  };
+  const sanitizedExercise = logFormExerciseItems
+    .map(item => {
+      const name = typeof item === 'string' ? item.trim() : (item.name || '').trim();
+      const duration = typeof item === 'object' && item.duration != null ? Math.max(1, Math.min(300, parseInt(item.duration, 10) || 0)) : undefined;
+      return { name: escapeHTML(name), duration: name ? (duration || undefined) : undefined };
+    })
+    .filter(item => item.name.length > 0);
   
   const newEntry = {
     date: dateValue,
@@ -7637,7 +8490,7 @@ form.addEventListener("submit", e => {
   }
   
   // Clear all item arrays after saving
-  logFormFoodItems = [];
+  logFormFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
   logFormExerciseItems = [];
   logFormStressorsItems = [];
   logFormSymptomsItems = [];
@@ -7646,10 +8499,10 @@ form.addEventListener("submit", e => {
   renderLogStressorsItems();
   renderLogSymptomsItems();
   
-  // Reset single select dropdowns
-  const energyClaritySelect = document.getElementById("energyClarity");
-  if (energyClaritySelect) energyClaritySelect.value = "";
-  
+  // Reset energy/clarity tile selection
+  setEnergyClaritySelection('');
+  resetPainBodyDiagram('painBodyDiagram', 'painLocation');
+
   renderLogs();
   updateCharts();
   updateHeartbeatAnimation(); // Update heartbeat speed based on new BPM
@@ -8895,81 +9748,57 @@ function generateDemoData(numDays = 3650) {
       notes = noteTemplates[Math.floor(getRandom() * noteTemplates.length)];
     }
     
-    // Generate food and exercise data
-    const foodItems = [];
-    const exerciseItems = [];
+    // Generate food and exercise data (use PREDEFINED_FOODS / PREDEFINED_EXERCISES for consistency with tiles)
+    const breakfastItems = [];
+    const lunchItems = [];
+    const dinnerItems = [];
+    const snackItems = [];
     
-    // Food items - 60% chance of having food logged
+    // Food - 60% chance of having food logged; use PREDEFINED_FOODS and category object
     if (getRandom() < 0.6) {
-      const numFoodItems = Math.floor(getRandom() * 4) + 1; // 1-4 items
-      const foodTemplates = [
-        { name: 'Grilled chicken, 200g', calories: 330, protein: 62 },
-        { name: 'Brown rice, 150g', calories: 165, protein: 3.5 },
-        { name: 'Steamed vegetables', calories: 50, protein: 2 },
-        { name: 'Salmon fillet, 180g', calories: 360, protein: 50 },
-        { name: 'Quinoa salad', calories: 220, protein: 8 },
-        { name: 'Greek yogurt, 150g', calories: 130, protein: 11 },
-        { name: 'Oatmeal with berries', calories: 200, protein: 5 },
-        { name: 'Whole grain bread, 2 slices', calories: 160, protein: 8 },
-        { name: 'Mixed nuts, 30g', calories: 180, protein: 5 },
-        { name: 'Fresh fruit salad', calories: 80, protein: 1 },
-        { name: 'Eggs, 2 large', calories: 140, protein: 12 },
-        { name: 'Avocado toast', calories: 250, protein: 6 },
-        { name: 'Grilled fish, 200g', calories: 280, protein: 45 },
-        { name: 'Sweet potato, 200g', calories: 180, protein: 4 },
-        { name: 'Green smoothie', calories: 150, protein: 3 }
-      ];
-      
-      for (let i = 0; i < numFoodItems; i++) {
-        const foodIndex = Math.floor(getRandom() * foodTemplates.length);
-        const template = foodTemplates[foodIndex];
-        // Add some variation to calories and protein (±10%)
-        const calorieVariation = 1 + (getRandom() - 0.5) * 0.2; // ±10%
-        const proteinVariation = 1 + (getRandom() - 0.5) * 0.2; // ±10%
-        foodItems.push({
+      const numTotal = Math.floor(getRandom() * 6) + 1; // 1-6 items across meals
+      const used = new Set();
+      for (let i = 0; i < numTotal && used.size < PREDEFINED_FOODS.length; i++) {
+        const f = PREDEFINED_FOODS[Math.floor(getRandom() * PREDEFINED_FOODS.length)];
+        if (used.has(f.id)) continue;
+        used.add(f.id);
+        const item = { name: f.name, calories: f.calories, protein: f.protein };
+        const slot = i % 4;
+        if (slot === 0) breakfastItems.push(item);
+        else if (slot === 1) lunchItems.push(item);
+        else if (slot === 2) dinnerItems.push(item);
+        else snackItems.push(item);
+      }
+    }
+    
+    // Exercise - 40% chance; use PREDEFINED_EXERCISES with { name, duration }
+    const exerciseItems = [];
+    if (getRandom() < 0.4) {
+      const numExerciseItems = Math.floor(getRandom() * 3) + 1;
+      const exUsed = new Set();
+      for (let i = 0; i < numExerciseItems && exUsed.size < PREDEFINED_EXERCISES.length; i++) {
+        const template = PREDEFINED_EXERCISES[Math.floor(getRandom() * PREDEFINED_EXERCISES.length)];
+        if (exUsed.has(template.id)) continue;
+        exUsed.add(template.id);
+        const durationVariation = 1 + (getRandom() - 0.5) * 0.4;
+        exerciseItems.push({
           name: template.name,
-          calories: Math.round(template.calories * calorieVariation),
-          protein: Math.round(template.protein * proteinVariation * 10) / 10
+          duration: Math.max(5, Math.round(template.defaultDuration * durationVariation))
         });
       }
     }
     
-    // Exercise items - 40% chance of having exercise logged
-    if (getRandom() < 0.4) {
-      const numExerciseItems = Math.floor(getRandom() * 3) + 1; // 1-3 items
-      const exerciseTemplates = [
-        'Walking, 30 minutes',
-        'Yoga, 20 minutes',
-        'Swimming, 25 minutes',
-        'Cycling, 40 minutes',
-        'Stretching, 15 minutes',
-        'Light jogging, 20 minutes',
-        'Pilates, 30 minutes',
-        'Tai Chi, 25 minutes',
-        'Water aerobics, 30 minutes',
-        'Physical therapy exercises, 20 minutes',
-        'Gentle strength training, 15 minutes',
-        'Balance exercises, 10 minutes'
-      ];
-      
-      for (let i = 0; i < numExerciseItems; i++) {
-        const exerciseIndex = Math.floor(getRandom() * exerciseTemplates.length);
-        exerciseItems.push(exerciseTemplates[exerciseIndex]);
-      }
-    }
+    // Energy & mental clarity - use ENERGY_CLARITY_OPTIONS values
+    const energyClarityValues = ENERGY_CLARITY_OPTIONS.map(o => o.value).concat('');
+    const energyClarity = getRandom() > 0.3 ? energyClarityValues[Math.floor(getRandom() * energyClarityValues.length)] : '';
     
-    // Generate optional new metrics (sometimes present, sometimes not for realism)
-    const energyClarityOptions = ["High Energy", "Moderate Energy", "Low Energy", "Mental Clarity", "Brain Fog", "Good Concentration", "Poor Concentration", "Mental Fatigue", "Focused", "Distracted", ""];
-    const energyClarity = getRandom() > 0.3 ? energyClarityOptions[Math.floor(getRandom() * energyClarityOptions.length)] : "";
-    
-    const stressorsOptions = ["Work deadline", "Family conflict", "Financial stress", "Social event", "Travel", "Weather change", "Sleep disruption", "Physical overexertion", "Emotional stress", "Health concern", "Relationship issue", "Other"];
-    const numStressors = flareState ? Math.floor(getRandom() * 3) : Math.floor(getRandom() * 2); // 0-2 or 0-1
+    // Stressors - use STRESSOR_OPTIONS values
+    const numStressors = flareState ? Math.floor(getRandom() * 3) : Math.floor(getRandom() * 2);
     const stressors = [];
-    for (let i = 0; i < numStressors && i < stressorsOptions.length; i++) {
-      const index = Math.floor(getRandom() * stressorsOptions.length);
-      if (!stressors.includes(stressorsOptions[index])) {
-        stressors.push(stressorsOptions[index]);
-      }
+    const stressorValues = STRESSOR_OPTIONS.map(o => o.value);
+    for (let i = 0; i < numStressors && stressors.length < stressorValues.length; i++) {
+      const val = stressorValues[Math.floor(getRandom() * stressorValues.length)];
+      if (!stressors.includes(val)) stressors.push(val);
     }
     
     const symptomsOptions = ["Nausea", "Appetite loss", "Digestive issues", "Breathing difficulty", "Dizziness", "Headache", "Fever", "Chills", "Skin rash", "Eye irritation", "Other"];
@@ -9013,7 +9842,7 @@ function generateDemoData(numDays = 3650) {
       symptoms: symptoms.length > 0 ? symptoms : undefined,
       painLocation: painLocation || undefined,
       notes: notes,
-      food: foodItems,
+      food: { breakfast: breakfastItems, lunch: lunchItems, dinner: dinnerItems, snack: snackItems },
       exercise: exerciseItems
     };
   }
@@ -9757,6 +10586,27 @@ function initializeSections() {
   });
 }
 
+// Only one tile-section (details) open at a time within Food Log and Exercise Log
+function initializeOneOpenDetails() {
+  function makeAccordion(containerSelector, detailsSelector) {
+    const container = document.querySelector(containerSelector);
+    if (!container) return;
+    const detailsList = container.querySelectorAll(detailsSelector);
+    detailsList.forEach(details => {
+      details.addEventListener('toggle', function () {
+        if (!this.open) return;
+        detailsList.forEach(other => {
+          if (other !== this) other.removeAttribute('open');
+        });
+      });
+    });
+  }
+  makeAccordion('#foodLog', 'details.food-meal-collapsible');
+  makeAccordion('#exerciseLog', 'details.exercise-meal-collapsible');
+  makeAccordion('#editFoodSection', 'details.food-meal-collapsible');
+  makeAccordion('#editExerciseSection', 'details.exercise-meal-collapsible');
+}
+
 // Tab switching functionality
 function switchTab(tabName) {
   console.log('Switching to tab:', tabName);
@@ -10030,7 +10880,9 @@ window.addEventListener('load', () => {
   
   // Initialize collapsible sections
   initializeSections();
-  
+  // Only one meal/category open at a time in Food Log and Exercise Log
+  initializeOneOpenDetails();
+
   // Initialize chart date range to 7 days
   setChartDateRange(7);
   setPredictionRange(7); // Initialize prediction range to 7 days

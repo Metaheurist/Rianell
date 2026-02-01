@@ -606,7 +606,6 @@ h1#dashboardTitle:hover {
 /* Tab Content */
 .tab-content {
   display: none;
-  animation: fadeInTab 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   padding-bottom: 10px;
   margin-bottom: 0;
 }
@@ -614,9 +613,9 @@ h1#dashboardTitle:hover {
 .tab-content.active {
   display: block !important;
   visibility: visible !important;
-  opacity: 1 !important;
   padding-bottom: 10px;
   margin-bottom: 0;
+  animation: fadeInTab 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 
@@ -1161,12 +1160,22 @@ h1#dashboardTitle:hover {
   text-align: center;
   padding: 3rem;
   color: rgba(224, 242, 241, 0.7);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .ai-loading-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
-  animation: pulse 2s ease-in-out infinite;
+  animation: aiLoadingPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes aiLoadingPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
 }
 
 .ai-loading-text {
@@ -2793,6 +2802,18 @@ button:focus {
   text-align: right;
 }
 
+.metric-value-list {
+  flex-wrap: wrap;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.metric-detail {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(224, 242, 241, 0.75);
+}
+
 /* Inline edit inputs - optimized layout */
 .metric-item input[type="text"],
 .metric-item input[type="number"] {
@@ -2956,6 +2977,65 @@ button:focus {
   width: auto !important;
   margin: 0 !important;
 }
+
+/* Pain location: selectable body diagram — green (none) → yellow (mild) → red (pain) */
+.pain-body-container label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: rgba(224, 242, 241, 0.9);
+}
+
+.pain-body-wrapper {
+  max-width: 140px;
+  margin: 0 auto;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border: 1px solid rgba(76, 175, 80, 0.25);
+}
+
+.pain-body-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 320px;
+}
+
+.pain-region {
+  cursor: pointer;
+  transition: fill 0.2s ease, filter 0.2s ease;
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 0.5;
+}
+
+.pain-region:hover {
+  filter: brightness(1.15);
+}
+
+.pain-region.pain-state-0 {
+  fill: rgba(76, 175, 80, 0.5);
+  color: rgba(76, 175, 80, 0.5);
+}
+
+.pain-region.pain-state-1 {
+  fill: rgba(255, 193, 7, 0.65);
+  color: rgba(255, 193, 7, 0.65);
+}
+
+.pain-region.pain-state-2 {
+  fill: rgba(244, 67, 54, 0.7);
+  color: rgba(244, 67, 54, 0.7);
+}
+
+body.light-mode .pain-body-wrapper {
+  background: rgba(76, 175, 80, 0.06);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+body.light-mode .pain-region.pain-state-0 { fill: rgba(76, 175, 80, 0.35); color: rgba(76, 175, 80, 0.35); }
+body.light-mode .pain-region.pain-state-1 { fill: rgba(255, 193, 7, 0.5); color: rgba(255, 193, 7, 0.5); }
+body.light-mode .pain-region.pain-state-2 { fill: rgba(244, 67, 54, 0.55); color: rgba(244, 67, 54, 0.55); }
 
 /* For direct inputs (like painLocation) */
 .entry.editing .metric-item > input[type="text"],
@@ -3529,6 +3609,962 @@ body.loading .loading-overlay {
   margin-top: 20px;
   align-items: flex-start;
 }
+
+/* Food log: collapsible meal sections (Breakfast, Lunch, Dinner, Snack) — collapsed by default */
+.food-meal-collapsible.food-category-block {
+  margin-bottom: 0.5rem;
+  border: 1px solid rgba(76, 175, 80, 0.25);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.food-meal-collapsible .food-category-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  color: rgba(224, 242, 241, 0.9);
+  background: rgba(76, 175, 80, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: background var(--transition-fast);
+  user-select: none;
+}
+
+.food-meal-collapsible .food-category-summary::-webkit-details-marker,
+.food-meal-collapsible .food-category-summary::marker {
+  display: none;
+}
+
+.food-meal-collapsible .food-category-summary:hover {
+  background: rgba(76, 175, 80, 0.15);
+}
+
+.food-meal-collapsible .food-meal-arrow {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+  opacity: 0.85;
+}
+
+.food-meal-collapsible[open] .food-meal-arrow {
+  transform: rotate(90deg);
+}
+
+.food-meal-collapsible .food-category-body {
+  padding: 10px 12px 12px;
+  border-top: 1px solid rgba(76, 175, 80, 0.2);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode .food-meal-collapsible.food-category-block {
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+body.light-mode .food-meal-collapsible .food-category-summary {
+  color: var(--text-dark);
+  background: rgba(76, 175, 80, 0.06);
+}
+
+body.light-mode .food-meal-collapsible .food-category-summary:hover {
+  background: rgba(76, 175, 80, 0.12);
+}
+
+body.light-mode .food-meal-collapsible .food-category-body {
+  background: rgba(76, 175, 80, 0.04);
+  border-top-color: rgba(76, 175, 80, 0.2);
+}
+
+/* Food log grid of square options — three sections: icon, name, nutrition */
+.food-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+.food-category-body .food-chips {
+  margin-top: 6px;
+}
+
+.food-chip {
+  aspect-ratio: 1;
+  min-height: 88px;
+  padding: 6px 6px 8px;
+  border-radius: 8px;
+  background: rgba(76, 175, 80, 0.15);
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  color: var(--text-light);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  line-height: 1.2;
+  gap: 4px;
+}
+
+/* Food group colours (grains, protein, dairy, fruits, vegetables, snacks, mixed) */
+.food-chip--grains {
+  background: rgba(245, 124, 0, 0.25);
+  border-color: rgba(255, 152, 0, 0.5);
+}
+
+.food-chip--protein {
+  background: rgba(211, 47, 47, 0.2);
+  border-color: rgba(239, 83, 80, 0.5);
+}
+
+.food-chip--dairy {
+  background: rgba(2, 119, 189, 0.22);
+  border-color: rgba(33, 150, 243, 0.5);
+}
+
+.food-chip--fruits {
+  background: rgba(194, 24, 91, 0.22);
+  border-color: rgba(233, 30, 99, 0.5);
+}
+
+.food-chip--vegetables {
+  background: rgba(46, 125, 50, 0.25);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+
+.food-chip--snacks {
+  background: rgba(121, 85, 72, 0.3);
+  border-color: rgba(161, 136, 127, 0.55);
+}
+
+.food-chip--mixed {
+  background: rgba(69, 90, 100, 0.3);
+  border-color: rgba(96, 125, 139, 0.55);
+}
+
+.food-chip--grains:hover { background: rgba(245, 124, 0, 0.4); border-color: rgba(255, 152, 0, 0.7); }
+.food-chip--protein:hover { background: rgba(211, 47, 47, 0.35); border-color: rgba(239, 83, 80, 0.7); }
+.food-chip--dairy:hover { background: rgba(2, 119, 189, 0.35); border-color: rgba(33, 150, 243, 0.7); }
+.food-chip--fruits:hover { background: rgba(194, 24, 91, 0.35); border-color: rgba(233, 30, 99, 0.7); }
+.food-chip--vegetables:hover { background: rgba(46, 125, 50, 0.4); border-color: rgba(76, 175, 80, 0.7); }
+.food-chip--snacks:hover { background: rgba(121, 85, 72, 0.45); border-color: rgba(161, 136, 127, 0.75); }
+.food-chip--mixed:hover { background: rgba(69, 90, 100, 0.45); border-color: rgba(96, 125, 139, 0.75); }
+
+/* Top: icon */
+.food-chip .food-chip-icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  min-height: 24px;
+  color: rgba(76, 175, 80, 0.95);
+}
+
+.food-chip--grains .food-chip-icon { color: rgba(255, 193, 7, 0.95); }
+.food-chip--protein .food-chip-icon { color: rgba(239, 154, 154, 0.95); }
+.food-chip--dairy .food-chip-icon { color: rgba(100, 181, 246, 0.95); }
+.food-chip--fruits .food-chip-icon { color: rgba(244, 143, 177, 0.95); }
+.food-chip--vegetables .food-chip-icon { color: rgba(129, 199, 132, 0.95); }
+.food-chip--snacks .food-chip-icon { color: rgba(188, 170, 164, 0.95); }
+.food-chip--mixed .food-chip-icon { color: rgba(144, 164, 174, 0.95); }
+
+.food-chip .food-chip-icon i {
+  font-size: inherit;
+}
+
+/* Middle: name */
+.food-chip .food-chip-name {
+  flex: 1 1 auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  min-height: 2.3em;
+}
+
+/* Bottom: nutrition (cal · P) */
+.food-chip .food-chip-nutrition {
+  flex: 0 0 auto;
+  display: block;
+  font-size: 0.65rem;
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.food-chip:hover {
+  background: rgba(76, 175, 80, 0.25);
+  border-color: rgba(76, 175, 80, 0.6);
+}
+
+.food-chip:active {
+  transform: scale(0.97);
+}
+
+.food-chip:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.4);
+}
+
+body.light-mode .food-chip {
+  background: rgba(76, 175, 80, 0.12);
+  border-color: rgba(76, 175, 80, 0.35);
+  color: var(--text-dark);
+}
+
+body.light-mode .food-chip .food-chip-icon {
+  color: rgba(56, 142, 60, 0.9);
+}
+
+body.light-mode .food-chip:hover {
+  background: rgba(76, 175, 80, 0.22);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+
+body.light-mode .food-chip--grains { background: rgba(245, 124, 0, 0.15); border-color: rgba(255, 152, 0, 0.4); }
+body.light-mode .food-chip--protein { background: rgba(211, 47, 47, 0.12); border-color: rgba(239, 83, 80, 0.4); }
+body.light-mode .food-chip--dairy { background: rgba(2, 119, 189, 0.12); border-color: rgba(33, 150, 243, 0.4); }
+body.light-mode .food-chip--fruits { background: rgba(194, 24, 91, 0.12); border-color: rgba(233, 30, 99, 0.4); }
+body.light-mode .food-chip--vegetables { background: rgba(46, 125, 50, 0.15); border-color: rgba(76, 175, 80, 0.4); }
+body.light-mode .food-chip--snacks { background: rgba(121, 85, 72, 0.18); border-color: rgba(161, 136, 127, 0.45); }
+body.light-mode .food-chip--mixed { background: rgba(69, 90, 100, 0.18); border-color: rgba(96, 125, 139, 0.45); }
+
+body.light-mode .food-chip--grains:hover { background: rgba(245, 124, 0, 0.25); }
+body.light-mode .food-chip--protein:hover { background: rgba(211, 47, 47, 0.2); }
+body.light-mode .food-chip--dairy:hover { background: rgba(2, 119, 189, 0.2); }
+body.light-mode .food-chip--fruits:hover { background: rgba(194, 24, 91, 0.2); }
+body.light-mode .food-chip--vegetables:hover { background: rgba(46, 125, 50, 0.25); }
+body.light-mode .food-chip--snacks:hover { background: rgba(121, 85, 72, 0.28); }
+body.light-mode .food-chip--mixed:hover { background: rgba(69, 90, 100, 0.28); }
+
+/* Exercise log: collapsible category sections (Cardio, Strength, etc.) — collapsed by default */
+.exercise-meal-collapsible.exercise-category-block {
+  margin-bottom: 0.5rem;
+  border: 1px solid rgba(76, 175, 80, 0.25);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.exercise-meal-collapsible .exercise-category-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  color: rgba(224, 242, 241, 0.9);
+  background: rgba(76, 175, 80, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: background var(--transition-fast);
+  user-select: none;
+}
+
+.exercise-meal-collapsible .exercise-category-summary::-webkit-details-marker,
+.exercise-meal-collapsible .exercise-category-summary::marker {
+  display: none;
+}
+
+.exercise-meal-collapsible .exercise-category-summary:hover {
+  background: rgba(76, 175, 80, 0.15);
+}
+
+.exercise-meal-collapsible .exercise-meal-arrow {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+  opacity: 0.85;
+}
+
+.exercise-meal-collapsible[open] .exercise-meal-arrow {
+  transform: rotate(90deg);
+}
+
+.exercise-meal-collapsible .exercise-category-body {
+  padding: 10px 12px 12px;
+  border-top: 1px solid rgba(76, 175, 80, 0.2);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode .exercise-meal-collapsible.exercise-category-block {
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+body.light-mode .exercise-meal-collapsible .exercise-category-summary {
+  color: var(--text-dark);
+  background: rgba(76, 175, 80, 0.06);
+}
+
+body.light-mode .exercise-meal-collapsible .exercise-category-summary:hover {
+  background: rgba(76, 175, 80, 0.12);
+}
+
+body.light-mode .exercise-meal-collapsible .exercise-category-body {
+  background: rgba(76, 175, 80, 0.04);
+  border-top-color: rgba(76, 175, 80, 0.2);
+}
+
+/* Exercise tile grid — same three-section layout as food chips */
+.exercise-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
+  margin-top: 0;
+}
+
+.exercise-chip {
+  aspect-ratio: 1;
+  min-height: 88px;
+  padding: 6px 6px 8px;
+  border-radius: 8px;
+  background: rgba(76, 175, 80, 0.15);
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  color: var(--text-light);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  line-height: 1.2;
+  gap: 4px;
+}
+
+.exercise-chip .exercise-chip-icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  min-height: 24px;
+  color: rgba(76, 175, 80, 0.95);
+}
+
+.exercise-chip .exercise-chip-icon i {
+  font-size: inherit;
+}
+
+.exercise-chip .exercise-chip-name {
+  flex: 1 1 auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  min-height: 2.3em;
+}
+
+.exercise-chip .exercise-chip-duration {
+  flex: 0 0 auto;
+  font-size: 0.65rem;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.exercise-chip:hover {
+  background: rgba(76, 175, 80, 0.25);
+  border-color: rgba(76, 175, 80, 0.6);
+}
+
+.exercise-chip:active {
+  transform: scale(0.97);
+}
+
+.exercise-chip:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.4);
+}
+
+body.light-mode .exercise-chip {
+  background: rgba(76, 175, 80, 0.12);
+  border-color: rgba(76, 175, 80, 0.35);
+  color: var(--text-dark);
+}
+
+body.light-mode .exercise-chip .exercise-chip-icon {
+  color: rgba(56, 142, 60, 0.9);
+}
+
+body.light-mode .exercise-chip:hover {
+  background: rgba(76, 175, 80, 0.22);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+
+/* Exercise tile colours by category (cardio, strength, flexibility, balance, recovery) */
+.exercise-chip--cardio {
+  background: rgba(211, 47, 47, 0.22);
+  border-color: rgba(239, 83, 80, 0.5);
+}
+.exercise-chip--cardio .exercise-chip-icon { color: rgba(239, 154, 154, 0.95); }
+.exercise-chip--cardio:hover { background: rgba(211, 47, 47, 0.35); border-color: rgba(239, 83, 80, 0.7); }
+
+.exercise-chip--strength {
+  background: rgba(245, 124, 0, 0.25);
+  border-color: rgba(255, 152, 0, 0.5);
+}
+.exercise-chip--strength .exercise-chip-icon { color: rgba(255, 193, 7, 0.95); }
+.exercise-chip--strength:hover { background: rgba(245, 124, 0, 0.4); border-color: rgba(255, 152, 0, 0.7); }
+
+.exercise-chip--flexibility {
+  background: rgba(142, 36, 170, 0.22);
+  border-color: rgba(186, 104, 200, 0.5);
+}
+.exercise-chip--flexibility .exercise-chip-icon { color: rgba(206, 147, 216, 0.95); }
+.exercise-chip--flexibility:hover { background: rgba(142, 36, 170, 0.35); border-color: rgba(186, 104, 200, 0.7); }
+
+.exercise-chip--balance {
+  background: rgba(0, 150, 136, 0.25);
+  border-color: rgba(38, 166, 154, 0.5);
+}
+.exercise-chip--balance .exercise-chip-icon { color: rgba(77, 208, 225, 0.95); }
+.exercise-chip--balance:hover { background: rgba(0, 150, 136, 0.4); border-color: rgba(38, 166, 154, 0.7); }
+
+.exercise-chip--recovery {
+  background: rgba(2, 119, 189, 0.22);
+  border-color: rgba(33, 150, 243, 0.5);
+}
+.exercise-chip--recovery .exercise-chip-icon { color: rgba(100, 181, 246, 0.95); }
+.exercise-chip--recovery:hover { background: rgba(2, 119, 189, 0.35); border-color: rgba(33, 150, 243, 0.7); }
+
+body.light-mode .exercise-chip--cardio { background: rgba(211, 47, 47, 0.15); }
+body.light-mode .exercise-chip--strength { background: rgba(245, 124, 0, 0.18); }
+body.light-mode .exercise-chip--flexibility { background: rgba(142, 36, 170, 0.15); }
+body.light-mode .exercise-chip--balance { background: rgba(0, 150, 136, 0.18); }
+body.light-mode .exercise-chip--recovery { background: rgba(2, 119, 189, 0.15); }
+
+/* Symptom tiles: collapsible section with grouped colour tiles (same pattern as stressors) */
+.symptom-tiles-collapsible {
+  margin-top: 10px;
+  border: 1px solid rgba(76, 175, 80, 0.25);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.symptom-tiles-collapsible .symptom-tiles-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  color: rgba(224, 242, 241, 0.9);
+  background: rgba(76, 175, 80, 0.08);
+  transition: background var(--transition-fast);
+  user-select: none;
+}
+
+.symptom-tiles-collapsible .symptom-tiles-summary::-webkit-details-marker,
+.symptom-tiles-collapsible .symptom-tiles-summary::marker {
+  display: none;
+}
+
+.symptom-tiles-collapsible .symptom-tiles-summary:hover {
+  background: rgba(76, 175, 80, 0.15);
+}
+
+.symptom-tiles-container {
+  padding: 10px 12px 12px;
+  border-top: 1px solid rgba(76, 175, 80, 0.2);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Symptom square tiles — same style as food chips (grid, aspect-ratio 1, icon + name) */
+.symptom-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+.symptom-chip {
+  aspect-ratio: 1;
+  min-height: 88px;
+  padding: 6px 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  background: rgba(76, 175, 80, 0.15);
+  color: var(--text-light);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  line-height: 1.2;
+  gap: 4px;
+}
+
+.symptom-chip .symptom-chip-icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  min-height: 24px;
+}
+
+.symptom-chip .symptom-chip-icon i {
+  font-size: inherit;
+}
+
+.symptom-chip .symptom-chip-name {
+  flex: 1 1 auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  min-height: 2.3em;
+}
+
+.symptom-chip--digestive {
+  background: rgba(121, 85, 72, 0.35);
+  border-color: rgba(161, 136, 127, 0.5);
+}
+.symptom-chip--digestive .symptom-chip-icon { color: rgba(188, 170, 164, 0.95); }
+.symptom-chip--digestive:hover { background: rgba(121, 85, 72, 0.6); border-color: rgba(161, 136, 127, 0.85); }
+
+.symptom-chip--respiratory {
+  background: rgba(2, 119, 189, 0.35);
+  border-color: rgba(33, 150, 243, 0.5);
+}
+.symptom-chip--respiratory .symptom-chip-icon { color: rgba(100, 181, 246, 0.95); }
+.symptom-chip--respiratory:hover { background: rgba(2, 119, 189, 0.6); border-color: rgba(33, 150, 243, 0.85); }
+
+.symptom-chip--neurological {
+  background: rgba(142, 36, 170, 0.35);
+  border-color: rgba(186, 104, 200, 0.5);
+}
+.symptom-chip--neurological .symptom-chip-icon { color: rgba(206, 147, 216, 0.95); }
+.symptom-chip--neurological:hover { background: rgba(142, 36, 170, 0.6); border-color: rgba(186, 104, 200, 0.85); }
+
+.symptom-chip--systemic {
+  background: rgba(211, 47, 47, 0.35);
+  border-color: rgba(239, 83, 80, 0.5);
+}
+.symptom-chip--systemic .symptom-chip-icon { color: rgba(239, 154, 154, 0.95); }
+.symptom-chip--systemic:hover { background: rgba(211, 47, 47, 0.6); border-color: rgba(239, 83, 80, 0.85); }
+
+.symptom-chip--skin {
+  background: rgba(46, 125, 50, 0.35);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+.symptom-chip--skin .symptom-chip-icon { color: rgba(129, 199, 132, 0.95); }
+.symptom-chip--skin:hover { background: rgba(46, 125, 50, 0.6); border-color: rgba(76, 175, 80, 0.85); }
+
+.symptom-chip--other {
+  background: rgba(97, 97, 97, 0.35);
+  border-color: rgba(158, 158, 158, 0.5);
+}
+.symptom-chip--other .symptom-chip-icon { color: rgba(188, 170, 164, 0.95); }
+.symptom-chip--other:hover { background: rgba(97, 97, 97, 0.6); border-color: rgba(158, 158, 158, 0.85); }
+
+.symptom-chip:active { transform: scale(0.97); }
+.symptom-chip:focus { outline: none; box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.4); }
+
+body.light-mode .symptom-tiles-collapsible { border-color: rgba(76, 175, 80, 0.3); }
+body.light-mode .symptom-tiles-collapsible .symptom-tiles-summary { color: var(--text-dark); background: rgba(76, 175, 80, 0.06); }
+body.light-mode .symptom-tiles-collapsible .symptom-tiles-summary:hover { background: rgba(76, 175, 80, 0.12); }
+body.light-mode .symptom-tiles-container { background: rgba(76, 175, 80, 0.04); border-top-color: rgba(76, 175, 80, 0.2); }
+body.light-mode .symptom-chip { color: var(--text-dark); }
+body.light-mode .symptom-chip--digestive { background: rgba(121, 85, 72, 0.25); }
+body.light-mode .symptom-chip--respiratory { background: rgba(2, 119, 189, 0.25); }
+body.light-mode .symptom-chip--neurological { background: rgba(142, 36, 170, 0.25); }
+body.light-mode .symptom-chip--systemic { background: rgba(211, 47, 47, 0.25); }
+body.light-mode .symptom-chip--skin { background: rgba(46, 125, 50, 0.25); }
+body.light-mode .symptom-chip--other { background: rgba(97, 97, 97, 0.25); }
+
+/* Energy & Mental Clarity: collapsible section with mood-colored tiles */
+.energy-clarity-selected {
+  font-size: 0.9rem;
+  color: rgba(224, 242, 241, 0.85);
+  margin: 0 0 8px 0;
+  min-height: 1.25rem;
+}
+
+.energy-clarity-collapsible {
+  margin-top: 6px;
+  border: 1px solid rgba(76, 175, 80, 0.25);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.energy-clarity-collapsible .energy-clarity-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  color: rgba(224, 242, 241, 0.9);
+  background: rgba(76, 175, 80, 0.08);
+  transition: background var(--transition-fast);
+  user-select: none;
+}
+
+.energy-clarity-collapsible .energy-clarity-summary::-webkit-details-marker,
+.energy-clarity-collapsible .energy-clarity-summary::marker {
+  display: none;
+}
+
+.energy-clarity-collapsible .energy-clarity-summary:hover {
+  background: rgba(76, 175, 80, 0.15);
+}
+
+/* Shared: group tiles by colour across the whole UI (food, exercise, stressors, symptoms, energy) */
+.tile-group,
+.food-tiles-by-group .food-group,
+.food-group,
+.stressor-group,
+.symptom-group {
+  margin-bottom: 12px;
+}
+
+.tile-group:last-child,
+.food-tiles-by-group .food-group:last-child,
+.stressor-group:last-child,
+.symptom-group:last-child {
+  margin-bottom: 0;
+}
+
+.tile-group__title,
+.food-group__title,
+.stressor-group__title,
+.symptom-group__title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(224, 242, 241, 0.85);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.tile-group__tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+body.light-mode .tile-group__title,
+body.light-mode .food-group__title,
+body.light-mode .stressor-group__title,
+body.light-mode .symptom-group__title {
+  color: var(--text-dark);
+}
+
+.energy-clarity-tiles {
+  padding: 10px 12px 12px;
+  border-top: 1px solid rgba(76, 175, 80, 0.2);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Energy & mental clarity square tiles — same style as food/stressor chips (grid, aspect-ratio 1, icon + name) */
+.energy-clarity-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+.energy-clarity-chip {
+  aspect-ratio: 1;
+  min-height: 88px;
+  padding: 6px 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  background: rgba(76, 175, 80, 0.15);
+  color: var(--text-light);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  line-height: 1.2;
+  gap: 4px;
+}
+
+.energy-clarity-chip .energy-clarity-chip-icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  min-height: 24px;
+}
+
+.energy-clarity-chip .energy-clarity-chip-icon i {
+  font-size: inherit;
+}
+
+.energy-clarity-chip .energy-clarity-chip-name {
+  flex: 1 1 auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  min-height: 2.3em;
+}
+
+.energy-clarity-chip--positive {
+  background: rgba(46, 125, 50, 0.35);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+.energy-clarity-chip--positive .energy-clarity-chip-icon { color: rgba(129, 199, 132, 0.95); }
+.energy-clarity-chip--positive:hover { background: rgba(46, 125, 50, 0.5); border-color: rgba(76, 175, 80, 0.7); }
+
+.energy-clarity-chip--neutral {
+  background: rgba(2, 119, 189, 0.35);
+  border-color: rgba(33, 150, 243, 0.5);
+}
+.energy-clarity-chip--neutral .energy-clarity-chip-icon { color: rgba(100, 181, 246, 0.95); }
+.energy-clarity-chip--neutral:hover { background: rgba(2, 119, 189, 0.5); border-color: rgba(33, 150, 243, 0.7); }
+
+.energy-clarity-chip--negative {
+  background: rgba(183, 28, 28, 0.35);
+  border-color: rgba(244, 67, 54, 0.5);
+}
+.energy-clarity-chip--negative .energy-clarity-chip-icon { color: rgba(239, 154, 154, 0.95); }
+.energy-clarity-chip--negative:hover { background: rgba(183, 28, 28, 0.5); border-color: rgba(244, 67, 54, 0.7); }
+
+.energy-clarity-chip.selected {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+.energy-clarity-chip--positive.selected { background: rgba(46, 125, 50, 0.55); border-color: rgba(129, 199, 132, 0.9); }
+.energy-clarity-chip--neutral.selected { background: rgba(2, 119, 189, 0.5); border-color: rgba(100, 181, 246, 0.9); }
+.energy-clarity-chip--negative.selected { background: rgba(183, 28, 28, 0.5); border-color: rgba(239, 154, 154, 0.9); }
+
+.energy-clarity-chip:active { transform: scale(0.97); }
+.energy-clarity-chip:focus { outline: none; box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.4); }
+
+body.light-mode .energy-clarity-selected {
+  color: var(--text-dark);
+}
+
+body.light-mode .energy-clarity-collapsible {
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+body.light-mode .energy-clarity-collapsible .energy-clarity-summary {
+  color: var(--text-dark);
+  background: rgba(76, 175, 80, 0.06);
+}
+
+body.light-mode .energy-clarity-collapsible .energy-clarity-summary:hover {
+  background: rgba(76, 175, 80, 0.12);
+}
+
+body.light-mode .energy-clarity-tiles {
+  background: rgba(76, 175, 80, 0.04);
+  border-top-color: rgba(76, 175, 80, 0.2);
+}
+
+body.light-mode .energy-clarity-chip {
+  color: var(--text-dark);
+}
+
+body.light-mode .energy-clarity-chip--positive {
+  background: rgba(46, 125, 50, 0.2);
+  border-color: rgba(76, 175, 80, 0.4);
+}
+
+body.light-mode .energy-clarity-chip--neutral {
+  background: rgba(2, 119, 189, 0.2);
+  border-color: rgba(33, 150, 243, 0.4);
+}
+
+body.light-mode .energy-clarity-chip--negative {
+  background: rgba(183, 28, 28, 0.2);
+  border-color: rgba(244, 67, 54, 0.4);
+}
+
+/* Stress & Triggers: collapsible section with grouped colour tiles */
+.stressor-tiles-collapsible {
+  margin-top: 10px;
+  border: 1px solid rgba(76, 175, 80, 0.25);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.stressor-tiles-collapsible .stressor-tiles-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  color: rgba(224, 242, 241, 0.9);
+  background: rgba(76, 175, 80, 0.08);
+  transition: background var(--transition-fast);
+  user-select: none;
+}
+
+.stressor-tiles-collapsible .stressor-tiles-summary::-webkit-details-marker,
+.stressor-tiles-collapsible .stressor-tiles-summary::marker {
+  display: none;
+}
+
+.stressor-tiles-collapsible .stressor-tiles-summary:hover {
+  background: rgba(76, 175, 80, 0.15);
+}
+
+.stressor-tiles-container {
+  padding: 10px 12px 12px;
+  border-top: 1px solid rgba(76, 175, 80, 0.2);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Stressor / trigger square tiles — same style as food chips (grid, aspect-ratio 1, icon + name) */
+.stressor-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+.stressor-chip {
+  aspect-ratio: 1;
+  min-height: 88px;
+  padding: 6px 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  background: rgba(76, 175, 80, 0.15);
+  color: var(--text-light);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  line-height: 1.2;
+  gap: 4px;
+}
+
+.stressor-chip .stressor-chip-icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  min-height: 24px;
+}
+
+.stressor-chip .stressor-chip-icon i {
+  font-size: inherit;
+}
+
+.stressor-chip .stressor-chip-name {
+  flex: 1 1 auto;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  min-height: 2.3em;
+}
+
+.stressor-chip--work {
+  background: rgba(245, 124, 0, 0.45);
+  border-color: rgba(255, 152, 0, 0.6);
+}
+.stressor-chip--work .stressor-chip-icon { color: rgba(255, 193, 7, 0.95); }
+.stressor-chip--work:hover { background: rgba(245, 124, 0, 0.6); border-color: rgba(255, 152, 0, 0.85); }
+
+.stressor-chip--relationship {
+  background: rgba(142, 36, 170, 0.45);
+  border-color: rgba(186, 104, 200, 0.6);
+}
+.stressor-chip--relationship .stressor-chip-icon { color: rgba(206, 147, 216, 0.95); }
+.stressor-chip--relationship:hover { background: rgba(142, 36, 170, 0.6); border-color: rgba(186, 104, 200, 0.85); }
+
+.stressor-chip--physical {
+  background: rgba(0, 150, 136, 0.45);
+  border-color: rgba(38, 166, 154, 0.6);
+}
+.stressor-chip--physical .stressor-chip-icon { color: rgba(77, 208, 225, 0.95); }
+.stressor-chip--physical:hover { background: rgba(0, 150, 136, 0.6); border-color: rgba(38, 166, 154, 0.85); }
+
+.stressor-chip--environment {
+  background: rgba(2, 119, 189, 0.45);
+  border-color: rgba(33, 150, 243, 0.6);
+}
+.stressor-chip--environment .stressor-chip-icon { color: rgba(100, 181, 246, 0.95); }
+.stressor-chip--environment:hover { background: rgba(2, 119, 189, 0.6); border-color: rgba(33, 150, 243, 0.85); }
+
+.stressor-chip--emotional {
+  background: rgba(211, 47, 47, 0.45);
+  border-color: rgba(239, 83, 80, 0.6);
+}
+.stressor-chip--emotional .stressor-chip-icon { color: rgba(239, 154, 154, 0.95); }
+.stressor-chip--emotional:hover { background: rgba(211, 47, 47, 0.6); border-color: rgba(239, 83, 80, 0.85); }
+
+.stressor-chip--other {
+  background: rgba(97, 97, 97, 0.45);
+  border-color: rgba(158, 158, 158, 0.6);
+}
+.stressor-chip--other .stressor-chip-icon { color: rgba(188, 170, 164, 0.95); }
+.stressor-chip--other:hover { background: rgba(97, 97, 97, 0.6); border-color: rgba(158, 158, 158, 0.85); }
+
+.stressor-chip:active { transform: scale(0.97); }
+.stressor-chip:focus { outline: none; box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.4); }
+
+body.light-mode .stressor-tiles-collapsible {
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+body.light-mode .stressor-tiles-collapsible .stressor-tiles-summary {
+  color: var(--text-dark);
+  background: rgba(76, 175, 80, 0.06);
+}
+
+body.light-mode .stressor-tiles-collapsible .stressor-tiles-summary:hover {
+  background: rgba(76, 175, 80, 0.12);
+}
+
+body.light-mode .stressor-tiles-container {
+  background: rgba(76, 175, 80, 0.04);
+  border-top-color: rgba(76, 175, 80, 0.2);
+}
+
+body.light-mode .stressor-chip {
+  color: var(--text-dark);
+}
+
+body.light-mode .stressor-chip--work { background: rgba(245, 124, 0, 0.25); }
+body.light-mode .stressor-chip--relationship { background: rgba(142, 36, 170, 0.25); }
+body.light-mode .stressor-chip--physical { background: rgba(0, 150, 136, 0.25); }
+body.light-mode .stressor-chip--environment { background: rgba(2, 119, 189, 0.25); }
+body.light-mode .stressor-chip--emotional { background: rgba(211, 47, 47, 0.25); }
+body.light-mode .stressor-chip--other { background: rgba(97, 97, 97, 0.25); }
 
 .item-input {
   flex: 1;

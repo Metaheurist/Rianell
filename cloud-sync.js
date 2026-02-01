@@ -357,12 +357,16 @@ async function syncAnonymizedData() {
             weatherSensitivity: log.weatherSensitivity,
             steps: log.steps,
             hydration: log.hydration,
-            // Include food and exercise but anonymize names if needed
-            food: log.food ? log.food.map(item => ({
-              name: item.name || '',
-              calories: item.calories,
-              protein: item.protein
-            })) : undefined,
+            // Include food (flatten category object to array for sync) and exercise
+            food: (function() {
+              if (!log.food) return undefined;
+              const arr = Array.isArray(log.food) ? log.food : [].concat(log.food.breakfast || [], log.food.lunch || [], log.food.dinner || [], log.food.snack || []);
+              return arr.length ? arr.map(item => ({
+                name: (item && item.name) || '',
+                calories: item && item.calories,
+                protein: item && item.protein
+              })) : undefined;
+            })(),
             exercise: log.exercise,
             // Include optional fields (but NOT stressors, symptoms, painLocation - these are PII)
             energyClarity: log.energyClarity

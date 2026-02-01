@@ -21,7 +21,7 @@
   
   <!-- Security Headers -->
   <!-- Note: frame-ancestors and X-Frame-Options must be set via HTTP headers, not meta tags -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <!-- Note: X-Frame-Options is set via HTTP header in server.py, not here -->
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -56,6 +56,7 @@
   <script src="event-handlers.js?v=1"></script>
   <!-- Now loaded from local server with progress tracking -->
   <!-- The script will be loaded dynamically with progress bar in app.js -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="styles.css?v=1">
   <script>
     // Remove unwanted preload links injected by browser extensions
@@ -489,20 +490,13 @@
             <label for="sleep" class="slider-label">Sleep Quality</label>
           </div>
           <div class="input-container">
-            <label for="energyClarity">Energy & Mental Clarity</label>
-            <select id="energyClarity" class="item-select">
-              <option value="">Select energy/clarity...</option>
-              <option value="High Energy">High Energy</option>
-              <option value="Moderate Energy">Moderate Energy</option>
-              <option value="Low Energy">Low Energy</option>
-              <option value="Mental Clarity">Mental Clarity</option>
-              <option value="Brain Fog">Brain Fog</option>
-              <option value="Good Concentration">Good Concentration</option>
-              <option value="Poor Concentration">Poor Concentration</option>
-              <option value="Mental Fatigue">Mental Fatigue</option>
-              <option value="Focused">Focused</option>
-              <option value="Distracted">Distracted</option>
-            </select>
+            <label>Energy & Mental Clarity</label>
+            <input type="hidden" id="energyClarity" name="energyClarity" value="" />
+            <p id="energyClaritySelectedLabel" class="energy-clarity-selected" aria-live="polite">None selected</p>
+            <details class="energy-clarity-collapsible">
+              <summary class="energy-clarity-summary">Choose energy & mental clarity</summary>
+              <div id="energyClarityTiles" class="energy-clarity-tiles" role="listbox" aria-label="Energy and mental clarity options"></div>
+            </details>
           </div>
         </div>
       </div>
@@ -524,24 +518,10 @@
             <label for="weatherSensitivity" class="slider-label">Weather Sensitivity</label>
           </div>
           <div id="logStressorsList" class="items-list"></div>
-          <div class="add-item-section">
-            <select id="logNewStressorItem" class="item-select">
-              <option value="">Select stressor...</option>
-              <option value="Work deadline">Work deadline</option>
-              <option value="Family conflict">Family conflict</option>
-              <option value="Financial stress">Financial stress</option>
-              <option value="Social event">Social event</option>
-              <option value="Travel">Travel</option>
-              <option value="Weather change">Weather change</option>
-              <option value="Sleep disruption">Sleep disruption</option>
-              <option value="Physical overexertion">Physical overexertion</option>
-              <option value="Emotional stress">Emotional stress</option>
-              <option value="Health concern">Health concern</option>
-              <option value="Relationship issue">Relationship issue</option>
-              <option value="Other">Other</option>
-            </select>
-            <button type="button" class="add-item-btn" onclick="addLogStressorItem()" title="Add stressor">➕</button>
-          </div>
+          <details class="stressor-tiles-collapsible">
+            <summary class="stressor-tiles-summary">Add stressor or trigger</summary>
+            <div id="logStressorsTiles" class="stressor-tiles-container" aria-label="Stress and trigger options by group"></div>
+          </details>
         </div>
       </div>
 
@@ -554,26 +534,31 @@
         </button>
         <div class="section-content" id="additionalSymptoms">
           <div id="logSymptomsList" class="items-list"></div>
-          <div class="add-item-section">
-            <select id="logNewSymptomItem" class="item-select">
-              <option value="">Select symptom...</option>
-              <option value="Nausea">Nausea</option>
-              <option value="Appetite loss">Appetite loss</option>
-              <option value="Digestive issues">Digestive issues</option>
-              <option value="Breathing difficulty">Breathing difficulty</option>
-              <option value="Dizziness">Dizziness</option>
-              <option value="Headache">Headache</option>
-              <option value="Fever">Fever</option>
-              <option value="Chills">Chills</option>
-              <option value="Skin rash">Skin rash</option>
-              <option value="Eye irritation">Eye irritation</option>
-              <option value="Other">Other</option>
-            </select>
-            <button type="button" class="add-item-btn" onclick="addLogSymptomItem()" title="Add symptom">➕</button>
-          </div>
-          <div class="input-container" style="margin-top: 1rem;">
-            <label for="painLocation">Pain Location (Where did you feel pain?)</label>
-            <input type="text" id="painLocation" placeholder="e.g., Lower back, right knee, neck" maxlength="150" />
+          <details class="symptom-tiles-collapsible">
+            <summary class="symptom-tiles-summary">Add symptom</summary>
+            <div id="logSymptomsTiles" class="symptom-tiles-container" aria-label="Symptom options by group"></div>
+          </details>
+          <div class="input-container pain-body-container" style="margin-top: 1rem;">
+            <label>Pain Location — tap areas to cycle: green (none) → yellow (mild) → red (pain)</label>
+            <input type="hidden" id="painLocation" name="painLocation" />
+            <div class="pain-body-wrapper" id="painBodyDiagram" aria-label="Select body areas for pain">
+              <svg class="pain-body-svg" viewBox="0 0 100 260" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <filter id="pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter>
+                </defs>
+                <!-- Body outline (background) -->
+                <path class="pain-body-outline" d="M50 8 A22 26 0 0 1 50 60 L42 62 L28 65 L22 95 L24 130 L36 152 L38 200 L40 258 L48 258 L48 200 L50 152 L50 100 L50 62 L58 62 L72 65 L78 95 L76 130 L64 152 L62 200 L60 258 L52 258 L52 200 L50 152 L50 100 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>
+                <!-- Clickable regions (front view) -->
+                <ellipse id="pain-region-head" class="pain-region pain-state-0" data-region="head" cx="50" cy="28" rx="22" ry="26" fill="currentColor" filter="url(#pain-body-shadow)"/>
+                <path id="pain-region-neck" class="pain-region pain-state-0" data-region="neck" d="M38 52 L62 52 L60 64 L40 64 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+                <path id="pain-region-chest" class="pain-region pain-state-0" data-region="chest" d="M32 64 L68 64 L66 98 L34 98 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+                <path id="pain-region-abdomen" class="pain-region pain-state-0" data-region="abdomen" d="M34 98 L66 98 L64 152 L36 152 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+                <path id="pain-region-left-arm" class="pain-region pain-state-0" data-region="left_arm" d="M20 62 L34 65 L36 125 L22 122 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+                <path id="pain-region-right-arm" class="pain-region pain-state-0" data-region="right_arm" d="M66 62 L80 65 L78 125 L64 122 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+                <path id="pain-region-left-leg" class="pain-region pain-state-0" data-region="left_leg" d="M36 152 L48 152 L48 202 L46 258 L42 258 L40 202 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+                <path id="pain-region-right-leg" class="pain-region pain-state-0" data-region="right_leg" d="M52 152 L64 152 L62 202 L60 258 L58 258 L54 202 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+              </svg>
+            </div>
           </div>
         </div>
       </div>
@@ -603,7 +588,7 @@
         </div>
       </div>
 
-      <!-- Food Log Section -->
+      <!-- Food Log Section (4 categories: Breakfast, Lunch, Dinner, Snack) -->
       <div class="form-section">
         <button type="button" class="section-header" onclick="toggleSection('foodLog')">
           <span class="section-icon">🍽️</span>
@@ -611,21 +596,38 @@
           <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="foodLog">
-          <div id="logFoodItemsList" class="items-list"></div>
-          <div class="add-item-section">
-            <div style="display: flex; gap: 8px; flex: 1; align-items: flex-start;">
-              <input type="text" id="logNewFoodItem" class="item-input" placeholder="Food name (e.g., Grilled chicken, 200g)" style="flex: 1;" />
-              <div style="display: flex; flex-direction: column; gap: 8px; flex: 1;">
-                <input type="number" id="logNewFoodCalories" class="item-input" placeholder="Calories (optional)" min="0" step="1" />
-                <input type="number" id="logNewFoodProtein" class="item-input" placeholder="Protein (g, optional)" min="0" step="0.1" />
-              </div>
+          <details class="food-category-block food-meal-collapsible">
+            <summary class="food-category-summary"><span class="food-meal-label">Breakfast</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
+            <div class="food-category-body">
+              <div id="logFoodBreakfastList" class="items-list"></div>
+              <div id="logFoodBreakfastChips" class="food-tiles-by-group" aria-label="Add to Breakfast"></div>
             </div>
-            <button type="button" class="add-item-btn" onclick="addLogFoodItem()" title="Add food item">➕</button>
-          </div>
+          </details>
+          <details class="food-category-block food-meal-collapsible">
+            <summary class="food-category-summary"><span class="food-meal-label">Lunch</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
+            <div class="food-category-body">
+              <div id="logFoodLunchList" class="items-list"></div>
+              <div id="logFoodLunchChips" class="food-tiles-by-group" aria-label="Add to Lunch"></div>
+            </div>
+          </details>
+          <details class="food-category-block food-meal-collapsible">
+            <summary class="food-category-summary"><span class="food-meal-label">Dinner</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
+            <div class="food-category-body">
+              <div id="logFoodDinnerList" class="items-list"></div>
+              <div id="logFoodDinnerChips" class="food-tiles-by-group" aria-label="Add to Dinner"></div>
+            </div>
+          </details>
+          <details class="food-category-block food-meal-collapsible">
+            <summary class="food-category-summary"><span class="food-meal-label">Snack</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
+            <div class="food-category-body">
+              <div id="logFoodSnackList" class="items-list"></div>
+              <div id="logFoodSnackChips" class="food-tiles-by-group" aria-label="Add to Snack"></div>
+            </div>
+          </details>
         </div>
       </div>
 
-      <!-- Exercise Log Section -->
+      <!-- Exercise Log Section (tile grid by category: Cardio, Strength, etc. — collapsible, collapsed by default) -->
       <div class="form-section">
         <button type="button" class="section-header" onclick="toggleSection('exerciseLog')">
           <span class="section-icon">🏃</span>
@@ -634,10 +636,36 @@
         </button>
         <div class="section-content" id="exerciseLog">
           <div id="logExerciseItemsList" class="items-list"></div>
-          <div class="add-item-section">
-            <input type="text" id="logNewExerciseItem" class="item-input" placeholder="Enter exercise (e.g., Walking, 30 minutes)" onkeypress="if(event.key==='Enter'){event.preventDefault();addLogExerciseItem();}" />
-            <button type="button" class="add-item-btn" onclick="addLogExerciseItem()" title="Add exercise">➕</button>
-          </div>
+          <details class="exercise-category-block exercise-meal-collapsible">
+            <summary class="exercise-category-summary"><span class="exercise-meal-label">Cardio</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
+            <div class="exercise-category-body">
+              <div id="logExerciseCardioChips" class="exercise-chips" aria-label="Add Cardio"></div>
+            </div>
+          </details>
+          <details class="exercise-category-block exercise-meal-collapsible">
+            <summary class="exercise-category-summary"><span class="exercise-meal-label">Strength</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
+            <div class="exercise-category-body">
+              <div id="logExerciseStrengthChips" class="exercise-chips" aria-label="Add Strength"></div>
+            </div>
+          </details>
+          <details class="exercise-category-block exercise-meal-collapsible">
+            <summary class="exercise-category-summary"><span class="exercise-meal-label">Flexibility</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
+            <div class="exercise-category-body">
+              <div id="logExerciseFlexibilityChips" class="exercise-chips" aria-label="Add Flexibility"></div>
+            </div>
+          </details>
+          <details class="exercise-category-block exercise-meal-collapsible">
+            <summary class="exercise-category-summary"><span class="exercise-meal-label">Balance</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
+            <div class="exercise-category-body">
+              <div id="logExerciseBalanceChips" class="exercise-chips" aria-label="Add Balance"></div>
+            </div>
+          </details>
+          <details class="exercise-category-block exercise-meal-collapsible">
+            <summary class="exercise-category-summary"><span class="exercise-meal-label">Recovery</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
+            <div class="exercise-category-body">
+              <div id="logExerciseRecoveryChips" class="exercise-chips" aria-label="Add Recovery"></div>
+            </div>
+          </details>
         </div>
       </div>
 
@@ -870,7 +898,7 @@
 
   </div>
 
-  <!-- Food Log Modal -->
+  <!-- Food Log Modal (Breakfast, Lunch, Dinner, Snack - select from predefined list) -->
   <div class="modal-overlay" id="foodModalOverlay">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -879,16 +907,6 @@
       </div>
       <div class="modal-body">
         <div id="foodItemsList" class="items-list"></div>
-        <div class="add-item-section">
-          <div style="display: flex; gap: 8px; flex: 1; align-items: flex-start;">
-            <input type="text" id="newFoodItem" class="item-input" placeholder="Food name (e.g., Grilled chicken, 200g)" style="flex: 1;" />
-            <div style="display: flex; flex-direction: column; gap: 8px; flex: 1;">
-              <input type="number" id="newFoodCalories" class="item-input" placeholder="Calories (optional)" min="0" step="1" />
-              <input type="number" id="newFoodProtein" class="item-input" placeholder="Protein (g, optional)" min="0" step="0.1" />
-            </div>
-          </div>
-          <button class="add-item-btn" onclick="addFoodItem()" title="Add food item">➕</button>
-        </div>
       </div>
       <div class="modal-footer">
         <button class="modal-save-btn" onclick="saveFoodLog()">💾 Save</button>
@@ -896,7 +914,7 @@
     </div>
   </div>
 
-  <!-- Exercise Log Modal -->
+  <!-- Exercise Log Modal (predefined list + duration) -->
   <div class="modal-overlay" id="exerciseModalOverlay">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -905,10 +923,6 @@
       </div>
       <div class="modal-body">
         <div id="exerciseItemsList" class="items-list"></div>
-        <div class="add-item-section">
-          <input type="text" id="newExerciseItem" class="item-input" placeholder="Enter exercise (e.g., Walking, 30 minutes)" />
-          <button class="add-item-btn" onclick="addExerciseItem()" title="Add exercise">➕</button>
-        </div>
       </div>
       <div class="modal-footer">
         <button class="modal-save-btn" onclick="saveExerciseLog()">💾 Save</button>
@@ -989,20 +1003,13 @@
               <span class="collapsible-arrow" id="editEnergySectionArrow">▼</span>
             </div>
             <div class="collapsible-content" id="editEnergySection" style="display: none;">
-              <label for="editEnergyClarity">Energy & Mental Clarity</label>
-              <select id="editEnergyClarity">
-                <option value="">Select energy/clarity...</option>
-                <option value="High Energy">High Energy</option>
-                <option value="Moderate Energy">Moderate Energy</option>
-                <option value="Low Energy">Low Energy</option>
-                <option value="Mental Clarity">Mental Clarity</option>
-                <option value="Brain Fog">Brain Fog</option>
-                <option value="Good Concentration">Good Concentration</option>
-                <option value="Poor Concentration">Poor Concentration</option>
-                <option value="Mental Fatigue">Mental Fatigue</option>
-                <option value="Focused">Focused</option>
-                <option value="Distracted">Distracted</option>
-              </select>
+              <label>Energy & Mental Clarity</label>
+              <input type="hidden" id="editEnergyClarity" name="editEnergyClarity" value="" />
+              <p id="editEnergyClaritySelectedLabel" class="energy-clarity-selected" aria-live="polite">None selected</p>
+              <details class="energy-clarity-collapsible">
+                <summary class="energy-clarity-summary">Choose energy & mental clarity</summary>
+                <div id="editEnergyClarityTiles" class="energy-clarity-tiles" role="listbox" aria-label="Energy and mental clarity options"></div>
+              </details>
               
               <label for="editWeatherSensitivity">Weather Sensitivity (1-10)</label>
               <input type="range" id="editWeatherSensitivity" min="1" max="10" value="5" oninput="updateEditSliderColor('editWeatherSensitivity')" />
@@ -1020,25 +1027,11 @@
             <div class="collapsible-content" id="editStressSection" style="display: none;">
               <label>Stressors</label>
               <div class="add-item-list" id="editStressorsList">
-                <div class="add-item-controls">
-                  <select id="editStressorSelect" class="add-item-select">
-                    <option value="">Select stressor...</option>
-                    <option value="Work deadline">Work deadline</option>
-                    <option value="Family conflict">Family conflict</option>
-                    <option value="Financial stress">Financial stress</option>
-                    <option value="Social event">Social event</option>
-                    <option value="Travel">Travel</option>
-                    <option value="Weather change">Weather change</option>
-                    <option value="Sleep disruption">Sleep disruption</option>
-                    <option value="Physical overexertion">Physical overexertion</option>
-                    <option value="Emotional stress">Emotional stress</option>
-                    <option value="Health concern">Health concern</option>
-                    <option value="Relationship issue">Relationship issue</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  <button type="button" class="add-item-btn" onclick="addEditStressor()">+</button>
-                </div>
                 <div class="item-list" id="editStressorsItems"></div>
+                <details class="stressor-tiles-collapsible">
+                  <summary class="stressor-tiles-summary">Add stressor or trigger</summary>
+                  <div id="editStressorsTiles" class="stressor-tiles-container" aria-label="Stress and trigger options by group"></div>
+                </details>
               </div>
             </div>
           </div>
@@ -1053,31 +1046,113 @@
             <div class="collapsible-content" id="editSymptomsSection" style="display: none;">
               <label>Symptoms</label>
               <div class="add-item-list" id="editSymptomsList">
-                <div class="add-item-controls">
-                  <select id="editSymptomSelect" class="add-item-select">
-                    <option value="">Select symptom...</option>
-                    <option value="Nausea">Nausea</option>
-                    <option value="Appetite loss">Appetite loss</option>
-                    <option value="Digestive issues">Digestive issues</option>
-                    <option value="Breathing difficulty">Breathing difficulty</option>
-                    <option value="Dizziness">Dizziness</option>
-                    <option value="Headache">Headache</option>
-                    <option value="Fever">Fever</option>
-                    <option value="Chills">Chills</option>
-                    <option value="Skin rash">Skin rash</option>
-                    <option value="Eye irritation">Eye irritation</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  <button type="button" class="add-item-btn" onclick="addEditSymptom()">+</button>
-                </div>
                 <div class="item-list" id="editSymptomsItems"></div>
+                <details class="symptom-tiles-collapsible">
+                  <summary class="symptom-tiles-summary">Add symptom</summary>
+                  <div id="editSymptomsTiles" class="symptom-tiles-container" aria-label="Symptom options by group"></div>
+                </details>
               </div>
               
-              <label for="editPainLocation">Pain Location</label>
-              <input type="text" id="editPainLocation" maxlength="150" placeholder="e.g., Lower back, Knees" />
+              <label>Pain Location</label>
+              <input type="hidden" id="editPainLocation" />
+              <div class="pain-body-wrapper" id="editPainBodyDiagram" aria-label="Select body areas for pain">
+                <svg class="pain-body-svg" viewBox="0 0 100 260" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <filter id="edit-pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter>
+                  </defs>
+                  <path class="pain-body-outline" d="M50 8 A22 26 0 0 1 50 60 L42 62 L28 65 L22 95 L24 130 L36 152 L38 200 L40 258 L48 258 L48 200 L50 152 L50 100 L50 62 L58 62 L72 65 L78 95 L76 130 L64 152 L62 200 L60 258 L52 258 L52 200 L50 152 L50 100 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>
+                  <ellipse id="edit-pain-region-head" class="pain-region pain-state-0" data-region="head" cx="50" cy="28" rx="22" ry="26" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path id="edit-pain-region-neck" class="pain-region pain-state-0" data-region="neck" d="M38 52 L62 52 L60 64 L40 64 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path id="edit-pain-region-chest" class="pain-region pain-state-0" data-region="chest" d="M32 64 L68 64 L66 98 L34 98 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path id="edit-pain-region-abdomen" class="pain-region pain-state-0" data-region="abdomen" d="M34 98 L66 98 L64 152 L36 152 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path id="edit-pain-region-left-arm" class="pain-region pain-state-0" data-region="left_arm" d="M20 62 L34 65 L36 125 L22 122 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path id="edit-pain-region-right-arm" class="pain-region pain-state-0" data-region="right_arm" d="M66 62 L80 65 L78 125 L64 122 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path id="edit-pain-region-left-leg" class="pain-region pain-state-0" data-region="left_leg" d="M36 152 L48 152 L48 202 L46 258 L42 258 L40 202 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path id="edit-pain-region-right-leg" class="pain-region pain-state-0" data-region="right_leg" d="M52 152 L64 152 L62 202 L60 258 L58 258 L54 202 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                </svg>
+              </div>
             </div>
           </div>
           
+          <!-- Collapsible Section: Food Log (same tile selector as main form) -->
+          <div class="collapsible-section">
+            <div class="collapsible-header" onclick="toggleCollapsibleSection('editFoodSection')">
+              <span class="section-icon">🍽️</span>
+              <span class="section-title">Food Log (Optional)</span>
+              <span class="collapsible-arrow" id="editFoodSectionArrow">▼</span>
+            </div>
+            <div class="collapsible-content" id="editFoodSection" style="display: none;">
+              <details class="food-category-block food-meal-collapsible">
+                <summary class="food-category-summary"><span class="food-meal-label">Breakfast</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
+                <div class="food-category-body">
+                  <div id="editFoodBreakfastList" class="items-list"></div>
+                  <div id="editFoodBreakfastChips" class="food-tiles-by-group" aria-label="Add to Breakfast"></div>
+                </div>
+              </details>
+              <details class="food-category-block food-meal-collapsible">
+                <summary class="food-category-summary"><span class="food-meal-label">Lunch</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
+                <div class="food-category-body">
+                  <div id="editFoodLunchList" class="items-list"></div>
+                  <div id="editFoodLunchChips" class="food-tiles-by-group" aria-label="Add to Lunch"></div>
+                </div>
+              </details>
+              <details class="food-category-block food-meal-collapsible">
+                <summary class="food-category-summary"><span class="food-meal-label">Dinner</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
+                <div class="food-category-body">
+                  <div id="editFoodDinnerList" class="items-list"></div>
+                  <div id="editFoodDinnerChips" class="food-tiles-by-group" aria-label="Add to Dinner"></div>
+                </div>
+              </details>
+              <details class="food-category-block food-meal-collapsible">
+                <summary class="food-category-summary"><span class="food-meal-label">Snack</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
+                <div class="food-category-body">
+                  <div id="editFoodSnackList" class="items-list"></div>
+                  <div id="editFoodSnackChips" class="food-tiles-by-group" aria-label="Add to Snack"></div>
+                </div>
+              </details>
+            </div>
+          </div>
+          <!-- Collapsible Section: Exercise Log (same tile selector as main form) -->
+          <div class="collapsible-section">
+            <div class="collapsible-header" onclick="toggleCollapsibleSection('editExerciseSection')">
+              <span class="section-icon">🏃</span>
+              <span class="section-title">Exercise Log (Optional)</span>
+              <span class="collapsible-arrow" id="editExerciseSectionArrow">▼</span>
+            </div>
+            <div class="collapsible-content" id="editExerciseSection" style="display: none;">
+              <div id="editExerciseItemsList" class="items-list"></div>
+              <details class="exercise-category-block exercise-meal-collapsible">
+                <summary class="exercise-category-summary"><span class="exercise-meal-label">Cardio</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
+                <div class="exercise-category-body">
+                  <div id="editExerciseCardioChips" class="exercise-chips" aria-label="Add Cardio"></div>
+                </div>
+              </details>
+              <details class="exercise-category-block exercise-meal-collapsible">
+                <summary class="exercise-category-summary"><span class="exercise-meal-label">Strength</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
+                <div class="exercise-category-body">
+                  <div id="editExerciseStrengthChips" class="exercise-chips" aria-label="Add Strength"></div>
+                </div>
+              </details>
+              <details class="exercise-category-block exercise-meal-collapsible">
+                <summary class="exercise-category-summary"><span class="exercise-meal-label">Flexibility</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
+                <div class="exercise-category-body">
+                  <div id="editExerciseFlexibilityChips" class="exercise-chips" aria-label="Add Flexibility"></div>
+                </div>
+              </details>
+              <details class="exercise-category-block exercise-meal-collapsible">
+                <summary class="exercise-category-summary"><span class="exercise-meal-label">Balance</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
+                <div class="exercise-category-body">
+                  <div id="editExerciseBalanceChips" class="exercise-chips" aria-label="Add Balance"></div>
+                </div>
+              </details>
+              <details class="exercise-category-block exercise-meal-collapsible">
+                <summary class="exercise-category-summary"><span class="exercise-meal-label">Recovery</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
+                <div class="exercise-category-body">
+                  <div id="editExerciseRecoveryChips" class="exercise-chips" aria-label="Add Recovery"></div>
+                </div>
+              </details>
+            </div>
+          </div>
           <!-- Collapsible Section: Lifestyle Factors -->
           <div class="collapsible-section">
             <div class="collapsible-header" onclick="toggleCollapsibleSection('editLifestyleSection')">
