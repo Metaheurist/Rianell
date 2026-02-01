@@ -1505,7 +1505,7 @@ const AIEngine = {
       }
     });
     
-    // Parse pain by body region (22 diagram regions) and aggregate per region
+    // Parse pain by body region (28 diagram regions including joints) and aggregate per region
     const painByRegion = {};
     PAIN_REGIONS.forEach(r => {
       painByRegion[r.id] = { label: r.label, mildDays: 0, painDays: 0 };
