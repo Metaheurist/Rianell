@@ -5219,8 +5219,7 @@ const STRESSOR_GROUPS = [
   { id: 'relationship', label: 'Relationships', color: 'relationship' },
   { id: 'physical', label: 'Physical', color: 'physical' },
   { id: 'environment', label: 'Environment', color: 'environment' },
-  { id: 'emotional', label: 'Emotional & health', color: 'emotional' },
-  { id: 'other', label: 'Other', color: 'other' }
+  { id: 'emotional', label: 'Emotional & health', color: 'emotional' }
 ];
 
 const STRESSOR_OPTIONS = [
@@ -5234,8 +5233,7 @@ const STRESSOR_OPTIONS = [
   { value: 'Weather change', label: 'Weather change', group: 'environment' },
   { value: 'Travel', label: 'Travel', group: 'environment' },
   { value: 'Emotional stress', label: 'Emotional stress', group: 'emotional' },
-  { value: 'Health concern', label: 'Health concern', group: 'emotional' },
-  { value: 'Other', label: 'Other', group: 'other' }
+  { value: 'Health concern', label: 'Health concern', group: 'emotional' }
 ];
 
 // Stressor value -> Font Awesome 6 free icon class (square tiles same style as food/exercise)
@@ -5250,8 +5248,7 @@ const STRESSOR_ICONS = {
   'Weather change': 'fa-solid fa-cloud-sun',
   'Travel': 'fa-solid fa-plane',
   'Emotional stress': 'fa-solid fa-face-sad-cry',
-  'Health concern': 'fa-solid fa-heart-pulse',
-  'Other': 'fa-solid fa-ellipsis'
+  'Health concern': 'fa-solid fa-heart-pulse'
 };
 
 // Symptom groups for coloured tiles (same pattern as stressors)
