@@ -438,11 +438,11 @@ def run_sql(sql):
     if DATABASE_URL:
         try:
             try:
-                import psycopg
+                import psycopg  # type: ignore[import-untyped]
                 conn = psycopg.connect(DATABASE_URL)
                 cur = conn.cursor()
             except Exception:
-                import psycopg2
+                import psycopg2  # type: ignore[import-untyped]
                 conn = psycopg2.connect(DATABASE_URL)
                 cur = conn.cursor()
 
@@ -1680,29 +1680,16 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
         return super().guess_type(path)
 
 def notify_sse_clients():
-    """Notify all SSE clients to reload"""
+    """Notify all SSE clients to reload by waking their handler threads.
+    Each handler writes to its own wfile (same thread as the socket), avoiding
+    cross-thread write failures (e.g. on Windows) that caused "Notified 0" despite active clients.
+    """
     global last_file_change_time
     last_file_change_time = time.time()
-    file_change_event.set()
-    
-    # Clean up dead connections first, then notify
     with sse_lock:
-        alive_clients = []
-        for client_ip, wfile in sse_clients:
-            try:
-                # Send reload message to client
-                reload_message = json.dumps({'type': 'reload'})
-                wfile.write(f'data: {reload_message}\n\n'.encode('utf-8'))
-                wfile.flush()
-                logger.debug(f"Sent reload notification to {client_ip}")
-            except (BrokenPipeError, ConnectionResetError, OSError):
-                logger.debug(f"Removed dead SSE connection: {client_ip}")
-                continue  # Don't add to alive_clients
-            
-            alive_clients.append((client_ip, wfile))
-        
-        sse_clients[:] = alive_clients
-        logger.info(f"Notified {len(alive_clients)} SSE client(s) to reload")
+        n = len(sse_clients)
+    file_change_event.set()
+    logger.info(f"Notified {n} SSE client(s) to reload")
 
 # FileChangeHandler class - only defined if watchdog is available
 if WATCHDOG_AVAILABLE:

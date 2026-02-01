@@ -288,8 +288,11 @@ const AIEngine = {
     const flarePredictionLogs = trainingLogs.length >= recentLogs.length ? trainingLogs : recentLogs;
     this.predictFlareUps(flarePredictionLogs, analysis);
     
-    // Food/Exercise impact analysis
+    // Food/Exercise impact analysis (also sets nutritionAnalysis and exerciseSummary)
     this.analyzeFoodExerciseImpact(recentLogs, analysis);
+    
+    // Energy & mental clarity and weather sensitivity (use all collected data)
+    this.analyzeEnergyClarityAndWeather(recentLogs, analysis);
     
     // Stressors impact analysis
     this.analyzeStressorsImpact(recentLogs, analysis);
@@ -1586,32 +1589,63 @@ const AIEngine = {
   analyzeFoodExerciseImpact: function(logs, analysis) {
     if (logs.length < 7) return; // Need minimum data
     
-    // Group logs by food/exercise patterns
-    const withFood = logs.filter(log => log.food && Array.isArray(log.food) && log.food.length > 0);
-    const withoutFood = logs.filter(log => !log.food || !Array.isArray(log.food) || log.food.length === 0);
+    // Helper: flat array of food items from a log (handles category object or legacy array)
+    const getLogFoodArray = (log) => {
+      if (!log || !log.food) return [];
+      const f = log.food;
+      if (Array.isArray(f)) return f;
+      return [].concat(f.breakfast || [], f.lunch || [], f.dinner || [], f.snack || []);
+    };
+    const withFood = logs.filter(log => getLogFoodArray(log).length > 0);
+    const withoutFood = logs.filter(log => getLogFoodArray(log).length === 0);
     const withExercise = logs.filter(log => log.exercise && Array.isArray(log.exercise) && log.exercise.length > 0);
     const withoutExercise = logs.filter(log => !log.exercise || !Array.isArray(log.exercise) || log.exercise.length === 0);
     
-    // Calculate daily calorie and protein totals
-    const dailyCalories = [];
-    const dailyProtein = [];
+    // Calculate daily calorie and protein totals and set nutritionAnalysis (used in UI and insights)
+    const dailyNutrition = [];
     logs.forEach(log => {
-      if (log.food && Array.isArray(log.food) && log.food.length > 0) {
+      const foodArr = getLogFoodArray(log);
+      if (foodArr.length > 0) {
         let dayCalories = 0;
         let dayProtein = 0;
-        log.food.forEach(item => {
-          // Handle both old string format and new object format
-          if (typeof item === 'object' && item.calories !== undefined) {
-            dayCalories += item.calories || 0;
-          }
-          if (typeof item === 'object' && item.protein !== undefined) {
-            dayProtein += item.protein || 0;
-          }
+        foodArr.forEach(item => {
+          if (typeof item === 'object' && item.calories !== undefined) dayCalories += item.calories || 0;
+          if (typeof item === 'object' && item.protein !== undefined) dayProtein += item.protein || 0;
         });
-        if (dayCalories > 0) dailyCalories.push({ date: log.date, calories: dayCalories, protein: dayProtein });
+        if (dayCalories > 0 || dayProtein > 0) {
+          dailyNutrition.push({ date: log.date, calories: dayCalories, protein: dayProtein });
+        }
       }
     });
-    
+    if (dailyNutrition.length > 0) {
+      const totalCal = dailyNutrition.reduce((s, d) => s + d.calories, 0);
+      const totalProtein = dailyNutrition.reduce((s, d) => s + d.protein, 0);
+      const avgCalories = Math.round(totalCal / dailyNutrition.length);
+      const avgProtein = Math.round((totalProtein / dailyNutrition.length) * 10) / 10;
+      analysis.nutritionAnalysis = {
+        avgCalories,
+        avgProtein,
+        daysWithFood: dailyNutrition.length,
+        highCalorieDays: dailyNutrition.filter(d => d.calories > 2500).length,
+        lowCalorieDays: dailyNutrition.filter(d => d.calories > 0 && d.calories < 1500).length,
+        highProteinDays: dailyNutrition.filter(d => d.protein >= 100).length,
+        lowProteinDays: dailyNutrition.filter(d => d.protein > 0 && d.protein < 50).length
+      };
+    }
+    // Exercise: total minutes per day (from { name, duration } items)
+    const getLogExerciseMinutes = (log) => {
+      if (!log || !log.exercise || !Array.isArray(log.exercise)) return 0;
+      return log.exercise.reduce((sum, item) => {
+        const mins = typeof item === 'object' && item.duration != null ? item.duration : 0;
+        return sum + (typeof mins === 'number' ? mins : parseInt(mins, 10) || 0);
+      }, 0);
+    };
+    const logsWithExerciseMinutes = logs.filter(log => getLogExerciseMinutes(log) > 0);
+    if (logsWithExerciseMinutes.length >= 3) {
+      const totalMins = logsWithExerciseMinutes.reduce((s, log) => s + getLogExerciseMinutes(log), 0);
+      const avgExerciseMinutes = Math.round(totalMins / logsWithExerciseMinutes.length);
+      analysis.exerciseSummary = { avgMinutesPerDay: avgExerciseMinutes, daysWithExercise: logsWithExerciseMinutes.length };
+    }
     const metrics = ['backPain', 'fatigue', 'stiffness', 'mobility', 'mood', 'swelling'];
     const impacts = [];
     
@@ -1699,6 +1733,50 @@ const AIEngine = {
       
       // Store impacts in analysis
       analysis.foodExerciseImpacts = impacts;
+    }
+  },
+
+  // Analyze energyClarity (text) and weatherSensitivity (numeric) for patterns
+  analyzeEnergyClarityAndWeather: function(logs, analysis) {
+    if (logs.length < 5) return;
+    const highEnergyTerms = ['high energy', 'mental clarity', 'good concentration', 'focused', 'moderate energy'];
+    const lowEnergyTerms = ['low energy', 'brain fog', 'poor concentration', 'mental fatigue', 'distracted'];
+    const logsWithClarity = logs.filter(log => log.energyClarity && String(log.energyClarity).trim().length > 0);
+    if (logsWithClarity.length >= 3) {
+      const clarityLower = logsWithClarity.map(log => String(log.energyClarity).toLowerCase());
+      const highEnergyDays = logsWithClarity.filter((_, i) => highEnergyTerms.some(t => clarityLower[i].includes(t)));
+      const lowEnergyDays = logsWithClarity.filter((_, i) => lowEnergyTerms.some(t => clarityLower[i].includes(t)));
+      if (highEnergyDays.length >= 2 && lowEnergyDays.length >= 2) {
+        const avgMoodHigh = highEnergyDays.reduce((s, log) => s + (parseInt(log.mood) || 0), 0) / highEnergyDays.length;
+        const avgMoodLow = lowEnergyDays.reduce((s, log) => s + (parseInt(log.mood) || 0), 0) / lowEnergyDays.length;
+        const avgFatigueHigh = highEnergyDays.reduce((s, log) => s + (parseInt(log.fatigue) || 0), 0) / highEnergyDays.length;
+        const avgFatigueLow = lowEnergyDays.reduce((s, log) => s + (parseInt(log.fatigue) || 0), 0) / lowEnergyDays.length;
+        if (Math.abs(avgMoodHigh - avgMoodLow) > 0.5 || Math.abs(avgFatigueHigh - avgFatigueLow) > 0.5) {
+          analysis.patterns.push('Energy & mental clarity entries correlate with mood and fatigue — tracking helps spot patterns.');
+        }
+      }
+      analysis.energyClaritySummary = { daysLogged: logsWithClarity.length };
+    }
+    const logsWithNotes = logs.filter(log => log.notes && String(log.notes).trim().length > 0);
+    if (logsWithNotes.length >= 3 && logs.length - logsWithNotes.length >= 3) {
+      const avgPainWithNotes = logsWithNotes.reduce((s, log) => s + (parseInt(log.backPain) || 0), 0) / logsWithNotes.length;
+      const logsWithoutNotes = logs.filter(log => !log.notes || !String(log.notes).trim());
+      const avgPainWithout = logsWithoutNotes.reduce((s, log) => s + (parseInt(log.backPain) || 0), 0) / logsWithoutNotes.length;
+      if (Math.abs(avgPainWithNotes - avgPainWithout) > 0.8) {
+        analysis.patterns.push('You tend to add notes on higher-symptom days — notes help capture context for flare-ups.');
+      }
+    }
+    const logsWithWeather = logs.filter(log => log.weatherSensitivity != null && log.weatherSensitivity !== '' && !isNaN(parseInt(log.weatherSensitivity)));
+    if (logsWithWeather.length >= 5) {
+      const highSensitivity = logsWithWeather.filter(log => parseInt(log.weatherSensitivity) >= 7);
+      const lowSensitivity = logsWithWeather.filter(log => parseInt(log.weatherSensitivity) <= 4);
+      if (highSensitivity.length >= 2 && lowSensitivity.length >= 2) {
+        const flareRateHigh = highSensitivity.filter(log => log.flare === 'Yes').length / highSensitivity.length;
+        const flareRateLow = lowSensitivity.filter(log => log.flare === 'Yes').length / lowSensitivity.length;
+        if (flareRateHigh > flareRateLow + 0.1) {
+          analysis.patterns.push('Higher weather sensitivity tends to coincide with more flare-up days — consider tracking weather for triggers.');
+        }
+      }
     }
   },
 
@@ -2085,7 +2163,10 @@ const AIEngine = {
       const nutrition = analysis.nutritionAnalysis;
       insights.push(`**Nutrition**: Average ${nutrition.avgCalories} calories/day, ${nutrition.avgProtein}g protein/day`);
     }
-    
+    if (analysis.exerciseSummary && analysis.exerciseSummary.daysWithExercise > 0) {
+      const ex = analysis.exerciseSummary;
+      insights.push(`**Exercise**: On days you log exercise, average ${ex.avgMinutesPerDay} min/day (${ex.daysWithExercise} days)`);
+    }
     if (analysis.foodExerciseImpacts && analysis.foodExerciseImpacts.length > 0) {
       const foodImpacts = analysis.foodExerciseImpacts.filter(i => i.type === 'food' || i.type === 'nutrition');
       const exerciseImpacts = analysis.foodExerciseImpacts.filter(i => i.type === 'exercise');
@@ -2181,7 +2262,7 @@ const AIEngine = {
   performClustering: function(logs, analysis) {
     if (logs.length < 5) return; // Need minimum data for clustering
 
-    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'mood', 'mobility'];
+    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'mood', 'mobility', 'dailyFunction'];
     const validLogs = logs.filter(log => {
       return metrics.every(metric => {
         const val = parseInt(log[metric]) || 0;
