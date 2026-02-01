@@ -3723,7 +3723,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     animationDelay += 300;
   }
   
-  // Pain by body part (22 diagram regions with counts) — always show when analysis has pain data
+  // Pain by body part (28 diagram regions including joints) — always show when analysis has pain data
   if (analysis.symptomsAndPainAnalysis && analysis.symptomsAndPainAnalysis.painByRegion) {
     const painByRegion = analysis.symptomsAndPainAnalysis.painByRegion;
     const regionsWithPain = Object.entries(painByRegion)
