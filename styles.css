@@ -4876,7 +4876,7 @@ body.light-mode .chart-loading {
   color: var(--text-dark);
 }
 
-/* Empty State Placeholder */
+/* Empty State Placeholder - no translate() so it stays in correct position */
 .chart-empty-placeholder {
   display: flex;
   flex-direction: column;
@@ -4889,9 +4889,20 @@ body.light-mode .chart-loading {
   border-radius: 20px;
   border: 2px dashed rgba(76, 175, 80, 0.3);
   margin: 30px 0;
-  animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1), scaleIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: chartPlaceholderIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   position: relative;
   overflow: hidden;
+}
+
+@keyframes chartPlaceholderIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .chart-empty-placeholder::before {

@@ -483,31 +483,31 @@
             <defs>
               <filter id="pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter>
             </defs>
-            <!-- Body outline (background) -->
-            <path class="pain-body-outline" d="M70 10 A26 28 0 0 1 70 68 L60 72 L24 74 L18 92 L20 132 L44 164 L46 218 L48 268 L52 280 L58 280 L58 268 L56 218 L54 164 L78 164 L80 218 L82 268 L82 280 L88 280 L90 268 L88 218 L86 164 L110 164 L112 132 L114 92 L108 74 L80 72 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>
-            <!-- Clickable regions (front view, thicker limbs/neck/hands/feet for easier tap) -->
+            <!-- Body outline (background) - smooth human silhouette -->
+            <path class="pain-body-outline" d="M70 10 A26 28 0 0 1 70 66 Q58 70 50 78 Q42 90 44 108 Q46 138 48 168 Q50 198 48 238 Q46 268 52 278 L64 280 L76 280 L88 278 Q94 268 92 238 Q90 198 92 168 Q94 138 96 108 Q98 90 90 78 Q82 70 70 66 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>
+            <!-- Clickable regions (front view, rounded human-like shapes) -->
             <ellipse class="pain-region pain-state-0" data-region="head" cx="70" cy="34" rx="26" ry="28" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="neck" d="M52 58 L88 58 L86 76 L54 76 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="chest" d="M44 72 L96 72 L94 108 L46 108 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="abdomen" d="M46 108 L94 108 L92 162 L48 162 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="left_shoulder" d="M18 70 L44 72 L42 90 L22 88 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="left_upper_arm" d="M18 88 L42 90 L40 132 L20 130 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="left_forearm" d="M18 130 L38 132 L36 174 L20 172 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="left_hand" d="M18 170 L36 174 L34 198 L20 196 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="right_shoulder" d="M96 72 L122 70 L118 88 L98 90 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="right_upper_arm" d="M98 90 L122 90 L120 130 L100 132 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="right_forearm" d="M102 132 L122 132 L120 172 L104 174 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="right_hand" d="M104 170 L120 174 L122 198 L106 196 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="left_hip" d="M44 160 L60 162 L58 172 L46 172 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="left_thigh" d="M46 168 L60 168 L58 214 L48 214 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="left_knee" d="M48 214 L58 214 L56 234 L50 234 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="left_lower_leg" d="M46 234 L60 234 L58 268 L48 268 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="left_foot" d="M44 266 L58 266 L58 280 L44 280 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="right_hip" d="M80 160 L96 162 L94 172 L82 172 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="right_thigh" d="M82 168 L96 168 L92 214 L84 214 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="right_knee" d="M82 214 L92 214 L90 234 L84 234 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="right_lower_leg" d="M80 234 L94 234 L92 268 L82 268 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="right_foot" d="M82 266 L96 266 L96 280 L82 280 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="neck" d="M54 58 Q52 64 54 76 L86 76 Q88 64 86 58 Q82 56 70 56 Q58 56 54 58 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="chest" d="M46 72 Q38 80 42 96 L46 108 L94 108 L98 96 Q102 80 94 72 Q86 68 70 68 Q54 68 46 72 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="abdomen" d="M46 108 Q44 132 46 158 L48 162 L92 162 L94 158 Q96 132 94 108 L46 108 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_shoulder" d="M46 72 Q30 74 22 84 Q18 90 24 94 L42 92 Q44 80 46 74 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_upper_arm" d="M24 90 Q16 106 20 126 L26 132 Q30 118 30 98 Q30 90 24 90 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_forearm" d="M22 132 Q14 150 18 170 L26 174 Q30 160 30 142 Q30 132 22 132 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_hand" d="M20 172 Q16 184 20 198 L30 198 Q34 186 32 174 Q30 172 20 172 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_shoulder" d="M94 72 Q110 74 118 84 Q122 90 116 94 L98 92 Q96 80 94 74 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_upper_arm" d="M116 90 Q124 106 120 126 L114 132 Q110 118 110 98 Q110 90 116 90 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_forearm" d="M118 132 Q126 150 122 170 L114 174 Q110 160 110 142 Q110 132 118 132 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_hand" d="M120 172 Q124 184 120 198 L110 198 Q106 186 108 174 Q110 172 120 172 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_hip" d="M48 160 Q44 166 48 172 L56 172 Q60 166 56 162 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_thigh" d="M48 170 Q44 192 48 212 L56 214 Q60 198 58 178 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_knee" d="M50 214 Q48 222 52 234 L60 234 Q62 226 58 218 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_lower_leg" d="M52 234 Q48 252 50 268 L58 268 Q62 252 60 236 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_foot" d="M46 266 Q44 272 50 280 L60 280 Q58 272 56 268 L50 266 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_hip" d="M92 160 Q96 166 92 172 L84 172 Q80 166 84 162 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_thigh" d="M92 170 Q96 192 92 212 L84 214 Q80 198 82 178 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_knee" d="M90 214 Q92 222 88 234 L80 234 Q78 226 82 218 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_lower_leg" d="M88 234 Q92 252 90 268 L82 268 Q78 252 80 236 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_foot" d="M94 266 Q96 272 90 280 L80 280 Q82 272 84 268 L90 266 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
           </svg>
         </div>
       </div>
@@ -1093,29 +1093,29 @@
                   <defs>
                     <filter id="edit-pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter>
                   </defs>
-                  <path class="pain-body-outline" d="M70 10 A26 28 0 0 1 70 68 L60 72 L24 74 L18 92 L20 132 L44 164 L46 218 L48 268 L52 280 L58 280 L58 268 L56 218 L54 164 L78 164 L80 218 L82 268 L82 280 L88 280 L90 268 L88 218 L86 164 L110 164 L112 132 L114 92 L108 74 L80 72 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>
+                  <path class="pain-body-outline" d="M70 10 A26 28 0 0 1 70 66 Q58 70 50 78 Q42 90 44 108 Q46 138 48 168 Q50 198 48 238 Q46 268 52 278 L64 280 L76 280 L88 278 Q94 268 92 238 Q90 198 92 168 Q94 138 96 108 Q98 90 90 78 Q82 70 70 66 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>
                   <ellipse class="pain-region pain-state-0" data-region="head" cx="70" cy="34" rx="26" ry="28" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="neck" d="M52 58 L88 58 L86 76 L54 76 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="chest" d="M44 72 L96 72 L94 108 L46 108 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="abdomen" d="M46 108 L94 108 L92 162 L48 162 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="left_shoulder" d="M18 70 L44 72 L42 90 L22 88 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="left_upper_arm" d="M18 88 L42 90 L40 132 L20 130 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="left_forearm" d="M18 130 L38 132 L36 174 L20 172 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="left_hand" d="M18 170 L36 174 L34 198 L20 196 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="right_shoulder" d="M96 72 L122 70 L118 88 L98 90 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="right_upper_arm" d="M98 90 L122 90 L120 130 L100 132 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="right_forearm" d="M102 132 L122 132 L120 172 L104 174 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="right_hand" d="M104 170 L120 174 L122 198 L106 196 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="left_hip" d="M44 160 L60 162 L58 172 L46 172 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="left_thigh" d="M46 168 L60 168 L58 214 L48 214 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="left_knee" d="M48 214 L58 214 L56 234 L50 234 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="left_lower_leg" d="M46 234 L60 234 L58 268 L48 268 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="left_foot" d="M44 266 L58 266 L58 280 L44 280 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="right_hip" d="M80 160 L96 162 L94 172 L82 172 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="right_thigh" d="M82 168 L96 168 L92 214 L84 214 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="right_knee" d="M82 214 L92 214 L90 234 L84 234 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="right_lower_leg" d="M80 234 L94 234 L92 268 L82 268 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="right_foot" d="M82 266 L96 266 L96 280 L82 280 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="neck" d="M54 58 Q52 64 54 76 L86 76 Q88 64 86 58 Q82 56 70 56 Q58 56 54 58 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="chest" d="M46 72 Q38 80 42 96 L46 108 L94 108 L98 96 Q102 80 94 72 Q86 68 70 68 Q54 68 46 72 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="abdomen" d="M46 108 Q44 132 46 158 L48 162 L92 162 L94 158 Q96 132 94 108 L46 108 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_shoulder" d="M46 72 Q30 74 22 84 Q18 90 24 94 L42 92 Q44 80 46 74 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_upper_arm" d="M24 90 Q16 106 20 126 L26 132 Q30 118 30 98 Q30 90 24 90 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_forearm" d="M22 132 Q14 150 18 170 L26 174 Q30 160 30 142 Q30 132 22 132 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_hand" d="M20 172 Q16 184 20 198 L30 198 Q34 186 32 174 Q30 172 20 172 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_shoulder" d="M94 72 Q110 74 118 84 Q122 90 116 94 L98 92 Q96 80 94 74 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_upper_arm" d="M116 90 Q124 106 120 126 L114 132 Q110 118 110 98 Q110 90 116 90 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_forearm" d="M118 132 Q126 150 122 170 L114 174 Q110 160 110 142 Q110 132 118 132 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_hand" d="M120 172 Q124 184 120 198 L110 198 Q106 186 108 174 Q110 172 120 172 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_hip" d="M48 160 Q44 166 48 172 L56 172 Q60 166 56 162 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_thigh" d="M48 170 Q44 192 48 212 L56 214 Q60 198 58 178 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_knee" d="M50 214 Q48 222 52 234 L60 234 Q62 226 58 218 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_lower_leg" d="M52 234 Q48 252 50 268 L58 268 Q62 252 60 236 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_foot" d="M46 266 Q44 272 50 280 L60 280 Q58 272 56 268 L50 266 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_hip" d="M92 160 Q96 166 92 172 L84 172 Q80 166 84 162 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_thigh" d="M92 170 Q96 192 92 212 L84 214 Q80 198 82 178 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_knee" d="M90 214 Q92 222 88 234 L80 234 Q78 226 82 218 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_lower_leg" d="M88 234 Q92 252 90 268 L82 268 Q78 252 80 236 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_foot" d="M94 266 Q96 272 90 280 L80 280 Q82 272 84 268 L90 266 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                 </svg>
               </div>
             </div>
