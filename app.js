@@ -3228,8 +3228,8 @@ function generateAISummary() {
   resultsContent.innerHTML = `
     <div class="ai-loading-state">
       <div class="ai-loading-icon">🧠</div>
-      <p class="ai-loading-text">Analysing your health data...</p>
-      <p class="ai-loading-subtext">Processing ${sortedLogs.length} days of health metrics (${escapeHTML(dateRangeText)})</p>
+      <p class="ai-loading-text">Looking at your health data...</p>
+      <p class="ai-loading-subtext">Checking ${sortedLogs.length} days (${escapeHTML(dateRangeText)})</p>
       </div>
   `;
   
@@ -3320,7 +3320,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
   if (insightsText) {
     html += `
       <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title">🤖 AI-Powered Insights</h3>
+        <h3 class="ai-section-title">🤖 What we found</h3>
         <div class="ai-llm-synopsis">
           ${insightsText.split('\n\n').map(para => {
             const trimmed = para.trim();
@@ -3345,11 +3345,46 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     animationDelay += 200;
   }
 
+  // Data in this period - show which data points were logged (all feed into analysis)
+  const numericMetricLabels = { bpm: 'BPM', weight: 'Weight', fatigue: 'Fatigue', stiffness: 'Stiffness', backPain: 'Back Pain', sleep: 'Sleep', jointPain: 'Joint Pain', mobility: 'Mobility', dailyFunction: 'Daily Function', swelling: 'Swelling', mood: 'Mood', irritability: 'Irritability', weatherSensitivity: 'Weather Sensitivity', steps: 'Steps', hydration: 'Hydration' };
+  const numericWithData = Object.keys(analysis.trends || {}).filter(m => analysis.trends[m]);
+  const daysFlare = logs.filter(l => l.flare === 'Yes').length;
+  const daysFood = logs.filter(l => {
+    if (!l.food) return false;
+    const arr = Array.isArray(l.food) ? l.food : [].concat(l.food.breakfast || [], l.food.lunch || [], l.food.dinner || [], l.food.snack || []);
+    return arr.length > 0;
+  }).length;
+  const daysExercise = logs.filter(l => l.exercise && Array.isArray(l.exercise) && l.exercise.length > 0).length;
+  const daysStressors = logs.filter(l => l.stressors && Array.isArray(l.stressors) && l.stressors.length > 0).length;
+  const daysSymptoms = logs.filter(l => l.symptoms && Array.isArray(l.symptoms) && l.symptoms.length > 0).length;
+  const daysPainLocation = logs.filter(l => l.painLocation && String(l.painLocation).trim().length > 0).length;
+  const daysEnergyClarity = logs.filter(l => l.energyClarity && String(l.energyClarity).trim().length > 0).length;
+  const daysNotes = logs.filter(l => l.notes && String(l.notes).trim().length > 0).length;
+  const numericList = numericWithData.map(m => numericMetricLabels[m] || m.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())).join(', ');
+  html += `
+    <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+      <h3 class="ai-section-title">📋 What you logged in this period</h3>
+      <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 0.75rem; font-size: 0.95rem;">Everything below is used in your analysis.</p>
+      <ul class="ai-list" style="margin-top: 0.5rem; columns: 1; font-size: 0.9rem;">
+        <li><strong>Numbers you tracked:</strong> ${numericList || 'None'}</li>
+        <li><strong>Flare-up:</strong> ${daysFlare} ${daysFlare === 1 ? 'day' : 'days'}</li>
+        <li><strong>Food:</strong> ${daysFood} ${daysFood === 1 ? 'day' : 'days'}</li>
+        <li><strong>Exercise:</strong> ${daysExercise} ${daysExercise === 1 ? 'day' : 'days'}</li>
+        <li><strong>Stress or triggers:</strong> ${daysStressors} ${daysStressors === 1 ? 'day' : 'days'}</li>
+        <li><strong>Symptoms:</strong> ${daysSymptoms} ${daysSymptoms === 1 ? 'day' : 'days'}</li>
+        <li><strong>Where it hurt:</strong> ${daysPainLocation} ${daysPainLocation === 1 ? 'day' : 'days'}</li>
+        <li><strong>Energy and clarity:</strong> ${daysEnergyClarity} ${daysEnergyClarity === 1 ? 'day' : 'days'}</li>
+        <li><strong>Notes:</strong> ${daysNotes} ${daysNotes === 1 ? 'day' : 'days'}</li>
+      </ul>
+    </div>
+  `;
+  animationDelay += 200;
+
   // Trends section - simplified for non-technical users
   html += `
     <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title">📈 How You're Doing</h3>
-      <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1.5rem; font-size: 0.95rem;">A simple look at your health trends - what's getting better, staying the same, or needs attention.</p>
+      <h3 class="ai-section-title">📈 How you're doing</h3>
+      <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1.5rem; font-size: 0.95rem;">A simple look at your numbers: what's getting better, staying the same, or may need attention.</p>
       <div class="ai-trends-grid">
   `;
   animationDelay += 200;
@@ -3456,31 +3491,31 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
       trendDescription = 'Staying Stable';
     }
     
-    // Simple prediction description
+    // Plain-English prediction description
     let predictionDescription = '';
     if (predictedDisplay) {
       if (predictedStatus === 'improving') {
-        predictionDescription = 'Expected to improve';
+        predictionDescription = 'may get better';
       } else if (predictedStatus === 'worsening') {
-        predictionDescription = 'May get worse';
+        predictionDescription = 'may get worse';
       } else {
-        predictionDescription = 'Expected to stay similar';
+        predictionDescription = 'may stay about the same';
       }
     }
     
-    // Use appropriate labels for different metric types
-    let averageLabel = 'Your Average:';
-    let currentLabel = 'Right Now:';
-    let predictedLabel = 'Next Week:';
+    // Use plain-English labels for different metric types
+    let averageLabel = 'Your average:';
+    let currentLabel = 'Right now:';
+    let predictedLabel = 'Next week (possible):';
     
     if (isSteps) {
-      averageLabel = 'Average Steps:';
-      currentLabel = 'Current Steps:';
-      predictedLabel = 'Predicted Steps:';
+      averageLabel = 'Average steps:';
+      currentLabel = 'Right now:';
+      predictedLabel = 'Next week (possible):';
     } else if (isHydration) {
-      averageLabel = 'Average Glasses/Day:';
-      currentLabel = 'Current Glasses/Day:';
-      predictedLabel = 'Predicted Glasses/Day:';
+      averageLabel = 'Average glasses per day:';
+      currentLabel = 'Right now:';
+      predictedLabel = 'Next week (possible):';
     }
     
     html += `
@@ -3509,12 +3544,12 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     
     html += `
       <div class="ai-summary-section ai-section-warning ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title" style="color: ${riskColor};">${riskIcon} Flare-up Warning</h3>
+        <h3 class="ai-section-title" style="color: ${riskColor};">${riskIcon} Heads-up: possible flare-up</h3>
         <div class="ai-llm-synopsis">
-          <p><strong>Your risk level is: ${riskLevel.toUpperCase()}</strong></p>
-          <p>Your recent patterns look similar to times when flare-ups happened before. Keep a close eye on how you're feeling and consider taking preventive steps.</p>
+          <p><strong>Risk level: ${riskLevel}</strong></p>
+          <p>Your recent numbers look like times when you had a flare-up before. Keep an eye on how you feel and do what usually helps you.</p>
           <p style="font-size: 0.9rem; color: rgba(224, 242, 241, 0.7); margin-top: 10px;">
-            ${analysis.flareUpRisk.matchingMetrics} out of 5 key warning signs are present
+            ${analysis.flareUpRisk.matchingMetrics} of 5 warning signs are present
           </p>
         </div>
       </div>
@@ -3600,8 +3635,8 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
       
       html += `
         <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-          <h3 class="ai-section-title">🔗 Connected Patterns</h3>
-          <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">These health areas tend to change together - when one goes up or down, the other usually does too. Click to see Average, Right Now, and Predicted values:</p>
+          <h3 class="ai-section-title">🔗 When two things change together</h3>
+          <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">When one of these goes up or down, the other usually does too. Click a card to see your average, current, and predicted values.</p>
           <div class="ai-trends-grid">
       `;
       
@@ -3629,9 +3664,9 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
       if (analysis.correlationClusters && analysis.correlationClusters.length > 0) {
         html += `
           <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-            <h4 class="ai-subsection-title">📊 Health Patterns</h4>
+            <h4 class="ai-subsection-title">📊 Groups that change together</h4>
             <p style="font-size: 0.95rem; color: rgba(224, 242, 241, 0.8); line-height: 1.8; margin-top: 0.5rem;">
-              These symptoms tend to change together - when one gets better or worse, the others usually do too:
+              When one of these gets better or worse, the others usually do too:
             </p>
             <ul class="ai-list" style="margin-top: 1rem;">
               ${analysis.correlationClusters.map((cluster, idx) => {
@@ -3651,7 +3686,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     const stressorAnalysis = analysis.stressorAnalysis;
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">😰 Stressors Analysis</h3>
+        <h3 class="ai-section-title ai-section-green">😰 Stress and triggers</h3>
         <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">${stressorAnalysis.summary}</p>
     `;
     
@@ -3672,7 +3707,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     const symptomsAnalysis = analysis.symptomsAndPainAnalysis;
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">💉 Symptoms & Pain Location Analysis</h3>
+        <h3 class="ai-section-title ai-section-green">💉 Symptoms and where you had pain</h3>
         <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">${symptomsAnalysis.summary}</p>
     `;
     
@@ -3688,25 +3723,49 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     animationDelay += 300;
   }
   
+  // Pain by body part (22 diagram regions with counts) — always show when analysis has pain data
+  if (analysis.symptomsAndPainAnalysis && analysis.symptomsAndPainAnalysis.painByRegion) {
+    const painByRegion = analysis.symptomsAndPainAnalysis.painByRegion;
+    const regionsWithPain = Object.entries(painByRegion)
+      .filter(([, data]) => data && (data.painDays > 0 || data.mildDays > 0))
+      .sort((a, b) => (b[1].painDays + b[1].mildDays) - (a[1].painDays + a[1].mildDays));
+    html += `
+      <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+        <h3 class="ai-section-title ai-section-green">📍 Pain by body part</h3>
+        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">Body areas from the pain diagram: where you had mild or pain in this period.</p>
+        <ul class="ai-list" style="columns: 2; column-gap: 1.5rem;">
+    `;
+    if (regionsWithPain.length > 0) {
+      regionsWithPain.forEach(([, data], index) => {
+        const painStr = data.painDays > 0 ? `${data.painDays} pain` : '';
+        const mildStr = data.mildDays > 0 ? `${data.mildDays} mild` : '';
+        html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 30)}ms;">${escapeHTML(data.label)}: ${[painStr, mildStr].filter(Boolean).join(', ')}</li>`;
+      });
+    } else {
+      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50}ms;">No body areas with pain or mild in this period.</li>`;
+    }
+    html += `</ul></div>`;
+    animationDelay += 300;
+  }
+  
   // Nutrition analysis section
   if (analysis.nutritionAnalysis && analysis.nutritionAnalysis.avgCalories > 0) {
     const nutrition = analysis.nutritionAnalysis;
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">🍽️ Nutrition Analysis</h3>
+        <h3 class="ai-section-title ai-section-green">🍽️ What you ate (calories and protein)</h3>
         <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">
-          Average daily calories: <strong>${nutrition.avgCalories} cal</strong> | 
-          Average daily protein: <strong>${nutrition.avgProtein}g</strong>
+          On average per day: <strong>${nutrition.avgCalories} calories</strong> and <strong>${nutrition.avgProtein}g protein</strong>
         </p>
     `;
     
     if (nutrition.highCalorieDays > 0 || nutrition.lowCalorieDays > 0) {
       html += `<p style="color: rgba(224, 242, 241, 0.7); font-size: 0.9rem;">`;
       if (nutrition.highCalorieDays > 0) {
-        html += `High calorie days (>2500): ${nutrition.highCalorieDays} | `;
+        html += `Days over 2500 calories: ${nutrition.highCalorieDays}. `;
       }
       if (nutrition.lowCalorieDays > 0) {
-        html += `Low calorie days (<1500): ${nutrition.lowCalorieDays}`;
+        html += `Days under 1500 calories: ${nutrition.lowCalorieDays}`;
       }
       html += `</p>`;
     }
@@ -3714,10 +3773,10 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     if (nutrition.highProteinDays > 0 || nutrition.lowProteinDays > 0) {
       html += `<p style="color: rgba(224, 242, 241, 0.7); font-size: 0.9rem;">`;
       if (nutrition.highProteinDays > 0) {
-        html += `High protein days (>100g): ${nutrition.highProteinDays} | `;
+        html += `Days over 100g protein: ${nutrition.highProteinDays}. `;
       }
       if (nutrition.lowProteinDays > 0) {
-        html += `Low protein days (<50g): ${nutrition.lowProteinDays}`;
+        html += `Days under 50g protein: ${nutrition.lowProteinDays}`;
       }
       html += `</p>`;
     }
@@ -3731,9 +3790,9 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     const ex = analysis.exerciseSummary;
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">🏃 Exercise Summary</h3>
+        <h3 class="ai-section-title ai-section-green">🏃 Exercise</h3>
         <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 0;">
-          On days you log exercise: <strong>~${ex.avgMinutesPerDay} min</strong> average (${ex.daysWithExercise} days in range)
+          On days you logged exercise: about <strong>${ex.avgMinutesPerDay} minutes</strong> on average (${ex.daysWithExercise} days in this period)
         </p>
       </div>
     `;
@@ -3744,8 +3803,8 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
   if (analysis.foodExerciseImpacts && analysis.foodExerciseImpacts.length > 0) {
     html += `
       <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title">🍽️ What Helps You Feel Better</h3>
-        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">Based on your logs, here's how tracking food and exercise affects your symptoms:</p>
+        <h3 class="ai-section-title">🍽️ What seems to help you feel better</h3>
+        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">From your logs: how food and exercise line up with how you feel.</p>
         <div class="ai-trends-grid">
     `;
     
@@ -3765,7 +3824,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
           <div class="ai-trend-stats">
             ${impact.description ? 
               `<span>${impact.description}</span>` :
-              `<span><strong>${impact.metric}:</strong> ${impact.withAvg} (when logged) vs ${impact.withoutAvg} (when not logged)</span>
+              `<span><strong>${impact.metric}:</strong> ${impact.withAvg} (when you logged) vs ${impact.withoutAvg} (when you didn't)</span>
                <span style="color: ${impactColor}; font-size: 0.9rem;">${simpleDirection}</span>`
             }
           </div>
@@ -3781,7 +3840,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
   if (analysis.anomalies.length > 0) {
   html += `
       <div class="ai-summary-section ai-section-warning ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-orange">⚠️ Areas of Concern</h3>
+        <h3 class="ai-section-title ai-section-orange">⚠️ Things to watch</h3>
         <ul class="ai-list ai-list-warning">
     `;
     analysis.anomalies.forEach((anomaly, index) => {
@@ -3794,9 +3853,9 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
   // General management section - simplified
   html += `
     <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title ai-section-green">💡 Important Reminder</h3>
+      <h3 class="ai-section-title ai-section-green">💡 Important</h3>
       <p class="ai-disclaimer">
-        <strong>Remember:</strong> This information is meant to help you understand your health patterns. Always talk to your doctor before making any changes to your treatment. You can share this information with them at your next visit.
+        <strong>Remember:</strong> This is to help you see patterns in your health. Always talk to your doctor before changing anything about your care. You can show them this at your next visit.
       </p>
     </div>
   `;
@@ -5200,16 +5259,30 @@ const SYMPTOM_ICONS = {
   'Other': 'fa-solid fa-ellipsis'
 };
 
-// Pain body diagram: region id -> display label (front view)
+// Pain body diagram: region id -> display label (front view, wider with more areas)
 const PAIN_BODY_REGIONS = [
   { id: 'head', label: 'Head' },
   { id: 'neck', label: 'Neck' },
   { id: 'chest', label: 'Chest' },
   { id: 'abdomen', label: 'Abdomen' },
-  { id: 'left_arm', label: 'Left arm' },
-  { id: 'right_arm', label: 'Right arm' },
-  { id: 'left_leg', label: 'Left leg' },
-  { id: 'right_leg', label: 'Right leg' }
+  { id: 'left_shoulder', label: 'Left shoulder' },
+  { id: 'left_upper_arm', label: 'Left upper arm' },
+  { id: 'left_forearm', label: 'Left forearm' },
+  { id: 'left_hand', label: 'Left hand' },
+  { id: 'right_shoulder', label: 'Right shoulder' },
+  { id: 'right_upper_arm', label: 'Right upper arm' },
+  { id: 'right_forearm', label: 'Right forearm' },
+  { id: 'right_hand', label: 'Right hand' },
+  { id: 'left_hip', label: 'Left hip' },
+  { id: 'left_thigh', label: 'Left thigh' },
+  { id: 'left_knee', label: 'Left knee' },
+  { id: 'left_lower_leg', label: 'Left lower leg' },
+  { id: 'left_foot', label: 'Left foot' },
+  { id: 'right_hip', label: 'Right hip' },
+  { id: 'right_thigh', label: 'Right thigh' },
+  { id: 'right_knee', label: 'Right knee' },
+  { id: 'right_lower_leg', label: 'Right lower leg' },
+  { id: 'right_foot', label: 'Right foot' }
 ];
 
 // Pain body state: 0 = green (none), 1 = yellow (mild), 2 = red (pain). Keyed by containerId so edit modal can load from text.
@@ -5852,12 +5925,16 @@ function renderFoodItems() {
       return `<div class="food-group" data-group="${escapeHTML(grp.id)}"><div class="food-group__title">${escapeHTML(grp.label)}</div><div class="food-chips">${chipsHtml}</div></div>`;
     }).join('');
     return `
-    <div class="food-category-block" style="margin-bottom: 1rem;">
-      <h4 style="font-size: 0.95rem; margin: 0 0 6px 0; color: rgba(224, 242, 241, 0.9);">${labels[cat]}</h4>
-      <div id="${listId}" class="items-list" style="min-height: 24px;">${itemsHtml}</div>
-      <div class="food-tiles-by-group" style="margin-top: 8px;">${groupsHtml}</div>
-    </div>`;
+    <details class="food-category-block food-meal-collapsible">
+      <summary class="food-category-summary"><span class="food-meal-label">${labels[cat]}</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
+      <div class="food-category-body">
+        <div id="${listId}" class="items-list" style="min-height: 24px;">${itemsHtml}</div>
+        <div class="food-tiles-by-group" style="margin-top: 8px;">${groupsHtml}</div>
+      </div>
+    </details>`;
   }).join('');
+  // One meal open at a time in the Food Log modal (same as main log form)
+  makeAccordion('#foodItemsList', 'details.food-meal-collapsible');
 }
 
 function saveFoodLog() {
@@ -8579,6 +8656,7 @@ let appSettings = {
   compress: false,
   animations: true,
   lazy: true,
+  demoMode: false,
   userName: '',
   weightUnit: 'kg', // 'kg' or 'lb', always store as kg
   medicalCondition: '', // Empty by default - user must set a condition
@@ -8651,22 +8729,13 @@ function loadSettingsState() {
   document.getElementById('backupToggle').classList.toggle('active', appSettings.backup);
   document.getElementById('compressToggle').classList.toggle('active', appSettings.compress);
   
-  // Update demo mode toggle
+  // Update demo mode toggle (same as other toggles)
   const demoModeToggle = document.getElementById('demoModeToggle');
   if (demoModeToggle) {
-    demoModeToggle.classList.toggle('active', appSettings.demoMode || false);
-    
-    // Disable toggle if it's already been clicked in this session
-    const demoToggleClicked = sessionStorage.getItem('demoToggleClicked') === 'true';
-    if (demoToggleClicked) {
-      demoModeToggle.style.opacity = '0.5';
-      demoModeToggle.style.cursor = 'not-allowed';
-      demoModeToggle.style.pointerEvents = 'none';
-    } else {
-      demoModeToggle.style.opacity = '1';
-      demoModeToggle.style.cursor = 'pointer';
-      demoModeToggle.style.pointerEvents = 'auto';
-    }
+    demoModeToggle.classList.toggle('active', !!appSettings.demoMode);
+    demoModeToggle.style.opacity = '1';
+    demoModeToggle.style.cursor = 'pointer';
+    demoModeToggle.style.pointerEvents = 'auto';
   }
   
   // Update medical condition display and disable in demo mode
@@ -9851,109 +9920,97 @@ function generateDemoData(numDays = 3650) {
 }
 
 function toggleDemoMode() {
-  // Check if demo toggle has already been clicked in this session
-  const demoToggleClicked = sessionStorage.getItem('demoToggleClicked') === 'true';
-  
-  if (demoToggleClicked) {
-    // Silently ignore - toggle is already disabled
+  // Prevent multiple runs from rapid clicks – only one toggle in progress
+  if (window._demoModeToggling) {
     return;
   }
-  
-  // Mark as clicked before proceeding
-  sessionStorage.setItem('demoToggleClicked', 'true');
-  
-  // Disable the toggle visually
-  const demoModeToggle = document.getElementById('demoModeToggle');
-  if (demoModeToggle) {
-    demoModeToggle.style.opacity = '0.5';
-    demoModeToggle.style.cursor = 'not-allowed';
-    demoModeToggle.style.pointerEvents = 'none';
+  window._demoModeToggling = true;
+
+  const demoEl = document.getElementById('demoModeToggle');
+  if (demoEl) {
+    demoEl.style.pointerEvents = 'none';
+    demoEl.style.opacity = '0.7';
   }
-  
+
   const isDemoMode = appSettings.demoMode || false;
-  
   Logger.info('Demo mode toggle initiated', { currentState: isDemoMode });
-  
+
+  const doReload = (forceDemoOff) => {
+    if (forceDemoOff) {
+      try {
+        const raw = localStorage.getItem('healthAppSettings');
+        const settings = raw ? JSON.parse(raw) : {};
+        settings.demoMode = false;
+        localStorage.setItem('healthAppSettings', JSON.stringify(settings));
+      } catch (e) {
+        console.warn('Demo off: could not persist', e);
+      }
+    }
+    window._demoModeToggling = false;
+    window.location.reload();
+  };
+
   if (isDemoMode) {
     // Disable demo mode - restore original data
     const originalLogs = localStorage.getItem('healthLogs_backup');
     const originalSettings = localStorage.getItem('appSettings_backup');
-    
-    if (originalLogs) {
-      localStorage.setItem('healthLogs', originalLogs);
-      logs = JSON.parse(originalLogs);
-      // Make logs globally available
-      if (typeof window !== 'undefined') {
-        window.logs = logs;
+
+    try {
+      if (originalLogs) {
+        localStorage.setItem('healthLogs', originalLogs);
+        logs = JSON.parse(originalLogs);
+        if (typeof window !== 'undefined') {
+          window.logs = logs;
+        }
       }
-    }
-    
-    if (originalSettings) {
-      const restoredSettings = JSON.parse(originalSettings);
-      // Explicitly set demoMode to false when restoring (don't merge it from restored settings)
-      appSettings = { ...appSettings, ...restoredSettings, demoMode: false };
-      saveSettings();
-      
-      // Update UI
-      const userNameInput = document.getElementById('userNameInput');
-      const medicalConditionInput = document.getElementById('medicalConditionInput');
-      if (userNameInput) userNameInput.value = appSettings.userName || '';
-      if (medicalConditionInput) medicalConditionInput.value = appSettings.medicalCondition || '';
-      updateDashboardTitle();
-      if (appSettings.medicalCondition && appSettings.medicalCondition.trim() !== '' && appSettings.medicalCondition.toLowerCase() !== 'medical condition') {
-        updateConditionContext(appSettings.medicalCondition);
+
+      if (originalSettings) {
+        const restoredSettings = JSON.parse(originalSettings);
+        appSettings = { ...appSettings, ...restoredSettings, demoMode: false };
+        saveSettings();
+        const userNameInput = document.getElementById('userNameInput');
+        const medicalConditionInput = document.getElementById('medicalConditionInput');
+        if (userNameInput) userNameInput.value = appSettings.userName || '';
+        if (medicalConditionInput) medicalConditionInput.value = appSettings.medicalCondition || '';
+        updateDashboardTitle();
+        if (appSettings.medicalCondition && appSettings.medicalCondition.trim() !== '' && appSettings.medicalCondition.toLowerCase() !== 'medical condition') {
+          updateConditionContext(appSettings.medicalCondition);
+        }
+      } else {
+        appSettings.demoMode = false;
+        saveSettings();
       }
-    } else {
-      // Even if no backup, ensure demoMode is false
+
+      localStorage.removeItem('healthLogs_backup');
+      localStorage.removeItem('appSettings_backup');
       appSettings.demoMode = false;
       saveSettings();
+
+      const finalSettings = JSON.parse(localStorage.getItem('healthAppSettings') || '{}');
+      finalSettings.demoMode = false;
+      localStorage.setItem('healthAppSettings', JSON.stringify(finalSettings));
+      appSettings.demoMode = false;
+      if (typeof window !== 'undefined') {
+        window.appSettings = appSettings;
+      }
+
+      const demoModeToggle = document.getElementById('demoModeToggle');
+      if (demoModeToggle) {
+        demoModeToggle.classList.remove('active');
+      }
+      loadSettingsState();
+
+      try {
+        if (typeof renderLogs === 'function') renderLogs();
+        if (typeof updateCharts === 'function') updateCharts();
+        if (typeof updateHeartbeatAnimation === 'function') updateHeartbeatAnimation();
+      } catch (e) {
+        console.warn('Demo off: UI update error', e);
+      }
+    } catch (e) {
+      console.error('Demo mode off error:', e);
     }
-    
-    // Clear backup
-    localStorage.removeItem('healthLogs_backup');
-    localStorage.removeItem('appSettings_backup');
-    
-    // Double-check demoMode is false before reload
-    appSettings.demoMode = false;
-    saveSettings();
-    
-    // Refresh UI
-    renderLogs();
-    updateCharts();
-    updateHeartbeatAnimation();
-    
-    // Verify demoMode is false in localStorage before reload
-    // Read fresh from localStorage to ensure we have the latest
-    const finalSettings = JSON.parse(localStorage.getItem('healthAppSettings') || '{}');
-    finalSettings.demoMode = false; // Force to false
-    localStorage.setItem('healthAppSettings', JSON.stringify(finalSettings));
-    
-    // Update appSettings object to match
-    appSettings.demoMode = false;
-    if (typeof window !== 'undefined') {
-      window.appSettings = appSettings;
-    }
-    
-    // Update toggle state immediately to reflect demoMode = false
-    const demoModeToggle = document.getElementById('demoModeToggle');
-    if (demoModeToggle) {
-      demoModeToggle.classList.remove('active');
-    }
-    
-    // Update settings state
-    loadSettingsState();
-    
-    // Final verification - read from localStorage one more time
-    const verifySettings = JSON.parse(localStorage.getItem('healthAppSettings') || '{}');
-    if (verifySettings.demoMode !== false) {
-      verifySettings.demoMode = false;
-      localStorage.setItem('healthAppSettings', JSON.stringify(verifySettings));
-    }
-    
-    // Restart the app after restoration completes
-    setTimeout(() => {
-      window.location.reload();
-    }, 500);
+    setTimeout(() => doReload(true), 400);
   } else {
     // Enable demo mode - backup current data and load demo data
     // Show loading indicator
@@ -10053,6 +10110,7 @@ function toggleDemoMode() {
           if (document.body.contains(loadingMsg)) {
             document.body.removeChild(loadingMsg);
           }
+          window._demoModeToggling = false;
         }
       }, 100); // Small delay to allow UI update
   }
@@ -10586,21 +10644,23 @@ function initializeSections() {
   });
 }
 
-// Only one tile-section (details) open at a time within Food Log and Exercise Log
-function initializeOneOpenDetails() {
-  function makeAccordion(containerSelector, detailsSelector) {
-    const container = document.querySelector(containerSelector);
-    if (!container) return;
-    const detailsList = container.querySelectorAll(detailsSelector);
-    detailsList.forEach(details => {
-      details.addEventListener('toggle', function () {
-        if (!this.open) return;
-        detailsList.forEach(other => {
-          if (other !== this) other.removeAttribute('open');
-        });
+// One details open at a time within a container (used by Food/Exercise log and modals)
+function makeAccordion(containerSelector, detailsSelector) {
+  const container = document.querySelector(containerSelector);
+  if (!container) return;
+  const detailsList = container.querySelectorAll(detailsSelector);
+  detailsList.forEach(details => {
+    details.addEventListener('toggle', function () {
+      if (!this.open) return;
+      detailsList.forEach(other => {
+        if (other !== this) other.removeAttribute('open');
       });
     });
-  }
+  });
+}
+
+// Only one tile-section (details) open at a time within Food Log and Exercise Log
+function initializeOneOpenDetails() {
   makeAccordion('#foodLog', 'details.food-meal-collapsible');
   makeAccordion('#exerciseLog', 'details.exercise-meal-collapsible');
   makeAccordion('#editFoodSection', 'details.food-meal-collapsible');

@@ -449,26 +449,67 @@
       <div class="slider-container">
         <input type="range" id="stiffness" min="1" max="10" step="1" />
         <label for="stiffness" class="slider-label">Stiffness Level</label>
+        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
       </div>
 
       <div class="slider-container">
         <input type="range" id="jointPain" min="1" max="10" step="1" />
         <label for="jointPain" class="slider-label">Joint Pain</label>
+        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
       </div>
 
       <div class="slider-container">
         <input type="range" id="mobility" min="1" max="10" step="1" />
         <label for="mobility" class="slider-label">Mobility</label>
+        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
       </div>
 
       <div class="slider-container">
         <input type="range" id="swelling" min="1" max="10" step="1" />
         <label for="swelling" class="slider-label">Joint Swelling</label>
+        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
       </div>
 
       <div class="slider-container">
         <input type="range" id="mood" min="1" max="10" step="1" />
         <label for="mood" class="slider-label">Mood Level</label>
+        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
+      </div>
+      <div class="input-container pain-body-container" style="margin-top: 1rem;">
+        <label>Pain Location — tap areas to cycle: green (none) → yellow (mild) → red (pain)</label>
+        <input type="hidden" id="painLocation" name="painLocation" />
+        <div class="pain-body-wrapper" id="painBodyDiagram" aria-label="Select body areas for pain">
+          <svg class="pain-body-svg" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter>
+            </defs>
+            <!-- Body outline (background) -->
+            <path class="pain-body-outline" d="M70 10 A26 28 0 0 1 70 68 L60 72 L24 74 L18 92 L20 132 L44 164 L46 218 L48 268 L52 280 L58 280 L58 268 L56 218 L54 164 L78 164 L80 218 L82 268 L82 280 L88 280 L90 268 L88 218 L86 164 L110 164 L112 132 L114 92 L108 74 L80 72 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>
+            <!-- Clickable regions (front view, thicker limbs/neck/hands/feet for easier tap) -->
+            <ellipse class="pain-region pain-state-0" data-region="head" cx="70" cy="34" rx="26" ry="28" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="neck" d="M52 58 L88 58 L86 76 L54 76 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="chest" d="M44 72 L96 72 L94 108 L46 108 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="abdomen" d="M46 108 L94 108 L92 162 L48 162 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_shoulder" d="M18 70 L44 72 L42 90 L22 88 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_upper_arm" d="M18 88 L42 90 L40 132 L20 130 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_forearm" d="M18 130 L38 132 L36 174 L20 172 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_hand" d="M18 170 L36 174 L34 198 L20 196 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_shoulder" d="M96 72 L122 70 L118 88 L98 90 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_upper_arm" d="M98 90 L122 90 L120 130 L100 132 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_forearm" d="M102 132 L122 132 L120 172 L104 174 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_hand" d="M104 170 L120 174 L122 198 L106 196 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_hip" d="M44 160 L60 162 L58 172 L46 172 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_thigh" d="M46 168 L60 168 L58 214 L48 214 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_knee" d="M48 214 L58 214 L56 234 L50 234 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_lower_leg" d="M46 234 L60 234 L58 268 L48 268 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_foot" d="M44 266 L58 266 L58 280 L44 280 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_hip" d="M80 160 L96 162 L94 172 L82 172 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_thigh" d="M82 168 L96 168 L92 214 L84 214 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_knee" d="M82 214 L92 214 L90 234 L84 234 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_lower_leg" d="M80 234 L94 234 L92 268 L82 268 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_foot" d="M82 266 L96 266 L96 280 L82 280 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+          </svg>
+        </div>
       </div>
         </div>
       </div>
@@ -484,10 +525,12 @@
           <div class="slider-container">
             <input type="range" id="fatigue" min="1" max="10" step="1" />
             <label for="fatigue" class="slider-label">Fatigue Level</label>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
           </div>
           <div class="slider-container">
             <input type="range" id="sleep" min="1" max="10" step="1" />
             <label for="sleep" class="slider-label">Sleep Quality</label>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
           </div>
           <div class="input-container">
             <label>Energy & Mental Clarity</label>
@@ -512,10 +555,12 @@
           <div class="slider-container">
             <input type="range" id="irritability" min="1" max="10" step="1" />
             <label for="irritability" class="slider-label">Irritability</label>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
           </div>
           <div class="slider-container">
             <input type="range" id="weatherSensitivity" min="1" max="10" step="1" value="5" />
             <label for="weatherSensitivity" class="slider-label">Weather Sensitivity</label>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
           </div>
           <div id="logStressorsList" class="items-list"></div>
           <details class="stressor-tiles-collapsible">
@@ -538,28 +583,6 @@
             <summary class="symptom-tiles-summary">Add symptom</summary>
             <div id="logSymptomsTiles" class="symptom-tiles-container" aria-label="Symptom options by group"></div>
           </details>
-          <div class="input-container pain-body-container" style="margin-top: 1rem;">
-            <label>Pain Location — tap areas to cycle: green (none) → yellow (mild) → red (pain)</label>
-            <input type="hidden" id="painLocation" name="painLocation" />
-            <div class="pain-body-wrapper" id="painBodyDiagram" aria-label="Select body areas for pain">
-              <svg class="pain-body-svg" viewBox="0 0 100 260" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <filter id="pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter>
-                </defs>
-                <!-- Body outline (background) -->
-                <path class="pain-body-outline" d="M50 8 A22 26 0 0 1 50 60 L42 62 L28 65 L22 95 L24 130 L36 152 L38 200 L40 258 L48 258 L48 200 L50 152 L50 100 L50 62 L58 62 L72 65 L78 95 L76 130 L64 152 L62 200 L60 258 L52 258 L52 200 L50 152 L50 100 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>
-                <!-- Clickable regions (front view) -->
-                <ellipse id="pain-region-head" class="pain-region pain-state-0" data-region="head" cx="50" cy="28" rx="22" ry="26" fill="currentColor" filter="url(#pain-body-shadow)"/>
-                <path id="pain-region-neck" class="pain-region pain-state-0" data-region="neck" d="M38 52 L62 52 L60 64 L40 64 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-                <path id="pain-region-chest" class="pain-region pain-state-0" data-region="chest" d="M32 64 L68 64 L66 98 L34 98 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-                <path id="pain-region-abdomen" class="pain-region pain-state-0" data-region="abdomen" d="M34 98 L66 98 L64 152 L36 152 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-                <path id="pain-region-left-arm" class="pain-region pain-state-0" data-region="left_arm" d="M20 62 L34 65 L36 125 L22 122 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-                <path id="pain-region-right-arm" class="pain-region pain-state-0" data-region="right_arm" d="M66 62 L80 65 L78 125 L64 122 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-                <path id="pain-region-left-leg" class="pain-region pain-state-0" data-region="left_leg" d="M36 152 L48 152 L48 202 L46 258 L42 258 L40 202 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-                <path id="pain-region-right-leg" class="pain-region pain-state-0" data-region="right_leg" d="M52 152 L64 152 L62 202 L60 258 L58 258 L54 202 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-              </svg>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -956,30 +979,37 @@
           <label for="editFatigue">Fatigue (0-10)</label>
           <input type="range" id="editFatigue" min="0" max="10" value="5" oninput="updateEditSliderColor('editFatigue')" />
           <span class="slider-value" id="editFatigueValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
           
           <label for="editStiffness">Stiffness (0-10)</label>
           <input type="range" id="editStiffness" min="0" max="10" value="5" oninput="updateEditSliderColor('editStiffness')" />
           <span class="slider-value" id="editStiffnessValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
           
           <label for="editSleep">Sleep Quality (0-10)</label>
           <input type="range" id="editSleep" min="0" max="10" value="5" oninput="updateEditSliderColor('editSleep')" />
           <span class="slider-value" id="editSleepValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
           
           <label for="editJointPain">Joint Pain (0-10)</label>
           <input type="range" id="editJointPain" min="0" max="10" value="5" oninput="updateEditSliderColor('editJointPain')" />
           <span class="slider-value" id="editJointPainValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
           
           <label for="editMobility">Mobility (0-10)</label>
           <input type="range" id="editMobility" min="0" max="10" value="5" oninput="updateEditSliderColor('editMobility')" />
           <span class="slider-value" id="editMobilityValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
           
           <label for="editDailyFunction">Daily Function (0-10)</label>
           <input type="range" id="editDailyFunction" min="0" max="10" value="5" oninput="updateEditSliderColor('editDailyFunction')" />
           <span class="slider-value" id="editDailyFunctionValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
           
           <label for="editSwelling">Swelling (0-10)</label>
           <input type="range" id="editSwelling" min="0" max="10" value="5" oninput="updateEditSliderColor('editSwelling')" />
           <span class="slider-value" id="editSwellingValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
           
           <label for="editFlare">Flare-up</label>
           <select id="editFlare">
@@ -990,10 +1020,12 @@
           <label for="editMood">Mood (0-10)</label>
           <input type="range" id="editMood" min="0" max="10" value="5" oninput="updateEditSliderColor('editMood')" />
           <span class="slider-value" id="editMoodValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
           
           <label for="editIrritability">Irritability (0-10)</label>
           <input type="range" id="editIrritability" min="0" max="10" value="5" oninput="updateEditSliderColor('editIrritability')" />
           <span class="slider-value" id="editIrritabilityValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
           
           <!-- Collapsible Section: Energy & Mental Clarity -->
           <div class="collapsible-section">
@@ -1014,6 +1046,7 @@
               <label for="editWeatherSensitivity">Weather Sensitivity (1-10)</label>
               <input type="range" id="editWeatherSensitivity" min="1" max="10" value="5" oninput="updateEditSliderColor('editWeatherSensitivity')" />
               <span class="slider-value" id="editWeatherSensitivityValue">5</span>
+              <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
             </div>
           </div>
           
@@ -1056,19 +1089,33 @@
               <label>Pain Location</label>
               <input type="hidden" id="editPainLocation" />
               <div class="pain-body-wrapper" id="editPainBodyDiagram" aria-label="Select body areas for pain">
-                <svg class="pain-body-svg" viewBox="0 0 100 260" xmlns="http://www.w3.org/2000/svg">
+                <svg class="pain-body-svg" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg">
                   <defs>
                     <filter id="edit-pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter>
                   </defs>
-                  <path class="pain-body-outline" d="M50 8 A22 26 0 0 1 50 60 L42 62 L28 65 L22 95 L24 130 L36 152 L38 200 L40 258 L48 258 L48 200 L50 152 L50 100 L50 62 L58 62 L72 65 L78 95 L76 130 L64 152 L62 200 L60 258 L52 258 L52 200 L50 152 L50 100 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>
-                  <ellipse id="edit-pain-region-head" class="pain-region pain-state-0" data-region="head" cx="50" cy="28" rx="22" ry="26" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path id="edit-pain-region-neck" class="pain-region pain-state-0" data-region="neck" d="M38 52 L62 52 L60 64 L40 64 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path id="edit-pain-region-chest" class="pain-region pain-state-0" data-region="chest" d="M32 64 L68 64 L66 98 L34 98 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path id="edit-pain-region-abdomen" class="pain-region pain-state-0" data-region="abdomen" d="M34 98 L66 98 L64 152 L36 152 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path id="edit-pain-region-left-arm" class="pain-region pain-state-0" data-region="left_arm" d="M20 62 L34 65 L36 125 L22 122 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path id="edit-pain-region-right-arm" class="pain-region pain-state-0" data-region="right_arm" d="M66 62 L80 65 L78 125 L64 122 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path id="edit-pain-region-left-leg" class="pain-region pain-state-0" data-region="left_leg" d="M36 152 L48 152 L48 202 L46 258 L42 258 L40 202 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path id="edit-pain-region-right-leg" class="pain-region pain-state-0" data-region="right_leg" d="M52 152 L64 152 L62 202 L60 258 L58 258 L54 202 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-body-outline" d="M70 10 A26 28 0 0 1 70 68 L60 72 L24 74 L18 92 L20 132 L44 164 L46 218 L48 268 L52 280 L58 280 L58 268 L56 218 L54 164 L78 164 L80 218 L82 268 L82 280 L88 280 L90 268 L88 218 L86 164 L110 164 L112 132 L114 92 L108 74 L80 72 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>
+                  <ellipse class="pain-region pain-state-0" data-region="head" cx="70" cy="34" rx="26" ry="28" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="neck" d="M52 58 L88 58 L86 76 L54 76 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="chest" d="M44 72 L96 72 L94 108 L46 108 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="abdomen" d="M46 108 L94 108 L92 162 L48 162 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_shoulder" d="M18 70 L44 72 L42 90 L22 88 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_upper_arm" d="M18 88 L42 90 L40 132 L20 130 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_forearm" d="M18 130 L38 132 L36 174 L20 172 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_hand" d="M18 170 L36 174 L34 198 L20 196 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_shoulder" d="M96 72 L122 70 L118 88 L98 90 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_upper_arm" d="M98 90 L122 90 L120 130 L100 132 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_forearm" d="M102 132 L122 132 L120 172 L104 174 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_hand" d="M104 170 L120 174 L122 198 L106 196 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_hip" d="M44 160 L60 162 L58 172 L46 172 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_thigh" d="M46 168 L60 168 L58 214 L48 214 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_knee" d="M48 214 L58 214 L56 234 L50 234 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_lower_leg" d="M46 234 L60 234 L58 268 L48 268 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_foot" d="M44 266 L58 266 L58 280 L44 280 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_hip" d="M80 160 L96 162 L94 172 L82 172 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_thigh" d="M82 168 L96 168 L92 214 L84 214 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_knee" d="M82 214 L92 214 L90 234 L84 234 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_lower_leg" d="M80 234 L94 234 L92 268 L82 268 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_foot" d="M82 266 L96 266 L96 280 L82 280 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                 </svg>
               </div>
             </div>

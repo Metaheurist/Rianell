@@ -2436,6 +2436,47 @@ input[type="range"]::-moz-range-thumb {
   z-index: 3;
 }
 
+/* Good/Bad labels under slider: centred under each end, more visible */
+.slider-good-bad {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-top: 6px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.slider-hint-good,
+.slider-hint-bad {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.slider-hint-good {
+  color: rgba(76, 175, 80, 0.95);
+  text-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+}
+
+.slider-hint-bad {
+  color: rgba(244, 67, 54, 0.9);
+  text-shadow: 0 0 8px rgba(244, 67, 54, 0.3);
+}
+
+body.light-mode .slider-hint-good {
+  color: #2e7d32;
+  text-shadow: none;
+}
+
+body.light-mode .slider-hint-bad {
+  color: #c62828;
+  text-shadow: none;
+}
+
 button {
   background: var(--primary-gradient);
   color: #fff;
@@ -2987,7 +3028,7 @@ button:focus {
 }
 
 .pain-body-wrapper {
-  max-width: 140px;
+  max-width: 240px;
   margin: 0 auto;
   padding: 12px;
   background: rgba(0, 0, 0, 0.2);
@@ -2999,14 +3040,15 @@ button:focus {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 320px;
+  max-height: 420px;
 }
 
 .pain-region {
   cursor: pointer;
   transition: fill 0.2s ease, filter 0.2s ease;
-  stroke: rgba(255, 255, 255, 0.15);
-  stroke-width: 0.5;
+  stroke: currentColor;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
 }
 
 .pain-region:hover {
@@ -5658,6 +5700,7 @@ body.light-mode .settings-button-top:hover {
   border-radius: 50%;
   transition: transform var(--transition-normal);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  pointer-events: none; /* so clicks go to the toggle, not the knob */
 }
 
 .toggle-switch.active::after {
