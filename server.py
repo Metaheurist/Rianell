@@ -1177,6 +1177,10 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_anonymized_data()
             return
         
+        # Serve tutorial test page at /tutorial (same app, tutorial auto-opens for demo/testing)
+        if parsed_path.path.rstrip('/') == '/tutorial':
+            self.handle_tutorial_page()
+            return
         # Return 204 (No Content) for optional files instead of 404
         optional_files = ['.map', '.well-known', 'devtools']
         if any(opt in self.path.lower() for opt in optional_files):
@@ -1202,6 +1206,26 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
         self.send_response(405)
         self.end_headers()
     
+    def handle_tutorial_page(self):
+        """Serve index.html for /tutorial so the app loads with the tutorial auto-opened for testing."""
+        try:
+            # Prefer cwd (set by main()), fallback to directory containing this script
+            index_path = Path.cwd() / 'index.html'
+            if not index_path.is_file():
+                index_path = APP_DIR / 'index.html'
+            if not index_path.is_file():
+                self.send_error(404, 'index.html not found')
+                return
+            with open(index_path, 'rb') as f:
+                body = f.read()
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            logger.exception('Error serving tutorial page')
+            self.send_error(500, str(e))
     
     def handle_supabase_status(self):
         """Handle Supabase status check endpoint"""

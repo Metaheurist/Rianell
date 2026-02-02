@@ -282,6 +282,13 @@ function openTutorialModal() {
   document.addEventListener('keydown', _tutorialKeydownHandler);
 }
 
+function isTutorialTestPage() {
+  try {
+    var p = window.location.pathname || '';
+    return p === '/tutorial' || p === '/tutorial/' || p.endsWith('/tutorial') || p.endsWith('/tutorial/');
+  } catch (e) { return false; }
+}
+
 function closeTutorialModal() {
   _detachTutorialSwipeListeners();
   if (_tutorialKeydownHandler) {
@@ -296,9 +303,9 @@ function closeTutorialModal() {
     document.body.classList.remove('modal-active');
     document.body.style.overflow = '';
   }
-  try {
-    localStorage.setItem('healthAppTutorialSeen', '1');
-  } catch (err) {}
+  if (!isTutorialTestPage()) {
+    try { localStorage.setItem('healthAppTutorialSeen', '1'); } catch (err) {}
+  }
 }
 
 function buildTutorialDots() {
@@ -11576,12 +11583,15 @@ window.addEventListener('load', () => {
     }, 1000);
   }
   
-  // Show tutorial once for new users, then optionally remind about today's entry
+  // On /tutorial serve tutorial by itself for demo/testing; otherwise show tutorial once for new users
   setTimeout(() => {
-    if (typeof maybeShowTutorialOnce === 'function') {
+    if (typeof isTutorialTestPage === 'function' && isTutorialTestPage()) {
+      if (typeof openTutorialModal === 'function') openTutorialModal();
+    } else if (typeof maybeShowTutorialOnce === 'function') {
       maybeShowTutorialOnce();
     }
-    // If tutorial was shown, don't also show "no entry today" in the same moment
+    // On /tutorial skip reminder (demo page); if tutorial was shown, skip reminder for now
+    if (typeof isTutorialTestPage === 'function' && isTutorialTestPage()) return;
     const tutorialSeen = (function() {
       try { return !!localStorage.getItem('healthAppTutorialSeen'); } catch (e) { return true; }
     })();
