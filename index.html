@@ -502,12 +502,12 @@
             <path class="pain-region pain-state-0" data-region="left_thigh" d="M48 170 Q44 192 48 212 L56 214 Q60 198 58 178 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="left_knee" d="M50 214 Q48 222 52 234 L60 234 Q62 226 58 218 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="left_lower_leg" d="M52 234 Q48 252 50 268 L58 268 Q62 252 60 236 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="left_foot" d="M46 266 Q44 272 50 280 L60 280 Q58 272 56 268 L50 266 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_foot" d="M56 268 L52 266 L38 274 L40 280 L54 278 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="right_hip" d="M92 160 Q96 166 92 172 L84 172 Q80 166 84 162 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="right_thigh" d="M92 170 Q96 192 92 212 L84 214 Q80 198 82 178 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="right_knee" d="M90 214 Q92 222 88 234 L80 234 Q78 226 82 218 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="right_lower_leg" d="M88 234 Q92 252 90 268 L82 268 Q78 252 80 236 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <path class="pain-region pain-state-0" data-region="right_foot" d="M94 266 Q96 272 90 280 L80 280 Q82 272 84 268 L90 266 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_foot" d="M84 268 L88 266 L102 274 L100 280 L86 278 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <!-- Joint points (balls) - same click/cycle behavior as body regions -->
             <circle class="pain-region pain-state-0" data-region="left_elbow" cx="25" cy="131" r="6" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <circle class="pain-region pain-state-0" data-region="right_elbow" cx="115" cy="131" r="6" fill="currentColor" filter="url(#pain-body-shadow)"/>
@@ -1117,12 +1117,12 @@
                   <path class="pain-region pain-state-0" data-region="left_thigh" d="M48 170 Q44 192 48 212 L56 214 Q60 198 58 178 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="left_knee" d="M50 214 Q48 222 52 234 L60 234 Q62 226 58 218 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="left_lower_leg" d="M52 234 Q48 252 50 268 L58 268 Q62 252 60 236 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="left_foot" d="M46 266 Q44 272 50 280 L60 280 Q58 272 56 268 L50 266 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_foot" d="M56 268 L52 266 L38 274 L40 280 L54 278 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="right_hip" d="M92 160 Q96 166 92 172 L84 172 Q80 166 84 162 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="right_thigh" d="M92 170 Q96 192 92 212 L84 214 Q80 198 82 178 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="right_knee" d="M90 214 Q92 222 88 234 L80 234 Q78 226 82 218 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <path class="pain-region pain-state-0" data-region="right_lower_leg" d="M88 234 Q92 252 90 268 L82 268 Q78 252 80 236 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
-                  <path class="pain-region pain-state-0" data-region="right_foot" d="M94 266 Q96 272 90 280 L80 280 Q82 272 84 268 L90 266 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_foot" d="M84 268 L88 266 L102 274 L100 280 L86 278 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <!-- Joint points (balls) -->
                   <circle class="pain-region pain-state-0" data-region="left_elbow" cx="25" cy="131" r="6" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
                   <circle class="pain-region pain-state-0" data-region="right_elbow" cx="115" cy="131" r="6" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
@@ -1252,6 +1252,111 @@
       </div>
       <div class="modal-footer alert-modal-footer">
         <button class="modal-save-btn" onclick="closeAlertModal()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tutorial Modal (new users + backtick ` to reopen) -->
+  <div class="modal-overlay tutorial-modal-overlay" id="tutorialModalOverlay" style="display: none;">
+    <div class="modal-content tutorial-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header tutorial-modal-header">
+        <h3 id="tutorialModalTitle">Welcome</h3>
+        <button class="modal-close" onclick="closeTutorialModal()" aria-label="Close tutorial">&times;</button>
+      </div>
+      <div class="tutorial-slides-wrap">
+        <button type="button" class="tutorial-arrow tutorial-arrow-left" id="tutorialArrowLeft" onclick="tutorialPrevSlide()" aria-label="Previous slide" style="display: none;">‹</button>
+        <div class="modal-body tutorial-modal-body">
+        <div class="tutorial-slide tutorial-slide-active" id="tutorialSlide0" data-slide="0">
+          <p class="tutorial-text">Track your health daily: log symptoms, food, exercise, pain areas, and more in one place.</p>
+        </div>
+        <div class="tutorial-slide" id="tutorialSlide1" data-slide="1">
+          <p class="tutorial-text">Use the <strong>Log Entry</strong> tab to add your day: sliders, stressors, symptoms, pain diagram, food, and exercise.</p>
+        </div>
+        <div class="tutorial-slide" id="tutorialSlide2" data-slide="2">
+          <p class="tutorial-text"><strong>View Logs</strong> shows your history. <strong>AI Analysis</strong> finds patterns and correlations across your data.</p>
+        </div>
+        <div class="tutorial-slide" id="tutorialSlide3" data-slide="3">
+          <p class="tutorial-text">In <strong>Settings</strong>, you can create an account to save your data encrypted in the cloud and share between devices.</p>
+          <p class="tutorial-text" style="margin-top: 8px;">Add or select your medical condition here (same as in Settings):</p>
+          <div id="tutorialConditionDisplayContainer" class="tutorial-condition-display-wrap" style="margin-top: 10px;">
+            <button type="button" class="settings-data-btn" id="tutorialConditionBtn" onclick="toggleTutorialConditionSelector()" style="width: 100%; text-align: left; justify-content: space-between;">
+              <span id="tutorialConditionDisplay">Medical Condition</span>
+            </button>
+          </div>
+          <div id="tutorialConditionSelector" class="tutorial-condition-selector" style="display: none; margin-top: 12px; padding: 12px; background: rgba(55, 65, 81, 0.3); border-radius: 8px; width: 100%;">
+            <div style="margin-bottom: 12px;">
+              <label style="font-size: 0.9rem; display: block; margin-bottom: 6px; color: rgba(224, 242, 241, 0.9);">Choose from existing conditions:</label>
+              <select id="tutorialExistingConditionsSelect" class="item-input" style="width: 100%; padding: 10px;" onchange="selectTutorialCondition()">
+                <option value="">-- Select a condition --</option>
+              </select>
+            </div>
+            <div style="text-align: center; margin: 12px 0; color: rgba(224, 242, 241, 0.7); font-size: 0.9rem;">OR</div>
+            <div style="margin-bottom: 12px;">
+              <label style="font-size: 0.9rem; display: block; margin-bottom: 6px; color: rgba(224, 242, 241, 0.9);">Add new condition:</label>
+              <div style="display: flex; gap: 8px; width: 100%;">
+                <input type="text" id="tutorialNewConditionInput" class="item-input" placeholder="e.g., Rheumatoid Arthritis" style="flex: 1; padding: 10px;" />
+                <button class="add-item-btn" onclick="addTutorialCondition()" title="Add condition" style="padding: 10px 16px;">➕</button>
+              </div>
+            </div>
+          </div>
+          <p class="tutorial-text" style="margin-top: 12px;"><strong>Contribute anonymised data</strong> — share your anonymised data for analysis and use aggregated data from people with the same condition.</p>
+          <p class="tutorial-text" style="margin-top: 8px;"><strong>Use open data for training AI</strong> — when on, AI uses open shared data; when off, AI uses only your personal data. Used for personalised AI analysis and advice.</p>
+        </div>
+        <div class="tutorial-slide" id="tutorialSlide4" data-slide="4">
+          <div class="tutorial-toggle-option" style="margin-top: 0;">
+            <label class="tutorial-toggle-label">Contribute anonymised data</label>
+            <div class="toggle-switch" id="tutorialContributeAnonDataToggle" onclick="toggleContributeAnonData('tutorialContributeAnonDataToggle')"></div>
+          </div>
+          <small class="tutorial-toggle-hint">Share your anonymised data to help improve AI models</small>
+          <div class="tutorial-toggle-option" style="margin-top: 14px;">
+            <label class="tutorial-toggle-label">Use open data for training</label>
+            <div class="toggle-switch" id="tutorialUseOpenDataToggle" onclick="toggleUseOpenData('tutorialUseOpenDataToggle')"></div>
+          </div>
+          <small class="tutorial-toggle-hint">Use anonymised data pool for AI training (requires 90+ days of data). Used for personalised AI analysis and advice.</small>
+        </div>
+        <div class="tutorial-slide" id="tutorialSlide5" data-slide="5">
+          <p class="tutorial-text">You're all set. Close to start logging, try <strong>Demo Mode</strong>, or create an account to save your data in the cloud.</p>
+        </div>
+        </div>
+        <button type="button" class="tutorial-arrow tutorial-arrow-right" id="tutorialArrowRight" onclick="tutorialNextSlide()" aria-label="Next slide">›</button>
+      </div>
+      <div class="tutorial-dots" id="tutorialDots" aria-hidden="true"></div>
+      <div class="modal-footer tutorial-modal-footer">
+        <div class="tutorial-footer-right">
+          <button type="button" class="tutorial-btn tutorial-finish" id="tutorialFinishBtn" onclick="finishTutorial(false)" style="display: none;">Finish</button>
+          <button type="button" class="tutorial-btn tutorial-signup" id="tutorialSignupBtn" onclick="finishTutorialAndOpenSignup()" style="display: none;">Sign up</button>
+          <button type="button" class="tutorial-btn tutorial-demo" id="tutorialDemoBtn" onclick="finishTutorial(true)" style="display: none;">Try demo mode</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sign up / Sign in Modal (same UI as Settings cloud auth) -->
+  <div class="modal-overlay signup-signin-modal-overlay" id="signupSigninModalOverlay" style="display: none;">
+    <div class="modal-content signup-signin-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Sign up / Sign in</h3>
+        <button class="modal-close" onclick="closeSignupSigninModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body cloud-auth-section">
+        <p class="tutorial-text" style="margin-bottom: 12px;">Create an account to save your data encrypted in the cloud and sync between devices.</p>
+        <div class="cloud-auth-form">
+          <input type="email" id="signupModalEmail" placeholder="Email address" class="cloud-input" />
+          <div class="password-input-wrapper">
+            <input type="password" id="signupModalPassword" placeholder="Password" class="cloud-input" />
+            <button type="button" class="password-toggle-btn" id="signupModalPasswordToggle" onclick="toggleSignupModalPasswordVisibility()" title="Show/Hide password">
+              <span class="password-toggle-icon">👁️</span>
+            </button>
+          </div>
+          <div class="cloud-auth-buttons">
+            <button type="button" id="signupModalSignUpBtn" class="cloud-btn signup-btn" onclick="handleCloudSignUpFromModal()">
+              <span>📝 Sign Up</span>
+            </button>
+            <button type="button" id="signupModalLoginBtn" class="cloud-btn login-btn" onclick="handleCloudLoginFromModal()">
+              <span>🔐 Sign In</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

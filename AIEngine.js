@@ -349,6 +349,9 @@ const AIEngine = {
     // Symptoms and pain location analysis
     this.analyzeSymptomsAndPainLocation(recentLogs, analysis);
     
+    // Cross-section correlations (stressors × symptoms, food × exercise × pain, etc.)
+    this.analyzeCrossSectionCorrelations(recentLogs, analysis);
+    
     // Data clustering for pattern identification
     this.performClustering(recentLogs, analysis);
     
@@ -1826,6 +1829,44 @@ const AIEngine = {
       // Store impacts in analysis
       analysis.foodExerciseImpacts = impacts;
     }
+
+    // Top exercises by frequency (for AI tab display)
+    const exerciseFrequency = {};
+    logs.forEach(log => {
+      if (!log.exercise || !Array.isArray(log.exercise)) return;
+      log.exercise.forEach(item => {
+        const name = typeof item === 'object' && item.name ? item.name : (typeof item === 'string' ? item : '');
+        if (name && name.trim()) {
+          exerciseFrequency[name.trim()] = (exerciseFrequency[name.trim()] || 0) + 1;
+        }
+      });
+    });
+    const sortedExercises = Object.entries(exerciseFrequency)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 12)
+      .map(([name, count]) => ({ name, count }));
+    if (sortedExercises.length > 0) {
+      analysis.topExercises = sortedExercises;
+    }
+
+    // Top foods by frequency (for AI tab display)
+    const foodFrequency = {};
+    logs.forEach(log => {
+      const foodArr = getLogFoodArray(log);
+      foodArr.forEach(item => {
+        const name = typeof item === 'object' && item.name ? item.name : (typeof item === 'string' ? item : '');
+        if (name && name.trim()) {
+          foodFrequency[name.trim()] = (foodFrequency[name.trim()] || 0) + 1;
+        }
+      });
+    });
+    const sortedFoods = Object.entries(foodFrequency)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 15)
+      .map(([name, count]) => ({ name, count }));
+    if (sortedFoods.length > 0) {
+      analysis.topFoods = sortedFoods;
+    }
   },
 
   // Analyze energyClarity (text) and weatherSensitivity (numeric) for patterns
@@ -1869,6 +1910,215 @@ const AIEngine = {
           analysis.patterns.push('Higher weather sensitivity tends to coincide with more flare-up days — consider tracking weather for triggers.');
         }
       }
+    }
+  },
+
+  // Cross-section correlations: link different Log Entry sections (stressors, symptoms, pain, food, exercise, energy)
+  analyzeCrossSectionCorrelations: function(logs, analysis) {
+    if (logs.length < 7) return;
+
+    const getLogFoodArray = (log) => {
+      if (!log || !log.food) return [];
+      const f = log.food;
+      if (Array.isArray(f)) return f;
+      return [].concat(f.breakfast || [], f.lunch || [], f.dinner || [], f.snack || []);
+    };
+    const getDailyCalories = (log) => {
+      const foodArr = getLogFoodArray(log);
+      if (foodArr.length === 0) return 0;
+      return foodArr.reduce((sum, item) => sum + (typeof item === 'object' && item.calories != null ? (item.calories || 0) : 0), 0);
+    };
+    const getLogExerciseMinutes = (log) => {
+      if (!log || !log.exercise || !Array.isArray(log.exercise)) return 0;
+      return log.exercise.reduce((sum, item) => {
+        const mins = typeof item === 'object' && item.duration != null ? item.duration : 0;
+        return sum + (typeof mins === 'number' ? mins : parseInt(mins, 10) || 0);
+      }, 0);
+    };
+
+    const logsWithStressors = logs.filter(log => log.stressors && Array.isArray(log.stressors) && log.stressors.length > 0);
+    const logsWithoutStressors = logs.filter(log => !log.stressors || !Array.isArray(log.stressors) || log.stressors.length === 0);
+    const logsWithSymptoms = logs.filter(log => log.symptoms && Array.isArray(log.symptoms) && log.symptoms.length > 0);
+    const logsWithoutSymptoms = logs.filter(log => !log.symptoms || !Array.isArray(log.symptoms) || log.symptoms.length === 0);
+    const logsWithPain = logs.filter(log => log.painLocation && String(log.painLocation).trim().length > 0);
+    const logsWithoutPain = logs.filter(log => !log.painLocation || !String(log.painLocation).trim());
+    const lowEnergyTerms = ['low energy', 'brain fog', 'poor concentration', 'mental fatigue', 'distracted'];
+    const logsWithClarity = logs.filter(log => log.energyClarity && String(log.energyClarity).trim().length > 0);
+    const logsLowEnergy = logsWithClarity.filter(log => lowEnergyTerms.some(t => String(log.energyClarity).toLowerCase().includes(t)));
+
+    const correlations = [];
+    const minGroup = 3;
+
+    // Stressors × Symptoms: same-day symptom count with vs without stressors
+    if (logsWithStressors.length >= minGroup && logsWithoutStressors.length >= minGroup) {
+      const avgSymptomsWithStress = logsWithStressors.reduce((s, log) => s + (log.symptoms && log.symptoms.length) || 0, 0) / logsWithStressors.length;
+      const avgSymptomsWithoutStress = logsWithoutStressors.reduce((s, log) => s + (log.symptoms && log.symptoms.length) || 0, 0) / logsWithoutStressors.length;
+      if (Math.abs(avgSymptomsWithStress - avgSymptomsWithoutStress) >= 0.3) {
+        const msg = avgSymptomsWithStress > avgSymptomsWithoutStress
+          ? `On days you logged stress or triggers, you also logged more symptoms on average (${avgSymptomsWithStress.toFixed(1)} vs ${avgSymptomsWithoutStress.toFixed(1)}).`
+          : `On days without stress or triggers, you logged more symptoms on average (${avgSymptomsWithoutStress.toFixed(1)} vs ${avgSymptomsWithStress.toFixed(1)}).`;
+        correlations.push({ type: 'stressors_symptoms', description: msg });
+      }
+    }
+
+    // Stressors × Exercise: exercise minutes with vs without stressors
+    const withStressEx = logsWithStressors.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+    const withoutStressEx = logsWithoutStressors.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+    if (withStressEx.length >= minGroup && withoutStressEx.length >= minGroup) {
+      const avgWith = withStressEx.reduce((a, b) => a + b, 0) / withStressEx.length;
+      const avgWithout = withoutStressEx.reduce((a, b) => a + b, 0) / withoutStressEx.length;
+      if (Math.abs(avgWith - avgWithout) >= 5) {
+        const direction = avgWith < avgWithout ? 'less' : 'more';
+        correlations.push({
+          type: 'stressors_exercise',
+          description: `On days you logged stress or triggers, you tended to log ${direction} exercise (${Math.round(avgWith)} vs ${Math.round(avgWithout)} minutes on days you did exercise).`
+        });
+      }
+    }
+
+    // Stressors × Food: calories with vs without stressors (only days that logged food)
+    const withStressCal = logsWithStressors.map(getDailyCalories).filter(c => c > 0);
+    const withoutStressCal = logsWithoutStressors.map(getDailyCalories).filter(c => c > 0);
+    if (withStressCal.length >= minGroup && withoutStressCal.length >= minGroup) {
+      const avgWith = withStressCal.reduce((a, b) => a + b, 0) / withStressCal.length;
+      const avgWithout = withoutStressCal.reduce((a, b) => a + b, 0) / withoutStressCal.length;
+      if (Math.abs(avgWith - avgWithout) >= 100) {
+        const direction = avgWith < avgWithout ? 'fewer' : 'more';
+        correlations.push({
+          type: 'stressors_food',
+          description: `On days you logged stress or triggers, you logged ${direction} calories on average (${Math.round(avgWith)} vs ${Math.round(avgWithout)} when you logged food).`
+        });
+      }
+    }
+
+    // Symptoms × Exercise
+    const withSymEx = logsWithSymptoms.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+    const withoutSymEx = logsWithoutSymptoms.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+    if (withSymEx.length >= minGroup && withoutSymEx.length >= minGroup) {
+      const avgWith = withSymEx.reduce((a, b) => a + b, 0) / withSymEx.length;
+      const avgWithout = withoutSymEx.reduce((a, b) => a + b, 0) / withoutSymEx.length;
+      if (Math.abs(avgWith - avgWithout) >= 5) {
+        const direction = avgWith < avgWithout ? 'less' : 'more';
+        correlations.push({
+          type: 'symptoms_exercise',
+          description: `On days you logged extra symptoms, you tended to log ${direction} exercise (${Math.round(avgWith)} vs ${Math.round(avgWithout)} minutes on days you did exercise).`
+        });
+      }
+    }
+
+    // Symptoms × Food (calories)
+    const withSymCal = logsWithSymptoms.map(getDailyCalories).filter(c => c > 0);
+    const withoutSymCal = logsWithoutSymptoms.map(getDailyCalories).filter(c => c > 0);
+    if (withSymCal.length >= minGroup && withoutSymCal.length >= minGroup) {
+      const avgWith = withSymCal.reduce((a, b) => a + b, 0) / withSymCal.length;
+      const avgWithout = withoutSymCal.reduce((a, b) => a + b, 0) / withoutSymCal.length;
+      if (Math.abs(avgWith - avgWithout) >= 100) {
+        const direction = avgWith < avgWithout ? 'fewer' : 'more';
+        correlations.push({
+          type: 'symptoms_food',
+          description: `On days you logged extra symptoms, you logged ${direction} calories on average (${Math.round(avgWith)} vs ${Math.round(avgWithout)} when you logged food).`
+        });
+      }
+    }
+
+    // Pain × Exercise
+    const withPainEx = logsWithPain.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+    const withoutPainEx = logsWithoutPain.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+    if (withPainEx.length >= minGroup && withoutPainEx.length >= minGroup) {
+      const avgWith = withPainEx.reduce((a, b) => a + b, 0) / withPainEx.length;
+      const avgWithout = withoutPainEx.reduce((a, b) => a + b, 0) / withoutPainEx.length;
+      if (Math.abs(avgWith - avgWithout) >= 5) {
+        const direction = avgWith < avgWithout ? 'less' : 'more';
+        correlations.push({
+          type: 'pain_exercise',
+          description: `On days you marked where it hurt, you tended to log ${direction} exercise (${Math.round(avgWith)} vs ${Math.round(avgWithout)} minutes on days you did exercise).`
+        });
+      }
+    }
+
+    // Pain × Food (calories)
+    const withPainCal = logsWithPain.map(getDailyCalories).filter(c => c > 0);
+    const withoutPainCal = logsWithoutPain.map(getDailyCalories).filter(c => c > 0);
+    if (withPainCal.length >= minGroup && withoutPainCal.length >= minGroup) {
+      const avgWith = withPainCal.reduce((a, b) => a + b, 0) / withPainCal.length;
+      const avgWithout = withoutPainCal.reduce((a, b) => a + b, 0) / withoutPainCal.length;
+      if (Math.abs(avgWith - avgWithout) >= 100) {
+        const direction = avgWith < avgWithout ? 'fewer' : 'more';
+        correlations.push({
+          type: 'pain_food',
+          description: `On days you marked pain locations, you logged ${direction} calories on average (${Math.round(avgWith)} vs ${Math.round(avgWithout)} when you logged food).`
+        });
+      }
+    }
+
+    // Stressors × Pain: % of days with pain when stressors vs when not
+    if (logsWithStressors.length >= minGroup && logsWithoutStressors.length >= minGroup) {
+      const painRateWithStress = logsWithStressors.filter(log => log.painLocation && log.painLocation.trim().length > 0).length / logsWithStressors.length;
+      const painRateWithoutStress = logsWithoutStressors.filter(log => log.painLocation && log.painLocation.trim().length > 0).length / logsWithoutStressors.length;
+      if (Math.abs(painRateWithStress - painRateWithoutStress) >= 0.15) {
+        const pctWith = Math.round(painRateWithStress * 100);
+        const pctWithout = Math.round(painRateWithoutStress * 100);
+        const moreOnStress = painRateWithStress > painRateWithoutStress;
+        correlations.push({
+          type: 'stressors_pain',
+          description: moreOnStress
+            ? `You marked pain locations more often on days you logged stress or triggers (${pctWith}% vs ${pctWithout}%).`
+            : `You marked pain locations less often on days you logged stress or triggers (${pctWith}% vs ${pctWithout}%).`
+        });
+      }
+    }
+
+    // Low energy/clarity × Stressors
+    if (logsLowEnergy.length >= minGroup && logsWithStressors.length >= minGroup) {
+      const stressRateOnLowEnergy = logsLowEnergy.filter(log => log.stressors && log.stressors.length > 0).length / logsLowEnergy.length;
+      const stressRateOverall = logsWithStressors.length / logs.length;
+      if (stressRateOnLowEnergy > stressRateOverall + 0.2) {
+        correlations.push({
+          type: 'energy_stressors',
+          description: `Low energy or brain fog days often coincided with stress or triggers — tracking both can help spot patterns.`
+        });
+      }
+    }
+
+    // Flare × Food (calories on flare vs non-flare days when food logged)
+    const flareLogs = logs.filter(log => log.flare === 'Yes');
+    const nonFlareLogs = logs.filter(log => log.flare !== 'Yes');
+    if (flareLogs.length >= minGroup && nonFlareLogs.length >= minGroup) {
+      const flareCal = flareLogs.map(getDailyCalories).filter(c => c > 0);
+      const nonFlareCal = nonFlareLogs.map(getDailyCalories).filter(c => c > 0);
+      if (flareCal.length >= minGroup && nonFlareCal.length >= minGroup) {
+        const avgFlare = flareCal.reduce((a, b) => a + b, 0) / flareCal.length;
+        const avgNon = nonFlareCal.reduce((a, b) => a + b, 0) / nonFlareCal.length;
+        if (Math.abs(avgFlare - avgNon) >= 100) {
+          const direction = avgFlare < avgNon ? 'fewer' : 'more';
+          correlations.push({
+            type: 'flare_food',
+            description: `On flare-up days you logged ${direction} calories on average when you logged food (${Math.round(avgFlare)} vs ${Math.round(avgNon)}).`
+          });
+        }
+      }
+    }
+
+    // Flare × Exercise
+    if (flareLogs.length >= minGroup && nonFlareLogs.length >= minGroup) {
+      const flareEx = flareLogs.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+      const nonFlareEx = nonFlareLogs.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+      if (flareEx.length >= minGroup && nonFlareEx.length >= minGroup) {
+        const avgFlare = flareEx.reduce((a, b) => a + b, 0) / flareEx.length;
+        const avgNon = nonFlareEx.reduce((a, b) => a + b, 0) / nonFlareEx.length;
+        if (Math.abs(avgFlare - avgNon) >= 5) {
+          const direction = avgFlare < avgNon ? 'less' : 'more';
+          correlations.push({
+            type: 'flare_exercise',
+            description: `On flare-up days you tended to log ${direction} exercise (${Math.round(avgFlare)} vs ${Math.round(avgNon)} minutes on days you did exercise).`
+          });
+        }
+      }
+    }
+
+    if (correlations.length > 0) {
+      analysis.crossSectionCorrelations = correlations;
+      correlations.forEach(c => analysis.patterns.push(c.description));
     }
   },
 
@@ -2290,9 +2540,17 @@ const AIEngine = {
       const nutrition = analysis.nutritionAnalysis;
       insights.push(`**What you ate**: On average ${nutrition.avgCalories} calories and ${nutrition.avgProtein}g protein per day.`);
     }
+    if (analysis.topFoods && analysis.topFoods.length > 0) {
+      const foodList = analysis.topFoods.slice(0, 6).map(f => f.name).join(', ');
+      insights.push(`**Foods you logged most**: ${foodList}${analysis.topFoods.length > 6 ? '; …' : ''}`);
+    }
     if (analysis.exerciseSummary && analysis.exerciseSummary.daysWithExercise > 0) {
       const ex = analysis.exerciseSummary;
       insights.push(`**Exercise**: On days you logged exercise, about ${ex.avgMinutesPerDay} minutes on average (${ex.daysWithExercise} days).`);
+    }
+    if (analysis.topExercises && analysis.topExercises.length > 0) {
+      const exList = analysis.topExercises.slice(0, 6).map(e => e.name).join(', ');
+      insights.push(`**Exercises you did most**: ${exList}${analysis.topExercises.length > 6 ? '; …' : ''}`);
     }
     if (analysis.foodExerciseImpacts && analysis.foodExerciseImpacts.length > 0) {
       const foodImpacts = analysis.foodExerciseImpacts.filter(i => i.type === 'food' || i.type === 'nutrition');
@@ -2305,6 +2563,12 @@ const AIEngine = {
       if (exerciseImpacts.length > 0) {
         insights.push(`**How exercise lines up with how you feel**: ${exerciseImpacts.slice(0, 2).map(i => `On days you exercise, ${i.metric} ${i.direction}`).join('. ')}`);
       }
+    }
+
+    // Cross-section correlations (stressors × symptoms, pain × food/exercise, flare × food/exercise, etc.)
+    if (analysis.crossSectionCorrelations && analysis.crossSectionCorrelations.length > 0) {
+      const crossDescriptions = analysis.crossSectionCorrelations.slice(0, 5).map(c => c.description);
+      insights.push(`**Links between your log sections**: ${crossDescriptions.join(' ')}`);
     }
     
     return insights.join('\n\n');

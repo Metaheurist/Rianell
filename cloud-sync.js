@@ -833,9 +833,13 @@ async function checkAuthStatus() {
 }
 
 // Handle cloud signup with email verification
-async function handleCloudSignUp() {
-  const email = document.getElementById('cloudEmail')?.value?.trim();
-  const password = document.getElementById('cloudPassword')?.value;
+// Optional context: { emailId, passwordId, signUpBtnId, loginBtnId, onSuccess } for use from signup modal
+async function handleCloudSignUp(context) {
+  const emailId = (context && context.emailId) || 'cloudEmail';
+  const passwordId = (context && context.passwordId) || 'cloudPassword';
+  const signUpBtnId = (context && context.signUpBtnId) || 'cloudSignUpBtn';
+  const email = document.getElementById(emailId)?.value?.trim();
+  const password = document.getElementById(passwordId)?.value;
   
   if (!email || !password) {
     if (typeof showAlertModal === 'function') {
@@ -879,7 +883,7 @@ async function handleCloudSignUp() {
   
   try {
     // Show loading state
-    const signUpBtn = document.getElementById('cloudSignUpBtn');
+    const signUpBtn = document.getElementById(signUpBtnId);
     if (signUpBtn) {
       signUpBtn.disabled = true;
       signUpBtn.textContent = 'Creating account...';
@@ -919,9 +923,10 @@ async function handleCloudSignUp() {
       }
       
       // Clear password field
-      const passwordInput = document.getElementById('cloudPassword');
+      const passwordInput = document.getElementById(passwordId);
       if (passwordInput) passwordInput.value = '';
       
+      if (context && typeof context.onSuccess === 'function') context.onSuccess();
       console.log('Account created:', data.user.email);
     }
   } catch (error) {
@@ -961,7 +966,7 @@ async function handleCloudSignUp() {
     }
   } finally {
     // Reset button state
-    const signUpBtn = document.getElementById('cloudSignUpBtn');
+    const signUpBtn = document.getElementById(signUpBtnId);
     if (signUpBtn) {
       signUpBtn.disabled = false;
       signUpBtn.innerHTML = '<span>📝 Sign Up</span>';
@@ -970,9 +975,13 @@ async function handleCloudSignUp() {
 }
 
 // Handle cloud login
-async function handleCloudLogin() {
-  const email = document.getElementById('cloudEmail')?.value?.trim();
-  const password = document.getElementById('cloudPassword')?.value;
+// Optional context: { emailId, passwordId, signUpBtnId, loginBtnId, onSuccess } for use from signup modal
+async function handleCloudLogin(context) {
+  const emailId = (context && context.emailId) || 'cloudEmail';
+  const passwordId = (context && context.passwordId) || 'cloudPassword';
+  const loginBtnId = (context && context.loginBtnId) || 'cloudLoginBtn';
+  const email = document.getElementById(emailId)?.value?.trim();
+  const password = document.getElementById(passwordId)?.value;
   
   if (!email || !password) {
     if (typeof showAlertModal === 'function') {
@@ -995,7 +1004,7 @@ async function handleCloudLogin() {
   
   try {
     // Show loading state
-    const loginBtn = document.getElementById('cloudLoginBtn');
+    const loginBtn = document.getElementById(loginBtnId);
     if (loginBtn) {
       loginBtn.disabled = true;
       loginBtn.textContent = 'Signing in...';
@@ -1036,8 +1045,10 @@ async function handleCloudLogin() {
       updateCloudSyncUI();
       
       // Clear password field
-      const passwordInput = document.getElementById('cloudPassword');
+      const passwordInput = document.getElementById(passwordId);
       if (passwordInput) passwordInput.value = '';
+      
+      if (context && typeof context.onSuccess === 'function') context.onSuccess();
       
       // Sync data if auto-sync is enabled
       if (cloudSyncState.autoSync) {
@@ -1067,7 +1078,7 @@ async function handleCloudLogin() {
     }
   } finally {
     // Reset button state
-    const loginBtn = document.getElementById('cloudLoginBtn');
+    const loginBtn = document.getElementById(loginBtnId);
     if (loginBtn) {
       loginBtn.disabled = false;
       loginBtn.innerHTML = '<span>🔐 Sign In</span>';

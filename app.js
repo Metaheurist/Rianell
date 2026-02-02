@@ -198,6 +198,260 @@ function closeAlertModal() {
   }
 }
 
+// ============================================
+// Tutorial Modal (new users + backtick ` to reopen)
+// ============================================
+const TUTORIAL_SLIDE_TITLES = ['Welcome', 'Log Entry', 'View & AI', 'Settings & data', 'Data options', "You're all set"];
+const TUTORIAL_SLIDE_COUNT = 6;
+var _tutorialSwipeStartX = 0;
+var _tutorialSwipeStartY = 0;
+var _tutorialSwipeHandlersAttached = false;
+var _tutorialKeydownHandler = null;
+
+function _tutorialSwipeStart(e) {
+  if (!e.touches || e.touches.length === 0) return;
+  _tutorialSwipeStartX = e.touches[0].clientX;
+  _tutorialSwipeStartY = e.touches[0].clientY;
+}
+
+function _tutorialSwipeEnd(e) {
+  if (!e.changedTouches || e.changedTouches.length === 0) return;
+  var endX = e.changedTouches[0].clientX;
+  var endY = e.changedTouches[0].clientY;
+  var deltaX = endX - _tutorialSwipeStartX;
+  var deltaY = endY - _tutorialSwipeStartY;
+  var minSwipe = 50;
+  if (Math.abs(deltaX) < minSwipe) return;
+  if (Math.abs(deltaY) > Math.abs(deltaX)) return;
+  if (deltaX < 0) tutorialNextSlide();
+  else tutorialPrevSlide();
+}
+
+function _attachTutorialSwipeListeners() {
+  var overlay = document.getElementById('tutorialModalOverlay');
+  var body = overlay && overlay.querySelector('.tutorial-modal-body');
+  var el = body || overlay;
+  if (!el || _tutorialSwipeHandlersAttached) return;
+  el.addEventListener('touchstart', _tutorialSwipeStart, { passive: true });
+  el.addEventListener('touchend', _tutorialSwipeEnd, { passive: true });
+  _tutorialSwipeHandlersAttached = true;
+}
+
+function _detachTutorialSwipeListeners() {
+  var overlay = document.getElementById('tutorialModalOverlay');
+  var body = overlay && overlay.querySelector('.tutorial-modal-body');
+  var el = body || overlay;
+  if (!el || !_tutorialSwipeHandlersAttached) return;
+  el.removeEventListener('touchstart', _tutorialSwipeStart);
+  el.removeEventListener('touchend', _tutorialSwipeEnd);
+  _tutorialSwipeHandlersAttached = false;
+}
+
+function openTutorialModal() {
+  const overlay = document.getElementById('tutorialModalOverlay');
+  const titleEl = document.getElementById('tutorialModalTitle');
+  if (!overlay || !titleEl) return;
+  closeSettingsModalIfOpen();
+  overlay.style.display = 'block';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  document.body.classList.add('modal-active');
+  buildTutorialDots();
+  showTutorialSlide(0);
+  if (typeof updateTutorialConditionDisplay === 'function') updateTutorialConditionDisplay();
+  _attachTutorialSwipeListeners();
+  overlay.onclick = function(e) {
+    if (e.target === overlay) closeTutorialModal();
+  };
+  _tutorialKeydownHandler = function(e) {
+    if (e.key === 'Escape') {
+      closeTutorialModal();
+      return;
+    }
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      tutorialPrevSlide();
+      return;
+    }
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      tutorialNextSlide();
+      return;
+    }
+  };
+  document.addEventListener('keydown', _tutorialKeydownHandler);
+}
+
+function closeTutorialModal() {
+  _detachTutorialSwipeListeners();
+  if (_tutorialKeydownHandler) {
+    document.removeEventListener('keydown', _tutorialKeydownHandler);
+    _tutorialKeydownHandler = null;
+  }
+  const overlay = document.getElementById('tutorialModalOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    overlay.style.visibility = 'hidden';
+    overlay.style.opacity = '0';
+    document.body.classList.remove('modal-active');
+    document.body.style.overflow = '';
+  }
+  try {
+    localStorage.setItem('healthAppTutorialSeen', '1');
+  } catch (err) {}
+}
+
+function buildTutorialDots() {
+  const container = document.getElementById('tutorialDots');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i < TUTORIAL_SLIDE_COUNT; i++) {
+    const dot = document.createElement('button');
+    dot.type = 'button';
+    dot.className = 'tutorial-dot' + (i === 0 ? ' tutorial-dot-active' : '');
+    dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+    dot.dataset.slide = String(i);
+    dot.addEventListener('click', function() {
+      const idx = parseInt(this.dataset.slide, 10);
+      if (!isNaN(idx)) showTutorialSlide(idx);
+    });
+    container.appendChild(dot);
+  }
+}
+
+function showTutorialSlide(index) {
+  const titleEl = document.getElementById('tutorialModalTitle');
+  const arrowLeft = document.getElementById('tutorialArrowLeft');
+  const arrowRight = document.getElementById('tutorialArrowRight');
+  const finishBtn = document.getElementById('tutorialFinishBtn');
+  const demoBtn = document.getElementById('tutorialDemoBtn');
+  const signupBtn = document.getElementById('tutorialSignupBtn');
+  const dots = document.querySelectorAll('.tutorial-dot');
+  if (titleEl) titleEl.textContent = TUTORIAL_SLIDE_TITLES[index] || 'Tutorial';
+  document.querySelectorAll('.tutorial-slide').forEach((el, i) => {
+    el.classList.toggle('tutorial-slide-active', i === index);
+  });
+  if (arrowLeft) arrowLeft.style.display = index > 0 ? 'flex' : 'none';
+  if (arrowRight) arrowRight.style.display = index < TUTORIAL_SLIDE_COUNT - 1 ? 'flex' : 'none';
+  if (finishBtn) finishBtn.style.display = index === TUTORIAL_SLIDE_COUNT - 1 ? 'inline-block' : 'none';
+  if (signupBtn) signupBtn.style.display = index === TUTORIAL_SLIDE_COUNT - 1 ? 'inline-block' : 'none';
+  if (demoBtn) demoBtn.style.display = index === TUTORIAL_SLIDE_COUNT - 1 ? 'inline-block' : 'none';
+  dots.forEach((dot, i) => {
+    dot.classList.toggle('tutorial-dot-active', i === index);
+  });
+  if (index === 3 && typeof updateTutorialConditionDisplay === 'function') updateTutorialConditionDisplay();
+  if (index === 4 && typeof updateTutorialDataTogglesState === 'function') updateTutorialDataTogglesState();
+}
+
+function tutorialNextSlide() {
+  const active = document.querySelector('.tutorial-slide.tutorial-slide-active');
+  const idx = active ? parseInt(active.dataset.slide, 10) : 0;
+  if (!isNaN(idx) && idx < TUTORIAL_SLIDE_COUNT - 1) showTutorialSlide(idx + 1);
+}
+
+function tutorialPrevSlide() {
+  const active = document.querySelector('.tutorial-slide.tutorial-slide-active');
+  const idx = active ? parseInt(active.dataset.slide, 10) : 0;
+  if (!isNaN(idx) && idx > 0) showTutorialSlide(idx - 1);
+}
+
+function finishTutorial(enableDemo) {
+  closeTutorialModal();
+  if (enableDemo && typeof appSettings !== 'undefined' && !appSettings.demoMode && typeof toggleDemoMode === 'function') {
+    toggleDemoMode();
+  }
+}
+
+function openSignupSigninModal() {
+  const overlay = document.getElementById('signupSigninModalOverlay');
+  if (!overlay) return;
+  closeSettingsModalIfOpen();
+  overlay.style.display = 'block';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  document.body.classList.add('modal-active');
+  overlay.onclick = function(e) {
+    if (e.target === overlay) closeSignupSigninModal();
+  };
+  const escapeHandler = function(e) {
+    if (e.key === 'Escape') {
+      closeSignupSigninModal();
+      document.removeEventListener('keydown', escapeHandler);
+    }
+  };
+  document.addEventListener('keydown', escapeHandler);
+}
+
+function closeSignupSigninModal() {
+  const overlay = document.getElementById('signupSigninModalOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    overlay.style.visibility = 'hidden';
+    overlay.style.opacity = '0';
+    document.body.classList.remove('modal-active');
+    document.body.style.overflow = '';
+  }
+}
+
+function finishTutorialAndOpenSignup() {
+  closeTutorialModal();
+  if (typeof openSignupSigninModal === 'function') {
+    openSignupSigninModal();
+  }
+}
+
+function toggleSignupModalPasswordVisibility() {
+  const passwordInput = document.getElementById('signupModalPassword');
+  const toggleBtn = document.getElementById('signupModalPasswordToggle');
+  const toggleIcon = toggleBtn && toggleBtn.querySelector('.password-toggle-icon');
+  if (!passwordInput || !toggleBtn || !toggleIcon) return;
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    toggleIcon.textContent = '🙈';
+    toggleBtn.setAttribute('title', 'Hide password');
+  } else {
+    passwordInput.type = 'password';
+    toggleIcon.textContent = '👁️';
+    toggleBtn.setAttribute('title', 'Show password');
+  }
+}
+
+var signupModalContext = {
+  emailId: 'signupModalEmail',
+  passwordId: 'signupModalPassword',
+  signUpBtnId: 'signupModalSignUpBtn',
+  loginBtnId: 'signupModalLoginBtn',
+  onSuccess: function() {
+    if (typeof closeSignupSigninModal === 'function') closeSignupSigninModal();
+  }
+};
+
+function handleCloudSignUpFromModal() {
+  if (typeof handleCloudSignUp === 'function') handleCloudSignUp(signupModalContext);
+}
+
+function handleCloudLoginFromModal() {
+  if (typeof handleCloudLogin === 'function') handleCloudLogin(signupModalContext);
+}
+
+// Show tutorial once for new users (after DOM and modals ready)
+function maybeShowTutorialOnce() {
+  try {
+    if (localStorage.getItem('healthAppTutorialSeen')) return;
+    openTutorialModal();
+  } catch (err) {}
+}
+
+// Backtick ` key opens tutorial from anywhere (except when typing in inputs)
+document.addEventListener('keydown', function(e) {
+  if (e.key !== '`') return;
+  const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+  const isInput = tag === 'input' || tag === 'textarea' || tag === 'select' || (e.target && e.target.isContentEditable);
+  if (isInput) return;
+  e.preventDefault();
+  openTutorialModal();
+});
+
 // Show GDPR Data Agreement Modal
 function showGDPRAgreementModal(onAgree, onDecline) {
   const overlay = document.getElementById('gdprAgreementModalOverlay');
@@ -3798,6 +4052,50 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     `;
     animationDelay += 300;
   }
+
+  // Top exercises (most logged by name)
+  if (analysis.topExercises && analysis.topExercises.length > 0) {
+    html += `
+      <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+        <h3 class="ai-section-title ai-section-green">🏃 Exercises you did most</h3>
+        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">Activities you logged most often in this period.</p>
+        <ul class="ai-list" style="columns: 2; column-gap: 1.5rem;">
+    `;
+    analysis.topExercises.forEach((item, index) => {
+      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 30)}ms;">${escapeHTML(item.name)}: ${item.count} ${item.count === 1 ? 'time' : 'times'}</li>`;
+    });
+    html += `</ul></div>`;
+    animationDelay += 300;
+  }
+
+  // Top foods (most logged by name)
+  if (analysis.topFoods && analysis.topFoods.length > 0) {
+    html += `
+      <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+        <h3 class="ai-section-title ai-section-green">🍽️ Foods you logged most</h3>
+        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">Items you logged most often in this period.</p>
+        <ul class="ai-list" style="columns: 2; column-gap: 1.5rem;">
+    `;
+    analysis.topFoods.forEach((item, index) => {
+      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 30)}ms;">${escapeHTML(item.name)}: ${item.count} ${item.count === 1 ? 'time' : 'times'}</li>`;
+    });
+    html += `</ul></div>`;
+    animationDelay += 300;
+  }
+
+  // Nutrition summary (avg calories/protein when present)
+  if (analysis.nutritionAnalysis && analysis.nutritionAnalysis.daysWithFood > 0) {
+    const nut = analysis.nutritionAnalysis;
+    html += `
+      <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+        <h3 class="ai-section-title ai-section-green">🍽️ Food summary</h3>
+        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 0;">
+          On days you logged food: about <strong>${nut.avgCalories} calories</strong> and <strong>${nut.avgProtein}g protein</strong> per day (${nut.daysWithFood} days)
+        </p>
+      </div>
+    `;
+    animationDelay += 300;
+  }
   
   // Food/Exercise impact section - simplified
   if (analysis.foodExerciseImpacts && analysis.foodExerciseImpacts.length > 0) {
@@ -4498,7 +4796,17 @@ const FOOD_ICONS = {
   casserole: 'fa-solid fa-plate-wheat',
   omelette: 'fa-solid fa-egg',
   wrap: 'fa-solid fa-burrito',
-  mac_cheese: 'fa-solid fa-cheese'
+  mac_cheese: 'fa-solid fa-cheese',
+  orange: 'fa-solid fa-apple-whole',
+  grapes: 'fa-solid fa-apple-whole',
+  berries: 'fa-solid fa-apple-whole',
+  mango: 'fa-solid fa-apple-whole',
+  green_salad: 'fa-solid fa-bowl-food',
+  roasted_veg: 'fa-solid fa-carrot',
+  broccoli: 'fa-solid fa-carrot',
+  popcorn: 'fa-solid fa-seedling',
+  rice_cakes: 'fa-solid fa-bread-slice',
+  trail_mix: 'fa-solid fa-seedling'
 };
 
 // Energy & Mental Clarity options for tile picker — mood = positive (green), neutral (blue), negative (amber/red)
@@ -4552,6 +4860,9 @@ const PREDEFINED_FOODS = [
   { id: 'salmon', name: 'Salmon fillet, 180g', calories: 360, protein: 50, carbs: 0, fat: 16, group: 'protein', meals: ['lunch', 'dinner'] },
   { id: 'quinoa_salad', name: 'Quinoa salad', calories: 220, protein: 8, carbs: 32, fat: 6, group: 'vegetables', meals: ['lunch', 'dinner'] },
   { id: 'steamed_veg', name: 'Steamed vegetables', calories: 50, protein: 2, carbs: 10, fat: 0, group: 'vegetables', meals: ['lunch', 'dinner'] },
+  { id: 'green_salad', name: 'Green salad', calories: 60, protein: 3, carbs: 8, fat: 2, group: 'vegetables', meals: ['lunch', 'dinner'] },
+  { id: 'roasted_veg', name: 'Roasted vegetables', calories: 90, protein: 2, carbs: 14, fat: 3, group: 'vegetables', meals: ['lunch', 'dinner'] },
+  { id: 'broccoli', name: 'Broccoli, 150g', calories: 45, protein: 3.5, carbs: 9, fat: 0.5, group: 'vegetables', meals: ['lunch', 'dinner'] },
   { id: 'turkey_sandwich', name: 'Turkey sandwich', calories: 320, protein: 24, carbs: 35, fat: 10, group: 'protein', meals: ['lunch'] },
   { id: 'soup_veg', name: 'Vegetable soup', calories: 120, protein: 4, carbs: 18, fat: 3, group: 'vegetables', meals: ['lunch', 'dinner'] },
   { id: 'tuna_salad', name: 'Tuna salad', calories: 280, protein: 30, carbs: 8, fat: 14, group: 'protein', meals: ['lunch'] },
@@ -4564,7 +4875,14 @@ const PREDEFINED_FOODS = [
   { id: 'protein_bar', name: 'Protein bar', calories: 200, protein: 20, carbs: 22, fat: 6, group: 'snacks', meals: ['snack'] },
   { id: 'cheese_crackers', name: 'Cheese and crackers', calories: 220, protein: 10, carbs: 18, fat: 12, group: 'snacks', meals: ['snack'] },
   { id: 'chocolate_bar', name: 'Chocolate bar', calories: 220, protein: 3, carbs: 26, fat: 13, group: 'snacks', meals: ['snack'] },
+  { id: 'popcorn', name: 'Popcorn, 1 cup', calories: 31, protein: 1, carbs: 6, fat: 0.4, group: 'snacks', meals: ['snack'] },
+  { id: 'rice_cakes', name: 'Rice cakes, 2', calories: 70, protein: 1.4, carbs: 14, fat: 0.5, group: 'snacks', meals: ['snack'] },
+  { id: 'trail_mix', name: 'Trail mix, 30g', calories: 140, protein: 4, carbs: 14, fat: 9, group: 'snacks', meals: ['snack'] },
   { id: 'fruit_salad', name: 'Fresh fruit salad', calories: 80, protein: 1, carbs: 20, fat: 0, group: 'fruits', meals: ['breakfast', 'snack'] },
+  { id: 'orange', name: 'Orange', calories: 62, protein: 1.2, carbs: 15, fat: 0.2, group: 'fruits', meals: ['breakfast', 'snack'] },
+  { id: 'grapes', name: 'Grapes, 1 cup', calories: 104, protein: 1.1, carbs: 27, fat: 0.2, group: 'fruits', meals: ['snack'] },
+  { id: 'berries', name: 'Mixed berries, 1 cup', calories: 85, protein: 1, carbs: 21, fat: 0.5, group: 'fruits', meals: ['breakfast', 'snack'] },
+  { id: 'mango', name: 'Mango, half', calories: 50, protein: 0.4, carbs: 12.5, fat: 0.2, group: 'fruits', meals: ['breakfast', 'snack'] },
   { id: 'pizza_slice', name: 'Pizza slice', calories: 280, protein: 12, carbs: 33, fat: 11, group: 'mixed', meals: ['lunch', 'dinner'] },
   { id: 'bread_slices', name: 'Bread, 2 slices', calories: 160, protein: 6, carbs: 28, fat: 2, group: 'grains', meals: ['breakfast', 'lunch'] },
   // Dairy (expanded)
@@ -4669,7 +4987,17 @@ const EXERCISE_ICONS = {
   resistance_bands: 'fa-solid fa-dumbbell',
   breathing: 'fa-solid fa-wind',
   core: 'fa-solid fa-dumbbell',
-  upper_body: 'fa-solid fa-dumbbell'
+  upper_body: 'fa-solid fa-dumbbell',
+  single_leg_stance: 'fa-solid fa-person-walking',
+  heel_to_toe: 'fa-solid fa-shoe-prints',
+  standing_balance: 'fa-solid fa-scale-balanced',
+  rest_day: 'fa-solid fa-moon',
+  meditation: 'fa-solid fa-brain',
+  gentle_mobility: 'fa-solid fa-person-walking',
+  bodyweight_squats: 'fa-solid fa-person-walking',
+  leg_raises: 'fa-solid fa-dumbbell',
+  rowing: 'fa-solid fa-person-swimming',
+  stair_climbing: 'fa-solid fa-stairs'
 };
 
 // Predefined exercises with suggested duration (minutes) - selectable in exercise log
@@ -4692,8 +5020,18 @@ const PREDEFINED_EXERCISES = [
   { id: 'tai_chi', name: 'Tai Chi', defaultDuration: 25, category: 'flexibility' },
   { id: 'chair_yoga', name: 'Chair yoga', defaultDuration: 20, category: 'flexibility' },
   { id: 'balance', name: 'Balance exercises', defaultDuration: 10, category: 'balance' },
+  { id: 'single_leg_stance', name: 'Single-leg stance', defaultDuration: 5, category: 'balance' },
+  { id: 'heel_to_toe', name: 'Heel-to-toe walk', defaultDuration: 5, category: 'balance' },
+  { id: 'standing_balance', name: 'Standing balance hold', defaultDuration: 8, category: 'balance' },
   { id: 'pt_exercises', name: 'Physical therapy exercises', defaultDuration: 20, category: 'recovery' },
-  { id: 'breathing', name: 'Breathing exercises', defaultDuration: 10, category: 'recovery' }
+  { id: 'breathing', name: 'Breathing exercises', defaultDuration: 10, category: 'recovery' },
+  { id: 'rest_day', name: 'Rest day (light movement)', defaultDuration: 15, category: 'recovery' },
+  { id: 'meditation', name: 'Meditation / relaxation', defaultDuration: 15, category: 'recovery' },
+  { id: 'gentle_mobility', name: 'Gentle mobility flow', defaultDuration: 15, category: 'recovery' },
+  { id: 'bodyweight_squats', name: 'Bodyweight squats', defaultDuration: 10, category: 'strength' },
+  { id: 'leg_raises', name: 'Leg raises', defaultDuration: 10, category: 'strength' },
+  { id: 'rowing', name: 'Rowing machine', defaultDuration: 20, category: 'cardio' },
+  { id: 'stair_climbing', name: 'Stair climbing', defaultDuration: 15, category: 'cardio' }
 ];
 
 // Initialize food and exercise arrays early (before DOMContentLoaded)
@@ -5265,13 +5603,23 @@ const SYMPTOM_OPTIONS = [
   { value: 'Nausea', label: 'Nausea', group: 'digestive' },
   { value: 'Appetite loss', label: 'Appetite loss', group: 'digestive' },
   { value: 'Digestive issues', label: 'Digestive issues', group: 'digestive' },
+  { value: 'Bloating', label: 'Bloating', group: 'digestive' },
   { value: 'Breathing difficulty', label: 'Breathing difficulty', group: 'respiratory' },
+  { value: 'Cough', label: 'Cough', group: 'respiratory' },
+  { value: 'Chest tightness', label: 'Chest tightness', group: 'respiratory' },
   { value: 'Dizziness', label: 'Dizziness', group: 'neurological' },
   { value: 'Headache', label: 'Headache', group: 'neurological' },
+  { value: 'Tingling or numbness', label: 'Tingling or numbness', group: 'neurological' },
+  { value: 'Migraine', label: 'Migraine', group: 'neurological' },
   { value: 'Fever', label: 'Fever', group: 'systemic' },
   { value: 'Chills', label: 'Chills', group: 'systemic' },
+  { value: 'Night sweats', label: 'Night sweats', group: 'systemic' },
+  { value: 'Body fatigue', label: 'Body fatigue', group: 'systemic' },
   { value: 'Skin rash', label: 'Skin rash', group: 'skin' },
   { value: 'Eye irritation', label: 'Eye irritation', group: 'skin' },
+  { value: 'Dry skin', label: 'Dry skin', group: 'skin' },
+  { value: 'Itching', label: 'Itching', group: 'skin' },
+  { value: 'Muscle aches', label: 'Muscle aches', group: 'other' },
   { value: 'Other', label: 'Other', group: 'other' }
 ];
 
@@ -5280,13 +5628,23 @@ const SYMPTOM_ICONS = {
   'Nausea': 'fa-solid fa-face-nauseated',
   'Appetite loss': 'fa-solid fa-utensils',
   'Digestive issues': 'fa-solid fa-stomach',
+  'Bloating': 'fa-solid fa-stomach',
   'Breathing difficulty': 'fa-solid fa-lungs',
+  'Cough': 'fa-solid fa-lungs',
+  'Chest tightness': 'fa-solid fa-heart-pulse',
   'Dizziness': 'fa-solid fa-spinner',
   'Headache': 'fa-solid fa-head-side-virus',
+  'Tingling or numbness': 'fa-solid fa-hand',
+  'Migraine': 'fa-solid fa-head-side-virus',
   'Fever': 'fa-solid fa-temperature-high',
   'Chills': 'fa-solid fa-snowflake',
+  'Night sweats': 'fa-solid fa-temperature-high',
+  'Body fatigue': 'fa-solid fa-battery-quarter',
   'Skin rash': 'fa-solid fa-hand-sparkles',
   'Eye irritation': 'fa-solid fa-eye',
+  'Dry skin': 'fa-solid fa-hand-sparkles',
+  'Itching': 'fa-solid fa-hand',
+  'Muscle aches': 'fa-solid fa-dumbbell',
   'Other': 'fa-solid fa-ellipsis'
 };
 
@@ -8912,10 +9270,43 @@ function loadSettingsState() {
     }
     updateWeightInputConstraints();
   }
+  
+  // Sync tutorial modal toggles (Contribute / Use open data) when settings load
+  if (typeof updateTutorialDataTogglesState === 'function') updateTutorialDataTogglesState();
+}
+
+// Update tutorial slide 4 toggles from appSettings (same as Settings)
+function updateTutorialDataTogglesState() {
+  const contributeToggle = document.getElementById('tutorialContributeAnonDataToggle');
+  const useOpenToggle = document.getElementById('tutorialUseOpenDataToggle');
+  if (contributeToggle) {
+    if (appSettings.demoMode) {
+      contributeToggle.style.opacity = '0.5';
+      contributeToggle.style.cursor = 'not-allowed';
+      contributeToggle.classList.remove('active');
+    } else {
+      contributeToggle.style.opacity = '1';
+      contributeToggle.style.cursor = 'pointer';
+      contributeToggle.classList.toggle('active', appSettings.contributeAnonData || false);
+    }
+  }
+  if (useOpenToggle) {
+    if (appSettings.demoMode) {
+      useOpenToggle.style.opacity = '0.5';
+      useOpenToggle.style.cursor = 'not-allowed';
+      useOpenToggle.classList.remove('active');
+    } else {
+      useOpenToggle.style.opacity = '1';
+      useOpenToggle.style.cursor = 'pointer';
+      useOpenToggle.classList.toggle('active', appSettings.useOpenData || false);
+    }
+  }
 }
 
 // Toggle contribute anonymised data
-async function toggleContributeAnonData() {
+// optionalToggleId: use 'tutorialContributeAnonDataToggle' when called from tutorial
+async function toggleContributeAnonData(optionalToggleId) {
+  const toggleId = optionalToggleId || 'contributeAnonDataToggle';
   // Disable in demo mode
   if (appSettings.demoMode) {
     showAlertModal('Data contribution is disabled in demo mode. Demo data is not saved or synced.', 'Demo Mode');
@@ -8942,13 +9333,12 @@ async function toggleContributeAnonData() {
       window.anonymizedDataSyncInterval = null;
     }
     
-    // Update toggle state
-    const toggle = document.getElementById('contributeAnonDataToggle');
-    if (toggle) {
-      toggle.classList.toggle('active', appSettings.contributeAnonData);
-    }
+    // Update toggle state (Settings and/or tutorial)
+    const toggle = document.getElementById(toggleId);
+    if (toggle) toggle.classList.toggle('active', appSettings.contributeAnonData);
+    const settingsToggle = document.getElementById('contributeAnonDataToggle');
+    if (settingsToggle) settingsToggle.classList.toggle('active', appSettings.contributeAnonData);
     
-    // Update hint text
     loadSettingsState();
     return;
   }
@@ -8980,11 +9370,11 @@ async function toggleContributeAnonData() {
         console.log(`[toggleContributeAnonData] Cleared synced dates to allow fresh sync`);
       }
       
-      // Update toggle state
-      const toggle = document.getElementById('contributeAnonDataToggle');
-      if (toggle) {
-        toggle.classList.add('active');
-      }
+      // Update toggle state (Settings and tutorial)
+      const toggle = document.getElementById(toggleId);
+      if (toggle) toggle.classList.add('active');
+      const settingsToggle = document.getElementById('contributeAnonDataToggle');
+      if (settingsToggle) settingsToggle.classList.add('active');
       
       // Set up automatic background syncing first
       if (typeof setupBackgroundSync === 'function') {
@@ -9015,17 +9405,18 @@ async function toggleContributeAnonData() {
     // onDecline - user declined the agreement
     () => {
       // User declined, do nothing (toggle remains off)
-      // Update toggle state to ensure it's off
-      const toggle = document.getElementById('contributeAnonDataToggle');
-      if (toggle) {
-        toggle.classList.remove('active');
-      }
+      const toggle = document.getElementById(toggleId);
+      if (toggle) toggle.classList.remove('active');
+      const settingsToggle = document.getElementById('contributeAnonDataToggle');
+      if (settingsToggle) settingsToggle.classList.remove('active');
     }
   );
 }
 
 // Toggle use open data for training
-async function toggleUseOpenData() {
+// optionalToggleId: use 'tutorialUseOpenDataToggle' when called from tutorial
+async function toggleUseOpenData(optionalToggleId) {
+  const toggleId = optionalToggleId || 'useOpenDataToggle';
   // Disable in demo mode
   if (appSettings.demoMode) {
     showAlertModal('Open data training is disabled in demo mode. Demo data is not saved or synced.', 'Demo Mode');
@@ -9042,13 +9433,11 @@ async function toggleUseOpenData() {
     appSettings.useOpenData = false;
     saveSettings();
     
-    // Update toggle state
-    const toggle = document.getElementById('useOpenDataToggle');
-    if (toggle) {
-      toggle.classList.toggle('active', appSettings.useOpenData);
-    }
+    const toggle = document.getElementById(toggleId);
+    if (toggle) toggle.classList.toggle('active', appSettings.useOpenData);
+    const settingsToggle = document.getElementById('useOpenDataToggle');
+    if (settingsToggle) settingsToggle.classList.toggle('active', appSettings.useOpenData);
     
-    // Update hint text
     loadSettingsState();
     return;
   }
@@ -9072,13 +9461,11 @@ async function toggleUseOpenData() {
   appSettings.useOpenData = true;
   saveSettings();
   
-  // Update toggle state
-  const toggle = document.getElementById('useOpenDataToggle');
-  if (toggle) {
-    toggle.classList.toggle('active', appSettings.useOpenData);
-  }
+  const toggle = document.getElementById(toggleId);
+  if (toggle) toggle.classList.toggle('active', appSettings.useOpenData);
+  const settingsToggle = document.getElementById('useOpenDataToggle');
+  if (settingsToggle) settingsToggle.classList.toggle('active', appSettings.useOpenData);
   
-  // Update hint text
   loadSettingsState();
 }
 
@@ -9272,13 +9659,15 @@ function toggleConditionSelector() {
     if (displayContainer) displayContainer.style.display = 'none';
     
     // Load existing conditions from Supabase
-    loadAvailableConditions();
+    loadAvailableConditions('existingConditionsSelect');
   }
 }
 
 // Load available conditions from Supabase
-async function loadAvailableConditions() {
-  const select = document.getElementById('existingConditionsSelect');
+// optionalSelectId: use 'tutorialExistingConditionsSelect' for tutorial modal
+async function loadAvailableConditions(optionalSelectId) {
+  const selectId = optionalSelectId || 'existingConditionsSelect';
+  const select = document.getElementById(selectId);
   if (!select) return;
   
   // Show loading state
@@ -9305,7 +9694,7 @@ async function loadAvailableConditions() {
       }
     }
     
-    // Fetch unique conditions directly from anonymized_data table
+    // Fetch unique conditions from anonymized_data table
     // Use pagination to handle large datasets
     let allConditions = [];
     let from = 0;
@@ -9340,11 +9729,10 @@ async function loadAvailableConditions() {
     // Get unique conditions and populate dropdown
     if (allConditions.length > 0) {
       const uniqueConditions = [...new Set(allConditions)].sort();
-      populateConditionsSelect(uniqueConditions);
+      populateConditionsSelect(uniqueConditions, selectId);
       console.log(`Loaded ${uniqueConditions.length} unique conditions from Supabase`);
     } else {
-      // No conditions found, just show the default option
-      populateConditionsSelect([]);
+      populateConditionsSelect([], selectId);
       console.log('No conditions found in Supabase');
     }
     
@@ -9357,8 +9745,10 @@ async function loadAvailableConditions() {
 }
 
 // Populate conditions select dropdown
-function populateConditionsSelect(conditions) {
-  const select = document.getElementById('existingConditionsSelect');
+// optionalSelectId: use 'tutorialExistingConditionsSelect' for tutorial modal
+function populateConditionsSelect(conditions, optionalSelectId) {
+  const selectId = optionalSelectId || 'existingConditionsSelect';
+  const select = document.getElementById(selectId);
   if (!select) return;
   
   // Clear existing options except the first one
@@ -9551,6 +9941,120 @@ async function addNewCondition() {
   showAlertModal(`Condition "${condition}" has been set. Your anonymised data will contribute to the Optimised AI model for this condition.`, 'Condition Set');
 }
 
+// Tutorial modal: condition selector (same UI and logic as Settings)
+function updateTutorialConditionDisplay() {
+  const display = document.getElementById('tutorialConditionDisplay');
+  if (!display) return;
+  if (appSettings.demoMode) {
+    display.textContent = 'Disabled in demo mode';
+    return;
+  }
+  display.textContent = appSettings.medicalCondition && appSettings.medicalCondition.trim()
+    ? appSettings.medicalCondition
+    : 'Medical Condition';
+}
+
+function toggleTutorialConditionSelector() {
+  if (appSettings.demoMode) {
+    showAlertModal('Condition selection is disabled in demo mode.', 'Demo Mode');
+    return;
+  }
+  const selector = document.getElementById('tutorialConditionSelector');
+  const displayContainer = document.getElementById('tutorialConditionDisplayContainer');
+  if (!selector) return;
+  const isVisible = selector.style.display !== 'none';
+  if (isVisible) {
+    selector.style.display = 'none';
+    if (displayContainer) displayContainer.style.display = 'block';
+  } else {
+    selector.style.display = 'block';
+    if (displayContainer) displayContainer.style.display = 'none';
+    loadAvailableConditions('tutorialExistingConditionsSelect');
+  }
+}
+
+function selectTutorialCondition() {
+  const select = document.getElementById('tutorialExistingConditionsSelect');
+  if (!select || !select.value) return;
+  const condition = select.value.trim();
+  if (!condition) return;
+  const currentCondition = appSettings.medicalCondition;
+  if (currentCondition && currentCondition !== condition) {
+    const logs = JSON.parse(localStorage.getItem('healthLogs') || '[]');
+    const logCount = logs.length;
+    showConfirmModal(
+      `⚠️ WARNING: Changing your medical condition will DELETE ALL ${logCount} of your health log entries.\n\nThis action cannot be undone. Are you sure you want to continue?`,
+      'Confirm Condition Change',
+      () => {
+        updateMedicalCondition(condition);
+        localStorage.setItem('healthLogs', JSON.stringify([]));
+        if (typeof renderLogs === 'function') renderLogs();
+        if (typeof updateCharts === 'function') updateCharts();
+        const sel = document.getElementById('tutorialConditionSelector');
+        const disp = document.getElementById('tutorialConditionDisplayContainer');
+        if (sel) sel.style.display = 'none';
+        if (disp) disp.style.display = 'block';
+        select.value = '';
+        updateTutorialConditionDisplay();
+        showAlertModal(`Condition changed to "${condition}". All previous log entries have been cleared.`, 'Condition Changed');
+      },
+      () => { select.value = ''; }
+    );
+  } else {
+    updateMedicalCondition(condition);
+    const sel = document.getElementById('tutorialConditionSelector');
+    const disp = document.getElementById('tutorialConditionDisplayContainer');
+    if (sel) sel.style.display = 'none';
+    if (disp) disp.style.display = 'block';
+    select.value = '';
+    updateTutorialConditionDisplay();
+  }
+}
+
+function addTutorialCondition() {
+  const input = document.getElementById('tutorialNewConditionInput');
+  if (!input) return;
+  const condition = input.value.trim();
+  if (!condition) {
+    showAlertModal('Please enter a condition name', 'Condition Required');
+    return;
+  }
+  const currentCondition = appSettings.medicalCondition;
+  if (currentCondition && currentCondition !== condition) {
+    const logs = JSON.parse(localStorage.getItem('healthLogs') || '[]');
+    const logCount = logs.length;
+    showConfirmModal(
+      `⚠️ WARNING: Changing your medical condition will DELETE ALL ${logCount} of your health log entries.\n\nThis action cannot be undone. Are you sure you want to continue?`,
+      'Confirm Condition Change',
+      () => {
+        updateMedicalCondition(condition);
+        localStorage.setItem('healthLogs', JSON.stringify([]));
+        if (typeof renderLogs === 'function') renderLogs();
+        if (typeof updateCharts === 'function') updateCharts();
+        input.value = '';
+        const sel = document.getElementById('tutorialConditionSelector');
+        const disp = document.getElementById('tutorialConditionDisplayContainer');
+        if (sel) sel.style.display = 'none';
+        if (disp) disp.style.display = 'block';
+        updateTutorialConditionDisplay();
+        loadAvailableConditions('tutorialExistingConditionsSelect');
+        showAlertModal(`Condition changed to "${condition}". All previous log entries have been cleared.`, 'Condition Changed');
+      },
+      () => {}
+    );
+    return;
+  }
+  updateMedicalCondition(condition);
+  input.value = '';
+  const sel = document.getElementById('tutorialConditionSelector');
+  const disp = document.getElementById('tutorialConditionDisplayContainer');
+  if (sel) sel.style.display = 'none';
+  if (disp) disp.style.display = 'block';
+  updateTutorialConditionDisplay();
+  loadAvailableConditions('tutorialExistingConditionsSelect');
+  showAlertModal(`Condition "${condition}" has been set. Your anonymised data will contribute to the Optimised AI model for this condition.`, 'Condition Set');
+}
+
 // Update medical condition (enhanced version)
 function updateMedicalCondition(condition = null) {
   // Disable in demo mode
@@ -9603,12 +10107,12 @@ function updateMedicalCondition(condition = null) {
   }
   
   // Force update the display text again after a brief delay to ensure it persists
-  // This prevents it from being overwritten by loadSettingsState() or other functions
   setTimeout(() => {
     const displayCheck = document.getElementById('medicalConditionDisplay');
     if (displayCheck && appSettings.medicalCondition) {
       displayCheck.textContent = appSettings.medicalCondition;
     }
+    updateTutorialConditionDisplay();
   }, 100);
   
   // Update CONDITION_CONTEXT for AI analysis
@@ -9920,18 +10424,30 @@ function generateDemoData(numDays = 3650) {
       if (!stressors.includes(val)) stressors.push(val);
     }
     
-    const symptomsOptions = ["Nausea", "Appetite loss", "Digestive issues", "Breathing difficulty", "Dizziness", "Headache", "Fever", "Chills", "Skin rash", "Eye irritation", "Other"];
+    // Use current SYMPTOM_OPTIONS so all symptoms (including new ones) can appear in demo
+    const symptomValues = SYMPTOM_OPTIONS.map(o => o.value);
     const numSymptoms = flareState ? Math.floor(getRandom() * 4) : Math.floor(getRandom() * 2); // 0-3 or 0-1
     const symptoms = [];
-    for (let i = 0; i < numSymptoms && i < symptomsOptions.length; i++) {
-      const index = Math.floor(getRandom() * symptomsOptions.length);
-      if (!symptoms.includes(symptomsOptions[index])) {
-        symptoms.push(symptomsOptions[index]);
-      }
+    for (let i = 0; i < numSymptoms && symptoms.length < symptomValues.length; i++) {
+      const val = symptomValues[Math.floor(getRandom() * symptomValues.length)];
+      if (!symptoms.includes(val)) symptoms.push(val);
     }
     
-    const painLocationOptions = ["Lower back", "Upper back", "Neck", "Shoulders", "Hips", "Knees", "Ankles", "Wrists", "Hands", "Feet", ""];
-    const painLocation = getRandom() > 0.5 ? painLocationOptions[Math.floor(getRandom() * painLocationOptions.length)] : "";
+    // Use PAIN_BODY_REGIONS so demo pain matches diagram format (e.g. "Left knee (pain), Head (mild)")
+    let painLocation = '';
+    if (getRandom() > 0.5 && PAIN_BODY_REGIONS.length > 0) {
+      const numRegions = Math.floor(getRandom() * 3) + 1;
+      const used = new Set();
+      const parts = [];
+      for (let i = 0; i < numRegions && parts.length < 5; i++) {
+        const r = PAIN_BODY_REGIONS[Math.floor(getRandom() * PAIN_BODY_REGIONS.length)];
+        if (used.has(r.id)) continue;
+        used.add(r.id);
+        const severity = getRandom() < 0.5 ? '(mild)' : '(pain)';
+        parts.push(r.label + ' ' + severity);
+      }
+      painLocation = parts.join(', ');
+    }
     
     const weatherSensitivity = flareState ? Math.floor(getRandom() * 5) + 6 : Math.floor(getRandom() * 5) + 1; // 6-10 or 1-5
     const steps = flareState ? Math.floor(getRandom() * 3000) + 2000 : Math.floor(getRandom() * 7000) + 5000; // 2000-5000 or 5000-12000
@@ -11060,9 +11576,16 @@ window.addEventListener('load', () => {
     }, 1000);
   }
   
-  // Check if there's a log entry for today, and if not, show an alert
-  // Do this after everything is loaded to ensure modal HTML is ready
+  // Show tutorial once for new users, then optionally remind about today's entry
   setTimeout(() => {
+    if (typeof maybeShowTutorialOnce === 'function') {
+      maybeShowTutorialOnce();
+    }
+    // If tutorial was shown, don't also show "no entry today" in the same moment
+    const tutorialSeen = (function() {
+      try { return !!localStorage.getItem('healthAppTutorialSeen'); } catch (e) { return true; }
+    })();
+    if (!tutorialSeen) return; // User is in tutorial; skip reminder for now
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -11070,11 +11593,7 @@ window.addEventListener('load', () => {
     const todayStr = `${yyyy}-${mm}-${dd}`;
     const hasToday = logs.some(log => log.date === todayStr);
     if (!hasToday) {
-      // Only show alert if not installed as PWA to avoid annoying notifications
-      // The NotificationManager will handle reminders for installed apps
-      if (!window.matchMedia('(display-mode: standalone)').matches && 
-          !window.navigator.standalone) {
-        // Only show if reminder is enabled
+      if (!window.matchMedia('(display-mode: standalone)').matches && !window.navigator.standalone) {
         if (appSettings.reminder !== false) {
           showAlertModal("You have not logged an entry for today.");
         }
