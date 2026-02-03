@@ -70,11 +70,25 @@ function showImportModal() {
         card.classList.remove('selected');
       }
     });
+    // Escape to close
+    window._importModalEscapeHandler = function(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        document.removeEventListener('keydown', window._importModalEscapeHandler);
+        window._importModalEscapeHandler = null;
+        closeImportModal();
+      }
+    };
+    document.addEventListener('keydown', window._importModalEscapeHandler);
   }
 }
 
 // Close import modal
 function closeImportModal() {
+  if (window._importModalEscapeHandler) {
+    document.removeEventListener('keydown', window._importModalEscapeHandler);
+    window._importModalEscapeHandler = null;
+  }
   const modal = document.getElementById('importModalOverlay');
   if (modal) {
     modal.style.display = 'none';

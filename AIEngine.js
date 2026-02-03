@@ -1325,32 +1325,56 @@ const AIEngine = {
     const avgPreFlareSwelling = preFlarePatterns.reduce((sum, p) => sum + p.avgSwelling, 0) / preFlarePatterns.length;
     const avgPreFlareMood = preFlarePatterns.reduce((sum, p) => sum + p.avgMood, 0) / preFlarePatterns.length;
     
-    // Check recent days (last 3 days) for similar pattern
-    const recentLogs = logs.slice(-3);
+    // Check recent days (last 5 to allow consecutive-day check)
+    const recentLogs = logs.slice(-5);
     if (recentLogs.length < 2) return;
-    
+
+    const maxDiff = 10; // 0-10 scale
+    const threshold = 1.5; // per-metric match threshold
+
+    // Helper: does this single day's metrics match the pre-flare pattern?
+    function dayMatchesPreFlare(log) {
+      const p = Math.abs((parseInt(log.backPain) || 0) - avgPreFlarePain);
+      const s = Math.abs((parseInt(log.stiffness) || 0) - avgPreFlareStiffness);
+      const f = Math.abs((parseInt(log.fatigue) || 0) - avgPreFlareFatigue);
+      const sw = Math.abs((parseInt(log.swelling) || 0) - avgPreFlareSwelling);
+      const m = Math.abs((parseInt(log.mood) || 0) - avgPreFlareMood);
+      const matchCount = [p < threshold, s < threshold, f < threshold, sw < threshold, m < threshold].filter(Boolean).length;
+      const sim = (1 - p / maxDiff) * 0.3 + (1 - s / maxDiff) * 0.25 + (1 - f / maxDiff) * 0.25 + (1 - sw / maxDiff) * 0.1 + (1 - m / maxDiff) * 0.1;
+      return matchCount >= 3 && sim > 0.7;
+    }
+
+    // Count consecutive high-symptom days from the most recent day backwards (only bad if a lot of symptoms consecutively)
+    let consecutiveMatchCount = 0;
+    for (let i = recentLogs.length - 1; i >= 0; i--) {
+      if (dayMatchesPreFlare(recentLogs[i])) {
+        consecutiveMatchCount++;
+      } else {
+        break;
+      }
+    }
+
+    // Require at least 2 consecutive days matching to consider it flare-up risk (not just one bad day or scattered bad days)
+    if (consecutiveMatchCount < 2) return;
+
     const recentPain = recentLogs.reduce((sum, log) => sum + (parseInt(log.backPain) || 0), 0) / recentLogs.length;
     const recentStiffness = recentLogs.reduce((sum, log) => sum + (parseInt(log.stiffness) || 0), 0) / recentLogs.length;
     const recentFatigue = recentLogs.reduce((sum, log) => sum + (parseInt(log.fatigue) || 0), 0) / recentLogs.length;
     const recentSwelling = recentLogs.reduce((sum, log) => sum + (parseInt(log.swelling) || 0), 0) / recentLogs.length;
     const recentMood = recentLogs.reduce((sum, log) => sum + (parseInt(log.mood) || 0), 0) / recentLogs.length;
-    
-    // Calculate differences (lower threshold for more sensitive detection)
+
     const painDiff = Math.abs(recentPain - avgPreFlarePain);
     const stiffnessDiff = Math.abs(recentStiffness - avgPreFlareStiffness);
     const fatigueDiff = Math.abs(recentFatigue - avgPreFlareFatigue);
     const swellingDiff = Math.abs(recentSwelling - avgPreFlareSwelling);
     const moodDiff = Math.abs(recentMood - avgPreFlareMood);
-    
-    // Calculate similarity score (0-1, where 1 is perfect match)
-    const maxDiff = 10; // Maximum possible difference (0-10 scale)
+
     const painSimilarity = 1 - (painDiff / maxDiff);
     const stiffnessSimilarity = 1 - (stiffnessDiff / maxDiff);
     const fatigueSimilarity = 1 - (fatigueDiff / maxDiff);
     const swellingSimilarity = 1 - (swellingDiff / maxDiff);
     const moodSimilarity = 1 - (moodDiff / maxDiff);
-    
-    // Weighted average similarity (pain, stiffness, fatigue are more important)
+
     const overallSimilarity = (
       painSimilarity * 0.3 +
       stiffnessSimilarity * 0.25 +
@@ -1358,30 +1382,29 @@ const AIEngine = {
       swellingSimilarity * 0.1 +
       moodSimilarity * 0.1
     );
-    
-    // Check if pattern matches (similarity > 0.7 and at least 3 metrics match)
+
     const matchingMetrics = [
-      painDiff < 1.5,
-      stiffnessDiff < 1.5,
-      fatigueDiff < 1.5,
-      swellingDiff < 1.5,
-      moodDiff < 1.5
+      painDiff < threshold,
+      stiffnessDiff < threshold,
+      fatigueDiff < threshold,
+      swellingDiff < threshold,
+      moodDiff < threshold
     ].filter(Boolean).length;
-    
+
     if (overallSimilarity > 0.7 && matchingMetrics >= 3) {
       const confidence = Math.round(overallSimilarity * 100);
       const riskLevel = overallSimilarity > 0.85 ? 'high' : overallSimilarity > 0.75 ? 'moderate' : 'low';
-      
+
       analysis.riskFactors.push(
         `Heads-up: Your recent numbers look like times when you had a flare-up before (${riskLevel} chance, ${confidence}% match). Keep an eye on how you feel and do what usually helps you prevent or ease flare-ups.`
       );
-      
-      // Store flare-up risk in analysis
+
       analysis.flareUpRisk = {
         level: riskLevel,
         confidence: confidence,
         similarity: overallSimilarity,
-        matchingMetrics: matchingMetrics
+        matchingMetrics: matchingMetrics,
+        consecutiveDays: consecutiveMatchCount
       };
     }
   },
@@ -1522,6 +1545,30 @@ const AIEngine = {
       });
     });
     
+    // Per-region severity: how bad each body part hurt (total days, pain ratio, severity score for ranking)
+    const totalLogDays = logs.length;
+    PAIN_REGIONS.forEach(r => {
+      const data = painByRegion[r.id];
+      const totalDays = data.painDays + data.mildDays;
+      data.totalDays = totalDays;
+      data.painRatio = totalDays > 0 ? data.painDays / totalDays : 0;
+      data.severityScore = data.painDays * 2 + data.mildDays;
+      data.pctOfPeriod = totalLogDays > 0 ? Math.round((totalDays / totalLogDays) * 100) : 0;
+    });
+    
+    // Pain data exploration: most affected areas by severity, summary for display
+    const regionsWithData = PAIN_REGIONS
+      .map(r => ({ id: r.id, ...painByRegion[r.id] }))
+      .filter(d => d.totalDays > 0);
+    const bySeverity = [...regionsWithData].sort((a, b) => b.severityScore - a.severityScore);
+    const explorationSummaryLines = [];
+    if (bySeverity.length > 0) {
+      const top3 = bySeverity.slice(0, 3);
+      explorationSummaryLines.push('Most affected body areas (by severity): ' + top3.map(d => `${d.label} (${d.totalDays} days, ${d.painDays} full pain)`).join('; '));
+      const totalPainPoints = Object.keys(painLocationFrequency).length;
+      explorationSummaryLines.push(`Pain points explored: ${regionsWithData.length} body areas with data across ${logsWithPainLocation.length} days with pain logged.`);
+    }
+    
     // Per-region impact: for regions with enough "in pain" days, compare metrics
     const regionImpactMetrics = ['fatigue', 'mobility', 'mood'];
     const regionImpacts = [];
@@ -1650,7 +1697,11 @@ const AIEngine = {
       painLocationFrequency: painLocationFrequency,
       painLocationImpacts: painLocationImpacts,
       painByRegion: painByRegion,
-      regionImpacts: regionImpacts
+      regionImpacts: regionImpacts,
+      painExploration: {
+        bySeverity: bySeverity,
+        summaryLines: explorationSummaryLines
+      }
     };
     
     // Build summary

@@ -87,6 +87,7 @@
   </style>
 </head>
 <body class="loading">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
   <!-- Loading Overlay -->
   <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-spinner">
@@ -96,7 +97,7 @@
   </div>
 
   <!-- Settings Menu Overlay - Full Page Container -->
-  <div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-label="Settings">
     <div class="settings-menu" onclick="event.stopPropagation()">
       <div class="settings-header">
         <h3 class="settings-title">Settings</h3>
@@ -135,12 +136,9 @@
               </div>
             </div>
             
-            <div style="margin-top: 20px; padding: 12px; background: rgba(233, 30, 99, 0.1); border-radius: 8px; border: 1px solid rgba(233, 30, 99, 0.3);">
-              <h4 style="color: #e91e63; margin: 0 0 8px 0; font-size: 0.9rem;">📋 AI Data Processing Policy</h4>
-              <p style="font-size: 0.8rem; color: rgba(224, 242, 241, 0.8); margin: 0; line-height: 1.5;">
-                When anonymised data contribution is enabled, your health data is anonymised and pooled with other users who have the same condition. 
-                This helps improve AI predictions for everyone. All personally identifiable information is removed before sharing.
-              </p>
+            <div class="settings-policy-box">
+              <h4>📋 AI Data Processing Policy</h4>
+              <p>When anonymised data contribution is enabled, your health data is anonymised and pooled with other users who have the same condition. This helps improve AI predictions for everyone. All personally identifiable information is removed before sharing.</p>
             </div>
           </div>
         </div>
@@ -148,21 +146,21 @@
           <label>Contribute anonymised data</label>
           <div class="toggle-switch" id="contributeAnonDataToggle" onclick="toggleContributeAnonData()"></div>
         </div>
-        <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
-          <label style="visibility: hidden;">Helper</label>
-          <small id="contributeAnonDataHint" style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Contribute your anonymised data to help improve AI models</small>
+        <div class="settings-option settings-option-with-hint">
+          <label class="visually-hidden">Helper</label>
+          <p class="settings-hint" id="contributeAnonDataHint">Contribute your anonymised data to help improve AI models</p>
         </div>
-        <div class="settings-option" style="margin-top: 16px;">
+        <div class="settings-option">
           <label>Use open data for training</label>
           <div class="toggle-switch" id="useOpenDataToggle" onclick="toggleUseOpenData()"></div>
         </div>
-        <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
-          <label style="visibility: hidden;">Helper</label>
-          <small id="useOpenDataHint" style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Use anonymised data pool for AI training (requires 90+ days of data)</small>
+        <div class="settings-option settings-option-with-hint">
+          <label class="visually-hidden">Helper</label>
+          <p class="settings-hint" id="useOpenDataHint">Use anonymised data pool for AI training (requires 90+ days of data)</p>
         </div>
-        <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
-          <label style="visibility: hidden;">Helper</label>
-          <small style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Used for personalised AI analysis and advice</small>
+        <div class="settings-option settings-option-with-hint">
+          <label class="visually-hidden">Helper</label>
+          <p class="settings-hint">Used for personalised AI analysis and advice</p>
         </div>
       </div>
 
@@ -299,7 +297,7 @@
     </div>
   </div>
   
-  <div class="container">
+  <div class="container" id="main-content">
     <!-- Settings Button - Top Right -->
     <button class="settings-button-top" onclick="toggleSettings()" title="Settings">
       <svg class="settings-cog" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -378,27 +376,30 @@
     </div>
 
     <!-- Tab Navigation -->
-    <div class="tab-navigation">
-      <button class="tab-btn active" data-tab="log" onclick="switchTab('log')">
+    <div class="tab-navigation" role="tablist" aria-label="Main sections">
+      <button type="button" class="tab-btn active" data-tab="log" role="tab" aria-selected="true" aria-controls="logTab" id="tab-log" onclick="switchTab('log')">
         <span class="tab-icon">📝</span>
         <span class="tab-text">Log Entry</span>
       </button>
-      <button class="tab-btn" data-tab="logs" onclick="switchTab('logs')">
+      <button type="button" class="tab-btn" data-tab="logs" role="tab" aria-selected="false" aria-controls="logsTab" id="tab-logs" onclick="switchTab('logs')">
         <span class="tab-icon">📋</span>
         <span class="tab-text">View Logs</span>
       </button>
-      <button class="tab-btn" data-tab="charts" onclick="switchTab('charts')">
+      <button type="button" class="tab-btn" data-tab="charts" role="tab" aria-selected="false" aria-controls="chartsTab" id="tab-charts" onclick="switchTab('charts')">
         <span class="tab-icon">📊</span>
         <span class="tab-text">Charts</span>
       </button>
-      <button class="tab-btn" data-tab="ai" onclick="switchTab('ai')">
+      <button type="button" class="tab-btn" data-tab="ai" role="tab" aria-selected="false" aria-controls="aiTab" id="tab-ai" onclick="switchTab('ai')">
         <span class="tab-icon">🧠</span>
         <span class="tab-text">AI Analysis</span>
       </button>
     </div>
 
     <!-- Log Entry Tab -->
-    <div id="logTab" class="tab-content active">
+    <div id="logTab" class="tab-content active" role="tabpanel" aria-labelledby="tab-log">
+      <div class="tab-header">
+        <h2 class="tab-title">Log today</h2>
+      </div>
     <form id="logForm">
       <div id="validationSummary" class="form-validation-summary">
         <h4>⚠️ Please fix the following errors:</h4>
@@ -407,10 +408,9 @@
 
       <!-- Basic Metrics Section -->
       <div class="form-section">
-        <button type="button" class="section-header" onclick="toggleSection('basicMetrics')">
+        <button type="button" class="section-header" data-section="basicMetrics">
           <span class="section-icon">📊</span>
           <span class="section-title">Basic Metrics</span>
-          <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="basicMetrics">
       <label for="date">Date</label>
@@ -440,10 +440,9 @@
 
       <!-- Symptoms Section -->
       <div class="form-section">
-        <button type="button" class="section-header" onclick="toggleSection('symptoms')">
+        <button type="button" class="section-header" data-section="symptoms">
           <span class="section-icon">🩺</span>
           <span class="section-title">Symptoms & Pain</span>
-          <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="symptoms">
       <div class="slider-container">
@@ -523,10 +522,9 @@
 
       <!-- Energy & Cognitive Section -->
       <div class="form-section">
-        <button type="button" class="section-header" onclick="toggleSection('energyCognitive')">
+        <button type="button" class="section-header" data-section="energyCognitive">
           <span class="section-icon">⚡</span>
           <span class="section-title">Energy & Mental Clarity <span class="optional-hint">(Optional)</span></span>
-          <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="energyCognitive">
           <div class="slider-container">
@@ -553,10 +551,9 @@
 
       <!-- Stress & Triggers Section -->
       <div class="form-section">
-        <button type="button" class="section-header" onclick="toggleSection('stressTriggers')">
+        <button type="button" class="section-header" data-section="stressTriggers">
           <span class="section-icon">😰</span>
           <span class="section-title">Stress & Triggers <span class="optional-hint">(Optional)</span></span>
-          <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="stressTriggers">
           <div class="slider-container">
@@ -579,10 +576,9 @@
 
       <!-- Additional Symptoms Section -->
       <div class="form-section">
-        <button type="button" class="section-header" onclick="toggleSection('additionalSymptoms')">
+        <button type="button" class="section-header" data-section="additionalSymptoms">
           <span class="section-icon">🩹</span>
           <span class="section-title">Additional Symptoms <span class="optional-hint">(Optional)</span></span>
-          <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="additionalSymptoms">
           <div id="logSymptomsList" class="items-list"></div>
@@ -595,10 +591,9 @@
 
       <!-- Lifestyle Factors Section -->
       <div class="form-section">
-        <button type="button" class="section-header" onclick="toggleSection('lifestyleFactors')">
+        <button type="button" class="section-header" data-section="lifestyleFactors">
           <span class="section-icon">🏃</span>
           <span class="section-title">Lifestyle Factors <span class="optional-hint">(Optional)</span></span>
-          <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="lifestyleFactors">
           <div class="slider-container">
@@ -620,10 +615,9 @@
 
       <!-- Food Log Section (4 categories: Breakfast, Lunch, Dinner, Snack) -->
       <div class="form-section">
-        <button type="button" class="section-header" onclick="toggleSection('foodLog')">
+        <button type="button" class="section-header" data-section="foodLog">
           <span class="section-icon">🍽️</span>
           <span class="section-title">Food Log <span class="optional-hint">(Optional)</span></span>
-          <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="foodLog">
           <details class="food-category-block food-meal-collapsible">
@@ -659,10 +653,9 @@
 
       <!-- Exercise Log Section (tile grid by category: Cardio, Strength, etc. — collapsible, collapsed by default) -->
       <div class="form-section">
-        <button type="button" class="section-header" onclick="toggleSection('exerciseLog')">
+        <button type="button" class="section-header" data-section="exerciseLog">
           <span class="section-icon">🏃</span>
           <span class="section-title">Exercise Log <span class="optional-hint">(Optional)</span></span>
-          <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="exerciseLog">
           <div id="logExerciseItemsList" class="items-list"></div>
@@ -701,10 +694,9 @@
 
       <!-- Additional Info Section -->
       <div class="form-section">
-        <button type="button" class="section-header" onclick="toggleSection('additionalInfo')">
+        <button type="button" class="section-header" data-section="additionalInfo">
           <span class="section-icon">📝</span>
           <span class="section-title">Additional Information</span>
-          <span class="section-arrow">▶</span>
         </button>
         <div class="section-content" id="additionalInfo">
       <label for="flare">Flare-up Today?</label>
@@ -730,117 +722,127 @@
     </div>
 
     <!-- View Logs Tab -->
-    <div id="logsTab" class="tab-content">
-      <div class="filter-section">
-      <div class="log-view-range-buttons">
-        <label class="filter-label">View Range:</label>
-        <div class="log-date-range-buttons">
-          <button class="log-date-range-btn" onclick="setLogViewRange(1)" id="logRange1Day">Today</button>
-          <button class="log-date-range-btn active" onclick="setLogViewRange(7)" id="logRange7Days">7 Days</button>
-          <button class="log-date-range-btn" onclick="setLogViewRange(30)" id="logRange30Days">30 Days</button>
-          <button class="log-date-range-btn" onclick="setLogViewRange(90)" id="logRange90Days">90 Days</button>
+    <div id="logsTab" class="tab-content" role="tabpanel" aria-labelledby="tab-logs">
+      <section class="tab-filters" aria-label="Filter and sort">
+        <div class="filter-section">
+          <div class="log-view-range-buttons">
+            <label class="filter-label">View Range:</label>
+            <div class="log-date-range-buttons">
+              <button class="log-date-range-btn" onclick="setLogViewRange(1)" id="logRange1Day">Today</button>
+              <button class="log-date-range-btn active" onclick="setLogViewRange(7)" id="logRange7Days">7 Days</button>
+              <button class="log-date-range-btn" onclick="setLogViewRange(30)" id="logRange30Days">30 Days</button>
+              <button class="log-date-range-btn" onclick="setLogViewRange(90)" id="logRange90Days">90 Days</button>
+            </div>
+          </div>
+          <p class="field-hint">Choose which days to include.</p>
+          <div class="compact-filters">
+            <div class="date-range">
+              <input type="date" id="startDate" placeholder="Start Date">
+              <span class="date-separator">to</span>
+              <input type="date" id="endDate" placeholder="End Date">
+            </div>
+            <button onclick="filterLogs()" class="filter-btn">📅 Filter</button>
+            <button id="sortButton" onclick="toggleSort()" class="sort-btn" title="Click to toggle sort order">
+              📈 <span id="sortOrder">Newest</span>
+            </button>
+          </div>
         </div>
-      </div>
-      <div class="compact-filters">
-        <div class="date-range">
-          <input type="date" id="startDate" placeholder="Start Date">
-          <span class="date-separator">to</span>
-          <input type="date" id="endDate" placeholder="End Date">
-        </div>
-        <button onclick="filterLogs()" class="filter-btn">📅 Filter</button>
-        <button id="sortButton" onclick="toggleSort()" class="sort-btn" title="Click to toggle sort order">
-          📈 <span id="sortOrder">Newest</span>
-        </button>
-      </div>
-    </div>
-      
-    <div id="logOutput"></div>
+      </section>
+      <section id="log-output-section" class="tab-content-section" aria-label="Log entries">
+        <h2 class="section-heading">Your entries</h2>
+        <div id="logOutput"></div>
+      </section>
     </div>
 
     <!-- AI Analysis Tab -->
-    <div id="aiTab" class="tab-content">
+    <div id="aiTab" class="tab-content" role="tabpanel" aria-labelledby="tab-ai">
       <div class="tab-header">
         <p class="tab-description">Get personalized insights and predictions based on your health data</p>
       </div>
-      
-      <!-- Date Range Filter for AI Analysis -->
-      <div class="chart-date-range-filter">
-        <div class="filter-row">
-          <div class="filter-group">
-            <label class="filter-label">Analysis Range:</label>
-            <label class="filter-label-mobile">Analysis Range:</label>
-            <div class="date-range-buttons">
-              <button class="date-range-btn active" onclick="setAIDateRange(7)" id="aiRange7Days">7 Days</button>
-              <button class="date-range-btn" onclick="setAIDateRange(30)" id="aiRange30Days">30 Days</button>
-              <button class="date-range-btn" onclick="setAIDateRange(90)" id="aiRange90Days">90 Days</button>
-              <button class="date-range-btn" onclick="setAIDateRange('custom')" id="aiRangeCustom">Custom</button>
+      <section class="tab-filters" aria-label="Analysis range">
+        <div class="chart-date-range-filter">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label class="filter-label">Analysis Range:</label>
+              <label class="filter-label-mobile">Analysis Range:</label>
+              <div class="date-range-buttons">
+                <button class="date-range-btn active" onclick="setAIDateRange(7)" id="aiRange7Days">7 Days</button>
+                <button class="date-range-btn" onclick="setAIDateRange(30)" id="aiRange30Days">30 Days</button>
+                <button class="date-range-btn" onclick="setAIDateRange(90)" id="aiRange90Days">90 Days</button>
+                <button class="date-range-btn" onclick="setAIDateRange('custom')" id="aiRangeCustom">Custom</button>
+              </div>
             </div>
+            <p class="field-hint">Choose which days to include.</p>
+          </div>
+          <div id="aiCustomDateRangeSelector" class="custom-date-range hidden">
+            <div class="date-range">
+              <input type="date" id="aiStartDate" placeholder="Start Date">
+              <span class="date-separator">to</span>
+              <input type="date" id="aiEndDate" placeholder="End Date">
+            </div>
+            <button onclick="applyAICustomDateRange()" class="filter-btn">Apply</button>
           </div>
         </div>
-        <div id="aiCustomDateRangeSelector" class="custom-date-range hidden">
-          <div class="date-range">
-            <input type="date" id="aiStartDate" placeholder="Start Date">
-            <span class="date-separator">to</span>
-            <input type="date" id="aiEndDate" placeholder="End Date">
-          </div>
-          <button onclick="applyAICustomDateRange()" class="filter-btn">Apply</button>
-        </div>
-      </div>
-      
-      <!-- AI Results Section -->
-      <div id="aiResultsContent"></div>
+      </section>
+      <section id="aiResultsSection" class="tab-content-section" aria-label="Analysis results">
+        <div id="aiResultsContent"></div>
+      </section>
     </div>
 
     <!-- Charts Tab -->
-    <div id="chartsTab" class="tab-content">
-      <div class="tab-header">
-        <div class="chart-view-toggle">
-          <button class="view-toggle-btn" onclick="toggleChartView('balance')" id="balanceViewBtn">
-            <span>⚖️</span> Balance
-          </button>
-          <button class="view-toggle-btn" onclick="toggleChartView('individual')" id="individualViewBtn">
-            <span>📊</span> Individual
-          </button>
-          <button class="view-toggle-btn" onclick="toggleChartView('combined')" id="combinedViewBtn">
-            <span>📈</span> Combined
-          </button>
-        </div>
-      </div>
-      <!-- Date Range Filter -->
-      <div class="chart-date-range-filter">
-        <div class="filter-row">
-          <div class="filter-group">
-            <label class="filter-label">View Range:</label>
-            <label class="filter-label-mobile">View Range:</label>
-            <div class="date-range-buttons">
-              <button class="date-range-btn" onclick="setChartDateRange(1)" id="range1Day">Today</button>
-              <button class="date-range-btn active" onclick="setChartDateRange(7)" id="range7Days">7 Days</button>
-              <button class="date-range-btn" onclick="setChartDateRange(30)" id="range30Days">30 Days</button>
-              <button class="date-range-btn" onclick="setChartDateRange(90)" id="range90Days">90 Days</button>
-              <button class="date-range-btn" onclick="setChartDateRange('custom')" id="rangeCustom">Custom</button>
-            </div>
-          </div>
-          <div class="filter-group">
-            <label class="filter-label">Prediction Range:</label>
-            <label class="filter-label-mobile">Prediction Range:</label>
-            <div class="prediction-range-buttons">
-              <button class="prediction-range-btn" onclick="togglePredictions()" id="predictionToggle" title="Toggle predictions on/off">
-                <span id="predictionToggleText">Off</span>
-              </button>
-              <button class="prediction-range-btn" onclick="setPredictionRange(1)" id="predRange1Day">Tomorrow</button>
-              <button class="prediction-range-btn active" onclick="setPredictionRange(7)" id="predRange7Days">7 Days</button>
-              <button class="prediction-range-btn" onclick="setPredictionRange(30)" id="predRange30Days">30 Days</button>
-              <button class="prediction-range-btn" onclick="setPredictionRange(90)" id="predRange90Days">90 Days</button>
-            </div>
+    <div id="chartsTab" class="tab-content" role="tabpanel" aria-labelledby="tab-charts">
+      <section class="tab-filters" aria-label="Chart view and date range">
+        <div class="tab-header">
+          <div class="chart-view-toggle">
+            <button class="view-toggle-btn" onclick="toggleChartView('balance')" id="balanceViewBtn">
+              <span>⚖️</span> Balance
+            </button>
+            <button class="view-toggle-btn" onclick="toggleChartView('individual')" id="individualViewBtn">
+              <span>📊</span> Individual
+            </button>
+            <button class="view-toggle-btn" onclick="toggleChartView('combined')" id="combinedViewBtn">
+              <span>📈</span> Combined
+            </button>
           </div>
         </div>
-        <div id="customDateRangeSelector" class="custom-date-range hidden">
-          <label for="chartStartDate">From:</label>
-          <input type="date" id="chartStartDate" onchange="applyCustomDateRange()">
-          <label for="chartEndDate">To:</label>
-          <input type="date" id="chartEndDate" onchange="applyCustomDateRange()">
+        <div class="chart-date-range-filter">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label class="filter-label">View Range:</label>
+              <label class="filter-label-mobile">View Range:</label>
+              <div class="date-range-buttons">
+                <button class="date-range-btn" onclick="setChartDateRange(1)" id="range1Day">Today</button>
+                <button class="date-range-btn active" onclick="setChartDateRange(7)" id="range7Days">7 Days</button>
+                <button class="date-range-btn" onclick="setChartDateRange(30)" id="range30Days">30 Days</button>
+                <button class="date-range-btn" onclick="setChartDateRange(90)" id="range90Days">90 Days</button>
+                <button class="date-range-btn" onclick="setChartDateRange('custom')" id="rangeCustom">Custom</button>
+              </div>
+            </div>
+            <p class="field-hint">Choose which days to include.</p>
+            <div class="filter-group">
+              <label class="filter-label">Prediction Range:</label>
+              <label class="filter-label-mobile">Prediction Range:</label>
+              <div class="prediction-range-buttons">
+                <button class="prediction-range-btn" onclick="togglePredictions()" id="predictionToggle" title="Toggle predictions on/off">
+                  <span id="predictionToggleText">Off</span>
+                </button>
+                <button class="prediction-range-btn" onclick="setPredictionRange(1)" id="predRange1Day">Tomorrow</button>
+                <button class="prediction-range-btn active" onclick="setPredictionRange(7)" id="predRange7Days">7 Days</button>
+                <button class="prediction-range-btn" onclick="setPredictionRange(30)" id="predRange30Days">30 Days</button>
+                <button class="prediction-range-btn" onclick="setPredictionRange(90)" id="predRange90Days">90 Days</button>
+              </div>
+            </div>
+          </div>
+          <div id="customDateRangeSelector" class="custom-date-range hidden">
+            <label for="chartStartDate">From:</label>
+            <input type="date" id="chartStartDate" onchange="applyCustomDateRange()">
+            <label for="chartEndDate">To:</label>
+            <input type="date" id="chartEndDate" onchange="applyCustomDateRange()">
+          </div>
         </div>
-      </div>
+      </section>
+      <section class="tab-content-section" aria-label="Your metrics">
+        <h2 class="section-heading">Your metrics</h2>
       <div id="chartSection">
       <!-- Empty State Placeholder -->
       <div id="chartEmptyPlaceholder" class="chart-empty-placeholder hidden">
@@ -872,7 +874,7 @@
           <div class="metric-selector-header">
             <span class="metric-selector-title">Select Metrics to Display:</span>
             <div class="metric-selector-actions">
-              <button type="button" class="metric-select-btn" onclick="selectAllBalanceMetrics()">Select All</button>
+              <button type="button" id="balanceSelectAllBtn" class="metric-select-btn" onclick="toggleBalanceSelectAll()">Select All</button>
             </div>
           </div>
           <div id="balanceMetricCheckboxes" class="metric-checkboxes-grid"></div>
@@ -925,11 +927,13 @@
         </div>
       </div>
     </div>
+      </section>
+    </div>
 
   </div>
 
   <!-- Food Log Modal (Breakfast, Lunch, Dinner, Snack - select from predefined list) -->
-  <div class="modal-overlay" id="foodModalOverlay">
+  <div class="modal-overlay" id="foodModalOverlay" role="dialog" aria-modal="true" aria-label="Food log">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h3>🍽️ Food Log</h3>
@@ -945,7 +949,7 @@
   </div>
 
   <!-- Exercise Log Modal (predefined list + duration) -->
-  <div class="modal-overlay" id="exerciseModalOverlay">
+  <div class="modal-overlay" id="exerciseModalOverlay" role="dialog" aria-modal="true" aria-label="Exercise log">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h3>🏃 Exercise Log</h3>
@@ -961,7 +965,7 @@
   </div>
 
   <!-- Edit Entry Modal -->
-  <div class="modal-overlay" id="editEntryModalOverlay">
+  <div class="modal-overlay" id="editEntryModalOverlay" role="dialog" aria-modal="true" aria-label="Edit entry">
     <div class="modal-content edit-entry-modal" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h3>✏️ Edit Entry</h3>
@@ -1241,7 +1245,7 @@
   </div>
 
   <!-- Custom Alert Modal -->
-  <div class="modal-overlay" id="alertModalOverlay">
+  <div class="modal-overlay" id="alertModalOverlay" role="dialog" aria-modal="true" aria-label="Alert">
     <div class="modal-content alert-modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h3 id="alertModalTitle">Alert</h3>
@@ -1518,7 +1522,7 @@
   </div>
 
   <!-- Export Modal -->
-  <div class="modal-overlay" id="exportModalOverlay" style="display: none;">
+  <div class="modal-overlay" id="exportModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Export data">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h3>Export Data</h3>
@@ -1556,7 +1560,7 @@
   </div>
 
   <!-- Import Modal -->
-  <div class="modal-overlay" id="importModalOverlay" style="display: none;">
+  <div class="modal-overlay" id="importModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Import data">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
         <h3>Import Data</h3>
