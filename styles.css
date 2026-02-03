@@ -36,6 +36,10 @@
   --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Fluid feel: smooth ease-out for state changes */
+  --ease-fluid: cubic-bezier(0.33, 1, 0.68, 1);
+  --transition-fluid: 0.35s cubic-bezier(0.33, 1, 0.68, 1);
+  --transition-fluid-slow: 0.45s cubic-bezier(0.33, 1, 0.68, 1);
 
   /* Type scale */
   --text-xs: 0.75rem;
@@ -70,6 +74,10 @@
   outline-offset: 2px;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: var(--background-gradient);
@@ -78,7 +86,7 @@ body {
   margin: 0;
   padding: 10px;
   line-height: 1.55;
-  animation: fadeInPage 1s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInPage 1s var(--ease-fluid);
   box-sizing: border-box;
   width: 100%;
   overflow-x: hidden;
@@ -308,7 +316,7 @@ body.dark-mode {
 @keyframes modalFloatIn {
   from {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.9) translateY(-20px);
+    transform: translate(-50%, -50%) scale(0.96) translateY(-12px);
   }
   to {
     opacity: 1;
@@ -553,8 +561,8 @@ h1#dashboardTitle:hover {
   width: 100%;
   position: relative;
   z-index: 1;
-  animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  animation: slideInUp 0.6s var(--ease-fluid);
+  transition: transform var(--transition-fluid), box-shadow var(--transition-fluid);
   overflow: visible; /* Ensure settings button is not clipped */
 }
 
@@ -594,7 +602,7 @@ h1#dashboardTitle:hover {
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: background-color var(--transition-fluid), color var(--transition-fluid), transform var(--transition-fluid), border-color var(--transition-fluid), box-shadow var(--transition-fluid);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -643,7 +651,7 @@ h1#dashboardTitle:hover {
 
 .tab-icon {
   font-size: 1.5rem;
-  transition: transform var(--transition-normal);
+  transition: transform var(--transition-fluid);
 }
 
 .tab-btn:hover:not(.active) .tab-icon {
@@ -656,7 +664,7 @@ h1#dashboardTitle:hover {
 
 .tab-text {
   font-size: 0.85rem;
-  transition: color var(--transition-normal);
+  transition: color var(--transition-fluid);
 }
 
 .tab-btn.active .tab-text {
@@ -681,14 +689,13 @@ h1#dashboardTitle:hover {
   visibility: visible !important;
   padding-bottom: 10px;
   margin-bottom: 0;
-  animation: fadeInTab 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: fadeInTab 0.4s var(--ease-fluid) forwards;
 }
-
 
 @keyframes fadeInTab {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -762,7 +769,7 @@ h1#dashboardTitle:hover {
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: background-color var(--transition-fluid), border-color var(--transition-fluid), color var(--transition-fluid), transform var(--transition-fluid), box-shadow var(--transition-fluid);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -903,7 +910,7 @@ h1#dashboardTitle:hover {
   font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: background-color var(--transition-fluid), border-color var(--transition-fluid), color var(--transition-fluid), box-shadow var(--transition-fluid);
   white-space: nowrap;
   min-width: auto;
 }
@@ -960,6 +967,7 @@ h1#dashboardTitle:hover {
   gap: 8px;
   margin-bottom: 12px;
   padding: 8px 0;
+  width: 100%;
 }
 
 .log-date-range-buttons {
@@ -978,7 +986,7 @@ h1#dashboardTitle:hover {
   font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: background-color var(--transition-fluid), border-color var(--transition-fluid), color var(--transition-fluid), transform var(--transition-fluid);
   white-space: nowrap;
   min-width: auto;
   margin: 0;
@@ -2318,7 +2326,7 @@ body.light-mode .save-entry-btn:hover {
   display: flex;
   align-items: center;
   gap: 12px;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color var(--transition-fluid), color var(--transition-fluid);
   text-align: left;
   min-height: auto;
   margin: 0;
@@ -2335,12 +2343,12 @@ body.light-mode .save-entry-btn:hover {
 
 .section-header:active {
   background: rgba(76, 175, 80, 0.15);
-  transition: background-color 0.1s ease;
+  transition-duration: 0.15s;
 }
 
 .section-icon {
   font-size: 1.3rem;
-  transition: transform 0.2s ease;
+  transition: transform var(--transition-fluid);
   will-change: transform;
 }
 
@@ -2399,7 +2407,7 @@ body.light-mode .save-entry-btn:hover {
 
 .section-arrow {
   font-size: 0.9rem;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--transition-fluid-slow);
   color: rgba(224, 242, 241, 0.6);
   will-change: transform;
 }
@@ -2407,7 +2415,7 @@ body.light-mode .save-entry-btn:hover {
 .section-content {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: max-height var(--transition-fluid-slow), padding var(--transition-fluid-slow);
   padding: 0 20px;
   will-change: max-height, padding;
 }
@@ -2546,6 +2554,9 @@ body.light-mode .save-entry-btn:hover {
 
 /* Respect user's motion preferences */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   .section-header,
   .section-icon,
   .section-arrow,
@@ -3947,6 +3958,7 @@ body.light-mode .cookie-policy-body code {
   font-size: var(--text-sm);
   cursor: pointer;
   white-space: nowrap;
+  transition: background-color var(--transition-fluid), border-color var(--transition-fluid);
 }
 .god-mode-btn:hover {
   background: rgba(255, 255, 255, 0.14);
@@ -4015,7 +4027,7 @@ body.loading .loading-overlay {
   flex-direction: column;
   box-shadow: var(--shadow-lg), 0 0 40px rgba(76, 175, 80, 0.3);
   border: 2px solid rgba(76, 175, 80, 0.5);
-  animation: modalFloatIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: modalFloatIn 0.4s var(--ease-fluid);
   overflow: hidden;
   position: fixed !important;
   top: 50% !important;
@@ -4060,6 +4072,186 @@ body.loading .loading-overlay {
 .alert-modal-footer {
   display: flex;
   justify-content: center;
+}
+
+/* Share Modal */
+.share-modal-content {
+  max-width: 520px;
+  width: 92%;
+}
+
+.share-modal-body {
+  padding: 20px 24px;
+  color: var(--text-light);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.share-modal-body .share-preview-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.9rem;
+  color: rgba(224, 242, 241, 0.9);
+}
+
+.share-modal-body .share-chart-preview {
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  margin-bottom: 1rem;
+}
+
+.share-modal-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.share-modal-btn {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-light);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.share-modal-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(76, 175, 80, 0.4);
+  transform: scale(1.03);
+}
+
+.share-modal-btn:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.share-modal-btn-primary {
+  background: rgba(76, 175, 80, 0.25);
+  border-color: rgba(76, 175, 80, 0.5);
+  color: #e0f2f1;
+}
+
+.share-modal-btn-primary:hover {
+  background: rgba(76, 175, 80, 0.4);
+  border-color: rgba(76, 175, 80, 0.7);
+}
+
+.share-modal-btn-icon {
+  font-size: 1rem;
+  line-height: 1;
+  opacity: 0.95;
+}
+
+.share-modal-btn-icon i {
+  font-size: 1rem;
+}
+
+.share-modal-btn-label {
+  line-height: 1.2;
+}
+
+@media (max-width: 360px) {
+  .share-modal-actions {
+    flex-wrap: wrap;
+  }
+}
+
+/* Share button (log entry bar and chart containers) – circular with share icon */
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #43a047, #2e7d32);
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.share-btn i {
+  font-size: 0.95rem;
+}
+
+.share-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.5);
+}
+
+.share-btn:active {
+  transform: scale(0.95);
+}
+
+.share-btn:focus {
+  outline: 2px solid rgba(76, 175, 80, 0.8);
+  outline-offset: 2px;
+}
+
+/* Log entry actions: left group + share on right */
+.log-entry-actions-left {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.log-entry-actions .share-btn {
+  margin-left: auto;
+}
+
+/* Chart container share button (top-right) */
+.chart-share-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.chart-share-btn:hover {
+  background: rgba(76, 175, 80, 1);
+  transform: scale(1.1);
+}
+
+.chart-share-btn:focus {
+  outline: 2px solid rgba(76, 175, 80, 0.8);
+  outline-offset: 2px;
+}
+
+.chart-share-btn i {
+  font-size: 0.95rem;
 }
 
 /* Tutorial Modal - new user onboarding */
@@ -6349,7 +6541,7 @@ body.light-mode .chart-loading {
   transform: translate(-50%, -50%);
   box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(76, 175, 80, 0.3);
   border: 2px solid rgba(76, 175, 80, 0.5);
-  animation: modalFloatIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: modalFloatIn 0.4s var(--ease-fluid);
   z-index: 10001;
   pointer-events: all;
 }
@@ -6621,7 +6813,7 @@ body.light-mode .settings-button-top:hover {
   transform: translate(-50%, -50%);
   box-shadow: var(--shadow-lg), 0 0 40px rgba(233, 30, 99, 0.3);
   border: 2px solid rgba(233, 30, 99, 0.5);
-  animation: modalFloatIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: modalFloatIn 0.4s var(--ease-fluid);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -6740,7 +6932,7 @@ body.light-mode .settings-button-top:hover {
   border: 2px solid rgba(76, 175, 80, 0.5);
   max-height: calc(85vh - env(safe-area-inset-bottom, 0px));
   overflow: hidden;
-  animation: modalFloatIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: modalFloatIn 0.4s var(--ease-fluid);
   z-index: 100000 !important;
   pointer-events: all;
   box-sizing: border-box;
