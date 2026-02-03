@@ -199,6 +199,444 @@ function closeAlertModal() {
 }
 
 // ============================================
+// Share modal and share actions
+// ============================================
+let _shareModalEscapeHandler = null;
+
+function closeShareModal() {
+  if (_shareModalEscapeHandler) {
+    document.removeEventListener('keydown', _shareModalEscapeHandler);
+    _shareModalEscapeHandler = null;
+  }
+  const overlay = document.getElementById('shareModalOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    overlay.style.visibility = 'hidden';
+    overlay.style.opacity = '0';
+    document.body.classList.remove('modal-active');
+    document.body.style.overflow = '';
+  }
+}
+
+function openShareModal(options) {
+  const overlay = document.getElementById('shareModalOverlay');
+  const titleEl = document.getElementById('shareModalTitle');
+  const bodyEl = document.getElementById('shareModalBody');
+  const footerEl = document.getElementById('shareModalFooter');
+  if (!overlay || !bodyEl || !footerEl) return;
+
+  const mode = options.mode || 'log';
+  const payload = options.payload || {};
+
+  if (titleEl) titleEl.textContent = options.title || 'Share';
+
+  bodyEl.innerHTML = options.bodyHTML != null ? options.bodyHTML : '';
+  footerEl.innerHTML = '';
+
+  const addBtn = (label, onClick, primary = false, icon = null) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'share-modal-btn' + (primary ? ' share-modal-btn-primary' : '');
+    if (icon) {
+      const span = document.createElement('span');
+      span.className = 'share-modal-btn-icon';
+      span.innerHTML = icon;
+      btn.appendChild(span);
+    }
+    const textSpan = document.createElement('span');
+    textSpan.className = 'share-modal-btn-label';
+    textSpan.textContent = label;
+    btn.appendChild(textSpan);
+    btn.onclick = () => { if (onClick) onClick(); };
+    footerEl.appendChild(btn);
+  };
+
+  if (mode === 'log') {
+    if (payload.emailHref) addBtn('Email', () => { window.location.href = payload.emailHref; }, true, '<i class="fa-solid fa-envelope" aria-hidden="true"></i>');
+    if (payload.whatsappHref) addBtn('WhatsApp', () => { window.open(payload.whatsappHref, '_blank', 'noopener,noreferrer'); }, true, '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i>');
+    if (payload.downloadCSV) addBtn('Download CSV', payload.downloadCSV, true, '<i class="fa-solid fa-file-csv" aria-hidden="true"></i>');
+  } else if (mode === 'chart') {
+    if (payload.saveImage) addBtn('Save image', payload.saveImage, true, '<i class="fa-solid fa-file-image" aria-hidden="true"></i>');
+    if (payload.shareToWhatsApp) addBtn('WhatsApp', payload.shareToWhatsApp, true, '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i>');
+  } else if (mode === 'ai') {
+    if (payload.emailHref) addBtn('Email', () => { window.location.href = payload.emailHref; }, true, '<i class="fa-solid fa-envelope" aria-hidden="true"></i>');
+    if (payload.whatsappHref) addBtn('WhatsApp', () => { window.open(payload.whatsappHref, '_blank', 'noopener,noreferrer'); }, true, '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i>');
+  }
+
+  overlay.style.display = 'block';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  document.body.classList.add('modal-active');
+  document.body.style.overflow = 'hidden';
+
+  _shareModalEscapeHandler = function(e) {
+    if (e.key === 'Escape') {
+      closeShareModal();
+      document.removeEventListener('keydown', _shareModalEscapeHandler);
+      _shareModalEscapeHandler = null;
+    }
+  };
+  document.addEventListener('keydown', _shareModalEscapeHandler);
+  overlay.onclick = function(e) {
+    if (e.target === overlay) closeShareModal();
+  };
+}
+
+// Medical synopsis wording for email/WhatsApp shares (for care team or doctor)
+var EMAIL_SYNOPSIS_INTRO = 'Health summary — for your care team or doctor.';
+var EMAIL_ANALYSIS_INTRO = 'Health analysis summary — for discussion with your care team or doctor.';
+var EMAIL_SYNOPSIS_FOOTER = 'Discuss with your doctor. This is not a substitute for professional medical advice.';
+
+// Format a single log entry as plain text for email body (readable sections)
+function formatLogEntryAsText(log) {
+  if (!log) return '';
+  const weightDisplay = typeof getWeightInDisplayUnit === 'function' ? getWeightInDisplayUnit(parseFloat(log.weight)) : log.weight;
+  const weightUnit = typeof getWeightUnitSuffix === 'function' ? getWeightUnitSuffix() : 'kg';
+  const sep = '\n';
+  const lines = [
+    'HEALTH LOG ENTRY',
+    'Date: ' + (log.date || ''),
+    '────────────────────────────────',
+    '',
+    'VITAL SIGNS',
+    '  Heart rate: ' + (log.bpm || '—') + ' BPM',
+    '  Weight: ' + (weightDisplay != null && weightDisplay !== '' ? weightDisplay : '—') + ' ' + (weightUnit || ''),
+    '',
+    'SYMPTOMS (1–10)',
+    '  Fatigue: ' + (log.fatigue ?? '—'),
+    '  Stiffness: ' + (log.stiffness ?? '—'),
+    '  Back pain: ' + (log.backPain ?? '—'),
+    '  Joint pain: ' + (log.jointPain ?? '—'),
+    '  Swelling: ' + (log.swelling ?? '—'),
+    '',
+    'WELLBEING (1–10)',
+    '  Sleep: ' + (log.sleep ?? '—'),
+    '  Mood: ' + (log.mood ?? '—'),
+    '  Irritability: ' + (log.irritability ?? '—'),
+    '',
+    'FUNCTION (1–10)',
+    '  Mobility: ' + (log.mobility ?? '—'),
+    '  Daily activities: ' + (log.dailyFunction ?? '—'),
+    '',
+    'FLARE',
+    '  ' + (log.flare || '—')
+  ];
+  const foodItems = typeof getAllFoodItems === 'function' ? getAllFoodItems(log) : [];
+  if (foodItems.length > 0) {
+    lines.push('');
+    lines.push('FOOD');
+    foodItems.forEach(f => {
+      lines.push('  • ' + (f.name || f) + (f.amount ? ' — ' + f.amount : ''));
+    });
+  }
+  if (log.exercise && log.exercise.length > 0) {
+    lines.push('');
+    lines.push('EXERCISE');
+    log.exercise.forEach(e => {
+      const name = e.name || e;
+      const dur = e.duration ? ' — ' + e.duration + ' min' : '';
+      lines.push('  • ' + name + dur);
+    });
+  }
+  if (log.notes && String(log.notes).trim()) {
+    lines.push('');
+    lines.push('NOTES');
+    lines.push('  ' + String(log.notes).trim().replace(/\n/g, '\n  '));
+  }
+  return lines.join(sep);
+}
+
+// Single-row CSV for one log (same headers as exportToCSV)
+function formatLogEntryAsCSV(log) {
+  if (!log) return '';
+  const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily Function,Swelling,Flare,Mood,Irritability,Notes";
+  const row = [
+    log.date || '',
+    log.bpm || '',
+    log.weight || '',
+    log.fatigue || '',
+    log.stiffness || '',
+    log.backPain || '',
+    log.sleep || '',
+    log.jointPain || '',
+    log.mobility || '',
+    log.dailyFunction || '',
+    log.swelling || '',
+    log.flare || '',
+    log.mood || '',
+    log.irritability || '',
+    (log.notes || '').replace(/,/g, ';')
+  ].join(',');
+  return headers + "\n" + row;
+}
+
+// Get logs currently in View Logs range (same logic as filterLogs / toggleSort)
+function getLogsInCurrentViewRange() {
+  if (!logs || logs.length === 0) return [];
+  const startDateInput = document.getElementById('startDate');
+  const endDateInput = document.getElementById('endDate');
+  const startDate = startDateInput && startDateInput.value ? startDateInput.value : null;
+  const endDate = endDateInput && endDateInput.value ? endDateInput.value : null;
+
+  if (startDate || endDate) {
+    const start = startDate ? new Date(startDate) : new Date('1900-01-01');
+    const end = endDate ? new Date(endDate) : new Date('2100-12-31');
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+    return logs.filter(log => {
+      const logDate = new Date(log.date);
+      return logDate >= start && logDate <= end;
+    });
+  }
+
+  const activeRangeBtn = document.querySelector('.log-date-range-btn.active');
+  if (activeRangeBtn) {
+    const btnId = activeRangeBtn.id;
+    let days = 7;
+    if (btnId === 'logRange1Day') days = 1;
+    else if (btnId === 'logRange7Days') days = 7;
+    else if (btnId === 'logRange30Days') days = 30;
+    else if (btnId === 'logRange90Days') days = 90;
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    const start = new Date();
+    start.setDate(start.getDate() - (days - 1));
+    start.setHours(0, 0, 0, 0);
+    return logs.filter(log => {
+      const logDate = new Date(log.date);
+      return logDate >= start && logDate <= end;
+    });
+  }
+
+  return [...logs];
+}
+
+function openShareModalForLog(logDate) {
+  const log = (typeof logs !== 'undefined' && logs) ? logs.find(l => l.date === logDate) : null;
+  if (!log) {
+    if (typeof showAlertModal === 'function') showAlertModal('Entry not found.', 'Share');
+    return;
+  }
+  const entryText = formatLogEntryAsText(log);
+  const body = EMAIL_SYNOPSIS_INTRO + '\n\n' + entryText + '\n\n' + EMAIL_SYNOPSIS_FOOTER;
+  const subject = 'Health summary – ' + (log.date || '');
+  const emailHref = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+  const whatsappHref = 'https://wa.me/?text=' + encodeURIComponent(subject + '\n\n' + body);
+
+  const csvContent = formatLogEntryAsCSV(log);
+  const downloadCSV = () => {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'health_entry_' + (log.date || '') + '.csv';
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  const dateLabel = new Date(log.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+  openShareModal({
+    mode: 'log',
+    title: 'Share log entry',
+    bodyHTML: '<p class="share-preview-text">Share entry for ' + escapeHTML(dateLabel) + ' by email, WhatsApp, or download as CSV.</p>',
+    payload: { emailHref, whatsappHref, downloadCSV }
+  });
+}
+
+function openShareModalForLogsInRange() {
+  const rangeLogs = getLogsInCurrentViewRange();
+  if (!rangeLogs || rangeLogs.length === 0) {
+    if (typeof showAlertModal === 'function') showAlertModal('No entries in the selected range to share.', 'Share');
+    return;
+  }
+
+  const startDateInput = document.getElementById('startDate');
+  const endDateInput = document.getElementById('endDate');
+  const startVal = startDateInput && startDateInput.value ? startDateInput.value : '';
+  const endVal = endDateInput && endDateInput.value ? endDateInput.value : '';
+  const rangeLabel = startVal && endVal ? (startVal === endVal ? startVal : startVal + ' to ' + endVal) : (rangeLogs.length + ' entries');
+  const subject = 'Health summary – ' + rangeLabel;
+  const header = EMAIL_SYNOPSIS_INTRO + '\n\nPeriod: ' + rangeLabel + '\nNumber of entries: ' + rangeLogs.length + '\n\n';
+  const textParts = rangeLogs.map(log => formatLogEntryAsText(log));
+  const divider = '\n\n════════════════════════════════════════\n\n';
+  const contentWithFooter = header + textParts.join(divider) + '\n\n' + EMAIL_SYNOPSIS_FOOTER;
+  const maxBodyLen = 1500;
+  let body = contentWithFooter;
+  if (body.length > maxBodyLen) {
+    const truncateHint = '\n\n[... See attached CSV for full data.]\n\n' + EMAIL_SYNOPSIS_FOOTER;
+    body = contentWithFooter.substring(0, maxBodyLen - truncateHint.length) + truncateHint;
+  }
+  const emailHref = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+
+  const downloadCSV = () => {
+    if (typeof exportToCSV === 'function') {
+      exportToCSV(rangeLogs);
+    } else {
+      const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily Function,Swelling,Flare,Mood,Irritability,Notes";
+      const rows = rangeLogs.map(log => formatLogEntryAsCSV(log).split('\n')[1]).join("\n");
+      const blob = new Blob([headers + "\n" + rows], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'health_logs_range.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+  };
+
+  openShareModal({
+    mode: 'log',
+    title: 'Share entries in range',
+    bodyHTML: '<p class="share-preview-text">Share ' + rangeLogs.length + ' entr' + (rangeLogs.length === 1 ? 'y' : 'ies') + ' in the selected range as email or download as CSV.</p>',
+    payload: { emailHref, downloadCSV }
+  });
+}
+
+function openShareModalForChart(chartId) {
+  const container = document.getElementById(chartId);
+  const chartInstance = container && container.chart ? container.chart : (typeof ApexCharts !== 'undefined' && ApexCharts.getChartByID ? ApexCharts.getChartByID(chartId) : null);
+  if (!chartInstance || typeof chartInstance.dataURI !== 'function') {
+    if (typeof showAlertModal === 'function') showAlertModal('Chart not ready. Try again in a moment.', 'Share');
+    return;
+  }
+  chartInstance.dataURI().then(({ imgURI, blob }) => {
+    const chartTitle = getChartTitleFromId(chartId);
+    const subject = 'Health chart – ' + (chartTitle || chartId);
+    const filename = 'health-chart-' + chartId + '-' + (new Date().toISOString().split('T')[0]) + '.png';
+    const file = blob ? new File([blob], filename, { type: 'image/png' }) : null;
+
+    const saveImage = () => {
+      const a = document.createElement('a');
+      a.href = imgURI;
+      a.download = filename;
+      a.click();
+    };
+
+    const shareToWhatsApp = () => {
+      if (file && typeof navigator !== 'undefined' && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ title: subject, text: subject, files: [file] })
+          .then(() => { if (typeof closeShareModal === 'function') closeShareModal(); })
+          .catch((err) => {
+            if (err.name !== 'AbortError' && typeof showAlertModal === 'function') showAlertModal('Share failed. Try "Save image" then share it in WhatsApp.', 'Share');
+          });
+        return;
+      }
+      saveImage();
+      const waText = subject + '\n\nChart image saved to your device — attach it in WhatsApp to share.';
+      window.open('https://wa.me/?text=' + encodeURIComponent(waText), '_blank', 'noopener,noreferrer');
+    };
+
+    openShareModal({
+      mode: 'chart',
+      title: 'Share chart',
+      bodyHTML: '<img src="' + imgURI + '" alt="Chart preview" class="share-chart-preview"/>',
+      payload: { shareToWhatsApp, saveImage }
+    });
+  }).catch(() => {
+    if (typeof showAlertModal === 'function') showAlertModal('Could not export chart image.', 'Share');
+  });
+}
+
+function injectChartShareButton(container, chartId) {
+  if (!container || !chartId) return;
+  let btn = container.querySelector('.chart-share-btn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'chart-share-btn';
+    btn.title = 'Share chart';
+    btn.setAttribute('aria-label', 'Share this chart');
+    btn.innerHTML = '<i class="fa-solid fa-share" aria-hidden="true"></i>';
+    container.appendChild(btn);
+  }
+  btn.onclick = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    openShareModalForChart(chartId);
+  };
+}
+
+function getChartTitleFromId(chartId) {
+  const map = {
+    bpmChart: 'Resting Heart Rate',
+    fatigueChart: 'Fatigue Level',
+    stiffnessChart: 'Stiffness',
+    backPainChart: 'Back Pain',
+    sleepChart: 'Sleep',
+    jointPainChart: 'Joint Pain',
+    mobilityChart: 'Mobility',
+    dailyFunctionChart: 'Daily Function',
+    swellingChart: 'Swelling',
+    moodChart: 'Mood',
+    irritabilityChart: 'Irritability',
+    weatherSensitivityChart: 'Weather Sensitivity',
+    stepsChart: 'Steps',
+    hydrationChart: 'Hydration',
+    combinedChart: 'Combined metrics',
+    balanceChart: 'Balance chart'
+  };
+  return map[chartId] || chartId;
+}
+
+// Format AI analysis plain text for email: clear section breaks and spacing for readability
+function formatAIAnalysisTextForEmail(rawText) {
+  if (!rawText || !rawText.trim()) return '';
+  const lines = rawText.trim().split(/\r?\n/);
+  const out = [];
+  let prevWasBlank = false;
+  const sectionMarkers = ['What we found', 'What you logged', "How you're doing", 'Things to watch', 'Correlations', 'Important', 'Possible flare-up', 'Symptoms', 'Pain by body part', 'Stress and triggers', 'Nutrition', 'Exercise', 'Top foods', 'Top exercises', 'Pain patterns', 'Food summary', 'What seems to help'];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    const isBlank = trimmed.length === 0;
+    if (isBlank) {
+      if (!prevWasBlank) out.push('');
+      prevWasBlank = true;
+      continue;
+    }
+    prevWasBlank = false;
+    const isSectionTitle = sectionMarkers.some(m => trimmed.startsWith(m) || trimmed.includes(m)) ||
+      /^[🤖📋📈🔗⚠️💡💉📍🔬🍽️🏃]/.test(trimmed) ||
+      (trimmed.length < 50 && /^(Summary|Symptoms|Nutrition|Exercise|Important)/i.test(trimmed));
+    if (isSectionTitle && out.length > 0 && out[out.length - 1] !== '') {
+      out.push('');
+      out.push('────────────────────────────────');
+      out.push('');
+    }
+    out.push(trimmed);
+  }
+  const formatted = out.join('\n');
+  return EMAIL_ANALYSIS_INTRO + '\n\n' + formatted + '\n\n' + EMAIL_SYNOPSIS_FOOTER;
+}
+
+function openShareModalForAIAnalysis() {
+  const resultsContent = document.getElementById('aiResultsContent');
+  const hasContent = currentAIAnalysis && resultsContent && resultsContent.innerText && resultsContent.innerText.trim().length > 0;
+  if (!hasContent) {
+    openShareModal({
+      mode: 'ai',
+      title: 'Share AI analysis',
+      bodyHTML: '<p>No analysis to share. Change the date range or log entries first.</p>',
+      payload: {}
+    });
+    return;
+  }
+  const text = resultsContent.innerText.trim();
+  const dateRangeMatch = text.match(/Analysis for (.+?)(?:\n|$)/);
+  const dateRangeText = dateRangeMatch ? dateRangeMatch[1] : '';
+  const subject = 'Health analysis summary – ' + (dateRangeText || '');
+  const formattedBody = formatAIAnalysisTextForEmail(text);
+  const emailHref = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(formattedBody);
+  const whatsappText = subject + '\n\n' + formattedBody;
+  const whatsappHref = 'https://wa.me/?text=' + encodeURIComponent(whatsappText);
+
+  openShareModal({
+    mode: 'ai',
+    title: 'Share AI analysis',
+    bodyHTML: '<p>Send full summary by email or WhatsApp.</p>',
+    payload: { emailHref, whatsappHref }
+  });
+}
+
+// ============================================
 // Cookie consent banner and Cookie policy modal
 // ============================================
 const COOKIE_CONSENT_KEY = 'healthAppCookieConsent';
@@ -676,6 +1114,7 @@ function closeModalTestOverlay() {
 
 document.addEventListener('keydown', function(e) {
   if (e.key !== '`') return;
+  if (typeof appSettings === 'undefined' || !appSettings.demoMode) return;
   var tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
   var isInput = tag === 'input' || tag === 'textarea' || tag === 'select' || (e.target && e.target.isContentEditable);
   if (isInput) return;
@@ -1884,8 +2323,8 @@ function updateSliderColor(slider) {
   const value = parseInt(slider.value);
   const percentage = (value / 10) * 100;
   
-  // Sliders where HIGH values are GOOD (inverted colors)
-  const invertedSliders = ['sleep', 'mobility', 'dailyFunction'];
+  // Sliders where HIGH values are GOOD (inverted colors: low = red, high = green)
+  const invertedSliders = ['sleep', 'mobility', 'dailyFunction', 'mood'];
   const isInverted = invertedSliders.includes(slider.id);
   
   let fillColor;
@@ -2465,6 +2904,7 @@ async function createCombinedChart() {
     }
     // Mark container as loaded
     container.classList.add('loaded');
+    injectChartShareButton(container, 'combinedChart');
   });
 }
 
@@ -2547,6 +2987,7 @@ function renderMetricSelector(allMetrics, selectedMetrics) {
     groupDiv.appendChild(groupItems);
     container.appendChild(groupDiv);
   });
+  updateCombinedSelectAllButton();
 }
 
 // Toggle metric selection (for combined chart)
@@ -2585,6 +3026,32 @@ function toggleMetric(field) {
   if (appSettings.chartView === 'combined' || appSettings.combinedChart) {
     createCombinedChart();
   }
+  updateCombinedSelectAllButton();
+}
+
+// Toggle between Select All and Deselect All for combined chart (same as balance)
+function toggleCombinedSelectAll() {
+  const selected = appSettings.combinedChartSelectedMetrics || [];
+  const allCombinedMetrics = [
+    'fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction',
+    'swelling', 'mood', 'irritability', 'weatherSensitivity', 'steps', 'hydration'
+  ];
+  if (selected.length >= allCombinedMetrics.length) {
+    deselectAllMetrics();
+  } else {
+    selectAllMetrics();
+  }
+}
+
+// Update combined "Select All" button label and style (green = Select All, red = Deselect All, same as balance)
+function updateCombinedSelectAllButton() {
+  const btn = document.getElementById('combinedSelectAllBtn');
+  if (!btn) return;
+  const selected = appSettings.combinedChartSelectedMetrics || [];
+  const allCount = 13;
+  const allSelected = selected.length >= allCount;
+  btn.textContent = allSelected ? 'Deselect All' : 'Select All';
+  btn.classList.toggle('metric-select-btn-deselect', allSelected);
 }
 
 // Select all metrics
@@ -2618,6 +3085,7 @@ function selectAllMetrics() {
   if (appSettings.combinedChart) {
     createCombinedChart();
   }
+  updateCombinedSelectAllButton();
 }
 
 // Deselect all metrics (for combined chart)
@@ -2635,6 +3103,7 @@ function deselectAllMetrics() {
   if (appSettings.chartView === 'combined' || appSettings.combinedChart) {
     createCombinedChart();
   }
+  updateCombinedSelectAllButton();
 }
 
 // Select all balance metrics (excluding steps)
@@ -3147,6 +3616,7 @@ function createBalanceChart() {
   };
   
   container.chart = new ApexCharts(container, options);
+  injectChartShareButton(container, 'balanceChart');
   container.chart.render().then(() => {
     console.log('Balance chart rendered successfully');
   });
@@ -7460,8 +7930,11 @@ function generateLogEntryHTML(log) {
   
   return `
     <div class="log-entry-actions" onclick="if(!event.target.closest('button')) toggleLogEntry('${escapeHTML(log.date)}')">
-      <button class="delete-btn" onclick="event.stopPropagation(); deleteLogEntry('${escapeHTML(log.date)}')" title="Delete this entry">&times;</button>
-      ${editButton}
+      <div class="log-entry-actions-left">
+        <button class="delete-btn" onclick="event.stopPropagation(); deleteLogEntry('${escapeHTML(log.date)}')" title="Delete this entry">&times;</button>
+        ${editButton}
+      </div>
+      <button class="share-btn" onclick="event.stopPropagation(); openShareModalForLog('${safeDate}')" title="Share this entry" aria-label="Share this entry"><i class="fa-solid fa-share" aria-hidden="true"></i></button>
     </div>
     <div class="log-entry-header-collapsible" onclick="toggleLogEntry('${escapeHTML(log.date)}')">
       <div class="log-entry-header-content">
@@ -8913,6 +9386,7 @@ function chart(id, label, dataField, color) {
         }
         // Mark container as loaded
         container.classList.add('loaded');
+        injectChartShareButton(container, id);
         // Force a resize to ensure chart fits container
         setTimeout(() => {
           if (container.chart) {

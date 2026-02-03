@@ -482,12 +482,6 @@
         <label for="swelling" class="slider-label">Joint Swelling</label>
         <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
       </div>
-
-      <div class="slider-container">
-        <input type="range" id="mood" min="1" max="10" step="1" />
-        <label for="mood" class="slider-label">Mood Level</label>
-        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
-      </div>
       <div class="input-container pain-body-container" style="margin-top: 1rem;">
         <label>Pain Location — tap areas to cycle: green (none) → yellow (mild) → red (pain)</label>
         <input type="hidden" id="painLocation" name="painLocation" />
@@ -549,6 +543,11 @@
           <div class="slider-container">
             <input type="range" id="sleep" min="1" max="10" step="1" />
             <label for="sleep" class="slider-label">Sleep Quality</label>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
+          </div>
+          <div class="slider-container">
+            <input type="range" id="mood" min="1" max="10" step="1" />
+            <label for="mood" class="slider-label">Mood Level</label>
             <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
           </div>
           <div class="input-container">
@@ -771,7 +770,6 @@
     <!-- AI Analysis Tab -->
     <div id="aiTab" class="tab-content" role="tabpanel" aria-labelledby="tab-ai">
       <div class="tab-header">
-        <p class="tab-description">Get personalized insights and predictions based on your health data</p>
       </div>
       <section class="tab-filters" aria-label="Analysis range">
         <div class="chart-date-range-filter">
@@ -785,6 +783,9 @@
                 <button class="date-range-btn" onclick="setAIDateRange(90)" id="aiRange90Days">90 Days</button>
                 <button class="date-range-btn" onclick="setAIDateRange('custom')" id="aiRangeCustom">Custom</button>
               </div>
+            </div>
+            <div class="filter-group">
+              <button type="button" class="filter-btn share-ai-btn" onclick="openShareModalForAIAnalysis()" title="Share or export AI analysis">Share</button>
             </div>
             <p class="field-hint">Choose which days to include.</p>
           </div>
@@ -872,8 +873,7 @@
           <div class="metric-selector-header">
             <span class="metric-selector-title">Select Metrics to Display:</span>
             <div class="metric-selector-actions">
-              <button type="button" class="metric-select-btn" onclick="selectAllMetrics()">Select All</button>
-              <button type="button" class="metric-select-btn" onclick="deselectAllMetrics()">Deselect All</button>
+              <button type="button" id="combinedSelectAllBtn" class="metric-select-btn" onclick="toggleCombinedSelectAll()">Select All</button>
             </div>
           </div>
           <div id="metricCheckboxes" class="metric-checkboxes-grid"></div>
@@ -1702,6 +1702,22 @@
       <div class="modal-footer">
         <button class="modal-save-btn" id="importButton" onclick="performImport()">Import</button>
         <button class="modal-save-btn" style="background: rgba(255, 255, 255, 0.1);" onclick="closeImportModal()" id="importCancelButton">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Modal -->
+  <div class="modal-overlay share-modal-overlay" id="shareModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Share">
+    <div class="modal-content share-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="shareModalTitle">Share</h3>
+        <button type="button" class="modal-close" onclick="closeShareModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="shareModalBody" class="share-modal-body"></div>
+      </div>
+      <div class="modal-footer share-modal-actions" id="shareModalFooter">
+        <button type="button" class="modal-save-btn" onclick="closeShareModal()">Close</button>
       </div>
     </div>
   </div>

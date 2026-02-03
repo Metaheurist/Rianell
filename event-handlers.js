@@ -262,12 +262,8 @@ function initializeEventHandlers() {
     }
   });
   
-  // Weight unit toggle
-  const weightUnitToggle = document.getElementById('weightUnitToggle');
+  // Weight unit toggle: only bind edit modal toggle here; main form uses onclick="toggleWeightUnit()" to avoid double-firing
   const editWeightUnitToggle = document.getElementById('editWeightUnitToggle');
-  if (weightUnitToggle) {
-    weightUnitToggle.addEventListener('click', toggleWeightUnit);
-  }
   if (editWeightUnitToggle) {
     editWeightUnitToggle.addEventListener('click', toggleEditWeightUnit);
   }
