@@ -253,18 +253,13 @@ function initializeEventHandlers() {
     });
   }
   
-  // Section toggle handlers
-  const sectionHeaders = document.querySelectorAll('.section-header');
-  sectionHeaders.forEach(header => {
-    header.addEventListener('click', function() {
-      const sectionId = this.getAttribute('onclick');
-      if (sectionId) {
-        const match = sectionId.match(/toggleSection\('([^']+)'\)/);
-        if (match) {
-          toggleSection(match[1]);
-        }
-      }
-    });
+  // Section toggle handlers: delegation via data-section (no onclick parsing)
+  document.addEventListener('click', function(e) {
+    const header = e.target.closest('.section-header[data-section]');
+    if (header && typeof toggleSection === 'function') {
+      const sectionId = header.getAttribute('data-section');
+      if (sectionId) toggleSection(sectionId);
+    }
   });
   
   // Weight unit toggle
@@ -305,11 +300,9 @@ function initializeEventHandlers() {
   // Filter and sort buttons
   const filterBtn = document.querySelector('.filter-btn');
   const sortButton = document.getElementById('sortButton');
-  const aiActionBtn = document.querySelector('.ai-action-btn');
   
   if (filterBtn) filterBtn.addEventListener('click', filterLogs);
   if (sortButton) sortButton.addEventListener('click', toggleSort);
-  if (aiActionBtn) aiActionBtn.addEventListener('click', generateAISummary);
   
   // Chart view toggle
   const individualViewBtn = document.getElementById('individualViewBtn');
@@ -399,11 +392,6 @@ function initializeEventHandlers() {
     clearDataBtn.addEventListener('click', clearData);
   }
   
-  // AI Summary section toggle
-  const aiSummaryHeader = document.querySelector('[onclick*="toggleSection(\'aiSummarySection\')"]');
-  if (aiSummaryHeader) {
-    aiSummaryHeader.addEventListener('click', () => toggleSection('aiSummarySection'));
-  }
 }
 
 // Initialize when DOM is ready
