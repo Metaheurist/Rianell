@@ -199,6 +199,103 @@ function closeAlertModal() {
 }
 
 // ============================================
+// Cookie consent banner and Cookie policy modal
+// ============================================
+const COOKIE_CONSENT_KEY = 'healthAppCookieConsent';
+
+function showCookieBannerIfNeeded() {
+  if (localStorage.getItem(COOKIE_CONSENT_KEY)) return;
+  const banner = document.getElementById('cookieBanner');
+  if (banner) banner.classList.remove('hidden');
+}
+
+function hideCookieBanner() {
+  const banner = document.getElementById('cookieBanner');
+  if (banner) banner.classList.add('hidden');
+}
+
+function acceptCookieConsent() {
+  try {
+    localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+  } catch (e) {
+    Logger.warn('Could not save cookie consent', { error: String(e) });
+  }
+  hideCookieBanner();
+  closeCookiePolicyModal();
+}
+
+var _cookiePolicyModalEscapeHandler = null;
+var _cookiePolicyModalFocusTrap = null;
+var _cookiePolicyModalPreviousActiveElement = null;
+
+function openCookiePolicyModal() {
+  const overlay = document.getElementById('cookiePolicyOverlay');
+  const panel = overlay && overlay.querySelector('.modal-content');
+  if (!overlay || !panel) return;
+  _cookiePolicyModalPreviousActiveElement = document.activeElement;
+  overlay.style.display = 'block';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  document.body.classList.add('modal-active');
+  document.body.style.overflow = 'hidden';
+  overlay.onclick = function(e) {
+    if (e.target === overlay) closeCookiePolicyModal();
+  };
+  _cookiePolicyModalEscapeHandler = function(e) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      document.removeEventListener('keydown', _cookiePolicyModalEscapeHandler);
+      _cookiePolicyModalEscapeHandler = null;
+      closeCookiePolicyModal();
+    }
+  };
+  document.addEventListener('keydown', _cookiePolicyModalEscapeHandler);
+  var focusables = panel.querySelectorAll('button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  var first = focusables[0];
+  var last = focusables[focusables.length - 1];
+  if (first) first.focus();
+  _cookiePolicyModalFocusTrap = function(e) {
+    if (e.key !== 'Tab') return;
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        if (last) last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        if (first) first.focus();
+      }
+    }
+  };
+  panel.addEventListener('keydown', _cookiePolicyModalFocusTrap);
+}
+
+function closeCookiePolicyModal() {
+  if (_cookiePolicyModalEscapeHandler) {
+    document.removeEventListener('keydown', _cookiePolicyModalEscapeHandler);
+    _cookiePolicyModalEscapeHandler = null;
+  }
+  const overlay = document.getElementById('cookiePolicyOverlay');
+  const panel = overlay && overlay.querySelector('.modal-content');
+  if (panel && _cookiePolicyModalFocusTrap) {
+    panel.removeEventListener('keydown', _cookiePolicyModalFocusTrap);
+    _cookiePolicyModalFocusTrap = null;
+  }
+  if (overlay) {
+    overlay.style.display = 'none';
+    overlay.style.visibility = 'hidden';
+    overlay.style.opacity = '0';
+  }
+  document.body.classList.remove('modal-active');
+  document.body.style.overflow = '';
+  if (_cookiePolicyModalPreviousActiveElement && typeof _cookiePolicyModalPreviousActiveElement.focus === 'function') {
+    _cookiePolicyModalPreviousActiveElement.focus();
+    _cookiePolicyModalPreviousActiveElement = null;
+  }
+}
+
+// ============================================
 // Tutorial Modal (new users + backtick ` to reopen)
 // ============================================
 const TUTORIAL_SLIDE_TITLES = ['Welcome', 'Log Entry', 'View & AI', 'Settings & data', 'Data options', "You're all set"];
@@ -449,14 +546,141 @@ function maybeShowTutorialOnce() {
   } catch (err) {}
 }
 
-// Backtick ` key opens tutorial from anywhere (except when typing in inputs)
+// Backtick ` key opens God mode – test all UI elements
+function openModalTestOverlay() {
+  const overlay = document.getElementById('modalTestOverlay');
+  const container = document.getElementById('godModeSections');
+  if (!overlay || !container) return;
+  closeSettingsModalIfOpen();
+  var today = new Date().toISOString().slice(0, 10);
+  var firstLogDate = (typeof logs !== 'undefined' && logs && logs.length) ? logs[0].date : today;
+
+  // All tests stay confined to this modal: trigger UI without closing God mode
+  function run(fn) {
+    return function() { fn(); };
+  }
+
+  var sections = [
+    {
+      title: 'Tabs',
+      items: [
+        { label: 'Log entry', action: run(function() { switchTab('log'); }) },
+        { label: 'View Logs', action: run(function() { switchTab('logs'); }) },
+        { label: 'Charts', action: run(function() { switchTab('charts'); }) },
+        { label: 'AI Analysis', action: run(function() { switchTab('ai'); }) }
+      ]
+    },
+    {
+      title: 'Modals',
+      items: [
+        { label: 'Tutorial', action: run(openTutorialModal) },
+        { label: 'Settings', action: run(toggleSettings) },
+        { label: 'Cookie banner', action: run(function() { var b = document.getElementById('cookieBanner'); if (b) b.classList.remove('hidden'); }) },
+        { label: 'Cookie policy', action: run(openCookiePolicyModal) },
+        { label: 'Alert (sample)', action: run(function() { showAlertModal('This is a sample alert for testing.', 'Test Alert'); }) },
+        { label: 'Food log', action: run(function() { openFoodModal(today); }) },
+        { label: 'Exercise log', action: run(function() { openExerciseModal(today); }) },
+        { label: 'Edit entry', action: run(function() { if (typeof logs !== 'undefined' && logs && logs.length) openEditEntryModal(firstLogDate); else showAlertModal('No entries to edit. Add a log first.', 'Edit Entry'); }) },
+        { label: 'Export', action: run(exportData) },
+        { label: 'Import', action: run(importData) },
+        { label: 'Sign up / Sign in', action: run(openSignupSigninModal) },
+        { label: 'GDPR agreement', action: run(function() { showGDPRAgreementModal(function() { closeGDPRAgreementModal(); }, function() { closeGDPRAgreementModal(); }); }) }
+      ]
+    },
+    {
+      title: 'Charts',
+      items: [
+        { label: 'Balance view', action: run(function() { switchTab('charts'); setTimeout(function() { toggleChartView('balance'); }, 100); }) },
+        { label: 'Individual charts', action: run(function() { switchTab('charts'); setTimeout(function() { toggleChartView('individual'); }, 100); }) },
+        { label: 'Combined chart', action: run(function() { switchTab('charts'); setTimeout(function() { toggleChartView('combined'); }, 100); }) },
+        { label: 'Select all (balance)', action: run(function() { if (typeof selectAllBalanceMetrics === 'function') selectAllBalanceMetrics(); }) },
+        { label: 'Deselect all (balance)', action: run(function() { if (typeof deselectAllBalanceMetrics === 'function') deselectAllBalanceMetrics(); }) }
+      ]
+    },
+    {
+      title: 'AI range',
+      items: [
+        { label: '7 days', action: run(function() { switchTab('ai'); setAIDateRange(7); }) },
+        { label: '30 days', action: run(function() { switchTab('ai'); setAIDateRange(30); }) },
+        { label: '90 days', action: run(function() { switchTab('ai'); setAIDateRange(90); }) }
+      ]
+    },
+    {
+      title: 'Log form sections',
+      items: [
+        { label: 'Open: Basic metrics', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('basicMetrics'); }, 80); }) },
+        { label: 'Open: Symptoms & Pain', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('symptoms'); }, 80); }) },
+        { label: 'Open: Energy & Mental Clarity', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('energyCognitive'); }, 80); }) },
+        { label: 'Open: Food log', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('foodLog'); }, 80); }) },
+        { label: 'Open: Exercise log', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('exerciseLog'); }, 80); }) }
+      ]
+    },
+    {
+      title: 'Other',
+      items: [
+        { label: 'Focus skip link', action: run(function() { var s = document.querySelector('.skip-link'); if (s) s.focus(); }) }
+      ]
+    }
+  ];
+
+  container.innerHTML = sections.map(function(s) {
+    var btns = s.items.map(function(item, i) {
+      return '<button type="button" class="god-mode-btn">' + escapeHTML(item.label) + '</button>';
+    }).join('');
+    return '<section class="god-mode-section"><h4 class="god-mode-section-title">' + escapeHTML(s.title) + '</h4><div class="god-mode-btn-group">' + btns + '</div></section>';
+  }).join('');
+
+  sections.forEach(function(s, sIdx) {
+    var group = container.querySelectorAll('.god-mode-section')[sIdx];
+    if (!group) return;
+    var btns = group.querySelectorAll('.god-mode-btn');
+    s.items.forEach(function(item, i) {
+      if (btns[i]) btns[i].addEventListener('click', item.action);
+    });
+  });
+
+  overlay.style.display = 'block';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  document.body.classList.add('modal-active');
+  document.body.style.overflow = 'hidden';
+  overlay.onclick = function(ev) {
+    if (ev.target === overlay) closeModalTestOverlay();
+  };
+  window._modalTestEscapeHandler = function(ev) {
+    if (ev.key === 'Escape') {
+      document.removeEventListener('keydown', window._modalTestEscapeHandler);
+      window._modalTestEscapeHandler = null;
+      closeModalTestOverlay();
+    }
+  };
+  document.addEventListener('keydown', window._modalTestEscapeHandler);
+  var firstBtn = container.querySelector('button');
+  if (firstBtn) firstBtn.focus();
+}
+
+function closeModalTestOverlay() {
+  if (window._modalTestEscapeHandler) {
+    document.removeEventListener('keydown', window._modalTestEscapeHandler);
+    window._modalTestEscapeHandler = null;
+  }
+  var overlay = document.getElementById('modalTestOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    overlay.style.visibility = 'hidden';
+    overlay.style.opacity = '0';
+  }
+  document.body.classList.remove('modal-active');
+  document.body.style.overflow = '';
+}
+
 document.addEventListener('keydown', function(e) {
   if (e.key !== '`') return;
-  const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
-  const isInput = tag === 'input' || tag === 'textarea' || tag === 'select' || (e.target && e.target.isContentEditable);
+  var tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+  var isInput = tag === 'input' || tag === 'textarea' || tag === 'select' || (e.target && e.target.isContentEditable);
   if (isInput) return;
   e.preventDefault();
-  openTutorialModal();
+  openModalTestOverlay();
 });
 
 // Show GDPR Data Agreement Modal
@@ -11607,6 +11831,7 @@ window.addEventListener('load', () => {
       loadingOverlay.classList.add('hidden');
       document.body.classList.remove('loading');
       document.body.classList.add('loaded');
+      showCookieBannerIfNeeded();
       // Remove from DOM after animation
       setTimeout(() => {
         loadingOverlay.remove();
@@ -11616,6 +11841,7 @@ window.addEventListener('load', () => {
     // If overlay doesn't exist, just add loaded class
     document.body.classList.remove('loading');
     document.body.classList.add('loaded');
+    showCookieBannerIfNeeded();
   }
   
   loadSettings();
