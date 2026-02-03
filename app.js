@@ -139,7 +139,7 @@ function showAlertModal(message, title = 'Alert') {
   
   if (!overlay || !titleEl || !messageEl) {
     // Fallback to native alert if modal elements not found
-    console.warn('Alert modal elements not found, using native alert');
+    Logger.warn('Alert modal elements not found, using native alert');
     alert(message);
     return;
   }
@@ -463,7 +463,7 @@ document.addEventListener('keydown', function(e) {
 function showGDPRAgreementModal(onAgree, onDecline) {
   const overlay = document.getElementById('gdprAgreementModalOverlay');
   if (!overlay) {
-    console.error('GDPR Agreement modal not found');
+    Logger.error('GDPR Agreement modal not found');
     // Fallback: proceed with enabling if modal not found
     if (onAgree) onAgree();
     return;
@@ -568,7 +568,7 @@ function showConfirmModal(message, title = 'Confirm', onConfirm, onCancel) {
   
   if (!overlay || !titleEl || !messageEl || !footer) {
     // Fallback to native confirm if modal elements not found
-    console.warn('Alert modal elements not found, using native confirm');
+    Logger.warn('Alert modal elements not found, using native confirm');
     if (confirm(message)) {
       if (onConfirm) onConfirm();
     } else {
@@ -658,19 +658,19 @@ function showConfirmModal(message, title = 'Confirm', onConfirm, onCancel) {
 function togglePasswordVisibility() {
   const passwordInput = document.getElementById('cloudPassword');
   if (!passwordInput) {
-    console.error('Password input not found');
+    Logger.error('Password input not found');
     return;
   }
   
   const toggleBtn = document.getElementById('passwordToggle');
   if (!toggleBtn) {
-    console.error('Password toggle button not found');
+    Logger.error('Password toggle button not found');
     return;
   }
   
   const toggleIcon = toggleBtn.querySelector('.password-toggle-icon');
   if (!toggleIcon) {
-    console.error('Password toggle icon not found');
+    Logger.error('Password toggle icon not found');
     return;
   }
   
@@ -734,7 +734,7 @@ if ('serviceWorker' in navigator) {
   // Block registration immediately
   const originalRegister = navigator.serviceWorker.register;
   navigator.serviceWorker.register = function() {
-    console.log('Service Worker registration blocked for delivery');
+    Logger.debug('Service Worker registration blocked for delivery');
     return Promise.reject(new Error('Service Worker disabled for delivery'));
   };
   
@@ -743,7 +743,7 @@ if ('serviceWorker' in navigator) {
     registrations.forEach(registration => {
       registration.unregister().then(success => {
         if (success) {
-          console.log('Service Worker unregistered');
+          Logger.debug('Service Worker unregistered');
             }
           });
         });
@@ -762,7 +762,7 @@ if ('serviceWorker' in navigator) {
 // PWA Install Prompt
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
-  console.log('PWA: Install prompt triggered');
+  Logger.debug('PWA: Install prompt triggered');
   e.preventDefault();
   deferredPrompt = e;
   showInstallButton();
@@ -789,10 +789,10 @@ function installPWA() {
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then((choiceResult) => {
       if (choiceResult.outcome === 'accepted') {
-        console.log('PWA: User accepted the install prompt');
+        Logger.debug('PWA: User accepted the install prompt');
         hideInstallButton();
       } else {
-        console.log('PWA: User dismissed the install prompt');
+        Logger.debug('PWA: User dismissed the install prompt');
       }
       deferredPrompt = null;
     });
@@ -810,7 +810,7 @@ function hideInstallButton() {
 // Enhanced PWA install function for Safari and other browsers
 function installOrLaunchPWA() {
   // Debug info
-  console.log('PWA Install Debug:', {
+  Logger.debug('PWA Install Debug:', {
     isStandalone: window.matchMedia('(display-mode: standalone)').matches,
     isAppleStandalone: window.navigator.standalone,
     hasDeferredPrompt: !!deferredPrompt,
@@ -835,11 +835,11 @@ function installOrLaunchPWA() {
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then((choiceResult) => {
       if (choiceResult.outcome === 'accepted') {
-        console.log('PWA: User accepted the install prompt');
+        Logger.debug('PWA: User accepted the install prompt');
         showAlertModal('App installed successfully! 📱\nLook for "Jan\'s Health Dashboard" in your apps.', 'Installation Complete');
         hideInstallButton();
       } else {
-        console.log('PWA: User dismissed the install prompt');
+        Logger.debug('PWA: User dismissed the install prompt');
       }
       deferredPrompt = null;
     });
@@ -1053,7 +1053,7 @@ function showUpdateNotification() {
     };
   } catch (e) {
     // If console.error override fails, just continue
-    console.warn('Failed to set up error filtering:', e);
+    Logger.warn('Failed to set up error filtering', { error: e });
   }
 })();
 
@@ -1089,23 +1089,15 @@ window.addEventListener('error', function(e) {
 // toggleSettings placeholder - will be replaced by full implementation later
 // This ensures inline onclick handlers don't error
 window.toggleSettings = function() {
-  console.log('toggleSettings placeholder called - this should be replaced');
   const overlay = document.getElementById('settingsOverlay');
-  if (!overlay) {
-    console.error('Settings overlay not found in placeholder!');
-    return;
-  }
-  console.log('Overlay found, current display:', overlay.style.display);
+  if (!overlay) return;
   const isVisible = overlay.style.display === 'block' || overlay.style.display === 'flex';
-  console.log('isVisible:', isVisible);
   if (isVisible) {
-    console.log('Closing modal');
     overlay.style.display = 'none';
     overlay.style.visibility = 'hidden';
     document.body.classList.remove('modal-active');
     document.body.style.overflow = '';
   } else {
-    console.log('Opening modal');
     document.body.style.overflow = 'hidden';
     overlay.style.position = 'fixed';
     overlay.style.top = '0';
@@ -1120,7 +1112,6 @@ window.toggleSettings = function() {
     overlay.style.zIndex = '99999';
     document.body.classList.add('modal-active');
     const menu = overlay.querySelector('.settings-menu');
-    console.log('Menu found:', !!menu);
     if (menu) {
       menu.style.position = 'fixed';
       menu.style.top = '50%';
@@ -1130,7 +1121,6 @@ window.toggleSettings = function() {
       menu.style.display = 'flex';
       menu.style.visibility = 'visible';
       menu.style.opacity = '1';
-      console.log('Menu styled, display:', menu.style.display);
     }
     if (typeof loadSettingsState === 'function') {
       loadSettingsState();
@@ -1142,19 +1132,13 @@ window.addEventListener('DOMContentLoaded', function() {
   // Ensure settings button works - add direct event listener as backup
   const settingsButton = document.querySelector('.settings-button-top');
   if (settingsButton) {
-    console.log('Settings button found, adding click listener');
     settingsButton.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
-      console.log('Settings button clicked via event listener');
       if (typeof window.toggleSettings === 'function') {
         window.toggleSettings();
-      } else {
-        console.error('toggleSettings function not available!');
       }
     });
-  } else {
-    console.warn('Settings button not found!');
   }
   
   // Clear cache for CSS and JS files on startup
@@ -2564,6 +2548,7 @@ function renderBalanceMetricSelector(allMetrics, selectedMetrics) {
     groupDiv.appendChild(groupItems);
     container.appendChild(groupDiv);
   });
+  updateBalanceSelectAllButton();
 }
 
 // Toggle metric selection (for balance chart)
@@ -2609,6 +2594,31 @@ function toggleBalanceMetric(field) {
   }
 }
 
+// Toggle between Select All and Deselect All for balance chart
+function toggleBalanceSelectAll() {
+  const selected = appSettings.balanceChartSelectedMetrics || [];
+  const allBalanceMetrics = [
+    'fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction',
+    'swelling', 'mood', 'irritability', 'weatherSensitivity', 'hydration'
+  ];
+  if (selected.length >= allBalanceMetrics.length) {
+    deselectAllBalanceMetrics();
+  } else {
+    selectAllBalanceMetrics();
+  }
+}
+
+// Update balance "Select All" button label and style (green = Select All, red = Deselect All)
+function updateBalanceSelectAllButton() {
+  const btn = document.getElementById('balanceSelectAllBtn');
+  if (!btn) return;
+  const selected = appSettings.balanceChartSelectedMetrics || [];
+  const allCount = 12;
+  const allSelected = selected.length >= allCount;
+  btn.textContent = allSelected ? 'Deselect All' : 'Select All';
+  btn.classList.toggle('metric-select-btn-deselect', allSelected);
+}
+
 // Select all balance metrics (excluding steps)
 function selectAllBalanceMetrics() {
   const allBalanceMetrics = [
@@ -2639,13 +2649,34 @@ function selectAllBalanceMetrics() {
   if (appSettings.chartView === 'balance') {
     createBalanceChart();
   }
+  updateBalanceSelectAllButton();
 }
 
-// Deselect all balance metrics - REMOVED (minimum 3 required, function kept for compatibility but not used)
+// Deselect all balance metrics (deselects to minimum 3 via renderBalanceMetricSelector)
 function deselectAllBalanceMetrics() {
-  // Minimum 3 metrics required - cannot deselect all
-  // This function is kept for compatibility but does nothing
-  return;
+  appSettings.balanceChartSelectedMetrics = [];
+  saveSettings();
+  
+  const allMetrics = [
+    { field: 'fatigue', name: 'Fatigue', color: '#ff9800', scale: '1-10' },
+    { field: 'stiffness', name: 'Stiffness', color: '#ffc107', scale: '1-10' },
+    { field: 'backPain', name: 'Back Pain', color: '#f44336', scale: '1-10' },
+    { field: 'sleep', name: 'Sleep Quality', color: '#3f51b5', scale: '1-10' },
+    { field: 'jointPain', name: 'Joint Pain', color: '#ff5722', scale: '1-10' },
+    { field: 'mobility', name: 'Mobility', color: '#00bcd4', scale: '1-10' },
+    { field: 'dailyFunction', name: 'Daily Function', color: '#8bc34a', scale: '1-10' },
+    { field: 'swelling', name: 'Swelling', color: '#9c27b0', scale: '1-10' },
+    { field: 'mood', name: 'Mood', color: '#673ab7', scale: '1-10' },
+    { field: 'irritability', name: 'Irritability', color: '#795548', scale: '1-10' },
+    { field: 'weatherSensitivity', name: 'Weather Sensitivity', color: '#e91e63', scale: '1-10' },
+    { field: 'hydration', name: 'Hydration (glasses)', color: '#00bcd4', scale: '0-20' }
+  ];
+  renderBalanceMetricSelector(allMetrics, []);
+  
+  if (appSettings.chartView === 'balance') {
+    createBalanceChart();
+  }
+  updateBalanceSelectAllButton();
 }
 
 // Create Balance Chart (Radar Chart)
@@ -3334,103 +3365,49 @@ document.addEventListener('keydown', function(event) {
 // AI SUMMARY - REBUILT FROM SCRATCH
 // ============================================
 
-// Update AI Summary button state based on data availability
+// No-op: AI analysis is display-only and auto-loads from date range (no button).
 function updateAISummaryButtonState() {
-  const aiButton = document.querySelector('.ai-action-btn');
-  if (!aiButton) {
-    Logger.debug('AI Summary button not found for state update');
-    return;
-  }
-  
-  const allLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
-  const hasData = allLogs && allLogs.length > 0;
-  
-  Logger.debug('AI Summary button state update', { hasData, logCount: allLogs.length });
-  
-  if (hasData) {
-    aiButton.disabled = false;
-    aiButton.removeAttribute('disabled');
-    aiButton.classList.remove('disabled');
-    aiButton.style.opacity = '1';
-    aiButton.style.cursor = 'pointer';
-    aiButton.style.pointerEvents = 'auto';
-    aiButton.title = 'Generate AI Health Analysis';
-    Logger.debug('AI Summary button enabled');
-  } else {
-    aiButton.disabled = true;
-    aiButton.setAttribute('disabled', 'disabled');
-    aiButton.classList.add('disabled');
-    aiButton.style.opacity = '0.5';
-    aiButton.style.cursor = 'not-allowed';
-    aiButton.style.pointerEvents = 'none';
-    aiButton.title = 'No data available. Start logging to generate AI analysis.';
-    Logger.debug('AI Summary button disabled');
-  }
+  Logger.debug('AI Summary - display-only, no button state to update');
 }
 
 function generateAISummary() {
-  // Declare resultsContent outside try block so it's accessible throughout the function
-  let resultsContent = null;
-  
-  try {
-    Logger.info('AI Summary button clicked');
-    
-  // Use global logs variable instead of re-reading from localStorage
-  Logger.debug('AI Summary - Checking data', { logCount: logs.length });
-  
-  // Check if we have data
-  if (logs.length === 0) {
-      showAlertModal('No health data available. Please log some entries first before generating an AI summary.', 'AI Summary');
-      Logger.warn('AI Summary - No data available');
-      return;
-    }
-
-    // Get the results content element
-    resultsContent = document.getElementById('aiResultsContent');
-    
-    if (!resultsContent) {
-      console.error('AI results content element not found');
-      Logger.error('AI Summary - Results content element not found');
-      showAlertModal('Error: AI results container not found. Please refresh the page.', 'AI Summary Error');
-      return;
-    }
-
-    Logger.debug('AI Summary - Showing form section');
-
-    // Switch to AI tab if not already there
-    const currentTab = document.querySelector('.tab-btn.active');
-    if (!currentTab || currentTab.getAttribute('data-tab') !== 'ai') {
-      switchTab('ai');
-    }
-    
-    Logger.debug('AI Summary - Switched to AI tab');
-  } catch (error) {
-    console.error('Error in generateAISummary (initial setup):', error);
-    Logger.error('AI Summary - Error in initial setup', { error: error.message, stack: error.stack });
-    showAlertModal('An error occurred while starting AI analysis. Please check the console for details.', 'AI Analysis Error');
+  let resultsContent = document.getElementById('aiResultsContent');
+  if (!resultsContent) {
+    Logger.error('AI Summary - Results content element not found');
     return;
   }
-  
-  // Get filtered logs based on AI tab date range
-  // This defines the range for AI analysis
-  const aiDateRange = appSettings.aiDateRange || { type: 7 }; // Default to 7 days
+
+  Logger.debug('AI Summary - Auto-loading for date range', { logCount: logs.length });
+
+  // No data: show in-place empty state (display-only, no modal)
+  if (!logs || logs.length === 0) {
+    resultsContent.innerHTML = `
+      <div class="ai-loading-state">
+        <div class="ai-loading-icon">🧠</div>
+        <h3 class="ai-empty-title">No health data yet</h3>
+        <p class="ai-empty-desc">Log some entries in the Log Entry tab. Analysis will appear here for your chosen date range.</p>
+      </div>
+    `;
+    Logger.warn('AI Summary - No data available');
+    return;
+  }
+
+  // Switch to AI tab if not already there (e.g. when opening app and landing on AI)
+  const currentTab = document.querySelector('.tab-btn.active');
+  if (!currentTab || currentTab.getAttribute('data-tab') !== 'ai') {
+    switchTab('ai');
+  }
+
+  const aiDateRange = appSettings.aiDateRange || { type: 7 };
   const startDateInput = document.getElementById('aiStartDate');
   const endDateInput = document.getElementById('aiEndDate');
-  
-  // Ensure logs variable is available (use allLogs if logs is not defined)
   const logsToUse = typeof logs !== 'undefined' && logs.length > 0 ? logs : allLogs;
-  
-  Logger.debug('AI Summary - Using logs', { logsCount: logsToUse.length, allLogsCount: logs.length });
-  
   let filteredLogs = logsToUse;
   let dateRangeText = '';
-  
-  // Use AI tab date range
+
   if (aiDateRange.type === 'custom' && startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
-    // Custom date range
     const startDate = startDateInput.value;
     const endDate = endDateInput.value;
-    
     filteredLogs = logsToUse.filter(log => {
       const logDate = new Date(log.date);
       const start = new Date(startDate);
@@ -3438,126 +3415,189 @@ function generateAISummary() {
       end.setHours(23, 59, 59, 999);
       return logDate >= start && logDate <= end;
     });
-    
-    // Format date range text
-    const start = new Date(startDate).toLocaleDateString();
-    const end = new Date(endDate).toLocaleDateString();
-    dateRangeText = `${start} to ${end}`;
+    dateRangeText = `${new Date(startDate).toLocaleDateString()} to ${new Date(endDate).toLocaleDateString()}`;
   } else {
-    // Preset range (Today, 7 Days, 30 Days, 90 Days)
     const days = aiDateRange.type || 7;
     const endDate = new Date();
     endDate.setHours(23, 59, 59, 999);
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - (days - 1));
     startDate.setHours(0, 0, 0, 0);
-    
     filteredLogs = logsToUse.filter(log => {
       const logDate = new Date(log.date);
       return logDate >= startDate && logDate <= endDate;
     });
-    
-    if (days === 1) {
-      dateRangeText = 'today';
-    } else {
-      dateRangeText = `last ${days} days`;
-    }
+    dateRangeText = days === 1 ? 'today' : `last ${days} days`;
   }
-  
-  Logger.debug('AI Summary - Filtered logs', { filteredCount: filteredLogs.length, dateRange: dateRangeText });
-  
+
+  // No data in range: show in-place message
   if (filteredLogs.length === 0) {
-    showAlertModal('No health data available in the selected date range. Please adjust your date range or log some entries.', 'AI Summary');
-    Logger.warn('AI Summary - No filtered logs available');
+    resultsContent.innerHTML = `
+      <div class="ai-loading-state">
+        <div class="ai-loading-icon">📅</div>
+        <h3 class="ai-empty-title">No data in this range</h3>
+        <p class="ai-empty-desc">Try a different analysis range or log entries for ${escapeHTML(dateRangeText)}.</p>
+      </div>
+    `;
+    Logger.warn('AI Summary - No filtered logs in range');
     return;
   }
-  
-  // Sort logs chronologically (oldest first)
+
   const sortedLogs = filteredLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
-  
-  // Ensure resultsContent is still available (re-fetch if needed)
-  if (!resultsContent) {
-    resultsContent = document.getElementById('aiResultsContent');
-    if (!resultsContent) {
-      Logger.error('AI Summary - Results content not available after filtering');
-      showAlertModal('Error: AI results container not available. Please refresh the page.', 'AI Summary Error');
-    return;
-    }
-  }
-  
-  // Show loading state immediately (safe - no user input)
+
+  // Show loading state in results area only
   resultsContent.innerHTML = `
     <div class="ai-loading-state">
       <div class="ai-loading-icon">🧠</div>
       <p class="ai-loading-text">Looking at your health data...</p>
-      <p class="ai-loading-subtext">Checking ${sortedLogs.length} days (${escapeHTML(dateRangeText)})</p>
-      </div>
+      <p class="ai-loading-subtext">${sortedLogs.length} days (${escapeHTML(dateRangeText)})</p>
+    </div>
   `;
-  
-  Logger.debug('AI Summary - Loading state displayed', { logCount: sortedLogs.length });
 
-  // Analyze the data after a short delay for UX
-  // Use ALL historical logs for training (up to 10 years), filtered logs for display
-  // Use a small delay to ensure section is visible before starting analysis
-  setTimeout(async () => {
+  setTimeout(function() {
     try {
-      Logger.debug('AI Summary - Starting analysis', { sortedLogsCount: sortedLogs.length });
-      
-  // Get ALL historical data - use cached sorted logs if available
-  const allLogsForTraining = window.PerformanceUtils?.memoizedSort
-    ? window.PerformanceUtils.memoizedSort(logs, (a, b) => new Date(a.date) - new Date(b.date), 'allLogsForTraining')
-    : [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
-      
-      Logger.debug('AI Summary - Training logs loaded', { trainingLogsCount: allLogsForTraining.length });
-      
+      const allLogsForTraining = window.PerformanceUtils?.memoizedSort
+        ? window.PerformanceUtils.memoizedSort(logs, (a, b) => new Date(a.date) - new Date(b.date), 'allLogsForTraining')
+        : [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+
       let analysis;
       if (window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function') {
-        Logger.debug('AI Summary - Using AIEngine for analysis');
         analysis = window.AIEngine.analyzeHealthMetrics(sortedLogs, allLogsForTraining);
       } else if (typeof analyzeHealthMetrics === 'function') {
-        Logger.debug('AI Summary - Using fallback analyzeHealthMetrics');
         analysis = analyzeHealthMetrics(sortedLogs);
       } else {
-        Logger.error('AI Summary - No analysis function available');
         throw new Error('No analysis function available. AIEngine may not be loaded.');
       }
-      
-      Logger.debug('AI Summary - Analysis complete', { trendsCount: analysis?.trends ? Object.keys(analysis.trends).length : 0 });
-      
-      // Use enhanced local analysis from AIEngine
-      let webLLMInsights = null;
-      
-      // Display the combined results (with enhanced local insights)
-      displayAISummary(analysis, sortedLogs, sortedLogs.length, webLLMInsights);
-      
+
+      displayAISummary(analysis, sortedLogs, sortedLogs.length, null, dateRangeText);
       Logger.info('AI Summary - Display complete');
     } catch (error) {
-      console.error('Error in AI Summary analysis:', error);
       Logger.error('AI Summary - Error during analysis', { error: error.message, stack: error.stack });
-      
-      const resultsContent = document.getElementById('aiResultsContent');
+      resultsContent = document.getElementById('aiResultsContent');
       if (resultsContent) {
         resultsContent.innerHTML = `
           <div class="ai-error">
-            <h3>❌ Error Generating AI Summary</h3>
-            <p>An error occurred while analysing your health data. Please try again.</p>
-            <p style="font-size: 0.9rem; color: #78909c; margin-top: 10px;">Error: ${escapeHTML(error.message)}</p>
-        </div>
+            <h3>❌ Error</h3>
+            <p>Something went wrong analysing your data for this range.</p>
+            <p style="font-size: 0.9rem; color: #78909c; margin-top: 10px;">${escapeHTML(error.message)}</p>
+          </div>
         `;
       }
     }
-  }, 1500);
+  }, 800);
 }
 
 // Store current analysis data for radar chart access
 let currentAIAnalysis = null;
 let currentAIFilteredLogs = null; // Store filtered logs for average calculation
 
-function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
+// Format a single "Things to watch" line: bold metric/label, de-emphasize "(may indicate flare-ups)"
+function formatAnomalyLine(anomaly) {
+  if (!anomaly || typeof anomaly !== 'string') return escapeHTML(String(anomaly));
+  const escaped = escapeHTML(anomaly);
+  const colonIdx = escaped.indexOf(': ');
+  if (colonIdx === -1) return escaped;
+  const label = escaped.substring(0, colonIdx);
+  let rest = escaped.substring(colonIdx + 2);
+  const noteMatch = rest.match(/^(.*?)\s*\((may indicate flare-ups)\)\s*$/i);
+  if (noteMatch) {
+    rest = noteMatch[1].trim();
+    const note = noteMatch[2];
+    return '<span class="ai-warning-metric">' + label + ':</span> ' + rest + ' <span class="ai-warning-note">(' + note + ')</span>';
+  }
+  return '<span class="ai-warning-metric">' + label + ':</span> ' + rest;
+}
+
+// Label positions (x, y) for each body region in the AI pain figure SVG viewBox "0 0 140 280"
+var AI_PAIN_BODY_LABEL_POSITIONS = {
+  head: { x: 70, y: 34 },
+  neck: { x: 70, y: 67 },
+  chest: { x: 70, y: 90 },
+  abdomen: { x: 70, y: 135 },
+  left_shoulder: { x: 34, y: 83 },
+  left_upper_arm: { x: 25, y: 108 },
+  left_elbow: { x: 25, y: 131 },
+  left_forearm: { x: 25, y: 152 },
+  left_wrist: { x: 25, y: 173 },
+  left_hand: { x: 25, y: 185 },
+  right_shoulder: { x: 106, y: 83 },
+  right_upper_arm: { x: 115, y: 108 },
+  right_elbow: { x: 115, y: 131 },
+  right_forearm: { x: 115, y: 152 },
+  right_wrist: { x: 115, y: 173 },
+  right_hand: { x: 115, y: 185 },
+  left_hip: { x: 52, y: 166 },
+  left_thigh: { x: 54, y: 191 },
+  left_knee: { x: 54, y: 224 },
+  left_lower_leg: { x: 54, y: 252 },
+  left_ankle: { x: 54, y: 268 },
+  left_foot: { x: 46, y: 274 },
+  right_hip: { x: 88, y: 166 },
+  right_thigh: { x: 86, y: 191 },
+  right_knee: { x: 86, y: 224 },
+  right_lower_leg: { x: 86, y: 252 },
+  right_ankle: { x: 86, y: 268 },
+  right_foot: { x: 94, y: 274 }
+};
+
+// Build SVG for AI "Pain by body part" — human figure with stats as labels on each region
+function getAIPainBodyFigureSVG(painByRegion) {
+  var severityClass = function(data) {
+    if (!data || (data.painDays === 0 && data.mildDays === 0)) return '';
+    var totalDays = (data.painDays || 0) + (data.mildDays || 0);
+    var painRatio = totalDays > 0 ? (data.painDays || 0) / totalDays : 0;
+    var score = data.severityScore || 0;
+    if (score >= 10 || (painRatio >= 0.7 && totalDays >= 5)) return 'ai-pain-region-high';
+    if (score >= 4 || painRatio >= 0.4) return 'ai-pain-region-medium';
+    return 'ai-pain-region-low';
+  };
+  var svg = '<svg class="ai-pain-body-svg" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg" aria-label="Pain by body part - color shows how each area felt on average">';
+  svg += '<defs><filter id="ai-pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter></defs>';
+  svg += '<path class="ai-pain-body-outline" d="M70 10 A26 28 0 0 1 70 66 Q58 70 50 78 Q42 90 44 108 Q46 138 48 168 Q50 198 48 238 Q46 268 52 278 L64 280 L76 280 L88 278 Q94 268 92 238 Q90 198 92 168 Q94 138 96 108 Q98 90 90 78 Q82 70 70 66 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>';
+  var regionPaths = [
+    { id: 'head', tag: 'ellipse', attrs: 'cx="70" cy="34" rx="26" ry="28"' },
+    { id: 'neck', tag: 'path', attrs: 'd="M54 58 Q52 64 54 76 L86 76 Q88 64 86 58 Q82 56 70 56 Q58 56 54 58 Z"' },
+    { id: 'chest', tag: 'path', attrs: 'd="M46 72 Q38 80 42 96 L46 108 L94 108 L98 96 Q102 80 94 72 Q86 68 70 68 Q54 68 46 72 Z"' },
+    { id: 'abdomen', tag: 'path', attrs: 'd="M46 108 Q44 132 46 158 L48 162 L92 162 L94 158 Q96 132 94 108 L46 108 Z"' },
+    { id: 'left_shoulder', tag: 'path', attrs: 'd="M46 72 Q30 74 22 84 Q18 90 24 94 L42 92 Q44 80 46 74 Z"' },
+    { id: 'left_upper_arm', tag: 'path', attrs: 'd="M24 90 Q16 106 20 126 L26 132 Q30 118 30 98 Q30 90 24 90 Z"' },
+    { id: 'left_forearm', tag: 'path', attrs: 'd="M22 132 Q14 150 18 170 L26 174 Q30 160 30 142 Q30 132 22 132 Z"' },
+    { id: 'left_hand', tag: 'path', attrs: 'd="M20 172 Q16 184 20 198 L30 198 Q34 186 32 174 Q30 172 20 172 Z"' },
+    { id: 'right_shoulder', tag: 'path', attrs: 'd="M94 72 Q110 74 118 84 Q122 90 116 94 L98 92 Q96 80 94 74 Z"' },
+    { id: 'right_upper_arm', tag: 'path', attrs: 'd="M116 90 Q124 106 120 126 L114 132 Q110 118 110 98 Q110 90 116 90 Z"' },
+    { id: 'right_forearm', tag: 'path', attrs: 'd="M118 132 Q126 150 122 170 L114 174 Q110 160 110 142 Q110 132 118 132 Z"' },
+    { id: 'right_hand', tag: 'path', attrs: 'd="M120 172 Q124 184 120 198 L110 198 Q106 186 108 174 Q110 172 120 172 Z"' },
+    { id: 'left_hip', tag: 'path', attrs: 'd="M48 160 Q44 166 48 172 L56 172 Q60 166 56 162 Z"' },
+    { id: 'left_thigh', tag: 'path', attrs: 'd="M48 170 Q44 192 48 212 L56 214 Q60 198 58 178 Z"' },
+    { id: 'left_knee', tag: 'path', attrs: 'd="M50 214 Q48 222 52 234 L60 234 Q62 226 58 218 Z"' },
+    { id: 'left_lower_leg', tag: 'path', attrs: 'd="M52 234 Q48 252 50 268 L58 268 Q62 252 60 236 Z"' },
+    { id: 'left_foot', tag: 'path', attrs: 'd="M56 268 L52 266 L38 274 L40 280 L54 278 Z"' },
+    { id: 'right_hip', tag: 'path', attrs: 'd="M92 160 Q96 166 92 172 L84 172 Q80 166 84 162 Z"' },
+    { id: 'right_thigh', tag: 'path', attrs: 'd="M92 170 Q96 192 92 212 L84 214 Q80 198 82 178 Z"' },
+    { id: 'right_knee', tag: 'path', attrs: 'd="M90 214 Q92 222 88 234 L80 234 Q78 226 82 218 Z"' },
+    { id: 'right_lower_leg', tag: 'path', attrs: 'd="M88 234 Q92 252 90 268 L82 268 Q78 252 80 236 Z"' },
+    { id: 'right_foot', tag: 'path', attrs: 'd="M84 268 L88 266 L102 274 L100 280 L86 278 Z"' },
+    { id: 'left_elbow', tag: 'circle', attrs: 'cx="25" cy="131" r="6"' },
+    { id: 'right_elbow', tag: 'circle', attrs: 'cx="115" cy="131" r="6"' },
+    { id: 'left_wrist', tag: 'circle', attrs: 'cx="25" cy="173" r="6"' },
+    { id: 'right_wrist', tag: 'circle', attrs: 'cx="115" cy="173" r="6"' },
+    { id: 'left_ankle', tag: 'circle', attrs: 'cx="54" cy="268" r="6"' },
+    { id: 'right_ankle', tag: 'circle', attrs: 'cx="86" cy="268" r="6"' }
+  ];
+  regionPaths.forEach(function(r) {
+    var data = painByRegion[r.id];
+    var cls = 'ai-pain-region ' + severityClass(data);
+    svg += '<' + r.tag + ' class="' + cls + '" data-region="' + escapeHTML(r.id) + '" ' + r.attrs + ' fill="currentColor" filter="url(#ai-pain-body-shadow)"/>';
+  });
+  svg += '</svg>';
+  return svg;
+}
+
+function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateRangeText = '') {
   const resultsContent = document.getElementById('aiResultsContent');
   
   if (!resultsContent) {
-    console.error('AI results content element not found');
+    Logger.error('AI results content element not found');
     return;
   }
 
@@ -3569,6 +3609,11 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
   // Build the summary HTML with animation classes
   let html = '';
   let animationDelay = 0;
+
+  // Top-level results heading for the date range
+  if (dateRangeText) {
+    html += `<h2 class="ai-results-heading">Analysis for ${escapeHTML(dateRangeText)}</h2>`;
+  }
 
   // AI Insights Section (from enhanced local analysis)
   let insightsText = webLLMInsights;
@@ -3586,9 +3631,10 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
           ${insightsText.split('\n\n').map(para => {
             const trimmed = para.trim();
             if (!trimmed) return '';
-            // Escape HTML first, then format markdown-style bold text
+            // Escape HTML first, then format markdown-style bold text and highlight figures in brackets
             const escaped = escapeHTML(trimmed);
             let formatted = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            formatted = formatted.replace(/\(([^)]+)\)/g, '<span class="ai-brackets-highlight">($1)</span>');
             // Format bullet points
             if (trimmed.startsWith('- ')) {
               formatted = formatted.substring(2);
@@ -3621,22 +3667,27 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
   const daysPainLocation = logs.filter(l => l.painLocation && String(l.painLocation).trim().length > 0).length;
   const daysEnergyClarity = logs.filter(l => l.energyClarity && String(l.energyClarity).trim().length > 0).length;
   const daysNotes = logs.filter(l => l.notes && String(l.notes).trim().length > 0).length;
-  const numericList = numericWithData.map(m => numericMetricLabels[m] || m.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())).join(', ');
+  const statPills = [
+    { icon: '📊', value: numericWithData.length, label: 'Metrics' },
+    { icon: '🔥', value: daysFlare, label: 'Flare days' },
+    { icon: '🍽️', value: daysFood, label: 'Food' },
+    { icon: '🏃', value: daysExercise, label: 'Exercise' },
+    { icon: '😰', value: daysStressors, label: 'Stress' },
+    { icon: '💉', value: daysSymptoms, label: 'Symptoms' },
+    { icon: '📍', value: daysPainLocation, label: 'Pain areas' },
+    { icon: '⚡', value: daysEnergyClarity, label: 'Energy' },
+    { icon: '📝', value: daysNotes, label: 'Notes' }
+  ];
   html += `
     <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title">📋 What you logged in this period</h3>
-      <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 0.75rem; font-size: 0.95rem;">Everything below is used in your analysis.</p>
-      <ul class="ai-list" style="margin-top: 0.5rem; columns: 1; font-size: 0.9rem;">
-        <li><strong>Numbers you tracked:</strong> ${numericList || 'None'}</li>
-        <li><strong>Flare-up:</strong> ${daysFlare} ${daysFlare === 1 ? 'day' : 'days'}</li>
-        <li><strong>Food:</strong> ${daysFood} ${daysFood === 1 ? 'day' : 'days'}</li>
-        <li><strong>Exercise:</strong> ${daysExercise} ${daysExercise === 1 ? 'day' : 'days'}</li>
-        <li><strong>Stress or triggers:</strong> ${daysStressors} ${daysStressors === 1 ? 'day' : 'days'}</li>
-        <li><strong>Symptoms:</strong> ${daysSymptoms} ${daysSymptoms === 1 ? 'day' : 'days'}</li>
-        <li><strong>Where it hurt:</strong> ${daysPainLocation} ${daysPainLocation === 1 ? 'day' : 'days'}</li>
-        <li><strong>Energy and clarity:</strong> ${daysEnergyClarity} ${daysEnergyClarity === 1 ? 'day' : 'days'}</li>
-        <li><strong>Notes:</strong> ${daysNotes} ${daysNotes === 1 ? 'day' : 'days'}</li>
-      </ul>
+      <h3 class="ai-section-title">📋 What you logged</h3>
+      <div class="ai-stat-pills">
+        ${statPills.map((p, i) => `<div class="ai-stat-pill ai-animate-in" style="animation-delay: ${animationDelay + (i * 40)}ms;">
+          <span class="ai-stat-pill-icon">${p.icon}</span>
+          <span class="ai-stat-pill-value">${p.value}</span>
+          <span class="ai-stat-pill-label">${escapeHTML(p.label)}</span>
+        </div>`).join('')}
+      </div>
     </div>
   `;
   animationDelay += 200;
@@ -3645,7 +3696,6 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
   html += `
     <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
       <h3 class="ai-section-title">📈 How you're doing</h3>
-      <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1.5rem; font-size: 0.95rem;">A simple look at your numbers: what's getting better, staying the same, or may need attention.</p>
       <div class="ai-trends-grid">
   `;
   animationDelay += 200;
@@ -3764,33 +3814,18 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
       }
     }
     
-    // Use plain-English labels for different metric types
-    let averageLabel = 'Your average:';
-    let currentLabel = 'Right now:';
-    let predictedLabel = 'Next week (possible):';
-    
-    if (isSteps) {
-      averageLabel = 'Average steps:';
-      currentLabel = 'Right now:';
-      predictedLabel = 'Next week (possible):';
-    } else if (isHydration) {
-      averageLabel = 'Average glasses per day:';
-      currentLabel = 'Right now:';
-      predictedLabel = 'Next week (possible):';
-    }
-    
     html += `
       <div class="ai-trend-card ai-animate-in" style="border-left-color: ${trendColor}; animation-delay: ${animationDelay + (index * 100)}ms;">
         <div class="ai-trend-header">
           <strong>${trendIcon} ${metricName}</strong>
-          <span style="font-size: 0.9rem; color: ${trendColor}; font-weight: 600;">${trendDescription}</span>
+          <span class="ai-trend-badge" style="color: ${trendColor};">${trendDescription}</span>
         </div>
-        <div class="ai-trend-stats">
-          <span>${averageLabel} <strong style="color: ${trendColor};">${averageDisplay}</strong></span>
-          <span>${currentLabel} <strong style="color: ${trendColor};">${currentDisplay}</strong></span>
-          ${predictedDisplay ? `<span>${predictedLabel} <strong style="color: ${predictedColor};">${predictedDisplay}</strong> <small style="color: #78909c; font-size: 0.85rem;">(${predictionDescription})</small></span>` : ''}
+        <div class="ai-trend-values">
+          <div class="ai-trend-value"><span class="ai-trend-value-label">Avg</span><strong style="color: ${trendColor};">${averageDisplay}</strong></div>
+          <div class="ai-trend-value"><span class="ai-trend-value-label">Now</span><strong style="color: ${trendColor};">${currentDisplay}</strong></div>
+          ${predictedDisplay ? `<div class="ai-trend-value"><span class="ai-trend-value-label">Next</span><strong style="color: ${predictedColor};">${predictedDisplay}</strong></div>` : ''}
+        </div>
       </div>
-    </div>
   `;
   });
   
@@ -3803,15 +3838,16 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     const riskColor = riskLevel === 'high' ? '#f44336' : riskLevel === 'moderate' ? '#ff9800' : '#ffc107';
     const riskIcon = riskLevel === 'high' ? '🔴' : riskLevel === 'moderate' ? '🟡' : '🟠';
     
+    const matchCount = analysis.flareUpRisk.matchingMetrics;
     html += `
       <div class="ai-summary-section ai-section-warning ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title" style="color: ${riskColor};">${riskIcon} Heads-up: possible flare-up</h3>
-        <div class="ai-llm-synopsis">
-          <p><strong>Risk level: ${riskLevel}</strong></p>
-          <p>Your recent numbers look like times when you had a flare-up before. Keep an eye on how you feel and do what usually helps you.</p>
-          <p style="font-size: 0.9rem; color: rgba(224, 242, 241, 0.7); margin-top: 10px;">
-            ${analysis.flareUpRisk.matchingMetrics} of 5 warning signs are present
-          </p>
+        <h3 class="ai-section-title" style="color: ${riskColor};">${riskIcon} Possible flare-up</h3>
+        <div class="ai-flare-visual">
+          <div class="ai-flare-level" style="color: ${riskColor};"><strong>${riskLevel}</strong></div>
+          <div class="ai-flare-dots" aria-label="${matchCount} of 5 warning signs">
+            ${[1,2,3,4,5].map(n => `<span class="ai-flare-dot ${n <= matchCount ? 'active' : ''}" style="${n <= matchCount ? `background: ${riskColor};` : ''}"></span>`).join('')}
+          </div>
+          <p class="ai-flare-hint">${matchCount}/5 signs · keep an eye on how you feel</p>
         </div>
       </div>
     `;
@@ -3896,8 +3932,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
       
       html += `
         <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-          <h3 class="ai-section-title">🔗 When two things change together</h3>
-          <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">When one of these goes up or down, the other usually does too. Click a card to see your average, current, and predicted values.</p>
+          <h3 class="ai-section-title">🔗 Correlations</h3>
           <div class="ai-trends-grid">
       `;
       
@@ -3984,27 +4019,68 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     animationDelay += 300;
   }
   
-  // Pain by body part (28 diagram regions including joints) — always show when analysis has pain data
+  // Pain by body part (28 diagram regions) — show how bad each body part (severity, days, % of period)
   if (analysis.symptomsAndPainAnalysis && analysis.symptomsAndPainAnalysis.painByRegion) {
     const painByRegion = analysis.symptomsAndPainAnalysis.painByRegion;
     const regionsWithPain = Object.entries(painByRegion)
       .filter(([, data]) => data && (data.painDays > 0 || data.mildDays > 0))
-      .sort((a, b) => (b[1].painDays + b[1].mildDays) - (a[1].painDays + a[1].mildDays));
+      .sort((a, b) => (b[1].severityScore || 0) - (a[1].severityScore || 0));
+    const painBodyFigureSVG = getAIPainBodyFigureSVG(painByRegion);
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title ai-section-green">📍 Pain by body part</h3>
-        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">Body areas from the pain diagram: where you had mild or pain in this period.</p>
-        <ul class="ai-list" style="columns: 2; column-gap: 1.5rem;">
+        <div class="ai-pain-body-figure-wrap">
+          <div class="ai-pain-body-figure" aria-hidden="true">${painBodyFigureSVG}</div>
+          <p class="ai-pain-body-legend"><span class="ai-legend-dot green"></span> good &nbsp; <span class="ai-legend-dot yellow"></span> discomfort &nbsp; <span class="ai-legend-dot red"></span> pain</p>
+        </div>
+        <div class="ai-pain-table-wrap" style="overflow-x: auto;">
+          <table class="ai-pain-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(76, 175, 80, 0.3);">
+                <th style="text-align: left; padding: 8px 12px;">Body part</th>
+                <th style="text-align: right; padding: 8px 12px;">Mild</th>
+                <th style="text-align: right; padding: 8px 12px;">Pain</th>
+                <th style="text-align: right; padding: 8px 12px;">% of period</th>
+                <th style="text-align: left; padding: 8px 12px;">Severity</th>
+              </tr>
+            </thead>
+            <tbody>
     `;
     if (regionsWithPain.length > 0) {
       regionsWithPain.forEach(([, data], index) => {
-        const painStr = data.painDays > 0 ? `${data.painDays} pain` : '';
-        const mildStr = data.mildDays > 0 ? `${data.mildDays} mild` : '';
-        html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 30)}ms;">${escapeHTML(data.label)}: ${[painStr, mildStr].filter(Boolean).join(', ')}</li>`;
+        const painRatio = data.painRatio != null ? Math.round(data.painRatio * 100) : (data.painDays && data.totalDays ? Math.round((data.painDays / data.totalDays) * 100) : 0);
+        const pctOfPeriod = data.pctOfPeriod != null ? data.pctOfPeriod : (dayCount ? Math.round((data.totalDays / dayCount) * 100) : 0);
+        let severityLabel = 'Low';
+        if (data.severityScore >= 10 || (data.painRatio >= 0.7 && data.totalDays >= 5)) severityLabel = 'High';
+        else if (data.severityScore >= 4 || data.painRatio >= 0.4) severityLabel = 'Medium';
+        const severityClass = severityLabel === 'High' ? 'ai-pain-severity-high' : (severityLabel === 'Medium' ? 'ai-pain-severity-medium' : 'ai-pain-severity-low');
+        html += `<tr class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 25)}ms; border-bottom: 1px solid rgba(255,255,255,0.06);">
+          <td style="padding: 8px 12px;">${escapeHTML(data.label)}</td>
+          <td style="text-align: right; padding: 8px 12px;">${data.mildDays || 0}</td>
+          <td style="text-align: right; padding: 8px 12px;">${data.painDays || 0}</td>
+          <td style="text-align: right; padding: 8px 12px;">${pctOfPeriod}%</td>
+          <td style="padding: 8px 12px;"><span class="${severityClass}" style="padding: 2px 8px; border-radius: 6px; font-size: 0.85rem;">${severityLabel}</span></td>
+        </tr>`;
       });
     } else {
-      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50}ms;">No body areas with pain or mild in this period.</li>`;
+      html += `<tr><td colspan="5" style="padding: 12px;">No body areas with pain or mild in this period.</td></tr>`;
     }
+    html += `</tbody></table></div>`;
+    html += `</div>`;
+    animationDelay += 300;
+  }
+  
+  // Pain data exploration: summary from all pain points in the period
+  if (analysis.symptomsAndPainAnalysis && analysis.symptomsAndPainAnalysis.painExploration && analysis.symptomsAndPainAnalysis.painExploration.summaryLines && analysis.symptomsAndPainAnalysis.painExploration.summaryLines.length > 0) {
+    const exploration = analysis.symptomsAndPainAnalysis.painExploration;
+    html += `
+      <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+        <h3 class="ai-section-title ai-section-green">🔬 Pain patterns</h3>
+        <ul class="ai-list" style="margin: 0; padding-left: 1.25rem;">
+    `;
+    exploration.summaryLines.forEach((line, i) => {
+      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (i * 60)}ms; margin-bottom: 0.5rem;">${escapeHTML(line)}</li>`;
+    });
     html += `</ul></div>`;
     animationDelay += 300;
   }
@@ -4014,34 +4090,20 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     const nutrition = analysis.nutritionAnalysis;
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">🍽️ What you ate (calories and protein)</h3>
-        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">
-          On average per day: <strong>${nutrition.avgCalories} calories</strong> and <strong>${nutrition.avgProtein}g protein</strong>
-        </p>
+        <h3 class="ai-section-title ai-section-green">🍽️ Nutrition</h3>
+        <div class="ai-nutrition-visual">
+          <div class="ai-nutrition-main"><span class="ai-nutrition-value">${nutrition.avgCalories}</span> <span class="ai-nutrition-unit">cal</span></div>
+          <div class="ai-nutrition-main"><span class="ai-nutrition-value">${nutrition.avgProtein}g</span> <span class="ai-nutrition-unit">protein</span></div>
+        </div>
     `;
-    
-    if (nutrition.highCalorieDays > 0 || nutrition.lowCalorieDays > 0) {
-      html += `<p style="color: rgba(224, 242, 241, 0.7); font-size: 0.9rem;">`;
-      if (nutrition.highCalorieDays > 0) {
-        html += `Days over 2500 calories: ${nutrition.highCalorieDays}. `;
-      }
-      if (nutrition.lowCalorieDays > 0) {
-        html += `Days under 1500 calories: ${nutrition.lowCalorieDays}`;
-      }
-      html += `</p>`;
+    if (nutrition.highCalorieDays > 0 || nutrition.lowCalorieDays > 0 || nutrition.highProteinDays > 0 || nutrition.lowProteinDays > 0) {
+      const extras = [];
+      if (nutrition.highCalorieDays > 0) extras.push(`>2500 cal: ${nutrition.highCalorieDays}d`);
+      if (nutrition.lowCalorieDays > 0) extras.push(`<1500 cal: ${nutrition.lowCalorieDays}d`);
+      if (nutrition.highProteinDays > 0) extras.push(`>100g: ${nutrition.highProteinDays}d`);
+      if (nutrition.lowProteinDays > 0) extras.push(`<50g: ${nutrition.lowProteinDays}d`);
+      html += `<p class="ai-nutrition-extra">${extras.join(' · ')}</p>`;
     }
-    
-    if (nutrition.highProteinDays > 0 || nutrition.lowProteinDays > 0) {
-      html += `<p style="color: rgba(224, 242, 241, 0.7); font-size: 0.9rem;">`;
-      if (nutrition.highProteinDays > 0) {
-        html += `Days over 100g protein: ${nutrition.highProteinDays}. `;
-      }
-      if (nutrition.lowProteinDays > 0) {
-        html += `Days under 50g protein: ${nutrition.lowProteinDays}`;
-      }
-      html += `</p>`;
-    }
-    
     html += `</div>`;
     animationDelay += 300;
   }
@@ -4052,9 +4114,10 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title ai-section-green">🏃 Exercise</h3>
-        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 0;">
-          On days you logged exercise: about <strong>${ex.avgMinutesPerDay} minutes</strong> on average (${ex.daysWithExercise} days in this period)
-        </p>
+        <div class="ai-exercise-visual">
+          <span class="ai-exercise-value">${ex.avgMinutesPerDay}</span> <span class="ai-exercise-unit">min avg</span>
+          <span class="ai-exercise-days">${ex.daysWithExercise} days</span>
+        </div>
       </div>
     `;
     animationDelay += 300;
@@ -4064,9 +4127,8 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
   if (analysis.topExercises && analysis.topExercises.length > 0) {
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">🏃 Exercises you did most</h3>
-        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">Activities you logged most often in this period.</p>
-        <ul class="ai-list" style="columns: 2; column-gap: 1.5rem;">
+        <h3 class="ai-section-title ai-section-green">🏃 Top exercises</h3>
+        <ul class="ai-list ai-list-pills" style="columns: 2; column-gap: 1rem;">
     `;
     analysis.topExercises.forEach((item, index) => {
       html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 30)}ms;">${escapeHTML(item.name)}: ${item.count} ${item.count === 1 ? 'time' : 'times'}</li>`;
@@ -4079,9 +4141,8 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
   if (analysis.topFoods && analysis.topFoods.length > 0) {
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">🍽️ Foods you logged most</h3>
-        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">Items you logged most often in this period.</p>
-        <ul class="ai-list" style="columns: 2; column-gap: 1.5rem;">
+        <h3 class="ai-section-title ai-section-green">🍽️ Top foods</h3>
+        <ul class="ai-list ai-list-pills" style="columns: 2; column-gap: 1rem;">
     `;
     analysis.topFoods.forEach((item, index) => {
       html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 30)}ms;">${escapeHTML(item.name)}: ${item.count} ${item.count === 1 ? 'time' : 'times'}</li>`;
@@ -4091,14 +4152,12 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
   }
 
   // Nutrition summary (avg calories/protein when present)
-  if (analysis.nutritionAnalysis && analysis.nutritionAnalysis.daysWithFood > 0) {
+  if (analysis.nutritionAnalysis && analysis.nutritionAnalysis.daysWithFood > 0 && !analysis.nutritionAnalysis.avgCalories) {
     const nut = analysis.nutritionAnalysis;
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title ai-section-green">🍽️ Food summary</h3>
-        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 0;">
-          On days you logged food: about <strong>${nut.avgCalories} calories</strong> and <strong>${nut.avgProtein}g protein</strong> per day (${nut.daysWithFood} days)
-        </p>
+        <div class="ai-exercise-visual"><span class="ai-exercise-days">${nut.daysWithFood} days</span> with food logged</div>
       </div>
     `;
     animationDelay += 300;
@@ -4108,8 +4167,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
   if (analysis.foodExerciseImpacts && analysis.foodExerciseImpacts.length > 0) {
     html += `
       <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title">🍽️ What seems to help you feel better</h3>
-        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">From your logs: how food and exercise line up with how you feel.</p>
+        <h3 class="ai-section-title">🍽️ What seems to help</h3>
         <div class="ai-trends-grid">
     `;
     
@@ -4141,15 +4199,16 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
     animationDelay += 300;
   }
 
-  // Anomalies section
+  // Anomalies section (high-contrast, less dense)
   if (analysis.anomalies.length > 0) {
-  html += `
+    html += `
       <div class="ai-summary-section ai-section-warning ai-animate-in" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title ai-section-orange">⚠️ Things to watch</h3>
         <ul class="ai-list ai-list-warning">
     `;
     analysis.anomalies.forEach((anomaly, index) => {
-      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 200 + (index * 100)}ms;">${anomaly}</li>`;
+      const formatted = formatAnomalyLine(anomaly);
+      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 200 + (index * 100)}ms;">${formatted}</li>`;
     });
     html += `</ul></div>`;
     animationDelay += 300;
@@ -4159,9 +4218,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null) {
   html += `
     <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
       <h3 class="ai-section-title ai-section-green">💡 Important</h3>
-      <p class="ai-disclaimer">
-        <strong>Remember:</strong> This is to help you see patterns in your health. Always talk to your doctor before changing anything about your care. You can show them this at your next visit.
-      </p>
+      <p class="ai-disclaimer">For patterns only — talk to your doctor before changing care. You can share this at your next visit.</p>
     </div>
   `;
 
@@ -5214,7 +5271,7 @@ function updateHeartbeatAnimation() {
   const duration = Math.max(0.3, Math.min(2.0, 60 / latestBPM));
   heartbeatPath.style.animationDuration = `${duration}s`;
   
-  console.log(`Heartbeat animation updated: ${latestBPM} BPM = ${duration.toFixed(2)}s per beat`);
+  Logger.debug('Heartbeat animation updated', { bpm: latestBPM, durationSec: duration.toFixed(2) });
 }
 
 // Sample data auto-insertion removed - was causing ghost entries from 2024-01-15 to 2024-01-17
@@ -5252,7 +5309,7 @@ function deleteLogEntry(logDate) {
     updateHeartbeatAnimation(); // Update heartbeat speed after deletion
     updateAISummaryButtonState(); // Update AI button state
     
-    console.log(`Deleted log entry for ${logDate}`);
+    Logger.debug('Deleted log entry', { date: logDate });
     Logger.info('Health log entry deleted', { date: logDate, remainingEntries: logs.length });
   } else {
     Logger.info('Health log entry deletion cancelled by user', { date: logDate });
@@ -6260,11 +6317,26 @@ function openFoodModal(logDate) {
       closeFoodModal();
     }
   };
+  // Escape to close
+  window._foodModalEscapeHandler = function(e) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      document.removeEventListener('keydown', window._foodModalEscapeHandler);
+      window._foodModalEscapeHandler = null;
+      closeFoodModal();
+    }
+  };
+  document.addEventListener('keydown', window._foodModalEscapeHandler);
 }
 
 function closeFoodModal() {
+  if (window._foodModalEscapeHandler) {
+    document.removeEventListener('keydown', window._foodModalEscapeHandler);
+    window._foodModalEscapeHandler = null;
+  }
   Logger.debug('Food modal closed', { date: currentEditingDate });
-  document.getElementById('foodModalOverlay').style.display = 'none';
+  const overlay = document.getElementById('foodModalOverlay');
+  if (overlay) overlay.style.display = 'none';
   document.body.classList.remove('modal-active');
   document.body.style.overflow = '';
   currentEditingDate = null;
@@ -6460,11 +6532,26 @@ function openExerciseModal(logDate) {
       closeExerciseModal();
     }
   };
+  // Escape to close
+  window._exerciseModalEscapeHandler = function(e) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      document.removeEventListener('keydown', window._exerciseModalEscapeHandler);
+      window._exerciseModalEscapeHandler = null;
+      closeExerciseModal();
+    }
+  };
+  document.addEventListener('keydown', window._exerciseModalEscapeHandler);
 }
 
 function closeExerciseModal() {
+  if (window._exerciseModalEscapeHandler) {
+    document.removeEventListener('keydown', window._exerciseModalEscapeHandler);
+    window._exerciseModalEscapeHandler = null;
+  }
   Logger.debug('Exercise modal closed', { date: currentEditingDate });
-  document.getElementById('exerciseModalOverlay').style.display = 'none';
+  const overlay = document.getElementById('exerciseModalOverlay');
+  if (overlay) overlay.style.display = 'none';
   document.body.classList.remove('modal-active');
   document.body.style.overflow = '';
   currentEditingDate = null;
@@ -6753,11 +6840,26 @@ function openEditEntryModal(logDate) {
       closeEditEntryModal();
     }
   };
+  // Escape to close
+  window._editEntryModalEscapeHandler = function(e) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      document.removeEventListener('keydown', window._editEntryModalEscapeHandler);
+      window._editEntryModalEscapeHandler = null;
+      closeEditEntryModal();
+    }
+  };
+  document.addEventListener('keydown', window._editEntryModalEscapeHandler);
 }
 
 function closeEditEntryModal() {
+  if (window._editEntryModalEscapeHandler) {
+    document.removeEventListener('keydown', window._editEntryModalEscapeHandler);
+    window._editEntryModalEscapeHandler = null;
+  }
   Logger.debug('Edit entry modal closed', { date: editingEntryDate });
-  document.getElementById('editEntryModalOverlay').style.display = 'none';
+  const overlay = document.getElementById('editEntryModalOverlay');
+  if (overlay) overlay.style.display = 'none';
   document.body.classList.remove('modal-active');
   document.body.style.overflow = '';
   editingEntryDate = null;
@@ -6766,7 +6868,7 @@ function closeEditEntryModal() {
 // Inline editing functions
 function enableInlineEdit(logDate) {
   if (!logDate) {
-    console.error('enableInlineEdit: logDate is required');
+    Logger.error('enableInlineEdit: logDate is required');
     return;
   }
   
@@ -7259,25 +7361,23 @@ function generateLogEntryHTML(log) {
           }
         </div>
       </div>
-      ${(log.energyClarity || log.weatherSensitivity) 
-        ? `<div class="metric-group energy-cognitive">
-          <h4 class="metric-group-title">⚡ Energy & Mental Clarity</h4>
-          ${log.energyClarity ? `<div class="metric-item">
-            <span class="metric-label">🧠 Energy/Clarity</span>
-            ${isEditing 
-              ? `<input type="text" class="inline-edit-energyClarity" value="${escapeHTML(log.energyClarity)}" maxlength="50" style="flex: 1; max-width: 200px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-left: 12px;" />`
-              : `<span class="metric-value">${escapeHTML(log.energyClarity)}</span>`
-            }
-          </div>` : ''}
-          ${log.weatherSensitivity ? `<div class="metric-item">
-            <span class="metric-label">🌤️ Weather Sensitivity</span>
-            ${isEditing 
-              ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-weatherSensitivity" value="${log.weatherSensitivity}" min="0" max="10" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
-              : `<span class="metric-value">${log.weatherSensitivity}/10</span>`
-            }
-          </div>` : ''}
-        </div>` : ''
-      }
+      <div class="metric-group energy-cognitive">
+        <h4 class="metric-group-title">⚡ Energy & Mental Clarity</h4>
+        <div class="metric-item">
+          <span class="metric-label">🧠 Energy/Clarity</span>
+          ${isEditing 
+            ? `<input type="text" class="inline-edit-energyClarity" value="${escapeHTML(log.energyClarity || '')}" maxlength="50" style="flex: 1; max-width: 200px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-left: 12px;" />`
+            : `<span class="metric-value">${log.energyClarity ? escapeHTML(log.energyClarity) : '—'}</span>`
+          }
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">🌤️ Weather Sensitivity</span>
+          ${isEditing 
+            ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-weatherSensitivity" value="${log.weatherSensitivity || ''}" min="0" max="10" placeholder="—" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
+            : `<span class="metric-value">${log.weatherSensitivity !== undefined && log.weatherSensitivity !== '' && log.weatherSensitivity != null ? log.weatherSensitivity + '/10' : '—'}</span>`
+          }
+        </div>
+      </div>
       ${(log.steps || log.hydration) 
         ? `<div class="metric-group lifestyle-factors">
           <h4 class="metric-group-title">🏃 Lifestyle Factors</h4>
@@ -7297,46 +7397,41 @@ function generateLogEntryHTML(log) {
           </div>` : ''}
         </div>` : ''
       }
-      ${getAllFoodItems(log).length > 0
-        ? `<div class="metric-group food-log">
-          <h4 class="metric-group-title">🍽️ Food Log</h4>
-          ${formatFoodLogForView(log)}
-        </div>` : ''
-      }
-      ${(log.exercise && log.exercise.length > 0)
-        ? `<div class="metric-group exercise-log">
-          <h4 class="metric-group-title">🏃 Exercise Log</h4>
-          <div class="metric-item">
-            <span class="metric-label">Activities</span>
-            <span class="metric-value metric-value-list">${log.exercise.map(item => escapeHTML(formatExerciseDisplay(item))).join('; ')}</span>
-          </div>
-        </div>` : ''
-      }
-      ${(log.stressors && log.stressors.length > 0) 
-        ? `<div class="metric-group stress-triggers">
-          <h4 class="metric-group-title">😰 Stress & Triggers</h4>
-          <div class="metric-item">
-            <span class="metric-label">💥 Stressors</span>
-            <span class="metric-value">${log.stressors.map(s => escapeHTML(s)).join(', ')}</span>
-          </div>
-        </div>` : ''
-      }
-      ${((log.symptoms && log.symptoms.length > 0) || log.painLocation) 
-        ? `<div class="metric-group additional-symptoms">
-          <h4 class="metric-group-title">💉 Additional Symptoms</h4>
-          ${(log.symptoms && log.symptoms.length > 0) ? `<div class="metric-item">
-            <span class="metric-label">Symptoms</span>
-            <span class="metric-value">${log.symptoms.map(s => escapeHTML(s)).join(', ')}</span>
-          </div>` : ''}
-          ${log.painLocation ? `<div class="metric-item">
-            <span class="metric-label">📍 Pain Location</span>
-            ${isEditing 
-              ? `<input type="text" class="inline-edit-painLocation" value="${escapeHTML(log.painLocation)}" maxlength="150" style="flex: 1; max-width: 250px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-left: 12px;" />`
-              : `<span class="metric-value">${escapeHTML(log.painLocation)}</span>`
-            }
-          </div>` : ''}
-        </div>` : ''
-      }
+      <div class="metric-group food-log">
+        <h4 class="metric-group-title">🍽️ Food Log</h4>
+        ${getAllFoodItems(log).length > 0 ? formatFoodLogForView(log) : `<div class="metric-item"><span class="metric-label">Items</span><span class="metric-value metric-value-muted">None logged</span></div>`}
+      </div>
+      <div class="metric-group exercise-log">
+        <h4 class="metric-group-title">🏃 Exercise Log</h4>
+        <div class="metric-item">
+          <span class="metric-label">Activities</span>
+          ${(log.exercise && log.exercise.length > 0)
+            ? `<span class="metric-value metric-value-list">${log.exercise.map(item => escapeHTML(formatExerciseDisplay(item))).join('; ')}</span>`
+            : `<span class="metric-value metric-value-muted">None logged</span>`
+          }
+        </div>
+      </div>
+      <div class="metric-group stress-triggers">
+        <h4 class="metric-group-title">😰 Stress & Triggers</h4>
+        <div class="metric-item">
+          <span class="metric-label">💥 Stressors</span>
+          <span class="metric-value">${(log.stressors && log.stressors.length > 0) ? log.stressors.map(s => escapeHTML(s)).join(', ') : '—'}</span>
+        </div>
+      </div>
+      <div class="metric-group additional-symptoms">
+        <h4 class="metric-group-title">💉 Additional Symptoms</h4>
+        <div class="metric-item">
+          <span class="metric-label">Symptoms</span>
+          <span class="metric-value">${(log.symptoms && log.symptoms.length > 0) ? log.symptoms.map(s => escapeHTML(s)).join(', ') : '—'}</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">📍 Pain Location</span>
+          ${isEditing 
+            ? `<input type="text" class="inline-edit-painLocation" value="${escapeHTML(log.painLocation || '')}" maxlength="150" style="flex: 1; max-width: 250px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-left: 12px;" />`
+            : `<span class="metric-value">${log.painLocation ? escapeHTML(log.painLocation) : '—'}</span>`
+          }
+        </div>
+      </div>
       </div>
       ${isEditing 
         ? `<div class="log-notes"><strong>📝 Note:</strong> <textarea class="inline-edit-notes" onclick="event.stopPropagation();" style="width: 100%; min-height: 60px; padding: 8px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-top: 8px; resize: vertical;">${log.notes || ''}</textarea></div>`
@@ -7447,7 +7542,7 @@ function renderLogs() {
   // Ensure we're using the most up-to-date logs array
   const currentLogs = (typeof window !== 'undefined' && window.logs) ? window.logs : logs;
   if (!Array.isArray(currentLogs)) {
-    console.warn('renderLogs: logs is not an array', typeof currentLogs, currentLogs);
+    Logger.warn('renderLogs: logs is not an array', { type: typeof currentLogs });
     renderLogEntries([]);
     return;
   }
@@ -7644,7 +7739,7 @@ function setPredictionRange(range) {
   // Enable predictions when a range is selected
   predictionsEnabled = true;
   predictionRange = range;
-  console.log(`Prediction range set to: ${range} days`);
+  Logger.debug('Prediction range set', { days: range });
   
   // Deselect the Off button
   const toggleBtn = document.getElementById('predictionToggle');
@@ -8817,7 +8912,7 @@ function updateCharts() {
     return;
   }
   
-  console.log('Updating charts with', logs.length, 'log entries');
+  Logger.debug('Updating charts', { entryCount: logs.length });
   
   // Check if we have any data to display
   const hasData = logs && logs.length > 0;
@@ -8863,7 +8958,6 @@ form.addEventListener("submit", e => {
   
   // Validate form before submission
   if (!formValidator.validateForm()) {
-    console.log('Form validation failed');
     Logger.warn('Form validation failed', { formId: 'logEntryForm' });
     // Scroll to validation summary
     const summaryElement = document.getElementById('validationSummary');
@@ -9015,7 +9109,7 @@ form.addEventListener("submit", e => {
     transform: translateX(0);
     opacity: 1;
   `;
-  successMsg.textContent = existingEntry ? 'Entry updated successfully! ✅' : 'Entry saved successfully! ✅';
+  successMsg.textContent = 'Entry saved successfully! ✅';
   document.body.appendChild(successMsg);
   
   setTimeout(() => {
@@ -9491,43 +9585,58 @@ function toggleSetting(setting) {
 // Override the placeholder with the full implementation
 // This replaces the earlier placeholder function
 (function() {
+  var _settingsEscapeAndTrapHandler = null;
+  var _settingsPreviousActiveElement = null;
+
+  function getFocusableInSettings() {
+    const overlay = document.getElementById('settingsOverlay');
+    if (!overlay) return [];
+    const sel = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    return Array.prototype.filter.call(overlay.querySelectorAll(sel), function(el) {
+      return el.offsetParent !== null && (el.tabIndex >= 0 || el.tagName === 'A' || el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA' || el.tagName === 'BUTTON');
+    });
+  }
+
+  function removeSettingsKeydown() {
+    if (_settingsEscapeAndTrapHandler) {
+      document.removeEventListener('keydown', _settingsEscapeAndTrapHandler);
+      _settingsEscapeAndTrapHandler = null;
+    }
+  }
+
   const fullToggleSettings = function() {
-    console.log('toggleSettings FULL implementation called');
   const overlay = document.getElementById('settingsOverlay');
     if (!overlay) {
-      console.error('Settings overlay not found!');
       return;
     }
     
     const isVisible = overlay.style.display === 'block' || overlay.style.display === 'flex';
-    console.log('Settings modal isVisible:', isVisible, 'current display:', overlay.style.display);
     
     if (isVisible) {
       // Close modal - preserve state
-      console.log('Closing settings modal');
-      
-      // Preserve scroll position and state before closing
       const settingsContent = overlay.querySelector('.settings-content');
       if (settingsContent) {
         window.settingsModalScrollPosition = settingsContent.scrollTop;
       }
       
-      // Preserve expanded sections state
       const conditionSelector = document.getElementById('medicalConditionSelector');
       if (conditionSelector) {
         window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
       }
       
-    overlay.style.display = 'none';
+      removeSettingsKeydown();
+      overlay.style.display = 'none';
       overlay.style.visibility = 'hidden';
       document.body.classList.remove('modal-active');
       document.body.style.overflow = '';
+      if (_settingsPreviousActiveElement && typeof _settingsPreviousActiveElement.focus === 'function') {
+        _settingsPreviousActiveElement.focus();
+        _settingsPreviousActiveElement = null;
+      }
   } else {
-      // Open modal - restore state
-      console.log('Opening settings modal');
+      // Open modal - save focus for restore on close
+      _settingsPreviousActiveElement = document.activeElement;
       document.body.style.overflow = 'hidden';
-      
-      // Don't reset scroll position - will restore it after opening
       window.scrollTo(0, 0);
       
       overlay.style.position = 'fixed';
@@ -9566,57 +9675,84 @@ function toggleSetting(setting) {
     loadSettingsState();
   }
       
-      // Restore scroll position if it was saved
       const settingsContent = overlay.querySelector('.settings-content');
       if (settingsContent && window.settingsModalScrollPosition !== undefined) {
-        // Use setTimeout to ensure DOM is fully rendered
         setTimeout(() => {
           settingsContent.scrollTop = window.settingsModalScrollPosition;
         }, 50);
       } else if (settingsContent) {
-        // Reset to top if no saved position
         settingsContent.scrollTop = 0;
       }
       
-      // Restore expanded sections state
       if (window.settingsModalConditionSelectorOpen) {
         const conditionSelector = document.getElementById('medicalConditionSelector');
         if (conditionSelector) {
           conditionSelector.style.display = 'block';
         }
   }
+
+      // Escape to close + focus trap
+      _settingsEscapeAndTrapHandler = function(e) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          removeSettingsKeydown();
+          window.closeSettings();
+          return;
+        }
+        if (e.key !== 'Tab') return;
+        var focusable = getFocusableInSettings();
+        if (focusable.length === 0) return;
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      };
+      document.addEventListener('keydown', _settingsEscapeAndTrapHandler);
+
+      // Focus first focusable in settings
+      setTimeout(function() {
+        var focusable = getFocusableInSettings();
+        if (focusable.length > 0) focusable[0].focus();
+      }, 50);
 }
   };
   
-  // Replace the placeholder
   window.toggleSettings = fullToggleSettings;
-  console.log('toggleSettings function replaced with full implementation');
   
-  // Dedicated close function for the close button (always closes, never toggles)
   window.closeSettings = function() {
     const overlay = document.getElementById('settingsOverlay');
     if (!overlay) {
-      console.error('Settings overlay not found!');
       return;
     }
     
-    // Preserve scroll position and state before closing
     const settingsContent = overlay.querySelector('.settings-content');
     if (settingsContent) {
       window.settingsModalScrollPosition = settingsContent.scrollTop;
     }
     
-    // Preserve expanded sections state
     const conditionSelector = document.getElementById('medicalConditionSelector');
     if (conditionSelector) {
       window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
     }
     
-    // Always close, don't toggle
+    removeSettingsKeydown();
     overlay.style.display = 'none';
     overlay.style.visibility = 'hidden';
     document.body.classList.remove('modal-active');
     document.body.style.overflow = '';
+    if (_settingsPreviousActiveElement && typeof _settingsPreviousActiveElement.focus === 'function') {
+      _settingsPreviousActiveElement.focus();
+      _settingsPreviousActiveElement = null;
+    }
   };
 })();
 
@@ -9630,9 +9766,6 @@ if (typeof document !== 'undefined') {
   document.toggleSettings = window.toggleSettings;
   document.closeSettings = window.closeSettings;
 }
-
-// Test that toggleSettings is accessible
-console.log('toggleSettings function available:', typeof window.toggleSettings === 'function');
 
 function updateUserName() {
   const userNameInput = document.getElementById('userNameInput');
@@ -10732,7 +10865,7 @@ function updateConditionContext(conditionName) {
   CONDITION_CONTEXT.description = conditionDescriptions[conditionName] || 'A chronic health condition requiring ongoing management';
   
   // Keep existing metrics and treatment areas (can be customized per condition later)
-  console.log(`Condition context updated to: ${conditionName}`);
+  Logger.debug('Condition context updated', { condition: conditionName });
 }
 
 // Initialize condition context from settings
@@ -11287,8 +11420,6 @@ function initializeOneOpenDetails() {
 
 // Tab switching functionality
 function switchTab(tabName) {
-  console.log('Switching to tab:', tabName);
-  
   // Hide all tabs
   const allTabs = document.querySelectorAll('.tab-content');
   const allTabBtns = document.querySelectorAll('.tab-btn');
@@ -11302,28 +11433,33 @@ function switchTab(tabName) {
     btn.classList.remove('active');
   });
   
-  // AI results container is always visible at bottom of container when it has content
-  // No need to hide/show based on tab switching - it stays at the bottom
-  
   // Show selected tab
   const selectedTab = document.getElementById(tabName + 'Tab');
   const selectedBtn = document.querySelector(`[data-tab="${tabName}"]`);
-  
-  console.log('Selected tab element:', selectedTab);
-  console.log('Selected button element:', selectedBtn);
   
   if (selectedTab) {
     selectedTab.classList.add('active');
     selectedTab.style.display = 'block';
     selectedTab.style.visibility = 'visible';
     selectedTab.style.opacity = '1';
-    console.log('Tab activated:', tabName);
-  } else {
-    console.error('Tab not found:', tabName + 'Tab');
   }
   
   if (selectedBtn) {
     selectedBtn.classList.add('active');
+    selectedBtn.setAttribute('aria-selected', 'true');
+    allTabBtns.forEach(btn => {
+      if (btn !== selectedBtn) btn.setAttribute('aria-selected', 'false');
+    });
+    // Focus the active tab for keyboard/screen reader users
+    selectedBtn.focus();
+  }
+  
+  // Scroll main content to top when switching to Charts, View Logs, or AI (so user doesn't stay mid-page)
+  if (tabName === 'charts' || tabName === 'logs' || tabName === 'ai') {
+    const container = document.querySelector('.container');
+    if (container) container.scrollTop = 0;
+    if (selectedTab) selectedTab.scrollTop = 0;
+    window.scrollTo(0, 0);
   }
   
   // Special handling for charts tab

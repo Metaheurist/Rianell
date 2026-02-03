@@ -250,10 +250,24 @@ function showExportModal() {
   const modal = document.getElementById('exportModalOverlay');
   if (modal) {
     modal.style.display = 'flex';
+    // Escape to close
+    window._exportModalEscapeHandler = function(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        document.removeEventListener('keydown', window._exportModalEscapeHandler);
+        window._exportModalEscapeHandler = null;
+        closeExportModal();
+      }
+    };
+    document.addEventListener('keydown', window._exportModalEscapeHandler);
   }
 }
 
 function closeExportModal() {
+  if (window._exportModalEscapeHandler) {
+    document.removeEventListener('keydown', window._exportModalEscapeHandler);
+    window._exportModalEscapeHandler = null;
+  }
   const modal = document.getElementById('exportModalOverlay');
   if (modal) {
     modal.style.display = 'none';
