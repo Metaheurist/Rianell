@@ -96,6 +96,17 @@
     </div>
   </div>
 
+  <!-- Cookie consent banner -->
+  <div id="cookieBanner" class="cookie-banner hidden" role="region" aria-label="Cookie consent">
+    <div class="cookie-banner-inner">
+      <p class="cookie-banner-text">We use local storage and optional cloud sync to run the app. By accepting, you agree to our cookie and data policy.</p>
+      <div class="cookie-banner-actions">
+        <button type="button" class="cookie-banner-accept" onclick="acceptCookieConsent()">Accept</button>
+        <button type="button" class="cookie-banner-policy" onclick="openCookiePolicyModal()">Cookie policy</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings Menu Overlay - Full Page Container -->
   <div class="settings-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-label="Settings">
     <div class="settings-menu" onclick="event.stopPropagation()">
@@ -292,6 +303,9 @@
         <div class="danger-zone">
           <button class="settings-data-btn danger-btn" onclick="clearData()">🗑️ Clear All Data</button>
         </div>
+      </div>
+      <div class="settings-footer">
+        <a href="#" class="settings-footer-link" onclick="event.preventDefault(); openCookiePolicyModal(); return false;">Cookie policy</a>
       </div>
       </div>
     </div>
@@ -1260,6 +1274,20 @@
     </div>
   </div>
 
+  <!-- God mode overlay (` key): test all UI elements -->
+  <div class="modal-overlay" id="modalTestOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="God mode – test all UI">
+    <div class="modal-content god-mode-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>God mode – test all UI</h3>
+        <button type="button" class="modal-close" onclick="closeModalTestOverlay()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body god-mode-body">
+        <p class="god-mode-hint">Press <kbd>`</kbd> to open. Trigger tabs, modals, charts, AI range, form sections, and more.</p>
+        <div id="godModeSections"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Tutorial Modal (new users + backtick ` to reopen) -->
   <div class="modal-overlay tutorial-modal-overlay" id="tutorialModalOverlay" style="display: none;">
     <div class="modal-content tutorial-modal-content" onclick="event.stopPropagation()">
@@ -1517,6 +1545,46 @@
       <div class="modal-footer gdpr-agreement-footer">
         <button class="modal-save-btn" id="gdprAgreeBtn" style="background: rgba(76, 175, 80, 0.8);">✓ I Agree and Enable</button>
         <button class="modal-save-btn" id="gdprDeclineBtn" style="background: rgba(255, 255, 255, 0.1);" onclick="closeGDPRAgreementModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cookie policy modal -->
+  <div class="modal-overlay" id="cookiePolicyOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Cookie policy">
+    <div class="modal-content cookie-policy-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Cookie and data policy</h3>
+        <button type="button" class="modal-close" onclick="closeCookiePolicyModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body cookie-policy-body">
+        <section>
+          <h4>What we collect and how</h4>
+          <p><strong>Data you enter:</strong> Your health entries (metrics, symptoms, food, exercise, stress, notes, pain locations), your name and condition, app preferences, and—if you sign up—your email for cloud sync.</p>
+          <p><strong>Automatically:</strong> We don’t collect anything beyond what you enter and what you choose to sync.</p>
+        </section>
+        <section>
+          <h4>How we store it</h4>
+          <p>We store data only on your device and, if you turn on Cloud Sync, in a secure cloud account:</p>
+          <ul>
+            <li><strong>On your device:</strong> Your health entries, settings, tutorial progress, cloud sync preferences and last sync time, and any backups you create. Session data is cleared when you sign out or reset data.</li>
+            <li><strong>If you install the app:</strong> Cached files so the app can work offline. We do not set cookies on our server.</li>
+          </ul>
+        </section>
+        <section>
+          <h4>Third parties</h4>
+          <p>When you use Cloud Sync, your encrypted data is stored with our cloud provider (Supabase); they may use their own cookies or storage for sign-in. We also use a content delivery network for fonts and scripts; we don’t control their cookies or tracking.</p>
+        </section>
+        <section>
+          <h4>How we use your data</h4>
+          <ul>
+            <li><strong>On your device:</strong> To show charts, run AI analysis, and give you insights. Nothing is sent to our servers unless you enable Cloud Sync.</li>
+            <li><strong>Cloud Sync (optional):</strong> If you turn it on, we use it only to store and sync your account. If you opt in to contribute anonymised data, that anonymised data may be used to improve models, as described in Settings.</li>
+            <li><strong>We do not sell your data or use it for advertising.</strong></li>
+          </ul>
+        </section>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-save-btn" onclick="closeCookiePolicyModal()">Close</button>
       </div>
     </div>
   </div>
