@@ -3739,6 +3739,7 @@ body.light-mode .pain-region.pain-state-2 { fill: rgba(244, 67, 54, 0.55); color
 
 .modal-overlay[style*="block"] {
   display: block !important;
+  opacity: 1 !important;
 }
 
 .modal-content {
