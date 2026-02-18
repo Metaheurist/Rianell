@@ -1,14 +1,14 @@
 :root {
   --primary-color: #4caf50;
   --primary-gradient: linear-gradient(135deg, #4caf50 0%, #66bb6a 50%, #81c784 100%);
-  --primary-glow: 0 0 20px rgba(76, 175, 80, 0.4);
+  --primary-glow: 0 0 12px rgba(76, 175, 80, 0.25);
   --background-dark: #0a0a0a;
   --background-gradient: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
   --text-light: #e0f2f1;
   --card-bg: rgba(30, 30, 30, 0.8);
   --card-bg-glass: rgba(255, 255, 255, 0.05);
-  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --card-hover-shadow: 0 12px 48px rgba(76, 175, 80, 0.3);
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --card-hover-shadow: 0 12px 40px rgba(76, 175, 80, 0.2);
 
   /* Design tokens: radius */
   --radius-sm: 8px;
@@ -51,6 +51,11 @@
   --heading-lg: 1.6rem;
   /* Section spacing */
   --section-gap: 1.5rem;
+
+  /* Typography */
+  --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --border-subtle: rgba(255, 255, 255, 0.1);
 }
 
 /* Skip link for keyboard/screen reader users */
@@ -74,12 +79,23 @@
   outline-offset: 2px;
 }
 
+/* Consistent focus ring for keyboard users */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+[type="button"]:focus-visible,
+[type="submit"]:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: var(--font-body);
+  font-weight: 400;
   background: var(--background-gradient);
   background-attachment: fixed;
   color: var(--text-light);
@@ -93,8 +109,14 @@ body {
   position: relative;
 }
 
-h1, h2, .section-heading, .tab-header h2, .ai-section-title {
+h1, h2, .section-heading, .tab-header h2, .ai-section-title, .tab-title, .settings-title {
+  font-family: var(--font-heading);
+  font-weight: 700;
   letter-spacing: 0.02em;
+}
+
+h2, .tab-header h2, .tab-title {
+  font-weight: 600;
 }
 
 body::before {
@@ -121,6 +143,7 @@ body::before {
 body.light-mode {
   background: var(--background-light);
   color: var(--text-dark);
+  --border-subtle: rgba(0, 0, 0, 0.08);
 }
 
 body.light-mode .container {
@@ -556,7 +579,7 @@ h1#dashboardTitle:hover {
   max-width: 1000px;
   margin: auto;
   box-shadow: var(--shadow-md);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-subtle);
   box-sizing: border-box;
   width: 100%;
   position: relative;
@@ -574,16 +597,29 @@ h1#dashboardTitle:hover {
 /* Tab Navigation */
 .tab-navigation {
   display: flex;
+  position: relative;
   gap: calc(var(--space-unit) * 2);
   margin: 2rem 0;
   padding: calc(var(--space-unit) * 2);
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(10px);
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-subtle);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+}
+
+.tab-nav-indicator {
+  position: absolute;
+  bottom: calc(var(--space-unit) * 2);
+  left: calc(var(--space-unit) * 2);
+  height: 3px;
+  border-radius: 2px;
+  background: var(--primary-color);
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+  transition: transform var(--transition-fluid), width var(--transition-fluid);
+  pointer-events: none;
 }
 
 .tab-navigation::-webkit-scrollbar {
@@ -614,7 +650,8 @@ h1#dashboardTitle:hover {
 }
 
 .tab-btn:focus-visible {
-  outline: 2px solid var(--primary-color);
+  outline: none;
+  box-shadow: var(--shadow-focus);
   outline-offset: 2px;
 }
 
@@ -632,7 +669,7 @@ h1#dashboardTitle:hover {
   background: rgba(76, 175, 80, 0.2);
   color: #ffffff;
   border: 2px solid rgba(76, 175, 80, 0.5);
-  box-shadow: var(--shadow-sm), 0 0 10px rgba(76, 175, 80, 0.3);
+  box-shadow: var(--shadow-sm), 0 0 8px rgba(76, 175, 80, 0.2);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
@@ -642,7 +679,7 @@ h1#dashboardTitle:hover {
   border-color: rgba(76, 175, 80, 0.8) !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
   transform: translateY(-2px);
-  box-shadow: 0 0 20px rgba(76, 175, 80, 0.5), inset 0 0 10px rgba(76, 175, 80, 0.1) !important;
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.35), inset 0 0 8px rgba(76, 175, 80, 0.08) !important;
 }
 
 .tab-btn.active::before {
@@ -682,6 +719,12 @@ h1#dashboardTitle:hover {
   display: none;
   padding-bottom: 10px;
   margin-bottom: 0;
+}
+
+.tab-content.tab-content--leave {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.18s var(--ease-fluid), transform 0.18s var(--ease-fluid);
 }
 
 .tab-content.active {
@@ -2238,8 +2281,8 @@ body.light-mode .tab-btn.ai-tab-btn.active {
 }
 
 .save-entry-btn:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--shadow-focus);
 }
 
 .save-entry-btn::before {
@@ -2264,7 +2307,7 @@ body.light-mode .save-entry-btn:hover {
   margin-bottom: var(--section-gap);
   background: rgba(255, 255, 255, 0.02);
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: all var(--transition-normal);
@@ -2682,14 +2725,14 @@ input, textarea, select {
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--shadow-focus);
 }
 
 input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.2), var(--primary-glow);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2), var(--primary-glow);
   transform: translateY(-2px);
   background: rgba(255, 255, 255, 0.08);
 }
@@ -3671,16 +3714,22 @@ body.light-mode .pain-region.pain-state-2 { fill: rgba(244, 67, 54, 0.55); color
   bottom: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 10000;
   pointer-events: all;
   overflow: hidden !important;
   overflow-x: hidden !important;
   box-sizing: border-box;
-  /* Prevent overlay from scrolling - modal content is fixed position */
-  /* Ensure overlay is always relative to viewport, not document */
   margin: 0 !important;
   padding: 0 !important;
+  opacity: 0;
+  transition: opacity var(--transition-normal) var(--ease-fluid);
+}
+
+.modal-overlay.modal-overlay--open {
+  opacity: 1;
 }
 
 /* Alert Modal Overlay - Higher z-index than settings */
@@ -3690,6 +3739,10 @@ body.light-mode .pain-region.pain-state-2 { fill: rgba(244, 67, 54, 0.55); color
 
 .modal-overlay[style*="block"] {
   display: block !important;
+}
+
+.modal-content {
+  transition: transform 0.3s var(--ease-fluid), opacity 0.3s var(--ease-fluid);
 }
 
 /* Disable body scroll and interaction when modal is open */
@@ -6893,8 +6946,11 @@ body.light-mode .settings-button-top:hover {
   bottom: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: none;
+  opacity: 0;
   z-index: 99999 !important;
   pointer-events: all;
   overflow: hidden;
@@ -6903,6 +6959,13 @@ body.light-mode .settings-button-top:hover {
   margin: 0 !important;
   padding: 0 !important;
   isolation: isolate;
+  transition: opacity var(--transition-normal) var(--ease-fluid);
+}
+
+.settings-overlay.settings-overlay--open {
+  opacity: 1;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .settings-overlay[style*="display: flex"],
@@ -6927,12 +6990,11 @@ body.light-mode .settings-button-top:hover {
   position: fixed !important;
   top: 50% !important;
   left: 50% !important;
-  transform: translate(-50%, -50%) !important;
+  transform: translate(100%, -50%);
   box-shadow: var(--shadow-lg), 0 0 40px rgba(76, 175, 80, 0.3);
   border: 2px solid rgba(76, 175, 80, 0.5);
   max-height: calc(85vh - env(safe-area-inset-bottom, 0px));
   overflow: hidden;
-  animation: modalFloatIn 0.4s var(--ease-fluid);
   z-index: 100000 !important;
   pointer-events: all;
   box-sizing: border-box;
@@ -6941,6 +7003,13 @@ body.light-mode .settings-button-top:hover {
   margin: 0 !important;
   padding: 0 !important;
   isolation: isolate;
+  opacity: 0;
+  transition: transform 0.35s var(--ease-fluid), opacity 0.35s var(--ease-fluid);
+}
+
+.settings-overlay.settings-overlay--open .settings-menu {
+  transform: translate(-50%, -50%);
+  opacity: 1;
 }
 
 .settings-header {
