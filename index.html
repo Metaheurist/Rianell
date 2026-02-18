@@ -21,7 +21,7 @@
   
   <!-- Security Headers -->
   <!-- Note: frame-ancestors and X-Frame-Options must be set via HTTP headers, not meta tags -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <!-- Note: X-Frame-Options is set via HTTP header in server.py, not here -->
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -56,6 +56,9 @@
   <script src="event-handlers.js?v=1"></script>
   <!-- Now loaded from local server with progress tracking -->
   <!-- The script will be loaded dynamically with progress bar in app.js -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="styles.css?v=1">
   <script>
@@ -391,6 +394,7 @@
 
     <!-- Tab Navigation -->
     <div class="tab-navigation" role="tablist" aria-label="Main sections">
+      <span class="tab-nav-indicator" id="tabNavIndicator" aria-hidden="true"></span>
       <button type="button" class="tab-btn active" data-tab="log" role="tab" aria-selected="true" aria-controls="logTab" id="tab-log" onclick="switchTab('log')">
         <span class="tab-icon">📝</span>
         <span class="tab-text">Log Entry</span>

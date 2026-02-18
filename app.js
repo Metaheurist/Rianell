@@ -100,23 +100,20 @@ const Logger = {
 // ============================================
 function closeSettingsModalIfOpen() {
   const settingsOverlay = document.getElementById('settingsOverlay');
-  if (settingsOverlay && (settingsOverlay.style.display === 'flex' || settingsOverlay.style.display === 'block')) {
-    // Preserve state before closing
-    const settingsContent = settingsOverlay.querySelector('.settings-content');
-    if (settingsContent) {
-      window.settingsModalScrollPosition = settingsContent.scrollTop;
-    }
-    
-    const conditionSelector = document.getElementById('medicalConditionSelector');
-    if (conditionSelector) {
-      window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
-    }
-    
-    if (typeof closeSettings === 'function') {
-      closeSettings();
-    } else if (typeof toggleSettings === 'function') {
-      toggleSettings(); // Toggle will close it if it's open
-    } else {
+  if (!settingsOverlay) return;
+  const isOpen = settingsOverlay.classList.contains('settings-overlay--open') || settingsOverlay.style.display === 'flex' || settingsOverlay.style.display === 'block';
+  if (!isOpen) return;
+  const settingsContent = settingsOverlay.querySelector('.settings-content');
+  if (settingsContent) window.settingsModalScrollPosition = settingsContent.scrollTop;
+  const conditionSelector = document.getElementById('medicalConditionSelector');
+  if (conditionSelector) window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
+  if (typeof closeSettings === 'function') {
+    closeSettings();
+  } else if (typeof toggleSettings === 'function') {
+    toggleSettings();
+  } else {
+    if (typeof settingsOverlaySetOpen === 'function') settingsOverlaySetOpen(settingsOverlay, false);
+    else {
       settingsOverlay.style.display = 'none';
       settingsOverlay.style.visibility = 'hidden';
       document.body.classList.remove('modal-active');
@@ -1751,17 +1748,12 @@ window.addEventListener('error', function(e) {
 
 // toggleSettings placeholder - will be replaced by full implementation later
 // This ensures inline onclick handlers don't error
-window.toggleSettings = function() {
-  const overlay = document.getElementById('settingsOverlay');
+function settingsOverlaySetOpen(overlay, open) {
   if (!overlay) return;
-  const isVisible = overlay.style.display === 'block' || overlay.style.display === 'flex';
-  if (isVisible) {
-    overlay.style.display = 'none';
-    overlay.style.visibility = 'hidden';
-    document.body.classList.remove('modal-active');
-    document.body.style.overflow = '';
-  } else {
+  if (open) {
     document.body.style.overflow = 'hidden';
+    overlay.style.display = 'block';
+    overlay.style.visibility = 'visible';
     overlay.style.position = 'fixed';
     overlay.style.top = '0';
     overlay.style.left = '0';
@@ -1769,24 +1761,42 @@ window.toggleSettings = function() {
     overlay.style.bottom = '0';
     overlay.style.width = '100vw';
     overlay.style.height = '100vh';
-    overlay.style.display = 'block';
-    overlay.style.visibility = 'visible';
-    overlay.style.opacity = '1';
     overlay.style.zIndex = '99999';
     document.body.classList.add('modal-active');
+    requestAnimationFrame(function() {
+      overlay.classList.add('settings-overlay--open');
+    });
+    if (typeof loadSettingsState === 'function') loadSettingsState();
+  } else {
+    overlay.classList.remove('settings-overlay--open');
+    var onEnd = function() {
+      overlay.removeEventListener('transitionend', onEnd);
+      overlay.style.display = 'none';
+      overlay.style.visibility = 'hidden';
+      document.body.classList.remove('modal-active');
+      document.body.style.overflow = '';
+    };
+    overlay.addEventListener('transitionend', onEnd);
+  }
+}
+window.toggleSettings = function() {
+  const overlay = document.getElementById('settingsOverlay');
+  if (!overlay) return;
+  const isVisible = overlay.classList.contains('settings-overlay--open') || overlay.style.display === 'block' || overlay.style.display === 'flex';
+  if (isVisible) {
+    settingsOverlaySetOpen(overlay, false);
+  } else {
+    settingsOverlaySetOpen(overlay, true);
     const menu = overlay.querySelector('.settings-menu');
     if (menu) {
       menu.style.position = 'fixed';
       menu.style.top = '50%';
       menu.style.left = '50%';
-      menu.style.transform = 'translate(-50%, -50%)';
+      menu.style.right = 'auto';
+      menu.style.bottom = 'auto';
       menu.style.zIndex = '100000';
       menu.style.display = 'flex';
       menu.style.visibility = 'visible';
-      menu.style.opacity = '1';
-    }
-    if (typeof loadSettingsState === 'function') {
-      loadSettingsState();
     }
   }
 };
@@ -10302,41 +10312,41 @@ function toggleSetting(setting) {
     }
   }
 
-  const fullToggleSettings = function() {
-  const overlay = document.getElementById('settingsOverlay');
-    if (!overlay) {
-      return;
-    }
-    
-    const isVisible = overlay.style.display === 'block' || overlay.style.display === 'flex';
-    
-    if (isVisible) {
-      // Close modal - preserve state
-      const settingsContent = overlay.querySelector('.settings-content');
-      if (settingsContent) {
-        window.settingsModalScrollPosition = settingsContent.scrollTop;
-      }
-      
-      const conditionSelector = document.getElementById('medicalConditionSelector');
-      if (conditionSelector) {
-        window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
-      }
-      
-      removeSettingsKeydown();
+  function settingsOverlayCloseWithTransition(overlay, onDone) {
+    overlay.classList.remove('settings-overlay--open');
+    var onEnd = function(e) {
+      if (e.target !== overlay) return;
+      overlay.removeEventListener('transitionend', onEnd);
       overlay.style.display = 'none';
       overlay.style.visibility = 'hidden';
       document.body.classList.remove('modal-active');
       document.body.style.overflow = '';
-      if (_settingsPreviousActiveElement && typeof _settingsPreviousActiveElement.focus === 'function') {
-        _settingsPreviousActiveElement.focus();
-        _settingsPreviousActiveElement = null;
-      }
-  } else {
-      // Open modal - save focus for restore on close
+      if (onDone) onDone();
+    };
+    overlay.addEventListener('transitionend', onEnd);
+  }
+
+  const fullToggleSettings = function() {
+    const overlay = document.getElementById('settingsOverlay');
+    if (!overlay) return;
+    const isVisible = overlay.classList.contains('settings-overlay--open') || overlay.style.display === 'block' || overlay.style.display === 'flex';
+
+    if (isVisible) {
+      const settingsContent = overlay.querySelector('.settings-content');
+      if (settingsContent) window.settingsModalScrollPosition = settingsContent.scrollTop;
+      const conditionSelector = document.getElementById('medicalConditionSelector');
+      if (conditionSelector) window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
+      removeSettingsKeydown();
+      settingsOverlayCloseWithTransition(overlay, function() {
+        if (_settingsPreviousActiveElement && typeof _settingsPreviousActiveElement.focus === 'function') {
+          _settingsPreviousActiveElement.focus();
+          _settingsPreviousActiveElement = null;
+        }
+      });
+    } else {
       _settingsPreviousActiveElement = document.activeElement;
       document.body.style.overflow = 'hidden';
       window.scrollTo(0, 0);
-      
       overlay.style.position = 'fixed';
       overlay.style.top = '0';
       overlay.style.left = '0';
@@ -10348,11 +10358,8 @@ function toggleSetting(setting) {
       overlay.style.padding = '0';
       overlay.style.display = 'block';
       overlay.style.visibility = 'visible';
-      overlay.style.opacity = '1';
       overlay.style.zIndex = '99999';
-      
       document.body.classList.add('modal-active');
-      
       const menu = overlay.querySelector('.settings-menu');
       if (menu) {
         menu.style.position = 'fixed';
@@ -10360,36 +10367,26 @@ function toggleSetting(setting) {
         menu.style.left = '50%';
         menu.style.right = 'auto';
         menu.style.bottom = 'auto';
-        menu.style.transform = 'translate(-50%, -50%)';
         menu.style.margin = '0';
         menu.style.padding = '0';
         menu.style.zIndex = '100000';
         menu.style.visibility = 'visible';
-        menu.style.opacity = '1';
         menu.style.display = 'flex';
       }
-      
-      if (typeof loadSettingsState === 'function') {
-    loadSettingsState();
-  }
-      
+      if (typeof loadSettingsState === 'function') loadSettingsState();
+      requestAnimationFrame(function() {
+        overlay.classList.add('settings-overlay--open');
+      });
       const settingsContent = overlay.querySelector('.settings-content');
       if (settingsContent && window.settingsModalScrollPosition !== undefined) {
-        setTimeout(() => {
-          settingsContent.scrollTop = window.settingsModalScrollPosition;
-        }, 50);
+        setTimeout(function() { settingsContent.scrollTop = window.settingsModalScrollPosition; }, 50);
       } else if (settingsContent) {
         settingsContent.scrollTop = 0;
       }
-      
       if (window.settingsModalConditionSelectorOpen) {
         const conditionSelector = document.getElementById('medicalConditionSelector');
-        if (conditionSelector) {
-          conditionSelector.style.display = 'block';
-        }
-  }
-
-      // Escape to close + focus trap
+        if (conditionSelector) conditionSelector.style.display = 'block';
+      }
       _settingsEscapeAndTrapHandler = function(e) {
         if (e.key === 'Escape') {
           e.preventDefault();
@@ -10415,41 +10412,39 @@ function toggleSetting(setting) {
         }
       };
       document.addEventListener('keydown', _settingsEscapeAndTrapHandler);
-
-      // Focus first focusable in settings
       setTimeout(function() {
         var focusable = getFocusableInSettings();
         if (focusable.length > 0) focusable[0].focus();
       }, 50);
-}
+    }
   };
   
   window.toggleSettings = fullToggleSettings;
   
   window.closeSettings = function() {
     const overlay = document.getElementById('settingsOverlay');
-    if (!overlay) {
-      return;
-    }
-    
+    if (!overlay) return;
     const settingsContent = overlay.querySelector('.settings-content');
-    if (settingsContent) {
-      window.settingsModalScrollPosition = settingsContent.scrollTop;
-    }
-    
+    if (settingsContent) window.settingsModalScrollPosition = settingsContent.scrollTop;
     const conditionSelector = document.getElementById('medicalConditionSelector');
-    if (conditionSelector) {
-      window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
-    }
-    
+    if (conditionSelector) window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
     removeSettingsKeydown();
-    overlay.style.display = 'none';
-    overlay.style.visibility = 'hidden';
-    document.body.classList.remove('modal-active');
-    document.body.style.overflow = '';
-    if (_settingsPreviousActiveElement && typeof _settingsPreviousActiveElement.focus === 'function') {
-      _settingsPreviousActiveElement.focus();
-      _settingsPreviousActiveElement = null;
+    if (overlay.classList.contains('settings-overlay--open')) {
+      settingsOverlayCloseWithTransition(overlay, function() {
+        if (_settingsPreviousActiveElement && typeof _settingsPreviousActiveElement.focus === 'function') {
+          _settingsPreviousActiveElement.focus();
+          _settingsPreviousActiveElement = null;
+        }
+      });
+    } else {
+      overlay.style.display = 'none';
+      overlay.style.visibility = 'hidden';
+      document.body.classList.remove('modal-active');
+      document.body.style.overflow = '';
+      if (_settingsPreviousActiveElement && typeof _settingsPreviousActiveElement.focus === 'function') {
+        _settingsPreviousActiveElement.focus();
+        _settingsPreviousActiveElement = null;
+      }
     }
   };
 })();
@@ -12118,50 +12113,49 @@ function initializeOneOpenDetails() {
 
 // Tab switching functionality
 function switchTab(tabName) {
-  // Hide all tabs
   const allTabs = document.querySelectorAll('.tab-content');
   const allTabBtns = document.querySelectorAll('.tab-btn');
-  
-  allTabs.forEach(tab => {
-    tab.classList.remove('active');
-    tab.style.display = 'none';
-  });
-  
-  allTabBtns.forEach(btn => {
-    btn.classList.remove('active');
-  });
-  
-  // Show selected tab
   const selectedTab = document.getElementById(tabName + 'Tab');
-  const selectedBtn = document.querySelector(`[data-tab="${tabName}"]`);
-  
-  if (selectedTab) {
-    selectedTab.classList.add('active');
-    selectedTab.style.display = 'block';
-    selectedTab.style.visibility = 'visible';
-    selectedTab.style.opacity = '1';
-  }
-  
-  if (selectedBtn) {
-    selectedBtn.classList.add('active');
-    selectedBtn.setAttribute('aria-selected', 'true');
-    allTabBtns.forEach(btn => {
-      if (btn !== selectedBtn) btn.setAttribute('aria-selected', 'false');
+  const selectedBtn = document.querySelector('[data-tab="' + tabName + '"]');
+  const currentActive = document.querySelector('.tab-content.active');
+
+  function doSwitch() {
+    allTabs.forEach(function(tab) {
+      tab.classList.remove('active', 'tab-content--leave');
+      tab.style.display = 'none';
     });
-    // Focus the active tab for keyboard/screen reader users
-    selectedBtn.focus();
-  }
-  
-  // Scroll main content to top when switching to Charts, View Logs, or AI (so user doesn't stay mid-page)
-  if (tabName === 'charts' || tabName === 'logs' || tabName === 'ai') {
-    const container = document.querySelector('.container');
-    if (container) container.scrollTop = 0;
-    if (selectedTab) selectedTab.scrollTop = 0;
-    window.scrollTo(0, 0);
-  }
-  
-  // Special handling for charts tab
-  if (tabName === 'charts') {
+    allTabBtns.forEach(function(btn) {
+      btn.classList.remove('active');
+    });
+    if (selectedTab) {
+      selectedTab.classList.add('active');
+      selectedTab.style.display = 'block';
+      selectedTab.style.visibility = 'visible';
+      selectedTab.style.opacity = '1';
+    }
+    if (selectedBtn) {
+      selectedBtn.classList.add('active');
+      selectedBtn.setAttribute('aria-selected', 'true');
+      allTabBtns.forEach(function(btn) {
+        if (btn !== selectedBtn) btn.setAttribute('aria-selected', 'false');
+      });
+      selectedBtn.focus();
+    }
+    var nav = document.querySelector('.tab-navigation');
+    var indicator = document.getElementById('tabNavIndicator');
+    if (nav && indicator && selectedBtn) {
+      var left = selectedBtn.offsetLeft;
+      var w = selectedBtn.offsetWidth;
+      indicator.style.width = w + 'px';
+      indicator.style.transform = 'translateX(' + left + 'px)';
+    }
+    if (tabName === 'charts' || tabName === 'logs' || tabName === 'ai') {
+      var container = document.querySelector('.container');
+      if (container) container.scrollTop = 0;
+      if (selectedTab) selectedTab.scrollTop = 0;
+      window.scrollTo(0, 0);
+    }
+    if (tabName === 'charts') {
     const chartSection = document.getElementById('chartSection');
     if (chartSection) {
       chartSection.classList.remove('hidden');
@@ -12235,6 +12229,14 @@ function switchTab(tabName) {
   
   // Scroll to top smoothly
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  if (currentActive && currentActive !== selectedTab) {
+    currentActive.classList.add('tab-content--leave');
+    setTimeout(doSwitch, 180);
+  } else {
+    doSwitch();
+  }
 }
 
 // Global error handler to suppress browser extension errors (duplicate removed - using the one at line 511)
