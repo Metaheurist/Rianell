@@ -300,6 +300,32 @@ function initializeEventHandlers() {
   if (filterBtn) filterBtn.addEventListener('click', filterLogs);
   if (sortButton) sortButton.addEventListener('click', toggleSort);
   
+  // Log entry list: delegated click for food/exercise icons (works for dynamically rendered entries)
+  const logOutput = document.getElementById('logOutput');
+  if (logOutput) {
+    logOutput.addEventListener('click', function(e) {
+      const foodBtn = e.target.closest('.header-icon-btn.food-btn');
+      const exerciseBtn = e.target.closest('.header-icon-btn.exercise-btn');
+      if (foodBtn) {
+        e.stopPropagation();
+        e.preventDefault();
+        const entry = foodBtn.closest('.entry');
+        if (entry && typeof window.openFoodModal === 'function') {
+          window.openFoodModal(entry.getAttribute('data-log-date'));
+        }
+        return;
+      }
+      if (exerciseBtn) {
+        e.stopPropagation();
+        e.preventDefault();
+        const entry = exerciseBtn.closest('.entry');
+        if (entry && typeof window.openExerciseModal === 'function') {
+          window.openExerciseModal(entry.getAttribute('data-log-date'));
+        }
+      }
+    });
+  }
+  
   // Chart view toggle
   const individualViewBtn = document.getElementById('individualViewBtn');
   const combinedViewBtn = document.getElementById('combinedViewBtn');

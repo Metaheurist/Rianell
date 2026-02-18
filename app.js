@@ -1769,14 +1769,23 @@ function settingsOverlaySetOpen(overlay, open) {
     if (typeof loadSettingsState === 'function') loadSettingsState();
   } else {
     overlay.classList.remove('settings-overlay--open');
-    var onEnd = function() {
+    var cleaned = false;
+    function doCleanup() {
+      if (cleaned) return;
+      cleaned = true;
       overlay.removeEventListener('transitionend', onEnd);
+      if (t) clearTimeout(t);
       overlay.style.display = 'none';
       overlay.style.visibility = 'hidden';
       document.body.classList.remove('modal-active');
       document.body.style.overflow = '';
+    }
+    var onEnd = function(e) {
+      if (e.target !== overlay) return;
+      doCleanup();
     };
     overlay.addEventListener('transitionend', onEnd);
+    var t = setTimeout(doCleanup, 450);
   }
 }
 window.toggleSettings = function() {
@@ -6964,7 +6973,7 @@ function openFoodModal(logDate) {
   // Reset overlay scroll position (not page scroll - keep user's current view)
   overlay.scrollTop = 0;
   
-  // Ensure overlay is fixed to viewport with explicit values using cssText for stronger override
+  // Ensure overlay is fixed to viewport and visible (CSS .modal-overlay defaults to opacity: 0)
   overlay.style.cssText = `
     position: fixed !important;
     top: 0 !important;
@@ -6976,9 +6985,11 @@ function openFoodModal(logDate) {
     margin: 0 !important;
     padding: 0 !important;
     display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
     z-index: 10000 !important;
     overflow: hidden !important;
-    background: transparent;
+    background: rgba(0,0,0,0.4);
     pointer-events: all;
     box-sizing: border-box;
   `;
@@ -7005,11 +7016,10 @@ function openFoodModal(logDate) {
   document.body.classList.add('modal-active');
   
   // Force re-calculation of position after a brief delay to ensure viewport centering
-  requestAnimationFrame(() => {
+  requestAnimationFrame(function() {
     if (overlay && modalContent) {
-      // Re-apply positioning to ensure it's relative to viewport
-      overlay.style.cssText = overlay.style.cssText; // Force recalculation
-      modalContent.style.cssText = modalContent.style.cssText; // Force recalculation
+      overlay.style.cssText = overlay.style.cssText;
+      modalContent.style.cssText = modalContent.style.cssText;
     }
   });
   
@@ -7178,7 +7188,7 @@ function openExerciseModal(logDate) {
   // Reset overlay scroll position (not page scroll - keep user's current view)
   overlay.scrollTop = 0;
   
-  // Ensure overlay is fixed to viewport with explicit values using cssText for stronger override
+  // Ensure overlay is fixed to viewport and visible (CSS .modal-overlay defaults to opacity: 0)
   overlay.style.cssText = `
     position: fixed !important;
     top: 0 !important;
@@ -7190,9 +7200,11 @@ function openExerciseModal(logDate) {
     margin: 0 !important;
     padding: 0 !important;
     display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
     z-index: 10000 !important;
     overflow: hidden !important;
-    background: transparent;
+    background: rgba(0,0,0,0.4);
     pointer-events: all;
     box-sizing: border-box;
   `;
@@ -7219,16 +7231,15 @@ function openExerciseModal(logDate) {
   document.body.classList.add('modal-active');
   
   // Force re-calculation of position after a brief delay to ensure viewport centering
-  requestAnimationFrame(() => {
+  requestAnimationFrame(function() {
     if (overlay && modalContent) {
-      // Re-apply positioning to ensure it's relative to viewport
-      overlay.style.cssText = overlay.style.cssText; // Force recalculation
-      modalContent.style.cssText = modalContent.style.cssText; // Force recalculation
+      overlay.style.cssText = overlay.style.cssText;
+      modalContent.style.cssText = modalContent.style.cssText;
     }
   });
   
   // Focus first focusable in modal (e.g. close button or first chip)
-  const firstFocusable = modalContent?.querySelector('button.modal-close, .exercise-chip');
+  const firstFocusable = modalContent ? modalContent.querySelector('button.modal-close, .exercise-chip') : null;
   if (firstFocusable) firstFocusable.focus();
   // Close on overlay click
   overlay.onclick = function(e) {
@@ -7246,6 +7257,12 @@ function openExerciseModal(logDate) {
     }
   };
   document.addEventListener('keydown', window._exerciseModalEscapeHandler);
+}
+
+// Expose modals globally so inline onclick and delegated handlers work reliably (e.g. food/exercise icons on log entries)
+if (typeof window !== 'undefined') {
+  window.openFoodModal = openFoodModal;
+  window.openExerciseModal = openExerciseModal;
 }
 
 function closeExerciseModal() {
@@ -7953,10 +7970,10 @@ function generateLogEntryHTML(log) {
           : `<h3 class="log-date">${formattedDate}</h3>`
         }
         <div class="header-badges">
-          <button class="header-icon-btn food-btn" onclick="event.stopPropagation(); openFoodModal('${escapeHTML(log.date)}')" title="Food Log ${foodCount > 0 ? `(${foodCount} items)` : ''}">
+          <button class="header-icon-btn food-btn" onclick="event.stopPropagation(); if(window.openFoodModal) window.openFoodModal('${escapeHTML(log.date)}')" title="Food Log ${foodCount > 0 ? `(${foodCount} items)` : ''}">
             🍽️${foodCount > 0 ? `<span class="badge-count">${foodCount}</span>` : ''}
           </button>
-          <button class="header-icon-btn exercise-btn" onclick="event.stopPropagation(); openExerciseModal('${escapeHTML(log.date)}')" title="Exercise Log ${exerciseCount > 0 ? `(${exerciseCount} items)` : ''}">
+          <button class="header-icon-btn exercise-btn" onclick="event.stopPropagation(); if(window.openExerciseModal) window.openExerciseModal('${escapeHTML(log.date)}')" title="Exercise Log ${exerciseCount > 0 ? `(${exerciseCount} items)` : ''}">
             🏃${exerciseCount > 0 ? `<span class="badge-count">${exerciseCount}</span>` : ''}
           </button>
           ${isEditing 
@@ -10312,18 +10329,34 @@ function toggleSetting(setting) {
     }
   }
 
+  function settingsOverlayDoCloseCleanup(overlay, onDone) {
+    overlay.style.display = 'none';
+    overlay.style.visibility = 'hidden';
+    document.body.classList.remove('modal-active');
+    document.body.style.overflow = '';
+    if (onDone) onDone();
+  }
+
   function settingsOverlayCloseWithTransition(overlay, onDone) {
+    if (!overlay.classList.contains('settings-overlay--open')) {
+      settingsOverlayDoCloseCleanup(overlay, onDone);
+      return;
+    }
     overlay.classList.remove('settings-overlay--open');
+    var cleaned = false;
+    function doCleanup() {
+      if (cleaned) return;
+      cleaned = true;
+      overlay.removeEventListener('transitionend', onEnd);
+      if (timeoutId != null) clearTimeout(timeoutId);
+      settingsOverlayDoCloseCleanup(overlay, onDone);
+    }
     var onEnd = function(e) {
       if (e.target !== overlay) return;
-      overlay.removeEventListener('transitionend', onEnd);
-      overlay.style.display = 'none';
-      overlay.style.visibility = 'hidden';
-      document.body.classList.remove('modal-active');
-      document.body.style.overflow = '';
-      if (onDone) onDone();
+      doCleanup();
     };
     overlay.addEventListener('transitionend', onEnd);
+    var timeoutId = setTimeout(doCleanup, 450);
   }
 
   const fullToggleSettings = function() {
@@ -10344,6 +10377,9 @@ function toggleSetting(setting) {
         }
       });
     } else {
+      if (overlay.style.display === 'block' && !overlay.classList.contains('settings-overlay--open')) {
+        settingsOverlayDoCloseCleanup(overlay, null);
+      }
       _settingsPreviousActiveElement = document.activeElement;
       document.body.style.overflow = 'hidden';
       window.scrollTo(0, 0);
@@ -10429,22 +10465,16 @@ function toggleSetting(setting) {
     const conditionSelector = document.getElementById('medicalConditionSelector');
     if (conditionSelector) window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
     removeSettingsKeydown();
-    if (overlay.classList.contains('settings-overlay--open')) {
-      settingsOverlayCloseWithTransition(overlay, function() {
-        if (_settingsPreviousActiveElement && typeof _settingsPreviousActiveElement.focus === 'function') {
-          _settingsPreviousActiveElement.focus();
-          _settingsPreviousActiveElement = null;
-        }
-      });
-    } else {
-      overlay.style.display = 'none';
-      overlay.style.visibility = 'hidden';
-      document.body.classList.remove('modal-active');
-      document.body.style.overflow = '';
+    var focusBack = function() {
       if (_settingsPreviousActiveElement && typeof _settingsPreviousActiveElement.focus === 'function') {
         _settingsPreviousActiveElement.focus();
         _settingsPreviousActiveElement = null;
       }
+    };
+    if (overlay.classList.contains('settings-overlay--open')) {
+      settingsOverlayCloseWithTransition(overlay, focusBack);
+    } else {
+      settingsOverlayDoCloseCleanup(overlay, focusBack);
     }
   };
 })();
