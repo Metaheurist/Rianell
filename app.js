@@ -11525,16 +11525,22 @@ function generateDemoData(numDays = 3650) {
   let currentWeight = 75.0;
   let flareState = false;
   let flareDuration = 0;
-  let recoveryPhase = 0; // Days since last flare (for recovery patterns)
+  let totalFlareLength = 0; // Total days of current flare (for gradual severity curve)
+  let flareDayIndex = 0; // Day within current flare (0 = first day) for gradual severity ramp
+  let preFlareDays = 0; // 2-4 days of gradual build before flare (for AI "things to watch")
+  let recoveryPhase = 0; // Days since last flare (for gradual recovery over 10-14 days)
   let baselineHealth = 7.0; // Baseline health score (improves over time with treatment)
   let seasonalFactor = 0; // Seasonal variation (-1 to 1)
   let weeklyPattern = 0; // Day of week pattern (0-6)
   
-  // Pattern tracking for correlations
+  // Pattern tracking for correlations and smooth series (so AI trends/predictions look good)
   let previousSleep = 7;
   let previousMood = 7;
   let previousFatigue = 4;
   let previousStiffness = 3;
+  let previousSteps = 7000;
+  let previousHydration = 8.0;
+  let daysSinceLastFlare = 999; // Cooldown: no new flare until this is high enough (~monthly flares)
   
   // Pre-generate random numbers in batches for better performance
   const batchSize = 1000;
@@ -11600,27 +11606,47 @@ function generateDemoData(numDays = 3650) {
     baselineHealth = 6.0 + (yearsProgress / 10) * 1.5; // Improves from 6.0 to 7.5 over 10 years
     baselineHealth = Math.min(7.5, baselineHealth);
     
-    // Flare-up pattern: More likely in winter, less likely in summer
-    const flareChance = 0.12 + (seasonalFactor * 0.1); // Higher in winter
+    // Flare-up pattern: ~monthly (1 flare per 25-35 days), gradual pre-flare and recovery
+    daysSinceLastFlare++;
+    const minDaysBetweenFlares = 22; // Cooldown: no new flare for at least 3 weeks
+    const baseFlareChancePerDay = 0.032; // ~1 flare per 31 days when in window
+    const seasonalAdjust = seasonalFactor * 0.008; // Slightly more in winter
+    const flareChance = daysSinceLastFlare >= minDaysBetweenFlares
+      ? Math.min(0.045, baseFlareChancePerDay + seasonalAdjust)
+      : 0;
+
     if (flareDuration > 0) {
+      flareDayIndex++;
       flareDuration--;
       recoveryPhase = 0;
       if (flareDuration === 0) {
         flareState = false;
+        flareDayIndex = 0;
         recoveryPhase = 1;
+        daysSinceLastFlare = 0;
+      }
+    } else if (preFlareDays > 0) {
+      preFlareDays--;
+      if (preFlareDays === 0) {
+        flareState = true;
+        flareDayIndex = 0;
+        flareDuration = Math.floor(getRandom() * 4) + 3; // 3-6 days (shorter flares, monthly)
+        totalFlareLength = flareDuration;
+        recoveryPhase = 0;
       }
     } else if (getRandom() < flareChance) {
-      flareState = true;
-      flareDuration = Math.floor(getRandom() * 4) + 2; // 2-5 days
+      preFlareDays = Math.floor(getRandom() * 2) + 3; // 3-4 days gradual build before flare
       recoveryPhase = 0;
     } else {
       recoveryPhase++;
     }
-    
-    // Recovery pattern: Gradual improvement after flare
-    const recoveryBoost = recoveryPhase > 0 && recoveryPhase < 7 
-      ? Math.min(0.3, recoveryPhase * 0.05) 
-      : 0;
+
+    const inPreFlare = preFlareDays > 0;
+    const inFlare = flareState;
+    const inRecovery = recoveryPhase > 0 && recoveryPhase <= 14;
+
+    // Recovery: gradual over 14 days (smoother "Getting Better")
+    const recoveryBoost = inRecovery ? Math.min(0.45, recoveryPhase * 0.032) : 0;
     
     // Pre-calculate random values for variation
     const r1 = getRandom();
@@ -11636,23 +11662,38 @@ function generateDemoData(numDays = 3650) {
     const r11 = getRandom();
     const r12 = getRandom();
     
-    // Base values with patterns
+    // Base values with patterns (pain cluster: stiffness -> backPain, jointPain, swelling move together)
     let fatigue, stiffness, backPain, jointPain, sleep, mobility, dailyFunction, swelling, mood, irritability, bpm;
-    
-    if (flareState) {
-      // During flare: All symptoms worse, clear correlations
-      const flareSeverity = 1.0 - (flareDuration / 5); // Worse at start
-      fatigue = Math.max(1, Math.min(10, baselineHealth - 3 + (r1 * 3) - (seasonalFactor * 2)));
-      stiffness = Math.max(1, Math.min(10, baselineHealth - 2.5 + (r2 * 3) - (seasonalFactor * 2)));
-      backPain = Math.max(1, Math.min(10, baselineHealth - 2 + (r3 * 3) - (seasonalFactor * 2)));
-      jointPain = Math.max(1, Math.min(10, baselineHealth - 2.5 + (r4 * 2.5) - (seasonalFactor * 1.5)));
-      sleep = Math.max(1, Math.min(10, baselineHealth - 4 + (r5 * 2) - (seasonalFactor * 1.5)));
-      mobility = Math.max(1, Math.min(10, baselineHealth - 4 + (r6 * 2) - (seasonalFactor * 1.5)));
-      dailyFunction = Math.max(1, Math.min(10, baselineHealth - 3.5 + (r7 * 2.5) - (seasonalFactor * 1.5)));
-      swelling = Math.max(1, Math.min(10, baselineHealth - 3 + (r8 * 2.5) - (seasonalFactor * 1)));
-      mood = Math.max(1, Math.min(10, baselineHealth - 3.5 + (r9 * 2) - (seasonalFactor * 1.5)));
-      irritability = Math.max(1, Math.min(10, baselineHealth - 2 + (r10 * 3) - (seasonalFactor * 1)));
-      bpm = Math.floor(70 + (r11 * 15) + (seasonalFactor * 5));
+
+    if (inFlare || inPreFlare) {
+      // Gradual severity: pre-flare builds over 3-4 days; flare peaks in middle then eases
+      let severity;
+      if (inPreFlare) {
+        const preFlareTotal = 4; // max preFlareDays was 3-4
+        const buildDay = preFlareTotal - preFlareDays;
+        severity = 0.25 + (buildDay / preFlareTotal) * 0.45; // 0.25 -> 0.70 gradual
+      } else {
+        const mid = totalFlareLength / 2;
+        const distFromMid = Math.abs(flareDayIndex - mid);
+        severity = Math.max(0.5, 1.0 - (distFromMid / (mid + 0.5)) * 0.4); // peak in middle, gradual ramp up/down
+      }
+      const painBase = baselineHealth - 2.2 + (severity * 2.2) - (seasonalFactor * 1.2);
+      stiffness = Math.max(1, Math.min(10, painBase + (r2 * 1.2)));
+      backPain = Math.max(1, Math.min(10, stiffness + (r3 * 0.8) - 0.3));
+      jointPain = Math.max(1, Math.min(10, stiffness * 0.85 + (r4 * 1)));
+      swelling = Math.max(1, Math.min(10, jointPain * 0.7 + (r8 * 0.8)));
+      fatigue = Math.max(1, Math.min(10, baselineHealth - 2.5 + (severity * 2) + (r1 * 1.2) - (seasonalFactor * 1)));
+      sleep = Math.max(1, Math.min(10, baselineHealth - 3 + (severity * 1.5) + (r5 * 1) - (seasonalFactor * 0.8)));
+      mobility = Math.max(1, Math.min(10, 11 - stiffness - (fatigue - 5) * 0.25 + (r6 * 0.8)));
+      dailyFunction = Math.max(1, Math.min(10, mobility * 0.92 + (r7 * 0.6)));
+      mood = Math.max(1, Math.min(10, baselineHealth - 2.5 + (severity * 1.8) + (r9 * 1) - (seasonalFactor * 1)));
+      irritability = Math.max(1, Math.min(10, 12 - mood + (r10 * 1)));
+      bpm = Math.floor(70 + (r11 * 8) + (seasonalFactor * 3) + (inFlare ? severity * 6 : 2));
+      // Smooth transition: blend with previous day so no sudden jumps
+      stiffness = stiffness * 0.7 + previousStiffness * 0.3;
+      fatigue = fatigue * 0.7 + previousFatigue * 0.3;
+      sleep = sleep * 0.75 + previousSleep * 0.25;
+      mood = mood * 0.75 + previousMood * 0.25;
     } else {
       // Normal state: Clear correlations and patterns
       // Sleep quality affects everything
@@ -11662,23 +11703,17 @@ function generateDemoData(numDays = 3650) {
       // Fatigue inversely correlates with sleep (strong correlation)
       fatigue = Math.max(1, Math.min(10, baselineHealth - (sleep - 5) * 0.8 + (r1 * 1.5) - seasonalFactor));
       
-      // Stiffness correlates with weather (winter worse)
-      stiffness = Math.max(1, Math.min(10, baselineHealth - 2 - (seasonalFactor * 2) + (r2 * 1.5) + recoveryBoost));
-      
-      // Back pain correlates with stiffness (strong correlation)
-      backPain = Math.max(1, Math.min(10, stiffness + (r3 * 1) - 0.5));
-      
-      // Joint pain correlates with stiffness
-      jointPain = Math.max(1, Math.min(10, stiffness * 0.7 + (r4 * 1.2)));
+      // Pain cluster: stiffness drives backPain, jointPain, swelling (so AI "groups that change together" is clear)
+      stiffness = Math.max(1, Math.min(10, baselineHealth - 2 - (seasonalFactor * 2) + (r2 * 1.2) + recoveryBoost));
+      backPain = Math.max(1, Math.min(7, stiffness + (r3 * 0.8) - 0.3)); // Cap 7 in normal so severe pain = flare days
+      jointPain = Math.max(1, Math.min(7, stiffness * 0.75 + (r4 * 1)));
+      swelling = Math.max(1, Math.min(7, jointPain * 0.65 + (r8 * 0.8)));
       
       // Mobility inversely correlates with stiffness and fatigue
       mobility = Math.max(1, Math.min(10, baselineHealth + 1 - (stiffness - 5) * 0.5 - (fatigue - 5) * 0.3 + (r6 * 1) + recoveryBoost));
       
       // Daily function correlates with mobility and mood
       dailyFunction = Math.max(1, Math.min(10, mobility * 0.9 + (r7 * 1)));
-      
-      // Swelling correlates with joint pain
-      swelling = Math.max(1, Math.min(10, jointPain * 0.6 + (r8 * 1)));
       
       // Mood correlates with sleep and inversely with fatigue (strong correlations)
       mood = Math.max(1, Math.min(10, baselineHealth + 0.5 + (sleep - 5) * 0.6 - (fatigue - 5) * 0.4 + (r9 * 1) + weeklyPattern + recoveryBoost));
@@ -11688,6 +11723,12 @@ function generateDemoData(numDays = 3650) {
       
       // BPM correlates with stress/fatigue
       bpm = Math.floor(65 + (fatigue - 5) * 2 + (r11 * 8) + (seasonalFactor * 3));
+
+      // Stronger smoothing in normal state so trends are stable and gradual
+      sleep = Math.max(1, Math.min(10, sleep * 0.65 + previousSleep * 0.35));
+      mood = Math.max(1, Math.min(10, mood * 0.65 + previousMood * 0.35));
+      stiffness = Math.max(1, Math.min(10, stiffness * 0.7 + previousStiffness * 0.3));
+      fatigue = Math.max(1, Math.min(10, fatigue * 0.7 + previousFatigue * 0.3));
     }
     
     // Round all values
@@ -11703,11 +11744,41 @@ function generateDemoData(numDays = 3650) {
     irritability = Math.round(irritability);
     bpm = Math.max(50, Math.min(120, bpm));
     
-    // Store for next iteration (for trend patterns)
+    // Store for next iteration (smoothing so AI trends are interpretable)
     previousSleep = sleep;
     previousMood = mood;
     previousFatigue = fatigue;
     previousStiffness = stiffness;
+
+    // Steps: smooth, gradual series; flare drop and 14-day recovery ramp
+    let steps;
+    if (inFlare) {
+      const drop = previousSteps * 0.5 + (getRandom() * 800); // Gradual drop
+      steps = Math.floor(previousSteps * 0.55 + Math.max(1500, drop * 0.45));
+      steps = Math.max(1500, Math.min(5500, steps));
+    } else if (inRecovery) {
+      const recoveryFrac = recoveryPhase / 14; // Gradual over 14 days
+      const targetSteps = 4500 + recoveryFrac * 4500 + (getRandom() * 800);
+      steps = Math.floor(previousSteps * 0.7 + targetSteps * 0.3);
+      steps = Math.max(3500, Math.min(12000, steps));
+    } else {
+      const delta = (getRandom() - 0.5) * 600; // Smaller daily swing for smoother series
+      steps = Math.floor(previousSteps + delta);
+      steps = Math.max(4500, Math.min(13000, steps));
+    }
+    previousSteps = steps;
+
+    // Hydration: lower during flare, smooth and gradual otherwise
+    let hydration;
+    if (inFlare) {
+      hydration = previousHydration * 0.75 + (getRandom() * 0.8) + 4.5;
+    } else if (inRecovery) {
+      hydration = previousHydration + (getRandom() - 0.5) * 0.4;
+    } else {
+      hydration = previousHydration + (getRandom() - 0.5) * 0.35;
+    }
+    hydration = Math.max(4.5, Math.min(13, hydration));
+    previousHydration = hydration;
     
     // Weight: Slight variation around base (within ±2kg) - optimized
     const weightChange = (r12 - 0.5) * 0.6; // -0.3 to 0.3
@@ -11715,10 +11786,15 @@ function generateDemoData(numDays = 3650) {
     currentWeight = currentWeight < 70 ? 70 : (currentWeight > 80 ? 80 : currentWeight); // Clamp between 70-80kg
     const weight = Math.round(currentWeight * 10) / 10;
     
-    // Notes: Occasionally add notes (only check if needed)
+    // Notes: Slightly more during flare/pre-flare; flare-specific notes for AI context
     let notes = '';
-    if (getRandom() < 0.1) { // 10% chance of note
-      notes = noteTemplates[Math.floor(getRandom() * noteTemplates.length)];
+    const noteChance = inFlare ? 0.22 : (inPreFlare ? 0.14 : 0.08);
+    if (getRandom() < noteChance) {
+      if (inFlare && getRandom() < 0.4) {
+        notes = ['Flare day, rested', 'Staying off feet today', 'Pain worse this morning'][Math.floor(getRandom() * 3)];
+      } else {
+        notes = noteTemplates[Math.floor(getRandom() * noteTemplates.length)];
+      }
     }
     
     // Generate food and exercise data (use PREDEFINED_FOODS / PREDEFINED_EXERCISES for consistency with tiles)
@@ -11727,8 +11803,9 @@ function generateDemoData(numDays = 3650) {
     const dinnerItems = [];
     const snackItems = [];
     
-    // Food - 60% chance of having food logged; use meal-specific pools from PREDEFINED_FOODS
-    if (getRandom() < 0.6) {
+    // Food - less logged during flare (correlates with "low energy" days for AI)
+    const foodChance = inFlare ? 0.35 : (inPreFlare ? 0.5 : 0.65);
+    if (getRandom() < foodChance) {
       const mealPools = {
         breakfast: PREDEFINED_FOODS.filter(f => !f.meals || f.meals.length === 0 || f.meals.includes('breakfast')),
         lunch: PREDEFINED_FOODS.filter(f => !f.meals || f.meals.length === 0 || f.meals.includes('lunch')),
@@ -11753,16 +11830,18 @@ function generateDemoData(numDays = 3650) {
       }
     }
     
-    // Exercise - 40% chance; use PREDEFINED_EXERCISES with { name, duration }
+    // Exercise: less during flare, more on good days (correlates with mobility/stiffness for AI)
+    const exerciseChance = inFlare ? 0.08 : (inRecovery ? 0.2 : (stiffness >= 7 || fatigue >= 7 ? 0.2 : 0.45));
     const exerciseItems = [];
-    if (getRandom() < 0.4) {
-      const numExerciseItems = Math.floor(getRandom() * 3) + 1;
+    if (getRandom() < exerciseChance) {
+      const maxItems = inFlare ? 1 : (inRecovery ? 2 : 3);
+      const numExerciseItems = Math.floor(getRandom() * maxItems) + 1;
       const exUsed = new Set();
       for (let i = 0; i < numExerciseItems && exUsed.size < PREDEFINED_EXERCISES.length; i++) {
         const template = PREDEFINED_EXERCISES[Math.floor(getRandom() * PREDEFINED_EXERCISES.length)];
         if (exUsed.has(template.id)) continue;
         exUsed.add(template.id);
-        const durationVariation = 1 + (getRandom() - 0.5) * 0.4;
+        const durationVariation = inFlare ? 0.6 : (1 + (getRandom() - 0.5) * 0.4);
         exerciseItems.push({
           name: template.name,
           duration: Math.max(5, Math.round(template.defaultDuration * durationVariation))
@@ -11774,8 +11853,8 @@ function generateDemoData(numDays = 3650) {
     const energyClarityValues = ENERGY_CLARITY_OPTIONS.map(o => o.value).concat('');
     const energyClarity = getRandom() > 0.3 ? energyClarityValues[Math.floor(getRandom() * energyClarityValues.length)] : '';
     
-    // Stressors - use STRESSOR_OPTIONS values
-    const numStressors = flareState ? Math.floor(getRandom() * 3) : Math.floor(getRandom() * 2);
+    // Stressors - slightly more during pre-flare and flare (gradual, not overwhelming)
+    const numStressors = inFlare ? Math.floor(getRandom() * 2) + 1 : (inPreFlare ? Math.floor(getRandom() * 2) : Math.floor(getRandom() * 2));
     const stressors = [];
     const stressorValues = STRESSOR_OPTIONS.map(o => o.value);
     for (let i = 0; i < numStressors && stressors.length < stressorValues.length; i++) {
@@ -11783,9 +11862,9 @@ function generateDemoData(numDays = 3650) {
       if (!stressors.includes(val)) stressors.push(val);
     }
     
-    // Use current SYMPTOM_OPTIONS so all symptoms (including new ones) can appear in demo
+    // Use current SYMPTOM_OPTIONS; gradual increase during pre-flare and flare
     const symptomValues = SYMPTOM_OPTIONS.map(o => o.value);
-    const numSymptoms = flareState ? Math.floor(getRandom() * 4) : Math.floor(getRandom() * 2); // 0-3 or 0-1
+    const numSymptoms = inFlare ? Math.floor(getRandom() * 2) + 1 : (inPreFlare ? Math.floor(getRandom() * 2) : Math.floor(getRandom() * 2));
     const symptoms = [];
     for (let i = 0; i < numSymptoms && symptoms.length < symptomValues.length; i++) {
       const val = symptomValues[Math.floor(getRandom() * symptomValues.length)];
@@ -11808,9 +11887,18 @@ function generateDemoData(numDays = 3650) {
       painLocation = parts.join(', ');
     }
     
-    const weatherSensitivity = flareState ? Math.floor(getRandom() * 5) + 6 : Math.floor(getRandom() * 5) + 1; // 6-10 or 1-5
-    const steps = flareState ? Math.floor(getRandom() * 3000) + 2000 : Math.floor(getRandom() * 7000) + 5000; // 2000-5000 or 5000-12000
-    const hydration = flareState ? (getRandom() * 4 + 4) : (getRandom() * 4 + 6); // 4-8 or 6-10
+    // Weather sensitivity: gradual rise in pre-flare, high in flare, smooth elsewhere
+    let weatherSensitivity;
+    if (inFlare) {
+      const mid = totalFlareLength / 2;
+      const sev = Math.max(0.6, 1.0 - Math.abs(flareDayIndex - mid) / (mid + 0.5) * 0.35);
+      weatherSensitivity = Math.floor(6 + sev * 3.5 + getRandom() * 0.5);
+    } else if (inPreFlare) {
+      weatherSensitivity = Math.floor(4 + (4 - preFlareDays) * 1.0 + getRandom());
+    } else {
+      weatherSensitivity = Math.floor(getRandom() * 3) + 1;
+    }
+    weatherSensitivity = Math.max(1, Math.min(10, weatherSensitivity));
     
     // Create object directly (avoiding push for better performance)
     demoLogs[day] = {
