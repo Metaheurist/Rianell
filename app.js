@@ -256,6 +256,22 @@ function openShareModal(options) {
     if (payload.saveImage) addBtn('Save image', payload.saveImage, true, '<i class="fa-solid fa-file-image" aria-hidden="true"></i>');
     if (payload.shareToWhatsApp) addBtn('WhatsApp', payload.shareToWhatsApp, true, '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i>');
   } else if (mode === 'ai') {
+    if (payload.copyText) {
+      addBtn('Copy', () => {
+        navigator.clipboard.writeText(payload.copyText).then(() => {
+          if (typeof showAlertModal === 'function') showAlertModal('Copied to clipboard. You can paste into email or any app.', 'Copied');
+        }).catch(() => {
+          if (typeof showAlertModal === 'function') showAlertModal('Could not copy. Use Email or WhatsApp instead.', 'Copy failed');
+        });
+      }, true, '<i class="fa-solid fa-copy" aria-hidden="true"></i>');
+      if (payload.copyMarkdown) {
+        addBtn('Copy as Markdown', () => {
+          navigator.clipboard.writeText(payload.copyMarkdown).then(() => {
+            if (typeof showAlertModal === 'function') showAlertModal('Markdown version copied to clipboard.', 'Copied');
+          }).catch(() => {});
+        }, false, '<i class="fa-solid fa-code" aria-hidden="true"></i>');
+      }
+    }
     if (payload.emailHref) addBtn('Email', () => { window.location.href = payload.emailHref; }, true, '<i class="fa-solid fa-envelope" aria-hidden="true"></i>');
     if (payload.whatsappHref) addBtn('WhatsApp', () => { window.open(payload.whatsappHref, '_blank', 'noopener,noreferrer'); }, true, '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i>');
   }
@@ -573,40 +589,183 @@ function getChartTitleFromId(chartId) {
   return map[chartId] || chartId;
 }
 
-// Format AI analysis plain text for email: clear section breaks and spacing for readability
+// Build shareable AI analysis as plain text from currentAIAnalysis (no emoji, clean format)
+function buildAIAnalysisShareText(dateRangeText) {
+  var analysis = currentAIAnalysis;
+  var logs = currentAIFilteredLogs || [];
+  var dayCount = logs.length;
+  if (!analysis || !analysis.trends) return '';
+
+  var sep = '\n\n';
+  var blockSep = '\n----------------------------------------\n\n';
+  var lines = [];
+
+  lines.push('Analysis for ' + (dateRangeText || 'selected period'));
+  lines.push('');
+
+  // What we found (insights)
+  var insightsText = typeof generateComprehensiveInsights === 'function'
+    ? generateComprehensiveInsights(analysis, logs, dayCount)
+    : '';
+  if (insightsText) {
+    var plainInsights = insightsText
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/<[^>]+>/g, '')
+      .trim();
+    lines.push('WHAT WE FOUND');
+    lines.push(plainInsights.split(/\n\n+/).join('\n\n'));
+    lines.push('');
+  }
+
+  // What you logged (one line)
+  var numericWithData = Object.keys(analysis.trends || {}).filter(function(m) { return analysis.trends[m]; });
+  var daysFlare = logs.filter(function(l) { return l.flare === 'Yes'; }).length;
+  var daysFood = logs.filter(function(l) {
+    if (!l.food) return false;
+    var arr = Array.isArray(l.food) ? l.food : [].concat(l.food.breakfast || [], l.food.lunch || [], l.food.dinner || [], l.food.snack || []);
+    return arr.length > 0;
+  }).length;
+  var daysExercise = logs.filter(function(l) { return l.exercise && Array.isArray(l.exercise) && l.exercise.length > 0; }).length;
+  var daysStressors = logs.filter(function(l) { return l.stressors && Array.isArray(l.stressors) && l.stressors.length > 0; }).length;
+  var daysSymptoms = logs.filter(function(l) { return l.symptoms && Array.isArray(l.symptoms) && l.symptoms.length > 0; }).length;
+  var daysPainLocation = logs.filter(function(l) { return l.painLocation && String(l.painLocation).trim().length > 0; }).length;
+  var daysEnergy = logs.filter(function(l) { return l.energyClarity && String(l.energyClarity).trim().length > 0; }).length;
+  var daysNotes = logs.filter(function(l) { return l.notes && String(l.notes).trim().length > 0; }).length;
+  var loggedLine = 'Logged: ' + numericWithData.length + ' metrics, ' + daysFlare + ' flare day(s), ' + daysFood + ' food, ' + daysExercise + ' exercise, ' + daysStressors + ' stress, ' + daysSymptoms + ' symptoms, ' + daysPainLocation + ' pain areas, ' + daysEnergy + ' energy, ' + daysNotes + ' notes.';
+  lines.push('WHAT YOU LOGGED');
+  lines.push(loggedLine);
+  lines.push('');
+
+  // How you're doing (each metric one line, no emoji)
+  function formatTrendValue(metric, value) {
+    if (value === undefined || value === null) return '';
+    if (metric === 'bpm') return Math.round(value).toString();
+    if (metric === 'weight') {
+      var unit = (appSettings && appSettings.weightUnit) || 'kg';
+      var v = unit === 'lb' && typeof kgToLb === 'function' ? kgToLb(value) : value;
+      return parseFloat(v).toFixed(1) + (unit === 'lb' ? 'lb' : 'kg');
+    }
+    if (metric === 'steps') return Math.round(value).toLocaleString();
+    if (metric === 'hydration') return parseFloat(value).toFixed(1) + ' glasses';
+    return Math.round(value) + '/10';
+  }
+  function trendLabel(status) {
+    if (status === 'improving') return 'Getting better';
+    if (status === 'worsening') return 'Getting worse';
+    return 'Staying stable';
+  }
+  lines.push("HOW YOU'RE DOING");
+  Object.keys(analysis.trends).forEach(function(metric) {
+    var trend = analysis.trends[metric];
+    var name = metric.replace(/([A-Z])/g, ' $1').replace(/^./, function(s) { return s.toUpperCase(); });
+    var status = trend.statusFromAverage || 'stable';
+    var avg = formatTrendValue(metric, trend.average);
+    var now = formatTrendValue(metric, trend.current);
+    var next = trend.projected7Days != null ? formatTrendValue(metric, trend.projected7Days) : '';
+    var line = name + ': ' + trendLabel(status) + ' | Avg ' + avg + ' | Now ' + now;
+    if (next) line += ' | Next ' + next;
+    lines.push(line);
+  });
+  lines.push('');
+
+  // Possible flare-up
+  if (analysis.flareUpRisk) {
+    lines.push('POSSIBLE FLARE-UP');
+    lines.push(analysis.flareUpRisk.level + ' (' + (analysis.flareUpRisk.matchingMetrics || 0) + '/5 signs). Keep an eye on how you feel.');
+    lines.push('');
+  }
+
+  // Correlations
+  if (analysis.correlationMatrix) {
+    var strongCorrelations = [];
+    var metrics = Object.keys(analysis.correlationMatrix);
+    metrics.forEach(function(metric1) {
+      if (!analysis.correlationMatrix[metric1]) return;
+      metrics.forEach(function(metric2) {
+        if (metric1 >= metric2) return;
+        var corr = analysis.correlationMatrix[metric1][metric2];
+        if (corr && Math.abs(corr) > 0.6) {
+          var m1 = metric1.replace(/([A-Z])/g, ' $1').replace(/^./, function(s) { return s.toUpperCase(); });
+          var m2 = metric2.replace(/([A-Z])/g, ' $1').replace(/^./, function(s) { return s.toUpperCase(); });
+          var strength = Math.abs(corr) > 0.7 ? 'strongly' : 'usually';
+          var dir = corr > 0 ? 'goes up when' : 'goes down when';
+          strongCorrelations.push(m1 + ' ' + strength + ' ' + dir + ' ' + m2);
+        }
+      });
+    });
+    if (strongCorrelations.length > 0) {
+      lines.push('CORRELATIONS');
+      strongCorrelations.slice(0, 5).forEach(function(s) { lines.push(s); });
+      lines.push('');
+    }
+    if (analysis.correlationClusters && analysis.correlationClusters.length > 0) {
+      lines.push('Groups that change together:');
+      analysis.correlationClusters.forEach(function(cluster) {
+        lines.push('  ' + cluster.map(function(m) { return m.replace(/([A-Z])/g, ' $1').replace(/^./, function(s) { return s.toUpperCase(); }); }).join(', '));
+      });
+      lines.push('');
+    }
+  }
+
+  // Things to watch
+  if (analysis.anomalies && analysis.anomalies.length > 0) {
+    lines.push('THINGS TO WATCH');
+    analysis.anomalies.forEach(function(a) {
+      var plain = String(a).replace(/\*\*(.*?)\*\*/g, '$1').replace(/<[^>]+>/g, '');
+      lines.push('  ' + plain);
+    });
+    lines.push('');
+  }
+
+  lines.push('IMPORTANT');
+  lines.push('For patterns only — talk to your doctor before changing care. You can share this at your next visit.');
+
+  return EMAIL_ANALYSIS_INTRO + sep + lines.join(sep) + sep + EMAIL_SYNOPSIS_FOOTER;
+}
+
+// Strip emoji and replacement chars so shared text renders correctly in email/messaging
+function stripEmojiForShare(text) {
+  if (!text || typeof text !== 'string') return '';
+  return text
+    .replace(/\uFFFD/g, '')
+    .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F900}-\u{1F9FF}]/gu, '')
+    .trim();
+}
+
+// Format AI analysis plain text for email (legacy: used when structured data not available)
 function formatAIAnalysisTextForEmail(rawText) {
   if (!rawText || !rawText.trim()) return '';
-  const lines = rawText.trim().split(/\r?\n/);
-  const out = [];
-  let prevWasBlank = false;
-  const sectionMarkers = ['What we found', 'What you logged', "How you're doing", 'Things to watch', 'Correlations', 'Important', 'Possible flare-up', 'Symptoms', 'Pain by body part', 'Stress and triggers', 'Nutrition', 'Exercise', 'Top foods', 'Top exercises', 'Pain patterns', 'Food summary', 'What seems to help'];
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const trimmed = line.trim();
-    const isBlank = trimmed.length === 0;
+  var text = stripEmojiForShare(rawText);
+  if (!text) return '';
+  var lines = text.split(/\r?\n/);
+  var out = [];
+  var prevWasBlank = false;
+  var sectionMarkers = ['What we found', 'What you logged', "How you're doing", 'Things to watch', 'Correlations', 'Important', 'Possible flare-up'];
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    var trimmed = line.trim();
+    var isBlank = trimmed.length === 0;
     if (isBlank) {
       if (!prevWasBlank) out.push('');
       prevWasBlank = true;
       continue;
     }
     prevWasBlank = false;
-    const isSectionTitle = sectionMarkers.some(m => trimmed.startsWith(m) || trimmed.includes(m)) ||
-      /^[🤖📋📈🔗⚠️💡💉📍🔬🍽️🏃]/.test(trimmed) ||
+    var isSectionTitle = sectionMarkers.some(function(m) { return trimmed.indexOf(m) !== -1; }) ||
       (trimmed.length < 50 && /^(Summary|Symptoms|Nutrition|Exercise|Important)/i.test(trimmed));
     if (isSectionTitle && out.length > 0 && out[out.length - 1] !== '') {
       out.push('');
-      out.push('────────────────────────────────');
+      out.push('----------------------------------------');
       out.push('');
     }
     out.push(trimmed);
   }
-  const formatted = out.join('\n');
-  return EMAIL_ANALYSIS_INTRO + '\n\n' + formatted + '\n\n' + EMAIL_SYNOPSIS_FOOTER;
+  return EMAIL_ANALYSIS_INTRO + '\n\n' + out.join('\n') + '\n\n' + EMAIL_SYNOPSIS_FOOTER;
 }
 
 function openShareModalForAIAnalysis() {
-  const resultsContent = document.getElementById('aiResultsContent');
-  const hasContent = currentAIAnalysis && resultsContent && resultsContent.innerText && resultsContent.innerText.trim().length > 0;
+  var resultsContent = document.getElementById('aiResultsContent');
+  var hasContent = currentAIAnalysis && resultsContent && (resultsContent.innerText && resultsContent.innerText.trim().length > 0 || currentAIAnalysis.trends);
   if (!hasContent) {
     openShareModal({
       mode: 'ai',
@@ -616,20 +775,27 @@ function openShareModalForAIAnalysis() {
     });
     return;
   }
-  const text = resultsContent.innerText.trim();
-  const dateRangeMatch = text.match(/Analysis for (.+?)(?:\n|$)/);
-  const dateRangeText = dateRangeMatch ? dateRangeMatch[1] : '';
-  const subject = 'Health analysis summary – ' + (dateRangeText || '');
-  const formattedBody = formatAIAnalysisTextForEmail(text);
-  const emailHref = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(formattedBody);
-  const whatsappText = subject + '\n\n' + formattedBody;
-  const whatsappHref = 'https://wa.me/?text=' + encodeURIComponent(whatsappText);
+  var dateRangeText = '';
+  if (resultsContent && resultsContent.innerText) {
+    var match = resultsContent.innerText.trim().match(/Analysis for (.+?)(?:\n|$)/);
+    if (match) dateRangeText = match[1];
+  }
+  var formattedBody = (currentAIAnalysis && currentAIAnalysis.trends)
+    ? buildAIAnalysisShareText(dateRangeText)
+    : formatAIAnalysisTextForEmail(resultsContent.innerText.trim());
+  formattedBody = stripEmojiForShare(formattedBody);
+  var subject = 'Health analysis summary – ' + (dateRangeText || 'selected period');
+  var emailHref = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(formattedBody);
+  var whatsappText = subject + '\n\n' + formattedBody;
+  var whatsappHref = 'https://wa.me/?text=' + encodeURIComponent(whatsappText);
+  var copyText = formattedBody;
+  var copyMarkdown = formattedBody.replace(/^(WHAT WE FOUND|WHAT YOU LOGGED|HOW YOU'RE DOING|CORRELATIONS|THINGS TO WATCH|IMPORTANT|POSSIBLE FLARE-UP|Groups that change together)/gm, '## $1');
 
   openShareModal({
     mode: 'ai',
     title: 'Share AI analysis',
-    bodyHTML: '<p>Send full summary by email or WhatsApp.</p>',
-    payload: { emailHref, whatsappHref }
+    bodyHTML: '<p>Copy the summary or send by email or WhatsApp. Plain text only so it pastes correctly everywhere.</p>',
+    payload: { emailHref, whatsappHref, copyText: copyText, copyMarkdown: copyMarkdown }
   });
 }
 
@@ -733,8 +899,8 @@ function closeCookiePolicyModal() {
 // ============================================
 // Tutorial Modal (new users + backtick ` to reopen)
 // ============================================
-const TUTORIAL_SLIDE_TITLES = ['Welcome', 'Log Entry', 'View & AI', 'Settings & data', 'Data options', "You're all set"];
-const TUTORIAL_SLIDE_COUNT = 6;
+const TUTORIAL_SLIDE_TITLES = ['Welcome', 'Log Entry', 'View & AI', 'Settings & data', 'Data options', 'Goals & targets', "You're all set"];
+const TUTORIAL_SLIDE_COUNT = 7;
 var _tutorialSwipeStartX = 0;
 var _tutorialSwipeStartY = 0;
 var _tutorialSwipeHandlersAttached = false;
@@ -1860,10 +2026,17 @@ window.addEventListener('DOMContentLoaded', function() {
   });
   
   const urlParams = new URLSearchParams(window.location.search);
-  
+
   if (urlParams.get('quick') === 'true') {
-    // Focus on first input for quick entry
-    document.getElementById('date').focus();
+    switchTab('log');
+    setTimeout(function() { document.getElementById('date').focus(); }, 100);
+  }
+
+  window.addEventListener('online', function() {
+    flushOfflineQueue();
+  });
+  if (navigator.onLine) {
+    flushOfflineQueue();
   }
   
   if (urlParams.get('charts') === 'true') {
@@ -1874,11 +2047,20 @@ window.addEventListener('DOMContentLoaded', function() {
   // Initialize food and exercise lists on page load
   renderLogFoodItems();
   renderLogExerciseItems();
+  renderLogMedicationsItems();
   renderEnergyClarityTiles();
   renderStressorTiles('logStressorsTiles');
   renderLogSymptomsItems(); // also populates logSymptomsTiles
   initPainBodyDiagram('painBodyDiagram', 'painLocation');
   initPainBodyDiagram('editPainBodyDiagram', 'editPainLocation');
+  if (typeof updateGoalsProgressBlock === 'function') updateGoalsProgressBlock();
+  ['steps', 'hydration', 'sleep'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', updateGoalsProgressBlock);
+      el.addEventListener('change', updateGoalsProgressBlock);
+    }
+  });
 
   // Connect to Server-Sent Events for auto-reload on file changes
   connectToReloadStream();
@@ -5816,10 +5998,262 @@ let logFormFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
 let logFormExerciseItems = []; // array of { name, duration } (duration in minutes)
 let logFormStressorsItems = [];
 let logFormSymptomsItems = [];
+var logFormMedications = []; // array of { name, times, taken } for medication/supplement tracker
 let editStressorsItems = [];
 let editSymptomsItems = [];
 let editFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
 let editExerciseItems = [];
+
+// Offline log queue: when offline, entries are saved locally and queued for sync when back online
+var OFFLINE_QUEUE_KEY = 'healthLogsOfflineQueue';
+
+function getOfflineQueue() {
+  try {
+    return JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function addToOfflineQueue(entry) {
+  var q = getOfflineQueue();
+  q.push(entry);
+  try {
+    localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(q));
+  } catch (e) {
+    console.warn('Offline queue save failed', e);
+  }
+}
+
+function clearOfflineQueue() {
+  try {
+    localStorage.removeItem(OFFLINE_QUEUE_KEY);
+  } catch (e) {}
+}
+
+// Goals & targets (localStorage key healthAppGoals)
+var DEFAULT_GOALS = { steps: 0, hydration: 0, sleep: 0, goodDaysPerWeek: 0 };
+var GLASS_VOLUME_L = 0.25; // liters per glass (for displaying L next to glasses)
+
+function getGoals() {
+  try {
+    var raw = localStorage.getItem('healthAppGoals');
+    if (!raw) return Object.assign({}, DEFAULT_GOALS);
+    var g = JSON.parse(raw);
+    return { steps: g.steps != null ? g.steps : DEFAULT_GOALS.steps, hydration: g.hydration != null ? g.hydration : DEFAULT_GOALS.hydration, sleep: g.sleep != null ? g.sleep : DEFAULT_GOALS.sleep, goodDaysPerWeek: g.goodDaysPerWeek != null ? g.goodDaysPerWeek : DEFAULT_GOALS.goodDaysPerWeek };
+  } catch (e) {
+    return Object.assign({}, DEFAULT_GOALS);
+  }
+}
+
+function saveGoalsFromModal() {
+  var steps = parseInt(document.getElementById('goalSteps') && document.getElementById('goalSteps').value, 10) || 0;
+  var hydration = parseInt(document.getElementById('goalHydration') && document.getElementById('goalHydration').value, 10) || 0;
+  var sleep = parseInt(document.getElementById('goalSleep') && document.getElementById('goalSleep').value, 10) || 0;
+  var goodDays = parseInt(document.getElementById('goalGoodDays') && document.getElementById('goalGoodDays').value, 10) || 0;
+  var g = { steps: steps, hydration: hydration, sleep: sleep, goodDaysPerWeek: goodDays };
+  try {
+    localStorage.setItem('healthAppGoals', JSON.stringify(g));
+  } catch (e) {}
+  return g;
+}
+
+function openGoalsModal() {
+  var overlay = document.getElementById('goalsModalOverlay');
+  if (!overlay) return;
+  var goals = getGoals();
+  var stepsEl = document.getElementById('goalSteps');
+  var hydrationEl = document.getElementById('goalHydration');
+  var sleepEl = document.getElementById('goalSleep');
+  var goodDaysEl = document.getElementById('goalGoodDays');
+  if (stepsEl) { stepsEl.value = goals.steps; updateGoalLabel('goalSteps', 'goalStepsLabel', 0, 'steps'); }
+  if (hydrationEl) { hydrationEl.value = goals.hydration; updateGoalLabel('goalHydration', 'goalHydrationLabel', 0, 'glasses'); }
+  if (sleepEl) { sleepEl.value = goals.sleep; updateGoalLabel('goalSleep', 'goalSleepLabel', 0, 'score'); }
+  if (goodDaysEl) { goodDaysEl.value = goals.goodDaysPerWeek; updateGoalLabel('goalGoodDays', 'goalGoodDaysLabel', 0, 'days'); }
+  overlay.style.display = 'block';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  document.body.classList.add('modal-active');
+  document.body.style.overflow = 'hidden';
+  overlay.onclick = function(e) { if (e.target === overlay) closeGoalsModal(); };
+  var escapeHandler = function(e) { if (e.key === 'Escape') { closeGoalsModal(); document.removeEventListener('keydown', escapeHandler); } };
+  document.addEventListener('keydown', escapeHandler);
+}
+
+function closeGoalsModal() {
+  var overlay = document.getElementById('goalsModalOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    overlay.style.visibility = 'hidden';
+    overlay.style.opacity = '0';
+    document.body.classList.remove('modal-active');
+    document.body.style.overflow = '';
+  }
+}
+
+function updateGoalLabel(sliderId, labelId, _zeroOff, suffix) {
+  var slider = document.getElementById(sliderId);
+  var label = document.getElementById(labelId);
+  if (!slider || !label) return;
+  var val = parseInt(slider.value, 10);
+  if (suffix === 'steps') label.textContent = val === 0 ? 'Off' : val.toLocaleString();
+  else if (suffix === 'glasses') label.textContent = val === 0 ? 'Off' : String(val) + ' [' + (val * GLASS_VOLUME_L).toFixed(2) + ' L]';
+  else if (suffix === 'score') label.textContent = val === 0 ? 'Off' : String(val);
+  else if (suffix === 'days') label.textContent = val === 0 ? 'Off' : val + ' days';
+}
+
+function saveGoalsAndClose() {
+  saveGoalsFromModal();
+  closeGoalsModal();
+  updateGoalsProgressBlock();
+}
+
+function getGoodDaysThisWeek() {
+  var logs = typeof window !== 'undefined' && window.logs ? window.logs : [];
+  var today = new Date();
+  var startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+  var count = 0;
+  var seen = {};
+  logs.forEach(function(log) {
+    var d = new Date(log.date);
+    if (d < startOfWeek || d > today) return;
+    if (seen[log.date]) return;
+    seen[log.date] = true;
+    var noFlare = log.flare !== 'Yes';
+    var moodOk = (log.mood != null && parseInt(log.mood, 10) >= 6) || log.mood == null;
+    if (noFlare && moodOk) count++;
+  });
+  return count;
+}
+
+function getGoodDaysStreak() {
+  var logs = typeof window !== 'undefined' && window.logs ? window.logs : [];
+  if (!logs.length) return 0;
+  logs.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+  var streak = 0;
+  for (var i = 0; i < logs.length; i++) {
+    var log = logs[i];
+    var noFlare = log.flare !== 'Yes';
+    var moodOk = (log.mood != null && parseInt(log.mood, 10) >= 6) || log.mood == null;
+    if (noFlare && moodOk) streak++; else break;
+  }
+  return streak;
+}
+
+function getLogsLast7Days() {
+  var logs = typeof window !== 'undefined' && window.logs ? window.logs : [];
+  var today = new Date();
+  today.setHours(23, 59, 59, 999);
+  var sevenDaysAgo = new Date(today);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+  return logs.filter(function(log) {
+    var d = new Date(log.date);
+    return d >= sevenDaysAgo && d <= today;
+  });
+}
+
+function updateGoalsProgressBlock() {
+  var block = document.getElementById('goalsProgressBlock');
+  if (!block) return;
+  var goals = getGoals();
+  var hasAny = goals.steps > 0 || goals.hydration > 0 || goals.sleep > 0 || goals.goodDaysPerWeek > 0;
+  if (!hasAny) {
+    block.style.display = 'none';
+    block.innerHTML = '';
+    return;
+  }
+  var last7 = getLogsLast7Days();
+  var parts = [];
+
+  function insight(met, total, avgPct) {
+    if (total === 0) return { cls: '', label: '' };
+    if (met >= 6) return { cls: 'on-track', label: 'On track' };
+    if (met >= 4) return { cls: 'mixed', label: 'Mixed' };
+    if (avgPct >= 100) return { cls: 'on-track', label: 'Avg above target' };
+    return { cls: 'below', label: 'Below target' };
+  }
+  function daysDots(met) {
+    var s = '';
+    for (var i = 0; i < 7; i++) s += '<span class="goals-dot' + (i < met ? ' filled' : '') + '" aria-hidden="true"></span>';
+    return s;
+  }
+
+  var rows = [];
+  if (goals.steps > 0) {
+    var stepsLogs = last7.filter(function(l) { var v = parseInt(l.steps, 10); return !isNaN(v) && v >= 0; });
+    var stepsSum = stepsLogs.reduce(function(acc, l) { return acc + parseInt(l.steps, 10); }, 0);
+    var stepsAvg = stepsLogs.length ? Math.round(stepsSum / stepsLogs.length) : 0;
+    var stepsMet = stepsLogs.filter(function(l) { return parseInt(l.steps, 10) >= goals.steps; }).length;
+    var stepsPct = goals.steps > 0 ? Math.min(100, Math.round((stepsAvg / goals.steps) * 100)) : 0;
+    var si = insight(stepsMet, 7, goals.steps > 0 ? Math.round((stepsAvg / goals.steps) * 100) : 0);
+    rows.push('<div class="goals-metric-row">' +
+      '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-shoe-prints"></i></span><span class="goals-metric-name">Steps</span><span class="goals-metric-nums">' + stepsAvg.toLocaleString() + ' / ' + goals.steps.toLocaleString() + '</span></div>' +
+      '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + stepsPct + '%"></div></div>' +
+      '<div class="goals-meta"><span class="goals-days" title="' + stepsMet + ' of 7 days met">' + daysDots(stepsMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div>');
+  }
+  if (goals.hydration > 0) {
+    var hydLogs = last7.filter(function(l) { var v = parseFloat(l.hydration); return v != null && !isNaN(v) && v >= 0; });
+    var hydSum = hydLogs.reduce(function(acc, l) { return acc + parseFloat(l.hydration); }, 0);
+    var hydAvg = hydLogs.length ? (hydSum / hydLogs.length).toFixed(1) : '0';
+    var hydMet = hydLogs.filter(function(l) { return parseFloat(l.hydration) >= goals.hydration; }).length;
+    var hydAvgL = (parseFloat(hydAvg) * GLASS_VOLUME_L).toFixed(2);
+    var goalL = (goals.hydration * GLASS_VOLUME_L).toFixed(2);
+    var hydPct = goals.hydration > 0 ? Math.min(100, Math.round((parseFloat(hydAvg) / goals.hydration) * 100)) : 0;
+    var si = insight(hydMet, 7, goals.hydration > 0 ? Math.round((parseFloat(hydAvg) / goals.hydration) * 100) : 0);
+    rows.push('<div class="goals-metric-row">' +
+      '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-droplet"></i></span><span class="goals-metric-name">Hydration</span><span class="goals-metric-nums">' + hydAvg + ' [' + hydAvgL + ' L] / ' + goals.hydration + ' [' + goalL + ' L]</span></div>' +
+      '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + hydPct + '%"></div></div>' +
+      '<div class="goals-meta"><span class="goals-days" title="' + hydMet + ' of 7 days met">' + daysDots(hydMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div>');
+  }
+  if (goals.sleep > 0) {
+    var sleepLogs = last7.filter(function(l) { var v = parseInt(l.sleep, 10); return !isNaN(v) && v >= 1 && v <= 10; });
+    var sleepSum = sleepLogs.reduce(function(acc, l) { return acc + parseInt(l.sleep, 10); }, 0);
+    var sleepAvg = sleepLogs.length ? (sleepSum / sleepLogs.length).toFixed(1) : '0';
+    var sleepMet = sleepLogs.filter(function(l) { return parseInt(l.sleep, 10) >= goals.sleep; }).length;
+    var sleepPct = goals.sleep > 0 ? Math.min(100, Math.round((parseFloat(sleepAvg) / goals.sleep) * 100)) : 0;
+    var si = insight(sleepMet, 7, goals.sleep > 0 ? Math.round((parseFloat(sleepAvg) / goals.sleep) * 100) : 0);
+    rows.push('<div class="goals-metric-row">' +
+      '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-moon"></i></span><span class="goals-metric-name">Sleep</span><span class="goals-metric-nums">' + sleepAvg + ' / ' + goals.sleep + '</span></div>' +
+      '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + sleepPct + '%"></div></div>' +
+      '<div class="goals-meta"><span class="goals-days" title="' + sleepMet + ' of 7 days met">' + daysDots(sleepMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div>');
+  }
+  if (goals.goodDaysPerWeek > 0) {
+    var goodThisWeek = getGoodDaysThisWeek();
+    var streak = getGoodDaysStreak();
+    var goodCls = goodThisWeek >= goals.goodDaysPerWeek ? 'on-track' : 'below';
+    var goodLabel = goodThisWeek >= goals.goodDaysPerWeek ? 'On track' : 'Below target';
+    var goodPct = goals.goodDaysPerWeek > 0 ? Math.min(100, Math.round((goodThisWeek / goals.goodDaysPerWeek) * 100)) : 0;
+    rows.push('<div class="goals-metric-row">' +
+      '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-face-smile"></i></span><span class="goals-metric-name">Good days</span><span class="goals-metric-nums">' + goodThisWeek + ' / ' + goals.goodDaysPerWeek + (streak > 0 ? ' · ' + streak + ' in a row' : '') + '</span></div>' +
+      '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + goodPct + '%"></div></div>' +
+      '<div class="goals-meta"><span class="goals-status-pill ' + goodCls + '">' + goodLabel + '</span></div></div>');
+  }
+  if (rows.length === 0) { block.style.display = 'none'; return; }
+  block.className = 'goals-progress-block';
+  block.innerHTML = '<div class="goals-progress-title">Last 7 days vs targets</div>' + rows.join('');
+  block.style.display = 'block';
+}
+
+function flushOfflineQueue() {
+  if (!navigator.onLine) return;
+  var q = getOfflineQueue();
+  if (q.length === 0) return;
+  try {
+    if (typeof syncToCloud === 'function' && typeof cloudSyncState !== 'undefined' && cloudSyncState.isAuthenticated) {
+      syncToCloud().catch(function(err) { console.warn('Offline queue sync failed', err); }).then(function() {
+        clearOfflineQueue();
+        if (typeof renderLogs === 'function') renderLogs();
+      });
+    } else {
+      clearOfflineQueue();
+    }
+  } catch (e) {
+    console.warn('flushOfflineQueue error', e);
+  }
+}
 
 // Optimized localStorage helper function
 function saveLogsToStorage() {
@@ -6720,6 +7154,46 @@ function renderLogSymptomsItems() {
   renderSymptomTiles('logSymptomsTiles');
 }
 
+function addLogMedicationItem() {
+  var nameEl = document.getElementById('medName');
+  var timesEl = document.getElementById('medTimes');
+  var takenEl = document.getElementById('medTaken');
+  var name = (nameEl && nameEl.value || '').trim();
+  if (!name) return;
+  var timesStr = (timesEl && timesEl.value || '').trim();
+  var times = timesStr ? timesStr.split(/[\s,]+/).map(function(t) { return t.trim(); }).filter(Boolean) : [];
+  var taken = takenEl ? takenEl.checked : true;
+  logFormMedications.push({ name: name, times: times, taken: taken });
+  if (nameEl) nameEl.value = '';
+  if (timesEl) timesEl.value = '';
+  if (takenEl) takenEl.checked = true;
+  renderLogMedicationsItems();
+}
+
+function removeLogMedicationItem(index) {
+  logFormMedications.splice(index, 1);
+  renderLogMedicationsItems();
+}
+
+function renderLogMedicationsItems() {
+  var list = document.getElementById('logMedicationsList');
+  if (!list) return;
+  list.innerHTML = '';
+  if (logFormMedications.length === 0) {
+    list.innerHTML = '<p class="empty-items">No medications or supplements added yet.</p>';
+    return;
+  }
+  logFormMedications.forEach(function(item, index) {
+    var timesLabel = item.times && item.times.length ? item.times.join(', ') : 'no time';
+    var takenLabel = item.taken ? 'Taken' : 'Not taken';
+    var div = document.createElement('div');
+    div.className = 'item-tag medication-tag';
+    div.innerHTML = '<span>' + escapeHTML(item.name) + (timesLabel !== 'no time' ? ' (' + escapeHTML(timesLabel) + ')' : '') + ' – ' + takenLabel + '</span>' +
+      '<button type="button" class="remove-item-btn" onclick="removeLogMedicationItem(' + index + ')" title="Remove">×</button>';
+    list.appendChild(div);
+  });
+}
+
 // Edit modal functions for stressors and symptoms
 function addEditStressor(value) {
   const toAdd = (typeof value === 'string' ? value : (document.getElementById('editStressorSelect')?.value || '').trim());
@@ -7147,8 +7621,7 @@ function saveFoodLog() {
       filterLogs();
     } else {
       // Check if sorting is active
-      const sortBtn = document.querySelector('.sort-btn');
-      const isSorted = sortBtn && sortBtn.textContent.includes('Oldest');
+      const isSorted = currentSortOrder === 'oldest';
       
       if (isSorted) {
         // Re-render sorted logs
@@ -7341,8 +7814,7 @@ function saveExerciseLog() {
       filterLogs();
     } else {
       // Check if sorting is active
-      const sortBtn = document.querySelector('.sort-btn');
-      const isSorted = sortBtn && sortBtn.textContent.includes('Oldest');
+      const isSorted = currentSortOrder === 'oldest';
       
       if (isSorted) {
         // Re-render sorted logs
@@ -7605,8 +8077,7 @@ function enableInlineEdit(logDate) {
     filterLogs();
   } else {
     // Check if sorting is active
-    const sortBtn = document.querySelector('.sort-btn');
-    const isSorted = sortBtn && sortBtn.textContent.includes('Oldest');
+    const isSorted = currentSortOrder === 'oldest';
     
     if (isSorted) {
       // Re-render sorted logs
@@ -7755,8 +8226,7 @@ function saveInlineEdit(logDate) {
     filterLogs();
   } else {
     // Check if sorting is active
-    const sortBtn = document.querySelector('.sort-btn');
-    const isSorted = sortBtn && sortBtn.textContent.includes('Oldest');
+    const isSorted = currentSortOrder === 'oldest';
     
     if (isSorted) {
       // Re-render sorted logs
@@ -8153,6 +8623,16 @@ function generateLogEntryHTML(log) {
           ${isEditing 
             ? `<input type="text" class="inline-edit-painLocation" value="${escapeHTML(log.painLocation || '')}" maxlength="150" style="flex: 1; max-width: 250px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-left: 12px;" />`
             : `<span class="metric-value">${log.painLocation ? escapeHTML(log.painLocation) : '—'}</span>`
+          }
+        </div>
+      </div>
+      <div class="metric-group medications-log">
+        <h4 class="metric-group-title">💊 Medication / Supplements</h4>
+        <div class="metric-item">
+          <span class="metric-label">Items</span>
+          ${(log.medications && log.medications.length > 0)
+            ? `<span class="metric-value metric-value-list">${log.medications.map(m => escapeHTML(m.name) + (m.times && m.times.length ? ' (' + m.times.join(', ') + ')' : '') + ' – ' + (m.taken ? 'Taken' : 'Not taken')).join('; ')}</span>`
+            : `<span class="metric-value metric-value-muted">None logged</span>`
           }
         </div>
       </div>
@@ -9753,9 +10233,12 @@ form.addEventListener("submit", e => {
     weatherSensitivity: document.getElementById("weatherSensitivity")?.value ? Math.max(1, Math.min(10, parseInt(document.getElementById("weatherSensitivity").value) || 0)) : undefined,
     painLocation: document.getElementById("painLocation")?.value ? escapeHTML(document.getElementById("painLocation").value.trim().substring(0, 150)) : undefined,
     steps: document.getElementById("steps")?.value ? parseInt(document.getElementById("steps").value) : undefined,
-    hydration: document.getElementById("hydration")?.value ? parseFloat(document.getElementById("hydration").value) : undefined
+    hydration: document.getElementById("hydration")?.value ? parseFloat(document.getElementById("hydration").value) : undefined,
+    medications: logFormMedications.length > 0 ? logFormMedications.map(function(m) {
+      return { name: escapeHTML(m.name.trim().substring(0, 80)), times: (m.times || []).slice(0, 10), taken: !!m.taken };
+    }) : undefined
   };
-  
+
   // Remove undefined values to keep data clean
   Object.keys(newEntry).forEach(key => {
     if (newEntry[key] === undefined || newEntry[key] === '') {
@@ -9780,27 +10263,36 @@ form.addEventListener("submit", e => {
     }
   
   // No duplicate found, add new entry
-    logs.push(newEntry);
+  logs.push(newEntry);
   Logger.info('Health log entry created', { date: newEntry.date, totalEntries: logs.length });
-  
+
+  var wasOffline = !navigator.onLine;
+  if (wasOffline) {
+    addToOfflineQueue(newEntry.date);
+  }
+
   saveLogsToStorage();
   Logger.debug('Health logs saved to localStorage', { entryCount: logs.length });
-  
-  // Sync anonymized data if contribution is enabled (but not in demo mode)
-  if (appSettings.contributeAnonData && !appSettings.demoMode && typeof syncAnonymizedData === 'function') {
-    setTimeout(() => syncAnonymizedData(), 1000);
+
+  if (!wasOffline) {
+    // Sync anonymized data if contribution is enabled (but not in demo mode)
+    if (appSettings.contributeAnonData && !appSettings.demoMode && typeof syncAnonymizedData === 'function') {
+      setTimeout(() => syncAnonymizedData(), 1000);
+    }
   }
-  
+
   // Clear all item arrays after saving
   logFormFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
   logFormExerciseItems = [];
   logFormStressorsItems = [];
   logFormSymptomsItems = [];
+  logFormMedications = [];
   renderLogFoodItems();
   renderLogExerciseItems();
   renderLogStressorsItems();
   renderLogSymptomsItems();
-  
+  renderLogMedicationsItems();
+
   // Reset energy/clarity tile selection
   setEnergyClaritySelection('');
   resetPainBodyDiagram('painBodyDiagram', 'painLocation');
@@ -9812,8 +10304,12 @@ form.addEventListener("submit", e => {
   
   // Switch to logs tab after saving
   switchTab('logs');
-  
-  // Show success message
+
+  // Show success message (include offline note when applicable)
+  var successText = 'Entry saved successfully!';
+  if (wasOffline) {
+    successText = 'Entry saved locally. It will sync when you\'re back online.';
+  }
   const successMsg = document.createElement('div');
   successMsg.className = 'success-notification';
   successMsg.style.cssText = `
@@ -9834,7 +10330,7 @@ form.addEventListener("submit", e => {
     transform: translateX(0);
     opacity: 1;
   `;
-  successMsg.textContent = 'Entry saved successfully! ✅';
+  successMsg.textContent = successText;
   document.body.appendChild(successMsg);
   
   setTimeout(() => {
@@ -11953,63 +12449,58 @@ function filterLogs() {
   renderFilteredLogs(filteredLogs);
 }
 
-function toggleSort() {
-  currentSortOrder = currentSortOrder === 'newest' ? 'oldest' : 'newest';
-  document.getElementById('sortOrder').textContent = currentSortOrder === 'newest' ? 'Newest' : 'Oldest';
-  
-  // Get the currently filtered logs (respecting date range)
-  const startDate = document.getElementById('startDate').value;
-  const endDate = document.getElementById('endDate').value;
-  
-  let logsToSort = [];
-  
-  // If date range is set, filter first, then sort
+function setSortOrder(order) {
+  if (order !== 'newest' && order !== 'oldest') return;
+  currentSortOrder = order;
+  var oldestBtn = document.getElementById('sortOldest');
+  var newestBtn = document.getElementById('sortNewest');
+  if (oldestBtn) oldestBtn.classList.toggle('active', order === 'oldest');
+  if (newestBtn) newestBtn.classList.toggle('active', order === 'newest');
+
+  var startDate = document.getElementById('startDate').value;
+  var endDate = document.getElementById('endDate').value;
+  var logsToSort = [];
   if (startDate || endDate) {
-    logsToSort = logs.filter(log => {
-      const logDate = new Date(log.date);
-      const start = startDate ? new Date(startDate) : new Date('1900-01-01');
-      const end = endDate ? new Date(endDate) : new Date('2100-12-31');
-      end.setHours(23, 59, 59, 999); // Include entire end date
+    logsToSort = logs.filter(function(log) {
+      var logDate = new Date(log.date);
+      var start = startDate ? new Date(startDate) : new Date('1900-01-01');
+      var end = endDate ? new Date(endDate) : new Date('2100-12-31');
+      end.setHours(23, 59, 59, 999);
       start.setHours(0, 0, 0, 0);
       return logDate >= start && logDate <= end;
     });
   } else {
-    // No date filter - check if a view range button is active
-    const activeRangeBtn = document.querySelector('.log-date-range-btn.active');
+    var activeRangeBtn = document.querySelector('.log-date-range-btn.active');
     if (activeRangeBtn) {
-      // Get the range from the button
-      const btnId = activeRangeBtn.id;
-      let days = 7; // default
+      var btnId = activeRangeBtn.id;
+      var days = 7;
       if (btnId === 'logRange1Day') days = 1;
       else if (btnId === 'logRange7Days') days = 7;
       else if (btnId === 'logRange30Days') days = 30;
       else if (btnId === 'logRange90Days') days = 90;
-      
-      // Filter by the selected range
-      const endDate = new Date();
-      endDate.setHours(23, 59, 59, 999);
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - (days - 1));
-      startDate.setHours(0, 0, 0, 0);
-      
-      logsToSort = logs.filter(log => {
-        const logDate = new Date(log.date);
-        return logDate >= startDate && logDate <= endDate;
+      var rangeEnd = new Date();
+      rangeEnd.setHours(23, 59, 59, 999);
+      var rangeStart = new Date();
+      rangeStart.setDate(rangeStart.getDate() - (days - 1));
+      rangeStart.setHours(0, 0, 0, 0);
+      logsToSort = logs.filter(function(log) {
+        var logDate = new Date(log.date);
+        return logDate >= rangeStart && logDate <= rangeEnd;
       });
     } else {
-      // No filter at all - use all logs
-      logsToSort = [...logs];
+      logsToSort = logs.slice();
     }
   }
-  
-  // Sort the filtered logs
-  const sortedLogs = logsToSort.sort((a, b) => {
-    const dateA = new Date(a.date);
-    const dateB = new Date(b.date);
+  var sortedLogs = logsToSort.sort(function(a, b) {
+    var dateA = new Date(a.date);
+    var dateB = new Date(b.date);
     return currentSortOrder === 'newest' ? dateB - dateA : dateA - dateB;
   });
-  
   renderSortedLogs(sortedLogs);
+}
+
+function toggleSort() {
+  setSortOrder(currentSortOrder === 'newest' ? 'oldest' : 'newest');
 }
 
 function renderFilteredLogs(filteredLogs) {
@@ -12184,6 +12675,9 @@ function switchTab(tabName) {
       if (container) container.scrollTop = 0;
       if (selectedTab) selectedTab.scrollTop = 0;
       window.scrollTo(0, 0);
+    }
+    if (tabName === 'log' && typeof updateGoalsProgressBlock === 'function') {
+      updateGoalsProgressBlock();
     }
     if (tabName === 'charts') {
     const chartSection = document.getElementById('chartSection');

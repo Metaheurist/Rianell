@@ -313,15 +313,68 @@
       </div>
     </div>
   </div>
+
+  <!-- Goals & Targets Modal -->
+  <div class="modal-overlay goals-modal-overlay" id="goalsModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Goals and targets">
+    <div class="modal-content goals-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Goals & targets</h3>
+        <button type="button" class="modal-close" onclick="closeGoalsModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body goals-modal-body">
+        <p class="field-hint" style="margin-bottom: 16px;">Set daily or weekly targets. Progress appears on the Log tab. Use 0 to leave a goal off.</p>
+        <div class="goals-slider-group">
+          <label for="goalSteps">Steps per day</label>
+          <div class="goals-slider-row">
+            <input type="range" id="goalSteps" min="0" max="20000" step="500" value="0" oninput="updateGoalLabel('goalSteps', 'goalStepsLabel', 0, 'steps')">
+            <span id="goalStepsLabel" class="goals-value-label">Off</span>
+          </div>
+        </div>
+        <div class="goals-slider-group">
+          <label for="goalHydration">Hydration (glasses per day)</label>
+          <div class="goals-slider-row">
+            <input type="range" id="goalHydration" min="0" max="20" step="1" value="0" oninput="updateGoalLabel('goalHydration', 'goalHydrationLabel', 0, 'glasses')">
+            <span id="goalHydrationLabel" class="goals-value-label">Off</span>
+          </div>
+        </div>
+        <div class="goals-slider-group">
+          <label for="goalSleep">Sleep quality (score 1–10)</label>
+          <div class="goals-slider-row">
+            <input type="range" id="goalSleep" min="0" max="10" step="1" value="0" oninput="updateGoalLabel('goalSleep', 'goalSleepLabel', 0, 'score')">
+            <span id="goalSleepLabel" class="goals-value-label">Off</span>
+          </div>
+        </div>
+        <div class="goals-slider-group">
+          <label for="goalGoodDays">Good days per week (no flare, mood ≥ 6)</label>
+          <div class="goals-slider-row">
+            <input type="range" id="goalGoodDays" min="0" max="7" step="1" value="0" oninput="updateGoalLabel('goalGoodDays', 'goalGoodDaysLabel', 0, 'days')">
+            <span id="goalGoodDaysLabel" class="goals-value-label">Off</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-save-btn" onclick="saveGoalsAndClose()">Save</button>
+      </div>
+    </div>
+  </div>
   
   <div class="container" id="main-content">
-    <!-- Settings Button - Top Right -->
-    <button class="settings-button-top" onclick="toggleSettings()" title="Settings">
-      <svg class="settings-cog" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.4-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1c0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z" fill="currentColor"/>
-      </svg>
-    </button>
-    
+    <!-- Header buttons: Targets (face) + Settings -->
+    <div class="header-buttons-wrap">
+      <button type="button" class="targets-button-top" onclick="openGoalsModal()" title="Goals & targets">
+        <svg class="targets-face-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="12" cy="12" r="2" fill="currentColor"/>
+        </svg>
+      </button>
+      <button class="settings-button-top" onclick="toggleSettings()" title="Settings">
+        <svg class="settings-cog" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.4-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1c0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+
     <div class="title-container">
       <h1 id="dashboardTitle" data-text="Health Dashboard">Health Dashboard</h1>
       <div class="heartbeat-line">
@@ -418,6 +471,7 @@
       <div class="tab-header">
         <h2 class="tab-title">Log today</h2>
       </div>
+      <div id="goalsProgressBlock" class="goals-progress-block" style="display: none;" aria-live="polite"></div>
     <form id="logForm">
       <div id="validationSummary" class="form-validation-summary">
         <h4>⚠️ Please fix the following errors:</h4>
@@ -557,7 +611,9 @@
           <div class="input-container">
             <label>Energy & Mental Clarity</label>
             <input type="hidden" id="energyClarity" name="energyClarity" value="" />
-            <p id="energyClaritySelectedLabel" class="energy-clarity-selected" aria-live="polite">None selected</p>
+            <div class="selection-summary-sticky">
+              <p id="energyClaritySelectedLabel" class="energy-clarity-selected" aria-live="polite">None selected</p>
+            </div>
             <details class="energy-clarity-collapsible">
               <summary class="energy-clarity-summary">Choose energy & mental clarity</summary>
               <div id="energyClarityTiles" class="energy-clarity-tiles" role="listbox" aria-label="Energy and mental clarity options"></div>
@@ -583,7 +639,9 @@
             <label for="weatherSensitivity" class="slider-label">Weather Sensitivity</label>
             <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
           </div>
-          <div id="logStressorsList" class="items-list"></div>
+          <div class="selection-summary-sticky">
+            <div id="logStressorsList" class="items-list"></div>
+          </div>
           <details class="stressor-tiles-collapsible">
             <summary class="stressor-tiles-summary">Add stressor or trigger</summary>
             <div id="logStressorsTiles" class="stressor-tiles-container" aria-label="Stress and trigger options by group"></div>
@@ -598,7 +656,9 @@
           <span class="section-title">Additional Symptoms <span class="optional-hint">(Optional)</span></span>
         </button>
         <div class="section-content" id="additionalSymptoms">
-          <div id="logSymptomsList" class="items-list"></div>
+          <div class="selection-summary-sticky">
+            <div id="logSymptomsList" class="items-list"></div>
+          </div>
           <details class="symptom-tiles-collapsible">
             <summary class="symptom-tiles-summary">Add symptom</summary>
             <div id="logSymptomsTiles" class="symptom-tiles-container" aria-label="Symptom options by group"></div>
@@ -640,28 +700,36 @@
           <details class="food-category-block food-meal-collapsible">
             <summary class="food-category-summary"><span class="food-meal-label">Breakfast</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
             <div class="food-category-body">
-              <div id="logFoodBreakfastList" class="items-list"></div>
+              <div class="selection-summary-sticky">
+                <div id="logFoodBreakfastList" class="items-list"></div>
+              </div>
               <div id="logFoodBreakfastChips" class="food-tiles-by-group" aria-label="Add to Breakfast"></div>
             </div>
           </details>
           <details class="food-category-block food-meal-collapsible">
             <summary class="food-category-summary"><span class="food-meal-label">Lunch</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
             <div class="food-category-body">
-              <div id="logFoodLunchList" class="items-list"></div>
+              <div class="selection-summary-sticky">
+                <div id="logFoodLunchList" class="items-list"></div>
+              </div>
               <div id="logFoodLunchChips" class="food-tiles-by-group" aria-label="Add to Lunch"></div>
             </div>
           </details>
           <details class="food-category-block food-meal-collapsible">
             <summary class="food-category-summary"><span class="food-meal-label">Dinner</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
             <div class="food-category-body">
-              <div id="logFoodDinnerList" class="items-list"></div>
+              <div class="selection-summary-sticky">
+                <div id="logFoodDinnerList" class="items-list"></div>
+              </div>
               <div id="logFoodDinnerChips" class="food-tiles-by-group" aria-label="Add to Dinner"></div>
             </div>
           </details>
           <details class="food-category-block food-meal-collapsible">
             <summary class="food-category-summary"><span class="food-meal-label">Snack</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
             <div class="food-category-body">
-              <div id="logFoodSnackList" class="items-list"></div>
+              <div class="selection-summary-sticky">
+                <div id="logFoodSnackList" class="items-list"></div>
+              </div>
               <div id="logFoodSnackChips" class="food-tiles-by-group" aria-label="Add to Snack"></div>
             </div>
           </details>
@@ -675,7 +743,9 @@
           <span class="section-title">Exercise Log <span class="optional-hint">(Optional)</span></span>
         </button>
         <div class="section-content" id="exerciseLog">
-          <div id="logExerciseItemsList" class="items-list"></div>
+          <div class="selection-summary-sticky">
+            <div id="logExerciseItemsList" class="items-list"></div>
+          </div>
           <details class="exercise-category-block exercise-meal-collapsible">
             <summary class="exercise-category-summary"><span class="exercise-meal-label">Cardio</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
             <div class="exercise-category-body">
@@ -706,6 +776,30 @@
               <div id="logExerciseRecoveryChips" class="exercise-chips" aria-label="Add Recovery"></div>
             </div>
           </details>
+        </div>
+      </div>
+
+      <!-- Medication / Supplements Section (optional) -->
+      <div class="form-section">
+        <button type="button" class="section-header" data-section="medications">
+          <span class="section-icon">💊</span>
+          <span class="section-title">Medication / Supplements <span class="optional-hint">(Optional)</span></span>
+        </button>
+        <div class="section-content" id="medications">
+          <p class="field-hint">Add medications or supplements and mark if taken today.</p>
+          <div class="input-container">
+            <label for="medName">Name</label>
+            <input type="text" id="medName" placeholder="e.g. Aspirin, Vitamin D" maxlength="80">
+          </div>
+          <div class="input-container">
+            <label for="medTimes">Time(s)</label>
+            <input type="text" id="medTimes" placeholder="e.g. 09:00, 21:00" maxlength="50">
+          </div>
+          <div class="input-container medication-taken-row">
+            <label><input type="checkbox" id="medTaken" checked> Taken today</label>
+          </div>
+          <button type="button" class="add-medication-btn" onclick="addLogMedicationItem()">Add</button>
+          <div id="logMedicationsList" class="items-list medication-items-list"></div>
         </div>
       </div>
 
@@ -759,9 +853,10 @@
               <input type="date" id="endDate" placeholder="End Date">
             </div>
             <button onclick="filterLogs()" class="filter-btn">📅 Filter</button>
-            <button id="sortButton" onclick="toggleSort()" class="sort-btn" title="Click to toggle sort order">
-              📈 <span id="sortOrder">Newest</span>
-            </button>
+            <div class="sort-buttons-group" role="group" aria-label="Sort order">
+              <button type="button" id="sortOldest" class="sort-btn sort-btn-option" data-sort="oldest" onclick="setSortOrder('oldest')" title="Oldest first">📉 Oldest</button>
+              <button type="button" id="sortNewest" class="sort-btn sort-btn-option active" data-sort="newest" onclick="setSortOrder('newest')" title="Newest first">📈 Newest</button>
+            </div>
           </div>
         </div>
       </section>
@@ -1351,6 +1446,40 @@
           <small class="tutorial-toggle-hint">Use anonymised data pool for AI training (requires 90+ days of data). Used for personalised AI analysis and advice.</small>
         </div>
         <div class="tutorial-slide" id="tutorialSlide5" data-slide="5">
+          <p class="tutorial-text">Set <strong>Goals & targets</strong> with the target button next to Settings. Choose daily targets for steps, hydration, sleep score, and good days per week.</p>
+          <div class="tutorial-goals-sliders">
+            <div class="goals-slider-group">
+              <label for="tutorialGoalSteps">Steps per day</label>
+              <div class="goals-slider-row">
+                <input type="range" id="tutorialGoalSteps" min="0" max="20000" step="500" value="0" oninput="updateGoalLabel('tutorialGoalSteps', 'tutorialGoalStepsLabel', 0, 'steps')">
+                <span id="tutorialGoalStepsLabel" class="goals-value-label">Off</span>
+              </div>
+            </div>
+            <div class="goals-slider-group">
+              <label for="tutorialGoalHydration">Hydration (glasses per day)</label>
+              <div class="goals-slider-row">
+                <input type="range" id="tutorialGoalHydration" min="0" max="20" step="1" value="0" oninput="updateGoalLabel('tutorialGoalHydration', 'tutorialGoalHydrationLabel', 0, 'glasses')">
+                <span id="tutorialGoalHydrationLabel" class="goals-value-label">Off</span>
+              </div>
+            </div>
+            <div class="goals-slider-group">
+              <label for="tutorialGoalSleep">Sleep quality (score 1–10)</label>
+              <div class="goals-slider-row">
+                <input type="range" id="tutorialGoalSleep" min="0" max="10" step="1" value="0" oninput="updateGoalLabel('tutorialGoalSleep', 'tutorialGoalSleepLabel', 0, 'score')">
+                <span id="tutorialGoalSleepLabel" class="goals-value-label">Off</span>
+              </div>
+            </div>
+            <div class="goals-slider-group">
+              <label for="tutorialGoalGoodDays">Good days per week (no flare, mood ≥ 6)</label>
+              <div class="goals-slider-row">
+                <input type="range" id="tutorialGoalGoodDays" min="0" max="7" step="1" value="0" oninput="updateGoalLabel('tutorialGoalGoodDays', 'tutorialGoalGoodDaysLabel', 0, 'days')">
+                <span id="tutorialGoalGoodDaysLabel" class="goals-value-label">Off</span>
+              </div>
+            </div>
+          </div>
+          <p class="tutorial-text" style="margin-top: 10px;">Your progress and &quot;Last 7 days vs targets&quot; appear on the Log tab so you can see how you&apos;re doing.</p>
+        </div>
+        <div class="tutorial-slide" id="tutorialSlide6" data-slide="6">
           <p class="tutorial-text">You're all set. Close to start logging, try <strong>Demo Mode</strong>, or create an account to save your data in the cloud.</p>
         </div>
         </div>
