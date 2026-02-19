@@ -245,7 +245,8 @@ const NotificationManager = {
         
         notification.onclick = () => {
           window.focus();
-          window.location.href = url;
+          const openUrl = (url && url.startsWith('http')) ? url : (window.location.origin + (url && url.startsWith('/') ? url : '/' + (url || '?quick=true')));
+          window.location.href = openUrl;
           notification.close();
         };
       }

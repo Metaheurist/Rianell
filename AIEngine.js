@@ -182,7 +182,9 @@ const AIEngine = {
         variance: variance,
         average: avg,
         metricName: metric,
-        trainingValues: trainingDataPoints.map(p => p.y)
+        trainingValues: trainingDataPoints.map(p => p.y),
+        isSteps: isSteps,
+        isHydration: isHydration
       };
       
       // Use appropriate prediction method based on model type
@@ -258,6 +260,17 @@ const AIEngine = {
         // Weight: 30-300 kg range, keep 1 decimal place
         projected7Days = Math.round(Math.max(30, Math.min(300, projected7DaysRaw)) * 10) / 10;
         projected30Days = Math.round(Math.max(30, Math.min(300, projected30DaysRaw)) * 10) / 10;
+      } else if (isSteps) {
+        // Steps: 0-50000, whole numbers. If regression gives absurdly low value vs current, use current as fallback
+        const steps7 = Math.round(Math.max(0, Math.min(50000, projected7DaysRaw)));
+        const steps30 = Math.round(Math.max(0, Math.min(50000, projected30DaysRaw)));
+        const currentSteps = values[values.length - 1];
+        projected7Days = (currentSteps > 500 && steps7 < 100) ? Math.round(currentSteps) : steps7;
+        projected30Days = (currentSteps > 500 && steps30 < 100) ? Math.round(currentSteps) : steps30;
+      } else if (isHydration) {
+        // Hydration: 0-20 glasses, 1 decimal
+        projected7Days = Math.round(Math.max(0, Math.min(20, projected7DaysRaw)) * 10) / 10;
+        projected30Days = Math.round(Math.max(0, Math.min(20, projected30DaysRaw)) * 10) / 10;
       } else {
         // Other metrics: 0-10 scale
         projected7Days = Math.round(Math.max(0, Math.min(10, projected7DaysRaw)) * 10) / 10;

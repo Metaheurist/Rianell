@@ -3771,8 +3771,10 @@ body.modal-active .tab-content {
   pointer-events: none;
 }
 
-/* Settings button should always be clickable */
-.settings-button-top {
+/* Header buttons (targets + settings) should always be clickable */
+.header-buttons-wrap,
+.settings-button-top,
+.targets-button-top {
   pointer-events: all !important;
   z-index: 100001 !important;
 }
@@ -4853,6 +4855,45 @@ body.loading .loading-overlay {
 
 .items-list::-webkit-scrollbar-thumb:hover {
   background: rgba(76, 175, 80, 0.7);
+}
+
+/* Medication / Supplements section */
+.add-medication-btn {
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(76, 175, 80, 0.5);
+  background: rgba(76, 175, 80, 0.15);
+  color: var(--text-light);
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.add-medication-btn:hover {
+  background: rgba(76, 175, 80, 0.25);
+  border-color: rgba(76, 175, 80, 0.7);
+}
+.medication-taken-row label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.medication-items-list { margin-top: 12px; }
+
+/* Sticky selected summary on mobile so users see what's selected while scrolling card grids */
+@media (max-width: 768px) {
+  .selection-summary-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--background-dark);
+    padding-bottom: 8px;
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .selection-summary-sticky .items-list {
+    margin-bottom: 0;
+  }
+  body.light-mode .selection-summary-sticky {
+    background: #e8f5e9;
+    border-bottom-color: rgba(76, 175, 80, 0.25);
+  }
 }
 
 .empty-items {
@@ -6693,19 +6734,28 @@ body.light-mode .chart-loading {
   text-align: center;
 }
 
-/* Floating Settings Button */
-/* Settings Button - Top Right */
-.settings-button-top {
+/* Header buttons wrap: Targets (face) + Settings */
+.header-buttons-wrap {
   position: fixed;
   top: 20px;
   right: 20px;
+  z-index: 10002;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: all;
+}
+
+/* Floating Settings Button */
+/* Settings Button - Top Right */
+.settings-button-top {
+  position: relative;
   width: 44px;
   height: 44px;
   background: transparent;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  z-index: 10002;
   transition: all var(--transition-normal);
   display: flex;
   align-items: center;
@@ -6714,6 +6764,50 @@ body.light-mode .chart-loading {
   margin: 0;
   min-height: auto;
   pointer-events: all;
+}
+
+.targets-button-top {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  min-height: auto;
+  pointer-events: all;
+}
+
+.targets-button-top:hover {
+  background: rgba(76, 175, 80, 0.1);
+  transform: scale(1.1);
+}
+
+.targets-button-top:active {
+  transform: scale(0.95);
+}
+
+.targets-face-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--primary-color);
+  transition: all var(--transition-normal);
+  filter: drop-shadow(0 2px 4px rgba(76, 175, 80, 0.3));
+}
+
+.targets-button-top:hover .targets-face-icon {
+  color: #66bb6a;
+  filter: drop-shadow(0 4px 8px rgba(76, 175, 80, 0.5));
+}
+
+body.light-mode .targets-face-icon {
+  color: var(--primary-color);
 }
 
 
@@ -6747,6 +6841,232 @@ body.light-mode .settings-cog {
 
 body.light-mode .settings-button-top:hover {
   background: rgba(76, 175, 80, 0.15);
+}
+
+/* Goals & Targets Modal */
+.goals-modal-overlay {
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.goals-modal-content {
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.goals-modal-body {
+  padding: 16px 20px;
+}
+
+.goals-slider-group {
+  margin-bottom: 20px;
+}
+
+.goals-slider-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: var(--text-light);
+}
+
+.goals-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.goals-slider-row input[type="range"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.goals-value-label {
+  min-width: 48px;
+  text-align: right;
+  font-weight: 600;
+  color: rgba(76, 175, 80, 0.95);
+}
+
+body.light-mode .goals-slider-group label {
+  color: var(--text-dark);
+}
+
+body.light-mode .goals-value-label {
+  color: var(--primary-color);
+}
+
+/* Goals sliders inside tutorial (Goals & targets slide) */
+.tutorial-goals-sliders {
+  margin-top: 14px;
+  margin-bottom: 4px;
+}
+.tutorial-goals-sliders .goals-slider-group {
+  margin-bottom: 14px;
+}
+.tutorial-goals-sliders .goals-slider-group:last-of-type {
+  margin-bottom: 0;
+}
+
+/* Goals progress block on Log tab */
+.goals-progress-block {
+  margin: 0 20px 16px;
+  padding: 14px 16px;
+  background: rgba(76, 175, 80, 0.08);
+  border: 1px solid rgba(76, 175, 80, 0.25);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+.goals-progress-title {
+  font-weight: 700;
+  color: rgba(76, 175, 80, 0.95);
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+}
+
+.goals-metric-row {
+  margin-bottom: 12px;
+}
+.goals-metric-row:last-child {
+  margin-bottom: 0;
+}
+
+.goals-metric-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.goals-icon {
+  color: rgba(76, 175, 80, 0.85);
+  font-size: 0.85rem;
+  width: 1.1em;
+  text-align: center;
+}
+
+.goals-metric-name {
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.goals-metric-nums {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--text-muted, rgba(255,255,255,0.75));
+}
+
+.goals-bar-wrap {
+  height: 6px;
+  background: rgba(0,0,0,0.25);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.goals-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(76, 175, 80, 0.6), rgba(76, 175, 80, 0.9));
+  transition: width 0.3s ease;
+}
+
+.goals-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.goals-days {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.goals-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+
+.goals-dot.filled {
+  background: rgba(76, 175, 80, 0.9);
+}
+
+.goals-status-pill {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.goals-status-pill.on-track {
+  background: rgba(76, 175, 80, 0.25);
+  color: rgba(76, 175, 80, 0.95);
+}
+
+.goals-status-pill.mixed {
+  background: rgba(255, 193, 7, 0.25);
+  color: rgba(255, 193, 7, 0.95);
+}
+
+.goals-status-pill.below {
+  background: rgba(244, 67, 54, 0.2);
+  color: rgba(255, 138, 128, 0.95);
+}
+
+body.light-mode .goals-progress-block {
+  background: rgba(76, 175, 80, 0.06);
+  border-color: rgba(76, 175, 80, 0.3);
+  color: var(--text-dark);
+}
+
+body.light-mode .goals-progress-title {
+  color: var(--primary-color);
+}
+
+body.light-mode .goals-metric-name {
+  color: var(--text-dark);
+}
+
+body.light-mode .goals-metric-nums {
+  color: var(--text-muted, rgba(0,0,0,0.6));
+}
+
+body.light-mode .goals-bar-wrap {
+  background: rgba(0,0,0,0.1);
+}
+
+body.light-mode .goals-dot {
+  background: rgba(0,0,0,0.2);
+}
+
+body.light-mode .goals-dot.filled {
+  background: var(--primary-color);
+}
+
+body.light-mode .goals-status-pill.on-track {
+  background: rgba(76, 175, 80, 0.2);
+  color: var(--primary-color);
+}
+
+body.light-mode .goals-status-pill.mixed {
+  background: rgba(255, 193, 7, 0.3);
+  color: #b38600;
+}
+
+body.light-mode .goals-status-pill.below {
+  background: rgba(244, 67, 54, 0.15);
+  color: #c62828;
 }
 
 /* AI Brain Button - Floating */
@@ -7386,12 +7706,31 @@ body.light-mode .date-separator {
   transform: translateY(0);
 }
 
-#sortOrder {
-  font-weight: normal;
-  padding: 2px 6px;
-  background: rgba(255,255,255,0.2);
-  border-radius: 4px;
-  font-size: 0.85em;
+.sort-buttons-group {
+  display: flex;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.sort-buttons-group .sort-btn-option {
+  flex: 1;
+  min-width: 70px;
+}
+
+.sort-buttons-group .sort-btn-option.active {
+  background: linear-gradient(135deg, #607d8b, #546e7a);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 15px rgba(96, 125, 139, 0.3);
+}
+
+.sort-buttons-group .sort-btn-option.active:hover {
+  background: linear-gradient(135deg, #546e7a, #455a64);
+}
+
+.sort-buttons-group .sort-btn-option:not(.active):hover {
+  background: linear-gradient(135deg, #546e7a, #455a64);
 }
 
 /* Settings Data Management */
@@ -7708,14 +8047,19 @@ body.light-mode .date-separator {
     min-height: 120px;
   }
 
-  .settings-button-top {
+  .header-buttons-wrap {
     top: 15px;
     right: 15px;
+  }
+
+  .settings-button-top,
+  .targets-button-top {
     width: 40px;
     height: 40px;
   }
 
-  .settings-cog {
+  .settings-cog,
+  .targets-face-icon {
     width: 22px;
     height: 22px;
   }
@@ -7994,18 +8338,22 @@ body.light-mode .date-separator {
     font-size: 1.6rem;
   }
 
-  .settings-button-top {
+  .header-buttons-wrap {
     top: 10px;
     right: 10px;
+  }
+
+  .settings-button-top,
+  .targets-button-top {
     width: 36px;
     height: 36px;
   }
 
-  .settings-cog {
+  .settings-cog,
+  .targets-face-icon {
     width: 20px;
     height: 20px;
   }
-  
 }
 
 /* Offline Indicator */
