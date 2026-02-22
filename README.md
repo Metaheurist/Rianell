@@ -127,7 +127,12 @@ The server will:
 
 ## React shell & Android APK
 
-The app can be run as a **React (Vite) app** that wraps the existing web UI and be built into an **Android APK** via Capacitor. The GitHub Action **Build Android APK** runs on every push to `main`/`master` and produces an APK artifact.
+The app can be run as a **React (Vite) app** that wraps the existing web UI and be built into an **Android APK** via Capacitor. The GitHub Action **Build Android APK** runs on every push to `main`/`master`, outputs the APK into the **`apk/`** folder, and makes it available in the app’s Settings.
+
+### In-app installation (Settings)
+
+- **Install web app** (globe icon): Install the app as a PWA / standalone web app.
+- **Install on Android** (Android icon): Download the latest Android APK. When the app is served from the same origin as the repo (e.g. GitHub Pages), this link points to `apk/app-debug.apk` in the repo.
 
 ### Local setup (optional)
 
@@ -137,7 +142,7 @@ The app can be run as a **React (Vite) app** that wraps the existing web UI and 
   npm install
   cd react-app && npm install
   npm run copy-webapp   # copies web app into react-app/public/legacy
-  npm run build         # builds React app into react-app/dist
+  npm run build        # builds React app into react-app/dist
   ```
 - To add the Android project (one-time, then commit `react-app/android/` if you want):
   ```bash
@@ -156,8 +161,9 @@ Controlled in `react-app/android/variables.gradle` (or via `react-app/patch-andr
 ### CI: APK on each commit
 
 - Workflow: [`.github/workflows/build-android-apk.yml`](.github/workflows/build-android-apk.yml)
-- On push/PR to `main` or `master`: builds the web app, syncs Capacitor, builds a **debug APK**, and uploads it as the **health-tracker-apk** artifact.
-- Download the APK from the run’s **Summary → Artifacts**.
+- On **push** or **pull_request** to `main` or `master`: builds the web app, syncs Capacitor, builds a **debug APK**, copies it into **`apk/`**, and uploads the **`apk`** artifact (zip containing `apk/app-debug.apk`).
+- On **push** (not PR) to `main`/`master`: the workflow also **commits** the `apk/` folder to the repo with `[skip ci]`, so the “Install on Android” link in Settings works when the app is served from the same repo (e.g. GitHub Pages).
+- Download the APK from the run’s **Summary → Artifacts** (artifact name: **apk**), or use **Settings → Install on Android** in the deployed app.
 
 ### Using the Health Dashboard
 
@@ -379,7 +385,7 @@ Activation functions (sigmoid, tanh, relu, softmax) are available as `AIEngine.a
 ## Project Structure
 
 ```
-Health App/
+Health-app/
 ├── index.html              # Main application HTML
 ├── app.js                  # Core application logic
 ├── AIEngine.js             # AI analysis (neural pipeline, regression, correlation, predictions)
@@ -388,8 +394,17 @@ Health App/
 ├── supabase-config.js      # Supabase configuration
 ├── server.py               # Development server
 ├── requirements.txt        # Python dependencies
+├── package.json            # Root scripts (build, sync, android)
 ├── docs/                   # Documentation
 │   └── NEURAL_NETWORK_PLAN.md   # AI expansion and optimisation plan
+├── .github/workflows/      # CI (e.g. Build Android APK)
+├── react-app/              # React (Vite) + Capacitor shell for Android
+│   ├── src/                # React entry and iframe wrapper
+│   ├── android/            # Capacitor Android project (optional to commit)
+│   ├── copy-webapp.js      # Copies web app into public/legacy
+│   ├── patch-android-sdk.js
+│   └── capacitor.config.ts
+├── apk/                    # Built APK (filled by CI; commit to repo for download link)
 ├── .env                    # Environment variables (not in git)
 ├── .env.example            # Environment template
 ├── logs/                   # Server logs
@@ -404,8 +419,14 @@ Health App/
 - `python-dotenv>=1.0.0` - Environment variable management
 
 ### JavaScript (Frontend)
-- No external dependencies required (vanilla JavaScript)
+- No external dependencies required for the main web app (vanilla JavaScript)
 - Uses browser APIs and Supabase JS client
+- Font Awesome 6 (CDN) for icons
+
+### Node.js (optional: React & Android)
+- Used only for the React/Capacitor build and Android APK. See **React shell & Android APK**.
+- Root `package.json`: scripts for `build`, `build:android`, `sync`, `dev`
+- `react-app/`: Vite, React, Capacitor; run `npm run build` from repo root
 
 ## Development
 
@@ -504,4 +525,9 @@ For issues and questions:
 - Data visualization
 - Supabase cloud sync
 - Server dashboard for testing
+
+### React & Android
+- React (Vite) shell that wraps the existing web app in an iframe; Capacitor 6 for Android.
+- GitHub Action builds a debug APK on every push/PR to `main`/`master`, outputs to **`apk/`** folder, uploads **apk** artifact, and on push commits `apk/` to the repo for a stable download URL.
+- Settings → **App Installation**: **Install web app** (PWA) and **Install on Android** (download APK), with web and Android icons.
 
