@@ -125,6 +125,40 @@ The server will:
 2. **Network Access**: Use your local IP address (shown in server console)
 3. **Production**: Deploy files to a web server (no server.py needed)
 
+## React shell & Android APK
+
+The app can be run as a **React (Vite) app** that wraps the existing web UI and be built into an **Android APK** via Capacitor. The GitHub Action **Build Android APK** runs on every push to `main`/`master` and produces an APK artifact.
+
+### Local setup (optional)
+
+- **Node.js 18+**
+- From repo root:
+  ```bash
+  npm install
+  cd react-app && npm install
+  npm run copy-webapp   # copies web app into react-app/public/legacy
+  npm run build         # builds React app into react-app/dist
+  ```
+- To add the Android project (one-time, then commit `react-app/android/` if you want):
+  ```bash
+  cd react-app && npx cap add android
+  node patch-android-sdk.js   # optional: set minSdk 22, targetSdk 34
+  npx cap sync android
+  ```
+- Open in Android Studio: `cd react-app && npx cap open android`
+
+### Android targets
+
+- **minSdk 22** (Android 5.1) for broad device support.
+- **targetSdk 34** (Android 14) for current store requirements.  
+Controlled in `react-app/android/variables.gradle` (or via `react-app/patch-android-sdk.js`).
+
+### CI: APK on each commit
+
+- Workflow: [`.github/workflows/build-android-apk.yml`](.github/workflows/build-android-apk.yml)
+- On push/PR to `main` or `master`: builds the web app, syncs Capacitor, builds a **debug APK**, and uploads it as the **health-tracker-apk** artifact.
+- Download the APK from the run’s **Summary → Artifacts**.
+
 ### Using the Health Dashboard
 
 1. **Add Daily Entries**:

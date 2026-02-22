@@ -52,3 +52,8 @@ node_modules/
 # Build outputs
 dist/
 build/
+
+# React / Capacitor
+react-app/node_modules/
+react-app/dist/
+react-app/public/legacy/
