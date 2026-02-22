@@ -8000,6 +8000,16 @@ body.light-mode .date-separator {
   background: #7b1fa2;
 }
 
+.install-android-btn {
+  background: #4caf50;
+  color: white;
+  width: 100%;
+}
+
+.install-android-btn:hover {
+  background: #388e3c;
+}
+
 .settings-install-icon {
   margin-right: 8px;
   opacity: 0.95;
