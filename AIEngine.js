@@ -58,12 +58,30 @@ function parsePainLocationToRegions(painLocation) {
   return map;
 }
 
-// AI Engine Configuration
-const AIEngine = {
-  // Analyze health metrics and generate comprehensive insights
-  // logs: filtered logs for analysis display
-  // allLogs: all available logs for training/prediction (optional, defaults to logs)
-  analyzeHealthMetrics: function(logs, allLogs = null) {
+// --- Neural network activation functions (used to bound/transform values in the analysis pipeline) ---
+function sigmoid(x) {
+  return 1 / (1 + Math.exp(-Math.max(-20, Math.min(20, x))));
+}
+function tanh(x) {
+  const e = Math.exp(2 * Math.max(-10, Math.min(10, x)));
+  return (e - 1) / (e + 1);
+}
+function relu(x) {
+  return x > 0 ? x : 0;
+}
+function softmax(arr) {
+  const max = Math.max(...arr);
+  const exp = arr.map(v => Math.exp(Math.max(-20, Math.min(20, v - max))));
+  const sum = exp.reduce((a, b) => a + b, 0);
+  return sum === 0 ? arr.map(() => 1 / arr.length) : exp.map(e => e / sum);
+}
+
+// Neural analysis network: runs all current AI functionality as "layers" with activations
+// Each layer applies existing engine methods (regression, correlation, prediction, etc.) as activator functions
+function NeuralAnalysisNetwork(engine) {
+  this.engine = engine;
+
+  this.forward = function(logs, allLogs, options) {
     const analysis = {
       trends: {},
       correlations: [],
@@ -71,33 +89,87 @@ const AIEngine = {
       advice: [],
       patterns: [],
       riskFactors: [],
+      prioritisedInsights: [],
       summary: ""
     };
-
     if (logs.length === 0) return analysis;
 
-    // Use all available data for training if provided (prioritize allLogs for better predictions)
-    // This ensures we use up to 10 years of historical data for regression training
     const trainingLogs = allLogs && allLogs.length > 0 ? allLogs : logs;
-    // Use filtered logs for analysis/display (averages, current values, etc.)
     const recentLogs = logs;
+    const predictionState = (options && options.predictionState) || { lastPredictions: {}, blendWeights: {} };
+    const context = { trainingLogs, recentLogs, analysis, predictionState };
 
-    // Numeric metrics that exist on log entries (log schema). backPain kept for legacy/import.
+    // Layer 1: Input – single pass over all data to build feature space (maximize data usage)
+    this.layerInput(context);
+
+    // Layer 2: Trend (regression activations using full training data per metric)
+    this.layerTrend(context);
+
+    // Layer 3a: Pairwise correlations (all data points)
+    this.layerCorrelationPairwise(context);
+
+    // Layer 3b: Multi-metric correlation matrix (full training data)
+    this.layerCorrelationMulti(context);
+
+    // Layer 4: Pattern & anomaly (recent + full where applicable)
+    this.layerPatternAnomaly(context);
+
+    // Layer 5: Risk & flare (full training data for pattern learning)
+    this.layerRiskFlare(context);
+
+    // Layer 6: Cross-section (food, exercise, stressors, symptoms – all logs)
+    this.layerCrossSection(context);
+
+    // Layer 7a: Clustering (full data for better clusters)
+    this.layerClustering(context);
+
+    // Layer 7b: Time series (full data for smoothing/MA)
+    this.layerTimeSeries(context);
+
+    // Layer 7c: Outliers & seasonality (full data)
+    this.layerOutliersSeasonality(context);
+
+    // Layer 8: Output / advice
+    this.layerAdvice(context);
+
+    // Layer 9: Interpretation – prioritise and dedupe insights for "what matters most"
+    this.layerInterpretation(context);
+
+    // Layer 10: Summary – plain-language 2–3 sentence headline
+    this.layerSummary(context);
+
+    // Learning: update blend weights from past prediction errors; save new prediction snapshots for next run
+    this.layerPredictionLearning(context);
+
+    return analysis;
+  };
+
+  this.layerInput = function(ctx) {
     const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration'];
-    // BPM and weight: 0 means "not logged"; 0-10 sliders and steps/hydration: 0 is valid
     const requirePositive = { bpm: true, weight: true };
-    
+    const trainingLogs = ctx.trainingLogs;
+    const recentLogs = ctx.recentLogs;
+    const engine = this.engine;
+
+    ctx.dates = trainingLogs.map(log => log.date);
+    ctx.flareFlags = trainingLogs.map(log => log.flare === 'Yes' ? 1 : 0);
+    ctx.dayOfWeek = trainingLogs.map(log => new Date(log.date).getDay());
+    ctx.daysSinceLastFlare = [];
+    for (let i = 0, lastFlare = -1; i < trainingLogs.length; i++) {
+      if (trainingLogs[i].flare === 'Yes') lastFlare = i;
+      ctx.daysSinceLastFlare.push(lastFlare < 0 ? 999 : i - lastFlare);
+    }
+    ctx.metricsData = {};
+    const numericMatrix = [];
+
     metrics.forEach(metric => {
       const needPositive = requirePositive[metric];
       const getVal = (log) => metric === 'weight' ? parseFloat(log[metric]) : (parseInt(log[metric], 10) || 0);
       const isValid = (val) => !isNaN(val) && (needPositive ? val > 0 : val >= 0);
-      const validTrainingLogs = trainingLogs.filter(log => {
-        const val = getVal(log);
-        return isValid(val);
-      });
-      
+
+      const validTrainingLogs = trainingLogs.filter(log => isValid(getVal(log)));
       if (validTrainingLogs.length === 0) return;
-      
+
       const firstDate = new Date(validTrainingLogs[0].date);
       const trainingDataPoints = validTrainingLogs.map((log) => {
         const val = getVal(log);
@@ -105,21 +177,291 @@ const AIEngine = {
         const daysSinceStart = Math.floor((logDate - firstDate) / (1000 * 60 * 60 * 24));
         return { x: daysSinceStart, y: val };
       });
-      
       const recentDataPoints = recentLogs
         .filter(log => isValid(getVal(log)))
-        .map((log, index) => {
-          const val = getVal(log);
-          return { x: index, y: val };
-        });
-      
-      if (trainingDataPoints.length === 0 || recentDataPoints.length === 0) return;
-      
-      // Calculate averages from recent (filtered) data for display
+        .map((log, index) => ({ x: index, y: getVal(log) }));
+      if (recentDataPoints.length === 0) return;
+
       const values = recentDataPoints.map(p => p.y);
+      const trainingValues = trainingDataPoints.map(p => p.y);
       const avg = values.reduce((a, b) => a + b, 0) / values.length;
-      const variance = this.calculateVariance(values);
-      
+      const variance = engine.calculateVariance(values);
+      const rollingMean7 = [];
+      const rollingMean30 = [];
+      for (let i = 0; i < trainingValues.length; i++) {
+        const start7 = Math.max(0, i - 6);
+        const start30 = Math.max(0, i - 29);
+        const slice7 = trainingValues.slice(start7, i + 1);
+        const slice30 = trainingValues.slice(start30, i + 1);
+        rollingMean7.push(slice7.reduce((a, b) => a + b, 0) / slice7.length);
+        rollingMean30.push(slice30.reduce((a, b) => a + b, 0) / slice30.length);
+      }
+      ctx.metricsData[metric] = {
+        trainingDataPoints: trainingDataPoints,
+        recentDataPoints: recentDataPoints,
+        values: values,
+        avg: avg,
+        variance: variance,
+        validTrainingLogs: validTrainingLogs,
+        rollingMean7: rollingMean7,
+        rollingMean30: rollingMean30,
+        fillRate: validTrainingLogs.length / trainingLogs.length
+      };
+    });
+
+    for (let i = 0; i < trainingLogs.length; i++) {
+      const row = [];
+      metrics.forEach(metric => {
+        const v = metric === 'weight' ? parseFloat(trainingLogs[i][metric]) : (parseInt(trainingLogs[i][metric], 10) || 0);
+        row.push(isNaN(v) ? null : v);
+      });
+      numericMatrix.push(row);
+    }
+    ctx.fullNumericMatrix = numericMatrix;
+    ctx.metricNames = metrics;
+
+    if (numericMatrix.length >= 5) {
+      const n = metrics.length;
+      const corr = [];
+      for (let i = 0; i < n; i++) {
+        corr[i] = [];
+        for (let j = 0; j < n; j++) {
+          if (i === j) { corr[i][j] = 1; continue; }
+          if (i > j) { corr[i][j] = corr[j][i]; continue; }
+          const pairs = numericMatrix.map(row => [row[i], row[j]]).filter(p => p[0] != null && p[1] != null);
+          if (pairs.length < 3) { corr[i][j] = 0; continue; }
+          const a = pairs.map(p => p[0]);
+          const b = pairs.map(p => p[1]);
+          corr[i][j] = engine.calculateCorrelation(a, b);
+        }
+      }
+      ctx.correlationMatrix = corr;
+    } else {
+      ctx.correlationMatrix = null;
+    }
+  };
+
+  this.layerTrend = function(ctx) {
+    this.engine._computeTrends(ctx.analysis, ctx.trainingLogs, ctx.recentLogs, ctx);
+  };
+
+  this.layerCorrelationPairwise = function(ctx) {
+    this.engine.detectCorrelations(ctx.trainingLogs.length >= ctx.recentLogs.length ? ctx.trainingLogs : ctx.recentLogs, ctx.analysis);
+  };
+
+  this.layerCorrelationMulti = function(ctx) {
+    const options = (ctx.correlationMatrix != null && ctx.metricNames) ? { precomputedByIndex: ctx.correlationMatrix, metricNames: ctx.metricNames } : undefined;
+    this.engine.detectMultiMetricCorrelations(ctx.trainingLogs, ctx.analysis, options);
+  };
+
+  this.layerPatternAnomaly = function(ctx) {
+    const e = this.engine;
+    e.detectAnomalies(ctx.recentLogs, ctx.analysis);
+    e.detectPatterns(ctx.recentLogs, ctx.analysis);
+    const accelerations = e.detectTrendAcceleration(ctx.recentLogs, ctx.analysis);
+    if (accelerations.length > 0) ctx.analysis.patterns.push(...accelerations);
+  };
+
+  this.layerRiskFlare = function(ctx) {
+    const e = this.engine;
+    e.assessRiskFactors(ctx.recentLogs, ctx.analysis);
+    e.predictFlareUps(ctx.trainingLogs, ctx.analysis);
+  };
+
+  this.layerCrossSection = function(ctx) {
+    const e = this.engine;
+    const logsForCross = ctx.trainingLogs.length >= ctx.recentLogs.length ? ctx.trainingLogs : ctx.recentLogs;
+    const hasFood = logsForCross.some(log => log.food && (log.food.breakfast?.length || log.food.lunch?.length || log.food.dinner?.length || log.food.snack?.length));
+    const hasExercise = logsForCross.some(log => log.exercise && log.exercise.length > 0);
+    if (hasFood || hasExercise) e.analyzeFoodExerciseImpact(logsForCross, ctx.analysis);
+    e.analyzeEnergyClarityAndWeather(logsForCross, ctx.analysis);
+    e.analyzeStressorsImpact(logsForCross, ctx.analysis);
+    e.analyzeSymptomsAndPainLocation(logsForCross, ctx.analysis);
+    e.analyzeCrossSectionCorrelations(logsForCross, ctx.analysis);
+  };
+
+  this.layerClustering = function(ctx) {
+    this.engine.performClustering(ctx.trainingLogs.length >= 5 ? ctx.trainingLogs : ctx.recentLogs, ctx.analysis);
+  };
+
+  this.layerTimeSeries = function(ctx) {
+    this.engine.performTimeSeriesAnalysis(ctx.trainingLogs.length >= 5 ? ctx.trainingLogs : ctx.recentLogs, ctx.analysis);
+  };
+
+  this.layerOutliersSeasonality = function(ctx) {
+    const e = this.engine;
+    const logsFull = ctx.trainingLogs.length >= 5 ? ctx.trainingLogs : ctx.recentLogs;
+    e.detectOutliers(logsFull, ctx.analysis);
+    e.detectSeasonality(logsFull, ctx.analysis);
+  };
+
+  this.layerAdvice = function(ctx) {
+    const conditionContext = window.CONDITION_CONTEXT || { name: 'your condition' };
+    ctx.analysis.advice = this.engine.generateActionableAdvice(ctx.analysis.trends, ctx.recentLogs, conditionContext);
+  };
+
+  this.layerInterpretation = function(ctx) {
+    const a = ctx.analysis;
+    const items = [];
+    (a.anomalies || []).forEach(text => items.push({ text: text, score: 0.9, source: 'anomaly' }));
+    (a.riskFactors || []).forEach(text => items.push({ text: text, score: 0.85, source: 'risk' }));
+    (a.correlations || []).slice(0, 5).forEach(text => items.push({ text: text, score: 0.5, source: 'correlation' }));
+    (a.patterns || []).forEach(text => items.push({ text: text, score: 0.4, source: 'pattern' }));
+    const seen = new Set();
+    const deduped = items.filter(item => {
+      const key = item.text.substring(0, 60).toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    deduped.sort((x, y) => y.score - x.score);
+    a.prioritisedInsights = deduped.slice(0, 7).map(item => item.text);
+  };
+
+  this.layerSummary = function(ctx) {
+    const a = ctx.analysis;
+    const parts = [];
+    const improving = [];
+    const worsening = [];
+    Object.keys(a.trends || {}).forEach(metric => {
+      const t = a.trends[metric];
+      if (!t.regression || t.regression.normalizedSignificance < 0.5) return;
+      const name = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+      if (t.regression.direction === 'improving') improving.push(name);
+      else if (t.regression.direction === 'worsening') worsening.push(name);
+    });
+    if (improving.length > 0) parts.push(improving.join(', ') + (improving.length === 1 ? ' is' : ' are') + ' improving.');
+    if (worsening.length > 0) parts.push(worsening.join(', ') + (worsening.length === 1 ? ' is' : ' are') + ' trending worse.');
+    if (a.riskFactors && a.riskFactors.length > 0) parts.push(a.riskFactors[0]);
+    else if (a.patterns && a.patterns.length > 0) parts.push(a.patterns[0]);
+    if (a.advice && a.advice.length > 0) parts.push(a.advice[0].replace(/\*\*([^*]+)\*\*/g, '$1').trim());
+    ctx.analysis.summary = parts.length ? parts.slice(0, 3).join(' ') : 'Review your trends and patterns above for insights.';
+  };
+
+  // Learning: compare past 7-day predictions to actuals; update per-metric blend weights; save new snapshots
+  this.layerPredictionLearning = function(ctx) {
+    const state = ctx.predictionState;
+    const trainingLogs = ctx.trainingLogs;
+    const recentLogs = ctx.recentLogs;
+    const analysis = ctx.analysis;
+
+    function dateStr(d) {
+      const x = typeof d === 'string' ? new Date(d) : d;
+      return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+    }
+    function addDays(dateStrOrObj, days) {
+      const d = typeof dateStrOrObj === 'string' ? new Date(dateStrOrObj) : dateStrOrObj;
+      const out = new Date(d);
+      out.setDate(out.getDate() + days);
+      return dateStr(out);
+    }
+    function getVal(log, metric) {
+      return metric === 'weight' ? parseFloat(log[metric]) : (parseInt(log[metric], 10) || 0);
+    }
+
+    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration'];
+    const blendWeights = state.blendWeights || {};
+    const lastPredictions = state.lastPredictions || {};
+
+    // Learn from past predictions: for each metric we predicted 7 days ahead, compare to actual
+    metrics.forEach(metric => {
+      const prev = lastPredictions[metric];
+      if (!prev || !prev.asOfDate) return;
+      const targetDate = addDays(prev.asOfDate, 7);
+      const logAtTarget = trainingLogs.find(log => dateStr(log.date) === targetDate);
+      if (!logAtTarget) return;
+      const actual = getVal(logAtTarget, metric);
+      if (isNaN(actual) && metric !== 'weight') return;
+      if (metric === 'weight' && (isNaN(actual) || actual <= 0)) return;
+      const errReg = Math.pow(actual - (prev.projected7 || prev.current), 2);
+      const errPers = Math.pow(actual - prev.current, 2);
+      let w = blendWeights[metric];
+      if (w === undefined) w = 0.6;
+      const step = 0.05;
+      if (errReg < errPers) w = Math.min(0.95, w + step);
+      else w = Math.max(0.05, w - step);
+      blendWeights[metric] = Math.round(w * 100) / 100;
+    });
+
+    // Save new prediction snapshots (as-of last date in recentLogs)
+    const lastLog = recentLogs[recentLogs.length - 1];
+    const asOfDate = lastLog ? dateStr(lastLog.date) : null;
+    const newLastPredictions = {};
+    if (asOfDate && analysis.trends) {
+      metrics.forEach(metric => {
+        const trend = analysis.trends[metric];
+        if (!trend || trend.projected7Days == null) return;
+        newLastPredictions[metric] = {
+          asOfDate: asOfDate,
+          projected7: trend.projected7Days,
+          projected30: trend.projected30Days,
+          current: trend.current
+        };
+      });
+    }
+
+    analysis.predictionStateForSave = {
+      lastPredictions: Object.keys(newLastPredictions).length ? newLastPredictions : lastPredictions,
+      blendWeights: blendWeights
+    };
+  };
+}
+
+// AI Engine Configuration
+const AIEngine = {
+  // Analyze health metrics via neural network (all current functionality as layer activations)
+  // options.predictionState: optional { lastPredictions, blendWeights } for learning; new state returned in analysis.predictionStateForSave
+  analyzeHealthMetrics: function(logs, allLogs = null, options = null) {
+    const net = new NeuralAnalysisNetwork(this);
+    return net.forward(logs, allLogs, options || {});
+  },
+
+  // Trend layer activator: computes regression, predictions, projected values per metric
+  // If context.metricsData is provided (from layerInput), uses precomputed data to avoid re-scanning logs
+  _computeTrends: function(analysis, trainingLogs, recentLogs, context) {
+    const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration'];
+    const requirePositive = { bpm: true, weight: true };
+    const metricsData = context && context.metricsData;
+
+    metrics.forEach(metric => {
+      let trainingDataPoints, recentDataPoints, values, avg, variance, validTrainingLogs;
+      if (metricsData && metricsData[metric]) {
+        const pre = metricsData[metric];
+        trainingDataPoints = pre.trainingDataPoints;
+        recentDataPoints = pre.recentDataPoints;
+        values = pre.values;
+        avg = pre.avg;
+        variance = pre.variance;
+        validTrainingLogs = pre.validTrainingLogs;
+        if (!trainingDataPoints.length || !recentDataPoints.length) return;
+      } else {
+        const needPositive = requirePositive[metric];
+        const getVal = (log) => metric === 'weight' ? parseFloat(log[metric]) : (parseInt(log[metric], 10) || 0);
+        const isValid = (val) => !isNaN(val) && (needPositive ? val > 0 : val >= 0);
+        validTrainingLogs = trainingLogs.filter(log => {
+          const val = getVal(log);
+          return isValid(val);
+        });
+        if (validTrainingLogs.length === 0) return;
+        const firstDate = new Date(validTrainingLogs[0].date);
+        trainingDataPoints = validTrainingLogs.map((log) => {
+          const val = getVal(log);
+          const logDate = new Date(log.date);
+          const daysSinceStart = Math.floor((logDate - firstDate) / (1000 * 60 * 60 * 24));
+          return { x: daysSinceStart, y: val };
+        });
+        recentDataPoints = recentLogs
+          .filter(log => isValid(getVal(log)))
+          .map((log, index) => {
+            const val = getVal(log);
+            return { x: index, y: val };
+          });
+        if (trainingDataPoints.length === 0 || recentDataPoints.length === 0) return;
+        values = recentDataPoints.map(p => p.y);
+        avg = values.reduce((a, b) => a + b, 0) / values.length;
+        variance = this.calculateVariance(values);
+      }
+
       // Check if this is BPM or Weight (different scale and thresholds)
       const isBPM = metric === 'bpm';
       const isWeight = metric === 'weight';
@@ -276,7 +618,34 @@ const AIEngine = {
         projected7Days = Math.round(Math.max(0, Math.min(10, projected7DaysRaw)) * 10) / 10;
         projected30Days = Math.round(Math.max(0, Math.min(10, projected30DaysRaw)) * 10) / 10;
       }
-      
+
+      // Optional learned blend: mix regression with persistence using stored blend weights
+      const blendWeight = (context && context.predictionState && context.predictionState.blendWeights && context.predictionState.blendWeights[metric] !== undefined)
+        ? context.predictionState.blendWeights[metric]
+        : null;
+      if (blendWeight !== null && blendWeight >= 0 && blendWeight <= 1) {
+        let b7 = blendWeight * projected7Days + (1 - blendWeight) * currentValue;
+        let b30 = blendWeight * projected30Days + (1 - blendWeight) * currentValue;
+        if (isBPM) {
+          b7 = Math.round(Math.max(30, Math.min(200, b7)));
+          b30 = Math.round(Math.max(30, Math.min(200, b30)));
+        } else if (isWeight) {
+          b7 = Math.round(Math.max(30, Math.min(300, b7)) * 10) / 10;
+          b30 = Math.round(Math.max(30, Math.min(300, b30)) * 10) / 10;
+        } else if (isSteps) {
+          b7 = Math.round(Math.max(0, Math.min(50000, b7)));
+          b30 = Math.round(Math.max(0, Math.min(50000, b30)));
+        } else if (isHydration) {
+          b7 = Math.round(Math.max(0, Math.min(20, b7)) * 10) / 10;
+          b30 = Math.round(Math.max(0, Math.min(20, b30)) * 10) / 10;
+        } else {
+          b7 = Math.round(Math.max(0, Math.min(10, b7)) * 10) / 10;
+          b30 = Math.round(Math.max(0, Math.min(10, b30)) * 10) / 10;
+        }
+        projected7Days = b7;
+        projected30Days = b30;
+      }
+
       // Calculate predicted status (based on current vs predicted difference)
       let predictedStatus;
       if (isNegativeMetric) {
@@ -309,7 +678,8 @@ const AIEngine = {
           significance: trendSignificance,
           direction: trendDirection,
           modelType: modelType, // 'linear', 'polynomial', or 'arima'
-          polynomial: polynomialRegression || null // Store polynomial coefficients if used
+          polynomial: polynomialRegression || null, // Store polynomial coefficients if used
+          normalizedSignificance: typeof sigmoid === 'function' ? Math.round(sigmoid(regression.rSquared) * 1000) / 1000 : undefined
         },
         // Predictions
         predictions: predictions,
@@ -321,67 +691,6 @@ const AIEngine = {
         projected30Days: projected30Days
       };
     });
-
-    // Enhanced correlation detection
-    this.detectCorrelations(recentLogs, analysis);
-    
-    // Multi-metric correlation matrix (uses all logs for better correlation detection)
-    // Always use trainingLogs (allLogs) if available, otherwise use recentLogs
-    const correlationLogs = trainingLogs.length >= recentLogs.length ? trainingLogs : recentLogs;
-    this.detectMultiMetricCorrelations(correlationLogs, analysis);
-    
-    // Enhanced anomaly detection
-    this.detectAnomalies(recentLogs, analysis);
-    
-    // Pattern recognition
-    this.detectPatterns(recentLogs, analysis);
-    
-    // Trend acceleration detection
-    const accelerations = this.detectTrendAcceleration(recentLogs, analysis);
-    if (accelerations.length > 0) {
-      analysis.patterns.push(...accelerations);
-    }
-    
-    // Risk factor assessment
-    this.assessRiskFactors(recentLogs, analysis);
-    
-    // Flare-up prediction (uses all logs to learn patterns)
-    // Always use trainingLogs (allLogs) if available for better pattern learning
-    const flarePredictionLogs = trainingLogs.length >= recentLogs.length ? trainingLogs : recentLogs;
-    this.predictFlareUps(flarePredictionLogs, analysis);
-    
-    // Food/Exercise impact analysis (also sets nutritionAnalysis and exerciseSummary)
-    this.analyzeFoodExerciseImpact(recentLogs, analysis);
-    
-    // Energy & mental clarity and weather sensitivity (use all collected data)
-    this.analyzeEnergyClarityAndWeather(recentLogs, analysis);
-    
-    // Stressors impact analysis
-    this.analyzeStressorsImpact(recentLogs, analysis);
-    
-    // Symptoms and pain location analysis
-    this.analyzeSymptomsAndPainLocation(recentLogs, analysis);
-    
-    // Cross-section correlations (stressors × symptoms, food × exercise × pain, etc.)
-    this.analyzeCrossSectionCorrelations(recentLogs, analysis);
-    
-    // Data clustering for pattern identification
-    this.performClustering(recentLogs, analysis);
-    
-    // Time series analysis (exponential smoothing, moving averages)
-    this.performTimeSeriesAnalysis(recentLogs, analysis);
-    
-    // Enhanced outlier detection
-    this.detectOutliers(recentLogs, analysis);
-    
-    // Seasonality detection
-    this.detectSeasonality(recentLogs, analysis);
-    
-    // Generate condition-specific advice (enhanced with actionable steps)
-    const conditionContext = window.CONDITION_CONTEXT || { name: 'your condition' };
-    analysis.advice = this.generateActionableAdvice(analysis.trends, recentLogs, conditionContext);
-    
-    return analysis;
   },
 
   // Calculate variance for stability assessment
@@ -1002,82 +1311,78 @@ const AIEngine = {
   },
 
   // Multi-metric correlation matrix: detect complex relationships between all metrics
-  detectMultiMetricCorrelations: function(logs, analysis) {
-    if (logs.length < 5) return; // Need minimum data
-
-    // Use same numeric metrics as analyzeHealthMetrics so all data points appear in Connected Patterns
+  // options: { precomputedByIndex: number[][], metricNames: string[] } to use input-layer matrix (optimisation)
+  detectMultiMetricCorrelations: function(logs, analysis, options) {
     const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration'];
-    const correlationMatrix = {};
-    
-    metrics.forEach(metric1 => {
-      correlationMatrix[metric1] = {};
-      const values1 = logs.map(log => {
-        const val = parseFloat(log[metric1]) || 0;
-        return isNaN(val) ? 0 : val;
-      }).filter(v => v > 0 || metric1 === 'weight'); // Weight can be any positive value
-      
-      if (values1.length < 3) return; // Skip if insufficient data
-      
-      metrics.forEach(metric2 => {
-        if (metric1 === metric2) {
-          correlationMatrix[metric1][metric2] = 1.0; // Perfect self-correlation
-          return;
-        }
-        
-        const values2 = logs.map(log => {
-          const val = parseFloat(log[metric2]) || 0;
+    let correlationMatrix = {};
+
+    if (options && options.precomputedByIndex && options.metricNames && options.precomputedByIndex.length >= 5) {
+      const pre = options.precomputedByIndex;
+      const names = options.metricNames;
+      names.forEach((metric1, i) => {
+        correlationMatrix[metric1] = {};
+        names.forEach((metric2, j) => {
+          correlationMatrix[metric1][metric2] = i < pre.length && j < (pre[i] && pre[i].length) ? (pre[i][j] != null ? pre[i][j] : 0) : 0;
+        });
+      });
+    } else if (logs.length >= 5) {
+      correlationMatrix = {};
+      metrics.forEach(metric1 => {
+        correlationMatrix[metric1] = {};
+        const values1 = logs.map(log => {
+          const val = parseFloat(log[metric1]) || 0;
           return isNaN(val) ? 0 : val;
-        }).filter(v => v > 0 || metric2 === 'weight');
-        
-        if (values2.length < 3) {
-          correlationMatrix[metric1][metric2] = 0;
-          return;
-        }
-        
-        // Align arrays by date (ensure same length and matching indices)
-        const aligned1 = [];
-        const aligned2 = [];
-        logs.forEach(log => {
-          const v1 = parseFloat(log[metric1]) || 0;
-          const v2 = parseFloat(log[metric2]) || 0;
-          if ((!isNaN(v1) && v1 > 0) || metric1 === 'weight') {
-            if ((!isNaN(v2) && v2 > 0) || metric2 === 'weight') {
-              aligned1.push(v1);
-              aligned2.push(v2);
+        }).filter(v => v > 0 || metric1 === 'weight');
+        if (values1.length < 3) return;
+        metrics.forEach(metric2 => {
+          if (metric1 === metric2) {
+            correlationMatrix[metric1][metric2] = 1.0;
+            return;
+          }
+          const aligned1 = [];
+          const aligned2 = [];
+          logs.forEach(log => {
+            const v1 = parseFloat(log[metric1]) || 0;
+            const v2 = parseFloat(log[metric2]) || 0;
+            if ((!isNaN(v1) && v1 > 0) || metric1 === 'weight') {
+              if ((!isNaN(v2) && v2 > 0) || metric2 === 'weight') {
+                aligned1.push(v1);
+                aligned2.push(v2);
+              }
             }
+          });
+          if (aligned1.length >= 3 && aligned1.length === aligned2.length) {
+            const corr = this.calculateCorrelation(aligned1, aligned2);
+            correlationMatrix[metric1][metric2] = corr;
+          } else {
+            correlationMatrix[metric1][metric2] = 0;
           }
         });
-        
-        if (aligned1.length >= 3 && aligned2.length >= 3 && aligned1.length === aligned2.length) {
-          const corr = this.calculateCorrelation(aligned1, aligned2);
-          correlationMatrix[metric1][metric2] = corr;
-          
-          // Detect strong correlations (>0.6 or <-0.6)
-          if (Math.abs(corr) > 0.6) {
-            const metric1Name = metric1.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-            const metric2Name = metric2.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-            const direction = corr > 0 ? 'increases with' : 'decreases with';
-            const strength = Math.abs(corr) > 0.8 ? 'very strongly' : 'strongly';
-            
-            // Check if this correlation is already reported
-            const existing = analysis.correlations.some(c => 
-              c.includes(metric1Name) && c.includes(metric2Name)
+      });
+    } else {
+      return;
+    }
+
+    metrics.forEach(metric1 => {
+      if (!correlationMatrix[metric1]) return;
+      metrics.forEach(metric2 => {
+        if (metric1 === metric2) return;
+        const corr = correlationMatrix[metric1][metric2];
+        if (corr == null) return;
+        if (Math.abs(corr) > 0.6) {
+          const metric1Name = metric1.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          const metric2Name = metric2.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          const existing = analysis.correlations.some(c => c.includes(metric1Name) && c.includes(metric2Name));
+          if (!existing) {
+            const plainDir = corr > 0 ? 'goes up when' : 'goes down when';
+            analysis.correlations.push(
+              'When ' + metric1Name + ' ' + plainDir + ' ' + metric2Name + ' ' + (plainDir === 'goes up when' ? 'goes up too' : 'goes down too') + '.'
             );
-            
-            if (!existing) {
-              const plainDir = corr > 0 ? 'goes up when' : 'goes down when';
-              analysis.correlations.push(
-                `When ${metric1Name} ${plainDir} ${metric2Name} ${plainDir === 'goes up when' ? 'goes up too' : 'goes down too'}.`
-              );
-            }
           }
-        } else {
-          correlationMatrix[metric1][metric2] = 0;
         }
       });
     });
-    
-    // Store correlation matrix in analysis
+
     analysis.correlationMatrix = correlationMatrix;
     
     // Identify correlation clusters (groups of highly correlated metrics)
@@ -2638,6 +2943,81 @@ const AIEngine = {
     return insights.join('\n\n');
   },
 
+  // Natural language generation: one paragraph suitable for a daily or period summary note
+  generateAnalysisNote: function(analysis, options) {
+    const opts = options || {};
+    const dayCount = opts.dayCount || 7;
+    const logs = opts.logs || [];
+    const parts = [];
+    if (analysis.summary && analysis.summary.trim()) {
+      parts.push(analysis.summary.replace(/\*\*([^*]+)\*\*/g, '$1').trim());
+    }
+    if (analysis.prioritisedInsights && analysis.prioritisedInsights.length > 0) {
+      const first = analysis.prioritisedInsights[0].replace(/\*\*([^*]+)\*\*/g, '$1').trim();
+      if (first && !parts[0].includes(first.substring(0, 30))) parts.push(first);
+    }
+    const improving = [];
+    const worsening = [];
+    Object.keys(analysis.trends || {}).forEach(metric => {
+      const t = analysis.trends[metric];
+      if (!t.regression || t.regression.normalizedSignificance < 0.5) return;
+      const name = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+      if (t.regression.direction === 'improving') improving.push(name);
+      else if (t.regression.direction === 'worsening') worsening.push(name);
+    });
+    if (improving.length > 0 || worsening.length > 0) {
+      const trendSentence = [];
+      if (improving.length > 0) trendSentence.push(improving.join(', ') + (improving.length === 1 ? ' is' : ' are') + ' improving');
+      if (worsening.length > 0) trendSentence.push(worsening.join(', ') + (worsening.length === 1 ? ' is' : ' are') + ' trending worse');
+      if (trendSentence.length > 0 && !parts.some(p => p.includes('improving') || p.includes('trending'))) {
+        parts.push(trendSentence.join('; ') + '.');
+      }
+    }
+    const flareCount = logs.filter(l => l.flare === 'Yes').length;
+    if (flareCount > 0 && dayCount >= 1) {
+      const pct = Math.round(flareCount / dayCount * 100);
+      parts.push(`You logged ${flareCount} flare ${flareCount === 1 ? 'day' : 'days'} (${pct}% of the period).`);
+    }
+    if (analysis.advice && analysis.advice.length > 0) {
+      const firstAdvice = analysis.advice[0].replace(/\*\*([^*]+)\*\*/g, '$1').trim();
+      if (firstAdvice.length < 120 && !parts.some(p => p.indexOf(firstAdvice.substring(0, 40)) >= 0)) {
+        parts.push(firstAdvice);
+      }
+    }
+    return parts.length ? parts.slice(0, 4).join(' ') : 'Review your trends and patterns in the app for insights.';
+  },
+
+  // Suggest a short note for a single log based on how today compares to recent baseline
+  suggestLogNote: function(log, context) {
+    if (!log || !context) return '';
+    const recentLogs = context.recentLogs || context.logs || [];
+    const metrics = ['backPain', 'stiffness', 'fatigue', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability'];
+    const higherIsBetter = ['sleep', 'mobility', 'mood', 'dailyFunction'];
+    const recent = recentLogs.filter(l => l.date !== log.date).slice(-14);
+    if (recent.length === 0) return '';
+    const parts = [];
+    metrics.forEach(metric => {
+      const v = metric === 'weight' ? parseFloat(log[metric]) : (parseInt(log[metric], 10) || 0);
+      if (isNaN(v)) return;
+      const vals = recent.map(l => metric === 'weight' ? parseFloat(l[metric]) : (parseInt(l[metric], 10) || 0)).filter(x => !isNaN(x));
+      if (vals.length < 3) return;
+      const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+      const diff = v - avg;
+      const name = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+      if (higherIsBetter.includes(metric)) {
+        if (diff >= 1) parts.push({ text: name + ' better than usual', score: diff });
+        else if (diff <= -1) parts.push({ text: name + ' lower than your average', score: -diff });
+      } else {
+        if (diff >= 1) parts.push({ text: name + ' higher than usual', score: diff });
+        else if (diff <= -1) parts.push({ text: name + ' improved vs average', score: -diff });
+      }
+    });
+    if (parts.length === 0) return '';
+    parts.sort((a, b) => b.score - a.score);
+    const top = parts.slice(0, 2).map(p => p.text).join('; ');
+    return top ? top + '.' : '';
+  },
+
   // ============================================
   // ADVANCED DATA ANALYSIS METHODS
   // ============================================
@@ -3126,6 +3506,17 @@ const AIEngine = {
     }
   }
 };
+
+// Expose activation functions for use as activators in the neural analysis pipeline (and for external use)
+AIEngine.activations = {
+  sigmoid: sigmoid,
+  tanh: tanh,
+  relu: relu,
+  softmax: softmax
+};
+
+// Expose network constructor for advanced use (e.g. custom layers)
+AIEngine.NeuralAnalysisNetwork = NeuralAnalysisNetwork;
 
 // Make AIEngine available globally
 window.AIEngine = AIEngine;

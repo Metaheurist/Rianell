@@ -823,6 +823,7 @@
       <label for="notes">Notes <span class="optional-hint">(Optional)</span> <span id="notesCounter" class="character-counter">0/500</span></label>
       <div class="input-container">
         <textarea id="notes" placeholder="Tap here and use voice dictation to quickly add notes about your symptoms, triggers, or activities..." maxlength="500"></textarea>
+        <button type="button" id="suggestNoteBtn" class="suggest-note-btn" title="Suggest a short note based on today&#39;s metrics vs your average">Suggest note</button>
         <div class="validation-message" id="notes-error"></div>
           </div>
         </div>
@@ -1693,13 +1694,14 @@
         <section>
           <h4>What we collect and how</h4>
           <p><strong>Data you enter:</strong> Your health entries (metrics, symptoms, food, exercise, stress, notes, pain locations), your name and condition, app preferences, and—if you sign up—your email for cloud sync.</p>
+          <p><strong>AI-related data:</strong> The app stores AI learning data on your device (e.g. prediction blend weights and last prediction snapshots used to improve trend projections). This data is not sent to our servers unless you use Cloud Sync; when you are signed in, it is backed up to your encrypted cloud account together with your health logs and settings.</p>
           <p><strong>Automatically:</strong> We don’t collect anything beyond what you enter and what you choose to sync.</p>
         </section>
         <section>
           <h4>How we store it</h4>
           <p>We store data only on your device and, if you turn on Cloud Sync, in a secure cloud account:</p>
           <ul>
-            <li><strong>On your device:</strong> Your health entries, settings, tutorial progress, cloud sync preferences and last sync time, and any backups you create. Session data is cleared when you sign out or reset data.</li>
+            <li><strong>On your device:</strong> Your health entries, settings, AI learning state (e.g. prediction weights), tutorial progress, cloud sync preferences and last sync time, and any backups you create. Session data is cleared when you sign out or reset data.</li>
             <li><strong>If you install the app:</strong> Cached files so the app can work offline. We do not set cookies on our server.</li>
           </ul>
         </section>
@@ -1711,7 +1713,7 @@
           <h4>How we use your data</h4>
           <ul>
             <li><strong>On your device:</strong> To show charts, run AI analysis, and give you insights. Nothing is sent to our servers unless you enable Cloud Sync.</li>
-            <li><strong>Cloud Sync (optional):</strong> If you turn it on, we use it only to store and sync your account. If you opt in to contribute anonymised data, that anonymised data may be used to improve models, as described in Settings.</li>
+            <li><strong>Cloud Sync (optional):</strong> If you turn it on, we use it only to store and sync your account (health logs, settings, and AI learning state). If you opt in to contribute anonymised data, that anonymised data may be used to improve models, as described in Settings.</li>
             <li><strong>We do not sell your data or use it for advertising.</strong></li>
           </ul>
         </section>
