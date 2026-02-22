@@ -1,5 +1,8 @@
 // Cloud Sync Functions for Health App
-// Handles syncing anonymized data to Supabase
+// Handles syncing anonymized data to Supabase and logged-in user backup (health_data + AI state)
+
+// LocalStorage key for AI prediction/learning state (blend weights, last predictions) — synced to cloud when logged in
+const AI_STATE_LOCALSTORAGE_KEY = 'healthAppPredictionState';
 
 // Initialize Supabase client
 let supabaseClient = null;
@@ -1337,10 +1340,10 @@ async function syncToCloud() {
       throw new Error('Could not obtain encryption key for your account');
     }
     
-    // Fetch cloud data
+    // Fetch cloud data (include ai_state for merge/display; we push local AI state in upsert)
     const { data: cloudData, error: fetchError } = await client
       .from('health_data')
-      .select('health_logs, app_settings')
+      .select('health_logs, app_settings, ai_state')
       .eq('user_id', cloudSyncState.user.id)
       .single();
     
@@ -1394,15 +1397,34 @@ async function syncToCloud() {
       throw new Error('Failed to encrypt app settings: ' + encryptError.message);
     }
     
-    // Upsert merged data to cloud
+    // AI state: backup from localStorage (prediction blend weights, last predictions) when logged in
+    let encryptedAiState = null;
+    try {
+      const aiStateJson = typeof localStorage !== 'undefined' ? localStorage.getItem(AI_STATE_LOCALSTORAGE_KEY) : null;
+      if (aiStateJson) {
+        const aiState = JSON.parse(aiStateJson);
+        if (aiState && (Object.keys(aiState.lastPredictions || {}).length > 0 || Object.keys(aiState.blendWeights || {}).length > 0)) {
+          encryptedAiState = await encryptWithUserKey(aiState, userKey);
+          console.log('AI state encrypted for cloud backup');
+        }
+      }
+    } catch (aiErr) {
+      console.warn('AI state backup skip:', aiErr);
+    }
+    
+    // Upsert merged data to cloud (logs, settings, AI state)
+    const upsertPayload = {
+      user_id: cloudSyncState.user.id,
+      health_logs: encryptedLogs,
+      app_settings: encryptedSettings,
+      updated_at: new Date().toISOString()
+    };
+    if (encryptedAiState !== null) {
+      upsertPayload.ai_state = encryptedAiState;
+    }
     const { error: upsertError } = await client
       .from('health_data')
-      .upsert({
-        user_id: cloudSyncState.user.id,
-        health_logs: encryptedLogs,
-        app_settings: encryptedSettings,
-        updated_at: new Date().toISOString()
-      }, {
+      .upsert(upsertPayload, {
         onConflict: 'user_id',
         ignoreDuplicates: false
       });
@@ -1608,7 +1630,7 @@ async function loadFromCloud() {
   try {
     const { data, error } = await client
       .from('health_data')
-      .select('health_logs, app_settings')
+      .select('health_logs, app_settings, ai_state')
       .eq('user_id', cloudSyncState.user.id)
       .single();
     
@@ -1695,6 +1717,20 @@ async function loadFromCloud() {
           }
         } catch (parseError) {
           console.warn('Failed to parse cloud settings:', parseError);
+        }
+      }
+      
+      // Restore AI state from cloud (prediction blend weights, last predictions) to localStorage
+      if (data.ai_state && typeof localStorage !== 'undefined') {
+        try {
+          const decrypted = await decryptWithUserKey(data.ai_state, userKey);
+          if (decrypted && typeof decrypted === 'object') {
+            const str = JSON.stringify(decrypted);
+            localStorage.setItem(AI_STATE_LOCALSTORAGE_KEY, str);
+            console.log('AI state restored from cloud');
+          }
+        } catch (aiDecErr) {
+          console.warn('AI state restore skip:', aiDecErr);
         }
       }
       
