@@ -2513,6 +2513,34 @@ function updateNotesCounter() {
 
 notesField.addEventListener('input', updateNotesCounter);
 
+// Suggest note from current form metrics vs recent average (AIEngine.suggestLogNote)
+(function() {
+  var suggestBtn = document.getElementById('suggestNoteBtn');
+  if (!suggestBtn) return;
+  suggestBtn.addEventListener('click', function() {
+    if (!window.AIEngine || typeof window.AIEngine.suggestLogNote !== 'function') return;
+    var dateEl = document.getElementById('date');
+    var stub = { date: dateEl ? dateEl.value : '' };
+    ['backPain', 'stiffness', 'fatigue', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability'].forEach(function(m) {
+      var el = document.getElementById(m);
+      if (el) stub[m] = m === 'weight' ? parseFloat(el.value) : (parseInt(el.value, 10) || 0);
+    });
+    try {
+      var raw = typeof localStorage !== 'undefined' && localStorage.getItem('healthLogs');
+      var allLogs = raw ? JSON.parse(raw) : [];
+      var sorted = (window.PerformanceUtils && window.PerformanceUtils.memoizedSort)
+        ? window.PerformanceUtils.memoizedSort(allLogs, function(a, b) { return new Date(a.date) - new Date(b.date); }, 'suggestNote')
+        : allLogs.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+      var suggestion = window.AIEngine.suggestLogNote(stub, { recentLogs: sorted });
+      if (suggestion && notesField) {
+        var cur = (notesField.value || '').trim();
+        notesField.value = cur ? cur + ' ' + suggestion : suggestion;
+        updateNotesCounter();
+      }
+    } catch (e) {}
+  });
+})();
+
 const form = document.getElementById("logForm");
 const output = document.getElementById("logOutput");
 const chartSection = document.getElementById("chartSection");
@@ -2767,7 +2795,7 @@ async function createCombinedChart() {
         : allHistoricalLogs;
       
       // Use combined data for training
-      const analysis = window.AIEngine.analyzeHealthMetrics(sortedLogs, combinedTrainingLogs);
+      const analysis = analyzeHealthMetrics(sortedLogs, combinedTrainingLogs);
       predictionsData = {
         trends: analysis.trends,
         daysToPredict: daysToPredict,
@@ -4214,12 +4242,25 @@ window.CONDITION_CONTEXT = CONDITION_CONTEXT;
 // Use AIEngine.analyzeHealthMetrics() and AIEngine.generateComprehensiveInsights()
 
 // Legacy function wrappers for compatibility (delegate to AIEngine)
-function analyzeHealthMetrics(logs) {
-  if (window.AIEngine) {
-    return window.AIEngine.analyzeHealthMetrics(logs);
+// Supports learning: loads/saves prediction state (blend weights) from localStorage when available
+function analyzeHealthMetrics(logs, allLogs, options) {
+  if (!window.AIEngine) {
+    return { trends: {}, correlations: [], anomalies: [], advice: [], patterns: [], riskFactors: [] };
   }
-  // Fallback if AIEngine not loaded
-  return { trends: {}, correlations: [], anomalies: [], advice: [], patterns: [], riskFactors: [] };
+  const opts = options || {};
+  if (typeof opts.predictionState === 'undefined' && typeof localStorage !== 'undefined') {
+    try {
+      const s = localStorage.getItem('healthAppPredictionState');
+      if (s) opts.predictionState = JSON.parse(s);
+    } catch (e) { /* ignore */ }
+  }
+  const result = window.AIEngine.analyzeHealthMetrics(logs, allLogs, opts);
+  if (result.predictionStateForSave && typeof localStorage !== 'undefined') {
+    try {
+      localStorage.setItem('healthAppPredictionState', JSON.stringify(result.predictionStateForSave));
+    } catch (e) { /* ignore */ }
+  }
+  return result;
 }
 
 function generateComprehensiveInsights(analysis, logs, dayCount) {
@@ -4357,7 +4398,7 @@ function generateAISummary() {
 
       let analysis;
       if (window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function') {
-        analysis = window.AIEngine.analyzeHealthMetrics(sortedLogs, allLogsForTraining);
+        analysis = analyzeHealthMetrics(sortedLogs, allLogsForTraining);
       } else if (typeof analyzeHealthMetrics === 'function') {
         analysis = analyzeHealthMetrics(sortedLogs);
       } else {
@@ -4380,6 +4421,29 @@ function generateAISummary() {
       }
     }
   }, 800);
+}
+
+// Copy AI-generated summary note to clipboard (used by "Copy note" button in AI results)
+function copyAIGeneratedNote(btn) {
+  var el = btn && btn.previousElementSibling;
+  var text = el ? el.textContent : '';
+  if (!text) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      if (btn) { btn.textContent = 'Copied!'; setTimeout(function() { btn.textContent = 'Copy note'; }, 2000); }
+    }).catch(function() { fallbackCopy(); });
+  } else { fallbackCopy(); }
+  function fallbackCopy() {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      if (btn) { btn.textContent = 'Copied!'; setTimeout(function() { btn.textContent = 'Copy note'; }, 2000); }
+    } catch (e) {}
+  }
 }
 
 // Store current analysis data for radar chart access
@@ -4545,6 +4609,22 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       </div>
   `;
     animationDelay += 200;
+  }
+
+  // Natural language summary note (copyable)
+  if (window.AIEngine && typeof window.AIEngine.generateAnalysisNote === 'function') {
+    try {
+      const noteText = window.AIEngine.generateAnalysisNote(analysis, { dayCount: dayCount || logs.length, logs: logs });
+      if (noteText && noteText.trim()) {
+        html += `
+      <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+        <h3 class="ai-section-title">📝 Summary note</h3>
+        <p class="ai-generated-note">${escapeHTML(noteText.trim())}</p>
+        <button type="button" class="ai-copy-note-btn" onclick="typeof copyAIGeneratedNote==='function'&&copyAIGeneratedNote(this)" title="Copy to clipboard">Copy note</button>
+      </div>`;
+        animationDelay += 200;
+      }
+    } catch (e) { /* ignore */ }
   }
 
   // Data in this period - show which data points were logged (all feed into analysis)
@@ -5113,7 +5193,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   html += `
     <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
       <h3 class="ai-section-title ai-section-green">💡 Important</h3>
-      <p class="ai-disclaimer">For patterns only — talk to your doctor before changing care. You can share this at your next visit.</p>
+      <p class="ai-disclaimer">For patterns only — talk to your doctor before changing care. You can share this at your next visit. AI data (e.g. prediction weights) is stored on your device and, when signed in, backed up to your cloud account.</p>
     </div>
   `;
 
@@ -9141,7 +9221,7 @@ function chart(id, label, dataField, color) {
         if (sortedLogs.length >= 2) {
           // Analyze with AIEngine: use ALL historical logs for training (up to 10 years),
           // filtered logs just for determining last date and display
-          const analysis = window.AIEngine.analyzeHealthMetrics(sortedLogs, allLogs);
+          const analysis = analyzeHealthMetrics(sortedLogs, allLogs);
           
           if (analysis.trends[dataField]) {
             const trend = analysis.trends[dataField];
