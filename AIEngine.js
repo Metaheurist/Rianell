@@ -276,7 +276,8 @@ function NeuralAnalysisNetwork(engine) {
     if (hasFood || hasExercise) e.analyzeFoodExerciseImpact(logsForCross, ctx.analysis);
     e.analyzeEnergyClarityAndWeather(logsForCross, ctx.analysis);
     e.analyzeStressorsImpact(logsForCross, ctx.analysis);
-    e.analyzeSymptomsAndPainLocation(logsForCross, ctx.analysis);
+    // User-facing context: symptoms and pain patterns use the selected analysis range (recentLogs)
+    e.analyzeSymptomsAndPainLocation(ctx.recentLogs, ctx.analysis);
     e.analyzeCrossSectionCorrelations(logsForCross, ctx.analysis);
   };
 
@@ -1016,8 +1017,16 @@ const AIEngine = {
       }
     }
     
-    // Cap steps but be VERY generous (allow up to 8-9 for health metrics)
-    stepsToShow = Math.min(stepsToShow, isBPM ? 30 : 9);
+    // Cap variation: BPM up to 30, steps/hydration use full range, 0-10 metrics up to 9
+    if (isBPM) {
+      stepsToShow = Math.min(stepsToShow, 30);
+    } else if (isSteps) {
+      stepsToShow = Math.min(stepsToShow, 15000); // allow meaningful step-count variation
+    } else if (isHydration) {
+      stepsToShow = Math.min(stepsToShow, 15); // 0-20 glasses
+    } else {
+      stepsToShow = Math.min(stepsToShow, 9); // 0-10 scale
+    }
     
     // Create predictions with aggressive variation
     for (let i = 0; i < daysAhead; i++) {
@@ -1819,9 +1828,9 @@ const AIEngine = {
     }
   },
 
-  // Analyze symptoms and pain location patterns
+  // Analyze symptoms and pain location patterns (logs = user's selected analysis range for display)
   analyzeSymptomsAndPainLocation: function(logs, analysis) {
-    if (logs.length < 7) return; // Need minimum data
+    if (!logs || logs.length < 1) return;
     
     // Collect all symptoms and their frequencies
     const symptomFrequency = {};

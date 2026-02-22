@@ -4900,6 +4900,78 @@ body.loading .loading-overlay {
 }
 
 /* Medication / Supplements section */
+.medication-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.medication-add-form .input-container { margin-bottom: 0; }
+.field-hint-inline {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted, rgba(224, 242, 241, 0.6));
+  margin-top: 4px;
+}
+.medication-taken-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+.medication-taken-label {
+  font-weight: 500;
+  color: var(--text-light);
+  margin-right: 8px;
+}
+.medication-checkbox-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.medication-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.medication-checkbox-custom {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: rgba(76, 175, 80, 0.25);
+  border: 2px solid rgba(76, 175, 80, 0.5);
+  position: relative;
+  transition: background 0.2s, border-color 0.2s;
+}
+.medication-checkbox-custom::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(76, 175, 80, 0.9);
+  transition: transform 0.2s;
+}
+.medication-checkbox:checked + .medication-checkbox-custom {
+  background: rgba(76, 175, 80, 0.35);
+  border-color: #4caf50;
+}
+.medication-checkbox:checked + .medication-checkbox-custom::after {
+  transform: translateX(20px);
+}
+.medication-checkbox:focus-visible + .medication-checkbox-custom {
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
+}
+.medication-checkbox-text {
+  font-size: 0.95rem;
+  color: var(--text-light);
+}
 .add-medication-btn {
   padding: 10px 18px;
   border-radius: var(--radius-md);
@@ -4908,15 +4980,118 @@ body.loading .loading-overlay {
   color: var(--text-light);
   font-weight: 600;
   cursor: pointer;
-  margin-top: 8px;
+  margin-top: 4px;
+  align-self: flex-start;
   transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 .add-medication-btn:hover {
   background: rgba(76, 175, 80, 0.25);
   border-color: rgba(76, 175, 80, 0.7);
 }
-.medication-taken-row label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-.medication-items-list { margin-top: 12px; }
+.medication-items-list {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.medication-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.25);
+}
+.medication-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.medication-card-name {
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 2px;
+}
+.medication-card-times {
+  font-size: 0.85rem;
+  color: var(--text-muted, rgba(224, 242, 241, 0.7));
+}
+.medication-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.medication-card .medication-taken-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(76, 175, 80, 0.35);
+  background: rgba(76, 175, 80, 0.1);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.medication-card .medication-taken-toggle:hover {
+  background: rgba(76, 175, 80, 0.2);
+  color: var(--text-light);
+}
+.medication-card .medication-taken-toggle.taken {
+  color: #81c784;
+  border-color: rgba(76, 175, 80, 0.5);
+  background: rgba(76, 175, 80, 0.2);
+}
+.medication-card .remove-item-btn {
+  flex-shrink: 0;
+}
+.medication-items-list .empty-items {
+  padding: 20px 16px;
+  text-align: center;
+  color: var(--text-muted, rgba(224, 242, 241, 0.6));
+  font-size: 0.95rem;
+  border: 1px dashed rgba(76, 175, 80, 0.3);
+  border-radius: var(--radius-md);
+  background: rgba(76, 175, 80, 0.05);
+}
+
+/* Frequently used options (medications, stressors, symptoms, exercise, food) */
+.frequent-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  min-height: 0;
+}
+.frequent-chips-wrap:empty { display: none; }
+.frequent-label {
+  font-size: 0.9rem;
+  color: var(--text-muted, rgba(224, 242, 241, 0.7));
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+.frequent-chip {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  background: rgba(76, 175, 80, 0.12);
+  color: var(--text-light);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.frequent-chip:hover {
+  background: rgba(76, 175, 80, 0.25);
+  border-color: rgba(76, 175, 80, 0.6);
+}
+.frequent-chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.5);
+}
 
 /* Sticky selected summary on mobile so users see what's selected while scrolling card grids */
 @media (max-width: 768px) {
@@ -7823,6 +7998,15 @@ body.light-mode .date-separator {
 
 .install-app-btn:hover {
   background: #7b1fa2;
+}
+
+.settings-install-icon {
+  margin-right: 8px;
+  opacity: 0.95;
+}
+
+.settings-install-icon i {
+  font-size: 1.1em;
 }
 
 .launch-app-btn {

@@ -293,7 +293,10 @@
       <div class="settings-section">
         <h4>📱 App Installation</h4>
         <div class="settings-option">
-          <button class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA()">📱 Install as Standalone App</button>
+          <button class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA()"><span class="settings-install-icon" aria-hidden="true"><i class="fa-solid fa-globe"></i></span> Install web app</button>
+        </div>
+        <div class="settings-option">
+          <a id="downloadApkLink" class="settings-data-btn" target="_blank" rel="noopener" href="#" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit; cursor: pointer;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-android"></i></span> Install on Android</a>
         </div>
       </div>
 
@@ -644,6 +647,7 @@
           </div>
           <details class="stressor-tiles-collapsible">
             <summary class="stressor-tiles-summary">Add stressor or trigger</summary>
+            <div id="logStressorsFrequent" class="frequent-chips-wrap" aria-label="Frequently used stressors"></div>
             <div id="logStressorsTiles" class="stressor-tiles-container" aria-label="Stress and trigger options by group"></div>
           </details>
         </div>
@@ -661,6 +665,7 @@
           </div>
           <details class="symptom-tiles-collapsible">
             <summary class="symptom-tiles-summary">Add symptom</summary>
+            <div id="logSymptomsFrequent" class="frequent-chips-wrap" aria-label="Frequently used symptoms"></div>
             <div id="logSymptomsTiles" class="symptom-tiles-container" aria-label="Symptom options by group"></div>
           </details>
         </div>
@@ -697,6 +702,7 @@
           <span class="section-title">Food Log <span class="optional-hint">(Optional)</span></span>
         </button>
         <div class="section-content" id="foodLog">
+          <div id="logFoodFrequent" class="frequent-chips-wrap" aria-label="Frequently logged foods"></div>
           <details class="food-category-block food-meal-collapsible">
             <summary class="food-category-summary"><span class="food-meal-label">Breakfast</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
             <div class="food-category-body">
@@ -743,6 +749,7 @@
           <span class="section-title">Exercise Log <span class="optional-hint">(Optional)</span></span>
         </button>
         <div class="section-content" id="exerciseLog">
+          <div id="logExerciseFrequent" class="frequent-chips-wrap" aria-label="Frequently logged exercises"></div>
           <div class="selection-summary-sticky">
             <div id="logExerciseItemsList" class="items-list"></div>
           </div>
@@ -787,19 +794,28 @@
         </button>
         <div class="section-content" id="medications">
           <p class="field-hint">Add medications or supplements and mark if taken today.</p>
-          <div class="input-container">
-            <label for="medName">Name</label>
-            <input type="text" id="medName" placeholder="e.g. Aspirin, Vitamin D" maxlength="80">
+          <div id="logMedicationsFrequent" class="frequent-chips-wrap" aria-label="Frequently used medications"></div>
+          <div class="medication-add-form">
+            <div class="input-container">
+              <label for="medName">Name</label>
+              <input type="text" id="medName" placeholder="e.g. Aspirin, Vitamin D" maxlength="80" class="medication-input">
+            </div>
+            <div class="input-container">
+              <label for="medTimes">Time(s)</label>
+              <input type="text" id="medTimes" placeholder="e.g. 09:00, 21:00" maxlength="50" class="medication-input">
+              <span class="field-hint-inline">Separate multiple times with commas or spaces.</span>
+            </div>
+            <div class="input-container medication-taken-row">
+              <span class="medication-taken-label">Taken today?</span>
+              <label class="medication-checkbox-wrap" for="medTaken">
+                <input type="checkbox" id="medTaken" class="medication-checkbox" checked>
+                <span class="medication-checkbox-custom" aria-hidden="true"></span>
+                <span class="medication-checkbox-text">Yes</span>
+              </label>
+            </div>
+            <button type="button" class="add-medication-btn" onclick="addLogMedicationItem()">Add</button>
           </div>
-          <div class="input-container">
-            <label for="medTimes">Time(s)</label>
-            <input type="text" id="medTimes" placeholder="e.g. 09:00, 21:00" maxlength="50">
-          </div>
-          <div class="input-container medication-taken-row">
-            <label><input type="checkbox" id="medTaken" checked> Taken today</label>
-          </div>
-          <button type="button" class="add-medication-btn" onclick="addLogMedicationItem()">Add</button>
-          <div id="logMedicationsList" class="items-list medication-items-list"></div>
+          <div id="logMedicationsList" class="medication-items-list"></div>
         </div>
       </div>
 
@@ -1871,6 +1887,15 @@
   <script src="security-utils.js"></script>
   <script src="encryption-utils.js"></script>
   <script src="cloud-sync.js"></script>
+  <script>
+    (function setApkDownloadLink() {
+      var el = document.getElementById('downloadApkLink');
+      if (!el) return;
+      var path = window.location.pathname || '/';
+      var base = window.location.origin + path.substring(0, path.lastIndexOf('/') + 1);
+      el.href = base + 'apk/app-debug.apk';
+    })();
+  </script>
 </body>
 </html>
 

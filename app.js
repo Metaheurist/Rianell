@@ -6087,6 +6087,106 @@ let editExerciseItems = [];
 // Offline log queue: when offline, entries are saved locally and queued for sync when back online
 var OFFLINE_QUEUE_KEY = 'healthLogsOfflineQueue';
 
+// Frequently used log options (medications, stressors, symptoms, exercises, foods) — stored in localStorage
+var FREQUENT_OPTIONS_KEY = 'healthAppFrequentOptions';
+var FREQUENT_OPTIONS_MAX = 8; // max items to show per section
+var FREQUENT_OPTIONS_MAX_STORED = 50; // cap keys per type to avoid bloat
+
+function getFrequentOptionsStore() {
+  try {
+    var raw = localStorage.getItem(FREQUENT_OPTIONS_KEY);
+    return raw ? JSON.parse(raw) : { medications: {}, stressors: {}, symptoms: {}, exercises: {}, foods: {} };
+  } catch (e) {
+    return { medications: {}, stressors: {}, symptoms: {}, exercises: {}, foods: {} };
+  }
+}
+
+function setFrequentOptionsStore(store) {
+  try {
+    localStorage.setItem(FREQUENT_OPTIONS_KEY, JSON.stringify(store));
+  } catch (e) {}
+}
+
+function recordFrequentOption(type, key, display, extra) {
+  if (!key || !type) return;
+  var store = getFrequentOptionsStore();
+  if (!store[type]) store[type] = {};
+  var entry = store[type][key];
+  if (entry) {
+    entry.count = (entry.count || 0) + 1;
+    if (display) entry.display = display;
+    if (extra && extra.category) entry.category = extra.category;
+  } else {
+    store[type][key] = { count: 1, display: display || key };
+    if (extra && extra.category) store[type][key].category = extra.category;
+  }
+  // Cap number of keys per type (keep top by count)
+  var keys = Object.keys(store[type]);
+  if (keys.length > FREQUENT_OPTIONS_MAX_STORED) {
+    var sorted = keys.sort(function(a, b) { return (store[type][b].count || 0) - (store[type][a].count || 0); });
+    var keep = sorted.slice(0, FREQUENT_OPTIONS_MAX_STORED);
+    var next = {};
+    keep.forEach(function(k) { next[k] = store[type][k]; });
+    store[type] = next;
+  }
+  setFrequentOptionsStore(store);
+}
+
+function getFrequentOptions(type, limit) {
+  limit = limit || FREQUENT_OPTIONS_MAX;
+  var store = getFrequentOptionsStore();
+  if (!store[type] || typeof store[type] !== 'object') return [];
+  var entries = Object.keys(store[type]).map(function(k) {
+    var e = store[type][k];
+    return { key: k, count: e.count || 0, display: e.display || k, category: e.category };
+  });
+  entries.sort(function(a, b) { return b.count - a.count; });
+  return entries.slice(0, limit);
+}
+
+function recordFrequentOptionsFromEntry(entry) {
+  if (!entry) return;
+  if (entry.medications && Array.isArray(entry.medications)) {
+    entry.medications.forEach(function(m) {
+      var name = (m.name || '').trim();
+      if (name) recordFrequentOption('medications', name.toLowerCase(), name);
+    });
+  }
+  if (entry.stressors && Array.isArray(entry.stressors)) {
+    entry.stressors.forEach(function(s) {
+      var v = (typeof s === 'string' ? s : '').trim();
+      if (v) recordFrequentOption('stressors', v, v);
+    });
+  }
+  if (entry.symptoms && Array.isArray(entry.symptoms)) {
+    entry.symptoms.forEach(function(s) {
+      var v = (typeof s === 'string' ? s : '').trim();
+      if (v) recordFrequentOption('symptoms', v, v);
+    });
+  }
+  if (entry.exercise && Array.isArray(entry.exercise)) {
+    entry.exercise.forEach(function(e) {
+      var name = (typeof e === 'string' ? e : (e && e.name) || '').trim();
+      if (!name) return;
+      var predefined = typeof PREDEFINED_EXERCISES !== 'undefined' && PREDEFINED_EXERCISES.find(function(x) { return x.name === name; });
+      if (predefined) recordFrequentOption('exercises', predefined.id, predefined.name);
+    });
+  }
+  if (entry.food && typeof entry.food === 'object') {
+    var unescapeForKey = function(s) {
+      return String(s).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').trim().toLowerCase();
+    };
+    ['breakfast', 'lunch', 'dinner', 'snack'].forEach(function(cat) {
+      var items = entry.food[cat];
+      if (!Array.isArray(items)) return;
+      items.forEach(function(f) {
+        var name = (typeof f === 'string' ? f : (f && f.name) || '').trim();
+        if (name) recordFrequentOption('foods', unescapeForKey(name), name.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), { category: cat });
+      });
+    });
+  }
+}
+
 function getOfflineQueue() {
   try {
     return JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
@@ -6644,8 +6744,37 @@ function renderFoodChipsForCategory(category, containerId) {
   });
 }
 
+function renderFrequentFood() {
+  var container = document.getElementById('logFoodFrequent');
+  if (!container) return;
+  var opts = getFrequentOptions('foods');
+  container.innerHTML = '';
+  if (opts.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+  var label = document.createElement('span');
+  label.className = 'frequent-label';
+  label.textContent = 'Frequent: ';
+  container.appendChild(label);
+  opts.forEach(function(o) {
+    var predefined = PREDEFINED_FOODS.find(function(f) { return f.name.toLowerCase() === o.key; });
+    if (!predefined) return;
+    var cat = o.category || 'breakfast';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'frequent-chip food-chip food-chip--mixed';
+    btn.textContent = o.display;
+    btn.title = 'Add ' + o.display + ' to ' + cat;
+    btn.addEventListener('click', function() { addLogFoodItem(cat, predefined.id); });
+    container.appendChild(btn);
+  });
+}
+
 // Render food items in log entry form (all 4 categories + chip grids)
 function renderLogFoodItems() {
+  renderFrequentFood();
   renderLogFoodCategoryList('breakfast', 'logFoodBreakfastList');
   renderLogFoodCategoryList('lunch', 'logFoodLunchList');
   renderLogFoodCategoryList('dinner', 'logFoodDinnerList');
@@ -6709,8 +6838,34 @@ function formatExerciseDisplay(item) {
   return safeName;
 }
 
+function renderFrequentExercises() {
+  var container = document.getElementById('logExerciseFrequent');
+  if (!container) return;
+  var opts = getFrequentOptions('exercises');
+  container.innerHTML = '';
+  if (opts.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+  var label = document.createElement('span');
+  label.className = 'frequent-label';
+  label.textContent = 'Frequent: ';
+  container.appendChild(label);
+  opts.forEach(function(o) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'frequent-chip exercise-chip';
+    btn.textContent = o.display;
+    btn.title = 'Add ' + o.display;
+    btn.addEventListener('click', function() { addLogExerciseItem(o.key); });
+    container.appendChild(btn);
+  });
+}
+
 // Render exercise items in log entry form (list + category tile grids)
 function renderLogExerciseItems() {
+  renderFrequentExercises();
   const list = document.getElementById('logExerciseItemsList');
   if (list) {
     if (logFormExerciseItems.length === 0) {
@@ -7097,6 +7252,30 @@ function removeLogStressorItem(index) {
 }
 
 function renderStressorTiles(containerId) {
+  if (containerId === 'logStressorsTiles') {
+    var freqEl = document.getElementById('logStressorsFrequent');
+    if (freqEl) {
+      var opts = getFrequentOptions('stressors');
+      freqEl.innerHTML = '';
+      if (opts.length > 0) {
+        var label = document.createElement('span');
+        label.className = 'frequent-label';
+        label.textContent = 'Frequent: ';
+        freqEl.appendChild(label);
+        opts.forEach(function(o) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'frequent-chip stressor-chip--emotional';
+          btn.textContent = o.display;
+          btn.addEventListener('click', function() { addLogStressorItem(o.key); });
+          freqEl.appendChild(btn);
+        });
+        freqEl.style.display = 'block';
+      } else {
+        freqEl.style.display = 'none';
+      }
+    }
+  }
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '';
@@ -7171,6 +7350,30 @@ function removeLogSymptomItem(index) {
 }
 
 function renderSymptomTiles(containerId) {
+  if (containerId === 'logSymptomsTiles') {
+    var freqEl = document.getElementById('logSymptomsFrequent');
+    if (freqEl) {
+      var opts = getFrequentOptions('symptoms');
+      freqEl.innerHTML = '';
+      if (opts.length > 0) {
+        var label = document.createElement('span');
+        label.className = 'frequent-label';
+        label.textContent = 'Frequent: ';
+        freqEl.appendChild(label);
+        opts.forEach(function(o) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'frequent-chip symptom-chip--other';
+          btn.textContent = o.display;
+          btn.addEventListener('click', function() { addLogSymptomItem(o.key); });
+          freqEl.appendChild(btn);
+        });
+        freqEl.style.display = 'block';
+      } else {
+        freqEl.style.display = 'none';
+      }
+    }
+  }
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '';
@@ -7255,7 +7458,45 @@ function removeLogMedicationItem(index) {
   renderLogMedicationsItems();
 }
 
+function toggleLogMedicationTaken(index) {
+  if (index < 0 || index >= logFormMedications.length) return;
+  logFormMedications[index].taken = !logFormMedications[index].taken;
+  renderLogMedicationsItems();
+}
+
+function renderFrequentMedications() {
+  var container = document.getElementById('logMedicationsFrequent');
+  if (!container) return;
+  var opts = getFrequentOptions('medications');
+  container.innerHTML = '';
+  if (opts.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+  var label = document.createElement('span');
+  label.className = 'frequent-label';
+  label.textContent = 'Frequent: ';
+  container.appendChild(label);
+  opts.forEach(function(o) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'frequent-chip';
+    btn.textContent = o.display;
+    btn.title = 'Use ' + o.display;
+    btn.addEventListener('click', function() {
+      var nameEl = document.getElementById('medName');
+      if (nameEl) {
+        nameEl.value = o.display;
+        nameEl.focus();
+      }
+    });
+    container.appendChild(btn);
+  });
+}
+
 function renderLogMedicationsItems() {
+  renderFrequentMedications();
   var list = document.getElementById('logMedicationsList');
   if (!list) return;
   list.innerHTML = '';
@@ -7264,12 +7505,20 @@ function renderLogMedicationsItems() {
     return;
   }
   logFormMedications.forEach(function(item, index) {
-    var timesLabel = item.times && item.times.length ? item.times.join(', ') : 'no time';
-    var takenLabel = item.taken ? 'Taken' : 'Not taken';
+    var timesLabel = item.times && item.times.length ? item.times.join(', ') : '';
     var div = document.createElement('div');
-    div.className = 'item-tag medication-tag';
-    div.innerHTML = '<span>' + escapeHTML(item.name) + (timesLabel !== 'no time' ? ' (' + escapeHTML(timesLabel) + ')' : '') + ' – ' + takenLabel + '</span>' +
-      '<button type="button" class="remove-item-btn" onclick="removeLogMedicationItem(' + index + ')" title="Remove">×</button>';
+    div.className = 'medication-card';
+    div.innerHTML =
+      '<div class="medication-card-info">' +
+        '<div class="medication-card-name">' + escapeHTML(item.name) + '</div>' +
+        (timesLabel ? '<div class="medication-card-times">' + escapeHTML(timesLabel) + '</div>' : '') +
+      '</div>' +
+      '<div class="medication-card-actions">' +
+        '<button type="button" class="medication-taken-toggle ' + (item.taken ? 'taken' : '') + '" onclick="toggleLogMedicationTaken(' + index + ')" title="' + (item.taken ? 'Mark as not taken' : 'Mark as taken') + '">' +
+          (item.taken ? '✓ Taken' : 'Not taken') +
+        '</button>' +
+        '<button type="button" class="remove-item-btn" onclick="removeLogMedicationItem(' + index + ')" title="Remove">×</button>' +
+      '</div>';
     list.appendChild(div);
   });
 }
@@ -9246,10 +9495,13 @@ function chart(id, label, dataField, color) {
               const lastX = Math.floor((lastTrainingDate - firstTrainingDate) / (1000 * 60 * 60 * 24));
               
               // Use AIEngine's improved prediction method with metric-specific context
+              // Include isSteps/isHydration so predictions use correct scale (e.g. steps 0-50000, not 0-10)
               const metricContext = {
                 variance: trend.variance || 0,
                 average: trend.average || 0,
                 metricName: dataField,
+                isSteps: isSteps,
+                isHydration: isHydration,
                 trainingValues: allLogs.map(log => {
                   const val = parseFloat(log[dataField]);
                   // For weight, ensure we return a valid number (weight should never be 0)
@@ -10345,6 +10597,8 @@ form.addEventListener("submit", e => {
   // No duplicate found, add new entry
   logs.push(newEntry);
   Logger.info('Health log entry created', { date: newEntry.date, totalEntries: logs.length });
+
+  recordFrequentOptionsFromEntry(newEntry);
 
   var wasOffline = !navigator.onLine;
   if (wasOffline) {
