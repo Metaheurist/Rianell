@@ -553,6 +553,15 @@ For issues and questions:
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
 <details>
+<summary><strong>v1.13.3</strong> — 2026-02-23 — Summary note and Suggest note LLM improvements</summary>
+
+- **Summary note**: Improved LLM prompt and context for a clearer, patient-friendly 2–3 sentence summary; optional line from top stressor in context; strip trailing incomplete sentences from output.
+- **Suggest note (log entry)**: "Suggest note" now uses the in-browser LLM (same model as Summary note) when available, with rule-based fallback; short timeout and token limit for snappy response; "Generating…" on button during LLM call.
+- **Optimisation**: Shared LLM pipeline for both Summary and Suggest note; no duplicate model load.
+
+</details>
+
+<details>
 <summary><strong>v1.13.2</strong> — 2026-02-23 — CI: fix iOS/Android build push</summary>
 
 - **CI**: iOS and Android build workflows now fetch and rebase onto `origin/main` before committing, so the "Update iOS build" / "Update Android APK" push no longer fails when `main` has moved (remote rejected: expected older commit). Removed stash-based rebase; commit is made on top of latest `main`.
