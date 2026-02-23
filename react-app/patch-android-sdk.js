@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Patches Android project for compatibility:
- * - Gradle: minSdk 22, targetSdk 34 (broad device support); versionCode/versionName from BUILD_VERSION env
+ * - Gradle: minSdk 22, targetSdk 34, compileSdk 36 (compileSdk 36 required by androidx deps); versionCode/versionName from BUILD_VERSION env
  * - AndroidManifest: notification permissions for Android 12+ (exact alarms) and 13+ (POST_NOTIFICATIONS)
  */
 import fs from 'fs';
@@ -55,15 +55,15 @@ if (fs.existsSync(varsPath)) {
     [/minSdkVersion\s*=\s*\d+/g, 'minSdkVersion = 22'],
     [/targetSdk\s*=\s*\d+/g, 'targetSdk = 34'],
     [/targetSdkVersion\s*=\s*\d+/g, 'targetSdkVersion = 34'],
-    [/compileSdk\s*=\s*\d+/g, 'compileSdk = 34'],
-    [/compileSdkVersion\s*=\s*\d+/g, 'compileSdkVersion = 34'],
+    [/compileSdk\s*=\s*\d+/g, 'compileSdk = 36'],
+    [/compileSdkVersion\s*=\s*\d+/g, 'compileSdkVersion = 36'],
   ]) || patched;
 }
 if (fs.existsSync(appBuildPath)) {
   patched = patch(appBuildPath, [
     [/minSdkVersion\s+\d+/g, 'minSdkVersion 22'],
     [/targetSdkVersion\s+\d+/g, 'targetSdkVersion 34'],
-    [/compileSdkVersion\s+\d+/g, 'compileSdkVersion 34'],
+    [/compileSdkVersion\s+\d+/g, 'compileSdkVersion 36'],
     [/versionCode\s+\d+/g, `versionCode ${buildVersion}`],
     [/versionName\s+"[^"]*"/g, `versionName "${buildVersion}"`],
   ]) || patched;
