@@ -8,7 +8,9 @@
 
   var cachedPipeline = null;
   var MAX_CONTEXT_CHARS = 720;
+  var MAX_SUGGEST_CONTEXT_CHARS = 280;
   var TIMEOUT_MS = 28000;
+  var TIMEOUT_SUGGEST_MS = 12000;
 
   async function getPipeline() {
     if (cachedPipeline) return cachedPipeline;
@@ -78,9 +80,23 @@
     if (analysis.advice && analysis.advice.length > 0) {
       parts.push(stripMarkdown(analysis.advice[0]));
     }
+    // Optional: one line from stressors or symptoms if present (enrich without bloating)
+    if (analysis.stressorAnalysis && analysis.stressorAnalysis.topStressors && analysis.stressorAnalysis.topStressors.length > 0) {
+      var top = analysis.stressorAnalysis.topStressors[0];
+      if (top && top.name && !parts.some(function (p) { return p.indexOf(top.name) >= 0; })) {
+        parts.push('Top stressor: ' + (top.name || '').trim() + (top.pct != null ? ' (' + Math.round(top.pct) + '%).' : '.'));
+      }
+    }
 
     var text = parts.join(' ');
     return text.length > MAX_CONTEXT_CHARS ? text.slice(0, MAX_CONTEXT_CHARS) : text;
+  }
+
+  function stripTrailingIncompleteSentence(text) {
+    if (!text || text.length < 20) return text;
+    var last = text.lastIndexOf('.');
+    if (last === -1) return text;
+    return text.slice(0, last + 1).trim();
   }
 
   /**
@@ -90,7 +106,7 @@
     var context = buildSummaryContext(analysis, options);
     if (!context || context.length < 10) return fallbackNote;
 
-    var prompt = 'Write 2 short sentences for a patient. Use only the data below. Mention 1-2 specific findings (e.g. trends or flares). Data: ' + context;
+    var prompt = 'Summarise in 2 short sentences for the patient. Use only the data below. Mention 1-2 specific findings (e.g. trends or flares). Be clear and encouraging. Data: ' + context;
 
     try {
       var pipe = await getPipeline();
@@ -105,7 +121,7 @@
       var out = await Promise.race([run, timeoutPromise]);
 
       var text = (out && out[0] && out[0].generated_text) ? out[0].generated_text.trim() : '';
-      if (text && text.length > 15) return text;
+      if (text && text.length > 15) return stripTrailingIncompleteSentence(text);
     } catch (e) {
       if (typeof console !== 'undefined' && console.warn) {
         console.warn('Summary LLM failed, using rule-based note:', e.message || e);
@@ -114,5 +130,69 @@
     return fallbackNote;
   }
 
+  /**
+   * Build short context for suggest note: today's metrics vs recent 14-day average.
+   * Metrics: backPain, stiffness, fatigue, sleep, jointPain, mobility, dailyFunction, swelling, mood, irritability.
+   */
+  function buildSuggestContext(todayStub, recentLogs) {
+    var metrics = ['backPain', 'stiffness', 'fatigue', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability'];
+    var recent = (recentLogs || []).filter(function (l) { return l.date !== (todayStub && todayStub.date); }).slice(-14);
+    if (recent.length < 2) return '';
+
+    var todayParts = [];
+    var avgParts = [];
+    metrics.forEach(function (m) {
+      var v = todayStub[m];
+      if (v === undefined || v === null || v === '') return;
+      var num = m === 'weight' ? parseFloat(v) : (parseInt(v, 10) || 0);
+      if (isNaN(num)) return;
+      var vals = recent.map(function (l) { return m === 'weight' ? parseFloat(l[m]) : (parseInt(l[m], 10) || 0); }).filter(function (x) { return !isNaN(x); });
+      if (vals.length < 2) return;
+      var avg = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+      var name = metricLabel(m);
+      todayParts.push(name + ' ' + (m === 'weight' ? num.toFixed(1) : num));
+      avgParts.push(name + ' ' + avg.toFixed(1));
+    });
+    if (todayParts.length < 2) return '';
+
+    var line1 = 'Today: ' + todayParts.slice(0, 5).join(', ') + '.';
+    var line2 = 'Recent 14-day average: ' + avgParts.slice(0, 5).join(', ') + '.';
+    var flare = (todayStub.flare === 'Yes') ? ' Flare: Yes.' : ' Flare: No.';
+    var text = line1 + ' ' + line2 + flare;
+    return text.length > MAX_SUGGEST_CONTEXT_CHARS ? text.slice(0, MAX_SUGGEST_CONTEXT_CHARS) : text;
+  }
+
+  /**
+   * Generate one short sentence for a daily log note using the same pipeline. Resolves with fallbackText on failure.
+   */
+  async function generateSuggestNoteWithLLM(contextString, fallbackText) {
+    if (!contextString || contextString.length < 10) return fallbackText || '';
+
+    var prompt = 'Write one short sentence for a daily log note. Use only the data below. Compare today to average. Data: ' + contextString;
+
+    try {
+      var pipe = await getPipeline();
+      var run = pipe(prompt, {
+        max_new_tokens: 48,
+        do_sample: false,
+        truncation: true
+      });
+      var timeoutPromise = new Promise(function (_, reject) {
+        setTimeout(function () { reject(new Error('Suggest note LLM timeout')); }, TIMEOUT_SUGGEST_MS);
+      });
+      var out = await Promise.race([run, timeoutPromise]);
+
+      var text = (out && out[0] && out[0].generated_text) ? out[0].generated_text.trim() : '';
+      if (text && text.length > 8) return stripTrailingIncompleteSentence(text);
+    } catch (e) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('Suggest note LLM failed, using rule-based:', e.message || e);
+      }
+    }
+    return fallbackText || '';
+  }
+
   window.generateSummaryWithLLM = generateSummaryWithLLM;
+  window.generateSuggestNoteWithLLM = generateSuggestNoteWithLLM;
+  window.buildSuggestContext = buildSuggestContext;
 })();
