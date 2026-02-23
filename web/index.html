@@ -292,11 +292,18 @@
 
       <div class="settings-section">
         <h4>📱 App Installation</h4>
+        <div id="installOnIosDevice" class="settings-option" style="display: none;">
+          <button type="button" class="settings-data-btn install-ios-device-btn" onclick="installOrLaunchPWA()"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="installOnIosDeviceLabel">Install on this iPhone</span></button>
+          <p class="settings-install-hint">Opens instructions to add the app to your Home Screen. Works offline like a native app.</p>
+        </div>
         <div class="settings-option">
           <button class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA()"><span class="settings-install-icon" aria-hidden="true"><i class="fa-solid fa-globe"></i></span> Install web app</button>
         </div>
         <div class="settings-option">
-          <a id="downloadApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-android"></i></span> Install on Android <span class="apk-version" aria-hidden="true"></span></a>
+          <a id="downloadApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-android"></i></span> Install on Android <span class="android-version" aria-hidden="true"></span></a>
+        </div>
+        <div class="settings-option" id="iosDownloadOption">
+          <a id="downloadIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="downloadIosLabel">Install on iOS</span> <span class="ios-version" aria-hidden="true"></span></a>
         </div>
       </div>
 
@@ -1891,23 +1898,57 @@
   <script src="encryption-utils.js"></script>
   <script src="cloud-sync.js"></script>
   <script>
-    (function setApkDownloadLink() {
-      var el = document.getElementById('downloadApkLink');
-      if (!el) return;
+    (function setBuildDownloadLinks() {
       var path = window.location.pathname || '/';
       var base = path.substring(0, path.lastIndexOf('/') + 1);
       var baseUrl = window.location.origin + (base.startsWith('/') ? base : '/' + base);
-      var fallbackHref = baseUrl + 'apk/app-debug.apk';
-      el.href = fallbackHref;
-      fetch(baseUrl + 'apk/latest.json', { cache: 'no-store' })
-        .then(function(r) { return r.ok ? r.json() : null; })
-        .then(function(data) {
-          if (data && data.file) {
-            el.href = baseUrl + 'apk/' + data.file;
-            if (data.version && el.querySelector('.apk-version')) el.querySelector('.apk-version').textContent = '(build ' + data.version + ')';
-          }
-        })
-        .catch(function() {});
+      var androidBase = baseUrl + encodeURI('App build/Android/');
+      var iosBase = baseUrl + encodeURI('App build/iOS/');
+      var isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+      if (isIosDevice) {
+        var block = document.getElementById('installOnIosDevice');
+        var label = document.getElementById('installOnIosDeviceLabel');
+        if (block) block.style.display = '';
+        if (label) label.textContent = /iPad/.test(navigator.userAgent) ? 'Install on this iPad' : 'Install on this iPhone';
+      }
+
+      var apkEl = document.getElementById('downloadApkLink');
+      if (apkEl) {
+        apkEl.href = androidBase + 'app-debug.apk';
+        fetch(androidBase + 'latest.json', { cache: 'no-store' })
+          .then(function(r) { return r.ok ? r.json() : null; })
+          .then(function(data) {
+            if (data && data.file) {
+              apkEl.href = androidBase + encodeURIComponent(data.file);
+              var v = apkEl.querySelector('.android-version');
+              if (data.version && v) v.textContent = '(build ' + data.version + ')';
+            }
+          })
+          .catch(function() {});
+      }
+
+      var iosEl = document.getElementById('downloadIosLink');
+      var iosLabel = document.getElementById('downloadIosLabel');
+      if (iosEl) {
+        iosEl.href = iosBase + 'Health-Tracker-ios-latest.zip';
+        fetch(iosBase + 'latest.json', { cache: 'no-store' })
+          .then(function(r) { return r.ok ? r.json() : null; })
+          .then(function(data) {
+            if (data && data.file) {
+              if (data.installUrl) {
+                iosEl.href = data.installUrl;
+                if (iosLabel) iosLabel.textContent = isIosDevice ? 'Install native app (one tap)' : 'Install on iOS';
+              } else {
+                iosEl.href = iosBase + encodeURIComponent(data.file);
+                if (iosLabel && !isIosDevice) iosLabel.textContent = 'Download iOS build (Xcode project)';
+              }
+              var v = iosEl.querySelector('.ios-version');
+              if (data.version && v) v.textContent = '(build ' + data.version + ')';
+            }
+          })
+          .catch(function() {});
+      }
     })();
   </script>
 </body>

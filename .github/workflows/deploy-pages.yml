@@ -27,10 +27,19 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Upload artifact (web app as site root)
+      - name: Prepare site (web + App build for download links)
+        run: |
+          mkdir -p site
+          cp -r web/* site/
+          if [ -d "App build" ]; then
+            mkdir -p "site/App build"
+            cp -r "App build/"* "site/App build/" 2>/dev/null || true
+          fi
+
+      - name: Upload artifact (web app + App build as site root)
         uses: actions/upload-pages-artifact@v3
         with:
-          path: web
+          path: site
 
       - name: Deploy to GitHub Pages
         id: deployment
