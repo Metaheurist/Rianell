@@ -553,6 +553,13 @@ For issues and questions:
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
 <details>
+<summary><strong>v1.13.2</strong> — 2026-02-23 — CI: fix iOS/Android build push</summary>
+
+- **CI**: iOS and Android build workflows now fetch and rebase onto `origin/main` before committing, so the "Update iOS build" / "Update Android APK" push no longer fails when `main` has moved (remote rejected: expected older commit). Removed stash-based rebase; commit is made on top of latest `main`.
+
+</details>
+
+<details>
 <summary><strong>v1.13.1</strong> — 2026-02-23 — AI summary value highlighting, README UK English</summary>
 
 - **AI summary readability**: Stress and triggers, Symptoms and where you had pain, Pain patterns, Pain by body part, Nutrition, Exercise, Top foods, and Top exercises now use the same value markup as “What we found” (e.g. `ai-brackets-highlight` for parenthesised values, percentages, and counts) so key figures are easier to scan.
