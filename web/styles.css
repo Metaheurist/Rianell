@@ -2086,6 +2086,17 @@ body.light-mode #aiResultsContent .ai-brackets-highlight {
 }
 
 /* AI Summary Animation Classes */
+/* When device is low-power or user prefers reduced motion, show content immediately */
+.reduce-motion .ai-animate-in,
+.reduce-motion .ai-trend-card.ai-animate-in,
+.reduce-motion .ai-list li.ai-animate-in,
+.reduce-motion .ai-advice-card.ai-animate-in,
+.reduce-motion .ai-summary-header.ai-animate-in {
+  opacity: 1;
+  animation: none;
+  transform: none;
+}
+
 .ai-animate-in {
   opacity: 0;
   animation: aiSlideInFade 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
