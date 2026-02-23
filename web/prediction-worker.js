@@ -62,8 +62,8 @@ async function performPrediction(data) {
     throw new Error('AIEngine not available in worker');
   }
   
-  // Get trend analysis for the metric
-  const analysis = self.AIEngine.analyzeHealthMetrics(logs, allLogs);
+  // Get trend analysis for the metric (GPU used on desktop when available)
+  const analysis = await self.AIEngine.analyzeHealthMetrics(logs, allLogs);
   const trend = analysis.trends[metric];
   
   if (!trend || !trend.regression) {
@@ -166,7 +166,7 @@ async function performAnalysis(data) {
     throw new Error('AIEngine not available in worker');
   }
   
-  return self.AIEngine.analyzeHealthMetrics(logs, allLogs);
+  return await self.AIEngine.analyzeHealthMetrics(logs, allLogs);
 }
 
 // Send ready message
