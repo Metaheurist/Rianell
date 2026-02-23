@@ -36,6 +36,22 @@ jobs:
             cp -r "App build/"* "site/App build/" 2>/dev/null || true
           fi
 
+      - name: Inject Supabase config for GitHub Pages (from secrets)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = 'site/supabase-config.js';
+          let c = fs.readFileSync(path, 'utf8');
+          const url = process.env.SUPABASE_URL || '';
+          const key = process.env.SUPABASE_ANON_KEY || '';
+          if (url) c = c.replace('https://YOUR_PROJECT_REF.supabase.co', url);
+          if (key) c = c.replace('YOUR_SUPABASE_ANON_KEY', key);
+          fs.writeFileSync(path, c);
+          "
+
       - name: Upload artifact (web app + App build as site root)
         uses: actions/upload-pages-artifact@v3
         with:

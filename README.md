@@ -137,7 +137,9 @@ The app lives in **`web/`**, so GitHub Pages will not see `index.html` if the so
 
 1. In the repo: **Settings → Pages**
 2. Under **Build and deployment**, set **Source** to **GitHub Actions**
-3. The workflow [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) runs on push to `main` and deploys the contents of **`web/`** as the site root, so `index.html` is served correctly
+3. The workflow [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) runs on push to `main` and deploys the contents of **`web/`** as the site root, so `index.html` is served correctly.
+
+**Cloud sync on the live site:** To use Supabase (login, cloud backup, anonymized data) on the GitHub Pages site, add **Repository secrets** (or **Environment secrets** for the `pages` environment): **`SUPABASE_URL`** (your project URL, e.g. `https://xxxx.supabase.co`) and **`SUPABASE_ANON_KEY`** (your publishable anon key). The deploy workflow injects these into the built site at deploy time so they are never committed. If these secrets are not set, the site still deploys; cloud features will work only after you add them.
 
 After the first push (or a manual **Run workflow**), the site will show the Health Dashboard instead of the README.
 
