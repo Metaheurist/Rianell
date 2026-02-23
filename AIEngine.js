@@ -270,15 +270,15 @@ function NeuralAnalysisNetwork(engine) {
 
   this.layerCrossSection = function(ctx) {
     const e = this.engine;
-    const logsForCross = ctx.trainingLogs.length >= ctx.recentLogs.length ? ctx.trainingLogs : ctx.recentLogs;
-    const hasFood = logsForCross.some(log => log.food && (log.food.breakfast?.length || log.food.lunch?.length || log.food.dinner?.length || log.food.snack?.length));
-    const hasExercise = logsForCross.some(log => log.exercise && log.exercise.length > 0);
-    if (hasFood || hasExercise) e.analyzeFoodExerciseImpact(logsForCross, ctx.analysis);
-    e.analyzeEnergyClarityAndWeather(logsForCross, ctx.analysis);
-    e.analyzeStressorsImpact(logsForCross, ctx.analysis);
-    // User-facing context: symptoms and pain patterns use the selected analysis range (recentLogs)
-    e.analyzeSymptomsAndPainLocation(ctx.recentLogs, ctx.analysis);
-    e.analyzeCrossSectionCorrelations(logsForCross, ctx.analysis);
+    const recentLogs = ctx.recentLogs;
+    // Use selected date range (recentLogs) for all display sections so Nutrition, Exercise, Top foods, Top exercises match the chosen range (e.g. 7 days)
+    const hasFood = recentLogs.some(log => log.food && (log.food.breakfast?.length || log.food.lunch?.length || log.food.dinner?.length || log.food.snack?.length));
+    const hasExercise = recentLogs.some(log => log.exercise && log.exercise.length > 0);
+    if (hasFood || hasExercise) e.analyzeFoodExerciseImpact(recentLogs, ctx.analysis);
+    e.analyzeEnergyClarityAndWeather(recentLogs, ctx.analysis);
+    e.analyzeStressorsImpact(recentLogs, ctx.analysis);
+    e.analyzeSymptomsAndPainLocation(recentLogs, ctx.analysis);
+    e.analyzeCrossSectionCorrelations(recentLogs, ctx.analysis);
   };
 
   this.layerClustering = function(ctx) {
@@ -291,9 +291,9 @@ function NeuralAnalysisNetwork(engine) {
 
   this.layerOutliersSeasonality = function(ctx) {
     const e = this.engine;
-    const logsFull = ctx.trainingLogs.length >= 5 ? ctx.trainingLogs : ctx.recentLogs;
-    e.detectOutliers(logsFull, ctx.analysis);
-    e.detectSeasonality(logsFull, ctx.analysis);
+    // Use selected date range (recentLogs) so "Things to watch" counts match the chosen range (e.g. 7 days)
+    e.detectOutliers(ctx.recentLogs, ctx.analysis);
+    e.detectSeasonality(ctx.recentLogs, ctx.analysis);
   };
 
   this.layerAdvice = function(ctx) {
