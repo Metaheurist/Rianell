@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
+const webDir = path.join(root, 'web');
 const outDir = path.join(__dirname, 'public', 'legacy');
 
 const toCopy = [
@@ -45,28 +46,28 @@ const copyDir = (src, dest) => {
   }
 };
 
-if (!fs.existsSync(root)) {
-  console.error('Parent directory not found:', root);
+if (!fs.existsSync(webDir)) {
+  console.error('Web directory not found:', webDir);
   process.exit(1);
 }
 
 fs.mkdirSync(outDir, { recursive: true });
 
 for (const file of toCopy) {
-  const src = path.join(root, file);
+  const src = path.join(webDir, file);
   if (fs.existsSync(src)) {
     fs.copyFileSync(src, path.join(outDir, file));
     console.log('Copied', file);
   }
 }
 
-if (fs.existsSync(path.join(root, 'Icons'))) {
-  copyDir(path.join(root, 'Icons'), path.join(outDir, 'Icons'));
+if (fs.existsSync(path.join(webDir, 'Icons'))) {
+  copyDir(path.join(webDir, 'Icons'), path.join(outDir, 'Icons'));
   console.log('Copied Icons/');
 }
 
-if (fs.existsSync(path.join(root, 'apexcharts.min.js'))) {
-  fs.copyFileSync(path.join(root, 'apexcharts.min.js'), path.join(outDir, 'apexcharts.min.js'));
+if (fs.existsSync(path.join(webDir, 'apexcharts.min.js'))) {
+  fs.copyFileSync(path.join(webDir, 'apexcharts.min.js'), path.join(outDir, 'apexcharts.min.js'));
   console.log('Copied apexcharts.min.js');
 }
 

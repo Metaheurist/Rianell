@@ -76,12 +76,72 @@ function softmax(arr) {
   return sum === 0 ? arr.map(() => 1 / arr.length) : exp.map(e => e / sum);
 }
 
+// --- GPU acceleration (TensorFlow.js WebGL) for desktop ---
+var _gpuBackendReady = null;
+function isDesktop() {
+  return typeof navigator !== 'undefined' && !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+function ensureGPUBackend() {
+  if (_gpuBackendReady !== null) return _gpuBackendReady;
+  _gpuBackendReady = (async function() {
+    if (typeof tf === 'undefined' || !isDesktop()) return false;
+    try {
+      await tf.ready();
+      await tf.setBackend('webgl');
+      await tf.ready();
+      return tf.getBackend() === 'webgl';
+    } catch (e) {
+      return false;
+    }
+  })();
+  return _gpuBackendReady;
+}
+function computeCorrelationMatrixGPU(numericMatrix, n) {
+  if (typeof tf === 'undefined' || numericMatrix.length < 5 || n < 2) return null;
+  var filled = numericMatrix.map(function(row) { return row.slice(); });
+  var colMean = [];
+  for (var j = 0; j < n; j++) {
+    var sum = 0, count = 0;
+    for (var r = 0; r < filled.length; r++) {
+      var v = filled[r][j];
+      if (v != null && !isNaN(v)) { sum += v; count++; }
+    }
+    colMean[j] = count > 0 ? sum / count : 0;
+  }
+  for (var r = 0; r < filled.length; r++) {
+    for (var j = 0; j < n; j++) {
+      if (filled[r][j] == null || isNaN(filled[r][j])) filled[r][j] = colMean[j];
+    }
+  }
+  try {
+    var X = tf.tensor2d(filled);
+    var mean = tf.mean(X, 0);
+    var variance = tf.moments(X, 0).variance;
+    var eps = tf.scalar(1e-8);
+    var std = tf.sqrt(tf.add(variance, eps));
+    var Z = tf.div(tf.sub(X, mean), std);
+    var N = numericMatrix.length;
+    var C = tf.matMul(tf.transpose(Z), Z).div(Math.max(1, N - 1));
+    var data = C.arraySync();
+    X.dispose();
+    mean.dispose();
+    variance.dispose();
+    std.dispose();
+    Z.dispose();
+    C.dispose();
+    for (var i = 0; i < n; i++) data[i][i] = 1;
+    return data;
+  } catch (e) {
+    return null;
+  }
+}
+
 // Neural analysis network: runs all current AI functionality as "layers" with activations
 // Each layer applies existing engine methods (regression, correlation, prediction, etc.) as activator functions
 function NeuralAnalysisNetwork(engine) {
   this.engine = engine;
 
-  this.forward = function(logs, allLogs, options) {
+  this.forward = async function(logs, allLogs, options) {
     const analysis = {
       trends: {},
       correlations: [],
@@ -99,8 +159,8 @@ function NeuralAnalysisNetwork(engine) {
     const predictionState = (options && options.predictionState) || { lastPredictions: {}, blendWeights: {} };
     const context = { trainingLogs, recentLogs, analysis, predictionState };
 
-    // Layer 1: Input – single pass over all data to build feature space (maximize data usage)
-    this.layerInput(context);
+    // Layer 1: Input – single pass over all data to build feature space (GPU correlation when available)
+    await this.layerInput(context);
 
     // Layer 2: Trend (regression activations using full training data per metric)
     this.layerTrend(context);
@@ -144,7 +204,7 @@ function NeuralAnalysisNetwork(engine) {
     return analysis;
   };
 
-  this.layerInput = function(ctx) {
+  this.layerInput = async function(ctx) {
     const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration'];
     const requirePositive = { bpm: true, weight: true };
     const trainingLogs = ctx.trainingLogs;
@@ -222,20 +282,26 @@ function NeuralAnalysisNetwork(engine) {
 
     if (numericMatrix.length >= 5) {
       const n = metrics.length;
-      const corr = [];
-      for (let i = 0; i < n; i++) {
-        corr[i] = [];
-        for (let j = 0; j < n; j++) {
-          if (i === j) { corr[i][j] = 1; continue; }
-          if (i > j) { corr[i][j] = corr[j][i]; continue; }
-          const pairs = numericMatrix.map(row => [row[i], row[j]]).filter(p => p[0] != null && p[1] != null);
-          if (pairs.length < 3) { corr[i][j] = 0; continue; }
-          const a = pairs.map(p => p[0]);
-          const b = pairs.map(p => p[1]);
-          corr[i][j] = engine.calculateCorrelation(a, b);
+      const useGPU = await ensureGPUBackend();
+      const gpuCorr = useGPU ? computeCorrelationMatrixGPU(numericMatrix, n) : null;
+      if (gpuCorr) {
+        ctx.correlationMatrix = gpuCorr;
+      } else {
+        const corr = [];
+        for (let i = 0; i < n; i++) {
+          corr[i] = [];
+          for (let j = 0; j < n; j++) {
+            if (i === j) { corr[i][j] = 1; continue; }
+            if (i > j) { corr[i][j] = corr[j][i]; continue; }
+            const pairs = numericMatrix.map(row => [row[i], row[j]]).filter(p => p[0] != null && p[1] != null);
+            if (pairs.length < 3) { corr[i][j] = 0; continue; }
+            const a = pairs.map(p => p[0]);
+            const b = pairs.map(p => p[1]);
+            corr[i][j] = engine.calculateCorrelation(a, b);
+          }
         }
+        ctx.correlationMatrix = corr;
       }
-      ctx.correlationMatrix = corr;
     } else {
       ctx.correlationMatrix = null;
     }
@@ -412,9 +478,10 @@ function NeuralAnalysisNetwork(engine) {
 const AIEngine = {
   // Analyze health metrics via neural network (all current functionality as layer activations)
   // options.predictionState: optional { lastPredictions, blendWeights } for learning; new state returned in analysis.predictionStateForSave
-  analyzeHealthMetrics: function(logs, allLogs = null, options = null) {
+  // Uses GPU (WebGL) for correlation matrix on desktop when available
+  analyzeHealthMetrics: async function(logs, allLogs = null, options = null) {
     const net = new NeuralAnalysisNetwork(this);
-    return net.forward(logs, allLogs, options || {});
+    return await net.forward(logs, allLogs, options || {});
   },
 
   // Trend layer activator: computes regression, predictions, projected values per metric

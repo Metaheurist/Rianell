@@ -2794,8 +2794,8 @@ async function createCombinedChart() {
         ? [...allHistoricalLogs, ...anonymizedTrainingData]
         : allHistoricalLogs;
       
-      // Use combined data for training
-      const analysis = analyzeHealthMetrics(sortedLogs, combinedTrainingLogs);
+      // Use combined data for training (GPU on desktop when available)
+      const analysis = await analyzeHealthMetrics(sortedLogs, combinedTrainingLogs);
       predictionsData = {
         trends: analysis.trends,
         daysToPredict: daysToPredict,
@@ -4243,7 +4243,8 @@ window.CONDITION_CONTEXT = CONDITION_CONTEXT;
 
 // Legacy function wrappers for compatibility (delegate to AIEngine)
 // Supports learning: loads/saves prediction state (blend weights) from localStorage when available
-function analyzeHealthMetrics(logs, allLogs, options) {
+// Returns a Promise (AI can use GPU on desktop when available)
+async function analyzeHealthMetrics(logs, allLogs, options) {
   if (!window.AIEngine) {
     return { trends: {}, correlations: [], anomalies: [], advice: [], patterns: [], riskFactors: [] };
   }
@@ -4254,7 +4255,7 @@ function analyzeHealthMetrics(logs, allLogs, options) {
       if (s) opts.predictionState = JSON.parse(s);
     } catch (e) { /* ignore */ }
   }
-  const result = window.AIEngine.analyzeHealthMetrics(logs, allLogs, opts);
+  const result = await window.AIEngine.analyzeHealthMetrics(logs, allLogs, opts);
   if (result.predictionStateForSave && typeof localStorage !== 'undefined') {
     try {
       localStorage.setItem('healthAppPredictionState', JSON.stringify(result.predictionStateForSave));
@@ -4390,7 +4391,7 @@ function generateAISummary() {
     </div>
   `;
 
-  setTimeout(function() {
+  setTimeout(async function() {
     try {
       const allLogsForTraining = window.PerformanceUtils?.memoizedSort
         ? window.PerformanceUtils.memoizedSort(logs, (a, b) => new Date(a.date) - new Date(b.date), 'allLogsForTraining')
@@ -4398,9 +4399,9 @@ function generateAISummary() {
 
       let analysis;
       if (window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function') {
-        analysis = analyzeHealthMetrics(sortedLogs, allLogsForTraining);
+        analysis = await analyzeHealthMetrics(sortedLogs, allLogsForTraining);
       } else if (typeof analyzeHealthMetrics === 'function') {
-        analysis = analyzeHealthMetrics(sortedLogs);
+        analysis = await analyzeHealthMetrics(sortedLogs);
       } else {
         throw new Error('No analysis function available. AIEngine may not be loaded.');
       }
@@ -9309,7 +9310,7 @@ function refreshCharts() {
   }
 }
 
-function chart(id, label, dataField, color) {
+async function chart(id, label, dataField, color) {
   // Check if ApexCharts is available
   if (typeof ApexCharts === 'undefined') {
     console.error('ApexCharts is not loaded! Cannot create charts.');
@@ -9468,8 +9469,8 @@ function chart(id, label, dataField, color) {
         
         if (sortedLogs.length >= 2) {
           // Analyze with AIEngine: use ALL historical logs for training (up to 10 years),
-          // filtered logs just for determining last date and display
-          const analysis = analyzeHealthMetrics(sortedLogs, allLogs);
+          // filtered logs just for determining last date and display (GPU used on desktop when available)
+          const analysis = await analyzeHealthMetrics(sortedLogs, allLogs);
           
           if (analysis.trends[dataField]) {
             const trend = analysis.trends[dataField];

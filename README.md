@@ -70,6 +70,11 @@ flowchart LR
   - Export data to CSV
   - Real-time database viewer
 
+## Project structure
+
+- **`web/`** – Static web app: HTML, CSS, JavaScript, icons, and assets. The server serves this directory at the root URL.
+- **`server/`** – Python server package (config, encryption, Supabase client, sample data, requirements checks). The entry point is **`server.py`** at the repo root; run `python server.py` to start the server.
+
 ## Installation
 
 ### Prerequisites
@@ -271,8 +276,8 @@ The AI analysis engine runs as a **neural-style pipeline**: each layer applies e
 ### Analysis pipeline (forward pass)
 
 ```mermaid
-%%{init: {'themeVariables': {'fontSize': '14px'}, 'flowchart': {'useMaxWidth': false, 'nodeSpacing': 50, 'rankSpacing': 45}}}%%
-flowchart LR
+%%{init: {'themeVariables': {'fontSize': '12px'}, 'flowchart': {'useMaxWidth': true, 'nodeSpacing': 25, 'rankSpacing': 30}}}%%
+flowchart TB
   subgraph L1 [Layer 1: Input]
     Logs[Logs]
     Logs --> MData[metricsData + rolling 7d/30d]
