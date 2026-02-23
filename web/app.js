@@ -738,7 +738,7 @@ function buildAIAnalysisShareText(dateRangeText) {
   }
 
   lines.push('IMPORTANT');
-  lines.push('For patterns only — talk to your doctor before changing care. You can share this at your next visit.');
+  lines.push('For patterns only — talk to your doctor before changing care. You can share this at your next visit. AI data (e.g. prediction weights) is stored on your device and, when signed in, backed up to your cloud account.');
 
   return EMAIL_ANALYSIS_INTRO + sep + lines.join(sep) + sep + EMAIL_SYNOPSIS_FOOTER;
 }
