@@ -162,7 +162,11 @@ jobs:
           git add "App build/iOS/"
           git diff --staged --quiet || git commit -m "Update iOS build (build ${{ github.run_number }}) [skip ci]"
           git stash --include-untracked
-          git pull --rebase origin ${{ github.ref_name }}
+          if ! git pull --rebase origin ${{ github.ref_name }}; then
+            git checkout --theirs -- "App build/iOS/"
+            git add "App build/iOS/"
+            GIT_EDITOR=true git rebase --continue
+          fi
           git push origin ${{ github.ref_name }}
           git stash pop || true
 
