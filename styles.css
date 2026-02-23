@@ -5839,11 +5839,18 @@ body.light-mode .symptom-chip--skin { background: rgba(46, 125, 50, 0.25); }
 body.light-mode .symptom-chip--other { background: rgba(97, 97, 97, 0.25); }
 
 /* Energy & Mental Clarity: collapsible section with mood-colored tiles */
+/* Selected display: same tile style as medication empty state (dashed green border, dark green-grey bg) */
 .energy-clarity-selected {
-  font-size: 0.9rem;
-  color: rgba(224, 242, 241, 0.85);
+  font-size: 0.95rem;
+  color: var(--text-muted, rgba(224, 242, 241, 0.6));
+  font-style: italic;
   margin: 0 0 8px 0;
   min-height: 1.25rem;
+  padding: 14px 16px;
+  text-align: center;
+  border: 1px dashed rgba(76, 175, 80, 0.3);
+  border-radius: var(--radius-md);
+  background: rgba(76, 175, 80, 0.05);
 }
 
 /* Energy & mental clarity: creative card-style picker */
@@ -6026,7 +6033,9 @@ body.light-mode .symptom-group__title {
 .energy-clarity-chip:focus { outline: none; box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.4); }
 
 body.light-mode .energy-clarity-selected {
-  color: var(--text-dark);
+  color: rgba(55, 71, 79, 0.85);
+  border-color: rgba(76, 175, 80, 0.4);
+  background: rgba(76, 175, 80, 0.06);
 }
 
 body.light-mode .energy-clarity-collapsible {
