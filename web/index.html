@@ -78,14 +78,29 @@
     })();
   </script>
   <style>
-    /* Prevent flash of unstyled content - hide body until loaded */
+    /* Hide main content until loaded; keep loading overlay visible so user sees spinner */
     body:not(.loaded) {
-      opacity: 0;
       overflow: hidden;
+    }
+    body:not(.loaded) > *:not([id="loadingOverlay"]) {
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+    body:not(.loaded) .loading-overlay {
+      visibility: visible !important;
+      opacity: 1 !important;
     }
     body.loaded {
       opacity: 1;
-      transition: opacity 0.3s ease-in;
+    }
+    body.loaded > * {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    body.loaded .loading-overlay {
+      transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
     }
   </style>
 </head>
