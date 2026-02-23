@@ -56,6 +56,12 @@ async function requestNotificationPermission() {
   
   // Request permission (only if default/prompt state)
   try {
+    if (typeof getAudioContext === 'function') {
+      try {
+        const ctx = getAudioContext();
+        if (ctx && ctx.resume) ctx.resume();
+      } catch (e) { /* unlock AudioContext for mobile */ }
+    }
     const granted = await NotificationManager.requestPermission();
     updateNotificationPermissionStatus();
     
@@ -63,7 +69,6 @@ async function requestNotificationPermission() {
       if (typeof showAlertModal === 'function') {
         showAlertModal('Notification permission granted! You\'ll receive daily reminders.', 'Permission Granted');
       }
-      // Test notification
       setTimeout(() => {
         if (typeof NotificationManager !== 'undefined' && NotificationManager.showNotification) {
           NotificationManager.showNotification(

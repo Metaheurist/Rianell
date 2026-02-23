@@ -2,10 +2,66 @@
 // NOTIFICATIONS & REMINDERS
 // Safari Web App notifications and daily reminders
 // Android: when running in Capacitor, uses native LocalNotifications for compatibility (permissions, background)
+// Sound: respects "Enable sound notifications" and plays heartbeat when app is in foreground.
 // ============================================
 
 const isCapacitor = typeof window.Capacitor !== 'undefined' && window.Capacitor.isNativePlatform?.();
 const LocalNotifications = isCapacitor && window.Capacitor?.Plugins?.LocalNotifications;
+
+function isSoundEnabled() {
+  try {
+    const s = localStorage.getItem('healthAppSettings');
+    return s ? (JSON.parse(s).sound === true) : false;
+  } catch (e) {
+    return false;
+  }
+}
+
+var _heartbeatAudioContext = null;
+function getAudioContext() {
+  if (_heartbeatAudioContext) return _heartbeatAudioContext;
+  if (typeof window.AudioContext !== 'undefined') _heartbeatAudioContext = new window.AudioContext();
+  else if (typeof window.webkitAudioContext !== 'undefined') _heartbeatAudioContext = new window.webkitAudioContext();
+  return _heartbeatAudioContext;
+}
+
+/**
+ * Play a short heartbeat-monitor style sound (lub-dub, lub-dub) using Web Audio.
+ * Works on mobile when AudioContext is allowed (e.g. after user interaction).
+ */
+function playHeartbeatSound() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  try {
+    if (ctx.state === 'suspended') ctx.resume();
+  } catch (e) { /* ignore */ }
+  const now = ctx.currentTime;
+  const gainNode = ctx.createGain();
+  gainNode.connect(ctx.destination);
+  gainNode.gain.setValueAtTime(0, now);
+  gainNode.gain.linearRampToValueAtTime(0.35, now + 0.02);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+  function beep(start, freq, duration) {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, start);
+    osc.connect(gainNode);
+    osc.start(start);
+    osc.stop(start + duration);
+  }
+  // Lub-dub pattern: low then slightly higher, twice (like a heartbeat monitor)
+  const lubHz = 90;
+  const dubHz = 110;
+  const lubLen = 0.1;
+  const dubLen = 0.07;
+  const gap = 0.06;
+  const pause = 0.38;
+  beep(now, lubHz, lubLen);
+  beep(now + lubLen + gap, dubHz, dubLen);
+  beep(now + lubLen + gap + dubLen + pause, lubHz, lubLen);
+  beep(now + lubLen + gap + dubLen + pause + lubLen + gap, dubHz, dubLen);
+}
 
 const NotificationManager = {
   permission: null,
@@ -214,55 +270,49 @@ const NotificationManager = {
     }
   },
   
-  // Show notification
+  // Show notification (respects sound setting: silent when sound off, system sound + optional heartbeat when on)
   async showNotification(title, body, url = '/') {
     if (this.permission !== 'granted') return;
-    
+    const silent = !isSoundEnabled();
+    const opts = {
+      body: body,
+      icon: '/Icons/Icon-192.png',
+      badge: '/Icons/Icon-72.png',
+      tag: 'health-reminder',
+      requireInteraction: false,
+      silent: silent,
+      data: {
+        url: url,
+        timestamp: Date.now()
+      },
+      actions: [
+        { action: 'open', title: 'Open App' },
+        { action: 'dismiss', title: 'Dismiss' }
+      ]
+    };
     try {
-      // Use service worker registration if available
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
-        
-        await registration.showNotification(title, {
-          body: body,
-          icon: '/Icons/Icon-192.png',
-          badge: '/Icons/Icon-72.png',
-          tag: 'health-reminder',
-          requireInteraction: false,
-          data: {
-            url: url,
-            timestamp: Date.now()
-          },
-          actions: [
-            {
-              action: 'open',
-              title: 'Open App'
-            },
-            {
-              action: 'dismiss',
-              title: 'Dismiss'
-            }
-          ]
-        });
+        await registration.showNotification(title, opts);
       } else {
-        // Fallback to regular Notification API
         const notification = new Notification(title, {
-          body: body,
-          icon: '/Icons/Icon-192.png',
-          badge: '/Icons/Icon-72.png',
-          tag: 'health-reminder',
-          requireInteraction: false,
-          data: {
-            url: url
-          }
+          body: opts.body,
+          icon: opts.icon,
+          badge: opts.badge,
+          tag: opts.tag,
+          requireInteraction: opts.requireInteraction,
+          silent: opts.silent,
+          data: opts.data
         });
-        
         notification.onclick = () => {
           window.focus();
           const openUrl = (url && url.startsWith('http')) ? url : (window.location.origin + (url && url.startsWith('/') ? url : '/' + (url || '?quick=true')));
           window.location.href = openUrl;
           notification.close();
         };
+      }
+      if (document.visibilityState === 'visible' && !silent && typeof playHeartbeatSound === 'function') {
+        playHeartbeatSound();
       }
     } catch (error) {
       console.error('Error showing notification:', error);
@@ -278,12 +328,13 @@ const NotificationManager = {
     const logs = JSON.parse(localStorage.getItem('healthLogs') || '[]');
     const hasToday = logs.some(log => log.date === todayStr);
     
-    // Only show in-app reminder if not logged and app is in foreground
     if (!hasToday && document.visibilityState === 'visible') {
-      // Check if we already showed reminder today
       const lastInAppReminder = localStorage.getItem('lastInAppReminderDate');
       if (lastInAppReminder !== todayStr) {
         setTimeout(() => {
+          if (isSoundEnabled() && typeof playHeartbeatSound === 'function') {
+            playHeartbeatSound();
+          }
           if (typeof showAlertModal === 'function') {
             showAlertModal(
               '📊 Don\'t forget to log today\'s health data!',
@@ -348,3 +399,6 @@ if (document.readyState === 'loading') {
 
 // Make available globally
 window.NotificationManager = NotificationManager;
+window.isSoundEnabled = isSoundEnabled;
+window.playHeartbeatSound = playHeartbeatSound;
+window.getAudioContext = getAudioContext;

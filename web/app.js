@@ -899,8 +899,14 @@ function closeCookiePolicyModal() {
 // ============================================
 // Tutorial Modal (new users + backtick ` to reopen)
 // ============================================
-const TUTORIAL_SLIDE_TITLES = ['Welcome', 'Log Entry', 'View & AI', 'Settings & data', 'Data options', 'Goals & targets', "You're all set"];
+const TUTORIAL_SLIDE_TITLES = ['Enable AI & Goals?', 'Welcome', 'View & AI', 'Settings & data', 'Data options', 'Goals & targets', "You're all set"];
 const TUTORIAL_SLIDE_COUNT = 7;
+
+function getTutorialVisibleIndices() {
+  var aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
+  if (aiOn) return [0, 1, 2, 3, 4, 5, 6];
+  return [0, 1, 6];
+}
 var _tutorialSwipeStartX = 0;
 var _tutorialSwipeStartY = 0;
 var _tutorialSwipeHandlersAttached = false;
@@ -954,7 +960,6 @@ function openTutorialModal() {
   overlay.style.visibility = 'visible';
   overlay.style.opacity = '1';
   document.body.classList.add('modal-active');
-  buildTutorialDots();
   showTutorialSlide(0);
   if (typeof updateTutorialConditionDisplay === 'function') updateTutorialConditionDisplay();
   _attachTutorialSwipeListeners();
@@ -1024,6 +1029,14 @@ function buildTutorialDots() {
   }
 }
 
+function setTutorialAIChoice(enabled) {
+  appSettings.aiEnabled = !!enabled;
+  saveSettings();
+  applyAIFeatureVisibility();
+  loadSettingsState();
+  showTutorialSlide(1);
+}
+
 function showTutorialSlide(index) {
   const titleEl = document.getElementById('tutorialModalTitle');
   const arrowLeft = document.getElementById('tutorialArrowLeft');
@@ -1031,33 +1044,56 @@ function showTutorialSlide(index) {
   const finishBtn = document.getElementById('tutorialFinishBtn');
   const demoBtn = document.getElementById('tutorialDemoBtn');
   const signupBtn = document.getElementById('tutorialSignupBtn');
-  const dots = document.querySelectorAll('.tutorial-dot');
+  const visible = getTutorialVisibleIndices();
+  const pos = visible.indexOf(index);
+  const isLast = pos >= 0 && pos === visible.length - 1;
+  const isFirst = pos <= 0;
   if (titleEl) titleEl.textContent = TUTORIAL_SLIDE_TITLES[index] || 'Tutorial';
-  document.querySelectorAll('.tutorial-slide').forEach((el, i) => {
+  document.querySelectorAll('.tutorial-slide').forEach(function(el, i) {
     el.classList.toggle('tutorial-slide-active', i === index);
   });
-  if (arrowLeft) arrowLeft.style.display = index > 0 ? 'flex' : 'none';
-  if (arrowRight) arrowRight.style.display = index < TUTORIAL_SLIDE_COUNT - 1 ? 'flex' : 'none';
-  if (finishBtn) finishBtn.style.display = index === TUTORIAL_SLIDE_COUNT - 1 ? 'inline-block' : 'none';
-  if (signupBtn) signupBtn.style.display = index === TUTORIAL_SLIDE_COUNT - 1 ? 'inline-block' : 'none';
-  if (demoBtn) demoBtn.style.display = index === TUTORIAL_SLIDE_COUNT - 1 ? 'inline-block' : 'none';
-  dots.forEach((dot, i) => {
-    dot.classList.toggle('tutorial-dot-active', i === index);
-  });
+  if (arrowLeft) arrowLeft.style.display = isFirst ? 'none' : 'flex';
+  if (arrowRight) {
+    if (index === 0) arrowRight.style.display = 'none';
+    else arrowRight.style.display = isLast ? 'none' : 'flex';
+  }
+  if (finishBtn) finishBtn.style.display = isLast ? 'inline-block' : 'none';
+  if (signupBtn) signupBtn.style.display = isLast ? 'inline-block' : 'none';
+  if (demoBtn) demoBtn.style.display = isLast ? 'inline-block' : 'none';
+  var dotsContainer = document.getElementById('tutorialDots');
+  if (dotsContainer) {
+    dotsContainer.innerHTML = '';
+    for (var i = 0; i < visible.length; i++) {
+      var dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'tutorial-dot' + (visible[i] === index ? ' tutorial-dot-active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+      dot.dataset.slide = String(visible[i]);
+      dot.addEventListener('click', function() {
+        var idx = parseInt(this.dataset.slide, 10);
+        if (!isNaN(idx)) showTutorialSlide(idx);
+      });
+      dotsContainer.appendChild(dot);
+    }
+  }
   if (index === 3 && typeof updateTutorialConditionDisplay === 'function') updateTutorialConditionDisplay();
   if (index === 4 && typeof updateTutorialDataTogglesState === 'function') updateTutorialDataTogglesState();
 }
 
 function tutorialNextSlide() {
-  const active = document.querySelector('.tutorial-slide.tutorial-slide-active');
-  const idx = active ? parseInt(active.dataset.slide, 10) : 0;
-  if (!isNaN(idx) && idx < TUTORIAL_SLIDE_COUNT - 1) showTutorialSlide(idx + 1);
+  var active = document.querySelector('.tutorial-slide.tutorial-slide-active');
+  var idx = active ? parseInt(active.dataset.slide, 10) : 0;
+  var visible = getTutorialVisibleIndices();
+  var pos = visible.indexOf(idx);
+  if (pos >= 0 && pos < visible.length - 1) showTutorialSlide(visible[pos + 1]);
 }
 
 function tutorialPrevSlide() {
-  const active = document.querySelector('.tutorial-slide.tutorial-slide-active');
-  const idx = active ? parseInt(active.dataset.slide, 10) : 0;
-  if (!isNaN(idx) && idx > 0) showTutorialSlide(idx - 1);
+  var active = document.querySelector('.tutorial-slide.tutorial-slide-active');
+  var idx = active ? parseInt(active.dataset.slide, 10) : 0;
+  var visible = getTutorialVisibleIndices();
+  var pos = visible.indexOf(idx);
+  if (pos > 0) showTutorialSlide(visible[pos - 1]);
 }
 
 function finishTutorial(enableDemo) {
@@ -3972,6 +4008,7 @@ async function clearData() {
     medicalCondition: '', // Clear medical condition
     contributeAnonData: false, // Reset data contribution
     useOpenData: false, // Reset open data usage
+    aiEnabled: true, // Reset AI features to on
     demoMode: false, // Reset demo mode
     chartView: 'individual', // Reset chart view
     combinedChartSelectedMetrics: undefined, // Clear metric selections
@@ -4097,6 +4134,7 @@ async function clearData() {
     'healthLogs_backup',
     'healthAppSettings',
     'appSettings_backup',
+    'healthAppGoals',
     'cloudAutoSync',
     'cloudLastSync',
     'currentCloudUserId',
@@ -4489,6 +4527,7 @@ function generateAISummary() {
       }
 
       displayAISummary(analysis, sortedLogs, sortedLogs.length, null, dateRangeText);
+      updateSummaryNoteWithLLM(analysis, sortedLogs, sortedLogs.length);
       Logger.info('AI Summary - Display complete');
     } catch (error) {
       Logger.error('AI Summary - Error during analysis', { error: error.message, stack: error.stack });
@@ -4504,6 +4543,31 @@ function generateAISummary() {
       }
     }
   }, 800);
+}
+
+// Update the Summary note paragraph with in-browser LLM result when available (runs after displayAISummary).
+function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
+  var el = document.getElementById('aiSummaryNoteText');
+  if (!el || !analysis) return;
+  var fallbackNote = '';
+  if (window.AIEngine && typeof window.AIEngine.generateAnalysisNote === 'function') {
+    try {
+      fallbackNote = window.AIEngine.generateAnalysisNote(analysis, { dayCount: dayCount || (logs && logs.length) || 0, logs: logs || [] });
+    } catch (e) {}
+  }
+  if (!fallbackNote || !fallbackNote.trim()) return;
+  if (typeof window.generateSummaryWithLLM !== 'function') return;
+  var originalText = el.textContent;
+  el.textContent = 'Generating summary…';
+  window.generateSummaryWithLLM(analysis, { dayCount: dayCount || (logs && logs.length) || 0, logs: logs || [] }, fallbackNote)
+    .then(function (text) {
+      var target = document.getElementById('aiSummaryNoteText');
+      if (target && text && text.trim()) target.textContent = text.trim();
+    })
+    .catch(function () {
+      var target = document.getElementById('aiSummaryNoteText');
+      if (target) target.textContent = originalText;
+    });
 }
 
 // Copy AI-generated summary note to clipboard (used by "Copy note" button in AI results)
@@ -4694,15 +4758,17 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     animationDelay += 200;
   }
 
-  // Natural language summary note (copyable)
+  // Natural language summary note (copyable). Rule-based note shown first; in-browser LLM may replace it.
+  var summaryNoteSectionId = 'aiSummaryNoteSection';
+  var summaryNoteTextId = 'aiSummaryNoteText';
   if (window.AIEngine && typeof window.AIEngine.generateAnalysisNote === 'function') {
     try {
       const noteText = window.AIEngine.generateAnalysisNote(analysis, { dayCount: dayCount || logs.length, logs: logs });
       if (noteText && noteText.trim()) {
         html += `
-      <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
+      <div class="ai-summary-section ai-animate-in" id="${summaryNoteSectionId}" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title">📝 Summary note</h3>
-        <p class="ai-generated-note">${escapeHTML(noteText.trim())}</p>
+        <p class="ai-generated-note" id="${summaryNoteTextId}">${escapeHTML(noteText.trim())}</p>
         <button type="button" class="ai-copy-note-btn" onclick="typeof copyAIGeneratedNote==='function'&&copyAIGeneratedNote(this)" title="Copy to clipboard">Copy note</button>
       </div>`;
         animationDelay += 200;
@@ -6317,6 +6383,10 @@ function saveGoalsFromModal() {
   var g = { steps: steps, hydration: hydration, sleep: sleep, goodDaysPerWeek: goodDays };
   try {
     localStorage.setItem('healthAppGoals', JSON.stringify(g));
+    // Push goals to cloud when signed in
+    if (typeof cloudSyncState !== 'undefined' && cloudSyncState.isAuthenticated && typeof syncToCloud === 'function') {
+      syncToCloud();
+    }
   } catch (e) {}
   return g;
 }
@@ -6423,9 +6493,14 @@ function updateGoalsProgressBlock() {
   if (!block) return;
   var goals = getGoals();
   var hasAny = goals.steps > 0 || goals.hydration > 0 || goals.sleep > 0 || goals.goodDaysPerWeek > 0;
+  block.setAttribute('data-has-goals', hasAny ? 'true' : 'false');
   if (!hasAny) {
     block.style.display = 'none';
     block.innerHTML = '';
+    return;
+  }
+  if (typeof appSettings !== 'undefined' && appSettings.aiEnabled === false) {
+    block.style.display = 'none';
     return;
   }
   var last7 = getLogsLast7Days();
@@ -10798,7 +10873,8 @@ let appSettings = {
   weightUnit: 'kg', // 'kg' or 'lb', always store as kg
   medicalCondition: '', // Empty by default - user must set a condition
   contributeAnonData: false, // Contribute anonymised data to pool
-  useOpenData: false // Use anonymised data pool for AI training (requires 90+ days)
+  useOpenData: false, // Use anonymised data pool for AI training (requires 90+ days)
+  aiEnabled: true // When false: hide AI Analysis tab, chart predictions, and Goals
 };
 
 // Make appSettings available on window for safe access
@@ -10852,11 +10928,50 @@ function applySettings() {
     document.body.classList.remove('light-mode');
     document.body.classList.add('dark-mode');
   
+  // Apply AI feature visibility (tab, predictions, goals)
+  applyAIFeatureVisibility();
+  
   // Charts are always visible in charts tab - no settings needed
   // Chart view toggle is handled by buttons in the chart tab
   
   // Update dashboard title
   updateDashboardTitle();
+}
+
+function applyAIFeatureVisibility() {
+  var on = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
+  var tabAi = document.getElementById('tab-ai');
+  var aiTabPanel = document.getElementById('aiTab');
+  var predictionGroup = document.querySelector('.filter-group');
+  if (predictionGroup && !predictionGroup.querySelector('.prediction-range-buttons')) predictionGroup = null;
+  var predGroup = document.querySelectorAll('.filter-group');
+  for (var i = 0; i < predGroup.length; i++) {
+    if (predGroup[i].querySelector('.prediction-range-buttons')) {
+      predictionGroup = predGroup[i];
+      break;
+    }
+  }
+  var goalsBtn = document.querySelector('.targets-button-top');
+  var goalsBlock = document.getElementById('goalsProgressBlock');
+  if (tabAi) {
+    tabAi.style.display = on ? '' : 'none';
+    tabAi.setAttribute('aria-hidden', on ? 'false' : 'true');
+  }
+  if (aiTabPanel) aiTabPanel.style.display = on ? '' : 'none';
+  if (predictionGroup) predictionGroup.style.display = on ? '' : 'none';
+  if (goalsBtn) goalsBtn.style.display = on ? '' : 'none';
+  if (goalsBlock) goalsBlock.style.display = on ? (goalsBlock.getAttribute('data-has-goals') === 'true' ? '' : 'none') : 'none';
+  var currentTab = document.querySelector('.tab-btn[data-tab].active');
+  if (!on && currentTab && currentTab.getAttribute('data-tab') === 'ai') {
+    if (typeof switchTab === 'function') switchTab('log');
+  }
+}
+
+function toggleAIFeatures() {
+  appSettings.aiEnabled = !appSettings.aiEnabled;
+  saveSettings();
+  applyAIFeatureVisibility();
+  loadSettingsState();
 }
 
 function loadSettingsState() {
@@ -10865,6 +10980,8 @@ function loadSettingsState() {
   document.getElementById('soundToggle').classList.toggle('active', appSettings.sound);
   document.getElementById('backupToggle').classList.toggle('active', appSettings.backup);
   document.getElementById('compressToggle').classList.toggle('active', appSettings.compress);
+  var aiEnabledToggle = document.getElementById('aiEnabledToggle');
+  if (aiEnabledToggle) aiEnabledToggle.classList.toggle('active', appSettings.aiEnabled !== false);
   
   // Update demo mode toggle (same as other toggles)
   const demoModeToggle = document.getElementById('demoModeToggle');
@@ -11216,6 +11333,9 @@ function toggleSetting(setting) {
   // Special handling for reminder setting
   if (setting === 'reminder' && typeof NotificationManager !== 'undefined') {
     NotificationManager.setReminderEnabled(appSettings.reminder);
+  }
+  if (setting === 'sound' && appSettings.sound && typeof playHeartbeatSound === 'function') {
+    playHeartbeatSound();
   }
 }
 

@@ -73,7 +73,7 @@ flowchart LR
 ## Project structure
 
 - **`web/`** – Static web app: HTML, CSS, JavaScript, icons, and assets. The server serves this directory at the root URL.
-- **`server/`** – Python server package (main server logic in `main.py`, plus config, encryption, Supabase client, sample data, requirements checks). Entry point from repo root: **`python server.py`** or **`python -m server`**.
+- **`server/`** – Python server package (main server logic in `main.py`, plus config, encryption, Supabase client, sample data, requirements checks). Run from repo root: **`python -m server`**.
 
 ## Installation
 
@@ -116,7 +116,7 @@ flowchart LR
 Start the development server:
 
 ```bash
-python server.py
+python -m server
 ```
 
 The server will:
@@ -129,7 +129,7 @@ The server will:
 
 1. **Local Development**: Open `http://localhost:8080` in your browser
 2. **Network Access**: Use your local IP address (shown in server console)
-3. **Production**: Deploy files to a web server (no server.py needed)
+3. **Production**: Deploy files to a web server (no local server needed)
 
 ### GitHub Pages (app at repo root)
 
@@ -414,7 +414,6 @@ Health-app/
 ├── styles.css              # Application styles
 ├── cloud-sync.js           # Supabase synchronization
 ├── supabase-config.js      # Supabase configuration
-├── server.py                # Entry point (runs server.main.main)
 ├── requirements.txt        # Python dependencies
 ├── package.json            # Root scripts (build, sync, android)
 ├── docs/                   # Documentation

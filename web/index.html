@@ -21,9 +21,9 @@
   
   <!-- Security Headers -->
   <!-- Note: frame-ancestors and X-Frame-Options must be set via HTTP headers, not meta tags -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co; base-uri 'self'; form-action 'self';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <!-- Note: X-Frame-Options is set via HTTP header in server.py, not here -->
+  <!-- Note: X-Frame-Options is set via HTTP header in server, not here -->
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
   
   <!-- Apple Touch Icons -->
@@ -119,6 +119,14 @@
       </div>
       
       <div class="settings-content">
+      <div class="settings-section">
+        <h4>🧠 AI & Goals</h4>
+        <div class="settings-option settings-option-with-hint">
+          <label>Enable AI features & Goals</label>
+          <div class="toggle-switch" id="aiEnabledToggle" onclick="toggleAIFeatures()"></div>
+        </div>
+        <p class="settings-hint">When on: AI Analysis tab, chart predictions, and Goals & targets are available. When off: they are hidden. You can change this anytime.</p>
+      </div>
       <div class="settings-section">
         <h4>👤 Personal Settings</h4>
         <div class="settings-option">
@@ -1422,15 +1430,19 @@
         <button type="button" class="tutorial-arrow tutorial-arrow-left" id="tutorialArrowLeft" onclick="tutorialPrevSlide()" aria-label="Previous slide" style="display: none;">‹</button>
         <div class="modal-body tutorial-modal-body">
         <div class="tutorial-slide tutorial-slide-active" id="tutorialSlide0" data-slide="0">
-          <p class="tutorial-text">Track your health daily: log symptoms, food, exercise, pain areas, and more in one place.</p>
+          <p class="tutorial-text">Do you want to use <strong>AI Analysis</strong> (patterns, insights, summary) and <strong>Goals & targets</strong>? You can turn this on later in Settings.</p>
+          <div class="tutorial-ai-choice-buttons">
+            <button type="button" class="tutorial-btn tutorial-ai-enable" onclick="setTutorialAIChoice(true)">Enable</button>
+            <button type="button" class="tutorial-btn tutorial-ai-skip" onclick="setTutorialAIChoice(false)">Skip for now</button>
+          </div>
         </div>
         <div class="tutorial-slide" id="tutorialSlide1" data-slide="1">
-          <p class="tutorial-text">Use the <strong>Log Entry</strong> tab to add your day: sliders, stressors, symptoms, pain diagram, food, and exercise.</p>
+          <p class="tutorial-text">Track your health daily: log symptoms, food, exercise, pain areas, and more in one place.</p>
         </div>
-        <div class="tutorial-slide" id="tutorialSlide2" data-slide="2">
+        <div class="tutorial-slide" id="tutorialSlide2" data-slide="2" data-tutorial-ai-only="true">
           <p class="tutorial-text"><strong>View Logs</strong> shows your history. <strong>AI Analysis</strong> finds patterns and correlations across your data.</p>
         </div>
-        <div class="tutorial-slide" id="tutorialSlide3" data-slide="3">
+        <div class="tutorial-slide" id="tutorialSlide3" data-slide="3" data-tutorial-ai-only="true">
           <p class="tutorial-text">In <strong>Settings</strong>, you can create an account to save your data encrypted in the cloud and share between devices.</p>
           <p class="tutorial-text" style="margin-top: 8px;">Add or select your medical condition here (same as in Settings):</p>
           <div id="tutorialConditionDisplayContainer" class="tutorial-condition-display-wrap" style="margin-top: 10px;">
@@ -1457,7 +1469,7 @@
           <p class="tutorial-text" style="margin-top: 12px;"><strong>Contribute anonymised data</strong> — share your anonymised data for analysis and use aggregated data from people with the same condition.</p>
           <p class="tutorial-text" style="margin-top: 8px;"><strong>Use open data for training AI</strong> — when on, AI uses open shared data; when off, AI uses only your personal data. Used for personalised AI analysis and advice.</p>
         </div>
-        <div class="tutorial-slide" id="tutorialSlide4" data-slide="4">
+        <div class="tutorial-slide" id="tutorialSlide4" data-slide="4" data-tutorial-ai-only="true">
           <div class="tutorial-toggle-option" style="margin-top: 0;">
             <label class="tutorial-toggle-label">Contribute anonymised data</label>
             <div class="toggle-switch" id="tutorialContributeAnonDataToggle" onclick="toggleContributeAnonData('tutorialContributeAnonDataToggle')"></div>
@@ -1469,7 +1481,7 @@
           </div>
           <small class="tutorial-toggle-hint">Use anonymised data pool for AI training (requires 90+ days of data). Used for personalised AI analysis and advice.</small>
         </div>
-        <div class="tutorial-slide" id="tutorialSlide5" data-slide="5">
+        <div class="tutorial-slide" id="tutorialSlide5" data-slide="5" data-tutorial-ai-only="true">
           <p class="tutorial-text">Set <strong>Goals & targets</strong> with the target button next to Settings. Choose daily targets for steps, hydration, sleep score, and good days per week.</p>
           <div class="tutorial-goals-sliders">
             <div class="goals-slider-group">
@@ -1924,6 +1936,7 @@
   <script src="security-utils.js"></script>
   <script src="encryption-utils.js"></script>
   <script src="cloud-sync.js"></script>
+  <script src="summary-llm.js"></script>
   <script>
     (function setBuildDownloadLinks() {
       var path = window.location.pathname || '/';
