@@ -2711,7 +2711,7 @@ function updateNotesCounter() {
 
 notesField.addEventListener('input', updateNotesCounter);
 
-// Suggest note from current form metrics vs recent average (AIEngine.suggestLogNote)
+// Suggest note: LLM when available (same pipeline as Summary note), else rule-based (AIEngine.suggestLogNote)
 (function() {
   var suggestBtn = document.getElementById('suggestNoteBtn');
   if (!suggestBtn) return;
@@ -2719,6 +2719,8 @@ notesField.addEventListener('input', updateNotesCounter);
     if (!window.AIEngine || typeof window.AIEngine.suggestLogNote !== 'function') return;
     var dateEl = document.getElementById('date');
     var stub = { date: dateEl ? dateEl.value : '' };
+    var flareEl = document.getElementById('flare');
+    if (flareEl) stub.flare = flareEl.value || 'No';
     ['backPain', 'stiffness', 'fatigue', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability'].forEach(function(m) {
       var el = document.getElementById(m);
       if (el) stub[m] = m === 'weight' ? parseFloat(el.value) : (parseInt(el.value, 10) || 0);
@@ -2729,13 +2731,46 @@ notesField.addEventListener('input', updateNotesCounter);
       var sorted = (window.PerformanceUtils && window.PerformanceUtils.memoizedSort)
         ? window.PerformanceUtils.memoizedSort(allLogs, function(a, b) { return new Date(a.date) - new Date(b.date); }, 'suggestNote')
         : allLogs.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
-      var suggestion = window.AIEngine.suggestLogNote(stub, { recentLogs: sorted });
-      if (suggestion && notesField) {
-        var cur = (notesField.value || '').trim();
-        notesField.value = cur ? cur + ' ' + suggestion : suggestion;
-        updateNotesCounter();
+      var fallback = window.AIEngine.suggestLogNote(stub, { recentLogs: sorted });
+      var contextStr = (typeof window.buildSuggestContext === 'function') ? window.buildSuggestContext(stub, sorted) : '';
+      var useLLM = typeof window.generateSuggestNoteWithLLM === 'function' && contextStr && contextStr.length >= 30;
+
+      function applySuggestion(text) {
+        if (text && notesField) {
+          var cur = (notesField.value || '').trim();
+          notesField.value = cur ? cur + ' ' + text : text;
+          updateNotesCounter();
+        }
       }
-    } catch (e) {}
+
+      if (useLLM) {
+        var btnLabel = suggestBtn.textContent || suggestBtn.innerText;
+        suggestBtn.textContent = 'Generating…';
+        suggestBtn.disabled = true;
+        window.generateSuggestNoteWithLLM(contextStr, fallback || '')
+          .then(function(text) {
+            applySuggestion(text || fallback);
+          })
+          .catch(function() {
+            applySuggestion(fallback);
+          })
+          .then(function() {
+            suggestBtn.textContent = btnLabel;
+            suggestBtn.disabled = false;
+          });
+      } else {
+        applySuggestion(fallback);
+      }
+    } catch (e) {
+      if (window.AIEngine && typeof window.AIEngine.suggestLogNote === 'function') {
+        var sorted = [];
+        try {
+          var raw = typeof localStorage !== 'undefined' && localStorage.getItem('healthLogs');
+          if (raw) sorted = JSON.parse(raw).sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+        } catch (e2) {}
+        applySuggestion(window.AIEngine.suggestLogNote(stub, { recentLogs: sorted }));
+      }
+    }
   });
 })();
 
@@ -2814,11 +2849,12 @@ function toggleChartView(viewType) {
   const combinedBtn = document.getElementById('combinedViewBtn');
   const balanceBtn = document.getElementById('balanceViewBtn');
   
-  // Hide prediction controls for balance view
+  // Hide prediction controls for balance view or when AI features disabled
+  const aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
   const predictionControls = document.querySelectorAll('.filter-group');
   predictionControls.forEach(group => {
     if (group.querySelector('.prediction-range-buttons')) {
-      if (viewType === 'balance') {
+      if (viewType === 'balance' || !aiOn) {
         group.style.display = 'none';
       } else {
         group.style.display = '';
@@ -2956,12 +2992,13 @@ async function createCombinedChart() {
   // Render metric selector UI
   renderMetricSelector(allMetrics, selectedMetrics);
   
-  // Use prediction range setting
+  // Use prediction range setting (only when AI features enabled and predictions on)
   const daysToPredict = predictionRange;
+  const aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
   
   // Get predictions for all metrics using all available data for training
   let predictionsData = null;
-  if (window.AIEngine && filteredLogs.length >= 2) {
+  if (aiOn && predictionsEnabled && window.AIEngine && filteredLogs.length >= 2) {
     try {
       // Use cached sorted logs if available
       const sortedLogs = window.PerformanceUtils?.memoizedSort 
@@ -9665,9 +9702,10 @@ async function chart(id, label, dataField, color) {
   // Show chart container if we have data
   container.style.display = 'block';
   
-  // Generate predicted data for the selected date range period
+  // Generate predicted data for the selected date range period (only when AI features enabled)
   let predictedData = [];
-  if (predictionsEnabled && window.AIEngine && chartData.length >= 2) {
+  const aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
+  if (aiOn && predictionsEnabled && window.AIEngine && chartData.length >= 2) {
     try {
       // Use prediction range setting
       const daysToPredict = predictionRange;
