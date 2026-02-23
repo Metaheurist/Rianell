@@ -49,7 +49,9 @@
     var modelId = cachedModelId;
     if (cachedPipeline && modelId) return cachedPipeline;
 
-    var deviceClass = getDevicePerformanceClass();
+    var deviceClass = (typeof window !== 'undefined' && window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass)
+      ? window.PerformanceUtils.platform.deviceClass
+      : getDevicePerformanceClass();
     modelId = getModelIdForDeviceClass(deviceClass);
 
     var mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.4.0');

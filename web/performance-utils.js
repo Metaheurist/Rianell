@@ -416,6 +416,66 @@ const StorageBatcher = {
 };
 
 // ============================================
+// Platform and capabilities (single source of truth)
+// ============================================
+
+/**
+ * Returns device performance tier: 'low' | 'medium' | 'high'.
+ * Used for per-platform optimisations (LLM lazy-load, chart point cap).
+ */
+function getDevicePerformanceClass() {
+  const nav = typeof navigator !== 'undefined' ? navigator : {};
+  const deviceMemory = nav.deviceMemory;
+  const cores = nav.hardwareConcurrency;
+  const isSecure = typeof window !== 'undefined' && window.isSecureContext === true;
+
+  if (isSecure && typeof deviceMemory === 'number' && deviceMemory > 0) {
+    if (deviceMemory <= 2) return 'low';
+    if (deviceMemory >= 8) return 'high';
+    return 'medium';
+  }
+  if (typeof cores === 'number' && cores > 0) {
+    if (cores <= 2) return 'low';
+    if (cores >= 6) return 'high';
+    return 'medium';
+  }
+  const ua = nav.userAgent || '';
+  const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) || (nav.maxTouchPoints && nav.maxTouchPoints > 1);
+  if (mobile) return 'low';
+  return 'medium';
+}
+
+/**
+ * Platform and capabilities object, computed once.
+ * Exposed as PerformanceUtils.platform for use by summary-llm, app.js charts, etc.
+ */
+const platform = (function () {
+  const nav = typeof navigator !== 'undefined' ? navigator : {};
+  const ua = nav.userAgent || '';
+  let platformName = 'desktop';
+  if (/iPad|iPhone|iPod/.test(ua)) platformName = 'ios';
+  else if (/Android/i.test(ua)) platformName = 'android';
+
+  let connection = null;
+  if (nav.connection && typeof nav.connection === 'object') {
+    connection = { effectiveType: nav.connection.effectiveType, saveData: !!nav.connection.saveData };
+  }
+
+  const win = typeof window !== 'undefined' ? window : null;
+  const isStandalone = !!(win && (win.matchMedia('(display-mode: standalone)').matches || win.navigator.standalone));
+  const prefersReducedMotion = !!(win && win.matchMedia && win.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  return {
+    deviceClass: getDevicePerformanceClass(),
+    platform: platformName,
+    isTouch: !!(nav.maxTouchPoints && nav.maxTouchPoints > 0),
+    isStandalone,
+    prefersReducedMotion,
+    connection
+  };
+})();
+
+// ============================================
 // Export
 // ============================================
 
@@ -431,8 +491,11 @@ if (typeof window !== 'undefined') {
     lazyLoadScript,
     eventManager,
     PerformanceMonitor,
-    StorageBatcher
+    StorageBatcher,
+    getDevicePerformanceClass,
+    platform
   };
+  window.PlatformCapabilities = platform;
   
   // Cleanup on page unload
   window.addEventListener('beforeunload', () => {
