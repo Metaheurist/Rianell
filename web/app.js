@@ -14059,29 +14059,9 @@ window.addEventListener('load', () => {
   document.body.classList.remove('light-mode');
   document.body.classList.add('dark-mode');
   
-  // Hide loading overlay when page is fully loaded
-  const loadingOverlay = document.getElementById('loadingOverlay');
-  if (loadingOverlay) {
-    setTimeout(() => {
-      loadingOverlay.classList.add('hidden');
-      document.body.classList.remove('loading');
-      document.body.classList.add('loaded');
-      showCookieBannerIfNeeded();
-      // Remove from DOM after animation
-      setTimeout(() => {
-        loadingOverlay.remove();
-      }, 500);
-    }, 300); // Small delay to ensure everything is ready
-  } else {
-    // If overlay doesn't exist, just add loaded class
-    document.body.classList.remove('loading');
-    document.body.classList.add('loaded');
-    showCookieBannerIfNeeded();
-  }
-  
   loadSettings();
   
-  // Check if demo mode is enabled and ensure demo data is loaded
+  // Check if demo mode is enabled and ensure demo data is loaded (must run before charts/AI wait)
   if (appSettings.demoMode) {
     const storedLogs = localStorage.getItem('healthLogs');
     if (!storedLogs || storedLogs === '[]' || (storedLogs.startsWith('[') && JSON.parse(storedLogs).length === 0)) {
@@ -14115,100 +14095,96 @@ window.addEventListener('load', () => {
     }
   }
   
-  renderLogs();
-  updateCharts(); // Check for empty state on page load
-  updateAISummaryButtonState(); // Update AI button state on page load
-  scheduleChartsPreload(); // Preload all chart options in background
-  scheduleAIPreload(); // Preload AI analysis in background
-
-  // Hide AI section by default
-  clearAISection();
-  
-  // Initialize weight unit
-  if (!appSettings.weightUnit) {
-    appSettings.weightUnit = 'kg';
-    saveSettings();
-  }
-  
-  // Don't initialize medical condition - user must set their own
-  // Medical condition will be empty by default, showing "Medical Condition" placeholder
-  
-  // Update condition context with stored value
-  if (appSettings.medicalCondition) {
-    updateConditionContext(appSettings.medicalCondition);
-  }
-  
-  updateWeightInputConstraints();
-  updateHeartbeatAnimation(); // Initialize heartbeat animation speed
-  
-  // Prepopulate date filters with last 7 days
+  // Date range and chart section must be set before createCombinedChart
   initializeDateFilters();
-  
-  // Show charts tab content if charts are enabled
+  setChartDateRange(7);
+  setPredictionRange(7);
+  setLogViewRange(7);
   if (appSettings.showCharts) {
     const chartSection = document.getElementById('chartSection');
-    if (chartSection) {
-      chartSection.classList.remove('hidden');
+    if (chartSection) chartSection.classList.remove('hidden');
+  }
+  
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const loadingTextEl = loadingOverlay ? loadingOverlay.querySelector('.loading-text') : null;
+  if (loadingTextEl) loadingTextEl.textContent = 'Loading charts and AI…';
+  
+  const chartsReady = (!appSettings.showCharts || !document.getElementById('chartSection') || !logs || logs.length === 0)
+    ? Promise.resolve()
+    : (typeof createCombinedChart === 'function' ? createCombinedChart() : Promise.resolve()).catch(function () {});
+  const aiReady = (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function')
+    ? Promise.resolve()
+    : window.preloadSummaryLLM().catch(function () {});
+  const timeout = new Promise(function (resolve) { setTimeout(resolve, 12000); });
+  
+  Promise.race([ Promise.allSettled([ chartsReady, aiReady ]), timeout ]).then(function () {
+    if (loadingOverlay) {
+      loadingOverlay.classList.add('hidden');
+      document.body.classList.remove('loading');
+      document.body.classList.add('loaded');
+      showCookieBannerIfNeeded();
+      setTimeout(function () { loadingOverlay.remove(); }, 500);
+    } else {
+      document.body.classList.remove('loading');
+      document.body.classList.add('loaded');
+      showCookieBannerIfNeeded();
     }
-  }
-  
-  // Initialize on log entry tab
-  switchTab('log');
-  
-  // Initialize collapsible sections
-  initializeSections();
-  // Only one meal/category open at a time in Food Log and Exercise Log
-  initializeOneOpenDetails();
-
-  // Initialize chart date range to 7 days
-  setChartDateRange(7);
-  setPredictionRange(7); // Initialize prediction range to 7 days
-  setLogViewRange(7); // Initialize log view range to 7 days
-  
-  // Initialize prediction toggle button (starts with predictions enabled, so Off is not selected)
-  const toggleBtn = document.getElementById('predictionToggle');
-  if (toggleBtn) {
-    toggleBtn.classList.remove('active'); // Off button not selected initially (predictions are on)
-    toggleBtn.title = 'Click to turn off predictions';
-  }
-  
-  // Initialize notification system
-  if (typeof NotificationManager !== 'undefined') {
-    // NotificationManager.init() is called automatically, but we can check permission status
-    setTimeout(() => {
-      if (typeof updateNotificationPermissionStatus === 'function') {
-        updateNotificationPermissionStatus();
-      }
-    }, 1000);
-  }
-  
-  // On /tutorial serve tutorial by itself for demo/testing; otherwise show tutorial once for new users
-  setTimeout(() => {
-    if (typeof isTutorialTestPage === 'function' && isTutorialTestPage()) {
-      if (typeof openTutorialModal === 'function') openTutorialModal();
-    } else if (typeof maybeShowTutorialOnce === 'function') {
-      maybeShowTutorialOnce();
+    
+    renderLogs();
+    updateCharts();
+    updateAISummaryButtonState();
+    scheduleChartsPreload();
+    scheduleAIPreload();
+    clearAISection();
+    
+    if (!appSettings.weightUnit) {
+      appSettings.weightUnit = 'kg';
+      saveSettings();
     }
-    // On /tutorial skip reminder (demo page); if tutorial was shown, skip reminder for now
-    if (typeof isTutorialTestPage === 'function' && isTutorialTestPage()) return;
-    const tutorialSeen = (function() {
-      try { return !!localStorage.getItem('healthAppTutorialSeen'); } catch (e) { return true; }
-    })();
-    if (!tutorialSeen) return; // User is in tutorial; skip reminder for now
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
-    const hasToday = logs.some(log => log.date === todayStr);
-    if (!hasToday) {
-      if (!window.matchMedia('(display-mode: standalone)').matches && !window.navigator.standalone) {
-        if (appSettings.reminder !== false) {
-          showAlertModal("You have not logged an entry for today.");
+    if (appSettings.medicalCondition) {
+      updateConditionContext(appSettings.medicalCondition);
+    }
+    updateWeightInputConstraints();
+    updateHeartbeatAnimation();
+    switchTab('log');
+    initializeSections();
+    initializeOneOpenDetails();
+    
+    const toggleBtn = document.getElementById('predictionToggle');
+    if (toggleBtn) {
+      toggleBtn.classList.remove('active');
+      toggleBtn.title = 'Click to turn off predictions';
+    }
+    if (typeof NotificationManager !== 'undefined') {
+      setTimeout(function () {
+        if (typeof updateNotificationPermissionStatus === 'function') {
+          updateNotificationPermissionStatus();
         }
-      }
+      }, 1000);
     }
-  }, 500); // Small delay to ensure modal HTML is in DOM
+    // On /tutorial serve tutorial by itself for demo/testing; otherwise show tutorial once for new users
+    setTimeout(function () {
+      if (typeof isTutorialTestPage === 'function' && isTutorialTestPage()) {
+        if (typeof openTutorialModal === 'function') openTutorialModal();
+      } else if (typeof maybeShowTutorialOnce === 'function') {
+        maybeShowTutorialOnce();
+      }
+      if (typeof isTutorialTestPage === 'function' && isTutorialTestPage()) return;
+      var tutorialSeen = (function () {
+        try { return !!localStorage.getItem('healthAppTutorialSeen'); } catch (e) { return true; }
+      })();
+      if (!tutorialSeen) return;
+      var today = new Date();
+      var yyyy = today.getFullYear();
+      var mm = String(today.getMonth() + 1).padStart(2, '0');
+      var dd = String(today.getDate()).padStart(2, '0');
+      var todayStr = yyyy + '-' + mm + '-' + dd;
+      var hasToday = logs.some(function (log) { return log.date === todayStr; });
+      if (!hasToday && !window.matchMedia('(display-mode: standalone)').matches && !window.navigator.standalone && appSettings.reminder !== false) {
+        showAlertModal('You have not logged an entry for today.');
+      }
+    }, 500);
+  });
 });
 
 function initializeDateFilters() {

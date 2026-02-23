@@ -1924,6 +1924,8 @@
     </div>
   </div>
 
+  <!-- Supabase: set fallback first so a bad supabase-config.js (e.g. smart quotes) does not break the page -->
+  <script>window.SUPABASE_CONFIG = window.SUPABASE_CONFIG || { url: '', anonKey: '' };</script>
   <!-- Supabase Configuration (excluded from Git - add your credentials here) -->
   <script src="supabase-config.js"></script>
   <!-- TensorFlow.js + WebGL backend for GPU-accelerated AI on desktop -->
