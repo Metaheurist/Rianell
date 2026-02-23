@@ -31,49 +31,63 @@ flowchart LR
 
 ## Features
 
-### Core Functionality
-- **Health Data Tracking**: Log daily health metrics including:
-  - Heart rate (BPM)
-  - Weight
-  - Fatigue levels
-  - Pain and stiffness ratings
-  - Sleep quality
-  - Mood and mental health indicators
-  - Food intake and nutrition
-  - Exercise activities
-  - Medical condition tracking
+### Health data tracking
+- **Daily log entry**: Record per-day health metrics: resting heart rate (BPM), weight, fatigue, stiffness, back pain, sleep quality, joint pain, mobility, daily function, joint swelling, mood, irritability, weather sensitivity, steps, hydration (glasses).
+- **Structured data**: Flare (yes/no), stressors, symptoms, pain location, notes; food log (meals with items); exercise log (activities with duration).
+- **Medical condition**: Optional label stored in settings and used for anonymised data aggregation and AI context; user can change or clear it.
 
-- **Data visualisation**: Interactive charts and graphs showing:
-  - Trends over time
-  - Correlation analysis
-  - Health pattern recognition
-  - Seasonal and weekly patterns
+### Charts and visualisation
+- **Combined chart**: Multi-metric line chart with date range filter; optional AI-powered trend predictions (when AI enabled); metric selector; balance and single-chart views.
+- **Individual metric charts**: Per-metric ApexCharts (e.g. fatigue, stiffness, BPM, sleep, steps, hydration) with lazy loading and device-based point caps.
+- **Chart behaviour**: Date range (7/30/90 days) and prediction range; predictions can be toggled off; empty state when no data; animations respect reduced-motion and device class.
+- **Loading behaviour**: App shows a loading overlay until the combined chart and summary LLM preload are ready (or 12s timeout), then reveals the UI so heavy work does not stutter the first paint.
 
-- **Data Management**:
-  - Export data to CSV/JSON
-  - Import data from backups
-  - Print reports
-  - Clear/reset functionality
+### AI analysis
+- **Optional AI**: Settings toggle "Enable AI features & Goals" hides or shows the AI Analysis tab, chart predictions, and Goals.
+- **Neural-style pipeline**: Trend regression, correlations, patterns, risk factors, flare prediction, cross-section (food/exercise/stressors/symptoms), clustering, time series, actionable advice, prioritised insights, and a 2–3 sentence summary (see [AI Analysis](#ai-analysis-neural-network-architecture)).
+- **Summary note**: In-browser LLM (Transformers.js, flan-t5 by device class) or rule-based fallback; context from analysis and logs; value highlighting in the UI.
+- **Suggest note**: LLM or rule-based suggestion for the day’s log note; "Generating…" state on button.
+- **Chart predictions**: Combined (and balance) chart can show predicted series from the analysis pipeline; "Calculating predictions…" overlay when computing; cache by date range and log count.
+- **Responsiveness**: Analysis yields to the main thread between layers; loading states ("Analyzing…", "Calculating predictions…"); optional Web Worker for AI preload on multi-core devices.
 
-- **Cloud Sync**: 
-  - Anonymised data contribution to Supabase
-  - GDPR-compliant data sharing
-  - Medical condition-based data aggregation
-  - Goals and targets synced with app settings when signed in
+### Goals and targets
+- **Goals**: Targets for steps, hydration, sleep quality, and "good days"; progress visible in a dedicated Goals view; stored in settings and synced to cloud when signed in.
+- **Medications**: Optional medications list in settings (stored locally and in cloud with settings).
 
-- **Optional AI & Goals**: In Settings, "Enable AI features & Goals" can be turned off to hide the AI Analysis tab, chart predictions, and Goals. Tutorial first card lets new users enable or skip AI/Goals; skipping removes AI-related slides. AI analysis yields to the main thread between layers and shows clear loading states ("Analyzing…", "Calculating predictions…") so the app stays responsive during processing.
+### Data management
+- **Export**: CSV and JSON export of health logs from Settings.
+- **Import**: Restore from JSON backup; handles compressed (gzip) format.
+- **Print**: Print-friendly view of logs and reports.
+- **Clear/reset**: Option to clear all local data (with confirmation).
 
-- **Reminders & sound**: Daily reminders at a configurable time; "Enable sound notifications" controls system notification sound and an in-app heartbeat-style sound when the app is in the foreground (including on mobile).
+### Cloud sync (Supabase)
+- **Anonymised contribution**: Optional "Contribute anonymised data" in Settings; GDPR-compliant consent; data anonymised before upload; medical condition used for server-side aggregation only.
+- **Auth**: Sign in / sign out; session state; auth state reflected in sync and settings sync.
+- **Settings sync**: Goals and app settings synced to Supabase when signed in (e.g. app_settings table).
+- **Deploy**: On GitHub Pages, Supabase URL and anon key are injected at deploy time from repository secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`); no credentials in the repo.
 
-### Server Features (Testing & Development)
-- **Local Development Server**: HTTP server for local testing
-- **Supabase Integration**: Direct database management
-- **Tkinter Dashboard**: GUI for server controls and data management
-- **Data Operations**:
-  - Search anonymised data by medical condition
-  - Delete data (all, by condition, or by IDs)
-  - Export data to CSV
-  - Real-time database viewer
+### Notifications and reminders
+- **Daily reminder**: Configurable time; system notification when the app is in the background.
+- **Sound**: "Enable sound notifications" controls system notification sound and an in-app heartbeat-style sound when the app is in the foreground (including on mobile).
+
+### Install and run options
+- **PWA / Install web app**: Add to home screen from Settings (globe icon); runs standalone and works offline.
+- **Install on Android**: Download APK from Settings (or Install modal); CI builds debug APK on push and commits to `App build/Android/` for same-origin download links.
+- **Install on iOS**: Add to Home Screen from Safari (Settings or Install modal); or download Xcode project zip from Settings and build in Xcode; optional OTA install if a signed build is provided in `App build/iOS/`.
+
+### Tutorial and onboarding
+- **Tutorial**: First-run slides (Welcome, Log entry, View & AI, Settings & data, Data options, Goals, You're all set); first card "Enable AI & Goals?" (Enable / Skip); skipping hides AI-related slides.
+- **Install modal**: Post-tutorial modal (once) with web/Android/iOS install options; can be retriggered from God mode.
+
+### Settings and UI
+- **Settings**: Weight unit (kg/lb), medical condition, date filters, chart visibility, AI & Goals toggle, contribution toggle, reminder time, sound notifications, cookie/consent; God mode (test UI, show install modal, etc.).
+- **Theme**: Dark mode by default; light mode optional.
+- **Responsive**: Layout and charts adapt to viewport and device; device-based optimisation (chart points, animations, AI preload).
+
+### Server (testing and development)
+- **Local server**: Python HTTP server for local testing (`python -m server`); serves `web/` at root; optional file watching and auto-reload.
+- **Supabase integration**: Server can use Supabase for anonymised data and app_settings; credentials from `.env`.
+- **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs.
 
 ## Project structure
 
@@ -551,6 +565,17 @@ For issues and questions:
 ## Changelog
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
+
+<details>
+<summary><strong>v1.15.0</strong> — 2026-02-23 — Defer app reveal, chart fix, config resilience, docs</summary>
+
+- **Defer app reveal until charts and AI ready**: The loading overlay stays visible until the combined chart (and its data/predictions) and the summary LLM pipeline are ready, or a 12s timeout. This avoids the UI stuttering while heavy chart and AI work run on first load. `summary-llm.js` exposes `window.preloadSummaryLLM()`; the load handler in `app.js` awaits charts + AI with `Promise.race([ Promise.allSettled([chartsReady, aiReady]), timeout ])` then reveals the app and runs the rest of init.
+- **Combined chart fix**: `deviceOpts` was used in `createCombinedChart` without being defined, causing `ReferenceError` and breaking balance/combined charts. It is now set at the start of the function via `PerformanceUtils.getDeviceOpts()` with a safe fallback.
+- **Supabase config resilience**: Inline script in `index.html` sets `window.SUPABASE_CONFIG` to a fallback before loading `supabase-config.js`, so a syntax error in that file (e.g. smart quotes) no longer breaks the page. Non-ASCII characters (emoji) in `supabase-config.js` comments were replaced with ASCII so the file parses everywhere.
+- **GitHub secrets**: Deploy workflow already injects `SUPABASE_URL` and `SUPABASE_ANON_KEY` from repository secrets into the built site; README and comments clarify that tokens come from GitHub secrets at deploy time.
+- **README**: Features section expanded to document all app features (tracking, charts, AI, goals, cloud, install options, server, security). Version set to 1.15.0.
+
+</details>
 
 <details>
 <summary><strong>v1.14.1</strong> — 2026-02-23 — Neural network optimisation and loading states</summary>

@@ -302,4 +302,6 @@
   window.generateSummaryWithLLM = generateSummaryWithLLM;
   window.generateSuggestNoteWithLLM = generateSuggestNoteWithLLM;
   window.buildSuggestContext = buildSuggestContext;
+  /** Preload the pipeline so the app can wait until AI is ready before revealing the UI. Returns a Promise that resolves when the model is loaded. */
+  window.preloadSummaryLLM = function () { return getPipeline(); };
 })();

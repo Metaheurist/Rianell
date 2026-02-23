@@ -3,12 +3,12 @@
 // ============================================
 // Use only straight quotes (') and ASCII characters; avoid pasting from Word or web pages.
 // If you see "Invalid or unexpected token" at line 18, replace url/anonKey with plain ASCII (no smart quotes).
-// ⚠️ IMPORTANT: This file contains sensitive credentials
+// [!] IMPORTANT: This file contains sensitive credentials
 // DO NOT commit this file to version control (GitHub, etc.)
 // This file is excluded via .gitignore
 
 // Get your credentials from: https://app.supabase.com/project/_/settings/api
-// ⚠️ IMPORTANT: Use the PUBLISHABLE/ANON key, NOT the secret key!
+// [!] IMPORTANT: Use the PUBLISHABLE/ANON key, NOT the secret key!
 // Secret keys (sb_secret_...) are for server-side only and will cause "Forbidden" errors in browsers
 // You need the key that starts with "sb_publishable_" from the "Publishable key" section
 
