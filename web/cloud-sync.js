@@ -13,21 +13,26 @@ function initSupabase() {
   }
   
   try {
-    // Get config from window or use default
     const config = window.SUPABASE_CONFIG || {
       url: 'https://YOUR_PROJECT_REF.supabase.co',
       anonKey: 'YOUR_SUPABASE_ANON_KEY'
     };
-    
+    const url = (config && config.url && String(config.url).trim()) || '';
+    const anonKey = (config && config.anonKey && String(config.anonKey).trim()) || '';
+    if (!url || url.startsWith('https://YOUR_') || !anonKey || anonKey.startsWith('YOUR_')) {
+      if (window.SUPABASE_CONFIG && !url) {
+        console.warn('Supabase config missing URL (e.g. supabase-config.js failed to load). Cloud sync disabled.');
+      }
+      return null;
+    }
     if (typeof supabase !== 'undefined') {
-      supabaseClient = supabase.createClient(config.url, config.anonKey);
+      supabaseClient = supabase.createClient(url, anonKey);
       window.supabaseClient = supabaseClient;
       console.log('Supabase client initialized');
       return supabaseClient;
-    } else {
-      console.error('Supabase library not loaded');
-      return null;
     }
+    console.error('Supabase library not loaded');
+    return null;
   } catch (error) {
     console.error('Error initializing Supabase:', error);
     return null;
