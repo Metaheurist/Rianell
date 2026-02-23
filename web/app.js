@@ -14107,15 +14107,15 @@ window.addEventListener('load', () => {
   
   const loadingOverlay = document.getElementById('loadingOverlay');
   const loadingTextEl = loadingOverlay ? loadingOverlay.querySelector('.loading-text') : null;
-  if (loadingTextEl) loadingTextEl.textContent = 'Loading charts and AI…';
+  if (loadingTextEl) loadingTextEl.textContent = 'Loading…';
   
-  const chartsReady = (!appSettings.showCharts || !document.getElementById('chartSection') || !logs || logs.length === 0)
-    ? Promise.resolve()
-    : (typeof createCombinedChart === 'function' ? createCombinedChart() : Promise.resolve()).catch(function () {});
+  // Show UI quickly: only wait for AI preload (summary LLM) with a short cap so charts don't block.
+  // Charts load in background via scheduleChartsPreload after reveal (avoids double work and main-thread stall).
+  const chartsReady = Promise.resolve();
   const aiReady = (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function')
     ? Promise.resolve()
     : window.preloadSummaryLLM().catch(function () {});
-  const timeout = new Promise(function (resolve) { setTimeout(resolve, 12000); });
+  const timeout = new Promise(function (resolve) { setTimeout(resolve, 5000); });
   
   Promise.race([ Promise.allSettled([ chartsReady, aiReady ]), timeout ]).then(function () {
     if (loadingOverlay) {
