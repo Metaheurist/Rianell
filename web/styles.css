@@ -4545,6 +4545,28 @@ body.loading .loading-overlay {
   border-color: rgba(156, 39, 176, 0.7);
 }
 
+.tutorial-ai-choice-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.tutorial-ai-choice-buttons .tutorial-btn {
+  flex: 1 1 0;
+  min-width: 120px;
+}
+
+.tutorial-ai-choice-buttons .tutorial-ai-enable {
+  background: rgba(76, 175, 80, 0.35);
+  border-color: rgba(76, 175, 80, 0.6);
+}
+
+.tutorial-ai-choice-buttons .tutorial-ai-skip {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
 @keyframes tutorialSlideIn {
   from {
     opacity: 0;

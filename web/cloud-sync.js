@@ -1377,6 +1377,14 @@ async function syncToCloud() {
     const settingsJson = localStorage.getItem('healthAppSettings');
     const localSettings = settingsJson ? JSON.parse(settingsJson) : {};
     const mergedSettings = { ...cloudSettings, ...localSettings };
+    // Include Goals & targets so they sync to cloud
+    try {
+      const goalsJson = localStorage.getItem('healthAppGoals');
+      if (goalsJson) {
+        const goals = JSON.parse(goalsJson);
+        if (goals && typeof goals === 'object') mergedSettings.goals = goals;
+      }
+    } catch (e) {}
     
     // Encrypt merged data with USER-SPECIFIC key
     let encryptedLogs;
@@ -1714,6 +1722,13 @@ async function loadFromCloud() {
             if (typeof saveSettings === 'function') {
               saveSettings();
             }
+          }
+          // Restore Goals & targets from cloud to localStorage
+          if (cloudSettings.goals && typeof cloudSettings.goals === 'object') {
+            try {
+              localStorage.setItem('healthAppGoals', JSON.stringify(cloudSettings.goals));
+              if (typeof updateGoalsProgressBlock === 'function') updateGoalsProgressBlock();
+            } catch (e) {}
           }
         } catch (parseError) {
           console.warn('Failed to parse cloud settings:', parseError);
