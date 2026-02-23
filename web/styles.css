@@ -8027,6 +8027,35 @@ body.light-mode .date-separator {
   pointer-events: none;
 }
 
+.install-ios-btn {
+  background: #555;
+  color: white;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.install-ios-btn:hover {
+  background: #424242;
+}
+
+.install-ios-device-btn {
+  background: #007aff;
+  color: white;
+  width: 100%;
+  margin-bottom: 4px;
+}
+
+.install-ios-device-btn:hover {
+  background: #0056b3;
+}
+
+.settings-install-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary, #666);
+  margin: 0 0 10px 0;
+  line-height: 1.35;
+}
+
 .settings-install-icon {
   margin-right: 8px;
   opacity: 0.95;
