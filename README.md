@@ -7,6 +7,7 @@ A comprehensive web-based health tracking application with data visualization, a
 ## App overview
 
 ```mermaid
+%%{init: {'themeVariables': {'fontSize': '14px'}, 'flowchart': {'useMaxWidth': false, 'nodeSpacing': 50, 'rankSpacing': 45}}}%%
 flowchart LR
   subgraph tabs [Main tabs]
     Log[Log entry]
@@ -270,6 +271,7 @@ The AI analysis engine runs as a **neural-style pipeline**: each layer applies e
 ### Analysis pipeline (forward pass)
 
 ```mermaid
+%%{init: {'themeVariables': {'fontSize': '14px'}, 'flowchart': {'useMaxWidth': false, 'nodeSpacing': 50, 'rankSpacing': 45}}}%%
 flowchart LR
   subgraph L1 [Layer 1: Input]
     Logs[Logs]
@@ -326,6 +328,7 @@ flowchart LR
 ### Data flow: from logs to insights
 
 ```mermaid
+%%{init: {'themeVariables': {'fontSize': '14px'}, 'flowchart': {'useMaxWidth': false, 'nodeSpacing': 50, 'rankSpacing': 45}}}%%
 flowchart TB
   subgraph sources [Data sources]
     Filtered[Filtered logs by date range]
