@@ -798,7 +798,11 @@ function updateCloudSyncUI() {
 async function checkAuthStatus() {
   const client = initSupabase();
   if (!client) {
-    console.error('Supabase client not available');
+    try {
+      var s = localStorage.getItem('healthAppSettings');
+      if (s) { var o = JSON.parse(s); if (o && o.demoMode) return; }
+    } catch (e) {}
+    if (typeof window.appSettings === 'undefined' || !window.appSettings.demoMode) console.error('Supabase client not available');
     return;
   }
   
