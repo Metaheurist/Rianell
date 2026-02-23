@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Patches Android Gradle files for broad compatibility:
- * - minSdk 22 (Android 5.1, Capacitor 6 minimum; broad device support)
- * - targetSdk 34 (Android 14, newest stable)
+ * Patches Android project for compatibility:
+ * - Gradle: minSdk 22, targetSdk 34 (broad device support); versionCode/versionName from BUILD_VERSION env
+ * - AndroidManifest: notification permissions for Android 12+ (exact alarms) and 13+ (POST_NOTIFICATIONS)
  */
 import fs from 'fs';
 import path from 'path';
@@ -12,10 +12,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const androidDir = path.join(__dirname, 'android');
 const varsPath = path.join(androidDir, 'variables.gradle');
 const appBuildPath = path.join(androidDir, 'app', 'build.gradle');
+const manifestPath = path.join(androidDir, 'app', 'src', 'main', 'AndroidManifest.xml');
 
-function patch(path, replacements) {
-  if (!fs.existsSync(path)) return false;
-  let content = fs.readFileSync(path, 'utf8');
+const buildVersion = parseInt(process.env.BUILD_VERSION || process.env.GITHUB_RUN_NUMBER || '1', 10) || 1;
+
+function patch(filePath, replacements) {
+  if (!fs.existsSync(filePath)) return false;
+  let content = fs.readFileSync(filePath, 'utf8');
   let changed = false;
   for (const [pattern, replacement] of replacements) {
     const regex = new RegExp(pattern, 'g');
@@ -24,8 +27,25 @@ function patch(path, replacements) {
       changed = true;
     }
   }
-  if (changed) fs.writeFileSync(path, content);
+  if (changed) fs.writeFileSync(filePath, content);
   return changed;
+}
+
+function ensureManifestPermissions(manifestPath) {
+  if (!fs.existsSync(manifestPath)) return false;
+  let content = fs.readFileSync(manifestPath, 'utf8');
+  const hasPost = /POST_NOTIFICATIONS/.test(content);
+  const hasExact = /SCHEDULE_EXACT_ALARM/.test(content);
+  if (hasPost && hasExact) return false;
+  const toAdd = [];
+  if (!hasPost) toAdd.push('<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />');
+  if (!hasExact) toAdd.push('<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />');
+  const insert = toAdd.map(p => `    ${p}`).join('\n') + '\n';
+  const insertPoint = content.indexOf('<application');
+  if (insertPoint === -1) return false;
+  content = content.slice(0, insertPoint) + insert + content.slice(insertPoint);
+  fs.writeFileSync(manifestPath, content);
+  return true;
 }
 
 let patched = false;
@@ -44,7 +64,13 @@ if (fs.existsSync(appBuildPath)) {
     [/minSdkVersion\s+\d+/g, 'minSdkVersion 22'],
     [/targetSdkVersion\s+\d+/g, 'targetSdkVersion 34'],
     [/compileSdkVersion\s+\d+/g, 'compileSdkVersion 34'],
+    [/versionCode\s+\d+/g, `versionCode ${buildVersion}`],
+    [/versionName\s+"[^"]*"/g, `versionName "${buildVersion}"`],
   ]) || patched;
 }
-console.log(patched ? 'Android SDK versions patched (min 22, target 34).' : 'No Gradle files to patch.');
+if (ensureManifestPermissions(manifestPath)) {
+  patched = true;
+}
+console.log(patched ? 'Android SDK and notification permissions patched.' : 'No Android files to patch.');
+console.log('Build version:', buildVersion);
 process.exit(0);
