@@ -3057,6 +3057,9 @@ async function createCombinedChart() {
   // Render metric selector UI
   renderMetricSelector(allMetrics, selectedMetrics);
   
+  const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
+    ? window.PerformanceUtils.getDeviceOpts() : { maxChartPoints: 200, reduceAnimations: false };
+  
   // Use prediction range setting (only when AI features enabled and predictions on)
   const daysToPredict = predictionRange;
   const aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;

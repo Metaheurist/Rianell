@@ -2,6 +2,7 @@
 // SUPABASE API CONFIGURATION
 // ============================================
 // Use only straight quotes (') and ASCII characters; avoid pasting from Word or web pages.
+// If you see "Invalid or unexpected token" at line 18, replace url/anonKey with plain ASCII (no smart quotes).
 // ⚠️ IMPORTANT: This file contains sensitive credentials
 // DO NOT commit this file to version control (GitHub, etc.)
 // This file is excluded via .gitignore
