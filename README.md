@@ -59,6 +59,11 @@ flowchart LR
   - Anonymized data contribution to Supabase
   - GDPR-compliant data sharing
   - Medical condition-based data aggregation
+  - Goals and targets synced with app settings when signed in
+
+- **Optional AI & Goals**: In Settings, "Enable AI features & Goals" can be turned off to hide the AI Analysis tab, chart predictions, and Goals. Tutorial first card lets new users enable or skip AI/Goals; skipping removes AI-related slides.
+
+- **Reminders & sound**: Daily reminders at a configurable time; "Enable sound notifications" controls system notification sound and an in-app heartbeat-style sound when the app is in the foreground (including on mobile).
 
 ### Server Features (Testing & Development)
 - **Local Development Server**: HTTP server for local testing
@@ -414,6 +419,9 @@ Health-app/
 ├── styles.css              # Application styles
 ├── cloud-sync.js           # Supabase synchronization
 ├── supabase-config.js      # Supabase configuration
+├── summary-llm.js          # In-browser LLM for AI summary note (Transformers.js)
+├── notifications.js        # Reminders, notification permission, heartbeat sound
+├── notification-helpers.js # Permission UI and reminder time
 ├── requirements.txt        # Python dependencies
 ├── package.json            # Root scripts (build, sync, android)
 ├── docs/                   # Documentation
@@ -543,6 +551,18 @@ For issues and questions:
 ## Changelog
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
+
+<details>
+<summary><strong>v1.13.0</strong> — 2026-02-23 — AI optional, summary LLM, notifications</summary>
+
+- **AI optional**: Settings toggle "Enable AI features & Goals" – when off, hides AI Analysis tab, chart predictions, and Goals (targets button and progress). Stored in settings and synced to cloud.
+- **Tutorial**: First card "Enable AI & Goals?" (Enable / Skip for now). If skipped, all AI-related tutorial slides are omitted (View & AI, Settings & data, Data options, Goals).
+- **Summary LLM**: In-browser small LLM (Transformers.js, flan-t5-small) for the AI summary note; data-rich context (trends, flares, insights) for short, insightful 2–3 sentence summary. Fallback to rule-based note on error or timeout.
+- **Goals & cloud**: Goals and targets saved to cloud (Supabase app_settings) with localStorage; sync on save and on load when signed in.
+- **Notifications**: "Enable sound notifications" now respected – notifications use `silent: false` when sound is on (including on mobile). Heartbeat-monitor style sound (Web Audio, lub-dub) plays when reminder fires and app is in foreground, and when enabling sound in Settings. AudioContext unlocked on permission request for mobile.
+- **Server**: No server files in repo root; run with `python -m server` (see v1.12.0).
+
+</details>
 
 <details>
 <summary><strong>v1.12.0</strong> — 2026-02-23 — Security, CI & docs</summary>
