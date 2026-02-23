@@ -159,11 +159,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin ${{ github.ref_name }}
-          git rebase origin/${{ github.ref_name }} || git merge --no-edit origin/${{ github.ref_name }}
           git add "App build/iOS/"
           git diff --staged --quiet || git commit -m "Update iOS build (build ${{ github.run_number }}) [skip ci]"
-          git pull --rebase origin ${{ github.ref_name }} || true
+          git fetch origin ${{ github.ref_name }}
+          git rebase origin/${{ github.ref_name }} || git merge --no-edit origin/${{ github.ref_name }}
           git push origin ${{ github.ref_name }}
 
       - name: Note when App build/iOS is not committed
