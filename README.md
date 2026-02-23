@@ -73,7 +73,7 @@ flowchart LR
 ## Project structure
 
 - **`web/`** – Static web app: HTML, CSS, JavaScript, icons, and assets. The server serves this directory at the root URL.
-- **`server/`** – Python server package (config, encryption, Supabase client, sample data, requirements checks). The entry point is **`server.py`** at the repo root; run `python server.py` to start the server.
+- **`server/`** – Python server package (main server logic in `main.py`, plus config, encryption, Supabase client, sample data, requirements checks). Entry point from repo root: **`python server.py`** or **`python -m server`**.
 
 ## Installation
 
@@ -143,12 +143,13 @@ After the first push (or a manual **Run workflow**), the site will show the Heal
 
 ## React shell & Android APK
 
-The app can be run as a **React (Vite) app** that wraps the existing web UI and be built into an **Android APK** via Capacitor. The GitHub Action **Build Android APK** runs on every push to `main`/`master`, outputs the APK into the **`apk/`** folder, and makes it available in the app’s Settings.
+The app can be run as a **React (Vite) app** that wraps the existing web UI and be built into an **Android APK** via Capacitor. The GitHub Action **Build Android APK** runs on every push to `main`/`master`, output to **`App build/Android/`** and **`App build/iOS/`**, and makes it available in the app’s Settings.
 
 ### In-app installation (Settings)
 
 - **Install web app** (globe icon): Install the app as a PWA / standalone web app.
-- **Install on Android** (Android icon): Download the latest Android APK. When the app is served from the same origin as the repo (e.g. GitHub Pages), this link points to `apk/app-debug.apk` in the repo.
+- **Install on Android** (Android icon): Download the latest Android APK. When the app is served from the same origin (e.g. GitHub Pages), the link uses the newest build from **`App build/Android/`** (see `latest.json`).
+- **Install on iOS / iPhone / iPad**: On iPhone or iPad, open the site in Safari and use **“Install on this iPhone”** or **“Install on this iPad”** in Settings to add the app to your Home Screen (one-tap flow; works offline like a native app). Alternatively, download the Xcode project zip from **Install on iOS** and build to your device in Xcode. If a signed .ipa is provided in **`App build/iOS/`** (with `installUrl` in `latest.json`), **Install on iOS** becomes a one-tap native install from the site.
 
 ### Local setup (optional)
 
@@ -174,12 +175,13 @@ The app can be run as a **React (Vite) app** that wraps the existing web UI and 
 - **targetSdk 34** (Android 14) for current store requirements.  
 Controlled in `react-app/android/variables.gradle` (or via `react-app/patch-android-sdk.js`).
 
-### CI: APK on each commit
+### CI: App builds on each commit
 
-- Workflow: [`.github/workflows/build-android-apk.yml`](.github/workflows/build-android-apk.yml)
-- On **push** or **pull_request** to `main` or `master`: builds the web app, syncs Capacitor, builds a **debug APK**, copies it into **`apk/`**, and uploads the **`apk`** artifact (zip containing `apk/app-debug.apk`).
-- On **push** (not PR) to `main`/`master`: the workflow also **commits** the `apk/` folder to the repo with `[skip ci]`, so the “Install on Android” link in Settings works when the app is served from the same repo (e.g. GitHub Pages).
-- Download the APK from the run’s **Summary → Artifacts** (artifact name: **apk**), or use **Settings → Install on Android** in the deployed app.
+- **Android** workflow: [`.github/workflows/build-android-apk.yml`](.github/workflows/build-android-apk.yml)
+- **iOS** workflow: [`.github/workflows/build-ios.yml`](.github/workflows/build-ios.yml) — builds a **simulator .app** (no Apple account; test in Xcode Simulator on a Mac) and zips the Xcode project to `App build/iOS/` for device sideloading (open in Xcode, sign with your Apple ID). Device signing for direct install (OTA) requires an Apple Developer account ($99/year).
+- On **push** or **pull_request** to `main` or `master`: builds the web app, syncs Capacitor, builds a **debug APK**, copies it into **`App build/Android/`**, and uploads the **android** artifact (zip containing `apk/app-debug.apk`).
+- On **push** (not PR) to `main`/`master`: the workflow also **commits** the `App build/Android/` folder to the repo with `[skip ci]`, so the “Install on Android” link in Settings works when the app is served from the same repo (e.g. GitHub Pages).
+- Download the APK from the run’s **Summary → Artifacts** (name **android**), or use **Settings → Install on Android / Install on iOS** in the deployed app.
 
 ### Using the Health Dashboard
 
@@ -410,7 +412,7 @@ Health-app/
 ├── styles.css              # Application styles
 ├── cloud-sync.js           # Supabase synchronization
 ├── supabase-config.js      # Supabase configuration
-├── server.py               # Development server
+├── server.py                # Entry point (runs server.main.main)
 ├── requirements.txt        # Python dependencies
 ├── package.json            # Root scripts (build, sync, android)
 ├── docs/                   # Documentation
@@ -422,7 +424,9 @@ Health-app/
 │   ├── copy-webapp.js      # Copies web app into public/legacy
 │   ├── patch-android-sdk.js
 │   └── capacitor.config.ts
-├── apk/                    # Built APK (filled by CI; commit to repo for download link)
+├── App build/              # Built apps (filled by CI; committed for download links)
+│   ├── Android/           # APK + latest.json
+│   └── iOS/               # Xcode project zip + latest.json
 ├── .env                    # Environment variables (not in git)
 ├── .env.example            # Environment template
 ├── logs/                   # Server logs
@@ -431,7 +435,7 @@ Health-app/
 
 ## Dependencies
 
-### Python (server.py)
+### Python (server package)
 - `supabase>=2.0.0` - Supabase client library
 - `watchdog>=3.0.0` - File watching for auto-reload
 - `python-dotenv>=1.0.0` - Environment variable management
@@ -546,6 +550,6 @@ For issues and questions:
 
 ### React & Android
 - React (Vite) shell that wraps the existing web app in an iframe; Capacitor 6 for Android.
-- GitHub Action builds a debug APK on every push/PR to `main`/`master`, outputs to **`apk/`** folder, uploads **apk** artifact, and on push commits `apk/` to the repo for a stable download URL.
+- GitHub Actions build Android APK and iOS (Xcode project zip) on every push/PR to `main`/`master`, output to **`App build/Android/`** and **`App build/iOS/`**, upload **android** and **ios** artifacts, and on push commit those folders to the repo so Settings “Install on Android” and “Install on iOS” point to the newest build.
 - Settings → **App Installation**: **Install web app** (PWA) and **Install on Android** (download APK), with web and Android icons.
 
