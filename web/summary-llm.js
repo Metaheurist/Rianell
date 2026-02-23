@@ -53,12 +53,17 @@
       ? window.PerformanceUtils.platform.deviceClass
       : getDevicePerformanceClass();
     modelId = getModelIdForDeviceClass(deviceClass);
+    if (typeof window !== 'undefined' && window.healthAppDebug && typeof console !== 'undefined' && console.debug) {
+      console.debug('Summary LLM getPipeline: modelId=' + modelId + ', revision=main');
+    }
 
-    var mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.4.0');
-    mod.env.allowLocalModels = false;
+    // Use 3.2.0 to avoid "n.env is not a function" (flags_webgl.ts) with 3.4.x + ONNX Runtime Web
+    var mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.2.0');
+    // Do not set mod.env.allowLocalModels here; default is false in browser and avoids env API issues
 
     try {
-      cachedPipeline = await mod.pipeline('text2text-generation', modelId, { revision: 'onnx' });
+      // Xenova models: config/tokenizer are on main; ONNX weights in onnx/ subfolder (library loads them automatically)
+      cachedPipeline = await mod.pipeline('text2text-generation', modelId, { revision: 'main' });
       cachedModelId = modelId;
       return cachedPipeline;
     } catch (e) {
@@ -67,7 +72,7 @@
       }
       if (modelId === MODEL_BASE) {
         try {
-          cachedPipeline = await mod.pipeline('text2text-generation', MODEL_SMALL, { revision: 'onnx' });
+          cachedPipeline = await mod.pipeline('text2text-generation', MODEL_SMALL, { revision: 'main' });
           cachedModelId = MODEL_SMALL;
           return cachedPipeline;
         } catch (e2) {
@@ -183,6 +188,9 @@
     } catch (e) {
       if (typeof console !== 'undefined' && console.warn) {
         console.warn('Summary LLM failed, using rule-based note:', e.message || e);
+      }
+      if (typeof window !== 'undefined' && window.healthAppDebug && typeof console !== 'undefined' && console.debug) {
+        console.debug('Summary LLM: using rule-based fallback');
       }
     }
     return fallbackNote;

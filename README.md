@@ -553,6 +553,24 @@ For issues and questions:
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
 <details>
+<summary><strong>v1.13.8</strong> — 2026-02-23 — Device-based optimisation, chart & AI preload</summary>
+
+- **Device opts**: `PerformanceUtils.getDeviceOpts()` in `performance-utils.js` returns `{ reduceAnimations, maxChartPoints, deferAI, batchDOM }` from device class and `prefersReducedMotion`. Low: 30 chart points, animations off, AI deferred; medium: 80 points, batch DOM; high: 200 points, full features.
+- **Charts**: All chart options (combined, balance, individual) preload in the background when the Charts tab is opened so switching view is instant. Chart data point caps and animation toggles use `getDeviceOpts()` (and existing viewport caps). Combined and balance charts respect `reduceAnimations`; individual charts use device-based max points.
+- **AI analysis**: AI analysis runs in the background (e.g. after load) and is cached so opening the AI tab shows results immediately when the cache matches the date range. On low devices (`deferAI`), the summary note uses the rule-based fallback only (no in-browser LLM load); AI tab open delay is increased to avoid blocking.
+- **Log list**: `renderLogEntries` uses `domBatcher.schedule()` when `batchDOM` is true (low/medium) for fewer layout thrashing and smoother scrolling.
+- **UI motion**: Heartbeat animation and AI summary UI respect `reduceAnimations` (and existing `prefersReducedMotion` / optimisation profile) so low-end and reduced-motion users get a calmer experience.
+
+</details>
+
+<details>
+<summary><strong>v1.13.7</strong> — 2026-02-23 — Version bump</summary>
+
+- **Version**: Bump to 1.13.7 for release tracking.
+
+</details>
+
+<details>
 <summary><strong>v1.13.6</strong> — 2026-02-23 — README and changelog</summary>
 
 - **README**: Changelog updated with version summaries; UK English retained.

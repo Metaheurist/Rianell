@@ -1,4 +1,24 @@
 // ============================================
+// Static host detection (no /api server: skip reload stream and server logging)
+// ============================================
+function isStaticHost() {
+  try {
+    const h = (typeof window !== 'undefined' && window.location && window.location.hostname) ? window.location.hostname.toLowerCase() : '';
+    return /github\.io$|netlify\.app$|vercel\.app$|pages\.dev$|cloudflare\.pages$/i.test(h) || h === '';
+  } catch (e) {
+    return true;
+  }
+}
+
+// Optional verbose debug for testing (localStorage.healthAppDebug === 'true' or ?debug=1)
+try {
+  window.healthAppDebug = (typeof localStorage !== 'undefined' && localStorage.getItem('healthAppDebug') === 'true') ||
+    (typeof URLSearchParams !== 'undefined' && window.location && new URLSearchParams(window.location.search).get('debug') === '1');
+} catch (e) {
+  window.healthAppDebug = false;
+}
+
+// ============================================
 // Client-Side Logging Utility
 // ============================================
 const Logger = {
@@ -56,9 +76,9 @@ const Logger = {
                          level.toLowerCase() === 'debug' ? 'debug' : 'log';
     console[consoleMethod](`[${level}] ${message}`, details);
     
-    // Only send to server if demo mode is enabled (using cached check)
-    if (!this._getDemoMode()) {
-      return; // Skip server logging when not in demo mode
+    // Only send to server if demo mode is enabled and we're not on a static host (no /api)
+    if (!this._getDemoMode() || isStaticHost()) {
+      return; // Skip server logging when not in demo mode or on GitHub Pages etc.
     }
     
     // Send to server (fire and forget - don't block on errors)
@@ -1747,6 +1767,25 @@ Logger.info('Health App initialized', {
   localStorageAvailable: typeof(Storage) !== 'undefined'
 });
 
+// Startup environment summary for testing
+(function() {
+  try {
+    var demoMode = false;
+    var aiEnabled = true;
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('healthAppSettings')) {
+      var parsed = JSON.parse(localStorage.getItem('healthAppSettings'));
+      demoMode = !!parsed.demoMode;
+      aiEnabled = parsed.aiEnabled !== false;
+    }
+    Logger.info('Environment', {
+      isStaticHost: isStaticHost(),
+      hostname: typeof window !== 'undefined' && window.location ? window.location.hostname : '',
+      demoMode: demoMode,
+      aiEnabled: aiEnabled
+    });
+  } catch (e) {}
+})();
+
 // ============================================
 // PWA Service Worker Registration - DISABLED FOR DELIVERY
 // ============================================
@@ -2065,9 +2104,13 @@ function showUpdateNotification() {
       
       // Only suppress if it's clearly an extension error
       const isExtensionError = hasExtensionPattern && hasExtensionFile;
-      
+      const isDataBase64Suppress = errorString.includes('ERR_INVALID_URL') && errorString.includes('data:;base64');
+
       if (isExtensionError) {
-        // Suppress extension-related console errors
+        if (isDataBase64Suppress && !window._dataBase64SuppressLogged) {
+          window._dataBase64SuppressLogged = true;
+          if (typeof Logger !== 'undefined' && Logger.debug) Logger.debug('Suppressed known extension/invalid data URL error');
+        }
         return;
       }
       // Call original console.error for legitimate errors
@@ -2085,23 +2128,27 @@ window.addEventListener('error', function(e) {
   const filename = e.filename || e.target?.src || '';
   const target = e.target;
   
+  const isDataBase64 = (errorMsg.includes('ERR_INVALID_URL') && errorMsg.includes('data:;base64')) ||
+    filename.includes('data:;base64') ||
+    (target && target.src && target.src.includes('data:;base64'));
   const isExtensionError = 
     errorMsg.includes('No tab with id') || 
     errorMsg.includes('Frame with ID') ||
     errorMsg.includes('serviceWorker.js') ||
     errorMsg.includes('background.js') ||
-    errorMsg.includes('ERR_INVALID_URL') && errorMsg.includes('data:;base64') ||
+    isDataBase64 ||
     filename.includes('chrome-extension://') ||
     filename.includes('moz-extension://') ||
     filename.includes('serviceWorker.js') ||
     filename.includes('background.js') ||
     filename.includes('inpage.js') ||
-    filename.includes('extension://') ||
-    filename.includes('data:;base64') ||
-    (target && (target.src && target.src.includes('data:;base64')));
-  
+    filename.includes('extension://');
+
   if (isExtensionError) {
-    // Suppress extension-related errors
+    if (isDataBase64 && !window._dataBase64SuppressLogged) {
+      window._dataBase64SuppressLogged = true;
+      if (typeof Logger !== 'undefined' && Logger.debug) Logger.debug('Suppressed known extension/invalid data URL error');
+    }
     e.preventDefault();
     e.stopPropagation();
     return false;
@@ -2263,8 +2310,12 @@ window.addEventListener('DOMContentLoaded', function() {
   connectToReloadStream();
 });
 
-// Server-Sent Events connection for auto-reload
+// Server-Sent Events connection for auto-reload (dev server only; skip on static hosts)
 function connectToReloadStream() {
+  if (isStaticHost()) {
+    Logger.debug('Reload stream disabled (static host)');
+    return; // No /api/reload on GitHub Pages, Netlify, etc.
+  }
   if (typeof EventSource === 'undefined') {
     Logger.warn('EventSource not supported, auto-reload disabled');
     return;
@@ -2947,6 +2998,9 @@ function toggleChartView(viewType) {
 }
 
 async function createCombinedChart() {
+  if (window.healthAppDebug && Logger.debug) {
+    Logger.debug('createCombinedChart: starting');
+  }
   // Check if ApexCharts is available
   if (typeof ApexCharts === 'undefined') {
     console.error('ApexCharts is not loaded! Cannot create combined chart.');
@@ -3046,19 +3100,22 @@ async function createCombinedChart() {
         trends: analysis.trends,
         daysToPredict: daysToPredict,
         lastDate: sortedLogs.length > 0 ? new Date(sortedLogs[sortedLogs.length - 1].date) : null,
-        allLogsLength: allLogs.length
+        allLogsLength: combinedTrainingLogs.length
       };
     } catch (error) {
       console.warn('Error generating predictions for combined chart:', error);
       Logger.error('Error generating predictions for combined chart', { error: error.message, stack: error.stack });
     }
   }
-  
+  if (window.healthAppDebug && Logger.debug) {
+    Logger.debug('createCombinedChart: ' + (predictionsData ? 'predictionsData set (' + (predictionsData.allLogsLength || 0) + ' training points)' : 'predictions skipped'));
+  }
+
   const series = metrics.map((metric, metricIndex) => {
     const isSteps = metric.field === 'steps';
     const isHydration = metric.field === 'hydration';
     
-    const data = filteredLogs
+    let data = filteredLogs
       .filter(log => {
         const value = log[metric.field];
         // For steps and hydration, allow 0 values
@@ -3072,6 +3129,10 @@ async function createCombinedChart() {
         y: parseFloat(log[metric.field]) || 0
       }))
       .sort((a, b) => a.x - b.x); // Sort by timestamp
+    if (data.length > deviceOpts.maxChartPoints) {
+      const step = Math.ceil(data.length / deviceOpts.maxChartPoints);
+      data = data.filter((_, index) => index % step === 0 || index === data.length - 1);
+    }
     
     // Add predicted data if available
     let predictedData = [];
@@ -3201,7 +3262,7 @@ async function createCombinedChart() {
         enabled: false
       },
       animations: {
-        enabled: false
+        enabled: !deviceOpts.reduceAnimations
       }
     },
     title: {
@@ -4023,7 +4084,10 @@ function createBalanceChart() {
       toolbar: {
         show: false
       },
-      background: 'transparent'
+      background: 'transparent',
+      animations: {
+        enabled: !deviceOpts.reduceAnimations
+      }
     },
     colors: ['#4caf50'],
     fill: {
@@ -4550,6 +4614,14 @@ document.addEventListener('keydown', function(event) {
 // AI SUMMARY - REBUILT FROM SCRATCH
 // ============================================
 
+// Cache for preloaded AI analysis so opening AI tab is instant when preload has run
+window._aiAnalysisCache = null;
+
+function getAICacheKey(aiDateRange, logsLength, filteredCount) {
+  var r = aiDateRange || { type: 7 };
+  return (r.type || 7) + '_' + (r.startDate || '') + '_' + (r.endDate || '') + '_' + (logsLength || 0) + '_' + (filteredCount || 0);
+}
+
 // No-op: AI analysis is display-only and auto-loads from date range (no button).
 function updateAISummaryButtonState() {
   Logger.debug('AI Summary - display-only, no button state to update');
@@ -4629,6 +4701,15 @@ function generateAISummary() {
   }
 
   const sortedLogs = filteredLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
+  const cacheKey = getAICacheKey(aiDateRange, logs.length, sortedLogs.length);
+
+  // Use preloaded result if available for this range
+  if (window._aiAnalysisCache && window._aiAnalysisCache.cacheKey === cacheKey) {
+    displayAISummary(window._aiAnalysisCache.analysis, window._aiAnalysisCache.sortedLogs, window._aiAnalysisCache.sortedLogs.length, null, window._aiAnalysisCache.dateRangeText);
+    updateSummaryNoteWithLLM(window._aiAnalysisCache.analysis, window._aiAnalysisCache.sortedLogs, window._aiAnalysisCache.sortedLogs.length);
+    Logger.info('AI Summary - Display from cache');
+    return;
+  }
 
   // Show loading state in results area only
   resultsContent.innerHTML = `
@@ -4654,6 +4735,7 @@ function generateAISummary() {
         throw new Error('No analysis function available. AIEngine may not be loaded.');
       }
 
+      window._aiAnalysisCache = { analysis: analysis, sortedLogs: sortedLogs, dateRangeText: dateRangeText, cacheKey: cacheKey };
       displayAISummary(analysis, sortedLogs, sortedLogs.length, null, dateRangeText);
       updateSummaryNoteWithLLM(analysis, sortedLogs, sortedLogs.length);
       Logger.info('AI Summary - Display complete');
@@ -4673,6 +4755,68 @@ function generateAISummary() {
   }, 800);
 }
 
+// Run AI analysis in background and cache result so opening AI tab is instant (device-aware)
+function preloadAIAnalysisInBackground() {
+  var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
+  if (profile && !profile.enableAIPreload) return;
+  if (typeof appSettings === 'undefined' || appSettings.aiEnabled === false) return;
+  if (!logs || logs.length === 0) return;
+  var aiDateRange = appSettings.aiDateRange || { type: 7 };
+  var startDateInput = document.getElementById('aiStartDate');
+  var endDateInput = document.getElementById('aiEndDate');
+  var logsToUse = logs;
+  var filteredLogs = logsToUse;
+  var dateRangeText = '';
+  if (aiDateRange.type === 'custom' && startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
+    var start = new Date(startDateInput.value);
+    var end = new Date(endDateInput.value);
+    end.setHours(23, 59, 59, 999);
+    filteredLogs = logsToUse.filter(function(log) {
+      var d = new Date(log.date);
+      return d >= start && d <= end;
+    });
+    dateRangeText = start.toLocaleDateString() + ' to ' + end.toLocaleDateString();
+  } else {
+    var days = aiDateRange.type || 7;
+    var endDate = new Date();
+    endDate.setHours(23, 59, 59, 999);
+    var startDate = new Date();
+    startDate.setDate(startDate.getDate() - (days - 1));
+    startDate.setHours(0, 0, 0, 0);
+    filteredLogs = logsToUse.filter(function(log) {
+      var d = new Date(log.date);
+      return d >= startDate && d <= endDate;
+    });
+    dateRangeText = days === 1 ? 'today' : 'last ' + days + ' days';
+  }
+  if (filteredLogs.length === 0) return;
+  var sortedLogs = filteredLogs.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+  var cacheKey = getAICacheKey(aiDateRange, logs.length, sortedLogs.length);
+  if (window._aiAnalysisCache && window._aiAnalysisCache.cacheKey === cacheKey) return;
+  var allLogsForTraining = window.PerformanceUtils && window.PerformanceUtils.memoizedSort
+    ? window.PerformanceUtils.memoizedSort(logs, function(a, b) { return new Date(a.date) - new Date(b.date); }, 'allLogsForTraining')
+    : logs.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+  var analyzeFn = (window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function')
+    ? window.AIEngine.analyzeHealthMetrics
+    : (typeof analyzeHealthMetrics === 'function' ? analyzeHealthMetrics : null);
+  if (!analyzeFn) return;
+  analyzeFn(sortedLogs, allLogsForTraining).then(function(analysis) {
+    window._aiAnalysisCache = { analysis: analysis, sortedLogs: sortedLogs, dateRangeText: dateRangeText, cacheKey: cacheKey };
+    if (window.healthAppDebug && Logger.debug) Logger.debug('AI preload: analysis cached');
+  }).catch(function() {});
+}
+
+function scheduleAIPreload() {
+  var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
+  if (profile && !profile.enableAIPreload) return;
+  var delay = (profile && profile.aiPreloadDelayMs != null) ? profile.aiPreloadDelayMs : 2000;
+  if (typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(function() { preloadAIAnalysisInBackground(); }, { timeout: delay + 1500 });
+  } else {
+    setTimeout(preloadAIAnalysisInBackground, delay);
+  }
+}
+
 // Update the Summary note paragraph with in-browser LLM result when available (runs after displayAISummary).
 async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
   var el = document.getElementById('aiSummaryNoteText');
@@ -4684,6 +4828,12 @@ async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
     } catch (e) {}
   }
   if (!fallbackNote || !fallbackNote.trim()) return;
+  var deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
+    ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
+  if (deviceOpts.deferAI) {
+    el.textContent = fallbackNote.trim();
+    return;
+  }
   if (typeof window.generateSummaryWithLLM !== 'function') {
     var platform = window.PerformanceUtils && window.PerformanceUtils.platform;
     if (platform && platform.deviceClass === 'low' && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
@@ -4857,7 +5007,13 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   // Store filtered logs for average calculation (logs parameter contains the filtered logs for the selected range)
   currentAIFilteredLogs = logs;
 
-  // Build the summary HTML with animation classes
+  var optProfile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
+  var deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function') ? window.PerformanceUtils.getDeviceOpts() : {};
+  var reduceUIAnimations = !!(optProfile && optProfile.reduceUIAnimations) || !!(deviceOpts.reduceAnimations);
+  if (reduceUIAnimations) resultsContent.classList.add('reduce-motion'); else resultsContent.classList.remove('reduce-motion');
+  var animStep = reduceUIAnimations ? 0 : 1;
+
+  // Build the summary HTML with animation classes (delays zeroed on low/reduced-motion)
   let html = '';
   let animationDelay = 0;
 
@@ -4900,7 +5056,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
         </div>
       </div>
   `;
-    animationDelay += 200;
+    animationDelay += 200 * animStep;
   }
 
   // Natural language summary note (copyable). Rule-based note shown first; in-browser LLM may replace it.
@@ -4916,7 +5072,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
         <p class="ai-generated-note" id="${summaryNoteTextId}">${escapeHTML(noteText.trim())}</p>
         <button type="button" class="ai-copy-note-btn" onclick="typeof copyAIGeneratedNote==='function'&&copyAIGeneratedNote(this)" title="Copy to clipboard">Copy note</button>
       </div>`;
-        animationDelay += 200;
+        animationDelay += 200 * animStep;
       }
     } catch (e) { /* ignore */ }
   }
@@ -4959,7 +5115,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       </div>
     </div>
   `;
-  animationDelay += 200;
+  animationDelay += 200 * animStep;
 
   // Trends section - simplified for non-technical users
   html += `
@@ -4967,7 +5123,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       <h3 class="ai-section-title">📈 How you're doing</h3>
       <div class="ai-trends-grid">
   `;
-  animationDelay += 200;
+  animationDelay += 200 * animStep;
   
   Object.keys(analysis.trends).forEach((metric, index) => {
     const trend = analysis.trends[metric];
@@ -5099,7 +5255,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   });
   
   html += `</div></div>`;
-  animationDelay += 300;
+  animationDelay += 300 * animStep;
 
   // Flare-up risk section
   if (analysis.flareUpRisk) {
@@ -5120,7 +5276,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
         </div>
       </div>
     `;
-    animationDelay += 300;
+    animationDelay += 300 * animStep;
   }
 
   // Correlation matrix section
@@ -5223,7 +5379,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       });
       
       html += `</div></div>`;
-      animationDelay += 300;
+      animationDelay += 300 * animStep;
       
       // Display correlation clusters if available - simplified for non-technical users
       if (analysis.correlationClusters && analysis.correlationClusters.length > 0) {
@@ -5241,7 +5397,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
             </ul>
           </div>
         `;
-        animationDelay += 200;
+        animationDelay += 200 * animStep;
       }
     }
   }
@@ -5264,7 +5420,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     }
     
     html += `</div>`;
-    animationDelay += 300;
+    animationDelay += 300 * animStep;
   }
   
   // Symptoms and pain location analysis section
@@ -5285,7 +5441,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     }
     
     html += `</div>`;
-    animationDelay += 300;
+    animationDelay += 300 * animStep;
   }
   
   // Pain by body part (28 diagram regions) — show how bad each body part (severity, days, % of period)
@@ -5336,7 +5492,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     }
     html += `</tbody></table></div>`;
     html += `</div>`;
-    animationDelay += 300;
+    animationDelay += 300 * animStep;
   }
   
   // Pain data exploration: summary from all pain points in the period
@@ -5351,7 +5507,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (i * 60)}ms; margin-bottom: 0.5rem;">${formatAIValueText(line)}</li>`;
     });
     html += `</ul></div>`;
-    animationDelay += 300;
+    animationDelay += 300 * animStep;
   }
   
   // Nutrition analysis section
@@ -5374,7 +5530,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       html += `<p class="ai-nutrition-extra">${extras.join(' · ')}</p>`;
     }
     html += `</div>`;
-    animationDelay += 300;
+    animationDelay += 300 * animStep;
   }
   
   // Exercise summary (avg minutes on days with exercise)
@@ -5389,7 +5545,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
         </div>
       </div>
     `;
-    animationDelay += 300;
+    animationDelay += 300 * animStep;
   }
 
   // Top exercises (most logged by name)
@@ -5403,7 +5559,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 30)}ms;">${escapeHTML(item.name)}: <span class="ai-brackets-highlight">${item.count} ${item.count === 1 ? 'time' : 'times'}</span></li>`;
     });
     html += `</ul></div>`;
-    animationDelay += 300;
+    animationDelay += 300 * animStep;
   }
 
   // Top foods (most logged by name)
@@ -5417,7 +5573,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 30)}ms;">${escapeHTML(item.name)}: <span class="ai-brackets-highlight">${item.count} ${item.count === 1 ? 'time' : 'times'}</span></li>`;
     });
     html += `</ul></div>`;
-    animationDelay += 300;
+    animationDelay += 300 * animStep;
   }
 
   // Nutrition summary (avg calories/protein when present)
@@ -5429,7 +5585,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
         <div class="ai-exercise-visual"><span class="ai-exercise-days">${nut.daysWithFood} days</span> with food logged</div>
       </div>
     `;
-    animationDelay += 300;
+    animationDelay += 300 * animStep;
   }
   
   // Food/Exercise impact section - simplified
@@ -5465,7 +5621,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     });
     
     html += `</div></div>`;
-    animationDelay += 300;
+    animationDelay += 300 * animStep;
   }
 
   // Anomalies section (high-contrast, less dense)
@@ -5480,7 +5636,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 200 + (index * 100)}ms;">${formatted}</li>`;
     });
     html += `</ul></div>`;
-    animationDelay += 300;
+    animationDelay += 300 * animStep;
   }
 
   // General management section - simplified
@@ -6874,6 +7030,12 @@ migrateLogs();
 function updateHeartbeatAnimation() {
   const heartbeatPath = document.querySelector('.heartbeat-path');
   if (!heartbeatPath) return;
+  const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
+    ? window.PerformanceUtils.getDeviceOpts() : { reduceAnimations: false };
+  if (deviceOpts.reduceAnimations) {
+    heartbeatPath.style.animation = 'none';
+    return;
+  }
   
   // Get the most recent BPM from logs
   if (logs.length === 0) {
@@ -9297,9 +9459,10 @@ function toggleLogEntry(logDate) {
 
 // Shared render function to reduce code duplication (optimized)
 function renderLogEntries(logsToRender) {
-  // Use DOMCache for output element
-    const outputEl = window.PerformanceUtils?.DOMCache?.getElement('logOutput') || document.getElementById('logOutput');
-  if (window.PerformanceUtils?.domBatcher) {
+  const outputEl = window.PerformanceUtils?.DOMCache?.getElement('logOutput') || document.getElementById('logOutput');
+  const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
+    ? window.PerformanceUtils.getDeviceOpts() : { reduceAnimations: false, maxChartPoints: 200, deferAI: false, batchDOM: false };
+  if (deviceOpts.batchDOM && window.PerformanceUtils?.domBatcher) {
     window.PerformanceUtils.domBatcher.schedule(() => {
       const fragment = document.createDocumentFragment();
       outputEl.innerHTML = "";
@@ -9626,11 +9789,11 @@ async function chart(id, label, dataField, color) {
     return;
   }
   
-  // Detect mobile device (cache window size check)
+  // Device-based opts (reduceAnimations, maxChartPoints, deferAI, batchDOM)
+  const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
+    ? window.PerformanceUtils.getDeviceOpts() : { reduceAnimations: false, maxChartPoints: 200, deferAI: false, batchDOM: false };
   const isMobile = window.innerWidth <= 768;
   const isSmallScreen = window.innerWidth <= 480;
-  const deviceClass = (window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass) || 'medium';
-  const prefersReducedMotion = !!(window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.prefersReducedMotion);
   
   // Get filtered logs based on date range (cached)
   const filteredLogs = getFilteredLogs();
@@ -9695,18 +9858,11 @@ async function chart(id, label, dataField, color) {
   // Sort by timestamp
   chartData.sort((a, b) => a.x - b.x);
   
-  // Reduce data points by device class and viewport for better performance
+  // Reduce data points by device opts and viewport for better performance
+  const maxPoints = Math.min(deviceOpts.maxChartPoints, isSmallScreen ? 30 : isMobile ? 50 : deviceOpts.maxChartPoints);
   let optimizedChartData = chartData;
-  const maxPointsLow = 30;
-  const maxPointsMobile = 50;
-  if (deviceClass === 'low' && chartData.length > maxPointsLow) {
-    const step = Math.ceil(chartData.length / maxPointsLow);
-    optimizedChartData = chartData.filter((_, index) => index % step === 0 || index === chartData.length - 1);
-  } else if (isMobile && chartData.length > maxPointsMobile) {
-    const step = Math.ceil(chartData.length / maxPointsMobile);
-    optimizedChartData = chartData.filter((_, index) => index % step === 0 || index === chartData.length - 1);
-  } else if (isSmallScreen && chartData.length > 30) {
-    const step = Math.ceil(chartData.length / 30);
+  if (chartData.length > maxPoints) {
+    const step = Math.ceil(chartData.length / maxPoints);
     optimizedChartData = chartData.filter((_, index) => index % step === 0 || index === chartData.length - 1);
   }
   
@@ -10140,7 +10296,7 @@ async function chart(id, label, dataField, color) {
         type: 'x'
       },
       animations: {
-        enabled: !isSmallScreen && !prefersReducedMotion, // Disable on very small screens and when user prefers reduced motion
+        enabled: !isSmallScreen && !deviceOpts.reduceAnimations,
         easing: 'easeinout',
         speed: 600,
         animateGradually: {
@@ -10691,6 +10847,64 @@ function loadChart(container, chartType) {
       chart(container.id, config.label, config.field, config.color);
       container.classList.add('loaded');
     }, 100); // Small delay for smooth loading effect
+  }
+}
+
+// Preload charts in background so Charts tab and all options load quickly (device-aware)
+function preloadChartsInBackground() {
+  var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
+  if (profile && !profile.enableChartPreload) return;
+  if (!logs || logs.length === 0) return;
+  if (typeof ApexCharts === 'undefined') return;
+  const filteredLogs = getFilteredLogs();
+  if (!filteredLogs || filteredLogs.length === 0) return;
+  const chartSection = document.getElementById('chartSection');
+  if (!chartSection) return;
+
+  var staggerMs = (profile && profile.lazyChartStaggerMs != null) ? profile.lazyChartStaggerMs : 80;
+  if (window.healthAppDebug && Logger.debug) {
+    Logger.debug('preloadChartsInBackground: starting');
+  }
+  // Preload combined chart (no tab switch; container may be hidden)
+  createCombinedChart();
+
+  // Preload all individual charts so they are ready when user switches view
+  const lazyCharts = document.querySelectorAll('.lazy-chart');
+  let index = 0;
+  function scheduleNext() {
+    if (index >= lazyCharts.length) return;
+    const container = lazyCharts[index];
+    const chartType = container.dataset.chartType;
+    index += 1;
+    if (chartType && !loadedCharts.has(chartType)) {
+      loadedCharts.add(chartType);
+      loadChart(container, chartType);
+    }
+    if (index < lazyCharts.length) {
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(scheduleNext, { timeout: 3000 });
+      } else {
+        setTimeout(scheduleNext, staggerMs);
+      }
+    }
+  }
+  if (typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(function() { scheduleNext(); }, { timeout: 2500 });
+  } else {
+    setTimeout(function() { scheduleNext(); }, Math.min(500, staggerMs * 2));
+  }
+}
+
+function scheduleChartsPreload() {
+  var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
+  var delay = (profile && profile.chartPreloadDelayMs != null) ? profile.chartPreloadDelayMs : 1500;
+  if (profile && !profile.enableChartPreload) return;
+  if (typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(function() {
+      preloadChartsInBackground();
+    }, { timeout: delay + 1000 });
+  } else {
+    setTimeout(preloadChartsInBackground, delay);
   }
 }
 
@@ -13066,9 +13280,15 @@ function setAIDateRange(range) {
     saveSettings();
   }
   
-  // Automatically generate AI summary when date range changes
+  // Automatically generate AI summary when date range changes (defer on low device)
   if (logs && logs.length > 0) {
-    generateAISummary();
+    const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
+      ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
+    if (deviceOpts.deferAI) {
+      setTimeout(function() { generateAISummary(); }, 500);
+    } else {
+      generateAISummary();
+    }
   }
 }
 
@@ -13097,9 +13317,15 @@ function applyAICustomDateRange() {
   const customBtn = document.getElementById('aiRangeCustom');
   if (customBtn) customBtn.classList.add('active');
   
-  // Automatically generate AI summary when custom date range is applied
+  // Automatically generate AI summary when custom date range is applied (defer on low device)
   if (logs && logs.length > 0) {
-    generateAISummary();
+    const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
+      ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
+    if (deviceOpts.deferAI) {
+      setTimeout(function() { generateAISummary(); }, 500);
+    } else {
+      generateAISummary();
+    }
   }
 }
 
@@ -13519,10 +13745,12 @@ function switchTab(tabName) {
     
     // Automatically generate AI summary when AI tab is opened (if there's data)
     if (logs && logs.length > 0) {
-      // Small delay to ensure tab is fully visible
+      const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
+        ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
+      const delay = deviceOpts.deferAI ? 800 : 100;
       setTimeout(() => {
         generateAISummary();
-      }, 100);
+      }, delay);
     }
   }
   
@@ -13658,7 +13886,9 @@ window.addEventListener('load', () => {
   renderLogs();
   updateCharts(); // Check for empty state on page load
   updateAISummaryButtonState(); // Update AI button state on page load
-  
+  scheduleChartsPreload(); // Preload all chart options in background
+  scheduleAIPreload(); // Preload AI analysis in background
+
   // Hide AI section by default
   clearAISection();
   
