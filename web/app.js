@@ -3942,6 +3942,9 @@ function createBalanceChart() {
     return;
   }
   
+  const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
+    ? window.PerformanceUtils.getDeviceOpts() : { maxChartPoints: 200, reduceAnimations: false };
+  
   const container = document.getElementById('balanceChart');
   if (!container) {
     console.error('Balance chart container not found');
@@ -13562,10 +13565,8 @@ function checkAndUpdateViewRangeButtons() {
   const endDateInput = document.getElementById('endDate');
   
   if (!startDateInput || !endDateInput || !startDateInput.value || !endDateInput.value) {
-    // If dates are empty, deselect all buttons
-    document.querySelectorAll('.log-date-range-btn').forEach(btn => {
-      btn.classList.remove('active');
-    });
+    // If dates are empty, default to 7 days selected
+    if (typeof setLogViewRange === 'function') setLogViewRange(7);
     return;
   }
   
@@ -14051,6 +14052,11 @@ window.addEventListener('unhandledrejection', (event) => {
 
 // Initialize the app
 window.addEventListener('load', () => {
+  // Show loading overlay immediately (body.loading keeps overlay visible via CSS)
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const loadingTextEl = loadingOverlay ? loadingOverlay.querySelector('.loading-text') : null;
+  if (loadingTextEl) loadingTextEl.textContent = 'Loading Health Dashboard…';
+  
   // Always set dark mode on load
   document.body.classList.remove('light-mode');
   document.body.classList.add('dark-mode');
@@ -14092,17 +14098,19 @@ window.addEventListener('load', () => {
   }
   
   // Date range and chart section must be set before createCombinedChart
-  initializeDateFilters();
-  setChartDateRange(7);
-  setPredictionRange(7);
-  setLogViewRange(7);
-  if (appSettings.showCharts) {
-    const chartSection = document.getElementById('chartSection');
-    if (chartSection) chartSection.classList.remove('hidden');
+  try {
+    initializeDateFilters();
+    setChartDateRange(7);
+    setPredictionRange(7);
+    setLogViewRange(7);
+    if (appSettings.showCharts) {
+      const chartSection = document.getElementById('chartSection');
+      if (chartSection) chartSection.classList.remove('hidden');
+    }
+  } catch (e) {
+    console.error('Error during initial setup:', e);
   }
   
-  const loadingOverlay = document.getElementById('loadingOverlay');
-  const loadingTextEl = loadingOverlay ? loadingOverlay.querySelector('.loading-text') : null;
   if (loadingTextEl) loadingTextEl.textContent = 'Loading charts and AI…';
   
   // Keep loading circle until combined chart and summary LLM are ready (or timeout)
@@ -14186,8 +14194,9 @@ window.addEventListener('load', () => {
 
 function initializeDateFilters() {
   const today = new Date();
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(today.getDate() - 7);
+  // Last 7 days including today: start = today - 6
+  const sevenDaysStart = new Date();
+  sevenDaysStart.setDate(today.getDate() - 6);
   
   // Format dates for input[type="date"]
   const formatDate = (date) => {
@@ -14201,7 +14210,7 @@ function initializeDateFilters() {
   const endDateInput = document.getElementById('endDate');
   
   if (startDateInput && endDateInput) {
-    startDateInput.value = formatDate(sevenDaysAgo);
+    startDateInput.value = formatDate(sevenDaysStart);
     endDateInput.value = formatDate(today);
     
     // Add event listeners to detect manual date changes
