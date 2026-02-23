@@ -88,17 +88,28 @@ function softmax(arr) {
 }
 
 // --- GPU acceleration (TensorFlow.js WebGL) for desktop ---
+// isDesktop aligned with device module (PerformanceUtils/DeviceModule.platform) for consistency.
 var _gpuBackendReady = null;
 function isDesktop() {
+  if (typeof window !== 'undefined' && window.PerformanceUtils && window.PerformanceUtils.platform) {
+    return window.PerformanceUtils.platform.platform === 'desktop';
+  }
+  if (typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform) {
+    return window.DeviceModule.platform.platform === 'desktop';
+  }
   return typeof navigator !== 'undefined' && !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 function ensureGPUBackend() {
   if (_gpuBackendReady !== null) return _gpuBackendReady;
   _gpuBackendReady = (async function() {
     if (typeof tf === 'undefined' || !isDesktop()) return false;
+    var deviceClass = (typeof window !== 'undefined' && window.PerformanceUtils && window.PerformanceUtils.platform)
+      ? (window.PerformanceUtils.platform.deviceClass || 'medium')
+      : 'medium';
+    if (deviceClass === 'low') return false;
     try {
       await tf.ready();
-      await tf.setBackend('webgl');
+      if (tf.getBackend() !== 'webgl') await tf.setBackend('webgl');
       await tf.ready();
       return tf.getBackend() === 'webgl';
     } catch (e) {

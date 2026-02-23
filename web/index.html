@@ -1945,6 +1945,16 @@
   <script src="supabase-config.js"></script>
   <!-- TensorFlow.js + WebGL backend for GPU-accelerated AI on desktop -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+  <script>
+    (function() {
+      var _warn = console.warn;
+      console.warn = function() {
+        var msg = arguments[0] && String(arguments[0]);
+        if (msg && (msg.indexOf('already registered') !== -1 && (msg.indexOf('webgl') !== -1 || msg.indexOf('kernel') !== -1))) return;
+        _warn.apply(console, arguments);
+      };
+    })();
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.22.0/dist/tf-backend-webgl.min.js"></script>
   <script src="AIEngine.js"></script>
   <script src="storage-utils.js?v=1"></script>
@@ -1953,6 +1963,7 @@
   <script src="export-utils.js?v=1"></script>
   <script src="import-utils.js?v=1"></script>
   <script src="print-utils.js?v=1"></script>
+  <script src="device-module.js"></script>
   <script src="performance-utils.js"></script>
   <script src="background-loader.js"></script>
   <script>

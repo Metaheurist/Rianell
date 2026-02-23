@@ -91,15 +91,13 @@
     }
   }
 
-  var aiWorker = null;
-  var aiWorkerRequestId = 0;
-
   /**
-   * Schedule AI preload; use Web Worker when device has multiple cores (useWorkers), else main thread.
+   * Schedule AI preload on the main thread (device-aware scheduling is in app.js preloadAIForAllRanges).
+   * Worker ANALYZE path removed: AIEngine requires window/DOM/tf and does not run in a worker.
    * @param {Object} options
    * @param {function} options.runAIAnalysis - Callback that performs AI preload on main thread (full logic).
-   * @param {function} [options.getAIPreloadData] - Optional. Returns { sortedLogs, allLogsForTraining, dateRangeText, cacheKey } or null.
-   * @param {function} [options.setAICache] - Optional. setAICache(analysis, sortedLogs, dateRangeText, cacheKey). Required when using worker.
+   * @param {function} [options.getAIPreloadData] - Unused (kept for API compatibility).
+   * @param {function} [options.setAICache] - Unused (kept for API compatibility).
    */
   function scheduleAIPreload(options) {
     if (!options || typeof options.runAIAnalysis !== 'function') return;
@@ -107,75 +105,13 @@
     if (profile && profile.enableAIPreload === false) return;
 
     var delay = (profile && profile.aiPreloadDelayMs != null) ? profile.aiPreloadDelayMs : 2000;
-    var useWorkers = !!(profile && profile.useWorkers);
     var runAIAnalysis = options.runAIAnalysis;
-    var getAIPreloadData = options.getAIPreloadData;
-    var setAICache = options.setAICache;
 
     function runWhenIdle() {
       if (typeof requestIdleCallback !== 'undefined') {
-        requestIdleCallback(doPreload, { timeout: 800 });
+        requestIdleCallback(runAIAnalysis, { timeout: 800 });
       } else {
-        setTimeout(doPreload, 100);
-      }
-    }
-
-    function doPreload() {
-      if (useWorkers && typeof getAIPreloadData === 'function' && typeof setAICache === 'function') {
-        tryWorkerPreload();
-      } else {
-        runAIAnalysis();
-      }
-    }
-
-    function tryWorkerPreload() {
-      var data = getAIPreloadData && getAIPreloadData();
-      if (!data || !data.sortedLogs || !data.allLogsForTraining) {
-        runAIAnalysis();
-        return;
-      }
-      var requestId = ++aiWorkerRequestId;
-      var timeoutId = setTimeout(function () {
-        if (requestId !== aiWorkerRequestId) return;
-        runAIAnalysis();
-      }, 30000);
-
-      function onMessage(e) {
-        if (!e || !e.data || e.data.requestId !== requestId) return;
-        clearTimeout(timeoutId);
-        aiWorker.removeEventListener('message', onMessage);
-        aiWorker.removeEventListener('error', onError);
-        if (e.data.type === 'ANALYZE_RESULT' && e.data.data != null) {
-          setAICache(e.data.data, data.sortedLogs, data.dateRangeText, data.cacheKey);
-        } else {
-          runAIAnalysis();
-        }
-      }
-
-      function onError() {
-        clearTimeout(timeoutId);
-        aiWorker.removeEventListener('message', onMessage);
-        aiWorker.removeEventListener('error', onError);
-        runAIAnalysis();
-      }
-
-      try {
-        if (!aiWorker) {
-          aiWorker = new Worker('prediction-worker.js');
-        }
-        aiWorker.addEventListener('message', onMessage);
-        aiWorker.addEventListener('error', onError);
-        aiWorker.postMessage({
-          type: 'ANALYZE',
-          data: {
-            logs: data.sortedLogs,
-            allLogs: data.allLogsForTraining,
-            requestId: requestId
-          }
-        });
-      } catch (err) {
-        clearTimeout(timeoutId);
-        runAIAnalysis();
+        setTimeout(runAIAnalysis, 100);
       }
     }
 

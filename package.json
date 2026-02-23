@@ -1,7 +1,7 @@
 {
   "name": "health-app",
   "private": true,
-  "version": "1.17.0",
+  "version": "1.18.0",
   "description": "Health dashboard – web app and React/Capacitor Android build",
   "scripts": {
     "dev": "cd react-app && npm run dev",

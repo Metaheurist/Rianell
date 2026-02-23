@@ -21,16 +21,8 @@ self.addEventListener('message', async function(e) {
           requestId: data.requestId
         });
         break;
-        
-      case 'ANALYZE':
-        const analysis = await performAnalysis(data);
-        self.postMessage({
-          type: 'ANALYZE_RESULT',
-          data: analysis,
-          requestId: data.requestId
-        });
-        break;
-        
+        // ANALYZE removed: AIEngine requires window/DOM/tf and cannot run in a worker; AI preload runs on main thread.
+
       default:
         self.postMessage({
           type: 'ERROR',
@@ -151,21 +143,6 @@ async function performPrediction(data) {
     confidence,
     modelType: modelType || regression.modelType || 'linear'
   };
-}
-
-// Perform full analysis
-async function performAnalysis(data) {
-  const { logs, allLogs } = data;
-  
-  if (typeof self.AIEngine === 'undefined') {
-    importScripts('AIEngine.js');
-  }
-  
-  if (!self.AIEngine) {
-    throw new Error('AIEngine not available in worker');
-  }
-  
-  return await self.AIEngine.analyzeHealthMetrics(logs, allLogs);
 }
 
 // Send ready message
