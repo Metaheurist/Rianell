@@ -131,6 +131,16 @@ The server will:
 2. **Network Access**: Use your local IP address (shown in server console)
 3. **Production**: Deploy files to a web server (no server.py needed)
 
+### GitHub Pages (app at repo root)
+
+The app lives in **`web/`**, so GitHub Pages will not see `index.html` if the source is the repo root. To serve the app from GitHub Pages (e.g. `https://<user>.github.io/Health-app/`):
+
+1. In the repo: **Settings → Pages**
+2. Under **Build and deployment**, set **Source** to **GitHub Actions**
+3. The workflow [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) runs on push to `main` and deploys the contents of **`web/`** as the site root, so `index.html` is served correctly
+
+After the first push (or a manual **Run workflow**), the site will show the Health Dashboard instead of the README.
+
 ## React shell & Android APK
 
 The app can be run as a **React (Vite) app** that wraps the existing web UI and be built into an **Android APK** via Capacitor. The GitHub Action **Build Android APK** runs on every push to `main`/`master`, outputs the APK into the **`apk/`** folder, and makes it available in the app’s Settings.
