@@ -4755,12 +4755,12 @@ function generateAISummary() {
   }, 800);
 }
 
-// Run AI analysis in background and cache result so opening AI tab is instant (device-aware)
-function preloadAIAnalysisInBackground() {
+// Returns payload for AI preload (worker or main). Null if preload not applicable.
+function getAIPreloadData() {
   var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
-  if (profile && !profile.enableAIPreload) return;
-  if (typeof appSettings === 'undefined' || appSettings.aiEnabled === false) return;
-  if (!logs || logs.length === 0) return;
+  if (profile && !profile.enableAIPreload) return null;
+  if (typeof appSettings === 'undefined' || appSettings.aiEnabled === false) return null;
+  if (!logs || logs.length === 0) return null;
   var aiDateRange = appSettings.aiDateRange || { type: 7 };
   var startDateInput = document.getElementById('aiStartDate');
   var endDateInput = document.getElementById('aiEndDate');
@@ -4789,38 +4789,51 @@ function preloadAIAnalysisInBackground() {
     });
     dateRangeText = days === 1 ? 'today' : 'last ' + days + ' days';
   }
-  if (filteredLogs.length === 0) return;
+  if (filteredLogs.length === 0) return null;
   var sortedLogs = filteredLogs.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
   var cacheKey = getAICacheKey(aiDateRange, logs.length, sortedLogs.length);
-  if (window._aiAnalysisCache && window._aiAnalysisCache.cacheKey === cacheKey) return;
+  if (window._aiAnalysisCache && window._aiAnalysisCache.cacheKey === cacheKey) return null;
   var allLogsForTraining = window.PerformanceUtils && window.PerformanceUtils.memoizedSort
     ? window.PerformanceUtils.memoizedSort(logs, function(a, b) { return new Date(a.date) - new Date(b.date); }, 'allLogsForTraining')
     : logs.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+  return { sortedLogs: sortedLogs, allLogsForTraining: allLogsForTraining, dateRangeText: dateRangeText, cacheKey: cacheKey };
+}
+
+function setAICache(analysis, sortedLogs, dateRangeText, cacheKey) {
+  if (analysis == null) return;
+  window._aiAnalysisCache = { analysis: analysis, sortedLogs: sortedLogs || [], dateRangeText: dateRangeText || '', cacheKey: cacheKey || '' };
+  if (window.healthAppDebug && Logger.debug) Logger.debug('AI preload: analysis cached');
+}
+
+// Run AI analysis in background on main thread and cache result (device-aware).
+function preloadAIAnalysisInBackground() {
+  var data = getAIPreloadData();
+  if (!data) return;
   var analyzeFn = (window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function')
     ? window.AIEngine.analyzeHealthMetrics
     : (typeof analyzeHealthMetrics === 'function' ? analyzeHealthMetrics : null);
   if (!analyzeFn) return;
-  analyzeFn(sortedLogs, allLogsForTraining).then(function(analysis) {
-    window._aiAnalysisCache = { analysis: analysis, sortedLogs: sortedLogs, dateRangeText: dateRangeText, cacheKey: cacheKey };
-    if (window.healthAppDebug && Logger.debug) Logger.debug('AI preload: analysis cached');
+  analyzeFn(data.sortedLogs, data.allLogsForTraining).then(function(analysis) {
+    setAICache(analysis, data.sortedLogs, data.dateRangeText, data.cacheKey);
   }).catch(function() {});
 }
 
 function scheduleAIPreload() {
-  var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
-  if (profile && !profile.enableAIPreload) return;
-  var delay = (profile && profile.aiPreloadDelayMs != null) ? profile.aiPreloadDelayMs : 2000;
-  function runWhenIdle() {
-    if (typeof requestIdleCallback !== 'undefined') {
-      requestIdleCallback(function() { preloadAIAnalysisInBackground(); }, { timeout: 800 });
-    } else {
-      setTimeout(preloadAIAnalysisInBackground, 100);
-    }
-  }
-  if (typeof requestIdleCallback !== 'undefined') {
-    requestIdleCallback(runWhenIdle, { timeout: delay + 1500 });
+  if (window.BackgroundLoader && typeof window.BackgroundLoader.scheduleAIPreload === 'function') {
+    window.BackgroundLoader.scheduleAIPreload({
+      runAIAnalysis: preloadAIAnalysisInBackground,
+      getAIPreloadData: getAIPreloadData,
+      setAICache: setAICache
+    });
   } else {
-    setTimeout(runWhenIdle, delay);
+    var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
+    if (profile && !profile.enableAIPreload) return;
+    var delay = (profile && profile.aiPreloadDelayMs != null) ? profile.aiPreloadDelayMs : 2000;
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(function() { preloadAIAnalysisInBackground(); }, { timeout: delay + 1500 });
+    } else {
+      setTimeout(preloadAIAnalysisInBackground, delay);
+    }
   }
 }
 
@@ -10857,40 +10870,33 @@ function loadChart(container, chartType) {
   }
 }
 
-// Preload charts in background so Charts tab and all options load quickly (device-aware)
+// Preload charts in background (fallback when BackgroundLoader is not available).
 function preloadChartsInBackground() {
   var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
   if (profile && !profile.enableChartPreload) return;
   if (!logs || logs.length === 0) return;
   if (typeof ApexCharts === 'undefined') return;
-  const filteredLogs = getFilteredLogs();
+  var filteredLogs = getFilteredLogs();
   if (!filteredLogs || filteredLogs.length === 0) return;
-  const chartSection = document.getElementById('chartSection');
-  if (!chartSection) return;
-
-  var staggerMs = (profile && profile.lazyChartStaggerMs != null) ? profile.lazyChartStaggerMs : 180;
-  var gapAfterCombinedMs = 220;
-  if (window.healthAppDebug && Logger.debug) {
-    Logger.debug('preloadChartsInBackground: starting (throttled)');
-  }
-  const lazyCharts = document.querySelectorAll('.lazy-chart');
-  let index = 0;
+  if (!document.getElementById('chartSection')) return;
+  var staggerMs = (profile && profile.lazyChartStaggerMs != null) ? profile.lazyChartStaggerMs : 200;
+  var gapAfterCombinedMs = 260;
   function runCombinedThenStartLazy() {
     createCombinedChart();
-    setTimeout(function() { scheduleNext(); }, gapAfterCombinedMs);
-  }
-  function scheduleNext() {
-    if (index >= lazyCharts.length) return;
-    const container = lazyCharts[index];
-    const chartType = container.dataset.chartType;
-    index += 1;
-    if (chartType && !loadedCharts.has(chartType)) {
-      loadedCharts.add(chartType);
-      loadChart(container, chartType);
+    var lazyCharts = document.querySelectorAll('.lazy-chart');
+    var index = 0;
+    function scheduleNext() {
+      if (index >= lazyCharts.length) return;
+      var container = lazyCharts[index];
+      var chartType = container && container.dataset && container.dataset.chartType;
+      index += 1;
+      if (chartType && !loadedCharts.has(chartType)) {
+        loadedCharts.add(chartType);
+        loadChart(container, chartType);
+      }
+      if (index < lazyCharts.length) setTimeout(scheduleNext, staggerMs);
     }
-    if (index < lazyCharts.length) {
-      setTimeout(scheduleNext, staggerMs);
-    }
+    setTimeout(scheduleNext, gapAfterCombinedMs);
   }
   if (typeof requestIdleCallback !== 'undefined') {
     requestIdleCallback(runCombinedThenStartLazy, { timeout: 2500 });
@@ -10901,14 +10907,30 @@ function preloadChartsInBackground() {
 
 function scheduleChartsPreload() {
   var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
-  var delay = (profile && profile.chartPreloadDelayMs != null) ? profile.chartPreloadDelayMs : 1500;
   if (profile && !profile.enableChartPreload) return;
-  if (typeof requestIdleCallback !== 'undefined') {
-    requestIdleCallback(function() {
-      preloadChartsInBackground();
-    }, { timeout: delay + 1000 });
+  if (window.BackgroundLoader && typeof window.BackgroundLoader.scheduleChartPreload === 'function') {
+    window.BackgroundLoader.scheduleChartPreload({
+      runCombined: function() {
+        if (!logs || logs.length === 0 || typeof ApexCharts === 'undefined') return;
+        var filtered = getFilteredLogs();
+        if (!filtered || filtered.length === 0) return;
+        if (!document.getElementById('chartSection')) return;
+        createCombinedChart();
+      },
+      runLazyChart: function(container, chartType) {
+        loadedCharts.add(chartType);
+        loadChart(container, chartType);
+      },
+      getLazyCharts: function() { return document.querySelectorAll('.lazy-chart'); },
+      loadedCharts: loadedCharts
+    });
   } else {
-    setTimeout(preloadChartsInBackground, delay);
+    var delay = (profile && profile.chartPreloadDelayMs != null) ? profile.chartPreloadDelayMs : 1500;
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(preloadChartsInBackground, { timeout: delay + 1000 });
+    } else {
+      setTimeout(preloadChartsInBackground, delay);
+    }
   }
 }
 

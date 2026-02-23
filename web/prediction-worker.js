@@ -54,8 +54,7 @@ async function performPrediction(data) {
   // Import AIEngine functions (simplified version for worker)
   // In production, you'd use importScripts or dynamic import
   if (typeof self.AIEngine === 'undefined') {
-    // Load AIEngine in worker context
-    importScripts('../AIEngine.js');
+    importScripts('AIEngine.js');
   }
   
   if (!self.AIEngine) {
@@ -159,7 +158,7 @@ async function performAnalysis(data) {
   const { logs, allLogs } = data;
   
   if (typeof self.AIEngine === 'undefined') {
-    importScripts('../AIEngine.js');
+    importScripts('AIEngine.js');
   }
   
   if (!self.AIEngine) {
