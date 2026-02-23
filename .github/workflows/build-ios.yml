@@ -36,7 +36,12 @@ jobs:
 
       - name: Add iOS platform (if not present)
         working-directory: react-app
-        run: npx cap add ios || true
+        run: |
+          if [ ! -d ios ]; then
+            npx cap add ios
+          else
+            echo "ios/ already present, skipping add"
+          fi
 
       - name: Sync Capacitor iOS
         working-directory: react-app
