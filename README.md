@@ -553,6 +553,18 @@ For issues and questions:
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
 <details>
+<summary><strong>v1.14.0</strong> — 2026-02-23 — Background loader module, slower rate, optional worker</summary>
+
+- **Background loader module** (`web/background-loader.js`): Device-aware scheduling for chart and AI preload; loads after `performance-utils.js`, exposes `BackgroundLoader.scheduleChartPreload` and `BackgroundLoader.scheduleAIPreload`.
+- **Slower preload rate**: Chart preload uses device-based stagger (low 280 ms, medium 200 ms, high 120 ms) and gap after combined (350 / 260 / 180 ms); profile `chartPreloadDelayMs` for initial delay.
+- **Optional multithread**: When `useWorkers` (e.g. `hardwareConcurrency >= 2` and not saveData), AI preload can run in `prediction-worker.js`; on worker failure or timeout (30 s), falls back to main-thread preload.
+- **performance-utils.js**: `platform.hardwareConcurrency` and `getOptimizationProfile().useWorkers` added for loader and worker choice.
+- **prediction-worker.js**: `importScripts('AIEngine.js')` (same directory); app posts `logs`/`allLogs` for ANALYZE.
+- **app.js**: Chart and AI preload delegate to `BackgroundLoader` when present; `getAIPreloadData`/`setAICache` for worker path; fallbacks when loader missing.
+
+</details>
+
+<details>
 <summary><strong>v1.13.9</strong> — 2026-02-23 — Throttle preload to avoid UI freeze</summary>
 
 - **Chart preload**: Combined chart and individual charts no longer run in one blocking burst. Combined chart is deferred with `requestIdleCallback` (or `setTimeout(0)`); a 220 ms gap follows before the first individual chart; each subsequent chart is staggered by 180 ms (was 80 ms) so the app stays responsive.
