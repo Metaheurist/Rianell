@@ -174,7 +174,7 @@ The app can be run as a **React (Vite) app** that wraps the existing web UI and 
 
 ### Local setup (optional)
 
-- **Node.js 18+**
+- **Node.js 20+**
 - From repo root:
   ```bash
   npm install
@@ -471,7 +471,7 @@ Health-app/
 ### Node.js (optional: React & Android)
 - Used only for the React/Capacitor build and Android APK. See **React shell & Android APK**.
 - Root `package.json`: scripts for `build`, `build:android`, `sync`, `dev`
-- `react-app/`: Vite, React, Capacitor; run `npm run build` from repo root
+- `react-app/`: Vite 6, React, Capacitor 7; run `npm run build` from repo root
 
 ## Development
 
@@ -565,6 +565,15 @@ For issues and questions:
 ## Changelog
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
+
+<details>
+<summary><strong>v1.17.0</strong> — 2026-02-23 — Dependencies: Dependabot alerts resolved</summary>
+
+- **npm (react-app)**: Upgraded Vite 5 → 6.4 (esbuild 0.25+, fixes moderate CORS advisory) and all @capacitor/* 6 → 7 (fixes high: minimatch ReDoS, tar path traversal). Regenerated package-lock.json; `npm audit` reports 0 vulnerabilities.
+- **Node**: Root `package.json` engines set to Node >=20 for Vite 6 compatibility. README and local setup now state Node.js 20+.
+- **React/Capacitor**: @vitejs/plugin-react ^4.5.0; build and audit verified.
+
+</details>
 
 <details>
 <summary><strong>v1.16.0</strong> — 2026-02-23 — Performance, memory caps, loading UX, disclaimer, CSP</summary>
