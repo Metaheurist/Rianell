@@ -553,6 +553,23 @@ For issues and questions:
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
 <details>
+<summary><strong>v1.13.6</strong> — 2026-02-23 — README and changelog</summary>
+
+- **README**: Changelog updated with version summaries; UK English retained.
+- **Versioning**: Bump to v1.13.6 for documentation and release tracking.
+
+</details>
+
+<details>
+<summary><strong>v1.13.5</strong> — 2026-02-23 — Per-platform optimisation and hardware detection</summary>
+
+- **Platform and capabilities**: Central layer in `performance-utils.js` exposes `PerformanceUtils.platform` (and `window.PlatformCapabilities`) with `deviceClass` ('low' | 'medium' | 'high'), `platform` (ios/android/desktop), `isTouch`, `isStandalone`, `prefersReducedMotion`, and optional `connection`. Single source of truth for hardware and platform used by LLM and charts.
+- **Lazy-load LLM on low-end**: On low device class, `summary-llm.js` is not loaded in initial page; it is loaded on demand when the user first uses AI (Summary note or Suggest note). Medium/high devices load it up front for snappier AI.
+- **Chart optimisations**: Charts use `deviceClass` to cap data points (low → max 30 points; medium/high keep existing 50/30 by viewport). When `prefersReducedMotion` is true, ApexCharts animations are disabled for that chart.
+
+</details>
+
+<details>
 <summary><strong>v1.13.4</strong> — 2026-02-23 — LLM model by device performance</summary>
 
 - **Summary/Suggest LLM**: In-browser model is now chosen by device performance (RAM, CPU cores, mobile heuristic). Low-end and mobile use flan-t5-small; medium/high use flan-t5-base for better quality. Pipeline is cached by model id. If flan-t5-base fails to load, the app retries once with flan-t5-small before falling back to rule-based note.
