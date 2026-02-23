@@ -262,7 +262,7 @@ function openAIAnalysisReportForPrint() {
     '<p class="report-meta">For discussion with your healthcare provider.</p>' +
     '</div>' +
     '<div class="report-body">' + bodyContent + '</div>' +
-    '<div class="report-footer">For patterns only—talk to your doctor before changing care. You can share this at your next visit.</div>' +
+    '<div class="report-footer">For patterns only—talk to your doctor before changing care. You can share this at your next visit. AI data (e.g. prediction weights) is stored on your device and, when signed in, backed up to your cloud account.</div>' +
     '<p class="report-print-hint">To save as PDF: use Print (Ctrl+P or Cmd+P) and choose "Save as PDF".</p>' +
     '</body></html>';
   var win = window.open('', '_blank');
@@ -562,7 +562,7 @@ function runAIAnalysisPDFVisual(contentEl, fallbackText, JsPDF, onFallback) {
       doc.setFontSize(9);
       doc.setFont(undefined, 'normal');
       doc.setTextColor(100, 100, 100);
-      doc.text('For patterns only—talk to your doctor before changing care. You can share this at your next visit.', margin, footerY, { maxWidth: maxWidth });
+      doc.text('For patterns only—talk to your doctor before changing care. You can share this at your next visit. AI data (e.g. prediction weights) is stored on your device and, when signed in, backed up to your cloud account.', margin, footerY, { maxWidth: maxWidth });
       var filename = 'health_ai_analysis_' + new Date().toISOString().split('T')[0] + '.pdf';
       doc.save(filename);
       if (typeof closeShareModal === 'function') closeShareModal();
@@ -951,7 +951,7 @@ function generateAIAnalysisPDF(text, JsPDF) {
     doc.setFontSize(9);
     doc.setFont(undefined, 'normal');
     doc.setTextColor(100, 100, 100);
-    doc.text('For patterns only—talk to your doctor before changing care. You can share this at your next visit.', margin, footerY, { maxWidth: maxWidth });
+    doc.text('For patterns only—talk to your doctor before changing care. You can share this at your next visit. AI data (e.g. prediction weights) is stored on your device and, when signed in, backed up to your cloud account.', margin, footerY, { maxWidth: maxWidth });
 
     doc.save('health_ai_analysis_' + new Date().toISOString().split('T')[0] + '.pdf');
     if (typeof closeShareModal === 'function') closeShareModal();
