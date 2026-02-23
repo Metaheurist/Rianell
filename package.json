@@ -11,6 +11,6 @@
     "sync": "cd react-app && npx cap sync"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }
