@@ -1937,11 +1937,17 @@
   <script src="import-utils.js?v=1"></script>
   <script src="print-utils.js?v=1"></script>
   <script src="performance-utils.js"></script>
+  <script>
+    (function() {
+      if (typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass !== 'low') {
+        document.write('<script src="summary-llm.js"><\/script>');
+      }
+    })();
+  </script>
   <script src="app.js?v=1"></script>
   <script src="security-utils.js"></script>
   <script src="encryption-utils.js"></script>
   <script src="cloud-sync.js"></script>
-  <script src="summary-llm.js"></script>
   <script>
     (function() {
       if (typeof refreshBuildDownloadLinks === 'function') refreshBuildDownloadLinks();

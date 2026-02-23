@@ -2715,7 +2715,7 @@ notesField.addEventListener('input', updateNotesCounter);
 (function() {
   var suggestBtn = document.getElementById('suggestNoteBtn');
   if (!suggestBtn) return;
-  suggestBtn.addEventListener('click', function() {
+  suggestBtn.addEventListener('click', async function() {
     if (!window.AIEngine || typeof window.AIEngine.suggestLogNote !== 'function') return;
     var dateEl = document.getElementById('date');
     var stub = { date: dateEl ? dateEl.value : '' };
@@ -2733,7 +2733,7 @@ notesField.addEventListener('input', updateNotesCounter);
         : allLogs.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
       var fallback = window.AIEngine.suggestLogNote(stub, { recentLogs: sorted });
       var contextStr = (typeof window.buildSuggestContext === 'function') ? window.buildSuggestContext(stub, sorted) : '';
-      var useLLM = typeof window.generateSuggestNoteWithLLM === 'function' && contextStr && contextStr.length >= 30;
+      var useLLM = (typeof window.generateSuggestNoteWithLLM === 'function' || (window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low')) && contextStr && contextStr.length >= 30;
 
       function applySuggestion(text) {
         if (text && notesField) {
@@ -2747,17 +2747,28 @@ notesField.addEventListener('input', updateNotesCounter);
         var btnLabel = suggestBtn.textContent || suggestBtn.innerText;
         suggestBtn.textContent = 'Generating…';
         suggestBtn.disabled = true;
-        window.generateSuggestNoteWithLLM(contextStr, fallback || '')
-          .then(function(text) {
-            applySuggestion(text || fallback);
-          })
-          .catch(function() {
-            applySuggestion(fallback);
-          })
-          .then(function() {
-            suggestBtn.textContent = btnLabel;
-            suggestBtn.disabled = false;
-          });
+        if (typeof window.generateSuggestNoteWithLLM !== 'function' && window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low' && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
+          try {
+            await window.PerformanceUtils.lazyLoadScript('summary-llm.js');
+          } catch (e) {}
+        }
+        if (typeof window.generateSuggestNoteWithLLM === 'function') {
+          window.generateSuggestNoteWithLLM(contextStr, fallback || '')
+            .then(function(text) {
+              applySuggestion(text || fallback);
+            })
+            .catch(function() {
+              applySuggestion(fallback);
+            })
+            .then(function() {
+              suggestBtn.textContent = btnLabel;
+              suggestBtn.disabled = false;
+            });
+        } else {
+          applySuggestion(fallback);
+          suggestBtn.textContent = btnLabel;
+          suggestBtn.disabled = false;
+        }
       } else {
         applySuggestion(fallback);
       }
@@ -4663,7 +4674,7 @@ function generateAISummary() {
 }
 
 // Update the Summary note paragraph with in-browser LLM result when available (runs after displayAISummary).
-function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
+async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
   var el = document.getElementById('aiSummaryNoteText');
   if (!el || !analysis) return;
   var fallbackNote = '';
@@ -4673,6 +4684,14 @@ function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
     } catch (e) {}
   }
   if (!fallbackNote || !fallbackNote.trim()) return;
+  if (typeof window.generateSummaryWithLLM !== 'function') {
+    var platform = window.PerformanceUtils && window.PerformanceUtils.platform;
+    if (platform && platform.deviceClass === 'low' && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
+      try {
+        await window.PerformanceUtils.lazyLoadScript('summary-llm.js');
+      } catch (e) {}
+    }
+  }
   if (typeof window.generateSummaryWithLLM !== 'function') return;
   var originalText = el.textContent;
   el.textContent = 'Generating summary…';
@@ -9610,6 +9629,8 @@ async function chart(id, label, dataField, color) {
   // Detect mobile device (cache window size check)
   const isMobile = window.innerWidth <= 768;
   const isSmallScreen = window.innerWidth <= 480;
+  const deviceClass = (window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass) || 'medium';
+  const prefersReducedMotion = !!(window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.prefersReducedMotion);
   
   // Get filtered logs based on date range (cached)
   const filteredLogs = getFilteredLogs();
@@ -9674,14 +9695,17 @@ async function chart(id, label, dataField, color) {
   // Sort by timestamp
   chartData.sort((a, b) => a.x - b.x);
   
-  // Reduce data points on mobile for better performance
+  // Reduce data points by device class and viewport for better performance
   let optimizedChartData = chartData;
-  if (isMobile && chartData.length > 50) {
-    // Sample data points evenly for mobile
-    const step = Math.ceil(chartData.length / 50);
+  const maxPointsLow = 30;
+  const maxPointsMobile = 50;
+  if (deviceClass === 'low' && chartData.length > maxPointsLow) {
+    const step = Math.ceil(chartData.length / maxPointsLow);
+    optimizedChartData = chartData.filter((_, index) => index % step === 0 || index === chartData.length - 1);
+  } else if (isMobile && chartData.length > maxPointsMobile) {
+    const step = Math.ceil(chartData.length / maxPointsMobile);
     optimizedChartData = chartData.filter((_, index) => index % step === 0 || index === chartData.length - 1);
   } else if (isSmallScreen && chartData.length > 30) {
-    // Even more aggressive reduction for very small screens
     const step = Math.ceil(chartData.length / 30);
     optimizedChartData = chartData.filter((_, index) => index % step === 0 || index === chartData.length - 1);
   }
@@ -10116,7 +10140,7 @@ async function chart(id, label, dataField, color) {
         type: 'x'
       },
       animations: {
-        enabled: !isSmallScreen, // Disable animations on very small screens for better performance
+        enabled: !isSmallScreen && !prefersReducedMotion, // Disable on very small screens and when user prefers reduced motion
         easing: 'easeinout',
         speed: 600,
         animateGradually: {
