@@ -465,21 +465,117 @@ const platform = (function () {
   const isStandalone = !!(win && (win.matchMedia('(display-mode: standalone)').matches || win.navigator.standalone));
   const prefersReducedMotion = !!(win && win.matchMedia && win.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
+  var w = (win && win.innerWidth) != null ? win.innerWidth : 0;
+  var h = (win && win.innerHeight) != null ? win.innerHeight : 0;
+  var isTouch = !!(nav.maxTouchPoints && nav.maxTouchPoints > 0);
+  var isTablet = isTouch && (Math.min(w, h) >= 600 && (Math.max(w, h) <= 1280 || /iPad|Android(?!.*Mobile)|Tablet/i.test(ua)));
+
   return {
     deviceClass: getDevicePerformanceClass(),
     platform: platformName,
-    isTouch: !!(nav.maxTouchPoints && nav.maxTouchPoints > 0),
+    isTouch: isTouch,
+    isTablet: isTablet,
     isStandalone,
     prefersReducedMotion,
-    connection
+    connection: connection,
+    screenWidth: w,
+    screenHeight: h
   };
 })();
+
+/**
+ * Single optimization profile per device/platform. Use this for charts, preload, DOM, storage.
+ * Respects deviceClass, saveData, prefersReducedMotion, and platform (ios/android/desktop/tablet).
+ */
+function getOptimizationProfile() {
+  var p = platform;
+  var deviceClass = p.deviceClass || 'medium';
+  var saveData = !!(p.connection && p.connection.saveData);
+  var reducedMotion = p.prefersReducedMotion;
+  var isLow = deviceClass === 'low';
+  var isHigh = deviceClass === 'high';
+  var isTablet = p.isTablet;
+  var plat = p.platform || 'desktop';
+
+  var chartMaxPoints = 50;
+  if (isLow) chartMaxPoints = 24;
+  else if (isTablet || plat === 'ios' || plat === 'android') chartMaxPoints = 40;
+
+  var chartAnimation = !reducedMotion && !isLow;
+
+  var enableChartPreload = true;
+  var chartPreloadDelayMs = 1500;
+  if (saveData) {
+    enableChartPreload = false;
+  } else if (isLow) {
+    chartPreloadDelayMs = 3500;
+    enableChartPreload = true;
+  } else if (isHigh) {
+    chartPreloadDelayMs = 800;
+  }
+
+  var effectiveType = (p.connection && p.connection.effectiveType) ? String(p.connection.effectiveType).toLowerCase() : '';
+  var slowConnection = saveData || effectiveType === '2g';
+  var enableAIPreload = !isLow && !slowConnection;
+  var aiPreloadDelayMs = isLow ? 4000 : isHigh ? 1000 : 2000;
+  if (slowConnection && aiPreloadDelayMs < 4000) aiPreloadDelayMs = 4000;
+
+  var domCacheTtlMs = 30000;
+  if (isLow) domCacheTtlMs = 45000;
+  else if (isHigh) domCacheTtlMs = 20000;
+
+  var storageBatchDelayMs = 100;
+  if (isLow) storageBatchDelayMs = 200;
+
+  var lazyChartStaggerMs = 80;
+  if (isLow) lazyChartStaggerMs = 150;
+  else if (isHigh) lazyChartStaggerMs = 40;
+
+  var reduceUIAnimations = reducedMotion || isLow; // same as getDeviceOpts().reduceAnimations
+
+  return {
+    deviceClass: deviceClass,
+    chartMaxPoints: chartMaxPoints,
+    chartAnimation: chartAnimation,
+    enableChartPreload: enableChartPreload,
+    chartPreloadDelayMs: chartPreloadDelayMs,
+    enableAIPreload: enableAIPreload,
+    aiPreloadDelayMs: aiPreloadDelayMs,
+    domCacheTtlMs: domCacheTtlMs,
+    storageBatchDelayMs: storageBatchDelayMs,
+    lazyChartStaggerMs: lazyChartStaggerMs,
+    reduceUIAnimations: reduceUIAnimations,
+    saveData: saveData
+  };
+}
+
+/**
+ * Device-based optimization flags for the rest of the app.
+ * Derived from platform.deviceClass and platform.prefersReducedMotion (single source of truth).
+ * @returns {{ reduceAnimations: boolean, maxChartPoints: number, deferAI: boolean, batchDOM: boolean }}
+ */
+function getDeviceOpts() {
+  var p = platform;
+  var deviceClass = p.deviceClass || 'medium';
+  var reduceAnimations = !!(p.prefersReducedMotion || deviceClass === 'low');
+  var maxChartPoints = deviceClass === 'low' ? 30 : deviceClass === 'medium' ? 80 : 200;
+  return {
+    reduceAnimations: reduceAnimations,
+    maxChartPoints: maxChartPoints,
+    deferAI: deviceClass === 'low',
+    batchDOM: deviceClass === 'low' || deviceClass === 'medium'
+  };
+}
 
 // ============================================
 // Export
 // ============================================
 
 if (typeof window !== 'undefined') {
+  var profile = getOptimizationProfile();
+  DOMCache._cacheTimeout = profile.domCacheTtlMs;
+  StorageBatcher._delay = profile.storageBatchDelayMs;
+
   window.PerformanceUtils = {
     DOMCache,
     debounce,
@@ -493,6 +589,8 @@ if (typeof window !== 'undefined') {
     PerformanceMonitor,
     StorageBatcher,
     getDevicePerformanceClass,
+    getOptimizationProfile,
+    getDeviceOpts,
     platform
   };
   window.PlatformCapabilities = platform;
