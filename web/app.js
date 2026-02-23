@@ -3267,7 +3267,7 @@ async function createCombinedChart() {
     return seriesArray;
   }).flat(); // Flatten the array of series arrays
   
-  console.log(`Creating combined chart with ${series.length} metrics`);
+  Logger.debug('Creating combined chart', { metrics: series.length });
   
   const options = {
     series: series,
@@ -4645,6 +4645,8 @@ document.addEventListener('keydown', function(event) {
 
 // Cache for preloaded AI analysis so opening AI tab is instant when preload has run
 window._aiAnalysisCache = null;
+// Multi-range cache: key (from getAICacheKey) -> { analysis, sortedLogs, dateRangeText, cacheKey }; only update on data change
+window._aiAnalysisCacheMap = Object.create(null);
 
 function getAICacheKey(aiDateRange, logsLength, filteredCount) {
   var r = aiDateRange || { type: 7 };
@@ -4732,10 +4734,14 @@ async function generateAISummary() {
   const sortedLogs = filteredLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
   const cacheKey = getAICacheKey(aiDateRange, logs.length, sortedLogs.length);
 
-  // Use preloaded result if available for this range
-  if (window._aiAnalysisCache && window._aiAnalysisCache.cacheKey === cacheKey) {
-    displayAISummary(window._aiAnalysisCache.analysis, window._aiAnalysisCache.sortedLogs, window._aiAnalysisCache.sortedLogs.length, null, window._aiAnalysisCache.dateRangeText);
-    updateSummaryNoteWithLLM(window._aiAnalysisCache.analysis, window._aiAnalysisCache.sortedLogs, window._aiAnalysisCache.sortedLogs.length);
+  // Use preloaded result if available for this range (single-entry or multi-range map)
+  var cached = (window._aiAnalysisCache && window._aiAnalysisCache.cacheKey === cacheKey)
+    ? window._aiAnalysisCache
+    : (window._aiAnalysisCacheMap && window._aiAnalysisCacheMap[cacheKey]);
+  if (cached) {
+    window._aiAnalysisCache = cached;
+    displayAISummary(cached.analysis, cached.sortedLogs, cached.sortedLogs.length, null, cached.dateRangeText);
+    updateSummaryNoteWithLLM(cached.analysis, cached.sortedLogs, cached.sortedLogs.length);
     Logger.info('AI Summary - Display from cache');
     return;
   }
@@ -4773,7 +4779,9 @@ async function generateAISummary() {
         throw new Error('No analysis function available. AIEngine may not be loaded.');
       }
 
-      window._aiAnalysisCache = { analysis: analysis, sortedLogs: sortedLogs, dateRangeText: dateRangeText, cacheKey: cacheKey };
+      var entry = { analysis: analysis, sortedLogs: sortedLogs, dateRangeText: dateRangeText, cacheKey: cacheKey };
+      window._aiAnalysisCache = entry;
+      if (window._aiAnalysisCacheMap) window._aiAnalysisCacheMap[cacheKey] = entry;
       displayAISummary(analysis, sortedLogs, sortedLogs.length, null, dateRangeText);
       updateSummaryNoteWithLLM(analysis, sortedLogs, sortedLogs.length);
       Logger.info('AI Summary - Display complete');
@@ -4831,6 +4839,7 @@ function getAIPreloadData() {
   var sortedLogs = filteredLogs.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
   var cacheKey = getAICacheKey(aiDateRange, logs.length, sortedLogs.length);
   if (window._aiAnalysisCache && window._aiAnalysisCache.cacheKey === cacheKey) return null;
+  if (window._aiAnalysisCacheMap && window._aiAnalysisCacheMap[cacheKey]) return null;
   var allLogsForTraining = window.PerformanceUtils && window.PerformanceUtils.memoizedSort
     ? window.PerformanceUtils.memoizedSort(logs, function(a, b) { return new Date(a.date) - new Date(b.date); }, 'allLogsForTraining')
     : logs.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
@@ -4839,7 +4848,9 @@ function getAIPreloadData() {
 
 function setAICache(analysis, sortedLogs, dateRangeText, cacheKey) {
   if (analysis == null) return;
-  window._aiAnalysisCache = { analysis: analysis, sortedLogs: sortedLogs || [], dateRangeText: dateRangeText || '', cacheKey: cacheKey || '' };
+  var entry = { analysis: analysis, sortedLogs: sortedLogs || [], dateRangeText: dateRangeText || '', cacheKey: cacheKey || '' };
+  window._aiAnalysisCache = entry;
+  if (window._aiAnalysisCacheMap) window._aiAnalysisCacheMap[cacheKey || ''] = entry;
   if (window.healthAppDebug && Logger.debug) Logger.debug('AI preload: analysis cached');
 }
 
@@ -4854,6 +4865,47 @@ function preloadAIAnalysisInBackground() {
   analyzeFn(data.sortedLogs, data.allLogsForTraining).then(function(analysis) {
     setAICache(analysis, data.sortedLogs, data.dateRangeText, data.cacheKey);
   }).catch(function() {});
+}
+
+// Preload AI analysis for all fixed ranges (7, 30, 90 days) during loading screen; cache by range and data identity.
+function preloadAIForAllRanges() {
+  var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
+  if (profile && !profile.enableAIPreload) return Promise.resolve();
+  if (typeof appSettings === 'undefined' || appSettings.aiEnabled === false) return Promise.resolve();
+  if (!logs || logs.length === 0) return Promise.resolve();
+  var analyzeFn = (window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function')
+    ? window.AIEngine.analyzeHealthMetrics
+    : (typeof analyzeHealthMetrics === 'function' ? analyzeHealthMetrics : null);
+  if (!analyzeFn) return Promise.resolve();
+
+  var allLogsForTraining = window.PerformanceUtils && window.PerformanceUtils.memoizedSort
+    ? window.PerformanceUtils.memoizedSort(logs, function(a, b) { return new Date(a.date) - new Date(b.date); }, 'allLogsForTraining')
+    : logs.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+
+  var promises = [];
+  [7, 30, 90].forEach(function(days) {
+    var endDate = new Date();
+    endDate.setHours(23, 59, 59, 999);
+    var startDate = new Date();
+    startDate.setDate(startDate.getDate() - (days - 1));
+    startDate.setHours(0, 0, 0, 0);
+    var filteredLogs = logs.filter(function(log) {
+      var d = new Date(log.date);
+      return d >= startDate && d <= endDate;
+    });
+    if (filteredLogs.length === 0) return;
+    var sortedLogs = filteredLogs.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+    var range = { type: days };
+    var cacheKey = getAICacheKey(range, logs.length, sortedLogs.length);
+    if (window._aiAnalysisCacheMap && window._aiAnalysisCacheMap[cacheKey]) return;
+    var dateRangeText = days === 1 ? 'today' : 'last ' + days + ' days';
+    promises.push(
+      analyzeFn(sortedLogs, allLogsForTraining).then(function(analysis) {
+        setAICache(analysis, sortedLogs, dateRangeText, cacheKey);
+      }).catch(function() {})
+    );
+  });
+  return Promise.all(promises);
 }
 
 function scheduleAIPreload() {
@@ -9696,6 +9748,12 @@ function getFilteredLogs() {
 function invalidateFilteredLogsCache() {
   _filteredLogsCache = null;
   _filteredLogsCacheKey = null;
+  invalidateAIAnalysisCache();
+}
+
+function invalidateAIAnalysisCache() {
+  window._aiAnalysisCache = null;
+  window._aiAnalysisCacheMap = Object.create(null);
 }
 
 // ---- Chart results cache (precomputed View x Prediction for quick switch) ----
@@ -10384,8 +10442,7 @@ async function chart(id, label, dataField, color) {
     }
   }
   
-  // Debug logging for weight chart
-  console.log(`Creating ApexChart for ${label} with ${chartData.length} data points`);
+  Logger.debug('Creating ApexChart', { label: label, points: chartData.length });
   
   // Prepare series array (use optimized data for mobile)
   const series = [{
@@ -11206,6 +11263,11 @@ function updateCharts() {
   // Check if we have any data to display
   const hasData = logs && logs.length > 0;
   updateChartEmptyState(hasData);
+  
+  // If all charts were built during load, don't clear/destroy them
+  if (window.__chartsBuiltDuringLoad) {
+    return;
+  }
   
   // Only handle individual charts - combined is handled by toggleChartView
     // Use lazy loading if enabled (default), otherwise load immediately
@@ -13565,8 +13627,8 @@ function checkAndUpdateViewRangeButtons() {
   const endDateInput = document.getElementById('endDate');
   
   if (!startDateInput || !endDateInput || !startDateInput.value || !endDateInput.value) {
-    // If dates are empty, default to 7 days selected
-    if (typeof setLogViewRange === 'function') setLogViewRange(7);
+    // If dates are empty, default to Today selected
+    if (typeof setLogViewRange === 'function') setLogViewRange(1);
     return;
   }
   
@@ -13929,9 +13991,9 @@ function switchTab(tabName) {
     }
   }
   
-  // Special handling for logs tab - ensure it's visible
+  // View Logs tab: default to Today and load logs with that range
   if (tabName === 'logs') {
-    // Logs are always visible in their tab
+    if (typeof setLogViewRange === 'function') setLogViewRange(1);
   }
   
   // Special handling for AI tab - initialize date range
@@ -14102,8 +14164,8 @@ window.addEventListener('load', () => {
     initializeDateFilters();
     setChartDateRange(7);
     setPredictionRange(7);
-    setLogViewRange(7);
-    if (appSettings.showCharts) {
+  setLogViewRange(1);
+  if (appSettings.showCharts) {
       const chartSection = document.getElementById('chartSection');
       if (chartSection) chartSection.classList.remove('hidden');
     }
@@ -14113,13 +14175,22 @@ window.addEventListener('load', () => {
   
   if (loadingTextEl) loadingTextEl.textContent = 'Loading charts and AI…';
   
-  // Keep loading circle until combined chart and summary LLM are ready (or timeout)
-  const chartsReady = (!appSettings.showCharts || !document.getElementById('chartSection') || !logs || logs.length === 0)
+  // Keep loading circle until combined chart, all 14 individual charts, and summary LLM are ready (or timeout)
+  const chartSectionEl = document.getElementById('chartSection');
+  const needCharts = appSettings.showCharts && chartSectionEl && logs && logs.length > 0;
+  const chartsReady = !needCharts
     ? Promise.resolve()
-    : (typeof createCombinedChart === 'function' ? createCombinedChart() : Promise.resolve()).catch(function () {});
+    : (typeof createCombinedChart === 'function' ? createCombinedChart() : Promise.resolve()).then(function () {
+        if (typeof ApexCharts !== 'undefined' && typeof updateChartsImmediate === 'function') {
+          window.__chartsBuiltDuringLoad = true;
+          updateChartsImmediate();
+        }
+      }).catch(function () {});
   const aiReady = (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function')
     ? Promise.resolve()
-    : window.preloadSummaryLLM().catch(function () {});
+    : window.preloadSummaryLLM().then(function () {
+        return typeof preloadAIForAllRanges === 'function' ? preloadAIForAllRanges() : Promise.resolve();
+      }).catch(function () {});
   const timeout = new Promise(function (resolve) { setTimeout(resolve, 12000); });
   
   Promise.race([ Promise.allSettled([ chartsReady, aiReady ]), timeout ]).then(function () {
@@ -14138,7 +14209,8 @@ window.addEventListener('load', () => {
     renderLogs();
     updateCharts();
     updateAISummaryButtonState();
-    scheduleChartsPreload();
+    if (!window.__chartsBuiltDuringLoad) scheduleChartsPreload();
+    window.__chartsBuiltDuringLoad = false;
     scheduleAIPreload();
     clearAISection();
     
@@ -14194,11 +14266,7 @@ window.addEventListener('load', () => {
 
 function initializeDateFilters() {
   const today = new Date();
-  // Last 7 days including today: start = today - 6
-  const sevenDaysStart = new Date();
-  sevenDaysStart.setDate(today.getDate() - 6);
-  
-  // Format dates for input[type="date"]
+  // Default View Logs range to Today (1 day)
   const formatDate = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -14210,7 +14278,7 @@ function initializeDateFilters() {
   const endDateInput = document.getElementById('endDate');
   
   if (startDateInput && endDateInput) {
-    startDateInput.value = formatDate(sevenDaysStart);
+    startDateInput.value = formatDate(today);
     endDateInput.value = formatDate(today);
     
     // Add event listeners to detect manual date changes
