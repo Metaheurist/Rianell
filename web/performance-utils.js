@@ -105,51 +105,57 @@ function throttle(func, limit) {
 /**
  * Memoized data processing
  */
+var DATACACHE_MAX_KEYS = 80; // Cap to avoid unbounded memory growth
 const DataCache = {
   _cache: new Map(),
   _cacheTime: new Map(),
-  _defaultTTL: 60000, // 1 minute default
+  _cacheOrder: [],
+  _defaultTTL: 60000,
   
-  /**
-   * Get cached data or compute and cache
-   */
   get(key, computeFn, ttl = this._defaultTTL) {
     const now = Date.now();
     const cached = this._cache.get(key);
     const cacheTime = this._cacheTime.get(key);
-    
     if (cached && cacheTime && (now - cacheTime) < ttl) {
       return cached;
     }
-    
+    while (this._cache.size >= DATACACHE_MAX_KEYS && this._cacheOrder.length > 0) {
+      const oldest = this._cacheOrder.pop();
+      if (oldest != null) {
+        this._cache.delete(oldest);
+        this._cacheTime.delete(oldest);
+      }
+    }
     const result = computeFn();
     this._cache.set(key, result);
     this._cacheTime.set(key, now);
+    var idx = this._cacheOrder.indexOf(key);
+    if (idx >= 0) this._cacheOrder.splice(idx, 1);
+    this._cacheOrder.unshift(key);
     return result;
   },
   
-  /**
-   * Invalidate cache
-   */
   invalidate(key = null) {
     if (key) {
       this._cache.delete(key);
       this._cacheTime.delete(key);
+      var i = this._cacheOrder.indexOf(key);
+      if (i >= 0) this._cacheOrder.splice(i, 1);
     } else {
       this._cache.clear();
       this._cacheTime.clear();
+      this._cacheOrder.length = 0;
     }
   },
   
-  /**
-   * Clear expired entries
-   */
   cleanup() {
     const now = Date.now();
     for (const [key, time] of this._cacheTime.entries()) {
       if ((now - time) > this._defaultTTL) {
         this._cache.delete(key);
         this._cacheTime.delete(key);
+        var i = this._cacheOrder.indexOf(key);
+        if (i >= 0) this._cacheOrder.splice(i, 1);
       }
     }
   }
@@ -162,31 +168,28 @@ const DataCache = {
 /**
  * Batch DOM updates using requestAnimationFrame
  */
+var DOMBATCHER_MAX_PENDING = 150; // Cap to avoid unbounded memory growth (e.g. when tab backgrounded and rAF is throttled)
 class DOMBatcher {
   constructor() {
     this.pendingUpdates = [];
     this.scheduled = false;
   }
   
-  /**
-   * Schedule a DOM update
-   */
   schedule(updateFn) {
     this.pendingUpdates.push(updateFn);
+    if (this.pendingUpdates.length >= DOMBATCHER_MAX_PENDING) {
+      this.flush();
+      return;
+    }
     if (!this.scheduled) {
       this.scheduled = true;
       requestAnimationFrame(() => this.flush());
     }
   }
   
-  /**
-   * Flush all pending updates
-   */
   flush() {
     const updates = this.pendingUpdates.splice(0);
     this.scheduled = false;
-    
-    // Use DocumentFragment for better performance
     updates.forEach(update => {
       try {
         update();
@@ -606,9 +609,12 @@ if (typeof window !== 'undefined') {
     DataCache.cleanup();
   });
   
-  // Periodic cleanup
-  setInterval(() => {
+  // Periodic cleanup (limit memory growth)
+  setInterval(function () {
     DataCache.cleanup();
-    DOMCache.clear(); // Clear DOM cache periodically
-  }, 60000); // Every minute
+    DOMCache.clear();
+    if (PerformanceMonitor.marks && PerformanceMonitor.marks.size > 20) {
+      PerformanceMonitor.marks.clear();
+    }
+  }, 60000);
 }
