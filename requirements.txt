@@ -1,5 +1,5 @@
 # Health App Server - Python Dependencies
-# Install with: pip install -r requirements.txt
+# Python 3.8 or higher required. Install with: pip install -r requirements.txt
 
 # Supabase client library (required for database operations)
 supabase>=2.0.0
@@ -10,7 +10,7 @@ watchdog>=3.0.0
 # Environment variable management (required for .env file support)
 python-dotenv>=1.0.0
 
-# Cryptography for data encryption/decryption (required for encrypted anonymized data)
+# Cryptography for data encryption/decryption (required for encrypted anonymised data)
 cryptography>=41.0.0
 
 # PostgreSQL drivers for direct SQL when DATABASE_URL is set (optional; at least one needed for exec_sql)
