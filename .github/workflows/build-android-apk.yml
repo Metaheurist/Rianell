@@ -79,6 +79,10 @@ jobs:
           git add "App build/Android/"
           git diff --staged --quiet || git commit -m "Update Android APK (build ${{ github.run_number }}) [skip ci]"
           git stash --include-untracked
-          git pull --rebase origin ${{ github.ref_name }}
+          if ! git pull --rebase origin ${{ github.ref_name }}; then
+            git checkout --theirs -- "App build/Android/"
+            git add "App build/Android/"
+            GIT_EDITOR=true git rebase --continue
+          fi
           git push origin ${{ github.ref_name }}
           git stash pop || true
