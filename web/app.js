@@ -4810,10 +4810,17 @@ function scheduleAIPreload() {
   var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
   if (profile && !profile.enableAIPreload) return;
   var delay = (profile && profile.aiPreloadDelayMs != null) ? profile.aiPreloadDelayMs : 2000;
+  function runWhenIdle() {
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(function() { preloadAIAnalysisInBackground(); }, { timeout: 800 });
+    } else {
+      setTimeout(preloadAIAnalysisInBackground, 100);
+    }
+  }
   if (typeof requestIdleCallback !== 'undefined') {
-    requestIdleCallback(function() { preloadAIAnalysisInBackground(); }, { timeout: delay + 1500 });
+    requestIdleCallback(runWhenIdle, { timeout: delay + 1500 });
   } else {
-    setTimeout(preloadAIAnalysisInBackground, delay);
+    setTimeout(runWhenIdle, delay);
   }
 }
 
@@ -10861,16 +10868,17 @@ function preloadChartsInBackground() {
   const chartSection = document.getElementById('chartSection');
   if (!chartSection) return;
 
-  var staggerMs = (profile && profile.lazyChartStaggerMs != null) ? profile.lazyChartStaggerMs : 80;
+  var staggerMs = (profile && profile.lazyChartStaggerMs != null) ? profile.lazyChartStaggerMs : 180;
+  var gapAfterCombinedMs = 220;
   if (window.healthAppDebug && Logger.debug) {
-    Logger.debug('preloadChartsInBackground: starting');
+    Logger.debug('preloadChartsInBackground: starting (throttled)');
   }
-  // Preload combined chart (no tab switch; container may be hidden)
-  createCombinedChart();
-
-  // Preload all individual charts so they are ready when user switches view
   const lazyCharts = document.querySelectorAll('.lazy-chart');
   let index = 0;
+  function runCombinedThenStartLazy() {
+    createCombinedChart();
+    setTimeout(function() { scheduleNext(); }, gapAfterCombinedMs);
+  }
   function scheduleNext() {
     if (index >= lazyCharts.length) return;
     const container = lazyCharts[index];
@@ -10881,17 +10889,13 @@ function preloadChartsInBackground() {
       loadChart(container, chartType);
     }
     if (index < lazyCharts.length) {
-      if (typeof requestIdleCallback !== 'undefined') {
-        requestIdleCallback(scheduleNext, { timeout: 3000 });
-      } else {
-        setTimeout(scheduleNext, staggerMs);
-      }
+      setTimeout(scheduleNext, staggerMs);
     }
   }
   if (typeof requestIdleCallback !== 'undefined') {
-    requestIdleCallback(function() { scheduleNext(); }, { timeout: 2500 });
+    requestIdleCallback(runCombinedThenStartLazy, { timeout: 2500 });
   } else {
-    setTimeout(function() { scheduleNext(); }, Math.min(500, staggerMs * 2));
+    setTimeout(runCombinedThenStartLazy, 0);
   }
 }
 
