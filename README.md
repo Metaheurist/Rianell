@@ -39,7 +39,7 @@ flowchart LR
 ### Charts and visualisation
 - **Combined chart**: Multi-metric line chart with date range filter; optional AI-powered trend predictions (when AI enabled); metric selector; balance and single-chart views.
 - **Individual metric charts**: Per-metric ApexCharts (e.g. fatigue, stiffness, BPM, sleep, steps, hydration) with lazy loading and device-based point caps.
-- **Chart behaviour**: Date range (7/30/90 days) and prediction range; predictions can be toggled off; empty state when no data; animations respect reduced-motion and device class.
+- **Chart behaviour**: Date range (7/30/90 days) and prediction range; predictions can be toggled off; empty state when no data; animations respect reduced-motion and device class. Charts tab opens in balance view; View Logs tab opens with last 7 days.
 - **Loading behaviour**: App shows a loading overlay until the combined chart and summary LLM preload are ready (or 12s timeout), then reveals the UI so heavy work does not stutter the first paint.
 
 ### AI analysis
@@ -567,14 +567,11 @@ For issues and questions:
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
 <details>
-<summary><strong>v1.18.0</strong> — 2026-02-23 — Charts & logs defaults, device module, first-load chart fix</summary>
+<summary><strong>v1.18.0</strong> — 2026-02-23 — Tab defaults and chart first-load fix</summary>
 
-- **Charts tab**: Always opens in Balance view when the tab is clicked; preference is saved so the next open is also Balance.
-- **View Logs tab**: Default date range when opening the tab is now last 7 days (was today).
-- **Individual charts first load**: Only the combined chart is built during the loading overlay; the 14 individual charts are built after the overlay is removed (rAF + 80 ms delay when view is Individual) so they get correct dimensions and no longer appear blank until the user switches view.
-- **Device module & performance**: `device-module.js` loads before `performance-utils.js`; device class and platform drive AI preload (sequential on low, parallel on high), chart preload stagger, and optional GPU backend skip on low. AI preload runs on the main thread only; worker ANALYZE path removed from `prediction-worker.js`. AI cache keys include device tier for cache partitioning.
-- **Charts & data**: Default chart date range is 30 days; init uses `skipRefresh` to avoid duplicate combined chart and AI runs. Chart and preload paths cap training logs at 1200 for analysis.
-- **ApexCharts robustness**: Chart container null checks and try/catch around `destroy()` in combined, balance, and individual chart code to avoid "Cannot read properties of null" when containers are missing or detached.
+- **Charts tab**: Always opens in balance view when the tab is clicked; preference is saved so balance is the default each time.
+- **View Logs tab**: Defaults to last 7 days when the tab is opened (was today).
+- **Individual charts first load**: Only the combined chart is built during the loading overlay; the 14 individual charts are built after the overlay is removed and layout is complete (rAF + 80 ms delay when view is individual), so they get correct dimensions and no longer appear blank until the user switches view and back.
 
 </details>
 
