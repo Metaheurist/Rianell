@@ -61,7 +61,7 @@ flowchart LR
   - Medical condition-based data aggregation
   - Goals and targets synced with app settings when signed in
 
-- **Optional AI & Goals**: In Settings, "Enable AI features & Goals" can be turned off to hide the AI Analysis tab, chart predictions, and Goals. Tutorial first card lets new users enable or skip AI/Goals; skipping removes AI-related slides.
+- **Optional AI & Goals**: In Settings, "Enable AI features & Goals" can be turned off to hide the AI Analysis tab, chart predictions, and Goals. Tutorial first card lets new users enable or skip AI/Goals; skipping removes AI-related slides. AI analysis yields to the main thread between layers and shows clear loading states ("Analyzing…", "Calculating predictions…") so the app stays responsive during processing.
 
 - **Reminders & sound**: Daily reminders at a configurable time; "Enable sound notifications" controls system notification sound and an in-app heartbeat-style sound when the app is in the foreground (including on mobile).
 
@@ -551,6 +551,16 @@ For issues and questions:
 ## Changelog
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
+
+<details>
+<summary><strong>v1.14.1</strong> — 2026-02-23 — Neural network optimisation and loading states</summary>
+
+- **Neural network optimisation** (`web/AIEngine.js`): Added `yieldToMain()` and yield between analysis layers in `NeuralAnalysisNetwork.forward()` so the main thread can update the UI during analysis, reducing perceived lag and avoiding a frozen page.
+- **AI Summary loading**: Loading state shows "Analyzing your health data…" and waits one frame (`requestAnimationFrame` + `setTimeout`) before starting analysis so the message is visible; existing pulse animation on the loading icon retained.
+- **Combined chart loading**: When predictions are computed (cache miss), a "Calculating predictions…" overlay with spinner is shown on the combined chart container and removed when done, so chart view no longer feels stuck during prediction runs.
+- **Suggest note**: Already showed "Generating…" for the LLM path; no change.
+
+</details>
 
 <details>
 <summary><strong>v1.14.0</strong> — 2026-02-23 — Background loader module, slower rate, optional worker</summary>

@@ -1740,14 +1740,23 @@ h1#dashboardTitle:hover {
 
 .ai-pain-region-low {
   color: rgba(76, 175, 80, 0.35);
+  stroke: rgba(76, 175, 80, 0.85);
+  stroke-width: 2.5px;
+  filter: url(#ai-pain-body-shadow) drop-shadow(0 0 6px rgba(76, 175, 80, 0.5));
 }
 
 .ai-pain-region-medium {
   color: rgba(255, 193, 7, 0.55);
+  stroke: rgba(255, 152, 0, 0.85);
+  stroke-width: 2.5px;
+  filter: url(#ai-pain-body-shadow) drop-shadow(0 0 6px rgba(255, 152, 0, 0.5));
 }
 
 .ai-pain-region-high {
   color: rgba(244, 67, 54, 0.5);
+  stroke: rgba(244, 67, 54, 0.9);
+  stroke-width: 2.5px;
+  filter: url(#ai-pain-body-shadow) drop-shadow(0 0 6px rgba(244, 67, 54, 0.5));
 }
 
 .ai-pain-body-label {
@@ -1804,19 +1813,22 @@ body.light-mode .ai-pain-body-legend {
 .ai-pain-severity-high {
   background: rgba(244, 67, 54, 0.25);
   color: #ff8a80;
-  border: 1px solid rgba(244, 67, 54, 0.4);
+  border: 2.5px solid rgba(244, 67, 54, 0.65);
+  box-shadow: 0 0 8px rgba(244, 67, 54, 0.5), 0 0 14px rgba(244, 67, 54, 0.35);
 }
 
 .ai-pain-severity-medium {
   background: rgba(255, 152, 0, 0.2);
   color: #ffb74d;
-  border: 1px solid rgba(255, 152, 0, 0.4);
+  border: 2.5px solid rgba(255, 152, 0, 0.65);
+  box-shadow: 0 0 8px rgba(255, 152, 0, 0.5), 0 0 14px rgba(255, 152, 0, 0.35);
 }
 
 .ai-pain-severity-low {
   background: rgba(76, 175, 80, 0.2);
   color: #81c784;
-  border: 1px solid rgba(76, 175, 80, 0.4);
+  border: 2.5px solid rgba(76, 175, 80, 0.65);
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.5), 0 0 14px rgba(76, 175, 80, 0.35);
 }
 
 /* Trends Grid */
@@ -6570,6 +6582,34 @@ body.light-mode .stressor-chip--other { background: rgba(97, 97, 97, 0.25); }
   color: rgba(224, 242, 241, 0.7);
   font-size: 0.85rem;
   font-style: italic;
+}
+
+/* Overlay shown while combined chart predictions are being computed (avoids perceived lag) */
+.chart-predictions-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--text-light);
+  font-size: 1rem;
+  font-weight: 600;
+  z-index: 10;
+  border-radius: 12px;
+  animation: loadingPulse 2s ease-in-out infinite;
+}
+.chart-predictions-loading-overlay::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(76, 175, 80, 0.3);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin-right: 0.5rem;
+  vertical-align: middle;
 }
 
 .chart-loading {

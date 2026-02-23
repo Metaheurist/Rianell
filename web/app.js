@@ -3061,50 +3061,73 @@ async function createCombinedChart() {
   const daysToPredict = predictionRange;
   const aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
   
-  // Get predictions for all metrics using all available data for training
+  // Get predictions for all metrics (use chart results cache when available)
   let predictionsData = null;
+  const viewKey = getChartViewCacheKey(chartDateRange.type, chartDateRange.startDate, chartDateRange.endDate);
   if (aiOn && predictionsEnabled && window.AIEngine && filteredLogs.length >= 2) {
-    try {
-      // Use cached sorted logs if available
-      const sortedLogs = window.PerformanceUtils?.memoizedSort 
-        ? window.PerformanceUtils.memoizedSort(filteredLogs, (a, b) => new Date(a.date) - new Date(b.date), 'sortedFilteredLogs')
-        : [...filteredLogs].sort((a, b) => new Date(a.date) - new Date(b.date));
-      
-      // Get ALL historical logs for training (cached)
-      const allHistoricalLogs = window.PerformanceUtils?.DataCache?.get('allHistoricalLogs', () => {
-        const stored = localStorage.getItem("healthLogs") || "[]";
-        return JSON.parse(stored).sort((a, b) => new Date(a.date) - new Date(b.date));
-      }, 60000) || JSON.parse(localStorage.getItem("healthLogs") || "[]").sort((a, b) => new Date(a.date) - new Date(b.date));
-      
-      // Get anonymized training data if Use Open Data is enabled
-      let anonymizedTrainingData = [];
-      if (appSettings.useOpenData && appSettings.medicalCondition && typeof window.getAnonymizedTrainingData === 'function') {
-        try {
-          anonymizedTrainingData = await window.getAnonymizedTrainingData(appSettings.medicalCondition);
-          if (anonymizedTrainingData.length > 0) {
-            console.log(`Using ${anonymizedTrainingData.length} anonymized log entries from open data for training`);
+    const cached = getChartResultsCache(viewKey, predictionRange, logs.length);
+    if (cached && cached.analysis && cached.analysis.trends) {
+      predictionsData = {
+        trends: cached.analysis.trends,
+        daysToPredict: cached.daysToPredict,
+        lastDate: cached.lastDate,
+        allLogsLength: cached.allLogsLength
+      };
+    } else {
+      var chartContainerEl = document.getElementById('combinedChartContainer');
+      var predictionsLoadingEl = null;
+      if (chartContainerEl) {
+        predictionsLoadingEl = document.createElement('div');
+        predictionsLoadingEl.className = 'chart-predictions-loading-overlay';
+        predictionsLoadingEl.setAttribute('aria-live', 'polite');
+        predictionsLoadingEl.textContent = 'Calculating predictions…';
+        chartContainerEl.appendChild(predictionsLoadingEl);
+      }
+      try {
+        const sortedLogs = window.PerformanceUtils?.memoizedSort
+          ? window.PerformanceUtils.memoizedSort(filteredLogs, (a, b) => new Date(a.date) - new Date(b.date), 'sortedFilteredLogs')
+          : [...filteredLogs].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const allHistoricalLogs = window.PerformanceUtils?.DataCache?.get('allHistoricalLogs', () => {
+          const stored = localStorage.getItem("healthLogs") || "[]";
+          return JSON.parse(stored).sort((a, b) => new Date(a.date) - new Date(b.date));
+        }, 60000) || JSON.parse(localStorage.getItem("healthLogs") || "[]").sort((a, b) => new Date(a.date) - new Date(b.date));
+        let anonymizedTrainingData = [];
+        if (appSettings.useOpenData && appSettings.medicalCondition && typeof window.getAnonymizedTrainingData === 'function') {
+          try {
+            anonymizedTrainingData = await window.getAnonymizedTrainingData(appSettings.medicalCondition);
+            if (anonymizedTrainingData.length > 0) {
+              console.log(`Using ${anonymizedTrainingData.length} anonymized log entries from open data for training`);
+            }
+          } catch (error) {
+            console.warn('Error loading anonymized training data:', error);
           }
-        } catch (error) {
-          console.warn('Error loading anonymized training data:', error);
+        }
+        const combinedTrainingLogs = appSettings.useOpenData
+          ? [...allHistoricalLogs, ...anonymizedTrainingData]
+          : allHistoricalLogs;
+        const analysis = await analyzeHealthMetrics(sortedLogs, combinedTrainingLogs);
+        predictionsData = {
+          trends: analysis.trends,
+          daysToPredict: daysToPredict,
+          lastDate: sortedLogs.length > 0 ? new Date(sortedLogs[sortedLogs.length - 1].date) : null,
+          allLogsLength: combinedTrainingLogs.length
+        };
+        setChartResultsCache(viewKey, predictionRange, logs.length, {
+          analysis,
+          sortedLogs,
+          filteredLogs,
+          daysToPredict,
+          lastDate: predictionsData.lastDate,
+          allLogsLength: combinedTrainingLogs.length
+        });
+      } catch (error) {
+        console.warn('Error generating predictions for combined chart:', error);
+        Logger.error('Error generating predictions for combined chart', { error: error.message, stack: error.stack });
+      } finally {
+        if (predictionsLoadingEl && predictionsLoadingEl.parentNode) {
+          predictionsLoadingEl.remove();
         }
       }
-      
-      // Combine historical logs with anonymized data for training (if enabled)
-      const combinedTrainingLogs = appSettings.useOpenData 
-        ? [...allHistoricalLogs, ...anonymizedTrainingData]
-        : allHistoricalLogs;
-      
-      // Use combined data for training (GPU on desktop when available)
-      const analysis = await analyzeHealthMetrics(sortedLogs, combinedTrainingLogs);
-      predictionsData = {
-        trends: analysis.trends,
-        daysToPredict: daysToPredict,
-        lastDate: sortedLogs.length > 0 ? new Date(sortedLogs[sortedLogs.length - 1].date) : null,
-        allLogsLength: combinedTrainingLogs.length
-      };
-    } catch (error) {
-      console.warn('Error generating predictions for combined chart:', error);
-      Logger.error('Error generating predictions for combined chart', { error: error.message, stack: error.stack });
     }
   }
   if (window.healthAppDebug && Logger.debug) {
@@ -4627,7 +4650,7 @@ function updateAISummaryButtonState() {
   Logger.debug('AI Summary - display-only, no button state to update');
 }
 
-function generateAISummary() {
+async function generateAISummary() {
   let resultsContent = document.getElementById('aiResultsContent');
   if (!resultsContent) {
     Logger.error('AI Summary - Results content element not found');
@@ -4711,16 +4734,25 @@ function generateAISummary() {
     return;
   }
 
-  // Show loading state in results area only
+  // Show loading state in results area only (so user sees progress and avoids perceived lag)
   resultsContent.innerHTML = `
     <div class="ai-loading-state">
       <div class="ai-loading-icon">🧠</div>
-      <p class="ai-loading-text">Looking at your health data...</p>
+      <p class="ai-loading-text">Analyzing your health data…</p>
       <p class="ai-loading-subtext">${sortedLogs.length} days (${escapeHTML(dateRangeText)})</p>
     </div>
   `;
 
-  setTimeout(async function() {
+  // Allow the loading UI to paint before starting heavy analysis
+  await new Promise(function(r) {
+    if (typeof requestAnimationFrame !== 'undefined') {
+      requestAnimationFrame(function() { setTimeout(r, 0); });
+    } else {
+      setTimeout(r, 0);
+    }
+  });
+
+  (async function() {
     try {
       const allLogsForTraining = window.PerformanceUtils?.memoizedSort
         ? window.PerformanceUtils.memoizedSort(logs, (a, b) => new Date(a.date) - new Date(b.date), 'allLogsForTraining')
@@ -4752,7 +4784,7 @@ function generateAISummary() {
         `;
       }
     }
-  }, 800);
+  })();
 }
 
 // Returns payload for AI preload (worker or main). Null if preload not applicable.
@@ -6916,8 +6948,9 @@ function flushOfflineQueue() {
 
 // Optimized localStorage helper function
 function saveLogsToStorage() {
-  // Invalidate filtered logs cache
+  // Invalidate filtered logs cache and chart results cache
   invalidateFilteredLogsCache();
+  invalidateChartResultsCache();
   
   // Invalidate data cache
   if (window.PerformanceUtils?.DataCache) {
@@ -7040,6 +7073,7 @@ function migrateLogs() {
       localStorage.setItem("healthLogs", JSON.stringify(logs));
     }
     invalidateFilteredLogsCache();
+    invalidateChartResultsCache();
   }
 }
 
@@ -7097,8 +7131,9 @@ function deleteLogEntry(logDate) {
       logs.splice(index, 1);
     }
     
-    // Invalidate filtered logs cache
+    // Invalidate filtered logs cache and chart results cache
     invalidateFilteredLogsCache();
+    invalidateChartResultsCache();
     
     // Update localStorage (batched)
     if (window.PerformanceUtils?.StorageBatcher) {
@@ -9657,6 +9692,162 @@ function invalidateFilteredLogsCache() {
   _filteredLogsCacheKey = null;
 }
 
+// ---- Chart results cache (precomputed View x Prediction for quick switch) ----
+const CHART_RESULTS_CACHE_MAX = 32;
+const _chartResultsCache = new Map();
+let _chartResultsCacheOrder = [];
+
+function getChartViewCacheKey(type, startDate, endDate) {
+  return (type != null ? String(type) : '') + '_' + (startDate || '') + '_' + (endDate || '');
+}
+
+function getChartResultsCacheKey(viewKey, predRange, logsLength) {
+  return viewKey + '_' + (predRange != null ? predRange : 7) + '_' + (logsLength != null ? logsLength : 0);
+}
+
+function getFilteredLogsForView(logsArray, viewType, viewStartDate, viewEndDate) {
+  if (!logsArray || logsArray.length === 0) return [];
+  let filtered = [...logsArray];
+  if (viewStartDate && viewEndDate) {
+    const start = new Date(viewStartDate);
+    const end = new Date(viewEndDate);
+    end.setHours(23, 59, 59, 999);
+    start.setHours(0, 0, 0, 0);
+    filtered = filtered.filter(log => {
+      const logDate = new Date(log.date);
+      return logDate >= start && logDate <= end;
+    });
+  } else if (viewType === 'custom') {
+    return filtered;
+  } else {
+    const days = viewType;
+    const endDate = new Date();
+    endDate.setHours(23, 59, 59, 999);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - (days - 1));
+    startDate.setHours(0, 0, 0, 0);
+    filtered = filtered.filter(log => {
+      const logDate = new Date(log.date);
+      return logDate >= startDate && logDate <= endDate;
+    });
+  }
+  return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
+function getChartResultsCache(viewKey, predRange, logsLength) {
+  const key = getChartResultsCacheKey(viewKey, predRange, logsLength);
+  const entry = _chartResultsCache.get(key);
+  if (entry) {
+    const idx = _chartResultsCacheOrder.indexOf(key);
+    if (idx > 0) {
+      _chartResultsCacheOrder.splice(idx, 1);
+      _chartResultsCacheOrder.unshift(key);
+    }
+    return entry;
+  }
+  return null;
+}
+
+function setChartResultsCache(viewKey, predRange, logsLength, value) {
+  const key = getChartResultsCacheKey(viewKey, predRange, logsLength);
+  if (_chartResultsCache.size >= CHART_RESULTS_CACHE_MAX && !_chartResultsCache.has(key)) {
+    const oldest = _chartResultsCacheOrder.pop();
+    if (oldest != null) _chartResultsCache.delete(oldest);
+  }
+  _chartResultsCache.set(key, value);
+  const idx = _chartResultsCacheOrder.indexOf(key);
+  if (idx >= 0) _chartResultsCacheOrder.splice(idx, 1);
+  _chartResultsCacheOrder.unshift(key);
+}
+
+function invalidateChartResultsCache() {
+  _chartResultsCache.clear();
+  _chartResultsCacheOrder.length = 0;
+}
+
+function precomputeChartResultsForFixedRanges() {
+  if (!logs || logs.length < 2 || !window.AIEngine || typeof analyzeHealthMetrics !== 'function') return;
+  const aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
+  if (!aiOn) return;
+  const viewTypes = [1, 7, 30, 90];
+  const predRanges = [1, 7, 30, 90];
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  let index = 0;
+  const total = viewTypes.length * predRanges.length;
+  async function runOne() {
+    if (index >= total) return;
+    const vi = Math.floor(index / predRanges.length);
+    const pi = index % predRanges.length;
+    index += 1;
+    const viewType = viewTypes[vi];
+    const predRange = predRanges[pi];
+    const viewStart = viewType === 1 ? todayStr : null;
+    const viewEnd = viewType === 1 ? todayStr : null;
+    const viewKey = getChartViewCacheKey(viewType, viewStart, viewEnd);
+    if (getChartResultsCache(viewKey, predRange, logs.length)) {
+      runNext();
+      return;
+    }
+    const filtered = getFilteredLogsForView(logs, viewType, viewStart, viewEnd);
+    if (filtered.length < 2) {
+      runNext();
+      return;
+    }
+    const sortedLogs = [...filtered].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const allHistoricalLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]")
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    let anonymizedTrainingData = [];
+    if (appSettings.useOpenData && appSettings.medicalCondition && typeof window.getAnonymizedTrainingData === 'function') {
+      try {
+        const data = await Promise.resolve(window.getAnonymizedTrainingData(appSettings.medicalCondition));
+        anonymizedTrainingData = Array.isArray(data) ? data : [];
+      } catch (e) {
+        anonymizedTrainingData = [];
+      }
+    }
+    const combinedTrainingLogs = anonymizedTrainingData.length > 0
+      ? [...allHistoricalLogs, ...anonymizedTrainingData]
+      : allHistoricalLogs;
+    try {
+      const analysis = await analyzeHealthMetrics(sortedLogs, combinedTrainingLogs);
+      const lastDate = sortedLogs.length > 0 ? new Date(sortedLogs[sortedLogs.length - 1].date) : null;
+      setChartResultsCache(viewKey, predRange, logs.length, {
+        analysis,
+        sortedLogs,
+        filteredLogs: filtered,
+        daysToPredict: predRange,
+        lastDate,
+        allLogsLength: combinedTrainingLogs.length
+      });
+    } catch (e) { /* ignore */ }
+    runNext();
+  }
+  function runNext() {
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(function() { runOne(); }, { timeout: 400 });
+    } else {
+      setTimeout(function() { runOne(); }, 80);
+    }
+  }
+  runNext();
+}
+
+function schedulePrecomputeChartResults() {
+  if (!logs || logs.length < 2) return;
+  const profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
+  if (profile && profile.enableChartPreload === false) return;
+  const staggerMs = (profile && profile.chartPreloadDelayMs != null) ? profile.chartPreloadDelayMs + 500 : 2000;
+  function start() {
+    precomputeChartResultsForFixedRanges();
+  }
+  if (typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(start, { timeout: staggerMs });
+  } else {
+    setTimeout(start, Math.min(staggerMs, 1000));
+  }
+}
+
 // Set chart date range
 function setChartDateRange(range) {
   chartDateRange.type = range;
@@ -9907,58 +10098,68 @@ async function chart(id, label, dataField, color) {
   const aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
   if (aiOn && predictionsEnabled && window.AIEngine && chartData.length >= 2) {
     try {
-      // Use prediction range setting
       const daysToPredict = predictionRange;
-      
-      // Get ALL historical logs for training (no date filtering - use everything available)
-      // This ensures we use up to 10 years of data for better predictions
       const allHistoricalLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]")
         .sort((a, b) => new Date(a.date) - new Date(b.date));
-      
-      // Filter to only logs with this metric for training
       const allLogs = allHistoricalLogs
         .filter(log => {
-          // For weight, check if value exists and is valid (weight can be any positive number)
           if (dataField === 'weight') {
             const weightValue = log[dataField];
             return weightValue !== undefined && weightValue !== null && weightValue !== '' && !isNaN(parseFloat(weightValue)) && parseFloat(weightValue) > 0;
           }
-          // For steps, check if value exists and is valid (steps can be 0 or positive)
           if (dataField === 'steps') {
             const stepsValue = log[dataField];
             return stepsValue !== undefined && stepsValue !== null && stepsValue !== '' && !isNaN(parseInt(stepsValue)) && parseInt(stepsValue) >= 0;
           }
-          // For hydration, check if value exists and is valid (hydration can be 0 or positive)
           if (dataField === 'hydration') {
             const hydrationValue = log[dataField];
             return hydrationValue !== undefined && hydrationValue !== null && hydrationValue !== '' && !isNaN(parseFloat(hydrationValue)) && parseFloat(hydrationValue) >= 0;
           }
-          // For other metrics, use standard filter
           return log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '';
         });
-      
       if (allLogs.length >= 2) {
-        // Sort filtered logs chronologically for getting the last date (for prediction start point)
-        const sortedLogs = filteredLogs
+        const sortedLogsForMetric = filteredLogs
           .filter(log => {
-            // For weight, check if value exists and is valid (weight can be any positive number)
             if (dataField === 'weight') {
               const weightValue = log[dataField];
               return weightValue !== undefined && weightValue !== null && weightValue !== '' && !isNaN(parseFloat(weightValue)) && parseFloat(weightValue) > 0;
             }
-            // For other metrics, use standard filter
             return log[dataField] !== undefined && log[dataField] !== null && log[dataField] !== '';
           })
           .sort((a, b) => new Date(a.date) - new Date(b.date));
-        
-        if (sortedLogs.length >= 2) {
-          // Analyze with AIEngine: use ALL historical logs for training (up to 10 years),
-          // filtered logs just for determining last date and display (GPU used on desktop when available)
-          const analysis = await analyzeHealthMetrics(sortedLogs, allLogs);
-          
-          if (analysis.trends[dataField]) {
-            const trend = analysis.trends[dataField];
-            const lastDate = new Date(sortedLogs[sortedLogs.length - 1].date);
+        if (sortedLogsForMetric.length >= 2) {
+          const viewKey = getChartViewCacheKey(chartDateRange.type, chartDateRange.startDate, chartDateRange.endDate);
+          let trend = null;
+          let lastDate = new Date(sortedLogsForMetric[sortedLogsForMetric.length - 1].date);
+          let analysis = null;
+          const cached = getChartResultsCache(viewKey, predictionRange, logs.length);
+          if (cached && cached.analysis && cached.analysis.trends && cached.analysis.trends[dataField]) {
+            trend = cached.analysis.trends[dataField];
+            lastDate = cached.lastDate ? new Date(cached.lastDate) : lastDate;
+          } else {
+            const sortedLogsAll = window.PerformanceUtils?.memoizedSort
+              ? window.PerformanceUtils.memoizedSort(filteredLogs, (a, b) => new Date(a.date) - new Date(b.date), 'sortedFilteredLogsChart')
+              : [...filteredLogs].sort((a, b) => new Date(a.date) - new Date(b.date));
+            let anonymizedTrainingData = [];
+            if (appSettings.useOpenData && appSettings.medicalCondition && typeof window.getAnonymizedTrainingData === 'function') {
+              try {
+                anonymizedTrainingData = await window.getAnonymizedTrainingData(appSettings.medicalCondition);
+              } catch (e) { /* ignore */ }
+            }
+            const combinedTrainingLogs = appSettings.useOpenData ? [...allHistoricalLogs, ...anonymizedTrainingData] : allHistoricalLogs;
+            analysis = await analyzeHealthMetrics(sortedLogsAll, combinedTrainingLogs);
+            setChartResultsCache(viewKey, predictionRange, logs.length, {
+              analysis,
+              sortedLogs: sortedLogsAll,
+              filteredLogs,
+              daysToPredict,
+              lastDate: sortedLogsAll.length > 0 ? new Date(sortedLogsAll[sortedLogsAll.length - 1].date) : null,
+              allLogsLength: combinedTrainingLogs.length
+            });
+            trend = analysis.trends[dataField] || null;
+            if (sortedLogsAll.length > 0) lastDate = new Date(sortedLogsAll[sortedLogsAll.length - 1].date);
+          }
+          if (trend) {
             const isBPM = dataField === 'bpm';
             const isWeight = dataField === 'weight';
             const isSteps = dataField === 'steps';
@@ -10908,6 +11109,7 @@ function preloadChartsInBackground() {
 function scheduleChartsPreload() {
   var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
   if (profile && !profile.enableChartPreload) return;
+  schedulePrecomputeChartResults();
   if (window.BackgroundLoader && typeof window.BackgroundLoader.scheduleChartPreload === 'function') {
     window.BackgroundLoader.scheduleChartPreload({
       runCombined: function() {
@@ -13723,6 +13925,7 @@ function switchTab(tabName) {
       
       // Use toggleChartView to properly initialize the view
       toggleChartView(savedView);
+      schedulePrecomputeChartResults();
     }
   }
   

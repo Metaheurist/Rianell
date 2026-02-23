@@ -3,6 +3,17 @@
 // Comprehensive, rule-based health analysis
 // ============================================
 
+// Yield to main thread so UI can update (loading states, avoid "page frozen" feel)
+function yieldToMain() {
+  return new Promise(function(resolve) {
+    if (typeof requestAnimationFrame !== 'undefined') {
+      requestAnimationFrame(function() { setTimeout(resolve, 0); });
+    } else {
+      setTimeout(resolve, 0);
+    }
+  });
+}
+
 // Pain body diagram regions (must match app.js PAIN_BODY_REGIONS for parsing stored text; includes joint points)
 const PAIN_REGIONS = [
   { id: 'head', label: 'Head' },
@@ -161,42 +172,43 @@ function NeuralAnalysisNetwork(engine) {
 
     // Layer 1: Input – single pass over all data to build feature space (GPU correlation when available)
     await this.layerInput(context);
+    await yieldToMain();
 
     // Layer 2: Trend (regression activations using full training data per metric)
     this.layerTrend(context);
+    await yieldToMain();
 
     // Layer 3a: Pairwise correlations (all data points)
     this.layerCorrelationPairwise(context);
-
     // Layer 3b: Multi-metric correlation matrix (full training data)
     this.layerCorrelationMulti(context);
+    await yieldToMain();
 
     // Layer 4: Pattern & anomaly (recent + full where applicable)
     this.layerPatternAnomaly(context);
-
     // Layer 5: Risk & flare (full training data for pattern learning)
     this.layerRiskFlare(context);
+    await yieldToMain();
 
     // Layer 6: Cross-section (food, exercise, stressors, symptoms – all logs)
     this.layerCrossSection(context);
-
     // Layer 7a: Clustering (full data for better clusters)
     this.layerClustering(context);
+    await yieldToMain();
 
     // Layer 7b: Time series (full data for smoothing/MA)
     this.layerTimeSeries(context);
-
     // Layer 7c: Outliers & seasonality (full data)
     this.layerOutliersSeasonality(context);
+    await yieldToMain();
 
     // Layer 8: Output / advice
     this.layerAdvice(context);
-
     // Layer 9: Interpretation – prioritise and dedupe insights for "what matters most"
     this.layerInterpretation(context);
-
     // Layer 10: Summary – plain-language 2–3 sentence headline
     this.layerSummary(context);
+    await yieldToMain();
 
     // Learning: update blend weights from past prediction errors; save new prediction snapshots for next run
     this.layerPredictionLearning(context);
