@@ -469,6 +469,7 @@ const platform = (function () {
   var h = (win && win.innerHeight) != null ? win.innerHeight : 0;
   var isTouch = !!(nav.maxTouchPoints && nav.maxTouchPoints > 0);
   var isTablet = isTouch && (Math.min(w, h) >= 600 && (Math.max(w, h) <= 1280 || /iPad|Android(?!.*Mobile)|Tablet/i.test(ua)));
+  var hardwareConcurrency = typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency > 0 ? nav.hardwareConcurrency : 0;
 
   return {
     deviceClass: getDevicePerformanceClass(),
@@ -479,7 +480,8 @@ const platform = (function () {
     prefersReducedMotion,
     connection: connection,
     screenWidth: w,
-    screenHeight: h
+    screenHeight: h,
+    hardwareConcurrency: hardwareConcurrency
   };
 })();
 
@@ -532,6 +534,7 @@ function getOptimizationProfile() {
   else if (isHigh) lazyChartStaggerMs = 40;
 
   var reduceUIAnimations = reducedMotion || isLow; // same as getDeviceOpts().reduceAnimations
+  var useWorkers = (p.hardwareConcurrency || 0) >= 2 && !saveData;
 
   return {
     deviceClass: deviceClass,
@@ -545,7 +548,8 @@ function getOptimizationProfile() {
     storageBatchDelayMs: storageBatchDelayMs,
     lazyChartStaggerMs: lazyChartStaggerMs,
     reduceUIAnimations: reduceUIAnimations,
-    saveData: saveData
+    saveData: saveData,
+    useWorkers: useWorkers
   };
 }
 
