@@ -76,13 +76,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin ${{ github.ref_name }}
+          git rebase origin/${{ github.ref_name }} || git merge --no-edit origin/${{ github.ref_name }}
           git add "App build/Android/"
           git diff --staged --quiet || git commit -m "Update Android APK (build ${{ github.run_number }}) [skip ci]"
-          git stash --include-untracked
-          if ! git pull --rebase origin ${{ github.ref_name }}; then
-            git checkout --theirs -- "App build/Android/"
-            git add "App build/Android/"
-            GIT_EDITOR=true git rebase --continue
-          fi
+          git pull --rebase origin ${{ github.ref_name }} || true
           git push origin ${{ github.ref_name }}
-          git stash pop || true
