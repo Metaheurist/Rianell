@@ -8,6 +8,10 @@
 
   var cachedPipeline = null;
   var cachedModelId = null;
+  var summaryResultCache = null;
+  var suggestResultCache = null;
+  var MAX_SUMMARY_CACHE = 8;
+  var MAX_SUGGEST_CACHE = 5;
   var MAX_CONTEXT_CHARS = 720;
   var MAX_SUGGEST_CONTEXT_CHARS = 280;
   var TIMEOUT_MS = 28000;
@@ -81,6 +85,15 @@
       }
       throw e;
     }
+  }
+
+  function simpleHash(s) {
+    if (typeof s !== 'string' || s.length === 0) return '0';
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) {
+      h = ((h << 5) + h) + s.charCodeAt(i);
+    }
+    return (h >>> 0).toString(36);
   }
 
   function stripMarkdown(s) {
@@ -164,10 +177,16 @@
 
   /**
    * Generate a short, data-informed summary (2–3 sentences) for the patient.
+   * Result is cached by context hash so the same analysis/options return cached text (only update on change).
    */
   async function generateSummaryWithLLM(analysis, options, fallbackNote) {
     var context = buildSummaryContext(analysis, options);
     if (!context || context.length < 10) return fallbackNote;
+
+    var contextHash = simpleHash(context);
+    if (!summaryResultCache) summaryResultCache = new Map();
+    var cached = summaryResultCache.get(contextHash);
+    if (cached != null) return cached;
 
     var prompt = 'Summarise in 2 short sentences for the patient. Use only the data below. Mention 1-2 specific findings (e.g. trends or flares). Be clear and encouraging. Data: ' + context;
 
@@ -184,7 +203,15 @@
       var out = await Promise.race([run, timeoutPromise]);
 
       var text = (out && out[0] && out[0].generated_text) ? out[0].generated_text.trim() : '';
-      if (text && text.length > 15) return stripTrailingIncompleteSentence(text);
+      if (text && text.length > 15) {
+        text = stripTrailingIncompleteSentence(text);
+        if (summaryResultCache.size >= MAX_SUMMARY_CACHE) {
+          var firstKey = summaryResultCache.keys().next().value;
+          if (firstKey != null) summaryResultCache.delete(firstKey);
+        }
+        summaryResultCache.set(contextHash, text);
+        return text;
+      }
     } catch (e) {
       if (typeof console !== 'undefined' && console.warn) {
         console.warn('Summary LLM failed, using rule-based note:', e.message || e);
@@ -230,9 +257,15 @@
 
   /**
    * Generate one short sentence for a daily log note using the same pipeline. Resolves with fallbackText on failure.
+   * Result is cached by context hash so the same context returns cached text (only update on change).
    */
   async function generateSuggestNoteWithLLM(contextString, fallbackText) {
     if (!contextString || contextString.length < 10) return fallbackText || '';
+
+    var contextHash = simpleHash(contextString);
+    if (!suggestResultCache) suggestResultCache = new Map();
+    var cached = suggestResultCache.get(contextHash);
+    if (cached != null) return cached;
 
     var prompt = 'Write one short sentence for a daily log note. Use only the data below. Compare today to average. Data: ' + contextString;
 
@@ -249,7 +282,15 @@
       var out = await Promise.race([run, timeoutPromise]);
 
       var text = (out && out[0] && out[0].generated_text) ? out[0].generated_text.trim() : '';
-      if (text && text.length > 8) return stripTrailingIncompleteSentence(text);
+      if (text && text.length > 8) {
+        text = stripTrailingIncompleteSentence(text);
+        if (suggestResultCache.size >= MAX_SUGGEST_CACHE) {
+          var firstKey = suggestResultCache.keys().next().value;
+          if (firstKey != null) suggestResultCache.delete(firstKey);
+        }
+        suggestResultCache.set(contextHash, text);
+        return text;
+      }
     } catch (e) {
       if (typeof console !== 'undefined' && console.warn) {
         console.warn('Suggest note LLM failed, using rule-based:', e.message || e);
