@@ -496,6 +496,7 @@
         <ul id="validationList"></ul>
       </div>
 
+      <!-- Required: date and flare first -->
       <div class="log-date-block">
         <label for="date">Logging date</label>
         <div class="input-container">
@@ -503,7 +504,19 @@
           <div class="validation-message" id="date-error"></div>
         </div>
       </div>
+      <div class="log-required-block">
+        <label for="flare">Flare-up Today?</label>
+        <div class="input-container">
+          <select id="flare" required>
+            <option value="">Select an option</option>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+          <div class="validation-message" id="flare-error"></div>
+        </div>
+      </div>
 
+      <!-- Optional sections (all below) -->
       <!-- Basic Metrics Section (optional) -->
       <div class="form-section">
         <button type="button" class="section-header" data-section="basicMetrics">
@@ -836,24 +849,14 @@
         </div>
       </div>
 
-      <!-- Additional Info Section -->
+      <!-- Additional Info Section (optional) -->
       <div class="form-section">
         <button type="button" class="section-header" data-section="additionalInfo">
           <span class="section-icon">📝</span>
-          <span class="section-title">Additional Information</span>
+          <span class="section-title">Notes <span class="optional-hint">(Optional)</span></span>
         </button>
         <div class="section-content" id="additionalInfo">
-      <label for="flare">Flare-up Today?</label>
-      <div class="input-container">
-        <select id="flare" required>
-          <option value="">Select an option</option>
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-        <div class="validation-message" id="flare-error"></div>
-      </div>
-
-      <label for="notes">Notes <span class="optional-hint">(Optional)</span> <span id="notesCounter" class="character-counter">0/500</span></label>
+      <label for="notes">Notes <span id="notesCounter" class="character-counter">0/500</span></label>
       <div class="input-container">
         <textarea id="notes" placeholder="Tap here and use voice dictation to quickly add notes about your symptoms, triggers, or activities..." maxlength="500"></textarea>
         <button type="button" id="suggestNoteBtn" class="suggest-note-btn" title="Suggest a short note based on today&#39;s metrics vs your average">Suggest note</button>
