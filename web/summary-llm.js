@@ -1,23 +1,79 @@
 /**
- * In-browser small LLM for the AI summary note (Transformers.js).
- * Light model, context rich in data (trends, flares, insights) so output is short and insightful.
+ * In-browser LLM for the AI summary note and suggest note (Transformers.js).
+ * Model is chosen by device performance: small on low-end, base on medium/high for better quality.
  * Falls back to rule-based note if the model is unavailable or fails.
  */
 (function () {
   'use strict';
 
   var cachedPipeline = null;
+  var cachedModelId = null;
   var MAX_CONTEXT_CHARS = 720;
   var MAX_SUGGEST_CONTEXT_CHARS = 280;
   var TIMEOUT_MS = 28000;
   var TIMEOUT_SUGGEST_MS = 12000;
 
+  var MODEL_SMALL = 'Xenova/flan-t5-small';
+  var MODEL_BASE = 'Xenova/flan-t5-base';
+
+  /**
+   * Returns device performance tier: 'low' | 'medium' | 'high'.
+   * Used to select model: low -> small, medium/high -> base.
+   */
+  function getDevicePerformanceClass() {
+    var nav = typeof navigator !== 'undefined' ? navigator : {};
+    var deviceMemory = nav.deviceMemory;
+    var cores = nav.hardwareConcurrency;
+    var isSecure = typeof window !== 'undefined' && window.isSecureContext === true;
+
+    if (isSecure && typeof deviceMemory === 'number' && deviceMemory > 0) {
+      if (deviceMemory <= 2) return 'low';
+      if (deviceMemory >= 8) return 'high';
+      return 'medium';
+    }
+    if (typeof cores === 'number' && cores > 0) {
+      if (cores <= 2) return 'low';
+      if (cores >= 6) return 'high';
+      return 'medium';
+    }
+    var mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(nav.userAgent || '') || (nav.maxTouchPoints && nav.maxTouchPoints > 1);
+    if (mobile) return 'low';
+    return 'medium';
+  }
+
+  function getModelIdForDeviceClass(deviceClass) {
+    return deviceClass === 'low' ? MODEL_SMALL : MODEL_BASE;
+  }
+
   async function getPipeline() {
-    if (cachedPipeline) return cachedPipeline;
+    var modelId = cachedModelId;
+    if (cachedPipeline && modelId) return cachedPipeline;
+
+    var deviceClass = getDevicePerformanceClass();
+    modelId = getModelIdForDeviceClass(deviceClass);
+
     var mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.4.0');
     mod.env.allowLocalModels = false;
-    cachedPipeline = await mod.pipeline('text2text-generation', 'Xenova/flan-t5-small', { revision: 'onnx' });
-    return cachedPipeline;
+
+    try {
+      cachedPipeline = await mod.pipeline('text2text-generation', modelId, { revision: 'onnx' });
+      cachedModelId = modelId;
+      return cachedPipeline;
+    } catch (e) {
+      if (modelId === MODEL_BASE && typeof console !== 'undefined' && console.warn) {
+        console.warn('Summary LLM: flan-t5-base failed, retrying with flan-t5-small:', e.message || e);
+      }
+      if (modelId === MODEL_BASE) {
+        try {
+          cachedPipeline = await mod.pipeline('text2text-generation', MODEL_SMALL, { revision: 'onnx' });
+          cachedModelId = MODEL_SMALL;
+          return cachedPipeline;
+        } catch (e2) {
+          throw e2;
+        }
+      }
+      throw e;
+    }
   }
 
   function stripMarkdown(s) {
