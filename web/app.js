@@ -155,7 +155,7 @@ function showAlertModal(message, title = 'Alert') {
   overlay.style.zIndex = '100001'; // Higher than settings modal (100000)
   document.body.classList.add('modal-active');
   
-  // Center modal
+  // Centre modal
   const modalContent = overlay.querySelector('.modal-content');
   if (modalContent) {
     modalContent.style.position = 'fixed';
@@ -1065,6 +1065,86 @@ function finishTutorial(enableDemo) {
   if (enableDemo && typeof appSettings !== 'undefined' && !appSettings.demoMode && typeof toggleDemoMode === 'function') {
     toggleDemoMode();
   }
+  maybeShowInstallModalOnce();
+}
+
+function maybeShowInstallModalOnce() {
+  try {
+    if (localStorage.getItem('healthAppInstallModalAfterTutorialSeen')) return;
+    openInstallModal(false);
+  } catch (err) {}
+}
+
+function openInstallModal(force) {
+  window._installModalOpenedByTutorial = false;
+  if (!force) {
+    try {
+      if (localStorage.getItem('healthAppInstallModalAfterTutorialSeen')) return;
+    } catch (e) {}
+    window._installModalOpenedByTutorial = true;
+  }
+  var overlay = document.getElementById('installModalOverlay');
+  if (!overlay) return;
+  closeSettingsModalIfOpen();
+  var apkMain = document.getElementById('downloadApkLink');
+  var iosMain = document.getElementById('downloadIosLink');
+  var apkModal = document.getElementById('installModalApkLink');
+  var iosModal = document.getElementById('installModalIosLink');
+  var iosLabelModal = document.getElementById('installModalIosLinkLabel');
+  if (apkMain && apkModal) {
+    apkModal.href = apkMain.href || 'javascript:void(0)';
+    var vMain = apkMain.querySelector('.android-version');
+    var vModal = apkModal.querySelector('.android-version');
+    if (vMain && vModal) vModal.textContent = vMain.textContent || '';
+  }
+  if (iosMain && iosModal) {
+    iosModal.href = iosMain.href || 'javascript:void(0)';
+    var labelMain = document.getElementById('downloadIosLabel');
+    if (iosLabelModal && labelMain) iosLabelModal.textContent = labelMain.textContent || 'Install on iOS';
+    var vMainIos = iosMain.querySelector('.ios-version');
+    var vModalIos = iosModal.querySelector('.ios-version');
+    if (vMainIos && vModalIos) vModalIos.textContent = vMainIos.textContent || '';
+  }
+  var isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  var block = document.getElementById('installModalIosDevice');
+  var label = document.getElementById('installModalIosDeviceLabel');
+  if (block) block.style.display = isIosDevice ? '' : 'none';
+  if (label) label.textContent = /iPad/.test(navigator.userAgent) ? 'Install on this iPad' : 'Install on this iPhone';
+  overlay.style.display = 'block';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  document.body.classList.add('modal-active');
+  document.body.style.overflow = 'hidden';
+  overlay.onclick = function(e) {
+    if (e.target === overlay) closeInstallModal();
+  };
+  window._installModalEscapeHandler = function(e) {
+    if (e.key === 'Escape') {
+      document.removeEventListener('keydown', window._installModalEscapeHandler);
+      window._installModalEscapeHandler = null;
+      closeInstallModal();
+    }
+  };
+  document.addEventListener('keydown', window._installModalEscapeHandler);
+}
+
+function closeInstallModal() {
+  if (window._installModalOpenedByTutorial) {
+    try { localStorage.setItem('healthAppInstallModalAfterTutorialSeen', '1'); } catch (e) {}
+  }
+  window._installModalOpenedByTutorial = false;
+  if (window._installModalEscapeHandler) {
+    document.removeEventListener('keydown', window._installModalEscapeHandler);
+    window._installModalEscapeHandler = null;
+  }
+  var overlay = document.getElementById('installModalOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    overlay.style.visibility = 'hidden';
+    overlay.style.opacity = '0';
+    document.body.classList.remove('modal-active');
+    document.body.style.overflow = '';
+  }
 }
 
 function openSignupSigninModal() {
@@ -1100,6 +1180,7 @@ function closeSignupSigninModal() {
 
 function finishTutorialAndOpenSignup() {
   closeTutorialModal();
+  maybeShowInstallModalOnce();
   if (typeof openSignupSigninModal === 'function') {
     openSignupSigninModal();
   }
@@ -1185,7 +1266,8 @@ function openModalTestOverlay() {
         { label: 'Export', action: run(exportData) },
         { label: 'Import', action: run(importData) },
         { label: 'Sign up / Sign in', action: run(openSignupSigninModal) },
-        { label: 'GDPR agreement', action: run(function() { showGDPRAgreementModal(function() { closeGDPRAgreementModal(); }, function() { closeGDPRAgreementModal(); }); }) }
+        { label: 'GDPR agreement', action: run(function() { showGDPRAgreementModal(function() { closeGDPRAgreementModal(); }, function() { closeGDPRAgreementModal(); }); }) },
+        { label: 'Install modal (post-tutorial)', action: run(function() { openInstallModal(true); }) }
       ]
     },
     {
@@ -1306,7 +1388,7 @@ function showGDPRAgreementModal(onAgree, onDecline) {
   document.body.classList.add('modal-active');
   document.body.style.overflow = 'hidden';
   
-  // Center modal, positioned much higher to ensure buttons are visible
+  // Centre modal, positioned much higher to ensure buttons are visible
   const modalContent = overlay.querySelector('.modal-content');
   if (modalContent) {
     modalContent.style.position = 'fixed';
@@ -1423,7 +1505,7 @@ function showConfirmModal(message, title = 'Confirm', onConfirm, onCancel) {
   overlay.style.zIndex = '100001';
   document.body.classList.add('modal-active');
   
-  // Center modal
+  // Centre modal
   const modalContent = overlay.querySelector('.modal-content');
   if (modalContent) {
     modalContent.style.position = 'fixed';

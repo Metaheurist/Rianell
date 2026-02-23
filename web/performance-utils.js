@@ -1,9 +1,9 @@
 // ============================================
-// Performance Optimization Utilities
+// Performance Optimisation Utilities
 // ============================================
 
 /**
- * Performance optimization utilities for the Health App
+ * Performance optimisation utilities for the Health App
  */
 
 // ============================================
@@ -99,7 +99,7 @@ function throttle(func, limit) {
 }
 
 // ============================================
-// Data Processing Optimization
+// Data Processing Optimisation
 // ============================================
 
 /**

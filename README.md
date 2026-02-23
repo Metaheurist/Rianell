@@ -543,15 +543,127 @@ For issues and questions:
 
 ## Changelog
 
-### Version 1.0
-- Initial release
-- Health tracking features
-- Data visualization
-- Supabase cloud sync
-- Server dashboard for testing
+Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-### React & Android
-- React (Vite) shell that wraps the existing web app in an iframe; Capacitor 6 for Android.
-- GitHub Actions build Android APK and iOS (Xcode project zip) on every push/PR to `main`/`master`, output to **`App build/Android/`** and **`App build/iOS/`**, upload **android** and **ios** artifacts, and on push commit those folders to the repo so Settings “Install on Android” and “Install on iOS” point to the newest build.
-- Settings → **App Installation**: **Install web app** (PWA) and **Install on Android** (download APK), with web and Android icons.
+<details>
+<summary><strong>v1.12.0</strong> — 2026-02-23 — Security, CI & docs</summary>
+
+- **Security**: Remove exposed Supabase URL/keys and default encryption key from repo; rewrite git history to redact secrets; document connecting your own API and encryption keys.
+- **GitHub Pages**: Deploy workflow injects Supabase config from repository secrets so production site works without committing credentials.
+- **Server**: Move server logic into `server/` package; root entry point removed (run with `python -m server`).
+- **Install modal**: Post-tutorial install modal (shown once) with web/Android/iOS install options; added to God mode – test all UI.
+- **UK English**: User-facing copy and docs use UK spelling (anonymised, optimisation, centre, etc.); schema/code identifiers unchanged.
+- **CI**: Android/iOS workflows use pull–rebase before push and stash to avoid unstaged-changes errors; Android compileSdk set to 36.
+- **Builds**: Android APK and iOS (Xcode project zip, simulator) output to `App build/Android/` and `App build/iOS/` with `latest.json`; Settings modal uses newest build.
+- **README**: Changelog in collapsible sections; God mode and post-tutorial install modal documented.
+
+</details>
+
+<details>
+<summary><strong>v1.11.0</strong> — 2026-02-22 — React shell & neural pipeline</summary>
+
+- **React & Android**: React (Vite) shell wrapping web app in iframe; Capacitor 6 for Android; GitHub Actions build APK on push to `main`, output to `App build/Android/`.
+- **AI**: Neural-style pipeline for AIEngine (layers: input, trend, correlation, pattern, risk, cross-section, advice, interpretation, summary).
+- **UI**: Install web app (PWA) and Install on Android in Settings; styles and README updates.
+
+</details>
+
+<details>
+<summary><strong>v1.10.0</strong> — 2026-02-19 — Goals, medications & sharing</summary>
+
+- **Features**: Goals and targets (steps, hydration, sleep, good days); medications; offline queue; sharing.
+- **Demo**: Improved flare modelling and smoothing in demo data.
+
+</details>
+
+<details>
+<summary><strong>v1.9.0</strong> — 2026-02-18 — Settings & modals</summary>
+
+- **Settings**: Refactor settings modal, tabs and UI styles.
+- **Modals**: Fix modal open/close, expose handlers, delegate clicks correctly.
+
+</details>
+
+<details>
+<summary><strong>v1.8.0</strong> — 2026-02-03 — Sharing, consent & God mode</summary>
+
+- **Sharing**: Sharing UI and AI PDF export.
+- **Consent**: Cookie consent banner; GDPR/cookie policy.
+- **Testing**: God mode – test all UI (backtick ` key) to trigger tabs, modals, charts, AI range, form sections.
+- **AI**: Enhanced AI analysis and flare detection; UI improvements.
+
+</details>
+
+<details>
+<summary><strong>v1.7.0</strong> — 2026-02-02 — Tutorial</summary>
+
+- **Onboarding**: Tutorial for new users; UI updates; tutorial mode (slides: Welcome, Log Entry, View & AI, Settings & data, Data options, Goals, You're all set).
+
+</details>
+
+<details>
+<summary><strong>v1.6.0</strong> — 2026-02-01 — Food, pain & UI</summary>
+
+- **Food**: New food log input via tiles; food variety update.
+- **Pain**: New pain diagram model; joints in pain diagram.
+- **UI**: General UI fixes and app.js updates.
+
+</details>
+
+<details>
+<summary><strong>v1.5.0</strong> — 2026-01-05 — Setup</summary>
+
+- Setup added (documentation/setup flow).
+
+</details>
+
+<details>
+<summary><strong>v1.4.0</strong> — 2026-01-03 — Cloud & server</summary>
+
+- **Cloud**: User-specific encryption and cloud data management.
+- **Server**: Server UI with DB control; bug fixes.
+- **Repo**: Remove ignored files from Git tracking.
+
+</details>
+
+<details>
+<summary><strong>v1.3.0</strong> — 2026-01-02 — AI & anonymised data</summary>
+
+- **AI**: Optimised AI engine with new models and model selection.
+- **Data**: Anonymous dataserver for global prediction models.
+- **Server**: Test server multithread; filters fixed.
+- **Docs**: README and app documentation updates.
+
+</details>
+
+<details>
+<summary><strong>v1.2.0</strong> — 2026-01-01 — Stability & security</summary>
+
+- **Security**: Security update.
+- **UI**: Settings modal consistent layer; mobile UI optimisation; UI fixes; UI glitches fixed.
+- **Server**: Logger error fixed for multithread.
+- **Misc**: Caching bug fixed; demo mode logger updates; log file updates.
+
+</details>
+
+<details>
+<summary><strong>v1.1.0</strong> — 2025-12-31 — Cloud, AI models & demo</summary>
+
+- **Cloud**: Cloud sync; SHA-256 for data; Google Drive sync.
+- **AI**: Custom condition and tailored LLM; new models (Xenova/LaMini-Flan-T5-783M, GPT, ONNX medical notes); model caching and config; prediction models and data filters; model reset; filters for graphs; BPM animation and AI analysis in view logs.
+- **Data**: Data sample script; handling for no data; data deletion protocol; incompatibility fix on imported data.
+- **Features**: Demo mode; exercise and food track; optimised prediction patterns and log cards.
+- **Fixes**: Stack overflow for encryption solved; AIEngine and app.js updates.
+
+</details>
+
+<details>
+<summary><strong>v1.0.0</strong> — 2025-12-30 — Initial release</summary>
+
+- **Core**: Initial commit; health tracking; data visualisation; server for development/testing.
+- **AI**: New container for AI logic; AI modal (fixed and UI updates).
+- **UI**: Settings and text highlight fix; UI updates; old build added.
+
+</details>
+
 

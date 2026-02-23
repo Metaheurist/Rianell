@@ -4003,6 +4003,22 @@ body.light-mode .cookie-policy-body code {
   background: rgba(0, 0, 0, 0.08);
 }
 
+/* Install modal (post-tutorial; also in God mode) */
+.install-modal-hint {
+  margin: 0 0 1rem 0;
+  color: rgba(224, 242, 241, 0.85);
+  font-size: var(--text-sm);
+}
+.install-modal-buttons .settings-option {
+  margin-bottom: 0.75rem;
+}
+.install-modal-buttons .settings-option:last-child {
+  margin-bottom: 0;
+}
+body.light-mode .install-modal-hint {
+  color: var(--text-secondary);
+}
+
 /* God mode overlay (` key) – test all UI */
 .god-mode-content {
   width: min(920px, 96vw);

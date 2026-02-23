@@ -583,7 +583,7 @@
             <path class="pain-region pain-state-0" data-region="right_knee" d="M90 214 Q92 222 88 234 L80 234 Q78 226 82 218 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="right_lower_leg" d="M88 234 Q92 252 90 268 L82 268 Q78 252 80 236 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <path class="pain-region pain-state-0" data-region="right_foot" d="M84 268 L88 266 L102 274 L100 280 L86 278 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
-            <!-- Joint points (balls) - same click/cycle behavior as body regions -->
+            <!-- Joint points (balls) - same click/cycle behaviour as body regions -->
             <circle class="pain-region pain-state-0" data-region="left_elbow" cx="25" cy="131" r="6" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <circle class="pain-region pain-state-0" data-region="right_elbow" cx="115" cy="131" r="6" fill="currentColor" filter="url(#pain-body-shadow)"/>
             <circle class="pain-region pain-state-0" data-region="left_wrist" cx="25" cy="173" r="6" fill="currentColor" filter="url(#pain-body-shadow)"/>
@@ -1520,6 +1520,33 @@
     </div>
   </div>
 
+  <!-- Install modal (shown once after tutorial; also in God mode) -->
+  <div class="modal-overlay" id="installModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Install app">
+    <div class="modal-content install-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Install the app</h3>
+        <button type="button" class="modal-close" onclick="closeInstallModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="install-modal-hint">Add the Health Dashboard to your device for quick access and offline use.</p>
+        <div class="install-modal-buttons">
+          <div class="settings-option" id="installModalIosDevice" style="display: none;">
+            <button type="button" class="settings-data-btn install-ios-device-btn" onclick="installOrLaunchPWA(); closeInstallModal();"><span class="settings-install-icon"><i class="fa-brands fa-apple"></i></span> <span id="installModalIosDeviceLabel">Install on this iPhone</span></button>
+          </div>
+          <div class="settings-option">
+            <button type="button" class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA(); closeInstallModal();"><span class="settings-install-icon"><i class="fa-solid fa-globe"></i></span> Install web app</button>
+          </div>
+          <div class="settings-option">
+            <a id="installModalApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit;"><span class="settings-install-icon"><i class="fa-brands fa-android"></i></span> Install on Android <span class="android-version" aria-hidden="true"></span></a>
+          </div>
+          <div class="settings-option">
+            <a id="installModalIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit;"><span class="settings-install-icon"><i class="fa-brands fa-apple"></i></span> <span id="installModalIosLinkLabel">Install on iOS</span> <span class="ios-version" aria-hidden="true"></span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Sign up / Sign in Modal (same UI as Settings cloud auth) -->
   <div class="modal-overlay signup-signin-modal-overlay" id="signupSigninModalOverlay" style="display: none;">
     <div class="modal-content signup-signin-modal-content" onclick="event.stopPropagation()">
@@ -1561,26 +1588,26 @@
         <div class="gdpr-agreement-content">
           <div class="gdpr-section">
             <h4 style="color: #4caf50; margin-top: 0;">1. Overview</h4>
-            <p>By enabling "Contribute anonymised data", you consent to the processing of anonymized health data as described in this agreement. This feature allows your anonymized health data to be pooled with data from other users who have the same medical condition, helping to improve AI predictions and analysis for everyone.</p>
+            <p>By enabling "Contribute anonymised data", you consent to the processing of anonymised health data as described in this agreement. This feature allows your anonymised health data to be pooled with data from other users who have the same medical condition, helping to improve AI predictions and analysis for everyone.</p>
         </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">2. Legal Basis for Processing (GDPR Article 6)</h4>
             <p><strong>Consent (Article 6(1)(a)):</strong> Your explicit consent is required to enable this feature. You may withdraw your consent at any time by disabling this setting.</p>
-            <p><strong>Legitimate Interest (Article 6(1)(f)):</strong> Processing anonymized data for improving health predictions serves a legitimate interest in advancing medical research and improving healthcare outcomes.</p>
+            <p><strong>Legitimate Interest (Article 6(1)(f)):</strong> Processing anonymised data for improving health predictions serves a legitimate interest in advancing medical research and improving healthcare outcomes.</p>
         </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">3. Data Controller Information</h4>
             <p><strong>Data Controller:</strong> Health App Service Provider</p>
             <p><strong>Contact:</strong> <a href="mailto:data@app.com" style="color: #4caf50; text-decoration: underline;">data@app.com</a></p>
-            <p><strong>Purpose:</strong> Processing anonymized health data to improve AI prediction accuracy and provide better health insights for users with similar medical conditions.</p>
+            <p><strong>Purpose:</strong> Processing anonymised health data to improve AI prediction accuracy and provide better health insights for users with similar medical conditions.</p>
             <p><strong>Data Protection Officer:</strong> Available through app settings or support contact.</p>
           </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">4. What Data is Processed</h4>
-            <p><strong>Anonymized Health Metrics Collected:</strong></p>
+            <p><strong>Anonymised health metrics collected:</strong></p>
             <ul>
               <li>Health metrics: BPM, weight, fatigue, stiffness, back pain, sleep quality, joint pain, mobility, daily function, swelling, mood, irritability, weather sensitivity, steps, hydration, flare status</li>
               <li>Arrays: stressors, symptoms, food (with calories/protein), exercise</li>
@@ -1597,25 +1624,25 @@
         </div>
 
           <div class="gdpr-section">
-            <h4 style="color: #4caf50;">5. Data Anonymization Process</h4>
-            <p>All data is processed through strict anonymization procedures:</p>
+            <h4 style="color: #4caf50;">5. Data anonymisation process</h4>
+            <p>All data is processed through strict anonymisation procedures:</p>
             <ol>
               <li>Personal identifiers are stripped before data leaves your device</li>
               <li>Data is grouped by medical condition (not by user)</li>
-              <li>Each anonymized entry is stored separately in the database</li>
+              <li>Each anonymised entry is stored separately in the database</li>
             <li>No user-specific tracking or identification is possible</li>
             </ol>
           </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">6. How Your Data is Used</h4>
-            <p>Anonymized data is used exclusively to:</p>
+            <p>Anonymised data is used exclusively to:</p>
             <ul>
               <li>Improve AI prediction accuracy for users with the same medical condition</li>
               <li>Train machine learning models for better health trend analysis</li>
               <li>Provide more accurate predictions based on aggregated patterns</li>
           </ul>
-            <p><strong>Data Access:</strong> Anonymized data is publicly readable (it contains no personal information) and can be used by any user with the same medical condition. No authentication is required to read anonymized data.</p>
+            <p><strong>Data access:</strong> Anonymised data is publicly readable (it contains no personal information) and can be used by any user with the same medical condition. No authentication is required to read anonymised data.</p>
         </div>
 
           <div class="gdpr-section">
@@ -1624,9 +1651,9 @@
             <p><strong>Security Measures:</strong></p>
             <ul>
               <li>Data is encrypted in transit and at rest</li>
-              <li>Anonymous read access is allowed (data is already anonymized)</li>
+              <li>Anonymous read access is allowed (data is already anonymised)</li>
               <li>Anonymous insert access is allowed (for data contribution)</li>
-              <li>Each anonymized entry is timestamped</li>
+              <li>Each anonymised entry is timestamped</li>
               <li>Data cannot be updated after insertion (append-only)</li>
           </ul>
         </div>
@@ -1637,7 +1664,7 @@
             <ul>
               <li><strong>Right of Access (Article 15):</strong> You can request information about what data is being processed</li>
               <li><strong>Right to Rectification (Article 16):</strong> You can correct inaccurate data</li>
-              <li><strong>Right to Erasure (Article 17):</strong> You can request deletion of your data (note: anonymized pooled data cannot be individually deleted)</li>
+              <li><strong>Right to Erasure (Article 17):</strong> You can request deletion of your data (note: anonymised pooled data cannot be individually deleted)</li>
               <li><strong>Right to Restrict Processing (Article 18):</strong> You can limit how your data is processed</li>
               <li><strong>Right to Data Portability (Article 20):</strong> You can export your data</li>
               <li><strong>Right to Object (Article 21):</strong> You can object to processing at any time</li>
@@ -1647,12 +1674,12 @@
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">9. Data Retention</h4>
-            <p>Anonymized data is retained indefinitely as it contributes to ongoing research and model improvement. Once data is anonymized and pooled, individual deletion is not possible. However, you can stop contributing new data at any time by disabling this feature.</p>
+            <p>Anonymised data is retained indefinitely as it contributes to ongoing research and model improvement. Once data is anonymised and pooled, individual deletion is not possible. However, you can stop contributing new data at any time by disabling this feature.</p>
         </div>
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">10. Data Sharing and Transfers</h4>
-            <p>Anonymized data may be:</p>
+            <p>Anonymised data may be:</p>
             <ul>
               <li>Stored in cloud infrastructure (Supabase) which may process data outside the EU/EEA</li>
               <li>Used by other users with the same medical condition for AI training</li>
@@ -1663,7 +1690,7 @@
 
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">11. Minimum Data Requirements</h4>
-            <p>A minimum of 90 days of anonymized data is required before this feature becomes fully available. Until this threshold is met, the system will show "Helping the model" status.</p>
+            <p>A minimum of 90 days of anonymised data is required before this feature becomes fully available. Until this threshold is met, the system will show "Helping the model" status.</p>
         </div>
 
           <div class="gdpr-section">
@@ -1672,7 +1699,7 @@
             <ol>
               <li>Disabling the "Use open data for training" setting in app settings</li>
               <li>This will stop future data contribution</li>
-              <li>Note: Previously contributed anonymized data cannot be individually deleted as it is anonymized and pooled</li>
+              <li>Note: Previously contributed anonymised data cannot be individually deleted as it is anonymised and pooled</li>
             </ol>
         </div>
 
@@ -1691,10 +1718,10 @@
             <h4 style="color: #e91e63; margin-top: 0;">⚠️ Important Notice</h4>
             <p style="margin-bottom: 0;">By clicking "I Agree", you acknowledge that you have read, understood, and agree to this GDPR Data Processing Agreement. You understand that:</p>
             <ul style="margin-top: 8px;">
-              <li>Your anonymized health data will be processed as described</li>
+              <li>Your anonymised health data will be processed as described</li>
               <li>You can withdraw consent at any time by disabling this setting</li>
-              <li>Previously contributed anonymized data cannot be individually deleted (it's anonymized and pooled)</li>
-              <li>Your data will be anonymized before leaving your device</li>
+              <li>Previously contributed anonymised data cannot be individually deleted (it's anonymised and pooled)</li>
+              <li>Your data will be anonymised before leaving your device</li>
             </ul>
           </div>
         </div>
