@@ -3,9 +3,11 @@
  * Copies the parent directory's web app files into public/legacy/
  * so the React shell can serve them at /legacy/ (e.g. for Capacitor/Android).
  */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const outDir = path.join(__dirname, 'public', 'legacy');
 
