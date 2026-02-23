@@ -1830,18 +1830,23 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 function showInstallButton() {
-  // Create install button if it doesn't exist
-  if (!document.getElementById('installButton')) {
-    const installButton = document.createElement('button');
-    installButton.id = 'installButton';
-    installButton.textContent = '📱 Install App';
-    installButton.className = 'export-button';
-    installButton.style.marginTop = '10px';
-    installButton.onclick = installPWA;
-    
-    // Add to button container
-    const buttonContainer = document.querySelector('.button-container');
-    buttonContainer.appendChild(installButton);
+  if (document.getElementById('installButton')) return;
+  const installButton = document.createElement('button');
+  installButton.id = 'installButton';
+  installButton.textContent = '📱 Install App';
+  installButton.className = 'settings-data-btn export-btn';
+  installButton.style.marginBottom = '10px';
+  installButton.onclick = installPWA;
+  // Place inside Settings panel only (data-management-buttons or settings-footer), never in header
+  const buttonContainer = document.querySelector('.data-management-buttons') ||
+    document.querySelector('.settings-footer') ||
+    document.body;
+  if (buttonContainer) {
+    if (buttonContainer.classList && buttonContainer.classList.contains('data-management-buttons')) {
+      buttonContainer.insertBefore(installButton, buttonContainer.firstChild);
+    } else {
+      buttonContainer.appendChild(installButton);
+    }
   }
 }
 
@@ -2898,12 +2903,16 @@ sliders.forEach(sliderId => {
   });
 });
 
+var _chartViewSwitchTimeout = null;
 function toggleChartView(viewType) {
   // Handle legacy boolean parameter for backward compatibility
   if (typeof viewType === 'boolean') {
     viewType = viewType ? 'combined' : 'individual';
   }
-  
+  if (_chartViewSwitchTimeout) {
+    clearTimeout(_chartViewSwitchTimeout);
+    _chartViewSwitchTimeout = null;
+  }
   const combinedContainer = document.getElementById('combinedChartContainer');
   const individualContainer = document.getElementById('individualChartsContainer');
   const balanceContainer = document.getElementById('balanceChartContainer');
@@ -2970,9 +2979,10 @@ function toggleChartView(viewType) {
       chartObserver.disconnect();
     }
     
-    // Small delay to prevent jump
-    setTimeout(() => {
-    createCombinedChart();
+    // Small delay to prevent jump; cancel if user switches view again
+    _chartViewSwitchTimeout = setTimeout(() => {
+      _chartViewSwitchTimeout = null;
+      createCombinedChart();
     }, 50);
   } else if (viewType === 'balance') {
     balanceContainer.classList.remove('hidden');
@@ -2983,21 +2993,26 @@ function toggleChartView(viewType) {
       chartObserver.disconnect();
     }
     
-    // Small delay to prevent jump
-    setTimeout(() => {
+    // Small delay to prevent jump; cancel if user switches view again
+    _chartViewSwitchTimeout = setTimeout(() => {
+      _chartViewSwitchTimeout = null;
       createBalanceChart();
     }, 50);
   } else {
-    // Individual view
+    // Individual view: load all charts immediately so they render with correct dimensions
+    // (lazy loading can fail when containers were previously hidden and have zero height)
     individualContainer.classList.remove('hidden');
     if (individualBtn) individualBtn.classList.add('active');
-    
-    // Use lazy loading for individual charts
-    updateCharts();
+    if (typeof updateChartsImmediate === 'function') {
+      updateChartsImmediate();
+    } else {
+      updateCharts();
+    }
   }
 }
 
 async function createCombinedChart() {
+  var _perfT0 = Date.now();
   if (window.healthAppDebug && Logger.debug) {
     Logger.debug('createCombinedChart: starting');
   }
@@ -3025,9 +3040,9 @@ async function createCombinedChart() {
   
   updateChartEmptyState(true);
   
-  // Destroy existing chart if it exists
   if (container.chart) {
-    container.chart.destroy();
+    try { container.chart.destroy(); } catch (e) { /* ApexCharts may throw if node detached */ }
+    container.chart = null;
   }
   
   // Prepare data for all metrics (excluding weight and bpm as they use different scales)
@@ -3105,9 +3120,14 @@ async function createCombinedChart() {
             console.warn('Error loading anonymized training data:', error);
           }
         }
-        const combinedTrainingLogs = appSettings.useOpenData
+        let combinedTrainingLogs = appSettings.useOpenData
           ? [...allHistoricalLogs, ...anonymizedTrainingData]
           : allHistoricalLogs;
+        // Cap training size so chart predictions stay fast (avoid 90s+ blocks with 3000+ logs)
+        var MAX_TRAINING_LOGS_CHARTS = 1200;
+        if (combinedTrainingLogs.length > MAX_TRAINING_LOGS_CHARTS) {
+          combinedTrainingLogs = combinedTrainingLogs.slice(-MAX_TRAINING_LOGS_CHARTS);
+        }
         const analysis = await analyzeHealthMetrics(sortedLogs, combinedTrainingLogs);
         predictionsData = {
           trends: analysis.trends,
@@ -3458,8 +3478,10 @@ async function createCombinedChart() {
     loadingElement.style.display = 'none';
   }
   
+  perfLog('Charts createCombinedChart (sync)', Date.now() - _perfT0, {});
   container.chart = new ApexCharts(container, options);
   container.chart.render().then(() => {
+    perfLog('Charts createCombinedChart (render)', Date.now() - _perfT0, {});
     // Ensure loading is hidden after render
     if (loadingElement) {
       loadingElement.style.display = 'none';
@@ -3936,6 +3958,7 @@ function deselectAllBalanceMetrics() {
 
 // Create Balance Chart (Radar Chart)
 function createBalanceChart() {
+  var _perfT0 = Date.now();
   // Check if ApexCharts is available
   if (typeof ApexCharts === 'undefined') {
     console.error('ApexCharts is not loaded! Cannot create balance chart.');
@@ -3962,12 +3985,10 @@ function createBalanceChart() {
   if (!filteredLogs || filteredLogs.length === 0) {
     console.warn('No data available for balance chart (after date filter)');
     
-    // Destroy existing chart if it exists
     if (container.chart) {
-      container.chart.destroy();
+      try { container.chart.destroy(); } catch (e) { /* ignore */ }
       container.chart = null;
     }
-    
     // Hide balance chart container and metric selector
     if (balanceChartContainer) {
       balanceChartContainer.classList.add('hidden');
@@ -3991,11 +4012,10 @@ function createBalanceChart() {
     balanceMetricSelector.classList.remove('hidden');
   }
   
-  // Destroy existing chart if it exists
   if (container.chart) {
-    container.chart.destroy();
+    try { container.chart.destroy(); } catch (e) { /* ignore */ }
+    container.chart = null;
   }
-  
   // All available metrics for balance chart (excluding steps)
   const allMetrics = [
     { field: 'fatigue', name: 'Fatigue', color: '#ff9800', scale: '1-10' },
@@ -4186,7 +4206,7 @@ function createBalanceChart() {
   container.chart = new ApexCharts(container, options);
   injectChartShareButton(container, 'balanceChart');
   container.chart.render().then(() => {
-    console.log('Balance chart rendered successfully');
+    perfLog('Charts createBalanceChart', Date.now() - _perfT0, {});
   });
 }
 
@@ -4585,9 +4605,16 @@ window.CONDITION_CONTEXT = CONDITION_CONTEXT;
 // Legacy function wrappers for compatibility (delegate to AIEngine)
 // Supports learning: loads/saves prediction state (blend weights) from localStorage when available
 // Returns a Promise (AI can use GPU on desktop when available)
+var MAX_ALL_LOGS_ANALYSIS = 1200; // Cap so analysis stays fast; use most recent logs
 async function analyzeHealthMetrics(logs, allLogs, options) {
+  var _t0 = Date.now();
   if (!window.AIEngine) {
+    perfLog('AI analyzeHealthMetrics (no engine)', Date.now() - _t0, {});
     return { trends: {}, correlations: [], anomalies: [], advice: [], patterns: [], riskFactors: [] };
+  }
+  var trainingLogs = allLogs;
+  if (trainingLogs && trainingLogs.length > MAX_ALL_LOGS_ANALYSIS) {
+    trainingLogs = trainingLogs.slice(-MAX_ALL_LOGS_ANALYSIS);
   }
   const opts = options || {};
   if (typeof opts.predictionState === 'undefined' && typeof localStorage !== 'undefined') {
@@ -4596,12 +4623,13 @@ async function analyzeHealthMetrics(logs, allLogs, options) {
       if (s) opts.predictionState = JSON.parse(s);
     } catch (e) { /* ignore */ }
   }
-  const result = await window.AIEngine.analyzeHealthMetrics(logs, allLogs, opts);
+  const result = await window.AIEngine.analyzeHealthMetrics(logs, trainingLogs, opts);
   if (result.predictionStateForSave && typeof localStorage !== 'undefined') {
     try {
       localStorage.setItem('healthAppPredictionState', JSON.stringify(result.predictionStateForSave));
     } catch (e) { /* ignore */ }
   }
+  perfLog('AI analyzeHealthMetrics', Date.now() - _t0, { logs: (logs && logs.length) || 0, allLogs: (trainingLogs && trainingLogs.length) || 0 });
   return result;
 }
 
@@ -4643,14 +4671,34 @@ document.addEventListener('keydown', function(event) {
 // AI SUMMARY - REBUILT FROM SCRATCH
 // ============================================
 
+// Console performance metrics (all tasks + AI) with resource usage for bottleneck visibility
+function perfLog(taskName, durationMs, data) {
+  if (typeof console === 'undefined' || !console.log) return;
+  var memStr = '';
+  try {
+    if (typeof performance !== 'undefined' && performance.memory) {
+      var m = performance.memory;
+      memStr = ' \u2502 heap ' + (m.usedJSHeapSize / 1048576).toFixed(1) + '/' + (m.totalJSHeapSize / 1048576).toFixed(1) + ' MB (limit ' + (m.jsHeapSizeLimit / 1048576).toFixed(0) + ' MB)';
+    }
+  } catch (e) {}
+  var bottleneck = durationMs > 100 ? ' \u26a0 slow' : '';
+  var msg = '[Perf] ' + taskName + ' \u2502 ' + durationMs + 'ms' + bottleneck + memStr;
+  if (data != null && typeof data === 'object' && Object.keys(data).length) console.log(msg, data);
+  else console.log(msg);
+}
+
 // Cache for preloaded AI analysis so opening AI tab is instant when preload has run
 window._aiAnalysisCache = null;
 // Multi-range cache: key (from getAICacheKey) -> { analysis, sortedLogs, dateRangeText, cacheKey }; only update on data change
 window._aiAnalysisCacheMap = Object.create(null);
 
 function getAICacheKey(aiDateRange, logsLength, filteredCount) {
+  var deviceTier = (window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass)
+    ? window.PerformanceUtils.platform.deviceClass
+    : 'medium';
   var r = aiDateRange || { type: 7 };
-  return (r.type || 7) + '_' + (r.startDate || '') + '_' + (r.endDate || '') + '_' + (logsLength || 0) + '_' + (filteredCount || 0);
+  var base = (r.type || 7) + '_' + (r.startDate || '') + '_' + (r.endDate || '') + '_' + (logsLength || 0) + '_' + (filteredCount || 0);
+  return deviceTier + '_' + base;
 }
 
 // No-op: AI analysis is display-only and auto-loads from date range (no button).
@@ -4659,6 +4707,7 @@ function updateAISummaryButtonState() {
 }
 
 async function generateAISummary() {
+  var _perfT0 = Date.now();
   let resultsContent = document.getElementById('aiResultsContent');
   if (!resultsContent) {
     Logger.error('AI Summary - Results content element not found');
@@ -4740,6 +4789,7 @@ async function generateAISummary() {
     : (window._aiAnalysisCacheMap && window._aiAnalysisCacheMap[cacheKey]);
   if (cached) {
     window._aiAnalysisCache = cached;
+    perfLog('AI generateAISummary (from cache)', Date.now() - _perfT0, { range: cacheKey });
     displayAISummary(cached.analysis, cached.sortedLogs, cached.sortedLogs.length, null, cached.dateRangeText);
     updateSummaryNoteWithLLM(cached.analysis, cached.sortedLogs, cached.sortedLogs.length);
     Logger.info('AI Summary - Display from cache');
@@ -4782,6 +4832,7 @@ async function generateAISummary() {
       var entry = { analysis: analysis, sortedLogs: sortedLogs, dateRangeText: dateRangeText, cacheKey: cacheKey };
       window._aiAnalysisCache = entry;
       if (window._aiAnalysisCacheMap) window._aiAnalysisCacheMap[cacheKey] = entry;
+      perfLog('AI generateAISummary (computed)', Date.now() - _perfT0, { range: cacheKey, logs: sortedLogs.length });
       displayAISummary(analysis, sortedLogs, sortedLogs.length, null, dateRangeText);
       updateSummaryNoteWithLLM(analysis, sortedLogs, sortedLogs.length);
       Logger.info('AI Summary - Display complete');
@@ -4868,7 +4919,9 @@ function preloadAIAnalysisInBackground() {
 }
 
 // Preload AI analysis for all fixed ranges (7, 30, 90 days) during loading screen; cache by range and data identity.
+// On low device: run sequentially with yield between each to avoid blocking UI; on medium/high: run in parallel (optionally after requestIdleCallback).
 function preloadAIForAllRanges() {
+  var _perfT0 = Date.now();
   var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
   if (profile && !profile.enableAIPreload) return Promise.resolve();
   if (typeof appSettings === 'undefined' || appSettings.aiEnabled === false) return Promise.resolve();
@@ -4881,9 +4934,16 @@ function preloadAIForAllRanges() {
   var allLogsForTraining = window.PerformanceUtils && window.PerformanceUtils.memoizedSort
     ? window.PerformanceUtils.memoizedSort(logs, function(a, b) { return new Date(a.date) - new Date(b.date); }, 'allLogsForTraining')
     : logs.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+  // Cap so preload doesn't block for minutes when user has 3000+ logs
+  var MAX_PRELOAD_TRAINING_LOGS = 1200;
+  if (allLogsForTraining.length > MAX_PRELOAD_TRAINING_LOGS) {
+    allLogsForTraining = allLogsForTraining.slice(-MAX_PRELOAD_TRAINING_LOGS);
+  }
 
-  var promises = [];
-  [7, 30, 90].forEach(function(days) {
+  var deviceClass = (profile && profile.deviceClass) ? profile.deviceClass : 'medium';
+  var isLow = deviceClass === 'low';
+
+  function runOne(days) {
     var endDate = new Date();
     endDate.setHours(23, 59, 59, 999);
     var startDate = new Date();
@@ -4893,19 +4953,47 @@ function preloadAIForAllRanges() {
       var d = new Date(log.date);
       return d >= startDate && d <= endDate;
     });
-    if (filteredLogs.length === 0) return;
+    if (filteredLogs.length === 0) return Promise.resolve();
     var sortedLogs = filteredLogs.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
     var range = { type: days };
     var cacheKey = getAICacheKey(range, logs.length, sortedLogs.length);
-    if (window._aiAnalysisCacheMap && window._aiAnalysisCacheMap[cacheKey]) return;
+    if (window._aiAnalysisCacheMap && window._aiAnalysisCacheMap[cacheKey]) return Promise.resolve();
     var dateRangeText = days === 1 ? 'today' : 'last ' + days + ' days';
-    promises.push(
-      analyzeFn(sortedLogs, allLogsForTraining).then(function(analysis) {
-        setAICache(analysis, sortedLogs, dateRangeText, cacheKey);
-      }).catch(function() {})
-    );
+    return analyzeFn(sortedLogs, allLogsForTraining).then(function(analysis) {
+      setAICache(analysis, sortedLogs, dateRangeText, cacheKey);
+    }).catch(function() {});
+  }
+
+  function yieldToMain() {
+    return new Promise(function(resolve) {
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(function() { resolve(); }, { timeout: 50 });
+      } else {
+        setTimeout(resolve, 0);
+      }
+    });
+  }
+
+  function runAll() {
+    if (isLow) {
+      return runOne(7).then(function() { return yieldToMain(); })
+        .then(function() { return runOne(30); }).then(function() { return yieldToMain(); })
+        .then(function() { return runOne(90); });
+    }
+    var promises = [];
+    [7, 30, 90].forEach(function(days) {
+      var p = runOne(days);
+      if (p) promises.push(p);
+    });
+    return Promise.all(promises);
+  }
+
+  var start = (deviceClass !== 'low' && typeof requestIdleCallback !== 'undefined')
+    ? new Promise(function(resolve) { requestIdleCallback(resolve, { timeout: 500 }); })
+    : Promise.resolve();
+  return start.then(runAll).then(function() {
+    perfLog('AI preloadAIForAllRanges (7,30,90d)', Date.now() - _perfT0, { logsLen: typeof logs !== 'undefined' ? logs.length : 0 });
   });
-  return Promise.all(promises);
 }
 
 function scheduleAIPreload() {
@@ -9661,9 +9749,9 @@ function renderLogs() {
   renderLogEntries(currentLogs);
 }
 
-// Chart date range filter state
+// Chart date range filter state (default 30 so demo/older data is visible; 7 often has no data)
 let chartDateRange = {
-  type: 7, // 1 (Today), 7, 30, 90, or 'custom'
+  type: 30, // 1 (Today), 7, 30, 90, or 'custom'
   startDate: null,
   endDate: null
 };
@@ -9703,7 +9791,7 @@ function getFilteredLogs() {
   if (_filteredLogsCache && _filteredLogsCacheKey === cacheKey) {
     return _filteredLogsCache;
   }
-  
+  var _gfT0 = Date.now();
   let filtered = [...logs];
   
   // If startDate and endDate are explicitly set (for custom or "Today"), use them
@@ -9741,6 +9829,7 @@ function getFilteredLogs() {
   const sorted = filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
   _filteredLogsCache = sorted;
   _filteredLogsCacheKey = cacheKey;
+  perfLog('Data getFilteredLogs (cache miss)', Date.now() - _gfT0, { logsLen: logs.length, resultLen: sorted.length });
   return sorted;
 }
 
@@ -9912,8 +10001,8 @@ function schedulePrecomputeChartResults() {
   }
 }
 
-// Set chart date range
-function setChartDateRange(range) {
+// Set chart date range. Options: { skipRefresh: true } to avoid refreshCharts (e.g. during init).
+function setChartDateRange(range, options) {
   chartDateRange.type = range;
   
   // Invalidate filtered logs cache
@@ -9968,8 +10057,10 @@ function setChartDateRange(range) {
     }
   }
   
-  // Refresh charts with filtered data
-  refreshCharts();
+  // Refresh charts with filtered data (skip during init to avoid duplicate createCombinedChart + 14x analyzeHealthMetrics)
+  if (!(options && options.skipRefresh === true)) {
+    refreshCharts();
+  }
 }
 
 // Apply custom date range
@@ -10051,16 +10142,12 @@ function refreshCharts() {
 }
 
 async function chart(id, label, dataField, color) {
-  // Check if ApexCharts is available
   if (typeof ApexCharts === 'undefined') {
     console.error('ApexCharts is not loaded! Cannot create charts.');
     return;
   }
-  
-  // Use DOMCache for container
   const container = window.PerformanceUtils?.DOMCache?.getElement(id) || document.getElementById(id);
-  if (!container) {
-    console.error(`Container element with id '${id}' not found`);
+  if (!container || !document.body.contains(container)) {
     return;
   }
   
@@ -10076,18 +10163,18 @@ async function chart(id, label, dataField, color) {
   // Check if we have data
   if (!filteredLogs || filteredLogs.length === 0) {
     console.warn(`No data available for chart: ${label} (after date filter)`);
-    // Destroy existing chart if it exists
     if (container.chart) {
-      container.chart.destroy();
+      try { container.chart.destroy(); } catch (e) { /* ApexCharts may throw if node is detached */ }
+      container.chart = null;
     }
-    // Hide chart container if no data
     container.style.display = 'none';
     return;
   }
   
-  // Destroy existing chart if it exists
+  // Destroy existing chart if it exists (guard: container may be detached)
   if (container.chart) {
-    container.chart.destroy();
+    try { container.chart.destroy(); } catch (e) { /* ignore */ }
+    container.chart = null;
   }
   
   // Prepare data and filter out invalid entries (optimized single-pass)
@@ -10210,7 +10297,8 @@ async function chart(id, label, dataField, color) {
                 anonymizedTrainingData = await window.getAnonymizedTrainingData(appSettings.medicalCondition);
               } catch (e) { /* ignore */ }
             }
-            const combinedTrainingLogs = appSettings.useOpenData ? [...allHistoricalLogs, ...anonymizedTrainingData] : allHistoricalLogs;
+            let combinedTrainingLogs = appSettings.useOpenData ? [...allHistoricalLogs, ...anonymizedTrainingData] : allHistoricalLogs;
+            if (combinedTrainingLogs.length > 1200) combinedTrainingLogs = combinedTrainingLogs.slice(-1200);
             analysis = await analyzeHealthMetrics(sortedLogsAll, combinedTrainingLogs);
             setChartResultsCache(viewKey, predictionRange, logs.length, {
               analysis,
@@ -10966,13 +11054,17 @@ async function chart(id, label, dataField, color) {
     }
     
     requestAnimationFrame(() => {
+      if (!document.body.contains(container)) return;
       container.chart = new ApexCharts(container, options);
       container.chart.render().then(() => {
+        if (!document.body.contains(container)) return;
         if (loadingElement) loadingElement.style.display = 'none';
-        container.classList.add('loaded');
+        if (container.classList) container.classList.add('loaded');
         injectChartShareButton(container, id);
         setTimeout(() => {
-          if (container.chart) container.chart.updateOptions({}, false, true);
+          try {
+            if (container && container.chart && document.body.contains(container)) container.chart.updateOptions({}, false, true);
+          } catch (e) { /* chart may have been destroyed */ }
         }, 100);
       });
     });
@@ -11192,6 +11284,7 @@ function scheduleChartsPreload() {
 }
 
 function updateChartsImmediate() {
+  var _perfT0 = Date.now();
   // Check if we have data
   const hasData = logs && logs.length > 0;
   updateChartEmptyState(hasData);
@@ -11224,6 +11317,7 @@ function updateChartsImmediate() {
   chart("weatherSensitivityChart", "Weather Sensitivity", "weatherSensitivity", "rgb(0,150,136)");
   chart("stepsChart", "Steps", "steps", "rgb(100,181,246)");
   chart("hydrationChart", "Hydration", "hydration", "rgb(33,150,243)");
+  perfLog('Charts updateChartsImmediate (14 charts)', Date.now() - _perfT0, {});
 }
 
 // Update empty state placeholder visibility
@@ -11249,6 +11343,7 @@ function updateChartEmptyState(hasData) {
 var updateChartsApexRetries = 0;
 var updateChartsApexRetryMax = 24; // 24 * 500ms = 12s then stop retrying
 function updateCharts() {
+  var _perfT0 = Date.now();
   if (typeof ApexCharts === 'undefined') {
     if (updateChartsApexRetries < updateChartsApexRetryMax) {
       updateChartsApexRetries += 1;
@@ -11266,6 +11361,7 @@ function updateCharts() {
   
   // If all charts were built during load, don't clear/destroy them
   if (window.__chartsBuiltDuringLoad) {
+    perfLog('Charts updateCharts (early, built during load)', Date.now() - _perfT0, {});
     return;
   }
   
@@ -11298,9 +11394,11 @@ function updateCharts() {
           initializeLazyLoading();
         }, 100); // Small delay to ensure DOM is ready
       }
+      perfLog('Charts updateCharts (lazy)', Date.now() - _perfT0, {});
     } else {
       // Load all charts immediately if lazy loading is disabled
       updateChartsImmediate();
+      perfLog('Charts updateCharts (immediate)', Date.now() - _perfT0, {});
   }
 }
 
@@ -12239,7 +12337,9 @@ async function loadAvailableConditions(optionalSelectId) {
         );
         window.supabaseClient = client;
       } else {
-        console.warn('Supabase client not available - SUPABASE_CONFIG or supabase library not found');
+        if (typeof appSettings === 'undefined' || !appSettings.demoMode) {
+          console.warn('Supabase client not available - SUPABASE_CONFIG or supabase library not found');
+        }
         select.innerHTML = '<option value="">-- Select a condition --</option>';
         select.disabled = false;
         return;
@@ -13974,26 +14074,17 @@ function switchTab(tabName) {
     const chartSection = document.getElementById('chartSection');
     if (chartSection) {
       chartSection.classList.remove('hidden');
-      
-      // Initialize chart view based on saved preference without jumping
-      // Default to 'balance' if no preference is set
-      const savedView = appSettings.chartView || 'balance';
-      
-      // Set default if not set
-      if (!appSettings.chartView) {
-        appSettings.chartView = 'balance';
-        saveSettings();
-      }
-      
-      // Use toggleChartView to properly initialize the view
-      toggleChartView(savedView);
+      // Always show balance view when opening the Charts tab
+      appSettings.chartView = 'balance';
+      saveSettings();
+      toggleChartView('balance');
       schedulePrecomputeChartResults();
     }
   }
   
-  // View Logs tab: default to Today and load logs with that range
+  // View Logs tab: default to last 7 days
   if (tabName === 'logs') {
-    if (typeof setLogViewRange === 'function') setLogViewRange(1);
+    if (typeof setLogViewRange === 'function') setLogViewRange(7);
   }
   
   // Special handling for AI tab - initialize date range
@@ -14159,12 +14250,13 @@ window.addEventListener('load', () => {
     }
   }
   
-  // Date range and chart section must be set before createCombinedChart
+  // Date range and chart section must be set before createCombinedChart (skipRefresh so we don't run createCombinedChart twice)
   try {
     initializeDateFilters();
-    setChartDateRange(7);
+    setChartDateRange(30, { skipRefresh: true });
     setPredictionRange(7);
-  setLogViewRange(1);
+  // Use 30 days so charts and log list have data on first load (setLogViewRange overwrites chartDateRange)
+  setLogViewRange(30);
   if (appSettings.showCharts) {
       const chartSection = document.getElementById('chartSection');
       if (chartSection) chartSection.classList.remove('hidden');
@@ -14178,13 +14270,12 @@ window.addEventListener('load', () => {
   // Keep loading circle until combined chart, all 14 individual charts, and summary LLM are ready (or timeout)
   const chartSectionEl = document.getElementById('chartSection');
   const needCharts = appSettings.showCharts && chartSectionEl && logs && logs.length > 0;
+  // Build only combined chart during load so overlay/layout don't give individual charts zero size
   const chartsReady = !needCharts
     ? Promise.resolve()
     : (typeof createCombinedChart === 'function' ? createCombinedChart() : Promise.resolve()).then(function () {
-        if (typeof ApexCharts !== 'undefined' && typeof updateChartsImmediate === 'function') {
-          window.__chartsBuiltDuringLoad = true;
-          updateChartsImmediate();
-        }
+        window.__chartsBuiltDuringLoad = true;
+        // Skip updateChartsImmediate here so 14 individual charts are built after overlay is gone (see below)
       }).catch(function () {});
   const aiReady = (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function')
     ? Promise.resolve()
@@ -14213,6 +14304,14 @@ window.addEventListener('load', () => {
     window.__chartsBuiltDuringLoad = false;
     scheduleAIPreload();
     clearAISection();
+    // Build 14 individual charts after layout so they get correct dimensions (avoids blank/slow first load when view is individual)
+    if (appSettings.showCharts && logs && logs.length > 0 && appSettings.chartView === 'individual') {
+      requestAnimationFrame(function() {
+        setTimeout(function() {
+          if (typeof updateChartsImmediate === 'function') updateChartsImmediate();
+        }, 80);
+      });
+    }
     
     if (!appSettings.weightUnit) {
       appSettings.weightUnit = 'kg';

@@ -567,6 +567,18 @@ For issues and questions:
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
 <details>
+<summary><strong>v1.18.0</strong> — 2026-02-23 — Charts & logs defaults, device module, first-load chart fix</summary>
+
+- **Charts tab**: Always opens in Balance view when the tab is clicked; preference is saved so the next open is also Balance.
+- **View Logs tab**: Default date range when opening the tab is now last 7 days (was today).
+- **Individual charts first load**: Only the combined chart is built during the loading overlay; the 14 individual charts are built after the overlay is removed (rAF + 80 ms delay when view is Individual) so they get correct dimensions and no longer appear blank until the user switches view.
+- **Device module & performance**: `device-module.js` loads before `performance-utils.js`; device class and platform drive AI preload (sequential on low, parallel on high), chart preload stagger, and optional GPU backend skip on low. AI preload runs on the main thread only; worker ANALYZE path removed from `prediction-worker.js`. AI cache keys include device tier for cache partitioning.
+- **Charts & data**: Default chart date range is 30 days; init uses `skipRefresh` to avoid duplicate combined chart and AI runs. Chart and preload paths cap training logs at 1200 for analysis.
+- **ApexCharts robustness**: Chart container null checks and try/catch around `destroy()` in combined, balance, and individual chart code to avoid "Cannot read properties of null" when containers are missing or detached.
+
+</details>
+
+<details>
 <summary><strong>v1.17.0</strong> — 2026-02-23 — Dependencies: Dependabot alerts resolved</summary>
 
 - **npm (react-app)**: Upgraded Vite 5 → 6.4 (esbuild 0.25+, fixes moderate CORS advisory) and all @capacitor/* 6 → 7 (fixes high: minimatch ReDoS, tar path traversal). Regenerated package-lock.json; `npm audit` reports 0 vulnerabilities.

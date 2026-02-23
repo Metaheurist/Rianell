@@ -420,18 +420,14 @@ const StorageBatcher = {
 
 // ============================================
 // Platform and capabilities (single source of truth)
+// Use DeviceModule when loaded (device-module.js); otherwise fallback for standalone performance-utils.
 // ============================================
 
-/**
- * Returns device performance tier: 'low' | 'medium' | 'high'.
- * Used for per-platform optimisations (LLM lazy-load, chart point cap).
- */
-function getDevicePerformanceClass() {
+function getDevicePerformanceClassFallback() {
   const nav = typeof navigator !== 'undefined' ? navigator : {};
   const deviceMemory = nav.deviceMemory;
   const cores = nav.hardwareConcurrency;
   const isSecure = typeof window !== 'undefined' && window.isSecureContext === true;
-
   if (isSecure && typeof deviceMemory === 'number' && deviceMemory > 0) {
     if (deviceMemory <= 2) return 'low';
     if (deviceMemory >= 8) return 'high';
@@ -444,49 +440,61 @@ function getDevicePerformanceClass() {
   }
   const ua = nav.userAgent || '';
   const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) || (nav.maxTouchPoints && nav.maxTouchPoints > 1);
-  if (mobile) return 'low';
-  return 'medium';
+  return mobile ? 'low' : 'medium';
+}
+
+function getDevicePerformanceClass() {
+  if (typeof window !== 'undefined' && window.DeviceModule && typeof window.DeviceModule.getDevicePerformanceClass === 'function') {
+    return window.DeviceModule.getDevicePerformanceClass();
+  }
+  return getDevicePerformanceClassFallback();
 }
 
 /**
- * Platform and capabilities object, computed once.
+ * Platform and capabilities object. From DeviceModule when loaded, else computed here.
  * Exposed as PerformanceUtils.platform for use by summary-llm, app.js charts, etc.
  */
 const platform = (function () {
+  if (typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform) {
+    return window.DeviceModule.platform;
+  }
   const nav = typeof navigator !== 'undefined' ? navigator : {};
   const ua = nav.userAgent || '';
   let platformName = 'desktop';
   if (/iPad|iPhone|iPod/.test(ua)) platformName = 'ios';
   else if (/Android/i.test(ua)) platformName = 'android';
-
   let connection = null;
   if (nav.connection && typeof nav.connection === 'object') {
     connection = { effectiveType: nav.connection.effectiveType, saveData: !!nav.connection.saveData };
   }
-
   const win = typeof window !== 'undefined' ? window : null;
   const isStandalone = !!(win && (win.matchMedia('(display-mode: standalone)').matches || win.navigator.standalone));
   const prefersReducedMotion = !!(win && win.matchMedia && win.matchMedia('(prefers-reduced-motion: reduce)').matches);
-
   var w = (win && win.innerWidth) != null ? win.innerWidth : 0;
   var h = (win && win.innerHeight) != null ? win.innerHeight : 0;
   var isTouch = !!(nav.maxTouchPoints && nav.maxTouchPoints > 0);
   var isTablet = isTouch && (Math.min(w, h) >= 600 && (Math.max(w, h) <= 1280 || /iPad|Android(?!.*Mobile)|Tablet/i.test(ua)));
   var hardwareConcurrency = typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency > 0 ? nav.hardwareConcurrency : 0;
-
   return {
     deviceClass: getDevicePerformanceClass(),
     platform: platformName,
     isTouch: isTouch,
     isTablet: isTablet,
-    isStandalone,
-    prefersReducedMotion,
+    isStandalone: isStandalone,
+    prefersReducedMotion: prefersReducedMotion,
     connection: connection,
     screenWidth: w,
     screenHeight: h,
     hardwareConcurrency: hardwareConcurrency
   };
 })();
+
+function getDeviceId() {
+  if (typeof window !== 'undefined' && window.DeviceModule && typeof window.DeviceModule.getDeviceId === 'function') {
+    return window.DeviceModule.getDeviceId();
+  }
+  return (platform.deviceClass || 'medium') + '_' + (platform.hardwareConcurrency || 0);
+}
 
 /**
  * Single optimization profile per device/platform. Use this for charts, preload, DOM, storage.
@@ -598,6 +606,7 @@ if (typeof window !== 'undefined') {
     getDevicePerformanceClass,
     getOptimizationProfile,
     getDeviceOpts,
+    getDeviceId,
     platform
   };
   window.PlatformCapabilities = platform;
