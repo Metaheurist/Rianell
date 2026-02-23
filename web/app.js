@@ -10882,50 +10882,42 @@ async function chart(id, label, dataField, color) {
     loadingElement.style.display = 'none';
   }
   
-  // Ensure container is visible and has dimensions before rendering
+  // Ensure container is visible and has dimensions before rendering (cap retries to avoid 100% CPU)
+  const maxContainerReadyRetries = 40; // 40 * 50ms = 2s max, then give up
+  let containerReadyAttempts = 0;
   const ensureContainerReady = () => {
+    containerReadyAttempts += 1;
     const rect = container.getBoundingClientRect();
     const computedStyle = window.getComputedStyle(container);
     
-    // Check if container is ready: has dimensions, is visible, and not animating
-    if (rect.width === 0 || rect.height === 0 || 
-        computedStyle.display === 'none' || 
+    const notReady = rect.width === 0 || rect.height === 0 ||
+        computedStyle.display === 'none' ||
         computedStyle.visibility === 'hidden' ||
-        computedStyle.opacity === '0') {
-      // Container not ready yet, wait a bit
-      setTimeout(ensureContainerReady, 50);
+        computedStyle.opacity === '0';
+    if (notReady) {
+      if (containerReadyAttempts < maxContainerReadyRetries) {
+        setTimeout(ensureContainerReady, 50);
+      }
       return;
     }
     
-    // Ensure container has proper positioning context
     if (computedStyle.position === 'static') {
       container.style.position = 'relative';
     }
     
-    // Container is ready, create and render chart
-    // Use requestAnimationFrame to ensure DOM is fully painted
     requestAnimationFrame(() => {
-  container.chart = new ApexCharts(container, options);
+      container.chart = new ApexCharts(container, options);
       container.chart.render().then(() => {
-        // Ensure loading is hidden after render
-        if (loadingElement) {
-          loadingElement.style.display = 'none';
-        }
-        // Mark container as loaded
+        if (loadingElement) loadingElement.style.display = 'none';
         container.classList.add('loaded');
         injectChartShareButton(container, id);
-        // Force a resize to ensure chart fits container
         setTimeout(() => {
-          if (container.chart) {
-            container.chart.updateOptions({}, false, true);
-          }
+          if (container.chart) container.chart.updateOptions({}, false, true);
         }, 100);
       });
     });
   };
   
-  // Wait for container to be ready and visible before rendering chart
-  // Use a small delay to ensure CSS animations have started
   setTimeout(ensureContainerReady, 150);
 }
 
@@ -11194,13 +11186,17 @@ function updateChartEmptyState(hasData) {
   }
 }
 
+var updateChartsApexRetries = 0;
+var updateChartsApexRetryMax = 24; // 24 * 500ms = 12s then stop retrying
 function updateCharts() {
-  // Check if ApexCharts is loaded
   if (typeof ApexCharts === 'undefined') {
-    console.warn('ApexCharts not loaded yet, retrying in 500ms...');
-    setTimeout(updateCharts, 500);
+    if (updateChartsApexRetries < updateChartsApexRetryMax) {
+      updateChartsApexRetries += 1;
+      setTimeout(updateCharts, 500);
+    }
     return;
   }
+  updateChartsApexRetries = 0;
   
   Logger.debug('Updating charts', { entryCount: logs.length });
   
