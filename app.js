@@ -9082,7 +9082,6 @@ function renderLogs() {
   renderLogEntries(currentLogs);
 }
 
-// Old renderLogs code kept for reference - can be removed
 // Chart date range filter state
 let chartDateRange = {
   type: 7, // 1 (Today), 7, 30, 90, or 'custom'

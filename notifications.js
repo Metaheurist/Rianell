@@ -1,7 +1,11 @@
 // ============================================
 // NOTIFICATIONS & REMINDERS
 // Safari Web App notifications and daily reminders
+// Android: when running in Capacitor, uses native LocalNotifications for compatibility (permissions, background)
 // ============================================
+
+const isCapacitor = typeof window.Capacitor !== 'undefined' && window.Capacitor.isNativePlatform?.();
+const LocalNotifications = isCapacitor && window.Capacitor?.Plugins?.LocalNotifications;
 
 const NotificationManager = {
   permission: null,
@@ -23,9 +27,14 @@ const NotificationManager = {
       this.showInstallPrompt();
     }
     
-    // Request notification permission
+    if (LocalNotifications) {
+      try {
+        const { display } = await LocalNotifications.checkPermissions();
+        this.permission = display === 'granted' ? 'granted' : (display === 'denied' ? 'denied' : 'default');
+      } catch (e) { /* ignore */ }
+    }
     await this.requestPermission();
-    
+
     // Load saved reminder time
     this.loadReminderSettings();
     
@@ -76,22 +85,27 @@ const NotificationManager = {
   
   // Request notification permission
   async requestPermission() {
+    if (LocalNotifications) {
+      try {
+        const { display } = await LocalNotifications.requestPermissions();
+        this.permission = display === 'granted' ? 'granted' : (display === 'denied' ? 'denied' : 'default');
+        if (this.permission === 'granted') return true;
+      } catch (e) {
+        console.warn('Capacitor LocalNotifications permission request failed:', e);
+      }
+    }
     if (!('Notification' in window)) {
       console.warn('This browser does not support notifications');
       return false;
     }
-    
     if (Notification.permission === 'granted') {
       this.permission = 'granted';
       return true;
     }
-    
     if (Notification.permission === 'denied') {
       this.permission = 'denied';
       return false;
     }
-    
-    // Request permission
     try {
       const permission = await Notification.requestPermission();
       this.permission = permission;
