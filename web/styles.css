@@ -3013,6 +3013,18 @@ body.light-mode .form-validation-summary {
   color: var(--text-light);
 }
 
+.log-required-block {
+  margin-bottom: 1.25rem;
+  padding: 0 2px;
+}
+
+.log-required-block label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
 .character-counter {
   font-size: 0.8rem;
   color: #888;
