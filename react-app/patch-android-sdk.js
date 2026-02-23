@@ -4,9 +4,11 @@
  * - minSdk 22 (Android 5.1, Capacitor 6 minimum; broad device support)
  * - targetSdk 34 (Android 14, newest stable)
  */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const androidDir = path.join(__dirname, 'android');
 const varsPath = path.join(androidDir, 'variables.gradle');
 const appBuildPath = path.join(androidDir, 'app', 'build.gradle');
