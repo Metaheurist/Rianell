@@ -1111,6 +1111,83 @@ function maybeShowInstallModalOnce() {
   } catch (err) {}
 }
 
+function getBuildBaseUrls() {
+  var path = window.location.pathname || '/';
+  var base = path.substring(0, path.lastIndexOf('/') + 1);
+  var baseUrl = window.location.origin + (base.startsWith('/') ? base : '/' + base);
+  return {
+    android: baseUrl + encodeURI('App build/Android/'),
+    ios: baseUrl + encodeURI('App build/iOS/')
+  };
+}
+
+function refreshBuildDownloadLinks() {
+  var bases = getBuildBaseUrls();
+  var androidBase = bases.android;
+  var iosBase = bases.ios;
+  var isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  var apkEl = document.getElementById('downloadApkLink');
+  var iosEl = document.getElementById('downloadIosLink');
+  var apkModal = document.getElementById('installModalApkLink');
+  var iosModal = document.getElementById('installModalIosLink');
+  var iosLabel = document.getElementById('downloadIosLabel');
+  var iosLabelModal = document.getElementById('installModalIosLinkLabel');
+
+  function setAndroid(href, versionText) {
+    if (apkEl) {
+      apkEl.href = href;
+      var v = apkEl.querySelector('.android-version');
+      if (v) v.textContent = versionText || '';
+    }
+    if (apkModal) {
+      apkModal.href = href;
+      var vM = apkModal.querySelector('.android-version');
+      if (vM) vM.textContent = versionText || '';
+    }
+  }
+  function setIos(href, versionText, labelText) {
+    if (iosEl) {
+      iosEl.href = href;
+      var v = iosEl.querySelector('.ios-version');
+      if (v) v.textContent = versionText || '';
+      if (iosLabel && labelText) iosLabel.textContent = labelText;
+    }
+    if (iosModal) {
+      iosModal.href = href;
+      var vM = iosModal.querySelector('.ios-version');
+      if (vM) vM.textContent = versionText || '';
+      if (iosLabelModal && labelText) iosLabelModal.textContent = labelText;
+    }
+  }
+
+  setAndroid(androidBase + 'app-debug.apk', '');
+  setIos(iosBase + 'Health-Tracker-ios-latest.zip', '', isIosDevice ? 'Install on iOS' : 'Download iOS build (Xcode project)');
+
+  fetch(androidBase + 'latest.json', { cache: 'no-store' })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (data && data.file) {
+        var href = androidBase + encodeURIComponent(data.file);
+        var versionText = (data.version != null) ? '(build ' + data.version + ')' : '';
+        setAndroid(href, versionText);
+      }
+    })
+    .catch(function() {});
+  fetch(iosBase + 'latest.json', { cache: 'no-store' })
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (data && data.file) {
+        var href = data.installUrl || (iosBase + encodeURIComponent(data.file));
+        var versionText = (data.version != null) ? '(build ' + data.version + ')' : '';
+        var label = data.installUrl && isIosDevice ? 'Install native app (one tap)' : (isIosDevice ? 'Install on iOS' : 'Download iOS build (Xcode project)');
+        setIos(href, versionText, label);
+      }
+    })
+    .catch(function() {});
+}
+
+window.refreshBuildDownloadLinks = refreshBuildDownloadLinks;
+
 function openInstallModal(force) {
   window._installModalOpenedByTutorial = false;
   if (!force) {
@@ -1122,6 +1199,7 @@ function openInstallModal(force) {
   var overlay = document.getElementById('installModalOverlay');
   if (!overlay) return;
   closeSettingsModalIfOpen();
+  if (typeof refreshBuildDownloadLinks === 'function') refreshBuildDownloadLinks();
   var apkMain = document.getElementById('downloadApkLink');
   var iosMain = document.getElementById('downloadIosLink');
   var apkModal = document.getElementById('installModalApkLink');
@@ -2079,6 +2157,7 @@ window.toggleSettings = function() {
   if (isVisible) {
     settingsOverlaySetOpen(overlay, false);
   } else {
+    if (typeof refreshBuildDownloadLinks === 'function') refreshBuildDownloadLinks();
     settingsOverlaySetOpen(overlay, true);
     const menu = overlay.querySelector('.settings-menu');
     if (menu) {
@@ -2304,11 +2383,11 @@ class FormValidator {
       }
     });
 
-    // BPM validation
+    // BPM validation (optional - Basic Metrics)
     this.rules.set('bpm', {
-      required: true,
+      required: false,
       validate: (value) => {
-        if (!value) return 'Resting BPM is required';
+        if (!value) return null;
         
         const bpm = parseInt(value);
         if (isNaN(bpm)) return 'BPM must be a number';
@@ -2320,11 +2399,11 @@ class FormValidator {
       }
     });
 
-    // Weight validation
+    // Weight validation (optional - Basic Metrics)
     this.rules.set('weight', {
-      required: true,
+      required: false,
       validate: (value) => {
-        if (!value) return 'Weight is required';
+        if (!value) return null;
         
         const weight = parseFloat(value);
         if (isNaN(weight)) return 'Weight must be a number';
@@ -2377,8 +2456,8 @@ class FormValidator {
       }
     });
 
-    // Slider validations (fatigue, stiffness, etc.)
-    const sliderFields = ['fatigue', 'stiffness', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability'];
+    // Slider validations (all mandatory: Energy, Symptoms, Stress, Lifestyle)
+    const sliderFields = ['fatigue', 'stiffness', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'weatherSensitivity'];
     sliderFields.forEach(field => {
       this.rules.set(field, {
         required: true,
@@ -2400,10 +2479,11 @@ class FormValidator {
       'sleep': 'Sleep Quality',
       'jointPain': 'Joint Pain',
       'mobility': 'Mobility',
-      'dailyFunction': 'Daily Function',
+      'dailyFunction': 'Daily Activities',
       'swelling': 'Swelling',
       'mood': 'Mood',
-      'irritability': 'Irritability'
+      'irritability': 'Irritability',
+      'weatherSensitivity': 'Weather Sensitivity'
     };
     return names[fieldId] || fieldId;
   }
@@ -4699,6 +4779,15 @@ function getAIPainBodyFigureSVG(painByRegion) {
   return svg;
 }
 
+// Format prose/value text like "What we found": escape HTML, bold **x**, highlight (parenthesized) values
+function formatAIValueText(text) {
+  if (typeof text !== 'string' || !text) return '';
+  const escaped = escapeHTML(text);
+  let formatted = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  formatted = formatted.replace(/\(([^)]+)\)/g, '<span class="ai-brackets-highlight">($1)</span>');
+  return formatted;
+}
+
 function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateRangeText = '') {
   const resultsContent = document.getElementById('aiResultsContent');
   
@@ -5107,13 +5196,13 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title ai-section-green">😰 Stress and triggers</h3>
-        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">${stressorAnalysis.summary}</p>
+        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">${formatAIValueText(stressorAnalysis.summary)}</p>
     `;
     
     if (stressorAnalysis.impacts.length > 0) {
       html += `<ul class="ai-list">`;
       stressorAnalysis.impacts.slice(0, 3).forEach((impact, index) => {
-        html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 100 + (index * 100)}ms;">${impact}</li>`;
+        html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 100 + (index * 100)}ms;">${formatAIValueText(impact)}</li>`;
       });
       html += `</ul>`;
     }
@@ -5128,13 +5217,13 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title ai-section-green">💉 Symptoms and where you had pain</h3>
-        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">${symptomsAnalysis.summary}</p>
+        <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">${formatAIValueText(symptomsAnalysis.summary)}</p>
     `;
     
     if (symptomsAnalysis.symptomImpacts.length > 0 || symptomsAnalysis.painLocationImpacts.length > 0) {
       html += `<ul class="ai-list">`;
       [...symptomsAnalysis.symptomImpacts, ...symptomsAnalysis.painLocationImpacts].slice(0, 3).forEach((impact, index) => {
-        html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 100 + (index * 100)}ms;">${impact}</li>`;
+        html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 100 + (index * 100)}ms;">${formatAIValueText(impact)}</li>`;
       });
       html += `</ul>`;
     }
@@ -5180,10 +5269,10 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
         const severityClass = severityLabel === 'High' ? 'ai-pain-severity-high' : (severityLabel === 'Medium' ? 'ai-pain-severity-medium' : 'ai-pain-severity-low');
         html += `<tr class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 25)}ms; border-bottom: 1px solid rgba(255,255,255,0.06);">
           <td style="padding: 8px 12px;">${escapeHTML(data.label)}</td>
-          <td style="text-align: right; padding: 8px 12px;">${data.mildDays || 0}</td>
-          <td style="text-align: right; padding: 8px 12px;">${data.painDays || 0}</td>
-          <td style="text-align: right; padding: 8px 12px;">${pctOfPeriod}%</td>
-          <td style="padding: 8px 12px;"><span class="${severityClass}" style="padding: 2px 8px; border-radius: 6px; font-size: 0.85rem;">${severityLabel}</span></td>
+          <td style="text-align: right; padding: 8px 12px;"><span class="ai-brackets-highlight">${data.mildDays || 0}</span></td>
+          <td style="text-align: right; padding: 8px 12px;"><span class="ai-brackets-highlight">${data.painDays || 0}</span></td>
+          <td style="text-align: right; padding: 8px 12px;"><span class="ai-brackets-highlight">${pctOfPeriod}%</span></td>
+          <td style="padding: 8px 12px;"><span class="${severityClass} ai-brackets-highlight" style="padding: 2px 8px; border-radius: 6px; font-size: 0.85rem;">${severityLabel}</span></td>
         </tr>`;
       });
     } else {
@@ -5203,7 +5292,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
         <ul class="ai-list" style="margin: 0; padding-left: 1.25rem;">
     `;
     exploration.summaryLines.forEach((line, i) => {
-      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (i * 60)}ms; margin-bottom: 0.5rem;">${escapeHTML(line)}</li>`;
+      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (i * 60)}ms; margin-bottom: 0.5rem;">${formatAIValueText(line)}</li>`;
     });
     html += `</ul></div>`;
     animationDelay += 300;
@@ -5216,16 +5305,16 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title ai-section-green">🍽️ Nutrition</h3>
         <div class="ai-nutrition-visual">
-          <div class="ai-nutrition-main"><span class="ai-nutrition-value">${nutrition.avgCalories}</span> <span class="ai-nutrition-unit">cal</span></div>
-          <div class="ai-nutrition-main"><span class="ai-nutrition-value">${nutrition.avgProtein}g</span> <span class="ai-nutrition-unit">protein</span></div>
+          <div class="ai-nutrition-main"><span class="ai-nutrition-value ai-brackets-highlight">${nutrition.avgCalories}</span> <span class="ai-nutrition-unit">cal</span></div>
+          <div class="ai-nutrition-main"><span class="ai-nutrition-value ai-brackets-highlight">${nutrition.avgProtein}g</span> <span class="ai-nutrition-unit">protein</span></div>
         </div>
     `;
     if (nutrition.highCalorieDays > 0 || nutrition.lowCalorieDays > 0 || nutrition.highProteinDays > 0 || nutrition.lowProteinDays > 0) {
       const extras = [];
-      if (nutrition.highCalorieDays > 0) extras.push(`>2500 cal: ${nutrition.highCalorieDays}d`);
-      if (nutrition.lowCalorieDays > 0) extras.push(`<1500 cal: ${nutrition.lowCalorieDays}d`);
-      if (nutrition.highProteinDays > 0) extras.push(`>100g: ${nutrition.highProteinDays}d`);
-      if (nutrition.lowProteinDays > 0) extras.push(`<50g: ${nutrition.lowProteinDays}d`);
+      if (nutrition.highCalorieDays > 0) extras.push(`>2500 cal: <span class="ai-brackets-highlight">${nutrition.highCalorieDays}d</span>`);
+      if (nutrition.lowCalorieDays > 0) extras.push(`<1500 cal: <span class="ai-brackets-highlight">${nutrition.lowCalorieDays}d</span>`);
+      if (nutrition.highProteinDays > 0) extras.push(`>100g: <span class="ai-brackets-highlight">${nutrition.highProteinDays}d</span>`);
+      if (nutrition.lowProteinDays > 0) extras.push(`<50g: <span class="ai-brackets-highlight">${nutrition.lowProteinDays}d</span>`);
       html += `<p class="ai-nutrition-extra">${extras.join(' · ')}</p>`;
     }
     html += `</div>`;
@@ -5239,8 +5328,8 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title ai-section-green">🏃 Exercise</h3>
         <div class="ai-exercise-visual">
-          <span class="ai-exercise-value">${ex.avgMinutesPerDay}</span> <span class="ai-exercise-unit">min avg</span>
-          <span class="ai-exercise-days">${ex.daysWithExercise} days</span>
+          <span class="ai-exercise-value ai-brackets-highlight">${ex.avgMinutesPerDay}</span> <span class="ai-exercise-unit">min avg</span>
+          <span class="ai-exercise-days ai-brackets-highlight">${ex.daysWithExercise} days</span>
         </div>
       </div>
     `;
@@ -5255,7 +5344,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
         <ul class="ai-list ai-list-pills" style="columns: 2; column-gap: 1rem;">
     `;
     analysis.topExercises.forEach((item, index) => {
-      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 30)}ms;">${escapeHTML(item.name)}: ${item.count} ${item.count === 1 ? 'time' : 'times'}</li>`;
+      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 30)}ms;">${escapeHTML(item.name)}: <span class="ai-brackets-highlight">${item.count} ${item.count === 1 ? 'time' : 'times'}</span></li>`;
     });
     html += `</ul></div>`;
     animationDelay += 300;
@@ -5269,7 +5358,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
         <ul class="ai-list ai-list-pills" style="columns: 2; column-gap: 1rem;">
     `;
     analysis.topFoods.forEach((item, index) => {
-      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 30)}ms;">${escapeHTML(item.name)}: ${item.count} ${item.count === 1 ? 'time' : 'times'}</li>`;
+      html += `<li class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 30)}ms;">${escapeHTML(item.name)}: <span class="ai-brackets-highlight">${item.count} ${item.count === 1 ? 'time' : 'times'}</span></li>`;
     });
     html += `</ul></div>`;
     animationDelay += 300;

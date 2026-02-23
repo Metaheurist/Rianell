@@ -126,6 +126,26 @@
           <div class="toggle-switch" id="aiEnabledToggle" onclick="toggleAIFeatures()"></div>
         </div>
         <p class="settings-hint">When on: AI Analysis tab, chart predictions, and Goals & targets are available. When off: they are hidden. You can change this anytime.</p>
+        <div class="settings-option" style="margin-top: 14px;">
+          <label>Contribute anonymised data</label>
+          <div class="toggle-switch" id="contributeAnonDataToggle" onclick="toggleContributeAnonData()"></div>
+        </div>
+        <div class="settings-option settings-option-with-hint">
+          <label class="visually-hidden">Helper</label>
+          <p class="settings-hint" id="contributeAnonDataHint">Contribute your anonymised data to help improve AI models</p>
+        </div>
+        <div class="settings-option">
+          <label>Use open data for training</label>
+          <div class="toggle-switch" id="useOpenDataToggle" onclick="toggleUseOpenData()"></div>
+        </div>
+        <div class="settings-option settings-option-with-hint">
+          <label class="visually-hidden">Helper</label>
+          <p class="settings-hint" id="useOpenDataHint">Use anonymised data pool for AI training (requires 90+ days of data)</p>
+        </div>
+        <div class="settings-option settings-option-with-hint">
+          <label class="visually-hidden">Helper</label>
+          <p class="settings-hint">Used for personalised AI analysis and advice</p>
+        </div>
       </div>
       <div class="settings-section">
         <h4>👤 Personal Settings</h4>
@@ -163,26 +183,6 @@
               <p>When anonymised data contribution is enabled, your health data is anonymised and pooled with other users who have the same condition. This helps improve AI predictions for everyone. All personally identifiable information is removed before sharing.</p>
             </div>
           </div>
-        </div>
-        <div class="settings-option" style="margin-top: 16px;">
-          <label>Contribute anonymised data</label>
-          <div class="toggle-switch" id="contributeAnonDataToggle" onclick="toggleContributeAnonData()"></div>
-        </div>
-        <div class="settings-option settings-option-with-hint">
-          <label class="visually-hidden">Helper</label>
-          <p class="settings-hint" id="contributeAnonDataHint">Contribute your anonymised data to help improve AI models</p>
-        </div>
-        <div class="settings-option">
-          <label>Use open data for training</label>
-          <div class="toggle-switch" id="useOpenDataToggle" onclick="toggleUseOpenData()"></div>
-        </div>
-        <div class="settings-option settings-option-with-hint">
-          <label class="visually-hidden">Helper</label>
-          <p class="settings-hint" id="useOpenDataHint">Use anonymised data pool for AI training (requires 90+ days of data)</p>
-        </div>
-        <div class="settings-option settings-option-with-hint">
-          <label class="visually-hidden">Helper</label>
-          <p class="settings-hint">Used for personalised AI analysis and advice</p>
         </div>
       </div>
 
@@ -496,22 +496,24 @@
         <ul id="validationList"></ul>
       </div>
 
-      <!-- Basic Metrics Section -->
+      <div class="log-date-block">
+        <label for="date">Logging date</label>
+        <div class="input-container">
+          <input type="date" id="date" required autofocus />
+          <div class="validation-message" id="date-error"></div>
+        </div>
+      </div>
+
+      <!-- Basic Metrics Section (optional) -->
       <div class="form-section">
         <button type="button" class="section-header" data-section="basicMetrics">
           <span class="section-icon">📊</span>
-          <span class="section-title">Basic Metrics</span>
+          <span class="section-title">Basic Metrics <span class="optional-hint">(Optional)</span></span>
         </button>
         <div class="section-content" id="basicMetrics">
-      <label for="date">Date</label>
-      <div class="input-container">
-        <input type="date" id="date" required autofocus />
-        <div class="validation-message" id="date-error"></div>
-      </div>
-
       <label for="bpm">Resting BPM</label>
       <div class="input-container">
-        <input type="number" id="bpm" min="30" max="120" required />
+        <input type="number" id="bpm" min="30" max="120" />
         <div class="validation-message" id="bpm-error"></div>
       </div>
 
@@ -522,7 +524,7 @@
             </button>
           </div>
       <div class="input-container">
-        <input type="number" id="weight" min="40" max="200" step="0.1" required />
+        <input type="number" id="weight" min="40" max="200" step="0.1" />
         <div class="validation-message" id="weight-error"></div>
           </div>
         </div>
@@ -608,7 +610,7 @@
       <div class="form-section">
         <button type="button" class="section-header" data-section="energyCognitive">
           <span class="section-icon">⚡</span>
-          <span class="section-title">Energy & Mental Clarity <span class="optional-hint">(Optional)</span></span>
+          <span class="section-title">Energy & Mental Clarity</span>
         </button>
         <div class="section-content" id="energyCognitive">
           <div class="slider-container">
@@ -644,7 +646,7 @@
       <div class="form-section">
         <button type="button" class="section-header" data-section="stressTriggers">
           <span class="section-icon">😰</span>
-          <span class="section-title">Stress & Triggers <span class="optional-hint">(Optional)</span></span>
+          <span class="section-title">Stress & Triggers</span>
         </button>
         <div class="section-content" id="stressTriggers">
           <div class="slider-container">
@@ -690,7 +692,7 @@
       <div class="form-section">
         <button type="button" class="section-header" data-section="lifestyleFactors">
           <span class="section-icon">🏃</span>
-          <span class="section-title">Lifestyle Factors <span class="optional-hint">(Optional)</span></span>
+          <span class="section-title">Lifestyle Factors</span>
         </button>
         <div class="section-content" id="lifestyleFactors">
           <div class="slider-container">
@@ -1938,56 +1940,14 @@
   <script src="cloud-sync.js"></script>
   <script src="summary-llm.js"></script>
   <script>
-    (function setBuildDownloadLinks() {
-      var path = window.location.pathname || '/';
-      var base = path.substring(0, path.lastIndexOf('/') + 1);
-      var baseUrl = window.location.origin + (base.startsWith('/') ? base : '/' + base);
-      var androidBase = baseUrl + encodeURI('App build/Android/');
-      var iosBase = baseUrl + encodeURI('App build/iOS/');
+    (function() {
+      if (typeof refreshBuildDownloadLinks === 'function') refreshBuildDownloadLinks();
       var isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
       if (isIosDevice) {
         var block = document.getElementById('installOnIosDevice');
         var label = document.getElementById('installOnIosDeviceLabel');
         if (block) block.style.display = '';
         if (label) label.textContent = /iPad/.test(navigator.userAgent) ? 'Install on this iPad' : 'Install on this iPhone';
-      }
-
-      var apkEl = document.getElementById('downloadApkLink');
-      if (apkEl) {
-        apkEl.href = androidBase + 'app-debug.apk';
-        fetch(androidBase + 'latest.json', { cache: 'no-store' })
-          .then(function(r) { return r.ok ? r.json() : null; })
-          .then(function(data) {
-            if (data && data.file) {
-              apkEl.href = androidBase + encodeURIComponent(data.file);
-              var v = apkEl.querySelector('.android-version');
-              if (data.version && v) v.textContent = '(build ' + data.version + ')';
-            }
-          })
-          .catch(function() {});
-      }
-
-      var iosEl = document.getElementById('downloadIosLink');
-      var iosLabel = document.getElementById('downloadIosLabel');
-      if (iosEl) {
-        iosEl.href = iosBase + 'Health-Tracker-ios-latest.zip';
-        fetch(iosBase + 'latest.json', { cache: 'no-store' })
-          .then(function(r) { return r.ok ? r.json() : null; })
-          .then(function(data) {
-            if (data && data.file) {
-              if (data.installUrl) {
-                iosEl.href = data.installUrl;
-                if (iosLabel) iosLabel.textContent = isIosDevice ? 'Install native app (one tap)' : 'Install on iOS';
-              } else {
-                iosEl.href = iosBase + encodeURIComponent(data.file);
-                if (iosLabel && !isIosDevice) iosLabel.textContent = 'Download iOS build (Xcode project)';
-              }
-              var v = iosEl.querySelector('.ios-version');
-              if (data.version && v) v.textContent = '(build ' + data.version + ')';
-            }
-          })
-          .catch(function() {});
       }
     })();
   </script>

@@ -2003,6 +2003,20 @@ body.light-mode .ai-pain-body-legend {
   border-radius: 4px;
 }
 
+/* Same value highlight in all AI summary sections (Stress, Symptoms, Pain, Top foods, etc.) */
+#aiResultsContent .ai-brackets-highlight {
+  color: #e91e63;
+  font-weight: 600;
+  background: rgba(233, 30, 99, 0.15);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+body.light-mode #aiResultsContent .ai-brackets-highlight {
+  color: #2e7d32;
+  background: rgba(76, 175, 80, 0.2);
+}
+
 .ai-generated-note {
   margin: 0 0 0.75rem 0;
   padding: 0.75rem;
@@ -2985,6 +2999,18 @@ body.light-mode .form-validation-summary {
 
 .form-validation-summary li {
   margin-bottom: 5px;
+}
+
+.log-date-block {
+  margin-bottom: 1.25rem;
+  padding: 0 2px;
+}
+
+.log-date-block label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--text-light);
 }
 
 .character-counter {

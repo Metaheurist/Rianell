@@ -1,6 +1,6 @@
 # Health App - Personal Health Dashboard
 
-A comprehensive web-based health tracking application with data visualization, analytics, and cloud synchronization capabilities.
+A comprehensive web-based health tracking application with data visualisation, analytics, and cloud synchronisation capabilities.
 
 **Repository**: [https://github.com/Metaheurist/Health-app](https://github.com/Metaheurist/Health-app)
 
@@ -43,7 +43,7 @@ flowchart LR
   - Exercise activities
   - Medical condition tracking
 
-- **Data Visualization**: Interactive charts and graphs showing:
+- **Data visualisation**: Interactive charts and graphs showing:
   - Trends over time
   - Correlation analysis
   - Health pattern recognition
@@ -56,7 +56,7 @@ flowchart LR
   - Clear/reset functionality
 
 - **Cloud Sync**: 
-  - Anonymized data contribution to Supabase
+  - Anonymised data contribution to Supabase
   - GDPR-compliant data sharing
   - Medical condition-based data aggregation
   - Goals and targets synced with app settings when signed in
@@ -70,7 +70,7 @@ flowchart LR
 - **Supabase Integration**: Direct database management
 - **Tkinter Dashboard**: GUI for server controls and data management
 - **Data Operations**:
-  - Search anonymized data by medical condition
+  - Search anonymised data by medical condition
   - Delete data (all, by condition, or by IDs)
   - Export data to CSV
   - Real-time database viewer
@@ -144,7 +144,7 @@ The app lives in **`web/`**, so GitHub Pages will not see `index.html` if the so
 2. Under **Build and deployment**, set **Source** to **GitHub Actions**
 3. The workflow [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) runs on push to `main` and deploys the contents of **`web/`** as the site root, so `index.html` is served correctly.
 
-**Cloud sync on the live site:** To use Supabase (login, cloud backup, anonymized data) on the GitHub Pages site, add **Repository secrets** (or **Environment secrets** for the `pages` environment): **`SUPABASE_URL`** (your project URL, e.g. `https://xxxx.supabase.co`) and **`SUPABASE_ANON_KEY`** (your publishable anon key). The deploy workflow injects these into the built site at deploy time so they are never committed. If these secrets are not set, the site still deploys; cloud features will work only after you add them.
+**Cloud sync on the live site:** To use Supabase (login, cloud backup, anonymised data) on the GitHub Pages site, add **Repository secrets** (or **Environment secrets** for the `pages` environment): **`SUPABASE_URL`** (your project URL, e.g. `https://xxxx.supabase.co`) and **`SUPABASE_ANON_KEY`** (your publishable anon key). The deploy workflow injects these into the built site at deploy time so they are never committed. If these secrets are not set, the site still deploys; cloud features will work only after you add them.
 
 After the first push (or a manual **Run workflow**), the site will show the Health Dashboard instead of the README.
 
@@ -201,7 +201,7 @@ Controlled in `react-app/android/variables.gradle` (or via `react-app/patch-andr
 2. **View Analytics**:
    - Navigate to the Analytics section
    - View charts showing trends
-   - Analyze correlations between metrics
+   - Analyse correlations between metrics
 
 3. **Manage Data**:
    - Export data: Settings → Export Data
@@ -211,7 +211,7 @@ Controlled in `react-app/android/variables.gradle` (or via `react-app/patch-andr
 4. **Cloud Sync**:
    - Enable "Contribute anonymised data" in Settings
    - Accept GDPR agreement
-   - Data will be anonymized and synced to Supabase
+   - Data will be anonymised and synced to Supabase
 
 ### Server Dashboard Features
 
@@ -222,7 +222,7 @@ The Tkinter dashboard provides:
    - Restart server without closing dashboard
 
 2. **Supabase Database Management**:
-   - **Search**: Search anonymized data by medical condition
+   - **Search**: Search anonymised data by medical condition
    - **Delete**: Remove data (all, by condition, or specific IDs)
    - **Export**: Export data to CSV files
    - **Viewer**: Real-time database viewer showing last 100 records
@@ -417,7 +417,7 @@ Health-app/
 ├── app.js                  # Core application logic
 ├── AIEngine.js             # AI analysis (neural pipeline, regression, correlation, predictions)
 ├── styles.css              # Application styles
-├── cloud-sync.js           # Supabase synchronization
+├── cloud-sync.js           # Supabase synchronisation
 ├── supabase-config.js      # Supabase configuration
 ├── summary-llm.js          # In-browser LLM for AI summary note (Transformers.js)
 ├── notifications.js        # Reminders, notification permission, heartbeat sound
@@ -480,7 +480,7 @@ Server logs are saved to `logs/health_app_YYYYMMDD.log`
 
 The app includes GDPR-compliant data sharing:
 - Explicit user consent required
-- Data anonymization before upload
+- Data anonymisation before upload
 - Clear privacy agreement
 - User can disable at any time
 
@@ -524,7 +524,7 @@ The app includes GDPR-compliant data sharing:
 
 3. **Supabase Keys**: Always use PUBLISHABLE/ANON keys in frontend code, never secret keys
 
-4. **Data Privacy**: Anonymized data sharing is opt-in only
+4. **Data Privacy**: Anonymised data sharing is opt-in only
 
 ## Author
 
@@ -533,9 +533,9 @@ The app includes GDPR-compliant data sharing:
 - GitHub: [@Metaheurist](https://github.com/Metaheurist)
 - Repository: [https://github.com/Metaheurist/Health-app](https://github.com/Metaheurist/Health-app)
 
-## License
+## Licence
 
-This project is open source and available under an open source license.
+This project is open source and available under an open source licence.
 
 ## Repository
 
@@ -551,6 +551,14 @@ For issues and questions:
 ## Changelog
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
+
+<details>
+<summary><strong>v1.13.1</strong> — 2026-02-23 — AI summary value highlighting, README UK English</summary>
+
+- **AI summary readability**: Stress and triggers, Symptoms and where you had pain, Pain patterns, Pain by body part, Nutrition, Exercise, Top foods, and Top exercises now use the same value markup as “What we found” (e.g. `ai-brackets-highlight` for parenthesised values, percentages, and counts) so key figures are easier to scan.
+- **README**: Converted to UK English (e.g. visualisation, synchronisation, anonymised, analyse, licence).
+
+</details>
 
 <details>
 <summary><strong>v1.13.0</strong> — 2026-02-23 — AI optional, summary LLM, notifications</summary>
