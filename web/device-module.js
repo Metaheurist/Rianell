@@ -37,7 +37,42 @@
   }
 
   /**
+   * When deviceMemory is missing (e.g. iOS), estimate a bucket from device type, OS, cores.
+   */
+  function getEstimatedMemoryBucket(platformName, isTablet, cores, osName, osVersion, deviceType) {
+    if (isTablet) return 'high';
+    if (platformName === 'ios') {
+      var major = 0;
+      if (osVersion) {
+        var parts = String(osVersion).split('.');
+        if (parts.length) major = parseInt(parts[0], 10) || 0;
+      }
+      if (major > 0 && major < 14) return 'low';
+      return 'medium';
+    }
+    if (platformName === 'android') {
+      if (typeof cores === 'number' && cores > 0) {
+        if (cores < 4) return 'low';
+        if (cores <= 6) return 'medium';
+        return 'high';
+      }
+      return 'medium';
+    }
+    if (platformName === 'desktop') {
+      if (typeof cores === 'number' && cores > 0) {
+        if (cores <= 2) return 'low';
+        if (cores <= 4) return 'medium';
+        return 'high';
+      }
+      return 'medium';
+    }
+    return 'medium';
+  }
+
+  /**
    * Platform and capabilities object, computed once.
+   * If UAParser is available, adds osName, osVersion, deviceType, deviceVendor, deviceModel, cpuArchitecture.
+   * Exposes cores, deviceMemory (when in secure context), and estimatedMemoryBucket when deviceMemory is missing.
    */
   var platform = (function () {
     var nav = typeof navigator !== 'undefined' ? navigator : {};
@@ -45,6 +80,30 @@
     var platformName = 'desktop';
     if (/iPad|iPhone|iPod/.test(ua)) platformName = 'ios';
     else if (/Android/i.test(ua)) platformName = 'android';
+
+    var osName = '';
+    var osVersion = '';
+    var deviceType = '';
+    var deviceVendor = '';
+    var deviceModel = '';
+    var cpuArchitecture = '';
+    if (typeof window !== 'undefined' && window.UAParser) {
+      try {
+        var parsed = new window.UAParser().getResult();
+        if (parsed && parsed.os) {
+          osName = (parsed.os.name && String(parsed.os.name)) || '';
+          osVersion = (parsed.os.version && String(parsed.os.version)) || '';
+        }
+        if (parsed && parsed.device) {
+          deviceType = (parsed.device.type && String(parsed.device.type)) || '';
+          deviceVendor = (parsed.device.vendor && String(parsed.device.vendor)) || '';
+          deviceModel = (parsed.device.model && String(parsed.device.model)) || '';
+        }
+        if (parsed && parsed.cpu && parsed.cpu.architecture) {
+          cpuArchitecture = String(parsed.cpu.architecture);
+        }
+      } catch (e) {}
+    }
 
     var connection = null;
     if (nav.connection && typeof nav.connection === 'object') {
@@ -60,6 +119,13 @@
     var isTouch = !!(nav.maxTouchPoints && nav.maxTouchPoints > 0);
     var isTablet = isTouch && (Math.min(w, h) >= 600 && (Math.max(w, h) <= 1280 || /iPad|Android(?!.*Mobile)|Tablet/i.test(ua)));
     var hardwareConcurrency = typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency > 0 ? nav.hardwareConcurrency : 0;
+    var isSecure = typeof window !== 'undefined' && window.isSecureContext === true;
+    var deviceMemory = (isSecure && typeof nav.deviceMemory === 'number' && nav.deviceMemory > 0) ? nav.deviceMemory : null;
+    var estimatedMemoryBucket = null;
+    if (deviceMemory == null) {
+      var dt = deviceType || (isTablet ? 'tablet' : '');
+      estimatedMemoryBucket = getEstimatedMemoryBucket(platformName, isTablet, hardwareConcurrency, osName, osVersion, dt);
+    }
 
     return {
       deviceClass: getDevicePerformanceClass(),
@@ -71,7 +137,16 @@
       connection: connection,
       screenWidth: w,
       screenHeight: h,
-      hardwareConcurrency: hardwareConcurrency
+      hardwareConcurrency: hardwareConcurrency,
+      cores: hardwareConcurrency,
+      deviceMemory: deviceMemory,
+      estimatedMemoryBucket: estimatedMemoryBucket,
+      osName: osName,
+      osVersion: osVersion,
+      deviceType: deviceType,
+      deviceVendor: deviceVendor,
+      deviceModel: deviceModel,
+      cpuArchitecture: cpuArchitecture
     };
   })();
 

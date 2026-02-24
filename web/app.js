@@ -280,14 +280,15 @@ function openPerfBenchmarkModal(options) {
   const full = (tier != null && typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.getFullProfile === 'function')
     ? window.DeviceBenchmark.getFullProfile(platformType, tier, { saveData: !!env.saveData, prefersReducedMotion: !!env.prefersReducedMotion })
     : null;
-  const llmSize = (full && full.llmModelSize) ? full.llmModelSize : (deviceClass === 'low' ? 'small' : 'base');
+  const llmSize = (full && full.llmModelSize) ? full.llmModelSize : (deviceClass === 'low' ? 'tier1' : deviceClass === 'high' ? 'tier5' : 'tier3');
+  const llmDisplay = (llmSize && String(llmSize).indexOf('tier') === 0) ? 'Tier ' + String(llmSize).replace('tier', '') : llmSize;
 
   summaryEl.textContent = tier == null
     ? 'No benchmark result found.'
-    : `Device: ${platformType} · Tier: ${tier} · Class: ${deviceClass} · Recommended AI model: ${llmSize}`;
+    : `Device: ${platformType} · Tier: ${tier} · Class: ${deviceClass} · Recommended AI model: ${llmDisplay}`;
 
   const aiLineEl = document.getElementById('perfBenchmarkAiLine');
-  if (aiLineEl) aiLineEl.textContent = tier != null ? `This device can run the recommended on-device model (flan-t5-${llmSize}).` : '';
+  if (aiLineEl) aiLineEl.textContent = tier != null ? (llmDisplay ? `This device can run up to ${llmDisplay}.` : '') : '';
 
   // Bars: per-test medianMs (smaller is better → longer bar)
   barsEl.innerHTML = '';
@@ -324,11 +325,17 @@ function openPerfBenchmarkModal(options) {
   const cpuSamples = cpu && Array.isArray(cpu.msPer200kSamples) ? cpu.msPer200kSamples : [];
   if (statsEl && tier != null) {
     const env = result && result.env ? result.env : {};
+    const osDisplay = (env.osName && env.osVersion) ? `${env.osName} ${env.osVersion}` : (env.osName || env.osVersion || '—');
+    const deviceDisplay = [env.deviceVendor, env.deviceModel].filter(Boolean).join(' ') || (env.deviceType || '—');
+    const memoryDisplay = env.deviceMemory != null ? String(env.deviceMemory) + ' GB' : (env.estimatedMemoryBucket ? `estimated: ${env.estimatedMemoryBucket}` : '—');
     const kv = [
       ['Class', deviceClass],
       ['Repeats', repeats != null ? String(repeats) : '—'],
       ['Cores', env.cores != null ? String(env.cores) : '—'],
-      ['Memory', env.deviceMemory != null ? String(env.deviceMemory) + 'GB' : '—']
+      ['Memory', memoryDisplay],
+      ['OS', osDisplay],
+      ['Device', deviceDisplay],
+      ['CPU', env.cpuArchitecture || '—']
     ];
     kv.forEach(pair => {
       const div = document.createElement('div');
@@ -1435,6 +1442,48 @@ function refreshBuildDownloadLinks() {
 }
 
 window.refreshBuildDownloadLinks = refreshBuildDownloadLinks;
+
+function refreshAppInstallSection() {
+  var platform = (typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform && window.DeviceModule.platform.platform)
+    ? window.DeviceModule.platform.platform
+    : (/iPad|iPhone|iPod/.test(navigator.userAgent) ? 'ios' : /Android/i.test(navigator.userAgent) ? 'android' : 'desktop');
+  var titleEl = document.getElementById('appInstallSectionTitle');
+  var installIosDevice = document.getElementById('installOnIosDevice');
+  var installWebAppOption = document.getElementById('installWebAppOption');
+  var installWebAppLabel = document.getElementById('installWebAppLabel');
+  var androidOption = document.getElementById('androidDownloadOption');
+  var iosOption = document.getElementById('iosDownloadOption');
+  var androidLabel = document.getElementById('downloadAndroidLabel');
+  var iosLabel = document.getElementById('downloadIosLabel');
+
+  if (titleEl) {
+    if (platform === 'ios' || platform === 'android') titleEl.textContent = 'Install on this device';
+    else titleEl.textContent = 'App Installation';
+  }
+  if (installWebAppLabel) {
+    if (platform === 'ios') installWebAppLabel.textContent = 'Add to Home Screen';
+    else if (platform === 'android') installWebAppLabel.textContent = 'Add to Home Screen';
+    else installWebAppLabel.textContent = 'Install web app';
+  }
+  if (platform === 'ios') {
+    if (installIosDevice) installIosDevice.style.display = '';
+    if (installWebAppOption) installWebAppOption.style.display = '';
+    if (androidOption) androidOption.style.display = 'none';
+    if (iosOption) iosOption.style.display = 'none';
+  } else if (platform === 'android') {
+    if (installIosDevice) installIosDevice.style.display = 'none';
+    if (installWebAppOption) installWebAppOption.style.display = '';
+    if (androidOption) { androidOption.style.display = ''; if (androidLabel) androidLabel.textContent = 'Install on Android'; }
+    if (iosOption) { iosOption.style.display = ''; if (iosLabel) iosLabel.textContent = 'Download for iOS'; }
+  } else {
+    if (installIosDevice) installIosDevice.style.display = 'none';
+    if (installWebAppOption) installWebAppOption.style.display = '';
+    if (androidOption) { androidOption.style.display = ''; if (androidLabel) androidLabel.textContent = 'Download for Android'; }
+    if (iosOption) { iosOption.style.display = ''; if (iosLabel) iosLabel.textContent = 'Download for iOS'; }
+  }
+}
+
+window.refreshAppInstallSection = refreshAppInstallSection;
 
 function openInstallModal(force) {
   window._installModalOpenedByTutorial = false;
@@ -4894,13 +4943,21 @@ function calculateCorrelation(x, y) {
   return 0;
 }
 
-// Close settings on Escape key
+// Escape key: close settings if open; on desktop, open settings if no other modal is open
 document.addEventListener('keydown', function(event) {
-  if (event.key === 'Escape') {
-    const settingsOverlay = document.getElementById('settingsOverlay');
-    if (settingsOverlay && settingsOverlay.style.display === 'flex') {
-      toggleSettings();
-    }
+  if (event.key !== 'Escape') return;
+  const settingsOverlay = document.getElementById('settingsOverlay');
+  if (!settingsOverlay) return;
+  const settingsOpen = settingsOverlay.classList.contains('settings-overlay--open') ||
+    settingsOverlay.style.display === 'flex' || settingsOverlay.style.display === 'block';
+  if (settingsOpen) {
+    if (typeof toggleSettings === 'function') toggleSettings();
+    return;
+  }
+  var isDesktop = (typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform && window.DeviceModule.platform.platform === 'desktop') ||
+    (typeof navigator !== 'undefined' && !/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+  if (isDesktop && !document.body.classList.contains('modal-active') && typeof toggleSettings === 'function') {
+    toggleSettings();
   }
 });
 
@@ -11867,7 +11924,7 @@ let appSettings = {
   contributeAnonData: false, // Contribute anonymised data to pool
   useOpenData: false, // Use anonymised data pool for AI training (requires 90+ days)
   aiEnabled: true, // When false: hide AI Analysis tab, chart predictions, and Goals
-  preferredLlmModelSize: 'recommended' // 'recommended' | 'small' | 'base' for on-device AI model
+  preferredLlmModelSize: 'recommended' // 'recommended' | 'tier1'..'tier5' for on-device AI model
 };
 
 // Make appSettings available on window for safe access
@@ -11917,7 +11974,8 @@ function saveSettings() {
 }
 
 function setPreferredLlmModel(value) {
-  if (value !== 'recommended' && value !== 'small' && value !== 'base') return;
+  var valid = value === 'recommended' || value === 'tier1' || value === 'tier2' || value === 'tier3' || value === 'tier4' || value === 'tier5';
+  if (!valid) return;
   appSettings.preferredLlmModelSize = value;
   saveSettings();
   if (typeof window.clearSummaryLLMCache === 'function') window.clearSummaryLLMCache();
@@ -12073,7 +12131,9 @@ function loadSettingsState() {
   const preferredLlmSelect = document.getElementById('preferredLlmModelSelect');
   const llmRecommendationHint = document.getElementById('llmModelRecommendationHint');
   if (preferredLlmSelect) {
-    const val = appSettings.preferredLlmModelSize === 'small' || appSettings.preferredLlmModelSize === 'base' ? appSettings.preferredLlmModelSize : 'recommended';
+    const val = (appSettings.preferredLlmModelSize && appSettings.preferredLlmModelSize !== 'recommended' && /^tier[1-5]$/.test(appSettings.preferredLlmModelSize))
+      ? appSettings.preferredLlmModelSize
+      : 'recommended';
     preferredLlmSelect.value = val;
   }
   if (llmRecommendationHint) {
@@ -12083,8 +12143,9 @@ function loadSettingsState() {
         : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
       const tier = window.DeviceBenchmark.getPerformanceTier();
       const full = window.DeviceBenchmark.getFullProfile(platformType, tier, {});
-      const size = full && full.llmModelSize ? full.llmModelSize : 'base';
-      llmRecommendationHint.textContent = 'Recommended: flan-t5-' + size;
+      const size = full && full.llmModelSize ? full.llmModelSize : 'tier3';
+      const tierNum = size.replace('tier', '');
+      llmRecommendationHint.textContent = 'Recommended: Tier ' + (tierNum || size);
     } else {
       llmRecommendationHint.textContent = 'Run benchmark (reload app) to see recommendation.';
     }
@@ -12150,6 +12211,9 @@ function loadSettingsState() {
   
   // Sync tutorial modal toggles (Contribute / Use open data) when settings load
   if (typeof updateTutorialDataTogglesState === 'function') updateTutorialDataTogglesState();
+
+  // Show only install options relevant to current platform (iOS / Android / desktop)
+  if (typeof refreshAppInstallSection === 'function') refreshAppInstallSection();
 }
 
 // Update tutorial slide 4 toggles from appSettings (same as Settings)
@@ -14714,12 +14778,25 @@ window.addEventListener('load', () => {
   }
 
   if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.runBenchmarkIfNeeded === 'function') {
+    var loadingProgressWrap = loadingOverlay ? loadingOverlay.querySelector('#loadingProgressWrap') : null;
+    var loadingProgressFill = loadingOverlay ? loadingOverlay.querySelector('#loadingProgressFill') : null;
+    var loadingProgressTrack = loadingOverlay ? loadingOverlay.querySelector('.loading-progress-track') : null;
     window.DeviceBenchmark.runBenchmarkIfNeeded(
       function (pct, meta) {
         var label = meta && meta.label ? (' · ' + meta.label) : '';
         if (loadingTextEl) loadingTextEl.textContent = 'Measuring performance…' + (pct > 0 ? ' ' + pct + '%' : '') + label;
+        if (loadingProgressWrap && loadingProgressFill && loadingProgressTrack) {
+          loadingProgressWrap.classList.add('visible');
+          var percent = Math.max(0, Math.min(100, Math.floor(pct)));
+          loadingProgressFill.style.width = percent + '%';
+          loadingProgressTrack.setAttribute('aria-valuenow', String(percent));
+        }
       },
       function (tier, platformType, result) {
+        var fillEl = loadingOverlay ? loadingOverlay.querySelector('#loadingProgressFill') : null;
+        var trackEl = loadingOverlay ? loadingOverlay.querySelector('.loading-progress-track') : null;
+        if (fillEl) fillEl.style.width = '100%';
+        if (trackEl) trackEl.setAttribute('aria-valuenow', '100');
         if (window.DeviceBenchmark.isBenchmarkReady()) {
           runAppInit();
           return;

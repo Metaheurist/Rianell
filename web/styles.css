@@ -3932,6 +3932,28 @@ body.modal-active .tab-content {
   letter-spacing: 0.5px;
 }
 
+.loading-progress-wrap {
+  width: min(280px, 85vw);
+  display: none;
+}
+.loading-progress-wrap.visible {
+  display: block;
+}
+.loading-progress-track {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(76, 175, 80, 0.25);
+}
+.loading-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(76, 175, 80, 0.5), #4caf50);
+  border-radius: 999px;
+  transition: width 0.2s ease-out;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
