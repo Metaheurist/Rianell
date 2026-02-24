@@ -14813,6 +14813,10 @@ window.addEventListener('load', () => {
           runAppInit();
           return;
         }
+        if (loadingOverlay) {
+          loadingOverlay.classList.add('hidden');
+          document.body.classList.remove('loading');
+        }
         openPerfBenchmarkModal({
           mode: 'firstRun',
           result: result || { platformType: platformType, tier: tier },
