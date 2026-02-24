@@ -1,6 +1,8 @@
 // ============================================
 // DEVICE BENCHMARK
-// Platform type (mobile/desktop), CPU benchmark → tier 1-4, expansive profile tables.
+// Platform type (mobile/desktop), CPU benchmark → tier 1–8, expansive profile tables.
+// Oriented around device performance and on-device AI runnability: each profile has
+// llmModelSize ('small' | 'base') — recommended for on-device AI (e.g. flan-t5-small / flan-t5-base).
 // Load after device-module.js, before performance-utils.js. Cache in localStorage.
 // ============================================
 
@@ -8,9 +10,13 @@
   'use strict';
 
   var CACHE_KEY = 'healthAppPerfBenchmark';
-  var BENCHMARK_CAP_MS = 50;
-  var BENCHMARK_TARGET_MS = 18;
-  var ITERATIONS_PER_CHUNK = 50000;
+  var BENCHMARK_VERSION = 2;
+  var MAX_TIER = 8;
+  var DEFAULT_TOTAL_CAP_MS = 1200;
+
+  function nowMs() {
+    return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  }
 
   function getPlatformType() {
     var nav = typeof navigator !== 'undefined' ? navigator : {};
@@ -26,32 +32,157 @@
     return 'desktop';
   }
 
-  function runCpuBenchmark(onProgress) {
-    var start = typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
-    var elapsed = 0;
-    var total = 0;
-    var chunk = 0;
-    var targetIterations = 200000;
-    while (elapsed < BENCHMARK_CAP_MS) {
-      for (var i = 0; i < ITERATIONS_PER_CHUNK; i++) {
-        total += (i * 31 + 17) % 97;
-      }
-      chunk++;
-      elapsed = (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now()) - start;
-      if (onProgress && typeof onProgress === 'function') {
-        var pct = Math.min(99, Math.floor((elapsed / BENCHMARK_TARGET_MS) * 50));
-        onProgress(pct);
-      }
-      if (elapsed >= BENCHMARK_TARGET_MS) break;
-    }
-    return { elapsed: elapsed, iterations: chunk * ITERATIONS_PER_CHUNK, total: total };
+  function median(arr) {
+    if (!arr || !arr.length) return 0;
+    var a = arr.slice(0).sort(function (x, y) { return x - y; });
+    var mid = Math.floor(a.length / 2);
+    return a.length % 2 ? a[mid] : (a[mid - 1] + a[mid]) / 2;
   }
 
-  function resultToTier(result) {
-    var ms = result && result.elapsed != null ? result.elapsed : 999;
-    if (ms <= 12) return 4;
-    if (ms <= 18) return 3;
-    if (ms <= 28) return 2;
+  function mean(arr) {
+    if (!arr || !arr.length) return 0;
+    var s = 0;
+    for (var i = 0; i < arr.length; i++) s += arr[i];
+    return s / arr.length;
+  }
+
+  function stddev(arr) {
+    if (!arr || arr.length < 2) return 0;
+    var m = mean(arr);
+    var s = 0;
+    for (var i = 0; i < arr.length; i++) {
+      var d = arr[i] - m;
+      s += d * d;
+    }
+    return Math.sqrt(s / (arr.length - 1));
+  }
+
+  function clampInt(x, lo, hi) {
+    x = Math.floor(x);
+    if (x < lo) return lo;
+    if (x > hi) return hi;
+    return x;
+  }
+
+  function getEnvSnapshot(platformType) {
+    var nav = typeof navigator !== 'undefined' ? navigator : {};
+    var deviceMemory = (typeof window !== 'undefined' && window.isSecureContext === true && typeof nav.deviceMemory === 'number' && nav.deviceMemory > 0) ? nav.deviceMemory : null;
+    var cores = (typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency > 0) ? nav.hardwareConcurrency : null;
+    var cap = (typeof window !== 'undefined' && window.Capacitor) || (typeof window !== 'undefined' && window.parent && window.parent.Capacitor);
+    var isNative = !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
+    var dm = (typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform) ? window.DeviceModule.platform : null;
+    var platformName = (dm && dm.platform) ? String(dm.platform) : null;
+    var isTablet = !!(dm && dm.isTablet);
+    var prefersReducedMotion = !!(dm && dm.prefersReducedMotion);
+    var saveData = !!(dm && dm.connection && dm.connection.saveData);
+    return {
+      platformType: platformType,
+      platform: platformName,
+      isNative: isNative,
+      isTablet: isTablet,
+      cores: cores,
+      deviceMemory: deviceMemory,
+      prefersReducedMotion: prefersReducedMotion,
+      saveData: saveData
+    };
+  }
+
+  function cpuArith(iterations) {
+    var total = 0;
+    for (var i = 0; i < iterations; i++) {
+      total = (total + ((i * 31 + 17) % 97)) | 0;
+    }
+    return total;
+  }
+
+  function arrayThroughput(size) {
+    var arr = new Array(size);
+    for (var i = 0; i < size; i++) arr[i] = (i * 13) & 255;
+    var s = 0;
+    for (var j = 0; j < size; j++) {
+      var v = arr[j];
+      if ((v & 3) === 0) s += v;
+    }
+    return s;
+  }
+
+  function makeJsonPayload(size) {
+    var out = [];
+    for (var i = 0; i < size; i++) {
+      out.push({ d: i, x: (i * 17) % 97, s: 'v' + (i % 10) });
+    }
+    return JSON.stringify({ items: out });
+  }
+
+  function jsonParseStringify(jsonStr) {
+    var obj = JSON.parse(jsonStr);
+    obj.t = (obj.items && obj.items.length) ? obj.items[0].x : 0;
+    return JSON.stringify(obj).length;
+  }
+
+  function stringOps(size) {
+    var s = '';
+    for (var i = 0; i < size; i++) s += String.fromCharCode(97 + (i % 26));
+    var m = s.match(/abc/g);
+    return (m && m.length) ? m.length : 0;
+  }
+
+  function domFragmentBuild(nodeCount) {
+    if (typeof document === 'undefined') return 0;
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < nodeCount; i++) {
+      var div = document.createElement('div');
+      div.className = 'perf-bench-node';
+      div.textContent = 'x' + i;
+      frag.appendChild(div);
+    }
+    var host = document.getElementById('perfBenchHost');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'perfBenchHost';
+      host.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;';
+      document.body.appendChild(host);
+    }
+    host.appendChild(frag);
+    host.textContent = '';
+    return nodeCount;
+  }
+
+  function rafLatency(frames, done) {
+    if (typeof requestAnimationFrame !== 'function') {
+      done({ avgMs: 0, samples: [] });
+      return;
+    }
+    var samples = [];
+    var last = nowMs();
+    var remaining = Math.max(2, frames || 6);
+    function step() {
+      var t = nowMs();
+      samples.push(t - last);
+      last = t;
+      remaining--;
+      if (remaining <= 0) {
+        done({ avgMs: mean(samples), samples: samples });
+        return;
+      }
+      requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function msPer200kFromRun(iterations, ms) {
+    if (!ms || ms <= 0) return 999;
+    return (ms * 200000) / iterations;
+  }
+
+  function msPer200kToTier(msPer200k) {
+    if (msPer200k <= 6.0) return 8;
+    if (msPer200k <= 7.5) return 7;
+    if (msPer200k <= 9.0) return 6;
+    if (msPer200k <= 11.0) return 5;
+    if (msPer200k <= 14.0) return 4;
+    if (msPer200k <= 18.0) return 3;
+    if (msPer200k <= 26.0) return 2;
     return 1;
   }
 
@@ -62,116 +193,213 @@
     var isSecure = typeof window !== 'undefined' && window.isSecureContext === true;
     if (isSecure && typeof deviceMemory === 'number' && deviceMemory > 0) {
       if (deviceMemory <= 2) return 1;
-      if (deviceMemory >= 8) return 4;
-      if (deviceMemory >= 4) return 3;
-      return 2;
+      if (deviceMemory <= 3) return 2;
+      if (deviceMemory <= 4) return 3;
+      if (deviceMemory <= 6) return 5;
+      if (deviceMemory <= 8) return 6;
+      return 7;
     }
     if (typeof cores === 'number' && cores > 0) {
       if (cores <= 2) return 1;
-      if (cores >= 6) return 4;
-      if (cores >= 4) return 3;
-      return 2;
+      if (cores <= 3) return 2;
+      if (cores <= 4) return 4;
+      if (cores <= 6) return 6;
+      if (cores <= 8) return 7;
+      return 8;
     }
-    return 2;
+    return 4;
   }
 
   function getLegacyDeviceClass(tier) {
-    if (tier === 1) return 'low';
-    if (tier === 2) return 'medium';
+    tier = Math.max(1, Math.min(MAX_TIER, Math.floor(tier || 0)));
+    if (tier <= 2) return 'low';
+    if (tier <= 5) return 'medium';
     return 'high';
   }
 
   var MOBILE_PROFILES = {
     1: {
       deviceClass: 'low',
-      chartMaxPoints: 24,
-      maxChartPoints: 30,
+      chartMaxPoints: 18,
+      maxChartPoints: 24,
       chartAnimation: false,
       enableChartPreload: true,
-      chartPreloadDelayMs: 3500,
+      chartPreloadDelayMs: 4200,
       enableAIPreload: false,
       aiPreloadDelayMs: 4000,
       deferAI: true,
       batchDOM: true,
       reduceAnimations: true,
       reduceUIAnimations: true,
-      domCacheTtlMs: 45000,
-      storageBatchDelayMs: 200,
-      lazyChartStaggerMs: 150,
+      domCacheTtlMs: 52000,
+      storageBatchDelayMs: 260,
+      lazyChartStaggerMs: 190,
       useWorkers: false,
-      logRenderChunkSize: 15,
-      logRenderChunkThreshold: 20,
-      demoDataDays: 90,
-      loadTimeoutMs: 5000,
+      logRenderChunkSize: 12,
+      logRenderChunkThreshold: 18,
+      demoDataDays: 60,
+      loadTimeoutMs: 5500,
       llmModelSize: 'small'
     },
     2: {
+      deviceClass: 'low',
+      chartMaxPoints: 26,
+      maxChartPoints: 34,
+      chartAnimation: false,
+      enableChartPreload: true,
+      chartPreloadDelayMs: 3300,
+      enableAIPreload: false,
+      aiPreloadDelayMs: 3800,
+      deferAI: true,
+      batchDOM: true,
+      reduceAnimations: true,
+      reduceUIAnimations: true,
+      domCacheTtlMs: 46000,
+      storageBatchDelayMs: 220,
+      lazyChartStaggerMs: 160,
+      useWorkers: false,
+      logRenderChunkSize: 14,
+      logRenderChunkThreshold: 20,
+      demoDataDays: 120,
+      loadTimeoutMs: 6500,
+      llmModelSize: 'small'
+    },
+    3: {
       deviceClass: 'medium',
-      chartMaxPoints: 80,
-      maxChartPoints: 100,
+      chartMaxPoints: 60,
+      maxChartPoints: 90,
       chartAnimation: true,
       enableChartPreload: true,
-      chartPreloadDelayMs: 2000,
+      chartPreloadDelayMs: 2400,
       enableAIPreload: true,
-      aiPreloadDelayMs: 2000,
+      aiPreloadDelayMs: 2600,
+      deferAI: false,
+      batchDOM: false,
+      reduceAnimations: false,
+      reduceUIAnimations: false,
+      domCacheTtlMs: 34000,
+      storageBatchDelayMs: 130,
+      lazyChartStaggerMs: 95,
+      useWorkers: true,
+      logRenderChunkSize: 18,
+      logRenderChunkThreshold: 26,
+      demoDataDays: 240,
+      loadTimeoutMs: 9000,
+      llmModelSize: 'small'
+    },
+    4: {
+      deviceClass: 'medium',
+      chartMaxPoints: 85,
+      maxChartPoints: 110,
+      chartAnimation: true,
+      enableChartPreload: true,
+      chartPreloadDelayMs: 1700,
+      enableAIPreload: true,
+      aiPreloadDelayMs: 1800,
       deferAI: false,
       batchDOM: false,
       reduceAnimations: false,
       reduceUIAnimations: false,
       domCacheTtlMs: 30000,
-      storageBatchDelayMs: 100,
-      lazyChartStaggerMs: 80,
+      storageBatchDelayMs: 110,
+      lazyChartStaggerMs: 75,
       useWorkers: true,
       logRenderChunkSize: 20,
       logRenderChunkThreshold: 30,
       demoDataDays: 365,
-      loadTimeoutMs: 8000,
-      llmModelSize: 'small'
+      loadTimeoutMs: 9000,
+      llmModelSize: 'base'
     },
-    3: {
-      deviceClass: 'high',
-      chartMaxPoints: 150,
-      maxChartPoints: 150,
+    5: {
+      deviceClass: 'medium',
+      chartMaxPoints: 120,
+      maxChartPoints: 140,
       chartAnimation: true,
       enableChartPreload: true,
-      chartPreloadDelayMs: 1000,
+      chartPreloadDelayMs: 1200,
       enableAIPreload: true,
-      aiPreloadDelayMs: 1200,
+      aiPreloadDelayMs: 1400,
       deferAI: false,
       batchDOM: false,
       reduceAnimations: false,
       reduceUIAnimations: false,
-      domCacheTtlMs: 25000,
+      domCacheTtlMs: 26000,
       storageBatchDelayMs: 100,
-      lazyChartStaggerMs: 50,
+      lazyChartStaggerMs: 60,
       useWorkers: true,
-      logRenderChunkSize: 25,
-      logRenderChunkThreshold: 30,
+      logRenderChunkSize: 24,
+      logRenderChunkThreshold: 32,
       demoDataDays: 365,
       loadTimeoutMs: 10000,
       llmModelSize: 'base'
     },
-    4: {
+    6: {
       deviceClass: 'high',
-      chartMaxPoints: 200,
-      maxChartPoints: 200,
+      chartMaxPoints: 155,
+      maxChartPoints: 160,
       chartAnimation: true,
       enableChartPreload: true,
-      chartPreloadDelayMs: 600,
+      chartPreloadDelayMs: 900,
       enableAIPreload: true,
-      aiPreloadDelayMs: 800,
+      aiPreloadDelayMs: 1100,
       deferAI: false,
       batchDOM: false,
       reduceAnimations: false,
       reduceUIAnimations: false,
-      domCacheTtlMs: 20000,
+      domCacheTtlMs: 23000,
       storageBatchDelayMs: 100,
-      lazyChartStaggerMs: 40,
+      lazyChartStaggerMs: 55,
       useWorkers: true,
-      logRenderChunkSize: 30,
-      logRenderChunkThreshold: 30,
+      logRenderChunkSize: 26,
+      logRenderChunkThreshold: 34,
       demoDataDays: 365,
       loadTimeoutMs: 12000,
+      llmModelSize: 'base'
+    },
+    7: {
+      deviceClass: 'high',
+      chartMaxPoints: 185,
+      maxChartPoints: 190,
+      chartAnimation: true,
+      enableChartPreload: true,
+      chartPreloadDelayMs: 750,
+      enableAIPreload: true,
+      aiPreloadDelayMs: 900,
+      deferAI: false,
+      batchDOM: false,
+      reduceAnimations: false,
+      reduceUIAnimations: false,
+      domCacheTtlMs: 21000,
+      storageBatchDelayMs: 90,
+      lazyChartStaggerMs: 45,
+      useWorkers: true,
+      logRenderChunkSize: 28,
+      logRenderChunkThreshold: 36,
+      demoDataDays: 365,
+      loadTimeoutMs: 12000,
+      llmModelSize: 'base'
+    },
+    8: {
+      deviceClass: 'high',
+      chartMaxPoints: 210,
+      maxChartPoints: 220,
+      chartAnimation: true,
+      enableChartPreload: true,
+      chartPreloadDelayMs: 550,
+      enableAIPreload: true,
+      aiPreloadDelayMs: 750,
+      deferAI: false,
+      batchDOM: false,
+      reduceAnimations: false,
+      reduceUIAnimations: false,
+      domCacheTtlMs: 19000,
+      storageBatchDelayMs: 80,
+      lazyChartStaggerMs: 35,
+      useWorkers: true,
+      logRenderChunkSize: 32,
+      logRenderChunkThreshold: 40,
+      demoDataDays: 365,
+      loadTimeoutMs: 13000,
       llmModelSize: 'base'
     }
   };
@@ -179,34 +407,57 @@
   var DESKTOP_PROFILES = {
     1: {
       deviceClass: 'low',
-      chartMaxPoints: 24,
-      maxChartPoints: 30,
+      chartMaxPoints: 20,
+      maxChartPoints: 26,
       chartAnimation: false,
       enableChartPreload: true,
-      chartPreloadDelayMs: 3000,
+      chartPreloadDelayMs: 3200,
       enableAIPreload: false,
       aiPreloadDelayMs: 4000,
       deferAI: true,
       batchDOM: true,
       reduceAnimations: true,
       reduceUIAnimations: true,
-      domCacheTtlMs: 45000,
-      storageBatchDelayMs: 200,
-      lazyChartStaggerMs: 120,
+      domCacheTtlMs: 48000,
+      storageBatchDelayMs: 220,
+      lazyChartStaggerMs: 135,
       useWorkers: false,
-      logRenderChunkSize: 20,
-      logRenderChunkThreshold: 25,
+      logRenderChunkSize: 16,
+      logRenderChunkThreshold: 22,
       demoDataDays: 365,
-      loadTimeoutMs: 6000,
+      loadTimeoutMs: 6500,
       llmModelSize: 'small'
     },
     2: {
+      deviceClass: 'low',
+      chartMaxPoints: 30,
+      maxChartPoints: 40,
+      chartAnimation: false,
+      enableChartPreload: true,
+      chartPreloadDelayMs: 2400,
+      enableAIPreload: false,
+      aiPreloadDelayMs: 3500,
+      deferAI: true,
+      batchDOM: true,
+      reduceAnimations: true,
+      reduceUIAnimations: true,
+      domCacheTtlMs: 42000,
+      storageBatchDelayMs: 170,
+      lazyChartStaggerMs: 120,
+      useWorkers: false,
+      logRenderChunkSize: 18,
+      logRenderChunkThreshold: 24,
+      demoDataDays: 730,
+      loadTimeoutMs: 8000,
+      llmModelSize: 'small'
+    },
+    3: {
       deviceClass: 'medium',
-      chartMaxPoints: 80,
+      chartMaxPoints: 75,
       maxChartPoints: 120,
       chartAnimation: true,
       enableChartPreload: true,
-      chartPreloadDelayMs: 1200,
+      chartPreloadDelayMs: 1400,
       enableAIPreload: true,
       aiPreloadDelayMs: 1500,
       deferAI: false,
@@ -219,57 +470,165 @@
       useWorkers: true,
       logRenderChunkSize: 20,
       logRenderChunkThreshold: 30,
-      demoDataDays: 3650,
-      loadTimeoutMs: 10000,
+      demoDataDays: 1825,
+      loadTimeoutMs: 11000,
       llmModelSize: 'base'
     },
-    3: {
-      deviceClass: 'high',
-      chartMaxPoints: 200,
-      maxChartPoints: 200,
+    4: {
+      deviceClass: 'medium',
+      chartMaxPoints: 110,
+      maxChartPoints: 160,
       chartAnimation: true,
       enableChartPreload: true,
-      chartPreloadDelayMs: 700,
+      chartPreloadDelayMs: 1100,
       enableAIPreload: true,
-      aiPreloadDelayMs: 1000,
+      aiPreloadDelayMs: 1100,
+      deferAI: false,
+      batchDOM: false,
+      reduceAnimations: false,
+      reduceUIAnimations: false,
+      domCacheTtlMs: 26000,
+      storageBatchDelayMs: 90,
+      lazyChartStaggerMs: 60,
+      useWorkers: true,
+      logRenderChunkSize: 22,
+      logRenderChunkThreshold: 32,
+      demoDataDays: 3650,
+      loadTimeoutMs: 12000,
+      llmModelSize: 'base'
+    },
+    5: {
+      deviceClass: 'medium',
+      chartMaxPoints: 160,
+      maxChartPoints: 190,
+      chartAnimation: true,
+      enableChartPreload: true,
+      chartPreloadDelayMs: 900,
+      enableAIPreload: true,
+      aiPreloadDelayMs: 950,
+      deferAI: false,
+      batchDOM: false,
+      reduceAnimations: false,
+      reduceUIAnimations: false,
+      domCacheTtlMs: 22000,
+      storageBatchDelayMs: 85,
+      lazyChartStaggerMs: 45,
+      useWorkers: true,
+      logRenderChunkSize: 26,
+      logRenderChunkThreshold: 34,
+      demoDataDays: 3650,
+      loadTimeoutMs: 12000,
+      llmModelSize: 'base'
+    },
+    6: {
+      deviceClass: 'high',
+      chartMaxPoints: 200,
+      maxChartPoints: 210,
+      chartAnimation: true,
+      enableChartPreload: true,
+      chartPreloadDelayMs: 750,
+      enableAIPreload: true,
+      aiPreloadDelayMs: 850,
       deferAI: false,
       batchDOM: false,
       reduceAnimations: false,
       reduceUIAnimations: false,
       domCacheTtlMs: 20000,
-      storageBatchDelayMs: 100,
+      storageBatchDelayMs: 80,
       lazyChartStaggerMs: 40,
       useWorkers: true,
-      logRenderChunkSize: 25,
-      logRenderChunkThreshold: 30,
+      logRenderChunkSize: 28,
+      logRenderChunkThreshold: 36,
       demoDataDays: 3650,
-      loadTimeoutMs: 12000,
+      loadTimeoutMs: 12500,
       llmModelSize: 'base'
     },
-    4: {
+    7: {
       deviceClass: 'high',
-      chartMaxPoints: 200,
-      maxChartPoints: 200,
+      chartMaxPoints: 220,
+      maxChartPoints: 230,
       chartAnimation: true,
       enableChartPreload: true,
-      chartPreloadDelayMs: 500,
+      chartPreloadDelayMs: 650,
       enableAIPreload: true,
-      aiPreloadDelayMs: 600,
+      aiPreloadDelayMs: 750,
       deferAI: false,
       batchDOM: false,
       reduceAnimations: false,
       reduceUIAnimations: false,
-      domCacheTtlMs: 18000,
-      storageBatchDelayMs: 80,
-      lazyChartStaggerMs: 30,
+      domCacheTtlMs: 19000,
+      storageBatchDelayMs: 75,
+      lazyChartStaggerMs: 34,
       useWorkers: true,
       logRenderChunkSize: 30,
-      logRenderChunkThreshold: 30,
+      logRenderChunkThreshold: 38,
       demoDataDays: 3650,
-      loadTimeoutMs: 12000,
+      loadTimeoutMs: 13000,
+      llmModelSize: 'base'
+    },
+    8: {
+      deviceClass: 'high',
+      chartMaxPoints: 240,
+      maxChartPoints: 260,
+      chartAnimation: true,
+      enableChartPreload: true,
+      chartPreloadDelayMs: 550,
+      enableAIPreload: true,
+      aiPreloadDelayMs: 650,
+      deferAI: false,
+      batchDOM: false,
+      reduceAnimations: false,
+      reduceUIAnimations: false,
+      domCacheTtlMs: 17500,
+      storageBatchDelayMs: 70,
+      lazyChartStaggerMs: 28,
+      useWorkers: true,
+      logRenderChunkSize: 34,
+      logRenderChunkThreshold: 42,
+      demoDataDays: 3650,
+      loadTimeoutMs: 13500,
       llmModelSize: 'base'
     }
   };
+
+  var PROFILE_OVERRIDES = {
+    platform: {
+      ios: { chartAnimation: false, lazyChartStaggerMs: 90 },
+      android: { chartAnimation: true, lazyChartStaggerMs: 70 },
+      desktop: { chartAnimation: true }
+    },
+    tablet: { chartMaxPoints: 140, maxChartPoints: 180, demoDataDays: 1825, loadTimeoutMs: 12000 },
+    native: { enableAIPreload: true, aiPreloadDelayMs: 900, chartPreloadDelayMs: 900 },
+    coresBucket: {
+      low: { useWorkers: false, batchDOM: true, storageBatchDelayMs: 150 },
+      mid: { useWorkers: true, batchDOM: false },
+      high: { useWorkers: true, batchDOM: false, storageBatchDelayMs: 80 }
+    },
+    memoryBucket: {
+      low: { demoDataDays: 120, enableAIPreload: false, deferAI: true },
+      mid: { demoDataDays: 365 },
+      high: { demoDataDays: 3650 }
+    }
+  };
+
+  function getRuntimeFlags() {
+    var nav = typeof navigator !== 'undefined' ? navigator : {};
+    var dm = (typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform) ? window.DeviceModule.platform : null;
+    var platformName = (dm && dm.platform) ? String(dm.platform) : 'desktop';
+    var isTablet = !!(dm && dm.isTablet);
+    var cores = (typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency > 0) ? nav.hardwareConcurrency : 0;
+    var deviceMemory = (typeof window !== 'undefined' && window.isSecureContext === true && typeof nav.deviceMemory === 'number' && nav.deviceMemory > 0) ? nav.deviceMemory : 0;
+    var cap = (typeof window !== 'undefined' && window.Capacitor) || (typeof window !== 'undefined' && window.parent && window.parent.Capacitor);
+    var isNative = !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
+    return { platform: platformName, isTablet: isTablet, cores: cores, deviceMemory: deviceMemory, isNative: isNative };
+  }
+
+  function mergeInto(dst, src) {
+    if (!src) return;
+    for (var k in src) {
+      if (src.hasOwnProperty(k)) dst[k] = src[k];
+    }
+  }
 
   function getCachedResult() {
     try {
@@ -277,7 +636,7 @@
       var raw = localStorage.getItem(CACHE_KEY);
       if (!raw) return null;
       var data = JSON.parse(raw);
-      if (!data || typeof data.tier !== 'number' || data.tier < 1 || data.tier > 4) return null;
+      if (!data || typeof data.tier !== 'number' || data.tier < 1 || data.tier > MAX_TIER) return null;
       if (!data.platformType || (data.platformType !== 'mobile' && data.platformType !== 'desktop')) return null;
       return data;
     } catch (e) {
@@ -310,19 +669,222 @@
     return getPlatformType();
   }
 
-  function saveBenchmarkResult(platformType, tier) {
+  function saveBenchmarkResult(platformType, tier, details) {
     try {
       if (typeof localStorage === 'undefined' || !localStorage.setItem) return;
-      tier = Math.max(1, Math.min(4, Math.floor(tier)));
-      var pt = platformType === 'mobile' || platformType === 'desktop' ? platformType : getPlatformType();
-      _lastTier = tier;
+      var obj = null;
+      if (platformType && typeof platformType === 'object') {
+        obj = platformType;
+      } else {
+        obj = { platformType: platformType, tier: tier };
+        if (details && typeof details === 'object') {
+          for (var k in details) {
+            if (details.hasOwnProperty(k)) obj[k] = details[k];
+          }
+        }
+      }
+      var pt = (obj.platformType === 'mobile' || obj.platformType === 'desktop') ? obj.platformType : getPlatformType();
+      var t = Math.max(1, Math.min(MAX_TIER, Math.floor(obj.tier)));
+      obj.platformType = pt;
+      obj.tier = t;
+      obj.ts = obj.ts != null ? obj.ts : Date.now();
+      obj.version = obj.version != null ? obj.version : BENCHMARK_VERSION;
+      _lastTier = t;
       _lastPlatformType = pt;
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        platformType: pt,
-        tier: tier,
-        ts: Date.now()
-      }));
+      localStorage.setItem(CACHE_KEY, JSON.stringify(obj));
     } catch (e) {}
+  }
+
+  function computeSuiteWorkloads(tier) {
+    tier = Math.max(1, Math.min(MAX_TIER, Math.floor(tier || 4)));
+    var scale = 1 + (tier - 1) * 0.45;
+    return {
+      cpuIterations: clampInt(200000 * scale, 120000, 1600000),
+      arraySize: clampInt(45000 * scale, 20000, 220000),
+      jsonSize: clampInt(180 * scale, 80, 900),
+      stringSize: clampInt(20000 * scale, 12000, 140000),
+      domNodes: clampInt(130 * scale, 80, 650),
+      rafFrames: 7
+    };
+  }
+
+  function runTestSync(testId, label, runFn, unit, progressCb) {
+    var t0 = nowMs();
+    var out = 0;
+    try { out = runFn(); } catch (e) { out = 0; }
+    var ms = nowMs() - t0;
+    if (progressCb) progressCb(testId, label);
+    return { id: testId, label: label, ms: ms, unit: unit, out: out };
+  }
+
+  function runSuiteAsync(opts, onProgress, onDone) {
+    var totalCapMs = (opts && opts.totalCapMs) ? opts.totalCapMs : DEFAULT_TOTAL_CAP_MS;
+    var startAll = nowMs();
+    var platformType = getPlatformType();
+    var env = getEnvSnapshot(platformType);
+
+    // Quick CPU estimate to pick suite workloads.
+    var estimateIters = 280000;
+    var est0 = nowMs();
+    cpuArith(estimateIters);
+    var estMs = nowMs() - est0;
+    if (estMs < 2) {
+      estimateIters = 1400000;
+      est0 = nowMs();
+      cpuArith(estimateIters);
+      estMs = nowMs() - est0;
+    }
+    var estMsPer200k = msPer200kFromRun(estimateIters, estMs);
+    var provisionalTier = msPer200kToTier(estMsPer200k);
+    var workloads = computeSuiteWorkloads(provisionalTier);
+
+    var baseRepeats = provisionalTier <= 2 ? 3 : (provisionalTier <= 5 ? 5 : 7);
+    var repeats = baseRepeats;
+
+    // Borderline tiers: add more repeats for stability.
+    var thresholdNear = function (x, target, pct) { return Math.abs(x - target) / target <= pct; };
+    var near = thresholdNear(estMsPer200k, 14.0, 0.08) || thresholdNear(estMsPer200k, 18.0, 0.08) || thresholdNear(estMsPer200k, 26.0, 0.08);
+    if (near) repeats = Math.min(baseRepeats + 2, 9);
+
+    var jsonPayload = makeJsonPayload(workloads.jsonSize);
+
+    var subtests = [];
+    var cpuMsPer200kSamples = [];
+    var cpuMsSamples = [];
+    var index = 0;
+    var totalSteps = (repeats * 5) + repeats; // includes rAF
+
+    function pct() {
+      return Math.max(0, Math.min(99, Math.floor((index / Math.max(1, totalSteps)) * 100)));
+    }
+
+    function progress(phase, currentLabel) {
+      if (typeof onProgress === 'function') {
+        onProgress(pct(), { phase: phase, label: currentLabel });
+      }
+    }
+
+    function runRepeat(rep) {
+      if ((nowMs() - startAll) > totalCapMs) {
+        finish();
+        return;
+      }
+      progress('running', 'CPU arithmetic');
+      var cpuRes = runTestSync('cpu', 'CPU arithmetic', function () { return cpuArith(workloads.cpuIterations); }, 'iters', function () {});
+      cpuRes.iterations = workloads.cpuIterations;
+      cpuRes.msPer200k = msPer200kFromRun(workloads.cpuIterations, cpuRes.ms);
+      cpuMsPer200kSamples.push(cpuRes.msPer200k);
+      cpuMsSamples.push(cpuRes.ms);
+      subtests.push({ repeat: rep, id: cpuRes.id, label: cpuRes.label, ms: cpuRes.ms, iterations: cpuRes.iterations, msPer200k: cpuRes.msPer200k });
+      index++;
+
+      setTimeout(function () {
+        progress('running', 'Array throughput');
+        var arrRes = runTestSync('array', 'Array throughput', function () { return arrayThroughput(workloads.arraySize); }, 'elems', function () {});
+        arrRes.size = workloads.arraySize;
+        subtests.push({ repeat: rep, id: arrRes.id, label: arrRes.label, ms: arrRes.ms, size: arrRes.size });
+        index++;
+
+        setTimeout(function () {
+          progress('running', 'JSON parse/stringify');
+          var jsonRes = runTestSync('json', 'JSON parse/stringify', function () { return jsonParseStringify(jsonPayload); }, 'bytes', function () {});
+          jsonRes.size = workloads.jsonSize;
+          subtests.push({ repeat: rep, id: jsonRes.id, label: jsonRes.label, ms: jsonRes.ms, size: jsonRes.size });
+          index++;
+
+          setTimeout(function () {
+            progress('running', 'String ops');
+            var strRes = runTestSync('string', 'String ops', function () { return stringOps(workloads.stringSize); }, 'chars', function () {});
+            strRes.size = workloads.stringSize;
+            subtests.push({ repeat: rep, id: strRes.id, label: strRes.label, ms: strRes.ms, size: strRes.size });
+            index++;
+
+            setTimeout(function () {
+              progress('running', 'DOM fragment build');
+              var domRes = runTestSync('dom', 'DOM fragment build', function () { return domFragmentBuild(workloads.domNodes); }, 'nodes', function () {});
+              domRes.count = workloads.domNodes;
+              subtests.push({ repeat: rep, id: domRes.id, label: domRes.label, ms: domRes.ms, count: domRes.count });
+              index++;
+
+              progress('running', 'rAF latency');
+              rafLatency(workloads.rafFrames, function (rafRes) {
+                subtests.push({ repeat: rep, id: 'raf', label: 'rAF latency', ms: rafRes.avgMs, samples: rafRes.samples });
+                index++;
+                if (rep + 1 >= repeats) finish();
+                else runRepeat(rep + 1);
+              });
+            }, 0);
+          }, 0);
+        }, 0);
+      }, 0);
+    }
+
+    function finish() {
+      if (typeof onProgress === 'function') onProgress(100, { phase: 'done' });
+
+      var msPer200kMed = median(cpuMsPer200kSamples);
+      var tier = msPer200kToTier(msPer200kMed);
+      var score = msPer200kMed > 0 ? (1000 / msPer200kMed) : 0;
+
+      // If the result moved across major class boundaries, ensure we have enough repeats (only if we still have budget).
+      var classBefore = getLegacyDeviceClass(provisionalTier);
+      var classAfter = getLegacyDeviceClass(tier);
+      if (classBefore !== classAfter && repeats < 9 && (nowMs() - startAll) < (totalCapMs * 0.85)) {
+        repeats = Math.min(9, repeats + 2);
+        totalSteps = (repeats * 5) + repeats;
+        runRepeat(baseRepeats); // add extra repeats
+        return;
+      }
+
+      // Summaries per test: median ms and coefficient of variation.
+      var perTest = {};
+      for (var i = 0; i < subtests.length; i++) {
+        var st = subtests[i];
+        if (!perTest[st.id]) perTest[st.id] = { id: st.id, label: st.label, ms: [] };
+        perTest[st.id].ms.push(st.ms);
+      }
+      var testSummary = [];
+      for (var id in perTest) {
+        if (!perTest.hasOwnProperty(id)) continue;
+        var msArr = perTest[id].ms;
+        var m = median(msArr);
+        var sd = stddev(msArr);
+        testSummary.push({
+          id: id,
+          label: perTest[id].label,
+          medianMs: m,
+          meanMs: mean(msArr),
+          cv: (m > 0) ? (sd / mean(msArr)) : 0,
+          samples: msArr
+        });
+      }
+      testSummary.sort(function (a, b) { return a.id < b.id ? -1 : 1; });
+
+      onDone({
+        version: BENCHMARK_VERSION,
+        platformType: platformType,
+        tier: tier,
+        score: score,
+        cpu: {
+          msPer200k: msPer200kMed,
+          msPer200kSamples: cpuMsPer200kSamples,
+          msSamples: cpuMsSamples,
+          iterations: workloads.cpuIterations
+        },
+        repeats: repeats,
+        totalMs: nowMs() - startAll,
+        env: env,
+        workloads: workloads,
+        tests: testSummary,
+        raw: subtests,
+        ts: Date.now()
+      });
+    }
+
+    progress('starting', 'Warmup');
+    setTimeout(function () {
+      runRepeat(0);
+    }, 0);
   }
 
   function runBenchmarkIfNeeded(onProgress, onComplete) {
@@ -330,33 +892,45 @@
     if (cached) {
       _lastTier = cached.tier;
       _lastPlatformType = cached.platformType;
-      if (typeof onComplete === 'function') onComplete(cached.tier, cached.platformType);
+      if (typeof onComplete === 'function') onComplete(cached.tier, cached.platformType, cached);
       return;
     }
-    var platformType = getPlatformType();
-    if (onProgress && typeof onProgress === 'function') onProgress(0);
-    var result;
-    try {
-      result = runCpuBenchmark(onProgress);
-    } catch (e) {
-      result = { elapsed: 999 };
-    }
-    if (onProgress && typeof onProgress === 'function') onProgress(100);
-    var tier = resultToTier(result);
-    _lastTier = tier;
-    _lastPlatformType = platformType;
-    if (typeof onComplete === 'function') onComplete(tier, platformType);
+    if (typeof onProgress === 'function') onProgress(0, { phase: 'starting' });
+    runSuiteAsync({ totalCapMs: DEFAULT_TOTAL_CAP_MS }, onProgress, function (resultObj) {
+      _lastTier = resultObj.tier;
+      _lastPlatformType = resultObj.platformType;
+      if (typeof onComplete === 'function') onComplete(resultObj.tier, resultObj.platformType, resultObj);
+    });
   }
 
   function getFullProfile(platformType, tier, overrides) {
     var pt = platformType === 'mobile' || platformType === 'desktop' ? platformType : getPlatformType();
-    var t = Math.max(1, Math.min(4, Math.floor(tier)));
+    var t = Math.max(1, Math.min(MAX_TIER, Math.floor(tier)));
     var table = pt === 'mobile' ? MOBILE_PROFILES : DESKTOP_PROFILES;
-    var profile = table[t] || table[2];
+    var profile = table[t] || table[4] || table[3] || table[2] || table[1];
     var out = {};
     for (var k in profile) {
       if (profile.hasOwnProperty(k)) out[k] = profile[k];
     }
+
+    // Layered overrides: platform/tablet/native/cores/memory. Keep user/network overrides last.
+    var flags = getRuntimeFlags();
+    if (flags && flags.platform && PROFILE_OVERRIDES.platform && PROFILE_OVERRIDES.platform[flags.platform]) {
+      mergeInto(out, PROFILE_OVERRIDES.platform[flags.platform]);
+    }
+    if (flags && flags.isTablet && PROFILE_OVERRIDES.tablet) {
+      mergeInto(out, PROFILE_OVERRIDES.tablet);
+    }
+    if (flags && flags.isNative && PROFILE_OVERRIDES.native) {
+      mergeInto(out, PROFILE_OVERRIDES.native);
+    }
+    if (flags) {
+      var coresBucket = flags.cores <= 2 ? 'low' : flags.cores <= 6 ? 'mid' : 'high';
+      if (PROFILE_OVERRIDES.coresBucket && PROFILE_OVERRIDES.coresBucket[coresBucket]) mergeInto(out, PROFILE_OVERRIDES.coresBucket[coresBucket]);
+      var memBucket = flags.deviceMemory && flags.deviceMemory <= 2 ? 'low' : flags.deviceMemory && flags.deviceMemory <= 4 ? 'mid' : 'high';
+      if (PROFILE_OVERRIDES.memoryBucket && PROFILE_OVERRIDES.memoryBucket[memBucket]) mergeInto(out, PROFILE_OVERRIDES.memoryBucket[memBucket]);
+    }
+
     if (overrides && typeof overrides === 'object') {
       if (overrides.saveData === true) {
         out.enableChartPreload = false;

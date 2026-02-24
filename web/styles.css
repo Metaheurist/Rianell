@@ -4250,6 +4250,166 @@ body.loading .loading-overlay {
   justify-content: center;
 }
 
+/* Performance benchmark modal */
+.perf-benchmark-content {
+  max-width: 860px;
+  width: min(860px, 94vw);
+}
+.perf-benchmark-body {
+  padding: 18px 18px 8px 18px;
+  color: var(--text-light);
+}
+.perf-benchmark-summary {
+  margin: 0 0 14px 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: rgba(224, 242, 241, 0.88);
+}
+.perf-benchmark-ai-line {
+  margin: 0 0 12px 0;
+  font-size: 0.9rem;
+  color: rgba(224, 242, 241, 0.85);
+}
+.perf-benchmark-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 760px) {
+  .perf-benchmark-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.perf-benchmark-panel {
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(76, 175, 80, 0.28);
+  border-radius: var(--radius-md);
+  padding: 12px 12px 10px 12px;
+}
+.perf-benchmark-panel-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: rgba(76, 175, 80, 0.95);
+  margin: 0 0 10px 0;
+}
+.perf-benchmark-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.perf-benchmark-bar-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 62px;
+  gap: 10px;
+  align-items: center;
+}
+@media (max-width: 460px) {
+  .perf-benchmark-bar-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+.perf-benchmark-bar-label {
+  font-size: 0.86rem;
+  color: rgba(224, 242, 241, 0.92);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.perf-benchmark-bar-track {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.perf-benchmark-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(76, 175, 80, 0.35), rgba(76, 175, 80, 0.95));
+  border-radius: 999px;
+}
+.perf-benchmark-bar-value {
+  font-size: 0.82rem;
+  color: rgba(224, 242, 241, 0.75);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.perf-benchmark-kv {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+  font-size: 0.85rem;
+  color: rgba(224, 242, 241, 0.8);
+}
+.perf-benchmark-kv div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.perf-benchmark-details {
+  margin-top: 12px;
+  border-top: 1px solid rgba(76, 175, 80, 0.22);
+  padding-top: 10px;
+}
+.perf-benchmark-details summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: rgba(224, 242, 241, 0.9);
+}
+.perf-benchmark-details-inner {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(76, 175, 80, 0.15);
+}
+.perf-benchmark-details-inner summary {
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: rgba(224, 242, 241, 0.85);
+}
+.perf-benchmark-profile {
+  margin: 10px 0 0 0;
+  max-height: 220px;
+  overflow: auto;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(76, 175, 80, 0.22);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  color: rgba(224, 242, 241, 0.92);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+.perf-benchmark-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 16px;
+}
+body.light-mode .perf-benchmark-panel {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: var(--border-light);
+}
+body.light-mode .perf-benchmark-summary,
+body.light-mode .perf-benchmark-ai-line,
+body.light-mode .perf-benchmark-bar-label,
+body.light-mode .perf-benchmark-bar-value,
+body.light-mode .perf-benchmark-details summary,
+body.light-mode .perf-benchmark-details-inner summary {
+  color: var(--text-dark);
+}
+body.light-mode .perf-benchmark-profile {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: var(--border-light);
+  color: var(--text-dark);
+}
+
 /* Share Modal */
 .share-modal-content {
   max-width: 520px;
@@ -7812,6 +7972,34 @@ body.light-mode .goals-status-pill.below {
   color: var(--text-light);
   font-size: 0.9rem;
   margin: 0;
+}
+
+.settings-option-llm-model {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+.settings-option-llm-model label {
+  flex: 1 1 100%;
+}
+.settings-select {
+  min-width: 220px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  color: var(--text-light);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.settings-select:focus {
+  outline: none;
+  border-color: rgba(76, 175, 80, 0.6);
+}
+body.light-mode .settings-select {
+  color: var(--text-dark);
+  background: rgba(0, 0, 0, 0.06);
+  border-color: var(--border-light);
 }
 
 .toggle-switch {

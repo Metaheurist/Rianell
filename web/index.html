@@ -319,6 +319,15 @@
           <label>Lazy load charts</label>
           <div class="toggle-switch active" id="lazyToggle" onclick="toggleSetting('lazy')"></div>
         </div>
+        <div class="settings-option settings-option-llm-model">
+          <label for="preferredLlmModelSelect">On-device AI model</label>
+          <select id="preferredLlmModelSelect" class="settings-select" aria-describedby="llmModelRecommendationHint" onchange="setPreferredLlmModel(this.value)">
+            <option value="recommended">Use recommended (for this device)</option>
+            <option value="small">Small (faster, lower memory)</option>
+            <option value="base">Base (better quality)</option>
+          </select>
+          <p class="settings-hint" id="llmModelRecommendationHint">Recommended: —</p>
+        </div>
       </div>
 
       <div class="settings-section" id="godModeSection">
@@ -326,6 +335,10 @@
         <div class="settings-option">
           <label class="visually-hidden">Performance benchmark</label>
           <button type="button" class="cloud-btn" onclick="clearBenchmarkCacheAndNotify()" style="padding: 8px 16px; font-size: 0.9rem;">Clear performance benchmark cache</button>
+        </div>
+        <div class="settings-option" style="margin-top: -4px;">
+          <label class="visually-hidden">Performance benchmark details</label>
+          <button type="button" class="cloud-btn" onclick="openBenchmarkDetails()" style="padding: 8px 16px; font-size: 0.9rem;">View last benchmark details</button>
         </div>
         <p class="settings-hint">Clears the cached device performance tier. Reload the app to run the benchmark again and see the device-class modal.</p>
       </div>
@@ -1438,6 +1451,42 @@
       </div>
       <div class="modal-footer alert-modal-footer">
         <button class="modal-save-btn" onclick="closeAlertModal()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance & AI benchmark modal (first run + Developer view) -->
+  <div class="modal-overlay perf-benchmark-overlay" id="perfBenchmarkOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Performance and AI benchmark">
+    <div class="modal-content perf-benchmark-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="perfBenchmarkTitle">Performance &amp; AI benchmark</h3>
+        <button type="button" class="modal-close" onclick="closePerfBenchmarkModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body perf-benchmark-body">
+        <p class="perf-benchmark-summary" id="perfBenchmarkSummary">Measuring performance…</p>
+        <p class="perf-benchmark-ai-line" id="perfBenchmarkAiLine" aria-live="polite"></p>
+
+        <details class="perf-benchmark-details" id="perfBenchmarkDetailsBlock">
+          <summary>See detailed benchmark results</summary>
+          <div class="perf-benchmark-grid">
+            <div class="perf-benchmark-panel">
+              <div class="perf-benchmark-panel-title">Test results</div>
+              <div class="perf-benchmark-bars" id="perfBenchmarkBars"></div>
+            </div>
+            <div class="perf-benchmark-panel">
+              <div class="perf-benchmark-panel-title">Stability (CPU)</div>
+              <canvas id="perfBenchmarkSparkline" width="520" height="120" aria-label="Benchmark stability sparkline"></canvas>
+              <div class="perf-benchmark-kv" id="perfBenchmarkStats"></div>
+            </div>
+          </div>
+          <details class="perf-benchmark-details-inner">
+            <summary>Chosen optimisation profile</summary>
+            <pre class="perf-benchmark-profile" id="perfBenchmarkProfile"></pre>
+          </details>
+        </details>
+      </div>
+      <div class="modal-footer perf-benchmark-footer" id="perfBenchmarkFooter">
+        <button type="button" class="modal-save-btn" id="perfBenchmarkContinueBtn">Continue</button>
       </div>
     </div>
   </div>

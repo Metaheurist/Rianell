@@ -228,6 +228,222 @@ function closeAlertModal() {
 }
 
 // ============================================
+// Performance benchmark modal
+// ============================================
+let _perfBenchmarkEscapeHandler = null;
+
+function closePerfBenchmarkModal() {
+  if (_perfBenchmarkEscapeHandler) {
+    document.removeEventListener('keydown', _perfBenchmarkEscapeHandler);
+    _perfBenchmarkEscapeHandler = null;
+  }
+  const overlay = document.getElementById('perfBenchmarkOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    overlay.style.visibility = 'hidden';
+    overlay.style.opacity = '0';
+    document.body.classList.remove('modal-active');
+    document.body.style.overflow = '';
+  }
+}
+
+function openPerfBenchmarkModal(options) {
+  const overlay = document.getElementById('perfBenchmarkOverlay');
+  const titleEl = document.getElementById('perfBenchmarkTitle');
+  const summaryEl = document.getElementById('perfBenchmarkSummary');
+  const barsEl = document.getElementById('perfBenchmarkBars');
+  const sparkEl = document.getElementById('perfBenchmarkSparkline');
+  const statsEl = document.getElementById('perfBenchmarkStats');
+  const profileEl = document.getElementById('perfBenchmarkProfile');
+  const continueBtn = document.getElementById('perfBenchmarkContinueBtn');
+  const closeBtn = overlay ? overlay.querySelector('.modal-close') : null;
+  if (!overlay || !summaryEl || !barsEl || !profileEl || !continueBtn) return;
+
+  const mode = options && options.mode ? options.mode : 'view';
+  const result = options && options.result ? options.result : null;
+
+  // Close settings modal if open
+  closeSettingsModalIfOpen();
+
+  if (titleEl) titleEl.textContent = mode === 'firstRun' ? 'Performance & AI benchmark' : 'Performance & AI benchmark (last run)';
+
+  const platformType = result && result.platformType ? result.platformType : 'unknown';
+  const tier = result && typeof result.tier === 'number' ? result.tier : null;
+  const score = result && typeof result.score === 'number' ? result.score : null;
+  const totalMs = result && typeof result.totalMs === 'number' ? result.totalMs : null;
+  const repeats = result && typeof result.repeats === 'number' ? result.repeats : null;
+  const deviceClass = (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.getLegacyDeviceClass === 'function' && tier != null)
+    ? window.DeviceBenchmark.getLegacyDeviceClass(tier)
+    : 'medium';
+
+  const env = result && result.env ? result.env : {};
+  const full = (tier != null && typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.getFullProfile === 'function')
+    ? window.DeviceBenchmark.getFullProfile(platformType, tier, { saveData: !!env.saveData, prefersReducedMotion: !!env.prefersReducedMotion })
+    : null;
+  const llmSize = (full && full.llmModelSize) ? full.llmModelSize : (deviceClass === 'low' ? 'small' : 'base');
+
+  summaryEl.textContent = tier == null
+    ? 'No benchmark result found.'
+    : `Device: ${platformType} · Tier: ${tier} · Class: ${deviceClass} · Recommended AI model: ${llmSize}`;
+
+  const aiLineEl = document.getElementById('perfBenchmarkAiLine');
+  if (aiLineEl) aiLineEl.textContent = tier != null ? `This device can run the recommended on-device model (flan-t5-${llmSize}).` : '';
+
+  // Bars: per-test medianMs (smaller is better → longer bar)
+  barsEl.innerHTML = '';
+  const tests = result && Array.isArray(result.tests) ? result.tests : [];
+  if (tests.length) {
+    const msVals = tests.map(t => (typeof t.medianMs === 'number' ? t.medianMs : (typeof t.meanMs === 'number' ? t.meanMs : 0))).filter(v => v > 0);
+    const minMs = msVals.length ? Math.min.apply(null, msVals) : 0;
+    const maxMs = msVals.length ? Math.max.apply(null, msVals) : 0;
+    tests.forEach(t => {
+      const ms = (typeof t.medianMs === 'number' && t.medianMs > 0) ? t.medianMs : (typeof t.meanMs === 'number' ? t.meanMs : 0);
+      const denom = (maxMs - minMs) || 1;
+      const norm = ms > 0 ? (1 - ((ms - minMs) / denom)) : 0;
+      const widthPct = Math.max(6, Math.min(100, Math.round(norm * 100)));
+
+      const row = document.createElement('div');
+      row.className = 'perf-benchmark-bar-row';
+      row.innerHTML = `
+        <div class="perf-benchmark-bar-label" title="${t.label || t.id}">${t.label || t.id}</div>
+        <div class="perf-benchmark-bar-track"><div class="perf-benchmark-bar-fill" style="width:${widthPct}%;"></div></div>
+        <div class="perf-benchmark-bar-value">${ms ? ms.toFixed(1) + 'ms' : '—'}</div>
+      `;
+      barsEl.appendChild(row);
+    });
+  } else {
+    const empty = document.createElement('div');
+    empty.style.opacity = '0.8';
+    empty.textContent = 'No per-test breakdown available (older cached result).';
+    barsEl.appendChild(empty);
+  }
+
+  // Stats + sparkline (CPU msPer200k samples)
+  if (statsEl) statsEl.innerHTML = '';
+  const cpu = result && result.cpu ? result.cpu : null;
+  const cpuSamples = cpu && Array.isArray(cpu.msPer200kSamples) ? cpu.msPer200kSamples : [];
+  if (statsEl && tier != null) {
+    const env = result && result.env ? result.env : {};
+    const kv = [
+      ['Class', deviceClass],
+      ['Repeats', repeats != null ? String(repeats) : '—'],
+      ['Cores', env.cores != null ? String(env.cores) : '—'],
+      ['Memory', env.deviceMemory != null ? String(env.deviceMemory) + 'GB' : '—']
+    ];
+    kv.forEach(pair => {
+      const div = document.createElement('div');
+      div.innerHTML = `<span>${pair[0]}</span><span>${pair[1]}</span>`;
+      statsEl.appendChild(div);
+    });
+  }
+
+  if (sparkEl && sparkEl.getContext) {
+    const ctx = sparkEl.getContext('2d');
+    if (ctx) {
+      ctx.clearRect(0, 0, sparkEl.width, sparkEl.height);
+      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      ctx.fillRect(0, 0, sparkEl.width, sparkEl.height);
+      ctx.strokeStyle = 'rgba(76,175,80,0.95)';
+      ctx.lineWidth = 2;
+
+      if (cpuSamples && cpuSamples.length >= 2) {
+        const pad = 10;
+        const w = sparkEl.width - pad * 2;
+        const h = sparkEl.height - pad * 2;
+        const minV = Math.min.apply(null, cpuSamples);
+        const maxV = Math.max.apply(null, cpuSamples);
+        const denom = (maxV - minV) || 1;
+        ctx.beginPath();
+        for (let i = 0; i < cpuSamples.length; i++) {
+          const x = pad + (i / (cpuSamples.length - 1)) * w;
+          const y = pad + (1 - ((cpuSamples[i] - minV) / denom)) * h;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(76,175,80,0.18)';
+        ctx.lineTo(pad + w, pad + h);
+        ctx.lineTo(pad, pad + h);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        ctx.fillStyle = 'rgba(224,242,241,0.7)';
+        ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+        ctx.fillText('No stability samples', 14, 26);
+      }
+    }
+  }
+
+  // Profile summary (key settings) – use full profile already computed above when available
+  let profileSummary = null;
+  try {
+    if (full && tier != null) {
+      profileSummary = {
+        deviceClass: full.deviceClass,
+        chartMaxPoints: full.chartMaxPoints,
+        maxChartPoints: full.maxChartPoints,
+        chartAnimation: full.chartAnimation,
+        enableChartPreload: full.enableChartPreload,
+        chartPreloadDelayMs: full.chartPreloadDelayMs,
+        enableAIPreload: full.enableAIPreload,
+        aiPreloadDelayMs: full.aiPreloadDelayMs,
+        useWorkers: full.useWorkers,
+        demoDataDays: full.demoDataDays,
+        loadTimeoutMs: full.loadTimeoutMs,
+        llmModelSize: full.llmModelSize,
+        storageBatchDelayMs: full.storageBatchDelayMs,
+        lazyChartStaggerMs: full.lazyChartStaggerMs,
+        domCacheTtlMs: full.domCacheTtlMs
+      };
+    }
+  } catch (e) {}
+  profileEl.textContent = profileSummary ? JSON.stringify(profileSummary, null, 2) : 'Profile not available.';
+
+  // Buttons and close behavior
+  if (continueBtn) {
+    continueBtn.textContent = mode === 'firstRun' ? 'Continue' : 'Close';
+    continueBtn.onclick = function () {
+      if (mode === 'firstRun' && result && typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.saveBenchmarkResult === 'function') {
+        window.DeviceBenchmark.saveBenchmarkResult(result);
+      }
+      closePerfBenchmarkModal();
+      if (options && typeof options.onContinue === 'function') options.onContinue();
+    };
+  }
+  if (closeBtn) closeBtn.style.display = (mode === 'firstRun') ? 'none' : '';
+
+  overlay.onclick = function (e) {
+    if (e.target !== overlay) return;
+    if (mode !== 'firstRun') closePerfBenchmarkModal();
+  };
+  _perfBenchmarkEscapeHandler = function (e) {
+    if (e.key === 'Escape') {
+      if (mode !== 'firstRun') closePerfBenchmarkModal();
+      document.removeEventListener('keydown', _perfBenchmarkEscapeHandler);
+      _perfBenchmarkEscapeHandler = null;
+    }
+  };
+  document.addEventListener('keydown', _perfBenchmarkEscapeHandler);
+
+  overlay.style.display = 'block';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  document.body.classList.add('modal-active');
+  document.body.style.overflow = 'hidden';
+}
+
+function openBenchmarkDetails() {
+  const cached = (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.getCachedResult === 'function')
+    ? window.DeviceBenchmark.getCachedResult()
+    : null;
+  if (!cached) {
+    showAlertModal('No cached benchmark found. Run the benchmark by reloading the app (or clear the cache first).', 'Performance');
+    return;
+  }
+  openPerfBenchmarkModal({ mode: 'view', result: cached });
+}
+
+// ============================================
 // Share modal and share actions
 // ============================================
 let _shareModalEscapeHandler = null;
@@ -11650,7 +11866,8 @@ let appSettings = {
   medicalCondition: '', // Empty by default - user must set a condition
   contributeAnonData: false, // Contribute anonymised data to pool
   useOpenData: false, // Use anonymised data pool for AI training (requires 90+ days)
-  aiEnabled: true // When false: hide AI Analysis tab, chart predictions, and Goals
+  aiEnabled: true, // When false: hide AI Analysis tab, chart predictions, and Goals
+  preferredLlmModelSize: 'recommended' // 'recommended' | 'small' | 'base' for on-device AI model
 };
 
 // Make appSettings available on window for safe access
@@ -11698,6 +11915,14 @@ function saveSettings() {
   }
   Logger.debug('Settings saved', { settings: appSettings });
 }
+
+function setPreferredLlmModel(value) {
+  if (value !== 'recommended' && value !== 'small' && value !== 'base') return;
+  appSettings.preferredLlmModelSize = value;
+  saveSettings();
+  if (typeof window.clearSummaryLLMCache === 'function') window.clearSummaryLLMCache();
+}
+if (typeof window !== 'undefined') window.setPreferredLlmModel = setPreferredLlmModel;
 
 function applySettings() {
   // Always use dark mode
@@ -11843,7 +12068,26 @@ function loadSettingsState() {
   
   document.getElementById('animationsToggle').classList.toggle('active', appSettings.animations);
   document.getElementById('lazyToggle').classList.toggle('active', appSettings.lazy);
-  
+
+  // On-device AI model: sync dropdown and recommendation hint from benchmark
+  const preferredLlmSelect = document.getElementById('preferredLlmModelSelect');
+  const llmRecommendationHint = document.getElementById('llmModelRecommendationHint');
+  if (preferredLlmSelect) {
+    const val = appSettings.preferredLlmModelSize === 'small' || appSettings.preferredLlmModelSize === 'base' ? appSettings.preferredLlmModelSize : 'recommended';
+    preferredLlmSelect.value = val;
+  }
+  if (llmRecommendationHint) {
+    if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
+      const platformType = window.DeviceBenchmark.getPlatformTypeCached();
+      const tier = window.DeviceBenchmark.getPerformanceTier();
+      const full = window.DeviceBenchmark.getFullProfile(platformType, tier, {});
+      const size = full && full.llmModelSize ? full.llmModelSize : 'base';
+      llmRecommendationHint.textContent = 'Recommended: flan-t5-' + size;
+    } else {
+      llmRecommendationHint.textContent = 'Run benchmark (reload app) to see recommendation.';
+    }
+  }
+
   // Update contribute anonymised data toggle
   const contributeAnonDataToggle = document.getElementById('contributeAnonDataToggle');
   if (contributeAnonDataToggle) {
@@ -14469,23 +14713,22 @@ window.addEventListener('load', () => {
 
   if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.runBenchmarkIfNeeded === 'function') {
     window.DeviceBenchmark.runBenchmarkIfNeeded(
-      function (pct) {
-        if (loadingTextEl) loadingTextEl.textContent = 'Measuring performance…' + (pct > 0 ? ' ' + pct + '%' : '');
+      function (pct, meta) {
+        var label = meta && meta.label ? (' · ' + meta.label) : '';
+        if (loadingTextEl) loadingTextEl.textContent = 'Measuring performance…' + (pct > 0 ? ' ' + pct + '%' : '') + label;
       },
-      function (tier, platformType) {
+      function (tier, platformType, result) {
         if (window.DeviceBenchmark.isBenchmarkReady()) {
           runAppInit();
           return;
         }
-        var deviceClass = window.DeviceBenchmark.getLegacyDeviceClass(tier);
-        showAlertModal(
-          'Device: ' + platformType + ' · Performance tier: ' + tier + ' (class: ' + deviceClass + '). The app will use optimisations for this device. Tap OK to continue.',
-          'Device class',
-          function () {
-            window.DeviceBenchmark.saveBenchmarkResult(platformType, tier);
+        openPerfBenchmarkModal({
+          mode: 'firstRun',
+          result: result || { platformType: platformType, tier: tier },
+          onContinue: function () {
             runAppInit();
           }
-        );
+        });
       }
     );
   } else {

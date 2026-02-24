@@ -525,6 +525,7 @@ function getOptimizationProfile() {
     var full = window.DeviceBenchmark.getFullProfile(platformType, tier, { saveData: saveData, prefersReducedMotion: reducedMotion });
     return {
       deviceClass: full.deviceClass || p.deviceClass || 'medium',
+      llmModelSize: full.llmModelSize != null ? full.llmModelSize : (full.deviceClass === 'low' ? 'small' : 'base'),
       chartMaxPoints: full.chartMaxPoints != null ? full.chartMaxPoints : 80,
       chartAnimation: full.chartAnimation != null ? full.chartAnimation : !reducedMotion,
       enableChartPreload: full.enableChartPreload != null ? full.enableChartPreload : true,
@@ -586,6 +587,7 @@ function getOptimizationProfile() {
 
   return {
     deviceClass: deviceClass,
+    llmModelSize: isLow ? 'small' : 'base',
     chartMaxPoints: chartMaxPoints,
     chartAnimation: chartAnimation,
     enableChartPreload: enableChartPreload,

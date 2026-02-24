@@ -32,14 +32,34 @@
     return deviceClass === 'low' ? MODEL_SMALL : MODEL_BASE;
   }
 
-  async function getPipeline() {
-    var modelId = cachedModelId;
-    if (cachedPipeline && modelId) return cachedPipeline;
-
+  /**
+   * Resolve which model to use: 1) user override (appSettings.preferredLlmModelSize),
+   * 2) benchmark profile llmModelSize, 3) deviceClass fallback.
+   */
+  function getResolvedModelId() {
+    var prefs = typeof window !== 'undefined' && window.appSettings;
+    if (prefs && (prefs.preferredLlmModelSize === 'small' || prefs.preferredLlmModelSize === 'base')) {
+      return prefs.preferredLlmModelSize === 'small' ? MODEL_SMALL : MODEL_BASE;
+    }
+    if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
+      var platformType = window.DeviceBenchmark.getPlatformTypeCached();
+      var tier = window.DeviceBenchmark.getPerformanceTier();
+      var full = window.DeviceBenchmark.getFullProfile(platformType, tier, {});
+      var size = full && full.llmModelSize;
+      if (size === 'small') return MODEL_SMALL;
+      if (size === 'base') return MODEL_BASE;
+    }
     var deviceClass = (typeof window !== 'undefined' && window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass)
       ? window.PerformanceUtils.platform.deviceClass
       : getDeviceClassForModel();
-    modelId = getModelIdForDeviceClass(deviceClass);
+    return getModelIdForDeviceClass(deviceClass);
+  }
+
+  async function getPipeline() {
+    var modelId = getResolvedModelId();
+    if (cachedPipeline && cachedModelId === modelId) return cachedPipeline;
+    cachedPipeline = null;
+    cachedModelId = null;
     if (typeof window !== 'undefined' && window.healthAppDebug && typeof console !== 'undefined' && console.debug) {
       console.debug('Summary LLM getPipeline: modelId=' + modelId + ', revision=main');
     }
@@ -282,9 +302,16 @@
     return fallbackText || '';
   }
 
+  /** Clear cached pipeline so the next use loads the model from current preference (e.g. after changing On-device AI model in Settings). */
+  function clearSummaryLLMCache() {
+    cachedPipeline = null;
+    cachedModelId = null;
+  }
+
   window.generateSummaryWithLLM = generateSummaryWithLLM;
   window.generateSuggestNoteWithLLM = generateSuggestNoteWithLLM;
   window.buildSuggestContext = buildSuggestContext;
   /** Preload the pipeline so the app can wait until AI is ready before revealing the UI. Returns a Promise that resolves when the model is loaded. */
   window.preloadSummaryLLM = function () { return getPipeline(); };
+  window.clearSummaryLLMCache = clearSummaryLLMCache;
 })();

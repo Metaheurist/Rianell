@@ -46,6 +46,7 @@ flowchart LR
 - **Optional AI**: Settings toggle "Enable AI features & Goals" hides or shows the AI Analysis tab, chart predictions, and Goals.
 - **Neural-style pipeline**: Trend regression, correlations, patterns, risk factors, flare prediction, cross-section (food/exercise/stressors/symptoms), clustering, time series, actionable advice, prioritised insights, and a 2–3 sentence summary (see [AI Analysis](#ai-analysis-neural-network-architecture)).
 - **Summary note**: In-browser LLM (Transformers.js, flan-t5 by device class) or rule-based fallback; context from analysis and logs; value highlighting in the UI.
+- **On-device AI model selection**: Settings → Performance → **On-device AI model** lets you choose **Use recommended (for this device)** (from the performance benchmark), **Small (faster, lower memory)**, or **Base (better quality)**. The benchmark recommends flan-t5-small or flan-t5-base by tier; changing the setting clears the LLM cache so the next summary or suggest note uses the selected model.
 - **Suggest note**: LLM or rule-based suggestion for the day’s log note; "Generating…" state on button.
 - **Chart predictions**: Combined (and balance) chart can show predicted series from the analysis pipeline; "Calculating predictions…" overlay when computing; cache by date range and log count.
 - **Responsiveness**: Analysis yields to the main thread between layers; loading states ("Analyzing…", "Calculating predictions…"); optional Web Worker for AI preload on multi-core devices.
@@ -83,7 +84,7 @@ flowchart LR
 - **Settings**: Weight unit (kg/lb), medical condition, date filters, chart visibility, AI & Goals toggle, contribution toggle, reminder time, sound notifications, cookie/consent; God mode (test UI, show install modal, etc.); **Developer** section with “Clear performance benchmark cache” (re-run device benchmark on next load).
 - **Theme**: Dark mode by default; light mode optional.
 - **Responsive**: Layout and charts adapt to viewport and device; device-based optimisation (chart points, animations, AI preload).
-- **Device performance (benchmark)**: On first load a short CPU benchmark classifies the device as mobile or desktop and assigns a performance tier (1–4). The result is cached in localStorage and drives expansive optimisation profiles (chart points, AI preload, DOM batching, demo data size, etc.). When the benchmark runs for the first time, a modal shows the detected device class for acknowledgment; thereafter the app loads using the cached tier. Settings → Developer → “Clear performance benchmark cache” clears the cache so the benchmark and modal run again on next reload.
+- **Device performance (benchmark)**: On first load a short CPU benchmark classifies the device as mobile or desktop and assigns a performance tier (1–8). The result is cached in localStorage and drives expansive optimisation profiles (chart points, AI preload, DOM batching, demo data size, **recommended on-device AI model**, etc.). The benchmark is oriented around device and **AI readiness**: each profile recommends flan-t5-small or flan-t5-base. When the benchmark runs (first run or after cache clear), a **Performance & AI benchmark** modal shows a **brief** result (device, tier, class, recommended AI model) with an optional **"See detailed benchmark results"** section (test bars, stability, full profile JSON). Settings → Performance includes **On-device AI model** (Use recommended / Small / Base) with a recommendation hint from the benchmark. Settings → Developer → “Clear performance benchmark cache” and "View last benchmark details" let you re-run or inspect the last result.
 
 ### Server (testing and development)
 - **Local server**: Python HTTP server for local testing (`python -m server`); serves `web/` at root; optional file watching and auto-reload.
@@ -566,6 +567,17 @@ For issues and questions:
 ## Changelog
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
+
+<details>
+<summary><strong>v1.20.0</strong> — 2026-02-24 — Benchmark-driven AI model selection and brief benchmark UI</summary>
+
+- **Performance & AI benchmark modal**: Modal title and framing updated to "Performance & AI benchmark". Default view is **brief**: one-line summary (device, tier, class, **Recommended AI model: small/base**) and a line stating the device can run the recommended on-device model (flan-t5-small/base). **"See detailed benchmark results"** expandable section contains the test bars, stability (CPU) panel, and "Chosen optimisation profile" JSON so details are optional.
+- **AI-oriented benchmark**: Benchmark messaging and profiles are oriented around **on-device AI runnability**; each tier profile includes `llmModelSize` ('small' | 'base') used for the summary/suggest LLM. Device-benchmark comment and UI copy reflect this.
+- **On-device AI model in Settings**: Settings → Performance → **On-device AI model** dropdown: "Use recommended (for this device)", "Small (faster, lower memory)", "Base (better quality)". Stored as `appSettings.preferredLlmModelSize`; hint shows "Recommended: flan-t5-…" when the benchmark is ready, or "Run benchmark (reload app) to see recommendation."
+- **Model resolution and cache**: `summary-llm.js` resolves model in order: user override (`preferredLlmModelSize` 'small'/'base') → benchmark profile `llmModelSize` → deviceClass fallback. `getOptimizationProfile()` in `performance-utils.js` now returns `llmModelSize`. Changing the setting calls `clearSummaryLLMCache()` so the next summary/suggest loads the chosen model.
+- **README**: AI analysis and Device performance sections updated; changelog v1.20.0 added.
+
+</details>
 
 <details>
 <summary><strong>v1.19.0</strong> — 2026-02-23 — Benchmark-driven device classifier and expansive settings</summary>
