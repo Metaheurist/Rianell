@@ -227,6 +227,18 @@ function closeAlertModal() {
   }
 }
 
+// Run a critical-path task with high scheduler priority when available (Chrome); else defer once. Returns a Promise that resolves with fn()'s return value (flattens if fn returns a Promise).
+function runCriticalTask(fn) {
+  var run = function () { return fn(); };
+  var p;
+  if (typeof globalThis !== 'undefined' && globalThis.scheduler && typeof globalThis.scheduler.postTask === 'function') {
+    p = globalThis.scheduler.postTask(run, { priority: 'user-blocking' }).catch(function () { return run(); });
+  } else {
+    p = new Promise(function (resolve) { setTimeout(function () { resolve(run()); }, 0); });
+  }
+  return p.then(function (x) { return (x && typeof x.then === 'function') ? x : Promise.resolve(x); });
+}
+
 // ============================================
 // Performance benchmark modal
 // ============================================
@@ -289,6 +301,16 @@ function openPerfBenchmarkModal(options) {
 
   const aiLineEl = document.getElementById('perfBenchmarkAiLine');
   if (aiLineEl) aiLineEl.textContent = tier != null ? (llmDisplay ? `This device can run up to ${llmDisplay}.` : '') : '';
+
+  const gpuLineEl = document.getElementById('perfBenchmarkGpuLine');
+  if (gpuLineEl) {
+    var gpu = result && result.gpu ? result.gpu : null;
+    if (gpu && gpu.available && gpu.backend && gpu.backend !== 'none') {
+      gpuLineEl.textContent = 'GPU: ' + (gpu.backend === 'webgpu' ? 'WebGPU' : gpu.backend === 'webgl' ? 'WebGL' : gpu.backend) + ' available, used for AI.';
+    } else {
+      gpuLineEl.textContent = tier != null ? 'GPU: Not available (using CPU for AI).' : '';
+    }
+  }
 
   // Bars: per-test medianMs (smaller is better → longer bar)
   barsEl.innerHTML = '';
@@ -14644,6 +14666,16 @@ window.addEventListener('load', () => {
   if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.applyBenchmarkToPlatform === 'function') {
     window.PerformanceUtils.applyBenchmarkToPlatform();
   }
+  // Tier 5 or GPU-good: enable GPU-friendly chart containers (compositor layer promotion)
+  var chartSectionEl = document.getElementById('chartSection');
+  if (chartSectionEl && typeof window !== 'undefined' && window.DeviceBenchmark && window.DeviceBenchmark.isBenchmarkReady && window.DeviceBenchmark.isBenchmarkReady()) {
+    var platformType = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function') ? window.DeviceBenchmark.getPlatformTypeCached() : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
+    var tier = window.DeviceBenchmark.getPerformanceTier();
+    var full = (typeof window.DeviceBenchmark.getFullProfile === 'function') ? window.DeviceBenchmark.getFullProfile(platformType, tier, {}) : {};
+    if (tier === 5 || full.gpuGood) {
+      chartSectionEl.classList.add('chart-gpu-accelerated');
+    }
+  }
   // Check if demo mode is enabled and ensure demo data is loaded (must run before charts/AI wait)
   if (appSettings.demoMode) {
     const storedLogs = localStorage.getItem('healthLogs');
@@ -14701,21 +14733,24 @@ window.addEventListener('load', () => {
   }
   
   if (loadingTextEl) loadingTextEl.textContent = 'Loading charts and AI…';
-  
+
   // Keep loading circle until combined chart and summary LLM are ready (or timeout). On mobile (low device) skip chart build during load to avoid memory spike and tab crash.
-  const chartSectionEl = document.getElementById('chartSection');
   const isLowDevice = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
   const needCharts = appSettings.showCharts && chartSectionEl && logs && logs.length > 0 && !isLowDevice;
   const chartsReady = !needCharts
     ? Promise.resolve()
-    : (typeof createCombinedChart === 'function' ? createCombinedChart() : Promise.resolve()).then(function () {
-        window.__chartsBuiltDuringLoad = true;
-      }).catch(function () {});
+    : runCriticalTask(function () {
+        return (typeof createCombinedChart === 'function' ? createCombinedChart() : Promise.resolve()).then(function () {
+          window.__chartsBuiltDuringLoad = true;
+        }).catch(function () {});
+      });
   const aiReady = (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function')
     ? Promise.resolve()
-    : window.preloadSummaryLLM().then(function () {
-        return typeof preloadAIForAllRanges === 'function' ? preloadAIForAllRanges() : Promise.resolve();
-      }).catch(function () {});
+    : runCriticalTask(function () {
+        return window.preloadSummaryLLM().then(function () {
+          return typeof preloadAIForAllRanges === 'function' ? preloadAIForAllRanges() : Promise.resolve();
+        }).catch(function () {});
+      });
   var loadTimeoutMs = isLowDevice ? 5000 : 12000;
   const timeout = new Promise(function (resolve) { setTimeout(resolve, loadTimeoutMs); });
   

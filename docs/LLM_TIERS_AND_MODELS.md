@@ -14,10 +14,14 @@ The app uses **Transformers.js** with ONNX-converted FLAN-T5 models from the Xen
 
 **Why tier 5 uses base:** `Xenova/flan-t5-large` (https://huggingface.co/Xenova/flan-t5-large) often returns **401 Unauthorized** when loaded from the browser (Hugging Face may gate the repo). The app therefore uses **flan-t5-base** for tier 5 so high-end devices do not hit 401s. If flan-t5-large becomes publicly accessible again, tier 5 can be switched back to it in `web/summary-llm.js` (`LLM_TIER_MODELS` and `llmTierOrSizeToModelId`).
 
+## GPU acceleration
+
+The performance benchmark detects and benchmarks **WebGPU** and **WebGL**. When a GPU is available and passes a quick test, the summary/suggest pipeline is loaded with `device: 'webgpu'` or `device: 'webgl'` (Transformers.js / ONNX Runtime Web). If GPU loading fails, the app falls back to CPU (WASM). The benchmark modal shows "GPU: WebGPU/WebGL available, used for AI" or "GPU: Not available (using CPU for AI)."
+
 ## How models are loaded
 
 - The library loads models from **Hugging Face** by default (config, tokenizer, and ONNX weights).
-- The script uses **@huggingface/transformers@3.2.0** from the jsDelivr CDN; the pipeline then fetches model files from `https://huggingface.co/` (e.g. `Xenova/flan-t5-small`).
+- The script uses **@huggingface/transformers@3.3.2** from the jsDelivr CDN for stable WebGPU/WebGL device support; 3.4.x is avoided due to a known issue with ONNX Runtime Web (`n.env is not a function`). The pipeline fetches model files from `https://huggingface.co/` (e.g. `Xenova/flan-t5-small`).
 
 ## Serving models from your own server (optional)
 

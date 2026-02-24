@@ -54,6 +54,19 @@
   }
 
   /**
+   * Resolve preferred GPU device for pipeline from benchmark cache: 'webgpu' | 'webgl' | null (null = CPU/default).
+   */
+  function getPreferredDevice() {
+    if (typeof window === 'undefined' || !window.DeviceBenchmark || typeof window.DeviceBenchmark.getCachedResult !== 'function') return null;
+    var cached = window.DeviceBenchmark.getCachedResult();
+    if (!cached || !cached.gpu || !cached.gpu.available) return null;
+    var backend = cached.gpu.backend;
+    if (backend === 'webgpu') return 'webgpu';
+    if (backend === 'webgl') return 'webgl';
+    return null;
+  }
+
+  /**
    * Resolve which model to use: 1) user override (appSettings.preferredLlmModelSize: tier1-tier5 or small/base/large),
    * 2) benchmark profile llmModelSize (tier1-tier5), 3) deviceClass fallback.
    */
@@ -87,44 +100,62 @@
       console.debug('Summary LLM getPipeline: modelId=' + modelId + ', revision=main');
     }
 
-    // Use 3.2.0 to avoid "n.env is not a function" (flags_webgl.ts) with 3.4.x + ONNX Runtime Web
-    var mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.2.0');
+    // Use 3.3.2 for stable WebGPU/WebGL device option; avoid 3.4.x due to "n.env is not a function" (flags_webgl.ts) with ONNX Runtime Web
+    var mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.2');
     // Do not set mod.env.allowLocalModels here; default is false in browser and avoids env API issues
 
+    var device = getPreferredDevice();
+    var pipelineOpts = { revision: 'main' };
+    if (device) pipelineOpts.device = device;
+
+    function loadPipeline(opts) {
+      return mod.pipeline('text2text-generation', modelId, opts || { revision: 'main' });
+    }
+
     try {
-      // Xenova models: config/tokenizer are on main; ONNX weights in onnx/ subfolder (library loads them automatically)
-      cachedPipeline = await mod.pipeline('text2text-generation', modelId, { revision: 'main' });
+      cachedPipeline = await loadPipeline(pipelineOpts);
       cachedModelId = modelId;
       return cachedPipeline;
     } catch (e) {
-      if ((modelId === MODEL_BASE || modelId === MODEL_LARGE) && typeof console !== 'undefined' && console.warn) {
-        console.warn('Summary LLM: ' + modelId + ' failed, retrying with smaller model:', e.message || e);
+      if (device && typeof console !== 'undefined' && console.warn) {
+        console.warn('Summary LLM: GPU device ' + device + ' failed, falling back to CPU:', e.message || e);
       }
-      if (modelId === MODEL_LARGE) {
-        try {
-          cachedPipeline = await mod.pipeline('text2text-generation', MODEL_BASE, { revision: 'main' });
-          cachedModelId = MODEL_BASE;
-          return cachedPipeline;
-        } catch (e2) {
+      try {
+        pipelineOpts.device = undefined;
+        delete pipelineOpts.device;
+        cachedPipeline = await loadPipeline({ revision: 'main' });
+        cachedModelId = modelId;
+        return cachedPipeline;
+      } catch (eCpu) {
+        if ((modelId === MODEL_BASE || modelId === MODEL_LARGE) && typeof console !== 'undefined' && console.warn) {
+          console.warn('Summary LLM: ' + modelId + ' failed, retrying with smaller model:', eCpu.message || eCpu);
+        }
+        if (modelId === MODEL_LARGE) {
+          try {
+            cachedPipeline = await mod.pipeline('text2text-generation', MODEL_BASE, { revision: 'main' });
+            cachedModelId = MODEL_BASE;
+            return cachedPipeline;
+          } catch (e2) {
+            try {
+              cachedPipeline = await mod.pipeline('text2text-generation', MODEL_SMALL, { revision: 'main' });
+              cachedModelId = MODEL_SMALL;
+              return cachedPipeline;
+            } catch (e3) {
+              throw e3;
+            }
+          }
+        }
+        if (modelId === MODEL_BASE) {
           try {
             cachedPipeline = await mod.pipeline('text2text-generation', MODEL_SMALL, { revision: 'main' });
             cachedModelId = MODEL_SMALL;
             return cachedPipeline;
-          } catch (e3) {
-            throw e3;
+          } catch (e2) {
+            throw e2;
           }
         }
+        throw eCpu;
       }
-      if (modelId === MODEL_BASE) {
-        try {
-          cachedPipeline = await mod.pipeline('text2text-generation', MODEL_SMALL, { revision: 'main' });
-          cachedModelId = MODEL_SMALL;
-          return cachedPipeline;
-        } catch (e2) {
-          throw e2;
-        }
-      }
-      throw e;
     }
   }
 

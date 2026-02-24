@@ -10,7 +10,7 @@
   'use strict';
 
   var CACHE_KEY = 'healthAppPerfBenchmark';
-  var BENCHMARK_VERSION = 3;
+  var BENCHMARK_VERSION = 4;
   var MAX_TIER = 5;
   var DEFAULT_TOTAL_CAP_MS = 1200;
 
@@ -95,6 +95,73 @@
       if (dm.estimatedMemoryBucket != null && dm.estimatedMemoryBucket !== '') env.estimatedMemoryBucket = dm.estimatedMemoryBucket;
     }
     return env;
+  }
+
+  /** Detect GPU backend: 'webgpu' | 'webgl' | 'none'. Sync check only (no adapter request). */
+  function detectGpuBackendSync() {
+    if (typeof navigator !== 'undefined' && navigator.gpu && typeof navigator.gpu.requestAdapter === 'function') {
+      return 'webgpu';
+    }
+    try {
+      if (typeof document !== 'undefined') {
+        var canvas = document.createElement('canvas');
+        var gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+        if (gl) return 'webgl';
+      }
+    } catch (e) {}
+    return 'none';
+  }
+
+  /**
+   * Run a quick GPU benchmark (WebGL draw or WebGPU adapter). Calls done({ available, backend, scoreMs, good }).
+   * good: true if GPU is fast enough for AI; false if usable but slow; available false if none.
+   */
+  function runGpuBenchmarkAsync(done) {
+    var backend = detectGpuBackendSync();
+    if (backend === 'none') {
+      if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false });
+      return;
+    }
+    if (backend === 'webgpu') {
+      var nav = typeof navigator !== 'undefined' ? navigator : null;
+      if (!nav || !nav.gpu || typeof nav.gpu.requestAdapter !== 'function') {
+        if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false });
+        return;
+      }
+      var t0 = nowMs();
+      nav.gpu.requestAdapter().then(function (adapter) {
+        var scoreMs = nowMs() - t0;
+        var available = !!adapter;
+        var good = available && scoreMs < 500;
+        if (typeof done === 'function') done({ available: available, backend: available ? 'webgpu' : 'none', scoreMs: available ? scoreMs : null, good: good });
+      }).catch(function () {
+        if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false });
+      });
+      return;
+    }
+    if (backend === 'webgl') {
+      try {
+        var c = typeof document !== 'undefined' ? document.createElement('canvas') : null;
+        if (!c) { if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false }); return; }
+        c.width = 256;
+        c.height = 256;
+        var gl = c.getContext('webgl2') || c.getContext('webgl');
+        if (!gl) { if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false }); return; }
+        var t0 = nowMs();
+        for (var i = 0; i < 20; i++) {
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.clearColor(0.1, 0.2, 0.3, 1);
+        }
+        gl.finish && gl.finish();
+        var scoreMs = nowMs() - t0;
+        var good = scoreMs < 50;
+        if (typeof done === 'function') done({ available: true, backend: 'webgl', scoreMs: scoreMs, good: good });
+      } catch (e) {
+        if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false });
+      }
+      return;
+    }
+    if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false });
   }
 
   function cpuArith(iterations) {
@@ -333,25 +400,25 @@
     },
     5: {
       deviceClass: 'high',
-      chartMaxPoints: 210,
-      maxChartPoints: 220,
+      chartMaxPoints: 280,
+      maxChartPoints: 300,
       chartAnimation: true,
       enableChartPreload: true,
-      chartPreloadDelayMs: 600,
+      chartPreloadDelayMs: 300,
       enableAIPreload: true,
-      aiPreloadDelayMs: 800,
+      aiPreloadDelayMs: 400,
       deferAI: false,
       batchDOM: false,
       reduceAnimations: false,
       reduceUIAnimations: false,
-      domCacheTtlMs: 19000,
-      storageBatchDelayMs: 80,
-      lazyChartStaggerMs: 35,
+      domCacheTtlMs: 12000,
+      storageBatchDelayMs: 50,
+      lazyChartStaggerMs: 18,
       useWorkers: true,
-      logRenderChunkSize: 32,
-      logRenderChunkThreshold: 40,
+      logRenderChunkSize: 36,
+      logRenderChunkThreshold: 44,
       demoDataDays: 365,
-      loadTimeoutMs: 13000,
+      loadTimeoutMs: 15000,
       llmModelSize: 'tier5'
     }
   };
@@ -451,25 +518,25 @@
     },
     5: {
       deviceClass: 'high',
-      chartMaxPoints: 240,
-      maxChartPoints: 260,
+      chartMaxPoints: 400,
+      maxChartPoints: 450,
       chartAnimation: true,
       enableChartPreload: true,
-      chartPreloadDelayMs: 550,
+      chartPreloadDelayMs: 300,
       enableAIPreload: true,
-      aiPreloadDelayMs: 650,
+      aiPreloadDelayMs: 400,
       deferAI: false,
       batchDOM: false,
       reduceAnimations: false,
       reduceUIAnimations: false,
-      domCacheTtlMs: 17500,
-      storageBatchDelayMs: 70,
-      lazyChartStaggerMs: 28,
+      domCacheTtlMs: 12000,
+      storageBatchDelayMs: 50,
+      lazyChartStaggerMs: 15,
       useWorkers: true,
-      logRenderChunkSize: 34,
-      logRenderChunkThreshold: 42,
+      logRenderChunkSize: 40,
+      logRenderChunkThreshold: 48,
       demoDataDays: 3650,
-      loadTimeoutMs: 13500,
+      loadTimeoutMs: 15000,
       llmModelSize: 'tier5'
     }
   };
@@ -531,6 +598,7 @@
       var data = JSON.parse(raw);
       if (!data || typeof data.tier !== 'number' || data.tier < 1 || data.tier > MAX_TIER) return null;
       if (!data.platformType || (data.platformType !== 'mobile' && data.platformType !== 'desktop')) return null;
+      if (data.version != null && data.version < BENCHMARK_VERSION) return null;
       return data;
     } catch (e) {
       return null;
@@ -775,7 +843,7 @@
       if (typeof console !== 'undefined' && console.log) {
         console.log('[Benchmark] onDone', 'platformType', platformType, 'tier', tier, 'totalMs', Math.round(nowMs() - startAll), 'tests', testSummary.length);
       }
-      onDone({
+      var result = {
         version: BENCHMARK_VERSION,
         platformType: platformType,
         tier: tier,
@@ -793,6 +861,13 @@
         tests: testSummary,
         raw: subtests,
         ts: Date.now()
+      };
+      runGpuBenchmarkAsync(function (gpu) {
+        result.gpu = gpu;
+        if (typeof console !== 'undefined' && console.log) {
+          console.log('[Benchmark] GPU', gpu.backend, gpu.available, gpu.good, gpu.scoreMs);
+        }
+        onDone(result);
       });
     }
 
@@ -823,12 +898,17 @@
   function getFullProfile(platformType, tier, overrides) {
     var pt = platformType === 'mobile' || platformType === 'desktop' ? platformType : getPlatformType();
     var t = Math.max(1, Math.min(MAX_TIER, Math.floor(tier)));
+    var cached = getCachedResult();
+    var gpu = (cached && cached.gpu) ? cached.gpu : { backend: 'none', good: false };
+    var effectiveTier = (t === 5 || (t === 4 && gpu.good)) ? 5 : t;
     var table = pt === 'mobile' ? MOBILE_PROFILES : DESKTOP_PROFILES;
-    var profile = table[t] || table[4] || table[3] || table[2] || table[1];
+    var profile = table[effectiveTier] || table[4] || table[3] || table[2] || table[1];
     var out = {};
     for (var k in profile) {
       if (profile.hasOwnProperty(k)) out[k] = profile[k];
     }
+    out.gpuBackend = gpu.backend || 'none';
+    out.gpuGood = !!gpu.good;
 
     // Layered overrides: platform/tablet/native/cores/memory. Keep user/network overrides last.
     var flags = getRuntimeFlags();
@@ -867,6 +947,11 @@
         out.reduceUIAnimations = true;
       }
       if (overrides.saveData != null) out.saveData = !!overrides.saveData;
+    }
+    // Tier 5 (or effective tier 5 when GPU good): do not let overrides reduce chart capacity below base
+    if (effectiveTier === 5 && profile.chartMaxPoints != null && profile.maxChartPoints != null) {
+      if (out.chartMaxPoints < profile.chartMaxPoints) out.chartMaxPoints = profile.chartMaxPoints;
+      if (out.maxChartPoints < profile.maxChartPoints) out.maxChartPoints = profile.maxChartPoints;
     }
     if (out.saveData == null) {
       var conn = typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform && window.DeviceModule.platform.connection;
