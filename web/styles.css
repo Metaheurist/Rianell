@@ -6695,6 +6695,17 @@ body.light-mode .stressor-chip--other { background: rgba(97, 97, 97, 0.25); }
   transform: scaleX(1);
 }
 
+/* GPU layer promotion for tier 5 / high-perf: compositor-friendly chart containers */
+#chartSection.chart-gpu-accelerated .chart-container {
+  transform: translateY(20px) translateZ(0);
+}
+#chartSection.chart-gpu-accelerated .chart-container.loaded {
+  transform: translateY(0) translateZ(0);
+}
+#chartSection.chart-gpu-accelerated .chart-container:hover {
+  transform: translateY(-4px) translateZ(0);
+}
+
 /* Chart Info Box for Non-Technical Users */
 .chart-info-box {
   background: rgba(76, 175, 80, 0.1);
