@@ -8086,6 +8086,19 @@ body.light-mode .date-separator {
   background: linear-gradient(135deg, #546e7a, #455a64);
 }
 
+/* View Logs: Oldest/Newest on separate rows on smaller screens and mobile */
+@media (max-width: 768px) {
+  .sort-buttons-group {
+    flex-direction: column;
+    width: 100%;
+    flex: 1 1 100%;
+  }
+  .sort-buttons-group .sort-btn-option {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 /* Settings Data Management */
 .data-management-buttons {
   display: flex;
