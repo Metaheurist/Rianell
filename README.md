@@ -80,10 +80,10 @@ flowchart LR
 - **Install modal**: Post-tutorial modal (once) with web/Android/iOS install options; can be retriggered from God mode.
 
 ### Settings and UI
-- **Settings**: Weight unit (kg/lb), medical condition, date filters, chart visibility, AI & Goals toggle, contribution toggle, reminder time, sound notifications, cookie/consent; **Developer** (clear performance benchmark cache); God mode (test UI, show install modal, etc.).
+- **Settings**: Weight unit (kg/lb), medical condition, date filters, chart visibility, AI & Goals toggle, contribution toggle, reminder time, sound notifications, cookie/consent; God mode (test UI, show install modal, etc.); **Developer** section with “Clear performance benchmark cache” (re-run device benchmark on next load).
 - **Theme**: Dark mode by default; light mode optional.
 - **Responsive**: Layout and charts adapt to viewport and device; device-based optimisation (chart points, animations, AI preload).
-- **Device benchmark**: On first load (or after clearing the cache in Settings → Developer), a short CPU benchmark runs and classifies the device as mobile or desktop with a performance tier (1–4). The result is cached in localStorage. When the benchmark runs for the first time, a modal shows the detected device class (low/medium/high) for user acknowledgment before the app continues. All optimisation settings (chart points, AI preload, animations, log chunking, demo data size, etc.) are driven by expansive mobile/desktop profile tables keyed by tier.
+- **Device performance (benchmark)**: On first load a short CPU benchmark classifies the device as mobile or desktop and assigns a performance tier (1–4). The result is cached in localStorage and drives expansive optimisation profiles (chart points, AI preload, DOM batching, demo data size, etc.). When the benchmark runs for the first time, a modal shows the detected device class for acknowledgment; thereafter the app loads using the cached tier. Settings → Developer → “Clear performance benchmark cache” clears the cache so the benchmark and modal run again on next reload.
 
 ### Server (testing and development)
 - **Local server**: Python HTTP server for local testing (`python -m server`); serves `web/` at root; optional file watching and auto-reload.
@@ -570,12 +570,12 @@ Changelog is derived from project commit history. Versions follow semantic versi
 <details>
 <summary><strong>v1.19.0</strong> — 2026-02-23 — Benchmark-driven device classifier and expansive settings</summary>
 
-- **Device benchmark module** (`web/device-benchmark.js`): Classifies platform as mobile or desktop (including Capacitor native), runs a short CPU benchmark to determine performance tier (1–4), and caches the result in localStorage. Exposes `DeviceBenchmark.runBenchmarkIfNeeded`, `isBenchmarkReady`, `getFullProfile`, `getLegacyDeviceClass`, `clearBenchmarkCache`, etc.
-- **First-run flow**: App load is gated on the benchmark. If no cache exists, loading text shows "Measuring performance…"; when the benchmark completes, a modal displays device class (low/medium/high) and platform for user acknowledgment. On OK, the result is saved and the app continues; with cache, init runs immediately.
-- **Expansive profiles**: `MOBILE_PROFILES` and `DESKTOP_PROFILES` (tiers 1–4) define chart points, AI preload, animations, DOM batching, log chunking, demo data days, load timeout, and LLM model size. `performance-utils.js` uses `DeviceBenchmark.getFullProfile()` when the benchmark is ready and syncs `platform.deviceClass` via `applyBenchmarkToPlatform()`.
-- **Settings → Developer**: New "Developer" section with "Clear performance benchmark cache" button; after clearing, reload runs the benchmark again and shows the device-class modal.
-- **Alert modal**: `showAlertModal(message, title, onClose)` now accepts an optional `onClose` callback invoked when the user dismisses the modal (OK, overlay click, or Escape).
-- **Redundant code removed**: `summary-llm.js` no longer duplicates device heuristic logic; it uses `PerformanceUtils.getDevicePerformanceClass()` (benchmark-aware) with a simple 'medium' fallback when PerformanceUtils is not loaded.
+- **Device benchmark module** (`web/device-benchmark.js`): Classifies platform as **mobile** or **desktop** (including Capacitor native app), runs a short CPU benchmark to determine a performance **tier (1–4)**, and caches the result in localStorage. Exposes `DeviceBenchmark.runBenchmarkIfNeeded`, `isBenchmarkReady`, `getPerformanceTier`, `getFullProfile`, `getLegacyDeviceClass`, `clearBenchmarkCache`, etc.
+- **Expansive profiles**: Separate **MOBILE_PROFILES** and **DESKTOP_PROFILES** tables (4 tiers each) drive chart points, AI preload, DOM batching, demo data days, load timeout, LLM model size, and related options. When the benchmark is ready, `performance-utils.js` uses these profiles via `getOptimizationProfile()` and `getDeviceOpts()` and syncs `platform.deviceClass` from the benchmark tier.
+- **Load gating**: App load handler runs the benchmark first (when `DeviceBenchmark` is present). Loading text shows “Measuring performance…” during the run. If the result was **not** cached (first run), a modal shows the detected device class (platform + tier + class) for user acknowledgment; on OK the result is saved and the app continues. If cached, the app proceeds without the modal.
+- **Developer (God mode)**: Settings → **Developer** section added with a “Clear performance benchmark cache” button. Clearing forces the benchmark and device-class modal to run again on next reload.
+- **Alert modal callback**: `showAlertModal(message, title, onClose)` now accepts an optional third argument; when provided, the OK button (and overlay/Escape close) invokes the callback before closing, used for the device-class acknowledgment flow.
+- **README**: New “Device performance (benchmark)” and Developer setting documented; changelog entry for v1.19.0.
 
 </details>
 
