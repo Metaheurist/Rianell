@@ -4300,18 +4300,8 @@ body.loading .loading-overlay {
 }
 .perf-benchmark-grid {
   display: grid;
-  grid-template-columns: 1.25fr 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
-}
-@media (max-width: 960px) {
-  .perf-benchmark-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-@media (max-width: 760px) {
-  .perf-benchmark-grid {
-    grid-template-columns: 1fr;
-  }
 }
 .perf-benchmark-panel {
   background: rgba(0, 0, 0, 0.18);

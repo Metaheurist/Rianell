@@ -14,10 +14,10 @@
 
 (function() {
   try {
-    // Real Supabase configuration (use double quotes to avoid smart-quote paste issues)
+    // Real Supabase configuration (use straight quotes only; avoid pasting from Word/web)
     var REAL_SUPABASE_CONFIG = {
-      url: "https://YOUR_PROJECT_REF.supabase.co",
-      anonKey: "YOUR_SUPABASE_ANON_KEY"
+      url: 'https://YOUR_PROJECT_REF.supabase.co',
+      anonKey: 'YOUR_SUPABASE_ANON_KEY'
     };
 
     var SUPABASE_CONFIG = REAL_SUPABASE_CONFIG;
