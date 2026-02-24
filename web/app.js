@@ -12078,7 +12078,9 @@ function loadSettingsState() {
   }
   if (llmRecommendationHint) {
     if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
-      const platformType = window.DeviceBenchmark.getPlatformTypeCached();
+      const platformType = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function')
+        ? window.DeviceBenchmark.getPlatformTypeCached()
+        : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
       const tier = window.DeviceBenchmark.getPerformanceTier();
       const full = window.DeviceBenchmark.getFullProfile(platformType, tier, {});
       const size = full && full.llmModelSize ? full.llmModelSize : 'base';

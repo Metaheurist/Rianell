@@ -42,7 +42,9 @@
       return prefs.preferredLlmModelSize === 'small' ? MODEL_SMALL : MODEL_BASE;
     }
     if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
-      var platformType = window.DeviceBenchmark.getPlatformTypeCached();
+      var platformType = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function')
+        ? window.DeviceBenchmark.getPlatformTypeCached()
+        : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
       var tier = window.DeviceBenchmark.getPerformanceTier();
       var full = window.DeviceBenchmark.getFullProfile(platformType, tier, {});
       var size = full && full.llmModelSize;

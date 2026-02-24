@@ -520,7 +520,9 @@ function getOptimizationProfile() {
 
   if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
     applyBenchmarkToPlatform();
-    var platformType = window.DeviceBenchmark.getPlatformTypeCached();
+    var platformType = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function')
+      ? window.DeviceBenchmark.getPlatformTypeCached()
+      : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
     var tier = window.DeviceBenchmark.getPerformanceTier();
     var full = window.DeviceBenchmark.getFullProfile(platformType, tier, { saveData: saveData, prefersReducedMotion: reducedMotion });
     return {
@@ -612,7 +614,9 @@ function getDeviceOpts() {
   var p = platform;
   if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
     applyBenchmarkToPlatform();
-    var platformType = window.DeviceBenchmark.getPlatformTypeCached();
+    var platformType = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function')
+      ? window.DeviceBenchmark.getPlatformTypeCached()
+      : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
     var tier = window.DeviceBenchmark.getPerformanceTier();
     var full = window.DeviceBenchmark.getFullProfile(platformType, tier, { saveData: !!(p.connection && p.connection.saveData), prefersReducedMotion: !!p.prefersReducedMotion });
     return {
