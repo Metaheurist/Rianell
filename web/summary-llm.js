@@ -21,11 +21,23 @@
   var MODEL_BASE = 'Xenova/flan-t5-base';
   var MODEL_LARGE = 'Xenova/flan-t5-large';
 
-  /** Map tier (tier1..tier5) or size (small/base/large) to model id. Tier 1-2 -> small, 3-4 -> base, 5 -> large. */
+  /**
+   * Tier -> model id and Hugging Face link (for docs / debug).
+   * Tier 5 uses base; large (Xenova/flan-t5-large) often returns 401 from HF, so we use base for top tier until large is public.
+   * Links: tier1-2 https://huggingface.co/Xenova/flan-t5-small | tier3-4-5 https://huggingface.co/Xenova/flan-t5-base | (large) https://huggingface.co/Xenova/flan-t5-large
+   */
+  var LLM_TIER_MODELS = {
+    tier1: { id: MODEL_SMALL, link: 'https://huggingface.co/Xenova/flan-t5-small' },
+    tier2: { id: MODEL_SMALL, link: 'https://huggingface.co/Xenova/flan-t5-small' },
+    tier3: { id: MODEL_BASE, link: 'https://huggingface.co/Xenova/flan-t5-base' },
+    tier4: { id: MODEL_BASE, link: 'https://huggingface.co/Xenova/flan-t5-base' },
+    tier5: { id: MODEL_BASE, link: 'https://huggingface.co/Xenova/flan-t5-base' }
+  };
+
+  /** Map tier (tier1..tier5) or size (small/base/large) to model id. Tier 1-2 -> small, 3-4-5 -> base (tier5 uses base; large may be gated on HF). */
   function llmTierOrSizeToModelId(tierOrSize) {
     if (tierOrSize === 'tier1' || tierOrSize === 'tier2' || tierOrSize === 'small') return MODEL_SMALL;
-    if (tierOrSize === 'tier3' || tierOrSize === 'tier4' || tierOrSize === 'base') return MODEL_BASE;
-    if (tierOrSize === 'tier5' || tierOrSize === 'large') return MODEL_LARGE;
+    if (tierOrSize === 'tier3' || tierOrSize === 'tier4' || tierOrSize === 'tier5' || tierOrSize === 'base' || tierOrSize === 'large') return MODEL_BASE;
     return MODEL_BASE;
   }
 
@@ -337,6 +349,8 @@
   window.generateSummaryWithLLM = generateSummaryWithLLM;
   window.generateSuggestNoteWithLLM = generateSuggestNoteWithLLM;
   window.buildSuggestContext = buildSuggestContext;
+  /** Tier -> { id, link } for all tiers (for debug / docs). */
+  window.LLM_TIER_MODELS = LLM_TIER_MODELS;
   /** Preload the pipeline so the app can wait until AI is ready before revealing the UI. Returns a Promise that resolves when the model is loaded. */
   window.preloadSummaryLLM = function () { return getPipeline(); };
   window.clearSummaryLLMCache = clearSummaryLLMCache;

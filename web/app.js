@@ -426,6 +426,17 @@ function openPerfBenchmarkModal(options) {
         window.DeviceBenchmark.saveBenchmarkResult(result);
       }
       closePerfBenchmarkModal();
+      if (mode === 'firstRun') {
+        var loadingOverlayAgain = document.getElementById('loadingOverlay');
+        var loadingTextAgain = loadingOverlayAgain ? loadingOverlayAgain.querySelector('.loading-text') : null;
+        var progressWrapAgain = loadingOverlayAgain ? loadingOverlayAgain.querySelector('#loadingProgressWrap') : null;
+        if (loadingOverlayAgain) {
+          loadingOverlayAgain.classList.remove('hidden');
+          document.body.classList.add('loading');
+        }
+        if (loadingTextAgain) loadingTextAgain.textContent = 'Loading charts and AI…';
+        if (progressWrapAgain) progressWrapAgain.classList.remove('visible');
+      }
       if (options && typeof options.onContinue === 'function') options.onContinue();
     };
   }
