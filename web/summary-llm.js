@@ -20,28 +20,11 @@
   var MODEL_SMALL = 'Xenova/flan-t5-small';
   var MODEL_BASE = 'Xenova/flan-t5-base';
 
-  /**
-   * Returns device performance tier: 'low' | 'medium' | 'high'.
-   * Used to select model: low -> small, medium/high -> base.
-   */
-  function getDevicePerformanceClass() {
-    var nav = typeof navigator !== 'undefined' ? navigator : {};
-    var deviceMemory = nav.deviceMemory;
-    var cores = nav.hardwareConcurrency;
-    var isSecure = typeof window !== 'undefined' && window.isSecureContext === true;
-
-    if (isSecure && typeof deviceMemory === 'number' && deviceMemory > 0) {
-      if (deviceMemory <= 2) return 'low';
-      if (deviceMemory >= 8) return 'high';
-      return 'medium';
+  /** Device class from PerformanceUtils (benchmark-aware) or single fallback when utils not loaded. */
+  function getDeviceClassForModel() {
+    if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.getDevicePerformanceClass === 'function') {
+      return window.PerformanceUtils.getDevicePerformanceClass();
     }
-    if (typeof cores === 'number' && cores > 0) {
-      if (cores <= 2) return 'low';
-      if (cores >= 6) return 'high';
-      return 'medium';
-    }
-    var mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(nav.userAgent || '') || (nav.maxTouchPoints && nav.maxTouchPoints > 1);
-    if (mobile) return 'low';
     return 'medium';
   }
 
@@ -55,7 +38,7 @@
 
     var deviceClass = (typeof window !== 'undefined' && window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass)
       ? window.PerformanceUtils.platform.deviceClass
-      : getDevicePerformanceClass();
+      : getDeviceClassForModel();
     modelId = getModelIdForDeviceClass(deviceClass);
     if (typeof window !== 'undefined' && window.healthAppDebug && typeof console !== 'undefined' && console.debug) {
       console.debug('Summary LLM getPipeline: modelId=' + modelId + ', revision=main');

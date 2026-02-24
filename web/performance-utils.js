@@ -428,19 +428,21 @@ function getDevicePerformanceClassFallback() {
   const deviceMemory = nav.deviceMemory;
   const cores = nav.hardwareConcurrency;
   const isSecure = typeof window !== 'undefined' && window.isSecureContext === true;
+  const cap = (typeof window !== 'undefined' && window.Capacitor) || (typeof window !== 'undefined' && window.parent && window.parent.Capacitor);
+  const isNativeApp = cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform();
   if (isSecure && typeof deviceMemory === 'number' && deviceMemory > 0) {
-    if (deviceMemory <= 2) return 'low';
-    if (deviceMemory >= 8) return 'high';
+    if (deviceMemory <= 2) return isNativeApp ? 'medium' : 'low';
+    if (deviceMemory >= 4) return 'high';
     return 'medium';
   }
   if (typeof cores === 'number' && cores > 0) {
-    if (cores <= 2) return 'low';
-    if (cores >= 6) return 'high';
+    if (cores <= 2) return isNativeApp ? 'medium' : 'low';
+    if (cores >= 4) return 'high';
     return 'medium';
   }
   const ua = nav.userAgent || '';
   const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua) || (nav.maxTouchPoints && nav.maxTouchPoints > 1);
-  return mobile ? 'low' : 'medium';
+  return mobile || isNativeApp ? 'medium' : 'medium';
 }
 
 function getDevicePerformanceClass() {
@@ -452,11 +454,13 @@ function getDevicePerformanceClass() {
 
 /**
  * Platform and capabilities object. From DeviceModule when loaded, else computed here.
+ * deviceClass is updated when DeviceBenchmark is ready (see getOptimizationProfile / getDeviceOpts).
  * Exposed as PerformanceUtils.platform for use by summary-llm, app.js charts, etc.
  */
 const platform = (function () {
   if (typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform) {
-    return window.DeviceModule.platform;
+    var base = window.DeviceModule.platform;
+    return Object.assign({}, base, { deviceClass: base.deviceClass || getDevicePerformanceClass() });
   }
   const nav = typeof navigator !== 'undefined' ? navigator : {};
   const ua = nav.userAgent || '';
@@ -489,6 +493,14 @@ const platform = (function () {
   };
 })();
 
+/** When DeviceBenchmark is ready, sync platform.deviceClass from benchmark tier. */
+function applyBenchmarkToPlatform() {
+  if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
+    var tier = window.DeviceBenchmark.getPerformanceTier();
+    platform.deviceClass = window.DeviceBenchmark.getLegacyDeviceClass(tier);
+  }
+}
+
 function getDeviceId() {
   if (typeof window !== 'undefined' && window.DeviceModule && typeof window.DeviceModule.getDeviceId === 'function') {
     return window.DeviceModule.getDeviceId();
@@ -498,39 +510,64 @@ function getDeviceId() {
 
 /**
  * Single optimization profile per device/platform. Use this for charts, preload, DOM, storage.
- * Respects deviceClass, saveData, prefersReducedMotion, and platform (ios/android/desktop/tablet).
+ * When DeviceBenchmark is ready, uses expansive MOBILE_PROFILES/DESKTOP_PROFILES; otherwise
+ * respects deviceClass, saveData, prefersReducedMotion, and platform (ios/android/desktop/tablet).
  */
 function getOptimizationProfile() {
   var p = platform;
-  var deviceClass = p.deviceClass || 'medium';
   var saveData = !!(p.connection && p.connection.saveData);
-  var reducedMotion = p.prefersReducedMotion;
+  var reducedMotion = !!p.prefersReducedMotion;
+
+  if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
+    applyBenchmarkToPlatform();
+    var platformType = window.DeviceBenchmark.getPlatformTypeCached();
+    var tier = window.DeviceBenchmark.getPerformanceTier();
+    var full = window.DeviceBenchmark.getFullProfile(platformType, tier, { saveData: saveData, prefersReducedMotion: reducedMotion });
+    return {
+      deviceClass: full.deviceClass || p.deviceClass || 'medium',
+      chartMaxPoints: full.chartMaxPoints != null ? full.chartMaxPoints : 80,
+      chartAnimation: full.chartAnimation != null ? full.chartAnimation : !reducedMotion,
+      enableChartPreload: full.enableChartPreload != null ? full.enableChartPreload : true,
+      chartPreloadDelayMs: full.chartPreloadDelayMs != null ? full.chartPreloadDelayMs : 1200,
+      enableAIPreload: full.enableAIPreload != null ? full.enableAIPreload : !saveData,
+      aiPreloadDelayMs: full.aiPreloadDelayMs != null ? full.aiPreloadDelayMs : 1500,
+      domCacheTtlMs: full.domCacheTtlMs != null ? full.domCacheTtlMs : 30000,
+      storageBatchDelayMs: full.storageBatchDelayMs != null ? full.storageBatchDelayMs : 100,
+      lazyChartStaggerMs: full.lazyChartStaggerMs != null ? full.lazyChartStaggerMs : 80,
+      reduceUIAnimations: full.reduceUIAnimations != null ? full.reduceUIAnimations : reducedMotion,
+      saveData: full.saveData != null ? full.saveData : saveData,
+      useWorkers: full.useWorkers != null ? full.useWorkers : false
+    };
+  }
+
+  var deviceClass = p.deviceClass || 'medium';
   var isLow = deviceClass === 'low';
   var isHigh = deviceClass === 'high';
   var isTablet = p.isTablet;
   var plat = p.platform || 'desktop';
 
-  var chartMaxPoints = 50;
+  var chartMaxPoints = 80;
   if (isLow) chartMaxPoints = 24;
-  else if (isTablet || plat === 'ios' || plat === 'android') chartMaxPoints = 40;
+  else if (isHigh) chartMaxPoints = 200;
+  else if (isTablet || plat === 'ios' || plat === 'android') chartMaxPoints = 100;
 
   var chartAnimation = !reducedMotion && !isLow;
 
   var enableChartPreload = true;
-  var chartPreloadDelayMs = 1500;
+  var chartPreloadDelayMs = 1200;
   if (saveData) {
     enableChartPreload = false;
   } else if (isLow) {
     chartPreloadDelayMs = 3500;
     enableChartPreload = true;
   } else if (isHigh) {
-    chartPreloadDelayMs = 800;
+    chartPreloadDelayMs = 600;
   }
 
   var effectiveType = (p.connection && p.connection.effectiveType) ? String(p.connection.effectiveType).toLowerCase() : '';
   var slowConnection = saveData || effectiveType === '2g';
   var enableAIPreload = !isLow && !slowConnection;
-  var aiPreloadDelayMs = isLow ? 4000 : isHigh ? 1000 : 2000;
+  var aiPreloadDelayMs = isLow ? 4000 : isHigh ? 800 : 1500;
   if (slowConnection && aiPreloadDelayMs < 4000) aiPreloadDelayMs = 4000;
 
   var domCacheTtlMs = 30000;
@@ -544,7 +581,7 @@ function getOptimizationProfile() {
   if (isLow) lazyChartStaggerMs = 150;
   else if (isHigh) lazyChartStaggerMs = 40;
 
-  var reduceUIAnimations = reducedMotion || isLow; // same as getDeviceOpts().reduceAnimations
+  var reduceUIAnimations = reducedMotion || isLow;
   var useWorkers = (p.hardwareConcurrency || 0) >= 2 && !saveData;
 
   return {
@@ -566,19 +603,31 @@ function getOptimizationProfile() {
 
 /**
  * Device-based optimization flags for the rest of the app.
- * Derived from platform.deviceClass and platform.prefersReducedMotion (single source of truth).
+ * When DeviceBenchmark is ready, uses expansive profile; else from platform.deviceClass and prefersReducedMotion.
  * @returns {{ reduceAnimations: boolean, maxChartPoints: number, deferAI: boolean, batchDOM: boolean }}
  */
 function getDeviceOpts() {
   var p = platform;
+  if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
+    applyBenchmarkToPlatform();
+    var platformType = window.DeviceBenchmark.getPlatformTypeCached();
+    var tier = window.DeviceBenchmark.getPerformanceTier();
+    var full = window.DeviceBenchmark.getFullProfile(platformType, tier, { saveData: !!(p.connection && p.connection.saveData), prefersReducedMotion: !!p.prefersReducedMotion });
+    return {
+      reduceAnimations: full.reduceAnimations != null ? full.reduceAnimations : !!(p.prefersReducedMotion || (full.deviceClass === 'low')),
+      maxChartPoints: full.maxChartPoints != null ? full.maxChartPoints : 100,
+      deferAI: full.deferAI != null ? full.deferAI : (full.deviceClass === 'low'),
+      batchDOM: full.batchDOM != null ? full.batchDOM : (full.deviceClass === 'low')
+    };
+  }
   var deviceClass = p.deviceClass || 'medium';
   var reduceAnimations = !!(p.prefersReducedMotion || deviceClass === 'low');
-  var maxChartPoints = deviceClass === 'low' ? 30 : deviceClass === 'medium' ? 80 : 200;
+  var maxChartPoints = deviceClass === 'low' ? 30 : deviceClass === 'medium' ? 120 : 200;
   return {
     reduceAnimations: reduceAnimations,
     maxChartPoints: maxChartPoints,
     deferAI: deviceClass === 'low',
-    batchDOM: deviceClass === 'low' || deviceClass === 'medium'
+    batchDOM: deviceClass === 'low'
   };
 }
 
@@ -607,7 +656,8 @@ if (typeof window !== 'undefined') {
     getOptimizationProfile,
     getDeviceOpts,
     getDeviceId,
-    platform
+    platform,
+    applyBenchmarkToPlatform
   };
   window.PlatformCapabilities = platform;
   

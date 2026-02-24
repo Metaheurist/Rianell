@@ -149,7 +149,7 @@ if (typeof window !== 'undefined') {
 // ============================================
 // Custom Alert Modal
 // ============================================
-function showAlertModal(message, title = 'Alert') {
+function showAlertModal(message, title = 'Alert', onClose) {
   const overlay = document.getElementById('alertModalOverlay');
   const titleEl = document.getElementById('alertModalTitle');
   const messageEl = document.getElementById('alertModalMessage');
@@ -158,6 +158,7 @@ function showAlertModal(message, title = 'Alert') {
     // Fallback to native alert if modal elements not found
     Logger.warn('Alert modal elements not found, using native alert');
     alert(message);
+    if (typeof onClose === 'function') onClose();
     return;
   }
   
@@ -167,6 +168,15 @@ function showAlertModal(message, title = 'Alert') {
   // Set content
   titleEl.textContent = title;
   messageEl.textContent = message;
+  
+  // OK button: optional callback then close
+  const okBtn = overlay.querySelector('.modal-save-btn');
+  if (okBtn) {
+    okBtn.onclick = function() {
+      if (typeof onClose === 'function') onClose();
+      closeAlertModal();
+    };
+  }
   
   // Show modal
   overlay.style.display = 'block';
@@ -190,6 +200,7 @@ function showAlertModal(message, title = 'Alert') {
   // Close on overlay click
   overlay.onclick = function(e) {
     if (e.target === overlay) {
+      if (typeof onClose === 'function') onClose();
       closeAlertModal();
     }
   };
@@ -197,6 +208,7 @@ function showAlertModal(message, title = 'Alert') {
   // Close on Escape key
   const escapeHandler = function(e) {
     if (e.key === 'Escape') {
+      if (typeof onClose === 'function') onClose();
       closeAlertModal();
       document.removeEventListener('keydown', escapeHandler);
     }
@@ -12093,13 +12105,22 @@ function toggleSetting(setting) {
   saveSettings();
   applySettings();
   loadSettingsState();
-  
+
   // Special handling for reminder setting
   if (setting === 'reminder' && typeof NotificationManager !== 'undefined') {
     NotificationManager.setReminderEnabled(appSettings.reminder);
   }
   if (setting === 'sound' && appSettings.sound && typeof playHeartbeatSound === 'function') {
     playHeartbeatSound();
+  }
+}
+
+function clearBenchmarkCacheAndNotify() {
+  if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.clearBenchmarkCache === 'function') {
+    window.DeviceBenchmark.clearBenchmarkCache();
+    showAlertModal('Performance benchmark cache cleared. Reload the app to run the benchmark again and see the device-class modal.', 'Developer');
+  } else {
+    showAlertModal('Benchmark module not available.', 'Developer');
   }
 }
 
@@ -12815,6 +12836,58 @@ function getDemoDataDays() {
   return isLow ? 365 : 3650;
 }
 
+/** On mobile use a fixed 90-day premade dataset and rebase dates to recent (no heavy generation). */
+function getPremadeMobileDemoLogs() {
+  var n = 90;
+  var logs = [];
+  var cycle = 14 + 5 + 10; // good + flare + recovery
+  for (var day = 0; day < n; day++) {
+    var phase = day % cycle;
+    var inFlare = phase >= 14 && phase < 19;
+    var inRecovery = phase >= 19 && phase < 29;
+    var fatigue = inFlare ? 7 : (inRecovery ? 5 : 4);
+    var stiffness = inFlare ? 8 : (inRecovery ? 5 : 3);
+    var sleep = inFlare ? 4 : (inRecovery ? 6 : 8);
+    var mood = inFlare ? 4 : (inRecovery ? 6 : 8);
+    var steps = inFlare ? 2500 : (inRecovery ? 5000 : 7500);
+    var hydration = inFlare ? 6 : 8;
+    var bpm = inFlare ? 78 : 68;
+    logs.push({
+      date: '2000-01-01',
+      bpm: String(bpm),
+      weight: '75.0',
+      flare: inFlare ? 'Yes' : 'No',
+      fatigue: String(fatigue),
+      stiffness: String(stiffness),
+      backPain: String(inFlare ? 7 : 3),
+      sleep: String(sleep),
+      jointPain: String(inFlare ? 7 : 3),
+      mobility: String(inFlare ? 4 : 8),
+      dailyFunction: String(inFlare ? 4 : 8),
+      swelling: String(inFlare ? 6 : 2),
+      mood: String(mood),
+      irritability: String(inFlare ? 7 : 3),
+      weatherSensitivity: String(inFlare ? 7 : 3),
+      steps: steps,
+      hydration: hydration,
+      notes: inFlare ? 'Flare day, rested' : (day % 7 === 0 ? 'Good day overall' : ''),
+      food: { breakfast: [], lunch: [], dinner: [], snack: [] },
+      exercise: inFlare ? [] : [{ name: 'Walking', duration: 20 }]
+    });
+  }
+  return logs;
+}
+
+function rebaseDatesToRecent(logs) {
+  var today = new Date();
+  for (var i = 0; i < logs.length; i++) {
+    var d = new Date(today);
+    d.setDate(d.getDate() - (logs.length - 1 - i));
+    logs[i].date = d.toISOString().split('T')[0];
+  }
+  return logs;
+}
+
 function generateDemoData(numDays) {
   if (numDays == null) numDays = getDemoDataDays();
   // Desktop: up to 10 years (3650 days); mobile: 1 year (365) for performance
@@ -13392,8 +13465,10 @@ function toggleDemoMode() {
       // Use setTimeout to allow UI to update before heavy computation
       setTimeout(() => {
         try {
-          // Generate and load demo data (fewer days on mobile to avoid overload)
-          const demoLogs = generateDemoData(getDemoDataDays());
+          // On mobile use premade dataset + rebase dates (instant); on desktop generate full demo
+          var demoLogs = getDemoDataDays() === 365
+            ? rebaseDatesToRecent(getPremadeMobileDemoLogs())
+            : generateDemoData(getDemoDataDays());
           
           // Store data efficiently
           localStorage.setItem('healthLogs', JSON.stringify(demoLogs));
@@ -14230,14 +14305,21 @@ window.addEventListener('load', () => {
   document.body.classList.add('dark-mode');
   
   loadSettings();
-  
+
+  function runAppInit() {
+  // Sync platform.deviceClass from DeviceBenchmark if ready (so isLowDevice etc. use benchmark tier)
+  if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.applyBenchmarkToPlatform === 'function') {
+    window.PerformanceUtils.applyBenchmarkToPlatform();
+  }
   // Check if demo mode is enabled and ensure demo data is loaded (must run before charts/AI wait)
   if (appSettings.demoMode) {
     const storedLogs = localStorage.getItem('healthLogs');
     if (!storedLogs || storedLogs === '[]' || (storedLogs.startsWith('[') && JSON.parse(storedLogs).length === 0)) {
-      // Demo mode is enabled but no logs found - regenerate demo data (fewer days on mobile)
-      console.log('Demo mode enabled but no logs found, generating demo data...');
-      const demoLogs = generateDemoData(getDemoDataDays());
+      // Demo mode is enabled but no logs found: on mobile use premade + rebase dates; on desktop generate
+      console.log('Demo mode enabled but no logs found, loading demo data...');
+      var demoLogs = getDemoDataDays() === 365
+        ? rebaseDatesToRecent(getPremadeMobileDemoLogs())
+        : generateDemoData(getDemoDataDays());
       localStorage.setItem('healthLogs', JSON.stringify(demoLogs));
       logs = demoLogs;
       if (typeof window !== 'undefined') {
@@ -14383,6 +14465,32 @@ window.addEventListener('load', () => {
       }
     }, 500);
   });
+  }
+
+  if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.runBenchmarkIfNeeded === 'function') {
+    window.DeviceBenchmark.runBenchmarkIfNeeded(
+      function (pct) {
+        if (loadingTextEl) loadingTextEl.textContent = 'Measuring performance…' + (pct > 0 ? ' ' + pct + '%' : '');
+      },
+      function (tier, platformType) {
+        if (window.DeviceBenchmark.isBenchmarkReady()) {
+          runAppInit();
+          return;
+        }
+        var deviceClass = window.DeviceBenchmark.getLegacyDeviceClass(tier);
+        showAlertModal(
+          'Device: ' + platformType + ' · Performance tier: ' + tier + ' (class: ' + deviceClass + '). The app will use optimisations for this device. Tap OK to continue.',
+          'Device class',
+          function () {
+            window.DeviceBenchmark.saveBenchmarkResult(platformType, tier);
+            runAppInit();
+          }
+        );
+      }
+    );
+  } else {
+    runAppInit();
+  }
 });
 
 function initializeDateFilters() {
