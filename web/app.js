@@ -1820,6 +1820,15 @@ if ('serviceWorker' in navigator) {
   }
 }
 
+// Reduce memory pressure on mobile: skip heavy work when tab is in background (avoids "can't open page" / crash)
+if (typeof document !== 'undefined') {
+  function updatePageHidden() {
+    window.__pageHidden = document.visibilityState === 'hidden';
+  }
+  updatePageHidden();
+  document.addEventListener('visibilitychange', updatePageHidden);
+}
+
 // PWA Install Prompt
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -9658,81 +9667,81 @@ function toggleLogEntry(logDate) {
   }
 }
 
-// Shared render function to reduce code duplication (optimized)
+// Build a single log entry DOM element (shared by chunked and non-chunked render)
+function buildLogEntryElement(log) {
+  const div = document.createElement("div");
+  div.className = "entry";
+  div.setAttribute('data-log-date', log.date);
+  if (isExtreme(log)) div.classList.add("highlight");
+  if (log.flare === 'Yes') div.classList.add("flare-up-entry");
+  if (inlineEditingDate === log.date) {
+    div.classList.add("editing");
+    div.classList.add("expanded");
+  }
+  div.innerHTML = generateLogEntryHTML(log);
+  const content = div.querySelector('.log-entry-content');
+  if (content) {
+    if (inlineEditingDate === log.date) {
+      content.style.display = 'block';
+      const arrow = div.querySelector('.log-entry-arrow');
+      if (arrow) arrow.textContent = '';
+    } else {
+      content.style.display = 'none';
+    }
+  }
+  return div;
+}
+
+// Chunk sizes for mobile-friendly rendering (avoid long main-thread blocks)
+var LOG_RENDER_CHUNK_THRESHOLD = 30;
+var LOG_RENDER_CHUNK_SIZE = 20;
+
+// Shared render function to reduce code duplication (optimized). Uses chunking on large lists for mobile.
 function renderLogEntries(logsToRender) {
   const outputEl = window.PerformanceUtils?.DOMCache?.getElement('logOutput') || document.getElementById('logOutput');
+  if (!outputEl) return;
   const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
     ? window.PerformanceUtils.getDeviceOpts() : { reduceAnimations: false, maxChartPoints: 200, deferAI: false, batchDOM: false };
+  var isLow = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
+  var threshold = isLow ? 20 : LOG_RENDER_CHUNK_THRESHOLD;
+  var chunkSize = isLow ? 15 : LOG_RENDER_CHUNK_SIZE;
+  var useChunking = logsToRender.length > threshold;
+
+  if (useChunking) {
+    outputEl.innerHTML = '';
+    var index = 0;
+    function renderNextChunk() {
+      var end = Math.min(index + chunkSize, logsToRender.length);
+      var fragment = document.createDocumentFragment();
+      for (var i = index; i < end; i++) {
+        fragment.appendChild(buildLogEntryElement(logsToRender[i]));
+      }
+      outputEl.appendChild(fragment);
+      index = end;
+      if (index < logsToRender.length) {
+        requestAnimationFrame(renderNextChunk);
+      }
+    }
+    requestAnimationFrame(renderNextChunk);
+    return;
+  }
+
   if (deviceOpts.batchDOM && window.PerformanceUtils?.domBatcher) {
-    window.PerformanceUtils.domBatcher.schedule(() => {
-      const fragment = document.createDocumentFragment();
+    window.PerformanceUtils.domBatcher.schedule(function() {
+      var fragment = document.createDocumentFragment();
       outputEl.innerHTML = "";
-      
-      // Pre-compute HTML strings for better performance
-      const entries = logsToRender.map(log => {
-        const div = document.createElement("div");
-        div.className = "entry";
-        div.setAttribute('data-log-date', log.date);
-        if (isExtreme(log)) div.classList.add("highlight");
-        if (log.flare === 'Yes') div.classList.add("flare-up-entry");
-        if (inlineEditingDate === log.date) {
-          div.classList.add("editing");
-          div.classList.add("expanded");
-        }
-        
-        div.innerHTML = generateLogEntryHTML(log);
-        
-        // Hide content by default (collapsed), unless editing
-        const content = div.querySelector('.log-entry-content');
-        if (content) {
-          if (inlineEditingDate === log.date) {
-            content.style.display = 'block';
-            const arrow = div.querySelector('.log-entry-arrow');
-            if (arrow) arrow.textContent = '';
-          } else {
-            content.style.display = 'none';
-          }
-        }
-        
-        return div;
-      });
-      
-      entries.forEach(div => fragment.appendChild(div));
+      for (var i = 0; i < logsToRender.length; i++) {
+        fragment.appendChild(buildLogEntryElement(logsToRender[i]));
+      }
       outputEl.appendChild(fragment);
     });
   } else {
-    // Fallback to requestAnimationFrame
-    requestAnimationFrame(() => {
-      const fragment = document.createDocumentFragment();
+    requestAnimationFrame(function() {
+      var fragment = document.createDocumentFragment();
       outputEl.innerHTML = "";
-      
-      logsToRender.forEach(log => {
-        const div = document.createElement("div");
-        div.className = "entry";
-        div.setAttribute('data-log-date', log.date);
-        if (isExtreme(log)) div.classList.add("highlight");
-        if (log.flare === 'Yes') div.classList.add("flare-up-entry");
-        if (inlineEditingDate === log.date) {
-          div.classList.add("editing");
-          div.classList.add("expanded");
-        }
-        
-        div.innerHTML = generateLogEntryHTML(log);
-        
-        const content = div.querySelector('.log-entry-content');
-        if (content) {
-          if (inlineEditingDate === log.date) {
-            content.style.display = 'block';
-            const arrow = div.querySelector('.log-entry-arrow');
-            if (arrow) arrow.textContent = '';
-          } else {
-            content.style.display = 'none';
-          }
-        }
-        
-        fragment.appendChild(div);
-      });
-      
+      for (var i = 0; i < logsToRender.length; i++) {
+        fragment.appendChild(buildLogEntryElement(logsToRender[i]));
+      }
       outputEl.appendChild(fragment);
     });
   }
@@ -12329,12 +12338,11 @@ async function loadAvailableConditions(optionalSelectId) {
     let client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
     
     if (!client) {
-      // Try to initialize from SUPABASE_CONFIG
-      if (window.SUPABASE_CONFIG && typeof supabase !== 'undefined') {
-        client = supabase.createClient(
-          window.SUPABASE_CONFIG.url,
-          window.SUPABASE_CONFIG.anonKey
-        );
+      // Try to initialize from SUPABASE_CONFIG (require non-empty url so we never call createClient when config failed to load)
+      var config = window.SUPABASE_CONFIG;
+      var hasUrl = config && typeof config.url === 'string' && config.url.trim().length > 0;
+      if (hasUrl && typeof supabase !== 'undefined') {
+        client = supabase.createClient(config.url, config.anonKey || '');
         window.supabaseClient = client;
       } else {
         if (typeof appSettings === 'undefined' || !appSettings.demoMode) {
@@ -12801,8 +12809,15 @@ function updateMedicalCondition(condition = null) {
 }
 
 // Demo Mode Functions - Generate perfect showcase data with clear patterns
-function generateDemoData(numDays = 3650) {
-  // Generate 10 years of demo data (3650 days) with clear patterns for AI showcase
+// On mobile/low device use fewer days to avoid memory and CPU strain (365 = 1 year is enough for showcase)
+function getDemoDataDays() {
+  var isLow = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
+  return isLow ? 365 : 3650;
+}
+
+function generateDemoData(numDays) {
+  if (numDays == null) numDays = getDemoDataDays();
+  // Desktop: up to 10 years (3650 days); mobile: 1 year (365) for performance
   const demoLogs = new Array(numDays); // Pre-allocate array for better performance
   const today = new Date();
   const endDate = new Date(today);
@@ -13377,8 +13392,8 @@ function toggleDemoMode() {
       // Use setTimeout to allow UI to update before heavy computation
       setTimeout(() => {
         try {
-          // Generate and load demo data (optimized)
-          const demoLogs = generateDemoData(3650); // 10 years
+          // Generate and load demo data (fewer days on mobile to avoid overload)
+          const demoLogs = generateDemoData(getDemoDataDays());
           
           // Store data efficiently
           localStorage.setItem('healthLogs', JSON.stringify(demoLogs));
@@ -14220,9 +14235,9 @@ window.addEventListener('load', () => {
   if (appSettings.demoMode) {
     const storedLogs = localStorage.getItem('healthLogs');
     if (!storedLogs || storedLogs === '[]' || (storedLogs.startsWith('[') && JSON.parse(storedLogs).length === 0)) {
-      // Demo mode is enabled but no logs found - regenerate demo data
+      // Demo mode is enabled but no logs found - regenerate demo data (fewer days on mobile)
       console.log('Demo mode enabled but no logs found, generating demo data...');
-      const demoLogs = generateDemoData(3650);
+      const demoLogs = generateDemoData(getDemoDataDays());
       localStorage.setItem('healthLogs', JSON.stringify(demoLogs));
       logs = demoLogs;
       if (typeof window !== 'undefined') {
@@ -14236,6 +14251,11 @@ window.addEventListener('load', () => {
           // Will be set when decompression completes
         } else {
           logs = JSON.parse(storedLogs);
+          // On mobile in demo mode, cap to last 365 days so we don't process 3650 from storage
+          if (appSettings.demoMode && typeof getDemoDataDays === 'function' && logs.length > getDemoDataDays()) {
+            var cap = getDemoDataDays();
+            logs = logs.slice(-cap);
+          }
           if (typeof window !== 'undefined') {
             window.logs = logs;
           }
@@ -14267,22 +14287,22 @@ window.addEventListener('load', () => {
   
   if (loadingTextEl) loadingTextEl.textContent = 'Loading charts and AI…';
   
-  // Keep loading circle until combined chart, all 14 individual charts, and summary LLM are ready (or timeout)
+  // Keep loading circle until combined chart and summary LLM are ready (or timeout). On mobile (low device) skip chart build during load to avoid memory spike and tab crash.
   const chartSectionEl = document.getElementById('chartSection');
-  const needCharts = appSettings.showCharts && chartSectionEl && logs && logs.length > 0;
-  // Build only combined chart during load so overlay/layout don't give individual charts zero size
+  const isLowDevice = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
+  const needCharts = appSettings.showCharts && chartSectionEl && logs && logs.length > 0 && !isLowDevice;
   const chartsReady = !needCharts
     ? Promise.resolve()
     : (typeof createCombinedChart === 'function' ? createCombinedChart() : Promise.resolve()).then(function () {
         window.__chartsBuiltDuringLoad = true;
-        // Skip updateChartsImmediate here so 14 individual charts are built after overlay is gone (see below)
       }).catch(function () {});
   const aiReady = (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function')
     ? Promise.resolve()
     : window.preloadSummaryLLM().then(function () {
         return typeof preloadAIForAllRanges === 'function' ? preloadAIForAllRanges() : Promise.resolve();
       }).catch(function () {});
-  const timeout = new Promise(function (resolve) { setTimeout(resolve, 12000); });
+  var loadTimeoutMs = isLowDevice ? 5000 : 12000;
+  const timeout = new Promise(function (resolve) { setTimeout(resolve, loadTimeoutMs); });
   
   Promise.race([ Promise.allSettled([ chartsReady, aiReady ]), timeout ]).then(function () {
     if (loadingOverlay) {
@@ -14300,14 +14320,16 @@ window.addEventListener('load', () => {
     renderLogs();
     updateCharts();
     updateAISummaryButtonState();
-    if (!window.__chartsBuiltDuringLoad) scheduleChartsPreload();
+    var isLow = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
+    if (!window.__chartsBuiltDuringLoad && !isLow && typeof scheduleChartsPreload === 'function') scheduleChartsPreload();
     window.__chartsBuiltDuringLoad = false;
-    scheduleAIPreload();
+    if (!isLow && typeof scheduleAIPreload === 'function') scheduleAIPreload();
     clearAISection();
-    // Build 14 individual charts after layout so they get correct dimensions (avoids blank/slow first load when view is individual)
+    // Build 14 individual charts after layout so they get correct dimensions (skip if page hidden to avoid memory pressure)
     if (appSettings.showCharts && logs && logs.length > 0 && appSettings.chartView === 'individual') {
       requestAnimationFrame(function() {
         setTimeout(function() {
+          if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
           if (typeof updateChartsImmediate === 'function') updateChartsImmediate();
         }, 80);
       });
