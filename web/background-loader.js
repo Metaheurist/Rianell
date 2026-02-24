@@ -17,6 +17,10 @@
 
   function noop() {}
 
+  function isPageVisible() {
+    return typeof document !== 'undefined' && document.visibilityState !== 'hidden';
+  }
+
   function getChartPreloadTiming() {
     var profile = Perf.getOptimizationProfile();
     var deviceClass = (profile && profile.deviceClass) || 'medium';
@@ -56,12 +60,13 @@
     var loadedCharts = options.loadedCharts || new Set();
 
     function runCombinedThenLazy() {
+      if (!isPageVisible()) return;
       runCombined();
       var list = getLazyCharts();
       var arr = list && (list.length != null ? list : Array.prototype.slice.call(list)) || [];
       var index = 0;
       function next() {
-        if (index >= arr.length) return;
+        if (!isPageVisible() || index >= arr.length) return;
         var el = arr[index];
         index += 1;
         var chartType = el && el.dataset && el.dataset.chartType;
@@ -108,6 +113,7 @@
     var runAIAnalysis = options.runAIAnalysis;
 
     function runWhenIdle() {
+      if (!isPageVisible()) return;
       if (typeof requestIdleCallback !== 'undefined') {
         requestIdleCallback(runAIAnalysis, { timeout: 800 });
       } else {

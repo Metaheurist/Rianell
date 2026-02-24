@@ -14,10 +14,10 @@
 
 (function() {
   try {
-    // Real Supabase configuration
+    // Real Supabase configuration (use double quotes to avoid smart-quote paste issues)
     var REAL_SUPABASE_CONFIG = {
-      url: 'https://YOUR_PROJECT_REF.supabase.co',
-      anonKey: 'YOUR_SUPABASE_ANON_KEY' // Use your PUBLISHABLE key (starts with sb_publishable_)
+      url: "https://YOUR_PROJECT_REF.supabase.co",
+      anonKey: "YOUR_SUPABASE_ANON_KEY"
     };
 
     var SUPABASE_CONFIG = REAL_SUPABASE_CONFIG;
@@ -39,39 +39,39 @@
               if (status.interception_enabled) {
                 SUPABASE_CONFIG = {
                   url: status.local_url,
-                  anonKey: 'local-test-key'
+                  anonKey: "local-test-key"
                 };
-                console.log('✓ Using local Supabase interception (test database)');
-                console.log('  Database: ' + (status.database_path || ''));
+                console.log("Using local Supabase interception (test database)");
+                console.log("  Database: " + (status.database_path || ""));
               } else {
-                console.log('✓ Using real Supabase (interception disabled)');
+                console.log("Using real Supabase (interception disabled)");
               }
             }
           } catch (err) {
-            console.log('✓ Using real Supabase (local server not available)');
+            console.log("Using real Supabase (local server not available)");
           }
         }
       } catch (err) {
-        console.warn('Supabase config: interception check failed', err);
+        console.warn("Supabase config: interception check failed", err);
       }
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         window.SUPABASE_CONFIG = SUPABASE_CONFIG;
       }
     })();
 
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       window.SUPABASE_CONFIG = SUPABASE_CONFIG;
     }
-    if (typeof module !== 'undefined' && module.exports) {
+    if (typeof module !== "undefined" && module.exports) {
       module.exports = SUPABASE_CONFIG;
     }
   } catch (e) {
-    console.warn('Supabase config failed to load:', e.message || e);
-    var safe = { url: '', anonKey: '' };
-    if (typeof window !== 'undefined') {
+    console.warn("Supabase config failed to load:", e.message || e);
+    var safe = { url: "", anonKey: "" };
+    if (typeof window !== "undefined") {
       window.SUPABASE_CONFIG = safe;
     }
-    if (typeof module !== 'undefined' && module.exports) {
+    if (typeof module !== "undefined" && module.exports) {
       module.exports = safe;
     }
   }
