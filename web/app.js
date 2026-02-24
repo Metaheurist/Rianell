@@ -418,14 +418,15 @@ function openPerfBenchmarkModal(options) {
   const gpuSparkEl = document.getElementById('perfBenchmarkGpuSparkline');
   const gpuStatsEl = document.getElementById('perfBenchmarkGpuStats');
   const gpuSamples = result && result.gpu && Array.isArray(result.gpu.scoreSamples) ? result.gpu.scoreSamples : [];
+  const gpuAvailable = result && result.gpu && result.gpu.available && result.gpu.backend && result.gpu.backend !== 'none';
   if (gpuStatsEl) {
     gpuStatsEl.innerHTML = '';
-    if (result && result.gpu && result.gpu.available && result.gpu.backend && result.gpu.backend !== 'none') {
+    if (gpuAvailable) {
       const backendLabel = result.gpu.backend === 'webgpu' ? 'WebGPU' : result.gpu.backend === 'webgl' ? 'WebGL' : result.gpu.backend;
       const meanMs = gpuSamples.length ? (gpuSamples.reduce((a, b) => a + b, 0) / gpuSamples.length).toFixed(2) : '—';
       const kv = [
         ['Backend', backendLabel],
-        ['Samples', gpuSamples.length ? String(gpuSamples.length) : '—'],
+        ['Samples', gpuSamples.length ? String(gpuSamples.length) : '0'],
         ['Mean', meanMs !== '—' ? meanMs + ' ms' : '—']
       ];
       kv.forEach(pair => {
@@ -433,6 +434,13 @@ function openPerfBenchmarkModal(options) {
         div.innerHTML = `<span>${pair[0]}</span><span>${pair[1]}</span>`;
         gpuStatsEl.appendChild(div);
       });
+      if (gpuSamples.length === 0) {
+        const hint = document.createElement('div');
+        hint.className = 'perf-benchmark-gpu-hint';
+        hint.style.cssText = 'margin-top:6px;font-size:0.8rem;opacity:0.85;';
+        hint.textContent = 'Clear benchmark cache (God mode `) and reload to see stability graph.';
+        gpuStatsEl.appendChild(hint);
+      }
     } else {
       const div = document.createElement('div');
       div.innerHTML = '<span>GPU</span><span>Not available</span>';
@@ -470,7 +478,8 @@ function openPerfBenchmarkModal(options) {
       } else {
         ctx.fillStyle = 'rgba(224,242,241,0.7)';
         ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Arial';
-        ctx.fillText(gpuSamples.length === 0 && result && result.gpu && !result.gpu.available ? 'GPU not available' : 'No GPU stability samples', 14, 26);
+        const msg = !gpuAvailable ? 'GPU not available' : gpuSamples.length === 0 ? 'No stability samples (clear cache & reload for graph)' : 'No GPU stability samples';
+        ctx.fillText(msg, 14, 26);
       }
     }
   }
