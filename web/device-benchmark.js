@@ -1,8 +1,8 @@
 // ============================================
 // DEVICE BENCHMARK
-// Platform type (mobile/desktop), CPU benchmark → tier 1–8, expansive profile tables.
+// Platform type (mobile/desktop), CPU benchmark → tier 1–5, expansive profile tables.
 // Oriented around device performance and on-device AI runnability: each profile has
-// llmModelSize ('small' | 'base') — recommended for on-device AI (e.g. flan-t5-small / flan-t5-base).
+// llmModelSize ('tier1'..'tier5') — recommended for on-device AI (maps to flan-t5-small / base / large).
 // Load after device-module.js, before performance-utils.js. Cache in localStorage.
 // ============================================
 
@@ -10,8 +10,8 @@
   'use strict';
 
   var CACHE_KEY = 'healthAppPerfBenchmark';
-  var BENCHMARK_VERSION = 2;
-  var MAX_TIER = 8;
+  var BENCHMARK_VERSION = 3;
+  var MAX_TIER = 5;
   var DEFAULT_TOTAL_CAP_MS = 1200;
 
   function nowMs() {
@@ -75,7 +75,7 @@
     var isTablet = !!(dm && dm.isTablet);
     var prefersReducedMotion = !!(dm && dm.prefersReducedMotion);
     var saveData = !!(dm && dm.connection && dm.connection.saveData);
-    return {
+    var env = {
       platformType: platformType,
       platform: platformName,
       isNative: isNative,
@@ -85,6 +85,16 @@
       prefersReducedMotion: prefersReducedMotion,
       saveData: saveData
     };
+    if (dm) {
+      if (dm.osName != null && dm.osName !== '') env.osName = dm.osName;
+      if (dm.osVersion != null && dm.osVersion !== '') env.osVersion = dm.osVersion;
+      if (dm.deviceType != null && dm.deviceType !== '') env.deviceType = dm.deviceType;
+      if (dm.deviceVendor != null && dm.deviceVendor !== '') env.deviceVendor = dm.deviceVendor;
+      if (dm.deviceModel != null && dm.deviceModel !== '') env.deviceModel = dm.deviceModel;
+      if (dm.cpuArchitecture != null && dm.cpuArchitecture !== '') env.cpuArchitecture = dm.cpuArchitecture;
+      if (dm.estimatedMemoryBucket != null && dm.estimatedMemoryBucket !== '') env.estimatedMemoryBucket = dm.estimatedMemoryBucket;
+    }
+    return env;
   }
 
   function cpuArith(iterations) {
@@ -176,11 +186,8 @@
   }
 
   function msPer200kToTier(msPer200k) {
-    if (msPer200k <= 6.0) return 8;
-    if (msPer200k <= 7.5) return 7;
-    if (msPer200k <= 9.0) return 6;
-    if (msPer200k <= 11.0) return 5;
-    if (msPer200k <= 14.0) return 4;
+    if (msPer200k <= 8.0) return 5;
+    if (msPer200k <= 12.0) return 4;
     if (msPer200k <= 18.0) return 3;
     if (msPer200k <= 26.0) return 2;
     return 1;
@@ -195,25 +202,39 @@
       if (deviceMemory <= 2) return 1;
       if (deviceMemory <= 3) return 2;
       if (deviceMemory <= 4) return 3;
-      if (deviceMemory <= 6) return 5;
-      if (deviceMemory <= 8) return 6;
-      return 7;
+      if (deviceMemory <= 6) return 4;
+      return 5;
     }
-    if (typeof cores === 'number' && cores > 0) {
-      if (cores <= 2) return 1;
-      if (cores <= 3) return 2;
-      if (cores <= 4) return 4;
-      if (cores <= 6) return 6;
-      if (cores <= 8) return 7;
-      return 8;
+    var dm = (typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform) ? window.DeviceModule.platform : null;
+    var estimatedBucket = (dm && dm.estimatedMemoryBucket) ? dm.estimatedMemoryBucket : null;
+    if (estimatedBucket === 'low') {
+      if (typeof cores === 'number' && cores > 0) return cores <= 2 ? 1 : 2;
+      return 1;
     }
-    return 4;
+    if (estimatedBucket === 'high') {
+      if (typeof cores === 'number' && cores > 0) {
+        if (cores <= 4) return 4;
+        return 5;
+      }
+      return 4;
+    }
+    if (estimatedBucket === 'medium' || !estimatedBucket) {
+      if (typeof cores === 'number' && cores > 0) {
+        if (cores <= 2) return 1;
+        if (cores <= 3) return 2;
+        if (cores <= 4) return 3;
+        if (cores <= 6) return 4;
+        return 5;
+      }
+      return 3;
+    }
+    return 3;
   }
 
   function getLegacyDeviceClass(tier) {
     tier = Math.max(1, Math.min(MAX_TIER, Math.floor(tier || 0)));
     if (tier <= 2) return 'low';
-    if (tier <= 5) return 'medium';
+    if (tier <= 3) return 'medium';
     return 'high';
   }
 
@@ -239,155 +260,86 @@
       logRenderChunkThreshold: 18,
       demoDataDays: 60,
       loadTimeoutMs: 5500,
-      llmModelSize: 'small'
+      llmModelSize: 'tier1'
     },
     2: {
       deviceClass: 'low',
-      chartMaxPoints: 26,
-      maxChartPoints: 34,
+      chartMaxPoints: 50,
+      maxChartPoints: 70,
       chartAnimation: false,
       enableChartPreload: true,
-      chartPreloadDelayMs: 3300,
+      chartPreloadDelayMs: 2800,
       enableAIPreload: false,
-      aiPreloadDelayMs: 3800,
+      aiPreloadDelayMs: 3200,
       deferAI: true,
       batchDOM: true,
       reduceAnimations: true,
       reduceUIAnimations: true,
-      domCacheTtlMs: 46000,
-      storageBatchDelayMs: 220,
-      lazyChartStaggerMs: 160,
+      domCacheTtlMs: 40000,
+      storageBatchDelayMs: 200,
+      lazyChartStaggerMs: 140,
       useWorkers: false,
-      logRenderChunkSize: 14,
-      logRenderChunkThreshold: 20,
-      demoDataDays: 120,
-      loadTimeoutMs: 6500,
-      llmModelSize: 'small'
+      logRenderChunkSize: 16,
+      logRenderChunkThreshold: 22,
+      demoDataDays: 180,
+      loadTimeoutMs: 8000,
+      llmModelSize: 'tier2'
     },
     3: {
       deviceClass: 'medium',
-      chartMaxPoints: 60,
-      maxChartPoints: 90,
+      chartMaxPoints: 90,
+      maxChartPoints: 120,
       chartAnimation: true,
       enableChartPreload: true,
-      chartPreloadDelayMs: 2400,
+      chartPreloadDelayMs: 1800,
       enableAIPreload: true,
-      aiPreloadDelayMs: 2600,
-      deferAI: false,
-      batchDOM: false,
-      reduceAnimations: false,
-      reduceUIAnimations: false,
-      domCacheTtlMs: 34000,
-      storageBatchDelayMs: 130,
-      lazyChartStaggerMs: 95,
-      useWorkers: true,
-      logRenderChunkSize: 18,
-      logRenderChunkThreshold: 26,
-      demoDataDays: 240,
-      loadTimeoutMs: 9000,
-      llmModelSize: 'small'
-    },
-    4: {
-      deviceClass: 'medium',
-      chartMaxPoints: 85,
-      maxChartPoints: 110,
-      chartAnimation: true,
-      enableChartPreload: true,
-      chartPreloadDelayMs: 1700,
-      enableAIPreload: true,
-      aiPreloadDelayMs: 1800,
+      aiPreloadDelayMs: 2000,
       deferAI: false,
       batchDOM: false,
       reduceAnimations: false,
       reduceUIAnimations: false,
       domCacheTtlMs: 30000,
       storageBatchDelayMs: 110,
-      lazyChartStaggerMs: 75,
+      lazyChartStaggerMs: 70,
       useWorkers: true,
       logRenderChunkSize: 20,
-      logRenderChunkThreshold: 30,
-      demoDataDays: 365,
-      loadTimeoutMs: 9000,
-      llmModelSize: 'base'
-    },
-    5: {
-      deviceClass: 'medium',
-      chartMaxPoints: 120,
-      maxChartPoints: 140,
-      chartAnimation: true,
-      enableChartPreload: true,
-      chartPreloadDelayMs: 1200,
-      enableAIPreload: true,
-      aiPreloadDelayMs: 1400,
-      deferAI: false,
-      batchDOM: false,
-      reduceAnimations: false,
-      reduceUIAnimations: false,
-      domCacheTtlMs: 26000,
-      storageBatchDelayMs: 100,
-      lazyChartStaggerMs: 60,
-      useWorkers: true,
-      logRenderChunkSize: 24,
-      logRenderChunkThreshold: 32,
+      logRenderChunkThreshold: 28,
       demoDataDays: 365,
       loadTimeoutMs: 10000,
-      llmModelSize: 'base'
+      llmModelSize: 'tier3'
     },
-    6: {
+    4: {
       deviceClass: 'high',
-      chartMaxPoints: 155,
-      maxChartPoints: 160,
+      chartMaxPoints: 150,
+      maxChartPoints: 170,
       chartAnimation: true,
       enableChartPreload: true,
-      chartPreloadDelayMs: 900,
+      chartPreloadDelayMs: 1000,
       enableAIPreload: true,
-      aiPreloadDelayMs: 1100,
+      aiPreloadDelayMs: 1200,
       deferAI: false,
       batchDOM: false,
       reduceAnimations: false,
       reduceUIAnimations: false,
-      domCacheTtlMs: 23000,
-      storageBatchDelayMs: 100,
-      lazyChartStaggerMs: 55,
+      domCacheTtlMs: 24000,
+      storageBatchDelayMs: 90,
+      lazyChartStaggerMs: 50,
       useWorkers: true,
       logRenderChunkSize: 26,
       logRenderChunkThreshold: 34,
       demoDataDays: 365,
       loadTimeoutMs: 12000,
-      llmModelSize: 'base'
+      llmModelSize: 'tier4'
     },
-    7: {
-      deviceClass: 'high',
-      chartMaxPoints: 185,
-      maxChartPoints: 190,
-      chartAnimation: true,
-      enableChartPreload: true,
-      chartPreloadDelayMs: 750,
-      enableAIPreload: true,
-      aiPreloadDelayMs: 900,
-      deferAI: false,
-      batchDOM: false,
-      reduceAnimations: false,
-      reduceUIAnimations: false,
-      domCacheTtlMs: 21000,
-      storageBatchDelayMs: 90,
-      lazyChartStaggerMs: 45,
-      useWorkers: true,
-      logRenderChunkSize: 28,
-      logRenderChunkThreshold: 36,
-      demoDataDays: 365,
-      loadTimeoutMs: 12000,
-      llmModelSize: 'base'
-    },
-    8: {
+    5: {
       deviceClass: 'high',
       chartMaxPoints: 210,
       maxChartPoints: 220,
       chartAnimation: true,
       enableChartPreload: true,
-      chartPreloadDelayMs: 550,
+      chartPreloadDelayMs: 600,
       enableAIPreload: true,
-      aiPreloadDelayMs: 750,
+      aiPreloadDelayMs: 800,
       deferAI: false,
       batchDOM: false,
       reduceAnimations: false,
@@ -400,133 +352,87 @@
       logRenderChunkThreshold: 40,
       demoDataDays: 365,
       loadTimeoutMs: 13000,
-      llmModelSize: 'base'
+      llmModelSize: 'tier5'
     }
   };
 
   var DESKTOP_PROFILES = {
     1: {
       deviceClass: 'low',
-      chartMaxPoints: 20,
-      maxChartPoints: 26,
+      chartMaxPoints: 22,
+      maxChartPoints: 30,
       chartAnimation: false,
       enableChartPreload: true,
-      chartPreloadDelayMs: 3200,
+      chartPreloadDelayMs: 3000,
       enableAIPreload: false,
-      aiPreloadDelayMs: 4000,
+      aiPreloadDelayMs: 3800,
       deferAI: true,
       batchDOM: true,
       reduceAnimations: true,
       reduceUIAnimations: true,
-      domCacheTtlMs: 48000,
-      storageBatchDelayMs: 220,
-      lazyChartStaggerMs: 135,
+      domCacheTtlMs: 45000,
+      storageBatchDelayMs: 200,
+      lazyChartStaggerMs: 130,
       useWorkers: false,
       logRenderChunkSize: 16,
       logRenderChunkThreshold: 22,
       demoDataDays: 365,
-      loadTimeoutMs: 6500,
-      llmModelSize: 'small'
+      loadTimeoutMs: 7000,
+      llmModelSize: 'tier1'
     },
     2: {
       deviceClass: 'low',
-      chartMaxPoints: 30,
-      maxChartPoints: 40,
+      chartMaxPoints: 55,
+      maxChartPoints: 80,
       chartAnimation: false,
       enableChartPreload: true,
-      chartPreloadDelayMs: 2400,
+      chartPreloadDelayMs: 2000,
       enableAIPreload: false,
-      aiPreloadDelayMs: 3500,
+      aiPreloadDelayMs: 2800,
       deferAI: true,
       batchDOM: true,
       reduceAnimations: true,
       reduceUIAnimations: true,
-      domCacheTtlMs: 42000,
-      storageBatchDelayMs: 170,
-      lazyChartStaggerMs: 120,
+      domCacheTtlMs: 38000,
+      storageBatchDelayMs: 150,
+      lazyChartStaggerMs: 100,
       useWorkers: false,
       logRenderChunkSize: 18,
-      logRenderChunkThreshold: 24,
+      logRenderChunkThreshold: 26,
       demoDataDays: 730,
-      loadTimeoutMs: 8000,
-      llmModelSize: 'small'
+      loadTimeoutMs: 9000,
+      llmModelSize: 'tier2'
     },
     3: {
       deviceClass: 'medium',
-      chartMaxPoints: 75,
-      maxChartPoints: 120,
-      chartAnimation: true,
-      enableChartPreload: true,
-      chartPreloadDelayMs: 1400,
-      enableAIPreload: true,
-      aiPreloadDelayMs: 1500,
-      deferAI: false,
-      batchDOM: false,
-      reduceAnimations: false,
-      reduceUIAnimations: false,
-      domCacheTtlMs: 30000,
-      storageBatchDelayMs: 100,
-      lazyChartStaggerMs: 80,
-      useWorkers: true,
-      logRenderChunkSize: 20,
-      logRenderChunkThreshold: 30,
-      demoDataDays: 1825,
-      loadTimeoutMs: 11000,
-      llmModelSize: 'base'
-    },
-    4: {
-      deviceClass: 'medium',
-      chartMaxPoints: 110,
+      chartMaxPoints: 120,
       maxChartPoints: 160,
       chartAnimation: true,
       enableChartPreload: true,
-      chartPreloadDelayMs: 1100,
+      chartPreloadDelayMs: 1200,
       enableAIPreload: true,
-      aiPreloadDelayMs: 1100,
+      aiPreloadDelayMs: 1300,
       deferAI: false,
       batchDOM: false,
       reduceAnimations: false,
       reduceUIAnimations: false,
-      domCacheTtlMs: 26000,
-      storageBatchDelayMs: 90,
-      lazyChartStaggerMs: 60,
+      domCacheTtlMs: 28000,
+      storageBatchDelayMs: 95,
+      lazyChartStaggerMs: 55,
       useWorkers: true,
       logRenderChunkSize: 22,
       logRenderChunkThreshold: 32,
-      demoDataDays: 3650,
-      loadTimeoutMs: 12000,
-      llmModelSize: 'base'
+      demoDataDays: 1825,
+      loadTimeoutMs: 11500,
+      llmModelSize: 'tier3'
     },
-    5: {
-      deviceClass: 'medium',
-      chartMaxPoints: 160,
-      maxChartPoints: 190,
-      chartAnimation: true,
-      enableChartPreload: true,
-      chartPreloadDelayMs: 900,
-      enableAIPreload: true,
-      aiPreloadDelayMs: 950,
-      deferAI: false,
-      batchDOM: false,
-      reduceAnimations: false,
-      reduceUIAnimations: false,
-      domCacheTtlMs: 22000,
-      storageBatchDelayMs: 85,
-      lazyChartStaggerMs: 45,
-      useWorkers: true,
-      logRenderChunkSize: 26,
-      logRenderChunkThreshold: 34,
-      demoDataDays: 3650,
-      loadTimeoutMs: 12000,
-      llmModelSize: 'base'
-    },
-    6: {
+    4: {
       deviceClass: 'high',
       chartMaxPoints: 200,
-      maxChartPoints: 210,
+      maxChartPoints: 220,
       chartAnimation: true,
       enableChartPreload: true,
-      chartPreloadDelayMs: 750,
+      chartPreloadDelayMs: 700,
       enableAIPreload: true,
       aiPreloadDelayMs: 850,
       deferAI: false,
@@ -535,38 +441,15 @@
       reduceUIAnimations: false,
       domCacheTtlMs: 20000,
       storageBatchDelayMs: 80,
-      lazyChartStaggerMs: 40,
+      lazyChartStaggerMs: 38,
       useWorkers: true,
       logRenderChunkSize: 28,
       logRenderChunkThreshold: 36,
       demoDataDays: 3650,
       loadTimeoutMs: 12500,
-      llmModelSize: 'base'
+      llmModelSize: 'tier4'
     },
-    7: {
-      deviceClass: 'high',
-      chartMaxPoints: 220,
-      maxChartPoints: 230,
-      chartAnimation: true,
-      enableChartPreload: true,
-      chartPreloadDelayMs: 650,
-      enableAIPreload: true,
-      aiPreloadDelayMs: 750,
-      deferAI: false,
-      batchDOM: false,
-      reduceAnimations: false,
-      reduceUIAnimations: false,
-      domCacheTtlMs: 19000,
-      storageBatchDelayMs: 75,
-      lazyChartStaggerMs: 34,
-      useWorkers: true,
-      logRenderChunkSize: 30,
-      logRenderChunkThreshold: 38,
-      demoDataDays: 3650,
-      loadTimeoutMs: 13000,
-      llmModelSize: 'base'
-    },
-    8: {
+    5: {
       deviceClass: 'high',
       chartMaxPoints: 240,
       maxChartPoints: 260,
@@ -587,7 +470,7 @@
       logRenderChunkThreshold: 42,
       demoDataDays: 3650,
       loadTimeoutMs: 13500,
-      llmModelSize: 'base'
+      llmModelSize: 'tier5'
     }
   };
 
@@ -618,9 +501,19 @@
     var isTablet = !!(dm && dm.isTablet);
     var cores = (typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency > 0) ? nav.hardwareConcurrency : 0;
     var deviceMemory = (typeof window !== 'undefined' && window.isSecureContext === true && typeof nav.deviceMemory === 'number' && nav.deviceMemory > 0) ? nav.deviceMemory : 0;
+    var estimatedMemoryBucket = (dm && dm.estimatedMemoryBucket) ? dm.estimatedMemoryBucket : null;
     var cap = (typeof window !== 'undefined' && window.Capacitor) || (typeof window !== 'undefined' && window.parent && window.parent.Capacitor);
     var isNative = !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
-    return { platform: platformName, isTablet: isTablet, cores: cores, deviceMemory: deviceMemory, isNative: isNative };
+    var flags = { platform: platformName, isTablet: isTablet, cores: cores, deviceMemory: deviceMemory, estimatedMemoryBucket: estimatedMemoryBucket, isNative: isNative };
+    if (dm) {
+      if (dm.osName != null && dm.osName !== '') flags.osName = dm.osName;
+      if (dm.osVersion != null && dm.osVersion !== '') flags.osVersion = dm.osVersion;
+      if (dm.deviceType != null && dm.deviceType !== '') flags.deviceType = dm.deviceType;
+      if (dm.deviceVendor != null && dm.deviceVendor !== '') flags.deviceVendor = dm.deviceVendor;
+      if (dm.deviceModel != null && dm.deviceModel !== '') flags.deviceModel = dm.deviceModel;
+      if (dm.cpuArchitecture != null && dm.cpuArchitecture !== '') flags.cpuArchitecture = dm.cpuArchitecture;
+    }
+    return flags;
   }
 
   function mergeInto(dst, src) {
@@ -696,7 +589,7 @@
   }
 
   function computeSuiteWorkloads(tier) {
-    tier = Math.max(1, Math.min(MAX_TIER, Math.floor(tier || 4)));
+    tier = Math.max(1, Math.min(MAX_TIER, Math.floor(tier || 3)));
     var scale = 1 + (tier - 1) * 0.45;
     return {
       cpuIterations: clampInt(200000 * scale, 120000, 1600000),
@@ -927,7 +820,14 @@
     if (flags) {
       var coresBucket = flags.cores <= 2 ? 'low' : flags.cores <= 6 ? 'mid' : 'high';
       if (PROFILE_OVERRIDES.coresBucket && PROFILE_OVERRIDES.coresBucket[coresBucket]) mergeInto(out, PROFILE_OVERRIDES.coresBucket[coresBucket]);
-      var memBucket = flags.deviceMemory && flags.deviceMemory <= 2 ? 'low' : flags.deviceMemory && flags.deviceMemory <= 4 ? 'mid' : 'high';
+      var memBucket;
+      if (flags.deviceMemory && flags.deviceMemory > 0) {
+        memBucket = flags.deviceMemory <= 2 ? 'low' : flags.deviceMemory <= 4 ? 'mid' : 'high';
+      } else if (flags.estimatedMemoryBucket) {
+        memBucket = flags.estimatedMemoryBucket === 'low' ? 'low' : flags.estimatedMemoryBucket === 'high' ? 'high' : 'mid';
+      } else {
+        memBucket = 'mid';
+      }
       if (PROFILE_OVERRIDES.memoryBucket && PROFILE_OVERRIDES.memoryBucket[memBucket]) mergeInto(out, PROFILE_OVERRIDES.memoryBucket[memBucket]);
     }
 

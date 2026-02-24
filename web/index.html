@@ -119,6 +119,11 @@
     <div class="loading-spinner">
       <div class="spinner"></div>
       <p class="loading-text">Loading Health Dashboard...</p>
+      <div class="loading-progress-wrap" id="loadingProgressWrap" aria-hidden="true">
+        <div class="loading-progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+          <div class="loading-progress-fill" id="loadingProgressFill"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -323,8 +328,11 @@
           <label for="preferredLlmModelSelect">On-device AI model</label>
           <select id="preferredLlmModelSelect" class="settings-select" aria-describedby="llmModelRecommendationHint" onchange="setPreferredLlmModel(this.value)">
             <option value="recommended">Use recommended (for this device)</option>
-            <option value="small">Small (faster, lower memory)</option>
-            <option value="base">Base (better quality)</option>
+            <option value="tier1">Tier 1 (fastest, lowest memory)</option>
+            <option value="tier2">Tier 2</option>
+            <option value="tier3">Tier 3</option>
+            <option value="tier4">Tier 4</option>
+            <option value="tier5">Tier 5 (best quality)</option>
           </select>
           <p class="settings-hint" id="llmModelRecommendationHint">Recommended: —</p>
         </div>
@@ -343,17 +351,17 @@
         <p class="settings-hint">Clears the cached device performance tier. Reload the app to run the benchmark again and see the device-class modal.</p>
       </div>
 
-      <div class="settings-section">
-        <h4>📱 App Installation</h4>
+      <div class="settings-section" id="appInstallSection">
+        <h4 id="appInstallSectionTitle">📱 App Installation</h4>
         <div id="installOnIosDevice" class="settings-option" style="display: none;">
           <button type="button" class="settings-data-btn install-ios-device-btn" onclick="installOrLaunchPWA()"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="installOnIosDeviceLabel">Install on this iPhone</span></button>
           <p class="settings-install-hint">Opens instructions to add the app to your Home Screen. Works offline like a native app.</p>
         </div>
-        <div class="settings-option">
-          <button class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA()"><span class="settings-install-icon" aria-hidden="true"><i class="fa-solid fa-globe"></i></span> Install web app</button>
+        <div class="settings-option" id="installWebAppOption">
+          <button class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA()"><span class="settings-install-icon" aria-hidden="true"><i class="fa-solid fa-globe"></i></span> <span id="installWebAppLabel">Install web app</span></button>
         </div>
-        <div class="settings-option">
-          <a id="downloadApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-android"></i></span> Install on Android <span class="android-version" aria-hidden="true"></span></a>
+        <div class="settings-option" id="androidDownloadOption">
+          <a id="downloadApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-android"></i></span> <span id="downloadAndroidLabel">Install on Android</span> <span class="android-version" aria-hidden="true"></span></a>
         </div>
         <div class="settings-option" id="iosDownloadOption">
           <a id="downloadIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="downloadIosLabel">Install on iOS</span> <span class="ios-version" aria-hidden="true"></span></a>
@@ -2029,6 +2037,7 @@
   <script src="export-utils.js?v=1"></script>
   <script src="import-utils.js?v=1"></script>
   <script src="print-utils.js?v=1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.37/dist/ua-parser.min.js"></script>
   <script src="device-module.js"></script>
   <script src="device-benchmark.js"></script>
   <script src="performance-utils.js"></script>

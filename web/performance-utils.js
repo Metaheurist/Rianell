@@ -435,6 +435,11 @@ function getDevicePerformanceClassFallback() {
     if (deviceMemory >= 4) return 'high';
     return 'medium';
   }
+  const dm = typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform ? window.DeviceModule.platform : null;
+  const estimatedBucket = dm && dm.estimatedMemoryBucket ? dm.estimatedMemoryBucket : null;
+  if (estimatedBucket === 'low') return isNativeApp ? 'medium' : 'low';
+  if (estimatedBucket === 'high') return 'high';
+  if (estimatedBucket === 'medium') return 'medium';
   if (typeof cores === 'number' && cores > 0) {
     if (cores <= 2) return isNativeApp ? 'medium' : 'low';
     if (cores >= 4) return 'high';
@@ -527,7 +532,7 @@ function getOptimizationProfile() {
     var full = window.DeviceBenchmark.getFullProfile(platformType, tier, { saveData: saveData, prefersReducedMotion: reducedMotion });
     return {
       deviceClass: full.deviceClass || p.deviceClass || 'medium',
-      llmModelSize: full.llmModelSize != null ? full.llmModelSize : (full.deviceClass === 'low' ? 'small' : 'base'),
+      llmModelSize: full.llmModelSize != null ? full.llmModelSize : (full.deviceClass === 'low' ? 'tier2' : full.deviceClass === 'high' ? 'tier4' : 'tier3'),
       chartMaxPoints: full.chartMaxPoints != null ? full.chartMaxPoints : 80,
       chartAnimation: full.chartAnimation != null ? full.chartAnimation : !reducedMotion,
       enableChartPreload: full.enableChartPreload != null ? full.enableChartPreload : true,
@@ -589,7 +594,7 @@ function getOptimizationProfile() {
 
   return {
     deviceClass: deviceClass,
-    llmModelSize: isLow ? 'small' : 'base',
+    llmModelSize: isLow ? 'tier2' : isHigh ? 'tier4' : 'tier3',
     chartMaxPoints: chartMaxPoints,
     chartAnimation: chartAnimation,
     enableChartPreload: enableChartPreload,

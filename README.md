@@ -82,9 +82,10 @@ flowchart LR
 
 ### Settings and UI
 - **Settings**: Weight unit (kg/lb), medical condition, date filters, chart visibility, AI & Goals toggle, contribution toggle, reminder time, sound notifications, cookie/consent; God mode (test UI, show install modal, etc.); **Developer** section with “Clear performance benchmark cache” (re-run device benchmark on next load).
+- **Keyboard**: On desktop, **Escape** key opens or closes Settings when no other modal is open.
 - **Theme**: Dark mode by default; light mode optional.
 - **Responsive**: Layout and charts adapt to viewport and device; device-based optimisation (chart points, animations, AI preload).
-- **Device performance (benchmark)**: On first load a short CPU benchmark classifies the device as mobile or desktop and assigns a performance tier (1–8). The result is cached in localStorage and drives expansive optimisation profiles (chart points, AI preload, DOM batching, demo data size, **recommended on-device AI model**, etc.). The benchmark is oriented around device and **AI readiness**: each profile recommends flan-t5-small or flan-t5-base. When the benchmark runs (first run or after cache clear), a **Performance & AI benchmark** modal shows a **brief** result (device, tier, class, recommended AI model) with an optional **"See detailed benchmark results"** section (test bars, stability, full profile JSON). Settings → Performance includes **On-device AI model** (Use recommended / Small / Base) with a recommendation hint from the benchmark. Settings → Developer → “Clear performance benchmark cache” and "View last benchmark details" let you re-run or inspect the last result.
+- **Device performance (benchmark)**: On first load a short CPU benchmark classifies the device as mobile or desktop and assigns a performance tier (1–5). The result is cached in localStorage and drives expansive optimisation profiles (chart points, AI preload, DOM batching, demo data size, **recommended on-device AI model**, etc.). **During the benchmark**, the loading overlay shows a **progress bar** and percentage (e.g. "Measuring performance… 45% · CPU arithmetic"). When the benchmark runs (first run or after cache clear), a **Performance & AI benchmark** modal shows a **brief** result (device, tier, class, recommended AI model) with an optional **"See detailed benchmark results"** section (test bars, stability, OS/device/CPU/memory, full profile JSON). Settings → Performance includes **On-device AI model** (Use recommended / Small / Base) with a recommendation hint from the benchmark. Settings → Developer → “Clear performance benchmark cache” and "View last benchmark details" let you re-run or inspect the last result.
 
 ### Server (testing and development)
 - **Local server**: Python HTTP server for local testing (`python -m server`); serves `web/` at root; optional file watching and auto-reload.
@@ -567,6 +568,16 @@ For issues and questions:
 ## Changelog
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
+
+<details>
+<summary><strong>v1.21.0</strong> — 2026-02-24 — Escape toggles Settings on desktop, benchmark progress bar, device hardware detection</summary>
+
+- **Escape key on desktop**: Escape now **opens** Settings when it is closed and no other modal is open; it still **closes** Settings when open. On mobile, Escape continues to close Settings only. Desktop is detected via `DeviceModule.platform.platform === 'desktop'` or non-mobile User-Agent.
+- **Benchmark progress indicator**: While the performance benchmark runs on first load, the loading overlay shows a **progress bar** (0–100%) and the existing text ("Measuring performance… X% · &lt;current test&gt;"). The bar is visible only during the benchmark phase and completes to 100% before the overlay is removed.
+- **Device hardware detection**: Optional UAParser.js v1.x for OS, device type/vendor/model, and CPU architecture; **estimated memory bucket** when `navigator.deviceMemory` is missing (e.g. iOS). Benchmark modal and env snapshot show OS, device, CPU, and "estimated: low/medium/high" RAM. Tier heuristic and profile memory overrides use the estimated bucket so iOS and other no–deviceMemory environments get better default tiers.
+- **README**: Settings & UI now document Escape key behaviour; Device performance section updated with progress bar and tier range; changelog v1.21.0 added.
+
+</details>
 
 <details>
 <summary><strong>v1.20.0</strong> — 2026-02-24 — Benchmark-driven AI model selection and brief benchmark UI</summary>
