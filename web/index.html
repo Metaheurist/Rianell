@@ -338,19 +338,6 @@
         </div>
       </div>
 
-      <div class="settings-section" id="godModeSection">
-        <h4>🔧 Developer</h4>
-        <div class="settings-option">
-          <label class="visually-hidden">Performance benchmark</label>
-          <button type="button" class="cloud-btn" onclick="clearBenchmarkCacheAndNotify()" style="padding: 8px 16px; font-size: 0.9rem;">Clear performance benchmark cache</button>
-        </div>
-        <div class="settings-option" style="margin-top: -4px;">
-          <label class="visually-hidden">Performance benchmark details</label>
-          <button type="button" class="cloud-btn" onclick="openBenchmarkDetails()" style="padding: 8px 16px; font-size: 0.9rem;">View last benchmark details</button>
-        </div>
-        <p class="settings-hint">Clears the cached device performance tier. Reload the app to run the benchmark again and see the device-class modal.</p>
-      </div>
-
       <div class="settings-section" id="appInstallSection">
         <h4 id="appInstallSectionTitle">📱 App Installation</h4>
         <div id="installOnIosDevice" class="settings-option" style="display: none;">
@@ -1463,7 +1450,7 @@
     </div>
   </div>
 
-  <!-- Performance & AI benchmark modal (first run + Developer view) -->
+  <!-- Performance & AI benchmark modal (first run; view last via God mode → View last benchmark details) -->
   <div class="modal-overlay perf-benchmark-overlay" id="perfBenchmarkOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Performance and AI benchmark">
     <div class="modal-content perf-benchmark-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -1484,8 +1471,13 @@
             </div>
             <div class="perf-benchmark-panel">
               <div class="perf-benchmark-panel-title">Stability (CPU)</div>
-              <canvas id="perfBenchmarkSparkline" width="520" height="120" aria-label="Benchmark stability sparkline"></canvas>
+              <canvas id="perfBenchmarkSparkline" width="520" height="120" aria-label="CPU stability sparkline"></canvas>
               <div class="perf-benchmark-kv" id="perfBenchmarkStats"></div>
+            </div>
+            <div class="perf-benchmark-panel">
+              <div class="perf-benchmark-panel-title">Stability (GPU)</div>
+              <canvas id="perfBenchmarkGpuSparkline" width="520" height="120" aria-label="GPU stability sparkline"></canvas>
+              <div class="perf-benchmark-kv" id="perfBenchmarkGpuStats"></div>
             </div>
           </div>
           <details class="perf-benchmark-details-inner">

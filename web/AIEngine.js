@@ -99,15 +99,28 @@ function isDesktop() {
   }
   return typeof navigator !== 'undefined' && !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
+function benchmarkSaysGPUGood() {
+  if (typeof window === 'undefined' || !window.DeviceBenchmark || typeof window.DeviceBenchmark.getCachedResult !== 'function') return false;
+  var cached = window.DeviceBenchmark.getCachedResult();
+  return !!(cached && cached.gpu && cached.gpu.available && cached.gpu.good);
+}
 function ensureGPUBackend() {
   if (_gpuBackendReady !== null) return _gpuBackendReady;
   _gpuBackendReady = (async function() {
-    if (typeof tf === 'undefined' || !isDesktop()) return false;
+    if (typeof tf === 'undefined') return false;
+    var useGPU = isDesktop() || benchmarkSaysGPUGood();
+    if (!useGPU) return false;
     var deviceClass = (typeof window !== 'undefined' && window.PerformanceUtils && window.PerformanceUtils.platform)
       ? (window.PerformanceUtils.platform.deviceClass || 'medium')
       : 'medium';
     if (deviceClass === 'low') return false;
     try {
+      if (typeof tf !== 'undefined') {
+        try {
+          if (tf.env && typeof tf.env.set === 'function') tf.env.set('WEBGL_POWER_PREFERENCE', 'high-performance');
+          else if (tf.env && typeof tf.env === 'function' && tf.env().set) tf.env().set('WEBGL_POWER_PREFERENCE', 'high-performance');
+        } catch (_) {}
+      }
       await tf.ready();
       if (tf.getBackend() !== 'webgl') await tf.setBackend('webgl');
       await tf.ready();
@@ -3616,6 +3629,9 @@ AIEngine.activations = {
 
 // Expose network constructor for advanced use (e.g. custom layers)
 AIEngine.NeuralAnalysisNetwork = NeuralAnalysisNetwork;
+
+// Warm WebGL backend when GPU is available so first AI analysis avoids init cost
+AIEngine.warmGPUBackend = function() { return ensureGPUBackend(); };
 
 // Make AIEngine available globally
 window.AIEngine = AIEngine;

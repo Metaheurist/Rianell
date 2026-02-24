@@ -112,56 +112,71 @@
     return 'none';
   }
 
+  var GPU_STABILITY_SAMPLES = 5;
+
+  function runOneGpuSampleWebGPU(cb) {
+    var nav = typeof navigator !== 'undefined' ? navigator : null;
+    if (!nav || !nav.gpu || typeof nav.gpu.requestAdapter !== 'function') { cb(null); return; }
+    var t0 = nowMs();
+    nav.gpu.requestAdapter({ powerPreference: 'high-performance' }).then(function (adapter) {
+      cb(adapter ? (nowMs() - t0) : null);
+    }).catch(function () { cb(null); });
+  }
+
+  function runOneGpuSampleWebGL(cb) {
+    try {
+      var c = typeof document !== 'undefined' ? document.createElement('canvas') : null;
+      if (!c) { cb(null); return; }
+      c.width = 256;
+      c.height = 256;
+      var opts = { alpha: false, powerPreference: 'high-performance' };
+      var gl = c.getContext('webgl2', opts) || c.getContext('webgl', opts);
+      if (!gl) { cb(null); return; }
+      var t0 = nowMs();
+      for (var i = 0; i < 20; i++) {
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clearColor(0.1, 0.2, 0.3, 1);
+      }
+      if (gl.finish) gl.finish();
+      cb(nowMs() - t0);
+    } catch (e) { cb(null); }
+  }
+
   /**
-   * Run a quick GPU benchmark (WebGL draw or WebGPU adapter). Calls done({ available, backend, scoreMs, good }).
-   * good: true if GPU is fast enough for AI; false if usable but slow; available false if none.
+   * Run a quick GPU benchmark with stability samples (WebGL draw or WebGPU adapter).
+   * Calls done({ available, backend, scoreMs, good, scoreSamples }).
+   * scoreSamples: array of ms per run for stability graph (when available).
    */
   function runGpuBenchmarkAsync(done) {
     var backend = detectGpuBackendSync();
     if (backend === 'none') {
-      if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false });
+      if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false, scoreSamples: [] });
       return;
     }
-    if (backend === 'webgpu') {
-      var nav = typeof navigator !== 'undefined' ? navigator : null;
-      if (!nav || !nav.gpu || typeof nav.gpu.requestAdapter !== 'function') {
-        if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false });
-        return;
-      }
-      var t0 = nowMs();
-      nav.gpu.requestAdapter().then(function (adapter) {
-        var scoreMs = nowMs() - t0;
-        var available = !!adapter;
-        var good = available && scoreMs < 500;
-        if (typeof done === 'function') done({ available: available, backend: available ? 'webgpu' : 'none', scoreMs: available ? scoreMs : null, good: good });
-      }).catch(function () {
-        if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false });
-      });
-      return;
-    }
-    if (backend === 'webgl') {
-      try {
-        var c = typeof document !== 'undefined' ? document.createElement('canvas') : null;
-        if (!c) { if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false }); return; }
-        c.width = 256;
-        c.height = 256;
-        var gl = c.getContext('webgl2') || c.getContext('webgl');
-        if (!gl) { if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false }); return; }
-        var t0 = nowMs();
-        for (var i = 0; i < 20; i++) {
-          gl.clear(gl.COLOR_BUFFER_BIT);
-          gl.clearColor(0.1, 0.2, 0.3, 1);
+    var runOne = backend === 'webgpu' ? runOneGpuSampleWebGPU : runOneGpuSampleWebGL;
+    var samples = [];
+    var runCount = 0;
+    function runNext() {
+      runOne(function (ms) {
+        if (ms != null) samples.push(ms);
+        runCount++;
+        if (runCount < GPU_STABILITY_SAMPLES) {
+          setTimeout(runNext, 20);
+        } else {
+          var available = samples.length > 0;
+          var scoreMs = available ? (samples.reduce(function (a, b) { return a + b; }, 0) / samples.length) : null;
+          var good = available && (backend === 'webgpu' ? scoreMs < 500 : scoreMs < 50);
+          if (typeof done === 'function') done({
+            available: available,
+            backend: available ? backend : 'none',
+            scoreMs: scoreMs,
+            good: good,
+            scoreSamples: samples
+          });
         }
-        gl.finish && gl.finish();
-        var scoreMs = nowMs() - t0;
-        var good = scoreMs < 50;
-        if (typeof done === 'function') done({ available: true, backend: 'webgl', scoreMs: scoreMs, good: good });
-      } catch (e) {
-        if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false });
-      }
-      return;
+      });
     }
-    if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false });
+    runNext();
   }
 
   function cpuArith(iterations) {
