@@ -10,6 +10,10 @@ on:
   pull_request:
     branches: [main, master]
 
+concurrency:
+  group: build-artifacts-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: macos-latest
@@ -17,6 +21,14 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync branch with origin (push builds only)
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: |
+          git fetch origin "${{ github.ref_name }}"
+          git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -161,8 +173,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "App build/iOS/"
           git diff --staged --quiet || git commit -m "Update iOS build (build ${{ github.run_number }}) [skip ci]"
-          git fetch origin ${{ github.ref_name }}
-          git rebase origin/${{ github.ref_name }} || git merge --no-edit origin/${{ github.ref_name }}
+          git fetch origin "${{ github.ref_name }}"
           git push origin ${{ github.ref_name }}
 
       - name: Note when App build/iOS is not committed
