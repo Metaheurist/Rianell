@@ -315,7 +315,7 @@ function openPerfBenchmarkModal(options) {
   } else {
     const empty = document.createElement('div');
     empty.style.opacity = '0.8';
-    empty.textContent = 'No per-test breakdown available (older cached result).';
+    empty.textContent = 'No per-test breakdown available (older cached result). Clear benchmark cache in Settings → Developer and reload to run a full benchmark.';
     barsEl.appendChild(empty);
   }
 
@@ -324,7 +324,19 @@ function openPerfBenchmarkModal(options) {
   const cpu = result && result.cpu ? result.cpu : null;
   const cpuSamples = cpu && Array.isArray(cpu.msPer200kSamples) ? cpu.msPer200kSamples : [];
   if (statsEl && tier != null) {
-    const env = result && result.env ? result.env : {};
+    // Use cached env but fill missing fields from current device (so old cache still shows live OS/cores/etc.)
+    const env = result && result.env ? Object.assign({}, result.env) : {};
+    const dm = (typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform) ? window.DeviceModule.platform : null;
+    const nav = typeof navigator !== 'undefined' ? navigator : {};
+    if (env.cores == null) env.cores = (dm && dm.cores != null) ? dm.cores : (typeof nav.hardwareConcurrency === 'number' ? nav.hardwareConcurrency : null);
+    if (env.deviceMemory == null && dm && dm.deviceMemory != null) env.deviceMemory = dm.deviceMemory;
+    if (!env.estimatedMemoryBucket && dm && dm.estimatedMemoryBucket) env.estimatedMemoryBucket = dm.estimatedMemoryBucket;
+    if (!env.osName && dm && dm.osName) env.osName = dm.osName;
+    if (!env.osVersion && dm && dm.osVersion) env.osVersion = dm.osVersion;
+    if (!env.deviceType && dm && dm.deviceType) env.deviceType = dm.deviceType;
+    if (!env.deviceVendor && dm && dm.deviceVendor) env.deviceVendor = dm.deviceVendor;
+    if (!env.deviceModel && dm && dm.deviceModel) env.deviceModel = dm.deviceModel;
+    if (!env.cpuArchitecture && dm && dm.cpuArchitecture) env.cpuArchitecture = dm.cpuArchitecture;
     const osDisplay = (env.osName && env.osVersion) ? `${env.osName} ${env.osVersion}` : (env.osName || env.osVersion || '—');
     const deviceDisplay = [env.deviceVendor, env.deviceModel].filter(Boolean).join(' ') || (env.deviceType || '—');
     const memoryDisplay = env.deviceMemory != null ? String(env.deviceMemory) + ' GB' : (env.estimatedMemoryBucket ? `estimated: ${env.estimatedMemoryBucket}` : '—');

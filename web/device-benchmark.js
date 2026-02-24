@@ -645,16 +645,24 @@
     var cpuMsPer200kSamples = [];
     var cpuMsSamples = [];
     var index = 0;
-    var totalSteps = (repeats * 5) + repeats; // includes rAF
+    var totalSteps = (repeats * 5) + repeats; // 6 steps per repeat: cpu, array, json, string, dom, rAF
 
     function pct() {
-      return Math.max(0, Math.min(99, Math.floor((index / Math.max(1, totalSteps)) * 100)));
+      return Math.max(0, Math.min(100, Math.floor((index / Math.max(1, totalSteps)) * 100)));
     }
 
     function progress(phase, currentLabel) {
-      if (typeof onProgress === 'function') {
-        onProgress(pct(), { phase: phase, label: currentLabel });
+      var percent = pct();
+      if (typeof console !== 'undefined' && console.log) {
+        console.log('[Benchmark] progress', percent + '%', 'step', index + '/' + totalSteps, 'phase', phase, 'label', currentLabel || '');
       }
+      if (typeof onProgress === 'function') {
+        onProgress(percent, { phase: phase, label: currentLabel });
+      }
+    }
+
+    if (typeof console !== 'undefined' && console.log) {
+      console.log('[Benchmark] start', 'platformType', platformType, 'repeats', repeats, 'totalSteps', totalSteps, 'workloads', workloads);
     }
 
     function runRepeat(rep) {
@@ -670,6 +678,7 @@
       cpuMsSamples.push(cpuRes.ms);
       subtests.push({ repeat: rep, id: cpuRes.id, label: cpuRes.label, ms: cpuRes.ms, iterations: cpuRes.iterations, msPer200k: cpuRes.msPer200k });
       index++;
+      if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'CPU arithmetic', 'repeat', rep + 1, 'ms', cpuRes.ms, 'msPer200k', cpuRes.msPer200k);
 
       setTimeout(function () {
         progress('running', 'Array throughput');
@@ -677,6 +686,7 @@
         arrRes.size = workloads.arraySize;
         subtests.push({ repeat: rep, id: arrRes.id, label: arrRes.label, ms: arrRes.ms, size: arrRes.size });
         index++;
+        if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'Array throughput', 'repeat', rep + 1, 'ms', arrRes.ms);
 
         setTimeout(function () {
           progress('running', 'JSON parse/stringify');
@@ -684,6 +694,7 @@
           jsonRes.size = workloads.jsonSize;
           subtests.push({ repeat: rep, id: jsonRes.id, label: jsonRes.label, ms: jsonRes.ms, size: jsonRes.size });
           index++;
+          if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'JSON parse/stringify', 'repeat', rep + 1, 'ms', jsonRes.ms);
 
           setTimeout(function () {
             progress('running', 'String ops');
@@ -691,6 +702,7 @@
             strRes.size = workloads.stringSize;
             subtests.push({ repeat: rep, id: strRes.id, label: strRes.label, ms: strRes.ms, size: strRes.size });
             index++;
+            if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'String ops', 'repeat', rep + 1, 'ms', strRes.ms);
 
             setTimeout(function () {
               progress('running', 'DOM fragment build');
@@ -698,11 +710,14 @@
               domRes.count = workloads.domNodes;
               subtests.push({ repeat: rep, id: domRes.id, label: domRes.label, ms: domRes.ms, count: domRes.count });
               index++;
+              if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'DOM fragment build', 'repeat', rep + 1, 'ms', domRes.ms);
 
               progress('running', 'rAF latency');
               rafLatency(workloads.rafFrames, function (rafRes) {
+                if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'rAF latency', 'repeat', rep + 1, 'avgMs', rafRes.avgMs);
                 subtests.push({ repeat: rep, id: 'raf', label: 'rAF latency', ms: rafRes.avgMs, samples: rafRes.samples });
                 index++;
+                progress('done', '');
                 if (rep + 1 >= repeats) finish();
                 else runRepeat(rep + 1);
               });
@@ -713,11 +728,15 @@
     }
 
     function finish() {
+      if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] finish', 'steps', index + '/' + totalSteps);
       if (typeof onProgress === 'function') onProgress(100, { phase: 'done' });
 
       var msPer200kMed = median(cpuMsPer200kSamples);
       var tier = msPer200kToTier(msPer200kMed);
       var score = msPer200kMed > 0 ? (1000 / msPer200kMed) : 0;
+      if (typeof console !== 'undefined' && console.log) {
+        console.log('[Benchmark] result', 'tier', tier, 'score', score, 'msPer200kMed', msPer200kMed, 'cpuSamples', cpuMsPer200kSamples.length);
+      }
 
       // If the result moved across major class boundaries, ensure we have enough repeats (only if we still have budget).
       var classBefore = getLegacyDeviceClass(provisionalTier);
@@ -753,6 +772,9 @@
       }
       testSummary.sort(function (a, b) { return a.id < b.id ? -1 : 1; });
 
+      if (typeof console !== 'undefined' && console.log) {
+        console.log('[Benchmark] onDone', 'platformType', platformType, 'tier', tier, 'totalMs', Math.round(nowMs() - startAll), 'tests', testSummary.length);
+      }
       onDone({
         version: BENCHMARK_VERSION,
         platformType: platformType,
@@ -783,11 +805,13 @@
   function runBenchmarkIfNeeded(onProgress, onComplete) {
     var cached = getCachedResult();
     if (cached) {
+      if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] using cached result', 'tier', cached.tier, 'platformType', cached.platformType);
       _lastTier = cached.tier;
       _lastPlatformType = cached.platformType;
       if (typeof onComplete === 'function') onComplete(cached.tier, cached.platformType, cached);
       return;
     }
+    if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] running suite (no cache)');
     if (typeof onProgress === 'function') onProgress(0, { phase: 'starting' });
     runSuiteAsync({ totalCapMs: DEFAULT_TOTAL_CAP_MS }, onProgress, function (resultObj) {
       _lastTier = resultObj.tier;
