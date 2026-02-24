@@ -80,9 +80,10 @@ flowchart LR
 - **Install modal**: Post-tutorial modal (once) with web/Android/iOS install options; can be retriggered from God mode.
 
 ### Settings and UI
-- **Settings**: Weight unit (kg/lb), medical condition, date filters, chart visibility, AI & Goals toggle, contribution toggle, reminder time, sound notifications, cookie/consent; God mode (test UI, show install modal, etc.).
+- **Settings**: Weight unit (kg/lb), medical condition, date filters, chart visibility, AI & Goals toggle, contribution toggle, reminder time, sound notifications, cookie/consent; **Developer** (clear performance benchmark cache); God mode (test UI, show install modal, etc.).
 - **Theme**: Dark mode by default; light mode optional.
 - **Responsive**: Layout and charts adapt to viewport and device; device-based optimisation (chart points, animations, AI preload).
+- **Device benchmark**: On first load (or after clearing the cache in Settings → Developer), a short CPU benchmark runs and classifies the device as mobile or desktop with a performance tier (1–4). The result is cached in localStorage. When the benchmark runs for the first time, a modal shows the detected device class (low/medium/high) for user acknowledgment before the app continues. All optimisation settings (chart points, AI preload, animations, log chunking, demo data size, etc.) are driven by expansive mobile/desktop profile tables keyed by tier.
 
 ### Server (testing and development)
 - **Local server**: Python HTTP server for local testing (`python -m server`); serves `web/` at root; optional file watching and auto-reload.
@@ -565,6 +566,18 @@ For issues and questions:
 ## Changelog
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
+
+<details>
+<summary><strong>v1.19.0</strong> — 2026-02-23 — Benchmark-driven device classifier and expansive settings</summary>
+
+- **Device benchmark module** (`web/device-benchmark.js`): Classifies platform as mobile or desktop (including Capacitor native), runs a short CPU benchmark to determine performance tier (1–4), and caches the result in localStorage. Exposes `DeviceBenchmark.runBenchmarkIfNeeded`, `isBenchmarkReady`, `getFullProfile`, `getLegacyDeviceClass`, `clearBenchmarkCache`, etc.
+- **First-run flow**: App load is gated on the benchmark. If no cache exists, loading text shows "Measuring performance…"; when the benchmark completes, a modal displays device class (low/medium/high) and platform for user acknowledgment. On OK, the result is saved and the app continues; with cache, init runs immediately.
+- **Expansive profiles**: `MOBILE_PROFILES` and `DESKTOP_PROFILES` (tiers 1–4) define chart points, AI preload, animations, DOM batching, log chunking, demo data days, load timeout, and LLM model size. `performance-utils.js` uses `DeviceBenchmark.getFullProfile()` when the benchmark is ready and syncs `platform.deviceClass` via `applyBenchmarkToPlatform()`.
+- **Settings → Developer**: New "Developer" section with "Clear performance benchmark cache" button; after clearing, reload runs the benchmark again and shows the device-class modal.
+- **Alert modal**: `showAlertModal(message, title, onClose)` now accepts an optional `onClose` callback invoked when the user dismisses the modal (OK, overlay click, or Escape).
+- **Redundant code removed**: `summary-llm.js` no longer duplicates device heuristic logic; it uses `PerformanceUtils.getDevicePerformanceClass()` (benchmark-aware) with a simple 'medium' fallback when PerformanceUtils is not loaded.
+
+</details>
 
 <details>
 <summary><strong>v1.18.0</strong> — 2026-02-23 — Tab defaults and chart first-load fix</summary>

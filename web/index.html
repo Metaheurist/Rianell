@@ -61,7 +61,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css" crossorigin="anonymous">
   <link rel="preload" href="styles.css?v=1" as="style">
-  <link rel="stylesheet" href="styles.css?v=1">
+  <link rel="stylesheet" href="styles.css?v=1" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=1&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <style>
+    /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
+    html.health-app-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #e0f2f1; margin: 0; padding: 0; }
+    html.health-app-no-styles button, html.health-app-no-styles input { font-family: inherit; font-size: 1rem; padding: 0.5rem 1rem; border-radius: 8px; }
+    html.health-app-no-styles button { background: #4caf50; color: #fff; border: none; cursor: pointer; }
+    html.health-app-no-styles input { background: #1e1e1e; color: #e0f2f1; border: 1px solid #333; }
+  </style>
   <script>
     // Remove unwanted preload links injected by browser extensions
     (function() {
@@ -312,6 +319,15 @@
           <label>Lazy load charts</label>
           <div class="toggle-switch active" id="lazyToggle" onclick="toggleSetting('lazy')"></div>
         </div>
+      </div>
+
+      <div class="settings-section" id="godModeSection">
+        <h4>🔧 Developer</h4>
+        <div class="settings-option">
+          <label class="visually-hidden">Performance benchmark</label>
+          <button type="button" class="cloud-btn" onclick="clearBenchmarkCacheAndNotify()" style="padding: 8px 16px; font-size: 0.9rem;">Clear performance benchmark cache</button>
+        </div>
+        <p class="settings-hint">Clears the cached device performance tier. Reload the app to run the benchmark again and see the device-class modal.</p>
       </div>
 
       <div class="settings-section">
@@ -1965,6 +1981,7 @@
   <script src="import-utils.js?v=1"></script>
   <script src="print-utils.js?v=1"></script>
   <script src="device-module.js"></script>
+  <script src="device-benchmark.js"></script>
   <script src="performance-utils.js"></script>
   <script src="background-loader.js"></script>
   <script>
@@ -1987,6 +2004,30 @@
         var label = document.getElementById('installOnIosDeviceLabel');
         if (block) block.style.display = '';
         if (label) label.textContent = /iPad/.test(navigator.userAgent) ? 'Install on this iPad' : 'Install on this iPhone';
+      }
+    })();
+  </script>
+  <script>
+    (function() {
+      function checkStylesLoaded() {
+        var val = '';
+        try {
+          val = getComputedStyle(document.documentElement).getPropertyValue('--health-app-styles').trim();
+        } catch (e) {}
+        if (val !== '1') {
+          document.documentElement.classList.add('health-app-no-styles');
+          var overlay = document.createElement('div');
+          overlay.id = 'cssReloadOverlay';
+          overlay.setAttribute('role', 'alert');
+          overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0a0a0a;color:#e0f2f1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;font-family:system-ui,sans-serif;text-align:center;';
+          overlay.innerHTML = '<p style="margin-bottom:1rem;font-size:1.1rem;">Page did not load correctly.</p><p style="margin-bottom:1.5rem;opacity:0.9;">Tap below to reload.</p><button type="button" onclick="location.reload()" style="padding:12px 24px;font-size:1rem;background:#4caf50;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Reload</button>';
+          document.body.appendChild(overlay);
+        }
+      }
+      if (document.readyState === 'complete') {
+        setTimeout(checkStylesLoaded, 100);
+      } else {
+        window.addEventListener('load', function() { setTimeout(checkStylesLoaded, 100); });
       }
     })();
   </script>
