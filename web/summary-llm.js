@@ -19,6 +19,15 @@
 
   var MODEL_SMALL = 'Xenova/flan-t5-small';
   var MODEL_BASE = 'Xenova/flan-t5-base';
+  var MODEL_LARGE = 'Xenova/flan-t5-large';
+
+  /** Map tier (tier1..tier5) or size (small/base/large) to model id. Tier 1-2 -> small, 3-4 -> base, 5 -> large. */
+  function llmTierOrSizeToModelId(tierOrSize) {
+    if (tierOrSize === 'tier1' || tierOrSize === 'tier2' || tierOrSize === 'small') return MODEL_SMALL;
+    if (tierOrSize === 'tier3' || tierOrSize === 'tier4' || tierOrSize === 'base') return MODEL_BASE;
+    if (tierOrSize === 'tier5' || tierOrSize === 'large') return MODEL_LARGE;
+    return MODEL_BASE;
+  }
 
   /** Device class from PerformanceUtils (benchmark-aware) or single fallback when utils not loaded. */
   function getDeviceClassForModel() {
@@ -33,13 +42,14 @@
   }
 
   /**
-   * Resolve which model to use: 1) user override (appSettings.preferredLlmModelSize),
-   * 2) benchmark profile llmModelSize, 3) deviceClass fallback.
+   * Resolve which model to use: 1) user override (appSettings.preferredLlmModelSize: tier1-tier5 or small/base/large),
+   * 2) benchmark profile llmModelSize (tier1-tier5), 3) deviceClass fallback.
    */
   function getResolvedModelId() {
     var prefs = typeof window !== 'undefined' && window.appSettings;
-    if (prefs && (prefs.preferredLlmModelSize === 'small' || prefs.preferredLlmModelSize === 'base')) {
-      return prefs.preferredLlmModelSize === 'small' ? MODEL_SMALL : MODEL_BASE;
+    var preferred = prefs && prefs.preferredLlmModelSize;
+    if (preferred && preferred !== 'recommended') {
+      return llmTierOrSizeToModelId(preferred);
     }
     if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
       var platformType = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function')
@@ -48,8 +58,7 @@
       var tier = window.DeviceBenchmark.getPerformanceTier();
       var full = window.DeviceBenchmark.getFullProfile(platformType, tier, {});
       var size = full && full.llmModelSize;
-      if (size === 'small') return MODEL_SMALL;
-      if (size === 'base') return MODEL_BASE;
+      if (size) return llmTierOrSizeToModelId(size);
     }
     var deviceClass = (typeof window !== 'undefined' && window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass)
       ? window.PerformanceUtils.platform.deviceClass
@@ -76,8 +85,23 @@
       cachedModelId = modelId;
       return cachedPipeline;
     } catch (e) {
-      if (modelId === MODEL_BASE && typeof console !== 'undefined' && console.warn) {
-        console.warn('Summary LLM: flan-t5-base failed, retrying with flan-t5-small:', e.message || e);
+      if ((modelId === MODEL_BASE || modelId === MODEL_LARGE) && typeof console !== 'undefined' && console.warn) {
+        console.warn('Summary LLM: ' + modelId + ' failed, retrying with smaller model:', e.message || e);
+      }
+      if (modelId === MODEL_LARGE) {
+        try {
+          cachedPipeline = await mod.pipeline('text2text-generation', MODEL_BASE, { revision: 'main' });
+          cachedModelId = MODEL_BASE;
+          return cachedPipeline;
+        } catch (e2) {
+          try {
+            cachedPipeline = await mod.pipeline('text2text-generation', MODEL_SMALL, { revision: 'main' });
+            cachedModelId = MODEL_SMALL;
+            return cachedPipeline;
+          } catch (e3) {
+            throw e3;
+          }
+        }
       }
       if (modelId === MODEL_BASE) {
         try {
