@@ -964,6 +964,7 @@
   if (typeof window !== 'undefined') {
     window.DeviceBenchmark = {
       getPlatformType: getPlatformType,
+      getPlatformTypeCached: getPlatformTypeCached,
       getPerformanceTier: getPerformanceTier,
       getFullProfile: getFullProfile,
       getLegacyDeviceClass: getLegacyDeviceClass,
