@@ -4146,6 +4146,12 @@ body.light-mode .install-modal-hint {
   flex-wrap: wrap;
   gap: 6px 8px;
 }
+.god-mode-section-hint {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.85rem;
+  color: rgba(224, 242, 241, 0.7);
+  line-height: 1.35;
+}
 .god-mode-btn {
   padding: 8px 12px;
   text-align: left;
@@ -4294,8 +4300,13 @@ body.loading .loading-overlay {
 }
 .perf-benchmark-grid {
   display: grid;
-  grid-template-columns: 1.25fr 1fr;
+  grid-template-columns: 1.25fr 1fr 1fr;
   gap: 12px;
+}
+@media (max-width: 960px) {
+  .perf-benchmark-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 @media (max-width: 760px) {
   .perf-benchmark-grid {

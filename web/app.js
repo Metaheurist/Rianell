@@ -337,7 +337,7 @@ function openPerfBenchmarkModal(options) {
   } else {
     const empty = document.createElement('div');
     empty.style.opacity = '0.8';
-    empty.textContent = 'No per-test breakdown available (older cached result). Clear benchmark cache in Settings → Developer and reload to run a full benchmark.';
+    empty.textContent = 'No per-test breakdown available (older cached result). Clear benchmark cache in God mode (` key) and reload to run a full benchmark.';
     barsEl.appendChild(empty);
   }
 
@@ -411,6 +411,66 @@ function openPerfBenchmarkModal(options) {
         ctx.fillStyle = 'rgba(224,242,241,0.7)';
         ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Arial';
         ctx.fillText('No stability samples', 14, 26);
+      }
+    }
+  }
+
+  const gpuSparkEl = document.getElementById('perfBenchmarkGpuSparkline');
+  const gpuStatsEl = document.getElementById('perfBenchmarkGpuStats');
+  const gpuSamples = result && result.gpu && Array.isArray(result.gpu.scoreSamples) ? result.gpu.scoreSamples : [];
+  if (gpuStatsEl) {
+    gpuStatsEl.innerHTML = '';
+    if (result && result.gpu && result.gpu.available && result.gpu.backend && result.gpu.backend !== 'none') {
+      const backendLabel = result.gpu.backend === 'webgpu' ? 'WebGPU' : result.gpu.backend === 'webgl' ? 'WebGL' : result.gpu.backend;
+      const meanMs = gpuSamples.length ? (gpuSamples.reduce((a, b) => a + b, 0) / gpuSamples.length).toFixed(2) : '—';
+      const kv = [
+        ['Backend', backendLabel],
+        ['Samples', gpuSamples.length ? String(gpuSamples.length) : '—'],
+        ['Mean', meanMs !== '—' ? meanMs + ' ms' : '—']
+      ];
+      kv.forEach(pair => {
+        const div = document.createElement('div');
+        div.innerHTML = `<span>${pair[0]}</span><span>${pair[1]}</span>`;
+        gpuStatsEl.appendChild(div);
+      });
+    } else {
+      const div = document.createElement('div');
+      div.innerHTML = '<span>GPU</span><span>Not available</span>';
+      gpuStatsEl.appendChild(div);
+    }
+  }
+  if (gpuSparkEl && gpuSparkEl.getContext) {
+    const ctx = gpuSparkEl.getContext('2d');
+    if (ctx) {
+      ctx.clearRect(0, 0, gpuSparkEl.width, gpuSparkEl.height);
+      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      ctx.fillRect(0, 0, gpuSparkEl.width, gpuSparkEl.height);
+      ctx.strokeStyle = 'rgba(76,175,80,0.95)';
+      ctx.lineWidth = 2;
+      if (gpuSamples.length >= 2) {
+        const pad = 10;
+        const w = gpuSparkEl.width - pad * 2;
+        const h = gpuSparkEl.height - pad * 2;
+        const minV = Math.min.apply(null, gpuSamples);
+        const maxV = Math.max.apply(null, gpuSamples);
+        const denom = (maxV - minV) || 1;
+        ctx.beginPath();
+        for (let i = 0; i < gpuSamples.length; i++) {
+          const x = pad + (i / (gpuSamples.length - 1)) * w;
+          const y = pad + (1 - ((gpuSamples[i] - minV) / denom)) * h;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(76,175,80,0.18)';
+        ctx.lineTo(pad + w, pad + h);
+        ctx.lineTo(pad, pad + h);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        ctx.fillStyle = 'rgba(224,242,241,0.7)';
+        ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Arial';
+        ctx.fillText(gpuSamples.length === 0 && result && result.gpu && !result.gpu.available ? 'GPU not available' : 'No GPU stability samples', 14, 26);
       }
     }
   }
@@ -1755,6 +1815,14 @@ function openModalTestOverlay() {
       ]
     },
     {
+      title: 'Developer',
+      hint: 'Clears the cached device performance tier. Reload the app to run the benchmark again and see the device-class modal.',
+      items: [
+        { label: 'Clear performance benchmark cache', action: run(clearBenchmarkCacheAndNotify) },
+        { label: 'View last benchmark details', action: run(openBenchmarkDetails) }
+      ]
+    },
+    {
       title: 'Other',
       items: [
         { label: 'Focus skip link', action: run(function() { var s = document.querySelector('.skip-link'); if (s) s.focus(); }) }
@@ -1766,7 +1834,8 @@ function openModalTestOverlay() {
     var btns = s.items.map(function(item, i) {
       return '<button type="button" class="god-mode-btn">' + escapeHTML(item.label) + '</button>';
     }).join('');
-    return '<section class="god-mode-section"><h4 class="god-mode-section-title">' + escapeHTML(s.title) + '</h4><div class="god-mode-btn-group">' + btns + '</div></section>';
+    var hintHtml = s.hint ? '<p class="god-mode-section-hint">' + escapeHTML(s.hint) + '</p>' : '';
+    return '<section class="god-mode-section"><h4 class="god-mode-section-title">' + escapeHTML(s.title) + '</h4><div class="god-mode-btn-group">' + btns + '</div>' + hintHtml + '</section>';
   }).join('');
 
   sections.forEach(function(s, sIdx) {
@@ -14766,9 +14835,16 @@ window.addEventListener('load', () => {
       document.body.classList.add('loaded');
       showCookieBannerIfNeeded();
     }
-    
+
     renderLogs();
     updateCharts();
+    if (appSettings.aiEnabled !== false && typeof window.AIEngine !== 'undefined' && typeof window.AIEngine.warmGPUBackend === 'function' && window.DeviceBenchmark && window.DeviceBenchmark.getCachedResult) {
+      var cached = window.DeviceBenchmark.getCachedResult();
+      if (cached && cached.gpu && cached.gpu.good) {
+        var warm = function() { try { window.AIEngine.warmGPUBackend(); } catch (e) {} };
+        if (typeof requestIdleCallback !== 'undefined') requestIdleCallback(warm, { timeout: 2000 }); else setTimeout(warm, 800);
+      }
+    }
     updateAISummaryButtonState();
     var isLow = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
     if (!window.__chartsBuiltDuringLoad && !isLow && typeof scheduleChartsPreload === 'function') scheduleChartsPreload();
