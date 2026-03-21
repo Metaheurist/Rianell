@@ -1490,6 +1490,16 @@ function getBuildBaseUrls() {
   };
 }
 
+/** Skip latest.json fetch on local dev (avoids 404 noise); set sessionStorage.forceAppBuildManifest = '1' to test locally. */
+function shouldFetchAppBuildManifests() {
+  try {
+    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('forceAppBuildManifest') === '1') return true;
+  } catch (e) {}
+  var h = (window.location && window.location.hostname) ? String(window.location.hostname).toLowerCase() : '';
+  if (h === 'localhost' || h === '127.0.0.1' || h === '[::1]') return false;
+  return true;
+}
+
 function refreshBuildDownloadLinks() {
   var bases = getBuildBaseUrls();
   var androidBase = bases.android;
@@ -1532,27 +1542,29 @@ function refreshBuildDownloadLinks() {
   setAndroid(androidBase + 'app-debug.apk', '');
   setIos(iosBase + 'Health-Tracker-ios-latest.zip', '', isIosDevice ? 'Install on iOS' : 'Download iOS build (Xcode project)');
 
-  fetch(androidBase + 'latest.json', { cache: 'no-store' })
-    .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(data) {
-      if (data && data.file) {
-        var href = androidBase + encodeURIComponent(data.file);
-        var versionText = (data.version != null) ? '(build ' + data.version + ')' : '';
-        setAndroid(href, versionText);
-      }
-    })
-    .catch(function() {});
-  fetch(iosBase + 'latest.json', { cache: 'no-store' })
-    .then(function(r) { return r.ok ? r.json() : null; })
-    .then(function(data) {
-      if (data && data.file) {
-        var href = data.installUrl || (iosBase + encodeURIComponent(data.file));
-        var versionText = (data.version != null) ? '(build ' + data.version + ')' : '';
-        var label = data.installUrl && isIosDevice ? 'Install native app (one tap)' : (isIosDevice ? 'Install on iOS' : 'Download iOS build (Xcode project)');
-        setIos(href, versionText, label);
-      }
-    })
-    .catch(function() {});
+  if (shouldFetchAppBuildManifests()) {
+    fetch(androidBase + 'latest.json', { cache: 'no-store' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(data) {
+        if (data && data.file) {
+          var href = androidBase + encodeURIComponent(data.file);
+          var versionText = (data.version != null) ? '(build ' + data.version + ')' : '';
+          setAndroid(href, versionText);
+        }
+      })
+      .catch(function() {});
+    fetch(iosBase + 'latest.json', { cache: 'no-store' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(data) {
+        if (data && data.file) {
+          var href = data.installUrl || (iosBase + encodeURIComponent(data.file));
+          var versionText = (data.version != null) ? '(build ' + data.version + ')' : '';
+          var label = data.installUrl && isIosDevice ? 'Install native app (one tap)' : (isIosDevice ? 'Install on iOS' : 'Download iOS build (Xcode project)');
+          setIos(href, versionText, label);
+        }
+      })
+      .catch(function() {});
+  }
 }
 
 window.refreshBuildDownloadLinks = refreshBuildDownloadLinks;
@@ -2683,12 +2695,21 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   });
   
-  const urlParams = new URLSearchParams(window.location.search);
-
-  if (urlParams.get('quick') === 'true') {
-    switchTab('log');
-    setTimeout(function() { document.getElementById('date').focus(); }, 100);
+  var backBtn = document.getElementById('logWizardBackBtn');
+  var nextBtn = document.getElementById('logWizardNextBtn');
+  var skipBtn = document.getElementById('logWizardSkipBtn');
+  if (backBtn) backBtn.addEventListener('click', function() { logWizardGoBack(); });
+  if (nextBtn) nextBtn.addEventListener('click', function() { logWizardGoNext(); });
+  if (skipBtn) skipBtn.addEventListener('click', function() { logWizardGoNext(); });
+  var logFormEl = document.getElementById('logForm');
+  if (logFormEl) {
+    logFormEl.addEventListener('input', scheduleLogDraftPersist);
+    logFormEl.addEventListener('change', scheduleLogDraftPersist);
   }
+  window.addEventListener('hashchange', function() {
+    if (logWizardNavSyncing) return;
+    applyHashRoute();
+  });
 
   window.addEventListener('online', function() {
     flushOfflineQueue();
@@ -2696,10 +2717,11 @@ window.addEventListener('DOMContentLoaded', function() {
   if (navigator.onLine) {
     flushOfflineQueue();
   }
-  
-  if (urlParams.get('charts') === 'true') {
-    // Show charts immediately
-    document.getElementById('chartSection').classList.remove('hidden');
+
+  var pageParams = typeof URLSearchParams !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  if (pageParams && pageParams.get('charts') === 'true') {
+    var chartSectionEl = document.getElementById('chartSection');
+    if (chartSectionEl) chartSectionEl.classList.remove('hidden');
   }
 
   // Initialize food and exercise lists on page load
@@ -12009,6 +12031,9 @@ form.addEventListener("submit", e => {
   
   // Clear validation errors after successful submission
   formValidator.clearAllErrors();
+  if (typeof clearLogDraft === 'function') clearLogDraft();
+  currentLogWizardStep = 0;
+  if (typeof setLogWizardStep === 'function') setLogWizardStep(0, true);
   
   // Reset sliders to default values and update their colors
   sliders.forEach(sliderId => {
@@ -12145,8 +12170,10 @@ function applyAIFeatureVisibility() {
   if (goalsBlock) goalsBlock.style.display = on ? (goalsBlock.getAttribute('data-has-goals') === 'true' ? '' : 'none') : 'none';
   var currentTab = document.querySelector('.tab-btn[data-tab].active');
   if (!on && currentTab && currentTab.getAttribute('data-tab') === 'ai') {
-    if (typeof switchTab === 'function') switchTab('log');
+    if (typeof switchTab === 'function') switchTab('home');
   }
+  var bottomAi = document.getElementById('bottom-tab-ai');
+  if (bottomAi) bottomAi.style.display = on ? '' : 'none';
 }
 
 function toggleAIFeatures() {
@@ -14546,52 +14573,382 @@ function initializeOneOpenDetails() {
   makeAccordion('#editExerciseSection', 'details.exercise-meal-collapsible');
 }
 
+// --- App-like navigation: home panel, log wizard, hash, draft ---
+var LOG_WIZARD_TOTAL_STEPS = 8;
+var currentLogWizardStep = 0;
+var logWizardNavSyncing = false;
+var logDraftDebounceTimer = null;
+var LOG_DRAFT_STORAGE_KEY = 'healthLogDraftV1';
+
+function syncMainNavTabs(tabName) {
+  document.querySelectorAll('.main-nav-tab').forEach(function(btn) {
+    var t = btn.getAttribute('data-tab');
+    var isActive = t === tabName;
+    btn.classList.toggle('active', isActive);
+    if (btn.getAttribute('role') === 'tab') {
+      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    }
+    if (btn.classList.contains('app-bottom-nav-btn')) {
+      if (isActive) btn.setAttribute('aria-current', 'page');
+      else btn.removeAttribute('aria-current');
+    }
+  });
+}
+
+function initializeLogWizardSections() {
+  var form = document.getElementById('logForm');
+  if (!form) return;
+  form.querySelectorAll('.section-content').forEach(function(el) {
+    el.classList.add('open');
+  });
+}
+
+function updateHomeTodayPanel() {
+  var greet = document.getElementById('homeGreeting');
+  var dateEl = document.getElementById('homeTodayDate');
+  var statusEl = document.getElementById('homeTodayStatus');
+  var name = (typeof appSettings !== 'undefined' && appSettings.userName) ? String(appSettings.userName).trim() : '';
+  if (greet) greet.textContent = name ? 'Hi, ' + name : 'Today';
+  var d = new Date();
+  if (dateEl) {
+    dateEl.textContent = d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  }
+  if (!statusEl) return;
+  var yyyy = d.getFullYear();
+  var mm = String(d.getMonth() + 1).padStart(2, '0');
+  var dd = String(d.getDate()).padStart(2, '0');
+  var todayStr = yyyy + '-' + mm + '-' + dd;
+  var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
+  var today = logArr.find(function(l) { return l.date === todayStr; });
+  if (today) {
+    statusEl.textContent = 'You have logged today. Open View logs to browse or edit entries.';
+  } else {
+    statusEl.textContent = 'No log for today yet. Use Log today to record how you feel.';
+  }
+}
+
+function openLogWizardFromHome() {
+  switchTab('log', true);
+  setLogWizardStep(0);
+  if (typeof setAppHashFromTab === 'function') setAppHashFromTab('log');
+}
+
+function buildLogReviewSummaryHtml() {
+  var parts = [];
+  function line(label, val) {
+    if (val === undefined || val === null || val === '') return;
+    parts.push('<div class="log-review-line"><strong>' + escapeHTML(label) + ':</strong> ' + escapeHTML(String(val)) + '</div>');
+  }
+  function heading(t) {
+    parts.push('<div class="log-review-heading">' + escapeHTML(t) + '</div>');
+  }
+  var dateEl = document.getElementById('date');
+  var flareEl = document.getElementById('flare');
+  heading('Basics');
+  line('Date', dateEl ? dateEl.value : '');
+  line('Flare', flareEl ? flareEl.value : '');
+  heading('Vitals');
+  line('BPM', document.getElementById('bpm') && document.getElementById('bpm').value);
+  line('Weight', document.getElementById('weight') && document.getElementById('weight').value);
+  heading('Symptoms');
+  ['stiffness', 'jointPain', 'mobility', 'swelling'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el && el.value) line(id, el.value + '/10');
+  });
+  line('Pain location', document.getElementById('painLocation') && document.getElementById('painLocation').value);
+  heading('Energy & day');
+  ['fatigue', 'sleep', 'mood', 'irritability', 'weatherSensitivity', 'dailyFunction'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el && el.value) line(id, el.value + '/10');
+  });
+  line('Steps', document.getElementById('steps') && document.getElementById('steps').value);
+  line('Hydration', document.getElementById('hydration') && document.getElementById('hydration').value);
+  var ec = document.getElementById('energyClarity');
+  if (ec && ec.value) line('Energy / clarity', ec.value);
+  if (typeof logFormStressorsItems !== 'undefined' && logFormStressorsItems.length) {
+    line('Stressors', logFormStressorsItems.join(', '));
+  }
+  if (typeof logFormSymptomsItems !== 'undefined' && logFormSymptomsItems.length) {
+    line('Symptoms', logFormSymptomsItems.join(', '));
+  }
+  heading('Food & exercise');
+  if (typeof logFormFoodByCategory !== 'undefined') {
+    ['breakfast', 'lunch', 'dinner', 'snack'].forEach(function(meal) {
+      var arr = logFormFoodByCategory[meal] || [];
+      if (arr.length) line(meal, arr.map(function(x) { return typeof x === 'string' ? x : (x.name || ''); }).filter(Boolean).join(', '));
+    });
+  }
+  if (typeof logFormExerciseItems !== 'undefined' && logFormExerciseItems.length) {
+    line('Exercise', logFormExerciseItems.map(function(x) { return typeof x === 'string' ? x : (x.name || ''); }).filter(Boolean).join(', '));
+  }
+  heading('Medication & notes');
+  if (typeof logFormMedications !== 'undefined' && logFormMedications.length) {
+    line('Medications', logFormMedications.map(function(m) { return m.name; }).join(', '));
+  }
+  line('Notes', document.getElementById('notes') && document.getElementById('notes').value);
+  return parts.length ? parts.join('') : '<p class="log-review-line">No optional details filled — you can still save.</p>';
+}
+
+function updateLogWizardChrome() {
+  var label = document.getElementById('logWizardStepLabel');
+  var fill = document.getElementById('logWizardProgressFill');
+  var bar = document.getElementById('logWizardProgressBar');
+  var title = document.getElementById('logTabTitle');
+  var stepEl = document.querySelector('.log-wizard-step[data-log-step="' + currentLogWizardStep + '"]');
+  var stepTitle = stepEl ? (stepEl.getAttribute('data-step-title') || '') : '';
+  if (label) label.textContent = 'Step ' + (currentLogWizardStep + 1) + ' of ' + LOG_WIZARD_TOTAL_STEPS + (stepTitle ? ' — ' + stepTitle : '');
+  if (fill) fill.style.width = ((currentLogWizardStep + 1) / LOG_WIZARD_TOTAL_STEPS * 100) + '%';
+  if (bar) {
+    bar.setAttribute('aria-valuenow', String(currentLogWizardStep + 1));
+    bar.setAttribute('aria-valuemax', String(LOG_WIZARD_TOTAL_STEPS));
+  }
+  if (title) title.textContent = stepTitle ? 'Log: ' + stepTitle : 'Log today';
+  var backBtn = document.getElementById('logWizardBackBtn');
+  var nextBtn = document.getElementById('logWizardNextBtn');
+  var skipBtn = document.getElementById('logWizardSkipBtn');
+  var saveBtn = document.getElementById('logWizardSaveBtn');
+  if (backBtn) backBtn.style.display = currentLogWizardStep > 0 ? '' : 'none';
+  if (nextBtn) nextBtn.style.display = currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1 ? '' : 'none';
+  if (skipBtn) skipBtn.style.display = currentLogWizardStep > 0 && currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1 ? '' : 'none';
+  if (saveBtn) saveBtn.style.display = currentLogWizardStep === LOG_WIZARD_TOTAL_STEPS - 1 ? '' : 'none';
+}
+
+function setLogWizardStep(step, skipHashUpdate) {
+  step = Math.max(0, Math.min(LOG_WIZARD_TOTAL_STEPS - 1, step));
+  currentLogWizardStep = step;
+  document.querySelectorAll('#logWizardSteps .log-wizard-step').forEach(function(el) {
+    var s = parseInt(el.getAttribute('data-log-step'), 10);
+    el.classList.toggle('log-wizard-step--active', s === step);
+  });
+  if (step === LOG_WIZARD_TOTAL_STEPS - 1) {
+    var review = document.getElementById('logReviewSummary');
+    if (review) review.innerHTML = buildLogReviewSummaryHtml();
+  }
+  updateLogWizardChrome();
+  var panel = document.getElementById('logTab');
+  if (panel) {
+    if (step === LOG_WIZARD_TOTAL_STEPS - 1) {
+      var saveFocus = document.getElementById('logWizardSaveBtn');
+      if (saveFocus && typeof saveFocus.focus === 'function') {
+        try { saveFocus.focus({ preventScroll: true }); } catch (e) { saveFocus.focus(); }
+      }
+    } else {
+      var focusTarget = panel.querySelector('.log-wizard-step.log-wizard-step--active input, .log-wizard-step.log-wizard-step--active select, .log-wizard-step.log-wizard-step--active textarea');
+      if (focusTarget && typeof focusTarget.focus === 'function') {
+        try { focusTarget.focus({ preventScroll: true }); } catch (e) { focusTarget.focus(); }
+      }
+    }
+  }
+  if (!skipHashUpdate && tabNameRef === 'log' && typeof setAppHashFromTab === 'function') {
+    setAppHashFromTab('log');
+  }
+  scheduleLogDraftPersist();
+}
+var tabNameRef = 'home';
+
+function validateLogWizardStep(step) {
+  if (step === 0) {
+    var ok = true;
+    if (typeof formValidator !== 'undefined' && formValidator.validateField) {
+      if (!formValidator.validateField('date')) ok = false;
+      if (!formValidator.validateField('flare')) ok = false;
+    }
+    return ok;
+  }
+  return true;
+}
+
+function logWizardGoNext() {
+  if (!validateLogWizardStep(currentLogWizardStep)) {
+    var summaryElement = document.getElementById('validationSummary');
+    if (summaryElement && summaryElement.classList.contains('show')) {
+      summaryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+  if (currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1) {
+    setLogWizardStep(currentLogWizardStep + 1);
+  }
+}
+
+function logWizardGoBack() {
+  if (currentLogWizardStep > 0) {
+    setLogWizardStep(currentLogWizardStep - 1);
+  }
+}
+
+function collectLogDraftSnapshot() {
+  var snap = {
+    step: currentLogWizardStep,
+    food: typeof logFormFoodByCategory !== 'undefined' ? JSON.parse(JSON.stringify(logFormFoodByCategory)) : {},
+    exercise: typeof logFormExerciseItems !== 'undefined' ? logFormExerciseItems.slice() : [],
+    stressors: typeof logFormStressorsItems !== 'undefined' ? logFormStressorsItems.slice() : [],
+    symptoms: typeof logFormSymptomsItems !== 'undefined' ? logFormSymptomsItems.slice() : [],
+    medications: typeof logFormMedications !== 'undefined' ? logFormMedications.slice() : [],
+    fields: {}
+  };
+  var form = document.getElementById('logForm');
+  if (!form) return snap;
+  form.querySelectorAll('input, select, textarea').forEach(function(el) {
+    if (!el.id || el.type === 'file' || el.type === 'button') return;
+    if (el.type === 'checkbox') snap.fields[el.id] = el.checked;
+    else snap.fields[el.id] = el.value;
+  });
+  return snap;
+}
+
+function persistLogDraftNow() {
+  try {
+    if (typeof sessionStorage === 'undefined') return;
+    sessionStorage.setItem(LOG_DRAFT_STORAGE_KEY, JSON.stringify(collectLogDraftSnapshot()));
+  } catch (e) {}
+}
+
+function scheduleLogDraftPersist() {
+  if (logDraftDebounceTimer) clearTimeout(logDraftDebounceTimer);
+  logDraftDebounceTimer = setTimeout(function() {
+    logDraftDebounceTimer = null;
+    persistLogDraftNow();
+  }, 400);
+}
+
+function clearLogDraft() {
+  try {
+    if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem(LOG_DRAFT_STORAGE_KEY);
+  } catch (e) {}
+}
+
+function restoreLogDraftIfAny() {
+  try {
+    if (typeof sessionStorage === 'undefined') return;
+    var raw = sessionStorage.getItem(LOG_DRAFT_STORAGE_KEY);
+    if (!raw) return;
+    var snap = JSON.parse(raw);
+    if (!snap || typeof snap.step !== 'number') return;
+    if (snap.food && typeof logFormFoodByCategory !== 'undefined') {
+      logFormFoodByCategory = snap.food;
+      if (typeof renderLogFoodItems === 'function') renderLogFoodItems();
+    }
+    if (snap.exercise && typeof logFormExerciseItems !== 'undefined') {
+      logFormExerciseItems = snap.exercise;
+      if (typeof renderLogExerciseItems === 'function') renderLogExerciseItems();
+    }
+    if (snap.stressors && typeof logFormStressorsItems !== 'undefined') {
+      logFormStressorsItems = snap.stressors;
+      if (typeof renderLogStressorsItems === 'function') renderLogStressorsItems();
+    }
+    if (snap.symptoms && typeof logFormSymptomsItems !== 'undefined') {
+      logFormSymptomsItems = snap.symptoms;
+      if (typeof renderLogSymptomsItems === 'function') renderLogSymptomsItems();
+    }
+    if (snap.medications && typeof logFormMedications !== 'undefined') {
+      logFormMedications = snap.medications;
+      if (typeof renderLogMedicationsItems === 'function') renderLogMedicationsItems();
+    }
+    if (snap.fields) {
+      Object.keys(snap.fields).forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = !!snap.fields[id];
+        else el.value = snap.fields[id];
+      });
+    }
+    ['fatigue', 'stiffness', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'weatherSensitivity'].forEach(function(id) {
+      var sl = document.getElementById(id);
+      if (sl && typeof updateSliderColor === 'function') updateSliderColor(sl);
+    });
+    initializeLogWizardSections();
+    setLogWizardStep(Math.min(snap.step, LOG_WIZARD_TOTAL_STEPS - 1), true);
+  } catch (e) {}
+}
+
+function parseAppHash() {
+  var h = (typeof location !== 'undefined' && location.hash ? location.hash : '').replace(/^#/, '');
+  if (!h || h === 'home') return { tab: 'home' };
+  if (h.indexOf('log') === 0) {
+    var m = h.match(/^log\/step\/(\d+)/);
+    if (m) return { tab: 'log', step: Math.max(0, parseInt(m[1], 10) - 1) };
+    return { tab: 'log' };
+  }
+  if (h === 'logs') return { tab: 'logs' };
+  if (h === 'charts') return { tab: 'charts' };
+  if (h === 'ai') return { tab: 'ai' };
+  return { tab: 'home' };
+}
+
+function setAppHashFromTab(tab) {
+  if (logWizardNavSyncing) return;
+  var next = tab === 'log' ? '#log/step/' + (currentLogWizardStep + 1) : '#' + tab;
+  if (location.hash === next) return;
+  logWizardNavSyncing = true;
+  try {
+    history.replaceState(null, '', location.pathname + location.search + next);
+  } finally {
+    setTimeout(function() { logWizardNavSyncing = false; }, 0);
+  }
+}
+
+function applyHashRoute() {
+  var r = parseAppHash();
+  if (r.tab === 'ai' && typeof appSettings !== 'undefined' && appSettings.aiEnabled === false) {
+    r.tab = 'home';
+  }
+  if (r.tab === 'log' && typeof r.step === 'number' && !isNaN(r.step)) {
+    currentLogWizardStep = r.step;
+  }
+  switchTab(r.tab, true);
+  if (r.tab === 'log' && typeof r.step !== 'number') {
+    restoreLogDraftIfAny();
+  }
+  if (typeof setAppHashFromTab === 'function') {
+    setAppHashFromTab(r.tab);
+  }
+}
+
 // Tab switching functionality
-function switchTab(tabName) {
+function switchTab(tabName, skipHash) {
   const allTabs = document.querySelectorAll('.tab-content');
-  const allTabBtns = document.querySelectorAll('.tab-btn');
   const selectedTab = document.getElementById(tabName + 'Tab');
-  const selectedBtn = document.querySelector('[data-tab="' + tabName + '"]');
   const currentActive = document.querySelector('.tab-content.active');
+  if (!selectedTab) return;
+  tabNameRef = tabName;
 
   function doSwitch() {
     allTabs.forEach(function(tab) {
       tab.classList.remove('active', 'tab-content--leave');
       tab.style.display = 'none';
     });
-    allTabBtns.forEach(function(btn) {
-      btn.classList.remove('active');
-    });
+    syncMainNavTabs(tabName);
     if (selectedTab) {
       selectedTab.classList.add('active');
       selectedTab.style.display = 'block';
       selectedTab.style.visibility = 'visible';
       selectedTab.style.opacity = '1';
     }
-    if (selectedBtn) {
-      selectedBtn.classList.add('active');
-      selectedBtn.setAttribute('aria-selected', 'true');
-      allTabBtns.forEach(function(btn) {
-        if (btn !== selectedBtn) btn.setAttribute('aria-selected', 'false');
-      });
-      selectedBtn.focus();
-    }
+    var selectedBtnTop = document.querySelector('.tab-navigation .tab-btn[data-tab="' + tabName + '"]');
     var nav = document.querySelector('.tab-navigation');
     var indicator = document.getElementById('tabNavIndicator');
-    if (nav && indicator && selectedBtn) {
-      var left = selectedBtn.offsetLeft;
-      var w = selectedBtn.offsetWidth;
+    if (nav && indicator && selectedBtnTop) {
+      var left = selectedBtnTop.offsetLeft;
+      var w = selectedBtnTop.offsetWidth;
       indicator.style.width = w + 'px';
       indicator.style.transform = 'translateX(' + left + 'px)';
     }
-    if (tabName === 'charts' || tabName === 'logs' || tabName === 'ai') {
+    if (tabName === 'charts' || tabName === 'logs' || tabName === 'ai' || tabName === 'home') {
       var container = document.querySelector('.container');
       if (container) container.scrollTop = 0;
       if (selectedTab) selectedTab.scrollTop = 0;
       window.scrollTo(0, 0);
     }
-    if (tabName === 'log' && typeof updateGoalsProgressBlock === 'function') {
+    if (tabName === 'home' && typeof updateGoalsProgressBlock === 'function') {
       updateGoalsProgressBlock();
+    }
+    if (typeof updateHomeTodayPanel === 'function') {
+      updateHomeTodayPanel();
+    }
+    if (tabName === 'log') {
+      initializeLogWizardSections();
+      setLogWizardStep(typeof currentLogWizardStep === 'number' ? currentLogWizardStep : 0, true);
     }
     if (tabName === 'charts') {
     const chartSection = document.getElementById('chartSection');
@@ -14661,6 +15018,10 @@ function switchTab(tabName) {
   
   // Scroll to top smoothly
   window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (!skipHash && typeof setAppHashFromTab === 'function') {
+      setAppHashFromTab(tabName);
+    }
   }
 
   if (currentActive && currentActive !== selectedTab) {
@@ -14879,8 +15240,20 @@ window.addEventListener('load', () => {
     }
     updateWeightInputConstraints();
     updateHeartbeatAnimation();
-    switchTab('log');
+    var initParams = typeof URLSearchParams !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    if (initParams && initParams.get('quick') === 'true') {
+      switchTab('log', true);
+      setLogWizardStep(0, true);
+      setTimeout(function() {
+        var di = document.getElementById('date');
+        if (di) di.focus();
+      }, 150);
+    } else {
+      applyHashRoute();
+    }
     initializeSections();
+    /* initializeSections() clears .open on all accordions; log wizard needs .open so tile <details> and section children are not stuck at opacity 0 from slideInUp */
+    if (typeof initializeLogWizardSections === 'function') initializeLogWizardSections();
     initializeOneOpenDetails();
     
     const toggleBtn = document.getElementById('predictionToggle');

@@ -595,6 +595,387 @@ h1#dashboardTitle:hover {
   box-shadow: var(--card-hover-shadow);
 }
 
+/* App shell: full-height layout + bottom nav (mobile) */
+.app-shell {
+  min-height: 100dvh;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.app-main-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Bottom bar: mobile/tablet only — default hidden so desktop never stacks with top tabs */
+.app-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  body {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+  body:has(.app-bottom-nav) .app-main-scroll {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+  .tab-navigation.tab-navigation--top {
+    display: none !important;
+  }
+
+  .app-bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    justify-content: space-around;
+    align-items: stretch;
+    gap: 2px;
+    min-height: calc(52px + env(safe-area-inset-bottom, 0px));
+    padding: 6px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+    padding-left: max(6px, env(safe-area-inset-left, 0px));
+    padding-right: max(6px, env(safe-area-inset-right, 0px));
+    background: rgba(14, 16, 20, 0.86);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app-bottom-nav-btn {
+    flex: 1;
+    min-width: 0;
+    min-height: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 4px;
+    border: none;
+    background: transparent;
+    color: rgba(224, 242, 241, 0.55);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    border-radius: 14px;
+    transition: color var(--transition-fast), background var(--transition-fast), transform 0.15s ease;
+  }
+
+  .app-bottom-nav-btn:active {
+    transform: scale(0.96);
+  }
+
+  .app-bottom-nav-btn[aria-current="page"],
+  .app-bottom-nav-btn.active {
+    color: #fff;
+    background: rgba(76, 175, 80, 0.28);
+    box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.35);
+  }
+
+  .app-bottom-nav-icon {
+    font-size: 1.45rem;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+  }
+
+  .app-bottom-nav-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    line-height: 1.15;
+  }
+
+  body.light-mode .app-bottom-nav {
+    background: rgba(255, 255, 255, 0.92);
+    border-top-color: rgba(129, 199, 132, 0.35);
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.08);
+  }
+
+  body.light-mode .app-bottom-nav-btn {
+    color: rgba(30, 60, 30, 0.72);
+  }
+
+  body.light-mode .app-bottom-nav-btn[aria-current="page"],
+  body.light-mode .app-bottom-nav-btn.active {
+    color: var(--text-dark);
+    background: rgba(76, 175, 80, 0.22);
+    box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.3);
+  }
+}
+
+/* Home / Today */
+.home-today-header {
+  margin-bottom: 1rem;
+}
+
+.home-today-sub {
+  margin: 0.35rem 0 0 0;
+  font-size: var(--text-sm);
+  opacity: 0.85;
+}
+
+.home-today-status {
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 1rem;
+  font-size: var(--text-base);
+}
+
+.home-today-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.home-primary-btn {
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  color: #fff;
+  background: var(--primary-gradient);
+  box-shadow: var(--shadow-md), var(--primary-glow);
+  transition: transform var(--transition-fluid), box-shadow var(--transition-fluid);
+}
+
+.home-primary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg), 0 0 16px rgba(76, 175, 80, 0.35);
+}
+
+/* Log wizard */
+#logTab.log-wizard-mode > .tab-header {
+  padding-left: max(12px, env(safe-area-inset-left, 0px));
+  padding-right: max(12px, env(safe-area-inset-right, 0px));
+  box-sizing: border-box;
+}
+
+#logTab.log-wizard-mode #logForm {
+  padding-left: max(12px, env(safe-area-inset-left, 0px));
+  padding-right: max(12px, env(safe-area-inset-right, 0px));
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  #logTab.log-wizard-mode > .tab-header,
+  #logTab.log-wizard-mode #logForm {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+}
+
+#logTab.log-wizard-mode .section-header {
+  display: none;
+}
+
+#logTab.log-wizard-mode .section-content {
+  max-height: none !important;
+  opacity: 1 !important;
+  padding: 0.5rem 0 1rem 0;
+  /* Allow <details> slot and tile grids to paint; overflow:hidden on .section-content can clip nested open details */
+  overflow: visible !important;
+}
+
+#logTab.log-wizard-mode .section-content.open > * {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.log-wizard-chrome {
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.log-wizard-step-indicator {
+  margin: 0 0 10px 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: rgba(224, 242, 241, 0.9);
+}
+
+.log-wizard-progress-track {
+  height: 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.log-wizard-progress-fill {
+  height: 100%;
+  width: 12.5%;
+  border-radius: 4px;
+  background: var(--primary-gradient);
+  transition: width var(--transition-fluid);
+}
+
+.log-wizard-steps {
+  position: relative;
+}
+
+.log-wizard-step {
+  display: none;
+  animation: fadeInTab 0.35s var(--ease-fluid) forwards;
+}
+
+.log-wizard-step.log-wizard-step--active {
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .log-wizard-step {
+    animation: none;
+  }
+}
+
+.log-review-summary {
+  font-size: var(--text-base);
+  line-height: 1.6;
+}
+
+.log-review-summary .log-review-line {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.log-review-summary .log-review-heading {
+  font-weight: 700;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  color: rgba(76, 175, 80, 0.95);
+}
+
+/* Flat bar — no dark panel/shadow behind the row (content shows through) */
+.log-wizard-sticky-actions {
+  position: sticky;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-top: 1.5rem;
+  padding: 12px 0;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  background: transparent;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width: 768px) {
+  .log-wizard-sticky-actions {
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    margin-bottom: 0;
+  }
+}
+
+.log-wizard-back-btn,
+.log-wizard-next-btn,
+.log-wizard-skip-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--text-light);
+  background: rgba(32, 36, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform 0.12s ease;
+}
+
+.log-wizard-back-btn:hover,
+.log-wizard-skip-btn:hover,
+.log-wizard-next-btn:hover {
+  box-shadow: none;
+}
+
+.log-wizard-back-btn:active,
+.log-wizard-skip-btn:active,
+.log-wizard-next-btn:active {
+  transform: scale(0.98);
+  box-shadow: none;
+}
+
+.log-wizard-back-btn:focus-visible,
+.log-wizard-skip-btn:focus-visible,
+.log-wizard-next-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.45);
+}
+
+.log-wizard-next-btn {
+  background: rgba(76, 175, 80, 0.22);
+  border-color: rgba(76, 175, 80, 0.5);
+  color: #fff;
+  box-shadow: none;
+}
+
+.log-wizard-next-btn:hover {
+  box-shadow: none;
+}
+
+.log-wizard-skip-btn {
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.22);
+  opacity: 1;
+}
+
+.log-wizard-save-btn {
+  width: 100%;
+  flex: 1 1 100%;
+  order: 10;
+  padding: 14px 20px;
+  font-size: 1rem;
+  margin-top: 0;
+}
+
+.log-wizard-sticky-actions .log-wizard-save-btn:not([style*="display: none"]) {
+  flex-basis: 100%;
+}
+
+/* Flat save button in wizard row — no drop shadow (global .save-entry-btn uses heavy glow) */
+.log-wizard-sticky-actions .log-wizard-save-btn.save-entry-btn {
+  margin-top: 4px !important;
+  box-shadow: none !important;
+}
+
+.log-wizard-sticky-actions .log-wizard-save-btn.save-entry-btn:hover {
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.log-wizard-sticky-actions .log-wizard-save-btn.save-entry-btn:active {
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.log-wizard-sticky-actions .log-wizard-save-btn.save-entry-btn:focus,
+.log-wizard-sticky-actions .log-wizard-save-btn.save-entry-btn:focus-visible {
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.45) !important;
+}
+
 /* Tab Navigation */
 .tab-navigation {
   display: flex;

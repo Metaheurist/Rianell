@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Health Dashboard</title>
   
   <!-- PWA Manifest -->
@@ -416,7 +416,8 @@
     </div>
   </div>
   
-  <div class="container" id="main-content">
+  <div class="app-shell" id="appShell">
+  <div class="container app-main-scroll" id="main-content">
     <!-- Header buttons: Targets (face) + Settings -->
     <div class="header-buttons-wrap">
       <button type="button" class="targets-button-top" onclick="openGoalsModal()" title="Goals & targets">
@@ -503,38 +504,63 @@
       </div>
     </div>
 
-    <!-- Tab Navigation -->
-    <div class="tab-navigation" role="tablist" aria-label="Main sections">
+    <!-- Tab Navigation (desktop / wide screens) -->
+    <div class="tab-navigation tab-navigation--top" role="tablist" aria-label="Main sections">
       <span class="tab-nav-indicator" id="tabNavIndicator" aria-hidden="true"></span>
-      <button type="button" class="tab-btn active" data-tab="log" role="tab" aria-selected="true" aria-controls="logTab" id="tab-log" onclick="switchTab('log')">
+      <button type="button" class="tab-btn main-nav-tab active" data-tab="home" role="tab" aria-selected="true" aria-controls="homeTab" id="tab-home" onclick="switchTab('home')">
+        <span class="tab-icon">🏠</span>
+        <span class="tab-text">Home</span>
+      </button>
+      <button type="button" class="tab-btn main-nav-tab" data-tab="log" role="tab" aria-selected="false" aria-controls="logTab" id="tab-log" onclick="switchTab('log')">
         <span class="tab-icon">📝</span>
         <span class="tab-text">Log Entry</span>
       </button>
-      <button type="button" class="tab-btn" data-tab="logs" role="tab" aria-selected="false" aria-controls="logsTab" id="tab-logs" onclick="switchTab('logs')">
+      <button type="button" class="tab-btn main-nav-tab" data-tab="logs" role="tab" aria-selected="false" aria-controls="logsTab" id="tab-logs" onclick="switchTab('logs')">
         <span class="tab-icon">📋</span>
         <span class="tab-text">View Logs</span>
       </button>
-      <button type="button" class="tab-btn" data-tab="charts" role="tab" aria-selected="false" aria-controls="chartsTab" id="tab-charts" onclick="switchTab('charts')">
+      <button type="button" class="tab-btn main-nav-tab" data-tab="charts" role="tab" aria-selected="false" aria-controls="chartsTab" id="tab-charts" onclick="switchTab('charts')">
         <span class="tab-icon">📊</span>
         <span class="tab-text">Charts</span>
       </button>
-      <button type="button" class="tab-btn" data-tab="ai" role="tab" aria-selected="false" aria-controls="aiTab" id="tab-ai" onclick="switchTab('ai')">
+      <button type="button" class="tab-btn main-nav-tab" data-tab="ai" role="tab" aria-selected="false" aria-controls="aiTab" id="tab-ai" onclick="switchTab('ai')">
         <span class="tab-icon">🧠</span>
         <span class="tab-text">AI Analysis</span>
       </button>
     </div>
 
-    <!-- Log Entry Tab -->
-    <div id="logTab" class="tab-content active" role="tabpanel" aria-labelledby="tab-log">
-      <div class="tab-header">
-        <h2 class="tab-title">Log today</h2>
+    <!-- Home / Today -->
+    <div id="homeTab" class="tab-content active" role="tabpanel" aria-labelledby="tab-home">
+      <div class="home-today-header">
+        <h2 class="tab-title" id="homeGreeting">Today</h2>
+        <p class="home-today-sub" id="homeTodayDate" aria-live="polite"></p>
       </div>
+      <div id="homeTodayStatus" class="home-today-status" role="status" aria-live="polite"></div>
       <div id="goalsProgressBlock" class="goals-progress-block" style="display: none;" aria-live="polite"></div>
+      <div class="home-today-actions">
+        <button type="button" class="home-primary-btn" id="homeLogTodayBtn" onclick="openLogWizardFromHome()">Log today</button>
+      </div>
+    </div>
+
+    <!-- Log Entry Tab -->
+    <div id="logTab" class="tab-content log-wizard-mode" role="tabpanel" aria-labelledby="tab-log">
+      <div class="tab-header log-tab-header-wizard">
+        <h2 class="tab-title" id="logTabTitle">Log today</h2>
+      </div>
     <form id="logForm">
       <div id="validationSummary" class="form-validation-summary">
         <h4>⚠️ Please fix the following errors:</h4>
         <ul id="validationList"></ul>
       </div>
+
+      <div class="log-wizard-chrome" id="logWizardChrome">
+        <p class="log-wizard-step-indicator" id="logWizardStepIndicator"><span id="logWizardStepLabel">Step 1 of 8</span></p>
+        <div class="log-wizard-progress-track" role="progressbar" aria-valuemin="1" aria-valuemax="8" aria-valuenow="1" id="logWizardProgressBar" aria-labelledby="logWizardStepLabel">
+          <div class="log-wizard-progress-fill" id="logWizardProgressFill"></div>
+        </div>
+      </div>
+      <div class="log-wizard-steps" id="logWizardSteps">
+      <div class="log-wizard-step log-wizard-step--active" data-log-step="0" data-step-title="Date &amp; flare">
 
       <!-- Required: date and flare first -->
       <div class="log-date-block">
@@ -555,6 +581,9 @@
           <div class="validation-message" id="flare-error"></div>
         </div>
       </div>
+
+      </div>
+      <div class="log-wizard-step" data-log-step="1" data-step-title="Vitals">
 
       <!-- Optional sections (all below) -->
       <!-- Basic Metrics Section (optional) -->
@@ -582,6 +611,9 @@
           </div>
         </div>
       </div>
+
+      </div>
+      <div class="log-wizard-step" data-log-step="2" data-step-title="Symptoms &amp; pain">
 
       <!-- Symptoms Section -->
       <div class="form-section">
@@ -658,6 +690,9 @@
       </div>
         </div>
       </div>
+
+      </div>
+      <div class="log-wizard-step" data-log-step="3" data-step-title="Energy &amp; day">
 
       <!-- Energy & Cognitive Section -->
       <div class="form-section">
@@ -765,6 +800,9 @@
         </div>
       </div>
 
+      </div>
+      <div class="log-wizard-step" data-log-step="4" data-step-title="Food">
+
       <!-- Food Log Section (4 categories: Breakfast, Lunch, Dinner, Snack) -->
       <div class="form-section">
         <button type="button" class="section-header" data-section="foodLog">
@@ -812,6 +850,9 @@
         </div>
       </div>
 
+      </div>
+      <div class="log-wizard-step" data-log-step="5" data-step-title="Exercise">
+
       <!-- Exercise Log Section (tile grid by category: Cardio, Strength, etc. — collapsible, collapsed by default) -->
       <div class="form-section">
         <button type="button" class="section-header" data-section="exerciseLog">
@@ -855,6 +896,9 @@
           </details>
         </div>
       </div>
+
+      </div>
+      <div class="log-wizard-step" data-log-step="6" data-step-title="Medication &amp; notes">
 
       <!-- Medication / Supplements Section (optional) -->
       <div class="form-section">
@@ -905,7 +949,19 @@
         </div>
       </div>
 
-        <button type="submit" class="save-entry-btn">💾 Save Entry</button>
+      </div>
+      <div class="log-wizard-step" data-log-step="7" data-step-title="Review">
+        <div class="log-review-summary" id="logReviewSummary" aria-live="polite"></div>
+      </div>
+
+      </div>
+
+      <div class="log-wizard-sticky-actions" id="logWizardStickyActions">
+        <button type="button" class="log-wizard-back-btn" id="logWizardBackBtn">Back</button>
+        <button type="button" class="log-wizard-skip-btn" id="logWizardSkipBtn">Skip</button>
+        <button type="button" class="log-wizard-next-btn" id="logWizardNextBtn">Next</button>
+        <button type="submit" class="save-entry-btn log-wizard-save-btn" id="logWizardSaveBtn">💾 Save Entry</button>
+      </div>
     </form>
     </div>
 
@@ -1120,6 +1176,30 @@
       </section>
     </div>
 
+  </div>
+
+  <nav class="app-bottom-nav" id="appBottomNav" role="navigation" aria-label="Main">
+    <button type="button" class="app-bottom-nav-btn main-nav-tab active" data-tab="home" aria-current="page" aria-controls="homeTab" id="bottom-tab-home" onclick="switchTab('home')">
+      <span class="app-bottom-nav-icon" aria-hidden="true">🏠</span>
+      <span class="app-bottom-nav-text">Home</span>
+    </button>
+    <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="log" aria-controls="logTab" id="bottom-tab-log" onclick="switchTab('log')">
+      <span class="app-bottom-nav-icon" aria-hidden="true">📝</span>
+      <span class="app-bottom-nav-text">Log</span>
+    </button>
+    <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="logs" aria-controls="logsTab" id="bottom-tab-logs" onclick="switchTab('logs')">
+      <span class="app-bottom-nav-icon" aria-hidden="true">📋</span>
+      <span class="app-bottom-nav-text">Logs</span>
+    </button>
+    <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="charts" aria-controls="chartsTab" id="bottom-tab-charts" onclick="switchTab('charts')">
+      <span class="app-bottom-nav-icon" aria-hidden="true">📊</span>
+      <span class="app-bottom-nav-text">Charts</span>
+    </button>
+    <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="ai" aria-controls="aiTab" id="bottom-tab-ai" onclick="switchTab('ai')">
+      <span class="app-bottom-nav-icon" aria-hidden="true">🧠</span>
+      <span class="app-bottom-nav-text">AI</span>
+    </button>
+  </nav>
   </div>
 
   <!-- Food Log Modal (Breakfast, Lunch, Dinner, Snack - select from predefined list) -->
