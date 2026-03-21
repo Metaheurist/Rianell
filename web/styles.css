@@ -52,6 +52,8 @@
   --heading-lg: 1.6rem;
   /* Section spacing */
   --section-gap: 1.5rem;
+  /* Horizontal inset for content inside bordered cards / section bodies (form-section, accordions) */
+  --card-content-padding-x: 1.25rem;
 
   /* Typography */
   --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -788,7 +790,7 @@ h1#dashboardTitle:hover {
 #logTab.log-wizard-mode .section-content {
   max-height: none !important;
   opacity: 1 !important;
-  padding: 0.5rem 0 1rem 0;
+  padding: 0.5rem var(--card-content-padding-x) 1rem var(--card-content-padding-x);
   /* Allow <details> slot and tile grids to paint; overflow:hidden on .section-content can clip nested open details */
   overflow: visible !important;
 }
@@ -849,6 +851,9 @@ h1#dashboardTitle:hover {
 .log-review-summary {
   font-size: var(--text-base);
   line-height: 1.6;
+  padding-left: var(--card-content-padding-x);
+  padding-right: var(--card-content-padding-x);
+  box-sizing: border-box;
 }
 
 .log-review-summary .log-review-line {
@@ -2920,19 +2925,19 @@ body.light-mode .save-entry-btn:hover {
   max-height: 0;
   overflow: hidden;
   transition: max-height var(--transition-fluid-slow), padding var(--transition-fluid-slow);
-  padding: 0 20px;
+  padding: 0 var(--card-content-padding-x);
   will-change: max-height, padding;
 }
 
 .section-content.open {
   max-height: 5000px;
-  padding: 20px;
+  padding: var(--card-content-padding-x);
 }
 
 /* Hide AI section by default - only show when content is generated */
 #aiSummarySection:not(.open) {
   max-height: 0 !important;
-  padding: 0 20px !important;
+  padding: 0 var(--card-content-padding-x) !important;
   overflow: hidden !important;
 }
 
@@ -3408,7 +3413,8 @@ body.light-mode .form-validation-summary {
 
 .log-date-block {
   margin-bottom: 1.25rem;
-  padding: 0 2px;
+  padding: 0 var(--card-content-padding-x);
+  box-sizing: border-box;
 }
 
 .log-date-block label {
@@ -3420,7 +3426,8 @@ body.light-mode .form-validation-summary {
 
 .log-required-block {
   margin-bottom: 1.25rem;
-  padding: 0 2px;
+  padding: 0 var(--card-content-padding-x);
+  box-sizing: border-box;
 }
 
 .log-required-block label {
@@ -9003,7 +9010,7 @@ body.light-mode .date-separator {
   }
   
   .section-content.open {
-    padding: 16px;
+    padding: var(--card-content-padding-x);
   }
 
   h1 {
