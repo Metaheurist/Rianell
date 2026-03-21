@@ -14647,10 +14647,11 @@ function toggleSection(sectionId) {
           section.style.willChange = 'auto';
         }, 300);
       } else {
-        // Close any other open section in the Log Entry tab (accordion: one open at a time)
+        // Accordion: one open section at a time within the same wizard step (not the whole form — avoids collapsing hidden steps)
         const logTab = document.getElementById('logTab');
-        if (logTab) {
-          logTab.querySelectorAll('.section-content.open').forEach(content => {
+        const scopeRoot = section.closest('.log-wizard-step') || logTab;
+        if (scopeRoot) {
+          scopeRoot.querySelectorAll('.section-content.open').forEach(content => {
             if (content.id !== sectionId) {
               collapseSectionContent(content);
               content.classList.remove('open');
@@ -14764,6 +14765,10 @@ function openTilePickerSheet(triggerEl) {
   if (!sheet.open) {
     sheet.showModal();
   }
+  try {
+    void anchor.offsetHeight;
+    body.scrollTop = 0;
+  } catch (e) {}
 }
 
 function initializeTilePickerSheet() {
