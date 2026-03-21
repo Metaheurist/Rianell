@@ -796,8 +796,24 @@ h1#dashboardTitle:hover {
   }
 }
 
+/* Wizard: keep section titles visible so each card (Energy, Stress, Symptoms, etc.) is scannable */
 #logTab.log-wizard-mode .section-header {
-  display: none;
+  display: flex;
+  padding: 14px 16px;
+  font-size: var(--text-base);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#logTab.log-wizard-mode .form-section {
+  margin-bottom: 1rem;
+}
+
+#logTab.log-wizard-mode .log-wizard-step > .form-section:last-child {
+  margin-bottom: 0;
+}
+
+body.light-mode #logTab.log-wizard-mode .section-header {
+  border-bottom-color: rgba(0, 0, 0, 0.08);
 }
 
 #logTab.log-wizard-mode .section-content {
@@ -5877,8 +5893,14 @@ body.light-mode .perf-benchmark-profile {
   align-items: flex-start;
 }
 
-/* Full-screen tile picker (<dialog> + teleported .tile-picker-anchor) */
-.tile-picker-sheet {
+/* Full-screen tile picker (<dialog> + teleported .tile-picker-anchor)
+   Closed <dialog> must stay display:none — do not set display:flex on the base selector
+   or it overrides the UA and the sheet stays visible at the bottom of the viewport. */
+dialog.tile-picker-sheet:not([open]) {
+  display: none !important;
+}
+
+.tile-picker-sheet[open] {
   padding: 0;
   margin: 0;
   border: none;
@@ -5896,7 +5918,7 @@ body.light-mode .perf-benchmark-profile {
   justify-content: flex-end;
 }
 
-.tile-picker-sheet::backdrop {
+.tile-picker-sheet[open]::backdrop {
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(4px);
 }
@@ -5965,6 +5987,13 @@ body.light-mode .perf-benchmark-profile {
   padding-bottom: max(24px, env(safe-area-inset-bottom));
 }
 
+#tilePickerSheetBody .tile-picker-anchor {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 @keyframes tilePickerSheetIn {
   from {
     opacity: 0;
@@ -5977,7 +6006,7 @@ body.light-mode .perf-benchmark-profile {
 }
 
 @media (min-width: 768px) {
-  .tile-picker-sheet {
+  .tile-picker-sheet[open] {
     justify-content: center;
     align-items: center;
   }
@@ -6003,7 +6032,7 @@ body.light-mode .perf-benchmark-profile {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tile-picker-sheet::backdrop {
+  .tile-picker-sheet[open]::backdrop {
     backdrop-filter: none;
   }
 
@@ -6043,8 +6072,25 @@ button.symptom-tiles-summary {
   -webkit-appearance: none;
 }
 
-.tile-picker-slot:empty {
+/* Anchor is moved into the dialog while open; hide the slot so no empty ghost box remains */
+.tile-picker-slot:not(:has(.tile-picker-anchor)) {
+  display: none;
+  height: 0;
   min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: none;
+}
+
+/* While docked in the form (or food/exercise modal lists), hide chip grids — only trigger buttons show.
+   When the sheet opens, the anchor is moved under #tilePickerSheetBody and becomes visible there. */
+.tile-picker-slot > .tile-picker-anchor {
+  display: none !important;
+}
+
+#tilePickerSheetBody > .tile-picker-anchor {
+  display: block !important;
 }
 
 /* Food log: creative card-style meal sections (Breakfast, Lunch, Dinner, Snack) */
@@ -6527,20 +6573,18 @@ body.light-mode .exercise-chip--flexibility { background: rgba(142, 36, 170, 0.1
 body.light-mode .exercise-chip--balance { background: rgba(0, 150, 136, 0.18); }
 body.light-mode .exercise-chip--recovery { background: rgba(2, 119, 189, 0.15); }
 
-/* Symptom tiles: creative card-style picker */
+/* Symptom tiles: compact trigger on the form */
 .symptom-tiles-collapsible {
   margin-top: 12px;
-  border: 1px solid rgba(0, 188, 212, 0.3);
-  border-radius: 14px;
-  overflow: hidden;
-  background: linear-gradient(135deg, rgba(0, 150, 136, 0.06) 0%, rgba(0, 0, 0, 0.08) 100%);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.25s ease, border-color 0.2s ease;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
 }
 
 .symptom-tiles-collapsible:has(.tile-picker-trigger[aria-expanded="true"]) {
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 188, 212, 0.2);
-  border-color: rgba(0, 188, 212, 0.4);
+  box-shadow: none;
 }
 
 .symptom-tiles-collapsible .symptom-tiles-summary {
@@ -6550,13 +6594,17 @@ body.light-mode .exercise-chip--recovery { background: rgba(2, 119, 189, 0.15); 
   font-size: 0.95rem;
   font-weight: 500;
   color: rgba(224, 242, 241, 0.95);
-  background: transparent;
-  border-left: 4px solid rgba(0, 188, 212, 0.7);
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(0, 188, 212, 0.4);
+  border-radius: 12px;
+  border-left: 4px solid rgba(0, 188, 212, 0.85);
   display: flex;
   align-items: center;
   gap: 10px;
-  transition: background 0.2s ease, border-left-color 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease;
   user-select: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .symptom-tiles-collapsible .symptom-tiles-summary::-webkit-details-marker,
@@ -6567,10 +6615,6 @@ body.light-mode .exercise-chip--recovery { background: rgba(2, 119, 189, 0.15); 
 .symptom-tiles-collapsible .symptom-tiles-summary:hover {
   background: rgba(0, 188, 212, 0.12);
   border-left-color: rgba(0, 188, 212, 0.9);
-}
-
-.symptom-tiles-collapsible:has(.tile-picker-trigger[aria-expanded="true"]) .symptom-tiles-summary {
-  border-bottom: 1px solid rgba(0, 188, 212, 0.2);
 }
 
 .symptom-tiles-container {
@@ -6679,9 +6723,8 @@ body.light-mode .exercise-chip--recovery { background: rgba(2, 119, 189, 0.15); 
 .symptom-chip:active { transform: scale(0.97); }
 .symptom-chip:focus { outline: none; box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.4); }
 
-body.light-mode .symptom-tiles-collapsible { border-color: rgba(0, 150, 136, 0.4); background: linear-gradient(135deg, rgba(0, 150, 136, 0.04) 0%, rgba(255,255,255,0.5) 100%); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-body.light-mode .symptom-tiles-collapsible:has(.tile-picker-trigger[aria-expanded="true"]) { box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-body.light-mode .symptom-tiles-collapsible .symptom-tiles-summary { color: var(--text-dark); border-left-color: rgba(0, 150, 136, 0.6); }
+body.light-mode .symptom-tiles-collapsible { border: none; background: transparent; box-shadow: none; }
+body.light-mode .symptom-tiles-collapsible .symptom-tiles-summary { color: var(--text-dark); background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(0, 150, 136, 0.4); border-left: 4px solid rgba(0, 150, 136, 0.75); }
 body.light-mode .symptom-tiles-collapsible .symptom-tiles-summary:hover { background: rgba(0, 150, 136, 0.08); border-left-color: rgba(0, 150, 136, 0.85); }
 body.light-mode .symptom-tiles-container { background: rgba(0, 150, 136, 0.04); }
 body.light-mode .symptom-chip { color: var(--text-dark); }
@@ -6707,20 +6750,18 @@ body.light-mode .symptom-chip--other { background: rgba(97, 97, 97, 0.25); }
   background: rgba(76, 175, 80, 0.05);
 }
 
-/* Energy & mental clarity: creative card-style picker */
+/* Energy & mental clarity: compact trigger on the form; full chrome only in the tile sheet */
 .energy-clarity-collapsible {
   margin-top: 10px;
-  border: 1px solid rgba(76, 175, 80, 0.35);
-  border-radius: 14px;
-  overflow: hidden;
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.06) 0%, rgba(0, 0, 0, 0.08) 100%);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.25s ease, border-color 0.2s ease;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
 }
 
 .energy-clarity-collapsible:has(.tile-picker-trigger[aria-expanded="true"]) {
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(76, 175, 80, 0.2);
-  border-color: rgba(76, 175, 80, 0.5);
+  box-shadow: none;
 }
 
 .energy-clarity-collapsible .energy-clarity-summary {
@@ -6730,13 +6771,17 @@ body.light-mode .symptom-chip--other { background: rgba(97, 97, 97, 0.25); }
   font-size: 0.95rem;
   font-weight: 500;
   color: rgba(224, 242, 241, 0.95);
-  background: transparent;
-  border-left: 4px solid rgba(76, 175, 80, 0.7);
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(76, 175, 80, 0.38);
+  border-radius: 12px;
+  border-left: 4px solid rgba(76, 175, 80, 0.85);
   display: flex;
   align-items: center;
   gap: 10px;
-  transition: background 0.2s ease, border-left-color 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease;
   user-select: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .energy-clarity-collapsible .energy-clarity-summary::-webkit-details-marker,
@@ -6747,10 +6792,6 @@ body.light-mode .symptom-chip--other { background: rgba(97, 97, 97, 0.25); }
 .energy-clarity-collapsible .energy-clarity-summary:hover {
   background: rgba(76, 175, 80, 0.12);
   border-left-color: rgba(76, 175, 80, 0.95);
-}
-
-.energy-clarity-collapsible:has(.tile-picker-trigger[aria-expanded="true"]) .energy-clarity-summary {
-  border-bottom: 1px solid rgba(76, 175, 80, 0.2);
 }
 
 /* Shared: group tiles by colour across the whole UI (food, exercise, stressors, symptoms, energy) */
@@ -6893,18 +6934,16 @@ body.light-mode .energy-clarity-selected {
 }
 
 body.light-mode .energy-clarity-collapsible {
-  border-color: rgba(76, 175, 80, 0.4);
-  background: linear-gradient(135deg, rgba(76, 175, 80, 0.04) 0%, rgba(255,255,255,0.5) 100%);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-
-body.light-mode .energy-clarity-collapsible:has(.tile-picker-trigger[aria-expanded="true"]) {
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 body.light-mode .energy-clarity-collapsible .energy-clarity-summary {
   color: var(--text-dark);
-  border-left-color: rgba(76, 175, 80, 0.6);
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  border-left: 4px solid rgba(76, 175, 80, 0.65);
 }
 
 body.light-mode .energy-clarity-collapsible .energy-clarity-summary:hover {
@@ -6935,20 +6974,18 @@ body.light-mode .energy-clarity-chip--negative {
   border-color: rgba(244, 67, 54, 0.4);
 }
 
-/* Stress & Triggers: creative card-style picker */
+/* Stress & Triggers: compact trigger on the form; tiles only in the sheet */
 .stressor-tiles-collapsible {
   margin-top: 12px;
-  border: 1px solid rgba(255, 152, 0, 0.35);
-  border-radius: 14px;
-  overflow: hidden;
-  background: linear-gradient(135deg, rgba(245, 124, 0, 0.06) 0%, rgba(0, 0, 0, 0.08) 100%);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.25s ease, border-color 0.2s ease;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
 }
 
 .stressor-tiles-collapsible:has(.tile-picker-trigger[aria-expanded="true"]) {
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255, 152, 0, 0.15);
-  border-color: rgba(255, 152, 0, 0.5);
+  box-shadow: none;
 }
 
 .stressor-tiles-collapsible .stressor-tiles-summary {
@@ -6958,13 +6995,17 @@ body.light-mode .energy-clarity-chip--negative {
   font-size: 0.95rem;
   font-weight: 500;
   color: rgba(224, 242, 241, 0.95);
-  background: transparent;
-  border-left: 4px solid rgba(255, 152, 0, 0.8);
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 152, 0, 0.45);
+  border-radius: 12px;
+  border-left: 4px solid rgba(255, 152, 0, 0.95);
   display: flex;
   align-items: center;
   gap: 10px;
-  transition: background 0.2s ease, border-left-color 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease;
   user-select: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .stressor-tiles-collapsible .stressor-tiles-summary::-webkit-details-marker,
@@ -6975,10 +7016,6 @@ body.light-mode .energy-clarity-chip--negative {
 .stressor-tiles-collapsible .stressor-tiles-summary:hover {
   background: rgba(255, 152, 0, 0.12);
   border-left-color: rgba(255, 152, 0, 1);
-}
-
-.stressor-tiles-collapsible:has(.tile-picker-trigger[aria-expanded="true"]) .stressor-tiles-summary {
-  border-bottom: 1px solid rgba(255, 152, 0, 0.2);
 }
 
 .stressor-tiles-container {
@@ -7088,18 +7125,16 @@ body.light-mode .energy-clarity-chip--negative {
 .stressor-chip:focus { outline: none; box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.4); }
 
 body.light-mode .stressor-tiles-collapsible {
-  border-color: rgba(255, 152, 0, 0.45);
-  background: linear-gradient(135deg, rgba(255, 152, 0, 0.04) 0%, rgba(255,255,255,0.5) 100%);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-
-body.light-mode .stressor-tiles-collapsible:has(.tile-picker-trigger[aria-expanded="true"]) {
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 body.light-mode .stressor-tiles-collapsible .stressor-tiles-summary {
   color: var(--text-dark);
-  border-left-color: rgba(255, 152, 0, 0.7);
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 152, 0, 0.45);
+  border-left: 4px solid rgba(255, 152, 0, 0.85);
 }
 
 body.light-mode .stressor-tiles-collapsible .stressor-tiles-summary:hover {
@@ -10577,13 +10612,10 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
   }
 }
 
-/* Mobile-centric tile pickers: horizontal chip strips, denser tiles, softer open shadows */
+/* Mobile-centric tile pickers: horizontal chip strips, denser tiles, softer open shadows (meal/exercise cards only) */
 @media (max-width: 768px) {
   .food-meal-collapsible.food-category-block:has(.tile-picker-trigger[aria-expanded="true"]),
-  .exercise-meal-collapsible.exercise-category-block:has(.tile-picker-trigger[aria-expanded="true"]),
-  .stressor-tiles-collapsible:has(.tile-picker-trigger[aria-expanded="true"]),
-  .symptom-tiles-collapsible:has(.tile-picker-trigger[aria-expanded="true"]),
-  .energy-clarity-collapsible:has(.tile-picker-trigger[aria-expanded="true"]) {
+  .exercise-meal-collapsible.exercise-category-block:has(.tile-picker-trigger[aria-expanded="true"]) {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
   }
 
