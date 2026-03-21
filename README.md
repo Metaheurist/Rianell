@@ -36,6 +36,12 @@ flowchart LR
 - **Structured data**: Flare (yes/no), stressors, symptoms, pain location, notes; food log (meals with items); exercise log (activities with duration).
 - **Medical condition**: Optional label stored in settings and used for anonymised data aggregation and AI context; user can change or clear it.
 
+### App shell and log experience (web UI)
+- **Home / Today**: Default tab with greeting, date, logging status, goals snippet when enabled, and **Log today** to start the entry flow.
+- **Log entry wizard**: Step-by-step flow (date & flare → vitals → symptoms & pain → energy & day → food → exercise → medication & notes → review) with step indicator, **Back** / **Skip** / **Next**, and **Save entry** on the last step. Drafts are debounced to `sessionStorage`; URL hash `#log/step/<1-based step>` restores step when opening the Log tab.
+- **Navigation**: Top tab strip on wider screens; **bottom navigation bar** on viewports ≤768px (Home, Log, View logs, Charts, AI) so only one nav chrome shows per breakpoint.
+- **Layout**: Extra horizontal padding in the log wizard on small screens; collapsible tile sections (energy & mental clarity, stressors, symptoms, food, exercise) use section state and CSS so expanded **details** content is visible; sticky wizard actions use a flat bar (no heavy drop shadow behind the button row).
+
 ### Charts and visualisation
 - **Combined chart**: Multi-metric line chart with date range filter; optional AI-powered trend predictions (when AI enabled); metric selector; balance and single-chart views.
 - **Individual metric charts**: Per-metric ApexCharts (e.g. fatigue, stiffness, BPM, sleep, steps, hydration) with lazy loading and device-based point caps.
@@ -154,6 +160,8 @@ The server will:
 1. **Local Development**: Open `http://localhost:8080` in your browser
 2. **Network Access**: Use your local IP address (shown in server console)
 3. **Production**: Deploy files to a web server (no local server needed)
+
+**Install manifest URLs (Android / iOS `latest.json`):** On `localhost`, `127.0.0.1`, and `::1`, the app does **not** fetch `App build/Android/latest.json` or `App build/iOS/latest.json`, because those files are produced by CI and deployed with the site. Default install links still point at fallback paths. To test manifest-driven links locally, open the devtools console and run `sessionStorage.setItem('forceAppBuildManifest','1')`, then reload.
 
 ### GitHub Pages (app at repo root)
 
