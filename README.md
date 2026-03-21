@@ -40,7 +40,7 @@ flowchart LR
 - **Home / Today**: Default tab with greeting, date, logging status, goals snippet when enabled, and **Log today** to start the entry flow.
 - **Log entry wizard**: Step-by-step flow (date & flare → vitals → symptoms & pain → energy & day → food → exercise → medication & notes → review) with step indicator, **Back** / **Skip** / **Next**, and **Save entry** on the last step. Drafts are debounced to `sessionStorage`; URL hash `#log/step/<1-based step>` restores step when opening the Log tab.
 - **Navigation**: Top tab strip on wider screens; **bottom navigation bar** on viewports ≤768px (Home, Log, View logs, Charts, AI) so only one nav chrome shows per breakpoint.
-- **Layout**: Extra horizontal padding in the log wizard on small screens; **`--card-content-padding-x`** in `styles.css` sets consistent horizontal inset inside bordered cards (`.form-section` / `.section-content`), including wizard vitals and other steps, log date/flare blocks, and review—so labels, inputs, and controls (e.g. weight unit toggle) are not flush to the card edge. Collapsible tile sections (energy & mental clarity, stressors, symptoms, food, exercise) use section state and CSS so expanded **details** content is visible; sticky wizard actions use a flat bar (no heavy drop shadow behind the button row).
+- **Layout**: Extra horizontal padding in the log wizard on small screens; **`--card-content-padding-x`** in `styles.css` sets consistent horizontal inset inside bordered cards (`.form-section` / `.section-content`), including wizard vitals and other steps, log date/flare blocks, and review—so labels, inputs, and controls (e.g. weight unit toggle) are not flush to the card edge. **Tile pickers** (energy & mental clarity, stressors, symptoms, food by meal, exercise by category) open in a **full-screen `<dialog>` bottom sheet** on phones and a centred max-width sheet on wider viewports; chip content is moved into the sheet and restored on close (same IDs and handlers as before). Optional **per-section search** filters chips on the client. Sticky wizard actions use a flat bar (no heavy drop shadow behind the button row).
 
 ### Charts and visualisation
 - **Combined chart**: Multi-metric line chart with date range filter; optional AI-powered trend predictions (when AI enabled); metric selector; balance and single-chart views.
@@ -53,6 +53,7 @@ flowchart LR
 - **Optional AI**: Settings toggle "Enable AI features & Goals" hides or shows the AI Analysis tab, chart predictions, and Goals.
 - **Neural-style pipeline**: Trend regression, correlations, patterns, risk factors, flare prediction, cross-section (food/exercise/stressors/symptoms), clustering, time series, actionable advice, prioritised insights, and a 2–3 sentence summary (see [AI Analysis](#ai-analysis-neural-network-architecture)).
 - **Summary note**: In-browser LLM (Transformers.js, flan-t5 by device class) or rule-based fallback; context from analysis and logs; value highlighting in the UI.
+- **Dashboard title (MOTD)**: Optional short motivational line generated on-device for the main header when AI is not deferred; falls back to the static welcome line on failure or low-end **defer AI** mode.
 - **GPU-accelerated LLM**: When the performance benchmark detects a capable GPU (WebGPU or WebGL), the summary/suggest pipeline loads with GPU acceleration; the app falls back to CPU automatically if GPU loading fails. Uses Transformers.js 3.3.2 for stable WebGPU/WebGL support.
 - **On-device AI model selection**: Settings → Performance → **On-device AI model** lets you choose **Use recommended (for this device)** (from the performance benchmark), **Small (faster, lower memory)**, or **Base (better quality)**. The benchmark recommends flan-t5-small or flan-t5-base by tier; changing the setting clears the LLM cache so the next summary or suggest note uses the selected model.
 - **Suggest note**: LLM or rule-based suggestion for the day’s log note; "Generating…" state on button.
@@ -440,15 +441,16 @@ Activation functions (sigmoid, tanh, relu, softmax) are available as `AIEngine.a
 
 ```
 Health-app/
-├── index.html              # Main application HTML
-├── app.js                  # Core application logic
-├── AIEngine.js             # AI analysis (neural pipeline, regression, correlation, predictions)
-├── styles.css              # Application styles
-├── cloud-sync.js           # Supabase synchronisation
-├── supabase-config.js      # Supabase configuration
-├── summary-llm.js          # In-browser LLM for AI summary note (Transformers.js)
-├── notifications.js        # Reminders, notification permission, heartbeat sound
-├── notification-helpers.js # Permission UI and reminder time
+├── web/                    # Static web app (served at site root on GitHub Pages)
+│   ├── index.html          # Main application HTML
+│   ├── app.js              # Core application logic
+│   ├── AIEngine.js         # AI analysis (neural pipeline, …)
+│   ├── styles.css          # Application styles
+│   ├── cloud-sync.js       # Supabase synchronisation
+│   ├── supabase-config.js  # Supabase configuration
+│   ├── summary-llm.js      # In-browser LLM (summary, suggest note, dashboard MOTD)
+│   ├── notifications.js    # Reminders, heartbeat sound
+│   └── …                   # Other JS/CSS/assets
 ├── requirements.txt        # Python dependencies
 ├── package.json            # Root scripts (build, sync, android)
 ├── docs/                   # Documentation
@@ -463,10 +465,10 @@ Health-app/
 ├── App build/              # Built apps (filled by CI; committed for download links)
 │   ├── Android/           # APK + latest.json
 │   └── iOS/               # Xcode project zip + latest.json
+├── server/                 # Python HTTP server (`python -m server`)
 ├── .env                    # Environment variables (not in git)
 ├── .env.example            # Environment template
-├── logs/                   # Server logs
-└── [other JS files]        # Additional functionality
+└── logs/                   # Server logs
 ```
 
 ## Dependencies
@@ -579,7 +581,16 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.23.0** — Developer tools in God mode, GPU stability graph, better GPU utilisation (see below).
+**Latest: v1.24.0** — Full-screen tile picker sheets, mobile chip UX, dashboard MOTD (see below).
+
+<details>
+<summary><strong>v1.24.0</strong> — 2026-03-21 — Tile picker dialog, mobile chips, dashboard MOTD</summary>
+
+- **Tile picker (`<dialog>`)**: Replaced native `<details>` chip sections with a shared **full-screen bottom sheet** (centred max-width panel from 768px up). Triggers use buttons with `aria-expanded`; content is **teleported** into `#tilePickerSheet` and restored on close so chip grids keep stable IDs. Food/exercise modals and the edit-entry form use the same pattern; closing a parent modal closes the sheet. `collapseSectionContent` closes the sheet when collapsing a section. Removed the old `makeAccordion` / one-open-details wiring.
+- **Mobile-centric chips**: Horizontal scroll strips, scroll snap, denser tiles, and softer open shadows on small viewports; optional debounced **filter** inputs per chip area (food, stressors, symptoms, exercise).
+- **Dashboard MOTD**: `summary-llm.js` exposes `generateMotdWithLLM`; `updateDashboardTitle()` loads the script when needed and sets a short on-device motivational line per full page load (skipped when `deferAI` is true).
+
+</details>
 
 <details>
 <summary><strong>v1.23.0</strong> — 2026-02-24 — Developer in God mode, GPU stability graph, better GPU utilisation</summary>

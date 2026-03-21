@@ -1,5 +1,5 @@
 /**
- * In-browser LLM for the AI summary note and suggest note (Transformers.js).
+ * In-browser LLM for the AI summary note, suggest note, and dashboard MOTD (Transformers.js).
  * Model is chosen by device performance: small on low-end, base on medium/high for better quality.
  * Falls back to rule-based note if the model is unavailable or fails.
  */
@@ -16,6 +16,8 @@
   var MAX_SUGGEST_CONTEXT_CHARS = 280;
   var TIMEOUT_MS = 28000;
   var TIMEOUT_SUGGEST_MS = 12000;
+  var TIMEOUT_MOTD_MS = 15000;
+  var MAX_MOTD_CHARS = 160;
 
   var MODEL_SMALL = 'Xenova/flan-t5-small';
   var MODEL_BASE = 'Xenova/flan-t5-base';
@@ -371,6 +373,68 @@
     return fallbackText || '';
   }
 
+  /**
+   * Normalize MOTD: one line, no quotes, length cap. Not cached — each call can differ (fresh nonce in prompt + sampling).
+   */
+  function sanitizeMotdText(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    var t = raw.replace(/\s+/g, ' ').trim();
+    t = t.replace(/^["'“”]+|["'“”]+$/g, '').trim();
+    if (t.length > MAX_MOTD_CHARS) {
+      var cut = t.slice(0, MAX_MOTD_CHARS);
+      var lastSpace = cut.lastIndexOf(' ');
+      if (lastSpace > 40) cut = cut.slice(0, lastSpace);
+      t = cut.trim();
+      if (t.length > 0 && !/[.!?]$/.test(t)) t += '…';
+    }
+    return t;
+  }
+
+  /**
+   * One short motivational line for the dashboard header. Different on each full load (no cache; random theme + time in prompt; sampling).
+   * Resolves with fallbackText on failure or unusable output.
+   */
+  async function generateMotdWithLLM(userName, fallbackText) {
+    var name = (userName && String(userName).trim()) ? String(userName).trim() : '';
+    var displayName = name || 'friend';
+    var themes = [
+      'gentle progress', 'self-care', 'small wins', 'patience', 'renewal',
+      'inner strength', 'balance', 'hope', 'showing up for yourself', 'one step at a time'
+    ];
+    var theme = themes[Math.floor(Math.random() * themes.length)];
+    var nonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    var prompt = 'Write one short motivational sentence for a health tracking app. Address ' + displayName + ' warmly. '
+      + 'No medical advice. No quotation marks. Max 22 words. Theme: ' + theme + '. Unique: ' + nonce + '.';
+
+    try {
+      var pipe = await getPipeline();
+      var run = pipe(prompt, {
+        max_new_tokens: 56,
+        do_sample: true,
+        temperature: 0.88,
+        top_p: 0.92,
+        truncation: true
+      });
+      var timeoutPromise = new Promise(function (_, reject) {
+        setTimeout(function () { reject(new Error('MOTD LLM timeout')); }, TIMEOUT_MOTD_MS);
+      });
+      var out = await Promise.race([run, timeoutPromise]);
+
+      var text = (out && out[0] && out[0].generated_text) ? String(out[0].generated_text).trim() : '';
+      text = sanitizeMotdText(text);
+      if (text.length >= 12 && text.length <= MAX_MOTD_CHARS + 20) {
+        text = stripTrailingIncompleteSentence(text);
+        text = sanitizeMotdText(text);
+        if (text.length >= 12) return text;
+      }
+    } catch (e) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('MOTD LLM failed, using default title:', e.message || e);
+      }
+    }
+    return fallbackText || '';
+  }
+
   /** Clear cached pipeline so the next use loads the model from current preference (e.g. after changing On-device AI model in Settings). */
   function clearSummaryLLMCache() {
     cachedPipeline = null;
@@ -379,6 +443,7 @@
 
   window.generateSummaryWithLLM = generateSummaryWithLLM;
   window.generateSuggestNoteWithLLM = generateSuggestNoteWithLLM;
+  window.generateMotdWithLLM = generateMotdWithLLM;
   window.buildSuggestContext = buildSuggestContext;
   /** Tier -> { id, link } for all tiers (for debug / docs). */
   window.LLM_TIER_MODELS = LLM_TIER_MODELS;

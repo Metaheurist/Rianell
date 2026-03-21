@@ -722,10 +722,14 @@
             <div class="selection-summary-sticky">
               <p id="energyClaritySelectedLabel" class="energy-clarity-selected" aria-live="polite">None selected</p>
             </div>
-            <details class="energy-clarity-collapsible">
-              <summary class="energy-clarity-summary">Choose energy & mental clarity</summary>
-              <div id="energyClarityTiles" class="energy-clarity-tiles" role="listbox" aria-label="Energy and mental clarity options"></div>
-            </details>
+            <div class="energy-clarity-collapsible">
+              <button type="button" class="energy-clarity-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet">Choose energy & mental clarity</button>
+              <div class="tile-picker-slot">
+                <div class="tile-picker-anchor">
+                  <div id="energyClarityTiles" class="energy-clarity-tiles" role="listbox" aria-label="Energy and mental clarity options"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -750,11 +754,15 @@
           <div class="selection-summary-sticky">
             <div id="logStressorsList" class="items-list"></div>
           </div>
-          <details class="stressor-tiles-collapsible">
-            <summary class="stressor-tiles-summary">Add stressor or trigger</summary>
-            <div id="logStressorsFrequent" class="frequent-chips-wrap" aria-label="Frequently used stressors"></div>
-            <div id="logStressorsTiles" class="stressor-tiles-container" aria-label="Stress and trigger options by group"></div>
-          </details>
+          <div class="stressor-tiles-collapsible">
+            <button type="button" class="stressor-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet">Add stressor or trigger</button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div id="logStressorsFrequent" class="frequent-chips-wrap" aria-label="Frequently used stressors"></div>
+                <div id="logStressorsTiles" class="stressor-tiles-container" aria-label="Stress and trigger options by group"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -768,11 +776,15 @@
           <div class="selection-summary-sticky">
             <div id="logSymptomsList" class="items-list"></div>
           </div>
-          <details class="symptom-tiles-collapsible">
-            <summary class="symptom-tiles-summary">Add symptom</summary>
-            <div id="logSymptomsFrequent" class="frequent-chips-wrap" aria-label="Frequently used symptoms"></div>
-            <div id="logSymptomsTiles" class="symptom-tiles-container" aria-label="Symptom options by group"></div>
-          </details>
+          <div class="symptom-tiles-collapsible">
+            <button type="button" class="symptom-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet">Add symptom</button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div id="logSymptomsFrequent" class="frequent-chips-wrap" aria-label="Frequently used symptoms"></div>
+                <div id="logSymptomsTiles" class="symptom-tiles-container" aria-label="Symptom options by group"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -811,42 +823,58 @@
         </button>
         <div class="section-content" id="foodLog">
           <div id="logFoodFrequent" class="frequent-chips-wrap" aria-label="Frequently logged foods"></div>
-          <details class="food-category-block food-meal-collapsible">
-            <summary class="food-category-summary"><span class="food-meal-label">Breakfast</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
-            <div class="food-category-body">
-              <div class="selection-summary-sticky">
-                <div id="logFoodBreakfastList" class="items-list"></div>
+          <div class="food-category-block food-meal-collapsible">
+            <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Breakfast</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="food-category-body">
+                  <div class="selection-summary-sticky">
+                    <div id="logFoodBreakfastList" class="items-list"></div>
+                  </div>
+                  <div id="logFoodBreakfastChips" class="food-tiles-by-group" aria-label="Add to Breakfast"></div>
+                </div>
               </div>
-              <div id="logFoodBreakfastChips" class="food-tiles-by-group" aria-label="Add to Breakfast"></div>
             </div>
-          </details>
-          <details class="food-category-block food-meal-collapsible">
-            <summary class="food-category-summary"><span class="food-meal-label">Lunch</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
-            <div class="food-category-body">
-              <div class="selection-summary-sticky">
-                <div id="logFoodLunchList" class="items-list"></div>
+          </div>
+          <div class="food-category-block food-meal-collapsible">
+            <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Lunch</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="food-category-body">
+                  <div class="selection-summary-sticky">
+                    <div id="logFoodLunchList" class="items-list"></div>
+                  </div>
+                  <div id="logFoodLunchChips" class="food-tiles-by-group" aria-label="Add to Lunch"></div>
+                </div>
               </div>
-              <div id="logFoodLunchChips" class="food-tiles-by-group" aria-label="Add to Lunch"></div>
             </div>
-          </details>
-          <details class="food-category-block food-meal-collapsible">
-            <summary class="food-category-summary"><span class="food-meal-label">Dinner</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
-            <div class="food-category-body">
-              <div class="selection-summary-sticky">
-                <div id="logFoodDinnerList" class="items-list"></div>
+          </div>
+          <div class="food-category-block food-meal-collapsible">
+            <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Dinner</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="food-category-body">
+                  <div class="selection-summary-sticky">
+                    <div id="logFoodDinnerList" class="items-list"></div>
+                  </div>
+                  <div id="logFoodDinnerChips" class="food-tiles-by-group" aria-label="Add to Dinner"></div>
+                </div>
               </div>
-              <div id="logFoodDinnerChips" class="food-tiles-by-group" aria-label="Add to Dinner"></div>
             </div>
-          </details>
-          <details class="food-category-block food-meal-collapsible">
-            <summary class="food-category-summary"><span class="food-meal-label">Snack</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
-            <div class="food-category-body">
-              <div class="selection-summary-sticky">
-                <div id="logFoodSnackList" class="items-list"></div>
+          </div>
+          <div class="food-category-block food-meal-collapsible">
+            <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Snack</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="food-category-body">
+                  <div class="selection-summary-sticky">
+                    <div id="logFoodSnackList" class="items-list"></div>
+                  </div>
+                  <div id="logFoodSnackChips" class="food-tiles-by-group" aria-label="Add to Snack"></div>
+                </div>
               </div>
-              <div id="logFoodSnackChips" class="food-tiles-by-group" aria-label="Add to Snack"></div>
             </div>
-          </details>
+          </div>
         </div>
       </div>
 
@@ -864,36 +892,56 @@
           <div class="selection-summary-sticky">
             <div id="logExerciseItemsList" class="items-list"></div>
           </div>
-          <details class="exercise-category-block exercise-meal-collapsible">
-            <summary class="exercise-category-summary"><span class="exercise-meal-label">Cardio</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
-            <div class="exercise-category-body">
-              <div id="logExerciseCardioChips" class="exercise-chips" aria-label="Add Cardio"></div>
+          <div class="exercise-category-block exercise-meal-collapsible">
+            <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Cardio</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="exercise-category-body">
+                  <div id="logExerciseCardioChips" class="exercise-chips" aria-label="Add Cardio"></div>
+                </div>
+              </div>
             </div>
-          </details>
-          <details class="exercise-category-block exercise-meal-collapsible">
-            <summary class="exercise-category-summary"><span class="exercise-meal-label">Strength</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
-            <div class="exercise-category-body">
-              <div id="logExerciseStrengthChips" class="exercise-chips" aria-label="Add Strength"></div>
+          </div>
+          <div class="exercise-category-block exercise-meal-collapsible">
+            <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Strength</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="exercise-category-body">
+                  <div id="logExerciseStrengthChips" class="exercise-chips" aria-label="Add Strength"></div>
+                </div>
+              </div>
             </div>
-          </details>
-          <details class="exercise-category-block exercise-meal-collapsible">
-            <summary class="exercise-category-summary"><span class="exercise-meal-label">Flexibility</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
-            <div class="exercise-category-body">
-              <div id="logExerciseFlexibilityChips" class="exercise-chips" aria-label="Add Flexibility"></div>
+          </div>
+          <div class="exercise-category-block exercise-meal-collapsible">
+            <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Flexibility</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="exercise-category-body">
+                  <div id="logExerciseFlexibilityChips" class="exercise-chips" aria-label="Add Flexibility"></div>
+                </div>
+              </div>
             </div>
-          </details>
-          <details class="exercise-category-block exercise-meal-collapsible">
-            <summary class="exercise-category-summary"><span class="exercise-meal-label">Balance</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
-            <div class="exercise-category-body">
-              <div id="logExerciseBalanceChips" class="exercise-chips" aria-label="Add Balance"></div>
+          </div>
+          <div class="exercise-category-block exercise-meal-collapsible">
+            <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Balance</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="exercise-category-body">
+                  <div id="logExerciseBalanceChips" class="exercise-chips" aria-label="Add Balance"></div>
+                </div>
+              </div>
             </div>
-          </details>
-          <details class="exercise-category-block exercise-meal-collapsible">
-            <summary class="exercise-category-summary"><span class="exercise-meal-label">Recovery</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
-            <div class="exercise-category-body">
-              <div id="logExerciseRecoveryChips" class="exercise-chips" aria-label="Add Recovery"></div>
+          </div>
+          <div class="exercise-category-block exercise-meal-collapsible">
+            <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Recovery</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="exercise-category-body">
+                  <div id="logExerciseRecoveryChips" class="exercise-chips" aria-label="Add Recovery"></div>
+                </div>
+              </div>
             </div>
-          </details>
+          </div>
         </div>
       </div>
 
@@ -1218,6 +1266,17 @@
     </div>
   </div>
 
+  <!-- Full-screen tile picker (replaces native <details> chip sections) -->
+  <dialog id="tilePickerSheet" class="tile-picker-sheet" aria-labelledby="tilePickerSheetTitle">
+    <div class="tile-picker-sheet__panel">
+      <header class="tile-picker-sheet__header">
+        <h2 id="tilePickerSheetTitle" class="tile-picker-sheet__title">Choose</h2>
+        <button type="button" class="tile-picker-sheet__close" id="tilePickerSheetClose" aria-label="Close">&times;</button>
+      </header>
+      <div class="tile-picker-sheet__body" id="tilePickerSheetBody"></div>
+    </div>
+  </dialog>
+
   <!-- Exercise Log Modal (predefined list + duration) -->
   <div class="modal-overlay" id="exerciseModalOverlay" role="dialog" aria-modal="true" aria-label="Exercise log">
     <div class="modal-content" onclick="event.stopPropagation()">
@@ -1319,10 +1378,14 @@
               <label>Energy & Mental Clarity</label>
               <input type="hidden" id="editEnergyClarity" name="editEnergyClarity" value="" />
               <p id="editEnergyClaritySelectedLabel" class="energy-clarity-selected" aria-live="polite">None selected</p>
-              <details class="energy-clarity-collapsible">
-                <summary class="energy-clarity-summary">Choose energy & mental clarity</summary>
-                <div id="editEnergyClarityTiles" class="energy-clarity-tiles" role="listbox" aria-label="Energy and mental clarity options"></div>
-              </details>
+              <div class="energy-clarity-collapsible">
+                <button type="button" class="energy-clarity-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet">Choose energy & mental clarity</button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div id="editEnergyClarityTiles" class="energy-clarity-tiles" role="listbox" aria-label="Energy and mental clarity options"></div>
+                  </div>
+                </div>
+              </div>
               
               <label for="editWeatherSensitivity">Weather Sensitivity (1-10)</label>
               <input type="range" id="editWeatherSensitivity" min="1" max="10" value="5" oninput="updateEditSliderColor('editWeatherSensitivity')" />
@@ -1342,10 +1405,14 @@
               <label>Stressors</label>
               <div class="add-item-list" id="editStressorsList">
                 <div class="item-list" id="editStressorsItems"></div>
-                <details class="stressor-tiles-collapsible">
-                  <summary class="stressor-tiles-summary">Add stressor or trigger</summary>
-                  <div id="editStressorsTiles" class="stressor-tiles-container" aria-label="Stress and trigger options by group"></div>
-                </details>
+                <div class="stressor-tiles-collapsible">
+                  <button type="button" class="stressor-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet">Add stressor or trigger</button>
+                  <div class="tile-picker-slot">
+                    <div class="tile-picker-anchor">
+                      <div id="editStressorsTiles" class="stressor-tiles-container" aria-label="Stress and trigger options by group"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1361,10 +1428,14 @@
               <label>Symptoms</label>
               <div class="add-item-list" id="editSymptomsList">
                 <div class="item-list" id="editSymptomsItems"></div>
-                <details class="symptom-tiles-collapsible">
-                  <summary class="symptom-tiles-summary">Add symptom</summary>
-                  <div id="editSymptomsTiles" class="symptom-tiles-container" aria-label="Symptom options by group"></div>
-                </details>
+                <div class="symptom-tiles-collapsible">
+                  <button type="button" class="symptom-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet">Add symptom</button>
+                  <div class="tile-picker-slot">
+                    <div class="tile-picker-anchor">
+                      <div id="editSymptomsTiles" class="symptom-tiles-container" aria-label="Symptom options by group"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
               
               <label>Pain Location</label>
@@ -1417,34 +1488,50 @@
               <span class="collapsible-arrow" id="editFoodSectionArrow">▼</span>
             </div>
             <div class="collapsible-content" id="editFoodSection" style="display: none;">
-              <details class="food-category-block food-meal-collapsible">
-                <summary class="food-category-summary"><span class="food-meal-label">Breakfast</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
-                <div class="food-category-body">
-                  <div id="editFoodBreakfastList" class="items-list"></div>
-                  <div id="editFoodBreakfastChips" class="food-tiles-by-group" aria-label="Add to Breakfast"></div>
+              <div class="food-category-block food-meal-collapsible">
+                <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Breakfast</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="food-category-body">
+                      <div id="editFoodBreakfastList" class="items-list"></div>
+                      <div id="editFoodBreakfastChips" class="food-tiles-by-group" aria-label="Add to Breakfast"></div>
+                    </div>
+                  </div>
                 </div>
-              </details>
-              <details class="food-category-block food-meal-collapsible">
-                <summary class="food-category-summary"><span class="food-meal-label">Lunch</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
-                <div class="food-category-body">
-                  <div id="editFoodLunchList" class="items-list"></div>
-                  <div id="editFoodLunchChips" class="food-tiles-by-group" aria-label="Add to Lunch"></div>
+              </div>
+              <div class="food-category-block food-meal-collapsible">
+                <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Lunch</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="food-category-body">
+                      <div id="editFoodLunchList" class="items-list"></div>
+                      <div id="editFoodLunchChips" class="food-tiles-by-group" aria-label="Add to Lunch"></div>
+                    </div>
+                  </div>
                 </div>
-              </details>
-              <details class="food-category-block food-meal-collapsible">
-                <summary class="food-category-summary"><span class="food-meal-label">Dinner</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
-                <div class="food-category-body">
-                  <div id="editFoodDinnerList" class="items-list"></div>
-                  <div id="editFoodDinnerChips" class="food-tiles-by-group" aria-label="Add to Dinner"></div>
+              </div>
+              <div class="food-category-block food-meal-collapsible">
+                <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Dinner</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="food-category-body">
+                      <div id="editFoodDinnerList" class="items-list"></div>
+                      <div id="editFoodDinnerChips" class="food-tiles-by-group" aria-label="Add to Dinner"></div>
+                    </div>
+                  </div>
                 </div>
-              </details>
-              <details class="food-category-block food-meal-collapsible">
-                <summary class="food-category-summary"><span class="food-meal-label">Snack</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
-                <div class="food-category-body">
-                  <div id="editFoodSnackList" class="items-list"></div>
-                  <div id="editFoodSnackChips" class="food-tiles-by-group" aria-label="Add to Snack"></div>
+              </div>
+              <div class="food-category-block food-meal-collapsible">
+                <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Snack</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="food-category-body">
+                      <div id="editFoodSnackList" class="items-list"></div>
+                      <div id="editFoodSnackChips" class="food-tiles-by-group" aria-label="Add to Snack"></div>
+                    </div>
+                  </div>
                 </div>
-              </details>
+              </div>
             </div>
           </div>
           <!-- Collapsible Section: Exercise Log (same tile selector as main form) -->
@@ -1456,36 +1543,56 @@
             </div>
             <div class="collapsible-content" id="editExerciseSection" style="display: none;">
               <div id="editExerciseItemsList" class="items-list"></div>
-              <details class="exercise-category-block exercise-meal-collapsible">
-                <summary class="exercise-category-summary"><span class="exercise-meal-label">Cardio</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
-                <div class="exercise-category-body">
-                  <div id="editExerciseCardioChips" class="exercise-chips" aria-label="Add Cardio"></div>
+              <div class="exercise-category-block exercise-meal-collapsible">
+                <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Cardio</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="exercise-category-body">
+                      <div id="editExerciseCardioChips" class="exercise-chips" aria-label="Add Cardio"></div>
+                    </div>
+                  </div>
                 </div>
-              </details>
-              <details class="exercise-category-block exercise-meal-collapsible">
-                <summary class="exercise-category-summary"><span class="exercise-meal-label">Strength</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
-                <div class="exercise-category-body">
-                  <div id="editExerciseStrengthChips" class="exercise-chips" aria-label="Add Strength"></div>
+              </div>
+              <div class="exercise-category-block exercise-meal-collapsible">
+                <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Strength</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="exercise-category-body">
+                      <div id="editExerciseStrengthChips" class="exercise-chips" aria-label="Add Strength"></div>
+                    </div>
+                  </div>
                 </div>
-              </details>
-              <details class="exercise-category-block exercise-meal-collapsible">
-                <summary class="exercise-category-summary"><span class="exercise-meal-label">Flexibility</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
-                <div class="exercise-category-body">
-                  <div id="editExerciseFlexibilityChips" class="exercise-chips" aria-label="Add Flexibility"></div>
+              </div>
+              <div class="exercise-category-block exercise-meal-collapsible">
+                <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Flexibility</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="exercise-category-body">
+                      <div id="editExerciseFlexibilityChips" class="exercise-chips" aria-label="Add Flexibility"></div>
+                    </div>
+                  </div>
                 </div>
-              </details>
-              <details class="exercise-category-block exercise-meal-collapsible">
-                <summary class="exercise-category-summary"><span class="exercise-meal-label">Balance</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
-                <div class="exercise-category-body">
-                  <div id="editExerciseBalanceChips" class="exercise-chips" aria-label="Add Balance"></div>
+              </div>
+              <div class="exercise-category-block exercise-meal-collapsible">
+                <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Balance</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="exercise-category-body">
+                      <div id="editExerciseBalanceChips" class="exercise-chips" aria-label="Add Balance"></div>
+                    </div>
+                  </div>
                 </div>
-              </details>
-              <details class="exercise-category-block exercise-meal-collapsible">
-                <summary class="exercise-category-summary"><span class="exercise-meal-label">Recovery</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
-                <div class="exercise-category-body">
-                  <div id="editExerciseRecoveryChips" class="exercise-chips" aria-label="Add Recovery"></div>
+              </div>
+              <div class="exercise-category-block exercise-meal-collapsible">
+                <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Recovery</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="exercise-category-body">
+                      <div id="editExerciseRecoveryChips" class="exercise-chips" aria-label="Add Recovery"></div>
+                    </div>
+                  </div>
                 </div>
-              </details>
+              </div>
             </div>
           </div>
           <!-- Collapsible Section: Lifestyle Factors -->

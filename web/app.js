@@ -7804,12 +7804,95 @@ function renderLogFoodCategoryList(category, listId) {
   }).join('');
 }
 
+// --- Tile picker: mobile-friendly filter (client-side search on chip labels) ---
+function createTilePickerSearchEl(inputId, placeholder, ariaLabel) {
+  const wrap = document.createElement('div');
+  wrap.className = 'tile-picker-search-wrap';
+  const label = document.createElement('label');
+  label.className = 'visually-hidden';
+  label.htmlFor = inputId;
+  label.textContent = ariaLabel;
+  const input = document.createElement('input');
+  input.type = 'search';
+  input.id = inputId;
+  input.className = 'tile-picker-search';
+  input.placeholder = placeholder;
+  input.setAttribute('autocomplete', 'off');
+  input.setAttribute('enterkeyhint', 'search');
+  input.setAttribute('aria-label', ariaLabel);
+  wrap.appendChild(label);
+  wrap.appendChild(input);
+  return wrap;
+}
+
+function filterTilePickerScope(scopeEl, query) {
+  if (!scopeEl) return;
+  const q = (query || '').trim().toLowerCase();
+  const groups = scopeEl.querySelectorAll('.food-group, .stressor-group, .symptom-group, .tile-group');
+  if (groups.length > 0) {
+    groups.forEach(function(group) {
+      let any = false;
+      group.querySelectorAll('.food-chip, .stressor-chip, .symptom-chip, .exercise-chip, .energy-clarity-chip').forEach(function(btn) {
+        const text = (btn.getAttribute('data-search-text') || '').toLowerCase();
+        const match = !q || text.indexOf(q) !== -1;
+        btn.hidden = !match;
+        if (match) any = true;
+      });
+      group.hidden = !any;
+    });
+  } else {
+    scopeEl.querySelectorAll('.food-chip, .stressor-chip, .symptom-chip, .exercise-chip, .energy-clarity-chip').forEach(function(btn) {
+      const text = (btn.getAttribute('data-search-text') || '').toLowerCase();
+      const match = !q || text.indexOf(q) !== -1;
+      btn.hidden = !match;
+    });
+  }
+  const qTrim = (query || '').trim();
+  scopeEl.querySelectorAll('.exercise-category-block').forEach(function(d) {
+    if (!qTrim) {
+      d.hidden = false;
+      return;
+    }
+    const chips = d.querySelectorAll('.exercise-chip');
+    if (chips.length === 0) return;
+    let vis = false;
+    for (let i = 0; i < chips.length; i++) {
+      if (!chips[i].hidden) {
+        vis = true;
+        break;
+      }
+    }
+    d.hidden = !vis;
+  });
+}
+
+function attachTilePickerSearch(scopeEl, inputEl) {
+  if (!scopeEl || !inputEl) return;
+  var debounceTimer = null;
+  function run() {
+    filterTilePickerScope(scopeEl, inputEl.value);
+  }
+  inputEl.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(run, 150);
+  });
+  inputEl.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      inputEl.value = '';
+      filterTilePickerScope(scopeEl, '');
+    }
+  });
+}
+
 // Build chip grid for one meal (log form) — grouped by food group, three sections per tile: icon, name, nutrition
 function renderFoodChipsForCategory(category, containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
   const mealLabel = category.charAt(0).toUpperCase() + category.slice(1);
+  const searchId = 'tileSearch_' + containerId;
   container.innerHTML = '';
+  const searchWrap = createTilePickerSearchEl(searchId, 'Filter foods…', 'Filter ' + mealLabel + ' food options');
+  container.appendChild(searchWrap);
   FOOD_GROUPS.forEach(grp => {
     const foods = PREDEFINED_FOODS.filter(f => (f.group || 'mixed') === grp.id && (!f.meals || f.meals.length === 0 || f.meals.includes(category)));
     if (foods.length === 0) return;
@@ -7827,6 +7910,7 @@ function renderFoodChipsForCategory(category, containerId) {
       btn.type = 'button';
       btn.className = 'food-chip food-chip--' + (f.group || 'mixed');
       btn.setAttribute('data-food-id', f.id);
+      btn.setAttribute('data-search-text', (f.name + ' ' + (f.calories || '') + ' ' + (f.protein || '') + ' cal').toLowerCase());
       btn.title = `Add ${f.name}, ${f.calories} cal to ${mealLabel}`;
       const iconClass = FOOD_ICONS[f.id] || 'fa-solid fa-utensils';
       const iconEl = document.createElement('span');
@@ -7847,6 +7931,8 @@ function renderFoodChipsForCategory(category, containerId) {
     groupDiv.appendChild(chipsDiv);
     container.appendChild(groupDiv);
   });
+  const searchInput = document.getElementById(searchId);
+  if (searchInput) attachTilePickerSearch(container, searchInput);
 }
 
 function renderFrequentFood() {
@@ -7892,15 +7978,28 @@ function renderLogFoodItems() {
 
 // Build exercise tile grid for one category (log form) — three sections: icon (top), name (middle), duration (bottom)
 function renderExerciseChipsForCategory(category, containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+  const chipsEl = document.getElementById(containerId);
+  if (!chipsEl) return;
+  const parent = chipsEl.parentElement;
+  const searchId = 'tileSearch_' + containerId;
+  let searchWrap = parent.querySelector('.tile-picker-search-wrap');
+  if (!searchWrap) {
+    searchWrap = createTilePickerSearchEl(searchId, 'Filter exercises…', 'Filter exercises in this category');
+    parent.insertBefore(searchWrap, chipsEl);
+    const inp = document.getElementById(searchId);
+    if (inp) attachTilePickerSearch(parent, inp);
+  } else {
+    const inp = document.getElementById(searchId);
+    if (inp) inp.value = '';
+  }
   const exercises = PREDEFINED_EXERCISES.filter(e => (e.category || 'cardio') === category);
-  container.innerHTML = '';
+  chipsEl.innerHTML = '';
   exercises.forEach(ex => {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'exercise-chip exercise-chip--' + (ex.category || 'cardio');
     btn.setAttribute('data-exercise-id', ex.id);
+    btn.setAttribute('data-search-text', (ex.name + ' ' + ex.defaultDuration + ' min').toLowerCase());
     btn.title = `Add ${ex.name}, ${ex.defaultDuration} min`;
     const iconClass = EXERCISE_ICONS[ex.id] || 'fa-solid fa-dumbbell';
     const iconEl = document.createElement('span');
@@ -7916,8 +8015,11 @@ function renderExerciseChipsForCategory(category, containerId) {
     btn.appendChild(nameSpan);
     btn.appendChild(durationSpan);
     btn.addEventListener('click', () => addLogExerciseItem(ex.id));
-    container.appendChild(btn);
+    chipsEl.appendChild(btn);
   });
+  const inpAfter = document.getElementById(searchId);
+  if (inpAfter && inpAfter.value) filterTilePickerScope(parent, inpAfter.value);
+  else filterTilePickerScope(parent, '');
 }
 
 // Add exercise item to log entry form (from tile click — uses default duration)
@@ -8006,7 +8108,9 @@ function renderEnergyClarityTiles() {
   const hidden = document.getElementById('energyClarity');
   if (!container) return;
   const currentValue = hidden ? hidden.value : '';
+  const ecSearchId = 'tileSearch_energyClarityTiles';
   container.innerHTML = '';
+  container.appendChild(createTilePickerSearchEl(ecSearchId, 'Filter options…', 'Filter energy and mental clarity options'));
   ENERGY_CLARITY_GROUPS.forEach(grp => {
     const opts = ENERGY_CLARITY_OPTIONS.filter(o => o.mood === grp.id);
     if (opts.length === 0) return;
@@ -8024,6 +8128,7 @@ function renderEnergyClarityTiles() {
       btn.type = 'button';
       btn.className = 'energy-clarity-chip energy-clarity-chip--' + opt.mood;
       btn.setAttribute('data-value', opt.value);
+      btn.setAttribute('data-search-text', (opt.label + ' ' + opt.value).toLowerCase());
       btn.setAttribute('role', 'option');
       btn.setAttribute('aria-selected', currentValue === opt.value ? 'true' : 'false');
       if (currentValue === opt.value) btn.classList.add('selected');
@@ -8042,6 +8147,8 @@ function renderEnergyClarityTiles() {
     groupDiv.appendChild(chipsDiv);
     container.appendChild(groupDiv);
   });
+  const ecSearchInput = document.getElementById(ecSearchId);
+  if (ecSearchInput) attachTilePickerSearch(container, ecSearchInput);
   const label = document.getElementById('energyClaritySelectedLabel');
   if (label && !label.textContent) label.textContent = currentValue ? currentValue : 'None selected';
 }
@@ -8062,7 +8169,9 @@ function renderEditEnergyClarityTiles() {
   const hidden = document.getElementById('editEnergyClarity');
   if (!container) return;
   const currentValue = hidden ? hidden.value : '';
+  const eecSearchId = 'tileSearch_editEnergyClarityTiles';
   container.innerHTML = '';
+  container.appendChild(createTilePickerSearchEl(eecSearchId, 'Filter options…', 'Filter energy and mental clarity options'));
   ENERGY_CLARITY_GROUPS.forEach(grp => {
     const opts = ENERGY_CLARITY_OPTIONS.filter(o => o.mood === grp.id);
     if (opts.length === 0) return;
@@ -8080,6 +8189,7 @@ function renderEditEnergyClarityTiles() {
       btn.type = 'button';
       btn.className = 'energy-clarity-chip energy-clarity-chip--' + opt.mood;
       btn.setAttribute('data-value', opt.value);
+      btn.setAttribute('data-search-text', (opt.label + ' ' + opt.value).toLowerCase());
       btn.setAttribute('role', 'option');
       btn.setAttribute('aria-selected', currentValue === opt.value ? 'true' : 'false');
       if (currentValue === opt.value) btn.classList.add('selected');
@@ -8098,6 +8208,8 @@ function renderEditEnergyClarityTiles() {
     groupDiv.appendChild(chipsDiv);
     container.appendChild(groupDiv);
   });
+  const eecSearchInput = document.getElementById(eecSearchId);
+  if (eecSearchInput) attachTilePickerSearch(container, eecSearchInput);
   const label = document.getElementById('editEnergyClaritySelectedLabel');
   if (label) label.textContent = currentValue ? currentValue : 'None selected';
 }
@@ -8383,7 +8495,9 @@ function renderStressorTiles(containerId) {
   }
   const container = document.getElementById(containerId);
   if (!container) return;
+  const searchId = 'tileSearch_' + containerId;
   container.innerHTML = '';
+  container.appendChild(createTilePickerSearchEl(searchId, 'Filter stressors…', 'Filter stressors and triggers'));
   STRESSOR_GROUPS.forEach(grp => {
     const opts = STRESSOR_OPTIONS.filter(o => o.group === grp.id);
     if (opts.length === 0) return;
@@ -8401,6 +8515,7 @@ function renderStressorTiles(containerId) {
       btn.type = 'button';
       btn.className = 'stressor-chip stressor-chip--' + grp.color;
       btn.setAttribute('data-value', opt.value);
+      btn.setAttribute('data-search-text', (opt.label + ' ' + opt.value).toLowerCase());
       btn.title = 'Add: ' + opt.label;
       const iconClass = STRESSOR_ICONS[opt.value] || 'fa-solid fa-bolt';
       const iconEl = document.createElement('span');
@@ -8420,6 +8535,8 @@ function renderStressorTiles(containerId) {
     groupDiv.appendChild(chipsDiv);
     container.appendChild(groupDiv);
   });
+  const stressSearchInput = document.getElementById(searchId);
+  if (stressSearchInput) attachTilePickerSearch(container, stressSearchInput);
 }
 
 function renderLogStressorsItems() {
@@ -8481,7 +8598,9 @@ function renderSymptomTiles(containerId) {
   }
   const container = document.getElementById(containerId);
   if (!container) return;
+  const symSearchId = 'tileSearch_' + containerId;
   container.innerHTML = '';
+  container.appendChild(createTilePickerSearchEl(symSearchId, 'Filter symptoms…', 'Filter symptoms'));
   SYMPTOM_GROUPS.forEach(grp => {
     const opts = SYMPTOM_OPTIONS.filter(o => o.group === grp.id);
     if (opts.length === 0) return;
@@ -8499,6 +8618,7 @@ function renderSymptomTiles(containerId) {
       btn.type = 'button';
       btn.className = 'symptom-chip symptom-chip--' + grp.color;
       btn.setAttribute('data-value', opt.value);
+      btn.setAttribute('data-search-text', (opt.label + ' ' + opt.value).toLowerCase());
       btn.title = 'Add: ' + opt.label;
       const iconClass = SYMPTOM_ICONS[opt.value] || 'fa-solid fa-circle-dot';
       const iconEl = document.createElement('span');
@@ -8518,6 +8638,8 @@ function renderSymptomTiles(containerId) {
     groupDiv.appendChild(chipsDiv);
     container.appendChild(groupDiv);
   });
+  const symSearchInput = document.getElementById(symSearchId);
+  if (symSearchInput) attachTilePickerSearch(container, symSearchInput);
 }
 
 function renderLogSymptomsItems() {
@@ -8952,6 +9074,7 @@ function openFoodModal(logDate) {
 }
 
 function closeFoodModal() {
+  if (typeof closeTilePickerSheet === 'function') closeTilePickerSheet();
   if (window._foodModalEscapeHandler) {
     document.removeEventListener('keydown', window._foodModalEscapeHandler);
     window._foodModalEscapeHandler = null;
@@ -9021,16 +9144,18 @@ function renderFoodItems() {
       return `<div class="food-group" data-group="${escapeHTML(grp.id)}"><div class="food-group__title">${escapeHTML(grp.label)}</div><div class="food-chips">${chipsHtml}</div></div>`;
     }).join('');
     return `
-    <details class="food-category-block food-meal-collapsible">
-      <summary class="food-category-summary"><span class="food-meal-label">${labels[cat]}</span><span class="food-meal-arrow" aria-hidden="true">▶</span></summary>
-      <div class="food-category-body">
-        <div id="${listId}" class="items-list" style="min-height: 24px;">${itemsHtml}</div>
-        <div class="food-tiles-by-group" style="margin-top: 8px;">${groupsHtml}</div>
+    <div class="food-category-block food-meal-collapsible">
+      <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">${labels[cat]}</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+      <div class="tile-picker-slot">
+        <div class="tile-picker-anchor">
+          <div class="food-category-body">
+            <div id="${listId}" class="items-list" style="min-height: 24px;">${itemsHtml}</div>
+            <div class="food-tiles-by-group" style="margin-top: 8px;">${groupsHtml}</div>
+          </div>
+        </div>
       </div>
-    </details>`;
+    </div>`;
   }).join('');
-  // One meal open at a time in the Food Log modal (same as main log form)
-  makeAccordion('#foodItemsList', 'details.food-meal-collapsible');
 }
 
 function saveFoodLog() {
@@ -9173,6 +9298,7 @@ if (typeof window !== 'undefined') {
 }
 
 function closeExerciseModal() {
+  if (typeof closeTilePickerSheet === 'function') closeTilePickerSheet();
   if (window._exerciseModalEscapeHandler) {
     document.removeEventListener('keydown', window._exerciseModalEscapeHandler);
     window._exerciseModalEscapeHandler = null;
@@ -9215,20 +9341,31 @@ function renderExerciseItems() {
     const chipsHtml = exercises.map(ex => {
       const iconClass = EXERCISE_ICONS[ex.id] || 'fa-solid fa-dumbbell';
       const groupClass = 'exercise-chip--' + (ex.category || 'cardio');
-      return `<button type="button" class="exercise-chip ${groupClass}" data-exercise-id="${escapeHTML(ex.id)}" title="Add ${escapeHTML(ex.name)}, ${ex.defaultDuration} min" onclick="addExerciseItem('${escapeHTML(ex.id)}')"><span class="exercise-chip-icon"><i class="${iconClass}" aria-hidden="true"></i></span><span class="exercise-chip-name">${escapeHTML(ex.name)}</span><span class="exercise-chip-duration">${ex.defaultDuration} min</span></button>`;
+      const searchAttr = escapeHTML((ex.name + ' ' + ex.defaultDuration + ' min').toLowerCase());
+      return `<button type="button" class="exercise-chip ${groupClass}" data-exercise-id="${escapeHTML(ex.id)}" data-search-text="${searchAttr}" title="Add ${escapeHTML(ex.name)}, ${ex.defaultDuration} min" onclick="addExerciseItem('${escapeHTML(ex.id)}')"><span class="exercise-chip-icon"><i class="${iconClass}" aria-hidden="true"></i></span><span class="exercise-chip-name">${escapeHTML(ex.name)}</span><span class="exercise-chip-duration">${ex.defaultDuration} min</span></button>`;
     }).join('');
     return `
-    <details class="exercise-category-block exercise-meal-collapsible">
-      <summary class="exercise-category-summary"><span class="exercise-meal-label">${escapeHTML(cat.label)}</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></summary>
-      <div class="exercise-category-body">
-        <div class="exercise-chips">${chipsHtml}</div>
+    <div class="exercise-category-block exercise-meal-collapsible">
+      <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">${escapeHTML(cat.label)}</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+      <div class="tile-picker-slot">
+        <div class="tile-picker-anchor">
+          <div class="exercise-category-body">
+            <div class="exercise-chips">${chipsHtml}</div>
+          </div>
+        </div>
       </div>
-    </details>`;
+    </div>`;
   }).join('');
   list.innerHTML = `
+    <div class="tile-picker-search-wrap">
+      <label class="visually-hidden" for="exerciseModalTileSearch">Filter exercises</label>
+      <input type="search" class="tile-picker-search" id="exerciseModalTileSearch" placeholder="Filter exercises…" autocomplete="off" aria-label="Filter exercises" />
+    </div>
     <div class="items-list" style="min-height: 24px; margin-bottom: 12px;">${itemsHtml}</div>
     ${categoryBlocks}
   `;
+  const modalExSearch = document.getElementById('exerciseModalTileSearch');
+  if (modalExSearch) attachTilePickerSearch(list, modalExSearch);
 }
 
 function saveExerciseLog() {
@@ -9388,10 +9525,6 @@ function openEditEntryModal(logDate) {
     renderEditExerciseChipsForCategory(cat.id, containerId);
   });
 
-  // One exercise category open at a time in edit modal (same as main form)
-  makeAccordion('#editExerciseSection', 'details.exercise-meal-collapsible');
-  makeAccordion('#editFoodSection', 'details.food-meal-collapsible');
-
   document.getElementById('editNotes').value = log.notes || '';
   
   // Initialize sliders
@@ -9480,6 +9613,7 @@ function openEditEntryModal(logDate) {
 }
 
 function closeEditEntryModal() {
+  if (typeof closeTilePickerSheet === 'function') closeTilePickerSheet();
   if (window._editEntryModalEscapeHandler) {
     document.removeEventListener('keydown', window._editEntryModalEscapeHandler);
     window._editEntryModalEscapeHandler = null;
@@ -14084,18 +14218,44 @@ function updateConditionContext(conditionName) {
 
 function updateDashboardTitle() {
   const titleElement = document.getElementById('dashboardTitle');
+  if (!titleElement) return;
   const userName = appSettings.userName;
-  
-  if (userName && userName.trim() !== '') {
-    const newTitle = `Welcome to ${userName}'s health`;
-    titleElement.textContent = newTitle;
-    titleElement.setAttribute('data-text', newTitle);
-    document.title = `${userName.charAt(0).toUpperCase() + userName.slice(1)}'s Health Dashboard`;
-  } else {
-    titleElement.textContent = 'Health Dashboard';
-    titleElement.setAttribute('data-text', 'Health Dashboard');
-    document.title = 'Health Dashboard';
-  }
+  const hasName = userName && userName.trim() !== '';
+
+  const fallbackTitle = hasName
+    ? `Welcome to ${userName}'s health`
+    : 'Health Dashboard';
+  const pageTitle = hasName
+    ? `${userName.charAt(0).toUpperCase() + userName.slice(1)}'s Health Dashboard`
+    : 'Health Dashboard';
+
+  titleElement.textContent = fallbackTitle;
+  titleElement.setAttribute('data-text', fallbackTitle);
+  document.title = pageTitle;
+
+  var deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
+    ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
+  if (deviceOpts.deferAI) return;
+
+  (async function motdDashboardTitle() {
+    if (typeof window.generateMotdWithLLM !== 'function') {
+      if (window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
+        try {
+          await window.PerformanceUtils.lazyLoadScript('summary-llm.js');
+        } catch (e) {}
+      }
+    }
+    if (typeof window.generateMotdWithLLM !== 'function') return;
+    try {
+      var motd = await window.generateMotdWithLLM(hasName ? userName : '', fallbackTitle);
+      var t = motd && motd.trim ? motd.trim() : '';
+      if (!t || t === fallbackTitle) return;
+      var el = document.getElementById('dashboardTitle');
+      if (!el) return;
+      el.textContent = t;
+      el.setAttribute('data-text', t);
+    } catch (e) {}
+  })();
 }
 
 // Filtering and sorting functionality
@@ -14452,10 +14612,15 @@ function renderSortedLogs(sortedLogs) {
   renderLogEntries(sortedLogs);
 }
 
-// Close all nested collapsibles (details) inside a section so content is fully collapsed
+// Close tile picker sheet if its anchor lives inside this section; also close native <details> (e.g. perf benchmark)
 function collapseSectionContent(sectionEl) {
   if (!sectionEl) return;
-  sectionEl.querySelectorAll('details[open]').forEach(details => {
+  var sheet = document.getElementById('tilePickerSheet');
+  var restore = window._tilePickerRestore;
+  if (sheet && sheet.open && restore && restore.slot && sectionEl.contains(restore.slot)) {
+    closeTilePickerSheet();
+  }
+  sectionEl.querySelectorAll('details[open]').forEach(function (details) {
     details.removeAttribute('open');
   });
 }
@@ -14550,27 +14715,89 @@ function initializeSections() {
   });
 }
 
-// One details open at a time within a container (used by Food/Exercise log and modals)
-function makeAccordion(containerSelector, detailsSelector) {
-  const container = document.querySelector(containerSelector);
-  if (!container) return;
-  const detailsList = container.querySelectorAll(detailsSelector);
-  detailsList.forEach(details => {
-    details.addEventListener('toggle', function () {
-      if (!this.open) return;
-      detailsList.forEach(other => {
-        if (other !== this) other.removeAttribute('open');
-      });
+function restoreTilePickerAnchor() {
+  if (!window._tilePickerRestore) return;
+  var anchor = window._tilePickerRestore.anchor;
+  var slot = window._tilePickerRestore.slot;
+  var prevTrigger = window._tilePickerLastTrigger;
+  if (anchor && slot && anchor.parentNode !== slot) {
+    slot.appendChild(anchor);
+  }
+  if (prevTrigger) prevTrigger.setAttribute('aria-expanded', 'false');
+  window._tilePickerRestore = null;
+  window._tilePickerLastTrigger = null;
+}
+
+function closeTilePickerSheet() {
+  var sheet = document.getElementById('tilePickerSheet');
+  if (sheet && sheet.open) sheet.close();
+}
+
+function openTilePickerSheet(triggerEl) {
+  var sheet = document.getElementById('tilePickerSheet');
+  var body = document.getElementById('tilePickerSheetBody');
+  var titleEl = document.getElementById('tilePickerSheetTitle');
+  if (!sheet || !body || !triggerEl) return;
+
+  var slot = triggerEl.nextElementSibling;
+  if (!slot || !slot.classList.contains('tile-picker-slot')) return;
+  var anchor = slot.querySelector('.tile-picker-anchor');
+  if (!anchor) return;
+
+  if (sheet.open && window._tilePickerLastTrigger === triggerEl) {
+    sheet.close();
+    return;
+  }
+
+  if (sheet.open) {
+    restoreTilePickerAnchor();
+  }
+
+  var labelEl = triggerEl.querySelector('.food-meal-label, .exercise-meal-label');
+  var titleText = labelEl ? labelEl.textContent.trim() : triggerEl.textContent.trim();
+  if (titleEl) titleEl.textContent = titleText;
+
+  window._tilePickerRestore = { anchor: anchor, slot: slot };
+  window._tilePickerLastTrigger = triggerEl;
+  triggerEl.setAttribute('aria-expanded', 'true');
+  body.appendChild(anchor);
+  if (!sheet.open) {
+    sheet.showModal();
+  }
+}
+
+function initializeTilePickerSheet() {
+  if (window._tilePickerSheetInit) return;
+  window._tilePickerSheetInit = true;
+  var dialog = document.getElementById('tilePickerSheet');
+  var closeBtn = document.getElementById('tilePickerSheetClose');
+  if (!dialog) return;
+  document.body.addEventListener('click', function (e) {
+    var t = e.target.closest('.tile-picker-trigger');
+    if (!t) return;
+    e.preventDefault();
+    openTilePickerSheet(t);
+  });
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function () {
+      closeTilePickerSheet();
     });
+  }
+  dialog.addEventListener('close', function () {
+    restoreTilePickerAnchor();
+  });
+  dialog.addEventListener('click', function (e) {
+    if (e.target === dialog) closeTilePickerSheet();
   });
 }
 
-// Only one tile-section (details) open at a time within Food Log and Exercise Log
 function initializeOneOpenDetails() {
-  makeAccordion('#foodLog', 'details.food-meal-collapsible');
-  makeAccordion('#exerciseLog', 'details.exercise-meal-collapsible');
-  makeAccordion('#editFoodSection', 'details.food-meal-collapsible');
-  makeAccordion('#editExerciseSection', 'details.exercise-meal-collapsible');
+  initializeTilePickerSheet();
+}
+
+if (typeof window !== 'undefined') {
+  window.closeTilePickerSheet = closeTilePickerSheet;
+  window.openTilePickerSheet = openTilePickerSheet;
 }
 
 // --- App-like navigation: home panel, log wizard, hash, draft ---
@@ -15252,7 +15479,7 @@ window.addEventListener('load', () => {
       applyHashRoute();
     }
     initializeSections();
-    /* initializeSections() clears .open on all accordions; log wizard needs .open so tile <details> and section children are not stuck at opacity 0 from slideInUp */
+    /* initializeSections() clears .open on all accordions; log wizard needs .open so tile picker rows and section children are not stuck at opacity 0 from slideInUp */
     if (typeof initializeLogWizardSections === 'function') initializeLogWizardSections();
     initializeOneOpenDetails();
     
