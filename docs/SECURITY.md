@@ -62,6 +62,7 @@ The anon key is present in client bundles by design. **Authorization must be enf
 ## Content Security Policy (CSP) and XSS
 
 - The app CSP allows `'unsafe-inline'` and `'unsafe-eval'` for compatibility with inline bootstraps and ML libraries. Tightening this is a **tracked hardening goal**; removing `unsafe-eval` may require bundling or loading changes.
+- The meta policy also includes `'wasm-unsafe-eval'` and `worker-src` for blob/CDN workers (TensorFlow.js). If you add a **second** CSP via **HTTP headers** (e.g. Cloudflare “Content Security Policy”), browsers apply **both** policies: every directive must allow what the app needs, or Chrome will report **eval blocked** / **script-src blocked** even when the meta tag looks correct.
 - Prefer `textContent` / `createElement` over `innerHTML` where user-influenced strings are inserted.
 
 ## Android: cleartext and mixed content

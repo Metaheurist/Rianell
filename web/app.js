@@ -1346,30 +1346,6 @@ function closeCookiePolicyModal() {
 
 var _donateModalEscapeHandler = null;
 
-/** PayPal may postMessage from the iframe on some flows; close when the payload looks like a completed donation (best-effort). */
-function _donateModalOnWindowMessage(e) {
-  var overlay = document.getElementById('donateModalOverlay');
-  if (!overlay || overlay.style.display === 'none') return;
-  if (e.origin !== 'https://www.paypal.com' && e.origin !== 'https://www.paypalobjects.com') return;
-  var d = e.data;
-  var s = '';
-  try {
-    if (typeof d === 'string') s = d;
-    else if (d != null && typeof d === 'object') s = JSON.stringify(d);
-  } catch (err) {
-    return;
-  }
-  if (!s) return;
-  var lower = s.toLowerCase();
-  if (lower.indexOf('thank') !== -1) {
-    closeDonateModal();
-    return;
-  }
-  if (/payment[_-]?(capture|completed|success)|checkout[_-]?(complete|approved)|order[_-]?completed|capture[_-]?completed|transaction[_-]?(complete|success)/i.test(s)) {
-    closeDonateModal();
-  }
-}
-
 function openDonateModal() {
   const overlay = document.getElementById('donateModalOverlay');
   if (!overlay) return;
@@ -1381,7 +1357,6 @@ function openDonateModal() {
   overlay.onclick = function (e) {
     if (e.target === overlay) closeDonateModal();
   };
-  window.addEventListener('message', _donateModalOnWindowMessage);
   _donateModalEscapeHandler = function (e) {
     if (e.key === 'Escape') {
       document.removeEventListener('keydown', _donateModalEscapeHandler);
@@ -1390,12 +1365,13 @@ function openDonateModal() {
     }
   };
   document.addEventListener('keydown', _donateModalEscapeHandler);
-  var closeBtn = overlay.querySelector('.donate-iframe-close') || overlay.querySelector('.modal-close');
-  if (closeBtn && typeof closeBtn.focus === 'function') closeBtn.focus();
+  var closeBtn = overlay.querySelector('#donateModalCloseBtn') || overlay.querySelector('.modal-close');
+  var primary = overlay.querySelector('.donate-paypal-btn');
+  if (primary && typeof primary.focus === 'function') primary.focus();
+  else if (closeBtn && typeof closeBtn.focus === 'function') closeBtn.focus();
 }
 
 function closeDonateModal() {
-  window.removeEventListener('message', _donateModalOnWindowMessage);
   if (_donateModalEscapeHandler) {
     document.removeEventListener('keydown', _donateModalEscapeHandler);
     _donateModalEscapeHandler = null;
@@ -15765,9 +15741,30 @@ function updateLogWizardChrome() {
   var nextBtn = document.getElementById('logWizardNextBtn');
   var skipBtn = document.getElementById('logWizardSkipBtn');
   var saveBtn = document.getElementById('logWizardSaveBtn');
-  if (backBtn) backBtn.style.display = currentLogWizardStep > 0 ? '' : 'none';
-  if (nextBtn) nextBtn.style.display = currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1 ? '' : 'none';
-  if (skipBtn) skipBtn.style.display = currentLogWizardStep > 0 && currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1 ? '' : 'none';
+  /* Keep all three nav buttons in the layout (do not use display:none) so the row does not collapse to one full-width button */
+  if (backBtn) {
+    backBtn.style.display = '';
+    backBtn.style.visibility = 'visible';
+    backBtn.textContent = currentLogWizardStep > 0 ? 'Back' : 'Close';
+    backBtn.setAttribute('aria-label', currentLogWizardStep > 0 ? 'Previous step' : 'Close and return to home');
+    backBtn.tabIndex = 0;
+  }
+  if (skipBtn) {
+    var canSkip = currentLogWizardStep > 0 && currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1;
+    skipBtn.style.display = '';
+    skipBtn.style.visibility = canSkip ? 'visible' : 'hidden';
+    skipBtn.style.pointerEvents = canSkip ? '' : 'none';
+    skipBtn.setAttribute('aria-hidden', canSkip ? 'false' : 'true');
+    skipBtn.tabIndex = canSkip ? 0 : -1;
+  }
+  if (nextBtn) {
+    var canNext = currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1;
+    nextBtn.style.display = '';
+    nextBtn.style.visibility = canNext ? 'visible' : 'hidden';
+    nextBtn.style.pointerEvents = canNext ? '' : 'none';
+    nextBtn.setAttribute('aria-hidden', canNext ? 'false' : 'true');
+    nextBtn.tabIndex = canNext ? 0 : -1;
+  }
   if (saveBtn) saveBtn.style.display = currentLogWizardStep === LOG_WIZARD_TOTAL_STEPS - 1 ? '' : 'none';
 }
 
@@ -15832,6 +15829,8 @@ function logWizardGoNext() {
 function logWizardGoBack() {
   if (currentLogWizardStep > 0) {
     setLogWizardStep(currentLogWizardStep - 1);
+  } else {
+    if (typeof switchTab === 'function') switchTab('home', true);
   }
 }
 
