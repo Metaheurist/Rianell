@@ -43,21 +43,26 @@ const androidFile = android && android.file ? String(android.file) : 'latest.jso
 const iosFile = ios && ios.file ? String(ios.file) : 'latest.json';
 
 const badgeHref = runId ? runUrl : `https://github.com/${repo}/actions`;
-// Android + Web = Beta channel; iOS native zip = Alpha (matches in-app install labels).
-const badgeUrl = `https://img.shields.io/badge/build-Android%20${encodeURIComponent(androidV)}%20%7C%20iOS%20Alpha%20${encodeURIComponent(iosV)}%20%7C%20Web%20${encodeURIComponent(run)}-2e7d32?style=flat-square`;
+// Android + Web = Beta (orange); iOS native zip = Alpha (blue) — matches in-app install labels.
+const summaryBadgeUrl = `https://img.shields.io/badge/build-Android%20${encodeURIComponent(androidV)}%20%7C%20iOS%20${encodeURIComponent(iosV)}%20%7C%20Web%20${encodeURIComponent(run)}-2e7d32?style=flat-square`;
+// Orange = Beta (Android, Web); blue = Alpha (iOS native zip) — shields named colors render reliably.
+const BETA_BADGE = 'https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white';
+const ALPHA_BADGE = 'https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white';
 
 const block = [
   START,
   '',
-  `[![CI builds](${badgeUrl})](${badgeHref})`,
+  `[![CI builds](${summaryBadgeUrl})](${badgeHref})`,
   '',
-  '**CI builds** (Android & web = **Beta** · iOS native zip = **Alpha**):',
+  '**CI builds**',
+  '',
+  `![Beta](${BETA_BADGE}) — Android & Web/PWA · ![Alpha](${ALPHA_BADGE}) — iOS native (Xcode zip)`,
   '',
   '| Channel | Build |',
   '| :--- | :---: |',
-  `| **Android** beta APK | **${androidV}** |`,
-  `| **iOS** Alpha (Xcode project zip) | **${iosV}** |`,
-  `| **Web / PWA** (GitHub Pages deploy) | **${run}** |`,
+  `| ![Beta](${BETA_BADGE}) **Android** APK | **${androidV}** |`,
+  `| ![Alpha](${ALPHA_BADGE}) **iOS** (Xcode project zip) | **${iosV}** |`,
+  `| ![Beta](${BETA_BADGE}) **Web / PWA** (GitHub Pages deploy) | **${run}** |`,
   '',
   `Latest: [\`App build/Android/${androidFile}\`](App%20build/Android/latest.json) · [\`App build/iOS/${iosFile}\`](App%20build/iOS/latest.json) · [Workflow #${run}](${runUrl}) · \`${sha}\``,
   '',
