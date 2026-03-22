@@ -470,10 +470,12 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Setup Node (minify web app for Pages)
+      - name: Setup Node (web build for Pages)
         uses: actions/setup-node@v5
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
 
       - name: Prepare site (web + App build for download links)
         run: |
@@ -483,8 +485,9 @@ jobs:
             mkdir -p "site/App build"
             cp -r "App build/"* "site/App build/" 2>/dev/null || true
           fi
-          npm install
-          npx esbuild site/app.js --minify --legal-comments=none --outfile=site/app.min.js
+          npm ci
+          # Same as local npm run build:web: instrument first-party JS (function trace hooks), then minify app.js -> app.min.js
+          node web/build-site.mjs --site site
           node -e "
           const fs = require('fs');
           let h = fs.readFileSync('site/index.html', 'utf8');

@@ -2271,6 +2271,47 @@ function openModalTestOverlay() {
     });
   });
 
+  (function appendFunctionTraceSection() {
+    var sec = document.createElement('section');
+    sec.className = 'god-mode-section';
+    var h4t = document.createElement('h4');
+    h4t.className = 'god-mode-section-title';
+    h4t.textContent = 'Function trace';
+    var hint = document.createElement('p');
+    hint.className = 'god-mode-section-hint';
+    hint.textContent = 'Console-only (no network). Requires demo mode. When enabled, logs every instrumented function in the browser console.';
+    var label = document.createElement('label');
+    label.style.display = 'flex';
+    label.style.alignItems = 'center';
+    label.style.gap = '0.5rem';
+    label.style.cursor = 'pointer';
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.id = 'godModeFunctionTraceToggle';
+    try {
+      cb.checked = localStorage.getItem('rianellFunctionTrace') === 'true';
+    } catch (e) {
+      cb.checked = false;
+    }
+    cb.addEventListener('change', function() {
+      try {
+        localStorage.setItem('rianellFunctionTrace', cb.checked ? 'true' : 'false');
+        if (typeof window.__rianellRefreshFnTraceGate === 'function') window.__rianellRefreshFnTraceGate();
+        if (typeof appSettings !== 'undefined' && appSettings.demoMode) {
+          console.info('[fn-trace] ' + (cb.checked ? 'enabled' : 'disabled'));
+        }
+      } catch (err) {}
+    });
+    var span = document.createElement('span');
+    span.textContent = 'Log all instrumented functions to console (verbose)';
+    label.appendChild(cb);
+    label.appendChild(span);
+    sec.appendChild(h4t);
+    sec.appendChild(hint);
+    sec.appendChild(label);
+    container.appendChild(sec);
+  })();
+
   overlay.style.display = 'block';
   overlay.style.visibility = 'visible';
   overlay.style.opacity = '1';
@@ -13082,6 +13123,9 @@ function loadSettings() {
       }
     }, 500);
   }
+  if (typeof window !== 'undefined' && typeof window.__rianellRefreshFnTraceGate === 'function') {
+    window.__rianellRefreshFnTraceGate();
+  }
 }
 
 function saveSettings() {
@@ -13091,6 +13135,9 @@ function saveSettings() {
     window.appSettings = appSettings;
   }
   Logger.debug('Settings saved', { settings: appSettings });
+  if (typeof window !== 'undefined' && typeof window.__rianellRefreshFnTraceGate === 'function') {
+    window.__rianellRefreshFnTraceGate();
+  }
 }
 
 function setPreferredLlmModel(value) {
