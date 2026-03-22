@@ -1,0 +1,27 @@
+# Gitleaks configuration for CI (see .github/workflows/ci.yml — security-audit job).
+# Scans the working tree with --no-git (not full git history) so old commits are not re-flagged.
+
+title = "Rianell"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Templates; local gitignored secrets; dependencies and build dirs (not committed)"
+paths = [
+  '''^security/\.env\.example$''',
+  '''^security/\.env$''',
+  '''^security/\.encryption_key$''',
+  '''^web/supabase-config\.example\.js$''',
+  '''^node_modules/''',
+  '''^react-app/node_modules/''',
+  '''^\.venv/''',
+  '''^venv/''',
+  '''^ENV/''',
+  '''^dist/''',
+  '''^build/''',
+  '''^react-app/dist/''',
+  '''^logs/''',
+  '''^web/\.trace-build/''',
+  '''^App build/''',
+]

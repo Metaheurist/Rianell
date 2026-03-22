@@ -117,7 +117,7 @@ On each **release** build (or before tagging):
 
 ## Dependency and CI scanning
 
-- GitHub Actions workflow [../.github/workflows/ci.yml](../.github/workflows/ci.yml) (`security-audit` job) runs `npm audit` (root + react-app) and **`pip-audit`** on `requirements.txt`. Failures should be triaged like Dependabot alerts.
+- GitHub Actions workflow [../.github/workflows/ci.yml](../.github/workflows/ci.yml) (`security-audit` job) runs **[Gitleaks](https://github.com/gitleaks/gitleaks)** on the **checked-out working tree** (with `--no-git` so the scan does not walk full git history), **`npm audit`** (root + react-app), and **`pip-audit`** on `requirements.txt`. Configuration: [`.gitleaks.toml`](../.gitleaks.toml) (path allowlists for templates, `node_modules`, local-only `security/.env`, and build dirs). Failures should be triaged like Dependabot alerts.
 
 ## Client-side storage and privacy
 
