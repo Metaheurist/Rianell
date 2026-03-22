@@ -651,6 +651,7 @@ h1#dashboardTitle:hover {
     right: 0;
     bottom: 0;
     z-index: 1000;
+    isolation: isolate;
     align-items: stretch;
     gap: 8px;
     min-height: calc(52px + env(safe-area-inset-bottom, 0px));
@@ -669,6 +670,8 @@ h1#dashboardTitle:hover {
     flex: 1 1 0;
     min-width: 0;
     min-height: 48px;
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -727,6 +730,61 @@ h1#dashboardTitle:hover {
     background: rgba(76, 175, 80, 0.22);
     box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.3);
   }
+}
+
+/* Floating + : opens log wizard from any main tab (fixed to viewport, above bottom nav on mobile) */
+.app-log-fab {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  z-index: 1002;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 2rem;
+  font-weight: 300;
+  line-height: 1;
+  color: #fff;
+  background: var(--primary-gradient);
+  box-shadow: var(--shadow-lg), 0 6px 24px rgba(76, 175, 80, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.22s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-log-fab:hover {
+  filter: brightness(1.06);
+}
+
+.app-log-fab:active {
+  transform: scale(0.94);
+}
+
+.app-log-fab.app-log-fab--hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.88);
+}
+
+@media (max-width: 768px) {
+  .app-log-fab {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px) + 12px);
+  }
+}
+
+@media (min-width: 769px) {
+  .app-log-fab {
+    bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  }
+}
+
+body.light-mode .app-log-fab {
+  box-shadow: 0 6px 22px rgba(46, 125, 50, 0.35);
 }
 
 /* Home / Today */
