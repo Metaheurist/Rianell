@@ -103,7 +103,7 @@ flowchart LR
 - **Optional AI**: Settings toggle "Enable AI features & Goals" hides or shows the AI Analysis tab, chart predictions, and Goals.
 - **Neural-style pipeline**: Trend regression, correlations, patterns, risk factors, flare prediction, cross-section (food/exercise/stressors/symptoms), clustering, time series, actionable advice, prioritised insights, and a 2–3 sentence summary (see [AI Analysis](#ai-analysis-neural-network-architecture)).
 - **Summary note**: In-browser LLM (Transformers.js, flan-t5 by device class) or rule-based fallback; context from analysis and logs; value highlighting in the UI.
-- **Dashboard title (MOTD)**: Main header shows a **message of the day** only (no user name). A **preset line** is chosen from a large rotating list (deterministic **once per calendar day**); when AI is enabled and not deferred, the on-device LLM may replace it after the app has loaded (wider theme variety + sampling). Browser tab title stays **Rianell**.
+- **Dashboard title (MOTD)**: Main header shows a **message of the day** only (no user name). Preset lines are loaded from **`web/motd.json`** at startup (one line per calendar day via a deterministic hash); if the file is missing or offline, a minimal fallback is used. When AI is enabled and not deferred, the on-device LLM may replace the preset after load. Browser tab title stays **Rianell**. Edit **`web/motd.json`** to change copy without editing **`app.js`**.
 - **GPU-accelerated LLM**: When the performance benchmark detects a capable GPU (WebGPU or WebGL), the summary/suggest pipeline loads with GPU acceleration; the app falls back to CPU automatically if GPU loading fails. Uses Transformers.js 3.3.2 for stable WebGPU/WebGL support.
 - **On-device AI model selection**: Settings → Performance → **On-device AI model** lets you choose **Use recommended (for this device)** (from the performance benchmark), **Small (faster, lower memory)**, or **Base (better quality)**. The benchmark recommends flan-t5-small or flan-t5-base by tier; changing the setting clears the LLM cache so the next summary or suggest note uses the selected model.
 - **Suggest note**: LLM or rule-based suggestion for the day’s log note; "Generating…" state on button.
@@ -680,7 +680,16 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.32.0** — Function trace (God mode), AST build pipeline, GitHub Pages build aligned with `npm run build:web`.
+**Latest: v1.33.0** — MOTD from `web/motd.json` (Capacitor copy); removed redundant MOTD script.
+
+<details>
+<summary><strong>v1.33.0</strong> — 2026-03-22 — MOTD JSON, legacy copy</summary>
+
+- **Web**: Dashboard MOTD fallback lines load from **`web/motd.json`** (fetched before `loadSettings()`); minimal inline fallback if fetch fails. Preset list still rotates per calendar day until the on-device LLM replaces it (when AI is enabled).
+- **React / Capacitor**: **`motd.json`** is included in **`react-app/copy-webapp.js`** static root files so **`/legacy/`** builds serve the file.
+- **Repo**: Removed redundant **`scripts/extract-motd-to-json.mjs`** (edit **`web/motd.json`** directly or use your editor’s JSON formatter).
+
+</details>
 
 <details>
 <summary><strong>v1.32.0</strong> — 2026-03-22 — Function trace, CI web build</summary>

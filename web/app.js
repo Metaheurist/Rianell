@@ -15118,156 +15118,46 @@ function updateConditionContext(conditionName) {
   }
 }
 
-/** Preconfigured dashboard lines when the on-device MOTD LLM is unavailable or deferred. One pick per calendar day (deterministic). No user names. */
-const MOTD_FALLBACK_MESSAGES = [
-  'Small steps today make a steadier path forward.',
-  'Showing up for yourself counts—especially on hard days.',
-  'Rest is part of care, not a detour from it.',
-  'Notice what felt a little easier than yesterday.',
-  'Your pace is the right pace.',
-  'Gentle progress still moves the needle.',
-  'One honest log is worth more than a perfect streak.',
-  'Kindness to your body includes patience.',
-  'Track what matters to you—no performance required.',
-  'Breathe, log, adjust. You can revisit tomorrow.',
-  'Energy comes in waves; ride them without judgement.',
-  'Celebrate the micro-wins—they add up.',
-  'Consistency beats intensity for long-term wellbeing.',
-  'Listen to your body; it is not the enemy.',
-  'Hope grows where you keep showing up.',
-  'Balance is a practice, not a destination.',
-  'You deserve care on good days and rough ones alike.',
-  'Data is a mirror, not a scorecard.',
-  'Tend to sleep, food, and movement like basics, not luxuries.',
-  'Stress eases when you name what you can control.',
-  'Curiosity about your patterns beats harsh judgement.',
-  'Recovery is allowed to be uneven.',
-  'Quiet strength is still strength.',
-  'Today’s entry is enough.',
-  'Warmth toward yourself supports healing.',
-  'You are building a story only you can tell.',
-  'Steady habits outlast short bursts.',
-  'Trust the process you chose for your health.',
-  'Lighten the load where you can—delegation counts.',
-  'Tomorrow’s you benefits from today’s honesty.',
-  'Every check-in is a vote for your future self.',
-  'You do not need to earn rest with productivity.',
-  'Progress is allowed to look messy.',
-  'Small kindnesses to yourself compound over time.',
-  'Honour the limits you notice—they are information, not failure.',
-  'A slower day is still a day you are navigating.',
-  'Comparison steals focus from what is true for you.',
-  'Patterns emerge when you stay curious, not when you stay perfect.',
-  'Your body is doing a lot; notice it with respect.',
-  'It is fine to adjust the plan when life shifts.',
-  'Breathing room in your schedule is not wasted time.',
-  'Acknowledging pain is not the same as giving in to it.',
-  'You can care deeply without pushing harshly.',
-  'One metric does not define your whole picture.',
-  'Stability often hides in boring, repeatable choices.',
-  'Let “good enough” be genuinely good enough today.',
-  'Movement can be gentle and still count.',
-  'Hydration, sleep, and food are foundations—refill them kindly.',
-  'If today was heavy, tomorrow can be lighter by design.',
-  'You are allowed to protect your energy.',
-  'Notice tension without turning it into a verdict.',
-  'A skipped habit is a data point, not a character flaw.',
-  'Rebuild at your speed; there is no single correct tempo.',
-  'Soft goals still move you forward.',
-  'Ask what would help next week—you are playing a long game.',
-  'Gratitude for tiny relief is still gratitude.',
-  'You are not behind; you are here, with new information.',
-  'Care that fits your real life lasts longer than ideals.',
-  'Weather in your body changes; you can dress for it.',
-  'Celebrate showing up even when the numbers are flat.',
-  'Boundaries with others can protect your health too.',
-  'You deserve tools that feel usable, not punishing.',
-  'Healing is rarely a straight line—expect some zigzags.',
-  'Curiosity softens the edge of frustration.',
-  'Record the win you almost dismissed.',
-  'Night comes before morning; be patient with the cycle.',
-  'Your log is a conversation with yourself—keep it honest.',
-  'Ease is not laziness when you have been stretched thin.',
-  'Trust builds when you keep promises to yourself, however small.',
-  'You can want better days and accept today as it is.',
-  'Space between effort and outcome is normal—stay with it.',
-  'The goal is sustainable care, not heroic sprints.',
-  'Let this screen be a checkpoint, not a courtroom.',
-  'You are allowed to feel proud of quiet maintenance.',
-  'Fresh air, water, and sleep still help more than we admit.',
-  'When in doubt, choose the option your future self will thank you for.',
-  'Your story includes recovery days—write them without shame.',
-  'Momentum returns; store fuel while you wait.',
-  'Be the friend to yourself that you would want beside you.',
-  'Small routines are anchors in choppy weeks.',
-  'You have already survived difficult days—this one counts too.',
-  'Let the next hour be a little kinder than the last.',
-  'A single deep breath can reset more than you expect.',
-  'You are not obliged to optimise every moment.',
-  'Soft lighting for your thoughts—dim the harsh critic.',
-  'Track mood like weather: observe, do not argue with the sky.',
-  'What helped once might help again—note it without pressure.',
-  'Discomfort can coexist with dignity—hold both gently.',
-  'Your nervous system deserves patience, not a performance review.',
-  'Stretch the story you tell about today by one compassionate sentence.',
-  'If motivation is low, lower the bar and keep the door open.',
-  'Healing sometimes looks like doing less, on purpose.',
-  'Name one thing your body did right today, however small.',
-  'Screens away for a minute—your eyes were not built for endless scroll.',
-  'Walk to the window; distance and light are cheap medicine.',
-  'Water first, drama second.',
-  'Hunger is information, not a moral test.',
-  'Sleep debt is real debt—pay it in small instalments.',
-  'Pain spikes pass; you do not have to forecast forever from one hour.',
-  'Symptoms fluctuate; your worth does not.',
-  'Medication routines are acts of self-trust—honour the alarm.',
-  'Side-effects deserve documentation, not dismissal.',
-  'Appointments count as self-leadership, not indulgence.',
-  'Ask for accommodations before you crash—prevention is wise.',
-  'Noise-cancel your inner comparison channel.',
-  'Social media health advice is a buffet—sample, do not swallow whole.',
-  'Your baseline today is not your ceiling for life.',
-  'Flat days fertilise later growth—rest is not regression.',
-  'Joy can be quiet: tea, text, sunlight on the floor.',
-  'Pride in “I showed up” beats shame for “I did not peak.”',
-  'You are allowed to outgrow coping habits that once saved you.',
-  'Replace “I should” with “I could” and feel the room appear.',
-  'Schedule recovery the way you schedule effort.',
-  'Let unfinished lists be evidence of a full life, not failure.',
-  'One drawer, one shelf—tiny order can calm a noisy mind.',
-  'Music at low volume still shifts atmosphere.',
-  'Cold face splash, warm socks—small sensory resets.',
-  'Text someone “thinking of you” and mean it.',
-  'Say no once today to protect a yes that matters tomorrow.',
-  'Advocate for yourself the way you would for a friend.',
-  'Documentation turns fog into footholds—keep jotting.',
-  'Trends matter more than single spikes—zoom out kindly.',
-  'If the chart looks messy, your life might be rich and real.',
-  'Automate what repeats; save willpower for what cannot.',
-  'Celebrate the boring maintenance that keeps the wheels on.',
-  'You are not lazy—you are allocating limited spoons.',
-  'Spoon theory is not an excuse; it is a map.',
-  'Rain plans for health days are still plans.',
-  'Sunlight tomorrow is not guaranteed; catch some today if you can.',
-  'Night owls and early birds both deserve respect—find your rhythm.',
-  'Micro-movements count when macro feels impossible.',
-  'Standing counts when sitting was the only option earlier.',
-  'Dance in the kitchen counts as movement and morale.',
-  'Your reflection is one angle, not the full blueprint.',
-  'Therapy homework is still homework—gentle credit for trying.',
-  'Journalling does not have to be pretty to be useful.',
-  'Voice memos are logs too—speak if typing tires you.',
-  'If you only have five percent, spend it on something true.',
-  'End the day by naming one thing you did not regret.',
-  'Begin the day by lowering expectations to humane size.',
-  'Courage is sometimes just sending the message or booking the slot.',
-  'Hope can be a thin thread—hold it anyway.',
-  'You belong in the story of people who keep trying.',
-  'This dashboard is a tool, not a judge—wield it gently.'
-];
+/** If motd.json fails to load (offline, 404), show this single line until retry. */
+const MOTD_FALLBACK_MINIMAL = ['Rianell'];
+
+/**
+ * Loads MOTD lines from web/motd.json (see repo). Sets window.__rianellMotdMessages.
+ * @returns {Promise<void>}
+ */
+function loadMotdJson() {
+  if (typeof window === 'undefined' || typeof fetch !== 'function') {
+    return Promise.resolve();
+  }
+  var url = 'motd.json';
+  try {
+    url = new URL('motd.json', window.location.href).href;
+  } catch (e) {}
+  return fetch(url, { cache: 'force-cache' })
+    .then(function (r) {
+      if (!r.ok) throw new Error('motd');
+      return r.json();
+    })
+    .then(function (data) {
+      if (data && Array.isArray(data.messages) && data.messages.length) {
+        window.__rianellMotdMessages = data.messages.filter(function (x) {
+          return typeof x === 'string' && String(x).trim().length > 0;
+        });
+      }
+    })
+    .catch(function () {
+      window.__rianellMotdMessages = null;
+    });
+}
+
+function getMotdMessageList() {
+  var w = typeof window !== 'undefined' ? window.__rianellMotdMessages : null;
+  if (w && Array.isArray(w) && w.length) return w;
+  return MOTD_FALLBACK_MINIMAL;
+}
 
 function getDailyMotdFallback() {
-  const list = MOTD_FALLBACK_MESSAGES;
+  const list = getMotdMessageList();
   if (!list.length) return 'Rianell';
   const d = new Date();
   const key = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
@@ -16437,7 +16327,8 @@ window.addEventListener('load', () => {
   // Always set dark mode on load
   document.body.classList.remove('light-mode');
   document.body.classList.add('dark-mode');
-  
+
+  function startAfterMotd() {
   loadSettings();
 
   // Shared link: /#Demo enables demo mode and reloads (or restarts if already in demo).
@@ -16720,6 +16611,9 @@ window.addEventListener('load', () => {
   } else {
     runAppInit();
   }
+  }
+
+  (typeof loadMotdJson === 'function' ? loadMotdJson() : Promise.resolve()).then(startAfterMotd, startAfterMotd);
 });
 
 function initializeDateFilters() {

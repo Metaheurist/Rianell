@@ -18,6 +18,7 @@ const outDir = path.join(__dirname, 'public', 'legacy');
 const staticRootFiles = [
   'index.html',
   'manifest.json',
+  'motd.json',
   'styles.css',
   'print-styles.css',
 ];
