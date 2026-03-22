@@ -44,12 +44,12 @@
   <link rel="icon" type="image/png" sizes="32x32" href="Icons/Icon-32.png" onerror="this.onerror=null; this.href='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%234caf50\'/><text x=\'50\' y=\'65\' font-size=\'60\' text-anchor=\'middle\' fill=\'white\'>❤️</text></svg>';">
   <link rel="icon" type="image/png" sizes="16x16" href="Icons/Icon-16.png" onerror="this.onerror=null; this.href='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'45\' fill=\'%234caf50\'/><text x=\'50\' y=\'65\' font-size=\'60\' text-anchor=\'middle\' fill=\'white\'>❤️</text></svg>';">
   
-  <!-- Cache control meta tags to prevent caching of CSS and JS -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <!-- Prefer HTTP Cache-Control for production. max-age=0 still revalidates (lighter than no-store for repeat visits). -->
+  <meta http-equiv="Cache-Control" content="max-age=0, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   
-  <script src="apexcharts.min.js?v=1"></script>
+  <!-- apexcharts.min.js: loaded on demand via PerformanceUtils.ensureApexChartsLoaded() -->
   <!-- Supabase Client Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Event Handlers Module (for CSP compliance) -->
@@ -59,7 +59,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css" crossorigin="anonymous">
+  <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
   <link rel="preload" href="styles.css?v=1" as="style">
   <link rel="stylesheet" href="styles.css?v=1" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=1&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
@@ -2195,26 +2195,11 @@
   <script>window.SUPABASE_CONFIG = window.SUPABASE_CONFIG || { url: '', anonKey: '' };</script>
   <!-- Supabase Configuration (excluded from Git - add your credentials here) -->
   <script src="supabase-config.js"></script>
-  <!-- TensorFlow.js + WebGL backend for GPU-accelerated AI on desktop -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
-  <script>
-    (function() {
-      var _warn = console.warn;
-      console.warn = function() {
-        var msg = arguments[0] && String(arguments[0]);
-        if (msg && (msg.indexOf('already registered') !== -1 && (msg.indexOf('webgl') !== -1 || msg.indexOf('kernel') !== -1))) return;
-        _warn.apply(console, arguments);
-      };
-    })();
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.22.0/dist/tf-backend-webgl.min.js"></script>
-  <script src="AIEngine.js"></script>
+  <!-- TensorFlow + AIEngine: loaded on demand via PerformanceUtils.ensureAIEngineLoaded() -->
   <script src="storage-utils.js?v=1"></script>
   <script src="notifications.js?v=1"></script>
   <script src="notification-helpers.js?v=1"></script>
-  <script src="export-utils.js?v=1"></script>
-  <script src="import-utils.js?v=1"></script>
-  <script src="print-utils.js?v=1"></script>
+  <!-- export-utils / import-utils / print-utils: loaded on first use via PerformanceUtils.ensure*Loaded() -->
   <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.37/dist/ua-parser.min.js"></script>
   <script src="device-module.js"></script>
   <script src="device-benchmark.js"></script>
@@ -2231,6 +2216,24 @@
   <script src="security-utils.js"></script>
   <script src="encryption-utils.js"></script>
   <script src="cloud-sync.js"></script>
+  <script>
+    (function() {
+      function loadFontAwesome() {
+        if (document.querySelector('link[data-fontawesome-deferred]')) return;
+        var l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css';
+        l.crossOrigin = 'anonymous';
+        l.setAttribute('data-fontawesome-deferred', '1');
+        document.head.appendChild(l);
+      }
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(loadFontAwesome, { timeout: 2000 });
+      } else {
+        window.addEventListener('load', function () { setTimeout(loadFontAwesome, 0); });
+      }
+    })();
+  </script>
   <script>
     (function() {
       if (typeof refreshBuildDownloadLinks === 'function') refreshBuildDownloadLinks();
