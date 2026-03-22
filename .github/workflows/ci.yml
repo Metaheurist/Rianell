@@ -1,5 +1,5 @@
 # =============================================================================
-# Rianell (Health-app repo) — unified GitHub Actions
+# Rianell — unified GitHub Actions
 # =============================================================================
 # Single workflow file replacing former: build-android-apk, build-ios,
 # build-app-releases, deploy-pages, security-audit.
