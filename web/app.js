@@ -14364,27 +14364,60 @@ function updateConditionContext(conditionName) {
   }
 }
 
-function updateDashboardTitle() {
-  const titleElement = document.getElementById('dashboardTitle');
-  if (!titleElement) return;
-  const userName = appSettings.userName;
-  const hasName = userName && userName.trim() !== '';
+/** Preconfigured dashboard lines when the on-device MOTD LLM is unavailable or deferred. Same calendar day → same line (stable “message of the day”). No user names. */
+const MOTD_FALLBACK_MESSAGES = [
+  'Small steps today make a steadier path forward.',
+  'Showing up for yourself counts—especially on hard days.',
+  'Rest is part of care, not a detour from it.',
+  'Notice what felt a little easier than yesterday.',
+  'Your pace is the right pace.',
+  'Gentle progress still moves the needle.',
+  'One honest log is worth more than a perfect streak.',
+  'Kindness to your body includes patience.',
+  'Track what matters to you—no performance required.',
+  'Breathe, log, adjust. You can revisit tomorrow.',
+  'Energy comes in waves; ride them without judgement.',
+  'Celebrate the micro-wins—they add up.',
+  'Consistency beats intensity for long-term wellbeing.',
+  'Listen to your body; it is not the enemy.',
+  'Hope grows where you keep showing up.',
+  'Balance is a practice, not a destination.',
+  'You deserve care on good days and rough ones alike.',
+  'Data is a mirror, not a scorecard.',
+  'Tend to sleep, food, and movement like basics, not luxuries.',
+  'Stress eases when you name what you can control.',
+  'Curiosity about your patterns beats harsh judgement.',
+  'Recovery is allowed to be uneven.',
+  'Quiet strength is still strength.',
+  'Today’s entry is enough.',
+  'Warmth toward yourself supports healing.',
+  'You are building a story only you can tell.',
+  'Steady habits outlast short bursts.',
+  'Trust the process you chose for your health.',
+  'Lighten the load where you can—delegation counts.',
+  'Tomorrow’s you benefits from today’s honesty.'
+];
 
-  const fallbackTitle = hasName
-    ? `Welcome to ${userName}'s health`
-    : 'Health Dashboard';
-  const pageTitle = hasName
-    ? `${userName.charAt(0).toUpperCase() + userName.slice(1)}'s Health Dashboard`
-    : 'Health Dashboard';
+function getDailyMotdFallback() {
+  const list = MOTD_FALLBACK_MESSAGES;
+  if (!list.length) return 'Health Dashboard';
+  const d = new Date();
+  const key = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  var h = 0;
+  for (var i = 0; i < key.length; i++) {
+    h = Math.imul(31, h) + key.charCodeAt(i) | 0;
+  }
+  return list[Math.abs(h) % list.length];
+}
 
-  titleElement.textContent = fallbackTitle;
-  titleElement.setAttribute('data-text', fallbackTitle);
-  document.title = pageTitle;
-
+/**
+ * Runs after the app shell is visible so MOTD LLM does not contend with preloadSummaryLLM during startup.
+ */
+function scheduleDashboardMotdWithLlm(fallbackTitle) {
   var deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
     ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
   if (deviceOpts.deferAI) return;
-
+  var fb = fallbackTitle != null ? fallbackTitle : getDailyMotdFallback();
   (async function motdDashboardTitle() {
     if (typeof window.generateMotdWithLLM !== 'function') {
       if (window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
@@ -14395,15 +14428,33 @@ function updateDashboardTitle() {
     }
     if (typeof window.generateMotdWithLLM !== 'function') return;
     try {
-      var motd = await window.generateMotdWithLLM(hasName ? userName : '', fallbackTitle);
+      var motd = await window.generateMotdWithLLM(fb);
       var t = motd && motd.trim ? motd.trim() : '';
-      if (!t || t === fallbackTitle) return;
+      if (!t || t === fb) return;
       var el = document.getElementById('dashboardTitle');
       if (!el) return;
       el.textContent = t;
       el.setAttribute('data-text', t);
     } catch (e) {}
   })();
+}
+
+function updateDashboardTitle() {
+  const titleElement = document.getElementById('dashboardTitle');
+  if (!titleElement) return;
+
+  const fallbackTitle = getDailyMotdFallback();
+
+  titleElement.textContent = fallbackTitle;
+  titleElement.setAttribute('data-text', fallbackTitle);
+  document.title = 'Health Dashboard';
+
+  var deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
+    ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
+  if (deviceOpts.deferAI) return;
+  if (document.body && document.body.classList.contains('loaded')) {
+    scheduleDashboardMotdWithLlm(fallbackTitle);
+  }
 }
 
 // Filtering and sorting functionality
@@ -15438,33 +15489,33 @@ window.addEventListener('error', (event) => {
   // Let other errors through for debugging
 }, true);
 
-// Handle unhandled promise rejections (often from extensions)
+// Handle unhandled promise rejections (often from extensions). Mirrors early handler in index.html.
+function __healthAppRejectionText(reason) {
+  if (reason == null) return '';
+  if (typeof reason === 'string') return reason;
+  var m = '';
+  try {
+    if (reason.message) m += String(reason.message);
+    if (reason.stack) m += '\n' + String(reason.stack);
+  } catch (e) {}
+  try { m += '\n' + String(reason); } catch (e2) {}
+  return m;
+}
+
 window.addEventListener('unhandledrejection', (event) => {
-  const errorMsg = event.reason?.message || String(event.reason || '');
-  const errorString = String(event.reason || '');
-  const errorStack = event.reason?.stack || '';
-  
-  // Check if error is from extension files
-  const isExtensionError = 
-    errorMsg.includes('No tab with id') || 
-    errorMsg.includes('Frame with ID') ||
-    errorMsg.includes('serviceWorker.js') ||
-    errorMsg.includes('background.js') ||
-    errorMsg.includes('ERR_INVALID_URL') && errorMsg.includes('data:;base64') ||
-    errorString.includes('No tab with id') ||
-    errorString.includes('Frame with ID') ||
-    errorStack.includes('serviceWorker.js') ||
-    errorStack.includes('background.js') ||
-    errorStack.includes('chrome-extension://') ||
-    errorStack.includes('moz-extension://');
-  
+  const blob = __healthAppRejectionText(event.reason);
+  const isExtensionError =
+    /tabs:outgoing|No\s+Listener|tabs\.outgoing\.message|vendor\.js|chrome-extension:|moz-extension:|safari-web-extension:/i.test(blob) ||
+    blob.includes('No tab with id') ||
+    blob.includes('Frame with ID') ||
+    blob.includes('serviceWorker.js') ||
+    blob.includes('background.js') ||
+    (blob.includes('ERR_INVALID_URL') && blob.includes('data:;base64'));
+
   if (isExtensionError) {
-    // Suppress extension-related promise rejections
     event.preventDefault();
-    event.stopPropagation();
-    return false;
+    event.stopImmediatePropagation();
   }
-  // Let other rejections through for debugging
 });
 
 // Initialize the app
@@ -15590,6 +15641,8 @@ window.addEventListener('load', () => {
       document.body.classList.add('loaded');
       showCookieBannerIfNeeded();
     }
+
+    scheduleDashboardMotdWithLlm(getDailyMotdFallback());
 
     renderLogs();
     updateCharts();
