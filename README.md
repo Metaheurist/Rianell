@@ -8,31 +8,35 @@
 
 ### 📑 Navigate
 
+Use these links (explicit anchors — works reliably on GitHub with emoji headings):
+
 | | |
 | :--- | :--- |
-| 🔒 | **[Security](#security)** |
-| 🏠 | **[App overview](#app-overview)** |
-| ✨ | **[Features](#features)** |
-| 📁 | **[Project structure](#project-structure)** (quick list) |
-| ⚙️ | **[Installation](#installation)** |
-| 🚀 | **[Usage](#usage)** |
-| 📱 | **[React shell & Android APK](#react-shell-android-apk)** |
-| 🧪 | **[Testing Data](#testing-data)** |
-| 🔧 | **[Configuration](#configuration)** |
-| 🧠 | **[AI Analysis: Neural Network Architecture](#ai-analysis-neural-network-architecture)** |
-| 🗂️ | **[Project Structure](#project-structure-1)** (full repo tree) |
-| 📦 | **[Dependencies](#dependencies)** |
-| 🛠️ | **[Development](#development)** |
-| 🛡️ | **[GDPR Compliance](#gdpr-compliance)** |
-| 💡 | **[Troubleshooting](#troubleshooting)** |
-| 🔐 | **[Security notes](#security-notes)** |
-| 👤 | **[Author](#author)** |
-| 📄 | **[Licence](#licence)** |
-| 📂 | **[Repository](#repository)** |
-| 💬 | **[Support](#support)** |
-| 📜 | **[Changelog](#changelog)** |
+| 🔒 | **[Security](#nav-security)** |
+| 🏠 | **[App overview](#nav-app-overview)** |
+| ✨ | **[Features](#nav-features)** |
+| 📁 | **[Project structure](#nav-project-structure)** (quick list) |
+| ⚙️ | **[Installation](#nav-installation)** |
+| 🚀 | **[Usage](#nav-usage)** |
+| 📱 | **[React shell & Android APK](#nav-react-android)** |
+| 🧪 | **[Testing Data](#nav-testing-data)** |
+| 🔧 | **[Configuration](#nav-configuration)** |
+| 🧠 | **[AI Analysis: Neural Network Architecture](#nav-ai-architecture)** |
+| 🗂️ | **[Project Structure](#nav-repo-tree)** (full repo tree) |
+| 📦 | **[Dependencies](#nav-dependencies)** |
+| 🛠️ | **[Development](#nav-development)** |
+| 🛡️ | **[GDPR Compliance](#nav-gdpr)** |
+| 💡 | **[Troubleshooting](#nav-troubleshooting)** |
+| 🔐 | **[Security notes](#nav-security-notes)** |
+| 👤 | **[Author](#nav-author)** |
+| 📄 | **[Licence](#nav-licence)** |
+| 📂 | **[Repository](#nav-repository)** |
+| 💬 | **[Support](#nav-support)** |
+| 📜 | **[Changelog](#nav-changelog)** |
 
 ---
+
+<a id="nav-security"></a>
 
 ## 🔒 Security
 
@@ -48,6 +52,8 @@ Operational “do not commit secrets” reminders stay in [Security notes](#secu
 
 **Local secrets folder:** [`security/`](security/) holds **`security/.env`** and **`security/.encryption_key`** (gitignored). Copy [`security/.env.example`](security/.env.example) → `security/.env`. See [security/README.md](security/README.md).
 
+
+<a id="nav-app-overview"></a>
 
 ## 🏠 App overview
 
@@ -76,6 +82,8 @@ flowchart LR
   Settings --> Cloud
 ```
 
+
+<a id="nav-features"></a>
 
 ## ✨ Features
 
@@ -185,11 +193,15 @@ flowchart LR
 - **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs. **Console** uses ANSI-coloured **`[LEVEL]`** tags when stdout is a TTY (blue for `[INFO]`, red for `[ERROR]`, etc.; respects `NO_COLOR` / `FORCE_COLOR`). **Log files** keep per-level **emoji** prefixes (no escape codes). The dashboard **Server Logs** pane uses ASCII **`[LEVEL]`** tags with Tk colour tags—see [Logging](#logging).
 
 
+<a id="nav-project-structure"></a>
+
 ## 📁 Project structure
 
 - **`web/`** – Static web app: HTML, CSS, JavaScript, icons, and assets. The server serves this directory at the root URL.
 - **`server/`** – Python server package (main server logic in `main.py`, plus config, encryption, Supabase client, sample data, requirements checks). Run from repo root: **`python -m server`**, or on Windows **`server/launch-server.ps1`** (see [Running the Server](#running-the-server)).
 
+
+<a id="nav-installation"></a>
 
 ## ⚙️ Installation
 
@@ -225,6 +237,8 @@ flowchart LR
    - Edit `supabase-config.js` with your Supabase credentials
    - ⚠️ **Important**: Use the PUBLISHABLE/ANON key, NOT the secret key!
 
+
+<a id="nav-usage"></a>
 
 ## 🚀 Usage
 
@@ -285,6 +299,7 @@ If the site works elsewhere but your PC shows **`ERR_CONNECTION_REFUSED`**, DNS 
 
 After the first push (or a manual **Run workflow**), the deployed site will show **Rianell** instead of the README.
 
+<a id="nav-react-android"></a>
 
 ## 📱 React shell & Android APK
 
@@ -370,6 +385,7 @@ The Tkinter dashboard provides:
 
 3. **Server Logs**: Real-time log viewer using **`[DEBUG]`** / **`[INFO]`** / **`[WARNING]`** / **`[ERROR]`** / **`[CRITICAL]`** at the start of each line (two spaces after the bracket), with colour on that tag (e.g. blue for `[INFO]`, red bold for `[ERROR]`). The terminal and `logs/*.log` files still use **emoji** prefixes—see [Logging](#logging).
 
+<a id="nav-testing-data"></a>
 
 ## 🧪 Testing Data
 
@@ -395,6 +411,7 @@ Sample data includes realistic patterns:
 - Flare-up cycles for chronic conditions
 - Correlated metrics (sleep affects fatigue, etc.)
 
+<a id="nav-configuration"></a>
 
 ## 🔧 Configuration
 
@@ -426,6 +443,7 @@ Define variables in **`security/.env`** (copy from [`security/.env.example`](sec
    ```
 4. Add your credentials to **`security/.env`** (or legacy root `.env`) and `supabase-config.js`
 
+<a id="nav-ai-architecture"></a>
 
 ## 🧠 AI Analysis: Neural Network Architecture
 
@@ -557,6 +575,8 @@ Activation functions (sigmoid, tanh, relu, softmax) are available as `AIEngine.a
 ---
 
 
+<a id="nav-repo-tree"></a>
+
 ## 🗂️ Project Structure
 
 ```
@@ -602,6 +622,7 @@ Rianell/
 └── logs/                   # Server logs
 ```
 
+<a id="nav-dependencies"></a>
 
 ## 📦 Dependencies
 
@@ -620,6 +641,7 @@ Rianell/
 - Root `package.json`: scripts for `build`, `build:android`, `build:web` (minify `web/app.js` → `web/app.min.js`), `sync`, `dev`
 - `react-app/`: Vite 6, React, Capacitor 7; run `npm run build` from repo root
 
+<a id="nav-development"></a>
 
 ## 🛠️ Development
 
@@ -642,6 +664,7 @@ Server logs are saved to `logs/rianell_YYYYMMDD.log`. The `Rianell` logger uses 
 - Safari
 - Mobile browsers (responsive design)
 
+<a id="nav-gdpr"></a>
 
 ## 🛡️ GDPR Compliance
 
@@ -651,6 +674,7 @@ The app includes GDPR-compliant data sharing:
 - Clear privacy agreement
 - User can disable at any time
 
+<a id="nav-troubleshooting"></a>
 
 ## 💡 Troubleshooting
 
@@ -683,10 +707,11 @@ The app includes GDPR-compliant data sharing:
 **Console: `tabs:outgoing.message.ready`, `No Listener`, or `vendor.js` (VM…)**:
 - Usually **browser extensions** injecting into the page, not the Health app. The app **suppresses** matching **`unhandledrejection`** events (see early script in `web/index.html` and `web/app.js`). If messages persist, try a **clean profile** or **disable extensions** on the site.
 
+<a id="nav-security-notes"></a>
 
 ## 🔐 Security notes
 
-Start with the full guide: **[docs/SECURITY.md](docs/SECURITY.md)** (same content as linked from [Security](#security) at the top of this file). Supplementary references: [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql), [docs/android-network-security-notes.md](docs/android-network-security-notes.md), CI workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — `security-audit` job (`npm audit`, `pip-audit`).
+Start with the full guide: **[docs/SECURITY.md](docs/SECURITY.md)** (same content as linked from [Security](#nav-security) at the top of this file). Supplementary references: [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql), [docs/android-network-security-notes.md](docs/android-network-security-notes.md), CI workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — `security-audit` job (`npm audit`, `pip-audit`).
 
 ⚠️ **Important security considerations**:
 
@@ -701,6 +726,7 @@ Start with the full guide: **[docs/SECURITY.md](docs/SECURITY.md)** (same conten
 
 4. **Data Privacy**: Anonymised data sharing is opt-in only
 
+<a id="nav-author"></a>
 
 ## 👤 Author
 
@@ -709,16 +735,19 @@ Start with the full guide: **[docs/SECURITY.md](docs/SECURITY.md)** (same conten
 - GitHub: [@Metaheurist](https://github.com/Metaheurist)
 - Repository: [https://github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell)
 
+<a id="nav-licence"></a>
 
 ## 📄 Licence
 
 This project is open source and available under an open source licence.
 
+<a id="nav-repository"></a>
 
 ## 📂 Repository
 
 **GitHub**: [https://github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell)
 
+<a id="nav-support"></a>
 
 ## 💬 Support
 
@@ -727,6 +756,8 @@ For issues and questions:
 - Review server logs in `logs/` directory
 - Check browser console for frontend errors
 
+
+<a id="nav-changelog"></a>
 
 ## 📜 Changelog
 
