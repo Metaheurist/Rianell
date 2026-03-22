@@ -58,7 +58,7 @@ flowchart LR
 
 - **Home / Today**: Default tab with greeting, date, logging status, and goals snippet when enabled. Use the floating **+** button to open the log entry wizard from any main tab (Home, Logs, Charts, AI).
 - **Log entry wizard**: Step-by-step flow (date & flare → vitals → symptoms & pain → energy & day → food → exercise → medication & notes → review) with step indicator, **Back** / **Skip** / **Next**, and **Save entry** on the last step. Drafts are debounced to `sessionStorage`; URL hash `#log/step/<1-based step>` restores step when opening the log flow. The **+** is hidden while the wizard is active.
-- **Navigation**: Top tab strip on wider screens; **bottom navigation bar** on viewports ≤768px (**Home**, **Logs**, **Charts**, **AI** — no separate Log tab). The **+** FAB sits above the bottom bar on small screens. The bar is rendered outside the scroll shell (`.app-shell`) so tab icons and labels paint reliably on mobile WebKit. Only one nav chrome shows per breakpoint.
+- **Navigation**: Top tab strip on wider screens; **bottom navigation bar** on viewports ≤768px (**Home**, **Logs**, **Charts**, **AI** — no separate Log tab). On phones, **`html`/`body` do not scroll**; **`.app-shell`** fills the viewport and **`.container.app-main-scroll`** is the only vertical scroll area so every tab behaves the same. The **+** button is **`position: fixed`**, overlays the main content, and sits just above the tab bar (not in the scroll flow). The tab bar lives in **`.app-mobile-bottom-chrome`** as a flex footer below the scroll region. Only one nav chrome shows per breakpoint.
 - **Layout**: Extra horizontal padding in the log wizard on small screens; **`--card-content-padding-x`** in `styles.css` sets consistent horizontal inset inside bordered cards (`.form-section` / `.section-content`), including wizard vitals and other steps, log date/flare blocks, and review—so labels, inputs, and controls (e.g. weight unit toggle) are not flush to the card edge. **Tile pickers** (energy & mental clarity, stressors, symptoms, food by meal, exercise by category) open in a **full-screen `<dialog>` bottom sheet** on phones and a centred max-width sheet on wider viewports; chip content is moved into the sheet and restored on close (same IDs and handlers as before). Optional **per-section search** filters chips on the client. Sticky wizard actions use a flat bar (no heavy drop shadow behind the button row).
 
 ![Card selector modal — energy & mental clarity (grouped options and filter)](docs/images/card-selector-energy-clarity.png)
@@ -71,6 +71,7 @@ flowchart LR
 - **Combined chart**: Multi-metric line chart with date range filter; optional AI-powered trend predictions (when AI enabled); metric selector; balance and single-chart views.
 - **Individual metric charts**: Per-metric ApexCharts (e.g. fatigue, stiffness, BPM, sleep, steps, hydration) with lazy loading and device-based point caps.
 - **Chart view modes**: Use **Balance**, **Combined**, or **Individual** in the Charts tab. Only the active mode’s layout is shown (combined, balance radar, or per-metric charts). Saved preference uses **`chartView`** as the source of truth; legacy **`combinedChart`** is kept in sync when settings load.
+- **Select metrics to display** (combined / balance): On small screens the full metric list **scrolls with the main chart column** (no separate inner scroll panel on narrow phones).
 - **Chart behaviour**: Date range (7/30/90 days) and prediction range; predictions can be toggled off; empty state when no data; animations respect reduced-motion and device class. Charts tab opens in balance view; View Logs tab opens with last 7 days.
 - **Tier 5 / GPU-accelerated charts**: On tier 5 (or tier 4 with a good GPU), chart containers use GPU-friendly compositor layers and maximum point limits; critical chart and AI preload run with high scheduler priority when supported.
 - **Loading behaviour**: App shows a loading overlay until the combined chart and summary LLM preload are ready (or 12s timeout), then reveals the UI so heavy work does not stutter the first paint.
@@ -620,6 +621,9 @@ The app includes GDPR-compliant data sharing:
 - Ensure data entries exist
 - Try clearing browser cache
 
+**Console: `tabs:outgoing.message.ready`, `No Listener`, or `vendor.js` (VM…)**:
+- Usually **browser extensions** injecting into the page, not the Health app. The app **suppresses** matching **`unhandledrejection`** events (see early script in `web/index.html` and `web/app.js`). If messages persist, try a **clean profile** or **disable extensions** on the site.
+
 ## Security notes
 
 Start with the full guide: **[docs/SECURITY.md](docs/SECURITY.md)** (same content as linked from [Security](#security) at the top of this file). Supplementary references: [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql), [docs/android-network-security-notes.md](docs/android-network-security-notes.md), CI workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — `security-audit` job (`npm audit`, `pip-audit`).
@@ -663,7 +667,17 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.28.3** — Tkinter dashboard `[LEVEL]` log lines; console and files keep emoji.
+**Latest: v1.30.0** — Mobile viewport shell, fixed **+** FAB, charts metric list scroll, extension console filters.
+
+<details>
+<summary><strong>v1.30.0</strong> — 2026-03-22 — Mobile shell, charts metrics, console hygiene</summary>
+
+- **Web (mobile)**: Viewport-locked **`.app-shell`**, single scroll on **`.container`**; **+** FAB **fixed** over content above bottom tabs; bottom bar as flex footer. Tab switching resets main scroll for consistency.
+- **Web (charts)**: “Select metrics to display” uses the **main scroll** on narrow screens (no inner metric panel scroll).
+- **Web (console)**: Broader **`unhandledrejection`** filters for extension noise (`tabs:outgoing.message.ready`, `VM… vendor.js`, etc.).
+- **Web (nav)**: Neutral focus rings on bottom tab buttons (avoid global green `--shadow-focus` glow).
+
+</details>
 
 <details>
 <summary><strong>v1.28.3</strong> — 2026-03-22 — Dashboard bracket log format</summary>
