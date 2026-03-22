@@ -122,6 +122,13 @@ jobs:
         working-directory: react-app
         run: npx cap add android || true
 
+      - name: Prepare Android launcher source (1024× logo)
+        run: node scripts/prepare-android-assets.mjs
+
+      - name: Generate Android mipmap / adaptive icons & splash
+        working-directory: react-app
+        run: npx @capacitor/assets generate --android --iconBackgroundColor '#1a1d1e' --iconBackgroundColorDark '#0a0a0a' --splashBackgroundColor '#1a1d1e' --splashBackgroundColorDark '#0a0a0a'
+
       - name: Sync Capacitor Android
         working-directory: react-app
         run: npx cap sync android

@@ -2756,9 +2756,10 @@ function showInstallButton() {
   if (document.getElementById('installButton')) return;
   const installButton = document.createElement('button');
   installButton.id = 'installButton';
-  installButton.textContent = '📱 Install App';
-  installButton.className = 'settings-data-btn export-btn';
-  installButton.style.marginBottom = '10px';
+  installButton.type = 'button';
+  installButton.innerHTML =
+    '<span class="data-management-buttons__icon" aria-hidden="true">📱</span><span class="data-management-buttons__label">Install App</span>';
+  installButton.className = 'settings-data-btn install-app-btn';
   installButton.onclick = installPWA;
   // Place inside Settings panel only (data-management-buttons or settings-footer), never in header
   const buttonContainer = document.querySelector('.data-management-buttons') ||
@@ -2766,8 +2767,15 @@ function showInstallButton() {
     document.body;
   if (buttonContainer) {
     if (buttonContainer.classList && buttonContainer.classList.contains('data-management-buttons')) {
-      buttonContainer.insertBefore(installButton, buttonContainer.firstChild);
+      const cell = document.createElement('div');
+      cell.className = 'data-management-buttons__cell';
+      cell.id = 'installButtonCell';
+      cell.appendChild(installButton);
+      buttonContainer.insertBefore(cell, buttonContainer.firstChild);
+      var installWebAppOption = document.getElementById('installWebAppOption');
+      if (installWebAppOption) installWebAppOption.style.display = 'none';
     } else {
+      installButton.style.marginBottom = '10px';
       buttonContainer.appendChild(installButton);
     }
   }
@@ -2791,8 +2799,15 @@ function installPWA() {
 function hideInstallButton() {
   const installButton = document.getElementById('installButton');
   if (installButton) {
-    installButton.remove();
+    var parent = installButton.parentElement;
+    if (parent && parent.id === 'installButtonCell' && parent.classList && parent.classList.contains('data-management-buttons__cell')) {
+      parent.remove();
+    } else {
+      installButton.remove();
+    }
   }
+  var installWebAppOption = document.getElementById('installWebAppOption');
+  if (installWebAppOption) installWebAppOption.style.display = '';
 }
 
 // Enhanced PWA functions for settings menu

@@ -5,13 +5,12 @@
   "description": "Rianell — health dashboard (rianell.com); web app and React/Capacitor Android build",
   "scripts": {
     "dev": "cd react-app && npm run dev",
-    "build": "cd react-app && npm run build",
-    "build:android": "npm run build && cd react-app && npx cap sync android",
+    "build": "npm run build:web && cd react-app && npm run build",
+    "build:android": "npm run build && node scripts/prepare-android-assets.mjs && cd react-app && npx @capacitor/assets generate --android --iconBackgroundColor \"#1a1d1e\" --iconBackgroundColorDark \"#0a0a0a\" --splashBackgroundColor \"#1a1d1e\" --splashBackgroundColorDark \"#0a0a0a\" && npx cap sync android",
     "android": "cd react-app && npx cap open android",
     "sync": "cd react-app && npx cap sync",
     "build:web": "node web/build-site.mjs",
-    "smoke:trace": "node scripts/smoke-function-trace.mjs",
-    "generate:icons": "node scripts/generate-icons.mjs"
+    "smoke:trace": "node scripts/smoke-function-trace.mjs"
   },
   "devDependencies": {
     "@babel/generator": "^7.26.5",

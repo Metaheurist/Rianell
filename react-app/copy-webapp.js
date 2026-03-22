@@ -5,6 +5,9 @@
  *
  * Must include every script referenced by web/index.html and lazy-loaded modules
  * (e.g. summary-llm.js, workers/io-worker.js) or the iframe will 404 and the app won't boot.
+ *
+ * Production / APK: pass --min after `npm run build:web` so legacy/index.html loads app.min.js
+ * (smaller, faster parse) instead of the multi‑MB app.js. Dev: run without --min (default).
  */
 import fs from 'fs';
 import path from 'path';
@@ -14,6 +17,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const webDir = path.join(root, 'web');
 const outDir = path.join(__dirname, 'public', 'legacy');
+
+const useMin =
+  process.argv.includes('--min') || process.env.LEGACY_USE_MINIFIED === '1';
 
 const staticRootFiles = [
   'index.html',
@@ -39,6 +45,16 @@ if (!fs.existsSync(webDir)) {
   process.exit(1);
 }
 
+if (useMin) {
+  const minPath = path.join(webDir, 'app.min.js');
+  if (!fs.existsSync(minPath)) {
+    console.error(
+      'copy-webapp --min: web/app.min.js not found. Run from repo root: npm run build:web'
+    );
+    process.exit(1);
+  }
+}
+
 fs.mkdirSync(outDir, { recursive: true });
 
 for (const file of staticRootFiles) {
@@ -49,10 +65,30 @@ for (const file of staticRootFiles) {
   }
 }
 
-// All root-level .js modules (index.html + lazy loaders). Skip generated min bundle.
+if (useMin) {
+  const indexOut = path.join(outDir, 'index.html');
+  if (fs.existsSync(indexOut)) {
+    let html = fs.readFileSync(indexOut, 'utf8');
+    html = html.replace(/src="app\.js(\?[^"]*)?"/g, 'src="app.min.js$1"');
+    fs.writeFileSync(indexOut, html);
+    console.log('Patched index.html to load app.min.js');
+  }
+}
+
+// Root-level .js modules (index.html + lazy loaders).
 for (const name of fs.readdirSync(webDir)) {
   if (!name.endsWith('.js')) continue;
-  if (name === 'app.min.js') continue;
+  if (name === 'app.min.js') {
+    if (useMin) {
+      const src = path.join(webDir, name);
+      if (fs.statSync(src).isFile()) {
+        fs.copyFileSync(src, path.join(outDir, name));
+        console.log('Copied', name);
+      }
+    }
+    continue;
+  }
+  if (name === 'app.js' && useMin) continue;
   const src = path.join(webDir, name);
   if (!fs.statSync(src).isFile()) continue;
   fs.copyFileSync(src, path.join(outDir, name));
@@ -69,4 +105,4 @@ if (fs.existsSync(path.join(webDir, 'Icons'))) {
   console.log('Copied Icons/');
 }
 
-console.log('Web app copied to public/legacy/');
+console.log('Web app copied to public/legacy/' + (useMin ? ' (minified app bundle)' : ''));
