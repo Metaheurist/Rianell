@@ -13357,6 +13357,16 @@ function toggleConditionSelector() {
   }
 }
 
+// Safe placeholder for <select> (avoid innerHTML for static messages)
+function fillSelectSingleOption(selectEl, message) {
+  if (!selectEl) return;
+  selectEl.replaceChildren();
+  const o = document.createElement('option');
+  o.value = '';
+  o.textContent = message;
+  selectEl.appendChild(o);
+}
+
 // Load available conditions from Supabase
 // optionalSelectId: use 'tutorialExistingConditionsSelect' for tutorial modal
 async function loadAvailableConditions(optionalSelectId) {
@@ -13365,7 +13375,7 @@ async function loadAvailableConditions(optionalSelectId) {
   if (!select) return;
   
   // Show loading state
-  select.innerHTML = '<option value="">Loading conditions...</option>';
+  fillSelectSingleOption(select, 'Loading conditions...');
   select.disabled = true;
   
   try {
@@ -13383,7 +13393,7 @@ async function loadAvailableConditions(optionalSelectId) {
         if (typeof appSettings === 'undefined' || !appSettings.demoMode) {
           console.warn('Supabase client not available - SUPABASE_CONFIG or supabase library not found');
         }
-        select.innerHTML = '<option value="">-- Select a condition --</option>';
+        fillSelectSingleOption(select, '-- Select a condition --');
         select.disabled = false;
         return;
       }
@@ -13434,7 +13444,7 @@ async function loadAvailableConditions(optionalSelectId) {
     select.disabled = false;
   } catch (error) {
     console.error('Error loading conditions:', error);
-    select.innerHTML = '<option value="">Error loading conditions</option>';
+    fillSelectSingleOption(select, 'Error loading conditions');
     select.disabled = false;
   }
 }
@@ -13446,8 +13456,7 @@ function populateConditionsSelect(conditions, optionalSelectId) {
   const select = document.getElementById(selectId);
   if (!select) return;
   
-  // Clear existing options except the first one
-  select.innerHTML = '<option value="">-- Select a condition --</option>';
+  fillSelectSingleOption(select, '-- Select a condition --');
   
   // Create a Set to ensure uniqueness
   const uniqueConditions = new Set(conditions);
