@@ -423,6 +423,28 @@ function initializeEventHandlers() {
   if (clearDataBtn && clearDataBtn.textContent.includes('Clear')) {
     clearDataBtn.addEventListener('click', clearData);
   }
+
+  const donateSettingsBtn = document.getElementById('donateSettingsBtn');
+  if (donateSettingsBtn) {
+    donateSettingsBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof window.openDonateModal === 'function') {
+        window.openDonateModal();
+      }
+    });
+  }
+
+  const donateIframeCloseBtn = document.getElementById('donateIframeCloseBtn');
+  if (donateIframeCloseBtn) {
+    donateIframeCloseBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof window.closeDonateModal === 'function') {
+        window.closeDonateModal();
+      }
+    });
+  }
   
 }
 

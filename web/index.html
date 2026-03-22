@@ -478,7 +478,7 @@
         <h4>💝 Support Rianell</h4>
         <p class="settings-hint" style="margin-bottom: 12px;">If Rianell helps you, you can make a voluntary donation via PayPal.</p>
         <div class="settings-option settings-option--stacked">
-          <button type="button" class="settings-data-btn donate-settings-btn" onclick="openDonateModal()" title="Open secure PayPal donation">
+          <button type="button" class="settings-data-btn donate-settings-btn" id="donateSettingsBtn" title="Open secure PayPal donation">
             <span class="settings-install-icon" aria-hidden="true">💝</span> Donate
           </button>
         </div>
@@ -2145,25 +2145,23 @@
   <!-- Donate (PayPal — iframe may be blocked by PayPal; fallback link provided) -->
   <div class="modal-overlay donate-modal-overlay" id="donateModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="donateModalTitle">
     <div class="modal-content donate-modal-content" onclick="event.stopPropagation()">
-      <div class="modal-header">
+      <div class="modal-header donate-modal-header">
         <h3 id="donateModalTitle">Donate</h3>
-        <button type="button" class="modal-close" onclick="closeDonateModal()" aria-label="Close">&times;</button>
       </div>
       <div class="modal-body donate-modal-body">
-        <iframe
-          id="donatePaypalIframe"
-          class="donate-paypal-iframe"
-          title="PayPal donation"
-          src="https://www.paypal.com/donate?hosted_button_id=MB5UF5SBL8YNG"
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-        ></iframe>
+        <div class="donate-iframe-wrap">
+          <button type="button" class="donate-iframe-close" id="donateIframeCloseBtn" aria-label="Close donation">&times;</button>
+          <iframe
+            id="donatePaypalIframe"
+            class="donate-paypal-iframe"
+            title="PayPal donation"
+            src="https://www.paypal.com/donate?hosted_button_id=MB5UF5SBL8YNG"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
         <p class="donate-modal-fallback">
           <a href="https://www.paypal.com/donate?hosted_button_id=MB5UF5SBL8YNG" target="_blank" rel="noopener noreferrer">Open donation page in a new tab</a> if the form does not load here.
         </p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="modal-save-btn" onclick="closeDonateModal()">Close</button>
       </div>
     </div>
   </div>

@@ -409,7 +409,6 @@ h1#dashboardTitle:hover {
 }
 
 #dashboardTitle {
-  animation: titleFadeIn 1.5s cubic-bezier(0.4, 0, 0.2, 1), titleGlow 3s ease-in-out infinite;
   margin-bottom: 0.5rem;
   font-size: 2.5rem;
   font-weight: 800;
@@ -424,13 +423,13 @@ h1#dashboardTitle:hover {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  background-size: 200% 200%;
+  background-size: 100% 100%;
   text-shadow: 
     0 0 20px rgba(76, 175, 80, 0.5),
     0 0 40px rgba(76, 175, 80, 0.3),
     0 0 60px rgba(76, 175, 80, 0.2);
   filter: drop-shadow(0 0 10px rgba(76, 175, 80, 0.4));
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease, filter 0.2s ease;
 }
 
 #dashboardTitle::before {
@@ -445,7 +444,6 @@ h1#dashboardTitle:hover {
   background-clip: text;
   filter: blur(15px);
   opacity: 0.6;
-  animation: titleGlow 3s ease-in-out infinite;
 }
 
 #dashboardTitle:hover {
@@ -463,17 +461,6 @@ h1#dashboardTitle:hover {
     letter-spacing: 0.4px;
     max-width: 100%;
     padding: 0 0.25rem;
-  }
-}
-
-@keyframes titleGlow {
-  0%, 100% {
-    background-position: 0% 50%;
-    filter: drop-shadow(0 0 10px rgba(76, 175, 80, 0.4));
-  }
-  50% {
-    background-position: 100% 50%;
-    filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.7));
   }
 }
 
@@ -498,20 +485,6 @@ h1#dashboardTitle:hover {
   stroke-dasharray: 1200;
   stroke-dashoffset: 1200;
   animation: heartbeatDraw 1.5s ease-in-out infinite;
-}
-
-@keyframes titleFadeIn {
-  0% { 
-    opacity: 0; 
-    transform: translateY(-20px); 
-  }
-  70% { 
-    opacity: 0; 
-  }
-  100% { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
 }
 
 @keyframes heartbeatDraw {
@@ -4658,12 +4631,60 @@ body.light-mode .cookie-policy-body code {
   flex-direction: column;
   gap: 12px;
 }
+.donate-modal-header {
+  flex-shrink: 0;
+}
+.donate-iframe-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: min(480px, 55vh);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #fff;
+}
+.donate-iframe-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(38, 50, 56, 0.92);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.donate-iframe-close:hover {
+  background: rgba(76, 175, 80, 0.95);
+  transform: scale(1.05);
+}
+body.light-mode .donate-iframe-close {
+  background: rgba(255, 255, 255, 0.95);
+  color: #263238;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+body.light-mode .donate-iframe-close:hover {
+  background: rgba(76, 175, 80, 0.95);
+  color: #fff;
+}
 .donate-paypal-iframe {
   width: 100%;
+  height: 100%;
   min-height: min(480px, 55vh);
-  flex: 1 1 auto;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-md);
+  display: block;
+  border: none;
+  border-radius: 0;
   background: #fff;
 }
 .donate-modal-fallback {

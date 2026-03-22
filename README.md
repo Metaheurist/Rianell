@@ -96,7 +96,7 @@ flowchart LR
 - **Optional AI**: Settings toggle "Enable AI features & Goals" hides or shows the AI Analysis tab, chart predictions, and Goals.
 - **Neural-style pipeline**: Trend regression, correlations, patterns, risk factors, flare prediction, cross-section (food/exercise/stressors/symptoms), clustering, time series, actionable advice, prioritised insights, and a 2–3 sentence summary (see [AI Analysis](#ai-analysis-neural-network-architecture)).
 - **Summary note**: In-browser LLM (Transformers.js, flan-t5 by device class) or rule-based fallback; context from analysis and logs; value highlighting in the UI.
-- **Dashboard title (MOTD)**: Main header shows a **message of the day** only (no user name). A **preset line** is chosen from a large rotating list (deterministic **~every 15 minutes**); when AI is enabled and not deferred, the on-device LLM may replace it after the app has loaded (wider theme variety + sampling). Browser tab title stays **Rianell**.
+- **Dashboard title (MOTD)**: Main header shows a **message of the day** only (no user name). A **preset line** is chosen from a large rotating list (deterministic **once per calendar day**); when AI is enabled and not deferred, the on-device LLM may replace it after the app has loaded (wider theme variety + sampling). Browser tab title stays **Rianell**.
 - **GPU-accelerated LLM**: When the performance benchmark detects a capable GPU (WebGPU or WebGL), the summary/suggest pipeline loads with GPU acceleration; the app falls back to CPU automatically if GPU loading fails. Uses Transformers.js 3.3.2 for stable WebGPU/WebGL support.
 - **On-device AI model selection**: Settings → Performance → **On-device AI model** lets you choose **Use recommended (for this device)** (from the performance benchmark), **Small (faster, lower memory)**, or **Base (better quality)**. The benchmark recommends flan-t5-small or flan-t5-base by tier; changing the setting clears the LLM cache so the next summary or suggest note uses the selected model.
 - **Suggest note**: LLM or rule-based suggestion for the day’s log note; "Generating…" state on button.
@@ -133,7 +133,7 @@ flowchart LR
 - **Install modal**: Post-tutorial modal (once) with web/Android/iOS install options; can be retriggered from God mode.
 
 ### Settings and UI
-- **Settings**: Weight unit (kg/lb), medical condition, date filters, chart visibility, AI & Goals toggle, contribution toggle, reminder time, sound notifications, cookie/consent; **Demo mode** toggle (sample “John Doe” data for exploration; export/cloud contribution disabled); when demo mode is **on**, demo health logs are **regenerated on each full page load** so sample values and dates stay fresh (desktop: procedural generation; mobile: premade dataset with dates shifted to the recent window). **Share link for demo**: anyone can open the app with **`#Demo`** in the URL (case-insensitive, e.g. `https://rianell.com/#Demo`); the app enables demo mode and reloads, or reloads with fresh demo data if demo was already on. God mode (test UI, show install modal, etc.); **Developer** tools (in God mode): “Clear performance benchmark cache” (clear cache and view last result).
+- **Settings**: Weight unit (kg/lb), medical condition, date filters, chart visibility, AI & Goals toggle, contribution toggle, reminder time, sound notifications, cookie/consent; **Demo mode** toggle (sample “John Doe” data for exploration; export/cloud contribution disabled); when demo mode is **on**, demo health logs are **regenerated on each full page load** so sample values and dates stay fresh (desktop: procedural generation; mobile: premade dataset with dates shifted to the recent window). **Share link for demo**: anyone can open the app with **`#Demo`** in the URL (case-insensitive, e.g. `https://rianell.com/#Demo`); the app enables demo mode and reloads, or reloads with fresh demo data if demo was already on. **First visit via this link only** (once per browser profile, tracked in `localStorage`): after reload, **Goals & targets** are filled with random non-zero values and the **first-run tutorial** opens if it has not been seen yet—this does **not** run when demo mode is turned on from Settings alone. **Donate** (Support Rianell): opens a modal with a PayPal **iframe**; dismiss with the **×** on the iframe, the backdrop, or **Escape**; completion may auto-close when PayPal posts a matching `postMessage` (best-effort). God mode (test UI, show install modal, etc.); **Developer** tools (in God mode): “Clear performance benchmark cache” (clear cache and view last result).
 - **Keyboard**: On desktop, **Escape** key opens or closes Settings when no other modal is open.
 - **Theme**: Dark mode by default; light mode optional.
 - **Responsive**: Layout and charts adapt to viewport and device; device-based optimisation (chart points, animations, AI preload).
@@ -763,6 +763,15 @@ Changelog is derived from project commit history. Versions follow semantic versi
 </details>
 
 <details>
+<summary><strong>v1.28.0</strong> — 2026-03-22 — #Demo onboarding, donate modal, MOTD</summary>
+
+- **`#Demo` deep link**: The first time a user opens the app via **`/#Demo`** (not via the Settings demo toggle alone), after demo mode loads they get **random Goals & targets** once and the **tutorial** if it was not already completed (`rianellDemoHashOnboardingDone`, `rianellDemoHashPendingOnboarding` in sessionStorage across the reload).
+- **Donate**: Settings **Donate** opens the PayPal modal reliably (wired in `event-handlers.js`); floating **×** on the iframe; optional auto-close on PayPal `postMessage` heuristics.
+- **Dashboard MOTD**: Preset line rotates **once per calendar day**; shimmer/fade animation removed so text updates are an instant swap.
+
+</details>
+
+<details>
 <summary><strong>v1.27.0</strong> — 2026-03-22 — Charts tab views, demo mode</summary>
 
 - **Charts tab**: Balance / Combined / Individual now show **only** the active chart layout. Visibility is enforced after chart builds and background preload; **`chartView`** drives refresh (legacy **`combinedChart`** is normalised on settings load). Individual lazy charts stay hidden when another mode is active.
@@ -775,7 +784,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 - **Mobile bottom nav**: Increased flex `gap` between items so tab buttons are not visually squashed on small screens.
 - **Mobile header**: Goals and Settings controls use **in-flow layout** above the green dashboard title (≤768px) instead of overlapping long/wrapped MOTD text.
-- **Dashboard MOTD**: Removed personalised “Welcome to {name}'s health”; header uses **preset lines** (rotating on a short interval) plus optional LLM line **after** `body.loaded` so startup does not double-load the Transformers pipeline with `preloadSummaryLLM`. Tab title remains **Rianell**.
+- **Dashboard MOTD**: Removed personalised “Welcome to {name}'s health”; header uses **preset lines** (one per calendar day) plus optional LLM line **after** `body.loaded` so startup does not double-load the Transformers pipeline with `preloadSummaryLLM`. Tab title remains **Rianell**.
 - **First paint**: Inline critical CSS in `index.html` for `html`/`body` and `#loadingOverlay` so the loading screen is **dark with spinner** before `styles.css` loads (avoids a white flash).
 - **Extensions**: Early `unhandledrejection` listener plus a stronger handler in `app.js` to **suppress noisy extension promise rejections** (e.g. `tabs:outgoing.message.ready`, `vendor.js`). Optional: use a profile without extensions for a clean console when debugging.
 

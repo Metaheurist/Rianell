@@ -1322,6 +1322,30 @@ function closeCookiePolicyModal() {
 
 var _donateModalEscapeHandler = null;
 
+/** PayPal may postMessage from the iframe on some flows; close when the payload looks like a completed donation (best-effort). */
+function _donateModalOnWindowMessage(e) {
+  var overlay = document.getElementById('donateModalOverlay');
+  if (!overlay || overlay.style.display === 'none') return;
+  if (e.origin !== 'https://www.paypal.com' && e.origin !== 'https://www.paypalobjects.com') return;
+  var d = e.data;
+  var s = '';
+  try {
+    if (typeof d === 'string') s = d;
+    else if (d != null && typeof d === 'object') s = JSON.stringify(d);
+  } catch (err) {
+    return;
+  }
+  if (!s) return;
+  var lower = s.toLowerCase();
+  if (lower.indexOf('thank') !== -1) {
+    closeDonateModal();
+    return;
+  }
+  if (/payment[_-]?(capture|completed|success)|checkout[_-]?(complete|approved)|order[_-]?completed|capture[_-]?completed|transaction[_-]?(complete|success)/i.test(s)) {
+    closeDonateModal();
+  }
+}
+
 function openDonateModal() {
   const overlay = document.getElementById('donateModalOverlay');
   if (!overlay) return;
@@ -1333,6 +1357,7 @@ function openDonateModal() {
   overlay.onclick = function (e) {
     if (e.target === overlay) closeDonateModal();
   };
+  window.addEventListener('message', _donateModalOnWindowMessage);
   _donateModalEscapeHandler = function (e) {
     if (e.key === 'Escape') {
       document.removeEventListener('keydown', _donateModalEscapeHandler);
@@ -1341,11 +1366,12 @@ function openDonateModal() {
     }
   };
   document.addEventListener('keydown', _donateModalEscapeHandler);
-  var closeBtn = overlay.querySelector('.modal-close');
+  var closeBtn = overlay.querySelector('.donate-iframe-close') || overlay.querySelector('.modal-close');
   if (closeBtn && typeof closeBtn.focus === 'function') closeBtn.focus();
 }
 
 function closeDonateModal() {
+  window.removeEventListener('message', _donateModalOnWindowMessage);
   if (_donateModalEscapeHandler) {
     document.removeEventListener('keydown', _donateModalEscapeHandler);
     _donateModalEscapeHandler = null;
@@ -1358,12 +1384,19 @@ function closeDonateModal() {
     overlay.style.opacity = '0';
   }
   var settingsEl = document.getElementById('settingsOverlay');
-  var settingsOpen = settingsEl && (settingsEl.style.display === 'block' || settingsEl.classList.contains('settings-overlay--open'));
+  var settingsOpen = settingsEl && (
+    settingsEl.style.display === 'block' ||
+    settingsEl.style.display === 'flex' ||
+    settingsEl.classList.contains('settings-overlay--open')
+  );
   if (!settingsOpen) {
     document.body.classList.remove('modal-active');
     document.body.style.overflow = '';
   }
 }
+
+window.openDonateModal = openDonateModal;
+window.closeDonateModal = closeDonateModal;
 
 // ============================================
 // Tutorial Modal (new users + backtick ` to reopen)
@@ -1863,6 +1896,62 @@ function maybeShowTutorialOnce() {
     if (localStorage.getItem('rianellTutorialSeen')) return;
     openTutorialModal();
   } catch (err) {}
+}
+
+var DEMO_HASH_ONBOARDING_DONE_KEY = 'rianellDemoHashOnboardingDone';
+var DEMO_HASH_PENDING_SESSION_KEY = 'rianellDemoHashPendingOnboarding';
+
+/** Random non-zero goals for the one-time #demo deep-link onboarding (not used by the settings demo toggle). */
+function applyRandomDemoGoalsForHashOnboarding() {
+  var baseSteps = 3000 + Math.floor(Math.random() * 9000);
+  var g = {
+    steps: Math.round(baseSteps / 500) * 500,
+    hydration: 4 + Math.floor(Math.random() * 9),
+    sleep: 5 + Math.floor(Math.random() * 5),
+    goodDaysPerWeek: 3 + Math.floor(Math.random() * 5)
+  };
+  try {
+    localStorage.setItem('rianellGoals', JSON.stringify(g));
+  } catch (e) {}
+  try {
+    if (typeof cloudSyncState !== 'undefined' && cloudSyncState.isAuthenticated && typeof syncToCloud === 'function') {
+      syncToCloud();
+    }
+  } catch (e2) {}
+  if (typeof updateGoalsProgressBlock === 'function') updateGoalsProgressBlock();
+}
+
+/**
+ * One-time welcome for visitors who open /#demo (or #Demo): random goals + tutorial once after load.
+ * Only when session was marked before enabling demo via the hash link; not when demo is toggled in Settings.
+ * Returns true if this path handled tutorial (skip maybeShowTutorialOnce).
+ */
+function tryDemoHashLinkOnboarding() {
+  try {
+    if (localStorage.getItem(DEMO_HASH_ONBOARDING_DONE_KEY)) return false;
+    if (sessionStorage.getItem(DEMO_HASH_PENDING_SESSION_KEY) !== '1') return false;
+    if (typeof appSettings === 'undefined' || !appSettings.demoMode) {
+      try { sessionStorage.removeItem(DEMO_HASH_PENDING_SESSION_KEY); } catch (e) {}
+      return false;
+    }
+    sessionStorage.removeItem(DEMO_HASH_PENDING_SESSION_KEY);
+    applyRandomDemoGoalsForHashOnboarding();
+    localStorage.setItem(DEMO_HASH_ONBOARDING_DONE_KEY, '1');
+    if (!localStorage.getItem('rianellTutorialSeen') && typeof openTutorialModal === 'function') {
+      openTutorialModal();
+      return true;
+    }
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+function setDemoHashPendingOnboardingIfEligible() {
+  try {
+    if (localStorage.getItem(DEMO_HASH_ONBOARDING_DONE_KEY)) return;
+    sessionStorage.setItem(DEMO_HASH_PENDING_SESSION_KEY, '1');
+  } catch (e) {}
 }
 
 // Backtick ` key opens God mode – test all UI elements
@@ -2874,6 +2963,7 @@ window.addEventListener('DOMContentLoaded', function() {
         location.reload();
         return;
       }
+      if (typeof setDemoHashPendingOnboardingIfEligible === 'function') setDemoHashPendingOnboardingIfEligible();
       if (typeof toggleDemoMode === 'function') {
         toggleDemoMode();
       }
@@ -14748,7 +14838,7 @@ function updateConditionContext(conditionName) {
   }
 }
 
-/** Preconfigured dashboard lines when the on-device MOTD LLM is unavailable or deferred. Picks rotate every ~15 minutes (deterministic). No user names. */
+/** Preconfigured dashboard lines when the on-device MOTD LLM is unavailable or deferred. One pick per calendar day (deterministic). No user names. */
 const MOTD_FALLBACK_MESSAGES = [
   'Small steps today make a steadier path forward.',
   'Showing up for yourself counts—especially on hard days.',
@@ -14900,8 +14990,7 @@ function getDailyMotdFallback() {
   const list = MOTD_FALLBACK_MESSAGES;
   if (!list.length) return 'Rianell';
   const d = new Date();
-  const quarter = Math.floor(d.getMinutes() / 15);
-  const key = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + '-' + d.getHours() + '-' + quarter;
+  const key = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
   var h = 0;
   for (var i = 0; i < key.length; i++) {
     h = Math.imul(31, h) + key.charCodeAt(i) | 0;
@@ -16056,6 +16145,7 @@ window.addEventListener('load', () => {
         location.reload();
         return;
       }
+      if (typeof setDemoHashPendingOnboardingIfEligible === 'function') setDemoHashPendingOnboardingIfEligible();
       if (typeof toggleDemoMode === 'function') {
         toggleDemoMode();
         return;
@@ -16256,6 +16346,8 @@ window.addEventListener('load', () => {
     setTimeout(function () {
       if (typeof isTutorialTestPage === 'function' && isTutorialTestPage()) {
         if (typeof openTutorialModal === 'function') openTutorialModal();
+      } else if (typeof tryDemoHashLinkOnboarding === 'function' && tryDemoHashLinkOnboarding()) {
+        /* One-time #demo link: random goals + optional tutorial; skip default first-run tutorial */
       } else if (typeof maybeShowTutorialOnce === 'function') {
         maybeShowTutorialOnce();
       }
