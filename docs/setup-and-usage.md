@@ -141,7 +141,7 @@ Controlled in `react-app/android/variables.gradle` (or via `react-app/patch-andr
 ### CI: App builds on each commit
 
 - **Android / iOS** CI: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) — `android` and `ios` jobs (PR builds; on `main`/`master` pushes also commit `App build/`, release assets, and Pages). iOS builds a **simulator .app** (no Apple account; test in Xcode Simulator on a Mac) and zips the Xcode project to `App build/iOS/` for device sideloading (open in Xcode, sign with your Apple ID). Device signing for direct install (OTA) requires an Apple Developer account ($99/year).
-- On **push** or **pull_request** to `main` or `master`: builds the web app, syncs Capacitor, builds a **debug APK**, copies it into **`App build/Android/`** as **`app-debug-beta.apk`** (and a run-numbered copy), and uploads the **android** artifact.
+- On **push** or **pull_request** to `main` or `master`: builds the web app, syncs Capacitor, builds a **debug APK** (Beta), copies it into **`App build/Android/`** as **`app-debug-beta.apk`** (and a run-numbered copy), and uploads the **android** artifact. iOS outputs **Alpha** Xcode project zips: **`Health-Tracker-ios-alpha-build-{run}.zip`**, **`Health-Tracker-ios-alpha-latest.zip`**, optional **`Health-Tracker-simulator-alpha-{run}.zip`** (`{run}` = workflow run number).
 - On **push** (not PR) to `main`/`master`: the workflow also **commits** the `App build/Android/` folder to the repo with `[skip ci]`, so the “Install on Android” link in Settings works when the app is served from the same repo (e.g. GitHub Pages).
 - Download the APK from the run’s **Summary → Artifacts** (name **android**), or use **Settings → Install on Android / Install on iOS** in the deployed app.
 
