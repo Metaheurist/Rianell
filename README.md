@@ -235,6 +235,10 @@ The app lives in **`web/`**, so GitHub Pages will not see `index.html` if the so
 2. Under **Build and deployment**, set **Source** to **GitHub Actions**
 3. The unified workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs the **`deploy-pages`** job on push to `main`/`master` and deploys the contents of **`web/`** as the site root, so `index.html` is served correctly. The job runs **`npm install`**, minifies **`app.js`** to **`app.min.js`**, and rewrites the deployed `index.html` to load the minified script for smaller downloads.
 
+**Custom domain (`rianell.com`):** In **Settings → Pages**, set the custom domain and keep **Enforce HTTPS** on. At your DNS provider, use GitHub’s documented records (apex: four **A** records to `185.199.108.153`–`185.199.111.153`; **www**: **CNAME** to `<user>.github.io`). This repo includes **`web/CNAME`** (contents: `rianell.com`) so each deploy publishes the domain hint at the site root, alongside the GitHub UI setting.
+
+If the site works elsewhere but your PC shows **`ERR_CONNECTION_REFUSED`**, DNS is often fine globally while your machine still has a stale cache, a bad **AAAA**, or a firewall/VPN path. Run **`powershell -ExecutionPolicy Bypass -File .\scripts\check-rianell-dns.ps1`** from the repo to verify **A**/**AAAA**/**www**, then try **`ipconfig /flushdns`**, another network (e.g. phone on cellular), or remove incorrect **AAAA** records for the apex.
+
 **Cloud sync on the live site:** To use Supabase (login, cloud backup, anonymised data) on the GitHub Pages site, add **Repository secrets** (or **Environment secrets** for the `pages` environment): **`SUPABASE_URL`** (your project URL, e.g. `https://xxxx.supabase.co`) and **`SUPABASE_ANON_KEY`** (your publishable anon key). The deploy workflow injects these into the built site at deploy time so they are never committed. If these secrets are not set, the site still deploys; cloud features will work only after you add them.
 
 After the first push (or a manual **Run workflow**), the deployed site will show **Rianell** instead of the README.
@@ -519,13 +523,15 @@ Health-app/
 │   ├── workers/            # Web Workers (e.g. large JSON parse/stringify)
 │   ├── AIEngine.js         # AI analysis (neural pipeline, …)
 │   ├── styles.css          # Application styles
+│   ├── Icons/              # App icons (PWA, favicon, Apple touch); master asset `logo-source.png`, run `npm run generate:icons` after replacing it
 │   ├── cloud-sync.js       # Supabase synchronisation
 │   ├── supabase-config.js  # Supabase configuration
 │   ├── summary-llm.js      # In-browser LLM (summary, suggest note, dashboard MOTD)
 │   ├── notifications.js    # Reminders, heartbeat sound
 │   └── …                   # Other JS/CSS/assets
 ├── requirements.txt        # Python dependencies
-├── package.json            # Root scripts (build, sync, android)
+├── package.json            # Root scripts (build, sync, android, generate:icons)
+├── scripts/                # e.g. `generate-icons.mjs` (sharp) — builds `web/Icons/Icon-*.png` from `web/Icons/logo-source.png`
 ├── docs/                   # Documentation
 │   ├── images/             # README screenshots (Home, View logs, AI Analysis, card selector, server dashboard, …)
 │   └── NEURAL_NETWORK_PLAN.md   # AI expansion and optimisation plan

@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 """
-Generate app icon sizes from Icon-144.png.
-Run from this directory: python generate_icons.py
-Requires: pip install Pillow
+Legacy: prefer the repo-root script (single source of truth):
+
+  npm run generate:icons
+
+That reads logo-source.png and writes Icon-*.png with the same padding/background as CI.
+
+If you only have Python + Pillow, this script regenerates from logo-source.png with a
+#1a1d1e letterbox to match `scripts/generate-icons.mjs`.
 """
 from pathlib import Path
 
@@ -13,13 +18,28 @@ except ImportError:
     raise SystemExit(1)
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-SOURCE = SCRIPT_DIR / "Icon-144.png"
+SOURCE = SCRIPT_DIR / "logo-source.png"
+BG = (26, 29, 30, 255)
 
-# Sizes used by index.html (apple-touch, favicon), manifest.json, notifications
 SIZES = [
     16, 32, 57, 60, 72, 76, 96, 114, 120, 128,
     144, 152, 167, 180, 192, 384, 512,
 ]
+
+
+def render_size(img: Image.Image, size: int) -> Image.Image:
+    """Fit image inside size×size with brand background (same idea as sharp contain)."""
+    canvas = Image.new("RGBA", (size, size), BG)
+    iw, ih = img.size
+    scale = min(size / iw, size / ih)
+    tw, th = max(1, int(iw * scale)), max(1, int(ih * scale))
+    thumb = img.resize((tw, th), Image.Resampling.LANCZOS)
+    ox = (size - tw) // 2
+    oy = (size - th) // 2
+    if thumb.mode != "RGBA":
+        thumb = thumb.convert("RGBA")
+    canvas.paste(thumb, (ox, oy), thumb)
+    return canvas
 
 
 def main():
@@ -28,14 +48,10 @@ def main():
         raise SystemExit(1)
 
     img = Image.open(SOURCE).convert("RGBA")
-    if img.size != (144, 144):
-        print(f"Resizing source from {img.size} to 144x144 for consistency")
-        img = img.resize((144, 144), Image.Resampling.LANCZOS)
 
-    for size in SIZES:
-        out_path = SCRIPT_DIR / f"Icon-{size}.png"
-        resized = img.resize((size, size), Image.Resampling.LANCZOS)
-        resized.save(out_path, "PNG", optimize=True)
+    for s in SIZES:
+        out_path = SCRIPT_DIR / f"Icon-{s}.png"
+        render_size(img, s).save(out_path, "PNG", optimize=True)
         print(f"  {out_path.name}")
 
     print(f"Generated {len(SIZES)} icons from {SOURCE.name}")

@@ -287,6 +287,7 @@ function closePerfBenchmarkModal() {
     overlay.style.display = 'none';
     overlay.style.visibility = 'hidden';
     overlay.style.opacity = '0';
+    overlay.style.removeProperty('z-index');
     document.body.classList.remove('modal-active');
     document.body.style.overflow = '';
   }
@@ -579,6 +580,8 @@ function openPerfBenchmarkModal(options) {
   };
   document.addEventListener('keydown', _perfBenchmarkEscapeHandler);
 
+  /* Above #loadingOverlay (z-index 99999) so first-run benchmark is never stuck behind it */
+  overlay.style.zIndex = '100000';
   overlay.style.display = 'block';
   overlay.style.visibility = 'visible';
   overlay.style.opacity = '1';
@@ -1314,6 +1317,51 @@ function closeCookiePolicyModal() {
   if (_cookiePolicyModalPreviousActiveElement && typeof _cookiePolicyModalPreviousActiveElement.focus === 'function') {
     _cookiePolicyModalPreviousActiveElement.focus();
     _cookiePolicyModalPreviousActiveElement = null;
+  }
+}
+
+var _donateModalEscapeHandler = null;
+
+function openDonateModal() {
+  const overlay = document.getElementById('donateModalOverlay');
+  if (!overlay) return;
+  overlay.style.display = 'block';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  document.body.classList.add('modal-active');
+  document.body.style.overflow = 'hidden';
+  overlay.onclick = function (e) {
+    if (e.target === overlay) closeDonateModal();
+  };
+  _donateModalEscapeHandler = function (e) {
+    if (e.key === 'Escape') {
+      document.removeEventListener('keydown', _donateModalEscapeHandler);
+      _donateModalEscapeHandler = null;
+      closeDonateModal();
+    }
+  };
+  document.addEventListener('keydown', _donateModalEscapeHandler);
+  var closeBtn = overlay.querySelector('.modal-close');
+  if (closeBtn && typeof closeBtn.focus === 'function') closeBtn.focus();
+}
+
+function closeDonateModal() {
+  if (_donateModalEscapeHandler) {
+    document.removeEventListener('keydown', _donateModalEscapeHandler);
+    _donateModalEscapeHandler = null;
+  }
+  const overlay = document.getElementById('donateModalOverlay');
+  if (overlay) {
+    overlay.onclick = null;
+    overlay.style.display = 'none';
+    overlay.style.visibility = 'hidden';
+    overlay.style.opacity = '0';
+  }
+  var settingsEl = document.getElementById('settingsOverlay');
+  var settingsOpen = settingsEl && (settingsEl.style.display === 'block' || settingsEl.classList.contains('settings-overlay--open'));
+  if (!settingsOpen) {
+    document.body.classList.remove('modal-active');
+    document.body.style.overflow = '';
   }
 }
 
@@ -5475,13 +5523,13 @@ async function generateAISummary() {
     dateRangeText = days === 1 ? 'today' : `last ${days} days`;
   }
 
-  // No data in range: show in-place message
+  // No data in range (logs exist but none in window — we already returned if logs were empty)
   if (filteredLogs.length === 0) {
     resultsContent.innerHTML = `
       <div class="ai-loading-state">
         <div class="ai-loading-icon">📅</div>
         <h3 class="ai-empty-title">No data in this range</h3>
-        <p class="ai-empty-desc">Try a different analysis range or log entries for ${escapeHTML(dateRangeText)}.</p>
+        <p class="ai-empty-desc">None of your entries fall in ${escapeHTML(dateRangeText)}. Try another range, or tap <strong>+</strong> to add a log for these dates.</p>
       </div>
     `;
     Logger.warn('AI Summary - No filtered logs in range');
@@ -15032,15 +15080,13 @@ function setAIDateRange(range) {
     saveSettings();
   }
   
-  // Automatically generate AI summary when date range changes (defer on low device)
-  if (logs && logs.length > 0) {
-    const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
-      ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
-    if (deviceOpts.deferAI) {
-      setTimeout(function() { generateAISummary(); }, 500);
-    } else {
-      generateAISummary();
-    }
+    // Always refresh AI panel (empty state or analysis) when range changes
+  const deviceOptsRange = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
+    ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
+  if (deviceOptsRange.deferAI) {
+    setTimeout(function() { generateAISummary(); }, 500);
+  } else {
+    generateAISummary();
   }
 }
 
@@ -15069,15 +15115,13 @@ function applyAICustomDateRange() {
   const customBtn = document.getElementById('aiRangeCustom');
   if (customBtn) customBtn.classList.add('active');
   
-  // Automatically generate AI summary when custom date range is applied (defer on low device)
-  if (logs && logs.length > 0) {
-    const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
-      ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
-    if (deviceOpts.deferAI) {
-      setTimeout(function() { generateAISummary(); }, 500);
-    } else {
-      generateAISummary();
-    }
+  // Always refresh AI panel (empty state or analysis) when custom range is applied
+  const deviceOptsCustom = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
+    ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
+  if (deviceOptsCustom.deferAI) {
+    setTimeout(function() { generateAISummary(); }, 500);
+  } else {
+    generateAISummary();
   }
 }
 
@@ -15905,15 +15949,13 @@ function switchTab(tabName, skipHash) {
       }
     }
     
-    // Automatically generate AI summary when AI tab is opened (if there's data)
-    if (logs && logs.length > 0) {
-      const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
-        ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
-      const delay = deviceOpts.deferAI ? 800 : 100;
-      setTimeout(() => {
-        generateAISummary();
-      }, delay);
-    }
+    // Always load AI panel: empty-state message or analysis (was gated on logs.length, leaving a blank area)
+    const deviceOptsAiTab = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
+      ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
+    const delayAiTab = deviceOptsAiTab.deferAI ? 800 : 100;
+    setTimeout(() => {
+      generateAISummary();
+    }, delayAiTab);
   }
   
   // Scroll to top smoothly

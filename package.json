@@ -9,10 +9,12 @@
     "build:android": "npm run build && cd react-app && npx cap sync android",
     "android": "cd react-app && npx cap open android",
     "sync": "cd react-app && npx cap sync",
-    "build:web": "node web/build-site.mjs"
+    "build:web": "node web/build-site.mjs",
+    "generate:icons": "node scripts/generate-icons.mjs"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.0",
+    "sharp": "^0.33.5"
   },
   "engines": {
     "node": ">=20"
