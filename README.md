@@ -264,6 +264,8 @@ Controlled in `react-app/android/variables.gradle` (or via `react-app/patch-andr
 
 ### Server Dashboard Features
 
+![Health App Server Dashboard — local URL, Supabase connection, database viewer, and live server logs](docs/images/server-dashboard.png)
+
 The Tkinter dashboard provides:
 
 1. **Server Status**:
@@ -475,6 +477,7 @@ Health-app/
 ├── requirements.txt        # Python dependencies
 ├── package.json            # Root scripts (build, sync, android)
 ├── docs/                   # Documentation
+│   ├── images/             # README screenshots (e.g. server dashboard)
 │   └── NEURAL_NETWORK_PLAN.md   # AI expansion and optimisation plan
 ├── .github/workflows/      # CI (e.g. Build Android APK)
 ├── react-app/              # React (Vite) + Capacitor shell for Android
@@ -603,7 +606,14 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.27.0** — Charts view isolation, demo data refresh on load (see below).
+**Latest: v1.27.1** — README: server dashboard screenshot (see below).
+
+<details>
+<summary><strong>v1.27.1</strong> — 2026-03-22 — Documentation</summary>
+
+- **README**: Added screenshot of the Health App Server Dashboard (Tkinter control panel) under [Server Dashboard Features](#server-dashboard-features); image stored at `docs/images/server-dashboard.png`.
+
+</details>
 
 <details>
 <summary><strong>v1.27.0</strong> — 2026-03-22 — Charts tab views, demo mode</summary>
