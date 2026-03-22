@@ -225,6 +225,10 @@ jobs:
         working-directory: react-app
         run: npx cap sync ios
 
+      - name: Lock iOS to portrait (Info.plist)
+        working-directory: react-app
+        run: node patch-ios-orientation.js
+
       - name: Install CocoaPods dependencies
         working-directory: react-app/ios/App
         run: pod install || true

@@ -2,7 +2,7 @@
 /**
  * Patches Android project for compatibility:
  * - Gradle: minSdk 22, targetSdk 34, compileSdk 36 (compileSdk 36 required by androidx deps); versionCode/versionName from BUILD_VERSION env
- * - AndroidManifest: notification permissions for Android 12+ (exact alarms) and 13+ (POST_NOTIFICATIONS)
+ * - AndroidManifest: notification permissions for Android 12+ (exact alarms) and 13+ (POST_NOTIFICATIONS); portrait lock on BridgeActivity
  */
 import fs from 'fs';
 import path from 'path';
@@ -92,6 +92,24 @@ function ensureManifestPermissions(manifestPath) {
   return true;
 }
 
+/** Lock app to portrait (Capacitor BridgeActivity). Idempotent. */
+function ensurePortraitActivity(manifestPath) {
+  if (!fs.existsSync(manifestPath)) return false;
+  let content = fs.readFileSync(manifestPath, 'utf8');
+  if (!/com\.getcapacitor\.BridgeActivity/.test(content)) return false;
+  if (/android:name="com\.getcapacitor\.BridgeActivity"\s+android:screenOrientation="portrait"/.test(content)) {
+    return false;
+  }
+  const before = content;
+  content = content.replace(
+    /android:name="com\.getcapacitor\.BridgeActivity"/g,
+    'android:name="com.getcapacitor.BridgeActivity" android:screenOrientation="portrait"'
+  );
+  if (content === before) return false;
+  fs.writeFileSync(manifestPath, content);
+  return true;
+}
+
 let patched = false;
 if (fs.existsSync(varsPath)) {
   patched = patch(varsPath, [
@@ -113,6 +131,9 @@ if (fs.existsSync(appBuildPath)) {
   ]) || patched;
 }
 if (ensureManifestPermissions(manifestPath)) {
+  patched = true;
+}
+if (ensurePortraitActivity(manifestPath)) {
   patched = true;
 }
 
