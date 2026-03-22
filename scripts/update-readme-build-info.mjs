@@ -43,19 +43,20 @@ const androidFile = android && android.file ? String(android.file) : 'latest.jso
 const iosFile = ios && ios.file ? String(ios.file) : 'latest.json';
 
 const badgeHref = runId ? runUrl : `https://github.com/${repo}/actions`;
-const badgeUrl = `https://img.shields.io/badge/beta-Android%20${encodeURIComponent(androidV)}%20%7C%20iOS%20${encodeURIComponent(iosV)}%20%7C%20Web%20${encodeURIComponent(run)}-2e7d32?style=flat-square`;
+// Android + Web = Beta channel; iOS native zip = Alpha (matches in-app install labels).
+const badgeUrl = `https://img.shields.io/badge/build-Android%20${encodeURIComponent(androidV)}%20%7C%20iOS%20Alpha%20${encodeURIComponent(iosV)}%20%7C%20Web%20${encodeURIComponent(run)}-2e7d32?style=flat-square`;
 
 const block = [
   START,
   '',
-  `[![Beta](${badgeUrl})](${badgeHref})`,
+  `[![CI builds](${badgeUrl})](${badgeHref})`,
   '',
-  '**Beta** (CI builds):',
+  '**CI builds** (Android & web = **Beta** · iOS native zip = **Alpha**):',
   '',
   '| Channel | Build |',
   '| :--- | :---: |',
   `| **Android** beta APK | **${androidV}** |`,
-  `| **iOS** beta (Xcode project zip) | **${iosV}** |`,
+  `| **iOS** Alpha (Xcode project zip) | **${iosV}** |`,
   `| **Web / PWA** (GitHub Pages deploy) | **${run}** |`,
   '',
   `Latest: [\`App build/Android/${androidFile}\`](App%20build/Android/latest.json) · [\`App build/iOS/${iosFile}\`](App%20build/iOS/latest.json) · [Workflow #${run}](${runUrl}) · \`${sha}\``,
