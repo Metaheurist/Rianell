@@ -45,6 +45,8 @@ flowchart LR
 - **Navigation**: Top tab strip on wider screens; **bottom navigation bar** on viewports ≤768px (Home, Log, View logs, Charts, AI) with comfortable spacing between items so only one nav chrome shows per breakpoint.
 - **Layout**: Extra horizontal padding in the log wizard on small screens; **`--card-content-padding-x`** in `styles.css` sets consistent horizontal inset inside bordered cards (`.form-section` / `.section-content`), including wizard vitals and other steps, log date/flare blocks, and review—so labels, inputs, and controls (e.g. weight unit toggle) are not flush to the card edge. **Tile pickers** (energy & mental clarity, stressors, symptoms, food by meal, exercise by category) open in a **full-screen `<dialog>` bottom sheet** on phones and a centred max-width sheet on wider viewports; chip content is moved into the sheet and restored on close (same IDs and handlers as before). Optional **per-section search** filters chips on the client. Sticky wizard actions use a flat bar (no heavy drop shadow behind the button row).
 
+![Card selector modal — energy & mental clarity (grouped options and filter)](docs/images/card-selector-energy-clarity.png)
+
 ### Charts and visualisation
 - **Combined chart**: Multi-metric line chart with date range filter; optional AI-powered trend predictions (when AI enabled); metric selector; balance and single-chart views.
 - **Individual metric charts**: Per-metric ApexCharts (e.g. fatigue, stiffness, BPM, sleep, steps, hydration) with lazy loading and device-based point caps.
@@ -480,7 +482,7 @@ Health-app/
 ├── requirements.txt        # Python dependencies
 ├── package.json            # Root scripts (build, sync, android)
 ├── docs/                   # Documentation
-│   ├── images/             # README screenshots (Home tab, server dashboard, …)
+│   ├── images/             # README screenshots (Home, card selector, server dashboard, …)
 │   └── NEURAL_NETWORK_PLAN.md   # AI expansion and optimisation plan
 ├── .github/workflows/      # CI (e.g. Build Android APK)
 ├── react-app/              # React (Vite) + Capacitor shell for Android
@@ -609,7 +611,14 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.27.2** — README: Home tab screenshot (see below).
+**Latest: v1.27.3** — README: card selector screenshot (see below).
+
+<details>
+<summary><strong>v1.27.3</strong> — 2026-03-22 — Documentation</summary>
+
+- **README**: Added tile picker (card selector) screenshot for **energy & mental clarity** under [App shell and log experience (web UI)](#app-shell-and-log-experience-web-ui); image stored at `docs/images/card-selector-energy-clarity.png`.
+
+</details>
 
 <details>
 <summary><strong>v1.27.2</strong> — 2026-03-22 — Documentation</summary>
