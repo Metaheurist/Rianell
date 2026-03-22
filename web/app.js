@@ -15722,12 +15722,11 @@ function switchTab(tabName, skipHash) {
     }
     var logFab = document.getElementById('appLogFab');
     if (logFab) logFab.classList.toggle('app-log-fab--hidden', tabName === 'log');
-    if (tabName === 'charts' || tabName === 'logs' || tabName === 'ai' || tabName === 'home') {
-      var container = document.querySelector('.container');
-      if (container) container.scrollTop = 0;
-      if (selectedTab) selectedTab.scrollTop = 0;
-      window.scrollTo(0, 0);
-    }
+    /* Same scroll root for every tab: .container.app-main-scroll (mobile shell is viewport-locked) */
+    var container = document.querySelector('.container');
+    if (container) container.scrollTop = 0;
+    if (selectedTab) selectedTab.scrollTop = 0;
+    window.scrollTo(0, 0);
     if (tabName === 'home' && typeof updateGoalsProgressBlock === 'function') {
       updateGoalsProgressBlock();
     }

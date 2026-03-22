@@ -1331,28 +1331,33 @@
     </div>
 
   </div>
+
+  <!-- Mobile: sibling of scroll .container inside .app-shell — flex footer stays at bottom of screen; not position:fixed -->
+  <div class="app-mobile-bottom-chrome">
+    <div class="app-mobile-bottom-chrome__fab">
+      <button type="button" class="app-log-fab" id="appLogFab" onclick="openLogWizardFromHome()" title="Log health entry" aria-label="Add health log entry">+</button>
+    </div>
+    <nav class="app-bottom-nav" id="appBottomNav" role="navigation" aria-label="Main">
+      <button type="button" class="app-bottom-nav-btn main-nav-tab active" data-tab="home" aria-current="page" aria-controls="homeTab" id="bottom-tab-home" onclick="switchTab('home')">
+        <span class="app-bottom-nav-icon" aria-hidden="true">🏠</span>
+        <span class="app-bottom-nav-text">Home</span>
+      </button>
+      <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="logs" aria-controls="logsTab" id="bottom-tab-logs" onclick="switchTab('logs')">
+        <span class="app-bottom-nav-icon" aria-hidden="true">📋</span>
+        <span class="app-bottom-nav-text">Logs</span>
+      </button>
+      <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="charts" aria-controls="chartsTab" id="bottom-tab-charts" onclick="switchTab('charts')">
+        <span class="app-bottom-nav-icon" aria-hidden="true">📊</span>
+        <span class="app-bottom-nav-text">Charts</span>
+      </button>
+      <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="ai" aria-controls="aiTab" id="bottom-tab-ai" onclick="switchTab('ai')">
+        <span class="app-bottom-nav-icon" aria-hidden="true">🧠</span>
+        <span class="app-bottom-nav-text">AI</span>
+      </button>
+    </nav>
   </div>
 
-  <!-- Fixed nav + FAB are outside .app-shell so mobile WebKit does not clip/stack them inside the flex column -->
-  <nav class="app-bottom-nav" id="appBottomNav" role="navigation" aria-label="Main">
-    <button type="button" class="app-bottom-nav-btn main-nav-tab active" data-tab="home" aria-current="page" aria-controls="homeTab" id="bottom-tab-home" onclick="switchTab('home')">
-      <span class="app-bottom-nav-icon" aria-hidden="true">🏠</span>
-      <span class="app-bottom-nav-text">Home</span>
-    </button>
-    <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="logs" aria-controls="logsTab" id="bottom-tab-logs" onclick="switchTab('logs')">
-      <span class="app-bottom-nav-icon" aria-hidden="true">📋</span>
-      <span class="app-bottom-nav-text">Logs</span>
-    </button>
-    <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="charts" aria-controls="chartsTab" id="bottom-tab-charts" onclick="switchTab('charts')">
-      <span class="app-bottom-nav-icon" aria-hidden="true">📊</span>
-      <span class="app-bottom-nav-text">Charts</span>
-    </button>
-    <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="ai" aria-controls="aiTab" id="bottom-tab-ai" onclick="switchTab('ai')">
-      <span class="app-bottom-nav-icon" aria-hidden="true">🧠</span>
-      <span class="app-bottom-nav-text">AI</span>
-    </button>
-  </nav>
-  <button type="button" class="app-log-fab" id="appLogFab" onclick="openLogWizardFromHome()" title="Log health entry" aria-label="Add health log entry">+</button>
+  </div>
 
   <!-- Food Log Modal (Breakfast, Lunch, Dinner, Snack - select from predefined list) -->
   <div class="modal-overlay" id="foodModalOverlay" role="dialog" aria-modal="true" aria-label="Food log">
