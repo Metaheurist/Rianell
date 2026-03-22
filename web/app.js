@@ -277,6 +277,16 @@ function runCriticalTask(fn) {
 // ============================================
 let _perfBenchmarkEscapeHandler = null;
 
+/** Expandable benchmark details (test bars, CPU/GPU stability, profile JSON): show only on desktop-width viewports. */
+function isBenchmarkDetailsDesktopViewport() {
+  try {
+    if (typeof window.matchMedia === 'undefined') return true;
+    return window.matchMedia('(min-width: 1024px)').matches;
+  } catch (e) {
+    return true;
+  }
+}
+
 function closePerfBenchmarkModal() {
   if (_perfBenchmarkEscapeHandler) {
     document.removeEventListener('keydown', _perfBenchmarkEscapeHandler);
@@ -590,6 +600,10 @@ function openPerfBenchmarkModal(options) {
 }
 
 function openBenchmarkDetails() {
+  if (!isBenchmarkDetailsDesktopViewport()) {
+    showAlertModal('Detailed benchmark results are only available on desktop (wider screen).', 'Performance');
+    return;
+  }
   const cached = (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.getCachedResult === 'function')
     ? window.DeviceBenchmark.getCachedResult()
     : null;
@@ -2029,7 +2043,7 @@ function openModalTestOverlay() {
       hint: 'Clears the cached device performance tier. Reload the app to run the benchmark again and see the device-class modal.',
       items: [
         { label: 'Clear performance benchmark cache', action: run(clearBenchmarkCacheAndNotify) },
-        { label: 'View last benchmark details', action: run(openBenchmarkDetails) }
+        { label: 'View last benchmark details', action: run(openBenchmarkDetails), desktopOnly: true }
       ]
     },
     {
@@ -2042,7 +2056,8 @@ function openModalTestOverlay() {
 
   container.innerHTML = sections.map(function(s) {
     var btns = s.items.map(function(item, i) {
-      return '<button type="button" class="god-mode-btn">' + escapeHTML(item.label) + '</button>';
+      var extraCls = item.desktopOnly ? ' god-mode-btn--desktop-only' : '';
+      return '<button type="button" class="god-mode-btn' + extraCls + '">' + escapeHTML(item.label) + '</button>';
     }).join('');
     var hintHtml = s.hint ? '<p class="god-mode-section-hint">' + escapeHTML(s.hint) + '</p>' : '';
     return '<section class="god-mode-section"><h4 class="god-mode-section-title">' + escapeHTML(s.title) + '</h4><div class="god-mode-btn-group">' + btns + '</div>' + hintHtml + '</section>';

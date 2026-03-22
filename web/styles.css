@@ -613,14 +613,21 @@ h1#dashboardTitle:hover {
 }
 
 @media (max-width: 768px) {
+  /* PWA / iOS: black-translucent status bar + viewport-fit=cover draw under the notch; push content below status icons */
+  body {
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+  }
+
   .tab-navigation.tab-navigation--top {
     display: none !important;
   }
 
-  /* One scroll region (.app-main-scroll) for every tab; shell + footer fill viewport (body has padding; no body flex — many siblings) */
+  /* One scroll region (.app-main-scroll) for every tab; shell + footer fill viewport.
+     Do not subtract safe-area-inset-bottom from height — the bottom nav already pads for the home indicator;
+     subtracting it left a dead band below the nav (empty strip matching the inset). */
   .app-shell {
-    height: calc(100dvh - 5px - env(safe-area-inset-bottom, 0px));
-    max-height: calc(100dvh - 5px - env(safe-area-inset-bottom, 0px));
+    height: 100dvh;
+    max-height: 100dvh;
     min-height: 0;
     width: 100%;
     max-width: 100%;
@@ -635,7 +642,7 @@ h1#dashboardTitle:hover {
     flex-shrink: 0;
     width: 100%;
     box-sizing: border-box;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    /* Safe area is on .app-bottom-nav padding — avoid doubling inset below the tab bar */
     background: transparent;
   }
 
@@ -4997,6 +5004,15 @@ body.loading .loading-overlay {
   background: rgba(255, 255, 255, 0.06);
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+/* Detailed benchmark (test bars, sparklines, profile): desktop-width viewports only — hidden on mobile web / PWA / narrow screens */
+@media (max-width: 1023px) {
+  #perfBenchmarkDetailsBlock {
+    display: none !important;
+  }
+  .god-mode-btn--desktop-only {
+    display: none !important;
+  }
 }
 .perf-benchmark-details {
   margin-top: 12px;
