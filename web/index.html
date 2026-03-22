@@ -626,10 +626,6 @@
         <span class="tab-icon">🏠</span>
         <span class="tab-text">Home</span>
       </button>
-      <button type="button" class="tab-btn main-nav-tab" data-tab="log" role="tab" aria-selected="false" aria-controls="logTab" id="tab-log" onclick="switchTab('log')">
-        <span class="tab-icon">📝</span>
-        <span class="tab-text">Log Entry</span>
-      </button>
       <button type="button" class="tab-btn main-nav-tab" data-tab="logs" role="tab" aria-selected="false" aria-controls="logsTab" id="tab-logs" onclick="switchTab('logs')">
         <span class="tab-icon">📋</span>
         <span class="tab-text">View Logs</span>
@@ -652,13 +648,10 @@
       </div>
       <div id="homeTodayStatus" class="home-today-status" role="status" aria-live="polite"></div>
       <div id="goalsProgressBlock" class="goals-progress-block" style="display: none;" aria-live="polite"></div>
-      <div class="home-today-actions">
-        <button type="button" class="home-primary-btn" id="homeLogTodayBtn" onclick="openLogWizardFromHome()">Log today</button>
-      </div>
     </div>
 
-    <!-- Log Entry Tab -->
-    <div id="logTab" class="tab-content log-wizard-mode" role="tabpanel" aria-labelledby="tab-log">
+    <!-- Log wizard (opened via floating + button, not a main nav tab) -->
+    <div id="logTab" class="tab-content log-wizard-mode" role="tabpanel" aria-labelledby="logTabTitle">
       <div class="tab-header log-tab-header-wizard">
         <h2 class="tab-title" id="logTabTitle">Log today</h2>
       </div>
@@ -1338,15 +1331,13 @@
     </div>
 
   </div>
+  </div>
 
+  <!-- Fixed nav + FAB are outside .app-shell so mobile WebKit does not clip/stack them inside the flex column -->
   <nav class="app-bottom-nav" id="appBottomNav" role="navigation" aria-label="Main">
     <button type="button" class="app-bottom-nav-btn main-nav-tab active" data-tab="home" aria-current="page" aria-controls="homeTab" id="bottom-tab-home" onclick="switchTab('home')">
       <span class="app-bottom-nav-icon" aria-hidden="true">🏠</span>
       <span class="app-bottom-nav-text">Home</span>
-    </button>
-    <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="log" aria-controls="logTab" id="bottom-tab-log" onclick="switchTab('log')">
-      <span class="app-bottom-nav-icon" aria-hidden="true">📝</span>
-      <span class="app-bottom-nav-text">Log</span>
     </button>
     <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="logs" aria-controls="logsTab" id="bottom-tab-logs" onclick="switchTab('logs')">
       <span class="app-bottom-nav-icon" aria-hidden="true">📋</span>
@@ -1361,7 +1352,7 @@
       <span class="app-bottom-nav-text">AI</span>
     </button>
   </nav>
-  </div>
+  <button type="button" class="app-log-fab" id="appLogFab" onclick="openLogWizardFromHome()" title="Log health entry" aria-label="Add health log entry">+</button>
 
   <!-- Food Log Modal (Breakfast, Lunch, Dinner, Snack - select from predefined list) -->
   <div class="modal-overlay" id="foodModalOverlay" role="dialog" aria-modal="true" aria-label="Food log">

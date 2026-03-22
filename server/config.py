@@ -61,10 +61,53 @@ class BracketLevelFormatter(logging.Formatter):
         return f'[{record.levelname.upper()}]  {line}'
 
 
+def _console_color_enabled() -> bool:
+    """ANSI colors only when stdout is a TTY and NO_COLOR is unset (https://no-color.org/)."""
+    if os.environ.get('NO_COLOR', '').strip():
+        return False
+    if os.environ.get('FORCE_COLOR', '').strip():
+        return True
+    try:
+        return sys.stdout.isatty()
+    except Exception:
+        return False
+
+
+def _ansi_level_bracket(levelno: int, text: str) -> str:
+    """Wrap [LEVEL] in ANSI colors (bright, readable on dark terminals)."""
+    reset = '\033[0m'
+    if levelno >= logging.CRITICAL:
+        code = '\033[95m'  # bright magenta
+    elif levelno >= logging.ERROR:
+        code = '\033[91m'  # bright red
+    elif levelno >= logging.WARNING:
+        code = '\033[93m'  # bright yellow
+    elif levelno >= logging.INFO:
+        code = '\033[94m'  # bright blue
+    else:
+        code = '\033[96m'  # bright cyan (DEBUG)
+    return f'{code}{text}{reset}'
+
+
+class ConsoleColorBracketFormatter(logging.Formatter):
+    """
+    Terminal handler: leading [INFO]/[ERROR]/… with color; plain text when not a TTY or NO_COLOR is set.
+    Does not add escape codes to log files.
+    """
+
+    def format(self, record):
+        line = super().format(record)
+        prefix = f'[{record.levelname.upper()}]'
+        if _console_color_enabled():
+            prefix = _ansi_level_bracket(record.levelno, prefix)
+        return f'{prefix}  {line}'
+
+
 LOG_FORMAT = '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s'
 LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
 log_formatter = EmojiLogFormatter(LOG_FORMAT, datefmt=LOG_DATEFMT)
 dashboard_log_formatter = BracketLevelFormatter(LOG_FORMAT, datefmt=LOG_DATEFMT)
+console_formatter = ConsoleColorBracketFormatter(LOG_FORMAT, datefmt=LOG_DATEFMT)
 
 LOG_FILE = LOG_DIR / f"health_app_{datetime.now().strftime('%Y%m%d')}.log"
 logger = logging.getLogger('HealthApp')
@@ -77,7 +120,7 @@ if not logger.handlers:
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
     fh.setFormatter(log_formatter)
-    ch.setFormatter(log_formatter)
+    ch.setFormatter(console_formatter)
     logger.addHandler(fh)
     logger.addHandler(ch)
 file_handler = logger.handlers[0] if logger.handlers else None

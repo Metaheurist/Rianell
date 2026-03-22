@@ -1802,7 +1802,7 @@ function openModalTestOverlay() {
     {
       title: 'Tabs',
       items: [
-        { label: 'Log entry', action: run(function() { switchTab('log'); }) },
+        { label: 'Open log wizard', action: run(function() { openLogWizardFromHome(); }) },
         { label: 'View Logs', action: run(function() { switchTab('logs'); }) },
         { label: 'Charts', action: run(function() { switchTab('charts'); }) },
         { label: 'AI Analysis', action: run(function() { switchTab('ai'); }) }
@@ -5374,7 +5374,7 @@ async function generateAISummary() {
       <div class="ai-loading-state">
         <div class="ai-loading-icon">🧠</div>
         <h3 class="ai-empty-title">No health data yet</h3>
-        <p class="ai-empty-desc">Log some entries in the Log Entry tab. Analysis will appear here for your chosen date range.</p>
+        <p class="ai-empty-desc">Add logs with the + button. Analysis will appear here for your chosen date range.</p>
       </div>
     `;
     Logger.warn('AI Summary - No data available');
@@ -15394,7 +15394,7 @@ function updateHomeTodayPanel() {
   if (today) {
     statusEl.textContent = 'You have logged today. Open View logs to browse or edit entries.';
   } else {
-    statusEl.textContent = 'No log for today yet. Use Log today to record how you feel.';
+    statusEl.textContent = 'No log for today yet. Tap + to record how you feel.';
   }
 }
 
@@ -15708,12 +15708,20 @@ function switchTab(tabName, skipHash) {
     var selectedBtnTop = document.querySelector('.tab-navigation .tab-btn[data-tab="' + tabName + '"]');
     var nav = document.querySelector('.tab-navigation');
     var indicator = document.getElementById('tabNavIndicator');
-    if (nav && indicator && selectedBtnTop) {
-      var left = selectedBtnTop.offsetLeft;
-      var w = selectedBtnTop.offsetWidth;
-      indicator.style.width = w + 'px';
-      indicator.style.transform = 'translateX(' + left + 'px)';
+    if (nav && indicator) {
+      if (selectedBtnTop) {
+        var left = selectedBtnTop.offsetLeft;
+        var w = selectedBtnTop.offsetWidth;
+        indicator.style.width = w + 'px';
+        indicator.style.transform = 'translateX(' + left + 'px)';
+        indicator.style.opacity = '1';
+      } else {
+        indicator.style.width = '0';
+        indicator.style.opacity = '0';
+      }
     }
+    var logFab = document.getElementById('appLogFab');
+    if (logFab) logFab.classList.toggle('app-log-fab--hidden', tabName === 'log');
     if (tabName === 'charts' || tabName === 'logs' || tabName === 'ai' || tabName === 'home') {
       var container = document.querySelector('.container');
       if (container) container.scrollTop = 0;

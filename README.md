@@ -24,7 +24,7 @@ Operational “do not commit secrets” reminders stay in [Security notes](#secu
 %%{init: {'themeVariables': {'fontSize': '14px'}, 'flowchart': {'useMaxWidth': false, 'nodeSpacing': 50, 'rankSpacing': 45}}}%%
 flowchart LR
   subgraph tabs [Main tabs]
-    Log[Log entry]
+    Home[Home]
     View[View logs]
     Charts[Charts]
     AI[AI Analysis]
@@ -33,13 +33,15 @@ flowchart LR
     Local[localStorage / IndexedDB]
     Cloud[Supabase optional]
   end
-  Log --> Local
+  FAB["+ FAB — log wizard"]
+  Home --> Local
   View --> Local
   Charts --> Local
   AI --> Local
+  FAB --> Local
   Local -.-> Cloud
-  Goals[Goals & targets] --> Log
-  Settings[Settings] --> Log
+  Goals[Goals & targets] --> Home
+  Settings[Settings] --> Home
   Settings --> Cloud
 ```
 
@@ -52,11 +54,11 @@ flowchart LR
 
 ### App shell and log experience (web UI)
 
-![Home tab — daily message, last 7 days vs targets, and Log today](docs/images/home-dashboard.png)
+![Home tab — daily message, last 7 days vs targets, and floating +](docs/images/home-dashboard.png)
 
-- **Home / Today**: Default tab with greeting, date, logging status, goals snippet when enabled, and **Log today** to start the entry flow.
-- **Log entry wizard**: Step-by-step flow (date & flare → vitals → symptoms & pain → energy & day → food → exercise → medication & notes → review) with step indicator, **Back** / **Skip** / **Next**, and **Save entry** on the last step. Drafts are debounced to `sessionStorage`; URL hash `#log/step/<1-based step>` restores step when opening the Log tab.
-- **Navigation**: Top tab strip on wider screens; **bottom navigation bar** on viewports ≤768px (Home, Log, View logs, Charts, AI) with comfortable spacing between items so only one nav chrome shows per breakpoint.
+- **Home / Today**: Default tab with greeting, date, logging status, and goals snippet when enabled. Use the floating **+** button to open the log entry wizard from any main tab (Home, Logs, Charts, AI).
+- **Log entry wizard**: Step-by-step flow (date & flare → vitals → symptoms & pain → energy & day → food → exercise → medication & notes → review) with step indicator, **Back** / **Skip** / **Next**, and **Save entry** on the last step. Drafts are debounced to `sessionStorage`; URL hash `#log/step/<1-based step>` restores step when opening the log flow. The **+** is hidden while the wizard is active.
+- **Navigation**: Top tab strip on wider screens; **bottom navigation bar** on viewports ≤768px (**Home**, **Logs**, **Charts**, **AI** — no separate Log tab). The **+** FAB sits above the bottom bar on small screens. The bar is rendered outside the scroll shell (`.app-shell`) so tab icons and labels paint reliably on mobile WebKit. Only one nav chrome shows per breakpoint.
 - **Layout**: Extra horizontal padding in the log wizard on small screens; **`--card-content-padding-x`** in `styles.css` sets consistent horizontal inset inside bordered cards (`.form-section` / `.section-content`), including wizard vitals and other steps, log date/flare blocks, and review—so labels, inputs, and controls (e.g. weight unit toggle) are not flush to the card edge. **Tile pickers** (energy & mental clarity, stressors, symptoms, food by meal, exercise by category) open in a **full-screen `<dialog>` bottom sheet** on phones and a centred max-width sheet on wider viewports; chip content is moved into the sheet and restored on close (same IDs and handlers as before). Optional **per-section search** filters chips on the client. Sticky wizard actions use a flat bar (no heavy drop shadow behind the button row).
 
 ![Card selector modal — energy & mental clarity (grouped options and filter)](docs/images/card-selector-energy-clarity.png)
@@ -140,7 +142,7 @@ flowchart LR
 - **Local server**: Python HTTP server for local testing (`python -m server`); serves `web/` at root; optional file watching and auto-reload.
 - **Windows launcher**: From the repo root, `powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1` (or `pwsh -File .\server\launch-server.ps1`) runs the same server; optional `$env:PORT` / `$env:HOST` before invoking.
 - **Supabase integration**: Server can use Supabase for anonymised data and app_settings; credentials from **`security/.env`** (or legacy root `.env`).
-- **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs. **Console** and **log files** use per-level **emoji** prefixes; the dashboard **Server Logs** pane uses ASCII **`[LEVEL]`** tags (e.g. `[INFO]`, `[ERROR]`) with colour on the tag so Tkinter renders reliably—see [Logging](#logging).
+- **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs. **Console** uses ANSI-coloured **`[LEVEL]`** tags when stdout is a TTY (blue for `[INFO]`, red for `[ERROR]`, etc.; respects `NO_COLOR` / `FORCE_COLOR`). **Log files** keep per-level **emoji** prefixes (no escape codes). The dashboard **Server Logs** pane uses ASCII **`[LEVEL]`** tags with Tk colour tags—see [Logging](#logging).
 
 ## Project structure
 
@@ -570,10 +572,11 @@ pip install watchdog
 ```
 
 ### Logging
-Server logs are saved to `logs/health_app_YYYYMMDD.log`. The `HealthApp` logger uses two formatters in `server/config.py`:
+Server logs are saved to `logs/health_app_YYYYMMDD.log`. The `HealthApp` logger uses these formatters in `server/config.py`:
 
-- **`EmojiLogFormatter`** (handlers: **file** and **console**): each line starts with a level emoji (`🐛` DEBUG, `ℹ️` INFO, `⚠️` WARNING, `❌` ERROR, `💥` CRITICAL; anything else `📋`), **two spaces**, then the usual timestamp, level name, logger name, and message.
-- **`BracketLevelFormatter`** (handler: **Tkinter dashboard** `TextHandler` in `server/main.py` only): each line starts with **`[LEVEL]`** and two spaces, then the same timestamp / level / name / message body. The UI applies **colour tags** to the bracket (e.g. blue for `[INFO]`, red for `[ERROR]`) so logs stay readable without relying on emoji in Tk’s `Text` widget (**Consolas** is used for the log pane).
+- **`EmojiLogFormatter`** (handler: **file** only): each line starts with a level emoji (`🐛` DEBUG, `ℹ️` INFO, `⚠️` WARNING, `❌` ERROR, `💥` CRITICAL; anything else `📋`), **two spaces**, then the usual timestamp, level name, logger name, and message. Plain text so logs stay grep-friendly.
+- **`ConsoleColorBracketFormatter`** (handler: **console** / `StreamHandler`): each line starts with a coloured **`[LEVEL]`** prefix (ANSI: e.g. blue for INFO, red for ERROR) when stdout is a TTY; **no** escape codes when `NO_COLOR` is set (or when not a TTY). Set **`FORCE_COLOR=1`** to force colour when piping if your terminal supports it.
+- **`BracketLevelFormatter`** (handler: **Tkinter dashboard** `TextHandler` in `server/main.py` only): each line starts with **`[LEVEL]`** and two spaces, then the same timestamp / level / name / message body. The UI applies **colour tags** to the bracket so logs stay readable without relying on emoji in Tk’s `Text` widget (**Consolas** is used for the log pane).
 
 ### Browser Compatibility
 - Chrome/Edge (recommended)
@@ -675,6 +678,15 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 - **Server**: Tkinter **Server Logs** pane uses a Segoe UI–family font (`Segoe UI`, `Segoe UI Emoji`, or `Segoe UI Symbol` when installed) so level emojis render; monospace **Consolas** does not show emoji in Tk `Text` on Windows (`server/main.py`).
 - **Server**: `EmojiLogFormatter` inserts **two spaces** after the emoji for a clear gap before the timestamp (`server/config.py`).
+
+</details>
+
+<details>
+<summary><strong>v1.29.0</strong> — 2026-03-22 — Mobile nav, console log colours, README</summary>
+
+- **Web**: Bottom **Home / Logs / Charts / AI** bar and floating **+** are **siblings** of `.app-shell` in `index.html` so fixed tab labels and icons render correctly on mobile WebKit; minor stacking CSS (`isolation` / `z-index` on tab buttons). Log entry is opened via **+** (no Log tab).
+- **Server**: `ConsoleColorBracketFormatter` colours **`[LEVEL]`** in the terminal (blue INFO, red ERROR, etc.); `EmojiLogFormatter` remains for **file** logs only (no ANSI in files). Respects `NO_COLOR` and `FORCE_COLOR`.
+- **README**: App overview diagram and [App shell](#app-shell-and-log-experience-web-ui) / [Logging](#logging) sections updated to match.
 
 </details>
 
