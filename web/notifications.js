@@ -10,7 +10,7 @@ const LocalNotifications = isCapacitor && window.Capacitor?.Plugins?.LocalNotifi
 
 function isSoundEnabled() {
   try {
-    const s = localStorage.getItem('healthAppSettings');
+    const s = localStorage.getItem('rianellSettings');
     return s ? (JSON.parse(s).sound === true) : false;
   } catch (e) {
     return false;
@@ -175,7 +175,7 @@ const NotificationManager = {
   // Check if reminder is enabled
   isReminderEnabled() {
     try {
-      const settings = JSON.parse(localStorage.getItem('healthAppSettings') || '{}');
+      const settings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
       return settings.reminder !== false; // Default to true
     } catch (e) {
       return true;
@@ -185,7 +185,7 @@ const NotificationManager = {
   // Load reminder settings
   loadReminderSettings() {
     try {
-      const settings = JSON.parse(localStorage.getItem('healthAppSettings') || '{}');
+      const settings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
       this.reminderTime = settings.reminderTime || '20:00'; // Default 8 PM
     } catch (e) {
       this.reminderTime = '20:00';
@@ -195,9 +195,9 @@ const NotificationManager = {
   // Save reminder settings
   saveReminderSettings() {
     try {
-      const settings = JSON.parse(localStorage.getItem('healthAppSettings') || '{}');
+      const settings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
       settings.reminderTime = this.reminderTime;
-      localStorage.setItem('healthAppSettings', JSON.stringify(settings));
+      localStorage.setItem('rianellSettings', JSON.stringify(settings));
     } catch (e) {
       console.error('Error saving reminder settings:', e);
     }
@@ -359,9 +359,9 @@ const NotificationManager = {
   // Enable/disable reminders
   setReminderEnabled(enabled) {
     try {
-      const settings = JSON.parse(localStorage.getItem('healthAppSettings') || '{}');
+      const settings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
       settings.reminder = enabled;
-      localStorage.setItem('healthAppSettings', JSON.stringify(settings));
+      localStorage.setItem('rianellSettings', JSON.stringify(settings));
       
       if (enabled) {
         this.scheduleReminders();

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Simple HTTP Server for Health App
-Serves the Health Dashboard application on http://localhost:8080
+Simple HTTP Server for Rianell
+Serves the Rianell web app on http://localhost:8080
 Also accessible over LAN using your computer's local IP address
 """
 
@@ -130,7 +130,7 @@ class ThreadingHTTPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
             self.socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
         super().server_bind()
 
-class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
+class RianellHttpHandler(http.server.SimpleHTTPRequestHandler):
     """Custom handler to set proper MIME types and handle SPA routing"""
     
     timeout = 30  # Request timeout
@@ -956,7 +956,7 @@ def start_server_thread():
         global server_instance
         try:
             with server_lock:
-                server_instance = ThreadingHTTPServer((HOST, PORT), HealthAppHandler)
+                server_instance = ThreadingHTTPServer((HOST, PORT), RianellHttpHandler)
                 logger.info("Server socket created successfully")
             
             logger.info("Server entering serve_forever() loop")
@@ -995,7 +995,7 @@ def create_server_dashboard():
         return None
     
     root = tk.Tk()
-    root.title("Health App Server Dashboard")
+    root.title("Rianell Server Dashboard")
     root.geometry("900x700")
     root.configure(bg='#1e1e1e')
     
@@ -1013,7 +1013,7 @@ def create_server_dashboard():
     main_frame.pack(fill=tk.BOTH, expand=True)
     
     # Title
-    title_label = ttk.Label(main_frame, text="Health App Server Control Panel", style='Title.TLabel')
+    title_label = ttk.Label(main_frame, text="Rianell Server Control Panel", style='Title.TLabel')
     title_label.pack(pady=10)
     
     # Status frame
@@ -1763,7 +1763,7 @@ def create_server_dashboard():
                 self.text_widget.tag_add(bracket_tag, bs, be)
 
             # Parse the log format: "YYYY-MM-DD HH:MM:SS | LEVEL | Name | Message"
-            # Example: "2026-01-03 03:10:02 | INFO | HealthApp | SYNC | Anonymized data synced..."
+            # Example: "2026-01-03 03:10:02 | INFO | Rianell | SYNC | Anonymized data synced..."
             
             # Find timestamp (format: YYYY-MM-DD HH:MM:SS)
             timestamp_pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
@@ -1910,7 +1910,7 @@ def main():
     # Initialize Supabase client
     init_supabase_client()
     
-    logger.info("Starting Health App Server")
+    logger.info("Starting Rianell server")
     logger.info(f"Server directory: {script_dir}")
     logger.info(f"Port: {PORT}")
     logger.info(f"Max connections per IP: {MAX_CONNECTIONS_PER_IP}")
@@ -1996,7 +1996,7 @@ def main():
     lan_url = f"http://{local_ip}:{PORT}"
     
     print("=" * 60)
-    print("Health App Web Server")
+    print("Rianell web server")
     print("=" * 60)
     print(f"Server running at: {server_url}")
     if local_ip != "Unable to determine":

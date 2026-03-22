@@ -10,11 +10,44 @@ function isStaticHost() {
   }
 }
 
-// Optional verbose debug for testing (localStorage.healthAppDebug === 'true' or ?debug=1)
+// One-time localStorage migration (healthApp* → rianell*) for existing users
+(function migrateLegacyHealthAppStorageKeys() {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    var pairs = [
+      ['healthAppSettings_compressed', 'rianellSettings_compressed'],
+      ['healthAppPredictionState', 'rianellPredictionState'],
+      ['healthAppInstallModalAfterTutorialSeen', 'rianellInstallModalAfterTutorialSeen'],
+      ['healthAppFrequentOptions', 'rianellFrequentOptions'],
+      ['healthAppEnableStaticSW', 'rianellEnableStaticSW'],
+      ['healthAppPerfLongTasks', 'rianellPerfLongTasks'],
+      ['healthAppTutorialSeen', 'rianellTutorialSeen'],
+      ['healthAppCookieConsent', 'rianellCookieConsent'],
+      ['healthAppGoals', 'rianellGoals'],
+      ['healthAppSettings', 'rianellSettings'],
+      ['healthAppDebug', 'rianellDebug'],
+      ['healthAppLocalEncryptionKeyHex', 'rianellLocalEncryptionKeyHex']
+    ];
+    pairs.forEach(function (p) {
+      var oldK = p[0];
+      var newK = p[1];
+      if (localStorage.getItem(newK) != null) return;
+      var v = localStorage.getItem(oldK);
+      if (v != null) {
+        localStorage.setItem(newK, v);
+        localStorage.removeItem(oldK);
+      }
+    });
+  } catch (e) {}
+})();
+
+// Optional verbose debug (localStorage.rianellDebug === 'true' or ?debug=1)
 try {
-  window.healthAppDebug = (typeof localStorage !== 'undefined' && localStorage.getItem('healthAppDebug') === 'true') ||
+  window.rianellDebug = (typeof localStorage !== 'undefined' && localStorage.getItem('rianellDebug') === 'true') ||
     (typeof URLSearchParams !== 'undefined' && window.location && new URLSearchParams(window.location.search).get('debug') === '1');
+  window.healthAppDebug = window.rianellDebug; // deprecated alias
 } catch (e) {
+  window.rianellDebug = false;
   window.healthAppDebug = false;
 }
 
@@ -39,7 +72,7 @@ const Logger = {
     // Check demo mode from localStorage (avoids temporal dead zone issues with appSettings)
     let isDemoMode = false;
     try {
-      const savedSettings = localStorage.getItem('healthAppSettings');
+      const savedSettings = localStorage.getItem('rianellSettings');
       if (savedSettings) {
         const settings = JSON.parse(savedSettings);
         isDemoMode = settings.demoMode === true;
@@ -1190,7 +1223,7 @@ function openShareModalForAIAnalysis() {
 // ============================================
 // Cookie consent banner and Cookie policy modal
 // ============================================
-const COOKIE_CONSENT_KEY = 'healthAppCookieConsent';
+const COOKIE_CONSENT_KEY = 'rianellCookieConsent';
 
 function showCookieBannerIfNeeded() {
   if (localStorage.getItem(COOKIE_CONSENT_KEY)) return;
@@ -1395,7 +1428,7 @@ function closeTutorialModal() {
     document.body.style.overflow = '';
   }
   if (!isTutorialTestPage()) {
-    try { localStorage.setItem('healthAppTutorialSeen', '1'); } catch (err) {}
+    try { localStorage.setItem('rianellTutorialSeen', '1'); } catch (err) {}
   }
 }
 
@@ -1494,7 +1527,7 @@ function finishTutorial(enableDemo) {
 
 function maybeShowInstallModalOnce() {
   try {
-    if (localStorage.getItem('healthAppInstallModalAfterTutorialSeen')) return;
+    if (localStorage.getItem('rianellInstallModalAfterTutorialSeen')) return;
     openInstallModal(false);
   } catch (err) {}
 }
@@ -1634,7 +1667,7 @@ function openInstallModal(force) {
   window._installModalOpenedByTutorial = false;
   if (!force) {
     try {
-      if (localStorage.getItem('healthAppInstallModalAfterTutorialSeen')) return;
+      if (localStorage.getItem('rianellInstallModalAfterTutorialSeen')) return;
     } catch (e) {}
     window._installModalOpenedByTutorial = true;
   }
@@ -1686,7 +1719,7 @@ function openInstallModal(force) {
 
 function closeInstallModal() {
   if (window._installModalOpenedByTutorial) {
-    try { localStorage.setItem('healthAppInstallModalAfterTutorialSeen', '1'); } catch (e) {}
+    try { localStorage.setItem('rianellInstallModalAfterTutorialSeen', '1'); } catch (e) {}
   }
   window._installModalOpenedByTutorial = false;
   if (window._installModalEscapeHandler) {
@@ -1779,7 +1812,7 @@ function handleCloudLoginFromModal() {
 // Show tutorial once for new users (after DOM and modals ready)
 function maybeShowTutorialOnce() {
   try {
-    if (localStorage.getItem('healthAppTutorialSeen')) return;
+    if (localStorage.getItem('rianellTutorialSeen')) return;
     openTutorialModal();
   } catch (err) {}
 }
@@ -2193,7 +2226,7 @@ function setSafeHTML(element, html) {
 }
 
 // Log app initialization
-Logger.info('Health App initialized', {
+Logger.info('Rianell initialized', {
   timestamp: new Date().toISOString(),
   localStorageAvailable: typeof(Storage) !== 'undefined'
 });
@@ -2203,8 +2236,8 @@ Logger.info('Health App initialized', {
   try {
     var demoMode = false;
     var aiEnabled = true;
-    if (typeof localStorage !== 'undefined' && localStorage.getItem('healthAppSettings')) {
-      var parsed = JSON.parse(localStorage.getItem('healthAppSettings'));
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('rianellSettings')) {
+      var parsed = JSON.parse(localStorage.getItem('rianellSettings'));
       demoMode = !!parsed.demoMode;
       aiEnabled = parsed.aiEnabled !== false;
     }
@@ -2218,15 +2251,15 @@ Logger.info('Health App initialized', {
 })();
 
 // ============================================
-// PWA Service Worker — blocked by default; optional static cache (localStorage healthAppEnableStaticSW=1 or ?sw=1)
+// PWA Service Worker — blocked by default; optional static cache (localStorage rianellEnableStaticSW=1 or ?sw=1)
 // ============================================
 if ('serviceWorker' in navigator) {
-  var enableStaticSW = (typeof localStorage !== 'undefined' && localStorage.getItem('healthAppEnableStaticSW') === '1') ||
+  var enableStaticSW = (typeof localStorage !== 'undefined' && localStorage.getItem('rianellEnableStaticSW') === '1') ||
     (typeof location !== 'undefined' && /[?&]sw=1(?:&|$)/.test(location.search));
   if (!enableStaticSW) {
     const originalRegister = navigator.serviceWorker.register;
     navigator.serviceWorker.register = function() {
-      Logger.debug('Service Worker registration blocked (enable with healthAppEnableStaticSW=1 or ?sw=1)');
+      Logger.debug('Service Worker registration blocked (enable with rianellEnableStaticSW=1 or ?sw=1)');
       return Promise.reject(new Error('Service Worker disabled'));
     };
     navigator.serviceWorker.getRegistrations().then(registrations => {
@@ -2257,8 +2290,8 @@ if (typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', updatePageHidden);
 }
 
-(function initHealthAppIOWorker() {
-  window.HealthAppIOWorker = {
+(function initRianellIOWorker() {
+  window.RianellIOWorker = {
     parseJson: function (text) {
       return new Promise(function (resolve, reject) {
         var w;
@@ -2305,7 +2338,7 @@ if (typeof document !== 'undefined') {
 function installPerfLongTaskObserver() {
   if (typeof PerformanceObserver === 'undefined') return;
   if (typeof localStorage === 'undefined') return;
-  if (localStorage.getItem('healthAppPerfLongTasks') !== '1' && !window.healthAppDebug) return;
+  if (localStorage.getItem('rianellPerfLongTasks') !== '1' && !window.rianellDebug) return;
   try {
     var po = new PerformanceObserver(function (list) {
       var entries = list.getEntries();
@@ -2399,7 +2432,7 @@ function installOrLaunchPWA() {
     deferredPrompt.userChoice.then((choiceResult) => {
       if (choiceResult.outcome === 'accepted') {
         Logger.debug('PWA: User accepted the install prompt');
-        showAlertModal('App installed successfully! 📱\nLook for "Jan\'s Health Dashboard" in your apps.', 'Installation Complete');
+        showAlertModal('App installed successfully! 📱\nLook for "Rianell" in your apps.', 'Installation Complete');
         hideInstallButton();
       } else {
         Logger.debug('PWA: User dismissed the install prompt');
@@ -2451,7 +2484,7 @@ function openInStandalone() {
   const standaloneUrl = currentUrl + (currentUrl.includes('?') ? '&' : '?') + 'standalone=true';
   
   // Try to open in new window with app-like properties
-  const newWindow = window.open(standaloneUrl, 'HealthDashboard', 
+  const newWindow = window.open(standaloneUrl, 'RianellApp', 
     'width=400,height=800,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes'
   );
   
@@ -2504,13 +2537,13 @@ function showInstallInstructions() {
 METHOD 1 - Create Shortcut:
 1. Click ⋮ menu (top right)
 2. More Tools → Create Shortcut
-3. Name: "Your's Health Dashboard"
+3. Name: "Rianell"
 4. ✅ Check "Open as window"
 5. Click "Create"
 
 METHOD 2 - Install Button:
 • Look for install icon (⊞) in address bar
-• Or ⋮ menu → "Install Jan's Health Dashboard"
+• Or ⋮ menu → "Install Rianell"
 
 NOTE: Automatic install works best with:
 • http://localhost:8000 (local server)
@@ -3551,7 +3584,7 @@ function toggleChartView(viewType) {
 
 async function createCombinedChart() {
   var _perfT0 = Date.now();
-  if (window.healthAppDebug && Logger.debug) {
+  if (window.rianellDebug && Logger.debug) {
     Logger.debug('createCombinedChart: starting');
   }
   try {
@@ -3699,7 +3732,7 @@ async function createCombinedChart() {
       }
     }
   }
-  if (window.healthAppDebug && Logger.debug) {
+  if (window.rianellDebug && Logger.debug) {
     Logger.debug('createCombinedChart: ' + (predictionsData ? 'predictionsData set (' + (predictionsData.allLogsLength || 0) + ' training points)' : 'predictions skipped'));
   }
 
@@ -4851,7 +4884,7 @@ async function clearData() {
     reminderTime: '20:00', // Reset reminder time to default
     optimizedAI: false // Reset optimized AI setting
   };
-  localStorage.removeItem('healthAppSettings');
+  localStorage.removeItem('rianellSettings');
   
   // Logout from cloud sync
   if (typeof handleCloudLogout === 'function') {
@@ -4967,16 +5000,16 @@ async function clearData() {
   const localStorageKeysToRemove = [
     'healthLogs',
     'healthLogs_backup',
-    'healthAppSettings',
+    'rianellSettings',
     'appSettings_backup',
-    'healthAppGoals',
+    'rianellGoals',
     'cloudAutoSync',
     'cloudLastSync',
     'currentCloudUserId',
     'anonymizedDataSyncedKeys',
     'anonymizedDataSyncedDates',
     'healthLogs_compressed',
-    'healthAppSettings_compressed'
+    'rianellSettings_compressed'
   ];
   
   // Remove all known keys
@@ -5256,14 +5289,14 @@ async function analyzeHealthMetrics(logs, allLogs, options) {
     const opts = options || {};
     if (typeof opts.predictionState === 'undefined' && typeof localStorage !== 'undefined') {
       try {
-        const s = localStorage.getItem('healthAppPredictionState');
+        const s = localStorage.getItem('rianellPredictionState');
         if (s) opts.predictionState = JSON.parse(s);
       } catch (e) { /* ignore */ }
     }
     const result = await window.AIEngine.analyzeHealthMetrics(logs, trainingLogs, opts);
     if (result.predictionStateForSave && typeof localStorage !== 'undefined') {
       try {
-        localStorage.setItem('healthAppPredictionState', JSON.stringify(result.predictionStateForSave));
+        localStorage.setItem('rianellPredictionState', JSON.stringify(result.predictionStateForSave));
       } catch (e) { /* ignore */ }
     }
     perfLog('AI analyzeHealthMetrics', Date.now() - _t0, { logs: (logs && logs.length) || 0, allLogs: (trainingLogs && trainingLogs.length) || 0 });
@@ -5563,7 +5596,7 @@ function setAICache(analysis, sortedLogs, dateRangeText, cacheKey) {
   var entry = { analysis: analysis, sortedLogs: sortedLogs || [], dateRangeText: dateRangeText || '', cacheKey: cacheKey || '' };
   window._aiAnalysisCache = entry;
   if (window._aiAnalysisCacheMap) window._aiAnalysisCacheMap[cacheKey || ''] = entry;
-  if (window.healthAppDebug && Logger.debug) Logger.debug('AI preload: analysis cached');
+  if (window.rianellDebug && Logger.debug) Logger.debug('AI preload: analysis cached');
 }
 
 // Run AI analysis in background on main thread and cache result (device-aware).
@@ -7424,7 +7457,7 @@ let editExerciseItems = [];
 var OFFLINE_QUEUE_KEY = 'healthLogsOfflineQueue';
 
 // Frequently used log options (medications, stressors, symptoms, exercises, foods) — stored in localStorage
-var FREQUENT_OPTIONS_KEY = 'healthAppFrequentOptions';
+var FREQUENT_OPTIONS_KEY = 'rianellFrequentOptions';
 var FREQUENT_OPTIONS_MAX = 8; // max items to show per section
 var FREQUENT_OPTIONS_MAX_STORED = 50; // cap keys per type to avoid bloat
 
@@ -7547,13 +7580,13 @@ function clearOfflineQueue() {
   } catch (e) {}
 }
 
-// Goals & targets (localStorage key healthAppGoals)
+// Goals & targets (localStorage key rianellGoals)
 var DEFAULT_GOALS = { steps: 0, hydration: 0, sleep: 0, goodDaysPerWeek: 0 };
 var GLASS_VOLUME_L = 0.25; // liters per glass (for displaying L next to glasses)
 
 function getGoals() {
   try {
-    var raw = localStorage.getItem('healthAppGoals');
+    var raw = localStorage.getItem('rianellGoals');
     if (!raw) return Object.assign({}, DEFAULT_GOALS);
     var g = JSON.parse(raw);
     return { steps: g.steps != null ? g.steps : DEFAULT_GOALS.steps, hydration: g.hydration != null ? g.hydration : DEFAULT_GOALS.hydration, sleep: g.sleep != null ? g.sleep : DEFAULT_GOALS.sleep, goodDaysPerWeek: g.goodDaysPerWeek != null ? g.goodDaysPerWeek : DEFAULT_GOALS.goodDaysPerWeek };
@@ -7569,7 +7602,7 @@ function saveGoalsFromModal() {
   var goodDays = parseInt(document.getElementById('goalGoodDays') && document.getElementById('goalGoodDays').value, 10) || 0;
   var g = { steps: steps, hydration: hydration, sleep: sleep, goodDaysPerWeek: goodDays };
   try {
-    localStorage.setItem('healthAppGoals', JSON.stringify(g));
+    localStorage.setItem('rianellGoals', JSON.stringify(g));
     // Push goals to cloud when signed in
     if (typeof cloudSyncState !== 'undefined' && cloudSyncState.isAuthenticated && typeof syncToCloud === 'function') {
       syncToCloud();
@@ -7797,8 +7830,8 @@ function saveLogsToStorage() {
   } else {
     localStorage.setItem("healthLogs", JSON.stringify(logs));
   }
-  if (window.HealthLogsIDB && typeof window.HealthLogsIDB.scheduleMirror === 'function') {
-    window.HealthLogsIDB.scheduleMirror(logs);
+  if (window.RianellLogsIDB && typeof window.RianellLogsIDB.scheduleMirror === 'function') {
+    window.RianellLogsIDB.scheduleMirror(logs);
   }
 }
 
@@ -7809,7 +7842,7 @@ try {
   // (avoids async decompress racing with regenerated demo and keeps dates/variation fresh).
   var demoModeSkipStoredLogs = false;
   try {
-    var _earlySettings = localStorage.getItem('healthAppSettings');
+    var _earlySettings = localStorage.getItem('rianellSettings');
     if (_earlySettings) demoModeSkipStoredLogs = JSON.parse(_earlySettings).demoMode === true;
   } catch (e) {}
   if (demoModeSkipStoredLogs) {
@@ -12635,7 +12668,7 @@ if (typeof window !== 'undefined') {
 
 // Load settings from localStorage
 function loadSettings() {
-  const savedSettings = localStorage.getItem('healthAppSettings');
+  const savedSettings = localStorage.getItem('rianellSettings');
   if (savedSettings) {
     appSettings = { ...appSettings, ...JSON.parse(savedSettings) };
   }
@@ -12667,7 +12700,7 @@ function loadSettings() {
 }
 
 function saveSettings() {
-  localStorage.setItem('healthAppSettings', JSON.stringify(appSettings));
+  localStorage.setItem('rianellSettings', JSON.stringify(appSettings));
   // Keep window.appSettings in sync
   if (typeof window !== 'undefined') {
     window.appSettings = appSettings;
@@ -14370,14 +14403,14 @@ function toggleDemoMode() {
         if (restoredSettingsJson != null) {
           const settings = JSON.parse(restoredSettingsJson);
           settings.demoMode = false;
-          localStorage.setItem('healthAppSettings', JSON.stringify(settings));
+          localStorage.setItem('rianellSettings', JSON.stringify(settings));
         } else {
-          const raw = localStorage.getItem('healthAppSettings');
+          const raw = localStorage.getItem('rianellSettings');
           const settings = raw ? JSON.parse(raw) : {};
           settings.demoMode = false;
           settings.userName = '';
           settings.medicalCondition = '';
-          localStorage.setItem('healthAppSettings', JSON.stringify(settings));
+          localStorage.setItem('rianellSettings', JSON.stringify(settings));
         }
       } catch (e) {
         console.warn('Demo off: could not persist', e);
@@ -14433,9 +14466,9 @@ function toggleDemoMode() {
       appSettings.demoMode = false;
       saveSettings();
 
-      const finalSettings = JSON.parse(localStorage.getItem('healthAppSettings') || '{}');
+      const finalSettings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
       finalSettings.demoMode = false;
-      localStorage.setItem('healthAppSettings', JSON.stringify(finalSettings));
+      localStorage.setItem('rianellSettings', JSON.stringify(finalSettings));
       appSettings.demoMode = false;
       if (typeof window !== 'undefined') {
         window.appSettings = appSettings;
@@ -14653,7 +14686,7 @@ function updateConditionContext(conditionName) {
   }
 }
 
-/** Preconfigured dashboard lines when the on-device MOTD LLM is unavailable or deferred. Same calendar day → same line (stable “message of the day”). No user names. */
+/** Preconfigured dashboard lines when the on-device MOTD LLM is unavailable or deferred. Picks rotate every ~15 minutes (deterministic). No user names. */
 const MOTD_FALLBACK_MESSAGES = [
   'Small steps today make a steadier path forward.',
   'Showing up for yourself counts—especially on hard days.',
@@ -14735,14 +14768,78 @@ const MOTD_FALLBACK_MESSAGES = [
   'Momentum returns; store fuel while you wait.',
   'Be the friend to yourself that you would want beside you.',
   'Small routines are anchors in choppy weeks.',
-  'You have already survived difficult days—this one counts too.'
+  'You have already survived difficult days—this one counts too.',
+  'Let the next hour be a little kinder than the last.',
+  'A single deep breath can reset more than you expect.',
+  'You are not obliged to optimise every moment.',
+  'Soft lighting for your thoughts—dim the harsh critic.',
+  'Track mood like weather: observe, do not argue with the sky.',
+  'What helped once might help again—note it without pressure.',
+  'Discomfort can coexist with dignity—hold both gently.',
+  'Your nervous system deserves patience, not a performance review.',
+  'Stretch the story you tell about today by one compassionate sentence.',
+  'If motivation is low, lower the bar and keep the door open.',
+  'Healing sometimes looks like doing less, on purpose.',
+  'Name one thing your body did right today, however small.',
+  'Screens away for a minute—your eyes were not built for endless scroll.',
+  'Walk to the window; distance and light are cheap medicine.',
+  'Water first, drama second.',
+  'Hunger is information, not a moral test.',
+  'Sleep debt is real debt—pay it in small instalments.',
+  'Pain spikes pass; you do not have to forecast forever from one hour.',
+  'Symptoms fluctuate; your worth does not.',
+  'Medication routines are acts of self-trust—honour the alarm.',
+  'Side-effects deserve documentation, not dismissal.',
+  'Appointments count as self-leadership, not indulgence.',
+  'Ask for accommodations before you crash—prevention is wise.',
+  'Noise-cancel your inner comparison channel.',
+  'Social media health advice is a buffet—sample, do not swallow whole.',
+  'Your baseline today is not your ceiling for life.',
+  'Flat days fertilise later growth—rest is not regression.',
+  'Joy can be quiet: tea, text, sunlight on the floor.',
+  'Pride in “I showed up” beats shame for “I did not peak.”',
+  'You are allowed to outgrow coping habits that once saved you.',
+  'Replace “I should” with “I could” and feel the room appear.',
+  'Schedule recovery the way you schedule effort.',
+  'Let unfinished lists be evidence of a full life, not failure.',
+  'One drawer, one shelf—tiny order can calm a noisy mind.',
+  'Music at low volume still shifts atmosphere.',
+  'Cold face splash, warm socks—small sensory resets.',
+  'Text someone “thinking of you” and mean it.',
+  'Say no once today to protect a yes that matters tomorrow.',
+  'Advocate for yourself the way you would for a friend.',
+  'Documentation turns fog into footholds—keep jotting.',
+  'Trends matter more than single spikes—zoom out kindly.',
+  'If the chart looks messy, your life might be rich and real.',
+  'Automate what repeats; save willpower for what cannot.',
+  'Celebrate the boring maintenance that keeps the wheels on.',
+  'You are not lazy—you are allocating limited spoons.',
+  'Spoon theory is not an excuse; it is a map.',
+  'Rain plans for health days are still plans.',
+  'Sunlight tomorrow is not guaranteed; catch some today if you can.',
+  'Night owls and early birds both deserve respect—find your rhythm.',
+  'Micro-movements count when macro feels impossible.',
+  'Standing counts when sitting was the only option earlier.',
+  'Dance in the kitchen counts as movement and morale.',
+  'Your reflection is one angle, not the full blueprint.',
+  'Therapy homework is still homework—gentle credit for trying.',
+  'Journalling does not have to be pretty to be useful.',
+  'Voice memos are logs too—speak if typing tires you.',
+  'If you only have five percent, spend it on something true.',
+  'End the day by naming one thing you did not regret.',
+  'Begin the day by lowering expectations to humane size.',
+  'Courage is sometimes just sending the message or booking the slot.',
+  'Hope can be a thin thread—hold it anyway.',
+  'You belong in the story of people who keep trying.',
+  'This dashboard is a tool, not a judge—wield it gently.'
 ];
 
 function getDailyMotdFallback() {
   const list = MOTD_FALLBACK_MESSAGES;
-  if (!list.length) return 'Health Dashboard';
+  if (!list.length) return 'Rianell';
   const d = new Date();
-  const key = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  const quarter = Math.floor(d.getMinutes() / 15);
+  const key = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + '-' + d.getHours() + '-' + quarter;
   var h = 0;
   for (var i = 0; i < key.length; i++) {
     h = Math.imul(31, h) + key.charCodeAt(i) | 0;
@@ -14787,7 +14884,7 @@ function updateDashboardTitle() {
 
   titleElement.textContent = fallbackTitle;
   titleElement.setAttribute('data-text', fallbackTitle);
-  document.title = 'Health Dashboard';
+  document.title = 'Rianell';
 
   var deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
     ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
@@ -15847,7 +15944,7 @@ window.addEventListener('error', (event) => {
 }, true);
 
 // Handle unhandled promise rejections (often from extensions). Mirrors early handler in index.html.
-function __healthAppRejectionText(reason) {
+function __rianellRejectionText(reason) {
   if (reason == null) return '';
   if (typeof reason === 'string') return reason;
   var m = '';
@@ -15863,7 +15960,7 @@ function __healthAppRejectionText(reason) {
 }
 
 /** Keep in sync with early unhandledrejection script in index.html */
-function __healthAppIsExtensionRejectionBlob(blob) {
+function __rianellIsExtensionRejectionBlob(blob) {
   if (!blob || typeof blob !== 'string') return false;
   if (/chrome-extension:|moz-extension:|safari-web-extension:|extension:\/\//i.test(blob)) return true;
   if (/tabs:outgoing|tabs\.outgoing|outgoing\.message\.ready|No\s+Listener|vendor\.js|VM\d+\s+vendor|serviceWorker\.js|background\.js/i.test(blob)) return true;
@@ -15873,8 +15970,8 @@ function __healthAppIsExtensionRejectionBlob(blob) {
 }
 
 window.addEventListener('unhandledrejection', (event) => {
-  const blob = __healthAppRejectionText(event.reason);
-  if (__healthAppIsExtensionRejectionBlob(blob)) {
+  const blob = __rianellRejectionText(event.reason);
+  if (__rianellIsExtensionRejectionBlob(blob)) {
     event.preventDefault();
     event.stopImmediatePropagation();
   }
@@ -15885,7 +15982,7 @@ window.addEventListener('load', () => {
   // Show loading overlay immediately (body.loading keeps overlay visible via CSS)
   const loadingOverlay = document.getElementById('loadingOverlay');
   const loadingTextEl = loadingOverlay ? loadingOverlay.querySelector('.loading-text') : null;
-  if (loadingTextEl) loadingTextEl.textContent = 'Loading Health Dashboard…';
+    if (loadingTextEl) loadingTextEl.textContent = 'Loading Rianell…';
   
   // Always set dark mode on load
   document.body.classList.remove('light-mode');
@@ -15895,11 +15992,11 @@ window.addEventListener('load', () => {
 
   function runAppInit() {
   installPerfLongTaskObserver();
-  if (window.HealthLogsIDB && typeof window.HealthLogsIDB.migrateFromLocalStorageOnce === 'function') {
-    window.HealthLogsIDB.migrateFromLocalStorageOnce();
+  if (window.RianellLogsIDB && typeof window.RianellLogsIDB.migrateFromLocalStorageOnce === 'function') {
+    window.RianellLogsIDB.migrateFromLocalStorageOnce();
   }
   try {
-    if (typeof performance !== 'undefined' && performance.mark) performance.mark('health-app-init');
+    if (typeof performance !== 'undefined' && performance.mark) performance.mark('rianell-init');
   } catch (e) {}
   // Sync platform.deviceClass from DeviceBenchmark if ready (so isLowDevice etc. use benchmark tier)
   if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.applyBenchmarkToPlatform === 'function') {
@@ -16091,7 +16188,7 @@ window.addEventListener('load', () => {
       }
       if (typeof isTutorialTestPage === 'function' && isTutorialTestPage()) return;
       var tutorialSeen = (function () {
-        try { return !!localStorage.getItem('healthAppTutorialSeen'); } catch (e) { return true; }
+        try { return !!localStorage.getItem('rianellTutorialSeen'); } catch (e) { return true; }
       })();
       if (!tutorialSeen) return;
       var today = new Date();

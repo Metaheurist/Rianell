@@ -1,5 +1,5 @@
 :root {
-  --health-app-styles: 1; /* used by index.html to detect if this file loaded (mobile reload fix) */
+  --rianell-styles: 1; /* used by index.html to detect if this file loaded (mobile reload fix) */
   --primary-color: #4caf50;
   --primary-gradient: linear-gradient(135deg, #4caf50 0%, #66bb6a 50%, #81c784 100%);
   --primary-glow: 0 0 12px rgba(76, 175, 80, 0.25);
@@ -8347,6 +8347,24 @@ body.light-mode .goals-status-pill.below {
   color: var(--text-light);
   font-size: 0.9rem;
   margin: 0;
+}
+
+/* Full-width install row: button above hint (avoids side-by-side squeeze on narrow mobile) */
+.settings-option--stacked {
+  flex-direction: column;
+  align-items: stretch;
+  align-content: flex-start;
+  gap: 8px;
+}
+.settings-option--stacked .settings-data-btn {
+  flex: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.settings-option--stacked .settings-install-hint {
+  width: 100%;
+  text-align: left;
+  margin: 0 0 10px 0;
 }
 
 .settings-option-llm-model {

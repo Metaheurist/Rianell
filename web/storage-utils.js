@@ -108,7 +108,7 @@ function isCompressed(data) {
 const CompressedStorage = {
   async setItem(key, value) {
     try {
-      const appSettings = JSON.parse(localStorage.getItem('healthAppSettings') || '{}');
+      const appSettings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
       const useCompression = appSettings.compression !== false; // Default to true
       
       if (useCompression && hasCompressionStream) {
@@ -161,7 +161,7 @@ const CompressedStorage = {
 // Migration: Convert existing uncompressed data to compressed
 async function migrateToCompressedStorage() {
   try {
-    const appSettings = JSON.parse(localStorage.getItem('healthAppSettings') || '{}');
+    const appSettings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
     
     // Check if migration already done
     if (appSettings.compressionMigrated) {
@@ -182,7 +182,7 @@ async function migrateToCompressedStorage() {
     
     // Mark migration as complete
     appSettings.compressionMigrated = true;
-    localStorage.setItem('healthAppSettings', JSON.stringify(appSettings));
+    localStorage.setItem('rianellSettings', JSON.stringify(appSettings));
   } catch (error) {
     console.error('Migration error:', error);
   }

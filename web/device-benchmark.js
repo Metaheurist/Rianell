@@ -9,7 +9,7 @@
 (function () {
   'use strict';
 
-  var CACHE_KEY = 'healthAppPerfBenchmark';
+  var CACHE_KEY = 'rianellPerfBenchmark';
   var BENCHMARK_VERSION = 4;
   var MAX_TIER = 5;
   var DEFAULT_TOTAL_CAP_MS = 1200;

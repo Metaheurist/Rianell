@@ -1,7 +1,7 @@
 {
-  "name": "Jan's Health Dashboard",
-  "short_name": "Health Tracker",
-  "description": "A comprehensive health tracking app for monitoring daily wellness metrics, pain levels, and symptoms.",
+  "name": "Rianell",
+  "short_name": "Rianell",
+  "description": "Rianell — personal health tracking at rianell.com. Monitor wellness metrics, pain, symptoms, and more.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#121212",
@@ -16,7 +16,7 @@
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Jan's Health Dashboard main interface"
+      "label": "Rianell main interface"
     },
     {
       "src": "Icons/screenshot-narrow.png", 

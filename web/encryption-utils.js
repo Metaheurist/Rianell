@@ -29,7 +29,7 @@ async function getEncryptionKey() {
     console.warn('Could not fetch encryption key from server:', error);
   }
 
-  const LS_KEY = 'healthAppLocalEncryptionKeyHex';
+  const LS_KEY = 'rianellLocalEncryptionKeyHex';
   try {
     const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(LS_KEY) : null;
     if (stored && /^[0-9a-fA-F]{64}$/.test(stored)) {

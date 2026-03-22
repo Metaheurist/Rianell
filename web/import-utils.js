@@ -122,8 +122,8 @@ function handleImportFileSelect(event) {
         importPreviewData = parseCSV(e.target.result);
       } else if (format === 'json') {
         var rawJson = e.target.result;
-        if (rawJson.length > 120000 && window.HealthAppIOWorker && window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile && window.PerformanceUtils.getOptimizationProfile().useWorkers) {
-          importPreviewData = await window.HealthAppIOWorker.parseJson(rawJson);
+        if (rawJson.length > 120000 && window.RianellIOWorker && window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile && window.PerformanceUtils.getOptimizationProfile().useWorkers) {
+          importPreviewData = await window.RianellIOWorker.parseJson(rawJson);
           if (!Array.isArray(importPreviewData)) {
             throw new Error('JSON file must contain an array of log entries');
           }

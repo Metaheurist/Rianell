@@ -47,8 +47,8 @@ function exportToCSVImmediate(logs) {
 
 // Export data in JSON format
 function exportToJSON(logs) {
-  if (logs && logs.length > 5000 && window.HealthAppIOWorker && window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile && window.PerformanceUtils.getOptimizationProfile().useWorkers && typeof window.HealthAppIOWorker.stringifyJson === 'function') {
-    window.HealthAppIOWorker.stringifyJson(logs).then(function (jsonContent) {
+  if (logs && logs.length > 5000 && window.RianellIOWorker && window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile && window.PerformanceUtils.getOptimizationProfile().useWorkers && typeof window.RianellIOWorker.stringifyJson === 'function') {
+    window.RianellIOWorker.stringifyJson(logs).then(function (jsonContent) {
       const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);

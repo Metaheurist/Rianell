@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.healthapp.tracker',
-  appName: 'Health Tracker',
+  appName: 'Rianell',
   webDir: 'dist',
   server: {
     androidScheme: 'https',

@@ -1,4 +1,4 @@
-# Launch the Health App HTTP server (python -m server).
+# Launch the Rianell HTTP server (python -m server).
 # From repo root:
 #   powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1
 #   pwsh -File .\server\launch-server.ps1
@@ -15,7 +15,7 @@ if (Get-Command python -ErrorAction SilentlyContinue) {
 } elseif (Get-Command py -ErrorAction SilentlyContinue) {
     $pythonExe = "py"
     $pyArgs = @("-3", "-m", "server")
-    Write-Host "Starting Health App server from: $ProjectRoot"
+    Write-Host "Starting Rianell server from: $ProjectRoot"
     & $pythonExe @pyArgs @args
     exit $LASTEXITCODE
 }
@@ -25,6 +25,6 @@ if (-not $pythonExe) {
     exit 1
 }
 
-Write-Host "Starting Health App server from: $ProjectRoot"
+Write-Host "Starting Rianell server from: $ProjectRoot"
 & $pythonExe -m server @args
 exit $LASTEXITCODE

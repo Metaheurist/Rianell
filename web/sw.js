@@ -1,5 +1,5 @@
-/* Optional static asset cache (register only when healthAppEnableStaticSW=1 or ?sw=1). */
-var CACHE = 'health-app-static-v1';
+/* Optional static asset cache (register only when rianellEnableStaticSW=1 or ?sw=1). */
+var CACHE = 'rianell-static-v1';
 
 self.addEventListener('install', function (e) {
   self.skipWaiting();

@@ -1,4 +1,4 @@
-# Health App server package - modular HTTP server for the web app
+# Rianell server package - modular HTTP server for the web app
 from pathlib import Path
 
 # Project root (parent of this package)
