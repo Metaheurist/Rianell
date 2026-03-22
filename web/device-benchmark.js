@@ -898,6 +898,8 @@
       if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] using cached result', 'tier', cached.tier, 'platformType', cached.platformType);
       _lastTier = cached.tier;
       _lastPlatformType = cached.platformType;
+      // Drive the loading bar once (otherwise onProgress never runs and the bar stays empty)
+      if (typeof onProgress === 'function') onProgress(100, { phase: 'cached', label: 'Using saved result' });
       if (typeof onComplete === 'function') onComplete(cached.tier, cached.platformType, cached);
       return;
     }
