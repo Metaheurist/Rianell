@@ -10,13 +10,13 @@ The authoritative security guide is **[docs/SECURITY.md](docs/SECURITY.md)**. It
 
 - Default **`HOST=127.0.0.1`** (loopback) and when to use **`HOST=0.0.0.0`** for LAN testing  
 - Gated sensitive routes: **`/api/encryption-key`**, **`/api/anonymized-data`**, and **`HEALTH_APP_SENSITIVE_APIS_ON_LAN`**  
-- Encryption key lifecycle (`Security/.encryption_key`, `ENCRYPTION_KEY` in `Security/.env`, client behaviour)  
+- Encryption key lifecycle (`security/.encryption_key`, `ENCRYPTION_KEY` in `security/.env`, client behaviour)  
 - **Supabase RLS** expectations and [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql)  
-- **CSP**, Android **`allowMixedContent`**, dependency audits ([`.github/workflows/security-audit.yml`](.github/workflows/security-audit.yml)), and client-side storage risks  
+- **CSP**, Android **`allowMixedContent`**, dependency audits ([`.github/workflows/ci.yml`](.github/workflows/ci.yml) — `security-audit` job), and client-side storage risks  
 
 Operational “do not commit secrets” reminders stay in [Security notes](#security-notes) below.
 
-**Local secrets folder:** [`Security/`](Security/) holds **`Security/.env`** and **`Security/.encryption_key`** (gitignored). Copy [`Security/.env.example`](Security/.env.example) → `Security/.env`. See [Security/README.md](Security/README.md).
+**Local secrets folder:** [`security/`](security/) holds **`security/.env`** and **`security/.encryption_key`** (gitignored). Copy [`security/.env.example`](security/.env.example) → `security/.env`. See [security/README.md](security/README.md).
 
 ## App overview
 
@@ -139,7 +139,7 @@ flowchart LR
 ### Server (testing and development)
 - **Local server**: Python HTTP server for local testing (`python -m server`); serves `web/` at root; optional file watching and auto-reload.
 - **Windows launcher**: From the repo root, `powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1` (or `pwsh -File .\server\launch-server.ps1`) runs the same server; optional `$env:PORT` / `$env:HOST` before invoking.
-- **Supabase integration**: Server can use Supabase for anonymised data and app_settings; credentials from **`Security/.env`** (or legacy root `.env`).
+- **Supabase integration**: Server can use Supabase for anonymised data and app_settings; credentials from **`security/.env`** (or legacy root `.env`).
 - **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs. **Console** and **log files** use per-level **emoji** prefixes; the dashboard **Server Logs** pane uses ASCII **`[LEVEL]`** tags (e.g. `[INFO]`, `[ERROR]`) with colour on the tag so Tkinter renders reliably—see [Logging](#logging).
 
 ## Project structure
@@ -168,8 +168,8 @@ flowchart LR
    ```
 
 3. **Configure environment variables**
-   - Copy [`Security/.env.example`](Security/.env.example) to **`Security/.env`** (see [Security/README.md](Security/README.md)). A legacy `.env` at the repo root is still loaded if `Security/.env` is missing.
-   - Edit **`Security/.env`** and add your Supabase credentials:
+   - Copy [`security/.env.example`](security/.env.example) to **`security/.env`** (see [security/README.md](security/README.md)). If that file is missing, the server still loads a legacy `.env` at the repo root.
+   - Edit **`security/.env`** and add your Supabase credentials:
      ```env
      PORT=8080
      HOST=127.0.0.1
@@ -219,7 +219,7 @@ The server will:
 ### Accessing the App
 
 1. **Local Development**: Open `http://localhost:8080` in your browser
-2. **Network Access**: The server defaults to **loopback** (`127.0.0.1`). To open the app from another device on your LAN, set **`HOST=0.0.0.0`** in **`Security/.env`** (or legacy root `.env`) and use your PC’s LAN IP (see [docs/SECURITY.md](docs/SECURITY.md)). For sensitive dev APIs from non-loopback clients, set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** (trusted networks only).
+2. **Network Access**: The server defaults to **loopback** (`127.0.0.1`). To open the app from another device on your LAN, set **`HOST=0.0.0.0`** in **`security/.env`** (or legacy root `.env`) and use your PC’s LAN IP (see [docs/SECURITY.md](docs/SECURITY.md)). For sensitive dev APIs from non-loopback clients, set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** (trusted networks only).
 3. **Production**: Deploy files to a web server (no local server needed)
 
 **Install manifest URLs (Android / iOS `latest.json`):** On `localhost`, `127.0.0.1`, and `::1`, the app does **not** fetch `App build/Android/latest.json` or `App build/iOS/latest.json`, because those files are produced by CI and deployed with the site. Default install links still point at fallback paths. To test manifest-driven links locally, open the devtools console and run `sessionStorage.setItem('forceAppBuildManifest','1')`, then reload.
@@ -230,7 +230,7 @@ The app lives in **`web/`**, so GitHub Pages will not see `index.html` if the so
 
 1. In the repo: **Settings → Pages**
 2. Under **Build and deployment**, set **Source** to **GitHub Actions**
-3. The workflow [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) runs on push to `main` and deploys the contents of **`web/`** as the site root, so `index.html` is served correctly. The workflow runs **`npm install`**, minifies **`app.js`** to **`app.min.js`**, and rewrites the deployed `index.html` to load the minified script for smaller downloads.
+3. The unified workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs the **`deploy-pages`** job on push to `main`/`master` and deploys the contents of **`web/`** as the site root, so `index.html` is served correctly. The job runs **`npm install`**, minifies **`app.js`** to **`app.min.js`**, and rewrites the deployed `index.html` to load the minified script for smaller downloads.
 
 **Cloud sync on the live site:** To use Supabase (login, cloud backup, anonymised data) on the GitHub Pages site, add **Repository secrets** (or **Environment secrets** for the `pages` environment): **`SUPABASE_URL`** (your project URL, e.g. `https://xxxx.supabase.co`) and **`SUPABASE_ANON_KEY`** (your publishable anon key). The deploy workflow injects these into the built site at deploy time so they are never committed. If these secrets are not set, the site still deploys; cloud features will work only after you add them.
 
@@ -272,8 +272,7 @@ Controlled in `react-app/android/variables.gradle` (or via `react-app/patch-andr
 
 ### CI: App builds on each commit
 
-- **Android** workflow: [`.github/workflows/build-android-apk.yml`](.github/workflows/build-android-apk.yml)
-- **iOS** workflow: [`.github/workflows/build-ios.yml`](.github/workflows/build-ios.yml) — builds a **simulator .app** (no Apple account; test in Xcode Simulator on a Mac) and zips the Xcode project to `App build/iOS/` for device sideloading (open in Xcode, sign with your Apple ID). Device signing for direct install (OTA) requires an Apple Developer account ($99/year).
+- **Android / iOS** CI: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — `android` and `ios` jobs (PR builds; on `main`/`master` pushes also commit `App build/`, release assets, and Pages). iOS builds a **simulator .app** (no Apple account; test in Xcode Simulator on a Mac) and zips the Xcode project to `App build/iOS/` for device sideloading (open in Xcode, sign with your Apple ID). Device signing for direct install (OTA) requires an Apple Developer account ($99/year).
 - On **push** or **pull_request** to `main` or `master`: builds the web app, syncs Capacitor, builds a **debug APK**, copies it into **`App build/Android/`**, and uploads the **android** artifact (zip containing `apk/app-debug.apk`).
 - On **push** (not PR) to `main`/`master`: the workflow also **commits** the `App build/Android/` folder to the repo with `[skip ci]`, so the “Install on Android” link in Settings works when the app is served from the same repo (e.g. GitHub Pages).
 - Download the APK from the run’s **Summary → Artifacts** (name **android**), or use **Settings → Install on Android / Install on iOS** in the deployed app.
@@ -345,9 +344,9 @@ Sample data includes realistic patterns:
 
 ## Configuration
 
-### Environment Variables (`Security/.env`)
+### Environment Variables (`security/.env`)
 
-Define variables in **`Security/.env`** (copy from [`Security/.env.example`](Security/.env.example)). If that file is absent, a legacy **`.env`** at the repository root is still read.
+Define variables in **`security/.env`** (copy from [`security/.env.example`](security/.env.example)). If that file is absent, a legacy **`.env`** at the repository root is still read.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -371,7 +370,7 @@ Define variables in **`Security/.env`** (copy from [`Security/.env.example`](Sec
      updated_at TIMESTAMP DEFAULT NOW()
    );
    ```
-4. Add your credentials to **`Security/.env`** (or legacy root `.env`) and `supabase-config.js`
+4. Add your credentials to **`security/.env`** (or legacy root `.env`) and `supabase-config.js`
 
 ## AI Analysis: Neural Network Architecture
 
@@ -527,7 +526,7 @@ Health-app/
 ├── docs/                   # Documentation
 │   ├── images/             # README screenshots (Home, View logs, AI Analysis, card selector, server dashboard, …)
 │   └── NEURAL_NETWORK_PLAN.md   # AI expansion and optimisation plan
-├── .github/workflows/      # CI (e.g. Build Android APK)
+├── .github/workflows/      # Unified CI: `ci.yml` (mobile, Pages, release, audits)
 ├── react-app/              # React (Vite) + Capacitor shell for Android
 │   ├── src/                # React entry and iframe wrapper
 │   ├── android/            # Capacitor Android project (optional to commit)
@@ -539,8 +538,8 @@ Health-app/
 │   └── iOS/               # Xcode project zip + latest.json
 ├── server/                 # Python HTTP server (`python -m server`)
 │   └── launch-server.ps1   # Windows launcher (optional)
-├── Security/               # Local secrets (not in git): `.env`, `.encryption_key`; see Security/README.md
-│   ├── .env.example        # Template → copy to Security/.env
+├── security/               # Local secrets (not in git): `.env`, `.encryption_key`; see security/README.md
+│   ├── .env.example        # Template → copy to security/.env
 │   └── README.md           # What belongs in this folder
 └── logs/                   # Server logs
 ```
@@ -595,10 +594,10 @@ The app includes GDPR-compliant data sharing:
 ### Server Issues
 
 **Port already in use**:
-- Change `PORT` in **`Security/.env`** (or legacy root `.env`) or close the application using port 8080
+- Change `PORT` in **`security/.env`** (or legacy root `.env`) or close the application using port 8080
 
 **Supabase connection failed**:
-- Verify credentials in **`Security/.env`** (or legacy root `.env`) and `supabase-config.js`
+- Verify credentials in **`security/.env`** (or legacy root `.env`) and `supabase-config.js`
 - Check Supabase project is active
 - Ensure using publishable key, not secret key
 
@@ -620,13 +619,13 @@ The app includes GDPR-compliant data sharing:
 
 ## Security notes
 
-Start with the full guide: **[docs/SECURITY.md](docs/SECURITY.md)** (same content as linked from [Security](#security) at the top of this file). Supplementary references: [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql), [docs/android-network-security-notes.md](docs/android-network-security-notes.md), CI workflow [`.github/workflows/security-audit.yml`](.github/workflows/security-audit.yml) (`npm audit`, `pip-audit`).
+Start with the full guide: **[docs/SECURITY.md](docs/SECURITY.md)** (same content as linked from [Security](#security) at the top of this file). Supplementary references: [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql), [docs/android-network-security-notes.md](docs/android-network-security-notes.md), CI workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — `security-audit` job (`npm audit`, `pip-audit`).
 
 ⚠️ **Important security considerations**:
 
 1. **Never commit sensitive files**:
-   - **`Security/.env`** (or legacy root `.env`) — Supabase credentials
-   - **`Security/.encryption_key`** — encryption key material
+   - **`security/.env`** (or legacy root `.env`) — Supabase credentials
+   - **`security/.encryption_key`** — encryption key material
    - `supabase-config.js` (contains API keys)
 
 2. **Use environment variables** for production deployments
