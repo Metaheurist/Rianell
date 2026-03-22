@@ -16,7 +16,7 @@ This document describes how **Rianell** (this health app) handles health-related
 
 ## Server logs
 
-Log files under **`logs/`** may contain client IPs, sync metadata, and dashboard activity. They are intended for **local debugging**. Do not ship log files with identifiable health content; rotate or delete old files on shared machines.
+Log files under **`logs/`** may contain client IPs, sync metadata, and dashboard activity. They are intended for **local debugging**. Do not ship log files with identifiable health content; delete or redact before sharing machine access. The Python server uses a **rotating** file handler (size-capped with backups) so a single log file cannot grow without bound.
 
 ## Local secrets directory (`security/`)
 
@@ -47,8 +47,9 @@ These routes are intended for **local development** with the browser on the same
 
 **Rules:**
 
-1. Requests are allowed only from **loopback** addresses (`127.0.0.1`, `::1`), unless you explicitly set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** in the environment. **Never enable this on untrusted or public Wi‑Fi**; it exposes key and training-style data to anyone who can reach your machine on the LAN.
+1. Requests are allowed only from **loopback** addresses (`127.0.0.1`, `::1`), unless you explicitly set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** in the environment. **Never enable this on untrusted or public Wi‑Fi**; it exposes key and training-style data to anyone who can reach your machine on the LAN. The server logs a **warning at startup** when LAN mode is on. Optional **`HEALTH_APP_SENSITIVE_APIS_LAN_SECRET`**: when set, non-loopback clients must send header **`X-Rianell-LAN-Secret`** matching that value (defense in depth for LAN testing).
 2. Use **`ENCRYPTION_KEY`** in **`security/.env`** or a **`.encryption_key`** file under **`security/`** for a stable, operator-controlled key; otherwise the server may **create** `security/.encryption_key` automatically on first use (see [security/.env.example](../security/.env.example)).
+3. If **`security/.env`** is missing but a **legacy `.env`** at the repository root exists, the server loads it and logs a **warning** to prefer **`security/.env`**.
 
 ## Encryption key lifecycle
 
@@ -58,13 +59,18 @@ These routes are intended for **local development** with the browser on the same
 
 ## Supabase and Row Level Security (RLS)
 
-The anon key is present in client bundles by design. **Authorization must be enforced in Supabase** with RLS and least-privilege policies. Recommended starting points are in [supabase-rls-recommended.sql](supabase-rls-recommended.sql). Apply and adjust to your schema in the Supabase SQL editor. **Operational check:** in the Supabase dashboard, confirm **RLS is enabled** on tables that hold user data and that policies match your deployment (the repo SQL is a starting point, not a substitute for verifying the live project).
+The anon key is present in client bundles by design. **Authorization must be enforced in Supabase** with RLS and least-privilege policies. Recommended starting points are in [supabase-rls-recommended.sql](supabase-rls-recommended.sql). Apply and adjust to your schema in the Supabase SQL editor. **Operational check:** in the Supabase dashboard, confirm **RLS is enabled** on tables that hold user data and that policies match your deployment (the repo SQL is a starting point, not a substitute for verifying the live project). CI runs [`scripts/verify-rls-baseline.mjs`](../scripts/verify-rls-baseline.mjs) to ensure the recommended SQL doc is not gutted; it does **not** connect to your project.
 
 ## Content Security Policy (CSP) and XSS
 
 - The app CSP allows `'unsafe-inline'` and `'unsafe-eval'` for compatibility with inline bootstraps and ML libraries. Tightening this is a **tracked hardening goal**; removing `unsafe-eval` may require bundling or loading changes.
 - The meta policy also includes `'wasm-unsafe-eval'` and `worker-src` for blob/CDN workers (TensorFlow.js). If you add a **second** CSP via **HTTP headers** (e.g. Cloudflare “Content Security Policy”), browsers apply **both** policies: every directive must allow what the app needs, or Chrome will report **eval blocked** / **script-src blocked** even when the meta tag looks correct.
 - Prefer `textContent` / `createElement` over `innerHTML` where user-influenced strings are inserted.
+- Client code uses **`escapeHTML()`** / **`sanitizeHTML()`** for many user-derived strings (e.g. log entries, AI anomaly lines). New UI that builds HTML from user input should use the same helpers—avoid raw **`innerHTML`** with unescaped strings.
+
+### `connect-src` and third-party hosts
+
+The meta CSP in [`web/index.html`](../web/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts for models), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed. The **Supabase** script tag is **pinned** to a specific version with **Subresource Integrity (SRI)**; when upgrading `@supabase/supabase-js`, update **`src`**, **`integrity`**, and the comment in `index.html`.
 
 ## Known residual risks and mitigations
 
@@ -107,6 +113,8 @@ On each **release** build (or before tagging):
 - Review **`android:exported`** on activities / providers / receivers (Capacitor defaults; only launcher/main should be exported as needed for deep links).
 - Keep **`allowMixedContent: false`** in `capacitor.config.ts` unless you have a documented exception.
 
+**Process:** after **`npx cap sync android`**, run **`node react-app/patch-android-sdk.js`** (CI does this on automated builds). See [README — Local setup](../README.md#local-setup-optional) for the command sequence.
+
 ## Dependency and CI scanning
 
 - GitHub Actions workflow [../.github/workflows/ci.yml](../.github/workflows/ci.yml) (`security-audit` job) runs `npm audit` (root + react-app) and **`pip-audit`** on `requirements.txt`. Failures should be triaged like Dependabot alerts.
@@ -114,6 +122,11 @@ On each **release** build (or before tagging):
 ## Client-side storage and privacy
 
 Health logs in the browser live in **`localStorage`** (and optionally IndexedDB) without an app-level passphrase. Anyone with **device access** or **malware on the device** may read that data. The in-app GDPR/consent flows describe cloud contribution; they do not replace **device security** (screen lock, OS updates) or organisational policies for regulated health data.
+
+## Future hardening (not implemented)
+
+- **App-level passphrase** or OS keystore integration for encrypting local logs at rest (major UX and engineering).
+- **TLS for the Python dev server** (optional): prefer a reverse proxy (Caddy, nginx) or document `stunnel` for LAN HTTPS; do not expose the raw HTTP server to the internet.
 
 ## Contact and reporting
 
