@@ -4642,8 +4642,94 @@ body.light-mode .cookie-policy-body code {
   color: rgba(224, 242, 241, 0.9);
   line-height: 1.5;
 }
+.donate-modal-text--small {
+  font-size: 0.85rem;
+  opacity: 0.95;
+}
+.donate-modal-text code {
+  font-size: 0.85em;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
 body.light-mode .donate-modal-text {
   color: var(--text-secondary);
+}
+body.light-mode .donate-modal-text code {
+  background: rgba(0, 0, 0, 0.08);
+}
+.donate-paypal-loading {
+  font-size: var(--text-sm);
+  color: rgba(224, 242, 241, 0.85);
+  padding: 8px 0;
+}
+body.light-mode .donate-paypal-loading {
+  color: var(--text-secondary);
+}
+.donate-paypal-sdk-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+}
+.donate-amount-label {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(224, 242, 241, 0.65);
+  margin-bottom: 8px;
+}
+body.light-mode .donate-amount-label {
+  color: var(--text-secondary);
+}
+.donate-amount-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.donate-amount-chip {
+  flex: 1 1 auto;
+  min-width: 64px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(32, 36, 42, 0.85);
+  color: var(--text-light);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.donate-amount-chip:hover {
+  border-color: rgba(76, 175, 80, 0.45);
+}
+.donate-amount-chip--active {
+  border-color: rgba(76, 175, 80, 0.65);
+  background: rgba(76, 175, 80, 0.18);
+  box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.25);
+}
+body.light-mode .donate-amount-chip {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: var(--text-primary);
+}
+body.light-mode .donate-amount-chip--active {
+  border-color: rgba(76, 175, 80, 0.55);
+  background: rgba(76, 175, 80, 0.12);
+}
+.paypal-donate-button-container {
+  min-height: 48px;
+  width: 100%;
+}
+.paypal-donate-button-container iframe {
+  z-index: 1;
+}
+.donate-paypal-fallback {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 .donate-paypal-btn {
   display: inline-flex;
@@ -5985,7 +6071,10 @@ body.light-mode .perf-benchmark-profile {
     position: sticky;
     top: 0;
     z-index: 2;
-    background: var(--background-dark);
+    /* Match glass cards / form-section — avoid flat #0a0a0a “black box” over the page gradient */
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     padding-bottom: 8px;
     margin-bottom: 0;
     border-bottom: 1px solid var(--border-subtle);
@@ -5994,8 +6083,8 @@ body.light-mode .perf-benchmark-profile {
     margin-bottom: 0;
   }
   body.light-mode .selection-summary-sticky {
-    background: #e8f5e9;
-    border-bottom-color: rgba(76, 175, 80, 0.25);
+    background: rgba(255, 255, 255, 0.78);
+    border-bottom-color: rgba(76, 175, 80, 0.22);
   }
 }
 
@@ -6029,6 +6118,45 @@ body.light-mode .perf-benchmark-profile {
   font-size: 0.95rem;
   flex: 1;
   word-break: break-word;
+}
+
+/* Selected stressors / symptoms / edit lists — same visual language as .item-entry (was unstyled → read as a solid black block) */
+.item-tag {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  background: rgba(38, 50, 56, 0.45);
+  border-radius: 10px;
+  border: 1px solid rgba(76, 175, 80, 0.22);
+  transition: background var(--transition-normal), border-color var(--transition-normal);
+}
+.item-tag:last-child {
+  margin-bottom: 0;
+}
+.item-tag:hover {
+  background: rgba(38, 50, 56, 0.62);
+  border-color: rgba(76, 175, 80, 0.38);
+}
+.item-tag > span:first-of-type {
+  flex: 1;
+  min-width: 0;
+  color: #e0f2f1;
+  font-size: 0.95rem;
+  word-break: break-word;
+}
+body.light-mode .item-tag {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(76, 175, 80, 0.28);
+}
+body.light-mode .item-tag:hover {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(76, 175, 80, 0.4);
+}
+body.light-mode .item-tag > span:first-of-type {
+  color: var(--text-dark);
 }
 
 .remove-item-btn {

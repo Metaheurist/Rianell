@@ -23,7 +23,10 @@
   <!-- Security: CSP roadmap in docs/SECURITY.md (unsafe-eval/inline required today for ML bootstraps; tighten over time). -->
   <!-- script-src: wasm-unsafe-eval + worker-src blob: for TensorFlow.js / ML CDNs. If an HTTP CSP is also set (e.g. Cloudflare), it must allow the same or eval stays blocked (policies combine). -->
   <!-- Note: frame-ancestors and X-Frame-Options must be set via HTTP headers, not meta tags -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';">
+  <!-- PayPal JS SDK: set meta paypal-client-id (REST app Client ID from developer.paypal.com) for in-app Smart Payment Buttons (PayPal, card, Apple Pay / Google Pay when eligible). -->
+  <meta name="paypal-client-id" content="">
+  <meta name="paypal-currency" content="USD">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.paypal.com; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://api.paypal.com https://api.sandbox.paypal.com https://c.paypal.com; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <!-- Note: X-Frame-Options is set via HTTP header in server, not here -->
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -96,8 +99,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=2" as="style">
-  <link rel="stylesheet" href="styles.css?v=2" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=2&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="preload" href="styles.css?v=3" as="style">
+  <link rel="stylesheet" href="styles.css?v=3" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=3&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #e0f2f1; margin: 0; padding: 0; }
@@ -480,7 +483,7 @@
         <h4>💝 Support Rianell</h4>
         <p class="settings-hint" style="margin-bottom: 12px;">If Rianell helps you, you can make a voluntary donation via PayPal.</p>
         <div class="settings-option settings-option--stacked">
-          <button type="button" class="settings-data-btn donate-settings-btn" id="donateSettingsBtn" title="Open secure PayPal donation">
+          <button type="button" class="settings-data-btn donate-settings-btn" id="donateSettingsBtn" title="Donate (PayPal, card, Apple Pay, Google Pay when available)">
             <span class="settings-install-icon" aria-hidden="true">💝</span> Donate
           </button>
         </div>
@@ -2144,7 +2147,7 @@
     </div>
   </div>
 
-  <!-- Donate: PayPal sets X-Frame-Options: sameorigin — cannot embed; open in new tab only -->
+  <!-- Donate: Smart Payment Buttons via PayPal JS SDK when paypal-client-id is set; else fallback hosted link -->
   <div class="modal-overlay donate-modal-overlay" id="donateModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="donateModalTitle">
     <div class="modal-content donate-modal-content" onclick="event.stopPropagation()">
       <div class="modal-header donate-modal-header">
@@ -2152,8 +2155,24 @@
         <button type="button" class="modal-close" id="donateModalCloseBtn" aria-label="Close">&times;</button>
       </div>
       <div class="modal-body donate-modal-body">
-        <p class="donate-modal-text">Support Rianell with a secure donation via PayPal (opens in a new tab).</p>
-        <a href="https://www.paypal.com/donate?hosted_button_id=MB5UF5SBL8YNG" target="_blank" rel="noopener noreferrer" class="donate-paypal-btn">Continue to PayPal</a>
+        <p class="donate-modal-text">Support Rianell with a secure donation. PayPal, card, Apple Pay, and Google Pay appear when your browser and PayPal account support them.</p>
+        <div id="donatePaypalLoading" class="donate-paypal-loading" aria-live="polite" style="display: none;"></div>
+        <div id="donatePaypalSdkWrap" class="donate-paypal-sdk-wrap" style="display: none;">
+          <div class="donate-amount-row" role="group" aria-labelledby="donateAmountLabel">
+            <span id="donateAmountLabel" class="donate-amount-label">Amount</span>
+            <div class="donate-amount-chips">
+              <button type="button" class="donate-amount-chip" data-amount="5.00">$5</button>
+              <button type="button" class="donate-amount-chip donate-amount-chip--active" data-amount="10.00">$10</button>
+              <button type="button" class="donate-amount-chip" data-amount="25.00">$25</button>
+              <button type="button" class="donate-amount-chip" data-amount="50.00">$50</button>
+            </div>
+          </div>
+          <div id="paypalDonateButtonContainer" class="paypal-donate-button-container"></div>
+        </div>
+        <div id="donatePaypalFallback" class="donate-paypal-fallback">
+          <p id="donatePaypalFallbackHint" class="donate-modal-text donate-modal-text--small"></p>
+          <a href="https://www.paypal.com/donate?hosted_button_id=MB5UF5SBL8YNG" target="_blank" rel="noopener noreferrer" class="donate-paypal-btn">Continue to PayPal</a>
+        </div>
       </div>
     </div>
   </div>
@@ -2373,7 +2392,7 @@
     }
   })();
   </script>
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
   <script src="security-utils.js"></script>
   <script src="encryption-utils.js"></script>
   <script src="cloud-sync.js?v=2"></script>
