@@ -4995,12 +4995,24 @@ body.light-mode .perf-benchmark-profile {
   margin-left: auto;
 }
 
-/* Chart container share button (top-right) */
+/* Chart share button — in flow above the plot (not over the graph) */
+.chart-container:has(> .chart-share-btn) {
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-container:has(> .chart-share-btn) > #combinedChart,
+.chart-container:has(> .chart-share-btn) > #balanceChart {
+  min-height: 0;
+  width: 100%;
+}
+
 .chart-share-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 10;
+  position: static;
+  align-self: flex-end;
+  flex-shrink: 0;
+  margin: 0 0 10px 0;
+  z-index: 2;
   width: 36px;
   height: 36px;
   padding: 0;
@@ -10409,10 +10421,10 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
 
 /* Metric Selector for Combined Chart */
 .metric-selector-container {
-  margin-top: 12px;
-  padding: 12px;
+  margin-top: 8px;
+  padding: 8px 10px;
   background: rgba(30, 30, 30, 0.6);
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid rgba(76, 175, 80, 0.3);
 }
 
@@ -10420,30 +10432,30 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .metric-selector-title {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: #e0f2f1;
 }
 
 .metric-selector-actions {
   display: flex;
-  gap: 6px;
+  gap: 4px;
 }
 
 .metric-select-btn {
-  padding: 5px 10px;
+  padding: 3px 8px;
   background: rgba(76, 175, 80, 0.2);
   border: 1px solid rgba(76, 175, 80, 0.5);
-  border-radius: 6px;
+  border-radius: 4px;
   color: #e0f2f1;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   transition: all 0.3s ease;
 }
 
@@ -10467,13 +10479,13 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
 .metric-checkboxes-grid {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
 }
 
 .metric-group {
   background: rgba(20, 20, 20, 0.4);
-  border-radius: 10px;
-  padding: 12px;
+  border-radius: 6px;
+  padding: 6px 8px;
   border: 1px solid rgba(76, 175, 80, 0.15);
   transition: all 0.3s ease;
 }
@@ -10486,29 +10498,29 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
 .metric-group-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
+  gap: 6px;
+  margin-bottom: 4px;
+  padding-bottom: 4px;
   border-bottom: 1px solid rgba(76, 175, 80, 0.2);
 }
 
 .metric-group-icon {
-  font-size: 1.2rem;
+  font-size: 0.95rem;
   filter: drop-shadow(0 0 4px rgba(76, 175, 80, 0.5));
 }
 
 .metric-group-title {
-  font-size: 0.9rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--primary-color);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.35px;
 }
 
 .metric-group-items {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 2px 4px;
 }
 
 .metric-checkbox-item {
@@ -10521,8 +10533,8 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
   align-items: center;
   cursor: pointer;
   user-select: none;
-  padding: 2px 4px;
-  border-radius: 3px;
+  padding: 1px 2px;
+  border-radius: 2px;
   transition: background 0.2s ease;
 }
 
@@ -10545,9 +10557,9 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
 }
 
 .metric-checkbox {
-  margin-right: 4px;
-  width: 14px;
-  height: 14px;
+  margin-right: 3px;
+  width: 12px;
+  height: 12px;
   cursor: pointer;
   accent-color: #4caf50;
   appearance: none;
@@ -10578,7 +10590,7 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
   left: 50%;
   transform: translate(-50%, -50%);
   color: white;
-  font-size: 10px;
+  font-size: 8px;
   font-weight: bold;
   line-height: 1;
 }
@@ -10586,15 +10598,15 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
 .metric-checkbox-text {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   color: #e0f2f1;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   white-space: nowrap;
 }
 
 .metric-color-indicator {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 2px;
   display: inline-block;
   flex-shrink: 0;
@@ -10603,52 +10615,52 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
 /* Combined + balance chart metric pickers — denser layout on small screens */
 @media (max-width: 768px) {
   .metric-selector-container {
-    margin-top: 8px;
-    padding: 8px 10px;
+    margin-top: 6px;
+    padding: 6px 8px;
   }
 
   .metric-selector-header {
-    margin-bottom: 8px;
-    gap: 6px;
+    margin-bottom: 4px;
+    gap: 4px;
   }
 
   .metric-selector-title {
-    font-size: 0.8rem;
+    font-size: 0.72rem;
   }
 
   .metric-select-btn {
-    padding: 6px 10px;
-    font-size: 0.72rem;
-    min-height: 36px;
+    padding: 3px 6px;
+    font-size: 0.64rem;
+    min-height: 0;
   }
 
   .metric-checkboxes-grid {
-    gap: 8px;
+    gap: 6px;
   }
 
   .metric-group {
-    padding: 8px 10px;
-    border-radius: 8px;
+    padding: 5px 6px;
+    border-radius: 5px;
   }
 
   .metric-group-header {
-    gap: 6px;
-    margin-bottom: 6px;
-    padding-bottom: 6px;
+    gap: 4px;
+    margin-bottom: 4px;
+    padding-bottom: 3px;
   }
 
   .metric-group-icon {
-    font-size: 1rem;
+    font-size: 0.85rem;
   }
 
   .metric-group-title {
-    font-size: 0.8rem;
-    letter-spacing: 0.3px;
+    font-size: 0.68rem;
+    letter-spacing: 0.2px;
   }
 
   .metric-group-items {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 4px 6px;
+    gap: 2px 4px;
   }
 
   .metric-checkbox-item {
@@ -10656,41 +10668,41 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
   }
 
   .metric-checkbox-label {
-    padding: 6px 4px;
-    min-height: 44px;
+    padding: 3px 2px;
+    min-height: 32px;
     align-items: center;
   }
 
   .metric-checkbox {
-    width: 16px;
-    height: 16px;
-    margin-right: 6px;
+    width: 13px;
+    height: 13px;
+    margin-right: 4px;
   }
 
   .metric-checkbox:checked::after {
-    font-size: 11px;
+    font-size: 9px;
   }
 
   .metric-checkbox-text {
-    font-size: 0.72rem;
+    font-size: 0.64rem;
     white-space: normal;
-    line-height: 1.25;
+    line-height: 1.2;
     align-items: flex-start;
   }
 
   .metric-checkbox-text .metric-color-indicator {
-    margin-top: 3px;
+    margin-top: 2px;
   }
 }
 
 /* Narrow phones: scroll metric list inside a panel so the chart stays in view */
 @media (max-width: 480px) {
   .metric-checkboxes-grid {
-    max-height: min(52vh, 380px);
+    max-height: min(42vh, 300px);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    padding-right: 4px;
+    padding-right: 3px;
   }
 }
 
