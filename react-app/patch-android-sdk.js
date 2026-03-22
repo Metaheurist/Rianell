@@ -3,6 +3,7 @@
  * Patches Android project for compatibility:
  * - Gradle: minSdk 22, targetSdk 34, compileSdk 36 (compileSdk 36 required by androidx deps); versionCode/versionName from BUILD_VERSION env
  * - AndroidManifest: notification permissions for Android 12+ (exact alarms) and 13+ (POST_NOTIFICATIONS); portrait lock on BridgeActivity
+ * - Network security: res/xml/network_security_config.xml (cleartext off by default); manifest references it and drops global usesCleartextTraffic="true"
  */
 import fs from 'fs';
 import path from 'path';
@@ -15,8 +16,28 @@ const appBuildPath = path.join(androidDir, 'app', 'build.gradle');
 const manifestPath = path.join(androidDir, 'app', 'src', 'main', 'AndroidManifest.xml');
 const gradlePropsPath = path.join(androidDir, 'gradle.properties');
 const proguardRulesPath = path.join(androidDir, 'app', 'proguard-rules.pro');
+const networkSecurityXmlPath = path.join(androidDir, 'app', 'src', 'main', 'res', 'xml', 'network_security_config.xml');
 
 const buildVersion = parseInt(process.env.BUILD_VERSION || process.env.GITHUB_RUN_NUMBER || '1', 10) || 1;
+
+/** Cleartext off by default; optional commented domain-config for dev HTTP (see docs/SECURITY.md Android section). */
+const NETWORK_SECURITY_XML = `<?xml version="1.0" encoding="utf-8"?>
+<!-- Rianell: patched by patch-android-sdk.js — see docs/SECURITY.md (Android: cleartext and mixed content) -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <!-- Local dev HTTP only: uncomment and restrict hosts (never ship wide-open cleartext). -->
+    <!--
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+    </domain-config>
+    -->
+</network-security-config>
+`;
 
 /** R8 + resource shrinking for release APK/AAB (smaller install size). Safe with Capacitor when rules below are present. */
 const PROGUARD_CAPACITOR_MARKER =
@@ -110,6 +131,53 @@ function ensurePortraitActivity(manifestPath) {
   return true;
 }
 
+/** Writes network_security_config.xml and wires AndroidManifest (no global cleartext). */
+function ensureNetworkSecurityConfig(manifestPath) {
+  if (!fs.existsSync(manifestPath)) return false;
+  const xmlDir = path.dirname(networkSecurityXmlPath);
+  if (!fs.existsSync(xmlDir)) {
+    fs.mkdirSync(xmlDir, { recursive: true });
+  }
+  if (!fs.existsSync(networkSecurityXmlPath)) {
+    fs.writeFileSync(networkSecurityXmlPath, NETWORK_SECURITY_XML);
+  } else {
+    const existing = fs.readFileSync(networkSecurityXmlPath, 'utf8');
+    if (!existing.includes('Rianell: patched by patch-android-sdk.js')) {
+      fs.writeFileSync(networkSecurityXmlPath, NETWORK_SECURITY_XML);
+    }
+  }
+
+  let content = fs.readFileSync(manifestPath, 'utf8');
+  const before = content;
+
+  content = content.replace(/\s*android:usesCleartextTraffic\s*=\s*"true"/g, '');
+
+  if (!content.includes('android:networkSecurityConfig="@xml/network_security_config"')) {
+    if (/<application\s*\n\s*android:/.test(content)) {
+      content = content.replace(
+        /<application\s*\n/,
+        '<application\n            android:networkSecurityConfig="@xml/network_security_config"\n'
+      );
+    } else if (/<application\s+/.test(content)) {
+      content = content.replace(
+        /<application(\s+)/,
+        '<application android:networkSecurityConfig="@xml/network_security_config"$1'
+      );
+    } else if (/<application\s*>/.test(content)) {
+      content = content.replace(
+        /<application\s*>/,
+        '<application android:networkSecurityConfig="@xml/network_security_config">'
+      );
+    }
+  }
+
+  if (content !== before) {
+    fs.writeFileSync(manifestPath, content);
+    return true;
+  }
+  return false;
+}
+
 let patched = false;
 if (fs.existsSync(varsPath)) {
   patched = patch(varsPath, [
@@ -134,6 +202,9 @@ if (ensureManifestPermissions(manifestPath)) {
   patched = true;
 }
 if (ensurePortraitActivity(manifestPath)) {
+  patched = true;
+}
+if (ensureNetworkSecurityConfig(manifestPath)) {
   patched = true;
 }
 
