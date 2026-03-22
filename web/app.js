@@ -1896,8 +1896,8 @@ function refreshBuildDownloadLinks() {
     }
   }
 
-  setAndroid(androidBase + 'app-debug.apk', '');
-  setIos(iosBase + 'Health-Tracker-ios-latest.zip', '', isIosDevice ? 'Install on iOS' : 'Download iOS build (Xcode project)');
+  setAndroid(androidBase + 'app-debug-beta.apk', '');
+  setIos(iosBase + 'Health-Tracker-ios-beta-latest.zip', '', isIosDevice ? 'Install on iOS' : 'Download iOS build (Xcode project)');
 
   if (shouldFetchAppBuildManifests()) {
     fetch(androidBase + 'latest.json', { cache: 'no-store' })
@@ -16207,8 +16207,8 @@ function switchTab(tabName, skipHash) {
         indicator.style.opacity = '0';
       }
     }
-    var logFab = document.getElementById('appLogFab');
-    if (logFab) logFab.classList.toggle('app-log-fab--hidden', tabName === 'log');
+    var fabWrap = document.getElementById('appFabWrap');
+    if (fabWrap) fabWrap.classList.toggle('app-fab-wrap--hidden', tabName === 'log');
     /* Same scroll root for every tab: .container.app-main-scroll (mobile shell is viewport-locked) */
     var container = document.querySelector('.container');
     if (container) container.scrollTop = 0;
