@@ -21,6 +21,8 @@ ENV_FILE_LEGACY_ROOT = _PROJECT_ROOT / '.env'
 LOG_DIR = _PROJECT_ROOT / 'logs'
 LOG_DIR.mkdir(exist_ok=True)
 
+_loaded_legacy_root_env = False
+
 # Optional imports
 try:
     from dotenv import load_dotenv
@@ -28,11 +30,13 @@ try:
         load_dotenv(ENV_FILE)
     elif ENV_FILE_LEGACY_ROOT.exists():
         load_dotenv(ENV_FILE_LEGACY_ROOT)
+        _loaded_legacy_root_env = True
 except ImportError:
     pass
 
 # Logging
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 
 
 class EmojiLogFormatter(logging.Formatter):
@@ -113,7 +117,14 @@ LOG_FILE = LOG_DIR / f"rianell_{datetime.now().strftime('%Y%m%d')}.log"
 logger = logging.getLogger('Rianell')
 logger.setLevel(logging.DEBUG)
 if not logger.handlers:
-    fh = logging.FileHandler(LOG_FILE, encoding='utf-8', mode='a', delay=False)
+    # Rotate by size so logs/ cannot grow without bound on shared machines (see docs/SECURITY.md).
+    fh = RotatingFileHandler(
+        LOG_FILE,
+        maxBytes=10 * 1024 * 1024,
+        backupCount=14,
+        encoding='utf-8',
+        delay=False,
+    )
     fh.setLevel(logging.DEBUG)
     if hasattr(fh.stream, 'reconfigure'):
         fh.stream.reconfigure(line_buffering=True)
@@ -125,6 +136,11 @@ if not logger.handlers:
     logger.addHandler(ch)
 file_handler = logger.handlers[0] if logger.handlers else None
 
+if _loaded_legacy_root_env:
+    logger.warning(
+        'Loaded legacy .env from repository root; prefer security/.env (see docs/SECURITY.md).'
+    )
+
 # Env
 PORT = int(os.getenv('PORT', '8080'))
 # Default bind: loopback only. Set HOST=0.0.0.0 in security/.env (or legacy root .env) for LAN.
@@ -132,6 +148,16 @@ _host_raw = os.getenv('HOST', '127.0.0.1')
 HOST = (_host_raw or '127.0.0.1').strip() or '127.0.0.1'
 # Allow /api/encryption-key and /api/anonymized-data from non-loopback clients (shared LAN risk).
 SENSITIVE_APIS_ON_LAN = os.getenv('HEALTH_APP_SENSITIVE_APIS_ON_LAN', '').lower() in ('1', 'true', 'yes')
+if SENSITIVE_APIS_ON_LAN:
+    logger.warning(
+        'HEALTH_APP_SENSITIVE_APIS_ON_LAN is enabled: sensitive dev APIs accept non-loopback clients. '
+        'Use only on trusted LANs (see docs/SECURITY.md).'
+    )
+# Optional: when LAN mode is on, require header X-Rianell-LAN-Secret to match (defense in depth).
+SENSITIVE_APIS_LAN_SECRET = os.getenv('HEALTH_APP_SENSITIVE_APIS_LAN_SECRET', '').strip()
+if SENSITIVE_APIS_ON_LAN and SENSITIVE_APIS_LAN_SECRET:
+    logger.info('HEALTH_APP_SENSITIVE_APIS_LAN_SECRET is set; non-loopback clients must send X-Rianell-LAN-Secret.')
+
 SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://YOUR_PROJECT_REF.supabase.co')
 SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY', '')
 SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')

@@ -2671,12 +2671,6 @@ function sanitizeHTML(html) {
     .replace(/\//g, '&#x2F;');
 }
 
-// Safe innerHTML setter that escapes user content
-function setSafeHTML(element, html) {
-  if (!element) return;
-  element.innerHTML = html;
-}
-
 // Log app initialization
 Logger.info('Rianell initialized', {
   timestamp: new Date().toISOString(),

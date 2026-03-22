@@ -547,6 +547,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Verify Supabase RLS baseline SQL (docs)
+        run: node scripts/verify-rls-baseline.mjs
+
       - name: Set up Node
         uses: actions/setup-node@v5
         with:

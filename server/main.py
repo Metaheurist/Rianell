@@ -239,7 +239,21 @@ class RianellHttpHandler(http.server.SimpleHTTPRequestHandler):
         if file_handler:
             file_handler.flush()
         super().log_error(format, *args)
-    
+
+    def _client_may_sensitive_api(self, client_ip):
+        """Loopback always; otherwise only if LAN mode on; optional X-Rianell-LAN-Secret when set in env."""
+        if http_security.is_loopback_ip(client_ip):
+            return True
+        if not config.SENSITIVE_APIS_ON_LAN:
+            return False
+        secret = getattr(config, 'SENSITIVE_APIS_LAN_SECRET', None) or ''
+        if not secret:
+            return True
+        supplied = (
+            self.headers.get('X-Rianell-LAN-Secret') or self.headers.get('x-rianell-lan-secret') or ''
+        ).strip()
+        return supplied == secret
+
     def do_GET(self):
         """Override to handle optional files gracefully and log client events"""
         parsed_path = urlparse(self.path)
@@ -370,13 +384,17 @@ class RianellHttpHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': 'Too many requests'}).encode('utf-8'))
                 return
-            if not http_security.client_may_access_sensitive_apis(client_ip, config.SENSITIVE_APIS_ON_LAN):
+            if not self._client_may_sensitive_api(client_ip):
                 self.send_response(403)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
+                detail = (
+                    'Encryption key API is only reachable from loopback. Set HEALTH_APP_SENSITIVE_APIS_ON_LAN=1 to allow LAN clients '
+                    '(see docs/SECURITY.md). If HEALTH_APP_SENSITIVE_APIS_LAN_SECRET is set, send header X-Rianell-LAN-Secret.'
+                )
                 self.wfile.write(json.dumps({
                     'error': 'Forbidden',
-                    'detail': 'Encryption key API is only reachable from loopback. Set HEALTH_APP_SENSITIVE_APIS_ON_LAN=1 to allow LAN clients (see docs/SECURITY.md).',
+                    'detail': detail,
                 }).encode('utf-8'))
                 logger.warning(f"Blocked encryption-key request from non-loopback IP {client_ip}")
                 return
@@ -650,13 +668,17 @@ class RianellHttpHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': 'Too many requests'}).encode('utf-8'))
                 return
-            if not http_security.client_may_access_sensitive_apis(client_ip, config.SENSITIVE_APIS_ON_LAN):
+            if not self._client_may_sensitive_api(client_ip):
                 self.send_response(403)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
+                detail = (
+                    'anonymized-data API is only reachable from loopback. Set HEALTH_APP_SENSITIVE_APIS_ON_LAN=1 for LAN '
+                    '(see docs/SECURITY.md). If HEALTH_APP_SENSITIVE_APIS_LAN_SECRET is set, send header X-Rianell-LAN-Secret.'
+                )
                 self.wfile.write(json.dumps({
                     'error': 'Forbidden',
-                    'detail': 'anonymized-data API is only reachable from loopback. Set HEALTH_APP_SENSITIVE_APIS_ON_LAN=1 for LAN (see docs/SECURITY.md).',
+                    'detail': detail,
                 }).encode('utf-8'))
                 logger.warning(f"Blocked anonymized-data request from non-loopback IP {client_ip}")
                 return

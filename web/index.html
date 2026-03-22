@@ -110,8 +110,12 @@
   <meta http-equiv="Expires" content="0">
   
   <!-- apexcharts.min.js: loaded on demand via PerformanceUtils.ensureApexChartsLoaded() -->
-  <!-- Supabase Client Library -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase Client Library (pinned major+minor for SRI; bump integrity when upgrading) -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"
+    integrity="sha384-YieCqqg9gQufX7+5HcFvCEg/n3KUEdl8/Jb+A6J0npf1mB740VayvwKjTrtCeUoy"
+    crossorigin="anonymous"
+  ></script>
   <!-- Function trace runtime (before instrumented scripts; console-only, no network) -->
   <script src="trace-runtime.js?v=1"></script>
   <!-- Event Handlers Module (for CSP compliance) -->
