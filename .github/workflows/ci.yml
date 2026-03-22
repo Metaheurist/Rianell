@@ -12,7 +12,7 @@
 #   3. commit-app-build — Push + mobile: commit App build/ to the branch.
 #   4. publish-release  — Push + mobile: GitHub Release with Android + iOS assets.
 #   5. deploy-pages     — Push to main/master: site from web/ + App build/.
-#   6. security-audit   — Push / PR / workflow_dispatch: npm + pip audits.
+#   6. security-audit   — Push / PR / workflow_dispatch: Gitleaks + npm + pip audits.
 #
 # Manual runs (workflow_dispatch): security audit only; mobile jobs are skipped.
 # =============================================================================
@@ -546,6 +546,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+
+      - name: Gitleaks (secret scan, working tree)
+        run: |
+          set -euo pipefail
+          VERSION=8.28.0
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" | tar -xz
+          chmod +x gitleaks
+          ./gitleaks detect --source . --config .gitleaks.toml --no-git --verbose --exit-code 1 --redact
 
       - name: Verify Supabase RLS baseline SQL (docs)
         run: node scripts/verify-rls-baseline.mjs
