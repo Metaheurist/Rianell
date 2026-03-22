@@ -488,7 +488,7 @@ jobs:
           node -e "
           const fs = require('fs');
           let h = fs.readFileSync('site/index.html', 'utf8');
-          h = h.replace(/app\\.js\\?v=3/g, 'app.min.js?v=3');
+          h = h.replace(/app\\.js\\?v=6/g, 'app.min.js?v=6');
           fs.writeFileSync('site/index.html', h);
           "
 

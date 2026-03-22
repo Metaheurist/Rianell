@@ -7,6 +7,17 @@ const AI_STATE_LOCALSTORAGE_KEY = 'rianellPredictionState';
 // Initialize Supabase client
 let supabaseClient = null;
 
+function isSupabaseConfigPlaceholder() {
+  try {
+    const cfg = window.SUPABASE_CONFIG || {};
+    const url = (cfg.url && String(cfg.url).trim()) || '';
+    const anonKey = (cfg.anonKey && String(cfg.anonKey).trim()) || '';
+    return !url || url.startsWith('https://YOUR_') || !anonKey || anonKey.startsWith('YOUR_');
+  } catch (e) {
+    return true;
+  }
+}
+
 function initSupabase() {
   if (supabaseClient) {
     return supabaseClient;
@@ -802,7 +813,17 @@ async function checkAuthStatus() {
       var s = localStorage.getItem('rianellSettings');
       if (s) { var o = JSON.parse(s); if (o && o.demoMode) return; }
     } catch (e) {}
-    if (typeof window.appSettings === 'undefined' || !window.appSettings.demoMode) console.error('Supabase client not available');
+    if (typeof window.appSettings === 'undefined' || !window.appSettings.demoMode) {
+      if (typeof supabase === 'undefined') {
+        console.error('Supabase client not available: @supabase/supabase-js failed to load (network, CSP, or ad blocker).');
+      } else if (isSupabaseConfigPlaceholder()) {
+        if (typeof console !== 'undefined' && console.debug) {
+          console.debug('Cloud sync: Supabase not configured (placeholder keys in supabase-config.js). Add your project URL and anon key for sign-in.');
+        }
+      } else {
+        console.error('Supabase client not available');
+      }
+    }
     return;
   }
   
@@ -1934,71 +1955,78 @@ if (typeof window !== 'undefined') {
   window.getAnonymizedTrainingData = getAnonymizedTrainingData;
   window.deleteCloudLogs = deleteCloudLogs;
   window.deleteAllUserDataFromCloud = deleteAllUserDataFromCloud;
+  window.initSupabase = initSupabase;
   
   // Initialize cloud sync state and check auth on load
   loadCloudSyncState();
   
-  // Check auth status when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => {
-        checkAuthStatus().then(() => {
-          updateCloudSyncUI();
-          // Load data from cloud if authenticated
-          if (cloudSyncState.isAuthenticated) {
-            loadFromCloud();
-          }
-        });
-      }, 500);
-    });
-  } else {
-    setTimeout(() => {
-      checkAuthStatus().then(() => {
+  function setupSupabaseAuthListener() {
+    if (typeof supabase === 'undefined') return;
+    if (window.__rianellSupabaseAuthListenerBound) return;
+    var client = initSupabase();
+    if (!client) return;
+    window.__rianellSupabaseAuthListenerBound = true;
+    client.auth.onAuthStateChange(function (event, session) {
+      console.log('Auth state changed:', event);
+      if (event === 'SIGNED_IN' && session && session.user) {
+        cloudSyncState.isAuthenticated = true;
+        cloudSyncState.user = {
+          id: session.user.id,
+          email: session.user.email
+        };
+        saveCloudSyncState();
         updateCloudSyncUI();
-        // Load data from cloud if authenticated
-        if (cloudSyncState.isAuthenticated) {
-          loadFromCloud();
-        }
+        loadFromCloud();
+      } else if (event === 'SIGNED_OUT') {
+        cloudSyncState.isAuthenticated = false;
+        cloudSyncState.user = null;
+        saveCloudSyncState();
+        updateCloudSyncUI();
+      } else if (event === 'TOKEN_REFRESHED' && session && session.user) {
+        cloudSyncState.isAuthenticated = true;
+        cloudSyncState.user = {
+          id: session.user.id,
+          email: session.user.email
+        };
+        saveCloudSyncState();
+      }
+    });
+  }
+
+  function runCloudAuthAfterSupabaseConfig() {
+    setupSupabaseAuthListener();
+    return checkAuthStatus().then(() => {
+      updateCloudSyncUI();
+      if (cloudSyncState.isAuthenticated) {
+        loadFromCloud();
+      }
+    });
+  }
+
+  function scheduleCloudAuthInit() {
+    var p = typeof window !== 'undefined' ? window.__rianellSupabaseConfigPromise : null;
+    if (p && typeof p.then === 'function') {
+      p.then(function () { return null; }).catch(function () { return null; }).then(function () {
+        setTimeout(function () {
+          runCloudAuthAfterSupabaseConfig();
+        }, 0);
       });
+      return;
+    }
+    setTimeout(function () {
+      runCloudAuthAfterSupabaseConfig();
     }, 500);
   }
-  
-  // Listen for auth state changes
-  if (typeof supabase !== 'undefined') {
-    const client = initSupabase();
-    if (client) {
-      client.auth.onAuthStateChange((event, session) => {
-        console.log('Auth state changed:', event);
-        if (event === 'SIGNED_IN' && session && session.user) {
-          cloudSyncState.isAuthenticated = true;
-          cloudSyncState.user = {
-            id: session.user.id,
-            email: session.user.email
-          };
-          saveCloudSyncState();
-          updateCloudSyncUI();
-          // Load data from cloud
-          loadFromCloud();
-        } else if (event === 'SIGNED_OUT') {
-          cloudSyncState.isAuthenticated = false;
-          cloudSyncState.user = null;
-          saveCloudSyncState();
-          updateCloudSyncUI();
-        } else if (event === 'TOKEN_REFRESHED' && session && session.user) {
-          cloudSyncState.isAuthenticated = true;
-          cloudSyncState.user = {
-            id: session.user.id,
-            email: session.user.email
-          };
-          saveCloudSyncState();
-        }
-      });
-    }
+
+  // Check auth after supabase-config async completes (localhost interception) so initSupabase sees final URL/key
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', scheduleCloudAuthInit);
+  } else {
+    scheduleCloudAuthInit();
   }
   
   // Anonymized data sync functions
   window.syncAnonymizedData = syncAnonymizedData;
-  window.initSupabase = initSupabase;
   window.setupBackgroundSync = setupBackgroundSync;
   window.checkConditionDataAvailability = checkConditionDataAvailability;
   window.clearSyncedKeys = clearSyncedKeys; // For debugging

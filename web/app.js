@@ -3034,8 +3034,9 @@ window.addEventListener('DOMContentLoaded', function() {
 
 // Server-Sent Events connection for auto-reload (dev server only; skip on static hosts)
 function connectToReloadStream() {
-  if (typeof window !== 'undefined' && window.__rianellReloadStreamOk === false) {
-    Logger.debug('Reload stream disabled (non-local host)');
+  // index.html sets true only on loopback; undefined/false elsewhere — never connect on static/CDN without explicit dev flag
+  if (typeof window !== 'undefined' && window.__rianellReloadStreamOk !== true) {
+    Logger.debug('Reload stream disabled (not dev host)');
     return;
   }
   if (isStaticHost()) {
@@ -3104,7 +3105,14 @@ function connectToReloadStream() {
           // Ignore close errors
         }
         window._reloadEventSource = null;
-        
+
+        if (typeof window !== 'undefined' && window.__rianellReloadStreamOk !== true) {
+          return;
+        }
+        if (isStaticHost()) {
+          return;
+        }
+
         // Exponential backoff: 2s, 4s, 8s, 16s max
         window._reloadStreamRetries = (window._reloadStreamRetries || 0) + 1;
         const backoffTime = Math.min(2000 * Math.pow(2, window._reloadStreamRetries - 1), 16000);
@@ -3120,6 +3128,12 @@ function connectToReloadStream() {
   } catch (e) {
     Logger.warn('Failed to connect to reload stream', { error: e.message });
     window._reloadEventSource = null;
+    if (typeof window !== 'undefined' && window.__rianellReloadStreamOk !== true) {
+      return;
+    }
+    if (isStaticHost()) {
+      return;
+    }
     // Retry connection after delay
     window._reloadStreamRetries = (window._reloadStreamRetries || 0) + 1;
     const backoffTime = Math.min(2000 * Math.pow(2, window._reloadStreamRetries - 1), 16000);
