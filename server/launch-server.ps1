@@ -6,7 +6,7 @@
 # Prefer PORT/HOST in security/.env (copy from security/.env.example).
 
 $ErrorActionPreference = "Stop"
-$ProjectRoot = Split-Path -Parent $PSScriptRoot
+$ProjectRoot = Split-Path -Parent $PSScriptRootnto 
 Set-Location -LiteralPath $ProjectRoot
 
 $pythonExe = $null

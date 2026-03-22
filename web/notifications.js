@@ -73,16 +73,15 @@ const NotificationManager = {
   async init() {
     if (this.initialized) return; // Prevent double initialization
     this.initialized = true;
-    // Check if we're in a standalone mode (added to home screen)
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         window.navigator.standalone || 
-                         document.referrer.includes('android-app://');
-    
-    if (!isStandalone) {
-      // Show install prompt for Safari
-      this.showInstallPrompt();
+    if (!(typeof window.isRianellNativeApp === 'function' && window.isRianellNativeApp())) {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+        window.navigator.standalone ||
+        document.referrer.includes('android-app://');
+      if (!isStandalone) {
+        this.showInstallPrompt();
+      }
     }
-    
+
     if (LocalNotifications) {
       try {
         const { display } = await LocalNotifications.checkPermissions();
@@ -105,10 +104,10 @@ const NotificationManager = {
   
   // Show install prompt for Safari
   showInstallPrompt() {
-    // Check if already installed
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         window.navigator.standalone || 
-                         document.referrer.includes('android-app://');
+    if (typeof window.isRianellNativeApp === 'function' && window.isRianellNativeApp()) return;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone ||
+      document.referrer.includes('android-app://');
     if (isStandalone) return;
     
     // Check if user has dismissed the prompt

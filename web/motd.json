@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Dashboard MOTD: attributed quotations from widely published sources (many are historical / public-domain). One line per calendar day when the on-device LLM is unavailable. Verify licensing for your jurisdiction before redistribution.",
+  "description": "Dashboard MOTD: attributed quotations from widely published sources (many are historical / public-domain). A random line is chosen once per page load when the on-device LLM is unavailable. Verify licensing for your jurisdiction before redistribution.",
   "messages": [
     "Alone we can do so little; together we can do so much. — Keller",
     "Optimism is the faith that leads to achievement. — Keller",

@@ -7,8 +7,11 @@
  *     mirrors web/ to web/.trace-build/ with transforms, minifies to web/app.min.js
  *   node web/build-site.mjs --site <dir>
  *     instruments all JS under dir in place (e.g. after cp -r web to site)
+ *   node web/build-site.mjs --skip-trace
+ *     mirror web/ without function-trace instrumentation (smaller app.min.js — use for APK / release)
  *
  * Env: RIANELL_SITE_DIR — same as --site (CI can set this)
+ * Env: RIANELL_SKIP_FUNCTION_TRACE=1 — same as --skip-trace
  */
 import * as esbuild from 'esbuild';
 import fs from 'fs';
@@ -47,9 +50,9 @@ function copyFile(src, dest) {
 }
 
 /**
- * Mirror webRoot tree into outRoot, applying trace transform to each .js (or copy if excluded).
+ * Mirror webRoot tree into outRoot. When instrumentJs is true, apply trace transform to each .js (or copy if excluded).
  */
-function mirrorInstrumentedWeb(webRoot, outRoot) {
+function mirrorWeb(webRoot, outRoot, instrumentJs) {
   rmrf(outRoot);
   function walkCopy(rel) {
     const srcDir = path.join(webRoot, rel);
@@ -63,7 +66,7 @@ function mirrorInstrumentedWeb(webRoot, outRoot) {
         walkCopy(path.join(rel, name));
       } else {
         mkdirp(path.dirname(dest));
-        if (name.endsWith('.js')) {
+        if (name.endsWith('.js') && instrumentJs) {
           const transformed = transformFileIfNeeded(src, webRoot);
           if (transformed !== undefined) fs.writeFileSync(dest, transformed, 'utf8');
           else fs.copyFileSync(src, dest);
@@ -89,22 +92,29 @@ function instrumentInPlace(targetDir) {
 
 function parseArgs(argv) {
   let siteDir = process.env.RIANELL_SITE_DIR || '';
+  let skipTrace = process.env.RIANELL_SKIP_FUNCTION_TRACE === '1';
   const args = argv.slice(2);
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--site' && args[i + 1]) {
       siteDir = args[i + 1];
       i++;
+    } else if (args[i] === '--skip-trace') {
+      skipTrace = true;
     }
   }
-  return { siteDir: siteDir ? path.resolve(siteDir) : '' };
+  return { siteDir: siteDir ? path.resolve(siteDir) : '', skipTrace };
 }
 
-const { siteDir } = parseArgs(process.argv);
+const { siteDir, skipTrace } = parseArgs(process.argv);
 const webRoot = path.join(root, 'web');
 
 if (siteDir) {
-  console.log('[build-site] instrument in place:', siteDir);
-  instrumentInPlace(siteDir);
+  if (!skipTrace) {
+    console.log('[build-site] instrument in place:', siteDir);
+    instrumentInPlace(siteDir);
+  } else {
+    console.log('[build-site] skip trace; minify only:', siteDir);
+  }
   const appJs = path.join(siteDir, 'app.js');
   const appMin = path.join(siteDir, 'app.min.js');
   await esbuild.build({
@@ -117,8 +127,13 @@ if (siteDir) {
   console.log('Wrote', path.relative(root, appMin));
 } else {
   const staging = path.join(webRoot, '.trace-build');
-  console.log('[build-site] mirror instrumented →', path.relative(root, staging));
-  mirrorInstrumentedWeb(webRoot, staging);
+  if (skipTrace) {
+    console.log('[build-site] mirror without trace →', path.relative(root, staging));
+    mirrorWeb(webRoot, staging, false);
+  } else {
+    console.log('[build-site] mirror instrumented →', path.relative(root, staging));
+    mirrorWeb(webRoot, staging, true);
+  }
   const appJs = path.join(staging, 'app.js');
   const appMin = path.join(webRoot, 'app.min.js');
   await esbuild.build({
