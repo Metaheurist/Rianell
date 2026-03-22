@@ -2,12 +2,12 @@
   "name": "Rianell",
   "short_name": "Rianell",
   "description": "Rianell — personal health tracking at rianell.com. Monitor wellness metrics, pain, symptoms, and more.",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#1a1d1e",
   "theme_color": "#0a0a0a",
   "orientation": "portrait-primary",
-  "scope": "/",
+  "scope": "./",
   "lang": "en",
   "categories": ["health", "medical", "lifestyle"],
   "screenshots": [
@@ -81,7 +81,7 @@
       "name": "Quick Entry",
       "short_name": "Log",
       "description": "Quickly log today's health data",
-      "url": "/?quick=true",
+      "url": "./?quick=true",
       "icons": [
         {
           "src": "Icons/Icon-96.png",
@@ -93,7 +93,7 @@
       "name": "View Charts",
       "short_name": "Charts",
       "description": "View health data visualizations",
-      "url": "/?charts=true",
+      "url": "./?charts=true",
       "icons": [
         {
           "src": "Icons/Icon-96.png",
@@ -115,7 +115,7 @@
     }
   ],
   "share_target": {
-    "action": "/",
+    "action": "./",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {
