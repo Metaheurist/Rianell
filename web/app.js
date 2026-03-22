@@ -24,6 +24,39 @@ function isRianellNativeApp() {
 }
 window.isRianellNativeApp = isRianellNativeApp;
 
+/**
+ * Mobile web / PWA: request portrait where Screen Orientation API allows (often needs user gesture).
+ * Native Android/iOS shells use manifest / Info.plist; skip here to avoid redundant work.
+ */
+function tryLockPortraitOrientationMobile() {
+  try {
+    if (typeof isRianellNativeApp === 'function' && isRianellNativeApp()) return;
+    if (typeof window === 'undefined' || typeof screen === 'undefined') return;
+    var narrow = false;
+    try {
+      narrow = window.matchMedia('(max-width: 1024px)').matches;
+    } catch (e) {}
+    var ua = (typeof navigator !== 'undefined' && navigator.userAgent) ? navigator.userAgent : '';
+    var mobileUa = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+    if (!narrow && !mobileUa) return;
+    var o = screen.orientation;
+    if (!o || typeof o.lock !== 'function') return;
+    var lock = function () {
+      try {
+        o.lock('portrait').catch(function () {});
+      } catch (e) {}
+    };
+    lock();
+    var once = function () {
+      lock();
+      document.removeEventListener('touchstart', once, true);
+      document.removeEventListener('click', once, true);
+    };
+    document.addEventListener('touchstart', once, true);
+    document.addEventListener('click', once, true);
+  } catch (e) {}
+}
+
 // One-time localStorage migration (healthApp* → rianell*) for existing users
 (function migrateLegacyHealthAppStorageKeys() {
   try {
@@ -16418,6 +16451,7 @@ window.addEventListener('load', () => {
   } catch (e) { /* ignore */ }
 
   function runAppInit() {
+  tryLockPortraitOrientationMobile();
   installPerfLongTaskObserver();
   if (window.RianellLogsIDB && typeof window.RianellLogsIDB.migrateFromLocalStorageOnce === 'function') {
     window.RianellLogsIDB.migrateFromLocalStorageOnce();
