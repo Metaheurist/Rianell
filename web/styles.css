@@ -902,6 +902,10 @@ body.light-mode .app-log-fab {
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
   }
+  /* Space for fixed wizard actions (see .log-wizard-sticky-actions below) */
+  #logTab.log-wizard-mode #logForm {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* Wizard: keep section titles visible so each card (Energy, Stress, Symptoms, etc.) is scannable */
@@ -1023,9 +1027,33 @@ body.light-mode #logTab.log-wizard-mode .section-header {
 }
 
 @media (max-width: 768px) {
+  /*
+   * Sticky breaks inside .container.app-main-scroll (backdrop-filter creates a containing block).
+   * Pin actions to the viewport above the bottom tab bar; #logForm padding-bottom reserves scroll space.
+   */
   .log-wizard-sticky-actions {
+    position: fixed;
+    left: calc(18px + max(16px, env(safe-area-inset-left, 0px)));
+    right: calc(18px + max(16px, env(safe-area-inset-right, 0px)));
     bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    margin-top: 0;
     margin-bottom: 0;
+    z-index: 1001;
+    background: rgba(12, 14, 18, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.4);
+    padding-top: 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.light-mode .log-wizard-sticky-actions {
+    background: rgba(248, 250, 252, 0.96);
+    border-top-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
   }
 }
 
@@ -4610,6 +4638,53 @@ body.light-mode .cookie-policy-body h4 {
 }
 body.light-mode .cookie-policy-body code {
   background: rgba(0, 0, 0, 0.08);
+}
+
+/* Donate modal — above settings (z-index 99999 / menu 100000) */
+.donate-modal-overlay {
+  z-index: 100010 !important;
+}
+.donate-modal-content {
+  max-width: min(520px, 96vw);
+  width: min(520px, 96vw);
+  max-height: min(90vh, 900px);
+  display: flex;
+  flex-direction: column;
+}
+.donate-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.donate-paypal-iframe {
+  width: 100%;
+  min-height: min(480px, 55vh);
+  flex: 1 1 auto;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  background: #fff;
+}
+.donate-modal-fallback {
+  margin: 0;
+  font-size: var(--text-sm);
+  text-align: center;
+  color: rgba(224, 242, 241, 0.85);
+}
+.donate-modal-fallback a {
+  color: rgba(129, 199, 132, 0.95);
+  text-decoration: underline;
+}
+body.light-mode .donate-modal-fallback {
+  color: var(--text-secondary);
+}
+body.light-mode .donate-modal-fallback a {
+  color: var(--primary-dark, #2e7d32);
+}
+.donate-settings-btn {
+  width: 100%;
+  justify-content: center;
 }
 
 /* Install modal (post-tutorial; also in God mode) */
