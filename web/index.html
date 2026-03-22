@@ -8,11 +8,12 @@
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
   
-  <!-- PWA Meta Tags -->
-  <meta name="theme-color" content="#78c06e">
+  <!-- PWA Meta Tags: theme-color matches page bg so iOS/Android chrome blends with dark UI (accent is in-app only) -->
+  <meta name="theme-color" content="#0a0a0a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- black = opaque status bar; content lays out below it. black-translucent draws under icons (no way to hide system bar in a PWA). -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Rianell">
   <!-- Additional iOS meta tags for better home screen experience -->
   <meta name="format-detection" content="telephone=no">

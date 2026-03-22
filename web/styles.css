@@ -613,7 +613,7 @@ h1#dashboardTitle:hover {
 }
 
 @media (max-width: 768px) {
-  /* PWA / iOS: black-translucent status bar + viewport-fit=cover draw under the notch; push content below status icons */
+  /* iOS standalone: safe-area + usual body padding (opaque status bar meta avoids drawing under system icons) */
   body {
     padding-top: calc(10px + env(safe-area-inset-top, 0px));
   }
