@@ -9217,7 +9217,7 @@ body.light-mode .install-channel-badge--alpha {
 
   /* Extra top padding: header buttons are fixed (out of flow); reserve space that the in-flow header row used */
   .container {
-    padding: 72px 18px 10px 18px;
+    padding: 100px 18px 10px 18px;
     padding-bottom: 10px;
     margin: 0 0 0 0;
     margin-bottom: 0;
@@ -9404,6 +9404,7 @@ body.light-mode .install-channel-badge--alpha {
     right: max(16px, env(safe-area-inset-right, 0px));
     left: auto;
     width: auto;
+    gap: 16px;
     justify-content: flex-end;
     margin-bottom: 0;
     box-sizing: border-box;
@@ -9411,20 +9412,30 @@ body.light-mode .install-channel-badge--alpha {
     pointer-events: auto;
   }
 
+  /* Symmetric horizontal room so MOTD stays visually centered (padding-right-only was shifting text left) */
   .title-container {
-    padding-right: 100px; /* keep MOTD / title clear of fixed targets + settings */
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  #dashboardTitle {
+    max-width: min(36rem, calc(100vw - 220px));
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
   }
 
   .settings-button-top,
   .targets-button-top {
-    width: 40px;
-    height: 40px;
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
   }
 
   .settings-cog,
   .targets-face-icon {
-    width: 22px;
-    height: 22px;
+    width: 48px;
+    height: 48px;
   }
   
 
@@ -9646,7 +9657,7 @@ body.light-mode .install-channel-badge--alpha {
 /* Extra small screens */
 @media (max-width: 480px) {
   .container {
-    padding: 72px 8px 10px 8px; /* keep top reserved for fixed targets + settings (matches mobile block) */
+    padding: 100px 8px 10px 8px; /* keep top reserved for fixed targets + settings (matches mobile block) */
   }
 
   .ai-modal-overlay {
@@ -9703,14 +9714,14 @@ body.light-mode .install-channel-badge--alpha {
 
   .settings-button-top,
   .targets-button-top {
-    width: 36px;
-    height: 36px;
+    width: 80px;
+    height: 80px;
   }
 
   .settings-cog,
   .targets-face-icon {
-    width: 20px;
-    height: 20px;
+    width: 48px;
+    height: 48px;
   }
 }
 
