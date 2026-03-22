@@ -4,6 +4,35 @@
 
 **Repository**: [github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell) (canonical URL; older **Health-app** links redirect here.)
 
+## Table of contents
+
+Expand a section below or jump here:
+
+- [Security](#security)
+- [App overview](#app-overview)
+- [Features](#features)
+- [Project structure](#project-structure) (quick list)
+- [Installation](#installation)
+- [Usage](#usage)
+- [React shell & Android APK](#react-shell-android-apk)
+- [Testing Data](#testing-data)
+- [Configuration](#configuration)
+- [AI Analysis: Neural Network Architecture](#ai-analysis-neural-network-architecture)
+- [Project Structure](#project-structure-1) (full repo tree)
+- [Dependencies](#dependencies)
+- [Development](#development)
+- [GDPR Compliance](#gdpr-compliance)
+- [Troubleshooting](#troubleshooting)
+- [Security notes](#security-notes)
+- [Author](#author)
+- [Licence](#licence)
+- [Repository](#repository)
+- [Support](#support)
+- [Changelog](#changelog)
+
+<details id="security">
+<summary><strong>Security</strong></summary>
+
 ## Security
 
 The authoritative security guide is **[docs/SECURITY.md](docs/SECURITY.md)**. It describes the threat model across the **web app**, **Android (Capacitor)**, and **Python dev server**, including:
@@ -17,6 +46,11 @@ The authoritative security guide is **[docs/SECURITY.md](docs/SECURITY.md)**. It
 Operational “do not commit secrets” reminders stay in [Security notes](#security-notes) below.
 
 **Local secrets folder:** [`security/`](security/) holds **`security/.env`** and **`security/.encryption_key`** (gitignored). Copy [`security/.env.example`](security/.env.example) → `security/.env`. See [security/README.md](security/README.md).
+
+</details>
+
+<details id="app-overview">
+<summary><strong>App overview</strong></summary>
 
 ## App overview
 
@@ -44,6 +78,11 @@ flowchart LR
   Settings[Settings] --> Home
   Settings --> Cloud
 ```
+
+</details>
+
+<details id="features">
+<summary><strong>Features</strong></summary>
 
 ## Features
 
@@ -103,7 +142,7 @@ flowchart LR
 - **Optional AI**: Settings toggle "Enable AI features & Goals" hides or shows the AI Analysis tab, chart predictions, and Goals.
 - **Neural-style pipeline**: Trend regression, correlations, patterns, risk factors, flare prediction, cross-section (food/exercise/stressors/symptoms), clustering, time series, actionable advice, prioritised insights, and a 2–3 sentence summary (see [AI Analysis](#ai-analysis-neural-network-architecture)).
 - **Summary note**: In-browser LLM (Transformers.js, flan-t5 by device class) or rule-based fallback; context from analysis and logs; value highlighting in the UI.
-- **Dashboard title (MOTD)**: Main header shows a **message of the day** only (no user name). Preset lines are loaded from **`web/motd.json`** at startup (short attributed quotations; one line per calendar day via a deterministic hash); if the file is missing or offline, a minimal fallback is used. When AI is enabled and not deferred, the on-device LLM may replace the preset after load. Browser tab title stays **Rianell**. Edit **`web/motd.json`** to change copy without editing **`app.js`**.
+- **Dashboard title (MOTD)**: Main header shows a **message of the day** only (no user name). Preset lines are loaded from **`web/motd.json`** at startup (short attributed quotations); **one line is chosen at random on each full page load** (stable for that session until the LLM may replace it). If the file is missing or offline, a minimal fallback is used. When AI is enabled and not deferred, the on-device LLM may replace the preset after load. Browser tab title stays **Rianell**. Edit **`web/motd.json`** to change copy without editing **`app.js`**.
 - **GPU-accelerated LLM**: When the performance benchmark detects a capable GPU (WebGPU or WebGL), the summary/suggest pipeline loads with GPU acceleration; the app falls back to CPU automatically if GPU loading fails. Uses Transformers.js 3.3.2 for stable WebGPU/WebGL support.
 - **On-device AI model selection**: Settings → Performance → **On-device AI model** lets you choose **Use recommended (for this device)** (from the performance benchmark), **Small (faster, lower memory)**, or **Base (better quality)**. The benchmark recommends flan-t5-small or flan-t5-base by tier; changing the setting clears the LLM cache so the next summary or suggest note uses the selected model.
 - **Suggest note**: LLM or rule-based suggestion for the day’s log note; "Generating…" state on button.
@@ -152,10 +191,20 @@ flowchart LR
 - **Supabase integration**: Server can use Supabase for anonymised data and app_settings; credentials from **`security/.env`** (or legacy root `.env`).
 - **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs. **Console** uses ANSI-coloured **`[LEVEL]`** tags when stdout is a TTY (blue for `[INFO]`, red for `[ERROR]`, etc.; respects `NO_COLOR` / `FORCE_COLOR`). **Log files** keep per-level **emoji** prefixes (no escape codes). The dashboard **Server Logs** pane uses ASCII **`[LEVEL]`** tags with Tk colour tags—see [Logging](#logging).
 
+</details>
+
+<details id="project-structure">
+<summary><strong>Project structure</strong></summary>
+
 ## Project structure
 
 - **`web/`** – Static web app: HTML, CSS, JavaScript, icons, and assets. The server serves this directory at the root URL.
 - **`server/`** – Python server package (main server logic in `main.py`, plus config, encryption, Supabase client, sample data, requirements checks). Run from repo root: **`python -m server`**, or on Windows **`server/launch-server.ps1`** (see [Running the Server](#running-the-server)).
+
+</details>
+
+<details id="installation">
+<summary><strong>Installation</strong></summary>
 
 ## Installation
 
@@ -190,6 +239,11 @@ flowchart LR
 4. **Configure Supabase (for frontend)**
    - Edit `supabase-config.js` with your Supabase credentials
    - ⚠️ **Important**: Use the PUBLISHABLE/ANON key, NOT the secret key!
+
+</details>
+
+<details id="usage">
+<summary><strong>Usage</strong></summary>
 
 ## Usage
 
@@ -250,6 +304,11 @@ If the site works elsewhere but your PC shows **`ERR_CONNECTION_REFUSED`**, DNS 
 
 After the first push (or a manual **Run workflow**), the deployed site will show **Rianell** instead of the README.
 
+</details>
+
+<details id="react-shell-android-apk">
+<summary><strong>React shell & Android APK</strong></summary>
+
 ## React shell & Android APK
 
 The app can be run as a **React (Vite) app** that wraps the existing web UI and be built into an **Android APK** via Capacitor. The GitHub Action **Build Android APK** runs on every push to `main`/`master`, output to **`App build/Android/`** and **`App build/iOS/`**, and makes it available in the app’s Settings.
@@ -277,7 +336,7 @@ The app can be run as a **React (Vite) app** that wraps the existing web UI and 
   npx cap sync android
   ```
 - **Launcher icon & splash (APK / iOS):** Raster PWA icons live under **`web/Icons/`** (generated from **`logo-source.png`** and committed). They are **not** copied into native projects by `cap sync`. **`npm run build:android`** runs **`scripts/prepare-android-assets.mjs`** (builds **`react-app/assets/logo.png`**) then **`@capacitor/assets`** for Android mipmaps/splash before **`cap sync`**. For iOS, add the platform and run **`cd react-app && npx @capacitor/assets generate --ios`** (with **`logo.png`** present) or align assets in Xcode.
-- **Performance (APK):** Production builds use **`web/app.min.js`** inside the iframe (see **`npm run build`** / **`react-app/copy-webapp.js --min`**). The full **`app.js`** is only copied when running **`npm run dev`** without a prior **`build:web`**. Optional: ship a **release** APK with R8 shrinking on the Java side (`assembleRelease` + signing); not enabled by default because it needs keystore and ProGuard rules for all native dependencies.
+- **Performance (APK):** Use **`npm run build:apk`** (or **`npm run build:android`**) so the legacy bundle is built with **`web/build-site.mjs --skip-trace`** — same minified **`app.min.js`** as **`npm run build:web`**, but **without** function-trace instrumentation (noticeably smaller JS inside the APK). Production still uses **`react-app/copy-webapp.js --min`**. **`react-app/patch-android-sdk.js`** enables **R8** (`minifyEnabled true`) and **resource shrinking** for the **release** Gradle build type and appends **ProGuard** keep rules for Capacitor; run **`./gradlew assembleRelease`** in **`react-app/android`** with your signing config for a smaller store-ready APK/AAB than **debug**. GitHub Pages / default **`npm run build`** keeps function-trace for the deployed site.
 - Open in Android Studio: `cd react-app && npx cap open android`
 
 ### Android targets
@@ -334,6 +393,11 @@ The Tkinter dashboard provides:
 
 3. **Server Logs**: Real-time log viewer using **`[DEBUG]`** / **`[INFO]`** / **`[WARNING]`** / **`[ERROR]`** / **`[CRITICAL]`** at the start of each line (two spaces after the bracket), with colour on that tag (e.g. blue for `[INFO]`, red bold for `[ERROR]`). The terminal and `logs/*.log` files still use **emoji** prefixes—see [Logging](#logging).
 
+</details>
+
+<details id="testing-data">
+<summary><strong>Testing Data</strong></summary>
+
 ## Testing Data
 
 ### Generate Sample Data
@@ -357,6 +421,11 @@ Sample data includes realistic patterns:
 - Weekly patterns (weekends better)
 - Flare-up cycles for chronic conditions
 - Correlated metrics (sleep affects fatigue, etc.)
+
+</details>
+
+<details id="configuration">
+<summary><strong>Configuration</strong></summary>
 
 ## Configuration
 
@@ -387,6 +456,11 @@ Define variables in **`security/.env`** (copy from [`security/.env.example`](sec
    );
    ```
 4. Add your credentials to **`security/.env`** (or legacy root `.env`) and `supabase-config.js`
+
+</details>
+
+<details id="ai-analysis-neural-network-architecture">
+<summary><strong>AI Analysis: Neural Network Architecture</strong></summary>
 
 ## AI Analysis: Neural Network Architecture
 
@@ -517,6 +591,11 @@ Activation functions (sigmoid, tanh, relu, softmax) are available as `AIEngine.a
 
 ---
 
+</details>
+
+<details id="project-structure">
+<summary><strong>Project Structure</strong></summary>
+
 ## Project Structure
 
 ```
@@ -562,6 +641,11 @@ Rianell/
 └── logs/                   # Server logs
 ```
 
+</details>
+
+<details id="dependencies">
+<summary><strong>Dependencies</strong></summary>
+
 ## Dependencies
 
 ### Python (server package)
@@ -578,6 +662,11 @@ Rianell/
 - Used only for the React/Capacitor build and Android APK. See **React shell & Android APK**.
 - Root `package.json`: scripts for `build`, `build:android`, `build:web` (minify `web/app.js` → `web/app.min.js`), `sync`, `dev`
 - `react-app/`: Vite 6, React, Capacitor 7; run `npm run build` from repo root
+
+</details>
+
+<details id="development">
+<summary><strong>Development</strong></summary>
 
 ## Development
 
@@ -600,6 +689,11 @@ Server logs are saved to `logs/rianell_YYYYMMDD.log`. The `Rianell` logger uses 
 - Safari
 - Mobile browsers (responsive design)
 
+</details>
+
+<details id="gdpr-compliance">
+<summary><strong>GDPR Compliance</strong></summary>
+
 ## GDPR Compliance
 
 The app includes GDPR-compliant data sharing:
@@ -607,6 +701,11 @@ The app includes GDPR-compliant data sharing:
 - Data anonymisation before upload
 - Clear privacy agreement
 - User can disable at any time
+
+</details>
+
+<details id="troubleshooting">
+<summary><strong>Troubleshooting</strong></summary>
 
 ## Troubleshooting
 
@@ -639,6 +738,11 @@ The app includes GDPR-compliant data sharing:
 **Console: `tabs:outgoing.message.ready`, `No Listener`, or `vendor.js` (VM…)**:
 - Usually **browser extensions** injecting into the page, not the Health app. The app **suppresses** matching **`unhandledrejection`** events (see early script in `web/index.html` and `web/app.js`). If messages persist, try a **clean profile** or **disable extensions** on the site.
 
+</details>
+
+<details id="security-notes">
+<summary><strong>Security notes</strong></summary>
+
 ## Security notes
 
 Start with the full guide: **[docs/SECURITY.md](docs/SECURITY.md)** (same content as linked from [Security](#security) at the top of this file). Supplementary references: [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql), [docs/android-network-security-notes.md](docs/android-network-security-notes.md), CI workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — `security-audit` job (`npm audit`, `pip-audit`).
@@ -656,6 +760,11 @@ Start with the full guide: **[docs/SECURITY.md](docs/SECURITY.md)** (same conten
 
 4. **Data Privacy**: Anonymised data sharing is opt-in only
 
+</details>
+
+<details id="author">
+<summary><strong>Author</strong></summary>
+
 ## Author
 
 **Metaheurist** - Sole developer and maintainer
@@ -663,13 +772,28 @@ Start with the full guide: **[docs/SECURITY.md](docs/SECURITY.md)** (same conten
 - GitHub: [@Metaheurist](https://github.com/Metaheurist)
 - Repository: [https://github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell)
 
+</details>
+
+<details id="licence">
+<summary><strong>Licence</strong></summary>
+
 ## Licence
 
 This project is open source and available under an open source licence.
 
+</details>
+
+<details id="repository">
+<summary><strong>Repository</strong></summary>
+
 ## Repository
 
 **GitHub**: [https://github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell)
+
+</details>
+
+<details id="support">
+<summary><strong>Support</strong></summary>
 
 ## Support
 
@@ -678,11 +802,23 @@ For issues and questions:
 - Review server logs in `logs/` directory
 - Check browser console for frontend errors
 
+</details>
+
+<details id="changelog">
+<summary><strong>Changelog</strong></summary>
+
 ## Changelog
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.37.0** — PWA icons committed; `generate-icons` / `generate-native-icons` scripts removed.
+**Latest: v1.38.0** — MOTD preset: random per page load (not fixed per calendar day).
+
+<details>
+<summary><strong>v1.38.0</strong> — 2026-03-23 — MOTD selection</summary>
+
+- **Web**: Dashboard preset MOTD (when the on-device LLM does not replace it) picks a **random** line from **`web/motd.json`** **once per full page load**; the same line is reused for repeated `updateDashboardTitle` calls in that session. **`web/motd.json`** `description` updated.
+
+</details>
 
 <details>
 <summary><strong>v1.37.0</strong> — 2026-03-22 — Icons, repo cleanup</summary>
@@ -1200,4 +1336,4 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 </details>
 
-
+</details>
