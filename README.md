@@ -50,7 +50,7 @@ The authoritative security guide is **[docs/SECURITY.md](docs/SECURITY.md)**. It
 
 Operational “do not commit secrets” reminders stay in [Security notes](#security-notes) below.
 
-**Local secrets folder:** [`security/`](security/) holds **`security/.env`** and **`security/.encryption_key`** (gitignored). Copy [`security/.env.example`](security/.env.example) → `security/.env`. See [security/README.md](security/README.md).
+**Local secrets folder:** [`security/`](security/) holds **`security/.env`** and **`security/.encryption_key`** (gitignored). Copy [`security/.env.example`](security/.env.example) → `security/.env`. Details: [docs/SECURITY.md](docs/SECURITY.md#local-secrets-directory-security).
 
 
 <a id="nav-app-overview"></a>
@@ -171,9 +171,24 @@ flowchart LR
 - **Sound**: "Enable sound notifications" controls system notification sound and an in-app heartbeat-style sound when the app is in the foreground (including on mobile).
 
 ### Install and run options
-- **PWA / Install web app**: Add to home screen from Settings (globe icon); runs standalone and works offline.
-- **Install on Android**: Download APK from Settings (or Install modal); CI builds debug APK on push and commits to `App build/Android/` for same-origin download links.
-- **Install on iOS**: Add to Home Screen from Safari (Settings or Install modal); or download Xcode project zip from Settings and build in Xcode; optional OTA install if a signed build is provided in `App build/iOS/`.
+- **PWA / Install web app**: Add to home screen from Settings (globe icon); runs standalone and works offline. Shown in the UI with a **Beta** tag (same channel as the Android APK).
+- **Install on Android**: Download APK from Settings (or Install modal); CI builds debug APK on push and commits to `App build/Android/` for same-origin download links. Shown with a **Beta** tag.
+- **Install on iOS (device)**: Add to Home Screen from Safari (Settings or Install modal)—**Beta** (PWA install path).
+- **iOS native build (Xcode zip / optional OTA)**: Download the zip from Settings when offered; this path is **Alpha** in the UI. Build metadata lives in `App build/iOS/latest.json`.
+
+#### Release channels (Beta vs Alpha) and build numbers
+
+| Channel | Meaning in this app | Where the build number comes from |
+|--------|---------------------|-----------------------------------|
+| **Beta** | Android debug APK, **Install web app** / Add to Home Screen (PWA), and **Install on this iPhone/iPad** (Safari PWA). | `App build/Android/latest.json` → `version` for the APK; the Settings UI shows `(build N)` next to the Android link after fetch. |
+| **Alpha** | **iOS native** artifact only: Xcode project zip (and optional one-tap install URL when `installUrl` is set in the manifest). Not the Safari “Add to Home Screen” flow. | `App build/iOS/latest.json` → `version`; the Settings UI shows `(build N)` next to the iOS download link after fetch. |
+
+**Build numbers in the repo (update when `latest.json` changes):**
+
+- **Android (Beta)** — `App build/Android/latest.json`: `version` **40** (example file: `app-debug-beta-40.apk`).
+- **iOS (Alpha)** — `App build/iOS/latest.json`: `version` **40** (example files: `Health-Tracker-ios-beta-build-40.zip`, optional `simulatorFile`).
+
+The web app reads these manifests at runtime (`web/app.js`, `refreshBuildDownloadLinks`) so the label **(build N)** on install links stays in sync after each CI deploy. **Beta** / **Alpha** pills are fixed labels in the UI: every install/download path except the **iOS native zip/OTA** link is **Beta**; the **iOS native** download is **Alpha**.
 
 ### Tutorial and onboarding
 - **Tutorial**: First-run slides (Welcome, Log entry, View & AI, Settings & data, Data options, Goals, You're all set); first card "Enable AI & Goals?" (Enable / Skip); skipping hides AI-related slides.
@@ -224,7 +239,7 @@ flowchart LR
    ```
 
 3. **Configure environment variables**
-   - Copy [`security/.env.example`](security/.env.example) to **`security/.env`** (see [security/README.md](security/README.md)). If that file is missing, the server still loads a legacy `.env` at the repo root.
+   - Copy [`security/.env.example`](security/.env.example) to **`security/.env`** (see [docs/SECURITY.md](docs/SECURITY.md#local-secrets-directory-security)). If that file is missing, the server still loads a legacy `.env` at the repo root.
    - Edit **`security/.env`** and add your Supabase credentials:
      ```env
      PORT=8080
@@ -324,11 +339,11 @@ The app can be run as a **React (Vite) app** that wraps the existing web UI and 
 - To add the Android project (one-time, then commit `react-app/android/` if you want):
   ```bash
   cd react-app && npx cap add android
-  node patch-android-sdk.js   # optional: set minSdk 22, targetSdk 34
   npx cap sync android
+  node patch-android-sdk.js   # minSdk/targetSdk/compileSdk, R8, notifications, portrait, network_security_config + manifest cleartext cleanup
   ```
 - **Launcher icon & splash (APK / iOS):** Raster PWA icons live under **`web/Icons/`** (generated from **`logo-source.png`** and committed). They are **not** copied into native projects by `cap sync`. **`npm run build:android`** runs **`scripts/prepare-android-assets.mjs`** (builds **`react-app/assets/logo.png`**) then **`@capacitor/assets`** for Android mipmaps/splash before **`cap sync`**. For iOS, add the platform and run **`cd react-app && npx @capacitor/assets generate --ios`** (with **`logo.png`** present) or align assets in Xcode.
-- **Performance (APK):** Use **`npm run build:apk`** (or **`npm run build:android`**) so the legacy bundle is built with **`web/build-site.mjs --skip-trace`** — same minified **`app.min.js`** as **`npm run build:web`**, but **without** function-trace instrumentation (noticeably smaller JS inside the APK). Production still uses **`react-app/copy-webapp.js --min`**. **`react-app/patch-android-sdk.js`** enables **R8** (`minifyEnabled true`) and **resource shrinking** for the **release** Gradle build type and appends **ProGuard** keep rules for Capacitor; run **`./gradlew assembleRelease`** in **`react-app/android`** with your signing config for a smaller store-ready APK/AAB than **debug**. GitHub Pages / default **`npm run build`** keeps function-trace for the deployed site.
+- **Performance (APK):** Use **`npm run build:apk`** (or **`npm run build:android`**) so the legacy bundle is built with **`web/build-site.mjs --skip-trace`** — same minified **`app.min.js`** as **`npm run build:web`**, but **without** function-trace instrumentation (noticeably smaller JS inside the APK). Production still uses **`react-app/copy-webapp.js --min`**. **`react-app/patch-android-sdk.js`** adds **`network_security_config.xml`** (cleartext off by default), wires it in **`AndroidManifest.xml`**, strips **`usesCleartextTraffic="true"`** if present, enables **R8** (`minifyEnabled true`) and **resource shrinking** for the **release** Gradle build type, and appends **ProGuard** keep rules for Capacitor; run **`./gradlew assembleRelease`** in **`react-app/android`** with your signing config for a smaller store-ready APK/AAB than **debug**. GitHub Pages / default **`npm run build`** keeps function-trace for the deployed site.
 - Open in Android Studio: `cd react-app && npx cap open android`
 
 ### Android targets
@@ -616,9 +631,8 @@ Rianell/
 │   └── iOS/               # Xcode project zip + latest.json
 ├── server/                 # Python HTTP server (`python -m server`)
 │   └── launch-server.ps1   # Windows launcher (optional)
-├── security/               # Local secrets (not in git): `.env`, `.encryption_key`; see security/README.md
-│   ├── .env.example        # Template → copy to security/.env
-│   └── README.md           # What belongs in this folder
+├── security/               # Local secrets (not in git): `.env`, `.encryption_key`; see docs/SECURITY.md
+│   └── .env.example        # Template → copy to security/.env
 └── logs/                   # Server logs
 ```
 
@@ -711,7 +725,7 @@ The app includes GDPR-compliant data sharing:
 
 ## 🔐 Security notes
 
-Start with the full guide: **[docs/SECURITY.md](docs/SECURITY.md)** (same content as linked from [Security](#nav-security) at the top of this file). Supplementary references: [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql), [docs/android-network-security-notes.md](docs/android-network-security-notes.md), CI workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — `security-audit` job (`npm audit`, `pip-audit`).
+Start with the full guide: **[docs/SECURITY.md](docs/SECURITY.md)** (same content as linked from [Security](#nav-security) at the top of this file). Supplementary references: [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql), CI workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — `security-audit` job (`npm audit`, `pip-audit`).
 
 ⚠️ **Important security considerations**:
 
@@ -929,10 +943,10 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Tier 5 maxed**: Desktop and mobile tier 5 profiles now use maximum resources—highest chart point limits (400/450 desktop, 280/300 mobile), fastest preload and stagger delays (300 ms chart, 400 ms AI, 15–18 ms lazy stagger), and full animations. Overrides (e.g. tablet) no longer reduce chart capacity below tier 5 when the effective tier is 5.
 - **GPU detection and benchmark**: After the CPU benchmark, a quick GPU check runs (WebGPU adapter request or WebGL clear loop). Result is cached with the benchmark (cache version bumped to 4). Profile exposes `gpuBackend` ('webgpu' | 'webgl' | 'none') and `gpuGood`; tier 4 devices with a good GPU are treated as effective tier 5 for charts and AI.
 - **GPU-accelerated AI**: Summary/suggest LLM (Transformers.js) loads with `device: 'webgpu'` or `device: 'webgl'` when the benchmark reports GPU available; on failure the app falls back to CPU (WASM). Same model IDs and in-memory cache behaviour; no cache migration.
-- **Transformers.js upgrade**: Upgraded from @huggingface/transformers@3.2.0 to **@3.3.2** for stable WebGPU/WebGL device support; 3.4.x is avoided due to a known ONNX Runtime Web issue (`n.env is not a function`). Documented in `docs/LLM_TIERS_AND_MODELS.md`.
+- **Transformers.js upgrade**: Upgraded from @huggingface/transformers@3.2.0 to **@3.3.2** for stable WebGPU/WebGL device support; 3.4.x is avoided due to a known ONNX Runtime Web issue (`n.env is not a function`).
 - **Accelerated UI and charts**: When tier is 5 or GPU is good, the chart section gets class `chart-gpu-accelerated` so chart containers use `translateZ(0)` for compositor layer promotion. Critical-path work (combined chart build and AI preload) is scheduled with `scheduler.postTask(..., { priority: 'user-blocking' })` when available (Chrome), otherwise deferred once.
 - **Benchmark modal**: New line shows GPU status—e.g. "GPU: WebGPU available, used for AI" or "GPU: Not available (using CPU for AI)". Profile JSON in details includes `gpuBackend` and `gpuGood`.
-- **Docs**: README Device performance section already described GPU and tier 5; LLM_TIERS_AND_MODELS.md updated with GPU acceleration and Transformers.js 3.3.2; note that browsers do not expose CPU frequency/turbo (app uses tier + GPU and optional Scheduler API).
+- **Docs**: README Device performance section describes GPU and tier 5; on-device LLM uses Xenova FLAN-T5 small/base by tier (tier 5 uses **base** because **large** can 401 from the browser); browsers do not expose CPU frequency/turbo (app uses tier + GPU and optional Scheduler API).
 
 
 ### v1.21.0 — 2026-02-24 — Escape toggles Settings on desktop, benchmark progress bar, device hardware detection

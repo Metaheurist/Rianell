@@ -8,9 +8,9 @@ This document describes how **Rianell** (this health app) handles health-related
 
 | Topic | Location |
 |-------|----------|
-| Environment variables | [security/.env.example](../security/.env.example), [security/README.md](../security/README.md), [README — Configuration](../README.md#configuration) |
+| Environment variables | [security/.env.example](../security/.env.example), [README — Configuration](../README.md#configuration), [Local secrets directory](#local-secrets-directory-security) below |
 | Supabase RLS examples (SQL) | [supabase-rls-recommended.sql](supabase-rls-recommended.sql) |
-| Android network / cleartext after `cap sync` | [android-network-security-notes.md](android-network-security-notes.md) |
+| Android network / cleartext after `cap sync` | [Android: cleartext and mixed content](#android-cleartext-and-mixed-content) below |
 | Automated audits (CI) | [../.github/workflows/ci.yml](../.github/workflows/ci.yml) (`security-audit` job) |
 | Web CSP (meta tag) | [../web/index.html](../web/index.html) |
 
@@ -51,7 +51,7 @@ These routes are intended for **local development** with the browser on the same
 
 ## Encryption key lifecycle
 
-- Prefer **`ENCRYPTION_KEY`** in **`security/.env`** or a single-line **`security/.encryption_key`** (see [security/README.md](../security/README.md)). Legacy paths at the repo root are still supported.
+- Prefer **`ENCRYPTION_KEY`** in **`security/.env`** or a single-line **`security/.encryption_key`** (see [Local secrets directory](#local-secrets-directory-security) above). Legacy paths at the repo root are still supported.
 - If neither env nor key file is present, the server **creates** **`security/.encryption_key`** with a random 32-byte hex value on first use. **Back up this file** if you need stable decryption across machines.
 - The web client ([../web/encryption-utils.js](../web/encryption-utils.js)) syncs the key from the server when available; if the app runs without the Python server (e.g. GitHub Pages), it uses a **per-browser** random key stored in `localStorage` (not a shared global default string).
 
@@ -67,8 +67,32 @@ The anon key is present in client bundles by design. **Authorization must be enf
 
 ## Android: cleartext and mixed content
 
-- **`allowMixedContent`** is set to **`false`** in Capacitor config so WebView does not load passive/active HTTP on an HTTPS app origin.
-- After `npx cap sync android`, review **`android/app/src/main/AndroidManifest.xml`** for `usesCleartextTraffic` and consider a **network security config** for production (see [android-network-security-notes.md](android-network-security-notes.md)).
+The Capacitor Android project lives under **`react-app/android/`** after `npx cap add android` and `npx cap sync`.
+
+### Mixed content
+
+[`react-app/capacitor.config.ts`](../react-app/capacitor.config.ts) sets **`allowMixedContent: false`** so the WebView does not load HTTP subresources on an HTTPS app origin.
+
+### Cleartext traffic
+
+Do **not** rely on **`android:usesCleartextTraffic="true"`** on `<application>` for production. Prefer **`network_security_config.xml`**: default **cleartext off**; optional **domain-scoped** cleartext for dev hosts only.
+
+After **`npx cap sync android`**, run **`node react-app/patch-android-sdk.js`** (CI does this after sync). The script:
+
+- Writes **`android/app/src/main/res/xml/network_security_config.xml`** (cleartext disabled in `<base-config>`, with a **commented** example `<domain-config>` for `localhost` / `10.0.2.2` if you need HTTP during local dev).
+- Adds **`android:networkSecurityConfig="@xml/network_security_config"`** to `<application>`.
+- Removes **`android:usesCleartextTraffic="true"`** if Capacitor or tooling added it.
+
+To allow HTTP to a **specific** dev host, uncomment or extend the `<domain-config>` block in that XML (see [Android network security config](https://developer.android.com/privacy-and-security/security-ssl#ConfigCleartext)).
+
+### Android release checklist
+
+On each **release** build (or before tagging):
+
+- Confirm **`usesCleartextTraffic`** is not set to **`true`** on `<application>` (patch script removes it; verify in `AndroidManifest.xml`).
+- Confirm **`network_security_config.xml`** matches your policy (no accidental uncommented wide cleartext).
+- Review **`android:exported`** on activities / providers / receivers (Capacitor defaults; only launcher/main should be exported as needed for deep links).
+- Keep **`allowMixedContent: false`** in `capacitor.config.ts` unless you have a documented exception.
 
 ## Dependency and CI scanning
 
