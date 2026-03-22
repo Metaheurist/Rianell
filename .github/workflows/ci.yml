@@ -148,6 +148,7 @@ jobs:
 
       - name: Output APK to App build/Android (versioned + latest)
         run: |
+          rm -rf "App build/Android"
           mkdir -p "App build/Android"
           cp react-app/android/app/build/outputs/apk/debug/app-debug.apk "App build/Android/app-debug.apk"
           cp react-app/android/app/build/outputs/apk/debug/app-debug.apk "App build/Android/app-debug-${{ github.run_number }}.apk"
@@ -220,6 +221,11 @@ jobs:
       - name: Install CocoaPods dependencies
         working-directory: react-app/ios/App
         run: pod install || true
+
+      - name: Reset App build/iOS for this run
+        run: |
+          rm -rf "App build/iOS"
+          mkdir -p "App build/iOS"
 
       - name: Build for iOS Simulator (no signing required)
         working-directory: react-app
@@ -351,6 +357,11 @@ jobs:
           git fetch origin "${{ github.ref_name }}"
           git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
 
+      - name: Clear App build dirs before artifacts (avoid stale checked-in files)
+        run: |
+          rm -rf "App build/Android" "App build/iOS"
+          mkdir -p "App build/Android" "App build/iOS"
+
       - name: Download Android artifact
         uses: actions/download-artifact@v5
         with:
@@ -397,10 +408,25 @@ jobs:
           name: ios
           path: gh-release/iOS
 
-      - name: List release assets
-        run: find gh-release -type f | sort
+      - name: Prepare release assets (this run only)
+        run: |
+          set -e
+          RUN="${{ github.run_number }}"
+          mkdir -p release-assets/Android release-assets/iOS
+          cp "gh-release/Android/app-debug.apk" "release-assets/Android/"
+          cp "gh-release/Android/app-debug-${RUN}.apk" "release-assets/Android/"
+          # Distinct basenames: GitHub release assets cannot share the same filename.
+          cp "gh-release/Android/latest.json" "release-assets/Android/android-latest.json"
+          cp "gh-release/iOS/latest.json" "release-assets/iOS/ios-latest.json"
+          cp "gh-release/iOS/Health-Tracker-ios-latest.zip" "release-assets/iOS/"
+          cp "gh-release/iOS/Health-Tracker-ios-build-${RUN}.zip" "release-assets/iOS/"
+          if [ -f "gh-release/iOS/Health-Tracker-simulator-${RUN}.zip" ]; then
+            cp "gh-release/iOS/Health-Tracker-simulator-${RUN}.zip" "release-assets/iOS/"
+          fi
+          echo "Release files:"
+          find release-assets -type f | sort
 
-      - name: Create GitHub Release with all binaries
+      - name: Create GitHub Release with current build binaries
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
@@ -408,17 +434,17 @@ jobs:
           body: |
             Automated build from `${{ github.sha }}` on `${{ github.ref_name }}`.
 
-            **Android** (`gh-release/Android/`): debug APK and `latest.json`.
+            **Android** (`release-assets/Android/`): debug APK, run-numbered APK, and `android-latest.json` (same content as repo `latest.json`).
 
-            **iOS** (`gh-release/iOS/`): Xcode project zip, simulator zip (if built), `latest.json`.
+            **iOS** (`release-assets/iOS/`): `Health-Tracker-ios-latest.zip`, `Health-Tracker-ios-build-${{ github.run_number }}.zip`, optional simulator zip, `ios-latest.json`.
 
             A workflow commit updates `App build/` on the branch for GitHub Pages download links.
           draft: false
           prerelease: false
-          fail_on_unmatched_files: false
+          fail_on_unmatched_files: true
           files: |
-            gh-release/Android/**/*
-            gh-release/iOS/**/*
+            release-assets/Android/*
+            release-assets/iOS/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
