@@ -10600,6 +10600,100 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
   flex-shrink: 0;
 }
 
+/* Combined + balance chart metric pickers — denser layout on small screens */
+@media (max-width: 768px) {
+  .metric-selector-container {
+    margin-top: 8px;
+    padding: 8px 10px;
+  }
+
+  .metric-selector-header {
+    margin-bottom: 8px;
+    gap: 6px;
+  }
+
+  .metric-selector-title {
+    font-size: 0.8rem;
+  }
+
+  .metric-select-btn {
+    padding: 6px 10px;
+    font-size: 0.72rem;
+    min-height: 36px;
+  }
+
+  .metric-checkboxes-grid {
+    gap: 8px;
+  }
+
+  .metric-group {
+    padding: 8px 10px;
+    border-radius: 8px;
+  }
+
+  .metric-group-header {
+    gap: 6px;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+  }
+
+  .metric-group-icon {
+    font-size: 1rem;
+  }
+
+  .metric-group-title {
+    font-size: 0.8rem;
+    letter-spacing: 0.3px;
+  }
+
+  .metric-group-items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 6px;
+  }
+
+  .metric-checkbox-item {
+    min-width: 0;
+  }
+
+  .metric-checkbox-label {
+    padding: 6px 4px;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .metric-checkbox {
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+  }
+
+  .metric-checkbox:checked::after {
+    font-size: 11px;
+  }
+
+  .metric-checkbox-text {
+    font-size: 0.72rem;
+    white-space: normal;
+    line-height: 1.25;
+    align-items: flex-start;
+  }
+
+  .metric-checkbox-text .metric-color-indicator {
+    margin-top: 3px;
+  }
+}
+
+/* Narrow phones: scroll metric list inside a panel so the chart stays in view */
+@media (max-width: 480px) {
+  .metric-checkboxes-grid {
+    max-height: min(52vh, 380px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding-right: 4px;
+  }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .cloud-auth-buttons,
