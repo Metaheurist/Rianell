@@ -5,6 +5,14 @@
 
 // Export data in CSV format
 function exportToCSV(logs) {
+  if (logs && logs.length > 8000 && typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(function () { exportToCSVImmediate(logs); }, { timeout: 4000 });
+    return;
+  }
+  exportToCSVImmediate(logs);
+}
+
+function exportToCSVImmediate(logs) {
   const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily Function,Swelling,Flare,Mood,Irritability,Notes";
   const csvContent = headers + "\n" + logs.map(log => {
     return [
@@ -39,6 +47,24 @@ function exportToCSV(logs) {
 
 // Export data in JSON format
 function exportToJSON(logs) {
+  if (logs && logs.length > 5000 && window.HealthAppIOWorker && window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile && window.PerformanceUtils.getOptimizationProfile().useWorkers && typeof window.HealthAppIOWorker.stringifyJson === 'function') {
+    window.HealthAppIOWorker.stringifyJson(logs).then(function (jsonContent) {
+      const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `health_logs_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }).catch(function () { exportToJSONSync(logs); });
+    return;
+  }
+  exportToJSONSync(logs);
+}
+
+function exportToJSONSync(logs) {
   const jsonContent = JSON.stringify(logs, null, 2);
   const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
   const link = document.createElement("a");

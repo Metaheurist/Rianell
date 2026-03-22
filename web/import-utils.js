@@ -116,11 +116,20 @@ function handleImportFileSelect(event) {
   
   const reader = new FileReader();
   reader.onload = function(e) {
+    (async function () {
     try {
       if (format === 'csv') {
         importPreviewData = parseCSV(e.target.result);
       } else if (format === 'json') {
-        importPreviewData = parseJSON(e.target.result);
+        var rawJson = e.target.result;
+        if (rawJson.length > 120000 && window.HealthAppIOWorker && window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile && window.PerformanceUtils.getOptimizationProfile().useWorkers) {
+          importPreviewData = await window.HealthAppIOWorker.parseJson(rawJson);
+          if (!Array.isArray(importPreviewData)) {
+            throw new Error('JSON file must contain an array of log entries');
+          }
+        } else {
+          importPreviewData = parseJSON(rawJson);
+        }
       }
       
       if (importPreviewData && preview && previewContent) {
@@ -139,6 +148,7 @@ function handleImportFileSelect(event) {
         fileName.style.color = '#f44336';
       }
     }
+    })();
   };
   
   reader.readAsText(file);
@@ -367,7 +377,9 @@ async function performImport() {
   // Use setTimeout to allow UI to update before starting heavy operations
   await new Promise(resolve => setTimeout(resolve, 100));
   
-  const existingLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
+  const existingLogs = (typeof getAllHistoricalLogsSync === 'function')
+    ? getAllHistoricalLogsSync().slice()
+    : JSON.parse(localStorage.getItem("healthLogs") || "[]");
   let newLogs = [];
   let updatedCount = 0;
   let addedCount = 0;

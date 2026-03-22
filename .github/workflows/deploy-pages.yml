@@ -27,6 +27,11 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
+      - name: Setup Node (minify web app for Pages)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Prepare site (web + App build for download links)
         run: |
           mkdir -p site
@@ -35,6 +40,14 @@ jobs:
             mkdir -p "site/App build"
             cp -r "App build/"* "site/App build/" 2>/dev/null || true
           fi
+          npm install
+          npx esbuild site/app.js --minify --legal-comments=none --outfile=site/app.min.js
+          node -e "
+          const fs = require('fs');
+          let h = fs.readFileSync('site/index.html', 'utf8');
+          h = h.replace(/app\\.js\\?v=1/g, 'app.min.js?v=1');
+          fs.writeFileSync('site/index.html', h);
+          "
 
       - name: Inject Supabase config for GitHub Pages (from secrets)
         env:

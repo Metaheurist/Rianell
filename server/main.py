@@ -23,6 +23,7 @@ from urllib.parse import urlparse, parse_qs, unquote
 import re
 import subprocess
 import logging
+import gzip
 
 # Server package (config, encryption, requirements, sample_data, supabase)
 from . import config
@@ -270,6 +271,8 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
         if any(opt in self.path.lower() for opt in optional_files):
             self.send_response(204)  # No Content - file is optional
             self.end_headers()
+            return
+        if self.try_gzip_static_get():
             return
         # Handle normal requests
         super().do_GET()
@@ -710,6 +713,46 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
     
+    def try_gzip_static_get(self):
+        """Serve text-like static files with gzip when the compressed body is smaller."""
+        enc = self.headers.get('Accept-Encoding', '')
+        if 'gzip' not in enc or self.command not in ('GET', 'HEAD'):
+            return False
+        parsed_path = urlparse(self.path)
+        path_only = parsed_path.path
+        if path_only.startswith('/api/'):
+            return False
+        ext = Path(path_only).suffix.lower()
+        if ext not in ('.js', '.css', '.html', '.json', '.svg'):
+            return False
+        try:
+            fs_path = self.translate_path(self.path)
+        except Exception:
+            return False
+        if not os.path.isfile(fs_path):
+            return False
+        try:
+            with open(fs_path, 'rb') as f:
+                data = f.read()
+        except OSError:
+            return False
+        if len(data) < 1024:
+            return False
+        gz = gzip.compress(data, compresslevel=6)
+        if len(gz) >= len(data) - 50:
+            return False
+        ctype = self.guess_type(path_only)
+        self.send_response(200)
+        self.send_header('Content-Type', ctype)
+        self.send_header('Content-Length', str(len(gz)))
+        self.send_header('Content-Encoding', 'gzip')
+        self.send_header('Vary', 'Accept-Encoding')
+        self._static_long_cache = True
+        self.end_headers()
+        if self.command != 'HEAD':
+            self.wfile.write(gz)
+        return True
+    
     def do_OPTIONS(self):
         """Handle CORS preflight requests"""
         self.send_response(200)
@@ -761,14 +804,21 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Access-Control-Allow-Origin', 'null')
         
         # Cache Transformers.js file aggressively (it's a large library)
-        if self.path.endswith('transformers.js'):
+        if getattr(self, '_static_long_cache', False):
+            self.send_header('Cache-Control', 'public, max-age=86400, must-revalidate')
+            self._static_long_cache = False
+        elif self.path.endswith('transformers.js'):
             self.send_header('Cache-Control', 'public, max-age=31536000, immutable')
             self.send_header('Pragma', 'public')
         else:
-            # No cache for other files
-            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
-            self.send_header('Pragma', 'no-cache')
-            self.send_header('Expires', '0')
+            parsed = urlparse(self.path)
+            p = parsed.path.split('?')[0].lower()
+            if p.endswith(('.js', '.css', '.png', '.svg', '.ico', '.webp', '.woff', '.woff2', '.json')) and not p.endswith('index.html'):
+                self.send_header('Cache-Control', 'public, max-age=86400, must-revalidate')
+            else:
+                self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                self.send_header('Pragma', 'no-cache')
+                self.send_header('Expires', '0')
         
         super().end_headers()
     
