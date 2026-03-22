@@ -38,13 +38,17 @@
           if (reason.stack) m += '\n' + String(reason.stack);
         } catch (e) {}
         try { m += '\n' + String(reason); } catch (e2) {}
+        if (!m.trim()) {
+          try { m = JSON.stringify(reason); } catch (e3) {}
+        }
         return m;
       }
       function isExtensionRejection(reason) {
         var t = rejectionText(reason);
         if (!t) return false;
         if (/chrome-extension:|moz-extension:|safari-web-extension:|extension:\/\//i.test(t)) return true;
-        if (/tabs:outgoing|tabs\.outgoing|No\s+Listener|vendor\.js|serviceWorker\.js|background\.js/i.test(t)) return true;
+        /* Extension injected scripts (e.g. VM1234 vendor.js) — tabs:outgoing.message.ready, No Listener */
+        if (/tabs:outgoing|tabs\.outgoing|outgoing\.message\.ready|No\s+Listener|vendor\.js|VM\d+\s+vendor|serviceWorker\.js|background\.js/i.test(t)) return true;
         if (/Frame with ID \d+ was removed|No tab with id|Could not establish connection|Receiving end does not exist|message port closed/i.test(t)) return true;
         return false;
       }
@@ -1332,11 +1336,11 @@
 
   </div>
 
-  <!-- Mobile: sibling of scroll .container inside .app-shell — flex footer stays at bottom of screen; not position:fixed -->
+  <!-- + overlays scrollable content; sits above bottom nav (position fixed in CSS on mobile) -->
+  <button type="button" class="app-log-fab" id="appLogFab" onclick="openLogWizardFromHome()" title="Log health entry" aria-label="Add health log entry">+</button>
+
+  <!-- Bottom tab bar only (flex footer); FAB is not in this stack -->
   <div class="app-mobile-bottom-chrome">
-    <div class="app-mobile-bottom-chrome__fab">
-      <button type="button" class="app-log-fab" id="appLogFab" onclick="openLogWizardFromHome()" title="Log health entry" aria-label="Add health log entry">+</button>
-    </div>
     <nav class="app-bottom-nav" id="appBottomNav" role="navigation" aria-label="Main">
       <button type="button" class="app-bottom-nav-btn main-nav-tab active" data-tab="home" aria-current="page" aria-controls="homeTab" id="bottom-tab-home" onclick="switchTab('home')">
         <span class="app-bottom-nav-icon" aria-hidden="true">🏠</span>
