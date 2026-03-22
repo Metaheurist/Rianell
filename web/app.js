@@ -1,10 +1,14 @@
 // ============================================
-// Static host detection (no /api server: skip reload stream and server logging)
+// Static host detection (no /api on this origin: skip reload stream and server logging)
+// Only localhost / 127.0.0.1 run the Python dev server with /api/reload and /api/log.
+// Production (e.g. rianell.com) must be treated as static so we do not GET /api/reload (404).
 // ============================================
 function isStaticHost() {
   try {
     const h = (typeof window !== 'undefined' && window.location && window.location.hostname) ? window.location.hostname.toLowerCase() : '';
-    return /github\.io$|netlify\.app$|vercel\.app$|pages\.dev$|cloudflare\.pages$/i.test(h) || h === '';
+    if (!h) return true;
+    if (h === 'localhost' || h === '127.0.0.1' || h === '[::1]') return false;
+    return true;
   } catch (e) {
     return true;
   }
@@ -313,7 +317,12 @@ function openPerfBenchmarkModal(options) {
   const profileEl = document.getElementById('perfBenchmarkProfile');
   const continueBtn = document.getElementById('perfBenchmarkContinueBtn');
   const closeBtn = overlay ? overlay.querySelector('.modal-close') : null;
-  if (!overlay || !summaryEl || !barsEl || !profileEl || !continueBtn) return;
+  if (!overlay || !summaryEl || !barsEl || !profileEl || !continueBtn) {
+    if (typeof Logger !== 'undefined' && Logger.warn) {
+      Logger.warn('Performance benchmark modal: missing DOM nodes');
+    }
+    return false;
+  }
 
   const mode = options && options.mode ? options.mode : 'view';
   const result = options && options.result ? options.result : null;
@@ -597,6 +606,7 @@ function openPerfBenchmarkModal(options) {
   overlay.style.opacity = '1';
   document.body.classList.add('modal-active');
   document.body.style.overflow = 'hidden';
+  return true;
 }
 
 function openBenchmarkDetails() {
@@ -3024,6 +3034,10 @@ window.addEventListener('DOMContentLoaded', function() {
 
 // Server-Sent Events connection for auto-reload (dev server only; skip on static hosts)
 function connectToReloadStream() {
+  if (typeof window !== 'undefined' && window.__rianellReloadStreamOk === false) {
+    Logger.debug('Reload stream disabled (non-local host)');
+    return;
+  }
   if (isStaticHost()) {
     Logger.debug('Reload stream disabled (static host)');
     return; // No /api/reload on GitHub Pages, Netlify, etc.
@@ -16414,13 +16428,18 @@ window.addEventListener('load', () => {
           loadingOverlay.classList.add('hidden');
           document.body.classList.remove('loading');
         }
-        openPerfBenchmarkModal({
+        /* index.html hides body > *:not(#loadingOverlay) until .loaded — without this, the first-run
+           benchmark modal is visibility:hidden and Continue never fires; runAppInit never runs (stuck). */
+        document.body.classList.add('loaded');
+        if (openPerfBenchmarkModal({
           mode: 'firstRun',
           result: result || { platformType: platformType, tier: tier },
           onContinue: function () {
             runAppInit();
           }
-        });
+        }) === false) {
+          runAppInit();
+        }
       }
     );
   } else {

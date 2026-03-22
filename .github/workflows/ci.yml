@@ -488,7 +488,7 @@ jobs:
           node -e "
           const fs = require('fs');
           let h = fs.readFileSync('site/index.html', 'utf8');
-          h = h.replace(/app\\.js\\?v=1/g, 'app.min.js?v=1');
+          h = h.replace(/app\\.js\\?v=3/g, 'app.min.js?v=3');
           fs.writeFileSync('site/index.html', h);
           "
 
@@ -503,8 +503,9 @@ jobs:
           let c = fs.readFileSync(path, 'utf8');
           const url = process.env.SUPABASE_URL || '';
           const key = process.env.SUPABASE_ANON_KEY || '';
-          if (url) c = c.replace('https://YOUR_PROJECT_REF.supabase.co', url);
-          if (key) c = c.replace('YOUR_SUPABASE_ANON_KEY', key);
+          // JSON.stringify so keys/URLs with quotes or backslashes cannot break the JS file (fixes SyntaxError on line ~19)
+          c = c.replace(/url:\s*'https:\/\/YOUR_PROJECT_REF\.supabase\.co'/, 'url: ' + JSON.stringify(url || 'https://YOUR_PROJECT_REF.supabase.co'));
+          c = c.replace(/anonKey:\s*'YOUR_SUPABASE_ANON_KEY'/, 'anonKey: ' + JSON.stringify(key || 'YOUR_SUPABASE_ANON_KEY'));
           fs.writeFileSync(path, c);
           "
 

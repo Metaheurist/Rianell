@@ -2343,7 +2343,7 @@
 
   <!-- Supabase: set fallback first so a bad supabase-config.js (e.g. smart quotes) does not break the page -->
   <script>window.SUPABASE_CONFIG = window.SUPABASE_CONFIG || { url: '', anonKey: '' };</script>
-  <!-- Supabase Configuration (excluded from Git - add your credentials here) -->
+  <!-- If you see "SyntaxError" in supabase-config.js on the live site, redeploy a valid file (see supabase-config.example.js). -->
   <script src="supabase-config.js"></script>
   <!-- TensorFlow + AIEngine: loaded on demand via PerformanceUtils.ensureAIEngineLoaded() -->
   <script src="storage-utils.js?v=1"></script>
@@ -2371,7 +2371,18 @@
       }
     })();
   </script>
-  <script src="app.js?v=1"></script>
+  <!-- /api/reload only exists on the local Python server; set before app so cached old bundles still skip EventSource on production -->
+  <script>
+  (function() {
+    try {
+      var h = (typeof location !== 'undefined' && location.hostname) ? String(location.hostname).toLowerCase() : '';
+      window.__rianellReloadStreamOk = (h === 'localhost' || h === '127.0.0.1' || h === '[::1]');
+    } catch (e) {
+      window.__rianellReloadStreamOk = false;
+    }
+  })();
+  </script>
+  <script src="app.js?v=3"></script>
   <script src="security-utils.js"></script>
   <script src="encryption-utils.js"></script>
   <script src="cloud-sync.js"></script>

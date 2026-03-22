@@ -148,9 +148,24 @@
    * scoreSamples: array of ms per run for stability graph (when available).
    */
   function runGpuBenchmarkAsync(done) {
+    var finished = false;
+    function safeDone(gpu) {
+      if (finished) return;
+      finished = true;
+      if (gpuTimer) clearTimeout(gpuTimer);
+      if (typeof done === 'function') done(gpu);
+    }
+    /* Some WebGL/WebGPU stacks never invoke the sample callback; without this the load screen never finishes */
+    var gpuTimer = setTimeout(function () {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('[Benchmark] GPU stage timed out; continuing without GPU score');
+      }
+      safeDone({ available: false, backend: 'none', scoreMs: null, good: false, scoreSamples: [], timedOut: true });
+    }, 10000);
+
     var backend = detectGpuBackendSync();
     if (backend === 'none') {
-      if (typeof done === 'function') done({ available: false, backend: 'none', scoreMs: null, good: false, scoreSamples: [] });
+      safeDone({ available: false, backend: 'none', scoreMs: null, good: false, scoreSamples: [] });
       return;
     }
     var runOne = backend === 'webgpu' ? runOneGpuSampleWebGPU : runOneGpuSampleWebGL;
@@ -166,7 +181,7 @@
           var available = samples.length > 0;
           var scoreMs = available ? (samples.reduce(function (a, b) { return a + b; }, 0) / samples.length) : null;
           var good = available && (backend === 'webgpu' ? scoreMs < 500 : scoreMs < 50);
-          if (typeof done === 'function') done({
+          safeDone({
             available: available,
             backend: available ? backend : 'none',
             scoreMs: scoreMs,
