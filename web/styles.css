@@ -613,11 +613,6 @@ h1#dashboardTitle:hover {
 }
 
 @media (max-width: 768px) {
-  /* iOS standalone: safe-area + usual body padding (opaque status bar meta avoids drawing under system icons) */
-  body {
-    padding-top: calc(10px + env(safe-area-inset-top, 0px));
-  }
-
   .tab-navigation.tab-navigation--top {
     display: none !important;
   }
@@ -625,9 +620,10 @@ h1#dashboardTitle:hover {
   /* One scroll region (.app-main-scroll) for every tab; shell + footer fill viewport.
      Do not subtract safe-area-inset-bottom from height — the bottom nav already pads for the home indicator;
      subtracting it left a dead band below the nav (empty strip matching the inset). */
+  /* Match body content height (body has padding-top for safe area); 100dvh alone ignored that padding and caused gap + header overlap */
   .app-shell {
-    height: 100dvh;
-    max-height: 100dvh;
+    height: calc(100dvh - 5px - env(safe-area-inset-top, 0px));
+    max-height: calc(100dvh - 5px - env(safe-area-inset-top, 0px));
     min-height: 0;
     width: 100%;
     max-width: 100%;
@@ -665,7 +661,8 @@ h1#dashboardTitle:hover {
     align-items: stretch;
     gap: 8px;
     width: 100%;
-    min-height: calc(52px + env(safe-area-inset-bottom, 0px));
+    /* Safe area only in padding-bottom — min-height must not add inset again (was double-counting, huge bar) */
+    min-height: 52px;
     padding: 6px 6px calc(8px + env(safe-area-inset-bottom, 0px));
     padding-left: max(6px, env(safe-area-inset-left, 0px));
     padding-right: max(6px, env(safe-area-inset-right, 0px));
@@ -682,6 +679,7 @@ h1#dashboardTitle:hover {
     flex: 1 1 0;
     min-width: 0;
     min-height: 48px;
+    margin: 0; /* override "Enhanced mobile" `button { margin: 15px 0 }` — that was stretching the tab bar */
     position: relative;
     z-index: 1;
     display: flex;
@@ -8939,8 +8937,8 @@ body.light-mode .date-separator {
     max-height: 100dvh;
     height: 100dvh;
     overflow: hidden;
-    padding: 5px 5px 0 5px;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    /* Top: clear notch/status; do not pad bottom — .app-bottom-nav already uses env(safe-area-inset-bottom) */
+    padding: calc(5px + env(safe-area-inset-top, 0px)) max(5px, env(safe-area-inset-left, 0px)) 0 max(5px, env(safe-area-inset-right, 0px));
     font-size: 16px; /* Prevents zoom on iOS */
   }
 
