@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Repository**: [github.com/Metaheurist/Health-app](https://github.com/Metaheurist/Health-app) (GitHub may redirect to the renamed project **[Rianell](https://github.com/Metaheurist/Rianell)** — same codebase.)
+**Repository**: [github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell) (canonical URL; older **Health-app** links redirect here.)
 
 ## Security
 
@@ -168,8 +168,8 @@ flowchart LR
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Metaheurist/Health-app.git
-   cd Health-app
+   git clone https://github.com/Metaheurist/Rianell.git
+   cd Rianell
    ```
 
 2. **Install Python dependencies**
@@ -236,7 +236,7 @@ The server will:
 
 ### GitHub Pages (app at repo root)
 
-The app lives in **`web/`**, so GitHub Pages will not see `index.html` if the source is the repo root. The public site is **[rianell.com](https://rianell.com/)**; GitHub Actions can also deploy the same build to Pages (e.g. `https://<user>.github.io/Health-app/`).
+The app lives in **`web/`**, so GitHub Pages will not see `index.html` if the source is the repo root. The public site is **[rianell.com](https://rianell.com/)**; GitHub Actions can also deploy the same build to Pages (e.g. `https://<user>.github.io/Rianell/`).
 
 1. In the repo: **Settings → Pages**
 2. Under **Build and deployment**, set **Source** to **GitHub Actions**
@@ -518,7 +518,7 @@ Activation functions (sigmoid, tanh, relu, softmax) are available as `AIEngine.a
 ## Project Structure
 
 ```
-Health-app/
+Rianell/
 ├── web/                    # Static web app (served at site root on GitHub Pages)
 │   ├── index.html          # Main application HTML
 │   ├── app.js              # Core application logic
@@ -659,7 +659,7 @@ Start with the full guide: **[docs/SECURITY.md](docs/SECURITY.md)** (same conten
 **Metaheurist** - Sole developer and maintainer
 
 - GitHub: [@Metaheurist](https://github.com/Metaheurist)
-- Repository: [https://github.com/Metaheurist/Health-app](https://github.com/Metaheurist/Health-app)
+- Repository: [https://github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell)
 
 ## Licence
 
@@ -667,7 +667,7 @@ This project is open source and available under an open source licence.
 
 ## Repository
 
-**GitHub**: [https://github.com/Metaheurist/Health-app](https://github.com/Metaheurist/Health-app) — may redirect to [Metaheurist/Rianell](https://github.com/Metaheurist/Rianell).
+**GitHub**: [https://github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell)
 
 ## Support
 
