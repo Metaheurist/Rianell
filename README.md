@@ -60,6 +60,9 @@ flowchart LR
 - **Loading behaviour**: App shows a loading overlay until the combined chart and summary LLM preload are ready (or 12s timeout), then reveals the UI so heavy work does not stutter the first paint.
 
 ### AI analysis
+
+![AI Analysis tab — range selector (7 / 30 / 90 days, Custom), Share, and What we found](docs/images/ai-analysis.png)
+
 - **Optional AI**: Settings toggle "Enable AI features & Goals" hides or shows the AI Analysis tab, chart predictions, and Goals.
 - **Neural-style pipeline**: Trend regression, correlations, patterns, risk factors, flare prediction, cross-section (food/exercise/stressors/symptoms), clustering, time series, actionable advice, prioritised insights, and a 2–3 sentence summary (see [AI Analysis](#ai-analysis-neural-network-architecture)).
 - **Summary note**: In-browser LLM (Transformers.js, flan-t5 by device class) or rule-based fallback; context from analysis and logs; value highlighting in the UI.
@@ -486,7 +489,7 @@ Health-app/
 ├── requirements.txt        # Python dependencies
 ├── package.json            # Root scripts (build, sync, android)
 ├── docs/                   # Documentation
-│   ├── images/             # README screenshots (Home, View logs, card selector, server dashboard, …)
+│   ├── images/             # README screenshots (Home, View logs, AI Analysis, card selector, server dashboard, …)
 │   └── NEURAL_NETWORK_PLAN.md   # AI expansion and optimisation plan
 ├── .github/workflows/      # CI (e.g. Build Android APK)
 ├── react-app/              # React (Vite) + Capacitor shell for Android
@@ -615,7 +618,14 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.27.4** — README: View logs screenshot (see below).
+**Latest: v1.27.5** — README: AI Analysis screenshot (see below).
+
+<details>
+<summary><strong>v1.27.5</strong> — 2026-03-22 — Documentation</summary>
+
+- **README**: Added AI Analysis tab screenshot under [AI analysis](#ai-analysis); image stored at `docs/images/ai-analysis.png`.
+
+</details>
 
 <details>
 <summary><strong>v1.27.4</strong> — 2026-03-22 — Documentation</summary>
