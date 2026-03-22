@@ -110,8 +110,32 @@
     var pipelineOpts = { revision: 'main' };
     if (device) pipelineOpts.device = device;
 
+    /**
+     * Explicit dtype + brief console.warn filter while Transformers loads ONNX shards (avoids noisy
+     * "dtype not specified" lines). dtype: fp32 on GPU, q8 on WASM/CPU in the browser.
+     */
+    async function runText2TextPipeline(pipelineModelId, opts) {
+      var base = Object.assign({ revision: 'main' }, opts || {});
+      if (base.dtype == null) {
+        base.dtype = base.device ? 'fp32' : 'q8';
+      }
+      var origWarn = console.warn;
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn = function () {
+          var s = arguments[0] != null ? String(arguments[0]) : '';
+          if (s.indexOf('dtype not specified') !== -1) return;
+          return origWarn.apply(console, arguments);
+        };
+      }
+      try {
+        return await mod.pipeline('text2text-generation', pipelineModelId, base);
+      } finally {
+        if (typeof console !== 'undefined') console.warn = origWarn;
+      }
+    }
+
     function loadPipeline(opts) {
-      return mod.pipeline('text2text-generation', modelId, opts || { revision: 'main' });
+      return runText2TextPipeline(modelId, opts || { revision: 'main' });
     }
 
     try {
@@ -134,12 +158,12 @@
         }
         if (modelId === MODEL_LARGE) {
           try {
-            cachedPipeline = await mod.pipeline('text2text-generation', MODEL_BASE, { revision: 'main' });
+            cachedPipeline = await runText2TextPipeline(MODEL_BASE, { revision: 'main' });
             cachedModelId = MODEL_BASE;
             return cachedPipeline;
           } catch (e2) {
             try {
-              cachedPipeline = await mod.pipeline('text2text-generation', MODEL_SMALL, { revision: 'main' });
+              cachedPipeline = await runText2TextPipeline(MODEL_SMALL, { revision: 'main' });
               cachedModelId = MODEL_SMALL;
               return cachedPipeline;
             } catch (e3) {
@@ -149,7 +173,7 @@
         }
         if (modelId === MODEL_BASE) {
           try {
-            cachedPipeline = await mod.pipeline('text2text-generation', MODEL_SMALL, { revision: 'main' });
+            cachedPipeline = await runText2TextPipeline(MODEL_SMALL, { revision: 'main' });
             cachedModelId = MODEL_SMALL;
             return cachedPipeline;
           } catch (e2) {
