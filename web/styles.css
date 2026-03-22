@@ -642,34 +642,7 @@ h1#dashboardTitle:hover {
     background: transparent;
   }
 
-  /* FAB cluster overlays .container; sits above tab bar (tab bar ~52px + padding + safe area) */
-  .app-fab-wrap {
-    position: fixed;
-    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-    right: max(16px, env(safe-area-inset-right, 0px));
-    z-index: 1002;
-    display: flex;
-    flex-direction: row-reverse;
-    align-items: center;
-    gap: 2px;
-    pointer-events: none;
-    inset: auto;
-    top: auto;
-    left: auto;
-    width: auto;
-    height: auto;
-  }
-
-  .app-beta-badge {
-    position: static;
-    top: auto;
-    right: auto;
-  }
-
-  .app-log-fab {
-    position: static;
-    pointer-events: auto;
-  }
+  /* FAB bottom offset lives in global .app-fab-wrap + max-width override below */
 
   .app-bottom-nav {
     display: flex;
@@ -842,8 +815,27 @@ body.light-mode .app-beta-badge {
   transform: scale(0.94);
 }
 
+/* FAB cluster: fixed bottom-right everywhere — Beta (left) + button (right); DOM order matches */
 .app-fab-wrap {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  left: auto;
+  top: auto;
+  z-index: 1002;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  height: auto;
+  pointer-events: none;
   transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.app-fab-wrap .app-log-fab {
+  position: static;
+  pointer-events: auto;
 }
 
 .app-fab-wrap.app-fab-wrap--hidden {
@@ -852,32 +844,12 @@ body.light-mode .app-beta-badge {
   transform: scale(0.88);
 }
 
-/* Desktop: Beta fixed top-right; + fixed bottom-right */
-@media (min-width: 769px) {
-  .app-fab-wrap {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 1002;
-    display: block;
-  }
-
-  .app-beta-badge {
-    position: absolute;
-    top: max(12px, env(safe-area-inset-top, 0px));
-    right: max(16px, env(safe-area-inset-right, 0px));
-  }
-
-  .app-log-fab {
-    position: absolute;
-    bottom: max(20px, env(safe-area-inset-bottom, 0px));
-    right: max(16px, env(safe-area-inset-right, 0px));
-    pointer-events: auto;
-  }
-}
-
-/* Badge beside + on mobile: slightly flush to the FAB */
+/* Mobile: sit above bottom tab bar */
 @media (max-width: 768px) {
+  .app-fab-wrap {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+
   .app-fab-wrap .app-beta-badge {
     border-radius: 12px 0 0 12px;
     margin-right: -3px;
@@ -6300,6 +6272,8 @@ dialog.tile-picker-sheet:not([open]) {
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-end;
+  /* Above food/exercise log modals (inline z-index ~10000–10001) */
+  z-index: 100100;
 }
 
 .tile-picker-sheet[open]::backdrop {

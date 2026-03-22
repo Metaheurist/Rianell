@@ -9940,6 +9940,14 @@ function renderFoodItems() {
       </div>
     </div>`;
   }).join('');
+  /* Direct listeners: modal .modal-content uses stopPropagation so delegated body handlers are unreliable */
+  container.querySelectorAll('.food-category-summary.tile-picker-trigger').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof openTilePickerSheet === 'function') openTilePickerSheet(btn);
+    });
+  });
 }
 
 function saveFoodLog() {
@@ -10150,6 +10158,13 @@ function renderExerciseItems() {
   `;
   const modalExSearch = document.getElementById('exerciseModalTileSearch');
   if (modalExSearch) attachTilePickerSearch(list, modalExSearch);
+  list.querySelectorAll('.exercise-category-summary.tile-picker-trigger').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof openTilePickerSheet === 'function') openTilePickerSheet(btn);
+    });
+  });
 }
 
 function saveExerciseLog() {
@@ -15780,10 +15795,13 @@ function initializeTilePickerSheet() {
   var closeBtn = document.getElementById('tilePickerSheetClose');
   if (!dialog) return;
   /* Capture phase: food/exercise modals use .modal-content onclick=stopPropagation(), which
-   * blocks bubble from reaching body — tile picker must run on capture or triggers inside those modals never fire. */
+   * blocks bubble from reaching body — tile picker must run on capture or triggers inside those modals never fire.
+   * Triggers inside #foodModalOverlay / #exerciseModalOverlay use direct listeners from renderFoodItems/renderExerciseItems;
+   * skip here so we do not open then immediately toggle-close on the same click. */
   document.body.addEventListener('click', function (e) {
     var t = e.target.closest('.tile-picker-trigger');
     if (!t) return;
+    if (t.closest('#foodModalOverlay') || t.closest('#exerciseModalOverlay')) return;
     e.preventDefault();
     openTilePickerSheet(t);
   }, true);
