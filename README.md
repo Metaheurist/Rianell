@@ -6,17 +6,17 @@
 
 <!-- RIANELL_BUILD_INFO_START -->
 
-[![Beta](https://img.shields.io/badge/beta-Android%2050%20%7C%20iOS%2050%20%7C%20Web%2050-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/23414706857)
+[![Beta](https://img.shields.io/badge/beta-Android%2051%20%7C%20iOS%2051%20%7C%20Web%2051-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/23414755284)
 
 **Beta** (CI builds):
 
 | Channel | Build |
 | :--- | :---: |
-| **Android** beta APK | **50** |
-| **iOS** beta (Xcode project zip) | **50** |
-| **Web / PWA** (GitHub Pages deploy) | **50** |
+| **Android** beta APK | **51** |
+| **iOS** beta (Xcode project zip) | **51** |
+| **Web / PWA** (GitHub Pages deploy) | **51** |
 
-Latest: [`App build/Android/app-debug-beta-50.apk`](App%20build/Android/latest.json) · [`App build/iOS/Health-Tracker-ios-beta-build-50.zip`](App%20build/iOS/latest.json) · [Workflow #50](https://github.com/Metaheurist/Rianell/actions/runs/23414706857) · `9ee2cf1`
+Latest: [`App build/Android/app-debug-beta-51.apk`](App%20build/Android/latest.json) · [`App build/iOS/Health-Tracker-ios-beta-build-51.zip`](App%20build/iOS/latest.json) · [Workflow #51](https://github.com/Metaheurist/Rianell/actions/runs/23414755284) · `3282409`
 
 <!-- RIANELL_BUILD_INFO_END -->
 
