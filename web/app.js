@@ -15502,21 +15502,23 @@ function __healthAppRejectionText(reason) {
   return m;
 }
 
+/** Keep in sync with early unhandledrejection script in index.html */
+function __healthAppIsExtensionRejectionBlob(blob) {
+  if (!blob || typeof blob !== 'string') return false;
+  if (/chrome-extension:|moz-extension:|safari-web-extension:|extension:\/\//i.test(blob)) return true;
+  if (/tabs:outgoing|tabs\.outgoing|No\s+Listener|vendor\.js|serviceWorker\.js|background\.js/i.test(blob)) return true;
+  if (/Frame with ID \d+ was removed|No tab with id|Could not establish connection|Receiving end does not exist|message port closed/i.test(blob)) return true;
+  if (blob.includes('ERR_INVALID_URL') && blob.includes('data:;base64')) return true;
+  return false;
+}
+
 window.addEventListener('unhandledrejection', (event) => {
   const blob = __healthAppRejectionText(event.reason);
-  const isExtensionError =
-    /tabs:outgoing|No\s+Listener|tabs\.outgoing\.message|vendor\.js|chrome-extension:|moz-extension:|safari-web-extension:/i.test(blob) ||
-    blob.includes('No tab with id') ||
-    blob.includes('Frame with ID') ||
-    blob.includes('serviceWorker.js') ||
-    blob.includes('background.js') ||
-    (blob.includes('ERR_INVALID_URL') && blob.includes('data:;base64'));
-
-  if (isExtensionError) {
+  if (__healthAppIsExtensionRejectionBlob(blob)) {
     event.preventDefault();
     event.stopImmediatePropagation();
   }
-});
+}, true);
 
 // Initialize the app
 window.addEventListener('load', () => {
@@ -15604,6 +15606,22 @@ window.addEventListener('load', () => {
   
   if (loadingTextEl) loadingTextEl.textContent = 'Loading charts and AI…';
 
+  // Second loading phase: show progress toward completion (benchmark bar was 100% after suite or cache)
+  var chartsAiProgressWrap = loadingOverlay ? loadingOverlay.querySelector('#loadingProgressWrap') : null;
+  var chartsAiProgressFill = loadingOverlay ? loadingOverlay.querySelector('#loadingProgressFill') : null;
+  var chartsAiProgressTrack = loadingOverlay ? loadingOverlay.querySelector('.loading-progress-track') : null;
+  if (chartsAiProgressWrap) chartsAiProgressWrap.classList.add('visible');
+  if (chartsAiProgressFill) chartsAiProgressFill.style.width = '0%';
+  if (chartsAiProgressTrack) chartsAiProgressTrack.setAttribute('aria-valuenow', '0');
+  var chartsAiProgressVal = 0;
+  var chartsAiProgressTimer = setInterval(function () {
+    if (!chartsAiProgressFill) return;
+    chartsAiProgressVal = Math.min(95, chartsAiProgressVal + Math.random() * 5 + 1.5);
+    var p = Math.floor(chartsAiProgressVal);
+    chartsAiProgressFill.style.width = p + '%';
+    if (chartsAiProgressTrack) chartsAiProgressTrack.setAttribute('aria-valuenow', String(p));
+  }, 140);
+
   // Keep loading circle until combined chart and summary LLM are ready (or timeout). On mobile (low device) skip chart build during load to avoid memory spike and tab crash.
   const isLowDevice = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
   const needCharts = appSettings.showCharts && chartSectionEl && logs && logs.length > 0 && !isLowDevice;
@@ -15630,6 +15648,10 @@ window.addEventListener('load', () => {
   const timeout = new Promise(function (resolve) { setTimeout(resolve, loadTimeoutMs); });
   
   Promise.race([ Promise.allSettled([ chartsReady, aiReady ]), timeout ]).then(function () {
+    clearInterval(chartsAiProgressTimer);
+    if (chartsAiProgressFill) chartsAiProgressFill.style.width = '100%';
+    if (chartsAiProgressTrack) chartsAiProgressTrack.setAttribute('aria-valuenow', '100');
+
     if (loadingOverlay) {
       loadingOverlay.classList.add('hidden');
       document.body.classList.remove('loading');
@@ -15760,8 +15782,10 @@ window.addEventListener('load', () => {
         }
       },
       function (tier, platformType, result) {
+        var wrapEl = loadingOverlay ? loadingOverlay.querySelector('#loadingProgressWrap') : null;
         var fillEl = loadingOverlay ? loadingOverlay.querySelector('#loadingProgressFill') : null;
         var trackEl = loadingOverlay ? loadingOverlay.querySelector('.loading-progress-track') : null;
+        if (wrapEl) wrapEl.classList.add('visible');
         if (fillEl) fillEl.style.width = '100%';
         if (trackEl) trackEl.setAttribute('aria-valuenow', '100');
         if (window.DeviceBenchmark.isBenchmarkReady()) {

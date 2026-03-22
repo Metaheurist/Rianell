@@ -26,7 +26,7 @@
   <!-- Note: X-Frame-Options is set via HTTP header in server, not here -->
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 
-  <!-- Runs before other scripts: swallow extension promise rejections (e.g. tabs:outgoing.message.ready in VM vendor.js) -->
+  <!-- Runs before other scripts: swallow extension/injected promise rejections (must match app.js __healthAppIsExtensionRejectionBlob) -->
   <script>
     (function () {
       function rejectionText(reason) {
@@ -43,7 +43,10 @@
       function isExtensionRejection(reason) {
         var t = rejectionText(reason);
         if (!t) return false;
-        return /tabs:outgoing|No\s+Listener|tabs\.outgoing\.message|vendor\.js|chrome-extension:|moz-extension:|safari-web-extension:/i.test(t);
+        if (/chrome-extension:|moz-extension:|safari-web-extension:|extension:\/\//i.test(t)) return true;
+        if (/tabs:outgoing|tabs\.outgoing|No\s+Listener|vendor\.js|serviceWorker\.js|background\.js/i.test(t)) return true;
+        if (/Frame with ID \d+ was removed|No tab with id|Could not establish connection|Receiving end does not exist|message port closed/i.test(t)) return true;
+        return false;
       }
       window.addEventListener('unhandledrejection', function (ev) {
         if (isExtensionRejection(ev.reason)) {
