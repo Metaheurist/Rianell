@@ -2312,6 +2312,7 @@
   <script src="supabase-config.js"></script>
   <!-- TensorFlow + AIEngine: loaded on demand via PerformanceUtils.ensureAIEngineLoaded() -->
   <script src="storage-utils.js?v=1"></script>
+  <script src="logs-idb.js?v=1"></script>
   <script src="notifications.js?v=1"></script>
   <script src="notification-helpers.js?v=1"></script>
   <!-- export-utils / import-utils / print-utils: loaded on first use via PerformanceUtils.ensure*Loaded() -->
@@ -2322,8 +2323,16 @@
   <script src="background-loader.js"></script>
   <script>
     (function() {
-      if (typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass !== 'low') {
-        document.write('<script src="summary-llm.js"><\/script>');
+      var Perf = window.PerformanceUtils;
+      if (!Perf || typeof Perf.lazyLoadScript !== 'function') return;
+      if (Perf.platform && Perf.platform.deviceClass === 'low') return;
+      function loadSummaryLlm() {
+        Perf.lazyLoadScript('summary-llm.js').catch(function () {});
+      }
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(loadSummaryLlm, { timeout: 2800 });
+      } else {
+        setTimeout(loadSummaryLlm, 0);
       }
     })();
   </script>

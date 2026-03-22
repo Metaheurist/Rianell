@@ -59,6 +59,19 @@ flowchart LR
 - **Tier 5 / GPU-accelerated charts**: On tier 5 (or tier 4 with a good GPU), chart containers use GPU-friendly compositor layers and maximum point limits; critical chart and AI preload run with high scheduler priority when supported.
 - **Loading behaviour**: App shows a loading overlay until the combined chart and summary LLM preload are ready (or 12s timeout), then reveals the UI so heavy work does not stutter the first paint.
 
+### Performance (optimisation stack)
+
+- **Logs**: Central reads via `getAllHistoricalLogsSync()` (avoids repeated `JSON.parse` of `healthLogs` on hot paths); optional **IndexedDB** mirror in `web/logs-idb.js` (async backup; localStorage remains primary); cache invalidation on save/import.
+- **Charts**: In-place **ApexCharts** updates when view/data signatures match (combined, balance, individual); chart-specific styles load on demand from **`styles-charts.css`** when opening the Charts tab (or when the chart section is shown on load).
+- **AI**: In-flight **deduplication** of `analyzeHealthMetrics`; guarded AI preload and chart **precompute** (idle / debounced; slower when the tab is hidden).
+- **View logs**: For very large histories, **IntersectionObserver** loads additional entries as you scroll (windowed append).
+- **Scripts**: **`summary-llm.js`** loads with `requestIdleCallback` on non–low devices (no `document.write`); Font Awesome remains deferred.
+- **Build**: Root **`npm run build:web`** runs esbuild (`web/build-site.mjs`) and emits **`web/app.min.js`** (ignored by git). **GitHub Pages** deploy minifies `app.js` → `app.min.js` and rewrites `index.html` accordingly.
+- **Web Workers**: `web/workers/io-worker.js` — large JSON **parse** / **stringify** when the optimisation profile has **`useWorkers`** (import / export paths).
+- **Service worker**: **Off** by default; opt-in with `localStorage.setItem('healthAppEnableStaticSW','1')` or **`?sw=1`** — `web/sw.js` uses cache-first for static file extensions (test on your host; CSP is same-origin).
+- **Python server**: **gzip** for compressible static files when the client sends `Accept-Encoding: gzip`; **Cache-Control** tuned for common static extensions (`server/main.py`).
+- **Observability**: Optional **Long Task** logging via `localStorage.setItem('healthAppPerfLongTasks','1')` or debug mode; `performance.mark('health-app-init')` during init.
+
 ### AI analysis
 
 ![AI Analysis tab — range selector (7 / 30 / 90 days, Custom), Share, and What we found](docs/images/ai-analysis.png)
@@ -203,7 +216,7 @@ The app lives in **`web/`**, so GitHub Pages will not see `index.html` if the so
 
 1. In the repo: **Settings → Pages**
 2. Under **Build and deployment**, set **Source** to **GitHub Actions**
-3. The workflow [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) runs on push to `main` and deploys the contents of **`web/`** as the site root, so `index.html` is served correctly.
+3. The workflow [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) runs on push to `main` and deploys the contents of **`web/`** as the site root, so `index.html` is served correctly. The workflow runs **`npm install`**, minifies **`app.js`** to **`app.min.js`**, and rewrites the deployed `index.html` to load the minified script for smaller downloads.
 
 **Cloud sync on the live site:** To use Supabase (login, cloud backup, anonymised data) on the GitHub Pages site, add **Repository secrets** (or **Environment secrets** for the `pages` environment): **`SUPABASE_URL`** (your project URL, e.g. `https://xxxx.supabase.co`) and **`SUPABASE_ANON_KEY`** (your publishable anon key). The deploy workflow injects these into the built site at deploy time so they are never committed. If these secrets are not set, the site still deploys; cloud features will work only after you add them.
 
@@ -479,6 +492,12 @@ Health-app/
 ├── web/                    # Static web app (served at site root on GitHub Pages)
 │   ├── index.html          # Main application HTML
 │   ├── app.js              # Core application logic
+│   ├── app.min.js          # (generated) esbuild minify — gitignored; use npm run build:web
+│   ├── build-site.mjs      # esbuild script → app.min.js
+│   ├── logs-idb.js         # IndexedDB mirror for health logs (optional async backup)
+│   ├── styles-charts.css   # Deferred chart + ApexCharts styles (loaded on demand)
+│   ├── sw.js               # Optional service worker (static asset cache)
+│   ├── workers/            # Web Workers (e.g. large JSON parse/stringify)
 │   ├── AIEngine.js         # AI analysis (neural pipeline, …)
 │   ├── styles.css          # Application styles
 │   ├── cloud-sync.js       # Supabase synchronisation
@@ -522,7 +541,7 @@ Health-app/
 
 ### Node.js (optional: React & Android)
 - Used only for the React/Capacitor build and Android APK. See **React shell & Android APK**.
-- Root `package.json`: scripts for `build`, `build:android`, `sync`, `dev`
+- Root `package.json`: scripts for `build`, `build:android`, `build:web` (minify `web/app.js` → `web/app.min.js`), `sync`, `dev`
 - `react-app/`: Vite 6, React, Capacitor 7; run `npm run build` from repo root
 
 ## Development
@@ -618,7 +637,16 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.27.5** — README: AI Analysis screenshot (see below).
+**Latest: v1.28.0** — Performance overhaul (see [Performance (optimisation stack)](#performance-optimisation-stack)).
+
+<details>
+<summary><strong>v1.28.0</strong> — 2026-03-22 — Performance overhaul</summary>
+
+- **Web**: Centralised log reads, chart in-place updates, AI/precompute dedupe and scheduling, virtualised View Logs append, deferred chart CSS and idle `summary-llm` load, IndexedDB mirror, IO workers, optional SW, perf marks / long-task observer.
+- **Server**: gzip static assets; cache headers for static extensions.
+- **CI**: esbuild minify + HTML rewrite on GitHub Pages deploy; root `npm run build:web` for local minified bundle.
+
+</details>
 
 <details>
 <summary><strong>v1.27.5</strong> — 2026-03-22 — Documentation</summary>

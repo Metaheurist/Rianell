@@ -2218,36 +2218,33 @@ Logger.info('Health App initialized', {
 })();
 
 // ============================================
-// PWA Service Worker Registration - DISABLED FOR DELIVERY
+// PWA Service Worker — blocked by default; optional static cache (localStorage healthAppEnableStaticSW=1 or ?sw=1)
 // ============================================
-// Service worker completely disabled - block registration immediately
-// This must run BEFORE any other code that might register a service worker
 if ('serviceWorker' in navigator) {
-  // Block registration immediately
-  const originalRegister = navigator.serviceWorker.register;
-  navigator.serviceWorker.register = function() {
-    Logger.debug('Service Worker registration blocked for delivery');
-    return Promise.reject(new Error('Service Worker disabled for delivery'));
-  };
-  
-  // Unregister any existing service workers
-  navigator.serviceWorker.getRegistrations().then(registrations => {
-    registrations.forEach(registration => {
-      registration.unregister().then(success => {
-        if (success) {
-          Logger.debug('Service Worker unregistered');
-            }
-          });
+  var enableStaticSW = (typeof localStorage !== 'undefined' && localStorage.getItem('healthAppEnableStaticSW') === '1') ||
+    (typeof location !== 'undefined' && /[?&]sw=1(?:&|$)/.test(location.search));
+  if (!enableStaticSW) {
+    const originalRegister = navigator.serviceWorker.register;
+    navigator.serviceWorker.register = function() {
+      Logger.debug('Service Worker registration blocked (enable with healthAppEnableStaticSW=1 or ?sw=1)');
+      return Promise.reject(new Error('Service Worker disabled'));
+    };
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+      registrations.forEach(registration => {
+        registration.unregister().then(success => {
+          if (success) Logger.debug('Service Worker unregistered');
         });
-  });
-  
-  // Clear all caches
-  if ('caches' in window) {
-    caches.keys().then(names => {
-      names.forEach(name => {
-        caches.delete(name);
       });
-  });
+    });
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        names.forEach(name => { caches.delete(name); });
+      });
+    }
+  } else {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
   }
 }
 
@@ -2258,6 +2255,66 @@ if (typeof document !== 'undefined') {
   }
   updatePageHidden();
   document.addEventListener('visibilitychange', updatePageHidden);
+}
+
+(function initHealthAppIOWorker() {
+  window.HealthAppIOWorker = {
+    parseJson: function (text) {
+      return new Promise(function (resolve, reject) {
+        var w;
+        try {
+          w = new Worker('workers/io-worker.js');
+        } catch (e) {
+          try { resolve(JSON.parse(text)); } catch (e2) { reject(e2); }
+          return;
+        }
+        var id = Math.random().toString(36).slice(2);
+        w.onmessage = function (ev) {
+          w.terminate();
+          var d = ev.data;
+          if (d && d.ok) resolve(d.result);
+          else reject(new Error(d && d.error ? d.error : 'parse failed'));
+        };
+        w.onerror = function (err) { try { w.terminate(); } catch (e) {} reject(err); };
+        w.postMessage({ type: 'parseJson', text: text, id: id });
+      });
+    },
+    stringifyJson: function (value) {
+      return new Promise(function (resolve, reject) {
+        var w;
+        try {
+          w = new Worker('workers/io-worker.js');
+        } catch (e) {
+          try { resolve(JSON.stringify(value)); } catch (e2) { reject(e2); }
+          return;
+        }
+        var id = Math.random().toString(36).slice(2);
+        w.onmessage = function (ev) {
+          w.terminate();
+          var d = ev.data;
+          if (d && d.ok) resolve(d.result);
+          else reject(new Error(d && d.error ? d.error : 'stringify failed'));
+        };
+        w.onerror = function (err) { try { w.terminate(); } catch (e) {} reject(err); };
+        w.postMessage({ type: 'stringifyJson', value: value, id: id });
+      });
+    }
+  };
+})();
+
+function installPerfLongTaskObserver() {
+  if (typeof PerformanceObserver === 'undefined') return;
+  if (typeof localStorage === 'undefined') return;
+  if (localStorage.getItem('healthAppPerfLongTasks') !== '1' && !window.healthAppDebug) return;
+  try {
+    var po = new PerformanceObserver(function (list) {
+      var entries = list.getEntries();
+      for (var i = 0; i < entries.length; i++) {
+        if (window.console && console.warn) console.warn('[longtask]', Math.round(entries[i].duration) + 'ms');
+      }
+    });
+    po.observe({ type: 'longtask', buffered: true });
+  } catch (e) {}
 }
 
 // PWA Install Prompt
@@ -3528,10 +3585,7 @@ async function createCombinedChart() {
   
   updateChartEmptyState(true);
   
-  if (container.chart) {
-    try { container.chart.destroy(); } catch (e) { /* ApexCharts may throw if node detached */ }
-    container.chart = null;
-  }
+  // Full rebuild deferred: may use updateSeries in-place when signature matches (see end of function)
   
   // Prepare data for all metrics (excluding weight and bpm as they use different scales)
   // All available metrics for combined chart (includes backPain and steps)
@@ -3598,10 +3652,9 @@ async function createCombinedChart() {
         const sortedLogs = window.PerformanceUtils?.memoizedSort
           ? window.PerformanceUtils.memoizedSort(filteredLogs, (a, b) => new Date(a.date) - new Date(b.date), 'sortedFilteredLogs')
           : [...filteredLogs].sort((a, b) => new Date(a.date) - new Date(b.date));
-        const allHistoricalLogs = window.PerformanceUtils?.DataCache?.get('allHistoricalLogs', () => {
-          const stored = localStorage.getItem("healthLogs") || "[]";
-          return JSON.parse(stored).sort((a, b) => new Date(a.date) - new Date(b.date));
-        }, 60000) || JSON.parse(localStorage.getItem("healthLogs") || "[]").sort((a, b) => new Date(a.date) - new Date(b.date));
+        const allHistoricalLogs = window.PerformanceUtils?.DataCache?.get('allHistoricalLogs', function () {
+          return getAllHistoricalLogsSortedSync();
+        }, 60000) || getAllHistoricalLogsSortedSync();
         let anonymizedTrainingData = [];
         if (appSettings.useOpenData && appSettings.medicalCondition && typeof window.getAnonymizedTrainingData === 'function') {
           try {
@@ -3687,7 +3740,7 @@ async function createCombinedChart() {
         const isWeight = metric.field === 'weight';
         
         // Get ALL historical logs for this metric (no date filtering - use everything available)
-        const allLogsForMetric = JSON.parse(localStorage.getItem("healthLogs") || "[]")
+        const allLogsForMetric = getAllHistoricalLogsSync()
           .filter(log => log[metric.field] !== undefined && log[metric.field] !== null && log[metric.field] !== '')
           .sort((a, b) => new Date(a.date) - new Date(b.date));
         
@@ -3972,6 +4025,26 @@ async function createCombinedChart() {
   }
   
   perfLog('Charts createCombinedChart (sync)', Date.now() - _perfT0, {});
+  var combinedChartSig = viewKey + '|' + selectedMetrics.join(',') + '|' + predictionRange + '|' + (predictionsEnabled ? '1' : '0') + '|' + (aiOn ? '1' : '0');
+  if (container.chart && container._combinedChartSig === combinedChartSig && typeof container.chart.updateSeries === 'function') {
+    try {
+      await container.chart.updateSeries(series, true);
+      perfLog('Charts createCombinedChart (updateSeries)', Date.now() - _perfT0, {});
+      container.classList.add('loaded');
+      injectChartShareButton(container, 'combinedChart');
+      if (typeof enforceChartSectionView === 'function') {
+        enforceChartSectionView(getCurrentChartView());
+      }
+      return;
+    } catch (e) {
+      /* fall through to full recreate */
+    }
+  }
+  if (container.chart) {
+    try { container.chart.destroy(); } catch (e) { /* ignore */ }
+    container.chart = null;
+  }
+  container._combinedChartSig = combinedChartSig;
   container.chart = new ApexCharts(container, options);
   container.chart.render().then(() => {
     perfLog('Charts createCombinedChart (render)', Date.now() - _perfT0, {});
@@ -4514,10 +4587,7 @@ async function createBalanceChart() {
     balanceMetricSelector.classList.remove('hidden');
   }
   
-  if (container.chart) {
-    try { container.chart.destroy(); } catch (e) { /* ignore */ }
-    container.chart = null;
-  }
+  // Destroy deferred until we know updateSeries cannot be used (see end of function)
   // All available metrics for balance chart (excluding steps)
   const allMetrics = [
     { field: 'fatigue', name: 'Fatigue', color: '#ff9800', scale: '1-10' },
@@ -4705,6 +4775,25 @@ async function createBalanceChart() {
     }
   };
   
+  var balanceChartSig = labels.join('|') + '|' + getChartViewCacheKey(chartDateRange.type, chartDateRange.startDate, chartDateRange.endDate) + '|' + (selectedMetrics && selectedMetrics.join ? selectedMetrics.join(',') : '');
+  if (container.chart && container._balanceChartSig === balanceChartSig && typeof container.chart.updateSeries === 'function') {
+    try {
+      await container.chart.updateSeries([{ name: 'Average Values', data: finalRadarData }], true);
+      perfLog('Charts createBalanceChart (updateSeries)', Date.now() - _perfT0, {});
+      injectChartShareButton(container, 'balanceChart');
+      if (typeof enforceChartSectionView === 'function') {
+        enforceChartSectionView(getCurrentChartView());
+      }
+      return;
+    } catch (e) {
+      /* full recreate */
+    }
+  }
+  if (container.chart) {
+    try { container.chart.destroy(); } catch (e) { /* ignore */ }
+    container.chart = null;
+  }
+  container._balanceChartSig = balanceChartSig;
   container.chart = new ApexCharts(container, options);
   container.chart.render().then(() => {
     perfLog('Charts createBalanceChart', Date.now() - _perfT0, {});
@@ -4987,15 +5076,15 @@ function exportData() {
     showExportModal();
   } else {
     // Fallback to CSV if export modal not loaded
-    const logs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
-    if (logs.length === 0) {
+    const exportLogs = getAllHistoricalLogsSync();
+    if (exportLogs.length === 0) {
       alert('No data to export.');
       return;
     }
   const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily Function,Swelling,Flare,Mood,Irritability,Notes";
   const csvContent = "data:text/csv;charset=utf-8," 
     + headers + "\n"
-    + logs.map(log => Object.values(log).join(",")).join("\n");
+    + exportLogs.map(log => Object.values(log).join(",")).join("\n");
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
@@ -5149,21 +5238,43 @@ async function analyzeHealthMetrics(logs, allLogs, options) {
   if (trainingLogs && trainingLogs.length > MAX_ALL_LOGS_ANALYSIS) {
     trainingLogs = trainingLogs.slice(-MAX_ALL_LOGS_ANALYSIS);
   }
-  const opts = options || {};
-  if (typeof opts.predictionState === 'undefined' && typeof localStorage !== 'undefined') {
-    try {
-      const s = localStorage.getItem('healthAppPredictionState');
-      if (s) opts.predictionState = JSON.parse(s);
-    } catch (e) { /* ignore */ }
+  if (!window._analyzeHealthMetricsPending) window._analyzeHealthMetricsPending = new Map();
+  function buildAnalysisDedupeKey(L, T) {
+    var n = L && L.length ? L.length : 0;
+    var m = T && T.length ? T.length : 0;
+    var l0 = n ? String(L[0].date || '') : '';
+    var l1 = n ? String(L[n - 1].date || '') : '';
+    var t0 = m ? String(T[0].date || '') : '';
+    var t1 = m ? String(T[m - 1].date || '') : '';
+    return 'a|' + n + '|' + l0 + '|' + l1 + '|' + m + '|' + t0 + '|' + t1;
   }
-  const result = await window.AIEngine.analyzeHealthMetrics(logs, trainingLogs, opts);
-  if (result.predictionStateForSave && typeof localStorage !== 'undefined') {
-    try {
-      localStorage.setItem('healthAppPredictionState', JSON.stringify(result.predictionStateForSave));
-    } catch (e) { /* ignore */ }
+  var dedupeKey = buildAnalysisDedupeKey(logs, trainingLogs);
+  if (window._analyzeHealthMetricsPending.has(dedupeKey)) {
+    return window._analyzeHealthMetricsPending.get(dedupeKey);
   }
-  perfLog('AI analyzeHealthMetrics', Date.now() - _t0, { logs: (logs && logs.length) || 0, allLogs: (trainingLogs && trainingLogs.length) || 0 });
-  return result;
+  async function run() {
+    const opts = options || {};
+    if (typeof opts.predictionState === 'undefined' && typeof localStorage !== 'undefined') {
+      try {
+        const s = localStorage.getItem('healthAppPredictionState');
+        if (s) opts.predictionState = JSON.parse(s);
+      } catch (e) { /* ignore */ }
+    }
+    const result = await window.AIEngine.analyzeHealthMetrics(logs, trainingLogs, opts);
+    if (result.predictionStateForSave && typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem('healthAppPredictionState', JSON.stringify(result.predictionStateForSave));
+      } catch (e) { /* ignore */ }
+    }
+    perfLog('AI analyzeHealthMetrics', Date.now() - _t0, { logs: (logs && logs.length) || 0, allLogs: (trainingLogs && trainingLogs.length) || 0 });
+    return result;
+  }
+  var promise = run();
+  window._analyzeHealthMetricsPending.set(dedupeKey, promise);
+  promise.finally(function () {
+    window._analyzeHealthMetricsPending.delete(dedupeKey);
+  });
+  return promise;
 }
 
 function generateComprehensiveInsights(analysis, logs, dayCount) {
@@ -5459,14 +5570,18 @@ function setAICache(analysis, sortedLogs, dateRangeText, cacheKey) {
 function preloadAIAnalysisInBackground() {
   var data = getAIPreloadData();
   if (!data) return;
+  if (window._aiPreloadInFlight) return;
   var run = function () {
     var analyzeFn = (window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function')
       ? window.AIEngine.analyzeHealthMetrics
       : (typeof analyzeHealthMetrics === 'function' ? analyzeHealthMetrics : null);
     if (!analyzeFn) return;
+    window._aiPreloadInFlight = true;
     analyzeFn(data.sortedLogs, data.allLogsForTraining).then(function(analysis) {
       setAICache(analysis, data.sortedLogs, data.dateRangeText, data.cacheKey);
-    }).catch(function() {});
+    }).catch(function() {}).finally(function () {
+      window._aiPreloadInFlight = false;
+    });
   };
   if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function') {
     window.PerformanceUtils.ensureAIEngineLoaded().then(run).catch(function () {});
@@ -7682,6 +7797,9 @@ function saveLogsToStorage() {
   } else {
     localStorage.setItem("healthLogs", JSON.stringify(logs));
   }
+  if (window.HealthLogsIDB && typeof window.HealthLogsIDB.scheduleMirror === 'function') {
+    window.HealthLogsIDB.scheduleMirror(logs);
+  }
 }
 
 // Load logs - handle both compressed and uncompressed data
@@ -7758,6 +7876,19 @@ try {
   if (typeof window !== 'undefined') {
     window.logs = logs;
   }
+}
+
+/** Full in-memory health log array (authoritative when synced via saveLogsToStorage). Avoids repeated JSON.parse(localStorage) on hot paths. */
+function getAllHistoricalLogsSync() {
+  var L = (typeof window !== 'undefined' && window.logs) ? window.logs : logs;
+  return Array.isArray(L) ? L : [];
+}
+
+/** Chronological copy for training/prediction paths (does not mutate the live array). */
+function getAllHistoricalLogsSortedSync() {
+  return getAllHistoricalLogsSync().slice().sort(function (a, b) {
+    return new Date(a.date) - new Date(b.date);
+  });
 }
 
 // Migrate existing logs to include food (category object) and exercise arrays
@@ -10407,17 +10538,68 @@ function buildLogEntryElement(log) {
 // Chunk sizes for mobile-friendly rendering (avoid long main-thread blocks)
 var LOG_RENDER_CHUNK_THRESHOLD = 30;
 var LOG_RENDER_CHUNK_SIZE = 20;
+var LOG_VIRTUAL_THRESHOLD = 120;
+var LOG_VIRTUAL_INITIAL = 45;
+var LOG_VIRTUAL_APPEND = 35;
 
 // Shared render function to reduce code duplication (optimized). Uses chunking on large lists for mobile.
 function renderLogEntries(logsToRender) {
   const outputEl = window.PerformanceUtils?.DOMCache?.getElement('logOutput') || document.getElementById('logOutput');
   if (!outputEl) return;
+  if (outputEl._logVirtualObserver && typeof outputEl._logVirtualObserver.disconnect === 'function') {
+    outputEl._logVirtualObserver.disconnect();
+    outputEl._logVirtualObserver = null;
+  }
   const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
     ? window.PerformanceUtils.getDeviceOpts() : { reduceAnimations: false, maxChartPoints: 200, deferAI: false, batchDOM: false };
   var isLow = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
   var threshold = isLow ? 20 : LOG_RENDER_CHUNK_THRESHOLD;
   var chunkSize = isLow ? 15 : LOG_RENDER_CHUNK_SIZE;
   var useChunking = logsToRender.length > threshold;
+
+  if (logsToRender.length > LOG_VIRTUAL_THRESHOLD && typeof IntersectionObserver !== 'undefined') {
+    outputEl.innerHTML = '';
+    var vIndex = 0;
+    var vInitial = Math.min(LOG_VIRTUAL_INITIAL, logsToRender.length);
+    var fragV = document.createDocumentFragment();
+    for (var vi = 0; vi < vInitial; vi++) {
+      fragV.appendChild(buildLogEntryElement(logsToRender[vi]));
+    }
+    outputEl.appendChild(fragV);
+    vIndex = vInitial;
+    var sentinel = document.createElement('div');
+    sentinel.className = 'log-virtual-sentinel';
+    sentinel.setAttribute('aria-hidden', 'true');
+    sentinel.style.cssText = 'height:1px;margin:0;padding:0;';
+    outputEl.appendChild(sentinel);
+    var scrollRoot = outputEl.closest('.tab-content') || outputEl.parentElement || null;
+    var io = new IntersectionObserver(function (entries) {
+      for (var e = 0; e < entries.length; e++) {
+        if (!entries[e].isIntersecting) continue;
+        if (vIndex >= logsToRender.length) {
+          if (sentinel.parentNode) sentinel.parentNode.removeChild(sentinel);
+          io.disconnect();
+          outputEl._logVirtualObserver = null;
+          return;
+        }
+        var nextEnd = Math.min(vIndex + LOG_VIRTUAL_APPEND, logsToRender.length);
+        var frag2 = document.createDocumentFragment();
+        for (var j = vIndex; j < nextEnd; j++) {
+          frag2.appendChild(buildLogEntryElement(logsToRender[j]));
+        }
+        outputEl.insertBefore(frag2, sentinel);
+        vIndex = nextEnd;
+        if (vIndex >= logsToRender.length && sentinel.parentNode) {
+          sentinel.parentNode.removeChild(sentinel);
+          io.disconnect();
+          outputEl._logVirtualObserver = null;
+        }
+      }
+    }, { root: scrollRoot, rootMargin: '200px', threshold: 0 });
+    outputEl._logVirtualObserver = io;
+    io.observe(sentinel);
+    return;
+  }
 
   if (useChunking) {
     outputEl.innerHTML = '';
@@ -10641,8 +10823,10 @@ function invalidateChartResultsCache() {
 
 function precomputeChartResultsForFixedRanges() {
   if (!logs || logs.length < 2 || !window.AIEngine || typeof analyzeHealthMetrics !== 'function') return;
+  if (window._chartPrecomputeRunning) return;
   const aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
   if (!aiOn) return;
+  window._chartPrecomputeRunning = true;
   const viewTypes = [1, 7, 30, 90];
   const predRanges = [1, 7, 30, 90];
   const today = new Date();
@@ -10650,7 +10834,10 @@ function precomputeChartResultsForFixedRanges() {
   let index = 0;
   const total = viewTypes.length * predRanges.length;
   async function runOne() {
-    if (index >= total) return;
+    if (index >= total) {
+      window._chartPrecomputeRunning = false;
+      return;
+    }
     const vi = Math.floor(index / predRanges.length);
     const pi = index % predRanges.length;
     index += 1;
@@ -10669,8 +10856,7 @@ function precomputeChartResultsForFixedRanges() {
       return;
     }
     const sortedLogs = [...filtered].sort((a, b) => new Date(a.date) - new Date(b.date));
-    const allHistoricalLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]")
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    const allHistoricalLogs = getAllHistoricalLogsSortedSync();
     let anonymizedTrainingData = [];
     if (appSettings.useOpenData && appSettings.medicalCondition && typeof window.getAnonymizedTrainingData === 'function') {
       try {
@@ -10698,6 +10884,10 @@ function precomputeChartResultsForFixedRanges() {
     runNext();
   }
   function runNext() {
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+      setTimeout(function () { runOne(); }, 2000);
+      return;
+    }
     if (typeof requestIdleCallback !== 'undefined') {
       requestIdleCallback(function() { runOne(); }, { timeout: 400 });
     } else {
@@ -10707,6 +10897,7 @@ function precomputeChartResultsForFixedRanges() {
   runNext();
 }
 
+var _schedulePrecomputeChartTimer = null;
 function schedulePrecomputeChartResults() {
   if (!logs || logs.length < 2) return;
   const profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
@@ -10715,11 +10906,15 @@ function schedulePrecomputeChartResults() {
   function start() {
     precomputeChartResultsForFixedRanges();
   }
-  if (typeof requestIdleCallback !== 'undefined') {
-    requestIdleCallback(start, { timeout: staggerMs });
-  } else {
-    setTimeout(start, Math.min(staggerMs, 1000));
-  }
+  if (_schedulePrecomputeChartTimer) clearTimeout(_schedulePrecomputeChartTimer);
+  _schedulePrecomputeChartTimer = setTimeout(function () {
+    _schedulePrecomputeChartTimer = null;
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(start, { timeout: staggerMs });
+    } else {
+      setTimeout(start, Math.min(staggerMs, 1000));
+    }
+  }, 400);
 }
 
 // Set chart date range. Options: { skipRefresh: true } to avoid refreshCharts (e.g. during init).
@@ -10900,12 +11095,6 @@ async function chart(id, label, dataField, color) {
     return;
   }
   
-  // Destroy existing chart if it exists (guard: container may be detached)
-  if (container.chart) {
-    try { container.chart.destroy(); } catch (e) { /* ignore */ }
-    container.chart = null;
-  }
-  
   // Prepare data and filter out invalid entries (optimized single-pass)
   const chartData = [];
   const dateCache = new Map(); // Cache date parsing
@@ -10984,8 +11173,7 @@ async function chart(id, label, dataField, color) {
   if (aiOn && predictionsEnabled && window.AIEngine && chartData.length >= 2) {
     try {
       const daysToPredict = predictionRange;
-      const allHistoricalLogs = JSON.parse(localStorage.getItem("healthLogs") || "[]")
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
+      const allHistoricalLogs = getAllHistoricalLogsSortedSync();
       const allLogs = allHistoricalLogs
         .filter(log => {
           if (dataField === 'weight') {
@@ -11746,6 +11934,32 @@ async function chart(id, label, dataField, color) {
       }]
     } : {}
   };
+
+  const viewKeyInd = getChartViewCacheKey(chartDateRange.type, chartDateRange.startDate, chartDateRange.endDate);
+  const lastOpt = optimizedChartData[optimizedChartData.length - 1];
+  const firstOpt = optimizedChartData[0];
+  const histLenInd = getAllHistoricalLogsSync().length;
+  const individualChartSig = id + '|' + dataField + '|' + viewKeyInd + '|' + predictionRange + '|' + (predictionsEnabled ? '1' : '0') + '|' + (aiOn ? '1' : '0') + '|' + histLenInd + '|' + optimizedChartData.length + '|' + (firstOpt && firstOpt.x) + '|' + (lastOpt && lastOpt.x) + '|' + (lastOpt && lastOpt.y) + '|' + predictedData.length + '|' + (appSettings.weightUnit || 'kg');
+  if (container.chart && container._individualChartSig === individualChartSig && typeof container.chart.updateOptions === 'function') {
+    try {
+      container.chart.updateOptions(options, true, true);
+      const loadingElFast = container.querySelector('.chart-loading');
+      if (loadingElFast) loadingElFast.style.display = 'none';
+      if (container.classList) container.classList.add('loaded');
+      injectChartShareButton(container, id);
+      setTimeout(function () {
+        try {
+          if (container && container.chart && document.body.contains(container)) container.chart.updateOptions({}, false, true);
+        } catch (e) { /* chart may have been destroyed */ }
+      }, 100);
+      return;
+    } catch (e) { /* fall through to full recreate */ }
+  }
+  if (container.chart) {
+    try { container.chart.destroy(); } catch (e) { /* ignore */ }
+    container.chart = null;
+  }
+  container._individualChartSig = individualChartSig;
   
   // Apply light mode styles if in light mode
   if (false) { // Always dark mode
@@ -13265,8 +13479,7 @@ function selectExistingCondition() {
   const currentCondition = appSettings.medicalCondition;
   if (currentCondition && currentCondition !== condition) {
     // Show warning before changing condition
-    const logs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
-    const logCount = logs.length;
+    const logCount = getAllHistoricalLogsSync().length;
     
     showConfirmModal(
       `⚠️ WARNING: Changing your medical condition will DELETE ALL ${logCount} of your health log entries.\n\nThis action cannot be undone. Are you sure you want to continue?`,
@@ -13275,7 +13488,10 @@ function selectExistingCondition() {
         // User confirmed - proceed with condition change
         updateMedicalCondition(condition);
         // Clear all logs
+        logs.length = 0;
+        if (typeof window !== 'undefined') window.logs = logs;
         localStorage.setItem("healthLogs", JSON.stringify([]));
+        if (window.PerformanceUtils?.DataCache) window.PerformanceUtils.DataCache.invalidate('allHistoricalLogs');
         // Reload logs and charts
         if (typeof renderLogs === 'function') renderLogs();
         if (typeof updateCharts === 'function') updateCharts();
@@ -13325,8 +13541,7 @@ async function addNewCondition() {
   const currentCondition = appSettings.medicalCondition;
   if (currentCondition && currentCondition !== condition) {
     // Show warning before changing condition
-    const logs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
-    const logCount = logs.length;
+    const logCount = getAllHistoricalLogsSync().length;
     
     showConfirmModal(
       `⚠️ WARNING: Changing your medical condition will DELETE ALL ${logCount} of your health log entries.\n\nThis action cannot be undone. Are you sure you want to continue?`,
@@ -13335,7 +13550,10 @@ async function addNewCondition() {
         // User confirmed - proceed with condition change
         updateMedicalCondition(condition);
         // Clear all logs
+        logs.length = 0;
+        if (typeof window !== 'undefined') window.logs = logs;
         localStorage.setItem("healthLogs", JSON.stringify([]));
+        if (window.PerformanceUtils?.DataCache) window.PerformanceUtils.DataCache.invalidate('allHistoricalLogs');
         // Reload logs and charts
         if (typeof renderLogs === 'function') renderLogs();
         if (typeof updateCharts === 'function') updateCharts();
@@ -13459,14 +13677,16 @@ function selectTutorialCondition() {
   if (!condition) return;
   const currentCondition = appSettings.medicalCondition;
   if (currentCondition && currentCondition !== condition) {
-    const logs = JSON.parse(localStorage.getItem('healthLogs') || '[]');
-    const logCount = logs.length;
+    const logCount = getAllHistoricalLogsSync().length;
     showConfirmModal(
       `⚠️ WARNING: Changing your medical condition will DELETE ALL ${logCount} of your health log entries.\n\nThis action cannot be undone. Are you sure you want to continue?`,
       'Confirm Condition Change',
       () => {
         updateMedicalCondition(condition);
+        logs.length = 0;
+        if (typeof window !== 'undefined') window.logs = logs;
         localStorage.setItem('healthLogs', JSON.stringify([]));
+        if (window.PerformanceUtils?.DataCache) window.PerformanceUtils.DataCache.invalidate('allHistoricalLogs');
         if (typeof renderLogs === 'function') renderLogs();
         if (typeof updateCharts === 'function') updateCharts();
         const sel = document.getElementById('tutorialConditionSelector');
@@ -13500,14 +13720,16 @@ function addTutorialCondition() {
   }
   const currentCondition = appSettings.medicalCondition;
   if (currentCondition && currentCondition !== condition) {
-    const logs = JSON.parse(localStorage.getItem('healthLogs') || '[]');
-    const logCount = logs.length;
+    const logCount = getAllHistoricalLogsSync().length;
     showConfirmModal(
       `⚠️ WARNING: Changing your medical condition will DELETE ALL ${logCount} of your health log entries.\n\nThis action cannot be undone. Are you sure you want to continue?`,
       'Confirm Condition Change',
       () => {
         updateMedicalCondition(condition);
+        logs.length = 0;
+        if (typeof window !== 'undefined') window.logs = logs;
         localStorage.setItem('healthLogs', JSON.stringify([]));
+        if (window.PerformanceUtils?.DataCache) window.PerformanceUtils.DataCache.invalidate('allHistoricalLogs');
         if (typeof renderLogs === 'function') renderLogs();
         if (typeof updateCharts === 'function') updateCharts();
         input.value = '';
@@ -15392,6 +15614,15 @@ function applyHashRoute() {
   }
 }
 
+function ensureChartsStylesLoaded() {
+  if (document.getElementById('chartsDeferredStyles')) return;
+  var l = document.createElement('link');
+  l.id = 'chartsDeferredStyles';
+  l.rel = 'stylesheet';
+  l.href = 'styles-charts.css?v=1';
+  document.head.appendChild(l);
+}
+
 // Tab switching functionality
 function switchTab(tabName, skipHash) {
   const allTabs = document.querySelectorAll('.tab-content');
@@ -15438,6 +15669,7 @@ function switchTab(tabName, skipHash) {
       setLogWizardStep(typeof currentLogWizardStep === 'number' ? currentLogWizardStep : 0, true);
     }
     if (tabName === 'charts') {
+    ensureChartsStylesLoaded();
     const chartSection = document.getElementById('chartSection');
     if (chartSection) {
       chartSection.classList.remove('hidden');
@@ -15590,6 +15822,13 @@ window.addEventListener('load', () => {
   loadSettings();
 
   function runAppInit() {
+  installPerfLongTaskObserver();
+  if (window.HealthLogsIDB && typeof window.HealthLogsIDB.migrateFromLocalStorageOnce === 'function') {
+    window.HealthLogsIDB.migrateFromLocalStorageOnce();
+  }
+  try {
+    if (typeof performance !== 'undefined' && performance.mark) performance.mark('health-app-init');
+  } catch (e) {}
   // Sync platform.deviceClass from DeviceBenchmark if ready (so isLowDevice etc. use benchmark tier)
   if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.applyBenchmarkToPlatform === 'function') {
     window.PerformanceUtils.applyBenchmarkToPlatform();
@@ -15626,6 +15865,7 @@ window.addEventListener('load', () => {
   // Use 30 days so charts and log list have data on first load (setLogViewRange overwrites chartDateRange)
   setLogViewRange(30);
   if (appSettings.showCharts) {
+      ensureChartsStylesLoaded();
       const chartSection = document.getElementById('chartSection');
       if (chartSection) chartSection.classList.remove('hidden');
     }

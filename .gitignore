@@ -53,6 +53,7 @@ node_modules/
 # Build outputs
 dist/
 build/
+web/app.min.js
 
 # React / Capacitor
 react-app/node_modules/
