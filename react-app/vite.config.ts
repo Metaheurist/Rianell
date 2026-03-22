@@ -7,9 +7,16 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
+    target: 'es2020',
+    minify: 'esbuild',
+    cssMinify: true,
     rollupOptions: {
       output: {
-        manualChunks: undefined,
+        manualChunks(id) {
+          if (id.includes('node_modules/react-dom')) return 'react-dom';
+          if (id.includes('node_modules/react/')) return 'react';
+          if (id.includes('node_modules/@capacitor/')) return 'capacitor';
+        },
       },
     },
   },

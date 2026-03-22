@@ -13,6 +13,7 @@ const androidDir = path.join(__dirname, 'android');
 const varsPath = path.join(androidDir, 'variables.gradle');
 const appBuildPath = path.join(androidDir, 'app', 'build.gradle');
 const manifestPath = path.join(androidDir, 'app', 'src', 'main', 'AndroidManifest.xml');
+const gradlePropsPath = path.join(androidDir, 'gradle.properties');
 
 const buildVersion = parseInt(process.env.BUILD_VERSION || process.env.GITHUB_RUN_NUMBER || '1', 10) || 1;
 
@@ -71,6 +72,27 @@ if (fs.existsSync(appBuildPath)) {
 if (ensureManifestPermissions(manifestPath)) {
   patched = true;
 }
+
+/** Faster Gradle (CI/local); does not change APK runtime behaviour. */
+function ensureGradleDaemonAndCache() {
+  if (!fs.existsSync(gradlePropsPath)) return false;
+  let c = fs.readFileSync(gradlePropsPath, 'utf8');
+  const add = [];
+  if (!/org\.gradle\.parallel\s*=/.test(c)) add.push('org.gradle.parallel=true');
+  if (!/org\.gradle\.caching\s*=/.test(c)) add.push('org.gradle.caching=true');
+  if (!/org\.gradle\.jvmargs\s*=/.test(c)) {
+    add.push('org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8');
+  }
+  if (!add.length) return false;
+  const sep = c.endsWith('\n') ? '' : '\n';
+  fs.writeFileSync(gradlePropsPath, c + sep + add.join('\n') + '\n');
+  return true;
+}
+
+if (ensureGradleDaemonAndCache()) {
+  patched = true;
+}
+
 console.log(patched ? 'Android SDK and notification permissions patched.' : 'No Android files to patch.');
 console.log('Build version:', buildVersion);
 process.exit(0);

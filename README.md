@@ -276,6 +276,8 @@ The app can be run as a **React (Vite) app** that wraps the existing web UI and 
   node patch-android-sdk.js   # optional: set minSdk 22, targetSdk 34
   npx cap sync android
   ```
+- **Launcher icon & splash (APK / iOS):** Raster PWA icons live under **`web/Icons/`** (generated from **`logo-source.png`** and committed). They are **not** copied into native projects by `cap sync`. **`npm run build:android`** runs **`scripts/prepare-android-assets.mjs`** (builds **`react-app/assets/logo.png`**) then **`@capacitor/assets`** for Android mipmaps/splash before **`cap sync`**. For iOS, add the platform and run **`cd react-app && npx @capacitor/assets generate --ios`** (with **`logo.png`** present) or align assets in Xcode.
+- **Performance (APK):** Production builds use **`web/app.min.js`** inside the iframe (see **`npm run build`** / **`react-app/copy-webapp.js --min`**). The full **`app.js`** is only copied when running **`npm run dev`** without a prior **`build:web`**. Optional: ship a **release** APK with R8 shrinking on the Java side (`assembleRelease` + signing); not enabled by default because it needs keystore and ProGuard rules for all native dependencies.
 - Open in Android Studio: `cd react-app && npx cap open android`
 
 ### Android targets
@@ -530,15 +532,15 @@ Rianell/
 │   ├── workers/            # Web Workers (e.g. large JSON parse/stringify)
 │   ├── AIEngine.js         # AI analysis (neural pipeline, …)
 │   ├── styles.css          # Application styles
-│   ├── Icons/              # App icons (PWA, favicon, Apple touch); master asset `logo-source.png`, run `npm run generate:icons` after replacing it
+│   ├── Icons/              # App icons (PWA, favicon, Apple touch); `logo-source.png` master + committed `Icon-*.png` sizes
 │   ├── cloud-sync.js       # Supabase synchronisation
 │   ├── supabase-config.js  # Supabase configuration
 │   ├── summary-llm.js      # In-browser LLM (summary, suggest note, dashboard MOTD)
 │   ├── notifications.js    # Reminders, heartbeat sound
 │   └── …                   # Other JS/CSS/assets
 ├── requirements.txt        # Python dependencies
-├── package.json            # Root scripts (build, sync, android, generate:icons)
-├── scripts/                # e.g. `generate-icons.mjs` (sharp) — builds `web/Icons/Icon-*.png` from `web/Icons/logo-source.png`
+├── package.json            # Root scripts (build, sync, android, build:web, …)
+├── scripts/                # e.g. `prepare-android-assets.mjs`, `smoke-function-trace.mjs`
 ├── docs/                   # Documentation
 │   ├── images/             # README screenshots (Home, View logs, AI Analysis, card selector, server dashboard, …)
 │   └── NEURAL_NETWORK_PLAN.md   # AI expansion and optimisation plan
@@ -680,13 +682,39 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.34.0** — MOTD preset copy in `web/motd.json` (attributed quotations).
+**Latest: v1.37.0** — PWA icons committed; `generate-icons` / `generate-native-icons` scripts removed.
+
+<details>
+<summary><strong>v1.37.0</strong> — 2026-03-22 — Icons, repo cleanup</summary>
+
+- **Web**: Regenerated **`web/Icons/Icon-*.png`** from **`logo-source.png`**; **`scripts/generate-icons.mjs`** and **`scripts/generate-native-icons.mjs`** removed (use **`npm run build:android`** / **`prepare-android-assets.mjs`** + **`@capacitor/assets`** for native; edit **`web/Icons/`** and **`logo-source.png`** directly for future PWA changes).
+- **Repo**: Removed legacy **`web/Icons/generate_icons.py`**. Root **`package.json`**: dropped **`generate:icons`** / **`generate:native-icons`** scripts.
+
+</details>
+
+<details>
+<summary><strong>v1.36.0</strong> — 2026-03-22 — APK / native shell performance</summary>
+
+- **Legacy web bundle (iframe)**: Root **`npm run build`** runs **`build:web`** first, then **`react-app`** copies **`web/app.min.js`** into **`public/legacy/`** and rewrites **`legacy/index.html`** to load it instead of **`app.js`** (production/`vite build` only; **`npm run dev`** still uses full **`app.js`** for debugging). Much smaller script download and parse on device.
+- **React shell (Vite)**: **`manualChunks`** for React and **`@capacitor/*`**; **`target: es2020`**, esbuild minify for the shell bundle.
+- **Capacitor**: **`backgroundColor`**, **`android.webContentsDebuggingEnabled: false`** (less WebView debugging overhead on debug APKs; set **`true`** in **`capacitor.config.ts`** when you need Chrome `chrome://inspect`).
+- **Gradle (patch)**: **`patch-android-sdk.js`** appends parallel build + cache + JVM heap hints when missing (speeds **`assembleDebug`** in CI).
+
+</details>
+
+<details>
+<summary><strong>v1.35.0</strong> — 2026-03-22 — Android launcher icon pipeline</summary>
+
+- **Android / Capacitor**: PWA icons under `web/Icons/` are not applied to the native project by `cap sync` alone. **`scripts/prepare-android-assets.mjs`** builds **`react-app/assets/logo.png`** (from **`web/Icons/logo-source.png`**, or **`Icon-512.png`**, or a flat placeholder), then **`@capacitor/assets`** generates **mipmap** / adaptive icon and splash assets before **`cap sync`**. Root **`npm run build:android`** and CI **`android`** job run this sequence.
+- **Dependencies**: **`react-app`**: devDependency **`@capacitor/assets`**. **`.gitignore`**: **`react-app/assets/logo.png`** (generated locally/CI).
+
+</details>
 
 <details>
 <summary><strong>v1.34.0</strong> — 2026-03-22 — MOTD quotations content</summary>
 
 - **Web**: **`web/motd.json`** preset list replaced with **144 attributed quotations** (historical / widely published sources). Licensing for redistribution remains your responsibility; see the file’s `description` field.
-- **Repo**: No redundant scripts to remove beyond what **v1.33.0** already dropped; **`scripts/`** retains **`smoke-function-trace.mjs`** and **`generate-icons.mjs`** only.
+- **Repo**: No redundant scripts to remove beyond what **v1.33.0** already dropped; **`scripts/`** retains **`smoke-function-trace.mjs`** and related tooling.
 
 </details>
 
