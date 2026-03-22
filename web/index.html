@@ -21,8 +21,9 @@
   <meta name="msapplication-tap-highlight" content="no">
   
   <!-- Security: CSP roadmap in docs/SECURITY.md (unsafe-eval/inline required today for ML bootstraps; tighten over time). -->
+  <!-- script-src: wasm-unsafe-eval + worker-src blob: for TensorFlow.js / ML CDNs. If an HTTP CSP is also set (e.g. Cloudflare), it must allow the same or eval stays blocked (policies combine). -->
   <!-- Note: frame-ancestors and X-Frame-Options must be set via HTTP headers, not meta tags -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <!-- Note: X-Frame-Options is set via HTTP header in server, not here -->
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -88,15 +89,15 @@
   <!-- Supabase Client Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Event Handlers Module (for CSP compliance) -->
-  <script src="event-handlers.js?v=1"></script>
+  <script src="event-handlers.js?v=2"></script>
   <!-- Now loaded from local server with progress tracking -->
   <!-- The script will be loaded dynamically with progress bar in app.js -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=1" as="style">
-  <link rel="stylesheet" href="styles.css?v=1" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=1&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="preload" href="styles.css?v=2" as="style">
+  <link rel="stylesheet" href="styles.css?v=2" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=2&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #e0f2f1; margin: 0; padding: 0; }
@@ -2143,26 +2144,16 @@
     </div>
   </div>
 
-  <!-- Donate (PayPal — iframe may be blocked by PayPal; fallback link provided) -->
+  <!-- Donate: PayPal sets X-Frame-Options: sameorigin — cannot embed; open in new tab only -->
   <div class="modal-overlay donate-modal-overlay" id="donateModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="donateModalTitle">
     <div class="modal-content donate-modal-content" onclick="event.stopPropagation()">
       <div class="modal-header donate-modal-header">
         <h3 id="donateModalTitle">Donate</h3>
+        <button type="button" class="modal-close" id="donateModalCloseBtn" aria-label="Close">&times;</button>
       </div>
       <div class="modal-body donate-modal-body">
-        <div class="donate-iframe-wrap">
-          <button type="button" class="donate-iframe-close" id="donateIframeCloseBtn" aria-label="Close donation">&times;</button>
-          <iframe
-            id="donatePaypalIframe"
-            class="donate-paypal-iframe"
-            title="PayPal donation"
-            src="https://www.paypal.com/donate?hosted_button_id=MB5UF5SBL8YNG"
-            referrerpolicy="no-referrer-when-downgrade"
-          ></iframe>
-        </div>
-        <p class="donate-modal-fallback">
-          <a href="https://www.paypal.com/donate?hosted_button_id=MB5UF5SBL8YNG" target="_blank" rel="noopener noreferrer">Open donation page in a new tab</a> if the form does not load here.
-        </p>
+        <p class="donate-modal-text">Support Rianell with a secure donation via PayPal (opens in a new tab).</p>
+        <a href="https://www.paypal.com/donate?hosted_button_id=MB5UF5SBL8YNG" target="_blank" rel="noopener noreferrer" class="donate-paypal-btn">Continue to PayPal</a>
       </div>
     </div>
   </div>
@@ -2382,7 +2373,7 @@
     }
   })();
   </script>
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=8"></script>
   <script src="security-utils.js"></script>
   <script src="encryption-utils.js"></script>
   <script src="cloud-sync.js?v=2"></script>

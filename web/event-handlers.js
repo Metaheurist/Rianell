@@ -435,9 +435,9 @@ function initializeEventHandlers() {
     });
   }
 
-  const donateIframeCloseBtn = document.getElementById('donateIframeCloseBtn');
-  if (donateIframeCloseBtn) {
-    donateIframeCloseBtn.addEventListener('click', function (e) {
+  const donateModalCloseBtn = document.getElementById('donateModalCloseBtn');
+  if (donateModalCloseBtn) {
+    donateModalCloseBtn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
       if (typeof window.closeDonateModal === 'function') {
