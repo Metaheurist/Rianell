@@ -1,0 +1,526 @@
+# =============================================================================
+# Health App — unified GitHub Actions
+# =============================================================================
+# Single workflow file replacing former: build-android-apk, build-ios,
+# build-app-releases, deploy-pages, security-audit.
+#
+# Sections (jobs appear in dependency order):
+#   1. paths-filter     — Push only: whether to run mobile build/release (skip if
+#                         the only changed paths are under App build/, so bot
+#                         commits do not rebuild APKs or duplicate releases).
+#   2. android / ios    — PR: always. Push: only when paths-filter says so.
+#   3. commit-app-build — Push + mobile: commit App build/ to the branch.
+#   4. publish-release  — Push + mobile: GitHub Release with Android + iOS assets.
+#   5. deploy-pages     — Push to main/master: site from web/ + App build/.
+#   6. security-audit   — Push / PR / workflow_dispatch: npm + pip audits.
+#
+# Manual runs (workflow_dispatch): security audit only; mobile jobs are skipped.
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Path gate for mobile release on push (replaces paths-ignore on old workflow)
+  # ---------------------------------------------------------------------------
+  paths-filter:
+    name: Path gate (mobile release on push)
+    runs-on: ubuntu-latest
+    outputs:
+      mobile_release: ${{ steps.out.outputs.mobile_release }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: out
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "mobile_release=false" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mobile_release=false" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            BEFORE="${{ github.event.before }}"
+            SHA="${{ github.sha }}"
+            if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+              echo "mobile_release=true" >> $GITHUB_OUTPUT
+            else
+              CHANGED=$(git diff --name-only "$BEFORE" "$SHA" 2>/dev/null || true)
+              if [ -z "$CHANGED" ]; then
+                echo "mobile_release=false" >> $GITHUB_OUTPUT
+              elif echo "$CHANGED" | grep -qv '^App build/'; then
+                echo "mobile_release=true" >> $GITHUB_OUTPUT
+              else
+                echo "mobile_release=false" >> $GITHUB_OUTPUT
+              fi
+            fi
+          else
+            echo "mobile_release=false" >> $GITHUB_OUTPUT
+          fi
+
+  # ---------------------------------------------------------------------------
+  # Android APK (PR: CI; push: only when non–App-build paths changed)
+  # ---------------------------------------------------------------------------
+  android:
+    name: Android APK
+    needs: [paths-filter]
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && needs.paths-filter.outputs.mobile_release == 'true')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: mobile-android-${{ github.ref }}-${{ github.event_name }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync branch with origin
+        if: github.event_name == 'push'
+        run: |
+          git fetch origin "${{ github.ref_name }}"
+          git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install React app dependencies
+        working-directory: react-app
+        run: npm ci || npm install
+
+      - name: Copy web app and build
+        run: npm run build
+
+      - name: Add Android platform (if not present)
+        working-directory: react-app
+        run: npx cap add android || true
+
+      - name: Sync Capacitor Android
+        working-directory: react-app
+        run: npx cap sync android
+
+      - name: Set Android SDK versions and build version
+        working-directory: react-app
+        env:
+          BUILD_VERSION: ${{ github.run_number }}
+        run: node patch-android-sdk.js
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Make gradlew executable
+        working-directory: react-app/android
+        run: chmod +x gradlew || true
+
+      - name: Build debug APK
+        working-directory: react-app/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Output APK to App build/Android (versioned + latest)
+        run: |
+          mkdir -p "App build/Android"
+          cp react-app/android/app/build/outputs/apk/debug/app-debug.apk "App build/Android/app-debug.apk"
+          cp react-app/android/app/build/outputs/apk/debug/app-debug.apk "App build/Android/app-debug-${{ github.run_number }}.apk"
+          echo '{"version":${{ github.run_number }},"file":"app-debug-${{ github.run_number }}.apk"}' > "App build/Android/latest.json"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: App build/Android/
+
+      - name: Artifact note (PR)
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "Android artifact is available as 'android' on this run."
+
+  # ---------------------------------------------------------------------------
+  # iOS project + simulator zip (PR: CI; push: same gate as Android)
+  # ---------------------------------------------------------------------------
+  ios:
+    name: iOS project + simulator
+    needs: [paths-filter]
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && needs.paths-filter.outputs.mobile_release == 'true')
+    runs-on: macos-latest
+    concurrency:
+      group: mobile-ios-${{ github.ref }}-${{ github.event_name }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync branch with origin
+        if: github.event_name == 'push'
+        run: |
+          git fetch origin "${{ github.ref_name }}"
+          git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install React app dependencies
+        working-directory: react-app
+        run: npm ci || npm install
+
+      - name: Copy web app and build
+        run: npm run build
+
+      - name: Add iOS platform (if not present)
+        working-directory: react-app
+        run: |
+          if [ ! -d ios ]; then
+            npx cap add ios
+          else
+            echo "ios/ already present, skipping add"
+          fi
+
+      - name: Sync Capacitor iOS
+        working-directory: react-app
+        run: npx cap sync ios
+
+      - name: Install CocoaPods dependencies
+        working-directory: react-app/ios/App
+        run: pod install || true
+
+      - name: Build for iOS Simulator (no signing required)
+        working-directory: react-app
+        run: |
+          WS="ios/App/App.xcworkspace"
+          if [ ! -d "$WS" ]; then echo "Workspace not found, skipping simulator build"; exit 0; fi
+          if ! xcodebuild -workspace "$WS" -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build clean build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO 2>&1 | tee /tmp/xc.log | tail -30; then
+            echo "Simulator build failed (project zip will still be produced); last lines:"
+            tail -15 /tmp/xc.log
+            exit 0
+          fi
+          APP_PATH="build/Build/Products/Debug-iphonesimulator/App.app"
+          if [ -d "$APP_PATH" ]; then
+            mkdir -p "../App build/iOS"
+            RUN="${{ github.run_number }}"
+            SIM_ZIP="Health-Tracker-simulator-${RUN}.zip"
+            cd build/Build/Products/Debug-iphonesimulator
+            zip -r "../../../../../App build/iOS/${SIM_ZIP}" App.app
+            cd "../../../../.."
+            echo "Simulator build: App build/iOS/${SIM_ZIP}"
+          fi
+
+      - name: Create App build/iOS and zip iOS project
+        run: |
+          mkdir -p "App build/iOS"
+          RUN="${{ github.run_number }}"
+          ZIPNAME="Health-Tracker-ios-build-${RUN}.zip"
+          cd react-app
+          zip -r "../App build/iOS/${ZIPNAME}" ios -x "*.DS_Store" -x "*DerivedData*" -x "*.xcuserstate"
+          cd ..
+          cp "App build/iOS/${ZIPNAME}" "App build/iOS/Health-Tracker-ios-latest.zip"
+          SIM_ZIP="Health-Tracker-simulator-${RUN}.zip"
+          if [ -f "App build/iOS/${SIM_ZIP}" ]; then
+            echo "{\"version\":${RUN},\"file\":\"${ZIPNAME}\",\"simulatorFile\":\"${SIM_ZIP}\"}" > "App build/iOS/latest.json"
+          else
+            echo "{\"version\":${RUN},\"file\":\"${ZIPNAME}\"}" > "App build/iOS/latest.json"
+          fi
+
+      - name: Generate OTA manifest and installUrl (when .ipa present)
+        env:
+          RUN: ${{ github.run_number }}
+          BASE_URL: ${{ vars.BUILD_IOS_BASE_URL }}
+        run: |
+          set -e
+          IOS_DIR="App build/iOS"
+          BASE="${BASE_URL:-https://metaheurist.github.io/Health-app/}"
+          BASE="${BASE%/}/"
+          IPA_PATH=$(ls "$IOS_DIR"/*.ipa 2>/dev/null | head -n1) || true
+          if [ -n "$IPA_PATH" ]; then
+            IPA_FILE=$(basename "$IPA_PATH")
+            IPA_URL="${BASE}App%20build/iOS/$(printf '%s' "$IPA_FILE" | sed 's/ /%20/g')"
+            MANIFEST_URL="${BASE}App%20build/iOS/manifest.plist"
+            cat > "$IOS_DIR/manifest.plist" << MANIFEST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>items</key>
+            <array>
+              <dict>
+                <key>assets</key>
+                <array>
+                  <dict>
+                    <key>kind</key>
+                    <string>software-package</string>
+                    <key>url</key>
+                    <string>${IPA_URL}</string>
+                  </dict>
+                </array>
+                <key>metadata</key>
+                <dict>
+                  <key>bundle-identifier</key>
+                  <string>com.healthapp.tracker</string>
+                  <key>bundle-version</key>
+                  <string>${RUN}</string>
+                  <key>kind</key>
+                  <string>software</string>
+                  <key>title</key>
+                  <string>Health Tracker</string>
+                </dict>
+              </dict>
+            </array>
+          </dict>
+          </plist>
+          MANIFEST
+            INSTALL_URL="itms-services://?action=download-manifest&url=${MANIFEST_URL}"
+            export INSTALL_URL
+            node -e "
+            const fs = require('fs');
+            const j = JSON.parse(fs.readFileSync('$IOS_DIR/latest.json', 'utf8'));
+            j.installUrl = process.env.INSTALL_URL;
+            fs.writeFileSync('$IOS_DIR/latest.json', JSON.stringify(j));
+            "
+            echo "OTA installUrl added to latest.json"
+          fi
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios
+          path: App build/iOS/
+
+      - name: Artifact note (PR)
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "iOS artifact is available as 'ios' on this run."
+
+  # ---------------------------------------------------------------------------
+  # Commit App build/ after successful mobile build (push + mobile only)
+  # ---------------------------------------------------------------------------
+  commit-app-build:
+    name: Commit App build to repo
+    needs: [paths-filter, android, ios]
+    if: |
+      github.event_name == 'push' &&
+      needs.paths-filter.outputs.mobile_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync branch with origin
+        run: |
+          git fetch origin "${{ github.ref_name }}"
+          git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
+
+      - name: Download Android artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android
+          path: App build/Android
+
+      - name: Download iOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios
+          path: App build/iOS
+
+      - name: Commit and push App build
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "App build/Android/" "App build/iOS/"
+          git diff --staged --quiet || git commit -m "Update App build artifacts (build ${{ github.run_number }}) [skip ci]"
+          git fetch origin "${{ github.ref_name }}"
+          git push origin ${{ github.ref_name }}
+
+  # ---------------------------------------------------------------------------
+  # GitHub Release with Android + iOS binaries (push + mobile only)
+  # ---------------------------------------------------------------------------
+  publish-release:
+    name: Publish GitHub Release
+    needs: [paths-filter, android, ios]
+    if: |
+      github.event_name == 'push' &&
+      needs.paths-filter.outputs.mobile_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Android binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: android
+          path: gh-release/Android
+
+      - name: Download iOS binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: ios
+          path: gh-release/iOS
+
+      - name: List release assets
+        run: find gh-release -type f | sort
+
+      - name: Create GitHub Release with all binaries
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Health App build ${{ github.run_number }}
+          body: |
+            Automated build from `${{ github.sha }}` on `${{ github.ref_name }}`.
+
+            **Android** (`gh-release/Android/`): debug APK and `latest.json`.
+
+            **iOS** (`gh-release/iOS/`): Xcode project zip, simulator zip (if built), `latest.json`.
+
+            A workflow commit updates `App build/` on the branch for GitHub Pages download links.
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: false
+          files: |
+            gh-release/Android/**/*
+            gh-release/iOS/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---------------------------------------------------------------------------
+  # GitHub Pages — web/ + App build/ (every push to main/master)
+  # ---------------------------------------------------------------------------
+  deploy-pages:
+    name: Deploy to GitHub Pages
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: pages
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Setup Node (minify web app for Pages)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Prepare site (web + App build for download links)
+        run: |
+          mkdir -p site
+          cp -r web/* site/
+          if [ -d "App build" ]; then
+            mkdir -p "site/App build"
+            cp -r "App build/"* "site/App build/" 2>/dev/null || true
+          fi
+          npm install
+          npx esbuild site/app.js --minify --legal-comments=none --outfile=site/app.min.js
+          node -e "
+          const fs = require('fs');
+          let h = fs.readFileSync('site/index.html', 'utf8');
+          h = h.replace(/app\\.js\\?v=1/g, 'app.min.js?v=1');
+          fs.writeFileSync('site/index.html', h);
+          "
+
+      - name: Inject Supabase config for GitHub Pages (from secrets)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = 'site/supabase-config.js';
+          let c = fs.readFileSync(path, 'utf8');
+          const url = process.env.SUPABASE_URL || '';
+          const key = process.env.SUPABASE_ANON_KEY || '';
+          if (url) c = c.replace('https://YOUR_PROJECT_REF.supabase.co', url);
+          if (key) c = c.replace('YOUR_SUPABASE_ANON_KEY', key);
+          fs.writeFileSync(path, c);
+          "
+
+      - name: Upload artifact (web app + App build as site root)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---------------------------------------------------------------------------
+  # npm + pip dependency audits (push, PR, manual)
+  # ---------------------------------------------------------------------------
+  security-audit:
+    name: Security audit
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: react-app/package-lock.json
+
+      - name: npm audit (react-app)
+        working-directory: react-app
+        run: npm ci && npm audit --audit-level=high
+
+      - name: npm audit (root / esbuild)
+        run: npm install --no-save && npm audit --audit-level=high
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: pip-audit (requirements.txt)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pip-audit
+          pip-audit -r requirements.txt --desc on

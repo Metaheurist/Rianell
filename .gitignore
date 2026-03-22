@@ -3,12 +3,12 @@
 .env.local
 .env.production
 
-# Security folder (preferred location for secrets)
-Security/.env
-Security/.env.local
-Security/.env.production
-Security/.encryption_key
-Security/*.key
+# security folder (preferred location for secrets)
+security/.env
+security/.env.local
+security/.env.production
+security/.encryption_key
+security/*.key
 
 # Encryption keys (repo root — legacy)
 .encryption_key

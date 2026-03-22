@@ -40,7 +40,7 @@ def _write_new_key_file(key_file_path: Path) -> str:
 
 
 def get_encryption_key():
-    """Load encryption key from file, environment variable, or create Security/.encryption_key once."""
+    """Load encryption key from file, environment variable, or create security/.encryption_key once."""
     global _encryption_key_warning_shown
     key = None
     key_file_paths = [
@@ -66,7 +66,7 @@ def get_encryption_key():
         if key and not _encryption_key_warning_shown:
             config.logger.info("Loaded encryption key from environment variable")
     if not key:
-        # Persist under Security/ (gitignored); avoids a shared well-known default.
+        # Persist under security/ (gitignored); avoids a shared well-known default.
         primary = config.SECURITY_DIR / '.encryption_key'
         try:
             key = _write_new_key_file(primary)
@@ -79,7 +79,7 @@ def get_encryption_key():
         except OSError as e:
             config.logger.error(f"Could not create encryption key file: {e}")
             raise RuntimeError(
-                "ENCRYPTION_KEY or Security/.encryption_key is required and could not be created."
+                "ENCRYPTION_KEY or security/.encryption_key is required and could not be created."
             ) from e
     return _key_string_to_bytes(key)
 
