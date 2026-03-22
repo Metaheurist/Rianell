@@ -44,7 +44,8 @@ class EmojiLogFormatter(logging.Formatter):
     def format(self, record):
         line = super().format(record)
         emoji = self._LEVEL_EMOJI.get(record.levelno, '📋')
-        return f'{emoji} {line}'
+        # Two spaces after emoji so console/GUI show a clear gap before the timestamp
+        return f'{emoji}  {line}'
 
 
 LOG_FORMAT = '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s'
