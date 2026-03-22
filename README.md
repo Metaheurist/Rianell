@@ -37,6 +37,9 @@ flowchart LR
 - **Medical condition**: Optional label stored in settings and used for anonymised data aggregation and AI context; user can change or clear it.
 
 ### App shell and log experience (web UI)
+
+![Home tab — daily message, last 7 days vs targets, and Log today](docs/images/home-dashboard.png)
+
 - **Home / Today**: Default tab with greeting, date, logging status, goals snippet when enabled, and **Log today** to start the entry flow.
 - **Log entry wizard**: Step-by-step flow (date & flare → vitals → symptoms & pain → energy & day → food → exercise → medication & notes → review) with step indicator, **Back** / **Skip** / **Next**, and **Save entry** on the last step. Drafts are debounced to `sessionStorage`; URL hash `#log/step/<1-based step>` restores step when opening the Log tab.
 - **Navigation**: Top tab strip on wider screens; **bottom navigation bar** on viewports ≤768px (Home, Log, View logs, Charts, AI) with comfortable spacing between items so only one nav chrome shows per breakpoint.
@@ -477,7 +480,7 @@ Health-app/
 ├── requirements.txt        # Python dependencies
 ├── package.json            # Root scripts (build, sync, android)
 ├── docs/                   # Documentation
-│   ├── images/             # README screenshots (e.g. server dashboard)
+│   ├── images/             # README screenshots (Home tab, server dashboard, …)
 │   └── NEURAL_NETWORK_PLAN.md   # AI expansion and optimisation plan
 ├── .github/workflows/      # CI (e.g. Build Android APK)
 ├── react-app/              # React (Vite) + Capacitor shell for Android
@@ -606,7 +609,14 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.27.1** — README: server dashboard screenshot (see below).
+**Latest: v1.27.2** — README: Home tab screenshot (see below).
+
+<details>
+<summary><strong>v1.27.2</strong> — 2026-03-22 — Documentation</summary>
+
+- **README**: Added Home tab screenshot under [App shell and log experience (web UI)](#app-shell-and-log-experience-web-ui); image stored at `docs/images/home-dashboard.png`.
+
+</details>
 
 <details>
 <summary><strong>v1.27.1</strong> — 2026-03-22 — Documentation</summary>
