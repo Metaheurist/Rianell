@@ -75,6 +75,7 @@ SUPABASE_URL = config.SUPABASE_URL
 SUPABASE_SERVICE_KEY = config.SUPABASE_SERVICE_KEY
 file_handler = config.file_handler
 formatter = config.log_formatter
+dashboard_log_formatter = config.dashboard_log_formatter
 
 if not SUPABASE_AVAILABLE:
     print("Warning: supabase library not installed. Supabase features will be disabled.")
@@ -82,7 +83,6 @@ if not SUPABASE_AVAILABLE:
 
 try:
     import tkinter as tk
-    import tkinter.font as tkfont
     from tkinter import ttk, scrolledtext, messagebox
     TKINTER_AVAILABLE = True
 except ImportError:
@@ -1656,19 +1656,12 @@ def create_server_dashboard():
     viewer_tree.bind('<<TreeviewDeselect>>', update_selection_count)
     
     
-    # Logs display (font must support emoji: Consolas does not render emoji in Tk Text on Windows)
+    # Logs display: bracket prefix [LEVEL] via BracketLevelFormatter (console/file keep emoji)
     logs_frame = ttk.LabelFrame(main_frame, text="Server Logs", padding="10")
     logs_frame.pack(fill=tk.BOTH, expand=True, pady=5)
 
-    def _pick_log_viewer_font():
-        families = set(tkfont.families(root))
-        for name in ('Segoe UI', 'Segoe UI Emoji', 'Segoe UI Symbol'):
-            if name in families:
-                return (name, 10)
-        return ('Consolas', 9)
-
-    log_view_font = _pick_log_viewer_font()
-    log_view_font_bold = (log_view_font[0], log_view_font[1], 'bold')
+    log_view_font = ('Consolas', 9)
+    log_view_font_bold = ('Consolas', 9, 'bold')
 
     logs_text = scrolledtext.ScrolledText(
         logs_frame,
@@ -1683,12 +1676,18 @@ def create_server_dashboard():
     # Configure color tags for different parts of log messages (partial highlighting)
     logs_text.tag_config('TIMESTAMP', foreground='#808080', font=log_view_font)  # Gray for timestamps
     logs_text.tag_config('DEBUG', foreground='#808080', font=log_view_font)  # Gray
-    logs_text.tag_config('INFO', foreground='#4caf50', font=log_view_font)  # Green for INFO level
+    logs_text.tag_config('INFO', foreground='#2196f3', font=log_view_font)  # Blue for | INFO | segment
     logs_text.tag_config('WARNING', foreground='#ff9800', font=log_view_font)  # Orange
     logs_text.tag_config('WARN', foreground='#ff9800', font=log_view_font)  # Orange (alias)
     logs_text.tag_config('ERROR', foreground='#f44336', font=log_view_font_bold)  # Red, bold
     logs_text.tag_config('CRITICAL', foreground='#e91e63', font=log_view_font_bold)  # Pink, bold
-    logs_text.tag_config('SYNC', foreground='#2196f3', font=log_view_font)  # Blue for sync keywords
+    logs_text.tag_config('BRACKET_DEBUG', foreground='#808080', font=log_view_font)
+    logs_text.tag_config('BRACKET_INFO', foreground='#2196f3', font=log_view_font)  # Blue leading [INFO]
+    logs_text.tag_config('BRACKET_WARNING', foreground='#ff9800', font=log_view_font)
+    logs_text.tag_config('BRACKET_ERROR', foreground='#f44336', font=log_view_font_bold)
+    logs_text.tag_config('BRACKET_CRITICAL', foreground='#e91e63', font=log_view_font_bold)
+    logs_text.tag_config('BRACKET_OTHER', foreground='#b0bec5', font=log_view_font)
+    logs_text.tag_config('SYNC', foreground='#42a5f5', font=log_view_font)  # Lighter blue (distinct from INFO)
     logs_text.tag_config('REQUEST', foreground='#9c27b0', font=log_view_font)  # Purple for HTTP methods
     logs_text.tag_config('PATH', foreground='#00bcd4', font=log_view_font)  # Cyan for paths
     logs_text.tag_config('DEFAULT', foreground='#e0f2f1', font=log_view_font)  # Default color
@@ -1734,7 +1733,25 @@ def create_server_dashboard():
         def _apply_partial_highlighting(self, start_pos, msg, levelname):
             """Apply color tags to specific parts of the log message"""
             import re
-            
+
+            # Leading [LEVEL] prefix (Tkinter dashboard formatter only)
+            bracket_match = re.match(r'^\[([^\]]+)\]\s*', msg)
+            if bracket_match:
+                lvl = bracket_match.group(1).upper()
+                b0 = bracket_match.start()
+                b1 = bracket_match.end()
+                bs = start_pos + f'+{b0}c'
+                be = start_pos + f'+{b1}c'
+                bracket_tag = {
+                    'DEBUG': 'BRACKET_DEBUG',
+                    'INFO': 'BRACKET_INFO',
+                    'WARNING': 'BRACKET_WARNING',
+                    'WARN': 'BRACKET_WARNING',
+                    'ERROR': 'BRACKET_ERROR',
+                    'CRITICAL': 'BRACKET_CRITICAL',
+                }.get(lvl, 'BRACKET_OTHER')
+                self.text_widget.tag_add(bracket_tag, bs, be)
+
             # Parse the log format: "YYYY-MM-DD HH:MM:SS | LEVEL | Name | Message"
             # Example: "2026-01-03 03:10:02 | INFO | HealthApp | SYNC | Anonymized data synced..."
             
@@ -1818,7 +1835,7 @@ def create_server_dashboard():
                 return 'DEFAULT'
     
     text_handler = TextHandler(logs_text, root)
-    text_handler.setFormatter(formatter)
+    text_handler.setFormatter(dashboard_log_formatter)
     text_handler.setLevel(logging.INFO)
     logger.addHandler(text_handler)
     
