@@ -919,7 +919,15 @@ function openShareModalForChart(chartId) {
 
 function injectChartShareButton(container, chartId) {
   if (!container || !chartId) return;
-  let btn = container.querySelector('.chart-share-btn');
+  const parent = container.parentElement;
+  const isInnerChartInCard = !!(parent && parent.classList && parent.classList.contains('chart-container'));
+  const isChartContainerSelf = !!(container.classList && container.classList.contains('chart-container'));
+
+  const mountParent = isInnerChartInCard ? parent : container;
+  let btn = mountParent.querySelector('.chart-share-btn');
+  if (!btn && isInnerChartInCard) {
+    btn = container.querySelector('.chart-share-btn');
+  }
   if (!btn) {
     btn = document.createElement('button');
     btn.type = 'button';
@@ -927,13 +935,24 @@ function injectChartShareButton(container, chartId) {
     btn.title = 'Share chart';
     btn.setAttribute('aria-label', 'Share this chart');
     btn.innerHTML = '<i class="fa-solid fa-share" aria-hidden="true"></i>';
-    container.appendChild(btn);
   }
+
   btn.onclick = function(e) {
     e.preventDefault();
     e.stopPropagation();
     openShareModalForChart(chartId);
   };
+
+  if (isInnerChartInCard) {
+    parent.insertBefore(btn, container);
+  } else if (isChartContainerSelf) {
+    const first = container.firstChild;
+    if (first !== btn) {
+      container.insertBefore(btn, first || null);
+    }
+  } else if (!container.contains(btn)) {
+    container.appendChild(btn);
+  }
 }
 
 function getChartTitleFromId(chartId) {
@@ -4661,9 +4680,9 @@ async function createBalanceChart() {
   };
   
   container.chart = new ApexCharts(container, options);
-  injectChartShareButton(container, 'balanceChart');
   container.chart.render().then(() => {
     perfLog('Charts createBalanceChart', Date.now() - _perfT0, {});
+    injectChartShareButton(container, 'balanceChart');
   });
 }
 
