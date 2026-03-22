@@ -4,7 +4,9 @@
 function isStaticHost() {
   try {
     const h = (typeof window !== 'undefined' && window.location && window.location.hostname) ? window.location.hostname.toLowerCase() : '';
-    return /github\.io$|netlify\.app$|vercel\.app$|pages\.dev$|cloudflare\.pages$/i.test(h) || h === '';
+    // Only the local Python server exposes /api/reload. Custom domains (e.g. rianell.com), GitHub Pages, etc. must skip EventSource or the console fills with 404/retry noise.
+    if (h === 'localhost' || h === '127.0.0.1') return false;
+    return true;
   } catch (e) {
     return true;
   }

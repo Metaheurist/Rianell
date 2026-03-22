@@ -1,78 +1,65 @@
 // ============================================
 // SUPABASE API CONFIGURATION
 // ============================================
-// Use only straight quotes (') and ASCII characters; avoid pasting from Word or web pages.
-// If you see "Invalid or unexpected token" at line 18, replace url/anonKey with plain ASCII (no smart quotes).
-// [!] IMPORTANT: This file contains sensitive credentials
-// DO NOT commit this file to version control (GitHub, etc.)
-// This file is excluded via .gitignore
+// Credentials are loaded via JSON.parse (single ASCII string) so smart quotes in JS cannot break the file.
+// Replace YOUR_PROJECT_REF and YOUR_SUPABASE_ANON_KEY inside the JSON string only. Use straight " only.
+// DO NOT commit real keys to public Git — keep this file out of version control if it contains secrets.
 
-// Get your credentials from: https://app.supabase.com/project/_/settings/api
-// [!] IMPORTANT: Use the PUBLISHABLE/ANON key, NOT the secret key!
-// Secret keys (sb_secret_...) are for server-side only and will cause "Forbidden" errors in browsers
-// You need the key that starts with "sb_publishable_" from the "Publishable key" section
+(function () {
+  'use strict';
 
-(function() {
+  var SUPABASE_CONFIG = { url: '', anonKey: '' };
+
   try {
-    // Real Supabase configuration (use straight quotes only; avoid pasting from Word/web)
-    var REAL_SUPABASE_CONFIG = {
-      url: 'https://YOUR_PROJECT_REF.supabase.co',
-      anonKey: 'YOUR_SUPABASE_ANON_KEY'
-    };
+    var BASE_JSON = '{"url":"https://YOUR_PROJECT_REF.supabase.co","anonKey":"YOUR_SUPABASE_ANON_KEY"}';
+    var parsed = JSON.parse(BASE_JSON);
+    if (parsed && typeof parsed.url === 'string') SUPABASE_CONFIG.url = parsed.url;
+    if (parsed && typeof parsed.anonKey === 'string') SUPABASE_CONFIG.anonKey = parsed.anonKey;
+  } catch (e) {
+    console.warn('supabase-config: invalid BASE_JSON (fix quotes or JSON)', e && e.message ? e.message : e);
+  }
 
-    var SUPABASE_CONFIG = REAL_SUPABASE_CONFIG;
+  if (typeof window !== 'undefined') {
+    window.SUPABASE_CONFIG = SUPABASE_CONFIG;
+  }
 
-    // Auto-detect local server and check interception status
-    (async function() {
-      try {
-        var isLocalhost = typeof window !== 'undefined' && (
-          window.location.hostname === 'localhost' ||
-          window.location.hostname === '127.0.0.1' ||
-          window.location.hostname === ''
-        );
+  (async function () {
+    try {
+      var isLocalhost = typeof window !== 'undefined' && (
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname === ''
+      );
 
-        if (isLocalhost) {
-          try {
-            var response = await fetch('http://localhost:8080/api/supabase-status');
-            if (response.ok) {
-              var status = await response.json();
-              if (status.interception_enabled) {
-                SUPABASE_CONFIG = {
-                  url: status.local_url,
-                  anonKey: "local-test-key"
-                };
-                console.log("Using local Supabase interception (test database)");
-                console.log("  Database: " + (status.database_path || ""));
-              } else {
-                console.log("Using real Supabase (interception disabled)");
-              }
+      if (isLocalhost) {
+        try {
+          var response = await fetch('http://localhost:8080/api/supabase-status');
+          if (response.ok) {
+            var status = await response.json();
+            if (status.interception_enabled) {
+              SUPABASE_CONFIG = {
+                url: status.local_url,
+                anonKey: 'local-test-key'
+              };
+              console.log('Using local Supabase interception (test database)');
+              console.log('  Database: ' + (status.database_path || ''));
+            } else {
+              console.log('Using real Supabase (interception disabled)');
             }
-          } catch (err) {
-            console.log("Using real Supabase (local server not available)");
           }
+        } catch (err) {
+          console.log('Using real Supabase (local server not available)');
         }
-      } catch (err) {
-        console.warn("Supabase config: interception check failed", err);
       }
-      if (typeof window !== "undefined") {
-        window.SUPABASE_CONFIG = SUPABASE_CONFIG;
-      }
-    })();
-
-    if (typeof window !== "undefined") {
+    } catch (err) {
+      console.warn('Supabase config: interception check failed', err);
+    }
+    if (typeof window !== 'undefined') {
       window.SUPABASE_CONFIG = SUPABASE_CONFIG;
     }
-    if (typeof module !== "undefined" && module.exports) {
-      module.exports = SUPABASE_CONFIG;
-    }
-  } catch (e) {
-    console.warn("Supabase config failed to load:", e.message || e);
-    var safe = { url: "", anonKey: "" };
-    if (typeof window !== "undefined") {
-      window.SUPABASE_CONFIG = safe;
-    }
-    if (typeof module !== "undefined" && module.exports) {
-      module.exports = safe;
-    }
+  })();
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = SUPABASE_CONFIG;
   }
 })();
