@@ -8,7 +8,7 @@ This document describes how the Health App handles health-related data across su
 
 | Topic | Location |
 |-------|----------|
-| Environment variables | [.env.example](.env.example), [README — Configuration](README.md#configuration) |
+| Environment variables | [Security/.env.example](Security/.env.example), [Security/README.md](Security/README.md), [README — Configuration](README.md#configuration) |
 | Supabase RLS examples (SQL) | [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql) |
 | Android network / cleartext after `cap sync` | [docs/android-network-security-notes.md](docs/android-network-security-notes.md) |
 | Automated audits (CI) | [.github/workflows/security-audit.yml](.github/workflows/security-audit.yml) |
@@ -17,6 +17,11 @@ This document describes how the Health App handles health-related data across su
 ## Server logs
 
 Log files under **`logs/`** may contain client IPs, sync metadata, and dashboard activity. They are intended for **local debugging**. Do not ship log files with identifiable health content; rotate or delete old files on shared machines.
+
+## Local secrets directory (`Security/`)
+
+- **`Security/.env`** — preferred location for `PORT`, `HOST`, Supabase keys, and optional `ENCRYPTION_KEY`. Copy from **`Security/.env.example`**. If this file is missing, the server still loads a **legacy** `.env` at the repository root (for existing checkouts).
+- **`Security/.encryption_key`** — preferred single-line encryption key file (gitignored). The server also checks the repo root for legacy `.encryption_key` / `encryption.key`, then may **create** `Security/.encryption_key` automatically.
 
 ## Surfaces
 
@@ -29,7 +34,7 @@ Log files under **`logs/`** may contain client IPs, sync metadata, and dashboard
 ## Python server: bind address and threat model
 
 - **Default `HOST`** is `127.0.0.1`: the HTTP server listens only on the loopback interface. Other machines on the LAN **cannot** connect unless you change this.
-- To allow phones or other devices on the same network to open the app, set **`HOST=0.0.0.0`** in `.env` (listen on all interfaces). That increases exposure: treat the network as a trust boundary or run behind a firewall.
+- To allow phones or other devices on the same network to open the app, set **`HOST=0.0.0.0`** in **`Security/.env`** (or legacy root `.env`) so the server listens on all interfaces. That increases exposure: treat the network as a trust boundary or run behind a firewall.
 - **Do not** expose the dev Python server directly to the internet without a reverse proxy, TLS, and authentication.
 
 ## Sensitive HTTP APIs (encryption key and anonymized training data)
@@ -42,12 +47,12 @@ These routes are intended for **local development** with the browser on the same
 **Rules:**
 
 1. Requests are allowed only from **loopback** addresses (`127.0.0.1`, `::1`), unless you explicitly set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** in the environment (dangerous on shared LANs; use only when you understand the risk).
-2. Use **`ENCRYPTION_KEY`** or **`.encryption_key`** for a stable, operator-controlled key; otherwise the server may **create** `.encryption_key` automatically on first use (see [.env.example](.env.example)).
+2. Use **`ENCRYPTION_KEY`** in **`Security/.env`** or a **`.encryption_key`** file under **`Security/`** for a stable, operator-controlled key; otherwise the server may **create** `Security/.encryption_key` automatically on first use (see [Security/.env.example](Security/.env.example)).
 
 ## Encryption key lifecycle
 
-- Prefer **`ENCRYPTION_KEY`** in `.env` or a single-line file **`.encryption_key`** at the repo root (already gitignored).
-- If neither is present, the server **creates** `.encryption_key` with a random 32-byte hex value on first use. **Back up this file** if you need stable decryption across machines.
+- Prefer **`ENCRYPTION_KEY`** in **`Security/.env`** or a single-line **`Security/.encryption_key`** (see [Security/README.md](Security/README.md)). Legacy paths at the repo root are still supported.
+- If neither env nor key file is present, the server **creates** **`Security/.encryption_key`** with a random 32-byte hex value on first use. **Back up this file** if you need stable decryption across machines.
 - The web client ([web/encryption-utils.js](web/encryption-utils.js)) syncs the key from the server when available; if the app runs without the Python server (e.g. GitHub Pages), it uses a **per-browser** random key stored in `localStorage` (not a shared global default string).
 
 ## Supabase and Row Level Security (RLS)

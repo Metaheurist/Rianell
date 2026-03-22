@@ -1948,7 +1948,7 @@ def main():
         logger.error(f"{error_msg} | Exception: {e}")
         if "Address already in use" in str(e) or "Only one usage" in str(e):
             print(f"Error: Port {PORT} is already in use.")
-            print(f"Please close the application using port {PORT} or change the PORT in .env or server config")
+            print(f"Please close the application using port {PORT} or change the PORT in Security/.env (or legacy .env) or server config")
             sys.exit(1)
         else:
             print(f"Error starting server: {e}")

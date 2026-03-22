@@ -14,7 +14,10 @@ PROJECT_ROOT = _PROJECT_ROOT
 WEB_DIR = _PROJECT_ROOT / 'web'
 LOCAL_LIB_DIR = _PROJECT_ROOT / 'lib'
 REQUIREMENTS_FILE = _PROJECT_ROOT / 'requirements.txt'
-ENV_FILE = _PROJECT_ROOT / '.env'
+# Secrets and env: prefer Security/; root .env is legacy fallback
+SECURITY_DIR = _PROJECT_ROOT / 'Security'
+ENV_FILE = SECURITY_DIR / '.env'
+ENV_FILE_LEGACY = _PROJECT_ROOT / '.env'
 LOG_DIR = _PROJECT_ROOT / 'logs'
 LOG_DIR.mkdir(exist_ok=True)
 
@@ -23,6 +26,8 @@ try:
     from dotenv import load_dotenv
     if ENV_FILE.exists():
         load_dotenv(ENV_FILE)
+    elif ENV_FILE_LEGACY.exists():
+        load_dotenv(ENV_FILE_LEGACY)
 except ImportError:
     pass
 
@@ -79,7 +84,7 @@ file_handler = logger.handlers[0] if logger.handlers else None
 
 # Env
 PORT = int(os.getenv('PORT', '8080'))
-# Default bind: loopback only. Set HOST=0.0.0.0 in .env to listen on all interfaces (LAN).
+# Default bind: loopback only. Set HOST=0.0.0.0 in Security/.env (or legacy root .env) for LAN.
 _host_raw = os.getenv('HOST', '127.0.0.1')
 HOST = (_host_raw or '127.0.0.1').strip() or '127.0.0.1'
 # Allow /api/encryption-key and /api/anonymized-data from non-loopback clients (shared LAN risk).
