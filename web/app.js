@@ -2817,6 +2817,20 @@ window.addEventListener('DOMContentLoaded', function() {
   }
   window.addEventListener('hashchange', function() {
     if (logWizardNavSyncing) return;
+    var _h = (typeof location !== 'undefined' && location.hash ? location.hash : '').replace(/^#/, '');
+    if (_h.toLowerCase() === 'demo') {
+      try {
+        history.replaceState(null, '', location.pathname + location.search + '#home');
+      } catch (e) { /* ignore */ }
+      if (typeof appSettings !== 'undefined' && appSettings.demoMode) {
+        location.reload();
+        return;
+      }
+      if (typeof toggleDemoMode === 'function') {
+        toggleDemoMode();
+      }
+      return;
+    }
     applyHashRoute();
   });
 
@@ -15732,6 +15746,7 @@ function restoreLogDraftIfAny() {
 
 function parseAppHash() {
   var h = (typeof location !== 'undefined' && location.hash ? location.hash : '').replace(/^#/, '');
+  if (h.toLowerCase() === 'demo') return { tab: 'home' };
   if (!h || h === 'home') return { tab: 'home' };
   if (h.indexOf('log') === 0) {
     var m = h.match(/^log\/step\/(\d+)/);
@@ -15989,6 +16004,22 @@ window.addEventListener('load', () => {
   document.body.classList.add('dark-mode');
   
   loadSettings();
+
+  // Shared link: /#Demo enables demo mode and reloads (or restarts if already in demo).
+  try {
+    var _demoHash = (typeof location !== 'undefined' && location.hash ? location.hash : '').replace(/^#/, '');
+    if (_demoHash.toLowerCase() === 'demo') {
+      history.replaceState(null, '', location.pathname + location.search + '#home');
+      if (typeof appSettings !== 'undefined' && appSettings.demoMode) {
+        location.reload();
+        return;
+      }
+      if (typeof toggleDemoMode === 'function') {
+        toggleDemoMode();
+        return;
+      }
+    }
+  } catch (e) { /* ignore */ }
 
   function runAppInit() {
   installPerfLongTaskObserver();
