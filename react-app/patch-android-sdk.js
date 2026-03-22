@@ -14,8 +14,51 @@ const varsPath = path.join(androidDir, 'variables.gradle');
 const appBuildPath = path.join(androidDir, 'app', 'build.gradle');
 const manifestPath = path.join(androidDir, 'app', 'src', 'main', 'AndroidManifest.xml');
 const gradlePropsPath = path.join(androidDir, 'gradle.properties');
+const proguardRulesPath = path.join(androidDir, 'app', 'proguard-rules.pro');
 
 const buildVersion = parseInt(process.env.BUILD_VERSION || process.env.GITHUB_RUN_NUMBER || '1', 10) || 1;
+
+/** R8 + resource shrinking for release APK/AAB (smaller install size). Safe with Capacitor when rules below are present. */
+const PROGUARD_CAPACITOR_MARKER =
+  '# Rianell: Capacitor / WebView (patched by patch-android-sdk.js — do not remove)';
+const PROGUARD_CAPACITOR_RULES = `
+${PROGUARD_CAPACITOR_MARKER}
+-keep class com.getcapacitor.** { *; }
+-keep class org.apache.cordova.** { *; }
+-keepclassmembers class * extends com.getcapacitor.Plugin {
+  @com.getcapacitor.PluginMethod public <methods>;
+}
+-dontwarn com.google.android.play.core.**
+-dontwarn org.apache.cordova.**
+`.trimStart();
+
+function ensureReleaseR8(appBuildPath) {
+  if (!fs.existsSync(appBuildPath)) return false;
+  let c = fs.readFileSync(appBuildPath, 'utf8');
+  let changed = false;
+  if (/release\s*\{[\s\S]*?minifyEnabled\s+false/s.test(c)) {
+    c = c.replace(/(release\s*\{[\s\S]*?\n\s*minifyEnabled\s+)false/, '$1true');
+    changed = true;
+  }
+  if (/release\s*\{[\s\S]*?shrinkResources\s+false/s.test(c)) {
+    c = c.replace(/(release\s*\{[\s\S]*?\n\s*shrinkResources\s+)false/, '$1true');
+    changed = true;
+  } else if (/release\s*\{[\s\S]*?minifyEnabled\s+true/s.test(c) && !/release\s*\{[\s\S]*?shrinkResources/.test(c)) {
+    c = c.replace(/(release\s*\{[\s\S]*?\n\s*minifyEnabled\s+true)/, '$1\n            shrinkResources true');
+    changed = true;
+  }
+  if (changed) fs.writeFileSync(appBuildPath, c);
+  return changed;
+}
+
+function ensureProguardCapacitorRules(proguardPath) {
+  if (!fs.existsSync(proguardPath)) return false;
+  let c = fs.readFileSync(proguardPath, 'utf8');
+  if (c.includes(PROGUARD_CAPACITOR_MARKER)) return false;
+  const sep = c.endsWith('\n') ? '' : '\n';
+  fs.writeFileSync(proguardPath, c + sep + '\n' + PROGUARD_CAPACITOR_RULES + '\n');
+  return true;
+}
 
 function patch(filePath, replacements) {
   if (!fs.existsSync(filePath)) return false;
@@ -90,6 +133,13 @@ function ensureGradleDaemonAndCache() {
 }
 
 if (ensureGradleDaemonAndCache()) {
+  patched = true;
+}
+
+if (ensureReleaseR8(appBuildPath)) {
+  patched = true;
+}
+if (ensureProguardCapacitorRules(proguardRulesPath)) {
   patched = true;
 }
 

@@ -1015,13 +1015,36 @@ def create_server_dashboard():
     # Title
     title_label = ttk.Label(main_frame, text="Rianell Server Control Panel", style='Title.TLabel')
     title_label.pack(pady=10)
+
+    def _app_url_for_browser():
+        """URL that opens the served web app in the default browser (loopback when bound to all interfaces)."""
+        h = HOST.strip()
+        if h in ('0.0.0.0', '::', '[::]'):
+            return f'http://127.0.0.1:{PORT}'
+        if ':' in h and not h.startswith('['):
+            return f'http://[{h}]:{PORT}'
+        return f'http://{h}:{PORT}'
+
+    def open_app_in_browser():
+        url = _app_url_for_browser()
+        try:
+            webbrowser.open(url, new=2)
+            logger.info(f"Opened app in browser: {url}")
+        except Exception as e:
+            logger.warning(f"Could not open browser: {e}")
+            messagebox.showerror("Browser", f"Could not open the app URL:\n{url}\n\n{e}")
     
     # Status frame
     status_frame = ttk.LabelFrame(main_frame, text="Server Status", padding="10")
     status_frame.pack(fill=tk.X, pady=5)
-    
-    server_status = ttk.Label(status_frame, text=f"Server: http://localhost:{PORT}", style='Status.TLabel')
-    server_status.pack(anchor=tk.W)
+
+    status_top = ttk.Frame(status_frame)
+    status_top.pack(fill=tk.X)
+    app_url = _app_url_for_browser()
+    server_status = ttk.Label(status_top, text=f"Server: {app_url}", style='Status.TLabel')
+    server_status.pack(side=tk.LEFT, anchor=tk.W)
+    open_app_btn = ttk.Button(status_top, text="Open app in browser", command=open_app_in_browser)
+    open_app_btn.pack(side=tk.LEFT, padx=(12, 0))
     
     
     # Supabase Database Controls

@@ -14,6 +14,16 @@ function isStaticHost() {
   }
 }
 
+/** True when UI runs in the Capacitor shell (APK / iOS). Parent sets window.__rianellCapacitorNative before the legacy iframe loads. */
+function isRianellNativeApp() {
+  try {
+    if (window.__rianellCapacitorNative) return true;
+    if (window.parent && window.parent !== window && window.parent.__rianellCapacitorNative) return true;
+  } catch (e) {}
+  return false;
+}
+window.isRianellNativeApp = isRianellNativeApp;
+
 // One-time localStorage migration (healthApp* → rianell*) for existing users
 (function migrateLegacyHealthAppStorageKeys() {
   try {
@@ -1820,6 +1830,7 @@ function finishTutorial(enableDemo) {
 }
 
 function maybeShowInstallModalOnce() {
+  if (isRianellNativeApp()) return;
   try {
     if (localStorage.getItem('rianellInstallModalAfterTutorialSeen')) return;
     openInstallModal(false);
@@ -1916,6 +1927,21 @@ function refreshBuildDownloadLinks() {
 window.refreshBuildDownloadLinks = refreshBuildDownloadLinks;
 
 function refreshAppInstallSection() {
+  var appSection = document.getElementById('appInstallSection');
+  if (isRianellNativeApp()) {
+    if (appSection) appSection.style.display = 'none';
+    var installWebEarly = document.getElementById('installWebAppOption');
+    if (installWebEarly) installWebEarly.style.display = 'none';
+    var installIosEarly = document.getElementById('installOnIosDevice');
+    if (installIosEarly) installIosEarly.style.display = 'none';
+    var androidEarly = document.getElementById('androidDownloadOption');
+    var iosEarly = document.getElementById('iosDownloadOption');
+    if (androidEarly) androidEarly.style.display = 'none';
+    if (iosEarly) iosEarly.style.display = 'none';
+    if (typeof hideInstallButton === 'function') hideInstallButton();
+    return;
+  }
+  if (appSection) appSection.style.display = '';
   var platform = (typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform && window.DeviceModule.platform.platform)
     ? window.DeviceModule.platform.platform
     : (/iPad|iPhone|iPod/.test(navigator.userAgent) ? 'ios' : /Android/i.test(navigator.userAgent) ? 'android' : 'desktop');
@@ -1958,6 +1984,7 @@ function refreshAppInstallSection() {
 window.refreshAppInstallSection = refreshAppInstallSection;
 
 function openInstallModal(force) {
+  if (isRianellNativeApp()) return;
   window._installModalOpenedByTutorial = false;
   if (!force) {
     try {
@@ -2745,6 +2772,7 @@ function installPerfLongTaskObserver() {
 // PWA Install Prompt
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
+  if (isRianellNativeApp()) return;
   Logger.debug('PWA: Install prompt triggered');
   e.preventDefault();
   Logger.debug('PWA: install prompt deferred (Chrome may log until user taps Install)');
@@ -2753,6 +2781,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 function showInstallButton() {
+  if (isRianellNativeApp()) return;
   if (document.getElementById('installButton')) return;
   const installButton = document.createElement('button');
   installButton.id = 'installButton';
@@ -2782,6 +2811,7 @@ function showInstallButton() {
 }
 
 function installPWA() {
+  if (isRianellNativeApp()) return;
   if (deferredPrompt) {
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then((choiceResult) => {
@@ -2807,12 +2837,13 @@ function hideInstallButton() {
     }
   }
   var installWebAppOption = document.getElementById('installWebAppOption');
-  if (installWebAppOption) installWebAppOption.style.display = '';
+  if (installWebAppOption && !isRianellNativeApp()) installWebAppOption.style.display = '';
 }
 
 // Enhanced PWA functions for settings menu
 // Enhanced PWA install function for Safari and other browsers
 function installOrLaunchPWA() {
+  if (isRianellNativeApp()) return;
   // Debug info
   Logger.debug('PWA Install Debug:', {
     isStandalone: window.matchMedia('(display-mode: standalone)').matches,
@@ -15171,16 +15202,19 @@ function getMotdMessageList() {
   return MOTD_FALLBACK_MINIMAL;
 }
 
-function getDailyMotdFallback() {
+/**
+ * Preset MOTD line: one random choice per full page load (stable across repeated calls in the same session).
+ */
+function getRandomMotdFallback() {
   const list = getMotdMessageList();
   if (!list.length) return 'Rianell';
-  const d = new Date();
-  const key = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
-  var h = 0;
-  for (var i = 0; i < key.length; i++) {
-    h = Math.imul(31, h) + key.charCodeAt(i) | 0;
+  if (typeof window !== 'undefined' && window.__rianellMotdSessionPick != null) {
+    return window.__rianellMotdSessionPick;
   }
-  return list[Math.abs(h) % list.length];
+  var idx = Math.floor(Math.random() * list.length);
+  var pick = list[idx];
+  if (typeof window !== 'undefined') window.__rianellMotdSessionPick = pick;
+  return pick;
 }
 
 /**
@@ -15190,7 +15224,7 @@ function scheduleDashboardMotdWithLlm(fallbackTitle) {
   var deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
     ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
   if (deviceOpts.deferAI) return;
-  var fb = fallbackTitle != null ? fallbackTitle : getDailyMotdFallback();
+  var fb = fallbackTitle != null ? fallbackTitle : getRandomMotdFallback();
   (async function motdDashboardTitle() {
     if (typeof window.generateMotdWithLLM !== 'function') {
       if (window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
@@ -15216,7 +15250,7 @@ function updateDashboardTitle() {
   const titleElement = document.getElementById('dashboardTitle');
   if (!titleElement) return;
 
-  const fallbackTitle = getDailyMotdFallback();
+  const fallbackTitle = getRandomMotdFallback();
 
   titleElement.textContent = fallbackTitle;
   titleElement.setAttribute('data-text', fallbackTitle);
@@ -16475,7 +16509,7 @@ window.addEventListener('load', () => {
       showCookieBannerIfNeeded();
     }
 
-    scheduleDashboardMotdWithLlm(getDailyMotdFallback());
+    scheduleDashboardMotdWithLlm(getRandomMotdFallback());
 
     renderLogs();
     updateCharts();
