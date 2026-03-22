@@ -8,7 +8,7 @@ This document describes how **Rianell** (this health app) handles health-related
 
 | Topic | Location |
 |-------|----------|
-| Environment variables | [security/.env.example](../security/.env.example), [README — Configuration](../README.md#configuration), [Local secrets directory](#local-secrets-directory-security) below |
+| Environment variables | [security/.env.example](../security/.env.example), [Configuration](testing-and-configuration.md#nav-configuration), [Local secrets directory](#local-secrets-directory-security) below |
 | Supabase RLS examples (SQL) | [supabase-rls-recommended.sql](supabase-rls-recommended.sql) |
 | Android network / cleartext after `cap sync` | [Android: cleartext and mixed content](#android-cleartext-and-mixed-content) below |
 | Automated audits (CI) | [../.github/workflows/ci.yml](../.github/workflows/ci.yml) (`security-audit` job) |
@@ -113,7 +113,7 @@ On each **release** build (or before tagging):
 - Review **`android:exported`** on activities / providers / receivers (Capacitor defaults; only launcher/main should be exported as needed for deep links).
 - Keep **`allowMixedContent: false`** in `capacitor.config.ts` unless you have a documented exception.
 
-**Process:** after **`npx cap sync android`**, run **`node react-app/patch-android-sdk.js`** (CI does this on automated builds). See [README — Local setup](../README.md#local-setup-optional) for the command sequence.
+**Process:** after **`npx cap sync android`**, run **`node react-app/patch-android-sdk.js`** (CI does this on automated builds). See [Local setup (optional)](setup-and-usage.md#local-setup-optional) for the command sequence.
 
 ## Dependency and CI scanning
 

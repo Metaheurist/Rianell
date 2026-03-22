@@ -1,0 +1,189 @@
+<a id="nav-installation"></a>
+
+## ⚙️ Installation
+
+### Prerequisites
+- Python 3.8 or higher
+- Modern web browser (Chrome, Firefox, Edge, Safari)
+- Supabase account (for cloud sync features)
+
+### Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Metaheurist/Rianell.git
+   cd Rianell
+   ```
+
+2. **Install Python dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Configure environment variables**
+   - Copy [`security/.env.example`](../security/.env.example) to **`security/.env`** (see [SECURITY.md](SECURITY.md#local-secrets-directory-security)). If that file is missing, the server still loads a legacy `.env` at the repo root.
+   - Edit **`security/.env`** and add your Supabase credentials:
+     ```env
+     PORT=8080
+     HOST=127.0.0.1
+     SUPABASE_URL=your_supabase_url_here
+     SUPABASE_ANON_KEY=your_supabase_anon_key_here
+     ```
+
+4. **Configure Supabase (for frontend)**
+   - Edit `supabase-config.js` with your Supabase credentials
+   - ⚠️ **Important**: Use the PUBLISHABLE/ANON key, NOT the secret key!
+
+
+<a id="nav-usage"></a>
+
+## 🚀 Usage
+
+### Running the Server
+
+Start the development server from the **repository root** (so the `server` package resolves correctly):
+
+```bash
+python -m server
+```
+
+On **Windows**, you can use the helper script (same behaviour as `python -m server`):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1
+```
+
+If you use PowerShell 7+:
+
+```powershell
+pwsh -File .\server\launch-server.ps1
+```
+
+Optional port:
+
+```powershell
+$env:PORT = "9000"
+powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1
+```
+
+The server will:
+- Start on `http://localhost:8080` (or your configured PORT)
+- Open your browser automatically
+- Display a Tkinter dashboard for server controls
+- Enable file watching for auto-reload (if watchdog is installed)
+
+### Accessing the App
+
+1. **Local Development**: Open `http://localhost:8080` in your browser
+2. **Network Access**: The server defaults to **loopback** (`127.0.0.1`). To open the app from another device on your LAN, set **`HOST=0.0.0.0`** in **`security/.env`** (or legacy root `.env`) and use your PC’s LAN IP (see [SECURITY.md](SECURITY.md)). For sensitive dev APIs from non-loopback clients, set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** (trusted networks only). Optional **`HEALTH_APP_SENSITIVE_APIS_LAN_SECRET`**: when set, clients must send **`X-Rianell-LAN-Secret`** for those APIs. Server logs use **rotation** (size-capped); see [SECURITY.md](SECURITY.md).
+3. **Production**: Deploy files to a web server (no local server needed)
+
+**Install manifest URLs (Android / iOS `latest.json`):** On `localhost`, `127.0.0.1`, and `::1`, the app does **not** fetch `App build/Android/latest.json` or `App build/iOS/latest.json`, because those files are produced by CI and deployed with the site. Default install links still point at fallback paths. To test manifest-driven links locally, open the devtools console and run `sessionStorage.setItem('forceAppBuildManifest','1')`, then reload.
+
+<a id="github-pages-app-at-repo-root"></a>
+
+### GitHub Pages (app at repo root)
+
+The app lives in **`web/`**, so GitHub Pages will not see `index.html` if the source is the repo root. The public site is **[rianell.com](https://rianell.com/)**; GitHub Actions can also deploy the same build to Pages (e.g. `https://<user>.github.io/Rianell/`).
+
+1. In the repo: **Settings → Pages**
+2. Under **Build and deployment**, set **Source** to **GitHub Actions**
+3. The unified workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs the **`deploy-pages`** job on push to `main`/`master` and deploys a prepared **`site/`** folder as the site root (copy of **`web/`** plus `App build/` if present), so `index.html` is served correctly. The job runs **`npm ci`** (with lockfile cache), then **`node web/build-site.mjs --site site`** — same pipeline as local **`npm run build:web`**: instrument first-party JS (optional function trace hooks), minify **`app.js`** → **`app.min.js`** — then rewrites **`index.html`** to load the minified bundle for smaller downloads.
+
+**Custom domain (`rianell.com`):** In **Settings → Pages**, set the custom domain and keep **Enforce HTTPS** on. At your DNS provider, use GitHub’s documented records (apex: four **A** records to `185.199.108.153`–`185.199.111.153`; **www**: **CNAME** to `<user>.github.io`). This repo includes **`web/CNAME`** (contents: `rianell.com`) so each deploy publishes the domain hint at the site root, alongside the GitHub UI setting.
+
+If the site works elsewhere but your PC shows **`ERR_CONNECTION_REFUSED`**, DNS is often fine globally while your machine still has a stale cache, a bad **AAAA**, or a firewall/VPN path. Run **`powershell -ExecutionPolicy Bypass -File .\scripts\check-rianell-dns.ps1`** from the repo to verify **A**/**AAAA**/**www**, then try **`ipconfig /flushdns`**, another network (e.g. phone on cellular), or remove incorrect **AAAA** records for the apex.
+
+**Cloud sync on the live site:** To use Supabase (login, cloud backup, anonymised data) on the GitHub Pages site, add **Repository secrets** (or **Environment secrets** for the `pages` environment): **`SUPABASE_URL`** (your project URL, e.g. `https://xxxx.supabase.co`) and **`SUPABASE_ANON_KEY`** (your publishable anon key). The deploy workflow injects these into the built site at deploy time so they are never committed. If these secrets are not set, the site still deploys; cloud features will work only after you add them.
+
+After the first push (or a manual **Run workflow**), the deployed site will show **Rianell** instead of the README.
+
+<a id="nav-react-android"></a>
+
+## 📱 React shell & Android APK
+
+The app can be run as a **React (Vite) app** that wraps the existing web UI and be built into an **Android APK** via Capacitor. The GitHub Action **Build Android APK** runs on every push to `main`/`master`, output to **`App build/Android/`** and **`App build/iOS/`**, and makes it available in the app’s Settings.
+
+### In-app installation (Settings)
+
+- **Install web app** (globe icon): Install the app as a PWA / standalone web app.
+- **Install on Android** (Android icon): Download the latest Android APK. When the app is served from the same origin (e.g. GitHub Pages), the link uses the newest build from **`App build/Android/`** (see `latest.json`).
+- **Install on iOS / iPhone / iPad**: On iPhone or iPad, open the site in Safari and use **“Install on this iPhone”** or **“Install on this iPad”** in Settings to add the app to your Home Screen (one-tap flow; works offline like a native app). Alternatively, download the Xcode project zip from **Install on iOS** and build to your device in Xcode. If a signed .ipa is provided in **`App build/iOS/`** (with `installUrl` in `latest.json`), **Install on iOS** becomes a one-tap native install from the site.
+
+<a id="local-setup-optional"></a>
+
+### Local setup (optional)
+
+- **Node.js 20+**
+- From repo root:
+  ```bash
+  npm install
+  cd react-app && npm install
+  npm run copy-webapp   # copies web app into react-app/public/legacy
+  npm run build        # builds React app into react-app/dist
+  ```
+- To add the Android project (one-time, then commit `react-app/android/` if you want):
+  ```bash
+  cd react-app && npx cap add android
+  npx cap sync android
+  node patch-android-sdk.js   # minSdk/targetSdk/compileSdk, R8, notifications, portrait, network_security_config + manifest cleartext cleanup
+  ```
+- **Launcher icon & splash (APK / iOS):** Raster PWA icons live under **`web/Icons/`** (generated from **`logo-source.png`** and committed). They are **not** copied into native projects by `cap sync`. **`npm run build:android`** runs **`scripts/prepare-android-assets.mjs`** (builds **`react-app/assets/logo.png`**) then **`@capacitor/assets`** for Android mipmaps/splash before **`cap sync`**. For iOS, add the platform and run **`cd react-app && npx @capacitor/assets generate --ios`** (with **`logo.png`** present) or align assets in Xcode.
+- **Performance (APK):** Use **`npm run build:apk`** (or **`npm run build:android`**) so the legacy bundle is built with **`web/build-site.mjs --skip-trace`** — same minified **`app.min.js`** as **`npm run build:web`**, but **without** function-trace instrumentation (noticeably smaller JS inside the APK). Production still uses **`react-app/copy-webapp.js --min`**. **`react-app/patch-android-sdk.js`** adds **`network_security_config.xml`** (cleartext off by default), wires it in **`AndroidManifest.xml`**, strips **`usesCleartextTraffic="true"`** if present, enables **R8** (`minifyEnabled true`) and **resource shrinking** for the **release** Gradle build type, and appends **ProGuard** keep rules for Capacitor; run **`./gradlew assembleRelease`** in **`react-app/android`** with your signing config for a smaller store-ready APK/AAB than **debug**. GitHub Pages / default **`npm run build`** keeps function-trace for the deployed site.
+- Open in Android Studio: `cd react-app && npx cap open android`
+
+### Android targets
+
+- **minSdk 22** (Android 5.1) for broad device support.
+- **targetSdk 34** (Android 14) for current store requirements.  
+Controlled in `react-app/android/variables.gradle` (or via `react-app/patch-android-sdk.js`).
+
+### CI: App builds on each commit
+
+- **Android / iOS** CI: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) — `android` and `ios` jobs (PR builds; on `main`/`master` pushes also commit `App build/`, release assets, and Pages). iOS builds a **simulator .app** (no Apple account; test in Xcode Simulator on a Mac) and zips the Xcode project to `App build/iOS/` for device sideloading (open in Xcode, sign with your Apple ID). Device signing for direct install (OTA) requires an Apple Developer account ($99/year).
+- On **push** or **pull_request** to `main` or `master`: builds the web app, syncs Capacitor, builds a **debug APK**, copies it into **`App build/Android/`** as **`app-debug-beta.apk`** (and a run-numbered copy), and uploads the **android** artifact.
+- On **push** (not PR) to `main`/`master`: the workflow also **commits** the `App build/Android/` folder to the repo with `[skip ci]`, so the “Install on Android” link in Settings works when the app is served from the same repo (e.g. GitHub Pages).
+- Download the APK from the run’s **Summary → Artifacts** (name **android**), or use **Settings → Install on Android / Install on iOS** in the deployed app.
+
+### Using Rianell
+
+1. **Add Daily Entries**:
+   - Click "Add Entry" button
+   - Fill in health metrics for the day
+   - Add food items and exercises
+   - Save the entry
+
+2. **View Analytics**:
+   - Navigate to the Analytics section
+   - View charts showing trends
+   - Analyse correlations between metrics
+
+3. **Manage Data**:
+   - Export data: Settings → Export Data
+   - Import data: Settings → Import Data
+   - Clear all data: Settings → Clear All Data
+
+4. **Cloud Sync**:
+   - Enable "Contribute anonymised data" in Settings
+   - Accept GDPR agreement
+   - Data will be anonymised and synced to Supabase
+
+<a id="server-dashboard-features"></a>
+
+### Server Dashboard Features
+
+![Rianell Server Dashboard — local URL, Supabase connection, database viewer, and live server logs](images/server-dashboard.png)
+
+The Tkinter dashboard provides:
+
+1. **Server Status**:
+   - View server URL and status
+   - Restart server without closing dashboard
+
+2. **Supabase Database Management**:
+   - **Search**: Search anonymised data by medical condition
+   - **Delete**: Remove data (all, by condition, or specific IDs)
+   - **Export**: Export data to CSV files
+   - **Viewer**: Real-time database viewer showing last 100 records
+
+3. **Server Logs**: Real-time log viewer using **`[DEBUG]`** / **`[INFO]`** / **`[WARNING]`** / **`[ERROR]`** / **`[CRITICAL]`** at the start of each line (two spaces after the bracket), with colour on that tag (e.g. blue for `[INFO]`, red bold for `[ERROR]`). The terminal and `logs/*.log` files still use **emoji** prefixes—see [Logging](project-reference.md#logging).
