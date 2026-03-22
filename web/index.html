@@ -52,9 +52,10 @@
         var t = rejectionText(reason);
         if (!t) return false;
         if (/chrome-extension:|moz-extension:|safari-web-extension:|extension:\/\//i.test(t)) return true;
-        /* Extension injected scripts (e.g. VM1234 vendor.js) — tabs:outgoing.message.ready, No Listener */
-        if (/tabs:outgoing|tabs\.outgoing|outgoing\.message\.ready|No\s+Listener|vendor\.js|VM\d+\s+vendor|serviceWorker\.js|background\.js/i.test(t)) return true;
+        /* Extension injected scripts (e.g. VM1234 vendor.js) — tabs:outgoing.message.ready, No Listener:, i18next, Grammarly, locize, chrome-error:, chromewebdata */
+        if (/tabs:outgoing|tabs\.outgoing|outgoing\.message\.ready|No\s+Listener:?|i18next|Grammarly|locize|chrome-error:|chromewebdata|vendor\.js|VM\d+\s+vendor|serviceWorker\.js|background\.js/i.test(t)) return true;
         if (/Frame with ID \d+ was removed|No tab with id|Could not establish connection|Receiving end does not exist|message port closed/i.test(t)) return true;
+        if (/chrome-error:|chromewebdata|Unsafe attempt to load URL/i.test(t)) return true;
         return false;
       }
       window.addEventListener('unhandledrejection', function (ev) {

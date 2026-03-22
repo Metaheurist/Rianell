@@ -2706,6 +2706,7 @@ let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   Logger.debug('PWA: Install prompt triggered');
   e.preventDefault();
+  Logger.debug('PWA: install prompt deferred (Chrome may log until user taps Install)');
   deferredPrompt = e;
   showInstallButton();
 });
@@ -3995,7 +3996,7 @@ async function createCombinedChart() {
   
   // Check if we have data
   if (!filteredLogs || filteredLogs.length === 0) {
-    console.warn('No data available for combined chart (after date filter)');
+    Logger.debug('Combined chart: no data in date range (empty state)');
     updateChartEmptyState(false);
     return;
   }
@@ -4976,7 +4977,7 @@ async function createBalanceChart() {
   
   // Check if we have data
   if (!filteredLogs || filteredLogs.length === 0) {
-    console.warn('No data available for balance chart (after date filter)');
+    Logger.debug('Balance chart: no data in date range (empty state)');
     
     if (container.chart) {
       try { container.chart.destroy(); } catch (e) { /* ignore */ }
@@ -5036,7 +5037,7 @@ async function createBalanceChart() {
   const metrics = allMetrics.filter(m => selectedMetrics.includes(m.field));
   
   if (metrics.length === 0) {
-    console.warn('No metrics selected for balance chart');
+    Logger.debug('No metrics selected for balance chart (empty state)');
     updateChartEmptyState(false);
     return;
   }
@@ -5061,7 +5062,7 @@ async function createBalanceChart() {
       });
     
     if (values.length === 0) {
-      console.warn(`No data found for metric: ${metric.field}`);
+      Logger.debug('Balance chart: no data found for metric (empty state)', { field: metric.field });
       return 0;
     }
     
@@ -5088,7 +5089,7 @@ async function createBalanceChart() {
   });
   
   if (metricsWithData.length === 0) {
-    console.warn('No metrics with data available for balance chart');
+    Logger.debug('No metrics with data available for balance chart (empty state)');
     updateChartEmptyState(false);
     return;
   }
@@ -5794,7 +5795,7 @@ async function generateAISummary() {
         <p class="ai-empty-desc">Add logs with the + button. Analysis will appear here for your chosen date range.</p>
       </div>
     `;
-    Logger.warn('AI Summary - No data available');
+    Logger.debug('AI Summary: no logs in range (empty state)');
     return;
   }
 
@@ -5854,7 +5855,7 @@ async function generateAISummary() {
         <p class="ai-empty-desc">None of your entries fall in ${escapeHTML(dateRangeText)}. Try another range, or tap <strong>+</strong> to add a log for these dates.</p>
       </div>
     `;
-    Logger.warn('AI Summary - No filtered logs in range');
+    Logger.debug('AI Summary: no logs in range (empty state)');
     return;
   }
 
@@ -11503,7 +11504,7 @@ async function chart(id, label, dataField, color) {
   
   // Check if we have data
   if (!filteredLogs || filteredLogs.length === 0) {
-    console.warn(`No data available for chart: ${label} (after date filter)`);
+    Logger.debug('Individual chart: no data in date range (empty state)', { label });
     if (container.chart) {
       try { container.chart.destroy(); } catch (e) { /* ApexCharts may throw if node is detached */ }
       container.chart = null;
@@ -11564,7 +11565,7 @@ async function chart(id, label, dataField, color) {
   }
   
   if (optimizedChartData.length === 0) {
-    console.warn(`No valid data for chart: ${label}`);
+    Logger.debug('Individual chart: no valid data in range (empty state)', { label });
     // Hide chart container if no valid data
     if (container) {
       // Destroy existing chart if it exists
@@ -16364,8 +16365,9 @@ function __rianellRejectionText(reason) {
 function __rianellIsExtensionRejectionBlob(blob) {
   if (!blob || typeof blob !== 'string') return false;
   if (/chrome-extension:|moz-extension:|safari-web-extension:|extension:\/\//i.test(blob)) return true;
-  if (/tabs:outgoing|tabs\.outgoing|outgoing\.message\.ready|No\s+Listener|vendor\.js|VM\d+\s+vendor|serviceWorker\.js|background\.js/i.test(blob)) return true;
+  if (/tabs:outgoing|tabs\.outgoing|outgoing\.message\.ready|No\s+Listener:?|i18next|Grammarly|locize|chrome-error:|chromewebdata|vendor\.js|VM\d+\s+vendor|serviceWorker\.js|background\.js/i.test(blob)) return true;
   if (/Frame with ID \d+ was removed|No tab with id|Could not establish connection|Receiving end does not exist|message port closed/i.test(blob)) return true;
+  if (/chrome-error:|chromewebdata|Unsafe attempt to load URL/i.test(blob)) return true;
   if (blob.includes('ERR_INVALID_URL') && blob.includes('data:;base64')) return true;
   return false;
 }
