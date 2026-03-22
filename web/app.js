@@ -15779,12 +15779,14 @@ function initializeTilePickerSheet() {
   var dialog = document.getElementById('tilePickerSheet');
   var closeBtn = document.getElementById('tilePickerSheetClose');
   if (!dialog) return;
+  /* Capture phase: food/exercise modals use .modal-content onclick=stopPropagation(), which
+   * blocks bubble from reaching body — tile picker must run on capture or triggers inside those modals never fire. */
   document.body.addEventListener('click', function (e) {
     var t = e.target.closest('.tile-picker-trigger');
     if (!t) return;
     e.preventDefault();
     openTilePickerSheet(t);
-  });
+  }, true);
   if (closeBtn) {
     closeBtn.addEventListener('click', function () {
       closeTilePickerSheet();
