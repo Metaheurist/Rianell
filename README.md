@@ -50,6 +50,8 @@ The authoritative security guide is **[docs/SECURITY.md](docs/SECURITY.md)**. It
 
 Operational “do not commit secrets” reminders stay in [Security notes](#security-notes) below.
 
+**Contact:** For general questions about security or this project, use [Contact and reporting](docs/SECURITY.md#contact-and-reporting) in **SECURITY.md** (LinkedIn).
+
 **Local secrets folder:** [`security/`](security/) holds **`security/.env`** and **`security/.encryption_key`** (gitignored). Copy [`security/.env.example`](security/.env.example) → `security/.env`. Details: [docs/SECURITY.md](docs/SECURITY.md#local-secrets-directory-security).
 
 

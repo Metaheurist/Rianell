@@ -28,7 +28,8 @@ Log files under **`logs/`** may contain client IPs, sync metadata, and dashboard
 | Surface | Data at risk | Primary controls |
 |--------|----------------|------------------|
 | **Web (PWA)** | `localStorage` / IndexedDB on the device | Browser same-origin policy, CSP ([../web/index.html](../web/index.html)), optional Supabase **RLS** |
-| **Android (Capacitor)** | Same web assets in WebView + device storage | [../react-app/capacitor.config.ts](../react-app/capacitor.config.ts), Android manifest (after `cap sync`), user device security |
+| **Android (Capacitor)** | Same web assets in WebView + device storage | [../react-app/capacitor.config.ts](../react-app/capacitor.config.ts), Android manifest (after `cap sync`), [network security](#android-cleartext-and-mixed-content), user device security |
+| **iOS (Capacitor)** | Same web assets in WKWebView + device storage | App Transport Security (HTTPS for remote content by default), Capacitor config, follow Apple signing and distribution guidelines |
 | **Python server** | LAN exposure, optional proxy to Supabase | Bind address ([../server/config.py](../server/config.py)), gated sensitive APIs, no TLS on dev server |
 
 ## Python server: bind address and threat model
@@ -46,7 +47,7 @@ These routes are intended for **local development** with the browser on the same
 
 **Rules:**
 
-1. Requests are allowed only from **loopback** addresses (`127.0.0.1`, `::1`), unless you explicitly set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** in the environment (dangerous on shared LANs; use only when you understand the risk).
+1. Requests are allowed only from **loopback** addresses (`127.0.0.1`, `::1`), unless you explicitly set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** in the environment. **Never enable this on untrusted or public Wi‑Fi**; it exposes key and training-style data to anyone who can reach your machine on the LAN.
 2. Use **`ENCRYPTION_KEY`** in **`security/.env`** or a **`.encryption_key`** file under **`security/`** for a stable, operator-controlled key; otherwise the server may **create** `security/.encryption_key` automatically on first use (see [security/.env.example](../security/.env.example)).
 
 ## Encryption key lifecycle
@@ -57,13 +58,25 @@ These routes are intended for **local development** with the browser on the same
 
 ## Supabase and Row Level Security (RLS)
 
-The anon key is present in client bundles by design. **Authorization must be enforced in Supabase** with RLS and least-privilege policies. Recommended starting points are in [supabase-rls-recommended.sql](supabase-rls-recommended.sql). Apply and adjust to your schema in the Supabase SQL editor.
+The anon key is present in client bundles by design. **Authorization must be enforced in Supabase** with RLS and least-privilege policies. Recommended starting points are in [supabase-rls-recommended.sql](supabase-rls-recommended.sql). Apply and adjust to your schema in the Supabase SQL editor. **Operational check:** in the Supabase dashboard, confirm **RLS is enabled** on tables that hold user data and that policies match your deployment (the repo SQL is a starting point, not a substitute for verifying the live project).
 
 ## Content Security Policy (CSP) and XSS
 
 - The app CSP allows `'unsafe-inline'` and `'unsafe-eval'` for compatibility with inline bootstraps and ML libraries. Tightening this is a **tracked hardening goal**; removing `unsafe-eval` may require bundling or loading changes.
 - The meta policy also includes `'wasm-unsafe-eval'` and `worker-src` for blob/CDN workers (TensorFlow.js). If you add a **second** CSP via **HTTP headers** (e.g. Cloudflare “Content Security Policy”), browsers apply **both** policies: every directive must allow what the app needs, or Chrome will report **eval blocked** / **script-src blocked** even when the meta tag looks correct.
 - Prefer `textContent` / `createElement` over `innerHTML` where user-influenced strings are inserted.
+
+## Known residual risks and mitigations
+
+These are **accepted or environmental** limitations called out so operators and reviewers can assess exposure.
+
+| Risk | Mitigation / notes |
+|------|---------------------|
+| **CSP** allows `'unsafe-inline'` and `'unsafe-eval'` | Required for current bootstraps and ML stacks; treat XSS as high impact—avoid reflecting unsanitized user input into HTML/JS; prefer `textContent` and structured DOM. |
+| **Third-party script and model loads** (e.g. CDNs for Transformers.js, model weights from Hugging Face) | Supply-chain and availability depend on those hosts; use Subresource Integrity where applicable for fixed scripts, pin dependency versions in CI, and monitor `npm audit`. |
+| **No app-level encryption of health logs in browser storage** | Mitigate with device lock, OS updates, and org policy; see [Client-side storage](#client-side-storage-and-privacy). |
+| **Python dev server without TLS** | Use only on loopback or a trusted LAN; never expose raw to the internet. |
+| **GitHub Actions / static deploy secrets** | Production Supabase URL and anon key are injected at deploy from repository secrets; do not commit real secrets to the repo. |
 
 ## Android: cleartext and mixed content
 
@@ -102,6 +115,8 @@ On each **release** build (or before tagging):
 
 Health logs in the browser live in **`localStorage`** (and optionally IndexedDB) without an app-level passphrase. Anyone with **device access** or **malware on the device** may read that data. The in-app GDPR/consent flows describe cloud contribution; they do not replace **device security** (screen lock, OS updates) or organisational policies for regulated health data.
 
-## Reporting issues
+## Contact and reporting
 
-Do not open public issues for undisclosed vulnerabilities. Contact the maintainer privately if you believe you have found a serious flaw.
+**General questions** about this security model or the project: reach out on LinkedIn: [Johan (typicaljohan)](https://www.linkedin.com/in/typicaljohan/).
+
+**Security vulnerabilities:** do **not** open a public GitHub issue for an undisclosed vulnerability. Contact the maintainer **privately** (e.g. via LinkedIn with a clear subject line, or another channel you already use with the maintainer) so details can be triaged before any public disclosure.
