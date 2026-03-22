@@ -4,6 +4,18 @@ A comprehensive web-based health tracking application with data visualisation, a
 
 **Repository**: [https://github.com/Metaheurist/Health-app](https://github.com/Metaheurist/Health-app)
 
+## Security
+
+The authoritative security guide is **[SECURITY.md](SECURITY.md)**. It describes the threat model across the **web app**, **Android (Capacitor)**, and **Python dev server**, including:
+
+- Default **`HOST=127.0.0.1`** (loopback) and when to use **`HOST=0.0.0.0`** for LAN testing  
+- Gated sensitive routes: **`/api/encryption-key`**, **`/api/anonymized-data`**, and **`HEALTH_APP_SENSITIVE_APIS_ON_LAN`**  
+- Encryption key lifecycle (`.encryption_key`, `ENCRYPTION_KEY`, client behaviour)  
+- **Supabase RLS** expectations and [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql)  
+- **CSP**, Android **`allowMixedContent`**, dependency audits ([`.github/workflows/security-audit.yml`](.github/workflows/security-audit.yml)), and client-side storage risks  
+
+Operational “do not commit secrets” reminders stay in [Security notes](#security-notes) below.
+
 ## App overview
 
 ```mermaid
@@ -158,7 +170,7 @@ flowchart LR
    - Edit `.env` and add your Supabase credentials:
      ```env
      PORT=8080
-     HOST=
+     HOST=127.0.0.1
      SUPABASE_URL=your_supabase_url_here
      SUPABASE_ANON_KEY=your_supabase_anon_key_here
      ```
@@ -205,7 +217,7 @@ The server will:
 ### Accessing the App
 
 1. **Local Development**: Open `http://localhost:8080` in your browser
-2. **Network Access**: Use your local IP address (shown in server console)
+2. **Network Access**: The server defaults to **loopback** (`127.0.0.1`). To open the app from another device on your LAN, set **`HOST=0.0.0.0`** in `.env` and use your PC’s LAN IP (see [SECURITY.md](SECURITY.md)). For sensitive dev APIs from non-loopback clients, set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** (trusted networks only).
 3. **Production**: Deploy files to a web server (no local server needed)
 
 **Install manifest URLs (Android / iOS `latest.json`):** On `localhost`, `127.0.0.1`, and `::1`, the app does **not** fetch `App build/Android/latest.json` or `App build/iOS/latest.json`, because those files are produced by CI and deployed with the site. Default install links still point at fallback paths. To test manifest-driven links locally, open the devtools console and run `sessionStorage.setItem('forceAppBuildManifest','1')`, then reload.
@@ -336,7 +348,8 @@ Sample data includes realistic patterns:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `PORT` | Server port | `8080` |
-| `HOST` | Server host (empty = all interfaces) | `` |
+| `HOST` | Bind address (`127.0.0.1` = local only; `0.0.0.0` = all interfaces / LAN) | `127.0.0.1` |
+| `HEALTH_APP_SENSITIVE_APIS_ON_LAN` | Allow `/api/encryption-key` and `/api/anonymized-data` from non-loopback IPs | unset (off) |
 | `SUPABASE_URL` | Your Supabase project URL | Required |
 | `SUPABASE_ANON_KEY` | Your Supabase anon/publishable key | Required |
 
@@ -600,9 +613,11 @@ The app includes GDPR-compliant data sharing:
 - Ensure data entries exist
 - Try clearing browser cache
 
-## Security Notes
+## Security notes
 
-⚠️ **Important Security Considerations**:
+Start with the full guide: **[SECURITY.md](SECURITY.md)** (same content as linked from [Security](#security) at the top of this file). Supplementary references: [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql), [docs/android-network-security-notes.md](docs/android-network-security-notes.md), CI workflow [`.github/workflows/security-audit.yml`](.github/workflows/security-audit.yml) (`npm audit`, `pip-audit`).
+
+⚠️ **Important security considerations**:
 
 1. **Never commit sensitive files**:
    - `.env` (contains Supabase credentials)
