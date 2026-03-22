@@ -1006,27 +1006,6 @@ body.light-mode #logTab.log-wizard-mode .section-header {
 
 @media (max-width: 768px) {
   /*
-   * iOS WebKit: .container uses transform (slideInUp) + backdrop-filter — both create a containing
-   * block, so position:fixed descendants were pinned to the card and scrolled mid-viewport.
-   * Flatten transform/animation + drop backdrop on the main scroll column so wizard actions use the viewport.
-   */
-  .container.app-main-scroll {
-    transform: none !important;
-    animation: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: rgba(18, 22, 28, 0.97);
-  }
-
-  .container.app-main-scroll:hover {
-    transform: none !important;
-  }
-
-  body.light-mode .container.app-main-scroll {
-    background: rgba(255, 255, 255, 0.97);
-  }
-
-  /*
    * Sticky breaks inside .container.app-main-scroll (backdrop-filter creates a containing block).
    * Pin actions to the viewport above the bottom tab bar; #logForm padding-bottom reserves scroll space.
    */
@@ -1034,16 +1013,14 @@ body.light-mode #logTab.log-wizard-mode .section-header {
     position: fixed;
     left: calc(18px + max(16px, env(safe-area-inset-left, 0px)));
     right: calc(18px + max(16px, env(safe-area-inset-right, 0px)));
-    /* Tab bar: ~6 + 52 + 8 + safe-area inside .app-bottom-nav */
-    bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
     width: auto;
     margin-top: 0;
     margin-bottom: 0;
     z-index: 1001;
-    background: rgba(12, 14, 18, 0.96);
-    /* backdrop-filter here also confuses iOS compositing with fixed layers */
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    background: rgba(12, 14, 18, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-md) var(--radius-md) 0 0;
     box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.4);
@@ -1052,24 +1029,9 @@ body.light-mode #logTab.log-wizard-mode .section-header {
   }
 
   body.light-mode .log-wizard-sticky-actions {
-    background: rgba(248, 250, 252, 0.98);
+    background: rgba(248, 250, 252, 0.96);
     border-top-color: rgba(0, 0, 0, 0.1);
     box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
-  }
-
-  /* Solid #0a0a0a sticky strip read as a “black box” over chips; keep flush with card */
-  #logTab.log-wizard-mode .selection-summary-sticky {
-    position: static;
-    background: transparent;
-    border-bottom: none;
-    padding-bottom: 10px;
-  }
-
-  /* rgba(0,0,0,0.2) + removed backdrop on parent reads as harsh black slabs on iOS */
-  #logTab.log-wizard-mode .energy-clarity-tiles,
-  #logTab.log-wizard-mode .stressor-tiles-container,
-  #logTab.log-wizard-mode .symptom-tiles-container {
-    background: rgba(255, 255, 255, 0.045);
   }
 }
 
