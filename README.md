@@ -52,7 +52,9 @@ Operational “do not commit secrets” reminders stay in [Security notes](#secu
 
 **Contact:** For general questions about security or this project, use [Contact and reporting](docs/SECURITY.md#contact-and-reporting) in **SECURITY.md** (LinkedIn).
 
-**Local secrets folder:** [`security/`](security/) holds **`security/.env`** and **`security/.encryption_key`** (gitignored). Copy [`security/.env.example`](security/.env.example) → `security/.env`. Details: [docs/SECURITY.md](docs/SECURITY.md#local-secrets-directory-security).
+**Local secrets folder:** [`security/`](security/) holds **`security/.env`** and **`security/.encryption_key`** (gitignored). Copy [`security/.env.example`](security/.env.example) → `security/.env`. Details: [docs/SECURITY.md](docs/SECURITY.md#local-secrets-directory-security). **Back up** `security/.encryption_key` to a safe place if the Python server created it and you need the same key on another machine.
+
+**Static hosting (e.g. GitHub Pages):** the app runs **without** the Python server; encryption uses a **per-browser** key in `localStorage` (not synced with `security/.encryption_key`). See [docs/SECURITY.md](docs/SECURITY.md#encryption-key-lifecycle).
 
 
 <a id="nav-app-overview"></a>
