@@ -1175,7 +1175,7 @@ async function getUserEncryptionKey() {
     console.log('Generating new user encryption key...');
     const newKey = generateUserEncryptionKey();
     
-    // Store the key in user_keys table
+    // Store the key in user_keys table (first device wins; others must reuse the same key)
     const { error: insertError } = await client
       .from('user_keys')
       .insert({
@@ -1185,7 +1185,17 @@ async function getUserEncryptionKey() {
       });
     
     if (insertError) {
-      console.error('Error storing user key:', insertError);
+      // Another device/session inserted first (unique on user_id) or race: fetch existing key
+      const { data: existingAfterConflict, error: refetchErr } = await client
+        .from('user_keys')
+        .select('encryption_key')
+        .eq('user_id', cloudSyncState.user.id)
+        .maybeSingle();
+      if (existingAfterConflict && existingAfterConflict.encryption_key) {
+        console.log('Using existing user encryption key (already stored for this account)');
+        return existingAfterConflict.encryption_key;
+      }
+      console.error('Error storing user key:', insertError, refetchErr || '');
       return null;
     }
     
