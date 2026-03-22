@@ -98,13 +98,14 @@ flowchart LR
 
 ### Server (testing and development)
 - **Local server**: Python HTTP server for local testing (`python -m server`); serves `web/` at root; optional file watching and auto-reload.
+- **Windows launcher**: From the repo root, `powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1` (or `pwsh -File .\server\launch-server.ps1`) runs the same server; optional `$env:PORT` / `$env:HOST` before invoking.
 - **Supabase integration**: Server can use Supabase for anonymised data and app_settings; credentials from `.env`.
 - **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs.
 
 ## Project structure
 
 - **`web/`** – Static web app: HTML, CSS, JavaScript, icons, and assets. The server serves this directory at the root URL.
-- **`server/`** – Python server package (main server logic in `main.py`, plus config, encryption, Supabase client, sample data, requirements checks). Run from repo root: **`python -m server`**.
+- **`server/`** – Python server package (main server logic in `main.py`, plus config, encryption, Supabase client, sample data, requirements checks). Run from repo root: **`python -m server`**, or on Windows **`server/launch-server.ps1`** (see [Running the Server](#running-the-server)).
 
 ## Installation
 
@@ -144,10 +145,29 @@ flowchart LR
 
 ### Running the Server
 
-Start the development server:
+Start the development server from the **repository root** (so the `server` package resolves correctly):
 
 ```bash
 python -m server
+```
+
+On **Windows**, you can use the helper script (same behaviour as `python -m server`):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1
+```
+
+If you use PowerShell 7+:
+
+```powershell
+pwsh -File .\server\launch-server.ps1
+```
+
+Optional port:
+
+```powershell
+$env:PORT = "9000"
+powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1
 ```
 
 The server will:
@@ -466,6 +486,7 @@ Health-app/
 │   ├── Android/           # APK + latest.json
 │   └── iOS/               # Xcode project zip + latest.json
 ├── server/                 # Python HTTP server (`python -m server`)
+│   └── launch-server.ps1   # Windows launcher (optional)
 ├── .env                    # Environment variables (not in git)
 ├── .env.example            # Environment template
 └── logs/                   # Server logs
@@ -581,7 +602,14 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.24.0** — Full-screen tile picker sheets, mobile chip UX, dashboard MOTD (see below).
+**Latest: v1.25.0** — Windows PowerShell launcher for the Python server (see below).
+
+<details>
+<summary><strong>v1.25.0</strong> — 2026-03-22 — `server/launch-server.ps1` for Windows</summary>
+
+- **Windows launcher**: Added `server/launch-server.ps1` to start the Health App server from the repo root (`python -m server` or `py -3 -m server` when `python` is not on PATH). README documents usage with Windows PowerShell and `pwsh`, and optional `$env:PORT` / `$env:HOST`.
+
+</details>
 
 <details>
 <summary><strong>v1.24.0</strong> — 2026-03-21 — Tile picker dialog, mobile chips, dashboard MOTD</summary>
