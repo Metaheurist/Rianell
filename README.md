@@ -6,7 +6,7 @@ A comprehensive web-based health tracking application with data visualisation, a
 
 ## Security
 
-The authoritative security guide is **[SECURITY.md](SECURITY.md)**. It describes the threat model across the **web app**, **Android (Capacitor)**, and **Python dev server**, including:
+The authoritative security guide is **[docs/SECURITY.md](docs/SECURITY.md)**. It describes the threat model across the **web app**, **Android (Capacitor)**, and **Python dev server**, including:
 
 - Default **`HOST=127.0.0.1`** (loopback) and when to use **`HOST=0.0.0.0`** for LAN testing  
 - Gated sensitive routes: **`/api/encryption-key`**, **`/api/anonymized-data`**, and **`HEALTH_APP_SENSITIVE_APIS_ON_LAN`**  
@@ -219,7 +219,7 @@ The server will:
 ### Accessing the App
 
 1. **Local Development**: Open `http://localhost:8080` in your browser
-2. **Network Access**: The server defaults to **loopback** (`127.0.0.1`). To open the app from another device on your LAN, set **`HOST=0.0.0.0`** in **`Security/.env`** (or legacy root `.env`) and use your PC’s LAN IP (see [SECURITY.md](SECURITY.md)). For sensitive dev APIs from non-loopback clients, set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** (trusted networks only).
+2. **Network Access**: The server defaults to **loopback** (`127.0.0.1`). To open the app from another device on your LAN, set **`HOST=0.0.0.0`** in **`Security/.env`** (or legacy root `.env`) and use your PC’s LAN IP (see [docs/SECURITY.md](docs/SECURITY.md)). For sensitive dev APIs from non-loopback clients, set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** (trusted networks only).
 3. **Production**: Deploy files to a web server (no local server needed)
 
 **Install manifest URLs (Android / iOS `latest.json`):** On `localhost`, `127.0.0.1`, and `::1`, the app does **not** fetch `App build/Android/latest.json` or `App build/iOS/latest.json`, because those files are produced by CI and deployed with the site. Default install links still point at fallback paths. To test manifest-driven links locally, open the devtools console and run `sessionStorage.setItem('forceAppBuildManifest','1')`, then reload.
@@ -620,7 +620,7 @@ The app includes GDPR-compliant data sharing:
 
 ## Security notes
 
-Start with the full guide: **[SECURITY.md](SECURITY.md)** (same content as linked from [Security](#security) at the top of this file). Supplementary references: [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql), [docs/android-network-security-notes.md](docs/android-network-security-notes.md), CI workflow [`.github/workflows/security-audit.yml`](.github/workflows/security-audit.yml) (`npm audit`, `pip-audit`).
+Start with the full guide: **[docs/SECURITY.md](docs/SECURITY.md)** (same content as linked from [Security](#security) at the top of this file). Supplementary references: [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql), [docs/android-network-security-notes.md](docs/android-network-security-notes.md), CI workflow [`.github/workflows/security-audit.yml`](.github/workflows/security-audit.yml) (`npm audit`, `pip-audit`).
 
 ⚠️ **Important security considerations**:
 

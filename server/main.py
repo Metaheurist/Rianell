@@ -107,7 +107,7 @@ logger.info("Note: Client-side logs are only sent when demo mode is enabled")
 if config.HOST in ('0.0.0.0', '::', '[::]'):
     logger.warning(
         "HOST is bound to all interfaces — only use on trusted networks; "
-        "see SECURITY.md. Default is 127.0.0.1 for loopback-only access."
+        "see docs/SECURITY.md. Default is 127.0.0.1 for loopback-only access."
     )
 logger.info("=" * 60)
 
@@ -376,7 +376,7 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({
                     'error': 'Forbidden',
-                    'detail': 'Encryption key API is only reachable from loopback. Set HEALTH_APP_SENSITIVE_APIS_ON_LAN=1 to allow LAN clients (see SECURITY.md).',
+                    'detail': 'Encryption key API is only reachable from loopback. Set HEALTH_APP_SENSITIVE_APIS_ON_LAN=1 to allow LAN clients (see docs/SECURITY.md).',
                 }).encode('utf-8'))
                 logger.warning(f"Blocked encryption-key request from non-loopback IP {client_ip}")
                 return
@@ -656,7 +656,7 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({
                     'error': 'Forbidden',
-                    'detail': 'anonymized-data API is only reachable from loopback. Set HEALTH_APP_SENSITIVE_APIS_ON_LAN=1 for LAN (see SECURITY.md).',
+                    'detail': 'anonymized-data API is only reachable from loopback. Set HEALTH_APP_SENSITIVE_APIS_ON_LAN=1 for LAN (see docs/SECURITY.md).',
                 }).encode('utf-8'))
                 logger.warning(f"Blocked anonymized-data request from non-loopback IP {client_ip}")
                 return

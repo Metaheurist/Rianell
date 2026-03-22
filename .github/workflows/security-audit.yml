@@ -1,4 +1,4 @@
-# Dependency and supply-chain checks (see SECURITY.md)
+# Dependency and supply-chain checks (see docs/SECURITY.md)
 name: Security audit
 
 on:

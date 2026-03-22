@@ -9,4 +9,4 @@ Keep **environment variables** and **encryption key material** in this directory
 
 **Legacy:** If `Security/.env` does not exist, the server still loads a `.env` file at the **repository root** (for existing setups). Prefer `Security/.env` for new clones. For encryption keys, the server checks `Security/` first, then the repo root.
 
-See [../SECURITY.md](../SECURITY.md) for the full security model.
+See [../docs/SECURITY.md](../docs/SECURITY.md) for the full security model.

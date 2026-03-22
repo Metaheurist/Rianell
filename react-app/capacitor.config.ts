@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
   },
   android: {
-    // Do not load HTTP subresources on HTTPS app origin (see SECURITY.md, docs/android-network-security-notes.md)
+    // Do not load HTTP subresources on HTTPS app origin (see docs/SECURITY.md, docs/android-network-security-notes.md)
     allowMixedContent: false,
   },
   plugins: {
