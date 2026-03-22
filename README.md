@@ -126,7 +126,7 @@ flowchart LR
 - **Local server**: Python HTTP server for local testing (`python -m server`); serves `web/` at root; optional file watching and auto-reload.
 - **Windows launcher**: From the repo root, `powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1` (or `pwsh -File .\server\launch-server.ps1`) runs the same server; optional `$env:PORT` / `$env:HOST` before invoking.
 - **Supabase integration**: Server can use Supabase for anonymised data and app_settings; credentials from `.env`.
-- **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs. Log lines are prefixed with a **level emoji** (e.g. ℹ️ INFO, ⚠️ WARNING, ❌ ERROR) in the console, log files under `logs/`, and the dashboard viewer—see [Logging](#logging).
+- **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs. Log lines are prefixed with a **level emoji** (e.g. ℹ️ INFO, ⚠️ WARNING, ❌ ERROR) in the console, log files under `logs/`, and the dashboard viewer—see [Logging](#logging). The dashboard log pane uses a **Segoe UI**–family font so emoji render (monospace fonts such as Consolas do not show emoji in Tkinter’s text widget on Windows).
 
 ## Project structure
 
@@ -303,7 +303,7 @@ The Tkinter dashboard provides:
    - **Export**: Export data to CSV files
    - **Viewer**: Real-time database viewer showing last 100 records
 
-3. **Server Logs**: Real-time log viewer with the same **emoji-prefixed** lines as the console and rotating files (`🐛` DEBUG, `ℹ️` INFO, `⚠️` WARNING, `❌` ERROR, `💥` CRITICAL; other levels use `📋`).
+3. **Server Logs**: Real-time log viewer with the same **emoji-prefixed** lines as the console and rotating files (`🐛` DEBUG, `ℹ️` INFO, `⚠️` WARNING, `❌` ERROR, `💥` CRITICAL; other levels use `📋`). Font is chosen so emoji are visible in Tkinter (see [Server](#server-testing-and-development) note).
 
 ## Testing Data
 
@@ -553,7 +553,7 @@ pip install watchdog
 ```
 
 ### Logging
-Server logs are saved to `logs/health_app_YYYYMMDD.log`. The `HealthApp` logger uses an **`EmojiLogFormatter`**: each line starts with an emoji for the level (`🐛` DEBUG, `ℹ️` INFO, `⚠️` WARNING, `❌` ERROR, `💥` CRITICAL; anything else `📋`), then the usual timestamp, level name, logger name, and message. This applies to **file**, **stdout/stderr**, and the **Tkinter** log pane (`server/config.py`, shared formatter in `server/main.py`).
+Server logs are saved to `logs/health_app_YYYYMMDD.log`. The `HealthApp` logger uses an **`EmojiLogFormatter`**: each line starts with an emoji for the level (`🐛` DEBUG, `ℹ️` INFO, `⚠️` WARNING, `❌` ERROR, `💥` CRITICAL; anything else `📋`), **two spaces**, then the usual timestamp, level name, logger name, and message. This applies to **file**, **stdout/stderr**, and the **Tkinter** log pane (`server/config.py`, shared formatter in `server/main.py`). The Tkinter **Server Logs** widget uses **Segoe UI**, **Segoe UI Emoji**, or **Segoe UI Symbol** when available so emoji display correctly; **Consolas** does not render emoji in Tk’s `Text` widget on Windows.
 
 ### Browser Compatibility
 - Chrome/Edge (recommended)
@@ -637,7 +637,15 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.28.1** — Server log emoji prefixes; charts tab visibility fix.
+**Latest: v1.28.2** — Dashboard log emoji visibility (Tk font) and spacing.
+
+<details>
+<summary><strong>v1.28.2</strong> — 2026-03-22 — Server dashboard log emoji</summary>
+
+- **Server**: Tkinter **Server Logs** pane uses a Segoe UI–family font (`Segoe UI`, `Segoe UI Emoji`, or `Segoe UI Symbol` when installed) so level emojis render; monospace **Consolas** does not show emoji in Tk `Text` on Windows (`server/main.py`).
+- **Server**: `EmojiLogFormatter` inserts **two spaces** after the emoji for a clear gap before the timestamp (`server/config.py`).
+
+</details>
 
 <details>
 <summary><strong>v1.28.1</strong> — 2026-03-22 — Server logs & charts visibility</summary>

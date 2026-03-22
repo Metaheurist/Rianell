@@ -82,6 +82,7 @@ if not SUPABASE_AVAILABLE:
 
 try:
     import tkinter as tk
+    import tkinter.font as tkfont
     from tkinter import ttk, scrolledtext, messagebox
     TKINTER_AVAILABLE = True
 except ImportError:
@@ -1655,32 +1656,42 @@ def create_server_dashboard():
     viewer_tree.bind('<<TreeviewDeselect>>', update_selection_count)
     
     
-    # Logs display
+    # Logs display (font must support emoji: Consolas does not render emoji in Tk Text on Windows)
     logs_frame = ttk.LabelFrame(main_frame, text="Server Logs", padding="10")
     logs_frame.pack(fill=tk.BOTH, expand=True, pady=5)
-    
+
+    def _pick_log_viewer_font():
+        families = set(tkfont.families(root))
+        for name in ('Segoe UI', 'Segoe UI Emoji', 'Segoe UI Symbol'):
+            if name in families:
+                return (name, 10)
+        return ('Consolas', 9)
+
+    log_view_font = _pick_log_viewer_font()
+    log_view_font_bold = (log_view_font[0], log_view_font[1], 'bold')
+
     logs_text = scrolledtext.ScrolledText(
-        logs_frame, 
-        height=15, 
-        bg='#2d2d2d', 
+        logs_frame,
+        height=15,
+        bg='#2d2d2d',
         fg='#e0f2f1',
-        font=('Consolas', 9),
+        font=log_view_font,
         wrap=tk.WORD
     )
     logs_text.pack(fill=tk.BOTH, expand=True)
-    
+
     # Configure color tags for different parts of log messages (partial highlighting)
-    logs_text.tag_config('TIMESTAMP', foreground='#808080', font=('Consolas', 9))  # Gray for timestamps
-    logs_text.tag_config('DEBUG', foreground='#808080', font=('Consolas', 9))  # Gray
-    logs_text.tag_config('INFO', foreground='#4caf50', font=('Consolas', 9))  # Green for INFO level
-    logs_text.tag_config('WARNING', foreground='#ff9800', font=('Consolas', 9))  # Orange
-    logs_text.tag_config('WARN', foreground='#ff9800', font=('Consolas', 9))  # Orange (alias)
-    logs_text.tag_config('ERROR', foreground='#f44336', font=('Consolas', 9, 'bold'))  # Red, bold
-    logs_text.tag_config('CRITICAL', foreground='#e91e63', font=('Consolas', 9, 'bold'))  # Pink, bold
-    logs_text.tag_config('SYNC', foreground='#2196f3', font=('Consolas', 9))  # Blue for sync keywords
-    logs_text.tag_config('REQUEST', foreground='#9c27b0', font=('Consolas', 9))  # Purple for HTTP methods
-    logs_text.tag_config('PATH', foreground='#00bcd4', font=('Consolas', 9))  # Cyan for paths
-    logs_text.tag_config('DEFAULT', foreground='#e0f2f1', font=('Consolas', 9))  # Default color
+    logs_text.tag_config('TIMESTAMP', foreground='#808080', font=log_view_font)  # Gray for timestamps
+    logs_text.tag_config('DEBUG', foreground='#808080', font=log_view_font)  # Gray
+    logs_text.tag_config('INFO', foreground='#4caf50', font=log_view_font)  # Green for INFO level
+    logs_text.tag_config('WARNING', foreground='#ff9800', font=log_view_font)  # Orange
+    logs_text.tag_config('WARN', foreground='#ff9800', font=log_view_font)  # Orange (alias)
+    logs_text.tag_config('ERROR', foreground='#f44336', font=log_view_font_bold)  # Red, bold
+    logs_text.tag_config('CRITICAL', foreground='#e91e63', font=log_view_font_bold)  # Pink, bold
+    logs_text.tag_config('SYNC', foreground='#2196f3', font=log_view_font)  # Blue for sync keywords
+    logs_text.tag_config('REQUEST', foreground='#9c27b0', font=log_view_font)  # Purple for HTTP methods
+    logs_text.tag_config('PATH', foreground='#00bcd4', font=log_view_font)  # Cyan for paths
+    logs_text.tag_config('DEFAULT', foreground='#e0f2f1', font=log_view_font)  # Default color
     
     # Custom log handler to update text widget with color coding
     class TextHandler(logging.Handler):
