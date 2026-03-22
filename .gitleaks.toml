@@ -7,8 +7,9 @@ title = "Rianell"
 useDefault = true
 
 [allowlist]
-description = "Templates; local gitignored secrets; dependencies and build dirs (not committed)"
+description = "Templates; local gitignored secrets; dependencies and build dirs; README (may quote example CLI output / docs that look like secrets)"
 paths = [
+  '''^README\.md$''',
   '''^security/\.env\.example$''',
   '''^security/\.env$''',
   '''^security/\.encryption_key$''',
