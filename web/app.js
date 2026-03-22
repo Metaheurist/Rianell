@@ -3360,6 +3360,42 @@ sliders.forEach(sliderId => {
   });
 });
 
+/** Which chart layout is active (balance | combined | individual). */
+function getCurrentChartView() {
+  var v = appSettings.chartView;
+  if (v === 'balance' || v === 'combined' || v === 'individual') return v;
+  return appSettings.combinedChart ? 'combined' : 'individual';
+}
+
+/** Keep chartView and legacy combinedChart flag consistent after load or migration. */
+function normalizeChartViewSettings() {
+  var v = appSettings.chartView;
+  if (v !== 'balance' && v !== 'combined' && v !== 'individual') {
+    appSettings.chartView = appSettings.combinedChart ? 'combined' : 'individual';
+  }
+  appSettings.combinedChart = appSettings.chartView === 'combined';
+}
+
+/**
+ * Show exactly one of combined / balance / individual chart sections.
+ * @param {'balance'|'combined'|'individual'|null} active - null hides all three (no data).
+ */
+function enforceChartSectionView(active) {
+  var c = document.getElementById('combinedChartContainer');
+  var b = document.getElementById('balanceChartContainer');
+  var i = document.getElementById('individualChartsContainer');
+  if (!c || !b || !i) return;
+  if (!active) {
+    c.classList.add('hidden');
+    b.classList.add('hidden');
+    i.classList.add('hidden');
+    return;
+  }
+  c.classList.toggle('hidden', active !== 'combined');
+  b.classList.toggle('hidden', active !== 'balance');
+  i.classList.toggle('hidden', active !== 'individual');
+}
+
 var _chartViewSwitchTimeout = null;
 function toggleChartView(viewType) {
   // Handle legacy boolean parameter for backward compatibility
@@ -3370,9 +3406,6 @@ function toggleChartView(viewType) {
     clearTimeout(_chartViewSwitchTimeout);
     _chartViewSwitchTimeout = null;
   }
-  const combinedContainer = document.getElementById('combinedChartContainer');
-  const individualContainer = document.getElementById('individualChartsContainer');
-  const balanceContainer = document.getElementById('balanceChartContainer');
   const individualBtn = document.getElementById('individualViewBtn');
   const combinedBtn = document.getElementById('combinedViewBtn');
   const balanceBtn = document.getElementById('balanceViewBtn');
@@ -3402,10 +3435,7 @@ function toggleChartView(viewType) {
   // Check if we have data first
   const hasData = logs && logs.length > 0;
   if (!hasData) {
-    // Hide all containers
-    combinedContainer.classList.add('hidden');
-    individualContainer.classList.add('hidden');
-    balanceContainer.classList.add('hidden');
+    enforceChartSectionView(null);
     
     // Hide metric selectors
     const combinedMetricSelector = document.getElementById('combinedChartMetricSelector');
@@ -3417,10 +3447,7 @@ function toggleChartView(viewType) {
     return;
   }
   
-  // Hide all containers first
-  combinedContainer.classList.add('hidden');
-  individualContainer.classList.add('hidden');
-  balanceContainer.classList.add('hidden');
+  enforceChartSectionView(viewType);
   
   // Remove active state from all buttons
   if (individualBtn) individualBtn.classList.remove('active');
@@ -3428,7 +3455,6 @@ function toggleChartView(viewType) {
   if (balanceBtn) balanceBtn.classList.remove('active');
   
   if (viewType === 'combined') {
-    combinedContainer.classList.remove('hidden');
     if (combinedBtn) combinedBtn.classList.add('active');
     
     // Disconnect chart observer when showing combined view
@@ -3442,7 +3468,6 @@ function toggleChartView(viewType) {
       createCombinedChart();
     }, 50);
   } else if (viewType === 'balance') {
-    balanceContainer.classList.remove('hidden');
     if (balanceBtn) balanceBtn.classList.add('active');
     
     // Disconnect chart observer when showing balance view
@@ -3458,7 +3483,6 @@ function toggleChartView(viewType) {
   } else {
     // Individual view: load all charts immediately so they render with correct dimensions
     // (lazy loading can fail when containers were previously hidden and have zero height)
-    individualContainer.classList.remove('hidden');
     if (individualBtn) individualBtn.classList.add('active');
     if (typeof updateChartsImmediate === 'function') {
       void updateChartsImmediate().catch(function () {});
@@ -3958,6 +3982,9 @@ async function createCombinedChart() {
     // Mark container as loaded
     container.classList.add('loaded');
     injectChartShareButton(container, 'combinedChart');
+    if (typeof enforceChartSectionView === 'function') {
+      enforceChartSectionView(getCurrentChartView());
+    }
   });
 }
 
@@ -4076,7 +4103,7 @@ function toggleMetric(field) {
   renderMetricSelector(allMetrics, selectedMetrics);
   
   // Re-render the combined chart with new selection
-  if (appSettings.chartView === 'combined' || appSettings.combinedChart) {
+  if (appSettings.chartView === 'combined') {
     createCombinedChart();
   }
   updateCombinedSelectAllButton();
@@ -4135,7 +4162,7 @@ function selectAllMetrics() {
   renderMetricSelector(allMetrics, allMetricsFields);
   
   // Re-render chart
-  if (appSettings.combinedChart) {
+  if (appSettings.chartView === 'combined') {
     createCombinedChart();
   }
   updateCombinedSelectAllButton();
@@ -4153,7 +4180,7 @@ function deselectAllMetrics() {
   });
   
   // Re-render chart (will show empty)
-  if (appSettings.chartView === 'combined' || appSettings.combinedChart) {
+  if (appSettings.chartView === 'combined') {
     createCombinedChart();
   }
   updateCombinedSelectAllButton();
@@ -4480,9 +4507,8 @@ async function createBalanceChart() {
   
   updateChartEmptyState(true);
   
-  // Show balance chart container and metric selector
-  if (balanceChartContainer) {
-    balanceChartContainer.classList.remove('hidden');
+  if (typeof enforceChartSectionView === 'function') {
+    enforceChartSectionView(getCurrentChartView());
   }
   if (balanceMetricSelector) {
     balanceMetricSelector.classList.remove('hidden');
@@ -4683,6 +4709,9 @@ async function createBalanceChart() {
   container.chart.render().then(() => {
     perfLog('Charts createBalanceChart', Date.now() - _perfT0, {});
     injectChartShareButton(container, 'balanceChart');
+    if (typeof enforceChartSectionView === 'function') {
+      enforceChartSectionView(getCurrentChartView());
+    }
   });
 }
 
@@ -7658,6 +7687,19 @@ function saveLogsToStorage() {
 // Load logs - handle both compressed and uncompressed data
 let logs = [];
 try {
+  // Demo mode: skip reading stored logs here; runAppInit regenerates fresh demo data each load
+  // (avoids async decompress racing with regenerated demo and keeps dates/variation fresh).
+  var demoModeSkipStoredLogs = false;
+  try {
+    var _earlySettings = localStorage.getItem('healthAppSettings');
+    if (_earlySettings) demoModeSkipStoredLogs = JSON.parse(_earlySettings).demoMode === true;
+  } catch (e) {}
+  if (demoModeSkipStoredLogs) {
+    logs = [];
+    if (typeof window !== 'undefined') {
+      window.logs = logs;
+    }
+  } else {
   const stored = localStorage.getItem("healthLogs");
   if (stored) {
     // Check if it's compressed data (base64 gzip starts with H4sI)
@@ -7703,6 +7745,7 @@ try {
     if (typeof window !== 'undefined') {
       window.logs = logs;
     }
+  }
   }
 } catch (error) {
   // Use safe error logging to prevent information leakage
@@ -10809,10 +10852,10 @@ function setPredictionRange(range) {
 
 // Refresh all charts with current filter
 function refreshCharts() {
-  // Check which chart view is currently active
+  normalizeChartViewSettings();
   if (appSettings.chartView === 'balance') {
     createBalanceChart();
-  } else if (appSettings.chartView === 'combined' || appSettings.combinedChart) {
+  } else if (appSettings.chartView === 'combined') {
     createCombinedChart();
   } else {
     updateCharts();
@@ -10927,8 +10970,8 @@ async function chart(id, label, dataField, color) {
     return;
   }
   
-  // Show chart container if we have data
-  container.style.display = 'block';
+  // Show individual chart only when that view is active (avoids stacked views after preload/refresh)
+  container.style.display = getCurrentChartView() === 'individual' ? 'block' : 'none';
   
   // Generate predicted data for the selected date range period (only when AI features enabled)
   let predictedData = [];
@@ -11925,6 +11968,9 @@ function preloadChartsInBackground() {
   var gapAfterCombinedMs = 260;
   function runCombinedThenStartLazy() {
     createCombinedChart();
+    if (typeof enforceChartSectionView === 'function') {
+      enforceChartSectionView(getCurrentChartView());
+    }
     var lazyCharts = document.querySelectorAll('.lazy-chart');
     var index = 0;
     function scheduleNext() {
@@ -11965,7 +12011,12 @@ function scheduleChartsPreload() {
         var filtered = getFilteredLogs();
         if (!filtered || filtered.length === 0) return;
         if (!document.getElementById('chartSection')) return;
-        var run = function () { createCombinedChart(); };
+        var run = function () {
+          createCombinedChart();
+          if (typeof enforceChartSectionView === 'function') {
+            enforceChartSectionView(getCurrentChartView());
+          }
+        };
         if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureApexChartsLoaded === 'function') {
           window.PerformanceUtils.ensureApexChartsLoaded().then(run).catch(function () {});
         } else {
@@ -12032,6 +12083,9 @@ async function updateChartsImmediate() {
     chart("stepsChart", "Steps", "steps", "rgb(100,181,246)"),
     chart("hydrationChart", "Hydration", "hydration", "rgb(33,150,243)")
   ]);
+  if (typeof enforceChartSectionView === 'function') {
+    enforceChartSectionView(getCurrentChartView());
+  }
   perfLog('Charts updateChartsImmediate (14 charts)', Date.now() - _perfT0, {});
 }
 
@@ -12340,6 +12394,7 @@ function isExtreme(log) {
 // Settings functionality
 let appSettings = {
   showCharts: true, // Enable charts by default
+  chartView: 'individual',
   combinedChart: false,
   reminder: true,
   sound: false,
@@ -12368,6 +12423,7 @@ function loadSettings() {
   if (savedSettings) {
     appSettings = { ...appSettings, ...JSON.parse(savedSettings) };
   }
+  normalizeChartViewSettings();
   
   // Make appSettings available on window for Logger to access safely
   if (typeof window !== 'undefined') {
@@ -15548,45 +15604,18 @@ window.addEventListener('load', () => {
       chartSectionEl.classList.add('chart-gpu-accelerated');
     }
   }
-  // Check if demo mode is enabled and ensure demo data is loaded (must run before charts/AI wait)
+  // Demo mode: regenerate fresh demo data on every app load (dates/values vary via generateDemoData / rebase)
   if (appSettings.demoMode) {
-    const storedLogs = localStorage.getItem('healthLogs');
-    if (!storedLogs || storedLogs === '[]' || (storedLogs.startsWith('[') && JSON.parse(storedLogs).length === 0)) {
-      // Demo mode is enabled but no logs found: on mobile use premade + rebase dates; on desktop generate
-      console.log('Demo mode enabled but no logs found, loading demo data...');
-      var demoLogs = getDemoDataDays() === 365
-        ? rebaseDatesToRecent(getPremadeMobileDemoLogs())
-        : generateDemoData(getDemoDataDays());
-      localStorage.setItem('healthLogs', JSON.stringify(demoLogs));
-      logs = demoLogs;
-      if (typeof window !== 'undefined') {
-        window.logs = logs;
-      }
-    } else {
-      // Load existing logs and ensure they're available
-      try {
-        if (storedLogs.startsWith('H4sI')) {
-          // Compressed - handled by async decompression above
-          // Will be set when decompression completes
-        } else {
-          logs = JSON.parse(storedLogs);
-          // On mobile in demo mode, cap to last 365 days so we don't process 3650 from storage
-          if (appSettings.demoMode && typeof getDemoDataDays === 'function' && logs.length > getDemoDataDays()) {
-            var cap = getDemoDataDays();
-            logs = logs.slice(-cap);
-          }
-          if (typeof window !== 'undefined') {
-            window.logs = logs;
-          }
-        }
-      } catch (e) {
-        console.error('Error loading demo logs:', e);
-        logs = [];
-        if (typeof window !== 'undefined') {
-          window.logs = logs;
-        }
-      }
+    console.log('Demo mode: refreshing demo data on load...');
+    var demoLogs = getDemoDataDays() === 365
+      ? rebaseDatesToRecent(getPremadeMobileDemoLogs())
+      : generateDemoData(getDemoDataDays());
+    logs = demoLogs;
+    if (typeof window !== 'undefined') {
+      window.logs = logs;
     }
+    migrateLogs();
+    saveLogsToStorage();
   }
   
   // Date range and chart section must be set before createCombinedChart (skipRefresh so we don't run createCombinedChart twice)

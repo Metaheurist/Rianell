@@ -45,6 +45,7 @@ flowchart LR
 ### Charts and visualisation
 - **Combined chart**: Multi-metric line chart with date range filter; optional AI-powered trend predictions (when AI enabled); metric selector; balance and single-chart views.
 - **Individual metric charts**: Per-metric ApexCharts (e.g. fatigue, stiffness, BPM, sleep, steps, hydration) with lazy loading and device-based point caps.
+- **Chart view modes**: Use **Balance**, **Combined**, or **Individual** in the Charts tab. Only the active mode’s layout is shown (combined, balance radar, or per-metric charts). Saved preference uses **`chartView`** as the source of truth; legacy **`combinedChart`** is kept in sync when settings load.
 - **Chart behaviour**: Date range (7/30/90 days) and prediction range; predictions can be toggled off; empty state when no data; animations respect reduced-motion and device class. Charts tab opens in balance view; View Logs tab opens with last 7 days.
 - **Tier 5 / GPU-accelerated charts**: On tier 5 (or tier 4 with a good GPU), chart containers use GPU-friendly compositor layers and maximum point limits; critical chart and AI preload run with high scheduler priority when supported.
 - **Loading behaviour**: App shows a loading overlay until the combined chart and summary LLM preload are ready (or 12s timeout), then reveals the UI so heavy work does not stutter the first paint.
@@ -90,7 +91,7 @@ flowchart LR
 - **Install modal**: Post-tutorial modal (once) with web/Android/iOS install options; can be retriggered from God mode.
 
 ### Settings and UI
-- **Settings**: Weight unit (kg/lb), medical condition, date filters, chart visibility, AI & Goals toggle, contribution toggle, reminder time, sound notifications, cookie/consent; God mode (test UI, show install modal, etc.); **Developer** tools (in God mode): “Clear performance benchmark cache” (clear cache and view last result).
+- **Settings**: Weight unit (kg/lb), medical condition, date filters, chart visibility, AI & Goals toggle, contribution toggle, reminder time, sound notifications, cookie/consent; **Demo mode** toggle (sample “John Doe” data for exploration; export/cloud contribution disabled); when demo mode is **on**, demo health logs are **regenerated on each full page load** so sample values and dates stay fresh (desktop: procedural generation; mobile: premade dataset with dates shifted to the recent window). God mode (test UI, show install modal, etc.); **Developer** tools (in God mode): “Clear performance benchmark cache” (clear cache and view last result).
 - **Keyboard**: On desktop, **Escape** key opens or closes Settings when no other modal is open.
 - **Theme**: Dark mode by default; light mode optional.
 - **Responsive**: Layout and charts adapt to viewport and device; device-based optimisation (chart points, animations, AI preload).
@@ -602,7 +603,15 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.26.0** — Mobile shell polish, MOTD behaviour, loading UX, extension console noise (see below).
+**Latest: v1.27.0** — Charts view isolation, demo data refresh on load (see below).
+
+<details>
+<summary><strong>v1.27.0</strong> — 2026-03-22 — Charts tab views, demo mode</summary>
+
+- **Charts tab**: Balance / Combined / Individual now show **only** the active chart layout. Visibility is enforced after chart builds and background preload; **`chartView`** drives refresh (legacy **`combinedChart`** is normalised on settings load). Individual lazy charts stay hidden when another mode is active.
+- **Demo mode**: With demo mode enabled, **each full page load** regenerates demo health logs (same rules as enabling demo: desktop `generateDemoData`, mobile premade + date rebase). Initial load skips reading stored `healthLogs` in demo mode so async decompression cannot overwrite fresh demo data.
+
+</details>
 
 <details>
 <summary><strong>v1.26.0</strong> — 2026-03-22 — UI, MOTD, first paint, extensions</summary>
