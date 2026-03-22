@@ -16,7 +16,7 @@
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Android** APK | **56** |
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **56** |
 
-Latest: [`App build/Android/app-debug-beta-56.apk`](App%20build/Android/latest.json) · [`App build/iOS/Health-Tracker-ios-beta-build-56.zip`](App%20build/iOS/latest.json) · [Workflow #56](https://github.com/Metaheurist/Rianell/actions/runs/23415299648) · `efc807c`
+Latest: [`App build/Android/app-debug-beta-56.apk`](App%20build/Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-56.zip`](App%20build/iOS/latest.json) · [Workflow #56](https://github.com/Metaheurist/Rianell/actions/runs/23415299648) · `efc807c`
 
 <!-- RIANELL_BUILD_INFO_END -->
 

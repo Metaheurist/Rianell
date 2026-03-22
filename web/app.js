@@ -1930,7 +1930,7 @@ function refreshBuildDownloadLinks() {
   }
 
   setAndroid(androidBase + 'app-debug-beta.apk', '');
-  setIos(iosBase + 'Health-Tracker-ios-beta-latest.zip', '', isIosDevice ? 'Install on iOS' : 'Download iOS build (Xcode project)');
+  setIos(iosBase + 'Health-Tracker-ios-alpha-latest.zip', '', isIosDevice ? 'Install on iOS' : 'Download iOS build (Xcode project)');
 
   if (shouldFetchAppBuildManifests()) {
     fetch(androidBase + 'latest.json', { cache: 'no-store' })
