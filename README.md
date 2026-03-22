@@ -47,6 +47,10 @@ flowchart LR
 
 ![Card selector modal — energy & mental clarity (grouped options and filter)](docs/images/card-selector-energy-clarity.png)
 
+- **View logs**: Date range shortcuts (Today / 7 / 30 / 90 days) or custom dates, **Filter** and **Oldest** / **Newest** sort; **Your entries** lists per-day cards with vitals, symptoms, wellbeing, food, exercise, flare status, and edit / delete / share.
+
+![View Logs tab — range filters and a detailed entry card](docs/images/view-logs.png)
+
 ### Charts and visualisation
 - **Combined chart**: Multi-metric line chart with date range filter; optional AI-powered trend predictions (when AI enabled); metric selector; balance and single-chart views.
 - **Individual metric charts**: Per-metric ApexCharts (e.g. fatigue, stiffness, BPM, sleep, steps, hydration) with lazy loading and device-based point caps.
@@ -482,7 +486,7 @@ Health-app/
 ├── requirements.txt        # Python dependencies
 ├── package.json            # Root scripts (build, sync, android)
 ├── docs/                   # Documentation
-│   ├── images/             # README screenshots (Home, card selector, server dashboard, …)
+│   ├── images/             # README screenshots (Home, View logs, card selector, server dashboard, …)
 │   └── NEURAL_NETWORK_PLAN.md   # AI expansion and optimisation plan
 ├── .github/workflows/      # CI (e.g. Build Android APK)
 ├── react-app/              # React (Vite) + Capacitor shell for Android
@@ -611,7 +615,14 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.27.3** — README: card selector screenshot (see below).
+**Latest: v1.27.4** — README: View logs screenshot (see below).
+
+<details>
+<summary><strong>v1.27.4</strong> — 2026-03-22 — Documentation</summary>
+
+- **README**: Added **View logs** bullet and screenshot (date filters and entry card) under [App shell and log experience (web UI)](#app-shell-and-log-experience-web-ui); image stored at `docs/images/view-logs.png`.
+
+</details>
 
 <details>
 <summary><strong>v1.27.3</strong> — 2026-03-22 — Documentation</summary>
