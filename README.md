@@ -126,7 +126,7 @@ flowchart LR
 - **Local server**: Python HTTP server for local testing (`python -m server`); serves `web/` at root; optional file watching and auto-reload.
 - **Windows launcher**: From the repo root, `powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1` (or `pwsh -File .\server\launch-server.ps1`) runs the same server; optional `$env:PORT` / `$env:HOST` before invoking.
 - **Supabase integration**: Server can use Supabase for anonymised data and app_settings; credentials from `.env`.
-- **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs. Log lines are prefixed with a **level emoji** (e.g. ℹ️ INFO, ⚠️ WARNING, ❌ ERROR) in the console, log files under `logs/`, and the dashboard viewer—see [Logging](#logging). The dashboard log pane uses a **Segoe UI**–family font so emoji render (monospace fonts such as Consolas do not show emoji in Tkinter’s text widget on Windows).
+- **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs. **Console** and **log files** use per-level **emoji** prefixes; the dashboard **Server Logs** pane uses ASCII **`[LEVEL]`** tags (e.g. `[INFO]`, `[ERROR]`) with colour on the tag so Tkinter renders reliably—see [Logging](#logging).
 
 ## Project structure
 
@@ -303,7 +303,7 @@ The Tkinter dashboard provides:
    - **Export**: Export data to CSV files
    - **Viewer**: Real-time database viewer showing last 100 records
 
-3. **Server Logs**: Real-time log viewer with the same **emoji-prefixed** lines as the console and rotating files (`🐛` DEBUG, `ℹ️` INFO, `⚠️` WARNING, `❌` ERROR, `💥` CRITICAL; other levels use `📋`). Font is chosen so emoji are visible in Tkinter (see [Server](#server-testing-and-development) note).
+3. **Server Logs**: Real-time log viewer using **`[DEBUG]`** / **`[INFO]`** / **`[WARNING]`** / **`[ERROR]`** / **`[CRITICAL]`** at the start of each line (two spaces after the bracket), with colour on that tag (e.g. blue for `[INFO]`, red bold for `[ERROR]`). The terminal and `logs/*.log` files still use **emoji** prefixes—see [Logging](#logging).
 
 ## Testing Data
 
@@ -553,7 +553,10 @@ pip install watchdog
 ```
 
 ### Logging
-Server logs are saved to `logs/health_app_YYYYMMDD.log`. The `HealthApp` logger uses an **`EmojiLogFormatter`**: each line starts with an emoji for the level (`🐛` DEBUG, `ℹ️` INFO, `⚠️` WARNING, `❌` ERROR, `💥` CRITICAL; anything else `📋`), **two spaces**, then the usual timestamp, level name, logger name, and message. This applies to **file**, **stdout/stderr**, and the **Tkinter** log pane (`server/config.py`, shared formatter in `server/main.py`). The Tkinter **Server Logs** widget uses **Segoe UI**, **Segoe UI Emoji**, or **Segoe UI Symbol** when available so emoji display correctly; **Consolas** does not render emoji in Tk’s `Text` widget on Windows.
+Server logs are saved to `logs/health_app_YYYYMMDD.log`. The `HealthApp` logger uses two formatters in `server/config.py`:
+
+- **`EmojiLogFormatter`** (handlers: **file** and **console**): each line starts with a level emoji (`🐛` DEBUG, `ℹ️` INFO, `⚠️` WARNING, `❌` ERROR, `💥` CRITICAL; anything else `📋`), **two spaces**, then the usual timestamp, level name, logger name, and message.
+- **`BracketLevelFormatter`** (handler: **Tkinter dashboard** `TextHandler` in `server/main.py` only): each line starts with **`[LEVEL]`** and two spaces, then the same timestamp / level / name / message body. The UI applies **colour tags** to the bracket (e.g. blue for `[INFO]`, red for `[ERROR]`) so logs stay readable without relying on emoji in Tk’s `Text` widget (**Consolas** is used for the log pane).
 
 ### Browser Compatibility
 - Chrome/Edge (recommended)
@@ -637,7 +640,15 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.28.2** — Dashboard log emoji visibility (Tk font) and spacing.
+**Latest: v1.28.3** — Tkinter dashboard `[LEVEL]` log lines; console and files keep emoji.
+
+<details>
+<summary><strong>v1.28.3</strong> — 2026-03-22 — Dashboard bracket log format</summary>
+
+- **Server**: **`BracketLevelFormatter`** (`server/config.py`) prefixes dashboard lines with **`[LEVEL]`** (two spaces before the timestamp); **`EmojiLogFormatter`** remains for **file** and **stream** handlers only. Console and `logs/*.log` keep emoji; Tkinter **Server Logs** uses ASCII brackets and coloured tags (`BRACKET_*` in `server/main.py`).
+- **Server**: Log pane font set back to **Consolas**; leading `[INFO]` / `[ERROR]` / etc. highlight with level-appropriate colours.
+
+</details>
 
 <details>
 <summary><strong>v1.28.2</strong> — 2026-03-22 — Server dashboard log emoji</summary>

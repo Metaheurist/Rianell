@@ -31,7 +31,7 @@ from datetime import datetime
 
 
 class EmojiLogFormatter(logging.Formatter):
-    """Prepends an emoji per level for quick scanning in files, console, and dashboard."""
+    """Prepends an emoji per level for file and console handlers (StreamHandler, FileHandler)."""
 
     _LEVEL_EMOJI = {
         logging.DEBUG: '🐛',
@@ -44,13 +44,22 @@ class EmojiLogFormatter(logging.Formatter):
     def format(self, record):
         line = super().format(record)
         emoji = self._LEVEL_EMOJI.get(record.levelno, '📋')
-        # Two spaces after emoji so console/GUI show a clear gap before the timestamp
+        # Two spaces after emoji so console shows a clear gap before the timestamp
         return f'{emoji}  {line}'
+
+
+class BracketLevelFormatter(logging.Formatter):
+    """Leading [LEVEL] prefix for the Tkinter dashboard only (ASCII; Tk often mangles emoji)."""
+
+    def format(self, record):
+        line = super().format(record)
+        return f'[{record.levelname.upper()}]  {line}'
 
 
 LOG_FORMAT = '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s'
 LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
 log_formatter = EmojiLogFormatter(LOG_FORMAT, datefmt=LOG_DATEFMT)
+dashboard_log_formatter = BracketLevelFormatter(LOG_FORMAT, datefmt=LOG_DATEFMT)
 
 LOG_FILE = LOG_DIR / f"health_app_{datetime.now().strftime('%Y%m%d')}.log"
 logger = logging.getLogger('HealthApp')
