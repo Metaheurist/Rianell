@@ -109,8 +109,8 @@ log_formatter = EmojiLogFormatter(LOG_FORMAT, datefmt=LOG_DATEFMT)
 dashboard_log_formatter = BracketLevelFormatter(LOG_FORMAT, datefmt=LOG_DATEFMT)
 console_formatter = ConsoleColorBracketFormatter(LOG_FORMAT, datefmt=LOG_DATEFMT)
 
-LOG_FILE = LOG_DIR / f"health_app_{datetime.now().strftime('%Y%m%d')}.log"
-logger = logging.getLogger('HealthApp')
+LOG_FILE = LOG_DIR / f"rianell_{datetime.now().strftime('%Y%m%d')}.log"
+logger = logging.getLogger('Rianell')
 logger.setLevel(logging.DEBUG)
 if not logger.handlers:
     fh = logging.FileHandler(LOG_FILE, encoding='utf-8', mode='a', delay=False)

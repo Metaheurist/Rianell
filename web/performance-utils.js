@@ -3,7 +3,7 @@
 // ============================================
 
 /**
- * Performance optimisation utilities for the Health App
+ * Performance optimisation utilities for Rianell
  */
 
 // ============================================

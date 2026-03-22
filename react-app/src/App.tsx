@@ -4,7 +4,7 @@ import { App as CapApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 
 /**
- * React shell for Health Tracker.
+ * React shell for Rianell.
  * Embeds the existing web app (built from the parent repo) at /legacy/
  * so the same codebase runs as web and inside Capacitor Android.
  * On Android APK: checks for a newer version on launch and prompts to update.
@@ -14,7 +14,7 @@ const LEGACY_APP_PATH = 'legacy/index.html';
 /** Base URL where apk/latest.json and APK files are hosted (e.g. GitHub Pages). */
 const UPDATE_CHECK_BASE =
   (typeof import.meta !== 'undefined' && (import.meta as Record<string, unknown>).env?.VITE_UPDATE_BASE as string) ||
-  'https://metaheurist.github.io/Health-app/';
+  'https://rianell.com/';
 
 interface UpdateInfo {
   version: number;
@@ -66,7 +66,7 @@ const App: React.FC = () => {
   return (
     <>
       <iframe
-        title="Health Tracker"
+        title="Rianell"
         src={LEGACY_APP_PATH}
         style={{
           position: 'fixed',

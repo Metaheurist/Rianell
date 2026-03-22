@@ -1,4 +1,4 @@
--- Recommended Row Level Security (RLS) baseline for Health App + Supabase
+-- Recommended Row Level Security (RLS) baseline for Rianell + Supabase
 -- Review your actual column names and policies in the Supabase dashboard before applying.
 -- Run in Supabase SQL Editor as a privileged role. Test in a staging project first.
 

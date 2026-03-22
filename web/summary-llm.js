@@ -98,7 +98,7 @@
     if (cachedPipeline && cachedModelId === modelId) return cachedPipeline;
     cachedPipeline = null;
     cachedModelId = null;
-    if (typeof window !== 'undefined' && window.healthAppDebug && typeof console !== 'undefined' && console.debug) {
+    if (typeof window !== 'undefined' && window.rianellDebug && typeof console !== 'undefined' && console.debug) {
       console.debug('Summary LLM getPipeline: modelId=' + modelId + ', revision=main');
     }
 
@@ -290,7 +290,7 @@
       if (typeof console !== 'undefined' && console.warn) {
         console.warn('Summary LLM failed, using rule-based note:', e.message || e);
       }
-      if (typeof window !== 'undefined' && window.healthAppDebug && typeof console !== 'undefined' && console.debug) {
+      if (typeof window !== 'undefined' && window.rianellDebug && typeof console !== 'undefined' && console.debug) {
         console.debug('Summary LLM: using rule-based fallback');
       }
     }
@@ -397,7 +397,20 @@
   async function generateMotdWithLLM(fallbackText) {
     var themes = [
       'gentle progress', 'self-care', 'small wins', 'patience', 'renewal',
-      'inner strength', 'balance', 'hope', 'showing up for yourself', 'one step at a time'
+      'inner strength', 'balance', 'hope', 'showing up for yourself', 'one step at a time',
+      'self-compassion', 'rest as strength', 'listening inward', 'tiny habits', 'second chances',
+      'seasonal rhythm', 'morning light', 'evening wind-down', 'weekend reset', 'midweek steadiness',
+      'body neutrality', 'moving without pressure', 'eating with kindness', 'hydration as care',
+      'sleep as repair', 'stress as signal', 'anxiety with softness', 'fatigue without blame',
+      'chronic illness grace', 'flare-day realism', 'good enough medicine', 'asking for help',
+      'boundaries that heal', 'joy in small rituals', 'creativity for calm', 'music and mood',
+      'outdoor air', 'stretching gently', 'posture with ease', 'breath as anchor',
+      'gratitude without toxic positivity', 'honest logging', 'data without obsession',
+      'curiosity over criticism', 'forgiving yesterday', 'trusting tomorrow lightly',
+      'community care', 'family balance', 'work-life oxygen', 'digital breaks',
+      'celebrating stillness', 'permission to pause', 'courage in quiet choices',
+      'resilience after setbacks', 'identity beyond symptoms', 'dignity in difficulty',
+      'play and lightness', 'humour that heals', 'colour and comfort', 'fresh starts'
     ];
     var theme = themes[Math.floor(Math.random() * themes.length)];
     var nonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
@@ -409,8 +422,8 @@
       var run = pipe(prompt, {
         max_new_tokens: 56,
         do_sample: true,
-        temperature: 0.88,
-        top_p: 0.92,
+        temperature: 0.92,
+        top_p: 0.93,
         truncation: true
       });
       var timeoutPromise = new Promise(function (_, reject) {

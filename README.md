@@ -1,6 +1,6 @@
-# Health App - Personal Health Dashboard
+# Rianell — personal health dashboard
 
-A comprehensive web-based health tracking application with data visualisation, analytics, and cloud synchronisation capabilities.
+**Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
 **Repository**: [https://github.com/Metaheurist/Health-app](https://github.com/Metaheurist/Health-app)
 
@@ -85,9 +85,9 @@ flowchart LR
 - **Scripts**: **`summary-llm.js`** loads with `requestIdleCallback` on non–low devices (no `document.write`); Font Awesome remains deferred.
 - **Build**: Root **`npm run build:web`** runs esbuild (`web/build-site.mjs`) and emits **`web/app.min.js`** (ignored by git). **GitHub Pages** deploy minifies `app.js` → `app.min.js` and rewrites `index.html` accordingly.
 - **Web Workers**: `web/workers/io-worker.js` — large JSON **parse** / **stringify** when the optimisation profile has **`useWorkers`** (import / export paths).
-- **Service worker**: **Off** by default; opt-in with `localStorage.setItem('healthAppEnableStaticSW','1')` or **`?sw=1`** — `web/sw.js` uses cache-first for static file extensions (test on your host; CSP is same-origin).
+- **Service worker**: **Off** by default; opt-in with `localStorage.setItem('rianellEnableStaticSW','1')` or **`?sw=1`** — `web/sw.js` uses cache-first for static file extensions (test on your host; CSP is same-origin).
 - **Python server**: **gzip** for compressible static files when the client sends `Accept-Encoding: gzip`; **Cache-Control** tuned for common static extensions (`server/main.py`).
-- **Observability**: Optional **Long Task** logging via `localStorage.setItem('healthAppPerfLongTasks','1')` or debug mode; `performance.mark('health-app-init')` during init.
+- **Observability**: Optional **Long Task** logging via `localStorage.setItem('rianellPerfLongTasks','1')` or debug mode; `performance.mark('rianell-init')` during init.
 
 ### AI analysis
 
@@ -96,7 +96,7 @@ flowchart LR
 - **Optional AI**: Settings toggle "Enable AI features & Goals" hides or shows the AI Analysis tab, chart predictions, and Goals.
 - **Neural-style pipeline**: Trend regression, correlations, patterns, risk factors, flare prediction, cross-section (food/exercise/stressors/symptoms), clustering, time series, actionable advice, prioritised insights, and a 2–3 sentence summary (see [AI Analysis](#ai-analysis-neural-network-architecture)).
 - **Summary note**: In-browser LLM (Transformers.js, flan-t5 by device class) or rule-based fallback; context from analysis and logs; value highlighting in the UI.
-- **Dashboard title (MOTD)**: Main header shows a **message of the day** only (no user name). A **stable daily line** is chosen from built-in presets; when AI is enabled and not deferred, the on-device LLM may replace it after the app has loaded. Browser tab title stays **Health Dashboard**.
+- **Dashboard title (MOTD)**: Main header shows a **message of the day** only (no user name). A **preset line** is chosen from a large rotating list (deterministic **~every 15 minutes**); when AI is enabled and not deferred, the on-device LLM may replace it after the app has loaded (wider theme variety + sampling). Browser tab title stays **Rianell**.
 - **GPU-accelerated LLM**: When the performance benchmark detects a capable GPU (WebGPU or WebGL), the summary/suggest pipeline loads with GPU acceleration; the app falls back to CPU automatically if GPU loading fails. Uses Transformers.js 3.3.2 for stable WebGPU/WebGL support.
 - **On-device AI model selection**: Settings → Performance → **On-device AI model** lets you choose **Use recommended (for this device)** (from the performance benchmark), **Small (faster, lower memory)**, or **Base (better quality)**. The benchmark recommends flan-t5-small or flan-t5-base by tier; changing the setting clears the LLM cache so the next summary or suggest note uses the selected model.
 - **Suggest note**: LLM or rule-based suggestion for the day’s log note; "Generating…" state on button.
@@ -229,7 +229,7 @@ The server will:
 
 ### GitHub Pages (app at repo root)
 
-The app lives in **`web/`**, so GitHub Pages will not see `index.html` if the source is the repo root. To serve the app from GitHub Pages (e.g. `https://<user>.github.io/Health-app/`):
+The app lives in **`web/`**, so GitHub Pages will not see `index.html` if the source is the repo root. The public site is **[rianell.com](https://rianell.com/)**; GitHub Actions can also deploy the same build to Pages (e.g. `https://<user>.github.io/Health-app/`).
 
 1. In the repo: **Settings → Pages**
 2. Under **Build and deployment**, set **Source** to **GitHub Actions**
@@ -237,7 +237,7 @@ The app lives in **`web/`**, so GitHub Pages will not see `index.html` if the so
 
 **Cloud sync on the live site:** To use Supabase (login, cloud backup, anonymised data) on the GitHub Pages site, add **Repository secrets** (or **Environment secrets** for the `pages` environment): **`SUPABASE_URL`** (your project URL, e.g. `https://xxxx.supabase.co`) and **`SUPABASE_ANON_KEY`** (your publishable anon key). The deploy workflow injects these into the built site at deploy time so they are never committed. If these secrets are not set, the site still deploys; cloud features will work only after you add them.
 
-After the first push (or a manual **Run workflow**), the site will show the Health Dashboard instead of the README.
+After the first push (or a manual **Run workflow**), the deployed site will show **Rianell** instead of the README.
 
 ## React shell & Android APK
 
@@ -280,7 +280,7 @@ Controlled in `react-app/android/variables.gradle` (or via `react-app/patch-andr
 - On **push** (not PR) to `main`/`master`: the workflow also **commits** the `App build/Android/` folder to the repo with `[skip ci]`, so the “Install on Android” link in Settings works when the app is served from the same repo (e.g. GitHub Pages).
 - Download the APK from the run’s **Summary → Artifacts** (name **android**), or use **Settings → Install on Android / Install on iOS** in the deployed app.
 
-### Using the Health Dashboard
+### Using Rianell
 
 1. **Add Daily Entries**:
    - Click "Add Entry" button
@@ -305,7 +305,7 @@ Controlled in `react-app/android/variables.gradle` (or via `react-app/patch-andr
 
 ### Server Dashboard Features
 
-![Health App Server Dashboard — local URL, Supabase connection, database viewer, and live server logs](docs/images/server-dashboard.png)
+![Rianell Server Dashboard — local URL, Supabase connection, database viewer, and live server logs](docs/images/server-dashboard.png)
 
 The Tkinter dashboard provides:
 
@@ -573,7 +573,7 @@ pip install watchdog
 ```
 
 ### Logging
-Server logs are saved to `logs/health_app_YYYYMMDD.log`. The `HealthApp` logger uses these formatters in `server/config.py`:
+Server logs are saved to `logs/rianell_YYYYMMDD.log`. The `Rianell` logger uses these formatters in `server/config.py`:
 
 - **`EmojiLogFormatter`** (handler: **file** only): each line starts with a level emoji (`🐛` DEBUG, `ℹ️` INFO, `⚠️` WARNING, `❌` ERROR, `💥` CRITICAL; anything else `📋`), **two spaces**, then the usual timestamp, level name, logger name, and message. Plain text so logs stay grep-friendly.
 - **`ConsoleColorBracketFormatter`** (handler: **console** / `StreamHandler`): each line starts with a coloured **`[LEVEL]`** prefix (ANSI: e.g. blue for INFO, red for ERROR) when stdout is a TTY; **no** escape codes when `NO_COLOR` is set (or when not a TTY). Set **`FORCE_COLOR=1`** to force colour when piping if your terminal supports it.
@@ -707,7 +707,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 <details>
 <summary><strong>v1.28.1</strong> — 2026-03-22 — Server logs & charts visibility</summary>
 
-- **Server**: `EmojiLogFormatter` in `server/config.py` prepends a per-level emoji to every `HealthApp` log line (file, console, Tkinter dashboard); `server/main.py` uses the same formatter for the dashboard `TextHandler`.
+- **Server**: `EmojiLogFormatter` in `server/config.py` prepends a per-level emoji to every `Rianell` log line (file, console, Tkinter dashboard); `server/main.py` uses the same formatter for the dashboard `TextHandler`.
 - **Charts tab**: `updateChartEmptyState` calls `enforceChartSectionView` when data appears; `.chart-container.hidden` and chart container IDs use `display: none !important` so Combined / Balance / Individual panels do not stack visibly when switching modes.
 
 </details>
@@ -769,7 +769,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 - **Mobile bottom nav**: Increased flex `gap` between items so tab buttons are not visually squashed on small screens.
 - **Mobile header**: Goals and Settings controls use **in-flow layout** above the green dashboard title (≤768px) instead of overlapping long/wrapped MOTD text.
-- **Dashboard MOTD**: Removed personalised “Welcome to {name}'s health”; header uses **daily preset lines** (deterministic per calendar day) plus optional LLM line **after** `body.loaded` so startup does not double-load the Transformers pipeline with `preloadSummaryLLM`. Tab title remains **Health Dashboard**.
+- **Dashboard MOTD**: Removed personalised “Welcome to {name}'s health”; header uses **preset lines** (rotating on a short interval) plus optional LLM line **after** `body.loaded` so startup does not double-load the Transformers pipeline with `preloadSummaryLLM`. Tab title remains **Rianell**.
 - **First paint**: Inline critical CSS in `index.html` for `html`/`body` and `#loadingOverlay` so the loading screen is **dark with spinner** before `styles.css` loads (avoids a white flash).
 - **Extensions**: Early `unhandledrejection` listener plus a stronger handler in `app.js` to **suppress noisy extension promise rejections** (e.g. `tabs:outgoing.message.ready`, `vendor.js`). Optional: use a profile without extensions for a clean console when debugging.
 

@@ -1,8 +1,8 @@
-// Cloud Sync Functions for Health App
+// Cloud Sync Functions for Rianell
 // Handles syncing anonymized data to Supabase and logged-in user backup (health_data + AI state)
 
 // LocalStorage key for AI prediction/learning state (blend weights, last predictions) — synced to cloud when logged in
-const AI_STATE_LOCALSTORAGE_KEY = 'healthAppPredictionState';
+const AI_STATE_LOCALSTORAGE_KEY = 'rianellPredictionState';
 
 // Initialize Supabase client
 let supabaseClient = null;
@@ -799,7 +799,7 @@ async function checkAuthStatus() {
   const client = initSupabase();
   if (!client) {
     try {
-      var s = localStorage.getItem('healthAppSettings');
+      var s = localStorage.getItem('rianellSettings');
       if (s) { var o = JSON.parse(s); if (o && o.demoMode) return; }
     } catch (e) {}
     if (typeof window.appSettings === 'undefined' || !window.appSettings.demoMode) console.error('Supabase client not available');
@@ -1383,12 +1383,12 @@ async function syncToCloud() {
     const mergedLogs = mergeHealthLogs(localLogs, cloudLogs);
     
     // Merge settings: local takes precedence over cloud
-    const settingsJson = localStorage.getItem('healthAppSettings');
+    const settingsJson = localStorage.getItem('rianellSettings');
     const localSettings = settingsJson ? JSON.parse(settingsJson) : {};
     const mergedSettings = { ...cloudSettings, ...localSettings };
     // Include Goals & targets so they sync to cloud
     try {
-      const goalsJson = localStorage.getItem('healthAppGoals');
+      const goalsJson = localStorage.getItem('rianellGoals');
       if (goalsJson) {
         const goals = JSON.parse(goalsJson);
         if (goals && typeof goals === 'object') mergedSettings.goals = goals;
@@ -1735,7 +1735,7 @@ async function loadFromCloud() {
           // Restore Goals & targets from cloud to localStorage
           if (cloudSettings.goals && typeof cloudSettings.goals === 'object') {
             try {
-              localStorage.setItem('healthAppGoals', JSON.stringify(cloudSettings.goals));
+              localStorage.setItem('rianellGoals', JSON.stringify(cloudSettings.goals));
               if (typeof updateGoalsProgressBlock === 'function') updateGoalsProgressBlock();
             } catch (e) {}
           }

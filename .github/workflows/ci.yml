@@ -1,5 +1,5 @@
 # =============================================================================
-# Health App — unified GitHub Actions
+# Rianell (Health-app repo) — unified GitHub Actions
 # =============================================================================
 # Single workflow file replacing former: build-android-apk, build-ios,
 # build-app-releases, deploy-pages, security-audit.
@@ -273,7 +273,7 @@ jobs:
         run: |
           set -e
           IOS_DIR="App build/iOS"
-          BASE="${BASE_URL:-https://metaheurist.github.io/Health-app/}"
+          BASE="${BASE_URL:-https://rianell.com/}"
           BASE="${BASE%/}/"
           IPA_PATH=$(ls "$IOS_DIR"/*.ipa 2>/dev/null | head -n1) || true
           if [ -n "$IPA_PATH" ]; then
@@ -306,7 +306,7 @@ jobs:
                   <key>kind</key>
                   <string>software</string>
                   <key>title</key>
-                  <string>Health Tracker</string>
+                  <string>Rianell</string>
                 </dict>
               </dict>
             </array>
@@ -430,7 +430,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: Health App build ${{ github.run_number }}
+          name: Rianell build ${{ github.run_number }}
           body: |
             Automated build from `${{ github.sha }}` on `${{ github.ref_name }}`.
 
