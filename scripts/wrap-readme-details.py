@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 """
-One-off helper: wrap top-level ## sections in README.md with <details>/<summary>
-and prepend a Table of contents. Run from repo root:
-  python scripts/wrap-readme-details.py
+Deprecated: GitHub README <details> blocks always show the browser disclosure triangle,
+which looks raw and cannot be styled.
+
+Current approach: run `unwrap-readme-details.py` (if needed) then `polish-readme.py` —
+styled TOC table, emoji section headings, changelog as ### headings (no arrows).
+
+This script is kept only to unwrap legacy `<details id="...">` wrappers if reintroduced.
 """
 import re
 from pathlib import Path
 
 
 def github_slug(title: str) -> str:
-    """Approximate GitHub heading anchor for ## titles (ASCII)."""
     s = title.strip().lower()
     s = re.sub(r"[^a-z0-9\s-]", "", s)
     s = re.sub(r"\s+", "-", s)
@@ -22,8 +25,8 @@ def main() -> None:
     path = root / "README.md"
     text = path.read_text(encoding="utf-8")
 
-    if '<details id="security">' in text:
-        print("README already has wrapped sections; nothing to do.")
+    if '<details id="security">' not in text:
+        print("No legacy <details id=...> wrappers found; nothing to do.")
         return
 
     parts = re.split(r"\n(?=## )", text)
