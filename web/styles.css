@@ -880,9 +880,9 @@ body.light-mode .app-log-fab {
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
   }
-  /* Space for fixed wizard actions (see .log-wizard-sticky-actions below) */
+  /* Wizard actions are in-flow below steps (not fixed), so only a small bottom cushion */
   #logTab.log-wizard-mode #logForm {
-    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -1005,32 +1005,35 @@ body.light-mode #logTab.log-wizard-mode .section-header {
 
 @media (max-width: 768px) {
   /*
-   * Sticky breaks inside .container.app-main-scroll (backdrop-filter creates a containing block).
-   * Pin actions to the viewport above the bottom tab bar; #logForm padding-bottom reserves scroll space.
+   * Keep Back / Skip / Next in document flow below the active step so they do not overlay cards.
+   * (Fixed + viewport bottom sat on top of the last form-section; large #logForm padding was still unreliable.)
+   * .app-shell scrolls .container.app-main-scroll above .app-mobile-bottom-chrome, so in-flow actions
+   * naturally sit above the bottom tab bar without covering step content.
    */
   .log-wizard-sticky-actions {
-    position: fixed;
-    left: calc(18px + max(16px, env(safe-area-inset-left, 0px)));
-    right: calc(18px + max(16px, env(safe-area-inset-right, 0px)));
-    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
-    width: auto;
-    margin-top: 0;
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-top: 1.25rem;
     margin-bottom: 0;
-    z-index: 1001;
+    z-index: auto;
     background: rgba(12, 14, 18, 0.94);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-md) var(--radius-md) 0 0;
-    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.4);
-    padding-top: 10px;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
   }
 
   body.light-mode .log-wizard-sticky-actions {
     background: rgba(248, 250, 252, 0.96);
-    border-top-color: rgba(0, 0, 0, 0.1);
-    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   }
 }
 
@@ -4750,11 +4753,6 @@ body.light-mode .donate-amount-chip--active {
   opacity: 0.95;
   transform: translateY(-1px);
 }
-.donate-settings-btn {
-  width: 100%;
-  justify-content: center;
-}
-
 /* Install modal (post-tutorial; also in God mode) */
 .install-modal-hint {
   margin: 0 0 1rem 0;
@@ -8875,11 +8873,58 @@ body.light-mode .date-separator {
   }
 }
 
-/* Settings Data Management */
+/* Settings Data Management — equal-width cells, matching height + corner radius */
 .data-management-buttons {
   display: flex;
+  flex-direction: row;
+  align-items: stretch;
   gap: 10px;
   margin-bottom: 15px;
+}
+
+.data-management-buttons__cell {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+}
+
+.data-management-buttons .settings-data-btn {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 88px;
+  margin: 0;
+  padding: 12px 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  line-height: 1.25;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.15s ease;
+}
+
+.data-management-buttons .data-management-buttons__icon,
+.data-management-buttons .settings-install-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  margin: 0;
+}
+
+.data-management-buttons .settings-install-icon i {
+  font-size: 1.25rem;
+}
+
+.data-management-buttons .data-management-buttons__label,
+.data-management-buttons #installWebAppLabel {
+  display: block;
+  max-width: 100%;
 }
 
 .settings-data-btn {
@@ -8915,14 +8960,23 @@ body.light-mode .date-separator {
 }
 
 .install-app-btn {
-  background: #9c27b0;
+  background: #2196f3;
   color: white;
+}
+
+.data-management-buttons .install-app-btn {
+  background: #2196f3;
+}
+
+/* Full-width install rows outside Data Management (e.g. install modal) */
+.settings-option:not(.data-management-buttons__cell) .install-app-btn,
+.install-modal-buttons .install-app-btn {
   width: 100%;
   margin-bottom: 10px;
 }
 
 .install-app-btn:hover {
-  background: #7b1fa2;
+  background: #1976d2;
 }
 
 .install-android-btn {

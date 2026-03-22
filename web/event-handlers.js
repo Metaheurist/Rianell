@@ -424,17 +424,6 @@ function initializeEventHandlers() {
     clearDataBtn.addEventListener('click', clearData);
   }
 
-  const donateSettingsBtn = document.getElementById('donateSettingsBtn');
-  if (donateSettingsBtn) {
-    donateSettingsBtn.addEventListener('click', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (typeof window.openDonateModal === 'function') {
-        window.openDonateModal();
-      }
-    });
-  }
-
   const donateModalCloseBtn = document.getElementById('donateModalCloseBtn');
   if (donateModalCloseBtn) {
     donateModalCloseBtn.addEventListener('click', function (e) {
