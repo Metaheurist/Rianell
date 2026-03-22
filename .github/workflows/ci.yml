@@ -157,9 +157,9 @@ jobs:
         run: |
           rm -rf "App build/Android"
           mkdir -p "App build/Android"
-          cp react-app/android/app/build/outputs/apk/debug/app-debug.apk "App build/Android/app-debug.apk"
-          cp react-app/android/app/build/outputs/apk/debug/app-debug.apk "App build/Android/app-debug-${{ github.run_number }}.apk"
-          echo '{"version":${{ github.run_number }},"file":"app-debug-${{ github.run_number }}.apk"}' > "App build/Android/latest.json"
+          cp react-app/android/app/build/outputs/apk/debug/app-debug.apk "App build/Android/app-debug-beta.apk"
+          cp react-app/android/app/build/outputs/apk/debug/app-debug.apk "App build/Android/app-debug-beta-${{ github.run_number }}.apk"
+          echo '{"version":${{ github.run_number }},"file":"app-debug-beta-${{ github.run_number }}.apk"}' > "App build/Android/latest.json"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v5
@@ -250,7 +250,7 @@ jobs:
           if [ -d "$APP_PATH" ]; then
             mkdir -p "../App build/iOS"
             RUN="${{ github.run_number }}"
-            SIM_ZIP="Health-Tracker-simulator-${RUN}.zip"
+            SIM_ZIP="Health-Tracker-simulator-beta-${RUN}.zip"
             cd build/Build/Products/Debug-iphonesimulator
             zip -r "../../../../../App build/iOS/${SIM_ZIP}" App.app
             cd "../../../../.."
@@ -261,12 +261,12 @@ jobs:
         run: |
           mkdir -p "App build/iOS"
           RUN="${{ github.run_number }}"
-          ZIPNAME="Health-Tracker-ios-build-${RUN}.zip"
+          ZIPNAME="Health-Tracker-ios-beta-build-${RUN}.zip"
           cd react-app
           zip -r "../App build/iOS/${ZIPNAME}" ios -x "*.DS_Store" -x "*DerivedData*" -x "*.xcuserstate"
           cd ..
-          cp "App build/iOS/${ZIPNAME}" "App build/iOS/Health-Tracker-ios-latest.zip"
-          SIM_ZIP="Health-Tracker-simulator-${RUN}.zip"
+          cp "App build/iOS/${ZIPNAME}" "App build/iOS/Health-Tracker-ios-beta-latest.zip"
+          SIM_ZIP="Health-Tracker-simulator-beta-${RUN}.zip"
           if [ -f "App build/iOS/${SIM_ZIP}" ]; then
             echo "{\"version\":${RUN},\"file\":\"${ZIPNAME}\",\"simulatorFile\":\"${SIM_ZIP}\"}" > "App build/iOS/latest.json"
           else
@@ -420,15 +420,15 @@ jobs:
           set -e
           RUN="${{ github.run_number }}"
           mkdir -p release-assets/Android release-assets/iOS
-          cp "gh-release/Android/app-debug.apk" "release-assets/Android/"
-          cp "gh-release/Android/app-debug-${RUN}.apk" "release-assets/Android/"
+          cp "gh-release/Android/app-debug-beta.apk" "release-assets/Android/"
+          cp "gh-release/Android/app-debug-beta-${RUN}.apk" "release-assets/Android/"
           # Distinct basenames: GitHub release assets cannot share the same filename.
           cp "gh-release/Android/latest.json" "release-assets/Android/android-latest.json"
           cp "gh-release/iOS/latest.json" "release-assets/iOS/ios-latest.json"
-          cp "gh-release/iOS/Health-Tracker-ios-latest.zip" "release-assets/iOS/"
-          cp "gh-release/iOS/Health-Tracker-ios-build-${RUN}.zip" "release-assets/iOS/"
-          if [ -f "gh-release/iOS/Health-Tracker-simulator-${RUN}.zip" ]; then
-            cp "gh-release/iOS/Health-Tracker-simulator-${RUN}.zip" "release-assets/iOS/"
+          cp "gh-release/iOS/Health-Tracker-ios-beta-latest.zip" "release-assets/iOS/"
+          cp "gh-release/iOS/Health-Tracker-ios-beta-build-${RUN}.zip" "release-assets/iOS/"
+          if [ -f "gh-release/iOS/Health-Tracker-simulator-beta-${RUN}.zip" ]; then
+            cp "gh-release/iOS/Health-Tracker-simulator-beta-${RUN}.zip" "release-assets/iOS/"
           fi
           echo "Release files:"
           find release-assets -type f | sort
@@ -441,9 +441,9 @@ jobs:
           body: |
             Automated build from `${{ github.sha }}` on `${{ github.ref_name }}`.
 
-            **Android** (`release-assets/Android/`): debug APK, run-numbered APK, and `android-latest.json` (same content as repo `latest.json`).
+            **Android** (`release-assets/Android/`): `app-debug-beta.apk`, `app-debug-beta-${{ github.run_number }}.apk`, and `android-latest.json` (same content as repo `latest.json`).
 
-            **iOS** (`release-assets/iOS/`): `Health-Tracker-ios-latest.zip`, `Health-Tracker-ios-build-${{ github.run_number }}.zip`, optional simulator zip, `ios-latest.json`.
+            **iOS** (`release-assets/iOS/`): `Health-Tracker-ios-beta-latest.zip`, `Health-Tracker-ios-beta-build-${{ github.run_number }}.zip`, optional simulator zip, `ios-latest.json`.
 
             A workflow commit updates `App build/` on the branch for GitHub Pages download links.
           draft: false
