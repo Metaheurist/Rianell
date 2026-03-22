@@ -382,7 +382,7 @@ body.dark-mode {
   margin-bottom: 2.5rem;
   position: relative;
   animation: slideInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  padding-right: 60px; /* Space for settings button */
+  padding-right: 100px; /* Space for targets + settings (fixed top-right) */
 }
 
 h1, h2 {
@@ -7861,11 +7861,11 @@ body.light-mode .stressor-chip--other { background: rgba(97, 97, 97, 0.25); }
   text-align: center;
 }
 
-/* Header buttons wrap: Targets (face) + Settings */
+/* Header buttons wrap: Targets (face) + Settings — sibling of .app-main-scroll so position:fixed is viewport-relative (not inside .container transform) */
 .header-buttons-wrap {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: max(20px, env(safe-area-inset-top, 0px));
+  right: max(20px, env(safe-area-inset-right, 0px));
   z-index: 10002;
   display: flex;
   align-items: center;
@@ -9175,8 +9175,9 @@ body.light-mode .date-separator {
     padding: 15px;
   }
 
+  /* Extra top padding: header buttons are fixed (out of flow); reserve space that the in-flow header row used */
   .container {
-    padding: 18px 18px 10px 18px;
+    padding: 72px 18px 10px 18px;
     padding-bottom: 10px;
     margin: 0 0 0 0;
     margin-bottom: 0;
@@ -9356,20 +9357,22 @@ body.light-mode .date-separator {
     min-height: 120px;
   }
 
-  /* Goals + Settings: in-flow row above title (fixed overlay clashed with wrapped MOTD title) */
+  /* Goals + Settings: fixed top-right while scrolling (same as desktop); safe-area for notch */
   .header-buttons-wrap {
-    position: relative;
-    top: auto;
-    right: auto;
+    position: fixed;
+    top: max(8px, env(safe-area-inset-top, 0px));
+    right: max(16px, env(safe-area-inset-right, 0px));
     left: auto;
-    width: 100%;
+    width: auto;
     justify-content: flex-end;
-    margin-bottom: 10px;
+    margin-bottom: 0;
     box-sizing: border-box;
+    z-index: 10003;
+    pointer-events: auto;
   }
 
   .title-container {
-    padding-right: 0;
+    padding-right: 100px; /* keep MOTD / title clear of fixed targets + settings */
   }
 
   .settings-button-top,
@@ -9603,7 +9606,7 @@ body.light-mode .date-separator {
 /* Extra small screens */
 @media (max-width: 480px) {
   .container {
-    padding: 8px;
+    padding: 72px 8px 10px 8px; /* keep top reserved for fixed targets + settings (matches mobile block) */
   }
 
   .ai-modal-overlay {

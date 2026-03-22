@@ -568,8 +568,7 @@
   </div>
   
   <div class="app-shell" id="appShell">
-  <div class="container app-main-scroll" id="main-content">
-    <!-- Header buttons: Targets (face) + Settings -->
+    <!-- Sibling of .container (not inside scroll/transform) so fixed top-right matches FAB behavior -->
     <div class="header-buttons-wrap">
       <button type="button" class="targets-button-top" onclick="openGoalsModal()" title="Goals & targets">
         <svg class="targets-face-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -584,6 +583,7 @@
         </svg>
       </button>
     </div>
+    <div class="container app-main-scroll" id="main-content">
 
     <div class="title-container">
       <h1 id="dashboardTitle" data-text="Rianell">Rianell</h1>
