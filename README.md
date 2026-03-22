@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Repository**: [github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell) (canonical URL; older **Health-app** links redirect here.)
+**Repository**: [github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell)
 
 ---
 
