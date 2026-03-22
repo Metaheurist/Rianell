@@ -391,20 +391,18 @@
   }
 
   /**
-   * One short motivational line for the dashboard header. Different on each full load (no cache; random theme + time in prompt; sampling).
+   * One short motivational line for the dashboard header. No user names. Different on each full load (no cache; random theme + time in prompt; sampling).
    * Resolves with fallbackText on failure or unusable output.
    */
-  async function generateMotdWithLLM(userName, fallbackText) {
-    var name = (userName && String(userName).trim()) ? String(userName).trim() : '';
-    var displayName = name || 'friend';
+  async function generateMotdWithLLM(fallbackText) {
     var themes = [
       'gentle progress', 'self-care', 'small wins', 'patience', 'renewal',
       'inner strength', 'balance', 'hope', 'showing up for yourself', 'one step at a time'
     ];
     var theme = themes[Math.floor(Math.random() * themes.length)];
     var nonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
-    var prompt = 'Write one short motivational sentence for a health tracking app. Address ' + displayName + ' warmly. '
-      + 'No medical advice. No quotation marks. Max 22 words. Theme: ' + theme + '. Unique: ' + nonce + '.';
+    var prompt = 'Write one short motivational sentence for a health tracking app. Address the reader in a warm, supportive way. '
+      + 'Do not use anyone\'s name. No medical advice. No quotation marks. Max 22 words. Theme: ' + theme + '. Unique: ' + nonce + '.';
 
     try {
       var pipe = await getPipeline();

@@ -39,7 +39,7 @@ flowchart LR
 ### App shell and log experience (web UI)
 - **Home / Today**: Default tab with greeting, date, logging status, goals snippet when enabled, and **Log today** to start the entry flow.
 - **Log entry wizard**: Step-by-step flow (date & flare → vitals → symptoms & pain → energy & day → food → exercise → medication & notes → review) with step indicator, **Back** / **Skip** / **Next**, and **Save entry** on the last step. Drafts are debounced to `sessionStorage`; URL hash `#log/step/<1-based step>` restores step when opening the Log tab.
-- **Navigation**: Top tab strip on wider screens; **bottom navigation bar** on viewports ≤768px (Home, Log, View logs, Charts, AI) so only one nav chrome shows per breakpoint.
+- **Navigation**: Top tab strip on wider screens; **bottom navigation bar** on viewports ≤768px (Home, Log, View logs, Charts, AI) with comfortable spacing between items so only one nav chrome shows per breakpoint.
 - **Layout**: Extra horizontal padding in the log wizard on small screens; **`--card-content-padding-x`** in `styles.css` sets consistent horizontal inset inside bordered cards (`.form-section` / `.section-content`), including wizard vitals and other steps, log date/flare blocks, and review—so labels, inputs, and controls (e.g. weight unit toggle) are not flush to the card edge. **Tile pickers** (energy & mental clarity, stressors, symptoms, food by meal, exercise by category) open in a **full-screen `<dialog>` bottom sheet** on phones and a centred max-width sheet on wider viewports; chip content is moved into the sheet and restored on close (same IDs and handlers as before). Optional **per-section search** filters chips on the client. Sticky wizard actions use a flat bar (no heavy drop shadow behind the button row).
 
 ### Charts and visualisation
@@ -53,7 +53,7 @@ flowchart LR
 - **Optional AI**: Settings toggle "Enable AI features & Goals" hides or shows the AI Analysis tab, chart predictions, and Goals.
 - **Neural-style pipeline**: Trend regression, correlations, patterns, risk factors, flare prediction, cross-section (food/exercise/stressors/symptoms), clustering, time series, actionable advice, prioritised insights, and a 2–3 sentence summary (see [AI Analysis](#ai-analysis-neural-network-architecture)).
 - **Summary note**: In-browser LLM (Transformers.js, flan-t5 by device class) or rule-based fallback; context from analysis and logs; value highlighting in the UI.
-- **Dashboard title (MOTD)**: Optional short motivational line generated on-device for the main header when AI is not deferred; falls back to the static welcome line on failure or low-end **defer AI** mode.
+- **Dashboard title (MOTD)**: Main header shows a **message of the day** only (no user name). A **stable daily line** is chosen from built-in presets; when AI is enabled and not deferred, the on-device LLM may replace it after the app has loaded. Browser tab title stays **Health Dashboard**.
 - **GPU-accelerated LLM**: When the performance benchmark detects a capable GPU (WebGPU or WebGL), the summary/suggest pipeline loads with GPU acceleration; the app falls back to CPU automatically if GPU loading fails. Uses Transformers.js 3.3.2 for stable WebGPU/WebGL support.
 - **On-device AI model selection**: Settings → Performance → **On-device AI model** lets you choose **Use recommended (for this device)** (from the performance benchmark), **Small (faster, lower memory)**, or **Base (better quality)**. The benchmark recommends flan-t5-small or flan-t5-base by tier; changing the setting clears the LLM cache so the next summary or suggest note uses the selected model.
 - **Suggest note**: LLM or rule-based suggestion for the day’s log note; "Generating…" state on button.
@@ -602,7 +602,18 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.25.0** — Windows PowerShell launcher for the Python server (see below).
+**Latest: v1.26.0** — Mobile shell polish, MOTD behaviour, loading UX, extension console noise (see below).
+
+<details>
+<summary><strong>v1.26.0</strong> — 2026-03-22 — UI, MOTD, first paint, extensions</summary>
+
+- **Mobile bottom nav**: Increased flex `gap` between items so tab buttons are not visually squashed on small screens.
+- **Mobile header**: Goals and Settings controls use **in-flow layout** above the green dashboard title (≤768px) instead of overlapping long/wrapped MOTD text.
+- **Dashboard MOTD**: Removed personalised “Welcome to {name}'s health”; header uses **daily preset lines** (deterministic per calendar day) plus optional LLM line **after** `body.loaded` so startup does not double-load the Transformers pipeline with `preloadSummaryLLM`. Tab title remains **Health Dashboard**.
+- **First paint**: Inline critical CSS in `index.html` for `html`/`body` and `#loadingOverlay` so the loading screen is **dark with spinner** before `styles.css` loads (avoids a white flash).
+- **Extensions**: Early `unhandledrejection` listener plus a stronger handler in `app.js` to **suppress noisy extension promise rejections** (e.g. `tabs:outgoing.message.ready`, `vendor.js`). Optional: use a profile without extensions for a clean console when debugging.
+
+</details>
 
 <details>
 <summary><strong>v1.25.0</strong> — 2026-03-22 — `server/launch-server.ps1` for Windows</summary>

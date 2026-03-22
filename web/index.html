@@ -25,7 +25,35 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <!-- Note: X-Frame-Options is set via HTTP header in server, not here -->
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
-  
+
+  <!-- Runs before other scripts: swallow extension promise rejections (e.g. tabs:outgoing.message.ready in VM vendor.js) -->
+  <script>
+    (function () {
+      function rejectionText(reason) {
+        if (reason == null) return '';
+        if (typeof reason === 'string') return reason;
+        var m = '';
+        try {
+          if (reason.message) m += String(reason.message);
+          if (reason.stack) m += '\n' + String(reason.stack);
+        } catch (e) {}
+        try { m += '\n' + String(reason); } catch (e2) {}
+        return m;
+      }
+      function isExtensionRejection(reason) {
+        var t = rejectionText(reason);
+        if (!t) return false;
+        return /tabs:outgoing|No\s+Listener|tabs\.outgoing\.message|vendor\.js|chrome-extension:|moz-extension:|safari-web-extension:/i.test(t);
+      }
+      window.addEventListener('unhandledrejection', function (ev) {
+        if (isExtensionRejection(ev.reason)) {
+          ev.preventDefault();
+          ev.stopImmediatePropagation();
+        }
+      }, true);
+    })();
+  </script>
+
   <!-- Apple Touch Icons -->
   <link rel="apple-touch-icon" href="Icons/Icon-180.png">
   <link rel="apple-touch-icon" sizes="57x57" href="Icons/Icon-57.png">
@@ -70,22 +98,106 @@
     html.health-app-no-styles input { background: #1e1e1e; color: #e0f2f1; border: 1px solid #333; }
   </style>
   <script>
-    // Remove unwanted preload links injected by browser extensions
+    // Remove unwanted preload links injected by browser extensions (e.g. Rokt). Extensions often inject
+    // after first paint, so we observe <head> as well as running once.
     (function() {
-      const preloadLinks = document.querySelectorAll('link[rel="preload"]');
-      preloadLinks.forEach(link => {
-        const href = link.getAttribute('href');
-        // Remove any preload links not from our domain
-        if (href && !href.startsWith(window.location.origin) && !href.startsWith('/') && !href.startsWith('data:')) {
-          // Check if it's from a known extension domain (like rokt.com)
-          if (href.includes('rokt.com') || href.includes('extension://') || href.includes('chrome-extension://')) {
+      function stripExtensionPreloads(root) {
+        var links = root.querySelectorAll ? root.querySelectorAll('link[rel="preload"]') : [];
+        for (var i = 0; i < links.length; i++) {
+          var link = links[i];
+          var href = link.getAttribute('href');
+          if (!href) continue;
+          var isLocal = href.startsWith(window.location.origin) || href.startsWith('/') || href.startsWith('data:');
+          if (isLocal) continue;
+          if (href.indexOf('rokt.com') !== -1 || href.indexOf('extension://') !== -1 || href.indexOf('chrome-extension://') !== -1) {
             link.remove();
           }
         }
-      });
+      }
+      stripExtensionPreloads(document);
+      var head = document.head;
+      if (head && typeof MutationObserver !== 'undefined') {
+        var obs = new MutationObserver(function (mutations) {
+          for (var m = 0; m < mutations.length; m++) {
+            var nodes = mutations[m].addedNodes;
+            for (var n = 0; n < nodes.length; n++) {
+              var node = nodes[n];
+              if (node.nodeName === 'LINK' && node.rel === 'preload') stripExtensionPreloads(node.parentNode || document);
+              else if (node.nodeType === 1) stripExtensionPreloads(node);
+            }
+          }
+        });
+        obs.observe(head, { childList: true, subtree: true });
+      }
     })();
   </script>
   <style>
+    /* First paint: dark shell before styles.css loads (avoids white flash + black serif text) */
+    html { background: #0a0a0a; }
+    body {
+      margin: 0;
+      background: #0a0a0a;
+      color: #e0f2f1;
+      min-height: 100vh;
+      min-height: 100dvh;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    #loadingOverlay.loading-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      box-sizing: border-box;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: all;
+    }
+    #loadingOverlay .loading-spinner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    #loadingOverlay .spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(76, 175, 80, 0.2);
+      border-top-color: #4caf50;
+      border-radius: 50%;
+      animation: health-app-spin 1s linear infinite;
+    }
+    #loadingOverlay .loading-text {
+      color: rgba(224, 242, 241, 0.92);
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin: 0;
+      text-align: center;
+      padding: 0 20px;
+      max-width: 90vw;
+    }
+    #loadingOverlay .loading-progress-wrap {
+      width: min(280px, 85vw);
+    }
+    #loadingOverlay .loading-progress-track {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(76, 175, 80, 0.25);
+    }
+    #loadingOverlay .loading-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(76, 175, 80, 0.5), #4caf50);
+      border-radius: 999px;
+    }
+    @keyframes health-app-spin {
+      to { transform: rotate(360deg); }
+    }
     /* Hide main content until loaded; keep loading overlay visible so user sees spinner */
     body:not(.loaded) {
       overflow: hidden;
