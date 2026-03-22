@@ -126,7 +126,7 @@ flowchart LR
 - **Local server**: Python HTTP server for local testing (`python -m server`); serves `web/` at root; optional file watching and auto-reload.
 - **Windows launcher**: From the repo root, `powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1` (or `pwsh -File .\server\launch-server.ps1`) runs the same server; optional `$env:PORT` / `$env:HOST` before invoking.
 - **Supabase integration**: Server can use Supabase for anonymised data and app_settings; credentials from `.env`.
-- **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs.
+- **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs. Log lines are prefixed with a **level emoji** (e.g. ℹ️ INFO, ⚠️ WARNING, ❌ ERROR) in the console, log files under `logs/`, and the dashboard viewer—see [Logging](#logging).
 
 ## Project structure
 
@@ -303,7 +303,7 @@ The Tkinter dashboard provides:
    - **Export**: Export data to CSV files
    - **Viewer**: Real-time database viewer showing last 100 records
 
-3. **Server Logs**: Real-time log viewer
+3. **Server Logs**: Real-time log viewer with the same **emoji-prefixed** lines as the console and rotating files (`🐛` DEBUG, `ℹ️` INFO, `⚠️` WARNING, `❌` ERROR, `💥` CRITICAL; other levels use `📋`).
 
 ## Testing Data
 
@@ -553,7 +553,7 @@ pip install watchdog
 ```
 
 ### Logging
-Server logs are saved to `logs/health_app_YYYYMMDD.log`
+Server logs are saved to `logs/health_app_YYYYMMDD.log`. The `HealthApp` logger uses an **`EmojiLogFormatter`**: each line starts with an emoji for the level (`🐛` DEBUG, `ℹ️` INFO, `⚠️` WARNING, `❌` ERROR, `💥` CRITICAL; anything else `📋`), then the usual timestamp, level name, logger name, and message. This applies to **file**, **stdout/stderr**, and the **Tkinter** log pane (`server/config.py`, shared formatter in `server/main.py`).
 
 ### Browser Compatibility
 - Chrome/Edge (recommended)
@@ -637,7 +637,15 @@ For issues and questions:
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch). Expand a section to see details.
 
-**Latest: v1.28.0** — Performance overhaul (see [Performance (optimisation stack)](#performance-optimisation-stack)).
+**Latest: v1.28.1** — Server log emoji prefixes; charts tab visibility fix.
+
+<details>
+<summary><strong>v1.28.1</strong> — 2026-03-22 — Server logs & charts visibility</summary>
+
+- **Server**: `EmojiLogFormatter` in `server/config.py` prepends a per-level emoji to every `HealthApp` log line (file, console, Tkinter dashboard); `server/main.py` uses the same formatter for the dashboard `TextHandler`.
+- **Charts tab**: `updateChartEmptyState` calls `enforceChartSectionView` when data appears; `.chart-container.hidden` and chart container IDs use `display: none !important` so Combined / Balance / Individual panels do not stack visibly when switching modes.
+
+</details>
 
 <details>
 <summary><strong>v1.28.0</strong> — 2026-03-22 — Performance overhaul</summary>

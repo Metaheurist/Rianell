@@ -74,7 +74,7 @@ check_supabase_availability = supabase_client.check_supabase_availability
 SUPABASE_URL = config.SUPABASE_URL
 SUPABASE_SERVICE_KEY = config.SUPABASE_SERVICE_KEY
 file_handler = config.file_handler
-formatter = logging.Formatter('%(asctime)s | %(levelname)-8s | %(name)s | %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+formatter = config.log_formatter
 
 if not SUPABASE_AVAILABLE:
     print("Warning: supabase library not installed. Supabase features will be disabled.")

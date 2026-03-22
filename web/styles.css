@@ -7253,6 +7253,18 @@ body.light-mode .stressor-chip--other { background: rgba(97, 97, 97, 0.25); }
   display: none;
 }
 
+/* Chart view panels: combinedChartContainer & balanceChartContainer use .chart-container + .hidden.
+   styles-charts.css loads later and sets .chart-container { display: block }, which was overriding
+   .hidden — show only one of combined / balance / individual at a time. */
+#combinedChartContainer.hidden,
+#balanceChartContainer.hidden,
+#individualChartsContainer.hidden {
+  display: none !important;
+}
+.chart-container.hidden {
+  display: none !important;
+}
+
 
 .button-container {
   display: flex;
