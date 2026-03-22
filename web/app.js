@@ -15856,6 +15856,9 @@ function __healthAppRejectionText(reason) {
     if (reason.stack) m += '\n' + String(reason.stack);
   } catch (e) {}
   try { m += '\n' + String(reason); } catch (e2) {}
+  if (!m.trim()) {
+    try { m = JSON.stringify(reason); } catch (e3) {}
+  }
   return m;
 }
 
@@ -15863,7 +15866,7 @@ function __healthAppRejectionText(reason) {
 function __healthAppIsExtensionRejectionBlob(blob) {
   if (!blob || typeof blob !== 'string') return false;
   if (/chrome-extension:|moz-extension:|safari-web-extension:|extension:\/\//i.test(blob)) return true;
-  if (/tabs:outgoing|tabs\.outgoing|No\s+Listener|vendor\.js|serviceWorker\.js|background\.js/i.test(blob)) return true;
+  if (/tabs:outgoing|tabs\.outgoing|outgoing\.message\.ready|No\s+Listener|vendor\.js|VM\d+\s+vendor|serviceWorker\.js|background\.js/i.test(blob)) return true;
   if (/Frame with ID \d+ was removed|No tab with id|Could not establish connection|Receiving end does not exist|message port closed/i.test(blob)) return true;
   if (blob.includes('ERR_INVALID_URL') && blob.includes('data:;base64')) return true;
   return false;

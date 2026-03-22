@@ -639,10 +639,6 @@ h1#dashboardTitle:hover {
   display: contents;
 }
 
-.app-mobile-bottom-chrome__fab {
-  display: contents;
-}
-
 @media (max-width: 768px) {
   .tab-navigation.tab-navigation--top {
     display: none !important;
@@ -662,9 +658,7 @@ h1#dashboardTitle:hover {
   }
 
   .app-mobile-bottom-chrome {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
+    display: block;
     flex-shrink: 0;
     width: 100%;
     box-sizing: border-box;
@@ -672,15 +666,12 @@ h1#dashboardTitle:hover {
     background: transparent;
   }
 
-  .app-mobile-bottom-chrome__fab {
-    display: flex;
-    justify-content: flex-end;
-    padding: 0 20px 10px;
-    pointer-events: none;
-  }
-
-  .app-mobile-bottom-chrome__fab .app-log-fab {
-    pointer-events: auto;
+  /* FAB overlays .container; sits above tab bar (tab bar ~52px + padding + safe area) */
+  .app-log-fab {
+    position: fixed;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    right: max(16px, env(safe-area-inset-right, 0px));
+    z-index: 1002;
   }
 
   .app-bottom-nav {
@@ -727,7 +718,18 @@ h1#dashboardTitle:hover {
     letter-spacing: 0.02em;
     cursor: pointer;
     border-radius: 14px;
+    box-shadow: none;
+    -webkit-tap-highlight-color: transparent;
     transition: color var(--transition-fast), background var(--transition-fast), transform 0.15s ease;
+  }
+
+  /* Override global button:focus-visible green ring (var(--shadow-focus)) */
+  .app-bottom-nav-btn:focus {
+    outline: none;
+  }
+
+  .app-bottom-nav-btn:focus-visible {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4);
   }
 
   .app-bottom-nav-btn:active {
@@ -739,6 +741,11 @@ h1#dashboardTitle:hover {
     color: #fff;
     background: rgba(76, 175, 80, 0.28);
     box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.35);
+  }
+
+  .app-bottom-nav-btn[aria-current="page"]:focus-visible,
+  .app-bottom-nav-btn.active:focus-visible {
+    box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.35), 0 0 0 2px rgba(255, 255, 255, 0.45);
   }
 
   .app-bottom-nav-icon {
@@ -771,9 +778,18 @@ h1#dashboardTitle:hover {
     background: rgba(76, 175, 80, 0.22);
     box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.3);
   }
+
+  body.light-mode .app-bottom-nav-btn:focus-visible {
+    box-shadow: 0 0 0 2px rgba(30, 60, 30, 0.45);
+  }
+
+  body.light-mode .app-bottom-nav-btn[aria-current="page"]:focus-visible,
+  body.light-mode .app-bottom-nav-btn.active:focus-visible {
+    box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.3), 0 0 0 2px rgba(30, 60, 30, 0.45);
+  }
 }
 
-/* Floating + : opens log wizard from any main tab (fixed on desktop; in-flow above tab bar on mobile) */
+/* Floating + : opens log wizard from any main tab (fixed; mobile bottom set in max-width 768px block) */
 .app-log-fab {
   position: fixed;
   right: max(16px, env(safe-area-inset-right, 0px));
@@ -815,16 +831,6 @@ h1#dashboardTitle:hover {
 @media (min-width: 769px) {
   .app-log-fab {
     bottom: max(20px, env(safe-area-inset-bottom, 0px));
-  }
-}
-
-/* After base .app-log-fab so mobile in-flow + wins over position: fixed */
-@media (max-width: 768px) {
-  .app-mobile-bottom-chrome .app-log-fab {
-    position: relative;
-    right: auto;
-    bottom: auto;
-    z-index: 3;
   }
 }
 
@@ -10370,6 +10376,8 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
 
   .metric-checkboxes-grid {
     gap: 6px;
+    max-height: none;
+    overflow: visible;
   }
 
   .metric-group {
@@ -10426,17 +10434,6 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
 
   .metric-checkbox-text .metric-color-indicator {
     margin-top: 2px;
-  }
-}
-
-/* Narrow phones: scroll metric list inside a panel so the chart stays in view */
-@media (max-width: 480px) {
-  .metric-checkboxes-grid {
-    max-height: min(42vh, 300px);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    padding-right: 3px;
   }
 }
 
