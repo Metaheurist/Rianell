@@ -1,10 +1,18 @@
-# Environment files
+# Environment files (repo root — legacy)
 .env
 .env.local
 .env.production
 
-# Encryption keys
+# Security folder (preferred location for secrets)
+Security/.env
+Security/.env.local
+Security/.env.production
+Security/.encryption_key
+Security/*.key
+
+# Encryption keys (repo root — legacy)
 .encryption_key
+encryption.key
 *.key
 
 # API keys and secrets

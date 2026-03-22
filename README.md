@@ -10,11 +10,13 @@ The authoritative security guide is **[SECURITY.md](SECURITY.md)**. It describes
 
 - Default **`HOST=127.0.0.1`** (loopback) and when to use **`HOST=0.0.0.0`** for LAN testing  
 - Gated sensitive routes: **`/api/encryption-key`**, **`/api/anonymized-data`**, and **`HEALTH_APP_SENSITIVE_APIS_ON_LAN`**  
-- Encryption key lifecycle (`.encryption_key`, `ENCRYPTION_KEY`, client behaviour)  
+- Encryption key lifecycle (`Security/.encryption_key`, `ENCRYPTION_KEY` in `Security/.env`, client behaviour)  
 - **Supabase RLS** expectations and [docs/supabase-rls-recommended.sql](docs/supabase-rls-recommended.sql)  
 - **CSP**, Android **`allowMixedContent`**, dependency audits ([`.github/workflows/security-audit.yml`](.github/workflows/security-audit.yml)), and client-side storage risks  
 
 Operational “do not commit secrets” reminders stay in [Security notes](#security-notes) below.
+
+**Local secrets folder:** [`Security/`](Security/) holds **`Security/.env`** and **`Security/.encryption_key`** (gitignored). Copy [`Security/.env.example`](Security/.env.example) → `Security/.env`. See [Security/README.md](Security/README.md).
 
 ## App overview
 
@@ -137,7 +139,7 @@ flowchart LR
 ### Server (testing and development)
 - **Local server**: Python HTTP server for local testing (`python -m server`); serves `web/` at root; optional file watching and auto-reload.
 - **Windows launcher**: From the repo root, `powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1` (or `pwsh -File .\server\launch-server.ps1`) runs the same server; optional `$env:PORT` / `$env:HOST` before invoking.
-- **Supabase integration**: Server can use Supabase for anonymised data and app_settings; credentials from `.env`.
+- **Supabase integration**: Server can use Supabase for anonymised data and app_settings; credentials from **`Security/.env`** (or legacy root `.env`).
 - **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs. **Console** and **log files** use per-level **emoji** prefixes; the dashboard **Server Logs** pane uses ASCII **`[LEVEL]`** tags (e.g. `[INFO]`, `[ERROR]`) with colour on the tag so Tkinter renders reliably—see [Logging](#logging).
 
 ## Project structure
@@ -166,8 +168,8 @@ flowchart LR
    ```
 
 3. **Configure environment variables**
-   - Copy `.env.example` to `.env`
-   - Edit `.env` and add your Supabase credentials:
+   - Copy [`Security/.env.example`](Security/.env.example) to **`Security/.env`** (see [Security/README.md](Security/README.md)). A legacy `.env` at the repo root is still loaded if `Security/.env` is missing.
+   - Edit **`Security/.env`** and add your Supabase credentials:
      ```env
      PORT=8080
      HOST=127.0.0.1
@@ -217,7 +219,7 @@ The server will:
 ### Accessing the App
 
 1. **Local Development**: Open `http://localhost:8080` in your browser
-2. **Network Access**: The server defaults to **loopback** (`127.0.0.1`). To open the app from another device on your LAN, set **`HOST=0.0.0.0`** in `.env` and use your PC’s LAN IP (see [SECURITY.md](SECURITY.md)). For sensitive dev APIs from non-loopback clients, set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** (trusted networks only).
+2. **Network Access**: The server defaults to **loopback** (`127.0.0.1`). To open the app from another device on your LAN, set **`HOST=0.0.0.0`** in **`Security/.env`** (or legacy root `.env`) and use your PC’s LAN IP (see [SECURITY.md](SECURITY.md)). For sensitive dev APIs from non-loopback clients, set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** (trusted networks only).
 3. **Production**: Deploy files to a web server (no local server needed)
 
 **Install manifest URLs (Android / iOS `latest.json`):** On `localhost`, `127.0.0.1`, and `::1`, the app does **not** fetch `App build/Android/latest.json` or `App build/iOS/latest.json`, because those files are produced by CI and deployed with the site. Default install links still point at fallback paths. To test manifest-driven links locally, open the devtools console and run `sessionStorage.setItem('forceAppBuildManifest','1')`, then reload.
@@ -343,7 +345,9 @@ Sample data includes realistic patterns:
 
 ## Configuration
 
-### Environment Variables (.env)
+### Environment Variables (`Security/.env`)
+
+Define variables in **`Security/.env`** (copy from [`Security/.env.example`](Security/.env.example)). If that file is absent, a legacy **`.env`** at the repository root is still read.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -367,7 +371,7 @@ Sample data includes realistic patterns:
      updated_at TIMESTAMP DEFAULT NOW()
    );
    ```
-4. Add your credentials to `.env` and `supabase-config.js`
+4. Add your credentials to **`Security/.env`** (or legacy root `.env`) and `supabase-config.js`
 
 ## AI Analysis: Neural Network Architecture
 
@@ -535,8 +539,9 @@ Health-app/
 │   └── iOS/               # Xcode project zip + latest.json
 ├── server/                 # Python HTTP server (`python -m server`)
 │   └── launch-server.ps1   # Windows launcher (optional)
-├── .env                    # Environment variables (not in git)
-├── .env.example            # Environment template
+├── Security/               # Local secrets (not in git): `.env`, `.encryption_key`; see Security/README.md
+│   ├── .env.example        # Template → copy to Security/.env
+│   └── README.md           # What belongs in this folder
 └── logs/                   # Server logs
 ```
 
@@ -590,10 +595,10 @@ The app includes GDPR-compliant data sharing:
 ### Server Issues
 
 **Port already in use**:
-- Change `PORT` in `.env` or close the application using port 8080
+- Change `PORT` in **`Security/.env`** (or legacy root `.env`) or close the application using port 8080
 
 **Supabase connection failed**:
-- Verify credentials in `.env` and `supabase-config.js`
+- Verify credentials in **`Security/.env`** (or legacy root `.env`) and `supabase-config.js`
 - Check Supabase project is active
 - Ensure using publishable key, not secret key
 
@@ -620,7 +625,8 @@ Start with the full guide: **[SECURITY.md](SECURITY.md)** (same content as linke
 ⚠️ **Important security considerations**:
 
 1. **Never commit sensitive files**:
-   - `.env` (contains Supabase credentials)
+   - **`Security/.env`** (or legacy root `.env`) — Supabase credentials
+   - **`Security/.encryption_key`** — encryption key material
    - `supabase-config.js` (contains API keys)
 
 2. **Use environment variables** for production deployments

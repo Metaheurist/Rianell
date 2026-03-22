@@ -3,6 +3,7 @@
 #   powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1
 #   pwsh -File .\server\launch-server.ps1
 # Optional: $env:PORT = "9000"; $env:HOST = "0.0.0.0"
+# Prefer PORT/HOST in Security/.env (copy from Security/.env.example).
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
