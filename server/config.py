@@ -28,6 +28,29 @@ except ImportError:
 
 # Logging
 from datetime import datetime
+
+
+class EmojiLogFormatter(logging.Formatter):
+    """Prepends an emoji per level for quick scanning in files, console, and dashboard."""
+
+    _LEVEL_EMOJI = {
+        logging.DEBUG: '🐛',
+        logging.INFO: 'ℹ️',
+        logging.WARNING: '⚠️',
+        logging.ERROR: '❌',
+        logging.CRITICAL: '💥',
+    }
+
+    def format(self, record):
+        line = super().format(record)
+        emoji = self._LEVEL_EMOJI.get(record.levelno, '📋')
+        return f'{emoji} {line}'
+
+
+LOG_FORMAT = '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s'
+LOG_DATEFMT = '%Y-%m-%d %H:%M:%S'
+log_formatter = EmojiLogFormatter(LOG_FORMAT, datefmt=LOG_DATEFMT)
+
 LOG_FILE = LOG_DIR / f"health_app_{datetime.now().strftime('%Y%m%d')}.log"
 logger = logging.getLogger('HealthApp')
 logger.setLevel(logging.DEBUG)
@@ -38,9 +61,8 @@ if not logger.handlers:
         fh.stream.reconfigure(line_buffering=True)
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
-    fmt = logging.Formatter('%(asctime)s | %(levelname)-8s | %(name)s | %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    fh.setFormatter(fmt)
-    ch.setFormatter(fmt)
+    fh.setFormatter(log_formatter)
+    ch.setFormatter(log_formatter)
     logger.addHandler(fh)
     logger.addHandler(ch)
 file_handler = logger.handlers[0] if logger.handlers else None

@@ -12319,7 +12319,9 @@ function updateChartEmptyState(hasData) {
   } else {
     // Hide placeholder, show appropriate chart container based on view
     placeholder.classList.add('hidden');
-    // Chart containers will be shown/hidden by toggleChartView
+    if (typeof enforceChartSectionView === 'function') {
+      enforceChartSectionView(getCurrentChartView());
+    }
   }
 }
 
