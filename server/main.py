@@ -28,6 +28,7 @@ import gzip
 # Server package (config, encryption, requirements, sample_data, supabase)
 from . import config
 from . import encryption
+from . import http_security
 from . import requirements_check
 from . import sample_data
 from . import supabase_client
@@ -103,6 +104,11 @@ logger.info("=" * 60)
 logger.info("Health App Server - Logging Initialized")
 logger.info(f"Log file: {LOG_FILE}")
 logger.info("Note: Client-side logs are only sent when demo mode is enabled")
+if config.HOST in ('0.0.0.0', '::', '[::]'):
+    logger.warning(
+        "HOST is bound to all interfaces — only use on trusted networks; "
+        "see SECURITY.md. Default is 127.0.0.1 for loopback-only access."
+    )
 logger.info("=" * 60)
 
 class ThreadingHTTPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
@@ -345,33 +351,42 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
-            origin = self.headers.get('Origin', '')
-            allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
-            if origin in allowed_origins:
-                self.send_header('Access-Control-Allow-Origin', origin)
             self.end_headers()
             self.wfile.write(json.dumps(status).encode('utf-8'))
         except Exception as e:
             logger.error(f"Error handling supabase status: {e}")
             self.send_response(500)
             self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
     
     def handle_encryption_key(self):
         """Handle encryption key endpoint for client-server synchronization"""
         try:
+            client_ip = self.client_address[0]
+            if not http_security.sensitive_api_limiter.allow(client_ip):
+                self.send_response(429)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Too many requests'}).encode('utf-8'))
+                return
+            if not http_security.client_may_access_sensitive_apis(client_ip, config.SENSITIVE_APIS_ON_LAN):
+                self.send_response(403)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    'error': 'Forbidden',
+                    'detail': 'Encryption key API is only reachable from loopback. Set HEALTH_APP_SENSITIVE_APIS_ON_LAN=1 to allow LAN clients (see SECURITY.md).',
+                }).encode('utf-8'))
+                logger.warning(f"Blocked encryption-key request from non-loopback IP {client_ip}")
+                return
+
             key = get_encryption_key()
             # Convert bytes back to hex string for transmission
             key_hex = key.hex()
             
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
-            origin = self.headers.get('Origin', '')
-            allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
-            if origin in allowed_origins:
-                self.send_header('Access-Control-Allow-Origin', origin)
             self.end_headers()
             
             response = {
@@ -397,11 +412,7 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Cache-Control', 'no-cache')
             self.send_header('Connection', 'keep-alive')
             self.send_header('X-Accel-Buffering', 'no')  # Disable buffering in nginx if present
-            # CORS for SSE
-            origin = self.headers.get('Origin', '')
-            allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
-            if origin in allowed_origins or not origin:
-                self.send_header('Access-Control-Allow-Origin', origin if origin else '*')
+            # CORS: handled in end_headers() (uses PORT from config)
             self.end_headers()
             
             client_ip = self.client_address[0]
@@ -461,6 +472,7 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
     def handle_client_log(self):
         """Handle client-side log submissions"""
         try:
+            client_ip = self.client_address[0]
             # Security: Limit content length to prevent DoS
             MAX_CONTENT_LENGTH = 1024 * 10  # 10KB max
             content_length = int(self.headers.get('Content-Length', 0))
@@ -474,6 +486,12 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
                 return
             
             if content_length > 0:
+                if not http_security.client_log_limiter.allow(client_ip):
+                    self.send_response(429)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': 'Too many requests'}).encode('utf-8'))
+                    return
                 post_data = self.rfile.read(content_length)
                 try:
                     log_data = json.loads(post_data.decode('utf-8'))
@@ -515,8 +533,6 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
                 else:
                     details = {}
                 
-                client_ip = self.client_address[0]
-                
                 # Update last activity timestamp
                 with connection_lock:
                     last_activity[client_ip] = time.time()
@@ -544,16 +560,9 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
                 level = level[:10] if len(level) > 10 else level  # Limit length
                 message = message[:500] if len(message) > 500 else message  # Limit message length
                 
-                # Send success response with security headers
+                # Send success response (CORS + security headers via end_headers)
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
-                # Security: Restrict CORS to localhost for development
-                origin = self.headers.get('Origin', '')
-                allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
-                if origin in allowed_origins:
-                    self.send_header('Access-Control-Allow-Origin', origin)
-                else:
-                    self.send_header('Access-Control-Allow-Origin', 'null')
                 self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
                 self.send_header('Access-Control-Allow-Headers', 'Content-Type')
                 self.send_header('X-Content-Type-Options', 'nosniff')
@@ -564,14 +573,12 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
                 # GET request to /api/log - return status
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 self.wfile.write(json.dumps({'status': 'logging_endpoint_active'}).encode('utf-8'))
         except Exception as e:
             logger.error(f"Error handling client log: {e}")
             self.send_response(500)
             self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
     
@@ -618,30 +625,42 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
                 # Send success response
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
-                origin = self.headers.get('Origin', '')
-                allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
-                if origin in allowed_origins:
-                    self.send_header('Access-Control-Allow-Origin', origin)
                 self.end_headers()
                 self.wfile.write(json.dumps({'status': 'logged'}).encode('utf-8'))
             else:
                 # GET request to /api/sync-log - return status
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 self.wfile.write(json.dumps({'status': 'sync_logging_endpoint_active'}).encode('utf-8'))
         except Exception as e:
             logger.error(f"Error handling sync log: {e}")
             self.send_response(500)
             self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
     
     def handle_anonymized_data(self):
         """Handle fetching decrypted anonymized training data"""
         try:
+            client_ip = self.client_address[0]
+            if not http_security.sensitive_api_limiter.allow(client_ip):
+                self.send_response(429)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Too many requests'}).encode('utf-8'))
+                return
+            if not http_security.client_may_access_sensitive_apis(client_ip, config.SENSITIVE_APIS_ON_LAN):
+                self.send_response(403)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    'error': 'Forbidden',
+                    'detail': 'anonymized-data API is only reachable from loopback. Set HEALTH_APP_SENSITIVE_APIS_ON_LAN=1 for LAN (see SECURITY.md).',
+                }).encode('utf-8'))
+                logger.warning(f"Blocked anonymized-data request from non-loopback IP {client_ip}")
+                return
+
             parsed_path = urlparse(self.path)
             query_params = parse_qs(parsed_path.query)
             
@@ -671,10 +690,6 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             if not SUPABASE_AVAILABLE:
                 self.send_response(503)
                 self.send_header('Content-Type', 'application/json')
-                origin = self.headers.get('Origin', '')
-                allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
-                if origin in allowed_origins:
-                    self.send_header('Access-Control-Allow-Origin', origin)
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': 'Supabase not available'}).encode('utf-8'))
                 return
@@ -692,10 +707,6 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
             
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
-            origin = self.headers.get('Origin', '')
-            allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
-            if origin in allowed_origins:
-                self.send_header('Access-Control-Allow-Origin', origin)
             self.end_headers()
             
             response = {
@@ -757,7 +768,6 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
     def do_OPTIONS(self):
         """Handle CORS preflight requests"""
         self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, apikey, Prefer')
         self.end_headers()
@@ -794,15 +804,15 @@ class HealthAppHandler(http.server.SimpleHTTPRequestHandler):
         )
         self.send_header('Permissions-Policy', permissions_policy)
         
-        # CORS: Only allow localhost for security
+        # CORS: echo allowed dev origins for this server PORT (see http_security.cors_allow_origin_value)
         origin = self.headers.get('Origin', '')
-        allowed_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
-        if origin in allowed_origins:
-            self.send_header('Access-Control-Allow-Origin', origin)
-        elif not origin:  # Same-origin request
-            pass  # Don't add CORS header
-        else:
-            self.send_header('Access-Control-Allow-Origin', 'null')
+        cval = http_security.cors_allow_origin_value(
+            origin if origin else None,
+            config.PORT,
+            self.headers.get('Host'),
+        )
+        if cval is not None:
+            self.send_header('Access-Control-Allow-Origin', cval)
         
         # Cache Transformers.js file aggressively (it's a large library)
         if getattr(self, '_static_long_cache', False):

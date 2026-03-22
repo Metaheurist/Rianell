@@ -4,45 +4,58 @@
 let cachedEncryptionKey = null; // Cache the key after first fetch
 
 /**
- * Get encryption key - fetches from server for client-server synchronization
- * Falls back to default key if server is unavailable
+ * Get encryption key — prefers server sync when Python dev server is available.
+ * Otherwise uses a per-browser random 32-byte key in localStorage (no shared global default).
  */
 async function getEncryptionKey() {
-  // Return cached key if available
   if (cachedEncryptionKey) {
     return cachedEncryptionKey;
   }
-  
-  // Try to fetch key from server (for client-server sync)
+
   try {
     const response = await fetch('/api/encryption-key', {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      headers: { 'Content-Type': 'application/json' },
     });
-    
     if (response.ok) {
       const data = await response.json();
-      if (data.success && data.key) {
+      if (data.success && data.key && typeof data.key === 'string') {
         cachedEncryptionKey = data.key;
         console.log('Encryption key synchronized with server');
-        return data.key;
+        return cachedEncryptionKey;
       }
     }
   } catch (error) {
     console.warn('Could not fetch encryption key from server:', error);
-    // Fallback to default
   }
-  
-  // Fallback to default key if server unavailable
-  const defaultKey = 'REDACTED_USE_ENCRYPTION_KEY_OR_FILE';
-  cachedEncryptionKey = defaultKey;
-  return defaultKey;
-}
 
-// Default key for backward compatibility (fallback only)
-const DEFAULT_ENCRYPTION_KEY = 'REDACTED_USE_ENCRYPTION_KEY_OR_FILE';
+  const LS_KEY = 'healthAppLocalEncryptionKeyHex';
+  try {
+    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(LS_KEY) : null;
+    if (stored && /^[0-9a-fA-F]{64}$/.test(stored)) {
+      cachedEncryptionKey = stored;
+      return cachedEncryptionKey;
+    }
+  } catch (e) {
+    /* quota / private mode */
+  }
+
+  const raw = new Uint8Array(32);
+  crypto.getRandomValues(raw);
+  let hex = '';
+  for (let i = 0; i < raw.length; i++) {
+    hex += ('0' + raw[i].toString(16)).slice(-2);
+  }
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(LS_KEY, hex);
+    }
+  } catch (e2) {
+    /* session-only */
+  }
+  cachedEncryptionKey = hex;
+  return cachedEncryptionKey;
+}
 
 /**
  * Encrypt anonymized log data before sending to Supabase

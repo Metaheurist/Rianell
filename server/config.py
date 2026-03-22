@@ -79,7 +79,11 @@ file_handler = logger.handlers[0] if logger.handlers else None
 
 # Env
 PORT = int(os.getenv('PORT', '8080'))
-HOST = os.getenv('HOST', '')
+# Default bind: loopback only. Set HOST=0.0.0.0 in .env to listen on all interfaces (LAN).
+_host_raw = os.getenv('HOST', '127.0.0.1')
+HOST = (_host_raw or '127.0.0.1').strip() or '127.0.0.1'
+# Allow /api/encryption-key and /api/anonymized-data from non-loopback clients (shared LAN risk).
+SENSITIVE_APIS_ON_LAN = os.getenv('HEALTH_APP_SENSITIVE_APIS_ON_LAN', '').lower() in ('1', 'true', 'yes')
 SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://YOUR_PROJECT_REF.supabase.co')
 SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY', '')
 SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')

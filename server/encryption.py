@@ -4,6 +4,7 @@ Encryption/decryption for anonymized data (AES-GCM).
 import os
 import json
 import base64
+import secrets
 from pathlib import Path
 
 from . import config
@@ -18,8 +19,28 @@ except ImportError:
 _encryption_key_warning_shown = False
 
 
+def _key_string_to_bytes(key: str) -> bytes:
+    """Derive 32-byte AES key from env/file string; support 64-char hex."""
+    s = key.strip()
+    if len(s) == 64 and all(c in '0123456789abcdefABCDEF' for c in s):
+        try:
+            return bytes.fromhex(s)
+        except ValueError:
+            pass
+    return s.encode('utf-8')[:32].ljust(32, b'0')
+
+
+def _write_new_key_file(key_file_path: Path) -> str:
+    """Create a random 32-byte key as hex (64 chars) on disk."""
+    hex_key = secrets.token_hex(32)
+    key_file_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(key_file_path, 'w', encoding='utf-8') as f:
+        f.write(hex_key + '\n')
+    return hex_key
+
+
 def get_encryption_key():
-    """Get encryption key from file, environment variable, or use default."""
+    """Load encryption key from file, environment variable, or create .encryption_key once."""
     global _encryption_key_warning_shown
     key = None
     key_file_paths = [
@@ -43,12 +64,22 @@ def get_encryption_key():
         if key and not _encryption_key_warning_shown:
             config.logger.info("Loaded encryption key from environment variable")
     if not key:
-        key = 'REDACTED_USE_ENCRYPTION_KEY_OR_FILE'
-        if not _encryption_key_warning_shown:
-            config.logger.warning("Using default encryption key. For production, create .encryption_key file.")
-            _encryption_key_warning_shown = True
-    key_bytes = key.encode('utf-8')[:32].ljust(32, b'0')
-    return key_bytes
+        # Persist a strong random key locally (gitignored); avoids a shared well-known default.
+        primary = key_file_paths[0]
+        try:
+            key = _write_new_key_file(primary)
+            if not _encryption_key_warning_shown:
+                config.logger.warning(
+                    f"Created {primary.name} with a random encryption key. "
+                    "Back up this file if you need stable decryption across machines."
+                )
+                _encryption_key_warning_shown = True
+        except OSError as e:
+            config.logger.error(f"Could not create encryption key file: {e}")
+            raise RuntimeError(
+                "ENCRYPTION_KEY or .encryption_key is required and could not be created."
+            ) from e
+    return _key_string_to_bytes(key)
 
 
 def encrypt_anonymized_data(data):
@@ -60,7 +91,6 @@ def encrypt_anonymized_data(data):
         aesgcm = AESGCM(key)
         json_string = json.dumps(data)
         plaintext = json_string.encode('utf-8')
-        import secrets
         nonce = secrets.token_bytes(12)
         ciphertext = aesgcm.encrypt(nonce, plaintext, None)
         combined = nonce + ciphertext

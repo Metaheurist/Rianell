@@ -9,7 +9,8 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
   },
   android: {
-    allowMixedContent: true,
+    // Do not load HTTP subresources on HTTPS app origin (see SECURITY.md, docs/android-network-security-notes.md)
+    allowMixedContent: false,
   },
   plugins: {
     LocalNotifications: {
