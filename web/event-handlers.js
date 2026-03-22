@@ -169,7 +169,17 @@ function initializeEventHandlers() {
   }
   
   if (printBtn) {
-    printBtn.addEventListener('click', printReport);
+    printBtn.addEventListener('click', function () {
+      if (typeof printReport === 'function') {
+        printReport();
+        return;
+      }
+      if (window.PerformanceUtils && typeof window.PerformanceUtils.ensurePrintUtilsLoaded === 'function') {
+        window.PerformanceUtils.ensurePrintUtilsLoaded().then(function () {
+          if (typeof printReport === 'function') printReport();
+        }).catch(function () {});
+      }
+    });
   }
   
   // Chart prediction range buttons

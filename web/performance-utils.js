@@ -239,14 +239,13 @@ function memoizedSort(array, sortFn, cacheKey = null) {
  */
 function lazyLoadScript(src, onLoad = null) {
   return new Promise((resolve, reject) => {
-    // Check if already loaded
     const existing = document.querySelector(`script[src="${src}"]`);
     if (existing) {
       resolve(existing);
       if (onLoad) onLoad();
       return;
     }
-    
+
     const script = document.createElement('script');
     script.src = src;
     script.async = true;
@@ -257,6 +256,123 @@ function lazyLoadScript(src, onLoad = null) {
     script.onerror = reject;
     document.head.appendChild(script);
   });
+}
+
+var _apexChartsLoadPromise = null;
+/**
+ * Load apexcharts.min.js on first use (not in document head) to speed initial page load.
+ */
+function ensureApexChartsLoaded() {
+  if (typeof ApexCharts !== 'undefined') {
+    return Promise.resolve();
+  }
+  if (_apexChartsLoadPromise) {
+    return _apexChartsLoadPromise;
+  }
+  var src = 'apexcharts.min.js?v=1';
+  _apexChartsLoadPromise = lazyLoadScript(src).then(function () {
+    if (typeof ApexCharts === 'undefined') {
+      _apexChartsLoadPromise = null;
+      throw new Error('ApexCharts failed to load');
+    }
+  }).catch(function (err) {
+    _apexChartsLoadPromise = null;
+    throw err;
+  });
+  return _apexChartsLoadPromise;
+}
+
+var _aiEngineLoadPromise = null;
+/**
+ * Load TensorFlow.js + WebGL backend + AIEngine.js on first AI use (not in document head).
+ */
+function ensureAIEngineLoaded() {
+  if (typeof window !== 'undefined' && window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function') {
+    return Promise.resolve();
+  }
+  if (_aiEngineLoadPromise) {
+    return _aiEngineLoadPromise;
+  }
+  var tfUrl = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js';
+  var webglUrl = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@4.22.0/dist/tf-backend-webgl.min.js';
+  var engineUrl = 'AIEngine.js?v=1';
+  _aiEngineLoadPromise = lazyLoadScript(tfUrl)
+    .then(function () {
+      if (typeof console !== 'undefined' && console.warn) {
+        var _warn = console.warn;
+        console.warn = function () {
+          var msg = arguments[0] && String(arguments[0]);
+          if (msg && (msg.indexOf('already registered') !== -1 && (msg.indexOf('webgl') !== -1 || msg.indexOf('kernel') !== -1))) return;
+          _warn.apply(console, arguments);
+        };
+      }
+      return lazyLoadScript(webglUrl);
+    })
+    .then(function () {
+      return lazyLoadScript(engineUrl);
+    })
+    .then(function () {
+      if (typeof window.AIEngine === 'undefined' || typeof window.AIEngine.analyzeHealthMetrics !== 'function') {
+        _aiEngineLoadPromise = null;
+        throw new Error('AIEngine failed to load');
+      }
+    })
+    .catch(function (err) {
+      _aiEngineLoadPromise = null;
+      throw err;
+    });
+  return _aiEngineLoadPromise;
+}
+
+var _exportUtilsPromise = null;
+function ensureExportUtilsLoaded() {
+  if (typeof showExportModal === 'function') {
+    return Promise.resolve();
+  }
+  if (_exportUtilsPromise) {
+    return _exportUtilsPromise;
+  }
+  _exportUtilsPromise = lazyLoadScript('export-utils.js?v=1').catch(function (e) {
+    _exportUtilsPromise = null;
+    throw e;
+  });
+  return _exportUtilsPromise;
+}
+
+var _importUtilsPromise = null;
+function ensureImportUtilsLoaded() {
+  if (typeof showImportModal === 'function') {
+    return Promise.resolve();
+  }
+  if (_importUtilsPromise) {
+    return _importUtilsPromise;
+  }
+  _importUtilsPromise = lazyLoadScript('import-utils.js?v=1')
+    .then(function () {
+      if (typeof initializeImportHandlers === 'function') {
+        initializeImportHandlers();
+      }
+    })
+    .catch(function (e) {
+      _importUtilsPromise = null;
+      throw e;
+    });
+  return _importUtilsPromise;
+}
+
+var _printUtilsPromise = null;
+function ensurePrintUtilsLoaded() {
+  if (typeof printReport === 'function') {
+    return Promise.resolve();
+  }
+  if (_printUtilsPromise) {
+    return _printUtilsPromise;
+  }
+  _printUtilsPromise = lazyLoadScript('print-utils.js?v=1').catch(function (e) {
+    _printUtilsPromise = null;
+    throw e;
+  });
+  return _printUtilsPromise;
 }
 
 // ============================================
@@ -660,6 +776,11 @@ if (typeof window !== 'undefined') {
     filterMap,
     memoizedSort,
     lazyLoadScript,
+    ensureApexChartsLoaded,
+    ensureAIEngineLoaded,
+    ensureExportUtilsLoaded,
+    ensureImportUtilsLoaded,
+    ensurePrintUtilsLoaded,
     eventManager,
     PerformanceMonitor,
     StorageBatcher,
@@ -677,12 +798,12 @@ if (typeof window !== 'undefined') {
     eventManager.cleanup();
     StorageBatcher.flush();
     DataCache.cleanup();
+    DOMCache.clear();
   });
   
-  // Periodic cleanup (limit memory growth)
+  // Periodic cleanup (limit memory growth). Do not clear DOMCache here — it defeats hot-path caching.
   setInterval(function () {
     DataCache.cleanup();
-    DOMCache.clear();
     if (PerformanceMonitor.marks && PerformanceMonitor.marks.size > 20) {
       PerformanceMonitor.marks.clear();
     }

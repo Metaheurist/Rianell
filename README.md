@@ -703,9 +703,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 - **Background loader module** (`web/background-loader.js`): Device-aware scheduling for chart and AI preload; loads after `performance-utils.js`, exposes `BackgroundLoader.scheduleChartPreload` and `BackgroundLoader.scheduleAIPreload`.
 - **Slower preload rate**: Chart preload uses device-based stagger (low 280 ms, medium 200 ms, high 120 ms) and gap after combined (350 / 260 / 180 ms); profile `chartPreloadDelayMs` for initial delay.
-- **Optional multithread**: When `useWorkers` (e.g. `hardwareConcurrency >= 2` and not saveData), AI preload can run in `prediction-worker.js`; on worker failure or timeout (30 s), falls back to main-thread preload.
-- **performance-utils.js**: `platform.hardwareConcurrency` and `getOptimizationProfile().useWorkers` added for loader and worker choice.
-- **prediction-worker.js**: `importScripts('AIEngine.js')` (same directory); app posts `logs`/`allLogs` for ANALYZE.
+- **performance-utils.js**: `platform.hardwareConcurrency` and `getOptimizationProfile().useWorkers` added for loader (worker path was never wired; AI preload runs on main thread only).
 - **app.js**: Chart and AI preload delegate to `BackgroundLoader` when present; `getAIPreloadData`/`setAICache` for worker path; fallbacks when loader missing.
 
 </details>

@@ -3203,6 +3203,13 @@ notesField.addEventListener('input', updateNotesCounter);
   var suggestBtn = document.getElementById('suggestNoteBtn');
   if (!suggestBtn) return;
   suggestBtn.addEventListener('click', async function() {
+    if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function') {
+      try {
+        await window.PerformanceUtils.ensureAIEngineLoaded();
+      } catch (e) {
+        return;
+      }
+    }
     if (!window.AIEngine || typeof window.AIEngine.suggestLogNote !== 'function') return;
     var dateEl = document.getElementById('date');
     var stub = { date: dateEl ? dateEl.value : '' };
@@ -3435,7 +3442,7 @@ function toggleChartView(viewType) {
     individualContainer.classList.remove('hidden');
     if (individualBtn) individualBtn.classList.add('active');
     if (typeof updateChartsImmediate === 'function') {
-      updateChartsImmediate();
+      void updateChartsImmediate().catch(function () {});
     } else {
       updateCharts();
     }
@@ -3447,7 +3454,14 @@ async function createCombinedChart() {
   if (window.healthAppDebug && Logger.debug) {
     Logger.debug('createCombinedChart: starting');
   }
-  // Check if ApexCharts is available
+  try {
+    if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureApexChartsLoaded === 'function') {
+      await window.PerformanceUtils.ensureApexChartsLoaded();
+    }
+  } catch (e) {
+    console.error('ApexCharts is not loaded! Cannot create combined chart.', e);
+    return;
+  }
   if (typeof ApexCharts === 'undefined') {
     console.error('ApexCharts is not loaded! Cannot create combined chart.');
     return;
@@ -3509,7 +3523,12 @@ async function createCombinedChart() {
   // Use prediction range setting (only when AI features enabled and predictions on)
   const daysToPredict = predictionRange;
   const aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
-  
+  if (aiOn && predictionsEnabled && window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function') {
+    try {
+      await window.PerformanceUtils.ensureAIEngineLoaded();
+    } catch (e) { /* chart can render without predictions */ }
+  }
+
   // Get predictions for all metrics (use chart results cache when available)
   let predictionsData = null;
   const viewKey = getChartViewCacheKey(chartDateRange.type, chartDateRange.startDate, chartDateRange.endDate);
@@ -4388,9 +4407,16 @@ function deselectAllBalanceMetrics() {
 }
 
 // Create Balance Chart (Radar Chart)
-function createBalanceChart() {
+async function createBalanceChart() {
   var _perfT0 = Date.now();
-  // Check if ApexCharts is available
+  try {
+    if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureApexChartsLoaded === 'function') {
+      await window.PerformanceUtils.ensureApexChartsLoaded();
+    }
+  } catch (e) {
+    console.error('ApexCharts is not loaded! Cannot create balance chart.', e);
+    return;
+  }
   if (typeof ApexCharts === 'undefined') {
     console.error('ApexCharts is not loaded! Cannot create balance chart.');
     return;
@@ -4907,7 +4933,8 @@ function exportData() {
     showAlertModal('Data export is disabled in demo mode. Demo data is not saved or synced.', 'Demo Mode');
     return;
   }
-  
+
+  var openExportModalOrFallback = function () {
   if (typeof showExportModal === 'function') {
     showExportModal();
   } else {
@@ -4929,10 +4956,22 @@ function exportData() {
   link.click();
   document.body.removeChild(link);
   }
+  };
+
+  if (typeof showExportModal === 'function') {
+    openExportModalOrFallback();
+    return;
+  }
+  if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureExportUtilsLoaded === 'function') {
+    window.PerformanceUtils.ensureExportUtilsLoaded().then(openExportModalOrFallback).catch(openExportModalOrFallback);
+    return;
+  }
+  openExportModalOrFallback();
 }
 
 // Import function - now shows modal with options
 function importData() {
+  var openImportModalOrFallback = function () {
   if (typeof showImportModal === 'function') {
     showImportModal();
   } else {
@@ -5010,9 +5049,19 @@ function importData() {
     }
   };
   input.click();
-}
-}
+  }
+  };
 
+  if (typeof showImportModal === 'function') {
+    openImportModalOrFallback();
+    return;
+  }
+  if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureImportUtilsLoaded === 'function') {
+    window.PerformanceUtils.ensureImportUtilsLoaded().then(openImportModalOrFallback).catch(openImportModalOrFallback);
+    return;
+  }
+  openImportModalOrFallback();
+}
 
 // ============================================
 // AI ANALYSIS ENGINE
@@ -5039,6 +5088,11 @@ window.CONDITION_CONTEXT = CONDITION_CONTEXT;
 var MAX_ALL_LOGS_ANALYSIS = 1200; // Cap so analysis stays fast; use most recent logs
 async function analyzeHealthMetrics(logs, allLogs, options) {
   var _t0 = Date.now();
+  if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function') {
+    try {
+      await window.PerformanceUtils.ensureAIEngineLoaded();
+    } catch (e) { /* keep empty analysis below */ }
+  }
   if (!window.AIEngine) {
     perfLog('AI analyzeHealthMetrics (no engine)', Date.now() - _t0, {});
     return { trends: {}, correlations: [], anomalies: [], advice: [], patterns: [], riskFactors: [] };
@@ -5165,6 +5219,15 @@ async function generateAISummary() {
       </div>
     `;
     Logger.warn('AI Summary - No data available');
+    return;
+  }
+
+  try {
+    if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function') {
+      await window.PerformanceUtils.ensureAIEngineLoaded();
+    }
+  } catch (e) {
+    Logger.error('AI Summary - AI engine failed to load', e);
     return;
   }
 
@@ -5348,23 +5411,37 @@ function setAICache(analysis, sortedLogs, dateRangeText, cacheKey) {
 function preloadAIAnalysisInBackground() {
   var data = getAIPreloadData();
   if (!data) return;
-  var analyzeFn = (window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function')
-    ? window.AIEngine.analyzeHealthMetrics
-    : (typeof analyzeHealthMetrics === 'function' ? analyzeHealthMetrics : null);
-  if (!analyzeFn) return;
-  analyzeFn(data.sortedLogs, data.allLogsForTraining).then(function(analysis) {
-    setAICache(analysis, data.sortedLogs, data.dateRangeText, data.cacheKey);
-  }).catch(function() {});
+  var run = function () {
+    var analyzeFn = (window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function')
+      ? window.AIEngine.analyzeHealthMetrics
+      : (typeof analyzeHealthMetrics === 'function' ? analyzeHealthMetrics : null);
+    if (!analyzeFn) return;
+    analyzeFn(data.sortedLogs, data.allLogsForTraining).then(function(analysis) {
+      setAICache(analysis, data.sortedLogs, data.dateRangeText, data.cacheKey);
+    }).catch(function() {});
+  };
+  if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function') {
+    window.PerformanceUtils.ensureAIEngineLoaded().then(run).catch(function () {});
+    return;
+  }
+  run();
 }
 
-// Preload AI analysis for all fixed ranges (7, 30, 90 days) during loading screen; cache by range and data identity.
-// On low device: run sequentially with yield between each to avoid blocking UI; on medium/high: run in parallel (optionally after requestIdleCallback).
-function preloadAIForAllRanges() {
+// Preload AI for the default range (30 days) during loading screen — avoids tripling GPU/CPU work vs 7+30+90 in parallel.
+// On low device: same single range after idle yield.
+async function preloadAIForAllRanges() {
   var _perfT0 = Date.now();
   var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
   if (profile && !profile.enableAIPreload) return Promise.resolve();
   if (typeof appSettings === 'undefined' || appSettings.aiEnabled === false) return Promise.resolve();
   if (!logs || logs.length === 0) return Promise.resolve();
+  if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function') {
+    try {
+      await window.PerformanceUtils.ensureAIEngineLoaded();
+    } catch (e) {
+      return Promise.resolve();
+    }
+  }
   var analyzeFn = (window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function')
     ? window.AIEngine.analyzeHealthMetrics
     : (typeof analyzeHealthMetrics === 'function' ? analyzeHealthMetrics : null);
@@ -5415,23 +5492,16 @@ function preloadAIForAllRanges() {
 
   function runAll() {
     if (isLow) {
-      return runOne(7).then(function() { return yieldToMain(); })
-        .then(function() { return runOne(30); }).then(function() { return yieldToMain(); })
-        .then(function() { return runOne(90); });
+      return yieldToMain().then(function () { return runOne(30); });
     }
-    var promises = [];
-    [7, 30, 90].forEach(function(days) {
-      var p = runOne(days);
-      if (p) promises.push(p);
-    });
-    return Promise.all(promises);
+    return runOne(30);
   }
 
   var start = (deviceClass !== 'low' && typeof requestIdleCallback !== 'undefined')
     ? new Promise(function(resolve) { requestIdleCallback(resolve, { timeout: 500 }); })
     : Promise.resolve();
   return start.then(runAll).then(function() {
-    perfLog('AI preloadAIForAllRanges (7,30,90d)', Date.now() - _perfT0, { logsLen: typeof logs !== 'undefined' ? logs.length : 0 });
+    perfLog('AI preloadAIForAllRanges (30d default)', Date.now() - _perfT0, { logsLen: typeof logs !== 'undefined' ? logs.length : 0 });
   });
 }
 
@@ -6318,14 +6388,22 @@ function toggleMetricRadarChart(metric, index) {
   } else {
     // Show and render chart
     chartContainer.style.display = 'block';
-    renderMetricRadarChart(metric, chartDiv);
+    void renderMetricRadarChart(metric, chartDiv).catch(function () {});
   }
 }
 
 // Render radar chart for a specific metric
-function renderMetricRadarChart(metric, container) {
+async function renderMetricRadarChart(metric, container) {
   if (!currentAIAnalysis || !currentAIAnalysis.trends[metric]) {
     console.error('No trend data available for metric:', metric);
+    return;
+  }
+  try {
+    if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureApexChartsLoaded === 'function') {
+      await window.PerformanceUtils.ensureApexChartsLoaded();
+    }
+  } catch (e) {
+    console.error(e);
     return;
   }
   
@@ -6578,14 +6656,22 @@ function toggleCorrelationRadarChart(metric1, metric2, metric3, index) {
   } else {
     // Show and render chart
     chartContainer.style.display = 'block';
-    renderCorrelationRadarChart(metric1, metric2, metric3, chartDiv);
+    void renderCorrelationRadarChart(metric1, metric2, metric3, chartDiv).catch(function () {});
   }
 }
 
 // Render radar chart for a correlation between two metrics with a third associated metric
-function renderCorrelationRadarChart(metric1, metric2, metric3, container) {
+async function renderCorrelationRadarChart(metric1, metric2, metric3, container) {
   if (!currentAIAnalysis || !currentAIAnalysis.trends[metric1] || !currentAIAnalysis.trends[metric2]) {
     console.error('No trend data available for correlation:', metric1, metric2);
+    return;
+  }
+  try {
+    if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureApexChartsLoaded === 'function') {
+      await window.PerformanceUtils.ensureApexChartsLoaded();
+    }
+  } catch (e) {
+    console.error(e);
     return;
   }
   
@@ -10715,6 +10801,14 @@ function refreshCharts() {
 }
 
 async function chart(id, label, dataField, color) {
+  try {
+    if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureApexChartsLoaded === 'function') {
+      await window.PerformanceUtils.ensureApexChartsLoaded();
+    }
+  } catch (e) {
+    console.error('ApexCharts is not loaded! Cannot create charts.', e);
+    return;
+  }
   if (typeof ApexCharts === 'undefined') {
     console.error('ApexCharts is not loaded! Cannot create charts.');
     return;
@@ -10820,6 +10914,11 @@ async function chart(id, label, dataField, color) {
   // Generate predicted data for the selected date range period (only when AI features enabled)
   let predictedData = [];
   const aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
+  if (aiOn && predictionsEnabled && window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function') {
+    try {
+      await window.PerformanceUtils.ensureAIEngineLoaded();
+    } catch (e) { /* chart can render without predictions */ }
+  }
   if (aiOn && predictionsEnabled && window.AIEngine && chartData.length >= 2) {
     try {
       const daysToPredict = predictionRange;
@@ -11708,7 +11807,7 @@ function initializeLazyLoading() {
   // Check if Intersection Observer is supported
   if (!('IntersectionObserver' in window)) {
     console.warn('IntersectionObserver not supported, falling back to immediate chart loading');
-    updateChartsImmediate();
+    void updateChartsImmediate().catch(function () {});
     return;
   }
 
@@ -11785,8 +11884,12 @@ function loadChart(container, chartType) {
     }
     
     setTimeout(() => {
-      chart(container.id, config.label, config.field, config.color);
-      container.classList.add('loaded');
+      var p = (window.PerformanceUtils && typeof window.PerformanceUtils.ensureApexChartsLoaded === 'function')
+        ? window.PerformanceUtils.ensureApexChartsLoaded()
+        : Promise.resolve();
+      p.then(function () { return chart(container.id, config.label, config.field, config.color); })
+        .then(function () { container.classList.add('loaded'); })
+        .catch(function () {});
     }, 100); // Small delay for smooth loading effect
   }
 }
@@ -11796,7 +11899,6 @@ function preloadChartsInBackground() {
   var profile = window.PerformanceUtils && window.PerformanceUtils.getOptimizationProfile ? window.PerformanceUtils.getOptimizationProfile() : null;
   if (profile && !profile.enableChartPreload) return;
   if (!logs || logs.length === 0) return;
-  if (typeof ApexCharts === 'undefined') return;
   var filteredLogs = getFilteredLogs();
   if (!filteredLogs || filteredLogs.length === 0) return;
   if (!document.getElementById('chartSection')) return;
@@ -11819,10 +11921,17 @@ function preloadChartsInBackground() {
     }
     setTimeout(scheduleNext, gapAfterCombinedMs);
   }
-  if (typeof requestIdleCallback !== 'undefined') {
-    requestIdleCallback(runCombinedThenStartLazy, { timeout: 2500 });
+  function scheduleIdle() {
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(runCombinedThenStartLazy, { timeout: 2500 });
+    } else {
+      setTimeout(runCombinedThenStartLazy, 0);
+    }
+  }
+  if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureApexChartsLoaded === 'function') {
+    window.PerformanceUtils.ensureApexChartsLoaded().then(scheduleIdle).catch(function () {});
   } else {
-    setTimeout(runCombinedThenStartLazy, 0);
+    scheduleIdle();
   }
 }
 
@@ -11833,11 +11942,16 @@ function scheduleChartsPreload() {
   if (window.BackgroundLoader && typeof window.BackgroundLoader.scheduleChartPreload === 'function') {
     window.BackgroundLoader.scheduleChartPreload({
       runCombined: function() {
-        if (!logs || logs.length === 0 || typeof ApexCharts === 'undefined') return;
+        if (!logs || logs.length === 0) return;
         var filtered = getFilteredLogs();
         if (!filtered || filtered.length === 0) return;
         if (!document.getElementById('chartSection')) return;
-        createCombinedChart();
+        var run = function () { createCombinedChart(); };
+        if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureApexChartsLoaded === 'function') {
+          window.PerformanceUtils.ensureApexChartsLoaded().then(run).catch(function () {});
+        } else {
+          run();
+        }
       },
       runLazyChart: function(container, chartType) {
         loadedCharts.add(chartType);
@@ -11856,8 +11970,15 @@ function scheduleChartsPreload() {
   }
 }
 
-function updateChartsImmediate() {
+async function updateChartsImmediate() {
   var _perfT0 = Date.now();
+  try {
+    if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureApexChartsLoaded === 'function') {
+      await window.PerformanceUtils.ensureApexChartsLoaded();
+    }
+  } catch (e) {
+    return;
+  }
   // Check if we have data
   const hasData = logs && logs.length > 0;
   updateChartEmptyState(hasData);
@@ -11876,20 +11997,22 @@ function updateChartsImmediate() {
   });
   
   // Create all individual charts immediately - charts with no data will be hidden automatically
-  chart("bpmChart", "Resting Heart Rate", "bpm", "rgb(76,175,80)");
-  chart("fatigueChart", "Fatigue Level", "fatigue", "rgb(255,152,0)");
-  chart("stiffnessChart", "Stiffness Level", "stiffness", "rgb(255,193,7)");
-  chart("backPainChart", "Back Pain Level", "backPain", "rgb(244,67,54)");
-  chart("sleepChart", "Sleep Quality", "sleep", "rgb(63,81,181)");
-  chart("jointPainChart", "Joint Pain Level", "jointPain", "rgb(255,87,34)");
-  chart("mobilityChart", "Mobility Level", "mobility", "rgb(0,188,212)");
-  chart("dailyFunctionChart", "Daily Function Level", "dailyFunction", "rgb(139,195,74)");
-  chart("swellingChart", "Joint Swelling Level", "swelling", "rgb(156,39,176)");
-  chart("moodChart", "Mood Level", "mood", "rgb(103,58,183)");
-  chart("irritabilityChart", "Irritability Level", "irritability", "rgb(121,85,72)");
-  chart("weatherSensitivityChart", "Weather Sensitivity", "weatherSensitivity", "rgb(0,150,136)");
-  chart("stepsChart", "Steps", "steps", "rgb(100,181,246)");
-  chart("hydrationChart", "Hydration", "hydration", "rgb(33,150,243)");
+  await Promise.all([
+    chart("bpmChart", "Resting Heart Rate", "bpm", "rgb(76,175,80)"),
+    chart("fatigueChart", "Fatigue Level", "fatigue", "rgb(255,152,0)"),
+    chart("stiffnessChart", "Stiffness Level", "stiffness", "rgb(255,193,7)"),
+    chart("backPainChart", "Back Pain Level", "backPain", "rgb(244,67,54)"),
+    chart("sleepChart", "Sleep Quality", "sleep", "rgb(63,81,181)"),
+    chart("jointPainChart", "Joint Pain Level", "jointPain", "rgb(255,87,34)"),
+    chart("mobilityChart", "Mobility Level", "mobility", "rgb(0,188,212)"),
+    chart("dailyFunctionChart", "Daily Function Level", "dailyFunction", "rgb(139,195,74)"),
+    chart("swellingChart", "Joint Swelling Level", "swelling", "rgb(156,39,176)"),
+    chart("moodChart", "Mood Level", "mood", "rgb(103,58,183)"),
+    chart("irritabilityChart", "Irritability Level", "irritability", "rgb(121,85,72)"),
+    chart("weatherSensitivityChart", "Weather Sensitivity", "weatherSensitivity", "rgb(0,150,136)"),
+    chart("stepsChart", "Steps", "steps", "rgb(100,181,246)"),
+    chart("hydrationChart", "Hydration", "hydration", "rgb(33,150,243)")
+  ]);
   perfLog('Charts updateChartsImmediate (14 charts)', Date.now() - _perfT0, {});
 }
 
@@ -11918,6 +12041,12 @@ var updateChartsApexRetryMax = 24; // 24 * 500ms = 12s then stop retrying
 function updateCharts() {
   var _perfT0 = Date.now();
   if (typeof ApexCharts === 'undefined') {
+    if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureApexChartsLoaded === 'function') {
+      window.PerformanceUtils.ensureApexChartsLoaded().then(function () {
+        updateCharts();
+      }).catch(function () {});
+      return;
+    }
     if (updateChartsApexRetries < updateChartsApexRetryMax) {
       updateChartsApexRetries += 1;
       setTimeout(updateCharts, 500);
@@ -11970,7 +12099,7 @@ function updateCharts() {
       perfLog('Charts updateCharts (lazy)', Date.now() - _perfT0, {});
     } else {
       // Load all charts immediately if lazy loading is disabled
-      updateChartsImmediate();
+      void updateChartsImmediate().catch(function () {});
       perfLog('Charts updateCharts (immediate)', Date.now() - _perfT0, {});
   }
 }
@@ -15418,8 +15547,13 @@ window.addEventListener('load', () => {
   const aiReady = (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function')
     ? Promise.resolve()
     : runCriticalTask(function () {
-        return window.preloadSummaryLLM().then(function () {
-          return typeof preloadAIForAllRanges === 'function' ? preloadAIForAllRanges() : Promise.resolve();
+        var chain = (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function')
+          ? window.PerformanceUtils.ensureAIEngineLoaded()
+          : Promise.resolve();
+        return chain.then(function () {
+          return window.preloadSummaryLLM().then(function () {
+            return typeof preloadAIForAllRanges === 'function' ? preloadAIForAllRanges() : Promise.resolve();
+          });
         }).catch(function () {});
       });
   var loadTimeoutMs = isLowDevice ? 5000 : 12000;
@@ -15440,11 +15574,24 @@ window.addEventListener('load', () => {
 
     renderLogs();
     updateCharts();
-    if (appSettings.aiEnabled !== false && typeof window.AIEngine !== 'undefined' && typeof window.AIEngine.warmGPUBackend === 'function' && window.DeviceBenchmark && window.DeviceBenchmark.getCachedResult) {
+    if (appSettings.aiEnabled !== false && window.DeviceBenchmark && window.DeviceBenchmark.getCachedResult) {
       var cached = window.DeviceBenchmark.getCachedResult();
       if (cached && cached.gpu && cached.gpu.good) {
-        var warm = function() { try { window.AIEngine.warmGPUBackend(); } catch (e) {} };
-        if (typeof requestIdleCallback !== 'undefined') requestIdleCallback(warm, { timeout: 2000 }); else setTimeout(warm, 800);
+        var warm = function() {
+          try {
+            if (window.AIEngine && typeof window.AIEngine.warmGPUBackend === 'function') {
+              window.AIEngine.warmGPUBackend();
+            }
+          } catch (e) { /* ignore */ }
+        };
+        var scheduleWarm = function () {
+          if (typeof requestIdleCallback !== 'undefined') requestIdleCallback(warm, { timeout: 2000 }); else setTimeout(warm, 800);
+        };
+        if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function') {
+          window.PerformanceUtils.ensureAIEngineLoaded().then(scheduleWarm).catch(function () {});
+        } else {
+          scheduleWarm();
+        }
       }
     }
     updateAISummaryButtonState();
@@ -15458,7 +15605,7 @@ window.addEventListener('load', () => {
       requestAnimationFrame(function() {
         setTimeout(function() {
           if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
-          if (typeof updateChartsImmediate === 'function') updateChartsImmediate();
+          if (typeof updateChartsImmediate === 'function') void updateChartsImmediate().catch(function () {});
         }, 80);
       });
     }

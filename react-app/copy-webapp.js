@@ -31,8 +31,6 @@ const toCopy = [
   'encryption-utils.js',
   'cloud-sync.js',
   'supabase-config.js',
-  'prediction-worker.js',
-  'sw.js',
 ];
 
 const copyDir = (src, dest) => {
