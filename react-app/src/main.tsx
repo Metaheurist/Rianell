@@ -1,21 +1,11 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
 import { Capacitor } from '@capacitor/core';
-import App from './App';
-import './index.css';
 
-declare global {
-  interface Window {
-    __rianellCapacitorNative?: boolean;
-  }
-}
-
+/**
+ * Native (Capacitor): single WebView document — load legacy app directly (no React iframe shell).
+ * Browser / Vite: dynamically load the React shell + iframe (see app-web.tsx).
+ */
 if (Capacitor.isNativePlatform()) {
-  window.__rianellCapacitorNative = true;
+  window.location.replace(new URL('legacy/index.html', window.location.href).href);
+} else {
+  void import('./app-web.tsx');
 }
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);

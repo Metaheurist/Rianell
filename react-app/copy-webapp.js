@@ -65,15 +65,16 @@ for (const file of staticRootFiles) {
   }
 }
 
-if (useMin) {
-  const indexOut = path.join(outDir, 'index.html');
-  if (fs.existsSync(indexOut)) {
-    let html = fs.readFileSync(indexOut, 'utf8');
-    html = html.replace(/src="app\.js(\?[^"]*)?"/g, 'src="app.min.js$1"');
-    fs.writeFileSync(indexOut, html);
-    console.log('Patched index.html to load app.min.js');
+  if (useMin) {
+    const indexOut = path.join(outDir, 'index.html');
+    if (fs.existsSync(indexOut)) {
+      let html = fs.readFileSync(indexOut, 'utf8');
+      html = html.replace(/src="app\.js(\?[^"]*)?"/g, 'src="app.min.js$1"');
+      html = html.replace(/href="app\.js(\?[^"]*)?"/g, 'href="app.min.js$1"');
+      fs.writeFileSync(indexOut, html);
+      console.log('Patched index.html to load app.min.js');
+    }
   }
-}
 
 // Root-level .js modules (index.html + lazy loaders).
 for (const name of fs.readdirSync(webDir)) {

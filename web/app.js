@@ -14,15 +14,19 @@ function isStaticHost() {
   }
 }
 
-/** True when UI runs in the Capacitor shell (APK / iOS). Parent sets window.__rianellCapacitorNative before the legacy iframe loads. */
+/** True when UI runs in the Capacitor shell (APK / iOS): top-level WebView or legacy iframe inside React shell (web preview). */
 function isRianellNativeApp() {
   try {
+    var c = window.Capacitor;
+    if (c && typeof c.isNativePlatform === 'function' && c.isNativePlatform()) return true;
     if (window.__rianellCapacitorNative) return true;
     if (window.parent && window.parent !== window && window.parent.__rianellCapacitorNative) return true;
   } catch (e) {}
   return false;
 }
 window.isRianellNativeApp = isRianellNativeApp;
+
+/* First-paint: sync work here stays small (host detection, storage migration); charts/ML/export load via PerformanceUtils lazy loaders. */
 
 /**
  * Mobile web / PWA: request portrait where Screen Orientation API allows (often needs user gesture).

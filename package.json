@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.32.0",
+  "version": "1.40.0",
   "description": "Rianell — health dashboard (rianell.com); web app and React/Capacitor Android build",
   "scripts": {
     "dev": "cd react-app && npm run dev",
