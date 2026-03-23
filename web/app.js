@@ -11097,6 +11097,14 @@ function renderLogEntries(logsToRender) {
     outputEl._logVirtualObserver.disconnect();
     outputEl._logVirtualObserver = null;
   }
+  if (!Array.isArray(logsToRender) || logsToRender.length === 0) {
+    const allLogs = (typeof window !== 'undefined' && Array.isArray(window.logs)) ? window.logs : logs;
+    const hasAnyLogs = Array.isArray(allLogs) && allLogs.length > 0;
+    outputEl.innerHTML = hasAnyLogs
+      ? '<p class="empty-items">No logs in this range. Try another range or add a new entry with the + button.</p>'
+      : '<p class="empty-items">No logs yet. Add your first entry with the + button.</p>';
+    return;
+  }
   const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
     ? window.PerformanceUtils.getDeviceOpts() : { reduceAnimations: false, maxChartPoints: 200, deferAI: false, batchDOM: false };
   var isLow = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
