@@ -3899,40 +3899,37 @@ const chartSection = document.getElementById("chartSection");
 const sliders = ['fatigue', 'stiffness', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'weatherSensitivity'];
 
 function updateSliderColor(slider) {
-  const value = parseInt(slider.value);
+  const value = parseInt(slider.value, 10);
   const percentage = (value / 10) * 100;
-  
+
   // Sliders where HIGH values are GOOD (inverted colors: low = red, high = green)
   const invertedSliders = ['sleep', 'mobility', 'dailyFunction', 'mood'];
   const isInverted = invertedSliders.includes(slider.id);
-  
+
   let fillColor;
-  
+
   if (isInverted) {
-    // For positive metrics: high = green, low = red
     if (value >= 8 && value <= 10) {
-      fillColor = '#4CAF50'; // Green
+      fillColor = '#4CAF50';
     } else if (value >= 4 && value <= 7) {
-      fillColor = '#FF9800'; // Orange
+      fillColor = '#FF9800';
     } else if (value >= 1 && value <= 3) {
-      fillColor = '#F44336'; // Red
+      fillColor = '#F44336';
     }
   } else {
-    // For negative metrics: high = red, low = green
     if (value >= 1 && value <= 3) {
-      fillColor = '#4CAF50'; // Green
+      fillColor = '#4CAF50';
     } else if (value >= 4 && value <= 7) {
-      fillColor = '#FF9800'; // Orange
+      fillColor = '#FF9800';
     } else if (value >= 8 && value <= 10) {
-      fillColor = '#F44336'; // Red
+      fillColor = '#F44336';
     }
   }
-  
-  // Create gradient background that fills to the current value
-  const gradient = `linear-gradient(to right, ${fillColor} 0%, ${fillColor} ${percentage}%, #333 ${percentage}%, #333 100%)`;
-  slider.style.background = gradient;
-  
-  // Remove old classes and add new one for any additional styling
+
+  // Sleek track uses CSS vars (see styles.css); thumb border matches fill
+  slider.style.setProperty('--slider-fill-pct', `${percentage}%`);
+  slider.style.setProperty('--slider-fill-color', fillColor);
+
   slider.classList.remove('green', 'orange', 'red');
   if (fillColor === '#4CAF50') {
     slider.classList.add('green');
@@ -3941,6 +3938,21 @@ function updateSliderColor(slider) {
   } else if (fillColor === '#F44336') {
     slider.classList.add('red');
   }
+
+  // Value pill next to label (touch-friendly feedback)
+  try {
+    const lab = slider.parentElement && slider.parentElement.querySelector(`label[for="${slider.id}"]`);
+    if (lab) {
+      let badge = lab.querySelector('.slider-value-badge');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'slider-value-badge';
+        badge.setAttribute('aria-hidden', 'true');
+        lab.appendChild(badge);
+      }
+      badge.textContent = String(value);
+    }
+  } catch (e) { /* ignore */ }
 }
 
 sliders.forEach(sliderId => {
@@ -15867,7 +15879,7 @@ if (typeof window !== 'undefined') {
 }
 
 // --- App-like navigation: home panel, log wizard, hash, draft ---
-var LOG_WIZARD_TOTAL_STEPS = 8;
+var LOG_WIZARD_TOTAL_STEPS = 10;
 var currentLogWizardStep = 0;
 var logWizardNavSyncing = false;
 var logDraftDebounceTimer = null;
