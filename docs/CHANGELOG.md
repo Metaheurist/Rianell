@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.41.0** - AI & Settings UX, accessibility, copy style, FAB spacing.
+**Latest: v1.42.0** - Settings modal layout & theme, UI polish, documentation.
+
+### v1.42.0 - 2026-03-23 - Settings modal, tile pickers, AI swipe cue, tutorial, docs
+
+- **Web / Settings**: Modal uses **shared surface tokens** (`--modal-surface`, `--surface-border`, `--surface-outer-glow`) instead of a separate blue-grey panel and heavy neon-only glow; header and close button align with **button chrome** tokens. **Carousel** panes use **`contain: paint`**, **`min-width: 0`**, **`overflow-x: clip`** on the viewport, and **`visibility: hidden`** on **`[aria-hidden="true"]`** panes so the next section’s copy does not bleed at the edge.
+- **Web / Settings copy layout**: **`.settings-hint`** is **left-aligned** (no right-aligned body text). Rows that are helper-only (no toggle) use a **column** layout via **`.settings-option-with-hint:not(:has(.toggle-switch))`**. Toggle rows get **gap**, **`min-width: 0`**, and **`flex-shrink: 0`** on switches so labels do not crush controls.
+- **Web / Log & tile pickers**: Symptom / energy / stressor modal triggers use **pill** layout (icon + label + chevron), not full-width bars (see **`docs/styling.md`**).
+- **Web / AI Analysis (mobile)**: Replaced dot row + “Swipe sideways” caption with an optional **first-visit animated swipe cue** (dismiss on scroll or timeout; **`localStorage`** `healthApp_aiSwipeCueSeen`; respects **`prefers-reduced-motion`** and skips on **≥ 769px** where arrows apply).
+- **Web / Tutorial**: Removed bottom **step dots**; navigation remains **‹ ›**, swipe, and keyboard.
+- **Docs**: New **[styling.md](styling.md)**; **[README.md](../README.md)** and **[project-reference.md](project-reference.md)** updated. **`styles.css` / `app.js` `?v=`** bumps in **`index.html`** as shipped.
+- **Build**: **`npm run build:web`** after **`app.js`** changes; refresh **`web/app.min.js`** for releases.
 
 ### v1.41.0 - 2026-03-23 - AI analysis, Settings carousel, a11y, copy
 
