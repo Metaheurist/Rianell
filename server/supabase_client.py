@@ -125,25 +125,11 @@ def run_sql(sql):
 def try_restart_anonymized_data_id_sequence():
     """
     After wiping anonymized_data, reset the id sequence so new rows start at 1.
-    Uses the Supabase exec_sql RPC (service_role) to avoid relying on direct DB connectivity.
+    Uses run_sql(): DATABASE_URL (direct Postgres) when set, otherwise exec_sql RPC with service_role.
+    The RPC is optional—many projects do not define it; DATABASE_URL is the reliable path.
     """
     try:
-        if not config.SUPABASE_SERVICE_KEY:
-            return False
-        import requests
-        rpc_url = config.SUPABASE_URL.rstrip('/') + '/rest/v1/rpc/exec_sql'
-        headers = {
-            'apikey': config.SUPABASE_SERVICE_KEY,
-            'Authorization': f'Bearer {config.SUPABASE_SERVICE_KEY}',
-            'Content-Type': 'application/json'
-        }
-        resp = requests.post(
-            rpc_url,
-            headers=headers,
-            json={'q': 'ALTER SEQUENCE public.anonymized_data_id_seq RESTART WITH 1;'},
-            timeout=30
-        )
-        resp.raise_for_status()
+        run_sql('ALTER SEQUENCE public.anonymized_data_id_seq RESTART WITH 1;')
         return True
     except Exception as e:
         config.logger.info(f"Could not auto-reset anonymized_data id sequence: {e}")

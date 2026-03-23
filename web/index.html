@@ -126,9 +126,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=6" as="style">
+  <link rel="preload" href="styles.css?v=9" as="style">
   <link rel="preload" href="app.js?v=9" as="script">
-  <link rel="stylesheet" href="styles.css?v=6" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=6&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=9" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=9&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #e0f2f1; margin: 0; padding: 0; }
@@ -703,8 +703,8 @@
       </div>
 
       <div class="log-wizard-chrome" id="logWizardChrome">
-        <p class="log-wizard-step-indicator" id="logWizardStepIndicator"><span id="logWizardStepLabel">Step 1 of 8</span></p>
-        <div class="log-wizard-progress-track" role="progressbar" aria-valuemin="1" aria-valuemax="8" aria-valuenow="1" id="logWizardProgressBar" aria-labelledby="logWizardStepLabel">
+        <p class="log-wizard-step-indicator" id="logWizardStepIndicator"><span id="logWizardStepLabel">Step 1 of 10</span></p>
+        <div class="log-wizard-progress-track" role="progressbar" aria-valuemin="1" aria-valuemax="10" aria-valuenow="1" id="logWizardProgressBar" aria-labelledby="logWizardStepLabel">
           <div class="log-wizard-progress-fill" id="logWizardProgressFill"></div>
         </div>
       </div>
@@ -794,8 +794,16 @@
         <label for="swelling" class="slider-label">Joint Swelling</label>
         <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
       </div>
-      <div class="input-container pain-body-container" style="margin-top: 1rem;">
-        <label>Pain Location — tap areas to cycle: green (none) → yellow (mild) → red (pain)</label>
+      <div class="input-container pain-body-container">
+        <div class="pain-body-intro" role="group" aria-labelledby="pain-body-title">
+          <h3 class="pain-body-title" id="pain-body-title">Where it hurts</h3>
+          <p class="pain-body-hint">Tap any area on the figure to cycle intensity.</p>
+          <ul class="pain-body-legend-chips" aria-label="Intensity colors">
+            <li><span class="pain-legend-swatch pain-legend-none" aria-hidden="true"></span><span>None</span></li>
+            <li><span class="pain-legend-swatch pain-legend-mild" aria-hidden="true"></span><span>Mild</span></li>
+            <li><span class="pain-legend-swatch pain-legend-pain" aria-hidden="true"></span><span>Pain</span></li>
+          </ul>
+        </div>
         <input type="hidden" id="painLocation" name="painLocation" />
         <div class="pain-body-wrapper" id="painBodyDiagram" aria-label="Select body areas for pain">
           <svg class="pain-body-svg" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg">
@@ -840,8 +848,30 @@
         </div>
       </div>
 
+      <!-- Extra symptom tags (tile picker) — same step as sliders & body map -->
+      <div class="form-section">
+        <button type="button" class="section-header" data-section="additionalSymptoms">
+          <span class="section-icon">🩹</span>
+          <span class="section-title">Extra symptom tags <span class="optional-hint">(Optional)</span></span>
+        </button>
+        <div class="section-content" id="additionalSymptoms">
+          <div class="selection-summary-sticky">
+            <div id="logSymptomsList" class="items-list"></div>
+          </div>
+          <div class="symptom-tiles-collapsible">
+            <button type="button" class="symptom-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet">Add symptom</button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div id="logSymptomsFrequent" class="frequent-chips-wrap" aria-label="Frequently used symptoms"></div>
+                <div id="logSymptomsTiles" class="symptom-tiles-container" aria-label="Symptom options by group"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="log-wizard-step" data-log-step="3" data-step-title="Energy &amp; day">
+
+      </div>
+      <div class="log-wizard-step" data-log-step="3" data-step-title="Energy &amp; mental clarity">
 
       <!-- Energy & Cognitive Section -->
       <div class="form-section">
@@ -883,6 +913,9 @@
         </div>
       </div>
 
+      </div>
+      <div class="log-wizard-step" data-log-step="4" data-step-title="Stress &amp; triggers">
+
       <!-- Stress & Triggers Section -->
       <div class="form-section">
         <button type="button" class="section-header" data-section="stressTriggers">
@@ -915,27 +948,8 @@
         </div>
       </div>
 
-      <!-- Additional Symptoms Section -->
-      <div class="form-section">
-        <button type="button" class="section-header" data-section="additionalSymptoms">
-          <span class="section-icon">🩹</span>
-          <span class="section-title">Additional Symptoms <span class="optional-hint">(Optional)</span></span>
-        </button>
-        <div class="section-content" id="additionalSymptoms">
-          <div class="selection-summary-sticky">
-            <div id="logSymptomsList" class="items-list"></div>
-          </div>
-          <div class="symptom-tiles-collapsible">
-            <button type="button" class="symptom-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet">Add symptom</button>
-            <div class="tile-picker-slot">
-              <div class="tile-picker-anchor">
-                <div id="logSymptomsFrequent" class="frequent-chips-wrap" aria-label="Frequently used symptoms"></div>
-                <div id="logSymptomsTiles" class="symptom-tiles-container" aria-label="Symptom options by group"></div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
+      <div class="log-wizard-step" data-log-step="5" data-step-title="Lifestyle">
 
       <!-- Lifestyle Factors Section -->
       <div class="form-section">
@@ -960,7 +974,7 @@
       </div>
 
       </div>
-      <div class="log-wizard-step" data-log-step="4" data-step-title="Food">
+      <div class="log-wizard-step" data-log-step="6" data-step-title="Food">
 
       <!-- Food Log Section (4 categories: Breakfast, Lunch, Dinner, Snack) -->
       <div class="form-section">
@@ -1026,7 +1040,7 @@
       </div>
 
       </div>
-      <div class="log-wizard-step" data-log-step="5" data-step-title="Exercise">
+      <div class="log-wizard-step" data-log-step="7" data-step-title="Exercise">
 
       <!-- Exercise Log Section (tile grid by category: Cardio, Strength, etc. — collapsible, collapsed by default) -->
       <div class="form-section">
@@ -1093,7 +1107,7 @@
       </div>
 
       </div>
-      <div class="log-wizard-step" data-log-step="6" data-step-title="Medication &amp; notes">
+      <div class="log-wizard-step" data-log-step="8" data-step-title="Medication &amp; notes">
 
       <!-- Medication / Supplements Section (optional) -->
       <div class="form-section">
@@ -1145,7 +1159,7 @@
       </div>
 
       </div>
-      <div class="log-wizard-step" data-log-step="7" data-step-title="Review">
+      <div class="log-wizard-step" data-log-step="9" data-step-title="Review">
         <div class="log-review-summary" id="logReviewSummary" aria-live="polite"></div>
       </div>
 
@@ -1591,7 +1605,15 @@
                 </div>
               </div>
               
-              <label>Pain Location</label>
+              <div class="pain-body-intro pain-body-intro--modal" role="group" aria-labelledby="edit-pain-body-title">
+                <h4 class="pain-body-title" id="edit-pain-body-title">Where it hurts</h4>
+                <p class="pain-body-hint">Tap to cycle: none → mild → pain.</p>
+                <ul class="pain-body-legend-chips" aria-label="Intensity colors">
+                  <li><span class="pain-legend-swatch pain-legend-none" aria-hidden="true"></span><span>None</span></li>
+                  <li><span class="pain-legend-swatch pain-legend-mild" aria-hidden="true"></span><span>Mild</span></li>
+                  <li><span class="pain-legend-swatch pain-legend-pain" aria-hidden="true"></span><span>Pain</span></li>
+                </ul>
+              </div>
               <input type="hidden" id="editPainLocation" />
               <div class="pain-body-wrapper" id="editPainBodyDiagram" aria-label="Select body areas for pain">
                 <svg class="pain-body-svg" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg">

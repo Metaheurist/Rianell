@@ -1357,7 +1357,9 @@ def create_server_dashboard():
                 "\n\nID sequence reset: next row will use id = 1."
                 if seq_reset
                 else "\n\nNote: Could not reset the id sequence automatically. Add DATABASE_URL "
-                "(Supabase → Settings → Database → connection string) to security/.env, or run in SQL Editor:\n"
+                "(Supabase → Settings → Database → URI, use the pooled or direct connection string) to "
+                "security/.env — service_role alone is not enough unless you added an exec_sql RPC. "
+                "Or run in SQL Editor:\n"
                 "ALTER SEQUENCE public.anonymized_data_id_seq RESTART WITH 1;"
             )
 
