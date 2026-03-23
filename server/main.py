@@ -67,6 +67,7 @@ supabase_client.check_supabase_availability()
 SUPABASE_AVAILABLE = supabase_client.SUPABASE_AVAILABLE
 init_supabase_client = supabase_client.init_supabase_client
 run_sql = supabase_client.run_sql
+try_restart_anonymized_data_id_sequence = supabase_client.try_restart_anonymized_data_id_sequence
 search_supabase_data = supabase_client.search_supabase_data
 export_supabase_data = supabase_client.export_supabase_data
 generate_and_post_sample_data_to_supabase = supabase_client.generate_and_post_sample_data_to_supabase
@@ -1310,6 +1311,9 @@ def create_server_dashboard():
             
             logger.info("Wiping database: deleting all records from anonymized_data...")
 
+            deleted = 0
+            service_delete_ok = False
+
             # Prefer using the Supabase service key to perform a server-side delete in one request.
             # This avoids slow client-side loops and bypasses RLS when using the SERVICE KEY.
             if SUPABASE_SERVICE_KEY:
@@ -1319,7 +1323,6 @@ def create_server_dashboard():
                     # Delete all rows where id != 0 (serial IDs start at 1) to remove all records
                     resp = svc.table('anonymized_data').delete().neq('id', 0).execute()
                     # resp may contain error info depending on client version
-                    deleted = 0
                     if hasattr(resp, 'error') and resp.error:
                         logger.error(f"Service-key delete returned error: {resp.error}")
                         raise Exception(resp.error)
@@ -1328,32 +1331,41 @@ def create_server_dashboard():
                     elif getattr(resp, 'data', None) is not None:
                         deleted = len(resp.data)
                     logger.info(f"Successfully deleted {deleted} records using service key")
-                    messagebox.showinfo("Success", f"Database wiped!\nDeleted {deleted} records\n\n"
-                        "Note: To fully reset the ID counter, run in Supabase SQL Editor:\n"
-                        "ALTER SEQUENCE anonymized_data_id_seq RESTART WITH 1;")
+                    service_delete_ok = True
                 except Exception as e:
                     logger.warning(f"Service-key delete failed, falling back to client-side deletes: {e}")
                     # Fall through to client-side deletion below
 
             # If service-key path not used or failed, fall back to fetching IDs and deleting one-by-one
-            all_records = client.table('anonymized_data').select('id').execute()
-            if all_records and all_records.data:
-                record_count = len(all_records.data)
-                logger.info(f"Found {record_count} records to delete (client-side)")
-                deleted = 0
-                for record in all_records.data:
-                    try:
-                        client.table('anonymized_data').delete().eq('id', record['id']).execute()
-                        deleted += 1
-                    except Exception as e:
-                        logger.warning(f"Failed to delete record {record.get('id')}: {e}")
-                logger.info(f"Successfully deleted {deleted}/{record_count} records")
-                messagebox.showinfo("Success", f"Database wiped!\nDeleted {deleted} records\n\n"
-                    "Note: To fully reset the ID counter, run in Supabase SQL Editor:\n"
-                    "ALTER SEQUENCE anonymized_data_id_seq RESTART WITH 1;")
+            if not service_delete_ok:
+                all_records = client.table('anonymized_data').select('id').execute()
+                if all_records and all_records.data:
+                    record_count = len(all_records.data)
+                    logger.info(f"Found {record_count} records to delete (client-side)")
+                    for record in all_records.data:
+                        try:
+                            client.table('anonymized_data').delete().eq('id', record['id']).execute()
+                            deleted += 1
+                        except Exception as e:
+                            logger.warning(f"Failed to delete record {record.get('id')}: {e}")
+                    logger.info(f"Successfully deleted {deleted}/{record_count} records")
+                else:
+                    logger.info("Database already empty")
+
+            seq_reset = try_restart_anonymized_data_id_sequence()
+            seq_note = (
+                "\n\nID sequence reset: next row will use id = 1."
+                if seq_reset
+                else "\n\nNote: Could not reset the id sequence automatically. Add DATABASE_URL "
+                "(Supabase → Settings → Database → connection string) to security/.env, or run in SQL Editor:\n"
+                "ALTER SEQUENCE public.anonymized_data_id_seq RESTART WITH 1;"
+            )
+
+            if deleted == 0:
+                headline = "Database was already empty."
             else:
-                logger.info("Database already empty")
-                messagebox.showinfo("Info", "Database is already empty")
+                headline = f"Database wiped!\nDeleted {deleted} records."
+            messagebox.showinfo("Success", headline + seq_note)
             
             # Refresh the viewer
             search_results.clear()

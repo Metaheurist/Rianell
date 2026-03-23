@@ -13,6 +13,7 @@ from . import encryption
 from .sample_data import get_seasonal_factor, get_weekly_pattern
 
 supabase_client = None
+supabase_service_client = None
 SUPABASE_AVAILABLE = False
 
 
@@ -58,6 +59,31 @@ def init_supabase_client():
         return None
 
 
+def get_supabase_service_client():
+    """
+    Client using the Supabase secret key (service_role; bypasses RLS).
+    Use only in trusted server code, never in the browser.
+    Required for server-side inserts into anonymized_data when RLS is enabled and rows have no auth.uid().
+    """
+    global supabase_service_client
+    if not SUPABASE_AVAILABLE:
+        check_supabase_availability()
+    if not SUPABASE_AVAILABLE:
+        return None
+    key = (config.SUPABASE_SERVICE_KEY or "").strip()
+    if not key:
+        return None
+    try:
+        from supabase import create_client
+        if supabase_service_client is None:
+            supabase_service_client = create_client(config.SUPABASE_URL, key)
+            config.logger.info("Supabase secret-key client initialized (service_role; RLS bypass for server-side ops)")
+        return supabase_service_client
+    except Exception as e:
+        config.logger.warning(f"Could not create Supabase service client: {e}")
+        return None
+
+
 def run_sql(sql):
     """Execute SQL via DATABASE_URL or Supabase RPC."""
     if config.DATABASE_URL:
@@ -81,7 +107,7 @@ def run_sql(sql):
     if config.SUPABASE_SERVICE_KEY:
         try:
             import requests
-            rpc_url = config.SUPABASE_URL.rstrip('/') + '/rpc/exec_sql'
+            rpc_url = config.SUPABASE_URL.rstrip('/') + '/rest/v1/rpc/exec_sql'
             headers = {
                 'apikey': config.SUPABASE_SERVICE_KEY,
                 'Authorization': f'Bearer {config.SUPABASE_SERVICE_KEY}',
@@ -96,9 +122,38 @@ def run_sql(sql):
     raise RuntimeError('No method available to execute SQL. Set DATABASE_URL or SUPABASE_SERVICE_KEY.')
 
 
+def try_restart_anonymized_data_id_sequence():
+    """
+    After wiping anonymized_data, reset the id sequence so new rows start at 1.
+    Uses the Supabase exec_sql RPC (service_role) to avoid relying on direct DB connectivity.
+    """
+    try:
+        if not config.SUPABASE_SERVICE_KEY:
+            return False
+        import requests
+        rpc_url = config.SUPABASE_URL.rstrip('/') + '/rest/v1/rpc/exec_sql'
+        headers = {
+            'apikey': config.SUPABASE_SERVICE_KEY,
+            'Authorization': f'Bearer {config.SUPABASE_SERVICE_KEY}',
+            'Content-Type': 'application/json'
+        }
+        resp = requests.post(
+            rpc_url,
+            headers=headers,
+            json={'q': 'ALTER SEQUENCE public.anonymized_data_id_seq RESTART WITH 1;'},
+            timeout=30
+        )
+        resp.raise_for_status()
+        return True
+    except Exception as e:
+        config.logger.info(f"Could not auto-reset anonymized_data id sequence: {e}")
+        return False
+
+
 def search_supabase_data(condition=None, limit=100):
     """Search anonymized_data in Supabase."""
-    client = init_supabase_client()
+    # Prefer service_role key so RLS doesn't block server-side sample inserts.
+    client = get_supabase_service_client() or init_supabase_client()
     if not client:
         return None
     try:
@@ -172,7 +227,8 @@ def generate_and_post_sample_data_to_supabase(num_days=90, medical_condition="Me
     if not SUPABASE_AVAILABLE:
         config.logger.error("Cannot post sample data: Supabase not available")
         return 0
-    client = init_supabase_client()
+    # Prefer service role client so RLS does not block server-side sample inserts.
+    client = get_supabase_service_client() or init_supabase_client()
     if not client:
         return 0
     try:
