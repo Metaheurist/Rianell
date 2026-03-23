@@ -598,6 +598,7 @@ h1#dashboardTitle:hover {
   min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
   /* Bottom safe-area lives on .app-mobile-bottom-chrome (flex footer), not here */
   padding-bottom: 12px;
 }
