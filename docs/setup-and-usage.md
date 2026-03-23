@@ -27,12 +27,13 @@
      PORT=8080
      HOST=127.0.0.1
      SUPABASE_URL=your_supabase_url_here
-     SUPABASE_ANON_KEY=your_supabase_anon_key_here
+     SUPABASE_PUBLISHABLE_KEY=your_publishable_key_here
+     # Legacy: SUPABASE_ANON_KEY=… still works if PUBLISHABLE is unset
      ```
 
 4. **Configure Supabase (for frontend)**
    - Edit `supabase-config.js` with your Supabase credentials
-   - ⚠️ **Important**: Use the PUBLISHABLE/ANON key, NOT the secret key!
+   - ⚠️ **Important**: Use the **Publishable** key only in the client, never a **Secret** key (e.g. service_role).
 
 
 <a id="nav-usage"></a>
@@ -94,7 +95,7 @@ The app lives in **`web/`**, so GitHub Pages will not see `index.html` if the so
 
 If the site works elsewhere but your PC shows **`ERR_CONNECTION_REFUSED`**, DNS is often fine globally while your machine still has a stale cache, a bad **AAAA**, or a firewall/VPN path. Run **`powershell -ExecutionPolicy Bypass -File .\scripts\check-rianell-dns.ps1`** from the repo to verify **A**/**AAAA**/**www**, then try **`ipconfig /flushdns`**, another network (e.g. phone on cellular), or remove incorrect **AAAA** records for the apex.
 
-**Cloud sync on the live site:** To use Supabase (login, cloud backup, anonymised data) on the GitHub Pages site, add **Repository secrets** (or **Environment secrets** for the `pages` environment): **`SUPABASE_URL`** (your project URL, e.g. `https://xxxx.supabase.co`) and **`SUPABASE_ANON_KEY`** (your publishable anon key). The deploy workflow injects these into the built site at deploy time so they are never committed. If these secrets are not set, the site still deploys; cloud features will work only after you add them.
+**Cloud sync on the live site:** To use Supabase (login, cloud backup, anonymised data) on the GitHub Pages site, add **Repository secrets** (or **Environment secrets** for the `pages` environment): **`SUPABASE_URL`** (your project URL, e.g. `https://xxxx.supabase.co`) and **`SUPABASE_ANON_KEY`** (your **Publishable** key from the Dashboard; the workflow variable name is legacy). The deploy workflow injects these into the built site at deploy time so they are never committed. If these secrets are not set, the site still deploys; cloud features will work only after you add them.
 
 After the first push (or a manual **Run workflow**), the deployed site will show **Rianell** instead of the README.
 

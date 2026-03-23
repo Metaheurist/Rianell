@@ -38,12 +38,13 @@ Define variables in **`security/.env`** (copy from [`security/.env.example`](../
 | `HOST` | Bind address (`127.0.0.1` = local only; `0.0.0.0` = all interfaces / LAN) | `127.0.0.1` |
 | `HEALTH_APP_SENSITIVE_APIS_ON_LAN` | Allow `/api/encryption-key` and `/api/anonymized-data` from non-loopback IPs | unset (off) |
 | `SUPABASE_URL` | Your Supabase project URL | Required |
-| `SUPABASE_ANON_KEY` | Your Supabase anon/publishable key | Required |
+| `SUPABASE_PUBLISHABLE_KEY` | **Publishable** key (Dashboard → API; safe in client builds). Legacy: `SUPABASE_ANON_KEY`. | Required (one of) |
+| `SUPABASE_SECRET_KEY` | **Secret** key — use **service_role** (server only). Needed for **Generate Sample Data to Supabase** when RLS is on `anonymized_data`. Legacy: `SUPABASE_SERVICE_KEY`. | Optional |
 
 ### Supabase Setup
 
 1. Create a Supabase project at [supabase.com](https://supabase.com)
-2. Get your project URL and anon key from Settings → API
+2. Get your project URL, **Publishable** key, and (for server sample generation) the **service_role** secret under **Secret keys** from Settings → API
 3. Create the `anonymized_data` table:
    ```sql
    CREATE TABLE anonymized_data (

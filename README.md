@@ -57,6 +57,20 @@ npm run icons:beta
 
 The authoritative guide is **[docs/SECURITY.md](docs/SECURITY.md)** (web app, Android, Python server, encryption, Supabase RLS, CSP). For local secrets, see **`security/`** and **`security/.env.example`**.
 
+## Supabase Keys (Current Names)
+
+Use Supabase's current naming in **`security/.env`**:
+
+- **`SUPABASE_PUBLISHABLE_KEY`** (client-safe key used by web app/cloud sync)
+- **`SUPABASE_SECRET_KEY`** (server-only secret; use the `service_role` key)
+
+Legacy names still work as fallbacks:
+
+- **`SUPABASE_ANON_KEY`** → publishable
+- **`SUPABASE_SERVICE_KEY`** → secret/service role
+
+For the Tk server dashboard **Wipe Database** flow, rows are deleted in-app; sequence auto-reset needs DB SQL access and may fall back to manual SQL if not available.
+
 ## Security notes
 
 Commit/deploy checklist and supplementary pointers (RLS, CI audits, “do not commit secrets”) are in **[docs/project-reference.md](docs/project-reference.md#nav-security-notes)** under **Security notes**.

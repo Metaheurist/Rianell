@@ -159,8 +159,11 @@ if SENSITIVE_APIS_ON_LAN and SENSITIVE_APIS_LAN_SECRET:
     logger.info('HEALTH_APP_SENSITIVE_APIS_LAN_SECRET is set; non-loopback clients must send X-Rianell-LAN-Secret.')
 
 SUPABASE_URL = os.getenv('SUPABASE_URL', 'https://YOUR_PROJECT_REF.supabase.co')
-SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY', '')
-SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')
+# Dashboard → Settings → API: "Publishable key" (public) and "Secret keys" → service_role (server-only).
+# Legacy env names still work: SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY.
+SUPABASE_ANON_KEY = (os.getenv('SUPABASE_PUBLISHABLE_KEY') or os.getenv('SUPABASE_ANON_KEY', '')).strip()
+_svc = os.getenv('SUPABASE_SECRET_KEY') or os.getenv('SUPABASE_SERVICE_KEY')
+SUPABASE_SERVICE_KEY = _svc.strip() if _svc else None
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 # Connection state
