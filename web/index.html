@@ -29,7 +29,7 @@
   <link rel="manifest" href="manifest.json">
   
   <!-- PWA Meta Tags: theme-color matches page bg so iOS/Android chrome blends with dark UI (accent is in-app only) -->
-  <meta name="theme-color" content="#0a0a0a">
+  <meta name="theme-color" content="#070807">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <!-- black = opaque status bar; content lays out below it. black-translucent draws under icons (no way to hide system bar in a PWA). -->
@@ -126,14 +126,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=18" as="style">
-  <link rel="preload" href="app.js?v=9" as="script">
-  <link rel="stylesheet" href="styles.css?v=18" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=18&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="preload" href="styles.css?v=59" as="style">
+  <link rel="preload" href="app.js?v=16" as="script">
+  <link rel="stylesheet" href="styles.css?v=59" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=59&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
-    html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #e0f2f1; margin: 0; padding: 0; }
+    html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #070807; color: #e8eeec; margin: 0; padding: 0; }
     html.rianell-no-styles button, html.rianell-no-styles input { font-family: inherit; font-size: 1rem; padding: 0.5rem 1rem; border-radius: 8px; }
-    html.rianell-no-styles button { background: #4caf50; color: #fff; border: none; cursor: pointer; }
+    html.rianell-no-styles button { background: #7bdf8c; color: #0a0c08; border: none; cursor: pointer; }
     html.rianell-no-styles input { background: #1e1e1e; color: #e0f2f1; border: 1px solid #333; }
   </style>
   <script>
@@ -171,12 +171,12 @@
     })();
   </script>
   <style>
-    /* First paint: dark shell before styles.css loads (avoids white flash + black serif text) */
-    html { background: #0a0a0a; }
+    /* First paint: dark shell before styles.css loads (matches --shell-bg) */
+    html { background: #070807; }
     body {
       margin: 0;
-      background: #0a0a0a;
-      color: #e0f2f1;
+      background: #070807;
+      color: #e8eeec;
       min-height: 100vh;
       min-height: 100dvh;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -188,7 +188,9 @@
       min-height: 100vh;
       min-height: 100dvh;
       box-sizing: border-box;
-      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      background:
+        radial-gradient(ellipse 85% 55% at 50% 100%, rgba(123, 223, 140, 0.05) 0%, transparent 55%),
+        linear-gradient(180deg, #050606 0%, #070807 50%, #030403 100%);
       z-index: 99999;
       display: flex;
       align-items: center;
@@ -204,9 +206,10 @@
     #loadingOverlay .spinner {
       width: 60px;
       height: 60px;
-      border: 4px solid rgba(76, 175, 80, 0.2);
-      border-top-color: #4caf50;
+      border: 4px solid rgba(123, 223, 140, 0.12);
+      border-top-color: #7bdf8c;
       border-radius: 50%;
+      box-shadow: 0 0 20px rgba(123, 223, 140, 0.2);
       animation: rianell-spin 1s linear infinite;
     }
     #loadingOverlay .loading-text {
@@ -226,12 +229,12 @@
       background: rgba(255, 255, 255, 0.1);
       border-radius: 999px;
       overflow: hidden;
-      border: 1px solid rgba(76, 175, 80, 0.25);
+      border: 1px solid rgba(123, 223, 140, 0.22);
     }
     #loadingOverlay .loading-progress-fill {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, rgba(76, 175, 80, 0.5), #4caf50);
+      background: linear-gradient(90deg, rgba(123, 223, 140, 0.35), #7bdf8c);
       border-radius: 999px;
     }
     @keyframes rianell-spin {
@@ -719,6 +722,8 @@
         <ul id="validationList"></ul>
       </div>
 
+      <div class="log-wizard-body">
+        <div class="log-wizard-center">
       <div class="log-wizard-chrome" id="logWizardChrome">
         <p class="log-wizard-step-indicator" id="logWizardStepIndicator"><span id="logWizardStepLabel">Step 1 of 10</span></p>
         <div class="log-wizard-progress-track" role="progressbar" aria-valuemin="1" aria-valuemax="10" aria-valuenow="1" id="logWizardProgressBar" aria-labelledby="logWizardStepLabel">
@@ -876,7 +881,7 @@
             <div id="logSymptomsList" class="items-list"></div>
           </div>
           <div class="symptom-tiles-collapsible">
-            <button type="button" class="symptom-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet">Add symptom</button>
+            <button type="button" class="symptom-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--symptom" aria-hidden="true">+</span><span class="tile-picker-trigger__label">Add symptom</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
             <div class="tile-picker-slot">
               <div class="tile-picker-anchor">
                 <div id="logSymptomsFrequent" class="frequent-chips-wrap" aria-label="Frequently used symptoms"></div>
@@ -919,7 +924,7 @@
               <p id="energyClaritySelectedLabel" class="energy-clarity-selected" aria-live="polite">None selected</p>
             </div>
             <div class="energy-clarity-collapsible">
-              <button type="button" class="energy-clarity-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet">Choose energy & mental clarity</button>
+              <button type="button" class="energy-clarity-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--energy" aria-hidden="true">+</span><span class="tile-picker-trigger__label">Energy &amp; clarity</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
               <div class="tile-picker-slot">
                 <div class="tile-picker-anchor">
                   <div id="energyClarityTiles" class="energy-clarity-tiles" role="listbox" aria-label="Energy and mental clarity options"></div>
@@ -954,7 +959,7 @@
             <div id="logStressorsList" class="items-list"></div>
           </div>
           <div class="stressor-tiles-collapsible">
-            <button type="button" class="stressor-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet">Add stressor or trigger</button>
+            <button type="button" class="stressor-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--stressor" aria-hidden="true">+</span><span class="tile-picker-trigger__label">Stressor / trigger</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
             <div class="tile-picker-slot">
               <div class="tile-picker-anchor">
                 <div id="logStressorsFrequent" class="frequent-chips-wrap" aria-label="Frequently used stressors"></div>
@@ -1181,12 +1186,37 @@
       </div>
 
       </div>
+        </div>
+      </div>
 
-      <div class="log-wizard-sticky-actions" id="logWizardStickyActions">
-        <button type="button" class="log-wizard-back-btn" id="logWizardBackBtn">Back</button>
-        <button type="button" class="log-wizard-skip-btn" id="logWizardSkipBtn">Skip</button>
-        <button type="button" class="log-wizard-next-btn" id="logWizardNextBtn">Next</button>
-        <button type="submit" class="save-entry-btn log-wizard-save-btn" id="logWizardSaveBtn">💾 Save Entry</button>
+      <div class="log-wizard-bottom-dock" id="logWizardBottomDock" aria-label="Log wizard actions">
+        <div class="log-wizard-sticky-actions log-wizard-footer-actions" id="logWizardStickyActions">
+          <div class="log-wizard-step-dots" id="logWizardStepDots" aria-hidden="true"></div>
+          <button type="submit" class="save-entry-btn log-wizard-save-btn" id="logWizardSaveBtn">💾 Save Entry</button>
+        </div>
+        <div class="log-wizard-nav-row log-wizard-nav-row--bottom" role="toolbar" aria-label="Back, skip, and next">
+          <button type="button" class="log-wizard-back-btn log-wizard-nav-btn log-wizard-nav-btn--secondary log-wizard-bottom-btn" id="logWizardBackBtn" data-nav-mode="back">
+            <span class="log-wizard-nav-btn__ic log-wizard-nav-btn__ic--back" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="log-wizard-nav-btn__ic log-wizard-nav-btn__ic--close" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </span>
+            <span class="log-wizard-nav-btn__label" id="logWizardBackLabel">Back</span>
+          </button>
+          <button type="button" class="log-wizard-skip-btn log-wizard-nav-btn log-wizard-nav-btn--skip log-wizard-bottom-btn" id="logWizardSkipBtn" aria-label="Skip optional sections on this step">
+            <span class="log-wizard-nav-btn__ic" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 5l7 7-7 7M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="log-wizard-nav-btn__label">Skip</span>
+          </button>
+          <button type="button" class="log-wizard-next-btn log-wizard-nav-btn log-wizard-nav-btn--primary log-wizard-bottom-btn" id="logWizardNextBtn">
+            <span class="log-wizard-nav-btn__label">Next</span>
+            <span class="log-wizard-nav-btn__ic" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </button>
+        </div>
       </div>
     </form>
     </div>
@@ -1563,7 +1593,7 @@
               <input type="hidden" id="editEnergyClarity" name="editEnergyClarity" value="" />
               <p id="editEnergyClaritySelectedLabel" class="energy-clarity-selected" aria-live="polite">None selected</p>
               <div class="energy-clarity-collapsible">
-                <button type="button" class="energy-clarity-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet">Choose energy & mental clarity</button>
+                <button type="button" class="energy-clarity-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--energy" aria-hidden="true">+</span><span class="tile-picker-trigger__label">Energy &amp; clarity</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
                 <div class="tile-picker-slot">
                   <div class="tile-picker-anchor">
                     <div id="editEnergyClarityTiles" class="energy-clarity-tiles" role="listbox" aria-label="Energy and mental clarity options"></div>
@@ -1590,7 +1620,7 @@
               <div class="add-item-list" id="editStressorsList">
                 <div class="item-list" id="editStressorsItems"></div>
                 <div class="stressor-tiles-collapsible">
-                  <button type="button" class="stressor-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet">Add stressor or trigger</button>
+                  <button type="button" class="stressor-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--stressor" aria-hidden="true">+</span><span class="tile-picker-trigger__label">Stressor / trigger</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
                   <div class="tile-picker-slot">
                     <div class="tile-picker-anchor">
                       <div id="editStressorsTiles" class="stressor-tiles-container" aria-label="Stress and trigger options by group"></div>
@@ -1613,7 +1643,7 @@
               <div class="add-item-list" id="editSymptomsList">
                 <div class="item-list" id="editSymptomsItems"></div>
                 <div class="symptom-tiles-collapsible">
-                  <button type="button" class="symptom-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet">Add symptom</button>
+                  <button type="button" class="symptom-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--symptom" aria-hidden="true">+</span><span class="tile-picker-trigger__label">Add symptom</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
                   <div class="tile-picker-slot">
                     <div class="tile-picker-anchor">
                       <div id="editSymptomsTiles" class="symptom-tiles-container" aria-label="Symptom options by group"></div>
@@ -1987,7 +2017,6 @@
         </div>
         <button type="button" class="tutorial-arrow tutorial-arrow-right" id="tutorialArrowRight" onclick="tutorialNextSlide()" aria-label="Next slide">›</button>
       </div>
-      <div class="tutorial-dots" id="tutorialDots" aria-hidden="true"></div>
       <div class="modal-footer tutorial-modal-footer">
         <div class="tutorial-footer-right">
           <button type="button" class="tutorial-btn tutorial-finish" id="tutorialFinishBtn" onclick="finishTutorial(false)" style="display: none;">Finish</button>
@@ -2462,7 +2491,7 @@
     }
   })();
   </script>
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=16"></script>
   <script src="security-utils.js"></script>
   <script src="encryption-utils.js"></script>
   <script src="cloud-sync.js?v=2"></script>
@@ -2508,7 +2537,7 @@
           var overlay = document.createElement('div');
           overlay.id = 'cssReloadOverlay';
           overlay.setAttribute('role', 'alert');
-          overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#0a0a0a;color:#e0f2f1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;font-family:system-ui,sans-serif;text-align:center;';
+          overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#070807;color:#e8eeec;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;font-family:system-ui,sans-serif;text-align:center;';
           overlay.innerHTML = '<p style="margin-bottom:1rem;font-size:1.1rem;">Page did not load correctly.</p><p style="margin-bottom:1.5rem;opacity:0.9;">Tap below to reload.</p><button type="button" onclick="location.reload()" style="padding:12px 24px;font-size:1rem;background:#4caf50;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Reload</button>';
           document.body.appendChild(overlay);
         }
