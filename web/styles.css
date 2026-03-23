@@ -2230,22 +2230,208 @@ body.light-mode #logTab.log-wizard-mode .section-header {
   min-height: fit-content;
 }
 
-/* AI Analysis: desktop portrait timeline + section scroll snap (main scroll = .container.app-main-scroll) */
+/* AI Analysis: section scroll snap (mobile shell = .container; document scroll when container overflow visible) */
+/* Body can be the scroll box in some browsers; keep snap on both roots */
+html.ai-root-scroll-snap,
+html.ai-root-scroll-snap body {
+  scroll-snap-type: y mandatory;
+  scroll-padding-top: 1rem;
+  scroll-padding-bottom: 2rem;
+}
+
+html.ai-root-scroll-snap.ai-root-scroll-snap--mobile-pad,
+html.ai-root-scroll-snap.ai-root-scroll-snap--mobile-pad body {
+  scroll-padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+.container.app-main-scroll.ai-scroll-snap-sections {
+  scroll-snap-type: y mandatory;
+  scroll-padding-top: 1rem;
+  scroll-padding-bottom: 2rem;
+}
+
+.container.app-main-scroll.ai-scroll-snap-sections.ai-scroll-snap-sections--mobile-pad {
+  scroll-padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+#aiTab .ai-timeline-snap {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  scroll-margin-top: 1.25rem;
+  scroll-margin-bottom: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.ai-root-scroll-snap,
+  html.ai-root-scroll-snap body {
+    scroll-snap-type: none;
+  }
+
+  html.ai-root-scroll-snap.ai-root-scroll-snap--mobile-pad,
+  html.ai-root-scroll-snap.ai-root-scroll-snap--mobile-pad body {
+    scroll-padding-bottom: 1rem;
+  }
+
+  .container.app-main-scroll.ai-scroll-snap-sections {
+    scroll-snap-type: none;
+  }
+
+  .container.app-main-scroll.ai-scroll-snap-sections--mobile-pad {
+    scroll-padding-bottom: 2rem;
+  }
+}
+
+.ai-results-timeline-outer {
+  width: 100%;
+}
+
+/* Mobile: fixed chip bar + gradient (above bottom tab bar; z below FAB) */
+.ai-timeline-mobile {
+  display: none;
+}
+
+.ai-timeline-mobile-line {
+  height: 4px;
+  border-radius: 3px;
+  margin-bottom: 8px;
+  background: rgba(233, 30, 99, 0.55);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+
+.ai-timeline-mobile-track {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  padding-bottom: 2px;
+}
+
+.ai-timeline-mobile-chip {
+  flex: 0 0 auto;
+  scroll-snap-align: center;
+  max-width: 11rem;
+  padding: 8px 12px;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(40, 40, 45, 0.75);
+  color: rgba(224, 242, 241, 0.92);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-left: 3px solid var(--chip-color, #e91e63);
+}
+
+.ai-timeline-mobile-chip:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.ai-timeline-mobile-chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.55);
+}
+
+.ai-timeline-mobile-chip.is-active {
+  transform: scale(1.03);
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12), 0 2px 12px rgba(0, 0, 0, 0.35);
+  background: rgba(56, 56, 62, 0.92);
+}
+
+@media (max-width: 899.98px) {
+  .ai-timeline-mobile:not([hidden]) {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(62px + env(safe-area-inset-bottom, 0px));
+    z-index: 1001;
+    padding: 8px 12px 10px;
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    background: rgba(14, 16, 20, 0.92);
+    backdrop-filter: saturate(180%) blur(18px);
+    -webkit-backdrop-filter: saturate(180%) blur(18px);
+    border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.35);
+    box-sizing: border-box;
+    pointer-events: auto;
+  }
+
+  .ai-results-timeline-layout {
+    display: block;
+  }
+
+  .ai-timeline-portrait-column {
+    display: none;
+  }
+
+  .ai-timeline-portrait {
+    display: none;
+  }
+}
+
+body.light-mode .ai-timeline-mobile:not([hidden]) {
+  background: rgba(255, 255, 255, 0.94);
+  border-top-color: rgba(129, 199, 132, 0.35);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .ai-timeline-mobile-chip {
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--text-dark);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+body.light-mode .ai-timeline-mobile-chip.is-active {
+  background: rgba(76, 175, 80, 0.12);
+  border-color: rgba(76, 175, 80, 0.45);
+}
+
+/* AI Analysis: desktop portrait timeline (fixed to viewport; JS sets top/left/height) */
 @media (min-width: 900px) {
   .ai-results-timeline-layout {
     display: grid;
     grid-template-columns: 52px minmax(0, 1fr);
     gap: 1rem;
-    align-items: start;
+    align-items: stretch;
     width: 100%;
   }
 
-  .ai-timeline-portrait {
-    position: sticky;
-    top: 1.25rem;
-    align-self: start;
-    z-index: 2;
+  .ai-timeline-portrait-column {
+    position: relative;
     width: 52px;
+    min-height: 0;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ai-timeline-portrait-spacer {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 1px;
+    pointer-events: none;
+  }
+
+  .ai-timeline-portrait {
+    position: fixed;
+    z-index: 1001;
+    width: 52px;
+    pointer-events: none;
   }
 
   .ai-timeline-portrait-track {
@@ -2314,35 +2500,6 @@ body.light-mode #logTab.log-wizard-mode .section-header {
 
   .ai-results-timeline-main {
     min-width: 0;
-  }
-
-  .container.app-main-scroll.ai-scroll-snap-sections {
-    scroll-snap-type: y mandatory;
-    scroll-padding-top: 1rem;
-    scroll-padding-bottom: 2rem;
-  }
-
-  #aiTab .ai-timeline-snap {
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-    scroll-margin-top: 1.25rem;
-    scroll-margin-bottom: 0.75rem;
-  }
-}
-
-@media (max-width: 899.98px) {
-  .ai-results-timeline-layout {
-    display: block;
-  }
-
-  .ai-timeline-portrait {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .container.app-main-scroll.ai-scroll-snap-sections {
-    scroll-snap-type: none;
   }
 }
 
