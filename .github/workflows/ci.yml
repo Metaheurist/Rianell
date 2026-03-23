@@ -150,6 +150,7 @@ jobs:
         working-directory: react-app/android
         run: chmod +x gradlew || true
 
+      # Debug APK for sideload/beta; for smaller/faster runtime use local assembleRelease + signing (see docs/setup-and-usage.md).
       - name: Build debug APK
         working-directory: react-app/android
         run: ./gradlew assembleDebug --no-daemon

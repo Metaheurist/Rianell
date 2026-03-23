@@ -2,7 +2,7 @@
 /**
  * Patches Android project for compatibility:
  * - Gradle: minSdk 22, targetSdk 34, compileSdk 36 (compileSdk 36 required by androidx deps); versionCode/versionName from BUILD_VERSION env
- * - AndroidManifest: notification permissions for Android 12+ (exact alarms) and 13+ (POST_NOTIFICATIONS); portrait lock on BridgeActivity
+ * - AndroidManifest: notification permissions for Android 12+ (exact alarms) and 13+ (POST_NOTIFICATIONS); portrait lock on BridgeActivity; hardwareAccelerated on application when missing
  * - Network security: res/xml/network_security_config.xml (cleartext off by default); manifest references it and drops global usesCleartextTraffic="true"
  */
 import fs from 'fs';
@@ -113,6 +113,34 @@ function ensureManifestPermissions(manifestPath) {
   return true;
 }
 
+/** Ensure hardware acceleration for WebView compositing (default on most templates; idempotent). */
+function ensureHardwareAcceleratedApplication(manifestPath) {
+  if (!fs.existsSync(manifestPath)) return false;
+  let content = fs.readFileSync(manifestPath, 'utf8');
+  if (/android:hardwareAccelerated\s*=\s*"true"/i.test(content)) {
+    return false;
+  }
+  if (/android:hardwareAccelerated\s*=\s*"false"/i.test(content)) {
+    content = content.replace(/\s*android:hardwareAccelerated\s*=\s*"false"/gi, '');
+    fs.writeFileSync(manifestPath, content);
+    content = fs.readFileSync(manifestPath, 'utf8');
+  }
+  const before = content;
+  if (/<application\s*\n/.test(content)) {
+    content = content.replace(
+      /<application\s*\n/,
+      '<application\n            android:hardwareAccelerated="true"\n'
+    );
+  } else if (/<application(\s+)/.test(content)) {
+    content = content.replace(/<application(\s+)/, '<application android:hardwareAccelerated="true"$1');
+  }
+  if (content !== before) {
+    fs.writeFileSync(manifestPath, content);
+    return true;
+  }
+  return false;
+}
+
 /** Lock app to portrait (Capacitor BridgeActivity). Idempotent. */
 function ensurePortraitActivity(manifestPath) {
   if (!fs.existsSync(manifestPath)) return false;
@@ -202,6 +230,9 @@ if (ensureManifestPermissions(manifestPath)) {
   patched = true;
 }
 if (ensurePortraitActivity(manifestPath)) {
+  patched = true;
+}
+if (ensureHardwareAcceleratedApplication(manifestPath)) {
   patched = true;
 }
 if (ensureNetworkSecurityConfig(manifestPath)) {

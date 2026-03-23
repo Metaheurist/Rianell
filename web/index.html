@@ -127,6 +127,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
   <link rel="preload" href="styles.css?v=6" as="style">
+  <link rel="preload" href="app.js?v=9" as="script">
   <link rel="stylesheet" href="styles.css?v=6" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=6&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
@@ -2391,11 +2392,16 @@
   <script src="device-benchmark.js"></script>
   <script src="performance-utils.js"></script>
   <script src="background-loader.js"></script>
+  <script src="android-update-check.js?v=1"></script>
   <script>
     (function() {
       var Perf = window.PerformanceUtils;
       if (!Perf || typeof Perf.lazyLoadScript !== 'function') return;
       if (Perf.platform && Perf.platform.deviceClass === 'low') return;
+      try {
+        var cap = window.Capacitor;
+        if (cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform() && cap.getPlatform && cap.getPlatform() === 'android') return;
+      } catch (e) {}
       function loadSummaryLlm() {
         Perf.lazyLoadScript('summary-llm.js').catch(function () {});
       }

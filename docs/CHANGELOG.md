@@ -2,7 +2,18 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.38.0** — MOTD preset: random per page load (not fixed per calendar day).
+**Latest: v1.40.0** — README: Android WebView architecture and build pointers.
+
+### v1.40.0 — 2026-03-23 — README & changelog
+
+- **Docs**: Root **[README.md](../README.md)** now summarises **direct legacy load** on Android APK vs **React + iframe** on web/dev, **`npm run build:apk`**, and **debug (CI) vs release/AAB** with a link to **[docs/setup-and-usage.md](setup-and-usage.md#nav-react-android)**.
+
+### v1.39.0 — 2026-03-23 — Android WebView performance
+
+- **Capacitor / React**: **`react-app/src/main.tsx`** redirects native platforms to **`legacy/index.html`** immediately; **`app-web.tsx`** loads the React + iframe shell only for browser/Vite. Avoids nested WebView + iframe on APK/iOS.
+- **Web**: **`isRianellNativeApp()`** treats **`window.Capacitor.isNativePlatform()`** as authoritative. New **`web/android-update-check.js`** replaces the React-only APK update modal ( **`App` / `Browser`** plugins). **`performance-utils`**: stricter AI defer and **`isRianellCapacitorAndroid()`**; **`index.html`** skips idle **`summary-llm.js`** preload on Capacitor Android; **`rel=preload`** for main script (patched to **`app.min.js`** in **`copy-webapp.js`**). **`styles.css`**: **`overscroll-behavior-y: contain`** on **`.app-main-scroll`**. **`workers/io-worker.js`**: note on payload size for WebView.
+- **Android patch**: **`patch-android-sdk.js`** ensures **`android:hardwareAccelerated="true"`** on **`<application>`** when absent.
+- **Docs**: **`docs/setup-and-usage.md`** — native vs iframe behaviour, release/debug/AAB, profiling, regression checklist.
 
 ### v1.38.0 — 2026-03-23 — MOTD selection
 

@@ -2,6 +2,8 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
+**Android APK (Capacitor):** The WebView opens the **legacy dashboard directly** (`legacy/index.html`) so you get a **single document**—smoother scrolling and lower overhead than nesting the app inside a React iframe. **Browser and `npm run dev`** still use the **React (Vite) shell + iframe** for the same UI at `/legacy/`. Production APK builds: **`npm run build:apk`** then Capacitor sync (see **[Installation & usage](docs/setup-and-usage.md#nav-react-android)**). CI publishes a **debug** beta APK; for a smaller, snappier install, build **release** or **AAB** locally as described in that doc.
+
 **Repository**: [github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell)
 
 <!-- RIANELL_BUILD_INFO_START -->

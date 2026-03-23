@@ -539,6 +539,22 @@ const StorageBatcher = {
 // Use DeviceModule when loaded (device-module.js); otherwise fallback for standalone performance-utils.
 // ============================================
 
+/** Capacitor Android WebView: stricter AI/LLM defer than mobile browser Chrome. */
+function isRianellCapacitorAndroid() {
+  try {
+    var c = typeof window !== 'undefined' ? window.Capacitor : null;
+    return !!(
+      c &&
+      typeof c.isNativePlatform === 'function' &&
+      c.isNativePlatform() &&
+      typeof c.getPlatform === 'function' &&
+      c.getPlatform() === 'android'
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
 function getDevicePerformanceClassFallback() {
   const nav = typeof navigator !== 'undefined' ? navigator : {};
   const deviceMemory = nav.deviceMemory;
@@ -646,6 +662,7 @@ function getOptimizationProfile() {
       : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
     var tier = window.DeviceBenchmark.getPerformanceTier();
     var full = window.DeviceBenchmark.getFullProfile(platformType, tier, { saveData: saveData, prefersReducedMotion: reducedMotion });
+    var capAndroidBench = typeof window !== 'undefined' && isRianellCapacitorAndroid();
     return {
       deviceClass: full.deviceClass || p.deviceClass || 'medium',
       llmModelSize: full.llmModelSize != null ? full.llmModelSize : (full.deviceClass === 'low' ? 'tier2' : full.deviceClass === 'high' ? 'tier4' : 'tier3'),
@@ -653,7 +670,7 @@ function getOptimizationProfile() {
       chartAnimation: full.chartAnimation != null ? full.chartAnimation : !reducedMotion,
       enableChartPreload: full.enableChartPreload != null ? full.enableChartPreload : true,
       chartPreloadDelayMs: full.chartPreloadDelayMs != null ? full.chartPreloadDelayMs : 1200,
-      enableAIPreload: full.enableAIPreload != null ? full.enableAIPreload : !saveData,
+      enableAIPreload: capAndroidBench ? false : (full.enableAIPreload != null ? full.enableAIPreload : !saveData),
       aiPreloadDelayMs: full.aiPreloadDelayMs != null ? full.aiPreloadDelayMs : 1500,
       domCacheTtlMs: full.domCacheTtlMs != null ? full.domCacheTtlMs : 30000,
       storageBatchDelayMs: full.storageBatchDelayMs != null ? full.storageBatchDelayMs : 100,
@@ -690,9 +707,14 @@ function getOptimizationProfile() {
 
   var effectiveType = (p.connection && p.connection.effectiveType) ? String(p.connection.effectiveType).toLowerCase() : '';
   var slowConnection = saveData || effectiveType === '2g';
-  var enableAIPreload = !isLow && !slowConnection;
+  var capAndroid = typeof window !== 'undefined' && isRianellCapacitorAndroid();
+  var enableAIPreload = !isLow && !slowConnection && !capAndroid;
   var aiPreloadDelayMs = isLow ? 4000 : isHigh ? 800 : 1500;
   if (slowConnection && aiPreloadDelayMs < 4000) aiPreloadDelayMs = 4000;
+  if (capAndroid) {
+    enableAIPreload = false;
+    aiPreloadDelayMs = Math.max(aiPreloadDelayMs, 8000);
+  }
 
   var domCacheTtlMs = 30000;
   if (isLow) domCacheTtlMs = 45000;
@@ -740,21 +762,23 @@ function getDeviceOpts() {
       : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
     var tier = window.DeviceBenchmark.getPerformanceTier();
     var full = window.DeviceBenchmark.getFullProfile(platformType, tier, { saveData: !!(p.connection && p.connection.saveData), prefersReducedMotion: !!p.prefersReducedMotion });
+    var capAndroidOpts = typeof window !== 'undefined' && isRianellCapacitorAndroid();
     return {
       reduceAnimations: full.reduceAnimations != null ? full.reduceAnimations : !!(p.prefersReducedMotion || (full.deviceClass === 'low')),
       maxChartPoints: full.maxChartPoints != null ? full.maxChartPoints : 100,
-      deferAI: full.deferAI != null ? full.deferAI : (full.deviceClass === 'low'),
-      batchDOM: full.batchDOM != null ? full.batchDOM : (full.deviceClass === 'low')
+      deferAI: capAndroidOpts || (full.deferAI != null ? full.deferAI : (full.deviceClass === 'low')),
+      batchDOM: capAndroidOpts || (full.batchDOM != null ? full.batchDOM : (full.deviceClass === 'low'))
     };
   }
   var deviceClass = p.deviceClass || 'medium';
   var reduceAnimations = !!(p.prefersReducedMotion || deviceClass === 'low');
   var maxChartPoints = deviceClass === 'low' ? 30 : deviceClass === 'medium' ? 120 : 200;
+  var capAndroidFallback = typeof window !== 'undefined' && isRianellCapacitorAndroid();
   return {
     reduceAnimations: reduceAnimations,
     maxChartPoints: maxChartPoints,
-    deferAI: deviceClass === 'low',
-    batchDOM: deviceClass === 'low'
+    deferAI: capAndroidFallback || deviceClass === 'low',
+    batchDOM: capAndroidFallback || deviceClass === 'low'
   };
 }
 
@@ -789,7 +813,8 @@ if (typeof window !== 'undefined') {
     getDeviceOpts,
     getDeviceId,
     platform,
-    applyBenchmarkToPlatform
+    applyBenchmarkToPlatform,
+    isRianellCapacitorAndroid
   };
   window.PlatformCapabilities = platform;
   
