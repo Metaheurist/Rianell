@@ -126,7 +126,7 @@ def try_restart_anonymized_data_id_sequence():
     """
     After wiping anonymized_data, reset the id sequence so new rows start at 1.
     Uses run_sql(): DATABASE_URL (direct Postgres) when set, otherwise exec_sql RPC with service_role.
-    The RPC is optional—many projects do not define it; DATABASE_URL is the reliable path.
+    The RPC is optional-many projects do not define it; DATABASE_URL is the reliable path.
     """
     try:
         run_sql('ALTER SEQUENCE public.anonymized_data_id_seq RESTART WITH 1;')

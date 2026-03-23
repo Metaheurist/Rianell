@@ -207,8 +207,11 @@ function closeSettingsModalIfOpen() {
   if (!settingsOverlay) return;
   const isOpen = settingsOverlay.classList.contains('settings-overlay--open') || settingsOverlay.style.display === 'flex' || settingsOverlay.style.display === 'block';
   if (!isOpen) return;
-  const settingsContent = settingsOverlay.querySelector('.settings-content');
-  if (settingsContent) window.settingsModalScrollPosition = settingsContent.scrollTop;
+  if (typeof captureSettingsModalCarouselState === 'function') captureSettingsModalCarouselState(settingsOverlay);
+  else {
+    const settingsContent = settingsOverlay.querySelector('.settings-content');
+    if (settingsContent) window.settingsModalScrollPosition = settingsContent.scrollTop;
+  }
   const conditionSelector = document.getElementById('medicalConditionSelector');
   if (conditionSelector) window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
   if (typeof closeSettings === 'function') {
@@ -430,7 +433,7 @@ function openPerfBenchmarkModal(options) {
       row.innerHTML = `
         <div class="perf-benchmark-bar-label" title="${t.label || t.id}">${t.label || t.id}</div>
         <div class="perf-benchmark-bar-track"><div class="perf-benchmark-bar-fill" style="width:${widthPct}%;"></div></div>
-        <div class="perf-benchmark-bar-value">${ms ? ms.toFixed(1) + 'ms' : '—'}</div>
+        <div class="perf-benchmark-bar-value">${ms ? ms.toFixed(1) + 'ms' : '-'}</div>
       `;
       barsEl.appendChild(row);
     });
@@ -459,17 +462,17 @@ function openPerfBenchmarkModal(options) {
     if (!env.deviceVendor && dm && dm.deviceVendor) env.deviceVendor = dm.deviceVendor;
     if (!env.deviceModel && dm && dm.deviceModel) env.deviceModel = dm.deviceModel;
     if (!env.cpuArchitecture && dm && dm.cpuArchitecture) env.cpuArchitecture = dm.cpuArchitecture;
-    const osDisplay = (env.osName && env.osVersion) ? `${env.osName} ${env.osVersion}` : (env.osName || env.osVersion || '—');
-    const deviceDisplay = [env.deviceVendor, env.deviceModel].filter(Boolean).join(' ') || (env.deviceType || '—');
-    const memoryDisplay = env.deviceMemory != null ? String(env.deviceMemory) + ' GB' : (env.estimatedMemoryBucket ? `estimated: ${env.estimatedMemoryBucket}` : '—');
+    const osDisplay = (env.osName && env.osVersion) ? `${env.osName} ${env.osVersion}` : (env.osName || env.osVersion || '-');
+    const deviceDisplay = [env.deviceVendor, env.deviceModel].filter(Boolean).join(' ') || (env.deviceType || '-');
+    const memoryDisplay = env.deviceMemory != null ? String(env.deviceMemory) + ' GB' : (env.estimatedMemoryBucket ? `estimated: ${env.estimatedMemoryBucket}` : '-');
     const kv = [
       ['Class', deviceClass],
-      ['Repeats', repeats != null ? String(repeats) : '—'],
-      ['Cores', env.cores != null ? String(env.cores) : '—'],
+      ['Repeats', repeats != null ? String(repeats) : '-'],
+      ['Cores', env.cores != null ? String(env.cores) : '-'],
       ['Memory', memoryDisplay],
       ['OS', osDisplay],
       ['Device', deviceDisplay],
-      ['CPU', env.cpuArchitecture || '—']
+      ['CPU', env.cpuArchitecture || '-']
     ];
     kv.forEach(pair => {
       const div = document.createElement('div');
@@ -523,11 +526,11 @@ function openPerfBenchmarkModal(options) {
     gpuStatsEl.innerHTML = '';
     if (gpuAvailable) {
       const backendLabel = result.gpu.backend === 'webgpu' ? 'WebGPU' : result.gpu.backend === 'webgl' ? 'WebGL' : result.gpu.backend;
-      const meanMs = gpuSamples.length ? (gpuSamples.reduce((a, b) => a + b, 0) / gpuSamples.length).toFixed(2) : '—';
+      const meanMs = gpuSamples.length ? (gpuSamples.reduce((a, b) => a + b, 0) / gpuSamples.length).toFixed(2) : '-';
       const kv = [
         ['Backend', backendLabel],
         ['Samples', gpuSamples.length ? String(gpuSamples.length) : '0'],
-        ['Mean', meanMs !== '—' ? meanMs + ' ms' : '—']
+        ['Mean', meanMs !== '-' ? meanMs + ' ms' : '-']
       ];
       kv.forEach(pair => {
         const div = document.createElement('div');
@@ -772,8 +775,8 @@ function openShareModal(options) {
 }
 
 // Medical synopsis wording for email/WhatsApp shares (for care team or doctor)
-var EMAIL_SYNOPSIS_INTRO = 'Health summary — for your care team or doctor.';
-var EMAIL_ANALYSIS_INTRO = 'Health analysis summary — for discussion with your care team or doctor.';
+var EMAIL_SYNOPSIS_INTRO = 'Health summary - for your care team or doctor.';
+var EMAIL_ANALYSIS_INTRO = 'Health analysis summary - for discussion with your care team or doctor.';
 var EMAIL_SYNOPSIS_FOOTER = 'Discuss with your doctor. This is not a substitute for professional medical advice.';
 
 // Format a single log entry as plain text for email body (readable sections)
@@ -788,34 +791,34 @@ function formatLogEntryAsText(log) {
     '────────────────────────────────',
     '',
     'VITAL SIGNS',
-    '  Heart rate: ' + (log.bpm || '—') + ' BPM',
-    '  Weight: ' + (weightDisplay != null && weightDisplay !== '' ? weightDisplay : '—') + ' ' + (weightUnit || ''),
+    '  Heart rate: ' + (log.bpm || '-') + ' BPM',
+    '  Weight: ' + (weightDisplay != null && weightDisplay !== '' ? weightDisplay : '-') + ' ' + (weightUnit || ''),
     '',
     'SYMPTOMS (1–10)',
-    '  Fatigue: ' + (log.fatigue ?? '—'),
-    '  Stiffness: ' + (log.stiffness ?? '—'),
-    '  Back pain: ' + (log.backPain ?? '—'),
-    '  Joint pain: ' + (log.jointPain ?? '—'),
-    '  Swelling: ' + (log.swelling ?? '—'),
+    '  Fatigue: ' + (log.fatigue ?? '-'),
+    '  Stiffness: ' + (log.stiffness ?? '-'),
+    '  Back pain: ' + (log.backPain ?? '-'),
+    '  Joint pain: ' + (log.jointPain ?? '-'),
+    '  Swelling: ' + (log.swelling ?? '-'),
     '',
     'WELLBEING (1–10)',
-    '  Sleep: ' + (log.sleep ?? '—'),
-    '  Mood: ' + (log.mood ?? '—'),
-    '  Irritability: ' + (log.irritability ?? '—'),
+    '  Sleep: ' + (log.sleep ?? '-'),
+    '  Mood: ' + (log.mood ?? '-'),
+    '  Irritability: ' + (log.irritability ?? '-'),
     '',
     'FUNCTION (1–10)',
-    '  Mobility: ' + (log.mobility ?? '—'),
-    '  Daily activities: ' + (log.dailyFunction ?? '—'),
+    '  Mobility: ' + (log.mobility ?? '-'),
+    '  Daily activities: ' + (log.dailyFunction ?? '-'),
     '',
     'FLARE',
-    '  ' + (log.flare || '—')
+    '  ' + (log.flare || '-')
   ];
   const foodItems = typeof getAllFoodItems === 'function' ? getAllFoodItems(log) : [];
   if (foodItems.length > 0) {
     lines.push('');
     lines.push('FOOD');
     foodItems.forEach(f => {
-      lines.push('  • ' + (f.name || f) + (f.amount ? ' — ' + f.amount : ''));
+      lines.push('  • ' + (f.name || f) + (f.amount ? ' - ' + f.amount : ''));
     });
   }
   if (log.exercise && log.exercise.length > 0) {
@@ -823,7 +826,7 @@ function formatLogEntryAsText(log) {
     lines.push('EXERCISE');
     log.exercise.forEach(e => {
       const name = e.name || e;
-      const dur = e.duration ? ' — ' + e.duration + ' min' : '';
+      const dur = e.duration ? ' - ' + e.duration + ' min' : '';
       lines.push('  • ' + name + dur);
     });
   }
@@ -1009,7 +1012,7 @@ function openShareModalForChart(chartId) {
         return;
       }
       saveImage();
-      const waText = subject + '\n\nChart image saved to your device — attach it in WhatsApp to share.';
+      const waText = subject + '\n\nChart image saved to your device - attach it in WhatsApp to share.';
       window.open('https://wa.me/?text=' + encodeURIComponent(waText), '_blank', 'noopener,noreferrer');
     };
 
@@ -1213,7 +1216,7 @@ function buildAIAnalysisShareText(dateRangeText) {
   }
 
   lines.push('IMPORTANT');
-  lines.push('For patterns only — talk to your doctor before changing care. You can share this at your next visit. AI data (e.g. prediction weights) is stored on your device and, when signed in, backed up to your cloud account.');
+  lines.push('For patterns only - talk to your doctor before changing care. You can share this at your next visit. AI data (e.g. prediction weights) is stored on your device and, when signed in, backed up to your cloud account.');
 
   return EMAIL_ANALYSIS_INTRO + sep + lines.join(sep) + sep + EMAIL_SYNOPSIS_FOOTER;
 }
@@ -2701,7 +2704,7 @@ Logger.info('Rianell initialized', {
 })();
 
 // ============================================
-// PWA Service Worker — blocked by default; optional static cache (localStorage rianellEnableStaticSW=1 or ?sw=1)
+// PWA Service Worker - blocked by default; optional static cache (localStorage rianellEnableStaticSW=1 or ?sw=1)
 // ============================================
 if ('serviceWorker' in navigator) {
   var enableStaticSW = (typeof localStorage !== 'undefined' && localStorage.getItem('rianellEnableStaticSW') === '1') ||
@@ -3388,7 +3391,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
 // Server-Sent Events connection for auto-reload (dev server only; skip on static hosts)
 function connectToReloadStream() {
-  // index.html sets true only on loopback; undefined/false elsewhere — never connect on static/CDN without explicit dev flag
+  // index.html sets true only on loopback; undefined/false elsewhere - never connect on static/CDN without explicit dev flag
   if (typeof window !== 'undefined' && window.__rianellReloadStreamOk !== true) {
     Logger.debug('Reload stream disabled (not dev host)');
     return;
@@ -6022,7 +6025,7 @@ async function generateAISummary() {
     dateRangeText = days === 1 ? 'today' : `last ${days} days`;
   }
 
-  // No data in range (logs exist but none in window — we already returned if logs were empty)
+  // No data in range (logs exist but none in window - we already returned if logs were empty)
   if (filteredLogs.length === 0) {
     resultsContent.innerHTML = `
       <div class="ai-loading-state">
@@ -6184,7 +6187,7 @@ function preloadAIAnalysisInBackground() {
   run();
 }
 
-// Preload AI for the default range (30 days) during loading screen — avoids tripling GPU/CPU work vs 7+30+90 in parallel.
+// Preload AI for the default range (30 days) during loading screen - avoids tripling GPU/CPU work vs 7+30+90 in parallel.
 // On low device: same single range after idle yield.
 async function preloadAIForAllRanges() {
   var _perfT0 = Date.now();
@@ -6347,6 +6350,184 @@ function copyAIGeneratedNote(btn) {
 let currentAIAnalysis = null;
 let currentAIFilteredLogs = null; // Store filtered logs for average calculation
 
+/** Colours for each AI analysis section segment on the desktop portrait timeline */
+var AI_TIMELINE_PALETTE = ['#e91e63', '#ab47bc', '#7c4dff', '#29b6f6', '#26a69a', '#66bb6a', '#ffca28', '#ff7043', '#5c6bc0', '#ec407a', '#00bcd4', '#8bc34a'];
+
+function updateAIScrollSnapClass() {
+  var container = document.querySelector('.container.app-main-scroll');
+  if (!container) return;
+  var aiTab = document.getElementById('aiTab');
+  var aiActive = aiTab && aiTab.classList.contains('active');
+  var desktop = typeof window.matchMedia !== 'undefined' && window.matchMedia('(min-width: 900px)').matches;
+  var reduceMotion = false;
+  try {
+    reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch (e) {}
+  if (aiActive && desktop && !reduceMotion) container.classList.add('ai-scroll-snap-sections');
+  else container.classList.remove('ai-scroll-snap-sections');
+}
+
+function ensureAITimelineGlobalListeners() {
+  if (window._aiTimelineListenersBound) return;
+  window._aiTimelineListenersBound = true;
+  var debounceT;
+  window.addEventListener('resize', function() {
+    clearTimeout(debounceT);
+    debounceT = setTimeout(function() {
+      updateAIScrollSnapClass();
+      layoutAITimelinePortrait();
+    }, 120);
+  });
+  var mql = window.matchMedia('(min-width: 900px)');
+  function onViewportChange(ev) {
+    updateAIScrollSnapClass();
+    if (!ev.matches) {
+      var dots = document.getElementById('aiTimelinePortraitDots');
+      if (dots) dots.innerHTML = '';
+      if (window._aiTimelineIO) {
+        window._aiTimelineIO.disconnect();
+        window._aiTimelineIO = null;
+      }
+    } else if (document.querySelector('#aiResultsContent .ai-results-timeline-layout')) {
+      initAITimelinePortrait();
+    }
+  }
+  if (mql.addEventListener) mql.addEventListener('change', onViewportChange);
+  else if (mql.addListener) mql.addListener(onViewportChange);
+  document.addEventListener('click', function(e) {
+    var btn = e.target && e.target.closest && e.target.closest('.ai-timeline-dot-btn');
+    if (!btn) return;
+    var aiTab = document.getElementById('aiTab');
+    if (!aiTab || !aiTab.contains(btn)) return;
+    var idx = parseInt(btn.getAttribute('data-ai-idx'), 10);
+    if (isNaN(idx)) return;
+    var sections = document.querySelectorAll('#aiResultsContent .ai-timeline-snap');
+    if (sections[idx]) sections[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+function layoutAITimelinePortrait() {
+  var wrap = document.querySelector('#aiResultsContent .ai-results-timeline-layout');
+  if (!wrap) return;
+  if (typeof window.matchMedia !== 'undefined' && !window.matchMedia('(min-width: 900px)').matches) return;
+  var main = wrap.querySelector('.ai-results-timeline-main');
+  var line = document.getElementById('aiTimelinePortraitLine');
+  var dotsUl = document.getElementById('aiTimelinePortraitDots');
+  var track = wrap.querySelector('.ai-timeline-portrait-track');
+  if (!main || !line || !dotsUl || !track) return;
+  var sections = main.querySelectorAll('.ai-timeline-snap');
+  var items = dotsUl.querySelectorAll('.ai-timeline-portrait-dot-item');
+  if (sections.length === 0 || sections.length !== items.length) return;
+  var H = main.offsetHeight;
+  if (H < 8) return;
+  track.style.height = H + 'px';
+  function pct(y) {
+    return Math.max(0, Math.min(100, (y / H) * 100)).toFixed(3) + '%';
+  }
+  var centers = [];
+  var colors = [];
+  for (var i = 0; i < sections.length; i++) {
+    var sec = sections[i];
+    var y = sec.offsetTop + sec.offsetHeight / 2;
+    centers.push(y);
+    if (items[i]) items[i].style.top = y + 'px';
+    var cv = window.getComputedStyle(sec).getPropertyValue('--ai-timeline-color').trim();
+    colors.push(cv || AI_TIMELINE_PALETTE[i % AI_TIMELINE_PALETTE.length]);
+  }
+  if (centers.length === 1) {
+    line.style.background = colors[0];
+  } else {
+    var mids = [];
+    for (var j = 0; j < centers.length - 1; j++) mids.push((centers[j] + centers[j + 1]) / 2);
+    var gradStops = [];
+    gradStops.push(colors[0] + ' 0%');
+    gradStops.push(colors[0] + ' ' + pct(mids[0]));
+    for (var k = 1; k < centers.length - 1; k++) {
+      gradStops.push(colors[k] + ' ' + pct(mids[k - 1]));
+      gradStops.push(colors[k] + ' ' + pct(mids[k]));
+    }
+    gradStops.push(colors[centers.length - 1] + ' ' + pct(mids[mids.length - 1]));
+    gradStops.push(colors[centers.length - 1] + ' 100%');
+    line.style.background = 'linear-gradient(to bottom, ' + gradStops.join(', ') + ')';
+  }
+}
+
+function setAITimelineActiveDot(index) {
+  var rail = document.getElementById('aiTimelinePortraitDots');
+  if (!rail) return;
+  rail.querySelectorAll('.ai-timeline-dot-btn').forEach(function(d) {
+    var i = parseInt(d.getAttribute('data-ai-idx'), 10);
+    d.classList.toggle('is-active', i === index);
+  });
+}
+
+function initAITimelinePortrait() {
+  updateAIScrollSnapClass();
+  ensureAITimelineGlobalListeners();
+  var wrap = document.querySelector('#aiResultsContent .ai-results-timeline-layout');
+  if (!wrap) return;
+  var main = wrap.querySelector('.ai-results-timeline-main');
+  var line = document.getElementById('aiTimelinePortraitLine');
+  var dotsUl = document.getElementById('aiTimelinePortraitDots');
+  if (!main || !line || !dotsUl) return;
+  var desktop = typeof window.matchMedia !== 'undefined' && window.matchMedia('(min-width: 900px)').matches;
+  if (!desktop) {
+    dotsUl.innerHTML = '';
+    if (window._aiTimelineIO) {
+      window._aiTimelineIO.disconnect();
+      window._aiTimelineIO = null;
+    }
+    return;
+  }
+  var sections = main.querySelectorAll('.ai-timeline-snap');
+  dotsUl.innerHTML = '';
+  sections.forEach(function(sec, i) {
+    var c = AI_TIMELINE_PALETTE[i % AI_TIMELINE_PALETTE.length];
+    sec.style.setProperty('--ai-timeline-color', c);
+    var h3 = sec.querySelector('h3.ai-section-title, h4.ai-subsection-title');
+    var label = (h3 && h3.textContent ? h3.textContent : 'Section ' + (i + 1)).replace(/\s+/g, ' ').trim().slice(0, 52);
+    var li = document.createElement('li');
+    li.className = 'ai-timeline-portrait-dot-item';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ai-timeline-dot-btn';
+    btn.setAttribute('data-ai-idx', String(i));
+    btn.style.setProperty('--dot-color', c);
+    btn.setAttribute('aria-label', 'Go to: ' + label);
+    btn.setAttribute('title', label);
+    li.appendChild(btn);
+    dotsUl.appendChild(li);
+  });
+  if (window._aiTimelineIO) {
+    window._aiTimelineIO.disconnect();
+    window._aiTimelineIO = null;
+  }
+  var container = document.querySelector('.container.app-main-scroll');
+  if (container && sections.length > 0) {
+    window._aiTimelineIO = new IntersectionObserver(
+      function(entries) {
+        var best = -1;
+        var bestRatio = 0;
+        entries.forEach(function(en) {
+          if (!en.isIntersecting) return;
+          var idx = Array.prototype.indexOf.call(sections, en.target);
+          if (idx < 0) return;
+          if (en.intersectionRatio > bestRatio) {
+            bestRatio = en.intersectionRatio;
+            best = idx;
+          }
+        });
+        if (best >= 0) setAITimelineActiveDot(best);
+      },
+      { root: container, rootMargin: '-10% 0px -48% 0px', threshold: [0, 0.15, 0.35, 0.55, 0.75, 1] }
+    );
+    for (var s = 0; s < sections.length; s++) window._aiTimelineIO.observe(sections[s]);
+  }
+  requestAnimationFrame(function() {
+    layoutAITimelinePortrait();
+  });
+}
+
 // Format a single "Things to watch" line: bold metric/label, de-emphasize "(may indicate flare-ups)"
 function formatAnomalyLine(anomaly) {
   if (!anomaly || typeof anomaly !== 'string') return escapeHTML(String(anomaly));
@@ -6396,7 +6577,7 @@ var AI_PAIN_BODY_LABEL_POSITIONS = {
   right_foot: { x: 94, y: 274 }
 };
 
-// Build SVG for AI "Pain by body part" — human figure with stats as labels on each region
+// Build SVG for AI "Pain by body part" - human figure with stats as labels on each region
 function getAIPainBodyFigureSVG(painByRegion) {
   var severityClass = function(data) {
     if (!data || (data.painDays === 0 && data.mildDays === 0)) return '';
@@ -6458,6 +6639,86 @@ function formatAIValueText(text) {
   return formatted;
 }
 
+/** Safe text for HTML attribute (e.g. aria-label) */
+function escapeAttr(text) {
+  return String(text == null ? '' : text)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Short plain-language bullets for non-technical users (shown above dense analysis).
+ */
+function buildAIAnalysisAtAGlance(analysis, logs, dayCount) {
+  if (!analysis) return '';
+  var items = [];
+  var trendKeys = Object.keys(analysis.trends || {}).filter(function(m) {
+    return analysis.trends[m];
+  });
+  if (trendKeys.length > 0) {
+    items.push(
+      'You have <strong>' +
+        trendKeys.length +
+        '</strong> tracked metric' +
+        (trendKeys.length === 1 ? '' : 's') +
+        ' with enough data to compare in this period.'
+    );
+  }
+  if (analysis.flareUpRisk && analysis.flareUpRisk.level) {
+    var lvl = analysis.flareUpRisk.level;
+    var matchCount = analysis.flareUpRisk.matchingMetrics || 0;
+    if (lvl === 'high') {
+      items.push(
+        'The app flags a <strong>higher</strong> chance of a flare (' +
+          matchCount +
+          ' of 5 warning signs). This is a pattern only - not a prediction. Contact your care team if you feel worse.'
+      );
+    } else if (lvl === 'moderate') {
+      items.push(
+        'Flare risk looks <strong>moderate</strong> (' + matchCount + ' of 5 signs). Extra rest and tracking may help.'
+      );
+    } else {
+      items.push(
+        'Fewer flare warning signs showed up in this window. Still use how you <em>feel</em> as your main guide.'
+      );
+    }
+  }
+  if (analysis.anomalies && analysis.anomalies.length > 0) {
+    items.push(
+      'There ' +
+        (analysis.anomalies.length === 1 ? 'is' : 'are') +
+        ' <strong>' +
+        analysis.anomalies.length +
+        '</strong> pattern' +
+        (analysis.anomalies.length === 1 ? '' : 's') +
+        ' listed under <strong>Things to watch</strong> below.'
+    );
+  }
+  if (logs && logs.length) {
+    items.push(
+      'Everything here is based on <strong>' +
+        logs.length +
+        '</strong> day' +
+        (logs.length === 1 ? '' : 's') +
+        ' of your logs in the date range you selected.'
+    );
+  }
+  if (items.length === 0) return '';
+  return (
+    '<aside class="ai-at-a-glance" aria-label="Summary in plain language">' +
+    '<h3 class="ai-at-a-glance-title">At a glance</h3>' +
+    '<ul class="ai-at-a-glance-list">' +
+    items.map(function(t) {
+      return '<li>' + t + '</li>';
+    }).join('') +
+    '</ul>' +
+    '<p class="ai-at-a-glance-footnote" role="note">Colours and arrows support the text - they are not the only way we show good versus concerning trends.</p>' +
+    '</aside>'
+  );
+}
+
 function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateRangeText = '') {
   const resultsContent = document.getElementById('aiResultsContent');
   
@@ -6483,8 +6744,10 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
 
   // Top-level results heading for the date range
   if (dateRangeText) {
-    html += `<h2 class="ai-results-heading">Analysis for ${escapeHTML(dateRangeText)}</h2>`;
+    html += `<h2 class="ai-results-heading" id="ai-results-main-heading">Analysis for ${escapeHTML(dateRangeText)}</h2>`;
   }
+
+  html += buildAIAnalysisAtAGlance(analysis, logs, dayCount);
 
   // AI Insights Section (from enhanced local analysis)
   let insightsText = webLLMInsights;
@@ -6497,8 +6760,10 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   if (insightsText) {
     html += `
       <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title">🤖 What we found</h3>
-        <div class="ai-llm-synopsis">
+        <section class="ai-synopsis-section" aria-labelledby="ai-heading-found">
+        <h3 class="ai-section-title" id="ai-heading-found">🤖 What we found</h3>
+        <p class="ai-section-intro">Patterns described in everyday language. Numbers in highlights come from your own entries. This screen supports self-care - it does not replace medical advice.</p>
+        <div class="ai-llm-synopsis" role="region" aria-label="Detailed written findings">
           ${insightsText.split('\n\n').map(para => {
             const trimmed = para.trim();
             if (!trimmed) return '';
@@ -6518,6 +6783,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
             return `<p>${formatted}</p>`;
           }).join('')}
         </div>
+        </section>
       </div>
   `;
     animationDelay += 200 * animStep;
@@ -6532,9 +6798,10 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       if (noteText && noteText.trim()) {
         html += `
       <div class="ai-summary-section ai-animate-in" id="${summaryNoteSectionId}" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title">📝 Summary note</h3>
+        <h3 class="ai-section-title" id="ai-heading-summary-note">📝 Summary note</h3>
+        <p class="ai-section-intro">A short line you can copy for yourself or your clinician.</p>
         <p class="ai-generated-note" id="${summaryNoteTextId}">${escapeHTML(noteText.trim())}</p>
-        <button type="button" class="ai-copy-note-btn" onclick="typeof copyAIGeneratedNote==='function'&&copyAIGeneratedNote(this)" title="Copy to clipboard">Copy note</button>
+        <button type="button" class="ai-copy-note-btn" onclick="typeof copyAIGeneratedNote==='function'&&copyAIGeneratedNote(this)" title="Copy summary note to clipboard" aria-label="Copy summary note to clipboard">Copy note</button>
       </div>`;
         animationDelay += 200 * animStep;
       }
@@ -6569,13 +6836,20 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   ];
   html += `
     <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title">📋 What you logged</h3>
-      <div class="ai-stat-pills">
-        ${statPills.map((p, i) => `<div class="ai-stat-pill ai-animate-in" style="animation-delay: ${animationDelay + (i * 40)}ms;">
-          <span class="ai-stat-pill-icon">${p.icon}</span>
-          <span class="ai-stat-pill-value">${p.value}</span>
+      <h3 class="ai-section-title" id="ai-heading-logged">📋 What you logged</h3>
+      <p class="ai-section-intro">How many days in this range included each type of entry.</p>
+      <div class="ai-stat-pills" role="list">
+        ${statPills.map((p, i) => {
+          const aria =
+            p.label === 'Metrics'
+              ? p.value + ' metrics with enough data to analyse'
+              : p.value + ' days with ' + p.label.toLowerCase() + ' logged';
+          return `<div class="ai-stat-pill ai-animate-in" style="animation-delay: ${animationDelay + (i * 40)}ms;" role="listitem" aria-label="${escapeAttr(aria)}">
+          <span class="ai-stat-pill-icon" aria-hidden="true">${p.icon}</span>
+          <span class="ai-stat-pill-value" aria-hidden="true">${p.value}</span>
           <span class="ai-stat-pill-label">${escapeHTML(p.label)}</span>
-        </div>`).join('')}
+        </div>`;
+        }).join('')}
       </div>
     </div>
   `;
@@ -6584,8 +6858,9 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   // Trends section - simplified for non-technical users
   html += `
     <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title">📈 How you're doing</h3>
-      <div class="ai-trends-grid">
+      <h3 class="ai-section-title" id="ai-heading-trends">📈 How you're doing</h3>
+      <p class="ai-section-intro">Each card compares your recent average to your latest entry. Labels like “Getting better” describe the direction - not a medical judgement.</p>
+      <div class="ai-trends-grid" role="list">
   `;
   animationDelay += 200 * animStep;
   
@@ -6703,16 +6978,29 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       }
     }
     
+    const statusKey = currentStatus === 'improving' ? 'improving' : currentStatus === 'worsening' ? 'worsening' : 'stable';
+    const ariaCard =
+      metricName +
+      '. ' +
+      trendDescription +
+      '. Typical value ' +
+      averageDisplay +
+      ', latest ' +
+      currentDisplay +
+      (predictedDisplay ? ', outlook ' + predictedDisplay : '') +
+      '.';
     html += `
-      <div class="ai-trend-card ai-animate-in" style="border-left-color: ${trendColor}; animation-delay: ${animationDelay + (index * 100)}ms;">
+      <div class="ai-trend-card ai-trend-card--metric ai-animate-in ai-trend-status--${statusKey}" style="border-left-color: ${trendColor}; animation-delay: ${animationDelay + (index * 100)}ms;" role="listitem">
+        <div class="ai-trend-card-inner" role="group" aria-label="${escapeAttr(ariaCard)}">
         <div class="ai-trend-header">
-          <strong>${trendIcon} ${metricName}</strong>
-          <span class="ai-trend-badge" style="color: ${trendColor};">${trendDescription}</span>
+          <strong><span aria-hidden="true">${trendIcon}</span> ${metricName}</strong>
+          <span class="ai-trend-status-chip ai-trend-status-chip--${statusKey}">${escapeHTML(trendDescription)}</span>
         </div>
         <div class="ai-trend-values">
-          <div class="ai-trend-value"><span class="ai-trend-value-label">Avg</span><strong style="color: ${trendColor};">${averageDisplay}</strong></div>
-          <div class="ai-trend-value"><span class="ai-trend-value-label">Now</span><strong style="color: ${trendColor};">${currentDisplay}</strong></div>
-          ${predictedDisplay ? `<div class="ai-trend-value"><span class="ai-trend-value-label">Next</span><strong style="color: ${predictedColor};">${predictedDisplay}</strong></div>` : ''}
+          <div class="ai-trend-value"><span class="ai-trend-value-label">Typical</span><strong style="color: ${trendColor};">${averageDisplay}</strong></div>
+          <div class="ai-trend-value"><span class="ai-trend-value-label">Latest</span><strong style="color: ${trendColor};">${currentDisplay}</strong></div>
+          ${predictedDisplay ? `<div class="ai-trend-value"><span class="ai-trend-value-label">Outlook</span><strong style="color: ${predictedColor};">${predictedDisplay}</strong></div>` : ''}
+        </div>
         </div>
       </div>
   `;
@@ -6730,13 +7018,14 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     const matchCount = analysis.flareUpRisk.matchingMetrics;
     html += `
       <div class="ai-summary-section ai-section-warning ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title" style="color: ${riskColor};">${riskIcon} Possible flare-up</h3>
+        <h3 class="ai-section-title" id="ai-heading-flare" style="color: ${riskColor};"><span aria-hidden="true">${riskIcon}</span> Possible flare-up</h3>
+        <p class="ai-section-intro">A simple score from patterns in your logs - not a medical test.</p>
         <div class="ai-flare-visual">
-          <div class="ai-flare-level" style="color: ${riskColor};"><strong>${riskLevel}</strong></div>
-          <div class="ai-flare-dots" aria-label="${matchCount} of 5 warning signs">
+          <div class="ai-flare-level" style="color: ${riskColor};"><strong>${riskLevel}</strong> <span class="ai-flare-level-note">risk level</span></div>
+          <div class="ai-flare-dots" aria-hidden="true">
             ${[1,2,3,4,5].map(n => `<span class="ai-flare-dot ${n <= matchCount ? 'active' : ''}" style="${n <= matchCount ? `background: ${riskColor};` : ''}"></span>`).join('')}
           </div>
-          <p class="ai-flare-hint">${matchCount}/5 signs · keep an eye on how you feel</p>
+          <p class="ai-flare-hint" role="status">${matchCount} of 5 warning signs lit. Listen to your body and seek care if symptoms concern you.</p>
         </div>
       </div>
     `;
@@ -6821,21 +7110,26 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       
       html += `
         <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-          <h3 class="ai-section-title">🔗 Correlations</h3>
-          <div class="ai-trends-grid">
+          <h3 class="ai-section-title" id="ai-heading-correlations">🔗 Correlations</h3>
+          <p class="ai-section-intro">Metrics that tended to move together in your logs. Tap a row (or press Enter when focused) to show or hide a chart.</p>
+          <div class="ai-trends-grid ai-correlations-grid" role="list">
       `;
       
       topCorrelations.forEach((corr, index) => {
         const corrColor = corr.correlation > 0 ? '#e91e63' : '#f44336';
         const direction = corr.correlation > 0 ? 'goes up when' : 'goes down when';
         const strength = Math.abs(corr.correlation) > 0.7 ? 'strongly' : Math.abs(corr.correlation) > 0.5 ? 'usually' : 'sometimes';
+        const corrSummary = corr.metric1 + ' ' + strength + ' ' + direction + ' ' + corr.metric2;
         
         html += `
-          <div class="ai-trend-card ai-animate-in" style="border-left-color: ${corrColor}; animation-delay: ${animationDelay + (index * 100)}ms; cursor: pointer;" onclick="toggleCorrelationRadarChart('${corr.metric1Field}', '${corr.metric2Field}', '${corr.metric3Field || ''}', ${index})" data-correlation-index="${index}">
-            <div class="ai-trend-header">
+          <div class="ai-correlation-card-wrap ai-animate-in" style="animation-delay: ${animationDelay + (index * 100)}ms;" role="listitem">
+          <button type="button" class="ai-correlation-card-toggle ai-trend-card" style="border-left-color: ${corrColor};" onclick="toggleCorrelationRadarChart('${corr.metric1Field}', '${corr.metric2Field}', '${corr.metric3Field || ''}', ${index})" data-correlation-index="${index}" aria-expanded="false" aria-controls="correlationRadarChart_${index}" id="correlationToggle_${index}" aria-label="${escapeAttr(corrSummary + '. Show or hide chart.')}">
+            <span class="ai-trend-header">
               <strong>${corr.metric1} ${strength} ${direction} ${corr.metric2}</strong>
-            </div>
-            <div class="metric-radar-chart-container" id="correlationRadarChart_${index}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+            </span>
+            <span class="ai-correlation-expand-hint" aria-hidden="true">Chart</span>
+          </button>
+            <div class="metric-radar-chart-container" id="correlationRadarChart_${index}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);" role="region" aria-label="Chart for ${escapeAttr(corr.metric1 + ' and ' + corr.metric2)}">
               <div id="correlationRadarChart_${index}_chart" style="height: 400px;"></div>
             </div>
           </div>
@@ -6849,10 +7143,8 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       if (analysis.correlationClusters && analysis.correlationClusters.length > 0) {
         html += `
           <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-            <h4 class="ai-subsection-title">📊 Groups that change together</h4>
-            <p style="font-size: 0.95rem; color: rgba(224, 242, 241, 0.8); line-height: 1.8; margin-top: 0.5rem;">
-              When one of these gets better or worse, the others usually do too:
-            </p>
+            <h3 class="ai-section-title ai-section-green">📊 Groups that change together</h3>
+            <p class="ai-section-intro">These items often showed up together in your logs - useful context, not a rule.</p>
             <ul class="ai-list" style="margin-top: 1rem;">
               ${analysis.correlationClusters.map((cluster, idx) => {
                 const clusterNames = cluster.map(m => m.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())).join(', ');
@@ -6908,7 +7200,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     animationDelay += 300 * animStep;
   }
   
-  // Pain by body part (28 diagram regions) — show how bad each body part (severity, days, % of period)
+  // Pain by body part (28 diagram regions) - show how bad each body part (severity, days, % of period)
   if (analysis.symptomsAndPainAnalysis && analysis.symptomsAndPainAnalysis.painByRegion) {
     const painByRegion = analysis.symptomsAndPainAnalysis.painByRegion;
     const regionsWithPain = Object.entries(painByRegion)
@@ -6922,15 +7214,17 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
           <div class="ai-pain-body-figure" aria-hidden="true">${painBodyFigureSVG}</div>
           <p class="ai-pain-body-legend"><span class="ai-legend-dot green"></span> good &nbsp; <span class="ai-legend-dot yellow"></span> discomfort &nbsp; <span class="ai-legend-dot red"></span> pain</p>
         </div>
+        <p class="ai-section-intro">Tap or scroll the table sideways on small screens. Severity uses colour <em>and</em> a text label.</p>
         <div class="ai-pain-table-wrap" style="overflow-x: auto;">
           <table class="ai-pain-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <caption class="visually-hidden">Pain and mild discomfort by body area for the selected period</caption>
             <thead>
               <tr style="border-bottom: 1px solid rgba(76, 175, 80, 0.3);">
-                <th style="text-align: left; padding: 8px 12px;">Body part</th>
-                <th style="text-align: right; padding: 8px 12px;">Mild</th>
-                <th style="text-align: right; padding: 8px 12px;">Pain</th>
-                <th style="text-align: right; padding: 8px 12px;">% of period</th>
-                <th style="text-align: left; padding: 8px 12px;">Severity</th>
+                <th scope="col" style="text-align: left; padding: 8px 12px;">Body part</th>
+                <th scope="col" style="text-align: right; padding: 8px 12px;">Mild days</th>
+                <th scope="col" style="text-align: right; padding: 8px 12px;">Pain days</th>
+                <th scope="col" style="text-align: right; padding: 8px 12px;">% of period</th>
+                <th scope="col" style="text-align: left; padding: 8px 12px;">Severity label</th>
               </tr>
             </thead>
             <tbody>
@@ -7092,7 +7386,8 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   if (analysis.anomalies.length > 0) {
     html += `
       <div class="ai-summary-section ai-section-warning ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-orange">⚠️ Things to watch</h3>
+        <h3 class="ai-section-title ai-section-orange" id="ai-heading-watch">⚠️ Things to watch</h3>
+        <p class="ai-section-intro">Unusual patterns in your numbers. They are prompts to notice how you feel - not automatic diagnoses.</p>
         <ul class="ai-list ai-list-warning">
     `;
     analysis.anomalies.forEach((anomaly, index) => {
@@ -7107,13 +7402,34 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   html += `
     <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
       <h3 class="ai-section-title ai-section-green">💡 Important</h3>
-      <p class="ai-disclaimer">For patterns only — talk to your doctor before changing care. You can share this at your next visit. AI data (e.g. prediction weights) is stored on your device and, when signed in, backed up to your cloud account.</p>
+      <p class="ai-disclaimer">For patterns only - talk to your doctor before changing care. You can share this at your next visit. AI data (e.g. prediction weights) is stored on your device and, when signed in, backed up to your cloud account.</p>
     </div>
   `;
 
+  // Desktop: portrait timeline rail + scroll-snap targets per analysis section
+  if (html.indexOf('ai-summary-section') !== -1) {
+    html = html.replace(/class="ai-summary-section/g, 'class="ai-summary-section ai-timeline-snap');
+    html =
+      '<div class="ai-results-timeline-layout">' +
+      '<nav class="ai-timeline-portrait" id="aiTimelinePortrait" aria-label="Jump to analysis section">' +
+      '<div class="ai-timeline-portrait-track">' +
+      '<div class="ai-timeline-portrait-line" id="aiTimelinePortraitLine" aria-hidden="true"></div>' +
+      '<ul class="ai-timeline-portrait-dots" id="aiTimelinePortraitDots" role="list"></ul>' +
+      '</div></nav>' +
+      '<div class="ai-results-timeline-main">' +
+      html +
+      '</div></div>';
+  }
+
   // Set the HTML content
   resultsContent.innerHTML = html;
-  
+
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      if (typeof initAITimelinePortrait === 'function') initAITimelinePortrait();
+    });
+  });
+
   // Scroll to the AI results section smoothly
   if (resultsContent) {
     setTimeout(() => {
@@ -7394,6 +7710,7 @@ async function renderMetricRadarChart(metric, container) {
 function toggleCorrelationRadarChart(metric1, metric2, metric3, index) {
   const chartContainer = document.getElementById(`correlationRadarChart_${index}`);
   const chartDiv = document.getElementById(`correlationRadarChart_${index}_chart`);
+  const toggleBtn = document.getElementById('correlationToggle_' + index);
   
   if (!chartContainer || !chartDiv) {
     console.error('Correlation radar chart container not found');
@@ -7406,6 +7723,7 @@ function toggleCorrelationRadarChart(metric1, metric2, metric3, index) {
   if (isVisible) {
     // Hide chart
     chartContainer.style.display = 'none';
+    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
     if (chartDiv.chart) {
       chartDiv.chart.destroy();
       chartDiv.chart = null;
@@ -7413,6 +7731,7 @@ function toggleCorrelationRadarChart(metric1, metric2, metric3, index) {
   } else {
     // Show and render chart
     chartContainer.style.display = 'block';
+    if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
     void renderCorrelationRadarChart(metric1, metric2, metric3, chartDiv).catch(function () {});
   }
 }
@@ -7778,7 +8097,7 @@ const FOOD_ICONS = {
   trail_mix: 'fa-solid fa-seedling'
 };
 
-// Energy & Mental Clarity options for tile picker — mood = positive (green), neutral (blue), negative (amber/red)
+// Energy & Mental Clarity options for tile picker - mood = positive (green), neutral (blue), negative (amber/red)
 const ENERGY_CLARITY_OPTIONS = [
   { value: 'High Energy', label: 'High Energy', mood: 'positive' },
   { value: 'Moderate Energy', label: 'Moderate Energy', mood: 'neutral' },
@@ -8017,7 +8336,7 @@ let editExerciseItems = [];
 // Offline log queue: when offline, entries are saved locally and queued for sync when back online
 var OFFLINE_QUEUE_KEY = 'healthLogsOfflineQueue';
 
-// Frequently used log options (medications, stressors, symptoms, exercises, foods) — stored in localStorage
+// Frequently used log options (medications, stressors, symptoms, exercises, foods) - stored in localStorage
 var FREQUENT_OPTIONS_KEY = 'rianellFrequentOptions';
 var FREQUENT_OPTIONS_MAX = 8; // max items to show per section
 var FREQUENT_OPTIONS_MAX_STORED = 50; // cap keys per type to avoid bloat
@@ -8757,7 +9076,120 @@ function attachTilePickerSearch(scopeEl, inputEl) {
   });
 }
 
-// Build chip grid for one meal (log form) — grouped by food group, three sections per tile: icon, name, nutrition
+/** Corner checkmark for tile pickers (stressors, symptoms, food, exercise, energy, frequent chips). */
+function ensurePickerChipCheckEl(btn) {
+  if (!btn || btn.querySelector('.picker-chip-check')) return;
+  var span = document.createElement('span');
+  span.className = 'picker-chip-check';
+  span.setAttribute('aria-hidden', 'true');
+  btn.appendChild(span);
+}
+
+function setPickerChipSelected(btn, selected) {
+  if (!btn) return;
+  ensurePickerChipCheckEl(btn);
+  btn.classList.toggle('picker-chip--selected', !!selected);
+  btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
+  var check = btn.querySelector('.picker-chip-check');
+  if (check) check.innerHTML = selected ? '<i class="fa-solid fa-check" aria-hidden="true"></i>' : '';
+}
+
+function itemNamesMatchFood(items, predefinedName) {
+  return (items || []).some(function(item) {
+    return (typeof item === 'string' ? item : (item && item.name)) === predefinedName;
+  });
+}
+
+function syncFoodChipsInContainer(containerId, category, isEdit) {
+  var items = isEdit ? (editFoodByCategory[category] || []) : (logFormFoodByCategory[category] || []);
+  var root = document.getElementById(containerId);
+  if (!root) return;
+  root.querySelectorAll('.food-chip[data-food-id]').forEach(function(btn) {
+    var id = btn.getAttribute('data-food-id');
+    var def = PREDEFINED_FOODS.find(function(f) { return f.id === id; });
+    setPickerChipSelected(btn, !!(def && itemNamesMatchFood(items, def.name)));
+  });
+}
+
+function syncFrequentFoodChips() {
+  var wrap = document.getElementById('logFoodFrequent');
+  if (!wrap) return;
+  wrap.querySelectorAll('.food-chip[data-food-id]').forEach(function(btn) {
+    var id = btn.getAttribute('data-food-id');
+    var cat = btn.getAttribute('data-food-category') || 'breakfast';
+    var def = PREDEFINED_FOODS.find(function(f) { return f.id === id; });
+    var items = logFormFoodByCategory[cat] || [];
+    setPickerChipSelected(btn, !!(def && itemNamesMatchFood(items, def.name)));
+  });
+}
+
+function syncExerciseChipsInContainer(containerId, isEdit) {
+  var items = isEdit ? editExerciseItems : logFormExerciseItems;
+  var root = document.getElementById(containerId);
+  if (!root) return;
+  root.querySelectorAll('.exercise-chip[data-exercise-id]').forEach(function(btn) {
+    var id = btn.getAttribute('data-exercise-id');
+    var ex = PREDEFINED_EXERCISES.find(function(e) { return e.id === id; });
+    setPickerChipSelected(btn, !!(ex && itemNamesMatchFood(items, ex.name)));
+  });
+}
+
+function syncFrequentExerciseChips() {
+  var wrap = document.getElementById('logExerciseFrequent');
+  if (!wrap) return;
+  wrap.querySelectorAll('.exercise-chip[data-exercise-id]').forEach(function(btn) {
+    var id = btn.getAttribute('data-exercise-id');
+    var ex = PREDEFINED_EXERCISES.find(function(e) { return e.id === id; });
+    setPickerChipSelected(btn, !!(ex && itemNamesMatchFood(logFormExerciseItems, ex.name)));
+  });
+}
+
+function syncAllEditExerciseChips() {
+  if (typeof EXERCISE_CATEGORIES === 'undefined') return;
+  EXERCISE_CATEGORIES.forEach(function(cat) {
+    syncExerciseChipsInContainer('editExercise' + cat.label + 'Chips', true);
+  });
+}
+
+function stressorListForPickerContainer(containerId) {
+  if (containerId === 'logStressorsTiles') return logFormStressorsItems;
+  if (containerId === 'editStressorsTiles') return editStressorsItems;
+  return [];
+}
+
+function syncStressorTilesVisual(containerId) {
+  var list = stressorListForPickerContainer(containerId);
+  function run(root) {
+    if (!root) return;
+    root.querySelectorAll('.stressor-chip[data-value]').forEach(function(btn) {
+      var v = btn.getAttribute('data-value');
+      setPickerChipSelected(btn, v && list.indexOf(v) !== -1);
+    });
+  }
+  run(document.getElementById(containerId));
+  if (containerId === 'logStressorsTiles') run(document.getElementById('logStressorsFrequent'));
+}
+
+function symptomListForPickerContainer(containerId) {
+  if (containerId === 'logSymptomsTiles') return logFormSymptomsItems;
+  if (containerId === 'editSymptomsTiles') return editSymptomsItems;
+  return [];
+}
+
+function syncSymptomTilesVisual(containerId) {
+  var list = symptomListForPickerContainer(containerId);
+  function run(root) {
+    if (!root) return;
+    root.querySelectorAll('.symptom-chip[data-value]').forEach(function(btn) {
+      var v = btn.getAttribute('data-value');
+      setPickerChipSelected(btn, v && list.indexOf(v) !== -1);
+    });
+  }
+  run(document.getElementById(containerId));
+  if (containerId === 'logSymptomsTiles') run(document.getElementById('logSymptomsFrequent'));
+}
+
+// Build chip grid for one meal (log form) - grouped by food group, three sections per tile: icon, name, nutrition
 function renderFoodChipsForCategory(category, containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -8806,6 +9238,7 @@ function renderFoodChipsForCategory(category, containerId) {
   });
   const searchInput = document.getElementById(searchId);
   if (searchInput) attachTilePickerSearch(container, searchInput);
+  syncFoodChipsInContainer(containerId, category, false);
 }
 
 function renderFrequentFood() {
@@ -8829,11 +9262,14 @@ function renderFrequentFood() {
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'frequent-chip food-chip food-chip--mixed';
+    btn.setAttribute('data-food-id', predefined.id);
+    btn.setAttribute('data-food-category', cat);
     btn.textContent = o.display;
     btn.title = 'Add ' + o.display + ' to ' + cat;
     btn.addEventListener('click', function() { addLogFoodItem(cat, predefined.id); });
     container.appendChild(btn);
   });
+  syncFrequentFoodChips();
 }
 
 // Render food items in log entry form (all 4 categories + chip grids)
@@ -8849,7 +9285,7 @@ function renderLogFoodItems() {
   renderFoodChipsForCategory('snack', 'logFoodSnackChips');
 }
 
-// Build exercise tile grid for one category (log form) — three sections: icon (top), name (middle), duration (bottom)
+// Build exercise tile grid for one category (log form) - three sections: icon (top), name (middle), duration (bottom)
 function renderExerciseChipsForCategory(category, containerId) {
   const chipsEl = document.getElementById(containerId);
   if (!chipsEl) return;
@@ -8893,9 +9329,10 @@ function renderExerciseChipsForCategory(category, containerId) {
   const inpAfter = document.getElementById(searchId);
   if (inpAfter && inpAfter.value) filterTilePickerScope(parent, inpAfter.value);
   else filterTilePickerScope(parent, '');
+  syncExerciseChipsInContainer(containerId, false);
 }
 
-// Add exercise item to log entry form (from tile click — uses default duration)
+// Add exercise item to log entry form (from tile click - uses default duration)
 function addLogExerciseItem(exerciseId) {
   const predefined = PREDEFINED_EXERCISES.find(e => e.id === exerciseId);
   if (!predefined) return;
@@ -8914,7 +9351,7 @@ function formatExerciseDisplay(item) {
   const name = typeof item === 'string' ? item : (item.name || '');
   const duration = typeof item === 'object' && item.duration != null ? item.duration : undefined;
   const safeName = escapeHTML(name);
-  if (duration !== undefined && duration !== '') return `${safeName} — ${duration} min`;
+  if (duration !== undefined && duration !== '') return `${safeName} - ${duration} min`;
   return safeName;
 }
 
@@ -8936,11 +9373,13 @@ function renderFrequentExercises() {
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'frequent-chip exercise-chip';
+    btn.setAttribute('data-exercise-id', o.key);
     btn.textContent = o.display;
     btn.title = 'Add ' + o.display;
     btn.addEventListener('click', function() { addLogExerciseItem(o.key); });
     container.appendChild(btn);
   });
+  syncFrequentExerciseChips();
 }
 
 // Render exercise items in log entry form (list + category tile grids)
@@ -8971,8 +9410,13 @@ function setEnergyClaritySelection(value) {
   const label = document.getElementById('energyClaritySelectedLabel');
   if (hidden) hidden.value = value || '';
   if (label) label.textContent = value ? value : 'None selected';
-  document.querySelectorAll('.energy-clarity-chip').forEach(tile => {
-    tile.classList.toggle('selected', tile.getAttribute('data-value') === value);
+  const root = document.getElementById('energyClarityTiles');
+  if (!root) return;
+  root.querySelectorAll('.energy-clarity-chip').forEach(tile => {
+    var on = tile.getAttribute('data-value') === value;
+    tile.classList.toggle('selected', on);
+    tile.setAttribute('aria-selected', on ? 'true' : 'false');
+    setPickerChipSelected(tile, on);
   });
 }
 
@@ -9024,6 +9468,7 @@ function renderEnergyClarityTiles() {
   if (ecSearchInput) attachTilePickerSearch(container, ecSearchInput);
   const label = document.getElementById('energyClaritySelectedLabel');
   if (label && !label.textContent) label.textContent = currentValue ? currentValue : 'None selected';
+  setEnergyClaritySelection(currentValue || '');
 }
 
 // Energy & Mental Clarity tile picker (edit modal)
@@ -9033,7 +9478,10 @@ function setEditEnergyClaritySelection(value) {
   if (hidden) hidden.value = value || '';
   if (label) label.textContent = value ? value : 'None selected';
   document.querySelectorAll('#editEnergyClarityTiles .energy-clarity-chip').forEach(tile => {
-    tile.classList.toggle('selected', tile.getAttribute('data-value') === value);
+    var on = tile.getAttribute('data-value') === value;
+    tile.classList.toggle('selected', on);
+    tile.setAttribute('aria-selected', on ? 'true' : 'false');
+    setPickerChipSelected(tile, on);
   });
 }
 
@@ -9085,6 +9533,7 @@ function renderEditEnergyClarityTiles() {
   if (eecSearchInput) attachTilePickerSearch(container, eecSearchInput);
   const label = document.getElementById('editEnergyClaritySelectedLabel');
   if (label) label.textContent = currentValue ? currentValue : 'None selected';
+  setEditEnergyClaritySelection(currentValue || '');
 }
 
 // Stressor options grouped by category (for coloured tile sections)
@@ -9336,6 +9785,15 @@ function addLogStressorItem(value) {
   renderLogStressorsItems();
 }
 
+/** Tile / frequent chip: toggle membership and refresh list + checkmarks. */
+function toggleLogStressorItem(value) {
+  if (!value || typeof value !== 'string') return;
+  var i = logFormStressorsItems.indexOf(value);
+  if (i >= 0) logFormStressorsItems.splice(i, 1);
+  else logFormStressorsItems.push(value);
+  renderLogStressorsItems();
+}
+
 function removeLogStressorItem(index) {
   logFormStressorsItems.splice(index, 1);
   renderLogStressorsItems();
@@ -9355,9 +9813,10 @@ function renderStressorTiles(containerId) {
         opts.forEach(function(o) {
           var btn = document.createElement('button');
           btn.type = 'button';
-          btn.className = 'frequent-chip stressor-chip--emotional';
+          btn.className = 'frequent-chip stressor-chip stressor-chip--emotional';
+          btn.setAttribute('data-value', o.key);
           btn.textContent = o.display;
-          btn.addEventListener('click', function() { addLogStressorItem(o.key); });
+          btn.addEventListener('click', function() { toggleLogStressorItem(o.key); });
           freqEl.appendChild(btn);
         });
         freqEl.style.display = 'block';
@@ -9389,7 +9848,7 @@ function renderStressorTiles(containerId) {
       btn.className = 'stressor-chip stressor-chip--' + grp.color;
       btn.setAttribute('data-value', opt.value);
       btn.setAttribute('data-search-text', (opt.label + ' ' + opt.value).toLowerCase());
-      btn.title = 'Add: ' + opt.label;
+      btn.title = 'Toggle: ' + opt.label;
       const iconClass = STRESSOR_ICONS[opt.value] || 'fa-solid fa-bolt';
       const iconEl = document.createElement('span');
       iconEl.className = 'stressor-chip-icon';
@@ -9400,8 +9859,8 @@ function renderStressorTiles(containerId) {
       btn.appendChild(iconEl);
       btn.appendChild(nameSpan);
       btn.addEventListener('click', () => {
-        if (containerId === 'logStressorsTiles') addLogStressorItem(opt.value);
-        else addEditStressor(opt.value);
+        if (containerId === 'logStressorsTiles') toggleLogStressorItem(opt.value);
+        else toggleEditStressorFromTile(opt.value);
       });
       chipsDiv.appendChild(btn);
     });
@@ -9410,6 +9869,7 @@ function renderStressorTiles(containerId) {
   });
   const stressSearchInput = document.getElementById(searchId);
   if (stressSearchInput) attachTilePickerSearch(container, stressSearchInput);
+  syncStressorTilesVisual(containerId);
 }
 
 function renderLogStressorsItems() {
@@ -9419,6 +9879,7 @@ function renderLogStressorsItems() {
   container.innerHTML = '';
   if (logFormStressorsItems.length === 0) {
     container.innerHTML = '<p class="empty-items">No stressors added yet.</p>';
+    syncStressorTilesVisual('logStressorsTiles');
     return;
   }
   logFormStressorsItems.forEach((item, index) => {
@@ -9430,12 +9891,21 @@ function renderLogStressorsItems() {
     `;
     container.appendChild(itemDiv);
   });
+  syncStressorTilesVisual('logStressorsTiles');
 }
 
 function addLogSymptomItem(value) {
   const toAdd = (typeof value === 'string' ? value : (document.getElementById('logNewSymptomItem')?.value || '').trim());
   if (!toAdd || logFormSymptomsItems.includes(toAdd)) return;
   logFormSymptomsItems.push(toAdd);
+  renderLogSymptomsItems();
+}
+
+function toggleLogSymptomItem(value) {
+  if (!value || typeof value !== 'string') return;
+  var i = logFormSymptomsItems.indexOf(value);
+  if (i >= 0) logFormSymptomsItems.splice(i, 1);
+  else logFormSymptomsItems.push(value);
   renderLogSymptomsItems();
 }
 
@@ -9458,9 +9928,10 @@ function renderSymptomTiles(containerId) {
         opts.forEach(function(o) {
           var btn = document.createElement('button');
           btn.type = 'button';
-          btn.className = 'frequent-chip symptom-chip--other';
+          btn.className = 'frequent-chip symptom-chip symptom-chip--other';
+          btn.setAttribute('data-value', o.key);
           btn.textContent = o.display;
-          btn.addEventListener('click', function() { addLogSymptomItem(o.key); });
+          btn.addEventListener('click', function() { toggleLogSymptomItem(o.key); });
           freqEl.appendChild(btn);
         });
         freqEl.style.display = 'block';
@@ -9492,7 +9963,7 @@ function renderSymptomTiles(containerId) {
       btn.className = 'symptom-chip symptom-chip--' + grp.color;
       btn.setAttribute('data-value', opt.value);
       btn.setAttribute('data-search-text', (opt.label + ' ' + opt.value).toLowerCase());
-      btn.title = 'Add: ' + opt.label;
+      btn.title = 'Toggle: ' + opt.label;
       const iconClass = SYMPTOM_ICONS[opt.value] || 'fa-solid fa-circle-dot';
       const iconEl = document.createElement('span');
       iconEl.className = 'symptom-chip-icon';
@@ -9503,8 +9974,8 @@ function renderSymptomTiles(containerId) {
       btn.appendChild(iconEl);
       btn.appendChild(nameSpan);
       btn.addEventListener('click', () => {
-        if (containerId === 'logSymptomsTiles') addLogSymptomItem(opt.value);
-        else addEditSymptom(opt.value);
+        if (containerId === 'logSymptomsTiles') toggleLogSymptomItem(opt.value);
+        else toggleEditSymptomFromTile(opt.value);
       });
       chipsDiv.appendChild(btn);
     });
@@ -9513,6 +9984,7 @@ function renderSymptomTiles(containerId) {
   });
   const symSearchInput = document.getElementById(symSearchId);
   if (symSearchInput) attachTilePickerSearch(container, symSearchInput);
+  syncSymptomTilesVisual(containerId);
 }
 
 function renderLogSymptomsItems() {
@@ -9533,8 +10005,10 @@ function renderLogSymptomsItems() {
       container.appendChild(itemDiv);
     });
   }
-  // Always populate the Add symptom tiles (so they show on initial load and after changes)
-  renderSymptomTiles('logSymptomsTiles');
+  var symTiles = document.getElementById('logSymptomsTiles');
+  var hasSymptomTiles = symTiles && symTiles.querySelector('.symptom-chips');
+  if (!hasSymptomTiles) renderSymptomTiles('logSymptomsTiles');
+  else syncSymptomTilesVisual('logSymptomsTiles');
 }
 
 function addLogMedicationItem() {
@@ -9631,6 +10105,14 @@ function addEditStressor(value) {
   renderEditStressorsList();
 }
 
+function toggleEditStressorFromTile(value) {
+  if (!value || typeof value !== 'string') return;
+  var i = editStressorsItems.indexOf(value);
+  if (i >= 0) editStressorsItems.splice(i, 1);
+  else editStressorsItems.push(value);
+  renderEditStressorsList();
+}
+
 function removeEditStressor(index) {
   editStressorsItems.splice(index, 1);
   renderEditStressorsList();
@@ -9643,6 +10125,7 @@ function renderEditStressorsList() {
   container.innerHTML = '';
   if (editStressorsItems.length === 0) {
     container.innerHTML = '<p class="empty-items">No stressors added yet.</p>';
+    syncStressorTilesVisual('editStressorsTiles');
     return;
   }
   editStressorsItems.forEach((item, index) => {
@@ -9654,12 +10137,21 @@ function renderEditStressorsList() {
     `;
     container.appendChild(itemDiv);
   });
+  syncStressorTilesVisual('editStressorsTiles');
 }
 
 function addEditSymptom(value) {
   const toAdd = (typeof value === 'string' ? value : (document.getElementById('editSymptomSelect')?.value || '').trim());
   if (!toAdd || editSymptomsItems.includes(toAdd)) return;
   editSymptomsItems.push(toAdd);
+  renderEditSymptomsList();
+}
+
+function toggleEditSymptomFromTile(value) {
+  if (!value || typeof value !== 'string') return;
+  var i = editSymptomsItems.indexOf(value);
+  if (i >= 0) editSymptomsItems.splice(i, 1);
+  else editSymptomsItems.push(value);
   renderEditSymptomsList();
 }
 
@@ -9675,6 +10167,7 @@ function renderEditSymptomsList() {
   container.innerHTML = '';
   if (editSymptomsItems.length === 0) {
     container.innerHTML = '<p class="empty-items">No symptoms added yet.</p>';
+    syncSymptomTilesVisual('editSymptomsTiles');
     return;
   }
   editSymptomsItems.forEach((item, index) => {
@@ -9686,6 +10179,7 @@ function renderEditSymptomsList() {
     `;
     container.appendChild(itemDiv);
   });
+  syncSymptomTilesVisual('editSymptomsTiles');
 }
 
 function sanitizeEditFoodItem(item) {
@@ -9730,6 +10224,8 @@ function renderEditFoodCategoryList(category) {
         }
         return `<div class="item-entry"><div style="flex:1;"><span class="item-text">${escapeHTML(name)}</span>${details}</div><button type="button" class="remove-item-btn" onclick="removeEditFoodItem('${category}', ${index})" title="Remove">×</button></div>`;
       }).join('');
+  var cap = category.charAt(0).toUpperCase() + category.slice(1);
+  syncFoodChipsInContainer('editFood' + cap + 'Chips', category, true);
 }
 
 function renderEditFoodChipsForCategory(category, containerId) {
@@ -9772,6 +10268,7 @@ function renderEditFoodChipsForCategory(category, containerId) {
     groupDiv.appendChild(chipsDiv);
     container.appendChild(groupDiv);
   });
+  syncFoodChipsInContainer(containerId, category, true);
 }
 
 // Edit modal: exercise (same tile selector as main form)
@@ -9798,6 +10295,7 @@ function renderEditExerciseItemsList() {
       <button type="button" class="remove-item-btn" onclick="removeEditExerciseItem(${index})" title="Remove">×</button>
     </div>
   `).join('');
+  syncAllEditExerciseChips();
 }
 
 function renderEditExerciseChipsForCategory(category, containerId) {
@@ -9826,6 +10324,7 @@ function renderEditExerciseChipsForCategory(category, containerId) {
     btn.addEventListener('click', () => addEditExerciseItem(ex.id));
     container.appendChild(btn);
   });
+  syncExerciseChipsInContainer(containerId, true);
 }
 
 // Collapsible section toggle for edit modal
@@ -10193,7 +10692,7 @@ function closeExerciseModal() {
   currentExerciseItems = [];
 }
 
-// Add exercise in modal (by tile click — uses default duration)
+// Add exercise in modal (by tile click - uses default duration)
 function addExerciseItem(exerciseId) {
   const predefined = PREDEFINED_EXERCISES.find(e => e.id === exerciseId);
   if (!predefined) return;
@@ -11017,14 +11516,14 @@ function generateLogEntryHTML(log) {
           <span class="metric-label">🧠 Energy/Clarity</span>
           ${isEditing 
             ? `<input type="text" class="inline-edit-energyClarity" value="${escapeHTML(log.energyClarity || '')}" maxlength="50" style="flex: 1; max-width: 200px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-left: 12px;" />`
-            : `<span class="metric-value">${log.energyClarity ? escapeHTML(log.energyClarity) : '—'}</span>`
+            : `<span class="metric-value">${log.energyClarity ? escapeHTML(log.energyClarity) : '-'}</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">🌤️ Weather Sensitivity</span>
           ${isEditing 
-            ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-weatherSensitivity" value="${log.weatherSensitivity || ''}" min="0" max="10" placeholder="—" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
-            : `<span class="metric-value">${log.weatherSensitivity !== undefined && log.weatherSensitivity !== '' && log.weatherSensitivity != null ? log.weatherSensitivity + '/10' : '—'}</span>`
+            ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-weatherSensitivity" value="${log.weatherSensitivity || ''}" min="0" max="10" placeholder="-" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
+            : `<span class="metric-value">${log.weatherSensitivity !== undefined && log.weatherSensitivity !== '' && log.weatherSensitivity != null ? log.weatherSensitivity + '/10' : '-'}</span>`
           }
         </div>
       </div>
@@ -11065,20 +11564,20 @@ function generateLogEntryHTML(log) {
         <h4 class="metric-group-title">😰 Stress & Triggers</h4>
         <div class="metric-item">
           <span class="metric-label">💥 Stressors</span>
-          <span class="metric-value">${(log.stressors && log.stressors.length > 0) ? log.stressors.map(s => escapeHTML(s)).join(', ') : '—'}</span>
+          <span class="metric-value">${(log.stressors && log.stressors.length > 0) ? log.stressors.map(s => escapeHTML(s)).join(', ') : '-'}</span>
         </div>
       </div>
       <div class="metric-group additional-symptoms">
         <h4 class="metric-group-title">💉 Additional Symptoms</h4>
         <div class="metric-item">
           <span class="metric-label">Symptoms</span>
-          <span class="metric-value">${(log.symptoms && log.symptoms.length > 0) ? log.symptoms.map(s => escapeHTML(s)).join(', ') : '—'}</span>
+          <span class="metric-value">${(log.symptoms && log.symptoms.length > 0) ? log.symptoms.map(s => escapeHTML(s)).join(', ') : '-'}</span>
         </div>
         <div class="metric-item">
           <span class="metric-label">📍 Pain Location</span>
           ${isEditing 
             ? `<input type="text" class="inline-edit-painLocation" value="${escapeHTML(log.painLocation || '')}" maxlength="150" style="flex: 1; max-width: 250px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-left: 12px;" />`
-            : `<span class="metric-value">${log.painLocation ? escapeHTML(log.painLocation) : '—'}</span>`
+            : `<span class="metric-value">${log.painLocation ? escapeHTML(log.painLocation) : '-'}</span>`
           }
         </div>
       </div>
@@ -13761,6 +14260,105 @@ function clearBenchmarkCacheAndNotify() {
   }
 }
 
+// Settings modal: multi-pane carousel (desktop ‹ ›, mobile swipe)
+function captureSettingsModalCarouselState(overlay) {
+  var track = document.getElementById('settingsCarouselTrack');
+  if (!track) {
+    var sc = overlay && overlay.querySelector('.settings-content');
+    if (sc) window.settingsModalScrollPosition = sc.scrollTop;
+    return;
+  }
+  var idx = parseInt(track.getAttribute('data-settings-index') || '0', 10);
+  window.settingsModalPaneIndex = idx;
+  var panes = track.querySelectorAll('.settings-carousel-pane');
+  var pane = panes[idx];
+  window.settingsModalScrollPosition = pane ? pane.scrollTop : 0;
+}
+
+function bindSettingsCarouselTouchOnce() {
+  if (window._settingsCarouselTouchBound) return;
+  var vp = document.getElementById('settingsCarouselViewport');
+  if (!vp) return;
+  window._settingsCarouselTouchBound = true;
+  var startX = null;
+  vp.addEventListener(
+    'touchstart',
+    function(e) {
+      if (!e.changedTouches || !e.changedTouches.length) return;
+      startX = e.changedTouches[0].screenX;
+    },
+    { passive: true }
+  );
+  vp.addEventListener(
+    'touchend',
+    function(e) {
+      if (startX == null || !e.changedTouches || !e.changedTouches.length) return;
+      var dx = e.changedTouches[0].screenX - startX;
+      startX = null;
+      if (Math.abs(dx) < 56) return;
+      if (dx > 0) settingsCarouselStep(-1);
+      else settingsCarouselStep(1);
+    },
+    { passive: true }
+  );
+}
+
+function settingsCarouselGo(i) {
+  var track = document.getElementById('settingsCarouselTrack');
+  var vp = document.getElementById('settingsCarouselViewport');
+  var meta = document.getElementById('settingsCarouselMeta');
+  var prev = document.getElementById('settingsCarouselPrev');
+  var next = document.getElementById('settingsCarouselNext');
+  if (!track || !vp) return;
+  var panes = track.querySelectorAll('.settings-carousel-pane');
+  var n = panes.length;
+  if (n < 1) return;
+  if (i < 0) i = 0;
+  if (i >= n) i = n - 1;
+  track.setAttribute('data-settings-index', String(i));
+  track.style.setProperty('--settings-pane-index', String(i));
+  track.style.setProperty('--settings-pane-count', String(n));
+  vp.style.setProperty('--settings-pane-count', String(n));
+  if (prev) {
+    prev.disabled = i <= 0;
+    prev.setAttribute('aria-disabled', i <= 0 ? 'true' : 'false');
+  }
+  if (next) {
+    next.disabled = i >= n - 1;
+    next.setAttribute('aria-disabled', i >= n - 1 ? 'true' : 'false');
+  }
+  panes.forEach(function(p, idx) {
+    var active = idx === i;
+    p.classList.toggle('settings-carousel-pane--active', active);
+    p.setAttribute('aria-hidden', active ? 'false' : 'true');
+    if ('inert' in p) p.inert = !active;
+  });
+  var title = (panes[i] && panes[i].getAttribute('data-settings-pane-title')) || '';
+  if (meta) meta.textContent = String(i + 1) + ' / ' + n + (title ? ' - ' + title : '');
+  window.settingsModalPaneIndex = i;
+}
+
+function settingsCarouselStep(delta) {
+  var track = document.getElementById('settingsCarouselTrack');
+  if (!track) return;
+  var i = parseInt(track.getAttribute('data-settings-index') || '0', 10);
+  settingsCarouselGo(i + delta);
+}
+
+function initSettingsCarouselUI() {
+  bindSettingsCarouselTouchOnce();
+  var track = document.getElementById('settingsCarouselTrack');
+  if (!track) return;
+  var n = track.querySelectorAll('.settings-carousel-pane').length;
+  if (n < 1) return;
+  var saved = typeof window.settingsModalPaneIndex === 'number' ? window.settingsModalPaneIndex : 0;
+  if (saved < 0 || saved >= n) saved = 0;
+  settingsCarouselGo(saved);
+}
+
+window.settingsCarouselStep = settingsCarouselStep;
+window.settingsCarouselGo = settingsCarouselGo;
+
 // Override the placeholder with the full implementation
 // This replaces the earlier placeholder function
 (function() {
@@ -13772,6 +14370,8 @@ function clearBenchmarkCacheAndNotify() {
     if (!overlay) return [];
     const sel = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
     return Array.prototype.filter.call(overlay.querySelectorAll(sel), function(el) {
+      var pane = el.closest('.settings-carousel-pane');
+      if (pane && !pane.classList.contains('settings-carousel-pane--active')) return false;
       return el.offsetParent !== null && (el.tabIndex >= 0 || el.tagName === 'A' || el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA' || el.tagName === 'BUTTON');
     });
   }
@@ -13819,8 +14419,7 @@ function clearBenchmarkCacheAndNotify() {
     const isVisible = overlay.classList.contains('settings-overlay--open') || overlay.style.display === 'block' || overlay.style.display === 'flex';
 
     if (isVisible) {
-      const settingsContent = overlay.querySelector('.settings-content');
-      if (settingsContent) window.settingsModalScrollPosition = settingsContent.scrollTop;
+      captureSettingsModalCarouselState(overlay);
       const conditionSelector = document.getElementById('medicalConditionSelector');
       if (conditionSelector) window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
       removeSettingsKeydown();
@@ -13867,12 +14466,14 @@ function clearBenchmarkCacheAndNotify() {
       requestAnimationFrame(function() {
         overlay.classList.add('settings-overlay--open');
       });
-      const settingsContent = overlay.querySelector('.settings-content');
-      if (settingsContent && window.settingsModalScrollPosition !== undefined) {
-        setTimeout(function() { settingsContent.scrollTop = window.settingsModalScrollPosition; }, 50);
-      } else if (settingsContent) {
-        settingsContent.scrollTop = 0;
-      }
+      initSettingsCarouselUI();
+      setTimeout(function() {
+        var track = document.getElementById('settingsCarouselTrack');
+        var idx = parseInt((track && track.getAttribute('data-settings-index')) || '0', 10);
+        var panes = track ? track.querySelectorAll('.settings-carousel-pane') : [];
+        var pane = panes[idx];
+        if (pane && window.settingsModalScrollPosition !== undefined) pane.scrollTop = window.settingsModalScrollPosition;
+      }, 50);
       if (window.settingsModalConditionSelectorOpen) {
         const conditionSelector = document.getElementById('medicalConditionSelector');
         if (conditionSelector) conditionSelector.style.display = 'block';
@@ -13882,6 +14483,14 @@ function clearBenchmarkCacheAndNotify() {
           e.preventDefault();
           removeSettingsKeydown();
           window.closeSettings();
+          return;
+        }
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+          var kt = e.target;
+          if (kt && (kt.tagName === 'INPUT' || kt.tagName === 'TEXTAREA' || kt.tagName === 'SELECT')) return;
+          e.preventDefault();
+          if (e.key === 'ArrowLeft') settingsCarouselStep(-1);
+          else settingsCarouselStep(1);
           return;
         }
         if (e.key !== 'Tab') return;
@@ -13914,8 +14523,7 @@ function clearBenchmarkCacheAndNotify() {
   window.closeSettings = function() {
     const overlay = document.getElementById('settingsOverlay');
     if (!overlay) return;
-    const settingsContent = overlay.querySelector('.settings-content');
-    if (settingsContent) window.settingsModalScrollPosition = settingsContent.scrollTop;
+    captureSettingsModalCarouselState(overlay);
     const conditionSelector = document.getElementById('medicalConditionSelector');
     if (conditionSelector) window.settingsModalConditionSelectorOpen = conditionSelector.style.display !== 'none';
     removeSettingsKeydown();
@@ -15739,7 +16347,7 @@ function collapseSectionContent(sectionEl) {
   });
 }
 
-// Collapsible section functionality — only one section open at a time in Log Entry tab
+// Collapsible section functionality - only one section open at a time in Log Entry tab
 function toggleSection(sectionId) {
   const section = document.getElementById(sectionId);
   const header = section?.previousElementSibling;
@@ -15761,7 +16369,7 @@ function toggleSection(sectionId) {
           section.style.willChange = 'auto';
         }, 300);
       } else {
-        // Accordion: one open section at a time within the same wizard step (not the whole form — avoids collapsing hidden steps)
+        // Accordion: one open section at a time within the same wizard step (not the whole form - avoids collapsing hidden steps)
         const logTab = document.getElementById('logTab');
         const scopeRoot = section.closest('.log-wizard-step') || logTab;
         if (scopeRoot) {
@@ -15892,7 +16500,7 @@ function initializeTilePickerSheet() {
   var closeBtn = document.getElementById('tilePickerSheetClose');
   if (!dialog) return;
   /* Capture phase: food/exercise modals use .modal-content onclick=stopPropagation(), which
-   * blocks bubble from reaching body — tile picker must run on capture or triggers inside those modals never fire.
+   * blocks bubble from reaching body - tile picker must run on capture or triggers inside those modals never fire.
    * Triggers inside #foodModalOverlay / #exerciseModalOverlay use direct listeners from renderFoodItems/renderExerciseItems;
    * skip here so we do not open then immediately toggle-close on the same click. */
   document.body.addEventListener('click', function (e) {
@@ -16037,7 +16645,7 @@ function buildLogReviewSummaryHtml() {
     line('Medications', logFormMedications.map(function(m) { return m.name; }).join(', '));
   }
   line('Notes', document.getElementById('notes') && document.getElementById('notes').value);
-  return parts.length ? parts.join('') : '<p class="log-review-line">No optional details filled — you can still save.</p>';
+  return parts.length ? parts.join('') : '<p class="log-review-line">No optional details filled - you can still save.</p>';
 }
 
 function updateLogWizardChrome() {
@@ -16047,7 +16655,7 @@ function updateLogWizardChrome() {
   var title = document.getElementById('logTabTitle');
   var stepEl = document.querySelector('.log-wizard-step[data-log-step="' + currentLogWizardStep + '"]');
   var stepTitle = stepEl ? (stepEl.getAttribute('data-step-title') || '') : '';
-  if (label) label.textContent = 'Step ' + (currentLogWizardStep + 1) + ' of ' + LOG_WIZARD_TOTAL_STEPS + (stepTitle ? ' — ' + stepTitle : '');
+  if (label) label.textContent = 'Step ' + (currentLogWizardStep + 1) + ' of ' + LOG_WIZARD_TOTAL_STEPS + (stepTitle ? ' - ' + stepTitle : '');
   if (fill) fill.style.width = ((currentLogWizardStep + 1) / LOG_WIZARD_TOTAL_STEPS * 100) + '%';
   if (bar) {
     bar.setAttribute('aria-valuenow', String(currentLogWizardStep + 1));
@@ -16409,6 +17017,8 @@ function switchTab(tabName, skipHash) {
   // Scroll to top smoothly
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
+    if (typeof updateAIScrollSnapClass === 'function') updateAIScrollSnapClass();
+
     if (!skipHash && typeof setAppHashFromTab === 'function') {
       setAppHashFromTab(tabName);
     }
@@ -16761,7 +17371,7 @@ window.addEventListener('load', () => {
           loadingOverlay.classList.add('hidden');
           document.body.classList.remove('loading');
         }
-        /* index.html hides body > *:not(#loadingOverlay) until .loaded — without this, the first-run
+        /* index.html hides body > *:not(#loadingOverlay) until .loaded - without this, the first-run
            benchmark modal is visibility:hidden and Continue never fires; runAppInit never runs (stuck). */
         document.body.classList.add('loaded');
         if (openPerfBenchmarkModal({

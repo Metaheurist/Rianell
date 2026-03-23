@@ -107,7 +107,7 @@ logger.info(f"Log file: {LOG_FILE}")
 logger.info("Note: Client-side logs are only sent when demo mode is enabled")
 if config.HOST in ('0.0.0.0', '::', '[::]'):
     logger.warning(
-        "HOST is bound to all interfaces — only use on trusted networks; "
+        "HOST is bound to all interfaces - only use on trusted networks; "
         "see docs/SECURITY.md. Default is 127.0.0.1 for loopback-only access."
     )
 logger.info("=" * 60)
@@ -1358,7 +1358,7 @@ def create_server_dashboard():
                 if seq_reset
                 else "\n\nNote: Could not reset the id sequence automatically. Add DATABASE_URL "
                 "(Supabase → Settings → Database → URI, use the pooled or direct connection string) to "
-                "security/.env — service_role alone is not enough unless you added an exec_sql RPC. "
+                "security/.env - service_role alone is not enough unless you added an exec_sql RPC. "
                 "Or run in SQL Editor:\n"
                 "ALTER SEQUENCE public.anonymized_data_id_seq RESTART WITH 1;"
             )

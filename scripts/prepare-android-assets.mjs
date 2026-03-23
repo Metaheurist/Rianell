@@ -69,7 +69,7 @@ async function main() {
     .png()
     .toFile(outFile);
   console.warn(
-    'prepare-android-assets: no web/Icons/beta/logo-source.png, logo-source.png, or Icon-512.png; wrote flat placeholder logo.png — add logo assets for branded APK icons.'
+    'prepare-android-assets: no web/Icons/beta/logo-source.png, logo-source.png, or Icon-512.png; wrote flat placeholder logo.png - add logo assets for branded APK icons.'
   );
 }
 

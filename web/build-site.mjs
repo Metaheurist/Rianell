@@ -8,10 +8,10 @@
  *   node web/build-site.mjs --site <dir>
  *     instruments all JS under dir in place (e.g. after cp -r web to site)
  *   node web/build-site.mjs --skip-trace
- *     mirror web/ without function-trace instrumentation (smaller app.min.js — use for APK / release)
+ *     mirror web/ without function-trace instrumentation (smaller app.min.js - use for APK / release)
  *
- * Env: RIANELL_SITE_DIR — same as --site (CI can set this)
- * Env: RIANELL_SKIP_FUNCTION_TRACE=1 — same as --skip-trace
+ * Env: RIANELL_SITE_DIR - same as --site (CI can set this)
+ * Env: RIANELL_SKIP_FUNCTION_TRACE=1 - same as --skip-trace
  */
 import * as esbuild from 'esbuild';
 import fs from 'fs';

@@ -1,4 +1,4 @@
-# Environment files (repo root — legacy)
+# Environment files (repo root - legacy)
 .env
 .env.local
 .env.production
@@ -10,7 +10,7 @@ security/.env.production
 security/.encryption_key
 security/*.key
 
-# Encryption keys (repo root — legacy)
+# Encryption keys (repo root - legacy)
 .encryption_key
 encryption.key
 *.key

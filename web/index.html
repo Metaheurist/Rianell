@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Rianell — Personal health dashboard (beta)</title>
+  <title>Rianell - Personal health dashboard (beta)</title>
 
   <!-- Primary + social / link previews (og:* stops crawlers from using random headings e.g. privacy copy) -->
-  <meta name="description" content="Rianell — personal health dashboard in open beta (web & Android). Track symptoms, medications, and wellness; optional AI-assisted insights; encryption and privacy-first design. Share metrics with your care team.">
+  <meta name="description" content="Rianell - personal health dashboard in open beta (web & Android). Track symptoms, medications, and wellness; optional AI-assisted insights; encryption and privacy-first design. Share metrics with your care team.">
   <link rel="canonical" href="https://rianell.com/">
 
-  <meta property="og:title" content="Rianell — Personal health dashboard (beta)">
-  <meta property="og:description" content="Open beta: track chronic conditions, log metrics, and prepare insights for your clinicians. Web & Android. Open source, encrypted, AI-assisted analytics — your data stays yours.">
+  <meta property="og:title" content="Rianell - Personal health dashboard (beta)">
+  <meta property="og:description" content="Open beta: track chronic conditions, log metrics, and prepare insights for your clinicians. Web & Android. Open source, encrypted, AI-assisted analytics - your data stays yours.">
   <meta property="og:url" content="https://rianell.com/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Rianell">
@@ -21,7 +21,7 @@
   <meta property="og:image:alt" content="Rianell health dashboard">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Rianell — Personal health dashboard (beta)">
+  <meta name="twitter:title" content="Rianell - Personal health dashboard (beta)">
   <meta name="twitter:description" content="Open beta: track chronic conditions, log metrics, and prepare insights for your clinicians. Web & Android. Open source, encrypted, AI-assisted analytics.">
   <meta name="twitter:image" content="https://rianell.com/Icons/screenshot-wide.png">
   
@@ -72,7 +72,7 @@
         var t = rejectionText(reason);
         if (!t) return false;
         if (/chrome-extension:|moz-extension:|safari-web-extension:|extension:\/\//i.test(t)) return true;
-        /* Extension injected scripts (e.g. VM1234 vendor.js) — tabs:outgoing.message.ready, No Listener:, i18next, Grammarly, locize, chrome-error:, chromewebdata */
+        /* Extension injected scripts (e.g. VM1234 vendor.js) - tabs:outgoing.message.ready, No Listener:, i18next, Grammarly, locize, chrome-error:, chromewebdata */
         if (/tabs:outgoing|tabs\.outgoing|outgoing\.message\.ready|No\s+Listener:?|i18next|Grammarly|locize|chrome-error:|chromewebdata|vendor\.js|VM\d+\s+vendor|serviceWorker\.js|background\.js/i.test(t)) return true;
         if (/Frame with ID \d+ was removed|No tab with id|Could not establish connection|Receiving end does not exist|message port closed/i.test(t)) return true;
         if (/chrome-error:|chromewebdata|Unsafe attempt to load URL/i.test(t)) return true;
@@ -126,9 +126,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=11" as="style">
+  <link rel="preload" href="styles.css?v=16" as="style">
   <link rel="preload" href="app.js?v=9" as="script">
-  <link rel="stylesheet" href="styles.css?v=11" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=11&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=16" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=16&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #0a0a0a; color: #e0f2f1; margin: 0; padding: 0; }
@@ -293,12 +293,18 @@
   <!-- Settings Menu Overlay - Full Page Container -->
   <div class="settings-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-label="Settings">
     <div class="settings-menu" onclick="event.stopPropagation()">
+      <button type="button" class="settings-carousel-side settings-carousel-side--prev" id="settingsCarouselPrev" onclick="settingsCarouselStep(-1)" aria-label="Previous settings section">‹</button>
+      <div class="settings-menu-inner">
       <div class="settings-header">
-        <h3 class="settings-title">Settings</h3>
+        <div class="settings-header-text">
+          <h3 class="settings-title">Settings</h3>
+          <p class="settings-carousel-meta" id="settingsCarouselMeta" aria-live="polite"></p>
+        </div>
         <button type="button" class="settings-close" onclick="event.preventDefault(); event.stopPropagation(); closeSettings();">&times;</button>
       </div>
-      
-      <div class="settings-content">
+      <div class="settings-content settings-carousel-viewport" id="settingsCarouselViewport">
+      <div class="settings-carousel-track" id="settingsCarouselTrack" data-settings-index="0">
+      <div class="settings-carousel-pane" data-settings-pane-title="AI & Goals" role="tabpanel" aria-hidden="false">
       <div class="settings-section">
         <h4>🧠 AI & Goals</h4>
         <div class="settings-option settings-option-with-hint">
@@ -327,6 +333,8 @@
           <p class="settings-hint">Used for personalised AI analysis and advice</p>
         </div>
       </div>
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Personal" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4>👤 Personal Settings</h4>
         <div class="settings-option">
@@ -365,7 +373,8 @@
           </div>
         </div>
       </div>
-
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Display" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4>📊 Display Options</h4>
         <div class="settings-option">
@@ -387,8 +396,8 @@
           </button>
         </div>
       </div>
-
-
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Cloud sync" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4>☁️ Cloud Sync</h4>
         <div id="cloudSyncStatus" class="cloud-status">
@@ -445,7 +454,8 @@
           <small>💡 <strong>Free cloud storage</strong> - Your data is encrypted and synced securely. Create an account to get started.</small>
         </div>
       </div>
-
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Data options" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4>📱 Data Options</h4>
         <div class="settings-option">
@@ -465,7 +475,8 @@
           <small style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Demo data is not saved or synced</small>
         </div>
       </div>
-
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Performance" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4>⚡ Performance</h4>
         <div class="settings-option">
@@ -486,10 +497,11 @@
             <option value="tier4">Tier 4</option>
             <option value="tier5">Tier 5 (best quality)</option>
           </select>
-          <p class="settings-hint" id="llmModelRecommendationHint">Recommended: —</p>
+          <p class="settings-hint" id="llmModelRecommendationHint">Recommended: -</p>
         </div>
       </div>
-
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="App install" role="tabpanel" aria-hidden="true">
       <div class="settings-section" id="appInstallSection">
         <h4 id="appInstallSectionTitle">📱 App Installation</h4>
         <div id="installOnIosDevice" class="settings-option settings-option--stacked" style="display: none;">
@@ -503,7 +515,8 @@
           <a id="downloadIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="downloadIosLabel">Install on iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span> <span class="ios-version" aria-hidden="true"></span></a>
         </div>
       </div>
-
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Data management" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4>💾 Data Management</h4>
         <div class="data-management-buttons">
@@ -525,6 +538,10 @@
         <a href="#" class="settings-footer-link" onclick="event.preventDefault(); openCookiePolicyModal(); return false;">Cookie policy</a>
       </div>
       </div>
+      </div>
+      </div>
+      </div>
+      <button type="button" class="settings-carousel-side settings-carousel-side--next" id="settingsCarouselNext" onclick="settingsCarouselStep(1)" aria-label="Next settings section">›</button>
     </div>
   </div>
 
@@ -848,7 +865,7 @@
         </div>
       </div>
 
-      <!-- Extra symptom tags (tile picker) — same step as sliders & body map -->
+      <!-- Extra symptom tags (tile picker) - same step as sliders & body map -->
       <div class="form-section">
         <button type="button" class="section-header" data-section="additionalSymptoms">
           <span class="section-icon">🩹</span>
@@ -1042,7 +1059,7 @@
       </div>
       <div class="log-wizard-step" data-log-step="7" data-step-title="Exercise">
 
-      <!-- Exercise Log Section (tile grid by category: Cardio, Strength, etc. — collapsible, collapsed by default) -->
+      <!-- Exercise Log Section (tile grid by category: Cardio, Strength, etc. - collapsible, collapsed by default) -->
       <div class="form-section">
         <button type="button" class="section-header" data-section="exerciseLog">
           <span class="section-icon">🏃</span>
@@ -1915,8 +1932,8 @@
               </div>
             </div>
           </div>
-          <p class="tutorial-text" style="margin-top: 12px;"><strong>Contribute anonymised data</strong> — share your anonymised data for analysis and use aggregated data from people with the same condition.</p>
-          <p class="tutorial-text" style="margin-top: 8px;"><strong>Use open data for training AI</strong> — when on, AI uses open shared data; when off, AI uses only your personal data. Used for personalised AI analysis and advice.</p>
+          <p class="tutorial-text" style="margin-top: 12px;"><strong>Contribute anonymised data</strong> - share your anonymised data for analysis and use aggregated data from people with the same condition.</p>
+          <p class="tutorial-text" style="margin-top: 8px;"><strong>Use open data for training AI</strong> - when on, AI uses open shared data; when off, AI uses only your personal data. Used for personalised AI analysis and advice.</p>
         </div>
         <div class="tutorial-slide" id="tutorialSlide4" data-slide="4" data-tutorial-ai-only="true">
           <div class="tutorial-toggle-option" style="margin-top: 0;">
@@ -2234,7 +2251,7 @@
       <div class="modal-body cookie-policy-body">
         <section>
           <h4>What we collect and how</h4>
-          <p><strong>Data you enter:</strong> Your health entries (metrics, symptoms, food, exercise, stress, notes, pain locations), your name and condition, app preferences, and—if you sign up—your email for cloud sync.</p>
+          <p><strong>Data you enter:</strong> Your health entries (metrics, symptoms, food, exercise, stress, notes, pain locations), your name and condition, app preferences, and-if you sign up-your email for cloud sync.</p>
           <p><strong>AI-related data:</strong> The app stores AI learning data on your device (e.g. prediction blend weights and last prediction snapshots used to improve trend projections). This data is not sent to our servers unless you use Cloud Sync; when you are signed in, it is backed up to your encrypted cloud account together with your health logs and settings.</p>
           <p><strong>Automatically:</strong> We don’t collect anything beyond what you enter and what you choose to sync.</p>
         </section>

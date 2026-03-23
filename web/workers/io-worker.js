@@ -1,5 +1,5 @@
 /* Large JSON.parse / stringify offload (main thread stays responsive).
- * Keep postMessage payloads modest — WebView bridges are slower than desktop; avoid megabyte-scale strings. */
+ * Keep postMessage payloads modest - WebView bridges are slower than desktop; avoid megabyte-scale strings. */
 self.onmessage = function (e) {
   var d = e.data;
   if (!d || !d.type) return;
