@@ -613,6 +613,26 @@ h1#dashboardTitle:hover {
   display: contents;
 }
 
+/*
+ * Desktop: let the window (body) scroll. With flex + min-height 100vh, #main-content grew to full content
+ * height while still using overflow-y: auto — no internal overflow, so wheel events over the card did not
+ * chain to the document; only scrolling over body padding (the “background”) worked.
+ */
+@media (min-width: 769px) {
+  .app-shell {
+    display: block;
+    min-height: 100vh;
+  }
+
+  .app-main-scroll {
+    flex: none;
+    min-height: unset;
+    overflow-x: visible;
+    overflow-y: visible;
+    overscroll-behavior-y: auto;
+  }
+}
+
 @media (max-width: 768px) {
   .tab-navigation.tab-navigation--top {
     display: none !important;
@@ -9450,6 +9470,58 @@ body.light-mode .install-channel-badge--alpha {
     padding-bottom: 10px;
     margin-bottom: 0;
   }
+
+  /*
+   * MOTD (dashboard title + heartbeat): sticky header strip on narrow viewports.
+   * --motd-strength 0–1 is set from #main-content scroll (see initMotdScrollBlurForMobile in app.js).
+   * Frosted backdrop blurs content sliding underneath; title/ECG blur so fixed targets/settings read clearly on top (z-index 10002+).
+   */
+  .title-container {
+    position: sticky;
+    top: 0;
+    z-index: 10001;
+    isolation: isolate;
+    margin-left: -18px;
+    margin-right: -18px;
+    padding-left: max(18px, env(safe-area-inset-left, 0px));
+    padding-right: max(18px, env(safe-area-inset-right, 0px));
+    padding-top: 6px;
+    padding-bottom: 12px;
+    margin-bottom: 1.25rem;
+    --motd-strength: 0;
+    -webkit-backdrop-filter: saturate(180%) blur(calc(0px + 22px * var(--motd-strength)));
+    backdrop-filter: saturate(180%) blur(calc(0px + 22px * var(--motd-strength)));
+    background: rgba(14, 16, 18, calc(0.04 + 0.44 * var(--motd-strength)));
+    border-bottom: 1px solid rgba(255, 255, 255, calc(0.06 + 0.1 * var(--motd-strength)));
+    box-shadow: 0 12px 40px rgba(0, 0, 0, calc(0.15 * var(--motd-strength)));
+  }
+
+  body.light-mode .title-container {
+    background: rgba(255, 255, 255, calc(0.03 + 0.62 * var(--motd-strength)));
+    border-bottom-color: rgba(0, 0, 0, calc(0.04 + 0.08 * var(--motd-strength)));
+    box-shadow: 0 8px 32px rgba(0, 0, 0, calc(0.08 * var(--motd-strength)));
+  }
+
+  .title-container #dashboardTitle {
+    filter:
+      blur(calc(0px + 12px * var(--motd-strength)))
+      opacity(calc(1 - 0.45 * var(--motd-strength)))
+      drop-shadow(0 0 calc(14px * (1 - var(--motd-strength))) rgba(76, 175, 80, 0.36));
+    transition: filter 0.05s linear;
+  }
+
+  .title-container #dashboardTitle:hover {
+    transform: none;
+    filter:
+      blur(calc(0px + 12px * var(--motd-strength)))
+      opacity(calc(1 - 0.45 * var(--motd-strength)))
+      drop-shadow(0 0 calc(14px * (1 - var(--motd-strength))) rgba(76, 175, 80, 0.36));
+  }
+
+  .title-container .heartbeat-line {
+    filter: blur(calc(0px + 9px * var(--motd-strength))) opacity(calc(1 - 0.4 * var(--motd-strength)));
+    transition: filter 0.05s linear;
+  }
   
   .entry {
     margin-bottom: 0;
@@ -9629,12 +9701,6 @@ body.light-mode .install-channel-badge--alpha {
     box-sizing: border-box;
     z-index: 10003;
     pointer-events: auto;
-  }
-
-  /* MOTD: use nearly full width; small inset for safe areas + breathing room (header buttons are fixed, not in-flow) */
-  .title-container {
-    padding-left: 0;
-    padding-right: 0;
   }
 
   #dashboardTitle {

@@ -3225,6 +3225,51 @@ window.toggleSettings = function() {
   }
 };
 
+/**
+ * Mobile / WebView: as user scrolls main content, ramp --motd-strength (0–1) on .title-container
+ * so the dashboard MOTD blurs and a frosted strip sits under the fixed settings / targets buttons.
+ */
+function initMotdScrollBlurForMobile() {
+  var scrollEl = document.getElementById('main-content');
+  var titleWrap = document.querySelector('.title-container');
+  if (!scrollEl || !titleWrap) return;
+  var mql = typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 768px)') : null;
+  var ticking = false;
+  function computeStrength() {
+    if (!mql || !mql.matches) {
+      titleWrap.style.removeProperty('--motd-strength');
+      return;
+    }
+    var y = scrollEl.scrollTop;
+    var start = 6;
+    var end = 72;
+    var t = (y - start) / (end - start);
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    titleWrap.style.setProperty('--motd-strength', t.toFixed(4));
+  }
+  function onScrollOrResize() {
+    if (!mql || !mql.matches) {
+      titleWrap.style.removeProperty('--motd-strength');
+      return;
+    }
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function() {
+      ticking = false;
+      computeStrength();
+    });
+  }
+  scrollEl.addEventListener('scroll', onScrollOrResize, { passive: true });
+  window.addEventListener('resize', onScrollOrResize, { passive: true });
+  if (mql && typeof mql.addEventListener === 'function') {
+    mql.addEventListener('change', onScrollOrResize);
+  } else if (mql && typeof mql.addListener === 'function') {
+    mql.addListener(onScrollOrResize);
+  }
+  onScrollOrResize();
+}
+
 window.addEventListener('DOMContentLoaded', function() {
   // Ensure settings button works - add direct event listener as backup
   const settingsButton = document.querySelector('.settings-button-top');
@@ -3327,6 +3372,7 @@ window.addEventListener('DOMContentLoaded', function() {
   renderLogSymptomsItems(); // also populates logSymptomsTiles
   initPainBodyDiagram('painBodyDiagram', 'painLocation');
   initPainBodyDiagram('editPainBodyDiagram', 'editPainLocation');
+  initMotdScrollBlurForMobile();
   if (typeof updateGoalsProgressBlock === 'function') updateGoalsProgressBlock();
   ['steps', 'hydration', 'sleep'].forEach(function(id) {
     var el = document.getElementById(id);
