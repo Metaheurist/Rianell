@@ -25,6 +25,7 @@ Rianell/
 ├── package.json            # Root scripts (build, sync, android, build:web, …)
 ├── scripts/                # e.g. `prepare-android-assets.mjs`, `smoke-function-trace.mjs`
 ├── docs/                   # Documentation
+│   ├── styling.md          # Web UI tokens, settings carousel, tile pickers, cache bust
 │   ├── images/             # README screenshots (Home, View logs, AI Analysis, card selector, server dashboard, …)
 │   └── NEURAL_NETWORK_PLAN.md   # AI expansion and optimisation plan
 ├── .github/workflows/      # Unified CI: `ci.yml` (mobile, Pages, release, audits)
