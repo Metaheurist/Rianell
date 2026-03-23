@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * CI guard: ensures docs/supabase-rls-recommended.sql still documents RLS baseline.
- * Does not connect to Supabase — operators must enable RLS in the dashboard (see docs/SECURITY.md).
+ * Does not connect to Supabase - operators must enable RLS in the dashboard (see docs/SECURITY.md).
  */
 import fs from 'fs';
 import path from 'path';
@@ -28,7 +28,7 @@ const lower = sql.toLowerCase();
 let failed = false;
 for (const [needle, desc] of required) {
   if (!lower.includes(needle.toLowerCase())) {
-    console.error(`verify-rls-baseline: expected ${desc} — substring not found: "${needle}"`);
+    console.error(`verify-rls-baseline: expected ${desc} - substring not found: "${needle}"`);
     failed = true;
   }
 }

@@ -1,5 +1,5 @@
 // Copy to supabase-config.js on the server and replace placeholders.
-// Must be valid JavaScript: use only ASCII straight single quotes (') — not ' or ' from Word/PDF.
+// Must be valid JavaScript: use only ASCII straight single quotes (') - not ' or ' from Word/PDF.
 (function () {
   try {
     var REAL_SUPABASE_CONFIG = {

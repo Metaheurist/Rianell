@@ -1,7 +1,7 @@
 // ============================================
 // SUPABASE API CONFIGURATION
 // ============================================
-// Use ONLY ASCII straight single quotes (U+0027 ') around strings — never curly/smart quotes from Word/PDF.
+// Use ONLY ASCII straight single quotes (U+0027 ') around strings - never curly/smart quotes from Word/PDF.
 // A SyntaxError at the `url:` line means the file on the server has bad characters; copy from supabase-config.example.js
 // [!] IMPORTANT: This file contains sensitive credentials
 // DO NOT commit this file to version control (GitHub, etc.)

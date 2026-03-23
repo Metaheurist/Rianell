@@ -22,7 +22,7 @@ const buildVersion = parseInt(process.env.BUILD_VERSION || process.env.GITHUB_RU
 
 /** Cleartext off by default; optional commented domain-config for dev HTTP (see docs/SECURITY.md Android section). */
 const NETWORK_SECURITY_XML = `<?xml version="1.0" encoding="utf-8"?>
-<!-- Rianell: patched by patch-android-sdk.js — see docs/SECURITY.md (Android: cleartext and mixed content) -->
+<!-- Rianell: patched by patch-android-sdk.js - see docs/SECURITY.md (Android: cleartext and mixed content) -->
 <network-security-config>
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
@@ -41,7 +41,7 @@ const NETWORK_SECURITY_XML = `<?xml version="1.0" encoding="utf-8"?>
 
 /** R8 + resource shrinking for release APK/AAB (smaller install size). Safe with Capacitor when rules below are present. */
 const PROGUARD_CAPACITOR_MARKER =
-  '# Rianell: Capacitor / WebView (patched by patch-android-sdk.js — do not remove)';
+  '# Rianell: Capacitor / WebView (patched by patch-android-sdk.js - do not remove)';
 const PROGUARD_CAPACITOR_RULES = `
 ${PROGUARD_CAPACITOR_MARKER}
 -keep class com.getcapacitor.** { *; }

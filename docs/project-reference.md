@@ -7,7 +7,7 @@ Rianell/
 ├── web/                    # Static web app (served at site root on GitHub Pages)
 │   ├── index.html          # Main application HTML
 │   ├── app.js              # Core application logic
-│   ├── app.min.js          # (generated) esbuild minify — gitignored; use npm run build:web
+│   ├── app.min.js          # (generated) esbuild minify - gitignored; use npm run build:web
 │   ├── build-site.mjs      # esbuild script → app.min.js
 │   ├── logs-idb.js         # IndexedDB mirror for health logs (optional async backup)
 │   ├── styles-charts.css   # Deferred chart + ApexCharts styles (loaded on demand)
@@ -133,13 +133,13 @@ The app includes GDPR-compliant data sharing:
 
 ## 🔐 Security notes
 
-Start with the full guide: **[SECURITY.md](SECURITY.md)** (see also [Security overview](../README.md#security) in the main README). Supplementary references: [supabase-rls-recommended.sql](supabase-rls-recommended.sql), CI workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) — `security-audit` job (Gitleaks, `npm audit`, `pip-audit`).
+Start with the full guide: **[SECURITY.md](SECURITY.md)** (see also [Security overview](../README.md#security) in the main README). Supplementary references: [supabase-rls-recommended.sql](supabase-rls-recommended.sql), CI workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) - `security-audit` job (Gitleaks, `npm audit`, `pip-audit`).
 
 ⚠️ **Important security considerations**:
 
 1. **Never commit sensitive files**:
-   - **`security/.env`** (or legacy root `.env`) — Supabase credentials
-   - **`security/.encryption_key`** — encryption key material
+   - **`security/.env`** (or legacy root `.env`) - Supabase credentials
+   - **`security/.encryption_key`** - encryption key material
    - `supabase-config.js` (contains API keys)
 
 2. **Use environment variables** for production deployments

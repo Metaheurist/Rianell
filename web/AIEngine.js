@@ -2366,7 +2366,7 @@ const AIEngine = {
         const avgFatigueHigh = highEnergyDays.reduce((s, log) => s + (parseInt(log.fatigue) || 0), 0) / highEnergyDays.length;
         const avgFatigueLow = lowEnergyDays.reduce((s, log) => s + (parseInt(log.fatigue) || 0), 0) / lowEnergyDays.length;
         if (Math.abs(avgMoodHigh - avgMoodLow) > 0.5 || Math.abs(avgFatigueHigh - avgFatigueLow) > 0.5) {
-          analysis.patterns.push('Energy & mental clarity entries correlate with mood and fatigue — tracking helps spot patterns.');
+          analysis.patterns.push('Energy & mental clarity entries correlate with mood and fatigue - tracking helps spot patterns.');
         }
       }
       analysis.energyClaritySummary = { daysLogged: logsWithClarity.length };
@@ -2377,7 +2377,7 @@ const AIEngine = {
       const logsWithoutNotes = logs.filter(log => !log.notes || !String(log.notes).trim());
       const avgPainWithout = logsWithoutNotes.reduce((s, log) => s + (parseInt(log.backPain) || 0), 0) / logsWithoutNotes.length;
       if (Math.abs(avgPainWithNotes - avgPainWithout) > 0.8) {
-        analysis.patterns.push('You tend to add notes on higher-symptom days — notes help capture context for flare-ups.');
+        analysis.patterns.push('You tend to add notes on higher-symptom days - notes help capture context for flare-ups.');
       }
     }
     const logsWithWeather = logs.filter(log => log.weatherSensitivity != null && log.weatherSensitivity !== '' && !isNaN(parseInt(log.weatherSensitivity)));
@@ -2388,7 +2388,7 @@ const AIEngine = {
         const flareRateHigh = highSensitivity.filter(log => log.flare === 'Yes').length / highSensitivity.length;
         const flareRateLow = lowSensitivity.filter(log => log.flare === 'Yes').length / lowSensitivity.length;
         if (flareRateHigh > flareRateLow + 0.1) {
-          analysis.patterns.push('Higher weather sensitivity tends to coincide with more flare-up days — consider tracking weather for triggers.');
+          analysis.patterns.push('Higher weather sensitivity tends to coincide with more flare-up days - consider tracking weather for triggers.');
         }
       }
     }
@@ -2556,7 +2556,7 @@ const AIEngine = {
       if (stressRateOnLowEnergy > stressRateOverall + 0.2) {
         correlations.push({
           type: 'energy_stressors',
-          description: `Low energy or brain fog days often coincided with stress or triggers — tracking both can help spot patterns.`
+          description: `Low energy or brain fog days often coincided with stress or triggers - tracking both can help spot patterns.`
         });
       }
     }
