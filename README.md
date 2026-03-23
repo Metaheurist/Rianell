@@ -39,6 +39,20 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 
 ---
 
+## App icons (favicon, PWA, Android source)
+
+Master rasters live under **`web/Icons/`** (`Icon-*.png`, **`logo-source.png`**) without a beta badge.
+
+A separate **beta** set is generated into **`web/Icons/beta/`** with the same filenames and an orange **BETA** pill matching the floating **+** control. The web app currently points **`index.html`**, **`manifest.json`**, and **`notifications.js`** at this beta set. Regenerate after editing masters:
+
+```bash
+npm run icons:beta
+```
+
+**`scripts/prepare-android-assets.mjs`** prefers **`web/Icons/beta/logo-source.png`** (then non-beta masters) when building **`react-app/assets/logo.png`** for Capacitor Android icons.
+
+---
+
 ## Security
 
 The authoritative guide is **[docs/SECURITY.md](docs/SECURITY.md)** (web app, Android, Python server, encryption, Supabase RLS, CSP). For local secrets, see **`security/`** and **`security/.env.example`**.

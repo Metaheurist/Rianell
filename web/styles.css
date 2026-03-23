@@ -7864,8 +7864,8 @@ body.light-mode .stressor-chip--other { background: rgba(97, 97, 97, 0.25); }
 /* Header buttons wrap: Targets (face) + Settings — sibling of .app-main-scroll so position:fixed is viewport-relative (not inside .container transform) */
 .header-buttons-wrap {
   position: fixed;
-  top: max(20px, env(safe-area-inset-top, 0px));
-  right: max(20px, env(safe-area-inset-right, 0px));
+  top: max(24px, env(safe-area-inset-top, 0px));
+  right: max(24px, env(safe-area-inset-right, 0px));
   z-index: 10002;
   display: flex;
   align-items: center;
@@ -9400,8 +9400,8 @@ body.light-mode .install-channel-badge--alpha {
   /* Goals + Settings: fixed top-right while scrolling (same as desktop); safe-area for notch */
   .header-buttons-wrap {
     position: fixed;
-    top: max(8px, env(safe-area-inset-top, 0px));
-    right: max(16px, env(safe-area-inset-right, 0px));
+    top: max(14px, env(safe-area-inset-top, 0px));
+    right: max(22px, env(safe-area-inset-right, 0px));
     left: auto;
     width: auto;
     gap: 16px;
@@ -9412,30 +9412,35 @@ body.light-mode .install-channel-badge--alpha {
     pointer-events: auto;
   }
 
-  /* Symmetric horizontal room so MOTD stays visually centered (padding-right-only was shifting text left) */
+  /* MOTD: use nearly full width; small inset for safe areas + breathing room (header buttons are fixed, not in-flow) */
   .title-container {
     padding-left: 0;
     padding-right: 0;
   }
 
   #dashboardTitle {
-    max-width: min(36rem, calc(100vw - 220px));
+    max-width: min(
+      36rem,
+      calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))
+    );
     margin-left: auto;
     margin-right: auto;
     display: block;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .settings-button-top,
   .targets-button-top {
-    width: 80px;
-    height: 80px;
-    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
   }
 
   .settings-cog,
   .targets-face-icon {
-    width: 48px;
-    height: 48px;
+    width: 24px;
+    height: 24px;
   }
   
 
@@ -9714,14 +9719,14 @@ body.light-mode .install-channel-badge--alpha {
 
   .settings-button-top,
   .targets-button-top {
-    width: 80px;
-    height: 80px;
+    width: 40px;
+    height: 40px;
   }
 
   .settings-cog,
   .targets-face-icon {
-    width: 48px;
-    height: 48px;
+    width: 24px;
+    height: 24px;
   }
 }
 
