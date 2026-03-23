@@ -4454,6 +4454,13 @@ body.modal-active .tab-content {
   z-index: 100001 !important;
 }
 
+/* Above .loading-overlay (99999); hide during any loading screen so they do not sit on top of the spinner */
+body.loading .header-buttons-wrap {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* Loading Overlay */
 .loading-overlay {
   position: fixed;
