@@ -3,7 +3,7 @@ import React from 'react';
 /**
  * React shell for Rianell (web / Vite preview only).
  * Embeds the existing web app at /legacy/ in an iframe.
- * Native Android/iOS: entry redirects to legacy/index.html (see main.tsx) — no iframe, no React on device.
+ * Native Android/iOS: entry redirects to legacy/index.html (see main.tsx) - no iframe, no React on device.
  */
 const LEGACY_APP_PATH = 'legacy/index.html';
 

@@ -3,7 +3,7 @@
 Deprecated: GitHub README <details> blocks always show the browser disclosure triangle,
 which looks raw and cannot be styled.
 
-Current approach: run `unwrap-readme-details.py` (if needed) then `polish-readme.py` —
+Current approach: run `unwrap-readme-details.py` (if needed) then `polish-readme.py` -
 styled TOC table, emoji section headings, changelog as ### headings (no arrows).
 
 This script is kept only to unwrap legacy `<details id="...">` wrappers if reintroduced.

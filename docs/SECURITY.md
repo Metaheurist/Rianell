@@ -20,8 +20,8 @@ Log files under **`logs/`** may contain client IPs, sync metadata, and dashboard
 
 ## Local secrets directory (`security/`)
 
-- **`security/.env`** — preferred location for `PORT`, `HOST`, Supabase keys, and optional `ENCRYPTION_KEY`. Copy from **`security/.env.example`**. If this file is missing, the server still loads a **legacy** `.env` at the repository root (for existing checkouts).
-- **`security/.encryption_key`** — preferred single-line encryption key file (gitignored). The server also checks the repo root for legacy `.encryption_key` / `encryption.key`, then may **create** `security/.encryption_key` automatically.
+- **`security/.env`** - preferred location for `PORT`, `HOST`, Supabase keys, and optional `ENCRYPTION_KEY`. Copy from **`security/.env.example`**. If this file is missing, the server still loads a **legacy** `.env` at the repository root (for existing checkouts).
+- **`security/.encryption_key`** - preferred single-line encryption key file (gitignored). The server also checks the repo root for legacy `.encryption_key` / `encryption.key`, then may **create** `security/.encryption_key` automatically.
 
 ## Surfaces
 
@@ -42,8 +42,8 @@ Log files under **`logs/`** may contain client IPs, sync metadata, and dashboard
 
 These routes are intended for **local development** with the browser on the same machine:
 
-- `GET /api/encryption-key` — returns the AES key material used for anonymised payload encryption when the Python server is in use.
-- `GET /api/anonymized-data` — returns aggregated training-style data from Supabase via the server.
+- `GET /api/encryption-key` - returns the AES key material used for anonymised payload encryption when the Python server is in use.
+- `GET /api/anonymized-data` - returns aggregated training-style data from Supabase via the server.
 
 **Rules:**
 
@@ -66,7 +66,7 @@ The anon key is present in client bundles by design. **Authorization must be enf
 - The app CSP allows `'unsafe-inline'` and `'unsafe-eval'` for compatibility with inline bootstraps and ML libraries. Tightening this is a **tracked hardening goal**; removing `unsafe-eval` may require bundling or loading changes.
 - The meta policy also includes `'wasm-unsafe-eval'` and `worker-src` for blob/CDN workers (TensorFlow.js). If you add a **second** CSP via **HTTP headers** (e.g. Cloudflare “Content Security Policy”), browsers apply **both** policies: every directive must allow what the app needs, or Chrome will report **eval blocked** / **script-src blocked** even when the meta tag looks correct.
 - Prefer `textContent` / `createElement` over `innerHTML` where user-influenced strings are inserted.
-- Client code uses **`escapeHTML()`** / **`sanitizeHTML()`** for many user-derived strings (e.g. log entries, AI anomaly lines). New UI that builds HTML from user input should use the same helpers—avoid raw **`innerHTML`** with unescaped strings.
+- Client code uses **`escapeHTML()`** / **`sanitizeHTML()`** for many user-derived strings (e.g. log entries, AI anomaly lines). New UI that builds HTML from user input should use the same helpers-avoid raw **`innerHTML`** with unescaped strings.
 
 ### `connect-src` and third-party hosts
 
@@ -78,7 +78,7 @@ These are **accepted or environmental** limitations called out so operators and 
 
 | Risk | Mitigation / notes |
 |------|---------------------|
-| **CSP** allows `'unsafe-inline'` and `'unsafe-eval'` | Required for current bootstraps and ML stacks; treat XSS as high impact—avoid reflecting unsanitized user input into HTML/JS; prefer `textContent` and structured DOM. |
+| **CSP** allows `'unsafe-inline'` and `'unsafe-eval'` | Required for current bootstraps and ML stacks; treat XSS as high impact-avoid reflecting unsanitized user input into HTML/JS; prefer `textContent` and structured DOM. |
 | **Third-party script and model loads** (e.g. CDNs for Transformers.js, model weights from Hugging Face) | Supply-chain and availability depend on those hosts; use Subresource Integrity where applicable for fixed scripts, pin dependency versions in CI, and monitor `npm audit`. |
 | **No app-level encryption of health logs in browser storage** | Mitigate with device lock, OS updates, and org policy; see [Client-side storage](#client-side-storage-and-privacy). |
 | **Python dev server without TLS** | Use only on loopback or a trusted LAN; never expose raw to the internet. |

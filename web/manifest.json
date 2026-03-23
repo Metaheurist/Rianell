@@ -1,7 +1,7 @@
 {
   "name": "Rianell",
   "short_name": "Rianell",
-  "description": "Rianell — personal health tracking at rianell.com. Monitor wellness metrics, pain, symptoms, and more.",
+  "description": "Rianell - personal health tracking at rianell.com. Monitor wellness metrics, pain, symptoms, and more.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#1a1d1e",

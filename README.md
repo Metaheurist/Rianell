@@ -1,6 +1,8 @@
-# Rianell — personal health dashboard
+# Rianell - personal health dashboard
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
+
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.41.0** - AI analysis clarity & accessibility, settings sections with swipe / side arrows, picker selection ticks, FAB spacing, hyphen copy style).
 
 ### Tech stack
 
@@ -19,7 +21,7 @@
 [![ApexCharts](https://img.shields.io/badge/ApexCharts-charts-008FFB?style=flat-square)](https://apexcharts.com/)
 [![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI-2088FF?style=flat-square&logo=githubactions&logoColor=white)](https://github.com/features/actions)
 
-**Android APK (Capacitor):** The WebView opens the **legacy dashboard directly** (`legacy/index.html`) so you get a **single document**—smoother scrolling and lower overhead than nesting the app inside a React iframe. **Browser and `npm run dev`** still use the **React (Vite) shell + iframe** for the same UI at `/legacy/`. Production APK builds: **`npm run build:apk`** then Capacitor sync (see **[Installation & usage](docs/setup-and-usage.md#nav-react-android)**). CI publishes a **debug** beta APK; for a smaller, snappier install, build **release** or **AAB** locally as described in that doc.
+**Android APK (Capacitor):** The WebView opens the **legacy dashboard directly** (`legacy/index.html`) so you get a **single document**-smoother scrolling and lower overhead than nesting the app inside a React iframe. **Browser and `npm run dev`** still use the **React (Vite) shell + iframe** for the same UI at `/legacy/`. Production APK builds: **`npm run build:apk`** then Capacitor sync (see **[Installation & usage](docs/setup-and-usage.md#nav-react-android)**). CI publishes a **debug** beta APK; for a smaller, snappier install, build **release** or **AAB** locally as described in that doc.
 
 **Repository**: [github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell)
 
@@ -47,14 +49,14 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 
 | | |
 | :--- | :--- |
-| 🔒 | **[Security](docs/SECURITY.md)** — full threat model and controls |
-| 🏠 | **[App overview & features](docs/app-and-features.md)** — UI, behaviour, screenshots |
-| ⚙️ | **[Installation & usage](docs/setup-and-usage.md)** — server, GitHub Pages, React/Android |
+| 🔒 | **[Security](docs/SECURITY.md)** - full threat model and controls |
+| 🏠 | **[App overview & features](docs/app-and-features.md)** - UI, behaviour, screenshots |
+| ⚙️ | **[Installation & usage](docs/setup-and-usage.md)** - server, GitHub Pages, React/Android |
 | 🧪 | **[Testing & configuration](docs/testing-and-configuration.md)** |
 | 🧠 | **[AI architecture](docs/ai-architecture.md)** |
-| 🗂️ | **[Project reference](docs/project-reference.md)** — tree, deps, dev, GDPR, troubleshooting, security notes |
+| 🗂️ | **[Project reference](docs/project-reference.md)** - tree, deps, dev, GDPR, troubleshooting, security notes |
 | 👤 | **[About & support](docs/about-and-support.md)** |
-| 📜 | **[Changelog](docs/CHANGELOG.md)** |
+| 📜 | **[Changelog](docs/CHANGELOG.md)** - version history and release notes |
 
 ---
 

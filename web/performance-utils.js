@@ -826,7 +826,7 @@ if (typeof window !== 'undefined') {
     DOMCache.clear();
   });
   
-  // Periodic cleanup (limit memory growth). Do not clear DOMCache here — it defeats hot-path caching.
+  // Periodic cleanup (limit memory growth). Do not clear DOMCache here - it defeats hot-path caching.
   setInterval(function () {
     DataCache.cleanup();
     if (PerformanceMonitor.marks && PerformanceMonitor.marks.size > 20) {

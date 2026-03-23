@@ -603,7 +603,7 @@ h1#dashboardTitle:hover {
   padding-bottom: 12px;
 }
 
-/* Bottom bar: mobile/tablet only — default hidden so desktop never stacks with top tabs */
+/* Bottom bar: mobile/tablet only - default hidden so desktop never stacks with top tabs */
 .app-bottom-nav {
   display: none;
 }
@@ -615,7 +615,7 @@ h1#dashboardTitle:hover {
 
 /*
  * Desktop: let the window (body) scroll. With flex + min-height 100vh, #main-content grew to full content
- * height while still using overflow-y: auto — no internal overflow, so wheel events over the card did not
+ * height while still using overflow-y: auto - no internal overflow, so wheel events over the card did not
  * chain to the document; only scrolling over body padding (the “background”) worked.
  */
 @media (min-width: 769px) {
@@ -639,7 +639,7 @@ h1#dashboardTitle:hover {
   }
 
   /* One scroll region (.app-main-scroll) for every tab; shell + footer fill viewport.
-     Do not subtract safe-area-inset-bottom from height — the bottom nav already pads for the home indicator;
+     Do not subtract safe-area-inset-bottom from height - the bottom nav already pads for the home indicator;
      subtracting it left a dead band below the nav (empty strip matching the inset). */
   /* Match body content height (body has padding-top for safe area); 100dvh alone ignored that padding and caused gap + header overlap */
   .app-shell {
@@ -659,7 +659,7 @@ h1#dashboardTitle:hover {
     flex-shrink: 0;
     width: 100%;
     box-sizing: border-box;
-    /* Safe area is on .app-bottom-nav padding — avoid doubling inset below the tab bar */
+    /* Safe area is on .app-bottom-nav padding - avoid doubling inset below the tab bar */
     background: transparent;
   }
 
@@ -676,7 +676,7 @@ h1#dashboardTitle:hover {
     align-items: stretch;
     gap: 8px;
     width: 100%;
-    /* Safe area only in padding-bottom — min-height must not add inset again (was double-counting, huge bar) */
+    /* Safe area only in padding-bottom - min-height must not add inset again (was double-counting, huge bar) */
     min-height: 52px;
     padding: 6px 6px calc(8px + env(safe-area-inset-bottom, 0px));
     padding-left: max(6px, env(safe-area-inset-left, 0px));
@@ -694,7 +694,7 @@ h1#dashboardTitle:hover {
     flex: 1 1 0;
     min-width: 0;
     min-height: 48px;
-    margin: 0; /* override "Enhanced mobile" `button { margin: 15px 0 }` — that was stretching the tab bar */
+    margin: 0; /* override "Enhanced mobile" `button { margin: 15px 0 }` - that was stretching the tab bar */
     position: relative;
     z-index: 1;
     display: flex;
@@ -836,11 +836,11 @@ body.light-mode .app-beta-badge {
   transform: scale(0.94);
 }
 
-/* FAB cluster: fixed bottom-right everywhere — Beta (left) + button (right); DOM order matches */
+/* FAB cluster: fixed bottom-right everywhere - Beta (left) + button (right); DOM order matches */
 .app-fab-wrap {
   position: fixed;
-  right: max(16px, env(safe-area-inset-right, 0px));
-  bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  right: calc(24px + env(safe-area-inset-right, 0px));
+  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
   left: auto;
   top: auto;
   z-index: 1002;
@@ -865,15 +865,16 @@ body.light-mode .app-beta-badge {
   transform: scale(0.88);
 }
 
-/* Mobile: sit above bottom tab bar */
+/* Mobile: sit above bottom tab bar; extra horizontal inset for thumb / edge comfort */
 @media (max-width: 768px) {
   .app-fab-wrap {
+    right: calc(28px + env(safe-area-inset-right, 0px));
     bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   }
 
   .app-fab-wrap .app-beta-badge {
     border-radius: 12px 0 0 12px;
-    margin-right: -3px;
+    margin-right: 0;
   }
 }
 
@@ -1052,7 +1053,7 @@ body.light-mode #logTab.log-wizard-mode .section-header {
   color: rgba(76, 175, 80, 0.95);
 }
 
-/* Three-column nav row (Back / Skip / Next) — grid keeps equal slots when a control is visibility:hidden */
+/* Three-column nav row (Back / Skip / Next) - grid keeps equal slots when a control is visibility:hidden */
 .log-wizard-sticky-actions {
   position: sticky;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
@@ -1164,7 +1165,7 @@ body.light-mode #logTab.log-wizard-mode .section-header {
   margin-top: 0;
 }
 
-/* Flat save button in wizard row — no drop shadow (global .save-entry-btn uses heavy glow) */
+/* Flat save button in wizard row - no drop shadow (global .save-entry-btn uses heavy glow) */
 .log-wizard-sticky-actions .log-wizard-save-btn.save-entry-btn {
   margin-top: 4px !important;
   box-shadow: none !important;
@@ -1954,6 +1955,163 @@ body.light-mode #logTab.log-wizard-mode .section-header {
   border-bottom: 1px solid rgba(233, 30, 99, 0.25);
 }
 
+/* Plain-language summary strip (non-technical + a11y: text never relies on colour alone) */
+.ai-at-a-glance {
+  background: rgba(76, 175, 80, 0.08);
+  border: 1px solid rgba(76, 175, 80, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.35rem;
+  margin: 0 0 var(--section-gap) 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.ai-at-a-glance-title {
+  margin: 0 0 0.75rem 0;
+  font-size: var(--heading-sm);
+  font-weight: 700;
+  color: #81c784;
+  letter-spacing: 0.02em;
+}
+
+.ai-at-a-glance-list {
+  margin: 0;
+  padding-left: 1.35rem;
+  color: rgba(224, 242, 241, 0.95);
+  line-height: 1.65;
+  font-size: calc(var(--text-base) * 1.02);
+  max-width: 68ch;
+}
+
+.ai-at-a-glance-list li {
+  margin-bottom: 0.65rem;
+}
+
+.ai-at-a-glance-list li:last-child {
+  margin-bottom: 0;
+}
+
+.ai-at-a-glance-footnote {
+  margin: 1rem 0 0 0;
+  font-size: var(--text-sm);
+  color: rgba(224, 242, 241, 0.72);
+  line-height: 1.5;
+  max-width: 68ch;
+}
+
+.ai-section-intro {
+  margin: -0.35rem 0 1.1rem 0;
+  font-size: calc(var(--text-base) * 1.02);
+  line-height: 1.65;
+  color: rgba(224, 242, 241, 0.88);
+  max-width: 68ch;
+}
+
+.ai-synopsis-section {
+  margin: 0;
+}
+
+/* Trend direction: visible label + border class (not colour-only) */
+.ai-trend-card--metric {
+  cursor: default;
+}
+
+.ai-trend-card-inner {
+  margin: 0;
+}
+
+.ai-trend-status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  border: 2px solid currentColor;
+  line-height: 1.2;
+}
+
+.ai-trend-status-chip--improving {
+  color: #a5d6a7;
+  background: rgba(76, 175, 80, 0.12);
+  border-color: rgba(129, 199, 132, 0.85);
+}
+
+.ai-trend-status-chip--worsening {
+  color: #ffab91;
+  background: rgba(244, 67, 54, 0.1);
+  border-color: rgba(244, 67, 54, 0.75);
+}
+
+.ai-trend-status-chip--stable {
+  color: #f48fb1;
+  background: rgba(233, 30, 99, 0.1);
+  border-color: rgba(233, 30, 99, 0.55);
+}
+
+.ai-trend-header {
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.ai-flare-level-note {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(224, 242, 241, 0.55);
+  text-transform: lowercase;
+}
+
+/* Correlation rows: real button for keyboard + SR users */
+.ai-correlation-card-wrap {
+  margin-bottom: 0.75rem;
+}
+
+.ai-correlation-card-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  width: 100%;
+  margin: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left-width: 4px;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.ai-correlation-card-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ai-correlation-card-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.55);
+}
+
+.ai-correlation-expand-hint {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(224, 242, 241, 0.5);
+  flex-shrink: 0;
+}
+
+.ai-correlation-card-toggle .ai-trend-header {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 0;
+}
+
 .ai-empty-title {
   font-size: var(--heading-sm);
   font-weight: 600;
@@ -2070,6 +2228,131 @@ body.light-mode #logTab.log-wizard-mode .section-header {
   flex-direction: column;
   width: 100%;
   min-height: fit-content;
+}
+
+/* AI Analysis: desktop portrait timeline + section scroll snap (main scroll = .container.app-main-scroll) */
+@media (min-width: 900px) {
+  .ai-results-timeline-layout {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    width: 100%;
+  }
+
+  .ai-timeline-portrait {
+    position: sticky;
+    top: 1.25rem;
+    align-self: start;
+    z-index: 2;
+    width: 52px;
+  }
+
+  .ai-timeline-portrait-track {
+    position: relative;
+    width: 100%;
+    min-height: 120px;
+  }
+
+  .ai-timeline-portrait-line {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    transform: translateX(-50%);
+    border-radius: 3px;
+    background: rgba(233, 30, 99, 0.55);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+  }
+
+  .ai-timeline-portrait-dots {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    pointer-events: none;
+  }
+
+  .ai-timeline-portrait-dot-item {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+  }
+
+  .ai-timeline-dot-btn {
+    width: 14px;
+    height: 14px;
+    padding: 0;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    background: var(--dot-color, #e91e63);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .ai-timeline-dot-btn:hover {
+    transform: scale(1.2);
+    border-color: rgba(255, 255, 255, 0.65);
+  }
+
+  .ai-timeline-dot-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.55);
+  }
+
+  .ai-timeline-dot-btn.is-active {
+    transform: scale(1.28);
+    border-color: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12), 0 2px 10px rgba(0, 0, 0, 0.4);
+  }
+
+  .ai-results-timeline-main {
+    min-width: 0;
+  }
+
+  .container.app-main-scroll.ai-scroll-snap-sections {
+    scroll-snap-type: y mandatory;
+    scroll-padding-top: 1rem;
+    scroll-padding-bottom: 2rem;
+  }
+
+  #aiTab .ai-timeline-snap {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    scroll-margin-top: 1.25rem;
+    scroll-margin-bottom: 0.75rem;
+  }
+}
+
+@media (max-width: 899.98px) {
+  .ai-results-timeline-layout {
+    display: block;
+  }
+
+  .ai-timeline-portrait {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .container.app-main-scroll.ai-scroll-snap-sections {
+    scroll-snap-type: none;
+  }
+}
+
+body.light-mode .ai-timeline-dot-btn {
+  border-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode .ai-timeline-dot-btn.is-active {
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.35), 0 1px 6px rgba(0, 0, 0, 0.12);
 }
 
 /* Summary Sections */
@@ -2578,14 +2861,15 @@ body.light-mode .ai-pain-body-legend {
 /* AI LLM Synopsis/Insights Text */
 .ai-llm-synopsis {
   color: rgba(224, 242, 241, 0.95);
-  line-height: 1.7;
-  font-size: var(--text-base);
+  line-height: 1.75;
+  font-size: calc(var(--text-base) * 1.05);
+  max-width: 68ch;
 }
 
 .ai-llm-synopsis p {
   margin: 0 0 1rem 0;
   padding: 0.5rem 0;
-  line-height: 1.65;
+  line-height: 1.7;
 }
 
 .ai-llm-synopsis p:last-child {
@@ -2613,6 +2897,7 @@ body.light-mode .ai-pain-body-legend {
   background: rgba(233, 30, 99, 0.15);
   padding: 0.1em 0.35em;
   border-radius: 4px;
+  border-bottom: 2px dotted rgba(233, 30, 99, 0.45);
 }
 
 body.light-mode #aiResultsContent .ai-brackets-highlight {
@@ -2630,8 +2915,9 @@ body.light-mode #aiResultsContent .ai-brackets-highlight {
 }
 
 .ai-copy-note-btn {
-  padding: 0.4rem 0.9rem;
-  font-size: 0.9rem;
+  padding: 0.55rem 1.1rem;
+  min-height: 44px;
+  font-size: 0.95rem;
   border-radius: 8px;
   border: 1px solid rgba(76, 175, 80, 0.5);
   background: rgba(76, 175, 80, 0.2);
@@ -2643,6 +2929,11 @@ body.light-mode #aiResultsContent .ai-brackets-highlight {
 .ai-copy-note-btn:hover {
   background: rgba(76, 175, 80, 0.35);
   border-color: #4caf50;
+}
+
+.ai-copy-note-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.5);
 }
 
 .suggest-note-btn {
@@ -2833,6 +3124,61 @@ body.light-mode .ai-list {
 }
 
 body.light-mode .ai-disclaimer {
+  color: var(--text-dark);
+}
+
+body.light-mode .ai-at-a-glance {
+  background: rgba(76, 175, 80, 0.12);
+  border-color: rgba(46, 125, 50, 0.35);
+}
+
+body.light-mode .ai-at-a-glance-title {
+  color: #2e7d32;
+}
+
+body.light-mode .ai-at-a-glance-list,
+body.light-mode .ai-at-a-glance-footnote,
+body.light-mode .ai-section-intro {
+  color: rgba(0, 0, 0, 0.82);
+}
+
+body.light-mode .ai-trend-status-chip--improving {
+  color: #1b5e20;
+  background: rgba(76, 175, 80, 0.18);
+  border-color: #2e7d32;
+}
+
+body.light-mode .ai-trend-status-chip--worsening {
+  color: #b71c1c;
+  background: rgba(244, 67, 54, 0.12);
+  border-color: #c62828;
+}
+
+body.light-mode .ai-trend-status-chip--stable {
+  color: #880e4f;
+  background: rgba(233, 30, 99, 0.08);
+  border-color: #ad1457;
+}
+
+body.light-mode .ai-correlation-card-toggle {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: var(--text-dark);
+}
+
+body.light-mode .ai-correlation-card-toggle:hover {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+body.light-mode .ai-correlation-expand-hint {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+body.light-mode .ai-flare-level-note {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+body.light-mode .ai-llm-synopsis {
   color: var(--text-dark);
 }
 
@@ -4879,7 +5225,7 @@ body.light-mode .cookie-policy-body code {
   background: rgba(0, 0, 0, 0.08);
 }
 
-/* Donate modal — above settings (z-index 99999 / menu 100000) */
+/* Donate modal - above settings (z-index 99999 / menu 100000) */
 .donate-modal-overlay {
   z-index: 100010 !important;
 }
@@ -5308,7 +5654,7 @@ body.loading .loading-overlay {
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
-/* Detailed benchmark (test bars, sparklines, profile): desktop-width viewports only — hidden on mobile web / PWA / narrow screens */
+/* Detailed benchmark (test bars, sparklines, profile): desktop-width viewports only - hidden on mobile web / PWA / narrow screens */
 @media (max-width: 1023px) {
   #perfBenchmarkDetailsBlock {
     display: none !important;
@@ -5518,7 +5864,7 @@ body.light-mode .perf-benchmark-profile {
   margin-left: auto;
 }
 
-/* Chart share button — in flow above the plot (not over the graph) */
+/* Chart share button - in flow above the plot (not over the graph) */
 .chart-container:has(> .chart-share-btn) {
   display: flex;
   flex-direction: column;
@@ -6355,7 +6701,7 @@ body.light-mode .perf-benchmark-profile {
     position: sticky;
     top: 0;
     z-index: 2;
-    /* Match glass cards / form-section — avoid flat #0a0a0a “black box” over the page gradient */
+    /* Match glass cards / form-section - avoid flat #0a0a0a “black box” over the page gradient */
     background: rgba(255, 255, 255, 0.04);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
@@ -6404,7 +6750,7 @@ body.light-mode .perf-benchmark-profile {
   word-break: break-word;
 }
 
-/* Selected stressors / symptoms / edit lists — same visual language as .item-entry (was unstyled → read as a solid black block) */
+/* Selected stressors / symptoms / edit lists - same visual language as .item-entry (was unstyled → read as a solid black block) */
 .item-tag {
   display: flex;
   justify-content: space-between;
@@ -6492,7 +6838,7 @@ body.light-mode .item-tag > span:first-of-type {
 }
 
 /* Full-screen tile picker (<dialog> + teleported .tile-picker-anchor)
-   Closed <dialog> must stay display:none — do not set display:flex on the base selector
+   Closed <dialog> must stay display:none - do not set display:flex on the base selector
    or it overrides the UA and the sheet stays visible at the bottom of the viewport. */
 dialog.tile-picker-sheet:not([open]) {
   display: none !important;
@@ -6683,7 +7029,7 @@ button.symptom-tiles-summary {
   border: none;
 }
 
-/* While docked in the form (or food/exercise modal lists), hide chip grids — only trigger buttons show.
+/* While docked in the form (or food/exercise modal lists), hide chip grids - only trigger buttons show.
    When the sheet opens, the anchor is moved under #tilePickerSheetBody and becomes visible there. */
 .tile-picker-slot > .tile-picker-anchor {
   display: none !important;
@@ -6781,7 +7127,7 @@ body.light-mode .food-meal-collapsible .food-category-body {
   background: rgba(76, 175, 80, 0.04);
 }
 
-/* Food log grid of square options — three sections: icon, name, nutrition */
+/* Food log grid of square options - three sections: icon, name, nutrition */
 .food-chips {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
@@ -7040,7 +7386,7 @@ body.light-mode .exercise-meal-collapsible .exercise-category-body {
   background: rgba(33, 150, 243, 0.04);
 }
 
-/* Exercise tile grid — same three-section layout as food chips */
+/* Exercise tile grid - same three-section layout as food chips */
 .exercise-chips {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
@@ -7223,7 +7569,7 @@ body.light-mode .exercise-chip--recovery { background: rgba(2, 119, 189, 0.15); 
   border-radius: 0 0 14px 14px;
 }
 
-/* Symptom square tiles — same style as food chips (grid, aspect-ratio 1, icon + name) */
+/* Symptom square tiles - same style as food chips (grid, aspect-ratio 1, icon + name) */
 .symptom-chips {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
@@ -7441,7 +7787,7 @@ body.light-mode .symptom-group__title {
   border-radius: 0 0 14px 14px;
 }
 
-/* Energy & mental clarity square tiles — same style as food/stressor chips (grid, aspect-ratio 1, icon + name) */
+/* Energy & mental clarity square tiles - same style as food/stressor chips (grid, aspect-ratio 1, icon + name) */
 .energy-clarity-chips {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
@@ -7574,6 +7920,52 @@ body.light-mode .energy-clarity-chip--negative {
   border-color: rgba(244, 67, 54, 0.4);
 }
 
+/* Tile pickers: corner check when selected (stressors, symptoms, food, exercise, energy, frequent chips) */
+.stressor-chip,
+.symptom-chip,
+.food-chip,
+.exercise-chip,
+.energy-clarity-chip {
+  position: relative;
+}
+
+.picker-chip-check {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+  background: rgba(76, 175, 80, 0.95);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.88);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.picker-chip-check:empty {
+  display: none;
+}
+
+.picker-chip--selected .picker-chip-check:not(:empty) {
+  opacity: 1;
+  transform: scale(1);
+}
+
+body.light-mode .picker-chip-check {
+  background: rgba(46, 125, 50, 0.92);
+  color: #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+}
+
 /* Stress & Triggers: compact trigger on the form; tiles only in the sheet */
 .stressor-tiles-collapsible {
   margin-top: 12px;
@@ -7624,7 +8016,7 @@ body.light-mode .energy-clarity-chip--negative {
   border-radius: 0 0 14px 14px;
 }
 
-/* Stressor / trigger square tiles — same style as food chips (grid, aspect-ratio 1, icon + name) */
+/* Stressor / trigger square tiles - same style as food chips (grid, aspect-ratio 1, icon + name) */
 .stressor-chips {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
@@ -7844,7 +8236,7 @@ body.light-mode .stressor-chip--other { background: rgba(97, 97, 97, 0.25); }
 
 /* Chart view panels: combinedChartContainer & balanceChartContainer use .chart-container + .hidden.
    styles-charts.css loads later and sets .chart-container { display: block }, which was overriding
-   .hidden — show only one of combined / balance / individual at a time. */
+   .hidden - show only one of combined / balance / individual at a time. */
 #combinedChartContainer.hidden,
 #balanceChartContainer.hidden,
 #individualChartsContainer.hidden {
@@ -8103,7 +8495,7 @@ body.light-mode .stressor-chip--other { background: rgba(97, 97, 97, 0.25); }
   text-align: center;
 }
 
-/* Header buttons wrap: Targets (face) + Settings — sibling of .app-main-scroll so position:fixed is viewport-relative (not inside .container transform) */
+/* Header buttons wrap: Targets (face) + Settings - sibling of .app-main-scroll so position:fixed is viewport-relative (not inside .container transform) */
 .header-buttons-wrap {
   position: fixed;
   top: max(24px, env(safe-area-inset-top, 0px));
@@ -8690,6 +9082,7 @@ body.light-mode .goals-status-pill.below {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   margin: 0 !important;
   padding: 0 !important;
   isolation: isolate;
@@ -8697,15 +9090,172 @@ body.light-mode .goals-status-pill.below {
   transition: transform 0.35s var(--ease-fluid), opacity 0.35s var(--ease-fluid);
 }
 
+@media (min-width: 769px) {
+  .settings-menu {
+    flex-direction: row;
+    align-items: stretch;
+    max-width: 520px;
+  }
+}
+
+.settings-menu-inner {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-carousel-meta {
+  margin: 0.35rem 0 0 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: rgba(224, 242, 241, 0.65);
+  line-height: 1.3;
+}
+
+.settings-carousel-side {
+  display: none;
+  flex-shrink: 0;
+  width: 40px;
+  min-width: 40px;
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.75rem;
+  font-weight: 300;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 0;
+}
+
+.settings-carousel-side:first-of-type {
+  border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+}
+
+.settings-carousel-side--next {
+  border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
+}
+
+@media (min-width: 769px) {
+  .settings-carousel-side {
+    display: flex;
+  }
+}
+
+.settings-carousel-side:hover:not(:disabled) {
+  background: rgba(76, 175, 80, 0.25);
+  color: #fff;
+}
+
+.settings-carousel-side:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
+
+.settings-carousel-side:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgba(76, 175, 80, 0.7);
+}
+
+.settings-carousel-viewport {
+  overflow: hidden !important;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+  touch-action: pan-y;
+}
+
+.settings-carousel-viewport.settings-content {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+@media (min-width: 769px) {
+  .settings-carousel-viewport.settings-content {
+    padding-left: 20px;
+    padding-right: 24px;
+  }
+}
+
+.settings-carousel-track {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: 100%;
+  width: calc(var(--settings-pane-count, 8) * 100%);
+  --settings-pane-count: 8;
+  --settings-pane-index: 0;
+  transform: translateX(calc(-1 * var(--settings-pane-index) * 100% / var(--settings-pane-count, 8)));
+  transition: transform 0.3s var(--ease-fluid);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-carousel-track {
+    transition-duration: 0.01ms;
+  }
+}
+
+.settings-carousel-pane {
+  flex: 0 0 calc(100% / var(--settings-pane-count, 8));
+  width: calc(100% / var(--settings-pane-count, 8));
+  max-width: calc(100% / var(--settings-pane-count, 8));
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+  padding-bottom: 0.5rem;
+}
+
+.settings-carousel-pane--active {
+  outline: none;
+}
+
+body.light-mode .settings-carousel-side {
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.65);
+}
+
+body.light-mode .settings-carousel-side:hover:not(:disabled) {
+  background: rgba(76, 175, 80, 0.2);
+  color: #1a1a1a;
+}
+
+body.light-mode .settings-carousel-meta {
+  color: rgba(0, 0, 0, 0.5);
+}
+
 .settings-overlay.settings-overlay--open .settings-menu {
   transform: translate(-50%, -50%);
   opacity: 1;
 }
 
+@media (min-width: 769px) {
+  .settings-menu-inner .settings-header {
+    border-radius: 0;
+  }
+}
+
 .settings-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 12px;
   padding: 30px 30px 20px 30px;
   border-bottom: 1px solid #333;
   flex-shrink: 0;
@@ -8722,6 +9272,15 @@ body.light-mode .goals-status-pill.below {
   padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom, 0px)));
   min-height: 0;
   margin-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.settings-carousel-viewport.settings-content {
+  padding-bottom: max(48px, calc(48px + env(safe-area-inset-bottom, 0px)));
+}
+
+.settings-carousel-pane .settings-footer {
+  margin-top: 1rem;
+  padding-bottom: 0.5rem;
 }
 
 .settings-title {
@@ -9161,7 +9720,7 @@ body.light-mode .date-separator {
   }
 }
 
-/* Settings Data Management — equal-width cells, matching height + corner radius */
+/* Settings Data Management - equal-width cells, matching height + corner radius */
 .data-management-buttons {
   display: flex;
   flex-direction: row;
@@ -9403,7 +9962,7 @@ body.light-mode .install-channel-badge--alpha {
     max-height: 100dvh;
     height: 100dvh;
     overflow: hidden;
-    /* Top: clear notch/status; do not pad bottom — .app-bottom-nav already uses env(safe-area-inset-bottom) */
+    /* Top: clear notch/status; do not pad bottom - .app-bottom-nav already uses env(safe-area-inset-bottom) */
     padding: calc(5px + env(safe-area-inset-top, 0px)) max(5px, env(safe-area-inset-left, 0px)) 0 max(5px, env(safe-area-inset-right, 0px));
     font-size: 16px; /* Prevents zoom on iOS */
   }
@@ -10737,12 +11296,13 @@ body.light-mode .cloud-setup-info small {
   margin-top: 1rem;
   line-height: 1.9;
   box-shadow: 0 2px 8px rgba(233, 30, 99, 0.1);
+  max-width: 68ch;
 }
 
 .ai-llm-synopsis p {
   margin: 0.75rem 0;
   color: rgba(224, 242, 241, 0.95);
-  font-size: 1rem;
+  font-size: calc(1rem * 1.03);
 }
 
 .ai-llm-synopsis p:first-child {
@@ -10765,6 +11325,7 @@ body.light-mode .cloud-setup-info small {
   background: rgba(233, 30, 99, 0.15);
   padding: 0.1em 0.35em;
   border-radius: 4px;
+  border-bottom: 2px dotted rgba(233, 30, 99, 0.45);
 }
 
 .ai-bullet-point {
@@ -11008,7 +11569,7 @@ body.light-mode .ai-llm-synopsis .ai-brackets-highlight {
   flex-shrink: 0;
 }
 
-/* Combined + balance chart metric pickers — denser layout on small screens */
+/* Combined + balance chart metric pickers - denser layout on small screens */
 @media (max-width: 768px) {
   .metric-selector-container {
     margin-top: 6px;

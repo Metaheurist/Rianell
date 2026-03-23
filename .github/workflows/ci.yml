@@ -1,19 +1,19 @@
 # =============================================================================
-# Rianell — unified GitHub Actions
+# Rianell - unified GitHub Actions
 # =============================================================================
 # Single workflow file replacing former: build-android-apk, build-ios,
 # build-app-releases, deploy-pages, security-audit.
 #
 # Sections (jobs appear in dependency order):
-#   1. paths-filter     — Push only: whether to run mobile build/release (skip if
+#   1. paths-filter     - Push only: whether to run mobile build/release (skip if
 #                         the only changed paths are under App build/, so bot
 #                         commits do not rebuild APKs or duplicate releases).
-#   2. android / ios    — PR: always. Push: only when paths-filter says so.
-#   3. commit-app-build — Push + mobile: commit App build/ to the branch.
-#   4. publish-release  — Push + mobile: GitHub Release with Android + iOS assets.
-#   5. deploy-pages     — Push to main/master: site from web/ + App build/.
-#   6. readme-build-info — After deploy (web-only runs): README beta table + build numbers.
-#   7. security-audit   — Push / PR / workflow_dispatch: Gitleaks + npm + pip audits.
+#   2. android / ios    - PR: always. Push: only when paths-filter says so.
+#   3. commit-app-build - Push + mobile: commit App build/ to the branch.
+#   4. publish-release  - Push + mobile: GitHub Release with Android + iOS assets.
+#   5. deploy-pages     - Push to main/master: site from web/ + App build/.
+#   6. readme-build-info - After deploy (web-only runs): README beta table + build numbers.
+#   7. security-audit   - Push / PR / workflow_dispatch: Gitleaks + npm + pip audits.
 #
 # Manual runs (workflow_dispatch): security audit only; mobile jobs are skipped.
 # =============================================================================
@@ -116,7 +116,7 @@ jobs:
         working-directory: react-app
         run: npm ci || npm install
 
-      - name: Copy web app and build (skip function-trace — smaller JS for APK)
+      - name: Copy web app and build (skip function-trace - smaller JS for APK)
         run: npm run build:apk
 
       - name: Add Android platform (if not present)
@@ -211,7 +211,7 @@ jobs:
         working-directory: react-app
         run: npm ci || npm install
 
-      - name: Copy web app and build (skip function-trace — smaller JS for native app)
+      - name: Copy web app and build (skip function-trace - smaller JS for native app)
         run: npm run build:apk
 
       - name: Add iOS platform (if not present)
@@ -475,7 +475,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ---------------------------------------------------------------------------
-  # GitHub Pages — web/ + App build/ (every push to main/master)
+  # GitHub Pages - web/ + App build/ (every push to main/master)
   # ---------------------------------------------------------------------------
   deploy-pages:
     name: Deploy to GitHub Pages
@@ -550,7 +550,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ---------------------------------------------------------------------------
-  # README beta table (push to main, web-only runs — mobile runs update README in commit-app-build)
+  # README beta table (push to main, web-only runs - mobile runs update README in commit-app-build)
   # ---------------------------------------------------------------------------
   readme-build-info:
     name: Update README beta build info

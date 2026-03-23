@@ -4,7 +4,7 @@
 let cachedEncryptionKey = null; // Cache the key after first fetch
 
 /**
- * Get encryption key — prefers server sync when Python dev server is available.
+ * Get encryption key - prefers server sync when Python dev server is available.
  * Otherwise uses a per-browser random 32-byte key in localStorage (no shared global default).
  */
 async function getEncryptionKey() {

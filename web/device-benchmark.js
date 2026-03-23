@@ -2,7 +2,7 @@
 // DEVICE BENCHMARK
 // Platform type (mobile/desktop), CPU benchmark → tier 1–5, expansive profile tables.
 // Oriented around device performance and on-device AI runnability: each profile has
-// llmModelSize ('tier1'..'tier5') — recommended for on-device AI (maps to flan-t5-small / base / large).
+// llmModelSize ('tier1'..'tier5') - recommended for on-device AI (maps to flan-t5-small / base / large).
 // Load after device-module.js, before performance-utils.js. Cache in localStorage.
 // ============================================
 

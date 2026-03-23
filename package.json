@@ -1,8 +1,8 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.40.0",
-  "description": "Rianell — health dashboard (rianell.com); web app and React/Capacitor Android build",
+  "version": "1.41.0",
+  "description": "Rianell - health dashboard (rianell.com); web app and React/Capacitor Android build",
   "scripts": {
     "dev": "cd react-app && npm run dev",
     "build:web:apk": "node web/build-site.mjs --skip-trace",

@@ -11,7 +11,7 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
   },
   android: {
-    // Do not load HTTP subresources on HTTPS app origin (see docs/SECURITY.md — Android section).
+    // Do not load HTTP subresources on HTTPS app origin (see docs/SECURITY.md - Android section).
     // Cleartext to arbitrary hosts: use res/xml/network_security_config.xml (patch-android-sdk.js after cap sync), not usesCleartextTraffic.
     allowMixedContent: false,
     /** Off on device builds: avoids extra WebView debugging overhead (default follows debuggable flag). */

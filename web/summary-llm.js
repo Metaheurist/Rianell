@@ -398,7 +398,7 @@
   }
 
   /**
-   * Normalize MOTD: one line, no quotes, length cap. Not cached — each call can differ (fresh nonce in prompt + sampling).
+   * Normalize MOTD: one line, no quotes, length cap. Not cached - each call can differ (fresh nonce in prompt + sampling).
    */
   function sanitizeMotdText(raw) {
     if (!raw || typeof raw !== 'string') return '';

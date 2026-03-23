@@ -1,7 +1,7 @@
 // Cloud Sync Functions for Rianell
 // Handles syncing anonymized data to Supabase and logged-in user backup (health_data + AI state)
 
-// LocalStorage key for AI prediction/learning state (blend weights, last predictions) — synced to cloud when logged in
+// LocalStorage key for AI prediction/learning state (blend weights, last predictions) - synced to cloud when logged in
 const AI_STATE_LOCALSTORAGE_KEY = 'rianellPredictionState';
 
 // Initialize Supabase client

@@ -39,7 +39,7 @@ Define variables in **`security/.env`** (copy from [`security/.env.example`](../
 | `HEALTH_APP_SENSITIVE_APIS_ON_LAN` | Allow `/api/encryption-key` and `/api/anonymized-data` from non-loopback IPs | unset (off) |
 | `SUPABASE_URL` | Your Supabase project URL | Required |
 | `SUPABASE_PUBLISHABLE_KEY` | **Publishable** key (Dashboard → API; safe in client builds). Legacy: `SUPABASE_ANON_KEY`. | Required (one of) |
-| `SUPABASE_SECRET_KEY` | **Secret** key — use **service_role** (server only). Needed for **Generate Sample Data to Supabase** when RLS is on `anonymized_data`. Legacy: `SUPABASE_SERVICE_KEY`. | Optional |
+| `SUPABASE_SECRET_KEY` | **Secret** key - use **service_role** (server only). Needed for **Generate Sample Data to Supabase** when RLS is on `anonymized_data`. Legacy: `SUPABASE_SERVICE_KEY`. | Optional |
 
 ### Supabase Setup
 

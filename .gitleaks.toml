@@ -1,4 +1,4 @@
-# Gitleaks configuration for CI (see .github/workflows/ci.yml — security-audit job).
+# Gitleaks configuration for CI (see .github/workflows/ci.yml - security-audit job).
 # Scans the working tree with --no-git (not full git history) so old commits are not re-flagged.
 
 title = "Rianell"
