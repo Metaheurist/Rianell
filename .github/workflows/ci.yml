@@ -5,15 +5,16 @@
 # build-app-releases, deploy-pages, security-audit.
 #
 # Sections (jobs appear in dependency order):
-#   1. paths-filter     - Push only: whether to run mobile build/release (skip if
-#                         the only changed paths are under App build/, so bot
-#                         commits do not rebuild APKs or duplicate releases).
-#   2. android / ios    - PR: always. Push: only when paths-filter says so.
-#   3. commit-app-build - Push + mobile: commit App build/ to the branch.
-#   4. publish-release  - Push + mobile: GitHub Release with Android + iOS assets.
-#   5. deploy-pages     - Push to main/master: site from web/ + App build/.
-#   6. readme-build-info - After deploy (web-only runs): README beta table + build numbers.
-#   7. security-audit   - Push / PR / workflow_dispatch: Gitleaks + npm + pip audits.
+#   1. paths-filter      - Push only: whether to run mobile build/release (skip if
+#                          the only changed paths are under App build/, so bot
+#                          commits do not rebuild APKs or duplicate releases).
+#   2. android / ios     - PR: always. Push: only when paths-filter says so.
+#   3. server-exe        - Build Windows server EXE artifacts (x64 + x86) with PyInstaller.
+#   4. commit-app-build  - Push + mobile: commit App build/ to the branch.
+#   5. publish-release   - Push + mobile: GitHub Release with Android + iOS + Server assets.
+#   6. deploy-pages      - Push to main/master: site from web/ + App build/.
+#   7. readme-build-info - After deploy (web-only runs): README beta table + build numbers.
+#   8. security-audit    - Push / PR / workflow_dispatch: Gitleaks + npm + pip audits.
 #
 # Manual runs (workflow_dispatch): security audit only; mobile jobs are skipped.
 # =============================================================================
@@ -349,11 +350,66 @@ jobs:
           echo "iOS artifact is available as 'ios' on this run."
 
   # ---------------------------------------------------------------------------
+  # Server Windows EXE (PyInstaller, x64 + x86)
+  # ---------------------------------------------------------------------------
+  server-exe:
+    name: Server EXE (${{ matrix.arch }})
+    needs: [paths-filter]
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && needs.paths-filter.outputs.mobile_release == 'true')
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, x86]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          architecture: ${{ matrix.arch }}
+
+      - name: Install server dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install pyinstaller
+
+      - name: Build server EXE
+        shell: pwsh
+        run: |
+          pyinstaller --noconfirm --clean --onefile --name "rianell-server-${{ matrix.arch }}" "server/main.py"
+          New-Item -ItemType Directory -Force -Path "App build/Server" | Out-Null
+          Copy-Item "dist/rianell-server-${{ matrix.arch }}.exe" "App build/Server/rianell-server-${{ matrix.arch }}.exe" -Force
+          Set-Content -Path "App build/Server/latest-${{ matrix.arch }}.json" -Value "{""version"":${{ github.run_number }},""file"":""rianell-server-${{ matrix.arch }}.exe""}"
+          if ("${{ matrix.arch }}" -eq "x64") {
+            Copy-Item "App build/Server/latest-${{ matrix.arch }}.json" "App build/Server/latest.json" -Force
+          }
+
+      - name: Upload server EXE artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: server-exe-${{ matrix.arch }}
+          path: App build/Server/
+
+      - name: Artifact note (PR)
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: |
+          Write-Host "Server artifact is available as 'server-exe-${{ matrix.arch }}' on this run."
+
+  # ---------------------------------------------------------------------------
   # Commit App build/ after successful mobile build (push + mobile only)
   # ---------------------------------------------------------------------------
   commit-app-build:
     name: Commit App build to repo
-    needs: [paths-filter, android, ios]
+    needs: [paths-filter, android, ios, server-exe]
     if: |
       github.event_name == 'push' &&
       needs.paths-filter.outputs.mobile_release == 'true'
@@ -372,8 +428,8 @@ jobs:
 
       - name: Clear App build dirs before artifacts (avoid stale checked-in files)
         run: |
-          rm -rf "App build/Android" "App build/iOS"
-          mkdir -p "App build/Android" "App build/iOS"
+          rm -rf "App build/Android" "App build/iOS" "App build/Server"
+          mkdir -p "App build/Android" "App build/iOS" "App build/Server"
 
       - name: Download Android artifact
         uses: actions/download-artifact@v5
@@ -386,6 +442,24 @@ jobs:
         with:
           name: ios
           path: App build/iOS
+
+      - name: Download Server EXE artifacts
+        uses: actions/download-artifact@v5
+        with:
+          pattern: server-exe-*
+          path: gh-server
+
+      - name: Merge Server EXE artifacts
+        run: |
+          cp -f gh-server/server-exe-x64/rianell-server-x64.exe "App build/Server/" || true
+          cp -f gh-server/server-exe-x86/rianell-server-x86.exe "App build/Server/" || true
+          cp -f gh-server/server-exe-x64/latest-x64.json "App build/Server/" || true
+          cp -f gh-server/server-exe-x86/latest-x86.json "App build/Server/" || true
+          if [ -f gh-server/server-exe-x64/latest.json ]; then
+            cp -f gh-server/server-exe-x64/latest.json "App build/Server/latest.json"
+          else
+            echo '{"version":${{ github.run_number }},"file":"rianell-server-x64.exe"}' > "App build/Server/latest.json"
+          fi
 
       - name: Setup Node (README build-info script)
         uses: actions/setup-node@v5
@@ -404,7 +478,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md "App build/Android/" "App build/iOS/"
+          git add README.md "App build/Android/" "App build/iOS/" "App build/Server/"
           git diff --staged --quiet || git commit -m "Update App build artifacts (build ${{ github.run_number }}) [skip ci]"
           git fetch origin "${{ github.ref_name }}"
           git push origin ${{ github.ref_name }}
@@ -414,7 +488,7 @@ jobs:
   # ---------------------------------------------------------------------------
   publish-release:
     name: Publish GitHub Release
-    needs: [paths-filter, android, ios]
+    needs: [paths-filter, android, ios, server-exe]
     if: |
       github.event_name == 'push' &&
       needs.paths-filter.outputs.mobile_release == 'true'
@@ -434,11 +508,17 @@ jobs:
           name: ios
           path: gh-release/iOS
 
+      - name: Download Server EXE binaries
+        uses: actions/download-artifact@v5
+        with:
+          pattern: server-exe-*
+          path: gh-release/Server
+
       - name: Prepare release assets (this run only)
         run: |
           set -e
           RUN="${{ github.run_number }}"
-          mkdir -p release-assets/Android release-assets/iOS
+          mkdir -p release-assets/Android release-assets/iOS release-assets/Server
           cp "gh-release/Android/app-debug-beta.apk" "release-assets/Android/"
           cp "gh-release/Android/app-debug-beta-${RUN}.apk" "release-assets/Android/"
           # Distinct basenames: GitHub release assets cannot share the same filename.
@@ -448,6 +528,13 @@ jobs:
           cp "gh-release/iOS/Health-Tracker-ios-alpha-build-${RUN}.zip" "release-assets/iOS/"
           if [ -f "gh-release/iOS/Health-Tracker-simulator-alpha-${RUN}.zip" ]; then
             cp "gh-release/iOS/Health-Tracker-simulator-alpha-${RUN}.zip" "release-assets/iOS/"
+          fi
+          cp "gh-release/Server/server-exe-x64/rianell-server-x64.exe" "release-assets/Server/"
+          cp "gh-release/Server/server-exe-x86/rianell-server-x86.exe" "release-assets/Server/"
+          cp "gh-release/Server/server-exe-x64/latest-x64.json" "release-assets/Server/" || true
+          cp "gh-release/Server/server-exe-x86/latest-x86.json" "release-assets/Server/" || true
+          if [ -f "gh-release/Server/server-exe-x64/latest.json" ]; then
+            cp "gh-release/Server/server-exe-x64/latest.json" "release-assets/Server/server-latest.json"
           fi
           echo "Release files:"
           find release-assets -type f | sort
@@ -464,6 +551,8 @@ jobs:
 
             **iOS (Alpha)** (`release-assets/iOS/`): `Health-Tracker-ios-alpha-latest.zip`, `Health-Tracker-ios-alpha-build-${{ github.run_number }}.zip`, optional simulator zip, `ios-latest.json`.
 
+            **Server (Windows EXE)** (`release-assets/Server/`): `rianell-server-x64.exe`, `rianell-server-x86.exe`, and server latest metadata JSON files.
+
             A workflow commit updates `App build/` on the branch for GitHub Pages download links.
           draft: false
           prerelease: false
@@ -471,6 +560,7 @@ jobs:
           files: |
             release-assets/Android/*
             release-assets/iOS/*
+            release-assets/Server/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
