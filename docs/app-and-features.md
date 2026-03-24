@@ -32,6 +32,12 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.1 documentation sync
+
+- Global theme switching now applies instantly in place without forcing an app restart/reload.
+- Settings section mini-icon navigation remains on one line on mobile; no final icon wrap/drop.
+- Dashboard MOTD quote display is now Home-tab only; other tabs keep the standard title.
+
 ### v1.45.0 documentation sync
 
 - Added in-app bug report flow (top-right `?` button + modal + server submission) with Supabase-backed storage and per-IP daily rate limit.

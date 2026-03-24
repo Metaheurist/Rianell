@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.45.0** - bug report modal + Supabase bug report ingestion with per-IP daily rate limiting, expanded theme-dependent styling cleanup (including notification/install surfaces and rainbow refresh), and stronger STT microphone permission handling across web/native plugin paths).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.45.1** - global theme switching now applies live without restart, settings carousel icons stay aligned on mobile (no dropped last icon), and MOTD quote rendering is restricted to the Home tab).
 
 ### Tech stack
 

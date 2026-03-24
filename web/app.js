@@ -14871,7 +14871,6 @@ function setGlobalTheme(theme) {
   saveSettings();
   applyGlobalTheme();
   loadSettingsState();
-  setTimeout(function () { window.location.reload(); }, 120);
 }
 if (typeof window !== 'undefined') window.setGlobalTheme = setGlobalTheme;
 
@@ -17076,6 +17075,9 @@ function scheduleDashboardMotdWithLlm(fallbackTitle) {
       if (!t || t === fb) return;
       var el = document.getElementById('dashboardTitle');
       if (!el) return;
+      // Keep MOTD quote only on Home tab; avoid applying async result after tab switch.
+      var activeTab = tabNameRef || 'home';
+      if (activeTab !== 'home') return;
       el.textContent = t;
       el.setAttribute('data-text', t);
       if (typeof syncMobileFixedTitlePadding === 'function') {
@@ -17090,6 +17092,19 @@ function scheduleDashboardMotdWithLlm(fallbackTitle) {
 function updateDashboardTitle() {
   const titleElement = document.getElementById('dashboardTitle');
   if (!titleElement) return;
+
+  const activeTab = tabNameRef || 'home';
+  if (activeTab !== 'home') {
+    titleElement.textContent = 'Rianell';
+    titleElement.setAttribute('data-text', 'Rianell');
+    document.title = 'Rianell';
+    if (typeof syncMobileFixedTitlePadding === 'function') {
+      requestAnimationFrame(function() {
+        syncMobileFixedTitlePadding();
+      });
+    }
+    return;
+  }
 
   const fallbackTitle = getRandomMotdFallback();
 
@@ -18334,6 +18349,10 @@ function switchTab(tabName, skipHash) {
 
     if (typeof updateAIScrollSnapClass === 'function') updateAIScrollSnapClass();
 
+    if (typeof updateDashboardTitle === 'function') {
+      updateDashboardTitle();
+    }
+
     if (!skipHash && typeof setAppHashFromTab === 'function') {
       setAppHashFromTab(tabName);
     }
@@ -18418,7 +18437,11 @@ window.addEventListener('load', () => {
       if (typeof onDone === 'function') onDone();
       return;
     }
-    if (loadingOverlay.classList.contains('loading-overlay--bursting')) return;
+    if (loadingOverlay.classList.contains('loading-overlay--bursting')) {
+      // If a burst is already in progress, do not drop callbacks; complete shortly after.
+      if (typeof onDone === 'function') setTimeout(onDone, 660);
+      return;
+    }
     loadingOverlay.classList.add('loading-overlay--bursting');
     var done = false;
     var complete = function () {
@@ -18682,9 +18705,14 @@ window.addEventListener('load', () => {
       },
       function (tier, platformType, result) {
         setOrbitLoadingProgress(100);
-        if (window.DeviceBenchmark.isBenchmarkReady()) {
-          runAppInit();
-          return;
+        // Persist benchmark immediately so refreshes do not re-enter first-run flow.
+        if (
+          result &&
+          typeof window !== 'undefined' &&
+          window.DeviceBenchmark &&
+          typeof window.DeviceBenchmark.saveBenchmarkResult === 'function'
+        ) {
+          try { window.DeviceBenchmark.saveBenchmarkResult(result); } catch (e) {}
         }
         finishLoadingOverlayWithBurst(function () {
           if (loadingOverlay) {
