@@ -2875,25 +2875,37 @@
   </script>
   <script>
     (function() {
+      var styleCheckAttempts = 0;
+      var styleCheckMaxAttempts = 40;
       function checkStylesLoaded() {
         var val = '';
         try {
           val = getComputedStyle(document.documentElement).getPropertyValue('--rianell-styles').trim();
         } catch (e) {}
-        if (val !== '1') {
-          document.documentElement.classList.add('rianell-no-styles');
-          var overlay = document.createElement('div');
-          overlay.id = 'cssReloadOverlay';
-          overlay.setAttribute('role', 'alert');
-          overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#070807;color:#e8eeec;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;font-family:system-ui,sans-serif;text-align:center;';
-          overlay.innerHTML = '<p style="margin-bottom:1rem;font-size:1.1rem;">Page did not load correctly.</p><p style="margin-bottom:1.5rem;opacity:0.9;">Tap below to reload.</p><button type="button" onclick="location.reload()" style="padding:12px 24px;font-size:1rem;background:#4caf50;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Reload</button>';
-          document.body.appendChild(overlay);
+        if (val === '1') {
+          document.documentElement.classList.remove('rianell-no-styles');
+          var existing = document.getElementById('cssReloadOverlay');
+          if (existing) existing.remove();
+          return;
         }
+        styleCheckAttempts += 1;
+        if (styleCheckAttempts < styleCheckMaxAttempts) {
+          setTimeout(checkStylesLoaded, 125);
+          return;
+        }
+        if (document.getElementById('cssReloadOverlay')) return;
+        document.documentElement.classList.add('rianell-no-styles');
+        var overlay = document.createElement('div');
+        overlay.id = 'cssReloadOverlay';
+        overlay.setAttribute('role', 'alert');
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#070807;color:#e8eeec;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;font-family:system-ui,sans-serif;text-align:center;';
+        overlay.innerHTML = '<p style="margin-bottom:1rem;font-size:1.1rem;">Page did not load correctly.</p><p style="margin-bottom:1.5rem;opacity:0.9;">Tap below to reload.</p><button type="button" onclick="location.reload()" style="padding:12px 24px;font-size:1rem;background:#4caf50;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Reload</button>';
+        document.body.appendChild(overlay);
       }
       if (document.readyState === 'complete') {
-        setTimeout(checkStylesLoaded, 100);
+        setTimeout(checkStylesLoaded, 120);
       } else {
-        window.addEventListener('load', function() { setTimeout(checkStylesLoaded, 100); });
+        window.addEventListener('load', function() { setTimeout(checkStylesLoaded, 120); });
       }
     })();
   </script>

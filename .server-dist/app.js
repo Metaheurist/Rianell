@@ -14279,7 +14279,7 @@ function updateHeartbeatAnimation() {
     if (logs.length === 0) {
       // Default to 72 BPM if no logs exist
       const defaultBPM = 72;
-      const duration = Math.max(0.3, Math.min(2.0, 60 / defaultBPM));
+      const duration = Math.max(0.8, Math.min(3.2, 60 / defaultBPM * 1.6));
       heartbeatPath.style.animationDuration = `${duration}s`;
       return;
     }
@@ -14290,14 +14290,13 @@ function updateHeartbeatAnimation() {
     if (isNaN(latestBPM) || latestBPM < 30 || latestBPM > 200) {
       // Invalid BPM, use default
       const defaultBPM = 72;
-      const duration = Math.max(0.3, Math.min(2.0, 60 / defaultBPM));
+      const duration = Math.max(0.8, Math.min(3.2, 60 / defaultBPM * 1.6));
       heartbeatPath.style.animationDuration = `${duration}s`;
       return;
     }
 
-    // Calculate animation duration: 60 seconds / BPM = seconds per beat
-    // Clamp between 0.3s (200 BPM) and 2.0s (30 BPM) for reasonable visual range
-    const duration = Math.max(0.3, Math.min(2.0, 60 / latestBPM));
+    // Slower, calmer ECG visual cadence while still reflecting relative BPM.
+    const duration = Math.max(0.8, Math.min(3.2, 60 / latestBPM * 1.6));
     heartbeatPath.style.animationDuration = `${duration}s`;
     Logger.debug('Heartbeat animation updated', {
       bpm: latestBPM,
@@ -16762,7 +16761,15 @@ function openFoodModal(logDate) {
     // Prevent body scroll when modal is open
     document.body.style.overflow = 'hidden';
     const overlay = document.getElementById('foodModalOverlay');
+    if (!overlay) {
+      Logger.error('Food modal overlay not found');
+      return;
+    }
     const modalContent = overlay.querySelector('.modal-content');
+    if (!modalContent) {
+      Logger.error('Food modal content not found');
+      return;
+    }
 
     // Move modal to body if it's not already there (ensures viewport-relative positioning)
     if (overlay.parentElement !== document.body) {
@@ -17119,7 +17126,15 @@ function openExerciseModal(logDate) {
     // Prevent body scroll when modal is open
     document.body.style.overflow = 'hidden';
     const overlay = document.getElementById('exerciseModalOverlay');
+    if (!overlay) {
+      Logger.error('Exercise modal overlay not found');
+      return;
+    }
     const modalContent = overlay.querySelector('.modal-content');
+    if (!modalContent) {
+      Logger.error('Exercise modal content not found');
+      return;
+    }
 
     // Move modal to body if it's not already there (ensures viewport-relative positioning)
     if (overlay.parentElement !== document.body) {
@@ -22665,7 +22680,16 @@ function updateMedicalCondition(condition = null) {
         const filteredKeys = syncedKeys.filter(key => !key.endsWith(`_${condition}`));
         localStorage.setItem('anonymizedDataSyncedKeys', JSON.stringify(filteredKeys));
       }
-      syncAnonymizedData();
+      Promise.resolve(syncAnonymizedData()).catch(function (error) {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "anonymous", arguments) : undefined;
+        try {
+          Logger.warn('Failed to sync anonymized data after condition update', {
+            error: String(error)
+          });
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
     }
 
     // Check if condition has enough data for Optimised AI
@@ -23718,10 +23742,12 @@ function updateDashboardTitle() {
   try {
     const titleElement = document.getElementById('dashboardTitle');
     if (!titleElement) return;
+    const titleContainer = document.querySelector('.title-container');
     const activeTab = tabNameRef || 'home';
     if (activeTab !== 'home') {
-      titleElement.textContent = 'Rianell';
-      titleElement.setAttribute('data-text', 'Rianell');
+      if (titleContainer) titleContainer.style.display = 'none';
+      titleElement.textContent = '';
+      titleElement.setAttribute('data-text', '');
       document.title = 'Rianell';
       if (typeof syncMobileFixedTitlePadding === 'function') {
         requestAnimationFrame(function () {
@@ -23735,6 +23761,7 @@ function updateDashboardTitle() {
       }
       return;
     }
+    if (titleContainer) titleContainer.style.display = '';
     const fallbackTitle = getRandomMotdFallback();
     titleElement.textContent = fallbackTitle;
     titleElement.setAttribute('data-text', fallbackTitle);
@@ -25295,6 +25322,9 @@ function switchTab(tabName, skipHash) {
     const currentActive = document.querySelector('.tab-content.active');
     if (!selectedTab) return;
     tabNameRef = tabName;
+    if (document.body) {
+      document.body.classList.toggle('tab-not-home', tabName !== 'home');
+    }
     function doSwitch() {
       var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "doSwitch", arguments) : undefined;
       try {
