@@ -243,9 +243,22 @@
           #7bdf8c 40%,
           #52b85f 78%,
           rgba(123, 223, 140, 0.12) 100%
+        ),
+        repeating-conic-gradient(
+          from 0deg,
+          rgba(236, 255, 242, 0.34) 0deg,
+          rgba(236, 255, 242, 0.34) 10deg,
+          rgba(123, 223, 140, 0.08) 10deg,
+          rgba(123, 223, 140, 0.08) 20deg,
+          rgba(82, 184, 95, 0.3) 20deg,
+          rgba(82, 184, 95, 0.3) 30deg,
+          rgba(123, 223, 140, 0.08) 30deg,
+          rgba(123, 223, 140, 0.08) 40deg
         );
       clip-path: inset(0 calc((1 - var(--loading-progress)) * 100%) 0 0);
       transition: clip-path 0.16s linear;
+      animation: rianell-ring-water-flow 1.35s linear infinite;
+      will-change: transform, clip-path;
     }
     #loadingOverlay .loading-sun-orbit__orbit {
       position: absolute;
@@ -365,6 +378,10 @@
       from { transform: translateX(-140%) rotate(8deg); }
       to { transform: translateX(140%) rotate(8deg); }
     }
+    @keyframes rianell-ring-water-flow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
     @media (prefers-reduced-motion: reduce) {
       #loadingOverlay .loading-sun-orbit__orbit { animation-duration: 7s; }
       #loadingOverlay .loading-sun-orbit__body::before,
@@ -372,7 +389,10 @@
       #loadingOverlay .loading-sun-orbit__body { animation: none; }
       #loadingOverlay .loading-sun-orbit__sun::before,
       #loadingOverlay .loading-sun-orbit__sun::after { animation: none; }
-      #loadingOverlay .loading-sun-orbit__ring::after { transition: none; }
+      #loadingOverlay .loading-sun-orbit__ring::after {
+        animation: none;
+        transition: none;
+      }
     }
     /* Hide main content until loaded; keep loading overlay visible so user sees loader */
     body:not(.loaded) {
