@@ -17981,6 +17981,14 @@ window.addEventListener('load', () => {
     }
   } catch (e) { /* ignore */ }
 
+  function setOrbitLoadingProgress(percent) {
+    var value = Math.max(0, Math.min(100, Math.floor(percent)));
+    var orbitHost = loadingOverlay ? loadingOverlay.querySelector('#loadingOrbitProgressHost') : null;
+    var orbitProgress = loadingOverlay ? loadingOverlay.querySelector('#loadingOrbitProgress') : null;
+    if (orbitHost) orbitHost.style.setProperty('--loading-progress', String(value / 100));
+    if (orbitProgress) orbitProgress.setAttribute('aria-valuenow', String(value));
+  }
+
   function runAppInit() {
   tryLockPortraitOrientationMobile();
   if (typeof initEcgHeartbeatLine === 'function') initEcgHeartbeatLine();
@@ -18036,14 +18044,6 @@ window.addEventListener('load', () => {
   }
   
   if (loadingTextEl) loadingTextEl.textContent = 'Loading charts and AI…';
-
-  function setOrbitLoadingProgress(percent) {
-    var value = Math.max(0, Math.min(100, Math.floor(percent)));
-    var orbitHost = loadingOverlay ? loadingOverlay.querySelector('#loadingOrbitProgressHost') : null;
-    var orbitProgress = loadingOverlay ? loadingOverlay.querySelector('#loadingOrbitProgress') : null;
-    if (orbitHost) orbitHost.style.setProperty('--loading-progress', String(value / 100));
-    if (orbitProgress) orbitProgress.setAttribute('aria-valuenow', String(value));
-  }
 
   // Second loading phase: show progress toward completion (benchmark bar was 100% after suite or cache)
   setOrbitLoadingProgress(0);
