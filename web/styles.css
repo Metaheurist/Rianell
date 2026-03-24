@@ -271,7 +271,7 @@ textarea + .voice-input-btn {
 }
 
 .voice-input-target--active {
-  box-shadow: 0 0 0 2px rgba(123, 223, 140, 0.38);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 52%, transparent);
 }
 
 html {
@@ -1029,10 +1029,10 @@ h1#dashboardTitle:hover {
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: #0c1a11;
+  color: color-mix(in srgb, var(--primary-color) 20%, #050708 80%);
   background: var(--primary-gradient);
-  border: 1px solid rgba(11, 22, 12, 0.5);
-  box-shadow: 0 2px 10px rgba(47, 125, 50, 0.45);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 38%, rgba(10, 16, 12, 0.62));
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--primary-color) 46%, transparent);
   border-radius: 8px;
   padding: 5px 9px;
   pointer-events: none;
@@ -1040,9 +1040,22 @@ h1#dashboardTitle:hover {
   line-height: 1;
 }
 
+body.theme-red-black .app-beta-badge,
+body.theme-mono .app-beta-badge,
+body.theme-rainbow .app-beta-badge {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary-color) 74%, #0a0d0b 26%) 0%,
+    color-mix(in srgb, var(--primary-color) 88%, #ffffff 12%) 100%
+  );
+  color: color-mix(in srgb, var(--primary-color) 14%, #070909 86%);
+  border-color: color-mix(in srgb, var(--primary-color) 54%, transparent);
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--primary-color) 48%, transparent);
+}
+
 body.light-mode .app-beta-badge {
-  border-color: rgba(11, 22, 12, 0.4);
-  box-shadow: 0 2px 8px rgba(47, 125, 50, 0.35);
+  border-color: color-mix(in srgb, var(--primary-color) 34%, rgba(10, 16, 12, 0.58));
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--primary-color) 36%, transparent);
 }
 
 .app-log-fab {
@@ -1124,8 +1137,8 @@ body.light-mode .app-beta-badge {
 
 body.light-mode .app-log-fab {
   color: var(--neon-lime-deep);
-  border-color: rgba(46, 125, 50, 0.45);
-  box-shadow: var(--btn-chrome-shadow), 0 0 20px rgba(118, 255, 3, 0.2);
+  border-color: color-mix(in srgb, var(--primary-color) 52%, transparent);
+  box-shadow: var(--btn-chrome-shadow), 0 0 20px color-mix(in srgb, var(--primary-color) 24%, transparent);
 }
 
 /* Home / Today */
@@ -1864,6 +1877,18 @@ body.theme-mono .tab-btn.active:hover,
 body.theme-rainbow .tab-btn.active:hover {
   background: color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
   border-color: color-mix(in srgb, var(--primary-color) 70%, transparent) !important;
+}
+
+/* Ensure both desktop and mobile selected nav states always track the active theme */
+body.theme-red-black .app-bottom-nav-btn[aria-current="page"],
+body.theme-red-black .app-bottom-nav-btn.active,
+body.theme-mono .app-bottom-nav-btn[aria-current="page"],
+body.theme-mono .app-bottom-nav-btn.active,
+body.theme-rainbow .app-bottom-nav-btn[aria-current="page"],
+body.theme-rainbow .app-bottom-nav-btn.active {
+  background: color-mix(in srgb, var(--primary-color) 26%, transparent) !important;
+  border-color: color-mix(in srgb, var(--primary-color) 52%, transparent) !important;
+  box-shadow: var(--btn-chrome-shadow-hover), inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 38%, transparent) !important;
 }
 
 .tab-btn.active::before {
@@ -5241,28 +5266,28 @@ button:active {
 
 button:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.45), var(--btn-chrome-shadow);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 52%, transparent), var(--btn-chrome-shadow);
 }
 
 /* FAB: same cyber chrome + forest accent as header buttons */
 button.app-log-fab {
   background: var(--btn-chrome-bg);
   color: var(--neon-lime);
-  border: 1px solid rgba(123, 223, 140, 0.45);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 52%, transparent);
   border-radius: var(--btn-chrome-radius);
-  box-shadow: var(--btn-chrome-shadow), 0 0 28px rgba(123, 223, 140, 0.2);
+  box-shadow: var(--btn-chrome-shadow), 0 0 28px color-mix(in srgb, var(--primary-color) 24%, transparent);
   text-shadow: 0 0 14px var(--neon-lime-glow);
 }
 
 button.app-log-fab:hover {
   background: var(--btn-chrome-bg-hover);
   color: var(--neon-lime-soft);
-  border-color: rgba(123, 223, 140, 0.65);
-  box-shadow: var(--btn-chrome-shadow-hover), 0 0 36px rgba(123, 223, 140, 0.28);
+  border-color: color-mix(in srgb, var(--primary-color) 68%, transparent);
+  box-shadow: var(--btn-chrome-shadow-hover), 0 0 36px color-mix(in srgb, var(--primary-color) 33%, transparent);
 }
 
 button.app-log-fab:focus {
-  box-shadow: 0 0 0 2px rgba(123, 223, 140, 0.5), var(--btn-chrome-shadow);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 56%, transparent), var(--btn-chrome-shadow);
 }
 
 
@@ -10113,7 +10138,7 @@ body.light-mode .stressor-chip--other { background: rgba(97, 97, 97, 0.25); }
 
 .targets-button-top:hover {
   background: var(--btn-chrome-bg-hover);
-  color: #a5d6a7;
+  color: color-mix(in srgb, var(--primary-color) 78%, #ffffff 22%);
   transform: scale(1.1);
   box-shadow: var(--btn-chrome-shadow-hover);
 }
@@ -10127,12 +10152,12 @@ body.light-mode .stressor-chip--other { background: rgba(97, 97, 97, 0.25); }
   height: 24px;
   color: var(--primary-color);
   transition: all var(--transition-normal);
-  filter: drop-shadow(0 2px 6px rgba(76, 175, 80, 0.45));
+  filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--primary-color) 48%, transparent));
 }
 
 .targets-button-top:hover .targets-face-icon {
-  color: #66bb6a;
-  filter: drop-shadow(0 4px 10px rgba(76, 175, 80, 0.55));
+  color: color-mix(in srgb, var(--primary-color) 86%, #ffffff 14%);
+  filter: drop-shadow(0 4px 10px color-mix(in srgb, var(--primary-color) 58%, transparent));
 }
 
 body.light-mode .targets-face-icon {
@@ -10142,7 +10167,7 @@ body.light-mode .targets-face-icon {
 
 .settings-button-top:hover {
   background: var(--btn-chrome-bg-hover);
-  color: #a5d6a7;
+  color: color-mix(in srgb, var(--primary-color) 78%, #ffffff 22%);
   transform: scale(1.1) rotate(90deg);
   box-shadow: var(--btn-chrome-shadow-hover);
 }
@@ -10156,18 +10181,18 @@ body.light-mode .targets-face-icon {
   height: 24px;
   color: var(--primary-color);
   transition: all var(--transition-normal);
-  filter: drop-shadow(0 2px 6px rgba(76, 175, 80, 0.45));
+  filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--primary-color) 48%, transparent));
 }
 
 .settings-button-top:hover .settings-cog {
-  color: #66bb6a;
-  filter: drop-shadow(0 4px 10px rgba(76, 175, 80, 0.55));
+  color: color-mix(in srgb, var(--primary-color) 86%, #ffffff 14%);
+  filter: drop-shadow(0 4px 10px color-mix(in srgb, var(--primary-color) 58%, transparent));
   transform: scale(1.1);
 }
 
 body.light-mode .settings-cog {
   color: var(--primary-color);
-  filter: drop-shadow(0 2px 4px rgba(76, 175, 80, 0.4));
+  filter: drop-shadow(0 2px 4px color-mix(in srgb, var(--primary-color) 42%, transparent));
 }
 
 body.light-mode .settings-button-top:hover {
@@ -10737,7 +10762,7 @@ body.light-mode .goals-status-pill.below {
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(224, 242, 241, 0.1);
-  box-shadow: 0 0 0 1px rgba(123, 223, 140, 0.1);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 24%, transparent);
   color: rgba(224, 242, 241, 0.82);
   display: inline-flex;
   align-items: center;
@@ -10772,13 +10797,23 @@ body.light-mode .goals-status-pill.below {
 
 .settings-carousel-dot::before {
   /* Inner liquid body */
-  background: radial-gradient(circle at 46% 34%, rgba(212, 255, 220, 0.95) 0%, rgba(123, 223, 140, 0.85) 42%, rgba(71, 171, 96, 0.75) 100%);
+  background: radial-gradient(
+    circle at 46% 34%,
+    color-mix(in srgb, var(--primary-color) 26%, #ffffff 74%) 0%,
+    color-mix(in srgb, var(--primary-color) 78%, #ffffff 22%) 42%,
+    color-mix(in srgb, var(--primary-color) 88%, #0d1110 12%) 100%
+  );
   transform: scale(0.82);
 }
 
 .settings-carousel-dot::after {
   /* Liquid sheen that drifts, suggesting moving fluid */
-  background: linear-gradient(120deg, transparent 20%, rgba(218, 255, 227, 0.52) 46%, transparent 72%);
+  background: linear-gradient(
+    120deg,
+    transparent 20%,
+    color-mix(in srgb, var(--primary-color) 42%, #ffffff 58%) 46%,
+    transparent 72%
+  );
   transform: translateX(-135%) rotate(6deg);
 }
 
@@ -11781,9 +11816,9 @@ body.light-mode .date-separator {
 }
 
 .install-channel-badge--beta {
-  background: rgba(123, 223, 140, 0.12);
-  color: rgba(200, 255, 210, 0.92);
-  border: 1px solid rgba(123, 223, 140, 0.32);
+  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  color: color-mix(in srgb, var(--primary-color) 64%, #ffffff 36%);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 38%, transparent);
 }
 
 .install-channel-badge--alpha {
@@ -11793,9 +11828,9 @@ body.light-mode .date-separator {
 }
 
 body.light-mode .install-channel-badge--beta {
-  background: rgba(255, 255, 255, 0.85);
-  color: #2e7d32;
-  border: 1px solid rgba(46, 125, 80, 0.35);
+  background: color-mix(in srgb, var(--primary-color) 20%, #ffffff 80%);
+  color: color-mix(in srgb, var(--primary-color) 72%, #0a0a0a 28%);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 34%, transparent);
 }
 
 body.light-mode .install-channel-badge--alpha {
