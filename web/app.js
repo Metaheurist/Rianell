@@ -3120,16 +3120,28 @@ function showInstallButton() {
 function installPWA() {
   if (isRianellNativeApp()) return;
   if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then((choiceResult) => {
-      if (choiceResult.outcome === 'accepted') {
-        Logger.debug('PWA: User accepted the install prompt');
-        hideInstallButton();
-      } else {
-        Logger.debug('PWA: User dismissed the install prompt');
+    try {
+      if (navigator.userActivation && !navigator.userActivation.isActive) {
+        Logger.warn('PWA: prompt() blocked - missing user activation');
+        showInstallInstructions();
+        return;
       }
-      deferredPrompt = null;
-    });
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          Logger.debug('PWA: User accepted the install prompt');
+          hideInstallButton();
+        } else {
+          Logger.debug('PWA: User dismissed the install prompt');
+        }
+        deferredPrompt = null;
+      }).catch((err) => {
+        Logger.warn('PWA: install prompt failed', { error: err && err.message ? err.message : String(err) });
+      });
+    } catch (err) {
+      Logger.warn('PWA: install prompt threw', { error: err && err.message ? err.message : String(err) });
+      showInstallInstructions();
+    }
   }
 }
 
@@ -3174,17 +3186,30 @@ function installOrLaunchPWA() {
   
   // Try to install if prompt is available
   if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then((choiceResult) => {
-      if (choiceResult.outcome === 'accepted') {
-        Logger.debug('PWA: User accepted the install prompt');
-        showAlertModal('App installed successfully! 📱\nLook for "Rianell" in your apps.', 'Installation Complete');
-        hideInstallButton();
-      } else {
-        Logger.debug('PWA: User dismissed the install prompt');
+    try {
+      if (navigator.userActivation && !navigator.userActivation.isActive) {
+        Logger.warn('PWA: installOrLaunch blocked - missing user activation');
+        showInstallInstructions();
+        return;
       }
-      deferredPrompt = null;
-    });
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          Logger.debug('PWA: User accepted the install prompt');
+          showAlertModal('App installed successfully! 📱\nLook for "Rianell" in your apps.', 'Installation Complete');
+          hideInstallButton();
+        } else {
+          Logger.debug('PWA: User dismissed the install prompt');
+        }
+        deferredPrompt = null;
+      }).catch((err) => {
+        Logger.warn('PWA: installOrLaunch userChoice failed', { error: err && err.message ? err.message : String(err) });
+        showInstallInstructions();
+      });
+    } catch (err) {
+      Logger.warn('PWA: installOrLaunch prompt threw', { error: err && err.message ? err.message : String(err) });
+      showInstallInstructions();
+    }
   } else {
     // Check why install prompt is not available
     const protocol = window.location.protocol;
