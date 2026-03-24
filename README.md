@@ -27,19 +27,19 @@
 
 <!-- RIANELL_BUILD_INFO_START -->
 
-[![CI builds](https://img.shields.io/badge/build-iOS%2088%20%7C%20Android%2088%20%7C%20Server%2088%20%7C%20Web%2088-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/23495312377)
+[![CI builds](https://img.shields.io/badge/build-iOS%2089%20%7C%20Android%2089%20%7C%20Server%2089%20%7C%20Web%2089-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/23496133315)
 
 **CI builds**
 
 | Channel | Build |
 | :--- | :---: |
-| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip) | **88** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Android** APK | **88** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **88** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **88** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **88** |
+| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip) | **89** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Android** APK | **89** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **89** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **89** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **89** |
 
-Latest: [`App build/Android/app-debug-beta-88.apk`](App%20build/Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-88.zip`](App%20build/iOS/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest-x64.json) · [`App build/Server/rianell-server-x86.exe`](App%20build/Server/latest-x86.json) · [Workflow #88](https://github.com/Metaheurist/Rianell/actions/runs/23495312377) · `fdceff6`
+Latest: [`App build/Android/app-debug-beta-89.apk`](App%20build/Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-89.zip`](App%20build/iOS/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest-x64.json) · [`App build/Server/rianell-server-x86.exe`](App%20build/Server/latest-x86.json) · [Workflow #89](https://github.com/Metaheurist/Rianell/actions/runs/23496133315) · `8d1fe48`
 
 <!-- RIANELL_BUILD_INFO_END -->
 
