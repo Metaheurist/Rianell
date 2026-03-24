@@ -1081,24 +1081,72 @@ def create_server_dashboard():
     
     root = tk.Tk()
     root.title("Rianell Server Dashboard")
-    root.geometry("920x760")
-    root.configure(bg='#1e1e1e')
+    root.geometry("1040x820")
+    root.configure(bg='#070807')
     
     # Style
     style = ttk.Style()
     style.theme_use('clam')
-    # Title: gray text, no explicit background (will inherit from parent frame)
-    style.configure('Title.TLabel', font=('Arial', 16, 'bold'), foreground='#808080')
-    # Status labels: gray text, no explicit background (will inherit from parent frame)
-    style.configure('Status.TLabel', font=('Arial', 10), foreground='#808080')
-    style.configure('Toggle.TCheckbutton', background='#1e1e1e', foreground='#e0f2f1')
+    panel_bg = '#070807'
+    surface_bg = '#121416'
+    card_bg = '#0c1011'
+    text_main = '#e0f2f1'
+    text_muted = '#9bb0a8'
+    accent = '#7bdf8c'
+    accent_hover = '#95e8a4'
+    border = '#1f3528'
+
+    style.configure('.', background=panel_bg, foreground=text_main, fieldbackground=card_bg)
+    style.configure('TFrame', background=panel_bg)
+    style.configure('TLabelframe', background=surface_bg, foreground=accent, bordercolor=border, borderwidth=1, relief='solid')
+    style.configure('TLabelframe.Label', background=surface_bg, foreground=accent, font=('Segoe UI', 10, 'bold'))
+    style.configure('TLabel', background=panel_bg, foreground=text_main)
+    style.configure('Title.TLabel', font=('Segoe UI', 16, 'bold'), foreground=accent)
+    style.configure('Status.TLabel', font=('Segoe UI', 10), foreground=text_muted, background=panel_bg)
+    style.configure('Toggle.TCheckbutton', background=panel_bg, foreground=text_main)
+    style.configure(
+        'TButton',
+        font=('Segoe UI', 9, 'bold'),
+        padding=(10, 6),
+        foreground=text_main,
+        background='#151a1d',
+        bordercolor='#2c5b42',
+        lightcolor='#1d2d23',
+        darkcolor='#0c1011',
+        relief='flat'
+    )
+    style.map(
+        'TButton',
+        background=[('active', '#1e2b24'), ('pressed', '#16211b')],
+        foreground=[('active', '#f2fff5')]
+    )
+    style.configure('TEntry', fieldbackground=card_bg, foreground=text_main, insertcolor=accent)
+    style.configure('TCombobox', fieldbackground=card_bg, foreground=text_main, arrowsize=13)
+    style.map('TCombobox', fieldbackground=[('readonly', card_bg)], foreground=[('readonly', text_main)])
+    style.configure(
+        'Treeview',
+        background=card_bg,
+        fieldbackground=card_bg,
+        foreground=text_main,
+        bordercolor=border,
+        rowheight=24,
+        relief='flat'
+    )
+    style.map('Treeview', background=[('selected', '#1f4a35')], foreground=[('selected', '#f3fff6')])
+    style.configure(
+        'Treeview.Heading',
+        background='#141a1d',
+        foreground=accent_hover,
+        bordercolor=border,
+        font=('Segoe UI', 9, 'bold')
+    )
     
     # Main frame
     main_frame = ttk.Frame(root, padding="10")
     main_frame.pack(fill=tk.BOTH, expand=True)
     
     # Title
-    title_label = ttk.Label(main_frame, text="Rianell Server Control Panel", style='Title.TLabel')
+    title_label = ttk.Label(main_frame, text="Rianell Server Tinker", style='Title.TLabel')
     title_label.pack(pady=10)
 
     def _app_url_for_browser():
@@ -1128,7 +1176,7 @@ def create_server_dashboard():
     app_url = _app_url_for_browser()
     server_status = ttk.Label(status_top, text=f"Server: {app_url}", style='Status.TLabel')
     server_status.pack(side=tk.LEFT, anchor=tk.W)
-    open_app_btn = ttk.Button(status_top, text="Open app in browser", command=open_app_in_browser)
+    open_app_btn = ttk.Button(status_top, text="🌐 Open app in browser", command=open_app_in_browser)
     open_app_btn.pack(side=tk.LEFT, padx=(12, 0))
 
     # Live reload: watchdog + manual push to devices (SSE)
@@ -1161,11 +1209,11 @@ def create_server_dashboard():
             "Open tabs / devices using live reload will refresh.",
         )
 
-    pause_watch_btn = ttk.Button(reload_row, text="Pause file watch", command=on_pause_watch)
+    pause_watch_btn = ttk.Button(reload_row, text="⏸ Pause file watch", command=on_pause_watch)
     pause_watch_btn.pack(side=tk.LEFT, padx=(12, 4))
-    start_watch_btn = ttk.Button(reload_row, text="Start file watch", command=on_start_watch)
+    start_watch_btn = ttk.Button(reload_row, text="▶ Start file watch", command=on_start_watch)
     start_watch_btn.pack(side=tk.LEFT, padx=4)
-    push_reload_btn = ttk.Button(reload_row, text="Push reload to devices", command=on_push_reload)
+    push_reload_btn = ttk.Button(reload_row, text="📡 Push reload to devices", command=on_push_reload)
     push_reload_btn.pack(side=tk.LEFT, padx=(16, 0))
     if not WATCHDOG_AVAILABLE:
         pause_watch_btn.config(state='disabled')
@@ -1213,7 +1261,7 @@ def create_server_dashboard():
             connection_status.config(text=f"Status: Not Connected (Error: {str(e)[:50]})", foreground='#ff9800')
             return False
     # Refresh connection button
-    refresh_connection_btn = ttk.Button(connection_frame, text="Refresh Connection", command=check_connection)
+    refresh_connection_btn = ttk.Button(connection_frame, text="🔄 Refresh Connection", command=check_connection)
     refresh_connection_btn.pack(side=tk.LEFT, padx=(10, 0))
     
     def install_requirements_ui():
@@ -1240,7 +1288,7 @@ def create_server_dashboard():
         threading.Thread(target=install_thread, daemon=True).start()
     
     # Install requirements button
-    install_requirements_btn = ttk.Button(connection_frame, text="Install Requirements", command=install_requirements_ui)
+    install_requirements_btn = ttk.Button(connection_frame, text="📦 Install Requirements", command=install_requirements_ui)
     install_requirements_btn.pack(side=tk.LEFT, padx=(10, 0))
     
     check_connection()
@@ -1329,11 +1377,11 @@ def create_server_dashboard():
             logger.error(f"Error searching Supabase: {e}", exc_info=True)
             messagebox.showerror("Error", f"Search failed: {e}")
     
-    search_btn = ttk.Button(search_frame, text="Search", command=perform_search)
+    search_btn = ttk.Button(search_frame, text="🔍 Search", command=perform_search)
     search_btn.pack(side=tk.LEFT, padx=5)
     
     # Add refresh button to reload conditions
-    refresh_conditions_btn = ttk.Button(search_frame, text="Refresh Conditions", command=load_available_conditions)
+    refresh_conditions_btn = ttk.Button(search_frame, text="♻ Refresh Conditions", command=load_available_conditions)
     refresh_conditions_btn.pack(side=tk.LEFT, padx=5)
 
     # Data tools: destructive / bulk actions grouped
@@ -1388,7 +1436,7 @@ def create_server_dashboard():
         ttk.Button(dialog, text="Export CSV", command=do_export).pack(pady=10)
         ttk.Button(dialog, text="Cancel", command=dialog.destroy).pack()
     
-    export_btn = ttk.Button(action_frame, text="Export to CSV", command=export_data)
+    export_btn = ttk.Button(action_frame, text="📤 Export to CSV", command=export_data)
     export_btn.pack(side=tk.LEFT, padx=4, pady=2)
     
     # Wipe database function
@@ -1482,7 +1530,7 @@ def create_server_dashboard():
             logger.error(f"Error wiping database: {e}", exc_info=True)
             messagebox.showerror("Error", f"Failed to wipe database:\n{str(e)[:100]}")
     
-    wipe_btn = ttk.Button(action_frame, text="Wipe Database", command=wipe_database)
+    wipe_btn = ttk.Button(action_frame, text="🗑 Wipe Database", command=wipe_database)
     wipe_btn.pack(side=tk.LEFT, padx=4, pady=2)
     
     # Generate and post sample data frame
@@ -1592,7 +1640,7 @@ def create_server_dashboard():
         ttk.Button(button_frame, text="Generate & Post", command=do_generate).pack(side=tk.LEFT, padx=5, expand=True, fill=tk.X)
         ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5, expand=True, fill=tk.X)
     
-    generate_btn = ttk.Button(action_frame, text="Generate Sample Data", command=generate_sample_data)
+    generate_btn = ttk.Button(action_frame, text="🧪 Generate Sample Data", command=generate_sample_data)
     generate_btn.pack(side=tk.LEFT, padx=4, pady=2)
     
     # Generate CSV sample data
@@ -1664,7 +1712,7 @@ def create_server_dashboard():
         ttk.Button(dialog, text="Generate CSV", command=do_generate_csv).pack(pady=10)
         ttk.Button(dialog, text="Cancel", command=dialog.destroy).pack()
     
-    generate_csv_btn = ttk.Button(action_frame, text="Generate CSV File", command=generate_csv_sample)
+    generate_csv_btn = ttk.Button(action_frame, text="📝 Generate CSV File", command=generate_csv_sample)
     generate_csv_btn.pack(side=tk.LEFT, padx=4, pady=2)
 
     # Database Viewer
@@ -1812,11 +1860,13 @@ def create_server_dashboard():
         except Exception as e:
             logger.error(f"Error refreshing database viewer: {e}", exc_info=True)
     
-    refresh_viewer_btn = ttk.Button(viewer_toolbar, text="Refresh View", command=refresh_db_viewer)
+    refresh_viewer_btn = ttk.Button(viewer_toolbar, text="🔄 Refresh View", command=refresh_db_viewer)
     refresh_viewer_btn.pack(side=tk.LEFT, padx=(0, 8))
 
     selection_count_label = ttk.Label(viewer_toolbar, text="0 selected", style='Status.TLabel')
     selection_count_label.pack(side=tk.LEFT, padx=4)
+    selection_hint_label = ttk.Label(viewer_toolbar, text="Tip: Ctrl/Shift for multi-select, Ctrl+A select all", style='Status.TLabel')
+    selection_hint_label.pack(side=tk.LEFT, padx=(12, 0))
     
     def update_selection_count(event=None):
         """Update the selection count label"""
@@ -1826,6 +1876,16 @@ def create_server_dashboard():
     # Bind selection events to update count
     viewer_tree.bind('<<TreeviewSelect>>', update_selection_count)
     viewer_tree.bind('<<TreeviewDeselect>>', update_selection_count)
+
+    def select_all_rows(event=None):
+        items = viewer_tree.get_children()
+        if items:
+            viewer_tree.selection_set(items)
+            update_selection_count()
+        return "break"
+
+    viewer_tree.bind('<Control-a>', select_all_rows)
+    viewer_tree.bind('<Command-a>', select_all_rows)
     
     
     # Logs display: bracket prefix [LEVEL] via BracketLevelFormatter (console/file keep emoji)
@@ -1863,6 +1923,14 @@ def create_server_dashboard():
     logs_text.tag_config('REQUEST', foreground='#9c27b0', font=log_view_font)  # Purple for HTTP methods
     logs_text.tag_config('PATH', foreground='#00bcd4', font=log_view_font)  # Cyan for paths
     logs_text.tag_config('DEFAULT', foreground='#e0f2f1', font=log_view_font)  # Default color
+    # Full-line base color by level (console-like)
+    logs_text.tag_config('LINE_DEBUG', foreground='#9aa0a6', font=log_view_font)
+    logs_text.tag_config('LINE_INFO', foreground='#7ec8ff', font=log_view_font)
+    logs_text.tag_config('LINE_WARNING', foreground='#ffb74d', font=log_view_font)
+    logs_text.tag_config('LINE_ERROR', foreground='#ff6b6b', font=log_view_font_bold)
+    logs_text.tag_config('LINE_CRITICAL', foreground='#ff4da6', font=log_view_font_bold)
+    # Ensure DEFAULT never overrides more specific tags
+    logs_text.tag_lower('DEFAULT')
     
     # Custom log handler to update text widget with color coding
     class TextHandler(logging.Handler):
@@ -1885,9 +1953,20 @@ def create_server_dashboard():
             """Update widget on main thread with partial color coding"""
             try:
                 if self.text_widget.winfo_exists():
-                    # Insert message with default color first
                     start_pos = self.text_widget.index(tk.END)
-                    self.text_widget.insert(tk.END, msg + '\n', 'DEFAULT')
+                    self.text_widget.insert(tk.END, msg + '\n')
+                    line_end = self.text_widget.index(tk.END + '-1c')
+
+                    level_key = str(levelname or '').upper()
+                    base_tag = {
+                        'DEBUG': 'LINE_DEBUG',
+                        'INFO': 'LINE_INFO',
+                        'WARNING': 'LINE_WARNING',
+                        'WARN': 'LINE_WARNING',
+                        'ERROR': 'LINE_ERROR',
+                        'CRITICAL': 'LINE_CRITICAL',
+                    }.get(level_key, 'DEFAULT')
+                    self.text_widget.tag_add(base_tag, start_pos, line_end)
                     
                     # Apply partial highlighting to specific parts
                     self._apply_partial_highlighting(start_pos, msg, levelname)

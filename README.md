@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.42.0** - Settings modal theme & layout fixes, tile picker polish, **AI Analysis (mobile):** card-edge peek + dot indicators + pane-based scroll index so horizontal slides read as swipeable without caption text, first-visit shimmer cue only, tutorial dots removed, styling guide in **docs/styling.md**).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.43.0** - loading planet animation refresh (larger orbit + visible swirl core), log wizard UX updates (step skip clears current step; review step card layout), AI pain table mobile fit, goals default targets, and Server Tinker UI/selection/log-colour polish).
 
 ### Tech stack
 

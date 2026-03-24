@@ -1104,19 +1104,88 @@ body.light-mode #logTab.log-wizard-mode .section-header {
   line-height: 1.6;
   padding-left: var(--card-content-padding-x);
   padding-right: var(--card-content-padding-x);
+  display: grid;
+  gap: 0.7rem;
   box-sizing: border-box;
 }
 
-.log-review-summary .log-review-line {
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+.log-review-summary .log-review-card {
+  border: 1px solid rgba(123, 223, 140, 0.16);
+  background: rgba(8, 14, 11, 0.42);
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem;
 }
 
 .log-review-summary .log-review-heading {
   font-weight: 700;
-  margin-top: 12px;
-  margin-bottom: 6px;
+  margin: 0 0 0.35rem;
   color: rgba(76, 175, 80, 0.95);
+  font-size: 0.98rem;
+}
+
+.log-review-summary .log-review-grid {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.log-review-summary .log-review-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 40%) 1fr;
+  gap: 0.65rem;
+  align-items: start;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.log-review-summary .log-review-row:last-child {
+  border-bottom: 0;
+}
+
+.log-review-summary .log-review-label {
+  color: rgba(224, 242, 241, 0.7);
+  font-weight: 600;
+}
+
+.log-review-summary .log-review-value {
+  color: rgba(232, 238, 236, 0.96);
+  word-break: break-word;
+}
+
+.log-review-summary .log-review-empty {
+  color: rgba(224, 242, 241, 0.62);
+  font-size: 0.9rem;
+  font-style: italic;
+  padding: 0.15rem 0 0.2rem;
+}
+
+body.light-mode .log-review-summary .log-review-card {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(46, 125, 50, 0.22);
+}
+
+body.light-mode .log-review-summary .log-review-label {
+  color: rgba(0, 0, 0, 0.62);
+}
+
+body.light-mode .log-review-summary .log-review-value {
+  color: rgba(0, 0, 0, 0.88);
+}
+
+body.light-mode .log-review-summary .log-review-empty {
+  color: rgba(0, 0, 0, 0.56);
+}
+
+@media (max-width: 768px) {
+  .log-review-summary .log-review-row {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+  .log-review-summary .log-review-label {
+    font-size: 0.84rem;
+  }
+  .log-review-summary .log-review-value {
+    font-size: 0.95rem;
+  }
 }
 
 /* Log wizard: single column + fixed bottom dock (Back / Skip / Next + dots/save) — does not scroll with steps */
@@ -3297,6 +3366,16 @@ body.light-mode .ai-pain-body-legend {
 /* Pain by body part table and severity badges */
 .ai-pain-table-wrap {
   margin-top: 0.5rem;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.ai-pain-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.9rem;
 }
 
 .ai-pain-table th {
@@ -3306,6 +3385,22 @@ body.light-mode .ai-pain-body-legend {
 
 .ai-pain-table td {
   color: rgba(224, 242, 241, 0.85);
+}
+
+.ai-pain-col-part {
+  width: 33%;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+.ai-pain-col-mild,
+.ai-pain-col-pain,
+.ai-pain-col-period {
+  width: 14%;
+}
+
+.ai-pain-col-severity {
+  width: 25%;
 }
 
 .ai-pain-severity-high {
@@ -3327,6 +3422,39 @@ body.light-mode .ai-pain-body-legend {
   color: #81c784;
   border: 2.5px solid rgba(76, 175, 80, 0.65);
   box-shadow: 0 0 8px rgba(76, 175, 80, 0.5), 0 0 14px rgba(76, 175, 80, 0.35);
+}
+
+@media (max-width: 768px) {
+  .ai-pain-table {
+    font-size: 0.78rem;
+  }
+
+  .ai-pain-table th,
+  .ai-pain-table td {
+    padding: 6px 6px !important;
+  }
+
+  .ai-pain-col-part {
+    width: 30%;
+  }
+
+  .ai-pain-col-mild,
+  .ai-pain-col-pain,
+  .ai-pain-col-period {
+    width: 13%;
+  }
+
+  .ai-pain-col-severity {
+    width: 31%;
+  }
+
+  .ai-pain-col-severity .ai-brackets-highlight {
+    display: inline-flex;
+    max-width: 100%;
+    white-space: nowrap;
+    font-size: 0.75rem !important;
+    padding: 2px 6px !important;
+  }
 }
 
 /* Trends Grid */
@@ -5715,8 +5843,8 @@ body.loading .header-buttons-wrap {
 /* Loading overlay: orbiting sun + wave progress (mint theme; critical CSS in index.html) */
 .loading-sun-orbit {
   position: relative;
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5732,31 +5860,95 @@ body.loading .header-buttons-wrap {
 
 .loading-sun-orbit__orbit {
   position: absolute;
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   animation: rianell-orbit 2.8s linear infinite;
 }
 
 .loading-sun-orbit__body {
   position: absolute;
-  top: 2px;
+  top: 3px;
   left: 50%;
-  width: 11px;
-  height: 11px;
-  margin-left: -5.5px;
+  width: 13px;
+  height: 13px;
+  margin-left: -6.5px;
   border-radius: 50%;
+  overflow: hidden;
   background: radial-gradient(circle at 35% 35%, #e8fff0, #9ae8a4 55%, #52b85f);
   box-shadow: 0 0 10px rgba(123, 223, 140, 0.85), 0 0 0 1px rgba(123, 223, 140, 0.35);
+  isolation: isolate;
+  animation: rianell-orbit-dot-glow 1.45s ease-in-out infinite;
+}
+
+.loading-sun-orbit__body::before,
+.loading-sun-orbit__body::after {
+  content: '';
+  position: absolute;
+  inset: -20% -10%;
+  border-radius: 45%;
+  pointer-events: none;
+}
+
+.loading-sun-orbit__body::before {
+  /* Main liquid mass that sloshes while orbiting */
+  background: radial-gradient(circle at 48% 36%, rgba(236, 255, 242, 0.95) 0%, rgba(170, 241, 180, 0.9) 52%, rgba(86, 191, 110, 0.88) 100%);
+  transform-origin: 50% 62%;
+  animation: rianell-liquid-slosh 1.25s ease-in-out infinite;
+}
+
+.loading-sun-orbit__body::after {
+  /* Inner sheen wave moving through the liquid */
+  background: linear-gradient(120deg, transparent 25%, rgba(236, 255, 242, 0.62) 50%, transparent 75%);
+  transform: translateX(-140%) rotate(8deg);
+  animation: rianell-liquid-sheen 1.7s linear infinite;
+  mix-blend-mode: screen;
 }
 
 .loading-sun-orbit__sun {
   position: relative;
   z-index: 2;
-  width: 30px;
-  height: 30px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  background: radial-gradient(circle at 38% 32%, #e8fff0, var(--neon-lime) 48%, #3d8f4a 100%);
-  box-shadow: 0 0 22px rgba(123, 223, 140, 0.55), 0 0 44px rgba(123, 223, 140, 0.22);
+  overflow: hidden;
+  background: radial-gradient(circle at 38% 32%, #ecfff3, var(--neon-lime) 48%, #3d8f4a 100%);
+  box-shadow: 0 0 24px rgba(123, 223, 140, 0.58), 0 0 52px rgba(123, 223, 140, 0.26);
+  isolation: isolate;
+}
+
+.loading-sun-orbit__sun::before,
+.loading-sun-orbit__sun::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.loading-sun-orbit__sun::before {
+  /* Main swirling "wash" inside planet core */
+  inset: -18%;
+  border-radius: 43%;
+  background:
+    conic-gradient(
+      from 0deg,
+      rgba(213, 255, 223, 0.08) 0deg,
+      rgba(178, 250, 190, 0.9) 62deg,
+      rgba(95, 201, 122, 0.38) 120deg,
+      rgba(213, 255, 223, 0.12) 180deg,
+      rgba(130, 230, 151, 0.8) 258deg,
+      rgba(95, 201, 122, 0.25) 320deg,
+      rgba(213, 255, 223, 0.08) 360deg
+    );
+  transform-origin: 50% 52%;
+  animation: rianell-planet-swirl 1.15s linear infinite;
+}
+
+.loading-sun-orbit__sun::after {
+  /* Inner fluid wobble to make swirl feel like liquid */
+  inset: 14% 12% 10%;
+  border-radius: 50% 42% 55% 44% / 48% 56% 40% 52%;
+  background: radial-gradient(circle at 38% 28%, rgba(239, 255, 244, 0.82), rgba(157, 236, 174, 0.65) 48%, rgba(74, 182, 101, 0.48) 100%);
+  mix-blend-mode: screen;
+  animation: rianell-planet-wobble 1.45s ease-in-out infinite;
 }
 
 .spinner {
@@ -5837,9 +6029,65 @@ body.loading .header-buttons-wrap {
   to { transform: translateX(-48px); }
 }
 
+@keyframes rianell-orbit-dot-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(123, 223, 140, 0.72), 0 0 0 1px rgba(123, 223, 140, 0.32);
+    filter: brightness(0.96);
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(168, 255, 184, 0.96), 0 0 24px rgba(123, 223, 140, 0.58), 0 0 0 1px rgba(170, 241, 180, 0.46);
+    filter: brightness(1.08);
+  }
+}
+
+@keyframes rianell-planet-swirl {
+  from { transform: rotate(0deg) scale(1.02); }
+  to { transform: rotate(360deg) scale(1.02); }
+}
+
+@keyframes rianell-planet-wobble {
+  0%,
+  100% {
+    transform: translate(-6%, -4%) rotate(-10deg) scale(0.92, 0.88);
+  }
+  50% {
+    transform: translate(8%, 6%) rotate(11deg) scale(1.06, 1.12);
+  }
+}
+
+@keyframes rianell-liquid-slosh {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(0.95, 0.9) rotate(-7deg);
+  }
+  50% {
+    transform: translate(3%, 4%) scale(1.05, 1.06) rotate(7deg);
+  }
+}
+
+@keyframes rianell-liquid-sheen {
+  from { transform: translateX(-140%) rotate(8deg); }
+  to { transform: translateX(140%) rotate(8deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .loading-sun-orbit__orbit {
     animation-duration: 7s;
+  }
+
+  .loading-sun-orbit__body::before,
+  .loading-sun-orbit__body::after {
+    animation: none;
+  }
+
+  .loading-sun-orbit__body {
+    animation: none;
+  }
+
+  .loading-sun-orbit__sun::before,
+  .loading-sun-orbit__sun::after {
+    animation: none;
   }
 
   .loading-wave-stack {
@@ -10066,6 +10314,89 @@ body.light-mode .goals-status-pill.below {
   line-height: 1.3;
 }
 
+.settings-carousel-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.42rem;
+  margin-top: 0.5rem;
+  min-height: 8px;
+}
+
+.settings-carousel-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(224, 242, 241, 0.22);
+  box-shadow: 0 0 0 1px rgba(123, 223, 140, 0.1);
+  opacity: 0.9;
+  overflow: hidden;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.settings-carousel-dot::before,
+.settings-carousel-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.24s ease;
+}
+
+.settings-carousel-dot::before {
+  /* Inner liquid body */
+  background: radial-gradient(circle at 46% 34%, rgba(212, 255, 220, 0.95) 0%, rgba(123, 223, 140, 0.85) 42%, rgba(71, 171, 96, 0.75) 100%);
+  transform: scale(0.82);
+}
+
+.settings-carousel-dot::after {
+  /* Liquid sheen that drifts, suggesting moving fluid */
+  background: linear-gradient(120deg, transparent 20%, rgba(218, 255, 227, 0.52) 46%, transparent 72%);
+  transform: translateX(-135%) rotate(6deg);
+}
+
+.settings-carousel-dot--active {
+  background: rgba(12, 42, 24, 0.85);
+  box-shadow:
+    0 0 0 1px rgba(123, 223, 140, 0.45),
+    0 0 8px rgba(123, 223, 140, 0.42);
+  transform: scale(1.35);
+  opacity: 1;
+}
+
+.settings-carousel-dot--active::before {
+  opacity: 1;
+  animation: settingsLiquidPulse 2.2s ease-in-out infinite;
+}
+
+.settings-carousel-dot--active::after {
+  opacity: 1;
+  animation: settingsLiquidSheen 2.6s ease-in-out infinite;
+}
+
+@keyframes settingsLiquidPulse {
+  0%,
+  100% {
+    transform: scale(0.8);
+    filter: saturate(1);
+  }
+  50% {
+    transform: scale(0.9);
+    filter: saturate(1.12);
+  }
+}
+
+@keyframes settingsLiquidSheen {
+  0% {
+    transform: translateX(-135%) rotate(6deg);
+  }
+  100% {
+    transform: translateX(145%) rotate(6deg);
+  }
+}
+
 .settings-carousel-side {
   display: none;
   flex-shrink: 0;
@@ -10196,6 +10527,23 @@ body.light-mode .settings-carousel-side:hover:not(:disabled) {
 
 body.light-mode .settings-carousel-meta {
   color: rgba(0, 0, 0, 0.5);
+}
+
+body.light-mode .settings-carousel-dot {
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .settings-carousel-dot--active {
+  background: rgba(46, 125, 50, 0.92);
+  box-shadow: 0 0 5px rgba(46, 125, 50, 0.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-carousel-dot--active::before,
+  .settings-carousel-dot--active::after {
+    animation: none;
+  }
 }
 
 .settings-overlay.settings-overlay--open .settings-menu {

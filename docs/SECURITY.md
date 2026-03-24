@@ -18,6 +18,12 @@ This document describes how **Rianell** (this health app) handles health-related
 
 Log files under **`logs/`** may contain client IPs, sync metadata, and dashboard activity. They are intended for **local debugging**. Do not ship log files with identifiable health content; delete or redact before sharing machine access. The Python server uses a **rotating** file handler (size-capped with backups) so a single log file cannot grow without bound.
 
+### Tk "Server Tinker" dashboard notes
+
+- The Tk dashboard (`server/main.py`) is a **local operator UI** for development/admin actions. It does not add remote network endpoints by itself.
+- The "Database Viewer" supports multi-row selection (`Treeview` extended mode). Selection is local UI state only; destructive actions still require explicit button actions and confirmation dialogs.
+- Colored log rendering in the Tk pane is display-only (line/tag styling); it does not alter the underlying file log content or retention policy.
+
 ## Local secrets directory (`security/`)
 
 - **`security/.env`** - preferred location for `PORT`, `HOST`, Supabase keys, and optional `ENCRYPTION_KEY`. Copy from **`security/.env.example`**. If this file is missing, the server still loads a **legacy** `.env` at the repository root (for existing checkouts).

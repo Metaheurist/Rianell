@@ -3296,7 +3296,7 @@ window.addEventListener('DOMContentLoaded', function() {
   var skipBtn = document.getElementById('logWizardSkipBtn');
   if (backBtn) backBtn.addEventListener('click', function() { logWizardGoBack(); });
   if (nextBtn) nextBtn.addEventListener('click', function() { logWizardGoNext(); });
-  if (skipBtn) skipBtn.addEventListener('click', function() { logWizardGoNext(); });
+  if (skipBtn) skipBtn.addEventListener('click', function() { logWizardSkipCurrentStep(); });
   var logFormEl = document.getElementById('logForm');
   if (logFormEl) {
     logFormEl.addEventListener('input', scheduleLogDraftPersist);
@@ -7675,17 +7675,17 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
           <div class="ai-pain-body-figure" aria-hidden="true">${painBodyFigureSVG}</div>
           <p class="ai-pain-body-legend"><span class="ai-legend-dot green"></span> good &nbsp; <span class="ai-legend-dot yellow"></span> discomfort &nbsp; <span class="ai-legend-dot red"></span> pain</p>
         </div>
-        <p class="ai-section-intro">Tap or scroll the table sideways on small screens. Severity uses colour <em>and</em> a text label.</p>
-        <div class="ai-pain-table-wrap" style="overflow-x: auto;">
-          <table class="ai-pain-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+        <p class="ai-section-intro">Severity uses colour <em>and</em> a text label.</p>
+        <div class="ai-pain-table-wrap">
+          <table class="ai-pain-table" style="width: 100%; border-collapse: collapse;">
             <caption class="visually-hidden">Pain and mild discomfort by body area for the selected period</caption>
             <thead>
               <tr style="border-bottom: 1px solid rgba(76, 175, 80, 0.3);">
-                <th scope="col" style="text-align: left; padding: 8px 12px;">Body part</th>
-                <th scope="col" style="text-align: right; padding: 8px 12px;">Mild days</th>
-                <th scope="col" style="text-align: right; padding: 8px 12px;">Pain days</th>
-                <th scope="col" style="text-align: right; padding: 8px 12px;">% of period</th>
-                <th scope="col" style="text-align: left; padding: 8px 12px;">Severity label</th>
+                <th scope="col" class="ai-pain-col-part" style="text-align: left; padding: 8px 12px;">Body part</th>
+                <th scope="col" class="ai-pain-col-mild" style="text-align: right; padding: 8px 12px;">Mild days</th>
+                <th scope="col" class="ai-pain-col-pain" style="text-align: right; padding: 8px 12px;">Pain days</th>
+                <th scope="col" class="ai-pain-col-period" style="text-align: right; padding: 8px 12px;">% of period</th>
+                <th scope="col" class="ai-pain-col-severity" style="text-align: left; padding: 8px 12px;">Severity label</th>
               </tr>
             </thead>
             <tbody>
@@ -7699,11 +7699,11 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
         else if (data.severityScore >= 4 || data.painRatio >= 0.4) severityLabel = 'Medium';
         const severityClass = severityLabel === 'High' ? 'ai-pain-severity-high' : (severityLabel === 'Medium' ? 'ai-pain-severity-medium' : 'ai-pain-severity-low');
         html += `<tr class="ai-animate-in" style="animation-delay: ${animationDelay + 50 + (index * 25)}ms; border-bottom: 1px solid rgba(255,255,255,0.06);">
-          <td style="padding: 8px 12px;">${escapeHTML(data.label)}</td>
-          <td style="text-align: right; padding: 8px 12px;"><span class="ai-brackets-highlight">${data.mildDays || 0}</span></td>
-          <td style="text-align: right; padding: 8px 12px;"><span class="ai-brackets-highlight">${data.painDays || 0}</span></td>
-          <td style="text-align: right; padding: 8px 12px;"><span class="ai-brackets-highlight">${pctOfPeriod}%</span></td>
-          <td style="padding: 8px 12px;"><span class="${severityClass} ai-brackets-highlight" style="padding: 2px 8px; border-radius: 6px; font-size: 0.85rem;">${severityLabel}</span></td>
+          <td class="ai-pain-col-part" style="padding: 8px 12px;">${escapeHTML(data.label)}</td>
+          <td class="ai-pain-col-mild" style="text-align: right; padding: 8px 12px;"><span class="ai-brackets-highlight">${data.mildDays || 0}</span></td>
+          <td class="ai-pain-col-pain" style="text-align: right; padding: 8px 12px;"><span class="ai-brackets-highlight">${data.painDays || 0}</span></td>
+          <td class="ai-pain-col-period" style="text-align: right; padding: 8px 12px;"><span class="ai-brackets-highlight">${pctOfPeriod}%</span></td>
+          <td class="ai-pain-col-severity" style="padding: 8px 12px;"><span class="${severityClass} ai-brackets-highlight" style="padding: 2px 8px; border-radius: 6px; font-size: 0.85rem;">${severityLabel}</span></td>
         </tr>`;
       });
     } else {
@@ -8924,7 +8924,8 @@ function clearOfflineQueue() {
 }
 
 // Goals & targets (localStorage key rianellGoals)
-var DEFAULT_GOALS = { steps: 0, hydration: 0, sleep: 0, goodDaysPerWeek: 0 };
+// Applied only when the user has never saved goals yet.
+var DEFAULT_GOALS = { steps: 10000, hydration: 9, sleep: 5, goodDaysPerWeek: 3 };
 var GLASS_VOLUME_L = 0.25; // liters per glass (for displaying L next to glasses)
 
 function getGoals() {
@@ -14909,6 +14910,31 @@ function bindSettingsCarouselTouchOnce() {
   );
 }
 
+function ensureSettingsCarouselDots(panes) {
+  var dotsWrap = document.getElementById('settingsCarouselDots');
+  if (!dotsWrap) return;
+  var n = panes && panes.length ? panes.length : 0;
+  if (n < 1) {
+    dotsWrap.innerHTML = '';
+    return;
+  }
+  if (dotsWrap.childElementCount === n) return;
+  dotsWrap.innerHTML = '';
+  for (var i = 0; i < n; i++) {
+    var dot = document.createElement('span');
+    dot.className = 'settings-carousel-dot';
+    dotsWrap.appendChild(dot);
+  }
+}
+
+function updateSettingsCarouselDots(activeIdx) {
+  var dots = document.querySelectorAll('#settingsCarouselDots .settings-carousel-dot');
+  if (!dots || !dots.length) return;
+  for (var i = 0; i < dots.length; i++) {
+    dots[i].classList.toggle('settings-carousel-dot--active', i === activeIdx);
+  }
+}
+
 function settingsCarouselGo(i) {
   var track = document.getElementById('settingsCarouselTrack');
   var vp = document.getElementById('settingsCarouselViewport');
@@ -14919,6 +14945,7 @@ function settingsCarouselGo(i) {
   var panes = track.querySelectorAll('.settings-carousel-pane');
   var n = panes.length;
   if (n < 1) return;
+  ensureSettingsCarouselDots(panes);
   if (i < 0) i = 0;
   if (i >= n) i = n - 1;
   track.setAttribute('data-settings-index', String(i));
@@ -14941,6 +14968,7 @@ function settingsCarouselGo(i) {
   });
   var title = (panes[i] && panes[i].getAttribute('data-settings-pane-title')) || '';
   if (meta) meta.textContent = String(i + 1) + ' / ' + n + (title ? ' - ' + title : '');
+  updateSettingsCarouselDots(i);
   window.settingsModalPaneIndex = i;
 }
 
@@ -17212,59 +17240,122 @@ function openLogWizardFromHome() {
 }
 
 function buildLogReviewSummaryHtml() {
-  var parts = [];
-  function line(label, val) {
-    if (val === undefined || val === null || val === '') return;
-    parts.push('<div class="log-review-line"><strong>' + escapeHTML(label) + ':</strong> ' + escapeHTML(String(val)) + '</div>');
-  }
-  function heading(t) {
-    parts.push('<div class="log-review-heading">' + escapeHTML(t) + '</div>');
-  }
-  var dateEl = document.getElementById('date');
-  var flareEl = document.getElementById('flare');
-  heading('Basics');
-  line('Date', dateEl ? dateEl.value : '');
-  line('Flare', flareEl ? flareEl.value : '');
-  heading('Vitals');
-  line('BPM', document.getElementById('bpm') && document.getElementById('bpm').value);
-  line('Weight', document.getElementById('weight') && document.getElementById('weight').value);
-  heading('Symptoms');
-  ['stiffness', 'jointPain', 'mobility', 'swelling'].forEach(function(id) {
+  var html = [];
+
+  function readValue(id) {
     var el = document.getElementById(id);
-    if (el && el.value) line(id, el.value + '/10');
-  });
-  line('Pain location', document.getElementById('painLocation') && document.getElementById('painLocation').value);
-  heading('Energy & day');
-  ['fatigue', 'sleep', 'mood', 'irritability', 'weatherSensitivity', 'dailyFunction'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el && el.value) line(id, el.value + '/10');
-  });
-  line('Steps', document.getElementById('steps') && document.getElementById('steps').value);
-  line('Hydration', document.getElementById('hydration') && document.getElementById('hydration').value);
-  var ec = document.getElementById('energyClarity');
-  if (ec && ec.value) line('Energy / clarity', ec.value);
-  if (typeof logFormStressorsItems !== 'undefined' && logFormStressorsItems.length) {
-    line('Stressors', logFormStressorsItems.join(', '));
+    return el ? String(el.value || '').trim() : '';
   }
+
+  function addRow(rows, label, value) {
+    if (value === undefined || value === null) return;
+    var v = String(value).trim();
+    if (!v) return;
+    rows.push(
+      '<div class="log-review-row">' +
+        '<span class="log-review-label">' + escapeHTML(label) + '</span>' +
+        '<span class="log-review-value">' + escapeHTML(v) + '</span>' +
+      '</div>'
+    );
+  }
+
+  function sectionCard(title, rows, options) {
+    var opts = options || {};
+    if (!rows.length && !opts.showWhenEmpty) return '';
+    var body = rows.length
+      ? rows.join('')
+      : '<div class="log-review-empty">Nothing added for this section</div>';
+    return (
+      '<section class="log-review-card">' +
+        '<h4 class="log-review-heading">' + escapeHTML(title) + '</h4>' +
+        '<div class="log-review-grid">' + body + '</div>' +
+      '</section>'
+    );
+  }
+
+  var basics = [];
+  addRow(basics, 'Date', readValue('date'));
+  addRow(basics, 'Flare', readValue('flare'));
+  html.push(sectionCard('Basics', basics, { showWhenEmpty: true }));
+
+  var vitals = [];
+  var bpm = readValue('bpm');
+  var weight = readValue('weight');
+  if (bpm) addRow(vitals, 'Heart rate', bpm + ' bpm');
+  if (weight) addRow(vitals, 'Weight', weight + ' ' + (appSettings && appSettings.weightUnit ? appSettings.weightUnit : 'kg'));
+  html.push(sectionCard('Vitals', vitals, { showWhenEmpty: true }));
+
+  var symptoms = [];
+  var symptomMap = {
+    stiffness: 'Stiffness',
+    jointPain: 'Joint pain',
+    mobility: 'Mobility',
+    swelling: 'Swelling'
+  };
+  Object.keys(symptomMap).forEach(function(id) {
+    var v = readValue(id);
+    if (v) addRow(symptoms, symptomMap[id], v + '/10');
+  });
+  addRow(symptoms, 'Pain locations', readValue('painLocation'));
   if (typeof logFormSymptomsItems !== 'undefined' && logFormSymptomsItems.length) {
-    line('Symptoms', logFormSymptomsItems.join(', '));
+    addRow(symptoms, 'Selected symptoms', logFormSymptomsItems.join(', '));
   }
-  heading('Food & exercise');
+  html.push(sectionCard('Symptoms & pain', symptoms));
+
+  var wellbeing = [];
+  var wellbeingMap = {
+    fatigue: 'Fatigue',
+    sleep: 'Sleep quality',
+    mood: 'Mood',
+    irritability: 'Irritability',
+    weatherSensitivity: 'Weather sensitivity',
+    dailyFunction: 'Daily function'
+  };
+  Object.keys(wellbeingMap).forEach(function(id) {
+    var v = readValue(id);
+    if (v) addRow(wellbeing, wellbeingMap[id], v + '/10');
+  });
+  var steps = readValue('steps');
+  var hydration = readValue('hydration');
+  if (steps) addRow(wellbeing, 'Steps', steps);
+  if (hydration) addRow(wellbeing, 'Hydration', hydration + ' glasses');
+  addRow(wellbeing, 'Energy / clarity', readValue('energyClarity'));
+  if (typeof logFormStressorsItems !== 'undefined' && logFormStressorsItems.length) {
+    addRow(wellbeing, 'Stressors', logFormStressorsItems.join(', '));
+  }
+  html.push(sectionCard('Energy & day', wellbeing));
+
+  var foodExercise = [];
   if (typeof logFormFoodByCategory !== 'undefined') {
+    var mealNames = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Snack' };
     ['breakfast', 'lunch', 'dinner', 'snack'].forEach(function(meal) {
       var arr = logFormFoodByCategory[meal] || [];
-      if (arr.length) line(meal, arr.map(function(x) { return typeof x === 'string' ? x : (x.name || ''); }).filter(Boolean).join(', '));
+      if (!arr.length) return;
+      var mealText = arr
+        .map(function(x) { return typeof x === 'string' ? x : (x && x.name ? x.name : ''); })
+        .filter(Boolean)
+        .join(', ');
+      addRow(foodExercise, mealNames[meal], mealText);
     });
   }
   if (typeof logFormExerciseItems !== 'undefined' && logFormExerciseItems.length) {
-    line('Exercise', logFormExerciseItems.map(function(x) { return typeof x === 'string' ? x : (x.name || ''); }).filter(Boolean).join(', '));
+    var exText = logFormExerciseItems
+      .map(function(x) { return typeof x === 'string' ? x : (x && x.name ? x.name : ''); })
+      .filter(Boolean)
+      .join(', ');
+    addRow(foodExercise, 'Exercise', exText);
   }
-  heading('Medication & notes');
+  html.push(sectionCard('Food & exercise', foodExercise));
+
+  var medsNotes = [];
   if (typeof logFormMedications !== 'undefined' && logFormMedications.length) {
-    line('Medications', logFormMedications.map(function(m) { return m.name; }).join(', '));
+    addRow(medsNotes, 'Medications', logFormMedications.map(function(m) { return m.name; }).join(', '));
   }
-  line('Notes', document.getElementById('notes') && document.getElementById('notes').value);
-  return parts.length ? parts.join('') : '<p class="log-review-line">No optional details filled - you can still save.</p>';
+  addRow(medsNotes, 'Notes', readValue('notes'));
+  html.push(sectionCard('Medication & notes', medsNotes));
+
+  var output = html.join('');
+  return output || '<p class="log-review-empty">No details yet - you can still save after adding required fields.</p>';
 }
 
 function updateLogWizardChrome() {
@@ -17383,6 +17474,84 @@ function logWizardGoNext() {
     }
     return;
   }
+  if (currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1) {
+    setLogWizardStep(currentLogWizardStep + 1);
+  }
+}
+
+function resetLogWizardFieldToDefault(el) {
+  if (!el) return;
+  var tag = (el.tagName || '').toLowerCase();
+  var type = (el.type || '').toLowerCase();
+  if (tag === 'select') {
+    el.selectedIndex = 0;
+    return;
+  }
+  if (type === 'checkbox' || type === 'radio') {
+    el.checked = false;
+    return;
+  }
+  if (type === 'range') {
+    var attrVal = el.getAttribute('value');
+    if (attrVal != null && attrVal !== '') {
+      el.value = attrVal;
+    } else if (el.min !== '' && !isNaN(parseFloat(el.min))) {
+      el.value = el.min;
+    } else {
+      el.value = '0';
+    }
+    if (typeof updateSliderColor === 'function') updateSliderColor(el);
+    return;
+  }
+  if (type === 'number') {
+    el.value = '';
+    return;
+  }
+  if (tag === 'textarea' || tag === 'input') {
+    el.value = '';
+  }
+}
+
+function clearLogWizardStepData(step) {
+  var stepEl = document.querySelector('.log-wizard-step[data-log-step="' + step + '"]');
+  if (stepEl) {
+    stepEl.querySelectorAll('input, select, textarea').forEach(function(el) {
+      if (!el || !el.id) return;
+      resetLogWizardFieldToDefault(el);
+      if (typeof formValidator !== 'undefined' && formValidator.clearFieldError) {
+        formValidator.clearFieldError(el.id);
+      }
+    });
+  }
+
+  if (step === 2) {
+    if (typeof resetPainBodyDiagram === 'function') resetPainBodyDiagram('painBodyDiagram', 'painLocation');
+    if (typeof logFormSymptomsItems !== 'undefined') logFormSymptomsItems = [];
+    if (typeof renderLogSymptomsItems === 'function') renderLogSymptomsItems();
+  } else if (step === 3) {
+    if (typeof setEnergyClaritySelection === 'function') setEnergyClaritySelection('');
+  } else if (step === 4) {
+    if (typeof logFormStressorsItems !== 'undefined') logFormStressorsItems = [];
+    if (typeof renderLogStressorsItems === 'function') renderLogStressorsItems();
+  } else if (step === 6) {
+    if (typeof logFormFoodByCategory !== 'undefined') {
+      logFormFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
+    }
+    if (typeof renderLogFoodItems === 'function') renderLogFoodItems();
+  } else if (step === 7) {
+    if (typeof logFormExerciseItems !== 'undefined') logFormExerciseItems = [];
+    if (typeof renderLogExerciseItems === 'function') renderLogExerciseItems();
+  } else if (step === 8) {
+    if (typeof logFormMedications !== 'undefined') logFormMedications = [];
+    if (typeof clearMedTimesDraft === 'function') clearMedTimesDraft();
+    if (typeof renderLogMedicationsItems === 'function') renderLogMedicationsItems();
+  }
+}
+
+function logWizardSkipCurrentStep() {
+  var canSkip = currentLogWizardStep > 0 && currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1;
+  if (!canSkip) return;
+  clearLogWizardStepData(currentLogWizardStep);
   if (currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1) {
     setLogWizardStep(currentLogWizardStep + 1);
   }

@@ -126,9 +126,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=68" as="style">
-  <link rel="preload" href="app.js?v=20" as="script">
-  <link rel="stylesheet" href="styles.css?v=68" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=68&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="preload" href="styles.css?v=75" as="style">
+  <link rel="preload" href="app.js?v=25" as="script">
+  <link rel="stylesheet" href="styles.css?v=75" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=75&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #070807; color: #e8eeec; margin: 0; padding: 0; }
@@ -206,8 +206,8 @@
     /* Orbiting sun (same mint palette as legacy spinner) */
     #loadingOverlay .loading-sun-orbit {
       position: relative;
-      width: 72px;
-      height: 72px;
+      width: 96px;
+      height: 96px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -221,29 +221,83 @@
     }
     #loadingOverlay .loading-sun-orbit__orbit {
       position: absolute;
-      width: 72px;
-      height: 72px;
+      width: 96px;
+      height: 96px;
       animation: rianell-orbit 2.8s linear infinite;
     }
     #loadingOverlay .loading-sun-orbit__body {
       position: absolute;
-      top: 2px;
+      top: 3px;
       left: 50%;
-      width: 11px;
-      height: 11px;
-      margin-left: -5.5px;
+      width: 13px;
+      height: 13px;
+      margin-left: -6.5px;
       border-radius: 50%;
+      overflow: hidden;
       background: radial-gradient(circle at 35% 35%, #e8fff0, #9ae8a4 55%, #52b85f);
       box-shadow: 0 0 10px rgba(123, 223, 140, 0.85), 0 0 0 1px rgba(123, 223, 140, 0.35);
+      isolation: isolate;
+      animation: rianell-orbit-dot-glow 1.45s ease-in-out infinite;
+    }
+    #loadingOverlay .loading-sun-orbit__body::before,
+    #loadingOverlay .loading-sun-orbit__body::after {
+      content: "";
+      position: absolute;
+      inset: -20% -10%;
+      border-radius: 45%;
+      pointer-events: none;
+    }
+    #loadingOverlay .loading-sun-orbit__body::before {
+      background: radial-gradient(circle at 48% 36%, rgba(236, 255, 242, 0.95) 0%, rgba(170, 241, 180, 0.9) 52%, rgba(86, 191, 110, 0.88) 100%);
+      transform-origin: 50% 62%;
+      animation: rianell-liquid-slosh 1.25s ease-in-out infinite;
+    }
+    #loadingOverlay .loading-sun-orbit__body::after {
+      background: linear-gradient(120deg, transparent 25%, rgba(236, 255, 242, 0.62) 50%, transparent 75%);
+      transform: translateX(-140%) rotate(8deg);
+      animation: rianell-liquid-sheen 1.7s linear infinite;
+      mix-blend-mode: screen;
     }
     #loadingOverlay .loading-sun-orbit__sun {
       position: relative;
       z-index: 2;
-      width: 30px;
-      height: 30px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
-      background: radial-gradient(circle at 38% 32%, #e8fff0, #7bdf8c 48%, #3d8f4a 100%);
-      box-shadow: 0 0 22px rgba(123, 223, 140, 0.55), 0 0 44px rgba(123, 223, 140, 0.22);
+      overflow: hidden;
+      background: radial-gradient(circle at 38% 32%, #ecfff3, #7bdf8c 48%, #3d8f4a 100%);
+      box-shadow: 0 0 24px rgba(123, 223, 140, 0.58), 0 0 52px rgba(123, 223, 140, 0.26);
+      isolation: isolate;
+    }
+    #loadingOverlay .loading-sun-orbit__sun::before,
+    #loadingOverlay .loading-sun-orbit__sun::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+    }
+    #loadingOverlay .loading-sun-orbit__sun::before {
+      inset: -18%;
+      border-radius: 43%;
+      background:
+        conic-gradient(
+          from 0deg,
+          rgba(213, 255, 223, 0.08) 0deg,
+          rgba(178, 250, 190, 0.9) 62deg,
+          rgba(95, 201, 122, 0.38) 120deg,
+          rgba(213, 255, 223, 0.12) 180deg,
+          rgba(130, 230, 151, 0.8) 258deg,
+          rgba(95, 201, 122, 0.25) 320deg,
+          rgba(213, 255, 223, 0.08) 360deg
+        );
+      transform-origin: 50% 52%;
+      animation: rianell-planet-swirl 1.15s linear infinite;
+    }
+    #loadingOverlay .loading-sun-orbit__sun::after {
+      inset: 14% 12% 10%;
+      border-radius: 50% 42% 55% 44% / 48% 56% 40% 52%;
+      background: radial-gradient(circle at 38% 28%, rgba(239, 255, 244, 0.82), rgba(157, 236, 174, 0.65) 48%, rgba(74, 182, 101, 0.48) 100%);
+      mix-blend-mode: screen;
+      animation: rianell-planet-wobble 1.45s ease-in-out infinite;
     }
     #loadingOverlay .loading-text {
       color: rgba(224, 242, 241, 0.92);
@@ -299,8 +353,39 @@
       from { transform: translateX(0); }
       to { transform: translateX(-48px); }
     }
+    @keyframes rianell-orbit-dot-glow {
+      0%, 100% {
+        box-shadow: 0 0 8px rgba(123, 223, 140, 0.72), 0 0 0 1px rgba(123, 223, 140, 0.32);
+        filter: brightness(0.96);
+      }
+      50% {
+        box-shadow: 0 0 14px rgba(168, 255, 184, 0.96), 0 0 24px rgba(123, 223, 140, 0.58), 0 0 0 1px rgba(170, 241, 180, 0.46);
+        filter: brightness(1.08);
+      }
+    }
+    @keyframes rianell-planet-swirl {
+      from { transform: rotate(0deg) scale(1.02); }
+      to { transform: rotate(360deg) scale(1.02); }
+    }
+    @keyframes rianell-planet-wobble {
+      0%, 100% { transform: translate(-6%, -4%) rotate(-10deg) scale(0.92, 0.88); }
+      50% { transform: translate(8%, 6%) rotate(11deg) scale(1.06, 1.12); }
+    }
+    @keyframes rianell-liquid-slosh {
+      0%, 100% { transform: translate(0, 0) scale(0.95, 0.9) rotate(-7deg); }
+      50% { transform: translate(3%, 4%) scale(1.05, 1.06) rotate(7deg); }
+    }
+    @keyframes rianell-liquid-sheen {
+      from { transform: translateX(-140%) rotate(8deg); }
+      to { transform: translateX(140%) rotate(8deg); }
+    }
     @media (prefers-reduced-motion: reduce) {
       #loadingOverlay .loading-sun-orbit__orbit { animation-duration: 7s; }
+      #loadingOverlay .loading-sun-orbit__body::before,
+      #loadingOverlay .loading-sun-orbit__body::after { animation: none; }
+      #loadingOverlay .loading-sun-orbit__body { animation: none; }
+      #loadingOverlay .loading-sun-orbit__sun::before,
+      #loadingOverlay .loading-sun-orbit__sun::after { animation: none; }
       #loadingOverlay .loading-wave-stack { animation-duration: 3.5s; }
     }
     /* Hide main content until loaded; keep loading overlay visible so user sees loader */
@@ -374,6 +459,7 @@
         <div class="settings-header-text">
           <h3 class="settings-title">Settings</h3>
           <p class="settings-carousel-meta" id="settingsCarouselMeta" aria-live="polite"></p>
+          <div class="settings-carousel-dots" id="settingsCarouselDots" aria-hidden="true"></div>
         </div>
         <button type="button" class="settings-close" onclick="event.preventDefault(); event.stopPropagation(); closeSettings();">&times;</button>
       </div>
@@ -2531,7 +2617,7 @@
     }
   })();
   </script>
-  <script src="app.js?v=20"></script>
+  <script src="app.js?v=25"></script>
   <script src="security-utils.js"></script>
   <script src="encryption-utils.js"></script>
   <script src="cloud-sync.js?v=2"></script>
