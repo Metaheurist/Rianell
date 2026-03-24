@@ -116,7 +116,7 @@ jobs:
         working-directory: react-app
         run: npm ci || npm install
 
-      - name: Copy web app and build (skip function-trace - smaller JS for APK)
+      - name: Copy web app and build (minified legacy bundle for APK — web/.android-dist)
         run: npm run build:apk
 
       - name: Add Android platform (if not present)
@@ -211,7 +211,7 @@ jobs:
         working-directory: react-app
         run: npm ci || npm install
 
-      - name: Copy web app and build (skip function-trace - smaller JS for native app)
+      - name: Copy web app and build (minified legacy bundle — web/.android-dist)
         run: npm run build:apk
 
       - name: Add iOS platform (if not present)
