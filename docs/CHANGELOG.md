@@ -2,7 +2,20 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.1** - live theme apply (no restart), settings icon row mobile alignment fix, and home-only MOTD rendering.
+**Latest: v1.45.2** - CI unit-test gate for app functionality, plus docs sync.
+
+### v1.45.2 - 2026-03-24 - CI unit tests for app functionality
+
+- **CI / Workflow**:
+  - Added a dedicated `unit-tests` job to `.github/workflows/ci.yml`.
+  - New test path runs `npm run test:unit` on push and pull requests.
+  - Android, iOS, Server EXE, and Pages deploy jobs now depend on unit-test success.
+- **Tests / App functionality**:
+  - Added Node unit tests (`tests/unit/app-functionality.test.mjs`) to verify core app wiring:
+    - bug report modal ids and launch binding,
+    - supported global theme options,
+    - presence of key runtime hooks (theme switch, MOTD title update, bug-report submit, voice input init).
+  - Added root script `test:unit` in `package.json`.
 
 ### v1.45.1 - 2026-03-24 - Theme switch UX + mobile settings alignment
 
