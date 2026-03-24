@@ -9842,7 +9842,7 @@ function updateHeartbeatAnimation() {
   if (logs.length === 0) {
     // Default to 72 BPM if no logs exist
     const defaultBPM = 72;
-    const duration = Math.max(0.3, Math.min(2.0, 60 / defaultBPM));
+    const duration = Math.max(0.8, Math.min(3.2, (60 / defaultBPM) * 1.6));
     heartbeatPath.style.animationDuration = `${duration}s`;
     return;
   }
@@ -9854,14 +9854,13 @@ function updateHeartbeatAnimation() {
   if (isNaN(latestBPM) || latestBPM < 30 || latestBPM > 200) {
     // Invalid BPM, use default
     const defaultBPM = 72;
-    const duration = Math.max(0.3, Math.min(2.0, 60 / defaultBPM));
+    const duration = Math.max(0.8, Math.min(3.2, (60 / defaultBPM) * 1.6));
     heartbeatPath.style.animationDuration = `${duration}s`;
     return;
   }
   
-  // Calculate animation duration: 60 seconds / BPM = seconds per beat
-  // Clamp between 0.3s (200 BPM) and 2.0s (30 BPM) for reasonable visual range
-  const duration = Math.max(0.3, Math.min(2.0, 60 / latestBPM));
+  // Slower, calmer ECG visual cadence while still reflecting relative BPM.
+  const duration = Math.max(0.8, Math.min(3.2, (60 / latestBPM) * 1.6));
   heartbeatPath.style.animationDuration = `${duration}s`;
   
   Logger.debug('Heartbeat animation updated', { bpm: latestBPM, durationSec: duration.toFixed(2) });
@@ -17104,11 +17103,13 @@ function scheduleDashboardMotdWithLlm(fallbackTitle) {
 function updateDashboardTitle() {
   const titleElement = document.getElementById('dashboardTitle');
   if (!titleElement) return;
+  const titleContainer = document.querySelector('.title-container');
 
   const activeTab = tabNameRef || 'home';
   if (activeTab !== 'home') {
-    titleElement.textContent = 'Rianell';
-    titleElement.setAttribute('data-text', 'Rianell');
+    if (titleContainer) titleContainer.style.display = 'none';
+    titleElement.textContent = '';
+    titleElement.setAttribute('data-text', '');
     document.title = 'Rianell';
     if (typeof syncMobileFixedTitlePadding === 'function') {
       requestAnimationFrame(function() {
@@ -17118,6 +17119,7 @@ function updateDashboardTitle() {
     return;
   }
 
+  if (titleContainer) titleContainer.style.display = '';
   const fallbackTitle = getRandomMotdFallback();
 
   titleElement.textContent = fallbackTitle;
