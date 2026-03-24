@@ -235,8 +235,8 @@ a:focus-visible,
 }
 
 textarea + .voice-input-btn {
-  top: 0.8rem;
-  transform: none;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .voice-input-btn__icon {

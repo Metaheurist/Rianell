@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.2 documentation sync
+
+- Added CI app functionality unit-test coverage (`npm run test:unit`) with workflow gating before build/release/deploy jobs.
+
 ### v1.45.1 documentation sync
 
 - Global theme switching now applies instantly in place without forcing an app restart/reload.

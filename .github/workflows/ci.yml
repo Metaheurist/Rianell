@@ -8,13 +8,14 @@
 #   1. paths-filter      - Push only: whether to run mobile build/release (skip if
 #                          the only changed paths are under App build/, so bot
 #                          commits do not rebuild APKs or duplicate releases).
-#   2. android / ios     - PR: always. Push: only when paths-filter says so.
-#   3. server-exe        - Build Windows server EXE artifacts (x64 + x86) with PyInstaller.
-#   4. commit-app-build  - Push + mobile: commit App build/ to the branch.
-#   5. publish-release   - Push + mobile: GitHub Release with Android + iOS + Server assets.
-#   6. deploy-pages      - Push to main/master: site from web/ + App build/.
-#   7. readme-build-info - After deploy (web-only runs): README beta table + build numbers.
-#   8. security-audit    - Push / PR / workflow_dispatch: Gitleaks + npm + pip audits.
+#   2. unit-tests        - App unit checks (Node test runner) for core UI wiring.
+#   3. android / ios     - PR: always. Push: only when paths-filter says so.
+#   4. server-exe        - Build Windows server EXE artifacts (x64 + x86) with PyInstaller.
+#   5. commit-app-build  - Push + mobile: commit App build/ to the branch.
+#   6. publish-release   - Push + mobile: GitHub Release with Android + iOS + Server assets.
+#   7. deploy-pages      - Push to main/master: site from web/ + App build/.
+#   8. readme-build-info - After deploy (web-only runs): README beta table + build numbers.
+#   9. security-audit    - Push / PR / workflow_dispatch: Gitleaks + npm + pip audits.
 #
 # Manual runs (workflow_dispatch): security audit only; mobile jobs are skipped.
 # =============================================================================
@@ -146,11 +147,33 @@ jobs:
           path: ci-minified/
 
   # ---------------------------------------------------------------------------
+  # Unit tests (app functionality wiring checks)
+  # ---------------------------------------------------------------------------
+  unit-tests:
+    name: Unit tests
+    needs: [paths-filter]
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install root dependencies
+        run: npm ci
+      - name: Run app unit tests
+        run: npm run test:unit
+
+  # ---------------------------------------------------------------------------
   # Android APK (PR: CI; push: only when non–App-build paths changed)
   # ---------------------------------------------------------------------------
   android:
     name: Android APK
-    needs: [paths-filter, prepare-minified-assets]
+    needs: [paths-filter, prepare-minified-assets, unit-tests]
     if: |
       github.event_name == 'pull_request' ||
       (github.event_name == 'push' && needs.paths-filter.outputs.mobile_release == 'true')
@@ -259,7 +282,7 @@ jobs:
   # ---------------------------------------------------------------------------
   ios:
     name: iOS project + simulator
-    needs: [paths-filter, prepare-minified-assets]
+    needs: [paths-filter, prepare-minified-assets, unit-tests]
     if: |
       github.event_name == 'pull_request' ||
       (github.event_name == 'push' && needs.paths-filter.outputs.mobile_release == 'true')
@@ -447,7 +470,7 @@ jobs:
   # ---------------------------------------------------------------------------
   server-exe:
     name: Server EXE (${{ matrix.arch }})
-    needs: [paths-filter, prepare-minified-assets]
+    needs: [paths-filter, prepare-minified-assets, unit-tests]
     if: |
       github.event_name == 'pull_request' ||
       (github.event_name == 'push' && needs.paths-filter.outputs.mobile_release == 'true')
@@ -730,7 +753,7 @@ jobs:
   deploy-pages:
     name: Deploy to GitHub Pages
     if: github.event_name == 'push'
-    needs: [prepare-minified-assets]
+    needs: [prepare-minified-assets, unit-tests]
     runs-on: ubuntu-latest
     environment: pages
     concurrency:
