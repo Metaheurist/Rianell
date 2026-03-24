@@ -104,6 +104,10 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
+      - name: Install React app dependencies
+        working-directory: react-app
+        run: npm ci
+
       - name: Build minified legacy bundle (temp)
         run: npm run build:web:apk
 
