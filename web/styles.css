@@ -617,6 +617,11 @@ body.dark-mode {
   perspective-origin: 50% 40%;
 }
 
+/* MOTD title + ECG strip must only appear on Home tab. */
+body.tab-not-home .title-container {
+  display: none !important;
+}
+
 h1, h2 {
   color: var(--neon-lime);
   text-align: center;
