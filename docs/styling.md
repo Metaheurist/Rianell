@@ -35,7 +35,11 @@ Symptom / energy / stressor “add” controls use **content-sized pill** button
 
 ## AI Analysis mobile slides
 
-On narrow viewports, AI timeline sections can sit in a horizontal pager (`.ai-mobile-pager`). Desktop uses **‹ ›** buttons; mobile may show a **first-visit swipe cue** (animated sweep, `localStorage` key `healthApp_aiSwipeCueSeen`), skipped when **`prefers-reduced-motion: reduce`** or viewport **≥ 769px**.
+On narrow viewports, AI timeline sections can sit in horizontal **slides** (`.ai-mobile-pager` → `.ai-mobile-pager-track` → `.ai-mobile-pager-pane`). **Desktop** uses **‹ ›** on the sides; **mobile** hides those and relies on swipe.
+
+**Affordance (no caption):** panes are slightly **narrower than the track** (`max-width: 768px` rules) so the **next card peeks** at the edge; a **dot row** (`#aiMobilePagerDots`, `.ai-mobile-pager-dot`) shows slide count. JavaScript resolves the active slide from **pane centers vs. scroll position**, not `scrollLeft / trackWidth`, so snap and height stay aligned.
+
+**First visit:** optional **shimmer** bar only (`#aiMobilePagerSwipeCue`); **`localStorage`** `healthApp_aiSwipeCueSeen`; dismiss on horizontal scroll or timeout; respect **`prefers-reduced-motion: reduce`**; not shown **≥ 769px**.
 
 ## Tutorial onboarding
 
@@ -44,6 +48,14 @@ The first-run tutorial is a slide deck with **‹ ›** and swipe; the bottom **
 ## Reduced motion
 
 Where animations are decorative (swipe cue, transitions), respect **`prefers-reduced-motion: reduce`** in CSS and/or avoid injecting animated UI in JavaScript.
+
+## Data Management (Settings)
+
+The **Export / Import / Install web app** tiles and the **Clear all data** action use the same **`--btn-chrome-*`** language as other settings controls (dark tile, thin mint border, depth shadow). **Clear** uses a **destructive** variant (dark red tint, red border) rather than flat bright red.
+
+## App Installation (Settings carousel)
+
+**Install on Android**, **Install on iOS** (and the **Install on this iPhone** PWA helper) use **`settings-data-btn`** + **`install-android-btn`**, **`install-ios-btn`**, or **`install-ios-device-btn`** with the same chrome as the rest of Settings (not solid green/grey/blue platform fills). Brand icons use **`var(--neon-lime)`**; Beta/Alpha badges stay distinct.
 
 ## Build
 

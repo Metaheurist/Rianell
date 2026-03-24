@@ -52,6 +52,10 @@ server_thread = config.server_thread
 server_lock = config.server_lock
 LOG_FILE = config.LOG_FILE
 
+# Watchdog file observer (started in main(); controlled from Tk dashboard)
+file_observer = None  # type: ignore[var-annotated]
+watchdog_watch_path = None  # str | None — directory watched for live reload
+
 get_encryption_key = encryption.get_encryption_key
 encrypt_anonymized_data = encryption.encrypt_anonymized_data
 decrypt_anonymized_data = encryption.decrypt_anonymized_data
@@ -883,6 +887,64 @@ def notify_sse_clients():
     file_change_event.set()
     logger.info(f"Notified {n} SSE client(s) to reload")
 
+
+def signal_clients_reload():
+    """Tell connected browsers/devices to reload (same mechanism as live-reload after file edits)."""
+    notify_sse_clients()
+
+
+def pause_file_observer():
+    """Stop the watchdog Observer (pauses auto-reload on file changes)."""
+    global file_observer
+    if not WATCHDOG_AVAILABLE:
+        return False, "Watchdog library not installed (pip install watchdog)."
+    if not file_observer:
+        return False, "File observer was not started."
+    if not file_observer.is_alive():
+        return True, "File watch is already paused."
+    try:
+        file_observer.stop()
+        file_observer.join(timeout=10)
+        logger.info("File watcher paused from dashboard")
+        return True, "File watch paused. Auto-reload on save is off until you start again."
+    except Exception as e:
+        logger.error(f"pause_file_observer: {e}", exc_info=True)
+        return False, str(e)
+
+
+def resume_file_observer():
+    """Start or restart the watchdog Observer (must create a new Observer after stop)."""
+    global file_observer
+    if not WATCHDOG_AVAILABLE:
+        return False, "Watchdog library not installed (pip install watchdog)."
+    if not watchdog_watch_path:
+        return False, "Watch path not set (internal error)."
+    if file_observer and file_observer.is_alive():
+        return True, "File watch is already running."
+    try:
+        event_handler = FileChangeHandler()
+        obs = Observer()
+        obs.schedule(event_handler, watchdog_watch_path, recursive=True)
+        obs.start()
+        file_observer = obs
+        logger.info("File watcher resumed from dashboard")
+        return True, "File watch started. Changes under web/ will trigger reload on devices."
+    except Exception as e:
+        logger.error(f"resume_file_observer: {e}", exc_info=True)
+        return False, str(e)
+
+
+def watchdog_status_label():
+    """Short status string for the dashboard."""
+    if not WATCHDOG_AVAILABLE:
+        return "File watch: not available (install watchdog)"
+    if not file_observer:
+        return "File watch: not started"
+    if file_observer.is_alive():
+        return "File watch: active"
+    return "File watch: paused"
+
+
 # FileChangeHandler class - only defined if watchdog is available
 if WATCHDOG_AVAILABLE:
     class FileChangeHandler(FileSystemEventHandler):
@@ -1019,7 +1081,7 @@ def create_server_dashboard():
     
     root = tk.Tk()
     root.title("Rianell Server Dashboard")
-    root.geometry("900x700")
+    root.geometry("920x760")
     root.configure(bg='#1e1e1e')
     
     # Style
@@ -1068,8 +1130,47 @@ def create_server_dashboard():
     server_status.pack(side=tk.LEFT, anchor=tk.W)
     open_app_btn = ttk.Button(status_top, text="Open app in browser", command=open_app_in_browser)
     open_app_btn.pack(side=tk.LEFT, padx=(12, 0))
-    
-    
+
+    # Live reload: watchdog + manual push to devices (SSE)
+    reload_row = ttk.Frame(status_frame)
+    reload_row.pack(fill=tk.X, pady=(10, 0))
+
+    watchdog_lbl = ttk.Label(reload_row, text=watchdog_status_label(), style='Status.TLabel')
+    watchdog_lbl.pack(side=tk.LEFT, anchor=tk.W)
+
+    def refresh_watchdog_label():
+        watchdog_lbl.config(text=watchdog_status_label())
+
+    def on_pause_watch():
+        ok, msg = pause_file_observer()
+        refresh_watchdog_label()
+        if not ok:
+            messagebox.showwarning("File watch", msg)
+
+    def on_start_watch():
+        ok, msg = resume_file_observer()
+        refresh_watchdog_label()
+        if not ok:
+            messagebox.showerror("File watch", msg)
+
+    def on_push_reload():
+        signal_clients_reload()
+        messagebox.showinfo(
+            "Devices",
+            "Reload signal sent to connected browsers.\n"
+            "Open tabs / devices using live reload will refresh.",
+        )
+
+    pause_watch_btn = ttk.Button(reload_row, text="Pause file watch", command=on_pause_watch)
+    pause_watch_btn.pack(side=tk.LEFT, padx=(12, 4))
+    start_watch_btn = ttk.Button(reload_row, text="Start file watch", command=on_start_watch)
+    start_watch_btn.pack(side=tk.LEFT, padx=4)
+    push_reload_btn = ttk.Button(reload_row, text="Push reload to devices", command=on_push_reload)
+    push_reload_btn.pack(side=tk.LEFT, padx=(16, 0))
+    if not WATCHDOG_AVAILABLE:
+        pause_watch_btn.config(state='disabled')
+        start_watch_btn.config(state='disabled')
+
     # Supabase Database Controls
     supabase_frame = ttk.LabelFrame(main_frame, text="Supabase Database", padding="10")
     supabase_frame.pack(fill=tk.X, pady=5)
@@ -1234,10 +1335,12 @@ def create_server_dashboard():
     # Add refresh button to reload conditions
     refresh_conditions_btn = ttk.Button(search_frame, text="Refresh Conditions", command=load_available_conditions)
     refresh_conditions_btn.pack(side=tk.LEFT, padx=5)
-    
-    # Action frame (renamed from delete_frame, contains export and generate buttons)
-    action_frame = ttk.Frame(supabase_frame)
-    action_frame.pack(fill=tk.X, pady=5)
+
+    # Data tools: destructive / bulk actions grouped
+    data_tools = ttk.LabelFrame(supabase_frame, text="Data tools", padding="8")
+    data_tools.pack(fill=tk.X, pady=(8, 4))
+    action_frame = ttk.Frame(data_tools)
+    action_frame.pack(fill=tk.X)
     
     # Export frame
     def export_data():
@@ -1286,7 +1389,7 @@ def create_server_dashboard():
         ttk.Button(dialog, text="Cancel", command=dialog.destroy).pack()
     
     export_btn = ttk.Button(action_frame, text="Export to CSV", command=export_data)
-    export_btn.pack(side=tk.LEFT, padx=5)
+    export_btn.pack(side=tk.LEFT, padx=4, pady=2)
     
     # Wipe database function
     def wipe_database():
@@ -1380,7 +1483,7 @@ def create_server_dashboard():
             messagebox.showerror("Error", f"Failed to wipe database:\n{str(e)[:100]}")
     
     wipe_btn = ttk.Button(action_frame, text="Wipe Database", command=wipe_database)
-    wipe_btn.pack(side=tk.LEFT, padx=5)
+    wipe_btn.pack(side=tk.LEFT, padx=4, pady=2)
     
     # Generate and post sample data frame
     def generate_sample_data():
@@ -1490,7 +1593,7 @@ def create_server_dashboard():
         ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5, expand=True, fill=tk.X)
     
     generate_btn = ttk.Button(action_frame, text="Generate Sample Data", command=generate_sample_data)
-    generate_btn.pack(side=tk.LEFT, padx=5)
+    generate_btn.pack(side=tk.LEFT, padx=4, pady=2)
     
     # Generate CSV sample data
     def generate_csv_sample():
@@ -1562,14 +1665,20 @@ def create_server_dashboard():
         ttk.Button(dialog, text="Cancel", command=dialog.destroy).pack()
     
     generate_csv_btn = ttk.Button(action_frame, text="Generate CSV File", command=generate_csv_sample)
-    generate_csv_btn.pack(side=tk.LEFT, padx=5)
-    
+    generate_csv_btn.pack(side=tk.LEFT, padx=4, pady=2)
+
     # Database Viewer
     db_viewer_frame = ttk.LabelFrame(main_frame, text="Database Viewer", padding="10")
     db_viewer_frame.pack(fill=tk.BOTH, expand=True, pady=5)
-    
+
+    viewer_toolbar = ttk.Frame(db_viewer_frame)
+    viewer_toolbar.pack(fill=tk.X, pady=(0, 6))
+
+    viewer_body = ttk.Frame(db_viewer_frame)
+    viewer_body.pack(fill=tk.BOTH, expand=True)
+
     # Treeview for database records (with multi-select enabled)
-    viewer_tree = ttk.Treeview(db_viewer_frame, columns=('id', 'condition', 'date', 'bpm', 'weight', 'fatigue', 'stiffness', 'sleep', 'mood', 'steps', 'flare'), show='headings', height=8, selectmode='extended')
+    viewer_tree = ttk.Treeview(viewer_body, columns=('id', 'condition', 'date', 'bpm', 'weight', 'fatigue', 'stiffness', 'sleep', 'mood', 'steps', 'flare'), show='headings', height=8, selectmode='extended')
     viewer_tree.heading('id', text='ID')
     viewer_tree.heading('condition', text='Condition')
     viewer_tree.heading('date', text='Date')
@@ -1593,9 +1702,9 @@ def create_server_dashboard():
     viewer_tree.column('steps', width=60)
     viewer_tree.column('flare', width=50)
     
-    viewer_scroll = ttk.Scrollbar(db_viewer_frame, orient=tk.VERTICAL, command=viewer_tree.yview)
+    viewer_scroll = ttk.Scrollbar(viewer_body, orient=tk.VERTICAL, command=viewer_tree.yview)
     viewer_tree.configure(yscrollcommand=viewer_scroll.set)
-    
+
     viewer_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
     viewer_scroll.pack(side=tk.RIGHT, fill=tk.Y)
     
@@ -1703,17 +1812,11 @@ def create_server_dashboard():
         except Exception as e:
             logger.error(f"Error refreshing database viewer: {e}", exc_info=True)
     
-    # Viewer control buttons frame
-    viewer_controls_frame = ttk.Frame(db_viewer_frame)
-    viewer_controls_frame.pack(fill=tk.X, pady=5)
-    
-    refresh_viewer_btn = ttk.Button(viewer_controls_frame, text="Refresh View", command=refresh_db_viewer)
-    refresh_viewer_btn.pack(side=tk.LEFT, padx=5)
-    
-    
-    # Label showing selection count
-    selection_count_label = ttk.Label(viewer_controls_frame, text="0 selected", style='Status.TLabel')
-    selection_count_label.pack(side=tk.LEFT, padx=10)
+    refresh_viewer_btn = ttk.Button(viewer_toolbar, text="Refresh View", command=refresh_db_viewer)
+    refresh_viewer_btn.pack(side=tk.LEFT, padx=(0, 8))
+
+    selection_count_label = ttk.Label(viewer_toolbar, text="0 selected", style='Status.TLabel')
+    selection_count_label.pack(side=tk.LEFT, padx=4)
     
     def update_selection_count(event=None):
         """Update the selection count label"""
@@ -1943,10 +2046,14 @@ def create_server_dashboard():
 
 def main():
     """Start the web server"""
+    global SUPABASE_AVAILABLE
+    global file_observer
+    global watchdog_watch_path
+
     script_dir = config.WEB_DIR  # web app root for serving and file watch
     os.chdir(script_dir)
 
-    global SUPABASE_AVAILABLE
+    watchdog_watch_path = str(script_dir)
     if not SUPABASE_AVAILABLE and not (LOCAL_LIB_DIR.exists() and any(LOCAL_LIB_DIR.iterdir())):
         logger.info("Required packages not found. Installing to local lib directory...")
         print("Installing required packages to local lib directory (first time only)...")
@@ -1987,9 +2094,9 @@ def main():
         try:
             event_handler = FileChangeHandler()
             file_observer = Observer()
-            file_observer.schedule(event_handler, str(script_dir), recursive=True)
+            file_observer.schedule(event_handler, watchdog_watch_path, recursive=True)
             file_observer.start()
-            logger.info(f"File watcher started for: {script_dir}")
+            logger.info(f"File watcher started for: {watchdog_watch_path}")
             print(f"File watcher active - changes will trigger auto-reload on all connected devices")
         except Exception as e:
             logger.error(f"Failed to start file watcher: {e}", exc_info=True)

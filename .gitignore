@@ -63,6 +63,7 @@ dist/
 build/
 web/app.min.js
 web/.trace-build/
+web/.android-dist/
 
 # React / Capacitor
 react-app/node_modules/

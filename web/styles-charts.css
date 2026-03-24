@@ -276,8 +276,15 @@ body.light-mode .chart-loading {
 .empty-placeholder-icon {
   font-size: 80px;
   margin-bottom: 20px;
-  animation: pulse 2s ease-in-out infinite;
+  transform-origin: center;
+  animation: pulse 2.75s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
   filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.5));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empty-placeholder-icon {
+    animation-duration: 3.8s;
+  }
 }
 
 .empty-placeholder-text {

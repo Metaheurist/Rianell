@@ -3302,6 +3302,15 @@ window.addEventListener('DOMContentLoaded', function() {
     logFormEl.addEventListener('input', scheduleLogDraftPersist);
     logFormEl.addEventListener('change', scheduleLogDraftPersist);
   }
+  var medTimePickerEl = document.getElementById('medTimePicker');
+  if (medTimePickerEl) {
+    medTimePickerEl.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (typeof addMedTimeTagFromPicker === 'function') addMedTimeTagFromPicker();
+      }
+    });
+  }
   window.addEventListener('hashchange', function() {
     if (logWizardNavSyncing) return;
     var _h = (typeof location !== 'undefined' && location.hash ? location.hash : '').replace(/^#/, '');
@@ -3884,7 +3893,7 @@ notesField.addEventListener('input', updateNotesCounter);
             .catch(function() {
               applySuggestion(fallback);
             })
-            .then(function() {
+            .finally(function() {
               suggestBtn.textContent = btnLabel;
               suggestBtn.disabled = false;
             });
@@ -6461,6 +6470,32 @@ function teardownAIMobileSectionPager() {
   }
 }
 
+/** Which slide is “active” when panes are not full track width (mobile peek). */
+function aiMobilePagerGetActiveIndexFromScroll(track) {
+  if (!track) return 0;
+  var panes = track.querySelectorAll('.ai-mobile-pager-pane');
+  var n = panes.length;
+  if (n === 0) return 0;
+  var cw = track.clientWidth;
+  if (cw < 4) return 0;
+  var scrollLeft = track.scrollLeft;
+  var center = scrollLeft + cw * 0.5;
+  var bestIdx = 0;
+  var bestDist = Infinity;
+  for (var i = 0; i < n; i++) {
+    var pane = panes[i];
+    var pl = pane.offsetLeft;
+    var pw = pane.offsetWidth;
+    var paneCenter = pl + pw * 0.5;
+    var d = Math.abs(paneCenter - center);
+    if (d < bestDist) {
+      bestDist = d;
+      bestIdx = i;
+    }
+  }
+  return bestIdx;
+}
+
 function aiMobilePagerScrollToIndex(idx) {
   var track = document.getElementById('aiMobilePagerTrack');
   if (!track) return;
@@ -6468,12 +6503,14 @@ function aiMobilePagerScrollToIndex(idx) {
   var n = panes.length;
   if (n === 0) return;
   var i = Math.max(0, Math.min(n - 1, idx));
-  var w = track.clientWidth;
+  var pane = panes[i];
+  if (!pane) return;
+  var left = pane.offsetLeft;
   var behavior = 'smooth';
   try {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) behavior = 'auto';
   } catch (e) {}
-  track.scrollTo({ left: i * w, behavior: behavior });
+  track.scrollTo({ left: left, behavior: behavior });
   if (behavior === 'auto') {
     requestAnimationFrame(function() {
       syncAISlideTrackHeightToActivePane();
@@ -6488,9 +6525,8 @@ function aiMobilePagerScrollToIndex(idx) {
 function aiMobilePagerNudge(delta) {
   var track = document.getElementById('aiMobilePagerTrack');
   if (!track) return;
-  var w = track.clientWidth;
-  if (w < 4) return;
-  var idx = Math.round(track.scrollLeft / w);
+  if (track.clientWidth < 4) return;
+  var idx = aiMobilePagerGetActiveIndexFromScroll(track);
   aiMobilePagerScrollToIndex(idx + delta);
 }
 
@@ -6513,6 +6549,12 @@ function updateAIMobilePagerChrome(idx) {
   if (pager && n > 0) {
     pager.setAttribute('aria-label', 'AI analysis, slide ' + (idx + 1) + ' of ' + n);
   }
+  var dots = document.querySelectorAll('#aiMobilePagerDots .ai-mobile-pager-dot');
+  if (dots.length) {
+    for (var di = 0; di < dots.length; di++) {
+      dots[di].classList.toggle('ai-mobile-pager-dot--active', di === idx);
+    }
+  }
   requestAnimationFrame(function() {
     syncAISlideTrackHeightToActivePane();
     requestAnimationFrame(syncAISlideTrackHeightToActivePane);
@@ -6522,9 +6564,8 @@ function updateAIMobilePagerChrome(idx) {
 function syncAIMobilePagerIndexFromTrack() {
   var track = document.getElementById('aiMobilePagerTrack');
   if (!track) return;
-  var w = track.clientWidth;
-  if (w < 4) return;
-  var idx = Math.round(track.scrollLeft / w);
+  if (track.clientWidth < 4) return;
+  var idx = aiMobilePagerGetActiveIndexFromScroll(track);
   updateAIMobilePagerChrome(idx);
 }
 
@@ -6538,7 +6579,7 @@ function syncAISlideTrackHeightToActivePane() {
     track.style.removeProperty('height');
     return;
   }
-  var idx = Math.round(track.scrollLeft / w);
+  var idx = aiMobilePagerGetActiveIndexFromScroll(track);
   if (idx < 0) idx = 0;
   if (idx >= panes.length) idx = panes.length - 1;
   var pane = panes[idx];
@@ -6607,6 +6648,17 @@ function setupAIMobileSectionPager() {
 
   pager.appendChild(slideRow);
 
+  var dotsRow = document.createElement('div');
+  dotsRow.id = 'aiMobilePagerDots';
+  dotsRow.className = 'ai-mobile-pager-dots';
+  dotsRow.setAttribute('aria-hidden', 'true');
+  for (var di = 0; di < snaps.length; di++) {
+    var dot = document.createElement('span');
+    dot.className = 'ai-mobile-pager-dot' + (di === 0 ? ' ai-mobile-pager-dot--active' : '');
+    dotsRow.appendChild(dot);
+  }
+  pager.appendChild(dotsRow);
+
   (function attachFirstVisitSwipeCue() {
     var storageKey = 'healthApp_aiSwipeCueSeen';
     var showCue = false;
@@ -6645,11 +6697,9 @@ function setupAIMobileSectionPager() {
     cue.setAttribute('aria-hidden', 'true');
     cue.innerHTML =
       '<div class="ai-mobile-pager-swipe-cue__box">' +
-      '<span class="ai-mobile-pager-swipe-cue__edge" aria-hidden="true">&#8249;</span>' +
       '<div class="ai-mobile-pager-swipe-cue__track" aria-hidden="true">' +
       '<div class="ai-mobile-pager-swipe-cue__glow"></div>' +
       '</div>' +
-      '<span class="ai-mobile-pager-swipe-cue__edge" aria-hidden="true">&#8250;</span>' +
       '</div>';
     pager.appendChild(cue);
 
@@ -6892,9 +6942,8 @@ function bindAITimelineScroll() {
 function syncAITimelineActiveFromScroll() {
   var pTrack = document.getElementById('aiMobilePagerTrack');
   if (!pTrack) return;
-  var pw = pTrack.clientWidth;
-  if (pw <= 4) return;
-  var pIdx = Math.round(pTrack.scrollLeft / pw);
+  if (pTrack.clientWidth <= 4) return;
+  var pIdx = aiMobilePagerGetActiveIndexFromScroll(pTrack);
   if (typeof updateAIMobilePagerChrome === 'function') updateAIMobilePagerChrome(pIdx);
 }
 
@@ -8741,6 +8790,7 @@ let logFormExerciseItems = []; // array of { name, duration } (duration in minut
 let logFormStressorsItems = [];
 let logFormSymptomsItems = [];
 var logFormMedications = []; // array of { name, times, taken } for medication/supplement tracker
+var medTimesDraftForAdd = []; // HH:MM strings for current "Add medication" row (before main Add)
 let editStressorsItems = [];
 let editSymptomsItems = [];
 let editFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
@@ -9269,6 +9319,96 @@ function migrateLogs() {
 
 // Run migration on load
 migrateLogs();
+
+/**
+ * Build one ECG-like beat (Lead II style): P, PR, Q, sharp R, S, ST, T. Width 100 units; ends on baseline.
+ * Randomness is morphology only (amplitude/timing), not baseline drift — beats tile cleanly at x0+100.
+ */
+function buildEcgBeatSegment(x0, yBase) {
+  var r = Math.random;
+  var y = yBase;
+  var parts = [];
+  var L = function (x, yy) {
+    parts.push('L' + (Math.round(x * 10) / 10) + ',' + (Math.round(yy * 10) / 10));
+  };
+  // Isoelectric
+  L(x0 + 6, y);
+  // P wave
+  var pH = 1.2 + r() * 1.6;
+  L(x0 + 9, y);
+  L(x0 + 11, y - pH);
+  L(x0 + 13, y - pH * (0.35 + r() * 0.25));
+  L(x0 + 16, y);
+  // PR
+  L(x0 + 22 + r() * 1.5, y);
+  // QRS: Q (small down) → R (sharp up) → S (down) → baseline
+  var qx = x0 + 24.5 + r() * 1.2;
+  var qy = 31 + r() * 1.8;
+  var rPeak = 3 + r() * 6;
+  var rNarrow = 0.45 + r() * 0.65;
+  var sDepth = 32.5 + r() * 3.5;
+  L(qx, y);
+  L(qx + 1.4, qy);
+  L(qx + 3.2, rPeak);
+  L(qx + 3.2 + rNarrow, y - 0.15);
+  L(qx + 5.2, sDepth);
+  L(qx + 7, y);
+  // ST
+  L(x0 + 36, y);
+  // T wave (rounded, asymmetric)
+  var tH = 1.8 + r() * 2.2;
+  var tSkew = r() * 4;
+  L(x0 + 40, y);
+  L(x0 + 42 + tSkew, y - tH * 0.35);
+  L(x0 + 46 + tSkew, y - tH);
+  L(x0 + 52 + tSkew * 0.5, y - tH * 0.4);
+  L(x0 + 58, y);
+  L(x0 + 100, y);
+  return parts.join(' ');
+}
+
+/** Full 400×60 viewBox path: four beats, each with independent random morphology. */
+function generateEcgPathD() {
+  var base = 30;
+  return (
+    'M0,' +
+    base +
+    buildEcgBeatSegment(0, base) +
+    buildEcgBeatSegment(100, base) +
+    buildEcgBeatSegment(200, base) +
+    buildEcgBeatSegment(300, base)
+  );
+}
+
+var ecgHeartbeatInitialized = false;
+
+/** Randomize ECG trace slightly; respects reduced motion (one static path, no iteration churn). */
+function initEcgHeartbeatLine() {
+  if (typeof document === 'undefined') return;
+  var path = document.querySelector('.heartbeat-path');
+  if (!path || ecgHeartbeatInitialized) return;
+  var deviceOpts =
+    window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function'
+      ? window.PerformanceUtils.getDeviceOpts()
+      : { reduceAnimations: false };
+  if (deviceOpts.reduceAnimations) {
+    path.setAttribute('d', generateEcgPathD());
+    ecgHeartbeatInitialized = true;
+    return;
+  }
+  function applyPath() {
+    path.setAttribute('d', generateEcgPathD());
+  }
+  applyPath();
+  path.addEventListener(
+    'animationiteration',
+    function () {
+      if (Math.random() < 0.55) applyPath();
+    },
+    { passive: true }
+  );
+  ecgHeartbeatInitialized = true;
+}
 
 // Function to update heartbeat animation speed based on BPM
 function updateHeartbeatAnimation() {
@@ -10424,19 +10564,70 @@ function renderLogSymptomsItems() {
   else syncSymptomTilesVisual('logSymptomsTiles');
 }
 
+function normalizeMedTimePickerValue(v) {
+  if (!v || typeof v !== 'string') return '';
+  var t = v.trim();
+  if (!/^\d{1,2}:\d{2}$/.test(t)) return '';
+  var p = t.split(':');
+  var h = parseInt(p[0], 10);
+  var m = parseInt(p[1], 10);
+  if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return '';
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+}
+
+function renderMedTimesDraftTags() {
+  var wrap = document.getElementById('medTimesDraftTags');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  medTimesDraftForAdd.forEach(function(t, i) {
+    var span = document.createElement('span');
+    span.className = 'medication-time-tag';
+    span.setAttribute('role', 'listitem');
+    span.innerHTML =
+      '<span class="medication-time-tag__text">' + escapeHTML(t) + '</span>' +
+      '<button type="button" class="medication-time-tag__remove" onclick="removeMedTimeDraftTag(' + i + ')" title="Remove" aria-label="Remove time">×</button>';
+    wrap.appendChild(span);
+  });
+}
+
+function addMedTimeTagFromPicker() {
+  var el = document.getElementById('medTimePicker');
+  var v = el && el.value ? normalizeMedTimePickerValue(el.value) : '';
+  if (!v) return;
+  if (medTimesDraftForAdd.indexOf(v) >= 0) return;
+  if (medTimesDraftForAdd.length >= 10) return;
+  medTimesDraftForAdd.push(v);
+  medTimesDraftForAdd.sort();
+  renderMedTimesDraftTags();
+  if (typeof scheduleLogDraftPersist === 'function') scheduleLogDraftPersist();
+}
+
+function removeMedTimeDraftTag(index) {
+  if (index < 0 || index >= medTimesDraftForAdd.length) return;
+  medTimesDraftForAdd.splice(index, 1);
+  renderMedTimesDraftTags();
+  if (typeof scheduleLogDraftPersist === 'function') scheduleLogDraftPersist();
+}
+
+function clearMedTimesDraft() {
+  medTimesDraftForAdd = [];
+  var el = document.getElementById('medTimePicker');
+  if (el) el.value = '';
+  renderMedTimesDraftTags();
+  if (typeof scheduleLogDraftPersist === 'function') scheduleLogDraftPersist();
+}
+
 function addLogMedicationItem() {
   var nameEl = document.getElementById('medName');
-  var timesEl = document.getElementById('medTimes');
   var takenEl = document.getElementById('medTaken');
   var name = (nameEl && nameEl.value || '').trim();
   if (!name) return;
-  var timesStr = (timesEl && timesEl.value || '').trim();
-  var times = timesStr ? timesStr.split(/[\s,]+/).map(function(t) { return t.trim(); }).filter(Boolean) : [];
+  var times = medTimesDraftForAdd.slice();
   var taken = takenEl ? takenEl.checked : true;
   logFormMedications.push({ name: name, times: times, taken: taken });
   if (nameEl) nameEl.value = '';
-  if (timesEl) timesEl.value = '';
   if (takenEl) takenEl.checked = true;
+  clearMedTimesDraft();
   renderLogMedicationsItems();
 }
 
@@ -10484,6 +10675,7 @@ function renderFrequentMedications() {
 
 function renderLogMedicationsItems() {
   renderFrequentMedications();
+  renderMedTimesDraftTags();
   var list = document.getElementById('logMedicationsList');
   if (!list) return;
   list.innerHTML = '';
@@ -14053,6 +14245,7 @@ form.addEventListener("submit", e => {
   logFormStressorsItems = [];
   logFormSymptomsItems = [];
   logFormMedications = [];
+  if (typeof clearMedTimesDraft === 'function') clearMedTimesDraft();
   renderLogFoodItems();
   renderLogExerciseItems();
   renderLogStressorsItems();
@@ -17211,6 +17404,7 @@ function collectLogDraftSnapshot() {
     stressors: typeof logFormStressorsItems !== 'undefined' ? logFormStressorsItems.slice() : [],
     symptoms: typeof logFormSymptomsItems !== 'undefined' ? logFormSymptomsItems.slice() : [],
     medications: typeof logFormMedications !== 'undefined' ? logFormMedications.slice() : [],
+    medTimesDraft: typeof medTimesDraftForAdd !== 'undefined' ? medTimesDraftForAdd.slice() : [],
     fields: {}
   };
   var form = document.getElementById('logForm');
@@ -17267,9 +17461,21 @@ function restoreLogDraftIfAny() {
       logFormSymptomsItems = snap.symptoms;
       if (typeof renderLogSymptomsItems === 'function') renderLogSymptomsItems();
     }
+    if (typeof medTimesDraftForAdd !== 'undefined') {
+      if (snap.medTimesDraft && Array.isArray(snap.medTimesDraft)) {
+        medTimesDraftForAdd = snap.medTimesDraft
+          .map(function(t) { return normalizeMedTimePickerValue(String(t || '')); })
+          .filter(Boolean)
+          .slice(0, 10);
+      } else {
+        medTimesDraftForAdd = [];
+      }
+    }
     if (snap.medications && typeof logFormMedications !== 'undefined') {
       logFormMedications = snap.medications;
       if (typeof renderLogMedicationsItems === 'function') renderLogMedicationsItems();
+    } else if (typeof renderMedTimesDraftTags === 'function') {
+      renderMedTimesDraftTags();
     }
     if (snap.fields) {
       Object.keys(snap.fields).forEach(function(id) {
@@ -17584,6 +17790,7 @@ window.addEventListener('load', () => {
 
   function runAppInit() {
   tryLockPortraitOrientationMobile();
+  if (typeof initEcgHeartbeatLine === 'function') initEcgHeartbeatLine();
   installPerfLongTaskObserver();
   if (window.RianellLogsIDB && typeof window.RianellLogsIDB.migrateFromLocalStorageOnce === 'function') {
     window.RianellLogsIDB.migrateFromLocalStorageOnce();

@@ -16,10 +16,17 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 const webDir = path.join(root, 'web');
+const androidDistDir = path.join(webDir, '.android-dist');
 const outDir = path.join(__dirname, 'public', 'legacy');
 
 const useMin =
   process.argv.includes('--min') || process.env.LEGACY_USE_MINIFIED === '1';
+
+/** Prefer full minified tree from build-site --skip-trace (Android/iOS) when present */
+const sourceDir =
+  useMin && fs.existsSync(path.join(androidDistDir, 'index.html'))
+    ? androidDistDir
+    : webDir;
 
 const staticRootFiles = [
   'index.html',
@@ -27,6 +34,7 @@ const staticRootFiles = [
   'motd.json',
   'styles.css',
   'print-styles.css',
+  'styles-charts.css', // loaded on demand by app.js (charts tab)
 ];
 
 const copyDir = (src, dest) => {
@@ -46,10 +54,10 @@ if (!fs.existsSync(webDir)) {
 }
 
 if (useMin) {
-  const minPath = path.join(webDir, 'app.min.js');
+  const minPath = path.join(sourceDir, 'app.min.js');
   if (!fs.existsSync(minPath)) {
     console.error(
-      'copy-webapp --min: web/app.min.js not found. Run from repo root: npm run build:web'
+      'copy-webapp --min: app.min.js not found. From repo root run: npm run build:web:apk (or npm run build:web)'
     );
     process.exit(1);
   }
@@ -58,14 +66,14 @@ if (useMin) {
 fs.mkdirSync(outDir, { recursive: true });
 
 for (const file of staticRootFiles) {
-  const src = path.join(webDir, file);
+  const src = path.join(sourceDir, file);
   if (fs.existsSync(src)) {
     fs.copyFileSync(src, path.join(outDir, file));
     console.log('Copied', file);
   }
 }
 
-  if (useMin) {
+  if (useMin && sourceDir === webDir) {
     const indexOut = path.join(outDir, 'index.html');
     if (fs.existsSync(indexOut)) {
       let html = fs.readFileSync(indexOut, 'utf8');
@@ -74,14 +82,16 @@ for (const file of staticRootFiles) {
       fs.writeFileSync(indexOut, html);
       console.log('Patched index.html to load app.min.js');
     }
+  } else if (useMin && sourceDir === androidDistDir) {
+    console.log('Using web/.android-dist (index.html already targets app.min.js + minified assets)');
   }
 
 // Root-level .js modules (index.html + lazy loaders).
-for (const name of fs.readdirSync(webDir)) {
+for (const name of fs.readdirSync(sourceDir)) {
   if (!name.endsWith('.js')) continue;
   if (name === 'app.min.js') {
     if (useMin) {
-      const src = path.join(webDir, name);
+      const src = path.join(sourceDir, name);
       if (fs.statSync(src).isFile()) {
         fs.copyFileSync(src, path.join(outDir, name));
         console.log('Copied', name);
@@ -90,20 +100,27 @@ for (const name of fs.readdirSync(webDir)) {
     continue;
   }
   if (name === 'app.js' && useMin) continue;
-  const src = path.join(webDir, name);
+  const src = path.join(sourceDir, name);
   if (!fs.statSync(src).isFile()) continue;
   fs.copyFileSync(src, path.join(outDir, name));
   console.log('Copied', name);
 }
 
-if (fs.existsSync(path.join(webDir, 'workers'))) {
-  copyDir(path.join(webDir, 'workers'), path.join(outDir, 'workers'));
+if (fs.existsSync(path.join(sourceDir, 'workers'))) {
+  copyDir(path.join(sourceDir, 'workers'), path.join(outDir, 'workers'));
   console.log('Copied workers/');
 }
 
-if (fs.existsSync(path.join(webDir, 'Icons'))) {
-  copyDir(path.join(webDir, 'Icons'), path.join(outDir, 'Icons'));
+if (fs.existsSync(path.join(sourceDir, 'Icons'))) {
+  copyDir(path.join(sourceDir, 'Icons'), path.join(outDir, 'Icons'));
   console.log('Copied Icons/');
 }
 
-console.log('Web app copied to public/legacy/' + (useMin ? ' (minified app bundle)' : ''));
+console.log(
+  'Web app copied to public/legacy/' +
+    (useMin
+      ? sourceDir === androidDistDir
+        ? ' (Android dist: app.min.js + minified modules)'
+        : ' (minified app bundle)'
+      : '')
+);

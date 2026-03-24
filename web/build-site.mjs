@@ -18,6 +18,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { transformFileIfNeeded } from './build-plugins/function-trace-plugin.mjs';
+import { buildAndroidDistBundle } from './build-android-dist.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
@@ -144,4 +145,9 @@ if (siteDir) {
     logLevel: 'info',
   });
   console.log('Wrote web/app.min.js');
+  if (skipTrace) {
+    await buildAndroidDistBundle(webRoot);
+  } else {
+    rmrf(path.join(webRoot, '.android-dist'));
+  }
 }
