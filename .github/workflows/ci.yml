@@ -116,34 +116,34 @@ jobs:
 
       - name: Prepare minified temp directories
         run: |
-          rm -rf ".ci-minified"
-          mkdir -p ".ci-minified"
-          cp -r "web/.android-dist" ".ci-minified/web-android-dist"
-          cp -r "react-app/dist" ".ci-minified/react-dist"
+          rm -rf "ci-minified"
+          mkdir -p "ci-minified"
+          cp -r "web/.android-dist" "ci-minified/web-android-dist"
+          cp -r "react-app/dist" "ci-minified/react-dist"
 
-          mkdir -p ".ci-minified/site"
-          cp -r web/* ".ci-minified/site/"
+          mkdir -p "ci-minified/site"
+          cp -r web/* "ci-minified/site/"
           if [ -d "App build" ]; then
-            mkdir -p ".ci-minified/site/App build"
-            cp -r "App build/"* ".ci-minified/site/App build/" 2>/dev/null || true
+            mkdir -p "ci-minified/site/App build"
+            cp -r "App build/"* "ci-minified/site/App build/" 2>/dev/null || true
           fi
-          node web/build-site.mjs --site ".ci-minified/site"
+          node web/build-site.mjs --site "ci-minified/site"
           node -e "
           const fs = require('fs');
-          let h = fs.readFileSync('.ci-minified/site/index.html', 'utf8');
+          let h = fs.readFileSync('ci-minified/site/index.html', 'utf8');
           h = h.replace(/app\\.js\\?v=(\\d+)/g, function (_, v) { return 'app.min.js?v=' + v; });
-          fs.writeFileSync('.ci-minified/site/index.html', h);
+          fs.writeFileSync('ci-minified/site/index.html', h);
           "
 
-          test -f ".ci-minified/web-android-dist/app.min.js"
-          test -f ".ci-minified/react-dist/legacy/app.min.js"
-          test -f ".ci-minified/site/app.min.js"
+          test -f "ci-minified/web-android-dist/app.min.js"
+          test -f "ci-minified/react-dist/legacy/app.min.js"
+          test -f "ci-minified/site/app.min.js"
 
       - name: Upload minified temp artifact
         uses: actions/upload-artifact@v5
         with:
           name: minified-prebuild
-          path: .ci-minified/
+          path: ci-minified/
 
   # ---------------------------------------------------------------------------
   # Android APK (PR: CI; push: only when non–App-build paths changed)
@@ -186,13 +186,13 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: minified-prebuild
-          path: .ci-minified
+          path: ci-minified
 
       - name: Restore minified temp bundles (Android path)
         run: |
           rm -rf "web/.android-dist" "react-app/dist"
-          cp -r ".ci-minified/web-android-dist" "web/.android-dist"
-          cp -r ".ci-minified/react-dist" "react-app/dist"
+          cp -r "ci-minified/web-android-dist" "web/.android-dist"
+          cp -r "ci-minified/react-dist" "react-app/dist"
           test -f "web/.android-dist/app.min.js"
           test -f "react-app/dist/legacy/app.min.js"
 
@@ -295,13 +295,13 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: minified-prebuild
-          path: .ci-minified
+          path: ci-minified
 
       - name: Restore minified temp bundles (iOS path)
         run: |
           rm -rf "web/.android-dist" "react-app/dist"
-          cp -r ".ci-minified/web-android-dist" "web/.android-dist"
-          cp -r ".ci-minified/react-dist" "react-app/dist"
+          cp -r "ci-minified/web-android-dist" "web/.android-dist"
+          cp -r "ci-minified/react-dist" "react-app/dist"
           test -f "web/.android-dist/app.min.js"
           test -f "react-app/dist/legacy/app.min.js"
 
@@ -736,12 +736,12 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: minified-prebuild
-          path: .ci-minified
+          path: ci-minified
 
       - name: Prepare site from minified temp artifact
         run: |
           rm -rf site
-          cp -r ".ci-minified/site" site
+          cp -r "ci-minified/site" site
           test -f "site/app.min.js"
 
       - name: Inject Supabase config for GitHub Pages (from secrets)
