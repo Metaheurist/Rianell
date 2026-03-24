@@ -11386,7 +11386,15 @@ function openFoodModal(logDate) {
   document.body.style.overflow = 'hidden';
   
   const overlay = document.getElementById('foodModalOverlay');
+  if (!overlay) {
+    Logger.error('Food modal overlay not found');
+    return;
+  }
   const modalContent = overlay.querySelector('.modal-content');
+  if (!modalContent) {
+    Logger.error('Food modal content not found');
+    return;
+  }
   
   // Move modal to body if it's not already there (ensures viewport-relative positioning)
   if (overlay.parentElement !== document.body) {
@@ -11623,7 +11631,15 @@ function openExerciseModal(logDate) {
   document.body.style.overflow = 'hidden';
   
   const overlay = document.getElementById('exerciseModalOverlay');
+  if (!overlay) {
+    Logger.error('Exercise modal overlay not found');
+    return;
+  }
   const modalContent = overlay.querySelector('.modal-content');
+  if (!modalContent) {
+    Logger.error('Exercise modal content not found');
+    return;
+  }
   
   // Move modal to body if it's not already there (ensures viewport-relative positioning)
   if (overlay.parentElement !== document.body) {
@@ -16203,7 +16219,9 @@ function updateMedicalCondition(condition = null) {
       const filteredKeys = syncedKeys.filter(key => !key.endsWith(`_${condition}`));
       localStorage.setItem('anonymizedDataSyncedKeys', JSON.stringify(filteredKeys));
     }
-    syncAnonymizedData();
+    Promise.resolve(syncAnonymizedData()).catch(function(error) {
+      Logger.warn('Failed to sync anonymized data after condition update', { error: String(error) });
+    });
   }
   
   // Check if condition has enough data for Optimised AI

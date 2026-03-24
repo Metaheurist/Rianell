@@ -54,7 +54,7 @@ test('setGlobalTheme applies in-place without forcing reload', () => {
 
 test('dashboard title logic keeps MOTD scoped to home tab', () => {
   assert.match(appJs, /if \(activeTab !== 'home'\) return;/);
-  assert.match(appJs, /titleElement\.textContent = 'Rianell';/);
+  assert.match(appJs, /document\.title = 'Rianell';/);
 });
 
 test('voice input permission gate exists before speech flow', () => {
