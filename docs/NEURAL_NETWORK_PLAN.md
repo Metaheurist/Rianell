@@ -2,6 +2,10 @@
 
 This document expands the architecture described in `docs/ai-architecture.md` and defines the practical implementation plan for the neural-style analysis pipeline.
 
+## v1.44.2 documentation sync
+
+- No neural pipeline scope change in this pass; updates are UI/theming parity, settings navigation polish, and cloud settings sync coverage.
+
 ## Goals
 
 - Use the widest safe data context (training history + selected range) without repeated heavy passes.

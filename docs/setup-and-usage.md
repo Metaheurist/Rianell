@@ -2,6 +2,11 @@
 
 ## ⚙️ Installation
 
+### v1.44.2 documentation sync
+
+- Local server startup keeps CI-parity web preprocessing (`server/launch-server.ps1`) so runtime theme and UI behaviour matches built artifacts more closely.
+- Theme persistence now applies from first paint, including loading overlay visuals, when `rianellSettings.globalTheme` is present.
+
 ### Prerequisites
 - Python 3.8 or higher
 - Modern web browser (Chrome, Firefox, Edge, Safari)

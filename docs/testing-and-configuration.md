@@ -2,6 +2,11 @@
 
 ## 🧪 Testing Data
 
+### v1.44.2 documentation sync
+
+- Include theme parity checks in manual smoke testing: verify non-mint themes affect loading overlay, pulse, navbar active state, and goals/targets cards.
+- Include cloud settings round-trip checks for additional local setting keys during sign-in sync testing.
+
 ### Generate Sample Data
 
 The server includes sample data generation:

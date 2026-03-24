@@ -389,6 +389,25 @@
     body.theme-rainbow #loadingOverlay .loading-sun-orbit__body {
       background: conic-gradient(from 20deg, #ff4fa0 0deg, #ff9f43 72deg, #ffe24b 144deg, #53d66c 216deg, #56c7ff 288deg, #9f6bff 360deg);
     }
+    body.theme-mono #loadingOverlay.loading-overlay {
+      background:
+        radial-gradient(ellipse 85% 55% at 50% 100%, rgba(242, 242, 242, 0.05) 0%, transparent 55%),
+        linear-gradient(180deg, #040404 0%, #080808 50%, #030303 100%);
+    }
+    body.theme-mono #loadingOverlay .loading-sun-orbit__ring {
+      box-shadow: 0 0 18px rgba(240, 240, 240, 0.16), inset 0 0 0 1px rgba(240, 240, 240, 0.12);
+    }
+    body.theme-mono #loadingOverlay .loading-sun-orbit__ring::before {
+      background: rgba(240, 240, 240, 0.2);
+    }
+    body.theme-mono #loadingOverlay .loading-sun-orbit__ring::after {
+      background:
+        conic-gradient(from -90deg, rgba(255, 255, 255, 0.96) 0deg, #f1f1f1 40%, #9a9a9a 78%, rgba(210, 210, 210, 0.14) 100%),
+        repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.28) 0deg, rgba(255, 255, 255, 0.28) 10deg, rgba(190, 190, 190, 0.1) 10deg, rgba(190, 190, 190, 0.1) 20deg, rgba(140, 140, 140, 0.24) 20deg, rgba(140, 140, 140, 0.24) 30deg, rgba(190, 190, 190, 0.1) 30deg, rgba(190, 190, 190, 0.1) 40deg);
+    }
+    body.theme-mono #loadingOverlay .loading-text {
+      text-shadow: 0 0 18px rgba(240, 240, 240, 0.24);
+    }
     #loadingOverlay .loading-text {
       color: rgba(224, 242, 241, 0.92);
       font-size: 1.1rem;
@@ -517,6 +536,18 @@
   </style>
 </head>
 <body class="loading">
+  <script>
+    (function () {
+      try {
+        var raw = localStorage.getItem('rianellSettings');
+        if (!raw) return;
+        var parsed = JSON.parse(raw);
+        var t = parsed && parsed.globalTheme;
+        var valid = { 'mint': true, 'red-black': true, 'mono': true, 'rainbow': true };
+        if (t && valid[t]) document.body.classList.add('theme-' + t);
+      } catch (e) {}
+    })();
+  </script>
   <a href="#main-content" class="skip-link">Skip to main content</a>
   <!-- Loading Overlay -->
   <div class="loading-overlay" id="loadingOverlay">
@@ -552,7 +583,7 @@
         <div class="settings-header-text">
           <h3 class="settings-title">Settings</h3>
           <p class="settings-carousel-meta" id="settingsCarouselMeta" aria-live="polite"></p>
-          <div class="settings-carousel-dots" id="settingsCarouselDots" aria-hidden="true"></div>
+          <div class="settings-carousel-dots" id="settingsCarouselDots" role="tablist" aria-label="Settings sections"></div>
         </div>
         <button type="button" class="settings-close" onclick="event.preventDefault(); event.stopPropagation(); closeSettings();">&times;</button>
       </div>
@@ -888,9 +919,9 @@
         <svg class="heartbeat-svg" viewBox="0 0 400 60" preserveAspectRatio="xMidYMid meet">
           <defs>
             <linearGradient id="heartbeatGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style="stop-color:rgba(76, 175, 80, 0.2);stop-opacity:1" />
-              <stop offset="50%" style="stop-color:rgba(76, 175, 80, 1);stop-opacity:1" />
-              <stop offset="100%" style="stop-color:rgba(76, 175, 80, 0.2);stop-opacity:1" />
+              <stop offset="0%" style="stop-color:var(--primary-color);stop-opacity:0.2" />
+              <stop offset="50%" style="stop-color:var(--primary-color);stop-opacity:1" />
+              <stop offset="100%" style="stop-color:var(--primary-color);stop-opacity:0.2" />
             </linearGradient>
             <filter id="heartbeatGlow">
               <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
