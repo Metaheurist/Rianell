@@ -373,6 +373,7 @@ if (typeof window !== 'undefined') {
 var _voiceInputObserver = null;
 var _voiceInputActive = null;
 var _voiceInputSupported = false;
+var _voiceInputPermissionState = 'unknown';
 function isVoiceInputEligibleField(el) {
   var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "isVoiceInputEligibleField", arguments) : undefined;
   try {
@@ -458,11 +459,114 @@ function clearVoiceActiveState() {
     __rianellTraceExit(__rt);
   }
 }
-function toggleVoiceInputForField(field, button) {
+async function ensureVoiceInputPermission() {
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "ensureVoiceInputPermission", arguments) : undefined;
+  try {
+    try {
+      // Capacitor/community speech plugins (if present) should handle native permission prompts.
+      var cap = typeof window !== 'undefined' && window.Capacitor && window.Capacitor.Plugins ? window.Capacitor.Plugins : null;
+      var speechPlugin = cap && cap.SpeechRecognition ? cap.SpeechRecognition : null;
+      if (speechPlugin) {
+        try {
+          if (typeof speechPlugin.checkPermissions === 'function') {
+            var perms = await speechPlugin.checkPermissions();
+            if (perms && (perms.speechRecognition === 'granted' || perms.microphone === 'granted')) {
+              _voiceInputPermissionState = 'granted';
+              return true;
+            }
+            if (typeof speechPlugin.requestPermissions === 'function') {
+              var requested = await speechPlugin.requestPermissions();
+              var granted = requested && (requested.speechRecognition === 'granted' || requested.microphone === 'granted');
+              _voiceInputPermissionState = granted ? 'granted' : 'denied';
+              if (granted) return true;
+            }
+          } else if (typeof speechPlugin.hasPermission === 'function') {
+            var hasPerm = await speechPlugin.hasPermission();
+            if (hasPerm === true || hasPerm && hasPerm.value === true) {
+              _voiceInputPermissionState = 'granted';
+              return true;
+            }
+            if (typeof speechPlugin.requestPermission === 'function') {
+              var reqPerm = await speechPlugin.requestPermission();
+              var ok = reqPerm === true || reqPerm && reqPerm.value === true;
+              _voiceInputPermissionState = ok ? 'granted' : 'denied';
+              if (ok) return true;
+            }
+          }
+        } catch (e) {}
+      }
+      if (typeof navigator === 'undefined') return false;
+      var mediaDevices = navigator.mediaDevices;
+      if (!mediaDevices || typeof mediaDevices.getUserMedia !== 'function') {
+        // Some engines expose SpeechRecognition without mediaDevices API.
+        return true;
+      }
+
+      // Fast-path via Permissions API when available
+      try {
+        if (navigator.permissions && typeof navigator.permissions.query === 'function') {
+          var p = await navigator.permissions.query({
+            name: 'microphone'
+          });
+          if (p && p.state === 'granted') {
+            _voiceInputPermissionState = 'granted';
+            return true;
+          }
+          if (p && p.state === 'denied') {
+            _voiceInputPermissionState = 'denied';
+            return false;
+          }
+        }
+      } catch (e) {}
+
+      // Request permission on user gesture.
+      var stream = await mediaDevices.getUserMedia({
+        audio: true
+      });
+      try {
+        if (stream && stream.getTracks) {
+          stream.getTracks().forEach(function (track) {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "anonymous", arguments) : undefined;
+            try {
+              try {
+                track.stop();
+              } catch (e) {}
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+        }
+      } catch (e) {}
+      _voiceInputPermissionState = 'granted';
+      return true;
+    } catch (e) {
+      _voiceInputPermissionState = 'denied';
+      return false;
+    }
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+}
+function showVoiceInputPermissionHelp() {
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "showVoiceInputPermissionHelp", arguments) : undefined;
+  try {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Microphone permission is required for voice input. Please allow microphone access in your browser/app settings and try again.', 'Voice Input');
+    }
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+}
+async function toggleVoiceInputForField(field, button) {
   var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "toggleVoiceInputForField", arguments) : undefined;
   try {
     var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognition) {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('Speech-to-text is not supported on this platform/webview yet.', 'Voice Input');
+      }
+      return;
+    }
     if (_voiceInputActive && _voiceInputActive.field === field) {
       try {
         _voiceInputActive.recognition.stop();
@@ -475,6 +579,19 @@ function toggleVoiceInputForField(field, button) {
         _voiceInputActive.recognition.stop();
       } catch (e) {}
       clearVoiceActiveState();
+    }
+    if (button) {
+      button.setAttribute('aria-busy', 'true');
+      button.style.pointerEvents = 'none';
+    }
+    var hasPermission = await ensureVoiceInputPermission();
+    if (button) {
+      button.removeAttribute('aria-busy');
+      button.style.pointerEvents = '';
+    }
+    if (!hasPermission) {
+      showVoiceInputPermissionHelp();
+      return;
     }
     var recognition = new SpeechRecognition();
     recognition.lang = navigator.language || 'en-GB';
@@ -498,9 +615,16 @@ function toggleVoiceInputForField(field, button) {
         __rianellTraceExit(__rt);
       }
     };
-    recognition.onerror = function () {
+    recognition.onerror = function (event) {
       var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "anonymous", arguments) : undefined;
       try {
+        var err = event && event.error ? String(event.error) : '';
+        if (err === 'not-allowed' || err === 'service-not-allowed') {
+          _voiceInputPermissionState = 'denied';
+          showVoiceInputPermissionHelp();
+        } else if (err === 'audio-capture' && typeof showAlertModal === 'function') {
+          showAlertModal('No microphone detected. Connect a microphone and try again.', 'Voice Input');
+        }
         clearVoiceActiveState();
       } finally {
         __rianellTraceExit(__rt);
@@ -1049,19 +1173,6 @@ function openPerfBenchmarkModal(options) {
             window.DeviceBenchmark.saveBenchmarkResult(result);
           }
           closePerfBenchmarkModal();
-          if (mode === 'firstRun') {
-            var loadingOverlayAgain = document.getElementById('loadingOverlay');
-            var loadingTextAgain = loadingOverlayAgain ? loadingOverlayAgain.querySelector('.loading-text') : null;
-            var orbitHostAgain = loadingOverlayAgain ? loadingOverlayAgain.querySelector('#loadingOrbitProgressHost') : null;
-            var orbitProgressAgain = loadingOverlayAgain ? loadingOverlayAgain.querySelector('#loadingOrbitProgress') : null;
-            if (loadingOverlayAgain) {
-              loadingOverlayAgain.classList.remove('hidden');
-              document.body.classList.add('loading');
-            }
-            if (loadingTextAgain) loadingTextAgain.textContent = 'Loading charts and AI…';
-            if (orbitHostAgain) orbitHostAgain.style.setProperty('--loading-progress', '0');
-            if (orbitProgressAgain) orbitProgressAgain.setAttribute('aria-valuenow', '0');
-          }
           if (options && typeof options.onContinue === 'function') options.onContinue();
         } finally {
           __rianellTraceExit(__rt);
@@ -4474,21 +4585,42 @@ function installPWA() {
   try {
     if (isRianellNativeApp()) return;
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(choiceResult => {
-        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "[arrow]", undefined) : undefined;
-        try {
-          if (choiceResult.outcome === 'accepted') {
-            Logger.debug('PWA: User accepted the install prompt');
-            hideInstallButton();
-          } else {
-            Logger.debug('PWA: User dismissed the install prompt');
-          }
-          deferredPrompt = null;
-        } finally {
-          __rianellTraceExit(__rt);
+      try {
+        if (navigator.userActivation && !navigator.userActivation.isActive) {
+          Logger.warn('PWA: prompt() blocked - missing user activation');
+          showInstallInstructions();
+          return;
         }
-      });
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(choiceResult => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "[arrow]", undefined) : undefined;
+          try {
+            if (choiceResult.outcome === 'accepted') {
+              Logger.debug('PWA: User accepted the install prompt');
+              hideInstallButton();
+            } else {
+              Logger.debug('PWA: User dismissed the install prompt');
+            }
+            deferredPrompt = null;
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        }).catch(err => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "[arrow]", undefined) : undefined;
+          try {
+            Logger.warn('PWA: install prompt failed', {
+              error: err && err.message ? err.message : String(err)
+            });
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+      } catch (err) {
+        Logger.warn('PWA: install prompt threw', {
+          error: err && err.message ? err.message : String(err)
+        });
+        showInstallInstructions();
+      }
     }
   } finally {
     __rianellTraceExit(__rt);
@@ -4542,22 +4674,44 @@ function installOrLaunchPWA() {
 
     // Try to install if prompt is available
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(choiceResult => {
-        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "[arrow]", undefined) : undefined;
-        try {
-          if (choiceResult.outcome === 'accepted') {
-            Logger.debug('PWA: User accepted the install prompt');
-            showAlertModal('App installed successfully! 📱\nLook for "Rianell" in your apps.', 'Installation Complete');
-            hideInstallButton();
-          } else {
-            Logger.debug('PWA: User dismissed the install prompt');
-          }
-          deferredPrompt = null;
-        } finally {
-          __rianellTraceExit(__rt);
+      try {
+        if (navigator.userActivation && !navigator.userActivation.isActive) {
+          Logger.warn('PWA: installOrLaunch blocked - missing user activation');
+          showInstallInstructions();
+          return;
         }
-      });
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(choiceResult => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "[arrow]", undefined) : undefined;
+          try {
+            if (choiceResult.outcome === 'accepted') {
+              Logger.debug('PWA: User accepted the install prompt');
+              showAlertModal('App installed successfully! 📱\nLook for "Rianell" in your apps.', 'Installation Complete');
+              hideInstallButton();
+            } else {
+              Logger.debug('PWA: User dismissed the install prompt');
+            }
+            deferredPrompt = null;
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        }).catch(err => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "[arrow]", undefined) : undefined;
+          try {
+            Logger.warn('PWA: installOrLaunch userChoice failed', {
+              error: err && err.message ? err.message : String(err)
+            });
+            showInstallInstructions();
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+      } catch (err) {
+        Logger.warn('PWA: installOrLaunch prompt threw', {
+          error: err && err.message ? err.message : String(err)
+        });
+        showInstallInstructions();
+      }
     } else {
       // Check why install prompt is not available
       const protocol = window.location.protocol;
@@ -20965,14 +21119,6 @@ function setGlobalTheme(theme) {
     saveSettings();
     applyGlobalTheme();
     loadSettingsState();
-    setTimeout(function () {
-      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "anonymous", arguments) : undefined;
-      try {
-        window.location.reload();
-      } finally {
-        __rianellTraceExit(__rt);
-      }
-    }, 120);
   } finally {
     __rianellTraceExit(__rt);
   }
@@ -23543,6 +23689,9 @@ function scheduleDashboardMotdWithLlm(fallbackTitle) {
           if (!t || t === fb) return;
           var el = document.getElementById('dashboardTitle');
           if (!el) return;
+          // Keep MOTD quote only on Home tab; avoid applying async result after tab switch.
+          var activeTab = tabNameRef || 'home';
+          if (activeTab !== 'home') return;
           el.textContent = t;
           el.setAttribute('data-text', t);
           if (typeof syncMobileFixedTitlePadding === 'function') {
@@ -23569,6 +23718,23 @@ function updateDashboardTitle() {
   try {
     const titleElement = document.getElementById('dashboardTitle');
     if (!titleElement) return;
+    const activeTab = tabNameRef || 'home';
+    if (activeTab !== 'home') {
+      titleElement.textContent = 'Rianell';
+      titleElement.setAttribute('data-text', 'Rianell');
+      document.title = 'Rianell';
+      if (typeof syncMobileFixedTitlePadding === 'function') {
+        requestAnimationFrame(function () {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "anonymous", arguments) : undefined;
+          try {
+            syncMobileFixedTitlePadding();
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+      }
+      return;
+    }
     const fallbackTitle = getRandomMotdFallback();
     titleElement.textContent = fallbackTitle;
     titleElement.setAttribute('data-text', fallbackTitle);
@@ -25283,6 +25449,9 @@ function switchTab(tabName, skipHash) {
           behavior: 'smooth'
         });
         if (typeof updateAIScrollSnapClass === 'function') updateAIScrollSnapClass();
+        if (typeof updateDashboardTitle === 'function') {
+          updateDashboardTitle();
+        }
         if (!skipHash && typeof setAppHashFromTab === 'function') {
           setAppHashFromTab(tabName);
         }
@@ -25389,7 +25558,11 @@ window.addEventListener('load', () => {
           if (typeof onDone === 'function') onDone();
           return;
         }
-        if (loadingOverlay.classList.contains('loading-overlay--bursting')) return;
+        if (loadingOverlay.classList.contains('loading-overlay--bursting')) {
+          // If a burst is already in progress, do not drop callbacks; complete shortly after.
+          if (typeof onDone === 'function') setTimeout(onDone, 660);
+          return;
+        }
         loadingOverlay.classList.add('loading-overlay--bursting');
         var done = false;
         var complete = function () {
@@ -25788,9 +25961,11 @@ window.addEventListener('load', () => {
             var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "anonymous", arguments) : undefined;
             try {
               setOrbitLoadingProgress(100);
-              if (window.DeviceBenchmark.isBenchmarkReady()) {
-                runAppInit();
-                return;
+              // Persist benchmark immediately so refreshes do not re-enter first-run flow.
+              if (result && typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.saveBenchmarkResult === 'function') {
+                try {
+                  window.DeviceBenchmark.saveBenchmarkResult(result);
+                } catch (e) {}
               }
               finishLoadingOverlayWithBurst(function () {
                 var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("app.js", "anonymous", arguments) : undefined;

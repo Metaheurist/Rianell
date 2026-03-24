@@ -129,6 +129,9 @@ function updateNotificationPermissionStatus() {
     const statusEl = document.getElementById('notificationPermissionStatus');
     const buttonEl = statusEl ? statusEl.parentElement : null;
     if (!statusEl) return;
+    if (buttonEl) {
+      buttonEl.classList.remove('is-granted', 'is-denied', 'is-default');
+    }
     const nativeCapable = isNativeNotificationCapable();
     const permission = getNotificationPermissionState();
     if (!nativeCapable && permission === 'unsupported') {
@@ -137,6 +140,7 @@ function updateNotificationPermissionStatus() {
         buttonEl.disabled = true;
         buttonEl.style.opacity = '0.5';
         buttonEl.style.cursor = 'not-allowed';
+        buttonEl.classList.add('is-default');
       }
       return;
     }
@@ -144,28 +148,28 @@ function updateNotificationPermissionStatus() {
       case 'granted':
         statusEl.textContent = '✓ Granted';
         if (buttonEl) {
-          buttonEl.style.background = 'rgba(76, 175, 80, 0.2)';
           buttonEl.style.cursor = 'default';
           buttonEl.disabled = false;
           buttonEl.style.opacity = '1';
+          buttonEl.classList.add('is-granted');
         }
         break;
       case 'denied':
         statusEl.textContent = '✗ Denied';
         if (buttonEl) {
-          buttonEl.style.background = 'rgba(244, 67, 54, 0.2)';
           buttonEl.style.cursor = 'default';
           buttonEl.disabled = false;
           buttonEl.style.opacity = '1';
+          buttonEl.classList.add('is-denied');
         }
         break;
       default:
         statusEl.textContent = 'Request Permission';
         if (buttonEl) {
-          buttonEl.style.background = 'rgba(255, 255, 255, 0.05)';
           buttonEl.style.cursor = 'pointer';
           buttonEl.disabled = false;
           buttonEl.style.opacity = '1';
+          buttonEl.classList.add('is-default');
         }
     }
   } finally {

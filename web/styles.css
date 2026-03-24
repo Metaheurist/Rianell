@@ -10945,17 +10945,19 @@ body.light-mode .goals-status-pill.below {
 }
 
 .settings-carousel-dots {
+  --settings-dot-gap: clamp(0.16rem, 0.5vw, 0.38rem);
+  --settings-dot-size: clamp(22px, calc((100% - (7 * var(--settings-dot-gap))) / 8), 32px);
   display: flex;
   align-items: center;
-  gap: 0.38rem;
+  justify-content: space-between;
+  gap: var(--settings-dot-gap);
   margin-top: 0.5rem;
   min-height: 26px;
   flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  padding-bottom: 2px;
+  padding-bottom: 0;
 }
 
 .settings-carousel-dots::-webkit-scrollbar {
@@ -10964,13 +10966,13 @@ body.light-mode .goals-status-pill.below {
 
 .settings-carousel-dot {
   position: relative;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  max-width: 32px;
-  max-height: 32px;
-  flex: 0 0 32px;
+  width: var(--settings-dot-size);
+  height: var(--settings-dot-size);
+  min-width: var(--settings-dot-size);
+  min-height: var(--settings-dot-size);
+  max-width: var(--settings-dot-size);
+  max-height: var(--settings-dot-size);
+  flex: 0 0 var(--settings-dot-size);
   aspect-ratio: 1 / 1;
   border-radius: 999px !important;
   border: 1px solid color-mix(in srgb, var(--primary-color) 38%, transparent);
@@ -10996,7 +10998,7 @@ body.light-mode .goals-status-pill.below {
   justify-content: center;
   width: 100%;
   height: 100%;
-  font-size: 0.95rem;
+  font-size: clamp(0.7rem, calc(var(--settings-dot-size) * 0.36), 0.95rem);
   font-weight: 700;
   line-height: 1;
   transform: translateY(0);

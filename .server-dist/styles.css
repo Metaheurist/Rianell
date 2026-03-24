@@ -126,21 +126,24 @@ body.theme-mono {
 }
 
 body.theme-rainbow {
-  --primary-color: #56c7ff;
-  --primary-gradient: linear-gradient(135deg, #ff4fa0 0%, #ff9f43 24%, #ffe24b 48%, #53d66c 72%, #56c7ff 100%);
-  --primary-glow: 0 0 18px rgba(140, 202, 255, 0.28);
-  --surface-main: rgba(15, 18, 24, 0.95);
-  --surface-border: rgba(120, 196, 255, 0.28);
-  --btn-chrome-border: rgba(129, 181, 255, 0.34);
-  --btn-chrome-shadow-hover: 0 4px 0 rgba(0, 0, 0, 0.48), 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 24px rgba(114, 170, 255, 0.2);
-  --neon-lime: #56c7ff;
-  --neon-lime-soft: #8dd8ff;
-  --neon-lime-deep: #2a7aff;
-  --neon-lime-glow: rgba(86, 199, 255, 0.34);
-  --title-neon-gradient: linear-gradient(135deg, #ff70bd 0%, #ffd65a 30%, #53d66c 58%, #56c7ff 82%, #9f6bff 100%);
-  --title-flat-tone: #5da4cc;
-  --modal-backdrop: rgba(2, 6, 12, 0.88);
-  --modal-surface: linear-gradient(180deg, rgba(23, 28, 36, 0.98) 0%, rgba(8, 11, 16, 0.99) 100%);
+  --primary-color: #ff4fa0;
+  --primary-gradient: linear-gradient(135deg, #ff375f 0%, #ff8f1f 16%, #ffe347 32%, #41e36d 48%, #25d8ff 64%, #5c7dff 80%, #b54cff 100%);
+  --primary-glow: 0 0 22px rgba(255, 116, 222, 0.38);
+  --background-gradient: linear-gradient(135deg, #1a0820 0%, #11192a 28%, #0f2a21 52%, #1b1c36 78%, #280f2f 100%);
+  --surface-main: rgba(26, 18, 34, 0.95);
+  --surface-border: rgba(255, 122, 221, 0.33);
+  --btn-chrome-bg: linear-gradient(145deg, rgba(60, 23, 74, 0.95) 0%, rgba(18, 39, 84, 0.95) 36%, rgba(11, 59, 53, 0.94) 66%, rgba(74, 30, 45, 0.95) 100%);
+  --btn-chrome-bg-hover: linear-gradient(145deg, rgba(90, 34, 110, 0.98) 0%, rgba(25, 64, 140, 0.98) 36%, rgba(20, 95, 86, 0.98) 66%, rgba(116, 42, 66, 0.98) 100%);
+  --btn-chrome-border: rgba(255, 152, 230, 0.45);
+  --btn-chrome-shadow-hover: 0 4px 0 rgba(0, 0, 0, 0.45), 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 28px rgba(255, 116, 222, 0.34);
+  --neon-lime: #ff4fa0;
+  --neon-lime-soft: #ffd54f;
+  --neon-lime-deep: #4d75ff;
+  --neon-lime-glow: rgba(255, 114, 211, 0.42);
+  --title-neon-gradient: linear-gradient(135deg, #ff6ab7 0%, #ffb347 22%, #fff35b 40%, #48ec7a 58%, #3ed9ff 76%, #6f7dff 90%, #c25dff 100%);
+  --title-flat-tone: #dd83c5;
+  --modal-backdrop: rgba(10, 4, 18, 0.9);
+  --modal-surface: linear-gradient(180deg, rgba(44, 22, 56, 0.98) 0%, rgba(16, 18, 44, 0.98) 45%, rgba(12, 34, 30, 0.98) 100%);
 }
 
 /* Mono theme hard overrides for legacy mint accents */
@@ -232,8 +235,8 @@ a:focus-visible,
 }
 
 textarea + .voice-input-btn {
-  top: 0.8rem;
-  transform: none;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .voice-input-btn__icon {
@@ -6074,7 +6077,7 @@ body.loading .header-buttons-wrap {
   width: 100vw;
   height: 100vh;
   background:
-    radial-gradient(ellipse 85% 55% at 50% 100%, rgba(123, 223, 140, 0.05) 0%, transparent 55%),
+    radial-gradient(ellipse 85% 55% at 50% 100%, color-mix(in srgb, var(--primary-color) 12%, transparent) 0%, transparent 55%),
     linear-gradient(180deg, #050606 0%, #070807 50%, #030403 100%);
   z-index: 99999;
   display: flex;
@@ -6147,7 +6150,7 @@ body.loading .header-buttons-wrap {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  box-shadow: 0 0 18px rgba(123, 223, 140, 0.12), inset 0 0 0 1px rgba(123, 223, 140, 0.08);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--primary-color) 26%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 18%, transparent);
   overflow: hidden;
 }
 
@@ -6165,28 +6168,28 @@ body.loading .header-buttons-wrap {
 }
 
 .loading-sun-orbit__ring::before {
-  background: rgba(123, 223, 140, 0.2);
+  background: color-mix(in srgb, var(--primary-color) 26%, transparent);
 }
 
 .loading-sun-orbit__ring::after {
   background:
     conic-gradient(
       from -90deg,
-      rgba(228, 255, 235, 0.95) 0deg,
+      color-mix(in srgb, var(--primary-color) 22%, #ffffff 78%) 0deg,
       var(--neon-lime) 40%,
-      #52b85f 78%,
-      rgba(123, 223, 140, 0.12) 100%
+      var(--neon-lime-deep) 78%,
+      color-mix(in srgb, var(--primary-color) 18%, transparent) 100%
     ),
     repeating-conic-gradient(
       from 0deg,
-      rgba(236, 255, 242, 0.34) 0deg,
-      rgba(236, 255, 242, 0.34) 10deg,
-      rgba(123, 223, 140, 0.08) 10deg,
-      rgba(123, 223, 140, 0.08) 20deg,
-      rgba(82, 184, 95, 0.3) 20deg,
-      rgba(82, 184, 95, 0.3) 30deg,
-      rgba(123, 223, 140, 0.08) 30deg,
-      rgba(123, 223, 140, 0.08) 40deg
+      color-mix(in srgb, var(--primary-color) 24%, #ffffff 76%) 0deg,
+      color-mix(in srgb, var(--primary-color) 24%, #ffffff 76%) 10deg,
+      color-mix(in srgb, var(--primary-color) 14%, transparent) 10deg,
+      color-mix(in srgb, var(--primary-color) 14%, transparent) 20deg,
+      color-mix(in srgb, var(--neon-lime-deep) 34%, transparent) 20deg,
+      color-mix(in srgb, var(--neon-lime-deep) 34%, transparent) 30deg,
+      color-mix(in srgb, var(--primary-color) 14%, transparent) 30deg,
+      color-mix(in srgb, var(--primary-color) 14%, transparent) 40deg
     );
   clip-path: inset(0 calc((1 - var(--loading-progress)) * 100%) 0 0);
   transition: clip-path 0.16s linear;
@@ -6210,8 +6213,8 @@ body.loading .header-buttons-wrap {
   margin-left: -6.5px;
   border-radius: 50%;
   overflow: hidden;
-  background: radial-gradient(circle at 35% 35%, #e8fff0, #9ae8a4 55%, #52b85f);
-  box-shadow: 0 0 10px rgba(123, 223, 140, 0.85), 0 0 0 1px rgba(123, 223, 140, 0.35);
+  background: radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--primary-color) 22%, #ffffff 78%), var(--neon-lime-soft) 55%, var(--neon-lime-deep));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--primary-color) 72%, transparent), 0 0 0 1px color-mix(in srgb, var(--primary-color) 36%, transparent);
   isolation: isolate;
   animation: rianell-orbit-dot-glow 1.45s ease-in-out infinite;
 }
@@ -6227,14 +6230,19 @@ body.loading .header-buttons-wrap {
 
 .loading-sun-orbit__body::before {
   /* Main liquid mass that sloshes while orbiting */
-  background: radial-gradient(circle at 48% 36%, rgba(236, 255, 242, 0.95) 0%, rgba(170, 241, 180, 0.9) 52%, rgba(86, 191, 110, 0.88) 100%);
+  background: radial-gradient(
+    circle at 48% 36%,
+    color-mix(in srgb, var(--primary-color) 24%, #ffffff 76%) 0%,
+    color-mix(in srgb, var(--primary-color) 70%, #ffffff 30%) 52%,
+    color-mix(in srgb, var(--neon-lime-deep) 86%, #ffffff 14%) 100%
+  );
   transform-origin: 50% 62%;
   animation: rianell-liquid-slosh 1.25s ease-in-out infinite;
 }
 
 .loading-sun-orbit__body::after {
   /* Inner sheen wave moving through the liquid */
-  background: linear-gradient(120deg, transparent 25%, rgba(236, 255, 242, 0.62) 50%, transparent 75%);
+  background: linear-gradient(120deg, transparent 25%, color-mix(in srgb, var(--primary-color) 34%, #ffffff 66%) 50%, transparent 75%);
   transform: translateX(-140%) rotate(8deg);
   animation: rianell-liquid-sheen 1.7s linear infinite;
   mix-blend-mode: screen;
@@ -6247,8 +6255,13 @@ body.loading .header-buttons-wrap {
   height: 42px;
   border-radius: 50%;
   overflow: hidden;
-  background: radial-gradient(circle at 38% 32%, #ecfff3, var(--neon-lime) 48%, #3d8f4a 100%);
-  box-shadow: 0 0 24px rgba(123, 223, 140, 0.58), 0 0 52px rgba(123, 223, 140, 0.26);
+  background: radial-gradient(
+    circle at 38% 32%,
+    color-mix(in srgb, var(--primary-color) 18%, #ffffff 82%),
+    var(--neon-lime) 48%,
+    color-mix(in srgb, var(--neon-lime-deep) 84%, #000000 16%) 100%
+  );
+  box-shadow: 0 0 24px color-mix(in srgb, var(--primary-color) 52%, transparent), 0 0 52px color-mix(in srgb, var(--primary-color) 26%, transparent);
   isolation: isolate;
 }
 
@@ -6474,8 +6487,8 @@ body.theme-rainbow .loading-sun-orbit__body {
   width: 100%;
   z-index: 4100;
   background: linear-gradient(180deg, rgba(12, 14, 15, 0.98) 0%, rgba(8, 9, 10, 0.99) 100%);
-  border-top: 1px solid rgba(123, 223, 140, 0.35);
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(123, 223, 140, 0.08);
+  border-top: 1px solid color-mix(in srgb, var(--primary-color) 40%, transparent);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px color-mix(in srgb, var(--primary-color) 16%, transparent);
   padding: 14px 16px;
   box-sizing: border-box;
   backdrop-filter: saturate(140%) blur(16px);
@@ -6517,7 +6530,7 @@ body.theme-rainbow .loading-sun-orbit__body {
   padding: 10px 20px;
   background: linear-gradient(180deg, var(--neon-lime-soft) 0%, var(--neon-lime) 40%, var(--neon-lime-deep) 100%);
   color: #0a0c08;
-  border: 1px solid rgba(123, 223, 140, 0.65);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 62%, transparent);
   border-radius: var(--btn-chrome-radius);
   font-weight: 700;
   cursor: pointer;
@@ -6527,7 +6540,12 @@ body.theme-rainbow .loading-sun-orbit__body {
     transform 0.15s ease;
 }
 .cookie-banner-accept:hover {
-  background: linear-gradient(180deg, #9ae8a4 0%, #7bdf8c 45%, #52b85f 100%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--primary-color) 60%, #ffffff 40%) 0%,
+    color-mix(in srgb, var(--primary-color) 82%, #ffffff 18%) 45%,
+    color-mix(in srgb, var(--primary-color) 74%, #000000 26%) 100%
+  );
   box-shadow: var(--btn-chrome-shadow-hover);
 }
 .cookie-banner-policy {
@@ -6548,7 +6566,7 @@ body.theme-rainbow .loading-sun-orbit__body {
 }
 body.light-mode .cookie-banner {
   background: rgba(255, 255, 255, 0.96);
-  border-top-color: rgba(129, 199, 132, 0.4);
+  border-top-color: color-mix(in srgb, var(--primary-color) 36%, transparent);
   box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.1);
   color: var(--text-dark);
   backdrop-filter: none;
@@ -6560,11 +6578,16 @@ body.light-mode .cookie-banner-text {
 body.light-mode .cookie-banner-accept {
   background: linear-gradient(180deg, var(--neon-lime-soft) 0%, var(--neon-lime) 40%, var(--neon-lime-deep) 100%);
   color: #0a0c08;
-  border-color: rgba(46, 125, 50, 0.45);
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12), 0 10px 24px rgba(123, 223, 140, 0.25);
+  border-color: color-mix(in srgb, var(--primary-color) 42%, transparent);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12), 0 10px 24px color-mix(in srgb, var(--primary-color) 28%, transparent);
 }
 body.light-mode .cookie-banner-accept:hover {
-  background: linear-gradient(180deg, #9ae8a4 0%, #7bdf8c 45%, #52b85f 100%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--primary-color) 60%, #ffffff 40%) 0%,
+    color-mix(in srgb, var(--primary-color) 82%, #ffffff 18%) 45%,
+    color-mix(in srgb, var(--primary-color) 74%, #000000 26%) 100%
+  );
 }
 body.light-mode .cookie-banner-policy {
   background: var(--btn-chrome-bg);
@@ -10922,23 +10945,34 @@ body.light-mode .goals-status-pill.below {
 }
 
 .settings-carousel-dots {
+  --settings-dot-gap: clamp(0.16rem, 0.5vw, 0.38rem);
+  --settings-dot-size: clamp(22px, calc((100% - (7 * var(--settings-dot-gap))) / 8), 32px);
   display: flex;
   align-items: center;
-  gap: 0.38rem;
+  justify-content: space-between;
+  gap: var(--settings-dot-gap);
   margin-top: 0.5rem;
   min-height: 26px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 0;
+}
+
+.settings-carousel-dots::-webkit-scrollbar {
+  display: none;
 }
 
 .settings-carousel-dot {
   position: relative;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  max-width: 32px;
-  max-height: 32px;
-  flex: 0 0 32px;
+  width: var(--settings-dot-size);
+  height: var(--settings-dot-size);
+  min-width: var(--settings-dot-size);
+  min-height: var(--settings-dot-size);
+  max-width: var(--settings-dot-size);
+  max-height: var(--settings-dot-size);
+  flex: 0 0 var(--settings-dot-size);
   aspect-ratio: 1 / 1;
   border-radius: 999px !important;
   border: 1px solid color-mix(in srgb, var(--primary-color) 38%, transparent);
@@ -10964,7 +10998,7 @@ body.light-mode .goals-status-pill.below {
   justify-content: center;
   width: 100%;
   height: 100%;
-  font-size: 0.95rem;
+  font-size: clamp(0.7rem, calc(var(--settings-dot-size) * 0.36), 0.95rem);
   font-weight: 700;
   line-height: 1;
   transform: translateY(0);
@@ -11976,14 +12010,14 @@ body.light-mode .date-separator {
 
 .settings-data-btn.install-ios-device-btn:hover {
   background: var(--btn-chrome-bg-hover);
-  border-color: rgba(123, 223, 140, 0.28);
+  border-color: color-mix(in srgb, var(--primary-color) 42%, transparent);
   box-shadow: var(--btn-chrome-shadow-hover);
   color: var(--btn-chrome-text);
 }
 
 .settings-data-btn.install-ios-device-btn:focus-visible {
   outline: none;
-  box-shadow: var(--btn-chrome-shadow-hover), 0 0 0 2px rgba(123, 223, 140, 0.35);
+  box-shadow: var(--btn-chrome-shadow-hover), 0 0 0 2px color-mix(in srgb, var(--primary-color) 48%, transparent);
 }
 
 .settings-data-btn.install-ios-device-btn .settings-install-icon i {
@@ -11992,7 +12026,7 @@ body.light-mode .date-separator {
 
 .settings-install-hint {
   font-size: 0.85rem;
-  color: var(--text-secondary, #666);
+  color: color-mix(in srgb, var(--text-light) 72%, transparent);
   margin: 0 0 10px 0;
   line-height: 1.35;
 }
@@ -13141,6 +13175,24 @@ body.light-mode .danger-zone {
   background: rgba(244, 67, 54, 0.3);
   border-color: #f44336;
   box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+.notification-permission-btn.is-granted {
+  background: color-mix(in srgb, var(--primary-color) 28%, transparent);
+  border-color: color-mix(in srgb, var(--primary-color) 64%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 34%, transparent), 0 4px 12px color-mix(in srgb, var(--primary-color) 26%, transparent);
+}
+
+.notification-permission-btn.is-denied {
+  background: color-mix(in srgb, #ff4d5a 28%, transparent);
+  border-color: color-mix(in srgb, #ff4d5a 62%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, #ff4d5a 36%, transparent), 0 4px 12px color-mix(in srgb, #ff4d5a 28%, transparent);
+}
+
+.notification-permission-btn.is-default {
+  background: color-mix(in srgb, var(--primary-color) 22%, transparent);
+  border-color: color-mix(in srgb, var(--primary-color) 42%, transparent);
+  box-shadow: none;
 }
 
 .cloud-sync-info {

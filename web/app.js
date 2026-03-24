@@ -923,19 +923,6 @@ function openPerfBenchmarkModal(options) {
         window.DeviceBenchmark.saveBenchmarkResult(result);
       }
       closePerfBenchmarkModal();
-      if (mode === 'firstRun') {
-        var loadingOverlayAgain = document.getElementById('loadingOverlay');
-        var loadingTextAgain = loadingOverlayAgain ? loadingOverlayAgain.querySelector('.loading-text') : null;
-        var orbitHostAgain = loadingOverlayAgain ? loadingOverlayAgain.querySelector('#loadingOrbitProgressHost') : null;
-        var orbitProgressAgain = loadingOverlayAgain ? loadingOverlayAgain.querySelector('#loadingOrbitProgress') : null;
-        if (loadingOverlayAgain) {
-          loadingOverlayAgain.classList.remove('hidden');
-          document.body.classList.add('loading');
-        }
-        if (loadingTextAgain) loadingTextAgain.textContent = 'Loading charts and AI…';
-        if (orbitHostAgain) orbitHostAgain.style.setProperty('--loading-progress', '0');
-        if (orbitProgressAgain) orbitProgressAgain.setAttribute('aria-valuenow', '0');
-      }
       if (options && typeof options.onContinue === 'function') options.onContinue();
     };
   }

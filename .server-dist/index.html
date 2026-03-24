@@ -198,10 +198,10 @@
       --loader-deep: #7f7f7f;
     }
     body.theme-rainbow {
-      --loader-primary: #56c7ff;
-      --loader-bright: #ddf3ff;
-      --loader-mid: #8dd8ff;
-      --loader-deep: #2a7aff;
+      --loader-primary: #ff4fa0;
+      --loader-bright: #ffe0f2;
+      --loader-mid: #ffd54f;
+      --loader-deep: #4d75ff;
     }
     #loadingOverlay.loading-overlay {
       position: fixed;
@@ -669,7 +669,7 @@
             </div>
           </div>
         </div>
-        <div class="settings-option" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(123, 223, 140, 0.18);"></div>
+        <div class="settings-option" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid color-mix(in srgb, var(--primary-color) 28%, transparent);"></div>
         <h4>☁️ Cloud Sync</h4>
         <div id="cloudSyncStatus" class="cloud-status">
           <div class="cloud-status-text" id="cloudStatusText">Not connected</div>
@@ -765,7 +765,7 @@
         </div>
         <div class="settings-option">
           <label>Reminder time</label>
-          <input type="time" id="reminderTime" class="time-input" value="20:00" onchange="updateReminderTime()" style="margin-left: auto; padding: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 6px; color: var(--text-light);">
+          <input type="time" id="reminderTime" class="time-input" value="20:00" onchange="updateReminderTime()" style="margin-left: auto; padding: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid color-mix(in srgb, var(--primary-color) 34%, transparent); border-radius: 6px; color: var(--text-light);">
         </div>
         <div class="settings-option">
           <label>Enable sound notifications</label>
@@ -773,7 +773,7 @@
         </div>
         <div class="settings-option" style="flex-direction: column; align-items: flex-start;">
           <label style="margin-bottom: 8px;">Notification permission</label>
-          <button class="cloud-btn" onclick="requestNotificationPermission()" style="padding: 8px 16px; font-size: 0.85rem; width: 100%; max-width: 200px;">
+          <button class="cloud-btn notification-permission-btn" onclick="requestNotificationPermission()" style="padding: 8px 16px; font-size: 0.85rem; width: 100%; max-width: 200px;">
             <span id="notificationPermissionStatus">Request Permission</span>
           </button>
         </div>
@@ -782,7 +782,7 @@
       <div class="settings-carousel-pane" data-settings-pane-title="Customisation" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4>🎨 Theme customisation</h4>
-        <p class="settings-hint">Pick a global theme. Selecting a theme applies it across the app and restarts to refresh all screens, modals, and loading visuals.</p>
+        <p class="settings-hint">Pick a global theme. Selecting a theme applies it instantly across the app in the background.</p>
         <div class="settings-theme-grid" role="radiogroup" aria-label="Global app theme">
           <button type="button" class="settings-theme-choice settings-theme-choice--mint" data-theme="mint" role="radio" aria-checked="true" onclick="setGlobalTheme('mint')">
             <span class="settings-theme-choice__swatch" aria-hidden="true"></span>
