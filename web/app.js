@@ -234,6 +234,140 @@ if (typeof window !== 'undefined') {
 }
 
 // ============================================
+// Voice input (speech-to-text) for text fields
+// ============================================
+var _voiceInputObserver = null;
+var _voiceInputActive = null;
+var _voiceInputSupported = false;
+
+function isVoiceInputEligibleField(el) {
+  if (!el || el.disabled || el.readOnly) return false;
+  if (el.dataset && el.dataset.noVoiceInput === 'true') return false;
+  if (el.tagName === 'TEXTAREA') return true;
+  if (el.tagName !== 'INPUT') return false;
+  var t = (el.type || 'text').toLowerCase();
+  if (t === 'password') return false;
+  return t === 'text' || t === 'search' || t === 'email' || t === 'url' || t === 'tel';
+}
+
+function ensureVoiceInputButton(field) {
+  if (!isVoiceInputEligibleField(field)) return;
+  if (field.closest('.voice-input-host')) return;
+
+  var host = document.createElement('span');
+  host.className = 'voice-input-host';
+  field.parentNode.insertBefore(host, field);
+  host.appendChild(field);
+
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'voice-input-btn';
+  btn.setAttribute('aria-label', 'Use voice input');
+  btn.setAttribute('title', _voiceInputSupported ? 'Voice input' : 'Voice input not supported in this browser');
+  btn.innerHTML = '<span class="voice-input-btn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path fill="currentColor" d="M12 14a3 3 0 0 0 3-3V7a3 3 0 0 0-6 0v4a3 3 0 0 0 3 3Zm5-3a1 1 0 1 0-2 0 3 3 0 0 1-6 0 1 1 0 1 0-2 0 5.01 5.01 0 0 0 4 4.9V19H9a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-3.1A5.01 5.01 0 0 0 17 11Z"/></svg></span>';
+  if (!_voiceInputSupported) btn.disabled = true;
+  btn.addEventListener('click', function() {
+    toggleVoiceInputForField(field, btn);
+  });
+  host.appendChild(btn);
+}
+
+function setFieldValueFromVoice(field, text) {
+  var base = String(field.dataset.voiceBaseValue || '');
+  var next = (base ? (base + ' ') : '') + text.trim();
+  field.value = next.trim();
+  field.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+function clearVoiceActiveState() {
+  if (!_voiceInputActive) return;
+  if (_voiceInputActive.button) _voiceInputActive.button.classList.remove('voice-input-btn--active');
+  if (_voiceInputActive.field) _voiceInputActive.field.classList.remove('voice-input-target--active');
+  _voiceInputActive = null;
+}
+
+function toggleVoiceInputForField(field, button) {
+  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) return;
+
+  if (_voiceInputActive && _voiceInputActive.field === field) {
+    try { _voiceInputActive.recognition.stop(); } catch (e) {}
+    clearVoiceActiveState();
+    return;
+  }
+  if (_voiceInputActive && _voiceInputActive.recognition) {
+    try { _voiceInputActive.recognition.stop(); } catch (e) {}
+    clearVoiceActiveState();
+  }
+
+  var recognition = new SpeechRecognition();
+  recognition.lang = (navigator.language || 'en-GB');
+  recognition.interimResults = true;
+  recognition.continuous = false;
+  recognition.maxAlternatives = 1;
+
+  field.dataset.voiceBaseValue = (field.value || '').trim();
+  var finalText = '';
+
+  recognition.onresult = function(event) {
+    var interimText = '';
+    for (var i = event.resultIndex; i < event.results.length; i++) {
+      var chunk = String(event.results[i][0].transcript || '').trim();
+      if (!chunk) continue;
+      if (event.results[i].isFinal) finalText += (finalText ? ' ' : '') + chunk;
+      else interimText += (interimText ? ' ' : '') + chunk;
+    }
+    var merged = (finalText + (interimText ? (' ' + interimText) : '')).trim();
+    if (merged) setFieldValueFromVoice(field, merged);
+  };
+
+  recognition.onerror = function() {
+    clearVoiceActiveState();
+  };
+  recognition.onend = function() {
+    clearVoiceActiveState();
+  };
+
+  _voiceInputActive = { field: field, button: button, recognition: recognition };
+  button.classList.add('voice-input-btn--active');
+  field.classList.add('voice-input-target--active');
+  try {
+    recognition.start();
+  } catch (e) {
+    clearVoiceActiveState();
+  }
+}
+
+function enhanceVoiceInputFields(scope) {
+  var root = scope || document;
+  if (!root || !root.querySelectorAll) return;
+  root.querySelectorAll('input, textarea').forEach(function(field) {
+    ensureVoiceInputButton(field);
+  });
+}
+
+function initVoiceInputControls() {
+  if (typeof document === 'undefined') return;
+  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  _voiceInputSupported = !!SpeechRecognition;
+  enhanceVoiceInputFields(document);
+  if (_voiceInputObserver) return;
+  _voiceInputObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(m) {
+      m.addedNodes.forEach(function(node) {
+        if (!node || node.nodeType !== 1) return;
+        if (node.matches && (node.matches('input') || node.matches('textarea'))) {
+          ensureVoiceInputButton(node);
+        } else {
+          enhanceVoiceInputFields(node);
+        }
+      });
+    });
+  });
+  _voiceInputObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+// ============================================
 // Custom Alert Modal
 // ============================================
 function showAlertModal(message, title = 'Alert', onClose) {
@@ -11166,6 +11300,18 @@ function renderFoodItems() {
       if (typeof openTilePickerSheet === 'function') openTilePickerSheet(btn);
     });
   });
+  // Keep food card selection badges in sync while editing an existing log.
+  container.querySelectorAll('.food-chip[data-food-id]').forEach(function(btn) {
+    var id = btn.getAttribute('data-food-id');
+    var predefined = PREDEFINED_FOODS.find(function(f) { return f.id === id; });
+    var selected = false;
+    if (predefined) {
+      selected = ['breakfast', 'lunch', 'dinner', 'snack'].some(function(cat) {
+        return itemNamesMatchFood(currentFoodByCategory[cat] || [], predefined.name);
+      });
+    }
+    setPickerChipSelected(btn, selected);
+  });
 }
 
 function saveFoodLog() {
@@ -11382,6 +11528,12 @@ function renderExerciseItems() {
       e.stopPropagation();
       if (typeof openTilePickerSheet === 'function') openTilePickerSheet(btn);
     });
+  });
+  // Keep exercise card selection badges in sync while editing an existing log.
+  list.querySelectorAll('.exercise-chip[data-exercise-id]').forEach(function(btn) {
+    var id = btn.getAttribute('data-exercise-id');
+    var ex = PREDEFINED_EXERCISES.find(function(e) { return e.id === id; });
+    setPickerChipSelected(btn, !!(ex && itemNamesMatchFood(currentExerciseItems, ex.name)));
   });
 }
 
@@ -14369,6 +14521,7 @@ let appSettings = {
   userName: '',
   weightUnit: 'kg', // 'kg' or 'lb', always store as kg
   medicalCondition: '', // Empty by default - user must set a condition
+  globalTheme: 'mint', // 'mint' | 'red-black' | 'mono' | 'rainbow'
   contributeAnonData: false, // Contribute anonymised data to pool
   useOpenData: false, // Use anonymised data pool for AI training (requires 90+ days)
   aiEnabled: true, // When false: hide AI Analysis tab, chart predictions, and Goals
@@ -14439,8 +14592,9 @@ if (typeof window !== 'undefined') window.setPreferredLlmModel = setPreferredLlm
 
 function applySettings() {
   // Always use dark mode
-    document.body.classList.remove('light-mode');
-    document.body.classList.add('dark-mode');
+  document.body.classList.remove('light-mode');
+  document.body.classList.add('dark-mode');
+  applyGlobalTheme();
   
   // Apply AI feature visibility (tab, predictions, goals)
   applyAIFeatureVisibility();
@@ -14451,6 +14605,29 @@ function applySettings() {
   // Update dashboard title
   updateDashboardTitle();
 }
+
+function applyGlobalTheme() {
+  var theme = (appSettings && typeof appSettings.globalTheme === 'string') ? appSettings.globalTheme : 'mint';
+  var valid = ['mint', 'red-black', 'mono', 'rainbow'];
+  if (valid.indexOf(theme) === -1) theme = 'mint';
+  if (appSettings) appSettings.globalTheme = theme;
+
+  var classes = ['theme-mint', 'theme-red-black', 'theme-mono', 'theme-rainbow'];
+  document.body.classList.remove.apply(document.body.classList, classes);
+  document.body.classList.add('theme-' + theme);
+}
+
+function setGlobalTheme(theme) {
+  var valid = ['mint', 'red-black', 'mono', 'rainbow'];
+  if (valid.indexOf(theme) === -1) return;
+  if (appSettings.globalTheme === theme) return;
+  appSettings.globalTheme = theme;
+  saveSettings();
+  applyGlobalTheme();
+  loadSettingsState();
+  setTimeout(function () { window.location.reload(); }, 120);
+}
+if (typeof window !== 'undefined') window.setGlobalTheme = setGlobalTheme;
 
 function applyAIFeatureVisibility() {
   var on = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
@@ -14583,6 +14760,17 @@ function loadSettingsState() {
   
   document.getElementById('animationsToggle').classList.toggle('active', appSettings.animations);
   document.getElementById('lazyToggle').classList.toggle('active', appSettings.lazy);
+
+  var themeButtons = document.querySelectorAll('.settings-theme-choice');
+  if (themeButtons && themeButtons.length) {
+    var activeTheme = (appSettings && appSettings.globalTheme) ? appSettings.globalTheme : 'mint';
+    for (var tb = 0; tb < themeButtons.length; tb++) {
+      var b = themeButtons[tb];
+      var selected = b.getAttribute('data-theme') === activeTheme;
+      b.classList.toggle('settings-theme-choice--active', selected);
+      b.setAttribute('aria-checked', selected ? 'true' : 'false');
+    }
+  }
 
   // On-device AI model: sync dropdown and recommendation hint from benchmark
   const preferredLlmSelect = document.getElementById('preferredLlmModelSelect');
@@ -17955,6 +18143,21 @@ window.addEventListener('load', () => {
   // Show loading overlay immediately (body.loading keeps overlay visible via CSS)
   const loadingOverlay = document.getElementById('loadingOverlay');
   const loadingTextEl = loadingOverlay ? loadingOverlay.querySelector('.loading-text') : null;
+  function finishLoadingOverlayWithBurst(onDone) {
+    if (!loadingOverlay) {
+      if (typeof onDone === 'function') onDone();
+      return;
+    }
+    if (loadingOverlay.classList.contains('loading-overlay--bursting')) return;
+    loadingOverlay.classList.add('loading-overlay--bursting');
+    var done = false;
+    var complete = function () {
+      if (done) return;
+      done = true;
+      if (typeof onDone === 'function') onDone();
+    };
+    setTimeout(complete, 640);
+  }
     if (loadingTextEl) loadingTextEl.textContent = 'Loading Rianell…';
   
   // Always set dark mode on load
@@ -18082,17 +18285,19 @@ window.addEventListener('load', () => {
     clearInterval(chartsAiProgressTimer);
     setOrbitLoadingProgress(100);
 
-    if (loadingOverlay) {
-      loadingOverlay.classList.add('hidden');
-      document.body.classList.remove('loading');
-      document.body.classList.add('loaded');
-      showCookieBannerIfNeeded();
-      setTimeout(function () { loadingOverlay.remove(); }, 500);
-    } else {
-      document.body.classList.remove('loading');
-      document.body.classList.add('loaded');
-      showCookieBannerIfNeeded();
-    }
+    finishLoadingOverlayWithBurst(function () {
+      if (loadingOverlay) {
+        loadingOverlay.classList.add('hidden');
+        document.body.classList.remove('loading');
+        document.body.classList.add('loaded');
+        showCookieBannerIfNeeded();
+        setTimeout(function () { loadingOverlay.remove(); }, 500);
+      } else {
+        document.body.classList.remove('loading');
+        document.body.classList.add('loaded');
+        showCookieBannerIfNeeded();
+      }
+    });
 
     scheduleDashboardMotdWithLlm(getRandomMotdFallback());
 
@@ -18211,22 +18416,24 @@ window.addEventListener('load', () => {
           runAppInit();
           return;
         }
-        if (loadingOverlay) {
-          loadingOverlay.classList.add('hidden');
-          document.body.classList.remove('loading');
-        }
-        /* index.html hides body > *:not(#loadingOverlay) until .loaded - without this, the first-run
-           benchmark modal is visibility:hidden and Continue never fires; runAppInit never runs (stuck). */
-        document.body.classList.add('loaded');
-        if (openPerfBenchmarkModal({
-          mode: 'firstRun',
-          result: result || { platformType: platformType, tier: tier },
-          onContinue: function () {
+        finishLoadingOverlayWithBurst(function () {
+          if (loadingOverlay) {
+            loadingOverlay.classList.add('hidden');
+            document.body.classList.remove('loading');
+          }
+          /* index.html hides body > *:not(#loadingOverlay) until .loaded - without this, the first-run
+             benchmark modal is visibility:hidden and Continue never fires; runAppInit never runs (stuck). */
+          document.body.classList.add('loaded');
+          if (openPerfBenchmarkModal({
+            mode: 'firstRun',
+            result: result || { platformType: platformType, tier: tier },
+            onContinue: function () {
+              runAppInit();
+            }
+          }) === false) {
             runAppInit();
           }
-        }) === false) {
-          runAppInit();
-        }
+        });
       }
     );
   } else {
@@ -18235,6 +18442,7 @@ window.addEventListener('load', () => {
   }
 
   (typeof loadMotdJson === 'function' ? loadMotdJson() : Promise.resolve()).then(startAfterMotd, startAfterMotd);
+  initVoiceInputControls();
 });
 
 function initializeDateFilters() {

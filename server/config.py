@@ -11,7 +11,8 @@ from collections import defaultdict
 # Paths (project root = parent of server package)
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = _PROJECT_ROOT
-WEB_DIR = _PROJECT_ROOT / 'web'
+_web_dir_env = os.getenv('RIANELL_WEB_DIR', '').strip()
+WEB_DIR = Path(_web_dir_env) if _web_dir_env else (_PROJECT_ROOT / 'web')
 LOCAL_LIB_DIR = _PROJECT_ROOT / 'lib'
 REQUIREMENTS_FILE = _PROJECT_ROOT / 'requirements.txt'
 # Secrets and env: prefer security/; root .env is legacy fallback

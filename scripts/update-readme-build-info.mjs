@@ -35,16 +35,25 @@ const runUrl = runId ? `https://github.com/${repo}/actions/runs/${runId}` : `htt
 
 const android = readJson(path.join('App build', 'Android', 'latest.json'));
 const ios = readJson(path.join('App build', 'iOS', 'latest.json'));
+const server = readJson(path.join('App build', 'Server', 'latest.json'));
+const serverX64 = readJson(path.join('App build', 'Server', 'latest-x64.json'));
+const serverX86 = readJson(path.join('App build', 'Server', 'latest-x86.json'));
 
 const androidV = android && typeof android.version !== 'undefined' ? String(android.version) : '-';
 const iosV = ios && typeof ios.version !== 'undefined' ? String(ios.version) : '-';
+const serverV = server && typeof server.version !== 'undefined' ? String(server.version) : '-';
+const serverX64V = serverX64 && typeof serverX64.version !== 'undefined' ? String(serverX64.version) : serverV;
+const serverX86V = serverX86 && typeof serverX86.version !== 'undefined' ? String(serverX86.version) : serverV;
 
 const androidFile = android && android.file ? String(android.file) : 'latest.json';
 const iosFile = ios && ios.file ? String(ios.file) : 'latest.json';
+const serverFile = server && server.file ? String(server.file) : 'latest.json';
+const serverX64File = serverX64 && serverX64.file ? String(serverX64.file) : 'rianell-server-x64.exe';
+const serverX86File = serverX86 && serverX86.file ? String(serverX86.file) : 'rianell-server-x86.exe';
 
 const badgeHref = runId ? runUrl : `https://github.com/${repo}/actions`;
 // Badge order: Alpha (iOS) first, then Beta (Android, Web). Matches table below.
-const summaryBadgeUrl = `https://img.shields.io/badge/build-iOS%20${encodeURIComponent(iosV)}%20%7C%20Android%20${encodeURIComponent(androidV)}%20%7C%20Web%20${encodeURIComponent(run)}-2e7d32?style=flat-square`;
+const summaryBadgeUrl = `https://img.shields.io/badge/build-iOS%20${encodeURIComponent(iosV)}%20%7C%20Android%20${encodeURIComponent(androidV)}%20%7C%20Server%20${encodeURIComponent(serverV)}%20%7C%20Web%20${encodeURIComponent(run)}-2e7d32?style=flat-square`;
 // Orange = Beta (Android, Web); blue = Alpha (iOS native zip) - shields named colors render reliably.
 const BETA_BADGE = 'https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white';
 const ALPHA_BADGE = 'https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white';
@@ -60,9 +69,11 @@ const block = [
   '| :--- | :---: |',
   `| ![Alpha](${ALPHA_BADGE}) **iOS** (Xcode project zip) | **${iosV}** |`,
   `| ![Beta](${BETA_BADGE}) **Android** APK | **${androidV}** |`,
+  `| ![Beta](${BETA_BADGE}) **Server** EXE (x64) | **${serverX64V}** |`,
+  `| ![Beta](${BETA_BADGE}) **Server** EXE (x86) | **${serverX86V}** |`,
   `| ![Beta](${BETA_BADGE}) **Web / PWA** (GitHub Pages deploy) | **${run}** |`,
   '',
-  `Latest: [\`App build/Android/${androidFile}\`](App%20build/Android/latest.json) · [\`App build/iOS/${iosFile}\`](App%20build/iOS/latest.json) · [Workflow #${run}](${runUrl}) · \`${sha}\``,
+  `Latest: [\`App build/Android/${androidFile}\`](App%20build/Android/latest.json) · [\`App build/iOS/${iosFile}\`](App%20build/iOS/latest.json) · [\`App build/Server/${serverFile}\`](App%20build/Server/latest.json) · [\`App build/Server/${serverX64File}\`](App%20build/Server/latest-x64.json) · [\`App build/Server/${serverX86File}\`](App%20build/Server/latest-x86.json) · [Workflow #${run}](${runUrl}) · \`${sha}\``,
   '',
   END,
 ].join('\n');

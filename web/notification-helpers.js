@@ -3,6 +3,20 @@
 // Functions called from HTML/event handlers
 // ============================================
 
+function isNativeNotificationCapable() {
+  return !!(window.Capacitor && window.Capacitor.isNativePlatform?.() && window.Capacitor?.Plugins?.LocalNotifications);
+}
+
+function getNotificationPermissionState() {
+  if (isNativeNotificationCapable()) {
+    var managerPermission = (typeof NotificationManager !== 'undefined' && NotificationManager && NotificationManager.permission) || 'default';
+    if (managerPermission === 'granted' || managerPermission === 'denied') return managerPermission;
+    return 'default';
+  }
+  if (!('Notification' in window)) return 'unsupported';
+  return Notification.permission;
+}
+
 // Update reminder time
 function updateReminderTime() {
   const timeInput = document.getElementById('reminderTime');
@@ -16,16 +30,15 @@ function updateReminderTime() {
 
 // Request notification permission
 async function requestNotificationPermission() {
-  // Check if notifications are supported
-  if (!('Notification' in window)) {
+  var nativeCapable = isNativeNotificationCapable();
+  const currentPermission = getNotificationPermissionState();
+
+  if (!nativeCapable && currentPermission === 'unsupported') {
     if (typeof showAlertModal === 'function') {
       showAlertModal('This browser does not support notifications.', 'Not Supported');
     }
     return;
   }
-  
-  // Check current permission status
-  const currentPermission = Notification.permission;
   
   // If already granted, show message and return
   if (currentPermission === 'granted') {
@@ -96,8 +109,10 @@ function updateNotificationPermissionStatus() {
   const statusEl = document.getElementById('notificationPermissionStatus');
   const buttonEl = statusEl ? statusEl.parentElement : null;
   if (!statusEl) return;
-  
-  if (!('Notification' in window)) {
+
+  const nativeCapable = isNativeNotificationCapable();
+  const permission = getNotificationPermissionState();
+  if (!nativeCapable && permission === 'unsupported') {
     statusEl.textContent = 'Not Supported';
     if (buttonEl) {
       buttonEl.disabled = true;
@@ -106,8 +121,6 @@ function updateNotificationPermissionStatus() {
     }
     return;
   }
-  
-  const permission = Notification.permission;
   switch (permission) {
     case 'granted':
       statusEl.textContent = '✓ Granted';
