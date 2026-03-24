@@ -18252,6 +18252,9 @@ function switchTab(tabName, skipHash) {
   const currentActive = document.querySelector('.tab-content.active');
   if (!selectedTab) return;
   tabNameRef = tabName;
+  if (document.body) {
+    document.body.classList.toggle('tab-not-home', tabName !== 'home');
+  }
 
   function doSwitch() {
     allTabs.forEach(function(tab) {
