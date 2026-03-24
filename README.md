@@ -27,7 +27,7 @@
 
 <!-- RIANELL_BUILD_INFO_START -->
 
-[![CI builds](https://img.shields.io/badge/build-iOS%2073%20%7C%20Android%2073%20%7C%20Server%2073%20%7C%20Web%2073-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/23486984473)
+[![CI builds](https://img.shields.io/badge/build-iOS%2073%20%7C%20Android%2073%20%7C%20Server%2073%20%7C%20Web%2075-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/23488579346)
 
 **CI builds**
 
@@ -37,9 +37,9 @@
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Android** APK | **73** |
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **73** |
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **73** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **73** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **75** |
 
-Latest: [`App build/Android/app-debug-beta-73.apk`](App%20build/Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-73.zip`](App%20build/iOS/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest-x64.json) · [`App build/Server/rianell-server-x86.exe`](App%20build/Server/latest-x86.json) · [Workflow #73](https://github.com/Metaheurist/Rianell/actions/runs/23486984473) · `fa3840a`
+Latest: [`App build/Android/app-debug-beta-73.apk`](App%20build/Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-73.zip`](App%20build/iOS/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest-x64.json) · [`App build/Server/rianell-server-x86.exe`](App%20build/Server/latest-x86.json) · [Workflow #75](https://github.com/Metaheurist/Rianell/actions/runs/23488579346) · `a7001aa`
 
 <!-- RIANELL_BUILD_INFO_END -->
 
