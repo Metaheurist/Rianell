@@ -11,7 +11,7 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 ## Current contract
 
 - `notifications`: native plugin path enabled, with web fallback.
-- `speech_to_text`: browser API based (`SpeechRecognition`), so support can vary per engine/WebView.
+- `speech_to_text`: browser API based (`SpeechRecognition`) with explicit microphone permission preflight and plugin-aware permission fallback checks when native speech plugins are present; support still varies by engine/WebView.
 - `clipboard_share_download`: supported with fallback paths where available.
 - `sync_behavior`: foreground/interval behavior; no guaranteed OS background sync.
 - `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
@@ -20,6 +20,11 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - Cloud sync now includes additional user setting keys stored outside `rianellSettings`, improving cross-device settings parity for authenticated users.
 - Native-first notification permission handling and native daily scheduling remain in place for mobile runtime consistency.
+
+### v1.45.0 parity update
+
+- Voice input now performs explicit microphone permission checks before recognition start, with clearer denied/unsupported feedback.
+- Where Capacitor/community speech plugins are available at runtime, their permission APIs are checked/requested before falling back to browser media permission flow.
 
 ## CI enforcement
 

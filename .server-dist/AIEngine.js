@@ -1,0 +1,4681 @@
+// ============================================
+// AI HEALTH ANALYSIS ENGINE
+// Comprehensive, rule-based health analysis
+// ============================================
+
+// Yield to main thread so UI can update (loading states, avoid "page frozen" feel)
+function yieldToMain() {
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "yieldToMain", arguments) : undefined;
+  try {
+    return new Promise(function (resolve) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        if (typeof requestAnimationFrame !== 'undefined') {
+          requestAnimationFrame(function () {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+            try {
+              setTimeout(resolve, 0);
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+        } else {
+          setTimeout(resolve, 0);
+        }
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    });
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+}
+
+// Pain body diagram regions (must match app.js PAIN_BODY_REGIONS for parsing stored text; includes joint points)
+const PAIN_REGIONS = [{
+  id: 'head',
+  label: 'Head'
+}, {
+  id: 'neck',
+  label: 'Neck'
+}, {
+  id: 'chest',
+  label: 'Chest'
+}, {
+  id: 'abdomen',
+  label: 'Abdomen'
+}, {
+  id: 'left_shoulder',
+  label: 'Left shoulder'
+}, {
+  id: 'left_upper_arm',
+  label: 'Left upper arm'
+}, {
+  id: 'left_elbow',
+  label: 'Left elbow'
+}, {
+  id: 'left_forearm',
+  label: 'Left forearm'
+}, {
+  id: 'left_wrist',
+  label: 'Left wrist'
+}, {
+  id: 'left_hand',
+  label: 'Left hand'
+}, {
+  id: 'right_shoulder',
+  label: 'Right shoulder'
+}, {
+  id: 'right_upper_arm',
+  label: 'Right upper arm'
+}, {
+  id: 'right_elbow',
+  label: 'Right elbow'
+}, {
+  id: 'right_forearm',
+  label: 'Right forearm'
+}, {
+  id: 'right_wrist',
+  label: 'Right wrist'
+}, {
+  id: 'right_hand',
+  label: 'Right hand'
+}, {
+  id: 'left_hip',
+  label: 'Left hip'
+}, {
+  id: 'left_thigh',
+  label: 'Left thigh'
+}, {
+  id: 'left_knee',
+  label: 'Left knee'
+}, {
+  id: 'left_lower_leg',
+  label: 'Left lower leg'
+}, {
+  id: 'left_ankle',
+  label: 'Left ankle'
+}, {
+  id: 'left_foot',
+  label: 'Left foot'
+}, {
+  id: 'right_hip',
+  label: 'Right hip'
+}, {
+  id: 'right_thigh',
+  label: 'Right thigh'
+}, {
+  id: 'right_knee',
+  label: 'Right knee'
+}, {
+  id: 'right_lower_leg',
+  label: 'Right lower leg'
+}, {
+  id: 'right_ankle',
+  label: 'Right ankle'
+}, {
+  id: 'right_foot',
+  label: 'Right foot'
+}];
+
+// Parse painLocation string (e.g. "Head (mild), Left knee (pain)") into regionId -> severity (0=none, 1=mild, 2=pain)
+function parsePainLocationToRegions(painLocation) {
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "parsePainLocationToRegions", arguments) : undefined;
+  try {
+    const map = {};
+    PAIN_REGIONS.forEach(r => {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+      try {
+        map[r.id] = 0;
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    });
+    if (!painLocation || typeof painLocation !== 'string' || !painLocation.trim()) return map;
+    const parts = painLocation.split(',').map(p => p.trim()).filter(p => p.length > 0);
+    parts.forEach(part => {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+      try {
+        const lower = part.toLowerCase();
+        const mild = lower.endsWith('(mild)');
+        const pain = lower.endsWith('(pain)');
+        const labelPart = lower.replace(/\s*\(mild\)\s*$/, '').replace(/\s*\(pain\)\s*$/, '').trim();
+        if (!labelPart) return;
+        const severity = mild ? 1 : pain ? 2 : 0;
+        if (severity === 0) return;
+        PAIN_REGIONS.forEach(r => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            if (r.label.toLowerCase() === labelPart || labelPart && r.label.toLowerCase().indexOf(labelPart) >= 0) {
+              map[r.id] = severity;
+            }
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    });
+    return map;
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+}
+
+// --- Neural network activation functions (used to bound/transform values in the analysis pipeline) ---
+function sigmoid(x) {
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "sigmoid", arguments) : undefined;
+  try {
+    return 1 / (1 + Math.exp(-Math.max(-20, Math.min(20, x))));
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+}
+function tanh(x) {
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "tanh", arguments) : undefined;
+  try {
+    const e = Math.exp(2 * Math.max(-10, Math.min(10, x)));
+    return (e - 1) / (e + 1);
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+}
+function relu(x) {
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "relu", arguments) : undefined;
+  try {
+    return x > 0 ? x : 0;
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+}
+function softmax(arr) {
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "softmax", arguments) : undefined;
+  try {
+    const max = Math.max(...arr);
+    const exp = arr.map(v => Math.exp(Math.max(-20, Math.min(20, v - max))));
+    const sum = exp.reduce((a, b) => a + b, 0);
+    return sum === 0 ? arr.map(() => 1 / arr.length) : exp.map(e => e / sum);
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+}
+
+// --- GPU acceleration (TensorFlow.js WebGL) for desktop ---
+// isDesktop aligned with device module (PerformanceUtils/DeviceModule.platform) for consistency.
+var _gpuBackendReady = null;
+function isDesktop() {
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "isDesktop", arguments) : undefined;
+  try {
+    if (typeof window !== 'undefined' && window.PerformanceUtils && window.PerformanceUtils.platform) {
+      return window.PerformanceUtils.platform.platform === 'desktop';
+    }
+    if (typeof window !== 'undefined' && window.DeviceModule && window.DeviceModule.platform) {
+      return window.DeviceModule.platform.platform === 'desktop';
+    }
+    return typeof navigator !== 'undefined' && !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+}
+function benchmarkSaysGPUGood() {
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "benchmarkSaysGPUGood", arguments) : undefined;
+  try {
+    if (typeof window === 'undefined' || !window.DeviceBenchmark || typeof window.DeviceBenchmark.getCachedResult !== 'function') return false;
+    var cached = window.DeviceBenchmark.getCachedResult();
+    return !!(cached && cached.gpu && cached.gpu.available && cached.gpu.good);
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+}
+function ensureGPUBackend() {
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "ensureGPUBackend", arguments) : undefined;
+  try {
+    if (_gpuBackendReady !== null) return _gpuBackendReady;
+    _gpuBackendReady = async function () {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        if (typeof tf === 'undefined') return false;
+        var useGPU = isDesktop() || benchmarkSaysGPUGood();
+        if (!useGPU) return false;
+        var deviceClass = typeof window !== 'undefined' && window.PerformanceUtils && window.PerformanceUtils.platform ? window.PerformanceUtils.platform.deviceClass || 'medium' : 'medium';
+        if (deviceClass === 'low') return false;
+        try {
+          if (typeof tf !== 'undefined') {
+            try {
+              if (tf.env && typeof tf.env.set === 'function') tf.env.set('WEBGL_POWER_PREFERENCE', 'high-performance');else if (tf.env && typeof tf.env === 'function' && tf.env().set) tf.env().set('WEBGL_POWER_PREFERENCE', 'high-performance');
+            } catch (_) {}
+          }
+          await tf.ready();
+          if (tf.getBackend() !== 'webgl') await tf.setBackend('webgl');
+          await tf.ready();
+          return tf.getBackend() === 'webgl';
+        } catch (e) {
+          return false;
+        }
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    }();
+    return _gpuBackendReady;
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+}
+function computeCorrelationMatrixGPU(numericMatrix, n) {
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "computeCorrelationMatrixGPU", arguments) : undefined;
+  try {
+    if (typeof tf === 'undefined' || numericMatrix.length < 5 || n < 2) return null;
+    var filled = numericMatrix.map(function (row) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        return row.slice();
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    });
+    var colMean = [];
+    for (var j = 0; j < n; j++) {
+      var sum = 0,
+        count = 0;
+      for (var r = 0; r < filled.length; r++) {
+        var v = filled[r][j];
+        if (v != null && !isNaN(v)) {
+          sum += v;
+          count++;
+        }
+      }
+      colMean[j] = count > 0 ? sum / count : 0;
+    }
+    for (var r = 0; r < filled.length; r++) {
+      for (var j = 0; j < n; j++) {
+        if (filled[r][j] == null || isNaN(filled[r][j])) filled[r][j] = colMean[j];
+      }
+    }
+    try {
+      var X = tf.tensor2d(filled);
+      var mean = tf.mean(X, 0);
+      var variance = tf.moments(X, 0).variance;
+      var eps = tf.scalar(1e-8);
+      var std = tf.sqrt(tf.add(variance, eps));
+      var Z = tf.div(tf.sub(X, mean), std);
+      var N = numericMatrix.length;
+      var C = tf.matMul(tf.transpose(Z), Z).div(Math.max(1, N - 1));
+      var data = C.arraySync();
+      X.dispose();
+      mean.dispose();
+      variance.dispose();
+      std.dispose();
+      Z.dispose();
+      C.dispose();
+      for (var i = 0; i < n; i++) data[i][i] = 1;
+      return data;
+    } catch (e) {
+      return null;
+    }
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+}
+
+// Neural analysis network: runs all current AI functionality as "layers" with activations
+// Each layer applies existing engine methods (regression, correlation, prediction, etc.) as activator functions
+function NeuralAnalysisNetwork(engine) {
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "NeuralAnalysisNetwork", arguments) : undefined;
+  try {
+    this.engine = engine;
+    this.forward = async function (logs, allLogs, options) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        const analysis = {
+          trends: {},
+          correlations: [],
+          anomalies: [],
+          advice: [],
+          patterns: [],
+          riskFactors: [],
+          prioritisedInsights: [],
+          summary: ""
+        };
+        if (logs.length === 0) return analysis;
+        const trainingLogs = allLogs && allLogs.length > 0 ? allLogs : logs;
+        const recentLogs = logs;
+        const predictionState = options && options.predictionState || {
+          lastPredictions: {},
+          blendWeights: {}
+        };
+        const context = {
+          trainingLogs,
+          recentLogs,
+          analysis,
+          predictionState
+        };
+
+        // Layer 1: Input – single pass over all data to build feature space (GPU correlation when available)
+        await this.layerInput(context);
+        await yieldToMain();
+
+        // Layer 2: Trend (regression activations using full training data per metric)
+        this.layerTrend(context);
+        await yieldToMain();
+
+        // Layer 3a: Pairwise correlations (all data points)
+        this.layerCorrelationPairwise(context);
+        // Layer 3b: Multi-metric correlation matrix (full training data)
+        this.layerCorrelationMulti(context);
+        await yieldToMain();
+
+        // Layer 4: Pattern & anomaly (recent + full where applicable)
+        this.layerPatternAnomaly(context);
+        // Layer 5: Risk & flare (full training data for pattern learning)
+        this.layerRiskFlare(context);
+        await yieldToMain();
+
+        // Layer 6: Cross-section (food, exercise, stressors, symptoms – all logs)
+        this.layerCrossSection(context);
+        // Layer 7a: Clustering (full data for better clusters)
+        this.layerClustering(context);
+        await yieldToMain();
+
+        // Layer 7b: Time series (full data for smoothing/MA)
+        this.layerTimeSeries(context);
+        // Layer 7c: Outliers & seasonality (full data)
+        this.layerOutliersSeasonality(context);
+        await yieldToMain();
+
+        // Layer 8: Output / advice
+        this.layerAdvice(context);
+        // Layer 9: Interpretation – prioritise and dedupe insights for "what matters most"
+        this.layerInterpretation(context);
+        // Layer 10: Summary – plain-language 2–3 sentence headline
+        this.layerSummary(context);
+        await yieldToMain();
+
+        // Learning: update blend weights from past prediction errors; save new prediction snapshots for next run
+        this.layerPredictionLearning(context);
+        return analysis;
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+    this.layerInput = async function (ctx) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration'];
+        const requirePositive = {
+          bpm: true,
+          weight: true
+        };
+        const trainingLogs = ctx.trainingLogs;
+        const recentLogs = ctx.recentLogs;
+        const engine = this.engine;
+        ctx.dates = trainingLogs.map(log => log.date);
+        ctx.flareFlags = trainingLogs.map(log => log.flare === 'Yes' ? 1 : 0);
+        ctx.dayOfWeek = trainingLogs.map(log => new Date(log.date).getDay());
+        ctx.daysSinceLastFlare = [];
+        for (let i = 0, lastFlare = -1; i < trainingLogs.length; i++) {
+          if (trainingLogs[i].flare === 'Yes') lastFlare = i;
+          ctx.daysSinceLastFlare.push(lastFlare < 0 ? 999 : i - lastFlare);
+        }
+        ctx.metricsData = {};
+        const numericMatrix = [];
+        metrics.forEach(metric => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            const needPositive = requirePositive[metric];
+            const getVal = log => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                return metric === 'weight' ? parseFloat(log[metric]) : parseInt(log[metric], 10) || 0;
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            };
+            const isValid = val => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                return !isNaN(val) && (needPositive ? val > 0 : val >= 0);
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            };
+            const validTrainingLogs = trainingLogs.filter(log => isValid(getVal(log)));
+            if (validTrainingLogs.length === 0) return;
+            const firstDate = new Date(validTrainingLogs[0].date);
+            const trainingDataPoints = validTrainingLogs.map(log => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                const val = getVal(log);
+                const logDate = new Date(log.date);
+                const daysSinceStart = Math.floor((logDate - firstDate) / (1000 * 60 * 60 * 24));
+                return {
+                  x: daysSinceStart,
+                  y: val
+                };
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            });
+            const recentDataPoints = recentLogs.filter(log => isValid(getVal(log))).map((log, index) => ({
+              x: index,
+              y: getVal(log)
+            }));
+            if (recentDataPoints.length === 0) return;
+            const values = recentDataPoints.map(p => p.y);
+            const trainingValues = trainingDataPoints.map(p => p.y);
+            const avg = values.reduce((a, b) => a + b, 0) / values.length;
+            const variance = engine.calculateVariance(values);
+            const rollingMean7 = [];
+            const rollingMean30 = [];
+            for (let i = 0; i < trainingValues.length; i++) {
+              const start7 = Math.max(0, i - 6);
+              const start30 = Math.max(0, i - 29);
+              const slice7 = trainingValues.slice(start7, i + 1);
+              const slice30 = trainingValues.slice(start30, i + 1);
+              rollingMean7.push(slice7.reduce((a, b) => a + b, 0) / slice7.length);
+              rollingMean30.push(slice30.reduce((a, b) => a + b, 0) / slice30.length);
+            }
+            ctx.metricsData[metric] = {
+              trainingDataPoints: trainingDataPoints,
+              recentDataPoints: recentDataPoints,
+              values: values,
+              avg: avg,
+              variance: variance,
+              validTrainingLogs: validTrainingLogs,
+              rollingMean7: rollingMean7,
+              rollingMean30: rollingMean30,
+              fillRate: validTrainingLogs.length / trainingLogs.length
+            };
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+        for (let i = 0; i < trainingLogs.length; i++) {
+          const row = [];
+          metrics.forEach(metric => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const v = metric === 'weight' ? parseFloat(trainingLogs[i][metric]) : parseInt(trainingLogs[i][metric], 10) || 0;
+              row.push(isNaN(v) ? null : v);
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+          numericMatrix.push(row);
+        }
+        ctx.fullNumericMatrix = numericMatrix;
+        ctx.metricNames = metrics;
+        if (numericMatrix.length >= 5) {
+          const n = metrics.length;
+          const useGPU = await ensureGPUBackend();
+          const gpuCorr = useGPU ? computeCorrelationMatrixGPU(numericMatrix, n) : null;
+          if (gpuCorr) {
+            ctx.correlationMatrix = gpuCorr;
+          } else {
+            const corr = [];
+            for (let i = 0; i < n; i++) {
+              corr[i] = [];
+              for (let j = 0; j < n; j++) {
+                if (i === j) {
+                  corr[i][j] = 1;
+                  continue;
+                }
+                if (i > j) {
+                  corr[i][j] = corr[j][i];
+                  continue;
+                }
+                const pairs = numericMatrix.map(row => [row[i], row[j]]).filter(p => p[0] != null && p[1] != null);
+                if (pairs.length < 3) {
+                  corr[i][j] = 0;
+                  continue;
+                }
+                const a = pairs.map(p => p[0]);
+                const b = pairs.map(p => p[1]);
+                corr[i][j] = engine.calculateCorrelation(a, b);
+              }
+            }
+            ctx.correlationMatrix = corr;
+          }
+        } else {
+          ctx.correlationMatrix = null;
+        }
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+    this.layerTrend = function (ctx) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        this.engine._computeTrends(ctx.analysis, ctx.trainingLogs, ctx.recentLogs, ctx);
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+    this.layerCorrelationPairwise = function (ctx) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        this.engine.detectCorrelations(ctx.trainingLogs.length >= ctx.recentLogs.length ? ctx.trainingLogs : ctx.recentLogs, ctx.analysis);
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+    this.layerCorrelationMulti = function (ctx) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        const options = ctx.correlationMatrix != null && ctx.metricNames ? {
+          precomputedByIndex: ctx.correlationMatrix,
+          metricNames: ctx.metricNames
+        } : undefined;
+        this.engine.detectMultiMetricCorrelations(ctx.trainingLogs, ctx.analysis, options);
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+    this.layerPatternAnomaly = function (ctx) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        const e = this.engine;
+        e.detectAnomalies(ctx.recentLogs, ctx.analysis);
+        e.detectPatterns(ctx.recentLogs, ctx.analysis);
+        const accelerations = e.detectTrendAcceleration(ctx.recentLogs, ctx.analysis);
+        if (accelerations.length > 0) ctx.analysis.patterns.push(...accelerations);
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+    this.layerRiskFlare = function (ctx) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        const e = this.engine;
+        e.assessRiskFactors(ctx.recentLogs, ctx.analysis);
+        e.predictFlareUps(ctx.trainingLogs, ctx.analysis);
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+    this.layerCrossSection = function (ctx) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        const e = this.engine;
+        const recentLogs = ctx.recentLogs;
+        // Use selected date range (recentLogs) for all display sections so Nutrition, Exercise, Top foods, Top exercises match the chosen range (e.g. 7 days)
+        const hasFood = recentLogs.some(log => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            return log.food && (log.food.breakfast?.length || log.food.lunch?.length || log.food.dinner?.length || log.food.snack?.length);
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+        const hasExercise = recentLogs.some(log => log.exercise && log.exercise.length > 0);
+        if (hasFood || hasExercise) e.analyzeFoodExerciseImpact(recentLogs, ctx.analysis);
+        e.analyzeEnergyClarityAndWeather(recentLogs, ctx.analysis);
+        e.analyzeStressorsImpact(recentLogs, ctx.analysis);
+        e.analyzeSymptomsAndPainLocation(recentLogs, ctx.analysis);
+        e.analyzeCrossSectionCorrelations(recentLogs, ctx.analysis);
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+    this.layerClustering = function (ctx) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        this.engine.performClustering(ctx.trainingLogs.length >= 5 ? ctx.trainingLogs : ctx.recentLogs, ctx.analysis);
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+    this.layerTimeSeries = function (ctx) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        this.engine.performTimeSeriesAnalysis(ctx.trainingLogs.length >= 5 ? ctx.trainingLogs : ctx.recentLogs, ctx.analysis);
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+    this.layerOutliersSeasonality = function (ctx) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        const e = this.engine;
+        // Use selected date range (recentLogs) so "Things to watch" counts match the chosen range (e.g. 7 days)
+        e.detectOutliers(ctx.recentLogs, ctx.analysis);
+        e.detectSeasonality(ctx.recentLogs, ctx.analysis);
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+    this.layerAdvice = function (ctx) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        const conditionContext = window.CONDITION_CONTEXT || {
+          name: 'your condition'
+        };
+        ctx.analysis.advice = this.engine.generateActionableAdvice(ctx.analysis.trends, ctx.recentLogs, conditionContext);
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+    this.layerInterpretation = function (ctx) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        const a = ctx.analysis;
+        const items = [];
+        (a.anomalies || []).forEach(text => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            return items.push({
+              text: text,
+              score: 0.9,
+              source: 'anomaly'
+            });
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+        (a.riskFactors || []).forEach(text => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            return items.push({
+              text: text,
+              score: 0.85,
+              source: 'risk'
+            });
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+        (a.correlations || []).slice(0, 5).forEach(text => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            return items.push({
+              text: text,
+              score: 0.5,
+              source: 'correlation'
+            });
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+        (a.patterns || []).forEach(text => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            return items.push({
+              text: text,
+              score: 0.4,
+              source: 'pattern'
+            });
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+        const seen = new Set();
+        const deduped = items.filter(item => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            const key = item.text.substring(0, 60).toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+        deduped.sort((x, y) => y.score - x.score);
+        a.prioritisedInsights = deduped.slice(0, 7).map(item => item.text);
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+    this.layerSummary = function (ctx) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        const a = ctx.analysis;
+        const parts = [];
+        const improving = [];
+        const worsening = [];
+        Object.keys(a.trends || {}).forEach(metric => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            const t = a.trends[metric];
+            if (!t.regression || t.regression.normalizedSignificance < 0.5) return;
+            const name = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            if (t.regression.direction === 'improving') improving.push(name);else if (t.regression.direction === 'worsening') worsening.push(name);
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+        if (improving.length > 0) parts.push(improving.join(', ') + (improving.length === 1 ? ' is' : ' are') + ' improving.');
+        if (worsening.length > 0) parts.push(worsening.join(', ') + (worsening.length === 1 ? ' is' : ' are') + ' trending worse.');
+        if (a.riskFactors && a.riskFactors.length > 0) parts.push(a.riskFactors[0]);else if (a.patterns && a.patterns.length > 0) parts.push(a.patterns[0]);
+        if (a.advice && a.advice.length > 0) parts.push(a.advice[0].replace(/\*\*([^*]+)\*\*/g, '$1').trim());
+        ctx.analysis.summary = parts.length ? parts.slice(0, 3).join(' ') : 'Review your trends and patterns above for insights.';
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+
+    // Learning: compare past 7-day predictions to actuals; update per-metric blend weights; save new snapshots
+    this.layerPredictionLearning = function (ctx) {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+      try {
+        const state = ctx.predictionState;
+        const trainingLogs = ctx.trainingLogs;
+        const recentLogs = ctx.recentLogs;
+        const analysis = ctx.analysis;
+        function dateStr(d) {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "dateStr", arguments) : undefined;
+          try {
+            const x = typeof d === 'string' ? new Date(d) : d;
+            return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        }
+        function addDays(dateStrOrObj, days) {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "addDays", arguments) : undefined;
+          try {
+            const d = typeof dateStrOrObj === 'string' ? new Date(dateStrOrObj) : dateStrOrObj;
+            const out = new Date(d);
+            out.setDate(out.getDate() + days);
+            return dateStr(out);
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        }
+        function getVal(log, metric) {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "getVal", arguments) : undefined;
+          try {
+            return metric === 'weight' ? parseFloat(log[metric]) : parseInt(log[metric], 10) || 0;
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        }
+        const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration'];
+        const blendWeights = state.blendWeights || {};
+        const lastPredictions = state.lastPredictions || {};
+
+        // Learn from past predictions: for each metric we predicted 7 days ahead, compare to actual
+        metrics.forEach(metric => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            const prev = lastPredictions[metric];
+            if (!prev || !prev.asOfDate) return;
+            const targetDate = addDays(prev.asOfDate, 7);
+            const logAtTarget = trainingLogs.find(log => dateStr(log.date) === targetDate);
+            if (!logAtTarget) return;
+            const actual = getVal(logAtTarget, metric);
+            if (isNaN(actual) && metric !== 'weight') return;
+            if (metric === 'weight' && (isNaN(actual) || actual <= 0)) return;
+            const errReg = Math.pow(actual - (prev.projected7 || prev.current), 2);
+            const errPers = Math.pow(actual - prev.current, 2);
+            let w = blendWeights[metric];
+            if (w === undefined) w = 0.6;
+            const step = 0.05;
+            if (errReg < errPers) w = Math.min(0.95, w + step);else w = Math.max(0.05, w - step);
+            blendWeights[metric] = Math.round(w * 100) / 100;
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+
+        // Save new prediction snapshots (as-of last date in recentLogs)
+        const lastLog = recentLogs[recentLogs.length - 1];
+        const asOfDate = lastLog ? dateStr(lastLog.date) : null;
+        const newLastPredictions = {};
+        if (asOfDate && analysis.trends) {
+          metrics.forEach(metric => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const trend = analysis.trends[metric];
+              if (!trend || trend.projected7Days == null) return;
+              newLastPredictions[metric] = {
+                asOfDate: asOfDate,
+                projected7: trend.projected7Days,
+                projected30: trend.projected30Days,
+                current: trend.current
+              };
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+        }
+        analysis.predictionStateForSave = {
+          lastPredictions: Object.keys(newLastPredictions).length ? newLastPredictions : lastPredictions,
+          blendWeights: blendWeights
+        };
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    };
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+}
+
+// AI Engine Configuration
+const AIEngine = {
+  // Analyze health metrics via neural network (all current functionality as layer activations)
+  // options.predictionState: optional { lastPredictions, blendWeights } for learning; new state returned in analysis.predictionStateForSave
+  // Uses GPU (WebGL) for correlation matrix on desktop when available
+  analyzeHealthMetrics: async function (logs, allLogs = null, options = null) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      const net = new NeuralAnalysisNetwork(this);
+      return await net.forward(logs, allLogs, options || {});
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Trend layer activator: computes regression, predictions, projected values per metric
+  // If context.metricsData is provided (from layerInput), uses precomputed data to avoid re-scanning logs
+  _computeTrends: function (analysis, trainingLogs, recentLogs, context) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration'];
+      const requirePositive = {
+        bpm: true,
+        weight: true
+      };
+      const metricsData = context && context.metricsData;
+      metrics.forEach(metric => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          let trainingDataPoints, recentDataPoints, values, avg, variance, validTrainingLogs;
+          if (metricsData && metricsData[metric]) {
+            const pre = metricsData[metric];
+            trainingDataPoints = pre.trainingDataPoints;
+            recentDataPoints = pre.recentDataPoints;
+            values = pre.values;
+            avg = pre.avg;
+            variance = pre.variance;
+            validTrainingLogs = pre.validTrainingLogs;
+            if (!trainingDataPoints.length || !recentDataPoints.length) return;
+          } else {
+            const needPositive = requirePositive[metric];
+            const getVal = log => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                return metric === 'weight' ? parseFloat(log[metric]) : parseInt(log[metric], 10) || 0;
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            };
+            const isValid = val => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                return !isNaN(val) && (needPositive ? val > 0 : val >= 0);
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            };
+            validTrainingLogs = trainingLogs.filter(log => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                const val = getVal(log);
+                return isValid(val);
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            });
+            if (validTrainingLogs.length === 0) return;
+            const firstDate = new Date(validTrainingLogs[0].date);
+            trainingDataPoints = validTrainingLogs.map(log => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                const val = getVal(log);
+                const logDate = new Date(log.date);
+                const daysSinceStart = Math.floor((logDate - firstDate) / (1000 * 60 * 60 * 24));
+                return {
+                  x: daysSinceStart,
+                  y: val
+                };
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            });
+            recentDataPoints = recentLogs.filter(log => isValid(getVal(log))).map((log, index) => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                const val = getVal(log);
+                return {
+                  x: index,
+                  y: val
+                };
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            });
+            if (trainingDataPoints.length === 0 || recentDataPoints.length === 0) return;
+            values = recentDataPoints.map(p => p.y);
+            avg = values.reduce((a, b) => a + b, 0) / values.length;
+            variance = this.calculateVariance(values);
+          }
+
+          // Check if this is BPM or Weight (different scale and thresholds)
+          const isBPM = metric === 'bpm';
+          const isWeight = metric === 'weight';
+          const isSteps = metric === 'steps';
+          const isHydration = metric === 'hydration';
+
+          // Perform linear regression on ALL training data for better predictions
+          const linearRegression = this.performLinearRegression(trainingDataPoints);
+
+          // Try polynomial regression if linear R² is low
+          let regression = linearRegression;
+          let modelType = 'linear';
+          let polynomialRegression = null;
+          if (linearRegression.rSquared < 0.5 && trainingDataPoints.length >= 4) {
+            // Try polynomial regression (degree 2)
+            polynomialRegression = this.performPolynomialRegression(trainingDataPoints, 2);
+
+            // Use polynomial if it's significantly better (R² improvement > 0.1)
+            if (polynomialRegression.rSquared > linearRegression.rSquared + 0.1) {
+              regression = {
+                slope: polynomialRegression.coefficients[1] || 0,
+                // Use linear term as slope approximation
+                intercept: polynomialRegression.coefficients[0] || 0,
+                rSquared: polynomialRegression.rSquared,
+                standardError: polynomialRegression.standardError,
+                polynomial: polynomialRegression
+              };
+              modelType = 'polynomial';
+            }
+          }
+
+          // Try ARIMA for metrics with strong autocorrelation (if enough data)
+          let arimaForecast = null;
+          if (trainingDataPoints.length >= 10) {
+            const trainingValues = trainingDataPoints.map(p => p.y);
+            arimaForecast = this.performARIMAForecast(trainingValues, 1, 0, 0);
+
+            // Compare ARIMA with regression (use ARIMA if it shows better fit for recent data)
+            if (arimaForecast && arimaForecast.forecasts) {
+              // Simple comparison: check if ARIMA captures recent trends better
+              const recentValues = trainingValues.slice(-7);
+              const recentMean = recentValues.reduce((a, b) => a + b, 0) / recentValues.length;
+              const arimaFirstForecast = arimaForecast.forecasts[0];
+              const linearFirstForecast = linearRegression.slope * trainingDataPoints[trainingDataPoints.length - 1].x + linearRegression.intercept;
+
+              // Use ARIMA if it's closer to recent trend
+              const arimaError = Math.abs(arimaFirstForecast - recentMean);
+              const linearError = Math.abs(linearFirstForecast - recentMean);
+              if (arimaError < linearError * 0.8 && regression.rSquared < 0.6) {
+                modelType = 'arima';
+              }
+            }
+          }
+
+          // Calculate predictions for next 7 days using last x value
+          // Pass metric-specific data for unique prediction patterns
+          const lastXValue = trainingDataPoints[trainingDataPoints.length - 1].x;
+          const metricContext = {
+            variance: variance,
+            average: avg,
+            metricName: metric,
+            trainingValues: trainingDataPoints.map(p => p.y),
+            isSteps: isSteps,
+            isHydration: isHydration
+          };
+
+          // Use appropriate prediction method based on model type
+          let predictions;
+          let predictionsWithConfidence = null;
+          if (modelType === 'arima' && arimaForecast && arimaForecast.forecasts) {
+            // Use ARIMA forecasts
+            predictions = arimaForecast.forecasts.slice(0, 7).map(v => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                // Clamp values
+                if (isBPM) return Math.round(Math.max(30, Math.min(200, v)));
+                if (isWeight) return Math.round(Math.max(30, Math.min(300, v)) * 10) / 10;
+                if (isSteps) return Math.round(Math.max(0, Math.min(50000, v)));
+                if (isHydration) return Math.round(Math.max(0, Math.min(20, v)) * 10) / 10;
+                return Math.round(Math.max(0, Math.min(10, v)) * 10) / 10;
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            });
+          } else {
+            // Use linear or polynomial regression
+            predictions = this.predictFutureValues(regression, lastXValue, 7, isBPM, isWeight, metricContext || null);
+          }
+
+          // Calculate confidence intervals
+          if (regression.standardError) {
+            predictionsWithConfidence = this.predictFutureValuesWithConfidence({
+              ...regression,
+              n: trainingDataPoints.length
+            }, lastXValue, 7, isBPM, isWeight, metricContext, 0.95);
+          }
+
+          // Determine trend significance (R² > 0.5 indicates strong trend)
+          const trendSignificance = regression.rSquared > 0.5 ? 'strong' : regression.rSquared > 0.3 ? 'moderate' : 'weak';
+
+          // Define negative metrics (higher is worse): irritability, swelling, backPain, stiffness, fatigue, jointPain
+          const negativeMetrics = ['irritability', 'swelling', 'backPain', 'stiffness', 'fatigue', 'jointPain'];
+          const isNegativeMetric = negativeMetrics.includes(metric);
+
+          // Calculate status based on average vs current comparison
+          const currentValue = values[values.length - 1];
+          const avgValue = avg;
+          const diffFromAverage = currentValue - avgValue;
+
+          // For negative metrics: lower is better, so if current > average, it's worsening
+          // For positive metrics: higher is better, so if current > average, it's improving
+          let statusFromAverage;
+          if (isNegativeMetric) {
+            statusFromAverage = diffFromAverage > 0.5 ? 'worsening' : diffFromAverage < -0.5 ? 'improving' : 'stable';
+          } else {
+            statusFromAverage = diffFromAverage > 0.5 ? 'improving' : diffFromAverage < -0.5 ? 'worsening' : 'stable';
+          }
+
+          // Trend direction thresholds: BPM changes are typically smaller (2-3 BPM), health metrics use 0.1
+          const trendThreshold = isBPM ? 1.0 : 0.1;
+          const regressionDirection = regression.slope > trendThreshold ? 'improving' : regression.slope < -trendThreshold ? 'worsening' : 'stable';
+
+          // Use average vs current comparison for trend direction (more meaningful than regression slope alone)
+          const trendDirection = statusFromAverage;
+
+          // Calculate projected values using the last x value + days ahead (reuse lastXValue from above)
+          const projected7DaysRaw = regression.intercept + regression.slope * (lastXValue + 7);
+          const projected30DaysRaw = regression.intercept + regression.slope * (lastXValue + 30);
+
+          // Clamp and round based on metric type
+          let projected7Days, projected30Days;
+          if (isBPM) {
+            projected7Days = Math.round(Math.max(30, Math.min(200, projected7DaysRaw)));
+            projected30Days = Math.round(Math.max(30, Math.min(200, projected30DaysRaw)));
+          } else if (isWeight) {
+            // Weight: 30-300 kg range, keep 1 decimal place
+            projected7Days = Math.round(Math.max(30, Math.min(300, projected7DaysRaw)) * 10) / 10;
+            projected30Days = Math.round(Math.max(30, Math.min(300, projected30DaysRaw)) * 10) / 10;
+          } else if (isSteps) {
+            // Steps: 0-50000, whole numbers. If regression gives absurdly low value vs current, use current as fallback
+            const steps7 = Math.round(Math.max(0, Math.min(50000, projected7DaysRaw)));
+            const steps30 = Math.round(Math.max(0, Math.min(50000, projected30DaysRaw)));
+            const currentSteps = values[values.length - 1];
+            projected7Days = currentSteps > 500 && steps7 < 100 ? Math.round(currentSteps) : steps7;
+            projected30Days = currentSteps > 500 && steps30 < 100 ? Math.round(currentSteps) : steps30;
+          } else if (isHydration) {
+            // Hydration: 0-20 glasses, 1 decimal
+            projected7Days = Math.round(Math.max(0, Math.min(20, projected7DaysRaw)) * 10) / 10;
+            projected30Days = Math.round(Math.max(0, Math.min(20, projected30DaysRaw)) * 10) / 10;
+          } else {
+            // Other metrics: 0-10 scale
+            projected7Days = Math.round(Math.max(0, Math.min(10, projected7DaysRaw)) * 10) / 10;
+            projected30Days = Math.round(Math.max(0, Math.min(10, projected30DaysRaw)) * 10) / 10;
+          }
+
+          // Optional learned blend: mix regression with persistence using stored blend weights
+          const blendWeight = context && context.predictionState && context.predictionState.blendWeights && context.predictionState.blendWeights[metric] !== undefined ? context.predictionState.blendWeights[metric] : null;
+          if (blendWeight !== null && blendWeight >= 0 && blendWeight <= 1) {
+            let b7 = blendWeight * projected7Days + (1 - blendWeight) * currentValue;
+            let b30 = blendWeight * projected30Days + (1 - blendWeight) * currentValue;
+            if (isBPM) {
+              b7 = Math.round(Math.max(30, Math.min(200, b7)));
+              b30 = Math.round(Math.max(30, Math.min(200, b30)));
+            } else if (isWeight) {
+              b7 = Math.round(Math.max(30, Math.min(300, b7)) * 10) / 10;
+              b30 = Math.round(Math.max(30, Math.min(300, b30)) * 10) / 10;
+            } else if (isSteps) {
+              b7 = Math.round(Math.max(0, Math.min(50000, b7)));
+              b30 = Math.round(Math.max(0, Math.min(50000, b30)));
+            } else if (isHydration) {
+              b7 = Math.round(Math.max(0, Math.min(20, b7)) * 10) / 10;
+              b30 = Math.round(Math.max(0, Math.min(20, b30)) * 10) / 10;
+            } else {
+              b7 = Math.round(Math.max(0, Math.min(10, b7)) * 10) / 10;
+              b30 = Math.round(Math.max(0, Math.min(10, b30)) * 10) / 10;
+            }
+            projected7Days = b7;
+            projected30Days = b30;
+          }
+
+          // Calculate predicted status (based on current vs predicted difference)
+          let predictedStatus;
+          if (isNegativeMetric) {
+            // For negative metrics: if predicted > current, it's getting worse
+            const predictedDiff = projected7Days - currentValue;
+            predictedStatus = predictedDiff > 0.5 ? 'worsening' : predictedDiff < -0.5 ? 'improving' : 'stable';
+          } else {
+            // For positive metrics: if predicted > current, it's getting better
+            const predictedDiff = projected7Days - currentValue;
+            predictedStatus = predictedDiff > 0.5 ? 'improving' : predictedDiff < -0.5 ? 'worsening' : 'stable';
+          }
+          analysis.trends[metric] = {
+            average: Math.round(avg * 10) / 10,
+            trend: Math.round(regression.slope * 100) / 100,
+            // Slope per day
+            current: values[values.length - 1],
+            min: Math.min(...values),
+            max: Math.max(...values),
+            variance: variance,
+            stability: variance < 2 ? 'stable' : variance < 5 ? 'moderate' : 'variable',
+            isNegativeMetric: isNegativeMetric,
+            // Flag for UI rendering
+            statusFromAverage: statusFromAverage,
+            // Status based on average vs current
+            predictedStatus: predictedStatus,
+            // Status based on current vs predicted
+            // Regression results (linear, polynomial, or ARIMA)
+            regression: {
+              slope: Math.round(regression.slope * 1000) / 1000,
+              intercept: Math.round(regression.intercept * 100) / 100,
+              rSquared: Math.round(regression.rSquared * 1000) / 1000,
+              standardError: Math.round(regression.standardError * 100) / 100,
+              significance: trendSignificance,
+              direction: trendDirection,
+              modelType: modelType,
+              // 'linear', 'polynomial', or 'arima'
+              polynomial: polynomialRegression || null,
+              // Store polynomial coefficients if used
+              normalizedSignificance: typeof sigmoid === 'function' ? Math.round(sigmoid(regression.rSquared) * 1000) / 1000 : undefined
+            },
+            // Predictions
+            predictions: predictions,
+            // Predictions with confidence intervals
+            predictionsWithConfidence: predictionsWithConfidence,
+            // Projected value in 7 days
+            projected7Days: projected7Days,
+            // Projected value in 30 days
+            projected30Days: projected30Days
+          };
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Calculate variance for stability assessment
+  calculateVariance: function (values) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (values.length === 0) return 0;
+      const mean = values.reduce((a, b) => a + b, 0) / values.length;
+      const squaredDiffs = values.map(v => Math.pow(v - mean, 2));
+      return squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Perform weighted linear regression on data points (gives more weight to recent data)
+  // Returns: { slope, intercept, rSquared, standardError }
+  performLinearRegression: function (dataPoints) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (dataPoints.length < 2) {
+        return {
+          slope: 0,
+          intercept: dataPoints[0]?.y || 0,
+          rSquared: 0,
+          standardError: 0
+        };
+      }
+      const n = dataPoints.length;
+
+      // Use weighted regression: give more weight to recent data points
+      // Weight increases exponentially for more recent points
+      const weights = dataPoints.map((p, index) => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          // Recent points get higher weight (exponential weighting)
+          const recency = (index + 1) / n; // 0 to 1, where 1 is most recent
+          return Math.pow(recency, 0.5) + 0.5; // Weight between 0.5 and 1.5, favoring recent
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      const sumWeights = weights.reduce((sum, w) => sum + w, 0);
+
+      // Calculate weighted means
+      const meanX = dataPoints.reduce((sum, p, i) => sum + p.x * weights[i], 0) / sumWeights;
+      const meanY = dataPoints.reduce((sum, p, i) => sum + p.y * weights[i], 0) / sumWeights;
+
+      // Calculate weighted slope and intercept
+      let numerator = 0;
+      let denominator = 0;
+      dataPoints.forEach((p, i) => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const weight = weights[i];
+          const dx = p.x - meanX;
+          const dy = p.y - meanY;
+          numerator += weight * dx * dy;
+          denominator += weight * dx * dx;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      const slope = denominator === 0 ? 0 : numerator / denominator;
+      const intercept = meanY - slope * meanX;
+
+      // Calculate R-squared (coefficient of determination)
+      const ssTotal = dataPoints.reduce((sum, p, i) => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const weight = weights[i];
+          const diff = p.y - meanY;
+          return sum + weight * diff * diff;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      }, 0);
+      const ssResidual = dataPoints.reduce((sum, p, i) => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const weight = weights[i];
+          const predicted = slope * p.x + intercept;
+          const diff = p.y - predicted;
+          return sum + weight * diff * diff;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      }, 0);
+      const rSquared = ssTotal === 0 ? 0 : 1 - ssResidual / ssTotal;
+
+      // Calculate standard error
+      const standardError = n > 2 ? Math.sqrt(ssResidual / (n - 2)) : 0;
+      return {
+        slope: slope,
+        intercept: intercept,
+        rSquared: Math.max(0, Math.min(1, rSquared)),
+        // Clamp between 0 and 1
+        standardError: standardError
+      };
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Perform polynomial regression on data points
+  // Returns: { coefficients: [a0, a1, a2, ...], rSquared, standardError, degree }
+  performPolynomialRegression: function (dataPoints, degree = 2) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (dataPoints.length < degree + 1) {
+        // Fallback to linear regression if insufficient data
+        const linear = this.performLinearRegression(dataPoints);
+        return {
+          coefficients: [linear.intercept, linear.slope],
+          rSquared: linear.rSquared,
+          standardError: linear.standardError,
+          degree: 1
+        };
+      }
+      const n = dataPoints.length;
+      const maxDegree = Math.min(degree, 3); // Cap at degree 3 for stability
+
+      // Build Vandermonde matrix X
+      const X = [];
+      for (let i = 0; i < n; i++) {
+        const row = [];
+        for (let j = 0; j <= maxDegree; j++) {
+          row.push(Math.pow(dataPoints[i].x, j));
+        }
+        X.push(row);
+      }
+
+      // Build Y vector
+      const Y = dataPoints.map(p => p.y);
+
+      // Solve using least squares: (X^T * X)^(-1) * X^T * Y
+      // Simplified matrix operations
+      const XT = [];
+      for (let j = 0; j <= maxDegree; j++) {
+        const col = [];
+        for (let i = 0; i < n; i++) {
+          col.push(X[i][j]);
+        }
+        XT.push(col);
+      }
+
+      // Calculate X^T * X
+      const XTX = [];
+      for (let i = 0; i <= maxDegree; i++) {
+        const row = [];
+        for (let j = 0; j <= maxDegree; j++) {
+          let sum = 0;
+          for (let k = 0; k < n; k++) {
+            sum += X[k][i] * X[k][j];
+          }
+          row.push(sum);
+        }
+        XTX.push(row);
+      }
+
+      // Calculate X^T * Y
+      const XTY = [];
+      for (let i = 0; i <= maxDegree; i++) {
+        let sum = 0;
+        for (let k = 0; k < n; k++) {
+          sum += X[k][i] * Y[k];
+        }
+        XTY.push(sum);
+      }
+
+      // Simple Gaussian elimination for small matrices (max 4x4)
+      const coefficients = this.solveLinearSystem(XTX, XTY);
+
+      // Calculate R-squared
+      const meanY = Y.reduce((a, b) => a + b, 0) / n;
+      let ssTotal = 0;
+      let ssResidual = 0;
+      for (let i = 0; i < n; i++) {
+        const predicted = coefficients.reduce((sum, coeff, idx) => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            return sum + coeff * Math.pow(dataPoints[i].x, idx);
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        }, 0);
+        ssTotal += Math.pow(Y[i] - meanY, 2);
+        ssResidual += Math.pow(Y[i] - predicted, 2);
+      }
+      const rSquared = ssTotal === 0 ? 0 : 1 - ssResidual / ssTotal;
+      const standardError = n > maxDegree + 1 ? Math.sqrt(ssResidual / (n - maxDegree - 1)) : 0;
+      return {
+        coefficients: coefficients,
+        rSquared: Math.max(0, Math.min(1, rSquared)),
+        standardError: standardError,
+        degree: maxDegree
+      };
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Solve linear system using Gaussian elimination (for small systems)
+  solveLinearSystem: function (A, b) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      const n = A.length;
+      // Create augmented matrix
+      const aug = A.map((row, i) => [...row, b[i]]);
+
+      // Forward elimination
+      for (let i = 0; i < n; i++) {
+        // Find pivot
+        let maxRow = i;
+        for (let k = i + 1; k < n; k++) {
+          if (Math.abs(aug[k][i]) > Math.abs(aug[maxRow][i])) {
+            maxRow = k;
+          }
+        }
+        // Swap rows
+        [aug[i], aug[maxRow]] = [aug[maxRow], aug[i]];
+
+        // Make all rows below this one 0 in current column
+        for (let k = i + 1; k < n; k++) {
+          if (Math.abs(aug[i][i]) < 1e-10) continue; // Skip if pivot is zero
+          const factor = aug[k][i] / aug[i][i];
+          for (let j = i; j <= n; j++) {
+            aug[k][j] -= factor * aug[i][j];
+          }
+        }
+      }
+
+      // Back substitution
+      const x = new Array(n).fill(0);
+      for (let i = n - 1; i >= 0; i--) {
+        x[i] = aug[i][n];
+        for (let j = i + 1; j < n; j++) {
+          x[i] -= aug[i][j] * x[j];
+        }
+        if (Math.abs(aug[i][i]) > 1e-10) {
+          x[i] /= aug[i][i];
+        }
+      }
+      return x;
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Predict future values using linear regression with AGGRESSIVE trend-preserving rounding
+  // lastX: the x value of the last data point (days since start)
+  // daysAhead: number of days to predict
+  // isBPM: whether this is BPM metric (30-200 range)
+  // isWeight: whether this is weight metric (30-300 kg range)
+  // metricContext: optional object with {variance, average, metricName, trainingValues} for metric-specific patterns
+  predictFutureValues: function (regression, lastX, daysAhead, isBPM = false, isWeight = false, metricContext = null) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      const predictions = [];
+      // Check for steps and hydration in metricContext
+      const isSteps = metricContext && metricContext.isSteps === true;
+      const isHydration = metricContext && metricContext.isHydration === true;
+
+      // Set min/max values based on metric type
+      let minValue, maxValue;
+      if (isBPM) {
+        minValue = 30;
+        maxValue = 200;
+      } else if (isWeight) {
+        minValue = 30; // Minimum reasonable weight in kg
+        maxValue = 300; // Maximum reasonable weight in kg
+      } else if (isSteps) {
+        minValue = 0;
+        maxValue = 50000; // Steps can range from 0 to 50000
+      } else if (isHydration) {
+        minValue = 0;
+        maxValue = 20; // Hydration in glasses (0-20)
+      } else {
+        minValue = 0;
+        maxValue = 10; // 0-10 scale for other metrics
+      }
+
+      // Calculate raw predicted values for all days (keep full precision)
+      const rawPredictions = [];
+      for (let i = 1; i <= daysAhead; i++) {
+        const futureX = lastX + i;
+        const predictedY = regression.slope * futureX + regression.intercept;
+        rawPredictions.push(predictedY); // Don't clamp yet - preserve precision
+      }
+
+      // Calculate the actual change over the prediction period
+      const startValue = rawPredictions[0];
+      const endValue = rawPredictions[rawPredictions.length - 1];
+      const totalChange = endValue - startValue;
+      const absChange = Math.abs(totalChange);
+
+      // Calculate expected change based on slope (more reliable for large datasets)
+      const expectedChange = regression.slope * daysAhead;
+      const absExpectedChange = Math.abs(expectedChange);
+
+      // Determine trend direction
+      const trendDirection = regression.slope >= 0 ? 1 : -1;
+      const hasPositiveTrend = regression.slope > 0.00001;
+      const hasNegativeTrend = regression.slope < -0.00001;
+
+      // Use metric-specific variance to create unique patterns per metric
+      let metricVariance = 0;
+      let metricAverage = 0;
+      let metricSeed = 0; // Use metric name as seed for unique patterns
+      if (metricContext && typeof metricContext === 'object') {
+        metricVariance = metricContext.variance || 0;
+        metricAverage = metricContext.average || 0;
+        // Create a seed from metric name for consistent but unique patterns
+        if (metricContext.metricName) {
+          metricSeed = metricContext.metricName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        }
+      } else {
+        // Fallback: use a default seed if no context provided (shouldn't happen, but safety check)
+        metricSeed = Math.floor(Math.random() * 1000);
+      }
+
+      // Calculate variance-based variation multiplier (metrics with higher variance get more variation)
+      const varianceMultiplier = Math.min(2, Math.max(0.5, 1 + metricVariance / 10));
+
+      // EXTREMELY AGGRESSIVE: ALWAYS show significant variation at ALL prediction lengths
+      // Minimum steps based on prediction length - maximum aggression
+      // Adjust based on metric variance for unique patterns
+      let minStepsToShow = 0;
+      if (daysAhead >= 90) {
+        // For 90 days: ALWAYS show at least 6-7 steps, even for completely flat trends
+        // Higher variance metrics get more steps
+        minStepsToShow = Math.max(7, Math.ceil(absExpectedChange * 6 * varianceMultiplier) || 7);
+      } else if (daysAhead >= 30) {
+        // For 30 days: ALWAYS show at least 4-5 steps
+        minStepsToShow = Math.max(5, Math.ceil(absExpectedChange * 4 * varianceMultiplier) || 5);
+      } else if (daysAhead >= 7) {
+        // For 7 days: ALWAYS show at least 3 steps - GO ALL OUT!
+        minStepsToShow = Math.max(3, Math.ceil(absExpectedChange * 3 * varianceMultiplier) || 3);
+      } else {
+        // Even for shorter predictions, show at least 2 steps
+        minStepsToShow = Math.max(2, Math.ceil(absExpectedChange * 2 * varianceMultiplier) || 2);
+      }
+
+      // Round start and end values
+      const roundedStart = Math.round(Math.max(minValue, Math.min(maxValue, startValue)));
+      const roundedEnd = Math.round(Math.max(minValue, Math.min(maxValue, endValue)));
+
+      // Calculate steps needed - be very aggressive
+      let stepsToShow = Math.abs(roundedEnd - roundedStart);
+
+      // EXTREMELY AGGRESSIVE: Always ensure minimum steps for ALL predictions
+      if (daysAhead >= 7) {
+        if (stepsToShow === 0) {
+          // Completely flat - force variation anyway
+          stepsToShow = minStepsToShow;
+        } else {
+          // Ensure we meet minimum, but allow more if trend suggests it
+          stepsToShow = Math.max(stepsToShow, minStepsToShow);
+        }
+      } else {
+        // Even for very short predictions, ensure at least 2 steps
+        if (stepsToShow === 0) {
+          stepsToShow = 2;
+        }
+      }
+
+      // Cap variation: BPM up to 30, steps/hydration use full range, 0-10 metrics up to 9
+      if (isBPM) {
+        stepsToShow = Math.min(stepsToShow, 30);
+      } else if (isSteps) {
+        stepsToShow = Math.min(stepsToShow, 15000); // allow meaningful step-count variation
+      } else if (isHydration) {
+        stepsToShow = Math.min(stepsToShow, 15); // 0-20 glasses
+      } else {
+        stepsToShow = Math.min(stepsToShow, 9); // 0-10 scale
+      }
+
+      // Create predictions with aggressive variation
+      for (let i = 0; i < daysAhead; i++) {
+        const progress = daysAhead > 1 ? i / (daysAhead - 1) : 0; // 0 to 1
+
+        // Calculate base progression with metric-specific variation
+        let targetValue;
+        if (stepsToShow > 0) {
+          // Add metric-specific offset based on metric seed for unique patterns
+          const metricOffset = metricSeed % 5 / 10; // Small offset 0-0.4
+
+          if (hasPositiveTrend) {
+            // Positive trend: gradual increase with metric-specific variation
+            const baseProgression = roundedStart + stepsToShow * progress;
+            // Add small metric-specific variation
+            const variation = metricOffset * Math.sin(progress * Math.PI * (2 + metricSeed % 3));
+            targetValue = baseProgression + variation;
+          } else if (hasNegativeTrend) {
+            // Negative trend: gradual decrease with metric-specific variation
+            const baseProgression = roundedStart - stepsToShow * progress;
+            // Add small metric-specific variation
+            const variation = metricOffset * Math.sin(progress * Math.PI * (2 + metricSeed % 3));
+            targetValue = baseProgression - variation;
+          } else {
+            // Flat/neutral trend: create dynamic wave pattern for maximum realism
+            // Use metric-specific seed to create unique patterns per metric
+            const linearComponent = stepsToShow / 2 * progress;
+            // Use metric seed to vary wave frequencies - makes each metric unique
+            const waveFreq1 = 2 + metricSeed % 3; // 2, 3, or 4
+            const waveFreq2 = 4 + metricSeed % 2; // 4 or 5
+            const waveFreq3 = 3 + metricSeed * 2 % 3; // 3, 4, or 5
+            const wavePhase = metricSeed % 100 / 100; // 0 to 1 phase shift
+
+            const wave1 = stepsToShow / 4 * Math.sin((progress + wavePhase) * Math.PI * waveFreq1);
+            const wave2 = stepsToShow / 6 * Math.sin((progress + wavePhase * 0.5) * Math.PI * waveFreq2);
+            const wave3 = stepsToShow / 8 * Math.cos((progress + wavePhase * 0.3) * Math.PI * waveFreq3);
+            // Add metric-specific offset to make patterns more distinct
+            const metricVariation = metricOffset * Math.cos(progress * Math.PI * (3 + metricSeed % 2));
+            targetValue = roundedStart + linearComponent + wave1 + wave2 + wave3 + metricVariation;
+          }
+        } else {
+          targetValue = roundedStart;
+        }
+
+        // Round and clamp
+        let rounded = Math.round(targetValue);
+        rounded = Math.max(minValue, Math.min(maxValue, rounded));
+
+        // Ensure first value is correct
+        if (i === 0) {
+          rounded = roundedStart;
+        }
+
+        // Ensure last value shows the trend
+        if (i === daysAhead - 1) {
+          if (stepsToShow > 0) {
+            if (hasPositiveTrend) {
+              rounded = Math.min(maxValue, roundedStart + stepsToShow);
+            } else if (hasNegativeTrend) {
+              rounded = Math.max(minValue, roundedStart - stepsToShow);
+            } else {
+              // For neutral trends, end at a different value
+              rounded = roundedStart + trendDirection * Math.min(stepsToShow, 3);
+            }
+            rounded = Math.max(minValue, Math.min(maxValue, rounded));
+          } else {
+            rounded = roundedEnd !== roundedStart ? roundedEnd : roundedStart;
+          }
+        }
+        predictions.push(rounded);
+      }
+
+      // EXTREMELY AGGRESSIVE POST-PROCESSING: Force variation for ALL prediction lengths
+      const uniqueValues = new Set(predictions);
+      const numUnique = uniqueValues.size;
+
+      // Determine forced steps based on prediction length
+      let forcedSteps = 0;
+      if (daysAhead >= 90) {
+        forcedSteps = 7; // 7 different values for 90 days
+      } else if (daysAhead >= 30) {
+        forcedSteps = 5; // 5 different values for 30 days
+      } else if (daysAhead >= 7) {
+        forcedSteps = 3; // 3 different values for 7 days - GO ALL OUT!
+      } else {
+        forcedSteps = 2; // At least 2 for shorter predictions
+      }
+
+      // If we have too few unique values, force more variation
+      if (numUnique < forcedSteps) {
+        const baseValue = predictions[0];
+        const stepSize = hasPositiveTrend ? 1 : hasNegativeTrend ? -1 : 1;
+
+        // Create multiple inflection points for dynamic variation
+        // Use metric seed to shift inflection points - makes each metric unique
+        const seedOffset = metricSeed % 10 / 100; // 0 to 0.09 offset
+        let inflectionPoints = [];
+        if (daysAhead >= 90) {
+          inflectionPoints = [0.1 + seedOffset, 0.2 + seedOffset, 0.35 + seedOffset, 0.5 + seedOffset, 0.65 + seedOffset, 0.8 + seedOffset, 0.95 + seedOffset];
+        } else if (daysAhead >= 30) {
+          inflectionPoints = [0.15 + seedOffset, 0.3 + seedOffset, 0.5 + seedOffset, 0.7 + seedOffset, 0.9 + seedOffset];
+        } else if (daysAhead >= 7) {
+          inflectionPoints = [0.25 + seedOffset, 0.5 + seedOffset, 0.75 + seedOffset]; // 3 points for 7 days
+        } else {
+          inflectionPoints = [0.33 + seedOffset, 0.67 + seedOffset];
+        }
+
+        // Clamp inflection points to valid range
+        inflectionPoints = inflectionPoints.map(p => Math.max(0, Math.min(1, p)));
+
+        // Force steps at inflection points
+        for (let step = 1; step <= forcedSteps; step++) {
+          const progress = inflectionPoints[step - 1] || step / (forcedSteps + 1);
+          const position = Math.floor(daysAhead * progress);
+          if (position < daysAhead) {
+            // Alternate between up and down for neutral trends to create wave
+            let stepDirection = stepSize;
+            if (!hasPositiveTrend && !hasNegativeTrend) {
+              stepDirection = step % 2 === 0 ? 1 : -1;
+              const stepValue = Math.max(minValue, Math.min(maxValue, baseValue + stepDirection * Math.ceil(step / 2)));
+              predictions[position] = stepValue;
+            } else {
+              const stepValue = Math.max(minValue, Math.min(maxValue, baseValue + stepSize * step));
+              predictions[position] = stepValue;
+            }
+          }
+        }
+
+        // Ensure last value is significantly different
+        if (!hasPositiveTrend && !hasNegativeTrend) {
+          // For neutral, end at a different value
+          const finalValue = Math.max(minValue, Math.min(maxValue, baseValue + (forcedSteps % 2 === 0 ? 1 : -1) * Math.ceil(forcedSteps / 2)));
+          predictions[daysAhead - 1] = finalValue;
+        } else {
+          const finalValue = Math.max(minValue, Math.min(maxValue, baseValue + stepSize * forcedSteps));
+          predictions[daysAhead - 1] = finalValue;
+        }
+      }
+
+      // EXTREME: Ensure progressive variation throughout - check every prediction
+      let lastValue = predictions[0];
+      let consecutiveSame = 0;
+      const maxConsecutive = Math.max(2, Math.floor(daysAhead / 4)); // Max 25% of period at same value
+
+      for (let i = 1; i < daysAhead; i++) {
+        const currentValue = predictions[i];
+        if (currentValue === lastValue) {
+          consecutiveSame++;
+
+          // If we've been stuck too long, force a change
+          if (consecutiveSame > maxConsecutive) {
+            // Determine direction based on trend or create wave
+            let direction;
+            if (hasPositiveTrend) {
+              direction = 1;
+            } else if (hasNegativeTrend) {
+              direction = -1;
+            } else {
+              // Neutral: alternate up/down for wave pattern
+              direction = i % 2 === 0 ? 1 : -1;
+            }
+            const newValue = Math.max(minValue, Math.min(maxValue, currentValue + direction));
+            predictions[i] = newValue;
+            lastValue = newValue;
+            consecutiveSame = 0;
+          }
+        } else {
+          lastValue = currentValue;
+          consecutiveSame = 0;
+        }
+      }
+
+      // Final validation: ensure we have the minimum number of unique values
+      const finalUnique = new Set(predictions).size;
+      if (finalUnique < forcedSteps && daysAhead >= 7) {
+        // Last resort: force additional variation points
+        const baseValue = predictions[0];
+        const additionalSteps = forcedSteps - finalUnique;
+        const stepSize = hasPositiveTrend ? 1 : hasNegativeTrend ? -1 : 1;
+        for (let step = 1; step <= additionalSteps; step++) {
+          // Find positions that are still at base value
+          const positions = predictions.map((v, idx) => v === baseValue ? idx : -1).filter(idx => idx !== -1);
+          if (positions.length > 0) {
+            const position = positions[Math.floor(positions.length / 2)];
+            const newValue = Math.max(minValue, Math.min(maxValue, baseValue + stepSize * step));
+            predictions[position] = newValue;
+          }
+        }
+      }
+      return predictions;
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Predict future values with confidence intervals
+  // Returns array of { prediction, lower, upper, confidence } objects
+  predictFutureValuesWithConfidence: function (regression, lastX, daysAhead, isBPM = false, isWeight = false, metricContext = null, confidenceLevel = 0.95) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      // Get base predictions
+      const basePredictions = this.predictFutureValues(regression, lastX, daysAhead, isBPM, isWeight, metricContext);
+
+      // Check for steps and hydration in metricContext
+      const isSteps = metricContext && metricContext.isSteps === true;
+      const isHydration = metricContext && metricContext.isHydration === true;
+
+      // Calculate prediction intervals using standard error and t-distribution
+      // For 95% confidence, t-value ≈ 1.96 (simplified, assumes large sample)
+      const tValue = confidenceLevel === 0.95 ? 1.96 : confidenceLevel === 0.90 ? 1.645 : 2.576;
+      const standardError = regression.standardError || 1;
+
+      // Calculate intervals for each prediction
+      const predictionsWithConfidence = basePredictions.map((pred, idx) => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          // Prediction interval widens as we predict further into the future
+          const horizonMultiplier = 1 + idx / daysAhead * 0.5; // Increase uncertainty with time
+          const margin = tValue * standardError * Math.sqrt(1 + 1 / (regression.n || 1)) * horizonMultiplier;
+
+          // Set min/max values based on metric type
+          let minValue, maxValue;
+          if (isBPM) {
+            minValue = 30;
+            maxValue = 200;
+          } else if (isWeight) {
+            minValue = 30;
+            maxValue = 300;
+          } else if (isSteps) {
+            minValue = 0;
+            maxValue = 50000; // Steps can range from 0 to 50000
+          } else if (isHydration) {
+            minValue = 0;
+            maxValue = 20; // Hydration in glasses (0-20)
+          } else {
+            minValue = 0;
+            maxValue = 10;
+          }
+          return {
+            prediction: pred,
+            lower: Math.max(minValue, pred - margin),
+            upper: Math.min(maxValue, pred + margin),
+            confidence: confidenceLevel
+          };
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      return predictionsWithConfidence;
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Enhanced correlation detection
+  detectCorrelations: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      const sleepValues = logs.map(log => parseInt(log.sleep) || 0);
+      const fatigueValues = logs.map(log => parseInt(log.fatigue) || 0);
+      const painValues = logs.map(log => parseInt(log.backPain) || 0);
+      const moodValues = logs.map(log => parseInt(log.mood) || 0);
+      const stiffnessValues = logs.map(log => parseInt(log.stiffness) || 0);
+      const mobilityValues = logs.map(log => parseInt(log.mobility) || 0);
+      const swellingValues = logs.map(log => parseInt(log.swelling) || 0);
+      const irritabilityValues = logs.map(log => parseInt(log.irritability) || 0);
+
+      // Sleep-Fatigue correlation
+      const sleepFatigueCorr = this.calculateCorrelation(sleepValues, fatigueValues);
+      if (sleepFatigueCorr < -0.5) {
+        analysis.correlations.push("When sleep is poor, fatigue tends to be higher.");
+      } else if (sleepFatigueCorr < -0.3) {
+        analysis.correlations.push("Sleep and fatigue often go together.");
+      }
+
+      // Pain-Mood correlation
+      const painMoodCorr = this.calculateCorrelation(painValues, moodValues);
+      if (painMoodCorr < -0.4) {
+        analysis.correlations.push("When pain is higher, mood tends to be lower.");
+      }
+
+      // Stiffness-Mobility correlation
+      const stiffnessMobilityCorr = this.calculateCorrelation(stiffnessValues, mobilityValues);
+      if (stiffnessMobilityCorr < -0.5) {
+        analysis.correlations.push("When stiffness goes up, mobility tends to go down.");
+      }
+
+      // Swelling-Pain correlation
+      const swellingPainCorr = this.calculateCorrelation(swellingValues, painValues);
+      if (swellingPainCorr > 0.4) {
+        analysis.correlations.push("Swelling and pain often go together.");
+      }
+
+      // Mood-Irritability correlation
+      const moodIrritabilityCorr = this.calculateCorrelation(moodValues, irritabilityValues);
+      if (moodIrritabilityCorr < -0.4) {
+        analysis.correlations.push("When mood is lower, irritability tends to be higher.");
+      }
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Multi-metric correlation matrix: detect complex relationships between all metrics
+  // options: { precomputedByIndex: number[][], metricNames: string[] } to use input-layer matrix (optimisation)
+  detectMultiMetricCorrelations: function (logs, analysis, options) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration'];
+      let correlationMatrix = {};
+      if (options && options.precomputedByIndex && options.metricNames && options.precomputedByIndex.length >= 5) {
+        const pre = options.precomputedByIndex;
+        const names = options.metricNames;
+        names.forEach((metric1, i) => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            correlationMatrix[metric1] = {};
+            names.forEach((metric2, j) => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                correlationMatrix[metric1][metric2] = i < pre.length && j < (pre[i] && pre[i].length) ? pre[i][j] != null ? pre[i][j] : 0 : 0;
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            });
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+      } else if (logs.length >= 5) {
+        correlationMatrix = {};
+        metrics.forEach(metric1 => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            correlationMatrix[metric1] = {};
+            const values1 = logs.map(log => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                const val = parseFloat(log[metric1]) || 0;
+                return isNaN(val) ? 0 : val;
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            }).filter(v => v > 0 || metric1 === 'weight');
+            if (values1.length < 3) return;
+            metrics.forEach(metric2 => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                if (metric1 === metric2) {
+                  correlationMatrix[metric1][metric2] = 1.0;
+                  return;
+                }
+                const aligned1 = [];
+                const aligned2 = [];
+                logs.forEach(log => {
+                  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+                  try {
+                    const v1 = parseFloat(log[metric1]) || 0;
+                    const v2 = parseFloat(log[metric2]) || 0;
+                    if (!isNaN(v1) && v1 > 0 || metric1 === 'weight') {
+                      if (!isNaN(v2) && v2 > 0 || metric2 === 'weight') {
+                        aligned1.push(v1);
+                        aligned2.push(v2);
+                      }
+                    }
+                  } finally {
+                    __rianellTraceExit(__rt);
+                  }
+                });
+                if (aligned1.length >= 3 && aligned1.length === aligned2.length) {
+                  const corr = this.calculateCorrelation(aligned1, aligned2);
+                  correlationMatrix[metric1][metric2] = corr;
+                } else {
+                  correlationMatrix[metric1][metric2] = 0;
+                }
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            });
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+      } else {
+        return;
+      }
+      metrics.forEach(metric1 => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          if (!correlationMatrix[metric1]) return;
+          metrics.forEach(metric2 => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              if (metric1 === metric2) return;
+              const corr = correlationMatrix[metric1][metric2];
+              if (corr == null) return;
+              if (Math.abs(corr) > 0.6) {
+                const metric1Name = metric1.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                const metric2Name = metric2.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                const existing = analysis.correlations.some(c => {
+                  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+                  try {
+                    return c.includes(metric1Name) && c.includes(metric2Name);
+                  } finally {
+                    __rianellTraceExit(__rt);
+                  }
+                });
+                if (!existing) {
+                  const plainDir = corr > 0 ? 'goes up when' : 'goes down when';
+                  analysis.correlations.push('When ' + metric1Name + ' ' + plainDir + ' ' + metric2Name + ' ' + (plainDir === 'goes up when' ? 'goes up too' : 'goes down too') + '.');
+                }
+              }
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      analysis.correlationMatrix = correlationMatrix;
+
+      // Identify correlation clusters (groups of highly correlated metrics)
+      const clusters = [];
+      const processed = new Set();
+      metrics.forEach(metric1 => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          if (processed.has(metric1)) return;
+          const cluster = [metric1];
+          processed.add(metric1);
+          metrics.forEach(metric2 => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              if (metric1 === metric2 || processed.has(metric2)) return;
+              const corr = correlationMatrix[metric1] && correlationMatrix[metric1][metric2];
+              if (corr && Math.abs(corr) > 0.6) {
+                cluster.push(metric2);
+                processed.add(metric2);
+              }
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+          if (cluster.length > 1) {
+            clusters.push(cluster);
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (clusters.length > 0) {
+        analysis.correlationClusters = clusters;
+      }
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Enhanced anomaly detection
+  detectAnomalies: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      const totalDays = logs.length;
+
+      // Flare-up frequency
+      const flareUps = logs.filter(log => log.flare === 'Yes').length;
+      if (flareUps > totalDays * 0.4) {
+        analysis.anomalies.push(`High flare-up frequency: ${flareUps} out of ${totalDays} days (${Math.round(flareUps / totalDays * 100)}%)`);
+      } else if (flareUps > totalDays * 0.2) {
+        analysis.anomalies.push(`Moderate flare-up frequency: ${flareUps} out of ${totalDays} days`);
+      }
+
+      // Severe pain episodes
+      const highPainDays = logs.filter(log => parseInt(log.backPain) >= 8).length;
+      if (highPainDays > totalDays * 0.3) {
+        analysis.anomalies.push(`Severe pain episodes: ${highPainDays} out of ${totalDays} days`);
+      }
+
+      // Poor sleep quality
+      const poorSleepDays = logs.filter(log => parseInt(log.sleep) <= 4).length;
+      if (poorSleepDays > totalDays * 0.3) {
+        analysis.anomalies.push(`Poor sleep quality: ${poorSleepDays} out of ${totalDays} days`);
+      }
+
+      // High fatigue
+      const highFatigueDays = logs.filter(log => parseInt(log.fatigue) >= 8).length;
+      if (highFatigueDays > totalDays * 0.3) {
+        analysis.anomalies.push(`High fatigue days: ${highFatigueDays} out of ${totalDays} days`);
+      }
+
+      // Low mobility
+      const lowMobilityDays = logs.filter(log => parseInt(log.mobility) <= 4).length;
+      if (lowMobilityDays > totalDays * 0.3) {
+        analysis.anomalies.push(`Significantly reduced mobility: ${lowMobilityDays} out of ${totalDays} days`);
+      }
+
+      // Mood concerns
+      const lowMoodDays = logs.filter(log => parseInt(log.mood) <= 4).length;
+      if (lowMoodDays > totalDays * 0.3) {
+        analysis.anomalies.push(`Low mood periods: ${lowMoodDays} out of ${totalDays} days`);
+      }
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Detect acceleration/deceleration in trends using second derivative
+  detectTrendAcceleration: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      const accelerations = [];
+      Object.keys(analysis.trends).forEach(metric => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const trend = analysis.trends[metric];
+          if (!trend.regression || trend.regression.rSquared < 0.3) return;
+
+          // Split data into two halves to detect acceleration
+          const midPoint = Math.floor(logs.length / 2);
+          if (midPoint < 3) return; // Need at least 6 data points
+          const firstHalf = logs.slice(0, midPoint).map((log, index) => ({
+            x: index,
+            y: parseInt(log[metric]) || 0
+          })).filter(p => p.y > 0);
+          const secondHalf = logs.slice(midPoint).map((log, index) => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              return {
+                x: index + midPoint,
+                y: parseInt(log[metric]) || 0
+              };
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          }).filter(p => p.y > 0);
+          if (firstHalf.length >= 3 && secondHalf.length >= 3) {
+            const firstRegression = this.performLinearRegression(firstHalf);
+            const secondRegression = this.performLinearRegression(secondHalf);
+            const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+
+            // Detect acceleration (slope increasing) or deceleration (slope decreasing)
+            if (secondRegression.slope > firstRegression.slope + 0.15) {
+              accelerations.push(`${metricName} trend is accelerating - improvement is speeding up`);
+            } else if (secondRegression.slope < firstRegression.slope - 0.15) {
+              accelerations.push(`${metricName} trend is decelerating - decline is slowing down`);
+            } else if (secondRegression.slope < firstRegression.slope - 0.2) {
+              accelerations.push(`${metricName} trend is accelerating downward - decline is speeding up`);
+            }
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      return accelerations;
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Pattern recognition (day of week, time-based patterns)
+  detectPatterns: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      // Day of week patterns
+      const dayPatterns = {};
+      logs.forEach(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const date = new Date(log.date);
+          const dayOfWeek = date.getDay();
+          const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayOfWeek];
+          if (!dayPatterns[dayName]) {
+            dayPatterns[dayName] = {
+              pain: [],
+              fatigue: [],
+              count: 0
+            };
+          }
+          dayPatterns[dayName].pain.push(parseInt(log.backPain) || 0);
+          dayPatterns[dayName].fatigue.push(parseInt(log.fatigue) || 0);
+          dayPatterns[dayName].count++;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+
+      // Find days with consistently higher symptoms
+      Object.keys(dayPatterns).forEach(day => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const pattern = dayPatterns[day];
+          if (pattern.count >= 3) {
+            const avgPain = pattern.pain.reduce((a, b) => a + b, 0) / pattern.pain.length;
+            const avgFatigue = pattern.fatigue.reduce((a, b) => a + b, 0) / pattern.fatigue.length;
+
+            // Compare to overall average
+            const overallPain = logs.reduce((sum, log) => sum + (parseInt(log.backPain) || 0), 0) / logs.length;
+            const overallFatigue = logs.reduce((sum, log) => sum + (parseInt(log.fatigue) || 0), 0) / logs.length;
+            if (avgPain > overallPain + 1.5) {
+              analysis.patterns.push(`${day}s tend to have higher pain levels (avg ${Math.round(avgPain)} vs ${Math.round(overallPain)})`);
+            }
+            if (avgFatigue > overallFatigue + 1.5) {
+              analysis.patterns.push(`${day}s tend to have higher fatigue (avg ${Math.round(avgFatigue)} vs ${Math.round(overallFatigue)})`);
+            }
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+
+      // Trend patterns (improving vs worsening)
+      const recentLogs = logs.slice(-7);
+      const olderLogs = logs.slice(0, Math.min(7, logs.length - 7));
+      if (recentLogs.length >= 3 && olderLogs.length >= 3) {
+        const recentPain = recentLogs.reduce((sum, log) => sum + (parseInt(log.backPain) || 0), 0) / recentLogs.length;
+        const olderPain = olderLogs.reduce((sum, log) => sum + (parseInt(log.backPain) || 0), 0) / olderLogs.length;
+        if (recentPain < olderPain - 1) {
+          analysis.patterns.push("Pain levels have improved in recent days compared to earlier period");
+        } else if (recentPain > olderPain + 1) {
+          analysis.patterns.push("Pain levels have increased in recent days - may indicate flare-up or need for treatment adjustment");
+        }
+      }
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Risk factor assessment
+  assessRiskFactors: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      const totalDays = logs.length;
+
+      // Multiple concurrent issues
+      const multiIssueDays = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const issues = [parseInt(log.backPain) >= 7, parseInt(log.fatigue) >= 7, parseInt(log.sleep) <= 4, parseInt(log.mood) <= 4, log.flare === 'Yes'].filter(Boolean).length;
+          return issues >= 3;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      }).length;
+      if (multiIssueDays > totalDays * 0.2) {
+        analysis.riskFactors.push(`Multiple concurrent symptoms on ${multiIssueDays} days - may indicate need for comprehensive treatment review`);
+      }
+
+      // Declining trends (using regression-based analysis)
+      const decliningMetrics = Object.keys(analysis.trends).filter(metric => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const trend = analysis.trends[metric];
+          if (trend.regression && trend.regression.rSquared > 0.3) {
+            return trend.regression.slope < -0.15; // More accurate threshold using regression
+          }
+          return trend.trend < -0.3; // Fallback to simple trend
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (decliningMetrics.length >= 3) {
+        analysis.riskFactors.push(`Multiple metrics showing declining trends: ${decliningMetrics.map(m => m.replace(/([A-Z])/g, ' $1')).join(', ')}`);
+      }
+
+      // High variability (unstable condition)
+      const unstableMetrics = Object.keys(analysis.trends).filter(metric => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return analysis.trends[metric].variance > 5;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (unstableMetrics.length >= 3) {
+        analysis.riskFactors.push(`High variability detected in multiple metrics - condition may be unstable`);
+      }
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Predict flare-ups by analyzing patterns before historical flare-ups
+  predictFlareUps: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (logs.length < 14) return; // Need at least 2 weeks of data
+
+      // Analyze patterns before flare-ups
+      const flareUpDays = logs.map((log, idx) => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return {
+            date: log.date,
+            isFlare: log.flare === 'Yes',
+            index: idx
+          };
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      }).filter(d => d.isFlare);
+      if (flareUpDays.length === 0) {
+        // No historical flare-ups to learn from
+        return;
+      }
+
+      // Look for patterns 1-3 days before flare-ups
+      const preFlarePatterns = [];
+      flareUpDays.forEach(flareDay => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const preFlareLogs = logs.slice(Math.max(0, flareDay.index - 3), flareDay.index);
+          if (preFlareLogs.length >= 2) {
+            const avgPain = preFlareLogs.reduce((sum, log) => sum + (parseInt(log.backPain) || 0), 0) / preFlareLogs.length;
+            const avgStiffness = preFlareLogs.reduce((sum, log) => sum + (parseInt(log.stiffness) || 0), 0) / preFlareLogs.length;
+            const avgFatigue = preFlareLogs.reduce((sum, log) => sum + (parseInt(log.fatigue) || 0), 0) / preFlareLogs.length;
+            const avgSwelling = preFlareLogs.reduce((sum, log) => sum + (parseInt(log.swelling) || 0), 0) / preFlareLogs.length;
+            const avgMood = preFlareLogs.reduce((sum, log) => sum + (parseInt(log.mood) || 0), 0) / preFlareLogs.length;
+            preFlarePatterns.push({
+              daysBefore: preFlareLogs.length,
+              avgPain,
+              avgStiffness,
+              avgFatigue,
+              avgSwelling,
+              avgMood
+            });
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (preFlarePatterns.length === 0) return;
+
+      // Calculate average pre-flare pattern
+      const avgPreFlarePain = preFlarePatterns.reduce((sum, p) => sum + p.avgPain, 0) / preFlarePatterns.length;
+      const avgPreFlareStiffness = preFlarePatterns.reduce((sum, p) => sum + p.avgStiffness, 0) / preFlarePatterns.length;
+      const avgPreFlareFatigue = preFlarePatterns.reduce((sum, p) => sum + p.avgFatigue, 0) / preFlarePatterns.length;
+      const avgPreFlareSwelling = preFlarePatterns.reduce((sum, p) => sum + p.avgSwelling, 0) / preFlarePatterns.length;
+      const avgPreFlareMood = preFlarePatterns.reduce((sum, p) => sum + p.avgMood, 0) / preFlarePatterns.length;
+
+      // Check recent days (last 5 to allow consecutive-day check)
+      const recentLogs = logs.slice(-5);
+      if (recentLogs.length < 2) return;
+      const maxDiff = 10; // 0-10 scale
+      const threshold = 1.5; // per-metric match threshold
+
+      // Helper: does this single day's metrics match the pre-flare pattern?
+      function dayMatchesPreFlare(log) {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "dayMatchesPreFlare", arguments) : undefined;
+        try {
+          const p = Math.abs((parseInt(log.backPain) || 0) - avgPreFlarePain);
+          const s = Math.abs((parseInt(log.stiffness) || 0) - avgPreFlareStiffness);
+          const f = Math.abs((parseInt(log.fatigue) || 0) - avgPreFlareFatigue);
+          const sw = Math.abs((parseInt(log.swelling) || 0) - avgPreFlareSwelling);
+          const m = Math.abs((parseInt(log.mood) || 0) - avgPreFlareMood);
+          const matchCount = [p < threshold, s < threshold, f < threshold, sw < threshold, m < threshold].filter(Boolean).length;
+          const sim = (1 - p / maxDiff) * 0.3 + (1 - s / maxDiff) * 0.25 + (1 - f / maxDiff) * 0.25 + (1 - sw / maxDiff) * 0.1 + (1 - m / maxDiff) * 0.1;
+          return matchCount >= 3 && sim > 0.7;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      }
+
+      // Count consecutive high-symptom days from the most recent day backwards (only bad if a lot of symptoms consecutively)
+      let consecutiveMatchCount = 0;
+      for (let i = recentLogs.length - 1; i >= 0; i--) {
+        if (dayMatchesPreFlare(recentLogs[i])) {
+          consecutiveMatchCount++;
+        } else {
+          break;
+        }
+      }
+
+      // Require at least 2 consecutive days matching to consider it flare-up risk (not just one bad day or scattered bad days)
+      if (consecutiveMatchCount < 2) return;
+      const recentPain = recentLogs.reduce((sum, log) => sum + (parseInt(log.backPain) || 0), 0) / recentLogs.length;
+      const recentStiffness = recentLogs.reduce((sum, log) => sum + (parseInt(log.stiffness) || 0), 0) / recentLogs.length;
+      const recentFatigue = recentLogs.reduce((sum, log) => sum + (parseInt(log.fatigue) || 0), 0) / recentLogs.length;
+      const recentSwelling = recentLogs.reduce((sum, log) => sum + (parseInt(log.swelling) || 0), 0) / recentLogs.length;
+      const recentMood = recentLogs.reduce((sum, log) => sum + (parseInt(log.mood) || 0), 0) / recentLogs.length;
+      const painDiff = Math.abs(recentPain - avgPreFlarePain);
+      const stiffnessDiff = Math.abs(recentStiffness - avgPreFlareStiffness);
+      const fatigueDiff = Math.abs(recentFatigue - avgPreFlareFatigue);
+      const swellingDiff = Math.abs(recentSwelling - avgPreFlareSwelling);
+      const moodDiff = Math.abs(recentMood - avgPreFlareMood);
+      const painSimilarity = 1 - painDiff / maxDiff;
+      const stiffnessSimilarity = 1 - stiffnessDiff / maxDiff;
+      const fatigueSimilarity = 1 - fatigueDiff / maxDiff;
+      const swellingSimilarity = 1 - swellingDiff / maxDiff;
+      const moodSimilarity = 1 - moodDiff / maxDiff;
+      const overallSimilarity = painSimilarity * 0.3 + stiffnessSimilarity * 0.25 + fatigueSimilarity * 0.25 + swellingSimilarity * 0.1 + moodSimilarity * 0.1;
+      const matchingMetrics = [painDiff < threshold, stiffnessDiff < threshold, fatigueDiff < threshold, swellingDiff < threshold, moodDiff < threshold].filter(Boolean).length;
+      if (overallSimilarity > 0.7 && matchingMetrics >= 3) {
+        const confidence = Math.round(overallSimilarity * 100);
+        const riskLevel = overallSimilarity > 0.85 ? 'high' : overallSimilarity > 0.75 ? 'moderate' : 'low';
+        analysis.riskFactors.push(`Heads-up: Your recent numbers look like times when you had a flare-up before (${riskLevel} chance, ${confidence}% match). Keep an eye on how you feel and do what usually helps you prevent or ease flare-ups.`);
+        analysis.flareUpRisk = {
+          level: riskLevel,
+          confidence: confidence,
+          similarity: overallSimilarity,
+          matchingMetrics: matchingMetrics,
+          consecutiveDays: consecutiveMatchCount
+        };
+      }
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Analyze impact of stressors on symptoms and flare-ups
+  analyzeStressorsImpact: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (logs.length < 7) return; // Need minimum data
+
+      // Collect all stressors and their frequencies
+      const stressorFrequency = {};
+      const logsWithStressors = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return log.stressors && Array.isArray(log.stressors) && log.stressors.length > 0;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      const logsWithoutStressors = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return !log.stressors || !Array.isArray(log.stressors) || log.stressors.length === 0;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+
+      // Count frequency of each stressor
+      logsWithStressors.forEach(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          if (log.stressors && Array.isArray(log.stressors)) {
+            log.stressors.forEach(stressor => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                stressorFrequency[stressor] = (stressorFrequency[stressor] || 0) + 1;
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            });
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+
+      // Analyze impact of stressors on symptoms
+      const metrics = ['backPain', 'fatigue', 'stiffness', 'mobility', 'mood', 'irritability', 'swelling'];
+      const impacts = [];
+      if (logsWithStressors.length > 0 && logsWithoutStressors.length > 0) {
+        metrics.forEach(metric => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            const withStressorsValues = logsWithStressors.map(log => parseInt(log[metric]) || 0).filter(val => val > 0);
+            const withoutStressorsValues = logsWithoutStressors.map(log => parseInt(log[metric]) || 0).filter(val => val > 0);
+            if (withStressorsValues.length > 0 && withoutStressorsValues.length > 0) {
+              const withAvg = withStressorsValues.reduce((a, b) => a + b, 0) / withStressorsValues.length;
+              const withoutAvg = withoutStressorsValues.reduce((a, b) => a + b, 0) / withoutStressorsValues.length;
+              const diff = withAvg - withoutAvg;
+
+              // For negative metrics (pain, fatigue, etc.), higher with stressors is worse
+              // For positive metrics (mood, mobility), lower with stressors is worse
+              const isNegativeMetric = ['backPain', 'fatigue', 'stiffness', 'irritability', 'swelling'].includes(metric);
+              const isSignificant = Math.abs(diff) > 0.5;
+              if (isSignificant) {
+                const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                if (isNegativeMetric && diff > 0) {
+                  impacts.push(`On days you logged stress or triggers, your ${metricName} score was ${diff.toFixed(1)} points higher (${withAvg.toFixed(1)} vs ${withoutAvg.toFixed(1)}).`);
+                } else if (!isNegativeMetric && diff < 0) {
+                  impacts.push(`On days you logged stress or triggers, your ${metricName} score was ${Math.abs(diff).toFixed(1)} points lower (${withAvg.toFixed(1)} vs ${withoutAvg.toFixed(1)}).`);
+                }
+              }
+            }
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+
+        // Analyze flare-up correlation with stressors
+        const flaresWithStressors = logsWithStressors.filter(log => log.flare === 'Yes').length;
+        const flaresWithoutStressors = logsWithoutStressors.filter(log => log.flare === 'Yes').length;
+        const flareRateWith = logsWithStressors.length > 0 ? flaresWithStressors / logsWithStressors.length : 0;
+        const flareRateWithout = logsWithoutStressors.length > 0 ? flaresWithoutStressors / logsWithoutStressors.length : 0;
+        if (flareRateWith > flareRateWithout + 0.1) {
+          const percentWith = Math.round(flareRateWith * 100);
+          const percentWithout = Math.round(flareRateWithout * 100);
+          impacts.push(`Flare-ups were more common on days you logged stress or triggers: ${percentWith}% vs ${percentWithout}%.`);
+        }
+      }
+
+      // Add most common stressors to insights
+      const sortedStressors = Object.entries(stressorFrequency).sort((a, b) => b[1] - a[1]).slice(0, 5); // Top 5 most common
+
+      if (sortedStressors.length > 0) {
+        const topStressors = sortedStressors.map(([stressor, count]) => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            const percent = Math.round(count / logs.length * 100);
+            return `${stressor} (${percent}%)`;
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        }).join(', ');
+        analysis.stressorAnalysis = {
+          topStressors: sortedStressors.map(([stressor]) => stressor),
+          frequency: stressorFrequency,
+          impacts: impacts,
+          summary: `Stress or triggers you logged most: ${topStressors}`
+        };
+      } else {
+        analysis.stressorAnalysis = {
+          topStressors: [],
+          frequency: {},
+          impacts: impacts,
+          summary: 'No stress or triggers logged in this period'
+        };
+      }
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Analyze symptoms and pain location patterns (logs = user's selected analysis range for display)
+  analyzeSymptomsAndPainLocation: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (!logs || logs.length < 1) return;
+
+      // Collect all symptoms and their frequencies
+      const symptomFrequency = {};
+      const logsWithSymptoms = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return log.symptoms && Array.isArray(log.symptoms) && log.symptoms.length > 0;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+
+      // Count frequency of each symptom
+      logsWithSymptoms.forEach(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          if (log.symptoms && Array.isArray(log.symptoms)) {
+            log.symptoms.forEach(symptom => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                symptomFrequency[symptom] = (symptomFrequency[symptom] || 0) + 1;
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            });
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+
+      // Collect pain locations and their frequencies (raw strings for backward compatibility)
+      const painLocationFrequency = {};
+      const logsWithPainLocation = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return log.painLocation && log.painLocation.trim().length > 0;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      logsWithPainLocation.forEach(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          if (log.painLocation && log.painLocation.trim().length > 0) {
+            const locations = log.painLocation.split(',').map(loc => loc.trim()).filter(loc => loc.length > 0);
+            locations.forEach(location => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                painLocationFrequency[location] = (painLocationFrequency[location] || 0) + 1;
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            });
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+
+      // Parse pain by body region (28 diagram regions including joints) and aggregate per region
+      const painByRegion = {};
+      PAIN_REGIONS.forEach(r => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          painByRegion[r.id] = {
+            label: r.label,
+            mildDays: 0,
+            painDays: 0
+          };
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      logsWithPainLocation.forEach(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const regionMap = parsePainLocationToRegions(log.painLocation);
+          PAIN_REGIONS.forEach(r => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const sev = regionMap[r.id] || 0;
+              if (sev === 1) painByRegion[r.id].mildDays += 1;else if (sev === 2) painByRegion[r.id].painDays += 1;
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+
+      // Per-region severity: how bad each body part hurt (total days, pain ratio, severity score for ranking)
+      const totalLogDays = logs.length;
+      PAIN_REGIONS.forEach(r => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const data = painByRegion[r.id];
+          const totalDays = data.painDays + data.mildDays;
+          data.totalDays = totalDays;
+          data.painRatio = totalDays > 0 ? data.painDays / totalDays : 0;
+          data.severityScore = data.painDays * 2 + data.mildDays;
+          data.pctOfPeriod = totalLogDays > 0 ? Math.round(totalDays / totalLogDays * 100) : 0;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+
+      // Pain data exploration: most affected areas by severity, summary for display
+      const regionsWithData = PAIN_REGIONS.map(r => ({
+        id: r.id,
+        ...painByRegion[r.id]
+      })).filter(d => d.totalDays > 0);
+      const bySeverity = [...regionsWithData].sort((a, b) => b.severityScore - a.severityScore);
+      const explorationSummaryLines = [];
+      if (bySeverity.length > 0) {
+        const top3 = bySeverity.slice(0, 3);
+        explorationSummaryLines.push('Most affected body areas (by severity): ' + top3.map(d => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            return `${d.label} (${d.totalDays} days, ${d.painDays} full pain)`;
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        }).join('; '));
+        const totalPainPoints = Object.keys(painLocationFrequency).length;
+        explorationSummaryLines.push(`Pain points explored: ${regionsWithData.length} body areas with data across ${logsWithPainLocation.length} days with pain logged.`);
+      }
+
+      // Per-region impact: for regions with enough "in pain" days, compare metrics
+      const regionImpactMetrics = ['fatigue', 'mobility', 'mood'];
+      const regionImpacts = [];
+      PAIN_REGIONS.forEach(r => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const painDays = painByRegion[r.id].painDays;
+          if (painDays < 3) return;
+          const logsWithRegionInPain = logs.filter(log => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              return parsePainLocationToRegions(log.painLocation || '')[r.id] === 2;
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+          const logsWithoutRegionInPain = logs.filter(log => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              return parsePainLocationToRegions(log.painLocation || '')[r.id] !== 2;
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+          if (logsWithRegionInPain.length < 3 || logsWithoutRegionInPain.length < 3) return;
+          regionImpactMetrics.forEach(metric => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const withVal = logsWithRegionInPain.map(log => parseInt(log[metric], 10) || 0).filter(v => !isNaN(v) && v >= 0);
+              const withoutVal = logsWithoutRegionInPain.map(log => parseInt(log[metric], 10) || 0).filter(v => !isNaN(v) && v >= 0);
+              if (withVal.length >= 3 && withoutVal.length >= 3) {
+                const withAvg = withVal.reduce((a, b) => a + b, 0) / withVal.length;
+                const withoutAvg = withoutVal.reduce((a, b) => a + b, 0) / withoutVal.length;
+                const diff = withAvg - withoutAvg;
+                if (Math.abs(diff) > 0.5) {
+                  const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                  const direction = diff > 0 ? 'higher' : 'lower';
+                  regionImpacts.push(`When your ${r.label} hurt, your ${metricName} was ${Math.abs(diff).toFixed(1)} points ${direction} on average (${withAvg.toFixed(1)} vs ${withoutAvg.toFixed(1)}).`);
+                }
+              }
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+
+      // Analyze impact of symptoms on other metrics
+      const metrics = ['backPain', 'fatigue', 'stiffness', 'mobility', 'mood', 'irritability', 'swelling'];
+      const symptomImpacts = [];
+      if (logsWithSymptoms.length > 0) {
+        const logsWithoutSymptoms = logs.filter(log => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            return !log.symptoms || !Array.isArray(log.symptoms) || log.symptoms.length === 0;
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+        if (logsWithoutSymptoms.length > 0) {
+          metrics.forEach(metric => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const withSymptomsValues = logsWithSymptoms.map(log => parseInt(log[metric]) || 0).filter(val => val > 0);
+              const withoutSymptomsValues = logsWithoutSymptoms.map(log => parseInt(log[metric]) || 0).filter(val => val > 0);
+              if (withSymptomsValues.length > 0 && withoutSymptomsValues.length > 0) {
+                const withAvg = withSymptomsValues.reduce((a, b) => a + b, 0) / withSymptomsValues.length;
+                const withoutAvg = withoutSymptomsValues.reduce((a, b) => a + b, 0) / withoutSymptomsValues.length;
+                const diff = withAvg - withoutAvg;
+                const isNegativeMetric = ['backPain', 'fatigue', 'stiffness', 'irritability', 'swelling'].includes(metric);
+                const isSignificant = Math.abs(diff) > 0.5;
+                if (isSignificant) {
+                  const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                  if (isNegativeMetric && diff > 0) {
+                    symptomImpacts.push(`On days you logged extra symptoms, your ${metricName} score was ${diff.toFixed(1)} points higher (${withAvg.toFixed(1)} vs ${withoutAvg.toFixed(1)}).`);
+                  } else if (!isNegativeMetric && diff < 0) {
+                    symptomImpacts.push(`On days you logged extra symptoms, your ${metricName} score was ${Math.abs(diff).toFixed(1)} points lower (${withAvg.toFixed(1)} vs ${withoutAvg.toFixed(1)}).`);
+                  }
+                }
+              }
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+
+          // Analyze flare-up correlation with symptoms
+          const flaresWithSymptoms = logsWithSymptoms.filter(log => log.flare === 'Yes').length;
+          const flaresWithoutSymptoms = logsWithoutSymptoms.filter(log => log.flare === 'Yes').length;
+          const flareRateWith = logsWithSymptoms.length > 0 ? flaresWithSymptoms / logsWithSymptoms.length : 0;
+          const flareRateWithout = logsWithoutSymptoms.length > 0 ? flaresWithoutSymptoms / logsWithoutSymptoms.length : 0;
+          if (flareRateWith > flareRateWithout + 0.1) {
+            const percentWith = Math.round(flareRateWith * 100);
+            const percentWithout = Math.round(flareRateWithout * 100);
+            symptomImpacts.push(`Flare-ups were more common on days you logged extra symptoms: ${percentWith}% vs ${percentWithout}%.`);
+          }
+        }
+      }
+
+      // Analyze pain location patterns
+      const painLocationImpacts = [];
+      if (logsWithPainLocation.length > 0) {
+        const logsWithoutPainLocation = logs.filter(log => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            return !log.painLocation || log.painLocation.trim().length === 0;
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+        if (logsWithoutPainLocation.length > 0) {
+          metrics.forEach(metric => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const withPainValues = logsWithPainLocation.map(log => parseInt(log[metric]) || 0).filter(val => val > 0);
+              const withoutPainValues = logsWithoutPainLocation.map(log => parseInt(log[metric]) || 0).filter(val => val > 0);
+              if (withPainValues.length > 0 && withoutPainValues.length > 0) {
+                const withAvg = withPainValues.reduce((a, b) => a + b, 0) / withPainValues.length;
+                const withoutAvg = withoutPainValues.reduce((a, b) => a + b, 0) / withoutPainValues.length;
+                const diff = withAvg - withoutAvg;
+                const isNegativeMetric = ['backPain', 'fatigue', 'stiffness', 'irritability', 'swelling'].includes(metric);
+                const isSignificant = Math.abs(diff) > 0.5;
+                if (isSignificant) {
+                  const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                  if (isNegativeMetric && diff > 0) {
+                    painLocationImpacts.push(`When you marked where it hurt, your ${metricName} was ${diff.toFixed(1)} points higher on average (${withAvg.toFixed(1)} vs ${withoutAvg.toFixed(1)}).`);
+                  } else if (!isNegativeMetric && diff < 0) {
+                    painLocationImpacts.push(`When you marked where it hurt, your ${metricName} was ${Math.abs(diff).toFixed(1)} points lower on average (${withAvg.toFixed(1)} vs ${withoutAvg.toFixed(1)}).`);
+                  }
+                }
+              }
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+        }
+      }
+      painLocationImpacts.push(...regionImpacts);
+
+      // Add most common symptoms to insights
+      const sortedSymptoms = Object.entries(symptomFrequency).sort((a, b) => b[1] - a[1]).slice(0, 5); // Top 5 most common
+
+      // Add most common pain locations to insights
+      const sortedPainLocations = Object.entries(painLocationFrequency).sort((a, b) => b[1] - a[1]).slice(0, 5); // Top 5 most common
+
+      const analysisData = {
+        topSymptoms: sortedSymptoms.map(([symptom]) => symptom),
+        symptomFrequency: symptomFrequency,
+        symptomImpacts: symptomImpacts,
+        topPainLocations: sortedPainLocations.map(([location]) => location),
+        painLocationFrequency: painLocationFrequency,
+        painLocationImpacts: painLocationImpacts,
+        painByRegion: painByRegion,
+        regionImpacts: regionImpacts,
+        painExploration: {
+          bySeverity: bySeverity,
+          summaryLines: explorationSummaryLines
+        }
+      };
+
+      // Build summary
+      const summaryParts = [];
+      if (sortedSymptoms.length > 0) {
+        const topSymptoms = sortedSymptoms.map(([symptom, count]) => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            const percent = Math.round(count / logs.length * 100);
+            return `${symptom} (${percent}%)`;
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        }).join(', ');
+        summaryParts.push(`Symptoms you logged most: ${topSymptoms}`);
+      }
+      if (sortedPainLocations.length > 0) {
+        const topLocations = sortedPainLocations.map(([location, count]) => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            const percent = Math.round(count / logs.length * 100);
+            return `${location} (${percent}%)`;
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        }).join(', ');
+        summaryParts.push(`Places you had pain most: ${topLocations}`);
+      }
+      if (summaryParts.length > 0) {
+        analysisData.summary = summaryParts.join('. ');
+      } else {
+        analysisData.summary = 'No symptoms or pain areas logged in this period';
+      }
+      analysis.symptomsAndPainAnalysis = analysisData;
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Analyze impact of food and exercise logging on symptoms
+  analyzeFoodExerciseImpact: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (logs.length < 7) return; // Need minimum data
+
+      // Helper: flat array of food items from a log (handles category object or legacy array)
+      const getLogFoodArray = log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          if (!log || !log.food) return [];
+          const f = log.food;
+          if (Array.isArray(f)) return f;
+          return [].concat(f.breakfast || [], f.lunch || [], f.dinner || [], f.snack || []);
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      };
+      const withFood = logs.filter(log => getLogFoodArray(log).length > 0);
+      const withoutFood = logs.filter(log => getLogFoodArray(log).length === 0);
+      const withExercise = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return log.exercise && Array.isArray(log.exercise) && log.exercise.length > 0;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      const withoutExercise = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return !log.exercise || !Array.isArray(log.exercise) || log.exercise.length === 0;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+
+      // Calculate daily calorie and protein totals and set nutritionAnalysis (used in UI and insights)
+      const dailyNutrition = [];
+      logs.forEach(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const foodArr = getLogFoodArray(log);
+          if (foodArr.length > 0) {
+            let dayCalories = 0;
+            let dayProtein = 0;
+            foodArr.forEach(item => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                if (typeof item === 'object' && item.calories !== undefined) dayCalories += item.calories || 0;
+                if (typeof item === 'object' && item.protein !== undefined) dayProtein += item.protein || 0;
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            });
+            if (dayCalories > 0 || dayProtein > 0) {
+              dailyNutrition.push({
+                date: log.date,
+                calories: dayCalories,
+                protein: dayProtein
+              });
+            }
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (dailyNutrition.length > 0) {
+        const totalCal = dailyNutrition.reduce((s, d) => s + d.calories, 0);
+        const totalProtein = dailyNutrition.reduce((s, d) => s + d.protein, 0);
+        const avgCalories = Math.round(totalCal / dailyNutrition.length);
+        const avgProtein = Math.round(totalProtein / dailyNutrition.length * 10) / 10;
+        analysis.nutritionAnalysis = {
+          avgCalories,
+          avgProtein,
+          daysWithFood: dailyNutrition.length,
+          highCalorieDays: dailyNutrition.filter(d => d.calories > 2500).length,
+          lowCalorieDays: dailyNutrition.filter(d => d.calories > 0 && d.calories < 1500).length,
+          highProteinDays: dailyNutrition.filter(d => d.protein >= 100).length,
+          lowProteinDays: dailyNutrition.filter(d => d.protein > 0 && d.protein < 50).length
+        };
+      }
+      // Exercise: total minutes per day (from { name, duration } items)
+      const getLogExerciseMinutes = log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          if (!log || !log.exercise || !Array.isArray(log.exercise)) return 0;
+          return log.exercise.reduce((sum, item) => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const mins = typeof item === 'object' && item.duration != null ? item.duration : 0;
+              return sum + (typeof mins === 'number' ? mins : parseInt(mins, 10) || 0);
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          }, 0);
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      };
+      const logsWithExerciseMinutes = logs.filter(log => getLogExerciseMinutes(log) > 0);
+      if (logsWithExerciseMinutes.length >= 3) {
+        const totalMins = logsWithExerciseMinutes.reduce((s, log) => s + getLogExerciseMinutes(log), 0);
+        const avgExerciseMinutes = Math.round(totalMins / logsWithExerciseMinutes.length);
+        analysis.exerciseSummary = {
+          avgMinutesPerDay: avgExerciseMinutes,
+          daysWithExercise: logsWithExerciseMinutes.length
+        };
+      }
+      const metrics = ['backPain', 'fatigue', 'stiffness', 'mobility', 'mood', 'swelling'];
+      const impacts = [];
+
+      // Analyze food impact
+      if (withFood.length > 0 && withoutFood.length > 0) {
+        metrics.forEach(metric => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            const withFoodValues = withFood.map(log => parseInt(log[metric]) || 0).filter(val => !isNaN(val) && val > 0);
+            const withoutFoodValues = withoutFood.map(log => parseInt(log[metric]) || 0).filter(val => !isNaN(val) && val > 0);
+            if (withFoodValues.length >= 3 && withoutFoodValues.length >= 3) {
+              const avgWithFood = withFoodValues.reduce((sum, val) => sum + val, 0) / withFoodValues.length;
+              const avgWithoutFood = withoutFoodValues.reduce((sum, val) => sum + val, 0) / withoutFoodValues.length;
+              const diff = avgWithFood - avgWithoutFood;
+              const absDiff = Math.abs(diff);
+
+              // Check if difference is significant (>1.0 on 0-10 scale)
+              if (absDiff > 1.0) {
+                const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                const direction = diff < 0 ? 'lower' : 'higher';
+                const isPositive = metric === 'mobility' || metric === 'mood' || metric === 'sleep' ? diff > 0 : diff < 0;
+                impacts.push({
+                  type: 'food',
+                  metric: metricName,
+                  withAvg: Math.round(avgWithFood * 10) / 10,
+                  withoutAvg: Math.round(avgWithoutFood * 10) / 10,
+                  diff: Math.round(diff * 10) / 10,
+                  direction: direction,
+                  isPositive: isPositive
+                });
+              }
+            }
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+      }
+
+      // Analyze exercise impact
+      if (withExercise.length > 0 && withoutExercise.length > 0) {
+        metrics.forEach(metric => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            const withExerciseValues = withExercise.map(log => parseInt(log[metric]) || 0).filter(val => !isNaN(val) && val > 0);
+            const withoutExerciseValues = withoutExercise.map(log => parseInt(log[metric]) || 0).filter(val => !isNaN(val) && val > 0);
+            if (withExerciseValues.length >= 3 && withoutExerciseValues.length >= 3) {
+              const avgWithExercise = withExerciseValues.reduce((sum, val) => sum + val, 0) / withExerciseValues.length;
+              const avgWithoutExercise = withoutExerciseValues.reduce((sum, val) => sum + val, 0) / withoutExerciseValues.length;
+              const diff = avgWithExercise - avgWithoutExercise;
+              const absDiff = Math.abs(diff);
+
+              // Check if difference is significant (>1.0 on 0-10 scale)
+              if (absDiff > 1.0) {
+                const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                const direction = diff < 0 ? 'lower' : 'higher';
+                const isPositive = metric === 'mobility' || metric === 'mood' || metric === 'sleep' ? diff > 0 : diff < 0;
+                impacts.push({
+                  type: 'exercise',
+                  metric: metricName,
+                  withAvg: Math.round(avgWithExercise * 10) / 10,
+                  withoutAvg: Math.round(avgWithoutExercise * 10) / 10,
+                  diff: Math.round(diff * 10) / 10,
+                  direction: direction,
+                  isPositive: isPositive
+                });
+              }
+            }
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+      }
+
+      // Add significant impacts to patterns
+      if (impacts.length > 0) {
+        impacts.forEach(impact => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            const impactType = impact.type === 'food' ? 'Food logging' : 'Exercise';
+            const positiveIndicator = impact.isPositive ? '✅' : '⚠️';
+            analysis.patterns.push(`${positiveIndicator} ${impactType} days show ${impact.direction} ${impact.metric} levels (${impact.withAvg} vs ${impact.withoutAvg})`);
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+
+        // Store impacts in analysis
+        analysis.foodExerciseImpacts = impacts;
+      }
+
+      // Top exercises by frequency (for AI tab display)
+      const exerciseFrequency = {};
+      logs.forEach(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          if (!log.exercise || !Array.isArray(log.exercise)) return;
+          log.exercise.forEach(item => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const name = typeof item === 'object' && item.name ? item.name : typeof item === 'string' ? item : '';
+              if (name && name.trim()) {
+                exerciseFrequency[name.trim()] = (exerciseFrequency[name.trim()] || 0) + 1;
+              }
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      const sortedExercises = Object.entries(exerciseFrequency).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([name, count]) => ({
+        name,
+        count
+      }));
+      if (sortedExercises.length > 0) {
+        analysis.topExercises = sortedExercises;
+      }
+
+      // Top foods by frequency (for AI tab display)
+      const foodFrequency = {};
+      logs.forEach(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const foodArr = getLogFoodArray(log);
+          foodArr.forEach(item => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const name = typeof item === 'object' && item.name ? item.name : typeof item === 'string' ? item : '';
+              if (name && name.trim()) {
+                foodFrequency[name.trim()] = (foodFrequency[name.trim()] || 0) + 1;
+              }
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      const sortedFoods = Object.entries(foodFrequency).sort((a, b) => b[1] - a[1]).slice(0, 15).map(([name, count]) => ({
+        name,
+        count
+      }));
+      if (sortedFoods.length > 0) {
+        analysis.topFoods = sortedFoods;
+      }
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Analyze energyClarity (text) and weatherSensitivity (numeric) for patterns
+  analyzeEnergyClarityAndWeather: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (logs.length < 5) return;
+      const highEnergyTerms = ['high energy', 'mental clarity', 'good concentration', 'focused', 'moderate energy'];
+      const lowEnergyTerms = ['low energy', 'brain fog', 'poor concentration', 'mental fatigue', 'distracted'];
+      const logsWithClarity = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return log.energyClarity && String(log.energyClarity).trim().length > 0;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (logsWithClarity.length >= 3) {
+        const clarityLower = logsWithClarity.map(log => String(log.energyClarity).toLowerCase());
+        const highEnergyDays = logsWithClarity.filter((_, i) => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            return highEnergyTerms.some(t => clarityLower[i].includes(t));
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+        const lowEnergyDays = logsWithClarity.filter((_, i) => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            return lowEnergyTerms.some(t => clarityLower[i].includes(t));
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+        if (highEnergyDays.length >= 2 && lowEnergyDays.length >= 2) {
+          const avgMoodHigh = highEnergyDays.reduce((s, log) => s + (parseInt(log.mood) || 0), 0) / highEnergyDays.length;
+          const avgMoodLow = lowEnergyDays.reduce((s, log) => s + (parseInt(log.mood) || 0), 0) / lowEnergyDays.length;
+          const avgFatigueHigh = highEnergyDays.reduce((s, log) => s + (parseInt(log.fatigue) || 0), 0) / highEnergyDays.length;
+          const avgFatigueLow = lowEnergyDays.reduce((s, log) => s + (parseInt(log.fatigue) || 0), 0) / lowEnergyDays.length;
+          if (Math.abs(avgMoodHigh - avgMoodLow) > 0.5 || Math.abs(avgFatigueHigh - avgFatigueLow) > 0.5) {
+            analysis.patterns.push('Energy & mental clarity entries correlate with mood and fatigue - tracking helps spot patterns.');
+          }
+        }
+        analysis.energyClaritySummary = {
+          daysLogged: logsWithClarity.length
+        };
+      }
+      const logsWithNotes = logs.filter(log => log.notes && String(log.notes).trim().length > 0);
+      if (logsWithNotes.length >= 3 && logs.length - logsWithNotes.length >= 3) {
+        const avgPainWithNotes = logsWithNotes.reduce((s, log) => s + (parseInt(log.backPain) || 0), 0) / logsWithNotes.length;
+        const logsWithoutNotes = logs.filter(log => !log.notes || !String(log.notes).trim());
+        const avgPainWithout = logsWithoutNotes.reduce((s, log) => s + (parseInt(log.backPain) || 0), 0) / logsWithoutNotes.length;
+        if (Math.abs(avgPainWithNotes - avgPainWithout) > 0.8) {
+          analysis.patterns.push('You tend to add notes on higher-symptom days - notes help capture context for flare-ups.');
+        }
+      }
+      const logsWithWeather = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return log.weatherSensitivity != null && log.weatherSensitivity !== '' && !isNaN(parseInt(log.weatherSensitivity));
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (logsWithWeather.length >= 5) {
+        const highSensitivity = logsWithWeather.filter(log => parseInt(log.weatherSensitivity) >= 7);
+        const lowSensitivity = logsWithWeather.filter(log => parseInt(log.weatherSensitivity) <= 4);
+        if (highSensitivity.length >= 2 && lowSensitivity.length >= 2) {
+          const flareRateHigh = highSensitivity.filter(log => log.flare === 'Yes').length / highSensitivity.length;
+          const flareRateLow = lowSensitivity.filter(log => log.flare === 'Yes').length / lowSensitivity.length;
+          if (flareRateHigh > flareRateLow + 0.1) {
+            analysis.patterns.push('Higher weather sensitivity tends to coincide with more flare-up days - consider tracking weather for triggers.');
+          }
+        }
+      }
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Cross-section correlations: link different Log Entry sections (stressors, symptoms, pain, food, exercise, energy)
+  analyzeCrossSectionCorrelations: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (logs.length < 7) return;
+      const getLogFoodArray = log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          if (!log || !log.food) return [];
+          const f = log.food;
+          if (Array.isArray(f)) return f;
+          return [].concat(f.breakfast || [], f.lunch || [], f.dinner || [], f.snack || []);
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      };
+      const getDailyCalories = log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const foodArr = getLogFoodArray(log);
+          if (foodArr.length === 0) return 0;
+          return foodArr.reduce((sum, item) => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              return sum + (typeof item === 'object' && item.calories != null ? item.calories || 0 : 0);
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          }, 0);
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      };
+      const getLogExerciseMinutes = log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          if (!log || !log.exercise || !Array.isArray(log.exercise)) return 0;
+          return log.exercise.reduce((sum, item) => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const mins = typeof item === 'object' && item.duration != null ? item.duration : 0;
+              return sum + (typeof mins === 'number' ? mins : parseInt(mins, 10) || 0);
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          }, 0);
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      };
+      const logsWithStressors = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return log.stressors && Array.isArray(log.stressors) && log.stressors.length > 0;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      const logsWithoutStressors = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return !log.stressors || !Array.isArray(log.stressors) || log.stressors.length === 0;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      const logsWithSymptoms = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return log.symptoms && Array.isArray(log.symptoms) && log.symptoms.length > 0;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      const logsWithoutSymptoms = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return !log.symptoms || !Array.isArray(log.symptoms) || log.symptoms.length === 0;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      const logsWithPain = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return log.painLocation && String(log.painLocation).trim().length > 0;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      const logsWithoutPain = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return !log.painLocation || !String(log.painLocation).trim();
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      const lowEnergyTerms = ['low energy', 'brain fog', 'poor concentration', 'mental fatigue', 'distracted'];
+      const logsWithClarity = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return log.energyClarity && String(log.energyClarity).trim().length > 0;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      const logsLowEnergy = logsWithClarity.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return lowEnergyTerms.some(t => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              return String(log.energyClarity).toLowerCase().includes(t);
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      const correlations = [];
+      const minGroup = 3;
+
+      // Stressors × Symptoms: same-day symptom count with vs without stressors
+      if (logsWithStressors.length >= minGroup && logsWithoutStressors.length >= minGroup) {
+        const avgSymptomsWithStress = logsWithStressors.reduce((s, log) => s + (log.symptoms && log.symptoms.length) || 0, 0) / logsWithStressors.length;
+        const avgSymptomsWithoutStress = logsWithoutStressors.reduce((s, log) => s + (log.symptoms && log.symptoms.length) || 0, 0) / logsWithoutStressors.length;
+        if (Math.abs(avgSymptomsWithStress - avgSymptomsWithoutStress) >= 0.3) {
+          const msg = avgSymptomsWithStress > avgSymptomsWithoutStress ? `On days you logged stress or triggers, you also logged more symptoms on average (${avgSymptomsWithStress.toFixed(1)} vs ${avgSymptomsWithoutStress.toFixed(1)}).` : `On days without stress or triggers, you logged more symptoms on average (${avgSymptomsWithoutStress.toFixed(1)} vs ${avgSymptomsWithStress.toFixed(1)}).`;
+          correlations.push({
+            type: 'stressors_symptoms',
+            description: msg
+          });
+        }
+      }
+
+      // Stressors × Exercise: exercise minutes with vs without stressors
+      const withStressEx = logsWithStressors.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+      const withoutStressEx = logsWithoutStressors.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+      if (withStressEx.length >= minGroup && withoutStressEx.length >= minGroup) {
+        const avgWith = withStressEx.reduce((a, b) => a + b, 0) / withStressEx.length;
+        const avgWithout = withoutStressEx.reduce((a, b) => a + b, 0) / withoutStressEx.length;
+        if (Math.abs(avgWith - avgWithout) >= 5) {
+          const direction = avgWith < avgWithout ? 'less' : 'more';
+          correlations.push({
+            type: 'stressors_exercise',
+            description: `On days you logged stress or triggers, you tended to log ${direction} exercise (${Math.round(avgWith)} vs ${Math.round(avgWithout)} minutes on days you did exercise).`
+          });
+        }
+      }
+
+      // Stressors × Food: calories with vs without stressors (only days that logged food)
+      const withStressCal = logsWithStressors.map(getDailyCalories).filter(c => c > 0);
+      const withoutStressCal = logsWithoutStressors.map(getDailyCalories).filter(c => c > 0);
+      if (withStressCal.length >= minGroup && withoutStressCal.length >= minGroup) {
+        const avgWith = withStressCal.reduce((a, b) => a + b, 0) / withStressCal.length;
+        const avgWithout = withoutStressCal.reduce((a, b) => a + b, 0) / withoutStressCal.length;
+        if (Math.abs(avgWith - avgWithout) >= 100) {
+          const direction = avgWith < avgWithout ? 'fewer' : 'more';
+          correlations.push({
+            type: 'stressors_food',
+            description: `On days you logged stress or triggers, you logged ${direction} calories on average (${Math.round(avgWith)} vs ${Math.round(avgWithout)} when you logged food).`
+          });
+        }
+      }
+
+      // Symptoms × Exercise
+      const withSymEx = logsWithSymptoms.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+      const withoutSymEx = logsWithoutSymptoms.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+      if (withSymEx.length >= minGroup && withoutSymEx.length >= minGroup) {
+        const avgWith = withSymEx.reduce((a, b) => a + b, 0) / withSymEx.length;
+        const avgWithout = withoutSymEx.reduce((a, b) => a + b, 0) / withoutSymEx.length;
+        if (Math.abs(avgWith - avgWithout) >= 5) {
+          const direction = avgWith < avgWithout ? 'less' : 'more';
+          correlations.push({
+            type: 'symptoms_exercise',
+            description: `On days you logged extra symptoms, you tended to log ${direction} exercise (${Math.round(avgWith)} vs ${Math.round(avgWithout)} minutes on days you did exercise).`
+          });
+        }
+      }
+
+      // Symptoms × Food (calories)
+      const withSymCal = logsWithSymptoms.map(getDailyCalories).filter(c => c > 0);
+      const withoutSymCal = logsWithoutSymptoms.map(getDailyCalories).filter(c => c > 0);
+      if (withSymCal.length >= minGroup && withoutSymCal.length >= minGroup) {
+        const avgWith = withSymCal.reduce((a, b) => a + b, 0) / withSymCal.length;
+        const avgWithout = withoutSymCal.reduce((a, b) => a + b, 0) / withoutSymCal.length;
+        if (Math.abs(avgWith - avgWithout) >= 100) {
+          const direction = avgWith < avgWithout ? 'fewer' : 'more';
+          correlations.push({
+            type: 'symptoms_food',
+            description: `On days you logged extra symptoms, you logged ${direction} calories on average (${Math.round(avgWith)} vs ${Math.round(avgWithout)} when you logged food).`
+          });
+        }
+      }
+
+      // Pain × Exercise
+      const withPainEx = logsWithPain.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+      const withoutPainEx = logsWithoutPain.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+      if (withPainEx.length >= minGroup && withoutPainEx.length >= minGroup) {
+        const avgWith = withPainEx.reduce((a, b) => a + b, 0) / withPainEx.length;
+        const avgWithout = withoutPainEx.reduce((a, b) => a + b, 0) / withoutPainEx.length;
+        if (Math.abs(avgWith - avgWithout) >= 5) {
+          const direction = avgWith < avgWithout ? 'less' : 'more';
+          correlations.push({
+            type: 'pain_exercise',
+            description: `On days you marked where it hurt, you tended to log ${direction} exercise (${Math.round(avgWith)} vs ${Math.round(avgWithout)} minutes on days you did exercise).`
+          });
+        }
+      }
+
+      // Pain × Food (calories)
+      const withPainCal = logsWithPain.map(getDailyCalories).filter(c => c > 0);
+      const withoutPainCal = logsWithoutPain.map(getDailyCalories).filter(c => c > 0);
+      if (withPainCal.length >= minGroup && withoutPainCal.length >= minGroup) {
+        const avgWith = withPainCal.reduce((a, b) => a + b, 0) / withPainCal.length;
+        const avgWithout = withoutPainCal.reduce((a, b) => a + b, 0) / withoutPainCal.length;
+        if (Math.abs(avgWith - avgWithout) >= 100) {
+          const direction = avgWith < avgWithout ? 'fewer' : 'more';
+          correlations.push({
+            type: 'pain_food',
+            description: `On days you marked pain locations, you logged ${direction} calories on average (${Math.round(avgWith)} vs ${Math.round(avgWithout)} when you logged food).`
+          });
+        }
+      }
+
+      // Stressors × Pain: % of days with pain when stressors vs when not
+      if (logsWithStressors.length >= minGroup && logsWithoutStressors.length >= minGroup) {
+        const painRateWithStress = logsWithStressors.filter(log => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            return log.painLocation && log.painLocation.trim().length > 0;
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        }).length / logsWithStressors.length;
+        const painRateWithoutStress = logsWithoutStressors.filter(log => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            return log.painLocation && log.painLocation.trim().length > 0;
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        }).length / logsWithoutStressors.length;
+        if (Math.abs(painRateWithStress - painRateWithoutStress) >= 0.15) {
+          const pctWith = Math.round(painRateWithStress * 100);
+          const pctWithout = Math.round(painRateWithoutStress * 100);
+          const moreOnStress = painRateWithStress > painRateWithoutStress;
+          correlations.push({
+            type: 'stressors_pain',
+            description: moreOnStress ? `You marked pain locations more often on days you logged stress or triggers (${pctWith}% vs ${pctWithout}%).` : `You marked pain locations less often on days you logged stress or triggers (${pctWith}% vs ${pctWithout}%).`
+          });
+        }
+      }
+
+      // Low energy/clarity × Stressors
+      if (logsLowEnergy.length >= minGroup && logsWithStressors.length >= minGroup) {
+        const stressRateOnLowEnergy = logsLowEnergy.filter(log => log.stressors && log.stressors.length > 0).length / logsLowEnergy.length;
+        const stressRateOverall = logsWithStressors.length / logs.length;
+        if (stressRateOnLowEnergy > stressRateOverall + 0.2) {
+          correlations.push({
+            type: 'energy_stressors',
+            description: `Low energy or brain fog days often coincided with stress or triggers - tracking both can help spot patterns.`
+          });
+        }
+      }
+
+      // Flare × Food (calories on flare vs non-flare days when food logged)
+      const flareLogs = logs.filter(log => log.flare === 'Yes');
+      const nonFlareLogs = logs.filter(log => log.flare !== 'Yes');
+      if (flareLogs.length >= minGroup && nonFlareLogs.length >= minGroup) {
+        const flareCal = flareLogs.map(getDailyCalories).filter(c => c > 0);
+        const nonFlareCal = nonFlareLogs.map(getDailyCalories).filter(c => c > 0);
+        if (flareCal.length >= minGroup && nonFlareCal.length >= minGroup) {
+          const avgFlare = flareCal.reduce((a, b) => a + b, 0) / flareCal.length;
+          const avgNon = nonFlareCal.reduce((a, b) => a + b, 0) / nonFlareCal.length;
+          if (Math.abs(avgFlare - avgNon) >= 100) {
+            const direction = avgFlare < avgNon ? 'fewer' : 'more';
+            correlations.push({
+              type: 'flare_food',
+              description: `On flare-up days you logged ${direction} calories on average when you logged food (${Math.round(avgFlare)} vs ${Math.round(avgNon)}).`
+            });
+          }
+        }
+      }
+
+      // Flare × Exercise
+      if (flareLogs.length >= minGroup && nonFlareLogs.length >= minGroup) {
+        const flareEx = flareLogs.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+        const nonFlareEx = nonFlareLogs.filter(log => getLogExerciseMinutes(log) > 0).map(log => getLogExerciseMinutes(log));
+        if (flareEx.length >= minGroup && nonFlareEx.length >= minGroup) {
+          const avgFlare = flareEx.reduce((a, b) => a + b, 0) / flareEx.length;
+          const avgNon = nonFlareEx.reduce((a, b) => a + b, 0) / nonFlareEx.length;
+          if (Math.abs(avgFlare - avgNon) >= 5) {
+            const direction = avgFlare < avgNon ? 'less' : 'more';
+            correlations.push({
+              type: 'flare_exercise',
+              description: `On flare-up days you tended to log ${direction} exercise (${Math.round(avgFlare)} vs ${Math.round(avgNon)} minutes on days you did exercise).`
+            });
+          }
+        }
+      }
+      if (correlations.length > 0) {
+        analysis.crossSectionCorrelations = correlations;
+        correlations.forEach(c => analysis.patterns.push(c.description));
+      }
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Calculate correlation coefficient
+  calculateCorrelation: function (x, y) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (x.length !== y.length || x.length === 0) return 0;
+      const n = x.length;
+      const sumX = x.reduce((a, b) => a + b, 0);
+      const sumY = y.reduce((a, b) => a + b, 0);
+      const sumXY = x.reduce((total, xi, i) => total + xi * y[i], 0);
+      const sumX2 = x.reduce((total, xi) => total + xi * xi, 0);
+      const sumY2 = y.reduce((total, yi) => total + yi * yi, 0);
+      const numerator = n * sumXY - sumX * sumY;
+      const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+      if (denominator === 0) return 0;
+      return numerator / denominator;
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Generate condition-specific advice
+  generateConditionAdvice: function (trends, logs, conditionContext) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      const advice = [];
+      const conditionName = conditionContext.name || 'your condition';
+
+      // Sleep advice
+      if (trends.sleep && trends.sleep.average < 6) {
+        advice.push("🛏️ **Sleep Improvement**: Your sleep quality is below optimal. Consider establishing a consistent bedtime routine, avoiding screens before bed, and discussing sleep aids with your doctor.");
+      } else if (trends.sleep && trends.sleep.average >= 7) {
+        advice.push("✅ **Sleep Quality**: Your sleep scores are good - maintaining this is important for managing " + conditionName + ".");
+      }
+
+      // Pain management
+      if (trends.backPain && trends.backPain.average > 6) {
+        advice.push("🔥 **Pain Management**: High pain levels detected. Consider heat therapy, gentle stretching, anti-inflammatory medications, and discuss biologics with your rheumatologist if not already prescribed.");
+      } else if (trends.backPain && trends.backPain.average <= 4) {
+        advice.push("✅ **Pain Control**: Your pain levels are well-managed - excellent work!");
+      }
+
+      // Exercise and mobility
+      if (trends.mobility && trends.mobility.average < 6) {
+        advice.push(`🏃 **Mobility Focus**: Low mobility scores suggest need for gentle exercise. Try swimming, yoga, or physical therapy exercises appropriate for ${conditionName}.`);
+      } else if (trends.mobility && trends.mobility.average >= 7) {
+        advice.push("✅ **Mobility**: Your mobility scores are good - regular movement helps manage " + conditionName + ".");
+      }
+
+      // Stiffness management
+      if (trends.stiffness && trends.stiffness.average > 6) {
+        advice.push("🧘 **Morning Stiffness**: High stiffness levels indicate need for morning stretches, hot showers, and potentially adjusting medication timing with your doctor.");
+      } else if (trends.stiffness && trends.stiffness.average <= 4) {
+        advice.push("✅ **Stiffness Management**: Your stiffness is well-controlled.");
+      }
+
+      // Fatigue management
+      if (trends.fatigue && trends.fatigue.average > 6) {
+        advice.push("⚡ **Energy Management**: Chronic fatigue detected. Focus on pacing activities, short naps (20-30 min), and discussing fatigue with your healthcare team as it may indicate disease activity.");
+      } else if (trends.fatigue && trends.fatigue.average <= 4) {
+        advice.push("✅ **Energy Levels**: Your fatigue is well-managed.");
+      }
+
+      // Mood support
+      if (trends.mood && trends.mood.average < 6) {
+        advice.push("😊 **Mental Health**: Low mood scores suggest connecting with support groups, considering counseling, and ensuring you're getting adequate vitamin D and social interaction.");
+      } else if (trends.mood && trends.mood.average >= 7) {
+        advice.push("✅ **Mental Wellbeing**: Your mood scores are positive - maintaining mental health is crucial for managing chronic conditions.");
+      }
+
+      // Swelling management
+      if (trends.swelling && trends.swelling.average > 6) {
+        advice.push("💧 **Swelling Management**: Elevated swelling detected. Consider elevation, compression, anti-inflammatory measures, and discuss with your doctor.");
+      }
+
+      // Daily function
+      if (trends.dailyFunction && trends.dailyFunction.average < 6) {
+        advice.push("📋 **Daily Function**: Reduced daily function scores suggest need for activity pacing, assistive devices if needed, and occupational therapy consultation.");
+      }
+      return advice;
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Generate actionable advice with specific steps and urgency levels
+  generateActionableAdvice: function (trends, logs, conditionContext) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      const advice = this.generateConditionAdvice(trends, logs, conditionContext);
+      const conditionName = conditionContext.name || 'your condition';
+      const recentLogs = logs.slice(-7);
+
+      // Enhance existing advice with specific action steps
+      const enhancedAdvice = [];
+
+      // Sleep advice with urgency
+      if (trends.sleep && trends.sleep.average < 6) {
+        const sleepTrend = trends.sleep.regression?.slope || 0;
+        const urgency = sleepTrend < -0.1 ? 'urgent' : 'moderate';
+        const urgencyIcon = urgency === 'urgent' ? '🔴' : '🟡';
+        enhancedAdvice.push(`${urgencyIcon} **Sleep Improvement (${urgency === 'urgent' ? 'Urgent' : 'Moderate'} Priority)**: ` + `Your sleep quality is below optimal (avg ${trends.sleep.average.toFixed(1)}/10). ` + `Action steps: 1) Set consistent bedtime within 30 minutes, 2) Avoid screens 1 hour before bed, ` + `3) Keep bedroom cool (65-68°F), 4) Consider sleep study if persists >2 weeks. ` + `Timeframe: Start tonight, review in 1 week.`);
+      } else if (trends.sleep && trends.sleep.average >= 7) {
+        enhancedAdvice.push("✅ **Sleep Quality**: Your sleep scores are good - maintaining this is important for managing " + conditionName + ".");
+      }
+
+      // Pain management with specific steps
+      if (trends.backPain && trends.backPain.average > 6) {
+        const painTrend = trends.backPain.regression?.slope || 0;
+        const urgency = painTrend > 0.1 ? 'urgent' : 'moderate';
+        const urgencyIcon = urgency === 'urgent' ? '🔴' : '🟡';
+        enhancedAdvice.push(`${urgencyIcon} **Pain Management (${urgency === 'urgent' ? 'Urgent' : 'Moderate'} Priority)**: ` + `High pain levels detected (avg ${trends.backPain.average.toFixed(1)}/10). ` + `Action steps: 1) Heat therapy 15-20 min, 2) Gentle stretching, 3) Anti-inflammatory medications as prescribed, ` + `4) Discuss biologics with rheumatologist if not already prescribed. ` + `Timeframe: Immediate, follow up with doctor within 1 week if no improvement.`);
+      } else if (trends.backPain && trends.backPain.average <= 4) {
+        enhancedAdvice.push("✅ **Pain Control**: Your pain levels are well-managed - excellent work!");
+      }
+
+      // Exercise and mobility with specific recommendations
+      if (trends.mobility && trends.mobility.average < 6) {
+        enhancedAdvice.push(`🏃 **Mobility Focus**: Low mobility scores (avg ${trends.mobility.average.toFixed(1)}/10) suggest need for gentle exercise. ` + `Action steps: 1) Try swimming 2-3x/week, 2) Yoga or gentle stretching daily, ` + `3) Physical therapy exercises appropriate for ${conditionName}, 4) Start with 10-15 min, gradually increase. ` + `Timeframe: Start this week, review progress in 2 weeks.`);
+      } else if (trends.mobility && trends.mobility.average >= 7) {
+        enhancedAdvice.push("✅ **Mobility**: Your mobility scores are good - regular movement helps manage " + conditionName + ".");
+      }
+
+      // Stiffness management with timing
+      if (trends.stiffness && trends.stiffness.average > 6) {
+        enhancedAdvice.push(`🧘 **Morning Stiffness**: High stiffness levels (avg ${trends.stiffness.average.toFixed(1)}/10) indicate need for morning routine. ` + `Action steps: 1) Morning stretches upon waking, 2) Hot shower or warm compress, ` + `3) Adjust medication timing with your doctor, 4) Gentle movement before getting out of bed. ` + `Timeframe: Start tomorrow morning, review in 1 week.`);
+      } else if (trends.stiffness && trends.stiffness.average <= 4) {
+        enhancedAdvice.push("✅ **Stiffness Management**: Your stiffness is well-controlled.");
+      }
+
+      // Fatigue management with pacing
+      if (trends.fatigue && trends.fatigue.average > 6) {
+        const fatigueTrend = trends.fatigue.regression?.slope || 0;
+        const urgency = fatigueTrend > 0.1 ? 'urgent' : 'moderate';
+        const urgencyIcon = urgency === 'urgent' ? '🔴' : '🟡';
+        enhancedAdvice.push(`${urgencyIcon} **Energy Management (${urgency === 'urgent' ? 'Urgent' : 'Moderate'} Priority)**: ` + `Chronic fatigue detected (avg ${trends.fatigue.average.toFixed(1)}/10). ` + `Action steps: 1) Pace activities throughout day, 2) Short naps (20-30 min) if needed, ` + `3) Discuss fatigue with healthcare team as it may indicate disease activity, ` + `4) Consider energy conservation techniques. ` + `Timeframe: Immediate, schedule doctor visit within 2 weeks if persistent.`);
+      } else if (trends.fatigue && trends.fatigue.average <= 4) {
+        enhancedAdvice.push("✅ **Energy Levels**: Your fatigue is well-managed.");
+      }
+
+      // Mood support with social connection
+      if (trends.mood && trends.mood.average < 6) {
+        enhancedAdvice.push(`😊 **Mental Health**: Low mood scores (avg ${trends.mood.average.toFixed(1)}/10) suggest need for support. ` + `Action steps: 1) Connect with support groups, 2) Consider counseling or therapy, ` + `3) Ensure adequate vitamin D and social interaction, 4) Practice mindfulness or meditation. ` + `Timeframe: Start this week, consider professional help if mood < 4/10 for >2 weeks.`);
+      } else if (trends.mood && trends.mood.average >= 7) {
+        enhancedAdvice.push("✅ **Mental Wellbeing**: Your mood scores are positive - maintaining mental health is crucial for managing chronic conditions.");
+      }
+
+      // Swelling management
+      if (trends.swelling && trends.swelling.average > 6) {
+        enhancedAdvice.push(`💧 **Swelling Management**: Elevated swelling detected (avg ${trends.swelling.average.toFixed(1)}/10). ` + `Action steps: 1) Elevate affected areas, 2) Compression if appropriate, ` + `3) Anti-inflammatory measures, 4) Discuss with your doctor. ` + `Timeframe: Immediate, follow up if swelling persists >3 days.`);
+      }
+
+      // Daily function
+      if (trends.dailyFunction && trends.dailyFunction.average < 6) {
+        enhancedAdvice.push(`📋 **Daily Function**: Reduced daily function scores (avg ${trends.dailyFunction.average.toFixed(1)}/10) suggest need for support. ` + `Action steps: 1) Activity pacing, 2) Assistive devices if needed, ` + `3) Occupational therapy consultation, 4) Break tasks into smaller steps. ` + `Timeframe: Start this week, consider OT referral if function < 5/10 for >2 weeks.`);
+      }
+      return enhancedAdvice.length > 0 ? enhancedAdvice : advice;
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Get regression statistics summary for a metric
+  getRegressionSummary: function (metric, trend) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (!trend.regression) return null;
+      const reg = trend.regression;
+      const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+      return {
+        metric: metricName,
+        slope: reg.slope,
+        rSquared: reg.rSquared,
+        significance: reg.significance,
+        direction: reg.direction,
+        projected7Days: trend.projected7Days,
+        projected30Days: trend.projected30Days,
+        current: trend.current
+      };
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Generate comprehensive text-based insights from analysis
+  generateComprehensiveInsights: function (analysis, logs, dayCount) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      const insights = [];
+      const conditionContext = window.CONDITION_CONTEXT || {
+        name: 'your condition'
+      };
+      const conditionName = conditionContext.name || 'your condition';
+
+      // Use all provided logs (already filtered by date range from app)
+      const recentLogs = logs;
+      const actualDayCount = dayCount;
+
+      // Overall trend summary (concise)
+      const improvingMetrics = [];
+      const worseningMetrics = [];
+      Object.keys(analysis.trends).forEach(metric => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const trend = analysis.trends[metric];
+          const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          if (trend.regression && trend.regression.rSquared > 0.3) {
+            const slope = trend.regression.slope;
+            if (slope > 0.1) improvingMetrics.push(metricName);else if (slope < -0.1) worseningMetrics.push(metricName);
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (improvingMetrics.length > 0) {
+        insights.push(`**Getting better**: ${improvingMetrics.join(', ')}`);
+      }
+      if (worseningMetrics.length > 0) {
+        insights.push(`**Getting worse**: ${worseningMetrics.join(', ')}`);
+      }
+
+      // Critical issues (concise)
+      const criticalIssues = [];
+
+      // Key metrics for critical issue checking (same set as analyzeHealthMetrics so all data points are considered)
+      const keyMetrics = ['backPain', 'stiffness', 'fatigue', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'bpm', 'weight', 'weatherSensitivity', 'steps', 'hydration'];
+      keyMetrics.forEach(metric => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          if (analysis.trends[metric]) {
+            const trend = analysis.trends[metric];
+            const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            const isBPM = metric === 'bpm';
+            const isWeight = metric === 'weight';
+            const isSteps = metric === 'steps';
+            const isHydration = metric === 'hydration';
+            if (isBPM) {
+              // BPM: check for abnormal values (high >100 or low <50)
+              if (trend.average > 100) {
+                criticalIssues.push(`${metricName} high (${Math.round(trend.average)})`);
+              } else if (trend.average < 50) {
+                criticalIssues.push(`${metricName} low (${Math.round(trend.average)})`);
+              }
+            } else if (isWeight) {
+              // Weight: check for very high (>150 kg) or very low (<40 kg)
+              if (trend.average > 150) {
+                criticalIssues.push(`${metricName} high (${trend.average.toFixed(1)} kg)`);
+              } else if (trend.average < 40) {
+                criticalIssues.push(`${metricName} low (${trend.average.toFixed(1)} kg)`);
+              }
+            } else if (isSteps) {
+              // Steps: check for very high values (>15000) or very low values (<1000)
+              if (trend.average > 15000) {
+                criticalIssues.push(`${metricName} high (${Math.round(trend.average).toLocaleString()})`);
+              } else if (trend.average < 1000) {
+                criticalIssues.push(`${metricName} low (${Math.round(trend.average).toLocaleString()})`);
+              }
+            } else if (isHydration) {
+              // Hydration: check for high (>15 glasses) or low (<3 glasses)
+              if (trend.average > 15) {
+                criticalIssues.push(`${metricName} high (${trend.average.toFixed(1)} glasses)`);
+              } else if (trend.average < 3) {
+                criticalIssues.push(`${metricName} low (${trend.average.toFixed(1)} glasses)`);
+              }
+            } else {
+              // Health metrics: 0-10 scale. Higher is better for sleep, mobility, mood, dailyFunction; higher is worse for pain/stiffness/fatigue/etc.
+              const higherIsBetter = ['sleep', 'mobility', 'mood', 'dailyFunction'];
+              if (higherIsBetter.includes(metric) && trend.average <= 4) {
+                criticalIssues.push(`${metricName} low (${Math.round(trend.average)}/10)`);
+              } else if (!higherIsBetter.includes(metric) && trend.average >= 7) {
+                criticalIssues.push(`${metricName} high (${Math.round(trend.average)}/10)`);
+              }
+            }
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (criticalIssues.length > 0) {
+        insights.push(`**Things to watch**: ${criticalIssues.join(', ')}`);
+      }
+
+      // Flare-up analysis (concise)
+      const flareCount = recentLogs.filter(log => log.flare === 'Yes').length;
+      if (flareCount > 0) {
+        const flarePercent = Math.round(flareCount / actualDayCount * 100);
+        const dayText = actualDayCount === 1 ? 'day' : 'days';
+        insights.push(`**Flare-ups**: ${flareCount} ${flareCount === 1 ? 'day' : 'days'} (${flarePercent}%) in last ${actualDayCount} ${dayText}`);
+      }
+
+      // Energy & Clarity (logged days)
+      if (analysis.energyClaritySummary && analysis.energyClaritySummary.daysLogged > 0) {
+        const days = analysis.energyClaritySummary.daysLogged;
+        insights.push(`**Energy & Clarity**: Logged on ${days} ${days === 1 ? 'day' : 'days'}`);
+      }
+
+      // Notes (days with notes)
+      const notesCount = recentLogs.filter(log => log.notes && String(log.notes).trim().length > 0).length;
+      if (notesCount > 0) {
+        insights.push(`**Notes**: Added on ${notesCount} ${notesCount === 1 ? 'day' : 'days'}`);
+      }
+
+      // Strong trends with projections (concise)
+      const strongTrends = Object.keys(analysis.trends).filter(metric => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const trend = analysis.trends[metric];
+          return trend.regression && trend.regression.rSquared > 0.5 && Math.abs(trend.regression.slope) > 0.1;
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (strongTrends.length > 0) {
+        const predictions = [];
+        strongTrends.slice(0, 3).forEach(metric => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            // Limit to top 3
+            const trend = analysis.trends[metric];
+            const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            const isBPM = metric === 'bpm';
+            const isSteps = metric === 'steps';
+            const isHydration = metric === 'hydration';
+            const direction = trend.regression.slope > 0 ? '↑' : '↓';
+            const projected7 = trend.projected7Days;
+            const current = trend.current;
+            const threshold = isBPM ? 2 : isSteps ? 500 : isHydration ? 1 : 0.5; // Different thresholds for different metrics
+
+            if (Math.abs(projected7 - current) > threshold) {
+              // Format based on metric type
+              if (isSteps) {
+                predictions.push(`${metricName} ${direction} ${Math.round(current).toLocaleString()}→${Math.round(projected7).toLocaleString()}`);
+              } else if (isHydration) {
+                predictions.push(`${metricName} ${direction} ${current.toFixed(1)}→${projected7.toFixed(1)} glasses`);
+              } else {
+                // Other metrics: show whole numbers
+                predictions.push(`${metricName} ${direction} ${Math.round(current)}→${Math.round(projected7)}`);
+              }
+            }
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+        if (predictions.length > 0) {
+          insights.push(`**Next week (possible trend)**: ${predictions.join(', ')}`);
+        }
+      }
+      if (analysis.patterns.length > 0) {
+        insights.push(`**Pattern we see**: ${analysis.patterns.slice(0, 2).join('. ')}`);
+      }
+
+      // Stressors analysis
+      if (analysis.stressorAnalysis) {
+        const stressorAnalysis = analysis.stressorAnalysis;
+        if (stressorAnalysis.topStressors.length > 0) {
+          insights.push(`**Stress and triggers**: ${stressorAnalysis.summary}`);
+          if (stressorAnalysis.impacts.length > 0) {
+            insights.push(`**How stress or triggers affect you**: ${stressorAnalysis.impacts.slice(0, 2).join('. ')}`);
+          }
+        }
+      }
+
+      // Symptoms and pain location analysis
+      if (analysis.symptomsAndPainAnalysis) {
+        const symptomsAnalysis = analysis.symptomsAndPainAnalysis;
+        if (symptomsAnalysis.topSymptoms.length > 0 || symptomsAnalysis.topPainLocations.length > 0) {
+          insights.push(`**Symptoms and where you had pain**: ${symptomsAnalysis.summary}`);
+          if (symptomsAnalysis.symptomImpacts.length > 0) {
+            insights.push(`**How symptoms line up with how you feel**: ${symptomsAnalysis.symptomImpacts.slice(0, 2).join('. ')}`);
+          }
+          if (symptomsAnalysis.painLocationImpacts.length > 0) {
+            insights.push(`**How pain areas line up with how you feel**: ${symptomsAnalysis.painLocationImpacts.slice(0, 2).join('. ')}`);
+          }
+        }
+        if (symptomsAnalysis.painByRegion) {
+          const parts = [];
+          PAIN_REGIONS.forEach(r => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const data = symptomsAnalysis.painByRegion[r.id];
+              if (!data || data.painDays === 0 && data.mildDays === 0) return;
+              const p = data.painDays ? `${data.painDays} pain` : '';
+              const m = data.mildDays ? `${data.mildDays} mild` : '';
+              parts.push(`${data.label} (${[p, m].filter(Boolean).join(', ')})`);
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+          if (parts.length > 0) {
+            insights.push(`**Pain by body part**: ${parts.slice(0, 8).join('; ')}${parts.length > 8 ? '; …' : ''}`);
+          } else {
+            insights.push(`**Pain by body part**: No body areas with pain or mild in this period.`);
+          }
+        }
+      }
+
+      // Food and exercise analysis
+      if (analysis.nutritionAnalysis && analysis.nutritionAnalysis.avgCalories > 0) {
+        const nutrition = analysis.nutritionAnalysis;
+        insights.push(`**What you ate**: On average ${nutrition.avgCalories} calories and ${nutrition.avgProtein}g protein per day.`);
+      }
+      if (analysis.topFoods && analysis.topFoods.length > 0) {
+        const foodList = analysis.topFoods.slice(0, 6).map(f => f.name).join(', ');
+        insights.push(`**Foods you logged most**: ${foodList}${analysis.topFoods.length > 6 ? '; …' : ''}`);
+      }
+      if (analysis.exerciseSummary && analysis.exerciseSummary.daysWithExercise > 0) {
+        const ex = analysis.exerciseSummary;
+        insights.push(`**Exercise**: On days you logged exercise, about ${ex.avgMinutesPerDay} minutes on average (${ex.daysWithExercise} days).`);
+      }
+      if (analysis.topExercises && analysis.topExercises.length > 0) {
+        const exList = analysis.topExercises.slice(0, 6).map(e => e.name).join(', ');
+        insights.push(`**Exercises you did most**: ${exList}${analysis.topExercises.length > 6 ? '; …' : ''}`);
+      }
+      if (analysis.foodExerciseImpacts && analysis.foodExerciseImpacts.length > 0) {
+        const foodImpacts = analysis.foodExerciseImpacts.filter(i => i.type === 'food' || i.type === 'nutrition');
+        const exerciseImpacts = analysis.foodExerciseImpacts.filter(i => i.type === 'exercise');
+        if (foodImpacts.length > 0) {
+          insights.push(`**How food lines up with how you feel**: ${foodImpacts.slice(0, 2).map(i => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              return i.description || `On days you log food, ${i.metric} ${i.direction}`;
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          }).join('. ')}`);
+        }
+        if (exerciseImpacts.length > 0) {
+          insights.push(`**How exercise lines up with how you feel**: ${exerciseImpacts.slice(0, 2).map(i => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              return `On days you exercise, ${i.metric} ${i.direction}`;
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          }).join('. ')}`);
+        }
+      }
+
+      // Cross-section correlations (stressors × symptoms, pain × food/exercise, flare × food/exercise, etc.)
+      if (analysis.crossSectionCorrelations && analysis.crossSectionCorrelations.length > 0) {
+        const crossDescriptions = analysis.crossSectionCorrelations.slice(0, 5).map(c => c.description);
+        insights.push(`**Links between your log sections**: ${crossDescriptions.join(' ')}`);
+      }
+      return insights.join('\n\n');
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Natural language generation: one paragraph suitable for a daily or period summary note
+  generateAnalysisNote: function (analysis, options) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      const opts = options || {};
+      const dayCount = opts.dayCount || 7;
+      const logs = opts.logs || [];
+      const parts = [];
+      if (analysis.summary && analysis.summary.trim()) {
+        parts.push(analysis.summary.replace(/\*\*([^*]+)\*\*/g, '$1').trim());
+      }
+      if (analysis.prioritisedInsights && analysis.prioritisedInsights.length > 0) {
+        const first = analysis.prioritisedInsights[0].replace(/\*\*([^*]+)\*\*/g, '$1').trim();
+        if (first && !parts[0].includes(first.substring(0, 30))) parts.push(first);
+      }
+      const improving = [];
+      const worsening = [];
+      Object.keys(analysis.trends || {}).forEach(metric => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const t = analysis.trends[metric];
+          if (!t.regression || t.regression.normalizedSignificance < 0.5) return;
+          const name = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          if (t.regression.direction === 'improving') improving.push(name);else if (t.regression.direction === 'worsening') worsening.push(name);
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (improving.length > 0 || worsening.length > 0) {
+        const trendSentence = [];
+        if (improving.length > 0) trendSentence.push(improving.join(', ') + (improving.length === 1 ? ' is' : ' are') + ' improving');
+        if (worsening.length > 0) trendSentence.push(worsening.join(', ') + (worsening.length === 1 ? ' is' : ' are') + ' trending worse');
+        if (trendSentence.length > 0 && !parts.some(p => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            return p.includes('improving') || p.includes('trending');
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        })) {
+          parts.push(trendSentence.join('; ') + '.');
+        }
+      }
+      const flareCount = logs.filter(l => l.flare === 'Yes').length;
+      if (flareCount > 0 && dayCount >= 1) {
+        const pct = Math.round(flareCount / dayCount * 100);
+        parts.push(`You logged ${flareCount} flare ${flareCount === 1 ? 'day' : 'days'} (${pct}% of the period).`);
+      }
+      if (analysis.advice && analysis.advice.length > 0) {
+        const firstAdvice = analysis.advice[0].replace(/\*\*([^*]+)\*\*/g, '$1').trim();
+        if (firstAdvice.length < 120 && !parts.some(p => p.indexOf(firstAdvice.substring(0, 40)) >= 0)) {
+          parts.push(firstAdvice);
+        }
+      }
+      return parts.length ? parts.slice(0, 4).join(' ') : 'Review your trends and patterns in the app for insights.';
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Suggest a short note for a single log based on how today compares to recent baseline
+  suggestLogNote: function (log, context) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (!log || !context) return '';
+      const recentLogs = context.recentLogs || context.logs || [];
+      const metrics = ['backPain', 'stiffness', 'fatigue', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability'];
+      const higherIsBetter = ['sleep', 'mobility', 'mood', 'dailyFunction'];
+      const recent = recentLogs.filter(l => l.date !== log.date).slice(-14);
+      if (recent.length === 0) return '';
+      const parts = [];
+      metrics.forEach(metric => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const v = metric === 'weight' ? parseFloat(log[metric]) : parseInt(log[metric], 10) || 0;
+          if (isNaN(v)) return;
+          const vals = recent.map(l => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              return metric === 'weight' ? parseFloat(l[metric]) : parseInt(l[metric], 10) || 0;
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          }).filter(x => !isNaN(x));
+          if (vals.length < 3) return;
+          const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+          const diff = v - avg;
+          const name = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+          if (higherIsBetter.includes(metric)) {
+            if (diff >= 1) parts.push({
+              text: name + ' better than usual',
+              score: diff
+            });else if (diff <= -1) parts.push({
+              text: name + ' lower than your average',
+              score: -diff
+            });
+          } else {
+            if (diff >= 1) parts.push({
+              text: name + ' higher than usual',
+              score: diff
+            });else if (diff <= -1) parts.push({
+              text: name + ' improved vs average',
+              score: -diff
+            });
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (parts.length === 0) return '';
+      parts.sort((a, b) => b.score - a.score);
+      const top = parts.slice(0, 2).map(p => p.text).join('; ');
+      return top ? top + '.' : '';
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // ============================================
+  // ADVANCED DATA ANALYSIS METHODS
+  // ============================================
+
+  // K-means clustering to identify health state clusters
+  performKMeansClustering: function (dataPoints, k = 3, maxIterations = 100) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (dataPoints.length < k) {
+        return {
+          clusters: [],
+          centroids: []
+        };
+      }
+
+      // Initialize centroids randomly
+      const minX = Math.min(...dataPoints.map(p => p.x));
+      const maxX = Math.max(...dataPoints.map(p => p.x));
+      const minY = Math.min(...dataPoints.map(p => p.y));
+      const maxY = Math.max(...dataPoints.map(p => p.y));
+      let centroids = [];
+      for (let i = 0; i < k; i++) {
+        centroids.push({
+          x: minX + Math.random() * (maxX - minX),
+          y: minY + Math.random() * (maxY - minY)
+        });
+      }
+      let clusters = [];
+      let iterations = 0;
+      while (iterations < maxIterations) {
+        // Assign points to nearest centroid
+        clusters = Array(k).fill(null).map(() => []);
+        dataPoints.forEach(point => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            let minDist = Infinity;
+            let nearestCluster = 0;
+            centroids.forEach((centroid, idx) => {
+              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+              try {
+                const dist = Math.sqrt(Math.pow(point.x - centroid.x, 2) + Math.pow(point.y - centroid.y, 2));
+                if (dist < minDist) {
+                  minDist = dist;
+                  nearestCluster = idx;
+                }
+              } finally {
+                __rianellTraceExit(__rt);
+              }
+            });
+            clusters[nearestCluster].push(point);
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+
+        // Update centroids
+        let converged = true;
+        const newCentroids = centroids.map((centroid, idx) => {
+          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+          try {
+            if (clusters[idx].length === 0) return centroid;
+            const avgX = clusters[idx].reduce((sum, p) => sum + p.x, 0) / clusters[idx].length;
+            const avgY = clusters[idx].reduce((sum, p) => sum + p.y, 0) / clusters[idx].length;
+            const newCentroid = {
+              x: avgX,
+              y: avgY
+            };
+            const dist = Math.sqrt(Math.pow(centroid.x - newCentroid.x, 2) + Math.pow(centroid.y - newCentroid.y, 2));
+            if (dist > 0.001) converged = false;
+            return newCentroid;
+          } finally {
+            __rianellTraceExit(__rt);
+          }
+        });
+        if (converged) break;
+        centroids = newCentroids;
+        iterations++;
+      }
+      return {
+        clusters,
+        centroids,
+        iterations
+      };
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Multi-metric clustering: cluster days based on multiple health metrics
+  performClustering: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (logs.length < 5) return; // Need minimum data for clustering
+
+      const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'mood', 'mobility', 'dailyFunction'];
+      const validLogs = logs.filter(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          return metrics.every(metric => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const val = parseInt(log[metric]) || 0;
+              return !isNaN(val) && val >= 0;
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (validLogs.length < 5) return;
+
+      // Normalize metrics to 0-1 scale for clustering
+      const normalizedData = validLogs.map(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const features = metrics.map(metric => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const val = parseInt(log[metric]) || 0;
+              return val / 10; // Normalize 0-10 scale to 0-1
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+          return {
+            log,
+            features
+          };
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+
+      // Calculate pairwise distances and perform simple clustering
+      const distances = [];
+      for (let i = 0; i < normalizedData.length; i++) {
+        for (let j = i + 1; j < normalizedData.length; j++) {
+          const dist = Math.sqrt(normalizedData[i].features.reduce((sum, val, idx) => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              return sum + Math.pow(val - normalizedData[j].features[idx], 2);
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          }, 0));
+          distances.push({
+            i,
+            j,
+            dist
+          });
+        }
+      }
+
+      // Identify clusters using threshold-based grouping
+      const threshold = 0.3; // Distance threshold for same cluster
+      const clusters = [];
+      const assigned = new Set();
+      normalizedData.forEach((data, idx) => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          if (assigned.has(idx)) return;
+          const cluster = [idx];
+          assigned.add(idx);
+          distances.forEach(({
+            i,
+            j,
+            dist
+          }) => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              if (dist <= threshold) {
+                if (i === idx && !assigned.has(j)) {
+                  cluster.push(j);
+                  assigned.add(j);
+                } else if (j === idx && !assigned.has(i)) {
+                  cluster.push(i);
+                  assigned.add(i);
+                }
+              }
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+          if (cluster.length >= 2) {
+            clusters.push(cluster.map(i => normalizedData[i].log));
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+
+      // Analyze clusters
+      if (clusters.length >= 2) {
+        const clusterSizes = clusters.map(c => c.length);
+        const largestCluster = Math.max(...clusterSizes);
+        const clusterPercentage = largestCluster / validLogs.length * 100;
+        if (clusterPercentage > 40) {
+          // Calculate average metrics for largest cluster
+          const largestClusterLogs = clusters[clusterSizes.indexOf(largestCluster)];
+          const avgMetrics = metrics.map(metric => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const avg = largestClusterLogs.reduce((sum, log) => {
+                var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+                try {
+                  return sum + (parseInt(log[metric]) || 0);
+                } finally {
+                  __rianellTraceExit(__rt);
+                }
+              }, 0) / largestClusterLogs.length;
+              return {
+                metric,
+                avg: Math.round(avg * 10) / 10
+              };
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+          const highMetrics = avgMetrics.filter(m => m.avg >= 7).map(m => m.metric);
+          const lowMetrics = avgMetrics.filter(m => m.avg <= 4).map(m => m.metric);
+          if (highMetrics.length > 0 || lowMetrics.length > 0) {
+            let clusterDesc = `Identified ${clusters.length} distinct health state clusters. `;
+            if (highMetrics.length > 0) {
+              clusterDesc += `Most common state shows elevated ${highMetrics.join(', ')}. `;
+            }
+            if (lowMetrics.length > 0) {
+              clusterDesc += `Lower levels in ${lowMetrics.join(', ')}.`;
+            }
+            analysis.patterns.push(clusterDesc);
+          }
+        }
+      }
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Exponential smoothing for time series prediction
+  performExponentialSmoothing: function (values, alpha = 0.3) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (values.length === 0) return {
+        smoothed: [],
+        forecast: null
+      };
+      const smoothed = [values[0]]; // Initialize with first value
+
+      for (let i = 1; i < values.length; i++) {
+        const smoothedValue = alpha * values[i] + (1 - alpha) * smoothed[i - 1];
+        smoothed.push(smoothedValue);
+      }
+
+      // Forecast next value
+      const forecast = alpha * values[values.length - 1] + (1 - alpha) * smoothed[smoothed.length - 1];
+      return {
+        smoothed,
+        forecast
+      };
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Moving average (simple and weighted)
+  calculateMovingAverage: function (values, window = 7, weighted = false) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (values.length < window) return {
+        average: null,
+        values: []
+      };
+      const averages = [];
+      for (let i = window - 1; i < values.length; i++) {
+        const windowValues = values.slice(i - window + 1, i + 1);
+        let avg;
+        if (weighted) {
+          // Weighted moving average (more weight to recent values)
+          let sum = 0;
+          let weightSum = 0;
+          windowValues.forEach((val, idx) => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const weight = idx + 1; // Linear weighting
+              sum += val * weight;
+              weightSum += weight;
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+          avg = sum / weightSum;
+        } else {
+          avg = windowValues.reduce((a, b) => a + b, 0) / windowValues.length;
+        }
+        averages.push(avg);
+      }
+      return {
+        average: averages[averages.length - 1],
+        values: averages
+      };
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Time series analysis using exponential smoothing and moving averages
+  performTimeSeriesAnalysis: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (logs.length < 7) return;
+      const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'mood'];
+      metrics.forEach(metric => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const values = logs.map(log => parseInt(log[metric]) || 0).filter(val => !isNaN(val));
+          if (values.length < 7) return;
+
+          // Exponential smoothing
+          const smoothing = this.performExponentialSmoothing(values, 0.3);
+
+          // Moving averages
+          const ma7 = this.calculateMovingAverage(values, 7, false);
+          const wma7 = this.calculateMovingAverage(values, 7, true);
+
+          // Detect trend changes using moving averages
+          if (ma7.values.length >= 2) {
+            const recentMA = ma7.values.slice(-3);
+            const trend = recentMA[recentMA.length - 1] - recentMA[0];
+            if (Math.abs(trend) > 0.5) {
+              const direction = trend > 0 ? 'increasing' : 'decreasing';
+              const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+
+              // Only add if not already covered by regression analysis
+              const existingPattern = analysis.patterns.some(p => p.toLowerCase().includes(metric.toLowerCase()));
+              if (!existingPattern && Math.abs(trend) > 1.0) {
+                analysis.patterns.push(`${metricName} shows ${direction} trend over recent 7-day period (MA: ${Math.round(ma7.average * 10) / 10})`);
+              }
+            }
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // ARIMA-like time series forecasting (simplified)
+  // p = autoregressive order, d = differencing order, q = moving average order
+  performARIMAForecast: function (values, p = 1, d = 0, q = 0, daysAhead = 7) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (values.length < p + q + 2) return null;
+
+      // First-order differencing if d > 0
+      let series = [...values];
+      if (d > 0) {
+        for (let i = series.length - 1; i >= d; i--) {
+          series[i] = series[i] - series[i - d];
+        }
+        series = series.slice(d);
+      }
+      if (series.length < p + 1) return null;
+
+      // Simple autoregressive model: y_t = c + φ₁y_{t-1} + ... + φₚy_{t-p} + ε_t
+      // Calculate AR coefficients using least squares
+      const arCoeffs = [];
+      const arIntercept = 0;
+
+      // For p=1, use simple correlation-based coefficient
+      if (p === 1) {
+        const mean = series.reduce((a, b) => a + b, 0) / series.length;
+        let numerator = 0;
+        let denominator = 0;
+        for (let i = 1; i < series.length; i++) {
+          const diff1 = series[i] - mean;
+          const diff2 = series[i - 1] - mean;
+          numerator += diff1 * diff2;
+          denominator += diff2 * diff2;
+        }
+        const phi1 = denominator !== 0 ? numerator / denominator : 0;
+        arCoeffs.push(phi1);
+      } else {
+        // For higher orders, use simplified approach
+        // Use correlation with lagged values
+        const mean = series.reduce((a, b) => a + b, 0) / series.length;
+        for (let lag = 1; lag <= p; lag++) {
+          if (series.length > lag) {
+            let numerator = 0;
+            let denominator = 0;
+            for (let i = lag; i < series.length; i++) {
+              const diff1 = series[i] - mean;
+              const diff2 = series[i - lag] - mean;
+              numerator += diff1 * diff2;
+              denominator += diff2 * diff2;
+            }
+            const phi = denominator !== 0 ? numerator / denominator : 0;
+            arCoeffs.push(phi);
+          }
+        }
+      }
+
+      // Forecast next values
+      const forecasts = [];
+      const lastValues = series.slice(-p);
+      const mean = series.reduce((a, b) => a + b, 0) / series.length;
+      for (let i = 0; i < daysAhead; i++) {
+        let forecast = mean; // Start with mean
+
+        for (let j = 0; j < arCoeffs.length; j++) {
+          const lagIndex = lastValues.length - 1 - j;
+          if (lagIndex >= 0) {
+            const lagValue = i === 0 ? lastValues[lagIndex] : forecasts[i - j - 1] || lastValues[lagIndex];
+            forecast += arCoeffs[j] * (lagValue - mean);
+          }
+        }
+        forecasts.push(forecast);
+      }
+
+      // Reverse differencing if needed
+      if (d > 0 && values.length > 0) {
+        const lastValue = values[values.length - 1];
+        for (let i = 0; i < forecasts.length; i++) {
+          forecasts[i] = lastValue + forecasts[i];
+          if (i > 0) {
+            forecasts[i] = forecasts[i - 1] + forecasts[i];
+          }
+        }
+      }
+      return {
+        forecasts: forecasts,
+        coefficients: arCoeffs,
+        order: {
+          p,
+          d,
+          q
+        }
+      };
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Statistical outlier detection using Z-score and IQR methods
+  detectOutliers: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (logs.length < 10) return; // Need sufficient data
+
+      const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'mood', 'bpm'];
+      const outliers = [];
+      metrics.forEach(metric => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const values = logs.map(log => parseInt(log[metric]) || 0).filter(val => !isNaN(val) && val > 0);
+          if (values.length < 10) return;
+
+          // Calculate mean and standard deviation
+          const mean = values.reduce((a, b) => a + b, 0) / values.length;
+          const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+          const stdDev = Math.sqrt(variance);
+
+          // Z-score method: values beyond 2 standard deviations
+          const zScoreOutliers = [];
+          values.forEach((val, idx) => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const zScore = Math.abs((val - mean) / stdDev);
+              if (zScore > 2) {
+                zScoreOutliers.push({
+                  index: idx,
+                  value: val,
+                  zScore: Math.round(zScore * 100) / 100
+                });
+              }
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+
+          // IQR method (Interquartile Range)
+          const sorted = [...values].sort((a, b) => a - b);
+          const q1Index = Math.floor(sorted.length * 0.25);
+          const q3Index = Math.floor(sorted.length * 0.75);
+          const q1 = sorted[q1Index];
+          const q3 = sorted[q3Index];
+          const iqr = q3 - q1;
+          const lowerBound = q1 - 1.5 * iqr;
+          const upperBound = q3 + 1.5 * iqr;
+          const iqrOutliers = [];
+          values.forEach((val, idx) => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              if (val < lowerBound || val > upperBound) {
+                iqrOutliers.push({
+                  index: idx,
+                  value: val
+                });
+              }
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+
+          // Report significant outliers
+          if (zScoreOutliers.length > 0 || iqrOutliers.length > 0) {
+            const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            const outlierCount = Math.max(zScoreOutliers.length, iqrOutliers.length);
+            if (outlierCount >= 2) {
+              outliers.push(`${metricName}: ${outlierCount} unusual values detected (may indicate flare-ups)`);
+            }
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (outliers.length > 0) {
+        analysis.anomalies.push(...outliers);
+      }
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  },
+  // Seasonality detection: day-of-week patterns, weekly cycles
+  detectSeasonality: function (logs, analysis) {
+    var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+    try {
+      if (logs.length < 14) return; // Need at least 2 weeks
+
+      const metrics = ['fatigue', 'stiffness', 'backPain', 'sleep', 'mood'];
+      const dayOfWeekStats = {
+        0: {
+          name: 'Sunday',
+          counts: {},
+          totals: {}
+        },
+        1: {
+          name: 'Monday',
+          counts: {},
+          totals: {}
+        },
+        2: {
+          name: 'Tuesday',
+          counts: {},
+          totals: {}
+        },
+        3: {
+          name: 'Wednesday',
+          counts: {},
+          totals: {}
+        },
+        4: {
+          name: 'Thursday',
+          counts: {},
+          totals: {}
+        },
+        5: {
+          name: 'Friday',
+          counts: {},
+          totals: {}
+        },
+        6: {
+          name: 'Saturday',
+          counts: {},
+          totals: {}
+        }
+      };
+
+      // Group data by day of week
+      logs.forEach(log => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const date = new Date(log.date);
+          const dayOfWeek = date.getDay();
+          metrics.forEach(metric => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const val = parseInt(log[metric]) || 0;
+              if (!isNaN(val) && val > 0) {
+                if (!dayOfWeekStats[dayOfWeek].totals[metric]) {
+                  dayOfWeekStats[dayOfWeek].totals[metric] = 0;
+                  dayOfWeekStats[dayOfWeek].counts[metric] = 0;
+                }
+                dayOfWeekStats[dayOfWeek].totals[metric] += val;
+                dayOfWeekStats[dayOfWeek].counts[metric]++;
+              }
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+
+      // Calculate averages and detect patterns
+      const patterns = [];
+      metrics.forEach(metric => {
+        var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+        try {
+          const averages = [];
+          Object.keys(dayOfWeekStats).forEach(day => {
+            var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "[arrow]", undefined) : undefined;
+            try {
+              const stats = dayOfWeekStats[day];
+              if (stats.counts[metric] > 0) {
+                const avg = stats.totals[metric] / stats.counts[metric];
+                averages.push({
+                  day: parseInt(day),
+                  dayName: stats.name,
+                  avg
+                });
+              }
+            } finally {
+              __rianellTraceExit(__rt);
+            }
+          });
+          if (averages.length >= 5) {
+            // Find day with highest and lowest average
+            const sorted = [...averages].sort((a, b) => a.avg - b.avg);
+            const lowest = sorted[0];
+            const highest = sorted[sorted.length - 1];
+            const diff = highest.avg - lowest.avg;
+
+            // Report if there's a significant pattern (difference > 1.5)
+            if (diff > 1.5) {
+              const metricName = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+              patterns.push(`${metricName} tends to be ${lowest.avg < 5 ? 'better' : 'lower'} on ${lowest.dayName} (${Math.round(lowest.avg * 10) / 10}) and ${highest.avg > 5 ? 'worse' : 'higher'} on ${highest.dayName} (${Math.round(highest.avg * 10) / 10})`);
+            }
+          }
+        } finally {
+          __rianellTraceExit(__rt);
+        }
+      });
+      if (patterns.length > 0) {
+        analysis.patterns.push(...patterns.slice(0, 2)); // Limit to 2 patterns
+      }
+    } finally {
+      __rianellTraceExit(__rt);
+    }
+  }
+};
+
+// Expose activation functions for use as activators in the neural analysis pipeline (and for external use)
+AIEngine.activations = {
+  sigmoid: sigmoid,
+  tanh: tanh,
+  relu: relu,
+  softmax: softmax
+};
+
+// Expose network constructor for advanced use (e.g. custom layers)
+AIEngine.NeuralAnalysisNetwork = NeuralAnalysisNetwork;
+
+// Warm WebGL backend when GPU is available so first AI analysis avoids init cost
+AIEngine.warmGPUBackend = function () {
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("AIEngine.js", "anonymous", arguments) : undefined;
+  try {
+    return ensureGPUBackend();
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+};
+
+// Make AIEngine available globally
+window.AIEngine = AIEngine;

@@ -1,0 +1,128 @@
+{
+  "name": "Rianell",
+  "short_name": "Rianell",
+  "description": "Rianell - personal health tracking at rianell.com. Monitor wellness metrics, pain, symptoms, and more.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#1a1d1e",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "lang": "en",
+  "categories": ["health", "medical", "lifestyle"],
+  "screenshots": [
+    {
+      "src": "Icons/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Rianell main interface"
+    },
+    {
+      "src": "Icons/screenshot-narrow.png", 
+      "sizes": "640x1136",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile health tracking interface"
+    }
+  ],
+  "icons": [
+    {
+      "src": "Icons/beta/Icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "Icons/beta/Icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "Icons/beta/Icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "Icons/beta/Icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "Icons/beta/Icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "Icons/beta/Icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "Icons/beta/Icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "Icons/beta/Icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Entry",
+      "short_name": "Log",
+      "description": "Quickly log today's health data",
+      "url": "./?quick=true",
+      "icons": [
+        {
+          "src": "Icons/beta/Icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "View Charts",
+      "short_name": "Charts",
+      "description": "View health data visualizations",
+      "url": "./?charts=true",
+      "icons": [
+        {
+          "src": "Icons/beta/Icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Export Data",
+      "short_name": "Export",
+      "description": "Export health data to CSV",
+      "url": "/?export=true",
+      "icons": [
+        {
+          "src": "Icons/beta/Icon-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "./",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "prefer_related_applications": false
+}

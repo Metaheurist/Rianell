@@ -86,3 +86,4 @@ Write-Host "Starting Rianell server from: $ProjectRoot"
 Write-Host "Serving local minified bundle: $LocalSiteDir"
 & $pythonExe -m server @args
 exit $LASTEXITCODE
+Vqup91*%4
