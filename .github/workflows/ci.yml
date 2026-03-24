@@ -117,8 +117,16 @@ jobs:
         working-directory: react-app
         run: npm ci || npm install
 
-      - name: Copy web app and build (minified legacy bundle for APK — web/.android-dist)
-        run: npm run build:apk
+      - name: Build minified legacy web bundle (pre-native build)
+        run: npm run build:web:apk
+
+      - name: Build minified React shell web app (pre-native build)
+        run: npm run build:react
+
+      - name: Verify minified bundles exist (Android path)
+        run: |
+          test -f "web/.android-dist/app.min.js"
+          test -f "react-app/dist/assets/legacy/app.min.js"
 
       - name: Add Android platform (if not present)
         working-directory: react-app
@@ -215,8 +223,16 @@ jobs:
         working-directory: react-app
         run: npm ci || npm install
 
-      - name: Copy web app and build (minified legacy bundle — web/.android-dist)
-        run: npm run build:apk
+      - name: Build minified legacy web bundle (pre-native build)
+        run: npm run build:web:apk
+
+      - name: Build minified React shell web app (pre-native build)
+        run: npm run build:react
+
+      - name: Verify minified bundles exist (iOS path)
+        run: |
+          test -f "web/.android-dist/app.min.js"
+          test -f "react-app/dist/assets/legacy/app.min.js"
 
       - name: Add iOS platform (if not present)
         working-directory: react-app
@@ -668,6 +684,7 @@ jobs:
           h = h.replace(/app\\.js\\?v=(\\d+)/g, function (_, v) { return 'app.min.js?v=' + v; });
           fs.writeFileSync('site/index.html', h);
           "
+          test -f "site/app.min.js"
 
       - name: Inject Supabase config for GitHub Pages (from secrets)
         env:
