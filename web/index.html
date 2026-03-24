@@ -126,9 +126,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=59" as="style">
-  <link rel="preload" href="app.js?v=16" as="script">
-  <link rel="stylesheet" href="styles.css?v=59" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=59&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="preload" href="styles.css?v=68" as="style">
+  <link rel="preload" href="app.js?v=20" as="script">
+  <link rel="stylesheet" href="styles.css?v=68" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=68&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #070807; color: #e8eeec; margin: 0; padding: 0; }
@@ -203,14 +203,47 @@
       align-items: center;
       gap: 20px;
     }
-    #loadingOverlay .spinner {
-      width: 60px;
-      height: 60px;
-      border: 4px solid rgba(123, 223, 140, 0.12);
-      border-top-color: #7bdf8c;
+    /* Orbiting sun (same mint palette as legacy spinner) */
+    #loadingOverlay .loading-sun-orbit {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #loadingOverlay .loading-sun-orbit__ring {
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(123, 223, 140, 0.28);
       border-radius: 50%;
-      box-shadow: 0 0 20px rgba(123, 223, 140, 0.2);
-      animation: rianell-spin 1s linear infinite;
+      box-shadow: 0 0 18px rgba(123, 223, 140, 0.12);
+    }
+    #loadingOverlay .loading-sun-orbit__orbit {
+      position: absolute;
+      width: 72px;
+      height: 72px;
+      animation: rianell-orbit 2.8s linear infinite;
+    }
+    #loadingOverlay .loading-sun-orbit__body {
+      position: absolute;
+      top: 2px;
+      left: 50%;
+      width: 11px;
+      height: 11px;
+      margin-left: -5.5px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #e8fff0, #9ae8a4 55%, #52b85f);
+      box-shadow: 0 0 10px rgba(123, 223, 140, 0.85), 0 0 0 1px rgba(123, 223, 140, 0.35);
+    }
+    #loadingOverlay .loading-sun-orbit__sun {
+      position: relative;
+      z-index: 2;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 32%, #e8fff0, #7bdf8c 48%, #3d8f4a 100%);
+      box-shadow: 0 0 22px rgba(123, 223, 140, 0.55), 0 0 44px rgba(123, 223, 140, 0.22);
     }
     #loadingOverlay .loading-text {
       color: rgba(224, 242, 241, 0.92);
@@ -225,22 +258,52 @@
       width: min(280px, 85vw);
     }
     #loadingOverlay .loading-progress-track {
-      height: 8px;
-      background: rgba(255, 255, 255, 0.1);
+      height: 10px;
+      background: rgba(10, 18, 14, 0.85);
       border-radius: 999px;
       overflow: hidden;
-      border: 1px solid rgba(123, 223, 140, 0.22);
+      border: 1px solid rgba(123, 223, 140, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
     #loadingOverlay .loading-progress-fill {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, rgba(123, 223, 140, 0.35), #7bdf8c);
+      overflow: hidden;
       border-radius: 999px;
+      position: relative;
+      transition: width 0.2s ease-out;
     }
-    @keyframes rianell-spin {
+    #loadingOverlay .loading-wave-stack {
+      position: absolute;
+      inset: 0;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(90deg, rgba(123, 223, 140, 0.35), #7bdf8c 55%, rgba(123, 223, 140, 0.45));
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 20' preserveAspectRatio='none'%3E%3Cpath d='M0 12 Q16 3 32 12 T64 12 L64 20 L0 20 Z' fill='white'/%3E%3C/svg%3E");
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 20' preserveAspectRatio='none'%3E%3Cpath d='M0 12 Q16 3 32 12 T64 12 L64 20 L0 20 Z' fill='white'/%3E%3C/svg%3E");
+      -webkit-mask-size: 48px 100%;
+      mask-size: 48px 100%;
+      -webkit-mask-repeat: repeat-x;
+      mask-repeat: repeat-x;
+      animation: rianell-wave 1.35s linear infinite;
+    }
+    #loadingOverlay .loading-wave-stack--2 {
+      opacity: 0.45;
+      animation-delay: -0.65s;
+      animation-duration: 1.9s;
+    }
+    @keyframes rianell-orbit {
       to { transform: rotate(360deg); }
     }
-    /* Hide main content until loaded; keep loading overlay visible so user sees spinner */
+    @keyframes rianell-wave {
+      from { transform: translateX(0); }
+      to { transform: translateX(-48px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #loadingOverlay .loading-sun-orbit__orbit { animation-duration: 7s; }
+      #loadingOverlay .loading-wave-stack { animation-duration: 3.5s; }
+    }
+    /* Hide main content until loaded; keep loading overlay visible so user sees loader */
     body:not(.loaded) {
       overflow: hidden;
     }
@@ -272,11 +335,20 @@
   <!-- Loading Overlay -->
   <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-spinner">
-      <div class="spinner"></div>
+      <div class="loading-sun-orbit" aria-hidden="true">
+        <div class="loading-sun-orbit__ring"></div>
+        <div class="loading-sun-orbit__orbit">
+          <div class="loading-sun-orbit__body"></div>
+        </div>
+        <div class="loading-sun-orbit__sun"></div>
+      </div>
       <p class="loading-text">Loading Rianell…</p>
       <div class="loading-progress-wrap" id="loadingProgressWrap" aria-hidden="true">
         <div class="loading-progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-          <div class="loading-progress-fill" id="loadingProgressFill"></div>
+          <div class="loading-progress-fill" id="loadingProgressFill">
+            <span class="loading-wave-stack" aria-hidden="true"></span>
+            <span class="loading-wave-stack loading-wave-stack--2" aria-hidden="true"></span>
+          </div>
         </div>
       </div>
     </div>
@@ -307,37 +379,7 @@
       </div>
       <div class="settings-content settings-carousel-viewport" id="settingsCarouselViewport">
       <div class="settings-carousel-track" id="settingsCarouselTrack" data-settings-index="0">
-      <div class="settings-carousel-pane" data-settings-pane-title="AI & Goals" role="tabpanel" aria-hidden="false">
-      <div class="settings-section">
-        <h4>🧠 AI & Goals</h4>
-        <div class="settings-option settings-option-with-hint">
-          <label>Enable AI features & Goals</label>
-          <div class="toggle-switch" id="aiEnabledToggle" onclick="toggleAIFeatures()"></div>
-        </div>
-        <p class="settings-hint">When on: AI Analysis tab, chart predictions, and Goals & targets are available. When off: they are hidden. You can change this anytime.</p>
-        <div class="settings-option" style="margin-top: 14px;">
-          <label>Contribute anonymised data</label>
-          <div class="toggle-switch" id="contributeAnonDataToggle" onclick="toggleContributeAnonData()"></div>
-        </div>
-        <div class="settings-option settings-option-with-hint">
-          <label class="visually-hidden">Helper</label>
-          <p class="settings-hint" id="contributeAnonDataHint">Contribute your anonymised data to help improve AI models</p>
-        </div>
-        <div class="settings-option">
-          <label>Use open data for training</label>
-          <div class="toggle-switch" id="useOpenDataToggle" onclick="toggleUseOpenData()"></div>
-        </div>
-        <div class="settings-option settings-option-with-hint">
-          <label class="visually-hidden">Helper</label>
-          <p class="settings-hint" id="useOpenDataHint">Use anonymised data pool for AI training (requires 90+ days of data)</p>
-        </div>
-        <div class="settings-option settings-option-with-hint">
-          <label class="visually-hidden">Helper</label>
-          <p class="settings-hint">Used for personalised AI analysis and advice</p>
-        </div>
-      </div>
-      </div>
-      <div class="settings-carousel-pane" data-settings-pane-title="Personal" role="tabpanel" aria-hidden="true">
+      <div class="settings-carousel-pane" data-settings-pane-title="Personal" role="tabpanel" aria-hidden="false">
       <div class="settings-section">
         <h4>👤 Personal Settings</h4>
         <div class="settings-option">
@@ -374,6 +416,36 @@
               <p>When anonymised data contribution is enabled, your health data is anonymised and pooled with other users who have the same condition. This helps improve AI predictions for everyone. All personally identifiable information is removed before sharing.</p>
             </div>
           </div>
+        </div>
+      </div>
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="AI & Goals" role="tabpanel" aria-hidden="true">
+      <div class="settings-section">
+        <h4>🧠 AI & Goals</h4>
+        <div class="settings-option settings-option-with-hint">
+          <label>Enable AI features & Goals</label>
+          <div class="toggle-switch" id="aiEnabledToggle" onclick="toggleAIFeatures()"></div>
+        </div>
+        <p class="settings-hint">When on: AI Analysis tab, chart predictions, and Goals & targets are available. When off: they are hidden. You can change this anytime.</p>
+        <div class="settings-option" style="margin-top: 14px;">
+          <label>Contribute anonymised data</label>
+          <div class="toggle-switch" id="contributeAnonDataToggle" onclick="toggleContributeAnonData()"></div>
+        </div>
+        <div class="settings-option settings-option-with-hint">
+          <label class="visually-hidden">Helper</label>
+          <p class="settings-hint" id="contributeAnonDataHint">Contribute your anonymised data to help improve AI models</p>
+        </div>
+        <div class="settings-option">
+          <label>Use open data for training</label>
+          <div class="toggle-switch" id="useOpenDataToggle" onclick="toggleUseOpenData()"></div>
+        </div>
+        <div class="settings-option settings-option-with-hint">
+          <label class="visually-hidden">Helper</label>
+          <p class="settings-hint" id="useOpenDataHint">Use anonymised data pool for AI training (requires 90+ days of data)</p>
+        </div>
+        <div class="settings-option settings-option-with-hint">
+          <label class="visually-hidden">Helper</label>
+          <p class="settings-hint">Used for personalised AI analysis and advice</p>
         </div>
       </div>
       </div>
@@ -512,10 +584,10 @@
           <p class="settings-install-hint">Opens instructions to add the app to your Home Screen. Works offline like a native app.</p>
         </div>
         <div class="settings-option" id="androidDownloadOption">
-          <a id="downloadApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-android"></i></span> <span id="downloadAndroidLabel">Install on Android</span><span class="install-channel-badge install-channel-badge--beta">Beta</span> <span class="android-version" aria-hidden="true"></span></a>
+          <a id="downloadApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-android"></i></span> <span id="downloadAndroidLabel">Install on Android</span><span class="install-channel-badge install-channel-badge--beta">Beta</span> <span class="android-version" aria-hidden="true"></span></a>
         </div>
         <div class="settings-option" id="iosDownloadOption">
-          <a id="downloadIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="downloadIosLabel">Install on iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span> <span class="ios-version" aria-hidden="true"></span></a>
+          <a id="downloadIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="downloadIosLabel">Install on iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span> <span class="ios-version" aria-hidden="true"></span></a>
         </div>
       </div>
       </div>
@@ -630,51 +702,15 @@
           </defs>
           <!-- Base line (subtle) -->
           <line x1="0" y1="30" x2="400" y2="30" stroke="rgba(76, 175, 80, 0.15)" stroke-width="1.5"/>
-          <!-- ECG Heartbeat pattern - realistic waveform -->
-          <path class="heartbeat-path" 
-                d="M 0,30 
-                   L 40,30 
-                   L 45,5 
-                   L 50,30 
-                   L 55,30 
-                   L 60,20 
-                   L 65,30 
-                   L 100,30 
-                   L 105,5 
-                   L 110,30 
-                   L 115,30 
-                   L 120,20 
-                   L 125,30 
-                   L 160,30 
-                   L 165,5 
-                   L 170,30 
-                   L 175,30 
-                   L 180,20 
-                   L 185,30 
-                   L 220,30 
-                   L 225,5 
-                   L 230,30 
-                   L 235,30 
-                   L 240,20 
-                   L 245,30 
-                   L 280,30 
-                   L 285,5 
-                   L 290,30 
-                   L 295,30 
-                   L 300,20 
-                   L 305,30 
-                   L 340,30 
-                   L 345,5 
-                   L 350,30 
-                   L 355,30 
-                   L 360,20 
-                   L 365,30 
-                   L 400,30" 
-                fill="none" 
-                stroke="url(#heartbeatGradient)" 
-                stroke-width="3" 
-                stroke-linecap="round" 
-                stroke-linejoin="round"
+          <!-- ECG trace: d filled by initEcgHeartbeatLine() in app.js (natural QRS + slight randomness) -->
+          <path class="heartbeat-path" pathLength="1000"
+                d="M0,30 L400,30"
+                fill="none"
+                stroke="url(#heartbeatGradient)"
+                stroke-width="2.75"
+                stroke-linecap="butt"
+                stroke-linejoin="miter"
+                stroke-miterlimit="8"
                 filter="url(#heartbeatGlow)"/>
         </svg>
       </div>
@@ -1146,9 +1182,13 @@
               <input type="text" id="medName" placeholder="e.g. Aspirin, Vitamin D" maxlength="80" class="medication-input">
             </div>
             <div class="input-container">
-              <label for="medTimes">Time(s)</label>
-              <input type="text" id="medTimes" placeholder="e.g. 09:00, 21:00" maxlength="50" class="medication-input">
-              <span class="field-hint-inline">Separate multiple times with commas or spaces.</span>
+              <label for="medTimePicker">Time(s)</label>
+              <div class="medication-time-picker-row">
+                <input type="time" id="medTimePicker" class="medication-input medication-time-input" title="Pick a time">
+                <button type="button" class="medication-add-time-btn" onclick="addMedTimeTagFromPicker()" title="Add time" aria-label="Add time">+</button>
+              </div>
+              <div id="medTimesDraftTags" class="medication-times-draft-tags" role="list" aria-label="Times to add"></div>
+              <span class="field-hint-inline">Pick a time, then + to add. Remove a tag to drop it before saving.</span>
             </div>
             <div class="input-container medication-taken-row">
               <span class="medication-taken-label">Taken today?</span>
@@ -2044,10 +2084,10 @@
             <button type="button" class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA(); closeInstallModal();"><span class="settings-install-icon"><i class="fa-solid fa-globe"></i></span> Install web app<span class="install-channel-badge install-channel-badge--beta">Beta</span></button>
           </div>
           <div class="settings-option">
-            <a id="installModalApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit;"><span class="settings-install-icon"><i class="fa-brands fa-android"></i></span> Install on Android<span class="install-channel-badge install-channel-badge--beta">Beta</span> <span class="android-version" aria-hidden="true"></span></a>
+            <a id="installModalApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon"><i class="fa-brands fa-android"></i></span> Install on Android<span class="install-channel-badge install-channel-badge--beta">Beta</span> <span class="android-version" aria-hidden="true"></span></a>
           </div>
           <div class="settings-option">
-            <a id="installModalIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: inherit;"><span class="settings-install-icon"><i class="fa-brands fa-apple"></i></span> <span id="installModalIosLinkLabel">Install on iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span> <span class="ios-version" aria-hidden="true"></span></a>
+            <a id="installModalIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon"><i class="fa-brands fa-apple"></i></span> <span id="installModalIosLinkLabel">Install on iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span> <span class="ios-version" aria-hidden="true"></span></a>
           </div>
         </div>
       </div>
@@ -2491,7 +2531,7 @@
     }
   })();
   </script>
-  <script src="app.js?v=16"></script>
+  <script src="app.js?v=20"></script>
   <script src="security-utils.js"></script>
   <script src="encryption-utils.js"></script>
   <script src="cloud-sync.js?v=2"></script>

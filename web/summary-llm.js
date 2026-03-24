@@ -16,6 +16,8 @@
   var MAX_SUGGEST_CONTEXT_CHARS = 280;
   var TIMEOUT_MS = 28000;
   var TIMEOUT_SUGGEST_MS = 12000;
+  /** Covers Transformers.js import + model load + inference so the UI never waits forever on a hung getPipeline(). */
+  var TIMEOUT_SUGGEST_TOTAL_MS = 90000;
   var TIMEOUT_MOTD_MS = 15000;
   var MAX_MOTD_CHARS = 160;
 
@@ -367,34 +369,48 @@
 
     var prompt = 'Write one short sentence for a daily log note. Use only the data below. Compare today to average. Data: ' + contextString;
 
-    try {
-      var pipe = await getPipeline();
-      var run = pipe(prompt, {
-        max_new_tokens: 48,
-        do_sample: false,
-        truncation: true
-      });
-      var timeoutPromise = new Promise(function (_, reject) {
-        setTimeout(function () { reject(new Error('Suggest note LLM timeout')); }, TIMEOUT_SUGGEST_MS);
-      });
-      var out = await Promise.race([run, timeoutPromise]);
+    async function runSuggest() {
+      try {
+        var pipe = await getPipeline();
+        var run = pipe(prompt, {
+          max_new_tokens: 48,
+          do_sample: false,
+          truncation: true
+        });
+        var timeoutPromise = new Promise(function (_, reject) {
+          setTimeout(function () { reject(new Error('Suggest note LLM timeout')); }, TIMEOUT_SUGGEST_MS);
+        });
+        var out = await Promise.race([run, timeoutPromise]);
 
-      var text = (out && out[0] && out[0].generated_text) ? out[0].generated_text.trim() : '';
-      if (text && text.length > 8) {
-        text = stripTrailingIncompleteSentence(text);
-        if (suggestResultCache.size >= MAX_SUGGEST_CACHE) {
-          var firstKey = suggestResultCache.keys().next().value;
-          if (firstKey != null) suggestResultCache.delete(firstKey);
+        var text = (out && out[0] && out[0].generated_text) ? out[0].generated_text.trim() : '';
+        if (text && text.length > 8) {
+          text = stripTrailingIncompleteSentence(text);
+          if (suggestResultCache.size >= MAX_SUGGEST_CACHE) {
+            var firstKey = suggestResultCache.keys().next().value;
+            if (firstKey != null) suggestResultCache.delete(firstKey);
+          }
+          suggestResultCache.set(contextHash, text);
+          return text;
         }
-        suggestResultCache.set(contextHash, text);
-        return text;
+      } catch (e) {
+        if (typeof console !== 'undefined' && console.warn) {
+          console.warn('Suggest note LLM failed, using rule-based:', e.message || e);
+        }
       }
+      return fallbackText || '';
+    }
+
+    try {
+      var totalReject = new Promise(function (_, reject) {
+        setTimeout(function () { reject(new Error('Suggest note total timeout')); }, TIMEOUT_SUGGEST_TOTAL_MS);
+      });
+      return await Promise.race([runSuggest(), totalReject]);
     } catch (e) {
       if (typeof console !== 'undefined' && console.warn) {
         console.warn('Suggest note LLM failed, using rule-based:', e.message || e);
       }
+      return fallbackText || '';
     }
-    return fallbackText || '';
   }
 
   /**
