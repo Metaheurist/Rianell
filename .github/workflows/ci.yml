@@ -81,11 +81,72 @@ jobs:
           fi
 
   # ---------------------------------------------------------------------------
+  # Pre-minified web assets (temp artifacts used by all build flows)
+  # ---------------------------------------------------------------------------
+  prepare-minified-assets:
+    name: Prepare minified temp assets
+    needs: [paths-filter]
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Build minified legacy bundle (temp)
+        run: npm run build:web:apk
+
+      - name: Build minified React shell (temp)
+        run: npm run build:react
+
+      - name: Prepare minified temp directories
+        run: |
+          rm -rf ".ci-minified"
+          mkdir -p ".ci-minified"
+          cp -r "web/.android-dist" ".ci-minified/web-android-dist"
+          cp -r "react-app/dist" ".ci-minified/react-dist"
+
+          mkdir -p ".ci-minified/site"
+          cp -r web/* ".ci-minified/site/"
+          if [ -d "App build" ]; then
+            mkdir -p ".ci-minified/site/App build"
+            cp -r "App build/"* ".ci-minified/site/App build/" 2>/dev/null || true
+          fi
+          node web/build-site.mjs --site ".ci-minified/site"
+          node -e "
+          const fs = require('fs');
+          let h = fs.readFileSync('.ci-minified/site/index.html', 'utf8');
+          h = h.replace(/app\\.js\\?v=(\\d+)/g, function (_, v) { return 'app.min.js?v=' + v; });
+          fs.writeFileSync('.ci-minified/site/index.html', h);
+          "
+
+          test -f ".ci-minified/web-android-dist/app.min.js"
+          test -f ".ci-minified/react-dist/assets/legacy/app.min.js"
+          test -f ".ci-minified/site/app.min.js"
+
+      - name: Upload minified temp artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: minified-prebuild
+          path: .ci-minified/
+
+  # ---------------------------------------------------------------------------
   # Android APK (PR: CI; push: only when non–App-build paths changed)
   # ---------------------------------------------------------------------------
   android:
     name: Android APK
-    needs: [paths-filter]
+    needs: [paths-filter, prepare-minified-assets]
     if: |
       github.event_name == 'pull_request' ||
       (github.event_name == 'push' && needs.paths-filter.outputs.mobile_release == 'true')
@@ -117,14 +178,17 @@ jobs:
         working-directory: react-app
         run: npm ci || npm install
 
-      - name: Build minified legacy web bundle (pre-native build)
-        run: npm run build:web:apk
+      - name: Download minified temp artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: minified-prebuild
+          path: .ci-minified
 
-      - name: Build minified React shell web app (pre-native build)
-        run: npm run build:react
-
-      - name: Verify minified bundles exist (Android path)
+      - name: Restore minified temp bundles (Android path)
         run: |
+          rm -rf "web/.android-dist" "react-app/dist"
+          cp -r ".ci-minified/web-android-dist" "web/.android-dist"
+          cp -r ".ci-minified/react-dist" "react-app/dist"
           test -f "web/.android-dist/app.min.js"
           test -f "react-app/dist/assets/legacy/app.min.js"
 
@@ -191,7 +255,7 @@ jobs:
   # ---------------------------------------------------------------------------
   ios:
     name: iOS project + simulator
-    needs: [paths-filter]
+    needs: [paths-filter, prepare-minified-assets]
     if: |
       github.event_name == 'pull_request' ||
       (github.event_name == 'push' && needs.paths-filter.outputs.mobile_release == 'true')
@@ -223,14 +287,17 @@ jobs:
         working-directory: react-app
         run: npm ci || npm install
 
-      - name: Build minified legacy web bundle (pre-native build)
-        run: npm run build:web:apk
+      - name: Download minified temp artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: minified-prebuild
+          path: .ci-minified
 
-      - name: Build minified React shell web app (pre-native build)
-        run: npm run build:react
-
-      - name: Verify minified bundles exist (iOS path)
+      - name: Restore minified temp bundles (iOS path)
         run: |
+          rm -rf "web/.android-dist" "react-app/dist"
+          cp -r ".ci-minified/web-android-dist" "web/.android-dist"
+          cp -r ".ci-minified/react-dist" "react-app/dist"
           test -f "web/.android-dist/app.min.js"
           test -f "react-app/dist/assets/legacy/app.min.js"
 
@@ -376,7 +443,7 @@ jobs:
   # ---------------------------------------------------------------------------
   server-exe:
     name: Server EXE (${{ matrix.arch }})
-    needs: [paths-filter]
+    needs: [paths-filter, prepare-minified-assets]
     if: |
       github.event_name == 'pull_request' ||
       (github.event_name == 'push' && needs.paths-filter.outputs.mobile_release == 'true')
@@ -644,6 +711,7 @@ jobs:
   deploy-pages:
     name: Deploy to GitHub Pages
     if: github.event_name == 'push'
+    needs: [prepare-minified-assets]
     runs-on: ubuntu-latest
     environment: pages
     concurrency:
@@ -660,30 +728,16 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Setup Node (web build for Pages)
-        uses: actions/setup-node@v5
+      - name: Download minified temp artifact
+        uses: actions/download-artifact@v5
         with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: package-lock.json
+          name: minified-prebuild
+          path: .ci-minified
 
-      - name: Prepare site (web + App build for download links)
+      - name: Prepare site from minified temp artifact
         run: |
-          mkdir -p site
-          cp -r web/* site/
-          if [ -d "App build" ]; then
-            mkdir -p "site/App build"
-            cp -r "App build/"* "site/App build/" 2>/dev/null || true
-          fi
-          npm ci
-          # Same as local npm run build:web: instrument first-party JS (function trace hooks), then minify app.js -> app.min.js
-          node web/build-site.mjs --site site
-          node -e "
-          const fs = require('fs');
-          let h = fs.readFileSync('site/index.html', 'utf8');
-          h = h.replace(/app\\.js\\?v=(\\d+)/g, function (_, v) { return 'app.min.js?v=' + v; });
-          fs.writeFileSync('site/index.html', h);
-          "
+          rm -rf site
+          cp -r ".ci-minified/site" site
           test -f "site/app.min.js"
 
       - name: Inject Supabase config for GitHub Pages (from secrets)
