@@ -59,8 +59,24 @@ The loading orbit widget uses layered pseudo-elements for liquid motion:
 
 - `.loading-sun-orbit__body` (small orbiting dot): glow + inner slosh/sheen.
 - `.loading-sun-orbit__sun` (main planet): larger core with swirl/wobble layers to make liquid movement visibly obvious.
+- `.loading-sun-orbit__ring`: now doubles as the **loading progress bar** (circular/orbit progress). The old straight fluid bar was removed; progress is rendered on the ring arc via CSS variable updates from `app.js`.
 
 Critical first-paint CSS in `index.html` mirrors these rules so the same animation appears before `styles.css` fully loads.
+
+## App icon / beta badge styling
+
+`web/Icons/` holds the master icon rasters and `web/Icons/beta/` holds beta variants. The beta badge pipeline now:
+
+- Uses **theme-green** badge colors (not orange).
+- Places the badge in the **top-right** corner of app icons.
+- Keeps originals untouched, writing only to `web/Icons/beta/`.
+
+Scripts:
+
+- `npm run icons:generate -- --source "C:/path/to/source.png"` regenerates `logo-source.png` and all `Icon-*.png` base sizes.
+- `npm run icons:beta` regenerates the beta set from masters with the top-right green beta badge.
+
+The floating `+` chip (`.app-beta-badge`) uses the same green palette for visual consistency with icon badges.
 
 ## Reduced motion
 

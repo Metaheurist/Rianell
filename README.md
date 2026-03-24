@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.43.0** - loading planet animation refresh (larger orbit + visible swirl core), log wizard UX updates (step skip clears current step; review step card layout), AI pain table mobile fit, goals default targets, and Server Tinker UI/selection/log-colour polish).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.44.0** - PyQt6 Server Tinker rebuild, CI server EXE + release assets, README CI builds server channel, refreshed icon sets from new source with green top-right beta badge, and loading overlay orbit ring progress replacing the straight bar).
 
 ### Tech stack
 
@@ -65,9 +65,10 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 
 Master rasters live under **`web/Icons/`** (`Icon-*.png`, **`logo-source.png`**) without a beta badge.
 
-A separate **beta** set is generated into **`web/Icons/beta/`** with the same filenames and an orange **BETA** pill matching the floating **+** control. The web app currently points **`index.html`**, **`manifest.json`**, and **`notifications.js`** at this beta set. Regenerate after editing masters:
+A separate **beta** set is generated into **`web/Icons/beta/`** with the same filenames and a theme-green **BETA** badge placed in the **top-right** corner (matching the floating **+** beta chip style). The web app currently points **`index.html`**, **`manifest.json`**, and **`notifications.js`** at this beta set. Regenerate after editing masters:
 
 ```bash
+npm run icons:generate -- --source "C:/path/to/new-icon-source.png"
 npm run icons:beta
 ```
 
@@ -91,7 +92,7 @@ Legacy names still work as fallbacks:
 - **`SUPABASE_ANON_KEY`** → publishable
 - **`SUPABASE_SERVICE_KEY`** → secret/service role
 
-For the Tk server dashboard **Wipe Database** flow, rows are deleted in-app; sequence auto-reset needs DB SQL access and may fall back to manual SQL if not available.
+For the PyQt6 server dashboard **Wipe Database** flow, rows are deleted in-app; sequence auto-reset needs DB SQL access and may fall back to manual SQL if not available.
 
 ## Security notes
 
