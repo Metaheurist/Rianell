@@ -27,17 +27,17 @@
 
 <!-- RIANELL_BUILD_INFO_START -->
 
-[![CI builds](https://img.shields.io/badge/build-iOS%2067%20%7C%20Android%2067%20%7C%20Web%2067-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/23466915846)
+[![CI builds](https://img.shields.io/badge/build-iOS%2068%20%7C%20Android%2068%20%7C%20Web%2068-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/23480145526)
 
 **CI builds**
 
 | Channel | Build |
 | :--- | :---: |
-| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip) | **67** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Android** APK | **67** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **67** |
+| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip) | **68** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Android** APK | **68** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **68** |
 
-Latest: [`App build/Android/app-debug-beta-67.apk`](App%20build/Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-67.zip`](App%20build/iOS/latest.json) · [Workflow #67](https://github.com/Metaheurist/Rianell/actions/runs/23466915846) · `a41ca6c`
+Latest: [`App build/Android/app-debug-beta-68.apk`](App%20build/Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-68.zip`](App%20build/iOS/latest.json) · [Workflow #68](https://github.com/Metaheurist/Rianell/actions/runs/23480145526) · `571fab3`
 
 <!-- RIANELL_BUILD_INFO_END -->
 
