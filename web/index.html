@@ -197,11 +197,39 @@
       justify-content: center;
       pointer-events: all;
     }
+    #loadingOverlay.loading-overlay::before {
+      content: "";
+      position: absolute;
+      inset: 50% auto auto 50%;
+      width: 20vmin;
+      height: 20vmin;
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0.04);
+      opacity: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle, rgba(5, 9, 7, 0.92) 0%, rgba(6, 12, 9, 0.7) 20%, transparent 32%),
+        radial-gradient(circle, rgba(5, 9, 7, 0.7) 0%, rgba(5, 9, 7, 0.18) 48%, transparent 70%),
+        repeating-radial-gradient(
+          circle,
+          color-mix(in srgb, var(--neon-lime, #7bdf8c) 58%, #030504) 0%,
+          color-mix(in srgb, var(--neon-lime-soft, #9ae8a4) 62%, #050806) 7%,
+          rgba(5, 10, 7, 0.34) 13%,
+          rgba(5, 10, 7, 0.06) 18%
+        );
+      mix-blend-mode: screen;
+      z-index: 1;
+    }
+    #loadingOverlay.loading-overlay.loading-overlay--bursting::before {
+      animation: rianell-loading-flood 0.62s cubic-bezier(0.16, 0.84, 0.22, 1) forwards;
+    }
     #loadingOverlay .loading-spinner {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 20px;
+      position: relative;
+      z-index: 2;
     }
     /* Orbiting sun (same mint palette as legacy spinner) */
     #loadingOverlay .loading-sun-orbit {
@@ -212,6 +240,9 @@
       align-items: center;
       justify-content: center;
       --loading-progress: 0;
+    }
+    #loadingOverlay.loading-overlay--bursting .loading-sun-orbit {
+      animation: rianell-loading-planet-burst 0.56s cubic-bezier(0.18, 0.84, 0.24, 1) forwards;
     }
     #loadingOverlay .loading-sun-orbit__ring {
       position: absolute;
@@ -340,6 +371,24 @@
       mix-blend-mode: screen;
       animation: rianell-planet-wobble 1.45s ease-in-out infinite;
     }
+    body.theme-red-black #loadingOverlay .loading-sun-orbit__sun {
+      background: radial-gradient(circle at 38% 32%, #ffe3e6, #ff4d5a 48%, #850f1a 100%);
+    }
+    body.theme-mono #loadingOverlay .loading-sun-orbit__sun {
+      background: radial-gradient(circle at 38% 32%, #ffffff, #d2d2d2 48%, #505050 100%);
+    }
+    body.theme-rainbow #loadingOverlay .loading-sun-orbit__sun {
+      background: conic-gradient(from 0deg, #ff4fa0 0deg, #ff9f43 72deg, #ffe24b 144deg, #53d66c 216deg, #56c7ff 288deg, #9f6bff 360deg);
+    }
+    body.theme-red-black #loadingOverlay .loading-sun-orbit__body {
+      background: radial-gradient(circle at 35% 35%, #ffe6e9, #ff8590 55%, #d82234);
+    }
+    body.theme-mono #loadingOverlay .loading-sun-orbit__body {
+      background: radial-gradient(circle at 35% 35%, #ffffff, #cdcdcd 55%, #7f7f7f);
+    }
+    body.theme-rainbow #loadingOverlay .loading-sun-orbit__body {
+      background: conic-gradient(from 20deg, #ff4fa0 0deg, #ff9f43 72deg, #ffe24b 144deg, #53d66c 216deg, #56c7ff 288deg, #9f6bff 360deg);
+    }
     #loadingOverlay .loading-text {
       color: rgba(224, 242, 241, 0.92);
       font-size: 1.1rem;
@@ -348,6 +397,9 @@
       text-align: center;
       padding: 0 20px;
       max-width: 90vw;
+    }
+    #loadingOverlay.loading-overlay--bursting .loading-text {
+      animation: rianell-loading-text-shove 0.52s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
     }
     @keyframes rianell-orbit {
       to { transform: rotate(360deg); }
@@ -382,6 +434,44 @@
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
+    @keyframes rianell-loading-planet-burst {
+      0% {
+        transform: scale(1) rotate(0deg);
+        filter: brightness(1);
+      }
+      45% {
+        transform: scale(1.24) rotate(8deg);
+        filter: brightness(0.96);
+      }
+      100% {
+        transform: scale(2.15) rotate(22deg);
+        filter: brightness(0.86);
+        opacity: 0;
+      }
+    }
+    @keyframes rianell-loading-flood {
+      0% {
+        transform: translate(-50%, -50%) scale(0.04);
+        opacity: 0;
+      }
+      35% { opacity: 0.72; }
+      100% {
+        transform: translate(-50%, -50%) scale(14);
+        opacity: 0;
+      }
+    }
+    @keyframes rianell-loading-text-shove {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+        letter-spacing: 0.06em;
+      }
+      100% {
+        transform: translateY(52px) scale(0.9);
+        opacity: 0;
+        letter-spacing: 0.18em;
+      }
+    }
     @media (prefers-reduced-motion: reduce) {
       #loadingOverlay .loading-sun-orbit__orbit { animation-duration: 7s; }
       #loadingOverlay .loading-sun-orbit__body::before,
@@ -392,6 +482,11 @@
       #loadingOverlay .loading-sun-orbit__ring::after {
         animation: none;
         transition: none;
+      }
+      #loadingOverlay.loading-overlay--bursting::before,
+      #loadingOverlay.loading-overlay--bursting .loading-sun-orbit,
+      #loadingOverlay.loading-overlay--bursting .loading-text {
+        animation: none;
       }
     }
     /* Hide main content until loaded; keep loading overlay visible so user sees loader */
@@ -463,9 +558,9 @@
       </div>
       <div class="settings-content settings-carousel-viewport" id="settingsCarouselViewport">
       <div class="settings-carousel-track" id="settingsCarouselTrack" data-settings-index="0">
-      <div class="settings-carousel-pane" data-settings-pane-title="Personal" role="tabpanel" aria-hidden="false">
+      <div class="settings-carousel-pane" data-settings-pane-title="Personal & cloud sync" role="tabpanel" aria-hidden="false">
       <div class="settings-section">
-        <h4>👤 Personal Settings</h4>
+        <h4>👤 Personal & Cloud Sync</h4>
         <div class="settings-option">
           <label for="userNameInput">Your Name</label>
           <input type="text" id="userNameInput" placeholder="Enter your name..." onchange="updateUserName()" />
@@ -500,6 +595,61 @@
               <p>When anonymised data contribution is enabled, your health data is anonymised and pooled with other users who have the same condition. This helps improve AI predictions for everyone. All personally identifiable information is removed before sharing.</p>
             </div>
           </div>
+        </div>
+        <div class="settings-option" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(123, 223, 140, 0.18);"></div>
+        <h4>☁️ Cloud Sync</h4>
+        <div id="cloudSyncStatus" class="cloud-status">
+          <div class="cloud-status-text" id="cloudStatusText">Not connected</div>
+          <div class="cloud-status-indicator" id="cloudStatusIndicator"></div>
+        </div>
+        <div id="cloudAuthSection" class="cloud-auth-section">
+          <div class="cloud-auth-form">
+            <input type="email" id="cloudEmail" placeholder="Email address" class="cloud-input" />
+            <div class="password-input-wrapper">
+              <input type="password" id="cloudPassword" placeholder="Password" class="cloud-input" />
+              <button type="button" class="password-toggle-btn" id="passwordToggle" onclick="togglePasswordVisibility()" title="Show/Hide password">
+                <span class="password-toggle-icon">👁️</span>
+              </button>
+            </div>
+            <div id="passwordStrengthIndicator" class="password-strength-indicator" style="display: none;">
+              <div class="password-strength-bar">
+                <div class="password-strength-fill" id="passwordStrengthFill"></div>
+              </div>
+              <div class="password-strength-text" id="passwordStrengthText"></div>
+              <ul class="password-requirements" id="passwordRequirements"></ul>
+            </div>
+            <div class="cloud-auth-buttons">
+              <button id="cloudSignUpBtn" class="cloud-btn signup-btn" onclick="handleCloudSignUp()">
+                <span>📝 Sign Up</span>
+              </button>
+              <button id="cloudLoginBtn" class="cloud-btn login-btn" onclick="handleCloudLogin()">
+                <span>🔐 Sign In</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="cloudSyncSection" class="cloud-sync-section" style="display: none;">
+          <div class="cloud-user-info">
+            <span id="cloudUserEmail"></span>
+          </div>
+          <div class="cloud-sync-buttons">
+            <button id="cloudSyncBtn" class="cloud-btn sync-btn" onclick="syncToCloud()">
+              <span>🔄 Sync Now</span>
+            </button>
+            <button id="cloudLogoutBtn" class="cloud-btn logout-btn" onclick="handleCloudLogout()">
+              <span>🚪 Sign Out</span>
+            </button>
+          </div>
+          <div class="cloud-sync-info">
+            <small id="cloudLastSync">Last sync: Never</small>
+            <label class="cloud-auto-sync">
+              <input type="checkbox" id="cloudAutoSync" onchange="toggleAutoSync()" />
+              <span>Auto-sync on changes</span>
+            </label>
+          </div>
+        </div>
+        <div class="cloud-setup-info">
+          <small>💡 <strong>Free cloud storage</strong> - Your data is encrypted and synced securely. Create an account to get started.</small>
         </div>
       </div>
       </div>
@@ -556,61 +706,27 @@
         </div>
       </div>
       </div>
-      <div class="settings-carousel-pane" data-settings-pane-title="Cloud sync" role="tabpanel" aria-hidden="true">
+      <div class="settings-carousel-pane" data-settings-pane-title="Customisation" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
-        <h4>☁️ Cloud Sync</h4>
-        <div id="cloudSyncStatus" class="cloud-status">
-          <div class="cloud-status-text" id="cloudStatusText">Not connected</div>
-          <div class="cloud-status-indicator" id="cloudStatusIndicator"></div>
-        </div>
-        <div id="cloudAuthSection" class="cloud-auth-section">
-          <div class="cloud-auth-form">
-            <input type="email" id="cloudEmail" placeholder="Email address" class="cloud-input" />
-            <div class="password-input-wrapper">
-              <input type="password" id="cloudPassword" placeholder="Password" class="cloud-input" />
-              <button type="button" class="password-toggle-btn" id="passwordToggle" onclick="togglePasswordVisibility()" title="Show/Hide password">
-                <span class="password-toggle-icon">👁️</span>
-              </button>
-            </div>
-            <div id="passwordStrengthIndicator" class="password-strength-indicator" style="display: none;">
-              <div class="password-strength-bar">
-                <div class="password-strength-fill" id="passwordStrengthFill"></div>
-              </div>
-              <div class="password-strength-text" id="passwordStrengthText"></div>
-              <ul class="password-requirements" id="passwordRequirements"></ul>
-            </div>
-            <div class="cloud-auth-buttons">
-              <button id="cloudSignUpBtn" class="cloud-btn signup-btn" onclick="handleCloudSignUp()">
-                <span>📝 Sign Up</span>
-              </button>
-              <button id="cloudLoginBtn" class="cloud-btn login-btn" onclick="handleCloudLogin()">
-                <span>🔐 Sign In</span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div id="cloudSyncSection" class="cloud-sync-section" style="display: none;">
-          <div class="cloud-user-info">
-            <span id="cloudUserEmail"></span>
-          </div>
-          <div class="cloud-sync-buttons">
-            <button id="cloudSyncBtn" class="cloud-btn sync-btn" onclick="syncToCloud()">
-              <span>🔄 Sync Now</span>
-            </button>
-            <button id="cloudLogoutBtn" class="cloud-btn logout-btn" onclick="handleCloudLogout()">
-              <span>🚪 Sign Out</span>
-            </button>
-          </div>
-          <div class="cloud-sync-info">
-            <small id="cloudLastSync">Last sync: Never</small>
-            <label class="cloud-auto-sync">
-              <input type="checkbox" id="cloudAutoSync" onchange="toggleAutoSync()" />
-              <span>Auto-sync on changes</span>
-            </label>
-          </div>
-        </div>
-        <div class="cloud-setup-info">
-          <small>💡 <strong>Free cloud storage</strong> - Your data is encrypted and synced securely. Create an account to get started.</small>
+        <h4>🎨 Theme customisation</h4>
+        <p class="settings-hint">Pick a global theme. Selecting a theme applies it across the app and restarts to refresh all screens, modals, and loading visuals.</p>
+        <div class="settings-theme-grid" role="radiogroup" aria-label="Global app theme">
+          <button type="button" class="settings-theme-choice settings-theme-choice--mint" data-theme="mint" role="radio" aria-checked="true" onclick="setGlobalTheme('mint')">
+            <span class="settings-theme-choice__swatch" aria-hidden="true"></span>
+            <span class="settings-theme-choice__label">Mint</span>
+          </button>
+          <button type="button" class="settings-theme-choice settings-theme-choice--red-black" data-theme="red-black" role="radio" aria-checked="false" onclick="setGlobalTheme('red-black')">
+            <span class="settings-theme-choice__swatch" aria-hidden="true"></span>
+            <span class="settings-theme-choice__label">Red/Black</span>
+          </button>
+          <button type="button" class="settings-theme-choice settings-theme-choice--mono" data-theme="mono" role="radio" aria-checked="false" onclick="setGlobalTheme('mono')">
+            <span class="settings-theme-choice__swatch" aria-hidden="true"></span>
+            <span class="settings-theme-choice__label">Black/White</span>
+          </button>
+          <button type="button" class="settings-theme-choice settings-theme-choice--rainbow" data-theme="rainbow" role="radio" aria-checked="false" onclick="setGlobalTheme('rainbow')">
+            <span class="settings-theme-choice__swatch" aria-hidden="true"></span>
+            <span class="settings-theme-choice__label">Rainbow</span>
+          </button>
         </div>
       </div>
       </div>

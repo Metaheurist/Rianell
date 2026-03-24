@@ -1,0 +1,30 @@
+# Platform parity
+
+This document defines the expected behavior contract across:
+
+- Web / PWA
+- Android (Capacitor)
+- iOS (Capacitor)
+
+The machine-readable source is `docs/platform-parity.json`. CI parity gates validate key hooks and platform config wiring in each mobile job.
+
+## Current contract
+
+- `notifications`: native plugin path enabled, with web fallback.
+- `speech_to_text`: browser API based (`SpeechRecognition`), so support can vary per engine/WebView.
+- `clipboard_share_download`: supported with fallback paths where available.
+- `sync_behavior`: foreground/interval behavior; no guaranteed OS background sync.
+- `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
+
+## CI enforcement
+
+The mobile jobs run:
+
+- `node scripts/check-platform-parity.mjs android`
+- `node scripts/check-platform-parity.mjs ios`
+
+These checks fail the build when expected parity hooks or generated native config markers are missing.
+
+## Release traceability
+
+`publish-release` includes `release-assets/Meta/platform-parity.json` so each release has a versioned parity snapshot.

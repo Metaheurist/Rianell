@@ -67,6 +67,7 @@ const NotificationManager = {
   permission: null,
   reminderTime: null,
   reminderInterval: null,
+  nativeNotificationId: 9001,
   initialized: false,
   
   // Initialize notification system
@@ -203,19 +204,64 @@ const NotificationManager = {
   },
   
   // Schedule daily reminders
-  scheduleReminders() {
+  async scheduleReminders() {
     // Clear existing interval
     if (this.reminderInterval) {
       clearInterval(this.reminderInterval);
+      this.reminderInterval = null;
     }
-    
-    // Check every minute if it's time for reminder
+
+    if (LocalNotifications) {
+      await this.scheduleNativeReminder();
+      return;
+    }
+
+    // Web/PWA fallback: check every minute if it's time for reminder.
     this.reminderInterval = setInterval(() => {
       this.checkReminderTime();
-    }, 60000); // Check every minute
-    
-    // Also check immediately
+    }, 60000);
     this.checkReminderTime();
+  },
+
+  getNextReminderDate() {
+    const [hours, minutes] = String(this.reminderTime || '20:00').split(':').map(Number);
+    const now = new Date();
+    const next = new Date();
+    next.setHours(Number.isFinite(hours) ? hours : 20, Number.isFinite(minutes) ? minutes : 0, 0, 0);
+    if (next <= now) {
+      next.setDate(next.getDate() + 1);
+    }
+    return next;
+  },
+
+  async scheduleNativeReminder() {
+    if (!LocalNotifications) return;
+    try {
+      if (this.permission !== 'granted') {
+        await this.requestPermission();
+      }
+      if (this.permission !== 'granted') return;
+      await LocalNotifications.cancel({ notifications: [{ id: this.nativeNotificationId }] });
+      const at = this.getNextReminderDate();
+      await LocalNotifications.schedule({
+        notifications: [{
+          id: this.nativeNotificationId,
+          title: 'Time to log your health data! 📊',
+          body: 'Don\'t forget to record today\'s health metrics.',
+          schedule: {
+            on: {
+              hour: at.getHours(),
+              minute: at.getMinutes()
+            },
+            allowWhileIdle: true
+          },
+          actionTypeId: '',
+          extra: { url: '/?quick=true' }
+        }]
+      });
+    } catch (error) {
+      console.warn('Failed to schedule native reminder:', error);
+    }
   },
   
   // Check if it's time for reminder
@@ -347,24 +393,29 @@ const NotificationManager = {
   },
   
   // Set reminder time
-  setReminderTime(time) {
+  async setReminderTime(time) {
     this.reminderTime = time;
     this.saveReminderSettings();
     if (this.isReminderEnabled()) {
-      this.scheduleReminders();
+      await this.scheduleReminders();
     }
   },
   
   // Enable/disable reminders
-  setReminderEnabled(enabled) {
+  async setReminderEnabled(enabled) {
     try {
       const settings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
       settings.reminder = enabled;
       localStorage.setItem('rianellSettings', JSON.stringify(settings));
       
       if (enabled) {
-        this.scheduleReminders();
+        await this.scheduleReminders();
       } else {
+        if (LocalNotifications) {
+          try {
+            await LocalNotifications.cancel({ notifications: [{ id: this.nativeNotificationId }] });
+          } catch (e) { /* ignore */ }
+        }
         if (this.reminderInterval) {
           clearInterval(this.reminderInterval);
           this.reminderInterval = null;

@@ -2,7 +2,7 @@
 /**
  * Patches Android project for compatibility:
  * - Gradle: minSdk 22, targetSdk 34, compileSdk 36 (compileSdk 36 required by androidx deps); versionCode/versionName from BUILD_VERSION env
- * - AndroidManifest: notification permissions for Android 12+ (exact alarms) and 13+ (POST_NOTIFICATIONS); portrait lock on BridgeActivity; hardwareAccelerated on application when missing
+ * - AndroidManifest: notification permission for Android 13+ (POST_NOTIFICATIONS); portrait lock on BridgeActivity; hardwareAccelerated on application when missing
  * - Network security: res/xml/network_security_config.xml (cleartext off by default); manifest references it and drops global usesCleartextTraffic="true"
  */
 import fs from 'fs';
@@ -99,12 +99,19 @@ function patch(filePath, replacements) {
 function ensureManifestPermissions(manifestPath) {
   if (!fs.existsSync(manifestPath)) return false;
   let content = fs.readFileSync(manifestPath, 'utf8');
+  let changed = false;
+  const withoutExactAlarm = content.replace(/\s*<uses-permission android:name="android\.permission\.SCHEDULE_EXACT_ALARM"\s*\/>\s*/g, '\n');
+  if (withoutExactAlarm !== content) {
+    content = withoutExactAlarm;
+    changed = true;
+  }
   const hasPost = /POST_NOTIFICATIONS/.test(content);
-  const hasExact = /SCHEDULE_EXACT_ALARM/.test(content);
-  if (hasPost && hasExact) return false;
+  if (hasPost) {
+    if (changed) fs.writeFileSync(manifestPath, content);
+    return changed;
+  }
   const toAdd = [];
   if (!hasPost) toAdd.push('<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />');
-  if (!hasExact) toAdd.push('<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />');
   const insert = toAdd.map(p => `    ${p}`).join('\n') + '\n';
   const insertPoint = content.indexOf('<application');
   if (insertPoint === -1) return false;

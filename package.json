@@ -15,7 +15,9 @@
     "build:web": "node web/build-site.mjs",
     "icons:generate": "node scripts/generate-icon-set.mjs",
     "icons:beta": "node scripts/add-beta-badge-to-icons.mjs",
-    "smoke:trace": "node scripts/smoke-function-trace.mjs"
+    "smoke:trace": "node scripts/smoke-function-trace.mjs",
+    "parity:android": "node scripts/check-platform-parity.mjs android",
+    "parity:ios": "node scripts/check-platform-parity.mjs ios"
   },
   "devDependencies": {
     "@babel/generator": "^7.26.5",

@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "updatedBy": "ci",
+  "features": [
+    {
+      "id": "notifications",
+      "status": {
+        "web": "supported",
+        "android": "supported",
+        "ios": "partial"
+      },
+      "notes": "Native plugin path exists; iOS behavior can vary with OS policy/runtime conditions."
+    },
+    {
+      "id": "speech_to_text",
+      "status": {
+        "web": "partial",
+        "android": "partial",
+        "ios": "partial"
+      },
+      "notes": "Uses browser SpeechRecognition API; support varies by WebView/engine."
+    },
+    {
+      "id": "clipboard_share_download",
+      "status": {
+        "web": "supported",
+        "android": "supported",
+        "ios": "partial"
+      },
+      "notes": "Fallbacks exist; iOS file share/download behavior depends on platform/browser capabilities."
+    },
+    {
+      "id": "sync_behavior",
+      "status": {
+        "web": "partial",
+        "android": "partial",
+        "ios": "partial"
+      },
+      "notes": "Current sync behavior is foreground/interval based, not OS background-sync resilient."
+    },
+    {
+      "id": "local_storage_and_idb",
+      "status": {
+        "web": "supported",
+        "android": "supported",
+        "ios": "supported"
+      },
+      "notes": "Storage APIs are available across targets, with quota/eviction differences."
+    }
+  ]
+}

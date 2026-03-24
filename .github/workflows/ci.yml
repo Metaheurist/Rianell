@@ -141,6 +141,9 @@ jobs:
           BUILD_VERSION: ${{ github.run_number }}
         run: node patch-android-sdk.js
 
+      - name: Parity gate (Android config + feature hooks)
+        run: node scripts/check-platform-parity.mjs android
+
       - name: Setup Java 21
         uses: actions/setup-java@v5
         with:
@@ -231,6 +234,9 @@ jobs:
       - name: Lock iOS to portrait (Info.plist)
         working-directory: react-app
         run: node patch-ios-orientation.js
+
+      - name: Parity gate (iOS config + feature hooks)
+        run: node scripts/check-platform-parity.mjs ios
 
       - name: Install CocoaPods dependencies
         working-directory: react-app/ios/App
@@ -496,6 +502,9 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout (parity metadata)
+        uses: actions/checkout@v5
+
       - name: Download Android binaries
         uses: actions/download-artifact@v5
         with:
@@ -518,7 +527,7 @@ jobs:
         run: |
           set -e
           RUN="${{ github.run_number }}"
-          mkdir -p release-assets/Android release-assets/iOS release-assets/Server
+          mkdir -p release-assets/Android release-assets/iOS release-assets/Server release-assets/Meta
           cp "gh-release/Android/app-debug-beta.apk" "release-assets/Android/"
           cp "gh-release/Android/app-debug-beta-${RUN}.apk" "release-assets/Android/"
           # Distinct basenames: GitHub release assets cannot share the same filename.
@@ -536,6 +545,7 @@ jobs:
           if [ -f "gh-release/Server/server-exe-x64/latest.json" ]; then
             cp "gh-release/Server/server-exe-x64/latest.json" "release-assets/Server/server-latest.json"
           fi
+          cp "docs/platform-parity.json" "release-assets/Meta/platform-parity.json"
           echo "Release files:"
           find release-assets -type f | sort
 
@@ -545,15 +555,39 @@ jobs:
           tag_name: build-${{ github.run_number }}
           name: Rianell build ${{ github.run_number }}
           body: |
-            Automated build from `${{ github.sha }}` on `${{ github.ref_name }}`.
+            ## Build info
+            - Build: **${{ github.run_number }}**
+            - Branch: `${{ github.ref_name }}`
+            - Commit: `${{ github.sha }}`
 
-            **Android (Beta)** (`release-assets/Android/`): `app-debug-beta.apk`, `app-debug-beta-${{ github.run_number }}.apk`, and `android-latest.json` (same content as repo `latest.json`).
+            ## Assets
 
-            **iOS (Alpha)** (`release-assets/iOS/`): `Health-Tracker-ios-alpha-latest.zip`, `Health-Tracker-ios-alpha-build-${{ github.run_number }}.zip`, optional simulator zip, `ios-latest.json`.
+            ### Android (Beta)
+            Directory: `release-assets/Android/`
+            - `app-debug-beta.apk` (rolling latest beta APK)
+            - `app-debug-beta-${{ github.run_number }}.apk` (build-pinned APK)
+            - `android-latest.json` (same metadata as `App build/Android/latest.json`)
 
-            **Server (Windows EXE)** (`release-assets/Server/`): `rianell-server-x64.exe`, `rianell-server-x86.exe`, and server latest metadata JSON files.
+            ### iOS (Alpha)
+            Directory: `release-assets/iOS/`
+            - `Health-Tracker-ios-alpha-latest.zip` (rolling latest iOS zip)
+            - `Health-Tracker-ios-alpha-build-${{ github.run_number }}.zip` (build-pinned iOS zip)
+            - `Health-Tracker-simulator-alpha-${{ github.run_number }}.zip` (when simulator artifact exists)
+            - `ios-latest.json`
 
-            A workflow commit updates `App build/` on the branch for GitHub Pages download links.
+            ### Server (Windows EXE)
+            Directory: `release-assets/Server/`
+            - `rianell-server-x64.exe`
+            - `rianell-server-x86.exe`
+            - `server-latest.json`, `latest-x64.json`, `latest-x86.json` (metadata)
+
+            ### Parity metadata
+            Directory: `release-assets/Meta/`
+            - `platform-parity.json` (machine-readable platform support matrix)
+
+            ## Notes
+            - This release is generated automatically by CI.
+            - A workflow commit updates `App build/` on the branch so download links in the app/README stay current.
           draft: false
           prerelease: false
           fail_on_unmatched_files: true
@@ -561,6 +595,7 @@ jobs:
             release-assets/Android/*
             release-assets/iOS/*
             release-assets/Server/*
+            release-assets/Meta/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
