@@ -13,25 +13,25 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const iconsDir = path.join(__dirname, '..', 'web', 'Icons');
 const betaDir = path.join(iconsDir, 'beta');
 
-/** Same gradient + border intent as .app-beta-badge */
+/** Same green theme intent as .app-beta-badge */
 function badgeSvg(width, height, label) {
   const gradId = 'bg';
   return Buffer.from(
     `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <defs>
     <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ffa726"/>
-      <stop offset="100%" stop-color="#e65100"/>
+      <stop offset="0%" stop-color="#7bdf8c"/>
+      <stop offset="100%" stop-color="#4caf50"/>
     </linearGradient>
     <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#e65100" flood-opacity="0.45"/>
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#2f7d32" flood-opacity="0.45"/>
     </filter>
   </defs>
   <rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="${Math.min(height / 2, 8)}"
-    fill="url(#${gradId})" stroke="rgba(255,255,255,0.35)" stroke-width="1" filter="url(#sh)"/>
+    fill="url(#${gradId})" stroke="rgba(11,22,12,0.55)" stroke-width="1" filter="url(#sh)"/>
   <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle"
     font-family="system-ui,Segoe UI,Arial,sans-serif" font-weight="800" font-size="${Math.floor(height * 0.42)}"
-    letter-spacing="0.06em" fill="#ffffff">${label}</text>
+    letter-spacing="0.06em" fill="#0c1a11">${label}</text>
 </svg>`
   );
 }
@@ -64,10 +64,10 @@ async function addBadgeToFile(srcPath, destPath) {
         `<svg xmlns="http://www.w3.org/2000/svg" width="${bw}" height="${bh}">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ffa726"/><stop offset="100%" stop-color="#e65100"/>
+      <stop offset="0%" stop-color="#7bdf8c"/><stop offset="100%" stop-color="#4caf50"/>
     </linearGradient>
   </defs>
-  <rect x="0" y="0" width="${bw}" height="${bh}" rx="${r}" fill="url(#g)" stroke="rgba(255,255,255,0.35)" stroke-width="0.5"/>
+  <rect x="0" y="0" width="${bw}" height="${bh}" rx="${r}" fill="url(#g)" stroke="rgba(11,22,12,0.55)" stroke-width="0.5"/>
 </svg>`
       )
     ).png();
@@ -77,7 +77,7 @@ async function addBadgeToFile(srcPath, destPath) {
 
   const overlayBuf = await overlay.toBuffer();
   const left = iw - bw - margin;
-  const top = ih - bh - margin;
+  const top = margin;
   if (left < 0 || top < 0) return;
 
   await fs.promises.mkdir(path.dirname(destPath), { recursive: true });

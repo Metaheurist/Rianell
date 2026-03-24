@@ -848,10 +848,10 @@ h1#dashboardTitle:hover {
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: #fff;
-  background: linear-gradient(180deg, #ffa726 0%, #e65100 100%);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: 0 2px 10px rgba(230, 81, 0, 0.5);
+  color: #0c1a11;
+  background: linear-gradient(180deg, #7bdf8c 0%, #4caf50 100%);
+  border: 1px solid rgba(11, 22, 12, 0.5);
+  box-shadow: 0 2px 10px rgba(47, 125, 50, 0.45);
   border-radius: 8px;
   padding: 5px 9px;
   pointer-events: none;
@@ -860,8 +860,8 @@ h1#dashboardTitle:hover {
 }
 
 body.light-mode .app-beta-badge {
-  border-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 2px 8px rgba(230, 81, 0, 0.35);
+  border-color: rgba(11, 22, 12, 0.4);
+  box-shadow: 0 2px 8px rgba(47, 125, 50, 0.35);
 }
 
 .app-log-fab {
@@ -5848,14 +5848,45 @@ body.loading .header-buttons-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
+  --loading-progress: 0;
 }
 
 .loading-sun-orbit__ring {
   position: absolute;
   inset: 0;
-  border: 1px solid rgba(123, 223, 140, 0.28);
   border-radius: 50%;
-  box-shadow: 0 0 18px rgba(123, 223, 140, 0.12);
+  box-shadow: 0 0 18px rgba(123, 223, 140, 0.12), inset 0 0 0 1px rgba(123, 223, 140, 0.08);
+  overflow: hidden;
+}
+
+.loading-sun-orbit__ring::before,
+.loading-sun-orbit__ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  padding: 4px;
+  -webkit-mask:
+    radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  mask:
+    radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+}
+
+.loading-sun-orbit__ring::before {
+  background: rgba(123, 223, 140, 0.2);
+}
+
+.loading-sun-orbit__ring::after {
+  background:
+    conic-gradient(
+      from -90deg,
+      rgba(228, 255, 235, 0.95) 0deg,
+      var(--neon-lime) 40%,
+      #52b85f 78%,
+      rgba(123, 223, 140, 0.12) 100%
+    );
+  clip-path: inset(0 calc((1 - var(--loading-progress)) * 100%) 0 0);
+  transition: clip-path 0.16s linear;
 }
 
 .loading-sun-orbit__orbit {
@@ -5970,50 +6001,6 @@ body.loading .header-buttons-wrap {
   text-shadow: 0 0 18px rgba(123, 223, 140, 0.22);
 }
 
-.loading-progress-wrap {
-  width: min(280px, 85vw);
-  display: none;
-}
-.loading-progress-wrap.visible {
-  display: block;
-}
-.loading-progress-track {
-  height: 10px;
-  background: rgba(10, 18, 14, 0.92);
-  border-radius: 999px;
-  overflow: hidden;
-  border: 1px solid rgba(123, 223, 140, 0.3);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-.loading-progress-fill {
-  height: 100%;
-  width: 0%;
-  overflow: hidden;
-  border-radius: 999px;
-  position: relative;
-  transition: width 0.2s ease-out;
-}
-
-.loading-wave-stack {
-  position: absolute;
-  inset: 0;
-  width: 200%;
-  height: 100%;
-  background: linear-gradient(90deg, rgba(123, 223, 140, 0.35), var(--neon-lime) 55%, rgba(123, 223, 140, 0.45));
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 20' preserveAspectRatio='none'%3E%3Cpath d='M0 12 Q16 3 32 12 T64 12 L64 20 L0 20 Z' fill='white'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 20' preserveAspectRatio='none'%3E%3Cpath d='M0 12 Q16 3 32 12 T64 12 L64 20 L0 20 Z' fill='white'/%3E%3C/svg%3E");
-  -webkit-mask-size: 48px 100%;
-  mask-size: 48px 100%;
-  -webkit-mask-repeat: repeat-x;
-  mask-repeat: repeat-x;
-  animation: rianell-wave 1.35s linear infinite;
-}
-
-.loading-wave-stack--2 {
-  opacity: 0.45;
-  animation-delay: -0.65s;
-  animation-duration: 1.9s;
-}
 
 @keyframes spin {
   0% { transform: rotate(0deg); }
@@ -6022,11 +6009,6 @@ body.loading .header-buttons-wrap {
 
 @keyframes rianell-orbit {
   to { transform: rotate(360deg); }
-}
-
-@keyframes rianell-wave {
-  from { transform: translateX(0); }
-  to { transform: translateX(-48px); }
 }
 
 @keyframes rianell-orbit-dot-glow {
@@ -6090,8 +6072,8 @@ body.loading .header-buttons-wrap {
     animation: none;
   }
 
-  .loading-wave-stack {
-    animation-duration: 3.5s;
+  .loading-sun-orbit__ring::after {
+    transition: none;
   }
 }
 

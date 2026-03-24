@@ -623,13 +623,15 @@ function openPerfBenchmarkModal(options) {
       if (mode === 'firstRun') {
         var loadingOverlayAgain = document.getElementById('loadingOverlay');
         var loadingTextAgain = loadingOverlayAgain ? loadingOverlayAgain.querySelector('.loading-text') : null;
-        var progressWrapAgain = loadingOverlayAgain ? loadingOverlayAgain.querySelector('#loadingProgressWrap') : null;
+        var orbitHostAgain = loadingOverlayAgain ? loadingOverlayAgain.querySelector('#loadingOrbitProgressHost') : null;
+        var orbitProgressAgain = loadingOverlayAgain ? loadingOverlayAgain.querySelector('#loadingOrbitProgress') : null;
         if (loadingOverlayAgain) {
           loadingOverlayAgain.classList.remove('hidden');
           document.body.classList.add('loading');
         }
         if (loadingTextAgain) loadingTextAgain.textContent = 'Loading charts and AI…';
-        if (progressWrapAgain) progressWrapAgain.classList.remove('visible');
+        if (orbitHostAgain) orbitHostAgain.style.setProperty('--loading-progress', '0');
+        if (orbitProgressAgain) orbitProgressAgain.setAttribute('aria-valuenow', '0');
       }
       if (options && typeof options.onContinue === 'function') options.onContinue();
     };
@@ -18013,20 +18015,20 @@ window.addEventListener('load', () => {
   
   if (loadingTextEl) loadingTextEl.textContent = 'Loading charts and AI…';
 
+  function setOrbitLoadingProgress(percent) {
+    var value = Math.max(0, Math.min(100, Math.floor(percent)));
+    var orbitHost = loadingOverlay ? loadingOverlay.querySelector('#loadingOrbitProgressHost') : null;
+    var orbitProgress = loadingOverlay ? loadingOverlay.querySelector('#loadingOrbitProgress') : null;
+    if (orbitHost) orbitHost.style.setProperty('--loading-progress', String(value / 100));
+    if (orbitProgress) orbitProgress.setAttribute('aria-valuenow', String(value));
+  }
+
   // Second loading phase: show progress toward completion (benchmark bar was 100% after suite or cache)
-  var chartsAiProgressWrap = loadingOverlay ? loadingOverlay.querySelector('#loadingProgressWrap') : null;
-  var chartsAiProgressFill = loadingOverlay ? loadingOverlay.querySelector('#loadingProgressFill') : null;
-  var chartsAiProgressTrack = loadingOverlay ? loadingOverlay.querySelector('.loading-progress-track') : null;
-  if (chartsAiProgressWrap) chartsAiProgressWrap.classList.add('visible');
-  if (chartsAiProgressFill) chartsAiProgressFill.style.width = '0%';
-  if (chartsAiProgressTrack) chartsAiProgressTrack.setAttribute('aria-valuenow', '0');
+  setOrbitLoadingProgress(0);
   var chartsAiProgressVal = 0;
   var chartsAiProgressTimer = setInterval(function () {
-    if (!chartsAiProgressFill) return;
     chartsAiProgressVal = Math.min(95, chartsAiProgressVal + Math.random() * 5 + 1.5);
-    var p = Math.floor(chartsAiProgressVal);
-    chartsAiProgressFill.style.width = p + '%';
-    if (chartsAiProgressTrack) chartsAiProgressTrack.setAttribute('aria-valuenow', String(p));
+    setOrbitLoadingProgress(chartsAiProgressVal);
   }, 140);
 
   // Keep loading circle until combined chart and summary LLM are ready (or timeout). On mobile (low device) skip chart build during load to avoid memory spike and tab crash.
@@ -18056,8 +18058,7 @@ window.addEventListener('load', () => {
   
   Promise.race([ Promise.allSettled([ chartsReady, aiReady ]), timeout ]).then(function () {
     clearInterval(chartsAiProgressTimer);
-    if (chartsAiProgressFill) chartsAiProgressFill.style.width = '100%';
-    if (chartsAiProgressTrack) chartsAiProgressTrack.setAttribute('aria-valuenow', '100');
+    setOrbitLoadingProgress(100);
 
     if (loadingOverlay) {
       loadingOverlay.classList.add('hidden');
@@ -18176,27 +18177,14 @@ window.addEventListener('load', () => {
   }
 
   if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.runBenchmarkIfNeeded === 'function') {
-    var loadingProgressWrap = loadingOverlay ? loadingOverlay.querySelector('#loadingProgressWrap') : null;
-    var loadingProgressFill = loadingOverlay ? loadingOverlay.querySelector('#loadingProgressFill') : null;
-    var loadingProgressTrack = loadingOverlay ? loadingOverlay.querySelector('.loading-progress-track') : null;
     window.DeviceBenchmark.runBenchmarkIfNeeded(
       function (pct, meta) {
         var label = meta && meta.label ? (' · ' + meta.label) : '';
         if (loadingTextEl) loadingTextEl.textContent = 'Measuring performance…' + (pct > 0 ? ' ' + pct + '%' : '') + label;
-        if (loadingProgressWrap && loadingProgressFill && loadingProgressTrack) {
-          loadingProgressWrap.classList.add('visible');
-          var percent = Math.max(0, Math.min(100, Math.floor(pct)));
-          loadingProgressFill.style.width = percent + '%';
-          loadingProgressTrack.setAttribute('aria-valuenow', String(percent));
-        }
+        setOrbitLoadingProgress(pct);
       },
       function (tier, platformType, result) {
-        var wrapEl = loadingOverlay ? loadingOverlay.querySelector('#loadingProgressWrap') : null;
-        var fillEl = loadingOverlay ? loadingOverlay.querySelector('#loadingProgressFill') : null;
-        var trackEl = loadingOverlay ? loadingOverlay.querySelector('.loading-progress-track') : null;
-        if (wrapEl) wrapEl.classList.add('visible');
-        if (fillEl) fillEl.style.width = '100%';
-        if (trackEl) trackEl.setAttribute('aria-valuenow', '100');
+        setOrbitLoadingProgress(100);
         if (window.DeviceBenchmark.isBenchmarkReady()) {
           runAppInit();
           return;

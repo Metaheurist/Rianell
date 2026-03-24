@@ -2,7 +2,29 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.43.0** - Loading animation, log wizard UX, server dashboard polish, documentation.
+**Latest: v1.44.0** - PyQt6 dashboard, server EXE CI/release, icon refresh, orbit-ring loader progress.
+
+### v1.44.0 - 2026-03-24 - PyQt6 tinker, server EXE release path, icon + loader refresh
+
+- **Server / Tinker dashboard (PyQt6)**:
+  - Rebuilt the dashboard from Tkinter to **PyQt6** with modern dark mint styling.
+  - Preserved existing controls/actions (server status, watchdog controls, Supabase tools, DB viewer, logs).
+  - Database viewer now uses Qt table multi-select with selection count and Ctrl+A handling.
+  - Log pane rendering changed so only bracket tags (`[INFO]`, `[ERROR]`, etc.) are color-highlighted while the rest of each line remains default text color.
+  - Fixed Qt key handling crash (`QKeyEvent.StandardKey` -> `QKeySequence.StandardKey`).
+- **CI / Release**:
+  - Added a dedicated Windows **PyInstaller** server binary path in CI.
+  - Server EXE artifacts are now prepared and included in GitHub release assets.
+  - README build-info generator now supports a **Server** build channel by reading `App build/Server/latest.json`.
+- **Icons / Branding**:
+  - Added `scripts/generate-icon-set.mjs` and `npm run icons:generate` to regenerate base icon sizes from a single source image.
+  - Regenerated base and beta icon sets from a new source image.
+  - Beta icon badge updated to **theme green** and moved to the **top-right** corner.
+  - Floating `+` beta tag (`.app-beta-badge`) updated to the same green theme palette.
+- **Web / Loading overlay**:
+  - Removed the old straight fluid progress bar.
+  - Loading progress now uses the **planet orbit ring** as a curved progress arc (circular progress around the planet).
+  - Benchmark and startup loading progress updates now drive the orbit-ring progress element and ARIA values.
 
 ### v1.43.0 - 2026-03-24 - Loader swirl, log review UX, tinker refresh
 
