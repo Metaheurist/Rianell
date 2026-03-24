@@ -199,6 +199,54 @@ const Logger = {
   }
 };
 
+const bugReportConsoleBuffer = [];
+const BUG_REPORT_CONSOLE_LIMIT = 120;
+var bugReportConsoleCaptureInstalled = false;
+
+function stringifyConsoleArg(arg) {
+  if (typeof arg === 'string') return arg;
+  if (arg instanceof Error) return (arg.stack || (arg.name + ': ' + arg.message));
+  try {
+    return JSON.stringify(arg);
+  } catch (e) {
+    return String(arg);
+  }
+}
+
+function captureBugReportConsoleEvent(level, args) {
+  try {
+    bugReportConsoleBuffer.push({
+      timestamp: new Date().toISOString(),
+      level: level,
+      message: Array.prototype.map.call(args || [], stringifyConsoleArg).join(' ')
+    });
+    if (bugReportConsoleBuffer.length > BUG_REPORT_CONSOLE_LIMIT) {
+      bugReportConsoleBuffer.splice(0, bugReportConsoleBuffer.length - BUG_REPORT_CONSOLE_LIMIT);
+    }
+  } catch (e) {}
+}
+
+function installBugReportConsoleCapture() {
+  if (bugReportConsoleCaptureInstalled || typeof console === 'undefined') return;
+  ['log', 'info', 'warn', 'error'].forEach(function(method) {
+    if (typeof console[method] !== 'function') return;
+    var original = console[method].bind(console);
+    console[method] = function() {
+      captureBugReportConsoleEvent(method.toUpperCase(), arguments);
+      original.apply(console, arguments);
+    };
+  });
+  bugReportConsoleCaptureInstalled = true;
+}
+installBugReportConsoleCapture();
+
+function getBugReportConsoleOutput() {
+  var lines = bugReportConsoleBuffer.map(function(entry) {
+    return '[' + entry.timestamp + '] [' + entry.level + '] ' + entry.message;
+  });
+  return lines.join('\n');
+}
+
 // ============================================
 // Helper: Close Settings Modal
 // ============================================
@@ -239,6 +287,7 @@ if (typeof window !== 'undefined') {
 var _voiceInputObserver = null;
 var _voiceInputActive = null;
 var _voiceInputSupported = false;
+var _voiceInputPermissionState = 'unknown';
 
 function isVoiceInputEligibleField(el) {
   if (!el || el.disabled || el.readOnly) return false;
@@ -259,15 +308,28 @@ function ensureVoiceInputButton(field) {
   field.parentNode.insertBefore(host, field);
   host.appendChild(field);
 
-  var btn = document.createElement('button');
-  btn.type = 'button';
+  var btn = document.createElement('span');
   btn.className = 'voice-input-btn';
+  btn.setAttribute('role', 'button');
+  btn.setAttribute('tabindex', '0');
   btn.setAttribute('aria-label', 'Use voice input');
   btn.setAttribute('title', _voiceInputSupported ? 'Voice input' : 'Voice input not supported in this browser');
   btn.innerHTML = '<span class="voice-input-btn__icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path fill="currentColor" d="M12 14a3 3 0 0 0 3-3V7a3 3 0 0 0-6 0v4a3 3 0 0 0 3 3Zm5-3a1 1 0 1 0-2 0 3 3 0 0 1-6 0 1 1 0 1 0-2 0 5.01 5.01 0 0 0 4 4.9V19H9a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-3.1A5.01 5.01 0 0 0 17 11Z"/></svg></span>';
-  if (!_voiceInputSupported) btn.disabled = true;
+  if (!_voiceInputSupported) {
+    btn.classList.add('voice-input-btn--disabled');
+    btn.setAttribute('aria-disabled', 'true');
+    btn.setAttribute('tabindex', '-1');
+  }
   btn.addEventListener('click', function() {
+    if (!_voiceInputSupported) return;
     toggleVoiceInputForField(field, btn);
+  });
+  btn.addEventListener('keydown', function(e) {
+    if (!_voiceInputSupported) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleVoiceInputForField(field, btn);
+    }
   });
   host.appendChild(btn);
 }
@@ -286,9 +348,95 @@ function clearVoiceActiveState() {
   _voiceInputActive = null;
 }
 
-function toggleVoiceInputForField(field, button) {
+async function ensureVoiceInputPermission() {
+  try {
+    // Capacitor/community speech plugins (if present) should handle native permission prompts.
+    var cap = (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.Plugins) ? window.Capacitor.Plugins : null;
+    var speechPlugin = cap && cap.SpeechRecognition ? cap.SpeechRecognition : null;
+    if (speechPlugin) {
+      try {
+        if (typeof speechPlugin.checkPermissions === 'function') {
+          var perms = await speechPlugin.checkPermissions();
+          if (perms && (perms.speechRecognition === 'granted' || perms.microphone === 'granted')) {
+            _voiceInputPermissionState = 'granted';
+            return true;
+          }
+          if (typeof speechPlugin.requestPermissions === 'function') {
+            var requested = await speechPlugin.requestPermissions();
+            var granted = requested && (
+              requested.speechRecognition === 'granted' ||
+              requested.microphone === 'granted'
+            );
+            _voiceInputPermissionState = granted ? 'granted' : 'denied';
+            if (granted) return true;
+          }
+        } else if (typeof speechPlugin.hasPermission === 'function') {
+          var hasPerm = await speechPlugin.hasPermission();
+          if (hasPerm === true || (hasPerm && hasPerm.value === true)) {
+            _voiceInputPermissionState = 'granted';
+            return true;
+          }
+          if (typeof speechPlugin.requestPermission === 'function') {
+            var reqPerm = await speechPlugin.requestPermission();
+            var ok = reqPerm === true || (reqPerm && reqPerm.value === true);
+            _voiceInputPermissionState = ok ? 'granted' : 'denied';
+            if (ok) return true;
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (typeof navigator === 'undefined') return false;
+    var mediaDevices = navigator.mediaDevices;
+    if (!mediaDevices || typeof mediaDevices.getUserMedia !== 'function') {
+      // Some engines expose SpeechRecognition without mediaDevices API.
+      return true;
+    }
+
+    // Fast-path via Permissions API when available
+    try {
+      if (navigator.permissions && typeof navigator.permissions.query === 'function') {
+        var p = await navigator.permissions.query({ name: 'microphone' });
+        if (p && p.state === 'granted') {
+          _voiceInputPermissionState = 'granted';
+          return true;
+        }
+        if (p && p.state === 'denied') {
+          _voiceInputPermissionState = 'denied';
+          return false;
+        }
+      }
+    } catch (e) {}
+
+    // Request permission on user gesture.
+    var stream = await mediaDevices.getUserMedia({ audio: true });
+    try {
+      if (stream && stream.getTracks) {
+        stream.getTracks().forEach(function(track) { try { track.stop(); } catch (e) {} });
+      }
+    } catch (e) {}
+    _voiceInputPermissionState = 'granted';
+    return true;
+  } catch (e) {
+    _voiceInputPermissionState = 'denied';
+    return false;
+  }
+}
+
+function showVoiceInputPermissionHelp() {
+  if (typeof showAlertModal === 'function') {
+    showAlertModal('Microphone permission is required for voice input. Please allow microphone access in your browser/app settings and try again.', 'Voice Input');
+  }
+}
+
+async function toggleVoiceInputForField(field, button) {
   var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) return;
+  if (!SpeechRecognition) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal('Speech-to-text is not supported on this platform/webview yet.', 'Voice Input');
+    }
+    return;
+  }
 
   if (_voiceInputActive && _voiceInputActive.field === field) {
     try { _voiceInputActive.recognition.stop(); } catch (e) {}
@@ -298,6 +446,20 @@ function toggleVoiceInputForField(field, button) {
   if (_voiceInputActive && _voiceInputActive.recognition) {
     try { _voiceInputActive.recognition.stop(); } catch (e) {}
     clearVoiceActiveState();
+  }
+
+  if (button) {
+    button.setAttribute('aria-busy', 'true');
+    button.style.pointerEvents = 'none';
+  }
+  var hasPermission = await ensureVoiceInputPermission();
+  if (button) {
+    button.removeAttribute('aria-busy');
+    button.style.pointerEvents = '';
+  }
+  if (!hasPermission) {
+    showVoiceInputPermissionHelp();
+    return;
   }
 
   var recognition = new SpeechRecognition();
@@ -321,7 +483,14 @@ function toggleVoiceInputForField(field, button) {
     if (merged) setFieldValueFromVoice(field, merged);
   };
 
-  recognition.onerror = function() {
+  recognition.onerror = function(event) {
+    var err = event && event.error ? String(event.error) : '';
+    if (err === 'not-allowed' || err === 'service-not-allowed') {
+      _voiceInputPermissionState = 'denied';
+      showVoiceInputPermissionHelp();
+    } else if (err === 'audio-capture' && typeof showAlertModal === 'function') {
+      showAlertModal('No microphone detected. Connect a microphone and try again.', 'Voice Input');
+    }
     clearVoiceActiveState();
   };
   recognition.onend = function() {
@@ -2655,8 +2824,8 @@ function showConfirmModal(message, title = 'Confirm', onConfirm, onCancel) {
   
   // Update footer with Yes/No buttons
   footer.innerHTML = `
-    <button class="modal-save-btn" id="confirmYesBtn" style="background: rgba(244, 67, 54, 0.8);">Yes, Continue</button>
-    <button class="modal-save-btn" id="confirmNoBtn" style="background: rgba(255, 255, 255, 0.1);">Cancel</button>
+    <button class="modal-save-btn modal-danger-btn" id="confirmYesBtn">Yes, Continue</button>
+    <button class="modal-save-btn modal-cancel-btn" id="confirmNoBtn">Cancel</button>
   `;
   
   // Show modal
@@ -9163,6 +9332,83 @@ function saveGoalsAndClose() {
   updateGoalsProgressBlock();
 }
 
+function openBugReportModal() {
+  var overlay = document.getElementById('bugReportModalOverlay');
+  if (!overlay) return;
+  overlay.style.display = 'block';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  document.body.classList.add('modal-active');
+  document.body.style.overflow = 'hidden';
+  overlay.onclick = function(e) { if (e.target === overlay) closeBugReportModal(); };
+  var escapeHandler = function(e) { if (e.key === 'Escape') { closeBugReportModal(); document.removeEventListener('keydown', escapeHandler); } };
+  document.addEventListener('keydown', escapeHandler);
+}
+
+function closeBugReportModal() {
+  var overlay = document.getElementById('bugReportModalOverlay');
+  if (!overlay) return;
+  overlay.style.display = 'none';
+  overlay.style.visibility = 'hidden';
+  overlay.style.opacity = '0';
+  document.body.classList.remove('modal-active');
+  document.body.style.overflow = '';
+}
+
+async function submitBugReport(event) {
+  if (event && typeof event.preventDefault === 'function') event.preventDefault();
+  var descriptionEl = document.getElementById('bugReportDescription');
+  var description = (descriptionEl && descriptionEl.value ? descriptionEl.value.trim() : '');
+  if (!description) {
+    if (typeof showAlertModal === 'function') showAlertModal('Please enter a bug description.', 'Bug Report');
+    return;
+  }
+
+  var submitBtn = document.getElementById('bugReportSubmitButton');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+  }
+
+  var payload = {
+    title: (document.getElementById('bugReportTitle') && document.getElementById('bugReportTitle').value || '').trim(),
+    description: description,
+    steps: (document.getElementById('bugReportSteps') && document.getElementById('bugReportSteps').value || '').trim(),
+    expected_behavior: (document.getElementById('bugReportExpected') && document.getElementById('bugReportExpected').value || '').trim(),
+    actual_behavior: (document.getElementById('bugReportActual') && document.getElementById('bugReportActual').value || '').trim(),
+    console_output: getBugReportConsoleOutput(),
+    app_theme: (typeof appSettings !== 'undefined' && appSettings && appSettings.globalTheme) ? appSettings.globalTheme : '',
+    user_agent: (typeof navigator !== 'undefined' && navigator.userAgent) ? navigator.userAgent : '',
+    url: (typeof window !== 'undefined' && window.location) ? window.location.href : '',
+    client_timestamp: new Date().toISOString()
+  };
+
+  try {
+    if (isStaticHost()) throw new Error('Bug report submission is only available when running through the app server.');
+    var response = await fetch('/api/bug-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    var data = {};
+    try { data = await response.json(); } catch (e) {}
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to submit bug report.');
+    }
+    var form = document.getElementById('bugReportForm');
+    if (form && typeof form.reset === 'function') form.reset();
+    closeBugReportModal();
+    if (typeof showAlertModal === 'function') showAlertModal('Thanks - your bug report was submitted.', 'Bug Report');
+  } catch (err) {
+    if (typeof showAlertModal === 'function') showAlertModal((err && err.message) ? err.message : 'Bug report submission failed.', 'Bug Report');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit';
+    }
+  }
+}
+
 function getGoodDaysThisWeek() {
   var logs = typeof window !== 'undefined' && window.logs ? window.logs : [];
   var today = new Date();
@@ -15134,15 +15380,15 @@ function ensureSettingsCarouselDots(panes) {
   dotsWrap.innerHTML = '';
   function settingsIconForTitle(title, idx) {
     var t = String(title || '').toLowerCase();
-    if (t.indexOf('personal') !== -1 || t.indexOf('cloud') !== -1) return '👤';
-    if (t.indexOf('ai') !== -1 || t.indexOf('goal') !== -1) return '🧠';
-    if (t.indexOf('display') !== -1 || t.indexOf('reminder') !== -1) return '📊';
-    if (t.indexOf('custom') !== -1 || t.indexOf('theme') !== -1) return '🎨';
-    if (t.indexOf('data option') !== -1) return '⚙️';
-    if (t.indexOf('performance') !== -1) return '⚡';
-    if (t.indexOf('install') !== -1) return '📱';
-    if (t.indexOf('data management') !== -1) return '💾';
-    return String(idx + 1);
+    if (t.indexOf('personal') !== -1 || t.indexOf('cloud') !== -1) return 'fa-solid fa-user';
+    if (t.indexOf('ai') !== -1 || t.indexOf('goal') !== -1) return 'fa-solid fa-comment-medical';
+    if (t.indexOf('display') !== -1 || t.indexOf('reminder') !== -1) return 'fa-solid fa-chart-column';
+    if (t.indexOf('custom') !== -1 || t.indexOf('theme') !== -1) return 'fa-solid fa-palette';
+    if (t.indexOf('data option') !== -1) return 'fa-solid fa-gear';
+    if (t.indexOf('performance') !== -1) return 'fa-solid fa-bolt';
+    if (t.indexOf('install') !== -1) return 'fa-solid fa-mobile-screen-button';
+    if (t.indexOf('data management') !== -1) return 'fa-solid fa-floppy-disk';
+    return (idx % 2 === 0) ? 'fa-solid fa-circle' : 'fa-regular fa-circle';
   }
   for (var i = 0; i < n; i++) {
     var dot = document.createElement('button');
@@ -15152,7 +15398,7 @@ function ensureSettingsCarouselDots(panes) {
     dot.setAttribute('aria-label', 'Go to settings section ' + String(i + 1) + (paneTitle ? ': ' + paneTitle : ''));
     dot.setAttribute('title', paneTitle);
     dot.setAttribute('data-settings-target', String(i));
-    dot.innerHTML = '<span class="settings-carousel-dot__icon" aria-hidden="true">' + settingsIconForTitle(paneTitle, i) + '</span>';
+    dot.innerHTML = '<span class="settings-carousel-dot__icon" aria-hidden="true"><i class="' + settingsIconForTitle(paneTitle, i) + '"></i></span>';
     dot.addEventListener('click', function(e) {
       var idx = parseInt(e.currentTarget.getAttribute('data-settings-target') || '0', 10);
       settingsCarouselGo(idx);
@@ -17465,7 +17711,7 @@ function updateHomeTodayPanel() {
   if (today) {
     statusEl.textContent = 'You have logged today. Open View logs to browse or edit entries.';
   } else {
-    statusEl.textContent = 'No log for today yet. Tap + to record how you feel.';
+    statusEl.innerHTML = 'No log for today yet. Tap <span class="home-plus-emphasis" aria-hidden="true">+</span> to record how you feel.';
   }
 }
 

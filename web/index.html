@@ -180,6 +180,28 @@
       min-height: 100vh;
       min-height: 100dvh;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --loader-primary: #7bdf8c;
+      --loader-bright: #d6ffdd;
+      --loader-mid: #9ae8a4;
+      --loader-deep: #52b85f;
+    }
+    body.theme-red-black {
+      --loader-primary: #ff4d5a;
+      --loader-bright: #ffd7dc;
+      --loader-mid: #ff8d98;
+      --loader-deep: #a31624;
+    }
+    body.theme-mono {
+      --loader-primary: #f1f1f1;
+      --loader-bright: #ffffff;
+      --loader-mid: #d0d0d0;
+      --loader-deep: #7f7f7f;
+    }
+    body.theme-rainbow {
+      --loader-primary: #56c7ff;
+      --loader-bright: #ddf3ff;
+      --loader-mid: #8dd8ff;
+      --loader-deep: #2a7aff;
     }
     #loadingOverlay.loading-overlay {
       position: fixed;
@@ -189,7 +211,7 @@
       min-height: 100dvh;
       box-sizing: border-box;
       background:
-        radial-gradient(ellipse 85% 55% at 50% 100%, color-mix(in srgb, var(--primary-color, #7bdf8c) 12%, transparent) 0%, transparent 55%),
+        radial-gradient(ellipse 85% 55% at 50% 100%, color-mix(in srgb, var(--loader-primary) 12%, transparent) 0%, transparent 55%),
         linear-gradient(180deg, #050606 0%, #070807 50%, #030403 100%);
       z-index: 99999;
       display: flex;
@@ -212,8 +234,8 @@
         radial-gradient(circle, rgba(5, 9, 7, 0.7) 0%, rgba(5, 9, 7, 0.18) 48%, transparent 70%),
         repeating-radial-gradient(
           circle,
-          color-mix(in srgb, var(--primary-color, #7bdf8c) 58%, #030504) 0%,
-          color-mix(in srgb, var(--primary-color, #7bdf8c) 62%, #050806) 7%,
+          color-mix(in srgb, var(--loader-primary) 58%, #030504) 0%,
+          color-mix(in srgb, var(--loader-primary) 62%, #050806) 7%,
           rgba(5, 10, 7, 0.34) 13%,
           rgba(5, 10, 7, 0.06) 18%
         );
@@ -248,7 +270,7 @@
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      box-shadow: 0 0 18px color-mix(in srgb, var(--primary-color, #7bdf8c) 22%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--primary-color, #7bdf8c) 16%, transparent);
+      box-shadow: 0 0 18px color-mix(in srgb, var(--loader-primary) 22%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--loader-primary) 16%, transparent);
       overflow: hidden;
     }
     #loadingOverlay .loading-sun-orbit__ring::before,
@@ -264,27 +286,27 @@
         radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
     }
     #loadingOverlay .loading-sun-orbit__ring::before {
-      background: color-mix(in srgb, var(--primary-color, #7bdf8c) 30%, transparent);
+      background: color-mix(in srgb, var(--loader-primary) 30%, transparent);
     }
     #loadingOverlay .loading-sun-orbit__ring::after {
       background:
         conic-gradient(
           from -90deg,
-          color-mix(in srgb, var(--primary-color, #7bdf8c) 24%, #ffffff 76%) 0deg,
-          color-mix(in srgb, var(--primary-color, #7bdf8c) 82%, #ffffff 18%) 40%,
-          color-mix(in srgb, var(--primary-color, #7bdf8c) 86%, #08110b 14%) 78%,
-          color-mix(in srgb, var(--primary-color, #7bdf8c) 18%, transparent) 100%
+          color-mix(in srgb, var(--loader-primary) 24%, #ffffff 76%) 0deg,
+          color-mix(in srgb, var(--loader-primary) 82%, #ffffff 18%) 40%,
+          color-mix(in srgb, var(--loader-primary) 86%, #08110b 14%) 78%,
+          color-mix(in srgb, var(--loader-primary) 18%, transparent) 100%
         ),
         repeating-conic-gradient(
           from 0deg,
-          color-mix(in srgb, var(--primary-color, #7bdf8c) 36%, #ffffff 64%) 0deg,
-          color-mix(in srgb, var(--primary-color, #7bdf8c) 36%, #ffffff 64%) 10deg,
-          color-mix(in srgb, var(--primary-color, #7bdf8c) 14%, transparent) 10deg,
-          color-mix(in srgb, var(--primary-color, #7bdf8c) 14%, transparent) 20deg,
-          color-mix(in srgb, var(--primary-color, #7bdf8c) 42%, #0a120c 58%) 20deg,
-          color-mix(in srgb, var(--primary-color, #7bdf8c) 42%, #0a120c 58%) 30deg,
-          color-mix(in srgb, var(--primary-color, #7bdf8c) 14%, transparent) 30deg,
-          color-mix(in srgb, var(--primary-color, #7bdf8c) 14%, transparent) 40deg
+          color-mix(in srgb, var(--loader-primary) 36%, #ffffff 64%) 0deg,
+          color-mix(in srgb, var(--loader-primary) 36%, #ffffff 64%) 10deg,
+          color-mix(in srgb, var(--loader-primary) 14%, transparent) 10deg,
+          color-mix(in srgb, var(--loader-primary) 14%, transparent) 20deg,
+          color-mix(in srgb, var(--loader-primary) 42%, #0a120c 58%) 20deg,
+          color-mix(in srgb, var(--loader-primary) 42%, #0a120c 58%) 30deg,
+          color-mix(in srgb, var(--loader-primary) 14%, transparent) 30deg,
+          color-mix(in srgb, var(--loader-primary) 14%, transparent) 40deg
         );
       clip-path: inset(0 calc((1 - var(--loading-progress)) * 100%) 0 0);
       transition: clip-path 0.16s linear;
@@ -308,11 +330,11 @@
       overflow: hidden;
       background: radial-gradient(
         circle at 35% 35%,
-        color-mix(in srgb, var(--primary-color, #7bdf8c) 22%, #ffffff 78%),
-        color-mix(in srgb, var(--primary-color, #7bdf8c) 68%, #ffffff 32%) 55%,
-        color-mix(in srgb, var(--primary-color, #7bdf8c) 82%, #08110b 18%)
+        color-mix(in srgb, var(--loader-primary) 22%, #ffffff 78%),
+        color-mix(in srgb, var(--loader-primary) 68%, #ffffff 32%) 55%,
+        color-mix(in srgb, var(--loader-primary) 82%, #08110b 18%)
       );
-      box-shadow: 0 0 10px color-mix(in srgb, var(--primary-color, #7bdf8c) 72%, transparent), 0 0 0 1px color-mix(in srgb, var(--primary-color, #7bdf8c) 38%, transparent);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--loader-primary) 72%, transparent), 0 0 0 1px color-mix(in srgb, var(--loader-primary) 38%, transparent);
       isolation: isolate;
       animation: rianell-orbit-dot-glow 1.45s ease-in-out infinite;
     }
@@ -327,15 +349,15 @@
     #loadingOverlay .loading-sun-orbit__body::before {
       background: radial-gradient(
         circle at 48% 36%,
-        color-mix(in srgb, var(--primary-color, #7bdf8c) 20%, #ffffff 80%) 0%,
-        color-mix(in srgb, var(--primary-color, #7bdf8c) 62%, #ffffff 38%) 52%,
-        color-mix(in srgb, var(--primary-color, #7bdf8c) 78%, #0a120c 22%) 100%
+        color-mix(in srgb, var(--loader-primary) 20%, #ffffff 80%) 0%,
+        color-mix(in srgb, var(--loader-primary) 62%, #ffffff 38%) 52%,
+        color-mix(in srgb, var(--loader-primary) 78%, #0a120c 22%) 100%
       );
       transform-origin: 50% 62%;
       animation: rianell-liquid-slosh 1.25s ease-in-out infinite;
     }
     #loadingOverlay .loading-sun-orbit__body::after {
-      background: linear-gradient(120deg, transparent 25%, color-mix(in srgb, var(--primary-color, #7bdf8c) 34%, #ffffff 66%) 50%, transparent 75%);
+      background: linear-gradient(120deg, transparent 25%, color-mix(in srgb, var(--loader-primary) 34%, #ffffff 66%) 50%, transparent 75%);
       transform: translateX(-140%) rotate(8deg);
       animation: rianell-liquid-sheen 1.7s linear infinite;
       mix-blend-mode: screen;
@@ -349,11 +371,11 @@
       overflow: hidden;
       background: radial-gradient(
         circle at 38% 32%,
-        color-mix(in srgb, var(--primary-color, #7bdf8c) 18%, #ffffff 82%),
-        color-mix(in srgb, var(--primary-color, #7bdf8c) 76%, #ffffff 24%) 48%,
-        color-mix(in srgb, var(--primary-color, #7bdf8c) 84%, #08110b 16%) 100%
+        color-mix(in srgb, var(--loader-primary) 18%, #ffffff 82%),
+        color-mix(in srgb, var(--loader-primary) 76%, #ffffff 24%) 48%,
+        color-mix(in srgb, var(--loader-primary) 84%, #08110b 16%) 100%
       );
-      box-shadow: 0 0 24px color-mix(in srgb, var(--primary-color, #7bdf8c) 56%, transparent), 0 0 52px color-mix(in srgb, var(--primary-color, #7bdf8c) 30%, transparent);
+      box-shadow: 0 0 24px color-mix(in srgb, var(--loader-primary) 56%, transparent), 0 0 52px color-mix(in srgb, var(--loader-primary) 30%, transparent);
       isolation: isolate;
     }
     #loadingOverlay .loading-sun-orbit__sun::before,
@@ -368,13 +390,13 @@
       background:
         conic-gradient(
           from 0deg,
-          color-mix(in srgb, var(--loading-liquid-bright, #d6ffdd) 24%, transparent) 0deg,
-          color-mix(in srgb, var(--loading-liquid-mid, #9ae8a4) 90%, transparent) 62deg,
-          color-mix(in srgb, var(--loading-liquid-deep, #52b85f) 46%, transparent) 120deg,
-          color-mix(in srgb, var(--loading-liquid-bright, #d6ffdd) 28%, transparent) 180deg,
-          color-mix(in srgb, var(--loading-liquid-mid, #9ae8a4) 82%, transparent) 258deg,
-          color-mix(in srgb, var(--loading-liquid-deep, #52b85f) 34%, transparent) 320deg,
-          color-mix(in srgb, var(--loading-liquid-bright, #d6ffdd) 24%, transparent) 360deg
+          color-mix(in srgb, var(--loader-bright) 24%, transparent) 0deg,
+          color-mix(in srgb, var(--loader-mid) 90%, transparent) 62deg,
+          color-mix(in srgb, var(--loader-deep) 46%, transparent) 120deg,
+          color-mix(in srgb, var(--loader-bright) 28%, transparent) 180deg,
+          color-mix(in srgb, var(--loader-mid) 82%, transparent) 258deg,
+          color-mix(in srgb, var(--loader-deep) 34%, transparent) 320deg,
+          color-mix(in srgb, var(--loader-bright) 24%, transparent) 360deg
         );
       transform-origin: 50% 52%;
       animation: rianell-planet-swirl 1.15s linear infinite;
@@ -384,9 +406,9 @@
       border-radius: 50% 42% 55% 44% / 48% 56% 40% 52%;
       background: radial-gradient(
         circle at 38% 28%,
-        color-mix(in srgb, var(--loading-liquid-bright, #d6ffdd) 92%, #ffffff 8%),
-        color-mix(in srgb, var(--loading-liquid-mid, #9ae8a4) 70%, transparent) 48%,
-        color-mix(in srgb, var(--loading-liquid-deep, #52b85f) 58%, transparent) 100%
+        color-mix(in srgb, var(--loader-bright) 92%, #ffffff 8%),
+        color-mix(in srgb, var(--loader-mid) 70%, transparent) 48%,
+        color-mix(in srgb, var(--loader-deep) 58%, transparent) 100%
       );
       mix-blend-mode: screen;
       animation: rianell-planet-wobble 1.45s ease-in-out infinite;
@@ -445,11 +467,11 @@
     }
     @keyframes rianell-orbit-dot-glow {
       0%, 100% {
-        box-shadow: 0 0 8px color-mix(in srgb, var(--primary-color, #7bdf8c) 74%, transparent), 0 0 0 1px color-mix(in srgb, var(--primary-color, #7bdf8c) 34%, transparent);
+        box-shadow: 0 0 8px color-mix(in srgb, var(--loader-primary) 74%, transparent), 0 0 0 1px color-mix(in srgb, var(--loader-primary) 34%, transparent);
         filter: brightness(0.96);
       }
       50% {
-        box-shadow: 0 0 14px color-mix(in srgb, var(--primary-color, #7bdf8c) 38%, #ffffff 62%), 0 0 24px color-mix(in srgb, var(--primary-color, #7bdf8c) 62%, transparent), 0 0 0 1px color-mix(in srgb, var(--primary-color, #7bdf8c) 46%, transparent);
+        box-shadow: 0 0 14px color-mix(in srgb, var(--loader-primary) 38%, #ffffff 62%), 0 0 24px color-mix(in srgb, var(--loader-primary) 62%, transparent), 0 0 0 1px color-mix(in srgb, var(--loader-primary) 46%, transparent);
         filter: brightness(1.08);
       }
     }
@@ -751,7 +773,7 @@
         </div>
         <div class="settings-option" style="flex-direction: column; align-items: flex-start;">
           <label style="margin-bottom: 8px;">Notification permission</label>
-          <button class="cloud-btn" onclick="requestNotificationPermission()" style="padding: 8px 16px; font-size: 0.85rem; width: 100%; max-width: 200px;">
+          <button class="cloud-btn notification-permission-btn" onclick="requestNotificationPermission()" style="padding: 8px 16px; font-size: 0.85rem; width: 100%; max-width: 200px;">
             <span id="notificationPermissionStatus">Request Permission</span>
           </button>
         </div>
@@ -914,6 +936,38 @@
       </div>
     </div>
   </div>
+
+  <div class="modal-overlay bug-report-modal-overlay" id="bugReportModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Report a bug">
+    <div class="modal-content bug-report-modal-content">
+      <div class="modal-header">
+        <h3>Report a bug</h3>
+      </div>
+      <div class="modal-body bug-report-modal-body">
+        <form id="bugReportForm" onsubmit="submitBugReport(event)">
+          <label for="bugReportTitle">Title (optional)</label>
+          <input type="text" id="bugReportTitle" maxlength="160" placeholder="Short bug summary">
+
+          <label for="bugReportDescription">Description *</label>
+          <textarea id="bugReportDescription" rows="4" maxlength="4000" required placeholder="What happened?"></textarea>
+
+          <label for="bugReportSteps">Steps to reproduce (optional)</label>
+          <textarea id="bugReportSteps" rows="4" maxlength="4000" placeholder="1) ...&#10;2) ...&#10;3) ..."></textarea>
+
+          <label for="bugReportExpected">Expected behavior (optional)</label>
+          <textarea id="bugReportExpected" rows="3" maxlength="2000" placeholder="What you expected to happen"></textarea>
+
+          <label for="bugReportActual">Actual behavior (optional)</label>
+          <textarea id="bugReportActual" rows="3" maxlength="2000" placeholder="What happened instead"></textarea>
+
+          <p class="bug-report-note">Recent console output is automatically attached at submission time.</p>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-save-btn modal-cancel-btn" onclick="closeBugReportModal()">Cancel</button>
+        <button type="submit" form="bugReportForm" class="modal-save-btn" id="bugReportSubmitButton">Submit</button>
+      </div>
+    </div>
+  </div>
   
   <div class="app-shell" id="appShell">
     <!-- Sibling of .container (not inside scroll/transform) so fixed top-right matches FAB behavior -->
@@ -924,6 +978,9 @@
           <circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="2" fill="none"/>
           <circle cx="12" cy="12" r="2" fill="currentColor"/>
         </svg>
+      </button>
+      <button type="button" class="bug-report-button-top" onclick="openBugReportModal()" title="Report a bug" aria-label="Report a bug">
+        <span class="bug-report-question-icon" aria-hidden="true">?</span>
       </button>
       <button class="settings-button-top" onclick="toggleSettings()" title="Settings">
         <svg class="settings-cog" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -952,13 +1009,13 @@
             </filter>
           </defs>
           <!-- Base line (subtle) -->
-          <line x1="0" y1="30" x2="400" y2="30" stroke="color-mix(in srgb, var(--primary-color) 24%, transparent)" stroke-width="1.5"/>
+          <line x1="0" y1="30" x2="400" y2="30" stroke="color-mix(in srgb, var(--primary-color) 24%, transparent)" stroke-width="2.2"/>
           <!-- ECG trace: d filled by initEcgHeartbeatLine() in app.js (natural QRS + slight randomness) -->
           <path class="heartbeat-path" pathLength="1000"
                 d="M0,30 L400,30"
                 fill="none"
                 stroke="url(#heartbeatGradient)"
-                stroke-width="2.75"
+                stroke-width="3.8"
                 stroke-linecap="butt"
                 stroke-linejoin="miter"
                 stroke-miterlimit="8"
@@ -2525,8 +2582,8 @@
         </div>
       </div>
       <div class="modal-footer gdpr-agreement-footer">
-        <button class="modal-save-btn" id="gdprAgreeBtn" style="background: rgba(76, 175, 80, 0.8);">✓ I Agree and Enable</button>
-        <button class="modal-save-btn" id="gdprDeclineBtn" style="background: rgba(255, 255, 255, 0.1);" onclick="closeGDPRAgreementModal()">Cancel</button>
+        <button class="modal-save-btn" id="gdprAgreeBtn">✓ I Agree and Enable</button>
+        <button class="modal-save-btn modal-cancel-btn" id="gdprDeclineBtn" onclick="closeGDPRAgreementModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -2715,7 +2772,7 @@
       </div>
       <div class="modal-footer">
         <button class="modal-save-btn" id="importButton" onclick="performImport()">Import</button>
-        <button class="modal-save-btn" style="background: rgba(255, 255, 255, 0.1);" onclick="closeImportModal()" id="importCancelButton">Cancel</button>
+        <button class="modal-save-btn modal-cancel-btn" onclick="closeImportModal()" id="importCancelButton">Cancel</button>
       </div>
     </div>
   </div>

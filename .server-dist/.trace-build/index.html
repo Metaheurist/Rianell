@@ -1,0 +1,2681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Rianell - Personal health dashboard (beta)</title>
+
+  <!-- Primary + social / link previews (og:* stops crawlers from using random headings e.g. privacy copy) -->
+  <meta name="description" content="Rianell - personal health dashboard in open beta (web & Android). Track symptoms, medications, and wellness; optional AI-assisted insights; encryption and privacy-first design. Share metrics with your care team.">
+  <link rel="canonical" href="https://rianell.com/">
+
+  <meta property="og:title" content="Rianell - Personal health dashboard (beta)">
+  <meta property="og:description" content="Open beta: track chronic conditions, log metrics, and prepare insights for your clinicians. Web & Android. Open source, encrypted, AI-assisted analytics - your data stays yours.">
+  <meta property="og:url" content="https://rianell.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Rianell">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image" content="https://rianell.com/Icons/screenshot-wide.png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="720">
+  <meta property="og:image:alt" content="Rianell health dashboard">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Rianell - Personal health dashboard (beta)">
+  <meta name="twitter:description" content="Open beta: track chronic conditions, log metrics, and prepare insights for your clinicians. Web & Android. Open source, encrypted, AI-assisted analytics.">
+  <meta name="twitter:image" content="https://rianell.com/Icons/screenshot-wide.png">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- PWA Meta Tags: theme-color matches page bg so iOS/Android chrome blends with dark UI (accent is in-app only) -->
+  <meta name="theme-color" content="#070807">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <!-- black = opaque status bar; content lays out below it. black-translucent draws under icons (no way to hide system bar in a PWA). -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Rianell">
+  <!-- Additional iOS meta tags for better home screen experience -->
+  <meta name="format-detection" content="telephone=no">
+  <meta name="msapplication-TileColor" content="#78c06e">
+  <meta name="msapplication-tap-highlight" content="no">
+  
+  <!-- Security: CSP roadmap in docs/SECURITY.md (unsafe-eval/inline required today for ML bootstraps; tighten over time). -->
+  <!-- script-src: wasm-unsafe-eval + worker-src blob: for TensorFlow.js / ML CDNs. If an HTTP CSP is also set (e.g. Cloudflare), it must allow the same or eval stays blocked (policies combine). -->
+  <!-- Note: frame-ancestors and X-Frame-Options must be set via HTTP headers, not meta tags -->
+  <!-- PayPal JS SDK: set meta paypal-client-id (REST app Client ID from developer.paypal.com) for in-app Smart Payment Buttons (PayPal, card, Apple Pay / Google Pay when eligible). -->
+  <meta name="paypal-client-id" content="">
+  <meta name="paypal-currency" content="USD">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.paypal.com; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://api.paypal.com https://api.sandbox.paypal.com https://c.paypal.com; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <!-- Note: X-Frame-Options is set via HTTP header in server, not here -->
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+
+  <!-- Runs before other scripts: swallow extension/injected promise rejections (must match app.js __rianellIsExtensionRejectionBlob) -->
+  <script>
+    (function () {
+      function rejectionText(reason) {
+        if (reason == null) return '';
+        if (typeof reason === 'string') return reason;
+        var m = '';
+        try {
+          if (reason.message) m += String(reason.message);
+          if (reason.stack) m += '\n' + String(reason.stack);
+        } catch (e) {}
+        try { m += '\n' + String(reason); } catch (e2) {}
+        if (!m.trim()) {
+          try { m = JSON.stringify(reason); } catch (e3) {}
+        }
+        return m;
+      }
+      function isExtensionRejection(reason) {
+        var t = rejectionText(reason);
+        if (!t) return false;
+        if (/chrome-extension:|moz-extension:|safari-web-extension:|extension:\/\//i.test(t)) return true;
+        /* Extension injected scripts (e.g. VM1234 vendor.js) - tabs:outgoing.message.ready, No Listener:, i18next, Grammarly, locize, chrome-error:, chromewebdata */
+        if (/tabs:outgoing|tabs\.outgoing|outgoing\.message\.ready|No\s+Listener:?|i18next|Grammarly|locize|chrome-error:|chromewebdata|vendor\.js|VM\d+\s+vendor|serviceWorker\.js|background\.js/i.test(t)) return true;
+        if (/Frame with ID \d+ was removed|No tab with id|Could not establish connection|Receiving end does not exist|message port closed/i.test(t)) return true;
+        if (/chrome-error:|chromewebdata|Unsafe attempt to load URL/i.test(t)) return true;
+        return false;
+      }
+      window.addEventListener('unhandledrejection', function (ev) {
+        if (isExtensionRejection(ev.reason)) {
+          ev.preventDefault();
+          ev.stopImmediatePropagation();
+        }
+      }, true);
+    })();
+  </script>
+
+  <!-- Apple Touch Icons (beta set: web/Icons/beta/; originals remain in web/Icons/) -->
+  <link rel="apple-touch-icon" href="Icons/beta/Icon-180.png">
+  <link rel="apple-touch-icon" sizes="57x57" href="Icons/beta/Icon-57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="Icons/beta/Icon-60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="Icons/beta/Icon-72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="Icons/beta/Icon-76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="Icons/beta/Icon-114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="Icons/beta/Icon-120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="Icons/beta/Icon-144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="Icons/beta/Icon-152.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="Icons/beta/Icon-167.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="Icons/beta/Icon-180.png">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="Icons/beta/Icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="Icons/beta/Icon-16.png">
+  
+  <!-- Prefer HTTP Cache-Control for production. max-age=0 still revalidates (lighter than no-store for repeat visits). -->
+  <meta http-equiv="Cache-Control" content="max-age=0, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
+  <!-- apexcharts.min.js: loaded on demand via PerformanceUtils.ensureApexChartsLoaded() -->
+  <!-- Supabase Client Library (pinned major+minor for SRI; bump integrity when upgrading) -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"
+    integrity="sha384-YieCqqg9gQufX7+5HcFvCEg/n3KUEdl8/Jb+A6J0npf1mB740VayvwKjTrtCeUoy"
+    crossorigin="anonymous"
+  ></script>
+  <!-- Function trace runtime (before instrumented scripts; console-only, no network) -->
+  <script src="trace-runtime.js?v=1"></script>
+  <!-- Event Handlers Module (for CSP compliance) -->
+  <script src="event-handlers.js?v=3"></script>
+  <!-- Now loaded from local server with progress tracking -->
+  <!-- The script will be loaded dynamically with progress bar in app.js -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
+  <link rel="preload" href="styles.css?v=75" as="style">
+  <link rel="preload" href="app.js?v=25" as="script">
+  <link rel="stylesheet" href="styles.css?v=75" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=75&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <style>
+    /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
+    html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #070807; color: #e8eeec; margin: 0; padding: 0; }
+    html.rianell-no-styles button, html.rianell-no-styles input { font-family: inherit; font-size: 1rem; padding: 0.5rem 1rem; border-radius: 8px; }
+    html.rianell-no-styles button { background: #7bdf8c; color: #0a0c08; border: none; cursor: pointer; }
+    html.rianell-no-styles input { background: #1e1e1e; color: #e0f2f1; border: 1px solid #333; }
+  </style>
+  <script>
+    // Remove unwanted preload links injected by browser extensions (e.g. Rokt). Extensions often inject
+    // after first paint, so we observe <head> as well as running once.
+    (function() {
+      function stripExtensionPreloads(root) {
+        var links = root.querySelectorAll ? root.querySelectorAll('link[rel="preload"]') : [];
+        for (var i = 0; i < links.length; i++) {
+          var link = links[i];
+          var href = link.getAttribute('href');
+          if (!href) continue;
+          var isLocal = href.startsWith(window.location.origin) || href.startsWith('/') || href.startsWith('data:');
+          if (isLocal) continue;
+          if (href.indexOf('rokt.com') !== -1 || href.indexOf('extension://') !== -1 || href.indexOf('chrome-extension://') !== -1) {
+            link.remove();
+          }
+        }
+      }
+      stripExtensionPreloads(document);
+      var head = document.head;
+      if (head && typeof MutationObserver !== 'undefined') {
+        var obs = new MutationObserver(function (mutations) {
+          for (var m = 0; m < mutations.length; m++) {
+            var nodes = mutations[m].addedNodes;
+            for (var n = 0; n < nodes.length; n++) {
+              var node = nodes[n];
+              if (node.nodeName === 'LINK' && node.rel === 'preload') stripExtensionPreloads(node.parentNode || document);
+              else if (node.nodeType === 1) stripExtensionPreloads(node);
+            }
+          }
+        });
+        obs.observe(head, { childList: true, subtree: true });
+      }
+    })();
+  </script>
+  <style>
+    /* First paint: dark shell before styles.css loads (matches --shell-bg) */
+    html { background: #070807; }
+    body {
+      margin: 0;
+      background: #070807;
+      color: #e8eeec;
+      min-height: 100vh;
+      min-height: 100dvh;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    #loadingOverlay.loading-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      box-sizing: border-box;
+      background:
+        radial-gradient(ellipse 85% 55% at 50% 100%, rgba(123, 223, 140, 0.05) 0%, transparent 55%),
+        linear-gradient(180deg, #050606 0%, #070807 50%, #030403 100%);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: all;
+    }
+    #loadingOverlay .loading-spinner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    /* Orbiting sun (same mint palette as legacy spinner) */
+    #loadingOverlay .loading-sun-orbit {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #loadingOverlay .loading-sun-orbit__ring {
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(123, 223, 140, 0.28);
+      border-radius: 50%;
+      box-shadow: 0 0 18px rgba(123, 223, 140, 0.12);
+    }
+    #loadingOverlay .loading-sun-orbit__orbit {
+      position: absolute;
+      width: 96px;
+      height: 96px;
+      animation: rianell-orbit 2.8s linear infinite;
+    }
+    #loadingOverlay .loading-sun-orbit__body {
+      position: absolute;
+      top: 3px;
+      left: 50%;
+      width: 13px;
+      height: 13px;
+      margin-left: -6.5px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: radial-gradient(circle at 35% 35%, #e8fff0, #9ae8a4 55%, #52b85f);
+      box-shadow: 0 0 10px rgba(123, 223, 140, 0.85), 0 0 0 1px rgba(123, 223, 140, 0.35);
+      isolation: isolate;
+      animation: rianell-orbit-dot-glow 1.45s ease-in-out infinite;
+    }
+    #loadingOverlay .loading-sun-orbit__body::before,
+    #loadingOverlay .loading-sun-orbit__body::after {
+      content: "";
+      position: absolute;
+      inset: -20% -10%;
+      border-radius: 45%;
+      pointer-events: none;
+    }
+    #loadingOverlay .loading-sun-orbit__body::before {
+      background: radial-gradient(circle at 48% 36%, rgba(236, 255, 242, 0.95) 0%, rgba(170, 241, 180, 0.9) 52%, rgba(86, 191, 110, 0.88) 100%);
+      transform-origin: 50% 62%;
+      animation: rianell-liquid-slosh 1.25s ease-in-out infinite;
+    }
+    #loadingOverlay .loading-sun-orbit__body::after {
+      background: linear-gradient(120deg, transparent 25%, rgba(236, 255, 242, 0.62) 50%, transparent 75%);
+      transform: translateX(-140%) rotate(8deg);
+      animation: rianell-liquid-sheen 1.7s linear infinite;
+      mix-blend-mode: screen;
+    }
+    #loadingOverlay .loading-sun-orbit__sun {
+      position: relative;
+      z-index: 2;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: radial-gradient(circle at 38% 32%, #ecfff3, #7bdf8c 48%, #3d8f4a 100%);
+      box-shadow: 0 0 24px rgba(123, 223, 140, 0.58), 0 0 52px rgba(123, 223, 140, 0.26);
+      isolation: isolate;
+    }
+    #loadingOverlay .loading-sun-orbit__sun::before,
+    #loadingOverlay .loading-sun-orbit__sun::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+    }
+    #loadingOverlay .loading-sun-orbit__sun::before {
+      inset: -18%;
+      border-radius: 43%;
+      background:
+        conic-gradient(
+          from 0deg,
+          rgba(213, 255, 223, 0.08) 0deg,
+          rgba(178, 250, 190, 0.9) 62deg,
+          rgba(95, 201, 122, 0.38) 120deg,
+          rgba(213, 255, 223, 0.12) 180deg,
+          rgba(130, 230, 151, 0.8) 258deg,
+          rgba(95, 201, 122, 0.25) 320deg,
+          rgba(213, 255, 223, 0.08) 360deg
+        );
+      transform-origin: 50% 52%;
+      animation: rianell-planet-swirl 1.15s linear infinite;
+    }
+    #loadingOverlay .loading-sun-orbit__sun::after {
+      inset: 14% 12% 10%;
+      border-radius: 50% 42% 55% 44% / 48% 56% 40% 52%;
+      background: radial-gradient(circle at 38% 28%, rgba(239, 255, 244, 0.82), rgba(157, 236, 174, 0.65) 48%, rgba(74, 182, 101, 0.48) 100%);
+      mix-blend-mode: screen;
+      animation: rianell-planet-wobble 1.45s ease-in-out infinite;
+    }
+    #loadingOverlay .loading-text {
+      color: rgba(224, 242, 241, 0.92);
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin: 0;
+      text-align: center;
+      padding: 0 20px;
+      max-width: 90vw;
+    }
+    #loadingOverlay .loading-progress-wrap {
+      width: min(280px, 85vw);
+    }
+    #loadingOverlay .loading-progress-track {
+      height: 10px;
+      background: rgba(10, 18, 14, 0.85);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(123, 223, 140, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    #loadingOverlay .loading-progress-fill {
+      height: 100%;
+      width: 0%;
+      overflow: hidden;
+      border-radius: 999px;
+      position: relative;
+      transition: width 0.2s ease-out;
+    }
+    #loadingOverlay .loading-wave-stack {
+      position: absolute;
+      inset: 0;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(90deg, rgba(123, 223, 140, 0.35), #7bdf8c 55%, rgba(123, 223, 140, 0.45));
+      -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 20' preserveAspectRatio='none'%3E%3Cpath d='M0 12 Q16 3 32 12 T64 12 L64 20 L0 20 Z' fill='white'/%3E%3C/svg%3E");
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 20' preserveAspectRatio='none'%3E%3Cpath d='M0 12 Q16 3 32 12 T64 12 L64 20 L0 20 Z' fill='white'/%3E%3C/svg%3E");
+      -webkit-mask-size: 48px 100%;
+      mask-size: 48px 100%;
+      -webkit-mask-repeat: repeat-x;
+      mask-repeat: repeat-x;
+      animation: rianell-wave 1.35s linear infinite;
+    }
+    #loadingOverlay .loading-wave-stack--2 {
+      opacity: 0.45;
+      animation-delay: -0.65s;
+      animation-duration: 1.9s;
+    }
+    @keyframes rianell-orbit {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes rianell-wave {
+      from { transform: translateX(0); }
+      to { transform: translateX(-48px); }
+    }
+    @keyframes rianell-orbit-dot-glow {
+      0%, 100% {
+        box-shadow: 0 0 8px rgba(123, 223, 140, 0.72), 0 0 0 1px rgba(123, 223, 140, 0.32);
+        filter: brightness(0.96);
+      }
+      50% {
+        box-shadow: 0 0 14px rgba(168, 255, 184, 0.96), 0 0 24px rgba(123, 223, 140, 0.58), 0 0 0 1px rgba(170, 241, 180, 0.46);
+        filter: brightness(1.08);
+      }
+    }
+    @keyframes rianell-planet-swirl {
+      from { transform: rotate(0deg) scale(1.02); }
+      to { transform: rotate(360deg) scale(1.02); }
+    }
+    @keyframes rianell-planet-wobble {
+      0%, 100% { transform: translate(-6%, -4%) rotate(-10deg) scale(0.92, 0.88); }
+      50% { transform: translate(8%, 6%) rotate(11deg) scale(1.06, 1.12); }
+    }
+    @keyframes rianell-liquid-slosh {
+      0%, 100% { transform: translate(0, 0) scale(0.95, 0.9) rotate(-7deg); }
+      50% { transform: translate(3%, 4%) scale(1.05, 1.06) rotate(7deg); }
+    }
+    @keyframes rianell-liquid-sheen {
+      from { transform: translateX(-140%) rotate(8deg); }
+      to { transform: translateX(140%) rotate(8deg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #loadingOverlay .loading-sun-orbit__orbit { animation-duration: 7s; }
+      #loadingOverlay .loading-sun-orbit__body::before,
+      #loadingOverlay .loading-sun-orbit__body::after { animation: none; }
+      #loadingOverlay .loading-sun-orbit__body { animation: none; }
+      #loadingOverlay .loading-sun-orbit__sun::before,
+      #loadingOverlay .loading-sun-orbit__sun::after { animation: none; }
+      #loadingOverlay .loading-wave-stack { animation-duration: 3.5s; }
+    }
+    /* Hide main content until loaded; keep loading overlay visible so user sees loader */
+    body:not(.loaded) {
+      overflow: hidden;
+    }
+    body:not(.loaded) > *:not([id="loadingOverlay"]) {
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+    /* Only pin the loading shell while it is shown; allow .hidden to dismiss it (otherwise first-run benchmark modal stays behind an invisible-forced overlay). */
+    body:not(.loaded) .loading-overlay:not(.hidden) {
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    body.loaded {
+      opacity: 1;
+    }
+    body.loaded > * {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    body.loaded .loading-overlay {
+      transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+    }
+  </style>
+</head>
+<body class="loading">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner">
+      <div class="loading-sun-orbit" aria-hidden="true">
+        <div class="loading-sun-orbit__ring"></div>
+        <div class="loading-sun-orbit__orbit">
+          <div class="loading-sun-orbit__body"></div>
+        </div>
+        <div class="loading-sun-orbit__sun"></div>
+      </div>
+      <p class="loading-text">Loading Rianell…</p>
+      <div class="loading-progress-wrap" id="loadingProgressWrap" aria-hidden="true">
+        <div class="loading-progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+          <div class="loading-progress-fill" id="loadingProgressFill">
+            <span class="loading-wave-stack" aria-hidden="true"></span>
+            <span class="loading-wave-stack loading-wave-stack--2" aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cookie consent banner -->
+  <div id="cookieBanner" class="cookie-banner hidden" role="region" aria-label="Cookie consent">
+    <div class="cookie-banner-inner">
+      <p class="cookie-banner-text">We use local storage and optional cloud sync to run the app. By accepting, you agree to our cookie and data policy.</p>
+      <div class="cookie-banner-actions">
+        <button type="button" class="cookie-banner-accept" onclick="acceptCookieConsent()">Accept</button>
+        <button type="button" class="cookie-banner-policy" onclick="openCookiePolicyModal()">Cookie policy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Menu Overlay - Full Page Container -->
+  <div class="settings-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-label="Settings">
+    <div class="settings-menu" onclick="event.stopPropagation()">
+      <button type="button" class="settings-carousel-side settings-carousel-side--prev" id="settingsCarouselPrev" onclick="settingsCarouselStep(-1)" aria-label="Previous settings section">‹</button>
+      <div class="settings-menu-inner">
+      <div class="settings-header">
+        <div class="settings-header-text">
+          <h3 class="settings-title">Settings</h3>
+          <p class="settings-carousel-meta" id="settingsCarouselMeta" aria-live="polite"></p>
+          <div class="settings-carousel-dots" id="settingsCarouselDots" aria-hidden="true"></div>
+        </div>
+        <button type="button" class="settings-close" onclick="event.preventDefault(); event.stopPropagation(); closeSettings();">&times;</button>
+      </div>
+      <div class="settings-content settings-carousel-viewport" id="settingsCarouselViewport">
+      <div class="settings-carousel-track" id="settingsCarouselTrack" data-settings-index="0">
+      <div class="settings-carousel-pane" data-settings-pane-title="Personal" role="tabpanel" aria-hidden="false">
+      <div class="settings-section">
+        <h4>👤 Personal Settings</h4>
+        <div class="settings-option">
+          <label for="userNameInput">Your Name</label>
+          <input type="text" id="userNameInput" placeholder="Enter your name..." onchange="updateUserName()" />
+        </div>
+        <div class="settings-option">
+          <label for="medicalConditionInput">Medical Condition</label>
+          <div id="medicalConditionDisplayContainer" style="width: 100%;">
+            <button type="button" class="settings-data-btn" id="medicalConditionBtn" onclick="toggleConditionSelector()" style="width: 100%; text-align: left; justify-content: space-between;">
+              <span id="medicalConditionDisplay">Medical Condition</span>
+            </button>
+          </div>
+          <div id="medicalConditionSelector" style="display: none; margin-top: 16px; padding: 16px; background: rgba(55, 65, 81, 0.3); border-radius: 8px; width: 100%;">
+            <div style="margin-bottom: 20px;">
+              <label style="font-size: 0.9rem; display: block; margin-bottom: 8px; color: rgba(224, 242, 241, 0.9);">Choose from existing conditions:</label>
+              <select id="existingConditionsSelect" class="item-input" style="width: 100%; padding: 10px;" onchange="selectExistingCondition()">
+                <option value="">-- Select a condition --</option>
+              </select>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0; color: rgba(224, 242, 241, 0.7); font-size: 0.9rem;">OR</div>
+            
+            <div style="margin-bottom: 20px;">
+              <label style="font-size: 0.9rem; display: block; margin-bottom: 8px; color: rgba(224, 242, 241, 0.9);">Add new condition:</label>
+              <div id="conditionInputContainer" style="display: flex; gap: 8px; width: 100%;">
+                <input type="text" id="newConditionInput" class="item-input" placeholder="e.g., Rheumatoid Arthritis" style="flex: 1; padding: 10px;" />
+                <button class="add-item-btn" onclick="addNewCondition()" title="Add condition" style="padding: 10px 16px;">➕</button>
+              </div>
+            </div>
+            
+            <div class="settings-policy-box">
+              <h4>📋 AI Data Processing Policy</h4>
+              <p>When anonymised data contribution is enabled, your health data is anonymised and pooled with other users who have the same condition. This helps improve AI predictions for everyone. All personally identifiable information is removed before sharing.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="AI & Goals" role="tabpanel" aria-hidden="true">
+      <div class="settings-section">
+        <h4>🧠 AI & Goals</h4>
+        <div class="settings-option settings-option-with-hint">
+          <label>Enable AI features & Goals</label>
+          <div class="toggle-switch" id="aiEnabledToggle" onclick="toggleAIFeatures()"></div>
+        </div>
+        <p class="settings-hint">When on: AI Analysis tab, chart predictions, and Goals & targets are available. When off: they are hidden. You can change this anytime.</p>
+        <div class="settings-option" style="margin-top: 14px;">
+          <label>Contribute anonymised data</label>
+          <div class="toggle-switch" id="contributeAnonDataToggle" onclick="toggleContributeAnonData()"></div>
+        </div>
+        <div class="settings-option settings-option-with-hint">
+          <label class="visually-hidden">Helper</label>
+          <p class="settings-hint" id="contributeAnonDataHint">Contribute your anonymised data to help improve AI models</p>
+        </div>
+        <div class="settings-option">
+          <label>Use open data for training</label>
+          <div class="toggle-switch" id="useOpenDataToggle" onclick="toggleUseOpenData()"></div>
+        </div>
+        <div class="settings-option settings-option-with-hint">
+          <label class="visually-hidden">Helper</label>
+          <p class="settings-hint" id="useOpenDataHint">Use anonymised data pool for AI training (requires 90+ days of data)</p>
+        </div>
+        <div class="settings-option settings-option-with-hint">
+          <label class="visually-hidden">Helper</label>
+          <p class="settings-hint">Used for personalised AI analysis and advice</p>
+        </div>
+      </div>
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Display" role="tabpanel" aria-hidden="true">
+      <div class="settings-section">
+        <h4>📊 Display Options</h4>
+        <div class="settings-option">
+          <label>Daily reminders</label>
+          <div class="toggle-switch" id="reminderToggle" onclick="toggleSetting('reminder')"></div>
+        </div>
+        <div class="settings-option">
+          <label>Reminder time</label>
+          <input type="time" id="reminderTime" class="time-input" value="20:00" onchange="updateReminderTime()" style="margin-left: auto; padding: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(76, 175, 80, 0.3); border-radius: 6px; color: var(--text-light);">
+        </div>
+        <div class="settings-option">
+          <label>Enable sound notifications</label>
+          <div class="toggle-switch" id="soundToggle" onclick="toggleSetting('sound')"></div>
+        </div>
+        <div class="settings-option" style="flex-direction: column; align-items: flex-start;">
+          <label style="margin-bottom: 8px;">Notification permission</label>
+          <button class="cloud-btn" onclick="requestNotificationPermission()" style="padding: 8px 16px; font-size: 0.85rem; width: 100%; max-width: 200px;">
+            <span id="notificationPermissionStatus">Request Permission</span>
+          </button>
+        </div>
+      </div>
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Cloud sync" role="tabpanel" aria-hidden="true">
+      <div class="settings-section">
+        <h4>☁️ Cloud Sync</h4>
+        <div id="cloudSyncStatus" class="cloud-status">
+          <div class="cloud-status-text" id="cloudStatusText">Not connected</div>
+          <div class="cloud-status-indicator" id="cloudStatusIndicator"></div>
+        </div>
+        <div id="cloudAuthSection" class="cloud-auth-section">
+          <div class="cloud-auth-form">
+            <input type="email" id="cloudEmail" placeholder="Email address" class="cloud-input" />
+            <div class="password-input-wrapper">
+              <input type="password" id="cloudPassword" placeholder="Password" class="cloud-input" />
+              <button type="button" class="password-toggle-btn" id="passwordToggle" onclick="togglePasswordVisibility()" title="Show/Hide password">
+                <span class="password-toggle-icon">👁️</span>
+              </button>
+            </div>
+            <div id="passwordStrengthIndicator" class="password-strength-indicator" style="display: none;">
+              <div class="password-strength-bar">
+                <div class="password-strength-fill" id="passwordStrengthFill"></div>
+              </div>
+              <div class="password-strength-text" id="passwordStrengthText"></div>
+              <ul class="password-requirements" id="passwordRequirements"></ul>
+            </div>
+            <div class="cloud-auth-buttons">
+              <button id="cloudSignUpBtn" class="cloud-btn signup-btn" onclick="handleCloudSignUp()">
+                <span>📝 Sign Up</span>
+              </button>
+              <button id="cloudLoginBtn" class="cloud-btn login-btn" onclick="handleCloudLogin()">
+                <span>🔐 Sign In</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="cloudSyncSection" class="cloud-sync-section" style="display: none;">
+          <div class="cloud-user-info">
+            <span id="cloudUserEmail"></span>
+          </div>
+          <div class="cloud-sync-buttons">
+            <button id="cloudSyncBtn" class="cloud-btn sync-btn" onclick="syncToCloud()">
+              <span>🔄 Sync Now</span>
+            </button>
+            <button id="cloudLogoutBtn" class="cloud-btn logout-btn" onclick="handleCloudLogout()">
+              <span>🚪 Sign Out</span>
+            </button>
+          </div>
+          <div class="cloud-sync-info">
+            <small id="cloudLastSync">Last sync: Never</small>
+            <label class="cloud-auto-sync">
+              <input type="checkbox" id="cloudAutoSync" onchange="toggleAutoSync()" />
+              <span>Auto-sync on changes</span>
+            </label>
+          </div>
+        </div>
+        <div class="cloud-setup-info">
+          <small>💡 <strong>Free cloud storage</strong> - Your data is encrypted and synced securely. Create an account to get started.</small>
+        </div>
+      </div>
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Data options" role="tabpanel" aria-hidden="true">
+      <div class="settings-section">
+        <h4>📱 Data Options</h4>
+        <div class="settings-option">
+          <label>Auto-backup to localStorage</label>
+          <div class="toggle-switch active" id="backupToggle" onclick="toggleSetting('backup')"></div>
+        </div>
+        <div class="settings-option">
+          <label>Compress chart data</label>
+          <div class="toggle-switch" id="compressToggle" onclick="toggleSetting('compress')"></div>
+        </div>
+        <div class="settings-option">
+          <label>Demo Mode (10 years of sample data)</label>
+          <div class="toggle-switch" id="demoModeToggle" onclick="toggleDemoMode()"></div>
+        </div>
+        <div class="settings-option" style="margin-top: -10px; padding-top: 0;">
+          <label style="visibility: hidden;">Helper</label>
+          <small style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Demo data is not saved or synced</small>
+        </div>
+      </div>
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Performance" role="tabpanel" aria-hidden="true">
+      <div class="settings-section">
+        <h4>⚡ Performance</h4>
+        <div class="settings-option">
+          <label>Enable animations</label>
+          <div class="toggle-switch active" id="animationsToggle" onclick="toggleSetting('animations')"></div>
+        </div>
+        <div class="settings-option">
+          <label>Lazy load charts</label>
+          <div class="toggle-switch active" id="lazyToggle" onclick="toggleSetting('lazy')"></div>
+        </div>
+        <div class="settings-option settings-option-llm-model">
+          <label for="preferredLlmModelSelect">On-device AI model</label>
+          <select id="preferredLlmModelSelect" class="settings-select" aria-describedby="llmModelRecommendationHint" onchange="setPreferredLlmModel(this.value)">
+            <option value="recommended">Use recommended (for this device)</option>
+            <option value="tier1">Tier 1 (fastest, lowest memory)</option>
+            <option value="tier2">Tier 2</option>
+            <option value="tier3">Tier 3</option>
+            <option value="tier4">Tier 4</option>
+            <option value="tier5">Tier 5 (best quality)</option>
+          </select>
+          <p class="settings-hint" id="llmModelRecommendationHint">Recommended: -</p>
+        </div>
+      </div>
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="App install" role="tabpanel" aria-hidden="true">
+      <div class="settings-section" id="appInstallSection">
+        <h4 id="appInstallSectionTitle">📱 App Installation</h4>
+        <div id="installOnIosDevice" class="settings-option settings-option--stacked" style="display: none;">
+          <button type="button" class="settings-data-btn install-ios-device-btn" onclick="installOrLaunchPWA()"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="installOnIosDeviceLabel">Install on this iPhone</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></button>
+          <p class="settings-install-hint">Opens instructions to add the app to your Home Screen. Works offline like a native app.</p>
+        </div>
+        <div class="settings-option" id="androidDownloadOption">
+          <a id="downloadApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-android"></i></span> <span id="downloadAndroidLabel">Install on Android</span><span class="install-channel-badge install-channel-badge--beta">Beta</span> <span class="android-version" aria-hidden="true"></span></a>
+        </div>
+        <div class="settings-option" id="iosDownloadOption">
+          <a id="downloadIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="downloadIosLabel">Install on iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span> <span class="ios-version" aria-hidden="true"></span></a>
+        </div>
+      </div>
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Data management" role="tabpanel" aria-hidden="true">
+      <div class="settings-section">
+        <h4>💾 Data Management</h4>
+        <div class="data-management-buttons">
+          <div class="data-management-buttons__cell" id="installWebAppOption">
+            <button type="button" class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA()"><span class="settings-install-icon" aria-hidden="true"><i class="fa-solid fa-globe"></i></span><span id="installWebAppLabel">Install web app</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></button>
+          </div>
+          <div class="data-management-buttons__cell">
+            <button type="button" class="settings-data-btn export-btn" onclick="exportData()"><span class="data-management-buttons__icon" aria-hidden="true">📤</span><span class="data-management-buttons__label">Export Data</span></button>
+          </div>
+          <div class="data-management-buttons__cell">
+            <button type="button" class="settings-data-btn import-btn" onclick="importData()"><span class="data-management-buttons__icon" aria-hidden="true">📥</span><span class="data-management-buttons__label">Import Data</span></button>
+          </div>
+        </div>
+        <div class="danger-zone">
+          <button class="settings-data-btn danger-btn" onclick="clearData()">🗑️ Clear All Data</button>
+        </div>
+      </div>
+      <div class="settings-footer">
+        <a href="#" class="settings-footer-link" onclick="event.preventDefault(); openCookiePolicyModal(); return false;">Cookie policy</a>
+      </div>
+      </div>
+      </div>
+      </div>
+      </div>
+      <button type="button" class="settings-carousel-side settings-carousel-side--next" id="settingsCarouselNext" onclick="settingsCarouselStep(1)" aria-label="Next settings section">›</button>
+    </div>
+  </div>
+
+  <!-- Goals & Targets Modal -->
+  <div class="modal-overlay goals-modal-overlay" id="goalsModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Goals and targets">
+    <div class="modal-content goals-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Goals & targets</h3>
+        <button type="button" class="modal-close" onclick="closeGoalsModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body goals-modal-body">
+        <p class="field-hint" style="margin-bottom: 16px;">Set daily or weekly targets. Progress appears on the Log tab. Use 0 to leave a goal off.</p>
+        <div class="goals-slider-group">
+          <label for="goalSteps">Steps per day</label>
+          <div class="goals-slider-row">
+            <input type="range" id="goalSteps" min="0" max="20000" step="500" value="0" oninput="updateGoalLabel('goalSteps', 'goalStepsLabel', 0, 'steps')">
+            <span id="goalStepsLabel" class="goals-value-label">Off</span>
+          </div>
+        </div>
+        <div class="goals-slider-group">
+          <label for="goalHydration">Hydration (glasses per day)</label>
+          <div class="goals-slider-row">
+            <input type="range" id="goalHydration" min="0" max="20" step="1" value="0" oninput="updateGoalLabel('goalHydration', 'goalHydrationLabel', 0, 'glasses')">
+            <span id="goalHydrationLabel" class="goals-value-label">Off</span>
+          </div>
+        </div>
+        <div class="goals-slider-group">
+          <label for="goalSleep">Sleep quality (score 1–10)</label>
+          <div class="goals-slider-row">
+            <input type="range" id="goalSleep" min="0" max="10" step="1" value="0" oninput="updateGoalLabel('goalSleep', 'goalSleepLabel', 0, 'score')">
+            <span id="goalSleepLabel" class="goals-value-label">Off</span>
+          </div>
+        </div>
+        <div class="goals-slider-group">
+          <label for="goalGoodDays">Good days per week (no flare, mood ≥ 6)</label>
+          <div class="goals-slider-row">
+            <input type="range" id="goalGoodDays" min="0" max="7" step="1" value="0" oninput="updateGoalLabel('goalGoodDays', 'goalGoodDaysLabel', 0, 'days')">
+            <span id="goalGoodDaysLabel" class="goals-value-label">Off</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-save-btn" onclick="saveGoalsAndClose()">Save</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="app-shell" id="appShell">
+    <!-- Sibling of .container (not inside scroll/transform) so fixed top-right matches FAB behavior -->
+    <div class="header-buttons-wrap">
+      <button type="button" class="targets-button-top" onclick="openGoalsModal()" title="Goals & targets">
+        <svg class="targets-face-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="12" cy="12" r="2" fill="currentColor"/>
+        </svg>
+      </button>
+      <button class="settings-button-top" onclick="toggleSettings()" title="Settings">
+        <svg class="settings-cog" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.4-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1c0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+    <div class="container app-main-scroll" id="main-content">
+
+    <div class="title-container">
+      <h1 id="dashboardTitle" data-text="Rianell">Rianell</h1>
+      <div class="heartbeat-line">
+        <svg class="heartbeat-svg" viewBox="0 0 400 60" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <linearGradient id="heartbeatGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:rgba(76, 175, 80, 0.2);stop-opacity:1" />
+              <stop offset="50%" style="stop-color:rgba(76, 175, 80, 1);stop-opacity:1" />
+              <stop offset="100%" style="stop-color:rgba(76, 175, 80, 0.2);stop-opacity:1" />
+            </linearGradient>
+            <filter id="heartbeatGlow">
+              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <!-- Base line (subtle) -->
+          <line x1="0" y1="30" x2="400" y2="30" stroke="rgba(76, 175, 80, 0.15)" stroke-width="1.5"/>
+          <!-- ECG trace: d filled by initEcgHeartbeatLine() in app.js (natural QRS + slight randomness) -->
+          <path class="heartbeat-path" pathLength="1000"
+                d="M0,30 L400,30"
+                fill="none"
+                stroke="url(#heartbeatGradient)"
+                stroke-width="2.75"
+                stroke-linecap="butt"
+                stroke-linejoin="miter"
+                stroke-miterlimit="8"
+                filter="url(#heartbeatGlow)"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Tab Navigation (desktop / wide screens) -->
+    <div class="tab-navigation tab-navigation--top" role="tablist" aria-label="Main sections">
+      <span class="tab-nav-indicator" id="tabNavIndicator" aria-hidden="true"></span>
+      <button type="button" class="tab-btn main-nav-tab active" data-tab="home" role="tab" aria-selected="true" aria-controls="homeTab" id="tab-home" onclick="switchTab('home')">
+        <span class="tab-icon">🏠</span>
+        <span class="tab-text">Home</span>
+      </button>
+      <button type="button" class="tab-btn main-nav-tab" data-tab="logs" role="tab" aria-selected="false" aria-controls="logsTab" id="tab-logs" onclick="switchTab('logs')">
+        <span class="tab-icon">📋</span>
+        <span class="tab-text">View Logs</span>
+      </button>
+      <button type="button" class="tab-btn main-nav-tab" data-tab="charts" role="tab" aria-selected="false" aria-controls="chartsTab" id="tab-charts" onclick="switchTab('charts')">
+        <span class="tab-icon">📊</span>
+        <span class="tab-text">Charts</span>
+      </button>
+      <button type="button" class="tab-btn main-nav-tab" data-tab="ai" role="tab" aria-selected="false" aria-controls="aiTab" id="tab-ai" onclick="switchTab('ai')">
+        <span class="tab-icon">🧠</span>
+        <span class="tab-text">AI Analysis</span>
+      </button>
+    </div>
+
+    <!-- Home / Today -->
+    <div id="homeTab" class="tab-content active" role="tabpanel" aria-labelledby="tab-home">
+      <div class="home-today-header">
+        <h2 class="tab-title" id="homeGreeting">Today</h2>
+        <p class="home-today-sub" id="homeTodayDate" aria-live="polite"></p>
+      </div>
+      <div id="homeTodayStatus" class="home-today-status" role="status" aria-live="polite"></div>
+      <div id="goalsProgressBlock" class="goals-progress-block" style="display: none;" aria-live="polite"></div>
+    </div>
+
+    <!-- Log wizard (opened via floating + button, not a main nav tab) -->
+    <div id="logTab" class="tab-content log-wizard-mode" role="tabpanel" aria-labelledby="logTabTitle">
+      <div class="tab-header log-tab-header-wizard">
+        <h2 class="tab-title" id="logTabTitle">Log today</h2>
+      </div>
+    <form id="logForm">
+      <div id="validationSummary" class="form-validation-summary">
+        <h4>⚠️ Please fix the following errors:</h4>
+        <ul id="validationList"></ul>
+      </div>
+
+      <div class="log-wizard-body">
+        <div class="log-wizard-center">
+      <div class="log-wizard-chrome" id="logWizardChrome">
+        <p class="log-wizard-step-indicator" id="logWizardStepIndicator"><span id="logWizardStepLabel">Step 1 of 10</span></p>
+        <div class="log-wizard-progress-track" role="progressbar" aria-valuemin="1" aria-valuemax="10" aria-valuenow="1" id="logWizardProgressBar" aria-labelledby="logWizardStepLabel">
+          <div class="log-wizard-progress-fill" id="logWizardProgressFill"></div>
+        </div>
+      </div>
+      <div class="log-wizard-steps" id="logWizardSteps">
+      <div class="log-wizard-step log-wizard-step--active" data-log-step="0" data-step-title="Date &amp; flare">
+
+      <!-- Required: date and flare first -->
+      <div class="log-date-block">
+        <label for="date">Logging date</label>
+        <div class="input-container">
+          <input type="date" id="date" required autofocus />
+          <div class="validation-message" id="date-error"></div>
+        </div>
+      </div>
+      <div class="log-required-block">
+        <label for="flare">Flare-up Today?</label>
+        <div class="input-container">
+          <select id="flare" required>
+            <option value="">Select an option</option>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+          <div class="validation-message" id="flare-error"></div>
+        </div>
+      </div>
+
+      </div>
+      <div class="log-wizard-step" data-log-step="1" data-step-title="Vitals">
+
+      <!-- Optional sections (all below) -->
+      <!-- Basic Metrics Section (optional) -->
+      <div class="form-section">
+        <button type="button" class="section-header" data-section="basicMetrics">
+          <span class="section-icon">📊</span>
+          <span class="section-title">Basic Metrics <span class="optional-hint">(Optional)</span></span>
+        </button>
+        <div class="section-content" id="basicMetrics">
+      <label for="bpm">Resting BPM</label>
+      <div class="input-container">
+        <input type="number" id="bpm" min="30" max="120" />
+        <div class="validation-message" id="bpm-error"></div>
+      </div>
+
+          <div class="weight-label-container">
+            <label for="weight">Weight</label>
+            <button type="button" id="weightUnitToggle" class="unit-toggle-btn" onclick="toggleWeightUnit()" title="Toggle between kg and lb">
+              <span id="weightUnitDisplay">kg</span>
+            </button>
+          </div>
+      <div class="input-container">
+        <input type="number" id="weight" min="40" max="200" step="0.1" />
+        <div class="validation-message" id="weight-error"></div>
+          </div>
+        </div>
+      </div>
+
+      </div>
+      <div class="log-wizard-step" data-log-step="2" data-step-title="Symptoms &amp; pain">
+
+      <!-- Symptoms Section -->
+      <div class="form-section">
+        <button type="button" class="section-header" data-section="symptoms">
+          <span class="section-icon">🩺</span>
+          <span class="section-title">Symptoms & Pain</span>
+        </button>
+        <div class="section-content" id="symptoms">
+      <div class="slider-container">
+        <input type="range" id="stiffness" min="1" max="10" step="1" />
+        <label for="stiffness" class="slider-label">Stiffness Level</label>
+        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
+      </div>
+
+      <div class="slider-container">
+        <input type="range" id="jointPain" min="1" max="10" step="1" />
+        <label for="jointPain" class="slider-label">Joint Pain</label>
+        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
+      </div>
+
+      <div class="slider-container">
+        <input type="range" id="mobility" min="1" max="10" step="1" />
+        <label for="mobility" class="slider-label">Mobility</label>
+        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
+      </div>
+
+      <div class="slider-container">
+        <input type="range" id="swelling" min="1" max="10" step="1" />
+        <label for="swelling" class="slider-label">Joint Swelling</label>
+        <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
+      </div>
+      <div class="input-container pain-body-container">
+        <div class="pain-body-intro" role="group" aria-labelledby="pain-body-title">
+          <h3 class="pain-body-title" id="pain-body-title">Where it hurts</h3>
+          <p class="pain-body-hint">Tap any area on the figure to cycle intensity.</p>
+          <ul class="pain-body-legend-chips" aria-label="Intensity colors">
+            <li><span class="pain-legend-swatch pain-legend-none" aria-hidden="true"></span><span>None</span></li>
+            <li><span class="pain-legend-swatch pain-legend-mild" aria-hidden="true"></span><span>Mild</span></li>
+            <li><span class="pain-legend-swatch pain-legend-pain" aria-hidden="true"></span><span>Pain</span></li>
+          </ul>
+        </div>
+        <input type="hidden" id="painLocation" name="painLocation" />
+        <div class="pain-body-wrapper" id="painBodyDiagram" aria-label="Select body areas for pain">
+          <svg class="pain-body-svg" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter>
+            </defs>
+            <!-- Body outline (background) - smooth human silhouette -->
+            <path class="pain-body-outline" d="M70 10 A26 28 0 0 1 70 66 Q58 70 50 78 Q42 90 44 108 Q46 138 48 168 Q50 198 48 238 Q46 268 52 278 L64 280 L76 280 L88 278 Q94 268 92 238 Q90 198 92 168 Q94 138 96 108 Q98 90 90 78 Q82 70 70 66 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>
+            <!-- Clickable regions (front view, rounded human-like shapes) -->
+            <ellipse class="pain-region pain-state-0" data-region="head" cx="70" cy="34" rx="26" ry="28" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="neck" d="M54 58 Q52 64 54 76 L86 76 Q88 64 86 58 Q82 56 70 56 Q58 56 54 58 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="chest" d="M46 72 Q38 80 42 96 L46 108 L94 108 L98 96 Q102 80 94 72 Q86 68 70 68 Q54 68 46 72 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="abdomen" d="M46 108 Q44 132 46 158 L48 162 L92 162 L94 158 Q96 132 94 108 L46 108 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_shoulder" d="M46 72 Q30 74 22 84 Q18 90 24 94 L42 92 Q44 80 46 74 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_upper_arm" d="M24 90 Q16 106 20 126 L26 132 Q30 118 30 98 Q30 90 24 90 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_forearm" d="M22 132 Q14 150 18 170 L26 174 Q30 160 30 142 Q30 132 22 132 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_hand" d="M20 172 Q16 184 20 198 L30 198 Q34 186 32 174 Q30 172 20 172 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_shoulder" d="M94 72 Q110 74 118 84 Q122 90 116 94 L98 92 Q96 80 94 74 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_upper_arm" d="M116 90 Q124 106 120 126 L114 132 Q110 118 110 98 Q110 90 116 90 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_forearm" d="M118 132 Q126 150 122 170 L114 174 Q110 160 110 142 Q110 132 118 132 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_hand" d="M120 172 Q124 184 120 198 L110 198 Q106 186 108 174 Q110 172 120 172 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_hip" d="M48 160 Q44 166 48 172 L56 172 Q60 166 56 162 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_thigh" d="M48 170 Q44 192 48 212 L56 214 Q60 198 58 178 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_knee" d="M50 214 Q48 222 52 234 L60 234 Q62 226 58 218 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_lower_leg" d="M52 234 Q48 252 50 268 L58 268 Q62 252 60 236 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="left_foot" d="M56 268 L52 266 L38 274 L40 280 L54 278 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_hip" d="M92 160 Q96 166 92 172 L84 172 Q80 166 84 162 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_thigh" d="M92 170 Q96 192 92 212 L84 214 Q80 198 82 178 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_knee" d="M90 214 Q92 222 88 234 L80 234 Q78 226 82 218 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_lower_leg" d="M88 234 Q92 252 90 268 L82 268 Q78 252 80 236 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <path class="pain-region pain-state-0" data-region="right_foot" d="M84 268 L88 266 L102 274 L100 280 L86 278 Z" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <!-- Joint points (balls) - same click/cycle behaviour as body regions -->
+            <circle class="pain-region pain-state-0" data-region="left_elbow" cx="25" cy="131" r="6" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <circle class="pain-region pain-state-0" data-region="right_elbow" cx="115" cy="131" r="6" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <circle class="pain-region pain-state-0" data-region="left_wrist" cx="25" cy="173" r="6" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <circle class="pain-region pain-state-0" data-region="right_wrist" cx="115" cy="173" r="6" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <circle class="pain-region pain-state-0" data-region="left_ankle" cx="54" cy="268" r="6" fill="currentColor" filter="url(#pain-body-shadow)"/>
+            <circle class="pain-region pain-state-0" data-region="right_ankle" cx="86" cy="268" r="6" fill="currentColor" filter="url(#pain-body-shadow)"/>
+          </svg>
+        </div>
+      </div>
+        </div>
+      </div>
+
+      <!-- Extra symptom tags (tile picker) - same step as sliders & body map -->
+      <div class="form-section">
+        <button type="button" class="section-header" data-section="additionalSymptoms">
+          <span class="section-icon">🩹</span>
+          <span class="section-title">Extra symptom tags <span class="optional-hint">(Optional)</span></span>
+        </button>
+        <div class="section-content" id="additionalSymptoms">
+          <div class="selection-summary-sticky">
+            <div id="logSymptomsList" class="items-list"></div>
+          </div>
+          <div class="symptom-tiles-collapsible">
+            <button type="button" class="symptom-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--symptom" aria-hidden="true">+</span><span class="tile-picker-trigger__label">Add symptom</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div id="logSymptomsFrequent" class="frequent-chips-wrap" aria-label="Frequently used symptoms"></div>
+                <div id="logSymptomsTiles" class="symptom-tiles-container" aria-label="Symptom options by group"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      </div>
+      <div class="log-wizard-step" data-log-step="3" data-step-title="Energy &amp; mental clarity">
+
+      <!-- Energy & Cognitive Section -->
+      <div class="form-section">
+        <button type="button" class="section-header" data-section="energyCognitive">
+          <span class="section-icon">⚡</span>
+          <span class="section-title">Energy & Mental Clarity</span>
+        </button>
+        <div class="section-content" id="energyCognitive">
+          <div class="slider-container">
+            <input type="range" id="fatigue" min="1" max="10" step="1" />
+            <label for="fatigue" class="slider-label">Fatigue Level</label>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
+          </div>
+          <div class="slider-container">
+            <input type="range" id="sleep" min="1" max="10" step="1" />
+            <label for="sleep" class="slider-label">Sleep Quality</label>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
+          </div>
+          <div class="slider-container">
+            <input type="range" id="mood" min="1" max="10" step="1" />
+            <label for="mood" class="slider-label">Mood Level</label>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
+          </div>
+          <div class="input-container">
+            <label for="energyClarity" class="visually-hidden">Energy and mental clarity</label>
+            <input type="hidden" id="energyClarity" name="energyClarity" value="" />
+            <div class="selection-summary-sticky">
+              <p id="energyClaritySelectedLabel" class="energy-clarity-selected" aria-live="polite">None selected</p>
+            </div>
+            <div class="energy-clarity-collapsible">
+              <button type="button" class="energy-clarity-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--energy" aria-hidden="true">+</span><span class="tile-picker-trigger__label">Energy &amp; clarity</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
+              <div class="tile-picker-slot">
+                <div class="tile-picker-anchor">
+                  <div id="energyClarityTiles" class="energy-clarity-tiles" role="listbox" aria-label="Energy and mental clarity options"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      </div>
+      <div class="log-wizard-step" data-log-step="4" data-step-title="Stress &amp; triggers">
+
+      <!-- Stress & Triggers Section -->
+      <div class="form-section">
+        <button type="button" class="section-header" data-section="stressTriggers">
+          <span class="section-icon">😰</span>
+          <span class="section-title">Stress & Triggers</span>
+        </button>
+        <div class="section-content" id="stressTriggers">
+          <div class="slider-container">
+            <input type="range" id="irritability" min="1" max="10" step="1" />
+            <label for="irritability" class="slider-label">Irritability</label>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
+          </div>
+          <div class="slider-container">
+            <input type="range" id="weatherSensitivity" min="1" max="10" step="1" value="5" />
+            <label for="weatherSensitivity" class="slider-label">Weather Sensitivity</label>
+            <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
+          </div>
+          <div class="selection-summary-sticky">
+            <div id="logStressorsList" class="items-list"></div>
+          </div>
+          <div class="stressor-tiles-collapsible">
+            <button type="button" class="stressor-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--stressor" aria-hidden="true">+</span><span class="tile-picker-trigger__label">Stressor / trigger</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div id="logStressorsFrequent" class="frequent-chips-wrap" aria-label="Frequently used stressors"></div>
+                <div id="logStressorsTiles" class="stressor-tiles-container" aria-label="Stress and trigger options by group"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      </div>
+      <div class="log-wizard-step" data-log-step="5" data-step-title="Lifestyle">
+
+      <!-- Lifestyle Factors Section -->
+      <div class="form-section">
+        <button type="button" class="section-header" data-section="lifestyleFactors">
+          <span class="section-icon">🏃</span>
+          <span class="section-title">Lifestyle Factors</span>
+        </button>
+        <div class="section-content" id="lifestyleFactors">
+          <div class="slider-container">
+            <input type="range" id="dailyFunction" min="1" max="10" step="1" />
+            <label for="dailyFunction" class="slider-label">Daily Activities</label>
+          </div>
+          <div class="input-container">
+            <label for="steps">Steps (if tracked)</label>
+            <input type="number" id="steps" min="0" max="50000" step="100" placeholder="0" />
+          </div>
+          <div class="input-container">
+            <label for="hydration">Hydration (glasses/cups of water)</label>
+            <input type="number" id="hydration" min="0" max="20" step="0.5" placeholder="0" />
+          </div>
+        </div>
+      </div>
+
+      </div>
+      <div class="log-wizard-step" data-log-step="6" data-step-title="Food">
+
+      <!-- Food Log Section (4 categories: Breakfast, Lunch, Dinner, Snack) -->
+      <div class="form-section">
+        <button type="button" class="section-header" data-section="foodLog">
+          <span class="section-icon">🍽️</span>
+          <span class="section-title">Food Log <span class="optional-hint">(Optional)</span></span>
+        </button>
+        <div class="section-content" id="foodLog">
+          <div id="logFoodFrequent" class="frequent-chips-wrap" aria-label="Frequently logged foods"></div>
+          <div class="food-category-block food-meal-collapsible">
+            <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Breakfast</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="food-category-body">
+                  <div class="selection-summary-sticky">
+                    <div id="logFoodBreakfastList" class="items-list"></div>
+                  </div>
+                  <div id="logFoodBreakfastChips" class="food-tiles-by-group" aria-label="Add to Breakfast"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="food-category-block food-meal-collapsible">
+            <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Lunch</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="food-category-body">
+                  <div class="selection-summary-sticky">
+                    <div id="logFoodLunchList" class="items-list"></div>
+                  </div>
+                  <div id="logFoodLunchChips" class="food-tiles-by-group" aria-label="Add to Lunch"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="food-category-block food-meal-collapsible">
+            <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Dinner</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="food-category-body">
+                  <div class="selection-summary-sticky">
+                    <div id="logFoodDinnerList" class="items-list"></div>
+                  </div>
+                  <div id="logFoodDinnerChips" class="food-tiles-by-group" aria-label="Add to Dinner"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="food-category-block food-meal-collapsible">
+            <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Snack</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="food-category-body">
+                  <div class="selection-summary-sticky">
+                    <div id="logFoodSnackList" class="items-list"></div>
+                  </div>
+                  <div id="logFoodSnackChips" class="food-tiles-by-group" aria-label="Add to Snack"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      </div>
+      <div class="log-wizard-step" data-log-step="7" data-step-title="Exercise">
+
+      <!-- Exercise Log Section (tile grid by category: Cardio, Strength, etc. - collapsible, collapsed by default) -->
+      <div class="form-section">
+        <button type="button" class="section-header" data-section="exerciseLog">
+          <span class="section-icon">🏃</span>
+          <span class="section-title">Exercise Log <span class="optional-hint">(Optional)</span></span>
+        </button>
+        <div class="section-content" id="exerciseLog">
+          <div id="logExerciseFrequent" class="frequent-chips-wrap" aria-label="Frequently logged exercises"></div>
+          <div class="selection-summary-sticky">
+            <div id="logExerciseItemsList" class="items-list"></div>
+          </div>
+          <div class="exercise-category-block exercise-meal-collapsible">
+            <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Cardio</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="exercise-category-body">
+                  <div id="logExerciseCardioChips" class="exercise-chips" aria-label="Add Cardio"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="exercise-category-block exercise-meal-collapsible">
+            <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Strength</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="exercise-category-body">
+                  <div id="logExerciseStrengthChips" class="exercise-chips" aria-label="Add Strength"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="exercise-category-block exercise-meal-collapsible">
+            <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Flexibility</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="exercise-category-body">
+                  <div id="logExerciseFlexibilityChips" class="exercise-chips" aria-label="Add Flexibility"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="exercise-category-block exercise-meal-collapsible">
+            <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Balance</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="exercise-category-body">
+                  <div id="logExerciseBalanceChips" class="exercise-chips" aria-label="Add Balance"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="exercise-category-block exercise-meal-collapsible">
+            <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Recovery</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+            <div class="tile-picker-slot">
+              <div class="tile-picker-anchor">
+                <div class="exercise-category-body">
+                  <div id="logExerciseRecoveryChips" class="exercise-chips" aria-label="Add Recovery"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      </div>
+      <div class="log-wizard-step" data-log-step="8" data-step-title="Medication &amp; notes">
+
+      <!-- Medication / Supplements Section (optional) -->
+      <div class="form-section">
+        <button type="button" class="section-header" data-section="medications">
+          <span class="section-icon">💊</span>
+          <span class="section-title">Medication / Supplements <span class="optional-hint">(Optional)</span></span>
+        </button>
+        <div class="section-content" id="medications">
+          <p class="field-hint">Add medications or supplements and mark if taken today.</p>
+          <div id="logMedicationsFrequent" class="frequent-chips-wrap" aria-label="Frequently used medications"></div>
+          <div class="medication-add-form">
+            <div class="input-container">
+              <label for="medName">Name</label>
+              <input type="text" id="medName" placeholder="e.g. Aspirin, Vitamin D" maxlength="80" class="medication-input">
+            </div>
+            <div class="input-container">
+              <label for="medTimePicker">Time(s)</label>
+              <div class="medication-time-picker-row">
+                <input type="time" id="medTimePicker" class="medication-input medication-time-input" title="Pick a time">
+                <button type="button" class="medication-add-time-btn" onclick="addMedTimeTagFromPicker()" title="Add time" aria-label="Add time">+</button>
+              </div>
+              <div id="medTimesDraftTags" class="medication-times-draft-tags" role="list" aria-label="Times to add"></div>
+              <span class="field-hint-inline">Pick a time, then + to add. Remove a tag to drop it before saving.</span>
+            </div>
+            <div class="input-container medication-taken-row">
+              <span class="medication-taken-label">Taken today?</span>
+              <label class="medication-checkbox-wrap" for="medTaken">
+                <input type="checkbox" id="medTaken" class="medication-checkbox" checked>
+                <span class="medication-checkbox-custom" aria-hidden="true"></span>
+                <span class="medication-checkbox-text">Yes</span>
+              </label>
+            </div>
+            <button type="button" class="add-medication-btn" onclick="addLogMedicationItem()">Add</button>
+          </div>
+          <div id="logMedicationsList" class="medication-items-list"></div>
+        </div>
+      </div>
+
+      <!-- Additional Info Section (optional) -->
+      <div class="form-section">
+        <button type="button" class="section-header" data-section="additionalInfo">
+          <span class="section-icon">📝</span>
+          <span class="section-title">Notes <span class="optional-hint">(Optional)</span></span>
+        </button>
+        <div class="section-content" id="additionalInfo">
+      <label for="notes">Notes <span id="notesCounter" class="character-counter">0/500</span></label>
+      <div class="input-container">
+        <textarea id="notes" placeholder="Tap here and use voice dictation to quickly add notes about your symptoms, triggers, or activities..." maxlength="500"></textarea>
+        <button type="button" id="suggestNoteBtn" class="suggest-note-btn" title="Suggest a short note based on today&#39;s metrics vs your average">Suggest note</button>
+        <div class="validation-message" id="notes-error"></div>
+          </div>
+        </div>
+      </div>
+
+      </div>
+      <div class="log-wizard-step" data-log-step="9" data-step-title="Review">
+        <div class="log-review-summary" id="logReviewSummary" aria-live="polite"></div>
+      </div>
+
+      </div>
+        </div>
+      </div>
+
+      <div class="log-wizard-bottom-dock" id="logWizardBottomDock" aria-label="Log wizard actions">
+        <div class="log-wizard-sticky-actions log-wizard-footer-actions" id="logWizardStickyActions">
+          <div class="log-wizard-step-dots" id="logWizardStepDots" aria-hidden="true"></div>
+          <button type="submit" class="save-entry-btn log-wizard-save-btn" id="logWizardSaveBtn">💾 Save Entry</button>
+        </div>
+        <div class="log-wizard-nav-row log-wizard-nav-row--bottom" role="toolbar" aria-label="Back, skip, and next">
+          <button type="button" class="log-wizard-back-btn log-wizard-nav-btn log-wizard-nav-btn--secondary log-wizard-bottom-btn" id="logWizardBackBtn" data-nav-mode="back">
+            <span class="log-wizard-nav-btn__ic log-wizard-nav-btn__ic--back" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="log-wizard-nav-btn__ic log-wizard-nav-btn__ic--close" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            </span>
+            <span class="log-wizard-nav-btn__label" id="logWizardBackLabel">Back</span>
+          </button>
+          <button type="button" class="log-wizard-skip-btn log-wizard-nav-btn log-wizard-nav-btn--skip log-wizard-bottom-btn" id="logWizardSkipBtn" aria-label="Skip optional sections on this step">
+            <span class="log-wizard-nav-btn__ic" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 5l7 7-7 7M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="log-wizard-nav-btn__label">Skip</span>
+          </button>
+          <button type="button" class="log-wizard-next-btn log-wizard-nav-btn log-wizard-nav-btn--primary log-wizard-bottom-btn" id="logWizardNextBtn">
+            <span class="log-wizard-nav-btn__label">Next</span>
+            <span class="log-wizard-nav-btn__ic" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </button>
+        </div>
+      </div>
+    </form>
+    </div>
+
+    <!-- View Logs Tab -->
+    <div id="logsTab" class="tab-content" role="tabpanel" aria-labelledby="tab-logs">
+      <section class="tab-filters" aria-label="Filter and sort">
+        <div class="filter-section">
+          <div class="log-view-range-buttons">
+            <label class="filter-label">View Range:</label>
+            <div class="log-date-range-buttons">
+              <button class="log-date-range-btn active" onclick="setLogViewRange(1)" id="logRange1Day">Today</button>
+              <button class="log-date-range-btn" onclick="setLogViewRange(7)" id="logRange7Days">7 Days</button>
+              <button class="log-date-range-btn" onclick="setLogViewRange(30)" id="logRange30Days">30 Days</button>
+              <button class="log-date-range-btn" onclick="setLogViewRange(90)" id="logRange90Days">90 Days</button>
+            </div>
+          </div>
+          <p class="field-hint">Choose which days to include.</p>
+          <div class="compact-filters">
+            <div class="date-range">
+              <input type="date" id="startDate" placeholder="Start Date">
+              <span class="date-separator">to</span>
+              <input type="date" id="endDate" placeholder="End Date">
+            </div>
+            <button onclick="filterLogs()" class="filter-btn">📅 Filter</button>
+            <div class="sort-buttons-group" role="group" aria-label="Sort order">
+              <button type="button" id="sortOldest" class="sort-btn sort-btn-option" data-sort="oldest" onclick="setSortOrder('oldest')" title="Oldest first">📉 Oldest</button>
+              <button type="button" id="sortNewest" class="sort-btn sort-btn-option active" data-sort="newest" onclick="setSortOrder('newest')" title="Newest first">📈 Newest</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="log-output-section" class="tab-content-section" aria-label="Log entries">
+        <h2 class="section-heading">Your entries</h2>
+        <div id="logOutput"></div>
+      </section>
+    </div>
+
+    <!-- AI Analysis Tab -->
+    <div id="aiTab" class="tab-content" role="tabpanel" aria-labelledby="tab-ai">
+      <div class="tab-header">
+      </div>
+      <section class="tab-filters" aria-label="Analysis range">
+        <div class="chart-date-range-filter">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label class="filter-label">Analysis Range:</label>
+              <label class="filter-label-mobile">Analysis Range:</label>
+              <div class="date-range-buttons">
+                <button class="date-range-btn active" onclick="setAIDateRange(7)" id="aiRange7Days">7 Days</button>
+                <button class="date-range-btn" onclick="setAIDateRange(30)" id="aiRange30Days">30 Days</button>
+                <button class="date-range-btn" onclick="setAIDateRange(90)" id="aiRange90Days">90 Days</button>
+                <button class="date-range-btn" onclick="setAIDateRange('custom')" id="aiRangeCustom">Custom</button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <button type="button" class="filter-btn share-ai-btn" onclick="openShareModalForAIAnalysis()" title="Share or export AI analysis">Share</button>
+            </div>
+            <p class="field-hint">Choose which days to include.</p>
+          </div>
+          <div id="aiCustomDateRangeSelector" class="custom-date-range hidden">
+            <div class="date-range">
+              <input type="date" id="aiStartDate" placeholder="Start Date">
+              <span class="date-separator">to</span>
+              <input type="date" id="aiEndDate" placeholder="End Date">
+            </div>
+            <button onclick="applyAICustomDateRange()" class="filter-btn">Apply</button>
+          </div>
+        </div>
+      </section>
+      <section id="aiResultsSection" class="tab-content-section" aria-label="Analysis results">
+        <div id="aiResultsContent"></div>
+      </section>
+    </div>
+
+    <!-- Charts Tab -->
+    <div id="chartsTab" class="tab-content" role="tabpanel" aria-labelledby="tab-charts">
+      <section class="tab-filters" aria-label="Chart view and date range">
+        <div class="tab-header">
+          <div class="chart-view-toggle">
+            <button class="view-toggle-btn" onclick="toggleChartView('balance')" id="balanceViewBtn">
+              <span>⚖️</span> Balance
+            </button>
+            <button class="view-toggle-btn" onclick="toggleChartView('individual')" id="individualViewBtn">
+              <span>📊</span> Individual
+            </button>
+            <button class="view-toggle-btn" onclick="toggleChartView('combined')" id="combinedViewBtn">
+              <span>📈</span> Combined
+            </button>
+          </div>
+        </div>
+        <div class="chart-date-range-filter">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label class="filter-label">View Range:</label>
+              <label class="filter-label-mobile">View Range:</label>
+              <div class="date-range-buttons">
+                <button class="date-range-btn" onclick="setChartDateRange(1)" id="range1Day">Today</button>
+                <button class="date-range-btn active" onclick="setChartDateRange(7)" id="range7Days">7 Days</button>
+                <button class="date-range-btn" onclick="setChartDateRange(30)" id="range30Days">30 Days</button>
+                <button class="date-range-btn" onclick="setChartDateRange(90)" id="range90Days">90 Days</button>
+                <button class="date-range-btn" onclick="setChartDateRange('custom')" id="rangeCustom">Custom</button>
+              </div>
+            </div>
+            <p class="field-hint">Choose which days to include.</p>
+            <div class="filter-group">
+              <label class="filter-label">Prediction Range:</label>
+              <label class="filter-label-mobile">Prediction Range:</label>
+              <div class="prediction-range-buttons">
+                <button class="prediction-range-btn" onclick="togglePredictions()" id="predictionToggle" title="Toggle predictions on/off">
+                  <span id="predictionToggleText">Off</span>
+                </button>
+                <button class="prediction-range-btn" onclick="setPredictionRange(1)" id="predRange1Day">Tomorrow</button>
+                <button class="prediction-range-btn active" onclick="setPredictionRange(7)" id="predRange7Days">7 Days</button>
+                <button class="prediction-range-btn" onclick="setPredictionRange(30)" id="predRange30Days">30 Days</button>
+                <button class="prediction-range-btn" onclick="setPredictionRange(90)" id="predRange90Days">90 Days</button>
+              </div>
+            </div>
+          </div>
+          <div id="customDateRangeSelector" class="custom-date-range hidden">
+            <label for="chartStartDate">From:</label>
+            <input type="date" id="chartStartDate" onchange="applyCustomDateRange()">
+            <label for="chartEndDate">To:</label>
+            <input type="date" id="chartEndDate" onchange="applyCustomDateRange()">
+          </div>
+        </div>
+      </section>
+      <section class="tab-content-section" aria-label="Your metrics">
+        <h2 class="section-heading">Your metrics</h2>
+      <div id="chartSection">
+      <!-- Empty State Placeholder -->
+      <div id="chartEmptyPlaceholder" class="chart-empty-placeholder hidden">
+        <div class="empty-placeholder-icon">📊</div>
+        <div class="empty-placeholder-text">Start logging to display data</div>
+      </div>
+      
+      <!-- Combined Chart View -->
+      <div id="combinedChartContainer" class="chart-container hidden">
+        <div id="combinedChart"></div>
+        <!-- Metric Selection UI -->
+        <div id="combinedChartMetricSelector" class="metric-selector-container">
+          <div class="metric-selector-header">
+            <span class="metric-selector-title">Select Metrics to Display:</span>
+            <div class="metric-selector-actions">
+              <button type="button" id="combinedSelectAllBtn" class="metric-select-btn" onclick="toggleCombinedSelectAll()">Select All</button>
+            </div>
+          </div>
+          <div id="metricCheckboxes" class="metric-checkboxes-grid"></div>
+        </div>
+      </div>
+      
+      <!-- Balance Chart View -->
+      <div id="balanceChartContainer" class="chart-container hidden">
+        <div id="balanceChart"></div>
+        <!-- Metric Selection UI -->
+        <div id="balanceChartMetricSelector" class="metric-selector-container">
+          <div class="metric-selector-header">
+            <span class="metric-selector-title">Select Metrics to Display:</span>
+            <div class="metric-selector-actions">
+              <button type="button" id="balanceSelectAllBtn" class="metric-select-btn" onclick="toggleBalanceSelectAll()">Select All</button>
+            </div>
+          </div>
+          <div id="balanceMetricCheckboxes" class="metric-checkboxes-grid"></div>
+        </div>
+      </div>
+      
+      <!-- Individual Charts View -->
+      <div id="individualChartsContainer">
+        <div id="bpmChart" class="chart-container lazy-chart" data-chart-type="bpm">
+          <div class="chart-loading">📊 Loading BPM Chart...</div>
+        </div>
+        <div id="fatigueChart" class="chart-container lazy-chart" data-chart-type="fatigue">
+          <div class="chart-loading">📊 Loading Fatigue Chart...</div>
+        </div>
+        <div id="stiffnessChart" class="chart-container lazy-chart" data-chart-type="stiffness">
+          <div class="chart-loading">📊 Loading Stiffness Chart...</div>
+        </div>
+        <div id="backPainChart" class="chart-container lazy-chart" data-chart-type="backPain">
+          <div class="chart-loading">📊 Loading Back Pain Chart...</div>
+        </div>
+        <div id="sleepChart" class="chart-container lazy-chart" data-chart-type="sleep">
+          <div class="chart-loading">📊 Loading Sleep Chart...</div>
+        </div>
+        <div id="jointPainChart" class="chart-container lazy-chart" data-chart-type="jointPain">
+          <div class="chart-loading">📊 Loading Joint Pain Chart...</div>
+        </div>
+        <div id="mobilityChart" class="chart-container lazy-chart" data-chart-type="mobility">
+          <div class="chart-loading">📊 Loading Mobility Chart...</div>
+        </div>
+        <div id="dailyFunctionChart" class="chart-container lazy-chart" data-chart-type="dailyFunction">
+          <div class="chart-loading">📊 Loading Daily Function Chart...</div>
+        </div>
+        <div id="swellingChart" class="chart-container lazy-chart" data-chart-type="swelling">
+          <div class="chart-loading">📊 Loading Swelling Chart...</div>
+        </div>
+        <div id="moodChart" class="chart-container lazy-chart" data-chart-type="mood">
+          <div class="chart-loading">📊 Loading Mood Chart...</div>
+        </div>
+        <div id="irritabilityChart" class="chart-container lazy-chart" data-chart-type="irritability">
+          <div class="chart-loading">📊 Loading Irritability Chart...</div>
+        </div>
+        <div id="weatherSensitivityChart" class="chart-container lazy-chart" data-chart-type="weatherSensitivity">
+          <div class="chart-loading">📊 Loading Weather Sensitivity Chart...</div>
+        </div>
+        <div id="stepsChart" class="chart-container lazy-chart" data-chart-type="steps">
+          <div class="chart-loading">📊 Loading Steps Chart...</div>
+        </div>
+        <div id="hydrationChart" class="chart-container lazy-chart" data-chart-type="hydration">
+          <div class="chart-loading">📊 Loading Hydration Chart...</div>
+        </div>
+      </div>
+    </div>
+      </section>
+    </div>
+
+  </div>
+
+  <!-- Beta + FAB: desktop = badge top-right, + bottom-right; mobile = badge beside + above tab bar -->
+  <div class="app-fab-wrap" id="appFabWrap">
+    <span class="app-beta-badge" aria-hidden="true">Beta</span>
+    <button type="button" class="app-log-fab" id="appLogFab" onclick="openLogWizardFromHome()" title="Log health entry" aria-label="Add health log entry">+</button>
+  </div>
+
+  <!-- Bottom tab bar only (flex footer); FAB is not in this stack -->
+  <div class="app-mobile-bottom-chrome">
+    <nav class="app-bottom-nav" id="appBottomNav" role="navigation" aria-label="Main">
+      <button type="button" class="app-bottom-nav-btn main-nav-tab active" data-tab="home" aria-current="page" aria-controls="homeTab" id="bottom-tab-home" onclick="switchTab('home')">
+        <span class="app-bottom-nav-icon" aria-hidden="true">🏠</span>
+        <span class="app-bottom-nav-text">Home</span>
+      </button>
+      <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="logs" aria-controls="logsTab" id="bottom-tab-logs" onclick="switchTab('logs')">
+        <span class="app-bottom-nav-icon" aria-hidden="true">📋</span>
+        <span class="app-bottom-nav-text">Logs</span>
+      </button>
+      <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="charts" aria-controls="chartsTab" id="bottom-tab-charts" onclick="switchTab('charts')">
+        <span class="app-bottom-nav-icon" aria-hidden="true">📊</span>
+        <span class="app-bottom-nav-text">Charts</span>
+      </button>
+      <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="ai" aria-controls="aiTab" id="bottom-tab-ai" onclick="switchTab('ai')">
+        <span class="app-bottom-nav-icon" aria-hidden="true">🧠</span>
+        <span class="app-bottom-nav-text">AI</span>
+      </button>
+    </nav>
+  </div>
+
+  </div>
+
+  <!-- Food Log Modal (Breakfast, Lunch, Dinner, Snack - select from predefined list) -->
+  <div class="modal-overlay" id="foodModalOverlay" role="dialog" aria-modal="true" aria-label="Food log">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>🍽️ Food Log</h3>
+        <button class="modal-close" onclick="closeFoodModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="foodItemsList" class="items-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-save-btn" onclick="saveFoodLog()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full-screen tile picker (replaces native <details> chip sections) -->
+  <dialog id="tilePickerSheet" class="tile-picker-sheet" aria-labelledby="tilePickerSheetTitle">
+    <div class="tile-picker-sheet__panel">
+      <header class="tile-picker-sheet__header">
+        <h2 id="tilePickerSheetTitle" class="tile-picker-sheet__title">Choose</h2>
+        <button type="button" class="tile-picker-sheet__close" id="tilePickerSheetClose" aria-label="Close">&times;</button>
+      </header>
+      <div class="tile-picker-sheet__body" id="tilePickerSheetBody"></div>
+    </div>
+  </dialog>
+
+  <!-- Exercise Log Modal (predefined list + duration) -->
+  <div class="modal-overlay" id="exerciseModalOverlay" role="dialog" aria-modal="true" aria-label="Exercise log">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>🏃 Exercise Log</h3>
+        <button class="modal-close" onclick="closeExerciseModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="exerciseItemsList" class="items-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-save-btn" onclick="saveExerciseLog()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Entry Modal -->
+  <div class="modal-overlay" id="editEntryModalOverlay" role="dialog" aria-modal="true" aria-label="Edit entry">
+    <div class="modal-content edit-entry-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>✏️ Edit Entry</h3>
+        <button class="modal-close" onclick="closeEditEntryModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="editEntryForm">
+          <label for="editDate">Date</label>
+          <input type="date" id="editDate" required />
+          
+          <label for="editBpm">Resting BPM</label>
+          <input type="number" id="editBpm" min="30" max="120" required />
+          
+          <div class="weight-label-container">
+            <label for="editWeight">Weight</label>
+            <button type="button" id="editWeightUnitToggle" class="unit-toggle-btn" onclick="toggleEditWeightUnit()" title="Toggle between kg and lb">
+              <span id="editWeightUnitDisplay">kg</span>
+            </button>
+          </div>
+          <input type="number" id="editWeight" min="40" max="200" step="0.1" required />
+          
+          <label for="editFatigue">Fatigue (0-10)</label>
+          <input type="range" id="editFatigue" min="0" max="10" value="5" oninput="updateEditSliderColor('editFatigue')" />
+          <span class="slider-value" id="editFatigueValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
+          
+          <label for="editStiffness">Stiffness (0-10)</label>
+          <input type="range" id="editStiffness" min="0" max="10" value="5" oninput="updateEditSliderColor('editStiffness')" />
+          <span class="slider-value" id="editStiffnessValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
+          
+          <label for="editSleep">Sleep Quality (0-10)</label>
+          <input type="range" id="editSleep" min="0" max="10" value="5" oninput="updateEditSliderColor('editSleep')" />
+          <span class="slider-value" id="editSleepValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
+          
+          <label for="editJointPain">Joint Pain (0-10)</label>
+          <input type="range" id="editJointPain" min="0" max="10" value="5" oninput="updateEditSliderColor('editJointPain')" />
+          <span class="slider-value" id="editJointPainValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
+          
+          <label for="editMobility">Mobility (0-10)</label>
+          <input type="range" id="editMobility" min="0" max="10" value="5" oninput="updateEditSliderColor('editMobility')" />
+          <span class="slider-value" id="editMobilityValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
+          
+          <label for="editDailyFunction">Daily Function (0-10)</label>
+          <input type="range" id="editDailyFunction" min="0" max="10" value="5" oninput="updateEditSliderColor('editDailyFunction')" />
+          <span class="slider-value" id="editDailyFunctionValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
+          
+          <label for="editSwelling">Swelling (0-10)</label>
+          <input type="range" id="editSwelling" min="0" max="10" value="5" oninput="updateEditSliderColor('editSwelling')" />
+          <span class="slider-value" id="editSwellingValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
+          
+          <label for="editFlare">Flare-up</label>
+          <select id="editFlare">
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+          
+          <label for="editMood">Mood (0-10)</label>
+          <input type="range" id="editMood" min="0" max="10" value="5" oninput="updateEditSliderColor('editMood')" />
+          <span class="slider-value" id="editMoodValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-bad">Bad</span><span class="slider-hint-good">Good</span></div>
+          
+          <label for="editIrritability">Irritability (0-10)</label>
+          <input type="range" id="editIrritability" min="0" max="10" value="5" oninput="updateEditSliderColor('editIrritability')" />
+          <span class="slider-value" id="editIrritabilityValue">5</span>
+          <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
+          
+          <!-- Collapsible Section: Energy & Mental Clarity -->
+          <div class="collapsible-section">
+            <div class="collapsible-header" onclick="toggleCollapsibleSection('editEnergySection')">
+              <span class="section-icon">⚡</span>
+              <span class="section-title">Energy & Mental Clarity (Optional)</span>
+              <span class="collapsible-arrow" id="editEnergySectionArrow">▼</span>
+            </div>
+            <div class="collapsible-content" id="editEnergySection" style="display: none;">
+              <label for="editEnergyClarity" class="visually-hidden">Energy and mental clarity</label>
+              <input type="hidden" id="editEnergyClarity" name="editEnergyClarity" value="" />
+              <p id="editEnergyClaritySelectedLabel" class="energy-clarity-selected" aria-live="polite">None selected</p>
+              <div class="energy-clarity-collapsible">
+                <button type="button" class="energy-clarity-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--energy" aria-hidden="true">+</span><span class="tile-picker-trigger__label">Energy &amp; clarity</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div id="editEnergyClarityTiles" class="energy-clarity-tiles" role="listbox" aria-label="Energy and mental clarity options"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <label for="editWeatherSensitivity">Weather Sensitivity (1-10)</label>
+              <input type="range" id="editWeatherSensitivity" min="1" max="10" value="5" oninput="updateEditSliderColor('editWeatherSensitivity')" />
+              <span class="slider-value" id="editWeatherSensitivityValue">5</span>
+              <div class="slider-good-bad" aria-hidden="true"><span class="slider-hint-good">Good</span><span class="slider-hint-bad">Bad</span></div>
+            </div>
+          </div>
+          
+          <!-- Collapsible Section: Stress & Triggers -->
+          <div class="collapsible-section">
+            <div class="collapsible-header" onclick="toggleCollapsibleSection('editStressSection')">
+              <span class="section-icon">😰</span>
+              <span class="section-title">Stress & Triggers (Optional)</span>
+              <span class="collapsible-arrow" id="editStressSectionArrow">▼</span>
+            </div>
+            <div class="collapsible-content" id="editStressSection" style="display: none;">
+              <label>Stressors</label>
+              <div class="add-item-list" id="editStressorsList">
+                <div class="item-list" id="editStressorsItems"></div>
+                <div class="stressor-tiles-collapsible">
+                  <button type="button" class="stressor-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--stressor" aria-hidden="true">+</span><span class="tile-picker-trigger__label">Stressor / trigger</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
+                  <div class="tile-picker-slot">
+                    <div class="tile-picker-anchor">
+                      <div id="editStressorsTiles" class="stressor-tiles-container" aria-label="Stress and trigger options by group"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Collapsible Section: Additional Symptoms -->
+          <div class="collapsible-section">
+            <div class="collapsible-header" onclick="toggleCollapsibleSection('editSymptomsSection')">
+              <span class="section-icon">💉</span>
+              <span class="section-title">Additional Symptoms (Optional)</span>
+              <span class="collapsible-arrow" id="editSymptomsSectionArrow">▼</span>
+            </div>
+            <div class="collapsible-content" id="editSymptomsSection" style="display: none;">
+              <label>Symptoms</label>
+              <div class="add-item-list" id="editSymptomsList">
+                <div class="item-list" id="editSymptomsItems"></div>
+                <div class="symptom-tiles-collapsible">
+                  <button type="button" class="symptom-tiles-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--symptom" aria-hidden="true">+</span><span class="tile-picker-trigger__label">Add symptom</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
+                  <div class="tile-picker-slot">
+                    <div class="tile-picker-anchor">
+                      <div id="editSymptomsTiles" class="symptom-tiles-container" aria-label="Symptom options by group"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="pain-body-intro pain-body-intro--modal" role="group" aria-labelledby="edit-pain-body-title">
+                <h4 class="pain-body-title" id="edit-pain-body-title">Where it hurts</h4>
+                <p class="pain-body-hint">Tap to cycle: none → mild → pain.</p>
+                <ul class="pain-body-legend-chips" aria-label="Intensity colors">
+                  <li><span class="pain-legend-swatch pain-legend-none" aria-hidden="true"></span><span>None</span></li>
+                  <li><span class="pain-legend-swatch pain-legend-mild" aria-hidden="true"></span><span>Mild</span></li>
+                  <li><span class="pain-legend-swatch pain-legend-pain" aria-hidden="true"></span><span>Pain</span></li>
+                </ul>
+              </div>
+              <input type="hidden" id="editPainLocation" />
+              <div class="pain-body-wrapper" id="editPainBodyDiagram" aria-label="Select body areas for pain">
+                <svg class="pain-body-svg" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <filter id="edit-pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter>
+                  </defs>
+                  <path class="pain-body-outline" d="M70 10 A26 28 0 0 1 70 66 Q58 70 50 78 Q42 90 44 108 Q46 138 48 168 Q50 198 48 238 Q46 268 52 278 L64 280 L76 280 L88 278 Q94 268 92 238 Q90 198 92 168 Q94 138 96 108 Q98 90 90 78 Q82 70 70 66 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>
+                  <ellipse class="pain-region pain-state-0" data-region="head" cx="70" cy="34" rx="26" ry="28" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="neck" d="M54 58 Q52 64 54 76 L86 76 Q88 64 86 58 Q82 56 70 56 Q58 56 54 58 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="chest" d="M46 72 Q38 80 42 96 L46 108 L94 108 L98 96 Q102 80 94 72 Q86 68 70 68 Q54 68 46 72 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="abdomen" d="M46 108 Q44 132 46 158 L48 162 L92 162 L94 158 Q96 132 94 108 L46 108 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_shoulder" d="M46 72 Q30 74 22 84 Q18 90 24 94 L42 92 Q44 80 46 74 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_upper_arm" d="M24 90 Q16 106 20 126 L26 132 Q30 118 30 98 Q30 90 24 90 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_forearm" d="M22 132 Q14 150 18 170 L26 174 Q30 160 30 142 Q30 132 22 132 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_hand" d="M20 172 Q16 184 20 198 L30 198 Q34 186 32 174 Q30 172 20 172 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_shoulder" d="M94 72 Q110 74 118 84 Q122 90 116 94 L98 92 Q96 80 94 74 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_upper_arm" d="M116 90 Q124 106 120 126 L114 132 Q110 118 110 98 Q110 90 116 90 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_forearm" d="M118 132 Q126 150 122 170 L114 174 Q110 160 110 142 Q110 132 118 132 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_hand" d="M120 172 Q124 184 120 198 L110 198 Q106 186 108 174 Q110 172 120 172 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_hip" d="M48 160 Q44 166 48 172 L56 172 Q60 166 56 162 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_thigh" d="M48 170 Q44 192 48 212 L56 214 Q60 198 58 178 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_knee" d="M50 214 Q48 222 52 234 L60 234 Q62 226 58 218 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_lower_leg" d="M52 234 Q48 252 50 268 L58 268 Q62 252 60 236 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="left_foot" d="M56 268 L52 266 L38 274 L40 280 L54 278 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_hip" d="M92 160 Q96 166 92 172 L84 172 Q80 166 84 162 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_thigh" d="M92 170 Q96 192 92 212 L84 214 Q80 198 82 178 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_knee" d="M90 214 Q92 222 88 234 L80 234 Q78 226 82 218 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_lower_leg" d="M88 234 Q92 252 90 268 L82 268 Q78 252 80 236 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <path class="pain-region pain-state-0" data-region="right_foot" d="M84 268 L88 266 L102 274 L100 280 L86 278 Z" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <!-- Joint points (balls) -->
+                  <circle class="pain-region pain-state-0" data-region="left_elbow" cx="25" cy="131" r="6" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <circle class="pain-region pain-state-0" data-region="right_elbow" cx="115" cy="131" r="6" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <circle class="pain-region pain-state-0" data-region="left_wrist" cx="25" cy="173" r="6" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <circle class="pain-region pain-state-0" data-region="right_wrist" cx="115" cy="173" r="6" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <circle class="pain-region pain-state-0" data-region="left_ankle" cx="54" cy="268" r="6" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                  <circle class="pain-region pain-state-0" data-region="right_ankle" cx="86" cy="268" r="6" fill="currentColor" filter="url(#edit-pain-body-shadow)"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Collapsible Section: Food Log (same tile selector as main form) -->
+          <div class="collapsible-section">
+            <div class="collapsible-header" onclick="toggleCollapsibleSection('editFoodSection')">
+              <span class="section-icon">🍽️</span>
+              <span class="section-title">Food Log (Optional)</span>
+              <span class="collapsible-arrow" id="editFoodSectionArrow">▼</span>
+            </div>
+            <div class="collapsible-content" id="editFoodSection" style="display: none;">
+              <div class="food-category-block food-meal-collapsible">
+                <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Breakfast</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="food-category-body">
+                      <div id="editFoodBreakfastList" class="items-list"></div>
+                      <div id="editFoodBreakfastChips" class="food-tiles-by-group" aria-label="Add to Breakfast"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="food-category-block food-meal-collapsible">
+                <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Lunch</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="food-category-body">
+                      <div id="editFoodLunchList" class="items-list"></div>
+                      <div id="editFoodLunchChips" class="food-tiles-by-group" aria-label="Add to Lunch"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="food-category-block food-meal-collapsible">
+                <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Dinner</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="food-category-body">
+                      <div id="editFoodDinnerList" class="items-list"></div>
+                      <div id="editFoodDinnerChips" class="food-tiles-by-group" aria-label="Add to Dinner"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="food-category-block food-meal-collapsible">
+                <button type="button" class="food-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="food-meal-label">Snack</span><span class="food-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="food-category-body">
+                      <div id="editFoodSnackList" class="items-list"></div>
+                      <div id="editFoodSnackChips" class="food-tiles-by-group" aria-label="Add to Snack"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Collapsible Section: Exercise Log (same tile selector as main form) -->
+          <div class="collapsible-section">
+            <div class="collapsible-header" onclick="toggleCollapsibleSection('editExerciseSection')">
+              <span class="section-icon">🏃</span>
+              <span class="section-title">Exercise Log (Optional)</span>
+              <span class="collapsible-arrow" id="editExerciseSectionArrow">▼</span>
+            </div>
+            <div class="collapsible-content" id="editExerciseSection" style="display: none;">
+              <div id="editExerciseItemsList" class="items-list"></div>
+              <div class="exercise-category-block exercise-meal-collapsible">
+                <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Cardio</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="exercise-category-body">
+                      <div id="editExerciseCardioChips" class="exercise-chips" aria-label="Add Cardio"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="exercise-category-block exercise-meal-collapsible">
+                <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Strength</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="exercise-category-body">
+                      <div id="editExerciseStrengthChips" class="exercise-chips" aria-label="Add Strength"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="exercise-category-block exercise-meal-collapsible">
+                <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Flexibility</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="exercise-category-body">
+                      <div id="editExerciseFlexibilityChips" class="exercise-chips" aria-label="Add Flexibility"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="exercise-category-block exercise-meal-collapsible">
+                <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Balance</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="exercise-category-body">
+                      <div id="editExerciseBalanceChips" class="exercise-chips" aria-label="Add Balance"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="exercise-category-block exercise-meal-collapsible">
+                <button type="button" class="exercise-category-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="exercise-meal-label">Recovery</span><span class="exercise-meal-arrow" aria-hidden="true">▶</span></button>
+                <div class="tile-picker-slot">
+                  <div class="tile-picker-anchor">
+                    <div class="exercise-category-body">
+                      <div id="editExerciseRecoveryChips" class="exercise-chips" aria-label="Add Recovery"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Collapsible Section: Lifestyle Factors -->
+          <div class="collapsible-section">
+            <div class="collapsible-header" onclick="toggleCollapsibleSection('editLifestyleSection')">
+              <span class="section-icon">🏃</span>
+              <span class="section-title">Lifestyle Factors (Optional)</span>
+              <span class="collapsible-arrow" id="editLifestyleSectionArrow">▼</span>
+            </div>
+            <div class="collapsible-content" id="editLifestyleSection" style="display: none;">
+              <label for="editSteps">Steps (if tracked)</label>
+              <input type="number" id="editSteps" min="0" max="50000" step="100" placeholder="0" />
+              
+              <label for="editHydration">Hydration (glasses/cups of water)</label>
+              <input type="number" id="editHydration" min="0" max="20" step="0.5" placeholder="0" />
+            </div>
+          </div>
+          
+          <label for="editNotes">Notes</label>
+          <textarea id="editNotes" maxlength="500"></textarea>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-save-btn" onclick="saveEditedEntry()">💾 Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Alert Modal -->
+  <div class="modal-overlay" id="alertModalOverlay" role="dialog" aria-modal="true" aria-label="Alert">
+    <div class="modal-content alert-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="alertModalTitle">Alert</h3>
+        <button class="modal-close" onclick="closeAlertModal()">&times;</button>
+      </div>
+      <div class="modal-body alert-modal-body">
+        <p id="alertModalMessage"></p>
+      </div>
+      <div class="modal-footer alert-modal-footer">
+        <button class="modal-save-btn" onclick="closeAlertModal()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance & AI benchmark modal (first run; view last via God mode → View last benchmark details) -->
+  <div class="modal-overlay perf-benchmark-overlay" id="perfBenchmarkOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Performance and AI benchmark">
+    <div class="modal-content perf-benchmark-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="perfBenchmarkTitle">Performance &amp; AI benchmark</h3>
+        <button type="button" class="modal-close" onclick="closePerfBenchmarkModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body perf-benchmark-body">
+        <p class="perf-benchmark-summary" id="perfBenchmarkSummary">Measuring performance…</p>
+        <p class="perf-benchmark-ai-line" id="perfBenchmarkAiLine" aria-live="polite"></p>
+        <p class="perf-benchmark-gpu-line" id="perfBenchmarkGpuLine" aria-live="polite"></p>
+
+        <details class="perf-benchmark-details" id="perfBenchmarkDetailsBlock">
+          <summary>See detailed benchmark results (CPU &amp; GPU stability, test bars)</summary>
+          <div class="perf-benchmark-grid">
+            <div class="perf-benchmark-panel">
+              <div class="perf-benchmark-panel-title">Test results</div>
+              <div class="perf-benchmark-bars" id="perfBenchmarkBars"></div>
+            </div>
+            <div class="perf-benchmark-panel">
+              <div class="perf-benchmark-panel-title">Stability (CPU)</div>
+              <canvas id="perfBenchmarkSparkline" width="520" height="120" aria-label="CPU stability sparkline"></canvas>
+              <div class="perf-benchmark-kv" id="perfBenchmarkStats"></div>
+            </div>
+            <div class="perf-benchmark-panel">
+              <div class="perf-benchmark-panel-title">Stability (GPU)</div>
+              <canvas id="perfBenchmarkGpuSparkline" width="520" height="120" aria-label="GPU stability sparkline"></canvas>
+              <div class="perf-benchmark-kv" id="perfBenchmarkGpuStats"></div>
+            </div>
+          </div>
+          <details class="perf-benchmark-details-inner">
+            <summary>Chosen optimisation profile</summary>
+            <pre class="perf-benchmark-profile" id="perfBenchmarkProfile"></pre>
+          </details>
+        </details>
+      </div>
+      <div class="modal-footer perf-benchmark-footer" id="perfBenchmarkFooter">
+        <button type="button" class="modal-save-btn" id="perfBenchmarkContinueBtn">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- God mode overlay (` key): test all UI elements -->
+  <div class="modal-overlay" id="modalTestOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="God mode – test all UI">
+    <div class="modal-content god-mode-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>God mode – test all UI</h3>
+        <button type="button" class="modal-close" onclick="closeModalTestOverlay()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body god-mode-body">
+        <p class="god-mode-hint">Press <kbd>`</kbd> to open. Trigger tabs, modals, charts, AI range, form sections, and more.</p>
+        <div id="godModeSections"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tutorial Modal (new users + backtick ` to reopen) -->
+  <div class="modal-overlay tutorial-modal-overlay" id="tutorialModalOverlay" style="display: none;">
+    <div class="modal-content tutorial-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header tutorial-modal-header">
+        <h3 id="tutorialModalTitle">Welcome</h3>
+        <button class="modal-close" onclick="closeTutorialModal()" aria-label="Close tutorial">&times;</button>
+      </div>
+      <div class="tutorial-slides-wrap">
+        <button type="button" class="tutorial-arrow tutorial-arrow-left" id="tutorialArrowLeft" onclick="tutorialPrevSlide()" aria-label="Previous slide" style="display: none;">‹</button>
+        <div class="modal-body tutorial-modal-body">
+        <div class="tutorial-slide tutorial-slide-active" id="tutorialSlide0" data-slide="0">
+          <p class="tutorial-text">Do you want to use <strong>AI Analysis</strong> (patterns, insights, summary) and <strong>Goals & targets</strong>? You can turn this on later in Settings.</p>
+          <div class="tutorial-ai-choice-buttons">
+            <button type="button" class="tutorial-btn tutorial-ai-enable" onclick="setTutorialAIChoice(true)">Enable</button>
+            <button type="button" class="tutorial-btn tutorial-ai-skip" onclick="setTutorialAIChoice(false)">Skip for now</button>
+          </div>
+        </div>
+        <div class="tutorial-slide" id="tutorialSlide1" data-slide="1">
+          <p class="tutorial-text">Track your health daily: log symptoms, food, exercise, pain areas, and more in one place.</p>
+        </div>
+        <div class="tutorial-slide" id="tutorialSlide2" data-slide="2" data-tutorial-ai-only="true">
+          <p class="tutorial-text"><strong>View Logs</strong> shows your history. <strong>AI Analysis</strong> finds patterns and correlations across your data.</p>
+        </div>
+        <div class="tutorial-slide" id="tutorialSlide3" data-slide="3" data-tutorial-ai-only="true">
+          <p class="tutorial-text">In <strong>Settings</strong>, you can create an account to save your data encrypted in the cloud and share between devices.</p>
+          <p class="tutorial-text" style="margin-top: 8px;">Add or select your medical condition here (same as in Settings):</p>
+          <div id="tutorialConditionDisplayContainer" class="tutorial-condition-display-wrap" style="margin-top: 10px;">
+            <button type="button" class="settings-data-btn" id="tutorialConditionBtn" onclick="toggleTutorialConditionSelector()" style="width: 100%; text-align: left; justify-content: space-between;">
+              <span id="tutorialConditionDisplay">Medical Condition</span>
+            </button>
+          </div>
+          <div id="tutorialConditionSelector" class="tutorial-condition-selector" style="display: none; margin-top: 12px; padding: 12px; background: rgba(55, 65, 81, 0.3); border-radius: 8px; width: 100%;">
+            <div style="margin-bottom: 12px;">
+              <label style="font-size: 0.9rem; display: block; margin-bottom: 6px; color: rgba(224, 242, 241, 0.9);">Choose from existing conditions:</label>
+              <select id="tutorialExistingConditionsSelect" class="item-input" style="width: 100%; padding: 10px;" onchange="selectTutorialCondition()">
+                <option value="">-- Select a condition --</option>
+              </select>
+            </div>
+            <div style="text-align: center; margin: 12px 0; color: rgba(224, 242, 241, 0.7); font-size: 0.9rem;">OR</div>
+            <div style="margin-bottom: 12px;">
+              <label style="font-size: 0.9rem; display: block; margin-bottom: 6px; color: rgba(224, 242, 241, 0.9);">Add new condition:</label>
+              <div style="display: flex; gap: 8px; width: 100%;">
+                <input type="text" id="tutorialNewConditionInput" class="item-input" placeholder="e.g., Rheumatoid Arthritis" style="flex: 1; padding: 10px;" />
+                <button class="add-item-btn" onclick="addTutorialCondition()" title="Add condition" style="padding: 10px 16px;">➕</button>
+              </div>
+            </div>
+          </div>
+          <p class="tutorial-text" style="margin-top: 12px;"><strong>Contribute anonymised data</strong> - share your anonymised data for analysis and use aggregated data from people with the same condition.</p>
+          <p class="tutorial-text" style="margin-top: 8px;"><strong>Use open data for training AI</strong> - when on, AI uses open shared data; when off, AI uses only your personal data. Used for personalised AI analysis and advice.</p>
+        </div>
+        <div class="tutorial-slide" id="tutorialSlide4" data-slide="4" data-tutorial-ai-only="true">
+          <div class="tutorial-toggle-option" style="margin-top: 0;">
+            <label class="tutorial-toggle-label">Contribute anonymised data</label>
+            <div class="toggle-switch" id="tutorialContributeAnonDataToggle" onclick="toggleContributeAnonData('tutorialContributeAnonDataToggle')"></div>
+          </div>
+          <small class="tutorial-toggle-hint">Share your anonymised data to help improve AI models</small>
+          <div class="tutorial-toggle-option" style="margin-top: 14px;">
+            <label class="tutorial-toggle-label">Use open data for training</label>
+            <div class="toggle-switch" id="tutorialUseOpenDataToggle" onclick="toggleUseOpenData('tutorialUseOpenDataToggle')"></div>
+          </div>
+          <small class="tutorial-toggle-hint">Use anonymised data pool for AI training (requires 90+ days of data). Used for personalised AI analysis and advice.</small>
+        </div>
+        <div class="tutorial-slide" id="tutorialSlide5" data-slide="5" data-tutorial-ai-only="true">
+          <p class="tutorial-text">Set <strong>Goals & targets</strong> with the target button next to Settings. Choose daily targets for steps, hydration, sleep score, and good days per week.</p>
+          <div class="tutorial-goals-sliders">
+            <div class="goals-slider-group">
+              <label for="tutorialGoalSteps">Steps per day</label>
+              <div class="goals-slider-row">
+                <input type="range" id="tutorialGoalSteps" min="0" max="20000" step="500" value="0" oninput="updateGoalLabel('tutorialGoalSteps', 'tutorialGoalStepsLabel', 0, 'steps')">
+                <span id="tutorialGoalStepsLabel" class="goals-value-label">Off</span>
+              </div>
+            </div>
+            <div class="goals-slider-group">
+              <label for="tutorialGoalHydration">Hydration (glasses per day)</label>
+              <div class="goals-slider-row">
+                <input type="range" id="tutorialGoalHydration" min="0" max="20" step="1" value="0" oninput="updateGoalLabel('tutorialGoalHydration', 'tutorialGoalHydrationLabel', 0, 'glasses')">
+                <span id="tutorialGoalHydrationLabel" class="goals-value-label">Off</span>
+              </div>
+            </div>
+            <div class="goals-slider-group">
+              <label for="tutorialGoalSleep">Sleep quality (score 1–10)</label>
+              <div class="goals-slider-row">
+                <input type="range" id="tutorialGoalSleep" min="0" max="10" step="1" value="0" oninput="updateGoalLabel('tutorialGoalSleep', 'tutorialGoalSleepLabel', 0, 'score')">
+                <span id="tutorialGoalSleepLabel" class="goals-value-label">Off</span>
+              </div>
+            </div>
+            <div class="goals-slider-group">
+              <label for="tutorialGoalGoodDays">Good days per week (no flare, mood ≥ 6)</label>
+              <div class="goals-slider-row">
+                <input type="range" id="tutorialGoalGoodDays" min="0" max="7" step="1" value="0" oninput="updateGoalLabel('tutorialGoalGoodDays', 'tutorialGoalGoodDaysLabel', 0, 'days')">
+                <span id="tutorialGoalGoodDaysLabel" class="goals-value-label">Off</span>
+              </div>
+            </div>
+          </div>
+          <p class="tutorial-text" style="margin-top: 10px;">Your progress and &quot;Last 7 days vs targets&quot; appear on the Log tab so you can see how you&apos;re doing.</p>
+        </div>
+        <div class="tutorial-slide" id="tutorialSlide6" data-slide="6">
+          <p class="tutorial-text">You're all set. Close to start logging, try <strong>Demo Mode</strong>, or create an account to save your data in the cloud.</p>
+        </div>
+        </div>
+        <button type="button" class="tutorial-arrow tutorial-arrow-right" id="tutorialArrowRight" onclick="tutorialNextSlide()" aria-label="Next slide">›</button>
+      </div>
+      <div class="modal-footer tutorial-modal-footer">
+        <div class="tutorial-footer-right">
+          <button type="button" class="tutorial-btn tutorial-finish" id="tutorialFinishBtn" onclick="finishTutorial(false)" style="display: none;">Finish</button>
+          <button type="button" class="tutorial-btn tutorial-signup" id="tutorialSignupBtn" onclick="finishTutorialAndOpenSignup()" style="display: none;">Sign up</button>
+          <button type="button" class="tutorial-btn tutorial-demo" id="tutorialDemoBtn" onclick="finishTutorial(true)" style="display: none;">Try demo mode</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Install modal (shown once after tutorial; also in God mode) -->
+  <div class="modal-overlay" id="installModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Install app">
+    <div class="modal-content install-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Install the app</h3>
+        <button type="button" class="modal-close" onclick="closeInstallModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="install-modal-hint">Add Rianell to your device for quick access and offline use.</p>
+        <div class="install-modal-buttons">
+          <div class="settings-option" id="installModalIosDevice" style="display: none;">
+            <button type="button" class="settings-data-btn install-ios-device-btn" onclick="installOrLaunchPWA(); closeInstallModal();"><span class="settings-install-icon"><i class="fa-brands fa-apple"></i></span> <span id="installModalIosDeviceLabel">Install on this iPhone</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></button>
+          </div>
+          <div class="settings-option">
+            <button type="button" class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA(); closeInstallModal();"><span class="settings-install-icon"><i class="fa-solid fa-globe"></i></span> Install web app<span class="install-channel-badge install-channel-badge--beta">Beta</span></button>
+          </div>
+          <div class="settings-option">
+            <a id="installModalApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon"><i class="fa-brands fa-android"></i></span> Install on Android<span class="install-channel-badge install-channel-badge--beta">Beta</span> <span class="android-version" aria-hidden="true"></span></a>
+          </div>
+          <div class="settings-option">
+            <a id="installModalIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon"><i class="fa-brands fa-apple"></i></span> <span id="installModalIosLinkLabel">Install on iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span> <span class="ios-version" aria-hidden="true"></span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sign up / Sign in Modal (same UI as Settings cloud auth) -->
+  <div class="modal-overlay signup-signin-modal-overlay" id="signupSigninModalOverlay" style="display: none;">
+    <div class="modal-content signup-signin-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Sign up / Sign in</h3>
+        <button class="modal-close" onclick="closeSignupSigninModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body cloud-auth-section">
+        <p class="tutorial-text" style="margin-bottom: 12px;">Create an account to save your data encrypted in the cloud and sync between devices.</p>
+        <div class="cloud-auth-form">
+          <input type="email" id="signupModalEmail" placeholder="Email address" class="cloud-input" />
+          <div class="password-input-wrapper">
+            <input type="password" id="signupModalPassword" placeholder="Password" class="cloud-input" />
+            <button type="button" class="password-toggle-btn" id="signupModalPasswordToggle" onclick="toggleSignupModalPasswordVisibility()" title="Show/Hide password">
+              <span class="password-toggle-icon">👁️</span>
+            </button>
+          </div>
+          <div class="cloud-auth-buttons">
+            <button type="button" id="signupModalSignUpBtn" class="cloud-btn signup-btn" onclick="handleCloudSignUpFromModal()">
+              <span>📝 Sign Up</span>
+            </button>
+            <button type="button" id="signupModalLoginBtn" class="cloud-btn login-btn" onclick="handleCloudLoginFromModal()">
+              <span>🔐 Sign In</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GDPR Data Agreement Modal -->
+  <div class="modal-overlay" id="gdprAgreementModalOverlay" style="display: none;">
+    <div class="modal-content gdpr-agreement-modal" onclick="event.stopPropagation()" style="max-width: 800px; max-height: 75vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <h3>📋 GDPR Data Processing Agreement</h3>
+        <button class="modal-close" onclick="closeGDPRAgreementModal()">&times;</button>
+      </div>
+      <div class="modal-body gdpr-agreement-body" style="max-height: calc(75vh - 180px); overflow-y: auto; overflow-x: hidden;">
+        <div class="gdpr-agreement-content">
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50; margin-top: 0;">1. Overview</h4>
+            <p>By enabling "Contribute anonymised data", you consent to the processing of anonymised health data as described in this agreement. This feature allows your anonymised health data to be pooled with data from other users who have the same medical condition, helping to improve AI predictions and analysis for everyone.</p>
+        </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">2. Legal Basis for Processing (GDPR Article 6)</h4>
+            <p><strong>Consent (Article 6(1)(a)):</strong> Your explicit consent is required to enable this feature. You may withdraw your consent at any time by disabling this setting.</p>
+            <p><strong>Legitimate Interest (Article 6(1)(f)):</strong> Processing anonymised data for improving health predictions serves a legitimate interest in advancing medical research and improving healthcare outcomes.</p>
+        </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">3. Data Controller Information</h4>
+            <p><strong>Data Controller:</strong> Rianell</p>
+            <p><strong>Contact:</strong> <a href="mailto:data@app.com" style="color: #4caf50; text-decoration: underline;">data@app.com</a></p>
+            <p><strong>Purpose:</strong> Processing anonymised health data to improve AI prediction accuracy and provide better health insights for users with similar medical conditions.</p>
+            <p><strong>Data Protection Officer:</strong> Available through app settings or support contact.</p>
+          </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">4. What Data is Processed</h4>
+            <p><strong>Anonymised health metrics collected:</strong></p>
+            <ul>
+              <li>Health metrics: BPM, weight, fatigue, stiffness, back pain, sleep quality, joint pain, mobility, daily function, swelling, mood, irritability, weather sensitivity, steps, hydration, flare status</li>
+              <li>Arrays: stressors, symptoms, food (with calories/protein), exercise</li>
+              <li>Text fields: pain location, energy/clarity status</li>
+          </ul>
+            <p><strong>Data NOT Collected:</strong></p>
+            <ul>
+              <li>User name or any personal identifiers</li>
+              <li>Notes (which may contain personal information)</li>
+              <li>User account information</li>
+              <li>Email addresses</li>
+              <li>Any other personally identifiable data</li>
+            </ul>
+        </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">5. Data anonymisation process</h4>
+            <p>All data is processed through strict anonymisation procedures:</p>
+            <ol>
+              <li>Personal identifiers are stripped before data leaves your device</li>
+              <li>Data is grouped by medical condition (not by user)</li>
+              <li>Each anonymised entry is stored separately in the database</li>
+            <li>No user-specific tracking or identification is possible</li>
+            </ol>
+          </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">6. How Your Data is Used</h4>
+            <p>Anonymised data is used exclusively to:</p>
+            <ul>
+              <li>Improve AI prediction accuracy for users with the same medical condition</li>
+              <li>Train machine learning models for better health trend analysis</li>
+              <li>Provide more accurate predictions based on aggregated patterns</li>
+          </ul>
+            <p><strong>Data access:</strong> Anonymised data is publicly readable (it contains no personal information) and can be used by any user with the same medical condition. No authentication is required to read anonymised data.</p>
+        </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">7. Data Storage and Security</h4>
+            <p><strong>Storage Location:</strong> Data is stored in Supabase cloud infrastructure with Row Level Security (RLS) enabled.</p>
+            <p><strong>Security Measures:</strong></p>
+            <ul>
+              <li>Data is encrypted in transit and at rest</li>
+              <li>Anonymous read access is allowed (data is already anonymised)</li>
+              <li>Anonymous insert access is allowed (for data contribution)</li>
+              <li>Each anonymised entry is timestamped</li>
+              <li>Data cannot be updated after insertion (append-only)</li>
+          </ul>
+        </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">8. Your Rights Under GDPR</h4>
+            <p>As a data subject, you have the following rights:</p>
+            <ul>
+              <li><strong>Right of Access (Article 15):</strong> You can request information about what data is being processed</li>
+              <li><strong>Right to Rectification (Article 16):</strong> You can correct inaccurate data</li>
+              <li><strong>Right to Erasure (Article 17):</strong> You can request deletion of your data (note: anonymised pooled data cannot be individually deleted)</li>
+              <li><strong>Right to Restrict Processing (Article 18):</strong> You can limit how your data is processed</li>
+              <li><strong>Right to Data Portability (Article 20):</strong> You can export your data</li>
+              <li><strong>Right to Object (Article 21):</strong> You can object to processing at any time</li>
+              <li><strong>Right to Withdraw Consent (Article 7(3)):</strong> You can withdraw consent at any time by disabling this feature</li>
+          </ul>
+        </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">9. Data Retention</h4>
+            <p>Anonymised data is retained indefinitely as it contributes to ongoing research and model improvement. Once data is anonymised and pooled, individual deletion is not possible. However, you can stop contributing new data at any time by disabling this feature.</p>
+        </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">10. Data Sharing and Transfers</h4>
+            <p>Anonymised data may be:</p>
+            <ul>
+              <li>Stored in cloud infrastructure (Supabase) which may process data outside the EU/EEA</li>
+              <li>Used by other users with the same medical condition for AI training</li>
+              <li>Processed by third-party AI services for model training</li>
+          </ul>
+            <p>All data transfers comply with GDPR requirements and appropriate safeguards are in place.</p>
+        </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">11. Minimum Data Requirements</h4>
+            <p>A minimum of 90 days of anonymised data is required before this feature becomes fully available. Until this threshold is met, the system will show "Helping the model" status.</p>
+        </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">12. Withdrawal of Consent</h4>
+            <p>You may withdraw your consent at any time by:</p>
+            <ol>
+              <li>Disabling the "Use open data for training" setting in app settings</li>
+              <li>This will stop future data contribution</li>
+              <li>Note: Previously contributed anonymised data cannot be individually deleted as it is anonymised and pooled</li>
+            </ol>
+        </div>
+
+          <div class="gdpr-section">
+            <h4 style="color: #4caf50;">13. Contact and Complaints</h4>
+            <p>For questions, concerns, or to exercise your rights:</p>
+            <ul>
+              <li>Contact the Data Controller at: <a href="mailto:data@app.com" style="color: #4caf50; text-decoration: underline;">data@app.com</a></li>
+              <li>Contact us through the app settings</li>
+              <li>You have the right to lodge a complaint with your local data protection authority (DPA)</li>
+              <li>For EU users: Contact your national DPA or the lead supervisory authority</li>
+            </ul>
+      </div>
+
+          <div class="gdpr-section" style="background: rgba(233, 30, 99, 0.1); padding: 16px; border-radius: 8px; border: 1px solid rgba(233, 30, 99, 0.3); margin-top: 20px;">
+            <h4 style="color: #e91e63; margin-top: 0;">⚠️ Important Notice</h4>
+            <p style="margin-bottom: 0;">By clicking "I Agree", you acknowledge that you have read, understood, and agree to this GDPR Data Processing Agreement. You understand that:</p>
+            <ul style="margin-top: 8px;">
+              <li>Your anonymised health data will be processed as described</li>
+              <li>You can withdraw consent at any time by disabling this setting</li>
+              <li>Previously contributed anonymised data cannot be individually deleted (it's anonymised and pooled)</li>
+              <li>Your data will be anonymised before leaving your device</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer gdpr-agreement-footer">
+        <button class="modal-save-btn" id="gdprAgreeBtn" style="background: rgba(76, 175, 80, 0.8);">✓ I Agree and Enable</button>
+        <button class="modal-save-btn" id="gdprDeclineBtn" style="background: rgba(255, 255, 255, 0.1);" onclick="closeGDPRAgreementModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Donate: Smart Payment Buttons via PayPal JS SDK when paypal-client-id is set; else fallback hosted link -->
+  <div class="modal-overlay donate-modal-overlay" id="donateModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="donateModalTitle">
+    <div class="modal-content donate-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header donate-modal-header">
+        <h3 id="donateModalTitle">Donate</h3>
+        <button type="button" class="modal-close" id="donateModalCloseBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body donate-modal-body">
+        <p class="donate-modal-text">Support Rianell with a secure donation. PayPal, card, Apple Pay, and Google Pay appear when your browser and PayPal account support them.</p>
+        <div id="donatePaypalLoading" class="donate-paypal-loading" aria-live="polite" style="display: none;"></div>
+        <div id="donatePaypalSdkWrap" class="donate-paypal-sdk-wrap" style="display: none;">
+          <div class="donate-amount-row" role="group" aria-labelledby="donateAmountLabel">
+            <span id="donateAmountLabel" class="donate-amount-label">Amount</span>
+            <div class="donate-amount-chips">
+              <button type="button" class="donate-amount-chip" data-amount="5.00">$5</button>
+              <button type="button" class="donate-amount-chip donate-amount-chip--active" data-amount="10.00">$10</button>
+              <button type="button" class="donate-amount-chip" data-amount="25.00">$25</button>
+              <button type="button" class="donate-amount-chip" data-amount="50.00">$50</button>
+            </div>
+          </div>
+          <div id="paypalDonateButtonContainer" class="paypal-donate-button-container"></div>
+        </div>
+        <div id="donatePaypalFallback" class="donate-paypal-fallback">
+          <p id="donatePaypalFallbackHint" class="donate-modal-text donate-modal-text--small"></p>
+          <a href="https://www.paypal.com/donate?hosted_button_id=MB5UF5SBL8YNG" target="_blank" rel="noopener noreferrer" class="donate-paypal-btn">Continue to PayPal</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cookie policy modal -->
+  <div class="modal-overlay" id="cookiePolicyOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Cookie policy">
+    <div class="modal-content cookie-policy-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Cookie and data policy</h3>
+        <button type="button" class="modal-close" onclick="closeCookiePolicyModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body cookie-policy-body">
+        <section>
+          <h4>What we collect and how</h4>
+          <p><strong>Data you enter:</strong> Your health entries (metrics, symptoms, food, exercise, stress, notes, pain locations), your name and condition, app preferences, and-if you sign up-your email for cloud sync.</p>
+          <p><strong>AI-related data:</strong> The app stores AI learning data on your device (e.g. prediction blend weights and last prediction snapshots used to improve trend projections). This data is not sent to our servers unless you use Cloud Sync; when you are signed in, it is backed up to your encrypted cloud account together with your health logs and settings.</p>
+          <p><strong>Automatically:</strong> We don’t collect anything beyond what you enter and what you choose to sync.</p>
+        </section>
+        <section>
+          <h4>How we store it</h4>
+          <p>We store data only on your device and, if you turn on Cloud Sync, in a secure cloud account:</p>
+          <ul>
+            <li><strong>On your device:</strong> Your health entries, settings, AI learning state (e.g. prediction weights), tutorial progress, cloud sync preferences and last sync time, and any backups you create. Session data is cleared when you sign out or reset data.</li>
+            <li><strong>If you install the app:</strong> Cached files so the app can work offline. We do not set cookies on our server.</li>
+            <li><strong>Device security:</strong> A screen lock and up-to-date OS help protect data on your device; this app cannot prevent access by someone who unlocks the device or by malware. For a full threat model, see the repository’s <a href="https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md" target="_blank" rel="noopener">SECURITY.md</a>.</li>
+          </ul>
+        </section>
+        <section>
+          <h4>Third parties</h4>
+          <p>When you use Cloud Sync, your encrypted data is stored with our cloud provider (Supabase); they may use their own cookies or storage for sign-in. We also use a content delivery network for fonts and scripts; we don’t control their cookies or tracking.</p>
+        </section>
+        <section>
+          <h4>How we use your data</h4>
+          <ul>
+            <li><strong>On your device:</strong> To show charts, run AI analysis, and give you insights. Nothing is sent to our servers unless you enable Cloud Sync.</li>
+            <li><strong>Cloud Sync (optional):</strong> If you turn it on, we use it only to store and sync your account (health logs, settings, and AI learning state). If you opt in to contribute anonymised data, that anonymised data may be used to improve models, as described in Settings.</li>
+            <li><strong>We do not sell your data or use it for advertising.</strong></li>
+          </ul>
+        </section>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-save-btn" onclick="closeCookiePolicyModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div class="modal-overlay" id="exportModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Export data">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Export Data</h3>
+        <button class="modal-close" onclick="closeExportModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 1rem;">Choose export format:</p>
+        <div class="export-format-options">
+          <button class="export-format-btn" data-format="csv" onclick="performExport('csv')">
+            <span class="format-icon">📊</span>
+            <span class="format-name">CSV</span>
+            <span class="format-desc">Spreadsheet compatible</span>
+          </button>
+          <button class="export-format-btn" data-format="json" onclick="performExport('json')">
+            <span class="format-icon">📄</span>
+            <span class="format-name">JSON</span>
+            <span class="format-desc">Machine readable</span>
+          </button>
+          <button class="export-format-btn" data-format="pdf" onclick="performExport('pdf')">
+            <span class="format-icon">📑</span>
+            <span class="format-name">PDF</span>
+            <span class="format-desc">Printable report</span>
+          </button>
+          <button class="export-format-btn" data-format="excel" onclick="performExport('excel')">
+            <span class="format-icon">📗</span>
+            <span class="format-name">Excel</span>
+            <span class="format-desc">Excel workbook</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-save-btn" onclick="closeExportModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Modal -->
+  <div class="modal-overlay" id="importModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Import data">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Import Data</h3>
+        <button class="modal-close" onclick="closeImportModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="import-format-selection" style="margin-bottom: 1.5rem;">
+          <label style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: var(--text-light);">File Format:</label>
+          <select id="importFormat" class="cloud-input" style="width: 100%; padding: 12px;">
+            <option value="csv">CSV</option>
+            <option value="json">JSON</option>
+          </select>
+        </div>
+        
+        <div class="import-merge-options" style="margin-bottom: 1.5rem;">
+          <label style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: var(--text-light);">Import Option:</label>
+          <div class="import-option-cards">
+            <label class="import-option-card" data-option="replace">
+              <input type="radio" name="importOption" value="replace" checked style="display: none;">
+              <div class="import-option-icon">🔄</div>
+              <div class="import-option-content">
+                <div class="import-option-title">Replace All</div>
+                <div class="import-option-desc">Replace all existing data with imported data</div>
+              </div>
+            </label>
+            <label class="import-option-card" data-option="append">
+              <input type="radio" name="importOption" value="append" style="display: none;">
+              <div class="import-option-icon">➕</div>
+              <div class="import-option-content">
+                <div class="import-option-title">Append New</div>
+                <div class="import-option-desc">Add only new entries (skip duplicates)</div>
+              </div>
+            </label>
+            <label class="import-option-card" data-option="merge">
+              <input type="radio" name="importOption" value="merge" style="display: none;">
+              <div class="import-option-icon">🔀</div>
+              <div class="import-option-content">
+                <div class="import-option-title">Merge by Date</div>
+                <div class="import-option-desc">Update existing entries and add new ones</div>
+              </div>
+            </label>
+          </div>
+        </div>
+        
+        <div class="import-file-section">
+          <label style="display: block; margin-bottom: 0.75rem; font-weight: 600; color: var(--text-light);">Select File:</label>
+          <div class="import-file-input-wrapper">
+            <input type="file" id="importFileInput" accept=".csv,.json" style="display: none;">
+            <button class="import-file-btn" onclick="document.getElementById('importFileInput').click()">
+              <span class="import-file-icon">📁</span>
+              <span class="import-file-text">Choose File</span>
+            </button>
+            <div id="importFileName" class="import-file-name"></div>
+          </div>
+        </div>
+        <div id="importPreview" style="margin-top: 1rem; display: none;">
+          <h4 style="margin-bottom: 0.5rem;">Preview:</h4>
+          <div id="importPreviewContent" style="max-height: 200px; overflow-y: auto; background: rgba(255, 255, 255, 0.05); padding: 0.5rem; border-radius: 6px; font-size: 0.85rem;"></div>
+        </div>
+        <div id="importProgressContainer" style="margin-top: 1rem; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.9rem; color: var(--text-light);">Importing data...</span>
+            <span id="importProgressPercent" style="font-size: 0.9rem; color: var(--primary-color); font-weight: bold;">0%</span>
+          </div>
+          <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden;">
+            <div id="importProgressBar" style="height: 100%; width: 0%; background: var(--primary-gradient); border-radius: 4px; transition: width 0.3s ease;"></div>
+          </div>
+          <div id="importProgressStatus" style="margin-top: 0.5rem; font-size: 0.85rem; color: rgba(224, 242, 241, 0.7);">Preparing import...</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-save-btn" id="importButton" onclick="performImport()">Import</button>
+        <button class="modal-save-btn" style="background: rgba(255, 255, 255, 0.1);" onclick="closeImportModal()" id="importCancelButton">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Modal -->
+  <div class="modal-overlay share-modal-overlay" id="shareModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Share">
+    <div class="modal-content share-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="shareModalTitle">Share</h3>
+        <button type="button" class="modal-close" onclick="closeShareModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="shareModalBody" class="share-modal-body"></div>
+      </div>
+      <div class="modal-footer share-modal-actions" id="shareModalFooter">
+        <button type="button" class="modal-save-btn" onclick="closeShareModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase: set fallback first so a bad supabase-config.js (e.g. smart quotes) does not break the page -->
+  <script>window.SUPABASE_CONFIG = window.SUPABASE_CONFIG || { url: '', anonKey: '' };</script>
+  <!-- If you see "SyntaxError" in supabase-config.js on the live site, redeploy a valid file (see supabase-config.example.js). -->
+  <script src="supabase-config.js"></script>
+  <!-- TensorFlow + AIEngine: loaded on demand via PerformanceUtils.ensureAIEngineLoaded() -->
+  <script src="storage-utils.js?v=1"></script>
+  <script src="logs-idb.js?v=1"></script>
+  <script src="notifications.js?v=1"></script>
+  <script src="notification-helpers.js?v=1"></script>
+  <!-- export-utils / import-utils / print-utils: loaded on first use via PerformanceUtils.ensure*Loaded() -->
+  <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.37/dist/ua-parser.min.js"></script>
+  <script src="device-module.js"></script>
+  <script src="device-benchmark.js"></script>
+  <script src="performance-utils.js"></script>
+  <script src="background-loader.js"></script>
+  <script src="android-update-check.js?v=1"></script>
+  <script>
+    (function() {
+      var Perf = window.PerformanceUtils;
+      if (!Perf || typeof Perf.lazyLoadScript !== 'function') return;
+      if (Perf.platform && Perf.platform.deviceClass === 'low') return;
+      try {
+        var cap = window.Capacitor;
+        if (cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform() && cap.getPlatform && cap.getPlatform() === 'android') return;
+      } catch (e) {}
+      function loadSummaryLlm() {
+        Perf.lazyLoadScript('summary-llm.js').catch(function () {});
+      }
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(loadSummaryLlm, { timeout: 2800 });
+      } else {
+        setTimeout(loadSummaryLlm, 0);
+      }
+    })();
+  </script>
+  <!-- /api/reload only exists on the local Python server; set before app so cached old bundles still skip EventSource on production -->
+  <script>
+  (function() {
+    try {
+      var h = (typeof location !== 'undefined' && location.hostname) ? String(location.hostname).toLowerCase() : '';
+      window.__rianellReloadStreamOk = (h === 'localhost' || h === '127.0.0.1' || h === '[::1]');
+    } catch (e) {
+      window.__rianellReloadStreamOk = false;
+    }
+  })();
+  </script>
+  <script src="app.js?v=25"></script>
+  <script src="security-utils.js"></script>
+  <script src="encryption-utils.js"></script>
+  <script src="cloud-sync.js?v=2"></script>
+  <script>
+    (function() {
+      function loadFontAwesome() {
+        if (document.querySelector('link[data-fontawesome-deferred]')) return;
+        var l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css';
+        l.crossOrigin = 'anonymous';
+        l.setAttribute('data-fontawesome-deferred', '1');
+        document.head.appendChild(l);
+      }
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(loadFontAwesome, { timeout: 2000 });
+      } else {
+        window.addEventListener('load', function () { setTimeout(loadFontAwesome, 0); });
+      }
+    })();
+  </script>
+  <script>
+    (function() {
+      if (typeof refreshBuildDownloadLinks === 'function') refreshBuildDownloadLinks();
+      var isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if (isIosDevice) {
+        var block = document.getElementById('installOnIosDevice');
+        var label = document.getElementById('installOnIosDeviceLabel');
+        if (block) block.style.display = '';
+        if (label) label.textContent = /iPad/.test(navigator.userAgent) ? 'Install on this iPad' : 'Install on this iPhone';
+      }
+    })();
+  </script>
+  <script>
+    (function() {
+      function checkStylesLoaded() {
+        var val = '';
+        try {
+          val = getComputedStyle(document.documentElement).getPropertyValue('--rianell-styles').trim();
+        } catch (e) {}
+        if (val !== '1') {
+          document.documentElement.classList.add('rianell-no-styles');
+          var overlay = document.createElement('div');
+          overlay.id = 'cssReloadOverlay';
+          overlay.setAttribute('role', 'alert');
+          overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#070807;color:#e8eeec;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;font-family:system-ui,sans-serif;text-align:center;';
+          overlay.innerHTML = '<p style="margin-bottom:1rem;font-size:1.1rem;">Page did not load correctly.</p><p style="margin-bottom:1.5rem;opacity:0.9;">Tap below to reload.</p><button type="button" onclick="location.reload()" style="padding:12px 24px;font-size:1rem;background:#4caf50;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">Reload</button>';
+          document.body.appendChild(overlay);
+        }
+      }
+      if (document.readyState === 'complete') {
+        setTimeout(checkStylesLoaded, 100);
+      } else {
+        window.addEventListener('load', function() { setTimeout(checkStylesLoaded, 100); });
+      }
+    })();
+  </script>
+</body>
+</html>
+
+

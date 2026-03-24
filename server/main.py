@@ -75,6 +75,7 @@ try_restart_anonymized_data_id_sequence = supabase_client.try_restart_anonymized
 search_supabase_data = supabase_client.search_supabase_data
 export_supabase_data = supabase_client.export_supabase_data
 generate_and_post_sample_data_to_supabase = supabase_client.generate_and_post_sample_data_to_supabase
+get_supabase_service_client = supabase_client.get_supabase_service_client
 supabase_client_ref = supabase_client.supabase_client  # module-level client reference
 check_supabase_availability = supabase_client.check_supabase_availability
 SUPABASE_URL = config.SUPABASE_URL
@@ -313,6 +314,10 @@ class RianellHttpHandler(http.server.SimpleHTTPRequestHandler):
         
         if parsed_path.path == '/api/sync-log':
             self.handle_sync_log()
+            return
+
+        if parsed_path.path == '/api/bug-report':
+            self.handle_bug_report()
             return
         
         # For other POST requests, return 405 Method Not Allowed
@@ -662,6 +667,89 @@ class RianellHttpHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+
+    def handle_bug_report(self):
+        """Handle bug report submissions and insert into Supabase."""
+        try:
+            client_ip = self.client_address[0]
+            MAX_CONTENT_LENGTH = 1024 * 100  # 100KB
+            content_length = int(self.headers.get('Content-Length', 0))
+
+            if content_length <= 0:
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Empty request body'}).encode('utf-8'))
+                return
+
+            if content_length > MAX_CONTENT_LENGTH:
+                self.send_response(413)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Payload too large'}).encode('utf-8'))
+                return
+
+            if not http_security.bug_report_limiter.allow(client_ip):
+                self.send_response(429)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Rate limit exceeded. Max 5 bug reports per day per IP.'}).encode('utf-8'))
+                return
+
+            post_data = self.rfile.read(content_length)
+            try:
+                payload = json.loads(post_data.decode('utf-8'))
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Invalid JSON'}).encode('utf-8'))
+                return
+
+            description = str(payload.get('description', '')).strip()
+            if not description:
+                self.send_response(400)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'description is required'}).encode('utf-8'))
+                return
+
+            global SUPABASE_AVAILABLE
+            SUPABASE_AVAILABLE = check_supabase_availability()
+            client = get_supabase_service_client() or init_supabase_client()
+            if not SUPABASE_AVAILABLE or not client:
+                self.send_response(503)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Supabase not available'}).encode('utf-8'))
+                return
+
+            report_row = {
+                'client_ip': client_ip[:100],
+                'title': str(payload.get('title', '')).strip()[:160] or None,
+                'description': description[:4000],
+                'steps_to_reproduce': str(payload.get('steps', '')).strip()[:4000] or None,
+                'expected_behavior': str(payload.get('expected_behavior', '')).strip()[:2000] or None,
+                'actual_behavior': str(payload.get('actual_behavior', '')).strip()[:2000] or None,
+                'console_output': str(payload.get('console_output', '')).strip()[:32000] or None,
+                'app_theme': str(payload.get('app_theme', '')).strip()[:64] or None,
+                'user_agent': str(payload.get('user_agent', '')).strip()[:512] or None,
+                'page_url': str(payload.get('url', '')).strip()[:1000] or None,
+                'client_timestamp': payload.get('client_timestamp'),
+            }
+            client.table('bug_reports').insert(report_row).execute()
+
+            logger.info(f"BUG_REPORT | Received from {client_ip} | title={report_row['title'] or ''}")
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
+        except Exception as e:
+            logger.error(f"Error handling bug report: {e}", exc_info=True)
+            self.send_response(500)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'error': 'Failed to submit bug report'}).encode('utf-8'))
     
     def handle_anonymized_data(self):
         """Handle fetching decrypted anonymized training data"""

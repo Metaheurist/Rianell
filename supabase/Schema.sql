@@ -13,6 +13,7 @@ BEGIN;
 DROP TABLE IF EXISTS public.anonymized_data CASCADE;
 DROP TABLE IF EXISTS public.health_data CASCADE;
 DROP TABLE IF EXISTS public.user_keys CASCADE;
+DROP TABLE IF EXISTS public.bug_reports CASCADE;
 
 CREATE TABLE public.anonymized_data (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -41,6 +42,23 @@ CREATE TABLE public.user_keys (
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT user_keys_pkey PRIMARY KEY (user_id),
   CONSTRAINT user_keys_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.bug_reports (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  created_at timestamp with time zone DEFAULT now() NOT NULL,
+  client_ip text NOT NULL,
+  title text,
+  description text NOT NULL,
+  steps_to_reproduce text,
+  expected_behavior text,
+  actual_behavior text,
+  console_output text,
+  app_theme text,
+  user_agent text,
+  page_url text,
+  client_timestamp timestamp with time zone,
+  CONSTRAINT bug_reports_pkey PRIMARY KEY (id)
 );
 
 COMMIT;

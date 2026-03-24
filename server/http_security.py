@@ -87,3 +87,4 @@ class SimpleRateLimiter:
 # Shared limiters (imported by main)
 sensitive_api_limiter = SimpleRateLimiter(max_events=60, window_seconds=60.0)
 client_log_limiter = SimpleRateLimiter(max_events=300, window_seconds=60.0)
+bug_report_limiter = SimpleRateLimiter(max_events=5, window_seconds=86400.0)

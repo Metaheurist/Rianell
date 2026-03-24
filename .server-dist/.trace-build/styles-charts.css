@@ -1,0 +1,410 @@
+/* Deferred chart + ApexCharts styles (loaded when opening Charts tab). */
+.chart-container {
+  margin: 30px 0 0 0;
+  margin-bottom: 0;
+  background: rgba(28, 28, 28, 0.6);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 20px;
+  width: 100%;
+  min-height: 300px;
+  display: block;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: chartContainerFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Inactive view: must override display:block above when combined with .hidden */
+.chart-container.hidden {
+  display: none !important;
+}
+
+.chart-container.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes chartContainerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chart-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--primary-gradient);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-slow);
+}
+
+.chart-container:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(76, 175, 80, 0.2);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.chart-container:hover::before {
+  transform: scaleX(1);
+}
+
+/* GPU layer promotion for tier 5 / high-perf: compositor-friendly chart containers */
+#chartSection.chart-gpu-accelerated .chart-container {
+  transform: translateY(20px) translateZ(0);
+}
+#chartSection.chart-gpu-accelerated .chart-container.loaded {
+  transform: translateY(0) translateZ(0);
+}
+#chartSection.chart-gpu-accelerated .chart-container:hover {
+  transform: translateY(-4px) translateZ(0);
+}
+
+/* Chart Info Box for Non-Technical Users */
+.chart-info-box {
+  background: rgba(76, 175, 80, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 12px;
+  padding: 15px 20px;
+  margin-bottom: 15px;
+  display: flex;
+  gap: 12px;
+  animation: slideInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chart-info-box .info-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.chart-info-box .info-content {
+  flex: 1;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.chart-info-box .info-content strong {
+  color: var(--primary-color);
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.chart-info-box .info-content ul {
+  margin: 8px 0;
+  padding-left: 20px;
+  list-style-type: none;
+}
+
+.chart-info-box .info-content ul li {
+  margin: 6px 0;
+  position: relative;
+  padding-left: 20px;
+}
+
+.chart-info-box .info-content ul li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+.chart-info-box .info-content small {
+  display: block;
+  margin-top: 8px;
+  color: rgba(224, 242, 241, 0.7);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* Overlay shown while combined chart predictions are being computed (avoids perceived lag) */
+.chart-predictions-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--text-light);
+  font-size: 1rem;
+  font-weight: 600;
+  z-index: 10;
+  border-radius: 12px;
+  animation: loadingPulse 2s ease-in-out infinite;
+}
+.chart-predictions-loading-overlay::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(76, 175, 80, 0.3);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.chart-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 270px;
+  color: var(--text-light);
+  font-size: 1.1rem;
+  font-weight: bold;
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    rgba(76, 175, 80, 0.1) 50%, 
+    rgba(255, 255, 255, 0.05) 100%);
+  background-size: 200% 100%;
+  border-radius: 12px;
+  border: 2px dashed rgba(76, 175, 80, 0.3);
+  animation: loadingPulse 2s ease-in-out infinite, shimmer 3s linear infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(76, 175, 80, 0.3);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: spin 1s linear infinite;
+}
+
+/* Static "No data" message - no animations or spinner */
+.chart-loading.no-data-message {
+  animation: none !important;
+  background: transparent !important;
+  border: none !important;
+  color: rgba(224, 242, 241, 0.6);
+  font-weight: normal;
+}
+
+.chart-loading.no-data-message::after {
+  display: none !important;
+}
+
+body.light-mode .chart-loading {
+  color: var(--text-dark);
+}
+
+/* Empty State Placeholder - no translate() so it stays in correct position */
+.chart-empty-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 60px 20px;
+  background: rgba(28, 28, 28, 0.6);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  border: 2px dashed rgba(76, 175, 80, 0.3);
+  margin: 30px 0;
+  animation: chartPlaceholderIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes chartPlaceholderIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.chart-empty-placeholder::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(76, 175, 80, 0.1) 50%, 
+    transparent 100%);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+.empty-placeholder-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  transform-origin: center;
+  animation: pulse 2.75s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.5));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empty-placeholder-icon {
+    animation-duration: 3.8s;
+  }
+}
+
+.empty-placeholder-text {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  text-align: center;
+  animation: fadeInUp 1s ease-out, textGlow 2s ease-in-out infinite;
+  text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+  letter-spacing: 0.5px;
+}
+
+@keyframes textGlow {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    opacity: 1;
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(76, 175, 80, 0.8), 0 0 30px rgba(76, 175, 80, 0.4);
+    opacity: 0.9;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.chart-empty-placeholder.hidden {
+  display: none;
+}
+
+@keyframes loadingPulse {
+  0%, 100% { 
+    opacity: 0.6; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.02);
+  }
+}
+
+.chart-container.loaded .chart-loading {
+  display: none;
+}
+
+/* ApexCharts Toolbar Menu Styling for Dark Theme */
+.apexcharts-menu {
+  background: rgba(38, 50, 56, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+  padding: 4px 0 !important;
+}
+
+.apexcharts-menu-item {
+  color: #e0f2f1 !important;
+  background: transparent !important;
+  padding: 8px 16px !important;
+  font-size: 13px !important;
+  transition: all 0.2s ease !important;
+}
+
+.apexcharts-menu-item:hover {
+  background: rgba(76, 175, 80, 0.2) !important;
+  color: #81c784 !important;
+}
+
+.apexcharts-menu-icon {
+  color: #e0f2f1 !important;
+}
+
+.apexcharts-menu-icon:hover {
+  color: #81c784 !important;
+}
+
+/* ApexCharts Toolbar Buttons Styling */
+.apexcharts-toolbar {
+  z-index: 10 !important;
+}
+
+.apexcharts-toolbar svg {
+  fill: #e0f2f1 !important;
+}
+
+.apexcharts-toolbar svg:hover {
+  fill: #81c784 !important;
+}
+
+.apexcharts-zoom-icon,
+.apexcharts-zoom-in-icon,
+.apexcharts-zoom-out-icon,
+.apexcharts-pan-icon,
+.apexcharts-reset-icon,
+.apexcharts-menu-icon {
+  fill: #e0f2f1 !important;
+}
+
+.apexcharts-zoom-icon:hover,
+.apexcharts-zoom-in-icon:hover,
+.apexcharts-zoom-out-icon:hover,
+.apexcharts-pan-icon:hover,
+.apexcharts-reset-icon:hover,
+.apexcharts-menu-icon:hover {
+  fill: #81c784 !important;
+}

@@ -2,7 +2,25 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.44.2** - theme parity hardening, settings mini-icon navigation, cloud settings sync expansion, and MOTD 3D styling refresh.
+**Latest: v1.45.0** - bug report submission flow, Supabase schema + server rate limiting, theme-dependent styling cleanup, and STT microphone permission hardening.
+
+### v1.45.0 - 2026-03-24 - Bug reports, STT permissions, and theme cleanup
+
+- **Bug report pipeline (web + server + Supabase)**:
+  - Added a new top-right **`?`** bug report entry button (alongside Targets and Settings) with shared chrome/theme styling.
+  - Added a dedicated bug report modal with structured fields and submit flow.
+  - Added console snapshot capture on submit (bounded client buffer of recent `console.log/info/warn/error` lines), stored in bug report payload as `console_output`.
+  - Added server endpoint **`POST /api/bug-report`** with validation and Supabase insert into `public.bug_reports`.
+  - Added per-IP rate limiting for bug report submissions: **5 requests / 24h**.
+  - Updated Supabase schema (`supabase/Schema.sql`) with `public.bug_reports` table including `console_output`, metadata, timestamps, and primary key.
+- **Theme parity / visual consistency**:
+  - Reworked **rainbow** theme tokens to be genuinely multicolour/flashy instead of blue-dominant accents.
+  - Removed hardcoded notification permission status colors and migrated to theme-driven state classes.
+  - Removed remaining hardcoded install-surface accents so install hints/buttons respect active theme tokens.
+- **Speech-to-text (STT) reliability**:
+  - Voice input now requests/checks microphone permission before starting recognition.
+  - Added fallback permission handling across browser APIs and optional Capacitor/community speech plugin permission methods when present.
+  - Improved user-facing errors for denied permission, unsupported engines/webviews, and missing microphone capture states.
 
 ### v1.44.2 - 2026-03-24 - Theme parity and settings/navigation polish
 
