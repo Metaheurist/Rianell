@@ -2315,13 +2315,11 @@ function openModalTestOverlay() {
     hint.className = 'god-mode-section-hint';
     hint.textContent = 'Console-only (no network). Requires demo mode. When enabled, logs every instrumented function in the browser console.';
     var label = document.createElement('label');
-    label.style.display = 'flex';
-    label.style.alignItems = 'center';
-    label.style.gap = '0.5rem';
-    label.style.cursor = 'pointer';
+    label.className = 'god-mode-trace-toggle-row';
     var cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.id = 'godModeFunctionTraceToggle';
+    cb.className = 'god-mode-trace-toggle-input';
     try {
       cb.checked = localStorage.getItem('rianellFunctionTrace') === 'true';
     } catch (e) {
@@ -2336,9 +2334,14 @@ function openModalTestOverlay() {
         }
       } catch (err) {}
     });
+    var slider = document.createElement('span');
+    slider.className = 'god-mode-trace-toggle-switch';
+    slider.setAttribute('aria-hidden', 'true');
     var span = document.createElement('span');
+    span.className = 'god-mode-trace-toggle-text';
     span.textContent = 'Log all instrumented functions to console (verbose)';
     label.appendChild(cb);
+    label.appendChild(slider);
     label.appendChild(span);
     sec.appendChild(h4t);
     sec.appendChild(hint);
@@ -6291,15 +6294,34 @@ async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
   }
   if (typeof window.generateSummaryWithLLM !== 'function') return;
   var originalText = el.textContent;
+  var fallbackText = fallbackNote.trim() || originalText;
+  var reqId = ((window.__aiSummaryNoteReqId || 0) + 1);
+  window.__aiSummaryNoteReqId = reqId;
   el.textContent = 'Generating summary…';
-  window.generateSummaryWithLLM(analysis, { dayCount: dayCount || (logs && logs.length) || 0, logs: logs || [] }, fallbackNote)
+  var llmPromise = window.generateSummaryWithLLM(
+    analysis,
+    { dayCount: dayCount || (logs && logs.length) || 0, logs: logs || [] },
+    fallbackNote
+  );
+  var timeoutMs = 12000;
+  var timeoutPromise = new Promise(function(resolve) {
+    setTimeout(function() { resolve(null); }, timeoutMs);
+  });
+  Promise.race([llmPromise, timeoutPromise])
     .then(function (text) {
+      if (window.__aiSummaryNoteReqId !== reqId) return;
       var target = document.getElementById('aiSummaryNoteText');
-      if (target && text && text.trim()) target.textContent = text.trim();
+      if (!target) return;
+      if (text && text.trim()) {
+        target.textContent = text.trim();
+      } else {
+        target.textContent = fallbackText;
+      }
     })
     .catch(function () {
+      if (window.__aiSummaryNoteReqId !== reqId) return;
       var target = document.getElementById('aiSummaryNoteText');
-      if (target) target.textContent = originalText;
+      if (target) target.textContent = fallbackText;
     });
 }
 

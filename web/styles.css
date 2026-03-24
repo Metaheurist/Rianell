@@ -5884,9 +5884,22 @@ body.loading .header-buttons-wrap {
       var(--neon-lime) 40%,
       #52b85f 78%,
       rgba(123, 223, 140, 0.12) 100%
+    ),
+    repeating-conic-gradient(
+      from 0deg,
+      rgba(236, 255, 242, 0.34) 0deg,
+      rgba(236, 255, 242, 0.34) 10deg,
+      rgba(123, 223, 140, 0.08) 10deg,
+      rgba(123, 223, 140, 0.08) 20deg,
+      rgba(82, 184, 95, 0.3) 20deg,
+      rgba(82, 184, 95, 0.3) 30deg,
+      rgba(123, 223, 140, 0.08) 30deg,
+      rgba(123, 223, 140, 0.08) 40deg
     );
   clip-path: inset(0 calc((1 - var(--loading-progress)) * 100%) 0 0);
   transition: clip-path 0.16s linear;
+  animation: rianell-ring-water-flow 1.35s linear infinite;
+  will-change: transform, clip-path;
 }
 
 .loading-sun-orbit__orbit {
@@ -6053,6 +6066,11 @@ body.loading .header-buttons-wrap {
   to { transform: translateX(140%) rotate(8deg); }
 }
 
+@keyframes rianell-ring-water-flow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .loading-sun-orbit__orbit {
     animation-duration: 7s;
@@ -6073,6 +6091,7 @@ body.loading .header-buttons-wrap {
   }
 
   .loading-sun-orbit__ring::after {
+    animation: none;
     transition: none;
   }
 }
@@ -6456,6 +6475,60 @@ body.light-mode .install-modal-hint {
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(76, 175, 80, 0.5);
 }
+.god-mode-trace-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-top: 0.55rem;
+}
+.god-mode-trace-toggle-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.god-mode-trace-toggle-switch {
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(123, 223, 140, 0.45);
+  background: rgba(20, 30, 24, 0.95);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  position: relative;
+  flex: 0 0 auto;
+  transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.god-mode-trace-toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #e8fff0 0%, #b8f3c7 100%);
+  box-shadow: 0 0 6px rgba(123, 223, 140, 0.35);
+  transition: transform 0.18s ease;
+}
+.god-mode-trace-toggle-input:checked + .god-mode-trace-toggle-switch {
+  background: rgba(52, 161, 75, 0.36);
+  border-color: rgba(123, 223, 140, 0.78);
+  box-shadow: 0 0 12px rgba(123, 223, 140, 0.28), inset 0 0 0 1px rgba(123, 223, 140, 0.24);
+}
+.god-mode-trace-toggle-input:checked + .god-mode-trace-toggle-switch::after {
+  transform: translateX(20px);
+}
+.god-mode-trace-toggle-input:focus-visible + .god-mode-trace-toggle-switch {
+  outline: 2px solid rgba(123, 223, 140, 0.8);
+  outline-offset: 2px;
+}
+.god-mode-trace-toggle-text {
+  color: rgba(224, 242, 241, 0.86);
+  font-weight: 600;
+  line-height: 1.35;
+}
 body.light-mode .god-mode-hint {
   color: var(--text-secondary);
 }
@@ -6472,6 +6545,21 @@ body.light-mode .god-mode-btn {
 }
 body.light-mode .god-mode-btn:hover {
   background: rgba(0, 0, 0, 0.1);
+}
+body.light-mode .god-mode-trace-toggle-switch {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(47, 125, 50, 0.45);
+}
+body.light-mode .god-mode-trace-toggle-switch::after {
+  background: linear-gradient(180deg, #ffffff 0%, #d9f4df 100%);
+  box-shadow: 0 0 4px rgba(47, 125, 50, 0.25);
+}
+body.light-mode .god-mode-trace-toggle-input:checked + .god-mode-trace-toggle-switch {
+  background: rgba(76, 175, 80, 0.24);
+  border-color: rgba(47, 125, 50, 0.78);
+}
+body.light-mode .god-mode-trace-toggle-text {
+  color: #1f2b24;
 }
 
 /* Settings footer (Cookie policy link) */

@@ -60,6 +60,7 @@ The loading orbit widget uses layered pseudo-elements for liquid motion:
 - `.loading-sun-orbit__body` (small orbiting dot): glow + inner slosh/sheen.
 - `.loading-sun-orbit__sun` (main planet): larger core with swirl/wobble layers to make liquid movement visibly obvious.
 - `.loading-sun-orbit__ring`: now doubles as the **loading progress bar** (circular/orbit progress). The old straight fluid bar was removed; progress is rendered on the ring arc via CSS variable updates from `app.js`.
+- The ring's progress fill (`.loading-sun-orbit__ring::after`) now layers a moving `repeating-conic-gradient` over the arc so loading reads as **flowing water** while still respecting `--loading-progress` from 0-100%.
 
 Critical first-paint CSS in `index.html` mirrors these rules so the same animation appears before `styles.css` fully loads.
 

@@ -2,7 +2,18 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.44.0** - PyQt6 dashboard, server EXE CI/release, icon refresh, orbit-ring loader progress.
+**Latest: v1.44.1** - AI Summary fallback reliability, flowing orbit-ring loader, themed function-trace toggle.
+
+### v1.44.1 - 2026-03-24 - AI summary reliability and orbit-ring water flow polish
+
+- **Web / AI Analysis**:
+  - Fixed a Summary note edge case where the note could stay on **"Generating summary..."** if the LLM promise never resolved.
+  - Added request-staleness guards and timeout-based fallback so Summary note always returns to a valid value (LLM text when available, otherwise rule-based note).
+- **Web / Loading overlay**:
+  - Loading orbit ring arc now uses animated layered conic gradients to create a **flowing water** motion while still filling to 100% via `--loading-progress`.
+  - `prefers-reduced-motion` handling keeps decorative ring flow disabled for accessibility.
+- **Web / God mode**:
+  - Function trace toggle now uses a theme-matched switch control style for visual consistency with the rest of the mint UI.
 
 ### v1.44.0 - 2026-03-24 - PyQt6 tinker, server EXE release path, icon + loader refresh
 
