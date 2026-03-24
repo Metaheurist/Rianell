@@ -2,7 +2,22 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.44.1** - AI Summary fallback reliability, flowing orbit-ring loader, themed function-trace toggle.
+**Latest: v1.44.2** - theme parity hardening, settings mini-icon navigation, cloud settings sync expansion, and MOTD 3D styling refresh.
+
+### v1.44.2 - 2026-03-24 - Theme parity and settings/navigation polish
+
+- **Web / Theming parity**:
+  - Removed remaining hardcoded mint accents from key flows so selected global themes apply consistently (including **mono**).
+  - ECG pulse, active navbar tabs, goals/targets progress block, loading overlay ring/accent layers, and chart empty-state/tooling accents now follow theme tokens.
+  - Added early theme bootstrapping in `index.html` so loading overlay uses the saved theme before app init completes.
+- **Web / Settings UX**:
+  - Replaced settings carousel dots with clickable **mini icon** indicators per section.
+  - Mini icons now support direct jump-to-section navigation from the settings header area.
+- **Web / Cloud sync**:
+  - Expanded cloud settings payload to include user settings stored outside `rianellSettings` (for example tutorial/special toggles and feature flags), so settings round-trip more completely across devices.
+  - Added restore path for those extra keys on cloud load.
+- **Web / MOTD title styling**:
+  - Updated MOTD quote/title rendering to a **single-tone** theme colour with stronger layered 3D depth/extrusion and cleaner readability.
 
 ### v1.44.1 - 2026-03-24 - AI summary reliability and orbit-ring water flow polish
 

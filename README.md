@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.44.1** - AI Summary note no longer sticks on "Generating summary..." (LLM timeout + safe fallback), loading orbit ring now has a flowing water effect while filling to 100%, and God mode Function trace toggle uses themed switch styling).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.44.2** - full theme parity pass across pulse/nav/targets/loading/charts placeholders, clickable settings mini-icon navigation, cloud sync now captures all user settings keys, and MOTD text uses single-tone stronger 3D styling).
 
 ### Tech stack
 

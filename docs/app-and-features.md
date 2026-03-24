@@ -32,6 +32,12 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.44.2 documentation sync
+
+- Theme selection now applies to more UI surfaces end-to-end (pulse line, active nav state, goals/targets accents, loading ring and chart empty-state accents).
+- Settings header slide indicators are now clickable mini icons for direct section jumps.
+- MOTD quote/title uses stronger single-tone 3D styling for clearer readability.
+
 ### Health data tracking
 - **Daily log entry**: Record per-day health metrics: resting heart rate (BPM), weight, fatigue, stiffness, back pain, sleep quality, joint pain, mobility, daily function, joint swelling, mood, irritability, weather sensitivity, steps, hydration (glasses).
 - **Structured data**: Flare (yes/no), stressors, symptoms, pain location, notes; food log (meals with items); exercise log (activities with duration).

@@ -408,3 +408,37 @@ body.light-mode .chart-loading {
 .apexcharts-menu-icon:hover {
   fill: #81c784 !important;
 }
+
+/* Mono theme: remove remaining mint accents from chart empty states/tooling */
+body.theme-mono .chart-empty-placeholder {
+  border-color: rgba(242, 242, 242, 0.36);
+}
+
+body.theme-mono .chart-empty-placeholder::before {
+  background: linear-gradient(90deg, transparent 0%, rgba(242, 242, 242, 0.12) 50%, transparent 100%);
+}
+
+body.theme-mono .empty-placeholder-icon {
+  filter: drop-shadow(0 0 20px rgba(240, 240, 240, 0.45));
+}
+
+body.theme-mono .empty-placeholder-text {
+  text-shadow: 0 0 12px rgba(240, 240, 240, 0.45);
+}
+
+body.theme-mono .apexcharts-menu-item:hover {
+  background: rgba(242, 242, 242, 0.16) !important;
+  color: #ffffff !important;
+}
+
+body.theme-mono .apexcharts-menu-icon:hover,
+body.theme-mono .apexcharts-toolbar svg:hover,
+body.theme-mono .apexcharts-zoom-icon:hover,
+body.theme-mono .apexcharts-zoom-in-icon:hover,
+body.theme-mono .apexcharts-zoom-out-icon:hover,
+body.theme-mono .apexcharts-pan-icon:hover,
+body.theme-mono .apexcharts-reset-icon:hover,
+body.theme-mono .apexcharts-menu-icon:hover {
+  fill: #f2f2f2 !important;
+  color: #f2f2f2 !important;
+}

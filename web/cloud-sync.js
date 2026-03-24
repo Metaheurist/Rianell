@@ -3,6 +3,13 @@
 
 // LocalStorage key for AI prediction/learning state (blend weights, last predictions) - synced to cloud when logged in
 const AI_STATE_LOCALSTORAGE_KEY = 'rianellPredictionState';
+const CLOUD_SYNC_EXTRA_SETTING_KEYS = [
+  'rianellFunctionTrace',
+  'rianellEnableStaticSW',
+  'rianellTutorialSeen',
+  'rianellInstallModalAfterTutorialSeen',
+  'installPromptDismissed'
+];
 
 // Initialize Supabase client
 let supabaseClient = null;
@@ -755,6 +762,33 @@ function saveCloudSyncState() {
   }
 }
 
+function collectExtraLocalSettings() {
+  const extras = {};
+  for (const key of CLOUD_SYNC_EXTRA_SETTING_KEYS) {
+    try {
+      const value = localStorage.getItem(key);
+      if (value !== null && value !== undefined) extras[key] = value;
+    } catch (error) {
+      console.warn(`Error reading local setting key ${key}:`, error);
+    }
+  }
+  return extras;
+}
+
+function applyExtraLocalSettings(extras) {
+  if (!extras || typeof extras !== 'object') return;
+  for (const key of CLOUD_SYNC_EXTRA_SETTING_KEYS) {
+    if (!Object.prototype.hasOwnProperty.call(extras, key)) continue;
+    try {
+      const value = extras[key];
+      if (value === null || value === undefined) continue;
+      localStorage.setItem(key, String(value));
+    } catch (error) {
+      console.warn(`Error applying local setting key ${key}:`, error);
+    }
+  }
+}
+
 // Update cloud sync UI
 function updateCloudSyncUI() {
   const authSection = document.getElementById('cloudAuthSection');
@@ -1425,6 +1459,13 @@ async function syncToCloud() {
         if (goals && typeof goals === 'object') mergedSettings.goals = goals;
       }
     } catch (e) {}
+    // Include settings persisted outside rianellSettings so all user settings round-trip.
+    const cloudExtraSettings = (cloudSettings && typeof cloudSettings.__extraLocalSettings === 'object')
+      ? cloudSettings.__extraLocalSettings
+      : {};
+    const localExtraSettings = collectExtraLocalSettings();
+    mergedSettings.__extraLocalSettings = { ...cloudExtraSettings, ...localExtraSettings };
+    mergedSettings.__cloudSyncAutoSync = !!cloudSyncState.autoSync;
     
     // Encrypt merged data with USER-SPECIFIC key
     let encryptedLogs;
@@ -1758,7 +1799,11 @@ async function loadFromCloud() {
           const cloudSettings = JSON.parse(cloudSettingsJson);
           // Merge cloud settings with local settings (cloud takes precedence)
           if (window.appSettings && typeof window.appSettings === 'object') {
-            window.appSettings = { ...window.appSettings, ...cloudSettings };
+            const settingsForApp = { ...cloudSettings };
+            delete settingsForApp.goals;
+            delete settingsForApp.__extraLocalSettings;
+            delete settingsForApp.__cloudSyncAutoSync;
+            window.appSettings = { ...window.appSettings, ...settingsForApp };
             if (typeof saveSettings === 'function') {
               saveSettings();
             }
@@ -1769,6 +1814,16 @@ async function loadFromCloud() {
               localStorage.setItem('rianellGoals', JSON.stringify(cloudSettings.goals));
               if (typeof updateGoalsProgressBlock === 'function') updateGoalsProgressBlock();
             } catch (e) {}
+          }
+          // Restore additional setting keys that are outside rianellSettings.
+          if (cloudSettings.__extraLocalSettings && typeof cloudSettings.__extraLocalSettings === 'object') {
+            applyExtraLocalSettings(cloudSettings.__extraLocalSettings);
+          }
+          // Restore per-user cloud auto-sync preference.
+          if (typeof cloudSettings.__cloudSyncAutoSync === 'boolean') {
+            cloudSyncState.autoSync = cloudSettings.__cloudSyncAutoSync;
+            saveCloudSyncState();
+            updateCloudSyncUI();
           }
         } catch (parseError) {
           console.warn('Failed to parse cloud settings:', parseError);
