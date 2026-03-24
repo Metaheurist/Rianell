@@ -473,6 +473,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
           python -m pip install pyinstaller
+          python -m pip install pyarmor
 
       - name: Install UPX (best-effort)
         shell: pwsh
@@ -486,6 +487,20 @@ jobs:
       - name: Build server EXE
         shell: pwsh
         run: |
+          $entryScript = "server/main.py"
+          try {
+            # Best-effort obfuscation: keep CI resilient if obfuscation fails.
+            python -m pyarmor gen -r -O ".ci-obf" server
+            if (Test-Path ".ci-obf/server/main.py") {
+              $entryScript = ".ci-obf/server/main.py"
+              Write-Host "Using obfuscated entry script: $entryScript"
+            } else {
+              Write-Host "Obfuscated entry not found; using source entry script."
+            }
+          } catch {
+            Write-Host "PyArmor obfuscation failed; falling back to source entry script."
+          }
+
           $upxPath = (Get-Command upx -ErrorAction SilentlyContinue).Source
           $pyArgs = @(
             "--noconfirm",
@@ -500,7 +515,7 @@ jobs:
           } else {
             Write-Host "UPX not found; building without UPX compression."
           }
-          python -m PyInstaller @pyArgs "server/main.py"
+          python -m PyInstaller @pyArgs $entryScript
           New-Item -ItemType Directory -Force -Path "App build/Server" | Out-Null
           Copy-Item "dist/rianell-server-${{ matrix.arch }}.exe" "App build/Server/rianell-server-${{ matrix.arch }}.exe" -Force
           Set-Content -Path "App build/Server/latest-${{ matrix.arch }}.json" -Value "{""version"":${{ github.run_number }},""file"":""rianell-server-${{ matrix.arch }}.exe""}"
