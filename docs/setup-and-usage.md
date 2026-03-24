@@ -77,6 +77,18 @@ If you use PowerShell 7+:
 pwsh -File .\server\launch-server.ps1
 ```
 
+For local **non-compiled** mode (serve `web/` directly), use:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1 -NoCompile
+```
+
+In `-NoCompile` mode, the launcher runs unit tests (`tests/unit/app-functionality.test.mjs`) before starting the server. To skip this gate:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1 -NoCompile -SkipUnitTests
+```
+
 Optional port:
 
 ```powershell
