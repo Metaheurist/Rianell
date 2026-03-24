@@ -11,6 +11,14 @@
 
 - Unified CI now includes a dedicated app functionality unit-test stage (`npm run test:unit`) before Android/iOS/server build and Pages deploy jobs.
 
+### v1.45.3 documentation sync
+
+- Unit tests now cover behavior-level contracts in addition to markup wiring (theme apply flow, MOTD tab scoping, voice-input permission checks, and selected CSS contracts).
+- Run locally from repo root:
+  ```bash
+  npm run test:unit
+  ```
+
 ### Prerequisites
 - Python 3.8 or higher
 - Modern web browser (Chrome, Firefox, Edge, Safari)

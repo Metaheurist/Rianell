@@ -2,7 +2,19 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.2** - CI unit-test gate for app functionality, plus docs sync.
+**Latest: v1.45.3** - expanded unit-test coverage and docs update.
+
+### v1.45.3 - 2026-03-24 - Expanded app functionality unit tests
+
+- **Tests / Unit coverage**:
+  - Expanded `tests/unit/app-functionality.test.mjs` with behavior assertions for:
+    - in-place theme switching (no forced reload in `setGlobalTheme`),
+    - Home-only MOTD title/quote guards,
+    - voice input permission gate flow wiring,
+    - settings hint copy for live theme apply,
+    - CSS contracts for textarea mic icon centering and single-row settings icon rail.
+- **Docs**:
+  - Updated docs pages to include the expanded unit-test scope and command usage.
 
 ### v1.45.2 - 2026-03-24 - CI unit tests for app functionality
 

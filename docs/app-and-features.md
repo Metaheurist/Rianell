@@ -32,6 +32,11 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.3 documentation sync
+
+- Expanded unit-test scope in `tests/unit/app-functionality.test.mjs` to cover key runtime behavior contracts (theme no-reload path, Home-only MOTD guard, voice permission gate, and CSS/UI wiring checks).
+- Continue running from root with `npm run test:unit` (Node test runner).
+
 ### v1.45.2 documentation sync
 
 - Added CI app functionality unit-test coverage (`npm run test:unit`) with workflow gating before build/release/deploy jobs.

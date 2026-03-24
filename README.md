@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.45.2** - CI now runs an app functionality unit-test path and gates Android/iOS/Server/Pages jobs on test success).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.45.3** - expanded app functionality unit-test coverage and docs sync, including behavior checks for theme/MOTD/voice/CSS contracts).
 
 ### Tech stack
 

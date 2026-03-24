@@ -37,6 +37,7 @@ env:
 
 permissions:
   contents: read
+  dependency-graph: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
