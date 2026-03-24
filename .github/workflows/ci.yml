@@ -136,7 +136,7 @@ jobs:
           "
 
           test -f ".ci-minified/web-android-dist/app.min.js"
-          test -f ".ci-minified/react-dist/assets/legacy/app.min.js"
+          test -f ".ci-minified/react-dist/legacy/app.min.js"
           test -f ".ci-minified/site/app.min.js"
 
       - name: Upload minified temp artifact
@@ -194,7 +194,7 @@ jobs:
           cp -r ".ci-minified/web-android-dist" "web/.android-dist"
           cp -r ".ci-minified/react-dist" "react-app/dist"
           test -f "web/.android-dist/app.min.js"
-          test -f "react-app/dist/assets/legacy/app.min.js"
+          test -f "react-app/dist/legacy/app.min.js"
 
       - name: Add Android platform (if not present)
         working-directory: react-app
@@ -303,7 +303,7 @@ jobs:
           cp -r ".ci-minified/web-android-dist" "web/.android-dist"
           cp -r ".ci-minified/react-dist" "react-app/dist"
           test -f "web/.android-dist/app.min.js"
-          test -f "react-app/dist/assets/legacy/app.min.js"
+          test -f "react-app/dist/legacy/app.min.js"
 
       - name: Add iOS platform (if not present)
         working-directory: react-app
