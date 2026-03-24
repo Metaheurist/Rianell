@@ -4,6 +4,10 @@
 
 **Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.45.3** - expanded app functionality unit-test coverage and docs sync, including behavior checks for theme/MOTD/voice/CSS contracts).
 
+### Here’s what we plan next
+
+Roadmap for the next phase—**web + React Native** split, **system-aware themes** with per-team light/dark tokens, **accessibility** (settings, font scale, TTS, colorblind options), and **AI inference** scaffolding for on-device and browser acceleration—is in **[docs/next-phase-development-plan.md](docs/next-phase-development-plan.md)**.
+
 ### Tech stack
 
 [![JavaScript](https://img.shields.io/badge/JavaScript-Vanilla%20%2B%20modules-F7DF1E?style=flat-square&logo=javascript&logoColor=000)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
@@ -61,6 +65,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | 📱 | **[Platform parity](docs/platform-parity.md)** - web/android/iOS feature contract and CI parity gates |
 | 👤 | **[About & support](docs/about-and-support.md)** |
 | 📜 | **[Changelog](docs/CHANGELOG.md)** - version history and release notes |
+| 🚀 | **[Next phase development plan](docs/next-phase-development-plan.md)** - upcoming build: RN parity, theming, accessibility, AI acceleration |
 
 ---
 
