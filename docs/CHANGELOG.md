@@ -2,7 +2,22 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.42.0** - Settings modal layout & theme, UI polish, documentation.
+**Latest: v1.43.0** - Loading animation, log wizard UX, server dashboard polish, documentation.
+
+### v1.43.0 - 2026-03-24 - Loader swirl, log review UX, tinker refresh
+
+- **Web / Loading overlay**: Orbit widget is larger; small orbit dot glow refined; main planet now shows a visible liquid-style swirl/wobble animation. `prefers-reduced-motion` disables decorative liquid sub-animations.
+- **Web / Log wizard**:
+  - **Skip** on optional steps now clears that step’s inputs/items first, then advances (discard-on-skip behaviour).
+  - Step 10 **Review** changed from a dense line list to section cards with friendlier labels, optional empty-state hints, and improved mobile readability.
+- **Web / AI Analysis (mobile)**: Pain-by-body-part table now fits slide width on narrow screens (no sideways inner scroll for the card); responsive column sizing and badge scaling.
+- **Web / Goals**: Default targets (only when user has never saved goals) are now **10,000 steps**, **9 glasses hydration**, **sleep score 5**, **3 good days/week**.
+- **Server / Tinker dashboard**:
+  - Updated visual styling to a darker mint-accent theme.
+  - Added button icons for key actions.
+  - Database viewer keeps multi-row selection (`extended`) and now includes explicit **Ctrl/Shift + Ctrl+A** guidance and select-all shortcut binding.
+  - Server log pane now applies full-line colour by severity (console-like), with token highlighting layered on top.
+- **Docs**: README, styling guide, and security notes updated for these behaviours.
 
 ### v1.42.0 - 2026-03-23 - Settings modal, tile pickers, AI swipe cue, tutorial, docs
 

@@ -41,9 +41,26 @@ On narrow viewports, AI timeline sections can sit in horizontal **slides** (`.ai
 
 **First visit:** optional **shimmer** bar only (`#aiMobilePagerSwipeCue`); **`localStorage`** `healthApp_aiSwipeCueSeen`; dismiss on horizontal scroll or timeout; respect **`prefers-reduced-motion: reduce`**; not shown **≥ 769px**.
 
+For the pain-by-body-part card inside AI Analysis, mobile now prefers **fit-to-card table layout** (responsive columns, tighter paddings) instead of an inner horizontal scroller.
+
 ## Tutorial onboarding
 
 The first-run tutorial is a slide deck with **‹ ›** and swipe; the bottom **dot row was removed** in favour of navigation without a static step indicator.
+
+## Log wizard review (Step 10)
+
+`#logReviewSummary` now renders grouped **review cards** (`.log-review-card`) with label/value rows (`.log-review-row`) instead of a single long list. This improves scanability before save and stacks cleanly on narrow screens.
+
+Skip behaviour in optional steps is now **discard-and-advance**: pressing Skip clears the active step’s current inputs/items, then moves to the next step.
+
+## Loading overlay planet
+
+The loading orbit widget uses layered pseudo-elements for liquid motion:
+
+- `.loading-sun-orbit__body` (small orbiting dot): glow + inner slosh/sheen.
+- `.loading-sun-orbit__sun` (main planet): larger core with swirl/wobble layers to make liquid movement visibly obvious.
+
+Critical first-paint CSS in `index.html` mirrors these rules so the same animation appears before `styles.css` fully loads.
 
 ## Reduced motion
 
