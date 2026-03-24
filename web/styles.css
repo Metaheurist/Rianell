@@ -81,6 +81,10 @@
   --neon-lime-deep: #52b85f;
   --neon-lime-glow: rgba(123, 223, 140, 0.2);
   --title-neon-gradient: linear-gradient(135deg, #9ae8a4 0%, #7bdf8c 42%, #52b85f 100%);
+  --title-flat-tone: #d6ffdd;
+  --loading-liquid-bright: color-mix(in srgb, var(--primary-color) 28%, #ffffff 72%);
+  --loading-liquid-mid: color-mix(in srgb, var(--primary-color) 62%, #ffffff 38%);
+  --loading-liquid-deep: color-mix(in srgb, var(--primary-color) 78%, #061008 22%);
   --modal-backdrop: rgba(0, 0, 0, 0.82);
   --modal-surface: linear-gradient(180deg, rgba(22, 24, 26, 0.98) 0%, rgba(10, 11, 12, 0.99) 100%);
 }
@@ -98,6 +102,7 @@ body.theme-red-black {
   --neon-lime-deep: #d82234;
   --neon-lime-glow: rgba(255, 77, 90, 0.3);
   --title-neon-gradient: linear-gradient(135deg, #ff9ca6 0%, #ff4d5a 50%, #d82234 100%);
+  --title-flat-tone: #ffd7dc;
   --modal-backdrop: rgba(4, 1, 2, 0.9);
   --modal-surface: linear-gradient(180deg, rgba(29, 8, 11, 0.98) 0%, rgba(10, 3, 4, 0.99) 100%);
 }
@@ -115,6 +120,7 @@ body.theme-mono {
   --neon-lime-deep: #8e8e8e;
   --neon-lime-glow: rgba(235, 235, 235, 0.28);
   --title-neon-gradient: linear-gradient(135deg, #ffffff 0%, #d4d4d4 50%, #8e8e8e 100%);
+  --title-flat-tone: #f4f4f4;
   --modal-backdrop: rgba(0, 0, 0, 0.86);
   --modal-surface: linear-gradient(180deg, rgba(25, 25, 25, 0.98) 0%, rgba(7, 7, 7, 0.99) 100%);
 }
@@ -132,8 +138,34 @@ body.theme-rainbow {
   --neon-lime-deep: #2a7aff;
   --neon-lime-glow: rgba(86, 199, 255, 0.34);
   --title-neon-gradient: linear-gradient(135deg, #ff70bd 0%, #ffd65a 30%, #53d66c 58%, #56c7ff 82%, #9f6bff 100%);
+  --title-flat-tone: #ddf3ff;
   --modal-backdrop: rgba(2, 6, 12, 0.88);
   --modal-surface: linear-gradient(180deg, rgba(23, 28, 36, 0.98) 0%, rgba(8, 11, 16, 0.99) 100%);
+}
+
+/* Mono theme hard overrides for legacy mint accents */
+body.theme-mono .loading-overlay {
+  background:
+    radial-gradient(ellipse 85% 55% at 50% 100%, rgba(242, 242, 242, 0.05) 0%, transparent 55%),
+    linear-gradient(180deg, #040404 0%, #080808 50%, #030303 100%);
+}
+
+body.theme-mono .loading-sun-orbit__ring {
+  box-shadow: 0 0 18px rgba(240, 240, 240, 0.16), inset 0 0 0 1px rgba(240, 240, 240, 0.12);
+}
+
+body.theme-mono .loading-sun-orbit__ring::before {
+  background: rgba(240, 240, 240, 0.2);
+}
+
+body.theme-mono .loading-sun-orbit__ring::after {
+  background:
+    conic-gradient(from -90deg, rgba(255, 255, 255, 0.96) 0deg, #f1f1f1 40%, #9a9a9a 78%, rgba(210, 210, 210, 0.14) 100%),
+    repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.28) 0deg, rgba(255, 255, 255, 0.28) 10deg, rgba(190, 190, 190, 0.1) 10deg, rgba(190, 190, 190, 0.1) 20deg, rgba(140, 140, 140, 0.24) 20deg, rgba(140, 140, 140, 0.24) 30deg, rgba(190, 190, 190, 0.1) 30deg, rgba(190, 190, 190, 0.1) 40deg);
+}
+
+body.theme-mono .loading-text {
+  text-shadow: 0 0 18px rgba(240, 240, 240, 0.24);
 }
 
 /* Skip link for keyboard/screen reader users */
@@ -615,19 +647,16 @@ h1#dashboardTitle:hover {
   line-height: 1.25;
   hyphens: auto;
   overflow-wrap: break-word;
-  background: var(--title-neon-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  background-size: 100% 100%;
-  -webkit-text-stroke: 1px rgba(210, 255, 220, 0.3);
+  color: var(--title-flat-tone);
+  -webkit-text-fill-color: var(--title-flat-tone);
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--title-flat-tone) 34%, #000 66%);
   text-shadow:
-    0 0 10px rgba(123, 223, 140, 0.24),
-    0 0 28px rgba(123, 223, 140, 0.16),
-    0 2px 0 rgba(10, 16, 12, 0.7),
-    0 4px 0 rgba(8, 12, 9, 0.6),
-    0 7px 14px rgba(0, 0, 0, 0.42);
-  filter: drop-shadow(0 0 14px rgba(123, 223, 140, 0.32));
+    0 0 10px color-mix(in srgb, var(--title-flat-tone) 34%, transparent),
+    0 2px 0 rgba(9, 14, 11, 0.84),
+    0 4px 0 rgba(8, 12, 10, 0.76),
+    0 6px 0 rgba(6, 9, 8, 0.68),
+    0 9px 16px rgba(0, 0, 0, 0.56);
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--title-flat-tone) 38%, transparent));
   transform-style: preserve-3d;
   transform-origin: 50% 56%;
   transform: rotateX(17deg) rotateY(-7deg) translateZ(12px);
@@ -641,13 +670,11 @@ h1#dashboardTitle:hover {
   left: 0;
   top: 0;
   z-index: -1;
-  background: var(--title-neon-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: blur(13px);
-  opacity: 0.52;
-  transform: translateZ(-8px) translateY(3px);
+  color: color-mix(in srgb, var(--title-flat-tone) 72%, transparent);
+  -webkit-text-fill-color: color-mix(in srgb, var(--title-flat-tone) 72%, transparent);
+  filter: blur(8px);
+  opacity: 0.44;
+  transform: translateZ(-10px) translateY(4px);
 }
 
 #dashboardTitle::after {
@@ -656,24 +683,25 @@ h1#dashboardTitle:hover {
   left: 0;
   top: 0;
   z-index: -2;
-  color: rgba(7, 10, 8, 0.85);
-  -webkit-text-fill-color: rgba(7, 10, 8, 0.85);
+  color: rgba(5, 7, 6, 0.94);
+  -webkit-text-fill-color: rgba(5, 7, 6, 0.94);
   text-shadow:
-    0 1px 0 rgba(10, 18, 12, 0.75),
-    0 3px 0 rgba(8, 14, 10, 0.72),
-    0 6px 10px rgba(0, 0, 0, 0.5);
-  transform: translateY(8px) translateZ(-18px);
+    0 1px 0 rgba(9, 14, 11, 0.86),
+    0 3px 0 rgba(7, 12, 9, 0.82),
+    0 5px 0 rgba(6, 10, 8, 0.78),
+    0 8px 12px rgba(0, 0, 0, 0.58);
+  transform: translateY(9px) translateZ(-20px);
 }
 
 #dashboardTitle:hover {
   transform: rotateX(19deg) rotateY(-9deg) translateZ(18px) scale(1.03);
   text-shadow:
-    0 0 16px rgba(123, 223, 140, 0.28),
-    0 0 36px rgba(123, 223, 140, 0.18),
-    0 2px 0 rgba(10, 16, 12, 0.72),
-    0 5px 0 rgba(8, 12, 9, 0.62),
-    0 10px 16px rgba(0, 0, 0, 0.45);
-  filter: drop-shadow(0 0 16px rgba(123, 223, 140, 0.36));
+    0 0 14px color-mix(in srgb, var(--title-flat-tone) 44%, transparent),
+    0 2px 0 rgba(9, 14, 11, 0.9),
+    0 4px 0 rgba(8, 12, 10, 0.82),
+    0 7px 0 rgba(6, 9, 8, 0.72),
+    0 12px 18px rgba(0, 0, 0, 0.62);
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--title-flat-tone) 44%, transparent));
 }
 
 @keyframes motdFloatTilt {
@@ -941,14 +969,14 @@ h1#dashboardTitle:hover {
   .app-bottom-nav-btn[aria-current="page"],
   .app-bottom-nav-btn.active {
     color: #fff;
-    background: rgba(76, 175, 80, 0.28);
-    border-color: rgba(129, 199, 132, 0.55);
-    box-shadow: var(--btn-chrome-shadow-hover), inset 0 0 0 1px rgba(76, 175, 80, 0.4);
+  background: color-mix(in srgb, var(--primary-color) 26%, transparent);
+  border-color: color-mix(in srgb, var(--primary-color) 52%, transparent);
+  box-shadow: var(--btn-chrome-shadow-hover), inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 38%, transparent);
   }
 
   .app-bottom-nav-btn[aria-current="page"]:focus-visible,
   .app-bottom-nav-btn.active:focus-visible {
-    box-shadow: var(--btn-chrome-shadow-hover), inset 0 0 0 1px rgba(76, 175, 80, 0.45), 0 0 0 2px rgba(255, 255, 255, 0.45);
+  box-shadow: var(--btn-chrome-shadow-hover), inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 48%, transparent), 0 0 0 2px rgba(255, 255, 255, 0.45);
   }
 
   .app-bottom-nav-icon {
@@ -1002,7 +1030,7 @@ h1#dashboardTitle:hover {
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: #0c1a11;
-  background: linear-gradient(180deg, #7bdf8c 0%, #4caf50 100%);
+  background: var(--primary-gradient);
   border: 1px solid rgba(11, 22, 12, 0.5);
   box-shadow: 0 2px 10px rgba(47, 125, 50, 0.45);
   border-radius: 8px;
@@ -1022,7 +1050,7 @@ body.light-mode .app-beta-badge {
   height: 56px;
   padding: 0;
   margin: 0;
-  border: 1px solid rgba(123, 223, 140, 0.45);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 44%, transparent);
   border-radius: var(--btn-chrome-radius);
   cursor: pointer;
   font-size: 2rem;
@@ -1030,7 +1058,7 @@ body.light-mode .app-beta-badge {
   line-height: 1;
   color: var(--neon-lime);
   background: var(--btn-chrome-bg);
-  box-shadow: var(--btn-chrome-shadow), 0 0 28px rgba(123, 223, 140, 0.2);
+  box-shadow: var(--btn-chrome-shadow), 0 0 28px color-mix(in srgb, var(--primary-color) 25%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1041,8 +1069,8 @@ body.light-mode .app-beta-badge {
 
 .app-log-fab:hover {
   background: var(--btn-chrome-bg-hover);
-  border-color: rgba(123, 223, 140, 0.65);
-  box-shadow: var(--btn-chrome-shadow-hover), 0 0 36px rgba(123, 223, 140, 0.28);
+  border-color: color-mix(in srgb, var(--primary-color) 62%, transparent);
+  box-shadow: var(--btn-chrome-shadow-hover), 0 0 36px color-mix(in srgb, var(--primary-color) 34%, transparent);
   color: var(--neon-lime-soft);
 }
 
@@ -1806,20 +1834,36 @@ body.light-mode .log-wizard-nav-btn--primary {
 }
 
 .tab-btn.active {
-  background: rgba(76, 175, 80, 0.22);
+  background: color-mix(in srgb, var(--primary-color) 22%, transparent);
   color: #ffffff;
-  border: 1px solid rgba(129, 199, 132, 0.55);
-  box-shadow: var(--btn-chrome-shadow-hover), inset 0 0 12px rgba(76, 175, 80, 0.12);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 52%, transparent);
+  box-shadow: var(--btn-chrome-shadow-hover), inset 0 0 12px color-mix(in srgb, var(--primary-color) 18%, transparent);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .tab-btn.active:hover {
-  background: rgba(76, 175, 80, 0.28) !important;
+  background: color-mix(in srgb, var(--primary-color) 28%, transparent) !important;
   color: #ffffff !important;
-  border-color: rgba(129, 199, 132, 0.75) !important;
+  border-color: color-mix(in srgb, var(--primary-color) 72%, transparent) !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
   transform: translateY(-2px);
-  box-shadow: var(--btn-chrome-shadow-hover), inset 0 0 10px rgba(76, 175, 80, 0.15) !important;
+  box-shadow: var(--btn-chrome-shadow-hover), inset 0 0 10px color-mix(in srgb, var(--primary-color) 24%, transparent) !important;
+}
+
+/* Ensure tab active color always follows selected global theme */
+body.theme-red-black .tab-btn.active,
+body.theme-mono .tab-btn.active,
+body.theme-rainbow .tab-btn.active {
+  background: color-mix(in srgb, var(--primary-color) 22%, transparent) !important;
+  border-color: color-mix(in srgb, var(--primary-color) 56%, transparent) !important;
+  box-shadow: var(--btn-chrome-shadow-hover), inset 0 0 12px color-mix(in srgb, var(--primary-color) 18%, transparent) !important;
+}
+
+body.theme-red-black .tab-btn.active:hover,
+body.theme-mono .tab-btn.active:hover,
+body.theme-rainbow .tab-btn.active:hover {
+  background: color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
+  border-color: color-mix(in srgb, var(--primary-color) 70%, transparent) !important;
 }
 
 .tab-btn.active::before {
@@ -6161,13 +6205,13 @@ body.loading .header-buttons-wrap {
   background:
     conic-gradient(
       from 0deg,
-      rgba(213, 255, 223, 0.08) 0deg,
-      rgba(178, 250, 190, 0.9) 62deg,
-      rgba(95, 201, 122, 0.38) 120deg,
-      rgba(213, 255, 223, 0.12) 180deg,
-      rgba(130, 230, 151, 0.8) 258deg,
-      rgba(95, 201, 122, 0.25) 320deg,
-      rgba(213, 255, 223, 0.08) 360deg
+      color-mix(in srgb, var(--loading-liquid-bright) 24%, transparent) 0deg,
+      color-mix(in srgb, var(--loading-liquid-mid) 90%, transparent) 62deg,
+      color-mix(in srgb, var(--loading-liquid-deep) 46%, transparent) 120deg,
+      color-mix(in srgb, var(--loading-liquid-bright) 28%, transparent) 180deg,
+      color-mix(in srgb, var(--loading-liquid-mid) 82%, transparent) 258deg,
+      color-mix(in srgb, var(--loading-liquid-deep) 34%, transparent) 320deg,
+      color-mix(in srgb, var(--loading-liquid-bright) 24%, transparent) 360deg
     );
   transform-origin: 50% 52%;
   animation: rianell-planet-swirl 1.15s linear infinite;
@@ -6177,7 +6221,7 @@ body.loading .header-buttons-wrap {
   /* Inner fluid wobble to make swirl feel like liquid */
   inset: 14% 12% 10%;
   border-radius: 50% 42% 55% 44% / 48% 56% 40% 52%;
-  background: radial-gradient(circle at 38% 28%, rgba(239, 255, 244, 0.82), rgba(157, 236, 174, 0.65) 48%, rgba(74, 182, 101, 0.48) 100%);
+  background: radial-gradient(circle at 38% 28%, color-mix(in srgb, var(--loading-liquid-bright) 92%, #ffffff 8%), color-mix(in srgb, var(--loading-liquid-mid) 70%, transparent) 48%, color-mix(in srgb, var(--loading-liquid-deep) 58%, transparent) 100%);
   mix-blend-mode: screen;
   animation: rianell-planet-wobble 1.45s ease-in-out infinite;
 }
@@ -6209,10 +6253,10 @@ body.theme-rainbow .loading-sun-orbit__body {
 .spinner {
   width: 60px;
   height: 60px;
-  border: 4px solid rgba(123, 223, 140, 0.14);
+  border: 4px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
   border-top: 4px solid var(--neon-lime);
   border-radius: 50%;
-  box-shadow: 0 0 22px rgba(123, 223, 140, 0.28);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--primary-color) 32%, transparent);
   animation: spin 1s linear infinite;
 }
 
@@ -6222,7 +6266,7 @@ body.theme-rainbow .loading-sun-orbit__body {
   font-weight: 600;
   margin: 0;
   letter-spacing: 0.06em;
-  text-shadow: 0 0 18px rgba(123, 223, 140, 0.22);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--primary-color) 28%, transparent);
 }
 
 .loading-overlay.loading-overlay--bursting .loading-text {
@@ -6242,11 +6286,11 @@ body.theme-rainbow .loading-sun-orbit__body {
 @keyframes rianell-orbit-dot-glow {
   0%,
   100% {
-    box-shadow: 0 0 8px rgba(123, 223, 140, 0.72), 0 0 0 1px rgba(123, 223, 140, 0.32);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--primary-color) 80%, transparent), 0 0 0 1px color-mix(in srgb, var(--primary-color) 36%, transparent);
     filter: brightness(0.96);
   }
   50% {
-    box-shadow: 0 0 14px rgba(168, 255, 184, 0.96), 0 0 24px rgba(123, 223, 140, 0.58), 0 0 0 1px rgba(170, 241, 180, 0.46);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--primary-color) 88%, #ffffff 12%), 0 0 24px color-mix(in srgb, var(--primary-color) 66%, transparent), 0 0 0 1px color-mix(in srgb, var(--primary-color) 52%, #ffffff 8%);
     filter: brightness(1.08);
   }
 }
@@ -10204,8 +10248,8 @@ body.light-mode .goals-value-label {
 .goals-progress-block {
   margin: 0 20px 16px;
   padding: 14px 16px;
-  background: rgba(76, 175, 80, 0.08);
-  border: 1px solid rgba(76, 175, 80, 0.25);
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 28%, transparent);
   border-radius: var(--radius-md);
   font-size: 0.9rem;
   color: var(--text-light);
@@ -10213,7 +10257,7 @@ body.light-mode .goals-value-label {
 
 .goals-progress-title {
   font-weight: 700;
-  color: rgba(76, 175, 80, 0.95);
+  color: color-mix(in srgb, var(--primary-color) 88%, #ffffff 12%);
   margin-bottom: 12px;
   font-size: 0.95rem;
 }
@@ -10234,7 +10278,7 @@ body.light-mode .goals-value-label {
 }
 
 .goals-icon {
-  color: rgba(76, 175, 80, 0.85);
+  color: color-mix(in srgb, var(--primary-color) 80%, #ffffff 20%);
   font-size: 0.85rem;
   width: 1.1em;
   text-align: center;
@@ -10262,7 +10306,7 @@ body.light-mode .goals-value-label {
 .goals-bar-fill {
   height: 100%;
   border-radius: 3px;
-  background: linear-gradient(90deg, rgba(76, 175, 80, 0.6), rgba(76, 175, 80, 0.9));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--primary-color) 62%, transparent), color-mix(in srgb, var(--primary-color) 92%, transparent));
   transition: width 0.3s ease;
 }
 
@@ -10287,7 +10331,7 @@ body.light-mode .goals-value-label {
 }
 
 .goals-dot.filled {
-  background: rgba(76, 175, 80, 0.9);
+  background: color-mix(in srgb, var(--primary-color) 88%, #ffffff 12%);
 }
 
 .goals-status-pill {
@@ -10298,8 +10342,37 @@ body.light-mode .goals-value-label {
 }
 
 .goals-status-pill.on-track {
-  background: rgba(76, 175, 80, 0.25);
-  color: rgba(76, 175, 80, 0.95);
+  background: color-mix(in srgb, var(--primary-color) 24%, transparent);
+  color: color-mix(in srgb, var(--primary-color) 88%, #ffffff 12%);
+}
+
+/* Force goals/targets block to follow theme hue (no residual mint in non-mint themes) */
+body.theme-red-black .goals-progress-block,
+body.theme-mono .goals-progress-block,
+body.theme-rainbow .goals-progress-block {
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent) !important;
+  border-color: color-mix(in srgb, var(--primary-color) 30%, transparent) !important;
+}
+
+body.theme-red-black .goals-progress-title,
+body.theme-mono .goals-progress-title,
+body.theme-rainbow .goals-progress-title,
+body.theme-red-black .goals-icon,
+body.theme-mono .goals-icon,
+body.theme-rainbow .goals-icon {
+  color: color-mix(in srgb, var(--primary-color) 88%, #ffffff 12%) !important;
+}
+
+body.theme-red-black .goals-bar-fill,
+body.theme-mono .goals-bar-fill,
+body.theme-rainbow .goals-bar-fill {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--primary-color) 62%, transparent), color-mix(in srgb, var(--primary-color) 92%, transparent)) !important;
+}
+
+body.theme-red-black .goals-dot.filled,
+body.theme-mono .goals-dot.filled,
+body.theme-rainbow .goals-dot.filled {
+  background: color-mix(in srgb, var(--primary-color) 90%, #ffffff 10%) !important;
 }
 
 .goals-status-pill.mixed {
@@ -10651,21 +10724,39 @@ body.light-mode .goals-status-pill.below {
 .settings-carousel-dots {
   display: flex;
   align-items: center;
-  gap: 0.42rem;
+  gap: 0.38rem;
   margin-top: 0.5rem;
-  min-height: 8px;
+  min-height: 26px;
+  flex-wrap: wrap;
 }
 
 .settings-carousel-dot {
   position: relative;
-  width: 8px;
-  height: 8px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: rgba(224, 242, 241, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(224, 242, 241, 0.1);
   box-shadow: 0 0 0 1px rgba(123, 223, 140, 0.1);
+  color: rgba(224, 242, 241, 0.82);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0.9;
   overflow: hidden;
-  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  padding: 0;
+}
+
+.settings-carousel-dot__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  line-height: 1;
+  transform: translateY(0.5px);
 }
 
 .settings-carousel-dot::before,
@@ -10692,12 +10783,24 @@ body.light-mode .goals-status-pill.below {
 }
 
 .settings-carousel-dot--active {
-  background: rgba(12, 42, 24, 0.85);
+  background: color-mix(in srgb, var(--primary-color) 16%, rgba(12, 42, 24, 0.82));
+  border-color: color-mix(in srgb, var(--primary-color) 52%, transparent);
+  color: #fff;
   box-shadow:
-    0 0 0 1px rgba(123, 223, 140, 0.45),
-    0 0 8px rgba(123, 223, 140, 0.42);
-  transform: scale(1.35);
+    0 0 0 1px color-mix(in srgb, var(--primary-color) 46%, transparent),
+    0 0 8px color-mix(in srgb, var(--primary-color) 38%, transparent);
+  transform: scale(1.08);
   opacity: 1;
+}
+
+.settings-carousel-dot:hover {
+  border-color: color-mix(in srgb, var(--primary-color) 48%, transparent);
+  color: color-mix(in srgb, var(--primary-color) 76%, #ffffff 24%);
+}
+
+.settings-carousel-dot:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 62%, transparent);
 }
 
 .settings-carousel-dot--active::before {
@@ -10924,13 +11027,16 @@ body.light-mode .settings-carousel-meta {
 }
 
 body.light-mode .settings-carousel-dot {
-  background: rgba(0, 0, 0, 0.2);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.72);
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 
 body.light-mode .settings-carousel-dot--active {
-  background: rgba(46, 125, 50, 0.92);
-  box-shadow: 0 0 5px rgba(46, 125, 50, 0.28);
+  background: color-mix(in srgb, var(--primary-color) 18%, #ffffff 82%);
+  color: rgba(0, 0, 0, 0.84);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--primary-color) 42%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

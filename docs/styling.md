@@ -2,6 +2,13 @@
 
 This document describes how the legacy web app’s visual layer is organised: **tokens**, **themes**, **major surfaces**, and **operational notes** (cache busting, motion). The canonical stylesheet is **`web/styles.css`** (large single file).
 
+## v1.44.2 style alignment notes
+
+- **Global theme parity**: pulse line, active nav tabs, goals/targets block, loading orbit/ring, and chart empty-state accents are now token-driven so theme selection is end-to-end (including mono).
+- **Early theme on first paint**: `index.html` applies the saved theme class from `rianellSettings.globalTheme` before app boot so loading visuals do not flash mint.
+- **Settings header navigation**: carousel dots were upgraded to clickable mini icon buttons that jump directly to each settings pane.
+- **MOTD title look**: quote/title styling now supports a single-tone theme colour with stronger 3D depth layers (less multi-tone glow bleed).
+
 ## Files
 
 | File | Role |
@@ -28,6 +35,8 @@ Dark mode defaults use a **neutral shell** (`--shell-bg`, `--background-dark`) w
 The settings overlay (`.settings-overlay` / `.settings-menu`) uses the same **modal surface** tokens as other dialogs: dark gradient background, **thin** `--surface-border`, and **`--surface-outer-glow`** (avoid heavy neon-only halos).
 
 The content area is a **horizontal carousel** (`.settings-carousel-viewport` → `.settings-carousel-track` → `.settings-carousel-pane`). Inactive panes use **`aria-hidden`** and **`visibility: hidden`** so adjacent sections do not visually bleed. Hints (`.settings-hint`) are **left-aligned**; rows with only helper copy use a **column** layout when there is no toggle (see `.settings-option-with-hint` + `:has(.toggle-switch)`).
+
+The header indicator row now uses **mini icon buttons** (`.settings-carousel-dot` + `.settings-carousel-dot__icon`) with click/tap jump navigation to the corresponding pane.
 
 ## Tile picker triggers (log flow)
 
@@ -63,6 +72,8 @@ The loading orbit widget uses layered pseudo-elements for liquid motion:
 - The ring's progress fill (`.loading-sun-orbit__ring::after`) now layers a moving `repeating-conic-gradient` over the arc so loading reads as **flowing water** while still respecting `--loading-progress` from 0-100%.
 
 Critical first-paint CSS in `index.html` mirrors these rules so the same animation appears before `styles.css` fully loads.
+
+Theme-specific overrides for loading ring/body/sun are applied for `theme-red-black`, `theme-mono`, and `theme-rainbow` to avoid mint fallback in non-mint themes.
 
 ## App icon / beta badge styling
 

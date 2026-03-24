@@ -15132,9 +15132,31 @@ function ensureSettingsCarouselDots(panes) {
   }
   if (dotsWrap.childElementCount === n) return;
   dotsWrap.innerHTML = '';
+  function settingsIconForTitle(title, idx) {
+    var t = String(title || '').toLowerCase();
+    if (t.indexOf('personal') !== -1 || t.indexOf('cloud') !== -1) return '👤';
+    if (t.indexOf('ai') !== -1 || t.indexOf('goal') !== -1) return '🧠';
+    if (t.indexOf('display') !== -1 || t.indexOf('reminder') !== -1) return '📊';
+    if (t.indexOf('custom') !== -1 || t.indexOf('theme') !== -1) return '🎨';
+    if (t.indexOf('data option') !== -1) return '⚙️';
+    if (t.indexOf('performance') !== -1) return '⚡';
+    if (t.indexOf('install') !== -1) return '📱';
+    if (t.indexOf('data management') !== -1) return '💾';
+    return String(idx + 1);
+  }
   for (var i = 0; i < n; i++) {
-    var dot = document.createElement('span');
+    var dot = document.createElement('button');
+    var paneTitle = (panes[i] && panes[i].getAttribute('data-settings-pane-title')) || ('Section ' + String(i + 1));
     dot.className = 'settings-carousel-dot';
+    dot.type = 'button';
+    dot.setAttribute('aria-label', 'Go to settings section ' + String(i + 1) + (paneTitle ? ': ' + paneTitle : ''));
+    dot.setAttribute('title', paneTitle);
+    dot.setAttribute('data-settings-target', String(i));
+    dot.innerHTML = '<span class="settings-carousel-dot__icon" aria-hidden="true">' + settingsIconForTitle(paneTitle, i) + '</span>';
+    dot.addEventListener('click', function(e) {
+      var idx = parseInt(e.currentTarget.getAttribute('data-settings-target') || '0', 10);
+      settingsCarouselGo(idx);
+    });
     dotsWrap.appendChild(dot);
   }
 }
@@ -15143,7 +15165,9 @@ function updateSettingsCarouselDots(activeIdx) {
   var dots = document.querySelectorAll('#settingsCarouselDots .settings-carousel-dot');
   if (!dots || !dots.length) return;
   for (var i = 0; i < dots.length; i++) {
-    dots[i].classList.toggle('settings-carousel-dot--active', i === activeIdx);
+    var active = i === activeIdx;
+    dots[i].classList.toggle('settings-carousel-dot--active', active);
+    dots[i].setAttribute('aria-current', active ? 'true' : 'false');
   }
 }
 

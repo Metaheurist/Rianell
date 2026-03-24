@@ -2,6 +2,11 @@
 
 ## 🗂️ Project Structure
 
+### v1.44.2 documentation sync
+
+- Added parity/testing references for `docs/platform-parity.md` and `docs/platform-parity.json` release metadata.
+- Styling references now include settings mini-icon navigation and single-tone MOTD 3D title updates in `docs/styling.md`.
+
 ```
 Rianell/
 ├── web/                    # Static web app (served at site root on GitHub Pages)

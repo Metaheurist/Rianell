@@ -2,6 +2,10 @@
 
 This document describes how **Rianell** (this health app) handles health-related data across surfaces, operational defaults, and where to configure controls. It complements OWASP-style practice (see [OWASP Top 10:2025](https://owasp.org/Top10/2025/)).
 
+## v1.44.2 documentation sync
+
+- App settings cloud backup now includes additional local setting keys beyond `rianellSettings`; treat those synced preferences as user data and cover them in your data handling/privacy review.
+
 **README entry points:** [Security](../README.md#security) (overview) and [Security notes](../README.md#security-notes) (commit/deploy checklist). This file is the **detailed** reference.
 
 ## Related documentation
