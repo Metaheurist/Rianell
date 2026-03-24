@@ -2,7 +2,20 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.0** - bug report submission flow, Supabase schema + server rate limiting, theme-dependent styling cleanup, and STT microphone permission hardening.
+**Latest: v1.45.1** - live theme apply (no restart), settings icon row mobile alignment fix, and home-only MOTD rendering.
+
+### v1.45.1 - 2026-03-24 - Theme switch UX + mobile settings alignment
+
+- **Web / Theme switching**:
+  - Removed forced page reload on global theme change.
+  - Theme now applies instantly in-place (background update) without restarting the app shell.
+  - Updated settings helper text to describe live apply behavior.
+- **Web / Settings (mobile)**:
+  - Fixed settings section icon row wrapping where the last icon could drop onto a second line on narrow screens.
+  - Header icon strip now remains a single row and allows horizontal overflow scroll when needed.
+- **Web / MOTD visibility**:
+  - Dashboard quote rendering now stays scoped to the Home tab only.
+  - Non-Home tabs consistently show the base app title without carrying MOTD text.
 
 ### v1.45.0 - 2026-03-24 - Bug reports, STT permissions, and theme cleanup
 
