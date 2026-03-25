@@ -1,5 +1,6 @@
 :root {
   --rianell-styles: 1; /* used by index.html to detect if this file loaded (mobile reload fix) */
+  --text-scale: 1;
   --primary-color: #7bdf8c;
   --primary-gradient: linear-gradient(135deg, #52b85f 0%, #7bdf8c 50%, #9ae8a4 100%);
   --primary-glow: 0 0 18px rgba(123, 223, 140, 0.18);
@@ -43,13 +44,13 @@
   --transition-fluid-slow: 0.45s cubic-bezier(0.33, 1, 0.68, 1);
 
   /* Type scale */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --heading-sm: 1.1rem;
-  --heading-md: 1.35rem;
-  --heading-lg: 1.6rem;
+  --text-xs: calc(0.75rem * var(--text-scale));
+  --text-sm: calc(0.875rem * var(--text-scale));
+  --text-base: calc(1rem * var(--text-scale));
+  --text-lg: calc(1.125rem * var(--text-scale));
+  --heading-sm: calc(1.1rem * var(--text-scale));
+  --heading-md: calc(1.35rem * var(--text-scale));
+  --heading-lg: calc(1.6rem * var(--text-scale));
   /* Section spacing */
   --section-gap: 1.5rem;
   /* Horizontal inset for content inside bordered cards / section bodies (form-section, accordions) */
@@ -144,6 +145,24 @@ body.theme-rainbow {
   --title-flat-tone: #dd83c5;
   --modal-backdrop: rgba(10, 4, 18, 0.9);
   --modal-surface: linear-gradient(180deg, rgba(44, 22, 56, 0.98) 0%, rgba(16, 18, 44, 0.98) 45%, rgba(12, 34, 30, 0.98) 100%);
+}
+
+/* Accessibility: colorblind-friendly accent overrides (token-level: primary color) */
+body.cb-deuteranopia,
+body.cb-protanopia {
+  --primary-color: #4d75ff;
+}
+
+body.cb-tritanopia {
+  --primary-color: #ff4fa0;
+}
+
+body.cb-high-contrast {
+  --primary-color: #ffffff;
+  --background-dark: #000000;
+  --background-gradient: linear-gradient(135deg, #000000 0%, #000000 100%);
+  --text-light: #ffffff;
+  --shell-bg: #000000;
 }
 
 /* Mono theme hard overrides for legacy mint accents */

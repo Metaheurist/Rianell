@@ -782,6 +782,14 @@
       <div class="settings-carousel-pane" data-settings-pane-title="Customisation" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4>🎨 Theme customisation</h4>
+        <div class="settings-option">
+          <select id="appearanceModeSelect" class="settings-select" aria-label="Appearance" onchange="setAppearanceMode(this.value)">
+            <option value="system">System default</option>
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+          </select>
+          <small class="settings-hint" style="margin: 8px 0 0; opacity: 0.85;">Appearance</small>
+        </div>
         <p class="settings-hint">Pick a global theme. Selecting a theme applies it instantly across the app in the background.</p>
         <div class="settings-theme-grid" role="radiogroup" aria-label="Global app theme">
           <button type="button" class="settings-theme-choice settings-theme-choice--mint" data-theme="mint" role="radio" aria-checked="true" onclick="setGlobalTheme('mint')">
@@ -801,6 +809,47 @@
             <span class="settings-theme-choice__label">Rainbow</span>
           </button>
         </div>
+      </div>
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Accessibility" role="tabpanel" aria-hidden="true">
+      <div class="settings-section">
+        <h4>♿ Accessibility</h4>
+        <div class="settings-option settings-option-with-hint">
+          <label>Large text</label>
+          <div class="toggle-switch" id="accessibilityLargeTextToggle" onclick="toggleAccessibilityLargeText()"></div>
+        </div>
+        <p class="settings-hint">A quick preset for bigger text across the app.</p>
+
+        <div class="settings-option settings-option-with-hint" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 14px;">
+          <label for="accessibilityTextScaleRange">Font size</label>
+          <input id="accessibilityTextScaleRange" type="range" min="0.85" max="1.6" step="0.05" value="1" oninput="setAccessibilityTextScaleFromInput(this.value)" style="width: 100%;">
+          <small class="settings-hint" id="accessibilityTextScaleLabel" style="margin: 0; opacity: 0.85;">100%</small>
+        </div>
+        <p class="settings-hint">Adjusts text size across screens. If layouts look off at large sizes, report a bug so we can fix the component.</p>
+
+        <div class="settings-option settings-option-with-hint">
+          <label>Text-to-speech (tap-to-read)</label>
+          <div class="toggle-switch" id="accessibilityTtsToggle" onclick="toggleAccessibilityTtsEnabled()"></div>
+        </div>
+        <p class="settings-hint">When enabled: tapping buttons/controls reads their label aloud.</p>
+
+        <div class="settings-option settings-option-with-hint" style="margin-top: 14px;">
+          <label>Read mode (auto-read on focus)</label>
+          <div class="toggle-switch" id="accessibilityReadModeToggle" onclick="toggleAccessibilityReadMode()"></div>
+        </div>
+        <p class="settings-hint">When on: focused controls are also read aloud (keyboard and assistive navigation).</p>
+
+        <div class="settings-option" style="margin-top: 14px;">
+          <label for="accessibilityColorblindSelect">Colorblind mode</label>
+          <select id="accessibilityColorblindSelect" class="settings-select" onchange="setAccessibilityColorblindMode(this.value)">
+            <option value="none">None</option>
+            <option value="deuteranopia">Deuteranopia (red/green)</option>
+            <option value="protanopia">Protanopia (red/green)</option>
+            <option value="tritanopia">Tritanopia (blue/yellow)</option>
+            <option value="high-contrast">High contrast</option>
+          </select>
+        </div>
+        <p class="settings-hint">Adjusts accent colors across the app to reduce reliance on red/green cues.</p>
       </div>
       </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Data options" role="tabpanel" aria-hidden="true">
@@ -849,24 +898,23 @@
         </div>
       </div>
       </div>
-      <div class="settings-carousel-pane" data-settings-pane-title="App install" role="tabpanel" aria-hidden="true">
-      <div class="settings-section" id="appInstallSection">
-        <h4 id="appInstallSectionTitle">📱 App Installation</h4>
-        <div id="installOnIosDevice" class="settings-option settings-option--stacked" style="display: none;">
-          <button type="button" class="settings-data-btn install-ios-device-btn" onclick="installOrLaunchPWA()"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="installOnIosDeviceLabel">Install on this iPhone</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></button>
-          <p class="settings-install-hint">Opens instructions to add the app to your Home Screen. Works offline like a native app.</p>
-        </div>
-        <div class="settings-option" id="androidDownloadOption">
-          <a id="downloadApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-android"></i></span> <span id="downloadAndroidLabel">Install on Android</span><span class="install-channel-badge install-channel-badge--beta">Beta</span> <span class="android-version" aria-hidden="true"></span></a>
-        </div>
-        <div class="settings-option" id="iosDownloadOption">
-          <a id="downloadIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="downloadIosLabel">Install on iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span> <span class="ios-version" aria-hidden="true"></span></a>
-        </div>
-      </div>
-      </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Data management" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4>💾 Data Management</h4>
+        <div class="settings-option" id="appInstallSection">
+          <h4 id="appInstallSectionTitle" style="margin: 0 0 10px;">📱 App installation</h4>
+          <div id="installOnIosDevice" class="settings-option settings-option--stacked" style="display: none; padding: 0;">
+            <button type="button" class="settings-data-btn install-ios-device-btn" onclick="installOrLaunchPWA()"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="installOnIosDeviceLabel">Install on this iPhone</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></button>
+            <p class="settings-install-hint">Opens instructions to add the app to your Home Screen. Works offline like a native app.</p>
+          </div>
+          <div class="settings-option" id="androidDownloadOption" style="padding: 0;">
+            <a id="downloadApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-android"></i></span> <span id="downloadAndroidLabel">Install on Android</span><span class="install-channel-badge install-channel-badge--beta">Beta</span> <span class="android-version" aria-hidden="true"></span></a>
+          </div>
+          <div class="settings-option" id="iosDownloadOption" style="padding: 0;">
+            <a id="downloadIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="downloadIosLabel">Install on iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span> <span class="ios-version" aria-hidden="true"></span></a>
+          </div>
+        </div>
+
         <div class="data-management-buttons">
           <div class="data-management-buttons__cell" id="installWebAppOption">
             <button type="button" class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA()"><span class="settings-install-icon" aria-hidden="true"><i class="fa-solid fa-globe"></i></span><span id="installWebAppLabel">Install web app</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></button>
@@ -2325,7 +2373,33 @@
           </div>
           <small class="tutorial-toggle-hint">Use anonymised data pool for AI training (requires 90+ days of data). Used for personalised AI analysis and advice.</small>
         </div>
-        <div class="tutorial-slide" id="tutorialSlide5" data-slide="5" data-tutorial-ai-only="true">
+        <div class="tutorial-slide" id="tutorialSlide5" data-slide="5">
+          <p class="tutorial-text">Accessibility options help you make the app easier to read and use from day one. You can change these anytime later in Settings → Accessibility.</p>
+          <div class="tutorial-toggle-option" style="margin-top: 10px;">
+            <label class="tutorial-toggle-label">Large text</label>
+            <div class="toggle-switch" id="tutorialAccessibilityLargeTextToggle" onclick="toggleTutorialAccessibilityLargeText()"></div>
+          </div>
+          <small class="tutorial-toggle-hint">Quick preset for bigger text across the app.</small>
+
+          <div class="tutorial-toggle-option" style="margin-top: 14px;">
+            <label class="tutorial-toggle-label" for="tutorialAccessibilityTextScaleRange">Font size</label>
+            <input id="tutorialAccessibilityTextScaleRange" type="range" min="0.85" max="1.6" step="0.05" value="1" oninput="setTutorialAccessibilityTextScaleFromInput(this.value)" style="width: 100%; margin-top: 10px;">
+            <small class="tutorial-toggle-hint" id="tutorialAccessibilityTextScaleLabel" style="display: block; margin-top: 8px;">100%</small>
+          </div>
+
+          <div class="tutorial-toggle-option" style="margin-top: 14px;">
+            <label class="tutorial-toggle-label">Text-to-speech (tap-to-read)</label>
+            <div class="toggle-switch" id="tutorialAccessibilityTtsToggle" onclick="toggleTutorialAccessibilityTtsEnabled()"></div>
+          </div>
+          <small class="tutorial-toggle-hint">Tap buttons/controls to hear their label read aloud.</small>
+
+          <div class="tutorial-toggle-option" style="margin-top: 14px;">
+            <label class="tutorial-toggle-label">Read mode (auto-read on focus)</label>
+            <div class="toggle-switch" id="tutorialAccessibilityReadModeToggle" onclick="toggleTutorialAccessibilityReadMode()"></div>
+          </div>
+          <small class="tutorial-toggle-hint">Also reads when a control gets focus (keyboard and assistive navigation).</small>
+        </div>
+        <div class="tutorial-slide" id="tutorialSlide6" data-slide="6" data-tutorial-ai-only="true">
           <p class="tutorial-text">Set <strong>Goals & targets</strong> with the target button next to Settings. Choose daily targets for steps, hydration, sleep score, and good days per week.</p>
           <div class="tutorial-goals-sliders">
             <div class="goals-slider-group">
@@ -2359,7 +2433,7 @@
           </div>
           <p class="tutorial-text" style="margin-top: 10px;">Your progress and &quot;Last 7 days vs targets&quot; appear on the Log tab so you can see how you&apos;re doing.</p>
         </div>
-        <div class="tutorial-slide" id="tutorialSlide6" data-slide="6">
+        <div class="tutorial-slide" id="tutorialSlide7" data-slide="7">
           <p class="tutorial-text">You're all set. Close to start logging, try <strong>Demo Mode</strong>, or create an account to save your data in the cloud.</p>
         </div>
         </div>

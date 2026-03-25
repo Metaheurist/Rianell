@@ -49,7 +49,7 @@ def init_supabase_client():
     if not SUPABASE_AVAILABLE:
         return None
     try:
-        from supabase import create_client
+        create_client = _import_supabase_create_client()
         if supabase_client is None:
             supabase_client = create_client(config.SUPABASE_URL, config.SUPABASE_ANON_KEY)
             config.logger.info("Supabase client initialized successfully")
@@ -74,7 +74,7 @@ def get_supabase_service_client():
     if not key:
         return None
     try:
-        from supabase import create_client
+        create_client = _import_supabase_create_client()
         if supabase_service_client is None:
             supabase_service_client = create_client(config.SUPABASE_URL, key)
             config.logger.info("Supabase secret-key client initialized (service_role; RLS bypass for server-side ops)")
@@ -82,6 +82,50 @@ def get_supabase_service_client():
     except Exception as e:
         config.logger.warning(f"Could not create Supabase service client: {e}")
         return None
+
+
+def _import_supabase_create_client():
+    """
+    Supabase Python client import compatibility.
+    Some environments end up with a 'supabase' module that does not expose create_client at top-level.
+    Try known import paths.
+    """
+    # Prefer attribute lookup so we can log what was imported.
+    try:
+        import supabase  # type: ignore
+        if hasattr(supabase, "create_client"):
+            return getattr(supabase, "create_client")
+    except Exception:
+        pass
+
+    # Fallbacks for older/newer supabase-py layouts.
+    tried = []
+    for path in ("supabase.client", "supabase._sync.client"):
+        try:
+            mod = __import__(path, fromlist=["create_client"])
+            tried.append(path)
+            if hasattr(mod, "create_client"):
+                return getattr(mod, "create_client")
+        except Exception:
+            tried.append(path)
+            continue
+
+    # Diagnostics: help the user spot shadowed/incorrect supabase module.
+    try:
+        import supabase  # type: ignore
+        supabase_file = getattr(supabase, "__file__", None)
+        supabase_version = getattr(supabase, "__version__", None)
+        attrs = sorted([a for a in dir(supabase) if "client" in a or "create" in a])
+        raise ImportError(
+            f"Supabase create_client import failed. "
+            f"Imported supabase from {supabase_file!r} version={supabase_version!r}. "
+            f"Tried {tried}. "
+            f"Supabase attrs: {attrs[:30]}"
+        )
+    except ImportError:
+        raise
+    except Exception as e:
+        raise ImportError(f"Supabase create_client import failed (and diagnostics failed): {e}")
 
 
 def run_sql(sql):

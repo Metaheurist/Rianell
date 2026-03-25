@@ -1,0 +1,14 @@
+{
+  "name": "@rianell/tokens",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.cjs",
+  "exports": {
+    ".": {
+      "import": "./src/index.mjs",
+      "require": "./src/index.cjs"
+    }
+  }
+}
+

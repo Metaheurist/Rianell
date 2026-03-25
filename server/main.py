@@ -1557,8 +1557,9 @@ def create_server_dashboard():
             # This avoids slow client-side loops and bypasses RLS when using the SERVICE KEY.
             if SUPABASE_SERVICE_KEY:
                 try:
-                    from supabase import create_client as create_service_client
-                    svc = create_service_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+                    svc = get_supabase_service_client()
+                    if not svc:
+                        raise Exception("Supabase service client not available")
                     # Delete all rows where id != 0 (serial IDs start at 1) to remove all records
                     resp = svc.table('anonymized_data').delete().neq('id', 0).execute()
                     # resp may contain error info depending on client version
