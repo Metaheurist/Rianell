@@ -16,7 +16,9 @@ Roadmap for the next phase—**web + React Native** split, **system-aware themes
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=000)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Capacitor](https://img.shields.io/badge/Capacitor-7-119EFF?style=flat-square&logo=capacitor&logoColor=white)](https://capacitorjs.com/)
+[![React%20Native](https://img.shields.io/badge/React%20Native-0.83-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-SDK%2055-000020?style=flat-square&logo=expo&logoColor=white)](https://expo.dev/)
+[![Capacitor%20(legacy)](https://img.shields.io/badge/Capacitor-legacy-119EFF?style=flat-square&logo=capacitor&logoColor=white)](https://capacitorjs.com/)
 [![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A520-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Python](https://img.shields.io/badge/Python-server-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%26%20Auth-3FCF8E?style=flat-square&logo=supabase&logoColor=fff)](https://supabase.com/)
@@ -25,7 +27,9 @@ Roadmap for the next phase—**web + React Native** split, **system-aware themes
 [![ApexCharts](https://img.shields.io/badge/ApexCharts-charts-008FFB?style=flat-square)](https://apexcharts.com/)
 [![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI-2088FF?style=flat-square&logo=githubactions&logoColor=white)](https://github.com/features/actions)
 
-**Android APK (Capacitor):** The WebView opens the **legacy dashboard directly** (`legacy/index.html`) so you get a **single document**-smoother scrolling and lower overhead than nesting the app inside a React iframe. **Browser and `npm run dev`** still use the **React (Vite) shell + iframe** for the same UI at `/legacy/`. Production APK builds: **`npm run build:apk`** then Capacitor sync (see **[Installation & usage](docs/setup-and-usage.md#nav-react-android)**). CI publishes a **debug** beta APK; for a smaller, snappier install, build **release** or **AAB** locally as described in that doc.
+**React Native (Expo) builds:** CI produces minified **Expo production bundles** for **iOS + Android** as a merge gate.
+
+**Android APK (Capacitor, legacy):** The WebView opens the **legacy dashboard directly** (`legacy/index.html`) so you get a **single document**-smoother scrolling and lower overhead than nesting the app inside a React iframe. **Capacitor is legacy** during the transition to **React Native (Expo)**; CI no longer rebuilds Capacitor artifacts, but existing legacy builds remain available in releases/history.
 
 **Repository**: [github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell)
 
@@ -66,6 +70,8 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | 👤 | **[About & support](docs/about-and-support.md)** |
 | 📜 | **[Changelog](docs/CHANGELOG.md)** - version history and release notes |
 | 🚀 | **[Next phase development plan](docs/next-phase-development-plan.md)** - upcoming build: RN parity, theming, accessibility, AI acceleration |
+
+Support contact: **jan.andersson@rianell.com**
 
 ---
 

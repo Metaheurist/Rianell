@@ -169,14 +169,54 @@ jobs:
         run: npm run test:unit
 
   # ---------------------------------------------------------------------------
-  # Android APK (PR: CI; push: only when non–App-build paths changed)
+  # Expo production bundle (minified JS) gate
   # ---------------------------------------------------------------------------
-  android:
-    name: Android APK
-    needs: [paths-filter, prepare-minified-assets, unit-tests]
+  expo-bundle-prod:
+    name: Expo prod bundle (minified)
+    needs: [paths-filter, unit-tests]
     if: |
       github.event_name == 'pull_request' ||
-      (github.event_name == 'push' && needs.paths-filter.outputs.mobile_release == 'true')
+      github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install root dependencies (workspaces)
+        run: npm ci
+
+      - name: Typecheck + test Expo app
+        run: |
+          npm run typecheck:mobile
+          npm run test:mobile
+
+      - name: Build Expo production bundles (iOS + Android)
+        env:
+          EXPO_NO_TELEMETRY: "1"
+          NODE_ENV: production
+        run: |
+          npm run bundle:mobile:prod
+          test -d "apps/mobile/dist-expo-prod"
+          # Basic sanity: platform bundles exist (Expo SDK export layout may evolve)
+          test -f "apps/mobile/dist-expo-prod/_expo/static/js/android/"*.hbc
+          test -f "apps/mobile/dist-expo-prod/_expo/static/js/ios/"*.hbc
+
+      - name: Upload Expo bundle artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: expo-bundles
+          path: apps/mobile/dist-expo-prod/
+
+  # ---------------------------------------------------------------------------
+  # Legacy Capacitor Android APK (deprecated; kept as historical release asset)
+  # ---------------------------------------------------------------------------
+  android:
+    name: Android APK (legacy Capacitor - disabled)
+    if: false
     runs-on: ubuntu-latest
     concurrency:
       group: mobile-android-${{ github.ref }}-${{ github.event_name }}
@@ -278,14 +318,11 @@ jobs:
           echo "Android artifact is available as 'android' on this run."
 
   # ---------------------------------------------------------------------------
-  # iOS project + simulator zip (PR: CI; push: same gate as Android)
+  # Legacy Capacitor iOS project + simulator (deprecated; kept as historical release asset)
   # ---------------------------------------------------------------------------
   ios:
-    name: iOS project + simulator
-    needs: [paths-filter, prepare-minified-assets, unit-tests]
-    if: |
-      github.event_name == 'pull_request' ||
-      (github.event_name == 'push' && needs.paths-filter.outputs.mobile_release == 'true')
+    name: iOS project + simulator (legacy Capacitor - disabled)
+    if: false
     runs-on: macos-latest
     concurrency:
       group: mobile-ios-${{ github.ref }}-${{ github.event_name }}
@@ -563,7 +600,7 @@ jobs:
   # ---------------------------------------------------------------------------
   commit-app-build:
     name: Commit App build to repo
-    needs: [paths-filter, android, ios, server-exe]
+    needs: [paths-filter, expo-bundle-prod, server-exe]
     if: |
       github.event_name == 'push' &&
       needs.paths-filter.outputs.mobile_release == 'true'
@@ -582,20 +619,14 @@ jobs:
 
       - name: Clear App build dirs before artifacts (avoid stale checked-in files)
         run: |
-          rm -rf "App build/Android" "App build/iOS" "App build/Server"
-          mkdir -p "App build/Android" "App build/iOS" "App build/Server"
+          rm -rf "App build/Expo" "App build/Server"
+          mkdir -p "App build/Expo" "App build/Server"
 
-      - name: Download Android artifact
+      - name: Download Expo bundles artifact
         uses: actions/download-artifact@v5
         with:
-          name: android
-          path: App build/Android
-
-      - name: Download iOS artifact
-        uses: actions/download-artifact@v5
-        with:
-          name: ios
-          path: App build/iOS
+          name: expo-bundles
+          path: App build/Expo/dist-expo-prod
 
       - name: Download Server EXE artifacts
         uses: actions/download-artifact@v5
@@ -632,7 +663,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md "App build/Android/" "App build/iOS/" "App build/Server/"
+          git add README.md "App build/Expo/" "App build/Server/"
           git diff --staged --quiet || git commit -m "Update App build artifacts (build ${{ github.run_number }}) [skip ci]"
           git fetch origin "${{ github.ref_name }}"
           git push origin ${{ github.ref_name }}
@@ -642,7 +673,7 @@ jobs:
   # ---------------------------------------------------------------------------
   publish-release:
     name: Publish GitHub Release
-    needs: [paths-filter, android, ios, server-exe]
+    needs: [paths-filter, expo-bundle-prod, server-exe]
     if: |
       github.event_name == 'push' &&
       needs.paths-filter.outputs.mobile_release == 'true'
@@ -653,17 +684,11 @@ jobs:
       - name: Checkout (parity metadata)
         uses: actions/checkout@v5
 
-      - name: Download Android binaries
+      - name: Download Expo bundles artifact
         uses: actions/download-artifact@v5
         with:
-          name: android
-          path: gh-release/Android
-
-      - name: Download iOS binaries
-        uses: actions/download-artifact@v5
-        with:
-          name: ios
-          path: gh-release/iOS
+          name: expo-bundles
+          path: gh-release/Expo/dist-expo-prod
 
       - name: Download Server EXE binaries
         uses: actions/download-artifact@v5
@@ -675,17 +700,16 @@ jobs:
         run: |
           set -e
           RUN="${{ github.run_number }}"
-          mkdir -p release-assets/Android release-assets/iOS release-assets/Server release-assets/Meta
-          cp "gh-release/Android/app-debug-beta.apk" "release-assets/Android/"
-          cp "gh-release/Android/app-debug-beta-${RUN}.apk" "release-assets/Android/"
-          # Distinct basenames: GitHub release assets cannot share the same filename.
-          cp "gh-release/Android/latest.json" "release-assets/Android/android-latest.json"
-          cp "gh-release/iOS/latest.json" "release-assets/iOS/ios-latest.json"
-          cp "gh-release/iOS/Health-Tracker-ios-alpha-latest.zip" "release-assets/iOS/"
-          cp "gh-release/iOS/Health-Tracker-ios-alpha-build-${RUN}.zip" "release-assets/iOS/"
-          if [ -f "gh-release/iOS/Health-Tracker-simulator-alpha-${RUN}.zip" ]; then
-            cp "gh-release/iOS/Health-Tracker-simulator-alpha-${RUN}.zip" "release-assets/iOS/"
-          fi
+          mkdir -p release-assets/Expo release-assets/Legacy release-assets/Server release-assets/Meta
+
+          # Expo bundles (minified production JS for iOS + Android)
+          cd gh-release/Expo
+          zip -r "../../release-assets/Expo/rianell-expo-bundles-${RUN}.zip" "dist-expo-prod"
+          cd ../..
+
+          # Legacy (Capacitor) artifacts are not rebuilt; include the latest checked-in ones if present.
+          if [ -d "App build/Android" ]; then cp -r "App build/Android" "release-assets/Legacy/Android" || true; fi
+          if [ -d "App build/iOS" ]; then cp -r "App build/iOS" "release-assets/Legacy/iOS" || true; fi
           cp "gh-release/Server/server-exe-x64/rianell-server-x64.exe" "release-assets/Server/"
           cp "gh-release/Server/server-exe-x86/rianell-server-x86.exe" "release-assets/Server/"
           cp "gh-release/Server/server-exe-x64/latest-x64.json" "release-assets/Server/" || true
@@ -710,18 +734,13 @@ jobs:
 
             ## Assets
 
-            ### Android (Beta)
-            Directory: `release-assets/Android/`
-            - `app-debug-beta.apk` (rolling latest beta APK)
-            - `app-debug-beta-${{ github.run_number }}.apk` (build-pinned APK)
-            - `android-latest.json` (same metadata as `App build/Android/latest.json`)
+            ### Expo (React Native)
+            Directory: `release-assets/Expo/`
+            - `rianell-expo-bundles-${{ github.run_number }}.zip` (minified production JS bundles for iOS + Android)
 
-            ### iOS (Alpha)
-            Directory: `release-assets/iOS/`
-            - `Health-Tracker-ios-alpha-latest.zip` (rolling latest iOS zip)
-            - `Health-Tracker-ios-alpha-build-${{ github.run_number }}.zip` (build-pinned iOS zip)
-            - `Health-Tracker-simulator-alpha-${{ github.run_number }}.zip` (when simulator artifact exists)
-            - `ios-latest.json`
+            ### Legacy (Capacitor)
+            Directory: `release-assets/Legacy/`
+            - `Android/` and `iOS/` directories (copied from checked-in `App build/` if present; legacy builds are no longer rebuilt in CI)
 
             ### Server (Windows EXE)
             Directory: `release-assets/Server/`
@@ -740,8 +759,8 @@ jobs:
           prerelease: false
           fail_on_unmatched_files: true
           files: |
-            release-assets/Android/*
-            release-assets/iOS/*
+            release-assets/Expo/*
+            release-assets/Legacy/**/*
             release-assets/Server/*
             release-assets/Meta/*
         env:
@@ -902,4 +921,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install pip-audit
-          pip-audit -r requirements.txt --desc on
+          # CVE-2026-4539 (pygments): no fixed version published yet; affects local regex complexity in AdlLexer.
+          # We don't ship Pygments as a runtime dependency; it is pulled in via pip-audit's dependency chain.
+          pip-audit -r requirements.txt --desc on --ignore-vuln CVE-2026-4539

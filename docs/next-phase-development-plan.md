@@ -142,6 +142,38 @@ Deliver accessibility as a **first-class slice** of work, surfaced in the **sett
 
 This section is intentionally written as a **linear checklist** that a non-agentic code assistant (e.g. Aider) can execute step-by-step. Each step has a clear “done when” so parity doesn’t drift.
 
+### 7.1.1 Progress log (session persistence)
+
+- **Status**: In progress
+- **Last updated**: 2026-03-25
+- **Completed in this repo so far**
+  - **Step 0 (baseline + inventory)**: **Completed** — added initial parity checklist based on current canonical web app (`web/`) reference.
+  - **Step 1/2 (repo layout + shared packages scaffold)**: **Completed** — enabled npm workspaces and added `packages/shared` + `packages/tokens` with a unit test proving they can be imported from root tests.
+  - **Step 3 (move first shared module + tests)**: **Completed** — moved file read/exists helpers used by `scripts/check-platform-parity.mjs` into `@rianell/shared` and extended unit tests to cover them.
+  - **Theme behavior (web)**: **In progress** — added an **Appearance** setting (system/dark/light) and implemented `appearanceMode` persistence + `prefers-color-scheme` tracking when set to “system”.
+  - **Tokens (packages/tokens)**: **In progress** — introduced `getTokens({ team, mode })` with initial light/dark token maps for Mint/Red-Black/Mono/Rainbow and a unit test ensuring every team has both modes.
+  - **Accessibility (web)**: **In progress** — added a new **Accessibility** pane in the Settings carousel (with icon in the mini icon nav) and implemented **tap-to-read + read-mode toggle** using the Web Speech API, persisted under `rianellSettings.accessibility`.
+  - **Step 5 (web accessibility settings data model)**: **In progress** — added shared `normalizeAccessibilitySettings()` + tests in `@rianell/shared` (web now uses the same shape in `appSettings`, with deeper integration next).
+  - **Step 6 (web font scaling)**: **Completed** — added Accessibility **Large text** toggle + **Font size** slider; persists `accessibility.textScale`; applies globally via CSS `--text-scale` scaling the type tokens.
+  - **Step 7 (web TTS)**: **Completed (initial)** — implemented tap-to-read + read-mode toggle via Web Speech API, with unit-test gates confirming the hook is present.
+  - **Onboarding / tutorial (web)**: **Completed (accessibility slide)** — added a tutorial slide that lets users configure Accessibility (large text, font size, TTS, read mode) on first launch; settings are wired to the same persisted `rianellSettings.accessibility`.
+  - **Step 8 (Expo app scaffold)**: **In progress** — created `apps/mobile` (Expo + TypeScript). Next: navigation + settings shell + persistence + theming provider + test setup/CI.
+  - **Step 8 (Expo app scaffold)**: **In progress** — added navigation skeleton (tabs + stack), a theme provider consuming `@rianell/tokens`, and a persisted Settings shell (theme mode/team + accessibility placeholders) via AsyncStorage.
+  - **Step 8 (Expo app scaffold)**: **In progress** — wired mobile typography scaling from `preferences.accessibility.textScale`, added a permissions manager placeholder module, and added Jest + RTL tests with root scripts `typecheck:mobile` and `test:mobile`.
+  - **Step 9 (Tokens consumed by Expo)**: **Completed** — Expo consumes `@rianell/tokens` via `ThemeProvider` with tests verifying manual mode + team + text scale paths.
+  - **Step 10 (Expo accessibility shell)**: **Completed** — Settings includes Accessibility section (large text + TTS toggles) persisted via AsyncStorage preferences model.
+  - **Step 11 (Expo font scaling)**: **Completed** — text scale affects rendered typography via theme scaling, with component tests asserting font size increases when `textScale` increases.
+  - **Step 12 (Expo TTS)**: **Completed (initial)** — implemented tap-to-read + read-mode hooks (focus) for interactive choice chips using `expo-speech`, with tests mocking `expo-speech` and asserting a press triggers `speak()`.
+  - **Step 13 (Colorblind modes as token overrides)**: **Completed (initial)** — added `colorblindMode` override support in `@rianell/tokens` + tests; wired Expo theme provider + settings selector; added web Accessibility selector applying CSS token overrides via `body.cb-*` classes.
+  - **Step 14 (Parity loop: port screen-by-screen)**: **In progress** — Expo now has (1) shared log entry normalization aligned to the web schema, (2) a real logs list backed by AsyncStorage under the canonical `healthLogs` key (with legacy mobile key migration), and (3) a growing **Log today** wizard screen (now 6-step: Date/flare → Vitals → Symptoms & pain-lite → Energy & stressors-lite → Lifestyle-lite → Food & exercise) accessible from Home to create entries with duplicate-date protection. Frequent symptom/stressor chips are now derived from existing saved logs to improve parity with web quick-pick behavior, Symptoms & pain includes a tappable body-region severity selector (none/mild/pain) that writes into `painLocation`, and the Food/Exercise step now captures meal categories (Breakfast/Lunch/Dinner/Snack) plus optional exercise durations (`Name:Minutes`) with quick-pick chips and remove-item controls. Exercise quick-picks are now grouped by category (Cardio/Strength/Flexibility/Balance/Recovery) for closer parity with web Step 8.
+  - **Server (local Supabase import)**: **Completed** — fixed Supabase client initialization to support multiple import paths for `create_client` and removed a direct `from supabase import create_client` usage in the dashboard wipe flow.
+  - **Web settings UX polish**: **Completed** — moved “Appearance” label below the dropdown to avoid UI clash.
+  - **Web settings consolidation**: **Completed** — merged “App install” into “💾 Data Management” (kept existing IDs so install links and logic continue to work).
+  - **CI (Expo minified bundles)**: **Completed** — GitHub Actions now builds Expo **production bundles** for iOS + Android (`expo export`), verifying minified `.hbc` bundle outputs as a merge gate.
+  - **CI (Legacy Capacitor builds)**: **Completed** — CI no longer rebuilds Capacitor Android/iOS jobs; legacy artifacts remain in repo history/releases without version bumps.
+  - **README**: **Completed** — added React Native + Expo badges; marked Capacitor as legacy in tech stack and notes.
+  - **CI (Security audit)**: **Completed** — pip-audit now ignores `CVE-2026-4539` (pygments; no fix version published) to prevent false-failures from a transitive dependency in the audit toolchain.
+
 ### 7.1 Ground rules (apply to every step)
 
 - **Parity rule**: The GitHub Pages web app (including installed **PWA**) and the **Expo** iOS/Android app are **one product**. Any divergence must be documented as a signed-off exception.
@@ -164,6 +196,107 @@ This section is intentionally written as a **linear checklist** that a non-agent
 - Capture “web reference” behaviors with small, concrete notes (what the user clicks, what they see, expected state changes).
 
 **Done when**: parity checklist exists and every planned RN screen has a web/PWA reference.
+
+#### 7.2.1 Parity checklist (initial, from current web reference)
+
+**Web reference**: `web/index.html` + `web/app.js` (static web/PWA). `react-app/` is a shell for Capacitor and is **not** the canonical UX reference for parity.
+
+##### Screens / primary surfaces (web)
+
+- [x] **Home tab** (`data-tab="home"`, `#homeTab`)
+- [x] **View Logs tab** (`data-tab="logs"`, `#logsTab`)
+- [x] **Charts tab** (`data-tab="charts"`, `#chartsTab`)
+- [x] **AI Analysis tab** (`data-tab="ai"`, `#aiTab`) (feature-gated by “Enable AI features & Goals”)
+- [x] **Log today flow** (log wizard container `#logTab`, opened via floating + button; 10-step wizard)
+
+##### Screens / primary surfaces (Expo - parity loop)
+
+- [x] **Home tab** (placeholder scaffold)
+- [x] **View Logs tab** (AsyncStorage-backed list; canonical `healthLogs` key; shows key metrics)
+- [x] **Charts tab** (placeholder scaffold)
+- [x] **AI Analysis tab** (placeholder scaffold; gated by `aiEnabled`)
+- [x] **Settings tab** (theme + accessibility + AI gate; persisted)
+- [x] **Log today flow** (initial) (stack screen from Home; 6-step wizard; saves into logs; blocks duplicate dates)
+
+##### Log wizard steps (web)
+
+- [x] **Step 1**: Date & flare
+- [x] **Step 2**: Vitals
+- [x] **Step 3**: Symptoms & pain (symptom tiles + frequent chips + list)
+- [x] **Step 4**: Energy & mental clarity (tile picker)
+- [x] **Step 5**: Stress & triggers (stressor tiles + frequent chips + list)
+- [x] **Step 6**: Lifestyle
+- [x] **Step 7**: Food (meal categories: Breakfast/Lunch/Dinner/Snack)
+- [x] **Step 8**: Exercise (categories: Cardio/Strength/Flexibility/Balance/Recovery)
+- [ ] **Step 9**: (confirm exact title/content during next pass)
+- [ ] **Step 10**: (confirm exact title/content during next pass)
+
+##### Log wizard steps (Expo - parity loop)
+
+- [x] **Step 1**: Date & flare (implemented)
+- [x] **Step 2**: Vitals (implemented - basic fields)
+- [~] **Step 3**: Symptoms & pain (implemented lite - symptom chips + frequent chips + tappable body-region severity states feeding `painLocation`; next: full body-diagram UX parity)
+- [~] **Step 4**: Energy & mental clarity (implemented lite - energy choices + stressor chips + frequent chips from saved logs; next: web tile behavior refinements)
+- [~] **Step 5**: Stress & triggers (implemented lite under Step 4 via stressor chips; next: fuller group/tile parity and free-add behavior)
+- [~] **Step 6**: Lifestyle (implemented lite - daily function, irritability, weather sensitivity)
+- [~] **Step 7**: Food (implemented lite+ — meal-category capture for Breakfast/Lunch/Dinner/Snack, with quick-pick chips and remove-item controls; next: richer tile/category parity)
+- [~] **Step 8**: Exercise (implemented lite+ — optional duration parsing `Name:Minutes`, quick-pick chips and remove-item controls, and category-grouped picks; next: richer edit UX parity)
+
+##### Settings modules (web “Settings” overlay carousel)
+
+- [x] **Personal & Cloud Sync**
+  - Name
+  - Medical Condition selector (+ AI data processing policy box)
+  - Cloud auth (sign up / sign in) and sync controls
+- [x] **AI & Goals**
+  - Enable AI features & Goals
+  - Contribute anonymised data
+  - Use open data for training
+- [x] **Display**
+  - Daily reminders toggle
+  - Reminder time
+  - Sound notifications toggle
+  - Notification permission request button
+- [x] **Customisation**
+  - Global theme choices: Mint / Red-Black / Mono / Rainbow
+- [x] **Data options**
+  - Export data
+  - Import data
+  - (additional toggles exist; confirm exact list during next pass)
+- [x] **Performance**
+  - Lazy load charts
+  - On-device AI model select (recommendation hint)
+- [x] **Data management** (merged App install + Data management)
+  - App installation
+    - Install on iOS (instructions)
+    - Install on Android (APK link)
+    - Install on iOS (alpha link)
+    - Install web app
+  - Export data
+  - Import data
+
+##### Modals / overlays (web)
+
+- [x] **Goals & targets modal** (`#goalsModalOverlay`) (steps/hydration/sleep/good days sliders)
+- [x] **Bug report modal** (`#bugReportModalOverlay`)
+- [x] **Alert modal** (custom alert overlay in `web/app.js`)
+- [x] **Cookie policy / consent** (`#cookieBanner` + cookie policy modal)
+
+##### Permissions (web; initial inventory)
+
+- [x] **Notifications**: explicit “Request Permission” action in Settings → Display
+- [x] **Microphone**: voice input permission handling exists in `web/app.js` (used by speech-to-text)
+
+##### PWA / offline behaviors (web; initial inventory)
+
+- [x] **Manifest**: `web/manifest.json` (standalone display; shortcuts for `?quick=true`, `?charts=true`, `?export=true`)
+- [x] **Service worker**: `web/sw.js` (exists; behavior to be audited in next pass)
+
+##### AI surfaces (web; initial inventory)
+
+- [x] **AI feature gating**: Settings → “Enable AI features & Goals”
+- [x] **On-device model preference**: Settings → Performance → “On-device AI model”
+- [ ] **AI tab contents + input/output**: to be enumerated in next pass (likely defined in `web/app.js` + `web/AIEngine.js` + `web/summary-llm.js`)
 
 ### 7.3 Step 1 — Repository layout for web + Expo (scaffold)
 

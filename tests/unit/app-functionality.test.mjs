@@ -30,11 +30,46 @@ test('bug report modal remains wired in index markup', () => {
   assert.match(indexHtml, /onclick="openBugReportModal\(\)"/);
 });
 
+test('tutorial includes accessibility slide on first launch', () => {
+  assert.match(indexHtml, /id="tutorialModalOverlay"/);
+  assert.match(indexHtml, /data-slide="5"/);
+  assert.match(indexHtml, /tutorialAccessibilityLargeTextToggle/);
+  assert.match(indexHtml, /tutorialAccessibilityTextScaleRange/);
+  assert.match(indexHtml, /tutorialAccessibilityTtsToggle/);
+  assert.match(indexHtml, /tutorialAccessibilityReadModeToggle/);
+  assert.match(appJs, /updateTutorialAccessibilityState/);
+});
+
 test('settings theme choices expose all supported themes', () => {
   const expectedThemes = ['mint', 'red-black', 'mono', 'rainbow'];
   for (const theme of expectedThemes) {
     assert.match(indexHtml, new RegExp(`data-theme="${theme}"`));
   }
+});
+
+test('settings exposes appearance mode (system/light/dark)', () => {
+  assert.match(indexHtml, /id="appearanceModeSelect"/);
+  assert.match(indexHtml, /option value="system">System default/);
+  assert.match(indexHtml, /option value="dark">Dark/);
+  assert.match(indexHtml, /option value="light">Light/);
+  assert.match(appJs, /function setAppearanceMode\(mode\)/);
+});
+
+test('settings exposes accessibility (TTS + read mode)', () => {
+  assert.match(indexHtml, /data-settings-pane-title="Accessibility"/);
+  assert.match(indexHtml, /id="accessibilityLargeTextToggle"/);
+  assert.match(indexHtml, /id="accessibilityTextScaleRange"/);
+  assert.match(indexHtml, /id="accessibilityTextScaleLabel"/);
+  assert.match(indexHtml, /id="accessibilityColorblindSelect"/);
+  assert.match(indexHtml, /id="accessibilityTtsToggle"/);
+  assert.match(indexHtml, /id="accessibilityReadModeToggle"/);
+  assert.match(appJs, /function setAccessibilityTextScale\(/);
+  assert.match(appJs, /function toggleAccessibilityLargeText\(\)/);
+  assert.match(appJs, /function setAccessibilityColorblindMode\(/);
+  assert.match(appJs, /function toggleAccessibilityTtsEnabled\(\)/);
+  assert.match(appJs, /function toggleAccessibilityReadMode\(\)/);
+  assert.match(appJs, /speechSynthesis/);
+  assert.match(appJs, /SpeechSynthesisUtterance/);
 });
 
 test('app runtime exposes key behavior hooks', () => {
