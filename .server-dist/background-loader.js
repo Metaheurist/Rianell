@@ -7,192 +7,131 @@
 (function () {
   'use strict';
 
-  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("background-loader.js", "anonymous", arguments) : undefined;
-  try {
-    var Perf = typeof window !== 'undefined' ? window.PerformanceUtils : null;
-    if (!Perf || !Perf.getOptimizationProfile) {
-      if (typeof window !== 'undefined') {
-        window.BackgroundLoader = {
-          scheduleChartPreload: noop,
-          scheduleAIPreload: noop
-        };
-      }
-      return;
-    }
-    function noop() {
-      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("background-loader.js", "noop", arguments) : undefined;
-      try {} finally {
-        __rianellTraceExit(__rt);
-      }
-    }
-    function isPageVisible() {
-      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("background-loader.js", "isPageVisible", arguments) : undefined;
-      try {
-        return typeof document !== 'undefined' && document.visibilityState !== 'hidden';
-      } finally {
-        __rianellTraceExit(__rt);
-      }
-    }
-    function getChartPreloadTiming() {
-      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("background-loader.js", "getChartPreloadTiming", arguments) : undefined;
-      try {
-        var profile = Perf.getOptimizationProfile();
-        var deviceClass = profile && profile.deviceClass || 'medium';
-        var delayMs = profile && profile.chartPreloadDelayMs != null ? profile.chartPreloadDelayMs : 1500;
-        var staggerMs;
-        var gapAfterCombinedMs;
-        if (deviceClass === 'low') {
-          staggerMs = 280;
-          gapAfterCombinedMs = 350;
-        } else if (deviceClass === 'high') {
-          staggerMs = 120;
-          gapAfterCombinedMs = 180;
-        } else {
-          staggerMs = 200;
-          gapAfterCombinedMs = 260;
-        }
-        return {
-          delayMs: delayMs,
-          staggerMs: staggerMs,
-          gapAfterCombinedMs: gapAfterCombinedMs
-        };
-      } finally {
-        __rianellTraceExit(__rt);
-      }
-    }
-
-    /**
-     * Schedule chart preload at a device-based slower rate.
-     * @param {Object} options
-     * @param {function} options.runCombined - Callback to create the combined chart (no args).
-     * @param {function} options.runLazyChart - Callback(container, chartType) to run one lazy chart.
-     * @param {function} options.getLazyCharts - Returns NodeList or array of .lazy-chart elements.
-     * @param {Set} options.loadedCharts - Set of already-loaded chart types (mutated by callback).
-     */
-    function scheduleChartPreload(options) {
-      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("background-loader.js", "scheduleChartPreload", arguments) : undefined;
-      try {
-        if (!options || typeof options.runCombined !== 'function' || typeof options.runLazyChart !== 'function') return;
-        var profile = Perf.getOptimizationProfile();
-        if (profile && profile.enableChartPreload === false) return;
-        var timing = getChartPreloadTiming();
-        var runCombined = options.runCombined;
-        var runLazyChart = options.runLazyChart;
-        var getLazyCharts = typeof options.getLazyCharts === 'function' ? options.getLazyCharts : function () {
-          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("background-loader.js", "anonymous", arguments) : undefined;
-          try {
-            return [];
-          } finally {
-            __rianellTraceExit(__rt);
-          }
-        };
-        var loadedCharts = options.loadedCharts || new Set();
-        function runCombinedThenLazy() {
-          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("background-loader.js", "runCombinedThenLazy", arguments) : undefined;
-          try {
-            if (!isPageVisible()) return;
-            runCombined();
-            var list = getLazyCharts();
-            var arr = list && (list.length != null ? list : Array.prototype.slice.call(list)) || [];
-            var index = 0;
-            function next() {
-              var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("background-loader.js", "next", arguments) : undefined;
-              try {
-                if (!isPageVisible() || index >= arr.length) return;
-                var el = arr[index];
-                index += 1;
-                var chartType = el && el.dataset && el.dataset.chartType;
-                if (chartType && !loadedCharts.has(chartType)) {
-                  loadedCharts.add(chartType);
-                  runLazyChart(el, chartType);
-                }
-                if (index < arr.length) {
-                  setTimeout(next, timing.staggerMs);
-                }
-              } finally {
-                __rianellTraceExit(__rt);
-              }
-            }
-            setTimeout(next, timing.gapAfterCombinedMs);
-          } finally {
-            __rianellTraceExit(__rt);
-          }
-        }
-        function start() {
-          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("background-loader.js", "start", arguments) : undefined;
-          try {
-            if (typeof requestIdleCallback !== 'undefined') {
-              requestIdleCallback(runCombinedThenLazy, {
-                timeout: timing.delayMs + 1000
-              });
-            } else {
-              setTimeout(runCombinedThenLazy, Math.min(timing.delayMs, 500));
-            }
-          } finally {
-            __rianellTraceExit(__rt);
-          }
-        }
-        if (typeof requestIdleCallback !== 'undefined') {
-          requestIdleCallback(start, {
-            timeout: timing.delayMs + 1000
-          });
-        } else {
-          setTimeout(start, timing.delayMs);
-        }
-      } finally {
-        __rianellTraceExit(__rt);
-      }
-    }
-
-    /**
-     * Schedule AI preload on the main thread (device-aware scheduling is in app.js preloadAIForAllRanges).
-     * Worker ANALYZE path removed: AIEngine requires window/DOM/tf and does not run in a worker.
-     * @param {Object} options
-     * @param {function} options.runAIAnalysis - Callback that performs AI preload on main thread (full logic).
-     * @param {function} [options.getAIPreloadData] - Unused (kept for API compatibility).
-     * @param {function} [options.setAICache] - Unused (kept for API compatibility).
-     */
-    function scheduleAIPreload(options) {
-      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("background-loader.js", "scheduleAIPreload", arguments) : undefined;
-      try {
-        if (!options || typeof options.runAIAnalysis !== 'function') return;
-        var profile = Perf.getOptimizationProfile();
-        if (profile && profile.enableAIPreload === false) return;
-        var delay = profile && profile.aiPreloadDelayMs != null ? profile.aiPreloadDelayMs : 2000;
-        var runAIAnalysis = options.runAIAnalysis;
-        function runWhenIdle() {
-          var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("background-loader.js", "runWhenIdle", arguments) : undefined;
-          try {
-            if (!isPageVisible()) return;
-            if (typeof requestIdleCallback !== 'undefined') {
-              requestIdleCallback(runAIAnalysis, {
-                timeout: 800
-              });
-            } else {
-              setTimeout(runAIAnalysis, 100);
-            }
-          } finally {
-            __rianellTraceExit(__rt);
-          }
-        }
-        if (typeof requestIdleCallback !== 'undefined') {
-          requestIdleCallback(runWhenIdle, {
-            timeout: delay + 1500
-          });
-        } else {
-          setTimeout(runWhenIdle, delay);
-        }
-      } finally {
-        __rianellTraceExit(__rt);
-      }
-    }
+  var Perf = typeof window !== 'undefined' ? window.PerformanceUtils : null;
+  if (!Perf || !Perf.getOptimizationProfile) {
     if (typeof window !== 'undefined') {
-      window.BackgroundLoader = {
-        scheduleChartPreload: scheduleChartPreload,
-        scheduleAIPreload: scheduleAIPreload
-      };
+      window.BackgroundLoader = { scheduleChartPreload: noop, scheduleAIPreload: noop };
     }
-  } finally {
-    __rianellTraceExit(__rt);
+    return;
+  }
+
+  function noop() {}
+
+  function isPageVisible() {
+    return typeof document !== 'undefined' && document.visibilityState !== 'hidden';
+  }
+
+  function getChartPreloadTiming() {
+    var profile = Perf.getOptimizationProfile();
+    var deviceClass = (profile && profile.deviceClass) || 'medium';
+    var delayMs = (profile && profile.chartPreloadDelayMs != null) ? profile.chartPreloadDelayMs : 1500;
+    var staggerMs;
+    var gapAfterCombinedMs;
+    if (deviceClass === 'low') {
+      staggerMs = 280;
+      gapAfterCombinedMs = 350;
+    } else if (deviceClass === 'high') {
+      staggerMs = 120;
+      gapAfterCombinedMs = 180;
+    } else {
+      staggerMs = 200;
+      gapAfterCombinedMs = 260;
+    }
+    return { delayMs: delayMs, staggerMs: staggerMs, gapAfterCombinedMs: gapAfterCombinedMs };
+  }
+
+  /**
+   * Schedule chart preload at a device-based slower rate.
+   * @param {Object} options
+   * @param {function} options.runCombined - Callback to create the combined chart (no args).
+   * @param {function} options.runLazyChart - Callback(container, chartType) to run one lazy chart.
+   * @param {function} options.getLazyCharts - Returns NodeList or array of .lazy-chart elements.
+   * @param {Set} options.loadedCharts - Set of already-loaded chart types (mutated by callback).
+   */
+  function scheduleChartPreload(options) {
+    if (!options || typeof options.runCombined !== 'function' || typeof options.runLazyChart !== 'function') return;
+    var profile = Perf.getOptimizationProfile();
+    if (profile && profile.enableChartPreload === false) return;
+
+    var timing = getChartPreloadTiming();
+    var runCombined = options.runCombined;
+    var runLazyChart = options.runLazyChart;
+    var getLazyCharts = typeof options.getLazyCharts === 'function' ? options.getLazyCharts : function () { return []; };
+    var loadedCharts = options.loadedCharts || new Set();
+
+    function runCombinedThenLazy() {
+      if (!isPageVisible()) return;
+      runCombined();
+      var list = getLazyCharts();
+      var arr = list && (list.length != null ? list : Array.prototype.slice.call(list)) || [];
+      var index = 0;
+      function next() {
+        if (!isPageVisible() || index >= arr.length) return;
+        var el = arr[index];
+        index += 1;
+        var chartType = el && el.dataset && el.dataset.chartType;
+        if (chartType && !loadedCharts.has(chartType)) {
+          loadedCharts.add(chartType);
+          runLazyChart(el, chartType);
+        }
+        if (index < arr.length) {
+          setTimeout(next, timing.staggerMs);
+        }
+      }
+      setTimeout(next, timing.gapAfterCombinedMs);
+    }
+
+    function start() {
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(runCombinedThenLazy, { timeout: timing.delayMs + 1000 });
+      } else {
+        setTimeout(runCombinedThenLazy, Math.min(timing.delayMs, 500));
+      }
+    }
+
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(start, { timeout: timing.delayMs + 1000 });
+    } else {
+      setTimeout(start, timing.delayMs);
+    }
+  }
+
+  /**
+   * Schedule AI preload on the main thread (device-aware scheduling is in app.js preloadAIForAllRanges).
+   * Worker ANALYZE path removed: AIEngine requires window/DOM/tf and does not run in a worker.
+   * @param {Object} options
+   * @param {function} options.runAIAnalysis - Callback that performs AI preload on main thread (full logic).
+   * @param {function} [options.getAIPreloadData] - Unused (kept for API compatibility).
+   * @param {function} [options.setAICache] - Unused (kept for API compatibility).
+   */
+  function scheduleAIPreload(options) {
+    if (!options || typeof options.runAIAnalysis !== 'function') return;
+    var profile = Perf.getOptimizationProfile();
+    if (profile && profile.enableAIPreload === false) return;
+
+    var delay = (profile && profile.aiPreloadDelayMs != null) ? profile.aiPreloadDelayMs : 2000;
+    var runAIAnalysis = options.runAIAnalysis;
+
+    function runWhenIdle() {
+      if (!isPageVisible()) return;
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(runAIAnalysis, { timeout: 800 });
+      } else {
+        setTimeout(runAIAnalysis, 100);
+      }
+    }
+
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(runWhenIdle, { timeout: delay + 1500 });
+    } else {
+      setTimeout(runWhenIdle, delay);
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.BackgroundLoader = {
+      scheduleChartPreload: scheduleChartPreload,
+      scheduleAIPreload: scheduleAIPreload
+    };
   }
 })();
