@@ -1,0 +1,66 @@
+import React from 'react';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { LogWizardScreen } from './LogWizardScreen';
+import { ThemeProvider } from '../theme/ThemeProvider';
+import { getDefaultPreferences } from '../storage/preferences';
+
+jest.mock('../storage/logs', () => ({
+  loadLogs: jest.fn(async () => [
+    { date: '2026-01-01', symptoms: ['Nausea', 'Headache'], stressors: ['Work deadline'] },
+    { date: '2026-01-02', symptoms: ['Nausea'], stressors: ['Work deadline', 'Travel'] },
+  ]),
+  saveLogs: jest.fn(async () => {}),
+  addLogEntry: jest.fn((existing: any[], next: any) => [...existing, next]),
+  getFrequentLogItems: jest.requireActual('../storage/logs').getFrequentLogItems,
+}));
+
+test('log wizard can progress through stressors and save', async () => {
+  const prefs = getDefaultPreferences();
+  const { getByLabelText, findByText, getByText, getAllByText } = render(
+    <ThemeProvider prefs={prefs}>
+      <LogWizardScreen />
+    </ThemeProvider>
+  );
+
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('BPM (30–120)');
+
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Symptoms');
+  await findByText('Frequent symptoms');
+  fireEvent.press(getByText('Head: none'));
+  await findByText('Head: mild');
+
+  fireEvent.press(getAllByText('Nausea')[0]);
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Energy / clarity');
+  await findByText('Frequent stressors');
+  fireEvent.press(getByText('Good'));
+  fireEvent.press(getAllByText('Work deadline')[0]);
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Daily function (0-10)');
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Breakfast (comma separated)');
+  fireEvent.press(getByText('Oatmeal'));
+  fireEvent.press(getByText('Yogurt'));
+  fireEvent.press(getByText('Remove Oatmeal'));
+  fireEvent.press(getByText('Oatmeal'));
+  fireEvent.changeText(getByLabelText('Lunch items'), 'Chicken salad');
+  fireEvent.changeText(getByLabelText('Dinner items'), 'Salmon, Rice');
+  fireEvent.changeText(getByLabelText('Snack items'), 'Apple');
+  await findByText('Cardio');
+  fireEvent.press(getAllByText('Walking:30')[0]);
+  fireEvent.press(getAllByText('Walking:30')[0]);
+  fireEvent.changeText(getByLabelText('Exercise items'), 'Walking:30, Stretching:15');
+  fireEvent.press(getByLabelText('Save entry'));
+
+  const mockedAddLogEntry = (jest.requireMock('../storage/logs') as { addLogEntry: jest.Mock }).addLogEntry;
+  await waitFor(() => expect(mockedAddLogEntry).toHaveBeenCalled());
+  const draft = mockedAddLogEntry.mock.calls[0][1];
+  expect(draft.food?.breakfast).toEqual(expect.arrayContaining(['Oatmeal', 'Yogurt']));
+  expect(draft.food?.lunch).toEqual(['Chicken salad']);
+  expect(draft.food?.dinner).toEqual(['Salmon', 'Rice']);
+  expect(draft.food?.snack).toEqual(['Apple']);
+  expect(draft.exercise).toEqual([{ name: 'Walking', duration: 30 }, { name: 'Stretching', duration: 15 }]);
+});
+

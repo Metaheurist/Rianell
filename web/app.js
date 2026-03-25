@@ -1956,12 +1956,12 @@ window.closeDonateModal = closeDonateModal;
 // ============================================
 // Tutorial Modal (new users + backtick ` to reopen)
 // ============================================
-const TUTORIAL_SLIDE_TITLES = ['Enable AI & Goals?', 'Welcome', 'View & AI', 'Settings & data', 'Data options', 'Goals & targets', "You're all set"];
+const TUTORIAL_SLIDE_TITLES = ['Enable AI & Goals?', 'Welcome', 'View & AI', 'Settings & data', 'Data options', 'Accessibility', 'Goals & targets', "You're all set"];
 
 function getTutorialVisibleIndices() {
   var aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
-  if (aiOn) return [0, 1, 2, 3, 4, 5, 6];
-  return [0, 1, 6];
+  if (aiOn) return [0, 1, 2, 3, 4, 5, 6, 7];
+  return [0, 1, 5, 7];
 }
 var _tutorialSwipeStartX = 0;
 var _tutorialSwipeStartY = 0;
@@ -2100,6 +2100,7 @@ function showTutorialSlide(index) {
   if (demoBtn) demoBtn.style.display = isLast ? 'inline-block' : 'none';
   if (index === 3 && typeof updateTutorialConditionDisplay === 'function') updateTutorialConditionDisplay();
   if (index === 4 && typeof updateTutorialDataTogglesState === 'function') updateTutorialDataTogglesState();
+  if (index === 5 && typeof updateTutorialAccessibilityState === 'function') updateTutorialAccessibilityState();
 }
 
 function tutorialNextSlide() {
@@ -14794,6 +14795,14 @@ let appSettings = {
   userName: '',
   weightUnit: 'kg', // 'kg' or 'lb', always store as kg
   medicalCondition: '', // Empty by default - user must set a condition
+  appearanceMode: 'system', // 'system' | 'dark' | 'light'
+  accessibility: {
+    ttsEnabled: false,
+    readModeEnabled: false,
+    largeTextEnabled: false,
+    textScale: 1,
+    colorblindMode: 'none'
+  },
   globalTheme: 'mint', // 'mint' | 'red-black' | 'mono' | 'rainbow'
   contributeAnonData: false, // Contribute anonymised data to pool
   useOpenData: false, // Use anonymised data pool for AI training (requires 90+ days)
@@ -14812,6 +14821,22 @@ function loadSettings() {
   if (savedSettings) {
     appSettings = { ...appSettings, ...JSON.parse(savedSettings) };
   }
+  try {
+    if (!appSettings.accessibility || typeof appSettings.accessibility !== 'object') {
+      appSettings.accessibility = { ttsEnabled: false, readModeEnabled: false, largeTextEnabled: false, textScale: 1, colorblindMode: 'none' };
+    }
+    appSettings.accessibility.ttsEnabled = appSettings.accessibility.ttsEnabled === true;
+    appSettings.accessibility.readModeEnabled = appSettings.accessibility.readModeEnabled === true;
+    appSettings.accessibility.largeTextEnabled = appSettings.accessibility.largeTextEnabled === true;
+    var cb = typeof appSettings.accessibility.colorblindMode === 'string' ? appSettings.accessibility.colorblindMode : 'none';
+    appSettings.accessibility.colorblindMode = cb;
+    var ts = typeof appSettings.accessibility.textScale === 'number' ? appSettings.accessibility.textScale : 1;
+    if (!isFinite(ts)) ts = 1;
+    ts = Math.max(0.85, Math.min(1.6, ts));
+    appSettings.accessibility.textScale = ts;
+  } catch (e) {
+    appSettings.accessibility = { ttsEnabled: false, readModeEnabled: false, largeTextEnabled: false, textScale: 1, colorblindMode: 'none' };
+  }
   normalizeChartViewSettings();
   
   // Make appSettings available on window for Logger to access safely
@@ -14822,6 +14847,9 @@ function loadSettings() {
   // Apply loaded settings to UI
   applySettings();
   loadSettingsState();
+  applyAccessibilityTtsSettings();
+  applyAccessibilityTextScale();
+  applyAccessibilityColorblindMode();
   
   // Set up background sync if contribution is enabled
   if (appSettings.contributeAnonData && typeof setupBackgroundSync === 'function') {
@@ -14864,9 +14892,7 @@ function setPreferredLlmModel(value) {
 if (typeof window !== 'undefined') window.setPreferredLlmModel = setPreferredLlmModel;
 
 function applySettings() {
-  // Always use dark mode
-  document.body.classList.remove('light-mode');
-  document.body.classList.add('dark-mode');
+  applyAppearanceMode();
   applyGlobalTheme();
   
   // Apply AI feature visibility (tab, predictions, goals)
@@ -14878,6 +14904,264 @@ function applySettings() {
   // Update dashboard title
   updateDashboardTitle();
 }
+
+var __rianellAppearanceMql = null;
+var __rianellAppearanceMqlListenerInstalled = false;
+
+function getSystemAppearanceMode() {
+  try {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return 'dark';
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  } catch (e) {
+    return 'dark';
+  }
+}
+
+function applyAppearanceMode() {
+  var mode = (appSettings && typeof appSettings.appearanceMode === 'string') ? appSettings.appearanceMode : 'system';
+  if (mode !== 'system' && mode !== 'light' && mode !== 'dark') mode = 'system';
+  if (appSettings) appSettings.appearanceMode = mode;
+
+  var effective = mode === 'system' ? getSystemAppearanceMode() : mode;
+  document.body.classList.toggle('light-mode', effective === 'light');
+  document.body.classList.toggle('dark-mode', effective === 'dark');
+
+  try {
+    if (mode === 'system' && typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      if (!__rianellAppearanceMql) __rianellAppearanceMql = window.matchMedia('(prefers-color-scheme: light)');
+      if (__rianellAppearanceMql && !__rianellAppearanceMqlListenerInstalled) {
+        var onChange = function () {
+          try {
+            if (!appSettings || appSettings.appearanceMode !== 'system') return;
+            applyAppearanceMode();
+          } catch (e) {}
+        };
+        if (typeof __rianellAppearanceMql.addEventListener === 'function') __rianellAppearanceMql.addEventListener('change', onChange);
+        else if (typeof __rianellAppearanceMql.addListener === 'function') __rianellAppearanceMql.addListener(onChange);
+        __rianellAppearanceMqlListenerInstalled = true;
+      }
+    }
+  } catch (e) {}
+}
+
+function setAppearanceMode(mode) {
+  var valid = mode === 'system' || mode === 'light' || mode === 'dark';
+  if (!valid) return;
+  if (appSettings.appearanceMode === mode) return;
+  appSettings.appearanceMode = mode;
+  saveSettings();
+  applyAppearanceMode();
+  loadSettingsState();
+}
+if (typeof window !== 'undefined') window.setAppearanceMode = setAppearanceMode;
+
+var __rianellTtsInstalled = false;
+var __rianellTtsLastSpokenAt = 0;
+var __rianellTtsLastText = '';
+
+function __rianellTtsSpeak(text) {
+  try {
+    if (!text || typeof text !== 'string') return;
+    var t = text.trim();
+    if (!t) return;
+    if (typeof window === 'undefined' || !window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') return;
+    var now = Date.now();
+    if (t === __rianellTtsLastText && (now - __rianellTtsLastSpokenAt) < 900) return;
+    __rianellTtsLastText = t;
+    __rianellTtsLastSpokenAt = now;
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+    var u = new SpeechSynthesisUtterance(t);
+    u.rate = 1;
+    u.pitch = 1;
+    u.volume = 1;
+    window.speechSynthesis.speak(u);
+  } catch (e) {}
+}
+
+function __rianellTtsGetElementLabel(el) {
+  try {
+    if (!el || el.nodeType !== 1) return '';
+    var aria = el.getAttribute && el.getAttribute('aria-label');
+    if (aria) return String(aria);
+    var labelledBy = el.getAttribute && el.getAttribute('aria-labelledby');
+    if (labelledBy) {
+      var ids = labelledBy.split(/\s+/).filter(Boolean);
+      var parts = [];
+      for (var i = 0; i < ids.length; i++) {
+        var ref = document.getElementById(ids[i]);
+        if (ref && ref.textContent) parts.push(ref.textContent.trim());
+      }
+      if (parts.length) return parts.join(' ');
+    }
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
+      var id = el.getAttribute('id');
+      if (id) {
+        var lab = document.querySelector('label[for="' + id.replace(/"/g, '\\"') + '"]');
+        if (lab && lab.textContent) return lab.textContent.trim();
+      }
+      var ph = el.getAttribute('placeholder');
+      if (ph) return String(ph);
+    }
+    var title = el.getAttribute && el.getAttribute('title');
+    if (title) return String(title);
+    var txt = el.textContent ? el.textContent.trim() : '';
+    if (txt) return txt;
+  } catch (e) {}
+  return '';
+}
+
+function __rianellTtsShouldReadTarget(el) {
+  try {
+    if (!el || el.nodeType !== 1) return false;
+    if (el.closest && el.closest('#settingsOverlay') && document.body.classList.contains('modal-active')) {
+      // ok - settings controls should still be readable
+    }
+    if (el.closest && el.closest('[aria-hidden="true"]')) return false;
+    if (el.closest && el.closest('.loading-overlay')) return false;
+    if (el.getAttribute && el.getAttribute('aria-disabled') === 'true') return false;
+    if (el.hasAttribute && el.hasAttribute('disabled')) return false;
+    var tag = el.tagName;
+    if (tag === 'SCRIPT' || tag === 'STYLE') return false;
+    // avoid reading while typing
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return true;
+    // interactive-ish
+    if (tag === 'BUTTON' || tag === 'A' || tag === 'SELECT') return true;
+    var role = el.getAttribute && el.getAttribute('role');
+    if (role === 'button' || role === 'link' || role === 'tab' || role === 'switch' || role === 'checkbox' || role === 'radio') return true;
+  } catch (e) {}
+  return false;
+}
+
+function applyAccessibilityTtsSettings() {
+  try {
+    if (__rianellTtsInstalled) return;
+    __rianellTtsInstalled = true;
+    document.addEventListener('click', function (ev) {
+      try {
+        if (!appSettings || !appSettings.accessibility || appSettings.accessibility.ttsEnabled !== true) return;
+        var el = ev.target && ev.target.closest ? ev.target.closest('button,a,input,select,textarea,[role]') : ev.target;
+        if (!__rianellTtsShouldReadTarget(el)) return;
+        var label = __rianellTtsGetElementLabel(el);
+        if (label) __rianellTtsSpeak(label);
+      } catch (e) {}
+    }, true);
+    document.addEventListener('focusin', function (ev) {
+      try {
+        if (!appSettings || !appSettings.accessibility) return;
+        if (appSettings.accessibility.ttsEnabled !== true) return;
+        if (appSettings.accessibility.readModeEnabled !== true) return;
+        var el = ev.target;
+        if (!__rianellTtsShouldReadTarget(el)) return;
+        var label = __rianellTtsGetElementLabel(el);
+        if (label) __rianellTtsSpeak(label);
+      } catch (e) {}
+    }, true);
+  } catch (e) {}
+}
+
+function toggleAccessibilityTtsEnabled() {
+  if (!appSettings.accessibility || typeof appSettings.accessibility !== 'object') appSettings.accessibility = { ttsEnabled: false, readModeEnabled: false };
+  appSettings.accessibility.ttsEnabled = !appSettings.accessibility.ttsEnabled;
+  saveSettings();
+  loadSettingsState();
+  applyAccessibilityTtsSettings();
+  if (appSettings.accessibility.ttsEnabled) {
+    __rianellTtsSpeak('Text to speech enabled');
+  }
+}
+if (typeof window !== 'undefined') window.toggleAccessibilityTtsEnabled = toggleAccessibilityTtsEnabled;
+
+function toggleAccessibilityReadMode() {
+  if (!appSettings.accessibility || typeof appSettings.accessibility !== 'object') appSettings.accessibility = { ttsEnabled: false, readModeEnabled: false };
+  appSettings.accessibility.readModeEnabled = !appSettings.accessibility.readModeEnabled;
+  saveSettings();
+  loadSettingsState();
+  applyAccessibilityTtsSettings();
+  if (appSettings.accessibility.ttsEnabled && appSettings.accessibility.readModeEnabled) {
+    __rianellTtsSpeak('Read mode enabled');
+  }
+}
+if (typeof window !== 'undefined') window.toggleAccessibilityReadMode = toggleAccessibilityReadMode;
+
+function applyAccessibilityTextScale() {
+  try {
+    var root = document.documentElement;
+    if (!root || !appSettings || !appSettings.accessibility) return;
+    var ts = typeof appSettings.accessibility.textScale === 'number' ? appSettings.accessibility.textScale : 1;
+    if (!isFinite(ts)) ts = 1;
+    ts = Math.max(0.85, Math.min(1.6, ts));
+    root.style.setProperty('--text-scale', String(ts));
+  } catch (e) {}
+}
+
+function applyAccessibilityColorblindMode() {
+  try {
+    var mode = appSettings && appSettings.accessibility && typeof appSettings.accessibility.colorblindMode === 'string'
+      ? appSettings.accessibility.colorblindMode
+      : 'none';
+    var classes = ['cb-deuteranopia', 'cb-protanopia', 'cb-tritanopia', 'cb-high-contrast'];
+    document.body.classList.remove.apply(document.body.classList, classes);
+    if (mode && mode !== 'none') {
+      document.body.classList.add('cb-' + mode);
+    }
+  } catch (e) {}
+}
+
+function setAccessibilityColorblindMode(mode) {
+  if (!appSettings.accessibility || typeof appSettings.accessibility !== 'object') {
+    appSettings.accessibility = { ttsEnabled: false, readModeEnabled: false, largeTextEnabled: false, textScale: 1, colorblindMode: 'none' };
+  }
+  var valid = mode === 'none' || mode === 'deuteranopia' || mode === 'protanopia' || mode === 'tritanopia' || mode === 'high-contrast';
+  if (!valid) mode = 'none';
+  appSettings.accessibility.colorblindMode = mode;
+  saveSettings();
+  applyAccessibilityColorblindMode();
+  loadSettingsState();
+}
+if (typeof window !== 'undefined') window.setAccessibilityColorblindMode = setAccessibilityColorblindMode;
+
+function setAccessibilityTextScale(value) {
+  if (!appSettings.accessibility || typeof appSettings.accessibility !== 'object') {
+    appSettings.accessibility = { ttsEnabled: false, readModeEnabled: false, largeTextEnabled: false, textScale: 1, colorblindMode: 'none' };
+  }
+  var ts = typeof value === 'number' ? value : parseFloat(String(value));
+  if (!isFinite(ts)) ts = 1;
+  ts = Math.max(0.85, Math.min(1.6, ts));
+  appSettings.accessibility.textScale = ts;
+  appSettings.accessibility.largeTextEnabled = ts >= 1.15;
+  saveSettings();
+  applyAccessibilityTextScale();
+  applyAccessibilityColorblindMode();
+  loadSettingsState();
+}
+if (typeof window !== 'undefined') window.setAccessibilityTextScale = setAccessibilityTextScale;
+
+function setAccessibilityTextScaleFromInput(value) {
+  setAccessibilityTextScale(value);
+}
+if (typeof window !== 'undefined') window.setAccessibilityTextScaleFromInput = setAccessibilityTextScaleFromInput;
+
+function toggleAccessibilityLargeText() {
+  if (!appSettings.accessibility || typeof appSettings.accessibility !== 'object') {
+    appSettings.accessibility = { ttsEnabled: false, readModeEnabled: false, largeTextEnabled: false, textScale: 1, colorblindMode: 'none' };
+  }
+  var on = !appSettings.accessibility.largeTextEnabled;
+  appSettings.accessibility.largeTextEnabled = on;
+  if (on) {
+    if (!(typeof appSettings.accessibility.textScale === 'number') || appSettings.accessibility.textScale < 1.15) {
+      appSettings.accessibility.textScale = 1.2;
+    }
+  } else {
+    if (typeof appSettings.accessibility.textScale === 'number' && appSettings.accessibility.textScale >= 1.15) {
+      appSettings.accessibility.textScale = 1;
+    }
+  }
+  saveSettings();
+  applyAccessibilityTextScale();
+  applyAccessibilityColorblindMode();
+  loadSettingsState();
+}
+if (typeof window !== 'undefined') window.toggleAccessibilityLargeText = toggleAccessibilityLargeText;
 
 function applyGlobalTheme() {
   var theme = (appSettings && typeof appSettings.globalTheme === 'string') ? appSettings.globalTheme : 'mint';
@@ -14948,6 +15232,36 @@ function loadSettingsState() {
   var aiEnabledToggle = document.getElementById('aiEnabledToggle');
   if (aiEnabledToggle) aiEnabledToggle.classList.toggle('active', appSettings.aiEnabled !== false);
   
+  // Appearance mode (system/light/dark)
+  var appearanceSelect = document.getElementById('appearanceModeSelect');
+  if (appearanceSelect) {
+    var m = (appSettings && typeof appSettings.appearanceMode === 'string') ? appSettings.appearanceMode : 'system';
+    if (m !== 'system' && m !== 'light' && m !== 'dark') m = 'system';
+    appearanceSelect.value = m;
+  }
+
+  // Accessibility (TTS + read mode)
+  var ttsToggle = document.getElementById('accessibilityTtsToggle');
+  if (ttsToggle) ttsToggle.classList.toggle('active', !!(appSettings.accessibility && appSettings.accessibility.ttsEnabled));
+  var readModeToggle = document.getElementById('accessibilityReadModeToggle');
+  if (readModeToggle) readModeToggle.classList.toggle('active', !!(appSettings.accessibility && appSettings.accessibility.readModeEnabled));
+  var largeTextToggle = document.getElementById('accessibilityLargeTextToggle');
+  if (largeTextToggle) largeTextToggle.classList.toggle('active', !!(appSettings.accessibility && appSettings.accessibility.largeTextEnabled));
+  var tsRange = document.getElementById('accessibilityTextScaleRange');
+  var tsLabel = document.getElementById('accessibilityTextScaleLabel');
+  if (tsRange && appSettings.accessibility) {
+    var ts = typeof appSettings.accessibility.textScale === 'number' ? appSettings.accessibility.textScale : 1;
+    if (!isFinite(ts)) ts = 1;
+    ts = Math.max(0.85, Math.min(1.6, ts));
+    tsRange.value = String(ts);
+    if (tsLabel) tsLabel.textContent = String(Math.round(ts * 100)) + '%';
+  }
+
+  var cbSelect = document.getElementById('accessibilityColorblindSelect');
+  if (cbSelect && appSettings.accessibility) {
+    cbSelect.value = appSettings.accessibility.colorblindMode || 'none';
+  }
+
   // Update demo mode toggle (same as other toggles)
   const demoModeToggle = document.getElementById('demoModeToggle');
   if (demoModeToggle) {
@@ -15128,6 +15442,7 @@ function loadSettingsState() {
   
   // Sync tutorial modal toggles (Contribute / Use open data) when settings load
   if (typeof updateTutorialDataTogglesState === 'function') updateTutorialDataTogglesState();
+  if (typeof updateTutorialAccessibilityState === 'function') updateTutorialAccessibilityState();
 
   // Show only install options relevant to current platform (iOS / Android / desktop)
   if (typeof refreshAppInstallSection === 'function') refreshAppInstallSection();
@@ -15160,6 +15475,52 @@ function updateTutorialDataTogglesState() {
     }
   }
 }
+
+function updateTutorialAccessibilityState() {
+  try {
+    var a = appSettings && appSettings.accessibility ? appSettings.accessibility : null;
+    var large = document.getElementById('tutorialAccessibilityLargeTextToggle');
+    var tts = document.getElementById('tutorialAccessibilityTtsToggle');
+    var readMode = document.getElementById('tutorialAccessibilityReadModeToggle');
+    var range = document.getElementById('tutorialAccessibilityTextScaleRange');
+    var label = document.getElementById('tutorialAccessibilityTextScaleLabel');
+    if (!a) return;
+    if (large) large.classList.toggle('active', !!a.largeTextEnabled);
+    if (tts) tts.classList.toggle('active', !!a.ttsEnabled);
+    if (readMode) readMode.classList.toggle('active', !!a.readModeEnabled);
+    if (range) {
+      var ts = typeof a.textScale === 'number' ? a.textScale : 1;
+      if (!isFinite(ts)) ts = 1;
+      ts = Math.max(0.85, Math.min(1.6, ts));
+      range.value = String(ts);
+      if (label) label.textContent = String(Math.round(ts * 100)) + '%';
+    }
+  } catch (e) {}
+}
+
+function toggleTutorialAccessibilityLargeText() {
+  if (typeof toggleAccessibilityLargeText === 'function') toggleAccessibilityLargeText();
+  updateTutorialAccessibilityState();
+}
+if (typeof window !== 'undefined') window.toggleTutorialAccessibilityLargeText = toggleTutorialAccessibilityLargeText;
+
+function setTutorialAccessibilityTextScaleFromInput(value) {
+  if (typeof setAccessibilityTextScaleFromInput === 'function') setAccessibilityTextScaleFromInput(value);
+  updateTutorialAccessibilityState();
+}
+if (typeof window !== 'undefined') window.setTutorialAccessibilityTextScaleFromInput = setTutorialAccessibilityTextScaleFromInput;
+
+function toggleTutorialAccessibilityTtsEnabled() {
+  if (typeof toggleAccessibilityTtsEnabled === 'function') toggleAccessibilityTtsEnabled();
+  updateTutorialAccessibilityState();
+}
+if (typeof window !== 'undefined') window.toggleTutorialAccessibilityTtsEnabled = toggleTutorialAccessibilityTtsEnabled;
+
+function toggleTutorialAccessibilityReadMode() {
+  if (typeof toggleAccessibilityReadMode === 'function') toggleAccessibilityReadMode();
+  updateTutorialAccessibilityState();
+}
+if (typeof window !== 'undefined') window.toggleTutorialAccessibilityReadMode = toggleTutorialAccessibilityReadMode;
 
 // Toggle contribute anonymised data
 // optionalToggleId: use 'tutorialContributeAnonDataToggle' when called from tutorial
@@ -15410,6 +15771,7 @@ function ensureSettingsCarouselDots(panes) {
     if (t.indexOf('ai') !== -1 || t.indexOf('goal') !== -1) return 'fa-solid fa-comment-medical';
     if (t.indexOf('display') !== -1 || t.indexOf('reminder') !== -1) return 'fa-solid fa-chart-column';
     if (t.indexOf('custom') !== -1 || t.indexOf('theme') !== -1) return 'fa-solid fa-palette';
+    if (t.indexOf('access') !== -1) return 'fa-solid fa-universal-access';
     if (t.indexOf('data option') !== -1) return 'fa-solid fa-gear';
     if (t.indexOf('performance') !== -1) return 'fa-solid fa-bolt';
     if (t.indexOf('install') !== -1) return 'fa-solid fa-mobile-screen-button';
@@ -18488,9 +18850,8 @@ window.addEventListener('load', () => {
   }
     if (loadingTextEl) loadingTextEl.textContent = 'Loading Rianell…';
   
-  // Always set dark mode on load
-  document.body.classList.remove('light-mode');
-  document.body.classList.add('dark-mode');
+  // Initial appearance class (will be finalized after settings load)
+  try { applyAppearanceMode(); } catch (e) {}
 
   function startAfterMotd() {
   loadSettings();

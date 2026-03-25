@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { existsSync, readTextFileSync } from '@rianell/shared';
 
 const platform = (process.argv[2] || '').toLowerCase();
 if (!platform || (platform !== 'android' && platform !== 'ios')) {
@@ -11,11 +12,11 @@ const repoRoot = process.cwd();
 const checks = [];
 
 function exists(relPath) {
-  return fs.existsSync(path.join(repoRoot, relPath));
+  return existsSync(fs, path.join(repoRoot, relPath));
 }
 
 function read(relPath) {
-  return fs.readFileSync(path.join(repoRoot, relPath), 'utf8');
+  return readTextFileSync(fs, path.join(repoRoot, relPath));
 }
 
 function expectFile(relPath, why) {

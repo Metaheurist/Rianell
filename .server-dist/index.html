@@ -127,7 +127,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
   <link rel="preload" href="styles.css?v=75" as="style">
-  <link rel="preload" href="app.js?v=25" as="script">
+  <link rel="preload" href="app.min.js?v=25" as="script">
   <link rel="stylesheet" href="styles.css?v=75" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=75&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
@@ -782,6 +782,14 @@
       <div class="settings-carousel-pane" data-settings-pane-title="Customisation" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4>🎨 Theme customisation</h4>
+        <div class="settings-option">
+          <label for="appearanceModeSelect">Appearance</label>
+          <select id="appearanceModeSelect" class="settings-select" onchange="setAppearanceMode(this.value)">
+            <option value="system">System default</option>
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+          </select>
+        </div>
         <p class="settings-hint">Pick a global theme. Selecting a theme applies it instantly across the app in the background.</p>
         <div class="settings-theme-grid" role="radiogroup" aria-label="Global app theme">
           <button type="button" class="settings-theme-choice settings-theme-choice--mint" data-theme="mint" role="radio" aria-checked="true" onclick="setGlobalTheme('mint')">
@@ -801,6 +809,35 @@
             <span class="settings-theme-choice__label">Rainbow</span>
           </button>
         </div>
+      </div>
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Accessibility" role="tabpanel" aria-hidden="true">
+      <div class="settings-section">
+        <h4>♿ Accessibility</h4>
+        <div class="settings-option settings-option-with-hint">
+          <label>Large text</label>
+          <div class="toggle-switch" id="accessibilityLargeTextToggle" onclick="toggleAccessibilityLargeText()"></div>
+        </div>
+        <p class="settings-hint">A quick preset for bigger text across the app.</p>
+
+        <div class="settings-option settings-option-with-hint" style="flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 14px;">
+          <label for="accessibilityTextScaleRange">Font size</label>
+          <input id="accessibilityTextScaleRange" type="range" min="0.85" max="1.6" step="0.05" value="1" oninput="setAccessibilityTextScaleFromInput(this.value)" style="width: 100%;">
+          <small class="settings-hint" id="accessibilityTextScaleLabel" style="margin: 0; opacity: 0.85;">100%</small>
+        </div>
+        <p class="settings-hint">Adjusts text size across screens. If layouts look off at large sizes, report a bug so we can fix the component.</p>
+
+        <div class="settings-option settings-option-with-hint">
+          <label>Text-to-speech (tap-to-read)</label>
+          <div class="toggle-switch" id="accessibilityTtsToggle" onclick="toggleAccessibilityTtsEnabled()"></div>
+        </div>
+        <p class="settings-hint">When enabled: tapping buttons/controls reads their label aloud.</p>
+
+        <div class="settings-option settings-option-with-hint" style="margin-top: 14px;">
+          <label>Read mode (auto-read on focus)</label>
+          <div class="toggle-switch" id="accessibilityReadModeToggle" onclick="toggleAccessibilityReadMode()"></div>
+        </div>
+        <p class="settings-hint">When on: focused controls are also read aloud (keyboard and assistive navigation).</p>
       </div>
       </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Data options" role="tabpanel" aria-hidden="true">
@@ -2839,7 +2876,7 @@
     }
   })();
   </script>
-  <script src="app.js?v=25"></script>
+  <script src="app.min.js?v=25"></script>
   <script src="security-utils.js"></script>
   <script src="encryption-utils.js"></script>
   <script src="cloud-sync.js?v=2"></script>

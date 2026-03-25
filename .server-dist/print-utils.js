@@ -4,21 +4,21 @@
 // ============================================
 
 function printReport() {
-  const logs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
-  const appSettings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
-  const userName = appSettings.userName || 'User';
-  const conditionName = appSettings.medicalCondition || 'Health Condition';
-  
-  if (logs.length === 0) {
-    showAlertModal('No data to print.', 'Print');
-    return;
-  }
-  
-  // Create print content
-  const printWindow = window.open('', '_blank');
-  const printContent = generatePrintContent(logs, userName, conditionName);
-  
-  printWindow.document.write(`
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("print-utils.js", "printReport", arguments) : undefined;
+  try {
+    const logs = JSON.parse(localStorage.getItem("healthLogs") || "[]");
+    const appSettings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
+    const userName = appSettings.userName || 'User';
+    const conditionName = appSettings.medicalCondition || 'Health Condition';
+    if (logs.length === 0) {
+      showAlertModal('No data to print.', 'Print');
+      return;
+    }
+
+    // Create print content
+    const printWindow = window.open('', '_blank');
+    const printContent = generatePrintContent(logs, userName, conditionName);
+    printWindow.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
@@ -124,28 +124,35 @@ function printReport() {
     </body>
     </html>
   `);
-  
-  printWindow.document.close();
-  
-  // Wait for content to load, then print
-  setTimeout(() => {
-    printWindow.print();
-  }, 250);
-}
+    printWindow.document.close();
 
+    // Wait for content to load, then print
+    setTimeout(() => {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("print-utils.js", "[arrow]", undefined) : undefined;
+      try {
+        printWindow.print();
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    }, 250);
+  } finally {
+    __rianellTraceExit(__rt);
+  }
+}
 function generatePrintContent(logs, userName, conditionName) {
-  const dates = logs.map(l => new Date(l.date)).sort((a, b) => a - b);
-  const startDate = dates.length > 0 ? dates[0].toLocaleDateString() : 'N/A';
-  const endDate = dates.length > 0 ? dates[dates.length - 1].toLocaleDateString() : 'N/A';
-  const today = new Date().toLocaleDateString();
-  
-  // Calculate summary statistics
-  const avgBPM = logs.length > 0 ? Math.round(logs.reduce((sum, l) => sum + (parseFloat(l.bpm) || 0), 0) / logs.length) : 0;
-  const avgPain = logs.length > 0 ? (logs.reduce((sum, l) => sum + (parseFloat(l.backPain) || 0), 0) / logs.length).toFixed(1) : 0;
-  const avgSleep = logs.length > 0 ? (logs.reduce((sum, l) => sum + (parseFloat(l.sleep) || 0), 0) / logs.length).toFixed(1) : 0;
-  const flareCount = logs.filter(l => l.flare === 'true' || l.flare === true).length;
-  
-  let html = `
+  var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("print-utils.js", "generatePrintContent", arguments) : undefined;
+  try {
+    const dates = logs.map(l => new Date(l.date)).sort((a, b) => a - b);
+    const startDate = dates.length > 0 ? dates[0].toLocaleDateString() : 'N/A';
+    const endDate = dates.length > 0 ? dates[dates.length - 1].toLocaleDateString() : 'N/A';
+    const today = new Date().toLocaleDateString();
+
+    // Calculate summary statistics
+    const avgBPM = logs.length > 0 ? Math.round(logs.reduce((sum, l) => sum + (parseFloat(l.bpm) || 0), 0) / logs.length) : 0;
+    const avgPain = logs.length > 0 ? (logs.reduce((sum, l) => sum + (parseFloat(l.backPain) || 0), 0) / logs.length).toFixed(1) : 0;
+    const avgSleep = logs.length > 0 ? (logs.reduce((sum, l) => sum + (parseFloat(l.sleep) || 0), 0) / logs.length).toFixed(1) : 0;
+    const flareCount = logs.filter(l => l.flare === 'true' || l.flare === true).length;
+    let html = `
     <div class="print-header">
       <h1>Health Data Report</h1>
       <div class="print-meta">
@@ -183,11 +190,13 @@ function generatePrintContent(logs, userName, conditionName) {
         </thead>
         <tbody>
   `;
-  
-  // Show most recent 50 entries (to fit on page)
-  const entriesToShow = logs.slice(-50).reverse();
-  entriesToShow.forEach(log => {
-    html += `
+
+    // Show most recent 50 entries (to fit on page)
+    const entriesToShow = logs.slice(-50).reverse();
+    entriesToShow.forEach(log => {
+      var __rt = typeof __rianellTraceEnter === "function" ? __rianellTraceEnter("print-utils.js", "[arrow]", undefined) : undefined;
+      try {
+        html += `
       <tr>
         <td>${log.date || ''}</td>
         <td>${log.bpm || ''}</td>
@@ -195,22 +204,23 @@ function generatePrintContent(logs, userName, conditionName) {
         <td>${log.backPain || ''}</td>
         <td>${log.sleep || ''}</td>
         <td>${log.mood || ''}</td>
-        <td>${(log.flare === 'true' || log.flare === true) ? 'Yes' : 'No'}</td>
+        <td>${log.flare === 'true' || log.flare === true ? 'Yes' : 'No'}</td>
       </tr>
     `;
-  });
-  
-  if (logs.length > 50) {
-    html += `
+      } finally {
+        __rianellTraceExit(__rt);
+      }
+    });
+    if (logs.length > 50) {
+      html += `
       <tr>
         <td colspan="7" style="text-align: center; font-style: italic; color: #666;">
           ... and ${logs.length - 50} more entries (showing most recent 50)
         </td>
       </tr>
     `;
-  }
-  
-  html += `
+    }
+    html += `
         </tbody>
       </table>
     </div>
@@ -220,6 +230,8 @@ function generatePrintContent(logs, userName, conditionName) {
       <p>This report is for informational purposes only. Consult with your healthcare provider for medical advice.</p>
     </div>
   `;
-  
-  return html;
+    return html;
+  } finally {
+    __rianellTraceExit(__rt);
+  }
 }
