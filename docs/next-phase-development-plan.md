@@ -165,7 +165,7 @@ This section is intentionally written as a **linear checklist** that a non-agent
   - **Step 11 (Expo font scaling)**: **Completed** — text scale affects rendered typography via theme scaling, with component tests asserting font size increases when `textScale` increases.
   - **Step 12 (Expo TTS)**: **Completed (initial)** — implemented tap-to-read + read-mode hooks (focus) for interactive choice chips using `expo-speech`, with tests mocking `expo-speech` and asserting a press triggers `speak()`.
   - **Step 13 (Colorblind modes as token overrides)**: **Completed (initial)** — added `colorblindMode` override support in `@rianell/tokens` + tests; wired Expo theme provider + settings selector; added web Accessibility selector applying CSS token overrides via `body.cb-*` classes.
-  - **Step 14 (Parity loop: port screen-by-screen)**: **In progress** — Expo now has (1) shared log entry normalization aligned to the web schema, (2) a real logs list backed by AsyncStorage under the canonical `healthLogs` key (with legacy mobile key migration), and (3) a growing **Log today** wizard screen (now 6-step: Date/flare → Vitals → Symptoms & pain-lite → Energy & stressors-lite → Lifestyle-lite → Food & exercise) accessible from Home to create entries with duplicate-date protection. Frequent symptom/stressor chips are now derived from existing saved logs to improve parity with web quick-pick behavior, Symptoms & pain includes a tappable body-region severity selector (none/mild/pain) that writes into `painLocation`, and the Food/Exercise step now captures meal categories (Breakfast/Lunch/Dinner/Snack) plus optional exercise durations (`Name:Minutes`) with quick-pick chips and remove-item controls. Exercise quick-picks are now grouped by category (Cardio/Strength/Flexibility/Balance/Recovery) for closer parity with web Step 8.
+  - **Step 14 (Parity loop: port screen-by-screen)**: **In progress** — Expo now has (1) shared log entry normalization aligned to the web schema, (2) a real logs list backed by AsyncStorage under the canonical `healthLogs` key (with legacy mobile key migration), and (3) a **Log today** wizard aligned to the web **`LOG_WIZARD_TOTAL_STEPS` (10 steps, indices 0–9)**: Date/flare → Vitals (no notes on vitals; notes live with medications per web) → Symptoms & pain → Energy → Stress & triggers → Lifestyle → Food → Exercise → Medication & notes → **Review** with plain-text summary (`buildLogReviewSummary`) and **Save** only on the last step (then `goBack()`). Home uses a **floating +** affordance (web parity) plus today status from logs; **Charts** shows a pull-to-refresh **summary** (counts, 14-day coverage, flare days, simple averages) until full chart parity. Frequent symptom/stressor chips, body-region pain states, meal-level food, and category-grouped exercise with `Name:Minutes` parsing remain as before; duplicate-date protection on save is unchanged.
   - **Server (local Supabase import)**: **Completed** — fixed Supabase client initialization to support multiple import paths for `create_client` and removed a direct `from supabase import create_client` usage in the dashboard wipe flow.
   - **Web settings UX polish**: **Completed** — moved “Appearance” label below the dropdown to avoid UI clash.
   - **Web settings consolidation**: **Completed** — merged “App install” into “💾 Data Management” (kept existing IDs so install links and logic continue to work).
@@ -211,12 +211,12 @@ This section is intentionally written as a **linear checklist** that a non-agent
 
 ##### Screens / primary surfaces (Expo - parity loop)
 
-- [x] **Home tab** (placeholder scaffold)
+- [x] **Home tab** (today status + floating **+** opens Log wizard; refreshes on focus)
 - [x] **View Logs tab** (AsyncStorage-backed list; canonical `healthLogs` key; shows key metrics)
-- [x] **Charts tab** (placeholder scaffold)
+- [~] **Charts tab** (summary stats from saved logs + pull-to-refresh; full chart parity with web still to do)
 - [x] **AI Analysis tab** (placeholder scaffold; gated by `aiEnabled`)
 - [x] **Settings tab** (theme + accessibility + AI gate; persisted)
-- [x] **Log today flow** (initial) (stack screen from Home; 6-step wizard; saves into logs; blocks duplicate dates)
+- [x] **Log today flow** (stack screen from Home **+**; **10-step** wizard matching web; saves into logs; blocks duplicate dates)
 
 ##### Log wizard steps (web)
 
@@ -228,19 +228,21 @@ This section is intentionally written as a **linear checklist** that a non-agent
 - [x] **Step 6**: Lifestyle
 - [x] **Step 7**: Food (meal categories: Breakfast/Lunch/Dinner/Snack)
 - [x] **Step 8**: Exercise (categories: Cardio/Strength/Flexibility/Balance/Recovery)
-- [ ] **Step 9**: (confirm exact title/content during next pass)
-- [ ] **Step 10**: (confirm exact title/content during next pass)
+- [x] **Step 9**: Medication & notes (`web/index.html` `data-log-step="8"`)
+- [x] **Step 10**: Review (`data-log-step="9"`; save only on last step)
 
 ##### Log wizard steps (Expo - parity loop)
 
-- [x] **Step 1**: Date & flare (implemented)
-- [x] **Step 2**: Vitals (implemented - basic fields)
-- [~] **Step 3**: Symptoms & pain (implemented lite - symptom chips + frequent chips + tappable body-region severity states feeding `painLocation`; next: full body-diagram UX parity)
-- [~] **Step 4**: Energy & mental clarity (implemented lite - energy choices + stressor chips + frequent chips from saved logs; next: web tile behavior refinements)
-- [~] **Step 5**: Stress & triggers (implemented lite under Step 4 via stressor chips; next: fuller group/tile parity and free-add behavior)
-- [~] **Step 6**: Lifestyle (implemented lite - daily function, irritability, weather sensitivity)
-- [~] **Step 7**: Food (implemented lite+ — meal-category capture for Breakfast/Lunch/Dinner/Snack, with quick-pick chips and remove-item controls; next: richer tile/category parity)
-- [~] **Step 8**: Exercise (implemented lite+ — optional duration parsing `Name:Minutes`, quick-pick chips and remove-item controls, and category-grouped picks; next: richer edit UX parity)
+- [x] **Step 1**: Date & flare
+- [x] **Step 2**: Vitals (basic fields; notes are **not** here — matches web)
+- [~] **Step 3**: Symptoms & pain (lite — chips + frequent chips + tappable body-region severity → `painLocation`; full body-diagram UX still to do)
+- [~] **Step 4**: Energy & mental clarity (lite — choice chips)
+- [~] **Step 5**: Stress & triggers (lite — frequent + predefined stressor chips)
+- [~] **Step 6**: Lifestyle (lite — daily function, irritability, weather sensitivity)
+- [~] **Step 7**: Food (lite+ — Breakfast/Lunch/Dinner/Snack with quick-picks + remove)
+- [~] **Step 8**: Exercise (lite+ — `Name:Minutes`, category-grouped picks, quick-picks)
+- [~] **Step 9**: Medication & notes (lite — comma-separated medication names → `{ name, times: [], taken }[]`; free-form notes)
+- [x] **Step 10**: Review (plain-text summary via `buildLogReviewSummary`; Save → persist → back)
 
 ##### Settings modules (web “Settings” overlay carousel)
 
