@@ -135,3 +135,376 @@ Deliver accessibility as a **first-class slice** of work, surfaced in the **sett
 ---
 
 *This document is the build plan for the next phase; update it as scope and timelines are committed.*
+
+---
+
+## 7. Linear next-phase build steps (detailed scaffold)
+
+This section is intentionally written as a **linear checklist** that a non-agentic code assistant (e.g. Aider) can execute step-by-step. Each step has a clear “done when” so parity doesn’t drift.
+
+### 7.1 Ground rules (apply to every step)
+
+- **Parity rule**: The GitHub Pages web app (including installed **PWA**) and the **Expo** iOS/Android app are **one product**. Any divergence must be documented as a signed-off exception.
+- **No WebView shortcut**: The Expo app UI is built in React Native views. WebView is only allowed for isolated, explicitly approved surfaces (e.g. OAuth/Legal).
+- **One source of truth for tokens**: Team × (light|dark) palettes + typography scale must be expressed as **shared design tokens** consumed by both web and RN.
+- **Test as you build**: Every new “platform surface” comes with tests and CI gates from day one.
+
+### 7.2 Step 0 — Baseline and inventory (web is the reference)
+
+**Goal**: Define exactly what “same product” means in *this* repo so parity can be measured.
+
+- Create a **Parity Checklist** inside this doc (or link a file under `docs/`) that enumerates:
+  - **Screens / routes**
+  - **Core UI components**
+  - **Settings modules** (including Accessibility)
+  - **Animations and transitions**
+  - **Permissions** and when prompts occur
+  - **Offline/PWA behaviors** (install, caching, update prompts, background sync if used)
+  - **AI features** (where they appear, inputs/outputs, latency expectations)
+- Capture “web reference” behaviors with small, concrete notes (what the user clicks, what they see, expected state changes).
+
+**Done when**: parity checklist exists and every planned RN screen has a web/PWA reference.
+
+### 7.3 Step 1 — Repository layout for web + Expo (scaffold)
+
+**Goal**: Structure the repo so web and RN can share code where it makes sense without coupling UI layers.
+
+Recommended target layout (adjust to current repo conventions):
+
+- `apps/web/` (or keep current web root, but isolate it cleanly)
+- `apps/mobile/` (Expo React Native app)
+- `packages/shared/` (pure TS utilities + domain logic + API client)
+- `packages/tokens/` (team palettes, semantic colors, typography scale, spacing)
+- `packages/ui-spec/` (optional: platform-agnostic UI contracts like component props types, not actual UI code)
+
+**Actions**
+
+- Move or refactor code only if needed to enable shared packages; prefer incremental change to avoid breaking deployments.
+- Ensure both apps can import shared packages (workspace tooling, TS path aliases).
+
+**Done when**: web builds and runs; shared packages can be imported by web without circular deps.
+
+### 7.4 Step 2 — Web/PWA as the canonical product build (GitHub Pages)
+
+**Goal**: Make web + PWA the stable, testable reference that CI can validate on every PR.
+
+**Actions**
+
+- Confirm/standardize:
+  - PWA manifest and service worker behavior
+  - Install/standalone behavior (app shell, navigation, deep links if used)
+  - Offline / cache strategy (what is cached, what is network-only)
+- Add/ensure web tests:
+  - **Unit tests** for pure logic (in shared packages where possible)
+  - **Component tests** for critical UI flows
+  - **Accessibility checks** for core screens (see 7.8)
+
+**Done when**: web has repeatable test commands that pass locally and in CI.
+
+### 7.5 Step 3 — Expo mobile scaffold (iOS + Android)
+
+**Goal**: Create the Expo app skeleton that can reach feature parity without later rewrites.
+
+**Scaffold requirements**
+
+- **Navigation**: Match web/PWA navigation intent (tab/stack) while keeping native conventions.
+- **Theming provider**: Reads:
+  - team selection
+  - appearance mode: **system** default + manual override
+  - exposes semantic tokens to components
+- **Settings**: Include Settings shell early with placeholders for:
+  - Theme mode toggle (system/light/dark)
+  - Team selector
+  - Accessibility section (placeholders)
+- **Permissions manager**: Centralized module for requesting permissions with consistent rationale text and gating logic (mirrors web where applicable).
+- **Storage**: Preference persistence (theme override, font scale, a11y settings) with a single abstraction used across platforms (web local storage vs RN storage).
+
+**Parity guardrails**
+
+- Every screen implemented in Expo must link back to its web/PWA reference in the parity checklist.
+- Recreate **animations** intentionally (e.g. shared motion spec: duration/easing) rather than “whatever default.”
+
+**Done when**: Expo app boots on iOS simulator and Android emulator, has navigation + theme provider + settings shell + token consumption working.
+
+### 7.6 Step 4 — Shared code: domain logic + API client + contracts
+
+**Goal**: Keep parity by sharing the logic that *should* be identical.
+
+**Actions**
+
+- Move pure logic into `packages/shared/`:
+  - data models/types
+  - validation
+  - API client calls
+  - formatting utilities (dates, units, etc.)
+- Keep UI layer separate:
+  - Web uses React DOM + web components
+  - Mobile uses React Native views
+
+**Done when**: at least one real feature flow uses shared logic in both web and mobile.
+
+### 7.7 Step 5 — Design tokens: team × light/dark + typography scaling
+
+**Goal**: Implement the theme + team system once as tokens, consumed everywhere.
+
+**Actions**
+
+- Define token structure (example categories):
+  - `color.background.*`, `color.text.*`, `color.accent.*`, `color.border.*`
+  - `typography.fontFamily`, `typography.scale` (base size + multiplier)
+  - `spacing.scale`, `radius.scale`
+- For each **team**, define:
+  - a **light** palette mapping to semantic tokens
+  - a **dark** palette mapping to semantic tokens
+- Implement **system default + override** behavior:
+  - Web: prefers-color-scheme + stored override
+  - RN: Appearance API + stored override
+
+**Done when**: switching team or mode updates both apps consistently; “system” mode tracks device setting changes.
+
+### 7.8 Step 6 — Accessibility implementation (web + Expo)
+
+**Goal**: Accessibility is not a bolt-on; it’s a product surface with parity goals.
+
+#### 7.8.1 Accessibility settings model (shared)
+
+- Add a shared settings shape (e.g. `accessibility: { textScale, largeTextEnabled, ttsEnabled, colorblindMode }`) and a single persistence API.
+
+#### 7.8.2 Font scaling (large text + slider)
+
+- Implement a global **text scale** value.
+- Web:
+  - Apply scale via CSS variables / root font-size strategy without breaking layout.
+- Expo:
+  - Apply scale via theme/typography tokens (and/or RN font scaling patterns) consistently.
+
+#### 7.8.3 Text-to-speech (TTS)
+
+- Define interaction model in the parity checklist:
+  - tap-to-read for specific components, or
+  - dedicated “read mode” toggle, or both
+- Web: use a TTS wrapper around the Web Speech API (or chosen library).
+- Expo: use a native TTS module/library.
+- Ensure every interactive element has meaningful accessible labels so TTS is useful.
+
+#### 7.8.4 Colorblind settings
+
+- Implement colorblind modes as token overrides (don’t hardcode per-component).
+- Add non-color cues where necessary (icons, patterns, labels).
+
+#### 7.8.5 Accessibility testing gates
+
+- Web: add automated a11y checks on core screens (axe-style scanning) plus manual keyboard navigation notes.
+- Expo: add component tests that verify accessibility labels/roles exist for key controls.
+
+**Done when**: Accessibility section is functional in both apps; text scale affects all screens; TTS works for defined elements; at least one automated a11y gate runs in CI.
+
+### 7.9 Step 7 — Testing strategy (unit + component) and where tests live
+
+**Goal**: Tests enforce parity and prevent regressions across two implementations.
+
+**Minimum test layers**
+
+- **Shared unit tests** (`packages/shared/`): fast tests for logic used by both platforms.
+- **Web component tests** (`apps/web/`): critical UI flows (settings, theme, accessibility).
+- **Expo component tests** (`apps/mobile/`): navigation + settings + theming + a11y props.
+
+**Parity tests (recommended)**
+
+- Define JSON “golden” fixtures for:
+  - token outputs for each team/mode
+  - settings serialization/deserialization
+  - permission gating decisions
+- Run the same fixtures against both web and RN implementations of shared logic.
+
+**Done when**: test suites are present for shared + web + mobile, and run in CI on every PR.
+
+### 7.10 Step 8 — GitHub Actions / CI updates (web + Expo)
+
+**Goal**: CI reflects the new product surfaces: **web/PWA** + **Expo**. It must block parity-breaking changes early.
+
+**Actions**
+
+- Update/standardize **test commands** so CI is stable and deterministic:
+  - `test:unit` (shared packages)
+  - `test:web` (web UI/component tests)
+  - `test:mobile` (Expo/RN tests)
+  - `test` runs all three (or a matrix)
+  - Ensure coverage output is consistent (so it can be used for gating)
+
+- Add/confirm CI jobs (PR + main):
+  - **Install** (cache deps)
+  - **Lint** (web + shared + mobile)
+  - **Typecheck** (web + shared + mobile)
+  - **Test**:
+    - shared unit tests
+    - web tests
+    - mobile tests (Jest/RTL for RN)
+    - **Unit test coverage** (minimum thresholds for shared + web; mobile as available)
+  - **Build web** (GitHub Pages artifact)
+  - Optional: **Expo prebuild/doctor** checks to validate native config and permissions consistency
+
+- Add “workflow discipline”:
+  - CI must run on every PR and on pushes to the default branch.
+  - When a new package/app is introduced (e.g. `apps/mobile/`), **workflows must be updated in the same PR** (no “we’ll fix CI later”).
+  - If any test suite is flaky, treat it as a blocker: fix or quarantine with a tracked issue and a timeboxed plan to re-enable.
+
+- Add a “parity gate” job that fails if:
+  - required parity checklist items are missing for a PR touching UI/flows, or
+  - token definitions are incomplete for a team in a new mode (light/dark), or
+  - accessibility settings exist in one platform but not the other
+
+**Done when**: A PR cannot merge if web/mobile tests fail or if token/a11y/parity gates fail.
+
+### 7.10.1 CI workflow outputs to keep (so releases are easy)
+
+- Web build outputs:
+  - single deployable artifact for GitHub Pages
+  - optionally: a `build-metadata.json` containing commit SHA, build number, version, timestamp
+- Expo build outputs (at minimum for CI validation):
+  - “config validated” artifacts/logs (permissions, app.json/app.config checks)
+  - optional: EAS build artifacts if using EAS (see releases below)
+
+### 7.10.2 Release workflows (web/PWA + Expo)
+
+**Goal**: Publishing is automated and matches the “two-surface product” model.
+
+#### Web/PWA releases (GitHub Pages)
+
+- On version tags (e.g. `vX.Y.Z`) or manual dispatch:
+  - run the full CI pipeline (lint/typecheck/tests)
+  - build web
+  - deploy to GitHub Pages
+  - attach release notes/changelog snippet if desired
+
+**Done when**: tagging a release reliably deploys GitHub Pages and the deployed build is traceable to the tag/SHA.
+
+#### Expo mobile releases (iOS/Android)
+
+- Decide and document the release lane:
+  - **EAS Update** for JS-only updates (fast, over-the-air where allowed)
+  - **EAS Build** for native changes / store submissions
+- Add a release workflow triggered by tags or manual dispatch that:
+  - runs lint/typecheck/tests (including shared + mobile)
+  - validates native config (permissions, identifiers, assets)
+  - performs EAS build (or prepares commands/instructions if credentials require manual steps)
+  - publishes artifacts/links as release assets/notes (build IDs, download links, commit SHA)
+
+**Done when**: there is a repeatable, documented path to produce iOS/Android builds for release that matches the same version as the web/PWA release.
+
+### 7.11 Step 9 — Feature-by-feature Expo port (linear execution)
+
+**Goal**: Port the app to Expo in a controlled, repeatable way.
+
+For each feature/screen, execute the same loop:
+
+- Implement shared logic first (if applicable) in `packages/shared/` with unit tests.
+- Implement web UI (if the web reference needs improvement) and add/extend web component tests.
+- Implement Expo UI with matching UX/animations and add RN component tests.
+- Update parity checklist:
+  - mark feature as complete
+  - document any approved exception
+
+**Done when**: parity checklist shows 100% completion (or exceptions explicitly signed off).
+
+### 7.12 Step 10 — Remove Capacitor as a shipping surface (leave GitHub Pages + PWA + Expo)
+
+**Goal**: Stop producing a Capacitor “third product.” The only products shipped are:
+
+- **Web/PWA** (GitHub Pages)
+- **Native mobile** (Expo iOS/Android)
+
+**Actions (phased)**
+
+- Phase A — Freeze:
+  - Stop adding features to Capacitor-specific code paths.
+  - Update docs to state Capacitor is deprecated and will be removed.
+- Phase B — CI cleanup:
+  - Remove Capacitor build jobs from GitHub Actions (or mark them non-blocking, then delete).
+  - Remove release artifacts and “latest” pointers for Capacitor builds if they exist.
+- Phase C — Code removal:
+  - Delete Capacitor project files and scripts once Expo mobile replaces them.
+  - Remove any “webview trick” documentation and legacy wiring that only existed for Capacitor.
+
+**Done when**: CI no longer builds Capacitor; README/docs no longer reference Capacitor as a supported product; repo contains only web/PWA and Expo mobile shipping paths.
+
+### 7.13 Step 11 — Release readiness checklist (web/PWA + Expo)
+
+- Web/PWA:
+  - PWA install works
+  - cache/update flows tested
+  - accessibility checks pass
+- Expo iOS/Android:
+  - permissions prompts verified on-device
+  - accessibility settings verified
+  - performance sanity pass (animations, large text)
+- Parity:
+  - parity checklist complete
+  - exceptions documented and approved
+
+**Done when**: web (GitHub Pages + PWA) and Expo mobile are demonstrably the same product experience.
+
+### 7.14 Step 12 — Aider execution script (prompt-by-prompt)
+
+Use this as a **linear prompt plan**. Each item is intended to be small enough to complete in a single Aider session and ideally map to a single PR or tight group of commits.
+
+**Aider rules for this phase**
+
+- Only change one “surface” at a time unless the change is a shared contract (tokens/types/shared logic).
+- Every step that adds a new folder/package must also update CI in the same change.
+- After each step: run tests locally (or at least the relevant subset) and ensure CI is green.
+
+#### Prompts (run in order)
+
+1. **Create parity checklist**
+   - “Add a parity checklist doc under `docs/` (or inside `docs/next-phase-development-plan.md`) enumerating screens, components, settings, animations, permissions, PWA offline behaviors, and AI surfaces. Populate it by inspecting the current web app routes and settings UI.”
+
+2. **Create shared packages scaffolding**
+   - “Add workspace scaffolding for `packages/shared` and `packages/tokens` (no UI code). Ensure the existing web app can import from them. Add minimal unit tests and CI wiring.”
+
+3. **Move first shared module + tests**
+   - “Move one real pure-logic module from the web app into `packages/shared`, update imports, and add unit tests proving behavior is unchanged.”
+
+4. **Implement tokens for one team + light/dark**
+   - “Implement semantic tokens in `packages/tokens` and wire web theme provider to consume them. Implement one team with light/dark palettes and system-default + override logic. Add unit tests for token selection.”
+
+5. **Web accessibility settings data model**
+   - “Add a shared accessibility settings model (text scale, large text, TTS enabled, colorblind mode) in `packages/shared` with serialization tests. Wire web settings UI to read/write it (no RN yet).”
+
+6. **Web font scaling**
+   - “Implement app-wide font scaling in the web app using tokens/CSS variables. Add a component test ensuring settings slider changes computed font-size and does not break key layout containers.”
+
+7. **Web TTS**
+   - “Implement Web TTS for the defined interaction model and add a minimal test harness (mock speech API) verifying that activating a control triggers speech with the accessible label.”
+
+8. **Expo app scaffold**
+   - “Create `apps/mobile` as an Expo app with navigation, theme provider, settings shell, and storage abstraction. Ensure it compiles on iOS simulator and Android emulator. Add a basic RN test setup and CI step.”
+
+9. **Tokens consumed by Expo**
+   - “Wire Expo theme provider to `packages/tokens` with the same team + light/dark + system-default logic. Add tests for token selection in RN.”
+
+10. **Expo accessibility shell**
+   - “Add Accessibility section in Expo settings with placeholders for text scale slider, TTS toggle, colorblind mode. Persist settings with the shared model and storage abstraction.”
+
+11. **Expo font scaling**
+   - “Implement global text scaling in Expo using typography tokens. Add component tests that confirm text size changes when the slider changes.”
+
+12. **Expo TTS**
+   - “Implement Expo TTS with the same interaction model as web. Ensure accessible labels exist and add a test (mock TTS) verifying a press triggers speech.”
+
+13. **Colorblind modes as token overrides**
+   - “Implement colorblind modes as token overrides in `packages/tokens` and apply them in both web and Expo. Add shared unit tests that the override produces expected semantic tokens.”
+
+14. **Parity loop: port screen-by-screen**
+   - “Port the next screen from web to Expo to match UI/UX/animations; update parity checklist and add tests for the new screen on both platforms.”
+
+15. **CI parity gates**
+   - “Add CI checks that fail if token sets are incomplete (team missing light/dark), or if accessibility settings exist on web but not on Expo (and vice versa).”
+
+16. **Release workflows**
+   - “Add/modify GitHub Actions workflows so: (a) web/PWA builds and deploys to GitHub Pages on tags, (b) Expo release workflow runs tests and triggers EAS Update/Build (as configured). Output build metadata and attach to GitHub releases.”
+
+17. **Deprecate then remove Capacitor**
+   - “Update docs/workflows to deprecate Capacitor. Remove Capacitor build jobs. After Expo reaches parity, delete Capacitor-specific code and scripts and update README/docs accordingly.”
+
+**Done when**: The Aider script can be followed end-to-end to produce a web/PWA + Expo product with enforced parity, tests, CI gates, and release automation.

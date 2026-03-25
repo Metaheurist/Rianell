@@ -69,3 +69,4 @@ web/.android-dist/
 react-app/node_modules/
 react-app/dist/
 react-app/public/legacy/
+.aider*
