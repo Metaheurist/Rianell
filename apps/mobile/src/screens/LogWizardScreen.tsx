@@ -1,11 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../theme/ThemeProvider';
 import { addLogEntry, getFrequentLogItems, loadLogs, saveLogs, type LogEntry } from '../storage/logs';
 import { normalizeLogEntry } from '@rianell/shared';
+import { buildLogReviewSummary, parseMedicationNamesCsv } from '../log/buildLogReviewSummary';
+import type { RootStackParamList } from '../navigation/RootNavigator';
 
-type Step = 0 | 1 | 2 | 3 | 4 | 5;
+/** Matches web `LOG_WIZARD_TOTAL_STEPS` (10 steps: Date…Review). */
+const WIZARD_STEPS = 10;
+type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 const SYMPTOM_GROUPS = [
   { id: 'digestive', label: 'Digestive' },
@@ -163,6 +169,7 @@ function parseExerciseItems(value: string): Array<{ name: string; duration?: num
 
 export function LogWizardScreen() {
   const theme = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const bg =
     theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
       ? '#ffffff'
@@ -194,6 +201,7 @@ export function LogWizardScreen() {
   const [dinnerText, setDinnerText] = useState('');
   const [snackText, setSnackText] = useState('');
   const [exerciseText, setExerciseText] = useState('');
+  const [medicationText, setMedicationText] = useState('');
   const [frequentSymptoms, setFrequentSymptoms] = useState<string[]>([]);
   const [frequentStressors, setFrequentStressors] = useState<string[]>([]);
 
@@ -219,6 +227,7 @@ export function LogWizardScreen() {
   const dinnerItems = useMemo(() => parseCsvList(dinnerText), [dinnerText]);
   const snackItems = useMemo(() => parseCsvList(snackText), [snackText]);
   const exerciseItems = useMemo(() => parseExerciseItems(exerciseText), [exerciseText]);
+  const medicationItems = useMemo(() => parseMedicationNamesCsv(medicationText), [medicationText]);
 
   useEffect(() => {
     loadLogs()
@@ -262,6 +271,7 @@ export function LogWizardScreen() {
       exercise: exerciseItems.length
         ? exerciseItems
         : undefined,
+      medications: medicationItems.length ? medicationItems : undefined,
     };
     return normalizeLogEntry(base) as LogEntry;
   }, [
@@ -287,6 +297,7 @@ export function LogWizardScreen() {
     dinnerItems,
     snackItems,
     exerciseItems,
+    medicationItems,
     painLocationFromBody,
   ]);
 
@@ -303,12 +314,16 @@ export function LogWizardScreen() {
       const existing = await loadLogs();
       const next = addLogEntry(existing, draft);
       await saveLogs(next);
-      Alert.alert('Saved', 'Entry saved successfully.');
+      Alert.alert('Saved', 'Entry saved successfully.', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Could not save entry';
       Alert.alert('Error', msg);
     }
   }
+
+  const reviewText = useMemo(() => buildLogReviewSummary(draft), [draft]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
@@ -317,9 +332,14 @@ export function LogWizardScreen() {
           Log today
         </Text>
         <Text style={[styles.sub, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-          Step {step + 1} of 6
+          Step {step + 1} of {WIZARD_STEPS}
         </Text>
 
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
         {step === 0 ? (
           <View>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Date (YYYY-MM-DD)</Text>
@@ -385,9 +405,6 @@ export function LogWizardScreen() {
 
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Hydration (glasses)</Text>
             <TextInput value={hydration} onChangeText={setHydration} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="decimal-pad" />
-
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Notes</Text>
-            <TextInput value={notes} onChangeText={setNotes} style={[styles.input, { color: theme.tokens.color.text, height: 90 }]} multiline />
 
             <View style={styles.navRow}>
               <Pressable
@@ -479,6 +496,17 @@ export function LogWizardScreen() {
               ))}
             </View>
 
+            <View style={styles.navRow}>
+              <Pressable onPress={() => setStep(2)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
+              </Pressable>
+              <Pressable onPress={() => setStep(4)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : step === 4 ? (
+          <View>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Stressors</Text>
             {frequentStressors.length > 0 ? (
               <View style={{ marginBottom: 8 }}>
@@ -497,15 +525,15 @@ export function LogWizardScreen() {
             </View>
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => setStep(2)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+              <Pressable onPress={() => setStep(3)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
               </Pressable>
-              <Pressable onPress={() => setStep(4)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
+              <Pressable onPress={() => setStep(5)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
               </Pressable>
             </View>
           </View>
-        ) : step === 4 ? (
+        ) : step === 5 ? (
           <View>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Daily function (0-10)</Text>
             <TextInput
@@ -532,15 +560,15 @@ export function LogWizardScreen() {
             />
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => setStep(3)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+              <Pressable onPress={() => setStep(4)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
               </Pressable>
-              <Pressable onPress={() => setStep(5)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
+              <Pressable onPress={() => setStep(6)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
               </Pressable>
             </View>
           </View>
-        ) : (
+        ) : step === 6 ? (
           <View>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Breakfast (comma separated)</Text>
             <View style={styles.chips}>
@@ -646,6 +674,17 @@ export function LogWizardScreen() {
               ))}
             </View>
 
+            <View style={styles.navRow}>
+              <Pressable onPress={() => setStep(5)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
+              </Pressable>
+              <Pressable onPress={() => setStep(7)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : step === 7 ? (
+          <View>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Exercise by category</Text>
             {EXERCISE_CATEGORIES.map((cat) => {
               const options = PREDEFINED_EXERCISES.filter((x) => x.category === cat.id);
@@ -686,7 +725,64 @@ export function LogWizardScreen() {
             </View>
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => setStep(4)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+              <Pressable onPress={() => setStep(6)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
+              </Pressable>
+              <Pressable onPress={() => setStep(8)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : step === 8 ? (
+          <View>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Medications (comma separated)</Text>
+            <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+              Enter medication names; times can be added in a future update.
+            </Text>
+            <TextInput
+              value={medicationText}
+              onChangeText={setMedicationText}
+              style={[styles.input, { color: theme.tokens.color.text }]}
+              accessibilityLabel="Medication names"
+              placeholder="e.g. Ibuprofen, Vitamin D"
+              placeholderTextColor="rgba(255,255,255,0.6)"
+            />
+
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Notes</Text>
+            <TextInput
+              value={notes}
+              onChangeText={setNotes}
+              style={[styles.input, { color: theme.tokens.color.text, height: 120 }]}
+              multiline
+              accessibilityLabel="Log notes"
+              placeholder="Anything else to remember"
+              placeholderTextColor="rgba(255,255,255,0.6)"
+            />
+
+            <View style={styles.navRow}>
+              <Pressable onPress={() => setStep(7)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
+              </Pressable>
+              <Pressable onPress={() => setStep(9)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <View>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Review</Text>
+            <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+              Confirm details before saving.
+            </Text>
+            <Text
+              style={[styles.reviewBlock, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}
+              accessibilityLabel="Log review summary"
+            >
+              {reviewText}
+            </Text>
+
+            <View style={styles.navRow}>
+              <Pressable onPress={() => setStep(8)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
               </Pressable>
               <Pressable onPress={save} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Save entry">
@@ -695,6 +791,7 @@ export function LogWizardScreen() {
             </View>
           </View>
         )}
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
@@ -710,7 +807,16 @@ function Choice({ label, selected, onPress }: { label: string; selected: boolean
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
-  card: { borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)' },
+  card: { flex: 1, borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)' },
+  scroll: { flex: 1 },
+  scrollContent: { flexGrow: 1, paddingBottom: 24 },
+  reviewBlock: {
+    marginTop: 8,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    fontFamily: 'monospace',
+  },
   title: { fontWeight: '800' },
   sub: { opacity: 0.8, marginBottom: 12 },
   label: { marginTop: 10, marginBottom: 6, fontWeight: '700' },

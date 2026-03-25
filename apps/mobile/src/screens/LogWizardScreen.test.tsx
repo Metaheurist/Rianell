@@ -4,23 +4,37 @@ import { LogWizardScreen } from './LogWizardScreen';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import { getDefaultPreferences } from '../storage/preferences';
 
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: () => ({ goBack: mockGoBack }),
+  };
+});
+
 jest.mock('../storage/logs', () => ({
   loadLogs: jest.fn(async () => [
     { date: '2026-01-01', symptoms: ['Nausea', 'Headache'], stressors: ['Work deadline'] },
     { date: '2026-01-02', symptoms: ['Nausea'], stressors: ['Work deadline', 'Travel'] },
   ]),
   saveLogs: jest.fn(async () => {}),
-  addLogEntry: jest.fn((existing: any[], next: any) => [...existing, next]),
+  addLogEntry: jest.fn((existing: unknown[], next: unknown) => [...existing, next]),
   getFrequentLogItems: jest.requireActual('../storage/logs').getFrequentLogItems,
 }));
 
-test('log wizard can progress through stressors and save', async () => {
+function renderWizard() {
   const prefs = getDefaultPreferences();
-  const { getByLabelText, findByText, getByText, getAllByText } = render(
+  return render(
     <ThemeProvider prefs={prefs}>
       <LogWizardScreen />
     </ThemeProvider>
   );
+}
+
+test('log wizard can progress through stressors and save', async () => {
+  const { getByLabelText, findByText, findByLabelText, getByText, getAllByText } = renderWizard();
 
   fireEvent.press(getByLabelText('Next step'));
   await findByText('BPM (30–120)');
@@ -34,8 +48,9 @@ test('log wizard can progress through stressors and save', async () => {
   fireEvent.press(getAllByText('Nausea')[0]);
   fireEvent.press(getByLabelText('Next step'));
   await findByText('Energy / clarity');
-  await findByText('Frequent stressors');
   fireEvent.press(getByText('Good'));
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Frequent stressors');
   fireEvent.press(getAllByText('Work deadline')[0]);
   fireEvent.press(getByLabelText('Next step'));
   await findByText('Daily function (0-10)');
@@ -48,10 +63,17 @@ test('log wizard can progress through stressors and save', async () => {
   fireEvent.changeText(getByLabelText('Lunch items'), 'Chicken salad');
   fireEvent.changeText(getByLabelText('Dinner items'), 'Salmon, Rice');
   fireEvent.changeText(getByLabelText('Snack items'), 'Apple');
+  fireEvent.press(getByLabelText('Next step'));
   await findByText('Cardio');
   fireEvent.press(getAllByText('Walking:30')[0]);
-  fireEvent.press(getAllByText('Walking:30')[0]);
   fireEvent.changeText(getByLabelText('Exercise items'), 'Walking:30, Stretching:15');
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Medications (comma separated)');
+  fireEvent.changeText(getByLabelText('Medication names'), 'Ibuprofen');
+  fireEvent.changeText(getByLabelText('Log notes'), 'Felt ok');
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Review');
+  await findByLabelText('Log review summary');
   fireEvent.press(getByLabelText('Save entry'));
 
   const mockedAddLogEntry = (jest.requireMock('../storage/logs') as { addLogEntry: jest.Mock }).addLogEntry;
@@ -62,5 +84,6 @@ test('log wizard can progress through stressors and save', async () => {
   expect(draft.food?.dinner).toEqual(['Salmon', 'Rice']);
   expect(draft.food?.snack).toEqual(['Apple']);
   expect(draft.exercise).toEqual([{ name: 'Walking', duration: 30 }, { name: 'Stretching', duration: 15 }]);
+  expect(draft.medications?.[0]?.name).toBe('Ibuprofen');
+  expect(draft.notes).toContain('Felt ok');
 });
-
