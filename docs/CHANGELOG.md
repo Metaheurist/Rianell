@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.10** - Documentation sync (README, app-and-features, plan).
+**Latest: v1.45.11** - Plan checklist + Charts refresh test.
+
+### v1.45.11 - 2026-03-27 - Plan sync (wizard 6–9) + Charts test
+
+- **Docs**:
+  - **`docs/next-phase-development-plan.md`**: Section **4.2** marks Log wizard **steps 6–9** complete (lifestyle clamp-on-save, food/exercise/meds clear-all + count badges; covered by `LogWizardScreen.test.tsx`). Section **4.1** Charts line clarifies what is implemented vs Apex/visual parity. Phase A work items updated for steps 6–9.
+- **Mobile / Charts (Phase B)**:
+  - **`ChartsScreen.test.tsx`**: Asserts **pull-to-refresh** triggers a second `loadLogs` call.
 
 ### v1.45.10 - 2026-03-27 - Documentation sync
 

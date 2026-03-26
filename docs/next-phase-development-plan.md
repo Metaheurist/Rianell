@@ -2,7 +2,7 @@
 
 This document is the **single build plan** to finish Rianell’s transition to a **React Native CLI** app that matches the **web/PWA** and produces **Android APK** + **iOS emulator Xcode zip** via CI releases.
 
-**Last updated:** 2026-03-27 (Phase D native Settings parity documented)
+**Last updated:** 2026-03-27 (Phase A wizard steps 6–9 marked complete in checklist; Charts refresh test)
 
 ---
 
@@ -54,17 +54,17 @@ If any of the above becomes false, fix it before moving forward.
 **Web reference:** `web/index.html` + `web/app.js`
 
 ### 4.1 Native screens remaining
-- [~] **Charts tab**: range selection (`14/30/90/all`) + `Balance/Individual/Combined` view toggle affects which sections render + trend summaries/deltas + mini trend bars + pull-to-refresh. **Balance view** shows mood/sleep/fatigue only; **empty range** shows a clear empty state (no placeholder metric rows). Full Apex/visual parity still pending.
+- [~] **Charts tab**: range (`14/30/90/all`), view toggle (`Balance/Individual/Combined`), trend summaries/deltas, mini spark bars, and **pull-to-refresh** are implemented; **Balance** limits listed metrics; **empty range** has a dedicated empty state. **Remaining:** full Apex/visual parity with web (styling, animations, richer chart chrome).
 - [~] **AI Analysis tab**: lite++ parity (range summaries + narrative sections + correlations + groups-that-change-together), deeper parity with the web AI copy/structure still pending; gated by `aiEnabled`.
 
 ### 4.2 Log wizard remaining steps (native)
 - [~] **Step 3 — Symptoms & pain**: body diagram is available (tap-to-cycle) with “Use diagram text” + more regions (arms/legs joints) + **diagram + chips semantics aligned** (good/discomfort/pain). Still needs full SVG region coverage + closer web visual parity.
 - [~] **Step 4 — Energy & mental clarity**: grouped tiles + search + collapsible tile section + selected summary; **icon tiles** + **group-colored tile borders**. Still needs closer web tile styling polish.
 - [x] **Step 5 — Stress & triggers**: grouped tile picker + search + frequent + selected/clear + collapsible picker implemented.
-- [~] **Step 6 — Lifestyle**: ensure UX matches web intent (inputs/chips placement, labels, and validation parity). (Clamp-on-save for steps/hydration/daily function + tests)
-- [~] **Step 7 — Food**: ensure web-like add/remove behavior and “count badge clear” parity across all meal types. (“Clear all food”; count badge at 1+ + test)
-- [~] **Step 8 — Exercise**: ensure category group UX and “Name:Minutes” parsing parity; count-badge clear parity. (“Clear all exercise”; count badge at 1+ + test)
-- [~] **Step 9 — Medication & notes**: confirm remove controls, count-badge clear behavior, and Taken today? toggle parity. (“Clear all medications”; count badge at 1+ + test)
+- [x] **Step 6 — Lifestyle**: clamp-on-save for daily function (0–10), steps (0–50k), hydration (0–20 glasses); tests in `LogWizardScreen.test.tsx`.
+- [x] **Step 7 — Food**: clear-all per section, duplicate counts on tiles, remove controls; tests for clear + count badge.
+- [x] **Step 8 — Exercise**: `Name:Minutes` parsing, category tiles, clear all + count badge; tests.
+- [x] **Step 9 — Medication & notes**: medications list, Taken today?, clear all + count badge; tests.
 
 ---
 
@@ -77,7 +77,7 @@ If any of the above becomes false, fix it before moving forward.
 - Step 5: implement stressor tile UX parity (grouped tiles + frequent + selected list + clear). **(done)**
 - Step 3: implement native body diagram parity (SVG-equivalent interaction + intensity cycling + legend). **(in progress: diagram added; needs fuller region coverage + styling parity)**
 - Step 4: implement tile UI polish (icons + collapsible behavior parity). **(in progress: collapsible behavior added; icon tile styling still pending)**
-- Steps 6–9: validate and close remaining UX gaps (labels, selection summary, clear behaviors, accessibility labels).
+- Steps 6–9: validate and close remaining UX gaps (labels, selection summary, clear behaviors, accessibility labels). **(done — clamp/save, clear-all, count badges; see section 4.2)**
 
 **Done when:** a QA pass can follow the wizard on both surfaces and observe no UX/behavior differences (except signed-off exceptions).
 
