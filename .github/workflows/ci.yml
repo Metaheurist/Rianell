@@ -80,6 +80,18 @@ jobs:
           fi
 
   # ---------------------------------------------------------------------------
+  # Security audit (runs concurrently with unit-tests + minified-asset prep)
+  # ---------------------------------------------------------------------------
+  security-audit:
+    name: Security audit
+    needs: [paths-filter]
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event_name == 'push'
+    uses: ./.github/workflows/security-audit.yml
+    secrets: inherit
+
+  # ---------------------------------------------------------------------------
   # Pre-minified web assets (temp artifacts used by all build flows)
   # ---------------------------------------------------------------------------
   prepare-minified-assets:
@@ -171,7 +183,7 @@ jobs:
   # ---------------------------------------------------------------------------
   expo-bundle-prod:
     name: Expo prod bundle (minified)
-    needs: [paths-filter, unit-tests]
+    needs: [paths-filter, unit-tests, security-audit]
     if: |
       github.event_name == 'pull_request' ||
       github.event_name == 'push'
@@ -294,7 +306,7 @@ jobs:
   # ---------------------------------------------------------------------------
   server-exe:
     name: Server EXE (${{ matrix.arch }})
-    needs: [paths-filter, prepare-minified-assets, unit-tests]
+    needs: [paths-filter, prepare-minified-assets, unit-tests, security-audit]
     if: |
       github.event_name == 'pull_request' ||
       (github.event_name == 'push' && needs.paths-filter.outputs.mobile_release == 'true')
@@ -581,7 +593,7 @@ jobs:
   deploy-pages:
     name: Deploy to GitHub Pages
     if: github.event_name == 'push'
-    needs: [prepare-minified-assets, unit-tests]
+    needs: [prepare-minified-assets, unit-tests, security-audit]
     runs-on: ubuntu-latest
     environment: pages
     concurrency:
