@@ -1,5 +1,25 @@
 import '@testing-library/jest-native/extend-expect';
 
+jest.mock('expo-constants', () => ({
+  __esModule: true,
+  default: {
+    expoConfig: {
+      extra: {
+        supabaseUrl: '',
+        supabaseAnonKey: '',
+      },
+    },
+  },
+}));
+
+jest.mock('@expo/vector-icons/Ionicons', () => {
+  const React = require('react');
+  const { Text } = require('react-native');
+  return function MockIonicons(props: { name?: string }) {
+    return React.createElement(Text, { testID: `ionicon-${props.name ?? 'icon'}` }, props.name ?? '');
+  };
+});
+
 jest.mock('react-native-svg', () => {
   const React = require('react');
   const { View } = require('react-native');

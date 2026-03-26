@@ -9,20 +9,30 @@ jest.mock('expo-speech', () => ({
   stop: jest.fn(),
 }));
 
-test('settings renders theme and accessibility sections', () => {
+test('settings carousel: cloud pane, then AI, accessibility, data panes', () => {
   const prefs = getDefaultPreferences();
-  const { getByText } = render(
+  const { getByText, getByTestId } = render(
     <ThemeProvider prefs={prefs}>
       <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
     </ThemeProvider>
   );
 
+  getByText('1 / 4 — Personal & cloud');
+  getByText('Personal & cloud sync');
+  getByText(/Cloud sync is not configured/);
+
+  fireEvent.press(getByTestId('settings-pane-tab-1'));
   getByText('Theme');
-  getByText('Accessibility');
   getByText('Enable AI features & Goals');
+
+  fireEvent.press(getByTestId('settings-pane-tab-2'));
+  getByText('3 / 4 — Accessibility');
   getByText('Large text');
   getByText('Text-to-speech (tap-to-read)');
   getByText('Read mode (auto-read on focus)');
+
+  fireEvent.press(getByTestId('settings-pane-tab-3'));
+  getByText('4 / 4 — Data & install');
   getByText('Data management');
   getByText('📤 Export logs (JSON)');
   getByText('📥 Import logs (JSON)');
@@ -49,6 +59,8 @@ test('textScale affects rendered typography sizes', () => {
     </ThemeProvider>
   );
 
+  fireEvent.press(r1.getByTestId('settings-pane-tab-1'));
+  fireEvent.press(r2.getByTestId('settings-pane-tab-1'));
   const s1 = r1.getByText('Theme');
   const s2 = r2.getByText('Theme');
 
@@ -70,12 +82,13 @@ test('TTS reads choice label on press when enabled', () => {
   const prefs = getDefaultPreferences();
   prefs.accessibility.ttsEnabled = true;
 
-  const { getByLabelText } = render(
+  const { getByLabelText, getByTestId } = render(
     <ThemeProvider prefs={prefs}>
       <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
     </ThemeProvider>
   );
 
+  fireEvent.press(getByTestId('settings-pane-tab-1'));
   fireEvent.press(getByLabelText('dark'));
   expect(Speech.speak).toHaveBeenCalled();
 });
