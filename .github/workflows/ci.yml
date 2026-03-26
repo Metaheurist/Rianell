@@ -8,7 +8,7 @@
 #   1. paths-filter      - Push only: whether to run mobile build/release (skip if
 #                          the only changed paths are under App build/, so bot
 #                          commits do not rebuild APKs or duplicate releases).
-#   2. unit-tests        - App unit checks (Node test runner) for core UI wiring.
+#   2. unit-tests        - `npm run test:unit` (web UI wiring, ci.yml guards, Expo Async Storage plugin).
 #   3. expo-bundle-prod  - Expo React Native: production JS bundles for Android + iOS
 #                          (`expo export` → Hermes .hbc per platform).
 #   4. server-exe        - Build Windows server EXE artifacts (x64 + x86) with PyInstaller.
