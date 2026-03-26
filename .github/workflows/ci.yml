@@ -1,23 +1,21 @@
 # =============================================================================
-# Rianell - unified GitHub Actions
+# Rianell - unified GitHub Actions (main CI)
 # =============================================================================
-# Single workflow file replacing former: build-android-apk, build-ios,
-# build-app-releases, deploy-pages, security-audit.
+# Security audits: `.github/workflows/security-audit.yml` (standalone).
+# Legacy Capacitor Android/iOS: `.github/workflows/legacy-capacitor.yml` (disabled).
 #
 # Sections (jobs appear in dependency order):
 #   1. paths-filter      - Push only: whether to run mobile build/release (skip if
 #                          the only changed paths are under App build/, so bot
 #                          commits do not rebuild APKs or duplicate releases).
 #   2. unit-tests        - App unit checks (Node test runner) for core UI wiring.
-#   3. android / ios     - PR: always. Push: only when paths-filter says so.
+#   3. expo-bundle-prod  - Expo React Native: production JS bundles for Android + iOS
+#                          (`expo export` → Hermes .hbc per platform).
 #   4. server-exe        - Build Windows server EXE artifacts (x64 + x86) with PyInstaller.
 #   5. commit-app-build  - Push + mobile: commit App build/ to the branch.
-#   6. publish-release   - Push + mobile: GitHub Release with Android + iOS + Server assets.
+#   6. publish-release   - Push + mobile: GitHub Release with Expo + Server assets.
 #   7. deploy-pages      - Push to main/master: site from web/ + App build/.
 #   8. readme-build-info - After deploy (web-only runs): README beta table + build numbers.
-#   9. security-audit    - Push / PR / workflow_dispatch: Gitleaks + npm + pip audits.
-#
-# Manual runs (workflow_dispatch): security audit only; mobile jobs are skipped.
 # =============================================================================
 
 name: CI
@@ -194,313 +192,23 @@ jobs:
           npm run typecheck:mobile
           npm run test:mobile
 
-      - name: Build Expo production bundles (iOS + Android)
+      - name: Expo export — production bundles (Android + iOS)
         env:
           EXPO_NO_TELEMETRY: "1"
           NODE_ENV: production
         run: |
           npm run bundle:mobile:prod
           test -d "apps/mobile/dist-expo-prod"
-          # Basic sanity: platform bundles exist (Expo SDK export layout may evolve)
-          test -f "apps/mobile/dist-expo-prod/_expo/static/js/android/"*.hbc
-          test -f "apps/mobile/dist-expo-prod/_expo/static/js/ios/"*.hbc
+      - name: Verify Android Hermes bundle (.hbc)
+        run: test -f apps/mobile/dist-expo-prod/_expo/static/js/android/*.hbc
+      - name: Verify iOS Hermes bundle (.hbc)
+        run: test -f apps/mobile/dist-expo-prod/_expo/static/js/ios/*.hbc
 
       - name: Upload Expo bundle artifact
         uses: actions/upload-artifact@v5
         with:
           name: expo-bundles
           path: apps/mobile/dist-expo-prod/
-
-  # ---------------------------------------------------------------------------
-  # Legacy Capacitor Android APK (deprecated; kept as historical release asset)
-  # ---------------------------------------------------------------------------
-  android:
-    name: Android APK (legacy Capacitor - disabled)
-    if: false
-    runs-on: ubuntu-latest
-    concurrency:
-      group: mobile-android-${{ github.ref }}-${{ github.event_name }}
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Sync branch with origin
-        if: github.event_name == 'push'
-        run: |
-          git fetch origin "${{ github.ref_name }}"
-          git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: "22"
-          cache: npm
-
-      - name: Install root dependencies
-        run: npm install
-
-      - name: Install React app dependencies
-        working-directory: react-app
-        run: npm ci || npm install
-
-      - name: Download minified temp artifact
-        uses: actions/download-artifact@v5
-        with:
-          name: minified-prebuild
-          path: ci-minified
-
-      - name: Restore minified temp bundles (Android path)
-        run: |
-          rm -rf "web/.android-dist" "react-app/dist"
-          cp -r "ci-minified/web-android-dist" "web/.android-dist"
-          cp -r "ci-minified/react-dist" "react-app/dist"
-          test -f "web/.android-dist/app.min.js"
-          test -f "react-app/dist/legacy/app.min.js"
-
-      - name: Add Android platform (if not present)
-        working-directory: react-app
-        run: npx cap add android || true
-
-      - name: Prepare Android launcher source (1024× logo)
-        run: node scripts/prepare-android-assets.mjs
-
-      - name: Generate Android mipmap / adaptive icons & splash
-        working-directory: react-app
-        run: npx @capacitor/assets generate --android --iconBackgroundColor '#1a1d1e' --iconBackgroundColorDark '#0a0a0a' --splashBackgroundColor '#1a1d1e' --splashBackgroundColorDark '#0a0a0a'
-
-      - name: Sync Capacitor Android
-        working-directory: react-app
-        run: npx cap sync android
-
-      - name: Set Android SDK versions and build version
-        working-directory: react-app
-        env:
-          BUILD_VERSION: ${{ github.run_number }}
-        run: node patch-android-sdk.js
-
-      - name: Parity gate (Android config + feature hooks)
-        run: node scripts/check-platform-parity.mjs android
-
-      - name: Setup Java 21
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Make gradlew executable
-        working-directory: react-app/android
-        run: chmod +x gradlew || true
-
-      # Debug APK for sideload/beta; for smaller/faster runtime use local assembleRelease + signing (see docs/setup-and-usage.md).
-      - name: Build debug APK
-        working-directory: react-app/android
-        run: ./gradlew assembleDebug --no-daemon
-
-      - name: Output APK to App build/Android (versioned + latest)
-        run: |
-          rm -rf "App build/Android"
-          mkdir -p "App build/Android"
-          cp react-app/android/app/build/outputs/apk/debug/app-debug.apk "App build/Android/app-debug-beta.apk"
-          cp react-app/android/app/build/outputs/apk/debug/app-debug.apk "App build/Android/app-debug-beta-${{ github.run_number }}.apk"
-          echo '{"version":${{ github.run_number }},"file":"app-debug-beta-${{ github.run_number }}.apk"}' > "App build/Android/latest.json"
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: android
-          path: App build/Android/
-
-      - name: Artifact note (PR)
-        if: github.event_name == 'pull_request'
-        run: |
-          echo "Android artifact is available as 'android' on this run."
-
-  # ---------------------------------------------------------------------------
-  # Legacy Capacitor iOS project + simulator (deprecated; kept as historical release asset)
-  # ---------------------------------------------------------------------------
-  ios:
-    name: iOS project + simulator (legacy Capacitor - disabled)
-    if: false
-    runs-on: macos-latest
-    concurrency:
-      group: mobile-ios-${{ github.ref }}-${{ github.event_name }}
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Sync branch with origin
-        if: github.event_name == 'push'
-        run: |
-          git fetch origin "${{ github.ref_name }}"
-          git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: "22"
-          cache: npm
-
-      - name: Install root dependencies
-        run: npm install
-
-      - name: Install React app dependencies
-        working-directory: react-app
-        run: npm ci || npm install
-
-      - name: Download minified temp artifact
-        uses: actions/download-artifact@v5
-        with:
-          name: minified-prebuild
-          path: ci-minified
-
-      - name: Restore minified temp bundles (iOS path)
-        run: |
-          rm -rf "web/.android-dist" "react-app/dist"
-          cp -r "ci-minified/web-android-dist" "web/.android-dist"
-          cp -r "ci-minified/react-dist" "react-app/dist"
-          test -f "web/.android-dist/app.min.js"
-          test -f "react-app/dist/legacy/app.min.js"
-
-      - name: Add iOS platform (if not present)
-        working-directory: react-app
-        run: |
-          if [ ! -d ios ]; then
-            npx cap add ios
-          else
-            echo "ios/ already present, skipping add"
-          fi
-
-      - name: Sync Capacitor iOS
-        working-directory: react-app
-        run: npx cap sync ios
-
-      - name: Lock iOS to portrait (Info.plist)
-        working-directory: react-app
-        run: node patch-ios-orientation.js
-
-      - name: Parity gate (iOS config + feature hooks)
-        run: node scripts/check-platform-parity.mjs ios
-
-      - name: Install CocoaPods dependencies
-        working-directory: react-app/ios/App
-        run: pod install || true
-
-      - name: Reset App build/iOS for this run
-        run: |
-          rm -rf "App build/iOS"
-          mkdir -p "App build/iOS"
-
-      - name: Build for iOS Simulator (no signing required)
-        working-directory: react-app
-        run: |
-          WS="ios/App/App.xcworkspace"
-          if [ ! -d "$WS" ]; then echo "Workspace not found, skipping simulator build"; exit 0; fi
-          if ! xcodebuild -workspace "$WS" -scheme App -configuration Debug \
-            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath build clean build CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=NO 2>&1 | tee /tmp/xc.log | tail -30; then
-            echo "Simulator build failed (project zip will still be produced); last lines:"
-            tail -15 /tmp/xc.log
-            exit 0
-          fi
-          APP_PATH="build/Build/Products/Debug-iphonesimulator/App.app"
-          if [ -d "$APP_PATH" ]; then
-            mkdir -p "../App build/iOS"
-            RUN="${{ github.run_number }}"
-            SIM_ZIP="Health-Tracker-simulator-alpha-${RUN}.zip"
-            cd build/Build/Products/Debug-iphonesimulator
-            zip -r "../../../../../App build/iOS/${SIM_ZIP}" App.app
-            cd "../../../../.."
-            echo "Simulator build: App build/iOS/${SIM_ZIP}"
-          fi
-
-      - name: Create App build/iOS and zip iOS project
-        run: |
-          mkdir -p "App build/iOS"
-          RUN="${{ github.run_number }}"
-          ZIPNAME="Health-Tracker-ios-alpha-build-${RUN}.zip"
-          cd react-app
-          zip -r "../App build/iOS/${ZIPNAME}" ios -x "*.DS_Store" -x "*DerivedData*" -x "*.xcuserstate"
-          cd ..
-          cp "App build/iOS/${ZIPNAME}" "App build/iOS/Health-Tracker-ios-alpha-latest.zip"
-          SIM_ZIP="Health-Tracker-simulator-alpha-${RUN}.zip"
-          if [ -f "App build/iOS/${SIM_ZIP}" ]; then
-            echo "{\"version\":${RUN},\"file\":\"${ZIPNAME}\",\"simulatorFile\":\"${SIM_ZIP}\"}" > "App build/iOS/latest.json"
-          else
-            echo "{\"version\":${RUN},\"file\":\"${ZIPNAME}\"}" > "App build/iOS/latest.json"
-          fi
-
-      - name: Generate OTA manifest and installUrl (when .ipa present)
-        env:
-          RUN: ${{ github.run_number }}
-          BASE_URL: ${{ vars.BUILD_IOS_BASE_URL }}
-        run: |
-          set -e
-          IOS_DIR="App build/iOS"
-          BASE="${BASE_URL:-https://rianell.com/}"
-          BASE="${BASE%/}/"
-          IPA_PATH=$(ls "$IOS_DIR"/*.ipa 2>/dev/null | head -n1) || true
-          if [ -n "$IPA_PATH" ]; then
-            IPA_FILE=$(basename "$IPA_PATH")
-            IPA_URL="${BASE}App%20build/iOS/$(printf '%s' "$IPA_FILE" | sed 's/ /%20/g')"
-            MANIFEST_URL="${BASE}App%20build/iOS/manifest.plist"
-            cat > "$IOS_DIR/manifest.plist" << MANIFEST
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>items</key>
-            <array>
-              <dict>
-                <key>assets</key>
-                <array>
-                  <dict>
-                    <key>kind</key>
-                    <string>software-package</string>
-                    <key>url</key>
-                    <string>${IPA_URL}</string>
-                  </dict>
-                </array>
-                <key>metadata</key>
-                <dict>
-                  <key>bundle-identifier</key>
-                  <string>com.healthapp.tracker</string>
-                  <key>bundle-version</key>
-                  <string>${RUN}</string>
-                  <key>kind</key>
-                  <string>software</string>
-                  <key>title</key>
-                  <string>Rianell</string>
-                </dict>
-              </dict>
-            </array>
-          </dict>
-          </plist>
-          MANIFEST
-            INSTALL_URL="itms-services://?action=download-manifest&url=${MANIFEST_URL}"
-            export INSTALL_URL
-            node -e "
-            const fs = require('fs');
-            const j = JSON.parse(fs.readFileSync('$IOS_DIR/latest.json', 'utf8'));
-            j.installUrl = process.env.INSTALL_URL;
-            fs.writeFileSync('$IOS_DIR/latest.json', JSON.stringify(j));
-            "
-            echo "OTA installUrl added to latest.json"
-          fi
-
-      - name: Upload iOS artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: ios
-          path: App build/iOS/
-
-      - name: Artifact note (PR)
-        if: github.event_name == 'pull_request'
-        run: |
-          echo "iOS artifact is available as 'ios' on this run."
 
   # ---------------------------------------------------------------------------
   # Server Windows EXE (PyInstaller, x64 + x86)
@@ -873,54 +581,3 @@ jobs:
           git diff --staged --quiet && { echo "No README changes"; exit 0; }
           git commit -m "docs(readme): update beta build info [skip ci]"
           git push origin "${{ github.ref_name }}"
-
-  # ---------------------------------------------------------------------------
-  # npm + pip dependency audits (push, PR, manual)
-  # ---------------------------------------------------------------------------
-  security-audit:
-    name: Security audit
-    if: |
-      github.event_name == 'push' ||
-      github.event_name == 'pull_request' ||
-      github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Gitleaks (secret scan, working tree)
-        run: |
-          set -euo pipefail
-          VERSION=8.28.0
-          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" | tar -xz
-          chmod +x gitleaks
-          ./gitleaks detect --source . --config .gitleaks.toml --no-git --verbose --exit-code 1 --redact
-
-      - name: Verify Supabase RLS baseline SQL (docs)
-        run: node scripts/verify-rls-baseline.mjs
-
-      - name: Set up Node
-        uses: actions/setup-node@v5
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: react-app/package-lock.json
-
-      - name: npm audit (react-app)
-        working-directory: react-app
-        run: npm ci && npm audit --audit-level=high
-
-      - name: npm audit (root / esbuild)
-        run: npm install --no-save && npm audit --audit-level=high
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-
-      - name: pip-audit (requirements.txt)
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install pip-audit
-          # CVE-2026-4539 (pygments): no fixed version published yet; affects local regex complexity in AdlLexer.
-          # We don't ship Pygments as a runtime dependency; it is pulled in via pip-audit's dependency chain.
-          pip-audit -r requirements.txt --desc on --ignore-vuln CVE-2026-4539

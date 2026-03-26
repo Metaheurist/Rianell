@@ -1,0 +1,61 @@
+# =============================================================================
+# Security & dependency audits (standalone — not grouped with legacy mobile builds)
+# =============================================================================
+name: Security audit
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-audit-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security-audit:
+    name: Security audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Gitleaks (secret scan, working tree)
+        run: |
+          set -euo pipefail
+          VERSION=8.28.0
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" | tar -xz
+          chmod +x gitleaks
+          ./gitleaks detect --source . --config .gitleaks.toml --no-git --verbose --exit-code 1 --redact
+
+      - name: Verify Supabase RLS baseline SQL (docs)
+        run: node scripts/verify-rls-baseline.mjs
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: react-app/package-lock.json
+
+      - name: npm audit (react-app)
+        working-directory: react-app
+        run: npm ci && npm audit --audit-level=high
+
+      - name: npm audit (root / esbuild)
+        run: npm install --no-save && npm audit --audit-level=high
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: pip-audit (requirements.txt)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pip-audit
+          pip-audit -r requirements.txt --desc on --ignore-vuln CVE-2026-4539

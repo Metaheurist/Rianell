@@ -2786,7 +2786,10 @@ function closeGDPRAgreementModal() {
 }
 
 // Show confirmation modal with Yes/No buttons
-function showConfirmModal(message, title = 'Confirm', onConfirm, onCancel) {
+function showConfirmModal(message, title = 'Confirm', onConfirm, onCancel, options) {
+  const opts = options && typeof options === 'object' ? options : {};
+  const confirmText = typeof opts.confirmText === 'string' ? opts.confirmText : 'Yes, Continue';
+  const cancelText = typeof opts.cancelText === 'string' ? opts.cancelText : 'Cancel';
   const overlay = document.getElementById('alertModalOverlay');
   const titleEl = document.getElementById('alertModalTitle');
   const messageEl = document.getElementById('alertModalMessage');
@@ -2812,8 +2815,8 @@ function showConfirmModal(message, title = 'Confirm', onConfirm, onCancel) {
   
   // Update footer with Yes/No buttons
   footer.innerHTML = `
-    <button class="modal-save-btn modal-danger-btn" id="confirmYesBtn">Yes, Continue</button>
-    <button class="modal-save-btn modal-cancel-btn" id="confirmNoBtn">Cancel</button>
+    <button class="modal-save-btn modal-danger-btn" id="confirmYesBtn">${escapeHTML(confirmText)}</button>
+    <button class="modal-save-btn modal-cancel-btn" id="confirmNoBtn">${escapeHTML(cancelText)}</button>
   `;
   
   // Show modal
@@ -10055,13 +10058,125 @@ function ensurePickerChipCheckEl(btn) {
   btn.appendChild(span);
 }
 
+/**
+ * @param {HTMLElement} btn
+ * @param {boolean} selected
+ */
 function setPickerChipSelected(btn, selected) {
+  setPickerChipWithCount(btn, selected ? 1 : 0, null);
+}
+
+/**
+ * @param {HTMLElement} btn
+ * @param {number} count - 0 = none, 1 = checkmark, 2+ = numeric badge (food/exercise duplicates)
+ * @param {null|function(): void} onCountBadgeClick - when count > 1, badge click opens confirm (caller supplies)
+ */
+function setPickerChipWithCount(btn, count, onCountBadgeClick) {
   if (!btn) return;
   ensurePickerChipCheckEl(btn);
-  btn.classList.toggle('picker-chip--selected', !!selected);
-  btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
+  var n = typeof count === 'number' && count > 0 ? Math.floor(count) : 0;
+  btn.classList.toggle('picker-chip--selected', n > 0);
+  btn.setAttribute('aria-pressed', n > 0 ? 'true' : 'false');
   var check = btn.querySelector('.picker-chip-check');
-  if (check) check.innerHTML = selected ? '<i class="fa-solid fa-check" aria-hidden="true"></i>' : '';
+  if (!check) return;
+  check.classList.remove('picker-chip-check--count');
+  check.innerHTML = '';
+  if (n <= 0) {
+    check.style.pointerEvents = 'none';
+    return;
+  }
+  if (n === 1) {
+    check.innerHTML = '<i class="fa-solid fa-check" aria-hidden="true"></i>';
+    check.style.pointerEvents = 'none';
+    return;
+  }
+  var b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'picker-chip-count-btn';
+  b.textContent = String(n);
+  b.setAttribute('aria-label', 'Clear all ' + n + ' — confirm');
+  if (typeof onCountBadgeClick === 'function') {
+    b.addEventListener('click', function(ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      onCountBadgeClick();
+    });
+  }
+  check.appendChild(b);
+  check.classList.add('picker-chip-check--count');
+  check.style.pointerEvents = 'auto';
+}
+
+function countFoodNameInList(items, predefinedName) {
+  return (items || []).filter(function(item) {
+    return (typeof item === 'string' ? item : (item && item.name)) === predefinedName;
+  }).length;
+}
+
+function countExerciseNameInList(items, predefinedName) {
+  return (items || []).filter(function(item) {
+    return (typeof item === 'string' ? item : (item && item.name)) === predefinedName;
+  }).length;
+}
+
+function removeAllLogFoodItemsByName(category, predefinedName) {
+  var arr = logFormFoodByCategory[category] || [];
+  logFormFoodByCategory[category] = arr.filter(function(item) {
+    var n = typeof item === 'string' ? item : (item && item.name);
+    return n !== predefinedName;
+  });
+  renderLogFoodItems();
+}
+
+function removeAllEditFoodItemsByName(category, predefinedName) {
+  var arr = editFoodByCategory[category] || [];
+  editFoodByCategory[category] = arr.filter(function(item) {
+    var n = typeof item === 'string' ? item : (item && item.name);
+    return n !== predefinedName;
+  });
+  renderEditFoodCategoryList(category);
+}
+
+function removeAllLogExerciseItemsByName(predefinedName) {
+  logFormExerciseItems = logFormExerciseItems.filter(function(item) {
+    var n = typeof item === 'string' ? item : (item && item.name);
+    return n !== predefinedName;
+  });
+  renderLogExerciseItems();
+}
+
+function removeAllEditExerciseItemsByName(predefinedName) {
+  editExerciseItems = editExerciseItems.filter(function(item) {
+    var n = typeof item === 'string' ? item : (item && item.name);
+    return n !== predefinedName;
+  });
+  renderEditExerciseItemsList();
+}
+
+function promptClearFoodTileByName(displayName, category, isEdit) {
+  showConfirmModal(
+    'Would you like to clear ' + displayName + '?',
+    'Clear selection',
+    function() {
+      if (isEdit) removeAllEditFoodItemsByName(category, displayName);
+      else removeAllLogFoodItemsByName(category, displayName);
+    },
+    null,
+    { confirmText: 'Yes', cancelText: 'No' }
+  );
+}
+
+function promptClearExerciseTileByName(displayName, isEdit) {
+  showConfirmModal(
+    'Would you like to clear ' + displayName + '?',
+    'Clear selection',
+    function() {
+      if (isEdit) removeAllEditExerciseItemsByName(displayName);
+      else removeAllLogExerciseItemsByName(displayName);
+    },
+    null,
+    { confirmText: 'Yes', cancelText: 'No' }
+  );
 }
 
 function itemNamesMatchFood(items, predefinedName) {
@@ -10077,7 +10192,12 @@ function syncFoodChipsInContainer(containerId, category, isEdit) {
   root.querySelectorAll('.food-chip[data-food-id]').forEach(function(btn) {
     var id = btn.getAttribute('data-food-id');
     var def = PREDEFINED_FOODS.find(function(f) { return f.id === id; });
-    setPickerChipSelected(btn, !!(def && itemNamesMatchFood(items, def.name)));
+    if (!def) return;
+    var cnt = countFoodNameInList(items, def.name);
+    var onBadge = cnt > 1
+      ? function() { promptClearFoodTileByName(def.name, category, isEdit); }
+      : null;
+    setPickerChipWithCount(btn, cnt, onBadge);
   });
 }
 
@@ -10088,8 +10208,13 @@ function syncFrequentFoodChips() {
     var id = btn.getAttribute('data-food-id');
     var cat = btn.getAttribute('data-food-category') || 'breakfast';
     var def = PREDEFINED_FOODS.find(function(f) { return f.id === id; });
+    if (!def) return;
     var items = logFormFoodByCategory[cat] || [];
-    setPickerChipSelected(btn, !!(def && itemNamesMatchFood(items, def.name)));
+    var cnt = countFoodNameInList(items, def.name);
+    var onBadge = cnt > 1
+      ? function() { promptClearFoodTileByName(def.name, cat, false); }
+      : null;
+    setPickerChipWithCount(btn, cnt, onBadge);
   });
 }
 
@@ -10100,7 +10225,12 @@ function syncExerciseChipsInContainer(containerId, isEdit) {
   root.querySelectorAll('.exercise-chip[data-exercise-id]').forEach(function(btn) {
     var id = btn.getAttribute('data-exercise-id');
     var ex = PREDEFINED_EXERCISES.find(function(e) { return e.id === id; });
-    setPickerChipSelected(btn, !!(ex && itemNamesMatchFood(items, ex.name)));
+    if (!ex) return;
+    var cnt = countExerciseNameInList(items, ex.name);
+    var onBadge = cnt > 1
+      ? function() { promptClearExerciseTileByName(ex.name, isEdit); }
+      : null;
+    setPickerChipWithCount(btn, cnt, onBadge);
   });
 }
 
@@ -10110,7 +10240,12 @@ function syncFrequentExerciseChips() {
   wrap.querySelectorAll('.exercise-chip[data-exercise-id]').forEach(function(btn) {
     var id = btn.getAttribute('data-exercise-id');
     var ex = PREDEFINED_EXERCISES.find(function(e) { return e.id === id; });
-    setPickerChipSelected(btn, !!(ex && itemNamesMatchFood(logFormExerciseItems, ex.name)));
+    if (!ex) return;
+    var cnt = countExerciseNameInList(logFormExerciseItems, ex.name);
+    var onBadge = cnt > 1
+      ? function() { promptClearExerciseTileByName(ex.name, false); }
+      : null;
+    setPickerChipWithCount(btn, cnt, onBadge);
   });
 }
 
@@ -11541,7 +11676,7 @@ function renderFoodItems() {
       const chipsHtml = foods.map(f => {
         const iconClass = FOOD_ICONS[f.id] || 'fa-solid fa-utensils';
         const groupClass = 'food-chip--' + (f.group || 'mixed');
-        return `<button type="button" class="food-chip ${groupClass}" data-food-id="${escapeHTML(f.id)}" title="Add ${escapeHTML(f.name)}, ${f.calories} cal to ${labels[cat]}" onclick="addFoodItemModal('${cat}', '${escapeHTML(f.id)}')"><span class="food-chip-icon"><i class="${iconClass}" aria-hidden="true"></i></span><span class="food-chip-name">${escapeHTML(f.name)}</span><span class="food-chip-nutrition">${f.calories} cal · ${f.protein}g P</span></button>`;
+        return `<button type="button" class="food-chip ${groupClass}" data-food-id="${escapeHTML(f.id)}" data-food-meal="${escapeHTML(cat)}" title="Add ${escapeHTML(f.name)}, ${f.calories} cal to ${labels[cat]}" onclick="addFoodItemModal('${cat}', '${escapeHTML(f.id)}')"><span class="food-chip-icon"><i class="${iconClass}" aria-hidden="true"></i></span><span class="food-chip-name">${escapeHTML(f.name)}</span><span class="food-chip-nutrition">${f.calories} cal · ${f.protein}g P</span></button>`;
       }).join('');
       return `<div class="food-group" data-group="${escapeHTML(grp.id)}"><div class="food-group__title">${escapeHTML(grp.label)}</div><div class="food-chips">${chipsHtml}</div></div>`;
     }).join('');
@@ -11566,17 +11701,33 @@ function renderFoodItems() {
       if (typeof openTilePickerSheet === 'function') openTilePickerSheet(btn);
     });
   });
-  // Keep food card selection badges in sync while editing an existing log.
+  // Keep food card selection badges in sync while editing an existing log (per meal category).
   container.querySelectorAll('.food-chip[data-food-id]').forEach(function(btn) {
     var id = btn.getAttribute('data-food-id');
+    var meal = btn.getAttribute('data-food-meal') || 'breakfast';
     var predefined = PREDEFINED_FOODS.find(function(f) { return f.id === id; });
-    var selected = false;
-    if (predefined) {
-      selected = ['breakfast', 'lunch', 'dinner', 'snack'].some(function(cat) {
-        return itemNamesMatchFood(currentFoodByCategory[cat] || [], predefined.name);
-      });
-    }
-    setPickerChipSelected(btn, selected);
+    if (!predefined) return;
+    var items = currentFoodByCategory[meal] || [];
+    var cnt = countFoodNameInList(items, predefined.name);
+    var onBadge = cnt > 1
+      ? function() {
+          showConfirmModal(
+            'Would you like to clear ' + predefined.name + '?',
+            'Clear selection',
+            function() {
+              var arr = currentFoodByCategory[meal] || [];
+              currentFoodByCategory[meal] = arr.filter(function(item) {
+                var n = typeof item === 'string' ? item : (item && item.name);
+                return n !== predefined.name;
+              });
+              renderFoodItems();
+            },
+            null,
+            { confirmText: 'Yes', cancelText: 'No' }
+          );
+        }
+      : null;
+    setPickerChipWithCount(btn, cnt, onBadge);
   });
 }
 
@@ -11807,7 +11958,26 @@ function renderExerciseItems() {
   list.querySelectorAll('.exercise-chip[data-exercise-id]').forEach(function(btn) {
     var id = btn.getAttribute('data-exercise-id');
     var ex = PREDEFINED_EXERCISES.find(function(e) { return e.id === id; });
-    setPickerChipSelected(btn, !!(ex && itemNamesMatchFood(currentExerciseItems, ex.name)));
+    if (!ex) return;
+    var cnt = countExerciseNameInList(currentExerciseItems, ex.name);
+    var onBadge = cnt > 1
+      ? function() {
+          showConfirmModal(
+            'Would you like to clear ' + ex.name + '?',
+            'Clear selection',
+            function() {
+              currentExerciseItems = currentExerciseItems.filter(function(item) {
+                var n = typeof item === 'string' ? item : (item && item.name);
+                return n !== ex.name;
+              });
+              renderExerciseItems();
+            },
+            null,
+            { confirmText: 'Yes', cancelText: 'No' }
+          );
+        }
+      : null;
+    setPickerChipWithCount(btn, cnt, onBadge);
   });
 }
 

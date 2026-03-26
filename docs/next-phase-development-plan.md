@@ -145,7 +145,7 @@ This section is intentionally written as a **linear checklist** that a non-agent
 ### 7.1.1 Progress log (session persistence)
 
 - **Status**: In progress
-- **Last updated**: 2026-03-25
+- **Last updated**: 2026-03-26
 - **Completed in this repo so far**
   - **Step 0 (baseline + inventory)**: **Completed** — added initial parity checklist based on current canonical web app (`web/`) reference.
   - **Step 1/2 (repo layout + shared packages scaffold)**: **Completed** — enabled npm workspaces and added `packages/shared` + `packages/tokens` with a unit test proving they can be imported from root tests.
@@ -173,6 +173,23 @@ This section is intentionally written as a **linear checklist** that a non-agent
   - **CI (Legacy Capacitor builds)**: **Completed** — CI no longer rebuilds Capacitor Android/iOS jobs; legacy artifacts remain in repo history/releases without version bumps.
   - **README**: **Completed** — added React Native + Expo badges; marked Capacitor as legacy in tech stack and notes.
   - **CI (Security audit)**: **Completed** — pip-audit now ignores `CVE-2026-4539` (pygments; no fix version published) to prevent false-failures from a transitive dependency in the audit toolchain.
+  - **CI (workflows split)**: **Completed** — `security-audit` moved to `.github/workflows/security-audit.yml` (standalone). Legacy Capacitor Android/iOS jobs moved to `.github/workflows/legacy-capacitor.yml` (**disabled**, `workflow_dispatch` only). Main `ci.yml` keeps **Expo** `expo-bundle-prod` with explicit **Verify Android / iOS** Hermes `.hbc` steps.
+  - **CI (Expo native builds via EAS)**: **Completed (manual workflow)** — added `.github/workflows/expo-native-build.yml` for manual (`workflow_dispatch`) cloud builds of **Android + iOS** using EAS CLI and `EXPO_TOKEN`; added `apps/mobile/eas.json` with development/preview/production profiles.
+  - **Web Settings → Data management**: **Completed (layout)** — App installation block uses stacked full-width rows (`.app-install-*` CSS) so Android/iOS download links and build metadata no longer overlap; labels stay driven by `refreshAppInstallSection()`.
+  - **Web log food & exercise tiles**: **Completed (duplicate selection UX)** — when the same predefined food or exercise is added more than once, the tile shows a **numeric count badge** instead of a checkmark; clicking the badge opens **Yes / No** confirm (`showConfirmModal` options) to clear that item by name (log form, edit form, food modal, exercise modal).
+  - **Expo log food & exercise quick picks**: **Completed (duplicate selection UX parity)** — quick-pick chips now allow duplicate adds; when count > 1, a badge appears on the chip and tapping it shows a **Yes / No** confirm to clear that selected card item.
+  - **Expo AI Analysis tab**: **Completed (initial parity)** — replaced placeholder with a range-based analysis surface (`14/30/90/all`) that computes log-driven summary outputs (entry count, flare days, average mood/sleep/fatigue, top symptoms/stressors) with pull-to-refresh; added tests for analysis logic and AI screen rendering.
+  - **Expo Charts tab**: **Completed (expanded lite parity)** — upgraded from basic totals to a range-based chart summary surface (`14/30/90/all`) with per-metric trend cards (average/current/delta/point-count for mood, sleep, fatigue, steps, hydration), plus pull-to-refresh; added trend summarizer unit tests.
+  - **Expo Log wizard (symptoms/stressors free-add)**: **Completed (lite parity improvement)** — Step 3 now supports adding custom symptoms and Step 5 supports adding custom stressors, in addition to frequent/predefined chips; updated wizard tests to cover custom entry flows.
+  - **Expo Log wizard (pain UX refinement)**: **Completed (lite parity improvement)** — Step 3 pain region selector now includes severity legend, mild/pain region counts, state-colored region chips, and a one-tap clear-all action for body selections.
+  - **Expo AI Analysis tab (narrative sections)**: **Completed (lite+ parity improvement)** — AI tab now includes structured narrative sections closer to web copy: **What you logged**, **What we found**, **How you are doing**, and **Things to watch**, generated from selected-range logs; tests updated.
+  - **Expo AI Analysis tab (correlations)**: **Completed (lite parity improvement)** — added a **Correlations** section with simple Pearson-based metric links (mood/sleep, sleep/fatigue, mood/fatigue) and fallback guidance when no strong relationship is detected.
+  - **Expo Charts tab (mini visual trends)**: **Completed (lite parity improvement)** — added lightweight sparkline-style trend bars for each metric trend row so the Charts tab now has a quick visual trajectory in addition to numeric average/current/delta summaries.
+  - **Expo AI Analysis tab (possible flare-up)**: **Completed (lite parity improvement)** — added a **Possible flare-up** block (risk level + matching signal count + notes) derived from recent trends and flare frequency to align closer to web AI summary structure.
+  - **Expo AI Analysis tab (groups-that-change-together)**: **Completed (lite parity improvement)** — added a **Groups that change together** section based on detected metric links, providing plain-language relationship hints similar to the web AI sectioning style.
+  - **Expo AI Analysis tab (important changes)**: **Completed (lite parity improvement)** — added an **Important** section that flags sudden recent metric changes (fatigue/sleep/mood shifts) with a fallback “no sudden changes” message.
+  - **Expo Log wizard (medication quick-picks)**: **Completed (lite parity improvement)** — Step 9 now includes medication quick-pick chips, selected-medication remove controls, and duplicate count-badge clear behavior consistent with food/exercise quick-picks.
+  - **Expo Log wizard (lifestyle quick scores)**: **Completed (lite parity improvement)** — Step 6 now includes quick score chips for daily function/irritability/weather sensitivity while preserving manual input for exact values.
 
 ### 7.1 Ground rules (apply to every step)
 
@@ -213,8 +230,8 @@ This section is intentionally written as a **linear checklist** that a non-agent
 
 - [x] **Home tab** (today status + floating **+** opens Log wizard; refreshes on focus)
 - [x] **View Logs tab** (AsyncStorage-backed list; canonical `healthLogs` key; shows key metrics)
-- [~] **Charts tab** (summary stats from saved logs + pull-to-refresh; full chart parity with web still to do)
-- [x] **AI Analysis tab** (placeholder scaffold; gated by `aiEnabled`)
+- [~] **Charts tab** (range selection `14/30/90/all` + trend summaries/deltas + lightweight mini trend bars per metric + pull-to-refresh; full Apex/web visual parity still to do)
+- [~] **AI Analysis tab** (implemented lite++; range-based log summary + narrative sections (incl. Important) + possible flare-up block + basic metric-correlation section + “groups that change together”; deeper parity with web AIEngine/LLM still to do; gated by `aiEnabled`)
 - [x] **Settings tab** (theme + accessibility + AI gate; persisted)
 - [x] **Log today flow** (stack screen from Home **+**; **10-step** wizard matching web; saves into logs; blocks duplicate dates)
 
@@ -235,13 +252,13 @@ This section is intentionally written as a **linear checklist** that a non-agent
 
 - [x] **Step 1**: Date & flare
 - [x] **Step 2**: Vitals (basic fields; notes are **not** here — matches web)
-- [~] **Step 3**: Symptoms & pain (lite — chips + frequent chips + tappable body-region severity → `painLocation`; full body-diagram UX still to do)
+- [~] **Step 3**: Symptoms & pain (lite++ — chips + frequent chips + custom free-add + tappable body-region severity with legend/counts/clear-all → `painLocation`; full body-diagram UX still to do)
 - [~] **Step 4**: Energy & mental clarity (lite — choice chips)
-- [~] **Step 5**: Stress & triggers (lite — frequent + predefined stressor chips)
-- [~] **Step 6**: Lifestyle (lite — daily function, irritability, weather sensitivity)
+- [~] **Step 5**: Stress & triggers (lite+ — frequent + predefined stressor chips + custom free-add)
+- [~] **Step 6**: Lifestyle (lite+ — daily function, irritability, weather sensitivity with quick score chips + manual input)
 - [~] **Step 7**: Food (lite+ — Breakfast/Lunch/Dinner/Snack with quick-picks + remove)
 - [~] **Step 8**: Exercise (lite+ — `Name:Minutes`, category-grouped picks, quick-picks)
-- [~] **Step 9**: Medication & notes (lite — comma-separated medication names → `{ name, times: [], taken }[]`; free-form notes)
+- [~] **Step 9**: Medication & notes (lite+ — comma-separated medication names with quick-pick chips + remove controls + duplicate count-badge clear → `{ name, times: [], taken }[]`; free-form notes)
 - [x] **Step 10**: Review (plain-text summary via `buildLogReviewSummary`; Save → persist → back)
 
 ##### Settings modules (web “Settings” overlay carousel)
@@ -298,7 +315,7 @@ This section is intentionally written as a **linear checklist** that a non-agent
 
 - [x] **AI feature gating**: Settings → “Enable AI features & Goals”
 - [x] **On-device model preference**: Settings → Performance → “On-device AI model”
-- [ ] **AI tab contents + input/output**: to be enumerated in next pass (likely defined in `web/app.js` + `web/AIEngine.js` + `web/summary-llm.js`)
+- [~] **AI tab contents + input/output**: Expo now includes range input + summary outputs + narrative sections (including Important) + possible flare-up summary + basic correlations + groups-that-change-together hints. Next: mirror deeper web AIEngine/LLM output structure and richer correlation language.
 
 ### 7.3 Step 1 — Repository layout for web + Expo (scaffold)
 

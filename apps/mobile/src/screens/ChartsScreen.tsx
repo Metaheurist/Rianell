@@ -1,24 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { loadLogs, type LogEntry } from '../storage/logs';
+import { summarizeCharts, type ChartRange } from '../charts/summarizeCharts';
 
-function mean(nums: number[]): number | null {
-  if (!nums.length) return null;
-  return nums.reduce((a, b) => a + b, 0) / nums.length;
-}
-
-function lastNDates(n: number): string[] {
-  const out: string[] = [];
-  const d = new Date();
-  for (let i = 0; i < n; i++) {
-    const x = new Date(d);
-    x.setDate(d.getDate() - i);
-    out.push(x.toISOString().slice(0, 10));
-  }
-  return out;
-}
+const RANGE_OPTIONS: ChartRange[] = [14, 30, 90, 'all'];
 
 export function ChartsScreen() {
   const theme = useTheme();
@@ -29,6 +16,7 @@ export function ChartsScreen() {
       : theme.tokens.color.background;
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [range, setRange] = useState<ChartRange>(30);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,15 +43,10 @@ export function ChartsScreen() {
     void load();
   };
 
-  const recentSet = new Set(lastNDates(14));
-  const recentLogs = logs.filter((l) => recentSet.has(l.date));
-
-  const mood = mean(logs.map((l) => l.mood).filter((v): v is number => v != null));
-  const sleep = mean(logs.map((l) => l.sleep).filter((v): v is number => v != null));
-  const fatigue = mean(logs.map((l) => l.fatigue).filter((v): v is number => v != null));
-  const flareDays = logs.filter((l) => l.flare === 'Yes').length;
+  const summary = summarizeCharts(logs, range);
 
   const fmt = (v: number | null) => (v == null ? '—' : v.toFixed(1));
+  const fmtDelta = (v: number | null) => (v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}`);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
@@ -74,7 +57,7 @@ export function ChartsScreen() {
         <View style={styles.card}>
           <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>Charts</Text>
           <Text style={[styles.lead, { color: theme.tokens.color.text, fontSize: theme.font(15) }]}>
-            Lightweight summary from your saved logs. Full chart parity with the web app (ranges, lazy load) comes next.
+            Trend summary with range selection and key metric deltas. Full chart visuals/parity remain in progress.
           </Text>
 
           {loading && !logs.length ? (
@@ -85,27 +68,56 @@ export function ChartsScreen() {
             <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{error}</Text>
           ) : null}
 
+          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Range</Text>
+          <View style={styles.rangeRow}>
+            {RANGE_OPTIONS.map((opt) => {
+              const selected = opt === range;
+              const label = opt === 'all' ? 'All' : `${opt}d`;
+              return (
+                <Pressable key={String(opt)} style={[styles.rangeChip, selected ? styles.rangeChipOn : null]} onPress={() => setRange(opt)}>
+                  <Text style={styles.rangeChipText}>{label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
           <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Overview</Text>
           <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            Total entries: {logs.length}
+            {summary.rangeLabel}: {summary.totalLogs} entry{summary.totalLogs === 1 ? '' : 'ies'}
           </Text>
           <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            Last 14 days logged: {recentLogs.length} day(s) with data
-          </Text>
-          <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            Flare days (all time): {flareDays}
+            Flare days: {summary.flareDays}
           </Text>
 
-          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Averages (where recorded)</Text>
-          <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            Mood (0–10): {fmt(mood)}
-          </Text>
-          <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            Sleep (0–10): {fmt(sleep)}
-          </Text>
-          <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            Fatigue (0–10): {fmt(fatigue)}
-          </Text>
+          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Metric trends</Text>
+          {summary.trends.map((trend) => (
+            <View key={trend.key} style={styles.trendRow}>
+              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                {trend.label}: avg {fmt(trend.average)} · current {fmt(trend.current)}
+              </Text>
+              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                Delta {fmtDelta(trend.delta)} · {trend.points} point{trend.points === 1 ? '' : 's'}
+              </Text>
+              <View style={styles.sparkRow}>
+                {trend.spark.length ? (
+                  trend.spark.slice(-20).map((h, i) => (
+                    <View
+                      key={`${trend.key}-${i}`}
+                      style={[
+                        styles.sparkBar,
+                        {
+                          height: 8 + Math.round(h * 28),
+                          opacity: 0.55 + h * 0.45,
+                        },
+                      ]}
+                    />
+                  ))
+                ) : (
+                  <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>No points yet</Text>
+                )}
+              </View>
+            </View>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -120,4 +132,17 @@ const styles = StyleSheet.create({
   lead: { opacity: 0.95, marginBottom: 16 },
   section: { fontWeight: '800', marginTop: 14, marginBottom: 6, opacity: 0.85 },
   metric: { marginBottom: 6, opacity: 0.95 },
+  meta: { opacity: 0.8, marginBottom: 8 },
+  trendRow: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', paddingTop: 8, marginTop: 4 },
+  sparkRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 4, minHeight: 40, marginBottom: 4, marginTop: 2 },
+  sparkBar: { width: 6, borderRadius: 4, backgroundColor: 'rgba(123,223,140,0.95)' },
+  rangeRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  rangeChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  rangeChipOn: { backgroundColor: 'rgba(255,255,255,0.22)' },
+  rangeChipText: { color: '#fff', fontWeight: '800' },
 });
