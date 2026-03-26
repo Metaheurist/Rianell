@@ -3,7 +3,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Svg, { Circle, Rect } from 'react-native-svg';
+import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 import { useTheme } from '../theme/ThemeProvider';
 import { addLogEntry, getFrequentLogItems, loadLogs, saveLogs, type LogEntry } from '../storage/logs';
 import { normalizeLogEntry } from '@rianell/shared';
@@ -198,6 +198,10 @@ function painStateStroke(value: PainState) {
   return 'rgba(76,175,80,0.55)';
 }
 
+/** Same path as web `index.html` `.pain-body-outline` (viewBox 0 0 140 280). */
+const PAIN_BODY_OUTLINE_PATH =
+  'M70 10 A26 28 0 0 1 70 66 Q58 70 50 78 Q42 90 44 108 Q46 138 48 168 Q50 198 48 238 Q46 268 52 278 L64 280 L76 280 L88 278 Q94 268 92 238 Q90 198 92 168 Q94 138 96 108 Q98 90 90 78 Q82 70 70 66 Z';
+
 function energyTileSelectedBorder(tone: 'positive' | 'neutral' | 'negative' | 'default'): string {
   if (tone === 'positive') return 'rgba(129,199,132,0.95)';
   if (tone === 'negative') return 'rgba(239,154,154,0.95)';
@@ -221,11 +225,22 @@ function PainBodyDiagram(props: {
   const { states, onPressRegion } = props;
   const strokeWidth = 2;
 
-  // A lightweight “front view” diagram for quick region tapping.
+  // Front-view diagram: same vertical canvas as web (140×280) with outline path; regions are scaled to fill it.
   // Chips below remain the exhaustive fallback for all regions.
   return (
-    <View accessibilityLabel="Pain body diagram" style={{ alignItems: 'center', marginVertical: 8 }}>
-      <Svg width={220} height={320} viewBox="0 0 140 200">
+    <View
+      accessibilityLabel="Pain body diagram"
+      accessibilityHint="Tap a region to cycle good, discomfort, then pain"
+      style={{ alignItems: 'center', marginVertical: 8 }}
+    >
+      <Svg width={220} height={440} viewBox="0 0 140 280">
+        <Path
+          d={PAIN_BODY_OUTLINE_PATH}
+          fill="rgba(255,255,255,0.06)"
+          stroke="rgba(76,175,80,0.25)"
+          strokeWidth={0.5}
+        />
+        <G transform="scale(1, 1.4)">
         {/* Head */}
         <Circle
           cx={70}
@@ -559,6 +574,7 @@ function PainBodyDiagram(props: {
           onPress={() => onPressRegion('right_ankle')}
           accessibilityLabel="Right ankle region"
         />
+        </G>
       </Svg>
     </View>
   );
