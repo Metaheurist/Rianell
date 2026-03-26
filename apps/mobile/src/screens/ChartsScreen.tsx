@@ -52,6 +52,8 @@ export function ChartsScreen() {
   const fmt = (v: number | null) => (v == null ? '—' : v.toFixed(1));
   const fmtDelta = (v: number | null) => (v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}`);
   const viewLabel = view === 'balance' ? 'Balance' : view === 'individual' ? 'Individual' : 'Combined';
+  const showOverview = view === 'combined';
+  const showSparks = view !== 'balance';
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
@@ -105,13 +107,17 @@ export function ChartsScreen() {
             })}
           </View>
 
-          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Overview</Text>
-          <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            {summary.rangeLabel}: {summary.totalLogs} entry{summary.totalLogs === 1 ? '' : 'ies'}
-          </Text>
-          <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            Flare days: {summary.flareDays}
-          </Text>
+          {showOverview ? (
+            <>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Overview</Text>
+              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                {summary.rangeLabel}: {summary.totalLogs} entry{summary.totalLogs === 1 ? '' : 'ies'}
+              </Text>
+              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                Flare days: {summary.flareDays}
+              </Text>
+            </>
+          ) : null}
 
           <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Metric trends</Text>
           {summary.trends.map((trend) => (
@@ -122,24 +128,26 @@ export function ChartsScreen() {
               <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
                 Delta {fmtDelta(trend.delta)} · {trend.points} point{trend.points === 1 ? '' : 's'}
               </Text>
-              <View style={styles.sparkRow}>
-                {trend.spark.length ? (
-                  trend.spark.slice(-20).map((h, i) => (
-                    <View
-                      key={`${trend.key}-${i}`}
-                      style={[
-                        styles.sparkBar,
-                        {
-                          height: 8 + Math.round(h * 28),
-                          opacity: 0.55 + h * 0.45,
-                        },
-                      ]}
-                    />
-                  ))
-                ) : (
-                  <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>No points yet</Text>
-                )}
-              </View>
+              {showSparks ? (
+                <View style={styles.sparkRow}>
+                  {trend.spark.length ? (
+                    trend.spark.slice(-20).map((h, i) => (
+                      <View
+                        key={`${trend.key}-${i}`}
+                        style={[
+                          styles.sparkBar,
+                          {
+                            height: 8 + Math.round(h * 28),
+                            opacity: 0.55 + h * 0.45,
+                          },
+                        ]}
+                      />
+                    ))
+                  ) : (
+                    <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>No points yet</Text>
+                  )}
+                </View>
+              ) : null}
             </View>
           ))}
         </View>
