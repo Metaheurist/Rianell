@@ -180,7 +180,7 @@ This section is intentionally written as a **linear checklist** that a non-agent
   - **Expo log food & exercise quick picks**: **Completed (duplicate selection UX parity)** — quick-pick chips now allow duplicate adds; when count > 1, a badge appears on the chip and tapping it shows a **Yes / No** confirm to clear that selected card item.
   - **Expo AI Analysis tab**: **Completed (initial parity)** — replaced placeholder with a range-based analysis surface (`14/30/90/all`) that computes log-driven summary outputs (entry count, flare days, average mood/sleep/fatigue, top symptoms/stressors) with pull-to-refresh; added tests for analysis logic and AI screen rendering.
   - **Expo Charts tab**: **Completed (expanded lite parity)** — upgraded from basic totals to a range-based chart summary surface (`14/30/90/all`) with per-metric trend cards (average/current/delta/point-count for mood, sleep, fatigue, steps, hydration), plus pull-to-refresh; added trend summarizer unit tests.
-  - **Expo Charts tab**: **Completed (UI parity)** — added the web-like `Balance / Individual / Combined` view toggle control (visual parity still pending).
+  - **Expo Charts tab**: **Completed (UI parity)** — added the web-like `Balance / Individual / Combined` view toggle control and wired it to render overview/spark sections.
   - **Expo Log wizard (symptoms/stressors free-add)**: **Completed (lite parity improvement)** — Step 3 now supports adding custom symptoms and Step 5 supports adding custom stressors, in addition to frequent/predefined chips; updated wizard tests to cover custom entry flows.
   - **Expo Log wizard (pain UX refinement)**: **Completed (lite parity improvement)** — Step 3 pain region selector now includes severity legend, mild/pain region counts, state-colored region chips, and a one-tap clear-all action for body selections.
   - **Expo Log wizard (selected symptoms/stressors clear-all)**: **Completed (lite parity improvement)** — added one-tap `Clear selected` controls for selected symptoms (Step 3) and selected stressors (Step 5).
@@ -233,7 +233,7 @@ This section is intentionally written as a **linear checklist** that a non-agent
 
 - [x] **Home tab** (today status + floating **+** opens Log wizard; refreshes on focus)
 - [x] **View Logs tab** (AsyncStorage-backed list; canonical `healthLogs` key; shows key metrics)
-- [~] **Charts tab** (range selection `14/30/90/all` + `Balance/Individual/Combined` view toggle + trend summaries/deltas + lightweight mini trend bars per metric + pull-to-refresh; full Apex/web visual parity still to do)
+- [~] **Charts tab** (range selection `14/30/90/all` + `Balance/Individual/Combined` view toggle that changes which sections render (overview/sparks) + trend summaries/deltas + lightweight mini trend bars per metric + pull-to-refresh; full Apex/web visual parity still to do)
 - [~] **AI Analysis tab** (implemented lite++; range-based log summary + narrative sections (incl. Important) + possible flare-up block + basic metric-correlation section + “groups that change together”; deeper parity with web AIEngine/LLM still to do; gated by `aiEnabled`)
 - [x] **Settings tab** (theme + accessibility + AI gate; persisted)
 - [x] **Log today flow** (stack screen from Home **+**; **10-step** wizard matching web; saves into logs; blocks duplicate dates)
