@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../theme/ThemeProvider';
 import { HomeScreen } from '../screens/HomeScreen';
 import { LogsScreenRoute } from '../screens/LogsScreenRoute';
@@ -67,21 +67,21 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ color }) => <Text style={{ color }}>●</Text>,
+          tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size ?? 24} color={color} />,
         }}
       />
       <Tab.Screen
         name="View Logs"
         component={LogsScreenRoute}
         options={{
-          tabBarIcon: ({ color }) => <Text style={{ color }}>≡</Text>,
+          tabBarIcon: ({ color, size }) => <Ionicons name="list-outline" size={size ?? 24} color={color} />,
         }}
       />
       <Tab.Screen
         name="Charts"
         component={ChartsScreen}
         options={{
-          tabBarIcon: ({ color }) => <Text style={{ color }}>▦</Text>,
+          tabBarIcon: ({ color, size }) => <Ionicons name="bar-chart-outline" size={size ?? 24} color={color} />,
         }}
       />
       {shouldShowAiTab(prefs) ? (
@@ -89,14 +89,14 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
           name="AI Analysis"
           component={AiScreen}
           options={{
-            tabBarIcon: ({ color }) => <Text style={{ color }}>✦</Text>,
+            tabBarIcon: ({ color, size }) => <Ionicons name="sparkles-outline" size={size ?? 24} color={color} />,
           }}
         />
       ) : null}
       <Tab.Screen
         name="Settings"
         options={{
-          tabBarIcon: ({ color }) => <Text style={{ color }}>⚙</Text>,
+          tabBarIcon: ({ color, size }) => <Ionicons name="settings-outline" size={size ?? 24} color={color} />,
         }}
       >
         {() => <SettingsScreen prefs={prefs} onChangePrefs={onChangePrefs} />}

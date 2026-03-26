@@ -26,3 +26,11 @@ test('withAsyncStorageLocalRepo plugin injects shared_storage marker into Gradle
   assert.match(src, /withProjectBuildGradle/);
   assert.match(src, /local_repo/);
 });
+
+test('app.config.js merges app.json and Supabase extra for native builds', () => {
+  const appConfigPath = path.join(repoRoot, 'apps/mobile/app.config.js');
+  assert.ok(fs.existsSync(appConfigPath), 'app.config.js must exist for Expo extra (EXPO_PUBLIC_SUPABASE_*)');
+  const mod = fs.readFileSync(appConfigPath, 'utf8');
+  assert.match(mod, /EXPO_PUBLIC_SUPABASE_URL/);
+  assert.match(mod, /app\.json/);
+});

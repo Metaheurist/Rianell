@@ -2,7 +2,7 @@
 
 This document is the **single build plan** to finish Rianell’s transition to a **React Native CLI** app that matches the **web/PWA** and produces **Android APK** + **iOS emulator Xcode zip** via CI releases.
 
-**Last updated:** 2026-03-26 (§4.3 shell parity + §6 testing/perf; HomeScreen tests + `mobile-expo-config` unit tests)
+**Last updated:** 2026-03-26 (Ionicons tab bar + settings carousel + Supabase login; `app.config.js` / `.env.example`)
 
 ---
 
@@ -24,6 +24,7 @@ This document is the **single build plan** to finish Rianell’s transition to a
 These are treated as “already implemented” and should not be re-planned here:
 - `apps/mobile` exists with navigation + settings shell + AsyncStorage-backed logs; **Settings** includes **Data management** (JSON export/import with merge/replace) and **Install & downloads** (same public `latest.json` resolution as web, opens artifact URL in the system browser).
 - CI can generate **RN CLI** native artifacts (Android debug APK + iOS Xcode project zip) and attach them to GitHub Releases. **`rn-build-version`** bumps a **sequential RN-only build number** (1, 2, 3…) stored in `App build/RNCLI-Android/latest.json`; **`rncli-android-apk`** / **`rncli-ios-zip`** use that for `latest.json` and iOS zip filenames (not `GITHUB_RUN_NUMBER`).
+- **Cloud login (Supabase):** **`apps/mobile/app.config.js`** merges `app.json` with **`extra.supabaseUrl` / `extra.supabaseAnonKey`** from **`EXPO_PUBLIC_SUPABASE_*`** at build time. **`getSupabaseClient()`** (`src/cloud/supabaseClient.ts`) returns `null` when unset; **`SettingsCloudPane`** wires sign-in / sign-up / sign-out (parity with web `cloud-sync.js`). Local template: **`apps/mobile/.env.example`**.
 - **Android Gradle (`expo prebuild`):** `@react-native-async-storage/async-storage` **v3** resolves `org.asyncstorage.shared_storage:storage-android` from a **local Maven repo** shipped under `node_modules/.../android/local_repo`. **`apps/mobile/plugins/withAsyncStorageLocalRepo.js`** injects that `maven { url … }` into the generated root `android/build.gradle` (see `app.json` → `plugins`).
 - **README** (`scripts/update-readme-build-info.mjs`) lists **CI builds** (Alpha RN Android + RN iOS, Server, Web) and a **Legacy builds** table for frozen **Capacitor** metadata: `App build/Android/` (APK) and **`App build/Legacy/Capacitor-iOS/`** (last Capacitor iOS manifest). RN iOS artifacts live under **`App build/iOS/`** (same `latest.json` shape the app resolves).
 - Web settings already exposes app installation/download links driven by `latest.json` in each `App build/…/` folder (see `web/app.js` `refreshBuildDownloadLinks`).
@@ -74,9 +75,9 @@ If any of the above becomes false, fix it before moving forward.
 **Web reference:** same as §4.1; compare tab chrome, Settings panels, and `web/app.js` feature flags.
 
 - [~] **Home tab:** greeting + today’s log status + **Log today** FAB (`HomeScreen`). **Tests:** `HomeScreen.test.tsx` (title, empty/logged copy, FAB → `LogWizard`).
-- [~] **Navigation:** bottom tabs **Home**, **View Logs**, **Charts**, optional **AI Analysis** (`shouldShowAiTab(prefs)`), **Settings** (`RootNavigator`). Tab icons are placeholders (● / ≡ / ▦ / ✦ / ⚙); **parity:** closer iconography / labels vs web mobile chrome if needed. **Tests:** `RootNavigator.test.tsx` (AI tab visibility).
+- [x] **Navigation:** bottom tabs use **`@expo/vector-icons` / Ionicons** (`home-outline`, `list-outline`, `bar-chart-outline`, `sparkles-outline`, `settings-outline`) in **`RootNavigator`**. **Tests:** `RootNavigator.test.tsx` (AI tab visibility); Jest mocks Ionicons in **`jest.setup.ts`**.
 - [~] **Themes & fonts:** `ThemeProvider` + `@rianell/tokens` (team, appearance mode, colorblind); `theme.font()` scales with `prefs.accessibility.textScale`. **Tests:** `ThemeProvider.test.tsx`, `SettingsScreen.test.tsx` (typography scale).
-- [~] **Settings — parity gaps vs web:** native has Theme (AI toggle, appearance, team), Accessibility (large text, TTS, read mode, colorblind), Data management, Install & downloads. **Still open vs web:** dedicated **bug report** flow, **goals/targets** editor, **LLM / on-device model** picker and inference settings (web `app.js` / settings where present), notification prefs parity, and any **About** / version blocks—port incrementally and add **screen tests** per surface.
+- [~] **Settings — parity vs web carousel:** native **Settings** uses a **horizontal paged carousel** (tabs + prev/next + dots) with panes **Personal & cloud** → **AI & theme** → **Accessibility** → **Data & install** (mirrors web `settings-carousel*` structure). **Cloud** pane: **`SettingsCloudPane`** + Supabase auth when env is set. **Still open vs web:** remaining panes (Display, Customisation, Performance, full AI & Goals toggles), **bug report**, **goals/targets**, **LLM** picker, notifications, **About**—port incrementally; **tests:** `SettingsScreen.test.tsx`, `SettingsCloudPane.test.tsx`, `supabaseClient.test.ts`.
 - [~] **AI gating:** `aiEnabled` hides AI tab and should gate AI-heavy settings copy on native the same way as web when implemented end-to-end.
 
 ---
@@ -140,10 +141,12 @@ If any of the above becomes false, fix it before moving forward.
 
 **Work items**
 - [x] **Home + FAB + navigation wiring** — covered by smoke tests; extend as new UI lands.
+- [x] **Tab bar icons** — **`@expo/vector-icons` (Ionicons)**; app **store icons** remain in **`app.json`** (`icon`, adaptive icons, splash).
+- [x] **Settings carousel** — horizontal paged panes + tab strip + chevrons + dots; **cloud** pane uses Supabase when env configured.
 - [~] **Bug report:** surface equivalent to web (modal / mailto / GitHub)—route, copy, and **tests** (`SettingsScreen` or dedicated screen).
 - [~] **Goals & targets:** parity with web goals UI and persistence (`@rianell/shared` / preferences)—**tests** for merge rules and UI.
 - [~] **LLM / on-device / browser AI** scaffolding: align with web feature flags; when native inference exists, gate behind same prefs—**tests** for disabled/enabled states.
-- [~] **Nav polish:** optional tab icons / safe-area parity with web bottom chrome.
+- [~] **Nav polish:** safe-area / label parity with web bottom chrome.
 
 **Done when:** a user can complete the same **settings-adjacent** and **home/nav** tasks on web and native with the same intent; exceptions documented.
 
@@ -163,8 +166,8 @@ If any of the above becomes false, fix it before moving forward.
 ## 6) Engineering gates (how we keep parity from drifting)
 
 ### Testing strategy (repo + CI)
-- **Mobile (Jest):** `apps/mobile/src/**/*.test.ts(x)` — screens, storage, AI, charts, theme, navigation, data import/export. Run: **`npm run test:mobile`**.
-- **Root unit (Node):** `tests/unit/**/*.test.mjs` — web wiring, **workflow guards** (`workflows-ci-rncli.test.mjs`), **Expo config** (`mobile-expo-config.test.mjs` — Async Storage Gradle plugin), tokens. Run: **`npm run test:unit`**.
+- **Mobile (Jest):** `apps/mobile/src/**/*.test.ts(x)` — screens, storage, AI, charts, theme, navigation, **Supabase client** (`supabaseClient.test.ts`), **SettingsCloudPane**, data import/export. Run: **`npm run test:mobile`**.
+- **Root unit (Node):** `tests/unit/**/*.test.mjs` — web wiring, **workflow guards** (`workflows-ci-rncli.test.mjs`), **Expo config** (`mobile-expo-config.test.mjs` — Async Storage Gradle plugin), **`app.config.js`**, tokens. Run: **`npm run test:unit`**.
 - **CI (`.github/workflows/ci.yml`):** `unit-tests` job runs **`npm run test:unit`**; **`expo-bundle-prod`** runs after **`unit-tests`** + **`security-audit`** and runs **`npm run typecheck:mobile`** + **`npm run test:mobile`**. **Every PR/push** must pass these before native artifacts build.
 - **When adding a feature:** prefer **one** focused test file or cases in an existing file; run both commands locally before push.
 
