@@ -2,17 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.23** - Plan: testing matrix + shell parity + RN performance; more mobile/unit tests.
+**Latest: v1.45.23** - Plan: shell parity + testing/perf; HomeScreen + Expo config tests.
 
-### v1.45.23 - 2026-03-26 - Tests + development plan (shell parity, CI, performance)
+### v1.45.23 - 2026-03-26 - Docs + tests: shell parity, CI testing strategy, HomeScreen
 
-- **Tests**:
-  - **`apps/mobile/src/screens/HomeScreen.test.tsx`**: greeting, “logged today” copy, **Log today** a11y.
-  - **`apps/mobile/src/storage/preferences.test.ts`**: defaults, merge, clamp **textScale**, **savePreferences**.
-  - **`apps/mobile/src/navigation/RootNavigator.test.tsx`**: **AI** tab shown when **`aiEnabled`** default true.
-  - **`tests/unit/async-storage-expo-plugin.test.mjs`**: **`withAsyncStorageLocalRepo`** contains **local_repo** + **jitpack** anchor.
 - **Docs**:
-  - **`docs/next-phase-development-plan.md`**: §**4.3** shell (Home, nav, fonts, bug report, AI/goals); **Phase E**; §**6** testing strategy + CI matrix; §**7** RN performance; §**8** working agreements (tests rule).
+  - **`docs/next-phase-development-plan.md`**: §**4.3** Shell UX parity (Home, nav, themes/fonts, settings gaps: bug report, goals, LLM); **Phase E** (shell) and **Phase F** (performance); **§6** Testing strategy (Jest + Node unit + CI matrix); §**7** tests agreement.
+- **Tests**:
+  - **`apps/mobile/src/screens/HomeScreen.test.tsx`**: title, today status, FAB → `LogWizard`.
+  - **`tests/unit/mobile-expo-config.test.mjs`**: `app.json` registers **`withAsyncStorageLocalRepo`**; plugin source contains **`shared_storage`** marker.
+- **Mobile**: **`RootNavigator.test.tsx`**: AI tab visible when **`aiEnabled`** default true.
 
 ### v1.45.22 - 2026-03-26 - Mobile Android: Async Storage v3 Gradle fix
 

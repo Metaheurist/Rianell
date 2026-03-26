@@ -1,19 +1,30 @@
 import React from 'react';
-import { render, waitFor, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { HomeScreen } from './HomeScreen';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import { getDefaultPreferences } from '../storage/preferences';
-import * as logs from '../storage/logs';
-
-jest.mock('../storage/logs');
 
 const mockNavigate = jest.fn();
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
-  useFocusEffect: (cb: () => void) => {
-    cb();
-  },
+
+jest.mock('@react-navigation/native', () => {
+  const React = require('react');
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: () => ({ navigate: mockNavigate }),
+    useFocusEffect: (effect: () => void) => {
+      React.useEffect(() => {
+        effect();
+      }, []);
+    },
+  };
+});
+
+jest.mock('../storage/logs', () => ({
+  loadLogs: jest.fn(async () => []),
 }));
+
+import { loadLogs } from '../storage/logs';
 
 function renderHome() {
   const prefs = getDefaultPreferences();
@@ -26,28 +37,30 @@ function renderHome() {
 
 beforeEach(() => {
   mockNavigate.mockClear();
+  (loadLogs as jest.Mock).mockResolvedValue([]);
 });
 
-test('shows title and log-today FAB with accessibility', async () => {
-  jest.mocked(logs.loadLogs).mockResolvedValue([]);
-  const { getByText, getByLabelText } = renderHome();
-
-  expect(getByText('Rianell')).toBeTruthy();
+test('home shows title and prompts to log when no entry today', async () => {
+  const { getByText, findByText } = renderHome();
+  getByText('Rianell');
   await waitFor(() => {
-    expect(getByText(/No log for today yet/i)).toBeTruthy();
+    expect(loadLogs).toHaveBeenCalled();
   });
-  const fab = getByLabelText('Log today');
-  expect(fab).toBeTruthy();
-  fireEvent.press(fab);
+  await findByText('No log for today yet. Tap + to record how you feel.');
+});
+
+test('home shows logged message when today exists in logs', async () => {
+  const today = new Date().toISOString().slice(0, 10);
+  (loadLogs as jest.Mock).mockResolvedValue([{ date: today, mood: 5 }]);
+  const { findByText } = renderHome();
+  await findByText('You have logged today. Open View logs to browse or edit entries.');
+});
+
+test('FAB navigates to Log wizard', async () => {
+  const { getByLabelText } = renderHome();
+  await waitFor(() => {
+    expect(loadLogs).toHaveBeenCalled();
+  });
+  fireEvent.press(getByLabelText('Log today'));
   expect(mockNavigate).toHaveBeenCalledWith('LogWizard');
-});
-
-test('reflects when today already has a log', async () => {
-  const iso = new Date().toISOString().slice(0, 10);
-  jest.mocked(logs.loadLogs).mockResolvedValue([{ date: iso }] as any);
-  const { getByText } = renderHome();
-
-  await waitFor(() => {
-    expect(getByText(/You have logged today/i)).toBeTruthy();
-  });
 });
