@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.45.20** - plan: Phase B visual next steps + Phase C items).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.45.21** - README CI vs legacy tables; RN sequential builds).
 
 ### Here’s what we plan next
 
@@ -35,19 +35,26 @@ Roadmap for the next phase—**web + React Native** split, **system-aware themes
 
 <!-- RIANELL_BUILD_INFO_START -->
 
-[![CI builds](https://img.shields.io/badge/build-iOS%2096%20%7C%20Android%2096%20%7C%20Server%20106%20%7C%20Web%20106-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/23617352266)
+[![CI builds](https://img.shields.io/badge/build-RN%20%E2%80%94%20%7C%20RN%20iOS%20%E2%80%94%20%7C%20Server%20106%20%7C%20Web%20local-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions)
 
-**CI builds**
+**CI builds** (React Native CLI + server + web)
 
 | Channel | Build |
 | :--- | :---: |
-| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip) | **96** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Android** APK | **96** |
+| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **Android** APK (React Native CLI) | **—** |
+| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip, RN CLI) | **—** |
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **106** |
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **106** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **106** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **local** |
 
-Latest: [`App build/Android/app-debug-beta-96.apk`](App%20build/Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-96.zip`](App%20build/iOS/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest-x64.json) · [`App build/Server/rianell-server-x86.exe`](App%20build/Server/latest-x86.json) · [Workflow #106](https://github.com/Metaheurist/Rianell/actions/runs/23617352266) · `20d2e0b`
+**Legacy builds** (Capacitor — no longer produced by CI; metadata only)
+
+| Channel | Build |
+| :--- | :---: |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Android** APK (Capacitor) | **96** |
+| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip, Capacitor) | **96** |
+
+Latest: [`App build/RNCLI-Android/latest.json`](App%20build/RNCLI-Android/latest.json) · [`App build/iOS/latest.json`](App%20build/iOS/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest-x64.json) · [`App build/Server/rianell-server-x86.exe`](App%20build/Server/latest-x86.json) · legacy [`App build/Android/app-debug-beta-96.apk`](App%20build/Android/latest.json) · [`App build/Legacy/Capacitor-iOS/Health-Tracker-ios-alpha-build-96.zip`](App%20build/Legacy/Capacitor-iOS/latest.json) · [Workflow #local](https://github.com/Metaheurist/Rianell/actions) · `local`
 
 <!-- RIANELL_BUILD_INFO_END -->
 
