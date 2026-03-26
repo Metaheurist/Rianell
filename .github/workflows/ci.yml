@@ -241,12 +241,12 @@ jobs:
           node-version: "22"
           cache: npm
 
+      # Do not enable Gradle dependency caching on setup-java — apps/mobile/android is created by expo prebuild, so no wrapper exists at checkout.
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: "17"
-          cache: gradle
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
