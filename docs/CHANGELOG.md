@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.22** - Async Storage v3 Android: local Maven repo via Expo config plugin.
+**Latest: v1.45.23** - Plan: testing matrix + shell parity + RN performance; more mobile/unit tests.
+
+### v1.45.23 - 2026-03-26 - Tests + development plan (shell parity, CI, performance)
+
+- **Tests**:
+  - **`apps/mobile/src/screens/HomeScreen.test.tsx`**: greeting, “logged today” copy, **Log today** a11y.
+  - **`apps/mobile/src/storage/preferences.test.ts`**: defaults, merge, clamp **textScale**, **savePreferences**.
+  - **`apps/mobile/src/navigation/RootNavigator.test.tsx`**: **AI** tab shown when **`aiEnabled`** default true.
+  - **`tests/unit/async-storage-expo-plugin.test.mjs`**: **`withAsyncStorageLocalRepo`** contains **local_repo** + **jitpack** anchor.
+- **Docs**:
+  - **`docs/next-phase-development-plan.md`**: §**4.3** shell (Home, nav, fonts, bug report, AI/goals); **Phase E**; §**6** testing strategy + CI matrix; §**7** RN performance; §**8** working agreements (tests rule).
 
 ### v1.45.22 - 2026-03-26 - Mobile Android: Async Storage v3 Gradle fix
 

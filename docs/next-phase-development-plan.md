@@ -2,7 +2,7 @@
 
 This document is the **single build plan** to finish Rianell’s transition to a **React Native CLI** app that matches the **web/PWA** and produces **Android APK** + **iOS emulator Xcode zip** via CI releases.
 
-**Last updated:** 2026-03-26 (CI: Async Storage v3 local Maven plugin; `rn-build-version` + README tables; Phase B visual next; Phase C copy/`aiEnabled`)
+**Last updated:** 2026-03-26 (§6 testing/CI matrix; §4.3 shell parity; §8 RN performance; Home + preferences + plugin tests)
 
 ---
 
@@ -70,6 +70,16 @@ If any of the above becomes false, fix it before moving forward.
 - [x] **Step 8 — Exercise**: `Name:Minutes` parsing, category tiles, clear all + count badge; tests.
 - [x] **Step 9 — Medication & notes**: medications list, Taken today?, clear all + count badge; tests.
 
+### 4.3 Shell, navigation, typography & reporting (web parity gaps)
+**Web reference:** home tab MOTD / goals strip, bottom chrome, `web/app.js` settings + bug report flows.
+
+- [~] **Home tab:** web shows greeting, **goals** snippet when enabled, richer copy; native **`HomeScreen`** is minimal (today’s log status + FAB). **Target:** surface goals / daily target copy when shared types exist in `@rianell/shared` or prefs.
+- [~] **Tab bar / navigation:** native uses **bottom tabs** (`RootNavigator`) with placeholder **text “icons”** (●, ≡, ▦, ✦, ⚙); web uses icon rail + labels. **Target:** optional `@expo/vector-icons` or SVG tab icons matching web affordances; keep **a11y** `tabBarAccessibilityLabel` per tab.
+- [~] **Typography / fonts:** **`ThemeProvider`** applies **`font()`** scaling from `prefs.accessibility.textScale` + large-text; web uses CSS + token teams. **Target:** align heading/body scale steps with web where measurable; optional custom font matching PWA (out of scope until bundled).
+- [~] **Bug report:** web **Settings → bug report** modal / mailto flow (`web/index.html` / `app.js`). **Not on native** — add **native** equivalent (mailto + device/app info, or share sheet) when prioritized.
+- [~] **AI + Goals gating:** **`SettingsScreen`** exposes **“Enable AI features & Goals”** (`aiEnabled`) like web; **`shouldShowAiTab`** hides **AI Analysis** when off. **Target:** ensure **Charts** / home teasers respect the same flags as web (`aiEnabled`, goals modules).
+- [x] **Preferences contract:** `loadPreferences` / `getDefaultPreferences` / `savePreferences` (`apps/mobile/src/storage/preferences.ts`) — covered by **`preferences.test.ts`**.
+
 ---
 
 ## 5) Execution phases (what to build next)
@@ -126,6 +136,17 @@ If any of the above becomes false, fix it before moving forward.
 
 **Status:** Phase D goals for native Settings are **met** (see `docs/app-and-features.md` and changelog **v1.45.8–v1.45.9**).
 
+### Phase E — Shell polish, bug report, nav icons (after Charts/AI core parity)
+**Goal:** Home, tabs, fonts, and reporting feel as complete as web without blocking Phase B/C.
+
+**Work items**
+- [~] **Home:** goals / target line + MOTD-style greeting where data exists.
+- [~] **Bug report:** native modal or share intent with app version + build channel (align with web copy).
+- [~] **Tab icons:** replace placeholder glyphs with accessible icon set; verify focus order and labels.
+- [x] **Tests:** `HomeScreen.test.tsx`, `preferences.test.ts`, **`tests/unit/async-storage-expo-plugin.test.mjs`** (Gradle plugin guard).
+
+**Done when:** QA checklist in §4.3 is mostly **[x]** or explicitly deferred.
+
 ---
 
 ## 6) Engineering gates (how we keep parity from drifting)
@@ -133,21 +154,48 @@ If any of the above becomes false, fix it before moving forward.
 ### Required local commands
 - `npm run typecheck:mobile`
 - `npm run test:mobile`
+- `npm run test:unit` (repo root — web wiring + **workflow guards** + **Expo plugin** smoke tests)
 
-### Required CI gates
+### Testing strategy (must grow with every feature)
+| Layer | What | Where |
+| :--- | :--- | :--- |
+| **Pure logic** | Charts summarisation, AI summaries, import/export, preferences merge | `apps/mobile/src/**/*.test.ts(x)`, `packages/shared` tests |
+| **Screens** | Render smoke, a11y labels, key user actions | `apps/mobile/src/screens/*.test.tsx` |
+| **CI / config** | `ci.yml` invariants, Async Storage **local_repo** plugin | `tests/unit/*.test.mjs` |
+| **Future** | E2E (Detox / Maestro), visual regression | not required yet; add when shell stabilises |
+
+**Rules**
+- New **user-facing** surface area (screen, setting, navigator branch) should ship with **at least one** test (render or logic) in the same PR when feasible.
+- **Regression guards** (Gradle cache, RN job wiring, plugin text) live in **`tests/unit/`** so they run on **every** PR/push without an Android emulator.
+
+### Required CI gates (`.github/workflows/ci.yml`)
+- **`unit-tests` job:** runs **`npm run test:unit`** (includes `tests/unit/workflows-ci-rncli.test.mjs`, `async-storage-expo-plugin.test.mjs`, web markup guards).
+- **`expo-bundle-prod` job:** runs **`npm run typecheck:mobile`** + **`npm run test:mobile`** after `unit-tests` + `security-audit` pass — **Jest** must be green before native bundle / RN CLI jobs.
 - `security-audit` must pass (production-only audit).
-- Unit tests + mobile tests must pass before release jobs run.
 - Release job must attach RN CLI artifacts.
 - **`rn-build-version`** runs before **`rncli-android-apk`** / **`rncli-ios-zip`**; both jobs **need** it so RN `latest.json` and zip names stay on the **sequential** counter (see `tests/unit/workflows-ci-rncli.test.mjs`).
 - **RN CLI Android** (`rncli-android-apk`): `setup-java` must **not** use **`cache: gradle`** until Gradle exists (generated by `expo prebuild`); see `tests/unit/workflows-ci-rncli.test.mjs`.
-- **Async Storage v3:** prebuild must apply **`withAsyncStorageLocalRepo`** so `:app:compileDebugJavaWithJavac` can resolve **`storage-android`** (local repo under the async-storage package).
+- **Async Storage v3:** prebuild must apply **`withAsyncStorageLocalRepo`** so `:app:compileDebugJavaWithJavac` can resolve **`storage-android`** (local repo under the async-storage package); see **`tests/unit/async-storage-expo-plugin.test.mjs`**.
 
 ---
 
-## 7) Working agreements (so this stays buildable)
+## 7) React Native performance (optimise as we build)
+
+**Principles** (apply during Phase B visual work and shell polish):
+- **Hermes** + **production bundles** are already enforced by **`expo export`** in CI (`expo-bundle-prod`).
+- **Lists:** use **`FlatList`** / **`FlashList`** (if adopted) for long log lists; avoid rendering huge scroll views of unbounded children.
+- **Re-renders:** `React.memo` on row components; stable **`keyExtractor`**; avoid inline object literals in hot paths where profiling shows cost.
+- **Focus / logs:** reload data on **`useFocusEffect`** only where needed (pattern already on **Home** / logs).
+- **Images / assets:** prefer static `require` for icons; resize splash/icon assets to needed DPs.
+- **Profiling:** use React Native **Performance** monitor in dev; track **TTI** for Charts once native charts land.
+
+---
+
+## 8) Working agreements (so this stays buildable)
 
 - Every parity change must update this file by moving items between:
   - **Remaining** (section 4)
   - **Done** (recorded in commit messages and changelog; do not re-add checklist noise here)
 - Avoid “plan drift”: if it isn’t in section 4 or 5, it isn’t in scope right now.
+- **Tests:** add or extend automated tests when adding parity; prefer **fast** unit tests in CI over flaky E2E until shell is stable.
 
