@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.23** - Plan: shell parity + testing/perf; HomeScreen + Expo config tests.
+**Latest: v1.45.24** - Mobile: Ionicons tabs, settings carousel, Supabase cloud login.
+
+### v1.45.24 - 2026-03-26 - Mobile: tab icons, settings slides, Supabase auth
+
+- **Navigation (`RootNavigator`):** **`@expo/vector-icons` / Ionicons** for bottom tabs (home, list, charts, sparkles, settings).
+- **Settings:** horizontal **carousel** (web-style): pane tabs + prev/next + dots; panes **Personal & cloud** ( **`SettingsCloudPane`** ), **AI & theme**, **Accessibility**, **Data & install**.
+- **Cloud login:** **`@supabase/supabase-js`** + **`expo-constants`**; **`apps/mobile/app.config.js`** exposes **`EXPO_PUBLIC_SUPABASE_URL`** / **`EXPO_PUBLIC_SUPABASE_ANON_KEY`**; **`src/cloud/supabaseClient.ts`**; sign-in / sign-up / sign-out when configured; hint when unset. **`apps/mobile/.env.example`**; **`.gitignore`** includes **`.env`**.
+- **Tests:** `SettingsScreen.test.tsx` (carousel navigation), `SettingsCloudPane.test.tsx`, `supabaseClient.test.ts`; **`jest.setup.ts`** mocks **`expo-constants`** + Ionicons; **`tests/unit/mobile-expo-config.test.mjs`** asserts **`app.config.js`**.
+- **Docs:** **`docs/next-phase-development-plan.md`** §2, §4.3, Phase E.
 
 ### v1.45.23 - 2026-03-26 - Docs + tests: shell parity, CI testing strategy, HomeScreen
 
