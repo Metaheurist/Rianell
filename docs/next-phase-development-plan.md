@@ -662,4 +662,4 @@ Use this as a **linear prompt plan**. Each item is intended to be small enough t
 17. **Deprecate then remove Capacitor**
    - “Update docs/workflows to deprecate Capacitor. Remove Capacitor build jobs. After Expo reaches parity, delete Capacitor-specific code and scripts and update README/docs accordingly.”
 
-**Done when**: The Aider script can be followed end-to-end to produce a web/PWA + Expo product with enforced parity, tests, CI gates, and release automation.
+**Done when**: All of the avove is implemented
