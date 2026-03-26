@@ -2,7 +2,7 @@
 
 This document is the **single build plan** to finish Rianell’s transition to a **React Native CLI** app that matches the **web/PWA** and produces **Android APK** + **iOS emulator Xcode zip** via CI releases.
 
-**Last updated:** 2026-03-27 (CI: RN CLI Android job — setup-java without pre-checkout Gradle cache)
+**Last updated:** 2026-03-27 (Phase B: Charts metric/delta formatting vs web)
 
 ---
 
@@ -54,7 +54,7 @@ If any of the above becomes false, fix it before moving forward.
 **Web reference:** `web/index.html` + `web/app.js`
 
 ### 4.1 Native screens remaining
-- [~] **Charts tab**: range (`14/30/90/all`), view toggle (`Balance/Individual/Combined`), trend summaries/deltas, mini spark bars, and **pull-to-refresh** are implemented; **Balance** limits listed metrics; **empty range** has a dedicated empty state; **range and view chips** have `accessibilityLabel` + `accessibilityState.selected` (test). **Remaining:** full Apex/visual parity with web (styling, animations, richer chart chrome).
+- [~] **Charts tab (Phase B)**: range (`14/30/90/all`), view toggle (`Balance/Individual/Combined`), trend summaries/deltas, mini spark bars, **pull-to-refresh**; **Balance** limits listed metrics; **empty range**; **range/view chip** a11y; **steps/hydration display** matches web (`formatChartMetricValue` / delta — localized step counts, `X.X glasses` for hydration). **Remaining:** Apex/visual parity (styling, animations, richer chart chrome).
 - [~] **AI Analysis tab**: lite++ parity (range summaries + narrative sections + correlations + groups-that-change-together); range chips have accessibility labels; pull-to-refresh reloads logs (test). Deeper parity with web AI copy/structure still pending; gated by `aiEnabled`.
 
 ### 4.2 Log wizard remaining steps (native)
@@ -81,8 +81,13 @@ If any of the above becomes false, fix it before moving forward.
 
 **Done when:** a QA pass can follow the wizard on both surfaces and observe no UX/behavior differences (except signed-off exceptions).
 
-### Phase B — Charts parity (range + views + deltas)
+### Phase B — Charts parity (range + views + deltas) **← active**
 **Goal:** Charts tells the same story as web for the same range selection.
+
+**Work items**
+- [x] Range + view toggles, trends, sparks, refresh, balance filter, empty state, chip a11y (see §4.1).
+- [x] **Metric copy parity:** steps use integer + locale grouping; hydration uses `X.X glasses`; deltas signed consistently (`summarizeCharts.ts` + `ChartsScreen`).
+- [~] **Visual parity:** Apex-style charts / animations / chrome (not started on native).
 
 **Done when:** for the same logs + range, web and native surface the same metrics and deltas, and the view toggle changes what’s shown the same way.
 
