@@ -180,15 +180,17 @@ This section is intentionally written as a **linear checklist** that a non-agent
   - **Expo log food & exercise quick picks**: **Completed (duplicate selection UX parity)** — quick-pick chips now allow duplicate adds; when count > 1, a badge appears on the chip and tapping it shows a **Yes / No** confirm to clear that selected card item.
   - **Expo AI Analysis tab**: **Completed (initial parity)** — replaced placeholder with a range-based analysis surface (`14/30/90/all`) that computes log-driven summary outputs (entry count, flare days, average mood/sleep/fatigue, top symptoms/stressors) with pull-to-refresh; added tests for analysis logic and AI screen rendering.
   - **Expo Charts tab**: **Completed (expanded lite parity)** — upgraded from basic totals to a range-based chart summary surface (`14/30/90/all`) with per-metric trend cards (average/current/delta/point-count for mood, sleep, fatigue, steps, hydration), plus pull-to-refresh; added trend summarizer unit tests.
+  - **Expo Charts tab**: **Completed (UI parity)** — added the web-like `Balance / Individual / Combined` view toggle control (visual parity still pending).
   - **Expo Log wizard (symptoms/stressors free-add)**: **Completed (lite parity improvement)** — Step 3 now supports adding custom symptoms and Step 5 supports adding custom stressors, in addition to frequent/predefined chips; updated wizard tests to cover custom entry flows.
   - **Expo Log wizard (pain UX refinement)**: **Completed (lite parity improvement)** — Step 3 pain region selector now includes severity legend, mild/pain region counts, state-colored region chips, and a one-tap clear-all action for body selections.
+  - **Expo Log wizard (selected symptoms/stressors clear-all)**: **Completed (lite parity improvement)** — added one-tap `Clear selected` controls for selected symptoms (Step 3) and selected stressors (Step 5).
   - **Expo AI Analysis tab (narrative sections)**: **Completed (lite+ parity improvement)** — AI tab now includes structured narrative sections closer to web copy: **What you logged**, **What we found**, **How you are doing**, and **Things to watch**, generated from selected-range logs; tests updated.
   - **Expo AI Analysis tab (correlations)**: **Completed (lite parity improvement)** — added a **Correlations** section with simple Pearson-based metric links (mood/sleep, sleep/fatigue, mood/fatigue) and fallback guidance when no strong relationship is detected.
   - **Expo Charts tab (mini visual trends)**: **Completed (lite parity improvement)** — added lightweight sparkline-style trend bars for each metric trend row so the Charts tab now has a quick visual trajectory in addition to numeric average/current/delta summaries.
   - **Expo AI Analysis tab (possible flare-up)**: **Completed (lite parity improvement)** — added a **Possible flare-up** block (risk level + matching signal count + notes) derived from recent trends and flare frequency to align closer to web AI summary structure.
   - **Expo AI Analysis tab (groups-that-change-together)**: **Completed (lite parity improvement)** — added a **Groups that change together** section based on detected metric links, providing plain-language relationship hints similar to the web AI sectioning style.
   - **Expo AI Analysis tab (important changes)**: **Completed (lite parity improvement)** — added an **Important** section that flags sudden recent metric changes (fatigue/sleep/mood shifts) with a fallback “no sudden changes” message.
-  - **Expo Log wizard (medication quick-picks)**: **Completed (lite parity improvement)** — Step 9 now includes medication quick-pick chips, selected-medication remove controls, and duplicate count-badge clear behavior consistent with food/exercise quick-picks.
+  - **Expo Log wizard (medication quick-picks)**: **Completed (lite parity improvement)** — Step 9 now includes medication quick-pick chips, selected-medication remove controls, duplicate count-badge clear behavior consistent with food/exercise quick-picks, and a `Taken today?` yes/no toggle (default Yes).
   - **Expo Log wizard (lifestyle quick scores)**: **Completed (lite parity improvement)** — Step 5 now includes quick score chips/inputs for irritability & weather sensitivity, while Step 6 includes quick score chips for daily function plus manual inputs for steps/hydration.
   - **Expo Log wizard (energy selection UX parity)**: **Completed (lite parity improvement)** — Step 4 energy/clarity adds a visible “Selected energy & clarity” control with one-tap clear.
 
@@ -259,7 +261,7 @@ This section is intentionally written as a **linear checklist** that a non-agent
 - [~] **Step 6**: Lifestyle (lite+ — daily function with quick score chips + manual inputs for steps/hydration)
 - [~] **Step 7**: Food (lite+ — Breakfast/Lunch/Dinner/Snack with quick-picks + remove)
 - [~] **Step 8**: Exercise (lite+ — `Name:Minutes`, category-grouped picks, quick-picks)
-- [~] **Step 9**: Medication & notes (lite+ — comma-separated medication names with quick-pick chips + remove controls + duplicate count-badge clear → `{ name, times: [], taken }[]`; free-form notes)
+- [~] **Step 9**: Medication & notes (lite+ — comma-separated medication names with quick-pick chips + remove controls + duplicate count-badge clear + `Taken today?` yes/no toggle → `{ name, times: [], taken }[]`; free-form notes)
 - [x] **Step 10**: Review (plain-text summary via `buildLogReviewSummary`; Save → persist → back)
 
 ##### Settings modules (web “Settings” overlay carousel)

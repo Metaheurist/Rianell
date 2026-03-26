@@ -216,6 +216,7 @@ export function LogWizardScreen() {
   const [snackText, setSnackText] = useState('');
   const [exerciseText, setExerciseText] = useState('');
   const [medicationText, setMedicationText] = useState('');
+  const [medicationTaken, setMedicationTaken] = useState(true);
   const [frequentSymptoms, setFrequentSymptoms] = useState<string[]>([]);
   const [frequentStressors, setFrequentStressors] = useState<string[]>([]);
 
@@ -276,7 +277,10 @@ export function LogWizardScreen() {
   const dinnerItems = useMemo(() => parseCsvList(dinnerText), [dinnerText]);
   const snackItems = useMemo(() => parseCsvList(snackText), [snackText]);
   const exerciseItems = useMemo(() => parseExerciseItems(exerciseText), [exerciseText]);
-  const medicationItems = useMemo(() => parseMedicationNamesCsv(medicationText), [medicationText]);
+  const medicationItems = useMemo(
+    () => parseMedicationNamesCsv(medicationText, medicationTaken),
+    [medicationText, medicationTaken]
+  );
 
   useEffect(() => {
     loadLogs()
@@ -932,6 +936,13 @@ export function LogWizardScreen() {
             <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
               Enter medication names; times can be added in a future update.
             </Text>
+
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Taken today?</Text>
+            <View style={styles.row}>
+              <Choice label="Yes" selected={medicationTaken} onPress={() => setMedicationTaken(true)} />
+              <Choice label="No" selected={!medicationTaken} onPress={() => setMedicationTaken(false)} />
+            </View>
+
             <View style={styles.chips}>
               {MEDICATION_QUICK_OPTIONS.map((item) => (
                 <Choice
