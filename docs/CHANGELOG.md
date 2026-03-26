@@ -2,7 +2,18 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.18** - Phase B Charts: web metric colors.
+**Latest: v1.45.20** - Development plan: Phase B visual next steps + Phase C work items.
+
+### v1.45.20 - 2026-03-26 - Documentation: next-phase plan (B/C steps)
+
+- **Docs**:
+  - **`docs/next-phase-development-plan.md`**: §4.1 clarifies **Charts** lite parity vs **Apex-class** visual work; **AI** points at `AiScreen` / `analyzeLogs.ts`. **Phase B** adds **Done when (lite)** + ordered **Next steps (visual)** (library spike → combined → individual → balance → polish). **Phase C** adds explicit work items (lite done, copy + feature parity + `aiEnabled` remaining).
+
+### v1.45.19 - 2026-03-26 - Documentation: app-and-features Charts (RN Phase B)
+
+- **Docs**:
+  - **`docs/app-and-features.md`**: Split **React Native** copy into **Log today wizard** vs **Charts & AI (Phase B)**; document range a11y, spark bars, web hex colors, and value/delta formatting aligned with web.
+  - **`README.md`**: Latest changes pointer.
 
 ### v1.45.18 - 2026-03-27 - Mobile Charts (Phase B) metric colors
 

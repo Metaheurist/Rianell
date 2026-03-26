@@ -2,7 +2,7 @@
 
 This document is the **single build plan** to finish Rianell’s transition to a **React Native CLI** app that matches the **web/PWA** and produces **Android APK** + **iOS emulator Xcode zip** via CI releases.
 
-**Last updated:** 2026-03-27 (Phase B: Charts web metric colors + spark bars + row accent)
+**Last updated:** 2026-03-26 (plan: Phase B next-step list + Phase C work items; Charts docs in `app-and-features.md`)
 
 ---
 
@@ -54,8 +54,8 @@ If any of the above becomes false, fix it before moving forward.
 **Web reference:** `web/index.html` + `web/app.js`
 
 ### 4.1 Native screens remaining
-- [~] **Charts tab (Phase B)**: range/view, trends, sparks, refresh, balance filter, empty state, chip a11y; **value/delta** formatting; **`CHART_METRIC_HEX`** spark + **left accent** on each trend row (web combined-chart palette). **Remaining:** full Apex line/radar animations and chart chrome.
-- [~] **AI Analysis tab**: lite++ parity (range summaries + narrative sections + correlations + groups-that-change-together); range chips have accessibility labels; pull-to-refresh reloads logs (test). Deeper parity with web AI copy/structure still pending; gated by `aiEnabled`.
+- [~] **Charts tab (Phase B)** — **lite parity done:** range/view (`balance` / `individual` / `combined`), trends, sparks, refresh, balance filter, empty state, chip a11y, **value/delta** formatting, **`CHART_METRIC_HEX`** + spark + row accent (`ChartsScreen` + `summarizeCharts.ts`). **Still open:** full **Apex-class** line/radar charts, animations, prediction toggles, and chart chrome (`Phase B` → **Next steps** in §5).
+- [~] **AI Analysis tab (Phase C)** — **lite parity done:** `AiScreen` + `summarizeLogsForAi` (`apps/mobile/src/ai/analyzeLogs.ts`): range chips + a11y, pull-to-refresh, “what you logged” / flare / averages / narrative-style sections. **Still open:** match **web** section order, headings, and copy; correlations + “groups that change together” if present on web; respect `aiEnabled` everywhere. Code: `apps/mobile/src/screens/AiScreen.tsx`.
 
 ### 4.2 Log wizard remaining steps (native)
 - [~] **Step 3 — Symptoms & pain**: tap-to-cycle diagram uses **web-matching silhouette path** (`index.html` outline), **140×280** viewBox, regions scaled to canvas; chips + “Use diagram text” + semantics aligned. **Remaining:** optional per-region path shapes matching web SVG exactly (mobile uses simplified rects/circles).
@@ -90,10 +90,24 @@ If any of the above becomes false, fix it before moving forward.
 - [x] **Metric color parity (lite):** `CHART_METRIC_HEX` from web palette; colored mini spark bars + row left border (`ChartsScreen`).
 - [~] **Visual parity:** full Apex line/radar charts / animations / chrome (not on native yet).
 
-**Done when:** for the same logs + range, web and native surface the same metrics and deltas, and the view toggle changes what’s shown the same way.
+**Done when (lite — met):** for the same logs + range, native shows the same **numbers**, **deltas**, **view mode** semantics, and **metric colors** as web; toggles and empty/loading behave consistently.
+
+**Next steps (visual — ordered)**
+1. **Spike:** pick a native chart approach (e.g. **Victory Native**, **react-native-gifted-charts**, or **Skia**) that supports multi-series lines + radar; confirm bundle size and Hermes compatibility.
+2. **Combined view:** multi-series line chart(s) using **`CHART_METRIC_HEX`** and the same series order/semantics as web combined charts (`web/app.js` chart helpers).
+3. **Individual view:** one chart per active metric (or paginated) with the same scales/labels intent as web.
+4. **Balance view:** radar or equivalent “wellness balance” visualization matching web **Balance** mode (axes, caps, colors).
+5. **Polish:** respect **reduced motion** where applicable; match web **prediction** toggle behavior if/when predictions are surfaced on native.
 
 ### Phase C — AI Analysis parity (lite++ → web-structure parity)
 **Goal:** AI tab outputs match web wording/sections closely, and remains correctly gated by `aiEnabled`.
+
+**Work items**
+- [x] **Lite pipeline:** `summarizeLogsForAi` + `AiScreen` — range, refresh, sections (what you logged, flare, averages, how you’re doing, top symptoms/stressors).
+- [x] **Range a11y** on chips (`AiScreen` — mirror Charts patterns).
+- [~] **Web copy alignment:** diff `AiScreen` section titles and body strings against the web AI panel (`web/app.js` / templates) and converge.
+- [~] **Feature parity:** correlations, “important” / flare-up callouts, and any **groups-that-change-together** blocks that exist on web — port logic into `@rianell/shared` or `analyzeLogs.ts` where shared, else document exceptions.
+- [~] **`aiEnabled`:** ensure empty/disabled state matches web when AI is off (settings flag + UI guard).
 
 **Done when:** for the same logs + range, the sections and “Important / flare-up / correlations” align closely with web.
 
