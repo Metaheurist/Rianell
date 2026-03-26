@@ -15,7 +15,7 @@
 #   5. commit-app-build  - Push + mobile: commit App build/ to the branch.
 #   6. publish-release   - Push + mobile: GitHub Release with Expo + Server assets.
 #   7. deploy-pages      - Push to main/master: site from web/ + App build/.
-#   8. readme-build-info - After deploy (web-only runs): README beta table + build numbers.
+#   8. readme-build-info - After deploy (web-only runs): README CI + legacy build tables.
 # =============================================================================
 
 name: CI
@@ -224,10 +224,36 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # React Native CLI native artifacts (no EAS / no EXPO_TOKEN)
+  # Sequential RN build number (1, 2, 3…) is stored in App build/RNCLI-Android/latest.json
+  # and bumped here — independent of GITHUB_RUN_NUMBER (web/server).
   # ---------------------------------------------------------------------------
+  rn-build-version:
+    name: RN CLI sequential build number
+    needs: [paths-filter, expo-bundle-prod]
+    if: |
+      github.event_name == 'push' &&
+      needs.paths-filter.outputs.mobile_release == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      rn_build: ${{ steps.calc.outputs.rn_build }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: calc
+        shell: bash
+        run: |
+          set -euo pipefail
+          PREV=0
+          if [ -f "App build/RNCLI-Android/latest.json" ]; then
+            PREV=$(node -e "const j=require('./App build/RNCLI-Android/latest.json'); process.stdout.write(String(parseInt(j.version,10)||0));" 2>/dev/null || echo 0)
+          fi
+          NEXT=$((PREV + 1))
+          echo "rn_build=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "RN sequential build: $NEXT (previous $PREV)"
+
   rncli-android-apk:
     name: Android APK (React Native CLI)
-    needs: [paths-filter, expo-bundle-prod]
+    needs: [paths-filter, expo-bundle-prod, rn-build-version]
     if: |
       github.event_name == 'push' &&
       needs.paths-filter.outputs.mobile_release == 'true'
@@ -266,6 +292,8 @@ jobs:
 
       - name: Collect APK + latest.json
         shell: bash
+        env:
+          RN_BUILD: ${{ needs.rn-build-version.outputs.rn_build }}
         run: |
           set -euo pipefail
           mkdir -p rncli-android-dist
@@ -276,7 +304,7 @@ jobs:
             exit 1
           fi
           cp -v "${apks[0]}" rncli-android-dist/app-debug-beta.apk
-          echo "{\"version\":${GITHUB_RUN_NUMBER},\"file\":\"app-debug-beta.apk\"}" > rncli-android-dist/latest.json
+          echo "{\"version\":${RN_BUILD},\"file\":\"app-debug-beta.apk\"}" > rncli-android-dist/latest.json
 
       - name: Upload Android dist
         uses: actions/upload-artifact@v5
@@ -286,7 +314,7 @@ jobs:
 
   rncli-ios-zip:
     name: iOS emulator Xcode project zip (React Native CLI)
-    needs: [paths-filter, expo-bundle-prod]
+    needs: [paths-filter, expo-bundle-prod, rn-build-version]
     if: |
       github.event_name == 'push' &&
       needs.paths-filter.outputs.mobile_release == 'true'
@@ -311,10 +339,12 @@ jobs:
 
       - name: Zip iOS project for emulator usage
         shell: bash
+        env:
+          RN_BUILD: ${{ needs.rn-build-version.outputs.rn_build }}
         run: |
           set -euo pipefail
           mkdir -p rncli-ios-dist
-          run="${GITHUB_RUN_NUMBER}"
+          run="${RN_BUILD}"
           zip -r "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "apps/mobile/ios"
           cp -f "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "rncli-ios-dist/Health-Tracker-ios-alpha-latest.zip"
           cp -f "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "rncli-ios-dist/Health-Tracker-simulator-alpha-${run}.zip"
@@ -499,7 +529,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md "App build/Expo/" "App build/Server/" "App build/RNCLI-Android/" "App build/iOS/"
+          git add README.md "App build/Expo/" "App build/Server/" "App build/RNCLI-Android/" "App build/iOS/" "App build/Legacy/"
           git diff --staged --quiet || git commit -m "Update App build artifacts (build ${{ github.run_number }}) [skip ci]"
           git fetch origin "${{ github.ref_name }}"
           git push origin ${{ github.ref_name }}
@@ -563,9 +593,9 @@ jobs:
             cp -v "gh-release/RNCLI-iOS/"* "release-assets/RNCLI/iOS/" || true
           fi
 
-          # Legacy (Capacitor) artifacts are not rebuilt; include the latest checked-in ones if present.
+          # Legacy (Capacitor) artifacts are not rebuilt; RN iOS lives under release-assets/RNCLI/, not Legacy.
           if [ -d "App build/Android" ]; then cp -r "App build/Android" "release-assets/Legacy/Android" || true; fi
-          if [ -d "App build/iOS" ]; then cp -r "App build/iOS" "release-assets/Legacy/iOS" || true; fi
+          if [ -d "App build/Legacy/Capacitor-iOS" ]; then cp -r "App build/Legacy/Capacitor-iOS" "release-assets/Legacy/Capacitor-iOS" || true; fi
 
           cp "gh-release/Server/server-exe-x64/rianell-server-x64.exe" "release-assets/Server/"
           cp "gh-release/Server/server-exe-x86/rianell-server-x86.exe" "release-assets/Server/"
@@ -602,7 +632,7 @@ jobs:
 
             ### Legacy (Capacitor)
             Directory: `release-assets/Legacy/`
-            - `Android/` and `iOS/` directories (copied from checked-in `App build/` if present; legacy builds are no longer rebuilt in CI)
+            - `Android/` and `Capacitor-iOS/` (copied from checked-in `App build/Android/` and `App build/Legacy/Capacitor-iOS/`; legacy builds are no longer rebuilt in CI)
 
             ### Server (Windows EXE)
             Directory: `release-assets/Server/`
