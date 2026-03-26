@@ -1,4 +1,4 @@
-import { summarizeCharts, __testOnly } from './summarizeCharts';
+import { filterTrendsForChartView, summarizeCharts, __testOnly } from './summarizeCharts';
 import type { LogEntry } from '../storage/logs';
 
 test('summarizeCharts computes trend averages and delta', () => {
@@ -20,4 +20,15 @@ test('summarizeCharts computes trend averages and delta', () => {
 
 test('normalizeSeries returns 0.5 for flat values', () => {
   expect(__testOnly.normalizeSeries([3, 3, 3])).toEqual([0.5, 0.5, 0.5]);
+});
+
+test('filterTrendsForChartView keeps mood/sleep/fatigue for balance only', () => {
+  const logs = [
+    { date: '2026-03-20', flare: 'No', mood: 5, sleep: 4, fatigue: 7, steps: 2000, hydration: 4 },
+  ] as LogEntry[];
+  const out = summarizeCharts(logs, 'all');
+  const balance = filterTrendsForChartView(out.trends, 'balance');
+  expect(balance.map((t) => t.key)).toEqual(['mood', 'sleep', 'fatigue']);
+  const all = filterTrendsForChartView(out.trends, 'combined');
+  expect(all.length).toBe(5);
 });

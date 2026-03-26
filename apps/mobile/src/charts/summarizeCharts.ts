@@ -20,6 +20,16 @@ export type ChartSummary = {
   trends: MetricTrend[];
 };
 
+/** Matches web Charts tab: Balance focuses on wellness metrics (steps/hydration are separate in web balance chart). */
+export type ChartViewMode = 'balance' | 'individual' | 'combined';
+
+const BALANCE_TREND_KEYS: TrendMetric[] = ['mood', 'sleep', 'fatigue'];
+
+export function filterTrendsForChartView(trends: MetricTrend[], view: ChartViewMode): MetricTrend[] {
+  if (view === 'balance') return trends.filter((t) => BALANCE_TREND_KEYS.includes(t.key));
+  return trends;
+}
+
 const METRICS: Array<{ key: TrendMetric; label: string }> = [
   { key: 'mood', label: 'Mood' },
   { key: 'sleep', label: 'Sleep' },
