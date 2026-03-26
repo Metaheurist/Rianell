@@ -94,6 +94,7 @@ export function ChartsScreen() {
                   key={opt}
                   accessibilityRole="button"
                   accessibilityLabel={`Chart view ${label}`}
+                  accessibilityState={{ selected }}
                   style={[styles.rangeChip, selected ? styles.rangeChipOn : null]}
                   onPress={() => setView(opt)}
                 >
@@ -109,7 +110,14 @@ export function ChartsScreen() {
               const selected = opt === range;
               const label = opt === 'all' ? 'All' : `${opt}d`;
               return (
-                <Pressable key={String(opt)} style={[styles.rangeChip, selected ? styles.rangeChipOn : null]} onPress={() => setRange(opt)}>
+                <Pressable
+                  key={String(opt)}
+                  accessibilityRole="button"
+                  accessibilityLabel={opt === 'all' ? 'Charts date range all time' : `Charts date range ${opt} days`}
+                  accessibilityState={{ selected }}
+                  style={[styles.rangeChip, selected ? styles.rangeChipOn : null]}
+                  onPress={() => setRange(opt)}
+                >
                   <Text style={styles.rangeChipText}>{label}</Text>
                 </Pressable>
               );

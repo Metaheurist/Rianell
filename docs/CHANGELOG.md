@@ -2,7 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.14** - Documentation sync (app-and-features, about-and-support).
+**Latest: v1.45.15** - Charts range/view accessibility.
+
+### v1.45.15 - 2026-03-27 - Charts tab accessibility (Phase B)
+
+- **Mobile / Charts**:
+  - **Range** chips: `accessibilityLabel` (`Charts date range N days` / `all time`), **`accessibilityState.selected`**.
+  - **View** chips: **`accessibilityState.selected`** (labels already present).
+  - **`ChartsScreen.test.tsx`**: asserts range + view labels.
+- **Docs**:
+  - **`docs/next-phase-development-plan.md`**: §4.1 Charts line updated.
 
 ### v1.45.14 - 2026-03-27 - Documentation sync
 
