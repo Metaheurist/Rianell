@@ -5,6 +5,8 @@ import { useTheme } from '../theme/ThemeProvider';
 import { loadLogs, type LogEntry } from '../storage/logs';
 import {
   filterTrendsForChartView,
+  formatChartMetricDelta,
+  formatChartMetricValue,
   summarizeCharts,
   type ChartRange,
   type ChartViewMode,
@@ -54,8 +56,6 @@ export function ChartsScreen() {
   const summary = summarizeCharts(logs, range);
   const trendsForView = filterTrendsForChartView(summary.trends, view);
 
-  const fmt = (v: number | null) => (v == null ? '—' : v.toFixed(1));
-  const fmtDelta = (v: number | null) => (v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}`);
   const showOverview = view === 'combined';
   const showSparks = view !== 'balance';
   const noDataInRange = !loading && !error && summary.totalLogs === 0;
@@ -148,10 +148,12 @@ export function ChartsScreen() {
             trendsForView.map((trend) => (
               <View key={trend.key} style={styles.trendRow}>
                 <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                  {trend.label}: avg {fmt(trend.average)} · current {fmt(trend.current)}
+                  {trend.label}: avg {formatChartMetricValue(trend.key, trend.average)} · current{' '}
+                  {formatChartMetricValue(trend.key, trend.current)}
                 </Text>
                 <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-                  Delta {fmtDelta(trend.delta)} · {trend.points} point{trend.points === 1 ? '' : 's'}
+                  Delta {formatChartMetricDelta(trend.key, trend.delta)} · {trend.points} point
+                  {trend.points === 1 ? '' : 's'}
                 </Text>
                 {showSparks ? (
                   <View style={styles.sparkRow}>

@@ -30,6 +30,23 @@ export function filterTrendsForChartView(trends: MetricTrend[], view: ChartViewM
   return trends;
 }
 
+/** Display formatting aligned with web `formatChartMetricValue` / chart tooltips (`web/app.js`). */
+export function formatChartMetricValue(key: TrendMetric, value: number | null): string {
+  if (value == null || !Number.isFinite(value)) return '—';
+  if (key === 'steps') return Math.round(value).toLocaleString();
+  if (key === 'hydration') return `${value.toFixed(1)} glasses`;
+  return value.toFixed(1);
+}
+
+/** Delta line for trend summary (sign + formatted magnitude). */
+export function formatChartMetricDelta(key: TrendMetric, delta: number | null): string {
+  if (delta == null || !Number.isFinite(delta)) return '—';
+  const sign = delta >= 0 ? '+' : '';
+  if (key === 'steps') return `${sign}${Math.round(delta).toLocaleString()}`;
+  if (key === 'hydration') return `${sign}${delta.toFixed(1)}`;
+  return `${sign}${delta.toFixed(1)}`;
+}
+
 const METRICS: Array<{ key: TrendMetric; label: string }> = [
   { key: 'mood', label: 'Mood' },
   { key: 'sleep', label: 'Sleep' },
