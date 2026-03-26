@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.6** - Charts tab: Balance view filters metrics to match web wellness focus.
+**Latest: v1.45.7** - Charts empty state when no logs in range.
+
+### v1.45.7 - 2026-03-27 - Charts empty state (no data in range)
+
+- **Mobile / Charts**:
+  - When the selected range has **no log entries**, Charts shows a single **empty-state** message instead of five zero-point metric rows.
+  - Added `ChartsScreen.test.tsx` for the empty state.
 
 ### v1.45.6 - 2026-03-26 - Charts Balance view metric filtering
 

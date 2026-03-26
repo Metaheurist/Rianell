@@ -2,7 +2,7 @@
 
 This document is the **single build plan** to finish Rianell’s transition to a **React Native CLI** app that matches the **web/PWA** and produces **Android APK** + **iOS emulator Xcode zip** via CI releases.
 
-**Last updated:** 2026-03-26
+**Last updated:** 2026-03-27
 
 ---
 
@@ -54,7 +54,7 @@ If any of the above becomes false, fix it before moving forward.
 **Web reference:** `web/index.html` + `web/app.js`
 
 ### 4.1 Native screens remaining
-- [~] **Charts tab**: range selection (`14/30/90/all`) + `Balance/Individual/Combined` view toggle affects which sections render + trend summaries/deltas + mini trend bars + pull-to-refresh. **Balance view now shows mood/sleep/fatigue only** (aligned with web balance chart focus); full Apex/visual parity still pending.
+- [~] **Charts tab**: range selection (`14/30/90/all`) + `Balance/Individual/Combined` view toggle affects which sections render + trend summaries/deltas + mini trend bars + pull-to-refresh. **Balance view** shows mood/sleep/fatigue only; **empty range** shows a clear empty state (no placeholder metric rows). Full Apex/visual parity still pending.
 - [~] **AI Analysis tab**: lite++ parity (range summaries + narrative sections + correlations + groups-that-change-together), deeper parity with the web AI copy/structure still pending; gated by `aiEnabled`.
 
 ### 4.2 Log wizard remaining steps (native)
