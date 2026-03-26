@@ -129,6 +129,8 @@ flowchart LR
 - **Print**: Print-friendly view of logs and reports.
 - **Clear/reset**: Option to clear all local data (with confirmation).
 
+**React Native app (`apps/mobile`)**: Settings includes **Data management** with **JSON export** (system share sheet) and **JSON import** (paste modal): **Merge** appends only entries for dates that are not already stored; **Replace all** overwrites local logs after confirmation. Entries are normalized with `@rianell/shared` so the format matches web portability.
+
 ### Cloud sync (Supabase)
 - **Anonymised contribution**: Optional "Contribute anonymised data" in Settings; GDPR-compliant consent; data anonymised before upload; medical condition used for server-side aggregation only.
 - **Auth**: Sign in / sign out; session state; auth state reflected in sync and settings sync.
@@ -140,6 +142,7 @@ flowchart LR
 - **Sound**: "Enable sound notifications" controls system notification sound and an in-app heartbeat-style sound when the app is in the foreground (including on mobile).
 
 ### Install and run options
+- **React Native (`apps/mobile`)**: Settings **Install & downloads** resolves the same public `latest.json` files as the web app (under `App build/Android/`, `App build/RNCLI-Android/`, and `App build/iOS/` on the deployed site, default origin `https://rianell.com`) and opens the APK or iOS zip URL in the **system browser** (`Linking.openURL`). Legacy Android, RN CLI Android, and iOS Xcode zip are offered separately, matching web channel labels (Beta / Beta / Alpha).
 - **PWA / Install web app**: Add to home screen from Settings (globe icon); runs standalone and works offline. Shown in the UI with a **Beta** tag (same channel as the Android APK).
 - **Install on Android**: Download APK from Settings (or Install modal); CI builds debug APK on push and commits to `App build/Android/` for same-origin download links. Shown with a **Beta** tag.
 - **Install on iOS (device)**: Add to Home Screen from Safari (Settings or Install modal) - **Beta** (PWA install path).
@@ -181,5 +184,6 @@ The web app reads these manifests at runtime (`web/app.js`, `refreshBuildDownloa
 ## 📁 Project structure
 
 - **`web/`** – Static web app: HTML, CSS, JavaScript, icons, and assets. The server serves this directory at the root URL.
+- **`apps/mobile/`** – React Native (Expo) app: native shell, tabs, log wizard, charts/AI summaries, and Settings (data export/import + install links). See `npm run typecheck:mobile` and `npm run test:mobile` from the repo root.
 - **`server/`** – Python server package (main server logic in `main.py`, plus config, encryption, Supabase client, sample data, requirements checks). Run from repo root: **`python -m server`**, or on Windows **`server/launch-server.ps1`** (see [Running the Server](#running-the-server)).
 

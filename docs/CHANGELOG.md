@@ -2,7 +2,30 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.7** - Charts empty state when no logs in range.
+**Latest: v1.45.10** - Documentation sync (README, app-and-features, plan).
+
+### v1.45.10 - 2026-03-27 - Documentation sync
+
+- **Docs**:
+  - **README.md**: “Latest changes” line aligned with changelog (native Settings data management + install/download parity).
+  - **app-and-features.md**: Documented React Native (`apps/mobile`) Settings **Data management** (JSON export/import, merge/replace) and **Install & downloads** (same public `latest.json` resolution as web, opens in system browser); **Project structure** lists `apps/mobile/`.
+  - **next-phase-development-plan.md**: Repo state updated to record completed native Settings parity (Phase D); Phase D status line; clarified manifest wording (avoid ambiguous glob in prose).
+
+### v1.45.9 - 2026-03-27 - Settings install & downloads (native)
+
+- **Mobile / Settings (Phase D)**:
+  - **Install & downloads**: fetches the same public `latest.json` manifests as web Settings (rianell.com) and opens the resolved APK / iOS zip URL via the system browser.
+  - Added `buildDownloads.ts` + unit tests.
+- **Docs**:
+  - Updated `docs/next-phase-development-plan.md` Phase D checklist.
+
+### v1.45.8 - 2026-03-27 - Settings data management (native)
+
+- **Mobile / Settings (Phase D)**:
+  - **Data management**: export logs as JSON via the system share sheet; import from pasted JSON with **merge** (new dates only) or **replace all** (with confirmation).
+  - Added `logExportImport.ts` helpers + unit tests; `SettingsScreen` section replaces the old parity placeholder.
+- **Docs**:
+  - Updated `docs/next-phase-development-plan.md` Phase D progress.
 
 ### v1.45.7 - 2026-03-27 - Charts empty state (no data in range)
 

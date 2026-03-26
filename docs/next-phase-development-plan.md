@@ -2,7 +2,7 @@
 
 This document is the **single build plan** to finish Rianell’s transition to a **React Native CLI** app that matches the **web/PWA** and produces **Android APK** + **iOS emulator Xcode zip** via CI releases.
 
-**Last updated:** 2026-03-27
+**Last updated:** 2026-03-27 (Phase D native Settings parity documented)
 
 ---
 
@@ -22,9 +22,9 @@ This document is the **single build plan** to finish Rianell’s transition to a
 ## 2) Current repo state (assumed true)
 
 These are treated as “already implemented” and should not be re-planned here:
-- `apps/mobile` exists with navigation + settings shell + AsyncStorage-backed logs.
+- `apps/mobile` exists with navigation + settings shell + AsyncStorage-backed logs; **Settings** includes **Data management** (JSON export/import with merge/replace) and **Install & downloads** (same public `latest.json` resolution as web, opens artifact URL in the system browser).
 - CI can generate **RN CLI** native artifacts (Android debug APK + iOS Xcode project zip) and attach them to GitHub Releases.
-- Web settings already exposes app installation/download links driven by `App build/**/latest.json`.
+- Web settings already exposes app installation/download links driven by `latest.json` in each `App build/…/` folder (see `web/app.js` `refreshBuildDownloadLinks`).
 
 If any of the above becomes false, fix it before moving forward.
 
@@ -94,7 +94,13 @@ If any of the above becomes false, fix it before moving forward.
 ### Phase D — Settings: Data management parity + download UX
 **Goal:** Settings exposes the same data-management and install/download affordances.
 
+**Work items**
+- [x] **Native export/import (JSON)**: share-sheet export + paste import with **merge** (append new dates) and **replace all** (with confirm), using `@rianell/shared` normalization (`apps/mobile/src/data/logExportImport.ts`).
+- [x] **Install/download UX parity**: Settings **Install & downloads** resolves the same public `latest.json` URLs as web (`buildDownloads.ts` → `Linking.openURL`), for legacy Android, RN CLI Android, and iOS Xcode zip.
+
 **Done when:** both surfaces show equivalent options (export/import/install/download) and point to the same build artifacts.
+
+**Status:** Phase D goals for native Settings are **met** (see `docs/app-and-features.md` and changelog **v1.45.8–v1.45.9**).
 
 ---
 
