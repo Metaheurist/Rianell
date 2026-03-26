@@ -44,10 +44,10 @@ jobs:
 
       - name: npm audit (react-app)
         working-directory: react-app
-        run: npm ci && npm audit --audit-level=high
+        run: npm ci && npm audit --audit-level=high --omit=dev
 
       - name: npm audit (root / esbuild)
-        run: npm install --no-save && npm audit --audit-level=high
+        run: npm ci --omit=dev && npm audit --audit-level=high --omit=dev
 
       - name: Set up Python
         uses: actions/setup-python@v6

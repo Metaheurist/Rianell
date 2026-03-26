@@ -211,6 +211,85 @@ jobs:
           path: apps/mobile/dist-expo-prod/
 
   # ---------------------------------------------------------------------------
+  # Expo native binaries for release (EAS production)
+  # ---------------------------------------------------------------------------
+  eas-native-binaries-prod:
+    name: Expo native binaries (EAS prod, ${{ matrix.platform }})
+    needs: [paths-filter, expo-bundle-prod]
+    if: |
+      github.event_name == 'push' &&
+      needs.paths-filter.outputs.mobile_release == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [android, ios]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install root dependencies (workspaces)
+        run: npm ci
+
+      - name: Validate EAS token
+        run: |
+          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+            echo "Missing EXPO_TOKEN secret."
+            exit 1
+          fi
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Build ${{ matrix.platform }} (EAS cloud, production)
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_NO_TELEMETRY: "1"
+          NODE_ENV: production
+        run: eas build --platform ${{ matrix.platform }} --profile production --non-interactive --wait
+
+      - name: Collect built binary artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob globstar
+          mkdir -p "eas-native-dist/${{ matrix.platform }}"
+
+          if [ "${{ matrix.platform }}" = "android" ]; then
+            files=(apps/mobile/dist/**/*.aab apps/mobile/dist/**/*.apk apps/mobile/dist/*.aab apps/mobile/dist/*.apk)
+            if [ ${#files[@]} -gt 0 ]; then
+              cp -v "${files[@]}" "eas-native-dist/android/"
+            fi
+            collected=(eas-native-dist/android/*.aab eas-native-dist/android/*.apk)
+            if [ ${#collected[@]} -eq 0 ]; then
+              echo "No Android binaries found in apps/mobile/dist"
+              exit 1
+            fi
+          else
+            files=(apps/mobile/dist/**/*.ipa apps/mobile/dist/*.ipa)
+            if [ ${#files[@]} -gt 0 ]; then
+              cp -v "${files[@]}" "eas-native-dist/ios/"
+            fi
+            collected=(eas-native-dist/ios/*.ipa)
+            if [ ${#collected[@]} -eq 0 ]; then
+              echo "No iOS binaries found in apps/mobile/dist"
+              exit 1
+            fi
+          fi
+
+      - name: Upload native binaries
+        uses: actions/upload-artifact@v5
+        with:
+          name: expo-native-binaries-${{ matrix.platform }}
+          path: eas-native-dist/${{ matrix.platform }}
+
+  # ---------------------------------------------------------------------------
   # Server Windows EXE (PyInstaller, x64 + x86)
   # ---------------------------------------------------------------------------
   server-exe:
@@ -381,7 +460,7 @@ jobs:
   # ---------------------------------------------------------------------------
   publish-release:
     name: Publish GitHub Release
-    needs: [paths-filter, expo-bundle-prod, server-exe]
+    needs: [paths-filter, expo-bundle-prod, server-exe, eas-native-binaries-prod]
     if: |
       github.event_name == 'push' &&
       needs.paths-filter.outputs.mobile_release == 'true'
@@ -404,11 +483,17 @@ jobs:
           pattern: server-exe-*
           path: gh-release/Server
 
+      - name: Download Expo native binaries
+        uses: actions/download-artifact@v5
+        with:
+          pattern: expo-native-binaries-*
+          path: gh-release/ExpoNative
+
       - name: Prepare release assets (this run only)
         run: |
           set -e
           RUN="${{ github.run_number }}"
-          mkdir -p release-assets/Expo release-assets/Legacy release-assets/Server release-assets/Meta
+          mkdir -p release-assets/Expo release-assets/ExpoNative/Android release-assets/ExpoNative/iOS release-assets/Legacy release-assets/Server release-assets/Meta
 
           # Expo bundles (minified production JS for iOS + Android)
           cd gh-release/Expo
@@ -418,6 +503,16 @@ jobs:
           # Legacy (Capacitor) artifacts are not rebuilt; include the latest checked-in ones if present.
           if [ -d "App build/Android" ]; then cp -r "App build/Android" "release-assets/Legacy/Android" || true; fi
           if [ -d "App build/iOS" ]; then cp -r "App build/iOS" "release-assets/Legacy/iOS" || true; fi
+
+          # Expo native binaries (EAS production)
+          shopt -s nullglob
+          if [ -d "gh-release/ExpoNative/expo-native-binaries-android" ]; then
+            cp -v "gh-release/ExpoNative/expo-native-binaries-android/"* "release-assets/ExpoNative/Android/" || true
+          fi
+          if [ -d "gh-release/ExpoNative/expo-native-binaries-ios" ]; then
+            cp -v "gh-release/ExpoNative/expo-native-binaries-ios/"* "release-assets/ExpoNative/iOS/" || true
+          fi
+
           cp "gh-release/Server/server-exe-x64/rianell-server-x64.exe" "release-assets/Server/"
           cp "gh-release/Server/server-exe-x86/rianell-server-x86.exe" "release-assets/Server/"
           cp "gh-release/Server/server-exe-x64/latest-x64.json" "release-assets/Server/" || true
@@ -446,6 +541,11 @@ jobs:
             Directory: `release-assets/Expo/`
             - `rianell-expo-bundles-${{ github.run_number }}.zip` (minified production JS bundles for iOS + Android)
 
+            ### Expo Native (EAS production)
+            Directory: `release-assets/ExpoNative/`
+            - `Android/` (APK/AAB)
+            - `iOS/` (IPA)
+
             ### Legacy (Capacitor)
             Directory: `release-assets/Legacy/`
             - `Android/` and `iOS/` directories (copied from checked-in `App build/` if present; legacy builds are no longer rebuilt in CI)
@@ -468,6 +568,7 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             release-assets/Expo/*
+            release-assets/ExpoNative/**/*
             release-assets/Legacy/**/*
             release-assets/Server/*
             release-assets/Meta/*

@@ -189,7 +189,8 @@ This section is intentionally written as a **linear checklist** that a non-agent
   - **Expo AI Analysis tab (groups-that-change-together)**: **Completed (lite parity improvement)** — added a **Groups that change together** section based on detected metric links, providing plain-language relationship hints similar to the web AI sectioning style.
   - **Expo AI Analysis tab (important changes)**: **Completed (lite parity improvement)** — added an **Important** section that flags sudden recent metric changes (fatigue/sleep/mood shifts) with a fallback “no sudden changes” message.
   - **Expo Log wizard (medication quick-picks)**: **Completed (lite parity improvement)** — Step 9 now includes medication quick-pick chips, selected-medication remove controls, and duplicate count-badge clear behavior consistent with food/exercise quick-picks.
-  - **Expo Log wizard (lifestyle quick scores)**: **Completed (lite parity improvement)** — Step 6 now includes quick score chips for daily function/irritability/weather sensitivity while preserving manual input for exact values.
+  - **Expo Log wizard (lifestyle quick scores)**: **Completed (lite parity improvement)** — Step 5 now includes quick score chips/inputs for irritability & weather sensitivity, while Step 6 includes quick score chips for daily function plus manual inputs for steps/hydration.
+  - **Expo Log wizard (energy selection UX parity)**: **Completed (lite parity improvement)** — Step 4 energy/clarity adds a visible “Selected energy & clarity” control with one-tap clear.
 
 ### 7.1 Ground rules (apply to every step)
 
@@ -230,7 +231,7 @@ This section is intentionally written as a **linear checklist** that a non-agent
 
 - [x] **Home tab** (today status + floating **+** opens Log wizard; refreshes on focus)
 - [x] **View Logs tab** (AsyncStorage-backed list; canonical `healthLogs` key; shows key metrics)
-- [~] **Charts tab** (range selection `14/30/90/all` + trend summaries/deltas + lightweight mini trend bars per metric + pull-to-refresh; full Apex/web visual parity still to do)
+- [~] **Charts tab** (range selection `14/30/90/all` + `Balance/Individual/Combined` view toggle + trend summaries/deltas + lightweight mini trend bars per metric + pull-to-refresh; full Apex/web visual parity still to do)
 - [~] **AI Analysis tab** (implemented lite++; range-based log summary + narrative sections (incl. Important) + possible flare-up block + basic metric-correlation section + “groups that change together”; deeper parity with web AIEngine/LLM still to do; gated by `aiEnabled`)
 - [x] **Settings tab** (theme + accessibility + AI gate; persisted)
 - [x] **Log today flow** (stack screen from Home **+**; **10-step** wizard matching web; saves into logs; blocks duplicate dates)
@@ -252,10 +253,10 @@ This section is intentionally written as a **linear checklist** that a non-agent
 
 - [x] **Step 1**: Date & flare
 - [x] **Step 2**: Vitals (basic fields; notes are **not** here — matches web)
-- [~] **Step 3**: Symptoms & pain (lite++ — chips + frequent chips + custom free-add + tappable body-region severity with legend/counts/clear-all → `painLocation`; full body-diagram UX still to do)
-- [~] **Step 4**: Energy & mental clarity (lite — choice chips)
-- [~] **Step 5**: Stress & triggers (lite+ — frequent + predefined stressor chips + custom free-add)
-- [~] **Step 6**: Lifestyle (lite+ — daily function, irritability, weather sensitivity with quick score chips + manual input)
+- [~] **Step 3**: Symptoms & pain (lite++ — chips + frequent chips + custom free-add + tappable body-region severity with legend/counts/clear-all → `painLocation`; plus selected-symptoms clear-all; full body-diagram UX still to do)
+- [~] **Step 4**: Energy & mental clarity (lite — choice chips + selected-clear)
+- [~] **Step 5**: Stress & triggers (lite+ — irritability + weather sensitivity quick score inputs/chips + frequent + predefined stressor chips + custom free-add + selected-stressors clear-all)
+- [~] **Step 6**: Lifestyle (lite+ — daily function with quick score chips + manual inputs for steps/hydration)
 - [~] **Step 7**: Food (lite+ — Breakfast/Lunch/Dinner/Snack with quick-picks + remove)
 - [~] **Step 8**: Exercise (lite+ — `Name:Minutes`, category-grouped picks, quick-picks)
 - [~] **Step 9**: Medication & notes (lite+ — comma-separated medication names with quick-pick chips + remove controls + duplicate count-badge clear → `{ name, times: [], taken }[]`; free-form notes)
