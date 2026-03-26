@@ -2,7 +2,18 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.20** - Development plan: Phase B visual next steps + Phase C work items.
+**Latest: v1.45.21** - README CI vs legacy build tables; RN sequential build numbers.
+
+### v1.45.21 - 2026-03-26 - README CI tables + RN build sequence
+
+- **README / `scripts/update-readme-build-info.mjs`**:
+  - **CI builds** table: **Alpha** React Native CLI **Android APK** and **iOS** zip (from `App build/RNCLI-Android/` and `App build/iOS/`), plus Server + Web rows.
+  - **Legacy builds** table: Capacitor **Android** + **iOS** metadata under `App build/Android/` and **`App build/Legacy/Capacitor-iOS/`** (frozen last Capacitor iOS manifest).
+- **CI (`.github/workflows/ci.yml`)**:
+  - **`rn-build-version`**: bumps a **sequential RN build** (1, 2, 3…) from `App build/RNCLI-Android/latest.json`; **`rncli-android-apk`** / **`rncli-ios-zip`** use it for `latest.json` and zip names (no longer `GITHUB_RUN_NUMBER` for RN artifacts).
+  - **`publish-release`**: legacy release assets use **`App build/Legacy/Capacitor-iOS/`** instead of treating **`App build/iOS/`** as Capacitor.
+- **App build**: removed checked-in **`App build/iOS/latest.json`** until the next mobile CI run repopulates RN iOS; legacy iOS tracker moved to **`App build/Legacy/Capacitor-iOS/latest.json`**.
+- **Tests**: `tests/unit/workflows-ci-rncli.test.mjs` asserts **`rn-build-version`** wiring.
 
 ### v1.45.20 - 2026-03-26 - Documentation: next-phase plan (B/C steps)
 

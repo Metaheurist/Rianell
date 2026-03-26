@@ -16,6 +16,13 @@ test('CI includes RN CLI native artifact jobs (no EXPO_TOKEN)', () => {
   assert.doesNotMatch(ciYml, /Missing EXPO_TOKEN/i);
 });
 
+test('RN CLI jobs use rn-build-version for sequential RN build numbers', () => {
+  assert.match(ciYml, /rn-build-version:/);
+  assert.match(ciYml, /outputs:\s*[\s\S]*rn_build:/m);
+  assert.match(ciYml, /rncli-android-apk:\s*[\s\S]*?needs:\s*\[[^\]]*rn-build-version[^\]]*\]/m);
+  assert.match(ciYml, /rncli-ios-zip:\s*[\s\S]*?needs:\s*\[[^\]]*rn-build-version[^\]]*\]/m);
+});
+
 test('RN CLI Android job must not use setup-java cache:gradle before prebuild', () => {
   // Gradle wrapper only exists under apps/mobile/android after `expo prebuild`.
   // cache: gradle makes setup-java scan the repo at checkout and fails with no matching files.
