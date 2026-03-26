@@ -1,4 +1,10 @@
-import { filterTrendsForChartView, summarizeCharts, __testOnly } from './summarizeCharts';
+import {
+  filterTrendsForChartView,
+  formatChartMetricDelta,
+  formatChartMetricValue,
+  summarizeCharts,
+  __testOnly,
+} from './summarizeCharts';
 import type { LogEntry } from '../storage/logs';
 
 test('summarizeCharts computes trend averages and delta', () => {
@@ -20,6 +26,20 @@ test('summarizeCharts computes trend averages and delta', () => {
 
 test('normalizeSeries returns 0.5 for flat values', () => {
   expect(__testOnly.normalizeSeries([3, 3, 3])).toEqual([0.5, 0.5, 0.5]);
+});
+
+test('formatChartMetricValue matches web rules (steps int, hydration glasses)', () => {
+  expect(formatChartMetricValue('steps', 12345.4)).toBe('12,345');
+  expect(formatChartMetricValue('hydration', 6.25)).toBe('6.3 glasses');
+  expect(formatChartMetricValue('mood', 7)).toBe('7.0');
+  expect(formatChartMetricValue('mood', null)).toBe('—');
+});
+
+test('formatChartMetricDelta prefixes sign for steps and hydration', () => {
+  expect(formatChartMetricDelta('steps', 500)).toBe('+500');
+  expect(formatChartMetricDelta('steps', -1200)).toBe('-1,200');
+  expect(formatChartMetricDelta('hydration', -0.5)).toBe('-0.5');
+  expect(formatChartMetricDelta('mood', 0.5)).toBe('+0.5');
 });
 
 test('filterTrendsForChartView keeps mood/sleep/fatigue for balance only', () => {

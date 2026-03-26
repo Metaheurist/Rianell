@@ -2,7 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.16** - CI: Android RN CLI job setup-java fix.
+**Latest: v1.45.17** - Phase B Charts: web-aligned metric formatting.
+
+### v1.45.17 - 2026-03-27 - Mobile Charts (Phase B) value/delta formatting
+
+- **Mobile / Charts**:
+  - **`formatChartMetricValue`** / **`formatChartMetricDelta`** in `summarizeCharts.ts`: **steps** use rounded integers + `toLocaleString()`; **hydration** use `X.X glasses` (aligned with `web/app.js` chart helpers); mood/sleep/fatigue stay one decimal.
+  - **`ChartsScreen`** uses these formatters for avg/current/delta lines.
+  - Unit tests in `summarizeCharts.test.ts`.
+- **Docs**:
+  - **`docs/next-phase-development-plan.md`**: Phase B work items + §4.1 Charts line; marks Phase B as **active**.
 
 ### v1.45.16 - 2026-03-27 - CI: RN CLI Android job (setup-java)
 
