@@ -56,9 +56,9 @@ export function ChartsScreen() {
 
   const fmt = (v: number | null) => (v == null ? '—' : v.toFixed(1));
   const fmtDelta = (v: number | null) => (v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}`);
-  const viewLabel = view === 'balance' ? 'Balance' : view === 'individual' ? 'Individual' : 'Combined';
   const showOverview = view === 'combined';
   const showSparks = view !== 'balance';
+  const noDataInRange = !loading && !error && summary.totalLogs === 0;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
@@ -129,36 +129,45 @@ export function ChartsScreen() {
           ) : null}
 
           <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Metric trends</Text>
-          {trendsForView.map((trend) => (
-            <View key={trend.key} style={styles.trendRow}>
-              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                {trend.label}: avg {fmt(trend.average)} · current {fmt(trend.current)}
-              </Text>
-              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-                Delta {fmtDelta(trend.delta)} · {trend.points} point{trend.points === 1 ? '' : 's'}
-              </Text>
-              {showSparks ? (
-                <View style={styles.sparkRow}>
-                  {trend.spark.length ? (
-                    trend.spark.slice(-20).map((h, i) => (
-                      <View
-                        key={`${trend.key}-${i}`}
-                        style={[
-                          styles.sparkBar,
-                          {
-                            height: 8 + Math.round(h * 28),
-                            opacity: 0.55 + h * 0.45,
-                          },
-                        ]}
-                      />
-                    ))
-                  ) : (
-                    <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>No points yet</Text>
-                  )}
-                </View>
-              ) : null}
-            </View>
-          ))}
+          {noDataInRange ? (
+            <Text
+              style={[styles.emptyHint, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+              accessibilityLabel="Charts empty state"
+            >
+              No log entries in this date range. Log from Home, widen the range, or pull down to refresh.
+            </Text>
+          ) : (
+            trendsForView.map((trend) => (
+              <View key={trend.key} style={styles.trendRow}>
+                <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                  {trend.label}: avg {fmt(trend.average)} · current {fmt(trend.current)}
+                </Text>
+                <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                  Delta {fmtDelta(trend.delta)} · {trend.points} point{trend.points === 1 ? '' : 's'}
+                </Text>
+                {showSparks ? (
+                  <View style={styles.sparkRow}>
+                    {trend.spark.length ? (
+                      trend.spark.slice(-20).map((h, i) => (
+                        <View
+                          key={`${trend.key}-${i}`}
+                          style={[
+                            styles.sparkBar,
+                            {
+                              height: 8 + Math.round(h * 28),
+                              opacity: 0.55 + h * 0.45,
+                            },
+                          ]}
+                        />
+                      ))
+                    ) : (
+                      <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>No points yet</Text>
+                    )}
+                  </View>
+                ) : null}
+              </View>
+            ))
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -171,6 +180,7 @@ const styles = StyleSheet.create({
   card: { borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)' },
   title: { fontWeight: '700', marginBottom: 8 },
   lead: { opacity: 0.95, marginBottom: 16 },
+  emptyHint: { opacity: 0.9, marginTop: 4, marginBottom: 8, lineHeight: 22 },
   section: { fontWeight: '800', marginTop: 14, marginBottom: 6, opacity: 0.85 },
   metric: { marginBottom: 6, opacity: 0.95 },
   meta: { opacity: 0.8, marginBottom: 8 },
