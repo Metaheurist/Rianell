@@ -37,16 +37,27 @@ export function buildLogReviewSummary(entry: LogEntry): string {
     );
   }
   if (entry.medications?.length) {
-    lines.push(
-      `Medications: ${entry.medications.map((m: { name: string }) => m.name).join(', ')}`
-    );
+    const taken = entry.medications.filter((m: { taken: boolean }) => m.taken);
+    const notTaken = entry.medications.filter((m: { taken: boolean }) => !m.taken);
+
+    if (taken.length && notTaken.length) {
+      lines.push(
+        `Medications (taken): ${taken
+          .map((m: { name: string }) => m.name)
+          .join(', ')} · Medications (not taken): ${notTaken.map((m: { name: string }) => m.name).join(', ')}`
+      );
+    } else if (notTaken.length) {
+      lines.push(`Medications (not taken): ${notTaken.map((m: { name: string }) => m.name).join(', ')}`);
+    } else {
+      lines.push(`Medications: ${taken.map((m: { name: string }) => m.name).join(', ')}`);
+    }
   }
   if (entry.notes) lines.push(`Notes: ${entry.notes}`);
   return lines.join('\n');
 }
 
-export function parseMedicationNamesCsv(value: string): Array<{ name: string; times: []; taken: boolean }> {
-  return parseCsv(value).map((name) => ({ name, times: [] as [], taken: true }));
+export function parseMedicationNamesCsv(value: string, taken: boolean): Array<{ name: string; times: []; taken: boolean }> {
+  return parseCsv(value).map((name) => ({ name, times: [] as [], taken }));
 }
 
 function parseCsv(value: string): string[] {
