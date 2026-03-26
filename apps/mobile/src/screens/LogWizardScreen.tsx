@@ -198,6 +198,12 @@ function painStateStroke(value: PainState) {
   return 'rgba(76,175,80,0.55)';
 }
 
+function energyTileSelectedBorder(tone: 'positive' | 'neutral' | 'negative' | 'default'): string {
+  if (tone === 'positive') return 'rgba(129,199,132,0.95)';
+  if (tone === 'negative') return 'rgba(239,154,154,0.95)';
+  return 'rgba(255,255,255,0.5)';
+}
+
 function buildPainLocationTextFromState(state: Record<string, PainState>): string {
   const parts: string[] = [];
   PAIN_BODY_REGIONS.forEach((region) => {
@@ -1024,6 +1030,9 @@ export function LogWizardScreen() {
         ) : step === 3 ? (
           <View>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Energy &amp; mental clarity</Text>
+            <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+              Enter fatigue, sleep, and mood scores, then pick one energy &amp; clarity tile (Positive / Neutral / Negative groups).
+            </Text>
 
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Fatigue (1–10)</Text>
             <TextInput
@@ -1031,6 +1040,7 @@ export function LogWizardScreen() {
               onChangeText={setFatigue}
               style={[styles.input, { color: theme.tokens.color.text }]}
               keyboardType="number-pad"
+              accessibilityLabel="Fatigue score 1 to 10"
             />
 
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Sleep (1–10)</Text>
@@ -1039,6 +1049,7 @@ export function LogWizardScreen() {
               onChangeText={setSleep}
               style={[styles.input, { color: theme.tokens.color.text }]}
               keyboardType="number-pad"
+              accessibilityLabel="Sleep quality score 1 to 10"
             />
 
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Mood (1–10)</Text>
@@ -1047,6 +1058,7 @@ export function LogWizardScreen() {
               onChangeText={setMood}
               style={[styles.input, { color: theme.tokens.color.text }]}
               keyboardType="number-pad"
+              accessibilityLabel="Mood score 1 to 10"
             />
 
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Energy &amp; clarity</Text>
@@ -1104,7 +1116,7 @@ export function LogWizardScreen() {
                         selected={energyClarity === opt.value}
                         icon={ENERGY_CLARITY_ICONS[opt.value]}
                         variant="tile"
-                          tone={grp.id}
+                        tone={grp.id}
                         onPress={() => setEnergyClarity(opt.value)}
                       />
                     ))}
@@ -1644,6 +1656,9 @@ function Choice({
         variant === 'tile' && tone === 'neutral' ? styles.choiceTileNeutral : null,
         variant === 'tile' && tone === 'negative' ? styles.choiceTileNegative : null,
         selected ? styles.choiceSelected : null,
+        variant === 'tile' && selected && tone !== 'default'
+          ? { borderWidth: 2, borderColor: energyTileSelectedBorder(tone) }
+          : null,
       ]}
       accessibilityRole="button"
     >
