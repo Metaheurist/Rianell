@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.15** - Charts range/view accessibility.
+**Latest: v1.45.16** - CI: Android RN CLI job setup-java fix.
+
+### v1.45.16 - 2026-03-27 - CI: RN CLI Android job (setup-java)
+
+- **CI / `.github/workflows/ci.yml`**:
+  - **`rncli-android-apk`**: Removed **`cache: gradle`** from `actions/setup-java@v4`. The Gradle wrapper only exists **after** `npx expo prebuild`, so the cache step had no matching files at checkout and failed the job.
+- **Tests**:
+  - **`tests/unit/workflows-ci-rncli.test.mjs`**: Asserts `ci.yml` does not reintroduce `cache: gradle` (regression guard).
 
 ### v1.45.15 - 2026-03-27 - Charts tab accessibility (Phase B)
 
