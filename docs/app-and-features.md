@@ -131,6 +131,8 @@ flowchart LR
 
 **React Native app (`apps/mobile`)**: Settings includes **Data management** with **JSON export** (system share sheet) and **JSON import** (paste modal): **Merge** appends only entries for dates that are not already stored; **Replace all** overwrites local logs after confirmation. Entries are normalized with `@rianell/shared` so the format matches web portability.
 
+**React Native — Log today wizard (web parity):** Ten-step flow (date → vitals → symptoms & pain → energy & mental clarity → stress → lifestyle → food → exercise → meds → review). **Symptoms & pain** includes a tap-to-cycle **body diagram** with the same SVG **silhouette path** as `web/index.html`, optional text field + chips for all regions, and merge into stored `painLocation`. **Energy & mental clarity** uses grouped icon tiles (positive / neutral / negative), search, collapsible picker, and accessibility labels on fatigue/sleep/mood. **Charts** and **AI Analysis** tabs support range selection, pull-to-refresh, and lite++ summaries; see **`docs/next-phase-development-plan.md`** for remaining parity items. Quality gates: `npm run typecheck:mobile`, `npm run test:mobile`.
+
 ### Cloud sync (Supabase)
 - **Anonymised contribution**: Optional "Contribute anonymised data" in Settings; GDPR-compliant consent; data anonymised before upload; medical condition used for server-side aggregation only.
 - **Auth**: Sign in / sign out; session state; auth state reflected in sync and settings sync.
@@ -184,6 +186,6 @@ The web app reads these manifests at runtime (`web/app.js`, `refreshBuildDownloa
 ## 📁 Project structure
 
 - **`web/`** – Static web app: HTML, CSS, JavaScript, icons, and assets. The server serves this directory at the root URL.
-- **`apps/mobile/`** – React Native (Expo) app: native shell, tabs, log wizard, charts/AI summaries, and Settings (data export/import + install links). See `npm run typecheck:mobile` and `npm run test:mobile` from the repo root.
+- **`apps/mobile/`** – React Native (Expo) app: native shell, tabs, **Log today** wizard (pain diagram aligned with web outline, energy tiles, etc.), Charts / AI Analysis, Settings (JSON data management + install links). See `npm run typecheck:mobile` and `npm run test:mobile` from the repo root.
 - **`server/`** – Python server package (main server logic in `main.py`, plus config, encryption, Supabase client, sample data, requirements checks). Run from repo root: **`python -m server`**, or on Windows **`server/launch-server.ps1`** (see [Running the Server](#running-the-server)).
 

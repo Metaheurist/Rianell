@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.13** - Pain body diagram web silhouette.
+**Latest: v1.45.14** - Documentation sync (app-and-features, about-and-support).
+
+### v1.45.14 - 2026-03-27 - Documentation sync
+
+- **Docs**:
+  - **`docs/app-and-features.md`**: New **React Native — Log today wizard** paragraph (steps, pain diagram / web outline, energy tiles, Charts/AI, test commands); **Project structure** expanded for `apps/mobile/`.
+  - **`docs/about-and-support.md`**: Replaced stale version-stamped block with **documentation pointers** (next-phase plan, app-and-features, mobile issue hints).
+  - **`docs/next-phase-development-plan.md`**: Last-updated line.
+- **README.md**: “Latest changes” line aligned with this release.
 
 ### v1.45.13 - 2026-03-27 - Log wizard pain diagram (Step 3) visual parity
 
