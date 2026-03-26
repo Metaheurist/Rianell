@@ -54,19 +54,17 @@ If any of the above becomes false, fix it before moving forward.
 **Web reference:** `web/index.html` + `web/app.js`
 
 ### 4.1 Native screens remaining
-- [~] **Charts tab**: range selection (`14/30/90/all`) + `Balance/Individual/Combined` view toggle affects which sections render + trend summaries/deltas + mini trend bars + pull-to-refresh; full visual parity still pending.
+- [~] **Charts tab**: range selection (`14/30/90/all`) + `Balance/Individual/Combined` view toggle affects which sections render + trend summaries/deltas + mini trend bars + pull-to-refresh. **Balance view now shows mood/sleep/fatigue only** (aligned with web balance chart focus); full Apex/visual parity still pending.
 - [~] **AI Analysis tab**: lite++ parity (range summaries + narrative sections + correlations + groups-that-change-together), deeper parity with the web AI copy/structure still pending; gated by `aiEnabled`.
 
 ### 4.2 Log wizard remaining steps (native)
 - [~] **Step 3 — Symptoms & pain**: body diagram is available (tap-to-cycle) with “Use diagram text” + more regions (arms/legs joints) + **diagram + chips semantics aligned** (good/discomfort/pain). Still needs full SVG region coverage + closer web visual parity.
-- [~] **Step 4 — Energy & mental clarity**: grouped tiles + search + collapsible tile section + selected summary; **icon tiles added** (emoji icons for now). Still needs closer web tile styling polish.
-- [~] **Step 4 — Energy & mental clarity**: grouped tiles + search + collapsible tile section + selected summary; **icon tiles added** (emoji icons for now) + **group-colored tile borders**. Still needs closer web tile styling polish.
+- [~] **Step 4 — Energy & mental clarity**: grouped tiles + search + collapsible tile section + selected summary; **icon tiles** + **group-colored tile borders**. Still needs closer web tile styling polish.
 - [x] **Step 5 — Stress & triggers**: grouped tile picker + search + frequent + selected/clear + collapsible picker implemented.
-- [~] **Step 6 — Lifestyle**: ensure UX matches web intent (inputs/chips placement, labels, and validation parity).
-- [~] **Step 6 — Lifestyle**: ensure UX matches web intent (inputs/chips placement, labels, and validation parity). (Added clamp-on-save normalization for steps/hydration/daily function + test)
-- [~] **Step 7 — Food**: ensure web-like add/remove behavior and “count badge clear” parity across all meal types. (Added “Clear all food”; count badge shows at 1+ + test)
-- [~] **Step 8 — Exercise**: ensure category group UX and “Name:Minutes” parsing parity; confirm count-badge clear parity. (Added “Clear all exercise”; count badge shows at 1+ + test)
-- [~] **Step 9 — Medication & notes**: confirm remove controls, count-badge clear behavior, and Taken today? toggle parity. (Added “Clear all medications”; count badge shows at 1+ + test)
+- [~] **Step 6 — Lifestyle**: ensure UX matches web intent (inputs/chips placement, labels, and validation parity). (Clamp-on-save for steps/hydration/daily function + tests)
+- [~] **Step 7 — Food**: ensure web-like add/remove behavior and “count badge clear” parity across all meal types. (“Clear all food”; count badge at 1+ + test)
+- [~] **Step 8 — Exercise**: ensure category group UX and “Name:Minutes” parsing parity; count-badge clear parity. (“Clear all exercise”; count badge at 1+ + test)
+- [~] **Step 9 — Medication & notes**: confirm remove controls, count-badge clear behavior, and Taken today? toggle parity. (“Clear all medications”; count badge at 1+ + test)
 
 ---
 

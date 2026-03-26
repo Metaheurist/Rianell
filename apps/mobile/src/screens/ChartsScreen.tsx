@@ -3,12 +3,16 @@ import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { loadLogs, type LogEntry } from '../storage/logs';
-import { summarizeCharts, type ChartRange } from '../charts/summarizeCharts';
+import {
+  filterTrendsForChartView,
+  summarizeCharts,
+  type ChartRange,
+  type ChartViewMode,
+} from '../charts/summarizeCharts';
 
 const RANGE_OPTIONS: ChartRange[] = [14, 30, 90, 'all'];
 
-type ChartView = 'balance' | 'individual' | 'combined';
-const VIEW_OPTIONS: ChartView[] = ['balance', 'individual', 'combined'];
+const VIEW_OPTIONS: ChartViewMode[] = ['balance', 'individual', 'combined'];
 
 export function ChartsScreen() {
   const theme = useTheme();
@@ -20,7 +24,7 @@ export function ChartsScreen() {
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [range, setRange] = useState<ChartRange>(30);
-  const [view, setView] = useState<ChartView>('combined');
+  const [view, setView] = useState<ChartViewMode>('combined');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +52,7 @@ export function ChartsScreen() {
   };
 
   const summary = summarizeCharts(logs, range);
+  const trendsForView = filterTrendsForChartView(summary.trends, view);
 
   const fmt = (v: number | null) => (v == null ? '—' : v.toFixed(1));
   const fmtDelta = (v: number | null) => (v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}`);
@@ -64,7 +69,11 @@ export function ChartsScreen() {
         <View style={styles.card}>
           <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>Charts</Text>
           <Text style={[styles.lead, { color: theme.tokens.color.text, fontSize: theme.font(15) }]}>
-            Trend summary with range selection and key metric deltas. View: {viewLabel}. Full chart visuals/parity remain in progress.
+            {view === 'balance'
+              ? 'Wellness balance: mood, sleep, and fatigue trends for the selected range.'
+              : view === 'individual'
+                ? 'Each metric listed separately with deltas and mini trend bars.'
+                : 'Overview plus all key metrics with deltas and mini trend bars.'}
           </Text>
 
           {loading && !logs.length ? (
@@ -120,7 +129,7 @@ export function ChartsScreen() {
           ) : null}
 
           <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Metric trends</Text>
-          {summary.trends.map((trend) => (
+          {trendsForView.map((trend) => (
             <View key={trend.key} style={styles.trendRow}>
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                 {trend.label}: avg {fmt(trend.average)} · current {fmt(trend.current)}

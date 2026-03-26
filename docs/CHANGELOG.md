@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.5** - RN CLI native artifacts in CI + Log wizard parity polish + workflow unit tests.
+**Latest: v1.45.6** - Charts tab: Balance view filters metrics to match web wellness focus.
+
+### v1.45.6 - 2026-03-26 - Charts Balance view metric filtering
+
+- **Mobile / Charts (Phase B)**:
+  - **Balance** view now lists only **mood, sleep, and fatigue** trends (aligned with web balance chart excluding steps/hydration from the balance summary list).
+  - Added `filterTrendsForChartView` in `summarizeCharts.ts` with unit tests; refreshed Charts screen copy per view mode.
+- **Docs**:
+  - Deduplicated checklist lines in `docs/next-phase-development-plan.md` and noted Charts progress.
 
 ### v1.45.5 - 2026-03-26 - RN CLI artifacts + Log wizard parity polish
 
