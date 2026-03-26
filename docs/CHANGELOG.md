@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.21** - README CI vs legacy build tables; RN sequential build numbers.
+**Latest: v1.45.22** - Async Storage v3 Android: local Maven repo via Expo config plugin.
+
+### v1.45.22 - 2026-03-26 - Mobile Android: Async Storage v3 Gradle fix
+
+- **Mobile / CI**:
+  - **`@react-native-async-storage/async-storage` v3** requires **`org.asyncstorage.shared_storage:storage-android`** from the package’s **`android/local_repo`** (not Maven Central alone).
+  - **`apps/mobile/plugins/withAsyncStorageLocalRepo.js`**: Expo config plugin injects `maven { url "${rootDir}/../node_modules/@react-native-async-storage/async-storage/android/local_repo" }` into root **`android/build.gradle`** (after `jitpack`).
+  - **`app.json`**: registered **`plugins`** entry for the plugin; **`android.package`** set by prebuild for reproducible native IDs.
+- **Docs**: **`docs/next-phase-development-plan.md`** §2 + §6 (CI gate note).
 
 ### v1.45.21 - 2026-03-26 - README CI tables + RN build sequence
 
