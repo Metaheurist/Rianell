@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.11** - Plan checklist + Charts refresh test.
+**Latest: v1.45.12** - Log wizard Energy step + AI Analysis polish.
+
+### v1.45.12 - 2026-03-27 - Energy step parity polish + AI refresh test
+
+- **Mobile / Log wizard (Phase A — Step 4)**:
+  - **Energy & mental clarity**: short helper line under the title; **accessibility labels** on fatigue, sleep, and mood fields; **thicker group-colored border** when an energy tile is selected.
+- **Mobile / AI Analysis (Phase C)**:
+  - Range chips: **`accessibilityLabel`** + **`accessibilityState.selected`**.
+  - **`AiScreen.test.tsx`**: pull-to-refresh triggers a second `loadLogs` call.
+- **Docs**:
+  - **`docs/next-phase-development-plan.md`**: Steps **4.1 / 4.2** and Phase A Step 4 work item updated.
 
 ### v1.45.11 - 2026-03-27 - Plan sync (wizard 6–9) + Charts test
 

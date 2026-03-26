@@ -59,7 +59,14 @@ export function AiScreen() {
               const selected = opt === range;
               const label = opt === 'all' ? 'All' : `${opt}d`;
               return (
-                <Pressable key={String(opt)} style={[styles.rangeChip, selected ? styles.rangeChipOn : null]} onPress={() => setRange(opt)}>
+                <Pressable
+                  key={String(opt)}
+                  accessibilityRole="button"
+                  accessibilityLabel={opt === 'all' ? 'AI analysis range all time' : `AI analysis range ${opt} days`}
+                  accessibilityState={{ selected }}
+                  style={[styles.rangeChip, selected ? styles.rangeChipOn : null]}
+                  onPress={() => setRange(opt)}
+                >
                   <Text style={styles.rangeChipText}>{label}</Text>
                 </Pressable>
               );

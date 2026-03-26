@@ -2,7 +2,7 @@
 
 This document is the **single build plan** to finish Rianell’s transition to a **React Native CLI** app that matches the **web/PWA** and produces **Android APK** + **iOS emulator Xcode zip** via CI releases.
 
-**Last updated:** 2026-03-27 (Phase A wizard steps 6–9 marked complete in checklist; Charts refresh test)
+**Last updated:** 2026-03-27 (Energy step helper + tile selection ring + AI range a11y / refresh test)
 
 ---
 
@@ -55,11 +55,11 @@ If any of the above becomes false, fix it before moving forward.
 
 ### 4.1 Native screens remaining
 - [~] **Charts tab**: range (`14/30/90/all`), view toggle (`Balance/Individual/Combined`), trend summaries/deltas, mini spark bars, and **pull-to-refresh** are implemented; **Balance** limits listed metrics; **empty range** has a dedicated empty state. **Remaining:** full Apex/visual parity with web (styling, animations, richer chart chrome).
-- [~] **AI Analysis tab**: lite++ parity (range summaries + narrative sections + correlations + groups-that-change-together), deeper parity with the web AI copy/structure still pending; gated by `aiEnabled`.
+- [~] **AI Analysis tab**: lite++ parity (range summaries + narrative sections + correlations + groups-that-change-together); range chips have accessibility labels; pull-to-refresh reloads logs (test). Deeper parity with web AI copy/structure still pending; gated by `aiEnabled`.
 
 ### 4.2 Log wizard remaining steps (native)
 - [~] **Step 3 — Symptoms & pain**: body diagram is available (tap-to-cycle) with “Use diagram text” + more regions (arms/legs joints) + **diagram + chips semantics aligned** (good/discomfort/pain). Still needs full SVG region coverage + closer web visual parity.
-- [~] **Step 4 — Energy & mental clarity**: grouped tiles + search + collapsible tile section + selected summary; **icon tiles** + **group-colored tile borders**. Still needs closer web tile styling polish.
+- [~] **Step 4 — Energy & mental clarity**: grouped tiles + search + collapsible tile section + selected summary; **icon tiles** + **group-colored tile borders** + **stronger border on selected tile**; helper copy + **accessibility labels** on fatigue/sleep/mood fields. **Remaining:** optional closer match to web bottom-sheet tile chrome / animations.
 - [x] **Step 5 — Stress & triggers**: grouped tile picker + search + frequent + selected/clear + collapsible picker implemented.
 - [x] **Step 6 — Lifestyle**: clamp-on-save for daily function (0–10), steps (0–50k), hydration (0–20 glasses); tests in `LogWizardScreen.test.tsx`.
 - [x] **Step 7 — Food**: clear-all per section, duplicate counts on tiles, remove controls; tests for clear + count badge.
@@ -76,7 +76,7 @@ If any of the above becomes false, fix it before moving forward.
 **Work items (in order)**
 - Step 5: implement stressor tile UX parity (grouped tiles + frequent + selected list + clear). **(done)**
 - Step 3: implement native body diagram parity (SVG-equivalent interaction + intensity cycling + legend). **(in progress: diagram added; needs fuller region coverage + styling parity)**
-- Step 4: implement tile UI polish (icons + collapsible behavior parity). **(in progress: collapsible behavior added; icon tile styling still pending)**
+- Step 4: implement tile UI polish (icons + collapsible behavior parity). **(in progress: icons + group borders + selected-state ring + vitals field a11y; optional web sheet polish)**
 - Steps 6–9: validate and close remaining UX gaps (labels, selection summary, clear behaviors, accessibility labels). **(done — clamp/save, clear-all, count badges; see section 4.2)**
 
 **Done when:** a QA pass can follow the wizard on both surfaces and observe no UX/behavior differences (except signed-off exceptions).
