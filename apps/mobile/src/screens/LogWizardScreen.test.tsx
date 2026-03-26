@@ -42,15 +42,19 @@ test('log wizard can progress through stressors and save', async () => {
   fireEvent.press(getByLabelText('Next step'));
   await findByText('Symptoms');
   await findByText('Frequent symptoms');
-  fireEvent.press(getByText('Head: none'));
-  await findByText('Head: mild');
+  await findByLabelText('Pain body diagram');
+  fireEvent.press(getByText('Head: good'));
+  await findByText('Head: discomfort');
+  fireEvent.press(getByLabelText('Use diagram pain text'));
+  expect(getByLabelText('Pain locations').props.value).toContain('Head (mild)');
 
   fireEvent.press(getAllByText('Nausea')[0]);
   fireEvent.press(getByLabelText('Next step'));
-  await findByText('Energy / clarity');
-  fireEvent.press(getByText('Good'));
+  await findByText('Energy & mental clarity');
+  fireEvent.press(getByText('Mental Clarity'));
   fireEvent.press(getByLabelText('Next step'));
-  await findByText('Frequent stressors');
+  await findByText('Stress & triggers');
+  await findByText('Work & demands');
   fireEvent.press(getAllByText('Work deadline')[0]);
   fireEvent.press(getByLabelText('Next step'));
   await findByText('Daily function (0-10)');
@@ -105,8 +109,133 @@ test('wizard supports custom symptom and stressor entries', async () => {
 
   fireEvent.press(getByLabelText('Next step'));
   fireEvent.press(getByLabelText('Next step'));
-  await findByText('Stressors');
+  await findByText('Stress & triggers');
   fireEvent.changeText(getByLabelText('Custom stressor input'), 'Late commute');
   fireEvent.press(getByLabelText('Add custom stressor'));
   await findByText('Late commute');
+});
+
+test('wizard supports clearing food, exercise, and medications', async () => {
+  const { getByLabelText, findByText, getByText, getAllByText, queryByText } = renderWizard();
+
+  // Jump to food step (0->1->2->3->4->5->6)
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Breakfast (comma separated)');
+
+  fireEvent.press(getByText('Oatmeal'));
+  await findByText('Remove Oatmeal');
+  fireEvent.press(getByLabelText('Clear all food'));
+  expect(queryByText('Remove Oatmeal')).toBeNull();
+
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Exercise by category');
+  fireEvent.press(getAllByText('Walking:30')[0]);
+  await findByText('Remove Walking:30');
+  fireEvent.press(getByLabelText('Clear all exercise'));
+  expect(queryByText('Remove Walking:30')).toBeNull();
+
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Medications (comma separated)');
+  fireEvent.press(getByText('Ibuprofen'));
+  await findByText('Remove Ibuprofen');
+  fireEvent.press(getByLabelText('Clear all medications'));
+  expect(queryByText('Remove Ibuprofen')).toBeNull();
+});
+
+test('food tiles show count badge at 1 and expose clear control', async () => {
+  const { getByLabelText, findByText, getByText, findByLabelText } = renderWizard();
+
+  // Jump to food step (0->1->2->3->4->5->6)
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Breakfast (comma separated)');
+
+  fireEvent.press(getByText('Oatmeal'));
+  await findByLabelText('Clear Oatmeal');
+});
+
+test('exercise tiles show count badge at 1 and expose clear control', async () => {
+  const { getByLabelText, findByText, getAllByText, findAllByLabelText } = renderWizard();
+
+  // Jump to exercise step (0->1->2->3->4->5->6->7)
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Exercise by category');
+
+  fireEvent.press(getAllByText('Walking:30')[0]);
+  const clears = await findAllByLabelText('Clear Walking:30');
+  expect(clears.length).toBeGreaterThan(0);
+});
+
+test('medication tiles show count badge at 1 and expose clear control', async () => {
+  const { getByLabelText, findByText, getByText, findByLabelText } = renderWizard();
+
+  // Jump to medications step (0->1->2->3->4->5->6->7->8)
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Medications (comma separated)');
+
+  fireEvent.press(getByText('Ibuprofen'));
+  await findByLabelText('Clear Ibuprofen');
+});
+
+test('lifestyle values are clamped on save (steps/hydration/daily function)', async () => {
+  const mockedAddLogEntry = (jest.requireMock('../storage/logs') as { addLogEntry: jest.Mock }).addLogEntry;
+  mockedAddLogEntry.mockClear();
+
+  const { getByLabelText, findByText } = renderWizard();
+
+  // Navigate to lifestyle step (daily function / steps / hydration)
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Daily function (0-10)');
+
+  const dailyFnInput = getByLabelText('Daily function');
+  const stepsInput = getByLabelText('Steps');
+  const hydrationInput = getByLabelText('Hydration');
+
+  fireEvent.changeText(dailyFnInput, '99');
+  fireEvent.changeText(stepsInput, '999999');
+  fireEvent.changeText(hydrationInput, '999');
+
+  expect(dailyFnInput.props.value).toBe('99');
+  expect(stepsInput.props.value).toBe('999999');
+  expect(hydrationInput.props.value).toBe('999');
+
+  // Continue to review + save
+  fireEvent.press(getByLabelText('Next step')); // Food
+  fireEvent.press(getByLabelText('Next step')); // Exercise
+  fireEvent.press(getByLabelText('Next step')); // Meds
+  fireEvent.press(getByLabelText('Next step')); // Review
+  await findByText('Review');
+  fireEvent.press(getByLabelText('Save entry'));
+
+  await waitFor(() => expect(mockedAddLogEntry).toHaveBeenCalled());
+  const draft = mockedAddLogEntry.mock.calls[0][1];
+  expect(draft.dailyFunction).toBe(10);
+  expect(draft.steps).toBe(50000);
+  expect(draft.hydration).toBe(20);
 });
