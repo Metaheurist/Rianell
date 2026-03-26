@@ -23,6 +23,15 @@ export type ChartSummary = {
 /** Matches web Charts tab: Balance focuses on wellness metrics (steps/hydration are separate in web balance chart). */
 export type ChartViewMode = 'balance' | 'individual' | 'combined';
 
+/** Combined-chart series colors from web `app.js` metric definitions (mood/sleep/fatigue/steps/hydration). */
+export const CHART_METRIC_HEX: Record<TrendMetric, string> = {
+  mood: '#673ab7',
+  sleep: '#3f51b5',
+  fatigue: '#ff9800',
+  steps: '#00e676',
+  hydration: '#00bcd4',
+};
+
 const BALANCE_TREND_KEYS: TrendMetric[] = ['mood', 'sleep', 'fatigue'];
 
 export function filterTrendsForChartView(trends: MetricTrend[], view: ChartViewMode): MetricTrend[] {

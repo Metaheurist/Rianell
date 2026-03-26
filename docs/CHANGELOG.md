@@ -2,7 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.17** - Phase B Charts: web-aligned metric formatting.
+**Latest: v1.45.18** - Phase B Charts: web metric colors.
+
+### v1.45.18 - 2026-03-27 - Mobile Charts (Phase B) metric colors
+
+- **Mobile / Charts**:
+  - **`CHART_METRIC_HEX`** in `summarizeCharts.ts` (mood/sleep/fatigue/steps/hydration — same hex as web combined charts).
+  - **Mini spark bars** use per-metric colors; **trend rows** get a **3px left border** in the same color.
+  - Unit test for `CHART_METRIC_HEX` keys.
+- **Docs**:
+  - **`docs/next-phase-development-plan.md`**: Phase B work items + §4.1.
 
 ### v1.45.17 - 2026-03-27 - Mobile Charts (Phase B) value/delta formatting
 

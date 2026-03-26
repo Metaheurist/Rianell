@@ -1,4 +1,5 @@
 import {
+  CHART_METRIC_HEX,
   filterTrendsForChartView,
   formatChartMetricDelta,
   formatChartMetricValue,
@@ -40,6 +41,11 @@ test('formatChartMetricDelta prefixes sign for steps and hydration', () => {
   expect(formatChartMetricDelta('steps', -1200)).toBe('-1,200');
   expect(formatChartMetricDelta('hydration', -0.5)).toBe('-0.5');
   expect(formatChartMetricDelta('mood', 0.5)).toBe('+0.5');
+});
+
+test('CHART_METRIC_HEX covers all trend keys (web palette)', () => {
+  expect(CHART_METRIC_HEX.mood).toMatch(/^#/);
+  expect(Object.keys(CHART_METRIC_HEX).sort()).toEqual(['fatigue', 'hydration', 'mood', 'sleep', 'steps']);
 });
 
 test('filterTrendsForChartView keeps mood/sleep/fatigue for balance only', () => {

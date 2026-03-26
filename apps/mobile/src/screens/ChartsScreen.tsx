@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { loadLogs, type LogEntry } from '../storage/logs';
 import {
+  CHART_METRIC_HEX,
   filterTrendsForChartView,
   formatChartMetricDelta,
   formatChartMetricValue,
@@ -146,7 +147,10 @@ export function ChartsScreen() {
             </Text>
           ) : (
             trendsForView.map((trend) => (
-              <View key={trend.key} style={styles.trendRow}>
+              <View
+                key={trend.key}
+                style={[styles.trendRow, { borderLeftColor: CHART_METRIC_HEX[trend.key], borderLeftWidth: 3 }]}
+              >
                 <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                   {trend.label}: avg {formatChartMetricValue(trend.key, trend.average)} · current{' '}
                   {formatChartMetricValue(trend.key, trend.current)}
@@ -164,6 +168,7 @@ export function ChartsScreen() {
                           style={[
                             styles.sparkBar,
                             {
+                              backgroundColor: CHART_METRIC_HEX[trend.key],
                               height: 8 + Math.round(h * 28),
                               opacity: 0.55 + h * 0.45,
                             },
@@ -194,9 +199,15 @@ const styles = StyleSheet.create({
   section: { fontWeight: '800', marginTop: 14, marginBottom: 6, opacity: 0.85 },
   metric: { marginBottom: 6, opacity: 0.95 },
   meta: { opacity: 0.8, marginBottom: 8 },
-  trendRow: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', paddingTop: 8, marginTop: 4 },
+  trendRow: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+    paddingTop: 8,
+    marginTop: 4,
+    paddingLeft: 8,
+  },
   sparkRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 4, minHeight: 40, marginBottom: 4, marginTop: 2 },
-  sparkBar: { width: 6, borderRadius: 4, backgroundColor: 'rgba(123,223,140,0.95)' },
+  sparkBar: { width: 6, borderRadius: 4 },
   rangeRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   viewRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 4 },
   rangeChip: {
