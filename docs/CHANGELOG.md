@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.12** - Log wizard Energy step + AI Analysis polish.
+**Latest: v1.45.13** - Pain body diagram web silhouette.
+
+### v1.45.13 - 2026-03-27 - Log wizard pain diagram (Step 3) visual parity
+
+- **Mobile / Log wizard (Phase A — Step 3)**:
+  - Pain diagram uses the **same outline path** as web (`web/index.html`), **viewBox 0 0 140 280**, and **vertical scale** on interactive regions so the figure fills the canvas; **accessibilityHint** on the diagram container.
+- **Docs**:
+  - **`docs/next-phase-development-plan.md`**: Step 3 checklist + Phase A work item updated.
 
 ### v1.45.12 - 2026-03-27 - Energy step parity polish + AI refresh test
 
