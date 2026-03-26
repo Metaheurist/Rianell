@@ -28,8 +28,11 @@ For issues and questions:
 - Review server logs in `logs/` directory
 - Check browser console for frontend errors
 
-### v1.44.2 documentation sync
+### Documentation pointers (current)
 
+- **Roadmap / parity:** **[docs/next-phase-development-plan.md](next-phase-development-plan.md)** — React Native vs web checklist (wizard, Charts, AI, Settings).
+- **Features (web + native):** **[docs/app-and-features.md](app-and-features.md)** — includes React Native log wizard, Settings, Charts/AI notes.
 - When reporting theme issues, include selected theme name and screenshots for loading overlay, Home pulse/title, navbar active tab, and goals/targets block.
 - For cloud settings sync reports, include whether user was signed in and which setting did not persist across devices.
+- For **mobile** issues, note app build or branch, `npm run test:mobile` / `typecheck:mobile` if relevant, and device OS.
 

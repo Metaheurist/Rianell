@@ -2,7 +2,7 @@
 
 This document is the **single build plan** to finish Rianell’s transition to a **React Native CLI** app that matches the **web/PWA** and produces **Android APK** + **iOS emulator Xcode zip** via CI releases.
 
-**Last updated:** 2026-03-27 (Pain diagram web outline + 140×280 viewBox; Energy step prior)
+**Last updated:** 2026-03-27 (Docs: `app-and-features` native wizard + `about-and-support` pointers)
 
 ---
 
