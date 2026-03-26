@@ -58,13 +58,15 @@ If any of the above becomes false, fix it before moving forward.
 - [~] **AI Analysis tab**: lite++ parity (range summaries + narrative sections + correlations + groups-that-change-together), deeper parity with the web AI copy/structure still pending; gated by `aiEnabled`.
 
 ### 4.2 Log wizard remaining steps (native)
-- [~] **Step 3 — Symptoms & pain**: full body diagram UX parity still pending (native currently uses region chips; SVG-style diagram is not yet replicated).
-- [~] **Step 4 — Energy & mental clarity**: icons + collapsible sheet polish still pending (native has grouped selection/search + clear; needs web-like tile feel).
-- [~] **Step 5 — Stress & triggers**: web-like tile picker structure and grouped presentation still pending.
+- [~] **Step 3 — Symptoms & pain**: body diagram is available (tap-to-cycle) with “Use diagram text” + more regions (arms/legs joints) + **diagram + chips semantics aligned** (good/discomfort/pain). Still needs full SVG region coverage + closer web visual parity.
+- [~] **Step 4 — Energy & mental clarity**: grouped tiles + search + collapsible tile section + selected summary; **icon tiles added** (emoji icons for now). Still needs closer web tile styling polish.
+- [~] **Step 4 — Energy & mental clarity**: grouped tiles + search + collapsible tile section + selected summary; **icon tiles added** (emoji icons for now) + **group-colored tile borders**. Still needs closer web tile styling polish.
+- [x] **Step 5 — Stress & triggers**: grouped tile picker + search + frequent + selected/clear + collapsible picker implemented.
 - [~] **Step 6 — Lifestyle**: ensure UX matches web intent (inputs/chips placement, labels, and validation parity).
-- [~] **Step 7 — Food**: ensure web-like add/remove behavior and “count badge clear” parity across all meal types.
-- [~] **Step 8 — Exercise**: ensure category group UX and “Name:Minutes” parsing parity; confirm count-badge clear parity.
-- [~] **Step 9 — Medication & notes**: confirm remove controls, count-badge clear behavior, and Taken today? toggle parity.
+- [~] **Step 6 — Lifestyle**: ensure UX matches web intent (inputs/chips placement, labels, and validation parity). (Added clamp-on-save normalization for steps/hydration/daily function + test)
+- [~] **Step 7 — Food**: ensure web-like add/remove behavior and “count badge clear” parity across all meal types. (Added “Clear all food”; count badge shows at 1+ + test)
+- [~] **Step 8 — Exercise**: ensure category group UX and “Name:Minutes” parsing parity; confirm count-badge clear parity. (Added “Clear all exercise”; count badge shows at 1+ + test)
+- [~] **Step 9 — Medication & notes**: confirm remove controls, count-badge clear behavior, and Taken today? toggle parity. (Added “Clear all medications”; count badge shows at 1+ + test)
 
 ---
 
@@ -74,9 +76,9 @@ If any of the above becomes false, fix it before moving forward.
 **Goal:** the wizard feels identical to the web flow, step-by-step.
 
 **Work items (in order)**
-- Step 5: implement stressor tile UX parity (grouped tiles + frequent + selected list + clear).
-- Step 3: implement native body diagram parity (SVG-equivalent interaction + intensity cycling + legend).
-- Step 4: implement tile UI polish (icons + collapsible behavior parity).
+- Step 5: implement stressor tile UX parity (grouped tiles + frequent + selected list + clear). **(done)**
+- Step 3: implement native body diagram parity (SVG-equivalent interaction + intensity cycling + legend). **(in progress: diagram added; needs fuller region coverage + styling parity)**
+- Step 4: implement tile UI polish (icons + collapsible behavior parity). **(in progress: collapsible behavior added; icon tile styling still pending)**
 - Steps 6–9: validate and close remaining UX gaps (labels, selection summary, clear behaviors, accessibility labels).
 
 **Done when:** a QA pass can follow the wizard on both surfaces and observe no UX/behavior differences (except signed-off exceptions).

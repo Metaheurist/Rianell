@@ -223,19 +223,74 @@ jobs:
           path: apps/mobile/dist-expo-prod/
 
   # ---------------------------------------------------------------------------
-  # Expo native binaries for release (EAS production)
+  # React Native CLI native artifacts (no EAS / no EXPO_TOKEN)
   # ---------------------------------------------------------------------------
-  eas-native-binaries-prod:
-    name: Expo native binaries (EAS prod, ${{ matrix.platform }})
+  rncli-android-apk:
+    name: Android APK (React Native CLI)
     needs: [paths-filter, expo-bundle-prod]
     if: |
       github.event_name == 'push' &&
       needs.paths-filter.outputs.mobile_release == 'true'
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [android, ios]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install root dependencies (workspaces)
+        run: npm ci
+
+      - name: Generate native project (expo prebuild -> RN CLI)
+        working-directory: apps/mobile
+        env:
+          EXPO_NO_TELEMETRY: "1"
+        run: npx expo prebuild --platform android --non-interactive --no-install
+
+      - name: Assemble Android debug APK
+        working-directory: apps/mobile/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Collect APK + latest.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p rncli-android-dist
+          shopt -s nullglob
+          apks=(app/build/outputs/apk/debug/*.apk)
+          if [ ${#apks[@]} -eq 0 ]; then
+            echo "No APKs found under app/build/outputs/apk/debug"
+            exit 1
+          fi
+          cp -v "${apks[0]}" rncli-android-dist/app-debug-beta.apk
+          echo "{\"version\":${GITHUB_RUN_NUMBER},\"file\":\"app-debug-beta.apk\"}" > rncli-android-dist/latest.json
+
+      - name: Upload Android dist
+        uses: actions/upload-artifact@v5
+        with:
+          name: rncli-android-dist
+          path: rncli-android-dist/
+
+  rncli-ios-zip:
+    name: iOS emulator Xcode project zip (React Native CLI)
+    needs: [paths-filter, expo-bundle-prod]
+    if: |
+      github.event_name == 'push' &&
+      needs.paths-filter.outputs.mobile_release == 'true'
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v5
 
@@ -248,58 +303,28 @@ jobs:
       - name: Install root dependencies (workspaces)
         run: npm ci
 
-      - name: Validate EAS token
-        run: |
-          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
-            echo "Missing EXPO_TOKEN secret."
-            exit 1
-          fi
-
-      - name: Install EAS CLI
-        run: npm install -g eas-cli
-
-      - name: Build ${{ matrix.platform }} (EAS cloud, production)
+      - name: Generate native project (expo prebuild -> RN CLI)
         working-directory: apps/mobile
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_NO_TELEMETRY: "1"
-          NODE_ENV: production
-        run: eas build --platform ${{ matrix.platform }} --profile production --non-interactive --wait
+        run: npx expo prebuild --platform ios --non-interactive --no-install
 
-      - name: Collect built binary artifacts
+      - name: Zip iOS project for emulator usage
         shell: bash
         run: |
           set -euo pipefail
-          shopt -s nullglob globstar
-          mkdir -p "eas-native-dist/${{ matrix.platform }}"
+          mkdir -p rncli-ios-dist
+          run="${GITHUB_RUN_NUMBER}"
+          zip -r "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "apps/mobile/ios"
+          cp -f "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "rncli-ios-dist/Health-Tracker-ios-alpha-latest.zip"
+          cp -f "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "rncli-ios-dist/Health-Tracker-simulator-alpha-${run}.zip"
+          echo "{\"version\":${run},\"file\":\"Health-Tracker-ios-alpha-build-${run}.zip\",\"simulatorFile\":\"Health-Tracker-simulator-alpha-${run}.zip\"}" > rncli-ios-dist/latest.json
 
-          if [ "${{ matrix.platform }}" = "android" ]; then
-            files=(apps/mobile/dist/**/*.aab apps/mobile/dist/**/*.apk apps/mobile/dist/*.aab apps/mobile/dist/*.apk)
-            if [ ${#files[@]} -gt 0 ]; then
-              cp -v "${files[@]}" "eas-native-dist/android/"
-            fi
-            collected=(eas-native-dist/android/*.aab eas-native-dist/android/*.apk)
-            if [ ${#collected[@]} -eq 0 ]; then
-              echo "No Android binaries found in apps/mobile/dist"
-              exit 1
-            fi
-          else
-            files=(apps/mobile/dist/**/*.ipa apps/mobile/dist/*.ipa)
-            if [ ${#files[@]} -gt 0 ]; then
-              cp -v "${files[@]}" "eas-native-dist/ios/"
-            fi
-            collected=(eas-native-dist/ios/*.ipa)
-            if [ ${#collected[@]} -eq 0 ]; then
-              echo "No iOS binaries found in apps/mobile/dist"
-              exit 1
-            fi
-          fi
-
-      - name: Upload native binaries
+      - name: Upload iOS dist
         uses: actions/upload-artifact@v5
         with:
-          name: expo-native-binaries-${{ matrix.platform }}
-          path: eas-native-dist/${{ matrix.platform }}
+          name: rncli-ios-dist
+          path: rncli-ios-dist/
 
   # ---------------------------------------------------------------------------
   # Server Windows EXE (PyInstaller, x64 + x86)
@@ -399,7 +424,7 @@ jobs:
   # ---------------------------------------------------------------------------
   commit-app-build:
     name: Commit App build to repo
-    needs: [paths-filter, expo-bundle-prod, server-exe]
+    needs: [paths-filter, expo-bundle-prod, server-exe, rncli-android-apk, rncli-ios-zip]
     if: |
       github.event_name == 'push' &&
       needs.paths-filter.outputs.mobile_release == 'true'
@@ -418,14 +443,26 @@ jobs:
 
       - name: Clear App build dirs before artifacts (avoid stale checked-in files)
         run: |
-          rm -rf "App build/Expo" "App build/Server"
-          mkdir -p "App build/Expo" "App build/Server"
+          rm -rf "App build/Expo" "App build/Server" "App build/RNCLI-Android" "App build/iOS"
+          mkdir -p "App build/Expo" "App build/Server" "App build/RNCLI-Android" "App build/iOS"
 
       - name: Download Expo bundles artifact
         uses: actions/download-artifact@v5
         with:
           name: expo-bundles
           path: App build/Expo/dist-expo-prod
+
+      - name: Download RN CLI Android APK
+        uses: actions/download-artifact@v5
+        with:
+          name: rncli-android-dist
+          path: App build/RNCLI-Android/
+
+      - name: Download RN CLI iOS Xcode project zip
+        uses: actions/download-artifact@v5
+        with:
+          name: rncli-ios-dist
+          path: App build/iOS/
 
       - name: Download Server EXE artifacts
         uses: actions/download-artifact@v5
@@ -462,7 +499,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md "App build/Expo/" "App build/Server/"
+          git add README.md "App build/Expo/" "App build/Server/" "App build/RNCLI-Android/" "App build/iOS/"
           git diff --staged --quiet || git commit -m "Update App build artifacts (build ${{ github.run_number }}) [skip ci]"
           git fetch origin "${{ github.ref_name }}"
           git push origin ${{ github.ref_name }}
@@ -472,7 +509,7 @@ jobs:
   # ---------------------------------------------------------------------------
   publish-release:
     name: Publish GitHub Release
-    needs: [paths-filter, expo-bundle-prod, server-exe, eas-native-binaries-prod]
+    needs: [paths-filter, expo-bundle-prod, server-exe, rncli-android-apk, rncli-ios-zip]
     if: |
       github.event_name == 'push' &&
       needs.paths-filter.outputs.mobile_release == 'true'
@@ -489,41 +526,46 @@ jobs:
           name: expo-bundles
           path: gh-release/Expo/dist-expo-prod
 
+      - name: Download RN CLI Android APK artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: rncli-android-dist
+          path: gh-release/RNCLI-Android/
+
+      - name: Download RN CLI iOS emulator zip artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: rncli-ios-dist
+          path: gh-release/RNCLI-iOS/
+
       - name: Download Server EXE binaries
         uses: actions/download-artifact@v5
         with:
           pattern: server-exe-*
           path: gh-release/Server
 
-      - name: Download Expo native binaries
-        uses: actions/download-artifact@v5
-        with:
-          pattern: expo-native-binaries-*
-          path: gh-release/ExpoNative
-
       - name: Prepare release assets (this run only)
         run: |
           set -e
           RUN="${{ github.run_number }}"
-          mkdir -p release-assets/Expo release-assets/ExpoNative/Android release-assets/ExpoNative/iOS release-assets/Legacy release-assets/Server release-assets/Meta
+          mkdir -p release-assets/Expo release-assets/RNCLI/Android release-assets/RNCLI/iOS release-assets/Legacy release-assets/Server release-assets/Meta
 
           # Expo bundles (minified production JS for iOS + Android)
           cd gh-release/Expo
           zip -r "../../release-assets/Expo/rianell-expo-bundles-${RUN}.zip" "dist-expo-prod"
           cd ../..
 
+          # React Native CLI native artifacts (APK + iOS emulator zip)
+          if [ -d "gh-release/RNCLI-Android" ]; then
+            cp -v "gh-release/RNCLI-Android/"* "release-assets/RNCLI/Android/" || true
+          fi
+          if [ -d "gh-release/RNCLI-iOS" ]; then
+            cp -v "gh-release/RNCLI-iOS/"* "release-assets/RNCLI/iOS/" || true
+          fi
+
           # Legacy (Capacitor) artifacts are not rebuilt; include the latest checked-in ones if present.
           if [ -d "App build/Android" ]; then cp -r "App build/Android" "release-assets/Legacy/Android" || true; fi
           if [ -d "App build/iOS" ]; then cp -r "App build/iOS" "release-assets/Legacy/iOS" || true; fi
-
-          # Expo native binaries (EAS production)
-          shopt -s nullglob
-          if [ -d "gh-release/ExpoNative/expo-native-binaries-android" ]; then
-            cp -v "gh-release/ExpoNative/expo-native-binaries-android/"* "release-assets/ExpoNative/Android/" || true
-          fi
-          if [ -d "gh-release/ExpoNative/expo-native-binaries-ios" ]; then
-            cp -v "gh-release/ExpoNative/expo-native-binaries-ios/"* "release-assets/ExpoNative/iOS/" || true
-          fi
 
           cp "gh-release/Server/server-exe-x64/rianell-server-x64.exe" "release-assets/Server/"
           cp "gh-release/Server/server-exe-x86/rianell-server-x86.exe" "release-assets/Server/"
@@ -553,10 +595,10 @@ jobs:
             Directory: `release-assets/Expo/`
             - `rianell-expo-bundles-${{ github.run_number }}.zip` (minified production JS bundles for iOS + Android)
 
-            ### Expo Native (EAS production)
-            Directory: `release-assets/ExpoNative/`
-            - `Android/` (APK/AAB)
-            - `iOS/` (IPA)
+            ### React Native CLI (native release artifacts)
+            Directory: `release-assets/RNCLI/`
+            - `Android/` (APK + metadata)
+            - `iOS/` (iOS emulator Xcode project zip + metadata)
 
             ### Legacy (Capacitor)
             Directory: `release-assets/Legacy/`
@@ -580,7 +622,7 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             release-assets/Expo/*
-            release-assets/ExpoNative/**/*
+            release-assets/RNCLI/**/*
             release-assets/Legacy/**/*
             release-assets/Server/*
             release-assets/Meta/*

@@ -19,6 +19,7 @@ permissions:
 jobs:
   eas-native-build:
     name: EAS native build (iOS + Android)
+    if: false # Disabled: CI now generates native artifacts via RN CLI prebuild (no EXPO_TOKEN).
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Svg, { Circle, Rect } from 'react-native-svg';
 import { useTheme } from '../theme/ThemeProvider';
 import { addLogEntry, getFrequentLogItems, loadLogs, saveLogs, type LogEntry } from '../storage/logs';
 import { normalizeLogEntry } from '@rianell/shared';
@@ -46,21 +47,68 @@ const SYMPTOM_OPTIONS: Array<{ value: string; label: string; group: (typeof SYMP
   { value: 'Other', label: 'Other', group: 'other' },
 ];
 
-const ENERGY_CLARITY_OPTIONS = ['Very low', 'Low', 'Moderate', 'Good', 'Excellent'];
+const ENERGY_CLARITY_GROUPS = [
+  { id: 'positive', label: 'Positive' },
+  { id: 'neutral', label: 'Neutral' },
+  { id: 'negative', label: 'Negative' },
+] as const;
+
+type EnergyClarityGroupId = (typeof ENERGY_CLARITY_GROUPS)[number]['id'];
+
+type EnergyClarityOption = { value: string; label: string; mood: EnergyClarityGroupId };
+
+// Matches web ENERGY_CLARITY_OPTIONS for the tile picker (step "Energy & mental clarity").
+const ENERGY_CLARITY_OPTIONS: EnergyClarityOption[] = [
+  { value: 'High Energy', label: 'High Energy', mood: 'positive' },
+  { value: 'Moderate Energy', label: 'Moderate Energy', mood: 'neutral' },
+  { value: 'Low Energy', label: 'Low Energy', mood: 'negative' },
+  { value: 'Mental Clarity', label: 'Mental Clarity', mood: 'positive' },
+  { value: 'Brain Fog', label: 'Brain Fog', mood: 'negative' },
+  { value: 'Good Concentration', label: 'Good Concentration', mood: 'positive' },
+  { value: 'Poor Concentration', label: 'Poor Concentration', mood: 'negative' },
+  { value: 'Mental Fatigue', label: 'Mental Fatigue', mood: 'negative' },
+  { value: 'Focused', label: 'Focused', mood: 'positive' },
+  { value: 'Distracted', label: 'Distracted', mood: 'negative' },
+] as const;
+
+const ENERGY_CLARITY_ICONS: Record<string, string> = {
+  'High Energy': '⚡',
+  'Moderate Energy': '⏳',
+  'Low Energy': '🪫',
+  'Mental Clarity': '✨',
+  'Brain Fog': '🌫',
+  'Good Concentration': '🎯',
+  'Poor Concentration': '💤',
+  'Mental Fatigue': '🧠',
+  'Focused': '🔎',
+  'Distracted': '🌀',
+};
 const SCORE_0_10_OPTIONS = ['0', '2', '4', '6', '8', '10'];
 const SCORE_1_10_OPTIONS = ['1', '3', '5', '7', '9', '10'];
-const STRESSOR_OPTIONS = [
-  'Work deadline',
-  'Financial stress',
-  'Family conflict',
-  'Relationship issue',
-  'Social event',
-  'Physical overexertion',
-  'Sleep disruption',
-  'Weather change',
-  'Travel',
-  'Emotional stress',
-  'Health concern',
+const STRESSOR_GROUPS = [
+  { id: 'work', label: 'Work & demands' },
+  { id: 'relationship', label: 'Relationships' },
+  { id: 'physical', label: 'Physical' },
+  { id: 'environment', label: 'Environment' },
+  { id: 'emotional', label: 'Emotional & health' },
+] as const;
+
+type StressorGroupId = (typeof STRESSOR_GROUPS)[number]['id'];
+type StressorOption = { value: string; label: string; group: StressorGroupId };
+
+// Matches web STRESSOR_OPTIONS (grouped tile picker).
+const STRESSOR_OPTIONS: StressorOption[] = [
+  { value: 'Work deadline', label: 'Work deadline', group: 'work' },
+  { value: 'Financial stress', label: 'Financial stress', group: 'work' },
+  { value: 'Family conflict', label: 'Family conflict', group: 'relationship' },
+  { value: 'Relationship issue', label: 'Relationship issue', group: 'relationship' },
+  { value: 'Social event', label: 'Social event', group: 'relationship' },
+  { value: 'Physical overexertion', label: 'Physical overexertion', group: 'physical' },
+  { value: 'Sleep disruption', label: 'Sleep disruption', group: 'physical' },
+  { value: 'Weather change', label: 'Weather change', group: 'environment' },
+  { value: 'Travel', label: 'Travel', group: 'environment' },
+  { value: 'Emotional stress', label: 'Emotional stress', group: 'emotional' },
+  { value: 'Health concern', label: 'Health concern', group: 'emotional' },
 ];
 
 const FOOD_QUICK_BY_MEAL: Record<'breakfast' | 'lunch' | 'dinner' | 'snack', string[]> = {
@@ -99,31 +147,55 @@ const PAIN_BODY_REGIONS = [
   { id: 'chest', label: 'Chest' },
   { id: 'abdomen', label: 'Abdomen' },
   { id: 'left_shoulder', label: 'Left shoulder' },
+  { id: 'left_upper_arm', label: 'Left upper arm' },
+  { id: 'left_forearm', label: 'Left forearm' },
+  { id: 'left_hand', label: 'Left hand' },
   { id: 'right_shoulder', label: 'Right shoulder' },
+  { id: 'right_upper_arm', label: 'Right upper arm' },
+  { id: 'right_forearm', label: 'Right forearm' },
+  { id: 'right_hand', label: 'Right hand' },
   { id: 'left_elbow', label: 'Left elbow' },
   { id: 'right_elbow', label: 'Right elbow' },
   { id: 'left_wrist', label: 'Left wrist' },
   { id: 'right_wrist', label: 'Right wrist' },
   { id: 'left_hip', label: 'Left hip' },
+  { id: 'left_thigh', label: 'Left thigh' },
   { id: 'right_hip', label: 'Right hip' },
+  { id: 'right_thigh', label: 'Right thigh' },
   { id: 'left_knee', label: 'Left knee' },
+  { id: 'left_lower_leg', label: 'Left lower leg' },
   { id: 'right_knee', label: 'Right knee' },
+  { id: 'right_lower_leg', label: 'Right lower leg' },
   { id: 'left_ankle', label: 'Left ankle' },
+  { id: 'left_foot', label: 'Left foot' },
   { id: 'right_ankle', label: 'Right ankle' },
+  { id: 'right_foot', label: 'Right foot' },
 ] as const;
 
 type PainState = 0 | 1 | 2;
 
 function painStateText(value: PainState) {
-  if (value === 1) return 'mild';
+  if (value === 1) return 'discomfort';
   if (value === 2) return 'pain';
-  return 'none';
+  return 'good';
 }
 
 function painStateLabel(value: PainState) {
-  if (value === 1) return 'Mild';
+  if (value === 1) return 'Discomfort';
   if (value === 2) return 'Pain';
-  return 'None';
+  return 'Good';
+}
+
+function painStateFill(value: PainState) {
+  if (value === 1) return 'rgba(255,193,7,0.30)';
+  if (value === 2) return 'rgba(244,67,54,0.28)';
+  return 'rgba(76,175,80,0.18)';
+}
+
+function painStateStroke(value: PainState) {
+  if (value === 1) return 'rgba(255,193,7,0.65)';
+  if (value === 2) return 'rgba(244,67,54,0.65)';
+  return 'rgba(76,175,80,0.55)';
 }
 
 function buildPainLocationTextFromState(state: Record<string, PainState>): string {
@@ -134,6 +206,356 @@ function buildPainLocationTextFromState(state: Record<string, PainState>): strin
     if (v === 2) parts.push(`${region.label} (pain)`);
   });
   return parts.join(', ');
+}
+
+function PainBodyDiagram(props: {
+  states: Record<string, PainState>;
+  onPressRegion: (regionId: string) => void;
+}) {
+  const { states, onPressRegion } = props;
+  const strokeWidth = 2;
+
+  // A lightweight “front view” diagram for quick region tapping.
+  // Chips below remain the exhaustive fallback for all regions.
+  return (
+    <View accessibilityLabel="Pain body diagram" style={{ alignItems: 'center', marginVertical: 8 }}>
+      <Svg width={220} height={320} viewBox="0 0 140 200">
+        {/* Head */}
+        <Circle
+          cx={70}
+          cy={22}
+          r={16}
+          fill={painStateFill(states.head ?? 0)}
+          stroke={painStateStroke(states.head ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('head')}
+          accessibilityLabel="Head region"
+        />
+
+        {/* Neck */}
+        <Rect
+          x={62}
+          y={38}
+          width={16}
+          height={10}
+          rx={6}
+          fill={painStateFill(states.neck ?? 0)}
+          stroke={painStateStroke(states.neck ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('neck')}
+          accessibilityLabel="Neck region"
+        />
+
+        {/* Chest */}
+        <Rect
+          x={40}
+          y={48}
+          width={60}
+          height={38}
+          rx={16}
+          fill={painStateFill(states.chest ?? 0)}
+          stroke={painStateStroke(states.chest ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('chest')}
+          accessibilityLabel="Chest region"
+        />
+
+        {/* Abdomen */}
+        <Rect
+          x={42}
+          y={88}
+          width={56}
+          height={32}
+          rx={14}
+          fill={painStateFill(states.abdomen ?? 0)}
+          stroke={painStateStroke(states.abdomen ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('abdomen')}
+          accessibilityLabel="Abdomen region"
+        />
+
+        {/* Hips */}
+        <Rect
+          x={38}
+          y={122}
+          width={30}
+          height={18}
+          rx={10}
+          fill={painStateFill(states.left_hip ?? 0)}
+          stroke={painStateStroke(states.left_hip ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('left_hip')}
+          accessibilityLabel="Left hip region"
+        />
+        <Rect
+          x={72}
+          y={122}
+          width={30}
+          height={18}
+          rx={10}
+          fill={painStateFill(states.right_hip ?? 0)}
+          stroke={painStateStroke(states.right_hip ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('right_hip')}
+          accessibilityLabel="Right hip region"
+        />
+
+        {/* Arms (simplified) */}
+        <Rect
+          x={16}
+          y={55}
+          width={20}
+          height={18}
+          rx={8}
+          fill={painStateFill(states.left_shoulder ?? 0)}
+          stroke={painStateStroke(states.left_shoulder ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('left_shoulder')}
+          accessibilityLabel="Left shoulder region"
+        />
+        <Rect
+          x={104}
+          y={55}
+          width={20}
+          height={18}
+          rx={8}
+          fill={painStateFill(states.right_shoulder ?? 0)}
+          stroke={painStateStroke(states.right_shoulder ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('right_shoulder')}
+          accessibilityLabel="Right shoulder region"
+        />
+        <Rect
+          x={6}
+          y={76}
+          width={18}
+          height={36}
+          rx={8}
+          fill={painStateFill(states.left_upper_arm ?? 0)}
+          stroke={painStateStroke(states.left_upper_arm ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('left_upper_arm')}
+          accessibilityLabel="Left upper arm region"
+        />
+        <Rect
+          x={116}
+          y={76}
+          width={18}
+          height={36}
+          rx={8}
+          fill={painStateFill(states.right_upper_arm ?? 0)}
+          stroke={painStateStroke(states.right_upper_arm ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('right_upper_arm')}
+          accessibilityLabel="Right upper arm region"
+        />
+        <Rect
+          x={6}
+          y={114}
+          width={18}
+          height={30}
+          rx={8}
+          fill={painStateFill(states.left_forearm ?? 0)}
+          stroke={painStateStroke(states.left_forearm ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('left_forearm')}
+          accessibilityLabel="Left forearm region"
+        />
+        <Rect
+          x={116}
+          y={114}
+          width={18}
+          height={30}
+          rx={8}
+          fill={painStateFill(states.right_forearm ?? 0)}
+          stroke={painStateStroke(states.right_forearm ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('right_forearm')}
+          accessibilityLabel="Right forearm region"
+        />
+        <Circle
+          cx={15}
+          cy={112}
+          r={6}
+          fill={painStateFill(states.left_elbow ?? 0)}
+          stroke={painStateStroke(states.left_elbow ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('left_elbow')}
+          accessibilityLabel="Left elbow region"
+        />
+        <Circle
+          cx={125}
+          cy={112}
+          r={6}
+          fill={painStateFill(states.right_elbow ?? 0)}
+          stroke={painStateStroke(states.right_elbow ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('right_elbow')}
+          accessibilityLabel="Right elbow region"
+        />
+        <Circle
+          cx={15}
+          cy={146}
+          r={5}
+          fill={painStateFill(states.left_wrist ?? 0)}
+          stroke={painStateStroke(states.left_wrist ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('left_wrist')}
+          accessibilityLabel="Left wrist region"
+        />
+        <Circle
+          cx={125}
+          cy={146}
+          r={5}
+          fill={painStateFill(states.right_wrist ?? 0)}
+          stroke={painStateStroke(states.right_wrist ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('right_wrist')}
+          accessibilityLabel="Right wrist region"
+        />
+        <Rect
+          x={4}
+          y={146}
+          width={22}
+          height={14}
+          rx={6}
+          fill={painStateFill(states.left_hand ?? 0)}
+          stroke={painStateStroke(states.left_hand ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('left_hand')}
+          accessibilityLabel="Left hand region"
+        />
+        <Rect
+          x={114}
+          y={146}
+          width={22}
+          height={14}
+          rx={6}
+          fill={painStateFill(states.right_hand ?? 0)}
+          stroke={painStateStroke(states.right_hand ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('right_hand')}
+          accessibilityLabel="Right hand region"
+        />
+
+        {/* Legs */}
+        <Rect
+          x={44}
+          y={142}
+          width={22}
+          height={28}
+          rx={10}
+          fill={painStateFill(states.left_thigh ?? 0)}
+          stroke={painStateStroke(states.left_thigh ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('left_thigh')}
+          accessibilityLabel="Left thigh region"
+        />
+        <Rect
+          x={74}
+          y={142}
+          width={22}
+          height={28}
+          rx={10}
+          fill={painStateFill(states.right_thigh ?? 0)}
+          stroke={painStateStroke(states.right_thigh ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('right_thigh')}
+          accessibilityLabel="Right thigh region"
+        />
+        <Circle
+          cx={55}
+          cy={172}
+          r={7}
+          fill={painStateFill(states.left_knee ?? 0)}
+          stroke={painStateStroke(states.left_knee ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('left_knee')}
+          accessibilityLabel="Left knee region"
+        />
+        <Circle
+          cx={85}
+          cy={172}
+          r={7}
+          fill={painStateFill(states.right_knee ?? 0)}
+          stroke={painStateStroke(states.right_knee ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('right_knee')}
+          accessibilityLabel="Right knee region"
+        />
+        <Rect
+          x={48}
+          y={180}
+          width={16}
+          height={16}
+          rx={7}
+          fill={painStateFill(states.left_foot ?? 0)}
+          stroke={painStateStroke(states.left_foot ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('left_foot')}
+          accessibilityLabel="Left foot region"
+        />
+        <Rect
+          x={76}
+          y={180}
+          width={16}
+          height={16}
+          rx={7}
+          fill={painStateFill(states.right_foot ?? 0)}
+          stroke={painStateStroke(states.right_foot ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('right_foot')}
+          accessibilityLabel="Right foot region"
+        />
+
+        {/* Lower legs */}
+        <Rect
+          x={48}
+          y={178}
+          width={16}
+          height={18}
+          rx={7}
+          fill={painStateFill(states.left_lower_leg ?? 0)}
+          stroke={painStateStroke(states.left_lower_leg ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('left_lower_leg')}
+          accessibilityLabel="Left lower leg region"
+        />
+        <Rect
+          x={76}
+          y={178}
+          width={16}
+          height={18}
+          rx={7}
+          fill={painStateFill(states.right_lower_leg ?? 0)}
+          stroke={painStateStroke(states.right_lower_leg ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('right_lower_leg')}
+          accessibilityLabel="Right lower leg region"
+        />
+        <Circle
+          cx={56}
+          cy={195}
+          r={5}
+          fill={painStateFill(states.left_ankle ?? 0)}
+          stroke={painStateStroke(states.left_ankle ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('left_ankle')}
+          accessibilityLabel="Left ankle region"
+        />
+        <Circle
+          cx={84}
+          cy={195}
+          r={5}
+          fill={painStateFill(states.right_ankle ?? 0)}
+          stroke={painStateStroke(states.right_ankle ?? 0)}
+          strokeWidth={strokeWidth}
+          onPress={() => onPressRegion('right_ankle')}
+          accessibilityLabel="Right ankle region"
+        />
+      </Svg>
+    </View>
+  );
 }
 
 function today() {
@@ -159,6 +581,19 @@ function removeCsvItem(current: string, item: string): string {
 
 function countCsvItem(current: string, item: string): number {
   return parseCsvList(current).filter((x) => x === item).length;
+}
+
+function clampNumber(value: number, min: number, max: number) {
+  if (Number.isNaN(value)) return min;
+  return Math.min(max, Math.max(min, value));
+}
+
+function parseNumberClamped(raw: string, min: number, max: number): number | undefined {
+  const t = raw.trim();
+  if (!t) return undefined;
+  const n = Number(t);
+  if (!Number.isFinite(n)) return undefined;
+  return clampNumber(n, min, max);
 }
 
 function parseExerciseItems(value: string): Array<{ name: string; duration?: number }> {
@@ -207,6 +642,8 @@ export function LogWizardScreen() {
   const [energyClarity, setEnergyClarity] = useState('');
   const [stressors, setStressors] = useState<string[]>([]);
   const [customStressor, setCustomStressor] = useState('');
+  const [stressorSearch, setStressorSearch] = useState('');
+  const [stressorPickerOpen, setStressorPickerOpen] = useState(true);
   const [dailyFunction, setDailyFunction] = useState('');
   const [irritability, setIrritability] = useState('');
   const [weatherSensitivity, setWeatherSensitivity] = useState('');
@@ -219,6 +656,8 @@ export function LogWizardScreen() {
   const [medicationTaken, setMedicationTaken] = useState(true);
   const [frequentSymptoms, setFrequentSymptoms] = useState<string[]>([]);
   const [frequentStressors, setFrequentStressors] = useState<string[]>([]);
+  const [energyClaritySearch, setEnergyClaritySearch] = useState('');
+  const [energyPickerOpen, setEnergyPickerOpen] = useState(true);
 
   function toggleSymptom(value: string) {
     setSymptoms((prev) => (prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]));
@@ -240,6 +679,7 @@ export function LogWizardScreen() {
     if (!value) return;
     setStressors((prev) => (prev.includes(value) ? prev : [...prev, value]));
     setCustomStressor('');
+    setStressorSearch('');
   }
 
   function cyclePainRegion(regionId: string) {
@@ -303,16 +743,16 @@ export function LogWizardScreen() {
       sleep: sleep ? Number(sleep) : undefined,
       mood: mood ? Number(mood) : undefined,
       fatigue: fatigue ? Number(fatigue) : undefined,
-      steps: steps ? Number(steps) : undefined,
-      hydration: hydration ? Number(hydration) : undefined,
+      steps: parseNumberClamped(steps, 0, 50000),
+      hydration: parseNumberClamped(hydration, 0, 20),
       notes: notes || undefined,
       painLocation: [painLocationFromBody, painLocation].filter(Boolean).join(', ') || undefined,
       symptoms: symptoms.length ? symptoms : undefined,
       energyClarity: energyClarity || undefined,
       stressors: stressors.length ? stressors : undefined,
-      dailyFunction: dailyFunction ? Number(dailyFunction) : undefined,
-      irritability: irritability ? Number(irritability) : undefined,
-      weatherSensitivity: weatherSensitivity ? Number(weatherSensitivity) : undefined,
+      dailyFunction: parseNumberClamped(dailyFunction, 0, 10),
+      irritability: parseNumberClamped(irritability, 0, 10),
+      weatherSensitivity: parseNumberClamped(weatherSensitivity, 1, 10),
       food: breakfastItems.length || lunchItems.length || dinnerItems.length || snackItems.length
         ? {
             breakfast: breakfastItems,
@@ -434,23 +874,7 @@ export function LogWizardScreen() {
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Weight (kg)</Text>
             <TextInput value={weightKg} onChangeText={setWeightKg} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="decimal-pad" />
 
-            <View style={styles.twoCol}>
-              <View style={styles.twoColItem}>
-                <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Sleep (0–10)</Text>
-                <TextInput value={sleep} onChangeText={setSleep} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="number-pad" />
-              </View>
-              <View style={styles.twoColItem}>
-                <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Mood (0–10)</Text>
-                <TextInput value={mood} onChangeText={setMood} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="number-pad" />
-              </View>
-            </View>
-
-            <View style={styles.twoCol}>
-              <View style={styles.twoColItem}>
-                <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Fatigue (0–10)</Text>
-                <TextInput value={fatigue} onChangeText={setFatigue} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="number-pad" />
-              </View>
-            </View>
+            {/* Sleep / mood / fatigue inputs are part of the Energy & mental clarity step (Step 3, web parity). */}
 
             <View style={styles.navRow}>
               <Pressable
@@ -470,16 +894,32 @@ export function LogWizardScreen() {
           <View>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Pain locations</Text>
             <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-              Tap a region to cycle: none → mild → pain.
+              Tap a region to cycle: good → discomfort → pain.
             </Text>
+            <PainBodyDiagram states={painStates} onPressRegion={cyclePainRegion} />
             <View style={styles.painLegendRow}>
-              <Text style={[styles.painLegendNone, { fontSize: theme.font(12) }]}>None</Text>
-              <Text style={[styles.painLegendMild, { fontSize: theme.font(12) }]}>Mild</Text>
+              <Text style={[styles.painLegendNone, { fontSize: theme.font(12) }]}>Good</Text>
+              <Text style={[styles.painLegendMild, { fontSize: theme.font(12) }]}>Discomfort</Text>
               <Text style={[styles.painLegendPain, { fontSize: theme.font(12) }]}>Pain</Text>
             </View>
             <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
               Selected: {painCounts.mild} mild, {painCounts.pain} pain
             </Text>
+            {painLocationFromBody ? (
+              <View style={{ marginTop: 6 }}>
+                <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>From diagram: {painLocationFromBody}</Text>
+                <View style={{ marginTop: 6, alignItems: 'flex-start' }}>
+                  <Pressable
+                    onPress={() => setPainLocation(painLocationFromBody)}
+                    style={styles.secondaryBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel="Use diagram pain text"
+                  >
+                    <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Use diagram text</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : null}
             <View style={styles.chips}>
               {PAIN_BODY_REGIONS.map((region) => {
                 const s = painStates[region.id] ?? 0;
@@ -583,19 +1023,95 @@ export function LogWizardScreen() {
           </View>
         ) : step === 3 ? (
           <View>
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Energy / clarity</Text>
-            <View style={styles.chips}>
-              {ENERGY_CLARITY_OPTIONS.map((opt) => (
-                <Choice key={opt} label={opt} selected={energyClarity === opt} onPress={() => setEnergyClarity(opt)} />
-              ))}
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Energy &amp; mental clarity</Text>
+
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Fatigue (1–10)</Text>
+            <TextInput
+              value={fatigue}
+              onChangeText={setFatigue}
+              style={[styles.input, { color: theme.tokens.color.text }]}
+              keyboardType="number-pad"
+            />
+
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Sleep (1–10)</Text>
+            <TextInput
+              value={sleep}
+              onChangeText={setSleep}
+              style={[styles.input, { color: theme.tokens.color.text }]}
+              keyboardType="number-pad"
+            />
+
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Mood (1–10)</Text>
+            <TextInput
+              value={mood}
+              onChangeText={setMood}
+              style={[styles.input, { color: theme.tokens.color.text }]}
+              keyboardType="number-pad"
+            />
+
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Energy &amp; clarity</Text>
+            <View style={{ marginTop: 8 }}>
+              <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                {energyClarity ? `Selected: ${energyClarity}` : 'None selected'}
+              </Text>
+              {energyClarity ? (
+                <Pressable
+                  onPress={() => setEnergyClarity('')}
+                  style={[styles.secondaryBtn, { alignSelf: 'flex-start', marginTop: 6 }]}
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear energy and mental clarity"
+                >
+                  <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear selected</Text>
+                </Pressable>
+              ) : null}
             </View>
 
-            {energyClarity ? (
-              <View style={{ marginTop: 4 }}>
-                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Selected energy & clarity</Text>
-                <View style={styles.chips}>
-                  <Choice label={energyClarity} selected onPress={() => setEnergyClarity('')} />
+            <Pressable
+              onPress={() => setEnergyPickerOpen((v) => !v)}
+              style={[styles.secondaryBtn, { alignSelf: 'flex-start', marginTop: 10, marginBottom: 8 }]}
+              accessibilityRole="button"
+              accessibilityLabel="Toggle energy picker"
+            >
+              <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{energyPickerOpen ? 'Hide tiles' : 'Show tiles'}</Text>
+            </Pressable>
+
+            {energyPickerOpen ? (
+              <View>
+            <TextInput
+              value={energyClaritySearch}
+              onChangeText={setEnergyClaritySearch}
+              style={[styles.input, { color: theme.tokens.color.text, marginBottom: 8 }]}
+              accessibilityLabel="Filter energy and mental clarity options"
+              placeholder="Filter options"
+              placeholderTextColor="rgba(255,255,255,0.6)"
+            />
+
+            {ENERGY_CLARITY_GROUPS.map((grp) => {
+              const opts = ENERGY_CLARITY_OPTIONS.filter((o) => o.mood === grp.id).filter((o) => {
+                const s = energyClaritySearch.trim().toLowerCase();
+                if (!s) return true;
+                return (o.label + ' ' + o.value).toLowerCase().includes(s);
+              });
+              if (opts.length === 0) return null;
+              return (
+                <View key={grp.id} style={{ marginBottom: 10 }}>
+                  <Text style={[styles.groupTitle, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{grp.label}</Text>
+                  <View style={styles.chips}>
+                    {opts.map((opt) => (
+                      <Choice
+                        key={opt.value}
+                        label={opt.label}
+                        selected={energyClarity === opt.value}
+                        icon={ENERGY_CLARITY_ICONS[opt.value]}
+                        variant="tile"
+                          tone={grp.id}
+                        onPress={() => setEnergyClarity(opt.value)}
+                      />
+                    ))}
+                  </View>
                 </View>
+              );
+            })}
               </View>
             ) : null}
 
@@ -610,7 +1126,7 @@ export function LogWizardScreen() {
           </View>
         ) : step === 4 ? (
           <View>
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Stressors</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Stress & triggers</Text>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Irritability (0-10)</Text>
             <View style={styles.chips}>
               {SCORE_0_10_OPTIONS.map((v) => (
@@ -637,24 +1153,9 @@ export function LogWizardScreen() {
               keyboardType="number-pad"
             />
 
-            {frequentStressors.length > 0 ? (
-              <View style={{ marginBottom: 8 }}>
-                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Frequent stressors</Text>
-                <View style={styles.chips}>
-                  {frequentStressors.map((opt) => (
-                    <Choice key={`freq-str-${opt}`} label={opt} selected={stressors.includes(opt)} onPress={() => toggleStressor(opt)} />
-                  ))}
-                </View>
-              </View>
-            ) : null}
-            <View style={styles.chips}>
-              {STRESSOR_OPTIONS.map((opt) => (
-                <Choice key={opt} label={opt} selected={stressors.includes(opt)} onPress={() => toggleStressor(opt)} />
-              ))}
-            </View>
             {stressors.length ? (
-              <View style={{ marginTop: 4 }}>
-                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Selected stressors</Text>
+              <View style={{ marginTop: 4, marginBottom: 8 }}>
+                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Selected</Text>
                 <View style={styles.chips}>
                   {stressors.map((item) => (
                     <Choice key={`str-selected-${item}`} label={item} selected onPress={() => toggleStressor(item)} />
@@ -671,6 +1172,63 @@ export function LogWizardScreen() {
                     <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear selected</Text>
                   </Pressable>
                 </View>
+              </View>
+            ) : null}
+
+            <Pressable
+              onPress={() => setStressorPickerOpen((v) => !v)}
+              style={[styles.secondaryBtn, { alignSelf: 'flex-start', marginBottom: 8 }]}
+              accessibilityRole="button"
+              accessibilityLabel="Toggle stressor picker"
+            >
+              <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{stressorPickerOpen ? 'Hide stressor picker' : 'Show stressor picker'}</Text>
+            </Pressable>
+
+            {stressorPickerOpen ? (
+              <View style={{ marginBottom: 8 }}>
+                <TextInput
+                  value={stressorSearch}
+                  onChangeText={setStressorSearch}
+                  style={[styles.input, { color: theme.tokens.color.text }]}
+                  placeholder="Search stressors"
+                  placeholderTextColor="rgba(255,255,255,0.6)"
+                  accessibilityLabel="Search stressors"
+                />
+
+                {frequentStressors.length > 0 ? (
+                  <View style={{ marginBottom: 8 }}>
+                    <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Frequent</Text>
+                    <View style={styles.chips}>
+                      {frequentStressors
+                        .filter((s) => s.toLowerCase().includes(stressorSearch.trim().toLowerCase()))
+                        .map((opt) => (
+                          <Choice key={`freq-str-${opt}`} label={opt} selected={stressors.includes(opt)} onPress={() => toggleStressor(opt)} />
+                        ))}
+                    </View>
+                  </View>
+                ) : null}
+
+                {STRESSOR_GROUPS.map((grp) => {
+                  const opts = STRESSOR_OPTIONS.filter((o) => o.group === grp.id).filter((o) =>
+                    `${o.label} ${o.value}`.toLowerCase().includes(stressorSearch.trim().toLowerCase())
+                  );
+                  if (!opts.length) return null;
+                  return (
+                    <View key={grp.id} style={{ marginBottom: 8 }}>
+                      <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{grp.label}</Text>
+                      <View style={styles.chips}>
+                        {opts.map((opt) => (
+                          <Choice
+                            key={`str-${opt.value}`}
+                            label={opt.label}
+                            selected={stressors.includes(opt.value)}
+                            onPress={() => toggleStressor(opt.value)}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                  );
+                })}
               </View>
             ) : null}
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Add custom stressor</Text>
@@ -710,6 +1268,7 @@ export function LogWizardScreen() {
               onChangeText={setDailyFunction}
               style={[styles.input, { color: theme.tokens.color.text }]}
               keyboardType="number-pad"
+              accessibilityLabel="Daily function"
             />
 
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Steps (if tracked)</Text>
@@ -718,6 +1277,7 @@ export function LogWizardScreen() {
               onChangeText={setSteps}
               style={[styles.input, { color: theme.tokens.color.text }]}
               keyboardType="number-pad"
+              accessibilityLabel="Steps"
             />
 
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Hydration (glasses)</Text>
@@ -726,6 +1286,7 @@ export function LogWizardScreen() {
               onChangeText={setHydration}
               style={[styles.input, { color: theme.tokens.color.text }]}
               keyboardType="decimal-pad"
+              accessibilityLabel="Hydration"
             />
 
             <View style={styles.navRow}>
@@ -739,6 +1300,21 @@ export function LogWizardScreen() {
           </View>
         ) : step === 6 ? (
           <View>
+            <View style={{ marginTop: 6, marginBottom: 8, alignItems: 'flex-start' }}>
+              <Pressable
+                onPress={() => {
+                  setBreakfastText('');
+                  setLunchText('');
+                  setDinnerText('');
+                  setSnackText('');
+                }}
+                style={styles.secondaryBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Clear all food"
+              >
+                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear all food</Text>
+              </Pressable>
+            </View>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Breakfast (comma separated)</Text>
             <View style={styles.chips}>
               {FOOD_QUICK_BY_MEAL.breakfast.map((item) => (
@@ -862,6 +1438,16 @@ export function LogWizardScreen() {
           </View>
         ) : step === 7 ? (
           <View>
+            <View style={{ marginTop: 6, marginBottom: 8, alignItems: 'flex-start' }}>
+              <Pressable
+                onPress={() => setExerciseText('')}
+                style={styles.secondaryBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Clear all exercise"
+              >
+                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear all exercise</Text>
+              </Pressable>
+            </View>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Exercise by category</Text>
             {EXERCISE_CATEGORIES.map((cat) => {
               const options = PREDEFINED_EXERCISES.filter((x) => x.category === cat.id);
@@ -932,6 +1518,16 @@ export function LogWizardScreen() {
           </View>
         ) : step === 8 ? (
           <View>
+            <View style={{ marginTop: 6, marginBottom: 8, alignItems: 'flex-start' }}>
+              <Pressable
+                onPress={() => setMedicationText('')}
+                style={styles.secondaryBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Clear all medications"
+              >
+                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear all medications</Text>
+              </Pressable>
+            </View>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Medications (comma separated)</Text>
             <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
               Enter medication names; times can be added in a future update.
@@ -1024,17 +1620,37 @@ function Choice({
   onPress,
   count,
   onCountPress,
+  icon,
+  variant = 'pill',
+  tone = 'default',
 }: {
   label: string;
   selected: boolean;
   onPress: () => void;
   count?: number;
   onCountPress?: () => void;
+  icon?: string;
+  variant?: 'pill' | 'tile';
+  tone?: 'default' | 'positive' | 'neutral' | 'negative';
 }) {
-  const showCount = typeof count === 'number' && count > 1;
+  const showCount = typeof count === 'number' && count > 0;
   return (
-    <Pressable onPress={onPress} style={[styles.choice, selected ? styles.choiceSelected : null]} accessibilityRole="button">
-      <Text style={[styles.choiceText, selected ? styles.choiceTextSelected : null]}>{label}</Text>
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.choice,
+        variant === 'tile' ? styles.choiceTile : null,
+        variant === 'tile' && tone === 'positive' ? styles.choiceTilePositive : null,
+        variant === 'tile' && tone === 'neutral' ? styles.choiceTileNeutral : null,
+        variant === 'tile' && tone === 'negative' ? styles.choiceTileNegative : null,
+        selected ? styles.choiceSelected : null,
+      ]}
+      accessibilityRole="button"
+    >
+      <View style={styles.choiceInner}>
+        {icon ? <Text style={styles.choiceIcon}>{icon}</Text> : null}
+        <Text style={[styles.choiceText, selected ? styles.choiceTextSelected : null]}>{label}</Text>
+      </View>
       {showCount ? (
         <Pressable
           onPress={(e) => {
@@ -1108,9 +1724,20 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.08)',
   },
+  choiceTile: {
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    minWidth: 120,
+  },
+  choiceTilePositive: { borderWidth: 1, borderColor: 'rgba(76,175,80,0.55)' },
+  choiceTileNeutral: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)' },
+  choiceTileNegative: { borderWidth: 1, borderColor: 'rgba(244,67,54,0.42)' },
   choiceSelected: { backgroundColor: 'rgba(255,255,255,0.22)' },
   choiceMild: { backgroundColor: 'rgba(255,193,7,0.26)', borderWidth: 1, borderColor: 'rgba(255,193,7,0.6)' },
   choicePain: { backgroundColor: 'rgba(244,67,54,0.26)', borderWidth: 1, borderColor: 'rgba(244,67,54,0.6)' },
+  choiceInner: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  choiceIcon: { color: '#fff', fontWeight: '900' },
   choiceText: { color: '#fff', fontWeight: '800' },
   choiceTextSelected: { color: '#fff' },
   navRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, gap: 10 },
@@ -1127,7 +1754,7 @@ const styles = StyleSheet.create({
   inlineInput: { flex: 1, marginTop: 0 },
   painLegendRow: { flexDirection: 'row', gap: 8, marginBottom: 4, marginTop: 2 },
   painLegendNone: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(76,175,80,0.22)',
     color: '#fff',
     borderRadius: 999,
     paddingVertical: 4,

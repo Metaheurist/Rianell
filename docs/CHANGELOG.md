@@ -2,7 +2,20 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.4** - CI/security workflow hardening plus Expo parity UX updates.
+**Latest: v1.45.5** - RN CLI native artifacts in CI + Log wizard parity polish + workflow unit tests.
+
+### v1.45.5 - 2026-03-26 - RN CLI artifacts + Log wizard parity polish
+
+- **CI / Release (native mobile)**:
+  - Removed token-gated EAS binaries and switched to **React Native CLI** artifact generation in CI (Android APK + iOS emulator Xcode project zip) using `expo prebuild` + native toolchains.
+  - Added a small unit test to prevent accidental removal of RN CLI jobs from the release pipeline.
+- **Mobile / Log wizard parity (Phase A)**:
+  - **Stress & triggers**: grouped picker + search + collapsible section + selected/clear parity.
+  - **Symptoms & pain**: introduced a tap-to-cycle body diagram, aligned semantics to **good / discomfort / pain**, and added “Use diagram text”.
+  - **Energy & mental clarity**: added collapsible tile picker and icon tiles, plus group-colored tile borders.
+  - **Steps 6–9 UX**: added clear-all controls (food/exercise/meds), count-badge clear affordance shown at **1+**, and tests to lock these behaviors in.
+- **Docs**:
+  - Updated `docs/next-phase-development-plan.md` with Phase A progress notes.
 
 ### v1.45.4 - 2026-03-26 - CI/security hardening + Expo parity UX updates
 

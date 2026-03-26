@@ -2140,7 +2140,8 @@ function getBuildBaseUrls() {
   var base = path.substring(0, path.lastIndexOf('/') + 1);
   var baseUrl = window.location.origin + (base.startsWith('/') ? base : '/' + base);
   return {
-    android: baseUrl + encodeURI('App build/Android/'),
+    androidLegacy: baseUrl + encodeURI('App build/Android/'),
+    androidRnCli: baseUrl + encodeURI('App build/RNCLI-Android/'),
     ios: baseUrl + encodeURI('App build/iOS/')
   };
 }
@@ -2157,25 +2158,40 @@ function shouldFetchAppBuildManifests() {
 
 function refreshBuildDownloadLinks() {
   var bases = getBuildBaseUrls();
-  var androidBase = bases.android;
+  var androidLegacyBase = bases.androidLegacy;
+  var androidRnCliBase = bases.androidRnCli;
   var iosBase = bases.ios;
   var isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  var apkEl = document.getElementById('downloadApkLink');
+  var apkElLegacy = document.getElementById('downloadApkLink');
+  var apkElRnCli = document.getElementById('downloadRnCliApkLink');
   var iosEl = document.getElementById('downloadIosLink');
-  var apkModal = document.getElementById('installModalApkLink');
+  var apkModalLegacy = document.getElementById('installModalApkLink');
+  var apkModalRnCli = document.getElementById('installModalRnCliApkLink');
   var iosModal = document.getElementById('installModalIosLink');
   var iosLabel = document.getElementById('downloadIosLabel');
   var iosLabelModal = document.getElementById('installModalIosLinkLabel');
 
-  function setAndroid(href, versionText) {
-    if (apkEl) {
-      apkEl.href = href;
-      var v = apkEl.querySelector('.android-version');
+  function setAndroidLegacy(href, versionText) {
+    if (apkElLegacy) {
+      apkElLegacy.href = href;
+      var v = apkElLegacy.querySelector('.android-version');
       if (v) v.textContent = versionText || '';
     }
-    if (apkModal) {
-      apkModal.href = href;
-      var vM = apkModal.querySelector('.android-version');
+    if (apkModalLegacy) {
+      apkModalLegacy.href = href;
+      var vM = apkModalLegacy.querySelector('.android-version');
+      if (vM) vM.textContent = versionText || '';
+    }
+  }
+  function setAndroidRnCli(href, versionText) {
+    if (apkElRnCli) {
+      apkElRnCli.href = href;
+      var v = apkElRnCli.querySelector('.android-version');
+      if (v) v.textContent = versionText || '';
+    }
+    if (apkModalRnCli) {
+      apkModalRnCli.href = href;
+      var vM = apkModalRnCli.querySelector('.android-version');
       if (vM) vM.textContent = versionText || '';
     }
   }
@@ -2194,20 +2210,33 @@ function refreshBuildDownloadLinks() {
     }
   }
 
-  setAndroid(androidBase + 'app-debug-beta.apk', '');
+  setAndroidLegacy(androidLegacyBase + 'app-debug-beta.apk', '');
+  setAndroidRnCli(androidRnCliBase + 'app-debug-beta.apk', '');
   setIos(iosBase + 'Health-Tracker-ios-alpha-latest.zip', '', isIosDevice ? 'Install on iOS' : 'Download iOS build (Xcode project)');
 
   if (shouldFetchAppBuildManifests()) {
-    fetch(androidBase + 'latest.json', { cache: 'no-store' })
+    fetch(androidLegacyBase + 'latest.json', { cache: 'no-store' })
       .then(function(r) { return r.ok ? r.json() : null; })
       .then(function(data) {
         if (data && data.file) {
-          var href = androidBase + encodeURIComponent(data.file);
+          var href = androidLegacyBase + encodeURIComponent(data.file);
           var versionText = (data.version != null) ? '(build ' + data.version + ')' : '';
-          setAndroid(href, versionText);
+          setAndroidLegacy(href, versionText);
         }
       })
       .catch(function() {});
+
+    fetch(androidRnCliBase + 'latest.json', { cache: 'no-store' })
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(data) {
+        if (data && data.file) {
+          var href = androidRnCliBase + encodeURIComponent(data.file);
+          var versionText = (data.version != null) ? '(build ' + data.version + ')' : '';
+          setAndroidRnCli(href, versionText);
+        }
+      })
+      .catch(function() {});
+
     fetch(iosBase + 'latest.json', { cache: 'no-store' })
       .then(function(r) { return r.ok ? r.json() : null; })
       .then(function(data) {
@@ -2233,8 +2262,10 @@ function refreshAppInstallSection() {
     var installIosEarly = document.getElementById('installOnIosDevice');
     if (installIosEarly) installIosEarly.style.display = 'none';
     var androidEarly = document.getElementById('androidDownloadOption');
+    var androidRnCliEarly = document.getElementById('androidRnCliDownloadOption');
     var iosEarly = document.getElementById('iosDownloadOption');
     if (androidEarly) androidEarly.style.display = 'none';
+    if (androidRnCliEarly) androidRnCliEarly.style.display = 'none';
     if (iosEarly) iosEarly.style.display = 'none';
     if (typeof hideInstallButton === 'function') hideInstallButton();
     return;
@@ -2248,8 +2279,10 @@ function refreshAppInstallSection() {
   var installWebAppOption = document.getElementById('installWebAppOption');
   var installWebAppLabel = document.getElementById('installWebAppLabel');
   var androidOption = document.getElementById('androidDownloadOption');
+  var androidRnCliOption = document.getElementById('androidRnCliDownloadOption');
   var iosOption = document.getElementById('iosDownloadOption');
   var androidLabel = document.getElementById('downloadAndroidLabel');
+  var androidRnCliLabel = document.getElementById('downloadRnCliAndroidLabel');
   var iosLabel = document.getElementById('downloadIosLabel');
 
   if (titleEl) {
@@ -2265,16 +2298,19 @@ function refreshAppInstallSection() {
     if (installIosDevice) installIosDevice.style.display = '';
     if (installWebAppOption) installWebAppOption.style.display = '';
     if (androidOption) androidOption.style.display = 'none';
+    if (androidRnCliOption) androidRnCliOption.style.display = 'none';
     if (iosOption) iosOption.style.display = 'none';
   } else if (platform === 'android') {
     if (installIosDevice) installIosDevice.style.display = 'none';
     if (installWebAppOption) installWebAppOption.style.display = '';
     if (androidOption) { androidOption.style.display = ''; if (androidLabel) androidLabel.textContent = 'Install on Android'; }
+    if (androidRnCliOption) { androidRnCliOption.style.display = ''; if (androidRnCliLabel) androidRnCliLabel.textContent = 'Install on Android'; }
     if (iosOption) { iosOption.style.display = ''; if (iosLabel) iosLabel.textContent = 'Download for iOS'; }
   } else {
     if (installIosDevice) installIosDevice.style.display = 'none';
     if (installWebAppOption) installWebAppOption.style.display = '';
     if (androidOption) { androidOption.style.display = ''; if (androidLabel) androidLabel.textContent = 'Download for Android'; }
+    if (androidRnCliOption) androidRnCliOption.style.display = '';
     if (iosOption) { iosOption.style.display = ''; if (iosLabel) iosLabel.textContent = 'Download for iOS'; }
   }
 }
