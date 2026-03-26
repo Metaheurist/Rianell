@@ -47,3 +47,15 @@ test('charts pull-to-refresh calls loadLogs again', async () => {
 
   await waitFor(() => expect(mockedLoadLogs).toHaveBeenCalledTimes(2));
 });
+
+test('charts range and view chips expose accessibility labels', async () => {
+  const prefs = getDefaultPreferences();
+  const { findByLabelText } = render(
+    <ThemeProvider prefs={prefs}>
+      <ChartsScreen />
+    </ThemeProvider>
+  );
+
+  await findByLabelText('Charts date range 30 days');
+  await findByLabelText('Chart view Combined');
+});
