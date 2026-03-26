@@ -1,10 +1,27 @@
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Modal,
+  Pressable,
+  ScrollView,
+  Share,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getTeamIds } from '@rianell/tokens';
 import type { AppearanceMode, Preferences } from '../storage/preferences';
 import { useTheme } from '../theme/ThemeProvider';
 import { speakLabel } from '../accessibility/tts';
+import type { BuildChannel } from '../data/buildDownloads';
+import { resolveArtifactUrl } from '../data/buildDownloads';
+import { mergeLogsAppend, parseLogImportJson, serializeLogsForExport } from '../data/logExportImport';
+import { loadLogs, saveLogs } from '../storage/logs';
 
 export function SettingsScreen({
   prefs,
@@ -16,6 +33,63 @@ export function SettingsScreen({
   const theme = useTheme();
   const bg = theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)' ? '#ffffff' : theme.tokens.color.background;
   const tts = { enabled: prefs.accessibility.ttsEnabled, readModeEnabled: prefs.accessibility.ttsReadModeEnabled };
+
+  const [importOpen, setImportOpen] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [exportBusy, setExportBusy] = useState(false);
+  const [downloadBusy, setDownloadBusy] = useState<BuildChannel | null>(null);
+
+  async function onExportLogs() {
+    setExportBusy(true);
+    try {
+      const logs = await loadLogs();
+      const json = serializeLogsForExport(logs);
+      await Share.share({ message: json, title: 'Rianell health logs (JSON)' });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Export failed';
+      Alert.alert('Export', msg);
+    } finally {
+      setExportBusy(false);
+    }
+  }
+
+  async function applyImport(mode: 'replace' | 'append') {
+    try {
+      const incoming = parseLogImportJson(importText);
+      if (mode === 'replace') {
+        await saveLogs(incoming);
+      } else {
+        const existing = await loadLogs();
+        await saveLogs(mergeLogsAppend(existing, incoming));
+      }
+      setImportOpen(false);
+      setImportText('');
+      Alert.alert('Import', 'Logs saved.');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Import failed';
+      Alert.alert('Import', msg);
+    }
+  }
+
+  async function openBuildDownload(channel: BuildChannel) {
+    setDownloadBusy(channel);
+    try {
+      const resolved = await resolveArtifactUrl(channel);
+      if (!resolved) {
+        Alert.alert(
+          'Download',
+          'Could not load build info from the site. Check your connection or try again later.'
+        );
+        return;
+      }
+      await Linking.openURL(resolved.url);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Open failed';
+      Alert.alert('Download', msg);
+    } finally {
+      setDownloadBusy(null);
+    }
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
@@ -105,12 +179,128 @@ export function SettingsScreen({
           </Row>
         </Section>
 
-        <Section title="Parity notes">
-          <Hint>
-            This settings shell is the first step toward web ↔ Expo parity. Next we’ll add the rest of the settings
-            modules and start porting screens.
-          </Hint>
+        <Section title="Data management">
+          <Hint>Export JSON matches web portability; import accepts the same array format (replace or merge by date).</Hint>
+          <Pressable
+            style={[styles.dataBtn, { opacity: exportBusy ? 0.6 : 1 }]}
+            onPress={() => void onExportLogs()}
+            disabled={exportBusy}
+            accessibilityRole="button"
+            accessibilityLabel="Export logs as JSON"
+          >
+            {exportBusy ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>📤 Export logs (JSON)</Text>
+            )}
+          </Pressable>
+          <Pressable
+            style={styles.dataBtn}
+            onPress={() => setImportOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Import logs from JSON"
+          >
+            <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>📥 Import logs (JSON)</Text>
+          </Pressable>
         </Section>
+
+        <Section title="Install & downloads">
+          <Hint>
+            Uses the same public manifests as web Settings on rianell.com; opens the resolved download URL in your
+            browser.
+          </Hint>
+          <Pressable
+            style={[styles.dataBtn, { opacity: downloadBusy === 'androidLegacy' ? 0.6 : 1 }]}
+            onPress={() => void openBuildDownload('androidLegacy')}
+            disabled={downloadBusy !== null}
+            accessibilityRole="button"
+            accessibilityLabel="Download Android legacy Capacitor APK"
+          >
+            {downloadBusy === 'androidLegacy' ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>
+                🤖 Android · legacy Capacitor (Beta)
+              </Text>
+            )}
+          </Pressable>
+          <Pressable
+            style={[styles.dataBtn, { opacity: downloadBusy === 'androidRnCli' ? 0.6 : 1 }]}
+            onPress={() => void openBuildDownload('androidRnCli')}
+            disabled={downloadBusy !== null}
+            accessibilityRole="button"
+            accessibilityLabel="Download Android React Native CLI APK"
+          >
+            {downloadBusy === 'androidRnCli' ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>
+                🤖 Android · React Native CLI (Beta)
+              </Text>
+            )}
+          </Pressable>
+          <Pressable
+            style={[styles.dataBtn, { opacity: downloadBusy === 'ios' ? 0.6 : 1 }]}
+            onPress={() => void openBuildDownload('ios')}
+            disabled={downloadBusy !== null}
+            accessibilityRole="button"
+            accessibilityLabel="Download iOS Xcode project zip"
+          >
+            {downloadBusy === 'ios' ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>
+                🍎 iOS · Xcode project (Alpha)
+              </Text>
+            )}
+          </Pressable>
+        </Section>
+
+        <Modal visible={importOpen} animationType="slide" transparent onRequestClose={() => setImportOpen(false)}>
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.modalCard, { backgroundColor: 'rgba(20,30,28,0.97)' }]}>
+              <Text style={[styles.modalTitle, { color: theme.tokens.color.text, fontSize: theme.font(17) }]}>Import JSON</Text>
+              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                Paste a JSON array of log entries (same shape as web export).
+              </Text>
+              <TextInput
+                value={importText}
+                onChangeText={setImportText}
+                multiline
+                placeholder="[...]"
+                placeholderTextColor="rgba(255,255,255,0.45)"
+                style={[styles.importInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                accessibilityLabel="Import JSON text"
+              />
+              <View style={styles.modalActions}>
+                <Pressable style={styles.modalBtn} onPress={() => setImportOpen(false)} accessibilityRole="button">
+                  <Text style={styles.dataBtnText}>Cancel</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.modalBtn}
+                  onPress={() => void applyImport('append')}
+                  accessibilityRole="button"
+                  accessibilityLabel="Merge with existing logs"
+                >
+                  <Text style={styles.dataBtnText}>Merge</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.modalBtn}
+                  onPress={() => {
+                    Alert.alert('Replace all logs?', 'This will replace every log on this device.', [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Replace', style: 'destructive', onPress: () => void applyImport('replace') },
+                    ]);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Replace all logs"
+                >
+                  <Text style={styles.dataBtnText}>Replace all</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
@@ -194,5 +384,33 @@ const styles = StyleSheet.create({
   choiceActive: { backgroundColor: 'rgba(255,255,255,0.32)' },
   choiceText: { color: '#fff', fontWeight: '600' },
   choiceTextActive: { color: '#000' },
+  dataBtn: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    alignItems: 'center',
+  },
+  dataBtnText: { color: '#fff', fontWeight: '800' },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalCard: { borderRadius: 16, padding: 16, maxHeight: '90%' },
+  modalTitle: { fontWeight: '800', marginBottom: 8 },
+  importInput: {
+    minHeight: 140,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 8,
+    marginBottom: 12,
+    textAlignVertical: 'top',
+  },
+  modalActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' },
+  modalBtn: { paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.12)' },
 });
 

@@ -23,6 +23,13 @@ test('settings renders theme and accessibility sections', () => {
   getByText('Large text');
   getByText('Text-to-speech (tap-to-read)');
   getByText('Read mode (auto-read on focus)');
+  getByText('Data management');
+  getByText('📤 Export logs (JSON)');
+  getByText('📥 Import logs (JSON)');
+  getByText('Install & downloads');
+  getByText('🤖 Android · legacy Capacitor (Beta)');
+  getByText('🤖 Android · React Native CLI (Beta)');
+  getByText('🍎 iOS · Xcode project (Alpha)');
 });
 
 test('textScale affects rendered typography sizes', () => {
