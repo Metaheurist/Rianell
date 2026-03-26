@@ -901,17 +901,19 @@
       <div class="settings-carousel-pane" data-settings-pane-title="Data management" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4>💾 Data Management</h4>
-        <div class="settings-option" id="appInstallSection">
-          <h4 id="appInstallSectionTitle" style="margin: 0 0 10px;">📱 App installation</h4>
-          <div id="installOnIosDevice" class="settings-option settings-option--stacked" style="display: none; padding: 0;">
+        <div class="settings-option app-install-section" id="appInstallSection">
+          <h4 id="appInstallSectionTitle" class="app-install-section__title">📱 App installation</h4>
+          <div id="installOnIosDevice" class="settings-option settings-option--stacked app-install-ios-device" style="display: none; padding: 0;">
             <button type="button" class="settings-data-btn install-ios-device-btn" onclick="installOrLaunchPWA()"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="installOnIosDeviceLabel">Install on this iPhone</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></button>
             <p class="settings-install-hint">Opens instructions to add the app to your Home Screen. Works offline like a native app.</p>
           </div>
-          <div class="settings-option" id="androidDownloadOption" style="padding: 0;">
-            <a id="downloadApkLink" class="settings-data-btn install-android-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-android"></i></span> <span id="downloadAndroidLabel">Install on Android</span><span class="install-channel-badge install-channel-badge--beta">Beta</span> <span class="android-version" aria-hidden="true"></span></a>
-          </div>
-          <div class="settings-option" id="iosDownloadOption" style="padding: 0;">
-            <a id="downloadIosLink" class="settings-data-btn install-ios-btn" target="_blank" rel="noopener" href="javascript:void(0)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span> <span id="downloadIosLabel">Install on iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span> <span class="ios-version" aria-hidden="true"></span></a>
+          <div class="app-install-download-stack">
+            <div class="app-install-download-row" id="androidDownloadOption">
+              <a id="downloadApkLink" class="settings-data-btn install-android-btn app-install-store-link" target="_blank" rel="noopener" href="javascript:void(0)"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-android"></i></span><span class="app-install-store-link__text"><span id="downloadAndroidLabel">Download for Android</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></span><span class="android-version app-install-build-meta" aria-hidden="true"></span></a>
+            </div>
+            <div class="app-install-download-row" id="iosDownloadOption">
+              <a id="downloadIosLink" class="settings-data-btn install-ios-btn app-install-store-link" target="_blank" rel="noopener" href="javascript:void(0)"><span class="settings-install-icon" aria-hidden="true"><i class="fa-brands fa-apple"></i></span><span class="app-install-store-link__text"><span id="downloadIosLabel">Download for iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span></span><span class="ios-version app-install-build-meta" aria-hidden="true"></span></a>
+            </div>
           </div>
         </div>
 

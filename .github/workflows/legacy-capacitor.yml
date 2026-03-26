@@ -1,0 +1,55 @@
+# =============================================================================
+# Legacy Capacitor (Android / iOS) — DISABLED
+# =============================================================================
+# Historical workflows only. Not part of default CI. Product builds use Expo
+# (`ci.yml` → `expo-bundle-prod`). To run these jobs, set `if: true` below and
+# trigger via workflow_dispatch.
+# =============================================================================
+name: Legacy Capacitor (disabled)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Android APK (legacy Capacitor)
+    if: false
+    runs-on: ubuntu-latest
+    concurrency:
+      group: legacy-mobile-android-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install root dependencies
+        run: npm install
+      - name: Install React app dependencies
+        working-directory: react-app
+        run: npm ci || npm install
+      - name: Legacy Capacitor path (disabled)
+        run: |
+          echo "Legacy Capacitor Android build is disabled. See ci.yml expo-bundle-prod for Expo bundles."
+
+  ios:
+    name: iOS project (legacy Capacitor)
+    if: false
+    runs-on: macos-latest
+    concurrency:
+      group: legacy-mobile-ios-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Legacy Capacitor path (disabled)
+        run: |
+          echo "Legacy Capacitor iOS build is disabled. See ci.yml expo-bundle-prod for Expo bundles."

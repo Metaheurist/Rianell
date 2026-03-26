@@ -47,6 +47,8 @@ const SYMPTOM_OPTIONS: Array<{ value: string; label: string; group: (typeof SYMP
 ];
 
 const ENERGY_CLARITY_OPTIONS = ['Very low', 'Low', 'Moderate', 'Good', 'Excellent'];
+const SCORE_0_10_OPTIONS = ['0', '2', '4', '6', '8', '10'];
+const SCORE_1_10_OPTIONS = ['1', '3', '5', '7', '9', '10'];
 const STRESSOR_OPTIONS = [
   'Work deadline',
   'Financial stress',
@@ -69,6 +71,7 @@ const FOOD_QUICK_BY_MEAL: Record<'breakfast' | 'lunch' | 'dinner' | 'snack', str
 };
 
 const EXERCISE_QUICK_OPTIONS = ['Walking:30', 'Stretching:15', 'Yoga:20', 'Cycling:40', 'Swimming:25'];
+const MEDICATION_QUICK_OPTIONS = ['Ibuprofen', 'Paracetamol', 'Vitamin D', 'Magnesium', 'Omega-3'];
 const EXERCISE_CATEGORIES = [
   { id: 'cardio', label: 'Cardio' },
   { id: 'strength', label: 'Strength' },
@@ -117,6 +120,12 @@ function painStateText(value: PainState) {
   return 'none';
 }
 
+function painStateLabel(value: PainState) {
+  if (value === 1) return 'Mild';
+  if (value === 2) return 'Pain';
+  return 'None';
+}
+
 function buildPainLocationTextFromState(state: Record<string, PainState>): string {
   const parts: string[] = [];
   PAIN_BODY_REGIONS.forEach((region) => {
@@ -140,13 +149,16 @@ function parseCsvList(value: string): string[] {
 
 function addCsvItem(current: string, item: string): string {
   const items = parseCsvList(current);
-  if (items.includes(item)) return current;
   return [...items, item].join(', ');
 }
 
 function removeCsvItem(current: string, item: string): string {
   const items = parseCsvList(current).filter((x) => x !== item);
   return items.join(', ');
+}
+
+function countCsvItem(current: string, item: string): number {
+  return parseCsvList(current).filter((x) => x === item).length;
 }
 
 function parseExerciseItems(value: string): Array<{ name: string; duration?: number }> {
@@ -191,8 +203,10 @@ export function LogWizardScreen() {
   const [painLocation, setPainLocation] = useState('');
   const [painStates, setPainStates] = useState<Record<string, PainState>>({});
   const [symptoms, setSymptoms] = useState<string[]>([]);
+  const [customSymptom, setCustomSymptom] = useState('');
   const [energyClarity, setEnergyClarity] = useState('');
   const [stressors, setStressors] = useState<string[]>([]);
+  const [customStressor, setCustomStressor] = useState('');
   const [dailyFunction, setDailyFunction] = useState('');
   const [irritability, setIrritability] = useState('');
   const [weatherSensitivity, setWeatherSensitivity] = useState('');
@@ -209,8 +223,22 @@ export function LogWizardScreen() {
     setSymptoms((prev) => (prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]));
   }
 
+  function addCustomSymptom() {
+    const value = customSymptom.trim();
+    if (!value) return;
+    setSymptoms((prev) => (prev.includes(value) ? prev : [...prev, value]));
+    setCustomSymptom('');
+  }
+
   function toggleStressor(value: string) {
     setStressors((prev) => (prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]));
+  }
+
+  function addCustomStressor() {
+    const value = customStressor.trim();
+    if (!value) return;
+    setStressors((prev) => (prev.includes(value) ? prev : [...prev, value]));
+    setCustomStressor('');
   }
 
   function cyclePainRegion(regionId: string) {
@@ -221,7 +249,28 @@ export function LogWizardScreen() {
     });
   }
 
+  function clearPainRegions() {
+    setPainStates({});
+  }
+
+  function confirmClearAll(itemLabel: string, onYes: () => void) {
+    Alert.alert('Clear selection', `Would you like to clear ${itemLabel}?`, [
+      { text: 'No', style: 'cancel' },
+      { text: 'Yes', onPress: onYes },
+    ]);
+  }
+
   const painLocationFromBody = useMemo(() => buildPainLocationTextFromState(painStates), [painStates]);
+  const painCounts = useMemo(() => {
+    let mild = 0;
+    let pain = 0;
+    PAIN_BODY_REGIONS.forEach((r) => {
+      const v = painStates[r.id] ?? 0;
+      if (v === 1) mild += 1;
+      if (v === 2) pain += 1;
+    });
+    return { mild, pain };
+  }, [painStates]);
   const breakfastItems = useMemo(() => parseCsvList(breakfastText), [breakfastText]);
   const lunchItems = useMemo(() => parseCsvList(lunchText), [lunchText]);
   const dinnerItems = useMemo(() => parseCsvList(dinnerText), [dinnerText]);
@@ -426,18 +475,31 @@ export function LogWizardScreen() {
             <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
               Tap a region to cycle: none → mild → pain.
             </Text>
+            <View style={styles.painLegendRow}>
+              <Text style={[styles.painLegendNone, { fontSize: theme.font(12) }]}>None</Text>
+              <Text style={[styles.painLegendMild, { fontSize: theme.font(12) }]}>Mild</Text>
+              <Text style={[styles.painLegendPain, { fontSize: theme.font(12) }]}>Pain</Text>
+            </View>
+            <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+              Selected: {painCounts.mild} mild, {painCounts.pain} pain
+            </Text>
             <View style={styles.chips}>
               {PAIN_BODY_REGIONS.map((region) => {
                 const s = painStates[region.id] ?? 0;
                 return (
-                  <Choice
+                  <BodyRegionChoice
                     key={region.id}
-                    label={`${region.label}: ${painStateText(s)}`}
-                    selected={s > 0}
+                    label={region.label}
+                    state={s}
                     onPress={() => cyclePainRegion(region.id)}
                   />
                 );
               })}
+            </View>
+            <View style={{ marginTop: 8, alignItems: 'flex-start' }}>
+              <Pressable onPress={clearPainRegions} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Clear pain regions">
+                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear body selections</Text>
+              </Pressable>
             </View>
             <TextInput
               value={painLocation}
@@ -477,6 +539,30 @@ export function LogWizardScreen() {
                 </View>
               );
             })}
+            {symptoms.length ? (
+              <View style={{ marginTop: 4 }}>
+                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Selected symptoms</Text>
+                <View style={styles.chips}>
+                  {symptoms.map((item) => (
+                    <Choice key={`sym-selected-${item}`} label={item} selected onPress={() => toggleSymptom(item)} />
+                  ))}
+                </View>
+              </View>
+            ) : null}
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Add custom symptom</Text>
+            <View style={styles.inlineInputRow}>
+              <TextInput
+                value={customSymptom}
+                onChangeText={setCustomSymptom}
+                style={[styles.input, styles.inlineInput, { color: theme.tokens.color.text }]}
+                accessibilityLabel="Custom symptom input"
+                placeholder="Type symptom"
+                placeholderTextColor="rgba(255,255,255,0.6)"
+              />
+              <Pressable onPress={addCustomSymptom} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Add custom symptom">
+                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Add</Text>
+              </Pressable>
+            </View>
 
             <View style={styles.navRow}>
               <Pressable onPress={() => setStep(1)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
@@ -523,6 +609,30 @@ export function LogWizardScreen() {
                 <Choice key={opt} label={opt} selected={stressors.includes(opt)} onPress={() => toggleStressor(opt)} />
               ))}
             </View>
+            {stressors.length ? (
+              <View style={{ marginTop: 4 }}>
+                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Selected stressors</Text>
+                <View style={styles.chips}>
+                  {stressors.map((item) => (
+                    <Choice key={`str-selected-${item}`} label={item} selected onPress={() => toggleStressor(item)} />
+                  ))}
+                </View>
+              </View>
+            ) : null}
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Add custom stressor</Text>
+            <View style={styles.inlineInputRow}>
+              <TextInput
+                value={customStressor}
+                onChangeText={setCustomStressor}
+                style={[styles.input, styles.inlineInput, { color: theme.tokens.color.text }]}
+                accessibilityLabel="Custom stressor input"
+                placeholder="Type stressor"
+                placeholderTextColor="rgba(255,255,255,0.6)"
+              />
+              <Pressable onPress={addCustomStressor} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Add custom stressor">
+                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Add</Text>
+              </Pressable>
+            </View>
 
             <View style={styles.navRow}>
               <Pressable onPress={() => setStep(3)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
@@ -536,6 +646,11 @@ export function LogWizardScreen() {
         ) : step === 5 ? (
           <View>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Daily function (0-10)</Text>
+            <View style={styles.chips}>
+              {SCORE_0_10_OPTIONS.map((v) => (
+                <Choice key={`df-${v}`} label={v} selected={dailyFunction === v} onPress={() => setDailyFunction(v)} />
+              ))}
+            </View>
             <TextInput
               value={dailyFunction}
               onChangeText={setDailyFunction}
@@ -544,6 +659,11 @@ export function LogWizardScreen() {
             />
 
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Irritability (0-10)</Text>
+            <View style={styles.chips}>
+              {SCORE_0_10_OPTIONS.map((v) => (
+                <Choice key={`ir-${v}`} label={v} selected={irritability === v} onPress={() => setIrritability(v)} />
+              ))}
+            </View>
             <TextInput
               value={irritability}
               onChangeText={setIrritability}
@@ -552,6 +672,11 @@ export function LogWizardScreen() {
             />
 
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Weather sensitivity (1-10)</Text>
+            <View style={styles.chips}>
+              {SCORE_1_10_OPTIONS.map((v) => (
+                <Choice key={`ws-${v}`} label={v} selected={weatherSensitivity === v} onPress={() => setWeatherSensitivity(v)} />
+              ))}
+            </View>
             <TextInput
               value={weatherSensitivity}
               onChangeText={setWeatherSensitivity}
@@ -577,6 +702,8 @@ export function LogWizardScreen() {
                   key={`bf-${item}`}
                   label={item}
                   selected={breakfastItems.includes(item)}
+                  count={countCsvItem(breakfastText, item)}
+                  onCountPress={() => confirmClearAll(item, () => setBreakfastText((prev) => removeCsvItem(prev, item)))}
                   onPress={() => setBreakfastText((prev) => addCsvItem(prev, item))}
                 />
               ))}
@@ -603,6 +730,8 @@ export function LogWizardScreen() {
                   key={`lu-${item}`}
                   label={item}
                   selected={lunchItems.includes(item)}
+                  count={countCsvItem(lunchText, item)}
+                  onCountPress={() => confirmClearAll(item, () => setLunchText((prev) => removeCsvItem(prev, item)))}
                   onPress={() => setLunchText((prev) => addCsvItem(prev, item))}
                 />
               ))}
@@ -629,6 +758,8 @@ export function LogWizardScreen() {
                   key={`di-${item}`}
                   label={item}
                   selected={dinnerItems.includes(item)}
+                  count={countCsvItem(dinnerText, item)}
+                  onCountPress={() => confirmClearAll(item, () => setDinnerText((prev) => removeCsvItem(prev, item)))}
                   onPress={() => setDinnerText((prev) => addCsvItem(prev, item))}
                 />
               ))}
@@ -655,6 +786,8 @@ export function LogWizardScreen() {
                   key={`sn-${item}`}
                   label={item}
                   selected={snackItems.includes(item)}
+                  count={countCsvItem(snackText, item)}
+                  onCountPress={() => confirmClearAll(item, () => setSnackText((prev) => removeCsvItem(prev, item)))}
                   onPress={() => setSnackText((prev) => addCsvItem(prev, item))}
                 />
               ))}
@@ -694,8 +827,18 @@ export function LogWizardScreen() {
                   <View style={styles.chips}>
                     {options.map((opt) => {
                       const token = `${opt.name}:${opt.defaultDuration}`;
-                      const selected = exerciseItems.some((x) => `${x.name}${x.duration ? `:${x.duration}` : ''}` === token);
-                      return <Choice key={`ex-${token}`} label={token} selected={selected} onPress={() => setExerciseText((prev) => addCsvItem(prev, token))} />;
+                      const count = countCsvItem(exerciseText, token);
+                      const selected = count > 0;
+                      return (
+                        <Choice
+                          key={`ex-${token}`}
+                          label={token}
+                          selected={selected}
+                          count={count}
+                          onCountPress={() => confirmClearAll(token, () => setExerciseText((prev) => removeCsvItem(prev, token)))}
+                          onPress={() => setExerciseText((prev) => addCsvItem(prev, token))}
+                        />
+                      );
                     })}
                   </View>
                 </View>
@@ -704,8 +847,18 @@ export function LogWizardScreen() {
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Exercise quick picks</Text>
             <View style={styles.chips}>
               {EXERCISE_QUICK_OPTIONS.map((item) => {
-                const selected = exerciseItems.some((x) => `${x.name}${x.duration ? `:${x.duration}` : ''}` === item);
-                return <Choice key={`ex-q-${item}`} label={item} selected={selected} onPress={() => setExerciseText((prev) => addCsvItem(prev, item))} />;
+                const count = countCsvItem(exerciseText, item);
+                const selected = count > 0;
+                return (
+                  <Choice
+                    key={`ex-q-${item}`}
+                    label={item}
+                    selected={selected}
+                    count={count}
+                    onCountPress={() => confirmClearAll(item, () => setExerciseText((prev) => removeCsvItem(prev, item)))}
+                    onPress={() => setExerciseText((prev) => addCsvItem(prev, item))}
+                  />
+                );
               })}
             </View>
             <TextInput
@@ -739,6 +892,18 @@ export function LogWizardScreen() {
             <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
               Enter medication names; times can be added in a future update.
             </Text>
+            <View style={styles.chips}>
+              {MEDICATION_QUICK_OPTIONS.map((item) => (
+                <Choice
+                  key={`med-${item}`}
+                  label={item}
+                  selected={parseCsvList(medicationText).includes(item)}
+                  count={countCsvItem(medicationText, item)}
+                  onCountPress={() => confirmClearAll(item, () => setMedicationText((prev) => removeCsvItem(prev, item)))}
+                  onPress={() => setMedicationText((prev) => addCsvItem(prev, item))}
+                />
+              ))}
+            </View>
             <TextInput
               value={medicationText}
               onChangeText={setMedicationText}
@@ -747,6 +912,11 @@ export function LogWizardScreen() {
               placeholder="e.g. Ibuprofen, Vitamin D"
               placeholderTextColor="rgba(255,255,255,0.6)"
             />
+            <View style={styles.chips}>
+              {parseCsvList(medicationText).map((item) => (
+                <Choice key={`med-sel-${item}`} label={`Remove ${item}`} selected={false} onPress={() => setMedicationText((prev) => removeCsvItem(prev, item))} />
+              ))}
+            </View>
 
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Notes</Text>
             <TextInput
@@ -797,10 +967,61 @@ export function LogWizardScreen() {
   );
 }
 
-function Choice({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+function Choice({
+  label,
+  selected,
+  onPress,
+  count,
+  onCountPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  count?: number;
+  onCountPress?: () => void;
+}) {
+  const showCount = typeof count === 'number' && count > 1;
   return (
     <Pressable onPress={onPress} style={[styles.choice, selected ? styles.choiceSelected : null]} accessibilityRole="button">
       <Text style={[styles.choiceText, selected ? styles.choiceTextSelected : null]}>{label}</Text>
+      {showCount ? (
+        <Pressable
+          onPress={(e) => {
+            e.stopPropagation();
+            onCountPress?.();
+          }}
+          style={styles.choiceCount}
+          accessibilityRole="button"
+          accessibilityLabel={`Clear ${label}`}
+        >
+          <Text style={styles.choiceCountText}>{count}</Text>
+        </Pressable>
+      ) : null}
+    </Pressable>
+  );
+}
+
+function BodyRegionChoice({
+  label,
+  state,
+  onPress,
+}: {
+  label: string;
+  state: PainState;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.choice,
+        state === 1 ? styles.choiceMild : null,
+        state === 2 ? styles.choicePain : null,
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={`${label}: ${painStateLabel(state)}`}
+    >
+      <Text style={styles.choiceText}>{`${label}: ${painStateText(state)}`}</Text>
     </Pressable>
   );
 }
@@ -830,12 +1051,15 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: 'row', gap: 10 },
   choice: {
+    position: 'relative',
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.08)',
   },
   choiceSelected: { backgroundColor: 'rgba(255,255,255,0.22)' },
+  choiceMild: { backgroundColor: 'rgba(255,193,7,0.26)', borderWidth: 1, borderColor: 'rgba(255,193,7,0.6)' },
+  choicePain: { backgroundColor: 'rgba(244,67,54,0.26)', borderWidth: 1, borderColor: 'rgba(244,67,54,0.6)' },
   choiceText: { color: '#fff', fontWeight: '800' },
   choiceTextSelected: { color: '#fff' },
   navRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, gap: 10 },
@@ -848,5 +1072,45 @@ const styles = StyleSheet.create({
   frequentLabel: { opacity: 0.75, marginBottom: 6, fontWeight: '700' },
   helper: { opacity: 0.75, marginBottom: 8 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  inlineInputRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  inlineInput: { flex: 1, marginTop: 0 },
+  painLegendRow: { flexDirection: 'row', gap: 8, marginBottom: 4, marginTop: 2 },
+  painLegendNone: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    color: '#fff',
+    borderRadius: 999,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    overflow: 'hidden',
+  },
+  painLegendMild: {
+    backgroundColor: 'rgba(255,193,7,0.26)',
+    color: '#fff',
+    borderRadius: 999,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    overflow: 'hidden',
+  },
+  painLegendPain: {
+    backgroundColor: 'rgba(244,67,54,0.26)',
+    color: '#fff',
+    borderRadius: 999,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    overflow: 'hidden',
+  },
+  choiceCount: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(76,175,80,0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 5,
+  },
+  choiceCountText: { color: '#fff', fontWeight: '900', fontSize: 11 },
 });
 

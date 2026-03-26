@@ -9676,10 +9676,50 @@ body.light-mode .energy-clarity-chip--negative {
   transform: scale(1);
 }
 
+/* Food / exercise: duplicate selections show numeric badge; clicking confirms clear */
+.picker-chip-check.picker-chip-check--count {
+  pointer-events: auto;
+}
+
+.picker-chip-count-btn {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  background: rgba(76, 175, 80, 0.98);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.picker-chip-count-btn:hover {
+  filter: brightness(1.08);
+}
+
+.picker-chip-count-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 1px;
+}
+
 body.light-mode .picker-chip-check {
   background: rgba(46, 125, 50, 0.92);
   color: #fff;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+}
+
+body.light-mode .picker-chip-count-btn {
+  background: rgba(46, 125, 50, 0.92);
+  color: #fff;
 }
 
 /* Stress & Triggers: compact trigger on the form; tiles only in the sheet */
@@ -11872,6 +11912,67 @@ body.light-mode .date-separator {
   }
 }
 
+/* Settings → Data management: app install rows (stacked; no overlap with action tiles) */
+.app-install-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.app-install-section__title {
+  margin: 0 0 4px;
+}
+
+.app-install-download-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.app-install-download-row {
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.app-install-store-link {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+.app-install-store-link__text {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.app-install-build-meta {
+  margin-left: auto;
+  font-size: 0.78rem;
+  opacity: 0.85;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.app-install-ios-device {
+  width: 100%;
+}
+
 /* Settings Data Management - equal-width cells, matching height + corner radius */
 .data-management-buttons {
   display: flex;
@@ -12026,7 +12127,7 @@ body.light-mode .date-separator {
 }
 
 .settings-data-btn.install-ios-btn {
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 .settings-data-btn.install-ios-device-btn {

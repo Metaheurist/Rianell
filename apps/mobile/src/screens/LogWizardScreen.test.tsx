@@ -54,6 +54,8 @@ test('log wizard can progress through stressors and save', async () => {
   fireEvent.press(getAllByText('Work deadline')[0]);
   fireEvent.press(getByLabelText('Next step'));
   await findByText('Daily function (0-10)');
+  fireEvent.press(getAllByText('6')[0]);
+  fireEvent.press(getAllByText('9')[0]);
   fireEvent.press(getByLabelText('Next step'));
   await findByText('Breakfast (comma separated)');
   fireEvent.press(getByText('Oatmeal'));
@@ -69,6 +71,9 @@ test('log wizard can progress through stressors and save', async () => {
   fireEvent.changeText(getByLabelText('Exercise items'), 'Walking:30, Stretching:15');
   fireEvent.press(getByLabelText('Next step'));
   await findByText('Medications (comma separated)');
+  fireEvent.press(getByText('Ibuprofen'));
+  fireEvent.press(getByText('Remove Ibuprofen'));
+  fireEvent.press(getByText('Ibuprofen'));
   fireEvent.changeText(getByLabelText('Medication names'), 'Ibuprofen');
   fireEvent.changeText(getByLabelText('Log notes'), 'Felt ok');
   fireEvent.press(getByLabelText('Next step'));
@@ -86,4 +91,22 @@ test('log wizard can progress through stressors and save', async () => {
   expect(draft.exercise).toEqual([{ name: 'Walking', duration: 30 }, { name: 'Stretching', duration: 15 }]);
   expect(draft.medications?.[0]?.name).toBe('Ibuprofen');
   expect(draft.notes).toContain('Felt ok');
+});
+
+test('wizard supports custom symptom and stressor entries', async () => {
+  const { getByLabelText, findByText } = renderWizard();
+
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Symptoms');
+  fireEvent.changeText(getByLabelText('Custom symptom input'), 'Brain fog');
+  fireEvent.press(getByLabelText('Add custom symptom'));
+  await findByText('Brain fog');
+
+  fireEvent.press(getByLabelText('Next step'));
+  fireEvent.press(getByLabelText('Next step'));
+  await findByText('Stressors');
+  fireEvent.changeText(getByLabelText('Custom stressor input'), 'Late commute');
+  fireEvent.press(getByLabelText('Add custom stressor'));
+  await findByText('Late commute');
 });
