@@ -7,6 +7,9 @@ import { summarizeCharts, type ChartRange } from '../charts/summarizeCharts';
 
 const RANGE_OPTIONS: ChartRange[] = [14, 30, 90, 'all'];
 
+type ChartView = 'balance' | 'individual' | 'combined';
+const VIEW_OPTIONS: ChartView[] = ['balance', 'individual', 'combined'];
+
 export function ChartsScreen() {
   const theme = useTheme();
   const bg =
@@ -17,6 +20,7 @@ export function ChartsScreen() {
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [range, setRange] = useState<ChartRange>(30);
+  const [view, setView] = useState<ChartView>('combined');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +51,7 @@ export function ChartsScreen() {
 
   const fmt = (v: number | null) => (v == null ? '—' : v.toFixed(1));
   const fmtDelta = (v: number | null) => (v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(1)}`);
+  const viewLabel = view === 'balance' ? 'Balance' : view === 'individual' ? 'Individual' : 'Combined';
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
@@ -57,7 +62,7 @@ export function ChartsScreen() {
         <View style={styles.card}>
           <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>Charts</Text>
           <Text style={[styles.lead, { color: theme.tokens.color.text, fontSize: theme.font(15) }]}>
-            Trend summary with range selection and key metric deltas. Full chart visuals/parity remain in progress.
+            Trend summary with range selection and key metric deltas. View: {viewLabel}. Full chart visuals/parity remain in progress.
           </Text>
 
           {loading && !logs.length ? (
@@ -67,6 +72,25 @@ export function ChartsScreen() {
           {error ? (
             <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{error}</Text>
           ) : null}
+
+          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>View</Text>
+          <View style={styles.viewRow}>
+            {VIEW_OPTIONS.map((opt) => {
+              const selected = opt === view;
+              const label = opt === 'balance' ? 'Balance' : opt === 'individual' ? 'Individual' : 'Combined';
+              return (
+                <Pressable
+                  key={opt}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Chart view ${label}`}
+                  style={[styles.rangeChip, selected ? styles.rangeChipOn : null]}
+                  onPress={() => setView(opt)}
+                >
+                  <Text style={styles.rangeChipText}>{label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
 
           <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Range</Text>
           <View style={styles.rangeRow}>
@@ -137,6 +161,7 @@ const styles = StyleSheet.create({
   sparkRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 4, minHeight: 40, marginBottom: 4, marginTop: 2 },
   sparkBar: { width: 6, borderRadius: 4, backgroundColor: 'rgba(123,223,140,0.95)' },
   rangeRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  viewRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 4 },
   rangeChip: {
     paddingVertical: 8,
     paddingHorizontal: 12,

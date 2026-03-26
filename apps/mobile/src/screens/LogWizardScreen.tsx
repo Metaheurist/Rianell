@@ -446,14 +446,7 @@ export function LogWizardScreen() {
                 <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Fatigue (0–10)</Text>
                 <TextInput value={fatigue} onChangeText={setFatigue} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="number-pad" />
               </View>
-              <View style={styles.twoColItem}>
-                <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Steps</Text>
-                <TextInput value={steps} onChangeText={setSteps} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="number-pad" />
-              </View>
             </View>
-
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Hydration (glasses)</Text>
-            <TextInput value={hydration} onChangeText={setHydration} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="decimal-pad" />
 
             <View style={styles.navRow}>
               <Pressable
@@ -547,6 +540,17 @@ export function LogWizardScreen() {
                     <Choice key={`sym-selected-${item}`} label={item} selected onPress={() => toggleSymptom(item)} />
                   ))}
                 </View>
+
+                <View style={{ marginTop: 8, alignItems: 'flex-start' }}>
+                  <Pressable
+                    onPress={() => setSymptoms([])}
+                    style={styles.secondaryBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel="Clear selected symptoms"
+                  >
+                    <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear selected</Text>
+                  </Pressable>
+                </View>
               </View>
             ) : null}
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Add custom symptom</Text>
@@ -582,6 +586,15 @@ export function LogWizardScreen() {
               ))}
             </View>
 
+            {energyClarity ? (
+              <View style={{ marginTop: 4 }}>
+                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Selected energy & clarity</Text>
+                <View style={styles.chips}>
+                  <Choice label={energyClarity} selected onPress={() => setEnergyClarity('')} />
+                </View>
+              </View>
+            ) : null}
+
             <View style={styles.navRow}>
               <Pressable onPress={() => setStep(2)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
@@ -594,6 +607,32 @@ export function LogWizardScreen() {
         ) : step === 4 ? (
           <View>
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Stressors</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Irritability (0-10)</Text>
+            <View style={styles.chips}>
+              {SCORE_0_10_OPTIONS.map((v) => (
+                <Choice key={`ir-${v}`} label={v} selected={irritability === v} onPress={() => setIrritability(v)} />
+              ))}
+            </View>
+            <TextInput
+              value={irritability}
+              onChangeText={setIrritability}
+              style={[styles.input, { color: theme.tokens.color.text }]}
+              keyboardType="number-pad"
+            />
+
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Weather sensitivity (1-10)</Text>
+            <View style={styles.chips}>
+              {SCORE_1_10_OPTIONS.map((v) => (
+                <Choice key={`ws-${v}`} label={v} selected={weatherSensitivity === v} onPress={() => setWeatherSensitivity(v)} />
+              ))}
+            </View>
+            <TextInput
+              value={weatherSensitivity}
+              onChangeText={setWeatherSensitivity}
+              style={[styles.input, { color: theme.tokens.color.text }]}
+              keyboardType="number-pad"
+            />
+
             {frequentStressors.length > 0 ? (
               <View style={{ marginBottom: 8 }}>
                 <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Frequent stressors</Text>
@@ -616,6 +655,17 @@ export function LogWizardScreen() {
                   {stressors.map((item) => (
                     <Choice key={`str-selected-${item}`} label={item} selected onPress={() => toggleStressor(item)} />
                   ))}
+                </View>
+
+                <View style={{ marginTop: 8, alignItems: 'flex-start' }}>
+                  <Pressable
+                    onPress={() => setStressors([])}
+                    style={styles.secondaryBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel="Clear selected stressors"
+                  >
+                    <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear selected</Text>
+                  </Pressable>
                 </View>
               </View>
             ) : null}
@@ -658,30 +708,20 @@ export function LogWizardScreen() {
               keyboardType="number-pad"
             />
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Irritability (0-10)</Text>
-            <View style={styles.chips}>
-              {SCORE_0_10_OPTIONS.map((v) => (
-                <Choice key={`ir-${v}`} label={v} selected={irritability === v} onPress={() => setIrritability(v)} />
-              ))}
-            </View>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Steps (if tracked)</Text>
             <TextInput
-              value={irritability}
-              onChangeText={setIrritability}
+              value={steps}
+              onChangeText={setSteps}
               style={[styles.input, { color: theme.tokens.color.text }]}
               keyboardType="number-pad"
             />
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Weather sensitivity (1-10)</Text>
-            <View style={styles.chips}>
-              {SCORE_1_10_OPTIONS.map((v) => (
-                <Choice key={`ws-${v}`} label={v} selected={weatherSensitivity === v} onPress={() => setWeatherSensitivity(v)} />
-              ))}
-            </View>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Hydration (glasses)</Text>
             <TextInput
-              value={weatherSensitivity}
-              onChangeText={setWeatherSensitivity}
+              value={hydration}
+              onChangeText={setHydration}
               style={[styles.input, { color: theme.tokens.color.text }]}
-              keyboardType="number-pad"
+              keyboardType="decimal-pad"
             />
 
             <View style={styles.navRow}>

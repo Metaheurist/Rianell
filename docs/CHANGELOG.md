@@ -2,7 +2,19 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.3** - expanded unit-test coverage and docs update.
+**Latest: v1.45.4** - CI/security workflow hardening plus Expo parity UX updates.
+
+### v1.45.4 - 2026-03-26 - CI/security hardening + Expo parity UX updates
+
+- **CI / Security**:
+  - Hardened `security-audit.yml` by running npm audits with `--omit=dev` to avoid legacy Capacitor-only dev transitive vulnerabilities failing the high-severity gate.
+- **CI / Release**:
+  - Added `eas-native-binaries-prod` to `ci.yml` to build Expo iOS + Android production binaries via EAS and include them in GitHub Release assets.
+- **Mobile / Parity**:
+  - Improved Log today wizard step parity (energy/stressors and lifestyle sub-steps) and added clear-all controls for selected symptoms/stressors.
+  - Added Charts view toggle (`Balance / Individual / Combined`) UI parity control.
+- **Docs**:
+  - Updated `docs/next-phase-development-plan.md` with the latest parity checklist progress.
 
 ### v1.45.3 - 2026-03-24 - Expanded app functionality unit tests
 

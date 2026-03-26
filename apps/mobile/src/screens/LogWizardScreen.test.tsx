@@ -55,7 +55,7 @@ test('log wizard can progress through stressors and save', async () => {
   fireEvent.press(getByLabelText('Next step'));
   await findByText('Daily function (0-10)');
   fireEvent.press(getAllByText('6')[0]);
-  fireEvent.press(getAllByText('9')[0]);
+  fireEvent.press(getAllByText('8')[0]);
   fireEvent.press(getByLabelText('Next step'));
   await findByText('Breakfast (comma separated)');
   fireEvent.press(getByText('Oatmeal'));
