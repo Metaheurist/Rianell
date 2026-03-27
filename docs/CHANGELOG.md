@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.94** - Unknown-action minimum-sample confidence warning.
+**Latest: v1.45.95** - Documentation sync checkpoint.
+
+### v1.45.95 - 2026-03-27 - Documentation sync checkpoint
+
+- **Docs alignment:** synchronized plan/parity/features/readme wording to reflect the current RN notification diagnostics baseline, including dominant-source confidence and low-sample warning context.
+- **Scope:** documentation/changelog checkpoint only; no runtime behavior changes in this entry.
 
 ### v1.45.94 - 2026-03-27 - Unknown-action minimum-sample confidence warning
 

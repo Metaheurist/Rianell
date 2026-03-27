@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.95 documentation sync
+
+- **Checkpoint refresh:** docs are synchronized so Phase E notification diagnostics coverage is consistent across feature and parity pages (counts, startup/live split, confidence, and low-sample guard).
+
 ### v1.45.94 documentation sync
 
 - **RN unknown-action diagnostics sampling guard (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now labels dominant-source confidence as preliminary until at least three unknown reminder actions are observed in-session.
