@@ -122,6 +122,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **React Native:** reminder `later` actions now honor a user-selected snooze interval from Settings, improving parity depth for notification action customization.
 
+### v1.45.70 parity note (notification snooze-fallback behavior)
+
+- **React Native:** when runtime snooze scheduling is unavailable/fails, `later` actions now fall back to app-home open behavior, reducing dead-end interaction risk.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.

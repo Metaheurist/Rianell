@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.69** - Configurable reminder snooze interval.
+**Latest: v1.45.70** - Snooze-failure home fallback behavior.
+
+### v1.45.70 - 2026-03-27 - Snooze fallback resilience
+
+- **RN notifications (Phase E):** `later` reminder actions now fall back to app-home open behavior when snooze scheduling cannot be created at runtime.
+- **User visibility:** Settings notification help text now explains this fallback behavior explicitly.
+- **Validation:** `npm run test:mobile -- RootNavigator.test.tsx SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.69 - 2026-03-27 - Configurable snooze interval
 
