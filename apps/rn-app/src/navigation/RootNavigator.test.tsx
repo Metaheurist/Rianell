@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   shouldClearReminderAction,
+  shouldOpenHomeFromReminderAction,
   shouldOpenLogWizardFromReminderAction,
   shouldShowAiTab,
   shouldSnoozeReminderFromAction,
@@ -37,5 +38,11 @@ test('later reminder action should trigger snooze behavior', () => {
   expect(shouldSnoozeReminderFromAction('later')).toBe(true);
   expect(shouldSnoozeReminderFromAction('log-now')).toBe(false);
   expect(shouldSnoozeReminderFromAction('default')).toBe(false);
+});
+
+test('default reminder action should bring app home', () => {
+  expect(shouldOpenHomeFromReminderAction('default')).toBe(true);
+  expect(shouldOpenHomeFromReminderAction('log-now')).toBe(false);
+  expect(shouldOpenHomeFromReminderAction('later')).toBe(false);
 });
 
