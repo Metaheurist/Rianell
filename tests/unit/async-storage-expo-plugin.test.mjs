@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const pluginPath = new URL('../../apps/mobile/plugins/withAsyncStorageLocalRepo.js', import.meta.url);
+const pluginPath = new URL('../../apps/rn-app/plugins/withAsyncStorageLocalRepo.js', import.meta.url);
 const pluginSrc = fs.readFileSync(pluginPath, 'utf8');
 
 test('withAsyncStorageLocalRepo injects local_repo maven path for Async Storage v3', () => {

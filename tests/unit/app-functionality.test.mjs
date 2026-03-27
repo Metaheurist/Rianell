@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const indexHtml = fs.readFileSync(new URL('../../web/index.html', import.meta.url), 'utf8');
-const appJs = fs.readFileSync(new URL('../../web/app.js', import.meta.url), 'utf8');
-const stylesCss = fs.readFileSync(new URL('../../web/styles.css', import.meta.url), 'utf8');
+const indexHtml = fs.readFileSync(new URL('../../apps/pwa-webapp/index.html', import.meta.url), 'utf8');
+const appJs = fs.readFileSync(new URL('../../apps/pwa-webapp/app.js', import.meta.url), 'utf8');
+const stylesCss = fs.readFileSync(new URL('../../apps/pwa-webapp/styles.css', import.meta.url), 'utf8');
 
 function extractFunctionBlock(source, functionName) {
   const start = source.indexOf(`function ${functionName}(`);

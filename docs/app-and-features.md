@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.53 documentation sync
+
+- **CI unit-tests reliability:** root unit tests now reference current repo folders (`apps/pwa-webapp`, `apps/rn-app`) instead of legacy `web`/`apps/mobile` paths, preventing `ENOENT` failures in GitHub Actions.
+
 ### v1.45.52 documentation sync
 
 - **CI build reliability (prebuild assets + unit tests):** regenerated root `package-lock.json` from active workspaces to remove stale workspace lock metadata and keep root `npm ci` stable across CI jobs that install root dependencies.

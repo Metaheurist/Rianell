@@ -6,8 +6,8 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.join(__dirname, '../..');
-const appJsonPath = path.join(repoRoot, 'apps/mobile/app.json');
-const pluginPath = path.join(repoRoot, 'apps/mobile/plugins/withAsyncStorageLocalRepo.js');
+const appJsonPath = path.join(repoRoot, 'apps/rn-app/app.json');
+const pluginPath = path.join(repoRoot, 'apps/rn-app/plugins/withAsyncStorageLocalRepo.js');
 
 test('mobile app.json registers Async Storage local Maven plugin (CI Android)', () => {
   const raw = fs.readFileSync(appJsonPath, 'utf8');
@@ -28,9 +28,11 @@ test('withAsyncStorageLocalRepo plugin injects shared_storage marker into Gradle
 });
 
 test('app.config.js merges app.json and Supabase extra for native builds', () => {
-  const appConfigPath = path.join(repoRoot, 'apps/mobile/app.config.js');
-  assert.ok(fs.existsSync(appConfigPath), 'app.config.js must exist for Expo extra (EXPO_PUBLIC_SUPABASE_*)');
+  const appConfigPath = path.join(repoRoot, 'apps/rn-app/app.config.js');
+  assert.ok(fs.existsSync(appConfigPath), 'app.config.js must exist for Expo extra and shared Supabase envs');
   const mod = fs.readFileSync(appConfigPath, 'utf8');
   assert.match(mod, /EXPO_PUBLIC_SUPABASE_URL/);
+  assert.match(mod, /SUPABASE_URL/);
+  assert.match(mod, /SUPABASE_PUBLISHABLE_KEY/);
   assert.match(mod, /app\.json/);
 });
