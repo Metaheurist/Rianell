@@ -70,6 +70,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | 🏠 | **[App overview & features](docs/app-and-features.md)** - UI, behaviour, screenshots |
 | ⚙️ | **[Installation & usage](docs/setup-and-usage.md)** - server, GitHub Pages, React/Android |
 | 🧪 | **[Testing & configuration](docs/testing-and-configuration.md)** |
+| ⏱️ | **[Performance benchmarks](Benchmarks/README.md)** — latest CI/local Markdown under `Benchmarks/` (tooling lives in `benchmark-runner/`); run `npm run benchmark` |
 | 🧠 | **[AI architecture](docs/ai-architecture.md)** |
 | 🗂️ | **[Project reference](docs/project-reference.md)** - tree, deps, dev, GDPR, troubleshooting, security notes |
 | 🎨 | **[Styling](docs/styling.md)** - CSS layout, tokens, settings carousel, tile pickers, cache bust |

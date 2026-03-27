@@ -5,7 +5,8 @@
   "description": "Rianell - health dashboard (rianell.com); PWA webapp, React Native app, and legacy Capacitor shell",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "benchmark-runner"
   ],
   "scripts": {
     "dev": "cd apps/capacitor-app && npm run dev",
@@ -25,7 +26,11 @@
     "icons:beta": "node scripts/add-beta-badge-to-icons.mjs",
     "smoke:trace": "node scripts/smoke-function-trace.mjs",
     "parity:android": "node scripts/check-platform-parity.mjs android",
-    "parity:ios": "node scripts/check-platform-parity.mjs ios"
+    "parity:ios": "node scripts/check-platform-parity.mjs ios",
+    "benchmark": "npm run all --workspace=@rianell/benchmark-runner",
+    "benchmark:web": "npm run web --workspace=@rianell/benchmark-runner",
+    "benchmark:expo": "npm run expo --workspace=@rianell/benchmark-runner",
+    "benchmark:all": "npm run benchmark"
   },
   "devDependencies": {
     "@babel/generator": "^7.26.5",

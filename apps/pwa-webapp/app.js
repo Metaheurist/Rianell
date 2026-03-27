@@ -19145,11 +19145,17 @@ window.addEventListener('load', () => {
         loadingOverlay.classList.add('hidden');
         document.body.classList.remove('loading');
         document.body.classList.add('loaded');
+        try {
+          document.body.setAttribute('data-benchmark', 'main-ready');
+        } catch (e) { /* ignore */ }
         showCookieBannerIfNeeded();
         setTimeout(function () { loadingOverlay.remove(); }, 500);
       } else {
         document.body.classList.remove('loading');
         document.body.classList.add('loaded');
+        try {
+          document.body.setAttribute('data-benchmark', 'main-ready');
+        } catch (e) { /* ignore */ }
         showCookieBannerIfNeeded();
       }
     });
