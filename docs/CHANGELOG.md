@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.84** - Documentation checkpoint sync.
+**Latest: v1.45.85** - Unknown action drift hint.
+
+### v1.45.85 - 2026-03-27 - Unknown action drift hint
+
+- **RN notifications (Phase E):** Settings now adds a conditional explanatory hint when unknown reminder actions are observed and dismiss semantics are unavailable, clarifying a likely runtime cause for unknown-action drift.
+- **UX clarity:** unknown-action session counter now pairs with actionable context instead of a raw count alone.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx RootNavigator.test.tsx permissions.test.ts` and `npm run typecheck:mobile` pass.
 
 ### v1.45.84 - 2026-03-27 - Documentation checkpoint sync
 
