@@ -81,7 +81,7 @@ export function RootNavigator({
 
     const handleAction = (action: ReminderAction) => {
       if (shouldSnoozeReminderFromAction(action)) {
-        void Permissions.scheduleReminderSnooze(30);
+        void Permissions.scheduleReminderSnooze(prefs.notifications.snoozeMinutes);
       }
       if (shouldOpenHomeFromReminderAction(action)) {
         openHome();
@@ -112,7 +112,7 @@ export function RootNavigator({
       mounted = false;
       dispose();
     };
-  }, [navRef]);
+  }, [navRef, prefs.notifications.snoozeMinutes]);
 
   return (
     <NavigationContainer ref={navRef} theme={navTheme}>

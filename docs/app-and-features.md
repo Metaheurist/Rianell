@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.69 documentation sync
+
+- **RN notifications personalization (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now exposes a snooze interval selector for reminder `later` actions, persisted via `apps/rn-app/src/storage/preferences.ts` and consumed by root reminder handling.
+
 ### v1.45.68 documentation sync
 
 - **RN reminder default-action semantics (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now treats default reminder taps as explicit app-home open intent, completing baseline tri-path handling (`log-now`, `later`, `default`).

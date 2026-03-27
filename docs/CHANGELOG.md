@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.68** - Default reminder action home routing.
+**Latest: v1.45.69** - Configurable reminder snooze interval.
+
+### v1.45.69 - 2026-03-27 - Configurable snooze interval
+
+- **RN notifications (Phase E):** reminder snooze duration is now user-configurable via Settings and persisted in preferences (`notifications.snoozeMinutes`).
+- **Action routing integration:** the `later` reminder action now uses the configured snooze interval instead of a fixed value.
+- **Validation:** `npm run test:mobile -- RootNavigator.test.tsx SettingsScreen.test.tsx preferences.test.ts` and `npm run typecheck:mobile` pass.
 
 ### v1.45.68 - 2026-03-27 - Default reminder action routing
 

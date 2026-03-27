@@ -10,6 +10,17 @@ export type Preferences = {
   appearanceMode: AppearanceMode;
   aiEnabled: boolean;
   demoMode: boolean;
+  notifications: {
+    enabled: boolean;
+    dailyReminderTime: string;
+    soundEnabled: boolean;
+    snoozeMinutes: number;
+  };
+  goals: {
+    moodTarget: number;
+    sleepTarget: number;
+    fatigueTarget: number;
+  };
   performance: {
     preferredLlmModelSize: PreferredLlmModelSize;
   };
@@ -28,6 +39,17 @@ export function getDefaultPreferences(): Preferences {
     appearanceMode: 'system',
     aiEnabled: true,
     demoMode: false,
+    notifications: {
+      enabled: false,
+      dailyReminderTime: '20:00',
+      soundEnabled: true,
+      snoozeMinutes: 30,
+    },
+    goals: {
+      moodTarget: 7,
+      sleepTarget: 7,
+      fatigueTarget: 7,
+    },
     performance: {
       preferredLlmModelSize: 'recommended',
     },
@@ -58,6 +80,30 @@ export async function loadPreferences(): Promise<Preferences> {
       appearanceMode,
       aiEnabled: parsed.aiEnabled !== false,
       demoMode: parsed.demoMode === true,
+      notifications: {
+        enabled: parsed.notifications?.enabled === true,
+        dailyReminderTime:
+          typeof parsed.notifications?.dailyReminderTime === 'string' &&
+          /^\d{2}:\d{2}$/.test(parsed.notifications.dailyReminderTime)
+            ? parsed.notifications.dailyReminderTime
+            : d.notifications.dailyReminderTime,
+        soundEnabled:
+          parsed.notifications?.soundEnabled === false ? false : d.notifications.soundEnabled,
+        snoozeMinutes: Number.isFinite(parsed.notifications?.snoozeMinutes)
+          ? Math.min(120, Math.max(5, Number(parsed.notifications?.snoozeMinutes)))
+          : d.notifications.snoozeMinutes,
+      },
+      goals: {
+        moodTarget: Number.isFinite(parsed.goals?.moodTarget)
+          ? Math.min(10, Math.max(0, Number(parsed.goals?.moodTarget)))
+          : d.goals.moodTarget,
+        sleepTarget: Number.isFinite(parsed.goals?.sleepTarget)
+          ? Math.min(10, Math.max(0, Number(parsed.goals?.sleepTarget)))
+          : d.goals.sleepTarget,
+        fatigueTarget: Number.isFinite(parsed.goals?.fatigueTarget)
+          ? Math.min(10, Math.max(0, Number(parsed.goals?.fatigueTarget)))
+          : d.goals.fatigueTarget,
+      },
       performance: {
         preferredLlmModelSize:
           parsed.performance?.preferredLlmModelSize === 'tier1' ||
