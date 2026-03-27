@@ -16,6 +16,11 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - `sync_behavior`: foreground/interval behavior; no guaranteed OS background sync.
 - `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
 
+### v1.45.76 parity note (reminder action policy visibility)
+
+- **React Native:** Settings now displays explicit reminder action-routing/fallback policy text (`log-now`, `later`, `default`, `unknown`) to make runtime behavior differences transparent.
+- **Open parity:** keep tracking long-tail OS delivery semantics and action-surface differences in `docs/next-phase-development-plan.md` Phase E.
+
 ### v1.44.2 parity update
 
 - Cloud sync now includes additional user setting keys stored outside `rianellSettings`, improving cross-device settings parity for authenticated users.

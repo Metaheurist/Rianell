@@ -54,7 +54,7 @@ test('settings carousel: cloud pane, then AI, accessibility, data panes', () => 
   getByText('Reminder sound');
   getByText('Snooze minutes (later action)');
   getByText(/Later action snoozes for/i);
-  getByText(/Runtime support: schedule yes/i);
+  getByText(/Action policy: log-now to Log today/i);
   getByText(/Cloud sync is not configured/);
 
   fireEvent.press(getByTestId('settings-pane-tab-1'));

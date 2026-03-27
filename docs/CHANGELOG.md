@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.75** - Unknown action safe-fallback policy.
+**Latest: v1.45.76** - Reminder action policy visibility copy.
+
+### v1.45.76 - 2026-03-27 - Reminder action policy visibility
+
+- **RN notifications (Phase E):** Settings now includes explicit action-policy copy for reminder responses (`log-now`, `later`, `default`, `unknown`) so route/fallback behavior is visible in-app.
+- **Plan sync:** `docs/next-phase-development-plan.md` notifications work-item now reflects the current state (capability visibility + action policy copy + remaining long-tail OS parity).
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.75 - 2026-03-27 - Unknown reminder action handling policy
 

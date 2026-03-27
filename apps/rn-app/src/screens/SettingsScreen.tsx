@@ -442,6 +442,9 @@ export function SettingsScreen({
                 </Text>
               ) : null}
               <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                Action policy: log-now to Log today, later to snooze (or Home fallback), default/unknown to Home.
+              </Text>
+              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                 Notification permission: {notificationPermission}
               </Text>
               {notificationScheduleState === 'scheduled' ? (
