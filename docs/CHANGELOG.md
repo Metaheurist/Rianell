@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.77** - Reminder action burst de-dup guard.
+**Latest: v1.45.78** - Documentation sync checkpoint.
+
+### v1.45.78 - 2026-03-27 - Documentation sync checkpoint
+
+- **Plan freshness:** refreshed `docs/next-phase-development-plan.md` status rollup text so the Phase E notifications summary explicitly includes duplicate-action burst suppression in root routing.
+- **Docs alignment:** synchronized `README.md`, `docs/app-and-features.md`, and `docs/platform-parity.md` to the same latest milestone pointer and parity wording.
+- **Scope:** documentation/changelog update only (no runtime behavior changes in this checkpoint).
 
 ### v1.45.77 - 2026-03-27 - Reminder action burst de-dup guard
 

@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.78 documentation sync
+
+- **Checkpoint refresh:** synchronized documentation wording after the reminder-action stability increments so feature notes consistently reflect action-policy visibility plus duplicate-action burst suppression behavior in RN notification routing.
+
 ### v1.45.77 documentation sync
 
 - **RN reminder action stability (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now ignores immediate duplicate reminder-action events in a short window so `log-now` / `later` / `default` / `unknown` routes are not executed twice on noisy runtime callbacks.
