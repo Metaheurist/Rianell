@@ -180,5 +180,14 @@ export const Permissions = {
       return () => {};
     }
   },
+  async clearLastReminderAction(): Promise<void> {
+    const Notifications = await loadExpoNotifications();
+    if (!Notifications?.clearLastNotificationResponseAsync) return;
+    try {
+      await Notifications.clearLastNotificationResponseAsync();
+    } catch {
+      // no-op
+    }
+  },
 };
 

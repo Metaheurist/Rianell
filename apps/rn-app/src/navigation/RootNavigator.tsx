@@ -41,6 +41,10 @@ export function shouldOpenLogWizardFromReminderAction(action: ReminderAction) {
   return action === 'log-now';
 }
 
+export function shouldClearReminderAction(action: ReminderAction) {
+  return action !== 'none';
+}
+
 export function RootNavigator({
   prefs,
   onChangePrefs,
@@ -62,16 +66,25 @@ export function RootNavigator({
       navRef.navigate('LogWizard');
     };
 
+    const handleAction = (action: ReminderAction) => {
+      if (shouldOpenLogWizardFromReminderAction(action)) {
+        openLogWizard();
+      }
+      if (shouldClearReminderAction(action)) {
+        void Permissions.clearLastReminderAction();
+      }
+    };
+
     void Permissions.getLastReminderAction()
       .then((action) => {
         if (handledInitialActionRef.current) return;
         handledInitialActionRef.current = true;
-        if (shouldOpenLogWizardFromReminderAction(action)) openLogWizard();
+        handleAction(action);
       })
       .catch(() => {});
 
     void Permissions.subscribeReminderActions((action) => {
-      if (shouldOpenLogWizardFromReminderAction(action)) openLogWizard();
+      handleAction(action);
     }).then((cleanup) => {
       dispose = cleanup;
     });
