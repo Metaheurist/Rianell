@@ -5,8 +5,8 @@
  *   node scripts/generate-icon-set.mjs --source "C:/path/to/source.png"
  *
  * Outputs:
- *   web/Icons/logo-source.png
- *   web/Icons/Icon-<size>.png
+ *   apps/pwa-webapp/Icons/logo-source.png
+ *   apps/pwa-webapp/Icons/Icon-<size>.png
  */
 import fs from 'fs';
 import path from 'path';
@@ -15,7 +15,7 @@ import sharp from 'sharp';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.join(__dirname, '..');
-const iconsDir = path.join(projectRoot, 'web', 'Icons');
+const iconsDir = path.join(projectRoot, 'apps', 'pwa-webapp', 'Icons');
 
 const ICON_SIZES = [16, 32, 57, 60, 72, 76, 96, 114, 120, 128, 144, 152, 167, 180, 192, 384, 512];
 const LOGO_SOURCE_SIZE = 1024;

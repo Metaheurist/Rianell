@@ -24,9 +24,17 @@ test('RN CLI jobs use rn-build-version for sequential RN build numbers', () => {
 });
 
 test('RN CLI Android job must not use setup-java cache:gradle before prebuild', () => {
-  // Gradle wrapper only exists under apps/mobile/android after `expo prebuild`.
+  // Gradle wrapper only exists under apps/rn-app/android after `expo prebuild`.
   // cache: gradle makes setup-java scan the repo at checkout and fails with no matching files.
   assert.doesNotMatch(ciYml, /cache:\s*gradle/);
+});
+
+test('RN CLI Android collect step globs APK from repo root (not android/ cwd)', () => {
+  // Collect runs with default working-directory = workspace root; path must include apps/rn-app/android/.
+  assert.match(
+    ciYml,
+    /apks=\(apps\/rn-app\/android\/app\/build\/outputs\/apk\/debug\/\*\.apk\)/
+  );
 });
 
 test('publish-release depends on RN CLI artifacts', () => {
@@ -36,5 +44,17 @@ test('publish-release depends on RN CLI artifacts', () => {
   assert.match(ciYml, /Download RN CLI iOS emulator zip artifact/);
   assert.match(ciYml, /release-assets\/RNCLI\/Android/);
   assert.match(ciYml, /release-assets\/RNCLI\/iOS/);
+});
+
+test('RN jobs source Supabase from shared SUPABASE_* secrets', () => {
+  assert.match(ciYml, /Expo export — production bundles[\s\S]*SUPABASE_URL:\s*\$\{\{\s*secrets\.SUPABASE_URL\s*\}\}/m);
+  assert.match(ciYml, /Generate native project \(expo prebuild -> RN CLI\)[\s\S]*SUPABASE_URL:\s*\$\{\{\s*secrets\.SUPABASE_URL\s*\}\}/m);
+  assert.match(ciYml, /SUPABASE_PUBLISHABLE_KEY:\s*\$\{\{\s*secrets\.SUPABASE_ANON_KEY\s*\}\}/);
+});
+
+test('Expo bundle job exports from apps/rn-app and verifies autolinking package', () => {
+  assert.match(ciYml, /Expo export — production bundles[\s\S]*cd apps\/rn-app/m);
+  assert.match(ciYml, /npx expo export --platform android --platform ios --output-dir dist-expo-prod/);
+  assert.match(ciYml, /npm ls expo-modules-autolinking/);
 });
 

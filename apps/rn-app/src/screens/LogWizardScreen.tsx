@@ -1,5 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Alert,
+  LayoutAnimation,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  UIManager,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -680,6 +691,11 @@ export function LogWizardScreen() {
   const [frequentStressors, setFrequentStressors] = useState<string[]>([]);
   const [energyClaritySearch, setEnergyClaritySearch] = useState('');
   const [energyPickerOpen, setEnergyPickerOpen] = useState(true);
+  const [painRegionSearch, setPainRegionSearch] = useState('');
+
+  if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
 
   function toggleSymptom(value: string) {
     setSymptoms((prev) => (prev.includes(value) ? prev.filter((x) => x !== value) : [...prev, value]));
@@ -716,6 +732,16 @@ export function LogWizardScreen() {
     setPainStates({});
   }
 
+  function toggleEnergyPicker() {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setEnergyPickerOpen((v) => !v);
+  }
+
+  function toggleStressorPicker() {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setStressorPickerOpen((v) => !v);
+  }
+
   function confirmClearAll(itemLabel: string, onYes: () => void) {
     Alert.alert('Clear selection', `Would you like to clear ${itemLabel}?`, [
       { text: 'No', style: 'cancel' },
@@ -724,6 +750,11 @@ export function LogWizardScreen() {
   }
 
   const painLocationFromBody = useMemo(() => buildPainLocationTextFromState(painStates), [painStates]);
+  const filteredPainRegions = useMemo(() => {
+    const q = painRegionSearch.trim().toLowerCase();
+    if (!q) return PAIN_BODY_REGIONS;
+    return PAIN_BODY_REGIONS.filter((region) => region.label.toLowerCase().includes(q));
+  }, [painRegionSearch]);
   const painCounts = useMemo(() => {
     let mild = 0;
     let pain = 0;
@@ -942,8 +973,16 @@ export function LogWizardScreen() {
                 </View>
               </View>
             ) : null}
+            <TextInput
+              value={painRegionSearch}
+              onChangeText={setPainRegionSearch}
+              style={[styles.input, { color: theme.tokens.color.text, marginTop: 8 }]}
+              accessibilityLabel="Search pain body regions"
+              placeholder="Search body regions"
+              placeholderTextColor="rgba(255,255,255,0.6)"
+            />
             <View style={styles.chips}>
-              {PAIN_BODY_REGIONS.map((region) => {
+              {filteredPainRegions.map((region) => {
                 const s = painStates[region.id] ?? 0;
                 return (
                   <BodyRegionChoice
@@ -955,6 +994,11 @@ export function LogWizardScreen() {
                 );
               })}
             </View>
+            {filteredPainRegions.length === 0 ? (
+              <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                No body regions match that search.
+              </Text>
+            ) : null}
             <View style={{ marginTop: 8, alignItems: 'flex-start' }}>
               <Pressable onPress={clearPainRegions} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Clear pain regions">
                 <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear body selections</Text>
@@ -1095,7 +1139,7 @@ export function LogWizardScreen() {
             </View>
 
             <Pressable
-              onPress={() => setEnergyPickerOpen((v) => !v)}
+              onPress={toggleEnergyPicker}
               style={[styles.secondaryBtn, { alignSelf: 'flex-start', marginTop: 10, marginBottom: 8 }]}
               accessibilityRole="button"
               accessibilityLabel="Toggle energy picker"
@@ -1141,6 +1185,14 @@ export function LogWizardScreen() {
               );
             })}
               </View>
+            ) : null}
+            {energyPickerOpen &&
+            !ENERGY_CLARITY_OPTIONS.some((o) =>
+              `${o.label} ${o.value}`.toLowerCase().includes(energyClaritySearch.trim().toLowerCase())
+            ) ? (
+              <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                No energy options match that search.
+              </Text>
             ) : null}
 
             <View style={styles.navRow}>
@@ -1204,7 +1256,7 @@ export function LogWizardScreen() {
             ) : null}
 
             <Pressable
-              onPress={() => setStressorPickerOpen((v) => !v)}
+              onPress={toggleStressorPicker}
               style={[styles.secondaryBtn, { alignSelf: 'flex-start', marginBottom: 8 }]}
               accessibilityRole="button"
               accessibilityLabel="Toggle stressor picker"

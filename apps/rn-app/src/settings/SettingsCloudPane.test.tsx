@@ -12,4 +12,5 @@ test('cloud pane shows configuration hint when Supabase env is missing', () => {
     </ThemeProvider>
   );
   getByText(/EXPO_PUBLIC_SUPABASE_URL/);
+  getByText(/SUPABASE_URL/);
 });

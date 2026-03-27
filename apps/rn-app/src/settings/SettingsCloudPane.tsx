@@ -72,8 +72,9 @@ export function SettingsCloudPane() {
     return (
       <View style={styles.block}>
         <Text style={[styles.hint, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-          Cloud sync is not configured. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in apps/mobile/.env
-          (see .env.example), then rebuild.
+          Cloud sync is not configured. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY (or
+          SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY / SUPABASE_ANON_KEY) in apps/rn-app/.env (see .env.example), then
+          rebuild.
         </Text>
       </View>
     );

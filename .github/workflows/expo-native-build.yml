@@ -45,13 +45,13 @@ jobs:
         run: npm install -g eas-cli
 
       - name: Build Android (cloud)
-        working-directory: apps/mobile
+        working-directory: apps/rn-app
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas build --platform android --profile ${{ inputs.profile }} --non-interactive
 
       - name: Build iOS (cloud)
-        working-directory: apps/mobile
+        working-directory: apps/rn-app
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas build --platform ios --profile ${{ inputs.profile }} --non-interactive

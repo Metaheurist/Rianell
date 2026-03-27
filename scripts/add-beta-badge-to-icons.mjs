@@ -1,5 +1,5 @@
 /**
- * Builds web/Icons/beta/* from clean originals in web/Icons/ (matches .app-beta-badge in styles.css).
+ * Builds apps/pwa-webapp/Icons/beta/* from clean originals in apps/pwa-webapp/Icons/ (matches .app-beta-badge in styles.css).
  * Does not modify originals. Run: npm run icons:beta
  *
  * Re-running overwrites beta outputs only (safe). Regenerate after editing master icons.
@@ -107,7 +107,7 @@ async function main() {
     await addBadgeToFile(src, dest);
     console.log('ok');
   }
-  console.log('Done. Outputs in web/Icons/beta/ (originals unchanged).');
+  console.log('Done. Outputs in apps/pwa-webapp/Icons/beta/ (originals unchanged).');
 }
 
 main().catch((e) => {

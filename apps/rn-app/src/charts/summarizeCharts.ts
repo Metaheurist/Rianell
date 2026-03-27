@@ -39,7 +39,7 @@ export function filterTrendsForChartView(trends: MetricTrend[], view: ChartViewM
   return trends;
 }
 
-/** Display formatting aligned with web `formatChartMetricValue` / chart tooltips (`web/app.js`). */
+/** Display formatting aligned with web `formatChartMetricValue` / chart tooltips (`apps/pwa-webapp/app.js`). */
 export function formatChartMetricValue(key: TrendMetric, value: number | null): string {
   if (value == null || !Number.isFinite(value)) return '—';
   if (key === 'steps') return Math.round(value).toLocaleString();
