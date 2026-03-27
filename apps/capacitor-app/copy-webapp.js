@@ -3,7 +3,7 @@
  * Copies the parent directory's web app files into public/legacy/
  * so the React shell can serve them at /legacy/ (e.g. Vite preview, Capacitor/Android).
  *
- * Must include every script referenced by web/index.html and lazy-loaded modules
+ * Must include every script referenced by apps/pwa-webapp/index.html and lazy-loaded modules
  * (e.g. summary-llm.js, workers/io-worker.js) or the iframe will 404 and the app won't boot.
  *
  * Production / APK: pass --min after `npm run build:web` so legacy/index.html loads app.min.js
@@ -14,8 +14,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(__dirname, '..');
-const webDir = path.join(root, 'web');
+const root = path.resolve(__dirname, '..', '..');
+const webDir = path.join(root, 'apps', 'pwa-webapp');
 const androidDistDir = path.join(webDir, '.android-dist');
 const outDir = path.join(__dirname, 'public', 'legacy');
 
@@ -57,7 +57,7 @@ if (useMin) {
   const minPath = path.join(sourceDir, 'app.min.js');
   if (!fs.existsSync(minPath)) {
     console.error(
-      'copy-webapp --min: app.min.js not found. From repo root run: npm run build:web:apk (or npm run build:web)'
+      'copy-webapp --min: app.min.js not found. From repo root run: npm run build:web:apk (or npm run build:web) so apps/pwa-webapp/app.min.js exists'
     );
     process.exit(1);
   }
@@ -83,7 +83,7 @@ for (const file of staticRootFiles) {
       console.log('Patched index.html to load app.min.js');
     }
   } else if (useMin && sourceDir === androidDistDir) {
-    console.log('Using web/.android-dist (index.html already targets app.min.js + minified assets)');
+    console.log('Using apps/pwa-webapp/.android-dist (index.html already targets app.min.js + minified assets)');
   }
 
 // Root-level .js modules (index.html + lazy loaders).

@@ -1,9 +1,9 @@
 /**
- * Produces web/.android-dist/ — a full copy of web/ with first-party JS/CSS minified
- * and index.html pointing at app.min.js. Used by react-app/copy-webapp.js --min for
+ * Produces apps/pwa-webapp/.android-dist/ — a full copy with first-party JS/CSS minified
+ * and index.html pointing at app.min.js. Used by apps/capacitor-app/copy-webapp.js --min for
  * Capacitor Android/iOS (smaller parse/load than shipping raw sources).
  *
- * Run after web/app.min.js exists (see build-site.mjs --skip-trace).
+ * Run after app.min.js exists (see build-site.mjs --skip-trace).
  */
 import * as esbuild from 'esbuild';
 import fs from 'fs';
@@ -11,6 +11,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.join(__dirname, '..', '..');
 
 function rmrf(dir) {
   if (!fs.existsSync(dir)) return;
@@ -105,5 +106,5 @@ export async function buildAndroidDistBundle(webRoot) {
   }
 
   await walk('');
-  console.log('[build-android-dist] wrote', path.relative(path.join(__dirname, '..'), outRoot));
+  console.log('[build-android-dist] wrote', path.relative(repoRoot, outRoot));
 }
