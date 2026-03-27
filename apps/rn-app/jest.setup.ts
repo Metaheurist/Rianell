@@ -35,3 +35,26 @@ jest.mock('react-native-svg', () => {
   };
 });
 
+jest.mock('expo-av', () => ({
+  Audio: {
+    setAudioModeAsync: jest.fn(() => Promise.resolve()),
+    getPermissionsAsync: jest.fn(() => Promise.resolve({ granted: true, canAskAgain: true, status: 'granted' })),
+    requestPermissionsAsync: jest.fn(() => Promise.resolve({ granted: true, canAskAgain: true, status: 'granted' })),
+  },
+}));
+
+jest.mock('@react-native-voice/voice', () => ({
+  __esModule: true,
+  default: {
+    onSpeechPartialResults: null,
+    onSpeechResults: null,
+    onSpeechError: null,
+    onSpeechEnd: null,
+    start: jest.fn(() => Promise.resolve()),
+    stop: jest.fn(() => Promise.resolve()),
+    cancel: jest.fn(() => Promise.resolve()),
+    destroy: jest.fn(() => Promise.resolve()),
+    removeAllListeners: jest.fn(),
+  },
+}));
+

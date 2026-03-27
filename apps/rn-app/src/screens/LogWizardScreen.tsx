@@ -20,6 +20,7 @@ import { addLogEntry, getFrequentLogItems, loadLogs, saveLogs, type LogEntry } f
 import { normalizeLogEntry } from '@rianell/shared';
 import { buildLogReviewSummary, parseMedicationNamesCsv } from '../log/buildLogReviewSummary';
 import type { RootStackParamList } from '../navigation/RootNavigator';
+import { VoiceNotesButton } from '../voice/VoiceNotesButton';
 
 /** Matches web `LOG_WIZARD_TOTAL_STEPS` (10 steps: Date…Review). */
 const WIZARD_STEPS = 10;
@@ -1646,6 +1647,12 @@ export function LogWizardScreen() {
             </View>
 
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Notes</Text>
+            <VoiceNotesButton
+              value={notes}
+              onChangeText={setNotes}
+              accent={theme.tokens.color.accent}
+              textColor={theme.tokens.color.text}
+            />
             <TextInput
               value={notes}
               onChangeText={setNotes}

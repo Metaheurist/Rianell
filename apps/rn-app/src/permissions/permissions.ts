@@ -94,8 +94,35 @@ async function loadExpoNotifications(): Promise<any | null> {
   }
 }
 
+async function loadExpoAv(): Promise<any | null> {
+  try {
+    const mod = await import('expo-av');
+    return mod;
+  } catch {
+    return null;
+  }
+}
+
+function mapAvPermission(p: { granted?: boolean; canAskAgain?: boolean; status?: string } | null | undefined): PermissionStatus {
+  if (!p) return 'unavailable';
+  if (p.granted === true || p.status === 'granted') return 'granted';
+  if (p.canAskAgain === false) return 'denied';
+  return 'denied';
+}
+
 export const Permissions = {
   async getStatus(permission: PermissionName): Promise<PermissionStatus> {
+    if (permission === 'microphone') {
+      const ExpoAv = await loadExpoAv();
+      const Audio = ExpoAv?.Audio;
+      if (!Audio?.getPermissionsAsync) return 'unavailable';
+      try {
+        const p = await Audio.getPermissionsAsync();
+        return mapAvPermission(p);
+      } catch {
+        return 'unavailable';
+      }
+    }
     if (permission !== 'notifications') return 'unavailable';
     const Notifications = await loadExpoNotifications();
     if (!Notifications?.getPermissionsAsync) return 'unavailable';
@@ -109,6 +136,17 @@ export const Permissions = {
     }
   },
   async request(permission: PermissionName): Promise<PermissionStatus> {
+    if (permission === 'microphone') {
+      const ExpoAv = await loadExpoAv();
+      const Audio = ExpoAv?.Audio;
+      if (!Audio?.requestPermissionsAsync) return 'unavailable';
+      try {
+        const p = await Audio.requestPermissionsAsync();
+        return mapAvPermission(p);
+      } catch {
+        return 'unavailable';
+      }
+    }
     if (permission !== 'notifications') return 'unavailable';
     const Notifications = await loadExpoNotifications();
     if (!Notifications?.requestPermissionsAsync) return 'unavailable';
