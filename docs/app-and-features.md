@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.83 documentation sync
+
+- **RN unknown-action observability (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now surfaces an in-session unknown reminder action counter so runtime action drift can be seen without logs/telemetry tooling.
+
 ### v1.45.82 documentation sync
 
 - **RN notification runtime matrix depth (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now includes dismiss-semantics capability visibility in the runtime support hint, backed by `apps/rn-app/src/permissions/permissions.ts` capability detection.
