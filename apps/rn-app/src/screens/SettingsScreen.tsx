@@ -335,6 +335,12 @@ export function SettingsScreen({
           lastUnknownReminderActionSource === 'startup' ? 'startup snapshot' : 'live listener'
         }`
       : null;
+  const unknownTrajectoryStability =
+    firstUnknownReminderActionSource && lastUnknownReminderActionSource
+      ? firstUnknownReminderActionSource === lastUnknownReminderActionSource
+        ? 'stable'
+        : 'shifted'
+      : null;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
@@ -590,6 +596,11 @@ export function SettingsScreen({
               {unknownSourceTrajectory ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   Unknown-action source trajectory this session: {unknownSourceTrajectory}.
+                </Text>
+              ) : null}
+              {unknownTrajectoryStability ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown-action trajectory stability: {unknownTrajectoryStability}.
                 </Text>
               ) : null}
               {unknownReminderActionCount > 0 ? (

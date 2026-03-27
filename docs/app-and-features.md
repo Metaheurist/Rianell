@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.99 documentation sync
+
+- **RN unknown-action diagnostics trajectory status (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows a trajectory stability note (`stable`/`shifted`) derived from first-to-latest unknown-action source path.
+
 ### v1.45.98 documentation sync
 
 - **RN unknown-action diagnostics trajectory context (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows the source trajectory (`first -> latest`) for unknown reminder actions within the session.

@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.98** - Unknown-action source trajectory visibility.
+**Latest: v1.45.99** - Unknown-action trajectory stability note.
+
+### v1.45.99 - 2026-03-27 - Unknown-action trajectory stability note
+
+- **RN notifications (Phase E):** Settings now derives and shows session trajectory stability (`stable` vs `shifted`) from first/latest unknown-action source.
+- **Diagnostics depth:** unknown-action diagnostics now include trajectory-status context in addition to trajectory path, quality guidance, and drift indicators.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.98 - 2026-03-27 - Unknown-action source trajectory visibility
 

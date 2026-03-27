@@ -237,6 +237,7 @@ test('notification area shows unknown-action session counter', async () => {
   await findByText(/Unknown-action observability quality: low/i);
   await findByText(/Unknown-action recommended next check: collect at least 3 unknown events before trusting source trends\./i);
   await findByText(/Unknown-action source trajectory this session: live listener to live listener\./i);
+  await findByText(/Unknown-action trajectory stability: stable\./i);
   await findByText(/Unknown-action stability status: low drift/i);
   await findByText(/mostly live listener callbacks/i);
   await findByText(/Last unknown reminder action observed at:/i);
@@ -269,6 +270,7 @@ test('notification area can reset unknown-action session counter', async () => {
     expect(queryByText(/Unknown-action observability quality:/i)).toBeNull();
     expect(queryByText(/Unknown-action recommended next check:/i)).toBeNull();
     expect(queryByText(/Unknown-action source trajectory this session:/i)).toBeNull();
+    expect(queryByText(/Unknown-action trajectory stability:/i)).toBeNull();
     expect(queryByText(/Last unknown reminder action observed at:/i)).toBeNull();
     expect(queryByText(/Last unknown action source:/i)).toBeNull();
   });
@@ -293,6 +295,7 @@ test('notification area marks startup snapshot as unknown-action source when pre
   await findByText(/confidence is preliminary until at least 3 unknown events/i);
   await findByText(/Unknown-action observability quality: low/i);
   await findByText(/Unknown-action source trajectory this session: startup snapshot to startup snapshot\./i);
+  await findByText(/Unknown-action trajectory stability: stable\./i);
   await findByText(/Unknown-action stability status: low drift/i);
   await findByText(/mostly startup snapshot responses/i);
 });
@@ -388,6 +391,7 @@ test('notification area shows high observability quality when unknown sample siz
   await findByText(/Unknown-action observability quality: high/i);
   await findByText(/Unknown-action recommended next check: trend signal is stable enough for runtime comparison checks\./i);
   await findByText(/Unknown-action source trajectory this session: live listener to live listener\./i);
+  await findByText(/Unknown-action trajectory stability: stable\./i);
   await waitFor(() => {
     expect(queryByText(/confidence is preliminary until at least 3 unknown events/i)).toBeNull();
   });
