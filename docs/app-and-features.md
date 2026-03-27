@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.63 documentation sync
+
+- **RN notifications OS semantics (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now sets iOS reminder action categories when supported (alongside Android channels), and `apps/rn-app/src/screens/SettingsScreen.tsx` now reports iOS/channel+category delivery semantics in reminder status text.
+
 ### v1.45.62 documentation sync
 
 - **RN notifications delivery semantics (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now configures Android reminder channels when supported and returns structured schedule/delivery results, and `apps/rn-app/src/screens/SettingsScreen.tsx` now shows delivery semantics status text for scheduled reminders.

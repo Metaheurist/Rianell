@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.62** - Notifications channel/delivery semantics increment.
+**Latest: v1.45.63** - Notifications category/channel semantics expansion.
+
+### v1.45.63 - 2026-03-27 - Notifications OS semantics expansion
+
+- **RN notifications (Phase E):** daily reminder scheduling now configures iOS notification category actions when available, in addition to Android channels.
+- **Delivery diagnostics:** schedule results now report richer runtime semantics (`scheduled-ios-category`, `scheduled-channel-and-category`) and Settings displays matching status copy.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.62 - 2026-03-27 - Notifications delivery semantics pass
 
