@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -31,7 +32,30 @@ export type MainTabParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-type TabBarIconProps = { color: string; size?: number };
+type TabBarIconProps = { focused: boolean; color: string; size?: number };
+
+function TabBarIonicons({
+  name,
+  focused,
+  size,
+  accent,
+  inactive,
+}: {
+  name: React.ComponentProps<typeof Ionicons>['name'];
+  focused: boolean;
+  size?: number;
+  accent: string;
+  inactive: string;
+}) {
+  return (
+    <Ionicons
+      name={name}
+      size={size ?? 24}
+      color={focused ? accent : inactive}
+      allowFontScaling={false}
+    />
+  );
+}
 
 export function shouldShowAiTab(prefs: Preferences) {
   return prefs.aiEnabled !== false;
@@ -165,25 +189,31 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
     theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
       ? '#ffffff'
       : theme.tokens.color.background;
+  const accent = theme.tokens.color.accent;
+  const inactiveLabel =
+    theme.mode === 'dark' ? 'rgba(232, 238, 236, 0.78)' : 'rgba(0, 0, 0, 0.55)';
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarIconStyle: Platform.OS === 'android' ? { marginTop: 2 } : undefined,
         tabBarStyle: {
           backgroundColor: tabBg,
           paddingTop: 4,
         },
-        tabBarActiveTintColor: theme.tokens.color.accent,
-        tabBarInactiveTintColor: theme.tokens.color.text,
+        tabBarActiveTintColor: accent,
+        tabBarInactiveTintColor: inactiveLabel,
       }}
     >
       <Tab.Screen
         name="Home"
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color, size }: TabBarIconProps) => <Ionicons name="home-outline" size={size ?? 24} color={color} />,
+          tabBarIcon: ({ focused, size }: TabBarIconProps) => (
+            <TabBarIonicons name="home-outline" focused={focused} size={size} accent={accent} inactive={inactiveLabel} />
+          ),
         }}
       >
         {() => <HomeScreen prefs={prefs} />}
@@ -193,14 +223,18 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
         component={LogsScreenRoute}
         options={{
           tabBarLabel: 'Logs',
-          tabBarIcon: ({ color, size }: TabBarIconProps) => <Ionicons name="list-outline" size={size ?? 24} color={color} />,
+          tabBarIcon: ({ focused, size }: TabBarIconProps) => (
+            <TabBarIonicons name="list-outline" focused={focused} size={size} accent={accent} inactive={inactiveLabel} />
+          ),
         }}
       />
       <Tab.Screen
         name="Charts"
         options={{
           tabBarLabel: 'Charts',
-          tabBarIcon: ({ color, size }: TabBarIconProps) => <Ionicons name="bar-chart-outline" size={size ?? 24} color={color} />,
+          tabBarIcon: ({ focused, size }: TabBarIconProps) => (
+            <TabBarIonicons name="bar-chart-outline" focused={focused} size={size} accent={accent} inactive={inactiveLabel} />
+          ),
         }}
       >
         {() => <ChartsScreen prefs={prefs} />}
@@ -210,7 +244,9 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
           name="AI Analysis"
           options={{
             tabBarLabel: 'AI',
-            tabBarIcon: ({ color, size }: TabBarIconProps) => <Ionicons name="sparkles-outline" size={size ?? 24} color={color} />,
+            tabBarIcon: ({ focused, size }: TabBarIconProps) => (
+              <TabBarIonicons name="sparkles-outline" focused={focused} size={size} accent={accent} inactive={inactiveLabel} />
+            ),
           }}
         >
           {() => <AiScreen prefs={prefs} />}
@@ -220,7 +256,9 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
         name="Settings"
         options={{
           tabBarLabel: 'Settings',
-          tabBarIcon: ({ color, size }: TabBarIconProps) => <Ionicons name="settings-outline" size={size ?? 24} color={color} />,
+          tabBarIcon: ({ focused, size }: TabBarIconProps) => (
+            <TabBarIonicons name="settings-outline" focused={focused} size={size} accent={accent} inactive={inactiveLabel} />
+          ),
         }}
       >
         {() => <SettingsScreen prefs={prefs} onChangePrefs={onChangePrefs} />}
