@@ -163,13 +163,19 @@ export function summarizeLogsForAi(logs: LogEntry[], range: AiRange): AiSummary 
     moodFatiguePairs.map((p) => p.y)
   );
   if (cMoodSleep != null && Math.abs(cMoodSleep) >= 0.35) {
-    correlations.push(`Mood vs sleep: ${cMoodSleep > 0 ? 'positive' : 'negative'} link (${cMoodSleep.toFixed(2)}).`);
+    const strength = Math.abs(cMoodSleep) > 0.7 ? 'strongly' : Math.abs(cMoodSleep) > 0.5 ? 'usually' : 'sometimes';
+    const direction = cMoodSleep > 0 ? 'goes up when' : 'goes down when';
+    correlations.push(`Mood ${strength} ${direction} sleep (${cMoodSleep.toFixed(2)}).`);
   }
   if (cSleepFatigue != null && Math.abs(cSleepFatigue) >= 0.35) {
-    correlations.push(`Sleep vs fatigue: ${cSleepFatigue > 0 ? 'positive' : 'negative'} link (${cSleepFatigue.toFixed(2)}).`);
+    const strength = Math.abs(cSleepFatigue) > 0.7 ? 'strongly' : Math.abs(cSleepFatigue) > 0.5 ? 'usually' : 'sometimes';
+    const direction = cSleepFatigue > 0 ? 'goes up when' : 'goes down when';
+    correlations.push(`Sleep ${strength} ${direction} fatigue (${cSleepFatigue.toFixed(2)}).`);
   }
   if (cMoodFatigue != null && Math.abs(cMoodFatigue) >= 0.35) {
-    correlations.push(`Mood vs fatigue: ${cMoodFatigue > 0 ? 'positive' : 'negative'} link (${cMoodFatigue.toFixed(2)}).`);
+    const strength = Math.abs(cMoodFatigue) > 0.7 ? 'strongly' : Math.abs(cMoodFatigue) > 0.5 ? 'usually' : 'sometimes';
+    const direction = cMoodFatigue > 0 ? 'goes up when' : 'goes down when';
+    correlations.push(`Mood ${strength} ${direction} fatigue (${cMoodFatigue.toFixed(2)}).`);
   }
   if (!correlations.length) correlations.push('No strong metric correlations detected in this range yet.');
 
@@ -196,7 +202,7 @@ export function summarizeLogsForAi(logs: LogEntry[], range: AiRange): AiSummary 
     );
   }
   if (!groupsThatChangeTogether.length) {
-    groupsThatChangeTogether.push('Not enough linked movement to form a strong group yet.');
+    groupsThatChangeTogether.push('Not enough linked movement yet to form a clear group.');
   }
 
   let matchingSignals = 0;

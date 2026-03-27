@@ -74,6 +74,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **React Native:** AI analysis now derives summaries from memoized log/range state and runs summary-note generation in a dedicated effect path, reducing recomputation churn and aligning with ongoing performance-parity hardening.
 
+### v1.45.58 parity note (AI section-body tone alignment)
+
+- **React Native:** AI analysis section helper copy now better mirrors web intent for findings/trends/flare/correlations/groups, and correlation output wording now uses directional-strength phrasing for clearer parity with web summaries.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.

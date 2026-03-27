@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.57** - AI screen memoization/perf hardening increment.
+**Latest: v1.45.58** - AI section/body copy and feature-depth wording alignment increment.
+
+### v1.45.58 - 2026-03-27 - AI feature-depth copy alignment pass
+
+- **RN AI parity (Phase C):** updated `AiScreen` section helper copy to align more closely with web panel tone for findings, trends, flare-up, correlations, and grouped movement blocks.
+- **Analysis wording depth:** updated correlation phrasing in `analyzeLogs.ts` to web-like directional strength language (e.g. "strongly/usually/sometimes goes up/down when"), and tightened grouped-movement fallback copy.
+- **Validation:** `npm run test:mobile -- AiScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.57 - 2026-03-27 - AI screen summary memoization and refresh isolation
 
