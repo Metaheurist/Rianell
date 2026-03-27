@@ -547,6 +547,11 @@ export function SettingsScreen({
                   Unknown-action dominant source confidence: {unknownDominantSourceConfidence}.
                 </Text>
               ) : null}
+              {unknownReminderActionCount > 0 && unknownReminderActionCount < 3 ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown-action confidence is preliminary until at least 3 unknown events are observed this session.
+                </Text>
+              ) : null}
               {unknownReminderActionCount > 0 ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   Unknown-action stability status:{' '}

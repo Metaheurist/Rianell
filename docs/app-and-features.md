@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.94 documentation sync
+
+- **RN unknown-action diagnostics sampling guard (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now labels dominant-source confidence as preliminary until at least three unknown reminder actions are observed in-session.
+
 ### v1.45.93 documentation sync
 
 - **RN unknown-action diagnostics confidence (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now surfaces dominant-source confidence (`weak`/`medium`/`strong`, or balanced) for startup-vs-live unknown reminder-action distribution.
