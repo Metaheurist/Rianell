@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.58** - AI section/body copy and feature-depth wording alignment increment.
+**Latest: v1.45.59** - RN notification scheduling baseline wiring in Settings.
+
+### v1.45.59 - 2026-03-27 - Notifications scheduling parity increment
+
+- **RN notifications (Phase E):** `SettingsScreen` now attempts to schedule/cancel a daily local reminder when notification permission is granted and reminder preferences change (enable, HH:MM time, sound).
+- **Runtime-safe implementation:** `permissions.ts` now probes optional `expo-notifications` dynamically and falls back gracefully when unavailable.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.58 - 2026-03-27 - AI feature-depth copy alignment pass
 

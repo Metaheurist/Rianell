@@ -21,6 +21,13 @@ jest.mock('../performance/benchmark', () => ({
   clearCachedBenchmark: jest.fn(async () => {}),
   resolveLlmModelSize: jest.fn(() => 'tier3'),
 }));
+jest.mock('../permissions/permissions', () => ({
+  Permissions: {
+    getStatus: jest.fn(async () => 'denied'),
+    request: jest.fn(async () => 'granted'),
+    scheduleDailyReminder: jest.fn(async () => true),
+  },
+}));
 
 test('settings carousel: cloud pane, then AI, accessibility, data panes', () => {
   const prefs = getDefaultPreferences();
@@ -33,6 +40,9 @@ test('settings carousel: cloud pane, then AI, accessibility, data panes', () => 
   getByText('1 / 4 — Personal & cloud');
   getByText('Personal & cloud sync');
   getByText('Demo mode');
+  getByText('Notifications');
+  getByText('Enable daily reminder');
+  getByText('Reminder sound');
   getByText(/Cloud sync is not configured/);
 
   fireEvent.press(getByTestId('settings-pane-tab-1'));
@@ -40,6 +50,8 @@ test('settings carousel: cloud pane, then AI, accessibility, data panes', () => 
   getByText('Enable AI features & Goals');
   getByText('Performance');
   getByText('On-device AI model');
+  getByText('Goals & targets');
+  getByText('Mood target (0-10)');
 
   fireEvent.press(getByTestId('settings-pane-tab-2'));
   getByText('3 / 4 — Accessibility');
@@ -52,6 +64,49 @@ test('settings carousel: cloud pane, then AI, accessibility, data panes', () => 
   getByText('Data management');
   getByText('📤 Export logs (JSON)');
   getByText('📥 Import logs (JSON)');
+});
+
+test('goals target inputs trigger preference updates', () => {
+  const prefs = getDefaultPreferences();
+  const onChangePrefs = jest.fn();
+  const { getByLabelText, getByTestId } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={onChangePrefs} />
+    </ThemeProvider>
+  );
+
+  fireEvent.press(getByTestId('settings-pane-tab-1'));
+  fireEvent.changeText(getByLabelText('Mood target value'), '8');
+  expect(onChangePrefs).toHaveBeenCalled();
+});
+
+test('notification permission request action is wired', async () => {
+  const prefs = getDefaultPreferences();
+  const { getByLabelText, findByText } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+    </ThemeProvider>
+  );
+
+  await findByText(/Notification permission: denied/i);
+  fireEvent.press(getByLabelText('Request notification permission'));
+});
+
+test('notification scheduling status is shown when permission granted', async () => {
+  const { Permissions } = require('../permissions/permissions');
+  Permissions.getStatus.mockResolvedValue('granted');
+
+  const prefs = getDefaultPreferences();
+  prefs.notifications.enabled = true;
+  prefs.notifications.dailyReminderTime = '08:30';
+
+  const { findByText } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+    </ThemeProvider>
+  );
+
+  await findByText(/Daily reminder scheduled at 08:30/i);
 });
 
 test('textScale affects rendered typography sizes', () => {

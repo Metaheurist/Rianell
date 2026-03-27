@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.59 documentation sync
+
+- **RN notifications (Phase E path):** `apps/rn-app/src/screens/SettingsScreen.tsx` now wires reminder preferences to daily notification scheduling attempts when permission is granted, with runtime-safe fallback behavior in `apps/rn-app/src/permissions/permissions.ts`.
+
 ### v1.45.58 documentation sync
 
 - **RN AI analysis (Phase C depth):** `apps/rn-app/src/screens/AiScreen.tsx` now includes richer web-aligned helper copy across findings/trends/flare/correlation/group sections, and `apps/rn-app/src/ai/analyzeLogs.ts` now reports correlation direction/strength using clearer web-style phrasing.
