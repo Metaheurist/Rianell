@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.38** - RN demo mode parity toggle.
+**Latest: v1.45.39** - RN AIEngine + LLM parity baseline.
+
+### v1.45.39 - 2026-03-27 - RN AIEngine + LLM parity baseline
+
+- **RN AIEngine parity scaffold:** added `src/ai/engine.ts` with web-aligned helper surface for deterministic predictions and note generation (`predictFutureValues`, `suggestLogNote`, `generateAnalysisNote`).
+- **RN LLM feature wiring:** added `src/ai/llm.ts` with model-tier resolution (`preferredLlmModelSize` + benchmark), optional remote endpoint support (`EXPO_PUBLIC_LLM_ENDPOINT` / `LLM_ENDPOINT`), cache/timeout handling, and fallback for **summary note**, **suggest note**, and **MOTD**.
+- **UI parity increment:** `AiScreen` now renders a generated **Summary note**; Home card now shows MOTD from LLM wrapper (fallback-safe) while preserving existing deterministic analysis blocks.
+- **Tests/config/docs:** added `engine.test.ts` and `llm.test.ts`, updated screen tests for AI/Home integration, and extended RN env/app config extras for LLM endpoint plumbing.
 
 ### v1.45.38 - 2026-03-27 - RN demo mode parity toggle
 
