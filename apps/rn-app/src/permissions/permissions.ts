@@ -22,6 +22,13 @@ export type DailyReminderResult = {
 };
 
 export type ReminderAction = 'log-now' | 'later' | 'default' | 'unknown' | 'none';
+export type ReminderCapabilities = {
+  hasScheduling: boolean;
+  hasAndroidChannel: boolean;
+  hasIosCategory: boolean;
+  hasResponseListener: boolean;
+  hasSnooze: boolean;
+};
 
 const NOTIFICATION_REMINDER_ID = 'rianell-daily-reminder';
 const NOTIFICATION_SNOOZE_ID = 'rianell-reminder-snooze';
@@ -214,6 +221,16 @@ export const Permissions = {
     } catch {
       return false;
     }
+  },
+  async getReminderCapabilities(): Promise<ReminderCapabilities> {
+    const Notifications = await loadExpoNotifications();
+    return {
+      hasScheduling: !!Notifications?.scheduleNotificationAsync,
+      hasAndroidChannel: !!(Notifications?.setNotificationChannelAsync && Notifications?.AndroidImportance),
+      hasIosCategory: !!Notifications?.setNotificationCategoryAsync,
+      hasResponseListener: !!Notifications?.addNotificationResponseReceivedListener,
+      hasSnooze: !!Notifications?.scheduleNotificationAsync,
+    };
   },
 };
 

@@ -126,6 +126,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **React Native:** when runtime snooze scheduling is unavailable/fails, `later` actions now fall back to app-home open behavior, reducing dead-end interaction risk.
 
+### v1.45.71 parity note (notification runtime capability visibility)
+
+- **React Native:** Settings now surfaces runtime capability support for scheduling/channel/category/action handling, making platform behavior differences explicit for parity validation.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.

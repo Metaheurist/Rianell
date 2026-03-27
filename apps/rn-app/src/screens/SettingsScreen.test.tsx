@@ -28,6 +28,13 @@ jest.mock('../permissions/permissions', () => ({
     scheduleDailyReminder: jest.fn(async () => ({ ok: true, delivery: 'scheduled-basic' })),
     getLastReminderAction: jest.fn(async () => 'none'),
     subscribeReminderActions: jest.fn(async () => () => {}),
+    getReminderCapabilities: jest.fn(async () => ({
+      hasScheduling: true,
+      hasAndroidChannel: false,
+      hasIosCategory: false,
+      hasResponseListener: true,
+      hasSnooze: true,
+    })),
   },
 }));
 
@@ -47,6 +54,7 @@ test('settings carousel: cloud pane, then AI, accessibility, data panes', () => 
   getByText('Reminder sound');
   getByText('Snooze minutes (later action)');
   getByText(/Later action snoozes for/i);
+  getByText(/Runtime support: schedule yes/i);
   getByText(/Cloud sync is not configured/);
 
   fireEvent.press(getByTestId('settings-pane-tab-1'));

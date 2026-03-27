@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.71 documentation sync
+
+- **RN notification runtime matrix (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now reports reminder capability support and `apps/rn-app/src/screens/SettingsScreen.tsx` shows a runtime capability line for schedule/channel/category/action support.
+
 ### v1.45.70 documentation sync
 
 - **RN notifications fallback UX (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now routes to Home when `later` snooze scheduling fails at runtime, and `apps/rn-app/src/screens/SettingsScreen.tsx` now explains this fallback in notification help text.
