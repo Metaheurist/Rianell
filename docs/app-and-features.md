@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.89 documentation sync
+
+- **RN unknown-action diagnostics breakdown (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows startup-vs-live unknown-action counts, making source-pattern drift easier to read at a glance.
+
 ### v1.45.88 documentation sync
 
 - **RN unknown-action diagnostics source context (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows whether the latest unknown reminder action came from startup snapshot state or the live listener path.

@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.88** - Unknown-action source context.
+**Latest: v1.45.89** - Unknown-action source breakdown counts.
+
+### v1.45.89 - 2026-03-27 - Unknown-action source breakdown counts
+
+- **RN notifications (Phase E):** Settings now breaks unknown reminder action observations into source-specific counts (`startup` vs `live`) in addition to total count and last-seen/source context.
+- **Diagnostics depth:** unknown-action diagnostics now include total count, startup/live split, last-seen time, latest source, likely-cause hint (when relevant), and reset control.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx permissions.test.ts RootNavigator.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.88 - 2026-03-27 - Unknown-action source context
 
