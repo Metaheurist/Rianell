@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.51 documentation sync
+
+- **CI unit-tests workflow reliability:** root/workspace package manifest alignment was synced so CI root `npm ci` resolves the RN workspace graph without lock mismatch (`mobile` / `rianell-shell` missing-entry failures).
+
 ### v1.45.50 documentation sync
 
 - **CI reliability / security audit gate:** root workspace lockfile was resynced so `npm ci --omit=dev` and production-only `npm audit --audit-level=high --omit=dev` run cleanly in the security-audit workflow path.
