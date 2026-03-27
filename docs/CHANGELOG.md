@@ -2,7 +2,61 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.29** - RN View Logs Phase G (range/sort/refresh) + docs sync.
+**Latest: v1.45.38** - RN demo mode parity toggle.
+
+### v1.45.38 - 2026-03-27 - RN demo mode parity toggle
+
+- **RN demo mode:** added Settings toggle that ports demo-mode behavior intent from web/Capacitor by loading a rebased premade sample history, refreshing demo logs on app launch, and restoring backed-up user logs when disabled.
+- **RN data safeguards:** import/export actions are blocked while demo mode is active (demo data is treated as disposable showcase data).
+- **Tests/docs:** added `src/demo/demoMode.test.ts`, extended preferences/settings tests, and updated parity plan notes for demo-mode progress.
+
+### v1.45.37 - 2026-03-27 - RN removes in-app install/download buttons
+
+- **RN Settings scope:** removed in-app **Install & downloads** buttons from `SettingsScreen` (native app is already installed; install UX stays on web/PWA surfaces).
+- **Tests/docs:** updated Settings screen tests and next-phase plan language to reflect Data-only pane and product scope decision.
+
+### v1.45.36 - 2026-03-27 - RN benchmark tiers + model selection settings parity
+
+- **RN performance benchmark:** added `src/performance/benchmark.ts` with cached local benchmark result, tier classification (1-5), device class, and recommended model tier.
+- **RN settings parity:** `SettingsScreen` now includes a **Performance** section with on-device model selection (`recommended`/`tier1..tier5`), benchmark run button, and cache-clear action.
+- **Preferences parity plumbing:** added `performance.preferredLlmModelSize` to RN preferences persistence and defaults.
+- **Tests/docs:** added `benchmark.test.ts` and updated parity plan notes in `docs/next-phase-development-plan.md`.
+
+### v1.45.35 - 2026-03-27 - RN boot loading screen parity scaffold
+
+- **RN loading screen:** added `apps/rn-app/src/components/BootLoadingScreen.tsx` and wired it in `App.tsx` while preferences load, replacing the blank boot view.
+- **Parity intent:** loader uses tokenized colors plus animated orbit/sun drawn objects to mirror web/Capacitor loading motif; marked as in-progress for exact burst/flood transition and reduced-motion parity.
+- **Plan docs:** updated `docs/next-phase-development-plan.md` to explicitly track loading-screen parity work under motion/animation and Phase E backlog.
+
+### v1.45.34 - 2026-03-27 - Expo bundle workflow path/autolinking fix
+
+- **CI / expo-bundle-prod:** run Expo export directly from `apps/rn-app` (not legacy `apps/mobile`) and verify `expo-modules-autolinking` presence to avoid `Cannot find module 'expo-modules-autolinking/exports'` regressions.
+- **RN dependency:** `apps/rn-app/package.json` now includes `expo-modules-autolinking` explicitly.
+- **Guards:** added `tests/unit/package-scripts-mobile-path.test.mjs` and extended `tests/unit/workflows-ci-rncli.test.mjs` to lock path + export command expectations.
+
+### v1.45.33 - 2026-03-27 - RN modal parity: bug report + logs detail modal
+
+- **Home modal parity:** added in-app RN **Bug report modal** with submit + fallback to SECURITY doc on failure.
+- **View Logs modal parity track:** added RN **entry detail modal** with share/delete actions from each row, plus text-filter/range/sort baseline already landed.
+- **Plan/docs:** updated `docs/next-phase-development-plan.md` with modal parity progress and remaining gaps (edit flow parity, remaining web-only modal surfaces).
+
+### v1.45.32 - 2026-03-27 - RN bug report modal parity + plan updates
+
+- **Modal parity (Home):** replaced the RN `SECURITY.md` shortcut with an in-app **Bug report modal** (title/description/steps/expected/actual), including submit-to-endpoint flow and fallback action to open security docs if submission fails.
+- **Tests:** extended `HomeScreen.test.tsx` to verify bug modal open + submit path.
+- **Plan/docs:** updated `docs/next-phase-development-plan.md` to mark bug-report modal parity as landed and keep remaining modal backlog explicit.
+
+### v1.45.31 - 2026-03-27 - RN View Logs text filter + Supabase source parity
+
+- **Mobile / View Logs (Phase G):** added text filter on `LogsScreen` (notes/symptoms/stressors/date/flare match), with updated count semantics and focused Jest coverage.
+- **Supabase env parity:** RN now resolves Supabase credentials from the same shared names used by web/Capacitor (`SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY`, legacy `SUPABASE_ANON_KEY`) while keeping `EXPO_PUBLIC_SUPABASE_*` support.
+- **CI + docs/tests:** RN bundle/prebuild workflow env updated to use shared Supabase secrets; docs updated (`next-phase-development-plan.md`, `setup-and-usage.md`, `.env.example`, `README.md`) and unit tests extended for config/workflow guards.
+
+### v1.45.30 - 2026-03-27 - RN Supabase env/source parity with web/Capacitor
+
+- **RN config plumbing:** `apps/rn-app/app.config.js` now resolves Supabase credentials from both Expo-specific vars (`EXPO_PUBLIC_SUPABASE_*`) and shared vars used by web/Capacitor (`SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY`, legacy `SUPABASE_ANON_KEY`).
+- **CI:** RN bundle and RN CLI prebuild jobs in `.github/workflows/ci.yml` now pass the same `SUPABASE_*` secrets already used by Pages/Capacitor config injection.
+- **Docs/tests:** updated `apps/rn-app/.env.example`, `SettingsCloudPane` hint/tests, `tests/unit/mobile-expo-config.test.mjs`, and Supabase notes in `docs/next-phase-development-plan.md` + `docs/setup-and-usage.md`.
 
 ### v1.45.29 - 2026-03-27 - RN View Logs Phase G + docs sync
 

@@ -3,11 +3,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const KEY = 'rianell.preferences.v1';
 
 export type AppearanceMode = 'system' | 'light' | 'dark';
+export type PreferredLlmModelSize = 'recommended' | 'tier1' | 'tier2' | 'tier3' | 'tier4' | 'tier5';
 
 export type Preferences = {
   team: string;
   appearanceMode: AppearanceMode;
   aiEnabled: boolean;
+  demoMode: boolean;
+  performance: {
+    preferredLlmModelSize: PreferredLlmModelSize;
+  };
   accessibility: {
     textScale: number;
     largeTextEnabled: boolean;
@@ -22,6 +27,10 @@ export function getDefaultPreferences(): Preferences {
     team: 'mint',
     appearanceMode: 'system',
     aiEnabled: true,
+    demoMode: false,
+    performance: {
+      preferredLlmModelSize: 'recommended',
+    },
     accessibility: {
       textScale: 1,
       largeTextEnabled: false,
@@ -48,6 +57,18 @@ export async function loadPreferences(): Promise<Preferences> {
       team: typeof parsed.team === 'string' ? parsed.team : d.team,
       appearanceMode,
       aiEnabled: parsed.aiEnabled !== false,
+      demoMode: parsed.demoMode === true,
+      performance: {
+        preferredLlmModelSize:
+          parsed.performance?.preferredLlmModelSize === 'tier1' ||
+          parsed.performance?.preferredLlmModelSize === 'tier2' ||
+          parsed.performance?.preferredLlmModelSize === 'tier3' ||
+          parsed.performance?.preferredLlmModelSize === 'tier4' ||
+          parsed.performance?.preferredLlmModelSize === 'tier5' ||
+          parsed.performance?.preferredLlmModelSize === 'recommended'
+            ? parsed.performance.preferredLlmModelSize
+            : d.performance.preferredLlmModelSize,
+      },
       accessibility: {
         textScale,
         largeTextEnabled: parsed.accessibility?.largeTextEnabled === true,

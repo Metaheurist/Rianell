@@ -2,7 +2,7 @@
 
 This document is the **single build plan** to finish Rianell’s transition to a **React Native CLI** app that matches the **web/PWA** and produces **Android APK** + **iOS emulator Xcode zip** via CI releases.
 
-**Last updated:** 2026-03-27 — **Phase G (View Logs):** RN **`LogsScreen`** has **date-range presets** (Today / 7 / 30 / 90 / All), **newest/oldest sort**, **pull-to-refresh**, entry count line, **`logsViewHelpers`** + Jest tests; **open:** text filter, per-entry cards, edit/delete/share, list perf. **CI:** RN Android APK collect paths (§6).
+**Last updated:** 2026-03-27 — **Phase G (View Logs):** RN **`LogsScreen`** has **date-range presets** (Today / 7 / 30 / 90 / All), **newest/oldest sort**, **pull-to-refresh**, **text filter**, entry count line, and **entry detail modal** with share/delete actions + Jest tests; **open:** full edit flow parity and list perf. **Modal parity:** RN Home now includes an in-app **Bug report modal** (submit flow) instead of docs-link fallback; other web-only modals are tracked in §4.5/Phase E. **Supabase parity:** RN now accepts the same **`SUPABASE_*`** source names used by web/Capacitor (plus `EXPO_PUBLIC_*` fallback). **Settings scope:** RN removed in-app install/download buttons; install UX remains web/PWA-facing. **Demo parity:** RN now includes a Demo mode toggle that loads web-style sample logs, refreshes them on launch, and restores user logs when disabled. **CI fix:** `expo-bundle-prod` exports from `apps/rn-app` and checks `expo-modules-autolinking` to prevent old `apps/mobile` path + missing autolinking regressions (§6).
 
 ---
 
@@ -23,9 +23,9 @@ This document is the **single build plan** to finish Rianell’s transition to a
 
 These are treated as “already implemented” and should not be re-planned here:
 - **Repo layout:** **`apps/pwa-webapp/`** = static PWA (parity reference for HTML/CSS/JS); **`apps/rn-app/`** = React Native (Expo) CLI app; **`apps/capacitor-app/`** = legacy Vite + Capacitor shell (WebView). Root **`package.json`** workspaces: **`apps/*`**, **`packages/*`**.
-- `apps/rn-app` exists with navigation + settings shell + AsyncStorage-backed logs; **Settings** includes **Data management** (JSON export/import with merge/replace) and **Install & downloads** (same public `latest.json` resolution as web, opens artifact URL in the system browser).
+- `apps/rn-app` exists with navigation + settings shell + AsyncStorage-backed logs; **Settings** includes **Data management** (JSON export/import with merge/replace). Native install/download buttons are intentionally omitted in RN builds (install UX remains web/PWA-facing).
 - CI can generate **RN CLI** native artifacts (Android debug APK + iOS Xcode project zip) and attach them to GitHub Releases. **`rn-build-version`** bumps a **sequential RN-only build number** (1, 2, 3…) stored in `App build/RNCLI-Android/latest.json`; **`rncli-android-apk`** / **`rncli-ios-zip`** use that for `latest.json` and iOS zip filenames (not `GITHUB_RUN_NUMBER`).
-- **Cloud login (Supabase):** **`apps/rn-app/app.config.js`** merges `app.json` with **`extra.supabaseUrl` / `extra.supabaseAnonKey`** from **`EXPO_PUBLIC_SUPABASE_*`** at build time. **`getSupabaseClient()`** (`src/cloud/supabaseClient.ts`) returns `null` when unset; **`SettingsCloudPane`** wires sign-in / sign-up / sign-out (parity with web `cloud-sync.js`). Local template: **`apps/rn-app/.env.example`**.
+- **Cloud login (Supabase):** **`apps/rn-app/app.config.js`** merges `app.json` with **`extra.supabaseUrl` / `extra.supabaseAnonKey`** from env at build time. RN accepts **`EXPO_PUBLIC_SUPABASE_*`** and also the same secret names as web/Capacitor (**`SUPABASE_URL`** + **`SUPABASE_PUBLISHABLE_KEY`** / legacy **`SUPABASE_ANON_KEY`**) so CI and local sources stay aligned. **`getSupabaseClient()`** (`src/cloud/supabaseClient.ts`) returns `null` when unset; **`SettingsCloudPane`** wires sign-in / sign-up / sign-out (parity with web `cloud-sync.js`). Local template: **`apps/rn-app/.env.example`**.
 - **Android Gradle (`expo prebuild`):** `@react-native-async-storage/async-storage` **v3** resolves `org.asyncstorage.shared_storage:storage-android` from a **local Maven repo** shipped under `node_modules/.../android/local_repo`. **`apps/rn-app/plugins/withAsyncStorageLocalRepo.js`** injects that `maven { url … }` into the generated root `android/build.gradle` (see `app.json` → `plugins`).
 - **README** (`scripts/update-readme-build-info.mjs`) lists **CI builds** (Alpha RN Android + RN iOS, Server, Web) and a **Legacy builds** table for frozen **Capacitor** metadata: `App build/Android/` (APK) and **`App build/Legacy/Capacitor-iOS/`** (last Capacitor iOS manifest). RN iOS artifacts live under **`App build/iOS/`** (same `latest.json` shape the app resolves).
 - Web settings already exposes app installation/download links driven by `latest.json` in each `App build/…/` folder (see **`apps/pwa-webapp/app.js`** `refreshBuildDownloadLinks`).
@@ -76,7 +76,7 @@ If any of the above becomes false, fix it before moving forward.
 
 **Motion & animation**
 - **Web:** CSS transitions, Apex chart animations, wizard **`<dialog>`** sheet motion, loading overlays, reduced-motion hooks across many paths.
-- **RN:** mostly **static** transitions; Charts are **spark/list**-first without Apex. **Open:** `LayoutAnimation` / **Reanimated** for wizard sheets & tab changes; chart library animations in Phase B; respect **system reduce-motion** where we add motion.
+- **RN:** mostly **static** transitions; Charts are **spark/list**-first without Apex. **In progress:** loading screen parity track — RN boot loader now uses tokenized orbit/sun drawn objects and animated orbit/pulse/wobble motif. **Open:** exact web burst/flood transitions and reduced-motion parity; `LayoutAnimation` / **Reanimated** for wizard sheets & tab changes; chart library animations in Phase B.
 
 **Charts**
 - **Web:** Apex **line / radar / combined** charts, prediction overlays, rich tooltips.
@@ -84,7 +84,7 @@ If any of the above becomes false, fix it before moving forward.
 
 **AI & on-device intelligence**
 - **Web:** **Transformers.js** / summary LLM, chart **predictions**, dashboard **MOTD** from LLM, rich AI Analysis pipeline.
-- **RN:** **`summarizeLogsForAi`** + **`AiScreen`** — **deterministic / heuristic** sections only; **no** browser model, **no** chart prediction engine. Tab hidden when **`aiEnabled === false`** (`shouldShowAiTab`).
+- **RN:** **`summarizeLogsForAi`** + **`AiScreen`** — **deterministic / heuristic** sections only; **no** browser model, **no** chart prediction engine. **In progress parity:** performance benchmark tiers + on-device model tier selection UI in Settings (recommended vs tier1..tier5), cached benchmark result for recommendation parity intent. Tab hidden when **`aiEnabled === false`** (`shouldShowAiTab`).
 
 **Voice & speech**
 - **Web:** **SpeechRecognition** / voice-in-flow where wired in `app.js`.
@@ -96,7 +96,7 @@ If any of the above becomes false, fix it before moving forward.
 
 **Logs tab (`View Logs`)**
 - **Web:** Date range, sort, filter, **per-entry cards** with edit / delete / share, intersection-observer windowing for large histories.
-- **RN:** **`LogsScreen`** — **range presets** + **sort** + **refresh** + count (“Showing *n* of *m*”); dev-only sample entry. **Still missing vs web:** text filter, **per-entry cards**, edit/delete/share, performance for very large histories.
+- **RN:** **`LogsScreen`** — **range presets** + **sort** + **refresh** + **text filter** + count (“Showing *n* of *m*”); dev-only sample entry; **entry detail modal** with share/delete baseline. **Still missing vs web:** full edit flow parity and performance for very large histories.
 
 **Data export**
 - **Web:** JSON + **CSV** + print-oriented views.
@@ -114,7 +114,7 @@ If any of the above becomes false, fix it before moving forward.
 
 - [~] **Charts (Phase B)** — lite: range/view, sparks, deltas, `CHART_METRIC_HEX`, targets snapshot; **open:** Apex-class visuals, predictions, animations (§5 Phase B).
 - [~] **AI Analysis (Phase C)** — lite: `AiScreen` + `analyzeLogs.ts`; **open:** web section order/copy, correlations / flare callouts, `aiEnabled` empty states (§5 Phase C).
-- [~] **View Logs** — **in progress** (§4.2 / §5 Phase G): range + sort + refresh **done**; **open:** filter, cards, edit/delete/share, virtualization.
+- [~] **View Logs** — **in progress** (§4.2 / §5 Phase G): range + sort + refresh + text filter + detail modal/share-delete baseline **done**; **open:** full edit parity, richer cards, virtualization.
 
 ### 4.4 Log wizard (native)
 
@@ -127,7 +127,8 @@ If any of the above becomes false, fix it before moving forward.
 - [~] **Home** — FAB + header chrome + Beta; bug link → **`docs/SECURITY.md`** (modal = Phase E).
 - [x] **Navigation** — Ionicons tabs; `headerShown: false`; AI tab conditional.
 - [~] **Themes** — tokens + `textScale` + colorblind; not full web theme/CSS parity.
-- [~] **Settings** — four panes + cloud; **open:** web parity for remaining sections, bug report, goals, LLM, notifications (`SettingsScreen.tsx`, `SettingsCloudPane`).
+- [~] **Settings** — four panes + cloud; demo mode toggle + demo dataset lifecycle landed. **open:** web parity for remaining sections, goals, LLM, notifications (`SettingsScreen.tsx`, `SettingsCloudPane`).
+- [~] **Settings / Performance parity** — benchmark cache + tier recommendation + model tier picker landed in RN; **open:** detailed benchmark modal graphs, GPU backend telemetry, and full web performance profile JSON.
 
 ---
 
@@ -176,21 +177,24 @@ If any of the above becomes false, fix it before moving forward.
 
 **Done when:** for the same logs + range, the sections and “Important / flare-up / correlations” align closely with web.
 
-### Phase D — Settings: Data management + install links
-**Goal:** JSON portability + same **public** artifact URLs as web Settings.
+### Phase D — Settings: Data management portability
+**Goal:** JSON portability and safe in-app data controls for native.
 
-**Status:** **Met** — merge/replace import, JSON export, **Install & downloads** via `buildDownloads.ts` + `Linking.openURL`. **Still not parity:** CSV/print export, full web Settings section count (see §4.2).
+**Status:** **Met** — merge/replace import and JSON export. **Product scope:** install/download links are web/PWA entry-point UX and are intentionally not shown inside RN builds. **Still not parity:** CSV/print export, full web Settings section count (see §4.2).
 
 ### Phase E — Shell, settings depth, goals, bug report, optional native AI hooks **← parallel with B/C**
 **Goal:** Close gaps listed in **§4.2** (settings sections, goals persistence, bug UX, optional notifications).
 
 **Work items**
 - [x] Home + FAB + tab icons + carousel shell + Home header chrome row.
-- [~] **Bug report** — web modal + API; RN: **SECURITY.md** link until modal + endpoint parity.
+- [x] **Bug report** — in-app RN modal on Home with submit flow (web parity baseline); keep server field parity improvements in backlog.
+- [x] **Demo mode** — toggle in RN Settings; loads premade/rebased demo logs, refreshes demo logs on app launch, restores backup logs when disabled, and blocks import/export while active.
 - [~] **Goals & targets** — full web persistence + UI (beyond Charts snapshot).
 - [~] **LLM / on-device AI** — web uses Transformers.js; RN has **no** equivalent pipeline — gate any future native inference behind same prefs as web.
 - [~] **Notifications** — Capacitor/web paths vs RN (§4.2).
 - [~] **Optional:** haptics, longer tab labels, **expo-font** if brand fonts required.
+- [~] **Modal parity backlog (web-only surfaces):** tutorial / install modal, donate, cookie policy, GDPR agreement, performance benchmark details, and developer/God-mode tools (decide ship vs won’t-do for RN v1).
+- [~] **Loading overlay parity:** RN boot loading screen should match web loader animation language (orbit ring, planet/sun motif, theme token colors, reduced-motion behavior).
 
 **Done when:** §4.2 “Shell — already closer” items are done and remaining bullets are either implemented or explicitly **won’t do** for v1.
 
@@ -209,9 +213,8 @@ If any of the above becomes false, fix it before moving forward.
 **Goal:** `LogsScreen` matches web **View Logs** for **range**, **sort**, **filter**, **entry cards**, **edit / delete / share**, and performant scrolling for large histories.
 
 **Work items**
-- [x] **Range presets** + **sort** + **pull-to-refresh** + filtered/total count; helpers in **`logsViewHelpers.ts`** + **`logsViewHelpers.test.ts`**; screen tests **`LogsScreen.test.tsx`**.
-- [~] **Text filter** (web parity).
-- [~] **Per-entry cards** (expand/collapse or full detail) + **edit / delete / share** actions.
+- [x] **Range presets** + **sort** + **pull-to-refresh** + **text filter** + filtered/total count; helpers in **`logsViewHelpers.ts`** + **`logsViewHelpers.test.ts`**; screen tests **`LogsScreen.test.tsx`**.
+- [~] **Per-entry cards / modal detail** + **edit / delete / share** actions (share/delete baseline landed; edit parity open).
 - [~] **Large lists:** `FlatList` tuning or **FlashList**; avoid redundant reloads (§5 Phase F).
 
 **Done when:** §4.2 Logs row can be checked off for RN.

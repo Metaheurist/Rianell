@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.45.29** - RN View Logs Phase G range/sort/refresh + docs sync; v1.45.28 CI RN Android APK collect path).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.45.38** - RN demo mode parity toggle; v1.45.37 RN removes in-app install/download buttons).
 
 ### Here’s what we plan next
 

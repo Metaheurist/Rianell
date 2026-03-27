@@ -16,6 +16,7 @@ test('getDefaultPreferences matches contract', () => {
   expect(d.team).toBe('mint');
   expect(d.appearanceMode).toBe('system');
   expect(d.aiEnabled).toBe(true);
+  expect(d.demoMode).toBe(false);
   expect(d.accessibility.textScale).toBe(1);
   expect(d.accessibility.largeTextEnabled).toBe(false);
   expect(d.accessibility.colorblindMode).toBe('none');
@@ -31,12 +32,14 @@ test('loadPreferences clamps textScale and preserves aiEnabled default true', as
   mockedAsyncStorage.getItem.mockResolvedValueOnce(
     JSON.stringify({
       team: 'ocean',
+      demoMode: true,
       accessibility: { textScale: 99 },
       aiEnabled: undefined,
     })
   );
   const p = await loadPreferences();
   expect(p.team).toBe('ocean');
+  expect(p.demoMode).toBe(true);
   expect(p.accessibility.textScale).toBe(2);
   expect(p.aiEnabled).toBe(true);
 });
