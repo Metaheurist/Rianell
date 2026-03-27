@@ -16,6 +16,11 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - `sync_behavior`: foreground/interval behavior; no guaranteed OS background sync.
 - `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
 
+### v1.45.91 parity note (unknown-action drift status)
+
+- **React Native:** notification diagnostics now include a session-level drift status (`low`, `moderate`, `high`) derived from unknown reminder-action volume.
+- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+
 ### v1.45.90 parity note (documentation checkpoint)
 
 - **All platforms/docs contract:** parity docs are synchronized on the current RN notification diagnostics baseline and remaining open long-tail parity items.
