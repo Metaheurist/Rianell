@@ -142,6 +142,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **React Native:** reminder action status now uses user-facing labels and includes explicit listener-unavailable messaging, improving parity transparency on runtimes without live action callbacks.
 
+### v1.45.75 parity note (unknown action fallback policy)
+
+- **React Native:** unknown reminder actions now resolve to explicit Home fallback routing and user-facing status guidance, reducing undefined behavior across runtime variants.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.

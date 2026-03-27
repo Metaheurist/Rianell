@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.74** - Reminder action status clarity pass.
+**Latest: v1.45.75** - Unknown action safe-fallback policy.
+
+### v1.45.75 - 2026-03-27 - Unknown reminder action handling policy
+
+- **RN notifications (Phase E):** unknown reminder actions now explicitly follow safe Home routing behavior in root action handling.
+- **Status transparency:** Settings now surfaces unknown-action fallback guidance alongside reminder action status.
+- **Validation:** `npm run test:mobile -- RootNavigator.test.tsx SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.74 - 2026-03-27 - Reminder status clarity + listener fallback copy
 

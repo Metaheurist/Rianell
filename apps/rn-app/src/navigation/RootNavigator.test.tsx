@@ -43,6 +43,7 @@ test('later reminder action should trigger snooze behavior', () => {
 
 test('default reminder action should bring app home', () => {
   expect(shouldOpenHomeFromReminderAction('default')).toBe(true);
+  expect(shouldOpenHomeFromReminderAction('unknown')).toBe(true);
   expect(shouldOpenHomeFromReminderAction('log-now')).toBe(false);
   expect(shouldOpenHomeFromReminderAction('later')).toBe(false);
 });
