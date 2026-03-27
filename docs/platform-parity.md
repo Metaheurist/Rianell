@@ -134,6 +134,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **All platforms:** parity documentation is synchronized to the latest RN notification semantics baseline and preserves explicit open items for remaining cross-platform depth work.
 
+### v1.45.73 parity note (runtime-adaptive snooze controls)
+
+- **React Native:** notification settings now adapt snooze controls to runtime capability support and explicitly communicate fallback behavior when snooze scheduling is unsupported.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.

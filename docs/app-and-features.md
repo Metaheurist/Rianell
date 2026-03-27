@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.73 documentation sync
+
+- **RN notifications runtime adaptation (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now gates snooze interval interaction by runtime capability and shows an explicit fallback note when snooze scheduling is unavailable.
+
 ### v1.45.72 documentation sync
 
 - **Checkpoint refresh:** documentation pages are synchronized to the current notification parity state (runtime capability line, tri-path action handling, snooze personalization, and fallback behavior) with remaining backlog called out in the phase plan.
