@@ -37,6 +37,10 @@ flowchart LR
 - **RN parity snapshot:** documented that RN now includes baseline parity hooks for **AIEngine-style helpers + LLM wrapper**, **demo mode lifecycle**, and **benchmark-tier model selection settings**; full web benchmark modal/stability-graph parity remains open.
 - **RN install scope:** clarified that native RN builds do **not** show in-app install/download actions (already-installed app model); install/download flows remain web/PWA-facing.
 
+### v1.45.41 documentation sync
+
+- Added parity status wording for RN AI/LLM, demo mode, and benchmark/model selection so docs match the current implementation and remaining backlog in `docs/next-phase-development-plan.md`.
+
 ### v1.45.26 documentation sync
 
 - **React Native Home (web parity):** same three **top-right** actions as **`apps/pwa-webapp/index.html`** **`.header-buttons-wrap`**: **Goals & targets** (opens **Charts** in **Balance** with targets strip), **Report a bug** (**?** — now in-app RN bug modal + submit flow), **Settings** (jumps to the **Settings** tab). Home now also shows an AI MOTD line via RN LLM wrapper (with deterministic fallback).
