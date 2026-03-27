@@ -24,6 +24,7 @@ export type DailyReminderResult = {
 export type ReminderAction = 'log-now' | 'later' | 'default' | 'unknown' | 'none';
 
 const NOTIFICATION_REMINDER_ID = 'rianell-daily-reminder';
+const NOTIFICATION_SNOOZE_ID = 'rianell-reminder-snooze';
 const NOTIFICATION_CHANNEL_ID = 'rianell-reminders';
 const NOTIFICATION_CATEGORY_ID = 'rianell-reminder-actions';
 
@@ -187,6 +188,31 @@ export const Permissions = {
       await Notifications.clearLastNotificationResponseAsync();
     } catch {
       // no-op
+    }
+  },
+  async scheduleReminderSnooze(minutes = 30): Promise<boolean> {
+    const Notifications = await loadExpoNotifications();
+    if (!Notifications?.scheduleNotificationAsync) return false;
+    try {
+      if (Notifications?.cancelScheduledNotificationAsync) {
+        await Notifications.cancelScheduledNotificationAsync(NOTIFICATION_SNOOZE_ID);
+      }
+      await Notifications.scheduleNotificationAsync({
+        identifier: NOTIFICATION_SNOOZE_ID,
+        content: {
+          title: 'Rianell reminder (snoozed)',
+          body: 'Quick check-in: log now when you are ready.',
+          sound: 'default',
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes?.TIME_INTERVAL ?? 'timeInterval',
+          seconds: Math.max(60, Math.floor(minutes * 60)),
+          repeats: false,
+        },
+      });
+      return true;
+    } catch {
+      return false;
     }
   },
 };

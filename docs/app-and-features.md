@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.67 documentation sync
+
+- **RN reminder snooze semantics (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now treats `later` actions as snooze intent, and `apps/rn-app/src/permissions/permissions.ts` schedules a one-time snooze reminder when runtime APIs support it.
+
 ### v1.45.66 documentation sync
 
 - **RN notifications action lifecycle (Phase E):** reminder responses are now consumed/cleared after handling in `apps/rn-app/src/permissions/permissions.ts`, and root action-routing logic avoids stale response replay loops.

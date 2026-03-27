@@ -1,5 +1,10 @@
 import React from 'react';
-import { shouldClearReminderAction, shouldOpenLogWizardFromReminderAction, shouldShowAiTab } from './RootNavigator';
+import {
+  shouldClearReminderAction,
+  shouldOpenLogWizardFromReminderAction,
+  shouldShowAiTab,
+  shouldSnoozeReminderFromAction,
+} from './RootNavigator';
 import { getDefaultPreferences } from '../storage/preferences';
 
 test('AI tab is hidden when aiEnabled is false', () => {
@@ -26,5 +31,11 @@ test('non-none reminder actions should be cleared after handling', () => {
   expect(shouldClearReminderAction('default')).toBe(true);
   expect(shouldClearReminderAction('unknown')).toBe(true);
   expect(shouldClearReminderAction('none')).toBe(false);
+});
+
+test('later reminder action should trigger snooze behavior', () => {
+  expect(shouldSnoozeReminderFromAction('later')).toBe(true);
+  expect(shouldSnoozeReminderFromAction('log-now')).toBe(false);
+  expect(shouldSnoozeReminderFromAction('default')).toBe(false);
 });
 
