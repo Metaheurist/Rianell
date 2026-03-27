@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { getDefaultPreferences, loadPreferences, savePreferences, type Preferences } from './src/storage/preferences';
 import { ThemeProvider } from './src/theme/ThemeProvider';
@@ -26,9 +27,11 @@ export default function App() {
   if (!prefs) return <BootLoadingScreen />;
 
   return (
-    <ThemeProvider prefs={prefs}>
-      <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider prefs={prefs}>
+        <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
