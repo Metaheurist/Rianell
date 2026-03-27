@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.55** - Build-site path compatibility fix for minified legacy bundle CI step.
+**Latest: v1.45.56** - RN app config shared `SUPABASE_*` env fallback fix for CI unit tests.
+
+### v1.45.56 - 2026-03-27 - `app.config.js` Supabase env parity guard
+
+- **CI unit-test fix:** ensured `apps/rn-app/app.config.js` includes shared Supabase env fallbacks (`SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, legacy `SUPABASE_ANON_KEY`) in addition to `EXPO_PUBLIC_SUPABASE_*`.
+- **Failure addressed:** resolves `tests/unit/mobile-expo-config.test.mjs` assertion failure expecting shared env support in `npm run test:unit`.
+- **Validation:** `npm run test:unit` passes locally.
 
 ### v1.45.55 - 2026-03-27 - `build:web:apk` path compatibility hardening
 

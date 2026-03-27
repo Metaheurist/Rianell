@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.56 documentation sync
+
+- **RN cloud config parity:** `apps/rn-app/app.config.js` now explicitly includes shared `SUPABASE_*` fallback sources alongside `EXPO_PUBLIC_SUPABASE_*`, keeping RN cloud env wiring consistent with web/CI expectations and unit-test guards.
+
 ### v1.45.55 documentation sync
 
 - **Build pipeline reliability:** `apps/pwa-webapp/build-site.mjs` now resolves web root paths for both current and legacy layouts, keeping the CI minified legacy bundle step (`npm run build:web:apk`) stable across path migration drift.

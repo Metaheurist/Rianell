@@ -226,7 +226,7 @@ If any of the above becomes false, fix it before moving forward.
 
 ### Testing strategy (repo + CI)
 - **Mobile (Jest):** `apps/rn-app/src/**/*.test.ts(x)` — screens, storage, AI, charts, theme, navigation, **Supabase client** (`supabaseClient.test.ts`), **SettingsCloudPane**, data import/export, **Home** header chrome + **Charts** `useRoute` mock. Run: **`npm run test:mobile`**.
-- **Root unit (Node):** `tests/unit/**/*.test.mjs` — PWA wiring, **workflow guards** (`workflows-ci-rncli.test.mjs`), **Expo config** (`mobile-expo-config.test.mjs` — Async Storage Gradle plugin), **`app.config.js`**, tokens. Run: **`npm run test:unit`**.
+- **Root unit (Node):** `tests/unit/**/*.test.mjs` — PWA wiring, **workflow guards** (`workflows-ci-rncli.test.mjs`), **Expo config** (`mobile-expo-config.test.mjs` — Async Storage Gradle plugin + shared `SUPABASE_*` app-config env fallback guard), **`app.config.js`**, tokens. Run: **`npm run test:unit`**.
 - **CI (`.github/workflows/ci.yml`):** `unit-tests` job runs **`npm run test:unit`**; **`expo-bundle-prod`** runs after **`unit-tests`** + **`security-audit`** and runs **`npm run typecheck:mobile`** + **`npm run test:mobile`**. **Every PR/push** must pass these before native artifacts build.
 - **When adding a feature:** prefer **one** focused test file or cases in an existing file; run both commands locally before push.
 
