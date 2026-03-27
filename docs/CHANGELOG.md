@@ -2,7 +2,34 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.25** - Supply chain: npm overrides, single lockfile, security audit workflow; mobile shell + test deps.
+**Latest: v1.45.29** - RN View Logs Phase G (range/sort/refresh) + docs sync.
+
+### v1.45.29 - 2026-03-27 - RN View Logs Phase G + docs sync
+
+- **Mobile / View Logs (Phase G):** `LogsScreen` now includes **date-range presets** (Today / 7 / 30 / 90 / All), **Newest/Oldest** sort, **pull-to-refresh**, and a filtered/total count line ("Showing *n* of *m* entries").
+- **Tests:** Added `logsViewHelpers.test.ts`; updated `LogsScreen.test.tsx` for range-aware dates, empty-state copy, and dev sample log behavior; fixed sort chip spacing for broader RN compatibility.
+- **Docs:** Updated **`docs/next-phase-development-plan.md`** (§4.2, §4.3, Phase G), plus pointers in `README.md`, `docs/app-and-features.md`, and `docs/platform-parity.md`.
+
+### v1.45.28 - 2026-03-27 - CI: fix RN CLI Android APK collection path
+
+- **`rncli-android-apk`:** **Collect APK + latest.json** globs **`apps/rn-app/android/app/build/outputs/apk/debug/*.apk`** (default job `cwd` is repo root). Previously used `app/build/...` as if the shell ran inside `android/`, so **`assembleDebug`** succeeded but the copy step found **no APKs**.
+- **Tests:** `tests/unit/workflows-ci-rncli.test.mjs` asserts the glob path.
+- **Docs:** **`docs/next-phase-development-plan.md`** §6.
+
+### v1.45.27 - 2026-03-27 - Platform folder names and path plumbing
+
+- **Renames:** `web/` → **`apps/pwa-webapp/`** (static PWA, GitHub Pages parity reference); `apps/mobile/` → **`apps/rn-app/`** (React Native / Expo); `react-app/` → **`apps/capacitor-app/`** (legacy Vite + Capacitor).
+- **Workspaces:** root **`package.json`** now lists **`apps/*`** and **`packages/*`** only (no top-level `react-app` entry).
+- **Build & tooling:** `build-site.mjs`, `copy-webapp.js`, `prepare-android-assets.mjs`, icon scripts, **`smoke-function-trace`**, **`check-platform-parity`**, Python **`server/`** default **`WEB_DIR`**, **`launch-server.ps1`**, **`.gitignore`**, **`.github/workflows`**, and **`tests/unit`** paths updated.
+- **Docs:** **`docs/next-phase-development-plan.md`** §1–2, §6; **`README`**, **`docs/app-and-features.md`**, **`docs/setup-and-usage.md`**, **`docs/project-reference.md`**, **`docs/platform-parity.md`**.
+
+### v1.45.26 - 2026-03-27 - React Native Home: top chrome buttons (web / Capacitor parity)
+
+- **Web reference:** `web/index.html` **`.header-buttons-wrap`** — **Goals & targets** (bullseye), **Report a bug** (`?`), **Settings** (cog).
+- **Mobile (`HomeScreen`):** top-right row of three **44×44** chrome buttons (accent border + glow shadow): **Targets** → **`Charts`** tab with **`{ initialView: 'balance' }`**; **?** → **`Linking.openURL`** to repo **`docs/SECURITY.md`** (in-app bug modal deferred to Phase E); **Settings** → **Settings** tab.
+- **Navigation:** **`MainTabParamList`** exported from **`RootNavigator`**; **`Charts`** accepts optional **`initialView`** (`ChartViewMode`); **`ChartsScreen`** syncs view from **`route.params`**.
+- **Tests:** `HomeScreen.test.tsx` (header actions + FAB); **`ChartsScreen.test.tsx`** mocks **`useRoute`** for Jest without a navigator.
+- **Docs:** **`docs/next-phase-development-plan.md`** §4.3, §5 Phase E; **`docs/app-and-features.md`**, **`docs/platform-parity.md`**, **`README.md`**.
 
 ### v1.45.25 - 2026-03-27 - npm overrides, Dependabot/tar fix, single lockfile, RN shell polish
 
