@@ -59,7 +59,7 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "mobile_release=false" >> $GITHUB_OUTPUT
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "mobile_release=false" >> $GITHUB_OUTPUT
+            echo "mobile_release=true" >> $GITHUB_OUTPUT
           elif [ "${{ github.event_name }}" = "push" ]; then
             BEFORE="${{ github.event.before }}"
             SHA="${{ github.sha }}"
@@ -87,7 +87,8 @@ jobs:
     needs: [paths-filter]
     if: |
       github.event_name == 'pull_request' ||
-      github.event_name == 'push'
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/security-audit.yml
     secrets: inherit
 
@@ -99,7 +100,8 @@ jobs:
     needs: [paths-filter]
     if: |
       github.event_name == 'pull_request' ||
-      github.event_name == 'push'
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -163,7 +165,8 @@ jobs:
     needs: [paths-filter]
     if: |
       github.event_name == 'pull_request' ||
-      github.event_name == 'push'
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -185,7 +188,8 @@ jobs:
     needs: [paths-filter, unit-tests, security-audit]
     if: |
       github.event_name == 'pull_request' ||
-      github.event_name == 'push'
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -235,7 +239,7 @@ jobs:
     name: RN CLI sequential build number
     needs: [paths-filter, expo-bundle-prod]
     if: |
-      github.event_name == 'push' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       needs.paths-filter.outputs.mobile_release == 'true'
     runs-on: ubuntu-latest
     outputs:
@@ -259,7 +263,7 @@ jobs:
     name: Android APK (React Native CLI)
     needs: [paths-filter, expo-bundle-prod, rn-build-version]
     if: |
-      github.event_name == 'push' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       needs.paths-filter.outputs.mobile_release == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -325,7 +329,7 @@ jobs:
     name: iOS emulator Xcode project zip (React Native CLI)
     needs: [paths-filter, expo-bundle-prod, rn-build-version]
     if: |
-      github.event_name == 'push' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       needs.paths-filter.outputs.mobile_release == 'true'
     runs-on: macos-latest
     steps:
@@ -377,7 +381,7 @@ jobs:
     needs: [paths-filter, prepare-minified-assets, unit-tests, security-audit]
     if: |
       github.event_name == 'pull_request' ||
-      (github.event_name == 'push' && needs.paths-filter.outputs.mobile_release == 'true')
+      ((github.event_name == 'push' || github.event_name == 'workflow_dispatch') && needs.paths-filter.outputs.mobile_release == 'true')
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -469,7 +473,7 @@ jobs:
     name: Commit App build to repo
     needs: [paths-filter, expo-bundle-prod, server-exe, rncli-android-apk, rncli-ios-zip]
     if: |
-      github.event_name == 'push' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       needs.paths-filter.outputs.mobile_release == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -554,7 +558,7 @@ jobs:
     name: Publish GitHub Release
     needs: [paths-filter, expo-bundle-prod, server-exe, rncli-android-apk, rncli-ios-zip]
     if: |
-      github.event_name == 'push' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       needs.paths-filter.outputs.mobile_release == 'true'
     runs-on: ubuntu-latest
     permissions:
