@@ -57,6 +57,19 @@ export function shouldOpenHomeAfterSnoozeFailure(action: ReminderAction, snoozeS
   return action === 'later' && !snoozeScheduled;
 }
 
+export function shouldHandleReminderAction(
+  action: ReminderAction,
+  lastAction: ReminderAction | null,
+  lastActionAtMs: number,
+  nowMs: number,
+  duplicateWindowMs = 1500
+) {
+  if (action === 'none') return false;
+  if (!lastAction) return true;
+  if (action !== lastAction) return true;
+  return nowMs - lastActionAtMs > duplicateWindowMs;
+}
+
 export function RootNavigator({
   prefs,
   onChangePrefs,
@@ -68,6 +81,8 @@ export function RootNavigator({
   const navTheme = theme.mode === 'dark' ? DarkTheme : DefaultTheme;
   const navRef = useNavigationContainerRef<RootStackParamList>();
   const handledInitialActionRef = useRef(false);
+  const lastActionRef = useRef<ReminderAction | null>(null);
+  const lastActionAtRef = useRef(0);
 
   useEffect(() => {
     let mounted = true;
@@ -84,6 +99,10 @@ export function RootNavigator({
     };
 
     const handleAction = (action: ReminderAction) => {
+      const nowMs = Date.now();
+      if (!shouldHandleReminderAction(action, lastActionRef.current, lastActionAtRef.current, nowMs)) return;
+      lastActionRef.current = action;
+      lastActionAtRef.current = nowMs;
       if (shouldSnoozeReminderFromAction(action)) {
         void Permissions.scheduleReminderSnooze(prefs.notifications.snoozeMinutes).then((ok) => {
           if (shouldOpenHomeAfterSnoozeFailure(action, ok)) {

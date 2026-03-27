@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.77 documentation sync
+
+- **RN reminder action stability (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now ignores immediate duplicate reminder-action events in a short window so `log-now` / `later` / `default` / `unknown` routes are not executed twice on noisy runtime callbacks.
+
 ### v1.45.76 documentation sync
 
 - **RN reminder action policy visibility (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows explicit action-policy copy (`log-now` -> Log today, `later` -> snooze/Home fallback, `default/unknown` -> Home) so notification response semantics are understandable without digging into implementation details.
