@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.76 documentation sync
+
+- **RN reminder action policy visibility (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows explicit action-policy copy (`log-now` -> Log today, `later` -> snooze/Home fallback, `default/unknown` -> Home) so notification response semantics are understandable without digging into implementation details.
+
 ### v1.45.75 documentation sync
 
 - **RN reminder unknown-action policy (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now routes unknown reminder actions to safe Home intent, and `apps/rn-app/src/screens/SettingsScreen.tsx` now displays matching fallback guidance text.
