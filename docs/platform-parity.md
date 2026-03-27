@@ -16,6 +16,11 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - `sync_behavior`: foreground/interval behavior; no guaranteed OS background sync.
 - `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
 
+### v1.45.99 parity note (unknown-action trajectory stability note)
+
+- **React Native:** notification diagnostics now include trajectory stability status for unknown-action source evolution within a session.
+- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+
 ### v1.45.98 parity note (unknown-action source trajectory visibility)
 
 - **React Native:** notification diagnostics now include first-to-latest source trajectory context for unknown-action sessions.
