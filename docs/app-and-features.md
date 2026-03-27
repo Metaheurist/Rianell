@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.90 documentation sync
+
+- **Checkpoint refresh:** docs are synchronized so Phase E notification diagnostics are consistently described across feature pages (total count, startup/live breakdown, last-seen, source, runtime-cause hint, and reset control).
+
 ### v1.45.89 documentation sync
 
 - **RN unknown-action diagnostics breakdown (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows startup-vs-live unknown-action counts, making source-pattern drift easier to read at a glance.
