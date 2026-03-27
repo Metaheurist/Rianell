@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.82 documentation sync
+
+- **RN notification runtime matrix depth (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now includes dismiss-semantics capability visibility in the runtime support hint, backed by `apps/rn-app/src/permissions/permissions.ts` capability detection.
+
 ### v1.45.81 documentation sync
 
 - **RN reminder dismiss safety (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now maps dismissed/close-style reminder notification actions to `none`, so dismiss gestures do not trigger fallback navigation behavior.

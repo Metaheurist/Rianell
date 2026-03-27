@@ -16,6 +16,11 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - `sync_behavior`: foreground/interval behavior; no guaranteed OS background sync.
 - `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
 
+### v1.45.82 parity note (dismiss capability visibility)
+
+- **React Native:** Settings now surfaces runtime support for dismiss semantics alongside schedule/channel/category/action listener capability statuses.
+- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+
 ### v1.45.81 parity note (dismiss action safe ignore)
 
 - **React Native:** dismissed/close notification actions are now explicitly treated as no-op (`none`) in reminder response mapping, avoiding runtime-specific accidental fallback navigation.

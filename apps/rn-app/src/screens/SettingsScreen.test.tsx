@@ -34,6 +34,7 @@ jest.mock('../permissions/permissions', () => ({
       hasIosCategory: false,
       hasResponseListener: true,
       hasSnooze: true,
+      hasDismissAction: true,
     })),
   },
 }));
@@ -185,6 +186,7 @@ test('notification area shows listener-unavailable note when actions unsupported
     hasIosCategory: false,
     hasResponseListener: false,
     hasSnooze: true,
+    hasDismissAction: false,
   });
 
   const prefs = getDefaultPreferences();
@@ -220,6 +222,7 @@ test('notification area shows snooze fallback note when runtime has no snooze su
     hasIosCategory: false,
     hasResponseListener: true,
     hasSnooze: false,
+    hasDismissAction: true,
   });
 
   const prefs = getDefaultPreferences();
@@ -230,6 +233,17 @@ test('notification area shows snooze fallback note when runtime has no snooze su
   );
 
   await findByText(/does not support scheduled snooze reminders/i);
+});
+
+test('notification area includes dismiss semantics runtime status', async () => {
+  const prefs = getDefaultPreferences();
+  const { findByText } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+    </ThemeProvider>
+  );
+
+  await findByText(/dismiss semantics yes/i);
 });
 
 test('textScale affects rendered typography sizes', () => {
