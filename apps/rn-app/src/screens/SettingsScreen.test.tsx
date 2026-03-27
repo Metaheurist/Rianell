@@ -234,6 +234,7 @@ test('notification area shows unknown-action session counter', async () => {
   await findByText(/Unknown action split: startup 0% · live 100%/i);
   await findByText(/Unknown-action dominant source confidence: strong \(live listener\)/i);
   await findByText(/confidence is preliminary until at least 3 unknown events/i);
+  await findByText(/Unknown-action observability quality: low/i);
   await findByText(/Unknown-action stability status: low drift/i);
   await findByText(/mostly live listener callbacks/i);
   await findByText(/Last unknown reminder action observed at:/i);
@@ -263,6 +264,7 @@ test('notification area can reset unknown-action session counter', async () => {
     expect(queryByText(/Unknown action split:/i)).toBeNull();
     expect(queryByText(/Unknown-action dominant source confidence:/i)).toBeNull();
     expect(queryByText(/confidence is preliminary until at least 3 unknown events/i)).toBeNull();
+    expect(queryByText(/Unknown-action observability quality:/i)).toBeNull();
     expect(queryByText(/Last unknown reminder action observed at:/i)).toBeNull();
     expect(queryByText(/Last unknown action source:/i)).toBeNull();
   });
@@ -285,6 +287,7 @@ test('notification area marks startup snapshot as unknown-action source when pre
   await findByText(/Unknown action split: startup 100% · live 0%/i);
   await findByText(/Unknown-action dominant source confidence: strong \(startup snapshot\)/i);
   await findByText(/confidence is preliminary until at least 3 unknown events/i);
+  await findByText(/Unknown-action observability quality: low/i);
   await findByText(/Unknown-action stability status: low drift/i);
   await findByText(/mostly startup snapshot responses/i);
 });
@@ -307,6 +310,7 @@ test('notification area shows moderate drift status after multiple unknown actio
 
   await findByText(/Unknown-action stability status: moderate drift/i);
   await findByText(/confidence is preliminary until at least 3 unknown events/i);
+  await findByText(/Unknown-action observability quality: low/i);
 });
 
 test('notification area shows balanced dominant-source confidence when startup and live are equal', async () => {
@@ -327,6 +331,7 @@ test('notification area shows balanced dominant-source confidence when startup a
   await findByText(/Unknown action split: startup 50% · live 50%/i);
   await findByText(/Unknown-action dominant source confidence: balanced \(no dominant source\)/i);
   await findByText(/confidence is preliminary until at least 3 unknown events/i);
+  await findByText(/Unknown-action observability quality: low/i);
 });
 
 test('notification area hides preliminary-confidence warning once sample size reaches three', async () => {
@@ -348,6 +353,33 @@ test('notification area hides preliminary-confidence warning once sample size re
 
   await findByText(/Unknown reminder actions observed this session: 3/i);
   await findByText(/Unknown-action stability status: moderate drift/i);
+  await findByText(/Unknown-action observability quality: medium/i);
+  await waitFor(() => {
+    expect(queryByText(/confidence is preliminary until at least 3 unknown events/i)).toBeNull();
+  });
+});
+
+test('notification area shows high observability quality when unknown sample size is five or more', async () => {
+  const { Permissions } = require('../permissions/permissions');
+  Permissions.getLastReminderAction.mockResolvedValue('none');
+  Permissions.subscribeReminderActions.mockImplementationOnce(async (onAction: (a: string) => void) => {
+    onAction('unknown');
+    onAction('unknown');
+    onAction('unknown');
+    onAction('unknown');
+    onAction('unknown');
+    return () => {};
+  });
+
+  const prefs = getDefaultPreferences();
+  const { findByText, queryByText } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+    </ThemeProvider>
+  );
+
+  await findByText(/Unknown reminder actions observed this session: 5/i);
+  await findByText(/Unknown-action observability quality: high/i);
   await waitFor(() => {
     expect(queryByText(/confidence is preliminary until at least 3 unknown events/i)).toBeNull();
   });
