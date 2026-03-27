@@ -26,7 +26,7 @@ import { loadLogs, saveLogs } from '../storage/logs';
 import { SettingsCloudPane } from '../settings/SettingsCloudPane';
 import { clearCachedBenchmark, loadCachedBenchmark, resolveLlmModelSize, runAndCacheBenchmark, type BenchmarkResult } from '../performance/benchmark';
 import { disableDemoMode, enableDemoMode } from '../demo/demoMode';
-import { Permissions, type DailyReminderResult } from '../permissions/permissions';
+import { Permissions, type DailyReminderResult, type ReminderAction } from '../permissions/permissions';
 
 const PANE_TITLES = ['Personal & cloud', 'AI & theme', 'Accessibility', 'Data'] as const;
 
@@ -57,6 +57,7 @@ export function SettingsScreen({
   const [notificationPermission, setNotificationPermission] = useState<'unavailable' | 'denied' | 'granted'>('unavailable');
   const [notificationScheduleState, setNotificationScheduleState] = useState<'idle' | 'scheduled' | 'invalid-time' | 'unavailable'>('idle');
   const [notificationDeliveryState, setNotificationDeliveryState] = useState<DailyReminderResult['delivery']>('runtime-unavailable');
+  const [lastReminderAction, setLastReminderAction] = useState<ReminderAction>('none');
 
   useEffect(() => {
     loadCachedBenchmark().then(setBenchmark).catch(() => setBenchmark(null));
@@ -102,6 +103,27 @@ export function SettingsScreen({
     prefs.notifications.enabled,
     prefs.notifications.soundEnabled,
   ]);
+
+  useEffect(() => {
+    let mounted = true;
+    let dispose = () => {};
+    void Permissions.getLastReminderAction()
+      .then((action) => {
+        if (mounted) setLastReminderAction(action);
+      })
+      .catch(() => {
+        if (mounted) setLastReminderAction('none');
+      });
+    void Permissions.subscribeReminderActions((action) => {
+      if (mounted) setLastReminderAction(action);
+    }).then((cleanup) => {
+      dispose = cleanup;
+    });
+    return () => {
+      mounted = false;
+      dispose();
+    };
+  }, []);
 
   function goPane(next: number) {
     const clamped = Math.max(0, Math.min(PANE_TITLES.length - 1, next));
@@ -387,6 +409,11 @@ export function SettingsScreen({
               {notificationScheduleState === 'unavailable' ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   Notification scheduling is unavailable on this runtime.
+                </Text>
+              ) : null}
+              {lastReminderAction !== 'none' ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Last reminder action: {lastReminderAction === 'log-now' ? 'Log now' : lastReminderAction}.
                 </Text>
               ) : null}
               <Pressable

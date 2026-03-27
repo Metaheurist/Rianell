@@ -26,6 +26,8 @@ jest.mock('../permissions/permissions', () => ({
     getStatus: jest.fn(async () => 'denied'),
     request: jest.fn(async () => 'granted'),
     scheduleDailyReminder: jest.fn(async () => ({ ok: true, delivery: 'scheduled-basic' })),
+    getLastReminderAction: jest.fn(async () => 'none'),
+    subscribeReminderActions: jest.fn(async () => () => {}),
   },
 }));
 
@@ -149,6 +151,20 @@ test('notification scheduling shows iOS category delivery semantics when provide
   );
 
   await findByText(/iOS reminder actions\/category configured/i);
+});
+
+test('notification area shows last reminder action when available', async () => {
+  const { Permissions } = require('../permissions/permissions');
+  Permissions.getLastReminderAction.mockResolvedValue('log-now');
+
+  const prefs = getDefaultPreferences();
+  const { findByText } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+    </ThemeProvider>
+  );
+
+  await findByText(/Last reminder action: Log now/i);
 });
 
 test('textScale affects rendered typography sizes', () => {

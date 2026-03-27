@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.63** - Notifications category/channel semantics expansion.
+**Latest: v1.45.64** - Reminder action-response handling baseline.
+
+### v1.45.64 - 2026-03-27 - Notifications action-response baseline
+
+- **RN notifications (Phase E):** added reminder response handling helpers (`getLastReminderAction`, `subscribeReminderActions`) to capture action semantics from notification interactions.
+- **Settings parity depth:** notifications pane now shows the last reminder action received (e.g., `Log now`) to make response-path behavior observable in-app.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.63 - 2026-03-27 - Notifications OS semantics expansion
 
