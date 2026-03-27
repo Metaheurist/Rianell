@@ -21,6 +21,8 @@ export type DailyReminderResult = {
     | 'schedule-failed';
 };
 
+export type ReminderAction = 'log-now' | 'later' | 'default' | 'unknown' | 'none';
+
 const NOTIFICATION_REMINDER_ID = 'rianell-daily-reminder';
 const NOTIFICATION_CHANNEL_ID = 'rianell-reminders';
 const NOTIFICATION_CATEGORY_ID = 'rianell-reminder-actions';
@@ -136,6 +138,46 @@ export const Permissions = {
       };
     } catch {
       return { ok: false, reason: 'schedule-failed', delivery: 'schedule-failed' };
+    }
+  },
+  async getLastReminderAction(): Promise<ReminderAction> {
+    const Notifications = await loadExpoNotifications();
+    if (!Notifications?.getLastNotificationResponseAsync) return 'none';
+    try {
+      const response = await Notifications.getLastNotificationResponseAsync();
+      const id = response?.notification?.request?.identifier;
+      if (id !== NOTIFICATION_REMINDER_ID) return 'none';
+      const action = response?.actionIdentifier;
+      if (action === 'log-now') return 'log-now';
+      if (action === 'later') return 'later';
+      if (action === Notifications.DEFAULT_ACTION_IDENTIFIER || action === 'default') return 'default';
+      return action ? 'unknown' : 'none';
+    } catch {
+      return 'none';
+    }
+  },
+  async subscribeReminderActions(onAction: (action: ReminderAction) => void): Promise<() => void> {
+    const Notifications = await loadExpoNotifications();
+    if (!Notifications?.addNotificationResponseReceivedListener) return () => {};
+    try {
+      const sub = Notifications.addNotificationResponseReceivedListener((response: any) => {
+        const id = response?.notification?.request?.identifier;
+        if (id !== NOTIFICATION_REMINDER_ID) return;
+        const action = response?.actionIdentifier;
+        if (action === 'log-now') onAction('log-now');
+        else if (action === 'later') onAction('later');
+        else if (action === Notifications.DEFAULT_ACTION_IDENTIFIER || action === 'default') onAction('default');
+        else onAction('unknown');
+      });
+      return () => {
+        try {
+          sub?.remove?.();
+        } catch {
+          // no-op
+        }
+      };
+    } catch {
+      return () => {};
     }
   },
 };

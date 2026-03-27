@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.64 documentation sync
+
+- **RN notifications response path (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now exposes reminder action-response helpers, and `apps/rn-app/src/screens/SettingsScreen.tsx` surfaces last reminder action state for in-app delivery-response visibility.
+
 ### v1.45.63 documentation sync
 
 - **RN notifications OS semantics (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now sets iOS reminder action categories when supported (alongside Android channels), and `apps/rn-app/src/screens/SettingsScreen.tsx` now reports iOS/channel+category delivery semantics in reminder status text.
