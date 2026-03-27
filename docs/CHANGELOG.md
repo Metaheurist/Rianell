@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.96** - Unknown-action observability quality score.
+**Latest: v1.45.97** - Unknown-action recommended next-check guidance.
+
+### v1.45.97 - 2026-03-27 - Unknown-action recommended next-check guidance
+
+- **RN notifications (Phase E):** Settings now includes a recommended next-check message tied to unknown-action observability quality (`low`/`medium`/`high`).
+- **Diagnostics depth:** unknown-action diagnostics now provide actionable in-app follow-up guidance in addition to counters, split/confidence signals, and drift severity.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.96 - 2026-03-27 - Unknown-action observability quality score
 
