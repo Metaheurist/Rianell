@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.70 documentation sync
+
+- **RN notifications fallback UX (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now routes to Home when `later` snooze scheduling fails at runtime, and `apps/rn-app/src/screens/SettingsScreen.tsx` now explains this fallback in notification help text.
+
 ### v1.45.69 documentation sync
 
 - **RN notifications personalization (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now exposes a snooze interval selector for reminder `later` actions, persisted via `apps/rn-app/src/storage/preferences.ts` and consumed by root reminder handling.
