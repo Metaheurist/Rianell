@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.85 documentation sync
+
+- **RN unknown-action diagnostics depth (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows a contextual drift hint when unknown reminder actions are observed on runtimes without dismiss-action identifiers.
+
 ### v1.45.84 documentation sync
 
 - **Checkpoint refresh:** documentation is synchronized so the Settings notification story consistently reflects dismiss capability visibility, safe-dismiss ignore semantics, and session-level unknown-action observability.
