@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.91 documentation sync
+
+- **RN unknown-action diagnostics status (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows session-level unknown-action drift status (`low`, `moderate`, `high`) so long-tail runtime variance can be triaged faster in-app.
+
 ### v1.45.90 documentation sync
 
 - **Checkpoint refresh:** docs are synchronized so Phase E notification diagnostics are consistently described across feature pages (total count, startup/live breakdown, last-seen, source, runtime-cause hint, and reset control).

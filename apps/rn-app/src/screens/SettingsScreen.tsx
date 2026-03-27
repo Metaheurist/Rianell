@@ -524,6 +524,27 @@ export function SettingsScreen({
                   Unknown action breakdown: startup {unknownStartupCount} · live {unknownLiveCount}.
                 </Text>
               ) : null}
+              {unknownReminderActionCount > 0 ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown-action stability status:{' '}
+                  {unknownReminderActionCount >= 5 ? 'high drift' : unknownReminderActionCount >= 2 ? 'moderate drift' : 'low drift'}.
+                </Text>
+              ) : null}
+              {unknownReminderActionCount > 0 && unknownStartupCount > unknownLiveCount ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown-action trend: mostly startup snapshot responses this session.
+                </Text>
+              ) : null}
+              {unknownReminderActionCount > 0 && unknownLiveCount > unknownStartupCount ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown-action trend: mostly live listener callbacks this session.
+                </Text>
+              ) : null}
+              {unknownReminderActionCount > 0 && unknownLiveCount === unknownStartupCount ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown-action trend: startup and live paths are equally represented this session.
+                </Text>
+              ) : null}
               {lastUnknownReminderActionAt ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   Last unknown reminder action observed at: {lastUnknownReminderActionAt}.
