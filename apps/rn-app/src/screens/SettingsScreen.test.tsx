@@ -230,6 +230,7 @@ test('notification area shows unknown-action session counter', async () => {
   );
 
   await findByText(/Unknown reminder actions observed this session: 1/i);
+  await findByText(/Last unknown reminder action observed at:/i);
 });
 
 test('notification area can reset unknown-action session counter', async () => {
@@ -251,6 +252,7 @@ test('notification area can reset unknown-action session counter', async () => {
   fireEvent.press(getByLabelText('Reset unknown reminder action counter'));
   await waitFor(() => {
     expect(queryByText(/Unknown reminder actions observed this session/i)).toBeNull();
+    expect(queryByText(/Last unknown reminder action observed at:/i)).toBeNull();
   });
 });
 

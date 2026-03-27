@@ -72,6 +72,7 @@ export function SettingsScreen({
   const [notificationDeliveryState, setNotificationDeliveryState] = useState<DailyReminderResult['delivery']>('runtime-unavailable');
   const [lastReminderAction, setLastReminderAction] = useState<ReminderAction>('none');
   const [unknownReminderActionCount, setUnknownReminderActionCount] = useState(0);
+  const [lastUnknownReminderActionAt, setLastUnknownReminderActionAt] = useState<string | null>(null);
   const [reminderCapabilities, setReminderCapabilities] = useState<ReminderCapabilities>({
     hasScheduling: false,
     hasAndroidChannel: false,
@@ -148,7 +149,10 @@ export function SettingsScreen({
       .then((action) => {
         if (!mounted) return;
         setLastReminderAction(action);
-        if (action === 'unknown') setUnknownReminderActionCount((n) => n + 1);
+        if (action === 'unknown') {
+          setUnknownReminderActionCount((n) => n + 1);
+          setLastUnknownReminderActionAt(new Date().toLocaleTimeString());
+        }
       })
       .catch(() => {
         if (mounted) setLastReminderAction('none');
@@ -156,7 +160,10 @@ export function SettingsScreen({
     void Permissions.subscribeReminderActions((action) => {
       if (!mounted) return;
       setLastReminderAction(action);
-      if (action === 'unknown') setUnknownReminderActionCount((n) => n + 1);
+      if (action === 'unknown') {
+        setUnknownReminderActionCount((n) => n + 1);
+        setLastUnknownReminderActionAt(new Date().toLocaleTimeString());
+      }
     }).then((cleanup) => {
       dispose = cleanup;
     });
@@ -505,6 +512,11 @@ export function SettingsScreen({
                   Unknown reminder actions observed this session: {unknownReminderActionCount}.
                 </Text>
               ) : null}
+              {lastUnknownReminderActionAt ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Last unknown reminder action observed at: {lastUnknownReminderActionAt}.
+                </Text>
+              ) : null}
               {unknownReminderActionCount > 0 && !reminderCapabilities.hasDismissAction ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   This runtime does not expose explicit dismiss action identifiers; some dismiss/close gestures may appear as unknown.
@@ -513,7 +525,10 @@ export function SettingsScreen({
               {unknownReminderActionCount > 0 ? (
                 <Pressable
                   style={styles.dataBtn}
-                  onPress={() => setUnknownReminderActionCount(0)}
+                  onPress={() => {
+                    setUnknownReminderActionCount(0);
+                    setLastUnknownReminderActionAt(null);
+                  }}
                   accessibilityRole="button"
                   accessibilityLabel="Reset unknown reminder action counter"
                 >

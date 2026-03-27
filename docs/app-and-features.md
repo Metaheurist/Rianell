@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.87 documentation sync
+
+- **RN unknown-action diagnostics context (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now surfaces a last-seen time for unknown reminder actions in addition to the session count and reset control.
+
 ### v1.45.86 documentation sync
 
 - **RN unknown-action diagnostics control (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now adds a reset button for the session unknown-action counter, letting users clear diagnostics after confirming behavior.
