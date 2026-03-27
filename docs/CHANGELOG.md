@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.89** - Unknown-action source breakdown counts.
+**Latest: v1.45.90** - Documentation sync checkpoint.
+
+### v1.45.90 - 2026-03-27 - Documentation sync checkpoint
+
+- **Docs alignment:** synchronized plan/parity/features/readme wording to reflect the latest Phase E notification diagnostics baseline (count, startup/live split, last-seen, source, cause hint, reset control).
+- **Scope:** documentation/changelog checkpoint only; no runtime behavior changes in this entry.
 
 ### v1.45.89 - 2026-03-27 - Unknown-action source breakdown counts
 
