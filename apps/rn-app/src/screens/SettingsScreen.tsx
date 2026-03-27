@@ -373,6 +373,19 @@ export function SettingsScreen({
                   }
                 />
               </Row>
+              <Row label="Snooze minutes (later action)">
+                <InlineChoices
+                  value={String(prefs.notifications.snoozeMinutes)}
+                  options={['10', '15', '30', '60']}
+                  onChange={(v) =>
+                    onChangePrefs({
+                      ...prefs,
+                      notifications: { ...prefs.notifications, snoozeMinutes: Number(v) },
+                    })
+                  }
+                  tts={tts}
+                />
+              </Row>
               <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                 Notification permission: {notificationPermission}
               </Text>
