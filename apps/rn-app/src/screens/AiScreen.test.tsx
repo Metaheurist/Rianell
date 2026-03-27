@@ -5,6 +5,7 @@ import { AiScreen } from './AiScreen';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import { getDefaultPreferences } from '../storage/preferences';
 import { loadLogs } from '../storage/logs';
+import { generateSummaryNote } from '../ai/llm';
 
 jest.mock('../storage/logs', () => ({
   loadLogs: jest.fn(async () => [
@@ -19,20 +20,27 @@ jest.mock('../storage/logs', () => ({
     },
   ]),
 }));
+jest.mock('../ai/llm', () => ({
+  generateSummaryNote: jest.fn(async () => 'AI summary note test'),
+}));
 
 const mockedLoadLogs = loadLogs as jest.MockedFunction<typeof loadLogs>;
+const mockedGenerateSummaryNote = generateSummaryNote as jest.MockedFunction<typeof generateSummaryNote>;
 
 test('ai screen renders summary from logs', async () => {
   const prefs = getDefaultPreferences();
   const { findByText, getByText } = render(
     <ThemeProvider prefs={prefs}>
-      <AiScreen />
+      <AiScreen prefs={prefs} />
     </ThemeProvider>
   );
 
   await findByText(/What we found/i);
+  await findByText('At a glance');
+  await findByText('Summary note');
+  await findByText('AI summary note test');
   await findByText('What you logged');
-  await findByText('How you are doing');
+  await findByText("How you're doing");
   await findByText('Things to watch');
   await findByText('Important');
   await findByText('Possible flare-up');
@@ -60,11 +68,12 @@ test('ai screen pull-to-refresh calls loadLogs again', async () => {
   const prefs = getDefaultPreferences();
   const { UNSAFE_getByType } = render(
     <ThemeProvider prefs={prefs}>
-      <AiScreen />
+      <AiScreen prefs={prefs} />
     </ThemeProvider>
   );
 
   await waitFor(() => expect(mockedLoadLogs).toHaveBeenCalledTimes(1));
+  expect(mockedGenerateSummaryNote).toHaveBeenCalled();
 
   const scroll = UNSAFE_getByType(ScrollView);
   const refresh = scroll.props.refreshControl;
@@ -75,4 +84,21 @@ test('ai screen pull-to-refresh calls loadLogs again', async () => {
   });
 
   await waitFor(() => expect(mockedLoadLogs).toHaveBeenCalledTimes(2));
+});
+
+test('ai screen shows disabled copy when aiEnabled is false', async () => {
+  const prefs = getDefaultPreferences();
+  const disabledPrefs = {
+    ...prefs,
+    aiEnabled: false,
+  };
+
+  const { findByText, queryByText } = render(
+    <ThemeProvider prefs={disabledPrefs}>
+      <AiScreen prefs={disabledPrefs} />
+    </ThemeProvider>
+  );
+
+  await findByText(/AI features are disabled in Settings/i);
+  expect(queryByText('Summary note')).toBeNull();
 });

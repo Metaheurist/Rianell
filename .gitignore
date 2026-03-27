@@ -22,6 +22,8 @@ replacements.txt
 
 # Logs
 logs/
+!apps/rn-app/src/logs/
+!apps/rn-app/src/logs/**
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -61,12 +63,12 @@ node_modules/
 # Build outputs
 dist/
 build/
-web/app.min.js
-web/.trace-build/
-web/.android-dist/
+apps/pwa-webapp/app.min.js
+apps/pwa-webapp/.trace-build/
+apps/pwa-webapp/.android-dist/
 
 # React / Capacitor
-react-app/node_modules/
-react-app/dist/
-react-app/public/legacy/
+apps/capacitor-app/node_modules/
+apps/capacitor-app/dist/
+apps/capacitor-app/public/legacy/
 .aider*
