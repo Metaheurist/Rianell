@@ -341,6 +341,12 @@ export function SettingsScreen({
         ? 'stable'
         : 'shifted'
       : null;
+  const unknownDriftStatus =
+    unknownReminderActionCount >= 5 ? 'high drift' : unknownReminderActionCount >= 2 ? 'moderate drift' : 'low drift';
+  const unknownSessionSummary =
+    unknownReminderActionCount > 0 && unknownObservabilityQuality && unknownTrajectoryStability
+      ? `quality ${unknownObservabilityQuality} · drift ${unknownDriftStatus} · trajectory ${unknownTrajectoryStability}`
+      : null;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
@@ -563,6 +569,11 @@ export function SettingsScreen({
                   Unknown reminder actions observed this session: {unknownReminderActionCount}.
                 </Text>
               ) : null}
+              {unknownSessionSummary ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown-action session summary: {unknownSessionSummary}.
+                </Text>
+              ) : null}
               {unknownReminderActionCount > 0 ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   Unknown action breakdown: startup {unknownStartupCount} · live {unknownLiveCount}.
@@ -605,8 +616,7 @@ export function SettingsScreen({
               ) : null}
               {unknownReminderActionCount > 0 ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown-action stability status:{' '}
-                  {unknownReminderActionCount >= 5 ? 'high drift' : unknownReminderActionCount >= 2 ? 'moderate drift' : 'low drift'}.
+                  Unknown-action stability status: {unknownDriftStatus}.
                 </Text>
               ) : null}
               {unknownReminderActionCount > 0 && unknownStartupCount > unknownLiveCount ? (

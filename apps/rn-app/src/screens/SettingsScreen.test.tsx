@@ -230,6 +230,7 @@ test('notification area shows unknown-action session counter', async () => {
   );
 
   await findByText(/Unknown reminder actions observed this session: 1/i);
+  await findByText(/Unknown-action session summary: quality low · drift low drift · trajectory stable\./i);
   await findByText(/Unknown action breakdown: startup 0 · live 1/i);
   await findByText(/Unknown action split: startup 0% · live 100%/i);
   await findByText(/Unknown-action dominant source confidence: strong \(live listener\)/i);
@@ -263,6 +264,7 @@ test('notification area can reset unknown-action session counter', async () => {
   fireEvent.press(getByLabelText('Reset unknown reminder action counter'));
   await waitFor(() => {
     expect(queryByText(/Unknown reminder actions observed this session/i)).toBeNull();
+    expect(queryByText(/Unknown-action session summary:/i)).toBeNull();
     expect(queryByText(/Unknown action breakdown:/i)).toBeNull();
     expect(queryByText(/Unknown action split:/i)).toBeNull();
     expect(queryByText(/Unknown-action dominant source confidence:/i)).toBeNull();
@@ -360,6 +362,7 @@ test('notification area hides preliminary-confidence warning once sample size re
   );
 
   await findByText(/Unknown reminder actions observed this session: 3/i);
+  await findByText(/Unknown-action session summary: quality medium · drift moderate drift · trajectory stable\./i);
   await findByText(/Unknown-action stability status: moderate drift/i);
   await findByText(/Unknown-action observability quality: medium/i);
   await findByText(/Unknown-action recommended next check: continue monitoring; trend signal is usable but still maturing\./i);
@@ -388,6 +391,7 @@ test('notification area shows high observability quality when unknown sample siz
   );
 
   await findByText(/Unknown reminder actions observed this session: 5/i);
+  await findByText(/Unknown-action session summary: quality high · drift high drift · trajectory stable\./i);
   await findByText(/Unknown-action observability quality: high/i);
   await findByText(/Unknown-action recommended next check: trend signal is stable enough for runtime comparison checks\./i);
   await findByText(/Unknown-action source trajectory this session: live listener to live listener\./i);

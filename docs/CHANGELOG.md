@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.99** - Unknown-action trajectory stability note.
+**Latest: v1.46.0** - Unknown-action session summary line.
+
+### v1.46.0 - 2026-03-27 - Unknown-action session summary line
+
+- **RN notifications (Phase E):** Settings now includes a compact unknown-action session summary line combining observability quality, drift status, and trajectory stability.
+- **Diagnostics depth:** unknown-action diagnostics now provide a quick-read aggregate status while preserving detailed per-signal lines.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.99 - 2026-03-27 - Unknown-action trajectory stability note
 
