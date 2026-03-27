@@ -1,9 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { loadLogs } from '../storage/logs';
 import { summarizeLogsForAi, type AiRange, type AiSummary } from '../ai/analyzeLogs';
+import type { Preferences } from '../storage/preferences';
+import { loadCachedBenchmark, type BenchmarkResult } from '../performance/benchmark';
+import { generateSummaryNote } from '../ai/llm';
 
 const RANGE_OPTIONS: AiRange[] = [14, 30, 90, 'all'];
 
@@ -11,7 +14,7 @@ function fmt(value: number | null): string {
   return value == null ? '—' : value.toFixed(1);
 }
 
-export function AiScreen() {
+export function AiScreen({ prefs }: { prefs: Preferences }) {
   const theme = useTheme();
   const bg =
     theme.tokens.color.background ===
@@ -19,26 +22,65 @@ export function AiScreen() {
       ? '#ffffff'
       : theme.tokens.color.background;
   const [range, setRange] = useState<AiRange>(30);
-  const [summary, setSummary] = useState<AiSummary | null>(null);
+  const [logs, setLogs] = useState<Awaited<ReturnType<typeof loadLogs>>>([]);
+  const [summaryNote, setSummaryNote] = useState<string>('');
+  const [benchmark, setBenchmark] = useState<BenchmarkResult | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const summary: AiSummary | null = useMemo(() => {
+    if (!prefs.aiEnabled) return null;
+    return summarizeLogsForAi(logs, range);
+  }, [logs, prefs.aiEnabled, range]);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
     setError(null);
     try {
-      const logs = await loadLogs();
-      setSummary(summarizeLogsForAi(logs, range));
+      const nextLogs = await loadLogs();
+      setLogs(nextLogs);
     } catch {
       setError('Could not load logs for AI analysis.');
+      setSummaryNote('');
     } finally {
       setRefreshing(false);
     }
-  }, [range]);
+  }, []);
+
+  useEffect(() => {
+    loadCachedBenchmark().then(setBenchmark).catch(() => setBenchmark(null));
+  }, []);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!prefs.aiEnabled || !summary) {
+      setSummaryNote('');
+      return;
+    }
+    if (summary.totalLogs === 0) {
+      setSummaryNote('No logs yet in this range. Add entries to generate a summary note.');
+      return;
+    }
+    void (async () => {
+      try {
+        const note = await generateSummaryNote(
+          summary,
+          prefs.performance.preferredLlmModelSize,
+          benchmark
+        );
+        if (!cancelled) setSummaryNote(note);
+      } catch {
+        if (!cancelled) setSummaryNote('');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [benchmark, prefs.aiEnabled, prefs.performance.preferredLlmModelSize, summary]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
@@ -50,8 +92,14 @@ export function AiScreen() {
         <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>AI Analysis</Text>
 
           <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            Log-driven summary view (lite parity): trends, common symptoms, and stressors.
+            Log-driven AI summary view: at-a-glance insights, trends, symptoms, stressors, and flare signals.
           </Text>
+
+          {!prefs.aiEnabled ? (
+            <Text style={[styles.error, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+              AI features are disabled in Settings. Enable AI features & Goals to view analysis.
+            </Text>
+          ) : null}
 
           <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Range</Text>
           <View style={styles.rangeRow}>
@@ -77,22 +125,28 @@ export function AiScreen() {
             <Text style={[styles.error, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{error}</Text>
           ) : null}
 
-          {summary ? (
+          {summary && prefs.aiEnabled ? (
             <>
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>What you logged</Text>
-              {summary.whatYouLogged.map((line) => (
-                <Text key={`wyl-${line}`} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                  {line}
-                </Text>
-              ))}
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Summary note</Text>
+              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                {summaryNote || 'Generating...'}
+              </Text>
 
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>What we found</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>At a glance</Text>
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                 Range: {summary.rangeLabel} ({summary.totalLogs} log{summary.totalLogs === 1 ? '' : 's'})
               </Text>
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                 Flare days: {summary.flareDays}
               </Text>
+              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                Top symptoms: {summary.topSymptoms.length ? summary.topSymptoms.join(', ') : '—'}
+              </Text>
+              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                Top stressors: {summary.topStressors.length ? summary.topStressors.join(', ') : '—'}
+              </Text>
+
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>What we found</Text>
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                 Mood avg: {fmt(summary.avgMood)} / 10
               </Text>
@@ -103,20 +157,19 @@ export function AiScreen() {
                 Fatigue avg: {fmt(summary.avgFatigue)} / 10
               </Text>
 
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>How you are doing</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>What you logged</Text>
+              {summary.whatYouLogged.map((line) => (
+                <Text key={`wyl-${line}`} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                  {line}
+                </Text>
+              ))}
+
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>How you're doing</Text>
               {summary.howYouAreDoing.map((line) => (
                 <Text key={`hyd-${line}`} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                   {line}
                 </Text>
               ))}
-
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>What you logged most</Text>
-              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                Top symptoms: {summary.topSymptoms.length ? summary.topSymptoms.join(', ') : '—'}
-              </Text>
-              <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                Top stressors: {summary.topStressors.length ? summary.topStressors.join(', ') : '—'}
-              </Text>
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Things to watch</Text>
               {summary.thingsToWatch.map((line) => (

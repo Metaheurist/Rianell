@@ -204,7 +204,7 @@ If any of the above becomes false, fix it before moving forward.
 
 **Work items (apply opportunistically)**
 - [~] **Lists:** baseline `FlatList` tuning landed (render window/batch/clipping) and reload path remains non-focus-looping; **open:** FlashList decision + final virtualization thresholds for very large histories.
-- [~] **Charts / AI:** memoization pass started (`ChartsScreen` now memoizes `summarizeCharts` + filtered view trends). **Open:** equivalent `summarizeLogsForAi` input memoization and broader re-render isolation on pref changes.
+- [~] **Charts / AI:** memoization pass expanded (`ChartsScreen` memoizes `summarizeCharts` + filtered view trends; `AiScreen` now memoizes `summarizeLogsForAi` from fetched logs/range and isolates summary-note generation in a separate effect path). **Open:** broader re-render isolation on preference changes and continued profiling as AI/chart depth grows.
 - [~] **Bundle:** Hermes bundle size; lazy-load optional chart/AI deps when added.
 - [~] **SVG / images:** wizard diagram paths; profile low-end Android.
 
