@@ -73,6 +73,7 @@ export function SettingsScreen({
   const [lastReminderAction, setLastReminderAction] = useState<ReminderAction>('none');
   const [unknownReminderActionCount, setUnknownReminderActionCount] = useState(0);
   const [lastUnknownReminderActionAt, setLastUnknownReminderActionAt] = useState<string | null>(null);
+  const [lastUnknownReminderActionSource, setLastUnknownReminderActionSource] = useState<'startup' | 'live' | null>(null);
   const [reminderCapabilities, setReminderCapabilities] = useState<ReminderCapabilities>({
     hasScheduling: false,
     hasAndroidChannel: false,
@@ -152,6 +153,7 @@ export function SettingsScreen({
         if (action === 'unknown') {
           setUnknownReminderActionCount((n) => n + 1);
           setLastUnknownReminderActionAt(new Date().toLocaleTimeString());
+          setLastUnknownReminderActionSource('startup');
         }
       })
       .catch(() => {
@@ -163,6 +165,7 @@ export function SettingsScreen({
       if (action === 'unknown') {
         setUnknownReminderActionCount((n) => n + 1);
         setLastUnknownReminderActionAt(new Date().toLocaleTimeString());
+        setLastUnknownReminderActionSource('live');
       }
     }).then((cleanup) => {
       dispose = cleanup;
@@ -517,6 +520,11 @@ export function SettingsScreen({
                   Last unknown reminder action observed at: {lastUnknownReminderActionAt}.
                 </Text>
               ) : null}
+              {lastUnknownReminderActionSource ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Last unknown action source: {lastUnknownReminderActionSource === 'startup' ? 'startup snapshot' : 'live listener'}.
+                </Text>
+              ) : null}
               {unknownReminderActionCount > 0 && !reminderCapabilities.hasDismissAction ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   This runtime does not expose explicit dismiss action identifiers; some dismiss/close gestures may appear as unknown.
@@ -528,6 +536,7 @@ export function SettingsScreen({
                   onPress={() => {
                     setUnknownReminderActionCount(0);
                     setLastUnknownReminderActionAt(null);
+                    setLastUnknownReminderActionSource(null);
                   }}
                   accessibilityRole="button"
                   accessibilityLabel="Reset unknown reminder action counter"
