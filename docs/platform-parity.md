@@ -86,6 +86,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **React Native:** View Logs now applies adaptive FlatList virtualization settings and fixed-row layout hints to better handle larger histories, tightening parity with web large-list behavior intent.
 
+### v1.45.61 parity note (status checkpoint + next target)
+
+- **All platforms:** parity documentation is now aligned to the `v1.45.60` baseline and explicitly tracks notifications channel/OS delivery semantics as the next RN parity execution target.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.
