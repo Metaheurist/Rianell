@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.80 documentation sync
+
+- **RN snooze reminder response parity (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now maps snoozed reminder notification responses into the shared reminder action flow so snooze reminder taps follow open-app semantics instead of being ignored.
+
 ### v1.45.79 documentation sync
 
 - **RN reminder action normalization (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now normalizes reminder action identifiers across runtime format variants before action mapping, and `apps/rn-app/src/permissions/permissions.test.ts` validates these semantics.

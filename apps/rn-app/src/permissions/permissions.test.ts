@@ -1,4 +1,4 @@
-import { normalizeReminderActionIdentifier } from './permissions';
+import { mapNotificationResponseToReminderAction, normalizeReminderActionIdentifier } from './permissions';
 
 test('normalizeReminderActionIdentifier resolves known actions across runtime variants', () => {
   expect(normalizeReminderActionIdentifier('log-now')).toBe('log-now');
@@ -18,4 +18,20 @@ test('normalizeReminderActionIdentifier resolves default and none safely', () =>
 test('normalizeReminderActionIdentifier marks unknown action identifiers explicitly', () => {
   expect(normalizeReminderActionIdentifier('dismiss')).toBe('unknown');
   expect(normalizeReminderActionIdentifier('custom_action_123')).toBe('unknown');
+});
+
+test('mapNotificationResponseToReminderAction ignores non-reminder notification identifiers', () => {
+  expect(mapNotificationResponseToReminderAction('other-notification', 'default', 'expo.default')).toBe('none');
+});
+
+test('mapNotificationResponseToReminderAction keeps reminder action semantics for reminder notifications', () => {
+  expect(mapNotificationResponseToReminderAction('rianell-daily-reminder', 'log_now', 'expo.default')).toBe('log-now');
+  expect(mapNotificationResponseToReminderAction('rianell-daily-reminder', 'later', 'expo.default')).toBe('later');
+  expect(mapNotificationResponseToReminderAction('rianell-daily-reminder', 'expo.default', 'expo.default')).toBe('default');
+});
+
+test('mapNotificationResponseToReminderAction treats snooze notification taps as default open-app intent', () => {
+  expect(mapNotificationResponseToReminderAction('rianell-reminder-snooze', 'expo.default', 'expo.default')).toBe('default');
+  expect(mapNotificationResponseToReminderAction('rianell-reminder-snooze', 'later', 'expo.default')).toBe('default');
+  expect(mapNotificationResponseToReminderAction('rianell-reminder-snooze', undefined, 'expo.default')).toBe('none');
 });
