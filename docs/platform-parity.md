@@ -16,6 +16,12 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - `sync_behavior`: foreground/interval behavior; no guaranteed OS background sync.
 - `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
 
+### v1.46.3 parity note (RN settings carousel + app installation + log wizard suggest note)
+
+- **React Native — Settings:** Eight titled carousel panes match the web settings overlay pane titles (`apps/pwa-webapp/index.html`). Daily reminders live under **Display**; demo mode under **Data options**; LLM tier + benchmark under **Performance**; export, import, native **App installation** info, and **Clear all data** under **Data management** (`SettingsAppInstallSection.tsx`).
+- **React Native — Log wizard:** **Suggest note** uses the same `suggestLogNote` pipeline as the PWA (remote LLM when configured, otherwise `AIEngine.suggestLogNote`), with preferences and benchmark available to the screen.
+- **Web unchanged:** PWA settings layout and `refreshAppInstallSection` behavior remain the source of truth for browser/WebView install tiles; native RN shows the replacement block described in `docs/CHANGELOG.md` v1.46.3.
+
 ### v1.46.2 parity note (legacy release labeling + CI metadata fallback)
 
 - **Release contract clarity:** legacy artifacts are now emitted with explicit `legacy-capacitor-*` names in CI release assets, reducing ambiguity between RN CLI and Capacitor channels.

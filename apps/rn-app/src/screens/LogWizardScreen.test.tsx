@@ -24,11 +24,15 @@ jest.mock('../storage/logs', () => ({
   getFrequentLogItems: jest.requireActual('../storage/logs').getFrequentLogItems,
 }));
 
-function renderWizard() {
-  const prefs = getDefaultPreferences();
+jest.mock('../ai/llm', () => ({
+  suggestLogNote: jest.fn(async () => 'AI suggested line.'),
+}));
+
+function renderWizard(overridePrefs?: ReturnType<typeof getDefaultPreferences>) {
+  const prefs = overridePrefs ?? getDefaultPreferences();
   return render(
     <ThemeProvider prefs={prefs}>
-      <LogWizardScreen />
+      <LogWizardScreen prefs={prefs} />
     </ThemeProvider>
   );
 }
@@ -238,4 +242,32 @@ test('lifestyle values are clamped on save (steps/hydration/daily function)', as
   expect(draft.dailyFunction).toBe(10);
   expect(draft.steps).toBe(50000);
   expect(draft.hydration).toBe(20);
+});
+
+test('suggest note appends AI text on medications step', async () => {
+  const suggestLogNote = (jest.requireMock('../ai/llm') as { suggestLogNote: jest.Mock }).suggestLogNote;
+  const { getByLabelText, findByText } = renderWizard();
+
+  for (let i = 0; i < 8; i++) {
+    fireEvent.press(getByLabelText('Next step'));
+  }
+  await findByText('Medications (comma separated)');
+
+  fireEvent.press(getByLabelText('Suggest note'));
+  await waitFor(() => {
+    expect(getByLabelText('Log notes').props.value).toContain('AI suggested line');
+  });
+  expect(suggestLogNote).toHaveBeenCalled();
+});
+
+test('suggest note control is hidden when AI is disabled', async () => {
+  const prefs = getDefaultPreferences();
+  prefs.aiEnabled = false;
+  const { getByLabelText, queryByLabelText, findByText } = renderWizard(prefs);
+
+  for (let i = 0; i < 8; i++) {
+    fireEvent.press(getByLabelText('Next step'));
+  }
+  await findByText('Medications (comma separated)');
+  expect(queryByLabelText('Suggest note')).toBeNull();
 });

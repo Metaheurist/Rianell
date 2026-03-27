@@ -24,6 +24,7 @@ import { speakLabel } from '../accessibility/tts';
 import { mergeLogsAppend, parseLogImportJson, serializeLogsForExport } from '../data/logExportImport';
 import { loadLogs, saveLogs } from '../storage/logs';
 import { SettingsCloudPane } from '../settings/SettingsCloudPane';
+import { SettingsAppInstallSection } from '../settings/SettingsAppInstallSection';
 import { clearCachedBenchmark, loadCachedBenchmark, resolveLlmModelSize, runAndCacheBenchmark, type BenchmarkResult } from '../performance/benchmark';
 import { disableDemoMode, enableDemoMode } from '../demo/demoMode';
 import {
@@ -33,7 +34,17 @@ import {
   type ReminderCapabilities,
 } from '../permissions/permissions';
 
-const PANE_TITLES = ['Personal & cloud', 'AI & theme', 'Accessibility', 'Data'] as const;
+/** Matches `data-settings-pane-title` order in `apps/pwa-webapp/index.html` settings carousel. */
+const PANE_TITLES = [
+  'Personal & cloud sync',
+  'AI & Goals',
+  'Display',
+  'Customisation',
+  'Accessibility',
+  'Data options',
+  'Performance',
+  'Data management',
+] as const;
 
 function reminderActionLabel(action: ReminderAction): string {
   if (action === 'log-now') return 'Log now';
@@ -234,6 +245,32 @@ export function SettingsScreen({
     }
   }
 
+  function clearAllLogs() {
+    if (prefs.demoMode) {
+      Alert.alert('Demo Mode', 'Turn off demo mode before clearing data.');
+      return;
+    }
+    Alert.alert(
+      'Clear all data?',
+      'This removes every health log on this device. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await saveLogs([]);
+              Alert.alert('Cleared', 'All health logs were removed from this device.');
+            } catch (e) {
+              Alert.alert('Error', e instanceof Error ? e.message : 'Could not clear data');
+            }
+          },
+        },
+      ]
+    );
+  }
+
   async function runBenchmarkNow() {
     setBenchmarkBusy(true);
     try {
@@ -426,462 +463,1001 @@ export function SettingsScreen({
         onMomentumScrollEnd={onPaneScrollEnd}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Pane 0 — Personal & cloud */}
+        {/* Pane 0 — Personal & cloud sync (web pane 1) */}
+
         <View style={{ width }}>
+
           <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+
             <Section title="Personal & cloud sync">
+
               <Hint>Matches web Settings → first carousel pane (account + Supabase).</Hint>
-              <Row label="Demo mode">
-                <Switch value={prefs.demoMode === true} onValueChange={(on) => void setDemoMode(on)} disabled={demoBusy} />
-              </Row>
-              <Hint>Loads a fresh sample dataset each app launch and pauses data portability actions.</Hint>
+
               <SettingsCloudPane />
+
             </Section>
-            <Section title="Notifications">
-              <Hint>Phase E baseline: notification prefs + permission state for RN parity.</Hint>
-              <Row label="Enable daily reminder">
-                <Switch
-                  value={prefs.notifications.enabled}
-                  onValueChange={(on) =>
-                    onChangePrefs({
-                      ...prefs,
-                      notifications: { ...prefs.notifications, enabled: on },
-                    })
-                  }
-                />
-              </Row>
-              <Row label="Reminder time (HH:MM)">
-                <TextInput
-                  value={prefs.notifications.dailyReminderTime}
-                  onChangeText={(value) =>
-                    onChangePrefs({
-                      ...prefs,
-                      notifications: { ...prefs.notifications, dailyReminderTime: value },
-                    })
-                  }
-                  accessibilityLabel="Daily reminder time"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
-                  placeholder="20:00"
-                  placeholderTextColor="rgba(255,255,255,0.45)"
-                />
-              </Row>
-              <Row label="Reminder sound">
-                <Switch
-                  value={prefs.notifications.soundEnabled}
-                  onValueChange={(on) =>
-                    onChangePrefs({
-                      ...prefs,
-                      notifications: { ...prefs.notifications, soundEnabled: on },
-                    })
-                  }
-                />
-              </Row>
-              <Row label="Snooze minutes (later action)">
-                <InlineChoices
-                  value={String(prefs.notifications.snoozeMinutes)}
-                  options={['10', '15', '30', '60']}
-                  onChange={(v) =>
-                    reminderCapabilities.hasSnooze
-                      ? onChangePrefs({
-                          ...prefs,
-                          notifications: { ...prefs.notifications, snoozeMinutes: Number(v) },
-                        })
-                      : undefined
-                  }
-                  tts={tts}
-                />
-              </Row>
-              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                Later action snoozes for {prefs.notifications.snoozeMinutes} minutes; if snooze is unavailable, app opens Home.
-              </Text>
-              {!reminderCapabilities.hasSnooze ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  This runtime does not support scheduled snooze reminders; later action uses Home fallback.
-                </Text>
-              ) : null}
-              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                Runtime support: schedule {reminderCapabilities.hasScheduling ? 'yes' : 'no'} · Android channel{' '}
-                {reminderCapabilities.hasAndroidChannel ? 'yes' : 'no'} · iOS category{' '}
-                {reminderCapabilities.hasIosCategory ? 'yes' : 'no'} · actions{' '}
-                {reminderCapabilities.hasResponseListener ? 'yes' : 'no'} · dismiss semantics{' '}
-                {reminderCapabilities.hasDismissAction ? 'yes' : 'no'}.
-              </Text>
-              {!reminderCapabilities.hasResponseListener ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Action listener is unavailable on this runtime; reminder action status may update only on next app open.
-                </Text>
-              ) : null}
-              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                Action policy: log-now to Log today, later to snooze (or Home fallback), default/unknown to Home.
-              </Text>
-              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                Notification permission: {notificationPermission}
-              </Text>
-              {notificationScheduleState === 'scheduled' ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Daily reminder scheduled at {prefs.notifications.dailyReminderTime}.
-                </Text>
-              ) : null}
-              {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-android-channel' ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Delivery semantics: Android reminder channel configured for this schedule.
-                </Text>
-              ) : null}
-              {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-ios-category' ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Delivery semantics: iOS reminder actions/category configured for this schedule.
-                </Text>
-              ) : null}
-              {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-channel-and-category' ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Delivery semantics: Android channel and iOS reminder category semantics are both configured.
-                </Text>
-              ) : null}
-              {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-basic' ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Delivery semantics: runtime supports basic daily scheduling without channel controls.
-                </Text>
-              ) : null}
-              {notificationScheduleState === 'invalid-time' ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Reminder time must be HH:MM to schedule notifications.
-                </Text>
-              ) : null}
-              {notificationScheduleState === 'unavailable' ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Notification scheduling is unavailable on this runtime.
-                </Text>
-              ) : null}
-              {lastReminderAction !== 'none' ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Last reminder action: {reminderActionLabel(lastReminderAction)}.
-                </Text>
-              ) : null}
-              {lastReminderAction === 'unknown' ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown reminder actions use safe Home fallback behavior.
-                </Text>
-              ) : null}
-              {unknownReminderActionCount > 0 ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown reminder actions observed this session: {unknownReminderActionCount}.
-                </Text>
-              ) : null}
-              {unknownSessionSummary ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown-action session summary: {unknownSessionSummary}.
-                </Text>
-              ) : null}
-              {unknownReminderActionCount > 0 ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown action breakdown: startup {unknownStartupCount} · live {unknownLiveCount}.
-                </Text>
-              ) : null}
-              {unknownReminderActionCount > 0 ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown action split: startup {unknownStartupPercent}% · live {unknownLivePercent}%.
-                </Text>
-              ) : null}
-              {unknownDominantSourceConfidence ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown-action dominant source confidence: {unknownDominantSourceConfidence}.
-                </Text>
-              ) : null}
-              {unknownReminderActionCount > 0 && unknownReminderActionCount < 3 ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown-action confidence is preliminary until at least 3 unknown events are observed this session.
-                </Text>
-              ) : null}
-              {unknownObservabilityQuality ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown-action observability quality: {unknownObservabilityQuality}.
-                </Text>
-              ) : null}
-              {unknownRecommendedNextCheck ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown-action recommended next check: {unknownRecommendedNextCheck}
-                </Text>
-              ) : null}
-              {unknownSourceTrajectory ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown-action source trajectory this session: {unknownSourceTrajectory}.
-                </Text>
-              ) : null}
-              {unknownTrajectoryStability ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown-action trajectory stability: {unknownTrajectoryStability}.
-                </Text>
-              ) : null}
-              {unknownReminderActionCount > 0 ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown-action stability status: {unknownDriftStatus}.
-                </Text>
-              ) : null}
-              {unknownReminderActionCount > 0 && unknownStartupCount > unknownLiveCount ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown-action trend: mostly startup snapshot responses this session.
-                </Text>
-              ) : null}
-              {unknownReminderActionCount > 0 && unknownLiveCount > unknownStartupCount ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown-action trend: mostly live listener callbacks this session.
-                </Text>
-              ) : null}
-              {unknownReminderActionCount > 0 && unknownLiveCount === unknownStartupCount ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown-action trend: startup and live paths are equally represented this session.
-                </Text>
-              ) : null}
-              {lastUnknownReminderActionAt ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Last unknown reminder action observed at: {lastUnknownReminderActionAt}.
-                </Text>
-              ) : null}
-              {lastUnknownReminderActionSource ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Last unknown action source: {lastUnknownReminderActionSource === 'startup' ? 'startup snapshot' : 'live listener'}.
-                </Text>
-              ) : null}
-              {unknownReminderActionCount > 0 && !reminderCapabilities.hasDismissAction ? (
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  This runtime does not expose explicit dismiss action identifiers; some dismiss/close gestures may appear as unknown.
-                </Text>
-              ) : null}
-              {unknownReminderActionCount > 0 ? (
-                <Pressable
-                  style={styles.dataBtn}
-                  onPress={() => {
-                    setUnknownReminderActionCount(0);
-                    setLastUnknownReminderActionAt(null);
-                    setFirstUnknownReminderActionSource(null);
-                    setLastUnknownReminderActionSource(null);
-                    setUnknownStartupCount(0);
-                    setUnknownLiveCount(0);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel="Reset unknown reminder action counter"
-                >
-                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🧹 Reset unknown action counter</Text>
-                </Pressable>
-              ) : null}
-              <Pressable
-                style={styles.dataBtn}
-                onPress={() => void requestNotificationPermission()}
-                accessibilityRole="button"
-                accessibilityLabel="Request notification permission"
-              >
-                <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🔔 Request notification permission</Text>
-              </Pressable>
-            </Section>
+
           </ScrollView>
+
         </View>
 
-        {/* Pane 1 — AI & theme */}
+
+
+        {/* Pane 1 — AI & Goals (web pane 2) */}
+
         <View style={{ width }}>
+
           <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
-            <Section title="Theme">
+
+            <Section title="AI & Goals">
+
               <Row label="Enable AI features & Goals">
+
                 <Switch
+
                   value={prefs.aiEnabled !== false}
+
                   onValueChange={(on) => onChangePrefs({ ...prefs, aiEnabled: on })}
+
                 />
+
               </Row>
+
+              <Hint>When on: AI Analysis tab, chart predictions, and Goals & targets are available (web parity).</Hint>
+
+            </Section>
+
+            <Section title="Goals & targets">
+
+              <Hint>Persisted goals feed Charts balance targets (mood, sleep, fatigue).</Hint>
+
+              <Row label="Mood target (0-10)">
+
+                <TextInput
+
+                  value={String(prefs.goals.moodTarget)}
+
+                  onChangeText={(value) => updateGoalValue('moodTarget', value)}
+
+                  accessibilityLabel="Mood target value"
+
+                  keyboardType="decimal-pad"
+
+                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+
+                />
+
+              </Row>
+
+              <Row label="Sleep target (0-10)">
+
+                <TextInput
+
+                  value={String(prefs.goals.sleepTarget)}
+
+                  onChangeText={(value) => updateGoalValue('sleepTarget', value)}
+
+                  accessibilityLabel="Sleep target value"
+
+                  keyboardType="decimal-pad"
+
+                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+
+                />
+
+              </Row>
+
+              <Row label="Fatigue target (0-10)">
+
+                <TextInput
+
+                  value={String(prefs.goals.fatigueTarget)}
+
+                  onChangeText={(value) => updateGoalValue('fatigueTarget', value)}
+
+                  accessibilityLabel="Fatigue target value"
+
+                  keyboardType="decimal-pad"
+
+                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+
+                />
+
+              </Row>
+
+            </Section>
+
+          </ScrollView>
+
+        </View>
+
+
+
+        {/* Pane 2 — Display (web pane 3: daily reminders) */}
+
+        <View style={{ width }}>
+
+          <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+
+            <Section title="Display">
+
+              <Hint>Daily reminders and notification permission (web “Display Options” pane).</Hint>
+
+              <Row label="Enable daily reminder">
+
+                <Switch
+
+                  value={prefs.notifications.enabled}
+
+                  onValueChange={(on) =>
+
+                    onChangePrefs({
+
+                      ...prefs,
+
+                      notifications: { ...prefs.notifications, enabled: on },
+
+                    })
+
+                  }
+
+                />
+
+              </Row>
+
+              <Row label="Reminder time (HH:MM)">
+
+                <TextInput
+
+                  value={prefs.notifications.dailyReminderTime}
+
+                  onChangeText={(value) =>
+
+                    onChangePrefs({
+
+                      ...prefs,
+
+                      notifications: { ...prefs.notifications, dailyReminderTime: value },
+
+                    })
+
+                  }
+
+                  accessibilityLabel="Daily reminder time"
+
+                  autoCapitalize="none"
+
+                  autoCorrect={false}
+
+                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+
+                  placeholder="20:00"
+
+                  placeholderTextColor="rgba(255,255,255,0.45)"
+
+                />
+
+              </Row>
+
+              <Row label="Reminder sound">
+
+                <Switch
+
+                  value={prefs.notifications.soundEnabled}
+
+                  onValueChange={(on) =>
+
+                    onChangePrefs({
+
+                      ...prefs,
+
+                      notifications: { ...prefs.notifications, soundEnabled: on },
+
+                    })
+
+                  }
+
+                />
+
+              </Row>
+
+              <Row label="Snooze minutes (later action)">
+
+                <InlineChoices
+
+                  value={String(prefs.notifications.snoozeMinutes)}
+
+                  options={['10', '15', '30', '60']}
+
+                  onChange={(v) =>
+
+                    reminderCapabilities.hasSnooze
+
+                      ? onChangePrefs({
+
+                          ...prefs,
+
+                          notifications: { ...prefs.notifications, snoozeMinutes: Number(v) },
+
+                        })
+
+                      : undefined
+
+                  }
+
+                  tts={tts}
+
+                />
+
+              </Row>
+
+              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                Later action snoozes for {prefs.notifications.snoozeMinutes} minutes; if snooze is unavailable, app opens Home.
+
+              </Text>
+
+              {!reminderCapabilities.hasSnooze ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  This runtime does not support scheduled snooze reminders; later action uses Home fallback.
+
+                </Text>
+
+              ) : null}
+
+              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                Runtime support: schedule {reminderCapabilities.hasScheduling ? 'yes' : 'no'} · Android channel{' '}
+
+                {reminderCapabilities.hasAndroidChannel ? 'yes' : 'no'} · iOS category{' '}
+
+                {reminderCapabilities.hasIosCategory ? 'yes' : 'no'} · actions{' '}
+
+                {reminderCapabilities.hasResponseListener ? 'yes' : 'no'} · dismiss semantics{' '}
+
+                {reminderCapabilities.hasDismissAction ? 'yes' : 'no'}.
+
+              </Text>
+
+              {!reminderCapabilities.hasResponseListener ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Action listener is unavailable on this runtime; reminder action status may update only on next app open.
+
+                </Text>
+
+              ) : null}
+
+              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                Action policy: log-now to Log today, later to snooze (or Home fallback), default/unknown to Home.
+
+              </Text>
+
+              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                Notification permission: {notificationPermission}
+
+              </Text>
+
+              {notificationScheduleState === 'scheduled' ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Daily reminder scheduled at {prefs.notifications.dailyReminderTime}.
+
+                </Text>
+
+              ) : null}
+
+              {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-android-channel' ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Delivery semantics: Android reminder channel configured for this schedule.
+
+                </Text>
+
+              ) : null}
+
+              {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-ios-category' ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Delivery semantics: iOS reminder actions/category configured for this schedule.
+
+                </Text>
+
+              ) : null}
+
+              {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-channel-and-category' ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Delivery semantics: Android channel and iOS reminder category semantics are both configured.
+
+                </Text>
+
+              ) : null}
+
+              {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-basic' ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Delivery semantics: runtime supports basic daily scheduling without channel controls.
+
+                </Text>
+
+              ) : null}
+
+              {notificationScheduleState === 'invalid-time' ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Reminder time must be HH:MM to schedule notifications.
+
+                </Text>
+
+              ) : null}
+
+              {notificationScheduleState === 'unavailable' ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Notification scheduling is unavailable on this runtime.
+
+                </Text>
+
+              ) : null}
+
+              {lastReminderAction !== 'none' ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Last reminder action: {reminderActionLabel(lastReminderAction)}.
+
+                </Text>
+
+              ) : null}
+
+              {lastReminderAction === 'unknown' ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown reminder actions use safe Home fallback behavior.
+
+                </Text>
+
+              ) : null}
+
+              {unknownReminderActionCount > 0 ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown reminder actions observed this session: {unknownReminderActionCount}.
+
+                </Text>
+
+              ) : null}
+
+              {unknownSessionSummary ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown-action session summary: {unknownSessionSummary}.
+
+                </Text>
+
+              ) : null}
+
+              {unknownReminderActionCount > 0 ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown action breakdown: startup {unknownStartupCount} · live {unknownLiveCount}.
+
+                </Text>
+
+              ) : null}
+
+              {unknownReminderActionCount > 0 ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown action split: startup {unknownStartupPercent}% · live {unknownLivePercent}%.
+
+                </Text>
+
+              ) : null}
+
+              {unknownDominantSourceConfidence ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown-action dominant source confidence: {unknownDominantSourceConfidence}.
+
+                </Text>
+
+              ) : null}
+
+              {unknownReminderActionCount > 0 && unknownReminderActionCount < 3 ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown-action confidence is preliminary until at least 3 unknown events are observed this session.
+
+                </Text>
+
+              ) : null}
+
+              {unknownObservabilityQuality ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown-action observability quality: {unknownObservabilityQuality}.
+
+                </Text>
+
+              ) : null}
+
+              {unknownRecommendedNextCheck ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown-action recommended next check: {unknownRecommendedNextCheck}
+
+                </Text>
+
+              ) : null}
+
+              {unknownSourceTrajectory ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown-action source trajectory this session: {unknownSourceTrajectory}.
+
+                </Text>
+
+              ) : null}
+
+              {unknownTrajectoryStability ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown-action trajectory stability: {unknownTrajectoryStability}.
+
+                </Text>
+
+              ) : null}
+
+              {unknownReminderActionCount > 0 ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown-action stability status: {unknownDriftStatus}.
+
+                </Text>
+
+              ) : null}
+
+              {unknownReminderActionCount > 0 && unknownStartupCount > unknownLiveCount ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown-action trend: mostly startup snapshot responses this session.
+
+                </Text>
+
+              ) : null}
+
+              {unknownReminderActionCount > 0 && unknownLiveCount > unknownStartupCount ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown-action trend: mostly live listener callbacks this session.
+
+                </Text>
+
+              ) : null}
+
+              {unknownReminderActionCount > 0 && unknownLiveCount === unknownStartupCount ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Unknown-action trend: startup and live paths are equally represented this session.
+
+                </Text>
+
+              ) : null}
+
+              {lastUnknownReminderActionAt ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Last unknown reminder action observed at: {lastUnknownReminderActionAt}.
+
+                </Text>
+
+              ) : null}
+
+              {lastUnknownReminderActionSource ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  Last unknown action source: {lastUnknownReminderActionSource === 'startup' ? 'startup snapshot' : 'live listener'}.
+
+                </Text>
+
+              ) : null}
+
+              {unknownReminderActionCount > 0 && !reminderCapabilities.hasDismissAction ? (
+
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                  This runtime does not expose explicit dismiss action identifiers; some dismiss/close gestures may appear as unknown.
+
+                </Text>
+
+              ) : null}
+
+              {unknownReminderActionCount > 0 ? (
+
+                <Pressable
+
+                  style={styles.dataBtn}
+
+                  onPress={() => {
+
+                    setUnknownReminderActionCount(0);
+
+                    setLastUnknownReminderActionAt(null);
+
+                    setFirstUnknownReminderActionSource(null);
+
+                    setLastUnknownReminderActionSource(null);
+
+                    setUnknownStartupCount(0);
+
+                    setUnknownLiveCount(0);
+
+                  }}
+
+                  accessibilityRole="button"
+
+                  accessibilityLabel="Reset unknown reminder action counter"
+
+                >
+
+                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🧹 Reset unknown action counter</Text>
+
+                </Pressable>
+
+              ) : null}
+
+              <Pressable
+
+                style={styles.dataBtn}
+
+                onPress={() => void requestNotificationPermission()}
+
+                accessibilityRole="button"
+
+                accessibilityLabel="Request notification permission"
+
+              >
+
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🔔 Request notification permission</Text>
+
+              </Pressable>
+
+            </Section>
+
+          </ScrollView>
+
+        </View>
+
+
+
+        {/* Pane 3 — Customisation (web pane 4) */}
+
+        <View style={{ width }}>
+
+          <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+
+            <Section title="Theme customisation">
 
               <Row label="Appearance mode">
+
                 <InlineChoices
+
                   value={prefs.appearanceMode}
+
                   options={['system', 'dark', 'light']}
+
                   onChange={(v) => onChangePrefs({ ...prefs, appearanceMode: v as AppearanceMode })}
+
                   tts={tts}
+
                 />
+
               </Row>
+
+              <Hint>Pick a global theme (web parity: mint / red-black / mono / rainbow maps to team tokens on mobile).</Hint>
 
               <Row label="Team">
+
                 <InlineChoices
+
                   value={prefs.team}
+
                   options={getTeamIds()}
+
                   onChange={(v) => onChangePrefs({ ...prefs, team: v })}
+
                   tts={tts}
+
                 />
+
               </Row>
+
             </Section>
-            <Section title="Performance">
-              <Hint>
-                Benchmark parity with web: tiers 1-5 + recommended on-device AI model. Use this to pick model size and profile.
-              </Hint>
-              <Row label="On-device AI model">
-                <InlineChoices
-                  value={prefs.performance.preferredLlmModelSize}
-                  options={['recommended', 'tier1', 'tier2', 'tier3', 'tier4', 'tier5']}
-                  onChange={(v) =>
-                    onChangePrefs({
-                      ...prefs,
-                      performance: {
-                        ...prefs.performance,
-                        preferredLlmModelSize: v as PreferredLlmModelSize,
-                      },
-                    })
-                  }
-                  tts={tts}
-                />
-              </Row>
-              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                Active model: {resolveLlmModelSize(prefs.performance.preferredLlmModelSize, benchmark)}
-                {benchmark ? ` (recommended ${benchmark.llmModelSize}, tier ${benchmark.tier})` : ' (no benchmark yet)'}
-              </Text>
-              <View style={styles.performanceActions}>
-                <Pressable
-                  style={[styles.dataBtn, { opacity: benchmarkBusy ? 0.6 : 1 }]}
-                  onPress={() => void runBenchmarkNow()}
-                  disabled={benchmarkBusy}
-                  accessibilityRole="button"
-                  accessibilityLabel="Run performance benchmark"
-                >
-                  {benchmarkBusy ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>⚡ Run benchmark</Text>
-                  )}
-                </Pressable>
-                <Pressable
-                  style={styles.dataBtn}
-                  onPress={() => {
-                    void clearCachedBenchmark().then(() => setBenchmark(null));
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel="Clear performance benchmark"
-                >
-                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🧹 Clear benchmark cache</Text>
-                </Pressable>
-              </View>
-            </Section>
-            <Section title="Goals & targets">
-              <Hint>Persisted goals feed Charts balance targets (mood, sleep, fatigue).</Hint>
-              <Row label="Mood target (0-10)">
-                <TextInput
-                  value={String(prefs.goals.moodTarget)}
-                  onChangeText={(value) => updateGoalValue('moodTarget', value)}
-                  accessibilityLabel="Mood target value"
-                  keyboardType="decimal-pad"
-                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
-                />
-              </Row>
-              <Row label="Sleep target (0-10)">
-                <TextInput
-                  value={String(prefs.goals.sleepTarget)}
-                  onChangeText={(value) => updateGoalValue('sleepTarget', value)}
-                  accessibilityLabel="Sleep target value"
-                  keyboardType="decimal-pad"
-                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
-                />
-              </Row>
-              <Row label="Fatigue target (0-10)">
-                <TextInput
-                  value={String(prefs.goals.fatigueTarget)}
-                  onChangeText={(value) => updateGoalValue('fatigueTarget', value)}
-                  accessibilityLabel="Fatigue target value"
-                  keyboardType="decimal-pad"
-                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
-                />
-              </Row>
-            </Section>
+
           </ScrollView>
+
         </View>
 
-        {/* Pane 2 — Accessibility */}
+
+
+        {/* Pane 4 — Accessibility (web pane 5) */}
+
         <View style={{ width }}>
+
           <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+
             <Section title="Accessibility">
+
               <Row label="Large text">
+
                 <Switch
+
                   value={prefs.accessibility.largeTextEnabled}
+
                   onValueChange={(on) =>
+
                     onChangePrefs({
+
                       ...prefs,
+
                       accessibility: {
+
                         ...prefs.accessibility,
+
                         largeTextEnabled: on,
+
                         textScale: on ? Math.max(prefs.accessibility.textScale, 1.2) : 1,
+
                       },
+
                     })
+
                   }
+
                 />
+
               </Row>
+
+
 
               <Hint>Text scale is now applied across mobile screens via theme typography scaling.</Hint>
 
+
+
               <Row label="Text-to-speech (tap-to-read)">
+
                 <Switch
+
                   value={prefs.accessibility.ttsEnabled}
+
                   onValueChange={(on) =>
+
                     onChangePrefs({
+
                       ...prefs,
+
                       accessibility: { ...prefs.accessibility, ttsEnabled: on },
+
                     })
+
                   }
+
                 />
+
               </Row>
+
+
 
               <Row label="Read mode (auto-read on focus)">
+
                 <Switch
+
                   value={prefs.accessibility.ttsReadModeEnabled}
+
                   onValueChange={(on) =>
+
                     onChangePrefs({
+
                       ...prefs,
+
                       accessibility: { ...prefs.accessibility, ttsReadModeEnabled: on },
+
                     })
+
                   }
+
                 />
+
               </Row>
+
+
 
               <Row label="Colorblind mode">
+
                 <InlineChoices
+
                   value={prefs.accessibility.colorblindMode}
+
                   options={['none', 'deuteranopia', 'protanopia', 'tritanopia', 'high-contrast']}
+
                   onChange={(v) =>
+
                     onChangePrefs({
+
                       ...prefs,
+
                       accessibility: { ...prefs.accessibility, colorblindMode: v },
+
                     })
+
                   }
+
                   tts={tts}
+
                 />
+
               </Row>
+
             </Section>
+
           </ScrollView>
+
         </View>
 
-        {/* Pane 3 — Data */}
+
+
+        {/* Pane 5 — Data options (web pane 6) */}
+
         <View style={{ width }}>
+
           <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
-            <Section title="Data management">
-              <Hint>Export JSON matches web portability; import accepts the same array format (replace or merge by date).</Hint>
-              <Pressable
-                style={[styles.dataBtn, { opacity: exportBusy ? 0.6 : 1 }]}
-                onPress={() => void onExportLogs()}
-                disabled={exportBusy}
-                accessibilityRole="button"
-                accessibilityLabel="Export logs as JSON"
-              >
-                {exportBusy ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>📤 Export logs (JSON)</Text>
-                )}
-              </Pressable>
-              <Pressable
-                style={styles.dataBtn}
-                onPress={() => setImportOpen(true)}
-                accessibilityRole="button"
-                accessibilityLabel="Import logs from JSON"
-              >
-                <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>📥 Import logs (JSON)</Text>
-              </Pressable>
+
+            <Section title="Data options">
+
+              <Row label="Demo mode">
+
+                <Switch value={prefs.demoMode === true} onValueChange={(on) => void setDemoMode(on)} disabled={demoBusy} />
+
+              </Row>
+
+              <Hint>Loads a fresh sample dataset each app launch and pauses data portability actions (web parity).</Hint>
+
+              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                Auto-backup to local storage and chart compression toggles exist on the web PWA only; native uses local storage for logs
+
+                automatically.
+
+              </Text>
+
             </Section>
+
           </ScrollView>
+
         </View>
+
+
+
+        {/* Pane 6 — Performance (web pane 7) */}
+
+        <View style={{ width }}>
+
+          <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+
+            <Section title="Performance">
+
+              <Hint>
+
+                Animation / lazy-load toggles are web-only. On mobile, use the benchmark to pick an on-device AI model tier.
+
+              </Hint>
+
+              <Row label="On-device AI model">
+
+                <InlineChoices
+
+                  value={prefs.performance.preferredLlmModelSize}
+
+                  options={['recommended', 'tier1', 'tier2', 'tier3', 'tier4', 'tier5']}
+
+                  onChange={(v) =>
+
+                    onChangePrefs({
+
+                      ...prefs,
+
+                      performance: {
+
+                        ...prefs.performance,
+
+                        preferredLlmModelSize: v as PreferredLlmModelSize,
+
+                      },
+
+                    })
+
+                  }
+
+                  tts={tts}
+
+                />
+
+              </Row>
+
+              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+
+                Active model: {resolveLlmModelSize(prefs.performance.preferredLlmModelSize, benchmark)}
+
+                {benchmark ? ` (recommended ${benchmark.llmModelSize}, tier ${benchmark.tier})` : ' (no benchmark yet)'}
+
+              </Text>
+
+              <View style={styles.performanceActions}>
+
+                <Pressable
+
+                  style={[styles.dataBtn, { opacity: benchmarkBusy ? 0.6 : 1 }]}
+
+                  onPress={() => void runBenchmarkNow()}
+
+                  disabled={benchmarkBusy}
+
+                  accessibilityRole="button"
+
+                  accessibilityLabel="Run performance benchmark"
+
+                >
+
+                  {benchmarkBusy ? (
+
+                    <ActivityIndicator color="#fff" />
+
+                  ) : (
+
+                    <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>⚡ Run benchmark</Text>
+
+                  )}
+
+                </Pressable>
+
+                <Pressable
+
+                  style={styles.dataBtn}
+
+                  onPress={() => {
+
+                    void clearCachedBenchmark().then(() => setBenchmark(null));
+
+                  }}
+
+                  accessibilityRole="button"
+
+                  accessibilityLabel="Clear performance benchmark"
+
+                >
+
+                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🧹 Clear benchmark cache</Text>
+
+                </Pressable>
+
+              </View>
+
+            </Section>
+
+          </ScrollView>
+
+        </View>
+
+
+
+        {/* Pane 7 — Data management + App installation (web pane 8) */}
+
+        <View style={{ width }}>
+
+          <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+
+            <Section title="Data management">
+
+              <SettingsAppInstallSection />
+
+              <Hint>Export JSON matches web portability; import accepts the same array format (replace or merge by date).</Hint>
+
+              <Pressable
+
+                style={[styles.dataBtn, { opacity: exportBusy ? 0.6 : 1 }]}
+
+                onPress={() => void onExportLogs()}
+
+                disabled={exportBusy}
+
+                accessibilityRole="button"
+
+                accessibilityLabel="Export logs as JSON"
+
+              >
+
+                {exportBusy ? (
+
+                  <ActivityIndicator color="#fff" />
+
+                ) : (
+
+                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>📤 Export logs (JSON)</Text>
+
+                )}
+
+              </Pressable>
+
+              <Pressable
+
+                style={styles.dataBtn}
+
+                onPress={() => setImportOpen(true)}
+
+                accessibilityRole="button"
+
+                accessibilityLabel="Import logs from JSON"
+
+              >
+
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>📥 Import logs (JSON)</Text>
+
+              </Pressable>
+
+              <Pressable
+
+                style={[styles.dataBtn, styles.dangerBtn]}
+
+                onPress={clearAllLogs}
+
+                accessibilityRole="button"
+
+                accessibilityLabel="Clear all health logs"
+
+              >
+
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🗑️ Clear all data</Text>
+
+              </Pressable>
+
+            </Section>
+
+          </ScrollView>
+
+        </View>
+
+
       </ScrollView>
 
       <Modal visible={importOpen} animationType="slide" transparent onRequestClose={() => setImportOpen(false)}>
@@ -1043,6 +1619,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dataBtnText: { color: '#fff', fontWeight: '800' },
+  dangerBtn: {
+    backgroundColor: 'rgba(244, 67, 54, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(244, 67, 54, 0.45)',
+  },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',

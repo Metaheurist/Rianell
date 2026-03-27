@@ -171,13 +171,9 @@ export function RootNavigator({
         <Stack.Screen name="Tabs" options={{ headerShown: false }}>
           {() => <Tabs prefs={prefs} onChangePrefs={onChangePrefs} />}
         </Stack.Screen>
-        <Stack.Screen
-          name="LogWizard"
-          component={LogWizardScreen}
-          options={{
-            title: 'Log today',
-          }}
-        />
+        <Stack.Screen name="LogWizard" options={{ title: 'Log today' }}>
+          {() => <LogWizardScreen prefs={prefs} />}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
