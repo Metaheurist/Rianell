@@ -41,13 +41,9 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: react-app/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: npm audit (react-app)
-        working-directory: react-app
-        run: npm ci && npm audit --audit-level=high --omit=dev
-
-      - name: npm audit (root / esbuild)
+      - name: npm ci + npm audit (production deps, all workspaces)
         run: npm ci --omit=dev && npm audit --audit-level=high --omit=dev
 
       - name: Set up Python

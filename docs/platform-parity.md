@@ -21,6 +21,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - Cloud sync now includes additional user setting keys stored outside `rianellSettings`, improving cross-device settings parity for authenticated users.
 - Native-first notification permission handling and native daily scheduling remain in place for mobile runtime consistency.
 
+### v1.45.25 parity note (React Native shell)
+
+- Native **bottom tabs** align with web primary navigation intent (Home, logs, charts, optional AI, settings). **Charts → Balance** exposes a **Targets** row (default wellness line) as a stepping stone toward full **Goals & targets** parity with web.
+
 ### v1.45.0 parity update
 
 - Voice input now performs explicit microphone permission checks before recognition start, with clearer denied/unsupported feedback.

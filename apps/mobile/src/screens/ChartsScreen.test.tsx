@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView } from 'react-native';
-import { act, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ChartsScreen } from './ChartsScreen';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import { getDefaultPreferences } from '../storage/preferences';
@@ -58,4 +58,20 @@ test('charts range and view chips expose accessibility labels', async () => {
 
   await findByLabelText('Charts date range 30 days');
   await findByLabelText('Chart view Combined');
+});
+
+test('balance view shows target snapshot when logs exist', async () => {
+  const today = new Date().toISOString().slice(0, 10);
+  mockedLoadLogs.mockResolvedValue([{ date: today, mood: 6, sleep: 7, fatigue: 4 }]);
+
+  const prefs = getDefaultPreferences();
+  const { findByLabelText, getByLabelText } = render(
+    <ThemeProvider prefs={prefs}>
+      <ChartsScreen />
+    </ThemeProvider>
+  );
+
+  await waitFor(() => expect(mockedLoadLogs).toHaveBeenCalled());
+  fireEvent.press(getByLabelText('Chart view Balance'));
+  await findByLabelText('Charts target snapshot');
 });

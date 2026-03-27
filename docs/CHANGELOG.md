@@ -2,7 +2,22 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.24** - Mobile: Ionicons tabs, settings carousel, Supabase cloud login.
+**Latest: v1.45.25** - Supply chain: npm overrides, single lockfile, security audit workflow; mobile shell + test deps.
+
+### v1.45.25 - 2026-03-27 - npm overrides, Dependabot/tar fix, single lockfile, RN shell polish
+
+- **Supply chain / npm (repo root):**
+  - **`package.json` `overrides`:** patched **`tar`**, **`handlebars`**, **`brace-expansion`** / **`minimatch`**, **`http-proxy-agent`**, **`@tootallnate/once`**, **`semver`**, **`send`**, **`replace.minimatch`**; **`@capacitor/assets` → `@capacitor/cli` via `$@capacitor/cli`** with root devDependency **`@capacitor/cli@7.6.1`** so assets no longer pull **CLI 5.x + `tar@6`**.
+  - **Single `package-lock.json`:** removed nested **`react-app/package-lock.json`** and **`apps/mobile/package-lock.json`** (workspaces use root lock only; reduces duplicate Dependabot noise).
+  - **`npm audit --omit=dev`:** **0** vulnerabilities on the production tree (CI gate). Full `npm audit` may still list **moderate** dev-only paths (Jest / RN tooling) until upstream bumps.
+- **CI / workflows:**
+  - **`.github/workflows/security-audit.yml`:** one step — **`npm ci --omit=dev && npm audit --audit-level=high --omit=dev`**; `setup-node` cache path **`package-lock.json`** at repo root.
+  - **`.github/workflows/ci.yml`:** removed redundant **`npm ci`** under **`react-app`** (root **`npm ci`** installs all workspaces).
+- **Mobile (`apps/mobile`):**
+  - **Explicit deps** for hoisted installs: **`jest`**, **`@react-navigation/core`**, **`babel-preset-expo`**, **`stacktrace-js`**, **`@ungap/structured-clone`**, **`react-freeze`**, **`warn-once`**.
+  - **Shell UX:** tab **labels** + **`headerShown: false`** on tabs; **`useBottomTabBarHeight()`** + **Beta** chip on Home FAB; **Charts → Balance** **Targets** snapshot (default **7/10** line + marker; web Goals persistence → Phase E).
+  - **`RootNavigator`:** **`TabBarIconProps`** for strict TypeScript on tab icons.
+- **Docs:** **`docs/next-phase-development-plan.md`** §6 (dependency & supply chain); **`docs/SECURITY.md`** (npm audits); **`README.md`**, **`docs/app-and-features.md`**, **`docs/platform-parity.md`** pointers.
 
 ### v1.45.24 - 2026-03-26 - Mobile: tab icons, settings slides, Supabase auth
 

@@ -17,6 +17,9 @@ const RANGE_OPTIONS: ChartRange[] = [14, 30, 90, 'all'];
 
 const VIEW_OPTIONS: ChartViewMode[] = ['balance', 'individual', 'combined'];
 
+/** Default wellness target on 0–10 scale; aligns with web demo goals until native `rianellGoals` lands (Phase E). */
+const DEFAULT_WELLNESS_TARGET = 7;
+
 export function ChartsScreen() {
   const theme = useTheme();
   const bg =
@@ -125,6 +128,42 @@ export function ChartsScreen() {
             })}
           </View>
 
+          {view === 'balance' && !loading && !error && summary.totalLogs > 0 ? (
+            <View accessibilityLabel="Charts target snapshot">
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Targets</Text>
+              <Text
+                style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12), marginBottom: 10 }]}
+              >
+                Default line {DEFAULT_WELLNESS_TARGET.toFixed(1)}/10. Custom goals (web Goals & targets) land in Phase E.
+              </Text>
+              {filterTrendsForChartView(summary.trends, 'balance').map((trend) => {
+                const cur = trend.current;
+                const pct =
+                  cur != null && Number.isFinite(cur) ? Math.min(100, Math.max(0, (cur / 10) * 100)) : 0;
+                const targetPct = (DEFAULT_WELLNESS_TARGET / 10) * 100;
+                return (
+                  <View key={`target-${trend.key}`} style={styles.targetBlock}>
+                    <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                      {trend.label}: {formatChartMetricValue(trend.key, cur)} · target {DEFAULT_WELLNESS_TARGET.toFixed(1)}
+                    </Text>
+                    <View style={styles.targetTrack}>
+                      <View
+                        style={[
+                          styles.targetFill,
+                          {
+                            width: `${pct}%`,
+                            backgroundColor: CHART_METRIC_HEX[trend.key],
+                          },
+                        ]}
+                      />
+                      <View style={[styles.targetMarker, { left: `${targetPct}%` }]} />
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          ) : null}
+
           {showOverview ? (
             <>
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Overview</Text>
@@ -218,4 +257,22 @@ const styles = StyleSheet.create({
   },
   rangeChipOn: { backgroundColor: 'rgba(255,255,255,0.22)' },
   rangeChipText: { color: '#fff', fontWeight: '800' },
+  targetBlock: { marginBottom: 10 },
+  targetTrack: {
+    marginTop: 4,
+    height: 10,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  targetFill: { height: '100%', borderRadius: 6, minWidth: 2 },
+  targetMarker: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 2,
+    marginLeft: -1,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+  },
 });

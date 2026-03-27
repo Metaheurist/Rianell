@@ -2,7 +2,7 @@
 
 This document is the **single build plan** to finish Rianell’s transition to a **React Native CLI** app that matches the **web/PWA** and produces **Android APK** + **iOS emulator Xcode zip** via CI releases.
 
-**Last updated:** 2026-03-26 (Ionicons tab bar + settings carousel + Supabase login; `app.config.js` / `.env.example`)
+**Last updated:** 2026-03-27 (npm **overrides** + root `@capacitor/cli` for Dependabot/tar; **single** `package-lock.json`; mobile explicit test/runtime deps; security workflow + CI: one `npm ci` at root)
 
 ---
 
@@ -59,7 +59,7 @@ If any of the above becomes false, fix it before moving forward.
 **Web reference:** `web/index.html` + `web/app.js`
 
 ### 4.1 Native screens remaining
-- [~] **Charts tab (Phase B)** — **lite parity done:** range/view (`balance` / `individual` / `combined`), trends, sparks, refresh, balance filter, empty state, chip a11y, **value/delta** formatting, **`CHART_METRIC_HEX`** + spark + row accent (`ChartsScreen` + `summarizeCharts.ts`). **Still open:** full **Apex-class** line/radar charts, animations, prediction toggles, and chart chrome (`Phase B` → **Next steps** in §5).
+- [~] **Charts tab (Phase B)** — **lite parity done:** range/view (`balance` / `individual` / `combined`), trends, sparks, refresh, balance filter, empty state, chip a11y, **value/delta** formatting, **`CHART_METRIC_HEX`** + spark + row accent (`ChartsScreen` + `summarizeCharts.ts`). **Balance → Targets:** snapshot bars vs **default 7/10** line + vertical marker (web **Goals & targets** persistence → Phase E). **Still open:** full **Apex-class** line/radar charts, animations, prediction toggles, and chart chrome (`Phase B` → **Next steps** in §5).
 - [~] **AI Analysis tab (Phase C)** — **lite parity done:** `AiScreen` + `summarizeLogsForAi` (`apps/mobile/src/ai/analyzeLogs.ts`): range chips + a11y, pull-to-refresh, “what you logged” / flare / averages / narrative-style sections. **Still open:** match **web** section order, headings, and copy; correlations + “groups that change together” if present on web; respect `aiEnabled` everywhere. Code: `apps/mobile/src/screens/AiScreen.tsx`.
 
 ### 4.2 Log wizard remaining steps (native)
@@ -74,8 +74,8 @@ If any of the above becomes false, fix it before moving forward.
 ### 4.3 Shell UX parity (Home, navigation, themes, fonts, settings, AI / LLM, bug report, goals)
 **Web reference:** same as §4.1; compare tab chrome, Settings panels, and `web/app.js` feature flags.
 
-- [~] **Home tab:** greeting + today’s log status + **Log today** FAB (`HomeScreen`). **Tests:** `HomeScreen.test.tsx` (title, empty/logged copy, FAB → `LogWizard`).
-- [x] **Navigation:** bottom tabs use **`@expo/vector-icons` / Ionicons** (`home-outline`, `list-outline`, `bar-chart-outline`, `sparkles-outline`, `settings-outline`) in **`RootNavigator`**. **Tests:** `RootNavigator.test.tsx` (AI tab visibility); Jest mocks Ionicons in **`jest.setup.ts`**.
+- [~] **Home tab:** greeting + today’s log status + **Log today** FAB (`HomeScreen`) with **`useBottomTabBarHeight()`** so the FAB clears the tab bar + home indicator, **Beta** badge, a11y label `Log today, Beta`. **Tests:** `HomeScreen.test.tsx` (title, empty/logged copy, FAB → `LogWizard`).
+- [x] **Navigation:** bottom tabs use **`@expo/vector-icons` / Ionicons** in **`RootNavigator`**; **`headerShown: false`** on tab screens (in-screen titles only); **`tabBarLabel`** short labels (Home, Logs, Charts, AI, Settings); **`tabBarLabelStyle`** + light **`paddingTop`** on **`tabBarStyle`** (bottom safe area remains handled by React Navigation’s tab bar). **Tests:** `RootNavigator.test.tsx` (AI tab visibility); Jest mocks Ionicons in **`jest.setup.ts`**.
 - [~] **Themes & fonts:** `ThemeProvider` + `@rianell/tokens` (team, appearance mode, colorblind); `theme.font()` scales with `prefs.accessibility.textScale`. **Tests:** `ThemeProvider.test.tsx`, `SettingsScreen.test.tsx` (typography scale).
 - [~] **Settings — parity vs web carousel:** native **Settings** uses a **horizontal paged carousel** (tabs + prev/next + dots) with panes **Personal & cloud** → **AI & theme** → **Accessibility** → **Data & install** (mirrors web `settings-carousel*` structure). **Cloud** pane: **`SettingsCloudPane`** + Supabase auth when env is set. **Still open vs web:** remaining panes (Display, Customisation, Performance, full AI & Goals toggles), **bug report**, **goals/targets**, **LLM** picker, notifications, **About**—port incrementally; **tests:** `SettingsScreen.test.tsx`, `SettingsCloudPane.test.tsx`, `supabaseClient.test.ts`.
 - [~] **AI gating:** `aiEnabled` hides AI tab and should gate AI-heavy settings copy on native the same way as web when implemented end-to-end.
@@ -103,6 +103,7 @@ If any of the above becomes false, fix it before moving forward.
 - [x] **Metric copy parity:** steps use integer + locale grouping; hydration uses `X.X glasses`; deltas signed consistently (`summarizeCharts.ts` + `ChartsScreen`).
 - [x] **Metric color parity (lite):** `CHART_METRIC_HEX` from web palette; colored mini spark bars + row left border (`ChartsScreen`).
 - [~] **Visual parity:** full Apex line/radar charts / animations / chrome (not on native yet).
+- [x] **Target snapshot (lite):** Balance view shows **Targets** block: current vs default **7.0/10** with fill bar + marker (`ChartsScreen`); custom goals when native storage matches web.
 
 **Done when (lite — met):** for the same logs + range, native shows the same **numbers**, **deltas**, **view mode** semantics, and **metric colors** as web; toggles and empty/loading behave consistently.
 
@@ -146,7 +147,7 @@ If any of the above becomes false, fix it before moving forward.
 - [~] **Bug report:** surface equivalent to web (modal / mailto / GitHub)—route, copy, and **tests** (`SettingsScreen` or dedicated screen).
 - [~] **Goals & targets:** parity with web goals UI and persistence (`@rianell/shared` / preferences)—**tests** for merge rules and UI.
 - [~] **LLM / on-device / browser AI** scaffolding: align with web feature flags; when native inference exists, gate behind same prefs—**tests** for disabled/enabled states.
-- [~] **Nav polish:** safe-area / label parity with web bottom chrome.
+- [x] **Nav polish (partial):** tab **labels** + **safe-area** bottom padding + **no duplicate tab headers**; Home FAB **above** tab bar via **`useBottomTabBarHeight`**. **Still open:** match web tab copy 1:1 if product wants longer labels; optional haptic on tab change.
 
 **Done when:** a user can complete the same **settings-adjacent** and **home/nav** tasks on web and native with the same intent; exceptions documented.
 
@@ -175,6 +176,12 @@ If any of the above becomes false, fix it before moving forward.
 - `npm run typecheck:mobile`
 - `npm run test:mobile`
 - `npm run test:unit` (from repo root)
+
+### Dependency & supply chain (npm)
+- **Single lockfile:** only **`package-lock.json` at repo root** (npm workspaces). Nested locks under `react-app/` or `apps/mobile/` were removed to avoid duplicate Dependabot scans and drift.
+- **Root `package.json` `overrides`:** e.g. **`tar` ≥ 7.5.11**, **`handlebars`**, **`brace-expansion` / `minimatch`**, **`@capacitor/assets` → `@capacitor/cli` via `$@capacitor/cli`** (root devDependency **`@capacitor/cli@7.6.1`**), **`http-proxy-agent`**, **`@tootallnate/once`**, **`semver`**, **`send`**, **`replace.minimatch`**.
+- **CI / `npm audit --omit=dev`:** **0** high/critical in the **production** tree (matches **`security-audit.yml`**). A **full** `npm audit` (including Jest / RN **dev** subgraphs) may still list **moderate** `brace-expansion` / `glob` until upstream; track via Dependabot or periodic `npm audit` locally.
+- **Mobile workspace:** explicit **`jest`**, **`@react-navigation/core`**, **`babel-preset-expo`**, **`stacktrace-js`**, **`@ungap/structured-clone`**, **`react-freeze`**, **`warn-once`** so hoisted installs resolve under the lean tree.
 
 ### Required CI gates
 - `security-audit` must pass (production-only audit).

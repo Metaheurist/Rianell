@@ -15,7 +15,7 @@ This document describes how **Rianell** (this health app) handles health-related
 | Environment variables | [security/.env.example](../security/.env.example), [Configuration](testing-and-configuration.md#nav-configuration), [Local secrets directory](#local-secrets-directory-security) below |
 | Supabase RLS examples (SQL) | [supabase-rls-recommended.sql](supabase-rls-recommended.sql) |
 | Android network / cleartext after `cap sync` | [Android: cleartext and mixed content](#android-cleartext-and-mixed-content) below |
-| Automated audits (CI) | [../.github/workflows/ci.yml](../.github/workflows/ci.yml) (`security-audit` job) |
+| Automated audits (CI) | [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) (Gitleaks, `npm audit`, `pip-audit`); required by [../.github/workflows/ci.yml](../.github/workflows/ci.yml) |
 | Web CSP (meta tag) | [../web/index.html](../web/index.html) |
 
 ## Server logs
@@ -127,7 +127,9 @@ On each **release** build (or before tagging):
 
 ## Dependency and CI scanning
 
-- GitHub Actions workflow [../.github/workflows/ci.yml](../.github/workflows/ci.yml) (`security-audit` job) runs **[Gitleaks](https://github.com/gitleaks/gitleaks)** on the **checked-out working tree** (with `--no-git` so the scan does not walk full git history), **`npm audit`** (root + react-app), and **`pip-audit`** on `requirements.txt`. Configuration: [`.gitleaks.toml`](../.gitleaks.toml) (path allowlists for templates, `node_modules`, local-only `security/.env`, and build dirs). Failures should be triaged like Dependabot alerts.
+- **Standalone workflow:** [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) runs **[Gitleaks](https://github.com/gitleaks/gitleaks)** on the working tree, **`npm ci --omit=dev && npm audit --audit-level=high --omit=dev`** at the **repository root** (single [../package-lock.json](../package-lock.json) for all npm workspaces), and **`pip-audit`** on `requirements.txt`. Configuration: [`.gitleaks.toml`](../.gitleaks.toml) (path allowlists for templates, `node_modules`, local-only `security/.env`, and build dirs).
+- **Production dependency tree:** Root [../package.json](../package.json) uses **`overrides`** to pin patched versions of high-impact transitive packages (e.g. **`tar`**, **`handlebars`**, **`minimatch`** / **`brace-expansion`**, **`@capacitor/assets` → `@capacitor/cli`**). **`npm audit --omit=dev`** is expected to report **no** high/critical issues on installable production deps; a **full** `npm audit` (including devDependencies such as Jest) may still list lower-severity items until upstream releases land—triage alongside **Dependabot** alerts.
+- **CI reference:** The **`security-audit`** job is required by [../.github/workflows/ci.yml](../.github/workflows/ci.yml) before mobile bundle gates. Failures should be triaged like Dependabot alerts.
 
 ## Client-side storage and privacy
 

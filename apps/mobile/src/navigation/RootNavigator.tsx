@@ -20,6 +20,8 @@ export type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
 
+type TabBarIconProps = { color: string; size?: number };
+
 export function shouldShowAiTab(prefs: Preferences) {
   return prefs.aiEnabled !== false;
 }
@@ -53,12 +55,20 @@ export function RootNavigator({
 
 function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (next: Preferences) => void }) {
   const theme = useTheme();
+  const tabBg =
+    theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
+      ? '#ffffff'
+      : theme.tokens.color.background;
   return (
     <Tab.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)' ? '#ffffff' : theme.tokens.color.background },
-        headerTintColor: theme.tokens.color.text,
-        tabBarStyle: { backgroundColor: theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)' ? '#ffffff' : theme.tokens.color.background },
+        headerShown: false,
+        tabBarShowLabel: true,
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarStyle: {
+          backgroundColor: tabBg,
+          paddingTop: 4,
+        },
         tabBarActiveTintColor: theme.tokens.color.accent,
         tabBarInactiveTintColor: theme.tokens.color.text,
       }}
@@ -67,21 +77,24 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" size={size ?? 24} color={color} />,
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ color, size }: TabBarIconProps) => <Ionicons name="home-outline" size={size ?? 24} color={color} />,
         }}
       />
       <Tab.Screen
         name="View Logs"
         component={LogsScreenRoute}
         options={{
-          tabBarIcon: ({ color, size }) => <Ionicons name="list-outline" size={size ?? 24} color={color} />,
+          tabBarLabel: 'Logs',
+          tabBarIcon: ({ color, size }: TabBarIconProps) => <Ionicons name="list-outline" size={size ?? 24} color={color} />,
         }}
       />
       <Tab.Screen
         name="Charts"
         component={ChartsScreen}
         options={{
-          tabBarIcon: ({ color, size }) => <Ionicons name="bar-chart-outline" size={size ?? 24} color={color} />,
+          tabBarLabel: 'Charts',
+          tabBarIcon: ({ color, size }: TabBarIconProps) => <Ionicons name="bar-chart-outline" size={size ?? 24} color={color} />,
         }}
       />
       {shouldShowAiTab(prefs) ? (
@@ -89,14 +102,16 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
           name="AI Analysis"
           component={AiScreen}
           options={{
-            tabBarIcon: ({ color, size }) => <Ionicons name="sparkles-outline" size={size ?? 24} color={color} />,
+            tabBarLabel: 'AI',
+            tabBarIcon: ({ color, size }: TabBarIconProps) => <Ionicons name="sparkles-outline" size={size ?? 24} color={color} />,
           }}
         />
       ) : null}
       <Tab.Screen
         name="Settings"
         options={{
-          tabBarIcon: ({ color, size }) => <Ionicons name="settings-outline" size={size ?? 24} color={color} />,
+          tabBarLabel: 'Settings',
+          tabBarIcon: ({ color, size }: TabBarIconProps) => <Ionicons name="settings-outline" size={size ?? 24} color={color} />,
         }}
       >
         {() => <SettingsScreen prefs={prefs} onChangePrefs={onChangePrefs} />}

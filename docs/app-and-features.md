@@ -32,6 +32,11 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.25 documentation sync
+
+- **npm workspaces:** install from repository root with **`npm ci`** / **`npm install`**; a **single** **`package-lock.json`** applies to **`react-app`**, **`apps/mobile`**, and **`packages/*`**.
+- **React Native shell:** bottom tab **labels** (Home, Logs, Charts, AI, Settings); Home **Log today** FAB uses tab-bar height + **Beta** badge; **Charts → Balance** includes a **Targets** snapshot (default 7/10; custom goals parity with web is planned). See **[CHANGELOG.md](CHANGELOG.md)** (v1.45.25).
+
 ### v1.45.3 documentation sync
 
 - Expanded unit-test scope in `tests/unit/app-functionality.test.mjs` to cover key runtime behavior contracts (theme no-reload path, Home-only MOTD guard, voice permission gate, and CSS/UI wiring checks).
