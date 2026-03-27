@@ -2,6 +2,10 @@
 
 ## 🧪 Testing Data
 
+### v1.46.3 documentation sync
+
+- **React Native:** After Settings or Log wizard changes, run `npx jest src/screens/SettingsScreen.test.tsx src/screens/LogWizardScreen.test.tsx` from `apps/rn-app` (or the repo’s `npm run test:mobile` if configured). Settings tests mock `expo-constants` for the app installation section.
+
 ### v1.44.2 documentation sync
 
 - Include theme parity checks in manual smoke testing: verify non-mint themes affect loading overlay, pulse, navbar active state, and goals/targets cards.

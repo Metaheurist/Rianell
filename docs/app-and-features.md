@@ -32,6 +32,13 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.46.3 documentation sync
+
+- **RN Settings carousel (8 panes):** Matches the web settings carousel section titles. Notifications and demo mode are split into **Display** and **Data options** respectively; **Performance** holds the on-device AI model and benchmark actions.
+- **RN Data management / App installation:** Native builds show version, build number, and links to GitHub releases (and Android APK for non-Android devices) instead of PWA install buttons, which do not apply inside the native shell.
+- **RN Log wizard — Suggest note:** Available on the medications/notes step when AI features are enabled; appends a suggested line to notes (500 character cap) using the shared LLM/rule-based pipeline.
+- **See also:** `docs/CHANGELOG.md` v1.46.3 for file-level pointers and validation notes.
+
 ### v1.46.2 documentation sync
 
 - **CI/release labeling clarity:** GitHub Release legacy artifacts are now explicitly named `legacy-capacitor-android-*` and `legacy-capacitor-ios-*`, while RN CLI assets remain under the RNCLI paths.

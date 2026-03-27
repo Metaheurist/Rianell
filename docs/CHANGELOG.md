@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.2** - CI release resilience + legacy Capacitor naming clarity.
+**Latest: v1.46.3** - React Native settings carousel parity, app installation section, and log wizard suggest note.
+
+### v1.46.3 - 2026-03-27 - RN settings eight-pane parity, native app install UI, log wizard suggest note
+
+- **React Native Settings (`apps/rn-app/src/screens/SettingsScreen.tsx`):** Carousel now uses **eight** titled panes aligned with `data-settings-pane-title` in `apps/pwa-webapp/index.html`: Personal & cloud sync → AI & Goals → Display (daily reminders) → Customisation (appearance & team) → Accessibility → Data options (demo mode) → Performance (on-device AI model + benchmark) → Data management.
+- **Native app installation (`apps/rn-app/src/settings/SettingsAppInstallSection.tsx`):** The **Data management** pane includes an **App installation** block for native builds: confirms native app context, shows **version / build** via `expo-constants`, and links to **GitHub releases** and the **Android APK** beta artifact when not already on Android (web hides PWA install rows when `isRianellNativeApp()`; RN replaces that with explicit native copy and outbound links).
+- **Data management:** **Clear all data** button added (destructive confirm, `saveLogs([])`), matching the web danger-zone control; blocked in demo mode.
+- **Log wizard (`apps/rn-app/src/screens/LogWizardScreen.tsx`):** **Suggest note** wired to `suggestLogNote` from `apps/rn-app/src/ai/llm.ts` with `loadCachedBenchmark`, `prefs` passed from `RootNavigator`; notes capped at **500** characters; control hidden when `aiEnabled === false`.
+- **Navigation (`apps/rn-app/src/navigation/RootNavigator.tsx`):** `LogWizard` screen receives `prefs` so the wizard uses the same preferences as the tab navigator.
+- **Tests:** `SettingsScreen.test.tsx` and `LogWizardScreen.test.tsx` updated; `expo-constants` mocked in settings tests.
+- **Validation:** `npx jest src/screens/SettingsScreen.test.tsx src/screens/LogWizardScreen.test.tsx` passes.
 
 ### v1.46.2 - 2026-03-27 - CI release resilience + legacy Capacitor naming clarity
 

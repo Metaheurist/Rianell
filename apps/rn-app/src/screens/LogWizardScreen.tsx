@@ -17,6 +17,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 import { useTheme } from '../theme/ThemeProvider';
 import { addLogEntry, getFrequentLogItems, loadLogs, saveLogs, type LogEntry } from '../storage/logs';
+import { getDefaultPreferences, type Preferences } from '../storage/preferences';
+import { suggestLogNote } from '../ai/llm';
+import { loadCachedBenchmark } from '../performance/benchmark';
 import { normalizeLogEntry } from '@rianell/shared';
 import { buildLogReviewSummary, parseMedicationNamesCsv } from '../log/buildLogReviewSummary';
 import type { RootStackParamList } from '../navigation/RootNavigator';
@@ -648,7 +651,10 @@ function parseExerciseItems(value: string): Array<{ name: string; duration?: num
     .filter((x): x is { name: string; duration?: number } => !!x);
 }
 
-export function LogWizardScreen() {
+type LogWizardScreenProps = { prefs?: Preferences };
+
+export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {}) {
+  const prefs = prefsProp ?? getDefaultPreferences();
   const theme = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const bg =
@@ -669,6 +675,7 @@ export function LogWizardScreen() {
   const [steps, setSteps] = useState('');
   const [hydration, setHydration] = useState('');
   const [notes, setNotes] = useState('');
+  const [suggestNoteBusy, setSuggestNoteBusy] = useState(false);
   const [painLocation, setPainLocation] = useState('');
   const [painStates, setPainStates] = useState<Record<string, PainState>>({});
   const [symptoms, setSymptoms] = useState<string[]>([]);
@@ -847,6 +854,23 @@ export function LogWizardScreen() {
     medicationItems,
     painLocationFromBody,
   ]);
+
+  async function onSuggestNote() {
+    if (suggestNoteBusy || prefs.aiEnabled === false) return;
+    setSuggestNoteBusy(true);
+    try {
+      const benchmark = await loadCachedBenchmark().catch(() => null);
+      const text = await suggestLogNote(draft, prefs.performance.preferredLlmModelSize, benchmark);
+      const cur = notes.trim();
+      const next = (cur ? `${cur} ${text}` : text).trim();
+      setNotes(next.slice(0, 500));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Could not suggest a note';
+      Alert.alert('Suggest note', msg);
+    } finally {
+      setSuggestNoteBusy(false);
+    }
+  }
 
   function validateStep0() {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date.trim())) {
@@ -1646,22 +1670,40 @@ export function LogWizardScreen() {
               ))}
             </View>
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Notes</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Notes (Optional)</Text>
+            <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12), marginTop: 0 }]}>
+              Notes {notes.length}/500
+            </Text>
             <VoiceNotesButton
               value={notes}
-              onChangeText={setNotes}
+              onChangeText={(t) => setNotes(t.slice(0, 500))}
               accent={theme.tokens.color.accent}
               textColor={theme.tokens.color.text}
             />
             <TextInput
               value={notes}
-              onChangeText={setNotes}
-              style={[styles.input, { color: theme.tokens.color.text, height: 120 }]}
+              onChangeText={(t) => setNotes(t.slice(0, 500))}
+              style={[styles.input, { color: theme.tokens.color.text, height: 120, borderColor: theme.tokens.color.accent }]}
               multiline
+              maxLength={500}
               accessibilityLabel="Log notes"
-              placeholder="Anything else to remember"
+              placeholder="Tap here and use voice dictation to quickly add notes about your symptoms, triggers, or activities..."
               placeholderTextColor="rgba(255,255,255,0.6)"
             />
+            {prefs.aiEnabled !== false ? (
+              <Pressable
+                onPress={() => void onSuggestNote()}
+                disabled={suggestNoteBusy}
+                style={({ pressed }) => [styles.suggestNoteBtn, pressed && { opacity: 0.75 }]}
+                accessibilityRole="button"
+                accessibilityLabel={suggestNoteBusy ? 'Generating suggest note' : 'Suggest note'}
+                accessibilityState={{ disabled: suggestNoteBusy, busy: suggestNoteBusy }}
+              >
+                <Text style={{ color: theme.tokens.color.accent, fontSize: theme.font(15), fontWeight: '700' }}>
+                  {suggestNoteBusy ? 'Generating…' : 'Suggest note'}
+                </Text>
+              </Pressable>
+            ) : null}
 
             <View style={styles.navRow}>
               <Pressable onPress={() => setStep(7)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
@@ -1839,6 +1881,12 @@ const styles = StyleSheet.create({
   groupTitle: { fontWeight: '900', opacity: 0.85, marginBottom: 6 },
   frequentLabel: { opacity: 0.75, marginBottom: 6, fontWeight: '700' },
   helper: { opacity: 0.75, marginBottom: 8 },
+  suggestNoteBtn: {
+    alignSelf: 'flex-start',
+    marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+  },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   inlineInputRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   inlineInput: { flex: 1, marginTop: 0 },

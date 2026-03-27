@@ -2,6 +2,10 @@
 
 ## 🗂️ Project Structure
 
+### v1.46.3 documentation sync
+
+- **React Native:** `apps/rn-app/src/settings/SettingsAppInstallSection.tsx` provides the native **App installation** block in Settings → **Data management**; `apps/rn-app/src/screens/SettingsScreen.tsx` implements the eight-pane carousel aligned with the web settings overlay.
+
 ### v1.44.2 documentation sync
 
 - Added parity/testing references for `docs/platform-parity.md` and `docs/platform-parity.json` release metadata.

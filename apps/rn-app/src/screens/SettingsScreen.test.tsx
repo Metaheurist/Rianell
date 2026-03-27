@@ -9,6 +9,17 @@ jest.mock('expo-speech', () => ({
   stop: jest.fn(),
 }));
 
+jest.mock('expo-constants', () => ({
+  __esModule: true,
+  default: {
+    expoConfig: {
+      version: '1.0.0',
+      ios: { buildNumber: '1' },
+      android: { versionCode: 1 },
+    },
+  },
+}));
+
 jest.mock('../performance/benchmark', () => ({
   loadCachedBenchmark: jest.fn(async () => null),
   runAndCacheBenchmark: jest.fn(async () => ({
@@ -39,7 +50,7 @@ jest.mock('../permissions/permissions', () => ({
   },
 }));
 
-test('settings carousel: cloud pane, then AI, accessibility, data panes', () => {
+test('settings carousel: eight panes match web settings carousel titles', () => {
   const prefs = getDefaultPreferences();
   const { getByText, getByTestId } = render(
     <ThemeProvider prefs={prefs}>
@@ -47,36 +58,46 @@ test('settings carousel: cloud pane, then AI, accessibility, data panes', () => 
     </ThemeProvider>
   );
 
-  getByText('1 / 4 — Personal & cloud');
-  getByText('Personal & cloud sync');
-  getByText('Demo mode');
-  getByText('Notifications');
+  getByText('1 / 8 — Personal & cloud sync');
+  getByText(/Cloud sync is not configured/);
+
+  fireEvent.press(getByTestId('settings-pane-tab-1'));
+  getByText('2 / 8 — AI & Goals');
+  getByText('Enable AI features & Goals');
+  getByText('Goals & targets');
+  getByText('Mood target (0-10)');
+
+  fireEvent.press(getByTestId('settings-pane-tab-2'));
+  getByText('3 / 8 — Display');
   getByText('Enable daily reminder');
   getByText('Reminder sound');
   getByText('Snooze minutes (later action)');
   getByText(/Later action snoozes for/i);
   getByText(/Action policy: log-now to Log today/i);
-  getByText(/Cloud sync is not configured/);
 
-  fireEvent.press(getByTestId('settings-pane-tab-1'));
-  getByText('Theme');
-  getByText('Enable AI features & Goals');
-  getByText('Performance');
-  getByText('On-device AI model');
-  getByText('Goals & targets');
-  getByText('Mood target (0-10)');
+  fireEvent.press(getByTestId('settings-pane-tab-3'));
+  getByText('4 / 8 — Customisation');
+  getByText('Theme customisation');
 
-  fireEvent.press(getByTestId('settings-pane-tab-2'));
-  getByText('3 / 4 — Accessibility');
+  fireEvent.press(getByTestId('settings-pane-tab-4'));
+  getByText('5 / 8 — Accessibility');
   getByText('Large text');
   getByText('Text-to-speech (tap-to-read)');
   getByText('Read mode (auto-read on focus)');
 
-  fireEvent.press(getByTestId('settings-pane-tab-3'));
-  getByText('4 / 4 — Data');
-  getByText('Data management');
+  fireEvent.press(getByTestId('settings-pane-tab-5'));
+  getByText('6 / 8 — Data options');
+  getByText('Demo mode');
+
+  fireEvent.press(getByTestId('settings-pane-tab-6'));
+  getByText('7 / 8 — Performance');
+  getByText('On-device AI model');
+
+  fireEvent.press(getByTestId('settings-pane-tab-7'));
+  getByText('8 / 8 — Data management');
   getByText('📤 Export logs (JSON)');
   getByText('📥 Import logs (JSON)');
+  getByText('🗑️ Clear all data');
 });
 
 test('goals target inputs trigger preference updates', () => {
@@ -476,10 +497,10 @@ test('textScale affects rendered typography sizes', () => {
     </ThemeProvider>
   );
 
-  fireEvent.press(r1.getByTestId('settings-pane-tab-1'));
-  fireEvent.press(r2.getByTestId('settings-pane-tab-1'));
-  const s1 = r1.getByText('Theme');
-  const s2 = r2.getByText('Theme');
+  fireEvent.press(r1.getByTestId('settings-pane-tab-3'));
+  fireEvent.press(r2.getByTestId('settings-pane-tab-3'));
+  const s1 = r1.getByText('Theme customisation');
+  const s2 = r2.getByText('Theme customisation');
 
   // Style is an array in RN; last fontSize comes from ThemeProvider scaling.
   const fontSize1 = Array.isArray(s1.props.style)
@@ -505,7 +526,7 @@ test('TTS reads choice label on press when enabled', () => {
     </ThemeProvider>
   );
 
-  fireEvent.press(getByTestId('settings-pane-tab-1'));
+  fireEvent.press(getByTestId('settings-pane-tab-3'));
   fireEvent.press(getByLabelText('dark'));
   expect(Speech.speak).toHaveBeenCalled();
 });
