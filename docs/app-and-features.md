@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.92 documentation sync
+
+- **RN unknown-action diagnostics split (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now reports startup/live percentage split for unknown reminder actions in-session, alongside count and drift status visibility.
+
 ### v1.45.91 documentation sync
 
 - **RN unknown-action diagnostics status (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows session-level unknown-action drift status (`low`, `moderate`, `high`) so long-tail runtime variance can be triaged faster in-app.

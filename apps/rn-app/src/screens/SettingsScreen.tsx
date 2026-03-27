@@ -526,6 +526,12 @@ export function SettingsScreen({
               ) : null}
               {unknownReminderActionCount > 0 ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown action split: startup {Math.round((unknownStartupCount / unknownReminderActionCount) * 100)}% · live{' '}
+                  {Math.round((unknownLiveCount / unknownReminderActionCount) * 100)}%.
+                </Text>
+              ) : null}
+              {unknownReminderActionCount > 0 ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   Unknown-action stability status:{' '}
                   {unknownReminderActionCount >= 5 ? 'high drift' : unknownReminderActionCount >= 2 ? 'moderate drift' : 'low drift'}.
                 </Text>
