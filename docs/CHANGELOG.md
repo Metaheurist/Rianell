@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.41** - Docs sync: parity/status rollup (RN AI/LLM, demo mode, benchmark settings, install scope).
+**Latest: v1.45.50** - Docs + CI gate sync: security-audit lockfile alignment (`npm ci --omit=dev`).
+
+### v1.45.50 - 2026-03-27 - Security-audit lockfile sync + docs update
+
+- **CI dependency gate fix:** refreshed root `package-lock.json` so workspace manifests and lockfile are in sync, unblocking `npm ci --omit=dev` in `.github/workflows/security-audit.yml`.
+- **Validation:** confirmed local parity with the workflow path (`npm ci --omit=dev` then `npm audit --audit-level=high --omit=dev`) and no high/critical vulnerabilities on the production tree.
+- **Documentation sync:** updated `docs/next-phase-development-plan.md` with an explicit security-audit fix note and kept parity status text aligned across docs.
 
 ### v1.45.41 - 2026-03-27 - Documentation rollup for active RN parity track
 

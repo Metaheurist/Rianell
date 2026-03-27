@@ -41,6 +41,50 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - Documentation now consistently marks RN AI/LLM, demo mode, and benchmark-tier settings as **implemented baseline parity increments** with remaining deep parity tracked in Phase C/E/F.
 
+### v1.45.50 parity note (CI dependency gate stability)
+
+- **All platforms:** security-audit dependency checks now consistently run from a lockfile-manifest-synced workspace state (`npm ci --omit=dev`), reducing cross-platform CI drift from lockfile mismatch failures.
+
+### v1.45.42 parity note (View Logs edit + list baseline)
+
+- **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.
+- **React Native:** `LogsScreen` now includes **modal edit flow** (date, flare, core metrics, notes) alongside share/delete, and a first-pass **FlatList tuning** baseline for large histories. Remaining parity backlog is richer per-entry card depth and final virtualization strategy choice.
+
+### v1.45.43 parity note (Charts visual baseline)
+
+- **Web:** Charts uses full visual canvases (combined/individual/balance) with richer animation/chrome and prediction overlays.
+- **React Native:** Charts now includes a first combined-view **visual trend chart** baseline using web metric color semantics, while existing trend rows/sparks remain in place. Remaining parity backlog is richer individual/balance visual parity and full animation/prediction overlay behavior.
+
+### v1.45.44 parity note (AI copy/gating increment)
+
+- **Web:** AI Analysis presents "At a glance", findings, and caution sections with clear section flow and gated AI surfaces.
+- **React Native:** AI screen now mirrors section flow more closely ("At a glance", "What we found", "How you're doing") and explicitly shows disabled-state copy when AI features are off, while tab visibility remains settings-gated.
+
+### v1.45.45 parity note (View Logs detail depth)
+
+- **Web:** View Logs entry cards/details show broad per-entry context (symptoms, stressors, pain, food, exercise) alongside edit/delete/share.
+- **React Native:** View Logs rows and detail modal now surface richer per-entry context (symptoms, stressors, pain location, food, exercise) in addition to edit/share/delete and existing range/sort/filter controls.
+
+### v1.45.46 parity note (Charts individual visual baseline)
+
+- **Web:** Individual charts provide full per-metric visual rendering with richer scale/tooltip behavior.
+- **React Native:** Individual chart mode now includes a first per-metric visual trend baseline (color-coded plotted points) alongside the existing numeric summaries and spark bars; deeper visual parity and balance/radar parity remain open.
+
+### v1.45.47 parity note (Charts balance visual baseline)
+
+- **Web:** Balance mode uses richer radar-style visualization semantics.
+- **React Native:** Balance mode now includes a first visual baseline chart (color-coded bars for core balance metrics) in addition to the targets snapshot; deeper radar-equivalent semantics and animation/chrome parity remain open.
+
+### v1.45.48 parity note (Notifications settings baseline)
+
+- **Web/Capacitor:** notification behavior includes reminder controls tied to runtime delivery paths.
+- **React Native:** Settings now includes notification preference controls (enable, reminder time, sound) plus permission status/request baseline. Full OS scheduling/channel parity remains open.
+
+### v1.45.49 parity note (Goals target persistence baseline)
+
+- **Web:** Goals & targets settings persist and drive charts/goals surfaces.
+- **React Native:** mood/sleep/fatigue targets now persist in settings/preferences and feed Charts balance target lines, replacing default-only target behavior for those metrics.
+
 ### v1.45.25 parity note (React Native shell)
 
 - Native **bottom tabs** align with web primary navigation intent (Home, logs, charts, optional AI, settings). **Charts → Balance** exposes a **Targets** row (default wellness line) as a stepping stone toward full **Goals & targets** parity with web.

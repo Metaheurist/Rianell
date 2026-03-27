@@ -2,7 +2,7 @@
 
 This document is the **single build plan** to finish Rianell’s transition to a **React Native CLI** app that matches the **web/PWA** and produces **Android APK** + **iOS emulator Xcode zip** via CI releases.
 
-**Last updated:** 2026-03-27 — **Phase G (View Logs):** RN **`LogsScreen`** has **date-range presets** (Today / 7 / 30 / 90 / All), **newest/oldest sort**, **pull-to-refresh**, **text filter**, entry count line, and **entry detail modal** with share/delete actions + Jest tests; **open:** full edit flow parity and list perf. **Modal parity:** RN Home now includes an in-app **Bug report modal** (submit flow) instead of docs-link fallback; other web-only modals are tracked in §4.5/Phase E. **Supabase parity:** RN now accepts the same **`SUPABASE_*`** source names used by web/Capacitor (plus `EXPO_PUBLIC_*` fallback). **Settings scope:** RN removed in-app install/download buttons; install UX remains web/PWA-facing. **Demo parity:** RN now includes a Demo mode toggle that loads web-style sample logs, refreshes them on launch, and restores user logs when disabled. **AI parity increment:** RN now has an `AIEngine`-style service (`predictFutureValues`, analysis/suggest note fallbacks) plus LLM wrapper hooks for **summary note**, **MOTD**, and note suggestions with model-tier resolution + graceful fallback. **Benchmark parity increment:** RN now includes benchmark tiers + model selection settings; **open:** full web benchmark modal/stability graphs and deeper performance-profile parity in Phase E/F. **CI fix:** `expo-bundle-prod` exports from `apps/rn-app` and checks `expo-modules-autolinking` to prevent old `apps/mobile` path + missing autolinking regressions (§6).
+**Last updated:** 2026-03-27 — **Phase G (View Logs):** RN **`LogsScreen`** now includes modal **edit flow** (date/flare/core metrics/notes), richer entry context in list/detail (symptoms, stressors, pain location, food, exercise), plus range presets, newest/oldest sort, pull-to-refresh, text filter, filtered count, and share/delete actions; list rendering has baseline **FlatList** performance tuning. **Open:** final virtualization strategy decisions and any remaining web-depth card polish. **Phase B increment:** RN Charts now includes first-pass visual baselines across **combined**, **individual**, and **balance** views (color-coded plotted trends + balance bar visualization) while preserving trend rows/sparks and targets snapshot. **Open:** fuller animation/chrome and prediction-overlay parity. **Phase C increment:** RN AI screen now aligns section ordering/copy closer to web (`At a glance`, `What we found`, `How you're doing`) and explicitly renders a disabled-state message when `aiEnabled` is false. **Open:** deeper feature parity for correlations/important/flare groups and model-runtime depth. **Phase E increments (notifications + goals):** RN Settings now includes notification preference controls (enable reminder, time, sound) + permission status/request actions, and persisted mood/sleep/fatigue goals that feed Charts balance target lines instead of default-only values. **Open:** native scheduling/channel parity and broader web goals UX depth. **Wizard polish:** Step 3 now includes searchable body-region chips (diagram + chip parity helper), and Step 4 picker expand/collapse now uses smooth `LayoutAnimation` transitions with empty-search feedback. **Modal parity:** RN Home now includes an in-app **Bug report modal** (submit flow) instead of docs-link fallback; other web-only modals are tracked in §4.5/Phase E. **Supabase parity:** RN now accepts the same **`SUPABASE_*`** source names used by web/Capacitor (plus `EXPO_PUBLIC_*` fallback). **Settings scope:** RN removed in-app install/download buttons; install UX remains web/PWA-facing. **Demo parity:** RN now includes a Demo mode toggle that loads web-style sample logs, refreshes them on launch, and restores user logs when disabled. **AI parity increment:** RN now has an `AIEngine`-style service (`predictFutureValues`, analysis/suggest note fallbacks) plus LLM wrapper hooks for **summary note**, **MOTD**, and note suggestions with model-tier resolution + graceful fallback. **Benchmark parity increment:** RN now includes benchmark tiers + model selection settings; **open:** full web benchmark modal/stability graphs and deeper performance-profile parity in Phase E/F. **CI fix:** `expo-bundle-prod` exports from `apps/rn-app` and checks `expo-modules-autolinking` to prevent old `apps/mobile` path + missing autolinking regressions (§6). **Security-audit fix:** root workspace lockfile was resynced with current manifests so `npm ci --omit=dev` succeeds in `.github/workflows/security-audit.yml` (§6 dependency gate).
 
 ---
 
@@ -96,7 +96,7 @@ If any of the above becomes false, fix it before moving forward.
 
 **Logs tab (`View Logs`)**
 - **Web:** Date range, sort, filter, **per-entry cards** with edit / delete / share, intersection-observer windowing for large histories.
-- **RN:** **`LogsScreen`** — **range presets** + **sort** + **refresh** + **text filter** + count (“Showing *n* of *m*”); dev-only sample entry; **entry detail modal** with share/delete baseline. **Still missing vs web:** full edit flow parity and performance for very large histories.
+- **RN:** **`LogsScreen`** — **range presets** + **sort** + **refresh** + **text filter** + count (“Showing *n* of *m*”); dev-only sample entry; **entry detail modal** now includes **edit/share/delete** baseline. **Still missing vs web:** richer per-entry card depth and final large-history virtualization strategy.
 
 **Data export**
 - **Web:** JSON + **CSV** + print-oriented views.
@@ -112,9 +112,9 @@ If any of the above becomes false, fix it before moving forward.
 
 ### 4.3 Primary tabs (screens)
 
-- [~] **Charts (Phase B)** — lite: range/view, sparks, deltas, `CHART_METRIC_HEX`, targets snapshot; **open:** Apex-class visuals, predictions, animations (§5 Phase B).
-- [~] **AI Analysis (Phase C)** — `AiScreen` + `analyzeLogs.ts` + LLM-wrapper summary note + Home MOTD baseline; **open:** web section order/copy completion, chart prediction overlays, and full native model runtime parity (§5 Phase C).
-- [~] **View Logs** — **in progress** (§4.2 / §5 Phase G): range + sort + refresh + text filter + detail modal/share-delete baseline **done**; **open:** full edit parity, richer cards, virtualization.
+- [~] **Charts (Phase B)** — lite++: range/view, sparks, deltas, `CHART_METRIC_HEX`, targets snapshot, plus first combined + individual + balance visual baselines; **open:** richer prediction overlays, animation/chrome depth, and fuller parity semantics (§5 Phase B).
+- [~] **AI Analysis (Phase C)** — `AiScreen` + `analyzeLogs.ts` + LLM-wrapper summary note + Home MOTD baseline; section order/copy alignment is closer (`At a glance`, `What we found`, `How you're doing`) with explicit disabled-state message when AI is off. **Open:** deeper feature parity blocks, chart prediction overlays, and full native model runtime parity (§5 Phase C).
+- [~] **View Logs** — **in progress** (§4.2 / §5 Phase G): range + sort + refresh + text filter + detail modal/edit-share-delete baseline **done**; richer row/detail context now includes symptoms/stressors/pain/food/exercise. **Open:** virtualization strategy and remaining web-depth polish.
 
 ### 4.4 Log wizard (native)
 
@@ -139,8 +139,8 @@ If any of the above becomes false, fix it before moving forward.
 
 **Work items (wizard — in order)**
 - Steps 5–9: **done** (see §4.4).
-- Step 3: body diagram — **in progress** (outline + regions; optional exact SVG paths).
-- Step 4: energy tiles — **in progress** (optional sheet motion / web-level polish).
+- Step 3: body diagram — **in progress** (outline + regions + searchable region chips; optional exact SVG paths).
+- Step 4: energy tiles — **in progress** (search + collapsible + animated expand/collapse; optional web-level sheet polish).
 
 **Optional parallel:** **View Logs** parity — **range, sort, refresh** shipped; **filter, entry cards, edit/delete/share** still at web depth.
 
@@ -153,16 +153,16 @@ If any of the above becomes false, fix it before moving forward.
 - [x] Range + view toggles, trends, sparks, refresh, balance filter, empty state, chip a11y (see §4.3).
 - [x] **Metric copy parity:** steps use integer + locale grouping; hydration uses `X.X glasses`; deltas signed consistently (`summarizeCharts.ts` + `ChartsScreen`).
 - [x] **Metric color parity (lite):** `CHART_METRIC_HEX` from web palette; colored mini spark bars + row left border (`ChartsScreen`).
-- [~] **Visual parity:** full Apex line/radar charts / animations / chrome (not on native yet).
+- [~] **Visual parity:** combined + individual + balance visual baselines landed (color-coded trend plots + balance bars); **open:** fuller radar-equivalent semantics, animations, and chrome.
 - [x] **Target snapshot (lite):** Balance view shows **Targets** block: current vs default **7.0/10** with fill bar + marker (`ChartsScreen`); custom goals when native storage matches web.
 
 **Done when (lite — met):** for the same logs + range, native shows the same **numbers**, **deltas**, **view mode** semantics, and **metric colors** as web; toggles and empty/loading behave consistently.
 
 **Next steps (visual — ordered)**
 1. **Spike:** pick a native chart approach (e.g. **Victory Native**, **react-native-gifted-charts**, or **Skia**) that supports multi-series lines + radar; confirm bundle size and Hermes compatibility.
-2. **Combined view:** multi-series line chart(s) using **`CHART_METRIC_HEX`** and the same series order/semantics as web combined charts (`apps/pwa-webapp/app.js` chart helpers).
-3. **Individual view:** one chart per active metric (or paginated) with the same scales/labels intent as web.
-4. **Balance view:** radar or equivalent “wellness balance” visualization matching web **Balance** mode (axes, caps, colors).
+2. **Combined view:** first visual baseline landed (color-coded multi-series trend plot); iterate toward richer line-chart parity and labeling semantics from web.
+3. **Individual view:** first per-metric visual baseline landed; iterate toward fuller scales/labels parity with web.
+4. **Balance view:** first equivalent baseline landed (wellness balance bars using metric colors/levels); iterate toward richer radar-equivalent semantics (axes/caps/colors).
 5. **Polish:** respect **reduced motion** where applicable; match web **prediction** toggle behavior if/when predictions are surfaced on native.
 
 ### Phase C — AI Analysis parity (lite++ → web-structure parity)
@@ -172,9 +172,9 @@ If any of the above becomes false, fix it before moving forward.
 - [x] **Lite pipeline:** `summarizeLogsForAi` + `AiScreen` — range, refresh, sections (what you logged, flare, averages, how you’re doing, top symptoms/stressors).
 - [x] **AI service parity baseline:** RN `AIEngine` helper module + LLM wrapper (`summary`, `suggest note`, `MOTD`) with model tier resolution and deterministic fallback path.
 - [x] **Range a11y** on chips (`AiScreen` — mirror Charts patterns).
-- [~] **Web copy alignment:** diff `AiScreen` section titles and body strings against the web AI panel (`apps/pwa-webapp/app.js` / templates) and converge.
+- [~] **Web copy alignment:** section order/title parity pass landed (`At a glance`, `What we found`, `How you're doing` + disabled-state copy); **open:** continue converging body-text/details against web panel templates (`apps/pwa-webapp/app.js`).
 - [~] **Feature parity:** correlations, “important” / flare-up callouts, and any **groups-that-change-together** blocks that exist on web — port logic into `@rianell/shared` or `analyzeLogs.ts` where shared, else document exceptions.
-- [~] **`aiEnabled`:** ensure empty/disabled state matches web when AI is off (settings flag + UI guard).
+- [x] **`aiEnabled`:** disabled-state message/guard now renders when AI is off; tab visibility remains gated by `shouldShowAiTab`.
 
 **Done when:** for the same logs + range, the sections and “Important / flare-up / correlations” align closely with web.
 
@@ -190,9 +190,9 @@ If any of the above becomes false, fix it before moving forward.
 - [x] Home + FAB + tab icons + carousel shell + Home header chrome row.
 - [x] **Bug report** — in-app RN modal on Home with submit flow (web parity baseline); keep server field parity improvements in backlog.
 - [x] **Demo mode** — toggle in RN Settings; loads premade/rebased demo logs, refreshes demo logs on app launch, restores backup logs when disabled, and blocks import/export while active.
-- [~] **Goals & targets** — full web persistence + UI (beyond Charts snapshot).
+- [~] **Goals & targets** — persisted mood/sleep/fatigue targets now flow from Settings to Charts target lines; **open:** broader web goals UX depth and remaining settings parity.
 - [~] **LLM / on-device AI** — web uses Transformers.js; RN has **no** equivalent pipeline — gate any future native inference behind same prefs as web.
-- [~] **Notifications** — Capacitor/web paths vs RN (§4.2).
+- [~] **Notifications** — RN Settings now has reminder enable/time/sound prefs + permission status/request baseline. **Open:** OS-level scheduling/channel parity vs Capacitor/web paths (§4.2).
 - [~] **Optional:** haptics, longer tab labels, **expo-font** if brand fonts required.
 - [~] **Modal parity backlog (web-only surfaces):** tutorial / install modal, donate, cookie policy, GDPR agreement, performance benchmark details, and developer/God-mode tools (decide ship vs won’t-do for RN v1).
 - [~] **Loading overlay parity:** RN boot loading screen should match web loader animation language (orbit ring, planet/sun motif, theme token colors, reduced-motion behavior).
@@ -203,8 +203,8 @@ If any of the above becomes false, fix it before moving forward.
 **Goal:** Stay fast as Charts / AI / **View Logs** grow.
 
 **Work items (apply opportunistically)**
-- [~] **Lists:** `FlatList` / **FlashList** once **View Logs** has enough rows to matter; avoid redundant `loadLogs` on focus.
-- [~] **Charts / AI:** memoize `summarizeCharts` / `summarizeLogsForAi` inputs; isolate re-renders on pref changes.
+- [~] **Lists:** baseline `FlatList` tuning landed (render window/batch/clipping) and reload path remains non-focus-looping; **open:** FlashList decision + final virtualization thresholds for very large histories.
+- [~] **Charts / AI:** memoization pass started (`ChartsScreen` now memoizes `summarizeCharts` + filtered view trends). **Open:** equivalent `summarizeLogsForAi` input memoization and broader re-render isolation on pref changes.
 - [~] **Bundle:** Hermes bundle size; lazy-load optional chart/AI deps when added.
 - [~] **SVG / images:** wizard diagram paths; profile low-end Android.
 
@@ -215,8 +215,8 @@ If any of the above becomes false, fix it before moving forward.
 
 **Work items**
 - [x] **Range presets** + **sort** + **pull-to-refresh** + **text filter** + filtered/total count; helpers in **`logsViewHelpers.ts`** + **`logsViewHelpers.test.ts`**; screen tests **`LogsScreen.test.tsx`**.
-- [~] **Per-entry cards / modal detail** + **edit / delete / share** actions (share/delete baseline landed; edit parity open).
-- [~] **Large lists:** `FlatList` tuning or **FlashList**; avoid redundant reloads (§5 Phase F).
+- [~] **Per-entry cards / modal detail** + **edit / delete / share** actions (edit/share/delete baseline landed; richer symptom/stressor/pain/food/exercise detail now surfaced). **Open:** any remaining web-only card polish + virtualization decisions.
+- [~] **Large lists:** baseline `FlatList` tuning landed; finalize `FlashList` decision + virtualization thresholds (§5 Phase F).
 
 **Done when:** §4.2 Logs row can be checked off for RN.
 
