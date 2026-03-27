@@ -16,6 +16,11 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - `sync_behavior`: foreground/interval behavior; no guaranteed OS background sync.
 - `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
 
+### v1.46.2 parity note (legacy release labeling + CI metadata fallback)
+
+- **Release contract clarity:** legacy artifacts are now emitted with explicit `legacy-capacitor-*` names in CI release assets, reducing ambiguity between RN CLI and Capacitor channels.
+- **Docs continuity on size-limited runs:** when repository push limits reject oversized branch artifact commits, CI now falls back to README-only metadata commit/push so release/build status remains visible.
+
 ### v1.46.1 parity note (documentation checkpoint)
 
 - **All platforms/docs contract:** parity docs are synchronized on the current RN notification diagnostics baseline (summary line, quality/confidence cues, and trajectory context).
