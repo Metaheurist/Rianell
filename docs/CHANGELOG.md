@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.54** - RN Charts reduced-motion transition parity increment.
+**Latest: v1.45.55** - Build-site path compatibility fix for minified legacy bundle CI step.
+
+### v1.45.55 - 2026-03-27 - `build:web:apk` path compatibility hardening
+
+- **CI build fix (`prepare-minified-assets`):** hardened `apps/pwa-webapp/build-site.mjs` to resolve the web root across both current (`apps/pwa-webapp`) and legacy (`apps/web`, `web`) layouts.
+- **Failure addressed:** prevents minified bundle failures where esbuild attempted to resolve a stale path like `apps/web/.trace-build/app.js`.
+- **Validation:** `npm run build:web:apk` succeeds locally after the fix.
 
 ### v1.45.54 - 2026-03-27 - Charts motion polish (reduced-motion-aware)
 

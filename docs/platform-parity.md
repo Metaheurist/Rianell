@@ -62,6 +62,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - **Web:** chart and section transitions honor reduced-motion preferences across visual updates.
 - **React Native:** Charts now uses reduced-motion-aware layout transitions (view/range/refresh/data update paths) and minimizes animation when the OS reduced-motion setting is enabled.
 
+### v1.45.55 parity note (legacy build path compatibility)
+
+- **Web/legacy bundle pipeline:** minified legacy bundle generation now tolerates both modern and legacy web directory layouts, avoiding CI path-resolution regressions in prebuild asset jobs.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.

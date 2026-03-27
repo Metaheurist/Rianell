@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.55 documentation sync
+
+- **Build pipeline reliability:** `apps/pwa-webapp/build-site.mjs` now resolves web root paths for both current and legacy layouts, keeping the CI minified legacy bundle step (`npm run build:web:apk`) stable across path migration drift.
+
 ### v1.45.54 documentation sync
 
 - **React Native Charts (Phase B motion polish):** `apps/rn-app/src/screens/ChartsScreen.tsx` now applies reduced-motion-aware transition behavior for view/range/refresh chart updates using native accessibility settings, with explicit in-screen copy when reduced motion is enabled.
