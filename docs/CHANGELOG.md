@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.50** - Docs + CI gate sync: security-audit lockfile alignment (`npm ci --omit=dev`).
+**Latest: v1.45.51** - CI lockfile-manifest sync for unit-tests workflow (`npm ci`).
+
+### v1.45.51 - 2026-03-27 - Unit-tests workflow install gate sync
+
+- **CI fix (`unit-tests` / root install):** committed root and RN workspace manifest updates (`package.json`, `apps/rn-app/package.json`) so the existing root `package-lock.json` and workspace graph remain in sync for `npm ci`.
+- **Failure resolved:** prevents GitHub Actions `EUSAGE` lock mismatch in runs that reported missing workspace packages (`mobile@1.0.0`, `rianell-shell@1.0.0`) and related RN dependencies.
+- **Validation:** confirmed local `npm ci` succeeds on the synced workspace state.
 
 ### v1.45.50 - 2026-03-27 - Security-audit lockfile sync + docs update
 

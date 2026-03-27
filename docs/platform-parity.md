@@ -45,6 +45,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **All platforms:** security-audit dependency checks now consistently run from a lockfile-manifest-synced workspace state (`npm ci --omit=dev`), reducing cross-platform CI drift from lockfile mismatch failures.
 
+### v1.45.51 parity note (unit-tests install gate)
+
+- **All platforms:** root `npm ci` in the unit-tests workflow now uses a committed workspace-manifest-synced state, avoiding CI failures where workspace package entries (`mobile`, `rianell-shell`) appeared missing from lock resolution.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.
