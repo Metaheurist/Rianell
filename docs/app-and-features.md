@@ -32,6 +32,11 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.46.2 documentation sync
+
+- **CI/release labeling clarity:** GitHub Release legacy artifacts are now explicitly named `legacy-capacitor-android-*` and `legacy-capacitor-ios-*`, while RN CLI assets remain under the RNCLI paths.
+- **README metadata resilience:** CI now preserves README build-info updates even when large native artifacts exceed GitHub repository push limits for branch artifact commits.
+
 ### v1.46.1 documentation sync
 
 - **Checkpoint refresh:** docs are synchronized so Phase E notification diagnostics coverage stays consistent across features/parity pages after recent summary + trajectory refinements.

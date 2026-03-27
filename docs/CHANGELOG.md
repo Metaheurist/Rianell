@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.1** - Documentation sync checkpoint.
+**Latest: v1.46.2** - CI release resilience + legacy Capacitor naming clarity.
+
+### v1.46.2 - 2026-03-27 - CI release resilience + legacy Capacitor naming clarity
+
+- **CI reliability (`commit-app-build`):** `.github/workflows/ci.yml` now tolerates GitHub large-file/quota push rejections (GH001/LFS/size-limit path) for full `App build/` commits and falls back to a README-only metadata push so post-build documentation still updates.
+- **Release artifact clarity:** legacy artifacts in `publish-release` are now emitted with explicit `legacy-capacitor-android-*` and `legacy-capacitor-ios-*` names to avoid confusion with RN CLI outputs.
+- **Docs/readme sync:** `scripts/update-readme-build-info.mjs` now labels legacy entries as **legacy Capacitor Android/iOS** in the README build-info block.
 
 ### v1.46.1 - 2026-03-27 - Documentation sync checkpoint
 
