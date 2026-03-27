@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.93** - Unknown-action dominant-source confidence hint.
+**Latest: v1.45.94** - Unknown-action minimum-sample confidence warning.
+
+### v1.45.94 - 2026-03-27 - Unknown-action minimum-sample confidence warning
+
+- **RN notifications (Phase E):** Settings now shows a minimum-sample warning when unknown-action confidence is based on fewer than 3 events in the current session.
+- **Diagnostics depth:** dominant-source confidence is now explicitly contextualized as preliminary on low sample sizes, reducing over-interpretation risk.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.93 - 2026-03-27 - Unknown-action dominant-source confidence hint
 
