@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.39** - RN AIEngine + LLM parity baseline.
+**Latest: v1.45.40** - Docs sync: RN parity track (AIEngine/LLM, demo mode, benchmark tiers, install-button scope).
+
+### v1.45.40 - 2026-03-27 - Docs sync: RN parity track + scope clarifications
+
+- **Plan/docs alignment:** clarified RN parity status for **AIEngine + LLM hooks**, **demo mode**, **benchmark tier + model selection settings**, and **performance-settings backlog** in `docs/next-phase-development-plan.md`.
+- **Product scope clarification:** RN keeps **install/download UX out of app settings** (already installed native app); install/download entry points stay web/PWA-facing.
+- **Parity references:** refreshed cross-links in `README.md`, `docs/app-and-features.md`, and `docs/platform-parity.md` so parity expectations point to the active RN plan/changelog sections.
 
 ### v1.45.39 - 2026-03-27 - RN AIEngine + LLM parity baseline
 

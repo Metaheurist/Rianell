@@ -31,6 +31,12 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - **Web:** View Logs supports date ranges, sorting, filtering, rich cards, and entry actions.
 - **React Native:** `LogsScreen` now matches core controls for **range presets**, **sort**, and **refresh** with explicit selected-state accessibility labels; remaining parity backlog is text filter, card detail depth, and edit/delete/share actions.
 
+### v1.45.40 parity note (AI + performance settings scope)
+
+- **React Native:** baseline parity now includes `AIEngine`-style deterministic helpers and LLM wrapper hooks (summary/MOTD/suggest), plus benchmark-tier model selection settings.
+- **Open parity:** full web benchmark detail modal (graphs/stability) and deeper AI runtime parity are still tracked in `docs/next-phase-development-plan.md` (Phase C/E/F).
+- **Scope clarification:** RN keeps install/download affordances on web/PWA surfaces; native app settings do not show install buttons.
+
 ### v1.45.25 parity note (React Native shell)
 
 - Native **bottom tabs** align with web primary navigation intent (Home, logs, charts, optional AI, settings). **Charts → Balance** exposes a **Targets** row (default wellness line) as a stepping stone toward full **Goals & targets** parity with web.
