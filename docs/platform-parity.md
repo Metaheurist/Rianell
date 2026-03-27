@@ -16,6 +16,11 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - `sync_behavior`: foreground/interval behavior; no guaranteed OS background sync.
 - `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
 
+### v1.45.95 parity note (documentation checkpoint)
+
+- **All platforms/docs contract:** parity docs are synchronized on the current RN notification diagnostics baseline (counts, source split, confidence hint, low-sample warning).
+- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+
 ### v1.45.94 parity note (unknown-action minimum-sample confidence warning)
 
 - **React Native:** notification diagnostics now flag dominant-source confidence as preliminary until at least 3 unknown reminder-action observations are captured.
