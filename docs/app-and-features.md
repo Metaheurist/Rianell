@@ -32,6 +32,11 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.61 documentation sync
+
+- **Program status rollup:** documentation now explicitly marks `v1.45.60` Logs virtualization as the latest shipped parity increment and keeps remaining RN backlog items called out in the plan docs.
+- **Next implementation target:** notifications channel/delivery semantics parity (where runtime supports platform-specific behavior) is now recorded as the next active workstream.
+
 ### v1.45.60 documentation sync
 
 - **RN View Logs performance (Phase G/F):** `apps/rn-app/src/screens/LogsScreen.tsx` now applies adaptive list virtualization settings for medium/large histories and fixed-row layout hints to improve scroll/render stability.

@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.60** - Logs large-list virtualization tuning increment.
+**Latest: v1.45.61** - Documentation sync for current parity checkpoint.
+
+### v1.45.61 - 2026-03-27 - Parity checkpoint docs sync
+
+- **Docs rollup:** synchronized `next-phase-development-plan.md`, `platform-parity.md`, and `app-and-features.md` to reflect the current RN parity checkpoint after `v1.45.60`.
+- **Scope clarity:** kept open backlog explicit (notifications channel/OS delivery semantics, FlashList decision/profile thresholds, remaining charts/AI/goals depth items).
+- **Execution focus:** documented the next active implementation target as notifications channel/delivery semantics where runtime support exists.
 
 ### v1.45.60 - 2026-03-27 - View Logs virtualization hardening
 
