@@ -74,6 +74,8 @@ export function SettingsScreen({
   const [unknownReminderActionCount, setUnknownReminderActionCount] = useState(0);
   const [lastUnknownReminderActionAt, setLastUnknownReminderActionAt] = useState<string | null>(null);
   const [lastUnknownReminderActionSource, setLastUnknownReminderActionSource] = useState<'startup' | 'live' | null>(null);
+  const [unknownStartupCount, setUnknownStartupCount] = useState(0);
+  const [unknownLiveCount, setUnknownLiveCount] = useState(0);
   const [reminderCapabilities, setReminderCapabilities] = useState<ReminderCapabilities>({
     hasScheduling: false,
     hasAndroidChannel: false,
@@ -154,6 +156,7 @@ export function SettingsScreen({
           setUnknownReminderActionCount((n) => n + 1);
           setLastUnknownReminderActionAt(new Date().toLocaleTimeString());
           setLastUnknownReminderActionSource('startup');
+          setUnknownStartupCount((n) => n + 1);
         }
       })
       .catch(() => {
@@ -166,6 +169,7 @@ export function SettingsScreen({
         setUnknownReminderActionCount((n) => n + 1);
         setLastUnknownReminderActionAt(new Date().toLocaleTimeString());
         setLastUnknownReminderActionSource('live');
+        setUnknownLiveCount((n) => n + 1);
       }
     }).then((cleanup) => {
       dispose = cleanup;
@@ -515,6 +519,11 @@ export function SettingsScreen({
                   Unknown reminder actions observed this session: {unknownReminderActionCount}.
                 </Text>
               ) : null}
+              {unknownReminderActionCount > 0 ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown action breakdown: startup {unknownStartupCount} · live {unknownLiveCount}.
+                </Text>
+              ) : null}
               {lastUnknownReminderActionAt ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   Last unknown reminder action observed at: {lastUnknownReminderActionAt}.
@@ -537,6 +546,8 @@ export function SettingsScreen({
                     setUnknownReminderActionCount(0);
                     setLastUnknownReminderActionAt(null);
                     setLastUnknownReminderActionSource(null);
+                    setUnknownStartupCount(0);
+                    setUnknownLiveCount(0);
                   }}
                   accessibilityRole="button"
                   accessibilityLabel="Reset unknown reminder action counter"

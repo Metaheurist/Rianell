@@ -230,6 +230,7 @@ test('notification area shows unknown-action session counter', async () => {
   );
 
   await findByText(/Unknown reminder actions observed this session: 1/i);
+  await findByText(/Unknown action breakdown: startup 0 · live 1/i);
   await findByText(/Last unknown reminder action observed at:/i);
   await findByText(/Last unknown action source: live listener/i);
 });
@@ -253,6 +254,7 @@ test('notification area can reset unknown-action session counter', async () => {
   fireEvent.press(getByLabelText('Reset unknown reminder action counter'));
   await waitFor(() => {
     expect(queryByText(/Unknown reminder actions observed this session/i)).toBeNull();
+    expect(queryByText(/Unknown action breakdown:/i)).toBeNull();
     expect(queryByText(/Last unknown reminder action observed at:/i)).toBeNull();
     expect(queryByText(/Last unknown action source:/i)).toBeNull();
   });
@@ -271,6 +273,7 @@ test('notification area marks startup snapshot as unknown-action source when pre
   );
 
   await findByText(/Last unknown action source: startup snapshot/i);
+  await findByText(/Unknown action breakdown: startup 1 · live 0/i);
 });
 
 test('notification area explains unknown-action drift when dismiss semantics are unavailable', async () => {
