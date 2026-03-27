@@ -544,12 +544,39 @@ jobs:
 
       - name: Commit and push App build
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md "App build/Expo/" "App build/Server/" "App build/RNCLI-Android/" "App build/iOS/" "App build/Legacy/"
-          git diff --staged --quiet || git commit -m "Update App build artifacts (build ${{ github.run_number }}) [skip ci]"
+          git diff --staged --quiet && { echo "No App build/README changes"; exit 0; }
+          git commit -m "Update App build artifacts (build ${{ github.run_number }}) [skip ci]"
           git fetch origin "${{ github.ref_name }}"
-          git push origin ${{ github.ref_name }}
+          PUSH_LOG="$(mktemp)"
+          set +e
+          git push origin "${{ github.ref_name }}" 2>&1 | tee "$PUSH_LOG"
+          PUSH_CODE=${PIPESTATUS[0]}
+          set -e
+          if [ "$PUSH_CODE" -eq 0 ]; then
+            echo "App build push succeeded."
+            exit 0
+          fi
+
+          if grep -Eq "GH001|exceeds GitHub's file size limit|gh\.io/lfs|Large files detected|pre-receive hook declined" "$PUSH_LOG"; then
+            echo "Large-file/quota style push rejection detected; falling back to README-only push."
+            git reset --soft HEAD~1
+            git reset
+            git add README.md
+            if git diff --staged --quiet; then
+              echo "No README-only fallback changes to push."
+              exit 0
+            fi
+            git commit -m "docs(readme): update beta build info (build ${{ github.run_number }}) [skip ci]"
+            git push origin "${{ github.ref_name }}"
+            exit 0
+          fi
+
+          echo "Push failed for non-size related reason."
+          exit "$PUSH_CODE"
 
   # ---------------------------------------------------------------------------
   # GitHub Release with Android + iOS binaries (push + mobile only)
