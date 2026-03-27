@@ -26,7 +26,7 @@ import { loadLogs, saveLogs } from '../storage/logs';
 import { SettingsCloudPane } from '../settings/SettingsCloudPane';
 import { clearCachedBenchmark, loadCachedBenchmark, resolveLlmModelSize, runAndCacheBenchmark, type BenchmarkResult } from '../performance/benchmark';
 import { disableDemoMode, enableDemoMode } from '../demo/demoMode';
-import { Permissions } from '../permissions/permissions';
+import { Permissions, type DailyReminderResult } from '../permissions/permissions';
 
 const PANE_TITLES = ['Personal & cloud', 'AI & theme', 'Accessibility', 'Data'] as const;
 
@@ -56,6 +56,7 @@ export function SettingsScreen({
   const [benchmarkBusy, setBenchmarkBusy] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<'unavailable' | 'denied' | 'granted'>('unavailable');
   const [notificationScheduleState, setNotificationScheduleState] = useState<'idle' | 'scheduled' | 'invalid-time' | 'unavailable'>('idle');
+  const [notificationDeliveryState, setNotificationDeliveryState] = useState<DailyReminderResult['delivery']>('runtime-unavailable');
 
   useEffect(() => {
     loadCachedBenchmark().then(setBenchmark).catch(() => setBenchmark(null));
@@ -71,18 +72,22 @@ export function SettingsScreen({
     let cancelled = false;
     void (async () => {
       if (notificationPermission !== 'granted') {
-        if (!cancelled) setNotificationScheduleState('idle');
+        if (!cancelled) {
+          setNotificationScheduleState('idle');
+          setNotificationDeliveryState('runtime-unavailable');
+        }
         return;
       }
-      const ok = await Permissions.scheduleDailyReminder({
+      const result = await Permissions.scheduleDailyReminder({
         enabled: prefs.notifications.enabled,
         time: prefs.notifications.dailyReminderTime,
         soundEnabled: prefs.notifications.soundEnabled,
       });
       if (cancelled) return;
-      if (ok) {
+      setNotificationDeliveryState(result.delivery);
+      if (result.ok) {
         setNotificationScheduleState(prefs.notifications.enabled ? 'scheduled' : 'idle');
-      } else if (!/^\d{2}:\d{2}$/.test(prefs.notifications.dailyReminderTime)) {
+      } else if (result.reason === 'invalid-time' || !/^\d{2}:\d{2}$/.test(prefs.notifications.dailyReminderTime)) {
         setNotificationScheduleState('invalid-time');
       } else {
         setNotificationScheduleState('unavailable');
@@ -352,6 +357,16 @@ export function SettingsScreen({
               {notificationScheduleState === 'scheduled' ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   Daily reminder scheduled at {prefs.notifications.dailyReminderTime}.
+                </Text>
+              ) : null}
+              {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-android-channel' ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Delivery semantics: Android reminder channel configured for this schedule.
+                </Text>
+              ) : null}
+              {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-basic' ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Delivery semantics: runtime supports basic daily scheduling without channel controls.
                 </Text>
               ) : null}
               {notificationScheduleState === 'invalid-time' ? (

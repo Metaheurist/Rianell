@@ -25,7 +25,7 @@ jest.mock('../permissions/permissions', () => ({
   Permissions: {
     getStatus: jest.fn(async () => 'denied'),
     request: jest.fn(async () => 'granted'),
-    scheduleDailyReminder: jest.fn(async () => true),
+    scheduleDailyReminder: jest.fn(async () => ({ ok: true, delivery: 'scheduled-basic' })),
   },
 }));
 
@@ -107,6 +107,27 @@ test('notification scheduling status is shown when permission granted', async ()
   );
 
   await findByText(/Daily reminder scheduled at 08:30/i);
+});
+
+test('notification scheduling shows android channel delivery semantics when provided', async () => {
+  const { Permissions } = require('../permissions/permissions');
+  Permissions.getStatus.mockResolvedValue('granted');
+  Permissions.scheduleDailyReminder.mockResolvedValue({
+    ok: true,
+    delivery: 'scheduled-android-channel',
+  });
+
+  const prefs = getDefaultPreferences();
+  prefs.notifications.enabled = true;
+  prefs.notifications.dailyReminderTime = '09:15';
+
+  const { findByText } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+    </ThemeProvider>
+  );
+
+  await findByText(/Android reminder channel configured/i);
 });
 
 test('textScale affects rendered typography sizes', () => {

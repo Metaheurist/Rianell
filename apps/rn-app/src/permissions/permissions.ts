@@ -8,7 +8,19 @@ export type DailyReminderOptions = {
   soundEnabled: boolean;
 };
 
+export type DailyReminderResult = {
+  ok: boolean;
+  reason?: 'module-unavailable' | 'invalid-time' | 'schedule-failed';
+  delivery:
+    | 'disabled'
+    | 'runtime-unavailable'
+    | 'scheduled-basic'
+    | 'scheduled-android-channel'
+    | 'schedule-failed';
+};
+
 const NOTIFICATION_REMINDER_ID = 'rianell-daily-reminder';
+const NOTIFICATION_CHANNEL_ID = 'rianell-reminders';
 
 function parseTimeHHMM(value: string): { hour: number; minute: number } | null {
   const m = /^(\d{2}):(\d{2})$/.exec(value.trim());
@@ -56,16 +68,28 @@ export const Permissions = {
       return 'unavailable';
     }
   },
-  async scheduleDailyReminder(opts: DailyReminderOptions): Promise<boolean> {
+  async scheduleDailyReminder(opts: DailyReminderOptions): Promise<DailyReminderResult> {
     const Notifications = await loadExpoNotifications();
-    if (!Notifications?.scheduleNotificationAsync) return false;
+    if (!Notifications?.scheduleNotificationAsync) {
+      return { ok: false, reason: 'module-unavailable', delivery: 'runtime-unavailable' };
+    }
     try {
+      let channelConfigured = false;
+      if (Notifications?.setNotificationChannelAsync && Notifications?.AndroidImportance) {
+        await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
+          name: 'Daily reminders',
+          importance: Notifications.AndroidImportance.DEFAULT,
+          sound: opts.soundEnabled ? 'default' : null,
+          vibrationPattern: opts.soundEnabled ? [0, 250, 150, 250] : [0],
+        });
+        channelConfigured = true;
+      }
       if (Notifications?.cancelScheduledNotificationAsync) {
         await Notifications.cancelScheduledNotificationAsync(NOTIFICATION_REMINDER_ID);
       }
-      if (!opts.enabled) return true;
+      if (!opts.enabled) return { ok: true, delivery: 'disabled' };
       const t = parseTimeHHMM(opts.time);
-      if (!t) return false;
+      if (!t) return { ok: false, reason: 'invalid-time', delivery: 'schedule-failed' };
       await Notifications.scheduleNotificationAsync({
         identifier: NOTIFICATION_REMINDER_ID,
         content: {
@@ -77,11 +101,15 @@ export const Permissions = {
           type: Notifications.SchedulableTriggerInputTypes?.DAILY ?? 'daily',
           hour: t.hour,
           minute: t.minute,
+          ...(channelConfigured ? { channelId: NOTIFICATION_CHANNEL_ID } : {}),
         },
       });
-      return true;
+      return {
+        ok: true,
+        delivery: channelConfigured ? 'scheduled-android-channel' : 'scheduled-basic',
+      };
     } catch {
-      return false;
+      return { ok: false, reason: 'schedule-failed', delivery: 'schedule-failed' };
     }
   },
 };

@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.61** - Documentation sync for current parity checkpoint.
+**Latest: v1.45.62** - Notifications channel/delivery semantics increment.
+
+### v1.45.62 - 2026-03-27 - Notifications delivery semantics pass
+
+- **RN notifications (Phase E):** `permissions.ts` now configures an Android reminder notification channel when supported and returns structured scheduling/delivery results instead of a plain boolean.
+- **Settings visibility:** `SettingsScreen` now surfaces delivery semantics text (Android channel configured vs basic scheduling) alongside existing schedule status.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.61 - 2026-03-27 - Parity checkpoint docs sync
 

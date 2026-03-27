@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.62 documentation sync
+
+- **RN notifications delivery semantics (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now configures Android reminder channels when supported and returns structured schedule/delivery results, and `apps/rn-app/src/screens/SettingsScreen.tsx` now shows delivery semantics status text for scheduled reminders.
+
 ### v1.45.61 documentation sync
 
 - **Program status rollup:** documentation now explicitly marks `v1.45.60` Logs virtualization as the latest shipped parity increment and keeps remaining RN backlog items called out in the plan docs.
