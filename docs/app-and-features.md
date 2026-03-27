@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.57 documentation sync
+
+- **RN AI analysis performance:** `apps/rn-app/src/screens/AiScreen.tsx` now memoizes analysis summaries from fetched logs/range and separates summary-note generation from refresh loading, improving render/update stability as AI surfaces grow.
+
 ### v1.45.56 documentation sync
 
 - **RN cloud config parity:** `apps/rn-app/app.config.js` now explicitly includes shared `SUPABASE_*` fallback sources alongside `EXPO_PUBLIC_SUPABASE_*`, keeping RN cloud env wiring consistent with web/CI expectations and unit-test guards.

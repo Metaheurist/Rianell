@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.56** - RN app config shared `SUPABASE_*` env fallback fix for CI unit tests.
+**Latest: v1.45.57** - AI screen memoization/perf hardening increment.
+
+### v1.45.57 - 2026-03-27 - AI screen summary memoization and refresh isolation
+
+- **RN AI performance hardening (Phase F):** `AiScreen` now stores fetched logs once per refresh and derives `summarizeLogsForAi` output via `useMemo(logs, range)` instead of recomputing inside the fetch path.
+- **Rerender isolation:** summary-note generation is now in a dedicated effect keyed to summary/model settings, reducing unnecessary work during pull-to-refresh and state transitions.
+- **Validation:** `npm run test:mobile -- AiScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.56 - 2026-03-27 - `app.config.js` Supabase env parity guard
 
