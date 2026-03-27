@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.92** - Unknown-action source split percentages.
+**Latest: v1.45.93** - Unknown-action dominant-source confidence hint.
+
+### v1.45.93 - 2026-03-27 - Unknown-action dominant-source confidence hint
+
+- **RN notifications (Phase E):** Settings now shows a dominant-source confidence hint for unknown reminder actions (`weak`/`medium`/`strong`) or a balanced-state message when startup/live shares are equal.
+- **Diagnostics depth:** unknown-action diagnostics now combine counts, source percentages, drift status, and dominant-source confidence to make long-tail runtime drift interpretation faster.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.92 - 2026-03-27 - Unknown-action source split percentages
 

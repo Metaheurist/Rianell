@@ -298,6 +298,19 @@ export function SettingsScreen({
     });
   }
 
+  const unknownStartupPercent =
+    unknownReminderActionCount > 0 ? Math.round((unknownStartupCount / unknownReminderActionCount) * 100) : 0;
+  const unknownLivePercent = unknownReminderActionCount > 0 ? Math.round((unknownLiveCount / unknownReminderActionCount) * 100) : 0;
+  const unknownDriftDominanceGap = Math.abs(unknownStartupPercent - unknownLivePercent);
+  const unknownDominantSourceConfidence =
+    unknownReminderActionCount === 0
+      ? null
+      : unknownStartupPercent === unknownLivePercent
+        ? 'balanced (no dominant source)'
+        : `${unknownDriftDominanceGap >= 60 ? 'strong' : unknownDriftDominanceGap >= 30 ? 'medium' : 'weak'} (${
+            unknownStartupPercent > unknownLivePercent ? 'startup snapshot' : 'live listener'
+          })`;
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
       <View style={styles.carouselChrome}>
@@ -526,8 +539,12 @@ export function SettingsScreen({
               ) : null}
               {unknownReminderActionCount > 0 ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Unknown action split: startup {Math.round((unknownStartupCount / unknownReminderActionCount) * 100)}% · live{' '}
-                  {Math.round((unknownLiveCount / unknownReminderActionCount) * 100)}%.
+                  Unknown action split: startup {unknownStartupPercent}% · live {unknownLivePercent}%.
+                </Text>
+              ) : null}
+              {unknownDominantSourceConfidence ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown-action dominant source confidence: {unknownDominantSourceConfidence}.
                 </Text>
               ) : null}
               {unknownReminderActionCount > 0 ? (
