@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.45.25** - npm overrides, single lockfile, security audit gate, mobile shell + test deps).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.45.29** - RN View Logs Phase G range/sort/refresh + docs sync; v1.45.28 CI RN Android APK collect path).
 
 ### Here’s what we plan next
 
@@ -84,16 +84,16 @@ Support contact: **jan.andersson@rianell.com**
 
 ## App icons (favicon, PWA, Android source)
 
-Master rasters live under **`web/Icons/`** (`Icon-*.png`, **`logo-source.png`**) without a beta badge.
+Master rasters live under **`apps/pwa-webapp/Icons/`** (`Icon-*.png`, **`logo-source.png`**) without a beta badge.
 
-A separate **beta** set is generated into **`web/Icons/beta/`** with the same filenames and a theme-green **BETA** badge placed in the **top-right** corner (matching the floating **+** beta chip style). The web app currently points **`index.html`**, **`manifest.json`**, and **`notifications.js`** at this beta set. Regenerate after editing masters:
+A separate **beta** set is generated into **`apps/pwa-webapp/Icons/beta/`** with the same filenames and a theme-green **BETA** badge placed in the **top-right** corner (matching the floating **+** beta chip style). The web app currently points **`index.html`**, **`manifest.json`**, and **`notifications.js`** at this beta set. Regenerate after editing masters:
 
 ```bash
 npm run icons:generate -- --source "C:/path/to/new-icon-source.png"
 npm run icons:beta
 ```
 
-**`scripts/prepare-android-assets.mjs`** prefers **`web/Icons/beta/logo-source.png`** (then non-beta masters) when building **`react-app/assets/logo.png`** for Capacitor Android icons.
+**`scripts/prepare-android-assets.mjs`** prefers **`apps/pwa-webapp/Icons/beta/logo-source.png`** (then non-beta masters) when building **`apps/capacitor-app/assets/logo.png`** for Capacitor Android icons.
 
 ---
 

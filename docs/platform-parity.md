@@ -21,6 +21,16 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - Cloud sync now includes additional user setting keys stored outside `rianellSettings`, improving cross-device settings parity for authenticated users.
 - Native-first notification permission handling and native daily scheduling remain in place for mobile runtime consistency.
 
+### v1.45.26 parity note (Home header chrome)
+
+- **Web:** fixed **`.header-buttons-wrap`** (Goals & targets, Report a bug, Settings) sits beside scroll content (`apps/pwa-webapp/index.html`).
+- **React Native:** the same three actions appear on **Home** as a top-right **chrome** row: **Goals** → Charts **Balance** + targets UI; **?** → security reporting doc; **Settings** → Settings tab. Full **Goals** modal and **bug report** modal parity remain Phase E.
+
+### v1.45.29 parity note (View Logs Phase G)
+
+- **Web:** View Logs supports date ranges, sorting, filtering, rich cards, and entry actions.
+- **React Native:** `LogsScreen` now matches core controls for **range presets**, **sort**, and **refresh** with explicit selected-state accessibility labels; remaining parity backlog is text filter, card detail depth, and edit/delete/share actions.
+
 ### v1.45.25 parity note (React Native shell)
 
 - Native **bottom tabs** align with web primary navigation intent (Home, logs, charts, optional AI, settings). **Charts → Balance** exposes a **Targets** row (default wellness line) as a stepping stone toward full **Goals & targets** parity with web.
