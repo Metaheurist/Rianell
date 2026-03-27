@@ -90,6 +90,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **All platforms:** parity documentation is now aligned to the `v1.45.60` baseline and explicitly tracks notifications channel/OS delivery semantics as the next RN parity execution target.
 
+### v1.45.62 parity note (notifications delivery semantics)
+
+- **React Native:** reminder scheduling now reports delivery semantics and configures Android notification channels when runtime APIs are present, closing the baseline gap between preference state and platform delivery behavior.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.
