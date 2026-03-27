@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.74 documentation sync
+
+- **RN notification status UX (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now uses readable reminder action labels and shows listener-unavailable fallback guidance for runtimes that cannot stream action callbacks.
+
 ### v1.45.73 documentation sync
 
 - **RN notifications runtime adaptation (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now gates snooze interval interaction by runtime capability and shows an explicit fallback note when snooze scheduling is unavailable.

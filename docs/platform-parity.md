@@ -138,6 +138,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **React Native:** notification settings now adapt snooze controls to runtime capability support and explicitly communicate fallback behavior when snooze scheduling is unsupported.
 
+### v1.45.74 parity note (action status clarity on limited runtimes)
+
+- **React Native:** reminder action status now uses user-facing labels and includes explicit listener-unavailable messaging, improving parity transparency on runtimes without live action callbacks.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.

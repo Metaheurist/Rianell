@@ -165,7 +165,7 @@ test('notification scheduling shows iOS category delivery semantics when provide
 
 test('notification area shows last reminder action when available', async () => {
   const { Permissions } = require('../permissions/permissions');
-  Permissions.getLastReminderAction.mockResolvedValue('log-now');
+  Permissions.getLastReminderAction.mockResolvedValue('default');
 
   const prefs = getDefaultPreferences();
   const { findByText } = render(
@@ -174,7 +174,47 @@ test('notification area shows last reminder action when available', async () => 
     </ThemeProvider>
   );
 
-  await findByText(/Last reminder action: Log now/i);
+  await findByText(/Last reminder action: Open app/i);
+});
+
+test('notification area shows listener-unavailable note when actions unsupported', async () => {
+  const { Permissions } = require('../permissions/permissions');
+  Permissions.getReminderCapabilities.mockResolvedValue({
+    hasScheduling: true,
+    hasAndroidChannel: false,
+    hasIosCategory: false,
+    hasResponseListener: false,
+    hasSnooze: true,
+  });
+
+  const prefs = getDefaultPreferences();
+  const { findByText } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+    </ThemeProvider>
+  );
+
+  await findByText(/Action listener is unavailable on this runtime/i);
+});
+
+test('notification area shows snooze fallback note when runtime has no snooze support', async () => {
+  const { Permissions } = require('../permissions/permissions');
+  Permissions.getReminderCapabilities.mockResolvedValue({
+    hasScheduling: true,
+    hasAndroidChannel: false,
+    hasIosCategory: false,
+    hasResponseListener: true,
+    hasSnooze: false,
+  });
+
+  const prefs = getDefaultPreferences();
+  const { findByText } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+    </ThemeProvider>
+  );
+
+  await findByText(/does not support scheduled snooze reminders/i);
 });
 
 test('textScale affects rendered typography sizes', () => {
