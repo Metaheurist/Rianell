@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   shouldClearReminderAction,
+  shouldHandleReminderAction,
   shouldOpenHomeAfterSnoozeFailure,
   shouldOpenHomeFromReminderAction,
   shouldOpenLogWizardFromReminderAction,
@@ -52,5 +53,13 @@ test('later action falls back home when snooze scheduling fails', () => {
   expect(shouldOpenHomeAfterSnoozeFailure('later', false)).toBe(true);
   expect(shouldOpenHomeAfterSnoozeFailure('later', true)).toBe(false);
   expect(shouldOpenHomeAfterSnoozeFailure('default', false)).toBe(false);
+});
+
+test('duplicate reminder actions within window are ignored', () => {
+  expect(shouldHandleReminderAction('none', null, 0, 1000)).toBe(false);
+  expect(shouldHandleReminderAction('log-now', null, 0, 1000)).toBe(true);
+  expect(shouldHandleReminderAction('log-now', 'log-now', 1000, 1800)).toBe(false);
+  expect(shouldHandleReminderAction('log-now', 'log-now', 1000, 2600)).toBe(true);
+  expect(shouldHandleReminderAction('later', 'log-now', 1000, 1200)).toBe(true);
 });
 

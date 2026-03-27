@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.76** - Reminder action policy visibility copy.
+**Latest: v1.45.77** - Reminder action burst de-dup guard.
+
+### v1.45.77 - 2026-03-27 - Reminder action burst de-dup guard
+
+- **RN notifications (Phase E):** `RootNavigator` now suppresses immediate duplicate reminder actions within a short window to avoid double-routing on noisy runtime response streams.
+- **Validation:** `npm run test:mobile -- RootNavigator.test.tsx SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
+- **Plan sync:** Phase E notifications work-item now includes duplicate-action burst handling in the current-done baseline.
 
 ### v1.45.76 - 2026-03-27 - Reminder action policy visibility
 
