@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.75 documentation sync
+
+- **RN reminder unknown-action policy (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now routes unknown reminder actions to safe Home intent, and `apps/rn-app/src/screens/SettingsScreen.tsx` now displays matching fallback guidance text.
+
 ### v1.45.74 documentation sync
 
 - **RN notification status UX (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now uses readable reminder action labels and shows listener-unavailable fallback guidance for runtimes that cannot stream action callbacks.

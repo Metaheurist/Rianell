@@ -484,6 +484,11 @@ export function SettingsScreen({
                   Last reminder action: {reminderActionLabel(lastReminderAction)}.
                 </Text>
               ) : null}
+              {lastReminderAction === 'unknown' ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown reminder actions use safe Home fallback behavior.
+                </Text>
+              ) : null}
               <Pressable
                 style={styles.dataBtn}
                 onPress={() => void requestNotificationPermission()}

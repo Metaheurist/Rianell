@@ -50,7 +50,7 @@ export function shouldSnoozeReminderFromAction(action: ReminderAction) {
 }
 
 export function shouldOpenHomeFromReminderAction(action: ReminderAction) {
-  return action === 'default';
+  return action === 'default' || action === 'unknown';
 }
 
 export function shouldOpenHomeAfterSnoozeFailure(action: ReminderAction, snoozeScheduled: boolean) {

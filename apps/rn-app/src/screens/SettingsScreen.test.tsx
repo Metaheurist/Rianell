@@ -197,6 +197,21 @@ test('notification area shows listener-unavailable note when actions unsupported
   await findByText(/Action listener is unavailable on this runtime/i);
 });
 
+test('notification area shows unknown-action fallback note', async () => {
+  const { Permissions } = require('../permissions/permissions');
+  Permissions.getLastReminderAction.mockResolvedValue('unknown');
+
+  const prefs = getDefaultPreferences();
+  const { findByText } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+    </ThemeProvider>
+  );
+
+  await findByText(/Last reminder action: Unknown action/i);
+  await findByText(/Unknown reminder actions use safe Home fallback behavior/i);
+});
+
 test('notification area shows snooze fallback note when runtime has no snooze support', async () => {
   const { Permissions } = require('../permissions/permissions');
   Permissions.getReminderCapabilities.mockResolvedValue({
