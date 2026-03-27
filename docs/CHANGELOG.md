@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.78** - Documentation sync checkpoint.
+**Latest: v1.45.79** - Reminder action identifier normalization.
+
+### v1.45.79 - 2026-03-27 - Reminder action identifier normalization
+
+- **RN notifications (Phase E):** reminder action parsing now normalizes runtime identifier variants (case and separator differences) before semantic mapping, reducing accidental `unknown` classification for known actions.
+- **Coverage:** added `apps/rn-app/src/permissions/permissions.test.ts` for normalization behavior (`log-now`, `later`, `default`, `unknown`, `none`) across representative identifier forms.
+- **Validation:** `npm run test:mobile -- permissions.test.ts RootNavigator.test.tsx SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.78 - 2026-03-27 - Documentation sync checkpoint
 

@@ -35,6 +35,22 @@ const NOTIFICATION_SNOOZE_ID = 'rianell-reminder-snooze';
 const NOTIFICATION_CHANNEL_ID = 'rianell-reminders';
 const NOTIFICATION_CATEGORY_ID = 'rianell-reminder-actions';
 
+export function normalizeReminderActionIdentifier(
+  actionIdentifier: unknown,
+  defaultActionIdentifier?: string
+): ReminderAction {
+  if (typeof actionIdentifier !== 'string' || !actionIdentifier.trim()) return 'none';
+  const raw = actionIdentifier.trim();
+  if (defaultActionIdentifier && raw === defaultActionIdentifier) return 'default';
+
+  // Normalize action IDs from different runtimes (hyphen/underscore/space/case variants).
+  const normalized = raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  if (normalized === 'default') return 'default';
+  if (normalized === 'log-now' || normalized === 'lognow') return 'log-now';
+  if (normalized === 'later') return 'later';
+  return 'unknown';
+}
+
 function parseTimeHHMM(value: string): { hour: number; minute: number } | null {
   const m = /^(\d{2}):(\d{2})$/.exec(value.trim());
   if (!m) return null;
@@ -155,11 +171,7 @@ export const Permissions = {
       const response = await Notifications.getLastNotificationResponseAsync();
       const id = response?.notification?.request?.identifier;
       if (id !== NOTIFICATION_REMINDER_ID) return 'none';
-      const action = response?.actionIdentifier;
-      if (action === 'log-now') return 'log-now';
-      if (action === 'later') return 'later';
-      if (action === Notifications.DEFAULT_ACTION_IDENTIFIER || action === 'default') return 'default';
-      return action ? 'unknown' : 'none';
+      return normalizeReminderActionIdentifier(response?.actionIdentifier, Notifications.DEFAULT_ACTION_IDENTIFIER);
     } catch {
       return 'none';
     }
@@ -171,11 +183,9 @@ export const Permissions = {
       const sub = Notifications.addNotificationResponseReceivedListener((response: any) => {
         const id = response?.notification?.request?.identifier;
         if (id !== NOTIFICATION_REMINDER_ID) return;
-        const action = response?.actionIdentifier;
-        if (action === 'log-now') onAction('log-now');
-        else if (action === 'later') onAction('later');
-        else if (action === Notifications.DEFAULT_ACTION_IDENTIFIER || action === 'default') onAction('default');
-        else onAction('unknown');
+        const action = normalizeReminderActionIdentifier(response?.actionIdentifier, Notifications.DEFAULT_ACTION_IDENTIFIER);
+        if (action === 'none') return;
+        onAction(action);
       });
       return () => {
         try {
