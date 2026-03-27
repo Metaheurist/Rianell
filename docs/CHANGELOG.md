@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.85** - Unknown action drift hint.
+**Latest: v1.45.86** - Unknown-action counter reset control.
+
+### v1.45.86 - 2026-03-27 - Unknown-action counter reset control
+
+- **RN notifications (Phase E):** Settings now includes a reset action for the in-session unknown reminder action counter so diagnostics can be cleared after review.
+- **UX continuity:** unknown-action diagnostics now include count, runtime-cause hint (when applicable), and explicit reset control in one place.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx permissions.test.ts RootNavigator.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.85 - 2026-03-27 - Unknown action drift hint
 
