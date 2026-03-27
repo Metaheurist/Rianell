@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.86** - Unknown-action counter reset control.
+**Latest: v1.45.87** - Unknown-action last-seen context.
+
+### v1.45.87 - 2026-03-27 - Unknown-action last-seen context
+
+- **RN notifications (Phase E):** Settings now records and displays the most recent in-session unknown reminder action observation time, alongside the existing counter and reset control.
+- **Diagnostics depth:** unknown-action diagnostics now provide count + likely-cause hint + last-seen context + reset action in one place.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx permissions.test.ts RootNavigator.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.86 - 2026-03-27 - Unknown-action counter reset control
 
