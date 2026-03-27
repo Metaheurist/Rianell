@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.59** - RN notification scheduling baseline wiring in Settings.
+**Latest: v1.45.60** - Logs large-list virtualization tuning increment.
+
+### v1.45.60 - 2026-03-27 - View Logs virtualization hardening
+
+- **RN View Logs (Phase G/F):** `LogsScreen` now uses adaptive `FlatList` tuning by dataset size, adds `getItemLayout` row hints, and keeps clipped-subview batching tuned for large histories.
+- **Test coverage:** `LogsScreen.test.tsx` now asserts large-list virtualization props are applied in all-range mode.
+- **Validation:** `npm run test:mobile -- LogsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.59 - 2026-03-27 - Notifications scheduling parity increment
 

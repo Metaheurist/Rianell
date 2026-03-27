@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.60 documentation sync
+
+- **RN View Logs performance (Phase G/F):** `apps/rn-app/src/screens/LogsScreen.tsx` now applies adaptive list virtualization settings for medium/large histories and fixed-row layout hints to improve scroll/render stability.
+
 ### v1.45.59 documentation sync
 
 - **RN notifications (Phase E path):** `apps/rn-app/src/screens/SettingsScreen.tsx` now wires reminder preferences to daily notification scheduling attempts when permission is granted, with runtime-safe fallback behavior in `apps/rn-app/src/permissions/permissions.ts`.
