@@ -35,6 +35,14 @@ import {
 
 const PANE_TITLES = ['Personal & cloud', 'AI & theme', 'Accessibility', 'Data'] as const;
 
+function reminderActionLabel(action: ReminderAction): string {
+  if (action === 'log-now') return 'Log now';
+  if (action === 'later') return 'Later';
+  if (action === 'default') return 'Open app';
+  if (action === 'unknown') return 'Unknown action';
+  return 'None';
+}
+
 export function SettingsScreen({
   prefs,
   onChangePrefs,
@@ -404,10 +412,12 @@ export function SettingsScreen({
                   value={String(prefs.notifications.snoozeMinutes)}
                   options={['10', '15', '30', '60']}
                   onChange={(v) =>
-                    onChangePrefs({
-                      ...prefs,
-                      notifications: { ...prefs.notifications, snoozeMinutes: Number(v) },
-                    })
+                    reminderCapabilities.hasSnooze
+                      ? onChangePrefs({
+                          ...prefs,
+                          notifications: { ...prefs.notifications, snoozeMinutes: Number(v) },
+                        })
+                      : undefined
                   }
                   tts={tts}
                 />
@@ -415,12 +425,22 @@ export function SettingsScreen({
               <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                 Later action snoozes for {prefs.notifications.snoozeMinutes} minutes; if snooze is unavailable, app opens Home.
               </Text>
+              {!reminderCapabilities.hasSnooze ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  This runtime does not support scheduled snooze reminders; later action uses Home fallback.
+                </Text>
+              ) : null}
               <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                 Runtime support: schedule {reminderCapabilities.hasScheduling ? 'yes' : 'no'} · Android channel{' '}
                 {reminderCapabilities.hasAndroidChannel ? 'yes' : 'no'} · iOS category{' '}
                 {reminderCapabilities.hasIosCategory ? 'yes' : 'no'} · actions{' '}
                 {reminderCapabilities.hasResponseListener ? 'yes' : 'no'}.
               </Text>
+              {!reminderCapabilities.hasResponseListener ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Action listener is unavailable on this runtime; reminder action status may update only on next app open.
+                </Text>
+              ) : null}
               <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                 Notification permission: {notificationPermission}
               </Text>
@@ -461,7 +481,7 @@ export function SettingsScreen({
               ) : null}
               {lastReminderAction !== 'none' ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
-                  Last reminder action: {lastReminderAction === 'log-now' ? 'Log now' : lastReminderAction}.
+                  Last reminder action: {reminderActionLabel(lastReminderAction)}.
                 </Text>
               ) : null}
               <Pressable

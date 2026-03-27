@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.73** - Runtime-adaptive snooze controls.
+**Latest: v1.45.74** - Reminder action status clarity pass.
+
+### v1.45.74 - 2026-03-27 - Reminder status clarity + listener fallback copy
+
+- **RN notifications (Phase E):** settings now normalizes reminder action labels for user-readable status (e.g., `default` -> `Open app`).
+- **Runtime nuance messaging:** added explicit copy for runtimes without action listeners, clarifying that action status may update on next app open.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx RootNavigator.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.73 - 2026-03-27 - Runtime-adaptive snooze settings
 
