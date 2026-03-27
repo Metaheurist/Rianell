@@ -118,6 +118,9 @@ jobs:
       - name: Build minified legacy bundle (temp)
         run: npm run build:web:apk
 
+      - name: Work around npm optional-deps bug for Rollup (Linux)
+        run: npm install --no-save @rollup/rollup-linux-x64-gnu
+
       - name: Build minified React shell (temp)
         run: npm run build:react
 
