@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.96 documentation sync
+
+- **RN unknown-action diagnostics quality summary (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows an observability quality score (`low`/`medium`/`high`) to summarize how reliable current-session unknown-action diagnostics are at a glance.
+
 ### v1.45.95 documentation sync
 
 - **Checkpoint refresh:** docs are synchronized so Phase E notification diagnostics coverage is consistent across feature and parity pages (counts, startup/live split, confidence, and low-sample guard).

@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.95** - Documentation sync checkpoint.
+**Latest: v1.45.96** - Unknown-action observability quality score.
+
+### v1.45.96 - 2026-03-27 - Unknown-action observability quality score
+
+- **RN notifications (Phase E):** Settings now derives and shows an unknown-action observability quality score (`low`/`medium`/`high`) based on in-session unknown-action sample size.
+- **Diagnostics depth:** unknown-action diagnostics now combine counts, source split, dominance confidence, minimum-sample warning, drift status, and a quick-read observability quality indicator.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.95 - 2026-03-27 - Documentation sync checkpoint
 

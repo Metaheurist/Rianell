@@ -310,6 +310,14 @@ export function SettingsScreen({
         : `${unknownDriftDominanceGap >= 60 ? 'strong' : unknownDriftDominanceGap >= 30 ? 'medium' : 'weak'} (${
             unknownStartupPercent > unknownLivePercent ? 'startup snapshot' : 'live listener'
           })`;
+  const unknownObservabilityQuality =
+    unknownReminderActionCount === 0
+      ? null
+      : unknownReminderActionCount < 3
+        ? 'low'
+        : unknownReminderActionCount >= 5
+          ? 'high'
+          : 'medium';
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
@@ -550,6 +558,11 @@ export function SettingsScreen({
               {unknownReminderActionCount > 0 && unknownReminderActionCount < 3 ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   Unknown-action confidence is preliminary until at least 3 unknown events are observed this session.
+                </Text>
+              ) : null}
+              {unknownObservabilityQuality ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown-action observability quality: {unknownObservabilityQuality}.
                 </Text>
               ) : null}
               {unknownReminderActionCount > 0 ? (
