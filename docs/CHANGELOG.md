@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.67** - Reminder `later` snooze action behavior.
+**Latest: v1.45.68** - Default reminder action home routing.
+
+### v1.45.68 - 2026-03-27 - Default reminder action routing
+
+- **RN notifications (Phase E):** default reminder tap actions are now explicitly treated as open-app/home intent in root navigation handling.
+- **Action semantics:** reminder handling now distinguishes all three primary action paths: `log-now` (open wizard), `later` (snooze), and `default` (foreground app home).
+- **Validation:** `npm run test:mobile -- RootNavigator.test.tsx SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.67 - 2026-03-27 - Reminder snooze action increment
 
