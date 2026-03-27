@@ -82,6 +82,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **React Native:** notification settings now attempt daily reminder scheduling/cancellation when permission is granted, moving beyond prefs-only parity toward runtime delivery behavior.
 
+### v1.45.60 parity note (logs large-list virtualization tuning)
+
+- **React Native:** View Logs now applies adaptive FlatList virtualization settings and fixed-row layout hints to better handle larger histories, tightening parity with web large-list behavior intent.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.
