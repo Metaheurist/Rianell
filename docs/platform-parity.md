@@ -102,6 +102,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **React Native:** reminder action responses are now observable through runtime listener helpers and surfaced in Settings as last-action status, improving parity coverage for notification interaction behavior.
 
+### v1.45.65 parity note (notification action routing)
+
+- **React Native:** reminder action handling now routes `log-now` interactions directly into the `LogWizard` flow, reducing parity gap between notification interaction and app navigation behavior.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.
