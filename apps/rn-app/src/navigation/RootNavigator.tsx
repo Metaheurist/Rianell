@@ -49,6 +49,10 @@ export function shouldSnoozeReminderFromAction(action: ReminderAction) {
   return action === 'later';
 }
 
+export function shouldOpenHomeFromReminderAction(action: ReminderAction) {
+  return action === 'default';
+}
+
 export function RootNavigator({
   prefs,
   onChangePrefs,
@@ -70,9 +74,17 @@ export function RootNavigator({
       navRef.navigate('LogWizard');
     };
 
+    const openHome = () => {
+      if (!mounted || !navRef.isReady()) return;
+      navRef.navigate('Tabs');
+    };
+
     const handleAction = (action: ReminderAction) => {
       if (shouldSnoozeReminderFromAction(action)) {
         void Permissions.scheduleReminderSnooze(30);
+      }
+      if (shouldOpenHomeFromReminderAction(action)) {
+        openHome();
       }
       if (shouldOpenLogWizardFromReminderAction(action)) {
         openLogWizard();
