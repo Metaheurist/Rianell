@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.90** - Documentation sync checkpoint.
+**Latest: v1.45.91** - Unknown-action drift status indicator.
+
+### v1.45.91 - 2026-03-27 - Unknown-action drift status indicator
+
+- **RN notifications (Phase E):** Settings now derives and shows an unknown-action stability status (`low`, `moderate`, `high drift`) from session unknown-action volume.
+- **Diagnostics depth:** unknown-action diagnostics now include severity-like drift status in addition to count/source/last-seen/cause/reset details.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx permissions.test.ts RootNavigator.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.90 - 2026-03-27 - Documentation sync checkpoint
 
