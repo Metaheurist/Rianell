@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.82** - Dismiss capability runtime visibility.
+**Latest: v1.45.83** - Unknown action session visibility.
+
+### v1.45.83 - 2026-03-27 - Unknown action session visibility
+
+- **RN notifications (Phase E):** Settings now tracks and displays a session-local counter for unknown reminder actions so long-tail runtime action drift is visible in-app.
+- **UI depth:** unknown-action fallback text is now complemented by concrete session observation count (`Unknown reminder actions observed this session: N`).
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx permissions.test.ts RootNavigator.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.82 - 2026-03-27 - Dismiss capability runtime visibility
 
