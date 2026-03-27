@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.66 documentation sync
+
+- **RN notifications action lifecycle (Phase E):** reminder responses are now consumed/cleared after handling in `apps/rn-app/src/permissions/permissions.ts`, and root action-routing logic avoids stale response replay loops.
+
 ### v1.45.65 documentation sync
 
 - **RN reminder action routing (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now routes notification `log-now` actions into the native `LogWizard` flow, extending parity from delivery semantics into action-to-screen behavior.

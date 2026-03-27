@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.65** - Notification action routing to log flow.
+**Latest: v1.45.66** - Notification action consumption guard.
+
+### v1.45.66 - 2026-03-27 - Notification action consumption follow-up
+
+- **RN notification handling (Phase E):** reminder actions are now explicitly treated as consumable events via `clearLastReminderAction()` after handling.
+- **Loop prevention:** root navigation action handling now clears non-`none` response state to reduce stale/replay action loops on subsequent app resumes.
+- **Validation:** `npm run test:mobile -- RootNavigator.test.tsx SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.65 - 2026-03-27 - Notification action routing increment
 
