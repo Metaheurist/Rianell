@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.65 documentation sync
+
+- **RN reminder action routing (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now routes notification `log-now` actions into the native `LogWizard` flow, extending parity from delivery semantics into action-to-screen behavior.
+
 ### v1.45.64 documentation sync
 
 - **RN notifications response path (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now exposes reminder action-response helpers, and `apps/rn-app/src/screens/SettingsScreen.tsx` surfaces last reminder action state for in-app delivery-response visibility.

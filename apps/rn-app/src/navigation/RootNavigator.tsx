@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../theme/ThemeProvider';
@@ -11,19 +11,34 @@ import { AiScreen } from '../screens/AiScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { LogWizardScreen } from '../screens/LogWizardScreen';
 import type { Preferences } from '../storage/preferences';
+import type { ChartViewMode } from '../charts/summarizeCharts';
+import { Permissions, type ReminderAction } from '../permissions/permissions';
 
 export type RootStackParamList = {
   Tabs: undefined;
   LogWizard: undefined;
 };
 
+/** Bottom tab routes + params (Charts can open in Balance from Home header — web `header-buttons-wrap` parity). */
+export type MainTabParamList = {
+  Home: undefined;
+  'View Logs': undefined;
+  Charts: { initialView?: ChartViewMode } | undefined;
+  'AI Analysis': undefined;
+  Settings: undefined;
+};
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
 type TabBarIconProps = { color: string; size?: number };
 
 export function shouldShowAiTab(prefs: Preferences) {
   return prefs.aiEnabled !== false;
+}
+
+export function shouldOpenLogWizardFromReminderAction(action: ReminderAction) {
+  return action === 'log-now';
 }
 
 export function RootNavigator({
@@ -35,8 +50,40 @@ export function RootNavigator({
 }) {
   const theme = useTheme();
   const navTheme = theme.mode === 'dark' ? DarkTheme : DefaultTheme;
+  const navRef = useNavigationContainerRef<RootStackParamList>();
+  const handledInitialActionRef = useRef(false);
+
+  useEffect(() => {
+    let mounted = true;
+    let dispose = () => {};
+
+    const openLogWizard = () => {
+      if (!mounted || !navRef.isReady()) return;
+      navRef.navigate('LogWizard');
+    };
+
+    void Permissions.getLastReminderAction()
+      .then((action) => {
+        if (handledInitialActionRef.current) return;
+        handledInitialActionRef.current = true;
+        if (shouldOpenLogWizardFromReminderAction(action)) openLogWizard();
+      })
+      .catch(() => {});
+
+    void Permissions.subscribeReminderActions((action) => {
+      if (shouldOpenLogWizardFromReminderAction(action)) openLogWizard();
+    }).then((cleanup) => {
+      dispose = cleanup;
+    });
+
+    return () => {
+      mounted = false;
+      dispose();
+    };
+  }, [navRef]);
+
   return (
-    <NavigationContainer theme={navTheme}>
+    <NavigationContainer ref={navRef} theme={navTheme}>
       <Stack.Navigator>
         <Stack.Screen name="Tabs" options={{ headerShown: false }}>
           {() => <Tabs prefs={prefs} onChangePrefs={onChangePrefs} />}
@@ -75,12 +122,13 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
           tabBarIcon: ({ color, size }: TabBarIconProps) => <Ionicons name="home-outline" size={size ?? 24} color={color} />,
         }}
-      />
+      >
+        {() => <HomeScreen prefs={prefs} />}
+      </Tab.Screen>
       <Tab.Screen
         name="View Logs"
         component={LogsScreenRoute}
@@ -91,21 +139,23 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
       />
       <Tab.Screen
         name="Charts"
-        component={ChartsScreen}
         options={{
           tabBarLabel: 'Charts',
           tabBarIcon: ({ color, size }: TabBarIconProps) => <Ionicons name="bar-chart-outline" size={size ?? 24} color={color} />,
         }}
-      />
+      >
+        {() => <ChartsScreen prefs={prefs} />}
+      </Tab.Screen>
       {shouldShowAiTab(prefs) ? (
         <Tab.Screen
           name="AI Analysis"
-          component={AiScreen}
           options={{
             tabBarLabel: 'AI',
             tabBarIcon: ({ color, size }: TabBarIconProps) => <Ionicons name="sparkles-outline" size={size ?? 24} color={color} />,
           }}
-        />
+        >
+          {() => <AiScreen prefs={prefs} />}
+        </Tab.Screen>
       ) : null}
       <Tab.Screen
         name="Settings"

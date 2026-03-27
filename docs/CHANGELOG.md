@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.64** - Reminder action-response handling baseline.
+**Latest: v1.45.65** - Notification action routing to log flow.
+
+### v1.45.65 - 2026-03-27 - Notification action routing increment
+
+- **RN notification routing (Phase E):** `RootNavigator` now reacts to reminder action responses and routes `log-now` actions to `LogWizard`.
+- **Safety + lifecycle:** action handling is gated through route-intent helper logic and listener cleanup, with initial response handling guarded against repeat startup loops.
+- **Validation:** `npm run test:mobile -- RootNavigator.test.tsx SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.64 - 2026-03-27 - Notifications action-response baseline
 
