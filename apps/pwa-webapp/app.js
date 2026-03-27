@@ -2140,7 +2140,6 @@ function getBuildBaseUrls() {
   var base = path.substring(0, path.lastIndexOf('/') + 1);
   var baseUrl = window.location.origin + (base.startsWith('/') ? base : '/' + base);
   return {
-    androidLegacy: baseUrl + encodeURI('App build/Android/'),
     androidRnCli: baseUrl + encodeURI('App build/RNCLI-Android/'),
     ios: baseUrl + encodeURI('App build/iOS/')
   };
@@ -2158,31 +2157,16 @@ function shouldFetchAppBuildManifests() {
 
 function refreshBuildDownloadLinks() {
   var bases = getBuildBaseUrls();
-  var androidLegacyBase = bases.androidLegacy;
   var androidRnCliBase = bases.androidRnCli;
   var iosBase = bases.ios;
   var isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  var apkElLegacy = document.getElementById('downloadApkLink');
   var apkElRnCli = document.getElementById('downloadRnCliApkLink');
   var iosEl = document.getElementById('downloadIosLink');
-  var apkModalLegacy = document.getElementById('installModalApkLink');
   var apkModalRnCli = document.getElementById('installModalRnCliApkLink');
   var iosModal = document.getElementById('installModalIosLink');
   var iosLabel = document.getElementById('downloadIosLabel');
   var iosLabelModal = document.getElementById('installModalIosLinkLabel');
 
-  function setAndroidLegacy(href, versionText) {
-    if (apkElLegacy) {
-      apkElLegacy.href = href;
-      var v = apkElLegacy.querySelector('.android-version');
-      if (v) v.textContent = versionText || '';
-    }
-    if (apkModalLegacy) {
-      apkModalLegacy.href = href;
-      var vM = apkModalLegacy.querySelector('.android-version');
-      if (vM) vM.textContent = versionText || '';
-    }
-  }
   function setAndroidRnCli(href, versionText) {
     if (apkElRnCli) {
       apkElRnCli.href = href;
@@ -2210,27 +2194,18 @@ function refreshBuildDownloadLinks() {
     }
   }
 
-  setAndroidLegacy(androidLegacyBase + 'app-debug-beta.apk', '');
-  setAndroidRnCli(androidRnCliBase + 'app-debug-beta.apk', '');
+  // RN CLI APK is not always hosted under GitHub Pages (it can exceed repo push limits).
+  // Default to GitHub Releases (latest) to avoid 404s; override with manifest `downloadUrl` when present.
+  var rnCliFallbackUrl = 'https://github.com/Metaheurist/Rianell/releases/latest/download/app-debug-beta.apk';
+  setAndroidRnCli(rnCliFallbackUrl, '');
   setIos(iosBase + 'Health-Tracker-ios-alpha-latest.zip', '', isIosDevice ? 'Install on iOS' : 'Download iOS build (Xcode project)');
 
   if (shouldFetchAppBuildManifests()) {
-    fetch(androidLegacyBase + 'latest.json', { cache: 'no-store' })
-      .then(function(r) { return r.ok ? r.json() : null; })
-      .then(function(data) {
-        if (data && data.file) {
-          var href = androidLegacyBase + encodeURIComponent(data.file);
-          var versionText = (data.version != null) ? '(build ' + data.version + ')' : '';
-          setAndroidLegacy(href, versionText);
-        }
-      })
-      .catch(function() {});
-
     fetch(androidRnCliBase + 'latest.json', { cache: 'no-store' })
       .then(function(r) { return r.ok ? r.json() : null; })
       .then(function(data) {
-        if (data && data.file) {
-          var href = androidRnCliBase + encodeURIComponent(data.file);
+        if (data) {
+          var href = data.downloadUrl || (data.file ? (androidRnCliBase + encodeURIComponent(data.file)) : rnCliFallbackUrl);
           var versionText = (data.version != null) ? '(build ' + data.version + ')' : '';
           setAndroidRnCli(href, versionText);
         }
@@ -2261,10 +2236,8 @@ function refreshAppInstallSection() {
     if (installWebEarly) installWebEarly.style.display = 'none';
     var installIosEarly = document.getElementById('installOnIosDevice');
     if (installIosEarly) installIosEarly.style.display = 'none';
-    var androidEarly = document.getElementById('androidDownloadOption');
     var androidRnCliEarly = document.getElementById('androidRnCliDownloadOption');
     var iosEarly = document.getElementById('iosDownloadOption');
-    if (androidEarly) androidEarly.style.display = 'none';
     if (androidRnCliEarly) androidRnCliEarly.style.display = 'none';
     if (iosEarly) iosEarly.style.display = 'none';
     if (typeof hideInstallButton === 'function') hideInstallButton();
@@ -2278,10 +2251,8 @@ function refreshAppInstallSection() {
   var installIosDevice = document.getElementById('installOnIosDevice');
   var installWebAppOption = document.getElementById('installWebAppOption');
   var installWebAppLabel = document.getElementById('installWebAppLabel');
-  var androidOption = document.getElementById('androidDownloadOption');
   var androidRnCliOption = document.getElementById('androidRnCliDownloadOption');
   var iosOption = document.getElementById('iosDownloadOption');
-  var androidLabel = document.getElementById('downloadAndroidLabel');
   var androidRnCliLabel = document.getElementById('downloadRnCliAndroidLabel');
   var iosLabel = document.getElementById('downloadIosLabel');
 
@@ -2297,19 +2268,16 @@ function refreshAppInstallSection() {
   if (platform === 'ios') {
     if (installIosDevice) installIosDevice.style.display = '';
     if (installWebAppOption) installWebAppOption.style.display = '';
-    if (androidOption) androidOption.style.display = 'none';
     if (androidRnCliOption) androidRnCliOption.style.display = 'none';
     if (iosOption) iosOption.style.display = 'none';
   } else if (platform === 'android') {
     if (installIosDevice) installIosDevice.style.display = 'none';
     if (installWebAppOption) installWebAppOption.style.display = '';
-    if (androidOption) { androidOption.style.display = ''; if (androidLabel) androidLabel.textContent = 'Install on Android'; }
     if (androidRnCliOption) { androidRnCliOption.style.display = ''; if (androidRnCliLabel) androidRnCliLabel.textContent = 'Install on Android'; }
     if (iosOption) { iosOption.style.display = ''; if (iosLabel) iosLabel.textContent = 'Download for iOS'; }
   } else {
     if (installIosDevice) installIosDevice.style.display = 'none';
     if (installWebAppOption) installWebAppOption.style.display = '';
-    if (androidOption) { androidOption.style.display = ''; if (androidLabel) androidLabel.textContent = 'Download for Android'; }
     if (androidRnCliOption) androidRnCliOption.style.display = '';
     if (iosOption) { iosOption.style.display = ''; if (iosLabel) iosLabel.textContent = 'Download for iOS'; }
   }
@@ -2330,17 +2298,9 @@ function openInstallModal(force) {
   if (!overlay) return;
   closeSettingsModalIfOpen();
   if (typeof refreshBuildDownloadLinks === 'function') refreshBuildDownloadLinks();
-  var apkMain = document.getElementById('downloadApkLink');
   var iosMain = document.getElementById('downloadIosLink');
-  var apkModal = document.getElementById('installModalApkLink');
   var iosModal = document.getElementById('installModalIosLink');
   var iosLabelModal = document.getElementById('installModalIosLinkLabel');
-  if (apkMain && apkModal) {
-    apkModal.href = apkMain.href || 'javascript:void(0)';
-    var vMain = apkMain.querySelector('.android-version');
-    var vModal = apkModal.querySelector('.android-version');
-    if (vMain && vModal) vModal.textContent = vMain.textContent || '';
-  }
   if (iosMain && iosModal) {
     iosModal.href = iosMain.href || 'javascript:void(0)';
     var labelMain = document.getElementById('downloadIosLabel');
