@@ -53,6 +53,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **All platforms:** root dependency install jobs now use a regenerated workspace lock graph, preventing stale lock metadata from breaking `npm ci` in both unit-test and prebuild/minified-assets CI paths.
 
+### v1.45.53 parity note (unit-tests path alignment)
+
+- **All platforms:** unit test fixtures now resolve against the canonical app locations (`apps/pwa-webapp` and `apps/rn-app`), removing legacy path assumptions that caused CI-only `ENOENT` failures.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.

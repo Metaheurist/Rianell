@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.52** - Lockfile regeneration for consistent CI root installs (`npm ci`).
+**Latest: v1.45.53** - Unit test path migration fix for current app directories.
+
+### v1.45.53 - 2026-03-27 - CI unit-tests path fix (`apps/pwa-webapp` + `apps/rn-app`)
+
+- **Unit test fix:** updated legacy hardcoded paths in `tests/unit/app-functionality.test.mjs`, `tests/unit/async-storage-expo-plugin.test.mjs`, and `tests/unit/mobile-expo-config.test.mjs` from old `web/` and `apps/mobile/` locations to current `apps/pwa-webapp/` and `apps/rn-app/`.
+- **Workflow impact:** resolves `ENOENT` failures in the `npm run test:unit` CI step in `.github/workflows/ci.yml`.
+- **Validation:** local `npm run test:unit` passes with all tests green.
 
 ### v1.45.52 - 2026-03-27 - CI root install stability (prepare-minified-assets + unit-tests)
 
