@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.79 documentation sync
+
+- **RN reminder action normalization (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now normalizes reminder action identifiers across runtime format variants before action mapping, and `apps/rn-app/src/permissions/permissions.test.ts` validates these semantics.
+
 ### v1.45.78 documentation sync
 
 - **Checkpoint refresh:** synchronized documentation wording after the reminder-action stability increments so feature notes consistently reflect action-policy visibility plus duplicate-action burst suppression behavior in RN notification routing.
