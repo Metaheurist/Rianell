@@ -71,6 +71,7 @@ export function SettingsScreen({
   const [notificationScheduleState, setNotificationScheduleState] = useState<'idle' | 'scheduled' | 'invalid-time' | 'unavailable'>('idle');
   const [notificationDeliveryState, setNotificationDeliveryState] = useState<DailyReminderResult['delivery']>('runtime-unavailable');
   const [lastReminderAction, setLastReminderAction] = useState<ReminderAction>('none');
+  const [unknownReminderActionCount, setUnknownReminderActionCount] = useState(0);
   const [reminderCapabilities, setReminderCapabilities] = useState<ReminderCapabilities>({
     hasScheduling: false,
     hasAndroidChannel: false,
@@ -145,13 +146,17 @@ export function SettingsScreen({
     let dispose = () => {};
     void Permissions.getLastReminderAction()
       .then((action) => {
-        if (mounted) setLastReminderAction(action);
+        if (!mounted) return;
+        setLastReminderAction(action);
+        if (action === 'unknown') setUnknownReminderActionCount((n) => n + 1);
       })
       .catch(() => {
         if (mounted) setLastReminderAction('none');
       });
     void Permissions.subscribeReminderActions((action) => {
-      if (mounted) setLastReminderAction(action);
+      if (!mounted) return;
+      setLastReminderAction(action);
+      if (action === 'unknown') setUnknownReminderActionCount((n) => n + 1);
     }).then((cleanup) => {
       dispose = cleanup;
     });
@@ -493,6 +498,11 @@ export function SettingsScreen({
               {lastReminderAction === 'unknown' ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   Unknown reminder actions use safe Home fallback behavior.
+                </Text>
+              ) : null}
+              {unknownReminderActionCount > 0 ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown reminder actions observed this session: {unknownReminderActionCount}.
                 </Text>
               ) : null}
               <Pressable
