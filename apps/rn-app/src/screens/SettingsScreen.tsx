@@ -1,8 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -19,16 +18,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { getTeamIds } from '@rianell/tokens';
-import type { AppearanceMode, Preferences } from '../storage/preferences';
+import type { AppearanceMode, Preferences, PreferredLlmModelSize } from '../storage/preferences';
 import { useTheme } from '../theme/ThemeProvider';
 import { speakLabel } from '../accessibility/tts';
-import type { BuildChannel } from '../data/buildDownloads';
-import { resolveArtifactUrl } from '../data/buildDownloads';
 import { mergeLogsAppend, parseLogImportJson, serializeLogsForExport } from '../data/logExportImport';
 import { loadLogs, saveLogs } from '../storage/logs';
 import { SettingsCloudPane } from '../settings/SettingsCloudPane';
+import { clearCachedBenchmark, loadCachedBenchmark, resolveLlmModelSize, runAndCacheBenchmark, type BenchmarkResult } from '../performance/benchmark';
+import { disableDemoMode, enableDemoMode } from '../demo/demoMode';
 
-const PANE_TITLES = ['Personal & cloud', 'AI & theme', 'Accessibility', 'Data & install'] as const;
+const PANE_TITLES = ['Personal & cloud', 'AI & theme', 'Accessibility', 'Data'] as const;
 
 export function SettingsScreen({
   prefs,
@@ -51,7 +50,13 @@ export function SettingsScreen({
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
   const [exportBusy, setExportBusy] = useState(false);
-  const [downloadBusy, setDownloadBusy] = useState<BuildChannel | null>(null);
+  const [demoBusy, setDemoBusy] = useState(false);
+  const [benchmark, setBenchmark] = useState<BenchmarkResult | null>(null);
+  const [benchmarkBusy, setBenchmarkBusy] = useState(false);
+
+  useEffect(() => {
+    loadCachedBenchmark().then(setBenchmark).catch(() => setBenchmark(null));
+  }, []);
 
   function goPane(next: number) {
     const clamped = Math.max(0, Math.min(PANE_TITLES.length - 1, next));
@@ -65,6 +70,10 @@ export function SettingsScreen({
   }
 
   async function onExportLogs() {
+    if (prefs.demoMode) {
+      Alert.alert('Demo Mode', 'Data export is disabled in demo mode. Demo data is not saved or synced.');
+      return;
+    }
     setExportBusy(true);
     try {
       const logs = await loadLogs();
@@ -79,6 +88,10 @@ export function SettingsScreen({
   }
 
   async function applyImport(mode: 'replace' | 'append') {
+    if (prefs.demoMode) {
+      Alert.alert('Demo Mode', 'Import is disabled in demo mode. Turn off demo mode first.');
+      return;
+    }
     try {
       const incoming = parseLogImportJson(importText);
       if (mode === 'replace') {
@@ -96,23 +109,41 @@ export function SettingsScreen({
     }
   }
 
-  async function openBuildDownload(channel: BuildChannel) {
-    setDownloadBusy(channel);
+  async function runBenchmarkNow() {
+    setBenchmarkBusy(true);
     try {
-      const resolved = await resolveArtifactUrl(channel);
-      if (!resolved) {
-        Alert.alert(
-          'Download',
-          'Could not load build info from the site. Check your connection or try again later.'
-        );
-        return;
-      }
-      await Linking.openURL(resolved.url);
+      const next = await runAndCacheBenchmark();
+      setBenchmark(next);
+      Alert.alert(
+        'Performance benchmark',
+        `Tier ${next.tier} (${next.deviceClass})\nRecommended model: ${next.llmModelSize}\nScore: ${next.scoreMs.toFixed(1)} ms`
+      );
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Open failed';
-      Alert.alert('Download', msg);
+      const msg = e instanceof Error ? e.message : 'Benchmark failed';
+      Alert.alert('Performance benchmark', msg);
     } finally {
-      setDownloadBusy(null);
+      setBenchmarkBusy(false);
+    }
+  }
+
+  async function setDemoMode(next: boolean) {
+    if (demoBusy || prefs.demoMode === next) return;
+    setDemoBusy(true);
+    try {
+      if (next) {
+        await enableDemoMode();
+        onChangePrefs({ ...prefs, demoMode: true });
+        Alert.alert('Demo Mode', 'Demo mode enabled. Sample logs loaded for exploration.');
+      } else {
+        await disableDemoMode();
+        onChangePrefs({ ...prefs, demoMode: false });
+        Alert.alert('Demo Mode', 'Demo mode disabled. Previous logs restored.');
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Could not update demo mode.';
+      Alert.alert('Demo Mode', msg);
+    } finally {
+      setDemoBusy(false);
     }
   }
 
@@ -199,6 +230,10 @@ export function SettingsScreen({
           <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
             <Section title="Personal & cloud sync">
               <Hint>Matches web Settings → first carousel pane (account + Supabase).</Hint>
+              <Row label="Demo mode">
+                <Switch value={prefs.demoMode === true} onValueChange={(on) => void setDemoMode(on)} disabled={demoBusy} />
+              </Row>
+              <Hint>Loads a fresh sample dataset each app launch and pauses data portability actions.</Hint>
               <SettingsCloudPane />
             </Section>
           </ScrollView>
@@ -232,6 +267,56 @@ export function SettingsScreen({
                   tts={tts}
                 />
               </Row>
+            </Section>
+            <Section title="Performance">
+              <Hint>
+                Benchmark parity with web: tiers 1-5 + recommended on-device AI model. Use this to pick model size and profile.
+              </Hint>
+              <Row label="On-device AI model">
+                <InlineChoices
+                  value={prefs.performance.preferredLlmModelSize}
+                  options={['recommended', 'tier1', 'tier2', 'tier3', 'tier4', 'tier5']}
+                  onChange={(v) =>
+                    onChangePrefs({
+                      ...prefs,
+                      performance: {
+                        ...prefs.performance,
+                        preferredLlmModelSize: v as PreferredLlmModelSize,
+                      },
+                    })
+                  }
+                  tts={tts}
+                />
+              </Row>
+              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                Active model: {resolveLlmModelSize(prefs.performance.preferredLlmModelSize, benchmark)}
+                {benchmark ? ` (recommended ${benchmark.llmModelSize}, tier ${benchmark.tier})` : ' (no benchmark yet)'}
+              </Text>
+              <View style={styles.performanceActions}>
+                <Pressable
+                  style={[styles.dataBtn, { opacity: benchmarkBusy ? 0.6 : 1 }]}
+                  onPress={() => void runBenchmarkNow()}
+                  disabled={benchmarkBusy}
+                  accessibilityRole="button"
+                  accessibilityLabel="Run performance benchmark"
+                >
+                  {benchmarkBusy ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>⚡ Run benchmark</Text>
+                  )}
+                </Pressable>
+                <Pressable
+                  style={styles.dataBtn}
+                  onPress={() => {
+                    void clearCachedBenchmark().then(() => setBenchmark(null));
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear performance benchmark"
+                >
+                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🧹 Clear benchmark cache</Text>
+                </Pressable>
+              </View>
             </Section>
           </ScrollView>
         </View>
@@ -299,7 +384,7 @@ export function SettingsScreen({
           </ScrollView>
         </View>
 
-        {/* Pane 3 — Data & install */}
+        {/* Pane 3 — Data */}
         <View style={{ width }}>
           <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
             <Section title="Data management">
@@ -324,58 +409,6 @@ export function SettingsScreen({
                 accessibilityLabel="Import logs from JSON"
               >
                 <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>📥 Import logs (JSON)</Text>
-              </Pressable>
-            </Section>
-
-            <Section title="Install & downloads">
-              <Hint>
-                Uses the same public manifests as web Settings on rianell.com; opens the resolved download URL in your
-                browser.
-              </Hint>
-              <Pressable
-                style={[styles.dataBtn, { opacity: downloadBusy === 'androidLegacy' ? 0.6 : 1 }]}
-                onPress={() => void openBuildDownload('androidLegacy')}
-                disabled={downloadBusy !== null}
-                accessibilityRole="button"
-                accessibilityLabel="Download Android legacy Capacitor APK"
-              >
-                {downloadBusy === 'androidLegacy' ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>
-                    🤖 Android · legacy Capacitor (Beta)
-                  </Text>
-                )}
-              </Pressable>
-              <Pressable
-                style={[styles.dataBtn, { opacity: downloadBusy === 'androidRnCli' ? 0.6 : 1 }]}
-                onPress={() => void openBuildDownload('androidRnCli')}
-                disabled={downloadBusy !== null}
-                accessibilityRole="button"
-                accessibilityLabel="Download Android React Native CLI APK"
-              >
-                {downloadBusy === 'androidRnCli' ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>
-                    🤖 Android · React Native CLI (Beta)
-                  </Text>
-                )}
-              </Pressable>
-              <Pressable
-                style={[styles.dataBtn, { opacity: downloadBusy === 'ios' ? 0.6 : 1 }]}
-                onPress={() => void openBuildDownload('ios')}
-                disabled={downloadBusy !== null}
-                accessibilityRole="button"
-                accessibilityLabel="Download iOS Xcode project zip"
-              >
-                {downloadBusy === 'ios' ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>
-                    🍎 iOS · Xcode project (Alpha)
-                  </Text>
-                )}
               </Pressable>
             </Section>
           </ScrollView>
@@ -561,4 +594,5 @@ const styles = StyleSheet.create({
   },
   modalActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' },
   modalBtn: { paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.12)' },
+  performanceActions: { gap: 8, marginTop: 6 },
 });

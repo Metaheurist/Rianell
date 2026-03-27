@@ -9,6 +9,19 @@ jest.mock('expo-speech', () => ({
   stop: jest.fn(),
 }));
 
+jest.mock('../performance/benchmark', () => ({
+  loadCachedBenchmark: jest.fn(async () => null),
+  runAndCacheBenchmark: jest.fn(async () => ({
+    scoreMs: 20,
+    tier: 4,
+    deviceClass: 'high',
+    llmModelSize: 'tier4',
+    measuredAt: Date.now(),
+  })),
+  clearCachedBenchmark: jest.fn(async () => {}),
+  resolveLlmModelSize: jest.fn(() => 'tier3'),
+}));
+
 test('settings carousel: cloud pane, then AI, accessibility, data panes', () => {
   const prefs = getDefaultPreferences();
   const { getByText, getByTestId } = render(
@@ -19,11 +32,14 @@ test('settings carousel: cloud pane, then AI, accessibility, data panes', () => 
 
   getByText('1 / 4 — Personal & cloud');
   getByText('Personal & cloud sync');
+  getByText('Demo mode');
   getByText(/Cloud sync is not configured/);
 
   fireEvent.press(getByTestId('settings-pane-tab-1'));
   getByText('Theme');
   getByText('Enable AI features & Goals');
+  getByText('Performance');
+  getByText('On-device AI model');
 
   fireEvent.press(getByTestId('settings-pane-tab-2'));
   getByText('3 / 4 — Accessibility');
@@ -32,14 +48,10 @@ test('settings carousel: cloud pane, then AI, accessibility, data panes', () => 
   getByText('Read mode (auto-read on focus)');
 
   fireEvent.press(getByTestId('settings-pane-tab-3'));
-  getByText('4 / 4 — Data & install');
+  getByText('4 / 4 — Data');
   getByText('Data management');
   getByText('📤 Export logs (JSON)');
   getByText('📥 Import logs (JSON)');
-  getByText('Install & downloads');
-  getByText('🤖 Android · legacy Capacitor (Beta)');
-  getByText('🤖 Android · React Native CLI (Beta)');
-  getByText('🍎 iOS · Xcode project (Alpha)');
 });
 
 test('textScale affects rendered typography sizes', () => {
