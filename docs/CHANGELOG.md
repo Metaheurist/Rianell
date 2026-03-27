@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.0** - Unknown-action session summary line.
+**Latest: v1.46.1** - Documentation sync checkpoint.
+
+### v1.46.1 - 2026-03-27 - Documentation sync checkpoint
+
+- **Docs alignment:** synchronized plan/parity/features/readme wording on the current RN notification diagnostics baseline, including compact summary + trajectory/stability visibility.
+- **Scope:** documentation/changelog checkpoint only; no runtime behavior changes in this entry.
 
 ### v1.46.0 - 2026-03-27 - Unknown-action session summary line
 
