@@ -49,6 +49,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **All platforms:** root `npm ci` in the unit-tests workflow now uses a committed workspace-manifest-synced state, avoiding CI failures where workspace package entries (`mobile`, `rianell-shell`) appeared missing from lock resolution.
 
+### v1.45.52 parity note (root install stability across CI jobs)
+
+- **All platforms:** root dependency install jobs now use a regenerated workspace lock graph, preventing stale lock metadata from breaking `npm ci` in both unit-test and prebuild/minified-assets CI paths.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.

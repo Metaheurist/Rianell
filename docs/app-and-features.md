@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.52 documentation sync
+
+- **CI build reliability (prebuild assets + unit tests):** regenerated root `package-lock.json` from active workspaces to remove stale workspace lock metadata and keep root `npm ci` stable across CI jobs that install root dependencies.
+
 ### v1.45.51 documentation sync
 
 - **CI unit-tests workflow reliability:** root/workspace package manifest alignment was synced so CI root `npm ci` resolves the RN workspace graph without lock mismatch (`mobile` / `rianell-shell` missing-entry failures).
