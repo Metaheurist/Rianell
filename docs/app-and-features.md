@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.46.0 documentation sync
+
+- **RN unknown-action diagnostics summary view (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now surfaces a compact session summary line that combines quality, drift, and trajectory stability for fast triage.
+
 ### v1.45.99 documentation sync
 
 - **RN unknown-action diagnostics trajectory status (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows a trajectory stability note (`stable`/`shifted`) derived from first-to-latest unknown-action source path.
