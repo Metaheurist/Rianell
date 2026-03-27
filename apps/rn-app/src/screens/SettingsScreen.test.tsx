@@ -46,6 +46,7 @@ test('settings carousel: cloud pane, then AI, accessibility, data panes', () => 
   getByText('Enable daily reminder');
   getByText('Reminder sound');
   getByText('Snooze minutes (later action)');
+  getByText(/Later action snoozes for/i);
   getByText(/Cloud sync is not configured/);
 
   fireEvent.press(getByTestId('settings-pane-tab-1'));
