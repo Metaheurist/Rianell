@@ -16,11 +16,14 @@ export type DailyReminderResult = {
     | 'runtime-unavailable'
     | 'scheduled-basic'
     | 'scheduled-android-channel'
+    | 'scheduled-ios-category'
+    | 'scheduled-channel-and-category'
     | 'schedule-failed';
 };
 
 const NOTIFICATION_REMINDER_ID = 'rianell-daily-reminder';
 const NOTIFICATION_CHANNEL_ID = 'rianell-reminders';
+const NOTIFICATION_CATEGORY_ID = 'rianell-reminder-actions';
 
 function parseTimeHHMM(value: string): { hour: number; minute: number } | null {
   const m = /^(\d{2}):(\d{2})$/.exec(value.trim());
@@ -75,6 +78,7 @@ export const Permissions = {
     }
     try {
       let channelConfigured = false;
+      let categoryConfigured = false;
       if (Notifications?.setNotificationChannelAsync && Notifications?.AndroidImportance) {
         await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
           name: 'Daily reminders',
@@ -83,6 +87,21 @@ export const Permissions = {
           vibrationPattern: opts.soundEnabled ? [0, 250, 150, 250] : [0],
         });
         channelConfigured = true;
+      }
+      if (Notifications?.setNotificationCategoryAsync) {
+        await Notifications.setNotificationCategoryAsync(NOTIFICATION_CATEGORY_ID, [
+          {
+            identifier: 'log-now',
+            buttonTitle: 'Log now',
+            options: { opensAppToForeground: true },
+          },
+          {
+            identifier: 'later',
+            buttonTitle: 'Later',
+            options: { opensAppToForeground: false },
+          },
+        ]);
+        categoryConfigured = true;
       }
       if (Notifications?.cancelScheduledNotificationAsync) {
         await Notifications.cancelScheduledNotificationAsync(NOTIFICATION_REMINDER_ID);
@@ -96,6 +115,7 @@ export const Permissions = {
           title: 'Rianell reminder',
           body: 'Log today to keep your trends and AI insights up to date.',
           sound: opts.soundEnabled ? 'default' : null,
+          ...(categoryConfigured ? { categoryIdentifier: NOTIFICATION_CATEGORY_ID } : {}),
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes?.DAILY ?? 'daily',
@@ -106,7 +126,13 @@ export const Permissions = {
       });
       return {
         ok: true,
-        delivery: channelConfigured ? 'scheduled-android-channel' : 'scheduled-basic',
+        delivery: channelConfigured && categoryConfigured
+          ? 'scheduled-channel-and-category'
+          : channelConfigured
+            ? 'scheduled-android-channel'
+            : categoryConfigured
+              ? 'scheduled-ios-category'
+              : 'scheduled-basic',
       };
     } catch {
       return { ok: false, reason: 'schedule-failed', delivery: 'schedule-failed' };

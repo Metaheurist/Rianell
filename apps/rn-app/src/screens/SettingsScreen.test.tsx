@@ -130,6 +130,27 @@ test('notification scheduling shows android channel delivery semantics when prov
   await findByText(/Android reminder channel configured/i);
 });
 
+test('notification scheduling shows iOS category delivery semantics when provided', async () => {
+  const { Permissions } = require('../permissions/permissions');
+  Permissions.getStatus.mockResolvedValue('granted');
+  Permissions.scheduleDailyReminder.mockResolvedValue({
+    ok: true,
+    delivery: 'scheduled-ios-category',
+  });
+
+  const prefs = getDefaultPreferences();
+  prefs.notifications.enabled = true;
+  prefs.notifications.dailyReminderTime = '09:45';
+
+  const { findByText } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+    </ThemeProvider>
+  );
+
+  await findByText(/iOS reminder actions\/category configured/i);
+});
+
 test('textScale affects rendered typography sizes', () => {
   const prefs1 = getDefaultPreferences();
   prefs1.accessibility.textScale = 1;

@@ -94,6 +94,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **React Native:** reminder scheduling now reports delivery semantics and configures Android notification channels when runtime APIs are present, closing the baseline gap between preference state and platform delivery behavior.
 
+### v1.45.63 parity note (notifications OS category semantics)
+
+- **React Native:** reminder scheduling now also configures iOS notification categories/actions when runtime APIs are present, expanding platform-level delivery semantics beyond Android channel-only behavior.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.

@@ -364,6 +364,16 @@ export function SettingsScreen({
                   Delivery semantics: Android reminder channel configured for this schedule.
                 </Text>
               ) : null}
+              {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-ios-category' ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Delivery semantics: iOS reminder actions/category configured for this schedule.
+                </Text>
+              ) : null}
+              {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-channel-and-category' ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Delivery semantics: Android channel and iOS reminder category semantics are both configured.
+                </Text>
+              ) : null}
               {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-basic' ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   Delivery semantics: runtime supports basic daily scheduling without channel controls.
