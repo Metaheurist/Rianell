@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.45.39** - RN AIEngine + LLM parity baseline; v1.45.38 RN demo mode parity toggle).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.45.40** - docs sync for RN parity track: AIEngine/LLM, demo mode, benchmark tiers/model selection, and install-button scope).
 
 ### Here’s what we plan next
 
