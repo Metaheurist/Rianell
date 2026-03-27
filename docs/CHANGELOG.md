@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.51** - CI lockfile-manifest sync for unit-tests workflow (`npm ci`).
+**Latest: v1.45.52** - Lockfile regeneration for consistent CI root installs (`npm ci`).
+
+### v1.45.52 - 2026-03-27 - CI root install stability (prepare-minified-assets + unit-tests)
+
+- **CI fix (`.github/workflows/ci.yml`):** regenerated root `package-lock.json` from current workspaces to remove stale lock metadata and stabilize root `npm ci` in both `prepare-minified-assets` and `unit-tests` jobs.
+- **Failure pattern addressed:** GitHub Actions `EUSAGE` lock mismatch showing missing workspace package/dependency entries (`mobile`, `rianell-shell`, and RN dependency tree).
+- **Validation:** local `npm ci` and `npm run test:unit` pass on the regenerated lockfile.
 
 ### v1.45.51 - 2026-03-27 - Unit-tests workflow install gate sync
 
