@@ -214,6 +214,24 @@ test('notification area shows unknown-action fallback note', async () => {
   await findByText(/Unknown reminder actions use safe Home fallback behavior/i);
 });
 
+test('notification area shows unknown-action session counter', async () => {
+  const { Permissions } = require('../permissions/permissions');
+  Permissions.getLastReminderAction.mockResolvedValue('none');
+  Permissions.subscribeReminderActions.mockImplementationOnce(async (onAction: (a: string) => void) => {
+    onAction('unknown');
+    return () => {};
+  });
+
+  const prefs = getDefaultPreferences();
+  const { findByText } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+    </ThemeProvider>
+  );
+
+  await findByText(/Unknown reminder actions observed this session: 1/i);
+});
+
 test('notification area shows snooze fallback note when runtime has no snooze support', async () => {
   const { Permissions } = require('../permissions/permissions');
   Permissions.getReminderCapabilities.mockResolvedValue({
