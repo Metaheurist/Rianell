@@ -9,45 +9,41 @@
 
 ```
 Rianell/
-├── web/                    # Static web app (served at site root on GitHub Pages)
-│   ├── index.html          # Main application HTML
-│   ├── app.js              # Core application logic
-│   ├── app.min.js          # (generated) esbuild minify - gitignored; use npm run build:web
-│   ├── build-site.mjs      # esbuild script → app.min.js
-│   ├── logs-idb.js         # IndexedDB mirror for health logs (optional async backup)
-│   ├── styles-charts.css   # Deferred chart + ApexCharts styles (loaded on demand)
-│   ├── sw.js               # Optional service worker (static asset cache)
-│   ├── workers/            # Web Workers (e.g. large JSON parse/stringify)
-│   ├── AIEngine.js         # AI analysis (neural pipeline, …)
-│   ├── styles.css          # Application styles
-│   ├── Icons/              # App icons (PWA, favicon, Apple touch); `logo-source.png` master + committed `Icon-*.png` sizes
-│   ├── cloud-sync.js       # Supabase synchronisation
-│   ├── supabase-config.js  # Supabase configuration
-│   ├── summary-llm.js      # In-browser LLM (summary, suggest note, dashboard MOTD)
-│   ├── notifications.js    # Reminders, heartbeat sound
-│   └── …                   # Other JS/CSS/assets
-├── requirements.txt        # Python dependencies
-├── package.json            # Root scripts (build, sync, android, build:web, …)
-├── scripts/                # e.g. `prepare-android-assets.mjs`, `smoke-function-trace.mjs`
-├── docs/                   # Documentation
-│   ├── styling.md          # Web UI tokens, settings carousel, tile pickers, cache bust
-│   ├── images/             # README screenshots (Home, View logs, AI Analysis, card selector, server dashboard, …)
-│   └── NEURAL_NETWORK_PLAN.md   # AI expansion and optimisation plan
-├── .github/workflows/      # Unified CI: `ci.yml` (mobile, Pages, release, audits)
-├── react-app/              # React (Vite) + Capacitor shell for Android
-│   ├── src/                # React entry and iframe wrapper
-│   ├── android/            # Capacitor Android project (optional to commit)
-│   ├── copy-webapp.js      # Copies web app into public/legacy
-│   ├── patch-android-sdk.js
-│   └── capacitor.config.ts
-├── App build/              # Built apps (filled by CI; committed for download links)
-│   ├── Android/           # APK + latest.json
-│   └── iOS/               # Xcode project zip + latest.json
-├── server/                 # Python HTTP server (`python -m server`)
-│   └── launch-server.ps1   # Windows launcher (optional)
-├── security/               # Local secrets (not in git): `.env`, `.encryption_key`; see docs/SECURITY.md
-│   └── .env.example        # Template → copy to security/.env
-└── logs/                   # Server logs
+├── apps/
+│   ├── pwa-webapp/         # Static PWA (GitHub Pages site root; parity reference)
+│   │   ├── index.html      # Main application HTML
+│   │   ├── app.js          # Core application logic
+│   │   ├── app.min.js      # (generated) esbuild minify - gitignored; use npm run build:web
+│   │   ├── build-site.mjs  # esbuild script → app.min.js
+│   │   ├── logs-idb.js     # IndexedDB mirror for health logs (optional async backup)
+│   │   ├── styles-charts.css
+│   │   ├── sw.js
+│   │   ├── workers/
+│   │   ├── AIEngine.js
+│   │   ├── styles.css
+│   │   ├── Icons/
+│   │   ├── cloud-sync.js
+│   │   ├── supabase-config.js
+│   │   ├── summary-llm.js
+│   │   ├── notifications.js
+│   │   └── …
+│   ├── rn-app/             # React Native (Expo) CLI — primary native mobile surface
+│   │   └── src/            # Tabs, Log wizard, Charts, AI, Settings, …
+│   └── capacitor-app/      # Legacy Vite + Capacitor WebView shell
+│       ├── src/
+│       ├── android/
+│       ├── copy-webapp.js  # Copies PWA into public/legacy
+│       ├── patch-android-sdk.js
+│       └── capacitor.config.ts
+├── requirements.txt
+├── package.json            # Workspaces: apps/*, packages/*
+├── scripts/
+├── docs/
+├── .github/workflows/
+├── App build/              # CI artifacts + latest.json (download links)
+├── server/                 # Python HTTP server (serves apps/pwa-webapp by default)
+├── security/
+└── logs/
 ```
 
 <a id="nav-dependencies"></a>
@@ -66,8 +62,8 @@ Rianell/
 
 ### Node.js (optional: React & Android)
 - Used only for the React/Capacitor build and Android APK. See **React shell & Android APK**.
-- Root `package.json`: scripts for `build`, `build:android`, `build:web` (minify `web/app.js` → `web/app.min.js`), `sync`, `dev`
-- `react-app/`: Vite 6, React, Capacitor 7; run `npm run build` from repo root
+- Root `package.json`: scripts for `build`, `build:android`, `build:web` (minify `apps/pwa-webapp/app.js` → `app.min.js`), `sync`, `dev`
+- `apps/capacitor-app/`: Vite 6, React, Capacitor 7; run `npm run build` from repo root
 
 <a id="nav-development"></a>
 
@@ -133,7 +129,7 @@ The app includes GDPR-compliant data sharing:
 - Try clearing browser cache
 
 **Console: `tabs:outgoing.message.ready`, `No Listener`, or `vendor.js` (VM…)**:
-- Usually **browser extensions** injecting into the page, not the Health app. The app **suppresses** matching **`unhandledrejection`** events (see early script in `web/index.html` and `web/app.js`). If messages persist, try a **clean profile** or **disable extensions** on the site.
+- Usually **browser extensions** injecting into the page, not the Health app. The app **suppresses** matching **`unhandledrejection`** events (see early script in `apps/pwa-webapp/index.html` and `apps/pwa-webapp/app.js`). If messages persist, try a **clean profile** or **disable extensions** on the site.
 
 <a id="nav-security-notes"></a>
 
