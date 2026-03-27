@@ -26,7 +26,12 @@ import { loadLogs, saveLogs } from '../storage/logs';
 import { SettingsCloudPane } from '../settings/SettingsCloudPane';
 import { clearCachedBenchmark, loadCachedBenchmark, resolveLlmModelSize, runAndCacheBenchmark, type BenchmarkResult } from '../performance/benchmark';
 import { disableDemoMode, enableDemoMode } from '../demo/demoMode';
-import { Permissions, type DailyReminderResult, type ReminderAction } from '../permissions/permissions';
+import {
+  Permissions,
+  type DailyReminderResult,
+  type ReminderAction,
+  type ReminderCapabilities,
+} from '../permissions/permissions';
 
 const PANE_TITLES = ['Personal & cloud', 'AI & theme', 'Accessibility', 'Data'] as const;
 
@@ -58,9 +63,30 @@ export function SettingsScreen({
   const [notificationScheduleState, setNotificationScheduleState] = useState<'idle' | 'scheduled' | 'invalid-time' | 'unavailable'>('idle');
   const [notificationDeliveryState, setNotificationDeliveryState] = useState<DailyReminderResult['delivery']>('runtime-unavailable');
   const [lastReminderAction, setLastReminderAction] = useState<ReminderAction>('none');
+  const [reminderCapabilities, setReminderCapabilities] = useState<ReminderCapabilities>({
+    hasScheduling: false,
+    hasAndroidChannel: false,
+    hasIosCategory: false,
+    hasResponseListener: false,
+    hasSnooze: false,
+  });
 
   useEffect(() => {
     loadCachedBenchmark().then(setBenchmark).catch(() => setBenchmark(null));
+  }, []);
+
+  useEffect(() => {
+    Permissions.getReminderCapabilities()
+      .then(setReminderCapabilities)
+      .catch(() =>
+        setReminderCapabilities({
+          hasScheduling: false,
+          hasAndroidChannel: false,
+          hasIosCategory: false,
+          hasResponseListener: false,
+          hasSnooze: false,
+        })
+      );
   }, []);
 
   useEffect(() => {
@@ -388,6 +414,12 @@ export function SettingsScreen({
               </Row>
               <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                 Later action snoozes for {prefs.notifications.snoozeMinutes} minutes; if snooze is unavailable, app opens Home.
+              </Text>
+              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                Runtime support: schedule {reminderCapabilities.hasScheduling ? 'yes' : 'no'} · Android channel{' '}
+                {reminderCapabilities.hasAndroidChannel ? 'yes' : 'no'} · iOS category{' '}
+                {reminderCapabilities.hasIosCategory ? 'yes' : 'no'} · actions{' '}
+                {reminderCapabilities.hasResponseListener ? 'yes' : 'no'}.
               </Text>
               <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                 Notification permission: {notificationPermission}
