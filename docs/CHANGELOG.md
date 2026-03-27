@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.70** - Snooze-failure home fallback behavior.
+**Latest: v1.45.71** - Notification runtime capability visibility.
+
+### v1.45.71 - 2026-03-27 - Notification runtime capability status
+
+- **RN notifications (Phase E):** added runtime capability reporting (`schedule`, Android channel, iOS category, action listener) and surfaced it in Settings.
+- **User clarity:** notification section now includes a compact capability status line so behavior differences across runtimes are visible in-app.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx RootNavigator.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.70 - 2026-03-27 - Snooze fallback resilience
 
