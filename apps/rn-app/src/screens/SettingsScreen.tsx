@@ -73,6 +73,7 @@ export function SettingsScreen({
   const [lastReminderAction, setLastReminderAction] = useState<ReminderAction>('none');
   const [unknownReminderActionCount, setUnknownReminderActionCount] = useState(0);
   const [lastUnknownReminderActionAt, setLastUnknownReminderActionAt] = useState<string | null>(null);
+  const [firstUnknownReminderActionSource, setFirstUnknownReminderActionSource] = useState<'startup' | 'live' | null>(null);
   const [lastUnknownReminderActionSource, setLastUnknownReminderActionSource] = useState<'startup' | 'live' | null>(null);
   const [unknownStartupCount, setUnknownStartupCount] = useState(0);
   const [unknownLiveCount, setUnknownLiveCount] = useState(0);
@@ -155,6 +156,7 @@ export function SettingsScreen({
         if (action === 'unknown') {
           setUnknownReminderActionCount((n) => n + 1);
           setLastUnknownReminderActionAt(new Date().toLocaleTimeString());
+          setFirstUnknownReminderActionSource((s) => s ?? 'startup');
           setLastUnknownReminderActionSource('startup');
           setUnknownStartupCount((n) => n + 1);
         }
@@ -168,6 +170,7 @@ export function SettingsScreen({
       if (action === 'unknown') {
         setUnknownReminderActionCount((n) => n + 1);
         setLastUnknownReminderActionAt(new Date().toLocaleTimeString());
+        setFirstUnknownReminderActionSource((s) => s ?? 'live');
         setLastUnknownReminderActionSource('live');
         setUnknownLiveCount((n) => n + 1);
       }
@@ -326,6 +329,12 @@ export function SettingsScreen({
         : unknownObservabilityQuality === 'high'
           ? 'trend signal is stable enough for runtime comparison checks.'
           : null;
+  const unknownSourceTrajectory =
+    firstUnknownReminderActionSource && lastUnknownReminderActionSource
+      ? `${firstUnknownReminderActionSource === 'startup' ? 'startup snapshot' : 'live listener'} to ${
+          lastUnknownReminderActionSource === 'startup' ? 'startup snapshot' : 'live listener'
+        }`
+      : null;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
@@ -578,6 +587,11 @@ export function SettingsScreen({
                   Unknown-action recommended next check: {unknownRecommendedNextCheck}
                 </Text>
               ) : null}
+              {unknownSourceTrajectory ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown-action source trajectory this session: {unknownSourceTrajectory}.
+                </Text>
+              ) : null}
               {unknownReminderActionCount > 0 ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   Unknown-action stability status:{' '}
@@ -620,6 +634,7 @@ export function SettingsScreen({
                   onPress={() => {
                     setUnknownReminderActionCount(0);
                     setLastUnknownReminderActionAt(null);
+                    setFirstUnknownReminderActionSource(null);
                     setLastUnknownReminderActionSource(null);
                     setUnknownStartupCount(0);
                     setUnknownLiveCount(0);

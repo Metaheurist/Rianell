@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.98 documentation sync
+
+- **RN unknown-action diagnostics trajectory context (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows the source trajectory (`first -> latest`) for unknown reminder actions within the session.
+
 ### v1.45.97 documentation sync
 
 - **RN unknown-action diagnostics actionable guidance (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows a recommended next-check message based on observability quality to guide immediate runtime triage.
