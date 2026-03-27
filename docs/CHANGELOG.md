@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.97** - Unknown-action recommended next-check guidance.
+**Latest: v1.45.98** - Unknown-action source trajectory visibility.
+
+### v1.45.98 - 2026-03-27 - Unknown-action source trajectory visibility
+
+- **RN notifications (Phase E):** Settings now tracks and shows unknown-action source trajectory for the current session (first source to latest source).
+- **Diagnostics depth:** unknown-action diagnostics now include source trajectory context in addition to quality-driven guidance and drift indicators.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.97 - 2026-03-27 - Unknown-action recommended next-check guidance
 
