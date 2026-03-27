@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.58 documentation sync
+
+- **RN AI analysis (Phase C depth):** `apps/rn-app/src/screens/AiScreen.tsx` now includes richer web-aligned helper copy across findings/trends/flare/correlation/group sections, and `apps/rn-app/src/ai/analyzeLogs.ts` now reports correlation direction/strength using clearer web-style phrasing.
+
 ### v1.45.57 documentation sync
 
 - **RN AI analysis performance:** `apps/rn-app/src/screens/AiScreen.tsx` now memoizes analysis summaries from fetched logs/range and separates summary-note generation from refresh loading, improving render/update stability as AI surfaces grow.

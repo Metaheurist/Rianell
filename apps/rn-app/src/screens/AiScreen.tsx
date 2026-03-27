@@ -147,6 +147,9 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
               </Text>
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>What we found</Text>
+              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                Patterns in everyday language from your own logs in this range.
+              </Text>
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                 Mood avg: {fmt(summary.avgMood)} / 10
               </Text>
@@ -165,6 +168,9 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
               ))}
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>How you're doing</Text>
+              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                Recent averages versus latest entries. This is guidance, not diagnosis.
+              </Text>
               {summary.howYouAreDoing.map((line) => (
                 <Text key={`hyd-${line}`} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                   {line}
@@ -172,6 +178,9 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
               ))}
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Things to watch</Text>
+              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                Unusual patterns that may be worth checking in with your symptoms and routine.
+              </Text>
               {summary.thingsToWatch.map((line) => (
                 <Text key={`ttw-${line}`} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                   {line}
@@ -179,6 +188,9 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
               ))}
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Important</Text>
+              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                For patterns only - talk to your clinician before changing care.
+              </Text>
               {summary.important.map((line) => (
                 <Text key={`imp-${line}`} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                   {line}
@@ -186,8 +198,11 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
               ))}
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Possible flare-up</Text>
+              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                A simple score from current log patterns - not a medical test.
+              </Text>
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                Level: {summary.possibleFlareUp.level} ({summary.possibleFlareUp.matchingSignals} signal{summary.possibleFlareUp.matchingSignals === 1 ? '' : 's'})
+                Level: {summary.possibleFlareUp.level} ({summary.possibleFlareUp.matchingSignals} / 5 signs)
               </Text>
               {summary.possibleFlareUp.notes.map((line) => (
                 <Text key={`pfu-${line}`} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
@@ -196,6 +211,9 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
               ))}
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Correlations</Text>
+              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                Metrics that tend to move together in your recent logs.
+              </Text>
               {summary.correlations.map((line) => (
                 <Text key={`corr-${line}`} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                   {line}
@@ -203,6 +221,9 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
               ))}
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Groups that change together</Text>
+              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                Clusters of metrics that often shift in the same period.
+              </Text>
               {summary.groupsThatChangeTogether.map((line) => (
                 <Text key={`grp-${line}`} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                   {line}
@@ -224,6 +245,7 @@ const styles = StyleSheet.create({
   text: { opacity: 0.95, marginBottom: 10 },
   section: { marginTop: 12, marginBottom: 6, fontWeight: '800', opacity: 0.85 },
   metric: { marginBottom: 5, opacity: 0.95 },
+  meta: { marginBottom: 6, opacity: 0.82 },
   error: { marginTop: 8, opacity: 0.95 },
   rangeRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   rangeChip: {
