@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.91** - Unknown-action drift status indicator.
+**Latest: v1.45.92** - Unknown-action source split percentages.
+
+### v1.45.92 - 2026-03-27 - Unknown-action source split percentages
+
+- **RN notifications (Phase E):** Settings now shows startup/live percentage split for unknown reminder actions in the current session.
+- **Diagnostics depth:** unknown-action observability now includes both absolute counts and ratio-style source distribution, improving drift triage at a glance.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.91 - 2026-03-27 - Unknown-action drift status indicator
 
