@@ -232,6 +232,32 @@ test('notification area shows unknown-action session counter', async () => {
   await findByText(/Unknown reminder actions observed this session: 1/i);
 });
 
+test('notification area explains unknown-action drift when dismiss semantics are unavailable', async () => {
+  const { Permissions } = require('../permissions/permissions');
+  Permissions.getLastReminderAction.mockResolvedValue('none');
+  Permissions.getReminderCapabilities.mockResolvedValue({
+    hasScheduling: true,
+    hasAndroidChannel: false,
+    hasIosCategory: false,
+    hasResponseListener: true,
+    hasSnooze: true,
+    hasDismissAction: false,
+  });
+  Permissions.subscribeReminderActions.mockImplementationOnce(async (onAction: (a: string) => void) => {
+    onAction('unknown');
+    return () => {};
+  });
+
+  const prefs = getDefaultPreferences();
+  const { findByText } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+    </ThemeProvider>
+  );
+
+  await findByText(/some dismiss\/close gestures may appear as unknown/i);
+});
+
 test('notification area shows snooze fallback note when runtime has no snooze support', async () => {
   const { Permissions } = require('../permissions/permissions');
   Permissions.getReminderCapabilities.mockResolvedValue({

@@ -505,6 +505,11 @@ export function SettingsScreen({
                   Unknown reminder actions observed this session: {unknownReminderActionCount}.
                 </Text>
               ) : null}
+              {unknownReminderActionCount > 0 && !reminderCapabilities.hasDismissAction ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  This runtime does not expose explicit dismiss action identifiers; some dismiss/close gestures may appear as unknown.
+                </Text>
+              ) : null}
               <Pressable
                 style={styles.dataBtn}
                 onPress={() => void requestNotificationPermission()}
