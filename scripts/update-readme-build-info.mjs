@@ -97,7 +97,7 @@ const block = [
   `| ![Beta](${BETA_BADGE}) **Android** APK (Capacitor) | **${legacyAndroidV}** |`,
   `| ![Alpha](${ALPHA_BADGE}) **iOS** (Xcode project zip, Capacitor) | **${legacyIosV}** |`,
   '',
-  `Latest: [\`App build/RNCLI-Android/${rnAndroidFile}\`](App%20build/RNCLI-Android/latest.json) · [\`App build/iOS/${rnIosFile}\`](App%20build/iOS/latest.json) · [\`App build/Server/${serverFile}\`](App%20build/Server/latest.json) · [\`App build/Server/${serverX64File}\`](App%20build/Server/latest-x64.json) · [\`App build/Server/${serverX86File}\`](App%20build/Server/latest-x86.json) · legacy [\`App build/Android/${legacyAndroidFile}\`](App%20build/Android/latest.json) · [\`App build/Legacy/Capacitor-iOS/${legacyIosFile}\`](App%20build/Legacy/Capacitor-iOS/latest.json) · [Workflow #${run}](${runUrl}) · \`${sha}\``,
+  `Latest: [\`App build/RNCLI-Android/${rnAndroidFile}\`](App%20build/RNCLI-Android/latest.json) · [\`App build/iOS/${rnIosFile}\`](App%20build/iOS/latest.json) · [\`App build/Server/${serverFile}\`](App%20build/Server/latest.json) · [\`App build/Server/${serverX64File}\`](App%20build/Server/latest-x64.json) · [\`App build/Server/${serverX86File}\`](App%20build/Server/latest-x86.json) · legacy Capacitor Android [\`App build/Android/${legacyAndroidFile}\`](App%20build/Android/latest.json) · legacy Capacitor iOS [\`App build/Legacy/Capacitor-iOS/${legacyIosFile}\`](App%20build/Legacy/Capacitor-iOS/latest.json) · [Workflow #${run}](${runUrl}) · \`${sha}\``,
   '',
   END,
 ].join('\n');

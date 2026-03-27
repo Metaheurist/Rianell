@@ -637,9 +637,21 @@ jobs:
             cp -v "gh-release/RNCLI-iOS/"* "release-assets/RNCLI/iOS/" || true
           fi
 
-          # Legacy (Capacitor) artifacts are not rebuilt; RN iOS lives under release-assets/RNCLI/, not Legacy.
-          if [ -d "App build/Android" ]; then cp -r "App build/Android" "release-assets/Legacy/Android" || true; fi
-          if [ -d "App build/Legacy/Capacitor-iOS" ]; then cp -r "App build/Legacy/Capacitor-iOS" "release-assets/Legacy/Capacitor-iOS" || true; fi
+          # Legacy (Capacitor) artifacts are not rebuilt; copy with explicit legacy-capacitor names.
+          if [ -d "App build/Android" ]; then
+            for f in "App build/Android/"*; do
+              [ -f "$f" ] || continue
+              base="$(basename "$f")"
+              cp -v "$f" "release-assets/Legacy/legacy-capacitor-android-${base}"
+            done
+          fi
+          if [ -d "App build/Legacy/Capacitor-iOS" ]; then
+            for f in "App build/Legacy/Capacitor-iOS/"*; do
+              [ -f "$f" ] || continue
+              base="$(basename "$f")"
+              cp -v "$f" "release-assets/Legacy/legacy-capacitor-ios-${base}"
+            done
+          fi
 
           cp "gh-release/Server/server-exe-x64/rianell-server-x64.exe" "release-assets/Server/"
           cp "gh-release/Server/server-exe-x86/rianell-server-x86.exe" "release-assets/Server/"
@@ -674,9 +686,10 @@ jobs:
             - `Android/` (APK + metadata)
             - `iOS/` (iOS emulator Xcode project zip + metadata)
 
-            ### Legacy (Capacitor)
+            ### Legacy Capacitor (metadata artifacts)
             Directory: `release-assets/Legacy/`
-            - `Android/` and `Capacitor-iOS/` (copied from checked-in `App build/Android/` and `App build/Legacy/Capacitor-iOS/`; legacy builds are no longer rebuilt in CI)
+            - Files are published as `legacy-capacitor-android-*` and `legacy-capacitor-ios-*`
+            - Source paths remain checked-in metadata from `App build/Android/` and `App build/Legacy/Capacitor-iOS/` (legacy builds are no longer rebuilt in CI)
 
             ### Server (Windows EXE)
             Directory: `release-assets/Server/`
