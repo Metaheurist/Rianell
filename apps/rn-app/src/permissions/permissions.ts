@@ -37,14 +37,17 @@ const NOTIFICATION_CATEGORY_ID = 'rianell-reminder-actions';
 
 export function normalizeReminderActionIdentifier(
   actionIdentifier: unknown,
-  defaultActionIdentifier?: string
+  defaultActionIdentifier?: string,
+  dismissedActionIdentifier?: string
 ): ReminderAction {
   if (typeof actionIdentifier !== 'string' || !actionIdentifier.trim()) return 'none';
   const raw = actionIdentifier.trim();
   if (defaultActionIdentifier && raw === defaultActionIdentifier) return 'default';
+  if (dismissedActionIdentifier && raw === dismissedActionIdentifier) return 'none';
 
   // Normalize action IDs from different runtimes (hyphen/underscore/space/case variants).
   const normalized = raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  if (normalized === 'dismiss' || normalized === 'dismissed' || normalized === 'close' || normalized === 'closed') return 'none';
   if (normalized === 'default') return 'default';
   if (normalized === 'log-now' || normalized === 'lognow') return 'log-now';
   if (normalized === 'later') return 'later';
@@ -54,12 +57,13 @@ export function normalizeReminderActionIdentifier(
 export function mapNotificationResponseToReminderAction(
   notificationIdentifier: unknown,
   actionIdentifier: unknown,
-  defaultActionIdentifier?: string
+  defaultActionIdentifier?: string,
+  dismissedActionIdentifier?: string
 ): ReminderAction {
   if (notificationIdentifier !== NOTIFICATION_REMINDER_ID && notificationIdentifier !== NOTIFICATION_SNOOZE_ID) {
     return 'none';
   }
-  const normalized = normalizeReminderActionIdentifier(actionIdentifier, defaultActionIdentifier);
+  const normalized = normalizeReminderActionIdentifier(actionIdentifier, defaultActionIdentifier, dismissedActionIdentifier);
   // Snooze notifications do not expose custom category actions; treat taps as open-app intent.
   if (notificationIdentifier === NOTIFICATION_SNOOZE_ID) {
     if (normalized === 'none') return 'none';
@@ -189,7 +193,8 @@ export const Permissions = {
       return mapNotificationResponseToReminderAction(
         response?.notification?.request?.identifier,
         response?.actionIdentifier,
-        Notifications.DEFAULT_ACTION_IDENTIFIER
+        Notifications.DEFAULT_ACTION_IDENTIFIER,
+        Notifications.DISMISSED_ACTION_IDENTIFIER
       );
     } catch {
       return 'none';
@@ -203,7 +208,8 @@ export const Permissions = {
         const action = mapNotificationResponseToReminderAction(
           response?.notification?.request?.identifier,
           response?.actionIdentifier,
-          Notifications.DEFAULT_ACTION_IDENTIFIER
+          Notifications.DEFAULT_ACTION_IDENTIFIER,
+          Notifications.DISMISSED_ACTION_IDENTIFIER
         );
         if (action === 'none') return;
         onAction(action);
