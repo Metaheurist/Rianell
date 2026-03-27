@@ -25,10 +25,20 @@ const llmEndpoint = firstNonEmpty(
   process.env.EXPO_PUBLIC_LLM_ENDPOINT,
   process.env.LLM_ENDPOINT
 );
+const iosBundleIdentifier = firstNonEmpty(
+  process.env.EXPO_PUBLIC_IOS_BUNDLE_IDENTIFIER,
+  process.env.IOS_BUNDLE_IDENTIFIER,
+  appJson?.expo?.ios?.bundleIdentifier,
+  'com.anonymous.mobile'
+);
 
 module.exports = {
   expo: {
     ...appJson.expo,
+    ios: {
+      ...(appJson.expo.ios || {}),
+      bundleIdentifier: iosBundleIdentifier,
+    },
     extra: {
       ...(appJson.expo.extra || {}),
       // Keep RN sourced from the same CI/local secret names used by web/Capacitor.

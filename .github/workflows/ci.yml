@@ -287,11 +287,12 @@ jobs:
       - name: Generate native project (expo prebuild -> RN CLI)
         working-directory: apps/rn-app
         env:
+          CI: "1"
           EXPO_NO_TELEMETRY: "1"
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        run: npx expo prebuild --platform android --non-interactive --no-install
+        run: npx expo prebuild --platform android --no-install
 
       - name: Assemble Android debug APK
         working-directory: apps/rn-app/android
@@ -342,11 +343,12 @@ jobs:
       - name: Generate native project (expo prebuild -> RN CLI)
         working-directory: apps/rn-app
         env:
+          CI: "1"
           EXPO_NO_TELEMETRY: "1"
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        run: npx expo prebuild --platform ios --non-interactive --no-install
+        run: npx expo prebuild --platform ios --no-install
 
       - name: Zip iOS project for emulator usage
         shell: bash
