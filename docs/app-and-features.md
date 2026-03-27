@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.72 documentation sync
+
+- **Checkpoint refresh:** documentation pages are synchronized to the current notification parity state (runtime capability line, tri-path action handling, snooze personalization, and fallback behavior) with remaining backlog called out in the phase plan.
+
 ### v1.45.71 documentation sync
 
 - **RN notification runtime matrix (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now reports reminder capability support and `apps/rn-app/src/screens/SettingsScreen.tsx` shows a runtime capability line for schedule/channel/category/action support.

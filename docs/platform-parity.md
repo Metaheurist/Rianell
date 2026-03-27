@@ -130,6 +130,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **React Native:** Settings now surfaces runtime capability support for scheduling/channel/category/action handling, making platform behavior differences explicit for parity validation.
 
+### v1.45.72 parity note (documentation checkpoint)
+
+- **All platforms:** parity documentation is synchronized to the latest RN notification semantics baseline and preserves explicit open items for remaining cross-platform depth work.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.

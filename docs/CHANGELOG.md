@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.71** - Notification runtime capability visibility.
+**Latest: v1.45.72** - Documentation sync checkpoint.
+
+### v1.45.72 - 2026-03-27 - Documentation checkpoint sync
+
+- **Docs refresh:** synchronized plan, parity, and features docs to keep the latest notification semantics milestones clear and consistent.
+- **Status clarity:** retained explicit open backlog callouts (remaining OS-specific notification long-tail behavior, charts chrome/prediction parity, AI depth, goals UX depth, and list virtualization decision follow-through).
+- **Release pointer:** updated README latest-changes reference to this checkpoint.
 
 ### v1.45.71 - 2026-03-27 - Notification runtime capability status
 
