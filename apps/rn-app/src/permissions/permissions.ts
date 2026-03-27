@@ -51,6 +51,23 @@ export function normalizeReminderActionIdentifier(
   return 'unknown';
 }
 
+export function mapNotificationResponseToReminderAction(
+  notificationIdentifier: unknown,
+  actionIdentifier: unknown,
+  defaultActionIdentifier?: string
+): ReminderAction {
+  if (notificationIdentifier !== NOTIFICATION_REMINDER_ID && notificationIdentifier !== NOTIFICATION_SNOOZE_ID) {
+    return 'none';
+  }
+  const normalized = normalizeReminderActionIdentifier(actionIdentifier, defaultActionIdentifier);
+  // Snooze notifications do not expose custom category actions; treat taps as open-app intent.
+  if (notificationIdentifier === NOTIFICATION_SNOOZE_ID) {
+    if (normalized === 'none') return 'none';
+    return 'default';
+  }
+  return normalized;
+}
+
 function parseTimeHHMM(value: string): { hour: number; minute: number } | null {
   const m = /^(\d{2}):(\d{2})$/.exec(value.trim());
   if (!m) return null;
@@ -169,9 +186,11 @@ export const Permissions = {
     if (!Notifications?.getLastNotificationResponseAsync) return 'none';
     try {
       const response = await Notifications.getLastNotificationResponseAsync();
-      const id = response?.notification?.request?.identifier;
-      if (id !== NOTIFICATION_REMINDER_ID) return 'none';
-      return normalizeReminderActionIdentifier(response?.actionIdentifier, Notifications.DEFAULT_ACTION_IDENTIFIER);
+      return mapNotificationResponseToReminderAction(
+        response?.notification?.request?.identifier,
+        response?.actionIdentifier,
+        Notifications.DEFAULT_ACTION_IDENTIFIER
+      );
     } catch {
       return 'none';
     }
@@ -181,9 +200,11 @@ export const Permissions = {
     if (!Notifications?.addNotificationResponseReceivedListener) return () => {};
     try {
       const sub = Notifications.addNotificationResponseReceivedListener((response: any) => {
-        const id = response?.notification?.request?.identifier;
-        if (id !== NOTIFICATION_REMINDER_ID) return;
-        const action = normalizeReminderActionIdentifier(response?.actionIdentifier, Notifications.DEFAULT_ACTION_IDENTIFIER);
+        const action = mapNotificationResponseToReminderAction(
+          response?.notification?.request?.identifier,
+          response?.actionIdentifier,
+          Notifications.DEFAULT_ACTION_IDENTIFIER
+        );
         if (action === 'none') return;
         onAction(action);
       });
