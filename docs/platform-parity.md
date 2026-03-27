@@ -57,6 +57,11 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **All platforms:** unit test fixtures now resolve against the canonical app locations (`apps/pwa-webapp` and `apps/rn-app`), removing legacy path assumptions that caused CI-only `ENOENT` failures.
 
+### v1.45.54 parity note (Charts reduced-motion transitions)
+
+- **Web:** chart and section transitions honor reduced-motion preferences across visual updates.
+- **React Native:** Charts now uses reduced-motion-aware layout transitions (view/range/refresh/data update paths) and minimizes animation when the OS reduced-motion setting is enabled.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.
