@@ -2,6 +2,11 @@
 
 ## ⚙️ Installation
 
+### v1.45.41 documentation sync
+
+- RN parity status references are aligned with the active plan/changelog: baseline AIEngine/LLM hooks, demo-mode lifecycle parity, and benchmark-tier model selection are implemented; deeper benchmark-detail UI parity remains open.
+- Install/download controls are web/PWA-facing by product scope; RN app settings do not expose in-app install buttons.
+
 ### v1.44.2 documentation sync
 
 - Local server startup keeps CI-parity web preprocessing (`server/launch-server.ps1`) so runtime theme and UI behaviour matches built artifacts more closely.
