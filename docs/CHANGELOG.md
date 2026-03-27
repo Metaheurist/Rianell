@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.87** - Unknown-action last-seen context.
+**Latest: v1.45.88** - Unknown-action source context.
+
+### v1.45.88 - 2026-03-27 - Unknown-action source context
+
+- **RN notifications (Phase E):** unknown reminder-action diagnostics now include source context (`startup snapshot` vs `live listener`) so in-session drift origin is visible.
+- **Diagnostics completeness:** Settings unknown-action diagnostics now include count, last-seen time, source, likely-cause hint (when relevant), and reset control.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx permissions.test.ts RootNavigator.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.87 - 2026-03-27 - Unknown-action last-seen context
 

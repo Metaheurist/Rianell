@@ -16,6 +16,11 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - `sync_behavior`: foreground/interval behavior; no guaranteed OS background sync.
 - `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
 
+### v1.45.88 parity note (unknown diagnostics source context)
+
+- **React Native:** notification diagnostics now identify whether the most recent unknown reminder action came from startup snapshot handling or live listener callbacks.
+- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+
 ### v1.45.87 parity note (unknown diagnostics last-seen context)
 
 - **React Native:** notification diagnostics now show last-seen context for unknown reminder actions, improving in-app parity troubleshooting without external logs.

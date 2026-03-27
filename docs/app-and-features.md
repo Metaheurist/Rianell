@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.88 documentation sync
+
+- **RN unknown-action diagnostics source context (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows whether the latest unknown reminder action came from startup snapshot state or the live listener path.
+
 ### v1.45.87 documentation sync
 
 - **RN unknown-action diagnostics context (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now surfaces a last-seen time for unknown reminder actions in addition to the session count and reset control.
