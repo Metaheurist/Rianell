@@ -47,6 +47,8 @@
      SUPABASE_PUBLISHABLE_KEY=your_publishable_key_here
      # Legacy: SUPABASE_ANON_KEY=… still works if PUBLISHABLE is unset
      ```
+  - **React Native parity:** `apps/rn-app/app.config.js` reads the same names (`SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY`, legacy `SUPABASE_ANON_KEY`) and also supports `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY`. You can copy these into `apps/rn-app/.env` for local RN builds.
+  - **RN LLM endpoint (optional):** for AI summary note / MOTD generation in RN, set `EXPO_PUBLIC_LLM_ENDPOINT` (or `LLM_ENDPOINT`) in `apps/rn-app/.env`. If unset or unavailable, RN falls back to deterministic AIEngine note generation.
 
 4. **Configure Supabase (for frontend)**
    - Edit `supabase-config.js` with your Supabase credentials
@@ -77,7 +79,7 @@ If you use PowerShell 7+:
 pwsh -File .\server\launch-server.ps1
 ```
 
-For local **non-compiled** mode (serve `web/` directly), use:
+For local **non-compiled** mode (serve **`apps/pwa-webapp/`** directly), use:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1 -NoCompile
@@ -114,13 +116,13 @@ The server will:
 
 ### GitHub Pages (app at repo root)
 
-The app lives in **`web/`**, so GitHub Pages will not see `index.html` if the source is the repo root. The public site is **[rianell.com](https://rianell.com/)**; GitHub Actions can also deploy the same build to Pages (e.g. `https://<user>.github.io/Rianell/`).
+The app lives in **`apps/pwa-webapp/`**, so GitHub Pages will not see `index.html` if the source is the repo root. The public site is **[rianell.com](https://rianell.com/)**; GitHub Actions can also deploy the same build to Pages (e.g. `https://<user>.github.io/Rianell/`).
 
 1. In the repo: **Settings → Pages**
 2. Under **Build and deployment**, set **Source** to **GitHub Actions**
-3. The unified workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs the **`deploy-pages`** job on push to `main`/`master` and deploys a prepared **`site/`** folder as the site root (copy of **`web/`** plus `App build/` if present), so `index.html` is served correctly. The job runs **`npm ci`** (with lockfile cache), then **`node web/build-site.mjs --site site`** - same pipeline as local **`npm run build:web`**: instrument first-party JS (optional function trace hooks), minify **`app.js`** → **`app.min.js`** - then rewrites **`index.html`** to load the minified bundle for smaller downloads.
+3. The unified workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs the **`deploy-pages`** job on push to `main`/`master` and deploys a prepared **`site/`** folder as the site root (copy of **`apps/pwa-webapp/`** plus `App build/` if present), so `index.html` is served correctly. The job runs **`npm ci`** (with lockfile cache), then **`node apps/pwa-webapp/build-site.mjs --site site`** - same pipeline as local **`npm run build:web`**: instrument first-party JS (optional function trace hooks), minify **`app.js`** → **`app.min.js`** - then rewrites **`index.html`** to load the minified bundle for smaller downloads.
 
-**Custom domain (`rianell.com`):** In **Settings → Pages**, set the custom domain and keep **Enforce HTTPS** on. At your DNS provider, use GitHub’s documented records (apex: four **A** records to `185.199.108.153`–`185.199.111.153`; **www**: **CNAME** to `<user>.github.io`). This repo includes **`web/CNAME`** (contents: `rianell.com`) so each deploy publishes the domain hint at the site root, alongside the GitHub UI setting.
+**Custom domain (`rianell.com`):** In **Settings → Pages**, set the custom domain and keep **Enforce HTTPS** on. At your DNS provider, use GitHub’s documented records (apex: four **A** records to `185.199.108.153`–`185.199.111.153`; **www**: **CNAME** to `<user>.github.io`). This repo includes **`apps/pwa-webapp/CNAME`** (contents: `rianell.com`) so each deploy publishes the domain hint at the site root, alongside the GitHub UI setting.
 
 If the site works elsewhere but your PC shows **`ERR_CONNECTION_REFUSED`**, DNS is often fine globally while your machine still has a stale cache, a bad **AAAA**, or a firewall/VPN path. Run **`powershell -ExecutionPolicy Bypass -File .\scripts\check-rianell-dns.ps1`** from the repo to verify **A**/**AAAA**/**www**, then try **`ipconfig /flushdns`**, another network (e.g. phone on cellular), or remove incorrect **AAAA** records for the apex.
 
@@ -148,28 +150,28 @@ The app can be run as a **React (Vite) app** that wraps the existing web UI and 
 - From repo root:
   ```bash
   npm install
-  cd react-app && npm install
-  npm run copy-webapp   # copies web app into react-app/public/legacy
-  npm run build        # builds React app into react-app/dist
+  cd apps/capacitor-app && npm install
+  npm run copy-webapp   # copies PWA into apps/capacitor-app/public/legacy
+  npm run build        # builds React app into apps/capacitor-app/dist
   ```
-- To add the Android project (one-time, then commit `react-app/android/` if you want):
+- To add the Android project (one-time, then commit `apps/capacitor-app/android/` if you want):
   ```bash
-  cd react-app && npx cap add android
+  cd apps/capacitor-app && npx cap add android
   npx cap sync android
   node patch-android-sdk.js   # minSdk/targetSdk/compileSdk, R8, notifications, portrait, hardwareAccelerated, network_security_config + manifest cleartext cleanup
   ```
-- **Launcher icon & splash (APK / iOS):** Raster PWA icons live under **`web/Icons/`** (generated from **`logo-source.png`** and committed). They are **not** copied into native projects by `cap sync`. **`npm run build:android`** runs **`scripts/prepare-android-assets.mjs`** (builds **`react-app/assets/logo.png`**) then **`@capacitor/assets`** for Android mipmaps/splash before **`cap sync`**. For iOS, add the platform and run **`cd react-app && npx @capacitor/assets generate --ios`** (with **`logo.png`** present) or align assets in Xcode.
-- **Performance (APK):** Use **`npm run build:apk`** (or **`npm run build:android`**) so **`web/build-site.mjs --skip-trace`** writes **`web/app.min.js`** and a full **`web/.android-dist/`** tree: every first-party **`.js`** (except **`app.js`**, which is replaced by **`app.min.js`**) and **`.css`** file is **esbuild-minified** for smaller parse and transfer. **`react-app/copy-webapp.js --min`** copies from **`web/.android-dist`** when present (otherwise falls back to **`web/`** + HTML patch for **`app.min.js`** only). The same **`--skip-trace`** path runs in **GitHub Actions** for the **`android`** / **`ios`** jobs. **`react-app/patch-android-sdk.js`** adds **`network_security_config.xml`** (cleartext off by default), wires it in **`AndroidManifest.xml`**, strips **`usesCleartextTraffic="true"`** if present, sets **`android:hardwareAccelerated="true"`** on **`<application>`** when missing, enables **R8** (`minifyEnabled true`) and **resource shrinking** for the **release** Gradle build type, and appends **ProGuard** keep rules for Capacitor. **CI publishes a debug APK** (`assembleDebug`); for **smaller/faster runtime** builds locally, run **`./gradlew assembleRelease`** in **`react-app/android`** with your signing config. For Play Store, prefer **`./gradlew bundleRelease`** (AAB). GitHub Pages / default **`npm run build`** keeps function-trace for the deployed site; **`web/.android-dist/`** is gitignored.
-- **APK update prompt:** Handled in **`web/android-update-check.js`** (Android native only), comparing **`App.getInfo().build`** to **`apk/latest.json`** on the update host (default **`https://rianell.com/`**).
+- **Launcher icon & splash (APK / iOS):** Raster PWA icons live under **`apps/pwa-webapp/Icons/`** (generated from **`logo-source.png`** and committed). They are **not** copied into native projects by `cap sync`. **`npm run build:android`** runs **`scripts/prepare-android-assets.mjs`** (builds **`apps/capacitor-app/assets/logo.png`**) then **`@capacitor/assets`** for Android mipmaps/splash before **`cap sync`**. For iOS, add the platform and run **`cd apps/capacitor-app && npx @capacitor/assets generate --ios`** (with **`logo.png`** present) or align assets in Xcode.
+- **Performance (APK):** Use **`npm run build:apk`** (or **`npm run build:android`**) so **`apps/pwa-webapp/build-site.mjs --skip-trace`** writes **`apps/pwa-webapp/app.min.js`** and a full **`apps/pwa-webapp/.android-dist/`** tree: every first-party **`.js`** (except **`app.js`**, which is replaced by **`app.min.js`**) and **`.css`** file is **esbuild-minified** for smaller parse and transfer. **`apps/capacitor-app/copy-webapp.js --min`** copies from **`.android-dist`** when present (otherwise falls back to **`apps/pwa-webapp/`** + HTML patch for **`app.min.js`** only). The same **`--skip-trace`** path runs in **GitHub Actions** for the **`android`** / **`ios`** jobs. **`apps/capacitor-app/patch-android-sdk.js`** adds **`network_security_config.xml`** (cleartext off by default), wires it in **`AndroidManifest.xml`**, strips **`usesCleartextTraffic="true"`** if present, sets **`android:hardwareAccelerated="true"`** on **`<application>`** when missing, enables **R8** (`minifyEnabled true`) and **resource shrinking** for the **release** Gradle build type, and appends **ProGuard** keep rules for Capacitor. **CI publishes a debug APK** (`assembleDebug`); for **smaller/faster runtime** builds locally, run **`./gradlew assembleRelease`** in **`apps/capacitor-app/android`** with your signing config. For Play Store, prefer **`./gradlew bundleRelease`** (AAB). GitHub Pages / default **`npm run build`** keeps function-trace for the deployed site; **`apps/pwa-webapp/.android-dist/`** is gitignored.
+- **APK update prompt:** Handled in **`apps/pwa-webapp/android-update-check.js`** (Android native only), comparing **`App.getInfo().build`** to **`apk/latest.json`** on the update host (default **`https://rianell.com/`**).
 - **Profiling (WebView vs Chrome):** On device, enable USB debugging and use Chrome **Remote devices** / **inspect** for the WebView; compare **Performance** recordings (LCP, long tasks) with desktop Chrome on the same flows. **`PerformanceUtils.isRianellCapacitorAndroid()`** is exposed for feature checks in the console.
 - **Regression checklist (after native entry changes):** (1) Browser: **`npm run dev`** - legacy loads in iframe, settings and charts work. (2) **`npm run build`** + static preview - same. (3) Android APK - cold start opens dashboard directly (no double shell), **local notifications**, optional **PayPal** / **ML** paths if you use them, **system back** exits as expected. (4) Keep **Android System WebView** (or Chrome as WebView provider) updated on test devices.
-- Open in Android Studio: `cd react-app && npx cap open android`
+- Open in Android Studio: `cd apps/capacitor-app && npx cap open android`
 
 ### Android targets
 
 - **minSdk 22** (Android 5.1) for broad device support.
 - **targetSdk 34** (Android 14) for current store requirements.  
-Controlled in `react-app/android/variables.gradle` (or via `react-app/patch-android-sdk.js`).
+Controlled in `apps/capacitor-app/android/variables.gradle` (or via `apps/capacitor-app/patch-android-sdk.js`).
 
 ### CI: App builds on each commit
 

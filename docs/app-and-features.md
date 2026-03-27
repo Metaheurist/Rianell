@@ -34,11 +34,11 @@ flowchart LR
 
 ### v1.45.26 documentation sync
 
-- **React Native Home (web parity):** same three **top-right** actions as **`apps/pwa-webapp/index.html`** **`.header-buttons-wrap`**: **Goals & targets** (opens **Charts** in **Balance** with targets strip), **Report a bug** (**?** — opens **`docs/SECURITY.md`** in the browser until an in-app form exists), **Settings** (jumps to the **Settings** tab). Matches the Capacitor/WebView shell intent for RN builds.
+- **React Native Home (web parity):** same three **top-right** actions as **`apps/pwa-webapp/index.html`** **`.header-buttons-wrap`**: **Goals & targets** (opens **Charts** in **Balance** with targets strip), **Report a bug** (**?** — now in-app RN bug modal + submit flow), **Settings** (jumps to the **Settings** tab). Home now also shows an AI MOTD line via RN LLM wrapper (with deterministic fallback).
 
 ### v1.45.29 documentation sync
 
-- **React Native View Logs (Phase G):** `apps/rn-app/src/screens/LogsScreen.tsx` now ships web-aligned **range chips** (Today / 7 / 30 / 90 / All), **Newest/Oldest** sort, **pull-to-refresh**, and filtered/total count copy. Remaining parity items are text filter, richer entry cards, and edit/delete/share actions.
+- **React Native View Logs (Phase G):** `apps/rn-app/src/screens/LogsScreen.tsx` now ships web-aligned **range chips** (Today / 7 / 30 / 90 / All), **Newest/Oldest** sort, **pull-to-refresh**, **text filter**, filtered/total count copy, and entry detail modal with share/delete baseline. Remaining parity items are full edit flow and large-list performance tuning.
 
 ### v1.45.25 documentation sync
 
@@ -146,7 +146,7 @@ flowchart LR
 
 **React Native — Log today wizard (web parity):** Ten-step flow (date → vitals → symptoms & pain → energy & mental clarity → stress → lifestyle → food → exercise → meds → review). **Symptoms & pain** includes a tap-to-cycle **body diagram** with the same SVG **silhouette path** as `apps/pwa-webapp/index.html`, optional text field + chips for all regions, and merge into stored `painLocation`. **Energy & mental clarity** uses grouped icon tiles (positive / neutral / negative), search, collapsible picker, and accessibility labels on fatigue/sleep/mood.
 
-**React Native — Charts & AI (Phase B):** **Charts** tab: range chips (7/30/90/all) with **accessibility** labels and selected state, pull-to-refresh; per-metric **spark bars** and **left-border** trend rows use **web-aligned** hex colors (`CHART_METRIC_HEX` in `summarizeCharts.ts`); values and deltas use **format helpers** matching web (integer steps, hydration `X.X glasses`, one decimal for mood/sleep/fatigue). **AI Analysis** tab: range selection + lite summaries. See **`docs/next-phase-development-plan.md`** for Apex parity. Quality gates: `npm run typecheck:mobile`, `npm run test:mobile`.
+**React Native — Charts & AI (Phase B/C):** **Charts** tab: range chips (7/30/90/all) with **accessibility** labels and selected state, pull-to-refresh; per-metric **spark bars** and **left-border** trend rows use **web-aligned** hex colors (`CHART_METRIC_HEX` in `summarizeCharts.ts`); values and deltas use **format helpers** matching web (integer steps, hydration `X.X glasses`, one decimal for mood/sleep/fatigue). **AI Analysis** tab now includes range-based deterministic sections plus a generated **Summary note** through the RN LLM wrapper and AIEngine fallback path. See **`docs/next-phase-development-plan.md`** for remaining full model/runtime parity items. Quality gates: `npm run typecheck:mobile`, `npm run test:mobile`.
 
 ### Cloud sync (Supabase)
 - **Anonymised contribution**: Optional "Contribute anonymised data" in Settings; GDPR-compliant consent; data anonymised before upload; medical condition used for server-side aggregation only.
@@ -159,7 +159,7 @@ flowchart LR
 - **Sound**: "Enable sound notifications" controls system notification sound and an in-app heartbeat-style sound when the app is in the foreground (including on mobile).
 
 ### Install and run options
-- **React Native (`apps/rn-app`)**: Settings **Install & downloads** resolves the same public `latest.json` files as the web app (under `App build/Android/`, `App build/RNCLI-Android/`, and `App build/iOS/` on the deployed site, default origin `https://rianell.com`) and opens the APK or iOS zip URL in the **system browser** (`Linking.openURL`). Legacy Android, RN CLI Android, and iOS Xcode zip are offered separately, matching web channel labels (Beta / Beta / Alpha).
+- **React Native (`apps/rn-app`)**: Settings intentionally focuses on **in-app data management** (JSON export/import). Install/download actions are web/PWA entry-point UX and are not shown inside RN builds.
 - **PWA / Install web app**: Add to home screen from Settings (globe icon); runs standalone and works offline. Shown in the UI with a **Beta** tag (same channel as the Android APK).
 - **Install on Android**: Download APK from Settings (or Install modal); CI builds debug APK on push and commits to `App build/Android/` for same-origin download links. Shown with a **Beta** tag.
 - **Install on iOS (device)**: Add to Home Screen from Safari (Settings or Install modal) - **Beta** (PWA install path).

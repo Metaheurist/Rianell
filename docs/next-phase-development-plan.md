@@ -2,7 +2,7 @@
 
 This document is the **single build plan** to finish Rianell’s transition to a **React Native CLI** app that matches the **web/PWA** and produces **Android APK** + **iOS emulator Xcode zip** via CI releases.
 
-**Last updated:** 2026-03-27 — **Phase G (View Logs):** RN **`LogsScreen`** has **date-range presets** (Today / 7 / 30 / 90 / All), **newest/oldest sort**, **pull-to-refresh**, **text filter**, entry count line, and **entry detail modal** with share/delete actions + Jest tests; **open:** full edit flow parity and list perf. **Modal parity:** RN Home now includes an in-app **Bug report modal** (submit flow) instead of docs-link fallback; other web-only modals are tracked in §4.5/Phase E. **Supabase parity:** RN now accepts the same **`SUPABASE_*`** source names used by web/Capacitor (plus `EXPO_PUBLIC_*` fallback). **Settings scope:** RN removed in-app install/download buttons; install UX remains web/PWA-facing. **Demo parity:** RN now includes a Demo mode toggle that loads web-style sample logs, refreshes them on launch, and restores user logs when disabled. **CI fix:** `expo-bundle-prod` exports from `apps/rn-app` and checks `expo-modules-autolinking` to prevent old `apps/mobile` path + missing autolinking regressions (§6).
+**Last updated:** 2026-03-27 — **Phase G (View Logs):** RN **`LogsScreen`** has **date-range presets** (Today / 7 / 30 / 90 / All), **newest/oldest sort**, **pull-to-refresh**, **text filter**, entry count line, and **entry detail modal** with share/delete actions + Jest tests; **open:** full edit flow parity and list perf. **Modal parity:** RN Home now includes an in-app **Bug report modal** (submit flow) instead of docs-link fallback; other web-only modals are tracked in §4.5/Phase E. **Supabase parity:** RN now accepts the same **`SUPABASE_*`** source names used by web/Capacitor (plus `EXPO_PUBLIC_*` fallback). **Settings scope:** RN removed in-app install/download buttons; install UX remains web/PWA-facing. **Demo parity:** RN now includes a Demo mode toggle that loads web-style sample logs, refreshes them on launch, and restores user logs when disabled. **AI parity increment:** RN now has an `AIEngine`-style service (`predictFutureValues`, analysis/suggest note fallbacks) plus LLM wrapper hooks for **summary note**, **MOTD**, and note suggestions with model-tier resolution + graceful fallback. **CI fix:** `expo-bundle-prod` exports from `apps/rn-app` and checks `expo-modules-autolinking` to prevent old `apps/mobile` path + missing autolinking regressions (§6).
 
 ---
 
@@ -84,7 +84,7 @@ If any of the above becomes false, fix it before moving forward.
 
 **AI & on-device intelligence**
 - **Web:** **Transformers.js** / summary LLM, chart **predictions**, dashboard **MOTD** from LLM, rich AI Analysis pipeline.
-- **RN:** **`summarizeLogsForAi`** + **`AiScreen`** — **deterministic / heuristic** sections only; **no** browser model, **no** chart prediction engine. **In progress parity:** performance benchmark tiers + on-device model tier selection UI in Settings (recommended vs tier1..tier5), cached benchmark result for recommendation parity intent. Tab hidden when **`aiEnabled === false`** (`shouldShowAiTab`).
+- **RN:** **`summarizeLogsForAi`** + **`AiScreen`** with LLM-wrapper **summary note** and Home **MOTD** generation path (remote endpoint when configured; deterministic fallback always available). `AIEngine` parity scaffolding now includes prediction + suggest-note helpers and model-tier resolution from benchmark/settings. **Still open:** full Transformers.js-equivalent native runtime, chart prediction overlays, and full web AI section depth/order. Tab hidden when **`aiEnabled === false`** (`shouldShowAiTab`).
 
 **Voice & speech**
 - **Web:** **SpeechRecognition** / voice-in-flow where wired in `app.js`.
@@ -113,7 +113,7 @@ If any of the above becomes false, fix it before moving forward.
 ### 4.3 Primary tabs (screens)
 
 - [~] **Charts (Phase B)** — lite: range/view, sparks, deltas, `CHART_METRIC_HEX`, targets snapshot; **open:** Apex-class visuals, predictions, animations (§5 Phase B).
-- [~] **AI Analysis (Phase C)** — lite: `AiScreen` + `analyzeLogs.ts`; **open:** web section order/copy, correlations / flare callouts, `aiEnabled` empty states (§5 Phase C).
+- [~] **AI Analysis (Phase C)** — `AiScreen` + `analyzeLogs.ts` + LLM-wrapper summary note + Home MOTD baseline; **open:** web section order/copy completion, chart prediction overlays, and full native model runtime parity (§5 Phase C).
 - [~] **View Logs** — **in progress** (§4.2 / §5 Phase G): range + sort + refresh + text filter + detail modal/share-delete baseline **done**; **open:** full edit parity, richer cards, virtualization.
 
 ### 4.4 Log wizard (native)
@@ -170,6 +170,7 @@ If any of the above becomes false, fix it before moving forward.
 
 **Work items**
 - [x] **Lite pipeline:** `summarizeLogsForAi` + `AiScreen` — range, refresh, sections (what you logged, flare, averages, how you’re doing, top symptoms/stressors).
+- [x] **AI service parity baseline:** RN `AIEngine` helper module + LLM wrapper (`summary`, `suggest note`, `MOTD`) with model tier resolution and deterministic fallback path.
 - [x] **Range a11y** on chips (`AiScreen` — mirror Charts patterns).
 - [~] **Web copy alignment:** diff `AiScreen` section titles and body strings against the web AI panel (`apps/pwa-webapp/app.js` / templates) and converge.
 - [~] **Feature parity:** correlations, “important” / flare-up callouts, and any **groups-that-change-together** blocks that exist on web — port logic into `@rianell/shared` or `analyzeLogs.ts` where shared, else document exceptions.
