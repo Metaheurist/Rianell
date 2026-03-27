@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.86 documentation sync
+
+- **RN unknown-action diagnostics control (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now adds a reset button for the session unknown-action counter, letting users clear diagnostics after confirming behavior.
+
 ### v1.45.85 documentation sync
 
 - **RN unknown-action diagnostics depth (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows a contextual drift hint when unknown reminder actions are observed on runtimes without dismiss-action identifiers.
