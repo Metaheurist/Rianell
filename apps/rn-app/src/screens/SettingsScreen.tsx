@@ -26,6 +26,7 @@ import { loadLogs, saveLogs } from '../storage/logs';
 import { SettingsCloudPane } from '../settings/SettingsCloudPane';
 import { clearCachedBenchmark, loadCachedBenchmark, resolveLlmModelSize, runAndCacheBenchmark, type BenchmarkResult } from '../performance/benchmark';
 import { disableDemoMode, enableDemoMode } from '../demo/demoMode';
+import { Permissions } from '../permissions/permissions';
 
 const PANE_TITLES = ['Personal & cloud', 'AI & theme', 'Accessibility', 'Data'] as const;
 
@@ -53,10 +54,49 @@ export function SettingsScreen({
   const [demoBusy, setDemoBusy] = useState(false);
   const [benchmark, setBenchmark] = useState<BenchmarkResult | null>(null);
   const [benchmarkBusy, setBenchmarkBusy] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<'unavailable' | 'denied' | 'granted'>('unavailable');
+  const [notificationScheduleState, setNotificationScheduleState] = useState<'idle' | 'scheduled' | 'invalid-time' | 'unavailable'>('idle');
 
   useEffect(() => {
     loadCachedBenchmark().then(setBenchmark).catch(() => setBenchmark(null));
   }, []);
+
+  useEffect(() => {
+    Permissions.getStatus('notifications')
+      .then(setNotificationPermission)
+      .catch(() => setNotificationPermission('unavailable'));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      if (notificationPermission !== 'granted') {
+        if (!cancelled) setNotificationScheduleState('idle');
+        return;
+      }
+      const ok = await Permissions.scheduleDailyReminder({
+        enabled: prefs.notifications.enabled,
+        time: prefs.notifications.dailyReminderTime,
+        soundEnabled: prefs.notifications.soundEnabled,
+      });
+      if (cancelled) return;
+      if (ok) {
+        setNotificationScheduleState(prefs.notifications.enabled ? 'scheduled' : 'idle');
+      } else if (!/^\d{2}:\d{2}$/.test(prefs.notifications.dailyReminderTime)) {
+        setNotificationScheduleState('invalid-time');
+      } else {
+        setNotificationScheduleState('unavailable');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    notificationPermission,
+    prefs.notifications.dailyReminderTime,
+    prefs.notifications.enabled,
+    prefs.notifications.soundEnabled,
+  ]);
 
   function goPane(next: number) {
     const clamped = Math.max(0, Math.min(PANE_TITLES.length - 1, next));
@@ -145,6 +185,35 @@ export function SettingsScreen({
     } finally {
       setDemoBusy(false);
     }
+  }
+
+  async function requestNotificationPermission() {
+    try {
+      const status = await Permissions.request('notifications');
+      setNotificationPermission(status);
+      if (status === 'granted') {
+        Alert.alert('Notifications', 'Notification permission granted.');
+      } else if (status === 'denied') {
+        Alert.alert('Notifications', 'Permission denied. You can retry or update it in system settings.');
+      } else {
+        Alert.alert('Notifications', 'Notifications are unavailable on this runtime.');
+      }
+    } catch {
+      Alert.alert('Notifications', 'Could not request notification permission.');
+    }
+  }
+
+  function updateGoalValue(key: 'moodTarget' | 'sleepTarget' | 'fatigueTarget', raw: string) {
+    const n = Number(raw);
+    if (!Number.isFinite(n)) return;
+    const clamped = Math.min(10, Math.max(0, n));
+    onChangePrefs({
+      ...prefs,
+      goals: {
+        ...prefs.goals,
+        [key]: clamped,
+      },
+    });
   }
 
   return (
@@ -236,6 +305,74 @@ export function SettingsScreen({
               <Hint>Loads a fresh sample dataset each app launch and pauses data portability actions.</Hint>
               <SettingsCloudPane />
             </Section>
+            <Section title="Notifications">
+              <Hint>Phase E baseline: notification prefs + permission state for RN parity.</Hint>
+              <Row label="Enable daily reminder">
+                <Switch
+                  value={prefs.notifications.enabled}
+                  onValueChange={(on) =>
+                    onChangePrefs({
+                      ...prefs,
+                      notifications: { ...prefs.notifications, enabled: on },
+                    })
+                  }
+                />
+              </Row>
+              <Row label="Reminder time (HH:MM)">
+                <TextInput
+                  value={prefs.notifications.dailyReminderTime}
+                  onChangeText={(value) =>
+                    onChangePrefs({
+                      ...prefs,
+                      notifications: { ...prefs.notifications, dailyReminderTime: value },
+                    })
+                  }
+                  accessibilityLabel="Daily reminder time"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                  placeholder="20:00"
+                  placeholderTextColor="rgba(255,255,255,0.45)"
+                />
+              </Row>
+              <Row label="Reminder sound">
+                <Switch
+                  value={prefs.notifications.soundEnabled}
+                  onValueChange={(on) =>
+                    onChangePrefs({
+                      ...prefs,
+                      notifications: { ...prefs.notifications, soundEnabled: on },
+                    })
+                  }
+                />
+              </Row>
+              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                Notification permission: {notificationPermission}
+              </Text>
+              {notificationScheduleState === 'scheduled' ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Daily reminder scheduled at {prefs.notifications.dailyReminderTime}.
+                </Text>
+              ) : null}
+              {notificationScheduleState === 'invalid-time' ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Reminder time must be HH:MM to schedule notifications.
+                </Text>
+              ) : null}
+              {notificationScheduleState === 'unavailable' ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Notification scheduling is unavailable on this runtime.
+                </Text>
+              ) : null}
+              <Pressable
+                style={styles.dataBtn}
+                onPress={() => void requestNotificationPermission()}
+                accessibilityRole="button"
+                accessibilityLabel="Request notification permission"
+              >
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🔔 Request notification permission</Text>
+              </Pressable>
+            </Section>
           </ScrollView>
         </View>
 
@@ -317,6 +454,36 @@ export function SettingsScreen({
                   <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🧹 Clear benchmark cache</Text>
                 </Pressable>
               </View>
+            </Section>
+            <Section title="Goals & targets">
+              <Hint>Persisted goals feed Charts balance targets (mood, sleep, fatigue).</Hint>
+              <Row label="Mood target (0-10)">
+                <TextInput
+                  value={String(prefs.goals.moodTarget)}
+                  onChangeText={(value) => updateGoalValue('moodTarget', value)}
+                  accessibilityLabel="Mood target value"
+                  keyboardType="decimal-pad"
+                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                />
+              </Row>
+              <Row label="Sleep target (0-10)">
+                <TextInput
+                  value={String(prefs.goals.sleepTarget)}
+                  onChangeText={(value) => updateGoalValue('sleepTarget', value)}
+                  accessibilityLabel="Sleep target value"
+                  keyboardType="decimal-pad"
+                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                />
+              </Row>
+              <Row label="Fatigue target (0-10)">
+                <TextInput
+                  value={String(prefs.goals.fatigueTarget)}
+                  onChangeText={(value) => updateGoalValue('fatigueTarget', value)}
+                  accessibilityLabel="Fatigue target value"
+                  keyboardType="decimal-pad"
+                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                />
+              </Row>
             </Section>
           </ScrollView>
         </View>
@@ -595,4 +762,13 @@ const styles = StyleSheet.create({
   modalActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' },
   modalBtn: { paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.12)' },
   performanceActions: { gap: 8, marginTop: 6 },
+  timeInput: {
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    minWidth: 96,
+    textAlign: 'right',
+  },
 });
