@@ -510,6 +510,16 @@ export function SettingsScreen({
                   This runtime does not expose explicit dismiss action identifiers; some dismiss/close gestures may appear as unknown.
                 </Text>
               ) : null}
+              {unknownReminderActionCount > 0 ? (
+                <Pressable
+                  style={styles.dataBtn}
+                  onPress={() => setUnknownReminderActionCount(0)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Reset unknown reminder action counter"
+                >
+                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🧹 Reset unknown action counter</Text>
+                </Pressable>
+              ) : null}
               <Pressable
                 style={styles.dataBtn}
                 onPress={() => void requestNotificationPermission()}

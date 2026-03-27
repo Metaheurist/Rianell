@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SettingsScreen } from './SettingsScreen';
 import { ThemeProvider } from '../theme/ThemeProvider';
 import { getDefaultPreferences } from '../storage/preferences';
@@ -230,6 +230,28 @@ test('notification area shows unknown-action session counter', async () => {
   );
 
   await findByText(/Unknown reminder actions observed this session: 1/i);
+});
+
+test('notification area can reset unknown-action session counter', async () => {
+  const { Permissions } = require('../permissions/permissions');
+  Permissions.getLastReminderAction.mockResolvedValue('none');
+  Permissions.subscribeReminderActions.mockImplementationOnce(async (onAction: (a: string) => void) => {
+    onAction('unknown');
+    return () => {};
+  });
+
+  const prefs = getDefaultPreferences();
+  const { findByText, queryByText, getByLabelText } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+    </ThemeProvider>
+  );
+
+  await findByText(/Unknown reminder actions observed this session: 1/i);
+  fireEvent.press(getByLabelText('Reset unknown reminder action counter'));
+  await waitFor(() => {
+    expect(queryByText(/Unknown reminder actions observed this session/i)).toBeNull();
+  });
 });
 
 test('notification area explains unknown-action drift when dismiss semantics are unavailable', async () => {
