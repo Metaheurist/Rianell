@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.66** - Notification action consumption guard.
+**Latest: v1.45.67** - Reminder `later` snooze action behavior.
+
+### v1.45.67 - 2026-03-27 - Reminder snooze action increment
+
+- **RN notifications (Phase E):** `later` reminder actions now trigger a short one-time snooze reminder scheduling attempt (runtime-supported path).
+- **Action handling depth:** root action routing now distinguishes route intent (`log-now`) from snooze intent (`later`) while still consuming handled actions.
+- **Validation:** `npm run test:mobile -- RootNavigator.test.tsx SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.66 - 2026-03-27 - Notification action consumption follow-up
 

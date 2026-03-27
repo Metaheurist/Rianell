@@ -110,6 +110,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **React Native:** handled reminder responses are now explicitly cleared, improving parity stability by preventing stale notification actions from replaying on later app sessions.
 
+### v1.45.67 parity note (notification later/snooze behavior)
+
+- **React Native:** `later` reminder actions now map to explicit snooze scheduling behavior, improving parity depth for actionable notification semantics beyond direct log-now routing.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.

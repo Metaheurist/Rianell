@@ -45,6 +45,10 @@ export function shouldClearReminderAction(action: ReminderAction) {
   return action !== 'none';
 }
 
+export function shouldSnoozeReminderFromAction(action: ReminderAction) {
+  return action === 'later';
+}
+
 export function RootNavigator({
   prefs,
   onChangePrefs,
@@ -67,6 +71,9 @@ export function RootNavigator({
     };
 
     const handleAction = (action: ReminderAction) => {
+      if (shouldSnoozeReminderFromAction(action)) {
+        void Permissions.scheduleReminderSnooze(30);
+      }
       if (shouldOpenLogWizardFromReminderAction(action)) {
         openLogWizard();
       }
