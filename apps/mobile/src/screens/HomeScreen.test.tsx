@@ -6,6 +6,10 @@ import { getDefaultPreferences } from '../storage/preferences';
 
 const mockNavigate = jest.fn();
 
+jest.mock('@react-navigation/bottom-tabs', () => ({
+  useBottomTabBarHeight: () => 49,
+}));
+
 jest.mock('@react-navigation/native', () => {
   const React = require('react');
   const actual = jest.requireActual('@react-navigation/native');
@@ -61,6 +65,6 @@ test('FAB navigates to Log wizard', async () => {
   await waitFor(() => {
     expect(loadLogs).toHaveBeenCalled();
   });
-  fireEvent.press(getByLabelText('Log today'));
+  fireEvent.press(getByLabelText('Log today, Beta'));
   expect(mockNavigate).toHaveBeenCalledWith('LogWizard');
 });
