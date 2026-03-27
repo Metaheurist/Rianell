@@ -231,6 +231,7 @@ test('notification area shows unknown-action session counter', async () => {
 
   await findByText(/Unknown reminder actions observed this session: 1/i);
   await findByText(/Last unknown reminder action observed at:/i);
+  await findByText(/Last unknown action source: live listener/i);
 });
 
 test('notification area can reset unknown-action session counter', async () => {
@@ -253,7 +254,23 @@ test('notification area can reset unknown-action session counter', async () => {
   await waitFor(() => {
     expect(queryByText(/Unknown reminder actions observed this session/i)).toBeNull();
     expect(queryByText(/Last unknown reminder action observed at:/i)).toBeNull();
+    expect(queryByText(/Last unknown action source:/i)).toBeNull();
   });
+});
+
+test('notification area marks startup snapshot as unknown-action source when present at launch', async () => {
+  const { Permissions } = require('../permissions/permissions');
+  Permissions.getLastReminderAction.mockResolvedValue('unknown');
+  Permissions.subscribeReminderActions.mockImplementationOnce(async () => () => {});
+
+  const prefs = getDefaultPreferences();
+  const { findByText } = render(
+    <ThemeProvider prefs={prefs}>
+      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+    </ThemeProvider>
+  );
+
+  await findByText(/Last unknown action source: startup snapshot/i);
 });
 
 test('notification area explains unknown-action drift when dismiss semantics are unavailable', async () => {
