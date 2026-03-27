@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.81** - Dismiss action safe-ignore policy.
+**Latest: v1.45.82** - Dismiss capability runtime visibility.
+
+### v1.45.82 - 2026-03-27 - Dismiss capability runtime visibility
+
+- **RN notifications (Phase E):** `ReminderCapabilities` now reports dismiss-action support and `SettingsScreen` surfaces it in the runtime support line (`dismiss semantics yes/no`) to clarify notification behavior by runtime.
+- **Safety alignment:** this visibility complements dismiss-action safe-ignore handling so users can see when explicit dismiss semantics are available.
+- **Validation:** `npm run test:mobile -- permissions.test.ts SettingsScreen.test.tsx RootNavigator.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.81 - 2026-03-27 - Dismiss action safe-ignore policy
 

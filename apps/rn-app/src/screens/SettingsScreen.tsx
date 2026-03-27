@@ -77,6 +77,7 @@ export function SettingsScreen({
     hasIosCategory: false,
     hasResponseListener: false,
     hasSnooze: false,
+    hasDismissAction: false,
   });
 
   useEffect(() => {
@@ -93,6 +94,7 @@ export function SettingsScreen({
           hasIosCategory: false,
           hasResponseListener: false,
           hasSnooze: false,
+          hasDismissAction: false,
         })
       );
   }, []);
@@ -434,7 +436,8 @@ export function SettingsScreen({
                 Runtime support: schedule {reminderCapabilities.hasScheduling ? 'yes' : 'no'} · Android channel{' '}
                 {reminderCapabilities.hasAndroidChannel ? 'yes' : 'no'} · iOS category{' '}
                 {reminderCapabilities.hasIosCategory ? 'yes' : 'no'} · actions{' '}
-                {reminderCapabilities.hasResponseListener ? 'yes' : 'no'}.
+                {reminderCapabilities.hasResponseListener ? 'yes' : 'no'} · dismiss semantics{' '}
+                {reminderCapabilities.hasDismissAction ? 'yes' : 'no'}.
               </Text>
               {!reminderCapabilities.hasResponseListener ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>

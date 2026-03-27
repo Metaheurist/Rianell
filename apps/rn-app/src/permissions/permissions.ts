@@ -28,6 +28,7 @@ export type ReminderCapabilities = {
   hasIosCategory: boolean;
   hasResponseListener: boolean;
   hasSnooze: boolean;
+  hasDismissAction: boolean;
 };
 
 const NOTIFICATION_REMINDER_ID = 'rianell-daily-reminder';
@@ -267,6 +268,7 @@ export const Permissions = {
       hasIosCategory: !!Notifications?.setNotificationCategoryAsync,
       hasResponseListener: !!Notifications?.addNotificationResponseReceivedListener,
       hasSnooze: !!Notifications?.scheduleNotificationAsync,
+      hasDismissAction: !!Notifications?.DISMISSED_ACTION_IDENTIFIER,
     };
   },
 };
