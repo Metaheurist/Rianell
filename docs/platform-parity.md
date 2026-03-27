@@ -16,6 +16,11 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - `sync_behavior`: foreground/interval behavior; no guaranteed OS background sync.
 - `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
 
+### v1.45.81 parity note (dismiss action safe ignore)
+
+- **React Native:** dismissed/close notification actions are now explicitly treated as no-op (`none`) in reminder response mapping, avoiding runtime-specific accidental fallback navigation.
+- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+
 ### v1.45.80 parity note (snooze reminder response mapping)
 
 - **React Native:** taps on snoozed reminder notifications now map into the same open-app reminder action semantics as primary reminder defaults, reducing runtime-specific response drift.

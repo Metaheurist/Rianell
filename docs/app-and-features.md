@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.81 documentation sync
+
+- **RN reminder dismiss safety (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now maps dismissed/close-style reminder notification actions to `none`, so dismiss gestures do not trigger fallback navigation behavior.
+
 ### v1.45.80 documentation sync
 
 - **RN snooze reminder response parity (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now maps snoozed reminder notification responses into the shared reminder action flow so snooze reminder taps follow open-app semantics instead of being ignored.

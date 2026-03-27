@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.80** - Snooze response action mapping.
+**Latest: v1.45.81** - Dismiss action safe-ignore policy.
+
+### v1.45.81 - 2026-03-27 - Dismiss action safe-ignore policy
+
+- **RN notifications (Phase E):** reminder response mapping now treats dismissed/close-style action identifiers as `none`, preventing unintended Home fallback routing from dismissal events.
+- **Consistency:** `mapNotificationResponseToReminderAction(...)` now applies default + dismissed identifier handling across both last-response and live-listener paths.
+- **Validation:** `npm run test:mobile -- permissions.test.ts RootNavigator.test.tsx SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.80 - 2026-03-27 - Snooze response action mapping
 
