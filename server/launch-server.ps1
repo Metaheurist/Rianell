@@ -4,7 +4,7 @@
 #   pwsh -File .\server\launch-server.ps1
 # Optional: $env:PORT = "9000"; $env:HOST = "0.0.0.0"
 # Prefer PORT/HOST in security/.env (copy from security/.env.example).
-# Optional: -NoCompile serves web/ directly (no .server-dist build) and runs unit tests first.
+# Optional: -NoCompile serves apps/pwa-webapp/ directly (no .server-dist build) and runs unit tests first.
 # Optional: -SkipUnitTests skips local unit tests in -NoCompile mode.
 
 param(
@@ -17,7 +17,7 @@ $ProjectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $ProjectRoot
 
 if ($NoCompile) {
-    Write-Host "Starting in non-compiled local mode (serving web/ directly)..."
+    Write-Host "Starting in non-compiled local mode (serving apps/pwa-webapp/ directly)..."
 } else {
     Write-Host "Preparing local minified site bundle (CI parity)..."
 }
@@ -40,16 +40,16 @@ if (-not $NoCompile) {
     $LocalSiteDir = Join-Path $ProjectRoot ".server-dist"
 
     # Mirror the CI deploy-pages preparation path:
-    # 1) Copy web/* to site
+    # 1) Copy apps/pwa-webapp/* to site
     # 2) Copy App build/* if present
     # 3) npm ci
-    # 4) node web/build-site.mjs --site site
+    # 4) node apps/pwa-webapp/build-site.mjs --site site
     # 5) rewrite index.html app.js?v=* -> app.min.js?v=*
     if (Test-Path -LiteralPath $LocalSiteDir) {
         Remove-Item -LiteralPath $LocalSiteDir -Recurse -Force
     }
     New-Item -ItemType Directory -Path $LocalSiteDir | Out-Null
-    Copy-Item -Path (Join-Path $ProjectRoot "web\*") -Destination $LocalSiteDir -Recurse -Force
+    Copy-Item -Path (Join-Path $ProjectRoot "apps\pwa-webapp\*") -Destination $LocalSiteDir -Recurse -Force
 
     $AppBuildDir = Join-Path $ProjectRoot "App build"
     if (Test-Path -LiteralPath $AppBuildDir) {
@@ -61,7 +61,7 @@ if (-not $NoCompile) {
     & $npmExe ci
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-    & $nodeExe "web/build-site.mjs" "--site" $LocalSiteDir
+    & $nodeExe "apps/pwa-webapp/build-site.mjs" "--site" $LocalSiteDir
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     & $nodeExe "-e" @"
@@ -77,7 +77,7 @@ fs.writeFileSync(p, h);
     # Point the Python server at the CI-parity local site output.
     $env:RIANELL_WEB_DIR = $LocalSiteDir
 } else {
-    # Serve uncompiled source from web/.
+    # Serve uncompiled source from apps/pwa-webapp/.
     Remove-Item Env:RIANELL_WEB_DIR -ErrorAction SilentlyContinue
     if (-not $SkipUnitTests) {
         if (-not $nodeExe) {
@@ -103,7 +103,7 @@ if (Get-Command python -ErrorAction SilentlyContinue) {
     $pyArgs = @("-3", "-m", "server")
     Write-Host "Starting Rianell server from: $ProjectRoot"
     if ($NoCompile) {
-        Write-Host "Serving uncompiled web source: $(Join-Path $ProjectRoot 'web')"
+        Write-Host "Serving uncompiled web source: $(Join-Path $ProjectRoot 'apps\pwa-webapp')"
     } else {
         Write-Host "Serving local minified bundle: $LocalSiteDir"
     }
@@ -118,7 +118,7 @@ if (-not $pythonExe) {
 
 Write-Host "Starting Rianell server from: $ProjectRoot"
 if ($NoCompile) {
-    Write-Host "Serving uncompiled web source: $(Join-Path $ProjectRoot 'web')"
+    Write-Host "Serving uncompiled web source: $(Join-Path $ProjectRoot 'apps\pwa-webapp')"
 } else {
     Write-Host "Serving local minified bundle: $LocalSiteDir"
 }

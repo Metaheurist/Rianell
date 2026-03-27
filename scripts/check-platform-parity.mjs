@@ -38,23 +38,23 @@ function expectContains(relPath, pattern, why) {
 }
 
 // Shared behavior parity hooks in web layer.
-expectContains('web/app.js', /SpeechRecognition|webkitSpeechRecognition/, 'STT guard exists (feature parity messaging path)');
-expectContains('web/notifications.js', 'LocalNotifications', 'native notifications plugin path exists');
-expectContains('web/notification-helpers.js', 'isNativeNotificationCapable', 'native-first notification permission handling exists');
+expectContains('apps/pwa-webapp/app.js', /SpeechRecognition|webkitSpeechRecognition/, 'STT guard exists (feature parity messaging path)');
+expectContains('apps/pwa-webapp/notifications.js', 'LocalNotifications', 'native notifications plugin path exists');
+expectContains('apps/pwa-webapp/notification-helpers.js', 'isNativeNotificationCapable', 'native-first notification permission handling exists');
 
 if (platform === 'android') {
-  expectFile('react-app/android/app/src/main/AndroidManifest.xml', 'Android manifest generated/synced');
-  expectContains('react-app/android/app/src/main/AndroidManifest.xml', 'POST_NOTIFICATIONS', 'Android notifications permission present');
-  expectContains('react-app/android/app/src/main/AndroidManifest.xml', 'android:networkSecurityConfig="@xml/network_security_config"', 'Android network security config wired in manifest');
-  expectContains('react-app/patch-android-sdk.js', 'network_security_config', 'Android network security patch enforced');
-  expectContains('react-app/patch-android-sdk.js', 'BridgeActivity', 'Android orientation patch targets BridgeActivity');
+  expectFile('apps/capacitor-app/android/app/src/main/AndroidManifest.xml', 'Android manifest generated/synced');
+  expectContains('apps/capacitor-app/android/app/src/main/AndroidManifest.xml', 'POST_NOTIFICATIONS', 'Android notifications permission present');
+  expectContains('apps/capacitor-app/android/app/src/main/AndroidManifest.xml', 'android:networkSecurityConfig="@xml/network_security_config"', 'Android network security config wired in manifest');
+  expectContains('apps/capacitor-app/patch-android-sdk.js', 'network_security_config', 'Android network security patch enforced');
+  expectContains('apps/capacitor-app/patch-android-sdk.js', 'BridgeActivity', 'Android orientation patch targets BridgeActivity');
 }
 
 if (platform === 'ios') {
-  expectFile('react-app/ios/App/App/Info.plist', 'iOS Info.plist generated/synced');
-  expectContains('react-app/ios/App/App/Info.plist', /UISupportedInterfaceOrientations|UISupportedInterfaceOrientations~ipad/, 'iOS orientation keys present');
-  expectContains('react-app/patch-ios-orientation.js', 'UISupportedInterfaceOrientations', 'iOS orientation patch present');
-  expectContains('react-app/capacitor.config.ts', 'LocalNotifications', 'Capacitor LocalNotifications plugin configured');
+  expectFile('apps/capacitor-app/ios/App/App/Info.plist', 'iOS Info.plist generated/synced');
+  expectContains('apps/capacitor-app/ios/App/App/Info.plist', /UISupportedInterfaceOrientations|UISupportedInterfaceOrientations~ipad/, 'iOS orientation keys present');
+  expectContains('apps/capacitor-app/patch-ios-orientation.js', 'UISupportedInterfaceOrientations', 'iOS orientation patch present');
+  expectContains('apps/capacitor-app/capacitor.config.ts', 'LocalNotifications', 'Capacitor LocalNotifications plugin configured');
 }
 
 const failed = checks.filter((c) => !c.ok);

@@ -33,7 +33,7 @@ jobs:
       - name: Install root dependencies
         run: npm install
       - name: Install React app dependencies
-        working-directory: react-app
+        working-directory: apps/capacitor-app
         run: npm ci || npm install
       - name: Legacy Capacitor path (disabled)
         run: |

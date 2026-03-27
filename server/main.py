@@ -1016,7 +1016,7 @@ def resume_file_observer():
         obs.start()
         file_observer = obs
         logger.info("File watcher resumed from dashboard")
-        return True, "File watch started. Changes under web/ will trigger reload on devices."
+        return True, "File watch started. Changes under apps/pwa-webapp/ will trigger reload on devices."
     except Exception as e:
         logger.error(f"resume_file_observer: {e}", exc_info=True)
         return False, str(e)

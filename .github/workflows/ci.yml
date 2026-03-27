@@ -14,7 +14,7 @@
 #   4. server-exe        - Build Windows server EXE artifacts (x64 + x86) with PyInstaller.
 #   5. commit-app-build  - Push + mobile: commit App build/ to the branch.
 #   6. publish-release   - Push + mobile: GitHub Release with Expo + Server assets.
-#   7. deploy-pages      - Push to main/master: site from web/ + App build/.
+#   7. deploy-pages      - Push to main/master: site from apps/pwa-webapp/ + App build/.
 #   8. readme-build-info - After deploy (web-only runs): README CI + legacy build tables.
 # =============================================================================
 
@@ -125,16 +125,16 @@ jobs:
         run: |
           rm -rf "ci-minified"
           mkdir -p "ci-minified"
-          cp -r "web/.android-dist" "ci-minified/web-android-dist"
-          cp -r "react-app/dist" "ci-minified/react-dist"
+          cp -r "apps/pwa-webapp/.android-dist" "ci-minified/web-android-dist"
+          cp -r "apps/capacitor-app/dist" "ci-minified/react-dist"
 
           mkdir -p "ci-minified/site"
-          cp -r web/* "ci-minified/site/"
+          cp -r apps/pwa-webapp/* "ci-minified/site/"
           if [ -d "App build" ]; then
             mkdir -p "ci-minified/site/App build"
             cp -r "App build/"* "ci-minified/site/App build/" 2>/dev/null || true
           fi
-          node web/build-site.mjs --site "ci-minified/site"
+          node apps/pwa-webapp/build-site.mjs --site "ci-minified/site"
           node -e "
           const fs = require('fs');
           let h = fs.readFileSync('ci-minified/site/index.html', 'utf8');
@@ -204,19 +204,24 @@ jobs:
         env:
           EXPO_NO_TELEMETRY: "1"
           NODE_ENV: production
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          npm run bundle:mobile:prod
-          test -d "apps/mobile/dist-expo-prod"
+          cd apps/rn-app
+          npx expo export --platform android --platform ios --output-dir dist-expo-prod
+          npm ls expo-modules-autolinking
+          test -d "dist-expo-prod"
       - name: Verify Android Hermes bundle (.hbc)
-        run: test -f apps/mobile/dist-expo-prod/_expo/static/js/android/*.hbc
+        run: test -f apps/rn-app/dist-expo-prod/_expo/static/js/android/*.hbc
       - name: Verify iOS Hermes bundle (.hbc)
-        run: test -f apps/mobile/dist-expo-prod/_expo/static/js/ios/*.hbc
+        run: test -f apps/rn-app/dist-expo-prod/_expo/static/js/ios/*.hbc
 
       - name: Upload Expo bundle artifact
         uses: actions/upload-artifact@v5
         with:
           name: expo-bundles
-          path: apps/mobile/dist-expo-prod/
+          path: apps/rn-app/dist-expo-prod/
 
   # ---------------------------------------------------------------------------
   # React Native CLI native artifacts (no EAS / no EXPO_TOKEN)
@@ -263,7 +268,7 @@ jobs:
           node-version: "22"
           cache: npm
 
-      # Do not enable Gradle dependency caching on setup-java — apps/mobile/android is created by expo prebuild, so no wrapper exists at checkout.
+      # Do not enable Gradle dependency caching on setup-java — apps/rn-app/android is created by expo prebuild, so no wrapper exists at checkout.
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -277,15 +282,19 @@ jobs:
         run: npm ci
 
       - name: Generate native project (expo prebuild -> RN CLI)
-        working-directory: apps/mobile
+        working-directory: apps/rn-app
         env:
           EXPO_NO_TELEMETRY: "1"
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: npx expo prebuild --platform android --non-interactive --no-install
 
       - name: Assemble Android debug APK
-        working-directory: apps/mobile/android
+        working-directory: apps/rn-app/android
         run: ./gradlew assembleDebug --no-daemon
 
+      # Gradle runs in apps/rn-app/android; this step runs from repo root — use full path to APK outputs.
       - name: Collect APK + latest.json
         shell: bash
         env:
@@ -294,9 +303,9 @@ jobs:
           set -euo pipefail
           mkdir -p rncli-android-dist
           shopt -s nullglob
-          apks=(app/build/outputs/apk/debug/*.apk)
+          apks=(apps/rn-app/android/app/build/outputs/apk/debug/*.apk)
           if [ ${#apks[@]} -eq 0 ]; then
-            echo "No APKs found under app/build/outputs/apk/debug"
+            echo "No APKs found under apps/rn-app/android/app/build/outputs/apk/debug"
             exit 1
           fi
           cp -v "${apks[0]}" rncli-android-dist/app-debug-beta.apk
@@ -328,9 +337,12 @@ jobs:
         run: npm ci
 
       - name: Generate native project (expo prebuild -> RN CLI)
-        working-directory: apps/mobile
+        working-directory: apps/rn-app
         env:
           EXPO_NO_TELEMETRY: "1"
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: npx expo prebuild --platform ios --non-interactive --no-install
 
       - name: Zip iOS project for emulator usage
@@ -341,7 +353,7 @@ jobs:
           set -euo pipefail
           mkdir -p rncli-ios-dist
           run="${RN_BUILD}"
-          zip -r "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "apps/mobile/ios"
+          zip -r "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "apps/rn-app/ios"
           cp -f "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "rncli-ios-dist/Health-Tracker-ios-alpha-latest.zip"
           cp -f "rncli-ios-dist/Health-Tracker-ios-alpha-build-${run}.zip" "rncli-ios-dist/Health-Tracker-simulator-alpha-${run}.zip"
           echo "{\"version\":${run},\"file\":\"Health-Tracker-ios-alpha-build-${run}.zip\",\"simulatorFile\":\"Health-Tracker-simulator-alpha-${run}.zip\"}" > rncli-ios-dist/latest.json
@@ -656,7 +668,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ---------------------------------------------------------------------------
-  # GitHub Pages - web/ + App build/ (every push to main/master)
+  # GitHub Pages - apps/pwa-webapp/ + App build/ (every push to main/master)
   # ---------------------------------------------------------------------------
   deploy-pages:
     name: Deploy to GitHub Pages
