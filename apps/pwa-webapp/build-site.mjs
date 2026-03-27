@@ -3,12 +3,12 @@
  * 2) Minify app.js to app.min.js
  *
  * Usage:
- *   node web/build-site.mjs
- *     mirrors web/ to web/.trace-build/ with transforms, minifies to web/app.min.js
- *   node web/build-site.mjs --site <dir>
- *     instruments all JS under dir in place (e.g. after cp -r web to site)
- *   node web/build-site.mjs --skip-trace
- *     mirror web/ without function-trace instrumentation (smaller app.min.js - use for APK / release)
+ *   node apps/pwa-webapp/build-site.mjs
+ *     mirrors apps/pwa-webapp/ to .trace-build/ with transforms, minifies to app.min.js
+ *   node apps/pwa-webapp/build-site.mjs --site <dir>
+ *     instruments all JS under dir in place (e.g. after cp -r pwa-webapp to site)
+ *   node apps/pwa-webapp/build-site.mjs --skip-trace
+ *     mirror without function-trace instrumentation (smaller app.min.js - use for APK / release)
  *
  * Env: RIANELL_SITE_DIR - same as --site (CI can set this)
  * Env: RIANELL_SKIP_FUNCTION_TRACE=1 - same as --skip-trace
@@ -20,8 +20,25 @@ import { fileURLToPath } from 'url';
 import { transformFileIfNeeded } from './build-plugins/function-trace-plugin.mjs';
 import { buildAndroidDistBundle } from './build-android-dist.mjs';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const root = path.join(__dirname, '..');
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+/** Repository root (parent of apps/) */
+const root = path.join(scriptDir, '..', '..');
+
+function resolveWebRoot(repoRoot, currentScriptDir) {
+  const candidates = [
+    currentScriptDir,
+    path.join(repoRoot, 'apps', 'pwa-webapp'),
+    path.join(repoRoot, 'apps', 'web'),
+    path.join(repoRoot, 'web'),
+  ];
+  for (const dir of candidates) {
+    if (fs.existsSync(path.join(dir, 'app.js'))) return dir;
+  }
+  return currentScriptDir;
+}
+
+/** PWA static app root (supports both current and legacy folder layouts). */
+const webRoot = resolveWebRoot(root, scriptDir);
 
 function walkJsFiles(dir, acc = []) {
   if (!fs.existsSync(dir)) return acc;
@@ -107,7 +124,6 @@ function parseArgs(argv) {
 }
 
 const { siteDir, skipTrace } = parseArgs(process.argv);
-const webRoot = path.join(root, 'web');
 
 if (siteDir) {
   if (!skipTrace) {
@@ -136,6 +152,9 @@ if (siteDir) {
     mirrorWeb(webRoot, staging, true);
   }
   const appJs = path.join(staging, 'app.js');
+  if (!fs.existsSync(appJs)) {
+    throw new Error(`[build-site] staging app.js missing at ${appJs} (webRoot=${webRoot})`);
+  }
   const appMin = path.join(webRoot, 'app.min.js');
   await esbuild.build({
     entryPoints: [appJs],
@@ -144,7 +163,7 @@ if (siteDir) {
     legalComments: 'none',
     logLevel: 'info',
   });
-  console.log('Wrote web/app.min.js');
+  console.log('Wrote', path.relative(root, appMin));
   if (skipTrace) {
     await buildAndroidDistBundle(webRoot);
   } else {
