@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.72** - Documentation sync checkpoint.
+**Latest: v1.45.73** - Runtime-adaptive snooze controls.
+
+### v1.45.73 - 2026-03-27 - Runtime-adaptive snooze settings
+
+- **RN notifications (Phase E):** Settings now guards snooze interval adjustments behind runtime snooze capability support.
+- **Fallback clarity:** when snooze scheduling is unsupported, the UI now shows an explicit fallback note that `later` actions open Home.
+- **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx RootNavigator.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.72 - 2026-03-27 - Documentation checkpoint sync
 
