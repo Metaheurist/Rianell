@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.93 documentation sync
+
+- **RN unknown-action diagnostics confidence (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now surfaces dominant-source confidence (`weak`/`medium`/`strong`, or balanced) for startup-vs-live unknown reminder-action distribution.
+
 ### v1.45.92 documentation sync
 
 - **RN unknown-action diagnostics split (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now reports startup/live percentage split for unknown reminder actions in-session, alongside count and drift status visibility.
