@@ -114,6 +114,10 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 - **React Native:** `later` reminder actions now map to explicit snooze scheduling behavior, improving parity depth for actionable notification semantics beyond direct log-now routing.
 
+### v1.45.68 parity note (notification default-open behavior)
+
+- **React Native:** default reminder tap actions now explicitly foreground/open the app home path, completing baseline parity intent for primary reminder action routes.
+
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
 - **Web:** View Logs supports full entry actions and scales to large histories with deeper card context.

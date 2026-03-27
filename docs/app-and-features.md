@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.68 documentation sync
+
+- **RN reminder default-action semantics (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now treats default reminder taps as explicit app-home open intent, completing baseline tri-path handling (`log-now`, `later`, `default`).
+
 ### v1.45.67 documentation sync
 
 - **RN reminder snooze semantics (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now treats `later` actions as snooze intent, and `apps/rn-app/src/permissions/permissions.ts` schedules a one-time snooze reminder when runtime APIs support it.
