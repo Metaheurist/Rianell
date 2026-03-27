@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.46.1 documentation sync
+
+- **Checkpoint refresh:** docs are synchronized so Phase E notification diagnostics coverage stays consistent across features/parity pages after recent summary + trajectory refinements.
+
 ### v1.46.0 documentation sync
 
 - **RN unknown-action diagnostics summary view (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now surfaces a compact session summary line that combines quality, drift, and trajectory stability for fast triage.
