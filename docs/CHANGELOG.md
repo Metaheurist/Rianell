@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.79** - Reminder action identifier normalization.
+**Latest: v1.45.80** - Snooze response action mapping.
+
+### v1.45.80 - 2026-03-27 - Snooze response action mapping
+
+- **RN notifications (Phase E):** notification response mapping now includes snoozed reminder notifications so taps on snooze reminders route through the same open-app action semantics (`default`) rather than being dropped as non-reminder IDs.
+- **Hardening:** action mapping is now centralized in `mapNotificationResponseToReminderAction(...)` and reused by both startup-response and live-listener paths.
+- **Validation:** `npm run test:mobile -- permissions.test.ts RootNavigator.test.tsx SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.79 - 2026-03-27 - Reminder action identifier normalization
 
