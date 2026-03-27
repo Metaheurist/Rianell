@@ -32,6 +32,43 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.50 documentation sync
+
+- **CI reliability / security audit gate:** root workspace lockfile was resynced so `npm ci --omit=dev` and production-only `npm audit --audit-level=high --omit=dev` run cleanly in the security-audit workflow path.
+
+### v1.45.42 documentation sync
+
+- **React Native View Logs (Phase G):** `apps/rn-app/src/screens/LogsScreen.tsx` now supports in-modal **Edit** for date/flare/core metrics/notes, plus existing share/delete actions. Large-list behavior now includes baseline `FlatList` tuning (`initialNumToRender`, `maxToRenderPerBatch`, `windowSize`, clipped subviews); final virtualization strategy is still tracked in the parity plan.
+- **React Native wizard polish (Step 3/4):** `apps/rn-app/src/screens/LogWizardScreen.tsx` now includes searchable body-region chips for Symptoms & pain and smoother expand/collapse behavior for Energy & mental clarity via `LayoutAnimation`, while keeping grouped tiles/search/collapsible behavior.
+
+### v1.45.43 documentation sync
+
+- **React Native Charts (Phase B):** `apps/rn-app/src/screens/ChartsScreen.tsx` now includes a first combined-view visual chart baseline (multi-series trend plot using web-aligned metric colors) in addition to existing trend rows/sparks and balance target snapshot. Remaining parity work is richer individual/balance chart visuals, animation/chrome depth, and prediction-overlay parity.
+
+### v1.45.44 documentation sync
+
+- **React Native AI Analysis (Phase C):** `apps/rn-app/src/screens/AiScreen.tsx` now aligns section copy/order closer to web intent with **At a glance** and **What we found** flow, updates wording to **How you're doing**, and shows a clear disabled-state message when AI is turned off in settings.
+
+### v1.45.45 documentation sync
+
+- **React Native View Logs (Phase G):** `apps/rn-app/src/screens/LogsScreen.tsx` now includes richer entry context in list rows and modal detail (**symptoms**, **stressors**, **pain location**, **food**, **exercise**) alongside modal edit/share/delete actions and existing range/sort/filter controls.
+
+### v1.45.46 documentation sync
+
+- **React Native Charts (Phase B):** `apps/rn-app/src/screens/ChartsScreen.tsx` individual mode now includes a first per-metric visual trend baseline (color-coded plotted points) to complement existing trend rows/sparks and combined-view visual baseline.
+
+### v1.45.47 documentation sync
+
+- **React Native Charts (Phase B):** `apps/rn-app/src/screens/ChartsScreen.tsx` balance mode now includes a first visual balance chart baseline (color-coded bars for core balance metrics) alongside the existing targets snapshot.
+
+### v1.45.48 documentation sync
+
+- **React Native Settings (Phase E notifications baseline):** `apps/rn-app/src/screens/SettingsScreen.tsx` now exposes notification reminder preferences (**enable**, **HH:MM time**, **sound**) and notification permission status/request actions as the first RN-native parity step.
+
+### v1.45.49 documentation sync
+
+- **React Native Goals targets (Phase E baseline):** `apps/rn-app/src/screens/SettingsScreen.tsx` now persists mood/sleep/fatigue targets, and `apps/rn-app/src/screens/ChartsScreen.tsx` uses those persisted values in Balance target lines.
+
 ### v1.45.40 documentation sync
 
 - **RN parity snapshot:** documented that RN now includes baseline parity hooks for **AIEngine-style helpers + LLM wrapper**, **demo mode lifecycle**, and **benchmark-tier model selection settings**; full web benchmark modal/stability-graph parity remains open.
@@ -47,7 +84,7 @@ flowchart LR
 
 ### v1.45.29 documentation sync
 
-- **React Native View Logs (Phase G):** `apps/rn-app/src/screens/LogsScreen.tsx` now ships web-aligned **range chips** (Today / 7 / 30 / 90 / All), **Newest/Oldest** sort, **pull-to-refresh**, **text filter**, filtered/total count copy, and entry detail modal with share/delete baseline. Remaining parity items are full edit flow and large-list performance tuning.
+- **React Native View Logs (Phase G):** `apps/rn-app/src/screens/LogsScreen.tsx` now ships web-aligned **range chips** (Today / 7 / 30 / 90 / All), **Newest/Oldest** sort, **pull-to-refresh**, **text filter**, filtered/total count copy, and entry detail modal actions. Remaining parity items are richer card/detail depth and final large-list virtualization decisions.
 
 ### v1.45.25 documentation sync
 
