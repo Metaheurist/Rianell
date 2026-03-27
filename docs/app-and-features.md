@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.84 documentation sync
+
+- **Checkpoint refresh:** documentation is synchronized so the Settings notification story consistently reflects dismiss capability visibility, safe-dismiss ignore semantics, and session-level unknown-action observability.
+
 ### v1.45.83 documentation sync
 
 - **RN unknown-action observability (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now surfaces an in-session unknown reminder action counter so runtime action drift can be seen without logs/telemetry tooling.

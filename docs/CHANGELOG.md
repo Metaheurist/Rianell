@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.83** - Unknown action session visibility.
+**Latest: v1.45.84** - Documentation checkpoint sync.
+
+### v1.45.84 - 2026-03-27 - Documentation checkpoint sync
+
+- **Docs alignment:** refreshed plan/parity/features wording to keep Phase E notification long-tail status consistent after the latest runtime-capability and unknown-action observability increments.
+- **Scope:** documentation/changelog checkpoint only; no runtime behavior changes in this entry.
 
 ### v1.45.83 - 2026-03-27 - Unknown action session visibility
 
