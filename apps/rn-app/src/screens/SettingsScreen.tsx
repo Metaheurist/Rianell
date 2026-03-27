@@ -318,6 +318,14 @@ export function SettingsScreen({
         : unknownReminderActionCount >= 5
           ? 'high'
           : 'medium';
+  const unknownRecommendedNextCheck =
+    unknownObservabilityQuality === 'low'
+      ? 'collect at least 3 unknown events before trusting source trends.'
+      : unknownObservabilityQuality === 'medium'
+        ? 'continue monitoring; trend signal is usable but still maturing.'
+        : unknownObservabilityQuality === 'high'
+          ? 'trend signal is stable enough for runtime comparison checks.'
+          : null;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
@@ -563,6 +571,11 @@ export function SettingsScreen({
               {unknownObservabilityQuality ? (
                 <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                   Unknown-action observability quality: {unknownObservabilityQuality}.
+                </Text>
+              ) : null}
+              {unknownRecommendedNextCheck ? (
+                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                  Unknown-action recommended next check: {unknownRecommendedNextCheck}
                 </Text>
               ) : null}
               {unknownReminderActionCount > 0 ? (

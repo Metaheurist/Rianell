@@ -235,6 +235,7 @@ test('notification area shows unknown-action session counter', async () => {
   await findByText(/Unknown-action dominant source confidence: strong \(live listener\)/i);
   await findByText(/confidence is preliminary until at least 3 unknown events/i);
   await findByText(/Unknown-action observability quality: low/i);
+  await findByText(/Unknown-action recommended next check: collect at least 3 unknown events before trusting source trends\./i);
   await findByText(/Unknown-action stability status: low drift/i);
   await findByText(/mostly live listener callbacks/i);
   await findByText(/Last unknown reminder action observed at:/i);
@@ -265,6 +266,7 @@ test('notification area can reset unknown-action session counter', async () => {
     expect(queryByText(/Unknown-action dominant source confidence:/i)).toBeNull();
     expect(queryByText(/confidence is preliminary until at least 3 unknown events/i)).toBeNull();
     expect(queryByText(/Unknown-action observability quality:/i)).toBeNull();
+    expect(queryByText(/Unknown-action recommended next check:/i)).toBeNull();
     expect(queryByText(/Last unknown reminder action observed at:/i)).toBeNull();
     expect(queryByText(/Last unknown action source:/i)).toBeNull();
   });
@@ -354,6 +356,7 @@ test('notification area hides preliminary-confidence warning once sample size re
   await findByText(/Unknown reminder actions observed this session: 3/i);
   await findByText(/Unknown-action stability status: moderate drift/i);
   await findByText(/Unknown-action observability quality: medium/i);
+  await findByText(/Unknown-action recommended next check: continue monitoring; trend signal is usable but still maturing\./i);
   await waitFor(() => {
     expect(queryByText(/confidence is preliminary until at least 3 unknown events/i)).toBeNull();
   });
@@ -380,6 +383,7 @@ test('notification area shows high observability quality when unknown sample siz
 
   await findByText(/Unknown reminder actions observed this session: 5/i);
   await findByText(/Unknown-action observability quality: high/i);
+  await findByText(/Unknown-action recommended next check: trend signal is stable enough for runtime comparison checks\./i);
   await waitFor(() => {
     expect(queryByText(/confidence is preliminary until at least 3 unknown events/i)).toBeNull();
   });

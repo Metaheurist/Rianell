@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.97 documentation sync
+
+- **RN unknown-action diagnostics actionable guidance (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows a recommended next-check message based on observability quality to guide immediate runtime triage.
+
 ### v1.45.96 documentation sync
 
 - **RN unknown-action diagnostics quality summary (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now shows an observability quality score (`low`/`medium`/`high`) to summarize how reliable current-session unknown-action diagnostics are at a glance.
