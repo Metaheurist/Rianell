@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.45.54 documentation sync
+
+- **React Native Charts (Phase B motion polish):** `apps/rn-app/src/screens/ChartsScreen.tsx` now applies reduced-motion-aware transition behavior for view/range/refresh chart updates using native accessibility settings, with explicit in-screen copy when reduced motion is enabled.
+
 ### v1.45.53 documentation sync
 
 - **CI unit-tests reliability:** root unit tests now reference current repo folders (`apps/pwa-webapp`, `apps/rn-app`) instead of legacy `web`/`apps/mobile` paths, preventing `ENOENT` failures in GitHub Actions.

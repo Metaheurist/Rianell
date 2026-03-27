@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.45.53** - Unit test path migration fix for current app directories.
+**Latest: v1.45.54** - RN Charts reduced-motion transition parity increment.
+
+### v1.45.54 - 2026-03-27 - Charts motion polish (reduced-motion-aware)
+
+- **RN Charts (Phase B polish):** `ChartsScreen` now uses conditional `LayoutAnimation` on view/range/refresh/data updates, with transitions automatically minimized when OS reduced-motion is enabled via `AccessibilityInfo`.
+- **Accessibility parity increment:** added reduced-motion status copy in Charts to make animation behavior explicit.
+- **Validation:** `npm run test:mobile -- ChartsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.53 - 2026-03-27 - CI unit-tests path fix (`apps/pwa-webapp` + `apps/rn-app`)
 
