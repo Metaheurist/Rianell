@@ -53,6 +53,10 @@ export function shouldOpenHomeFromReminderAction(action: ReminderAction) {
   return action === 'default';
 }
 
+export function shouldOpenHomeAfterSnoozeFailure(action: ReminderAction, snoozeScheduled: boolean) {
+  return action === 'later' && !snoozeScheduled;
+}
+
 export function RootNavigator({
   prefs,
   onChangePrefs,
@@ -81,7 +85,11 @@ export function RootNavigator({
 
     const handleAction = (action: ReminderAction) => {
       if (shouldSnoozeReminderFromAction(action)) {
-        void Permissions.scheduleReminderSnooze(prefs.notifications.snoozeMinutes);
+        void Permissions.scheduleReminderSnooze(prefs.notifications.snoozeMinutes).then((ok) => {
+          if (shouldOpenHomeAfterSnoozeFailure(action, ok)) {
+            openHome();
+          }
+        });
       }
       if (shouldOpenHomeFromReminderAction(action)) {
         openHome();

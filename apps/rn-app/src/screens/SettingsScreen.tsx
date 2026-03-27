@@ -387,6 +387,9 @@ export function SettingsScreen({
                 />
               </Row>
               <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                Later action snoozes for {prefs.notifications.snoozeMinutes} minutes; if snooze is unavailable, app opens Home.
+              </Text>
+              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
                 Notification permission: {notificationPermission}
               </Text>
               {notificationScheduleState === 'scheduled' ? (
