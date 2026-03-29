@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.17** - npm overrides fix `@tootallnate/once` via `http-proxy-agent@7`; docs UK English pass.
+**Latest: v1.46.18** - Cloudflare CSP / Permissions-Policy operator guide (fixes live console when HTTP CSP is too strict).
+
+### v1.46.18 - 2026-03-29 - Docs: Cloudflare CSP must match meta; Permissions-Policy `notifications`
+
+- **Ops / edge:** **[security/cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md)** explains that a **narrow HTTP `Content-Security-Policy`** from Cloudflare **combines** with the **`index.html` meta CSP** and blocks **jsDelivr**, **Google Fonts**, and **Font Awesome** (symptoms: script/style CSP violations, Supabase UMD load failure, MOTD LLM import failure). **Remove** duplicate HTTP CSP or **paste** the full policy from **`apps/pwa-webapp/index.html`**. **`Permissions-Policy`:** remove **`notifications=(self)`** if Chromium logs **Unrecognized feature: 'notifications'**.
+- **Docs:** [docs/infrastructure-and-security-edge.md](infrastructure-and-security-edge.md), [docs/SECURITY.md](SECURITY.md) (CSP table links **`apps/pwa-webapp/index.html`**), [security/README.md](../security/README.md). **`apps/pwa-webapp/index.html`** comment points to the new guide.
 
 ### v1.46.17 - 2026-03-29 - Dependencies: `http-proxy-agent` override; documentation UK English
 

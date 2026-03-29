@@ -41,7 +41,7 @@
   <meta name="msapplication-tap-highlight" content="no">
   
   <!-- Security: CSP roadmap in docs/SECURITY.md (unsafe-eval/inline required today for ML bootstraps; tighten over time). -->
-  <!-- script-src: wasm-unsafe-eval + worker-src blob: for TensorFlow.js / ML CDNs. If an HTTP CSP is also set (e.g. Cloudflare), it must allow the same or eval stays blocked (policies combine). -->
+  <!-- script-src: wasm-unsafe-eval + worker-src blob: for TensorFlow.js / ML CDNs. If Cloudflare (or any edge) sets Content-Security-Policy via HTTP, it must DUPLICATE this meta policy or be REMOVED — narrower HTTP CSP blocks cdn.jsdelivr.net (Supabase UMD, Transformers), fonts, Font Awesome. See security/cloudflare-headers-recommended.md -->
   <!-- Note: frame-ancestors and X-Frame-Options must be set via HTTP headers, not meta tags -->
   <!-- PayPal JS SDK: set meta paypal-client-id (REST app Client ID from developer.paypal.com) for in-app Smart Payment Buttons (PayPal, card, Apple Pay / Google Pay when eligible). -->
   <meta name="paypal-client-id" content="">
