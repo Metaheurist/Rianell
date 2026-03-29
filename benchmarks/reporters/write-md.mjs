@@ -4,14 +4,14 @@ import path from 'path';
 /**
  * @param {object} opts
  * @param {string} opts.platformTitle
- * @param {string} opts.slug - folder under Benchmarks/
+ * @param {string} opts.slug - folder under benchmarks/
  * @param {string} opts.repoRoot
  * @param {Record<string, string | number>} opts.meta
  * @param {object[]} opts.sections - { title, rows: Record<string,string|number>[] }
  */
 export function writeBenchmarkMd(opts) {
   const { platformTitle, slug, repoRoot, meta, sections } = opts;
-  const dir = path.join(repoRoot, 'Benchmarks', slug);
+  const dir = path.join(repoRoot, 'benchmarks', slug);
   fs.mkdirSync(dir, { recursive: true });
   const out = path.join(dir, 'latest.md');
 
