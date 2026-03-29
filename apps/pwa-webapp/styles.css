@@ -738,6 +738,31 @@ h1#dashboardTitle:hover {
     drop-shadow(0 0 16px color-mix(in srgb, var(--title-flat-tone) 40%, transparent));
 }
 
+/*
+ * Light mode: MOTD title is plain text with a subtle shadow only.
+ * The default 3D stack + dark extrusion + blur duplicates are hard to read on white / mobile.
+ */
+body.light-mode #dashboardTitle {
+  color: var(--text-dark);
+  -webkit-text-fill-color: var(--text-dark);
+  -webkit-text-stroke: 0 transparent;
+  text-shadow: 0 1px 2px rgba(27, 94, 32, 0.12);
+  filter: none;
+  transform: none !important;
+  animation: none;
+}
+
+body.light-mode #dashboardTitle::before,
+body.light-mode #dashboardTitle::after {
+  display: none !important;
+}
+
+body.light-mode #dashboardTitle:hover {
+  text-shadow: 0 1px 3px rgba(27, 94, 32, 0.18);
+  filter: none;
+  transform: none !important;
+}
+
 @keyframes motdFloatTilt {
   0%, 100% {
     transform: rotateX(17deg) rotateY(-7deg) translateZ(12px);
