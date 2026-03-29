@@ -483,7 +483,7 @@ export function SettingsScreen({
 
         <View style={[styles.paneOuter, { width }]}>
 
-          <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+          <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
             <Section title="Personal & cloud sync">
 
@@ -503,7 +503,7 @@ export function SettingsScreen({
 
         <View style={[styles.paneOuter, { width }]}>
 
-          <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+          <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
             <Section title="AI & Goals">
 
@@ -593,7 +593,7 @@ export function SettingsScreen({
 
         <View style={[styles.paneOuter, { width }]}>
 
-          <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+          <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
             <Section title="Display">
 
@@ -1081,7 +1081,7 @@ export function SettingsScreen({
 
         <View style={[styles.paneOuter, { width }]}>
 
-          <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+          <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
             <Section title="Theme customisation">
 
@@ -1131,7 +1131,7 @@ export function SettingsScreen({
 
         <View style={[styles.paneOuter, { width }]}>
 
-          <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+          <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
             <Section title="Accessibility">
 
@@ -1257,7 +1257,7 @@ export function SettingsScreen({
 
         <View style={[styles.paneOuter, { width }]}>
 
-          <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+          <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
             <Section title="Data options">
 
@@ -1289,7 +1289,7 @@ export function SettingsScreen({
 
         <View style={[styles.paneOuter, { width }]}>
 
-          <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+          <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
             <Section title="Performance">
 
@@ -1401,7 +1401,7 @@ export function SettingsScreen({
 
         <View style={[styles.paneOuter, { width }]}>
 
-          <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+          <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
             <Section title="Data management">
 

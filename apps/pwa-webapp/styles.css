@@ -11565,14 +11565,16 @@ body.light-mode .goals-status-pill.below {
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary-color) 74%, transparent), 0 0 0 2px color-mix(in srgb, var(--primary-color) 26%, transparent);
 }
 
+/* Horizontal clip only — `overflow: hidden` on both axes broke vertical scroll inside panes on mobile PWA/Safari. */
 .settings-carousel-viewport {
-  overflow: hidden !important;
-  overflow-x: clip;
+  overflow-x: clip !important;
+  overflow-y: hidden;
   flex: 1;
   min-height: 0;
   min-width: 0;
   position: relative;
   touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 .settings-carousel-viewport.settings-content {
@@ -11610,6 +11612,8 @@ body.light-mode .goals-status-pill.below {
   flex: 0 0 calc(100% / var(--settings-pane-count, 8));
   width: calc(100% / var(--settings-pane-count, 8));
   max-width: calc(100% / var(--settings-pane-count, 8));
+  height: 100%;
+  max-height: 100%;
   min-height: 0;
   min-width: 0;
   overflow-x: hidden;
@@ -11617,7 +11621,8 @@ body.light-mode .goals-status-pill.below {
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
   padding-bottom: 0.5rem;
-  contain: paint;
+  /* `contain: paint` prevented reliable touch scrolling on iOS for long settings panes */
+  contain: layout;
 }
 
 /* Hide off-screen panes so carousel slides don’t bleed into the active pane */
@@ -13118,7 +13123,10 @@ body.light-mode .danger-zone {
   
   .settings-menu {
     width: 95%;
-    max-height: calc(90vh - env(safe-area-inset-bottom, 0px));
+    max-height: min(
+      calc(90vh - env(safe-area-inset-bottom, 0px)),
+      calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px)
+    );
   }
   
   .settings-content {

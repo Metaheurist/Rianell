@@ -96,6 +96,8 @@ function HomeMotdHeartbeat({
   const spinAngle = useRef(new Animated.Value(0)).current;
   const velocityRef = useRef(0);
   const angleRadRef = useRef(0);
+  const springChargeRef = useRef(0);
+  const lastMotdTapRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef(0);
   const dashAnim = useRef(new Animated.Value(1000)).current;
@@ -133,7 +135,8 @@ function HomeMotdHeartbeat({
   const spinEnergy = useCallback(() => {
     const th = angleRadRef.current;
     const om = velocityRef.current;
-    return Math.max(Math.abs(om), 5.5 * Math.abs(th));
+    const ch = springChargeRef.current;
+    return Math.max(Math.abs(om), 5.5 * Math.abs(th), ch * 0.35);
   }, []);
 
   const runSpinTick = useCallback((ts: number) => {
@@ -141,8 +144,11 @@ function HomeMotdHeartbeat({
     lastTsRef.current = ts;
     const d = dt > 0.12 ? 0.12 : dt;
     angleRadRef.current += velocityRef.current * d;
-    velocityRef.current *= Math.exp(-2.4 * d);
-    velocityRef.current -= 15 * angleRadRef.current * d;
+    velocityRef.current *= Math.exp(-1.75 * d);
+    if (Math.abs(velocityRef.current) < 0.22) {
+      const kSpring = 3.8 + springChargeRef.current * 1.05;
+      velocityRef.current -= kSpring * angleRadRef.current * d;
+    }
     if (Math.abs(velocityRef.current) < 0.0005) velocityRef.current = 0;
     angleRadRef.current = Math.max(-1.2, Math.min(1.2, angleRadRef.current));
     spinAngle.setValue((angleRadRef.current * 180) / Math.PI);
@@ -166,6 +172,7 @@ function HomeMotdHeartbeat({
       rafRef.current = null;
       angleRadRef.current = 0;
       velocityRef.current = 0;
+      springChargeRef.current = 0;
       spinAngle.setValue(0);
       effDurRef.current = bpmDurRef.current;
       setEcgDurationSec(bpmDurRef.current);
@@ -174,33 +181,23 @@ function HomeMotdHeartbeat({
 
   const bumpSpin = useCallback(() => {
     if (light || reduceMotion) return;
-    velocityRef.current += 3.2;
+    const pnow = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const interval = lastMotdTapRef.current ? pnow - lastMotdTapRef.current : 600;
+    lastMotdTapRef.current = pnow;
+    springChargeRef.current = Math.min(30, springChargeRef.current + 1);
+    let boost = 0;
+    if (interval < 340) boost = ((340 - interval) / 340) * 9;
+    velocityRef.current += 5.2 + boost + springChargeRef.current * 0.12;
     if (rafRef.current == null) {
       lastTsRef.current = 0;
       rafRef.current = requestAnimationFrame(runSpinTick);
     }
   }, [light, reduceMotion, runSpinTick]);
 
-  const holdSpinRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onMotdPressIn = useCallback(() => {
     if (light || reduceMotion) return;
     bumpSpin();
-    holdSpinRef.current = setInterval(() => {
-      bumpSpin();
-    }, 110);
   }, [light, reduceMotion, bumpSpin]);
-  const onMotdPressOut = useCallback(() => {
-    if (holdSpinRef.current) {
-      clearInterval(holdSpinRef.current);
-      holdSpinRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (holdSpinRef.current) clearInterval(holdSpinRef.current);
-    };
-  }, []);
 
   useEffect(() => {
     if (light || reduceMotion) return;
@@ -240,10 +237,9 @@ function HomeMotdHeartbeat({
     <>
       <Pressable
         onPressIn={onMotdPressIn}
-        onPressOut={onMotdPressOut}
         accessibilityRole="button"
         accessibilityLabel="Daily message"
-        accessibilityHint="Tap or hold to tilt the message in 3D"
+        accessibilityHint="Tap repeatedly to charge; more taps snap the message back faster"
       >
         <Animated.View style={{ transform: [{ perspective: 900 }, { rotateX: spinRotate }] }}>
           <Animated.View style={{ transform: [{ rotate: swayRotate }] }}>
