@@ -1,6 +1,6 @@
 # Platform parity
 
-This document defines the expected behavior contract across:
+This document defines the expected behaviour contract across:
 
 - Web / PWA
 - Android (Capacitor)
@@ -13,14 +13,14 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - `notifications`: native plugin path enabled, with web fallback.
 - `speech_to_text`: browser API based (`SpeechRecognition`) with explicit microphone permission preflight and plugin-aware permission fallback checks when native speech plugins are present; support still varies by engine/WebView.
 - `clipboard_share_download`: supported with fallback paths where available.
-- `sync_behavior`: foreground/interval behavior; no guaranteed OS background sync.
+- `sync_behavior`: foreground/interval behaviour; no guaranteed OS background sync.
 - `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
 
 ### v1.46.3 parity note (RN settings carousel + app installation + log wizard suggest note)
 
 - **React Native — Settings:** Eight titled carousel panes match the web settings overlay pane titles (`apps/pwa-webapp/index.html`). Daily reminders live under **Display**; demo mode under **Data options**; LLM tier + benchmark under **Performance**; export, import, native **App installation** info, and **Clear all data** under **Data management** (`SettingsAppInstallSection.tsx`).
 - **React Native — Log wizard:** **Suggest note** uses the same `suggestLogNote` pipeline as the PWA (remote LLM when configured, otherwise `AIEngine.suggestLogNote`), with preferences and benchmark available to the screen.
-- **Web unchanged:** PWA settings layout and `refreshAppInstallSection` behavior remain the source of truth for browser/WebView install tiles; native RN shows the replacement block described in `docs/CHANGELOG.md` v1.46.3.
+- **Web unchanged:** PWA settings layout and `refreshAppInstallSection` behaviour remain the source of truth for browser/WebView install tiles; native RN shows the replacement block described in `docs/CHANGELOG.md` v1.46.3.
 
 ### v1.46.2 parity note (legacy release labeling + CI metadata fallback)
 
@@ -29,7 +29,7 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 ### v1.46.1 parity note (documentation checkpoint)
 
-- **All platforms/docs contract:** parity docs are synchronized on the current RN notification diagnostics baseline (summary line, quality/confidence cues, and trajectory context).
+- **All platforms/docs contract:** parity docs are synchronised on the current RN notification diagnostics baseline (summary line, quality/confidence cues, and trajectory context).
 - **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.46.0 parity note (unknown-action session summary line)
@@ -59,7 +59,7 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 ### v1.45.95 parity note (documentation checkpoint)
 
-- **All platforms/docs contract:** parity docs are synchronized on the current RN notification diagnostics baseline (counts, source split, confidence hint, low-sample warning).
+- **All platforms/docs contract:** parity docs are synchronised on the current RN notification diagnostics baseline (counts, source split, confidence hint, low-sample warning).
 - **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.94 parity note (unknown-action minimum-sample confidence warning)
@@ -84,7 +84,7 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 ### v1.45.90 parity note (documentation checkpoint)
 
-- **All platforms/docs contract:** parity docs are synchronized on the current RN notification diagnostics baseline and remaining open long-tail parity items.
+- **All platforms/docs contract:** parity docs are synchronised on the current RN notification diagnostics baseline and remaining open long-tail parity items.
 - **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.89 parity note (unknown diagnostics source breakdown)
@@ -114,7 +114,7 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 ### v1.45.84 parity note (documentation checkpoint)
 
-- **All platforms/docs contract:** parity docs are synchronized on the current RN notification baseline (dismiss capability visibility, safe dismiss no-op behavior, and unknown-action session observability).
+- **All platforms/docs contract:** parity docs are synchronised on the current RN notification baseline (dismiss capability visibility, safe dismiss no-op behaviour, and unknown-action session observability).
 - **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.83 parity note (unknown action observability)
@@ -144,7 +144,7 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 ### v1.45.78 parity note (documentation checkpoint)
 
-- **All platforms/docs contract:** parity documentation now consistently calls out RN notification action-policy visibility and duplicate-action burst suppression as current baseline behavior.
+- **All platforms/docs contract:** parity documentation now consistently calls out RN notification action-policy visibility and duplicate-action burst suppression as current baseline behaviour.
 - **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.77 parity note (reminder action burst de-dup)
@@ -154,7 +154,7 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 ### v1.45.76 parity note (reminder action policy visibility)
 
-- **React Native:** Settings now displays explicit reminder action-routing/fallback policy text (`log-now`, `later`, `default`, `unknown`) to make runtime behavior differences transparent.
+- **React Native:** Settings now displays explicit reminder action-routing/fallback policy text (`log-now`, `later`, `default`, `unknown`) to make runtime behaviour differences transparent.
 - **Open parity:** keep tracking long-tail OS delivery semantics and action-surface differences in `docs/next-phase-development-plan.md` Phase E.
 
 ### v1.44.2 parity update
@@ -200,8 +200,8 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 ### v1.45.54 parity note (Charts reduced-motion transitions)
 
-- **Web:** chart and section transitions honor reduced-motion preferences across visual updates.
-- **React Native:** Charts now uses reduced-motion-aware layout transitions (view/range/refresh/data update paths) and minimizes animation when the OS reduced-motion setting is enabled.
+- **Web:** chart and section transitions honour reduced-motion preferences across visual updates.
+- **React Native:** Charts now uses reduced-motion-aware layout transitions (view/range/refresh/data update paths) and minimises animation when the OS reduced-motion setting is enabled.
 
 ### v1.45.55 parity note (legacy build path compatibility)
 
@@ -221,11 +221,11 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 ### v1.45.59 parity note (notifications scheduling baseline)
 
-- **React Native:** notification settings now attempt daily reminder scheduling/cancellation when permission is granted, moving beyond prefs-only parity toward runtime delivery behavior.
+- **React Native:** notification settings now attempt daily reminder scheduling/cancellation when permission is granted, moving beyond prefs-only parity toward runtime delivery behaviour.
 
 ### v1.45.60 parity note (logs large-list virtualization tuning)
 
-- **React Native:** View Logs now applies adaptive FlatList virtualization settings and fixed-row layout hints to better handle larger histories, tightening parity with web large-list behavior intent.
+- **React Native:** View Logs now applies adaptive FlatList virtualization settings and fixed-row layout hints to better handle larger histories, tightening parity with web large-list behaviour intent.
 
 ### v1.45.61 parity note (status checkpoint + next target)
 
@@ -233,51 +233,51 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 ### v1.45.62 parity note (notifications delivery semantics)
 
-- **React Native:** reminder scheduling now reports delivery semantics and configures Android notification channels when runtime APIs are present, closing the baseline gap between preference state and platform delivery behavior.
+- **React Native:** reminder scheduling now reports delivery semantics and configures Android notification channels when runtime APIs are present, closing the baseline gap between preference state and platform delivery behaviour.
 
 ### v1.45.63 parity note (notifications OS category semantics)
 
-- **React Native:** reminder scheduling now also configures iOS notification categories/actions when runtime APIs are present, expanding platform-level delivery semantics beyond Android channel-only behavior.
+- **React Native:** reminder scheduling now also configures iOS notification categories/actions when runtime APIs are present, expanding platform-level delivery semantics beyond Android channel-only behaviour.
 
 ### v1.45.64 parity note (notification response-path visibility)
 
-- **React Native:** reminder action responses are now observable through runtime listener helpers and surfaced in Settings as last-action status, improving parity coverage for notification interaction behavior.
+- **React Native:** reminder action responses are now observable through runtime listener helpers and surfaced in Settings as last-action status, improving parity coverage for notification interaction behaviour.
 
 ### v1.45.65 parity note (notification action routing)
 
-- **React Native:** reminder action handling now routes `log-now` interactions directly into the `LogWizard` flow, reducing parity gap between notification interaction and app navigation behavior.
+- **React Native:** reminder action handling now routes `log-now` interactions directly into the `LogWizard` flow, reducing parity gap between notification interaction and app navigation behaviour.
 
 ### v1.45.66 parity note (notification response consumption)
 
 - **React Native:** handled reminder responses are now explicitly cleared, improving parity stability by preventing stale notification actions from replaying on later app sessions.
 
-### v1.45.67 parity note (notification later/snooze behavior)
+### v1.45.67 parity note (notification later/snooze behaviour)
 
-- **React Native:** `later` reminder actions now map to explicit snooze scheduling behavior, improving parity depth for actionable notification semantics beyond direct log-now routing.
+- **React Native:** `later` reminder actions now map to explicit snooze scheduling behaviour, improving parity depth for actionable notification semantics beyond direct log-now routing.
 
-### v1.45.68 parity note (notification default-open behavior)
+### v1.45.68 parity note (notification default-open behaviour)
 
 - **React Native:** default reminder tap actions now explicitly foreground/open the app home path, completing baseline parity intent for primary reminder action routes.
 
 ### v1.45.69 parity note (notification snooze personalization)
 
-- **React Native:** reminder `later` actions now honor a user-selected snooze interval from Settings, improving parity depth for notification action customization.
+- **React Native:** reminder `later` actions now honour a user-selected snooze interval from Settings, improving parity depth for notification action customisation.
 
-### v1.45.70 parity note (notification snooze-fallback behavior)
+### v1.45.70 parity note (notification snooze-fallback behaviour)
 
-- **React Native:** when runtime snooze scheduling is unavailable/fails, `later` actions now fall back to app-home open behavior, reducing dead-end interaction risk.
+- **React Native:** when runtime snooze scheduling is unavailable/fails, `later` actions now fall back to app-home open behaviour, reducing dead-end interaction risk.
 
 ### v1.45.71 parity note (notification runtime capability visibility)
 
-- **React Native:** Settings now surfaces runtime capability support for scheduling/channel/category/action handling, making platform behavior differences explicit for parity validation.
+- **React Native:** Settings now surfaces runtime capability support for scheduling/channel/category/action handling, making platform behaviour differences explicit for parity validation.
 
 ### v1.45.72 parity note (documentation checkpoint)
 
-- **All platforms:** parity documentation is synchronized to the latest RN notification semantics baseline and preserves explicit open items for remaining cross-platform depth work.
+- **All platforms:** parity documentation is synchronised to the latest RN notification semantics baseline and preserves explicit open items for remaining cross-platform depth work.
 
 ### v1.45.73 parity note (runtime-adaptive snooze controls)
 
-- **React Native:** notification settings now adapt snooze controls to runtime capability support and explicitly communicate fallback behavior when snooze scheduling is unsupported.
+- **React Native:** notification settings now adapt snooze controls to runtime capability support and explicitly communicate fallback behaviour when snooze scheduling is unsupported.
 
 ### v1.45.74 parity note (action status clarity on limited runtimes)
 
@@ -285,7 +285,7 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 ### v1.45.75 parity note (unknown action fallback policy)
 
-- **React Native:** unknown reminder actions now resolve to explicit Home fallback routing and user-facing status guidance, reducing undefined behavior across runtime variants.
+- **React Native:** unknown reminder actions now resolve to explicit Home fallback routing and user-facing status guidance, reducing undefined behaviour across runtime variants.
 
 ### v1.45.42 parity note (View Logs edit + list baseline)
 
@@ -295,7 +295,7 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 ### v1.45.43 parity note (Charts visual baseline)
 
 - **Web:** Charts uses full visual canvases (combined/individual/balance) with richer animation/chrome and prediction overlays.
-- **React Native:** Charts now includes a first combined-view **visual trend chart** baseline using web metric color semantics, while existing trend rows/sparks remain in place. Remaining parity backlog is richer individual/balance visual parity and full animation/prediction overlay behavior.
+- **React Native:** Charts now includes a first combined-view **visual trend chart** baseline using web metric color semantics, while existing trend rows/sparks remain in place. Remaining parity backlog is richer individual/balance visual parity and full animation/prediction overlay behaviour.
 
 ### v1.45.44 parity note (AI copy/gating increment)
 
@@ -309,23 +309,23 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 ### v1.45.46 parity note (Charts individual visual baseline)
 
-- **Web:** Individual charts provide full per-metric visual rendering with richer scale/tooltip behavior.
-- **React Native:** Individual chart mode now includes a first per-metric visual trend baseline (color-coded plotted points) alongside the existing numeric summaries and spark bars; deeper visual parity and balance/radar parity remain open.
+- **Web:** Individual charts provide full per-metric visual rendering with richer scale/tooltip behaviour.
+- **React Native:** Individual chart mode now includes a first per-metric visual trend baseline (colour-coded plotted points) alongside the existing numeric summaries and spark bars; deeper visual parity and balance/radar parity remain open.
 
 ### v1.45.47 parity note (Charts balance visual baseline)
 
-- **Web:** Balance mode uses richer radar-style visualization semantics.
-- **React Native:** Balance mode now includes a first visual baseline chart (color-coded bars for core balance metrics) in addition to the targets snapshot; deeper radar-equivalent semantics and animation/chrome parity remain open.
+- **Web:** Balance mode uses richer radar-style visualisation semantics.
+- **React Native:** Balance mode now includes a first visual baseline chart (colour-coded bars for core balance metrics) in addition to the targets snapshot; deeper radar-equivalent semantics and animation/chrome parity remain open.
 
 ### v1.45.48 parity note (Notifications settings baseline)
 
-- **Web/Capacitor:** notification behavior includes reminder controls tied to runtime delivery paths.
+- **Web/Capacitor:** notification behaviour includes reminder controls tied to runtime delivery paths.
 - **React Native:** Settings now includes notification preference controls (enable, reminder time, sound) plus permission status/request baseline. Full OS scheduling/channel parity remains open.
 
 ### v1.45.49 parity note (Goals target persistence baseline)
 
 - **Web:** Goals & targets settings persist and drive charts/goals surfaces.
-- **React Native:** mood/sleep/fatigue targets now persist in settings/preferences and feed Charts balance target lines, replacing default-only target behavior for those metrics.
+- **React Native:** mood/sleep/fatigue targets now persist in settings/preferences and feed Charts balance target lines, replacing default-only target behaviour for those metrics.
 
 ### v1.45.25 parity note (React Native shell)
 
