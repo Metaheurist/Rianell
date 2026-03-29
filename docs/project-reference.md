@@ -2,6 +2,10 @@
 
 ## 🗂️ Project Structure
 
+### v1.46.14 documentation sync (benchmarks folder)
+
+- **Layout:** **`benchmarks/`** is the single workspace for **`@rianell/benchmark-runner`** (scripts, reporters, Playwright specs) and generated Markdown/JSON (**`web-pwa/`**, **`compare.md`**, etc.). See changelog v1.46.13.
+
 ### v1.46.11 documentation sync (RN README build vs workflow run)
 
 - **CI:** README **Alpha RN** rows use the **sequential RN build** from **`rn-build-version`** (stored in **`App build/RNCLI-Android/latest.json`**). **Server** and **Web / PWA** rows still follow **`GITHUB_RUN_NUMBER`**. Metadata-only fallback commits keep JSON in sync when large binaries cannot be pushed.
@@ -55,7 +59,8 @@ Rianell/
 │       ├── patch-android-sdk.js
 │       └── capacitor.config.ts
 ├── requirements.txt
-├── package.json            # Workspaces: apps/*, packages/*
+├── package.json            # Workspaces: apps/*, packages/*, benchmarks/
+├── benchmarks/             # @rianell/benchmark-runner — perf reports (CI + local), scripts, reporters
 ├── scripts/
 ├── docs/
 ├── .github/workflows/
