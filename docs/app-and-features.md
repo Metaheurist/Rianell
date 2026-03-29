@@ -432,10 +432,10 @@ flowchart LR
 
 | Channel | Meaning in this app | Where the build number comes from |
 |--------|---------------------|-----------------------------------|
-| **Beta** | Android debug APK, **Install web app** / Add to Home Screen (PWA), and **Install on this iPhone/iPad** (Safari PWA). | `App build/Android/latest.json` → `version` for the APK; the Settings UI shows `(build N)` next to the Android link after fetch. |
-| **Alpha** | **iOS native** artifact only: Xcode project zip (and optional one-tap install URL when `installUrl` is set in the manifest). Not the Safari “Add to Home Screen” flow. | `App build/iOS/latest.json` → `version`; the Settings UI shows `(build N)` next to the iOS download link after fetch. |
+| **Beta** | Android debug APK, **Install web app** / Add to Home Screen (PWA), and **Install on this iPhone/iPad** (Safari PWA). | **Legacy Capacitor:** `App build/Android/latest.json` → `version` for the APK. The Settings UI shows `(build N)` after fetch. |
+| **Alpha** | **iOS native** artifact only: Xcode project zip (and optional one-tap install URL when `installUrl` is set in the manifest). Not the Safari “Add to Home Screen” flow. | **RN CLI (current):** `App build/iOS/latest.json` (and matching **`App build/RNCLI-Android/latest.json`** for the RN Android APK row in the README CI table). **`version`** is the **GitHub Actions workflow run number** for that CI run, aligned with Server EXE and Web/PWA in the top README table. **Legacy Capacitor iOS** metadata lives under `App build/Legacy/Capacitor-iOS/`. |
 
-**Build numbers in this README:** The **Beta** badge and table near the top of this file are **updated automatically** on each successful CI run to match `App build/Android/latest.json`, `App build/iOS/latest.json`, and the current workflow run (web/PWA deploy).
+**Build numbers in this README:** The **CI builds** table (Alpha RN Android / RN iOS / Server / Web) is **updated automatically** when CI commits **`App build/`** and runs **`scripts/update-readme-build-info.mjs`**. The **Legacy builds** table still reflects frozen Capacitor **`App build/Android/`** and **`App build/Legacy/Capacitor-iOS/`** metadata.
 
 The web app reads these manifests at runtime (`apps/pwa-webapp/app.js`, `refreshBuildDownloadLinks`) so the label **(build N)** on install links stays in sync after each CI deploy. **Beta** / **Alpha** pills are fixed labels in the UI: every install/download path except the **iOS native zip/OTA** link is **Beta**; the **iOS native** download is **Alpha**.
 

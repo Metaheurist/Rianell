@@ -2,6 +2,11 @@
 
 ## 🗂️ Project Structure
 
+### v1.46.10 documentation sync (CI RN build numbers)
+
+- **CI:** `.github/workflows/ci.yml` — React Native CLI Alpha **`version`** in **`App build/RNCLI-Android/latest.json`** and **`App build/iOS/latest.json`** uses **`github.run_number`** (same idea as Server EXE + README Web row). Large-git-push fallback still commits those JSON files with README when APK/zip binaries are rejected.
+- **Tests:** `tests/unit/workflows-ci-rncli.test.mjs` guards the workflow shape.
+
 ### v1.46.4 documentation sync
 
 - **Infrastructure:** See **[infrastructure-and-security-edge.md](infrastructure-and-security-edge.md)** for DNS, Cloudflare, and GitHub Pages (public-safe; no account secrets).
