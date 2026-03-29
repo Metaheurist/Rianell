@@ -29,7 +29,13 @@
     },
     "plugins": [
       "./plugins/withAsyncStorageLocalRepo.js",
-      "@react-native-voice/voice"
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow $(PRODUCT_NAME) to use the microphone for voice notes.",
+          "speechRecognitionPermission": "Allow $(PRODUCT_NAME) to use speech recognition for voice notes."
+        }
+      ]
     ]
   }
 }

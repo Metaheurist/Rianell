@@ -2,10 +2,17 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Audio } from 'expo-av';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import Voice from '@react-native-voice/voice';
+import {
+  ExpoSpeechRecognitionModule,
+  useSpeechRecognitionEvent,
+} from 'expo-speech-recognition';
+import type {
+  ExpoSpeechRecognitionErrorEvent,
+  ExpoSpeechRecognitionResultEvent,
+} from 'expo-speech-recognition';
 import { Permissions } from '../permissions/permissions';
 
-const DEFAULT_LOCALE = Platform.select({ ios: 'en-US', android: 'en-US', default: 'en-US' }) ?? 'en-US';
+const DEFAULT_LOCALE = Platform.select({ ios: 'en-GB', android: 'en-GB', default: 'en-GB' }) ?? 'en-GB';
 
 type Props = {
   /** Current field text; snapshotted when dictation starts (matches web `voiceBaseValue`). */
@@ -18,7 +25,7 @@ type Props = {
 
 /**
  * Mic control for speech-to-text on a text field. Requests microphone permission (via expo-av)
- * before starting native recognition — required on Android where RECORD_AUDIO must be granted first.
+ * before starting native recognition - required on Android where RECORD_AUDIO must be granted first.
  */
 export function VoiceNotesButton({ value, onChangeText, accent, textColor, accessibilityLabel = 'Voice input' }: Props) {
   const [listening, setListening] = useState(false);
@@ -28,45 +35,56 @@ export function VoiceNotesButton({ value, onChangeText, accent, textColor, acces
 
   const stop = useCallback(async () => {
     try {
-      await Voice.stop();
+      ExpoSpeechRecognitionModule.stop();
     } catch {
       /* ignore */
     }
     try {
-      await Voice.cancel();
+      ExpoSpeechRecognitionModule.abort();
     } catch {
       /* ignore */
     }
     setListening(false);
   }, []);
 
-  useEffect(() => {
-    Voice.onSpeechPartialResults = (e) => {
-      const t = e.value?.[0] ?? '';
-      const merged = `${baseRef.current}${baseRef.current && t.trim() ? ' ' : ''}${t}`.trim();
-      onChangeTextRef.current(merged);
-    };
-    Voice.onSpeechResults = (e) => {
-      const t = (e.value?.[0] ?? '').trim();
-      if (!t) return;
+  useSpeechRecognitionEvent('result', (e: ExpoSpeechRecognitionResultEvent) => {
+    const t = (e.results[0]?.transcript ?? '').trim();
+    if (!e.isFinal) {
       const merged = `${baseRef.current}${baseRef.current && t ? ' ' : ''}${t}`.trim();
       onChangeTextRef.current(merged);
-      baseRef.current = merged;
-    };
-    Voice.onSpeechError = (e) => {
-      const code = e.error?.code;
-      const msg = e.error?.message ?? '';
-      if (code === '7' || /cancel|abort/i.test(msg)) {
-        setListening(false);
-        return;
-      }
-      Alert.alert('Voice input', msg || 'Speech recognition failed.');
-      setListening(false);
-    };
-    Voice.onSpeechEnd = () => setListening(false);
+      return;
+    }
+    if (!t) return;
+    const merged = `${baseRef.current}${baseRef.current && t ? ' ' : ''}${t}`.trim();
+    onChangeTextRef.current(merged);
+    baseRef.current = merged;
+  });
 
+  useSpeechRecognitionEvent('error', (err: ExpoSpeechRecognitionErrorEvent) => {
+    if (err.error === 'aborted') {
+      setListening(false);
+      return;
+    }
+    const msg = err.message ?? '';
+    if (/cancel|abort/i.test(msg)) {
+      setListening(false);
+      return;
+    }
+    Alert.alert('Voice input', msg || 'Speech recognition failed.');
+    setListening(false);
+  });
+
+  useSpeechRecognitionEvent('end', () => {
+    setListening(false);
+  });
+
+  useEffect(() => {
     return () => {
-      void Voice.destroy().then(() => Voice.removeAllListeners());
+      try {
+        ExpoSpeechRecognitionModule.abort();
+      } catch {
+        /* ignore */
+      }
     };
   }, []);
 
@@ -85,19 +103,34 @@ export function VoiceNotesButton({ value, onChangeText, accent, textColor, acces
       return;
     }
 
+    const speechPerm = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+    if (!speechPerm.granted) {
+      Alert.alert(
+        'Voice input',
+        'Speech recognition permission is required. Allow access in system settings and try again.'
+      );
+      return;
+    }
+
     try {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
     } catch {
-      /* Voice may still work */
+      /* recognition may still work */
     }
 
     baseRef.current = value.trimEnd();
 
     try {
-      await Voice.start(DEFAULT_LOCALE);
+      ExpoSpeechRecognitionModule.start({
+        lang: DEFAULT_LOCALE,
+        interimResults: true,
+        maxAlternatives: 1,
+        // continuous mode is not supported on Android 12 and below; false still yields interim + final results until end-of-utterance.
+        continuous: false,
+      });
       setListening(true);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Could not start speech recognition.';

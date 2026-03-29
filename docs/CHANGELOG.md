@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.3** - React Native settings carousel parity, app installation section, and log wizard suggest note.
+**Latest: v1.46.4** - CI benchmark runner fix, Expo speech recognition migration, infrastructure documentation.
+
+### v1.46.4 - 2026-03-29 - Benchmark lib tracked, voice input on expo-speech-recognition, infra docs
+
+- **CI / benchmarks:** `.gitignore` now scopes `lib/` to the repo root only so `benchmark-runner/scripts/lib/` (static server, Lighthouse, Playwright navigation helpers) is no longer ignored; files are committed so `node benchmark-runner/scripts/run-web-benchmarks.mjs` resolves on GitHub Actions.
+- **React Native voice (`apps/rn-app/src/voice/VoiceNotesButton.tsx`):** Replaced deprecated `@react-native-voice/voice` with **`expo-speech-recognition`** (`ExpoSpeechRecognitionModule`, `useSpeechRecognitionEvent`), UK locale `en-GB`, typed event handlers; **`app.json`** uses the `expo-speech-recognition` config plugin with permission strings; **`jest.setup.ts`** mocks the new module.
+- **Tooling:** **`jest-expo`** restored to **`~55.0.11`** (aligned with Expo SDK 55); **`apps/rn-app/tsconfig.json`** excludes `jest.setup.ts` and `**/*.test.*` from `tsc` so production typecheck matches CI expectations.
+- **Documentation:** New **[docs/infrastructure-and-security-edge.md](infrastructure-and-security-edge.md)** (DNS, Cloudflare edge features, GitHub Pages - no secrets); linked from **[README.md](../README.md)**. README punctuation normalised on edited lines (` - ` instead of em dash where changed).
+- **Validation:** `npm run typecheck:mobile`, `npm run test:mobile` pass.
 
 ### v1.46.3 - 2026-03-27 - RN settings eight-pane parity, native app install UI, log wizard suggest note
 

@@ -2,11 +2,11 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.46.3** - React Native settings carousel parity, native app installation section, log wizard suggest note).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.46.4** - CI benchmarks fix, voice recognition migration, infrastructure documentation).
 
 ### Here’s what we plan next
 
-Roadmap for the next phase—**web + React Native** split, **system-aware themes** with per-team light/dark tokens, **accessibility** (settings, font scale, TTS, colorblind options), and **AI inference** scaffolding for on-device and browser acceleration—is in **[docs/next-phase-development-plan.md](docs/next-phase-development-plan.md)**.
+Roadmap for the next phase - **web + React Native** split, **system-aware themes** with per-team light/dark tokens, **accessibility** (settings, font scale, TTS, colourblind options), and **AI inference** scaffolding for on-device and browser acceleration - is in **[docs/next-phase-development-plan.md](docs/next-phase-development-plan.md)**.
 
 ### Tech stack
 
@@ -47,7 +47,7 @@ Roadmap for the next phase—**web + React Native** split, **system-aware themes
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **106** |
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **204** |
 
-**Legacy builds** (Capacitor — no longer produced by CI; metadata only)
+**Legacy builds** (Capacitor - no longer produced by CI; metadata only)
 
 | Channel | Build |
 | :--- | :---: |
@@ -67,10 +67,11 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | | |
 | :--- | :--- |
 | 🔒 | **[Security](docs/SECURITY.md)** - full threat model and controls |
+| 🌐 | **[Infrastructure & edge security](docs/infrastructure-and-security-edge.md)** - DNS, Cloudflare, GitHub Pages (no secrets; safe for contributors) |
 | 🏠 | **[App overview & features](docs/app-and-features.md)** - UI, behaviour, screenshots |
 | ⚙️ | **[Installation & usage](docs/setup-and-usage.md)** - server, GitHub Pages, React/Android |
 | 🧪 | **[Testing & configuration](docs/testing-and-configuration.md)** |
-| ⏱️ | **[Performance benchmarks](Benchmarks/README.md)** — latest CI/local Markdown under `Benchmarks/` (tooling lives in `benchmark-runner/`); run `npm run benchmark` |
+| ⏱️ | **[Performance benchmarks](Benchmarks/README.md)** - latest CI/local Markdown under `Benchmarks/` (tooling lives in `benchmark-runner/`); run `npm run benchmark` |
 | 🧠 | **[AI architecture](docs/ai-architecture.md)** |
 | 🗂️ | **[Project reference](docs/project-reference.md)** - tree, deps, dev, GDPR, troubleshooting, security notes |
 | 🎨 | **[Styling](docs/styling.md)** - CSS layout, tokens, settings carousel, tile pickers, cache bust |
