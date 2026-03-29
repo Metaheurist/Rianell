@@ -13,6 +13,7 @@ This document describes how the legacy web app’s visual layer is organised: **
 - **Early theme on first paint**: `index.html` applies the saved theme class from `rianellSettings.globalTheme` before app boot so loading visuals do not flash mint.
 - **Settings header navigation**: carousel dots were upgraded to clickable mini icon buttons that jump directly to each settings pane.
 - **MOTD title look**: quote/title styling now supports a single-tone theme colour with stronger 3D depth layers (less multi-tone glow bleed).
+- **MOTD tap spin** (dark theme, Home tab): the **`.motd-spin-host`** wrapper responds to **`pointerdown`** (and keyboard) with a **3D `rotateX`** spin. There is **no hard ~70° cap**; rapid taps add **stacked** angular velocity so the block can complete **multiple full rotations** before friction and a gentle return-to-neutral spring settle it. **Light mode** and **reduced motion** disable the interaction.
 
 ## Files
 

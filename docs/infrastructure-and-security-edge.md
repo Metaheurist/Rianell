@@ -44,8 +44,13 @@ These controls are typical for a static site behind Cloudflare. Enable and tune 
 
 - Follow the process in [SECURITY.md](SECURITY.md) and publish a **`security.txt`** file at `/.well-known/security.txt` on the live site where possible ([well-known URIs](https://www.rfc-editor.org/rfc/rfc9116) summarise the convention).
 
+## Automated header reports (CI)
+
+- CI writes **[SecurityHeaders.com](https://securityheaders.com/)**-style Markdown under **`security/`**: **`securityheaders-rianell.com.md`** (latest) and per-run history **`security/securityheaders-runs/run-*.md`** (GitHub Actions run number in the filename). See **[security/README.md](../security/README.md)** for how relays and fallbacks work when scans are blocked.
+
 ## Related reading
 
 - [SECURITY.md](SECURITY.md) - threat model and application controls  
+- [security/README.md](../security/README.md) - security header report artifacts and CI job  
 - [setup-and-usage.md](setup-and-usage.md) - local and hosted usage  
 - [testing-and-configuration.md](testing-and-configuration.md) - tests and configuration
