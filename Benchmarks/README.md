@@ -16,10 +16,6 @@ On each CI benchmark commit to `main`/`master`, per-platform run snapshots are m
 
 Local runs write `latest.run.json` next to `latest.md`; **history append** runs in the **commit-benchmarks** CI job. To refresh **compare.md** from existing `history.json` files locally: `npm run compare --workspace=@rianell/benchmark-runner`.
 
-## CI build numbers (README)
-
-**Server** and **Web / PWA** rows in the root README use **`GITHUB_RUN_NUMBER`**. **React Native CLI** Alpha rows use the **sequential RN build** from **`rn-build-version`** (see **`App build/RNCLI-Android/latest.json`**), so RN counts can differ from the workflow run integer. See **`docs/CHANGELOG.md`** (v1.46.11).
-
 ## Run locally
 
 From the repository root:
