@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.4** - CI benchmark runner fix, Expo speech recognition migration, infrastructure documentation.
+**Latest: v1.46.5** - React Native settings carousel pane icons (web parity).
+
+### v1.46.5 - 2026-03-29 - RN settings carousel icons
+
+- **React Native Settings (`apps/rn-app/src/screens/SettingsScreen.tsx`):** The eight-pane carousel strip now shows **Ionicons** per section (mapping aligned with `settingsIconForTitle` in `apps/pwa-webapp/app.js`), replacing empty dot views and the redundant text-pill row. Active pane uses accent highlight; header meta uses ` - ` between index and title. **`SettingsScreen.test.tsx`** expectations updated for the meta string.
+- **Validation:** `npm run typecheck:mobile`, `npm run test:mobile` pass.
 
 ### v1.46.4 - 2026-03-29 - Benchmark lib tracked, voice input on expo-speech-recognition, infra docs
 
