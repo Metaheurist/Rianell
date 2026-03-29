@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.11** - README RN rows use sequential RN builds again; next-phase doc stub.
+**Latest: v1.46.12** - Security Headers CI: no curl 403; fallback to live site headers.
+
+### v1.46.12 - 2026-03-29 - CI: Security Headers job tolerates securityheaders.com 403
+
+- **Problem:** `curl` to **securityheaders.com** returned **403** on GitHub Actions (bot protection / Cloudflare).
+- **Fix:** **`scripts/fetch-securityheaders-report.mjs`** now uses **Node `fetch`** with browser-like headers, then on failure writes a report from **`GET https://rianell.com`** response headers. Removed the separate curl step from **`.github/workflows/ci.yml`**. **`security/README.md`** updated.
 
 ### v1.46.11 - 2026-03-29 - CI: restore RN-only build counter + docs
 

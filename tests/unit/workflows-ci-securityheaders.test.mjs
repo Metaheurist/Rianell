@@ -11,4 +11,5 @@ test('CI includes Security Headers report job after readme-build-info', () => {
   assert.match(ciYml, /securityheaders\.com\/\?q=rianell\.com/);
   assert.match(ciYml, /security\/securityheaders-rianell\.com\.md/);
   assert.match(ciYml, /security\/securityheaders-runs\/run-/);
+  assert.match(ciYml, /SECURITY_HEADERS_FALLBACK_SITE:\s*https:\/\/rianell\.com/);
 });
