@@ -51,7 +51,7 @@ env/
 .DS_Store
 Thumbs.db
 
-# Local library installations (repo root only; do not use bare `lib/` or benchmark-runner/scripts/lib is ignored)
+# Local library installations (repo root only; do not use bare `lib/` or benchmarks/scripts/lib is ignored)
 /lib/
 
 # Supabase local

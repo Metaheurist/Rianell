@@ -6,7 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = process.env.BENCHMARK_REPO_ROOT || path.resolve(__dirname, '..', '..');
 
 export function updateBenchmarksReadme() {
-  const benchRoot = path.join(REPO_ROOT, 'Benchmarks');
+  const benchRoot = path.join(REPO_ROOT, 'benchmarks');
   fs.mkdirSync(benchRoot, { recursive: true });
 
   const platforms = [
@@ -37,8 +37,8 @@ export function updateBenchmarksReadme() {
   md += `From the repository root:\n\n`;
   md += `1. \`npm ci\`\n`;
   md += `2. \`npm run build:web:apk\` (minified PWA) and \`npm run build:react\` (Capacitor \`dist/\`) as needed.\n`;
-  md += `3. \`npx playwright install chromium\` once (from \`benchmark-runner/\` workspace).\n`;
-  md += `4. \`npm run benchmark\` — writes Markdown under \`Benchmarks/\`.\n`;
+  md += `3. \`npx playwright install chromium\` once (from repo root after \`npm ci\`).\n`;
+  md += `4. \`npm run benchmark\` — writes Markdown under \`benchmarks/\`.\n`;
 
   fs.writeFileSync(path.join(benchRoot, 'README.md'), md, 'utf8');
 }

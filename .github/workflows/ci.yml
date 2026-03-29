@@ -11,7 +11,7 @@
 #   2. unit-tests        - `npm run test:unit` (web UI wiring, ci.yml guards, Expo Async Storage plugin).
 #   2b. benchmarks-web   - Lighthouse + Playwright on minified site + Capacitor dist (parallel to unit-tests).
 #   2c. benchmarks-expo  - Hermes bundle stats after `expo export` (downloads expo-bundles artifact).
-#   2d. commit-benchmarks — push to main/master: merge benchmark Markdown and commit `Benchmarks/`.
+#   2d. commit-benchmarks — push to main/master: merge benchmark Markdown and commit `benchmarks/`.
 #   3. expo-bundle-prod  - Expo React Native: production JS bundles for Android + iOS
 #                          (`expo export` → Hermes .hbc per platform).
 #   4. server-exe        - Build Windows server EXE artifacts (x64 + x86) with PyInstaller.
@@ -223,16 +223,16 @@ jobs:
           BENCHMARK_PWA_ROOT: ${{ github.workspace }}/ci-minified/site
           BENCHMARK_CAP_ROOT: ${{ github.workspace }}/ci-minified/react-dist
           BENCHMARK_SKIP_README: "1"
-        run: node benchmark-runner/scripts/run-web-benchmarks.mjs
+        run: node benchmarks/scripts/run-web-benchmarks.mjs
 
       - name: Upload benchmark reports (web)
         uses: actions/upload-artifact@v5
         with:
           name: benchmarks-web
           path: |
-            Benchmarks/web-pwa
-            Benchmarks/github-pages
-            Benchmarks/capacitor-web
+            benchmarks/web-pwa
+            benchmarks/github-pages
+            benchmarks/capacitor-web
 
   # ---------------------------------------------------------------------------
   # Expo production bundle (minified JS) gate
@@ -318,16 +318,16 @@ jobs:
           BENCHMARK_REPO_ROOT: ${{ github.workspace }}
           BUNDLE_ROOT: ${{ github.workspace }}/apps/rn-app/dist-expo-prod
           BENCHMARK_SKIP_README: "1"
-        run: node benchmark-runner/scripts/expo-bundle-stats.mjs
+        run: node benchmarks/scripts/expo-bundle-stats.mjs
 
       - name: Upload benchmark reports (expo)
         uses: actions/upload-artifact@v5
         with:
           name: benchmarks-expo
-          path: Benchmarks/expo-rn
+          path: benchmarks/expo-rn
 
   # ---------------------------------------------------------------------------
-  # Commit merged Benchmarks/ on main/master (artifacts always uploaded from benchmark jobs)
+  # Commit merged benchmarks/ on main/master (artifacts always uploaded from benchmark jobs)
   # ---------------------------------------------------------------------------
   commit-benchmarks:
     name: Commit benchmark reports
@@ -361,13 +361,13 @@ jobs:
           path: be
 
       - name: Merge reports and update index
-        run: node benchmark-runner/scripts/merge-benchmark-ci.mjs bw be "${{ github.workspace }}"
+        run: node benchmarks/scripts/merge-benchmark-ci.mjs bw be "${{ github.workspace }}"
 
-      - name: Commit and push Benchmarks
+      - name: Commit and push benchmarks
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Benchmarks/
+          git add benchmarks/
           git diff --staged --quiet && { echo "No benchmark changes"; exit 0; }
           git commit -m "chore(benchmarks): update CI benchmark reports [skip ci]"
           git push origin "${{ github.ref_name }}"

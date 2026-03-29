@@ -1,5 +1,5 @@
 /**
- * Build Benchmarks/compare.md from history.json files + compare.config.json
+ * Build benchmarks/compare.md from history.json files + compare.config.json
  */
 import fs from 'fs';
 import path from 'path';
@@ -21,7 +21,7 @@ const SLUG_LABELS = {
 };
 
 function loadConfig(repoRoot) {
-  const p = path.join(repoRoot, 'Benchmarks', 'compare.config.json');
+  const p = path.join(repoRoot, 'benchmarks', 'compare.config.json');
   if (!fs.existsSync(p)) return { ...DEFAULT_CONFIG };
   try {
     const j = JSON.parse(fs.readFileSync(p, 'utf8'));
@@ -38,7 +38,7 @@ function loadConfig(repoRoot) {
 }
 
 function readHistory(repoRoot, slug) {
-  const p = path.join(repoRoot, 'Benchmarks', slug, 'history.json');
+  const p = path.join(repoRoot, 'benchmarks', slug, 'history.json');
   if (!fs.existsSync(p)) return [];
   try {
     const arr = JSON.parse(fs.readFileSync(p, 'utf8'));
@@ -227,7 +227,7 @@ export function generateBenchmarkCompare(repoRoot) {
     body += `</details>\n\n`;
   }
 
-  const out = path.join(repoRoot, 'Benchmarks', 'compare.md');
+  const out = path.join(repoRoot, 'benchmarks', 'compare.md');
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, body, 'utf8');
   console.log('Wrote', out);

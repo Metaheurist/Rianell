@@ -165,7 +165,7 @@ async function main() {
     const { updateBenchmarksReadme } = await import('./update-benchmarks-readme.mjs');
     updateBenchmarksReadme();
   }
-  console.log('Web benchmarks written under Benchmarks/');
+  console.log('Web benchmarks written under benchmarks/');
 }
 
 main().catch((e) => {
