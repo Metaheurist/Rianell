@@ -17,4 +17,4 @@ From the repository root:
 1. `npm ci`
 2. `npm run build:web:apk` (minified PWA) and `npm run build:react` (Capacitor `dist/`) as needed.
 3. `npx playwright install chromium` once (from `benchmark-runner/` workspace).
-4. `npm run benchmark` - writes Markdown under `Benchmarks/`.
+4. `npm run benchmark` — writes Markdown under `Benchmarks/`.
