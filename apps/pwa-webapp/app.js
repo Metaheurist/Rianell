@@ -14,6 +14,36 @@ function isStaticHost() {
   }
 }
 
+/** Production hosts where the PWA service worker is enabled for updates (GitHub Pages + main site). */
+function isRianellServiceWorkerHost() {
+  try {
+    var h = (typeof window !== 'undefined' && window.location && window.location.hostname) ? window.location.hostname.toLowerCase() : '';
+    if (!h) return false;
+    if (h === 'rianell.com' || h === 'www.rianell.com') return true;
+    if (h.slice(-10) === '.github.io') return true;
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+/** True when the optional static SW should register: prod PWA hosts, ?sw=1, or localStorage opt-in. Not Capacitor native. */
+function shouldEnableRianellServiceWorker() {
+  try {
+    if (typeof isRianellNativeApp === 'function' && isRianellNativeApp()) return false;
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('rianellEnableStaticSW') === '1') return true;
+    if (typeof location !== 'undefined' && /[?&]sw=1(?:&|$)/.test(location.search || '')) return true;
+    return isRianellServiceWorkerHost();
+  } catch (e) {
+    return false;
+  }
+}
+
+/** True when startup should not delete Cache Storage (SW manages caches). Sync with shouldEnableRianellServiceWorker. */
+function rianellSwManagesCaches() {
+  return shouldEnableRianellServiceWorker();
+}
+
 /** True when UI runs in the Capacitor shell (APK / iOS): top-level WebView or legacy iframe inside React shell (web preview). */
 function isRianellNativeApp() {
   try {
@@ -25,6 +55,93 @@ function isRianellNativeApp() {
   return false;
 }
 window.isRianellNativeApp = isRianellNativeApp;
+
+/** True when legacy web UI uses light appearance (`body.light-mode`). */
+function isWebAppLightMode() {
+  try {
+    return document.body && document.body.classList.contains('light-mode');
+  } catch (e) {
+    return false;
+  }
+}
+
+/** Line/column ApexCharts: axis, grid, legend, tooltip. */
+function getApexLineChartTheme() {
+  var light = isWebAppLightMode();
+  return {
+    mode: light ? 'light' : 'dark',
+    tooltipTheme: light ? 'light' : 'dark',
+    text: light ? '#1b5e20' : '#e0f2f1',
+    gridBorder: light ? '#81c784' : '#374151',
+    legendColor: light ? '#1b5e20' : '#e0f2f1',
+    crosshair: light ? '#546e7a' : '#b0bec5',
+    tooltipDescription: light ? '#4a6358' : '#b0bec5'
+  };
+}
+
+function applyApexLineChartThemeToOptions(options) {
+  var t = getApexLineChartTheme();
+  if (!options) return;
+  if (!options.theme) options.theme = {};
+  options.theme.mode = t.mode;
+  function paintYaxis(ya) {
+    if (!ya) return;
+    if (ya.title && ya.title.style) ya.title.style.color = t.text;
+    if (ya.labels && ya.labels.style) ya.labels.style.colors = t.text;
+  }
+  if (options.title && options.title.style) options.title.style.color = t.text;
+  if (options.xaxis) {
+    if (options.xaxis.title && options.xaxis.title.style) options.xaxis.title.style.color = t.text;
+    if (options.xaxis.labels && options.xaxis.labels.style) options.xaxis.labels.style.colors = t.text;
+  }
+  if (options.yaxis) {
+    if (Array.isArray(options.yaxis)) options.yaxis.forEach(paintYaxis);
+    else paintYaxis(options.yaxis);
+  }
+  if (options.grid) options.grid.borderColor = t.gridBorder;
+  if (options.legend && options.legend.labels) options.legend.labels.colors = t.legendColor;
+  if (options.tooltip) options.tooltip.theme = t.tooltipTheme;
+  if (options.crosshairs && options.crosshairs.stroke) options.crosshairs.stroke.color = t.crosshair;
+}
+
+/** Radar ApexCharts: polygons, axis numbers, legend. */
+function getApexRadarChartTheme() {
+  var light = isWebAppLightMode();
+  return {
+    mode: light ? 'light' : 'dark',
+    tooltipTheme: light ? 'light' : 'dark',
+    axisLabel: light ? '#1b5e20' : '#e0f2f1',
+    legendColor: light ? '#1b5e20' : '#e0f2f1',
+    polygonStroke: light ? '#81c784' : '#374151',
+    polygonFill: light ? 'rgba(129, 199, 132, 0.14)' : 'rgba(55, 65, 81, 0.1)'
+  };
+}
+
+function applyApexRadarChartThemeToOptions(options) {
+  var t = getApexRadarChartTheme();
+  if (!options) return;
+  if (!options.theme) options.theme = {};
+  options.theme.mode = t.mode;
+  if (options.tooltip) options.tooltip.theme = t.tooltipTheme;
+  if (options.yaxis && options.yaxis.labels && options.yaxis.labels.style) {
+    options.yaxis.labels.style.colors = t.axisLabel;
+  }
+  if (options.xaxis) {
+    if (!options.xaxis.labels) options.xaxis.labels = {};
+    if (!options.xaxis.labels.style) options.xaxis.labels.style = {};
+    options.xaxis.labels.style.colors = t.axisLabel;
+  }
+  if (options.legend && options.legend.labels) {
+    options.legend.labels.colors = t.legendColor;
+  }
+  if (options.plotOptions && options.plotOptions.radar && options.plotOptions.radar.polygons) {
+    var poly = options.plotOptions.radar.polygons;
+    poly.strokeColors = t.polygonStroke;
+    if (poly.fill && poly.fill.colors) {
+      poly.fill.colors = [t.polygonFill];
+    }
+  }
+}
 
 /* First-paint: sync work here stays small (host detection, storage migration); charts/ML/export load via PerformanceUtils lazy loaders. */
 
@@ -2964,33 +3081,94 @@ Logger.info('Rianell initialized', {
 })();
 
 // ============================================
-// PWA Service Worker - blocked by default; optional static cache (localStorage rianellEnableStaticSW=1 or ?sw=1)
+// PWA Service Worker — rianell.com / *.github.io (or ?sw=1 / localStorage rianellEnableStaticSW=1)
 // ============================================
+function initRianellPwaServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  if (typeof isRianellNativeApp === 'function' && isRianellNativeApp()) return;
+
+  navigator.serviceWorker
+    .register('sw.js', { updateViaCache: 'none' })
+    .then(function (reg) {
+      window.__rianellSwRegistration = reg;
+
+      function promptUpdateIfNeeded() {
+        if (!reg.waiting || !navigator.serviceWorker.controller) return;
+        if (window.__rianellPwaUpdateModalShown) return;
+        window.__rianellPwaUpdateModalShown = true;
+        showConfirmModal(
+          'A new version of Rianell is available. Update now to get the latest fixes and features. Your saved data on this device is kept.',
+          'Update available',
+          function () {
+            window.__rianellPendingSwReload = true;
+            try {
+              if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            } catch (e) {}
+          },
+          function () {
+            window.__rianellPwaUpdateModalShown = false;
+          },
+          { confirmText: 'Update', cancelText: 'Later' }
+        );
+      }
+
+      reg.addEventListener('updatefound', function () {
+        var nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', function () {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            promptUpdateIfNeeded();
+          }
+        });
+      });
+
+      if (reg.waiting && navigator.serviceWorker.controller) {
+        promptUpdateIfNeeded();
+      }
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') {
+          reg.update().catch(function () {});
+        }
+      });
+    })
+    .catch(function (e) {
+      Logger.debug('Service Worker registration failed', { error: e && e.message ? e.message : String(e) });
+    });
+
+  navigator.serviceWorker.addEventListener('controllerchange', function () {
+    if (window.__rianellPendingSwReload) {
+      window.__rianellPendingSwReload = false;
+      window.location.reload();
+    }
+  });
+}
+
 if ('serviceWorker' in navigator) {
-  var enableStaticSW = (typeof localStorage !== 'undefined' && localStorage.getItem('rianellEnableStaticSW') === '1') ||
-    (typeof location !== 'undefined' && /[?&]sw=1(?:&|$)/.test(location.search));
-  if (!enableStaticSW) {
+  if (shouldEnableRianellServiceWorker()) {
+    window.addEventListener('load', function () {
+      initRianellPwaServiceWorker();
+    });
+  } else {
     const originalRegister = navigator.serviceWorker.register;
-    navigator.serviceWorker.register = function() {
-      Logger.debug('Service Worker registration blocked (enable with rianellEnableStaticSW=1 or ?sw=1)');
+    navigator.serviceWorker.register = function () {
+      Logger.debug('Service Worker registration blocked (enable on rianell.com / *.github.io or rianellEnableStaticSW=1 or ?sw=1)');
       return Promise.reject(new Error('Service Worker disabled'));
     };
-    navigator.serviceWorker.getRegistrations().then(registrations => {
-      registrations.forEach(registration => {
-        registration.unregister().then(success => {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      registrations.forEach((registration) => {
+        registration.unregister().then((success) => {
           if (success) Logger.debug('Service Worker unregistered');
         });
       });
     });
     if ('caches' in window) {
-      caches.keys().then(names => {
-        names.forEach(name => { caches.delete(name); });
+      caches.keys().then((names) => {
+        names.forEach((name) => {
+          caches.delete(name);
+        });
       });
     }
-  } else {
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function () {});
-    });
   }
 }
 
@@ -3595,8 +3773,8 @@ window.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Clear cache for CSS and JS files on startup
-  if ('caches' in window) {
+  // Clear Cache Storage on startup only when the PWA service worker is not active (SW manages rianell-static-* caches)
+  if ('caches' in window && typeof rianellSwManagesCaches === 'function' && !rianellSwManagesCaches()) {
     caches.keys().then(function(names) {
       for (let name of names) {
         caches.delete(name);
@@ -4901,17 +5079,7 @@ async function createCombinedChart() {
     }
   };
   
-  // Apply light mode styles if in light mode
-  if (false) { // Always dark mode
-    options.title.style.color = '#1b5e20';
-    options.xaxis.title.style.color = '#1b5e20';
-    options.xaxis.labels.style.colors = '#1b5e20';
-    options.yaxis.title.style.color = '#1b5e20';
-    options.yaxis.labels.style.colors = '#1b5e20';
-    options.grid.borderColor = '#81c784';
-    options.legend.labels.colors = '#1b5e20';
-    options.tooltip.theme = 'light';
-  }
+  applyApexLineChartThemeToOptions(options);
   
   // Hide any loading placeholder
   const loadingElement = container.querySelector('.chart-loading');
@@ -4920,7 +5088,7 @@ async function createCombinedChart() {
   }
   
   perfLog('Charts createCombinedChart (sync)', Date.now() - _perfT0, {});
-  var combinedChartSig = viewKey + '|' + selectedMetrics.join(',') + '|' + predictionRange + '|' + (predictionsEnabled ? '1' : '0') + '|' + (aiOn ? '1' : '0');
+  var combinedChartSig = viewKey + '|' + selectedMetrics.join(',') + '|' + predictionRange + '|' + (predictionsEnabled ? '1' : '0') + '|' + (aiOn ? '1' : '0') + '|lm' + (isWebAppLightMode() ? '1' : '0');
   if (container.chart && container._combinedChartSig === combinedChartSig && typeof container.chart.updateSeries === 'function') {
     try {
       await container.chart.updateSeries(series, true);
@@ -5670,7 +5838,9 @@ async function createBalanceChart() {
     }
   };
   
-  var balanceChartSig = labels.join('|') + '|' + getChartViewCacheKey(chartDateRange.type, chartDateRange.startDate, chartDateRange.endDate) + '|' + (selectedMetrics && selectedMetrics.join ? selectedMetrics.join(',') : '');
+  applyApexRadarChartThemeToOptions(options);
+  
+  var balanceChartSig = labels.join('|') + '|' + getChartViewCacheKey(chartDateRange.type, chartDateRange.startDate, chartDateRange.endDate) + '|' + (selectedMetrics && selectedMetrics.join ? selectedMetrics.join(',') : '') + '|lm' + (isWebAppLightMode() ? '1' : '0');
   if (container.chart && container._balanceChartSig === balanceChartSig && typeof container.chart.updateSeries === 'function') {
     try {
       await container.chart.updateSeries([{ name: 'Average Values', data: finalRadarData }], true);
@@ -8497,6 +8667,8 @@ async function renderMetricRadarChart(metric, container) {
     }
   };
   
+  applyApexRadarChartThemeToOptions(options);
+  
   // Destroy existing chart if it exists
   if (container.chart) {
     container.chart.destroy();
@@ -8835,6 +9007,8 @@ async function renderCorrelationRadarChart(metric1, metric2, metric3, container)
       palette: 'palette1'
     }
   };
+  
+  applyApexRadarChartThemeToOptions(options);
   
   container.chart = new ApexCharts(container, options);
   container.chart.render();
@@ -9827,7 +10001,108 @@ function initEcgHeartbeatLine() {
   ecgHeartbeatInitialized = true;
 }
 
-// Function to update heartbeat animation speed based on BPM
+/** BPM-only duration (seconds), same bounds as legacy ECG cadence. */
+function getHeartbeatDurationSecFromBpm() {
+  if (typeof logs === 'undefined' || !logs.length) {
+    var defaultBPM = 72;
+    return Math.max(0.8, Math.min(3.2, (60 / defaultBPM) * 1.6));
+  }
+  var sortedLogs = logs.slice().sort(function (a, b) {
+    return new Date(b.date) - new Date(a.date);
+  });
+  var latestBPM = parseInt(sortedLogs[0].bpm, 10);
+  if (isNaN(latestBPM) || latestBPM < 30 || latestBPM > 200) {
+    var dBPM = 72;
+    return Math.max(0.8, Math.min(3.2, (60 / dBPM) * 1.6));
+  }
+  return Math.max(0.8, Math.min(3.2, (60 / latestBPM) * 1.6));
+}
+
+function spinOmegaToHeartbeatDuration(absOmega) {
+  var maxO = 18;
+  var t = Math.min(1, absOmega / maxO);
+  return 3.2 - t * (3.2 - 0.8);
+}
+
+var __motdSpinAngle = 0;
+var __motdSpinVelocity = 0;
+var __motdLastKeyTs = 0;
+var __motdRaf = null;
+var __motdLastTickTs = 0;
+
+function __motdMotdTick(now) {
+  var host = document.getElementById('motdSpinHost');
+  if (!host) {
+    __motdRaf = null;
+    return;
+  }
+  var dt = __motdLastTickTs ? (now - __motdLastTickTs) / 1000 : 0;
+  __motdLastTickTs = now;
+  if (dt > 0.12) dt = 0.12;
+  __motdSpinAngle += __motdSpinVelocity * dt;
+  __motdSpinVelocity *= Math.exp(-2.8 * dt);
+  if (Math.abs(__motdSpinVelocity) < 0.0008) __motdSpinVelocity = 0;
+  host.style.transform = 'rotateZ(' + (__motdSpinAngle * 180 / Math.PI) + 'deg)';
+  updateHeartbeatAnimation();
+  if (Math.abs(__motdSpinVelocity) > 0.0006) {
+    __motdRaf = requestAnimationFrame(__motdMotdTick);
+  } else {
+    __motdRaf = null;
+    updateHeartbeatAnimation();
+  }
+}
+
+function initMotdInteraction() {
+  if (typeof document === 'undefined') return;
+  var host = document.getElementById('motdSpinHost');
+  if (!host) return;
+  var deviceOpts =
+    window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function'
+      ? window.PerformanceUtils.getDeviceOpts()
+      : { reduceAnimations: false };
+  var reduce = !!deviceOpts.reduceAnimations;
+  try {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) reduce = true;
+  } catch (e) {}
+  if (reduce) return;
+
+  function onPointerDown(ev) {
+    try {
+      if (typeof isWebAppLightMode === 'function' && isWebAppLightMode()) return;
+      if (typeof tabNameRef !== 'undefined' && tabNameRef !== 'home') return;
+      __motdSpinVelocity += 3.2;
+      if (__motdRaf == null) {
+        __motdLastTickTs = 0;
+        __motdRaf = requestAnimationFrame(__motdMotdTick);
+      }
+      ev.preventDefault();
+    } catch (e2) {}
+  }
+
+  function onKeyDown(ev) {
+    try {
+      if (typeof isWebAppLightMode === 'function' && isWebAppLightMode()) return;
+      if (typeof tabNameRef !== 'undefined' && tabNameRef !== 'home') return;
+      if (ev.repeat) return;
+      if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+      var pnow = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      var interval = __motdLastKeyTs ? pnow - __motdLastKeyTs : 500;
+      __motdLastKeyTs = pnow;
+      var boost = 0;
+      if (interval < 450) boost = ((450 - interval) / 450) * 4.5;
+      __motdSpinVelocity += 0.65 + boost;
+      if (__motdRaf == null) {
+        __motdLastTickTs = 0;
+        __motdRaf = requestAnimationFrame(__motdMotdTick);
+      }
+    } catch (e3) {}
+  }
+
+  host.addEventListener('pointerdown', onPointerDown, { passive: false });
+  window.addEventListener('keydown', onKeyDown, { passive: true });
+}
+
+// Function to update heartbeat animation speed based on BPM (and MOTD spin when active)
 function updateHeartbeatAnimation() {
   const heartbeatPath = document.querySelector('.heartbeat-path');
   if (!heartbeatPath) return;
@@ -9837,33 +10112,27 @@ function updateHeartbeatAnimation() {
     heartbeatPath.style.animation = 'none';
     return;
   }
-  
-  // Get the most recent BPM from logs
-  if (logs.length === 0) {
-    // Default to 72 BPM if no logs exist
-    const defaultBPM = 72;
-    const duration = Math.max(0.8, Math.min(3.2, (60 / defaultBPM) * 1.6));
-    heartbeatPath.style.animationDuration = `${duration}s`;
-    return;
+
+  var T_bpm = getHeartbeatDurationSecFromBpm();
+  var duration = T_bpm;
+  if (Math.abs(__motdSpinVelocity) > 0.04) {
+    var T_spin = spinOmegaToHeartbeatDuration(Math.abs(__motdSpinVelocity));
+    duration = Math.min(T_bpm, T_spin);
   }
-  
-  // Sort logs by date (most recent first) and get the latest BPM
-  const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
-  const latestBPM = parseInt(sortedLogs[0].bpm);
-  
-  if (isNaN(latestBPM) || latestBPM < 30 || latestBPM > 200) {
-    // Invalid BPM, use default
-    const defaultBPM = 72;
-    const duration = Math.max(0.8, Math.min(3.2, (60 / defaultBPM) * 1.6));
-    heartbeatPath.style.animationDuration = `${duration}s`;
-    return;
-  }
-  
-  // Slower, calmer ECG visual cadence while still reflecting relative BPM.
-  const duration = Math.max(0.8, Math.min(3.2, (60 / latestBPM) * 1.6));
+
   heartbeatPath.style.animationDuration = `${duration}s`;
-  
-  Logger.debug('Heartbeat animation updated', { bpm: latestBPM, durationSec: duration.toFixed(2) });
+
+  try {
+    if (typeof Logger !== 'undefined' && Logger.debug && logs && logs.length) {
+      var sortedLogs = logs.slice().sort(function (a, b) {
+        return new Date(b.date) - new Date(a.date);
+      });
+      var latestBPM = parseInt(sortedLogs[0].bpm, 10);
+      if (!isNaN(latestBPM) && latestBPM >= 30 && latestBPM <= 200) {
+        Logger.debug('Heartbeat animation updated', { bpm: latestBPM, durationSec: duration.toFixed(2) });
+      }
+    }
+  } catch (e) {}
 }
 
 // Sample data auto-insertion removed - was causing ghost entries from 2024-01-15 to 2024-01-17
@@ -12613,7 +12882,7 @@ function generateLogEntryHTML(log) {
     <div class="log-entry-header-collapsible" onclick="toggleLogEntry('${escapeHTML(log.date)}')">
       <div class="log-entry-header-content">
         ${isEditing 
-          ? `<input type="date" class="inline-edit-date" value="${log.date}" onclick="event.stopPropagation();" style="font-size: 1.2rem; padding: 5px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; width: auto; max-width: 200px; margin-right: 20px;" />`
+          ? `<input type="date" class="inline-edit-date inline-edit-field inline-edit-field--date" value="${log.date}" onclick="event.stopPropagation();" />`
           : `<h3 class="log-date">${formattedDate}</h3>`
         }
         <div class="header-badges">
@@ -12624,7 +12893,7 @@ function generateLogEntryHTML(log) {
             🏃${exerciseCount > 0 ? `<span class="badge-count">${exerciseCount}</span>` : ''}
           </button>
           ${isEditing 
-            ? `<select class="inline-edit-flare" onclick="event.stopPropagation();" style="padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1;">
+            ? `<select class="inline-edit-flare inline-edit-field inline-edit-field--flare" onclick="event.stopPropagation();">
                 <option value="No" ${log.flare === 'No' ? 'selected' : ''}>No Flare-up</option>
                 <option value="Yes" ${log.flare === 'Yes' ? 'selected' : ''}>Flare-up</option>
               </select>`
@@ -12641,14 +12910,14 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">❤️ Heart Rate</span>
           ${isEditing 
-            ? `<span style="display: flex; align-items: center; gap: 8px; margin-left: auto;"><input type="number" class="inline-edit-bpm" value="${log.bpm}" min="30" max="120" style="width: 70px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">BPM</span></span>`
+            ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-bpm inline-edit-field" value="${log.bpm}" min="30" max="120" /><span class="inline-edit-suffix">BPM</span></span>`
             : `<span class="metric-value">${log.bpm} BPM</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">⚖️ Weight</span>
           ${isEditing 
-            ? `<span style="display: flex; align-items: center; gap: 8px; margin-left: auto;"><input type="number" class="inline-edit-weight" value="${weightDisplay}" min="40" max="200" step="0.1" style="width: 80px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">${weightUnit}</span></span>`
+            ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-weight inline-edit-field" value="${weightDisplay}" min="40" max="200" step="0.1" /><span class="inline-edit-suffix">${weightUnit}</span></span>`
             : `<span class="metric-value">${weightDisplay}${weightUnit}</span>`
           }
         </div>
@@ -12658,35 +12927,35 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">😴 Fatigue</span>
           ${isEditing 
-            ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-fatigue" value="${log.fatigue}" min="0" max="10" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-fatigue inline-edit-field" value="${log.fatigue}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.fatigue}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">🔒 Stiffness</span>
           ${isEditing 
-            ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-stiffness" value="${log.stiffness}" min="0" max="10" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-stiffness inline-edit-field" value="${log.stiffness}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.stiffness}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">💢 Back Pain</span>
           ${isEditing 
-            ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-backPain" value="${log.backPain}" min="0" max="10" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-backPain inline-edit-field" value="${log.backPain}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.backPain}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">🦴 Joint Pain</span>
           ${isEditing 
-            ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-jointPain" value="${log.jointPain}" min="0" max="10" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-jointPain inline-edit-field" value="${log.jointPain}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.jointPain}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">💧 Swelling</span>
           ${isEditing 
-            ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-swelling" value="${log.swelling}" min="0" max="10" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-swelling inline-edit-field" value="${log.swelling}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.swelling}/10</span>`
           }
         </div>
@@ -12696,21 +12965,21 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">🌙 Sleep</span>
           ${isEditing 
-            ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-sleep" value="${log.sleep}" min="0" max="10" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-sleep inline-edit-field" value="${log.sleep}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.sleep}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">😊 Mood</span>
           ${isEditing 
-            ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-mood" value="${log.mood}" min="0" max="10" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-mood inline-edit-field" value="${log.mood}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.mood}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">😤 Irritability</span>
           ${isEditing 
-            ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-irritability" value="${log.irritability}" min="0" max="10" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-irritability inline-edit-field" value="${log.irritability}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.irritability}/10</span>`
           }
         </div>
@@ -12720,14 +12989,14 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">🚶 Mobility</span>
           ${isEditing 
-            ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-mobility" value="${log.mobility}" min="0" max="10" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-mobility inline-edit-field" value="${log.mobility}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.mobility}/10</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">📋 Daily Activities</span>
           ${isEditing 
-            ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-dailyFunction" value="${log.dailyFunction}" min="0" max="10" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-dailyFunction inline-edit-field" value="${log.dailyFunction}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.dailyFunction}/10</span>`
           }
         </div>
@@ -12737,14 +13006,14 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">🧠 Energy/Clarity</span>
           ${isEditing 
-            ? `<input type="text" class="inline-edit-energyClarity" value="${escapeHTML(log.energyClarity || '')}" maxlength="50" style="flex: 1; max-width: 200px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-left: 12px;" />`
+            ? `<span class="inline-edit-field-wrap"><input type="text" class="inline-edit-energyClarity inline-edit-field inline-edit-field--energy" value="${escapeHTML(log.energyClarity || '')}" maxlength="50" /></span>`
             : `<span class="metric-value">${log.energyClarity ? escapeHTML(log.energyClarity) : '-'}</span>`
           }
         </div>
         <div class="metric-item">
           <span class="metric-label">🌤️ Weather Sensitivity</span>
           ${isEditing 
-            ? `<span style="display: flex; align-items: center; gap: 4px; margin-left: auto;"><input type="number" class="inline-edit-weatherSensitivity" value="${log.weatherSensitivity || ''}" min="0" max="10" placeholder="-" style="width: 60px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">/10</span></span>`
+            ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-weatherSensitivity inline-edit-field" value="${log.weatherSensitivity || ''}" min="0" max="10" placeholder="-" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.weatherSensitivity !== undefined && log.weatherSensitivity !== '' && log.weatherSensitivity != null ? log.weatherSensitivity + '/10' : '-'}</span>`
           }
         </div>
@@ -12755,14 +13024,14 @@ function generateLogEntryHTML(log) {
           ${log.steps ? `<div class="metric-item">
             <span class="metric-label">👣 Steps</span>
             ${isEditing 
-              ? `<input type="number" class="inline-edit-steps" value="${log.steps}" min="0" max="50000" style="width: 100px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center; margin-left: auto;" />`
+              ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-steps inline-edit-field" value="${log.steps}" min="0" max="50000" /></span>`
               : `<span class="metric-value">${log.steps.toLocaleString()}</span>`
             }
           </div>` : ''}
           ${log.hydration ? `<div class="metric-item">
             <span class="metric-label">💧 Hydration</span>
             ${isEditing 
-              ? `<span style="display: flex; align-items: center; gap: 8px; margin-left: auto;"><input type="number" class="inline-edit-hydration" value="${log.hydration}" min="0" max="20" step="0.5" style="width: 80px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; text-align: center;" /><span style="color: #b0bec5; font-size: 0.9rem;">glasses</span></span>`
+              ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-hydration inline-edit-field" value="${log.hydration}" min="0" max="20" step="0.5" /><span class="inline-edit-suffix">glasses</span></span>`
               : `<span class="metric-value">${log.hydration} glasses</span>`
             }
           </div>` : ''}
@@ -12798,7 +13067,7 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">📍 Pain Location</span>
           ${isEditing 
-            ? `<input type="text" class="inline-edit-painLocation" value="${escapeHTML(log.painLocation || '')}" maxlength="150" style="flex: 1; max-width: 250px; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-left: 12px;" />`
+            ? `<input type="text" class="inline-edit-painLocation inline-edit-field inline-edit-field--pain" value="${escapeHTML(log.painLocation || '')}" maxlength="150" />`
             : `<span class="metric-value">${log.painLocation ? escapeHTML(log.painLocation) : '-'}</span>`
           }
         </div>
@@ -12815,7 +13084,7 @@ function generateLogEntryHTML(log) {
       </div>
       </div>
       ${isEditing 
-        ? `<div class="log-notes"><strong>📝 Note:</strong> <textarea class="inline-edit-notes" onclick="event.stopPropagation();" style="width: 100%; min-height: 60px; padding: 8px; border-radius: 8px; border: 1px solid rgba(76, 175, 80, 0.5); background: rgba(0,0,0,0.3); color: #e0f2f1; margin-top: 8px; resize: vertical;">${log.notes || ''}</textarea></div>`
+        ? `<div class="log-notes"><strong>📝 Note:</strong> <textarea class="inline-edit-notes inline-edit-field inline-edit-field--notes" onclick="event.stopPropagation();">${log.notes || ''}</textarea></div>`
         : (log.notes ? `<div class="log-notes"><strong>📝 Note:</strong> ${escapeHTML(log.notes)}</div>` : '')
       }
     </div>
@@ -13418,6 +13687,7 @@ async function chart(id, label, dataField, color) {
     ? window.PerformanceUtils.getDeviceOpts() : { reduceAnimations: false, maxChartPoints: 200, deferAI: false, batchDOM: false };
   const isMobile = window.innerWidth <= 768;
   const isSmallScreen = window.innerWidth <= 480;
+  const apexTooltipDescColor = getApexLineChartTheme().tooltipDescription;
   
   // Get filtered logs based on date range (cached)
   const filteredLogs = getFilteredLogs();
@@ -14205,7 +14475,7 @@ async function chart(id, label, dataField, color) {
             tooltipContent += `<span style="font-weight: bold; margin-left: 8px;">${val.toFixed(1)}</span>`;
             tooltipContent += `</div>`;
             if (description) {
-              tooltipContent += `<div style="font-size: 11px; color: #b0bec5; margin-left: 16px; margin-bottom: 4px;">${description}</div>`;
+              tooltipContent += `<div style="font-size: 11px; color: ${apexTooltipDescColor}; margin-left: 16px; margin-bottom: 4px;">${description}</div>`;
             }
           }
         });
@@ -14273,11 +14543,13 @@ async function chart(id, label, dataField, color) {
     } : {}
   };
 
+  applyApexLineChartThemeToOptions(options);
+
   const viewKeyInd = getChartViewCacheKey(chartDateRange.type, chartDateRange.startDate, chartDateRange.endDate);
   const lastOpt = optimizedChartData[optimizedChartData.length - 1];
   const firstOpt = optimizedChartData[0];
   const histLenInd = getAllHistoricalLogsSync().length;
-  const individualChartSig = id + '|' + dataField + '|' + viewKeyInd + '|' + predictionRange + '|' + (predictionsEnabled ? '1' : '0') + '|' + (aiOn ? '1' : '0') + '|' + histLenInd + '|' + optimizedChartData.length + '|' + (firstOpt && firstOpt.x) + '|' + (lastOpt && lastOpt.x) + '|' + (lastOpt && lastOpt.y) + '|' + predictedData.length + '|' + (appSettings.weightUnit || 'kg');
+  const individualChartSig = id + '|' + dataField + '|' + viewKeyInd + '|' + predictionRange + '|' + (predictionsEnabled ? '1' : '0') + '|' + (aiOn ? '1' : '0') + '|' + histLenInd + '|' + optimizedChartData.length + '|' + (firstOpt && firstOpt.x) + '|' + (lastOpt && lastOpt.x) + '|' + (lastOpt && lastOpt.y) + '|' + predictedData.length + '|' + (appSettings.weightUnit || 'kg') + '|lm' + (isWebAppLightMode() ? '1' : '0');
   if (container.chart && container._individualChartSig === individualChartSig && typeof container.chart.updateOptions === 'function') {
     try {
       container.chart.updateOptions(options, true, true);
@@ -14298,17 +14570,6 @@ async function chart(id, label, dataField, color) {
     container.chart = null;
   }
   container._individualChartSig = individualChartSig;
-  
-  // Apply light mode styles if in light mode
-  if (false) { // Always dark mode
-    options.title.style.color = '#1b5e20';
-    options.xaxis.title.style.color = '#1b5e20';
-    options.xaxis.labels.style.colors = '#1b5e20';
-    options.yaxis.title.style.color = '#1b5e20';
-    options.yaxis.labels.style.colors = '#1b5e20';
-    options.grid.borderColor = '#81c784';
-    options.tooltip.theme = 'light';
-  }
   
   // Hide loading placeholder before creating chart
   const loadingElement = container.querySelector('.chart-loading');
@@ -15100,6 +15361,7 @@ function applyAppearanceMode() {
           try {
             if (!appSettings || appSettings.appearanceMode !== 'system') return;
             applyAppearanceMode();
+            if (typeof refreshCharts === 'function') refreshCharts();
           } catch (e) {}
         };
         if (typeof __rianellAppearanceMql.addEventListener === 'function') __rianellAppearanceMql.addEventListener('change', onChange);
@@ -15117,6 +15379,9 @@ function setAppearanceMode(mode) {
   appSettings.appearanceMode = mode;
   saveSettings();
   applyAppearanceMode();
+  try {
+    if (typeof refreshCharts === 'function') refreshCharts();
+  } catch (e) {}
   loadSettingsState();
 }
 if (typeof window !== 'undefined') window.setAppearanceMode = setAppearanceMode;
@@ -18769,7 +19034,7 @@ function ensureChartsStylesLoaded() {
   var l = document.createElement('link');
   l.id = 'chartsDeferredStyles';
   l.rel = 'stylesheet';
-  l.href = 'styles-charts.css?v=1';
+  l.href = 'styles-charts.css?v=2';
   document.head.appendChild(l);
 }
 
@@ -19050,6 +19315,7 @@ window.addEventListener('load', () => {
   function runAppInit() {
   tryLockPortraitOrientationMobile();
   if (typeof initEcgHeartbeatLine === 'function') initEcgHeartbeatLine();
+  if (typeof initMotdInteraction === 'function') initMotdInteraction();
   installPerfLongTaskObserver();
   if (window.RianellLogsIDB && typeof window.RianellLogsIDB.migrateFromLocalStorageOnce === 'function') {
     window.RianellLogsIDB.migrateFromLocalStorageOnce();

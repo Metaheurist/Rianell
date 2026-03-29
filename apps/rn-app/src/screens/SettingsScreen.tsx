@@ -472,6 +472,7 @@ export function SettingsScreen({
 
       <ScrollView
         ref={scrollRef}
+        style={styles.carouselBody}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
@@ -480,7 +481,7 @@ export function SettingsScreen({
       >
         {/* Pane 0 — Personal & cloud sync (web pane 1) */}
 
-        <View style={{ width }}>
+        <View style={[styles.paneOuter, { width }]}>
 
           <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
@@ -500,7 +501,7 @@ export function SettingsScreen({
 
         {/* Pane 1 — AI & Goals (web pane 2) */}
 
-        <View style={{ width }}>
+        <View style={[styles.paneOuter, { width }]}>
 
           <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
@@ -590,7 +591,7 @@ export function SettingsScreen({
 
         {/* Pane 2 — Display (web pane 3: daily reminders) */}
 
-        <View style={{ width }}>
+        <View style={[styles.paneOuter, { width }]}>
 
           <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
@@ -648,7 +649,7 @@ export function SettingsScreen({
 
                   placeholder="20:00"
 
-                  placeholderTextColor="rgba(255,255,255,0.45)"
+                  placeholderTextColor={theme.mode === 'light' ? 'rgba(0,0,0,0.38)' : 'rgba(255,255,255,0.45)'}
 
                 />
 
@@ -706,7 +707,7 @@ export function SettingsScreen({
 
               </Row>
 
-              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+              <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                 Later action snoozes for {prefs.notifications.snoozeMinutes} minutes; if snooze is unavailable, app opens Home.
 
@@ -714,7 +715,7 @@ export function SettingsScreen({
 
               {!reminderCapabilities.hasSnooze ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   This runtime does not support scheduled snooze reminders; later action uses Home fallback.
 
@@ -722,7 +723,7 @@ export function SettingsScreen({
 
               ) : null}
 
-              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+              <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                 Runtime support: schedule {reminderCapabilities.hasScheduling ? 'yes' : 'no'} · Android channel{' '}
 
@@ -738,7 +739,7 @@ export function SettingsScreen({
 
               {!reminderCapabilities.hasResponseListener ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Action listener is unavailable on this runtime; reminder action status may update only on next app open.
 
@@ -746,13 +747,13 @@ export function SettingsScreen({
 
               ) : null}
 
-              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+              <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                 Action policy: log-now to Log today, later to snooze (or Home fallback), default/unknown to Home.
 
               </Text>
 
-              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+              <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                 Notification permission: {notificationPermission}
 
@@ -760,7 +761,7 @@ export function SettingsScreen({
 
               {notificationScheduleState === 'scheduled' ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Daily reminder scheduled at {prefs.notifications.dailyReminderTime}.
 
@@ -770,7 +771,7 @@ export function SettingsScreen({
 
               {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-android-channel' ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Delivery semantics: Android reminder channel configured for this schedule.
 
@@ -780,7 +781,7 @@ export function SettingsScreen({
 
               {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-ios-category' ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Delivery semantics: iOS reminder actions/category configured for this schedule.
 
@@ -790,7 +791,7 @@ export function SettingsScreen({
 
               {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-channel-and-category' ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Delivery semantics: Android channel and iOS reminder category semantics are both configured.
 
@@ -800,7 +801,7 @@ export function SettingsScreen({
 
               {notificationScheduleState === 'scheduled' && notificationDeliveryState === 'scheduled-basic' ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Delivery semantics: runtime supports basic daily scheduling without channel controls.
 
@@ -810,7 +811,7 @@ export function SettingsScreen({
 
               {notificationScheduleState === 'invalid-time' ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Reminder time must be HH:MM to schedule notifications.
 
@@ -820,7 +821,7 @@ export function SettingsScreen({
 
               {notificationScheduleState === 'unavailable' ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Notification scheduling is unavailable on this runtime.
 
@@ -830,7 +831,7 @@ export function SettingsScreen({
 
               {lastReminderAction !== 'none' ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Last reminder action: {reminderActionLabel(lastReminderAction)}.
 
@@ -840,7 +841,7 @@ export function SettingsScreen({
 
               {lastReminderAction === 'unknown' ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown reminder actions use safe Home fallback behavior.
 
@@ -850,7 +851,7 @@ export function SettingsScreen({
 
               {unknownReminderActionCount > 0 ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown reminder actions observed this session: {unknownReminderActionCount}.
 
@@ -860,7 +861,7 @@ export function SettingsScreen({
 
               {unknownSessionSummary ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown-action session summary: {unknownSessionSummary}.
 
@@ -870,7 +871,7 @@ export function SettingsScreen({
 
               {unknownReminderActionCount > 0 ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown action breakdown: startup {unknownStartupCount} · live {unknownLiveCount}.
 
@@ -880,7 +881,7 @@ export function SettingsScreen({
 
               {unknownReminderActionCount > 0 ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown action split: startup {unknownStartupPercent}% · live {unknownLivePercent}%.
 
@@ -890,7 +891,7 @@ export function SettingsScreen({
 
               {unknownDominantSourceConfidence ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown-action dominant source confidence: {unknownDominantSourceConfidence}.
 
@@ -900,7 +901,7 @@ export function SettingsScreen({
 
               {unknownReminderActionCount > 0 && unknownReminderActionCount < 3 ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown-action confidence is preliminary until at least 3 unknown events are observed this session.
 
@@ -910,7 +911,7 @@ export function SettingsScreen({
 
               {unknownObservabilityQuality ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown-action observability quality: {unknownObservabilityQuality}.
 
@@ -920,7 +921,7 @@ export function SettingsScreen({
 
               {unknownRecommendedNextCheck ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown-action recommended next check: {unknownRecommendedNextCheck}
 
@@ -930,7 +931,7 @@ export function SettingsScreen({
 
               {unknownSourceTrajectory ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown-action source trajectory this session: {unknownSourceTrajectory}.
 
@@ -940,7 +941,7 @@ export function SettingsScreen({
 
               {unknownTrajectoryStability ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown-action trajectory stability: {unknownTrajectoryStability}.
 
@@ -950,7 +951,7 @@ export function SettingsScreen({
 
               {unknownReminderActionCount > 0 ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown-action stability status: {unknownDriftStatus}.
 
@@ -960,7 +961,7 @@ export function SettingsScreen({
 
               {unknownReminderActionCount > 0 && unknownStartupCount > unknownLiveCount ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown-action trend: mostly startup snapshot responses this session.
 
@@ -970,7 +971,7 @@ export function SettingsScreen({
 
               {unknownReminderActionCount > 0 && unknownLiveCount > unknownStartupCount ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown-action trend: mostly live listener callbacks this session.
 
@@ -980,7 +981,7 @@ export function SettingsScreen({
 
               {unknownReminderActionCount > 0 && unknownLiveCount === unknownStartupCount ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Unknown-action trend: startup and live paths are equally represented this session.
 
@@ -990,7 +991,7 @@ export function SettingsScreen({
 
               {lastUnknownReminderActionAt ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Last unknown reminder action observed at: {lastUnknownReminderActionAt}.
 
@@ -1000,7 +1001,7 @@ export function SettingsScreen({
 
               {lastUnknownReminderActionSource ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   Last unknown action source: {lastUnknownReminderActionSource === 'startup' ? 'startup snapshot' : 'live listener'}.
 
@@ -1010,7 +1011,7 @@ export function SettingsScreen({
 
               {unknownReminderActionCount > 0 && !reminderCapabilities.hasDismissAction ? (
 
-                <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+                <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                   This runtime does not expose explicit dismiss action identifiers; some dismiss/close gestures may appear as unknown.
 
@@ -1046,7 +1047,7 @@ export function SettingsScreen({
 
                 >
 
-                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🧹 Reset unknown action counter</Text>
+                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>🧹 Reset unknown action counter</Text>
 
                 </Pressable>
 
@@ -1064,7 +1065,7 @@ export function SettingsScreen({
 
               >
 
-                <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🔔 Request notification permission</Text>
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>🔔 Request notification permission</Text>
 
               </Pressable>
 
@@ -1078,7 +1079,7 @@ export function SettingsScreen({
 
         {/* Pane 3 — Customisation (web pane 4) */}
 
-        <View style={{ width }}>
+        <View style={[styles.paneOuter, { width }]}>
 
           <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
@@ -1128,7 +1129,7 @@ export function SettingsScreen({
 
         {/* Pane 4 — Accessibility (web pane 5) */}
 
-        <View style={{ width }}>
+        <View style={[styles.paneOuter, { width }]}>
 
           <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
@@ -1254,7 +1255,7 @@ export function SettingsScreen({
 
         {/* Pane 5 — Data options (web pane 6) */}
 
-        <View style={{ width }}>
+        <View style={[styles.paneOuter, { width }]}>
 
           <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
@@ -1268,7 +1269,7 @@ export function SettingsScreen({
 
               <Hint>Loads a fresh sample dataset each app launch and pauses data portability actions (web parity).</Hint>
 
-              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+              <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                 Auto-backup to local storage and chart compression toggles exist on the web PWA only; native uses local storage for logs
 
@@ -1286,7 +1287,7 @@ export function SettingsScreen({
 
         {/* Pane 6 — Performance (web pane 7) */}
 
-        <View style={{ width }}>
+        <View style={[styles.paneOuter, { width }]}>
 
           <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
@@ -1330,7 +1331,7 @@ export function SettingsScreen({
 
               </Row>
 
-              <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+              <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
                 Active model: {resolveLlmModelSize(prefs.performance.preferredLlmModelSize, benchmark)}
 
@@ -1356,11 +1357,11 @@ export function SettingsScreen({
 
                   {benchmarkBusy ? (
 
-                    <ActivityIndicator color="#fff" />
+                    <ActivityIndicator color={theme.tokens.color.text} />
 
                   ) : (
 
-                    <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>⚡ Run benchmark</Text>
+                    <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>⚡ Run benchmark</Text>
 
                   )}
 
@@ -1382,7 +1383,7 @@ export function SettingsScreen({
 
                 >
 
-                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🧹 Clear benchmark cache</Text>
+                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>🧹 Clear benchmark cache</Text>
 
                 </Pressable>
 
@@ -1398,7 +1399,7 @@ export function SettingsScreen({
 
         {/* Pane 7 — Data management + App installation (web pane 8) */}
 
-        <View style={{ width }}>
+        <View style={[styles.paneOuter, { width }]}>
 
           <ScrollView contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
@@ -1424,11 +1425,11 @@ export function SettingsScreen({
 
                 {exportBusy ? (
 
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color={theme.tokens.color.text} />
 
                 ) : (
 
-                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>📤 Export logs (JSON)</Text>
+                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>📤 Export logs (JSON)</Text>
 
                 )}
 
@@ -1446,7 +1447,7 @@ export function SettingsScreen({
 
               >
 
-                <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>📥 Import logs (JSON)</Text>
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>📥 Import logs (JSON)</Text>
 
               </Pressable>
 
@@ -1462,7 +1463,7 @@ export function SettingsScreen({
 
               >
 
-                <Text style={[styles.dataBtnText, { fontSize: theme.font(15) }]}>🗑️ Clear all data</Text>
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>🗑️ Clear all data</Text>
 
               </Pressable>
 
@@ -1477,9 +1478,17 @@ export function SettingsScreen({
 
       <Modal visible={importOpen} animationType="slide" transparent onRequestClose={() => setImportOpen(false)}>
         <View style={styles.modalBackdrop}>
-          <View style={[styles.modalCard, { backgroundColor: 'rgba(20,30,28,0.97)' }]}>
+          <View
+            style={[
+              styles.modalCard,
+              {
+                backgroundColor:
+                  theme.mode === 'light' ? 'rgba(255,255,255,0.98)' : 'rgba(20,30,28,0.97)',
+              },
+            ]}
+          >
             <Text style={[styles.modalTitle, { color: theme.tokens.color.text, fontSize: theme.font(17) }]}>Import JSON</Text>
-            <Text style={[styles.hint, { fontSize: theme.font(13) }]}>
+            <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
               Paste a JSON array of log entries (same shape as web export).
             </Text>
             <TextInput
@@ -1487,13 +1496,13 @@ export function SettingsScreen({
               onChangeText={setImportText}
               multiline
               placeholder="[...]"
-              placeholderTextColor="rgba(255,255,255,0.45)"
+              placeholderTextColor={theme.mode === 'light' ? 'rgba(0,0,0,0.38)' : 'rgba(255,255,255,0.45)'}
               style={[styles.importInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
               accessibilityLabel="Import JSON text"
             />
             <View style={styles.modalActions}>
               <Pressable style={styles.modalBtn} onPress={() => setImportOpen(false)} accessibilityRole="button">
-                <Text style={styles.dataBtnText}>Cancel</Text>
+                <Text style={[styles.dataBtnText, { color: theme.tokens.color.text }]}>Cancel</Text>
               </Pressable>
               <Pressable
                 style={styles.modalBtn}
@@ -1501,7 +1510,7 @@ export function SettingsScreen({
                 accessibilityRole="button"
                 accessibilityLabel="Merge with existing logs"
               >
-                <Text style={styles.dataBtnText}>Merge</Text>
+                <Text style={[styles.dataBtnText, { color: theme.tokens.color.text }]}>Merge</Text>
               </Pressable>
               <Pressable
                 style={styles.modalBtn}
@@ -1514,7 +1523,7 @@ export function SettingsScreen({
                 accessibilityRole="button"
                 accessibilityLabel="Replace all logs"
               >
-                <Text style={styles.dataBtnText}>Replace all</Text>
+                <Text style={[styles.dataBtnText, { color: theme.tokens.color.text }]}>Replace all</Text>
               </Pressable>
             </View>
           </View>
@@ -1526,9 +1535,15 @@ export function SettingsScreen({
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   const theme = useTheme();
+  const sectionBg =
+    theme.mode === 'light' ? `${theme.tokens.color.text}10` : 'rgba(0,0,0,0.16)';
   return (
-    <View style={styles.section}>
-      <Text style={[styles.sectionTitle, { fontSize: theme.font(18) }]}>{title}</Text>
+    <View style={[styles.section, { backgroundColor: sectionBg }]}>
+      <Text
+        style={[styles.sectionTitle, { fontSize: theme.font(18), color: theme.tokens.color.text }]}
+      >
+        {title}
+      </Text>
       <View style={styles.sectionBody}>{children}</View>
     </View>
   );
@@ -1538,7 +1553,9 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   const theme = useTheme();
   return (
     <View style={styles.row}>
-      <Text style={[styles.rowLabel, { fontSize: theme.font(15) }]}>{label}</Text>
+      <Text style={[styles.rowLabel, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>
+        {label}
+      </Text>
       <View style={styles.rowRight}>{children}</View>
     </View>
   );
@@ -1546,7 +1563,8 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 function Hint({ children }: { children: React.ReactNode }) {
   const theme = useTheme();
-  return <Text style={[styles.hint, { fontSize: theme.font(13) }]}>{children}</Text>;
+  const muted = `${theme.tokens.color.text}CC`;
+  return <Text style={[styles.hint, { fontSize: theme.font(13), color: muted }]}>{children}</Text>;
 }
 
 function InlineChoices({
@@ -1575,11 +1593,26 @@ function InlineChoices({
             onFocus={() => {
               if (tts.readModeEnabled) speakLabel(o, tts);
             }}
-            style={[styles.choice, active && styles.choiceActive]}
+            style={[
+              styles.choice,
+              {
+                backgroundColor: active ? `${theme.tokens.color.accent}33` : `${theme.tokens.color.text}14`,
+              },
+            ]}
             accessibilityRole="button"
             accessibilityLabel={o}
           >
-            <Text style={[styles.choiceText, active && styles.choiceTextActive, { fontSize: theme.font(13) }]}>{o}</Text>
+            <Text
+              style={[
+                styles.choiceText,
+                {
+                  fontSize: theme.font(13),
+                  color: active ? theme.tokens.color.accent : theme.tokens.color.text,
+                },
+              ]}
+            >
+              {o}
+            </Text>
           </Pressable>
         );
       })}
@@ -1589,6 +1622,10 @@ function InlineChoices({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  /** Horizontal pager: must fill remaining height so inner panes can scroll vertically. */
+  carouselBody: { flex: 1, minHeight: 0 },
+  paneOuter: { flex: 1, minHeight: 0 },
+  paneScroll: { flex: 1 },
   carouselChrome: { paddingHorizontal: 12, paddingBottom: 8, gap: 8 },
   carouselNav: {
     flexDirection: 'row',
@@ -1612,19 +1649,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  content: { padding: 16, gap: 16, paddingBottom: 32 },
-  section: { borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.16)', padding: 14 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 10, color: '#fff' },
+  content: { padding: 16, gap: 16, paddingBottom: 48 },
+  section: { borderRadius: 16, padding: 14 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 10 },
   sectionBody: { gap: 10 },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  rowLabel: { color: '#fff', fontSize: 15, flex: 1 },
+  rowLabel: { fontSize: 15, flex: 1 },
   rowRight: { alignItems: 'flex-end' },
-  hint: { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginTop: -4 },
+  hint: { fontSize: 13, marginTop: -4 },
   choiceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' },
-  choice: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.12)' },
-  choiceActive: { backgroundColor: 'rgba(255,255,255,0.32)' },
-  choiceText: { color: '#fff', fontWeight: '600' },
-  choiceTextActive: { color: '#000' },
+  choice: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999 },
+  choiceText: { fontWeight: '600' },
   dataBtn: {
     paddingVertical: 12,
     paddingHorizontal: 14,
@@ -1632,7 +1667,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.14)',
     alignItems: 'center',
   },
-  dataBtnText: { color: '#fff', fontWeight: '800' },
+  dataBtnText: { fontWeight: '800' },
   dangerBtn: {
     backgroundColor: 'rgba(244, 67, 54, 0.2)',
     borderWidth: 1,

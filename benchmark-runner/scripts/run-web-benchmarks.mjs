@@ -10,6 +10,12 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { writeBenchmarkMd } from '../reporters/write-md.mjs';
+import {
+  benchmarkMetaBase,
+  buildWebRunPayload,
+  buildWebSkippedPayload,
+  writeLatestRunJson,
+} from '../reporters/write-run-json.mjs';
 import { startStaticServer } from './lib/static-server.mjs';
 import { lighthouseMedian } from './lib/lighthouse-run.mjs';
 import { measureNavigationTimings } from './lib/navigation-timing.mjs';
@@ -70,6 +76,7 @@ async function runOneProfile({ slug, title, startPath, note }) {
   ];
 
   const navRows = nav.map((r) => ({ step: r.step, ms: r.ms }));
+  const runMeta = benchmarkMetaBase();
 
   const sections = [
     { title: 'Lighthouse performance (median of 3 runs, desktop, no throttling)', rows: lhRows },
@@ -83,9 +90,20 @@ async function runOneProfile({ slug, title, startPath, note }) {
     platformTitle: title,
     slug,
     repoRoot: REPO_ROOT,
-    meta: meta(),
+    meta: runMeta,
     sections,
   });
+
+  writeLatestRunJson(
+    REPO_ROOT,
+    slug,
+    buildWebRunPayload({
+      slug,
+      meta: runMeta,
+      lighthouseMedian: lh.median,
+      nav,
+    }),
+  );
 }
 
 async function main() {
@@ -114,22 +132,33 @@ async function main() {
       note: 'Matches native `legacy/index.html` entry (see `apps/capacitor-app/src/main.tsx`). Run `npm run build:web:apk && npm run build:react`.',
     });
   } else {
+    const skipDetail = `Skipped: ${capRoot}/legacy/index.html not found. Run: npm run build:web:apk && npm run build:react`;
+    const capMeta = benchmarkMetaBase();
     writeBenchmarkMd({
       platformTitle: 'Capacitor WebView payload (legacy bundle)',
       slug: 'capacitor-web',
       repoRoot: REPO_ROOT,
-      meta: meta(),
+      meta: capMeta,
       sections: [
         {
           title: 'Status',
           rows: [
             {
-              detail: `Skipped: ${capRoot}/legacy/index.html not found. Run: npm run build:web:apk && npm run build:react`,
+              detail: skipDetail,
             },
           ],
         },
       ],
     });
+    writeLatestRunJson(
+      REPO_ROOT,
+      'capacitor-web',
+      buildWebSkippedPayload({
+        slug: 'capacitor-web',
+        meta: capMeta,
+        reason: skipDetail,
+      }),
+    );
   }
 
   if (process.env.BENCHMARK_SKIP_README !== '1') {

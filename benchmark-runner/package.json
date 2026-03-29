@@ -7,6 +7,7 @@
     "web": "node scripts/run-web-benchmarks.mjs",
     "expo": "node scripts/expo-bundle-stats.mjs",
     "all": "node scripts/run-all.mjs",
+    "compare": "node scripts/generate-benchmark-compare.mjs",
     "update-readme": "node scripts/update-benchmarks-readme.mjs",
     "playwright:install": "playwright install chromium"
   },

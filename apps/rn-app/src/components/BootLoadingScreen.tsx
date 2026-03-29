@@ -1,24 +1,29 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { Animated, Easing, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { getTokens } from '@rianell/tokens';
 
+type Props = {
+  /** When preferences are not loaded yet, defaults to mint (web parity). */
+  team?: string;
+  colorblindMode?: string;
+};
+
 /**
- * RN port of the web loading overlay motif:
- * - orbit ring progress host
- * - rotating orbit body
- * - central sun with subtle wobble
- * Colors are tokenized from the same team/mode token system.
+ * RN port of the web loading overlay motif; colors from @rianell/tokens loader + color palette.
  */
-export function BootLoadingScreen() {
+export function BootLoadingScreen({ team = 'mint', colorblindMode = 'none' }: Props) {
   const scheme = useColorScheme() === 'light' ? 'light' : 'dark';
-  const tokens = useMemo(() => getTokens({ team: 'mint', mode: scheme, colorblindMode: 'none' }), [scheme]);
+  const tokens = useMemo(
+    () => getTokens({ team, mode: scheme, colorblindMode }),
+    [team, scheme, colorblindMode]
+  );
 
-  const orbitRotate = useRef(new Animated.Value(0)).current;
-  const bodyPulse = useRef(new Animated.Value(0)).current;
-  const sunWobble = useRef(new Animated.Value(0)).current;
+  const orbitRotate = React.useRef(new Animated.Value(0)).current;
+  const bodyPulse = React.useRef(new Animated.Value(0)).current;
+  const sunWobble = React.useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
+  React.useEffect(() => {
     const orbitLoop = Animated.loop(
       Animated.timing(orbitRotate, {
         toValue: 1,
@@ -54,22 +59,28 @@ export function BootLoadingScreen() {
   const pulseScale = bodyPulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.14] });
   const sunShiftY = sunWobble.interpolate({ inputRange: [-1, 0, 1], outputRange: [2, 0, -2] });
 
+  const L = tokens.loader;
+  const bg =
+    typeof tokens.color.background === 'string' && !tokens.color.background.includes('gradient')
+      ? tokens.color.background
+      : L.shellBg;
+
   return (
-    <View style={[styles.root, { backgroundColor: tokens.color.background === 'transparent' ? '#101513' : '#101513' }]}>
+    <View style={[styles.root, { backgroundColor: bg }]}>
       <View style={styles.stage}>
         <Svg width={164} height={164} style={StyleSheet.absoluteFill} accessibilityElementsHidden>
-          <Circle cx={82} cy={82} r={66} stroke="rgba(255,255,255,0.16)" strokeWidth={6} fill="none" />
-          <Circle cx={82} cy={82} r={66} stroke={tokens.color.accent} strokeWidth={6} fill="none" strokeOpacity={0.38} />
+          <Circle cx={82} cy={82} r={66} stroke={scheme === 'light' ? L.mid : 'rgba(255,255,255,0.16)'} strokeWidth={6} fill="none" strokeOpacity={scheme === 'light' ? 0.35 : 1} />
+          <Circle cx={82} cy={82} r={66} stroke={L.primary} strokeWidth={6} fill="none" strokeOpacity={0.38} />
         </Svg>
         <Animated.View style={[styles.orbitTrack, { transform: [{ rotate: orbitDeg }] }]}>
           <Animated.View
             style={[
               styles.orbitBody,
               {
-                backgroundColor: tokens.color.accent,
-                borderColor: 'rgba(255,255,255,0.45)',
+                backgroundColor: L.primary,
+                borderColor: L.bright,
                 transform: [{ scale: pulseScale }],
-                shadowColor: tokens.color.accent,
+                shadowColor: L.primary,
               },
             ]}
           />
@@ -78,9 +89,10 @@ export function BootLoadingScreen() {
           style={[
             styles.sun,
             {
-              backgroundColor: '#f4fff2',
-              borderColor: 'rgba(255,255,255,0.65)',
+              backgroundColor: L.bright,
+              borderColor: L.mid,
               transform: [{ translateY: sunShiftY }],
+              shadowColor: L.deep,
             },
           ]}
         />
@@ -109,7 +121,6 @@ const styles = StyleSheet.create({
     height: 78,
     borderRadius: 39,
     borderWidth: 1,
-    shadowColor: '#ffffff',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
@@ -117,4 +128,3 @@ const styles = StyleSheet.create({
   },
   text: { marginTop: 22, fontSize: 16, fontWeight: '700', opacity: 0.95 },
 });
-

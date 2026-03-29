@@ -132,3 +132,19 @@ export async function savePreferences(prefs: Preferences): Promise<void> {
   await AsyncStorage.setItem(KEY, JSON.stringify(prefs));
 }
 
+const VALID_TEAMS = new Set(['mint', 'red-black', 'mono', 'rainbow']);
+
+/** Fast team read for BootLoadingScreen while full preferences load. */
+export async function peekStoredTeamForBoot(): Promise<string | null> {
+  try {
+    const raw = await AsyncStorage.getItem(KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { team?: string };
+    const t = parsed.team;
+    if (typeof t === 'string' && VALID_TEAMS.has(t)) return t;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+

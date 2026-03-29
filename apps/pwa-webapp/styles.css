@@ -538,6 +538,126 @@ body.light-mode .settings-header {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 253, 248, 0.96) 100%);
 }
 
+body.light-mode .modal-header {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 253, 248, 0.96) 100%);
+  border-bottom-color: rgba(129, 199, 132, 0.35);
+}
+
+body.light-mode .modal-header h3 {
+  color: var(--text-dark);
+  text-shadow: none;
+}
+
+body.light-mode .modal-footer {
+  background: linear-gradient(180deg, rgba(248, 253, 248, 0.96) 0%, rgba(255, 255, 255, 0.98) 100%);
+  border-top-color: rgba(129, 199, 132, 0.32);
+}
+
+body.light-mode .modal-body label {
+  color: var(--text-dark);
+}
+
+body.light-mode .modal-body input[type="text"],
+body.light-mode .modal-body input[type="number"],
+body.light-mode .modal-body input[type="date"],
+body.light-mode .modal-body select,
+body.light-mode .modal-body textarea {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(129, 199, 132, 0.45);
+  color: var(--text-dark);
+}
+
+body.light-mode .modal-body input[type="range"]::-webkit-slider-runnable-track {
+  background: rgba(76, 175, 80, 0.2);
+}
+
+body.light-mode .modal-body input[type="range"]::-moz-range-track {
+  background: rgba(76, 175, 80, 0.2);
+}
+
+body.light-mode .field-hint,
+body.light-mode .optional-hint {
+  color: rgba(30, 60, 30, 0.82);
+}
+
+body.light-mode .log-metrics-grid .metric-group {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(129, 199, 132, 0.35);
+}
+
+body.light-mode .log-metrics-grid .metric-group-title {
+  color: var(--text-secondary);
+  border-bottom-color: color-mix(in srgb, var(--primary-color) 38%, transparent);
+}
+
+body.light-mode .log-metrics-grid .metric-item {
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .log-metrics-grid .metric-label {
+  color: rgba(30, 60, 30, 0.88);
+}
+
+body.light-mode .log-metrics-grid .metric-value {
+  color: #1b5e20;
+}
+
+body.light-mode .log-metrics-grid .metric-value-muted {
+  color: rgba(30, 60, 30, 0.55);
+}
+
+body.light-mode .log-metrics-grid .metric-detail {
+  color: rgba(30, 60, 30, 0.72);
+}
+
+body.light-mode .metric-selector-container {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(129, 199, 132, 0.4);
+}
+
+body.light-mode .metric-selector-title {
+  color: var(--text-dark);
+}
+
+body.light-mode .metric-selector-container .metric-group {
+  background: rgba(248, 253, 248, 0.96);
+  border-color: rgba(129, 199, 132, 0.32);
+}
+
+body.light-mode .metric-selector-container .metric-group:hover {
+  background: rgba(255, 255, 255, 0.99);
+  border-color: rgba(76, 175, 80, 0.45);
+}
+
+body.light-mode .metric-selector-container .metric-group-title {
+  color: var(--text-secondary);
+}
+
+body.light-mode .metric-select-btn {
+  color: var(--text-dark);
+  background: rgba(76, 175, 80, 0.14);
+  border-color: rgba(76, 175, 80, 0.45);
+}
+
+body.light-mode .metric-select-btn:hover {
+  background: rgba(76, 175, 80, 0.26);
+  border-color: rgba(76, 175, 80, 0.6);
+}
+
+body.light-mode .metric-checkbox-text {
+  color: var(--text-dark);
+}
+
+body.light-mode .metric-checkbox {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+
+body.light-mode .filter-label,
+body.light-mode .filter-label-mobile {
+  color: var(--text-secondary);
+}
+
 /* Dark mode styles (default) */
 body.dark-mode {
   background: var(--background-dark);
@@ -641,6 +761,20 @@ body.tab-not-home .title-container {
   display: none !important;
 }
 
+.title-container .motd-spin-host {
+  display: inline-block;
+  vertical-align: top;
+  transform-origin: 50% 56%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.title-container .motd-sway-wrap {
+  display: inline-block;
+  transform-origin: 50% 56%;
+  animation: motdSway 4.2s ease-in-out infinite;
+}
+
 h1, h2 {
   color: var(--neon-lime);
   text-align: center;
@@ -691,7 +825,6 @@ h1#dashboardTitle:hover {
   transform-style: preserve-3d;
   transform-origin: 50% 56%;
   transform: rotateX(17deg) rotateY(-7deg) translateZ(12px);
-  animation: motdFloatTilt 5.5s ease-in-out infinite;
   transition: transform 0.22s ease, filter 0.2s ease;
 }
 
@@ -761,6 +894,29 @@ body.light-mode #dashboardTitle:hover {
   text-shadow: 0 1px 3px rgba(27, 94, 32, 0.18);
   filter: none;
   transform: none !important;
+}
+
+body.light-mode .motd-spin-host,
+body.light-mode .motd-sway-wrap {
+  animation: none !important;
+  transform: none !important;
+  cursor: default;
+}
+
+@keyframes motdSway {
+  0%,
+  100% {
+    transform: translateX(-5px) rotateZ(-1.4deg);
+  }
+  50% {
+    transform: translateX(5px) rotateZ(1.4deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title-container .motd-sway-wrap {
+    animation: none !important;
+  }
 }
 
 @keyframes motdFloatTilt {
@@ -5514,10 +5670,127 @@ button.app-log-fab:focus {
   margin-left: auto; /* Push badges to the right */
 }
 
-.inline-edit-date {
+/* Log inline edit: shared field chrome (dark default; light via body.light-mode below) */
+.inline-edit-field {
+  box-sizing: border-box;
+  border: 1px solid rgba(76, 175, 80, 0.5);
+  border-radius: 6px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #e0f2f1;
+}
+
+.inline-edit-field:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 1px;
+}
+
+select.inline-edit-field {
+  cursor: pointer;
+}
+
+textarea.inline-edit-field {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.inline-edit-field--date {
+  font-size: 1.2rem;
+  padding: 5px;
+  border-radius: 8px;
   width: auto !important;
   max-width: 200px !important;
   margin-right: 20px !important;
+  flex-shrink: 0;
+}
+
+.inline-edit-field--flare {
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.inline-edit-field-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.inline-edit-field-wrap--compact {
+  gap: 4px;
+}
+
+.inline-edit-field--w-60 {
+  width: 60px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.inline-edit-field--w-70 {
+  width: 70px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.inline-edit-field--w-80 {
+  width: 80px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.inline-edit-field--w-100 {
+  width: 100px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.inline-edit-field--energy {
+  flex: 1;
+  max-width: 200px;
+  margin-left: 12px;
+}
+
+.inline-edit-field--pain {
+  flex: 1;
+  max-width: 250px;
+  margin-left: 12px;
+}
+
+.inline-edit-field--notes {
+  width: 100%;
+  min-height: 60px;
+  padding: 8px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.inline-edit-suffix {
+  color: #b0bec5;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+body.light-mode .inline-edit-field {
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--text-dark);
+  border-color: rgba(46, 125, 50, 0.42);
+}
+
+body.light-mode .inline-edit-suffix {
+  color: rgba(30, 60, 30, 0.72);
+}
+
+body.light-mode select.inline-edit-field {
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--text-dark);
+}
+
+body.light-mode textarea.inline-edit-field {
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--text-dark);
+}
+
+.inline-edit-date {
   flex-shrink: 0;
 }
 
@@ -5744,6 +6017,16 @@ button.app-log-fab:focus {
   margin-right: 8px;
 }
 
+body.light-mode .log-notes {
+  color: var(--text-dark);
+  background: rgba(46, 125, 50, 0.08);
+  border-left-color: rgba(46, 125, 50, 0.45);
+}
+
+body.light-mode .log-notes strong {
+  color: #2e7d32;
+}
+
 .delete-btn {
   position: relative;
   background: linear-gradient(135deg, #f44336, #e53935);
@@ -5850,9 +6133,8 @@ button.app-log-fab:focus {
   box-sizing: border-box;
 }
 
-/* Override inline styles for input wrapper spans */
-.entry.editing .metric-item > span[style*="margin-left: auto"],
-.entry.editing .metric-item > span[style*="display: flex"] {
+/* Input wrapper spans (class-based; replaces old inline flex wrappers) */
+.entry.editing .metric-item > .inline-edit-field-wrap {
   width: 100% !important;
   margin-left: 0 !important;
   display: flex !important;
@@ -5862,11 +6144,14 @@ button.app-log-fab:focus {
   margin-top: 4px;
 }
 
-.entry.editing .metric-item > span[style*="margin-left: auto"] input,
-.entry.editing .metric-item > span[style*="display: flex"] input {
+.entry.editing .metric-item > .inline-edit-field-wrap input {
   flex: 1;
   width: auto !important;
   margin: 0 !important;
+}
+
+.entry.editing .metric-item > .inline-edit-field-wrap--compact {
+  gap: 4px;
 }
 
 /* Pain location: intro + legend (touch-friendly, not a wall of text) */
