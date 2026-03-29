@@ -373,36 +373,14 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # React Native CLI native artifacts (no EAS / no EXPO_TOKEN)
-  # Sequential RN build number (1, 2, 3…) is stored in App build/RNCLI-Android/latest.json
-  # and bumped here — independent of GITHUB_RUN_NUMBER (web/server).
+  # RN Alpha build `version` in latest.json matches github.run_number (same as
+  # Server EXE + README Web row) so numbers stay in sync when mobile CI runs.
+  # Previous design used a repo-persisted counter; it stayed at 1 when large-binary
+  # pushes failed and only README was committed — metadata never advanced.
   # ---------------------------------------------------------------------------
-  rn-build-version:
-    name: RN CLI sequential build number
-    needs: [paths-filter, expo-bundle-prod]
-    if: |
-      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-      needs.paths-filter.outputs.mobile_release == 'true'
-    runs-on: ubuntu-latest
-    outputs:
-      rn_build: ${{ steps.calc.outputs.rn_build }}
-    steps:
-      - uses: actions/checkout@v5
-
-      - id: calc
-        shell: bash
-        run: |
-          set -euo pipefail
-          PREV=0
-          if [ -f "App build/RNCLI-Android/latest.json" ]; then
-            PREV=$(node -e "const j=require('./App build/RNCLI-Android/latest.json'); process.stdout.write(String(parseInt(j.version,10)||0));" 2>/dev/null || echo 0)
-          fi
-          NEXT=$((PREV + 1))
-          echo "rn_build=$NEXT" >> "$GITHUB_OUTPUT"
-          echo "RN sequential build: $NEXT (previous $PREV)"
-
   rncli-android-apk:
     name: Android APK (React Native CLI)
-    needs: [paths-filter, expo-bundle-prod, rn-build-version]
+    needs: [paths-filter, expo-bundle-prod]
     if: |
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       needs.paths-filter.outputs.mobile_release == 'true'
@@ -447,7 +425,7 @@ jobs:
       - name: Collect APK + latest.json
         shell: bash
         env:
-          RN_BUILD: ${{ needs.rn-build-version.outputs.rn_build }}
+          RN_BUILD: ${{ github.run_number }}
         run: |
           set -euo pipefail
           mkdir -p rncli-android-dist
@@ -468,7 +446,7 @@ jobs:
 
   rncli-ios-zip:
     name: iOS emulator Xcode project zip (React Native CLI)
-    needs: [paths-filter, expo-bundle-prod, rn-build-version]
+    needs: [paths-filter, expo-bundle-prod]
     if: |
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       needs.paths-filter.outputs.mobile_release == 'true'
@@ -498,7 +476,7 @@ jobs:
       - name: Zip iOS project for emulator usage
         shell: bash
         env:
-          RN_BUILD: ${{ needs.rn-build-version.outputs.rn_build }}
+          RN_BUILD: ${{ github.run_number }}
         run: |
           set -euo pipefail
           mkdir -p rncli-ios-dist
@@ -703,15 +681,23 @@ jobs:
           fi
 
           if grep -Eq "GH001|exceeds GitHub's file size limit|gh\.io/lfs|Large files detected|pre-receive hook declined" "$PUSH_LOG"; then
-            echo "Large-file/quota style push rejection detected; falling back to README-only push."
+            echo "Large-file/quota style push rejection detected; falling back to README + small App build metadata (JSON)."
             git reset --soft HEAD~1
             git reset
             git add README.md
+            for f in \
+              "App build/RNCLI-Android/latest.json" \
+              "App build/iOS/latest.json" \
+              "App build/Server/latest.json" \
+              "App build/Server/latest-x64.json" \
+              "App build/Server/latest-x86.json"; do
+              if [ -f "$f" ]; then git add "$f"; fi
+            done
             if git diff --staged --quiet; then
-              echo "No README-only fallback changes to push."
+              echo "No README/metadata fallback changes to push."
               exit 0
             fi
-            git commit -m "docs(readme): update beta build info (build ${{ github.run_number }}) [skip ci]"
+            git commit -m "docs(readme): update beta build info + App build metadata (build ${{ github.run_number }}) [skip ci]"
             git push origin "${{ github.ref_name }}"
             exit 0
           fi

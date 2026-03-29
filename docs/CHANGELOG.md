@@ -2,7 +2,33 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.6** - PWA light mode MOTD title readability.
+**Latest: v1.46.10** - CI RN build numbers aligned with workflow run; metadata fallback push.
+
+### v1.46.10 - 2026-03-29 - CI: RN Alpha build numbers + commit fallback
+
+- **Root cause:** React Native CLI **`latest.json`** used a **sequential counter** read from the repo (`App build/RNCLI-Android/latest.json`). When **`commit-app-build`** hit GitHub **large-file** limits, the workflow only pushed **README.md**, so **`latest.json` never advanced** and the counter stayed at **1** while Server/Web followed **`GITHUB_RUN_NUMBER`** (e.g. 200+).
+- **Fix (`.github/workflows/ci.yml`):**
+  - Removed **`rn-build-version`**; **`rncli-android-apk`** and **`rncli-ios-zip`** set **`version`** (and iOS zip basename `<N>`) from **`github.run_number`**, matching **Server** `latest.json` and the **Web / PWA** row in the README build table for the same workflow run.
+  - **Large-file fallback:** after a size/quota rejection, the fallback commit now stages **small metadata** — **`App build/RNCLI-Android/latest.json`**, **`App build/iOS/latest.json`**, and **`App build/Server/latest*.json`** — together with **`README.md`**, so GitHub Pages and the README badge stay consistent even when APK/zip binaries cannot be pushed to git.
+- **Docs:** **`scripts/update-readme-build-info.mjs`** header comment; **`docs/next-phase-development-plan.md`** §2, §3.2, §6; **`Benchmarks/README.md`** (CI build numbering note); **`docs/app-and-features.md`** release-channel table footnote; **`docs/project-reference.md`** checkpoint.
+- **Tests:** **`tests/unit/workflows-ci-rncli.test.mjs`** — assert **`github.run_number`** stamping and fallback paths; **`rn-build-version`** assertions removed.
+
+### v1.46.9 - 2026-03-29 - Benchmark history, comparison Markdown, CI merge
+
+- **Benchmark tooling (`benchmark-runner/reporters/write-run-json.mjs`, `run-web-benchmarks.mjs`, `expo-bundle-stats.mjs`):** Each run writes **`Benchmarks/<slug>/latest.run.json`** (schema version **1**) with Lighthouse + nav (web) or Hermes aggregates + bundle rows (Expo). Skipped Capacitor / missing Expo bundle still emit JSON with **`status: "skipped"`**.
+- **CI merge (`benchmark-runner/scripts/merge-benchmark-ci.mjs`):** Merges **`latest.run.json`** into **`history.json`** per platform (dedupe by **`github_run_id`** or local sha+timestamp, cap **150** runs). Copies **`latest.run.json`** when Expo artifact is a flat folder. Runs **`generate-benchmark-compare.mjs`** then **`update-benchmarks-readme.mjs`**.
+- **Comparison doc:** **[Benchmarks/compare.md](Benchmarks/compare.md)** (tables + Mermaid **`xychart-beta`** line charts) driven by **[Benchmarks/compare.config.json](Benchmarks/compare.config.json)** (`window`, `detail_windows`, `platforms`). **[Benchmarks/README.md](Benchmarks/README.md)** links history/compare.
+- **Workspace script:** `npm run compare --workspace=@rianell/benchmark-runner` regenerates **`compare.md`** from existing histories (optional local use).
+
+### v1.46.8 - 2026-03-29 - Log inline edit: CSS classes instead of dark-only inline styles
+
+- **Web / PWA / Capacitor legacy (`apps/pwa-webapp/app.js`, `styles.css`):** Expanded **log entry inline edit** markup to use shared **`.inline-edit-field`** (plus **`--energy`**, **`--pain`**, **`--notes`** where needed) on all number/text inputs and the notes **`<textarea>`**, removing **dark-theme `style=""`** attributes. **Pain location** and **notes** now pick up **`body.light-mode`** field colours like other controls. **Energy/clarity** and **steps** use **`inline-edit-field-wrap`** for consistent layout. **`body.light-mode .log-notes`** adjusts copy and panel tint so the note block stays readable when editing. Bumped **`styles.css?v=77`**.
+
+### v1.46.7 - 2026-03-29 - Light mode readability and theme consistency
+
+- **Web / PWA / Capacitor legacy (`apps/pwa-webapp/app.js`):** Added **`isWebAppLightMode`**, **`applyApexLineChartThemeToOptions`**, and **`applyApexRadarChartThemeToOptions`** so ApexCharts line and radar charts use dark green axes and grids in light mode instead of disabled `if (false)` branches. Chart cache signatures include a **`|lm1` / `|lm0`** suffix so toggling appearance refreshes colours. **`setAppearanceMode`** and the **system** **`prefers-color-scheme`** listener call **`refreshCharts()`** after **`applyAppearanceMode`**. Individual chart tooltips use theme-aware description colour.
+- **Web CSS (`apps/pwa-webapp/styles.css`, `styles-charts.css`):** **`body.light-mode`** rules for **modal header/footer** (no dark sandwich), **`.field-hint`**, **modal inputs**, **log metric grid**, **combined chart metric selector**, **filter labels**, and deferred **chart container / chart info box / loading / prediction overlay**. Bumped **`styles.css?v=76`**, **`styles-charts.css?v=2`**.
+- **React Native (`SettingsScreen.tsx`, `ChartsScreen.tsx`, `AiScreen.tsx`):** Section rows, hints, inline choices, data buttons, import modal, range chips, and balance labels use **`theme.tokens`** for text and surfaces in light mode.
 
 ### v1.46.6 - 2026-03-29 - PWA MOTD title in light mode
 
