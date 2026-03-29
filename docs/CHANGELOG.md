@@ -2,7 +2,11 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.19** - Settings carousel tab icons: Unicode glyphs (no Font Awesome dependency for dots).
+**Latest: v1.46.20** - Settings desktop ‹ › rails: full modal height (reset global `button` margin).
+
+### v1.46.20 - 2026-03-29 - Web PWA: settings carousel side buttons fill window height
+
+- **Web / PWA (`styles.css`):** **`.settings-carousel-side`** overrides global **`button { margin: 15px 0; min-height: 50px; width: 100%; }`** with **`margin: 0`**, **`min-height: 0`**, fixed width, **`padding: 0`**, no slide-in animation, no default box-shadow; **`::before`** ripple disabled; **`:hover` / `:active`** **`transform: none`** so the cyber-chrome button lift does not shift the rails. **`index.html`** **`styles.css?v=81`**.
 
 ### v1.46.19 - 2026-03-29 - Web PWA: settings section dots show icons without Font Awesome CSS
 

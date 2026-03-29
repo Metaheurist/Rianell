@@ -11494,11 +11494,16 @@ body.light-mode .goals-status-pill.below {
   }
 }
 
+/* Carousel ‹ ›: exempt from global `button { margin: 15px 0; width: 100%; min-height: 50px; }` so rails span full modal height on desktop. */
 .settings-carousel-side {
   display: none;
-  flex-shrink: 0;
-  width: 40px;
+  flex: 0 0 40px;
+  width: 40px !important;
+  max-width: 40px !important;
   min-width: 40px;
+  min-height: 0 !important;
+  height: auto;
+  margin: 0 !important;
   align-self: stretch;
   align-items: center;
   justify-content: center;
@@ -11510,7 +11515,9 @@ body.light-mode .goals-status-pill.below {
   font-weight: 300;
   line-height: 1;
   cursor: pointer;
-  padding: 0;
+  padding: 0 !important;
+  box-shadow: none;
+  animation: none;
   transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   -webkit-tap-highlight-color: transparent;
   border-radius: 0;
@@ -11535,11 +11542,17 @@ body.light-mode .goals-status-pill.below {
   border-color: color-mix(in srgb, var(--primary-color) 46%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 34%, transparent), 0 0 14px color-mix(in srgb, var(--primary-color) 20%, transparent);
   color: #fff;
+  transform: none;
 }
 
 .settings-carousel-side:active:not(:disabled) {
   background: color-mix(in srgb, var(--primary-color) 30%, transparent);
   border-color: color-mix(in srgb, var(--primary-color) 56%, transparent);
+  transform: none;
+}
+
+.settings-carousel-side::before {
+  display: none;
 }
 
 .settings-carousel-side:disabled {
@@ -11691,6 +11704,7 @@ body.light-mode .settings-carousel-side:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--primary-color) 42%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary-color) 30%, transparent), 0 0 12px color-mix(in srgb, var(--primary-color) 16%, transparent);
   color: #1a1a1a;
+  transform: none;
 }
 
 body.light-mode .settings-carousel-meta {
