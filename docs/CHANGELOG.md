@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.13** - Single `benchmarks/` folder (merged `Benchmarks/` + `benchmark-runner/`).
+**Latest: v1.46.14** - Documentation aligned with unified `benchmarks/` workspace paths.
+
+### v1.46.14 - 2026-03-29 - Docs: benchmark paths and repo tree
+
+- **Changelog:** Older release notes (v1.46.4–v1.46.11) that referenced **`Benchmarks/`** or **`benchmark-runner/`** now point at **`benchmarks/`** so historical bullets match the post–v1.46.13 layout.
+- **Project reference:** Repository tree includes **`benchmarks/`** (npm workspace **`@rianell/benchmark-runner`**: CI/local performance reports, scripts, reporters).
+- **Setup guide:** **`docs/setup-and-usage.md`** describes **`benchmarks/`** and **`npm run benchmark`** under Installation.
 
 ### v1.46.13 - 2026-03-29 - Repo layout: unified `benchmarks/` workspace
 
@@ -18,7 +24,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 - **README / CI:** **`rn-build-version`** job is **restored**. **Alpha RN Android / RN iOS** rows read **`version`** from the sequential counter (same as **`App build/RNCLI-Android/latest.json`** / iOS zips), **not** **`GITHUB_RUN_NUMBER`**. **Server** and **Web / PWA** rows still use the workflow run number. This keeps RN build counts meaningful (how many mobile artifact runs) while Server/Web stay aligned with overall CI runs.
 - **Large-file fallback** (from v1.46.10) remains: small **`latest.json`** files still commit with README when binaries fail to push, so the sequential RN counter can advance.
-- **Docs:** **`docs/next-phase-development-plan.md`** replaced with a short status note — **no active roadmap items**; pointers to CHANGELOG and feature docs. **`docs/project-reference.md`**, **`scripts/update-readme-build-info.mjs`**, **`Benchmarks/README.md`**, **`docs/app-and-features.md`** updated for RN vs workflow numbering.
+- **Docs:** **`docs/next-phase-development-plan.md`** replaced with a short status note — **no active roadmap items**; pointers to CHANGELOG and feature docs. **`docs/project-reference.md`**, **`scripts/update-readme-build-info.mjs`**, **`benchmarks/README.md`**, **`docs/app-and-features.md`** updated for RN vs workflow numbering.
 - **Tests:** **`tests/unit/workflows-ci-rncli.test.mjs`** expects **`rn-build-version`** + **`needs.rn-build-version.outputs.rn_build`**.
 
 ### v1.46.10 - 2026-03-29 - CI: RN Alpha build numbers + commit fallback
@@ -27,14 +33,14 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Fix (`.github/workflows/ci.yml`):**
   - Removed **`rn-build-version`**; **`rncli-android-apk`** and **`rncli-ios-zip`** set **`version`** (and iOS zip basename `<N>`) from **`github.run_number`**, matching **Server** `latest.json` and the **Web / PWA** row in the README build table for the same workflow run.
   - **Large-file fallback:** after a size/quota rejection, the fallback commit now stages **small metadata** — **`App build/RNCLI-Android/latest.json`**, **`App build/iOS/latest.json`**, and **`App build/Server/latest*.json`** — together with **`README.md`**, so GitHub Pages and the README badge stay consistent even when APK/zip binaries cannot be pushed to git.
-- **Docs:** **`scripts/update-readme-build-info.mjs`** header comment; **`docs/next-phase-development-plan.md`** §2, §3.2, §6; **`Benchmarks/README.md`** (CI build numbering note); **`docs/app-and-features.md`** release-channel table footnote; **`docs/project-reference.md`** checkpoint.
+- **Docs:** **`scripts/update-readme-build-info.mjs`** header comment; **`docs/next-phase-development-plan.md`** §2, §3.2, §6; **`benchmarks/README.md`** (CI build numbering note); **`docs/app-and-features.md`** release-channel table footnote; **`docs/project-reference.md`** checkpoint.
 - **Tests:** **`tests/unit/workflows-ci-rncli.test.mjs`** — assert **`github.run_number`** stamping and fallback paths; **`rn-build-version`** assertions removed.
 
 ### v1.46.9 - 2026-03-29 - Benchmark history, comparison Markdown, CI merge
 
-- **Benchmark tooling (`benchmark-runner/reporters/write-run-json.mjs`, `run-web-benchmarks.mjs`, `expo-bundle-stats.mjs`):** Each run writes **`Benchmarks/<slug>/latest.run.json`** (schema version **1**) with Lighthouse + nav (web) or Hermes aggregates + bundle rows (Expo). Skipped Capacitor / missing Expo bundle still emit JSON with **`status: "skipped"`**.
-- **CI merge (`benchmark-runner/scripts/merge-benchmark-ci.mjs`):** Merges **`latest.run.json`** into **`history.json`** per platform (dedupe by **`github_run_id`** or local sha+timestamp, cap **150** runs). Copies **`latest.run.json`** when Expo artifact is a flat folder. Runs **`generate-benchmark-compare.mjs`** then **`update-benchmarks-readme.mjs`**.
-- **Comparison doc:** **[Benchmarks/compare.md](Benchmarks/compare.md)** (tables + Mermaid **`xychart-beta`** line charts) driven by **[Benchmarks/compare.config.json](Benchmarks/compare.config.json)** (`window`, `detail_windows`, `platforms`). **[Benchmarks/README.md](Benchmarks/README.md)** links history/compare.
+- **Benchmark tooling (`benchmarks/reporters/write-run-json.mjs`, `run-web-benchmarks.mjs`, `expo-bundle-stats.mjs`):** Each run writes **`benchmarks/<slug>/latest.run.json`** (schema version **1**) with Lighthouse + nav (web) or Hermes aggregates + bundle rows (Expo). Skipped Capacitor / missing Expo bundle still emit JSON with **`status: "skipped"`**.
+- **CI merge (`benchmarks/scripts/merge-benchmark-ci.mjs`):** Merges **`latest.run.json`** into **`history.json`** per platform (dedupe by **`github_run_id`** or local sha+timestamp, cap **150** runs). Copies **`latest.run.json`** when Expo artifact is a flat folder. Runs **`generate-benchmark-compare.mjs`** then **`update-benchmarks-readme.mjs`**.
+- **Comparison doc:** **[benchmarks/compare.md](../benchmarks/compare.md)** (tables + Mermaid **`xychart-beta`** line charts) driven by **[benchmarks/compare.config.json](../benchmarks/compare.config.json)** (`window`, `detail_windows`, `platforms`). **[benchmarks/README.md](../benchmarks/README.md)** links history/compare.
 - **Workspace script:** `npm run compare --workspace=@rianell/benchmark-runner` regenerates **`compare.md`** from existing histories (optional local use).
 
 ### v1.46.8 - 2026-03-29 - Log inline edit: CSS classes instead of dark-only inline styles
@@ -58,7 +64,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.46.4 - 2026-03-29 - Benchmark lib tracked, voice input on expo-speech-recognition, infra docs
 
-- **CI / benchmarks:** `.gitignore` now scopes `lib/` to the repo root only so `benchmark-runner/scripts/lib/` (static server, Lighthouse, Playwright navigation helpers) is no longer ignored; files are committed so `node benchmark-runner/scripts/run-web-benchmarks.mjs` resolves on GitHub Actions.
+- **CI / benchmarks:** `.gitignore` now scopes `lib/` to the repo root only so `benchmarks/scripts/lib/` (static server, Lighthouse, Playwright navigation helpers) is no longer ignored; files are committed so `node benchmarks/scripts/run-web-benchmarks.mjs` resolves on GitHub Actions.
 - **React Native voice (`apps/rn-app/src/voice/VoiceNotesButton.tsx`):** Replaced deprecated `@react-native-voice/voice` with **`expo-speech-recognition`** (`ExpoSpeechRecognitionModule`, `useSpeechRecognitionEvent`), UK locale `en-GB`, typed event handlers; **`app.json`** uses the `expo-speech-recognition` config plugin with permission strings; **`jest.setup.ts`** mocks the new module.
 - **Tooling:** **`jest-expo`** restored to **`~55.0.11`** (aligned with Expo SDK 55); **`apps/rn-app/tsconfig.json`** excludes `jest.setup.ts` and `**/*.test.*` from `tsc` so production typecheck matches CI expectations.
 - **Documentation:** New **[docs/infrastructure-and-security-edge.md](infrastructure-and-security-edge.md)** (DNS, Cloudflare edge features, GitHub Pages - no secrets); linked from **[README.md](../README.md)**. README punctuation normalised on edited lines (` - ` instead of em dash where changed).

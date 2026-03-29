@@ -2,6 +2,10 @@
 
 ## ⚙️ Installation
 
+### v1.46.14 documentation sync
+
+- **Repository performance benchmarks** (Lighthouse, Expo bundle stats, history/compare Markdown) live under **`benchmarks/`** (npm workspace **`@rianell/benchmark-runner`**). From the repo root: **`npm ci`**, then **`npm run benchmark`** (see **`benchmarks/README.md`**). CI writes the same tree on **`main`** via **`commit-benchmarks`**.
+
 ### v1.45.41 documentation sync
 
 - RN parity status references are aligned with the active plan/changelog: baseline AIEngine/LLM hooks, demo-mode lifecycle parity, and benchmark-tier model selection are implemented; deeper benchmark-detail UI parity remains open.
