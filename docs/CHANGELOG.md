@@ -2,7 +2,11 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.18** - Cloudflare CSP / Permissions-Policy operator guide (fixes live console when HTTP CSP is too strict).
+**Latest: v1.46.19** - Settings carousel tab icons: Unicode glyphs (no Font Awesome dependency for dots).
+
+### v1.46.19 - 2026-03-29 - Web PWA: settings section dots show icons without Font Awesome CSS
+
+- **Web / PWA (`apps/pwa-webapp/app.js`):** **`ensureSettingsCarouselDots`** renders **Unicode glyphs** in the eight carousel buttons instead of **Font Awesome** `<i class="fa-…">` icons. Deferred Font Awesome (jsDelivr) or a stricter edge **CSP** previously left the dots as **empty circles**. **`styles.css`** adds **`.settings-carousel-dot__icon--glyph`** (emoji font stack). **`index.html`:** **`app.js?v=29`**, **`styles.css?v=80`**; **`app.min.js`** rebuilt.
 
 ### v1.46.18 - 2026-03-29 - Docs: Cloudflare CSP must match meta; Permissions-Policy `notifications`
 

@@ -16214,22 +16214,25 @@ function ensureSettingsCarouselDots(panes) {
   var n = panes && panes.length ? panes.length : 0;
   if (n < 1) {
     dotsWrap.innerHTML = '';
+    dotsWrap.removeAttribute('data-carousel-icons');
     return;
   }
-  if (dotsWrap.childElementCount === n) return;
+  /* Rebuild when pane count changes or when migrating from Font Awesome <i> dots (glyphs work without jsDelivr CSS). */
+  if (dotsWrap.childElementCount === n && dotsWrap.getAttribute('data-carousel-icons') === 'glyph') return;
   dotsWrap.innerHTML = '';
-  function settingsIconForTitle(title, idx) {
+  dotsWrap.setAttribute('data-carousel-icons', 'glyph');
+  function settingsGlyphForTitle(title, idx) {
     var t = String(title || '').toLowerCase();
-    if (t.indexOf('personal') !== -1 || t.indexOf('cloud') !== -1) return 'fa-solid fa-user';
-    if (t.indexOf('ai') !== -1 || t.indexOf('goal') !== -1) return 'fa-solid fa-comment-medical';
-    if (t.indexOf('display') !== -1 || t.indexOf('reminder') !== -1) return 'fa-solid fa-chart-column';
-    if (t.indexOf('custom') !== -1 || t.indexOf('theme') !== -1) return 'fa-solid fa-palette';
-    if (t.indexOf('access') !== -1) return 'fa-solid fa-universal-access';
-    if (t.indexOf('data option') !== -1) return 'fa-solid fa-gear';
-    if (t.indexOf('performance') !== -1) return 'fa-solid fa-bolt';
-    if (t.indexOf('install') !== -1) return 'fa-solid fa-mobile-screen-button';
-    if (t.indexOf('data management') !== -1) return 'fa-solid fa-floppy-disk';
-    return (idx % 2 === 0) ? 'fa-solid fa-circle' : 'fa-regular fa-circle';
+    if (t.indexOf('personal') !== -1 || t.indexOf('cloud') !== -1) return '\uD83D\uDC64'; /* person */
+    if (t.indexOf('ai') !== -1 || t.indexOf('goal') !== -1) return '\uD83E\uDDE0'; /* brain */
+    if (t.indexOf('display') !== -1 || t.indexOf('reminder') !== -1) return '\uD83D\uDCCA'; /* bar chart */
+    if (t.indexOf('custom') !== -1 || t.indexOf('theme') !== -1) return '\uD83C\uDFA8'; /* palette */
+    if (t.indexOf('access') !== -1) return '\u267F'; /* wheelchair */
+    if (t.indexOf('data option') !== -1) return '\u2699\uFE0F'; /* gear */
+    if (t.indexOf('performance') !== -1) return '\u26A1'; /* lightning */
+    if (t.indexOf('install') !== -1) return '\uD83D\uDCF1'; /* mobile */
+    if (t.indexOf('data management') !== -1) return '\uD83D\uDCBE'; /* floppy */
+    return (idx % 2 === 0) ? '\u25CF' : '\u25CB'; /* filled / hollow circle */
   }
   for (var i = 0; i < n; i++) {
     var dot = document.createElement('button');
@@ -16239,7 +16242,10 @@ function ensureSettingsCarouselDots(panes) {
     dot.setAttribute('aria-label', 'Go to settings section ' + String(i + 1) + (paneTitle ? ': ' + paneTitle : ''));
     dot.setAttribute('title', paneTitle);
     dot.setAttribute('data-settings-target', String(i));
-    dot.innerHTML = '<span class="settings-carousel-dot__icon" aria-hidden="true"><i class="' + settingsIconForTitle(paneTitle, i) + '"></i></span>';
+    dot.innerHTML =
+      '<span class="settings-carousel-dot__icon settings-carousel-dot__icon--glyph" aria-hidden="true">' +
+      settingsGlyphForTitle(paneTitle, i) +
+      '</span>';
     dot.addEventListener('click', function(e) {
       var idx = parseInt(e.currentTarget.getAttribute('data-settings-target') || '0', 10);
       settingsCarouselGo(idx);

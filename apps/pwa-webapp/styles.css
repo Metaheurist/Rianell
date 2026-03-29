@@ -11396,6 +11396,18 @@ body.light-mode .goals-status-pill.below {
   height: 100%;
 }
 
+/* Settings carousel: Unicode glyphs (no Font Awesome) so tabs stay visible when Font Awesome CSS is blocked or deferred. */
+.settings-carousel-dot__icon--glyph {
+  font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', sans-serif;
+  font-size: clamp(0.62rem, calc(var(--settings-dot-size) * 0.42), 1rem);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
 .settings-carousel-dot::before,
 .settings-carousel-dot::after {
   content: '';
