@@ -43,18 +43,19 @@ jest.mock('expo-av', () => ({
   },
 }));
 
-jest.mock('@react-native-voice/voice', () => ({
-  __esModule: true,
-  default: {
-    onSpeechPartialResults: null,
-    onSpeechResults: null,
-    onSpeechError: null,
-    onSpeechEnd: null,
-    start: jest.fn(() => Promise.resolve()),
-    stop: jest.fn(() => Promise.resolve()),
-    cancel: jest.fn(() => Promise.resolve()),
-    destroy: jest.fn(() => Promise.resolve()),
-    removeAllListeners: jest.fn(),
-  },
-}));
+jest.mock('expo-speech-recognition', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    ExpoSpeechRecognitionModule: {
+      start: jest.fn(),
+      stop: jest.fn(),
+      abort: jest.fn(),
+      requestPermissionsAsync: jest.fn(() => Promise.resolve({ granted: true, status: 'granted' })),
+    },
+    useSpeechRecognitionEvent: (_event: string, _listener: (payload: unknown) => void) => {
+      React.useEffect(() => {}, []);
+    },
+  };
+});
 
