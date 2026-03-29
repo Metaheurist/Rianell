@@ -1005,6 +1005,8 @@ jobs:
         env:
           SECURITY_HEADERS_URL: https://securityheaders.com/?q=rianell.com&followRedirects=on
           SECURITY_HEADERS_FALLBACK_SITE: https://rianell.com
+          # Try apex then www for live header snapshot if one path is less blocked
+          SECURITY_HEADERS_LIVE_URLS: https://rianell.com;https://www.rianell.com
           OUT_LATEST: ${{ github.workspace }}/security/securityheaders-rianell.com.md
           OUT_RUN: ${{ github.workspace }}/security/securityheaders-runs/run-${{ github.run_number }}.md
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
