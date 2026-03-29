@@ -1,6 +1,6 @@
 # Benchmark comparison (history)
 
-Generated at **2026-03-29T18:06:25.098Z**.
+Generated at **2026-03-29T18:25:47.354Z**.
 
 To change the default number of runs in the primary sections below, edit **[compare.config.json](./compare.config.json)** (`window`). GitHub does not support interactive dropdowns in Markdown; optional **collapsed sections** list alternate window sizes.
 
@@ -10,6 +10,7 @@ To change the default number of runs in the primary sections below, edit **[comp
 
 | date | sha | status | LCP_ms | FCP_ms | TBT_ms | run |
 | --- | --- | --- | --- | --- | --- | --- |
+| 2026-03-29 18:24:37 | 00535b0 | ok | 11711 | 10124 | 60 | 23715875249 |
 | 2026-03-29 18:05:11 | c27c51e | ok | 11699 | 10125 | 68 | 23715480357 |
 | 2026-03-29 17:41:17 | 2c90097 | ok | 11703 | 10127 | 69 | 23715003414 |
 | 2026-03-29 15:37:19 | e99a306 | ok | 11722 | 10139 | 68 | 23712530867 |
@@ -18,22 +19,23 @@ To change the default number of runs in the primary sections below, edit **[comp
 ```mermaid
 xychart-beta
     title "Web / PWA — LCP (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 12895
-    line [11699, 11703, 11722, 11697]
+    line [11711, 11699, 11703, 11722, 11697]
 ```
 ```mermaid
 xychart-beta
     title "Web / PWA — TBT (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 76
-    line [68, 69, 68, 68]
+    line [60, 68, 69, 68, 68]
 ```
 
 ### GitHub Pages
 
 | date | sha | status | LCP_ms | FCP_ms | TBT_ms | run |
 | --- | --- | --- | --- | --- | --- | --- |
+| 2026-03-29 18:25:03 | 00535b0 | ok | 11705 | 10125 | 52 | 23715875249 |
 | 2026-03-29 18:05:37 | c27c51e | ok | 11718 | 10138 | 62 | 23715480357 |
 | 2026-03-29 17:41:47 | 2c90097 | ok | 11715 | 10138 | 61 | 23715003414 |
 | 2026-03-29 15:37:45 | e99a306 | ok | 11701 | 10138 | 60 | 23712530867 |
@@ -42,22 +44,23 @@ xychart-beta
 ```mermaid
 xychart-beta
     title "GitHub Pages — LCP (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 12890
-    line [11718, 11715, 11701, 11707]
+    line [11705, 11718, 11715, 11701, 11707]
 ```
 ```mermaid
 xychart-beta
     title "GitHub Pages — TBT (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 69
-    line [62, 61, 60, 54]
+    line [52, 62, 61, 60, 54]
 ```
 
 ### Capacitor (legacy)
 
 | date | sha | status | LCP_ms | FCP_ms | TBT_ms | run |
 | --- | --- | --- | --- | --- | --- | --- |
+| 2026-03-29 18:25:28 | 00535b0 | ok | 8834 | 7491 | 38 | 23715875249 |
 | 2026-03-29 18:06:02 | c27c51e | ok | 8838 | 7410 | 34 | 23715480357 |
 | 2026-03-29 17:42:14 | 2c90097 | ok | 8835 | 7414 | 31 | 23715003414 |
 | 2026-03-29 15:38:10 | e99a306 | ok | 8833 | 7484 | 32 | 23712530867 |
@@ -66,16 +69,16 @@ xychart-beta
 ```mermaid
 xychart-beta
     title "Capacitor (legacy) — LCP (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 9722
-    line [8838, 8835, 8833, 8830]
+    line [8834, 8838, 8835, 8833, 8830]
 ```
 ```mermaid
 xychart-beta
     title "Capacitor (legacy) — TBT (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
-    y-axis "ms" 0 --> 38
-    line [34, 31, 32, 27]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    y-axis "ms" 0 --> 42
+    line [38, 34, 31, 32, 27]
 ```
 
 ### Expo / RN bundles
@@ -84,6 +87,7 @@ Aggregates: **sum of gzip bytes** across all `.hbc` files per platform (stable f
 
 | date | sha | status | android_gzip | ios_gzip | run |
 | --- | --- | --- | --- | --- | --- |
+| 2026-03-29 18:25:24 | 00535b0 | ok | 2356301 | 2349868 | 23715875249 |
 | 2026-03-29 18:05:27 | c27c51e | ok | 2356304 | 2349864 | 23715480357 |
 | 2026-03-29 17:41:49 | 2c90097 | ok | 2356302 | 2349868 | 23715003414 |
 | 2026-03-29 15:37:54 | e99a306 | ok | 2356302 | 2349869 | 23712530867 |
@@ -92,16 +96,16 @@ Aggregates: **sum of gzip bytes** across all `.hbc` files per platform (stable f
 ```mermaid
 xychart-beta
     title "Expo — Android Hermes gzip total (bytes)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "bytes" 0 --> 2591935
-    line [2356304, 2356302, 2356302, 2356299]
+    line [2356301, 2356304, 2356302, 2356302, 2356299]
 ```
 ```mermaid
 xychart-beta
     title "Expo — iOS Hermes gzip total (bytes)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "bytes" 0 --> 2584856
-    line [2349864, 2349868, 2349869, 2349865]
+    line [2349868, 2349864, 2349868, 2349869, 2349865]
 ```
 
 <details>
@@ -111,6 +115,7 @@ xychart-beta
 
 | date | sha | status | LCP_ms | FCP_ms | TBT_ms | run |
 | --- | --- | --- | --- | --- | --- | --- |
+| 2026-03-29 18:24:37 | 00535b0 | ok | 11711 | 10124 | 60 | 23715875249 |
 | 2026-03-29 18:05:11 | c27c51e | ok | 11699 | 10125 | 68 | 23715480357 |
 | 2026-03-29 17:41:17 | 2c90097 | ok | 11703 | 10127 | 69 | 23715003414 |
 | 2026-03-29 15:37:19 | e99a306 | ok | 11722 | 10139 | 68 | 23712530867 |
@@ -119,22 +124,23 @@ xychart-beta
 ```mermaid
 xychart-beta
     title "Web / PWA — LCP (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 12895
-    line [11699, 11703, 11722, 11697]
+    line [11711, 11699, 11703, 11722, 11697]
 ```
 ```mermaid
 xychart-beta
     title "Web / PWA — TBT (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 76
-    line [68, 69, 68, 68]
+    line [60, 68, 69, 68, 68]
 ```
 
 ### GitHub Pages
 
 | date | sha | status | LCP_ms | FCP_ms | TBT_ms | run |
 | --- | --- | --- | --- | --- | --- | --- |
+| 2026-03-29 18:25:03 | 00535b0 | ok | 11705 | 10125 | 52 | 23715875249 |
 | 2026-03-29 18:05:37 | c27c51e | ok | 11718 | 10138 | 62 | 23715480357 |
 | 2026-03-29 17:41:47 | 2c90097 | ok | 11715 | 10138 | 61 | 23715003414 |
 | 2026-03-29 15:37:45 | e99a306 | ok | 11701 | 10138 | 60 | 23712530867 |
@@ -143,22 +149,23 @@ xychart-beta
 ```mermaid
 xychart-beta
     title "GitHub Pages — LCP (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 12890
-    line [11718, 11715, 11701, 11707]
+    line [11705, 11718, 11715, 11701, 11707]
 ```
 ```mermaid
 xychart-beta
     title "GitHub Pages — TBT (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 69
-    line [62, 61, 60, 54]
+    line [52, 62, 61, 60, 54]
 ```
 
 ### Capacitor (legacy)
 
 | date | sha | status | LCP_ms | FCP_ms | TBT_ms | run |
 | --- | --- | --- | --- | --- | --- | --- |
+| 2026-03-29 18:25:28 | 00535b0 | ok | 8834 | 7491 | 38 | 23715875249 |
 | 2026-03-29 18:06:02 | c27c51e | ok | 8838 | 7410 | 34 | 23715480357 |
 | 2026-03-29 17:42:14 | 2c90097 | ok | 8835 | 7414 | 31 | 23715003414 |
 | 2026-03-29 15:38:10 | e99a306 | ok | 8833 | 7484 | 32 | 23712530867 |
@@ -167,16 +174,16 @@ xychart-beta
 ```mermaid
 xychart-beta
     title "Capacitor (legacy) — LCP (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 9722
-    line [8838, 8835, 8833, 8830]
+    line [8834, 8838, 8835, 8833, 8830]
 ```
 ```mermaid
 xychart-beta
     title "Capacitor (legacy) — TBT (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
-    y-axis "ms" 0 --> 38
-    line [34, 31, 32, 27]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    y-axis "ms" 0 --> 42
+    line [38, 34, 31, 32, 27]
 ```
 
 ### Expo / RN bundles
@@ -185,6 +192,7 @@ Aggregates: **sum of gzip bytes** across all `.hbc` files per platform (stable f
 
 | date | sha | status | android_gzip | ios_gzip | run |
 | --- | --- | --- | --- | --- | --- |
+| 2026-03-29 18:25:24 | 00535b0 | ok | 2356301 | 2349868 | 23715875249 |
 | 2026-03-29 18:05:27 | c27c51e | ok | 2356304 | 2349864 | 23715480357 |
 | 2026-03-29 17:41:49 | 2c90097 | ok | 2356302 | 2349868 | 23715003414 |
 | 2026-03-29 15:37:54 | e99a306 | ok | 2356302 | 2349869 | 23712530867 |
@@ -193,16 +201,16 @@ Aggregates: **sum of gzip bytes** across all `.hbc` files per platform (stable f
 ```mermaid
 xychart-beta
     title "Expo — Android Hermes gzip total (bytes)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "bytes" 0 --> 2591935
-    line [2356304, 2356302, 2356302, 2356299]
+    line [2356301, 2356304, 2356302, 2356302, 2356299]
 ```
 ```mermaid
 xychart-beta
     title "Expo — iOS Hermes gzip total (bytes)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "bytes" 0 --> 2584856
-    line [2349864, 2349868, 2349869, 2349865]
+    line [2349868, 2349864, 2349868, 2349869, 2349865]
 ```
 
 </details>
@@ -214,6 +222,7 @@ xychart-beta
 
 | date | sha | status | LCP_ms | FCP_ms | TBT_ms | run |
 | --- | --- | --- | --- | --- | --- | --- |
+| 2026-03-29 18:24:37 | 00535b0 | ok | 11711 | 10124 | 60 | 23715875249 |
 | 2026-03-29 18:05:11 | c27c51e | ok | 11699 | 10125 | 68 | 23715480357 |
 | 2026-03-29 17:41:17 | 2c90097 | ok | 11703 | 10127 | 69 | 23715003414 |
 | 2026-03-29 15:37:19 | e99a306 | ok | 11722 | 10139 | 68 | 23712530867 |
@@ -222,22 +231,23 @@ xychart-beta
 ```mermaid
 xychart-beta
     title "Web / PWA — LCP (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 12895
-    line [11699, 11703, 11722, 11697]
+    line [11711, 11699, 11703, 11722, 11697]
 ```
 ```mermaid
 xychart-beta
     title "Web / PWA — TBT (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 76
-    line [68, 69, 68, 68]
+    line [60, 68, 69, 68, 68]
 ```
 
 ### GitHub Pages
 
 | date | sha | status | LCP_ms | FCP_ms | TBT_ms | run |
 | --- | --- | --- | --- | --- | --- | --- |
+| 2026-03-29 18:25:03 | 00535b0 | ok | 11705 | 10125 | 52 | 23715875249 |
 | 2026-03-29 18:05:37 | c27c51e | ok | 11718 | 10138 | 62 | 23715480357 |
 | 2026-03-29 17:41:47 | 2c90097 | ok | 11715 | 10138 | 61 | 23715003414 |
 | 2026-03-29 15:37:45 | e99a306 | ok | 11701 | 10138 | 60 | 23712530867 |
@@ -246,22 +256,23 @@ xychart-beta
 ```mermaid
 xychart-beta
     title "GitHub Pages — LCP (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 12890
-    line [11718, 11715, 11701, 11707]
+    line [11705, 11718, 11715, 11701, 11707]
 ```
 ```mermaid
 xychart-beta
     title "GitHub Pages — TBT (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 69
-    line [62, 61, 60, 54]
+    line [52, 62, 61, 60, 54]
 ```
 
 ### Capacitor (legacy)
 
 | date | sha | status | LCP_ms | FCP_ms | TBT_ms | run |
 | --- | --- | --- | --- | --- | --- | --- |
+| 2026-03-29 18:25:28 | 00535b0 | ok | 8834 | 7491 | 38 | 23715875249 |
 | 2026-03-29 18:06:02 | c27c51e | ok | 8838 | 7410 | 34 | 23715480357 |
 | 2026-03-29 17:42:14 | 2c90097 | ok | 8835 | 7414 | 31 | 23715003414 |
 | 2026-03-29 15:38:10 | e99a306 | ok | 8833 | 7484 | 32 | 23712530867 |
@@ -270,16 +281,16 @@ xychart-beta
 ```mermaid
 xychart-beta
     title "Capacitor (legacy) — LCP (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "ms" 0 --> 9722
-    line [8838, 8835, 8833, 8830]
+    line [8834, 8838, 8835, 8833, 8830]
 ```
 ```mermaid
 xychart-beta
     title "Capacitor (legacy) — TBT (ms)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
-    y-axis "ms" 0 --> 38
-    line [34, 31, 32, 27]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    y-axis "ms" 0 --> 42
+    line [38, 34, 31, 32, 27]
 ```
 
 ### Expo / RN bundles
@@ -288,6 +299,7 @@ Aggregates: **sum of gzip bytes** across all `.hbc` files per platform (stable f
 
 | date | sha | status | android_gzip | ios_gzip | run |
 | --- | --- | --- | --- | --- | --- |
+| 2026-03-29 18:25:24 | 00535b0 | ok | 2356301 | 2349868 | 23715875249 |
 | 2026-03-29 18:05:27 | c27c51e | ok | 2356304 | 2349864 | 23715480357 |
 | 2026-03-29 17:41:49 | 2c90097 | ok | 2356302 | 2349868 | 23715003414 |
 | 2026-03-29 15:37:54 | e99a306 | ok | 2356302 | 2349869 | 23712530867 |
@@ -296,16 +308,16 @@ Aggregates: **sum of gzip bytes** across all `.hbc` files per platform (stable f
 ```mermaid
 xychart-beta
     title "Expo — Android Hermes gzip total (bytes)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "bytes" 0 --> 2591935
-    line [2356304, 2356302, 2356302, 2356299]
+    line [2356301, 2356304, 2356302, 2356302, 2356299]
 ```
 ```mermaid
 xychart-beta
     title "Expo — iOS Hermes gzip total (bytes)"
-    x-axis ["c27c51e", "2c90097", "e99a306", "b11ca5d"]
+    x-axis ["00535b0", "c27c51e", "2c90097", "e99a306", "b11ca5d"]
     y-axis "bytes" 0 --> 2584856
-    line [2349864, 2349868, 2349869, 2349865]
+    line [2349868, 2349864, 2349868, 2349869, 2349865]
 ```
 
 </details>
