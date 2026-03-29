@@ -4,9 +4,9 @@
  * <!-- RIANELL_BUILD_INFO_END --> in README.md with current CI + App build numbers.
  *
  * Tables:
- * - CI builds: React Native CLI (Alpha) + Server + Web — RN + Server `version` in
- *   `App build/.../latest.json` use **GITHUB_RUN_NUMBER** on mobile/server CI runs;
- *   Web row uses the same run number (deploy job). Legacy Capacitor rows read frozen JSON.
+ * - CI builds: **RN** Alpha rows read `version` from RN CLI `latest.json` (sequential RN
+ *   build from CI `rn-build-version`). **Server** uses workflow run number. **Web / PWA**
+ *   row shows **GITHUB_RUN_NUMBER** (Pages deploy). Legacy Capacitor rows read frozen JSON.
  * - Legacy builds: Capacitor Android (Beta) + legacy Capacitor iOS zip metadata (Alpha) — frozen paths.
  *
  * Env: GITHUB_RUN_NUMBER, GITHUB_SHA, GITHUB_RUN_ID, GITHUB_REPOSITORY

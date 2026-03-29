@@ -19,6 +19,7 @@
 #   6. publish-release   - Push + mobile: GitHub Release with Expo + Server assets.
 #   7. deploy-pages      - Push to main/master: site from apps/pwa-webapp/ + App build/.
 #   8. readme-build-info - After deploy (web-only runs): README CI + legacy build tables.
+#   9. security-headers-report - After README job: securityheaders.com → security/*.md (avoids parallel bot pushes).
 # =============================================================================
 
 name: CI
@@ -373,14 +374,37 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # React Native CLI native artifacts (no EAS / no EXPO_TOKEN)
-  # RN Alpha build `version` in latest.json matches github.run_number (same as
-  # Server EXE + README Web row) so numbers stay in sync when mobile CI runs.
-  # Previous design used a repo-persisted counter; it stayed at 1 when large-binary
-  # pushes failed and only README was committed — metadata never advanced.
+  # RN Alpha `version` is sequential (1,2,3…) from rn-build-version — independent of
+  # GITHUB_RUN_NUMBER (Server/Web). Counter is read from App build/RNCLI-Android/latest.json;
+  # commit-app-build fallback commits small JSON so the counter advances even if APK/zips fail to push.
   # ---------------------------------------------------------------------------
+  rn-build-version:
+    name: RN CLI sequential build number
+    needs: [paths-filter, expo-bundle-prod]
+    if: |
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      needs.paths-filter.outputs.mobile_release == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      rn_build: ${{ steps.calc.outputs.rn_build }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - id: calc
+        shell: bash
+        run: |
+          set -euo pipefail
+          PREV=0
+          if [ -f "App build/RNCLI-Android/latest.json" ]; then
+            PREV=$(node -e "const j=require('./App build/RNCLI-Android/latest.json'); process.stdout.write(String(parseInt(j.version,10)||0));" 2>/dev/null || echo 0)
+          fi
+          NEXT=$((PREV + 1))
+          echo "rn_build=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "RN sequential build: $NEXT (previous $PREV)"
+
   rncli-android-apk:
     name: Android APK (React Native CLI)
-    needs: [paths-filter, expo-bundle-prod]
+    needs: [paths-filter, expo-bundle-prod, rn-build-version]
     if: |
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       needs.paths-filter.outputs.mobile_release == 'true'
@@ -425,7 +449,7 @@ jobs:
       - name: Collect APK + latest.json
         shell: bash
         env:
-          RN_BUILD: ${{ github.run_number }}
+          RN_BUILD: ${{ needs.rn-build-version.outputs.rn_build }}
         run: |
           set -euo pipefail
           mkdir -p rncli-android-dist
@@ -446,7 +470,7 @@ jobs:
 
   rncli-ios-zip:
     name: iOS emulator Xcode project zip (React Native CLI)
-    needs: [paths-filter, expo-bundle-prod]
+    needs: [paths-filter, expo-bundle-prod, rn-build-version]
     if: |
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       needs.paths-filter.outputs.mobile_release == 'true'
@@ -476,7 +500,7 @@ jobs:
       - name: Zip iOS project for emulator usage
         shell: bash
         env:
-          RN_BUILD: ${{ github.run_number }}
+          RN_BUILD: ${{ needs.rn-build-version.outputs.rn_build }}
         run: |
           set -euo pipefail
           mkdir -p rncli-ios-dist
@@ -948,4 +972,66 @@ jobs:
           git add README.md
           git diff --staged --quiet && { echo "No README changes"; exit 0; }
           git commit -m "docs(readme): update beta build info [skip ci]"
+          git push origin "${{ github.ref_name }}"
+
+  # ---------------------------------------------------------------------------
+  # SecurityHeaders.com report → security/*.md (after README bot commit; avoids parallel pushes)
+  # ---------------------------------------------------------------------------
+  security-headers-report:
+    name: Security Headers report (securityheaders.com)
+    needs: [deploy-pages, readme-build-info]
+    if: |
+      success() &&
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Sync branch with origin
+        run: |
+          git fetch origin "${{ github.ref_name }}"
+          git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+
+      - name: Download SecurityHeaders scan HTML
+        env:
+          SCAN_URL: https://securityheaders.com/?q=rianell.com&followRedirects=on
+        run: |
+          set -euo pipefail
+          OUT="${RUNNER_TEMP}/securityheaders.html"
+          curl -fsSL \
+            -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
+            -H "Accept-Language: en-GB,en;q=0.9" \
+            -H "Referer: https://securityheaders.com/" \
+            --retry 3 --retry-delay 2 \
+            "$SCAN_URL" -o "$OUT"
+          test -s "$OUT"
+          echo "SECURITY_HEADERS_HTML_FILE=$OUT" >> "$GITHUB_ENV"
+
+      - name: Generate Markdown security reports
+        env:
+          SECURITY_HEADERS_URL: https://securityheaders.com/?q=rianell.com&followRedirects=on
+          OUT_LATEST: ${{ github.workspace }}/security/securityheaders-rianell.com.md
+          OUT_RUN: ${{ github.workspace }}/security/securityheaders-runs/run-${{ github.run_number }}.md
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: node scripts/fetch-securityheaders-report.mjs
+
+      - name: Commit and push security reports
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add security/securityheaders-rianell.com.md "security/securityheaders-runs/run-${{ github.run_number }}.md"
+          git diff --staged --quiet && { echo "No security report changes"; exit 0; }
+          git commit -m "chore(security): refresh securityheaders.com report [skip ci]"
           git push origin "${{ github.ref_name }}"

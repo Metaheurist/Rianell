@@ -30,122 +30,122 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 ### v1.46.1 parity note (documentation checkpoint)
 
 - **All platforms/docs contract:** parity docs are synchronized on the current RN notification diagnostics baseline (summary line, quality/confidence cues, and trajectory context).
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.46.0 parity note (unknown-action session summary line)
 
 - **React Native:** notification diagnostics now include a compact aggregate summary line for unknown-action sessions (quality + drift + trajectory stability).
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.99 parity note (unknown-action trajectory stability note)
 
 - **React Native:** notification diagnostics now include trajectory stability status for unknown-action source evolution within a session.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.98 parity note (unknown-action source trajectory visibility)
 
 - **React Native:** notification diagnostics now include first-to-latest source trajectory context for unknown-action sessions.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.97 parity note (unknown-action recommended next-check guidance)
 
 - **React Native:** notification diagnostics now include quality-driven recommended next-check guidance for unknown-action sessions.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.96 parity note (unknown-action observability quality score)
 
 - **React Native:** notification diagnostics now include a consolidated observability quality score for unknown reminder-action sessions.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.95 parity note (documentation checkpoint)
 
 - **All platforms/docs contract:** parity docs are synchronized on the current RN notification diagnostics baseline (counts, source split, confidence hint, low-sample warning).
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.94 parity note (unknown-action minimum-sample confidence warning)
 
 - **React Native:** notification diagnostics now flag dominant-source confidence as preliminary until at least 3 unknown reminder-action observations are captured.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.93 parity note (unknown-action dominant-source confidence)
 
 - **React Native:** notification diagnostics now include dominant-source confidence context for unknown reminder actions, helping distinguish clear startup/live skew from balanced sessions.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.92 parity note (unknown-action source split percentages)
 
 - **React Native:** notification diagnostics now show startup-vs-live percentage split for unknown reminder actions, making runtime-source drift easier to compare across sessions.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.91 parity note (unknown-action drift status)
 
 - **React Native:** notification diagnostics now include a session-level drift status (`low`, `moderate`, `high`) derived from unknown reminder-action volume.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.90 parity note (documentation checkpoint)
 
 - **All platforms/docs contract:** parity docs are synchronized on the current RN notification diagnostics baseline and remaining open long-tail parity items.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.89 parity note (unknown diagnostics source breakdown)
 
 - **React Native:** notification diagnostics now include startup-vs-live unknown action counts in addition to latest-source context.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.88 parity note (unknown diagnostics source context)
 
 - **React Native:** notification diagnostics now identify whether the most recent unknown reminder action came from startup snapshot handling or live listener callbacks.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.87 parity note (unknown diagnostics last-seen context)
 
 - **React Native:** notification diagnostics now show last-seen context for unknown reminder actions, improving in-app parity troubleshooting without external logs.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.86 parity note (unknown diagnostics reset control)
 
 - **React Native:** notification diagnostics now include a user-visible reset control for session unknown-action counts, improving parity troubleshooting ergonomics.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.85 parity note (unknown drift context hint)
 
 - **React Native:** when unknown reminder actions are observed and dismiss semantics are unsupported, Settings now explains this likely runtime cause directly in the notification diagnostics area.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.84 parity note (documentation checkpoint)
 
 - **All platforms/docs contract:** parity docs are synchronized on the current RN notification baseline (dismiss capability visibility, safe dismiss no-op behavior, and unknown-action session observability).
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.83 parity note (unknown action observability)
 
 - **React Native:** notification settings now expose session-level unknown reminder action observations, improving parity diagnostics for runtime-specific action-id drift.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.82 parity note (dismiss capability visibility)
 
 - **React Native:** Settings now surfaces runtime support for dismiss semantics alongside schedule/channel/category/action listener capability statuses.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.81 parity note (dismiss action safe ignore)
 
 - **React Native:** dismissed/close notification actions are now explicitly treated as no-op (`none`) in reminder response mapping, avoiding runtime-specific accidental fallback navigation.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.80 parity note (snooze reminder response mapping)
 
 - **React Native:** taps on snoozed reminder notifications now map into the same open-app reminder action semantics as primary reminder defaults, reducing runtime-specific response drift.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.79 parity note (reminder action identifier normalization)
 
 - **React Native:** notification response handling now normalizes action identifiers from runtime-specific format variants before mapping to action semantics, improving consistency across device/runtime combinations.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.78 parity note (documentation checkpoint)
 
 - **All platforms/docs contract:** parity documentation now consistently calls out RN notification action-policy visibility and duplicate-action burst suppression as current baseline behavior.
-- **Open parity:** remaining OS-specific long-tail delivery/action differences stay tracked in `docs/next-phase-development-plan.md` Phase E.
+- **Open parity:** long-tail OS delivery/action differences are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 
 ### v1.45.77 parity note (reminder action burst de-dup)
 
@@ -175,7 +175,7 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 ### v1.45.40 parity note (AI + performance settings scope)
 
 - **React Native:** baseline parity now includes `AIEngine`-style deterministic helpers and LLM wrapper hooks (summary/MOTD/suggest), plus benchmark-tier model selection settings.
-- **Open parity:** full web benchmark detail modal (graphs/stability) and deeper AI runtime parity are still tracked in `docs/next-phase-development-plan.md` (Phase C/E/F).
+- **Open parity:** full web benchmark detail modal (graphs/stability) and deeper AI runtime parity are summarized in this file and **[CHANGELOG.md](CHANGELOG.md)**.
 - **Scope clarification:** RN keeps install/download affordances on web/PWA surfaces; native app settings do not show install buttons.
 
 ### v1.45.41 parity note (status rollup)

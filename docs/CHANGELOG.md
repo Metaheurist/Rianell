@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.10** - CI RN build numbers aligned with workflow run; metadata fallback push.
+**Latest: v1.46.11** - README RN rows use sequential RN builds again; next-phase doc stub.
+
+### v1.46.11 - 2026-03-29 - CI: restore RN-only build counter + docs
+
+- **README / CI:** **`rn-build-version`** job is **restored**. **Alpha RN Android / RN iOS** rows read **`version`** from the sequential counter (same as **`App build/RNCLI-Android/latest.json`** / iOS zips), **not** **`GITHUB_RUN_NUMBER`**. **Server** and **Web / PWA** rows still use the workflow run number. This keeps RN build counts meaningful (how many mobile artifact runs) while Server/Web stay aligned with overall CI runs.
+- **Large-file fallback** (from v1.46.10) remains: small **`latest.json`** files still commit with README when binaries fail to push, so the sequential RN counter can advance.
+- **Docs:** **`docs/next-phase-development-plan.md`** replaced with a short status note — **no active roadmap items**; pointers to CHANGELOG and feature docs. **`docs/project-reference.md`**, **`scripts/update-readme-build-info.mjs`**, **`Benchmarks/README.md`**, **`docs/app-and-features.md`** updated for RN vs workflow numbering.
+- **Tests:** **`tests/unit/workflows-ci-rncli.test.mjs`** expects **`rn-build-version`** + **`needs.rn-build-version.outputs.rn_build`**.
 
 ### v1.46.10 - 2026-03-29 - CI: RN Alpha build numbers + commit fallback
 

@@ -10024,11 +10024,19 @@ function spinOmegaToHeartbeatDuration(absOmega) {
   return 3.2 - t * (3.2 - 0.8);
 }
 
+/** MOTD: 3D tilt around X (rad) + angular velocity ω (rad/s). Spring pulls θ → 0 when idle. */
 var __motdSpinAngle = 0;
 var __motdSpinVelocity = 0;
 var __motdLastKeyTs = 0;
 var __motdRaf = null;
 var __motdLastTickTs = 0;
+
+function __motdSpinEnergy() {
+  return Math.max(
+    Math.abs(__motdSpinVelocity),
+    5.5 * Math.abs(__motdSpinAngle)
+  );
+}
 
 function __motdMotdTick(now) {
   var host = document.getElementById('motdSpinHost');
@@ -10040,13 +10048,21 @@ function __motdMotdTick(now) {
   __motdLastTickTs = now;
   if (dt > 0.12) dt = 0.12;
   __motdSpinAngle += __motdSpinVelocity * dt;
-  __motdSpinVelocity *= Math.exp(-2.8 * dt);
-  if (Math.abs(__motdSpinVelocity) < 0.0008) __motdSpinVelocity = 0;
-  host.style.transform = 'rotateZ(' + (__motdSpinAngle * 180 / Math.PI) + 'deg)';
+  __motdSpinVelocity *= Math.exp(-2.4 * dt);
+  __motdSpinVelocity -= 15 * __motdSpinAngle * dt;
+  if (Math.abs(__motdSpinVelocity) < 0.0005) __motdSpinVelocity = 0;
+  if (__motdSpinAngle > 1.2) __motdSpinAngle = 1.2;
+  if (__motdSpinAngle < -1.2) __motdSpinAngle = -1.2;
+  host.style.transform = 'rotateX(' + (__motdSpinAngle * 180 / Math.PI) + 'deg)';
   updateHeartbeatAnimation();
-  if (Math.abs(__motdSpinVelocity) > 0.0006) {
+  var settled =
+    Math.abs(__motdSpinVelocity) < 0.00055 && Math.abs(__motdSpinAngle) < 0.004;
+  if (!settled) {
     __motdRaf = requestAnimationFrame(__motdMotdTick);
   } else {
+    __motdSpinAngle = 0;
+    __motdSpinVelocity = 0;
+    host.style.transform = 'rotateX(0deg)';
     __motdRaf = null;
     updateHeartbeatAnimation();
   }
@@ -10115,8 +10131,8 @@ function updateHeartbeatAnimation() {
 
   var T_bpm = getHeartbeatDurationSecFromBpm();
   var duration = T_bpm;
-  if (Math.abs(__motdSpinVelocity) > 0.04) {
-    var T_spin = spinOmegaToHeartbeatDuration(Math.abs(__motdSpinVelocity));
+  if (__motdSpinEnergy() > 0.04) {
+    var T_spin = spinOmegaToHeartbeatDuration(__motdSpinEnergy());
     duration = Math.min(T_bpm, T_spin);
   }
 

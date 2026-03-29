@@ -2,11 +2,11 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.46.10** - CI RN build numbers and metadata fallback).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.46.11** - RN README build counter + next-phase status).
 
 ### Here’s what we plan next
 
-Roadmap for the next phase - **web + React Native** split, **system-aware themes** with per-team light/dark tokens, **accessibility** (settings, font scale, TTS, colourblind options), and **AI inference** scaffolding for on-device and browser acceleration - is in **[docs/next-phase-development-plan.md](docs/next-phase-development-plan.md)**.
+**[docs/next-phase-development-plan.md](docs/next-phase-development-plan.md)** currently states there are **no new planned features** in active development; shipped work is summarized in the **[changelog](docs/CHANGELOG.md)** and **[app overview](docs/app-and-features.md)**.
 
 ### Tech stack
 

@@ -765,6 +765,8 @@ body.tab-not-home .title-container {
   display: inline-block;
   vertical-align: top;
   transform-origin: 50% 56%;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
