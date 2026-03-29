@@ -16,17 +16,12 @@ test('CI includes RN CLI native artifact jobs (no EXPO_TOKEN)', () => {
   assert.doesNotMatch(ciYml, /Missing EXPO_TOKEN/i);
 });
 
-test('RN CLI jobs stamp latest.json with github.run_number (aligned with Server/Web)', () => {
-  assert.doesNotMatch(ciYml, /rn-build-version:/);
-  assert.match(ciYml, /RN_BUILD:\s*\$\{\{\s*github\.run_number\s*\}\}/);
-  assert.match(
-    ciYml,
-    /Collect APK \+ latest\.json[\s\S]*?RN_BUILD:\s*\$\{\{\s*github\.run_number\s*\}\}/m
-  );
-  assert.match(
-    ciYml,
-    /Zip iOS project for emulator usage[\s\S]*?RN_BUILD:\s*\$\{\{\s*github\.run_number\s*\}\}/m
-  );
+test('RN CLI jobs use rn-build-version sequential counter (not workflow run for RN rows)', () => {
+  assert.match(ciYml, /rn-build-version:/);
+  assert.match(ciYml, /outputs:\s*[\s\S]*rn_build:/m);
+  assert.match(ciYml, /rncli-android-apk:\s*[\s\S]*?needs:\s*\[[^\]]*rn-build-version[^\]]*\]/m);
+  assert.match(ciYml, /rncli-ios-zip:\s*[\s\S]*?needs:\s*\[[^\]]*rn-build-version[^\]]*\]/m);
+  assert.match(ciYml, /RN_BUILD:\s*\$\{\{\s*needs\.rn-build-version\.outputs\.rn_build\s*\}\}/);
 });
 
 test('commit-app-build large-file fallback commits RN/Server latest.json metadata', () => {

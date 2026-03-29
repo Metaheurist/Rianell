@@ -95,7 +95,7 @@ function HomeMotdHeartbeat({
   const sway = useRef(new Animated.Value(0)).current;
   const spinAngle = useRef(new Animated.Value(0)).current;
   const velocityRef = useRef(0);
-  const angleDegRef = useRef(0);
+  const angleRadRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef(0);
   const dashAnim = useRef(new Animated.Value(1000)).current;
@@ -125,24 +125,32 @@ function HomeMotdHeartbeat({
 
   const swayRotate = sway.interpolate({ inputRange: [-1, 1], outputRange: ['-4deg', '4deg'] });
   const spinRotate = spinAngle.interpolate({
-    inputRange: [0, 360],
-    outputRange: ['0deg', '360deg'],
-    extrapolate: 'extend',
+    inputRange: [-90, 90],
+    outputRange: ['-90deg', '90deg'],
+    extrapolate: 'clamp',
   });
+
+  const spinEnergy = useCallback(() => {
+    const th = angleRadRef.current;
+    const om = velocityRef.current;
+    return Math.max(Math.abs(om), 5.5 * Math.abs(th));
+  }, []);
 
   const runSpinTick = useCallback((ts: number) => {
     const dt = lastTsRef.current ? (ts - lastTsRef.current) / 1000 : 0;
     lastTsRef.current = ts;
     const d = dt > 0.12 ? 0.12 : dt;
-    velocityRef.current *= Math.exp(-2.8 * d);
-    if (Math.abs(velocityRef.current) < 0.0008) velocityRef.current = 0;
-    angleDegRef.current += velocityRef.current * d * (180 / Math.PI) * 0.2;
-    spinAngle.setValue(angleDegRef.current);
+    angleRadRef.current += velocityRef.current * d;
+    velocityRef.current *= Math.exp(-2.4 * d);
+    velocityRef.current -= 15 * angleRadRef.current * d;
+    if (Math.abs(velocityRef.current) < 0.0005) velocityRef.current = 0;
+    angleRadRef.current = Math.max(-1.2, Math.min(1.2, angleRadRef.current));
+    spinAngle.setValue((angleRadRef.current * 180) / Math.PI);
 
     const T_bpm = bpmDurRef.current;
     let dur = T_bpm;
-    if (Math.abs(velocityRef.current) > 0.04) {
-      const T_spin = spinOmegaToHeartbeatDuration(Math.abs(velocityRef.current));
+    if (spinEnergy() > 0.04) {
+      const T_spin = spinOmegaToHeartbeatDuration(spinEnergy());
       dur = Math.min(T_bpm, T_spin);
     }
     if (Math.abs(effDurRef.current - dur) > 0.03) {
@@ -150,14 +158,19 @@ function HomeMotdHeartbeat({
       setEcgDurationSec(dur);
     }
 
-    if (Math.abs(velocityRef.current) > 0.0006) {
+    const settled =
+      Math.abs(velocityRef.current) < 0.00055 && Math.abs(angleRadRef.current) < 0.004;
+    if (!settled) {
       rafRef.current = requestAnimationFrame(runSpinTick);
     } else {
       rafRef.current = null;
+      angleRadRef.current = 0;
+      velocityRef.current = 0;
+      spinAngle.setValue(0);
       effDurRef.current = bpmDurRef.current;
       setEcgDurationSec(bpmDurRef.current);
     }
-  }, [spinAngle]);
+  }, [spinAngle, spinEnergy]);
 
   const bumpSpin = useCallback(() => {
     if (light || reduceMotion) return;
@@ -230,9 +243,9 @@ function HomeMotdHeartbeat({
         onPressOut={onMotdPressOut}
         accessibilityRole="button"
         accessibilityLabel="Daily message"
-        accessibilityHint="Tap or hold to spin"
+        accessibilityHint="Tap or hold to tilt the message in 3D"
       >
-        <Animated.View style={{ transform: [{ rotate: spinRotate }] }}>
+        <Animated.View style={{ transform: [{ perspective: 900 }, { rotateX: spinRotate }] }}>
           <Animated.View style={{ transform: [{ rotate: swayRotate }] }}>
             <Text style={[styles.motd, { color: textColor, fontSize: theme.font(13) }]}>{motd || 'Loading AI message...'}</Text>
           </Animated.View>

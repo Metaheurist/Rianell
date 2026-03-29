@@ -293,7 +293,7 @@ flowchart LR
 
 ### v1.45.41 documentation sync
 
-- Added parity status wording for RN AI/LLM, demo mode, and benchmark/model selection so docs match the current implementation and remaining backlog in `docs/next-phase-development-plan.md`.
+- Added parity status wording for RN AI/LLM, demo mode, and benchmark/model selection (see **`docs/platform-parity.md`** and **[CHANGELOG.md](CHANGELOG.md)**).
 
 ### v1.45.26 documentation sync
 
@@ -409,7 +409,7 @@ flowchart LR
 
 **React Native — Log today wizard (web parity):** Ten-step flow (date → vitals → symptoms & pain → energy & mental clarity → stress → lifestyle → food → exercise → meds → review). **Symptoms & pain** includes a tap-to-cycle **body diagram** with the same SVG **silhouette path** as `apps/pwa-webapp/index.html`, optional text field + chips for all regions, and merge into stored `painLocation`. **Energy & mental clarity** uses grouped icon tiles (positive / neutral / negative), search, collapsible picker, and accessibility labels on fatigue/sleep/mood.
 
-**React Native — Charts & AI (Phase B/C):** **Charts** tab: range chips (7/30/90/all) with **accessibility** labels and selected state, pull-to-refresh; per-metric **spark bars** and **left-border** trend rows use **web-aligned** hex colors (`CHART_METRIC_HEX` in `summarizeCharts.ts`); values and deltas use **format helpers** matching web (integer steps, hydration `X.X glasses`, one decimal for mood/sleep/fatigue). **AI Analysis** tab now includes range-based deterministic sections plus a generated **Summary note** through the RN LLM wrapper and AIEngine fallback path. See **`docs/next-phase-development-plan.md`** for remaining full model/runtime parity items. Quality gates: `npm run typecheck:mobile`, `npm run test:mobile`.
+**React Native — Charts & AI (Phase B/C):** **Charts** tab: range chips (7/30/90/all) with **accessibility** labels and selected state, pull-to-refresh; per-metric **spark bars** and **left-border** trend rows use **web-aligned** hex colors (`CHART_METRIC_HEX` in `summarizeCharts.ts`); values and deltas use **format helpers** matching web (integer steps, hydration `X.X glasses`, one decimal for mood/sleep/fatigue). **AI Analysis** tab now includes range-based deterministic sections plus a generated **Summary note** through the RN LLM wrapper and AIEngine fallback path. See **`docs/platform-parity.md`** and **[CHANGELOG.md](CHANGELOG.md)** for ongoing refinements. Quality gates: `npm run typecheck:mobile`, `npm run test:mobile`.
 
 ### Cloud sync (Supabase)
 - **Anonymised contribution**: Optional "Contribute anonymised data" in Settings; GDPR-compliant consent; data anonymised before upload; medical condition used for server-side aggregation only.
@@ -433,9 +433,9 @@ flowchart LR
 | Channel | Meaning in this app | Where the build number comes from |
 |--------|---------------------|-----------------------------------|
 | **Beta** | Android debug APK, **Install web app** / Add to Home Screen (PWA), and **Install on this iPhone/iPad** (Safari PWA). | **Legacy Capacitor:** `App build/Android/latest.json` → `version` for the APK. The Settings UI shows `(build N)` after fetch. |
-| **Alpha** | **iOS native** artifact only: Xcode project zip (and optional one-tap install URL when `installUrl` is set in the manifest). Not the Safari “Add to Home Screen” flow. | **RN CLI (current):** `App build/iOS/latest.json` (and matching **`App build/RNCLI-Android/latest.json`** for the RN Android APK row in the README CI table). **`version`** is the **GitHub Actions workflow run number** for that CI run, aligned with Server EXE and Web/PWA in the top README table. **Legacy Capacitor iOS** metadata lives under `App build/Legacy/Capacitor-iOS/`. |
+| **Alpha** | **iOS native** artifact only: Xcode project zip (and optional one-tap install URL when `installUrl` is set in the manifest). Not the Safari “Add to Home Screen” flow. | **RN CLI (current):** `App build/iOS/latest.json` and **`App build/RNCLI-Android/latest.json`**. **`version`** is the **sequential RN CLI build** (increments each time CI produces native RN artifacts), **not** the global workflow run number. **Server** and **Web / PWA** rows in the README still use **`GITHUB_RUN_NUMBER`**. **Legacy Capacitor iOS** metadata lives under `App build/Legacy/Capacitor-iOS/`. |
 
-**Build numbers in this README:** The **CI builds** table (Alpha RN Android / RN iOS / Server / Web) is **updated automatically** when CI commits **`App build/`** and runs **`scripts/update-readme-build-info.mjs`**. The **Legacy builds** table still reflects frozen Capacitor **`App build/Android/`** and **`App build/Legacy/Capacitor-iOS/`** metadata.
+**Build numbers in this README:** The **CI builds** table is **updated automatically** when CI commits **`App build/`** and runs **`scripts/update-readme-build-info.mjs`**. **Legacy builds** reflect frozen Capacitor **`App build/Android/`** and **`App build/Legacy/Capacitor-iOS/`** metadata.
 
 The web app reads these manifests at runtime (`apps/pwa-webapp/app.js`, `refreshBuildDownloadLinks`) so the label **(build N)** on install links stays in sync after each CI deploy. **Beta** / **Alpha** pills are fixed labels in the UI: every install/download path except the **iOS native zip/OTA** link is **Beta**; the **iOS native** download is **Alpha**.
 

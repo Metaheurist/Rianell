@@ -2,9 +2,14 @@
 
 ## 🗂️ Project Structure
 
+### v1.46.11 documentation sync (RN README build vs workflow run)
+
+- **CI:** README **Alpha RN** rows use the **sequential RN build** from **`rn-build-version`** (stored in **`App build/RNCLI-Android/latest.json`**). **Server** and **Web / PWA** rows still follow **`GITHUB_RUN_NUMBER`**. Metadata-only fallback commits keep JSON in sync when large binaries cannot be pushed.
+- **Next-phase plan:** `docs/next-phase-development-plan.md` is a short status note (no active roadmap items).
+
 ### v1.46.10 documentation sync (CI RN build numbers)
 
-- **CI:** `.github/workflows/ci.yml` — React Native CLI Alpha **`version`** in **`App build/RNCLI-Android/latest.json`** and **`App build/iOS/latest.json`** uses **`github.run_number`** (same idea as Server EXE + README Web row). Large-git-push fallback still commits those JSON files with README when APK/zip binaries are rejected.
+- **CI:** (superseded by v1.46.11) RN `latest.json` briefly used **`github.run_number`**; restored sequential RN counter for correct README differentiation.
 - **Tests:** `tests/unit/workflows-ci-rncli.test.mjs` guards the workflow shape.
 
 ### v1.46.4 documentation sync
