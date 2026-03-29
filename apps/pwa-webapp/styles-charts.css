@@ -151,6 +151,24 @@
   font-style: italic;
 }
 
+body.light-mode .chart-container {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(129, 199, 132, 0.32);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .chart-info-box .info-content {
+  color: var(--text-dark);
+}
+
+body.light-mode .chart-info-box .info-content strong {
+  color: var(--text-secondary);
+}
+
+body.light-mode .chart-info-box .info-content small {
+  color: rgba(30, 60, 30, 0.78);
+}
+
 /* Overlay shown while combined chart predictions are being computed (avoids perceived lag) */
 .chart-predictions-loading-overlay {
   position: absolute;
@@ -177,6 +195,11 @@
   animation: spin 0.9s linear infinite;
   margin-right: 0.5rem;
   vertical-align: middle;
+}
+
+body.light-mode .chart-predictions-loading-overlay {
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--text-dark);
 }
 
 .chart-loading {
@@ -211,6 +234,16 @@
   border-radius: 50%;
   transform: translate(-50%, -50%);
   animation: spin 1s linear infinite;
+}
+
+body.light-mode .chart-loading {
+  color: var(--text-dark);
+  background: linear-gradient(
+    90deg,
+    rgba(76, 175, 80, 0.06) 0%,
+    rgba(76, 175, 80, 0.12) 50%,
+    rgba(76, 175, 80, 0.06) 100%
+  );
 }
 
 /* Static "No data" message - no animations or spinner */

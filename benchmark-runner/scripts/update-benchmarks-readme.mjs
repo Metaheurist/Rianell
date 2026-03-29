@@ -28,6 +28,11 @@ export function updateBenchmarksReadme() {
     md += `| ${p.label} | ${link} |\n`;
   }
 
+  md += `\n## History and comparison\n\n`;
+  md += `On each CI benchmark commit to \`main\`/\`master\`, per-platform run snapshots are merged into \`history.json\` and **[compare.md](./compare.md)** is regenerated (tables + Mermaid charts). `;
+  md += `Adjust the default run window and platforms in **[compare.config.json](./compare.config.json)**.\n\n`;
+  md += `Local runs write \`latest.run.json\` next to \`latest.md\`; **history append** runs in the **commit-benchmarks** CI job. To refresh **compare.md** from existing \`history.json\` files locally: \`npm run compare --workspace=@rianell/benchmark-runner\`.\n`;
+
   md += `\n## Run locally\n\n`;
   md += `From the repository root:\n\n`;
   md += `1. \`npm ci\`\n`;

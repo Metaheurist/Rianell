@@ -1,0 +1,5 @@
+{
+  "window": 10,
+  "detail_windows": [5, 20],
+  "platforms": ["web-pwa", "github-pages", "capacitor-web", "expo-rn"]
+}

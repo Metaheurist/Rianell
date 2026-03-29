@@ -110,6 +110,7 @@ function BalanceVisual({
 }: {
   trends: Array<{ key: keyof typeof CHART_METRIC_HEX; label: string; current: number | null }>;
 }) {
+  const theme = useTheme();
   const rows = trends
     .map((trend) => ({
       ...trend,
@@ -124,7 +125,7 @@ function BalanceVisual({
     <View style={styles.balanceVisualCard} accessibilityLabel="Balance visual chart">
       {rows.map((row) => (
         <View key={`balance-${row.key}`} style={styles.balanceVisualRow}>
-          <Text style={styles.balanceVisualLabel}>{row.label}</Text>
+          <Text style={[styles.balanceVisualLabel, { color: theme.tokens.color.text }]}>{row.label}</Text>
           <View style={styles.balanceVisualTrack}>
             <View
               style={[
@@ -237,7 +238,15 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <View style={styles.card}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor:
+                theme.mode === 'light' ? `${theme.tokens.color.text}0D` : 'rgba(0,0,0,0.18)',
+            },
+          ]}
+        >
           <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>Charts</Text>
           <Text style={[styles.lead, { color: theme.tokens.color.text, fontSize: theme.font(15) }]}>
             {view === 'balance'
@@ -266,13 +275,29 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
                   accessibilityRole="button"
                   accessibilityLabel={`Chart view ${label}`}
                   accessibilityState={{ selected }}
-                  style={[styles.rangeChip, selected ? styles.rangeChipOn : null]}
+                  style={[
+                    styles.rangeChip,
+                    {
+                      backgroundColor: selected
+                        ? `${theme.tokens.color.accent}33`
+                        : `${theme.tokens.color.text}14`,
+                    },
+                  ]}
                   onPress={() => {
                     runLayoutMotion();
                     setView(opt);
                   }}
                 >
-                  <Text style={styles.rangeChipText}>{label}</Text>
+                  <Text
+                    style={[
+                      styles.rangeChipText,
+                      {
+                        color: selected ? theme.tokens.color.accent : theme.tokens.color.text,
+                      },
+                    ]}
+                  >
+                    {label}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -289,13 +314,29 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
                   accessibilityRole="button"
                   accessibilityLabel={opt === 'all' ? 'Charts date range all time' : `Charts date range ${opt} days`}
                   accessibilityState={{ selected }}
-                  style={[styles.rangeChip, selected ? styles.rangeChipOn : null]}
+                  style={[
+                    styles.rangeChip,
+                    {
+                      backgroundColor: selected
+                        ? `${theme.tokens.color.accent}33`
+                        : `${theme.tokens.color.text}14`,
+                    },
+                  ]}
                   onPress={() => {
                     runLayoutMotion();
                     setRange(opt);
                   }}
                 >
-                  <Text style={styles.rangeChipText}>{label}</Text>
+                  <Text
+                    style={[
+                      styles.rangeChipText,
+                      {
+                        color: selected ? theme.tokens.color.accent : theme.tokens.color.text,
+                      },
+                    ]}
+                  >
+                    {label}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -464,10 +505,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.08)',
   },
-  rangeChipOn: { backgroundColor: 'rgba(255,255,255,0.22)' },
-  rangeChipText: { color: '#fff', fontWeight: '800' },
+  rangeChipText: { fontWeight: '800' },
   targetBlock: { marginBottom: 10 },
   targetTrack: {
     marginTop: 4,

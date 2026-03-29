@@ -88,7 +88,15 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} />}
       >
-        <View style={styles.card}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor:
+                theme.mode === 'light' ? `${theme.tokens.color.text}0D` : 'rgba(0,0,0,0.18)',
+            },
+          ]}
+        >
         <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>AI Analysis</Text>
 
           <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
@@ -112,10 +120,26 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                   accessibilityRole="button"
                   accessibilityLabel={opt === 'all' ? 'AI analysis range all time' : `AI analysis range ${opt} days`}
                   accessibilityState={{ selected }}
-                  style={[styles.rangeChip, selected ? styles.rangeChipOn : null]}
+                  style={[
+                    styles.rangeChip,
+                    {
+                      backgroundColor: selected
+                        ? `${theme.tokens.color.accent}33`
+                        : `${theme.tokens.color.text}14`,
+                    },
+                  ]}
                   onPress={() => setRange(opt)}
                 >
-                  <Text style={styles.rangeChipText}>{label}</Text>
+                  <Text
+                    style={[
+                      styles.rangeChipText,
+                      {
+                        color: selected ? theme.tokens.color.accent : theme.tokens.color.text,
+                      },
+                    ]}
+                  >
+                    {label}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -252,9 +276,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.08)',
   },
-  rangeChipOn: { backgroundColor: 'rgba(255,255,255,0.22)' },
-  rangeChipText: { color: '#fff', fontWeight: '800' },
+  rangeChipText: { fontWeight: '800' },
 });
 
