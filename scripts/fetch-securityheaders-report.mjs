@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 /**
- * Fetches https://securityheaders.com/?q=... and writes Markdown under security/.
- * Used by CI after GitHub Pages deploy. Env:
- *   SECURITY_HEADERS_URL — full scan URL (default: rianell.com with followRedirects)
- *   SECURITY_HEADERS_HTML_FILE — if set, read HTML from this path instead of fetch (e.g. curl output in CI)
- *   OUT_LATEST — default security/securityheaders-rianell.com.md
- *   OUT_RUN — optional second file (e.g. per-run archive)
- *   GITHUB_RUN_NUMBER, GITHUB_SHA, GITHUB_RUN_ID — optional frontmatter
+ * Writes `security/securityheaders-rianell.com.md` for CI.
+ *
+ * 1) Tries to fetch the SecurityHeaders.com scan HTML (often **403** from GitHub
+ *    Actions IPs — Cloudflare / bot protection).
+ * 2) On failure or empty body, **fallback**: GET `SECURITY_HEADERS_FALLBACK_SITE`
+ *    (default https://rianell.com) and record **response headers** in Markdown.
+ *
+ * Env:
+ *   SECURITY_HEADERS_URL — scan page (default securityheaders.com?q=rianell.com…)
+ *   SECURITY_HEADERS_HTML_FILE — optional path to pre-fetched HTML (local/debug)
+ *   SECURITY_HEADERS_FALLBACK_SITE — default https://rianell.com
+ *   OUT_LATEST, OUT_RUN, GITHUB_RUN_NUMBER, GITHUB_SHA, GITHUB_RUN_ID
  */
 import fs from 'fs';
 import path from 'path';
@@ -14,7 +19,12 @@ import path from 'path';
 const DEFAULT_URL =
   'https://securityheaders.com/?q=rianell.com&followRedirects=on';
 
+const DEFAULT_FALLBACK_SITE = 'https://rianell.com';
+
 const url = process.env.SECURITY_HEADERS_URL || DEFAULT_URL;
+const fallbackSite =
+  process.env.SECURITY_HEADERS_FALLBACK_SITE || DEFAULT_FALLBACK_SITE;
+
 const outLatest =
   process.env.OUT_LATEST ||
   path.join(process.cwd(), 'security', 'securityheaders-rianell.com.md');
@@ -90,7 +100,6 @@ function extractTitle(html) {
 }
 
 function extractMainTablesAndHeadings(html) {
-  /** Prefer content after "Scan results" banner; fallback: body tables */
   let slice = html;
   const marker = /Scan results for/i.exec(html);
   if (marker) slice = html.slice(marker.index);
@@ -99,10 +108,8 @@ function extractMainTablesAndHeadings(html) {
   const headingRe = /<h([1-3])[^>]*>([\s\S]*?)<\/h\1>/gi;
   const tableRe = /<table[^>]*>([\s\S]*?)<\/table>/gi;
 
-  let last = 0;
-  const chunks = [];
-  let hm;
   const headPositions = [];
+  let hm;
   while ((hm = headingRe.exec(slice)) !== null) {
     headPositions.push({
       type: 'h',
@@ -111,8 +118,8 @@ function extractMainTablesAndHeadings(html) {
       index: hm.index,
     });
   }
-  let tm;
   const tablePositions = [];
+  let tm;
   while ((tm = tableRe.exec(slice)) !== null) {
     tablePositions.push({ type: 't', html: tm[0], index: tm.index });
   }
@@ -133,10 +140,8 @@ function extractMainTablesAndHeadings(html) {
     }
   }
 
-  /** Footer noise: drop lines that are only navigation */
   let body = parts.join('');
   if (body.length < 80) {
-    /** Fallback: all tables from full page */
     parts.length = 0;
     let t;
     const tr = /<table[^>]*>([\s\S]*?)<\/table>/gi;
@@ -149,41 +154,99 @@ function extractMainTablesAndHeadings(html) {
   return body;
 }
 
-async function loadHtml() {
-  const fromFile = process.env.SECURITY_HEADERS_HTML_FILE;
-  if (fromFile) {
-    const html = fs.readFileSync(fromFile, 'utf8');
-    console.log('Using HTML from', fromFile, `(${html.length} bytes)`);
-    return html;
-  }
+async function fetchSecurityHeadersScanPage() {
   const ua =
     'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
   const res = await fetch(url, {
     headers: {
       'User-Agent': ua,
       Accept:
-        'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
       'Accept-Language': 'en-GB,en;q=0.9',
       Referer: 'https://securityheaders.com/',
+      'Sec-Ch-Ua': '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+      'Sec-Ch-Ua-Mobile': '?0',
+      'Sec-Ch-Ua-Platform': '"Linux"',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'cross-site',
+      'Sec-Fetch-User': '?1',
+      'Upgrade-Insecure-Requests': '1',
     },
     redirect: 'follow',
   });
-  if (!res.ok) {
-    console.error('fetch failed:', res.status, res.statusText);
-    process.exit(1);
+  const text = await res.text();
+  return { ok: res.ok, status: res.status, text };
+}
+
+function headersMarkdownTable(headers) {
+  const entries = [];
+  headers.forEach((value, key) => entries.push([key, String(value)]));
+  entries.sort((a, b) => a[0].localeCompare(b[0]));
+  const esc = (s) => String(s).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+  let out = '| Header | Value |\n| --- | --- |\n';
+  for (const [k, v] of entries) {
+    out += `| ${esc(k)} | ${esc(v)} |\n`;
   }
-  return res.text();
+  return out + '\n';
+}
+
+async function fetchLiveSiteHeaders(siteUrl) {
+  const res = await fetch(siteUrl, {
+    method: 'GET',
+    redirect: 'follow',
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (compatible; Rianell-CI/1.0; +https://github.com/Metaheurist/Rianell)',
+      Accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-GB,en;q=0.9',
+    },
+  });
+  const text = await res.text();
+  return {
+    ok: res.ok,
+    status: res.status,
+    finalUrl: res.url,
+    headers: res.headers,
+    bodySampleLen: text.length,
+  };
+}
+
+async function loadHtmlFromFile() {
+  const fromFile = process.env.SECURITY_HEADERS_HTML_FILE;
+  if (!fromFile) return null;
+  if (!fs.existsSync(fromFile)) return null;
+  const html = fs.readFileSync(fromFile, 'utf8');
+  console.log('Using HTML from', fromFile, `(${html.length} bytes)`);
+  return html;
 }
 
 async function main() {
-  const html = await loadHtml();
-
-  const title = extractTitle(html);
-  const summary = extractMainTablesAndHeadings(html);
-
   const run = process.env.GITHUB_RUN_NUMBER || 'local';
   const sha = (process.env.GITHUB_SHA || 'local').slice(0, 7);
   const runId = process.env.GITHUB_RUN_ID || '';
+
+  let html = await loadHtmlFromFile();
+  let remoteStatus = null;
+  let remoteScanBlocked = false;
+
+  if (!html) {
+    console.log('Fetching securityheaders.com scan page…');
+    const r = await fetchSecurityHeadersScanPage();
+    remoteStatus = r.status;
+    if (r.ok && r.text && r.text.length > 500 && /Scan results|Security Report/i.test(r.text)) {
+      html = r.text;
+      console.log('remote scan HTML ok, length', html.length);
+    } else {
+      remoteScanBlocked = true;
+      console.warn(
+        'securityheaders.com scan not usable:',
+        r.status,
+        'body length',
+        r.text ? r.text.length : 0
+      );
+    }
+  }
 
   let md = `---\n`;
   md += `source: securityheaders.com\n`;
@@ -192,13 +255,35 @@ async function main() {
   md += `github_run_number: ${run}\n`;
   md += `github_sha: ${sha}\n`;
   if (runId) md += `github_run_id: ${runId}\n`;
+  if (remoteStatus != null) md += `securityheaders_http_status: ${remoteStatus}\n`;
+  if (remoteScanBlocked) md += `securityheaders_scan: blocked_or_unavailable\n`;
   md += `---\n\n`;
-  md += `# ${title}\n\n`;
-  md += `**Fetched:** ${url}\n\n`;
-  md += summary;
 
-  if (md.length < 200) {
-    md += `\n\n---\n\n*Fallback: minimal parse. Raw length ${html.length} bytes.*\n`;
+  if (html && !remoteScanBlocked) {
+    const title = extractTitle(html);
+    const summary = extractMainTablesAndHeadings(html);
+    md += `# ${title}\n\n`;
+    md += `**Fetched:** ${url}\n\n`;
+    md += summary;
+    if (md.length < 200) {
+      md += `\n\n---\n\n*Fallback: minimal parse. Raw length ${html.length} bytes.*\n`;
+    }
+  } else {
+    md += `# Security headers report (CI)\n\n`;
+    if (remoteScanBlocked) {
+      md += `The automated request to **[securityheaders.com](https://securityheaders.com/)** did not return a usable scan page from this runner (often **HTTP 403**: bot protection / Cloudflare on datacenter IPs). Below is a **direct fetch** of response headers from the live site.\n\n`;
+    }
+    md += `## Live site response headers\n\n`;
+    md += `**URL:** ${fallbackSite}\n\n`;
+    try {
+      const live = await fetchLiveSiteHeaders(fallbackSite);
+      md += `**HTTP status:** ${live.status}  \n`;
+      md += `**Final URL:** ${live.finalUrl}  \n`;
+      md += `**Response body length (bytes):** ${live.bodySampleLen}\n\n`;
+      md += headersMarkdownTable(live.headers);
+    } catch (e) {
+      md += `*Failed to fetch live site: ${e && e.message ? e.message : String(e)}*\n`;
+    }
   }
 
   fs.mkdirSync(path.dirname(outLatest), { recursive: true });
