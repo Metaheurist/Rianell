@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.14** - Documentation aligned with unified `benchmarks/` workspace paths.
+**Latest: v1.46.15** - Security Headers: relay fetch for scan HTML + live URL chain.
+
+### v1.46.15 - 2026-03-29 - Security Headers CI: relay scan page, browser-like live fetch
+
+- **Problem:** **securityheaders.com** and sometimes the **live site** return **403** from GitHub Actions (bot / Cloudflare). Browser-only proxy sites (e.g. Proxyium) are **not** usable from CI (no stable API).
+- **Fix (`scripts/fetch-securityheaders-report.mjs`):** After a failed **direct** scan fetch, try **HTML relays** in order: **AllOrigins**, **corsproxy.io**, **Codetabs** — then parse the SecurityHeaders scan page when any relay returns usable HTML. **Live header** fallback tries **`SECURITY_HEADERS_LIVE_URLS`** (CI: `https://rianell.com` then `https://www.rianell.com`) with a **Chrome-like** User-Agent. YAML may include **`securityheaders_scan_relay`**. **`security/README.md`** explains relays vs interactive proxies.
 
 ### v1.46.14 - 2026-03-29 - Docs: benchmark paths and repo tree
 
