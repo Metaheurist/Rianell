@@ -1,12 +1,24 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Linking, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  AccessibilityInfo,
+  Alert,
+  Animated,
+  Easing,
+  Linking,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { CompositeNavigationProp } from '@react-navigation/native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../theme/ThemeProvider';
 import type { MainTabParamList, RootStackParamList } from '../navigation/RootNavigator';
@@ -26,6 +38,229 @@ type HomeNav = CompositeNavigationProp<
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
+}
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+
+function useReduceMotionFlag() {
+  const [reduce, setReduce] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then((v) => {
+        if (alive) setReduce(v);
+      })
+      .catch(() => {});
+    const sub = AccessibilityInfo.addEventListener?.('reduceMotionChanged', (v: boolean) => {
+      setReduce(v);
+    });
+    return () => {
+      alive = false;
+      if (typeof sub === 'object' && sub != null && 'remove' in sub) {
+        (sub as { remove: () => void }).remove();
+      }
+    };
+  }, []);
+  return reduce;
+}
+
+function heartbeatDurationFromBpm(bpm: number | null) {
+  if (bpm == null || bpm < 30 || bpm > 200) {
+    const defaultBpm = 72;
+    return Math.max(0.8, Math.min(3.2, (60 / defaultBpm) * 1.6));
+  }
+  return Math.max(0.8, Math.min(3.2, (60 / bpm) * 1.6));
+}
+
+function spinOmegaToHeartbeatDuration(absOmega: number) {
+  const maxO = 18;
+  const t = Math.min(1, absOmega / maxO);
+  return 3.2 - t * (3.2 - 0.8);
+}
+
+function HomeMotdHeartbeat({
+  motd,
+  theme,
+  latestBpm,
+}: {
+  motd: string;
+  theme: ReturnType<typeof useTheme>;
+  latestBpm: number | null;
+}) {
+  const reduceMotion = useReduceMotionFlag();
+  const light = theme.mode === 'light';
+  const accent = theme.tokens.color.accent;
+  const textColor = theme.tokens.color.text;
+
+  const sway = useRef(new Animated.Value(0)).current;
+  const spinAngle = useRef(new Animated.Value(0)).current;
+  const velocityRef = useRef(0);
+  const angleDegRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+  const lastTsRef = useRef(0);
+  const dashAnim = useRef(new Animated.Value(1000)).current;
+  const bpmDurRef = useRef(heartbeatDurationFromBpm(latestBpm));
+  const effDurRef = useRef(bpmDurRef.current);
+
+  const [ecgDurationSec, setEcgDurationSec] = useState(() => heartbeatDurationFromBpm(latestBpm));
+
+  useEffect(() => {
+    const next = heartbeatDurationFromBpm(latestBpm);
+    bpmDurRef.current = next;
+    effDurRef.current = next;
+    setEcgDurationSec(next);
+  }, [latestBpm]);
+
+  useEffect(() => {
+    if (light || reduceMotion) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(sway, { toValue: 1, duration: 2100, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(sway, { toValue: -1, duration: 2100, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [light, reduceMotion, sway]);
+
+  const swayRotate = sway.interpolate({ inputRange: [-1, 1], outputRange: ['-4deg', '4deg'] });
+  const spinRotate = spinAngle.interpolate({
+    inputRange: [0, 360],
+    outputRange: ['0deg', '360deg'],
+    extrapolate: 'extend',
+  });
+
+  const runSpinTick = useCallback((ts: number) => {
+    const dt = lastTsRef.current ? (ts - lastTsRef.current) / 1000 : 0;
+    lastTsRef.current = ts;
+    const d = dt > 0.12 ? 0.12 : dt;
+    velocityRef.current *= Math.exp(-2.8 * d);
+    if (Math.abs(velocityRef.current) < 0.0008) velocityRef.current = 0;
+    angleDegRef.current += velocityRef.current * d * (180 / Math.PI) * 0.2;
+    spinAngle.setValue(angleDegRef.current);
+
+    const T_bpm = bpmDurRef.current;
+    let dur = T_bpm;
+    if (Math.abs(velocityRef.current) > 0.04) {
+      const T_spin = spinOmegaToHeartbeatDuration(Math.abs(velocityRef.current));
+      dur = Math.min(T_bpm, T_spin);
+    }
+    if (Math.abs(effDurRef.current - dur) > 0.03) {
+      effDurRef.current = dur;
+      setEcgDurationSec(dur);
+    }
+
+    if (Math.abs(velocityRef.current) > 0.0006) {
+      rafRef.current = requestAnimationFrame(runSpinTick);
+    } else {
+      rafRef.current = null;
+      effDurRef.current = bpmDurRef.current;
+      setEcgDurationSec(bpmDurRef.current);
+    }
+  }, [spinAngle]);
+
+  const bumpSpin = useCallback(() => {
+    if (light || reduceMotion) return;
+    velocityRef.current += 3.2;
+    if (rafRef.current == null) {
+      lastTsRef.current = 0;
+      rafRef.current = requestAnimationFrame(runSpinTick);
+    }
+  }, [light, reduceMotion, runSpinTick]);
+
+  const holdSpinRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const onMotdPressIn = useCallback(() => {
+    if (light || reduceMotion) return;
+    bumpSpin();
+    holdSpinRef.current = setInterval(() => {
+      bumpSpin();
+    }, 110);
+  }, [light, reduceMotion, bumpSpin]);
+  const onMotdPressOut = useCallback(() => {
+    if (holdSpinRef.current) {
+      clearInterval(holdSpinRef.current);
+      holdSpinRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (holdSpinRef.current) clearInterval(holdSpinRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (light || reduceMotion) return;
+    dashAnim.setValue(1000);
+    const loop = Animated.loop(
+      Animated.timing(dashAnim, {
+        toValue: -1000,
+        duration: Math.max(0.8, ecgDurationSec) * 1000,
+        easing: Easing.linear,
+        useNativeDriver: false,
+      })
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [dashAnim, ecgDurationSec, light, reduceMotion]);
+
+  if (light || reduceMotion) {
+    return (
+      <>
+        <Text style={[styles.motd, { color: textColor, fontSize: theme.font(13) }]}>{motd || 'Loading AI message...'}</Text>
+        <View style={styles.ecgWrap} accessibilityElementsHidden>
+          <Svg width="100%" height={48} viewBox="0 0 400 60" preserveAspectRatio="xMidYMid meet">
+            <Path
+              d="M0,30 L400,30"
+              fill="none"
+              stroke={accent}
+              strokeWidth={3}
+              strokeOpacity={0.35}
+            />
+          </Svg>
+        </View>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Pressable
+        onPressIn={onMotdPressIn}
+        onPressOut={onMotdPressOut}
+        accessibilityRole="button"
+        accessibilityLabel="Daily message"
+        accessibilityHint="Tap or hold to spin"
+      >
+        <Animated.View style={{ transform: [{ rotate: spinRotate }] }}>
+          <Animated.View style={{ transform: [{ rotate: swayRotate }] }}>
+            <Text style={[styles.motd, { color: textColor, fontSize: theme.font(13) }]}>{motd || 'Loading AI message...'}</Text>
+          </Animated.View>
+        </Animated.View>
+      </Pressable>
+      <View style={styles.ecgWrap} accessibilityElementsHidden>
+        <Svg width="100%" height={48} viewBox="0 0 400 60" preserveAspectRatio="xMidYMid meet">
+          <Path
+            d="M0,30 L80,30 L100,10 L120,48 L140,30 L400,30"
+            fill="none"
+            stroke={accent}
+            strokeWidth={3.2}
+            strokeOpacity={0.55}
+            strokeLinejoin="round"
+          />
+          <AnimatedPath
+            d="M0,30 L80,30 L100,10 L120,48 L140,30 L400,30"
+            fill="none"
+            stroke={accent}
+            strokeWidth={3.8}
+            strokeLinejoin="round"
+            strokeDasharray={1000}
+            strokeDashoffset={dashAnim}
+          />
+        </Svg>
+      </View>
+    </>
+  );
 }
 
 function TargetBullseyeIcon({ color }: { color: string }) {
@@ -54,6 +289,18 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
   const [bugActual, setBugActual] = useState('');
   const [bugSubmitting, setBugSubmitting] = useState(false);
   const [motd, setMotd] = useState<string>('');
+  const [latestBpm, setLatestBpm] = useState<number | null>(null);
+
+  const refreshBpm = useCallback(() => {
+    loadLogs()
+      .then((logs) => {
+        const sorted = logs.slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        const b = sorted[0]?.bpm;
+        if (typeof b === 'number' && b >= 30 && b <= 200) setLatestBpm(b);
+        else setLatestBpm(null);
+      })
+      .catch(() => setLatestBpm(null));
+  }, []);
 
   const refreshToday = useCallback(() => {
     const d = todayIso();
@@ -64,7 +311,8 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
 
   useEffect(() => {
     refreshToday();
-  }, [refreshToday]);
+    refreshBpm();
+  }, [refreshToday, refreshBpm]);
 
   useEffect(() => {
     loadLogs()
@@ -79,7 +327,8 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
   useFocusEffect(
     useCallback(() => {
       refreshToday();
-    }, [refreshToday])
+      refreshBpm();
+    }, [refreshToday, refreshBpm])
   );
 
   const onGoalsTargets = useCallback(() => {
@@ -312,6 +561,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: '700', marginBottom: 8 },
   text: { fontSize: 16, opacity: 0.95 },
   motd: { marginTop: 10, opacity: 0.82 },
+  ecgWrap: { marginTop: 8, width: '100%', maxWidth: 400, alignSelf: 'center' },
   fabWrap: {
     position: 'absolute',
     right: 24,

@@ -7,6 +7,12 @@ import path from 'path';
 import zlib from 'zlib';
 import { fileURLToPath } from 'url';
 import { writeBenchmarkMd } from '../reporters/write-md.mjs';
+import {
+  benchmarkMetaBase,
+  buildExpoRunPayload,
+  buildExpoSkippedPayload,
+  writeLatestRunJson,
+} from '../reporters/write-run-json.mjs';
 import { updateBenchmarksReadme } from './update-benchmarks-readme.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -38,22 +44,25 @@ export function runExpoBundleStats() {
     : path.join(REPO_ROOT, 'apps', 'rn-app', 'dist-expo-prod');
 
   if (!fs.existsSync(root)) {
+    const skipReason = `No bundle at ${root}. Run: npm run bundle:mobile:prod or cd apps/rn-app && npx expo export --platform android --platform ios --output-dir dist-expo-prod`;
+    const m = benchmarkMetaBase();
     writeBenchmarkMd({
       platformTitle: 'Expo / React Native (Hermes bundles)',
       slug: 'expo-rn',
       repoRoot: REPO_ROOT,
-      meta: meta(),
+      meta: m,
       sections: [
         {
           title: 'Status',
           rows: [
             {
-              detail: `No bundle at ${root}. Run: npm run bundle:mobile:prod or cd apps/rn-app && npx expo export --platform android --platform ios --output-dir dist-expo-prod`,
+              detail: skipReason,
             },
           ],
         },
       ],
     });
+    writeLatestRunJson(REPO_ROOT, 'expo-rn', buildExpoSkippedPayload({ meta: m, reason: skipReason }));
     return;
   }
 
@@ -80,11 +89,13 @@ export function runExpoBundleStats() {
     total_bytes: other.reduce((s, f) => s + fs.statSync(f).size, 0),
   };
 
+  const runMeta = benchmarkMetaBase();
+
   writeBenchmarkMd({
     platformTitle: 'Expo / React Native (Hermes bundles)',
     slug: 'expo-rn',
     repoRoot: REPO_ROOT,
-    meta: meta(),
+    meta: runMeta,
     sections: [
       { title: 'Hermes bytecode bundles (.hbc)', rows },
       {
@@ -98,6 +109,16 @@ export function runExpoBundleStats() {
       },
     ],
   });
+
+  writeLatestRunJson(
+    REPO_ROOT,
+    'expo-rn',
+    buildExpoRunPayload({
+      meta: runMeta,
+      hbcRows: rows,
+      assetSummary,
+    }),
+  );
 }
 
 function main() {
