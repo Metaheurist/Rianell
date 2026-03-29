@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.12** - Security Headers CI: no curl 403; fallback to live site headers.
+**Latest: v1.46.13** - Single `benchmarks/` folder (merged `Benchmarks/` + `benchmark-runner/`).
+
+### v1.46.13 - 2026-03-29 - Repo layout: unified `benchmarks/` workspace
+
+- **Change:** **`benchmark-runner/`** and **`Benchmarks/`** are merged into one folder **`benchmarks/`** (npm workspace **`@rianell/benchmark-runner`** unchanged). Generated reports (**`web-pwa/`**, **`compare.md`**, etc.) live beside **`scripts/`** and **`reporters/`**.
+- **Plumbing:** **`.github/workflows/ci.yml`**, **`README.md`**, **`docs/project-reference.md`**, **`.gitignore`**, **`package.json`** workspaces, **`tests/unit/workflows-ci-rncli.test.mjs`**, and benchmark scripts now use **`benchmarks/`** paths and **`node benchmarks/scripts/...`** in CI.
 
 ### v1.46.12 - 2026-03-29 - CI: Security Headers job tolerates securityheaders.com 403
 

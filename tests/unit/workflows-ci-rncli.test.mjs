@@ -70,8 +70,8 @@ test('CI includes benchmark jobs (web + expo) and merge commit on main', () => {
   assert.match(ciYml, /benchmarks-expo:/);
   assert.match(ciYml, /commit-benchmarks:/);
   assert.match(ciYml, /prepare-minified-assets/);
-  assert.match(ciYml, /node benchmark-runner\/scripts\/run-web-benchmarks\.mjs/);
-  assert.match(ciYml, /node benchmark-runner\/scripts\/expo-bundle-stats\.mjs/);
-  assert.match(ciYml, /node benchmark-runner\/scripts\/merge-benchmark-ci\.mjs/);
+  assert.match(ciYml, /node benchmarks\/scripts\/run-web-benchmarks\.mjs/);
+  assert.match(ciYml, /node benchmarks\/scripts\/expo-bundle-stats\.mjs/);
+  assert.match(ciYml, /node benchmarks\/scripts\/merge-benchmark-ci\.mjs/);
 });
 

@@ -130,11 +130,11 @@ export function buildExpoSkippedPayload({ meta, reason }) {
 
 /**
  * @param {string} repoRoot
- * @param {string} slug - Benchmarks subfolder
+ * @param {string} slug - benchmarks subfolder
  * @param {object} payload
  */
 export function writeLatestRunJson(repoRoot, slug, payload) {
-  const dir = path.join(repoRoot, 'Benchmarks', slug);
+  const dir = path.join(repoRoot, 'benchmarks', slug);
   fs.mkdirSync(dir, { recursive: true });
   const out = path.join(dir, 'latest.run.json');
   fs.writeFileSync(out, JSON.stringify(payload, null, 2), 'utf8');

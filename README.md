@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.46.12** - Security Headers CI fallback).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.46.13** - unified `benchmarks/` folder).
 
 ### Here’s what we plan next
 
@@ -71,7 +71,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | 🏠 | **[App overview & features](docs/app-and-features.md)** - UI, behaviour, screenshots |
 | ⚙️ | **[Installation & usage](docs/setup-and-usage.md)** - server, GitHub Pages, React/Android |
 | 🧪 | **[Testing & configuration](docs/testing-and-configuration.md)** |
-| ⏱️ | **[Performance benchmarks](Benchmarks/README.md)** - latest CI/local Markdown under `Benchmarks/` (tooling lives in `benchmark-runner/`); run `npm run benchmark` |
+| ⏱️ | **[Performance benchmarks](benchmarks/README.md)** - reports and tooling under `benchmarks/`; run `npm run benchmark` |
 | 🧠 | **[AI architecture](docs/ai-architecture.md)** |
 | 🗂️ | **[Project reference](docs/project-reference.md)** - tree, deps, dev, GDPR, troubleshooting, security notes |
 | 🎨 | **[Styling](docs/styling.md)** - CSS layout, tokens, settings carousel, tile pickers, cache bust |

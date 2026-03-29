@@ -1,5 +1,5 @@
 /**
- * Merge downloaded benchmark artifacts into Benchmarks/ (CI commit job).
+ * Merge downloaded benchmark artifacts into benchmarks/ (CI commit job).
  * Usage: node merge-benchmark-ci.mjs <webArtifactDir> <expoArtifactDir> [repoRoot]
  */
 import fs from 'fs';
@@ -12,7 +12,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = process.argv[4] || path.resolve(__dirname, '..', '..');
 const webRoot = path.resolve(process.argv[2] || '');
 const expoRoot = path.resolve(process.argv[3] || '');
-const out = path.join(repoRoot, 'Benchmarks');
+const out = path.join(repoRoot, 'benchmarks');
 
 const HISTORY_MAX = 150;
 
@@ -26,7 +26,7 @@ function runDedupeKey(run) {
  * Prepend latest run into history.json (dedupe by CI run id or local sha+time).
  */
 function mergeHistoryForSlug(slug, newRun) {
-  const histPath = path.join(repoRoot, 'Benchmarks', slug, 'history.json');
+  const histPath = path.join(repoRoot, 'benchmarks', slug, 'history.json');
   let prev = [];
   if (fs.existsSync(histPath)) {
     try {
@@ -68,7 +68,7 @@ for (const name of ['web-pwa', 'github-pages', 'capacitor-web']) {
 
 const expoCandidates = [
   path.join(expoRoot, 'expo-rn'),
-  path.join(expoRoot, 'Benchmarks', 'expo-rn'),
+  path.join(expoRoot, 'benchmarks', 'expo-rn'),
   expoRoot,
 ];
 let mergedExpo = false;
