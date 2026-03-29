@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.20** - Settings desktop ‹ › rails: full modal height (reset global `button` margin).
+**Latest: v1.46.21** - PWA settings modal scroll on mobile; MOTD tap “spring charge” slingshot; RN parity.
+
+### v1.46.21 - 2026-03-29 - PWA settings scroll, MOTD slingshot return, RN settings + MOTD parity
+
+- **Web / PWA (`apps/pwa-webapp/styles.css`):** Settings modal on **narrow viewports** uses **`max-height`** with **`100dvh`** and safe-area terms so the card height is bounded. **`.settings-carousel-viewport`** uses **`overflow-x: clip`** (not **`overflow: hidden`** on both axes) so **vertical scrolling inside long panes** works on mobile Safari / PWA. **`.settings-carousel-pane`** uses **`height` / `max-height: 100%`**, **`contain: layout`** (replacing **`paint`**), **`overflow-y: auto`**, **`min-height: 0`**. **`index.html`** **`styles.css?v=82`**.
+- **React Native (`apps/rn-app/src/screens/SettingsScreen.tsx`):** Each settings carousel pane’s inner **`ScrollView`** uses **`style={styles.paneScroll}`** (**`flex: 1`**) so tall tabs (e.g. Personal & cloud sync, Accessibility) scroll inside the modal instead of clipping.
+- **Web / PWA MOTD (`apps/pwa-webapp/app.js`):** Each tap increments **`__motdSpringCharge`** (capped). Return-to-neutral uses **`k = 3.8 + charge × 1.05`** when **|ω|** is low, so **more taps produce a faster slingshot snap** back to default. Heartbeat coupling considers charge. **`index.html`** **`app.js?v=30`**.
+- **React Native MOTD (`apps/rn-app/src/screens/HomeScreen.tsx`):** Same physics (**`springChargeRef`**, **`exp(-1.75)`** damping, spring only when **|ω| < 0.22**). **Removed** hold-to-repeat **`setInterval`** so each tap is one charge (matches web). Accessibility hint updated.
 
 ### v1.46.20 - 2026-03-29 - Web PWA: settings carousel side buttons fill window height
 

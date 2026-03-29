@@ -10025,16 +10025,18 @@ function spinOmegaToHeartbeatDuration(absOmega) {
 }
 
 /** MOTD: 3D spin around X (rad) + ω (rad/s). No hard angle cap — rapid taps can exceed 360° total travel.
- *  When spin slows, a gentle spring pulls θ → 0 so the title returns to rest without snapping. */
+ *  Each tap increments spring charge; when |ω| drops, θ→0 uses a stiffer spring so more taps = faster “slingshot” return. */
 var __motdSpinAngle = 0;
 var __motdSpinVelocity = 0;
+var __motdSpringCharge = 0;
 var __motdLastKeyTs = 0;
 var __motdLastPointerTs = 0;
 var __motdRaf = null;
 var __motdLastTickTs = 0;
+var __motdSpringChargeMax = 30;
 
 function __motdSpinEnergy() {
-  return Math.abs(__motdSpinVelocity);
+  return Math.max(Math.abs(__motdSpinVelocity), __motdSpringCharge * 0.35);
 }
 
 function __motdMotdTick(now) {
@@ -10050,7 +10052,8 @@ function __motdMotdTick(now) {
   __motdSpinVelocity *= Math.exp(-1.75 * dt);
   /* Return-to-neutral spring only when |ω| is very low so active / rapid taps are not capped ~70°. */
   if (Math.abs(__motdSpinVelocity) < 0.22) {
-    __motdSpinVelocity -= 3.8 * __motdSpinAngle * dt;
+    var kSpring = 3.8 + __motdSpringCharge * 1.05;
+    __motdSpinVelocity -= kSpring * __motdSpinAngle * dt;
   }
   if (Math.abs(__motdSpinVelocity) < 0.0004) __motdSpinVelocity = 0;
   host.style.transform = 'rotateX(' + (__motdSpinAngle * 180 / Math.PI) + 'deg)';
@@ -10062,6 +10065,7 @@ function __motdMotdTick(now) {
   } else {
     __motdSpinAngle = 0;
     __motdSpinVelocity = 0;
+    __motdSpringCharge = 0;
     host.style.transform = 'rotateX(0deg)';
     __motdRaf = null;
     updateHeartbeatAnimation();
@@ -10090,9 +10094,10 @@ function initMotdInteraction() {
         typeof performance !== 'undefined' ? performance.now() : Date.now();
       var interval = __motdLastPointerTs ? pnow - __motdLastPointerTs : 600;
       __motdLastPointerTs = pnow;
+      __motdSpringCharge = Math.min(__motdSpringChargeMax, __motdSpringCharge + 1);
       var boost = 0;
       if (interval < 340) boost = ((340 - interval) / 340) * 9;
-      __motdSpinVelocity += 5.2 + boost;
+      __motdSpinVelocity += 5.2 + boost + __motdSpringCharge * 0.12;
       if (__motdRaf == null) {
         __motdLastTickTs = 0;
         __motdRaf = requestAnimationFrame(__motdMotdTick);
@@ -10110,9 +10115,10 @@ function initMotdInteraction() {
       var pnow = typeof performance !== 'undefined' ? performance.now() : Date.now();
       var interval = __motdLastKeyTs ? pnow - __motdLastKeyTs : 500;
       __motdLastKeyTs = pnow;
+      __motdSpringCharge = Math.min(__motdSpringChargeMax, __motdSpringCharge + 1);
       var boost = 0;
       if (interval < 450) boost = ((450 - interval) / 450) * 4.5;
-      __motdSpinVelocity += 0.85 + boost;
+      __motdSpinVelocity += 0.85 + boost + __motdSpringCharge * 0.06;
       if (__motdRaf == null) {
         __motdLastTickTs = 0;
         __motdRaf = requestAnimationFrame(__motdMotdTick);
