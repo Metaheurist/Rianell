@@ -10024,18 +10024,17 @@ function spinOmegaToHeartbeatDuration(absOmega) {
   return 3.2 - t * (3.2 - 0.8);
 }
 
-/** MOTD: 3D tilt around X (rad) + angular velocity ω (rad/s). Spring pulls θ → 0 when idle. */
+/** MOTD: 3D spin around X (rad) + ω (rad/s). No hard angle cap — rapid taps can exceed 360° total travel.
+ *  When spin slows, a gentle spring pulls θ → 0 so the title returns to rest without snapping. */
 var __motdSpinAngle = 0;
 var __motdSpinVelocity = 0;
 var __motdLastKeyTs = 0;
+var __motdLastPointerTs = 0;
 var __motdRaf = null;
 var __motdLastTickTs = 0;
 
 function __motdSpinEnergy() {
-  return Math.max(
-    Math.abs(__motdSpinVelocity),
-    5.5 * Math.abs(__motdSpinAngle)
-  );
+  return Math.abs(__motdSpinVelocity);
 }
 
 function __motdMotdTick(now) {
@@ -10048,15 +10047,16 @@ function __motdMotdTick(now) {
   __motdLastTickTs = now;
   if (dt > 0.12) dt = 0.12;
   __motdSpinAngle += __motdSpinVelocity * dt;
-  __motdSpinVelocity *= Math.exp(-2.4 * dt);
-  __motdSpinVelocity -= 15 * __motdSpinAngle * dt;
-  if (Math.abs(__motdSpinVelocity) < 0.0005) __motdSpinVelocity = 0;
-  if (__motdSpinAngle > 1.2) __motdSpinAngle = 1.2;
-  if (__motdSpinAngle < -1.2) __motdSpinAngle = -1.2;
+  __motdSpinVelocity *= Math.exp(-1.75 * dt);
+  /* Return-to-neutral spring only when |ω| is very low so active / rapid taps are not capped ~70°. */
+  if (Math.abs(__motdSpinVelocity) < 0.22) {
+    __motdSpinVelocity -= 3.8 * __motdSpinAngle * dt;
+  }
+  if (Math.abs(__motdSpinVelocity) < 0.0004) __motdSpinVelocity = 0;
   host.style.transform = 'rotateX(' + (__motdSpinAngle * 180 / Math.PI) + 'deg)';
   updateHeartbeatAnimation();
   var settled =
-    Math.abs(__motdSpinVelocity) < 0.00055 && Math.abs(__motdSpinAngle) < 0.004;
+    Math.abs(__motdSpinVelocity) < 0.00045 && Math.abs(__motdSpinAngle) < 0.006;
   if (!settled) {
     __motdRaf = requestAnimationFrame(__motdMotdTick);
   } else {
@@ -10086,7 +10086,13 @@ function initMotdInteraction() {
     try {
       if (typeof isWebAppLightMode === 'function' && isWebAppLightMode()) return;
       if (typeof tabNameRef !== 'undefined' && tabNameRef !== 'home') return;
-      __motdSpinVelocity += 3.2;
+      var pnow =
+        typeof performance !== 'undefined' ? performance.now() : Date.now();
+      var interval = __motdLastPointerTs ? pnow - __motdLastPointerTs : 600;
+      __motdLastPointerTs = pnow;
+      var boost = 0;
+      if (interval < 340) boost = ((340 - interval) / 340) * 9;
+      __motdSpinVelocity += 5.2 + boost;
       if (__motdRaf == null) {
         __motdLastTickTs = 0;
         __motdRaf = requestAnimationFrame(__motdMotdTick);
@@ -10106,7 +10112,7 @@ function initMotdInteraction() {
       __motdLastKeyTs = pnow;
       var boost = 0;
       if (interval < 450) boost = ((450 - interval) / 450) * 4.5;
-      __motdSpinVelocity += 0.65 + boost;
+      __motdSpinVelocity += 0.85 + boost;
       if (__motdRaf == null) {
         __motdLastTickTs = 0;
         __motdRaf = requestAnimationFrame(__motdMotdTick);

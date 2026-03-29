@@ -2,6 +2,11 @@
 
 ## 🗂️ Project Structure
 
+### v1.46.16 documentation sync (security header runs + MOTD)
+
+- **CI security reports:** **`security/securityheaders-rianell.com.md`** and **`security/securityheaders-runs/run-*.md`** are described in **`security/README.md`** and **`docs/infrastructure-and-security-edge.md`**.
+- **Web MOTD:** Home-tab **`.motd-spin-host`** tap spin (3D) — see **`docs/styling.md`**.
+
 ### v1.46.14 documentation sync (benchmarks folder)
 
 - **Layout:** **`benchmarks/`** is the single workspace for **`@rianell/benchmark-runner`** (scripts, reporters, Playwright specs) and generated Markdown/JSON (**`web-pwa/`**, **`compare.md`**, etc.). See changelog v1.46.13.

@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.15** - Security Headers: relay fetch for scan HTML + live URL chain.
+**Latest: v1.46.16** - MOTD tap spin: full rotations; infrastructure doc links `securityheaders-runs`.
+
+### v1.46.16 - 2026-03-29 - Web MOTD 3D spin + docs: security header run history
+
+- **Web / PWA (`apps/pwa-webapp/app.js`):** MOTD **`.motd-spin-host`** spin no longer uses a **±1.2 rad** angle clamp (which capped visible tilt ~70°). **Pointer** taps get **rapid-tap boost** like keyboard; angular velocity can carry **well past 360°** before friction; return-to-neutral **spring** applies only when **|ω|** is very low. Heartbeat coupling uses **|ω|** only. **`index.html`** `app.js?v=` **28**; **`app.min.js`** rebuilt.
+- **Docs:** **`docs/infrastructure-and-security-edge.md`** — new **Automated header reports (CI)** with links to **`security/securityheaders-runs/run-*.md`** and **`security/README.md`**. **`docs/styling.md`** — MOTD tap spin behaviour.
 
 ### v1.46.15 - 2026-03-29 - Security Headers CI: relay scan page, browser-like live fetch
 
