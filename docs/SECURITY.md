@@ -16,7 +16,7 @@ This document describes how **Rianell** (this health app) handles health-related
 | Supabase RLS examples (SQL) | [supabase-rls-recommended.sql](supabase-rls-recommended.sql) |
 | Android network / cleartext after `cap sync` | [Android: cleartext and mixed content](#android-cleartext-and-mixed-content) below |
 | Automated audits (CI) | [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) (Gitleaks, `npm audit`, `pip-audit`); required by [../.github/workflows/ci.yml](../.github/workflows/ci.yml) |
-| Web CSP (meta tag) | [../web/index.html](../web/index.html) |
+| Web CSP (meta tag) | [../apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html), [edge header note](../security/cloudflare-headers-recommended.md) |
 
 ## Server logs
 
@@ -37,7 +37,7 @@ Log files under **`logs/`** may contain client IPs, sync metadata, and dashboard
 
 | Surface | Data at risk | Primary controls |
 |--------|----------------|------------------|
-| **Web (PWA)** | `localStorage` / IndexedDB on the device | Browser same-origin policy, CSP ([../web/index.html](../web/index.html)), optional Supabase **RLS** |
+| **Web (PWA)** | `localStorage` / IndexedDB on the device | Browser same-origin policy, CSP ([../apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html)), optional Supabase **RLS** |
 | **Android (Capacitor)** | Same web assets in WebView + device storage | [../react-app/capacitor.config.ts](../react-app/capacitor.config.ts), Android manifest (after `cap sync`), [network security](#android-cleartext-and-mixed-content), user device security |
 | **iOS (Capacitor)** | Same web assets in WKWebView + device storage | App Transport Security (HTTPS for remote content by default), Capacitor config, follow Apple signing and distribution guidelines |
 | **Python server** | LAN exposure, optional proxy to Supabase | Bind address ([../server/config.py](../server/config.py)), gated sensitive APIs, no TLS on dev server |
@@ -74,13 +74,13 @@ The anon key is present in client bundles by design. **Authorization must be enf
 ## Content Security Policy (CSP) and XSS
 
 - The app CSP allows `'unsafe-inline'` and `'unsafe-eval'` for compatibility with inline bootstraps and ML libraries. Tightening this is a **tracked hardening goal**; removing `unsafe-eval` may require bundling or loading changes.
-- The meta policy also includes `'wasm-unsafe-eval'` and `worker-src` for blob/CDN workers (TensorFlow.js). If you add a **second** CSP via **HTTP headers** (e.g. Cloudflare “Content Security Policy”), browsers apply **both** policies: every directive must allow what the app needs, or Chrome will report **eval blocked** / **script-src blocked** even when the meta tag looks correct.
+- The meta policy also includes `'wasm-unsafe-eval'` and `worker-src` for blob/CDN workers (TensorFlow.js). If you add a **second** CSP via **HTTP headers** (e.g. Cloudflare “Content Security Policy”), browsers apply **both** policies: every directive must allow what the app needs, or Chrome will report **eval blocked** / **script-src blocked** even when the meta tag looks correct. **Operators:** do not set a **narrower** HTTP CSP than the meta tag; remove the duplicate header or align it fully — see [../security/cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md).
 - Prefer `textContent` / `createElement` over `innerHTML` where user-influenced strings are inserted.
 - Client code uses **`escapeHTML()`** / **`sanitizeHTML()`** for many user-derived strings (e.g. log entries, AI anomaly lines). New UI that builds HTML from user input should use the same helpers-avoid raw **`innerHTML`** with unescaped strings.
 
 ### `connect-src` and third-party hosts
 
-The meta CSP in [`web/index.html`](../web/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts for models), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed. The **Supabase** script tag is **pinned** to a specific version with **Subresource Integrity (SRI)**; when upgrading `@supabase/supabase-js`, update **`src`**, **`integrity`**, and the comment in `index.html`.
+The meta CSP in [`apps/pwa-webapp/index.html`](../apps/pwa-webapp/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts for models), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed. The **Supabase** script tag is **pinned** to a specific version with **Subresource Integrity (SRI)**; when upgrading `@supabase/supabase-js`, update **`src`**, **`integrity`**, and the comment in `index.html`.
 
 ## Known residual risks and mitigations
 
