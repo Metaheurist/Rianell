@@ -4,7 +4,7 @@ This document describes how the legacy web app’s visual layer is organised: **
 
 ## v1.46.3 React Native settings parity notes
 
-- **Eight-pane titles:** The Expo settings screen (`apps/rn-app/src/screens/SettingsScreen.tsx`) follows the same **section order and naming** as the web carousel pane titles in `apps/pwa-webapp/index.html` (`data-settings-pane-title`), so documentation that refers to “Settings → Data management” or “Display options” maps to the same labeled step on mobile.
+- **Eight-pane titles:** The Expo settings screen (`apps/rn-app/src/screens/SettingsScreen.tsx`) follows the same **section order and naming** as the web carousel pane titles in `apps/pwa-webapp/index.html` (`data-settings-pane-title`), so documentation that refers to “Settings → Data management” or “Display options” maps to the same labelled step on mobile.
 - **App installation vs PWA tiles:** On web, install/download tiles use **`settings-data-btn`** (see **App Installation** below). On React Native, the **Data management** pane uses `SettingsAppInstallSection` for text and link-style actions instead of PWA install prompts.
 
 ## v1.44.2 style alignment notes

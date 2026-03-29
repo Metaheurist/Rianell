@@ -46,7 +46,7 @@ flowchart LR
 
 ### v1.46.1 documentation sync
 
-- **Checkpoint refresh:** docs are synchronized so Phase E notification diagnostics coverage stays consistent across features/parity pages after recent summary + trajectory refinements.
+- **Checkpoint refresh:** docs are synchronised so Phase E notification diagnostics coverage stays consistent across features/parity pages after recent summary + trajectory refinements.
 
 ### v1.46.0 documentation sync
 
@@ -70,7 +70,7 @@ flowchart LR
 
 ### v1.45.95 documentation sync
 
-- **Checkpoint refresh:** docs are synchronized so Phase E notification diagnostics coverage is consistent across feature and parity pages (counts, startup/live split, confidence, and low-sample guard).
+- **Checkpoint refresh:** docs are synchronised so Phase E notification diagnostics coverage is consistent across feature and parity pages (counts, startup/live split, confidence, and low-sample guard).
 
 ### v1.45.94 documentation sync
 
@@ -90,7 +90,7 @@ flowchart LR
 
 ### v1.45.90 documentation sync
 
-- **Checkpoint refresh:** docs are synchronized so Phase E notification diagnostics are consistently described across feature pages (total count, startup/live breakdown, last-seen, source, runtime-cause hint, and reset control).
+- **Checkpoint refresh:** docs are synchronised so Phase E notification diagnostics are consistently described across feature pages (total count, startup/live breakdown, last-seen, source, runtime-cause hint, and reset control).
 
 ### v1.45.89 documentation sync
 
@@ -106,7 +106,7 @@ flowchart LR
 
 ### v1.45.86 documentation sync
 
-- **RN unknown-action diagnostics control (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now adds a reset button for the session unknown-action counter, letting users clear diagnostics after confirming behavior.
+- **RN unknown-action diagnostics control (Phase E):** `apps/rn-app/src/screens/SettingsScreen.tsx` now adds a reset button for the session unknown-action counter, letting users clear diagnostics after confirming behaviour.
 
 ### v1.45.85 documentation sync
 
@@ -114,7 +114,7 @@ flowchart LR
 
 ### v1.45.84 documentation sync
 
-- **Checkpoint refresh:** documentation is synchronized so the Settings notification story consistently reflects dismiss capability visibility, safe-dismiss ignore semantics, and session-level unknown-action observability.
+- **Checkpoint refresh:** documentation is synchronised so the Settings notification story consistently reflects dismiss capability visibility, safe-dismiss ignore semantics, and session-level unknown-action observability.
 
 ### v1.45.83 documentation sync
 
@@ -126,7 +126,7 @@ flowchart LR
 
 ### v1.45.81 documentation sync
 
-- **RN reminder dismiss safety (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now maps dismissed/close-style reminder notification actions to `none`, so dismiss gestures do not trigger fallback navigation behavior.
+- **RN reminder dismiss safety (Phase E):** `apps/rn-app/src/permissions/permissions.ts` now maps dismissed/close-style reminder notification actions to `none`, so dismiss gestures do not trigger fallback navigation behaviour.
 
 ### v1.45.80 documentation sync
 
@@ -138,7 +138,7 @@ flowchart LR
 
 ### v1.45.78 documentation sync
 
-- **Checkpoint refresh:** synchronized documentation wording after the reminder-action stability increments so feature notes consistently reflect action-policy visibility plus duplicate-action burst suppression behavior in RN notification routing.
+- **Checkpoint refresh:** synchronised documentation wording after the reminder-action stability increments so feature notes consistently reflect action-policy visibility plus duplicate-action burst suppression behaviour in RN notification routing.
 
 ### v1.45.77 documentation sync
 
@@ -162,7 +162,7 @@ flowchart LR
 
 ### v1.45.72 documentation sync
 
-- **Checkpoint refresh:** documentation pages are synchronized to the current notification parity state (runtime capability line, tri-path action handling, snooze personalization, and fallback behavior) with remaining backlog called out in the phase plan.
+- **Checkpoint refresh:** documentation pages are synchronised to the current notification parity state (runtime capability line, tri-path action handling, snooze personalization, and fallback behaviour) with remaining backlog called out in the phase plan.
 
 ### v1.45.71 documentation sync
 
@@ -190,7 +190,7 @@ flowchart LR
 
 ### v1.45.65 documentation sync
 
-- **RN reminder action routing (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now routes notification `log-now` actions into the native `LogWizard` flow, extending parity from delivery semantics into action-to-screen behavior.
+- **RN reminder action routing (Phase E):** `apps/rn-app/src/navigation/RootNavigator.tsx` now routes notification `log-now` actions into the native `LogWizard` flow, extending parity from delivery semantics into action-to-screen behaviour.
 
 ### v1.45.64 documentation sync
 
@@ -207,7 +207,7 @@ flowchart LR
 ### v1.45.61 documentation sync
 
 - **Program status rollup:** documentation now explicitly marks `v1.45.60` Logs virtualization as the latest shipped parity increment and keeps remaining RN backlog items called out in the plan docs.
-- **Next implementation target:** notifications channel/delivery semantics parity (where runtime supports platform-specific behavior) is now recorded as the next active workstream.
+- **Next implementation target:** notifications channel/delivery semantics parity (where runtime supports platform-specific behaviour) is now recorded as the next active workstream.
 
 ### v1.45.60 documentation sync
 
@@ -215,7 +215,7 @@ flowchart LR
 
 ### v1.45.59 documentation sync
 
-- **RN notifications (Phase E path):** `apps/rn-app/src/screens/SettingsScreen.tsx` now wires reminder preferences to daily notification scheduling attempts when permission is granted, with runtime-safe fallback behavior in `apps/rn-app/src/permissions/permissions.ts`.
+- **RN notifications (Phase E path):** `apps/rn-app/src/screens/SettingsScreen.tsx` now wires reminder preferences to daily notification scheduling attempts when permission is granted, with runtime-safe fallback behaviour in `apps/rn-app/src/permissions/permissions.ts`.
 
 ### v1.45.58 documentation sync
 
@@ -235,7 +235,7 @@ flowchart LR
 
 ### v1.45.54 documentation sync
 
-- **React Native Charts (Phase B motion polish):** `apps/rn-app/src/screens/ChartsScreen.tsx` now applies reduced-motion-aware transition behavior for view/range/refresh chart updates using native accessibility settings, with explicit in-screen copy when reduced motion is enabled.
+- **React Native Charts (Phase B motion polish):** `apps/rn-app/src/screens/ChartsScreen.tsx` now applies reduced-motion-aware transition behaviour for view/range/refresh chart updates using native accessibility settings, with explicit in-screen copy when reduced motion is enabled.
 
 ### v1.45.53 documentation sync
 
@@ -255,8 +255,8 @@ flowchart LR
 
 ### v1.45.42 documentation sync
 
-- **React Native View Logs (Phase G):** `apps/rn-app/src/screens/LogsScreen.tsx` now supports in-modal **Edit** for date/flare/core metrics/notes, plus existing share/delete actions. Large-list behavior now includes baseline `FlatList` tuning (`initialNumToRender`, `maxToRenderPerBatch`, `windowSize`, clipped subviews); final virtualization strategy is still tracked in the parity plan.
-- **React Native wizard polish (Step 3/4):** `apps/rn-app/src/screens/LogWizardScreen.tsx` now includes searchable body-region chips for Symptoms & pain and smoother expand/collapse behavior for Energy & mental clarity via `LayoutAnimation`, while keeping grouped tiles/search/collapsible behavior.
+- **React Native View Logs (Phase G):** `apps/rn-app/src/screens/LogsScreen.tsx` now supports in-modal **Edit** for date/flare/core metrics/notes, plus existing share/delete actions. Large-list behaviour now includes baseline `FlatList` tuning (`initialNumToRender`, `maxToRenderPerBatch`, `windowSize`, clipped subviews); final virtualization strategy is still tracked in the parity plan.
+- **React Native wizard polish (Step 3/4):** `apps/rn-app/src/screens/LogWizardScreen.tsx` now includes searchable body-region chips for Symptoms & pain and smoother expand/collapse behaviour for Energy & mental clarity via `LayoutAnimation`, while keeping grouped tiles/search/collapsible behaviour.
 
 ### v1.45.43 documentation sync
 
@@ -272,11 +272,11 @@ flowchart LR
 
 ### v1.45.46 documentation sync
 
-- **React Native Charts (Phase B):** `apps/rn-app/src/screens/ChartsScreen.tsx` individual mode now includes a first per-metric visual trend baseline (color-coded plotted points) to complement existing trend rows/sparks and combined-view visual baseline.
+- **React Native Charts (Phase B):** `apps/rn-app/src/screens/ChartsScreen.tsx` individual mode now includes a first per-metric visual trend baseline (colour-coded plotted points) to complement existing trend rows/sparks and combined-view visual baseline.
 
 ### v1.45.47 documentation sync
 
-- **React Native Charts (Phase B):** `apps/rn-app/src/screens/ChartsScreen.tsx` balance mode now includes a first visual balance chart baseline (color-coded bars for core balance metrics) alongside the existing targets snapshot.
+- **React Native Charts (Phase B):** `apps/rn-app/src/screens/ChartsScreen.tsx` balance mode now includes a first visual balance chart baseline (colour-coded bars for core balance metrics) alongside the existing targets snapshot.
 
 ### v1.45.48 documentation sync
 
@@ -310,7 +310,7 @@ flowchart LR
 
 ### v1.45.3 documentation sync
 
-- Expanded unit-test scope in `tests/unit/app-functionality.test.mjs` to cover key runtime behavior contracts (theme no-reload path, Home-only MOTD guard, voice permission gate, and CSS/UI wiring checks).
+- Expanded unit-test scope in `tests/unit/app-functionality.test.mjs` to cover key runtime behaviour contracts (theme no-reload path, Home-only MOTD guard, voice permission gate, and CSS/UI wiring checks).
 - Continue running from root with `npm run test:unit` (Node test runner).
 
 ### v1.45.2 documentation sync
@@ -393,7 +393,7 @@ flowchart LR
 - **On-device AI model selection**: Settings → Performance → **On-device AI model** lets you choose **Use recommended (for this device)** (from the performance benchmark), **Small (faster, lower memory)**, or **Base (better quality)**. The benchmark recommends flan-t5-small or flan-t5-base by tier; changing the setting clears the LLM cache so the next summary or suggest note uses the selected model.
 - **Suggest note**: LLM or rule-based suggestion for the day’s log note; "Generating…" state on button.
 - **Chart predictions**: Combined (and balance) chart can show predicted series from the analysis pipeline; "Calculating predictions…" overlay when computing; cache by date range and log count.
-- **Responsiveness**: Analysis yields to the main thread between layers; loading states ("Analyzing…", "Calculating predictions…"); optional Web Worker for AI preload on multi-core devices.
+- **Responsiveness**: Analysis yields to the main thread between layers; loading states ("Analysing…", "Calculating predictions…"); optional Web Worker for AI preload on multi-core devices.
 
 ### Goals and targets
 - **Goals**: Targets for steps, hydration, sleep quality, and "good days"; progress visible in a dedicated Goals view; stored in settings and synced to cloud when signed in.

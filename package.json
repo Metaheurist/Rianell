@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.46.16",
+  "version": "1.46.17",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp, React Native app, and legacy Capacitor shell",
   "workspaces": [
     "apps/*",
@@ -45,6 +45,7 @@
     "@capacitor/assets": {
       "@capacitor/cli": "$@capacitor/cli"
     },
+    "http-proxy-agent@5.0.0": "7.0.2",
     "@tootallnate/once": "^3.0.1",
     "brace-expansion": "^5.0.5",
     "handlebars": "^4.7.9",

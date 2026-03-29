@@ -5,7 +5,7 @@
 ### v1.44.2 documentation sync
 
 - AI slide presentation now sits within a broader UI theme parity pass so AI surfaces remain visually consistent with selected global themes on web/mobile shells.
-- Summary-note reliability and fallback behavior remain governed by the resilient timeout + rule-based fallback path documented in the changelog.
+- Summary-note reliability and fallback behaviour remain governed by the resilient timeout + rule-based fallback path documented in the changelog.
 
 The AI analysis engine runs as a **neural-style pipeline**: each layer applies existing logic (regression, correlation, prediction, etc.) as activator functions. The design aims to **use as much of your collected data as possible** to deliver **meaningful health insights** (trends, early signals, correlations, and actionable advice). A detailed expansion and optimisation plan is in [NEURAL_NETWORK_PLAN.md](NEURAL_NETWORK_PLAN.md).
 

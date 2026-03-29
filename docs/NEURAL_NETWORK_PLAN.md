@@ -132,7 +132,7 @@ Planned improvements:
 - Avoid repeated JSON transforms across layers.
 - Add branch-level fast exits for empty/sparse data.
 - Keep time-budget guards for startup/interactive flows.
-- Maintain low-device fallback behavior.
+- Maintain low-device fallback behaviour.
 
 ## Validation and quality checks
 

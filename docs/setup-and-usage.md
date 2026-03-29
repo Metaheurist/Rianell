@@ -22,7 +22,7 @@
 
 ### v1.45.3 documentation sync
 
-- Unit tests now cover behavior-level contracts in addition to markup wiring (theme apply flow, MOTD tab scoping, voice-input permission checks, and selected CSS contracts).
+- Unit tests now cover behaviour-level contracts in addition to markup wiring (theme apply flow, MOTD tab scoping, voice-input permission checks, and selected CSS contracts).
 - Run locally from repo root:
   ```bash
   npm run test:unit

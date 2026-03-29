@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.16** - MOTD tap spin: full rotations; infrastructure doc links `securityheaders-runs`.
+**Latest: v1.46.17** - npm overrides fix `@tootallnate/once` via `http-proxy-agent@7`; docs UK English pass.
+
+### v1.46.17 - 2026-03-29 - Dependencies: `http-proxy-agent` override; documentation UK English
+
+- **npm:** Root **`overrides`** now replace **`http-proxy-agent@5.0.0`** (from **`jsdom@20`** / **`jest-expo`**) with **`7.0.2`**, eliminating the vulnerable **`@tootallnate/once@<3.0.1`** chain in the lockfile; **`package-lock.json`** regenerated. **`npm audit`** reports **0** vulnerabilities; **`npm run test:mobile`** passes.
+- **Docs:** [docs/SECURITY.md](SECURITY.md) documents the override and expected **`npm ls`** peer note; **`scripts/apply-uk-english-md.mjs`** run across all **`*.md`** files (UK spelling in prose; CSS **`overscroll-behavior`**, JSON **`sync_behavior`**, and code identifiers preserved).
 
 ### v1.46.16 - 2026-03-29 - Web MOTD 3D spin + docs: security header run history
 
@@ -98,8 +103,8 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.46.1 - 2026-03-27 - Documentation sync checkpoint
 
-- **Docs alignment:** synchronized plan/parity/features/readme wording on the current RN notification diagnostics baseline, including compact summary + trajectory/stability visibility.
-- **Scope:** documentation/changelog checkpoint only; no runtime behavior changes in this entry.
+- **Docs alignment:** synchronised plan/parity/features/readme wording on the current RN notification diagnostics baseline, including compact summary + trajectory/stability visibility.
+- **Scope:** documentation/changelog checkpoint only; no runtime behaviour changes in this entry.
 
 ### v1.46.0 - 2026-03-27 - Unknown-action session summary line
 
@@ -133,8 +138,8 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.45.95 - 2026-03-27 - Documentation sync checkpoint
 
-- **Docs alignment:** synchronized plan/parity/features/readme wording to reflect the current RN notification diagnostics baseline, including dominant-source confidence and low-sample warning context.
-- **Scope:** documentation/changelog checkpoint only; no runtime behavior changes in this entry.
+- **Docs alignment:** synchronised plan/parity/features/readme wording to reflect the current RN notification diagnostics baseline, including dominant-source confidence and low-sample warning context.
+- **Scope:** documentation/changelog checkpoint only; no runtime behaviour changes in this entry.
 
 ### v1.45.94 - 2026-03-27 - Unknown-action minimum-sample confidence warning
 
@@ -162,8 +167,8 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.45.90 - 2026-03-27 - Documentation sync checkpoint
 
-- **Docs alignment:** synchronized plan/parity/features/readme wording to reflect the latest Phase E notification diagnostics baseline (count, startup/live split, last-seen, source, cause hint, reset control).
-- **Scope:** documentation/changelog checkpoint only; no runtime behavior changes in this entry.
+- **Docs alignment:** synchronised plan/parity/features/readme wording to reflect the latest Phase E notification diagnostics baseline (count, startup/live split, last-seen, source, cause hint, reset control).
+- **Scope:** documentation/changelog checkpoint only; no runtime behaviour changes in this entry.
 
 ### v1.45.89 - 2026-03-27 - Unknown-action source breakdown counts
 
@@ -198,7 +203,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 ### v1.45.84 - 2026-03-27 - Documentation checkpoint sync
 
 - **Docs alignment:** refreshed plan/parity/features wording to keep Phase E notification long-tail status consistent after the latest runtime-capability and unknown-action observability increments.
-- **Scope:** documentation/changelog checkpoint only; no runtime behavior changes in this entry.
+- **Scope:** documentation/changelog checkpoint only; no runtime behaviour changes in this entry.
 
 ### v1.45.83 - 2026-03-27 - Unknown action session visibility
 
@@ -208,7 +213,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.45.82 - 2026-03-27 - Dismiss capability runtime visibility
 
-- **RN notifications (Phase E):** `ReminderCapabilities` now reports dismiss-action support and `SettingsScreen` surfaces it in the runtime support line (`dismiss semantics yes/no`) to clarify notification behavior by runtime.
+- **RN notifications (Phase E):** `ReminderCapabilities` now reports dismiss-action support and `SettingsScreen` surfaces it in the runtime support line (`dismiss semantics yes/no`) to clarify notification behaviour by runtime.
 - **Safety alignment:** this visibility complements dismiss-action safe-ignore handling so users can see when explicit dismiss semantics are available.
 - **Validation:** `npm run test:mobile -- permissions.test.ts SettingsScreen.test.tsx RootNavigator.test.tsx` and `npm run typecheck:mobile` pass.
 
@@ -227,14 +232,14 @@ Changelog is derived from project commit history. Versions follow semantic versi
 ### v1.45.79 - 2026-03-27 - Reminder action identifier normalization
 
 - **RN notifications (Phase E):** reminder action parsing now normalizes runtime identifier variants (case and separator differences) before semantic mapping, reducing accidental `unknown` classification for known actions.
-- **Coverage:** added `apps/rn-app/src/permissions/permissions.test.ts` for normalization behavior (`log-now`, `later`, `default`, `unknown`, `none`) across representative identifier forms.
+- **Coverage:** added `apps/rn-app/src/permissions/permissions.test.ts` for normalization behaviour (`log-now`, `later`, `default`, `unknown`, `none`) across representative identifier forms.
 - **Validation:** `npm run test:mobile -- permissions.test.ts RootNavigator.test.tsx SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.78 - 2026-03-27 - Documentation sync checkpoint
 
 - **Plan freshness:** refreshed `docs/next-phase-development-plan.md` status rollup text so the Phase E notifications summary explicitly includes duplicate-action burst suppression in root routing.
-- **Docs alignment:** synchronized `README.md`, `docs/app-and-features.md`, and `docs/platform-parity.md` to the same latest milestone pointer and parity wording.
-- **Scope:** documentation/changelog update only (no runtime behavior changes in this checkpoint).
+- **Docs alignment:** synchronised `README.md`, `docs/app-and-features.md`, and `docs/platform-parity.md` to the same latest milestone pointer and parity wording.
+- **Scope:** documentation/changelog update only (no runtime behaviour changes in this checkpoint).
 
 ### v1.45.77 - 2026-03-27 - Reminder action burst de-dup guard
 
@@ -244,13 +249,13 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.45.76 - 2026-03-27 - Reminder action policy visibility
 
-- **RN notifications (Phase E):** Settings now includes explicit action-policy copy for reminder responses (`log-now`, `later`, `default`, `unknown`) so route/fallback behavior is visible in-app.
+- **RN notifications (Phase E):** Settings now includes explicit action-policy copy for reminder responses (`log-now`, `later`, `default`, `unknown`) so route/fallback behaviour is visible in-app.
 - **Plan sync:** `docs/next-phase-development-plan.md` notifications work-item now reflects the current state (capability visibility + action policy copy + remaining long-tail OS parity).
 - **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.75 - 2026-03-27 - Unknown reminder action handling policy
 
-- **RN notifications (Phase E):** unknown reminder actions now explicitly follow safe Home routing behavior in root action handling.
+- **RN notifications (Phase E):** unknown reminder actions now explicitly follow safe Home routing behaviour in root action handling.
 - **Status transparency:** Settings now surfaces unknown-action fallback guidance alongside reminder action status.
 - **Validation:** `npm run test:mobile -- RootNavigator.test.tsx SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
@@ -268,20 +273,20 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.45.72 - 2026-03-27 - Documentation checkpoint sync
 
-- **Docs refresh:** synchronized plan, parity, and features docs to keep the latest notification semantics milestones clear and consistent.
-- **Status clarity:** retained explicit open backlog callouts (remaining OS-specific notification long-tail behavior, charts chrome/prediction parity, AI depth, goals UX depth, and list virtualization decision follow-through).
+- **Docs refresh:** synchronised plan, parity, and features docs to keep the latest notification semantics milestones clear and consistent.
+- **Status clarity:** retained explicit open backlog callouts (remaining OS-specific notification long-tail behaviour, charts chrome/prediction parity, AI depth, goals UX depth, and list virtualization decision follow-through).
 - **Release pointer:** updated README latest-changes reference to this checkpoint.
 
 ### v1.45.71 - 2026-03-27 - Notification runtime capability status
 
 - **RN notifications (Phase E):** added runtime capability reporting (`schedule`, Android channel, iOS category, action listener) and surfaced it in Settings.
-- **User clarity:** notification section now includes a compact capability status line so behavior differences across runtimes are visible in-app.
+- **User clarity:** notification section now includes a compact capability status line so behaviour differences across runtimes are visible in-app.
 - **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx RootNavigator.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.70 - 2026-03-27 - Snooze fallback resilience
 
-- **RN notifications (Phase E):** `later` reminder actions now fall back to app-home open behavior when snooze scheduling cannot be created at runtime.
-- **User visibility:** Settings notification help text now explains this fallback behavior explicitly.
+- **RN notifications (Phase E):** `later` reminder actions now fall back to app-home open behaviour when snooze scheduling cannot be created at runtime.
+- **User visibility:** Settings notification help text now explains this fallback behaviour explicitly.
 - **Validation:** `npm run test:mobile -- RootNavigator.test.tsx SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.69 - 2026-03-27 - Configurable snooze interval
@@ -317,7 +322,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 ### v1.45.64 - 2026-03-27 - Notifications action-response baseline
 
 - **RN notifications (Phase E):** added reminder response handling helpers (`getLastReminderAction`, `subscribeReminderActions`) to capture action semantics from notification interactions.
-- **Settings parity depth:** notifications pane now shows the last reminder action received (e.g., `Log now`) to make response-path behavior observable in-app.
+- **Settings parity depth:** notifications pane now shows the last reminder action received (e.g., `Log now`) to make response-path behaviour observable in-app.
 - **Validation:** `npm run test:mobile -- SettingsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.63 - 2026-03-27 - Notifications OS semantics expansion
@@ -334,7 +339,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.45.61 - 2026-03-27 - Parity checkpoint docs sync
 
-- **Docs rollup:** synchronized `next-phase-development-plan.md`, `platform-parity.md`, and `app-and-features.md` to reflect the current RN parity checkpoint after `v1.45.60`.
+- **Docs rollup:** synchronised `next-phase-development-plan.md`, `platform-parity.md`, and `app-and-features.md` to reflect the current RN parity checkpoint after `v1.45.60`.
 - **Scope clarity:** kept open backlog explicit (notifications channel/OS delivery semantics, FlashList decision/profile thresholds, remaining charts/AI/goals depth items).
 - **Execution focus:** documented the next active implementation target as notifications channel/delivery semantics where runtime support exists.
 
@@ -376,8 +381,8 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.45.54 - 2026-03-27 - Charts motion polish (reduced-motion-aware)
 
-- **RN Charts (Phase B polish):** `ChartsScreen` now uses conditional `LayoutAnimation` on view/range/refresh/data updates, with transitions automatically minimized when OS reduced-motion is enabled via `AccessibilityInfo`.
-- **Accessibility parity increment:** added reduced-motion status copy in Charts to make animation behavior explicit.
+- **RN Charts (Phase B polish):** `ChartsScreen` now uses conditional `LayoutAnimation` on view/range/refresh/data updates, with transitions automatically minimised when OS reduced-motion is enabled via `AccessibilityInfo`.
+- **Accessibility parity increment:** added reduced-motion status copy in Charts to make animation behaviour explicit.
 - **Validation:** `npm run test:mobile -- ChartsScreen.test.tsx` and `npm run typecheck:mobile` pass.
 
 ### v1.45.53 - 2026-03-27 - CI unit-tests path fix (`apps/pwa-webapp` + `apps/rn-app`)
@@ -410,7 +415,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **AI/LLM parity status:** documented that RN has baseline `AIEngine`-style deterministic helpers and LLM wrapper hooks (summary/MOTD/suggest) with model-tier selection, while full web AI depth is still tracked as open parity work.
 - **Demo + performance settings parity:** documented demo-mode lifecycle parity and benchmark-tier model selection parity as implemented, with benchmark-detail UI parity still in backlog.
 - **Install UX scope:** reiterated that RN does not show in-app install/download buttons; install/download entry points remain web/PWA-facing.
-- **Cross-doc alignment:** synchronized references between `README.md`, `docs/next-phase-development-plan.md`, `docs/app-and-features.md`, `docs/platform-parity.md`, and `docs/setup-and-usage.md`.
+- **Cross-doc alignment:** synchronised references between `README.md`, `docs/next-phase-development-plan.md`, `docs/app-and-features.md`, `docs/platform-parity.md`, and `docs/setup-and-usage.md`.
 
 ### v1.45.40 - 2026-03-27 - Docs sync: RN parity track + scope clarifications
 
@@ -427,7 +432,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.45.38 - 2026-03-27 - RN demo mode parity toggle
 
-- **RN demo mode:** added Settings toggle that ports demo-mode behavior intent from web/Capacitor by loading a rebased premade sample history, refreshing demo logs on app launch, and restoring backed-up user logs when disabled.
+- **RN demo mode:** added Settings toggle that ports demo-mode behaviour intent from web/Capacitor by loading a rebased premade sample history, refreshing demo logs on app launch, and restoring backed-up user logs when disabled.
 - **RN data safeguards:** import/export actions are blocked while demo mode is active (demo data is treated as disposable showcase data).
 - **Tests/docs:** added `src/demo/demoMode.test.ts`, extended preferences/settings tests, and updated parity plan notes for demo-mode progress.
 
@@ -482,7 +487,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 ### v1.45.29 - 2026-03-27 - RN View Logs Phase G + docs sync
 
 - **Mobile / View Logs (Phase G):** `LogsScreen` now includes **date-range presets** (Today / 7 / 30 / 90 / All), **Newest/Oldest** sort, **pull-to-refresh**, and a filtered/total count line ("Showing *n* of *m* entries").
-- **Tests:** Added `logsViewHelpers.test.ts`; updated `LogsScreen.test.tsx` for range-aware dates, empty-state copy, and dev sample log behavior; fixed sort chip spacing for broader RN compatibility.
+- **Tests:** Added `logsViewHelpers.test.ts`; updated `LogsScreen.test.tsx` for range-aware dates, empty-state copy, and dev sample log behaviour; fixed sort chip spacing for broader RN compatibility.
 - **Docs:** Updated **`docs/next-phase-development-plan.md`** (§4.2, §4.3, Phase G), plus pointers in `README.md`, `docs/app-and-features.md`, and `docs/platform-parity.md`.
 
 ### v1.45.28 - 2026-03-27 - CI: fix RN CLI Android APK collection path
@@ -680,7 +685,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
   - **Stress & triggers**: grouped picker + search + collapsible section + selected/clear parity.
   - **Symptoms & pain**: introduced a tap-to-cycle body diagram, aligned semantics to **good / discomfort / pain**, and added “Use diagram text”.
   - **Energy & mental clarity**: added collapsible tile picker and icon tiles, plus group-colored tile borders.
-  - **Steps 6–9 UX**: added clear-all controls (food/exercise/meds), count-badge clear affordance shown at **1+**, and tests to lock these behaviors in.
+  - **Steps 6–9 UX**: added clear-all controls (food/exercise/meds), count-badge clear affordance shown at **1+**, and tests to lock these behaviours in.
 - **Docs**:
   - Updated `docs/next-phase-development-plan.md` with Phase A progress notes.
 
@@ -699,7 +704,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 ### v1.45.3 - 2026-03-24 - Expanded app functionality unit tests
 
 - **Tests / Unit coverage**:
-  - Expanded `tests/unit/app-functionality.test.mjs` with behavior assertions for:
+  - Expanded `tests/unit/app-functionality.test.mjs` with behaviour assertions for:
     - in-place theme switching (no forced reload in `setGlobalTheme`),
     - Home-only MOTD title/quote guards,
     - voice input permission gate flow wiring,
@@ -726,7 +731,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Web / Theme switching**:
   - Removed forced page reload on global theme change.
   - Theme now applies instantly in-place (background update) without restarting the app shell.
-  - Updated settings helper text to describe live apply behavior.
+  - Updated settings helper text to describe live apply behaviour.
 - **Web / Settings (mobile)**:
   - Fixed settings section icon row wrapping where the last icon could drop onto a second line on narrow screens.
   - Header icon strip now remains a single row and allows horizontal overflow scroll when needed.
@@ -1079,7 +1084,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 ### v1.14.1 - 2026-02-23 - Neural network optimisation and loading states
 
 - **Neural network optimisation** (`web/AIEngine.js`): Added `yieldToMain()` and yield between analysis layers in `NeuralAnalysisNetwork.forward()` so the main thread can update the UI during analysis, reducing perceived lag and avoiding a frozen page.
-- **AI Summary loading**: Loading state shows "Analyzing your health data…" and waits one frame (`requestAnimationFrame` + `setTimeout`) before starting analysis so the message is visible; existing pulse animation on the loading icon retained.
+- **AI Summary loading**: Loading state shows "Analysing your health data…" and waits one frame (`requestAnimationFrame` + `setTimeout`) before starting analysis so the message is visible; existing pulse animation on the loading icon retained.
 - **Combined chart loading**: When predictions are computed (cache miss), a "Calculating predictions…" overlay with spinner is shown on the combined chart container and removed when done, so chart view no longer feels stuck during prediction runs.
 - **Suggest note**: Already showed "Generating…" for the LLM path; no change.
 
