@@ -58,17 +58,17 @@ test('settings carousel: eight panes match web settings carousel titles', () => 
     </ThemeProvider>
   );
 
-  getByText('1 / 8 — Personal & cloud sync');
+  getByText('1 / 8 - Personal & cloud sync');
   getByText(/Cloud sync is not configured/);
 
   fireEvent.press(getByTestId('settings-pane-tab-1'));
-  getByText('2 / 8 — AI & Goals');
+  getByText('2 / 8 - AI & Goals');
   getByText('Enable AI features & Goals');
   getByText('Goals & targets');
   getByText('Mood target (0-10)');
 
   fireEvent.press(getByTestId('settings-pane-tab-2'));
-  getByText('3 / 8 — Display');
+  getByText('3 / 8 - Display');
   getByText('Enable daily reminder');
   getByText('Reminder sound');
   getByText('Snooze minutes (later action)');
@@ -76,25 +76,25 @@ test('settings carousel: eight panes match web settings carousel titles', () => 
   getByText(/Action policy: log-now to Log today/i);
 
   fireEvent.press(getByTestId('settings-pane-tab-3'));
-  getByText('4 / 8 — Customisation');
+  getByText('4 / 8 - Customisation');
   getByText('Theme customisation');
 
   fireEvent.press(getByTestId('settings-pane-tab-4'));
-  getByText('5 / 8 — Accessibility');
+  getByText('5 / 8 - Accessibility');
   getByText('Large text');
   getByText('Text-to-speech (tap-to-read)');
   getByText('Read mode (auto-read on focus)');
 
   fireEvent.press(getByTestId('settings-pane-tab-5'));
-  getByText('6 / 8 — Data options');
+  getByText('6 / 8 - Data options');
   getByText('Demo mode');
 
   fireEvent.press(getByTestId('settings-pane-tab-6'));
-  getByText('7 / 8 — Performance');
+  getByText('7 / 8 - Performance');
   getByText('On-device AI model');
 
   fireEvent.press(getByTestId('settings-pane-tab-7'));
-  getByText('8 / 8 — Data management');
+  getByText('8 / 8 - Data management');
   getByText('📤 Export logs (JSON)');
   getByText('📥 Import logs (JSON)');
   getByText('🗑️ Clear all data');

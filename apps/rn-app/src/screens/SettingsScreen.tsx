@@ -46,6 +46,23 @@ const PANE_TITLES = [
   'Data management',
 ] as const;
 
+/**
+ * Ionicons names aligned with `settingsIconForTitle` in `apps/pwa-webapp/app.js` (Font Awesome → Ionicons).
+ */
+function settingsPaneIconName(title: string, idx: number): React.ComponentProps<typeof Ionicons>['name'] {
+  const t = title.toLowerCase();
+  if (t.includes('personal') || t.includes('cloud')) return 'person-outline';
+  if (t.includes('ai') || t.includes('goal')) return 'medical-outline';
+  if (t.includes('display') || t.includes('reminder')) return 'bar-chart-outline';
+  if (t.includes('custom') || t.includes('theme')) return 'color-palette-outline';
+  if (t.includes('access')) return 'accessibility-outline';
+  if (t.includes('data option')) return 'settings-outline';
+  if (t.includes('performance')) return 'flash-outline';
+  if (t.includes('install')) return 'phone-portrait-outline';
+  if (t.includes('data management')) return 'save-outline';
+  return idx % 2 === 0 ? 'ellipse-outline' : 'ellipse';
+}
+
 function reminderActionLabel(action: ReminderAction): string {
   if (action === 'log-now') return 'Log now';
   if (action === 'later') return 'Later';
@@ -63,6 +80,8 @@ export function SettingsScreen({
 }) {
   const theme = useTheme();
   const { width } = useWindowDimensions();
+  /** Sized like web `settings-carousel-dots` (clamp ~22–32px), shared across eight pane icons. */
+  const settingsPaneIconBtnSize = Math.min(36, Math.max(26, (width - 48 - 7 * 4) / 8));
   const scrollRef = useRef<ScrollView>(null);
   const [paneIndex, setPaneIndex] = useState(0);
   const bg =
@@ -403,7 +422,7 @@ export function SettingsScreen({
             accessibilityRole="text"
             accessibilityLiveRegion="polite"
           >
-            {paneIndex + 1} / {PANE_TITLES.length} — {PANE_TITLES[paneIndex]}
+            {paneIndex + 1} / {PANE_TITLES.length} - {PANE_TITLES[paneIndex]}
           </Text>
           <Pressable
             onPress={() => goPane(paneIndex + 1)}
@@ -416,42 +435,38 @@ export function SettingsScreen({
           </Pressable>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.paneTabRow}>
+        <View style={styles.paneIconRow} accessibilityRole="tablist">
           {PANE_TITLES.map((t, i) => {
             const active = i === paneIndex;
+            const iconName = settingsPaneIconName(t, i);
             return (
               <Pressable
                 key={t}
                 testID={`settings-pane-tab-${i}`}
                 onPress={() => goPane(i)}
-                style={[styles.paneTab, active && styles.paneTabActive]}
+                style={[
+                  styles.paneIconBtn,
+                  {
+                    width: settingsPaneIconBtnSize,
+                    height: settingsPaneIconBtnSize,
+                    borderColor: active
+                      ? theme.tokens.color.accent
+                      : `${theme.tokens.color.text}33`,
+                    backgroundColor: active ? `${theme.tokens.color.accent}2E` : `${theme.tokens.color.text}14`,
+                  },
+                ]}
                 accessibilityRole="tab"
+                accessibilityLabel={`${t}${active ? ', selected' : ''}`}
                 accessibilityState={{ selected: active }}
               >
-                <Text
-                  numberOfLines={1}
-                  style={[
-                    styles.paneTabText,
-                    { fontSize: theme.font(12) },
-                    active && styles.paneTabTextActive,
-                    { color: theme.tokens.color.text },
-                  ]}
-                >
-                  {t}
-                </Text>
+                <Ionicons
+                  name={iconName}
+                  size={Math.round(Math.min(settingsPaneIconBtnSize * 0.42, theme.font(16)))}
+                  color={active ? theme.tokens.color.accent : theme.tokens.color.text}
+                />
               </Pressable>
             );
           })}
-        </ScrollView>
-
-        <View style={styles.dotsRow} accessibilityRole="tablist">
-          {PANE_TITLES.map((_, i) => (
-            <View
-              key={`dot-${i}`}
-              style={[styles.dot, i === paneIndex ? styles.dotOn : styles.dotOff]}
-              accessibilityElementsHidden
-            />
-          ))}
         </View>
       </View>
 
@@ -1583,21 +1598,20 @@ const styles = StyleSheet.create({
   },
   carouselSide: { padding: 8 },
   carouselMeta: { flex: 1, textAlign: 'center', fontWeight: '600', opacity: 0.92 },
-  paneTabRow: { flexDirection: 'row', gap: 8, alignItems: 'center', paddingVertical: 4 },
-  paneTab: {
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    backgroundColor: 'rgba(0,0,0,0.12)',
-    maxWidth: 160,
+  paneIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 4,
+    paddingVertical: 4,
+    marginTop: 2,
   },
-  paneTabActive: { backgroundColor: 'rgba(0,0,0,0.22)' },
-  paneTabText: { fontWeight: '600', opacity: 0.85 },
-  paneTabTextActive: { opacity: 1, fontWeight: '800' },
-  dotsRow: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
-  dot: { width: 6, height: 6, borderRadius: 3 },
-  dotOn: { backgroundColor: 'rgba(0,180,120,0.95)' },
-  dotOff: { backgroundColor: 'rgba(0,0,0,0.2)' },
+  paneIconBtn: {
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   content: { padding: 16, gap: 16, paddingBottom: 32 },
   section: { borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.16)', padding: 14 },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 10, color: '#fff' },
