@@ -2,7 +2,11 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.5** - React Native settings carousel pane icons (web parity).
+**Latest: v1.46.6** - PWA light mode MOTD title readability.
+
+### v1.46.6 - 2026-03-29 - PWA MOTD title in light mode
+
+- **Web / PWA (`apps/pwa-webapp/styles.css`):** In **light mode**, the dashboard MOTD (`#dashboardTitle`) no longer uses the heavy 3D / black extrusion `text-shadow` stack, dark `filter`, or duplicate blur pseudo-layers. Copy uses **`var(--text-dark)`** with a **subtle** shadow so quotes stay readable on white and on mobile.
 
 ### v1.46.5 - 2026-03-29 - RN settings carousel icons
 
