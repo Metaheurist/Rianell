@@ -1001,24 +1001,10 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Download SecurityHeaders scan HTML
-        env:
-          SCAN_URL: https://securityheaders.com/?q=rianell.com&followRedirects=on
-        run: |
-          set -euo pipefail
-          OUT="${RUNNER_TEMP}/securityheaders.html"
-          curl -fsSL \
-            -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
-            -H "Accept-Language: en-GB,en;q=0.9" \
-            -H "Referer: https://securityheaders.com/" \
-            --retry 3 --retry-delay 2 \
-            "$SCAN_URL" -o "$OUT"
-          test -s "$OUT"
-          echo "SECURITY_HEADERS_HTML_FILE=$OUT" >> "$GITHUB_ENV"
-
       - name: Generate Markdown security reports
         env:
           SECURITY_HEADERS_URL: https://securityheaders.com/?q=rianell.com&followRedirects=on
+          SECURITY_HEADERS_FALLBACK_SITE: https://rianell.com
           OUT_LATEST: ${{ github.workspace }}/security/securityheaders-rianell.com.md
           OUT_RUN: ${{ github.workspace }}/security/securityheaders-runs/run-${{ github.run_number }}.md
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
