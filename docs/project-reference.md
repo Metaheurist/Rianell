@@ -79,6 +79,8 @@ Rianell/
 
 ## 📦 Dependencies
 
+For a **complete dependency inventory by build** (workspaces, PWA CDNs, CI-only tools), see **[dependencies.md](dependencies.md)**.
+
 ### Python (server package)
 - `supabase>=2.0.0` - Supabase client library
 - `watchdog>=3.0.0` - File watching for auto-reload
@@ -90,7 +92,7 @@ Rianell/
 - Font Awesome 6 (CDN) for icons
 
 ### Node.js (optional: React & Android)
-- Used only for the React/Capacitor build and Android APK. See **React shell & Android APK**.
+- **Minimum Node.js 24.14.1** (LTS); see root `package.json` `engines` and **`.nvmrc`**. Used for the React/Capacitor build, Android APK, PWA minify, benchmarks, and CI.
 - Root `package.json`: scripts for `build`, `build:android`, `build:web` (minify `apps/pwa-webapp/app.js` → `app.min.js`), `sync`, `dev`
 - `apps/capacitor-app/`: Vite 6, React, Capacitor 7; run `npm run build` from repo root
 

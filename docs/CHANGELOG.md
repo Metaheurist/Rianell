@@ -2,7 +2,18 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.21** - PWA settings modal scroll on mobile; MOTD tap “spring charge” slingshot; RN parity.
+**Latest: v1.46.22** - Node.js 24.14.1 LTS; CI, lockfile, Vite patch, security audit gate.
+
+### v1.46.22 - 2026-04-12 - Tooling: Node.js 24.14.1 LTS
+
+- **Node / npm:** Root **`engines.node`** set to **`>=24.14.1`**. **`.nvmrc`** and **`.node-version`** at the repository root pin **24.14.1** for local development. **`package-lock.json`** regenerated under Node 24.
+- **CI:** All **`actions/setup-node`** steps use **`node-version: "24.14.1"`** (`.github/workflows/ci.yml`, `security-audit.yml`, `expo-native-build.yml`, `legacy-capacitor.yml`). Header comment in **`ci.yml`** documents job Node vs `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`.
+- **npm overrides:** **`@xmldom/xmldom`** pinned to **0.8.12** where the resolver honours it (legacy **@capacitor/assets** / Trapeze nested copies may still warn on a full `npm audit`).
+- **Legacy Capacitor shell:** **`vite`** raised to **`^6.4.2`** (security patches in the 6.4 line).
+- **React Native tests:** **`react-test-renderer`** pinned to **19.2.4** to match **`react`** and avoid peer resolution drift.
+- **Security audit workflow:** **`npm audit`** gate uses **`--omit=dev`** so the job matches **production** install risk; dev-only advisory chains (e.g. Capacitor asset tooling) are reviewed separately. **`OSV-Scanner`** and **`pip-audit`** unchanged.
+- **Benchmarks:** **`benchmarks/*/latest.*`** and **`compare.md`** on **`main`** continue to follow the **commit-benchmarks** CI lane; after this change, the next benchmark merge will record **`meta.node`** as **v24.14.1** (prior **`latest.run.json`** rows may still show Node 22.x from earlier CI).
+- **Docs:** [README.md](../README.md) Node badge, [docs/setup-and-usage.md](setup-and-usage.md), [docs/dependencies.md](dependencies.md), [docs/project-reference.md](project-reference.md) updated for Node 24.14.1+.
 
 ### v1.46.21 - 2026-03-29 - PWA settings scroll, MOTD slingshot return, RN settings + MOTD parity
 

@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.46.21** - PWA settings scroll, MOTD spring charge, RN parity).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.46.22** - Node.js 24.14.1 LTS, tooling and docs).
 
 ### Here’s what we plan next
 
@@ -19,7 +19,7 @@
 [![React%20Native](https://img.shields.io/badge/React%20Native-0.83-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-SDK%2055-000020?style=flat-square&logo=expo&logoColor=white)](https://expo.dev/)
 [![Capacitor%20(legacy)](https://img.shields.io/badge/Capacitor-legacy-119EFF?style=flat-square&logo=capacitor&logoColor=white)](https://capacitorjs.com/)
-[![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A520-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-24.14.1%20LTS-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Python](https://img.shields.io/badge/Python-server-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%26%20Auth-3FCF8E?style=flat-square&logo=supabase&logoColor=fff)](https://supabase.com/)
 [![PWA](https://img.shields.io/badge/PWA-Service%20worker%20%26%20manifest-5A0FC8?style=flat-square&logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
@@ -74,6 +74,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | ⏱️ | **[Performance benchmarks](benchmarks/README.md)** - reports and tooling under `benchmarks/`; run `npm run benchmark` |
 | 🧠 | **[AI architecture](docs/ai-architecture.md)** |
 | 🗂️ | **[Project reference](docs/project-reference.md)** - tree, deps, dev, GDPR, troubleshooting, security notes |
+| 📎 | **[Dependencies](docs/dependencies.md)** - full manifest by build (npm workspaces, Python, CDN/runtime, CI tooling) |
 | 🎨 | **[Styling](docs/styling.md)** - CSS layout, tokens, settings carousel, tile pickers, cache bust |
 | 📱 | **[Platform parity](docs/platform-parity.md)** - web/android/iOS feature contract and CI parity gates |
 | 👤 | **[About & support](docs/about-and-support.md)** |

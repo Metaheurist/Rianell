@@ -1,7 +1,7 @@
 # =============================================================================
 # Security & dependency audits (standalone — not grouped with legacy mobile builds)
 # =============================================================================
-name: Security audit
+name: Reusable security audits
 
 on:
   workflow_call:
@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   security-audit:
-    name: Security audit
+    name: Secret scan & dependency audits
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -39,19 +39,34 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: "24.14.1"
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - name: npm ci + npm audit (production deps, all workspaces)
-        run: npm ci --omit=dev && npm audit --audit-level=high --omit=dev
+      - name: Install dependencies (npm ci, all workspaces)
+        run: npm ci
+
+      # Production/installable deps only: devDependency chains (e.g. legacy Capacitor asset tooling) may
+      # still report highs under a full-tree audit; --omit=dev matches shipped/runtime risk for npm gate.
+      - name: Vulnerability scan — npm audit (production deps)
+        run: npm audit --audit-level=high --omit=dev
+
+      # OSV-Scanner (https://github.com/google/osv-scanner) — OSV.dev DB; complements npm audit and pip-audit
+      - name: Vulnerability scan — OSV-Scanner (OSV.dev)
+        run: |
+          set -euo pipefail
+          VERSION=2.3.5
+          curl -sSfL "https://github.com/google/osv-scanner/releases/download/v${VERSION}/osv-scanner_linux_amd64" -o osv-scanner
+          chmod +x osv-scanner
+          ./osv-scanner scan -L package-lock.json
+          ./osv-scanner scan -L requirements.txt
 
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
-      - name: pip-audit (requirements.txt)
+      - name: Vulnerability scan — pip-audit (requirements.txt)
         run: |
           python -m pip install --upgrade pip
           python -m pip install pip-audit
