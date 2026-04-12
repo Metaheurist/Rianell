@@ -369,7 +369,7 @@ flowchart LR
 - **Scripts**: **`summary-llm.js`** loads with `requestIdleCallback` on non–low devices (no `document.write`); Font Awesome remains deferred.
 - **Build**: Root **`npm run build:web`** runs **`apps/pwa-webapp/build-site.mjs`**: AST instrumentation (function trace hooks) for first-party scripts into **`apps/pwa-webapp/.trace-build/`**, then esbuild minifies **`app.js`** → **`apps/pwa-webapp/app.min.js`** (gitignored). **GitHub Pages** deploy runs the same script on the copied **`site/`** tree (see [GitHub Pages](setup-and-usage.md#github-pages-app-at-repo-root)).
 - **Web Workers**: `apps/pwa-webapp/workers/io-worker.js` - large JSON **parse** / **stringify** when the optimisation profile has **`useWorkers`** (import / export paths).
-- **Service worker**: **Off** by default; opt-in with `localStorage.setItem('rianellEnableStaticSW','1')` or **`?sw=1`** - `apps/pwa-webapp/sw.js` uses cache-first for static file extensions (test on your host; CSP is same-origin).
+- **Service worker**: **On** for **rianell.com**, **www.rianell.com**, and **\*.github.io** (PWA updates and offline-friendly caching via `apps/pwa-webapp/sw.js`). Other origins: opt-in with `localStorage.setItem('rianellEnableStaticSW','1')` or **`?sw=1`**. A full **page reload** after a deploy happens only when you confirm **Update** in the app’s modal—not from the Python dev server’s SSE reload (that path is **loopback-only**).
 - **Python server**: **gzip** for compressible static files when the client sends `Accept-Encoding: gzip`; **Cache-Control** tuned for common static extensions (`server/main.py`).
 - **Observability**: Optional **Long Task** logging via `localStorage.setItem('rianellPerfLongTasks','1')` or debug mode; `performance.mark('rianell-init')` during init.
 
@@ -377,6 +377,7 @@ flowchart LR
 
 - **Expected `DEBUG` messages**: Empty charts or an empty AI range are logged at **debug** level (enable *Verbose* in DevTools if you want to see them). They are not errors.
 - **Extension noise**: Messages from **`vendor.js`**, **`tabs:outgoing.message.ready`**, **`serviceWorker.js`** (when the filename is not this app’s `sw.js`), or **`Frame with ID … was removed`** usually come from **browser extensions** (password managers, Grammarly, devtools helpers), not from Rianell. The app includes handlers to ignore common extension promise rejections where possible.
+- **Tab reloads / “crashes” on mobile PWA**: Usually **not** leftover Python dev reload behaviour (that SSE is **disabled** on production hosts). See **[Troubleshooting → PWA / web](project-reference.md#nav-troubleshooting)** for extension noise, **service worker** update flow, and **memory** (LLM + charts + large logs).
 - **Third-party / browser**: **SES / lockdown** lines, **Grammarly / i18next** tips, **WebGPU `powerPreference` on Windows**, and **PWA** DevTools notes about `beforeinstallprompt` are outside app control or informational.
 - **Hugging Face / CDN**: If the on-device LLM fails to download model shards (`ERR_CONTENT_LENGTH_MISMATCH`, `ERR_CONNECTION_RESET`), the app falls back to a smaller model or rule-based text; that is usually **network or CDN** related, not a bug in the repo.
 
