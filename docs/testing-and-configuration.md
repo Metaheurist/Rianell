@@ -2,6 +2,9 @@
 
 ## 🧪 Testing Data
 
+**Toolchain:** Run tests and scripts with **Node.js 24.14.1+** (see [Installation & usage](setup-and-usage.md) and root `package.json` `engines`). **Unit tests** (`npm run test:unit`) use the Node test runner from the repository root; **mobile** tests use Jest under `apps/rn-app`.
+
+
 ### v1.46.3 documentation sync
 
 - **React Native:** After Settings or Log wizard changes, run `npx jest src/screens/SettingsScreen.test.tsx src/screens/LogWizardScreen.test.tsx` from `apps/rn-app` (or the repo’s `npm run test:mobile` if configured). Settings tests mock `expo-constants` for the app installation section.

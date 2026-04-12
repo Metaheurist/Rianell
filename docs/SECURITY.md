@@ -15,7 +15,7 @@ This document describes how **Rianell** (this health app) handles health-related
 | Environment variables | [security/.env.example](../security/.env.example), [Configuration](testing-and-configuration.md#nav-configuration), [Local secrets directory](#local-secrets-directory-security) below |
 | Supabase RLS examples (SQL) | [supabase-rls-recommended.sql](supabase-rls-recommended.sql) |
 | Android network / cleartext after `cap sync` | [Android: cleartext and mixed content](#android-cleartext-and-mixed-content) below |
-| Automated audits (CI) | [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) (Gitleaks, `npm audit`, `pip-audit`); required by [../.github/workflows/ci.yml](../.github/workflows/ci.yml) |
+| Automated audits (CI) | [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) (Gitleaks, **`npm audit --audit-level=high --omit=dev`** for production dependency risk, OSV-Scanner on `package-lock.json`, `pip-audit`); required by [../.github/workflows/ci.yml](../.github/workflows/ci.yml) |
 | Web CSP (meta tag) | [../apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html), [edge header note](../security/cloudflare-headers-recommended.md) |
 
 ## Server logs
