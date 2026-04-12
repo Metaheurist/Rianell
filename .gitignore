@@ -64,6 +64,8 @@ node_modules/
 dist/
 build/
 apps/pwa-webapp/app.min.js
+apps/pwa-webapp/app.*.min.js
+apps/pwa-webapp/asset-manifest.json
 apps/pwa-webapp/.trace-build/
 apps/pwa-webapp/.android-dist/
 

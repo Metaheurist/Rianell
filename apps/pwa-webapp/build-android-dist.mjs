@@ -1,14 +1,15 @@
 /**
  * Produces apps/pwa-webapp/.android-dist/ — a full copy with first-party JS/CSS minified
- * and index.html pointing at app.min.js. Used by apps/capacitor-app/copy-webapp.js --min for
- * Capacitor Android/iOS (smaller parse/load than shipping raw sources).
+ * and index.html pointing at content-hashed app + styles bundles. Used by
+ * apps/capacitor-app/copy-webapp.js --min for Capacitor Android/iOS.
  *
- * Run after app.min.js exists (see build-site.mjs --skip-trace).
+ * Run after build-site.mjs --skip-trace (writes asset-manifest.json + app.<hash>.min.js).
  */
 import * as esbuild from 'esbuild';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { applyBundleNamesToHtml, contentHash } from './fingerprint-assets.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.join(__dirname, '..', '..');
@@ -24,17 +25,45 @@ function mkdirp(dir) {
 
 const SKIP_DIRS = new Set(['.trace-build', '.android-dist', 'build-plugins', 'node_modules']);
 /** Build tooling at web root — not part of the shipped app */
-const SKIP_FILES = new Set(['build-site.mjs', 'build-android-dist.mjs']);
+const SKIP_FILES = new Set(['build-site.mjs', 'build-android-dist.mjs', 'fingerprint-assets.mjs']);
 
 /** Already minified / special — copy as-is */
 function isPreMinifiedJs(name) {
-  return name === 'apexcharts.min.js' || name === 'app.min.js';
+  if (name === 'apexcharts.min.js') return true;
+  if (name === 'app.min.js') return true;
+  return /^app\.[0-9a-f]+\.min\.js$/i.test(name);
+}
+
+function loadManifestMainJs(webRoot) {
+  const p = path.join(webRoot, 'asset-manifest.json');
+  if (!fs.existsSync(p)) return 'app.min.js';
+  try {
+    const m = JSON.parse(fs.readFileSync(p, 'utf8'));
+    if (m.mainJs && typeof m.mainJs === 'string') return m.mainJs;
+  } catch (_) {}
+  return 'app.min.js';
 }
 
 export async function buildAndroidDistBundle(webRoot) {
   const outRoot = path.join(webRoot, '.android-dist');
   rmrf(outRoot);
   mkdirp(outRoot);
+
+  const distMainJs = loadManifestMainJs(webRoot);
+
+  let stylesPrepared = null;
+  const stylesPath = path.join(webRoot, 'styles.css');
+  if (fs.existsSync(stylesPath)) {
+    const code = fs.readFileSync(stylesPath, 'utf8');
+    const r = await esbuild.transform(code, {
+      loader: 'css',
+      minify: true,
+    });
+    const body = r.code;
+    const fname = `styles.${contentHash(Buffer.from(body, 'utf8'))}.css`;
+    stylesPrepared = { fname, body };
+  }
+  const distMainCss = stylesPrepared ? stylesPrepared.fname : null;
 
   async function minifyJs(absIn, relOut) {
     const code = fs.readFileSync(absIn, 'utf8');
@@ -80,6 +109,12 @@ export async function buildAndroidDistBundle(webRoot) {
         continue;
       }
       if (name === 'app.js') continue;
+      if (name === 'styles.css' && stylesPrepared) {
+        const dest = path.join(outRoot, stylesPrepared.fname);
+        mkdirp(path.dirname(dest));
+        fs.writeFileSync(dest, stylesPrepared.body, 'utf8');
+        continue;
+      }
       if (isPreMinifiedJs(name)) {
         copyFile(abs, relP);
         continue;
@@ -94,8 +129,7 @@ export async function buildAndroidDistBundle(webRoot) {
       }
       if (name === 'index.html') {
         let html = fs.readFileSync(abs, 'utf8');
-        html = html.replace(/src="app\.js(\?[^"]*)?"/g, 'src="app.min.js$1"');
-        html = html.replace(/href="app\.js(\?[^"]*)?"/g, 'href="app.min.js$1"');
+        html = applyBundleNamesToHtml(html, { mainJs: distMainJs, mainCss: distMainCss });
         const dest = path.join(outRoot, relP);
         mkdirp(path.dirname(dest));
         fs.writeFileSync(dest, html, 'utf8');

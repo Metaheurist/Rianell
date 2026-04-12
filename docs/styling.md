@@ -110,4 +110,4 @@ The **Export / Import / Install web app** tiles and the **Clear all data** actio
 
 ## Build
 
-CSS-only edits do not require **`npm run build:web`**. Changes to **`web/app.js`** that ship minified **`web/app.min.js`** should run **`npm run build:web`** before release (see **[setup-and-usage.md](setup-and-usage.md)**).
+CSS-only edits do not require **`npm run build:web`**. Changes to **`apps/pwa-webapp/app.js`** that ship a production minified bundle should run **`npm run build:web`** (or **`npm run build:web:apk`** for the APK / **`.android-dist`** tree) before release; output filenames are content-hashed (**`app.<hash>.min.js`**, **`asset-manifest.json`** — see **[setup-and-usage.md](setup-and-usage.md)**).

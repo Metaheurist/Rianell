@@ -6,8 +6,8 @@
  * Must include every script referenced by apps/pwa-webapp/index.html and lazy-loaded modules
  * (e.g. summary-llm.js, workers/io-worker.js) or the iframe will 404 and the app won't boot.
  *
- * Production / APK: pass --min after `npm run build:web` so legacy/index.html loads app.min.js
- * (smaller, faster parse) instead of the multi‑MB app.js. Dev: run without --min (default).
+ * Production / APK: pass --min after `npm run build:web` so legacy/index.html loads the
+ * content-hashed app bundle (see asset-manifest.json) instead of app.js. Dev: run without --min.
  */
 import fs from 'fs';
 import path from 'path';
@@ -48,16 +48,29 @@ const copyDir = (src, dest) => {
   }
 };
 
+function readManifest(dir) {
+  const p = path.join(dir, 'asset-manifest.json');
+  if (!fs.existsSync(p)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
 if (!fs.existsSync(webDir)) {
   console.error('Web directory not found:', webDir);
   process.exit(1);
 }
 
+const manifest = readManifest(sourceDir);
+const mainJsFile = manifest?.mainJs || 'app.min.js';
+
 if (useMin) {
-  const minPath = path.join(sourceDir, 'app.min.js');
+  const minPath = path.join(sourceDir, mainJsFile);
   if (!fs.existsSync(minPath)) {
     console.error(
-      'copy-webapp --min: app.min.js not found. From repo root run: npm run build:web:apk (or npm run build:web) so apps/pwa-webapp/app.min.js exists'
+      `copy-webapp --min: ${mainJsFile} not found. From repo root run: npm run build:web:apk (or npm run build:web) so apps/pwa-webapp has a built bundle + asset-manifest.json`
     );
     process.exit(1);
   }
@@ -73,23 +86,37 @@ for (const file of staticRootFiles) {
   }
 }
 
-  if (useMin && sourceDir === webDir) {
-    const indexOut = path.join(outDir, 'index.html');
-    if (fs.existsSync(indexOut)) {
-      let html = fs.readFileSync(indexOut, 'utf8');
-      html = html.replace(/src="app\.js(\?[^"]*)?"/g, 'src="app.min.js$1"');
-      html = html.replace(/href="app\.js(\?[^"]*)?"/g, 'href="app.min.js$1"');
-      fs.writeFileSync(indexOut, html);
-      console.log('Patched index.html to load app.min.js');
-    }
-  } else if (useMin && sourceDir === androidDistDir) {
-    console.log('Using apps/pwa-webapp/.android-dist (index.html already targets app.min.js + minified assets)');
+if (manifest && fs.existsSync(path.join(sourceDir, 'asset-manifest.json'))) {
+  fs.copyFileSync(
+    path.join(sourceDir, 'asset-manifest.json'),
+    path.join(outDir, 'asset-manifest.json')
+  );
+  console.log('Copied asset-manifest.json');
+}
+
+if (useMin && sourceDir === webDir) {
+  const indexOut = path.join(outDir, 'index.html');
+  if (fs.existsSync(indexOut)) {
+    let html = fs.readFileSync(indexOut, 'utf8');
+    html = html.replace(/src="app\.js(\?[^"]*)?"/g, `src="${mainJsFile}$1"`);
+    html = html.replace(/href="app\.js(\?[^"]*)?"/g, `href="${mainJsFile}$1"`);
+    fs.writeFileSync(indexOut, html);
+    console.log('Patched index.html to load', mainJsFile);
   }
+} else if (useMin && sourceDir === androidDistDir) {
+  console.log(
+    'Using apps/pwa-webapp/.android-dist (index.html already targets hashed bundles + minified assets)'
+  );
+}
 
 // Root-level .js modules (index.html + lazy loaders).
 for (const name of fs.readdirSync(sourceDir)) {
   if (!name.endsWith('.js')) continue;
-  if (name === 'app.min.js') {
+  if (name === 'app.js' && useMin) continue;
+  if (useMin && /^app\.[0-9a-f]+\.min\.js$/i.test(name) && name !== mainJsFile) {
+    continue;
+  }
+  if (name === 'app.min.js' || /^app\.[0-9a-f]+\.min\.js$/i.test(name)) {
     if (useMin) {
       const src = path.join(sourceDir, name);
       if (fs.statSync(src).isFile()) {
@@ -99,7 +126,15 @@ for (const name of fs.readdirSync(sourceDir)) {
     }
     continue;
   }
-  if (name === 'app.js' && useMin) continue;
+  const src = path.join(sourceDir, name);
+  if (!fs.statSync(src).isFile()) continue;
+  fs.copyFileSync(src, path.join(outDir, name));
+  console.log('Copied', name);
+}
+
+// Hashed stylesheet from --site or android-dist (optional)
+for (const name of fs.readdirSync(sourceDir)) {
+  if (!/^styles\.[0-9a-f]+\.css$/i.test(name)) continue;
   const src = path.join(sourceDir, name);
   if (!fs.statSync(src).isFile()) continue;
   fs.copyFileSync(src, path.join(outDir, name));
@@ -120,7 +155,7 @@ console.log(
   'Web app copied to public/legacy/' +
     (useMin
       ? sourceDir === androidDistDir
-        ? ' (Android dist: app.min.js + minified modules)'
+        ? ' (Android dist: hashed app + minified modules)'
         : ' (minified app bundle)'
       : '')
 );

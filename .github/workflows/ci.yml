@@ -146,16 +146,20 @@ jobs:
             cp -r "App build/"* "ci-minified/site/App build/" 2>/dev/null || true
           fi
           node apps/pwa-webapp/build-site.mjs --site "ci-minified/site"
+
           node -e "
           const fs = require('fs');
-          let h = fs.readFileSync('ci-minified/site/index.html', 'utf8');
-          h = h.replace(/app\\.js\\?v=(\\d+)/g, function (_, v) { return 'app.min.js?v=' + v; });
-          fs.writeFileSync('ci-minified/site/index.html', h);
+          function assertBundle(root, label) {
+            const mPath = root + '/asset-manifest.json';
+            if (!fs.existsSync(mPath)) throw new Error(label + ': missing asset-manifest.json');
+            const m = JSON.parse(fs.readFileSync(mPath, 'utf8'));
+            if (!m.mainJs) throw new Error(label + ': asset-manifest missing mainJs');
+            if (!fs.existsSync(root + '/' + m.mainJs)) throw new Error(label + ': missing ' + m.mainJs);
+          }
+          assertBundle('ci-minified/web-android-dist', 'web-android-dist');
+          assertBundle('ci-minified/react-dist/legacy', 'react legacy');
+          assertBundle('ci-minified/site', 'site');
           "
-
-          test -f "ci-minified/web-android-dist/app.min.js"
-          test -f "ci-minified/react-dist/legacy/app.min.js"
-          test -f "ci-minified/site/app.min.js"
 
       - name: Upload minified temp artifact
         uses: actions/upload-artifact@v5
@@ -942,7 +946,11 @@ jobs:
         run: |
           rm -rf site
           cp -r "ci-minified/site" site
-          test -f "site/app.min.js"
+          node -e "
+          const fs = require('fs');
+          const m = JSON.parse(fs.readFileSync('site/asset-manifest.json', 'utf8'));
+          if (!m.mainJs || !fs.existsSync('site/' + m.mainJs)) process.exit(1);
+          "
 
       - name: Inject Supabase config for GitHub Pages (from secrets)
         env:

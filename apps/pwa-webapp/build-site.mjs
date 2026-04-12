@@ -1,14 +1,14 @@
 /**
  * 1) Instrument first-party web JS (AST trace) in place or into .trace-build
- * 2) Minify app.js to app.min.js
+ * 2) Minify app.js → content-hashed bundle + asset-manifest.json
  *
  * Usage:
  *   node apps/pwa-webapp/build-site.mjs
- *     mirrors apps/pwa-webapp/ to .trace-build/ with transforms, minifies to app.min.js
+ *     mirrors apps/pwa-webapp/ to .trace-build/ with transforms, minifies to hashed app bundle
  *   node apps/pwa-webapp/build-site.mjs --site <dir>
  *     instruments all JS under dir in place (e.g. after cp -r pwa-webapp to site)
  *   node apps/pwa-webapp/build-site.mjs --skip-trace
- *     mirror without function-trace instrumentation (smaller app.min.js - use for APK / release)
+ *     mirror without function-trace instrumentation (smaller bundle - use for APK / release)
  *
  * Env: RIANELL_SITE_DIR - same as --site (CI can set this)
  * Env: RIANELL_SKIP_FUNCTION_TRACE=1 - same as --skip-trace
@@ -19,6 +19,14 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { transformFileIfNeeded } from './build-plugins/function-trace-plugin.mjs';
 import { buildAndroidDistBundle } from './build-android-dist.mjs';
+import {
+  fingerprintAppJs,
+  fingerprintStylesheet,
+  patchIndexHtml,
+  removeOldFingerprintedBundles,
+  removeOldFingerprintedStyles,
+  writeAssetManifest,
+} from './fingerprint-assets.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 /** Repository root (parent of apps/) */
@@ -132,6 +140,8 @@ if (siteDir) {
   } else {
     console.log('[build-site] skip trace; minify only:', siteDir);
   }
+  removeOldFingerprintedBundles(siteDir);
+  removeOldFingerprintedStyles(siteDir);
   const appJs = path.join(siteDir, 'app.js');
   const appMin = path.join(siteDir, 'app.min.js');
   await esbuild.build({
@@ -141,7 +151,17 @@ if (siteDir) {
     legalComments: 'none',
     logLevel: 'info',
   });
-  console.log('Wrote', path.relative(root, appMin));
+  const mainJs = fingerprintAppJs(siteDir);
+  const mainCss = fingerprintStylesheet(siteDir);
+  const manifest = { mainJs, mainCss: mainCss || undefined };
+  writeAssetManifest(siteDir, manifest);
+  patchIndexHtml(path.join(siteDir, 'index.html'), manifest);
+  console.log(
+    '[build-site] fingerprinted',
+    mainJs + (mainCss ? `, ${mainCss}` : ''),
+    '→',
+    path.relative(root, siteDir)
+  );
 } else {
   const staging = path.join(webRoot, '.trace-build');
   if (skipTrace) {
@@ -156,6 +176,7 @@ if (siteDir) {
     throw new Error(`[build-site] staging app.js missing at ${appJs} (webRoot=${webRoot})`);
   }
   const appMin = path.join(webRoot, 'app.min.js');
+  removeOldFingerprintedBundles(webRoot);
   await esbuild.build({
     entryPoints: [appJs],
     outfile: appMin,
@@ -163,7 +184,9 @@ if (siteDir) {
     legalComments: 'none',
     logLevel: 'info',
   });
-  console.log('Wrote', path.relative(root, appMin));
+  const mainJs = fingerprintAppJs(webRoot);
+  writeAssetManifest(webRoot, { mainJs });
+  console.log('[build-site] wrote', mainJs, '→', path.relative(root, webRoot));
   if (skipTrace) {
     await buildAndroidDistBundle(webRoot);
   } else {
