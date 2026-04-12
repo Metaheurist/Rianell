@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.23** - Docs: Node 24 toolchain, benchmarks README, security audit table.
+**Latest: v1.46.24** - Docs: PWA restarts vs dev reload, mobile memory, SW wording.
+
+### v1.46.24 - 2026-04-12 - Docs: PWA stability and production reload behaviour
+
+- **[docs/project-reference.md](project-reference.md)** (**Troubleshooting**): Clarifies that the **Python dev `/api/reload` SSE** path is **loopback-only** (not GitHub Pages / rianell.com); documents **extension** noise (`SES` / lockdown), **service worker** update modal vs silent reload, **mobile memory** pressure (on-device LLM + charts + large logs), and the **styles failed** overlay.
+- **[docs/app-and-features.md](app-and-features.md)**: Service worker bullet aligned with **rianell.com** / **\*.github.io** default registration; console section links to troubleshooting; PWA restart note.
 
 ### v1.46.23 - 2026-04-12 - Docs: toolchain and audit wording
 

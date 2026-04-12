@@ -162,6 +162,18 @@ The app includes GDPR-compliant data sharing:
 **Console: `tabs:outgoing.message.ready`, `No Listener`, or `vendor.js` (VM…)**:
 - Usually **browser extensions** injecting into the page, not the Health app. The app **suppresses** matching **`unhandledrejection`** events (see early script in `apps/pwa-webapp/index.html` and `apps/pwa-webapp/app.js`). If messages persist, try a **clean profile** or **disable extensions** on the site.
 
+**PWA / web: tab “restarts”, blank screen, or needing to reload (incl. mobile)**:
+
+- **Not the Python dev auto-reload on GitHub Pages / rianell.com:** The local server’s **`/api/reload`** **SSE** stream is only enabled on **loopback** (`localhost`, `127.0.0.1`, `[::1]`). `index.html` sets `window.__rianellReloadStreamOk` accordingly **before** `app.js` loads, and `connectToReloadStream()` in `apps/pwa-webapp/app.js` returns immediately on **static / production** hosts. Production does **not** poll or subscribe to a dev reload signal.
+
+- **`SES Removing unpermitted intrinsics` / `lockdown-install.js`:** Usually **browser extensions** (e.g. wallet / security tools), not Rianell. They often run again after a **full navigation** or tab restore, so the console can look “noisy” without the app logic repeating incorrectly.
+
+- **Service worker:** On **rianell.com** and **\*.github.io**, `sw.js` registers for caching and updates. The page **reloads** only after you confirm **Update** in the in-app modal (after a new worker is waiting)—not silently in the background for every deploy.
+
+- **Memory and mobile browsers:** On-device **Transformers.js / ONNX**, **ApexCharts**, and a large **log history** can push **heap use** high (hundreds of MB). Mobile Safari and Chrome may **terminate the tab** or reload under pressure—this can feel like a random “crash” or restart. Mitigations: **Settings → Performance → On-device AI model → Small** (lower memory), shorten **AI date ranges**, reduce data in view, or temporarily **disable AI** to confirm stability.
+
+- **“Page did not load correctly” / styles overlay:** If `styles.css` fails to load (network blip), `index.html` shows a **reload** overlay. That is **not** the Python server; fix connectivity or cache and tap **Reload**.
+
 <a id="nav-security-notes"></a>
 
 ## 🔐 Security notes
