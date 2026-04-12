@@ -11,7 +11,8 @@ watchdog>=3.0.0
 python-dotenv>=1.0.0
 
 # Cryptography for data encryption/decryption (required for encrypted anonymised data)
-cryptography>=41.0.0
+# Floor >=46.0.6: OSV/pip-audit clean (see GHSA/PYSEC advisories on older 41.x–45.x lines).
+cryptography>=46.0.6
 
 # PostgreSQL drivers for direct SQL when DATABASE_URL is set (optional; at least one needed for exec_sql)
 psycopg[binary]>=3.0.0

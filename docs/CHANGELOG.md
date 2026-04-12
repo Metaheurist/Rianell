@@ -2,7 +2,11 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.24** - Supply-chain CI, dependencies doc automation, bug report UX (web + RN), PWA troubleshooting docs.
+**Latest: v1.46.25** - Python `cryptography` floor for OSV / supply-chain scans.
+
+### v1.46.25 - 2026-04-12 - Python: cryptography minimum for OSV-Scanner
+
+- **`requirements.txt`:** Raise **`cryptography`** from **`>=41.0.0`** to **`>=46.0.6`** so **OSV-Scanner** (and **`pip-audit`**) no longer report known **PyPI** advisories on the resolved floor. **[dependencies.md](dependencies.md)** table updated via **`npm run docs:dependencies`**.
 
 ### v1.46.24 - 2026-04-12 - Supply chain, dependencies doc automation, bug reports
 
