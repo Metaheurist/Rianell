@@ -100,6 +100,7 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 
 | Package | Version |
 |---------|---------|
+| `@react-native/babel-preset` | 0.83.2 |
 | `@testing-library/jest-native` | ^5.4.3 |
 | `@testing-library/react-native` | ^13.3.3 |
 | `@types/jest` | ^30.0.0 |
