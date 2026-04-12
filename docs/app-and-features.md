@@ -32,6 +32,10 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.46.24 documentation sync
+
+- **Bug report (web + RN):** Web modal supports optional **More detail** (steps / expected / actual), close button, and bug icon; RN captures recent **`console`** lines for the payload. Server accepts **`page_url`** from **`url`** or **`page_url`**. See [CHANGELOG.md](CHANGELOG.md) v1.46.24.
+
 ### v1.46.3 documentation sync
 
 - **RN Settings carousel (8 panes):** Matches the web settings carousel section titles. Notifications and demo mode are split into **Display** and **Data options** respectively; **Performance** holds the on-device AI model and benchmark actions.

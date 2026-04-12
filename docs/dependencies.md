@@ -2,7 +2,7 @@
 
 This page lists **where dependencies are declared** for the Rianell monorepo: **npm workspaces** (single lockfile), **Python** for the desktop server, **runtime/CDN** assets for the static PWA, and **CI-only** tooling used to produce binaries and reports.
 
-**Runtime expectations:** Node **>= 24.14.1** ([`package.json`](../package.json) `engines`; [`.nvmrc`](../.nvmrc) pins **24.14.1** for local tooling). **Python 3.8+** for the server ([`requirements.txt`](../requirements.txt)).
+**Runtime expectations:** Node **>=24.14.1** ([`package.json`](../package.json) `engines`; [`.nvmrc`](../.nvmrc) pins **24.14.1** for local tooling). **Python 3.8+** for the server ([`requirements.txt`](../requirements.txt)).
 
 **Build mapping (see main [README](../README.md)):** Web/PWA (GitHub Pages), React Native (Expo) CLI bundles for Android/iOS, Python server EXE (PyInstaller + optional PyArmor in CI), legacy Capacitor shell (npm manifests still present; CI no longer ships those artifacts by default).
 
@@ -36,7 +36,7 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `esbuild` | ^0.25.0 |
 | `sharp` | ^0.33.5 |
 
-**`overrides`** — pins transitive packages for security/consistency (e.g. `@xmldom/xmldom`, `http-proxy-agent`, `minimatch`, `semver`, `tar`, `handlebars`; aligns `@capacitor/assets` with root `@capacitor/cli`). See the `overrides` block in [`package.json`](../package.json) for the full list.
+**`overrides`** — 14 pin(s): `@capacitor/assets → @capacitor/cli`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `brace-expansion`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `mergexml → @xmldom/xmldom`, `minimatch`, `replace → minimatch`, `semver`, `send`, `tar`. See the full `overrides` block in [`package.json`](../package.json).
 
 **Workspaces:** `apps/*`, `packages/*`, `benchmarks`.
 
@@ -107,7 +107,7 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `babel-preset-expo` | ~55.0.12 |
 | `jest` | ^29.7.0 |
 | `jest-expo` | ~55.0.11 |
-| `react-test-renderer` | ^19.2.4 |
+| `react-test-renderer` | 19.2.4 |
 | `stacktrace-js` | ^2.0.2 |
 | `typescript` | ~5.9.2 |
 
@@ -199,7 +199,7 @@ These are installed or invoked in workflows **to build or test**; they are not n
 |------|------|
 | `npm install -g eas-cli` | EAS CLI when that workflow runs |
 
-### [`.github/workflows/security-audit.yml`](../.github/workflows/security-audit.yml) (reusable; called from `ci.yml`)
+### [`.github/workflows/security-audit.yml`](../.github/workflows/security-audit.yml) (reusable **only** — called from `ci.yml`; no separate `on: push` to avoid duplicate runs)
 
 | Tool | Role |
 |------|------|
@@ -212,4 +212,4 @@ These are installed or invoked in workflows **to build or test**; they are not n
 
 ## Maintaining this doc
 
-When you bump versions in a **`package.json`**, **`requirements.txt`**, or **CDN URL** in `index.html`, update the matching section here in the **same PR** (or regenerate tables from those files) so this page stays the single long-form inventory alongside the short summary in [Project reference](project-reference.md).
+This file is **generated** by [`scripts/generate-dependencies-doc.mjs`](../scripts/generate-dependencies-doc.mjs). **CI** runs the generator on every workflow; pushes to **main** / **master** may commit updates automatically. On **pull requests**, CI fails if the committed file does not match the generator output — run `node scripts/generate-dependencies-doc.mjs` locally and commit `docs/dependencies.md` with manifest changes.

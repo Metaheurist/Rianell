@@ -74,7 +74,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | ⏱️ | **[Performance benchmarks](benchmarks/README.md)** - reports and tooling under `benchmarks/`; run `npm run benchmark` |
 | 🧠 | **[AI architecture](docs/ai-architecture.md)** |
 | 🗂️ | **[Project reference](docs/project-reference.md)** - tree, deps, dev, GDPR, troubleshooting, security notes |
-| 📎 | **[Dependencies](docs/dependencies.md)** - full manifest by build (npm workspaces, Python, CDN/runtime, CI tooling) |
+| 📎 | **[Dependencies](docs/dependencies.md)** - generated inventory (`npm run docs:dependencies`; CI sync on `main`) — npm workspaces, Python, CDN/runtime, CI tooling |
 | 🎨 | **[Styling](docs/styling.md)** - CSS layout, tokens, settings carousel, tile pickers, cache bust |
 | 📱 | **[Platform parity](docs/platform-parity.md)** - web/android/iOS feature contract and CI parity gates |
 | 👤 | **[About & support](docs/about-and-support.md)** |

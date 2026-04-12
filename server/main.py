@@ -734,7 +734,7 @@ class RianellHttpHandler(http.server.SimpleHTTPRequestHandler):
                 'console_output': str(payload.get('console_output', '')).strip()[:32000] or None,
                 'app_theme': str(payload.get('app_theme', '')).strip()[:64] or None,
                 'user_agent': str(payload.get('user_agent', '')).strip()[:512] or None,
-                'page_url': str(payload.get('url', '')).strip()[:1000] or None,
+                'page_url': str(payload.get('url') or payload.get('page_url', '')).strip()[:1000] or None,
                 'client_timestamp': payload.get('client_timestamp'),
             }
             client.table('bug_reports').insert(report_row).execute()

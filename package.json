@@ -30,7 +30,8 @@
     "benchmark": "npm run all --workspace=@rianell/benchmark-runner",
     "benchmark:web": "npm run web --workspace=@rianell/benchmark-runner",
     "benchmark:expo": "npm run expo --workspace=@rianell/benchmark-runner",
-    "benchmark:all": "npm run benchmark"
+    "benchmark:all": "npm run benchmark",
+    "docs:dependencies": "node scripts/generate-dependencies-doc.mjs"
   },
   "devDependencies": {
     "@babel/generator": "^7.26.5",
@@ -43,8 +44,14 @@
   },
   "overrides": {
     "@xmldom/xmldom": "0.8.12",
+    "@trapezedev/project": {
+      "@xmldom/xmldom": "0.8.12"
+    },
+    "mergexml": {
+      "@xmldom/xmldom": "0.8.12"
+    },
     "@capacitor/assets": {
-      "@capacitor/cli": "$@capacitor/cli"
+      "@capacitor/cli": "7.6.1"
     },
     "http-proxy-agent@5.0.0": "7.0.2",
     "@tootallnate/once": "^3.0.1",

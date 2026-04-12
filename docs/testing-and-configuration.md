@@ -2,7 +2,7 @@
 
 ## 🧪 Testing Data
 
-**Toolchain:** Run tests and scripts with **Node.js 24.14.1+** (see [Installation & usage](setup-and-usage.md) and root `package.json` `engines`). **Unit tests** (`npm run test:unit`) use the Node test runner from the repository root; **mobile** tests use Jest under `apps/rn-app`.
+**Toolchain:** Run tests and scripts with **Node.js 24.14.1+** (see [Installation & usage](setup-and-usage.md) and root `package.json` `engines`). **Unit tests** (`npm run test:unit`) use the Node test runner from the repository root; **mobile** tests use Jest under `apps/rn-app`. When you bump npm/Python/CDN dependency pins, run **`npm run docs:dependencies`** and commit **`docs/dependencies.md`** (see [dependencies.md](dependencies.md)).
 
 
 ### v1.46.3 documentation sync
