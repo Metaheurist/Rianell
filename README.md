@@ -35,16 +35,16 @@
 
 <!-- RIANELL_BUILD_INFO_START -->
 
-[![CI builds](https://img.shields.io/badge/build-RN%20217%20%7C%20RN%20iOS%20217%20%7C%20Server%20223%20%7C%20Web%20231-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/24305340387)
+[![CI builds](https://img.shields.io/badge/build-RN%20218%20%7C%20RN%20iOS%20218%20%7C%20Server%20231%20%7C%20Web%20231-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/24305340387)
 
 **CI builds** (React Native CLI + server + web)
 
 | Channel | Build |
 | :--- | :---: |
-| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **Android** APK (React Native CLI) | **217** |
-| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip, RN CLI) | **217** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **223** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **223** |
+| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **Android** APK (React Native CLI) | **218** |
+| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip, RN CLI) | **218** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **231** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **231** |
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **231** |
 
 **Legacy builds** (Capacitor — no longer produced by CI; metadata only)
@@ -54,7 +54,7 @@
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Android** APK (Capacitor) | **96** |
 | ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip, Capacitor) | **96** |
 
-Latest: [`App build/RNCLI-Android/app-debug-beta.apk`](App%20build/RNCLI-Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-217.zip`](App%20build/iOS/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest-x64.json) · [`App build/Server/rianell-server-x86.exe`](App%20build/Server/latest-x86.json) · legacy Capacitor Android [`App build/Android/app-debug-beta-96.apk`](App%20build/Android/latest.json) · legacy Capacitor iOS [`App build/Legacy/Capacitor-iOS/Health-Tracker-ios-alpha-build-96.zip`](App%20build/Legacy/Capacitor-iOS/latest.json) · [Workflow #231](https://github.com/Metaheurist/Rianell/actions/runs/24305340387) · `738c1fd`
+Latest: [`App build/RNCLI-Android/app-debug-beta.apk`](App%20build/RNCLI-Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-218.zip`](App%20build/iOS/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest-x64.json) · [`App build/Server/rianell-server-x86.exe`](App%20build/Server/latest-x86.json) · legacy Capacitor Android [`App build/Android/app-debug-beta-96.apk`](App%20build/Android/latest.json) · legacy Capacitor iOS [`App build/Legacy/Capacitor-iOS/Health-Tracker-ios-alpha-build-96.zip`](App%20build/Legacy/Capacitor-iOS/latest.json) · [Workflow #231](https://github.com/Metaheurist/Rianell/actions/runs/24305340387) · `738c1fd`
 
 <!-- RIANELL_BUILD_INFO_END -->
 
