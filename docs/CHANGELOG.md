@@ -2,12 +2,18 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.24** - Docs: PWA restarts vs dev reload, mobile memory, SW wording.
+**Latest: v1.46.24** - Supply-chain CI, dependencies doc automation, bug report UX (web + RN), PWA troubleshooting docs.
 
-### v1.46.24 - 2026-04-12 - Docs: PWA stability and production reload behaviour
+### v1.46.24 - 2026-04-12 - Supply chain, dependencies doc automation, bug reports
 
 - **[docs/project-reference.md](project-reference.md)** (**Troubleshooting**): Clarifies that the **Python dev `/api/reload` SSE** path is **loopback-only** (not GitHub Pages / rianell.com); documents **extension** noise (`SES` / lockdown), **service worker** update modal vs silent reload, **mobile memory** pressure (on-device LLM + charts + large logs), and the **styles failed** overlay.
 - **[docs/app-and-features.md](app-and-features.md)**: Service worker bullet aligned with **rianell.com** / **\*.github.io** default registration; console section links to troubleshooting; PWA restart note.
+- **GitHub Actions:** [`.github/workflows/security-audit.yml`](../.github/workflows/security-audit.yml) runs only as **`workflow_call`** / **`workflow_dispatch`** (no duplicate **`push`** / **`pull_request`** alongside **`ci.yml`**). **`commit-dependencies-doc`** job may refresh **[dependencies.md](dependencies.md)** on **`main`** / **`master`** after merges.
+- **Dependencies / CI:** Root **`overrides`** pin **`@capacitor/assets`** to **`@capacitor/cli@7.6.1`** (drops nested **CLI 5.x** and **`tar@6.2.1`**); **`@trapezedev/project`** and **`mergexml`** pin **`@xmldom/xmldom@0.8.12`**. **`package-lock.json`** regenerated so **OSV-Scanner** no longer flags dev-only **`tar`** / **`@xmldom/xmldom`** advisories from those chains. `npm ls` may still report **`invalid`** for **`@xmldom/xmldom`** where upstream manifests request **`^0.7.x`**; the installed **0.8.12** is intentional.
+- **Docs automation:** [`scripts/generate-dependencies-doc.mjs`](../scripts/generate-dependencies-doc.mjs) + **`npm run docs:dependencies`** regenerate **[dependencies.md](dependencies.md)**. **CI** verifies the file on **pull requests** and may commit updates on pushes to **main** / **master** (see **`commit-dependencies-doc`** in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)).
+- **Web / PWA (`apps/pwa-webapp/`):** Bug report modal — close control, scroll wrapper, optional fields under **More detail**, bug icon asset, **`styles.css?v=84`** cache bust; console log note clarified for dev/local server.
+- **React Native (`apps/rn-app/`):** **`installBugReportConsoleCapture`** ([`src/utils/bugReportLogs.ts`](../apps/rn-app/src/utils/bugReportLogs.ts)) attaches recent **`console`** output for bug reports on launch.
+- **Python server (`server/main.py`):** Bug report ingest accepts **`page_url`** from either **`url`** or **`page_url`** in the JSON payload (client naming parity).
 
 ### v1.46.23 - 2026-04-12 - Docs: toolchain and audit wording
 

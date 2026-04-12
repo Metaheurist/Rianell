@@ -2,6 +2,10 @@
 
 ## ⚙️ Installation
 
+### v1.46.24 documentation sync
+
+- **Dependency inventory:** After changing **`package.json`** (any workspace), **`requirements.txt`**, or PWA CDN URLs in **`apps/pwa-webapp/index.html`**, run **`npm run docs:dependencies`** and commit **`docs/dependencies.md`** so pull-request CI passes. Pushes to **`main`** can auto-commit via **`commit-dependencies-doc`** if the file drifted.
+
 ### v1.46.14 documentation sync
 
 - **Repository performance benchmarks** (Lighthouse, Expo bundle stats, history/compare Markdown) live under **`benchmarks/`** (npm workspace **`@rianell/benchmark-runner`**). From the repo root: **`npm ci`**, then **`npm run benchmark`** (see **`benchmarks/README.md`**). CI writes the same tree on **`main`** via **`commit-benchmarks`**.

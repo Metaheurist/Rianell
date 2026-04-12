@@ -12,10 +12,15 @@ import {
 import { ThemeProvider } from './src/theme/ThemeProvider';
 import { BootLoadingScreen } from './src/components/BootLoadingScreen';
 import { refreshDemoModeLogsOnLaunch } from './src/demo/demoMode';
+import { installBugReportConsoleCapture } from './src/utils/bugReportLogs';
 
 export default function App() {
   const [prefs, setPrefs] = useState<Preferences | null>(null);
   const [bootTeam, setBootTeam] = useState(() => getDefaultPreferences().team);
+
+  useEffect(() => {
+    installBugReportConsoleCapture();
+  }, []);
 
   useEffect(() => {
     void peekStoredTeamForBoot().then((t) => {

@@ -79,7 +79,7 @@ Rianell/
 
 ## 📦 Dependencies
 
-For a **complete dependency inventory by build** (workspaces, PWA CDNs, CI-only tools), see **[dependencies.md](dependencies.md)**.
+For a **complete dependency inventory by build** (workspaces, PWA CDNs, CI-only tools), see **[dependencies.md](dependencies.md)**. That page is **generated** from `package.json` files, `requirements.txt`, and PWA CDN URLs (`npm run docs:dependencies`); CI refreshes it on **main** when needed and **PRs** must match the generator output.
 
 ### Python (server package)
 - `supabase>=2.0.0` - Supabase client library

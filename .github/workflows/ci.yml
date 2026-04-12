@@ -1,7 +1,7 @@
 # =============================================================================
 # Rianell - unified GitHub Actions (main CI)
 # =============================================================================
-# Security audits: `.github/workflows/security-audit.yml` (standalone).
+# Security audits: reusable `.github/workflows/security-audit.yml` (job below; not duplicated as its own workflow).
 # Legacy Capacitor Android/iOS: `.github/workflows/legacy-capacitor.yml` (disabled).
 #
 # Sections (jobs appear in dependency order):
@@ -12,6 +12,7 @@
 #   2b. benchmarks-web   - Lighthouse + Playwright on minified site + Capacitor dist (parallel to unit-tests).
 #   2c. benchmarks-expo  - Hermes bundle stats after `expo export` (downloads expo-bundles artifact).
 #   2d. commit-benchmarks — push to main/master: merge benchmark Markdown and commit `benchmarks/`.
+#   2e. commit-dependencies-doc — push to main/master: regenerate `docs/dependencies.md` from manifests if drifted.
 #   3. expo-bundle-prod  - Expo React Native: production JS bundles for Android + iOS
 #                          (`expo export` → Hermes .hbc per platform).
 #   4. server-exe        - Build Windows server EXE artifacts (x64 + x86) with PyInstaller.
@@ -184,6 +185,12 @@ jobs:
         run: npm ci
       - name: Run app unit tests
         run: npm run test:unit
+
+      - name: Verify docs/dependencies.md matches manifests (pull requests only)
+        if: github.event_name == 'pull_request'
+        run: |
+          node scripts/generate-dependencies-doc.mjs
+          git diff --exit-code docs/dependencies.md
 
   # ---------------------------------------------------------------------------
   # Benchmarks — web (parallel with unit-tests; needs minified site + Capacitor dist)
@@ -371,6 +378,40 @@ jobs:
           git add benchmarks/
           git diff --staged --quiet && { echo "No benchmark changes"; exit 0; }
           git commit -m "chore(benchmarks): update CI benchmark reports [skip ci]"
+          git push origin "${{ github.ref_name }}"
+
+  # ---------------------------------------------------------------------------
+  # Regenerate docs/dependencies.md on main/master when manifests drift (no npm install required)
+  # ---------------------------------------------------------------------------
+  commit-dependencies-doc:
+    name: Commit dependencies inventory doc
+    needs: [unit-tests]
+    if: |
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Sync branch with origin
+        run: |
+          git fetch origin "${{ github.ref_name }}"
+          git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
+
+      - name: Regenerate docs/dependencies.md
+        run: node scripts/generate-dependencies-doc.mjs
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/dependencies.md
+          git diff --staged --quiet && { echo "No dependency doc changes"; exit 0; }
+          git commit -m "chore(docs): refresh dependencies.md from manifests [skip ci]"
           git push origin "${{ github.ref_name }}"
 
   # ---------------------------------------------------------------------------

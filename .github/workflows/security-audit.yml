@@ -1,14 +1,13 @@
 # =============================================================================
-# Security & dependency audits (standalone — not grouped with legacy mobile builds)
+# Security & dependency audits (reusable only — invoked from ci.yml)
+#
+# Do not add push/pull_request here: that duplicated the same scans when CI also
+# calls this file via workflow_call. Use workflow_dispatch for a manual-only run.
 # =============================================================================
 name: Reusable security audits
 
 on:
   workflow_call:
-  push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
   workflow_dispatch:
 
 permissions:

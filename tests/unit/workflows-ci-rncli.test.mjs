@@ -75,3 +75,9 @@ test('CI includes benchmark jobs (web + expo) and merge commit on main', () => {
   assert.match(ciYml, /node benchmarks\/scripts\/merge-benchmark-ci\.mjs/);
 });
 
+test('CI regenerates dependencies.md and verifies on PRs', () => {
+  assert.match(ciYml, /commit-dependencies-doc:/);
+  assert.match(ciYml, /generate-dependencies-doc\.mjs/);
+  assert.match(ciYml, /Verify docs\/dependencies\.md matches manifests \(pull requests only\)/);
+});
+

@@ -126,9 +126,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=75" as="style">
+  <link rel="preload" href="styles.css?v=84" as="style">
   <link rel="preload" href="app.min.js?v=25" as="script">
-  <link rel="stylesheet" href="styles.css?v=75" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=75&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=84" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=84&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #070807; color: #e8eeec; margin: 0; padding: 0; }
@@ -975,29 +975,38 @@
   </div>
 
   <div class="modal-overlay bug-report-modal-overlay" id="bugReportModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Report a bug">
-    <div class="modal-content bug-report-modal-content">
+    <div class="modal-content bug-report-modal-content" onclick="event.stopPropagation()" role="document">
       <div class="modal-header">
         <h3>Report a bug</h3>
+        <button type="button" class="modal-close" onclick="closeBugReportModal()" aria-label="Close">&times;</button>
       </div>
-      <div class="modal-body bug-report-modal-body">
-        <form id="bugReportForm" onsubmit="submitBugReport(event)">
-          <label for="bugReportTitle">Title (optional)</label>
-          <input type="text" id="bugReportTitle" maxlength="160" placeholder="Short bug summary">
+      <div class="bug-report-modal-scroll">
+        <div class="modal-body bug-report-modal-body">
+          <p class="bug-report-lede">Describe the issue. Optional fields are below — keep the required description short if you can.</p>
+          <form id="bugReportForm" onsubmit="submitBugReport(event)">
+            <label for="bugReportTitle">Title <span class="bug-report-label-hint">(optional)</span></label>
+            <input type="text" id="bugReportTitle" maxlength="160" placeholder="Short summary" autocomplete="off">
 
-          <label for="bugReportDescription">Description *</label>
-          <textarea id="bugReportDescription" rows="4" maxlength="4000" required placeholder="What happened?"></textarea>
+            <label for="bugReportDescription">Description <span class="bug-report-required">*</span></label>
+            <textarea id="bugReportDescription" rows="3" maxlength="4000" required placeholder="What happened?"></textarea>
 
-          <label for="bugReportSteps">Steps to reproduce (optional)</label>
-          <textarea id="bugReportSteps" rows="4" maxlength="4000" placeholder="1) ...&#10;2) ...&#10;3) ..."></textarea>
+            <details class="bug-report-advanced">
+              <summary class="bug-report-advanced-summary">More detail <span class="bug-report-label-hint">(optional)</span></summary>
+              <div class="bug-report-advanced-fields">
+                <label for="bugReportSteps">Steps to reproduce</label>
+                <textarea id="bugReportSteps" rows="3" maxlength="4000" placeholder="1) …&#10;2) …&#10;3) …"></textarea>
 
-          <label for="bugReportExpected">Expected behavior (optional)</label>
-          <textarea id="bugReportExpected" rows="3" maxlength="2000" placeholder="What you expected to happen"></textarea>
+                <label for="bugReportExpected">Expected behavior</label>
+                <textarea id="bugReportExpected" rows="2" maxlength="2000" placeholder="What you expected"></textarea>
 
-          <label for="bugReportActual">Actual behavior (optional)</label>
-          <textarea id="bugReportActual" rows="3" maxlength="2000" placeholder="What happened instead"></textarea>
+                <label for="bugReportActual">Actual behavior</label>
+                <textarea id="bugReportActual" rows="2" maxlength="2000" placeholder="What happened instead"></textarea>
+              </div>
+            </details>
 
-          <p class="bug-report-note">Recent console output is automatically attached at submission time.</p>
-        </form>
+            <p class="bug-report-note">Recent browser console lines are attached automatically when you submit (dev / local server).</p>
+          </form>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="modal-save-btn modal-cancel-btn" onclick="closeBugReportModal()">Cancel</button>
@@ -1017,7 +1026,12 @@
         </svg>
       </button>
       <button type="button" class="bug-report-button-top" onclick="openBugReportModal()" title="Report a bug" aria-label="Report a bug">
-        <span class="bug-report-question-icon" aria-hidden="true">?</span>
+        <svg class="bug-report-bug-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="12" cy="7" r="3" stroke="currentColor" stroke-width="2"/>
+          <path d="M9 4 8 2M15 4 16 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <ellipse cx="12" cy="15" rx="5" ry="6" stroke="currentColor" stroke-width="2"/>
+          <path d="M7 13H4M20 13h-3M6 17H3M21 17h-3M8 21H5M19 21h-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
       </button>
       <button class="settings-button-top" onclick="toggleSettings()" title="Settings">
         <svg class="settings-cog" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

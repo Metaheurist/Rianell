@@ -4,9 +4,12 @@ import {
   Alert,
   Animated,
   Easing,
+  KeyboardAvoidingView,
   Linking,
   Modal,
+  Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -26,6 +29,8 @@ import { loadLogs } from '../storage/logs';
 import type { Preferences } from '../storage/preferences';
 import { loadCachedBenchmark } from '../performance/benchmark';
 import { generateMotd } from '../ai/llm';
+import Constants from 'expo-constants';
+import { getBugReportAttachmentText } from '../utils/bugReportLogs';
 
 /** Web `index.html` parity: top chrome includes bug-report modal entry. */
 const SECURITY_DOC_URL = 'https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md';
@@ -360,14 +365,17 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
     }
     setBugSubmitting(true);
     try {
+      const ua = `Rianell-ReactNative/${Platform.OS}/${String(Platform.Version ?? '')} app=${Constants.expoConfig?.version ?? ''}`;
       const payload = {
         title: bugTitle.trim(),
         description,
         steps: bugSteps.trim(),
         expected_behavior: bugExpected.trim(),
         actual_behavior: bugActual.trim(),
-        page_url: 'rn://home',
-        user_agent: 'react-native',
+        console_output: getBugReportAttachmentText(),
+        url: 'rn://home',
+        user_agent: ua,
+        client_timestamp: new Date().toISOString(),
       };
       const res = await fetch(BUG_REPORT_ENDPOINT, {
         method: 'POST',
@@ -417,7 +425,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
             accessibilityLabel="Report a bug"
             accessibilityHint="Opens security and reporting documentation"
           >
-            <Text style={[styles.bugMark, { color: accent }]}>?</Text>
+            <Ionicons name="bug-outline" size={22} color={accent} />
           </Pressable>
           <Pressable
             onPress={onSettings}
@@ -457,72 +465,107 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
           <Text style={styles.betaBadgeText}>Beta</Text>
         </View>
       </View>
-      <Modal visible={bugModalOpen} animationType="slide" transparent onRequestClose={() => setBugModalOpen(false)}>
+      <Modal visible={bugModalOpen} animationType="fade" transparent onRequestClose={() => setBugModalOpen(false)}>
         <View style={styles.modalBackdrop}>
-          <View style={[styles.modalCard, { backgroundColor: 'rgba(20,30,28,0.97)' }]}>
-            <Text style={[styles.modalTitle, { color: theme.tokens.color.text, fontSize: theme.font(18) }]}>Report a bug</Text>
-            <Text style={[styles.modalHint, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-              Match web parity: title optional, description required.
-            </Text>
-            <TextInput
-              value={bugTitle}
-              onChangeText={setBugTitle}
-              placeholder="Short bug summary (optional)"
-              placeholderTextColor="rgba(255,255,255,0.45)"
-              style={[styles.input, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
-              accessibilityLabel="Bug title"
-            />
-            <TextInput
-              value={bugDescription}
-              onChangeText={setBugDescription}
-              placeholder="What happened? (required)"
-              placeholderTextColor="rgba(255,255,255,0.45)"
-              style={[styles.input, styles.textarea, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
-              accessibilityLabel="Bug description"
-              multiline
-            />
-            <TextInput
-              value={bugSteps}
-              onChangeText={setBugSteps}
-              placeholder="Steps to reproduce (optional)"
-              placeholderTextColor="rgba(255,255,255,0.45)"
-              style={[styles.input, styles.textarea, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
-              accessibilityLabel="Bug steps"
-              multiline
-            />
-            <TextInput
-              value={bugExpected}
-              onChangeText={setBugExpected}
-              placeholder="Expected behavior (optional)"
-              placeholderTextColor="rgba(255,255,255,0.45)"
-              style={[styles.input, styles.textarea, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
-              accessibilityLabel="Bug expected behavior"
-              multiline
-            />
-            <TextInput
-              value={bugActual}
-              onChangeText={setBugActual}
-              placeholder="Actual behavior (optional)"
-              placeholderTextColor="rgba(255,255,255,0.45)"
-              style={[styles.input, styles.textarea, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
-              accessibilityLabel="Bug actual behavior"
-              multiline
-            />
-            <View style={styles.modalActions}>
-              <Pressable style={styles.modalBtn} onPress={() => setBugModalOpen(false)} accessibilityRole="button">
-                <Text style={styles.modalBtnText}>Cancel</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.modalBtn, bugSubmitting && { opacity: 0.65 }]}
-                onPress={() => void onSubmitBugReport()}
-                accessibilityRole="button"
-                accessibilityLabel="Submit bug report"
-                disabled={bugSubmitting}
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setBugModalOpen(false)}
+            accessibilityRole="button"
+            accessibilityLabel="Dismiss"
+          />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.modalKb}
+          >
+            <View style={[styles.modalCard, { borderColor: `${accent}44`, backgroundColor: 'rgba(14,18,17,0.98)' }]}>
+              <View style={styles.modalHeaderRow}>
+                <Text style={[styles.modalTitle, { color: accent, fontSize: theme.font(18) }]}>Report a bug</Text>
+                <Pressable
+                  onPress={() => setBugModalOpen(false)}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                  accessibilityLabel="Close bug report"
+                >
+                  <Ionicons name="close" size={26} color={theme.tokens.color.text} />
+                </Pressable>
+              </View>
+              <Text style={[styles.modalLede, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                Describe what went wrong. Device info and recent app log lines are attached automatically when you submit.
+              </Text>
+              <ScrollView
+                style={styles.modalScroll}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator
+                indicatorStyle={Platform.OS === 'ios' ? 'default' : undefined}
               >
-                <Text style={styles.modalBtnText}>{bugSubmitting ? 'Submitting…' : 'Submit'}</Text>
-              </Pressable>
+                <Text style={[styles.fieldLabel, { color: theme.tokens.color.text }]}>Title (optional)</Text>
+                <TextInput
+                  value={bugTitle}
+                  onChangeText={setBugTitle}
+                  placeholder="Short summary"
+                  placeholderTextColor="rgba(255,255,255,0.42)"
+                  style={[styles.input, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                  accessibilityLabel="Bug title"
+                />
+                <Text style={[styles.fieldLabel, { color: theme.tokens.color.text }]}>Description *</Text>
+                <TextInput
+                  value={bugDescription}
+                  onChangeText={setBugDescription}
+                  placeholder="What happened?"
+                  placeholderTextColor="rgba(255,255,255,0.42)"
+                  style={[styles.input, styles.textarea, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                  accessibilityLabel="Bug description"
+                  multiline
+                />
+                <Text style={[styles.fieldLabelOptional, { color: theme.tokens.color.text }]}>More detail (optional)</Text>
+                <TextInput
+                  value={bugSteps}
+                  onChangeText={setBugSteps}
+                  placeholder="Steps to reproduce"
+                  placeholderTextColor="rgba(255,255,255,0.42)"
+                  style={[styles.input, styles.textareaSm, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                  accessibilityLabel="Steps to reproduce"
+                  multiline
+                />
+                <TextInput
+                  value={bugExpected}
+                  onChangeText={setBugExpected}
+                  placeholder="Expected behavior"
+                  placeholderTextColor="rgba(255,255,255,0.42)"
+                  style={[styles.input, styles.textareaSm, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                  accessibilityLabel="Expected behavior"
+                  multiline
+                />
+                <TextInput
+                  value={bugActual}
+                  onChangeText={setBugActual}
+                  placeholder="Actual behavior"
+                  placeholderTextColor="rgba(255,255,255,0.42)"
+                  style={[styles.input, styles.textareaSm, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                  accessibilityLabel="Actual behavior"
+                  multiline
+                />
+              </ScrollView>
+              <View style={[styles.modalFooter, { borderTopColor: `${accent}33` }]}>
+                <Pressable
+                  style={[styles.modalBtnSecondary, { borderColor: `${accent}55` }]}
+                  onPress={() => setBugModalOpen(false)}
+                  accessibilityRole="button"
+                >
+                  <Text style={[styles.modalBtnTextSecondary, { color: theme.tokens.color.text }]}>Cancel</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.modalBtnPrimary, { backgroundColor: accent, opacity: bugSubmitting ? 0.65 : 1 }]}
+                  onPress={() => void onSubmitBugReport()}
+                  accessibilityRole="button"
+                  accessibilityLabel="Submit bug report"
+                  disabled={bugSubmitting}
+                >
+                  <Text style={styles.modalBtnTextPrimary}>{bugSubmitting ? 'Submitting…' : 'Submit'}</Text>
+                </Pressable>
+              </View>
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
     </SafeAreaView>
@@ -561,11 +604,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(0,0,0,0.42)',
   },
-  bugMark: {
-    fontSize: 24,
-    lineHeight: 28,
-    fontWeight: '700',
-  },
   card: { borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)' },
   title: { fontSize: 22, fontWeight: '700', marginBottom: 8 },
   text: { fontSize: 16, opacity: 0.95 },
@@ -602,23 +640,68 @@ const styles = StyleSheet.create({
   betaBadgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+  },
+  modalKb: {
+    flex: 1,
     justifyContent: 'center',
     padding: 16,
+    maxWidth: 480,
+    width: '100%',
+    alignSelf: 'center',
+    zIndex: 1,
   },
-  modalCard: { borderRadius: 16, padding: 16, maxHeight: '92%' },
-  modalTitle: { fontWeight: '800', marginBottom: 6 },
-  modalHint: { opacity: 0.9, marginBottom: 8 },
+  modalCard: {
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 12,
+    maxHeight: '88%',
+    borderWidth: 1,
+  },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  modalTitle: { fontWeight: '800' },
+  modalLede: { opacity: 0.88, lineHeight: 20, marginBottom: 10 },
+  modalScroll: { flexGrow: 0, maxHeight: 420 },
+  fieldLabel: { fontSize: 12, fontWeight: '700', opacity: 0.92, marginBottom: 4 },
+  fieldLabelOptional: { fontSize: 12, fontWeight: '600', opacity: 0.75, marginBottom: 4, marginTop: 4 },
   input: {
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    borderColor: 'rgba(255,255,255,0.22)',
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    marginBottom: 8,
+    marginBottom: 10,
   },
-  textarea: { minHeight: 64, textAlignVertical: 'top' },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 4 },
-  modalBtn: { paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.12)' },
-  modalBtnText: { color: '#fff', fontWeight: '700' },
+  textarea: { minHeight: 88, textAlignVertical: 'top' },
+  textareaSm: { minHeight: 56, textAlignVertical: 'top' },
+  modalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  modalBtnSecondary: {
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    backgroundColor: 'transparent',
+  },
+  modalBtnPrimary: {
+    paddingVertical: 11,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+  },
+  modalBtnTextSecondary: { fontWeight: '700', fontSize: 15 },
+  modalBtnTextPrimary: { color: '#0a0c08', fontWeight: '800', fontSize: 15 },
 });
