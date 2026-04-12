@@ -2,7 +2,11 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.26** - Python `cryptography` **46.0.7+** for OSV (GHSA-p423-j2cm-9vmq).
+**Latest: v1.46.27** - RN Jest: explicit `@react-native/babel-preset` for npm workspaces.
+
+### v1.46.27 - 2026-04-12 - React Native tests: babel preset resolution
+
+- **`apps/rn-app/package.json`:** Add **`@react-native/babel-preset@0.83.2`** as a **devDependency** (matches **`react-native`**). Under **npm workspaces**, `babel-preset-expo` could not resolve **`@react-native/babel-preset`** / **`@babel/plugin-transform-object-rest-spread`**, so **`jest`** failed on CI and locally. **[dependencies.md](dependencies.md)** updated via **`npm run docs:dependencies`**.
 
 ### v1.46.26 - 2026-04-12 - Python: cryptography >=46.0.7 (OSV)
 
