@@ -34,6 +34,7 @@ on:
 # JavaScript actions (checkout, setup-node, etc.) use a bundled Node runtime; GitHub is
 # moving that default to Node 24. Opt in so we avoid Node 20 deprecation warnings.
 # https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+# All jobs that run npm/expo below pin Node 24.14.1 LTS via actions/setup-node (see node-version).
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
@@ -87,7 +88,7 @@ jobs:
   # Security audit (runs concurrently with unit-tests + minified-asset prep)
   # ---------------------------------------------------------------------------
   security-audit:
-    name: Security audit
+    name: Security & supply-chain checks
     needs: [paths-filter]
     if: |
       github.event_name == 'pull_request' ||
@@ -115,7 +116,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: "24.14.1"
           cache: npm
 
       - name: Install root dependencies
@@ -177,7 +178,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: "24.14.1"
           cache: npm
       - name: Install root dependencies
         run: npm ci
@@ -202,7 +203,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: "24.14.1"
           cache: npm
 
       - name: Install root dependencies
@@ -250,7 +251,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: "24.14.1"
           cache: npm
 
       - name: Install root dependencies (workspaces)
@@ -301,7 +302,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: "24.14.1"
           cache: npm
 
       - name: Install root dependencies
@@ -415,7 +416,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: "24.14.1"
           cache: npm
 
       # Do not enable Gradle dependency caching on setup-java — apps/rn-app/android is created by expo prebuild, so no wrapper exists at checkout.
@@ -481,7 +482,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: "24.14.1"
           cache: npm
 
       - name: Install root dependencies (workspaces)
@@ -675,7 +676,7 @@ jobs:
       - name: Setup Node (README build-info script)
         uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: "24.14.1"
 
       - name: Write README beta build info
         env:
@@ -955,7 +956,7 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: "24.14.1"
 
       - name: Write README beta build info
         env:
@@ -999,7 +1000,7 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: "22"
+          node-version: "24.14.1"
 
       - name: Generate Markdown security reports
         env:

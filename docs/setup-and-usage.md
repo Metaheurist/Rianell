@@ -155,7 +155,7 @@ The app can be run as a **React (Vite) app** that wraps the existing web UI and 
 
 ### Local setup (optional)
 
-- **Node.js 20+**
+- **Node.js 24.14.1+** (LTS; see root [`package.json`](../package.json) `engines` and [`.nvmrc`](../.nvmrc))
 - From repo root:
   ```bash
   npm install
