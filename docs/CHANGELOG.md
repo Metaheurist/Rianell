@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.22** - Node.js 24.14.1 LTS; CI, lockfile, Vite patch, security audit gate.
+**Latest: v1.46.23** - Docs: Node 24 toolchain, benchmarks README, security audit table.
+
+### v1.46.23 - 2026-04-12 - Docs: toolchain and audit wording
+
+- **[benchmarks/README.md](../benchmarks/README.md):** Prerequisites (**Node 24.14.1+**), how **`meta.node`** in reports relates to CI vs local runs.
+- **[docs/testing-and-configuration.md](testing-and-configuration.md):** Short **Toolchain** note (Node 24.14.1+, unit vs mobile tests).
+- **[docs/SECURITY.md](SECURITY.md):** Related-docs table now describes **`npm audit --omit=dev`** (production tree gate) alongside OSV and pip-audit.
 
 ### v1.46.22 - 2026-04-12 - Tooling: Node.js 24.14.1 LTS
 

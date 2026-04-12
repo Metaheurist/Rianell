@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.46.22",
+  "version": "1.46.23",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp, React Native app, and legacy Capacitor shell",
   "workspaces": [
     "apps/*",
