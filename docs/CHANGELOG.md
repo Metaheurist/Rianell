@@ -2,7 +2,11 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.25** - Python `cryptography` floor for OSV / supply-chain scans.
+**Latest: v1.46.26** - Python `cryptography` **46.0.7+** for OSV (GHSA-p423-j2cm-9vmq).
+
+### v1.46.26 - 2026-04-12 - Python: cryptography >=46.0.7 (OSV)
+
+- **`requirements.txt`:** Bump **`cryptography`** floor from **`>=46.0.6`** to **`>=46.0.7`** ([OSV: GHSA-p423-j2cm-9vmq](https://osv.dev/GHSA-p423-j2cm-9vmq)). **[dependencies.md](dependencies.md)** synced.
 
 ### v1.46.25 - 2026-04-12 - Python: cryptography minimum for OSV-Scanner
 
