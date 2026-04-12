@@ -1,6 +1,6 @@
 /* Rianell PWA — versioned cache; user-triggered skipWaiting from app (Update modal). Bump CACHE_NAME when changing SW logic or forcing a full cache reset. */
 var CACHE_PREFIX = 'rianell-static-';
-var CACHE_NAME = CACHE_PREFIX + 'v2026-03-29-2';
+var CACHE_NAME = CACHE_PREFIX + 'v2026-04-12-1';
 
 self.addEventListener('install', function () {
   /* Do not skipWaiting here — page posts SKIP_WAITING when user taps Update */

@@ -2,6 +2,10 @@
 
 ## 🗂️ Project Structure
 
+### v1.46.28 documentation sync (PWA content-hashed bundles)
+
+- **Build:** Production PWA output uses **`app.<hash>.min.js`** and (for **`--site`** / **`.android-dist`**) **`styles.<hash>.css`**, with **`asset-manifest.json`** at the app root. Source **`index.html`** in git still uses **`app.js?v=`** / **`styles.css?v=`** for local development.
+
 ### v1.46.16 documentation sync (security header runs + MOTD)
 
 - **CI security reports:** **`security/securityheaders-rianell.com.md`** and **`security/securityheaders-runs/run-*.md`** are described in **`security/README.md`** and **`docs/infrastructure-and-security-edge.md`**.
@@ -41,8 +45,10 @@ Rianell/
 │   ├── pwa-webapp/         # Static PWA (GitHub Pages site root; parity reference)
 │   │   ├── index.html      # Main application HTML
 │   │   ├── app.js          # Core application logic
-│   │   ├── app.min.js      # (generated) esbuild minify - gitignored; use npm run build:web
-│   │   ├── build-site.mjs  # esbuild script → app.min.js
+│   │   ├── app.<hash>.min.js  # (generated) esbuild + content hash; gitignored — see asset-manifest.json
+│   │   ├── asset-manifest.json  # (generated) { mainJs, mainCss? } — gitignored at repo root build
+│   │   ├── build-site.mjs  # esbuild + fingerprint-assets.mjs
+│   │   ├── fingerprint-assets.mjs  # hashes + index patch for --site
 │   │   ├── logs-idb.js     # IndexedDB mirror for health logs (optional async backup)
 │   │   ├── styles-charts.css
 │   │   ├── sw.js
@@ -93,7 +99,7 @@ For a **complete dependency inventory by build** (workspaces, PWA CDNs, CI-only 
 
 ### Node.js (optional: React & Android)
 - **Minimum Node.js 24.14.1** (LTS); see root `package.json` `engines` and **`.nvmrc`**. Used for the React/Capacitor build, Android APK, PWA minify, benchmarks, and CI.
-- Root `package.json`: scripts for `build`, `build:android`, `build:web` (minify `apps/pwa-webapp/app.js` → `app.min.js`), `sync`, `dev`
+- Root `package.json`: scripts for `build`, `build:android`, `build:web` (esbuild **`apps/pwa-webapp/app.js`** → content-hashed **`app.*.min.js`** + **`asset-manifest.json`**), `sync`, `dev`
 - `apps/capacitor-app/`: Vite 6, React, Capacitor 7; run `npm run build` from repo root
 
 <a id="nav-development"></a>

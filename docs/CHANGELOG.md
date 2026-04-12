@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.27** - RN Jest: explicit `@react-native/babel-preset` for npm workspaces.
+**Latest: v1.46.28** - PWA / GitHub Pages: content-hashed JS/CSS filenames (cache bust).
+
+### v1.46.28 - 2026-04-12 - Web / PWA: fingerprinted bundles + docs
+
+- **Build (`apps/pwa-webapp/`):** After esbuild minifies **`app.js`**, the output is renamed to **`app.<sha256-prefix>.min.js`** and **`asset-manifest.json`** records **`mainJs`**. **`build-site.mjs --site <dir>`** (GitHub Pages / **`server/launch-server.ps1`** parity) also fingerprints **`styles.css`** → **`styles.<hash>.css`**, patches **`index.html`** (preload, stylesheet, script, stylesheet **onerror** retry), and writes **`mainCss`** to the manifest. **`build-android-dist.mjs`** minifies **`styles.css`** to a hashed filename and aligns **`index.html`** with **`asset-manifest.json`** **`mainJs`**. **`apps/capacitor-app/copy-webapp.js --min`** resolves the real bundle from the manifest and copies hashed **`styles.*.css`** when present. **`.gitignore`**: **`app.*.min.js`**, **`asset-manifest.json`** under **`apps/pwa-webapp/`**.
+- **Service worker (`apps/pwa-webapp/sw.js`):** **`CACHE_NAME`** bumped so old caches are dropped after the new URL scheme.
+- **CI (`.github/workflows/ci.yml`):** **`prepare-minified-assets`** / **`deploy-pages`** assert **`asset-manifest.json`** and **`mainJs`** exist instead of a fixed **`app.min.js`** path; removed redundant inline **`index.html`** rewrite (handled in **`build-site --site`**).
+- **Docs:** [setup-and-usage.md](setup-and-usage.md), [project-reference.md](project-reference.md), [app-and-features.md](app-and-features.md), [styling.md](styling.md), [dependencies.md](dependencies.md) (regenerated), [README.md](../README.md).
 
 ### v1.46.27 - 2026-04-12 - React Native tests: babel preset resolution
 

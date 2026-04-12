@@ -18,7 +18,7 @@ This page lists **where dependencies are declared** for the Rianell monorepo: **
 | Benchmarks | [`benchmarks/package.json`](../benchmarks/package.json) |
 | Python server | [`requirements.txt`](../requirements.txt) |
 
-The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with **esbuild** from the root devDependencies via [`apps/pwa-webapp/build-site.mjs`](../apps/pwa-webapp/build-site.mjs).
+The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with **esbuild** from the root devDependencies via [`apps/pwa-webapp/build-site.mjs`](../apps/pwa-webapp/build-site.mjs) and [`apps/pwa-webapp/fingerprint-assets.mjs`](../apps/pwa-webapp/fingerprint-assets.mjs). Production output uses **content-hashed** filenames (`app.<hash>.min.js`; `styles.<hash>.css` for `--site` and `.android-dist`) and `asset-manifest.json` (`mainJs`, optional `mainCss`).
 
 ---
 
@@ -46,7 +46,7 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 
 ### Build-time (Node, from root)
 
-Uses root **esbuild**, Babel packages (`@babel/generator`, `@babel/parser`, `@babel/traverse`, `@babel/types`), **sharp**, and **@capacitor/cli** for scripts (`build:web`, icons, Capacitor-related automation). No separate npm manifest.
+Uses root **esbuild**, Babel packages (`@babel/generator`, `@babel/parser`, `@babel/traverse`, `@babel/types`), **sharp**, and **@capacitor/cli** for scripts (`build:web`, icons, Capacitor-related automation). Minified bundles are **fingerprinted** (SHA-256 prefix in filenames) for cache busting; see `fingerprint-assets.mjs`. No separate npm manifest under `apps/pwa-webapp/`.
 
 ### Runtime — vendored / local
 

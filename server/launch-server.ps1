@@ -43,8 +43,7 @@ if (-not $NoCompile) {
     # 1) Copy apps/pwa-webapp/* to site
     # 2) Copy App build/* if present
     # 3) npm ci
-    # 4) node apps/pwa-webapp/build-site.mjs --site site
-    # 5) rewrite index.html app.js?v=* -> app.min.js?v=*
+    # 4) node apps/pwa-webapp/build-site.mjs --site site (fingerprints app + styles; patches index.html)
     if (Test-Path -LiteralPath $LocalSiteDir) {
         Remove-Item -LiteralPath $LocalSiteDir -Recurse -Force
     }
@@ -62,16 +61,6 @@ if (-not $NoCompile) {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     & $nodeExe "apps/pwa-webapp/build-site.mjs" "--site" $LocalSiteDir
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-    & $nodeExe "-e" @"
-const fs = require('fs');
-const path = require('path');
-const p = path.join(process.cwd(), '.server-dist', 'index.html');
-let h = fs.readFileSync(p, 'utf8');
-h = h.replace(/app\.js\?v=(\d+)/g, function (_, v) { return 'app.min.js?v=' + v; });
-fs.writeFileSync(p, h);
-"@
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     # Point the Python server at the CI-parity local site output.
