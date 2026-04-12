@@ -171,7 +171,7 @@ Workspace **`@rianell/benchmark-runner`**.
 | `supabase` | >=2.0.0 | Supabase client |
 | `watchdog` | >=3.0.0 | File watching / auto-reload (recommended) |
 | `python-dotenv` | >=1.0.0 | `.env` loading |
-| `cryptography` | >=41.0.0 | Encryption for anonymised data |
+| `cryptography` | >=46.0.6 | Encryption for anonymised data |
 | `psycopg[binary]` | >=3.0.0 | PostgreSQL driver (optional path for direct SQL) |
 | `psycopg2-binary` | >=2.9.0 | Alternate PostgreSQL driver |
 
