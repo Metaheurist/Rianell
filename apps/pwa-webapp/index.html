@@ -87,6 +87,188 @@
     })();
   </script>
 
+  <!-- Launch debug overlay: captures every error from the very first script and shows it on-screen.
+       Critical for installed iOS PWAs (standalone) where no devtools are available.
+       Debug is ON by default; disable with localStorage.rianellDebug='false' or ?debug=0. -->
+  <script>
+    (function () {
+      function isDebugEnabled() {
+        try {
+          if (typeof URLSearchParams !== 'undefined' && window.location && window.location.search) {
+            var q = new URLSearchParams(window.location.search).get('debug');
+            if (q === '0') return false;
+            if (q === '1') return true;
+          }
+        } catch (e) {}
+        try {
+          if (typeof localStorage !== 'undefined' && localStorage.getItem('rianellDebug') === 'false') return false;
+        } catch (e2) {}
+        return true; /* default ON while diagnosing iOS standalone launch error */
+      }
+      window.rianellDebug = isDebugEnabled();
+      window.healthAppDebug = window.rianellDebug;
+
+      var errors = [];
+      window.__rianellLaunchErrors = errors;
+      var MAX_ERRORS = 30;
+      var panel = null;
+
+      function isStandaloneMode() {
+        try {
+          if (window.navigator && window.navigator.standalone === true) return true;
+          if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+        } catch (e) {}
+        return false;
+      }
+
+      function looksLikeExtensionNoise(text) {
+        if (!text) return false;
+        if (/chrome-extension:|moz-extension:|safari-web-extension:|extension:\/\//i.test(text)) return true;
+        if (/tabs:outgoing|outgoing\.message\.ready|No\s+Listener:?|i18next|Grammarly|locize|chrome-error:|chromewebdata|vendor\.js|VM\d+\s+vendor|background\.js/i.test(text)) return true;
+        if (/Frame with ID \d+ was removed|No tab with id|Could not establish connection|Receiving end does not exist|message port closed/i.test(text)) return true;
+        return false;
+      }
+
+      function formatError(entry) {
+        var s = '[' + entry.time + '] [' + entry.kind + '] ' + entry.message;
+        if (entry.source) s += '\n  at ' + entry.source + (entry.line ? ':' + entry.line + ':' + (entry.col || 0) : '');
+        if (entry.stack) s += '\n' + entry.stack;
+        return s;
+      }
+
+      function ensurePanel() {
+        if (panel || !document.body) return panel;
+        panel = document.createElement('div');
+        panel.id = 'rianellLaunchErrorPanel';
+        panel.setAttribute('style',
+          'position:fixed;left:0;right:0;bottom:0;max-height:55vh;overflow:auto;z-index:2147483647;' +
+          'background:rgba(20,0,0,0.96);color:#ffb4b4;font:11px/1.5 Menlo,Consolas,monospace;' +
+          'padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:2px solid #ff5555;' +
+          '-webkit-overflow-scrolling:touch;white-space:pre-wrap;word-break:break-word;');
+        var header = document.createElement('div');
+        header.setAttribute('style', 'display:flex;gap:8px;align-items:center;margin-bottom:6px;color:#fff;font-weight:bold;');
+        var title = document.createElement('span');
+        title.id = 'rianellLaunchErrorTitle';
+        header.appendChild(title);
+        var btnStyle = 'margin-left:auto;padding:6px 12px;background:#ff5555;color:#fff;border:0;border-radius:6px;font:bold 12px sans-serif;';
+        var copyBtn = document.createElement('button');
+        copyBtn.textContent = 'Copy';
+        copyBtn.setAttribute('style', btnStyle);
+        copyBtn.onclick = function () {
+          var text = getReport();
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text);
+            } else {
+              var ta = document.createElement('textarea');
+              ta.value = text;
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+            }
+            copyBtn.textContent = 'Copied!';
+            setTimeout(function () { copyBtn.textContent = 'Copy'; }, 1500);
+          } catch (e) {}
+        };
+        var closeBtn = document.createElement('button');
+        closeBtn.textContent = 'X';
+        closeBtn.setAttribute('style', btnStyle.replace('margin-left:auto;', '') + 'background:#555;');
+        closeBtn.onclick = function () { panel.style.display = 'none'; };
+        header.appendChild(copyBtn);
+        header.appendChild(closeBtn);
+        panel.appendChild(header);
+        var body = document.createElement('div');
+        body.id = 'rianellLaunchErrorBody';
+        panel.appendChild(body);
+        document.body.appendChild(panel);
+        return panel;
+      }
+
+      function getReport() {
+        var lines = [
+          'Rianell launch error report',
+          'URL: ' + window.location.href,
+          'Standalone (installed PWA): ' + isStandaloneMode(),
+          'UA: ' + navigator.userAgent,
+          'Online: ' + navigator.onLine,
+          'SW controlled: ' + !!(navigator.serviceWorker && navigator.serviceWorker.controller),
+          ''
+        ];
+        for (var i = 0; i < errors.length; i++) lines.push(formatError(errors[i]));
+        return lines.join('\n');
+      }
+      window.__rianellGetLaunchErrorReport = getReport;
+
+      function render() {
+        if (!window.rianellDebug) return;
+        if (!document.body) {
+          document.addEventListener('DOMContentLoaded', render);
+          return;
+        }
+        var p = ensurePanel();
+        if (!p) return;
+        p.style.display = 'block';
+        var title = document.getElementById('rianellLaunchErrorTitle');
+        if (title) title.textContent = 'Debug: ' + errors.length + ' error(s) — ' + (isStandaloneMode() ? 'installed (standalone)' : 'browser tab');
+        var body = document.getElementById('rianellLaunchErrorBody');
+        if (body) body.textContent = errors.map(formatError).join('\n\n');
+      }
+
+      function record(kind, message, source, line, col, stack) {
+        var text = String(message || '') + ' ' + String(stack || '') + ' ' + String(source || '');
+        if (looksLikeExtensionNoise(text)) return;
+        if (errors.length >= MAX_ERRORS) return;
+        errors.push({
+          time: new Date().toISOString().slice(11, 23),
+          kind: kind,
+          message: String(message || '(no message)'),
+          source: source || '',
+          line: line || 0,
+          col: col || 0,
+          stack: stack || ''
+        });
+        render();
+      }
+      window.__rianellRecordLaunchError = record;
+
+      /* JS errors + resource (script/css/img) load failures (capture phase catches both) */
+      window.addEventListener('error', function (ev) {
+        if (ev && ev.target && ev.target !== window && (ev.target.src || ev.target.href)) {
+          var el = ev.target;
+          record('RESOURCE', 'Failed to load <' + (el.tagName || '?').toLowerCase() + '>: ' + (el.src || el.href));
+          return;
+        }
+        var err = ev ? ev.error : null;
+        record('ERROR', ev && ev.message, ev && ev.filename, ev && ev.lineno, ev && ev.colno, err && err.stack);
+      }, true);
+
+      window.addEventListener('unhandledrejection', function (ev) {
+        var r = ev ? ev.reason : null;
+        var msg = r && r.message ? r.message : String(r);
+        record('PROMISE', msg, '', 0, 0, r && r.stack);
+      });
+
+      /* Mirror console.error into the overlay (init failures are logged, not thrown) */
+      try {
+        var origError = console.error.bind(console);
+        console.error = function () {
+          try {
+            var parts = [];
+            for (var i = 0; i < arguments.length; i++) {
+              var a = arguments[i];
+              if (a instanceof Error) parts.push(a.stack || (a.name + ': ' + a.message));
+              else if (typeof a === 'string') parts.push(a);
+              else { try { parts.push(JSON.stringify(a)); } catch (e) { parts.push(String(a)); } }
+            }
+            record('CONSOLE', parts.join(' '));
+          } catch (e2) {}
+          origError.apply(console, arguments);
+        };
+      } catch (e) {}
+    })();
+  </script>
+
   <!-- Apple Touch Icons (beta set: web/Icons/beta/; originals remain in web/Icons/) -->
   <link rel="apple-touch-icon" href="Icons/beta/Icon-180.png">
   <link rel="apple-touch-icon" sizes="57x57" href="Icons/beta/Icon-57.png">
