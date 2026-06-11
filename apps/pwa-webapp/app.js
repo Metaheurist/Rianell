@@ -209,14 +209,22 @@ function tryLockPortraitOrientationMobile() {
   } catch (e) {}
 })();
 
-// Optional verbose debug (localStorage.rianellDebug === 'true' or ?debug=1)
+// Verbose debug — ON by default while diagnosing iOS standalone launch error.
+// Disable with localStorage.rianellDebug = 'false' or ?debug=0. The early script in
+// index.html sets window.rianellDebug with the same logic; keep both in sync.
 try {
-  window.rianellDebug = (typeof localStorage !== 'undefined' && localStorage.getItem('rianellDebug') === 'true') ||
-    (typeof URLSearchParams !== 'undefined' && window.location && new URLSearchParams(window.location.search).get('debug') === '1');
+  if (typeof window.rianellDebug !== 'boolean') {
+    var rianellDebugParam = (typeof URLSearchParams !== 'undefined' && window.location)
+      ? new URLSearchParams(window.location.search).get('debug')
+      : null;
+    window.rianellDebug = rianellDebugParam === '0' ? false
+      : rianellDebugParam === '1' ? true
+      : !(typeof localStorage !== 'undefined' && localStorage.getItem('rianellDebug') === 'false');
+  }
   window.healthAppDebug = window.rianellDebug; // deprecated alias
 } catch (e) {
-  window.rianellDebug = false;
-  window.healthAppDebug = false;
+  window.rianellDebug = true;
+  window.healthAppDebug = true;
 }
 
 // ============================================
