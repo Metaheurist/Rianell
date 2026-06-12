@@ -14681,6 +14681,7 @@ async function chart(id, label, dataField, color) {
       }, 100);
       return;
     } catch (e) { /* fall through to full recreate */ }
+    }
   }
   if (container.chart) {
     try { container.chart.destroy(); } catch (e) { /* ignore */ }
@@ -19693,6 +19694,7 @@ window.addEventListener('load', () => {
         showAlertModal('You have not logged an entry for today.');
       }
     }, 500);
+  }
 
   if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.runBenchmarkIfNeeded === 'function') {
     window.DeviceBenchmark.runBenchmarkIfNeeded(
