@@ -1202,6 +1202,45 @@ body.light-mode .motd-sway-wrap {
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
   }
 
+  .tab-icon-letter {
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    font-family: var(--font-family, system-ui, sans-serif);
+    filter: none;
+  }
+
+  body.log-wizard-active .app-mobile-bottom-chrome {
+    display: none !important;
+  }
+
+  body.log-wizard-active #logTab.log-wizard-mode #logForm {
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (max-width: 768px) {
+    body.log-wizard-active #logTab.log-wizard-mode #logForm {
+      padding-bottom: calc(132px + env(safe-area-inset-bottom, 0px));
+    }
+  }
+
+  .log-wizard-quick-save-btn {
+    margin-top: 12px;
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: var(--radius-md, 10px);
+    border: 1px dashed rgba(76, 175, 80, 0.45);
+    background: rgba(76, 175, 80, 0.08);
+    color: var(--text-light);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  body.light-mode .log-wizard-quick-save-btn {
+    color: var(--text-dark);
+    background: rgba(76, 175, 80, 0.1);
+  }
+
   .app-bottom-nav-text {
     white-space: nowrap;
     overflow: hidden;
@@ -2143,6 +2182,13 @@ body.theme-rainbow .app-bottom-nav-btn.active {
 .tab-icon {
   font-size: 1.5rem;
   transition: transform var(--transition-fluid);
+}
+
+.tab-icon-letter {
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  font-family: var(--font-family, system-ui, sans-serif);
 }
 
 .tab-btn:hover:not(.active) .tab-icon {

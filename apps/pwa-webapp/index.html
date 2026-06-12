@@ -296,12 +296,7 @@
   <meta http-equiv="Expires" content="0">
   
   <!-- apexcharts.min.js: loaded on demand via PerformanceUtils.ensureApexChartsLoaded() -->
-  <!-- Supabase Client Library (pinned major+minor for SRI; bump integrity when upgrading) -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"
-    integrity="sha384-YieCqqg9gQufX7+5HcFvCEg/n3KUEdl8/Jb+A6J0npf1mB740VayvwKjTrtCeUoy"
-    crossorigin="anonymous"
-  ></script>
+  <!-- Supabase UMD: loaded on demand via PerformanceUtils.ensureSupabaseLoaded() -->
   <!-- Function trace runtime (before instrumented scripts; console-only, no network) -->
   <script src="trace-runtime.js?v=1"></script>
   <!-- Event Handlers Module (for CSP compliance) -->
@@ -1392,19 +1387,19 @@
     <div class="tab-navigation tab-navigation--top" role="tablist" aria-label="Main sections">
       <span class="tab-nav-indicator" id="tabNavIndicator" aria-hidden="true"></span>
       <button type="button" class="tab-btn main-nav-tab active" data-tab="home" data-benchmark="nav-home" role="tab" aria-selected="true" aria-controls="homeTab" id="tab-home" onclick="switchTab('home')">
-        <span class="tab-icon">🏠</span>
+        <span class="tab-icon tab-icon-letter" aria-hidden="true">H</span>
         <span class="tab-text">Home</span>
       </button>
       <button type="button" class="tab-btn main-nav-tab" data-tab="logs" data-benchmark="nav-logs" role="tab" aria-selected="false" aria-controls="logsTab" id="tab-logs" onclick="switchTab('logs')">
-        <span class="tab-icon">📋</span>
+        <span class="tab-icon tab-icon-letter" aria-hidden="true">L</span>
         <span class="tab-text">View Logs</span>
       </button>
       <button type="button" class="tab-btn main-nav-tab" data-tab="charts" data-benchmark="nav-charts" role="tab" aria-selected="false" aria-controls="chartsTab" id="tab-charts" onclick="switchTab('charts')">
-        <span class="tab-icon">📊</span>
+        <span class="tab-icon tab-icon-letter" aria-hidden="true">C</span>
         <span class="tab-text">Charts</span>
       </button>
       <button type="button" class="tab-btn main-nav-tab" data-tab="ai" data-benchmark="nav-ai" role="tab" aria-selected="false" aria-controls="aiTab" id="tab-ai" onclick="switchTab('ai')">
-        <span class="tab-icon">🧠</span>
+        <span class="tab-icon tab-icon-letter" aria-hidden="true">A</span>
         <span class="tab-text">AI Analysis</span>
       </button>
     </div>
@@ -1460,6 +1455,8 @@
           <div class="validation-message" id="flare-error"></div>
         </div>
       </div>
+      <p class="settings-hint log-quick-log-hint">Only need date and flare? Save a minimal entry and add details later.</p>
+      <button type="button" class="log-wizard-quick-save-btn" id="logWizardQuickSaveBtn" onclick="saveQuickMinimalLog()">Save minimal log</button>
 
       </div>
       <div class="log-wizard-step" data-log-step="1" data-step-title="Vitals">
@@ -2098,46 +2095,46 @@
       <!-- Individual Charts View -->
       <div id="individualChartsContainer">
         <div id="bpmChart" class="chart-container lazy-chart" data-chart-type="bpm">
-          <div class="chart-loading">📊 Loading BPM Chart...</div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading BPM chart"></div>
         </div>
         <div id="fatigueChart" class="chart-container lazy-chart" data-chart-type="fatigue">
-          <div class="chart-loading">📊 Loading Fatigue Chart...</div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Fatigue chart"></div>
         </div>
         <div id="stiffnessChart" class="chart-container lazy-chart" data-chart-type="stiffness">
-          <div class="chart-loading">📊 Loading Stiffness Chart...</div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Stiffness chart"></div>
         </div>
         <div id="backPainChart" class="chart-container lazy-chart" data-chart-type="backPain">
-          <div class="chart-loading">📊 Loading Back Pain Chart...</div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Back Pain chart"></div>
         </div>
         <div id="sleepChart" class="chart-container lazy-chart" data-chart-type="sleep">
-          <div class="chart-loading">📊 Loading Sleep Chart...</div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Sleep chart"></div>
         </div>
         <div id="jointPainChart" class="chart-container lazy-chart" data-chart-type="jointPain">
-          <div class="chart-loading">📊 Loading Joint Pain Chart...</div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Joint Pain chart"></div>
         </div>
         <div id="mobilityChart" class="chart-container lazy-chart" data-chart-type="mobility">
-          <div class="chart-loading">📊 Loading Mobility Chart...</div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Mobility chart"></div>
         </div>
         <div id="dailyFunctionChart" class="chart-container lazy-chart" data-chart-type="dailyFunction">
-          <div class="chart-loading">📊 Loading Daily Function Chart...</div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Daily Function chart"></div>
         </div>
         <div id="swellingChart" class="chart-container lazy-chart" data-chart-type="swelling">
-          <div class="chart-loading">📊 Loading Swelling Chart...</div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Swelling chart"></div>
         </div>
         <div id="moodChart" class="chart-container lazy-chart" data-chart-type="mood">
-          <div class="chart-loading">📊 Loading Mood Chart...</div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Mood chart"></div>
         </div>
         <div id="irritabilityChart" class="chart-container lazy-chart" data-chart-type="irritability">
-          <div class="chart-loading">📊 Loading Irritability Chart...</div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Irritability chart"></div>
         </div>
         <div id="weatherSensitivityChart" class="chart-container lazy-chart" data-chart-type="weatherSensitivity">
-          <div class="chart-loading">📊 Loading Weather Sensitivity Chart...</div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Weather Sensitivity chart"></div>
         </div>
         <div id="stepsChart" class="chart-container lazy-chart" data-chart-type="steps">
-          <div class="chart-loading">📊 Loading Steps Chart...</div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Steps chart"></div>
         </div>
         <div id="hydrationChart" class="chart-container lazy-chart" data-chart-type="hydration">
-          <div class="chart-loading">📊 Loading Hydration Chart...</div>
+          <div class="chart-loading chart-loading--skeleton" role="status" aria-label="Loading Hydration chart"></div>
         </div>
       </div>
     </div>
@@ -2156,19 +2153,19 @@
   <div class="app-mobile-bottom-chrome">
     <nav class="app-bottom-nav" id="appBottomNav" role="navigation" aria-label="Main">
       <button type="button" class="app-bottom-nav-btn main-nav-tab active" data-tab="home" data-benchmark="nav-home" aria-current="page" aria-controls="homeTab" id="bottom-tab-home" onclick="switchTab('home')">
-        <span class="app-bottom-nav-icon" aria-hidden="true">🏠</span>
+        <span class="app-bottom-nav-icon tab-icon-letter" aria-hidden="true">H</span>
         <span class="app-bottom-nav-text">Home</span>
       </button>
       <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="logs" data-benchmark="nav-logs" aria-controls="logsTab" id="bottom-tab-logs" onclick="switchTab('logs')">
-        <span class="app-bottom-nav-icon" aria-hidden="true">📋</span>
+        <span class="app-bottom-nav-icon tab-icon-letter" aria-hidden="true">L</span>
         <span class="app-bottom-nav-text">Logs</span>
       </button>
       <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="charts" data-benchmark="nav-charts" aria-controls="chartsTab" id="bottom-tab-charts" onclick="switchTab('charts')">
-        <span class="app-bottom-nav-icon" aria-hidden="true">📊</span>
+        <span class="app-bottom-nav-icon tab-icon-letter" aria-hidden="true">C</span>
         <span class="app-bottom-nav-text">Charts</span>
       </button>
       <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="ai" data-benchmark="nav-ai" aria-controls="aiTab" id="bottom-tab-ai" onclick="switchTab('ai')">
-        <span class="app-bottom-nav-icon" aria-hidden="true">🧠</span>
+        <span class="app-bottom-nav-icon tab-icon-letter" aria-hidden="true">A</span>
         <span class="app-bottom-nav-text">AI</span>
       </button>
     </nav>
@@ -2628,7 +2625,7 @@
   </div>
 
   <!-- Tutorial Modal (new users + backtick ` to reopen) -->
-  <div class="modal-overlay tutorial-modal-overlay" id="tutorialModalOverlay" style="display: none;">
+  <div class="modal-overlay tutorial-modal-overlay" id="tutorialModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="tutorialModalTitle">
     <div class="modal-content tutorial-modal-content" onclick="event.stopPropagation()">
       <div class="modal-header tutorial-modal-header">
         <h3 id="tutorialModalTitle">Welcome</h3>
@@ -2845,7 +2842,7 @@
           <div class="gdpr-section">
             <h4 style="color: #4caf50;">3. Data Controller Information</h4>
             <p><strong>Data Controller:</strong> Rianell</p>
-            <p><strong>Contact:</strong> <a href="mailto:data@app.com" style="color: #4caf50; text-decoration: underline;">data@app.com</a></p>
+            <p><strong>Contact:</strong> <a href="mailto:jan.andersson@rianell.com" style="color: #4caf50; text-decoration: underline;">jan.andersson@rianell.com</a></p>
             <p><strong>Purpose:</strong> Processing anonymised health data to improve AI prediction accuracy and provide better health insights for users with similar medical conditions.</p>
             <p><strong>Data Protection Officer:</strong> Available through app settings or support contact.</p>
           </div>
@@ -2952,7 +2949,7 @@
             <h4 style="color: #4caf50;">13. Contact and Complaints</h4>
             <p>For questions, concerns, or to exercise your rights:</p>
             <ul>
-              <li>Contact the Data Controller at: <a href="mailto:data@app.com" style="color: #4caf50; text-decoration: underline;">data@app.com</a></li>
+              <li>Contact the Data Controller at: <a href="mailto:jan.andersson@rianell.com" style="color: #4caf50; text-decoration: underline;">jan.andersson@rianell.com</a></li>
               <li>Contact us through the app settings</li>
               <li>You have the right to lodge a complaint with your local data protection authority (DPA)</li>
               <li>For EU users: Contact your national DPA or the lead supervisory authority</li>
@@ -3186,19 +3183,21 @@
   <!-- Supabase: set fallback first so a bad supabase-config.js (e.g. smart quotes) does not break the page -->
   <script>window.SUPABASE_CONFIG = window.SUPABASE_CONFIG || { url: '', anonKey: '' };</script>
   <!-- If you see "SyntaxError" in supabase-config.js on the live site, redeploy a valid file (see supabase-config.example.js). -->
-  <script src="supabase-config.js"></script>
+  <script defer src="supabase-config.js"></script>
   <!-- TensorFlow + AIEngine: loaded on demand via PerformanceUtils.ensureAIEngineLoaded() -->
-  <script src="storage-utils.js?v=1"></script>
-  <script src="logs-idb.js?v=1"></script>
-  <script src="notifications.js?v=1"></script>
-  <script src="notification-helpers.js?v=1"></script>
+  <script defer src="storage-utils.js?v=1"></script>
+  <script defer src="logs-idb.js?v=1"></script>
+  <script defer src="notifications.js?v=1"></script>
+  <script defer src="notification-helpers.js?v=1"></script>
   <!-- export-utils / import-utils / print-utils: loaded on first use via PerformanceUtils.ensure*Loaded() -->
-  <script src="https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.37/dist/ua-parser.min.js"></script>
-  <script src="device-module.js"></script>
-  <script src="device-benchmark.js"></script>
-  <script src="performance-utils.js"></script>
-  <script src="background-loader.js"></script>
-  <script src="android-update-check.js?v=1"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.37/dist/ua-parser.min.js"
+    integrity="sha384-REx7yAmsljlMolptJEKWLMFdMHFcdrMNo4+v66cWh8kOGS6U6aP/uCIg/MMs9xpr"
+    crossorigin="anonymous"></script>
+  <script defer src="device-module.js"></script>
+  <script defer src="device-benchmark.js"></script>
+  <script defer src="performance-utils.js"></script>
+  <script defer src="background-loader.js"></script>
+  <script defer src="android-update-check.js?v=1"></script>
   <script>
     (function() {
       var Perf = window.PerformanceUtils;
@@ -3229,10 +3228,10 @@
     }
   })();
   </script>
-  <script src="app.js?v=30"></script>
-  <script src="security-utils.js"></script>
-  <script src="encryption-utils.js"></script>
-  <script src="cloud-sync.js?v=2"></script>
+  <script defer src="app.js?v=30"></script>
+  <script defer src="security-utils.js"></script>
+  <script defer src="encryption-utils.js"></script>
+  <script defer src="cloud-sync.js?v=2"></script>
   <script>
     (function() {
       function loadFontAwesome() {

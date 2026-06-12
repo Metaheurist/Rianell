@@ -31,10 +31,10 @@ import { loadCachedBenchmark } from '../performance/benchmark';
 import { generateMotd } from '../ai/llm';
 import Constants from 'expo-constants';
 import { getBugReportAttachmentText } from '../utils/bugReportLogs';
+import { submitBugReport } from '../utils/submitBugReport';
 
 /** Web `index.html` parity: top chrome includes bug-report modal entry. */
 const SECURITY_DOC_URL = 'https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md';
-const BUG_REPORT_ENDPOINT = 'https://rianell.com/api/bug-report';
 
 type HomeNav = CompositeNavigationProp<
   BottomTabNavigationProp<MainTabParamList, 'Home'>,
@@ -366,7 +366,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
     setBugSubmitting(true);
     try {
       const ua = `Rianell-ReactNative/${Platform.OS}/${String(Platform.Version ?? '')} app=${Constants.expoConfig?.version ?? ''}`;
-      const payload = {
+      await submitBugReport({
         title: bugTitle.trim(),
         description,
         steps: bugSteps.trim(),
@@ -376,16 +376,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
         url: 'rn://home',
         user_agent: ua,
         client_timestamp: new Date().toISOString(),
-      };
-      const res = await fetch(BUG_REPORT_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(typeof data?.error === 'string' ? data.error : 'Failed to submit bug report.');
-      }
       setBugModalOpen(false);
       setBugTitle('');
       setBugDescription('');
@@ -447,9 +438,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
               ? 'You have logged today. Open View logs to browse or edit entries.'
               : 'No log for today yet. Tap + to record how you feel.'}
         </Text>
-        <Text style={[styles.motd, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-          {motd || 'Loading AI message...'}
-        </Text>
+        <HomeMotdHeartbeat motd={motd} theme={theme} latestBpm={latestBpm} />
       </View>
 
       <View style={[styles.fabWrap, { bottom: tabBarHeight + 16 }]}>

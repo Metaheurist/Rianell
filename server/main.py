@@ -247,14 +247,14 @@ class RianellHttpHandler(http.server.SimpleHTTPRequestHandler):
         super().log_error(format, *args)
 
     def _client_may_sensitive_api(self, client_ip):
-        """Loopback always; otherwise only if LAN mode on; optional X-Rianell-LAN-Secret when set in env."""
+        """Loopback always; otherwise only if LAN mode on and X-Rianell-LAN-Secret matches."""
         if http_security.is_loopback_ip(client_ip):
             return True
         if not config.SENSITIVE_APIS_ON_LAN:
             return False
         secret = getattr(config, 'SENSITIVE_APIS_LAN_SECRET', None) or ''
         if not secret:
-            return True
+            return False
         supplied = (
             self.headers.get('X-Rianell-LAN-Secret') or self.headers.get('x-rianell-lan-secret') or ''
         ).strip()
@@ -672,6 +672,12 @@ class RianellHttpHandler(http.server.SimpleHTTPRequestHandler):
         """Handle bug report submissions and insert into Supabase."""
         try:
             client_ip = self.client_address[0]
+            if not self._client_may_sensitive_api(client_ip):
+                self.send_response(403)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': 'Bug report API is only available on loopback or trusted LAN with secret.'}).encode('utf-8'))
+                return
             MAX_CONTENT_LENGTH = 1024 * 100  # 100KB
             content_length = int(self.headers.get('Content-Length', 0))
 

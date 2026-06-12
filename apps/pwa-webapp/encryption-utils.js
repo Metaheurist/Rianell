@@ -107,14 +107,12 @@ async function encryptAnonymizedData(data) {
     // Convert to base64 for storage
     return btoa(String.fromCharCode(...combined));
   } catch (error) {
-    // Use safe error logging to prevent information leakage
     if (window.SecurityUtils && window.SecurityUtils.safeLogError) {
       window.SecurityUtils.safeLogError('encryptAnonymizedData', error);
     } else {
       console.error('Encryption error occurred');
     }
-    // Fallback: return original data as JSON string (no encryption)
-    return JSON.stringify(data);
+    throw new Error('encryptAnonymizedData failed: refusing to upload unencrypted data');
   }
 }
 

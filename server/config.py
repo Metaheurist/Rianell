@@ -154,8 +154,12 @@ if SENSITIVE_APIS_ON_LAN:
         'HEALTH_APP_SENSITIVE_APIS_ON_LAN is enabled: sensitive dev APIs accept non-loopback clients. '
         'Use only on trusted LANs (see docs/SECURITY.md).'
     )
-# Optional: when LAN mode is on, require header X-Rianell-LAN-Secret to match (defense in depth).
 SENSITIVE_APIS_LAN_SECRET = os.getenv('HEALTH_APP_SENSITIVE_APIS_LAN_SECRET', '').strip()
+if SENSITIVE_APIS_ON_LAN and not SENSITIVE_APIS_LAN_SECRET:
+    raise RuntimeError(
+        'HEALTH_APP_SENSITIVE_APIS_ON_LAN=1 requires HEALTH_APP_SENSITIVE_APIS_LAN_SECRET '
+        '(non-loopback clients must send X-Rianell-LAN-Secret).'
+    )
 if SENSITIVE_APIS_ON_LAN and SENSITIVE_APIS_LAN_SECRET:
     logger.info('HEALTH_APP_SENSITIVE_APIS_LAN_SECRET is set; non-loopback clients must send X-Rianell-LAN-Secret.')
 

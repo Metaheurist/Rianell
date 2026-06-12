@@ -2133,6 +2133,8 @@ function _detachTutorialSwipeListeners() {
   _tutorialSwipeHandlersAttached = false;
 }
 
+var _tutorialFocusTrapTeardown = null;
+
 function openTutorialModal() {
   const overlay = document.getElementById('tutorialModalOverlay');
   const titleEl = document.getElementById('tutorialModalTitle');
@@ -2148,6 +2150,11 @@ function openTutorialModal() {
   overlay.onclick = function(e) {
     if (e.target === overlay) closeTutorialModal();
   };
+  if (_tutorialFocusTrapTeardown) _tutorialFocusTrapTeardown();
+  _tutorialFocusTrapTeardown = installModalFocusTrap(overlay, {
+    onEscape: closeTutorialModal,
+    initialFocusSelector: '.tutorial-btn, .modal-close'
+  });
   _tutorialKeydownHandler = function(e) {
     if (e.key === 'Escape') {
       closeTutorialModal();
@@ -2176,6 +2183,10 @@ function isTutorialTestPage() {
 
 function closeTutorialModal() {
   _detachTutorialSwipeListeners();
+  if (_tutorialFocusTrapTeardown) {
+    _tutorialFocusTrapTeardown();
+    _tutorialFocusTrapTeardown = null;
+  }
   if (_tutorialKeydownHandler) {
     document.removeEventListener('keydown', _tutorialKeydownHandler);
     _tutorialKeydownHandler = null;
@@ -3063,6 +3074,45 @@ function sanitizeHTML(html) {
     .replace(/'/g, '&#x27;')
     .replace(/\//g, '&#x2F;');
 }
+
+/** Trap Tab/Escape in modal overlays; returns teardown function. */
+function installModalFocusTrap(overlay, options) {
+  if (!overlay) return function () {};
+  options = options || {};
+  var focusSelector = options.focusSelector || 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+  var previousFocus = document.activeElement;
+  function onKeyDown(e) {
+    if (e.key === 'Escape' && typeof options.onEscape === 'function') {
+      e.preventDefault();
+      options.onEscape();
+      return;
+    }
+    if (e.key !== 'Tab') return;
+    var nodes = overlay.querySelectorAll(focusSelector);
+    if (!nodes.length) return;
+    var list = Array.prototype.filter.call(nodes, function (n) {
+      return !n.disabled && n.offsetParent !== null;
+    });
+    if (!list.length) return;
+    var first = list[0];
+    var last = list[list.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+  overlay.addEventListener('keydown', onKeyDown);
+  var initial = overlay.querySelector(options.initialFocusSelector || focusSelector);
+  if (initial && initial.focus) initial.focus();
+  return function teardownModalFocusTrap() {
+    overlay.removeEventListener('keydown', onKeyDown);
+    if (previousFocus && previousFocus.focus) previousFocus.focus();
+  };
+}
+if (typeof window !== 'undefined') window.installModalFocusTrap = installModalFocusTrap;
 
 // Log app initialization
 Logger.info('Rianell initialized', {
@@ -9579,16 +9629,23 @@ async function submitBugReport(event) {
   };
 
   try {
-    if (isStaticHost()) throw new Error('Bug report submission is only available when running through the app server.');
-    var response = await fetch('/api/bug-report', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    var data = {};
-    try { data = await response.json(); } catch (e) {}
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to submit bug report.');
+    if (isStaticHost()) {
+      if (typeof window.submitBugReportToSupabase === 'function') {
+        await window.submitBugReportToSupabase(payload);
+      } else {
+        throw new Error('Bug report submission requires Supabase (not available on static host without cloud config).');
+      }
+    } else {
+      var response = await fetch('/api/bug-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      var data = {};
+      try { data = await response.json(); } catch (e) {}
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit bug report.');
+      }
     }
     var form = document.getElementById('bugReportForm');
     if (form && typeof form.reset === 'function') form.reset();
@@ -12525,10 +12582,19 @@ function openEditEntryModal(logDate) {
     }
   };
   document.addEventListener('keydown', window._editEntryModalEscapeHandler);
+  if (window._editEntryFocusTrapTeardown) window._editEntryFocusTrapTeardown();
+  window._editEntryFocusTrapTeardown = installModalFocusTrap(overlay, {
+    onEscape: closeEditEntryModal,
+    initialFocusSelector: '.modal-close, .modal-save-btn, button, input, select, textarea'
+  });
 }
 
 function closeEditEntryModal() {
   if (typeof closeTilePickerSheet === 'function') closeTilePickerSheet();
+  if (window._editEntryFocusTrapTeardown) {
+    window._editEntryFocusTrapTeardown();
+    window._editEntryFocusTrapTeardown = null;
+  }
   if (window._editEntryModalEscapeHandler) {
     document.removeEventListener('keydown', window._editEntryModalEscapeHandler);
     window._editEntryModalEscapeHandler = null;
@@ -14587,7 +14653,21 @@ async function chart(id, label, dataField, color) {
   const firstOpt = optimizedChartData[0];
   const histLenInd = getAllHistoricalLogsSync().length;
   const individualChartSig = id + '|' + dataField + '|' + viewKeyInd + '|' + predictionRange + '|' + (predictionsEnabled ? '1' : '0') + '|' + (aiOn ? '1' : '0') + '|' + histLenInd + '|' + optimizedChartData.length + '|' + (firstOpt && firstOpt.x) + '|' + (lastOpt && lastOpt.x) + '|' + (lastOpt && lastOpt.y) + '|' + predictedData.length + '|' + (appSettings.weightUnit || 'kg') + '|lm' + (isWebAppLightMode() ? '1' : '0');
-  if (container.chart && container._individualChartSig === individualChartSig && typeof container.chart.updateOptions === 'function') {
+  if (container.chart && container._individualChartSig === individualChartSig) {
+    if (typeof container.chart.updateSeries === 'function') {
+      try {
+        container.chart.updateSeries([
+          { name: label, data: optimizedChartData },
+          { name: label + ' (Predicted)', data: predictedData }
+        ], true);
+        const loadingElSeries = container.querySelector('.chart-loading');
+        if (loadingElSeries) loadingElSeries.style.display = 'none';
+        if (container.classList) container.classList.add('loaded');
+        injectChartShareButton(container, id);
+        return;
+      } catch (e) { /* fall through to updateOptions or recreate */ }
+    }
+    if (typeof container.chart.updateOptions === 'function') {
     try {
       container.chart.updateOptions(options, true, true);
       const loadingElFast = container.querySelector('.chart-loading');
@@ -15029,6 +15109,47 @@ function updateCharts() {
   }
 }
 
+function saveQuickMinimalLog() {
+  var dateValue = (document.getElementById('date') && document.getElementById('date').value || '').trim();
+  var flareVal = document.getElementById('flare') && document.getElementById('flare').value;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+    showAlertModal('Pick a valid date first.', 'Validation');
+    return;
+  }
+  if (!flareVal) {
+    showAlertModal('Select flare Yes or No.', 'Validation');
+    return;
+  }
+  if (logs.some(function (log) { return log.date === dateValue; })) {
+    showAlertModal('An entry for ' + dateValue + ' already exists. Edit it from View Logs.', 'Duplicate');
+    return;
+  }
+  var newEntry = {
+    date: dateValue,
+    flare: flareVal === 'Yes' ? 'Yes' : 'No',
+    fatigue: 5,
+    stiffness: 5,
+    sleep: 5,
+    jointPain: 5,
+    mobility: 5,
+    dailyFunction: 5,
+    swelling: 5,
+    mood: 5,
+    irritability: 5
+  };
+  logs.push(newEntry);
+  saveLogsToStorage();
+  if (typeof clearLogDraft === 'function') clearLogDraft();
+  logFormFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
+  logFormExerciseItems = [];
+  logFormStressorsItems = [];
+  logFormSymptomsItems = [];
+  logFormMedications = [];
+  showAlertModal('Minimal log saved for ' + dateValue + '.', 'Saved');
+  switchTab('home');
+}
+if (typeof window !== 'undefined') window.saveQuickMinimalLog = saveQuickMinimalLog;
+
 form.addEventListener("submit", e => {
   e.preventDefault();
   
@@ -15335,7 +15456,12 @@ function loadSettings() {
 }
 
 function saveSettings() {
-  localStorage.setItem('rianellSettings', JSON.stringify(appSettings));
+  var settingsJson = JSON.stringify(appSettings);
+  if (window.PerformanceUtils?.StorageBatcher) {
+    window.PerformanceUtils.StorageBatcher.setItem('rianellSettings', settingsJson);
+  } else {
+    localStorage.setItem('rianellSettings', settingsJson);
+  }
   // Keep window.appSettings in sync
   if (typeof window !== 'undefined') {
     window.appSettings = appSettings;
@@ -19090,6 +19216,7 @@ function switchTab(tabName, skipHash) {
   tabNameRef = tabName;
   if (document.body) {
     document.body.classList.toggle('tab-not-home', tabName !== 'home');
+    document.body.classList.toggle('log-wizard-active', tabName === 'log');
   }
 
   function doSwitch() {
@@ -19410,45 +19537,10 @@ window.addEventListener('load', () => {
     console.error('Error during initial setup:', e);
   }
   
-  if (loadingTextEl) loadingTextEl.textContent = 'Loading charts and AI…';
+  if (loadingTextEl) loadingTextEl.textContent = 'Loading…';
 
-  // Second loading phase: show progress toward completion (benchmark bar was 100% after suite or cache)
-  setOrbitLoadingProgress(0);
-  var chartsAiProgressVal = 0;
-  var chartsAiProgressTimer = setInterval(function () {
-    chartsAiProgressVal = Math.min(95, chartsAiProgressVal + Math.random() * 5 + 1.5);
-    setOrbitLoadingProgress(chartsAiProgressVal);
-  }, 140);
-
-  // Keep loading circle until combined chart and summary LLM are ready (or timeout). On mobile (low device) skip chart build during load to avoid memory spike and tab crash.
-  const isLowDevice = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
-  const needCharts = appSettings.showCharts && chartSectionEl && logs && logs.length > 0 && !isLowDevice;
-  const chartsReady = !needCharts
-    ? Promise.resolve()
-    : runCriticalTask(function () {
-        return (typeof createCombinedChart === 'function' ? createCombinedChart() : Promise.resolve()).then(function () {
-          window.__chartsBuiltDuringLoad = true;
-        }).catch(function () {});
-      });
-  const aiReady = (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function')
-    ? Promise.resolve()
-    : runCriticalTask(function () {
-        var chain = (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function')
-          ? window.PerformanceUtils.ensureAIEngineLoaded()
-          : Promise.resolve();
-        return chain.then(function () {
-          return window.preloadSummaryLLM().then(function () {
-            return typeof preloadAIForAllRanges === 'function' ? preloadAIForAllRanges() : Promise.resolve();
-          });
-        }).catch(function () {});
-      });
-  var loadTimeoutMs = isLowDevice ? 5000 : 12000;
-  const timeout = new Promise(function (resolve) { setTimeout(resolve, loadTimeoutMs); });
-  
-  Promise.race([ Promise.allSettled([ chartsReady, aiReady ]), timeout ]).then(function () {
-    clearInterval(chartsAiProgressTimer);
+  function revealAppShell() {
     setOrbitLoadingProgress(100);
-
     finishLoadingOverlayWithBurst(function () {
       if (loadingOverlay) {
         loadingOverlay.classList.add('hidden');
@@ -19468,48 +19560,79 @@ window.addEventListener('load', () => {
         showCookieBannerIfNeeded();
       }
     });
-
     scheduleDashboardMotdWithLlm(getRandomMotdFallback());
-
     renderLogs();
     updateCharts();
-    if (appSettings.aiEnabled !== false && window.DeviceBenchmark && window.DeviceBenchmark.getCachedResult) {
-      var cached = window.DeviceBenchmark.getCachedResult();
-      if (cached && cached.gpu && cached.gpu.good) {
-        var warm = function() {
-          try {
-            if (window.AIEngine && typeof window.AIEngine.warmGPUBackend === 'function') {
-              window.AIEngine.warmGPUBackend();
-            }
-          } catch (e) { /* ignore */ }
-        };
-        var scheduleWarm = function () {
-          if (typeof requestIdleCallback !== 'undefined') requestIdleCallback(warm, { timeout: 2000 }); else setTimeout(warm, 800);
-        };
-        if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function') {
-          window.PerformanceUtils.ensureAIEngineLoaded().then(scheduleWarm).catch(function () {});
-        } else {
-          scheduleWarm();
+  }
+
+  function runPostShellIdleWork() {
+    const isLowDevice = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
+    const needCharts = appSettings.showCharts && chartSectionEl && logs && logs.length > 0 && !isLowDevice;
+    const chartsReady = !needCharts
+      ? Promise.resolve()
+      : runCriticalTask(function () {
+          return (typeof createCombinedChart === 'function' ? createCombinedChart() : Promise.resolve()).then(function () {
+            window.__chartsBuiltDuringLoad = true;
+          }).catch(function () {});
+        });
+    const aiReady = (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function')
+      ? Promise.resolve()
+      : runCriticalTask(function () {
+          var chain = (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function')
+            ? window.PerformanceUtils.ensureAIEngineLoaded()
+            : Promise.resolve();
+          return chain.then(function () {
+            return window.preloadSummaryLLM().then(function () {
+              return typeof preloadAIForAllRanges === 'function' ? preloadAIForAllRanges() : Promise.resolve();
+            });
+          }).catch(function () {});
+        });
+    Promise.allSettled([chartsReady, aiReady]).then(function () {
+      if (appSettings.aiEnabled !== false && window.DeviceBenchmark && window.DeviceBenchmark.getCachedResult) {
+        var cached = window.DeviceBenchmark.getCachedResult();
+        if (cached && cached.gpu && cached.gpu.good) {
+          var warm = function() {
+            try {
+              if (window.AIEngine && typeof window.AIEngine.warmGPUBackend === 'function') {
+                window.AIEngine.warmGPUBackend();
+              }
+            } catch (e) { /* ignore */ }
+          };
+          var scheduleWarm = function () {
+            if (typeof requestIdleCallback !== 'undefined') requestIdleCallback(warm, { timeout: 2000 }); else setTimeout(warm, 800);
+          };
+          if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function') {
+            window.PerformanceUtils.ensureAIEngineLoaded().then(scheduleWarm).catch(function () {});
+          } else {
+            scheduleWarm();
+          }
         }
       }
-    }
-    updateAISummaryButtonState();
-    var isLow = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
-    if (!window.__chartsBuiltDuringLoad && !isLow && typeof scheduleChartsPreload === 'function') scheduleChartsPreload();
-    window.__chartsBuiltDuringLoad = false;
-    if (!isLow && typeof scheduleAIPreload === 'function') scheduleAIPreload();
-    clearAISection();
-    // Build 14 individual charts after layout so they get correct dimensions (skip if page hidden to avoid memory pressure)
-    if (appSettings.showCharts && logs && logs.length > 0 && appSettings.chartView === 'individual') {
-      requestAnimationFrame(function() {
-        setTimeout(function() {
-          if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
-          if (typeof updateChartsImmediate === 'function') void updateChartsImmediate().catch(function () {});
-        }, 80);
-      });
-    }
-    
-    if (!appSettings.weightUnit) {
+      updateAISummaryButtonState();
+      var isLow = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
+      if (!window.__chartsBuiltDuringLoad && !isLow && typeof scheduleChartsPreload === 'function') scheduleChartsPreload();
+      window.__chartsBuiltDuringLoad = false;
+      if (!isLow && typeof scheduleAIPreload === 'function') scheduleAIPreload();
+      clearAISection();
+      if (appSettings.showCharts && logs && logs.length > 0 && appSettings.chartView === 'individual') {
+        requestAnimationFrame(function() {
+          setTimeout(function() {
+            if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+            if (typeof updateChartsImmediate === 'function') void updateChartsImmediate().catch(function () {});
+          }, 80);
+        });
+      }
+    });
+  }
+
+  revealAppShell();
+  if (typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(runPostShellIdleWork, { timeout: 4000 });
+  } else {
+    setTimeout(runPostShellIdleWork, 0);
+  }
+
+  if (!appSettings.weightUnit) {
       appSettings.weightUnit = 'kg';
       saveSettings();
     }
@@ -19570,8 +19693,6 @@ window.addEventListener('load', () => {
         showAlertModal('You have not logged an entry for today.');
       }
     }, 500);
-  });
-  }
 
   if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.runBenchmarkIfNeeded === 'function') {
     window.DeviceBenchmark.runBenchmarkIfNeeded(

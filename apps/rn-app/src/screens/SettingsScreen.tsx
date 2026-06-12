@@ -1429,7 +1429,10 @@ export function SettingsScreen({
 
                 ) : (
 
-                  <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>📤 Export logs (JSON)</Text>
+                  <View style={styles.dataBtnRow}>
+                    <Ionicons name="share-outline" size={20} color={theme.tokens.color.accent} />
+                    <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>Export logs (JSON)</Text>
+                  </View>
 
                 )}
 
@@ -1668,6 +1671,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dataBtnText: { fontWeight: '800' },
+  dataBtnRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   dangerBtn: {
     backgroundColor: 'rgba(244, 67, 54, 0.2)',
     borderWidth: 1,
