@@ -43,18 +43,18 @@
     "sharp": "^0.33.5"
   },
   "overrides": {
-    "@xmldom/xmldom": "0.9.10",
+    "@xmldom/xmldom": "0.8.13",
     "@expo/plist": {
-      "@xmldom/xmldom": "0.9.10"
+      "@xmldom/xmldom": "0.8.13"
     },
     "plist": {
-      "@xmldom/xmldom": "0.9.10"
+      "@xmldom/xmldom": "0.8.13"
     },
     "@trapezedev/project": {
-      "@xmldom/xmldom": "0.9.10"
+      "@xmldom/xmldom": "0.8.13"
     },
     "mergexml": {
-      "@xmldom/xmldom": "0.9.10"
+      "@xmldom/xmldom": "0.8.13"
     },
     "@capacitor/assets": {
       "@capacitor/cli": "7.6.1"
