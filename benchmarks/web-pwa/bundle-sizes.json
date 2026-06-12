@@ -1,0 +1,157 @@
+{
+  "generatedAt": "2026-06-12T18:18:30.593Z",
+  "distDir": "ci-minified/site",
+  "totals": {
+    "jsBytes": 3069289,
+    "cssBytes": 371913,
+    "jsGzipBytes": 608524,
+    "cssGzipBytes": 64964
+  },
+  "files": [
+    {
+      "file": "ci-minified/site/app.js",
+      "bytes": 1126019,
+      "gzipBytes": 191526
+    },
+    {
+      "file": "ci-minified/site/app.5d0aa4932b9d.min.js",
+      "bytes": 674828,
+      "gzipBytes": 133278
+    },
+    {
+      "file": "ci-minified/site/apexcharts.min.js",
+      "bytes": 576627,
+      "gzipBytes": 153833
+    },
+    {
+      "file": "ci-minified/site/styles.5362c7069a1a.css",
+      "bytes": 358337,
+      "gzipBytes": 61491
+    },
+    {
+      "file": "ci-minified/site/AIEngine.js",
+      "bytes": 220501,
+      "gzipBytes": 37852
+    },
+    {
+      "file": "ci-minified/site/cloud-sync.js",
+      "bytes": 97595,
+      "gzipBytes": 18369
+    },
+    {
+      "file": "ci-minified/site/export-utils.js",
+      "bytes": 67880,
+      "gzipBytes": 12557
+    },
+    {
+      "file": "ci-minified/site/device-benchmark.js",
+      "bytes": 60845,
+      "gzipBytes": 9691
+    },
+    {
+      "file": "ci-minified/site/performance-utils.js",
+      "bytes": 43058,
+      "gzipBytes": 7485
+    },
+    {
+      "file": "ci-minified/site/summary-llm.js",
+      "bytes": 36795,
+      "gzipBytes": 7416
+    },
+    {
+      "file": "ci-minified/site/import-utils.js",
+      "bytes": 24306,
+      "gzipBytes": 5204
+    },
+    {
+      "file": "ci-minified/site/event-handlers.js",
+      "bytes": 23619,
+      "gzipBytes": 3485
+    },
+    {
+      "file": "ci-minified/site/notifications.js",
+      "bytes": 21494,
+      "gzipBytes": 4595
+    },
+    {
+      "file": "ci-minified/site/security-utils.js",
+      "bytes": 16529,
+      "gzipBytes": 4020
+    },
+    {
+      "file": "ci-minified/site/logs-idb.js",
+      "bytes": 13809,
+      "gzipBytes": 1351
+    },
+    {
+      "file": "ci-minified/site/styles-charts.css",
+      "bytes": 11044,
+      "gzipBytes": 2619
+    },
+    {
+      "file": "ci-minified/site/device-module.js",
+      "bytes": 8918,
+      "gzipBytes": 2288
+    },
+    {
+      "file": "ci-minified/site/background-loader.js",
+      "bytes": 8321,
+      "gzipBytes": 1740
+    },
+    {
+      "file": "ci-minified/site/storage-utils.js",
+      "bytes": 8035,
+      "gzipBytes": 1851
+    },
+    {
+      "file": "ci-minified/site/notification-helpers.js",
+      "bytes": 7282,
+      "gzipBytes": 1612
+    },
+    {
+      "file": "ci-minified/site/print-utils.js",
+      "bytes": 7068,
+      "gzipBytes": 2046
+    },
+    {
+      "file": "ci-minified/site/encryption-utils.js",
+      "bytes": 6985,
+      "gzipBytes": 2101
+    },
+    {
+      "file": "ci-minified/site/android-update-check.js",
+      "bytes": 6536,
+      "gzipBytes": 1621
+    },
+    {
+      "file": "ci-minified/site/sw.js",
+      "bytes": 4679,
+      "gzipBytes": 1748
+    },
+    {
+      "file": "ci-minified/site/supabase-config.js",
+      "bytes": 4102,
+      "gzipBytes": 1358
+    },
+    {
+      "file": "ci-minified/site/print-styles.css",
+      "bytes": 2532,
+      "gzipBytes": 854
+    },
+    {
+      "file": "ci-minified/site/trace-runtime.js",
+      "bytes": 1803,
+      "gzipBytes": 685
+    },
+    {
+      "file": "ci-minified/site/workers/io-worker.js",
+      "bytes": 849,
+      "gzipBytes": 384
+    },
+    {
+      "file": "ci-minified/site/supabase-config.example.js",
+      "bytes": 806,
+      "gzipBytes": 428
+    }
+  ]
+}
