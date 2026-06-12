@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.30** - Fix Expo iOS prebuild (`@xmldom/xmldom` 0.8.13 LTS pin).
+**Latest: v1.46.31** - RN TypeScript monorepo IDE fix; PWA LLM inference queue; debug off by default.
+
+### v1.46.31 - 2026-06-12 - RN TypeScript monorepo; PWA LLM queue; debug off
+
+- **React Native (`apps/rn-app/tsconfig.json`, root `tsconfig.json`):** **`extends`** uses **`./node_modules/expo/tsconfig.base.json`** so IDEs in the npm-workspace monorepo resolve Expo’s base config (fixes **`File 'expo/tsconfig.base' not found`** in Cursor/VS Code). Root **`tsconfig.json`** references **`apps/rn-app`** for workspace TypeScript project discovery. Explicit **`include`** for **`**/*.ts`** / **`**/*.tsx`**; tests remain excluded from **`tsc`**. **`npm run typecheck:mobile`** unchanged.
+- **Web / PWA (`apps/pwa-webapp/summary-llm.js`):** Serialize **Transformers.js** pipeline load and inference through a single queue so ONNX Runtime Web never runs overlapping sessions (**`Session already started`** / follow-on internal errors when summary, suggest note, and MOTD run together).
+- **Web / PWA debug (`index.html`, `app.js`):** **`rianellDebug`** off globally; persisted **`localStorage.rianellDebug`** / **`healthAppDebug`** cleared on load. Launch overlay only with **`?debug=1`** for that page load. **`sw.js`** **`CACHE_NAME`** bumped.
+- **React Native tests:** **`SettingsScreen.test.tsx`** async render helper + mock reset; **`LogsScreen.test.tsx`** dev-only test uses **`test.skip`**; **`HomeScreen`** bug-report a11y hint.
+- **Docs:** [project-reference.md](project-reference.md) (troubleshooting → RN **`tsconfig`**, iOS PWA debug **`?debug=1`**); [setup-and-usage.md](setup-and-usage.md) (mobile quality gates); [app-and-features.md](app-and-features.md) (debug opt-in wording).
 
 ### v1.46.30 - 2026-06-12 - RN CLI: Expo iOS prebuild xmldom compatibility
 
