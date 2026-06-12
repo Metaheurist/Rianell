@@ -340,18 +340,12 @@ flowchart LR
 
 ### App shell and log experience (web UI)
 
-![Home tab - daily message, last 7 days vs targets, and floating +](images/home-dashboard.png)
-
 - **Home / Today**: Default tab with greeting, date, logging status, and goals snippet when enabled. Use the floating **+** button (with **Beta** badge) to open the log entry wizard from any main tab (Home, Logs, Charts, AI). The cluster is **fixed** bottom-right with **safe-area** padding and extra **inset from the screen edge** on mobile for comfort.
-- **Log entry wizard**: Step-by-step flow (date & flare → vitals → symptoms & pain → energy & day → food → exercise → medication & notes → review) with step indicator, **Back** / **Skip** / **Next**, and **Save entry** on the last step. The bottom nav row keeps three equal slots (hidden steps use invisibility, not `display:none`) so **Next** does not stretch full width on early steps. Drafts are debounced to `sessionStorage`; URL hash `#log/step/<1-based step>` restores step when opening the log flow. The **+** is hidden while the wizard is active.
+- **Log entry wizard**: Step-by-step flow (date & flare → vitals → symptoms & pain → energy & day → food → exercise → medication & notes → review) with step indicator, **Back** / **Skip** / **Next**, **Save minimal log** (date + flare only), and **Save entry** on the last step. The bottom nav row keeps three equal slots (hidden steps use invisibility, not `display:none`) so **Next** does not stretch full width on early steps. Drafts are debounced to `sessionStorage`; URL hash `#log/step/<1-based step>` restores step when opening the log flow. The **+** is hidden while the wizard is active; on mobile the **bottom tab bar** is hidden during the wizard.
 - **Navigation**: Top tab strip on wider screens; **bottom navigation bar** on viewports ≤768px (**Home**, **Logs**, **Charts**, **AI** - no separate Log tab). On phones, **`html`/`body` do not scroll**; **`.app-shell`** fills the viewport and **`.container.app-main-scroll`** is the only vertical scroll area so every tab behaves the same. The **+** button is **`position: fixed`**, overlays the main content, and sits just above the tab bar (not in the scroll flow). The tab bar lives in **`.app-mobile-bottom-chrome`** as a flex footer below the scroll region. Only one nav chrome shows per breakpoint.
 - **Layout**: Extra horizontal padding in the log wizard on small screens; **`--card-content-padding-x`** in `styles.css` sets consistent horizontal inset inside bordered cards (`.form-section` / `.section-content`), including wizard vitals and other steps, log date/flare blocks, and review-so labels, inputs, and controls (e.g. weight unit toggle) are not flush to the card edge. **Tile pickers** (energy & mental clarity, stressors, symptoms, food by meal, exercise by category) open in a **full-screen `<dialog>` bottom sheet** on phones and a centred max-width sheet on wider viewports; chip content is moved into the sheet and restored on close (same IDs and handlers as before). **Add** actions for symptom / energy / stressor use **compact pill** triggers (not full-width bars). **Selected** tiles show a **checkmark** in the corner. Optional **per-section search** filters chips on the client. Sticky wizard actions use a flat bar (no heavy drop shadow behind the button row). **Selected items** (stressors, symptoms, edit-entry lists) use a **glass** sticky strip on mobile and **row chips** (`.item-tag`) that match the card surfaces-not a flat black panel. **Settings** uses a horizontal **carousel** of sections with shared **modal surface** styling (see **[styling.md](styling.md)**).
 
-![Card selector modal - energy & mental clarity (grouped options and filter)](images/card-selector-energy-clarity.png)
-
 - **View logs**: Date range shortcuts (Today / 7 / 30 / 90 days) or custom dates, **Filter** and **Oldest** / **Newest** sort; **Your entries** lists per-day cards with vitals, symptoms, wellbeing, food, exercise, flare status, and edit / delete / share.
-
-![View Logs tab - range filters and a detailed entry card](images/view-logs.png)
 
 ### Charts and visualisation
 - **Combined chart**: Multi-metric line chart with date range filter; optional AI-powered trend predictions (when AI enabled); metric selector; balance and single-chart views.
@@ -360,7 +354,7 @@ flowchart LR
 - **Select metrics to display** (combined / balance): On small screens the full metric list **scrolls with the main chart column** (no separate inner scroll panel on narrow phones).
 - **Chart behaviour**: Date range (7/30/90 days) and prediction range; predictions can be toggled off; empty state when no data; animations respect reduced-motion and device class. Charts tab opens in balance view; View Logs tab opens with last 7 days.
 - **Tier 5 / GPU-accelerated charts**: On tier 5 (or tier 4 with a good GPU), chart containers use GPU-friendly compositor layers and maximum point limits; critical chart and AI preload run with high scheduler priority when supported.
-- **Loading behaviour**: App shows a loading overlay until the combined chart and summary LLM preload are ready (or 12s timeout), then reveals the UI so heavy work does not stutter the first paint.
+- **Loading behaviour**: App reveals the shell after DOM + logs load; combined chart build, summary LLM preload, and heavy chart work run on **`requestIdleCallback`** so first paint is not blocked by AI/chart preload.
 
 <a id="performance-optimisation-stack"></a>
 
@@ -387,16 +381,14 @@ flowchart LR
 
 ### AI analysis
 
-![AI Analysis tab - range selector (7 / 30 / 90 days, Custom), Share, and What we found](images/ai-analysis.png)
-
 - **Optional AI**: Settings toggle "Enable AI features & Goals" hides or shows the AI Analysis tab, chart predictions, and Goals.
-- **Neural-style pipeline**: Trend regression, correlations, patterns, risk factors, flare prediction, cross-section (food/exercise/stressors/symptoms), clustering, time series, actionable advice, prioritised insights, and a 2-3 sentence summary (see [AI Analysis](#ai-analysis-neural-network-architecture)).
+- **Neural-style pipeline**: Trend regression, correlations, patterns, risk factors, flare prediction, cross-section (food/exercise/stressors/symptoms), clustering, time series, actionable advice, prioritised insights, and a 2-3 sentence summary (see bullets below and [data-model.md](data-model.md)).
 - **Plain language & accessibility**: An **At a glance** strip summarises key points in simple terms; short **intros** precede dense blocks. **Trend** cards use text labels (**Typical / Latest / Outlook**) and **named status chips** (e.g. Getting better) so direction is not conveyed by colour alone. **Correlations** use real **buttons** (keyboard and screen-reader friendly) to expand charts. The **pain-by-body-part** table has a screen-reader **caption** and column **`scope`**. On **wide desktop** viewports, a **vertical timeline** with coloured segments and dots lets you jump between sections; the main scroll can **snap** between sections (disabled when the user prefers reduced motion).
 - **Summary note**: In-browser LLM (Transformers.js, flan-t5 by device class) or rule-based fallback; context from analysis and logs; value highlighting in the UI.
 - **Dashboard title (MOTD)**: Main header shows a **message of the day** only (no user name). Preset lines are loaded from **`apps/pwa-webapp/motd.json`** at startup (short attributed quotations); **one line is chosen at random on each full page load** (stable for that session until the LLM may replace it). If the file is missing or offline, a minimal fallback is used. When AI is enabled and not deferred, the on-device LLM may replace the preset after load. Browser tab title stays **Rianell**. Edit **`apps/pwa-webapp/motd.json`** to change copy without editing **`app.js`**. On Home (dark theme), the title strip supports **tap / drag spin** (3D `rotateX`; rapid taps can complete a **full rotation** — see **`docs/styling.md`**).
 - **GPU-accelerated LLM**: When the performance benchmark detects a capable GPU (WebGPU or WebGL), the summary/suggest pipeline loads with GPU acceleration; the app falls back to CPU automatically if GPU loading fails. Uses Transformers.js 3.3.2 for stable WebGPU/WebGL support.
 - **On-device AI model selection**: Settings → Performance → **On-device AI model** lets you choose **Use recommended (for this device)** (from the performance benchmark), **Small (faster, lower memory)**, or **Base (better quality)**. The benchmark recommends flan-t5-small or flan-t5-base by tier; changing the setting clears the LLM cache so the next summary or suggest note uses the selected model.
-- **Suggest note**: LLM or rule-based suggestion for the day’s log note; "Generating…" state on button.
+- **Suggest note**: LLM or rule-based suggestion for the day’s log note; "Generating…" state on button. Transformers.js pipeline load and inference are **serialized** through a single queue (v1.46.31+) so overlapping ONNX sessions do not collide.
 - **Chart predictions**: Combined (and balance) chart can show predicted series from the analysis pipeline; "Calculating predictions…" overlay when computing; cache by date range and log count.
 - **Responsiveness**: Analysis yields to the main thread between layers; loading states ("Analysing…", "Calculating predictions…"); optional Web Worker for AI preload on multi-core devices.
 
@@ -461,7 +453,7 @@ The web app reads these manifests at runtime (`apps/pwa-webapp/app.js`, `refresh
 - **Local server**: Python HTTP server for local testing (`python -m server`); serves **`apps/pwa-webapp/`** at root; optional file watching and auto-reload.
 - **Windows launcher**: From the repo root, `powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1` (or `pwsh -File .\server\launch-server.ps1`) runs the same server; optional `$env:PORT` / `$env:HOST` before invoking.
 - **Supabase integration**: Server can use Supabase for anonymised data, app settings, and bug report ingestion (`public.bug_reports`); credentials from **`security/.env`** (or legacy root `.env`).
-- **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs. **Console** uses ANSI-coloured **`[LEVEL]`** tags when stdout is a TTY (blue for `[INFO]`, red for `[ERROR]`, etc.; respects `NO_COLOR` / `FORCE_COLOR`). **Log files** keep per-level **emoji** prefixes (no escape codes). The dashboard **Server Logs** pane uses ASCII **`[LEVEL]`** tags with Tk colour tags-see [Logging](#logging).
+- **Tkinter dashboard**: GUI for server controls: start/restart server, view URL and status, Supabase search/delete/export, real-time database viewer, server logs. **Console** uses ANSI-coloured **`[LEVEL]`** tags when stdout is a TTY (blue for `[INFO]`, red for `[ERROR]`, etc.; respects `NO_COLOR` / `FORCE_COLOR`). **Log files** keep per-level **emoji** prefixes (no escape codes). The dashboard **Server Logs** pane uses ASCII **`[LEVEL]`** tags with Tk colour tags-see [Logging](project-reference.md#logging).
 
 
 <a id="nav-project-structure"></a>

@@ -1,6 +1,6 @@
 # Styling guide (web UI)
 
-This document describes how the legacy web app’s visual layer is organised: **tokens**, **themes**, **major surfaces**, and **operational notes** (cache busting, motion). The canonical stylesheet is **`web/styles.css`** (large single file).
+This document describes how the legacy web app’s visual layer is organised: **tokens**, **themes**, **major surfaces**, and **operational notes** (cache busting, motion). The canonical stylesheet is **`apps/pwa-webapp/styles.css`** (large single file).
 
 ## v1.46.3 React Native settings parity notes
 
@@ -19,9 +19,9 @@ This document describes how the legacy web app’s visual layer is organised: **
 
 | File | Role |
 | :--- | :--- |
-| **`web/styles.css`** | Main application styles, design tokens in `:root`, layout, components, light mode overrides. |
-| **`web/index.html`** | Loads **`styles.css?v=…`** (query string cache bust); critical inline CSS for first paint / loading overlay. |
-| **`web/styles-charts.css`** | Deferred when charts open (ApexCharts + chart chrome). |
+| **`apps/pwa-webapp/styles.css`** | Main application styles, design tokens in `:root`, layout, components, light mode overrides. |
+| **`apps/pwa-webapp/index.html`** | Loads **`styles.css?v=…`** (query string cache bust); critical inline CSS for first paint / loading overlay. |
+| **`apps/pwa-webapp/styles-charts.css`** | Deferred when charts open (ApexCharts + chart chrome). |
 
 After meaningful CSS changes, **bump the `?v=`** on the stylesheet link in **`index.html`** so browsers and CDNs pick up updates.
 

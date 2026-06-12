@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.31** - RN TypeScript monorepo IDE fix; PWA LLM inference queue; debug off by default.
+**Latest: v1.46.32** - Full audit remediation: security hardening, PWA performance, UX polish, docs.
+
+### v1.46.32 - 2026-06-12 - Audit remediation (security, performance, UX, docs)
+
+- **Supabase / security:** RLS policies ship in **`supabase/Schema.sql`**; **`anonymized_log`** column drift fixed; fail-closed encryption (no plaintext cloud fallback); LAN secret required when sensitive APIs on LAN; bug reports via Supabase (PWA + RN); SRI on static CDN script; [SECURITY.md](SECURITY.md) updated.
+- **Web / PWA performance:** Decouple **`body.loaded`** from AI/chart preload (`requestIdleCallback`); defer non-critical scripts; lazy-load Supabase UMD; **`saveSettings`** via **`StorageBatcher`**; individual chart **`updateSeries`** fast-path; CI **`bundle-sizes.mjs`** snapshot.
+- **Web / PWA UX:** Quick minimal log; hide bottom nav during log wizard; modal focus trap helper + tutorial a11y; letter tab icons; chart loading skeletons; GDPR contact **`jan.andersson@rianell.com`**.
+- **React Native:** **`HomeMotdHeartbeat`** wired; charts default **7d** range + skeleton loading; log wizard quick save + **`expo-haptics`**; export button uses Ionicons.
+- **Docs:** [data-model.md](data-model.md), [server-api.md](server-api.md), [react-native-setup.md](react-native-setup.md); stale Capacitor/web paths fixed; broken anchors and placeholder email fixed.
 
 ### v1.46.31 - 2026-06-12 - RN TypeScript monorepo; PWA LLM queue; debug off
 

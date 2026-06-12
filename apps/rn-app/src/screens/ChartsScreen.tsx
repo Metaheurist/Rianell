@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
+  Animated,
   LayoutAnimation,
   Platform,
   Pressable,
@@ -27,9 +28,40 @@ import {
   type ChartViewMode,
 } from '../charts/summarizeCharts';
 
-const RANGE_OPTIONS: ChartRange[] = [14, 30, 90, 'all'];
+const RANGE_OPTIONS: ChartRange[] = [7, 14, 30, 90, 'all'];
 
 const VIEW_OPTIONS: ChartViewMode[] = ['balance', 'individual', 'combined'];
+
+function ChartLoadingSkeleton({ accent, textColor }: { accent: string; textColor: string }) {
+  const pulse = useRef(new Animated.Value(0.35)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 0.85, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0.35, duration: 900, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+  return (
+    <View accessibilityRole="progressbar" accessibilityLabel="Loading charts">
+      {[0, 1, 2].map((i) => (
+        <Animated.View
+          key={i}
+          style={[
+            styles.skeletonRow,
+            {
+              opacity: pulse,
+              backgroundColor: `${textColor}18`,
+              borderColor: `${accent}33`,
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
 
 /** Default wellness target on 0–10 scale; aligns with web demo goals until native `rianellGoals` lands (Phase E). */
 const DEFAULT_WELLNESS_TARGET = 7;
@@ -153,7 +185,7 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
       : theme.tokens.color.background;
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [range, setRange] = useState<ChartRange>(30);
+  const [range, setRange] = useState<ChartRange>(7);
   const [view, setView] = useState<ChartViewMode>('combined');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -257,7 +289,7 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
           </Text>
 
           {loading && !logs.length ? (
-            <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Loading…</Text>
+            <ChartLoadingSkeleton accent={theme.tokens.color.accent} textColor={theme.tokens.color.text} />
           ) : null}
 
           {error ? (
@@ -507,6 +539,12 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   rangeChipText: { fontWeight: '800' },
+  skeletonRow: {
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
   targetBlock: { marginBottom: 10 },
   targetTrack: {
     marginTop: 4,

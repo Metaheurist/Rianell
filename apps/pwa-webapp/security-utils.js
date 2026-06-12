@@ -253,8 +253,7 @@ async function encryptForStorage(data, keySeed = null) {
     return btoa(String.fromCharCode(...combined));
   } catch (error) {
     console.error('Storage encryption failed:', error);
-    // Fallback: return as JSON string (not encrypted)
-    return JSON.stringify(data);
+    throw new Error('encryptForStorage failed: refusing to store unencrypted sensitive data');
   }
 }
 

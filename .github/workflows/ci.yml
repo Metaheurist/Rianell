@@ -237,6 +237,9 @@ jobs:
           BENCHMARK_SKIP_README: "1"
         run: node benchmarks/scripts/run-web-benchmarks.mjs
 
+      - name: Record PWA bundle sizes
+        run: node benchmarks/scripts/bundle-sizes.mjs "${{ github.workspace }}/ci-minified/site"
+
       - name: Upload benchmark reports (web)
         uses: actions/upload-artifact@v5
         with:

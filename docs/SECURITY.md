@@ -37,9 +37,10 @@ Log files under **`logs/`** may contain client IPs, sync metadata, and dashboard
 
 | Surface | Data at risk | Primary controls |
 |--------|----------------|------------------|
-| **Web (PWA)** | `localStorage` / IndexedDB on the device | Browser same-origin policy, CSP ([../apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html)), optional Supabase **RLS** |
-| **Android (Capacitor)** | Same web assets in WebView + device storage | [../react-app/capacitor.config.ts](../react-app/capacitor.config.ts), Android manifest (after `cap sync`), [network security](#android-cleartext-and-mixed-content), user device security |
-| **iOS (Capacitor)** | Same web assets in WKWebView + device storage | App Transport Security (HTTPS for remote content by default), Capacitor config, follow Apple signing and distribution guidelines |
+| **Web (PWA)** | `localStorage` / IndexedDB on the device | Browser same-origin policy, CSP ([../apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html)), Supabase **RLS** ([../supabase/Schema.sql](../supabase/Schema.sql)) |
+| **React Native (Expo)** | AsyncStorage (logs, auth session) — **not** encrypted at rest | `@supabase/supabase-js` with publishable key + **RLS**; bug reports via Supabase insert |
+| **Android (Capacitor, legacy)** | Same web assets in WebView + device storage | [../apps/capacitor-app/capacitor.config.ts](../apps/capacitor-app/capacitor.config.ts), Android manifest (after `cap sync`), [network security](#android-cleartext-and-mixed-content), user device security |
+| **iOS (Capacitor, legacy)** | Same web assets in WKWebView + device storage | App Transport Security (HTTPS for remote content by default), Capacitor config, follow Apple signing and distribution guidelines |
 | **Python server** | LAN exposure, optional proxy to Supabase | Bind address ([../server/config.py](../server/config.py)), gated sensitive APIs, no TLS on dev server |
 
 ## Python server: bind address and threat model
@@ -57,7 +58,7 @@ These routes are intended for **local development** with the browser on the same
 
 **Rules:**
 
-1. Requests are allowed only from **loopback** addresses (`127.0.0.1`, `::1`), unless you explicitly set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** in the environment. **Never enable this on untrusted or public Wi‑Fi**; it exposes key and training-style data to anyone who can reach your machine on the LAN. The server logs a **warning at startup** when LAN mode is on. Optional **`HEALTH_APP_SENSITIVE_APIS_LAN_SECRET`**: when set, non-loopback clients must send header **`X-Rianell-LAN-Secret`** matching that value (defence in depth for LAN testing).
+1. Requests are allowed only from **loopback** addresses (`127.0.0.1`, `::1`), unless you explicitly set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** in the environment. **When LAN mode is on, `HEALTH_APP_SENSITIVE_APIS_LAN_SECRET` is required** — the server refuses to start without it, and non-loopback clients must send header **`X-Rianell-LAN-Secret`** matching that value. **`POST /api/bug-report`** follows the same loopback/LAN+secret rules.
 2. Use **`ENCRYPTION_KEY`** in **`security/.env`** or a **`.encryption_key`** file under **`security/`** for a stable, operator-controlled key; otherwise the server may **create** `security/.encryption_key` automatically on first use (see [security/.env.example](../security/.env.example)).
 3. If **`security/.env`** is missing but a **legacy `.env`** at the repository root exists, the server loads it and logs a **warning** to prefer **`security/.env`**.
 
@@ -65,11 +66,23 @@ These routes are intended for **local development** with the browser on the same
 
 - Prefer **`ENCRYPTION_KEY`** in **`security/.env`** or a single-line **`security/.encryption_key`** (see [Local secrets directory](#local-secrets-directory-security) above). Legacy paths at the repo root are still supported.
 - If neither env nor key file is present, the server **creates** **`security/.encryption_key`** with a random 32-byte hex value on first use. **Back up this file** if you need stable decryption across machines.
-- The web client ([../web/encryption-utils.js](../web/encryption-utils.js)) syncs the key from the server when available; if the app runs without the Python server (e.g. GitHub Pages), it uses a **per-browser** random key stored in `localStorage` (not a shared global default string).
+- The web client ([../apps/pwa-webapp/encryption-utils.js](../apps/pwa-webapp/encryption-utils.js)) syncs the key from the server when available; if the app runs without the Python server (e.g. GitHub Pages), it uses a **per-browser** random key stored in `localStorage` (not a shared global default string).
+- **Encryption fail-closed:** `encryptAnonymizedData` and `encryptForStorage` **throw** on failure instead of uploading/storing plaintext JSON.
+
+## Cloud backup keys (`user_keys` table)
+
+Authenticated cloud sync stores a per-user AES key in Supabase **`user_keys.encryption_key`** as **plaintext hex** (client-generated). Blobs in **`health_data`** are encrypted with that key, but anyone with DB read access or overly permissive RLS can decrypt backups. **Future hardening:** client-derived keys (passphrase + KDF) or Supabase Vault — not yet implemented. RLS policies in [../supabase/Schema.sql](../supabase/Schema.sql) restrict rows to **`auth.uid() = user_id`**.
+
+## Bug reports
+
+- **PWA (static host):** inserts into **`bug_reports`** via Supabase anon/authenticated client when configured (`submitBugReportToSupabase` in [../apps/pwa-webapp/cloud-sync.js](../apps/pwa-webapp/cloud-sync.js)).
+- **PWA (dev server):** `POST /api/bug-report` on loopback (or LAN+secret) uses the service role.
+- **React Native:** [../apps/rn-app/src/utils/submitBugReport.ts](../apps/rn-app/src/utils/submitBugReport.ts) — same Supabase insert; requires `EXPO_PUBLIC_SUPABASE_*` at build time.
+- RLS: **insert-only** for `anon`/`authenticated`; no public SELECT on reports.
 
 ## Supabase and Row Level Security (RLS)
 
-The anon key is present in client bundles by design. **Authorization must be enforced in Supabase** with RLS and least-privilege policies. Recommended starting points are in [supabase-rls-recommended.sql](supabase-rls-recommended.sql). Apply and adjust to your schema in the Supabase SQL editor. **Operational check:** in the Supabase dashboard, confirm **RLS is enabled** on tables that hold user data and that policies match your deployment (the repo SQL is a starting point, not a substitute for verifying the live project). CI runs [`scripts/verify-rls-baseline.mjs`](../scripts/verify-rls-baseline.mjs) to ensure the recommended SQL doc is not gutted; it does **not** connect to your project.
+The anon key is present in client bundles by design. **Authorization must be enforced in Supabase** with RLS and least-privilege policies. **Shipped schema:** [../supabase/Schema.sql](../supabase/Schema.sql) enables RLS on `anonymized_data`, `health_data`, `user_keys`, and `bug_reports`. Recommended incremental policies: [supabase-rls-recommended.sql](supabase-rls-recommended.sql). Apply to your live project via the Supabase SQL editor. CI runs [`scripts/verify-rls-baseline.mjs`](../scripts/verify-rls-baseline.mjs) to ensure the recommended SQL doc is not gutted; it does **not** connect to your project.
 
 ## Content Security Policy (CSP) and XSS
 
@@ -80,7 +93,7 @@ The anon key is present in client bundles by design. **Authorization must be enf
 
 ### `connect-src` and third-party hosts
 
-The meta CSP in [`apps/pwa-webapp/index.html`](../apps/pwa-webapp/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts for models), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed. The **Supabase** script tag is **pinned** to a specific version with **Subresource Integrity (SRI)**; when upgrading `@supabase/supabase-js`, update **`src`**, **`integrity`**, and the comment in `index.html`.
+The meta CSP in [`apps/pwa-webapp/index.html`](../apps/pwa-webapp/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts for models), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed. The **Supabase** script tag is **pinned** to a specific version with **Subresource Integrity (SRI)**; **ua-parser-js** CDN tag also uses SRI. Dynamic imports (e.g. Transformers.js) cannot use SRI — pin versions and monitor supply chain. When upgrading `@supabase/supabase-js`, update **`src`**, **`integrity`**, and the comment in `index.html`.
 
 ## Known residual risks and mitigations
 
@@ -96,17 +109,17 @@ These are **accepted or environmental** limitations called out so operators and 
 
 ## Android: cleartext and mixed content
 
-The Capacitor Android project lives under **`react-app/android/`** after `npx cap add android` and `npx cap sync`.
+The Capacitor Android project lives under **`apps/capacitor-app/android/`** after `npx cap add android` and `npx cap sync`.
 
 ### Mixed content
 
-[`react-app/capacitor.config.ts`](../react-app/capacitor.config.ts) sets **`allowMixedContent: false`** so the WebView does not load HTTP subresources on an HTTPS app origin.
+[`apps/capacitor-app/capacitor.config.ts`](../apps/capacitor-app/capacitor.config.ts) sets **`allowMixedContent: false`** so the WebView does not load HTTP subresources on an HTTPS app origin.
 
 ### Cleartext traffic
 
 Do **not** rely on **`android:usesCleartextTraffic="true"`** on `<application>` for production. Prefer **`network_security_config.xml`**: default **cleartext off**; optional **domain-scoped** cleartext for dev hosts only.
 
-After **`npx cap sync android`**, run **`node react-app/patch-android-sdk.js`** (CI does this after sync). The script:
+After **`npx cap sync android`**, run **`node apps/capacitor-app/patch-android-sdk.js`** (CI does this after sync). The script:
 
 - Writes **`android/app/src/main/res/xml/network_security_config.xml`** (cleartext disabled in `<base-config>`, with a **commented** example `<domain-config>` for `localhost` / `10.0.2.2` if you need HTTP during local dev).
 - Adds **`android:networkSecurityConfig="@xml/network_security_config"`** to `<application>`.
@@ -123,7 +136,7 @@ On each **release** build (or before tagging):
 - Review **`android:exported`** on activities / providers / receivers (Capacitor defaults; only launcher/main should be exported as needed for deep links).
 - Keep **`allowMixedContent: false`** in `capacitor.config.ts` unless you have a documented exception.
 
-**Process:** after **`npx cap sync android`**, run **`node react-app/patch-android-sdk.js`** (CI does this on automated builds). See [Local setup (optional)](setup-and-usage.md#local-setup-optional) for the command sequence.
+**Process:** after **`npx cap sync android`**, run **`node apps/capacitor-app/patch-android-sdk.js`** (CI does this on automated builds). See [Local setup (optional)](setup-and-usage.md#local-setup-optional) for the command sequence.
 
 ## Dependency and CI scanning
 

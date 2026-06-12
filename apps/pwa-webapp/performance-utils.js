@@ -282,6 +282,50 @@ function ensureApexChartsLoaded() {
   return _apexChartsLoadPromise;
 }
 
+var _supabaseLoadPromise = null;
+var SUPABASE_UMD_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js';
+var SUPABASE_UMD_INTEGRITY = 'sha384-YieCqqg9gQufX7+5HcFvCEg/n3KUEdl8/Jb+A6J0npf1mB740VayvwKjTrtCeUoy';
+
+/**
+ * Load Supabase UMD on first cloud-sync / bug-report use (not in document head).
+ */
+function ensureSupabaseLoaded() {
+  if (typeof supabase !== 'undefined') {
+    return Promise.resolve();
+  }
+  if (_supabaseLoadPromise) {
+    return _supabaseLoadPromise;
+  }
+  _supabaseLoadPromise = new Promise(function (resolve, reject) {
+    var existing = document.querySelector('script[data-rianell-supabase-umd]');
+    if (existing) {
+      existing.addEventListener('load', function () { resolve(); });
+      existing.addEventListener('error', reject);
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = SUPABASE_UMD_URL;
+    script.async = true;
+    script.crossOrigin = 'anonymous';
+    script.integrity = SUPABASE_UMD_INTEGRITY;
+    script.setAttribute('data-rianell-supabase-umd', '1');
+    script.onload = function () {
+      if (typeof supabase === 'undefined') {
+        _supabaseLoadPromise = null;
+        reject(new Error('Supabase UMD failed to load'));
+        return;
+      }
+      resolve();
+    };
+    script.onerror = function () {
+      _supabaseLoadPromise = null;
+      reject(new Error('Supabase UMD failed to load'));
+    };
+    document.head.appendChild(script);
+  });
+  return _supabaseLoadPromise;
+}
+
 var _aiEngineLoadPromise = null;
 /**
  * Load TensorFlow.js + WebGL backend + AIEngine.js on first AI use (not in document head).
@@ -801,6 +845,7 @@ if (typeof window !== 'undefined') {
     memoizedSort,
     lazyLoadScript,
     ensureApexChartsLoaded,
+    ensureSupabaseLoaded,
     ensureAIEngineLoaded,
     ensureExportUtilsLoaded,
     ensureImportUtilsLoaded,
