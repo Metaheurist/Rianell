@@ -695,11 +695,18 @@ function showAlertModal(message, title = 'Alert', onClose) {
   }
   
   // Show modal
-  overlay.style.display = 'block';
-  overlay.style.visibility = 'visible';
-  overlay.style.opacity = '1';
-  overlay.style.zIndex = '100001'; // Higher than settings modal (100000)
-  document.body.classList.add('modal-active');
+  if (typeof openModalOverlay === 'function') {
+    openModalOverlay(overlay, {
+      onEscape: closeAlertModal,
+      initialFocusSelector: '.modal-save-btn'
+    });
+  } else {
+    overlay.style.display = 'block';
+    overlay.style.visibility = 'visible';
+    overlay.style.opacity = '1';
+    document.body.classList.add('modal-active');
+  }
+  overlay.style.zIndex = '100001';
   
   // Centre modal
   const modalContent = overlay.querySelector('.modal-content');
@@ -734,13 +741,16 @@ function showAlertModal(message, title = 'Alert', onClose) {
 
 function closeAlertModal() {
   const overlay = document.getElementById('alertModalOverlay');
-  if (overlay) {
-    overlay.style.display = 'none';
-    overlay.style.visibility = 'hidden';
-    overlay.style.opacity = '0';
-    document.body.classList.remove('modal-active');
-    document.body.style.overflow = '';
+  if (!overlay) return;
+  if (typeof closeModalOverlay === 'function') {
+    closeModalOverlay(overlay);
+    return;
   }
+  overlay.style.display = 'none';
+  overlay.style.visibility = 'hidden';
+  overlay.style.opacity = '0';
+  document.body.classList.remove('modal-active');
+  document.body.style.overflow = '';
 }
 
 // Run a critical-path task with high scheduler priority when available (Chrome); else defer once. Returns a Promise that resolves with fn()'s return value (flattens if fn returns a Promise).
@@ -1896,18 +1906,7 @@ function _showDonateThankYou(details) {
     details.payer.name.given_name
       ? details.payer.name.given_name
       : '';
-  var successMsg = document.createElement('div');
-  successMsg.className = 'success-notification';
-  successMsg.style.cssText =
-    'position:fixed;top:20px;right:20px;background:linear-gradient(135deg,#4caf50,#66bb6a);color:#fff;padding:18px 24px;border-radius:16px;font-weight:600;font-size:1rem;z-index:100020;box-shadow:0 8px 24px rgba(76,175,80,0.4);border:1px solid rgba(255,255,255,0.2);animation:slideInRight 0.4s cubic-bezier(0.4,0,0.2,1),fadeOut 0.3s ease-out 2.7s forwards';
-  successMsg.textContent = name ? 'Thanks, ' + name + '!' : 'Thank you for your support!';
-  document.body.appendChild(successMsg);
-  setTimeout(function () {
-    successMsg.style.animation = 'slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
-    setTimeout(function () {
-      successMsg.remove();
-    }, 300);
-  }, 3000);
+  notifySuccess(name ? 'Thanks, ' + name + '!' : 'Thank you for your support!');
 }
 
 function openDonateModal() {
@@ -3114,6 +3113,53 @@ function installModalFocusTrap(overlay, options) {
 }
 if (typeof window !== 'undefined') window.installModalFocusTrap = installModalFocusTrap;
 
+/** Unified toast wrapper (ui-feedback.js). */
+function notifyUser(message, opts) {
+  opts = opts || {};
+  if (typeof showToast === 'function') {
+    showToast(message, opts);
+    if (typeof haptic === 'function') haptic(opts.type === 'error' ? [20, 40, 20] : 12);
+    return;
+  }
+  alert(message);
+}
+function notifySuccess(message, opts) {
+  notifyUser(message, Object.assign({ type: 'success' }, opts || {}));
+}
+function notifyError(message, opts) {
+  notifyUser(message, Object.assign({ type: 'error' }, opts || {}));
+}
+
+function initToggleSwitchA11y(root) {
+  root = root || document;
+  root.querySelectorAll('.toggle-switch').forEach(function (el) {
+    if (el.getAttribute('role') === 'switch') return;
+    el.setAttribute('role', 'switch');
+    el.setAttribute('tabindex', '0');
+    var active = el.classList.contains('active');
+    el.setAttribute('aria-checked', active ? 'true' : 'false');
+    if (el._toggleA11yBound) return;
+    el._toggleA11yBound = true;
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        el.click();
+      }
+    });
+  });
+}
+
+var _lastTabName = 'home';
+
+function hideChartLoadingEl(el) {
+  if (!el) return;
+  el.classList.add('chart-loading--fading');
+  setTimeout(function () {
+    el.style.display = 'none';
+    el.classList.remove('chart-loading--fading');
+  }, 250);
+}
+
 // Log app initialization
 Logger.info('Rianell initialized', {
   timestamp: new Date().toISOString(),
@@ -3588,29 +3634,14 @@ Most modern browsers support installing web apps!
 }
 
 function showUpdateNotification() {
-  const updateBanner = document.createElement('div');
-  updateBanner.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: var(--primary-color);
-    color: white;
-    padding: 15px;
-    text-align: center;
-    z-index: 10000;
-    font-weight: bold;
-  `;
-  updateBanner.innerHTML = `
-    New version available! 
-    <button onclick="location.reload()" style="margin-left: 10px; padding: 5px 10px; background: white; color: var(--primary-color); border: none; border-radius: 4px; cursor: pointer;">
-      Update Now
-    </button>
-    <button onclick="this.parentElement.remove()" style="margin-left: 5px; padding: 5px 10px; background: transparent; color: white; border: 1px solid white; border-radius: 4px; cursor: pointer;">
-      Later
-    </button>
-  `;
-  document.body.insertBefore(updateBanner, document.body.firstChild);
+  if (typeof showUpdateBar === 'function') {
+    showUpdateBar('A new version of Rianell is ready', function () { location.reload(); });
+    return;
+  }
+  notifySuccess('New version available — reload to update.', {
+    duration: 8000,
+    action: { label: 'Reload', onClick: function () { location.reload(); } }
+  });
 }
 
 // Suppress harmless browser extension / third-party console noise (early filter in index.html is authoritative)
@@ -4535,15 +4566,28 @@ function enforceChartSectionView(active) {
   var b = document.getElementById('balanceChartContainer');
   var i = document.getElementById('individualChartsContainer');
   if (!c || !b || !i) return;
+  var panels = [
+    { el: c, key: 'combined' },
+    { el: b, key: 'balance' },
+    { el: i, key: 'individual' }
+  ];
   if (!active) {
-    c.classList.add('hidden');
-    b.classList.add('hidden');
-    i.classList.add('hidden');
+    panels.forEach(function (p) { p.el.classList.add('hidden'); p.el.classList.remove('is-hiding'); });
     return;
   }
-  c.classList.toggle('hidden', active !== 'combined');
-  b.classList.toggle('hidden', active !== 'balance');
-  i.classList.toggle('hidden', active !== 'individual');
+  panels.forEach(function (p) {
+    if (p.key === active) {
+      p.el.classList.remove('hidden', 'is-hiding');
+    } else if (!p.el.classList.contains('hidden')) {
+      p.el.classList.add('is-hiding');
+      setTimeout(function () {
+        p.el.classList.add('hidden');
+        p.el.classList.remove('is-hiding');
+      }, 200);
+    } else {
+      p.el.classList.add('hidden');
+    }
+  });
 }
 
 var _chartViewSwitchTimeout = null;
@@ -5103,9 +5147,7 @@ async function createCombinedChart() {
   
   // Hide any loading placeholder
   const loadingElement = container.querySelector('.chart-loading');
-  if (loadingElement) {
-    loadingElement.style.display = 'none';
-  }
+  if (loadingElement) hideChartLoadingEl(loadingElement);
   
   perfLog('Charts createCombinedChart (sync)', Date.now() - _perfT0, {});
   var combinedChartSig = viewKey + '|' + selectedMetrics.join(',') + '|' + predictionRange + '|' + (predictionsEnabled ? '1' : '0') + '|' + (aiOn ? '1' : '0') + '|lm' + (isWebAppLightMode() ? '1' : '0');
@@ -9669,6 +9711,30 @@ function getLogsLast7Days() {
   });
 }
 
+function goalsRingSvg(pct) {
+  var r = 28;
+  var c = 2 * Math.PI * r;
+  var off = c * (1 - Math.min(100, Math.max(0, pct)) / 100);
+  return '<svg class="goals-ring" width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">' +
+    '<circle class="goals-ring__track" cx="32" cy="32" r="' + r + '" fill="none" stroke-width="6"/>' +
+    '<circle class="goals-ring__fill" cx="32" cy="32" r="' + r + '" fill="none" stroke-width="6" ' +
+    'stroke-dasharray="' + c.toFixed(2) + '" stroke-dashoffset="' + c.toFixed(2) + '" data-target-offset="' + off.toFixed(2) + '"/></svg>';
+}
+
+function animateGoalsBars(block) {
+  if (!block) return;
+  block.querySelectorAll('.goals-bar-fill').forEach(function (bar) {
+    var w = bar.style.width;
+    bar.style.width = '0%';
+    requestAnimationFrame(function () { bar.style.width = w; });
+  });
+  block.querySelectorAll('.goals-ring__fill').forEach(function (ring) {
+    var target = ring.getAttribute('data-target-offset');
+    ring.setAttribute('stroke-dashoffset', ring.getAttribute('stroke-dasharray') || '0');
+    requestAnimationFrame(function () { ring.setAttribute('stroke-dashoffset', target || '0'); });
+  });
+}
+
 function updateGoalsProgressBlock() {
   var block = document.getElementById('goalsProgressBlock');
   if (!block) return;
@@ -9708,10 +9774,11 @@ function updateGoalsProgressBlock() {
     var stepsMet = stepsLogs.filter(function(l) { return parseInt(l.steps, 10) >= goals.steps; }).length;
     var stepsPct = goals.steps > 0 ? Math.min(100, Math.round((stepsAvg / goals.steps) * 100)) : 0;
     var si = insight(stepsMet, 7, goals.steps > 0 ? Math.round((stepsAvg / goals.steps) * 100) : 0);
-    rows.push('<div class="goals-metric-row">' +
-      '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-shoe-prints"></i></span><span class="goals-metric-name">Steps</span><span class="goals-metric-nums">' + stepsAvg.toLocaleString() + ' / ' + goals.steps.toLocaleString() + '</span></div>' +
+    rows.push('<div class="goals-metric-row" data-scroll-reveal>' +
+      goalsRingSvg(stepsPct) +
+      '<div class="goals-metric-body"><div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-shoe-prints"></i></span><span class="goals-metric-name">Steps</span><span class="goals-metric-nums" data-count-target="' + stepsAvg + '">0 / ' + goals.steps.toLocaleString() + '</span></div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + stepsPct + '%"></div></div>' +
-      '<div class="goals-meta"><span class="goals-days" title="' + stepsMet + ' of 7 days met">' + daysDots(stepsMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div>');
+      '<div class="goals-meta"><span class="goals-days" title="' + stepsMet + ' of 7 days met">' + daysDots(stepsMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div></div>');
   }
   if (goals.hydration > 0) {
     var hydLogs = last7.filter(function(l) { var v = parseFloat(l.hydration); return v != null && !isNaN(v) && v >= 0; });
@@ -9754,6 +9821,11 @@ function updateGoalsProgressBlock() {
   block.className = 'goals-progress-block';
   block.innerHTML = '<div class="goals-progress-title">Last 7 days vs targets</div>' + rows.join('');
   block.style.display = 'block';
+  animateGoalsBars(block);
+  if (typeof initScrollReveal === 'function') initScrollReveal(block);
+  block.querySelectorAll('[data-count-target]').forEach(function (el) {
+    if (typeof countUp === 'function') countUp(el, parseFloat(el.getAttribute('data-count-target')) || 0, 600);
+  });
 }
 
 function flushOfflineQueue() {
@@ -11151,7 +11223,14 @@ function initPainBodyDiagram(containerId, hiddenInputId) {
     el.setAttribute('aria-label', (PAIN_BODY_REGIONS.find(r => r.id === regionId) || {}).label + ', click to cycle pain level');
     el.addEventListener('click', function () {
       state[regionId] = ((state[regionId] || 0) + 1) % 3;
+      el.classList.remove('pain-state-changed');
+      void el.offsetWidth;
+      el.classList.add('pain-state-changed');
+      if (typeof haptic === 'function') haptic(8);
       applyStateToSvg();
+      var regionMeta = PAIN_BODY_REGIONS.find(function (r) { return r.id === regionId; }) || {};
+      var levels = ['none', 'mild', 'pain'];
+      el.setAttribute('aria-label', (regionMeta.label || regionId) + ', ' + levels[state[regionId] || 0]);
     });
     el.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); }
@@ -12751,31 +12830,7 @@ function saveInlineEdit(logDate) {
   updateCharts();
   updateHeartbeatAnimation();
   
-  // Show success message
-  const successMsg = document.createElement('div');
-  successMsg.className = 'success-notification';
-  successMsg.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, #4caf50, #66bb6a);
-    color: white;
-    padding: 18px 24px;
-    border-radius: 16px;
-    font-weight: 600;
-    font-size: 1rem;
-    z-index: 10000;
-    box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4), 0 0 20px rgba(76, 175, 80, 0.3);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1), fadeOut 0.3s ease-out 2.7s forwards;
-  `;
-  successMsg.textContent = 'Entry updated successfully! ✅';
-  document.body.appendChild(successMsg);
-  setTimeout(() => {
-    successMsg.style.animation = 'slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
-    setTimeout(() => successMsg.remove(), 300);
-  }, 3000);
+  notifySuccess('Entry updated successfully!');
 }
 
 function updateEditSliderColor(sliderId) {
@@ -12883,31 +12938,7 @@ function saveEditedEntry() {
   updateHeartbeatAnimation();
   closeEditEntryModal();
   
-  // Show success message
-  const successMsg = document.createElement('div');
-  successMsg.className = 'success-notification';
-  successMsg.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, #4caf50, #66bb6a);
-    color: white;
-    padding: 18px 24px;
-    border-radius: 16px;
-    font-weight: 600;
-    font-size: 1rem;
-    z-index: 10000;
-    box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4), 0 0 20px rgba(76, 175, 80, 0.3);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1), fadeOut 0.3s ease-out 2.7s forwards;
-  `;
-  successMsg.textContent = 'Entry updated successfully! ✅';
-  document.body.appendChild(successMsg);
-  setTimeout(() => {
-    successMsg.style.animation = 'slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
-    setTimeout(() => successMsg.remove(), 300);
-  }, 3000);
+  notifySuccess('Entry updated successfully!');
 }
 
 
@@ -12965,7 +12996,7 @@ function generateLogEntryHTML(log) {
           }
         </div>
       </div>
-      <span class="log-entry-arrow"></span>
+      <span class="log-entry-chevron log-entry-arrow" aria-hidden="true">▸</span>
     </div>
     <div class="log-entry-content">
       <div class="log-metrics-grid">
@@ -13159,18 +13190,16 @@ function toggleLogEntry(logDate) {
   const entry = document.querySelector(`.entry[data-log-date="${logDate}"]`);
   if (!entry) return;
   
-  const content = entry.querySelector('.log-entry-content');
   const arrow = entry.querySelector('.log-entry-arrow');
   
   if (entry.classList.contains('expanded')) {
     entry.classList.remove('expanded');
-    if (content) content.style.display = 'none';
-    if (arrow) arrow.textContent = '';
+    if (arrow) arrow.textContent = '▸';
   } else {
     entry.classList.add('expanded');
-    if (content) content.style.display = 'block';
-    if (arrow) arrow.textContent = '';
+    if (arrow) arrow.textContent = '▸';
   }
+  if (typeof haptic === 'function') haptic(6);
 }
 
 // Build a single log entry DOM element (shared by chunked and non-chunked render)
@@ -14622,7 +14651,7 @@ async function chart(id, label, dataField, color) {
           { name: label + ' (Predicted)', data: predictedData }
         ], true);
         const loadingElSeries = container.querySelector('.chart-loading');
-        if (loadingElSeries) loadingElSeries.style.display = 'none';
+        if (loadingElSeries) hideChartLoadingEl(loadingElSeries);
         if (container.classList) container.classList.add('loaded');
         injectChartShareButton(container, id);
         return;
@@ -14632,7 +14661,7 @@ async function chart(id, label, dataField, color) {
     try {
       container.chart.updateOptions(options, true, true);
       const loadingElFast = container.querySelector('.chart-loading');
-      if (loadingElFast) loadingElFast.style.display = 'none';
+      if (loadingElFast) hideChartLoadingEl(loadingElFast);
       if (container.classList) container.classList.add('loaded');
       injectChartShareButton(container, id);
       setTimeout(function () {
@@ -14652,9 +14681,7 @@ async function chart(id, label, dataField, color) {
   
   // Hide loading placeholder before creating chart
   const loadingElement = container.querySelector('.chart-loading');
-  if (loadingElement) {
-    loadingElement.style.display = 'none';
-  }
+  if (loadingElement) hideChartLoadingEl(loadingElement);
   
   // Ensure container is visible and has dimensions before rendering (cap retries to avoid 100% CPU)
   const maxContainerReadyRetries = 40; // 40 * 50ms = 2s max, then give up
@@ -15267,35 +15294,7 @@ form.addEventListener("submit", e => {
   if (wasOffline) {
     successText = 'Entry saved locally. It will sync when you\'re back online.';
   }
-  const successMsg = document.createElement('div');
-  successMsg.className = 'success-notification';
-  successMsg.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, #4caf50, #66bb6a);
-    color: white;
-    padding: 18px 24px;
-    border-radius: 16px;
-    font-weight: 600;
-    font-size: 1rem;
-    z-index: 10000;
-    box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4), 0 0 20px rgba(76, 175, 80, 0.3);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1), fadeOut 0.3s ease-out 2.7s forwards;
-    transform: translateX(0);
-    opacity: 1;
-  `;
-  successMsg.textContent = successText;
-  document.body.appendChild(successMsg);
-  
-  setTimeout(() => {
-    successMsg.style.animation = 'slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
-  setTimeout(() => {
-    successMsg.remove();
-    }, 300);
-  }, 3000);
+  notifySuccess(successText);
   
   form.reset();
   document.getElementById("date").valueAsDate = new Date();
@@ -15503,11 +15502,15 @@ function setAppearanceMode(mode) {
   if (appSettings.appearanceMode === mode) return;
   appSettings.appearanceMode = mode;
   saveSettings();
-  applyAppearanceMode();
-  try {
-    if (typeof refreshCharts === 'function') refreshCharts();
-  } catch (e) {}
-  loadSettingsState();
+  var apply = function () {
+    applyAppearanceMode();
+    try {
+      if (typeof refreshCharts === 'function') refreshCharts();
+    } catch (e) {}
+    loadSettingsState();
+  };
+  if (typeof applyThemeCrossfade === 'function') applyThemeCrossfade(apply);
+  else apply();
 }
 if (typeof window !== 'undefined') window.setAppearanceMode = setAppearanceMode;
 
@@ -15527,7 +15530,8 @@ function __rianellTtsSpeak(text) {
     __rianellTtsLastSpokenAt = now;
     try { window.speechSynthesis.cancel(); } catch (e) {}
     var u = new SpeechSynthesisUtterance(t);
-    u.rate = 1;
+    var rate = (appSettings && appSettings.ttsRate) ? parseFloat(appSettings.ttsRate) : 1;
+    u.rate = isNaN(rate) ? 1 : Math.max(0.5, Math.min(2, rate));
     u.pitch = 1;
     u.volume = 1;
     window.speechSynthesis.speak(u);
@@ -15736,8 +15740,15 @@ function setGlobalTheme(theme) {
   if (appSettings.globalTheme === theme) return;
   appSettings.globalTheme = theme;
   saveSettings();
-  applyGlobalTheme();
-  loadSettingsState();
+  var apply = function () {
+    applyGlobalTheme();
+    loadSettingsState();
+    try {
+      if (typeof refreshCharts === 'function') refreshCharts();
+    } catch (e) {}
+  };
+  if (typeof applyThemeCrossfade === 'function') applyThemeCrossfade(apply);
+  else apply();
 }
 if (typeof window !== 'undefined') window.setGlobalTheme = setGlobalTheme;
 
@@ -17907,30 +17918,7 @@ function updateMedicalConditionOld() {
   saveSettings();
   updateConditionContext(condition);
   
-  // Show confirmation
-  const successMsg = document.createElement('div');
-  successMsg.className = 'success-notification';
-  successMsg.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, #4caf50, #66bb6a);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    z-index: 10000;
-    box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
-    animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  `;
-  successMsg.textContent = `Medical condition updated to: ${condition}`;
-  document.body.appendChild(successMsg);
-  
-  setTimeout(() => {
-    successMsg.style.animation = 'slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
-    setTimeout(() => successMsg.remove(), 300);
-  }, 2000);
+  notifySuccess('Medical condition updated to: ' + condition);
 }
 
 // Update condition context dynamically
@@ -18666,8 +18654,11 @@ function updateHomeTodayPanel() {
   var greet = document.getElementById('homeGreeting');
   var dateEl = document.getElementById('homeTodayDate');
   var statusEl = document.getElementById('homeTodayStatus');
+  var hero = document.getElementById('homeHeroCard');
   var name = (typeof appSettings !== 'undefined' && appSettings.userName) ? String(appSettings.userName).trim() : '';
-  if (greet) greet.textContent = name ? 'Hi, ' + name : 'Today';
+  var hour = new Date().getHours();
+  var salutation = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  if (greet) greet.textContent = name ? salutation + ', ' + name : salutation;
   var d = new Date();
   if (dateEl) {
     dateEl.textContent = d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
@@ -18680,10 +18671,13 @@ function updateHomeTodayPanel() {
   var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
   var today = logArr.find(function(l) { return l.date === todayStr; });
   if (today) {
-    statusEl.textContent = 'You have logged today. Open View logs to browse or edit entries.';
+    statusEl.innerHTML = '<strong>Logged today</strong><p class="home-status-detail">Open View logs to browse or edit your entry.</p>';
+    if (hero) hero.classList.add('home-hero-card--logged');
   } else {
-    statusEl.innerHTML = 'No log for today yet. Tap <span class="home-plus-emphasis" aria-hidden="true">+</span> to record how you feel.';
+    statusEl.innerHTML = '<strong>Not logged yet</strong><p class="home-status-detail">Tap <span class="home-plus-emphasis" aria-hidden="true">+</span> or Log now to record how you feel.</p>';
+    if (hero) hero.classList.remove('home-hero-card--logged');
   }
+  if (hero && typeof initScrollReveal === 'function') initScrollReveal(hero.parentElement);
 }
 
 function openLogWizardFromHome() {
@@ -18846,14 +18840,19 @@ function updateLogWizardChrome() {
   }
   var dotsWrap = document.getElementById('logWizardStepDots');
   if (dotsWrap) {
-    dotsWrap.innerHTML = '';
-    for (var di = 0; di < LOG_WIZARD_TOTAL_STEPS; di++) {
-      var dot = document.createElement('span');
-      dot.className = 'log-wizard-dot';
-      if (di < currentLogWizardStep) dot.classList.add('log-wizard-dot--done');
-      if (di === currentLogWizardStep) dot.classList.add('log-wizard-dot--active');
-      dotsWrap.appendChild(dot);
+    if (!dotsWrap.children.length) {
+      for (var di = 0; di < LOG_WIZARD_TOTAL_STEPS; di++) {
+        var dot = document.createElement('span');
+        dot.className = 'log-wizard-dot log-wizard-step-dot';
+        dot.setAttribute('data-step', String(di));
+        dotsWrap.appendChild(dot);
+      }
     }
+    dotsWrap.querySelectorAll('.log-wizard-step-dot').forEach(function (dot, di) {
+      dot.classList.toggle('log-wizard-dot--done', di < currentLogWizardStep);
+      dot.classList.toggle('log-wizard-dot--active', di === currentLogWizardStep);
+      dot.classList.toggle('log-wizard-step-dot--active', di === currentLogWizardStep);
+    });
   }
   if (skipBtn) {
     var canSkip = currentLogWizardStep > 0 && currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1;
@@ -18876,10 +18875,32 @@ function updateLogWizardChrome() {
 
 function setLogWizardStep(step, skipHashUpdate) {
   step = Math.max(0, Math.min(LOG_WIZARD_TOTAL_STEPS - 1, step));
+  var prev = currentLogWizardStep;
+  var dir = step > prev ? 1 : step < prev ? -1 : 0;
   currentLogWizardStep = step;
   document.querySelectorAll('#logWizardSteps .log-wizard-step').forEach(function(el) {
     var s = parseInt(el.getAttribute('data-log-step'), 10);
-    el.classList.toggle('log-wizard-step--active', s === step);
+    var wasActive = el.classList.contains('log-wizard-step--active');
+    if (wasActive && s !== step && dir !== 0) {
+      el.classList.remove('log-wizard-step--active');
+      el.classList.add(dir > 0 ? 'log-wizard-step--exit-left' : 'log-wizard-step--exit-right');
+      setTimeout(function () {
+        el.classList.remove('log-wizard-step--exit-left', 'log-wizard-step--exit-right');
+        el.style.display = 'none';
+      }, 180);
+    }
+    if (s === step) {
+      el.style.display = '';
+      el.classList.remove('log-wizard-step--exit-left', 'log-wizard-step--exit-right');
+      el.classList.add('log-wizard-step--active');
+      if (dir !== 0) el.classList.add(dir > 0 ? 'log-wizard-step--enter-right' : 'log-wizard-step--enter-left');
+      setTimeout(function () {
+        el.classList.remove('log-wizard-step--enter-right', 'log-wizard-step--enter-left');
+      }, 280);
+    } else if (s !== step && !wasActive) {
+      el.classList.remove('log-wizard-step--active');
+      el.style.display = 'none';
+    }
   });
   if (step === LOG_WIZARD_TOTAL_STEPS - 1) {
     var review = document.getElementById('logReviewSummary');
@@ -19319,10 +19340,21 @@ function switchTab(tabName, skipHash) {
   }
 
   if (currentActive && currentActive !== selectedTab) {
-    currentActive.classList.add('tab-content--leave');
-    setTimeout(doSwitch, 180);
+    var dir = typeof getTabDirection === 'function' ? getTabDirection(_lastTabName, tabName) : 0;
+    currentActive.classList.remove('tab-content--leave-left', 'tab-content--leave-right', 'tab-content--leave');
+    if (dir > 0) currentActive.classList.add('tab-content--leave-left');
+    else if (dir < 0) currentActive.classList.add('tab-content--leave-right');
+    else currentActive.classList.add('tab-content--leave');
+    setTimeout(function () {
+      doSwitch();
+      selectedTab.classList.remove('tab-content--enter-left', 'tab-content--enter-right');
+      if (dir > 0) selectedTab.classList.add('tab-content--enter-right');
+      else if (dir < 0) selectedTab.classList.add('tab-content--enter-left');
+      _lastTabName = tabName;
+    }, 180);
   } else {
     doSwitch();
+    _lastTabName = tabName;
   }
 }
 
@@ -19499,6 +19531,8 @@ window.addEventListener('load', () => {
         var bootRecovery = document.getElementById('rianellBootRecoveryOverlay');
         if (bootRecovery) bootRecovery.remove();
         showCookieBannerIfNeeded();
+        if (typeof initToggleSwitchA11y === 'function') initToggleSwitchA11y(document);
+        if (typeof initRipple === 'function') initRipple(document);
         setTimeout(function () { loadingOverlay.remove(); }, 500);
       } else {
         document.body.classList.remove('loading');

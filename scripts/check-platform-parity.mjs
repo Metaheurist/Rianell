@@ -39,6 +39,9 @@ function expectContains(relPath, pattern, why) {
 
 // Shared behavior parity hooks in web layer.
 expectContains('apps/pwa-webapp/app.js', /SpeechRecognition|webkitSpeechRecognition/, 'STT guard exists (feature parity messaging path)');
+expectContains('apps/pwa-webapp/ui-feedback.js', 'function showToast', 'unified toast API for cross-platform UI feedback parity');
+expectContains('apps/pwa-webapp/app.js', 'function notifySuccess', 'PWA toast wrapper wired in app.js');
+expectContains('apps/rn-app/src/components/ui/Toast.tsx', 'ToastProvider', 'RN toast provider for UI feedback parity');
 expectContains('apps/pwa-webapp/notifications.js', 'LocalNotifications', 'native notifications plugin path exists');
 expectContains('apps/pwa-webapp/notification-helpers.js', 'isNativeNotificationCapable', 'native-first notification permission handling exists');
 

@@ -25,6 +25,7 @@ import { normalizeLogEntry } from '@rianell/shared';
 import { buildLogReviewSummary, parseMedicationNamesCsv } from '../log/buildLogReviewSummary';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import { VoiceNotesButton } from '../voice/VoiceNotesButton';
+import { useToast } from '../components/ui';
 
 /** Matches web `LOG_WIZARD_TOTAL_STEPS` (10 steps: Date…Review). */
 const WIZARD_STEPS = 10;
@@ -657,6 +658,7 @@ type LogWizardScreenProps = { prefs?: Preferences };
 export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {}) {
   const prefs = prefsProp ?? getDefaultPreferences();
   const theme = useTheme();
+  const toast = useToast();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const bg =
     theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
@@ -914,9 +916,8 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
       });
       await saveLogs(addLogEntry(existing, minimal));
       hapticLight();
-      Alert.alert('Saved', `Minimal log saved for ${dateValue}.`, [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      toast.show(`Minimal log saved for ${dateValue}.`);
+      navigation.goBack();
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Could not save entry';
       Alert.alert('Error', msg);
@@ -929,9 +930,8 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
       const next = addLogEntry(existing, draft);
       await saveLogs(next);
       hapticLight();
-      Alert.alert('Saved', 'Entry saved successfully.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      toast.show('Entry saved successfully.');
+      navigation.goBack();
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Could not save entry';
       Alert.alert('Error', msg);
@@ -949,6 +949,22 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
         <Text style={[styles.sub, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
           Step {step + 1} of {WIZARD_STEPS}
         </Text>
+        <View style={styles.progressTrack} accessibilityRole="progressbar" accessibilityValue={{ min: 1, max: WIZARD_STEPS, now: step + 1 }}>
+          <View style={[styles.progressFill, { width: `${((step + 1) / WIZARD_STEPS) * 100}%`, backgroundColor: theme.tokens.color.accent }]} />
+        </View>
+        <View style={styles.stepDots} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          {Array.from({ length: WIZARD_STEPS }, (_, i) => (
+            <View
+              key={i}
+              style={[
+                styles.stepDot,
+                i === step && styles.stepDotActive,
+                i < step && { backgroundColor: theme.tokens.color.accent + '88' },
+                i >= step && { backgroundColor: theme.tokens.color.accent + '33' },
+              ]}
+            />
+          ))}
+        </View>
 
         <ScrollView
           style={styles.scroll}
@@ -1891,7 +1907,18 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
   },
   title: { fontWeight: '800' },
-  sub: { opacity: 0.8, marginBottom: 12 },
+  sub: { opacity: 0.8, marginBottom: 8 },
+  progressTrack: {
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  progressFill: { height: '100%', borderRadius: 999 },
+  stepDots: { flexDirection: 'row', gap: 6, marginBottom: 12, justifyContent: 'center' },
+  stepDot: { width: 8, height: 8, borderRadius: 999 },
+  stepDotActive: { width: 20 },
   label: { marginTop: 10, marginBottom: 6, fontWeight: '700' },
   input: {
     borderWidth: 1,
