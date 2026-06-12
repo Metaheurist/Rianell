@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-06-12T18:18:30.593Z",
+  "generatedAt": "2026-06-12T18:35:10.326Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3069289,
-    "cssBytes": 371913,
-    "jsGzipBytes": 608524,
-    "cssGzipBytes": 64964
+    "jsBytes": 3065029,
+    "cssBytes": 372903,
+    "jsGzipBytes": 607564,
+    "cssGzipBytes": 65144
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1126019,
-      "gzipBytes": 191526
+      "bytes": 1123105,
+      "gzipBytes": 190836
     },
     {
-      "file": "ci-minified/site/app.5d0aa4932b9d.min.js",
-      "bytes": 674828,
-      "gzipBytes": 133278
+      "file": "ci-minified/site/app.e08bf15bea72.min.js",
+      "bytes": 673482,
+      "gzipBytes": 133008
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -24,9 +24,9 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.5362c7069a1a.css",
-      "bytes": 358337,
-      "gzipBytes": 61491
+      "file": "ci-minified/site/styles.fe278e3a5f4a.css",
+      "bytes": 359327,
+      "gzipBytes": 61671
     },
     {
       "file": "ci-minified/site/AIEngine.js",
