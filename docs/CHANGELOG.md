@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.33** - Fix PWA build syntax errors from v1.46.32 audit refactor; test Schema.sql auth wipe.
+**Latest: v1.46.34** - iOS installed PWA refresh/load hardening (service worker, boot recovery).
+
+### v1.46.34 - 2026-06-12 - iOS PWA refresh and offline load fix
+
+- **Service worker (`apps/pwa-webapp/sw.js`):** Precache **`index.html`**, **`asset-manifest.json`**, and hashed main JS/CSS on install; navigation fallback never returns empty (cached shell or minimal offline HTML). Fixes iOS standalone **“Safari cannot open the page”** after pull-to-refresh or SW update when network blips. **`CACHE_NAME`** → **`v2026-06-12-ios-pwa`**.
+- **Web / PWA (`index.html`):** Stylesheet load uses **`link.sheet`** + onload/error retry; longer check window; **22s boot recovery** overlay if **`body.loaded`** never arrives; **`pageshow`** bfcache reload when restored stuck.
+- **Web / PWA (`app.js`):** Debounced SW update reload with cache-bust **`_sw`** param (stripped after boot); remove boot recovery overlay when shell reveals.
 
 ### v1.46.33 - 2026-06-12 - PWA build fix; test Schema auth wipe
 

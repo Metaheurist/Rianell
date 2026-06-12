@@ -3196,10 +3196,20 @@ function initRianellPwaServiceWorker() {
     });
 
   navigator.serviceWorker.addEventListener('controllerchange', function () {
-    if (window.__rianellPendingSwReload) {
-      window.__rianellPendingSwReload = false;
-      window.location.reload();
-    }
+    if (!window.__rianellPendingSwReload) return;
+    if (window.__rianellSwReloadGuard) return;
+    window.__rianellSwReloadGuard = true;
+    window.__rianellPendingSwReload = false;
+    /* Short delay avoids iOS WKWebView reload races during skipWaiting handoff */
+    setTimeout(function () {
+      try {
+        var reloadUrl = new URL(window.location.href);
+        reloadUrl.searchParams.set('_sw', String(Date.now()));
+        window.location.replace(reloadUrl.toString());
+      } catch (e) {
+        window.location.reload();
+      }
+    }, 80);
   });
 }
 
@@ -19456,6 +19466,14 @@ window.addEventListener('load', () => {
   try { applyAppearanceMode(); } catch (e) {}
 
   function startAfterMotd() {
+  try {
+    var _swClean = typeof URLSearchParams !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    if (_swClean && _swClean.has('_sw')) {
+      _swClean.delete('_sw');
+      var qs = _swClean.toString();
+      history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : '') + window.location.hash);
+    }
+  } catch (e) { /* ignore */ }
   loadSettings();
 
   // Shared link: /#Demo enables demo mode and reloads (or restarts if already in demo).
@@ -19550,6 +19568,8 @@ window.addEventListener('load', () => {
         try {
           document.body.setAttribute('data-benchmark', 'main-ready');
         } catch (e) { /* ignore */ }
+        var bootRecovery = document.getElementById('rianellBootRecoveryOverlay');
+        if (bootRecovery) bootRecovery.remove();
         showCookieBannerIfNeeded();
         setTimeout(function () { loadingOverlay.remove(); }, 500);
       } else {
@@ -19558,6 +19578,8 @@ window.addEventListener('load', () => {
         try {
           document.body.setAttribute('data-benchmark', 'main-ready');
         } catch (e) { /* ignore */ }
+        var bootRecovery = document.getElementById('rianellBootRecoveryOverlay');
+        if (bootRecovery) bootRecovery.remove();
         showCookieBannerIfNeeded();
       }
     });
