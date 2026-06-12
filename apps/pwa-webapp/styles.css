@@ -27,6 +27,13 @@
   /* Design tokens: spacing */
   --space-unit: 0.25rem;
 
+  /* Nav icon tokens — inherit theme via --primary-color / --text-light (body.theme-*) */
+  --nav-icon-size: 1.35rem;
+  --nav-icon-size-bottom: 1.22rem;
+  --nav-icon-stroke: 2;
+  --nav-icon-idle-opacity: 0.78;
+  --nav-icon-active-glow: color-mix(in srgb, var(--primary-color) 42%, transparent);
+
   /* Light mode green gradient variables */
   --background-light: linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%);
   --text-dark: #1b5e20;
@@ -1197,17 +1204,27 @@ body.light-mode .motd-sway-wrap {
   }
 
   .app-bottom-nav-icon {
-    font-size: 1.45rem;
-    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
   }
 
-  .tab-icon-letter {
-    font-weight: 800;
-    font-size: 1rem;
-    letter-spacing: 0.02em;
-    font-family: var(--font-family, system-ui, sans-serif);
-    filter: none;
+  .tab-icon-svg {
+    width: var(--nav-icon-size-bottom);
+    height: var(--nav-icon-size-bottom);
+    display: block;
+    flex-shrink: 0;
+    color: currentColor;
+    opacity: var(--nav-icon-idle-opacity);
+    transition: opacity var(--transition-fast), transform 0.15s ease, filter var(--transition-fast);
+  }
+
+  .app-bottom-nav-btn[aria-current="page"] .tab-icon-svg,
+  .app-bottom-nav-btn.active .tab-icon-svg {
+    opacity: 1;
+    filter: drop-shadow(0 0 5px var(--nav-icon-active-glow));
   }
 
   body.log-wizard-active .app-mobile-bottom-chrome {
@@ -2180,15 +2197,21 @@ body.theme-rainbow .app-bottom-nav-btn.active {
 }
 
 .tab-icon {
-  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
   transition: transform var(--transition-fluid);
 }
 
-.tab-icon-letter {
-  font-weight: 800;
-  font-size: 0.95rem;
-  letter-spacing: 0.02em;
-  font-family: var(--font-family, system-ui, sans-serif);
+.tab-icon-svg {
+  width: var(--nav-icon-size);
+  height: var(--nav-icon-size);
+  display: block;
+  flex-shrink: 0;
+  color: currentColor;
+  opacity: var(--nav-icon-idle-opacity);
+  transition: opacity var(--transition-fast), transform var(--transition-fluid), filter var(--transition-fast);
 }
 
 .tab-btn:hover:not(.active) .tab-icon {
@@ -2197,6 +2220,11 @@ body.theme-rainbow .app-bottom-nav-btn.active {
 
 .tab-btn.active .tab-icon {
   transform: scale(1.1);
+}
+
+.tab-btn.active .tab-icon-svg {
+  opacity: 1;
+  filter: drop-shadow(0 0 6px var(--nav-icon-active-glow));
 }
 
 .tab-text {
