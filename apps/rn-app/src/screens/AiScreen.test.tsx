@@ -7,18 +7,48 @@ import { getDefaultPreferences } from '../storage/preferences';
 import { loadLogs } from '../storage/logs';
 import { generateSummaryNote } from '../ai/llm';
 
+/** ISO date within the default 30-day AI range (fixed dates like 2026-03-25 fail in CI later). */
+function recentLogDate(daysAgo = 0): string {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - daysAgo);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function sampleLogEntry() {
+  return {
+    date: recentLogDate(),
+    flare: 'No' as const,
+    mood: 7,
+    sleep: 6,
+    fatigue: 4,
+    symptoms: ['Nausea'],
+    stressors: ['Work deadline'],
+  };
+}
+
 jest.mock('../storage/logs', () => ({
-  loadLogs: jest.fn(async () => [
-    {
-      date: '2026-03-25',
-      flare: 'No',
-      mood: 7,
-      sleep: 6,
-      fatigue: 4,
-      symptoms: ['Nausea'],
-      stressors: ['Work deadline'],
-    },
-  ]),
+  loadLogs: jest.fn(async () => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return [
+      {
+        date: `${y}-${m}-${day}`,
+        flare: 'No',
+        mood: 7,
+        sleep: 6,
+        fatigue: 4,
+        symptoms: ['Nausea'],
+        stressors: ['Work deadline'],
+      },
+    ];
+  }),
 }));
 jest.mock('../ai/llm', () => ({
   generateSummaryNote: jest.fn(async () => 'AI summary note test'),
@@ -38,6 +68,7 @@ test('ai screen renders summary from logs', async () => {
   await findByText(/What we found/i);
   await findByText('At a glance');
   await findByText('Summary note');
+  await waitFor(() => expect(mockedGenerateSummaryNote).toHaveBeenCalled());
   await findByText('AI summary note test');
   await findByText('What you logged');
   await findByText("How you're doing");
@@ -53,17 +84,8 @@ test('ai screen renders summary from logs', async () => {
 
 test('ai screen pull-to-refresh calls loadLogs again', async () => {
   mockedLoadLogs.mockClear();
-  mockedLoadLogs.mockResolvedValue([
-    {
-      date: '2026-03-25',
-      flare: 'No',
-      mood: 7,
-      sleep: 6,
-      fatigue: 4,
-      symptoms: ['Nausea'],
-      stressors: ['Work deadline'],
-    },
-  ]);
+  mockedGenerateSummaryNote.mockClear();
+  mockedLoadLogs.mockResolvedValue([sampleLogEntry()]);
 
   const prefs = getDefaultPreferences();
   const { UNSAFE_getByType } = render(
@@ -73,7 +95,7 @@ test('ai screen pull-to-refresh calls loadLogs again', async () => {
   );
 
   await waitFor(() => expect(mockedLoadLogs).toHaveBeenCalledTimes(1));
-  expect(mockedGenerateSummaryNote).toHaveBeenCalled();
+  await waitFor(() => expect(mockedGenerateSummaryNote).toHaveBeenCalled());
 
   const scroll = UNSAFE_getByType(ScrollView);
   const refresh = scroll.props.refreshControl;
