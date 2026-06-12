@@ -35,7 +35,7 @@
 
 <!-- RIANELL_BUILD_INFO_START -->
 
-[![CI builds](https://img.shields.io/badge/build-RN%20221%20%7C%20RN%20iOS%20221%20%7C%20Server%20240%20%7C%20Web%20241-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/27430856806)
+[![CI builds](https://img.shields.io/badge/build-RN%20221%20%7C%20RN%20iOS%20221%20%7C%20Server%20241%20%7C%20Web%20241-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/27430856806)
 
 **CI builds** (React Native CLI + server + web)
 
@@ -43,8 +43,8 @@
 | :--- | :---: |
 | ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **Android** APK (React Native CLI) | **221** |
 | ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip, RN CLI) | **221** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **240** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **240** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **241** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **241** |
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **241** |
 
 **Legacy builds** (Capacitor — no longer produced by CI; metadata only)
