@@ -34,8 +34,12 @@ jest.mock('../ai/llm', () => ({
 jest.mock('../performance/benchmark', () => ({
   loadCachedBenchmark: jest.fn(async () => null),
 }));
+jest.mock('../utils/submitBugReport', () => ({
+  submitBugReport: jest.fn(async () => undefined),
+}));
 
 import { loadLogs } from '../storage/logs';
+import { submitBugReport } from '../utils/submitBugReport';
 
 function renderHome() {
   const prefs = getDefaultPreferences();
@@ -49,6 +53,7 @@ function renderHome() {
 beforeEach(() => {
   mockNavigate.mockClear();
   (loadLogs as jest.Mock).mockResolvedValue([]);
+  (submitBugReport as jest.Mock).mockClear();
 });
 
 test('home shows title and prompts to log when no entry today', async () => {
@@ -88,9 +93,6 @@ test('header Goals and targets navigates to Charts in Balance', async () => {
 
 test('header Report a bug opens bug report modal and submits', async () => {
   const openSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined as never);
-  const fetchSpy = jest
-    .spyOn(global, 'fetch' as never)
-    .mockResolvedValue({ ok: true, json: async () => ({ ok: true }) } as never);
   const { getByLabelText, findByText } = renderHome();
   await waitFor(() => {
     expect(loadLogs).toHaveBeenCalled();
@@ -100,10 +102,9 @@ test('header Report a bug opens bug report modal and submits', async () => {
   fireEvent.changeText(getByLabelText('Bug description'), 'Repro steps from RN test');
   fireEvent.press(getByLabelText('Submit bug report'));
   await waitFor(() => {
-    expect(fetchSpy).toHaveBeenCalled();
+    expect(submitBugReport).toHaveBeenCalled();
   });
   expect(openSpy).not.toHaveBeenCalledWith(expect.stringContaining('SECURITY.md'));
-  fetchSpy.mockRestore();
   openSpy.mockRestore();
 });
 

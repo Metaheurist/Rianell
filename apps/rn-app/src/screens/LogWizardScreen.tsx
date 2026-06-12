@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../theme/ThemeProvider';
 import { addLogEntry, getFrequentLogItems, loadLogs, saveLogs, type LogEntry } from '../storage/logs';
 import { getDefaultPreferences, type Preferences } from '../storage/preferences';
@@ -880,11 +881,54 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     return true;
   }
 
+  function hapticLight() {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+  }
+
+  function goToStep(next: Step) {
+    hapticLight();
+    setStep(next);
+  }
+
+  async function saveQuickMinimal() {
+    if (!validateStep0()) return;
+    const dateValue = date.trim();
+    try {
+      const existing = await loadLogs();
+      if (existing.some((l) => l.date === dateValue)) {
+        Alert.alert('Duplicate', `An entry for ${dateValue} already exists. Edit it from View logs.`);
+        return;
+      }
+      const minimal = normalizeLogEntry({
+        date: dateValue,
+        flare,
+        fatigue: 5,
+        stiffness: 5,
+        sleep: 5,
+        jointPain: 5,
+        mobility: 5,
+        dailyFunction: 5,
+        swelling: 5,
+        mood: 5,
+        irritability: 5,
+      });
+      await saveLogs(addLogEntry(existing, minimal));
+      hapticLight();
+      Alert.alert('Saved', `Minimal log saved for ${dateValue}.`, [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Could not save entry';
+      Alert.alert('Error', msg);
+    }
+  }
+
   async function save() {
     try {
       const existing = await loadLogs();
       const next = addLogEntry(existing, draft);
       await saveLogs(next);
+      hapticLight();
       Alert.alert('Saved', 'Entry saved successfully.', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
@@ -929,12 +973,21 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               <Choice label="Yes" selected={flare === 'Yes'} onPress={() => setFlare('Yes')} />
             </View>
 
+            <Pressable
+              onPress={() => void saveQuickMinimal()}
+              style={[styles.secondaryBtn, { marginTop: 12, alignSelf: 'stretch' }]}
+              accessibilityRole="button"
+              accessibilityLabel="Save minimal log"
+            >
+              <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Save minimal log</Text>
+            </Pressable>
+
             <View style={styles.navRow}>
               <View style={{ flex: 1 }} />
               <Pressable
                 onPress={() => {
                   if (!validateStep0()) return;
-                  setStep(1);
+                  goToStep(1);
                 }}
                 style={styles.primaryBtn}
                 accessibilityRole="button"
@@ -956,14 +1009,14 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
 
             <View style={styles.navRow}>
               <Pressable
-                onPress={() => setStep(0)}
+                onPress={() => goToStep(0)}
                 style={styles.secondaryBtn}
                 accessibilityRole="button"
                 accessibilityLabel="Previous step"
               >
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
               </Pressable>
-              <Pressable onPress={() => setStep(2)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
+              <Pressable onPress={() => goToStep(2)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
               </Pressable>
             </View>
@@ -1104,10 +1157,10 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             </View>
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => setStep(1)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+              <Pressable onPress={() => goToStep(1)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
               </Pressable>
-              <Pressable onPress={() => setStep(3)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
+              <Pressable onPress={() => goToStep(3)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
               </Pressable>
             </View>
@@ -1221,10 +1274,10 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             ) : null}
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => setStep(2)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+              <Pressable onPress={() => goToStep(2)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
               </Pressable>
-              <Pressable onPress={() => setStep(4)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
+              <Pressable onPress={() => goToStep(4)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
               </Pressable>
             </View>
@@ -1352,10 +1405,10 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             </View>
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => setStep(3)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+              <Pressable onPress={() => goToStep(3)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
               </Pressable>
-              <Pressable onPress={() => setStep(5)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
+              <Pressable onPress={() => goToStep(5)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
               </Pressable>
             </View>
@@ -1395,10 +1448,10 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             />
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => setStep(4)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+              <Pressable onPress={() => goToStep(4)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
               </Pressable>
-              <Pressable onPress={() => setStep(6)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
+              <Pressable onPress={() => goToStep(6)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
               </Pressable>
             </View>
@@ -1533,10 +1586,10 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             </View>
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => setStep(5)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+              <Pressable onPress={() => goToStep(5)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
               </Pressable>
-              <Pressable onPress={() => setStep(7)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
+              <Pressable onPress={() => goToStep(7)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
               </Pressable>
             </View>
@@ -1613,10 +1666,10 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             </View>
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => setStep(6)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+              <Pressable onPress={() => goToStep(6)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
               </Pressable>
-              <Pressable onPress={() => setStep(8)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
+              <Pressable onPress={() => goToStep(8)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
               </Pressable>
             </View>
@@ -1706,10 +1759,10 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             ) : null}
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => setStep(7)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+              <Pressable onPress={() => goToStep(7)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
               </Pressable>
-              <Pressable onPress={() => setStep(9)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
+              <Pressable onPress={() => goToStep(9)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
               </Pressable>
             </View>
@@ -1728,7 +1781,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             </Text>
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => setStep(8)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
+              <Pressable onPress={() => goToStep(8)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
               </Pressable>
               <Pressable onPress={save} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Save entry">

@@ -29,32 +29,47 @@ function initSupabase() {
   if (supabaseClient) {
     return supabaseClient;
   }
-  
-  try {
-    const config = window.SUPABASE_CONFIG || {
-      url: 'https://YOUR_PROJECT_REF.supabase.co',
-      anonKey: 'YOUR_SUPABASE_ANON_KEY'
-    };
-    const url = (config && config.url && String(config.url).trim()) || '';
-    const anonKey = (config && config.anonKey && String(config.anonKey).trim()) || '';
-    if (!url || url.startsWith('https://YOUR_') || !anonKey || anonKey.startsWith('YOUR_')) {
-      if (window.SUPABASE_CONFIG && !url) {
-        console.warn('Supabase config missing URL (e.g. supabase-config.js failed to load). Cloud sync disabled.');
+
+  function createClientWhenReady() {
+    try {
+      const config = window.SUPABASE_CONFIG || {
+        url: 'https://YOUR_PROJECT_REF.supabase.co',
+        anonKey: 'YOUR_SUPABASE_ANON_KEY'
+      };
+      const url = (config && config.url && String(config.url).trim()) || '';
+      const anonKey = (config && config.anonKey && String(config.anonKey).trim()) || '';
+      if (!url || url.startsWith('https://YOUR_') || !anonKey || anonKey.startsWith('YOUR_')) {
+        if (window.SUPABASE_CONFIG && !url) {
+          console.warn('Supabase config missing URL (e.g. supabase-config.js failed to load). Cloud sync disabled.');
+        }
+        return null;
       }
+      if (typeof supabase !== 'undefined') {
+        supabaseClient = supabase.createClient(url, anonKey);
+        window.supabaseClient = supabaseClient;
+        console.log('Supabase client initialized');
+        return supabaseClient;
+      }
+      console.error('Supabase library not loaded');
+      return null;
+    } catch (error) {
+      console.error('Error initializing Supabase:', error);
       return null;
     }
-    if (typeof supabase !== 'undefined') {
-      supabaseClient = supabase.createClient(url, anonKey);
-      window.supabaseClient = supabaseClient;
-      console.log('Supabase client initialized');
-      return supabaseClient;
-    }
-    console.error('Supabase library not loaded');
-    return null;
-  } catch (error) {
-    console.error('Error initializing Supabase:', error);
+  }
+
+  if (typeof supabase !== 'undefined') {
+    return createClientWhenReady();
+  }
+  if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureSupabaseLoaded === 'function') {
+    window.PerformanceUtils.ensureSupabaseLoaded().then(function () {
+      createClientWhenReady();
+    }).catch(function (e) {
+      console.error('Supabase library load failed:', e);
+    });
     return null;
   }
+  return createClientWhenReady();
 }
 
 /**
@@ -2021,6 +2036,7 @@ if (typeof window !== 'undefined') {
   window.deleteCloudLogs = deleteCloudLogs;
   window.deleteAllUserDataFromCloud = deleteAllUserDataFromCloud;
   window.initSupabase = initSupabase;
+  window.submitBugReportToSupabase = submitBugReportToSupabase;
   
   // Initialize cloud sync state and check auth on load
   loadCloudSyncState();
@@ -2130,6 +2146,61 @@ if (typeof window !== 'undefined') {
       originalToggleAutoSync();
     }
   };
+}
+
+async function ensureSupabaseClientReady() {
+  if (supabaseClient) return supabaseClient;
+  if (isSupabaseConfigPlaceholder()) return null;
+  if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureSupabaseLoaded === 'function') {
+    await window.PerformanceUtils.ensureSupabaseLoaded();
+  }
+  if (!supabaseClient) {
+    initSupabase();
+  }
+  return supabaseClient;
+}
+
+/**
+ * Submit a bug report via Supabase (RLS insert-only). Used on static hosts where /api/bug-report is unavailable.
+ * @param {Object} payload - title, description, steps, expected_behavior, actual_behavior, console_output, app_theme, user_agent, url/page_url, client_timestamp
+ */
+async function submitBugReportToSupabase(payload) {
+  if (isSupabaseConfigPlaceholder()) {
+    throw new Error('Bug reports require Supabase configuration (see supabase-config.js).');
+  }
+  const client = await ensureSupabaseClientReady();
+  if (!client) {
+    throw new Error('Supabase client not available.');
+  }
+  const description = String(payload && payload.description || '').trim();
+  if (!description) {
+    throw new Error('description is required');
+  }
+  let userId = null;
+  try {
+    const sessionResult = await client.auth.getSession();
+    userId = sessionResult && sessionResult.data && sessionResult.data.session
+      ? sessionResult.data.session.user.id
+      : null;
+  } catch (e) {}
+  const row = {
+    user_id: userId,
+    client_ip: 'client',
+    title: String(payload.title || '').trim().slice(0, 160) || null,
+    description: description.slice(0, 4000),
+    steps_to_reproduce: String(payload.steps || payload.steps_to_reproduce || '').trim().slice(0, 4000) || null,
+    expected_behavior: String(payload.expected_behavior || '').trim().slice(0, 2000) || null,
+    actual_behavior: String(payload.actual_behavior || '').trim().slice(0, 2000) || null,
+    console_output: String(payload.console_output || '').trim().slice(0, 32000) || null,
+    app_theme: String(payload.app_theme || '').trim().slice(0, 64) || null,
+    user_agent: String(payload.user_agent || '').trim().slice(0, 512) || null,
+    page_url: String(payload.url || payload.page_url || '').trim().slice(0, 1000) || null,
+    client_timestamp: payload.client_timestamp || new Date().toISOString()
+  };
+  const { error } = await client.from('bug_reports').insert(row);
+  if (error) {
+    throw new Error(error.message || 'Failed to submit bug report.');
+  }
 }
 
 /**

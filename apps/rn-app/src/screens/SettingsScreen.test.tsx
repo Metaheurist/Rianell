@@ -124,7 +124,7 @@ test('settings carousel: eight panes match web settings carousel titles', async 
 
   fireEvent.press(getByTestId('settings-pane-tab-7'));
   getByText('8 / 8 - Data management');
-  getByText('📤 Export logs (JSON)');
+  getByText('Export logs (JSON)');
   getByText('📥 Import logs (JSON)');
   getByText('🗑️ Clear all data');
 });

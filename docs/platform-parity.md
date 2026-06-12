@@ -2,9 +2,9 @@
 
 This document defines the expected behaviour contract across:
 
-- Web / PWA
-- Android (Capacitor)
-- iOS (Capacitor)
+- **Web / PWA** (`apps/pwa-webapp/`)
+- **React Native (Expo)** (`apps/rn-app/`) — primary mobile app
+- **Legacy Capacitor** (`apps/capacitor-app/`) — WebView shell during transition
 
 The machine-readable source is `docs/platform-parity.json`. CI parity gates validate key hooks and platform config wiring in each mobile job.
 

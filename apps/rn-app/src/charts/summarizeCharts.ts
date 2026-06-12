@@ -1,6 +1,6 @@
 import type { LogEntry } from '../storage/logs';
 
-export type ChartRange = 14 | 30 | 90 | 'all';
+export type ChartRange = 7 | 14 | 30 | 90 | 'all';
 export type TrendMetric = 'mood' | 'sleep' | 'fatigue' | 'steps' | 'hydration';
 
 export type MetricTrend = {
