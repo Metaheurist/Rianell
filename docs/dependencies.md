@@ -56,7 +56,7 @@ Uses root **esbuild**, Babel packages (`@babel/generator`, `@babel/parser`, `@ba
 
 | Asset | Pinned reference |
 |-------|------------------|
-| Supabase JS (UMD) | `https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js` |
+| Supabase JS (UMD) | `—` |
 | ua-parser-js | `https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.37/dist/ua-parser.min.js` |
 | Font Awesome (CSS) | `https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.7.2/css/all.min.css` (deferred loader in page) |
 | Google Fonts | Plus Jakarta Sans via `fonts.googleapis.com` / `fonts.gstatic.com` |
@@ -84,6 +84,7 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `expo` | ~55.0.8 |
 | `expo-av` | ^16.0.8 |
 | `expo-constants` | ~55.0.9 |
+| `expo-haptics` | ~55.0.4 |
 | `expo-modules-autolinking` | ^55.0.11 |
 | `expo-speech` | ^55.0.9 |
 | `expo-speech-recognition` | ^3.1.2 |
