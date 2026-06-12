@@ -453,6 +453,21 @@
   }
 
   /**
+   * Relevance gate for LLM MOTD output. Small Flan-T5 models can emit off-topic trivia
+   * (e.g. leaked QA training fragments about users/devices/alarms), so reject anything
+   * that mentions tech/trivia vocabulary, contains digits, or lacks motivational wording.
+   */
+  var MOTD_BLOCKLIST_RE = /\b(users?|devices?|alarms?|passwords?|log\s?in|login|account|click|tap|button|settings?|website|browser|android|iphone|ios|alexa|google|siri|according to|the answer|years? old|per cent|percent)\b/i;
+  var MOTD_RELEVANCE_RE = /\b(you|your|yourself|today|tomorrow|day|days|moment|moments|step|steps|breath|breathe|rest|care|hope|strength|strong|gentle|gently|small|progress|kind|kindness|heal|healing|calm|peace|grow|growth|courage|patience|balance|renew|renewal|journey|begin|start|shine|light|heart|body|mind|well|wellness|better|grace|pause|steady)\b/i;
+
+  function isUsableMotdText(t) {
+    if (!t) return false;
+    if (/\d/.test(t)) return false;
+    if (MOTD_BLOCKLIST_RE.test(t)) return false;
+    return MOTD_RELEVANCE_RE.test(t);
+  }
+
+  /**
    * One short motivational line for the dashboard header. No user names. Different on each full load (no cache; random theme + time in prompt; sampling).
    * Resolves with fallbackText on failure or unusable output.
    */
@@ -489,8 +504,9 @@
           return pipe(prompt, {
             max_new_tokens: 56,
             do_sample: true,
-            temperature: 0.92,
-            top_p: 0.93,
+            // Cooler sampling than before (0.92/0.93): small T5 models drift off-topic when sampled hot.
+            temperature: 0.7,
+            top_p: 0.9,
             truncation: true
           });
         }),
@@ -502,7 +518,10 @@
       if (text.length >= 12 && text.length <= MAX_MOTD_CHARS + 20) {
         text = stripTrailingIncompleteSentence(text);
         text = sanitizeMotdText(text);
-        if (text.length >= 12) return text;
+        if (text.length >= 12 && isUsableMotdText(text)) return text;
+        if (text.length >= 12 && typeof console !== 'undefined' && console.warn) {
+          console.warn('MOTD LLM output rejected as off-topic, using default title.');
+        }
       }
     } catch (e) {
       if (typeof console !== 'undefined' && console.warn) {
