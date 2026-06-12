@@ -62,6 +62,7 @@
      ```
   - **React Native parity:** `apps/rn-app/app.config.js` reads the same names (`SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY`, legacy `SUPABASE_ANON_KEY`) and also supports `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY`. You can copy these into `apps/rn-app/.env` for local RN builds.
   - **RN LLM endpoint (optional):** for AI summary note / MOTD generation in RN, set `EXPO_PUBLIC_LLM_ENDPOINT` (or `LLM_ENDPOINT`) in `apps/rn-app/.env`. If unset or unavailable, RN falls back to deterministic AIEngine note generation.
+  - **Mobile quality gates (from repo root):** `npm run typecheck:mobile` (TypeScript via `apps/rn-app/tsconfig.json`; root `tsconfig.json` references the app for IDE discovery) and `npm run test:mobile` (Jest). Run `npm install` at the root first so workspace dependencies resolve under `apps/rn-app/node_modules`.
 
 4. **Configure Supabase (for frontend)**
    - Edit `supabase-config.js` with your Supabase credentials

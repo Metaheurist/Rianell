@@ -180,7 +180,12 @@ The app includes GDPR-compliant data sharing:
 
 - **“Page did not load correctly” / styles overlay:** If `styles.css` fails to load (network blip), `index.html` shows a **reload** overlay. That is **not** the Python server; fix connectivity or cache and tap **Reload**.
 
-- **Installed iOS PWA (Add to Home Screen) fails or shows a blank screen:** Safari/Chrome **standalone** mode has **no DevTools**. With **`rianellDebug`** enabled (default while diagnosing), a red **launch error panel** at the bottom of the screen lists errors from the first script onward; tap **Copy** and share the report. Disable verbose overlay with **`localStorage.rianellDebug = 'false'`** or open once with **`?debug=0`**. After a deploy, force-quit the home-screen icon and relaunch (or remove and re-add) so **`sw.js`** picks up the new **`CACHE_NAME`**.
+- **Installed iOS PWA (Add to Home Screen) fails or shows a blank screen:** Safari/Chrome **standalone** mode has **no DevTools**. Open once with **`?debug=1`** to show a red **launch error panel** at the bottom of the screen (errors from first script onward); tap **Copy** and share the report. Debug is **off by default**; any old **`localStorage.rianellDebug`** flag is cleared on load. After a deploy, force-quit the home-screen icon and relaunch (or remove and re-add) so **`sw.js`** picks up the new **`CACHE_NAME`**.
+
+**React Native / IDE: `File 'expo/tsconfig.base' not found` on `apps/rn-app/tsconfig.json`**:
+
+- In this monorepo, **`expo`** is installed under **`apps/rn-app/node_modules`**, not the repo root. **`apps/rn-app/tsconfig.json`** extends **`./node_modules/expo/tsconfig.base.json`**; root **`tsconfig.json`** references the mobile app for IDE project discovery.
+- Run **`npm install`** at the repo root, then **`npm run typecheck:mobile`**. If the squiggle persists in Cursor/VS Code, **Developer: Reload Window**.
 
 <a id="nav-security-notes"></a>
 
