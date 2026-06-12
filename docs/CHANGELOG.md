@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.28** - PWA / GitHub Pages: content-hashed JS/CSS filenames (cache bust).
+**Latest: v1.46.29** - Supply chain: npm + Python audit clean; PWA iOS standalone launch debug overlay.
+
+### v1.46.29 - 2026-06-12 - Supply chain audit clean; PWA iOS standalone launch debug
+
+- **Web / PWA (`apps/pwa-webapp/`):** Early **launch error overlay** in **`index.html`** captures JS errors, unhandled rejections, failed resource loads, and **`console.error`** from first paint—shown on-screen when **`rianellDebug`** is on (default **on** while diagnosing installed iOS home-screen launches; opt out with **`localStorage.rianellDebug = 'false'`** or **`?debug=0`**). Includes **Copy report** (standalone vs browser tab, URL, UA, SW state). **`app.js`** debug init aligned with the same default-on logic. **`sw.js`** **`CACHE_NAME`** bumped so installed PWAs drop stale caches after deploy.
+- **npm (root):** **`overrides`** expanded and **`package-lock.json`** resynced so **`npm audit --audit-level=high --omit=dev`** and full **`npm audit`** report **0** vulnerabilities. Patched transitive pins include **`@xmldom/xmldom@0.9.10`**, **`shell-quote@^1.8.4`**, **`brace-expansion@^5.0.6`**, **`postcss@^8.5.10`**, **`ws@^8.21.0`**, **`uuid@^11.1.1`**, plus dev-tree **`basic-ftp`**, **`ip-address`**, **`tmp`**. **[dependencies.md](dependencies.md)** regenerated via **`npm run docs:dependencies`**.
+- **Python (`requirements.txt`):** **`python-dotenv`** floor raised to **`>=1.2.2`** ([OSV: GHSA-mf9w-mj56-hr94](https://osv.dev/GHSA-mf9w-mj56-hr94)) so **OSV-Scanner** / **`pip-audit`** stay clean.
+- **Docs:** [SECURITY.md](SECURITY.md) override wording (**`@xmldom/xmldom@0.9.10`**); [project-reference.md](project-reference.md) (**Troubleshooting** → iOS standalone PWA debug panel, **`python-dotenv`** floor); [app-and-features.md](app-and-features.md) (launch debug overlay note).
 
 ### v1.46.28 - 2026-04-12 - Web / PWA: fingerprinted bundles + docs
 
