@@ -2,7 +2,11 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.29** - Supply chain: npm + Python audit clean; PWA iOS standalone launch debug overlay.
+**Latest: v1.46.30** - Fix Expo iOS prebuild (`@xmldom/xmldom` 0.8.13 LTS pin).
+
+### v1.46.30 - 2026-06-12 - RN CLI: Expo iOS prebuild xmldom compatibility
+
+- **npm overrides:** Pin **`@xmldom/xmldom@0.8.13`** (security LTS) instead of **0.9.10**. **0.9.x** rejects **`DOMParser.parseFromString(xml)`** without a **`mimeType`**, which breaks **`@expo/plist`** during **`expo prebuild --platform ios`** (`withIosInfoPlistBaseMod`). **0.8.13** fixes the same advisories as **0.8.12** without the **0.9** API break. **`package-lock.json`** synced; **`npm audit`** remains **0** vulnerabilities.
 
 ### v1.46.29 - 2026-06-12 - Supply chain audit clean; PWA iOS standalone launch debug
 
