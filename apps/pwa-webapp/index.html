@@ -87,24 +87,28 @@
     })();
   </script>
 
-  <!-- Launch debug overlay: captures every error from the very first script and shows it on-screen.
-       Critical for installed iOS PWAs (standalone) where no devtools are available.
-       Debug is ON by default; disable with localStorage.rianellDebug='false' or ?debug=0. -->
+  <!-- Launch debug overlay: off by default. Temporary opt-in only via ?debug=1 (iOS standalone diagnosis). -->
   <script>
     (function () {
+      function clearPersistedDebugFlags() {
+        try {
+          if (typeof localStorage === 'undefined') return;
+          localStorage.removeItem('rianellDebug');
+          localStorage.removeItem('healthAppDebug');
+        } catch (e) {}
+      }
+
       function isDebugEnabled() {
         try {
           if (typeof URLSearchParams !== 'undefined' && window.location && window.location.search) {
             var q = new URLSearchParams(window.location.search).get('debug');
-            if (q === '0') return false;
             if (q === '1') return true;
           }
         } catch (e) {}
-        try {
-          if (typeof localStorage !== 'undefined' && localStorage.getItem('rianellDebug') === 'false') return false;
-        } catch (e2) {}
-        return true; /* default ON while diagnosing iOS standalone launch error */
+        return false;
       }
+
+      clearPersistedDebugFlags();
       window.rianellDebug = isDebugEnabled();
       window.healthAppDebug = window.rianellDebug;
 
@@ -201,7 +205,7 @@
       window.__rianellGetLaunchErrorReport = getReport;
 
       function render() {
-        if (!window.rianellDebug) return;
+        if (!window.rianellDebug || errors.length === 0) return;
         if (!document.body) {
           document.addEventListener('DOMContentLoaded', render);
           return;

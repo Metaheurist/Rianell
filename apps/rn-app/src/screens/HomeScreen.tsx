@@ -423,7 +423,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
             style={({ pressed }) => [styles.chromeBtn, chromeShadow(accent), { borderColor: accent, opacity: pressed ? 0.88 : 1 }]}
             accessibilityRole="button"
             accessibilityLabel="Report a bug"
-            accessibilityHint="Opens security and reporting documentation"
+            accessibilityHint="Opens bug report form"
           >
             <Ionicons name="bug-outline" size={22} color={accent} />
           </Pressable>

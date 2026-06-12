@@ -86,7 +86,7 @@ test('header Goals and targets navigates to Charts in Balance', async () => {
   expect(mockNavigate).toHaveBeenCalledWith('Charts', { initialView: 'balance' });
 });
 
-test('header Report a bug opens security documentation URL', async () => {
+test('header Report a bug opens bug report modal and submits', async () => {
   const openSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined as never);
   const fetchSpy = jest
     .spyOn(global, 'fetch' as never)

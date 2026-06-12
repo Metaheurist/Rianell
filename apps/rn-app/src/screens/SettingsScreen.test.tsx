@@ -1,8 +1,8 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SettingsScreen } from './SettingsScreen';
 import { ThemeProvider } from '../theme/ThemeProvider';
-import { getDefaultPreferences } from '../storage/preferences';
+import { getDefaultPreferences, type Preferences } from '../storage/preferences';
 
 jest.mock('expo-speech', () => ({
   speak: jest.fn(),
@@ -50,13 +50,42 @@ jest.mock('../permissions/permissions', () => ({
   },
 }));
 
-test('settings carousel: eight panes match web settings carousel titles', () => {
-  const prefs = getDefaultPreferences();
-  const { getByText, getByTestId } = render(
+beforeEach(() => {
+  jest.clearAllMocks();
+  const { Permissions } = require('../permissions/permissions');
+  Permissions.getStatus.mockResolvedValue('denied');
+  Permissions.request.mockResolvedValue('granted');
+  Permissions.scheduleDailyReminder.mockResolvedValue({ ok: true, delivery: 'scheduled-basic' });
+  Permissions.getLastReminderAction.mockResolvedValue('none');
+  Permissions.subscribeReminderActions.mockImplementation(async () => () => {});
+  Permissions.getReminderCapabilities.mockResolvedValue({
+    hasScheduling: true,
+    hasAndroidChannel: false,
+    hasIosCategory: false,
+    hasResponseListener: true,
+    hasSnooze: true,
+    hasDismissAction: true,
+  });
+});
+
+async function renderSettingsScreen(
+  prefs: Preferences,
+  onChangePrefs: (p: Preferences) => void = () => {}
+) {
+  const utils = render(
     <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
+      <SettingsScreen prefs={prefs} onChangePrefs={onChangePrefs} />
     </ThemeProvider>
   );
+  await waitFor(() => {
+    expect(require('../permissions/permissions').Permissions.getLastReminderAction).toHaveBeenCalled();
+  });
+  return utils;
+}
+
+test('settings carousel: eight panes match web settings carousel titles', async () => {
+  const prefs = getDefaultPreferences();
+  const { getByText, getByTestId } = await renderSettingsScreen(prefs);
 
   getByText('1 / 8 - Personal & cloud sync');
   getByText(/Cloud sync is not configured/);
@@ -100,14 +129,10 @@ test('settings carousel: eight panes match web settings carousel titles', () => 
   getByText('🗑️ Clear all data');
 });
 
-test('goals target inputs trigger preference updates', () => {
+test('goals target inputs trigger preference updates', async () => {
   const prefs = getDefaultPreferences();
   const onChangePrefs = jest.fn();
-  const { getByLabelText, getByTestId } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={onChangePrefs} />
-    </ThemeProvider>
-  );
+  const { getByLabelText, getByTestId } = await renderSettingsScreen(prefs, onChangePrefs);
 
   fireEvent.press(getByTestId('settings-pane-tab-1'));
   fireEvent.changeText(getByLabelText('Mood target value'), '8');
@@ -116,14 +141,12 @@ test('goals target inputs trigger preference updates', () => {
 
 test('notification permission request action is wired', async () => {
   const prefs = getDefaultPreferences();
-  const { getByLabelText, findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { getByLabelText, findByText } = await renderSettingsScreen(prefs);
 
   await findByText(/Notification permission: denied/i);
-  fireEvent.press(getByLabelText('Request notification permission'));
+  await act(async () => {
+    fireEvent.press(getByLabelText('Request notification permission'));
+  });
 });
 
 test('notification scheduling status is shown when permission granted', async () => {
@@ -134,11 +157,7 @@ test('notification scheduling status is shown when permission granted', async ()
   prefs.notifications.enabled = true;
   prefs.notifications.dailyReminderTime = '08:30';
 
-  const { findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText } = await renderSettingsScreen(prefs);
 
   await findByText(/Daily reminder scheduled at 08:30/i);
 });
@@ -155,11 +174,7 @@ test('notification scheduling shows android channel delivery semantics when prov
   prefs.notifications.enabled = true;
   prefs.notifications.dailyReminderTime = '09:15';
 
-  const { findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText } = await renderSettingsScreen(prefs);
 
   await findByText(/Android reminder channel configured/i);
 });
@@ -176,11 +191,7 @@ test('notification scheduling shows iOS category delivery semantics when provide
   prefs.notifications.enabled = true;
   prefs.notifications.dailyReminderTime = '09:45';
 
-  const { findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText } = await renderSettingsScreen(prefs);
 
   await findByText(/iOS reminder actions\/category configured/i);
 });
@@ -190,11 +201,7 @@ test('notification area shows last reminder action when available', async () => 
   Permissions.getLastReminderAction.mockResolvedValue('default');
 
   const prefs = getDefaultPreferences();
-  const { findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText } = await renderSettingsScreen(prefs);
 
   await findByText(/Last reminder action: Open app/i);
 });
@@ -211,11 +218,7 @@ test('notification area shows listener-unavailable note when actions unsupported
   });
 
   const prefs = getDefaultPreferences();
-  const { findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText } = await renderSettingsScreen(prefs);
 
   await findByText(/Action listener is unavailable on this runtime/i);
 });
@@ -225,11 +228,7 @@ test('notification area shows unknown-action fallback note', async () => {
   Permissions.getLastReminderAction.mockResolvedValue('unknown');
 
   const prefs = getDefaultPreferences();
-  const { findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText } = await renderSettingsScreen(prefs);
 
   await findByText(/Last reminder action: Unknown action/i);
   await findByText(/Unknown reminder actions use safe Home fallback behavior/i);
@@ -244,11 +243,7 @@ test('notification area shows unknown-action session counter', async () => {
   });
 
   const prefs = getDefaultPreferences();
-  const { findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText } = await renderSettingsScreen(prefs);
 
   await findByText(/Unknown reminder actions observed this session: 1/i);
   await findByText(/Unknown-action session summary: quality low · drift low drift · trajectory stable\./i);
@@ -275,11 +270,7 @@ test('notification area can reset unknown-action session counter', async () => {
   });
 
   const prefs = getDefaultPreferences();
-  const { findByText, queryByText, getByLabelText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText, queryByText, getByLabelText } = await renderSettingsScreen(prefs);
 
   await findByText(/Unknown reminder actions observed this session: 1/i);
   fireEvent.press(getByLabelText('Reset unknown reminder action counter'));
@@ -305,11 +296,7 @@ test('notification area marks startup snapshot as unknown-action source when pre
   Permissions.subscribeReminderActions.mockImplementationOnce(async () => () => {});
 
   const prefs = getDefaultPreferences();
-  const { findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText } = await renderSettingsScreen(prefs);
 
   await findByText(/Last unknown action source: startup snapshot/i);
   await findByText(/Unknown action breakdown: startup 1 · live 0/i);
@@ -333,11 +320,7 @@ test('notification area shows moderate drift status after multiple unknown actio
   });
 
   const prefs = getDefaultPreferences();
-  const { findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText } = await renderSettingsScreen(prefs);
 
   await findByText(/Unknown-action stability status: moderate drift/i);
   await findByText(/confidence is preliminary until at least 3 unknown events/i);
@@ -353,11 +336,7 @@ test('notification area shows balanced dominant-source confidence when startup a
   });
 
   const prefs = getDefaultPreferences();
-  const { findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText } = await renderSettingsScreen(prefs);
 
   await findByText(/Unknown action split: startup 50% · live 50%/i);
   await findByText(/Unknown-action dominant source confidence: balanced \(no dominant source\)/i);
@@ -376,11 +355,7 @@ test('notification area hides preliminary-confidence warning once sample size re
   });
 
   const prefs = getDefaultPreferences();
-  const { findByText, queryByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText, queryByText } = await renderSettingsScreen(prefs);
 
   await findByText(/Unknown reminder actions observed this session: 3/i);
   await findByText(/Unknown-action session summary: quality medium · drift moderate drift · trajectory stable\./i);
@@ -405,11 +380,7 @@ test('notification area shows high observability quality when unknown sample siz
   });
 
   const prefs = getDefaultPreferences();
-  const { findByText, queryByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText, queryByText } = await renderSettingsScreen(prefs);
 
   await findByText(/Unknown reminder actions observed this session: 5/i);
   await findByText(/Unknown-action session summary: quality high · drift high drift · trajectory stable\./i);
@@ -439,11 +410,7 @@ test('notification area explains unknown-action drift when dismiss semantics are
   });
 
   const prefs = getDefaultPreferences();
-  const { findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText } = await renderSettingsScreen(prefs);
 
   await findByText(/some dismiss\/close gestures may appear as unknown/i);
 });
@@ -460,42 +427,26 @@ test('notification area shows snooze fallback note when runtime has no snooze su
   });
 
   const prefs = getDefaultPreferences();
-  const { findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText } = await renderSettingsScreen(prefs);
 
   await findByText(/does not support scheduled snooze reminders/i);
 });
 
 test('notification area includes dismiss semantics runtime status', async () => {
   const prefs = getDefaultPreferences();
-  const { findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { findByText } = await renderSettingsScreen(prefs);
 
   await findByText(/dismiss semantics yes/i);
 });
 
-test('textScale affects rendered typography sizes', () => {
+test('textScale affects rendered typography sizes', async () => {
   const prefs1 = getDefaultPreferences();
   prefs1.accessibility.textScale = 1;
   const prefs2 = getDefaultPreferences();
   prefs2.accessibility.textScale = 1.5;
 
-  const r1 = render(
-    <ThemeProvider prefs={prefs1}>
-      <SettingsScreen prefs={prefs1} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
-  const r2 = render(
-    <ThemeProvider prefs={prefs2}>
-      <SettingsScreen prefs={prefs2} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const r1 = await renderSettingsScreen(prefs1);
+  const r2 = await renderSettingsScreen(prefs2);
 
   fireEvent.press(r1.getByTestId('settings-pane-tab-3'));
   fireEvent.press(r2.getByTestId('settings-pane-tab-3'));
@@ -515,16 +466,12 @@ test('textScale affects rendered typography sizes', () => {
   expect(fontSize2).toBeGreaterThan(fontSize1);
 });
 
-test('TTS reads choice label on press when enabled', () => {
+test('TTS reads choice label on press when enabled', async () => {
   const Speech = require('expo-speech');
   const prefs = getDefaultPreferences();
   prefs.accessibility.ttsEnabled = true;
 
-  const { getByLabelText, getByTestId } = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={() => {}} />
-    </ThemeProvider>
-  );
+  const { getByLabelText, getByTestId } = await renderSettingsScreen(prefs);
 
   fireEvent.press(getByTestId('settings-pane-tab-3'));
   fireEvent.press(getByLabelText('dark'));
