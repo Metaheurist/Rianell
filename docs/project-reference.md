@@ -90,7 +90,7 @@ For a **complete dependency inventory by build** (workspaces, PWA CDNs, CI-only 
 ### Python (server package)
 - `supabase>=2.0.0` - Supabase client library
 - `watchdog>=3.0.0` - File watching for auto-reload
-- `python-dotenv>=1.0.0` - Environment variable management
+- `python-dotenv>=1.2.2` - Environment variable management ([OSV: GHSA-mf9w-mj56-hr94](https://osv.dev/GHSA-mf9w-mj56-hr94) fixed in 1.2.2)
 
 ### JavaScript (Frontend)
 - No external dependencies required for the main web app (vanilla JavaScript)
@@ -179,6 +179,8 @@ The app includes GDPR-compliant data sharing:
 - **Memory and mobile browsers:** On-device **Transformers.js / ONNX**, **ApexCharts**, and a large **log history** can push **heap use** high (hundreds of MB). Mobile Safari and Chrome may **terminate the tab** or reload under pressure—this can feel like a random “crash” or restart. Mitigations: **Settings → Performance → On-device AI model → Small** (lower memory), shorten **AI date ranges**, reduce data in view, or temporarily **disable AI** to confirm stability.
 
 - **“Page did not load correctly” / styles overlay:** If `styles.css` fails to load (network blip), `index.html` shows a **reload** overlay. That is **not** the Python server; fix connectivity or cache and tap **Reload**.
+
+- **Installed iOS PWA (Add to Home Screen) fails or shows a blank screen:** Safari/Chrome **standalone** mode has **no DevTools**. With **`rianellDebug`** enabled (default while diagnosing), a red **launch error panel** at the bottom of the screen lists errors from the first script onward; tap **Copy** and share the report. Disable verbose overlay with **`localStorage.rianellDebug = 'false'`** or open once with **`?debug=0`**. After a deploy, force-quit the home-screen icon and relaunch (or remove and re-add) so **`sw.js`** picks up the new **`CACHE_NAME`**.
 
 <a id="nav-security-notes"></a>
 
