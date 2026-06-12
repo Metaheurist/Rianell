@@ -8,6 +8,8 @@
 
   var cachedPipeline = null;
   var cachedModelId = null;
+  /** Serializes pipeline load + inference (ONNX Runtime Web rejects concurrent runs on one session). */
+  var llmWorkQueue = Promise.resolve();
   var summaryResultCache = null;
   var suggestResultCache = null;
   var MAX_SUMMARY_CACHE = 8;
@@ -95,7 +97,13 @@
     return getModelIdForDeviceClass(deviceClass);
   }
 
-  async function getPipeline() {
+  function runQueued(taskFn) {
+    var result = llmWorkQueue.then(taskFn);
+    llmWorkQueue = result.then(function () {}, function () {});
+    return result;
+  }
+
+  async function ensurePipelineLoaded() {
     var modelId = getResolvedModelId();
     if (cachedPipeline && cachedModelId === modelId) return cachedPipeline;
     cachedPipeline = null;
@@ -185,6 +193,12 @@
         throw eCpu;
       }
     }
+  }
+
+  async function getPipeline() {
+    return runQueued(function () {
+      return ensurePipelineLoaded();
+    });
   }
 
   function simpleHash(s) {
@@ -291,16 +305,20 @@
     var prompt = 'Summarise in 2 short sentences for the patient. Use only the data below. Mention 1-2 specific findings (e.g. trends or flares). Be clear and encouraging. Data: ' + context;
 
     try {
-      var pipe = await getPipeline();
-      var run = pipe(prompt, {
-        max_new_tokens: 90,
-        do_sample: false,
-        truncation: true
-      });
       var timeoutPromise = new Promise(function (_, reject) {
         setTimeout(function () { reject(new Error('Summary LLM timeout')); }, TIMEOUT_MS);
       });
-      var out = await Promise.race([run, timeoutPromise]);
+      var out = await Promise.race([
+        runQueued(async function () {
+          var pipe = await ensurePipelineLoaded();
+          return pipe(prompt, {
+            max_new_tokens: 90,
+            do_sample: false,
+            truncation: true
+          });
+        }),
+        timeoutPromise
+      ]);
 
       var text = (out && out[0] && out[0].generated_text) ? out[0].generated_text.trim() : '';
       if (text && text.length > 15) {
@@ -371,16 +389,20 @@
 
     async function runSuggest() {
       try {
-        var pipe = await getPipeline();
-        var run = pipe(prompt, {
-          max_new_tokens: 48,
-          do_sample: false,
-          truncation: true
-        });
         var timeoutPromise = new Promise(function (_, reject) {
           setTimeout(function () { reject(new Error('Suggest note LLM timeout')); }, TIMEOUT_SUGGEST_MS);
         });
-        var out = await Promise.race([run, timeoutPromise]);
+        var out = await Promise.race([
+          runQueued(async function () {
+            var pipe = await ensurePipelineLoaded();
+            return pipe(prompt, {
+              max_new_tokens: 48,
+              do_sample: false,
+              truncation: true
+            });
+          }),
+          timeoutPromise
+        ]);
 
         var text = (out && out[0] && out[0].generated_text) ? out[0].generated_text.trim() : '';
         if (text && text.length > 8) {
@@ -458,18 +480,22 @@
       + 'Do not use anyone\'s name. No medical advice. No quotation marks. Max 22 words. Theme: ' + theme + '. Unique: ' + nonce + '.';
 
     try {
-      var pipe = await getPipeline();
-      var run = pipe(prompt, {
-        max_new_tokens: 56,
-        do_sample: true,
-        temperature: 0.92,
-        top_p: 0.93,
-        truncation: true
-      });
       var timeoutPromise = new Promise(function (_, reject) {
         setTimeout(function () { reject(new Error('MOTD LLM timeout')); }, TIMEOUT_MOTD_MS);
       });
-      var out = await Promise.race([run, timeoutPromise]);
+      var out = await Promise.race([
+        runQueued(async function () {
+          var pipe = await ensurePipelineLoaded();
+          return pipe(prompt, {
+            max_new_tokens: 56,
+            do_sample: true,
+            temperature: 0.92,
+            top_p: 0.93,
+            truncation: true
+          });
+        }),
+        timeoutPromise
+      ]);
 
       var text = (out && out[0] && out[0].generated_text) ? String(out[0].generated_text).trim() : '';
       text = sanitizeMotdText(text);
@@ -490,6 +516,7 @@
   function clearSummaryLLMCache() {
     cachedPipeline = null;
     cachedModelId = null;
+    llmWorkQueue = Promise.resolve();
   }
 
   window.generateSummaryWithLLM = generateSummaryWithLLM;

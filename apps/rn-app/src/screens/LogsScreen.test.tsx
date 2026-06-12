@@ -145,11 +145,7 @@ test('logs entry edit flow updates details and persists', async () => {
   await waitFor(() => expect(mockedSaveLogs).toHaveBeenCalled());
 });
 
-test('dev-only: add sample log adds row when __DEV__', async () => {
-  if (!__DEV__) {
-    console.warn('Skipping add-sample test when __DEV__ is false');
-    return;
-  }
+(__DEV__ ? test : test.skip)('dev-only: add sample log adds row when __DEV__', async () => {
   mockLoadLogs.mockResolvedValueOnce([]);
   const { findByText, getByLabelText } = renderLogs();
   await findByText(/No logs yet\./);
