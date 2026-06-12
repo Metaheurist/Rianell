@@ -820,7 +820,9 @@ function updateCloudSyncUI() {
     if (syncSection) syncSection.style.display = 'block';
     if (statusText) statusText.textContent = 'Connected';
     if (statusIndicator) {
-      statusIndicator.style.backgroundColor = '#4caf50';
+      statusIndicator.classList.remove('status-syncing');
+      statusIndicator.classList.add('status-success');
+      statusIndicator.style.backgroundColor = '';
       statusIndicator.title = 'Connected to cloud';
     }
     if (userEmail && cloudSyncState.user.email) {
@@ -843,7 +845,9 @@ function updateCloudSyncUI() {
     if (syncSection) syncSection.style.display = 'none';
     if (statusText) statusText.textContent = 'Not connected';
     if (statusIndicator) {
-      statusIndicator.style.backgroundColor = '#f44336';
+      statusIndicator.classList.remove('status-success', 'status-syncing');
+      statusIndicator.style.backgroundColor = '';
+      statusIndicator.classList.add('status-error');
       statusIndicator.title = 'Not connected';
     }
     // Clear email field
@@ -1399,6 +1403,13 @@ async function syncToCloud() {
   }
   
   try {
+    var syncStatusIndicator = document.getElementById('cloudStatusIndicator');
+    var syncStatusText = document.getElementById('cloudStatusText');
+    if (syncStatusIndicator) {
+      syncStatusIndicator.classList.remove('status-success', 'status-error');
+      syncStatusIndicator.classList.add('status-syncing');
+    }
+    if (syncStatusText) syncStatusText.textContent = 'Syncing…';
     // Show loading state
     const syncBtn = document.getElementById('cloudSyncBtn');
     if (syncBtn) {

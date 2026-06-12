@@ -46,6 +46,24 @@
         "ios": "supported"
       },
       "notes": "Storage APIs are available across targets, with quota/eviction differences."
+    },
+    {
+      "id": "ui_toast_feedback",
+      "status": {
+        "web": "supported",
+        "android": "supported",
+        "ios": "supported"
+      },
+      "notes": "PWA/Capacitor use ui-feedback.js showToast/notifySuccess; React Native uses ToastProvider (non-blocking save feedback)."
+    },
+    {
+      "id": "haptic_feedback",
+      "status": {
+        "web": "partial",
+        "android": "partial",
+        "ios": "partial"
+      },
+      "notes": "Vibration API on web where available; native haptics on RN selections/saves; gracefully no-ops when unsupported."
     }
   ]
 }

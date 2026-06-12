@@ -11,6 +11,7 @@ import {
 } from './src/storage/preferences';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 import { BootLoadingScreen } from './src/components/BootLoadingScreen';
+import { ToastProvider } from './src/components/ui';
 import { refreshDemoModeLogsOnLaunch } from './src/demo/demoMode';
 import { installBugReportConsoleCapture } from './src/utils/bugReportLogs';
 
@@ -47,8 +48,10 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider prefs={prefs}>
-        <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
-        <StatusBar style="auto" />
+        <ToastProvider>
+          <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
+          <StatusBar style="auto" />
+        </ToastProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );
