@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.36** - CI: Android SDK setup without emulator package.
+**Latest: v1.47.0** - Cross-platform UI sophistication overhaul (motion, toasts, home hero, RN design system).
+
+### v1.47.0 - 2026-06-12 - UI sophistication overhaul (PWA + RN + parity)
+
+- **PWA (`ui-feedback.js`, `styles.css`, `app.js`):** Unified **`showToast`** / **`notifySuccess`**, haptics, ripple, scroll-reveal, offline banner, theme crossfade, direction-aware tab transitions, animated modal close helpers, chart skeleton fade, wizard step slides + morphing dots, home hero card + quick actions, goals progress rings, pain-map pulse, log entry chevron expand, cloud sync **`status-syncing`** pulse.
+- **PWA architecture:** Extract supplemental **`css/tokens.css`**; semantic motion/color/elevation tokens in **`styles.css`**; dedupe **`shimmer`** / **`validPulse`** keyframes.
+- **Shared tokens (`packages/tokens`):** Semantic colors + motion/radius scales mirrored for RN.
+- **React Native (`apps/rn-app/src/components/ui/`):** **`Card`**, **`PrimaryButton`**, **`Chip`**, **`EmptyState`**, **`Skeleton`**, **`ToastProvider`**; wizard progress bar + step dots; save feedback via toast instead of blocking alerts.
+- **Parity:** **`check-platform-parity.mjs`** checks toast hooks in PWA + RN; **`platform-parity.json`** adds **`ui_toast_feedback`** and **`haptic_feedback`**; **`docs/styling.md`** documents **`ui-feedback.js`** and **`css/tokens.css`**; **`sw.js`** **`CACHE_NAME`** → **`v2026-06-12-ui-overhaul`**.
 
 ### v1.46.36 - 2026-06-12 - CI Android SDK setup fix
 

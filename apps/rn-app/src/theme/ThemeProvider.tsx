@@ -7,6 +7,9 @@ type Theme = {
   team: string;
   mode: 'light' | 'dark';
   tokens: ReturnType<typeof getTokens>;
+  color: ReturnType<typeof getTokens>['color'];
+  motion?: ReturnType<typeof getTokens>['motion'];
+  radius?: ReturnType<typeof getTokens>['radius'];
   textScale: number;
   font: (size: number) => number;
 };
@@ -24,6 +27,9 @@ export function ThemeProvider({ prefs, children }: { prefs: Preferences; childre
       team: prefs.team,
       mode,
       tokens,
+      color: tokens.color,
+      motion: tokens.motion,
+      radius: tokens.radius,
       textScale,
       font: (size: number) => size * textScale,
     };

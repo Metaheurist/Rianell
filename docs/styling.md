@@ -1,6 +1,13 @@
 # Styling guide (web UI)
 
-This document describes how the legacy web app’s visual layer is organised: **tokens**, **themes**, **major surfaces**, and **operational notes** (cache busting, motion). The canonical stylesheet is **`apps/pwa-webapp/styles.css`** (large single file).
+This document describes how the legacy web app’s visual layer is organised: **tokens**, **themes**, **major surfaces**, and **operational notes** (cache busting, motion). The canonical stylesheet is **`apps/pwa-webapp/styles.css`** (large single file), with supplemental tokens in **`apps/pwa-webapp/css/tokens.css`**.
+
+## v1.47.0 UI feedback and motion
+
+- **`ui-feedback.js`:** Shared **`showToast`**, haptics, ripple, scroll-reveal, offline banner, theme crossfade helpers, and modal open/close utilities. **`app.js`** wraps success paths with **`notifySuccess`** / **`notifyUser`**.
+- **Motion scale:** **`--ease-spring`**, **`--dur-*`**, semantic status colors, elevation tokens in **`styles.css`**; mirrored in **`@rianell/tokens`** for React Native.
+- **Surfaces:** Home hero card + quick actions, goals SVG progress rings, direction-aware tab transitions, wizard step slides + morphing dots, chart skeleton fade, cloud sync **`.status-syncing`** pulse.
+- **Reduced motion:** Decorative motion (toasts, tab/chart crossfades, wizard slides) respects **`prefers-reduced-motion: reduce`**.
 
 ## v1.46.3 React Native settings parity notes
 
@@ -20,7 +27,9 @@ This document describes how the legacy web app’s visual layer is organised: **
 | File | Role |
 | :--- | :--- |
 | **`apps/pwa-webapp/styles.css`** | Main application styles, design tokens in `:root`, layout, components, light mode overrides. |
-| **`apps/pwa-webapp/index.html`** | Loads **`styles.css?v=…`** (query string cache bust); critical inline CSS for first paint / loading overlay. |
+| **`apps/pwa-webapp/css/tokens.css`** | Supplemental semantic/motion tokens (loaded before **`styles.css`**). |
+| **`apps/pwa-webapp/ui-feedback.js`** | Toast, haptic, ripple, offline, theme crossfade, and modal animation helpers. |
+| **`apps/pwa-webapp/index.html`** | Loads **`css/tokens.css`**, **`styles.css?v=…`**, and **`ui-feedback.js`**; critical inline CSS for first paint / loading overlay. |
 | **`apps/pwa-webapp/styles-charts.css`** | Deferred when charts open (ApexCharts + chart chrome). |
 
 After meaningful CSS changes, **bump the `?v=`** on the stylesheet link in **`index.html`** so browsers and CDNs pick up updates.

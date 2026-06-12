@@ -2,6 +2,18 @@ export function getTeamIds() {
   return ['mint', 'red-black', 'mono', 'rainbow'];
 }
 
+/** Semantic UI colors — mirror apps/pwa-webapp/styles.css :root tokens. */
+const SEMANTIC_COLORS = {
+  success: '#4caf50',
+  danger: '#f44336',
+  warning: '#ff9800',
+  info: '#2196f3',
+  aiAccent: '#e91e63',
+  statusImproving: '#4caf50',
+  statusStable: '#2196f3',
+  statusDeclining: '#f44336',
+};
+
 /** Boot / loading overlay palette — keep web index.html critical CSS in sync (search: @rianell/loader-tokens). */
 const TEAM_TOKENS = {
   mint: {
@@ -196,8 +208,27 @@ function applyColorblindOverride(tokens, colorblindMode) {
   return t;
 }
 
+function withSemanticColors(tokens) {
+  return {
+    ...tokens,
+    color: {
+      ...tokens.color,
+      ...SEMANTIC_COLORS,
+    },
+    motion: {
+      easeSpring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+      easeOutExpo: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      durInstant: 100,
+      durFast: 180,
+      durNormal: 280,
+      durSlow: 450,
+    },
+    radius: { sm: 8, md: 12, lg: 16, xl: 24, full: 999 },
+  };
+}
+
 export function getTokens({ team, mode, colorblindMode } = {}) {
   const t = TEAM_TOKENS[team] ? team : 'mint';
   const m = mode === 'light' || mode === 'dark' ? mode : 'dark';
-  return applyColorblindOverride(TEAM_TOKENS[t][m], colorblindMode);
+  return applyColorblindOverride(withSemanticColors(TEAM_TOKENS[t][m]), colorblindMode);
 }

@@ -348,9 +348,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=85" as="style">
-  <link rel="preload" href="app.js?v=30" as="script">
-  <link rel="stylesheet" href="styles.css?v=85" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=85&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="preload" href="styles.css?v=86" as="style">
+  <link rel="preload" href="app.js?v=31" as="script">
+  <link rel="stylesheet" href="css/tokens.css?v=1">
+  <link rel="stylesheet" href="styles.css?v=86" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=86&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #070807; color: #e8eeec; margin: 0; padding: 0; }
@@ -1288,7 +1289,7 @@
         <button type="button" class="modal-close" onclick="closeGoalsModal()" aria-label="Close">&times;</button>
       </div>
       <div class="modal-body goals-modal-body">
-        <p class="field-hint" style="margin-bottom: 16px;">Set daily or weekly targets. Progress appears on the Log tab. Use 0 to leave a goal off.</p>
+        <p class="field-hint" style="margin-bottom: 16px;">Set daily or weekly targets. Progress appears on the Home tab. Use 0 to leave a goal off.</p>
         <div class="goals-slider-group">
           <label for="goalSteps">Steps per day</label>
           <div class="goals-slider-row">
@@ -1474,8 +1475,15 @@
         <h2 class="tab-title" id="homeGreeting">Today</h2>
         <p class="home-today-sub" id="homeTodayDate" aria-live="polite"></p>
       </div>
-      <div id="homeTodayStatus" class="home-today-status" role="status" aria-live="polite"></div>
-      <div id="goalsProgressBlock" class="goals-progress-block" style="display: none;" aria-live="polite"></div>
+      <div id="homeHeroCard" class="home-hero-card" data-scroll-reveal role="status" aria-live="polite">
+        <div id="homeTodayStatus" class="home-today-status"></div>
+        <div class="home-quick-actions">
+          <button type="button" class="action-btn home-quick-action" data-ripple onclick="openLogWizardFromHome()">Log now</button>
+          <button type="button" class="action-btn home-quick-action" data-ripple onclick="switchTab('charts')">Charts</button>
+          <button type="button" class="action-btn home-quick-action" data-ripple onclick="switchTab('ai')">AI summary</button>
+        </div>
+      </div>
+      <div id="goalsProgressBlock" class="goals-progress-block" style="display: none;" aria-live="polite" data-scroll-reveal></div>
     </div>
 
     <!-- Log wizard (opened via floating + button, not a main nav tab) -->
@@ -2210,7 +2218,7 @@
   <!-- Beta + FAB: desktop = badge top-right, + bottom-right; mobile = badge beside + above tab bar -->
   <div class="app-fab-wrap" id="appFabWrap">
     <span class="app-beta-badge" aria-hidden="true">Beta</span>
-    <button type="button" class="app-log-fab" id="appLogFab" onclick="openLogWizardFromHome()" title="Log health entry" aria-label="Add health log entry">+</button>
+    <button type="button" class="app-log-fab" id="appLogFab" data-ripple onclick="openLogWizardFromHome()" title="Log health entry" aria-label="Add health log entry">+</button>
   </div>
 
   <!-- Bottom tab bar only (flex footer); FAB is not in this stack -->
@@ -2808,7 +2816,7 @@
               </div>
             </div>
           </div>
-          <p class="tutorial-text" style="margin-top: 10px;">Your progress and &quot;Last 7 days vs targets&quot; appear on the Log tab so you can see how you&apos;re doing.</p>
+          <p class="tutorial-text" style="margin-top: 10px;">Your progress and &quot;Last 7 days vs targets&quot; appear on the Home tab so you can see how you&apos;re doing.</p>
         </div>
         <div class="tutorial-slide" id="tutorialSlide7" data-slide="7">
           <p class="tutorial-text">You're all set. Close to start logging, try <strong>Demo Mode</strong>, or create an account to save your data in the cloud.</p>
@@ -3260,6 +3268,7 @@
   <script defer src="device-module.js"></script>
   <script defer src="device-benchmark.js"></script>
   <script defer src="performance-utils.js"></script>
+  <script defer src="ui-feedback.js?v=1"></script>
   <script defer src="background-loader.js"></script>
   <script defer src="android-update-check.js?v=1"></script>
   <script>
@@ -3292,7 +3301,7 @@
     }
   })();
   </script>
-  <script defer src="app.js?v=30"></script>
+  <script defer src="app.js?v=31"></script>
   <script defer src="security-utils.js"></script>
   <script defer src="encryption-utils.js"></script>
   <script defer src="cloud-sync.js?v=2"></script>

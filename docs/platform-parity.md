@@ -15,6 +15,14 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - `clipboard_share_download`: supported with fallback paths where available.
 - `sync_behavior`: foreground/interval behaviour; no guaranteed OS background sync.
 - `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
+- `ui_toast_feedback`: non-blocking toast/snackbar on PWA (`ui-feedback.js`) and RN (`ToastProvider`).
+- `haptic_feedback`: optional vibration/haptics on supported platforms; no-op elsewhere.
+
+### v1.47.0 parity note (UI sophistication overhaul)
+
+- **PWA + Capacitor WebView:** Shared **`ui-feedback.js`** toast/haptic/ripple/offline helpers; direction-aware tab transitions; wizard step motion; home hero + goals rings; **`check-platform-parity.mjs`** validates **`showToast`** / **`notifySuccess`** hooks.
+- **React Native:** **`ToastProvider`** + UI kit under **`src/components/ui/`**; log wizard progress bar/dots; non-blocking save toasts (replacing blocking save **`Alert.alert`** for success paths).
+- **Tokens:** **`@rianell/tokens`** semantic colors/motion scales aligned with PWA **`css/tokens.css`** / **`styles.css`**.
 
 ### v1.46.3 parity note (RN settings carousel + app installation + log wizard suggest note)
 
