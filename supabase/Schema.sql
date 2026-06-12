@@ -1,7 +1,8 @@
 -- Recreate public app tables for Health-app (Supabase).
 --
--- WARNING: This drops existing tables (and dependent objects via CASCADE), then recreates them.
--- All data in these tables will be lost. auth.users is NOT modified.
+-- WARNING (TEST RESET): Drops public app tables AND deletes all Supabase Auth users
+-- (sessions, identities, refresh tokens). Every account must sign up again.
+-- Do NOT run on production.
 --
 -- Run in: Supabase Dashboard → SQL Editor, or: psql $DATABASE_URL -f supabase/Schema.sql
 --
@@ -13,6 +14,12 @@ DROP TABLE IF EXISTS public.anonymized_data CASCADE;
 DROP TABLE IF EXISTS public.health_data CASCADE;
 DROP TABLE IF EXISTS public.user_keys CASCADE;
 DROP TABLE IF EXISTS public.bug_reports CASCADE;
+
+-- Wipe Supabase Auth (requires SQL Editor / postgres role — not anon key)
+DELETE FROM auth.refresh_tokens;
+DELETE FROM auth.sessions;
+DELETE FROM auth.identities;
+DELETE FROM auth.users;
 
 CREATE TABLE public.anonymized_data (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,

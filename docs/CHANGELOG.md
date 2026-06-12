@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.32** - Full audit remediation: security hardening, PWA performance, UX polish, docs. **Commit:** [`64bc6e9`](https://github.com/Metaheurist/Rianell/commit/64bc6e9).
+**Latest: v1.46.33** - Fix PWA build syntax errors from v1.46.32 audit refactor; test Schema.sql auth wipe.
+
+### v1.46.33 - 2026-06-12 - PWA build fix; test Schema auth wipe
+
+- **Web / PWA (`apps/pwa-webapp/app.js`):** Restore two missing `}` braces dropped during the v1.46.32 perf refactor — close the individual-chart **`updateOptions`** fast-path block and **`runAppInit()`** after idle-defer boot. Fixes **`npm run build:web:apk`** / esbuild **`Unexpected ")"`** / **`Unexpected end of input`** on CI.
+- **Supabase (`supabase/Schema.sql`):** Test-reset script now deletes **`auth.users`** (and sessions, identities, refresh tokens) after table drops; header warns **TEST RESET only** — do not run on production.
 
 ### v1.46.32 - 2026-06-12 - Audit remediation (security, performance, UX, docs)
 
