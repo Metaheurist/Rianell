@@ -2,15 +2,25 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.32** - Full audit remediation: security hardening, PWA performance, UX polish, docs.
+**Latest: v1.46.32** - Full audit remediation: security hardening, PWA performance, UX polish, docs. **Commit:** [`64bc6e9`](https://github.com/Metaheurist/Rianell/commit/64bc6e9).
 
 ### v1.46.32 - 2026-06-12 - Audit remediation (security, performance, UX, docs)
 
-- **Supabase / security:** RLS policies ship in **`supabase/Schema.sql`**; **`anonymized_log`** column drift fixed; fail-closed encryption (no plaintext cloud fallback); LAN secret required when sensitive APIs on LAN; bug reports via Supabase (PWA + RN); SRI on static CDN script; [SECURITY.md](SECURITY.md) updated.
-- **Web / PWA performance:** Decouple **`body.loaded`** from AI/chart preload (`requestIdleCallback`); defer non-critical scripts; lazy-load Supabase UMD; **`saveSettings`** via **`StorageBatcher`**; individual chart **`updateSeries`** fast-path; CI **`bundle-sizes.mjs`** snapshot.
-- **Web / PWA UX:** Quick minimal log; hide bottom nav during log wizard; modal focus trap helper + tutorial a11y; letter tab icons; chart loading skeletons; GDPR contact **`jan.andersson@rianell.com`**.
-- **React Native:** **`HomeMotdHeartbeat`** wired; charts default **7d** range + skeleton loading; log wizard quick save + **`expo-haptics`**; export button uses Ionicons.
-- **Docs:** [data-model.md](data-model.md), [server-api.md](server-api.md), [react-native-setup.md](react-native-setup.md); stale Capacitor/web paths fixed; broken anchors and placeholder email fixed.
+Shipped as one release commit with four staged bodies (security → performance → UX → docs). Apply **`supabase/Schema.sql`** to the live Supabase project manually to enable RLS in production.
+
+**Stage 1 — Security**
+- RLS policies ship in **`supabase/Schema.sql`**; **`anonymized_log`** column drift fixed; fail-closed encryption (no plaintext cloud fallback); LAN secret required when sensitive APIs on LAN; bug reports via Supabase (PWA + RN); SRI on static CDN script; [SECURITY.md](SECURITY.md) updated.
+
+**Stage 2 — Performance**
+- Decouple **`body.loaded`** from AI/chart preload (`requestIdleCallback`); defer non-critical scripts; lazy-load Supabase UMD; **`saveSettings`** via **`StorageBatcher`**; individual chart **`updateSeries`** fast-path; CI **`bundle-sizes.mjs`** snapshot.
+
+**Stage 3 — UX**
+- Quick minimal log; hide bottom nav during log wizard; modal focus trap helper + tutorial a11y; letter tab icons; chart loading skeletons; GDPR contact **`jan.andersson@rianell.com`**.
+
+**Stage 4 — React Native & docs**
+- **`HomeMotdHeartbeat`** wired; charts default **7d** range + skeleton loading; log wizard quick save + **`expo-haptics`**; export button uses Ionicons.
+- [data-model.md](data-model.md), [server-api.md](server-api.md), [react-native-setup.md](react-native-setup.md); stale Capacitor/web paths fixed; broken anchors and placeholder email fixed.
+- **`sw.js`** **`CACHE_NAME`** bumped for PWA cache reset after deploy.
 
 ### v1.46.31 - 2026-06-12 - RN TypeScript monorepo; PWA LLM queue; debug off
 
