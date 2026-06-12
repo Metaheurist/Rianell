@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.46.30** — Expo iOS prebuild fix, supply-chain audit clean, PWA launch debug overlay).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.46.31** — RN TypeScript monorepo IDE fix, PWA LLM inference queue, debug off by default).
 
 ### Here’s what we plan next
 
