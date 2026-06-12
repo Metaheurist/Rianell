@@ -3613,82 +3613,33 @@ function showUpdateNotification() {
   document.body.insertBefore(updateBanner, document.body.firstChild);
 }
 
-// Handle PWA shortcuts
-// Suppress harmless browser extension errors
-// This runs early to catch extension errors before they reach console
+// Suppress harmless browser extension / third-party console noise (early filter in index.html is authoritative)
 (function() {
   try {
     const originalConsoleError = console.error;
     console.error = function(...args) {
-      // Only suppress if error is clearly from extensions
-      // Check error message and stack trace
       const errorString = args.map(arg => {
         if (arg instanceof Error) {
           return (arg.message || '') + ' ' + (arg.stack || '');
         }
         return String(arg);
       }).join(' ');
-      
-      // Check for extension-related errors
-      const hasExtensionPattern = 
-        errorString.includes('No tab with id') || 
-        errorString.includes('Frame with ID') ||
-        errorString.includes('ERR_INVALID_URL') && errorString.includes('data:;base64');
-      
-      const hasExtensionFile = 
-        errorString.includes('chrome-extension://') || 
-        errorString.includes('moz-extension://') ||
-        errorString.includes('background.js') ||
-        errorString.includes('serviceWorker.js') ||
-        errorString.includes('inpage.js');
-      
-      // Only suppress if it's clearly an extension error
-      const isExtensionError = hasExtensionPattern && hasExtensionFile;
-      const isDataBase64Suppress = errorString.includes('ERR_INVALID_URL') && errorString.includes('data:;base64');
-
-      if (isExtensionError) {
-        if (isDataBase64Suppress && !window._dataBase64SuppressLogged) {
-          window._dataBase64SuppressLogged = true;
-          if (typeof Logger !== 'undefined' && Logger.debug) Logger.debug('Suppressed known extension/invalid data URL error');
-        }
+      if (typeof window.__rianellIsBenignConsoleNoise === 'function' && window.__rianellIsBenignConsoleNoise(errorString)) {
         return;
       }
-      // Call original console.error for legitimate errors
       originalConsoleError.apply(console, args);
     };
   } catch (e) {
-    // If console.error override fails, just continue
     Logger.warn('Failed to set up error filtering', { error: e });
   }
 })();
 
 window.addEventListener('error', function(e) {
-  // Filter out browser extension errors
   const errorMsg = e.message || String(e.error || '');
   const filename = e.filename || e.target?.src || '';
   const target = e.target;
-  
-  const isDataBase64 = (errorMsg.includes('ERR_INVALID_URL') && errorMsg.includes('data:;base64')) ||
-    filename.includes('data:;base64') ||
-    (target && target.src && target.src.includes('data:;base64'));
-  const isExtensionError = 
-    errorMsg.includes('No tab with id') || 
-    errorMsg.includes('Frame with ID') ||
-    errorMsg.includes('serviceWorker.js') ||
-    errorMsg.includes('background.js') ||
-    isDataBase64 ||
-    filename.includes('chrome-extension://') ||
-    filename.includes('moz-extension://') ||
-    filename.includes('serviceWorker.js') ||
-    filename.includes('background.js') ||
-    filename.includes('inpage.js') ||
-    filename.includes('extension://');
-
-  if (isExtensionError) {
-    if (isDataBase64 && !window._dataBase64SuppressLogged) {
-      window._dataBase64SuppressLogged = true;
-      if (typeof Logger !== 'undefined' && Logger.debug) Logger.debug('Suppressed known extension/invalid data URL error');
-    }
+  const blob = errorMsg + ' ' + filename + (target && target.src ? ' ' + target.src : '');
+  if (typeof window.__rianellIsBenignConsoleNoise === 'function' && window.__rianellIsBenignConsoleNoise(blob)) {
     e.preventDefault();
     e.stopPropagation();
     return false;
@@ -19375,32 +19326,6 @@ function switchTab(tabName, skipHash) {
   }
 }
 
-// Global error handler to suppress browser extension errors (duplicate removed - using the one at line 511)
-// This handler is kept for additional coverage
-window.addEventListener('error', (event) => {
-  // Filter out common browser extension errors
-  const errorMsg = event.message || String(event.error || '');
-  const filename = event.filename || event.target?.src || '';
-  
-  const isExtensionError = 
-    errorMsg.includes('No tab with id') || 
-    errorMsg.includes('Frame with ID') ||
-    errorMsg.includes('serviceWorker.js') ||
-    errorMsg.includes('background.js') ||
-    filename.includes('chrome-extension://') ||
-    filename.includes('moz-extension://') ||
-    filename.includes('serviceWorker.js') ||
-    filename.includes('background.js');
-  
-  if (isExtensionError) {
-    // Suppress extension-related errors
-    event.preventDefault();
-    event.stopPropagation();
-    return false;
-  }
-  // Let other errors through for debugging
-}, true);
-
 // Handle unhandled promise rejections (often from extensions). Mirrors early handler in index.html.
 function __rianellRejectionText(reason) {
   if (reason == null) return '';
@@ -19417,8 +19342,11 @@ function __rianellRejectionText(reason) {
   return m;
 }
 
-/** Keep in sync with early unhandledrejection script in index.html */
+/** Keep in sync with early filter in index.html (__rianellIsBenignConsoleNoise) */
 function __rianellIsExtensionRejectionBlob(blob) {
+  if (typeof window.__rianellIsBenignConsoleNoise === 'function') {
+    return window.__rianellIsBenignConsoleNoise(blob);
+  }
   if (!blob || typeof blob !== 'string') return false;
   if (/chrome-extension:|moz-extension:|safari-web-extension:|extension:\/\//i.test(blob)) return true;
   if (/tabs:outgoing|tabs\.outgoing|outgoing\.message\.ready|No\s+Listener:?|i18next|Grammarly|locize|chrome-error:|chromewebdata|vendor\.js|VM\d+\s+vendor|serviceWorker\.js|background\.js/i.test(blob)) return true;

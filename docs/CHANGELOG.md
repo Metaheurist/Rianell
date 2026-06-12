@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.34** - iOS installed PWA refresh/load hardening (service worker, boot recovery).
+**Latest: v1.46.35** - Theme-token nav SVG icons; suppress benign console noise.
+
+### v1.46.35 - 2026-06-12 - Nav SVG icons; console noise filter
+
+- **Web / PWA (`index.html`, `styles.css`):** Replace letter tab icons with theme-token SVGs (home, logs, charts, AI) via shared sprite; **`--nav-icon-*`** tokens follow **`--primary-color`** per theme.
+- **Web / PWA (`index.html`, `app.js`):** Early **`__rianellIsBenignConsoleNoise`** filter suppresses extension errors (`background.js`, `vendor.js`), ONNX **`[W:onnxruntime:]`** warnings, Transformers **`powerPreference`** noise, and Rokt preload spam; strip extension-injected links from **`<head>`**.
 
 ### v1.46.34 - 2026-06-12 - iOS PWA refresh and offline load fix
 

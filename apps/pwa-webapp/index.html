@@ -51,9 +51,27 @@
   <!-- Note: X-Frame-Options is set via HTTP header in server, not here -->
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
 
-  <!-- Runs before other scripts: swallow extension/injected promise rejections (must match app.js __rianellIsExtensionRejectionBlob) -->
+  <!-- Runs before other scripts: swallow extension/injected promise rejections + benign console noise (keep in sync with app.js) -->
   <script>
     (function () {
+      window.__rianellIsBenignConsoleNoise = function (text) {
+        if (!text) return false;
+        var t = String(text);
+        if (/chrome-extension:|moz-extension:|safari-web-extension:|extension:\/\//i.test(t)) return true;
+        if (/tabs:outgoing|tabs\.outgoing|outgoing\.message\.ready|No\s+Listener:?|i18next|Grammarly|locize|chrome-error:|chromewebdata|vendor\.js|VM\d+\s+vendor|serviceWorker\.js|background\.js|inpage\.js/i.test(t)) return true;
+        if (/Frame with ID \d+ was removed|No tab with id|Could not establish connection|Receiving end does not exist|message port closed/i.test(t)) return true;
+        if (/ReferenceError:\s*window is not defined/i.test(t) && /background\.js/i.test(t)) return true;
+        if (/Unsafe attempt to load URL/i.test(t)) return true;
+        if (t.indexOf('ERR_INVALID_URL') !== -1 && t.indexOf('data:;base64') !== -1) return true;
+        if (/\[W:onnxruntime:/i.test(t)) return true;
+        if (/VerifyEachNodeIsAssignedToAnEp/i.test(t)) return true;
+        if (/session_state\.cc:126[0-9]/i.test(t)) return true;
+        if (/powerPreference option is currently ignored/i.test(t)) return true;
+        if (/crbug\.com\/369219127/i.test(t)) return true;
+        if (/rokt\.com|rokt-icons\.woff/i.test(t) && /preload/i.test(t)) return true;
+        return false;
+      };
+
       function rejectionText(reason) {
         if (reason == null) return '';
         if (typeof reason === 'string') return reason;
@@ -68,18 +86,42 @@
         }
         return m;
       }
-      function isExtensionRejection(reason) {
-        var t = rejectionText(reason);
-        if (!t) return false;
-        if (/chrome-extension:|moz-extension:|safari-web-extension:|extension:\/\//i.test(t)) return true;
-        /* Extension injected scripts (e.g. VM1234 vendor.js) - tabs:outgoing.message.ready, No Listener:, i18next, Grammarly, locize, chrome-error:, chromewebdata */
-        if (/tabs:outgoing|tabs\.outgoing|outgoing\.message\.ready|No\s+Listener:?|i18next|Grammarly|locize|chrome-error:|chromewebdata|vendor\.js|VM\d+\s+vendor|serviceWorker\.js|background\.js/i.test(t)) return true;
-        if (/Frame with ID \d+ was removed|No tab with id|Could not establish connection|Receiving end does not exist|message port closed/i.test(t)) return true;
-        if (/chrome-error:|chromewebdata|Unsafe attempt to load URL/i.test(t)) return true;
-        return false;
+
+      function argsToText(args) {
+        var parts = [];
+        for (var i = 0; i < args.length; i++) {
+          var a = args[i];
+          if (a instanceof Error) parts.push((a.message || '') + ' ' + (a.stack || ''));
+          else if (typeof a === 'string') parts.push(a);
+          else { try { parts.push(JSON.stringify(a)); } catch (e) { parts.push(String(a)); } }
+        }
+        return parts.join(' ');
       }
+
+      function patchConsoleLevel(level) {
+        var orig = console[level].bind(console);
+        console[level] = function () {
+          if (window.__rianellIsBenignConsoleNoise(argsToText(arguments))) return;
+          return orig.apply(console, arguments);
+        };
+      }
+      patchConsoleLevel('error');
+      patchConsoleLevel('warn');
+
       window.addEventListener('unhandledrejection', function (ev) {
-        if (isExtensionRejection(ev.reason)) {
+        if (window.__rianellIsBenignConsoleNoise(rejectionText(ev.reason))) {
+          ev.preventDefault();
+          ev.stopImmediatePropagation();
+        }
+      }, true);
+
+      window.addEventListener('error', function (ev) {
+        var msg = ev && ev.message ? String(ev.message) : '';
+        var src = ev && ev.filename ? String(ev.filename) : '';
+        if (ev && ev.target && ev.target !== window && (ev.target.src || ev.target.href)) {
+          src += ' ' + (ev.target.src || ev.target.href);
+        }
+        if (window.__rianellIsBenignConsoleNoise(msg + ' ' + src)) {
           ev.preventDefault();
           ev.stopImmediatePropagation();
         }
@@ -126,11 +168,9 @@
       }
 
       function looksLikeExtensionNoise(text) {
-        if (!text) return false;
-        if (/chrome-extension:|moz-extension:|safari-web-extension:|extension:\/\//i.test(text)) return true;
-        if (/tabs:outgoing|outgoing\.message\.ready|No\s+Listener:?|i18next|Grammarly|locize|chrome-error:|chromewebdata|vendor\.js|VM\d+\s+vendor|background\.js/i.test(text)) return true;
-        if (/Frame with ID \d+ was removed|No tab with id|Could not establish connection|Receiving end does not exist|message port closed/i.test(text)) return true;
-        return false;
+        return typeof window.__rianellIsBenignConsoleNoise === 'function'
+          ? window.__rianellIsBenignConsoleNoise(text)
+          : false;
       }
 
       function formatError(entry) {
@@ -265,6 +305,7 @@
               else if (typeof a === 'string') parts.push(a);
               else { try { parts.push(JSON.stringify(a)); } catch (e) { parts.push(String(a)); } }
             }
+            if (looksLikeExtensionNoise(parts.join(' '))) return;
             record('CONSOLE', parts.join(' '));
           } catch (e2) {}
           origError.apply(console, arguments);
@@ -307,9 +348,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=84" as="style">
+  <link rel="preload" href="styles.css?v=85" as="style">
   <link rel="preload" href="app.js?v=30" as="script">
-  <link rel="stylesheet" href="styles.css?v=84" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=84&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=85" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=85&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #070807; color: #e8eeec; margin: 0; padding: 0; }
@@ -321,20 +362,25 @@
     // Remove unwanted preload links injected by browser extensions (e.g. Rokt). Extensions often inject
     // after first paint, so we observe <head> as well as running once.
     (function() {
-      function stripExtensionPreloads(root) {
-        var links = root.querySelectorAll ? root.querySelectorAll('link[rel="preload"]') : [];
+      function stripExtensionInjectedLinks(root) {
+        var links = root.querySelectorAll ? root.querySelectorAll('link[href], link[rel="preload"]') : [];
         for (var i = 0; i < links.length; i++) {
           var link = links[i];
-          var href = link.getAttribute('href');
+          var href = link.getAttribute('href') || '';
           if (!href) continue;
           var isLocal = href.startsWith(window.location.origin) || href.startsWith('/') || href.startsWith('data:');
           if (isLocal) continue;
-          if (href.indexOf('rokt.com') !== -1 || href.indexOf('extension://') !== -1 || href.indexOf('chrome-extension://') !== -1) {
+          if (
+            href.indexOf('rokt.com') !== -1 ||
+            href.indexOf('extension://') !== -1 ||
+            href.indexOf('chrome-extension://') !== -1 ||
+            href.indexOf('moz-extension://') !== -1
+          ) {
             link.remove();
           }
         }
       }
-      stripExtensionPreloads(document);
+      stripExtensionInjectedLinks(document);
       var head = document.head;
       if (head && typeof MutationObserver !== 'undefined') {
         var obs = new MutationObserver(function (mutations) {
@@ -342,8 +388,8 @@
             var nodes = mutations[m].addedNodes;
             for (var n = 0; n < nodes.length; n++) {
               var node = nodes[n];
-              if (node.nodeName === 'LINK' && node.rel === 'preload') stripExtensionPreloads(node.parentNode || document);
-              else if (node.nodeType === 1) stripExtensionPreloads(node);
+              if (node.nodeName === 'LINK') stripExtensionInjectedLinks(node.parentNode || document);
+              else if (node.nodeType === 1) stripExtensionInjectedLinks(node);
             }
           }
         });
@@ -1320,6 +1366,24 @@
   </div>
   
   <div class="app-shell" id="appShell">
+    <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
+      <symbol id="rianell-nav-home" viewBox="0 0 24 24">
+        <path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-8.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      </symbol>
+      <symbol id="rianell-nav-logs" viewBox="0 0 24 24">
+        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M9 12h6M9 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="rianell-nav-charts" viewBox="0 0 24 24">
+        <path d="M4 19V5M4 19h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M8 17V11M12 17V7M16 17v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="rianell-nav-ai" viewBox="0 0 24 24">
+        <path d="M12 3 13.5 8.5 19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M5 19l1.2 2.4M19 19l-1.2 2.4M3 14h2.4M18.6 14H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </symbol>
+    </svg>
     <!-- Sibling of .container (not inside scroll/transform) so fixed top-right matches FAB behavior -->
     <div class="header-buttons-wrap">
       <button type="button" class="targets-button-top" onclick="openGoalsModal()" title="Goals & targets">
@@ -1387,19 +1451,19 @@
     <div class="tab-navigation tab-navigation--top" role="tablist" aria-label="Main sections">
       <span class="tab-nav-indicator" id="tabNavIndicator" aria-hidden="true"></span>
       <button type="button" class="tab-btn main-nav-tab active" data-tab="home" data-benchmark="nav-home" role="tab" aria-selected="true" aria-controls="homeTab" id="tab-home" onclick="switchTab('home')">
-        <span class="tab-icon tab-icon-letter" aria-hidden="true">H</span>
+        <span class="tab-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-home"/></svg></span>
         <span class="tab-text">Home</span>
       </button>
       <button type="button" class="tab-btn main-nav-tab" data-tab="logs" data-benchmark="nav-logs" role="tab" aria-selected="false" aria-controls="logsTab" id="tab-logs" onclick="switchTab('logs')">
-        <span class="tab-icon tab-icon-letter" aria-hidden="true">L</span>
+        <span class="tab-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-logs"/></svg></span>
         <span class="tab-text">View Logs</span>
       </button>
       <button type="button" class="tab-btn main-nav-tab" data-tab="charts" data-benchmark="nav-charts" role="tab" aria-selected="false" aria-controls="chartsTab" id="tab-charts" onclick="switchTab('charts')">
-        <span class="tab-icon tab-icon-letter" aria-hidden="true">C</span>
+        <span class="tab-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-charts"/></svg></span>
         <span class="tab-text">Charts</span>
       </button>
       <button type="button" class="tab-btn main-nav-tab" data-tab="ai" data-benchmark="nav-ai" role="tab" aria-selected="false" aria-controls="aiTab" id="tab-ai" onclick="switchTab('ai')">
-        <span class="tab-icon tab-icon-letter" aria-hidden="true">A</span>
+        <span class="tab-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-ai"/></svg></span>
         <span class="tab-text">AI Analysis</span>
       </button>
     </div>
@@ -2153,19 +2217,19 @@
   <div class="app-mobile-bottom-chrome">
     <nav class="app-bottom-nav" id="appBottomNav" role="navigation" aria-label="Main">
       <button type="button" class="app-bottom-nav-btn main-nav-tab active" data-tab="home" data-benchmark="nav-home" aria-current="page" aria-controls="homeTab" id="bottom-tab-home" onclick="switchTab('home')">
-        <span class="app-bottom-nav-icon tab-icon-letter" aria-hidden="true">H</span>
+        <span class="app-bottom-nav-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-home"/></svg></span>
         <span class="app-bottom-nav-text">Home</span>
       </button>
       <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="logs" data-benchmark="nav-logs" aria-controls="logsTab" id="bottom-tab-logs" onclick="switchTab('logs')">
-        <span class="app-bottom-nav-icon tab-icon-letter" aria-hidden="true">L</span>
+        <span class="app-bottom-nav-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-logs"/></svg></span>
         <span class="app-bottom-nav-text">Logs</span>
       </button>
       <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="charts" data-benchmark="nav-charts" aria-controls="chartsTab" id="bottom-tab-charts" onclick="switchTab('charts')">
-        <span class="app-bottom-nav-icon tab-icon-letter" aria-hidden="true">C</span>
+        <span class="app-bottom-nav-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-charts"/></svg></span>
         <span class="app-bottom-nav-text">Charts</span>
       </button>
       <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="ai" data-benchmark="nav-ai" aria-controls="aiTab" id="bottom-tab-ai" onclick="switchTab('ai')">
-        <span class="app-bottom-nav-icon tab-icon-letter" aria-hidden="true">A</span>
+        <span class="app-bottom-nav-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-ai"/></svg></span>
         <span class="app-bottom-nav-text">AI</span>
       </button>
     </nav>
