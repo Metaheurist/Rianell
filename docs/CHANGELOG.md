@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.47.0** - Cross-platform UI sophistication overhaul (motion, toasts, home hero, RN design system).
+**Latest: v1.47.1** - MOTD LLM guardrails (relevance filter, cooler sampling, curated-quote-first).
+
+### v1.47.1 - 2026-06-12 - MOTD LLM guardrails
+
+- **PWA (`summary-llm.js`):** The on-device MOTD generator could emit off-topic trivia (e.g. *"a user has to be at least 65 years old to set an alarm on their devices"*) — small Flan-T5 models drift when sampled hot. Now: **temperature 0.92 → 0.7**, **top_p 0.93 → 0.9**, and new **`isUsableMotdText`** relevance gate (rejects digits, tech/trivia vocabulary like *user/device/alarm/login*, and lines without motivational wording) before replacing the curated quote.
+- **PWA (`app.js`):** Curated **`motd.json`** quotes are now the **primary** dashboard MOTD; the LLM only attempts a replacement on **~30% of page loads** (one stable roll per session via **`__rianellMotdLlmRoll`**).
+- **Cache:** **`app.js?v=32`**; **`sw.js`** **`CACHE_NAME`** → **`v2026-06-12-motd-guardrails`** (refreshes unversioned **`summary-llm.js`**).
 
 ### v1.47.0 - 2026-06-12 - UI sophistication overhaul (PWA + RN + parity)
 
