@@ -476,6 +476,10 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # Default "tools" pulls Android Emulator; emulator zip often fails on GHA (ZipFile unknown archive).
+          # APK build only needs platform/build-tools + NDK (matches RN 0.76 / Expo compileSdk 36).
+          packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;27.1.12297006
 
       - name: Install root dependencies (workspaces)
         run: npm ci

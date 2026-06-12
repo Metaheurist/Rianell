@@ -2,7 +2,11 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.46.35** - Theme-token nav SVG icons; suppress benign console noise.
+**Latest: v1.46.36** - CI: Android SDK setup without emulator package.
+
+### v1.46.36 - 2026-06-12 - CI Android SDK setup fix
+
+- **CI (`.github/workflows/ci.yml`):** **`setup-android@v3`** now installs **`platform-tools`**, **`platforms;android-36`**, **`build-tools;36.0.0`**, and **`ndk;27.1.12297006`** instead of default **`tools`** (which pulls Android Emulator and fails with **`ZipFile unknown archive`** on GitHub Actions).
 
 ### v1.46.35 - 2026-06-12 - Nav SVG icons; console noise filter
 
