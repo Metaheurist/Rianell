@@ -18000,6 +18000,11 @@ function scheduleDashboardMotdWithLlm(fallbackTitle) {
   var deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
     ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
   if (deviceOpts.deferAI) return;
+  // Curated motd.json quotes are the primary MOTD; the on-device LLM only
+  // occasionally replaces them (small models can produce off-topic lines).
+  // One roll per page load (stable across repeated calls in the same session).
+  if (window.__rianellMotdLlmRoll == null) window.__rianellMotdLlmRoll = Math.random();
+  if (window.__rianellMotdLlmRoll >= 0.3) return;
   var fb = fallbackTitle != null ? fallbackTitle : getRandomMotdFallback();
   (async function motdDashboardTitle() {
     if (typeof window.generateMotdWithLLM !== 'function') {
