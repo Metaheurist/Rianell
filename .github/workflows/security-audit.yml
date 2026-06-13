@@ -22,10 +22,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Load scanner versions
-        id: versions
-        run: echo "config=$(cat tools/security-scanners.json)" >> $GITHUB_OUTPUT
-
       - name: Gitleaks (secret scan, working tree)
         run: |
           set -euo pipefail
