@@ -50,7 +50,19 @@
 6. Revoke/disable previous anon key in dashboard when traffic shows 100% on new deploy (check Supabase API logs).
 7. Run smoke test: sign-in, cloud sync upload/download, bug report insert.
 
-### 3.2 Service role (secret) key
+### 3.2 Single Supabase project (current)
+
+Rianell uses **one** Supabase project for all users. See [single-project-residency.md](../docs/privacy/single-project-residency.md).
+
+1. Rotate the project's anon/publishable key in the Supabase dashboard.
+2. Update GitHub Actions secrets `SUPABASE_URL` and `SUPABASE_ANON_KEY` (and matching RN/PWA build env).
+3. Redeploy PWA and rebuild RN binaries.
+4. Verify schema parity: `node scripts/verify-supabase-schema-parity.mjs`.
+5. Revoke the previous anon key after traffic confirms the new deploy.
+
+**Legacy (deprecated):** Dual EU/US projects and `residency-config.json` were removed in v1.52 — see [multi-residency.md](../docs/privacy/multi-residency.md).
+
+### 3.3 Service role (secret) key
 
 **Impact:** Server `POST /api/bug-report`, admin scripts, wipe tools. **Never** embed in PWA/RN.
 

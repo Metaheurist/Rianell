@@ -4,7 +4,8 @@
   try {
     var REAL_SUPABASE_CONFIG = {
       url: 'https://YOUR_PROJECT_REF.supabase.co',
-      anonKey: 'YOUR_SUPABASE_ANON_KEY'
+      anonKey: 'YOUR_SUPABASE_ANON_KEY',
+      modelsStorageBucket: 'llm-models'
     };
     if (typeof window !== 'undefined') {
       window.SUPABASE_CONFIG = REAL_SUPABASE_CONFIG;
