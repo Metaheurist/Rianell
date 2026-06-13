@@ -1,7 +1,7 @@
 import React from 'react';
-import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { SettingsScreen } from './SettingsScreen';
-import { ThemeProvider } from '../theme/ThemeProvider';
+import { renderWithProviders } from '../test/renderWithProviders';
 import { getDefaultPreferences, type Preferences } from '../storage/preferences';
 
 jest.mock('expo-speech', () => ({
@@ -72,10 +72,9 @@ async function renderSettingsScreen(
   prefs: Preferences,
   onChangePrefs: (p: Preferences) => void = () => {}
 ) {
-  const utils = render(
-    <ThemeProvider prefs={prefs}>
-      <SettingsScreen prefs={prefs} onChangePrefs={onChangePrefs} />
-    </ThemeProvider>
+  const utils = renderWithProviders(
+    <SettingsScreen prefs={prefs} onChangePrefs={onChangePrefs} />,
+    { prefs, onChangePrefs },
   );
   await waitFor(() => {
     expect(require('../permissions/permissions').Permissions.getLastReminderAction).toHaveBeenCalled();
@@ -83,47 +82,50 @@ async function renderSettingsScreen(
   return utils;
 }
 
-test('settings carousel: eight panes match web settings carousel titles', async () => {
-  const prefs = getDefaultPreferences();
+test('settings carousel: nine panes match web settings carousel titles', async () => {
+  const prefs = { ...getDefaultPreferences(), privacyRegion: 'eea_uk' };
   const { getByText, getByTestId } = await renderSettingsScreen(prefs);
 
-  getByText('1 / 8 - Personal & cloud sync');
-  getByText(/Cloud sync is not configured/);
+  getByText('1 / 9 - Privacy & region');
 
   fireEvent.press(getByTestId('settings-pane-tab-1'));
-  getByText('2 / 8 - AI & Goals');
+  getByText('2 / 9 - Personal & cloud sync');
+  getByText(/Cloud sync is not configured/);
+
+  fireEvent.press(getByTestId('settings-pane-tab-2'));
+  getByText('3 / 9 - AI & Goals');
   getByText('Enable AI features & Goals');
   getByText('Goals & targets');
   getByText('Mood target (0-10)');
 
-  fireEvent.press(getByTestId('settings-pane-tab-2'));
-  getByText('3 / 8 - Display');
+  fireEvent.press(getByTestId('settings-pane-tab-3'));
+  getByText('4 / 9 - Display');
   getByText('Enable daily reminder');
   getByText('Reminder sound');
   getByText('Snooze minutes (later action)');
   getByText(/Later action snoozes for/i);
   getByText(/Action policy: log-now to Log today/i);
 
-  fireEvent.press(getByTestId('settings-pane-tab-3'));
-  getByText('4 / 8 - Customisation');
+  fireEvent.press(getByTestId('settings-pane-tab-4'));
+  getByText('5 / 9 - Customisation');
   getByText('Theme customisation');
 
-  fireEvent.press(getByTestId('settings-pane-tab-4'));
-  getByText('5 / 8 - Accessibility');
+  fireEvent.press(getByTestId('settings-pane-tab-5'));
+  getByText('6 / 9 - Accessibility');
   getByText('Large text');
   getByText('Text-to-speech (tap-to-read)');
   getByText('Read mode (auto-read on focus)');
 
-  fireEvent.press(getByTestId('settings-pane-tab-5'));
-  getByText('6 / 8 - Data options');
+  fireEvent.press(getByTestId('settings-pane-tab-6'));
+  getByText('7 / 9 - Data options');
   getByText('Demo mode');
 
-  fireEvent.press(getByTestId('settings-pane-tab-6'));
-  getByText('7 / 8 - Performance');
+  fireEvent.press(getByTestId('settings-pane-tab-7'));
+  getByText('8 / 9 - Performance');
   getByText('On-device AI model');
 
-  fireEvent.press(getByTestId('settings-pane-tab-7'));
-  getByText('8 / 8 - Data management');
+  fireEvent.press(getByTestId('settings-pane-tab-8'));
+  getByText('9 / 9 - Data management');
   getByText('Export logs (JSON)');
   getByText('📥 Import logs (JSON)');
   getByText('🗑️ Clear all data');
@@ -134,7 +136,7 @@ test('goals target inputs trigger preference updates', async () => {
   const onChangePrefs = jest.fn();
   const { getByLabelText, getByTestId } = await renderSettingsScreen(prefs, onChangePrefs);
 
-  fireEvent.press(getByTestId('settings-pane-tab-1'));
+  fireEvent.press(getByTestId('settings-pane-tab-2'));
   fireEvent.changeText(getByLabelText('Mood target value'), '8');
   expect(onChangePrefs).toHaveBeenCalled();
 });
@@ -448,8 +450,8 @@ test('textScale affects rendered typography sizes', async () => {
   const r1 = await renderSettingsScreen(prefs1);
   const r2 = await renderSettingsScreen(prefs2);
 
-  fireEvent.press(r1.getByTestId('settings-pane-tab-3'));
-  fireEvent.press(r2.getByTestId('settings-pane-tab-3'));
+  fireEvent.press(r1.getByTestId('settings-pane-tab-4'));
+  fireEvent.press(r2.getByTestId('settings-pane-tab-4'));
   const s1 = r1.getByText('Theme customisation');
   const s2 = r2.getByText('Theme customisation');
 
@@ -473,7 +475,7 @@ test('TTS reads choice label on press when enabled', async () => {
 
   const { getByLabelText, getByTestId } = await renderSettingsScreen(prefs);
 
-  fireEvent.press(getByTestId('settings-pane-tab-3'));
+  fireEvent.press(getByTestId('settings-pane-tab-4'));
   fireEvent.press(getByLabelText('dark'));
   expect(Speech.speak).toHaveBeenCalled();
 });

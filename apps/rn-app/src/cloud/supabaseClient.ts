@@ -29,3 +29,8 @@ export function getSupabaseClient(): SupabaseClient | null {
 export function resetSupabaseClientForTests(): void {
   singleton = null;
 }
+
+/** Phase 5 removed — single Supabase project only. */
+export function getSupabaseClientForResidency(_code?: string): SupabaseClient | null {
+  return getSupabaseClient();
+}

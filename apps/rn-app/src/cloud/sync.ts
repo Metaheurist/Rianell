@@ -11,6 +11,7 @@ import { getSupabaseClient } from './supabaseClient';
 import type { LogEntry } from '../storage/logs';
 import { loadLogs, saveLogs } from '../storage/logs';
 import { loadPreferences, savePreferences, type Preferences } from '../storage/preferences';
+import { fetchPrivacyProfileAndApply } from './privacyProfile';
 
 const ANON_ENCRYPTION_KEY_LS = 'rianellLocalEncryptionKeyHex';
 
@@ -104,17 +105,23 @@ async function deleteUserRows(client: SupabaseClient, userId: string, tables: st
 }
 
 export async function syncToCloud(): Promise<{ ok: boolean; message: string }> {
+  const prefs = await loadPreferences();
   const client = getSupabaseClient();
   if (!client) return { ok: false, message: 'Cloud sync is not configured.' };
   const { data: sessionData } = await client.auth.getSession();
   const user = sessionData.session?.user;
   if (!user) return { ok: false, message: 'Please sign in to sync.' };
 
+  const { getFeatureAvailability, prefsToConsents } = await import('@rianell/shared');
+  const avail = getFeatureAvailability(prefs.privacyRegion || 'other', 'cloudEncryptedBackup', prefsToConsents(prefs));
+  if (!avail.available) {
+    return { ok: false, message: 'Cloud backup is not available for your privacy region or missing consent.' };
+  }
+
   const userKey = await getUserEncryptionKey(client, user);
   if (!userKey) return { ok: false, message: 'Could not obtain encryption key.' };
 
   const localLogs = await loadLogs();
-  const prefs = await loadPreferences();
   const settingsRaw = await AsyncStorage.getItem(SETTINGS_STORAGE_KEY);
   const localSettings = settingsRaw ? JSON.parse(settingsRaw) : {};
   const goalsRaw = await readGoalsJson();
@@ -186,6 +193,9 @@ export async function loadFromCloud(): Promise<{ ok: boolean; message: string }>
   if (error) return { ok: false, message: error.message };
   if (!cloudData) return { ok: false, message: 'No cloud backup found for this account.' };
 
+  const { prefs: profileMerged } = await fetchPrivacyProfileAndApply(await loadPreferences());
+  await savePreferences(profileMerged);
+
   let cloudLogs: LogEntry[] = [];
   if (cloudData.health_logs) {
     const decrypted = await decryptJsonAesGcm(cloudData.health_logs, userKey);
@@ -229,6 +239,18 @@ export async function syncAnonymizedData(medicalCondition: string): Promise<{ ok
   const { data: sessionData } = await client.auth.getSession();
   const user = sessionData.session?.user;
   if (!user) return { ok: false, message: 'Please sign in.' };
+
+  const prefs = await loadPreferences();
+  const { getFeatureAvailability, prefsToConsents } = await import('@rianell/shared');
+  const avail = getFeatureAvailability(
+    prefs.privacyRegion || 'other',
+    'anonymizedResearchPool',
+    prefsToConsents(prefs),
+  );
+  if (!avail.available) {
+    return { ok: false, message: 'Anonymized contribution is not available for your privacy region.' };
+  }
+
   if (!medicalCondition?.trim()) return { ok: false, message: 'Set a medical condition first.' };
 
   const condition = medicalCondition.trim();
@@ -296,9 +318,10 @@ export async function deleteAllUserDataFromCloud(): Promise<{ ok: boolean; messa
     'user_keys',
     'anonymized_data',
     'bug_reports',
+    'user_privacy_profile',
   ]);
   if (err) return { ok: false, message: err };
   return { ok: true, message: 'All cloud data deleted for this account.' };
 }
 
-export { mergeHealthLogs };
+export { mergeHealthLogs, fetchPrivacyProfileAndApply, upsertPrivacyProfile } from './privacyProfile';

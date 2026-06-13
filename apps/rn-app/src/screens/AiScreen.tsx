@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { RefreshControl } from '../components/legacyRnJsx';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
+import { useT } from '../i18n/I18nProvider';
 import { loadLogs } from '../storage/logs';
 import { summarizeLogsForAi, type AiRange, type AiSummary } from '../ai/analyzeLogs';
 import type { Preferences } from '../storage/preferences';
@@ -17,6 +18,7 @@ function fmt(value: number | null): string {
 
 export function AiScreen({ prefs }: { prefs: Preferences }) {
   const theme = useTheme();
+  const { t } = useT();
   const bg =
     theme.tokens.color.background ===
     'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
@@ -98,7 +100,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
             },
           ]}
         >
-        <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>AI Analysis</Text>
+        <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>{t('nav.ai')}</Text>
 
           <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
             Log-driven AI summary view: at-a-glance insights, trends, symptoms, stressors, and flare signals.

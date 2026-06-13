@@ -2,7 +2,7 @@ import React from 'react';
 import { FlatList } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { LogsScreen } from './LogsScreen';
-import { ThemeProvider } from '../theme/ThemeProvider';
+import { renderWithProviders } from '../test/renderWithProviders';
 import { getDefaultPreferences } from '../storage/preferences';
 
 const mockLoadLogs = jest.fn(async () => [] as Awaited<ReturnType<typeof import('../storage/logs').loadLogs>>);
@@ -45,11 +45,7 @@ jest.mock('../storage/logs', () => {
 
 function renderLogs() {
   const prefs = getDefaultPreferences();
-  return render(
-    <ThemeProvider prefs={prefs}>
-      <LogsScreen />
-    </ThemeProvider>
-  );
+  return renderWithProviders(<LogsScreen />, { prefs });
 }
 
 test('logs screen shows empty state when no logs', async () => {

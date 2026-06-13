@@ -78,6 +78,13 @@ function initSupabase() {
  */
 async function syncAnonymizedData() {
   console.log('[syncAnonymizedData] Starting sync...');
+  if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.checkFeature === 'function') {
+    var anonAvail = window.RianellPrivacy.checkFeature('anonymizedResearchPool');
+    if (!anonAvail.available) {
+      console.log('[syncAnonymizedData] Blocked by privacy region policy');
+      return;
+    }
+  }
   console.log('[syncAnonymizedData] appSettings:', window.appSettings ? {
     contributeAnonData: window.appSettings.contributeAnonData,
     demoMode: window.appSettings.demoMode,
@@ -956,7 +963,7 @@ async function handleCloudSignUp(context) {
     return;
   }
   
-  const client = initSupabase();
+  let client = initSupabase();
   if (!client) {
     if (typeof showAlertModal === 'function') {
       showAlertModal('Supabase client not available. Please check your connection.', 'Connection Error');
@@ -964,6 +971,11 @@ async function handleCloudSignUp(context) {
       alert('Supabase client not available');
     }
     return;
+  }
+
+  var residencyCode = 'default';
+  if (typeof window !== 'undefined' && window.RianellShared && window.RianellPrivacy) {
+    /* single Supabase project — no residency routing */
   }
   
   try {
@@ -1077,7 +1089,7 @@ async function handleCloudLogin(context) {
     return;
   }
   
-  const client = initSupabase();
+  let client = initSupabase();
   if (!client) {
     if (typeof showAlertModal === 'function') {
       showAlertModal('Supabase client not available. Please check your connection.', 'Connection Error');
@@ -1085,6 +1097,10 @@ async function handleCloudLogin(context) {
       alert('Supabase client not available');
     }
     return;
+  }
+
+  if (typeof window !== 'undefined' && window.RianellShared && window.RianellPrivacy) {
+    /* single Supabase project — no login residency routing */
   }
   
   try {
@@ -1381,6 +1397,15 @@ async function decryptWithUserKey(encryptedData, userKey) {
 
 // Sync user's health data to cloud (health_data table)
 async function syncToCloud() {
+  if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.checkFeature === 'function') {
+    var backupAvail = window.RianellPrivacy.checkFeature('cloudEncryptedBackup');
+    if (!backupAvail.available) {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('Cloud backup is not available for your privacy region or missing required consent.', 'Privacy region');
+      }
+      return;
+    }
+  }
   if (!cloudSyncState.isAuthenticated || !cloudSyncState.user) {
     if (typeof showAlertModal === 'function') {
       showAlertModal('Please sign in to sync your data to the cloud.', 'Not Signed In');
@@ -2003,6 +2028,42 @@ async function deleteAnonymizedContributionFromCloud() {
   }
 }
 
+async function fetchPrivacyProfileAndApply(showToast) {
+  const client = initSupabase();
+  if (!client || !cloudSyncState.user) return null;
+  try {
+    const { data, error } = await client
+      .from('user_privacy_profile')
+      .select('*')
+      .eq('user_id', cloudSyncState.user.id)
+      .maybeSingle();
+    if (error) {
+      console.warn('fetchPrivacyProfileAndApply:', error);
+      return null;
+    }
+    if (data && typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.applyProfileFromCloud === 'function') {
+      window.RianellPrivacy.applyProfileFromCloud(data, showToast !== false);
+    }
+    return data;
+  } catch (e) {
+    console.warn('fetchPrivacyProfileAndApply failed', e);
+    return null;
+  }
+}
+
+async function upsertPrivacyProfile() {
+  const client = initSupabase();
+  if (!client || !cloudSyncState.user) return;
+  const S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!S || typeof S.privacyProfileFromLocal !== 'function') return;
+  const prefs = typeof window !== 'undefined' && window.RianellPrivacy && window.RianellPrivacy.getPrivacyFields
+    ? window.RianellPrivacy.getPrivacyFields()
+    : (window.appSettings || {});
+  const row = S.privacyProfileFromLocal(prefs, cloudSyncState.user.id);
+  const { error } = await client.from('user_privacy_profile').upsert(row, { onConflict: 'user_id' });
+  if (error) console.warn('upsertPrivacyProfile:', error);
+}
+
 async function deleteAllUserDataFromCloud() {
   try {
     const client = initSupabase();
@@ -2014,7 +2075,7 @@ async function deleteAllUserDataFromCloud() {
     const userId = cloudSyncState.user.id;
     console.log('Starting full cloud erasure for user:', userId);
 
-    const tables = ['health_data', 'user_keys', 'anonymized_data', 'bug_reports'];
+    const tables = ['health_data', 'user_keys', 'anonymized_data', 'bug_reports', 'user_privacy_profile'];
     for (const table of tables) {
       const { error } = await client.from(table).delete().eq('user_id', userId);
       if (error) {
@@ -2045,6 +2106,8 @@ if (typeof window !== 'undefined') {
   window.deleteCloudLogs = deleteCloudLogs;
   window.deleteAnonymizedContributionFromCloud = deleteAnonymizedContributionFromCloud;
   window.deleteAllUserDataFromCloud = deleteAllUserDataFromCloud;
+  window.fetchPrivacyProfileAndApply = fetchPrivacyProfileAndApply;
+  window.upsertPrivacyProfile = upsertPrivacyProfile;
   window.initSupabase = initSupabase;
   window.submitBugReportToSupabase = submitBugReportToSupabase;
   
@@ -2067,7 +2130,9 @@ if (typeof window !== 'undefined') {
         };
         saveCloudSyncState();
         updateCloudSyncUI();
-        loadFromCloud();
+        fetchPrivacyProfileAndApply(true).then(function () {
+          return loadFromCloud();
+        });
       } else if (event === 'SIGNED_OUT') {
         cloudSyncState.isAuthenticated = false;
         cloudSyncState.user = null;
@@ -2089,7 +2154,9 @@ if (typeof window !== 'undefined') {
     return checkAuthStatus().then(() => {
       updateCloudSyncUI();
       if (cloudSyncState.isAuthenticated) {
-        loadFromCloud();
+        fetchPrivacyProfileAndApply(true).then(function () {
+          return loadFromCloud();
+        });
       }
     });
   }

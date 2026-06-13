@@ -23,6 +23,7 @@ var RianellAIEngine = (() => {
     AIEngine: () => AIEngine,
     analyzeHealthMetrics: () => analyzeHealthMetrics,
     filterLogsByRange: () => filterLogsByRange,
+    generateAnalysisNote: () => generateAnalysisNote,
     predictFutureValues: () => predictFutureValues,
     suggestLogNote: () => suggestLogNote
   });
@@ -161,10 +162,20 @@ var RianellAIEngine = (() => {
     if (!parts.length) parts.push("Steady day \u2014 note anything that helped or hindered how you felt.");
     return parts.join(" ");
   }
+  function generateAnalysisNote(summary) {
+    const parts = [];
+    if (summary?.rangeLabel) parts.push(`Range: ${summary.rangeLabel}.`);
+    if (summary?.howYouAreDoing?.length) parts.push(summary.howYouAreDoing.join(" "));
+    if (summary?.possibleFlareUp?.level) {
+      parts.push(`Flare risk: ${summary.possibleFlareUp.level}.`);
+    }
+    return parts.join(" ") || "Keep logging to build a clearer picture.";
+  }
   var AIEngine = {
     analyzeHealthMetrics,
     predictFutureValues,
-    suggestLogNote
+    suggestLogNote,
+    generateAnalysisNote
   };
   return __toCommonJS(index_exports);
 })();

@@ -1,11 +1,15 @@
 # Platform parity inventory
 
-Generated: 2026-06-13T15:55:27.316Z
+Generated: 2026-06-13T19:34:30.279Z
 
 ## Settings / preferences field parity
 
 | Field | PWA appSettings | RN preferences |
 |-------|-----------------|----------------|
+| privacyRegion | yes | yes |
+| privacyRegionSource | yes | yes |
+| policyAcknowledgedVersion | yes | yes |
+| uiLocale | yes | yes |
 | userName | yes | yes |
 | medicalCondition | yes | yes |
 | weightUnit | yes | yes |
@@ -30,6 +34,8 @@ Generated: 2026-06-13T15:55:27.316Z
 | mergeHealthLogs | yes | yes |
 | deleteCloudLogs | yes | yes |
 | deleteAllUserDataFromCloud | yes | yes |
+| fetchPrivacyProfileAndApply | yes | yes |
+| upsertPrivacyProfile | yes | yes |
 
 ## Legacy Capacitor (must be absent post-sunset)
 
