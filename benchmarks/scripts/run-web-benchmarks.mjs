@@ -3,7 +3,6 @@
  *
  * Env:
  *   BENCHMARK_PWA_ROOT   — static site root (default: apps/pwa-webapp/.android-dist or apps/pwa-webapp)
- *   BENCHMARK_CAP_ROOT   — Capacitor dist (default: apps/capacitor-app/dist)
  *   BENCHMARK_REPO_ROOT  — repo root (default: ../.. from this file)
  */
 import fs from 'fs';
@@ -29,12 +28,6 @@ function pickPwaRootSync() {
   const min = path.join(REPO_ROOT, 'apps', 'pwa-webapp', '.android-dist');
   if (fs.existsSync(path.join(min, 'index.html'))) return min;
   return path.join(REPO_ROOT, 'apps', 'pwa-webapp');
-}
-
-function capRootSync() {
-  const env = process.env.BENCHMARK_CAP_ROOT;
-  if (env) return path.resolve(env);
-  return path.join(REPO_ROOT, 'apps', 'capacitor-app', 'dist');
 }
 
 function meta() {
@@ -108,7 +101,6 @@ async function runOneProfile({ slug, title, startPath, note }) {
 
 async function main() {
   const pwaRoot = pickPwaRootSync();
-  const capRoot = capRootSync();
 
   await runOneProfile({
     slug: 'web-pwa',
@@ -123,43 +115,6 @@ async function main() {
     startPath: { root: pwaRoot, entry: '/index.html' },
     note: 'Same artifact as the PWA row; CI deploys this shape to GitHub Pages (`site/` from minified workflow).',
   });
-
-  if (fs.existsSync(path.join(capRoot, 'legacy', 'index.html'))) {
-    await runOneProfile({
-      slug: 'capacitor-web',
-      title: 'Capacitor WebView payload (legacy bundle)',
-      startPath: { root: capRoot, entry: '/legacy/index.html' },
-      note: 'Matches native `legacy/index.html` entry (see `apps/capacitor-app/src/main.tsx`). Run `npm run build:web:apk && npm run build:react`.',
-    });
-  } else {
-    const skipDetail = `Skipped: ${capRoot}/legacy/index.html not found. Run: npm run build:web:apk && npm run build:react`;
-    const capMeta = benchmarkMetaBase();
-    writeBenchmarkMd({
-      platformTitle: 'Capacitor WebView payload (legacy bundle)',
-      slug: 'capacitor-web',
-      repoRoot: REPO_ROOT,
-      meta: capMeta,
-      sections: [
-        {
-          title: 'Status',
-          rows: [
-            {
-              detail: skipDetail,
-            },
-          ],
-        },
-      ],
-    });
-    writeLatestRunJson(
-      REPO_ROOT,
-      'capacitor-web',
-      buildWebSkippedPayload({
-        slug: 'capacitor-web',
-        meta: capMeta,
-        reason: skipDetail,
-      }),
-    );
-  }
 
   if (process.env.BENCHMARK_SKIP_README !== '1') {
     const { updateBenchmarksReadme } = await import('./update-benchmarks-readme.mjs');

@@ -64,13 +64,10 @@ node_modules/
 dist/
 build/
 apps/pwa-webapp/app.min.js
+.server-dist/
 apps/pwa-webapp/app.*.min.js
 apps/pwa-webapp/asset-manifest.json
 apps/pwa-webapp/.trace-build/
 apps/pwa-webapp/.android-dist/
 
-# React / Capacitor
-apps/capacitor-app/node_modules/
-apps/capacitor-app/dist/
-apps/capacitor-app/public/legacy/
 .aider*

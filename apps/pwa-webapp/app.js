@@ -3069,32 +3069,6 @@ function svgIcon(name, className, title) {
   return '<svg class="' + cls + '"' + label + '><use href="#icon-' + safeName + '"></use></svg>';
 }
 
-function legacyEmojiIcon(emoji, className, title) {
-  var map = {
-    '📊': 'chart-bars',
-    '📈': 'chart-up',
-    '📉': 'chart-down',
-    '⚖️': 'balance',
-    '🧠': 'brain',
-    '⚡': 'zap',
-    '💾': 'save',
-    '📝': 'edit',
-    '✏️': 'edit',
-    '🍽️': 'food',
-    '⚠️': 'notice',
-    '✅': 'chart-up',
-    '🔴': 'notice',
-    '🟡': 'notice',
-    '🟠': 'notice',
-    '💧': 'cloud',
-    '🔒': 'lock',
-    '👁️': 'eye',
-    '📋': 'document',
-    '🗑️': 'trash'
-  };
-  return svgIcon(map[emoji] || 'chart-bars', className || 'ui-svg-icon', title);
-}
-
 function sanitizeHTML(html) {
   if (typeof html !== 'string') return '';
   // Escape HTML special characters

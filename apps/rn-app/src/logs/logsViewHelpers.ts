@@ -1,7 +1,9 @@
 import type { LogEntry } from '../storage/logs';
 
-/** Matches web View Logs shortcuts (Today / 7 / 30 / 90 / all). */
-export type LogRangePreset = 'today' | 7 | 30 | 90 | 'all';
+/** Matches web View Logs shortcuts (Today / 7 / 30 / 90 / all / custom). */
+export type LogRangePreset = 'today' | 7 | 30 | 90 | 'all' | 'custom';
+
+export type LogCustomRange = { start: string; end: string };
 
 export type LogSortOrder = 'newest' | 'oldest';
 
@@ -17,13 +19,28 @@ export function todayYmd(): string {
   return ymdLocal(new Date());
 }
 
-export function filterLogsByRange(logs: LogEntry[], preset: LogRangePreset): LogEntry[] {
+export function filterLogsByRange(
+  logs: LogEntry[],
+  preset: LogRangePreset,
+  custom?: LogCustomRange
+): LogEntry[] {
+  if (preset === 'custom' && custom?.start && custom?.end) {
+    const start = custom.start;
+    const end = custom.end;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(start) && /^\d{4}-\d{2}-\d{2}$/.test(end)) {
+      return logs.filter((l) => l.date >= start && l.date <= end);
+    }
+    return [...logs];
+  }
+
   if (preset === 'all') return [...logs];
 
   const t = todayYmd();
   if (preset === 'today') {
     return logs.filter((l) => l.date === t);
   }
+
+  if (typeof preset !== 'number') return [...logs];
 
   const n = preset;
   const end = new Date();

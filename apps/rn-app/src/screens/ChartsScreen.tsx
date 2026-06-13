@@ -27,6 +27,7 @@ import {
   type ChartRange,
   type ChartViewMode,
 } from '../charts/summarizeCharts';
+import { predictFutureValues } from '../ai/engine';
 
 const RANGE_OPTIONS: ChartRange[] = [7, 14, 30, 90, 'all'];
 
@@ -250,6 +251,15 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
   };
 
   const summary = useMemo(() => summarizeCharts(logs, range), [logs, range]);
+  const moodPrediction = useMemo(() => {
+    const moodSeries = logs
+      .filter((e) => typeof e.mood === 'number')
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((e) => e.mood as number);
+    if (moodSeries.length < 2) return null;
+    const next = predictFutureValues(moodSeries, 3);
+    return next.length ? next[next.length - 1] : null;
+  }, [logs]);
   const trendsForView = useMemo(
     () => filterTrendsForChartView(summary.trends, view),
     [summary.trends, view]
@@ -435,6 +445,11 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                 Flare days: {summary.flareDays}
               </Text>
+              {moodPrediction ? (
+                <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                  Mood forecast (+3d): ~{moodPrediction.value.toFixed(1)}/10
+                </Text>
+              ) : null}
               {trendsForView.some((trend) => trend.spark.length > 1) ? (
                 <CombinedTrendChart
                   series={trendsForView

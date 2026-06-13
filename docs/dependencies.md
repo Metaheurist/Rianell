@@ -4,7 +4,7 @@ This page lists **where dependencies are declared** for the Rianell monorepo: **
 
 **Runtime expectations:** Node **>=24.14.1** ([`package.json`](../package.json) `engines`; [`.nvmrc`](../.nvmrc) pins **24.14.1** for local tooling). **Python 3.8+** for the server ([`requirements.txt`](../requirements.txt)).
 
-**Build mapping (see main [README](../README.md)):** Web/PWA (GitHub Pages), React Native (Expo) CLI bundles for Android/iOS, Python server EXE (PyInstaller + optional PyArmor in CI), legacy Capacitor shell (npm manifests still present; CI no longer ships those artifacts by default).
+**Build mapping (see main [README](../README.md)):** Web/PWA (GitHub Pages), React Native (Expo) CLI bundles for Android/iOS, Python server EXE (PyInstaller + optional PyArmor in CI), shared `@rianell/*` workspace packages.
 
 ## Authoritative sources
 
@@ -13,8 +13,7 @@ This page lists **where dependencies are declared** for the Rianell monorepo: **
 | npm lockfile (all workspaces) | [`package-lock.json`](../package-lock.json) |
 | Root workspace + overrides | [`package.json`](../package.json) |
 | React Native (Expo) | [`apps/rn-app/package.json`](../apps/rn-app/package.json) |
-| Legacy Capacitor shell | [`apps/capacitor-app/package.json`](../apps/capacitor-app/package.json) |
-| Shared libraries | [`packages/shared/package.json`](../packages/shared/package.json), [`packages/tokens/package.json`](../packages/tokens/package.json) |
+| Shared libraries | [`packages/shared/package.json`](../packages/shared/package.json), [`packages/ai-engine/package.json`](../packages/ai-engine/package.json), [`packages/cloud-sync/package.json`](../packages/cloud-sync/package.json), [`packages/llm/package.json`](../packages/llm/package.json), [`packages/tokens/package.json`](../packages/tokens/package.json) |
 | Benchmarks | [`benchmarks/package.json`](../benchmarks/package.json) |
 | Python server | [`requirements.txt`](../requirements.txt) |
 
@@ -32,11 +31,10 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `@babel/parser` | ^7.26.7 |
 | `@babel/traverse` | ^7.26.7 |
 | `@babel/types` | ^7.26.7 |
-| `@capacitor/cli` | 7.6.1 |
 | `esbuild` | 0.28.1 |
 | `sharp` | ^0.33.5 |
 
-**`overrides`** — 25 pin(s): `@capacitor/assets → @capacitor/cli`, `@expo/plist → @xmldom/xmldom`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
+**`overrides`** — security pins for nested transitive deps (see full block in [`package.json`](../package.json)).
 
 **Workspaces:** `apps/*`, `packages/*`, `benchmarks`.
 
@@ -46,7 +44,7 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 
 ### Build-time (Node, from root)
 
-Uses root **esbuild**, Babel packages (`@babel/generator`, `@babel/parser`, `@babel/traverse`, `@babel/types`), **sharp**, and **@capacitor/cli** for scripts (`build:web`, icons, Capacitor-related automation). Minified bundles are **fingerprinted** (SHA-256 prefix in filenames) for cache busting; see `fingerprint-assets.mjs`. No separate npm manifest under `apps/pwa-webapp/`.
+Uses root **esbuild**, Babel packages, **sharp**, and vendor build scripts (`build-pwa-vendor.mjs`, `sync-tokens-to-pwa.mjs`). Minified bundles are **fingerprinted** (SHA-256 prefix in filenames) for cache busting; see `fingerprint-assets.mjs`. No separate npm manifest under `apps/pwa-webapp/`.
 
 ### Runtime — vendored / local
 
@@ -112,35 +110,6 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `react-test-renderer` | 19.2.4 |
 | `stacktrace-js` | ^2.0.2 |
 | `typescript` | ~5.9.2 |
-
----
-
-## Legacy Capacitor shell ([`apps/capacitor-app/package.json`](../apps/capacitor-app/package.json))
-
-**`dependencies`**
-
-| Package | Version |
-|---------|---------|
-| `@capacitor/app` | ^7.1.2 |
-| `@capacitor/browser` | ^7.0.4 |
-| `@capacitor/local-notifications` | ^7.0.6 |
-| `react` | ^18.2.0 |
-| `react-dom` | ^18.2.0 |
-
-**`devDependencies`**
-
-| Package | Version |
-|---------|---------|
-| `@capacitor/android` | ^7.6.0 |
-| `@capacitor/assets` | ^3.0.5 |
-| `@capacitor/cli` | ^7.6.0 |
-| `@capacitor/core` | ^7.6.0 |
-| `@capacitor/ios` | ^7.6.0 |
-| `@types/react` | ^18.2.0 |
-| `@types/react-dom` | ^18.2.0 |
-| `@vitejs/plugin-react` | ^5.2.0 |
-| `typescript` | ^5.3.0 |
-| `vite` | ^8.0.16 |
 
 ---
 

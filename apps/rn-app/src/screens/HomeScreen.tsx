@@ -441,6 +441,18 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
         <HomeMotdHeartbeat motd={motd} theme={theme} latestBpm={latestBpm} />
       </View>
 
+      <View style={styles.card} accessibilityLabel="Goals progress">
+        <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>Goals progress</Text>
+        <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+          Steps target: {prefs.goals.steps.toLocaleString()} · Hydration: {prefs.goals.hydration} glasses · Sleep score:{' '}
+          {prefs.goals.sleepScore}/10 · Good days/week: {prefs.goals.goodDaysPerWeek}
+        </Text>
+        <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(13), marginTop: 6 }]}>
+          Wellness targets — mood {prefs.goals.moodTarget}/10 · sleep {prefs.goals.sleepTarget}/10 · fatigue{' '}
+          {prefs.goals.fatigueTarget}/10
+        </Text>
+      </View>
+
       <View style={[styles.fabWrap, { bottom: tabBarHeight + 16 }]}>
         <Pressable
           onPress={() => navigation.navigate('LogWizard')}

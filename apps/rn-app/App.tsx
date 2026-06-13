@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
+import NetInfo from '@react-native-community/netinfo';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import {
@@ -14,6 +15,7 @@ import { BootLoadingScreen } from './src/components/BootLoadingScreen';
 import { ToastProvider } from './src/components/ui';
 import { refreshDemoModeLogsOnLaunch } from './src/demo/demoMode';
 import { installBugReportConsoleCapture } from './src/utils/bugReportLogs';
+import { flushOfflineQueue } from './src/storage/offlineQueue';
 
 export default function App() {
   const [prefs, setPrefs] = useState<Preferences | null>(null);
@@ -42,6 +44,15 @@ export default function App() {
     if (!prefs?.demoMode) return;
     refreshDemoModeLogsOnLaunch().catch(() => {});
   }, [prefs?.demoMode]);
+
+  useEffect(() => {
+    const unsub = NetInfo.addEventListener((state) => {
+      if (state.isConnected) {
+        flushOfflineQueue().catch(() => {});
+      }
+    });
+    return () => unsub();
+  }, []);
 
   if (!prefs) return <BootLoadingScreen team={bootTeam} />;
 

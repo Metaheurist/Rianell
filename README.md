@@ -1,12 +1,12 @@
 # Rianell - personal health dashboard
 
-**Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the same UI for web, PWA, and Capacitor (Android/iOS project zips), with data visualisation, analytics, and optional cloud sync.
+**Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the **PWA** (web/GitHub Pages) and **React Native (Expo)** mobile app, with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.48.1** — theme-token SVG UI icons).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.49.0** — platform parity refactor, Capacitor sunset).
 
-### Here’s what we plan next
+### Here's what we plan next
 
-**[docs/next-phase-development-plan.md](docs/next-phase-development-plan.md)** currently states there are **no new planned features** in active development; shipped work is summarized in the **[changelog](docs/CHANGELOG.md)** and **[app overview](docs/app-and-features.md)**.
+**[docs/next-phase-development-plan.md](docs/next-phase-development-plan.md)** — active roadmap for platform parity (Capacitor sunset complete; RN + PWA share `@rianell/*` packages). Shipped work is in the **[changelog](docs/CHANGELOG.md)** and **[app overview](docs/app-and-features.md)**.
 
 ### Tech stack
 
@@ -18,7 +18,6 @@
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![React%20Native](https://img.shields.io/badge/React%20Native-0.83-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-SDK%2055-000020?style=flat-square&logo=expo&logoColor=white)](https://expo.dev/)
-[![Capacitor%20(legacy)](https://img.shields.io/badge/Capacitor-legacy-119EFF?style=flat-square&logo=capacitor&logoColor=white)](https://capacitorjs.com/)
 [![Node.js](https://img.shields.io/badge/Node.js-24.14.1%20LTS-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Python](https://img.shields.io/badge/Python-server-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%26%20Auth-3FCF8E?style=flat-square&logo=supabase&logoColor=fff)](https://supabase.com/)
@@ -27,15 +26,13 @@
 [![ApexCharts](https://img.shields.io/badge/ApexCharts-charts-008FFB?style=flat-square)](https://apexcharts.com/)
 [![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI-2088FF?style=flat-square&logo=githubactions&logoColor=white)](https://github.com/features/actions)
 
-**React Native (Expo) builds:** CI produces minified **Expo production bundles** for **iOS + Android** as a merge gate.
-
-**Android APK (Capacitor, legacy):** The WebView opens the **legacy dashboard directly** (`legacy/index.html`) so you get a **single document**-smoother scrolling and lower overhead than nesting the app inside a React iframe. **Capacitor is legacy** during the transition to **React Native (Expo)**; CI no longer rebuilds Capacitor artifacts, but existing legacy builds remain available in releases/history.
+**React Native (Expo) builds:** CI produces minified **Expo production bundles** for **iOS + Android** as a merge gate. **`npm run dev`** starts the Expo dev server (`apps/rn-app`).
 
 **Repository**: [github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell)
 
 <!-- RIANELL_BUILD_INFO_START -->
 
-[![CI builds](https://img.shields.io/badge/build-RN%20223%20%7C%20RN%20iOS%20223%20%7C%20Server%20252%20%7C%20Web%20252-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/27465001801)
+[![CI builds](https://img.shields.io/badge/build-RN%20223%20%7C%20RN%20iOS%20223%20%7C%20Server%20252%20%7C%20Web%20local-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions)
 
 **CI builds** (React Native CLI + server + web)
 
@@ -45,16 +42,9 @@
 | ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip, RN CLI) | **223** |
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **252** |
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **252** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **252** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **local** |
 
-**Legacy builds** (Capacitor — no longer produced by CI; metadata only)
-
-| Channel | Build |
-| :--- | :---: |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Android** APK (Capacitor) | **96** |
-| ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip, Capacitor) | **96** |
-
-Latest: [`App build/RNCLI-Android/app-debug-beta.apk`](App%20build/RNCLI-Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-223.zip`](App%20build/iOS/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest-x64.json) · [`App build/Server/rianell-server-x86.exe`](App%20build/Server/latest-x86.json) · legacy Capacitor Android [`App build/Android/app-debug-beta-96.apk`](App%20build/Android/latest.json) · legacy Capacitor iOS [`App build/Legacy/Capacitor-iOS/Health-Tracker-ios-alpha-build-96.zip`](App%20build/Legacy/Capacitor-iOS/latest.json) · [Workflow #252](https://github.com/Metaheurist/Rianell/actions/runs/27465001801) · `68b4b12`
+Latest: [`App build/RNCLI-Android/app-debug-beta.apk`](App%20build/RNCLI-Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-223.zip`](App%20build/iOS/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest-x64.json) · [`App build/Server/rianell-server-x86.exe`](App%20build/Server/latest-x86.json) · [Workflow #local](https://github.com/Metaheurist/Rianell/actions) · `local`
 
 <!-- RIANELL_BUILD_INFO_END -->
 
@@ -96,7 +86,7 @@ npm run icons:generate -- --source "C:/path/to/new-icon-source.png"
 npm run icons:beta
 ```
 
-**`scripts/prepare-android-assets.mjs`** prefers **`apps/pwa-webapp/Icons/beta/logo-source.png`** (then non-beta masters) when building **`apps/capacitor-app/assets/logo.png`** for Capacitor Android icons.
+Native app icons are generated via Expo / RN CLI asset pipelines (`apps/rn-app`); PWA icons under **`apps/pwa-webapp/Icons/`** feed the web manifest and GitHub Pages deploy.
 
 ---
 
