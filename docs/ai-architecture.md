@@ -2,6 +2,12 @@
 
 ## 🧠 AI Analysis: Neural Network Architecture
 
+### v1.53.0 documentation sync (Supabase LLM hosting)
+
+- **On-device LLM weights** are served from **Supabase Storage** (`llm-models` bucket) as **47 MB chunks** reassembled client-side. PWA: `model-chunk-loader.js` + Transformers.js fetch shim; RN: `llmNative.ts` + `expo-file-system` append merge.
+- **Operator flow:** `npm run models:download` → `npm run models:upload:supabase -- --purge-local`. Credentials in **`security/.env`** only (service role never in client).
+- See **`apps/pwa-webapp/models/README.md`**, [ai-security.md](ai-security.md), and [CHANGELOG.md](CHANGELOG.md) v1.53.0.
+
 ### v1.44.2 documentation sync
 
 - AI slide presentation now sits within a broader UI theme parity pass so AI surfaces remain visually consistent with selected global themes on web/mobile shells.

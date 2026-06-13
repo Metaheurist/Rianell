@@ -2,6 +2,60 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
+**Latest: v1.53.0** - Supabase chunked LLM hosting, AI download gates, region/i18n, credential hygiene.
+
+### v1.53.0 - 2026-06-13 - Supabase LLM hosting, download gates, region & i18n
+
+#### On-device LLM — Supabase Storage (chunked)
+
+- **Hosting:** ONNX weights served from public Supabase bucket **`llm-models`** (~3.5 GB total). Free-tier **50 MB/object** limit handled by **47 MB `.partNNN` chunks**; clients reassemble into on-device cache.
+- **Upload:** `npm run models:upload:supabase` (reads `security/.env`; `--purge-local` removes local weights after upload). Skips already-uploaded parts via remote HEAD checks.
+- **Manifest v2:** `apps/pwa-webapp/models/manifest.json` lists logical paths + chunk metadata; **weights gitignored** (only manifest + README committed).
+- **PWA:** `model-chunk-loader.js` downloads chunks, merges to Cache API, hooks Transformers.js `env.fetch`; host priority **Supabase → same-origin → Hugging Face**.
+- **RN:** `llmNative.ts` downloads chunks via `expo-file-system` `File.write({ append })` into `documentDirectory/rianell-models/`.
+- **Schema:** `supabase/Schema.sql` — public bucket `llm-models`, no list policy (direct URLs only).
+- **Scripts/tests:** `download-llm-models.mjs`, `verify-llm-models.mjs` (local or remote verify), `packages/llm/src/chunks.mjs`, `tests/unit/llm-*.test.mjs`.
+
+#### AI model download UX (PWA + RN)
+
+- **PWA desktop:** Non-blocking download banner **bottom-right under + FAB**.
+- **PWA mobile installed:** **Blocking** progress modal until download completes (no skip).
+- **PWA mobile web:** Same modal with **Not now** (skippable).
+- **RN:** `AiModelDownloadGate.tsx` wraps app — blocking consent + download modal on Android/iOS installed builds.
+- **Hooks:** `ui-feedback.js`, `summary-llm.js` (`cancelAiModelDownload`), `app.js` startup gating.
+
+#### Privacy region, policy engine & UI i18n (v1.52 carry-forward)
+
+- **Single Supabase project** for all users; multi-residency routing removed.
+- **Policy engine:** `policy-packs/v1.json`, `@rianell/shared/privacy` — region labels, feature gating, policy documents.
+- **Region gate (web · android · ios):** Blocks until privacy region confirmed; read-only policy viewer.
+- **UI i18n:** `locale-packs/v1/` (en-GB default, en-US, en-AU, pt-BR, EU locales); PWA `RianellI18n` + RN `I18nProvider`; `ui_locale` synced via `user_privacy_profile`.
+- **Settings:** Privacy & region pane (PWA carousel + RN Settings).
+- **Supabase:** `user_privacy_profile` table + RLS; CI `verify-policy-packs`, `verify-locale-packs`.
+
+#### Security & credential hygiene
+
+- **`supabase-config.js`:** Placeholders only (`YOUR_PROJECT_REF`); CI injects GitHub secrets on Pages deploy (regex matches committed or placeholder values).
+- **`verify-no-service-role-in-clients.mjs`:** Fails on tracked `sb_secret_*`, Postgres URLs with passwords, hardcoded publishable keys/URLs in config.
+- **`.gitignore`:** `apps/pwa-webapp/models/**/onnx*` and weight mirrors excluded; **Git LFS rules removed** (`.gitattributes` cleared).
+- **Never commit:** `security/.env` service role key; use only for `models:upload:supabase`.
+
+### Unreleased / v1.52.0 - Region, policy & UI localization (merged into v1.53.0 above)
+
+- **Architecture pivot:** One Supabase project/database for all users; multi-residency routing and migration wizard removed.
+- **UI i18n:** `locale-packs/v1/` (en-GB default, en-US, en-AU, pt-BR, EU locales); shared `t()` in `@rianell/shared`; PWA `RianellI18n` + RN `I18nProvider`.
+- **Region + language:** Privacy region sets default locale (`eea_uk` → `en-GB`); Settings language override; `ui_locale` synced via `user_privacy_profile`.
+- **CI:** `verify-locale-packs.mjs`, locale sync in web build; policy pack `defaultLocale` per region.
+
+**Latest: v1.51.0** - Privacy region gate, policy engine, Supabase profile sync (web + RN).
+
+- **Shared policy engine:** `policy-packs/v1.json`, `@rianell/shared/privacy` — region labels, feature gating, policy documents, drift check, residency registry.
+- **Region gate (web · android · ios):** Blocks app until user confirms privacy region; locale/timezone suggestion only; read-only policy viewer on gate.
+- **Settings:** Privacy & region pane with policy viewer, residency label, GDPR consent link (PWA carousel + RN Settings).
+- **Supabase:** `user_privacy_profile` table + RLS; login fetch **overwrites local**; erasure includes profile row.
+- **Phase 5 prep:** `residency-config.json`, `getSupabaseClientForResidency`, `docs/privacy/multi-residency.md`.
+- **CI:** `verify-policy-packs`, expanded parity inventory keys, security unit tests for policy pack, gate, profile sync.
+
 **Latest: v1.50.0** - Security hardening: XSS fixes, unified cloud deletion, RN SecureStore, privacy program, expanded CI.
 
 ### v1.50.0 - 2026-06-13 - Security hardening and privacy program
