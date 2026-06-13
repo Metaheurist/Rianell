@@ -61,6 +61,11 @@ Define variables in **`security/.env`** (copy from [`security/.env.example`](../
 4. On an **existing** live project, run [../supabase/harden-graphql-exposure.sql](../supabase/harden-graphql-exposure.sql) in the SQL Editor to drop unused **`pg_graphql`** and revoke broad **`anon`** grants (Security Advisor lints 0026/0027) — see [SECURITY.md](SECURITY.md)
 5. Add your credentials to **`security/.env`** (or legacy root `.env`) and `supabase-config.js`
 
+### v1.53.1 CI fixes
+
+- **Web benchmarks:** Playwright navigation timings open Settings without **`ReferenceError: global is not defined`** (`resolveSettingsPaneTitle` uses **`window.RianellI18n`**).
+- **Mobile typecheck:** **`npm run typecheck:mobile`** — see [CHANGELOG.md](CHANGELOG.md) v1.53.1.
+
 ### v1.53.0 LLM model scripts (Supabase Storage)
 
 | Script | npm alias | Purpose |
