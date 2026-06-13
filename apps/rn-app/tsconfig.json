@@ -1,8 +1,9 @@
 {
-  "extends": "./node_modules/expo/tsconfig.base.json",
+  "extends": "../../node_modules/expo/tsconfig.base.json",
   "compilerOptions": {
-    "strict": true
+    "strict": true,
+    "customConditions": ["react-native", "react-native-strict-api"]
   },
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "src/types/**/*.d.ts"],
   "exclude": ["**/node_modules/**", "**/*.test.ts", "**/*.test.tsx", "jest.setup.ts"]
 }

@@ -83,7 +83,9 @@ export function SettingsScreen({
   const { width } = useWindowDimensions();
   /** Sized like web `settings-carousel-dots` (clamp ~22–32px), shared across eight pane icons. */
   const settingsPaneIconBtnSize = Math.min(36, Math.max(26, (width - 48 - 7 * 4) / 8));
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<{ scrollTo: (options: { x: number; animated?: boolean }) => void } | null>(
+    null,
+  );
   const [paneIndex, setPaneIndex] = useState(0);
   const bg =
     theme.tokens.color.background ===

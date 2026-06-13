@@ -1,10 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
-  FlatList,
   Modal,
   Pressable,
-  RefreshControl,
   ScrollView,
   Share,
   StyleSheet,
@@ -12,6 +10,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { FlatList, RefreshControl } from '../components/legacyRnJsx';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import {
@@ -419,13 +418,13 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
             No logs yet. Use Log today on Home to add an entry.
           </Text>
         ) : (
-          <FlatList
+          <FlatList<LogEntry>
             data={displayed}
-            keyExtractor={(item, idx) => `${item.date}-${item.notes ?? ''}-${idx}`}
+            keyExtractor={(item: LogEntry, idx: number) => `${item.date}-${item.notes ?? ''}-${idx}`}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             style={styles.list}
             renderItem={renderLogItem}
-            getItemLayout={(_, index) => ({
+            getItemLayout={(_data: ArrayLike<LogEntry> | null | undefined, index: number) => ({
               length: LOG_ROW_HEIGHT,
               offset: LOG_ROW_HEIGHT * index,
               index,
