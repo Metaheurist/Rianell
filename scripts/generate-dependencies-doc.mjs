@@ -88,7 +88,6 @@ function extractCdnUrl(html, re) {
 
 const pkgRoot = readJson('package.json');
 const pkgRn = readJson('apps/rn-app/package.json');
-const pkgCap = readJson('apps/capacitor-app/package.json');
 const pkgBench = readJson('benchmarks/package.json');
 
 const nvmrc = fs.existsSync(path.join(root, '.nvmrc'))
@@ -124,7 +123,7 @@ This page lists **where dependencies are declared** for the Rianell monorepo: **
 
 **Runtime expectations:** Node **${enginesNode}** ([\`package.json\`](../package.json) \`engines\`; [\`.nvmrc\`](../.nvmrc) pins **${nvmrc}** for local tooling). **Python 3.8+** for the server ([\`requirements.txt\`](../requirements.txt)).
 
-**Build mapping (see main [README](../README.md)):** Web/PWA (GitHub Pages), React Native (Expo) CLI bundles for Android/iOS, Python server EXE (PyInstaller + optional PyArmor in CI), legacy Capacitor shell (npm manifests still present; CI no longer ships those artifacts by default).
+**Build mapping (see main [README](../README.md)):** Web/PWA (GitHub Pages), React Native (Expo) CLI bundles for Android/iOS, Python server EXE (PyInstaller + optional PyArmor in CI).
 
 ## Authoritative sources
 
@@ -133,7 +132,6 @@ This page lists **where dependencies are declared** for the Rianell monorepo: **
 | npm lockfile (all workspaces) | [\`package-lock.json\`](../package-lock.json) |
 | Root workspace + overrides | [\`package.json\`](../package.json) |
 | React Native (Expo) | [\`apps/rn-app/package.json\`](../apps/rn-app/package.json) |
-| Legacy Capacitor shell | [\`apps/capacitor-app/package.json\`](../apps/capacitor-app/package.json) |
 | Shared libraries | [\`packages/shared/package.json\`](../packages/shared/package.json), [\`packages/tokens/package.json\`](../packages/tokens/package.json) |
 | Benchmarks | [\`benchmarks/package.json\`](../benchmarks/package.json) |
 | Python server | [\`requirements.txt\`](../requirements.txt) |
@@ -158,7 +156,7 @@ ${overridesNote}
 
 ### Build-time (Node, from root)
 
-Uses root **esbuild**, Babel packages (\`@babel/generator\`, \`@babel/parser\`, \`@babel/traverse\`, \`@babel/types\`), **sharp**, and **@capacitor/cli** for scripts (\`build:web\`, icons, Capacitor-related automation). Minified bundles are **fingerprinted** (SHA-256 prefix in filenames) for cache busting; see \`fingerprint-assets.mjs\`. No separate npm manifest under \`apps/pwa-webapp/\`.
+Uses root **esbuild**, Babel packages (\`@babel/generator\`, \`@babel/parser\`, \`@babel/traverse\`, \`@babel/types\`), and **sharp** for scripts (\`build:web\`, icons). Minified bundles are **fingerprinted** (SHA-256 prefix in filenames) for cache busting; see \`fingerprint-assets.mjs\`. No separate npm manifest under \`apps/pwa-webapp/\`.
 
 ### Runtime — vendored / local
 
@@ -186,18 +184,6 @@ ${depTable(pkgRn.dependencies)}
 **\`devDependencies\`**
 
 ${depTable(pkgRn.devDependencies)}
-
----
-
-## Legacy Capacitor shell ([\`apps/capacitor-app/package.json\`](../apps/capacitor-app/package.json))
-
-**\`dependencies\`**
-
-${depTable(pkgCap.dependencies)}
-
-**\`devDependencies\`**
-
-${depTable(pkgCap.devDependencies)}
 
 ---
 
