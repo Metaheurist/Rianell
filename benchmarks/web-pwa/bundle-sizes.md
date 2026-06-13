@@ -1,19 +1,20 @@
 # PWA bundle sizes
 
-Generated: 2026-06-12T19:01:06.216Z
+Generated: 2026-06-13T10:47:49.230Z
 
 | File | Raw | Gzip |
 |------|-----|------|
-| ci-minified/site/app.js | 1123105 | 190836 |
-| ci-minified/site/app.e08bf15bea72.min.js | 673482 | 133008 |
+| ci-minified/site/app.js | 1136907 | 192543 |
+| ci-minified/site/app.56341f0a238c.min.js | 682194 | 134193 |
 | ci-minified/site/apexcharts.min.js | 576627 | 153833 |
-| ci-minified/site/styles.fe278e3a5f4a.css | 359327 | 61671 |
-| ci-minified/site/AIEngine.js | 220501 | 37852 |
-| ci-minified/site/cloud-sync.js | 97595 | 18369 |
+| ci-minified/site/styles.2a84787af20b.css | 367982 | 63474 |
+| ci-minified/site/AIEngine.js | 221884 | 38136 |
+| ci-minified/site/cloud-sync.js | 98234 | 18467 |
 | ci-minified/site/export-utils.js | 67880 | 12557 |
-| ci-minified/site/device-benchmark.js | 60845 | 9691 |
+| ci-minified/site/device-benchmark.js | 60844 | 9693 |
+| ci-minified/site/summary-llm.js | 44805 | 7955 |
 | ci-minified/site/performance-utils.js | 43058 | 7485 |
-| ci-minified/site/summary-llm.js | 36795 | 7416 |
+| ci-minified/site/ui-feedback.js | 24653 | 4071 |
 | ci-minified/site/import-utils.js | 24306 | 5204 |
 | ci-minified/site/event-handlers.js | 23619 | 3485 |
 | ci-minified/site/notifications.js | 21494 | 4595 |
@@ -23,7 +24,6 @@ Generated: 2026-06-12T19:01:06.216Z
 | ci-minified/site/device-module.js | 8918 | 2288 |
 | ci-minified/site/background-loader.js | 8321 | 1740 |
 | ci-minified/site/storage-utils.js | 8035 | 1851 |
-| ci-minified/site/notification-helpers.js | 7282 | 1612 |
 
-**JS total (gzip):** 607564 bytes
-**CSS total (gzip):** 65144 bytes
+**JS total (gzip):** 615451 bytes
+**CSS total (gzip):** 67259 bytes
