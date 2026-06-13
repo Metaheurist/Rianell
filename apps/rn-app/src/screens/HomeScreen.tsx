@@ -4,7 +4,6 @@ import {
   Alert,
   Animated,
   Easing,
-  KeyboardAvoidingView,
   Linking,
   Modal,
   Platform,
@@ -15,6 +14,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { KeyboardAvoidingView } from '../components/legacyRnJsx';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
