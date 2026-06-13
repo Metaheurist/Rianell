@@ -37,11 +37,22 @@ for (const id of requiredRegions) {
   }
 }
 
-const embeddedPath = path.join(root, 'packages', 'shared', 'src', 'privacy', 'policyPackData.mjs');
-if (fs.existsSync(embeddedPath)) {
-  const src = fs.readFileSync(embeddedPath, 'utf8');
+const embeddedPath = path.join(root, 'packages', 'shared', 'policy-packs', 'v1.json');
+if (!fs.existsSync(embeddedPath)) {
+  fail('missing packages/shared/policy-packs/v1.json — run node scripts/sync-policy-pack.mjs');
+} else {
+  const canonical = fs.readFileSync(packPath, 'utf8');
+  const embedded = fs.readFileSync(embeddedPath, 'utf8');
+  if (canonical !== embedded) {
+    fail('packages/shared/policy-packs/v1.json out of sync with policy-packs/v1.json');
+  }
+}
+
+const embeddedSrcPath = path.join(root, 'packages', 'shared', 'src', 'privacy', 'policyPackData.mjs');
+if (fs.existsSync(embeddedSrcPath)) {
+  const src = fs.readFileSync(embeddedSrcPath, 'utf8');
   if (!src.includes('policy-packs/v1.json')) {
-    fail('policyPackData.mjs should import policy-packs/v1.json');
+    fail('policyPackData.mjs should import packages/shared/policy-packs/v1.json');
   }
 }
 

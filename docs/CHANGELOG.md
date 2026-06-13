@@ -2,6 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
+**Latest: v1.53.4** - RN Metro policy-pack bundling fix.
+
+### v1.53.4 - 2026-06-13 - Policy pack inside @rianell/shared
+
+- **Metro / Expo export:** `policyPackData.mjs` imports **`packages/shared/policy-packs/v1.json`** (inside the shared package) instead of repo-root paths Metro cannot resolve.
+- **Sync script:** `scripts/sync-policy-pack.mjs` copies canonical **`policy-packs/v1.json`** into shared; runs in **`build:web`**, **`bundle:mobile:prod`**, and CI before vendor bundle / **`expo export`**.
+- **Verify:** `verify-policy-packs.mjs` checks embedded copy stays in sync with canonical pack.
+
 **Latest: v1.53.3** - Enforce no LLM weights in git (Supabase-only hosting).
 
 ### v1.53.3 - 2026-06-13 - No LLM weights in git

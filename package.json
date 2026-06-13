@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.53.3",
+  "version": "1.53.4",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp and React Native app",
   "workspaces": [
     "apps/rn-app",
@@ -14,10 +14,10 @@
     "test:unit": "node --test tests/unit/**/*.test.mjs",
     "typecheck:mobile": "cd apps/rn-app && npm run typecheck",
     "test:mobile": "cd apps/rn-app && npm test",
-    "bundle:mobile:prod": "node scripts/sync-locale-packs-to-pwa.mjs && cd apps/rn-app && npx expo export --platform android --platform ios --output-dir dist-expo-prod",
-    "build:web:apk": "node scripts/sync-tokens-to-pwa.mjs && node scripts/generate-locale-overrides.mjs && node scripts/sync-locale-packs-to-pwa.mjs && node scripts/build-pwa-vendor.mjs && node apps/pwa-webapp/build-site.mjs --skip-trace",
+    "bundle:mobile:prod": "node scripts/sync-locale-packs-to-pwa.mjs && node scripts/sync-policy-pack.mjs && cd apps/rn-app && npx expo export --platform android --platform ios --output-dir dist-expo-prod",
+    "build:web:apk": "node scripts/sync-tokens-to-pwa.mjs && node scripts/generate-locale-overrides.mjs && node scripts/sync-locale-packs-to-pwa.mjs && node scripts/sync-policy-pack.mjs && node scripts/build-pwa-vendor.mjs && node apps/pwa-webapp/build-site.mjs --skip-trace",
     "build": "npm run build:web",
-    "build:web": "node scripts/sync-tokens-to-pwa.mjs && node scripts/generate-locale-overrides.mjs && node scripts/sync-locale-packs-to-pwa.mjs && node scripts/build-pwa-vendor.mjs && node apps/pwa-webapp/build-site.mjs",
+    "build:web": "node scripts/sync-tokens-to-pwa.mjs && node scripts/generate-locale-overrides.mjs && node scripts/sync-locale-packs-to-pwa.mjs && node scripts/sync-policy-pack.mjs && node scripts/build-pwa-vendor.mjs && node apps/pwa-webapp/build-site.mjs",
     "icons:generate": "node scripts/generate-icon-set.mjs",
     "icons:beta": "node scripts/add-beta-badge-to-icons.mjs",
     "smoke:trace": "node scripts/smoke-function-trace.mjs",
