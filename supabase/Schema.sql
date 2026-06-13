@@ -138,11 +138,22 @@ CREATE POLICY "bug_reports_select_own"
   ON public.bug_reports FOR SELECT TO authenticated
   USING (user_id IS NOT NULL AND auth.uid() = user_id);
 
--- Grants (Supabase default roles)
+-- Grants (Supabase default roles). Revoke anon on sensitive tables first — Supabase
+-- default privileges grant SELECT to anon, which exposes schema via pg_graphql (lint 0026).
+REVOKE ALL ON public.anonymized_data FROM anon;
+REVOKE ALL ON public.health_data FROM anon;
+REVOKE ALL ON public.user_keys FROM anon;
+REVOKE ALL ON public.bug_reports FROM anon;
+
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.anonymized_data TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.health_data TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_keys TO authenticated;
 GRANT INSERT ON public.bug_reports TO anon, authenticated;
 GRANT SELECT ON public.bug_reports TO authenticated;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM anon;
+
+-- App uses PostgREST only; drop pg_graphql to avoid schema introspection (lints 0026/0027).
+DROP EXTENSION IF EXISTS pg_graphql CASCADE;
 
 COMMIT;
