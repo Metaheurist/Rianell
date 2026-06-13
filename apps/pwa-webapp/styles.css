@@ -7487,6 +7487,11 @@ body.loading .loading-overlay {
   pointer-events: all;
 }
 
+body.loading .ai-model-download-progress,
+body.loading .ai-model-download-consent {
+  pointer-events: all !important;
+}
+
 .modal-content {
   background: var(--modal-surface);
   border-radius: var(--radius-xl);
@@ -12166,6 +12171,55 @@ body.light-mode .settings-carousel-dot--active {
 .settings-option-llm-model label {
   flex: 1 1 100%;
 }
+
+.settings-llm-status-line {
+  flex: 1 1 100%;
+  margin: 0;
+}
+
+.llm-model-status--not_downloaded { color: rgba(255, 200, 120, 0.95); }
+.llm-model-status--downloading { color: rgba(120, 192, 110, 0.95); }
+.llm-model-status--ready { color: rgba(120, 220, 140, 0.98); }
+.llm-model-status--failed { color: rgba(255, 120, 120, 0.98); }
+
+.llm-model-settings-progress {
+  flex: 1 1 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.llm-model-settings-progress.hidden { display: none; }
+.llm-model-settings-progress__track {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.llm-model-settings-progress__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(76, 175, 80, 0.85), rgba(120, 220, 140, 0.95));
+  transition: width 0.2s ease;
+}
+
+.settings-llm-actions {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.settings-data-btn--primary {
+  background: rgba(76, 175, 80, 0.28);
+  border: 1px solid rgba(120, 220, 140, 0.45);
+}
+.settings-data-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .settings-select {
   min-width: 220px;
   padding: 8px 12px;
@@ -14887,14 +14941,20 @@ body.light-mode .tile-picker-search::placeholder {
 
 .ai-model-download-banner {
   position: fixed;
-  top: max(0px, env(safe-area-inset-top));
-  left: 0;
-  right: 0;
-  z-index: 100007;
-  padding: 10px 16px 12px;
+  z-index: 1001;
+  padding: 10px 14px 12px;
   background: var(--surface-main);
-  border-bottom: 1px solid var(--surface-border);
-  box-shadow: var(--elevation-1, 0 4px 12px rgba(0, 0, 0, 0.25));
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md, 12px);
+  box-shadow: var(--elevation-2, 0 8px 24px rgba(0, 0, 0, 0.35));
+  max-width: min(360px, calc(100vw - 48px));
+}
+
+.ai-model-download-banner--desktop {
+  right: calc(24px + env(safe-area-inset-right, 0px));
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  left: auto;
+  top: auto;
 }
 
 .ai-model-download-banner.hidden { display: none; }
@@ -14939,6 +14999,76 @@ body.light-mode .tile-picker-search::placeholder {
   flex-wrap: wrap;
   gap: 10px;
   justify-content: flex-end;
+}
+
+.ai-model-download-consent--blocking .modal-close,
+.ai-model-download-consent--blocking .modal-cancel-btn {
+  display: none !important;
+}
+
+.ai-model-download-progress {
+  z-index: 100008;
+}
+
+.ai-model-download-progress__content {
+  max-width: 420px;
+  width: calc(100% - 32px);
+}
+
+.ai-model-download-progress__header .modal-close {
+  display: none;
+}
+
+.ai-model-download-progress__label {
+  margin: 0 0 12px;
+  font-size: var(--text-sm);
+  color: var(--text-light, #e8eeec);
+  line-height: 1.45;
+}
+
+.ai-model-download-progress__track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.ai-model-download-progress__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary-color);
+  transition: width 0.25s var(--ease-out-expo, ease-out);
+}
+
+.ai-model-download-progress__pct {
+  margin: 0 0 8px;
+  font-weight: 600;
+  color: var(--primary-color);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ai-model-download-progress__hint {
+  margin: 0;
+}
+
+.ai-model-download-progress__footer {
+  justify-content: flex-end;
+}
+
+body.ai-model-download-blocking .main-content,
+body.ai-model-download-blocking .app-fab-wrap,
+body.ai-model-download-blocking .app-mobile-bottom-chrome,
+body.ai-model-download-blocking .app-bottom-nav {
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (max-width: 768px) {
+  .ai-model-download-banner--desktop {
+    display: none !important;
+  }
 }
 
 .rianell-theme-veil {
@@ -15035,4 +15165,61 @@ body.log-wizard-active .header-buttons-wrap {
   #logForm > * { animation: none !important; }
   .heartbeat-path { animation: none !important; }
   .status-syncing { animation: none !important; }
+}
+
+/* Privacy region gate */
+body.privacy-gate-active > *:not(#privacyRegionGateOverlay):not(#loadingOverlay) {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+.privacy-region-gate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+}
+.privacy-region-gate-card {
+  max-width: 420px;
+  width: 100%;
+  padding: 24px;
+  border-radius: 12px;
+  background: var(--card-bg, rgba(30, 41, 59, 0.95));
+  color: var(--text-primary, #e0f2f1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+.privacy-region-gate-card h2 { margin: 0 0 12px; font-size: 1.35rem; }
+.privacy-region-gate-lead { margin: 0 0 12px; line-height: 1.45; font-size: 0.95rem; opacity: 0.92; }
+.privacy-region-gate-hint { margin: 0 0 8px; font-size: 0.85rem; color: #7dd3fc; min-height: 1.2em; }
+.privacy-region-gate-label { display: block; margin-bottom: 6px; font-size: 0.9rem; }
+.privacy-region-gate-select { width: 100%; padding: 10px; margin-bottom: 16px; border-radius: 8px; }
+.privacy-region-gate-actions { display: flex; flex-direction: column; gap: 8px; }
+.privacy-residency-chooser { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.privacy-residency-option {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.privacy-residency-option.selected {
+  border-color: #0d9488;
+  background: rgba(13, 148, 136, 0.15);
+}
+.settings-residency-label { margin: 0; font-size: 0.9rem; opacity: 0.85; }
+.privacy-policy-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: #f59e0b;
+  color: #111;
 }
