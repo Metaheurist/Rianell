@@ -1,6 +1,5 @@
 /**
  * Extends app.json with env-driven extras (Supabase for cloud login parity with web).
- * Icons and adaptive icons remain in app.json (merged below).
  */
 const appJson = require('./app.json');
 
@@ -25,6 +24,12 @@ const llmEndpoint = firstNonEmpty(
   process.env.EXPO_PUBLIC_LLM_ENDPOINT,
   process.env.LLM_ENDPOINT
 );
+const modelsBaseUrl = firstNonEmpty(
+  process.env.EXPO_PUBLIC_MODELS_BASE_URL,
+  process.env.MODELS_BASE_URL,
+  llmEndpoint,
+  'https://rianell.com/'
+);
 const iosBundleIdentifier = firstNonEmpty(
   process.env.EXPO_PUBLIC_IOS_BUNDLE_IDENTIFIER,
   process.env.IOS_BUNDLE_IDENTIFIER,
@@ -41,10 +46,14 @@ module.exports = {
     },
     extra: {
       ...(appJson.expo.extra || {}),
-      // Keep RN sourced from the same CI/local secret names used by web/Capacitor.
       supabaseUrl,
       supabaseAnonKey,
       llmEndpoint,
+      modelsBaseUrl,
+      modelsStorageBucket: firstNonEmpty(
+        process.env.EXPO_PUBLIC_MODELS_SUPABASE_BUCKET,
+        'llm-models'
+      ),
     },
   },
 };

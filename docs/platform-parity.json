@@ -122,6 +122,36 @@
       "id": "navigation_goals_home",
       "status": { "web": "supported", "android": "supported", "ios": "supported" },
       "notes": "Home goals progress block."
+    },
+    {
+      "id": "privacy_region_gate",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "Blocking region gate before tutorial/tabs; locale/timezone suggestion only."
+    },
+    {
+      "id": "privacy_region_settings_pane",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "Settings Privacy & region pane with policy viewer and residency label."
+    },
+    {
+      "id": "privacy_policy_viewer",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "View applicable policies on gate (read-only) and in Settings Privacy & region pane."
+    },
+    {
+      "id": "privacy_profile_cloud_sync",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "user_privacy_profile overwrites local on login."
+    },
+    {
+      "id": "ui_locale_settings",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "Language picker in Privacy & region; region sets default locale (en-GB / eea_uk default)."
+    },
+    {
+      "id": "ui_string_catalog",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "locale-packs/v1 + shared t(); gate, nav, settings, cloud pane tokenized."
     }
   ]
 }

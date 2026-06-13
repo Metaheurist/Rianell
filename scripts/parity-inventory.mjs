@@ -14,6 +14,10 @@ function exists(rel) {
 }
 
 const PWA_SETTINGS_KEYS = [
+  'privacyRegion',
+  'privacyRegionSource',
+  'policyAcknowledgedVersion',
+  'uiLocale',
   'userName',
   'medicalCondition',
   'weightUnit',
@@ -30,6 +34,10 @@ const PWA_SETTINGS_KEYS = [
 ];
 
 const RN_PREF_FIELDS = [
+  'privacyRegion',
+  'privacyRegionSource',
+  'policyAcknowledgedVersion',
+  'uiLocale',
   'userName',
   'medicalCondition',
   'weightUnit',
@@ -50,6 +58,8 @@ const CLOUD_EXPORTS = [
   'mergeHealthLogs',
   'deleteCloudLogs',
   'deleteAllUserDataFromCloud',
+  'fetchPrivacyProfileAndApply',
+  'upsertPrivacyProfile',
 ];
 
 const lines = ['# Platform parity inventory', '', `Generated: ${new Date().toISOString()}`, ''];
@@ -79,7 +89,13 @@ lines.push('|--------|-------------------|------------------|');
 
 for (const sym of CLOUD_EXPORTS) {
   const pwa = cloudSyncJs.includes(`function ${sym}`) || cloudSyncJs.includes(`${sym}(`);
-  const rn = rnSyncTs.includes(`export async function ${sym}`) || rnSyncTs.includes(`export function ${sym}`) || (sym === 'mergeHealthLogs' && rnSyncTs.includes(`export { mergeHealthLogs`));
+  const rn =
+    rnSyncTs.includes(`export async function ${sym}`) ||
+    rnSyncTs.includes(`export function ${sym}`) ||
+    rnSyncTs.includes(`export { ${sym}`) ||
+    rnSyncTs.includes(`${sym},`) ||
+    rnSyncTs.includes(`${sym} }`) ||
+    (sym === 'mergeHealthLogs' && rnSyncTs.includes(`export { mergeHealthLogs`));
   lines.push(`| ${sym} | ${pwa ? 'yes' : 'no'} | ${rn ? 'yes' : 'no'} |`);
   if (pwa && !rn && sym !== 'mergeHealthLogs') gaps.push(`RN missing cloud export: ${sym}`);
 }

@@ -13,6 +13,12 @@ test('deleteAllUserDataFromCloud deletes user_keys and anonymized_data', () => {
   assert.match(src, /user_keys/);
   assert.match(src, /anonymized_data/);
   assert.match(src, /bug_reports/);
+  assert.match(src, /user_privacy_profile/);
+});
+
+test('PWA deleteAllUserDataFromCloud includes user_privacy_profile', () => {
+  const src = readFileSync('apps/pwa-webapp/cloud-sync.js', 'utf8');
+  assert.match(src, /user_privacy_profile/);
 });
 
 test('PWA deleteAllUserDataFromCloud includes anonymized_data', () => {

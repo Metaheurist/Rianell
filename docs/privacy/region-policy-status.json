@@ -1,0 +1,12 @@
+{
+  "version": "1.52.0",
+  "updated": "2026-06-13",
+  "notes": "Single Supabase project; UI localization via locale-packs; RP-39–66 cancelled; SP + LC phases complete in repo.",
+  "milestones": {
+    "RP-00-04": { "phase": "0-4", "status": "done", "summary": "Policy engine, gate, profile sync, drift" },
+    "SP-01-05": { "phase": "B", "status": "done", "summary": "Single-project simplification" },
+    "LC-00-15": { "phase": "C-E", "status": "done", "summary": "locale-packs, i18n foundation, gate/settings/nav tokenized" },
+    "RP-39-66": { "phase": "5-old", "status": "cancelled", "summary": "Multi-residency superseded by single-project-residency.md" },
+    "PARITY-i18n": { "phase": "F", "status": "done", "summary": "uiLocale parity + verify-locale-packs" }
+  }
+}

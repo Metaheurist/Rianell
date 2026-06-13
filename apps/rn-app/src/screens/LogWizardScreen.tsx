@@ -17,6 +17,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../theme/ThemeProvider';
+import { useT } from '../i18n/I18nProvider';
 import { addLogEntry, getFrequentLogItems, loadLogs, saveLogs, type LogEntry } from '../storage/logs';
 import { getDefaultPreferences, type Preferences } from '../storage/preferences';
 import { suggestLogNote } from '../ai/llm';
@@ -658,6 +659,7 @@ type LogWizardScreenProps = { prefs?: Preferences };
 export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {}) {
   const prefs = prefsProp ?? getDefaultPreferences();
   const theme = useTheme();
+  const { t } = useT();
   const toast = useToast();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const bg =
@@ -944,7 +946,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
       <View style={styles.card}>
         <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(20) }]}>
-          Log today
+          {t('wizard.header')}
         </Text>
         <Text style={[styles.sub, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
           Step {step + 1} of {WIZARD_STEPS}

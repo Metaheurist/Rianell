@@ -19,6 +19,16 @@ export type Preferences = {
   useOpenData: boolean;
   healthDataConsent: boolean;
   healthDataConsentAt: string | null;
+  privacyRegion: string;
+  privacyRegionSource: string;
+  privacyRegionUpdatedAt: string | null;
+  policyAcknowledgedVersion: string | null;
+  policyAcknowledgedAt: string | null;
+  uiLocale: string;
+  uiLocaleSource: 'onboarding' | 'user' | 'region' | 'account' | '';
+  uiLocaleUpdatedAt: string | null;
+  dataResidencyCode: string;
+  dataResidencyProjectUrl: string;
   backup: boolean;
   compress: boolean;
   animations: boolean;
@@ -65,6 +75,16 @@ export function getDefaultPreferences(): Preferences {
     useOpenData: false,
     healthDataConsent: false,
     healthDataConsentAt: null,
+    privacyRegion: '',
+    privacyRegionSource: '',
+    privacyRegionUpdatedAt: null,
+    policyAcknowledgedVersion: null,
+    policyAcknowledgedAt: null,
+    uiLocale: 'en-GB',
+    uiLocaleSource: '',
+    uiLocaleUpdatedAt: null,
+    dataResidencyCode: 'default',
+    dataResidencyProjectUrl: '',
     backup: true,
     compress: false,
     animations: true,
@@ -124,6 +144,32 @@ export async function loadPreferences(): Promise<Preferences> {
       healthDataConsent: parsed.healthDataConsent === true,
       healthDataConsentAt:
         typeof parsed.healthDataConsentAt === 'string' ? parsed.healthDataConsentAt : d.healthDataConsentAt,
+      privacyRegion: typeof parsed.privacyRegion === 'string' ? parsed.privacyRegion : d.privacyRegion,
+      privacyRegionSource:
+        typeof parsed.privacyRegionSource === 'string' ? parsed.privacyRegionSource : d.privacyRegionSource,
+      privacyRegionUpdatedAt:
+        typeof parsed.privacyRegionUpdatedAt === 'string' ? parsed.privacyRegionUpdatedAt : d.privacyRegionUpdatedAt,
+      policyAcknowledgedVersion:
+        typeof parsed.policyAcknowledgedVersion === 'string'
+          ? parsed.policyAcknowledgedVersion
+          : d.policyAcknowledgedVersion,
+      policyAcknowledgedAt:
+        typeof parsed.policyAcknowledgedAt === 'string' ? parsed.policyAcknowledgedAt : d.policyAcknowledgedAt,
+      uiLocale: typeof parsed.uiLocale === 'string' ? parsed.uiLocale : d.uiLocale,
+      uiLocaleSource:
+        parsed.uiLocaleSource === 'onboarding' ||
+        parsed.uiLocaleSource === 'user' ||
+        parsed.uiLocaleSource === 'region' ||
+        parsed.uiLocaleSource === 'account'
+          ? parsed.uiLocaleSource
+          : d.uiLocaleSource,
+      uiLocaleUpdatedAt:
+        typeof parsed.uiLocaleUpdatedAt === 'string' ? parsed.uiLocaleUpdatedAt : d.uiLocaleUpdatedAt,
+      dataResidencyCode: 'default',
+      dataResidencyProjectUrl:
+        typeof parsed.dataResidencyProjectUrl === 'string'
+          ? parsed.dataResidencyProjectUrl
+          : d.dataResidencyProjectUrl,
       backup: parsed.backup !== false,
       compress: parsed.compress === true,
       animations: parsed.animations !== false,

@@ -267,6 +267,41 @@
       "security_measures": ["paypal_pci_scope", "no_health_data_to_paypal"],
       "international_transfers": true,
       "data_subject_rights": ["access", "erasure_via_paypal"]
+    },
+    {
+      "id": "PA-09",
+      "name": "Privacy region profile",
+      "description": "User-declared privacy region, policy acknowledgements, consent snapshot, and data residency metadata stored in user_privacy_profile for cross-device sync.",
+      "purposes": ["Legal compliance", "Feature gating", "Policy drift tracking", "Data residency routing"],
+      "legal_basis_art6": "consent_6_1_a",
+      "legal_basis_art9": "explicit_consent_9_2_a",
+      "data_categories": [
+        "privacy_region_code",
+        "policy_acknowledgement_version",
+        "consent_flags_json",
+        "data_residency_code"
+      ],
+      "data_subjects": ["authenticated_users"],
+      "special_category": false,
+      "recipients": ["supabase_postgres"],
+      "subprocessors": [
+        {
+          "name": "Supabase, Inc.",
+          "role": "database_hosting",
+          "dpa": "standard_terms",
+          "reference": "docs/privacy/subprocessors.md"
+        }
+      ],
+      "storage_locations": ["supabase_region_operator_selected"],
+      "retention": "Until account erasure or user deletes profile row",
+      "security_measures": [
+        "rls_owner_policies",
+        "no_gps_ip_region_detection",
+        "profile_overwrites_local_on_login"
+      ],
+      "international_transfers": true,
+      "reference": "docs/privacy/region-policy-execution-plan.md",
+      "data_subject_rights": ["access", "rectification", "erasure", "portability", "withdraw_consent"]
     }
   ],
   "technical_and_organisational_measures": {

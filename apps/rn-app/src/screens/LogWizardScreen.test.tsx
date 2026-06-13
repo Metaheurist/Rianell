@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { LogWizardScreen } from './LogWizardScreen';
-import { ThemeProvider } from '../theme/ThemeProvider';
+import { renderWithProviders } from '../test/renderWithProviders';
 import { getDefaultPreferences } from '../storage/preferences';
 
 const mockGoBack = jest.fn();
@@ -30,11 +30,7 @@ jest.mock('../ai/llm', () => ({
 
 function renderWizard(overridePrefs?: ReturnType<typeof getDefaultPreferences>) {
   const prefs = overridePrefs ?? getDefaultPreferences();
-  return render(
-    <ThemeProvider prefs={prefs}>
-      <LogWizardScreen prefs={prefs} />
-    </ThemeProvider>
-  );
+  return renderWithProviders(<LogWizardScreen prefs={prefs} />, { prefs });
 }
 
 test('log wizard can progress through stressors and save', async () => {
