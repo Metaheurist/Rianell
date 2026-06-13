@@ -2,6 +2,27 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
+**Latest: v1.53.1** - Privacy/settings UI fixes, CI benchmark + mobile typecheck.
+
+### v1.53.1 - 2026-06-13 - Privacy/settings UI fixes and CI
+
+#### PWA — settings carousel & privacy modals
+
+- **Settings carousel (9 panes):** Privacy & region pane added **`--settings-pane-count: 9`**; dot strip uses horizontal scroll when needed; dots rebuild when pane count changes; carousel re-inits when settings opens and on locale change.
+- **Policy viewer:** **`showAlertModal(..., { html: true })`** renders policy HTML in the alert modal (was plain text); styles for **`.alert-modal-message--html`**.
+- **Confirm modals:** Fixed **`showConfirmModal(message, title, onConfirm, onCancel)`** argument order for region-change and policy-drift prompts (title no longer shown as message body).
+- **Benchmark fix:** **`resolveSettingsPaneTitle`** uses **`window.RianellI18n`** instead of Node-only **`global`** (fixes Playwright **`ReferenceError: global is not defined`** in web benchmarks).
+
+#### React Native — typecheck / download gate
+
+- **`sync.ts`:** Removed incorrect re-export of **`mergeHealthLogs`** from **`privacyProfile`** (import remains from **`@rianell/shared`**).
+- **`AiModelDownloadGate.tsx`:** **`prefs.accessibility.colorblindMode`** for tokens; removed duplicate **`fileLabel`** state.
+- **`PolicyDocumentsModal.tsx`:** Typed policy document entries for strict **`tsc`**.
+
+#### Cache
+
+- **`app.js?v=36`**, **`styles.css?v=89`**; **`sw.js`** **`CACHE_NAME`** → **`v2026-06-13-settings-privacy-fixes`**.
+
 **Latest: v1.53.0** - Supabase chunked LLM hosting, AI download gates, region/i18n, credential hygiene.
 
 ### v1.53.0 - 2026-06-13 - Supabase LLM hosting, download gates, region & i18n

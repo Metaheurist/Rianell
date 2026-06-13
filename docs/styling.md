@@ -52,9 +52,11 @@ The settings overlay (`.settings-overlay` / `.settings-menu`) uses the same **mo
 
 The content area is a **horizontal carousel** (`.settings-carousel-viewport` → `.settings-carousel-track` → `.settings-carousel-pane`). Inactive panes use **`aria-hidden`** and **`visibility: hidden`** so adjacent sections do not visually bleed. Hints (`.settings-hint`) are **left-aligned**; rows with only helper copy use a **column** layout when there is no toggle (see `.settings-option-with-hint` + `:has(.toggle-switch)`).
 
-The header indicator row now uses **mini icon buttons** (`.settings-carousel-dot` + `.settings-carousel-dot__icon`) with click/tap jump navigation to the corresponding pane.
+The header indicator row now uses **mini icon buttons** (`.settings-carousel-dot` + `.settings-carousel-dot__icon`) with click/tap jump navigation to the corresponding pane. **v1.53.1:** **nine** panes (`--settings-pane-count: 9`, includes Privacy & region); the dot strip **scrolls horizontally** when icons do not fit (`overflow-x: auto`).
 
-## Tile picker triggers (log flow)
+## Alert modal (policy HTML)
+
+Policy summaries opened from Privacy & region use **`showAlertModal(..., { html: true })`**; **`#alertModalMessage.alert-modal-message--html`** scrolls long content with left-aligned section headings.
 
 Symptom / energy / stressor “add” controls use **content-sized pill** buttons (`.tile-picker-trigger` and related classes): circular **+** lead, label, chevron; not full-width bars. Collapsible wrappers align **`flex-start`** so the pill does not stretch.
 

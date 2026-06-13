@@ -7,6 +7,11 @@ This document defines the expected behaviour contract across:
 
 The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm run parity:web`, `parity:android`, `parity:ios`, and `parity:inventory:check` on every PR.
 
+### v1.53.1 parity note (settings carousel + policy modals)
+
+- **PWA settings:** Nine-pane carousel with Privacy & region; policy HTML viewer and confirm-modal fixes aligned with shared **`showConfirmModal(message, title, onConfirm, onCancel)`** contract.
+- **RN:** **`AiModelDownloadGate`** uses **`prefs.accessibility.colorblindMode`**; **`PolicyDocumentsModal`** typed for strict TypeScript.
+
 ### v1.53.0 parity note (Supabase LLM + download gates)
 
 - **On-device LLM:** Weights from **Supabase Storage** (`llm-models`, chunked); PWA `model-chunk-loader.js`; RN `llmNative.ts` + `modelsBaseUrl.ts`.
