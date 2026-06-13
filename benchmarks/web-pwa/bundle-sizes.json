@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-06-12T19:01:06.216Z",
+  "generatedAt": "2026-06-13T10:47:49.230Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3065029,
-    "cssBytes": 372903,
-    "jsGzipBytes": 607564,
-    "cssGzipBytes": 65144
+    "jsBytes": 3122229,
+    "cssBytes": 382069,
+    "jsGzipBytes": 615451,
+    "cssGzipBytes": 67259
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1123105,
-      "gzipBytes": 190836
+      "bytes": 1136907,
+      "gzipBytes": 192543
     },
     {
-      "file": "ci-minified/site/app.e08bf15bea72.min.js",
-      "bytes": 673482,
-      "gzipBytes": 133008
+      "file": "ci-minified/site/app.56341f0a238c.min.js",
+      "bytes": 682194,
+      "gzipBytes": 134193
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -24,19 +24,19 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.fe278e3a5f4a.css",
-      "bytes": 359327,
-      "gzipBytes": 61671
+      "file": "ci-minified/site/styles.2a84787af20b.css",
+      "bytes": 367982,
+      "gzipBytes": 63474
     },
     {
       "file": "ci-minified/site/AIEngine.js",
-      "bytes": 220501,
-      "gzipBytes": 37852
+      "bytes": 221884,
+      "gzipBytes": 38136
     },
     {
       "file": "ci-minified/site/cloud-sync.js",
-      "bytes": 97595,
-      "gzipBytes": 18369
+      "bytes": 98234,
+      "gzipBytes": 18467
     },
     {
       "file": "ci-minified/site/export-utils.js",
@@ -45,8 +45,13 @@
     },
     {
       "file": "ci-minified/site/device-benchmark.js",
-      "bytes": 60845,
-      "gzipBytes": 9691
+      "bytes": 60844,
+      "gzipBytes": 9693
+    },
+    {
+      "file": "ci-minified/site/summary-llm.js",
+      "bytes": 44805,
+      "gzipBytes": 7955
     },
     {
       "file": "ci-minified/site/performance-utils.js",
@@ -54,9 +59,9 @@
       "gzipBytes": 7485
     },
     {
-      "file": "ci-minified/site/summary-llm.js",
-      "bytes": 36795,
-      "gzipBytes": 7416
+      "file": "ci-minified/site/ui-feedback.js",
+      "bytes": 24653,
+      "gzipBytes": 4071
     },
     {
       "file": "ci-minified/site/import-utils.js",
@@ -125,8 +130,8 @@
     },
     {
       "file": "ci-minified/site/sw.js",
-      "bytes": 4679,
-      "gzipBytes": 1748
+      "bytes": 4681,
+      "gzipBytes": 1749
     },
     {
       "file": "ci-minified/site/supabase-config.js",
@@ -152,6 +157,11 @@
       "file": "ci-minified/site/supabase-config.example.js",
       "bytes": 806,
       "gzipBytes": 428
+    },
+    {
+      "file": "ci-minified/site/css/tokens.css",
+      "bytes": 511,
+      "gzipBytes": 312
     }
   ]
 }
