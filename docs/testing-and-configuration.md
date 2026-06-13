@@ -61,7 +61,17 @@ Define variables in **`security/.env`** (copy from [`security/.env.example`](../
 4. On an **existing** live project, run [../supabase/harden-graphql-exposure.sql](../supabase/harden-graphql-exposure.sql) in the SQL Editor to drop unused **`pg_graphql`** and revoke broad **`anon`** grants (Security Advisor lints 0026/0027) — see [SECURITY.md](SECURITY.md)
 5. Add your credentials to **`security/.env`** (or legacy root `.env`) and `supabase-config.js`
 
-### Security verification scripts (v1.50.0)
+### v1.53.0 LLM model scripts (Supabase Storage)
+
+| Script | npm alias | Purpose |
+|--------|-----------|---------|
+| `scripts/download-llm-models.mjs` | `npm run models:download` | Mirror ONNX weights from Hugging Face into `apps/pwa-webapp/models/` (gitignored) |
+| `scripts/upload-llm-models-supabase.mjs` | `npm run models:upload:supabase` | Upload to bucket `llm-models` with 47 MB chunking; reads `security/.env`; `--purge-local` deletes local weights |
+| `scripts/verify-llm-models.mjs` | `npm run models:verify` | Verify manifest; checks local files or remote Supabase when `SUPABASE_URL` set |
+
+**Llama 3.2 download** requires `HF_TOKEN` and accepted license on huggingface.co. **Never commit** service role key or weight files.
+
+### Security verification scripts (v1.50.0+)
 
 Run from repo root (also enforced in CI **`security-audit`** job):
 
@@ -70,7 +80,7 @@ Run from repo root (also enforced in CI **`security-audit`** job):
 | `scripts/verify-privacy-docs.mjs` | `npm run verify:privacy-docs` | Required privacy/security docs + valid `ropa.json` |
 | `scripts/verify-rls-baseline.mjs` | — | RLS baseline SQL doc intact |
 | `scripts/verify-csp-connect-src.mjs` | `npm run verify:csp` | CSP `connect-src` coverage |
-| `scripts/verify-no-service-role-in-clients.mjs` | — | No service_role in client sources |
+| `scripts/verify-no-service-role-in-clients.mjs` | — | No service_role / sb_secret / hardcoded keys in **tracked** client sources |
 | `scripts/generate-security-inventory.mjs` | `npm run docs:security-inventory` | Regenerate [security-inventory.md](security-inventory.md) |
 
 **Security unit tests:** `tests/unit/security/` (XSS import preview, cloud deletion tables, verify-script smoke). Included in `npm run test:unit`.

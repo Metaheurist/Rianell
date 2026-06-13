@@ -2,6 +2,14 @@
 
 ## ⚙️ Installation
 
+### v1.53.0 Supabase LLM weights (operator)
+
+1. Apply **`supabase/Schema.sql`** (includes `llm-models` public bucket).
+2. Add **`SUPABASE_URL`** and **`SUPABASE_SERVICE_KEY`** (service role) to **`security/.env`** — never commit this file.
+3. Download weights locally: `npm run models:download` (optional `HF_TOKEN` for Llama).
+4. Upload: `npm run models:upload:supabase -- --purge-local` (chunks large files; updates committed `manifest.json`).
+5. GitHub Actions: set repository secrets **`SUPABASE_URL`** and **`SUPABASE_ANON_KEY`** for Pages deploy (CI injects into `supabase-config.js`).
+
 ### v1.50.0 documentation sync (consent and erasure UX)
 
 - **Health data consent (GDPR Art. 9):** Before first cloud sync or anonymised contribution, the PWA shows a **Health data processing consent** modal (`#healthDataConsentOverlay`); RN stores `healthDataConsent` / `healthDataConsentAt` in preferences. Decline keeps data local-only.
@@ -70,7 +78,8 @@
   - **Mobile quality gates (from repo root):** `npm run typecheck:mobile` (TypeScript via `apps/rn-app/tsconfig.json`; root `tsconfig.json` references the app for IDE discovery) and `npm run test:mobile` (Jest). Run `npm install` at the root first so workspace dependencies resolve under `apps/rn-app/node_modules`.
 
 4. **Configure Supabase (for frontend)**
-   - Edit `supabase-config.js` with your Supabase credentials
+   - **`apps/pwa-webapp/supabase-config.js`** uses placeholders (`YOUR_PROJECT_REF`); CI replaces them on GitHub Pages deploy from repository secrets.
+   - For local dev, replace placeholders or use the Python server Supabase interception on localhost.
    - ⚠️ **Important**: Use the **Publishable** key only in the client, never a **Secret** key (e.g. service_role).
 
 
