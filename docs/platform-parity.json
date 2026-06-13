@@ -1,78 +1,127 @@
 {
-  "version": 1,
+  "version": 2,
   "updatedBy": "ci",
+  "platforms": ["web", "android", "ios"],
   "features": [
     {
       "id": "notifications",
-      "status": {
-        "web": "supported",
-        "android": "supported",
-        "ios": "partial"
-      },
-      "notes": "Native plugin path exists; iOS behavior can vary with OS policy/runtime conditions."
+      "status": { "web": "supported", "android": "supported", "ios": "partial" },
+      "notes": "PWA LocalNotifications plugin path; RN native channels and scheduling; iOS delivery varies by OS policy."
     },
     {
       "id": "speech_to_text",
-      "status": {
-        "web": "partial",
-        "android": "partial",
-        "ios": "partial"
-      },
-      "notes": "Uses browser SpeechRecognition API; support varies by WebView/engine."
+      "status": { "web": "partial", "android": "partial", "ios": "partial" },
+      "notes": "Browser SpeechRecognition on web; Expo speech recognition on RN; engine variance."
     },
     {
       "id": "clipboard_share_download",
-      "status": {
-        "web": "supported",
-        "android": "supported",
-        "ios": "partial"
-      },
-      "notes": "Fallbacks exist; iOS file share/download behavior depends on platform/browser capabilities."
+      "status": { "web": "supported", "android": "supported", "ios": "partial" },
+      "notes": "Share/download with platform fallbacks."
     },
     {
       "id": "sync_behavior",
-      "status": {
-        "web": "partial",
-        "android": "partial",
-        "ios": "partial"
-      },
-      "notes": "Current sync behavior is foreground/interval based, not OS background-sync resilient."
+      "status": { "web": "partial", "android": "partial", "ios": "partial" },
+      "notes": "Foreground/interval sync; no guaranteed OS background sync."
     },
     {
       "id": "local_storage_and_idb",
-      "status": {
-        "web": "supported",
-        "android": "supported",
-        "ios": "supported"
-      },
-      "notes": "Storage APIs are available across targets, with quota/eviction differences."
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "localStorage/IDB on web; AsyncStorage (+ optional SQLite) on RN."
     },
     {
       "id": "ui_toast_feedback",
-      "status": {
-        "web": "supported",
-        "android": "supported",
-        "ios": "supported"
-      },
-      "notes": "PWA/Capacitor use ui-feedback.js showToast/notifySuccess; React Native uses ToastProvider (non-blocking save feedback)."
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "ui-feedback.js on web; ToastProvider on RN."
     },
     {
       "id": "haptic_feedback",
-      "status": {
-        "web": "partial",
-        "android": "partial",
-        "ios": "partial"
-      },
-      "notes": "Vibration API on web where available; native haptics on RN selections/saves; gracefully no-ops when unsupported."
+      "status": { "web": "partial", "android": "partial", "ios": "partial" },
+      "notes": "Vibration API / expo-haptics where available."
     },
     {
       "id": "on_device_llm",
-      "status": {
-        "web": "supported",
-        "android": "partial",
-        "ios": "partial"
-      },
-      "notes": "PWA/Capacitor WebView: Transformers.js chat models (Llama-3.2-1B tier3-5, SmolLM2-360M tier1-2) with download consent, progress UI, and Cache API persistence. RN: remote endpoint only with deterministic fallback."
+      "status": { "web": "supported", "android": "supported", "ios": "partial" },
+      "notes": "Web: Transformers.js Llama/SmolLM2 with consent and progress. RN: remote endpoint + rule fallback; native ONNX path in @rianell/llm when device supports."
+    },
+    {
+      "id": "cloud_sync_encrypted",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "Encrypted health_data backup via @rianell/cloud-sync adapters."
+    },
+    {
+      "id": "cloud_sync_anonymized",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "Anonymized research sync when medicalCondition + contributeAnonData set."
+    },
+    {
+      "id": "cloud_merge_delete",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "Merge logs, delete cloud data, delete all user data."
+    },
+    {
+      "id": "ai_analysis_engine",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "@rianell/ai-engine shared deterministic analysis."
+    },
+    {
+      "id": "ai_chart_predictions",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "predictFutureValues overlays on charts."
+    },
+    {
+      "id": "ai_timeline_ui",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "AI tab section flow: at a glance, findings, caution."
+    },
+    {
+      "id": "charts_balance_radar",
+      "status": { "web": "supported", "android": "supported", "ios": "partial" },
+      "notes": "Web Apex radar; RN visual balance baseline (radar-equivalent bars)."
+    },
+    {
+      "id": "charts_predictions",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "Prediction series on trend charts."
+    },
+    {
+      "id": "print_export",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "print-utils.js on web; expo-print + share on RN."
+    },
+    {
+      "id": "settings_personal_profile",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "userName, medicalCondition, weightUnit."
+    },
+    {
+      "id": "settings_goals",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "rianellGoals: steps, hydration, sleep score, good-days/week."
+    },
+    {
+      "id": "settings_anon_contribution",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "contributeAnonData and useOpenData toggles."
+    },
+    {
+      "id": "tutorial_onboarding",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "First-run tutorial modal / RN onboarding screen."
+    },
+    {
+      "id": "storage_compression_backup",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "gzip backup keys and restore paths."
+    },
+    {
+      "id": "storage_offline_queue",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "Offline write queue flush on reconnect."
+    },
+    {
+      "id": "navigation_goals_home",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "Home goals progress block."
     }
   ]
 }

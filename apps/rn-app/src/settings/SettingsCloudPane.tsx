@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
+import {
+  deleteCloudLogs,
+  loadFromCloud,
+  syncAnonymizedData,
+  syncToCloud,
+} from '../cloud/sync';
 import { getSupabaseClient } from '../cloud/supabaseClient';
+import { loadPreferences } from '../storage/preferences';
 import { useTheme } from '../theme/ThemeProvider';
 
 export function SettingsCloudPane() {
@@ -18,6 +25,16 @@ export function SettingsCloudPane() {
     const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next));
     return () => data.subscription.unsubscribe();
   }, [supabase]);
+
+  async function runAction(label: string, fn: () => Promise<{ ok: boolean; message: string }>) {
+    setBusy(true);
+    try {
+      const result = await fn();
+      Alert.alert(label, result.message);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function onSignIn() {
     if (!supabase) return;
@@ -86,6 +103,47 @@ export function SettingsCloudPane() {
         <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
           Signed in as {session.user.email ?? '—'}
         </Text>
+        <Pressable
+          style={[styles.btn, { opacity: busy ? 0.6 : 1 }]}
+          onPress={() => void runAction('Sync', syncToCloud)}
+          disabled={busy}
+          accessibilityRole="button"
+          accessibilityLabel="Sync to cloud"
+        >
+          <Text style={styles.btnText}>Sync to cloud</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.btn, { opacity: busy ? 0.6 : 1 }]}
+          onPress={() => void runAction('Load', loadFromCloud)}
+          disabled={busy}
+          accessibilityRole="button"
+          accessibilityLabel="Load from cloud"
+        >
+          <Text style={styles.btnText}>Load from cloud</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.btn, { opacity: busy ? 0.6 : 1 }]}
+          onPress={() => {
+            void (async () => {
+              const prefs = await loadPreferences();
+              await runAction('Anonymized sync', () => syncAnonymizedData(prefs.medicalCondition));
+            })();
+          }}
+          disabled={busy}
+          accessibilityRole="button"
+          accessibilityLabel="Sync anonymized data"
+        >
+          <Text style={styles.btnText}>Contribute anonymized data</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.btn, styles.btnDanger, { opacity: busy ? 0.6 : 1 }]}
+          onPress={() => void runAction('Delete cloud data', deleteCloudLogs)}
+          disabled={busy}
+          accessibilityRole="button"
+          accessibilityLabel="Delete cloud data"
+        >
+          <Text style={styles.btnText}>Delete cloud data</Text>
+        </Pressable>
         <Pressable
           style={[styles.btn, { opacity: busy ? 0.6 : 1 }]}
           onPress={() => void onSignOut()}
@@ -165,6 +223,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     justifyContent: 'center',
   },
+  btnDanger: { backgroundColor: 'rgba(244,67,54,0.35)' },
   btnHalf: { flex: 1 },
   btnText: { color: '#fff', fontWeight: '800' },
 });

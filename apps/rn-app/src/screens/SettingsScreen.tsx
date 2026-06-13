@@ -22,9 +22,10 @@ import type { AppearanceMode, Preferences, PreferredLlmModelSize } from '../stor
 import { useTheme } from '../theme/ThemeProvider';
 import { speakLabel } from '../accessibility/tts';
 import { mergeLogsAppend, parseLogImportJson, serializeLogsForExport } from '../data/logExportImport';
-import { loadLogs, saveLogs } from '../storage/logs';
+import { loadLogs, saveLogs, persistLogs } from '../storage/logs';
 import { SettingsCloudPane } from '../settings/SettingsCloudPane';
 import { SettingsAppInstallSection } from '../settings/SettingsAppInstallSection';
+import { printOrShareLogs } from '../utils/printLogs';
 import { clearCachedBenchmark, loadCachedBenchmark, resolveLlmModelSize, runAndCacheBenchmark, type BenchmarkResult } from '../performance/benchmark';
 import { disableDemoMode, enableDemoMode } from '../demo/demoMode';
 import {
@@ -94,6 +95,7 @@ export function SettingsScreen({
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
   const [exportBusy, setExportBusy] = useState(false);
+  const [printBusy, setPrintBusy] = useState(false);
   const [demoBusy, setDemoBusy] = useState(false);
   const [benchmark, setBenchmark] = useState<BenchmarkResult | null>(null);
   const [benchmarkBusy, setBenchmarkBusy] = useState(false);
@@ -242,6 +244,23 @@ export function SettingsScreen({
     }
   }
 
+  async function onPrintLogs() {
+    if (prefs.demoMode) {
+      Alert.alert('Demo Mode', 'Print export is disabled in demo mode.');
+      return;
+    }
+    setPrintBusy(true);
+    try {
+      const logs = await loadLogs();
+      await printOrShareLogs(logs);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Print failed';
+      Alert.alert('Print', msg);
+    } finally {
+      setPrintBusy(false);
+    }
+  }
+
   async function applyImport(mode: 'replace' | 'append') {
     if (prefs.demoMode) {
       Alert.alert('Demo Mode', 'Import is disabled in demo mode. Turn off demo mode first.');
@@ -250,10 +269,10 @@ export function SettingsScreen({
     try {
       const incoming = parseLogImportJson(importText);
       if (mode === 'replace') {
-        await saveLogs(incoming);
+        await persistLogs(incoming, { backup: prefs.backup, compress: prefs.compress });
       } else {
         const existing = await loadLogs();
-        await saveLogs(mergeLogsAppend(existing, incoming));
+        await persistLogs(mergeLogsAppend(existing, incoming), { backup: prefs.backup, compress: prefs.compress });
       }
       setImportOpen(false);
       setImportText('');
@@ -344,10 +363,14 @@ export function SettingsScreen({
     }
   }
 
-  function updateGoalValue(key: 'moodTarget' | 'sleepTarget' | 'fatigueTarget', raw: string) {
+  function updateGoalValue(key: keyof Preferences['goals'], raw: string) {
     const n = Number(raw);
     if (!Number.isFinite(n)) return;
-    const clamped = Math.min(10, Math.max(0, n));
+    let clamped = n;
+    if (key === 'steps') clamped = Math.min(100000, Math.max(0, Math.trunc(n)));
+    else if (key === 'hydration') clamped = Math.min(30, Math.max(0, n));
+    else if (key === 'goodDaysPerWeek') clamped = Math.min(7, Math.max(0, Math.trunc(n)));
+    else clamped = Math.min(10, Math.max(0, n));
     onChangePrefs({
       ...prefs,
       goals: {
@@ -489,6 +512,51 @@ export function SettingsScreen({
 
               <Hint>Matches web Settings → first carousel pane (account + Supabase).</Hint>
 
+              <Row label="Your name">
+                <TextInput
+                  value={prefs.userName}
+                  onChangeText={(userName) => onChangePrefs({ ...prefs, userName })}
+                  accessibilityLabel="Your name"
+                  placeholder="Optional"
+                  placeholderTextColor={`${theme.tokens.color.text}88`}
+                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                />
+              </Row>
+
+              <Row label="Medical condition">
+                <TextInput
+                  value={prefs.medicalCondition}
+                  onChangeText={(medicalCondition) => onChangePrefs({ ...prefs, medicalCondition })}
+                  accessibilityLabel="Medical condition"
+                  placeholder="Optional"
+                  placeholderTextColor={`${theme.tokens.color.text}88`}
+                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                />
+              </Row>
+
+              <Row label="Weight unit">
+                <InlineChoices
+                  value={prefs.weightUnit}
+                  options={['kg', 'lb']}
+                  onChange={(weightUnit) => onChangePrefs({ ...prefs, weightUnit: weightUnit as 'kg' | 'lb' })}
+                  tts={tts}
+                />
+              </Row>
+
+              <Row label="Contribute anonymized data">
+                <Switch
+                  value={prefs.contributeAnonData === true}
+                  onValueChange={(contributeAnonData) => onChangePrefs({ ...prefs, contributeAnonData })}
+                />
+              </Row>
+
+              <Row label="Use open health datasets">
+                <Switch
+                  value={prefs.useOpenData === true}
+                  onValueChange={(useOpenData) => onChangePrefs({ ...prefs, useOpenData })}
+                />
+              </Row>
+
               <SettingsCloudPane />
 
             </Section>
@@ -579,6 +647,46 @@ export function SettingsScreen({
 
                 />
 
+              </Row>
+
+              <Row label="Steps target">
+                <TextInput
+                  value={String(prefs.goals.steps)}
+                  onChangeText={(value) => updateGoalValue('steps', value)}
+                  accessibilityLabel="Steps target"
+                  keyboardType="number-pad"
+                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                />
+              </Row>
+
+              <Row label="Hydration target (glasses)">
+                <TextInput
+                  value={String(prefs.goals.hydration)}
+                  onChangeText={(value) => updateGoalValue('hydration', value)}
+                  accessibilityLabel="Hydration target"
+                  keyboardType="decimal-pad"
+                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                />
+              </Row>
+
+              <Row label="Sleep score target (0-10)">
+                <TextInput
+                  value={String(prefs.goals.sleepScore)}
+                  onChangeText={(value) => updateGoalValue('sleepScore', value)}
+                  accessibilityLabel="Sleep score target"
+                  keyboardType="decimal-pad"
+                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                />
+              </Row>
+
+              <Row label="Good days per week">
+                <TextInput
+                  value={String(prefs.goals.goodDaysPerWeek)}
+                  onChangeText={(value) => updateGoalValue('goodDaysPerWeek', value)}
+                  accessibilityLabel="Good days per week target"
+                  keyboardType="number-pad"
+                  style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                />
               </Row>
 
             </Section>
@@ -1269,13 +1377,21 @@ export function SettingsScreen({
 
               <Hint>Loads a fresh sample dataset each app launch and pauses data portability actions (web parity).</Hint>
 
-              <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
+              <Row label="Auto-backup logs locally">
+                <Switch
+                  value={prefs.backup !== false}
+                  onValueChange={(backup) => onChangePrefs({ ...prefs, backup })}
+                />
+              </Row>
 
-                Auto-backup to local storage and chart compression toggles exist on the web PWA only; native uses local storage for logs
+              <Row label="Compress stored logs">
+                <Switch
+                  value={prefs.compress === true}
+                  onValueChange={(compress) => onChangePrefs({ ...prefs, compress })}
+                />
+              </Row>
 
-                automatically.
-
-              </Text>
+              <Hint>Backup runs before saves when enabled; compression is best-effort on native storage.</Hint>
 
             </Section>
 
@@ -1293,11 +1409,21 @@ export function SettingsScreen({
 
             <Section title="Performance">
 
-              <Hint>
+              <Row label="UI animations">
+                <Switch
+                  value={prefs.animations !== false}
+                  onValueChange={(animations) => onChangePrefs({ ...prefs, animations })}
+                />
+              </Row>
 
-                Animation / lazy-load toggles are web-only. On mobile, use the benchmark to pick an on-device AI model tier.
+              <Row label="Lazy-load charts">
+                <Switch
+                  value={prefs.lazy !== false}
+                  onValueChange={(lazy) => onChangePrefs({ ...prefs, lazy, lazyCharts: lazy })}
+                />
+              </Row>
 
-              </Hint>
+              <Hint>Use the benchmark below to pick an on-device AI model tier.</Hint>
 
               <Row label="On-device AI model">
 
@@ -1432,6 +1558,35 @@ export function SettingsScreen({
                   <View style={styles.dataBtnRow}>
                     <Ionicons name="share-outline" size={20} color={theme.tokens.color.accent} />
                     <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>Export logs (JSON)</Text>
+                  </View>
+
+                )}
+
+              </Pressable>
+
+              <Pressable
+
+                style={[styles.dataBtn, { opacity: printBusy ? 0.6 : 1 }]}
+
+                onPress={() => void onPrintLogs()}
+
+                disabled={printBusy}
+
+                accessibilityRole="button"
+
+                accessibilityLabel="Print or share logs as PDF"
+
+              >
+
+                {printBusy ? (
+
+                  <ActivityIndicator color={theme.tokens.color.text} />
+
+                ) : (
+
+                  <View style={styles.dataBtnRow}>
+                    <Ionicons name="print-outline" size={20} color={theme.tokens.color.accent} />
+                    <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>Print / share PDF</Text>
                   </View>
 
                 )}

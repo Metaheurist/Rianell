@@ -4,9 +4,15 @@ This document defines the expected behaviour contract across:
 
 - **Web / PWA** (`apps/pwa-webapp/`)
 - **React Native (Expo)** (`apps/rn-app/`) — primary mobile app
-- **Legacy Capacitor** (`apps/capacitor-app/`) — WebView shell during transition
 
-The machine-readable source is `docs/platform-parity.json`. CI parity gates validate key hooks and platform config wiring in each mobile job.
+The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm run parity:web`, `parity:android`, `parity:ios`, and `parity:inventory:check` on every PR.
+
+### v1.49.0 parity note (Capacitor sunset + shared packages)
+
+- **Capacitor removed:** Legacy **`apps/capacitor-app/`** WebView shell and CI release artifacts are gone; **PWA + React Native (Expo)** are the only app surfaces.
+- **Shared packages:** **`@rianell/shared`**, **`@rianell/ai-engine`**, **`@rianell/cloud-sync`**, **`@rianell/llm`** — PWA loads vendor bundles; RN imports the same packages.
+- **RN parity:** Cloud sync UI (`SettingsCloudPane`), expanded settings/goals, chart predictions, print export, offline queue flush, native LLM consent path (`llmNative.ts` placeholder until ONNX ships).
+- **Parity gates:** `check-platform-parity.mjs` modes **`web | android | ios`**; `parity-inventory.mjs` diffs settings keys and cloud exports.
 
 ## Current contract
 
@@ -17,17 +23,17 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 - `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
 - `ui_toast_feedback`: non-blocking toast/snackbar on PWA (`ui-feedback.js`) and RN (`ToastProvider`).
 - `haptic_feedback`: optional vibration/haptics on supported platforms; no-op elsewhere.
-- `on_device_llm`: PWA uses Transformers.js chat models with consent + progress UI; Capacitor inherits PWA; RN uses optional remote endpoint.
+- `on_device_llm`: PWA uses Transformers.js chat models with consent + progress UI; RN uses `@rianell/llm` consent + curated fallback (`llmNative.ts`) until native ONNX inference ships.
 
 ### v1.48.0 parity note (Llama on-device LLM upgrade)
 
-- **PWA + Capacitor:** **`summary-llm.js`** — **`onnx-community/Llama-3.2-1B-Instruct`** (tier 3–5) / **`SmolLM2-360M-Instruct`** (tier 1–2); **`text-generation`** chat pipeline; download consent modal; progress banner; **`motd.json`** healthy-lifestyle quotes.
-- **React Native:** **`llm.ts`** remote endpoint model names aligned; no on-device Transformers.js in RN.
+- **PWA:** **`summary-llm.js`** — **`onnx-community/Llama-3.2-1B-Instruct`** (tier 3–5) / **`SmolLM2-360M-Instruct`** (tier 1–2); **`text-generation`** chat pipeline; download consent modal; progress banner; **`motd.json`** healthy-lifestyle quotes.
+- **React Native:** **`llm.ts`** remote endpoint when configured; **`llmNative.ts`** consent + MOTD fallback aligned with **`@rianell/llm`** model IDs.
 - **Parity checks:** **`check-platform-parity.mjs`** validates new model ids, **`progress_callback`**, and consent hook.
 
 ### v1.47.0 parity note (UI sophistication overhaul)
 
-- **PWA + Capacitor WebView:** Shared **`ui-feedback.js`** toast/haptic/ripple/offline helpers; direction-aware tab transitions; wizard step motion; home hero + goals rings; **`check-platform-parity.mjs`** validates **`showToast`** / **`notifySuccess`** hooks.
+- **PWA:** Shared **`ui-feedback.js`** toast/haptic/ripple/offline helpers; direction-aware tab transitions; wizard step motion; home hero + goals rings; **`check-platform-parity.mjs`** validates **`showToast`** / **`notifySuccess`** hooks.
 - **React Native:** **`ToastProvider`** + UI kit under **`src/components/ui/`**; log wizard progress bar/dots; non-blocking save toasts (replacing blocking save **`Alert.alert`** for success paths).
 - **Tokens:** **`@rianell/tokens`** semantic colors/motion scales aligned with PWA **`css/tokens.css`** / **`styles.css`**.
 
@@ -353,12 +359,14 @@ The machine-readable source is `docs/platform-parity.json`. CI parity gates vali
 
 ## CI enforcement
 
-The mobile jobs run:
+The `unit-tests` job runs:
 
-- `node scripts/check-platform-parity.mjs android`
-- `node scripts/check-platform-parity.mjs ios`
+- `npm run parity:web`
+- `npm run parity:android`
+- `npm run parity:ios`
+- `npm run parity:inventory:check`
 
-These checks fail the build when expected parity hooks or generated native config markers are missing.
+These checks fail the build when expected parity hooks or inventory gaps are detected.
 
 ## Release traceability
 

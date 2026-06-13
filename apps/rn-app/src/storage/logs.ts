@@ -1,7 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LOGS_STORAGE_KEY_V1, LOGS_STORAGE_KEY_MOBILE_LEGACY, normalizeLogEntry, createSampleLogEntry } from '@rianell/shared';
+import { backupLogs, compressLogsIfEnabled } from './backup';
 
 export type LogEntry = ReturnType<typeof normalizeLogEntry>;
+
+export type PersistLogsOptions = {
+  backup?: boolean;
+  compress?: boolean;
+};
 
 export async function loadLogs(): Promise<LogEntry[]> {
   const raw = await AsyncStorage.getItem(LOGS_STORAGE_KEY_V1);
@@ -17,6 +23,24 @@ export async function loadLogs(): Promise<LogEntry[]> {
 
 export async function saveLogs(logs: LogEntry[]): Promise<void> {
   await AsyncStorage.setItem(LOGS_STORAGE_KEY_V1, JSON.stringify(logs));
+}
+
+export async function persistLogs(logs: LogEntry[], opts?: PersistLogsOptions): Promise<void> {
+  if (opts?.backup) {
+    try {
+      await backupLogs();
+    } catch {
+      /* best effort */
+    }
+  }
+  await saveLogs(logs);
+  if (opts?.compress) {
+    try {
+      await compressLogsIfEnabled(true);
+    } catch {
+      /* best effort */
+    }
+  }
 }
 
 export function makeSampleLog(): LogEntry {

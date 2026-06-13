@@ -6,8 +6,7 @@
  * Tables:
  * - CI builds: **RN** Alpha rows read `version` from RN CLI `latest.json` (sequential RN
  *   build from CI `rn-build-version`). **Server** uses workflow run number. **Web / PWA**
- *   row shows **GITHUB_RUN_NUMBER** (Pages deploy). Legacy Capacitor rows read frozen JSON.
- * - Legacy builds: Capacitor Android (Beta) + legacy Capacitor iOS zip metadata (Alpha) — frozen paths.
+ *   row shows **GITHUB_RUN_NUMBER** (Pages deploy).
  *
  * Env: GITHUB_RUN_NUMBER, GITHUB_SHA, GITHUB_RUN_ID, GITHUB_REPOSITORY
  */
@@ -46,8 +45,6 @@ const runUrl = runId ? `https://github.com/${repo}/actions/runs/${runId}` : `htt
 
 const rnAndroid = readJson(path.join('App build', 'RNCLI-Android', 'latest.json'));
 const rnIos = readJson(path.join('App build', 'iOS', 'latest.json'));
-const legacyAndroid = readJson(path.join('App build', 'Android', 'latest.json'));
-const legacyCapIos = readJson(path.join('App build', 'Legacy', 'Capacitor-iOS', 'latest.json'));
 
 const server = readJson(path.join('App build', 'Server', 'latest.json'));
 const serverX64 = readJson(path.join('App build', 'Server', 'latest-x64.json'));
@@ -55,8 +52,6 @@ const serverX86 = readJson(path.join('App build', 'Server', 'latest-x86.json'));
 
 const rnAndroidV = v(rnAndroid);
 const rnIosV = v(rnIos);
-const legacyAndroidV = v(legacyAndroid);
-const legacyIosV = v(legacyCapIos);
 
 const serverV = server && typeof server.version !== 'undefined' ? String(server.version) : '-';
 const serverX64V = serverX64 && typeof serverX64.version !== 'undefined' ? String(serverX64.version) : serverV;
@@ -64,15 +59,12 @@ const serverX86V = serverX86 && typeof serverX86.version !== 'undefined' ? Strin
 
 const rnAndroidFile = rnAndroid && rnAndroid.file ? String(rnAndroid.file) : 'latest.json';
 const rnIosFile = rnIos && rnIos.file ? String(rnIos.file) : 'latest.json';
-const legacyAndroidFile = legacyAndroid && legacyAndroid.file ? String(legacyAndroid.file) : 'latest.json';
-const legacyIosFile = legacyCapIos && legacyCapIos.file ? String(legacyCapIos.file) : 'latest.json';
 
 const serverFile = server && server.file ? String(server.file) : 'latest.json';
 const serverX64File = serverX64 && serverX64.file ? String(serverX64.file) : 'rianell-server-x64.exe';
 const serverX86File = serverX86 && serverX86.file ? String(serverX86.file) : 'rianell-server-x86.exe';
 
 const badgeHref = runId ? runUrl : `https://github.com/${repo}/actions`;
-// Summary: RN Alpha builds + server + web workflow run
 const summaryBadgeUrl = `https://img.shields.io/badge/build-RN%20${encodeURIComponent(rnAndroidV)}%20%7C%20RN%20iOS%20${encodeURIComponent(rnIosV)}%20%7C%20Server%20${encodeURIComponent(serverV)}%20%7C%20Web%20${encodeURIComponent(run)}-2e7d32?style=flat-square`;
 const BETA_BADGE = 'https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white';
 const ALPHA_BADGE = 'https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white';
@@ -92,14 +84,7 @@ const block = [
   `| ![Beta](${BETA_BADGE}) **Server** EXE (x86) | **${serverX86V}** |`,
   `| ![Beta](${BETA_BADGE}) **Web / PWA** (GitHub Pages deploy) | **${run}** |`,
   '',
-  '**Legacy builds** (Capacitor — no longer produced by CI; metadata only)',
-  '',
-  '| Channel | Build |',
-  '| :--- | :---: |',
-  `| ![Beta](${BETA_BADGE}) **Android** APK (Capacitor) | **${legacyAndroidV}** |`,
-  `| ![Alpha](${ALPHA_BADGE}) **iOS** (Xcode project zip, Capacitor) | **${legacyIosV}** |`,
-  '',
-  `Latest: [\`App build/RNCLI-Android/${rnAndroidFile}\`](App%20build/RNCLI-Android/latest.json) · [\`App build/iOS/${rnIosFile}\`](App%20build/iOS/latest.json) · [\`App build/Server/${serverFile}\`](App%20build/Server/latest.json) · [\`App build/Server/${serverX64File}\`](App%20build/Server/latest-x64.json) · [\`App build/Server/${serverX86File}\`](App%20build/Server/latest-x86.json) · legacy Capacitor Android [\`App build/Android/${legacyAndroidFile}\`](App%20build/Android/latest.json) · legacy Capacitor iOS [\`App build/Legacy/Capacitor-iOS/${legacyIosFile}\`](App%20build/Legacy/Capacitor-iOS/latest.json) · [Workflow #${run}](${runUrl}) · \`${sha}\``,
+  `Latest: [\`App build/RNCLI-Android/${rnAndroidFile}\`](App%20build/RNCLI-Android/latest.json) · [\`App build/iOS/${rnIosFile}\`](App%20build/iOS/latest.json) · [\`App build/Server/${serverFile}\`](App%20build/Server/latest.json) · [\`App build/Server/${serverX64File}\`](App%20build/Server/latest-x64.json) · [\`App build/Server/${serverX86File}\`](App%20build/Server/latest-x86.json) · [Workflow #${run}](${runUrl}) · \`${sha}\``,
   '',
   END,
 ].join('\n');

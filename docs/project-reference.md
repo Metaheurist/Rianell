@@ -63,14 +63,7 @@ Rianell/
 │   │   └── …
 │   ├── rn-app/             # React Native (Expo) CLI — primary native mobile surface
 │   │   └── src/            # Tabs, Log wizard, Charts, AI, Settings, …
-│   └── capacitor-app/      # Legacy Vite + Capacitor WebView shell
-│       ├── src/
-│       ├── android/
-│       ├── copy-webapp.js  # Copies PWA into public/legacy
-│       ├── patch-android-sdk.js
-│       └── capacitor.config.ts
-├── requirements.txt
-├── package.json            # Workspaces: apps/*, packages/*, benchmarks/
+├── packages/               # @rianell/shared, ai-engine, cloud-sync, llm, tokens
 ├── benchmarks/             # @rianell/benchmark-runner — perf reports (CI + local), scripts, reporters
 ├── scripts/
 ├── docs/
@@ -97,10 +90,10 @@ For a **complete dependency inventory by build** (workspaces, PWA CDNs, CI-only 
 - Uses browser APIs and Supabase JS client
 - Font Awesome 6 (CDN) for icons
 
-### Node.js (optional: React & Android)
-- **Minimum Node.js 24.14.1** (LTS); see root `package.json` `engines` and **`.nvmrc`**. Used for the React/Capacitor build, Android APK, PWA minify, benchmarks, and CI.
-- Root `package.json`: scripts for `build`, `build:android`, `build:web` (esbuild **`apps/pwa-webapp/app.js`** → content-hashed **`app.*.min.js`** + **`asset-manifest.json`**), `sync`, `dev`
-- `apps/capacitor-app/`: Vite 6, React, Capacitor 7; run `npm run build` from repo root
+### Node.js (PWA minify, RN, benchmarks)
+- **Minimum Node.js 24.14.1** (LTS); see root `package.json` `engines` and **`.nvmrc`**. Used for PWA minify, Expo/RN, benchmarks, and CI.
+- Root `package.json`: scripts for `build:web`, `dev` (Expo), `parity:*`, workspace packages under `packages/*`
+- `apps/rn-app/`: Expo SDK 55 / React Native; run `npm run dev` from repo root or `npx expo start` in `apps/rn-app`
 
 <a id="nav-development"></a>
 
