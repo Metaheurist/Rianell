@@ -2,6 +2,10 @@
 
 ## ⚙️ Installation
 
+### v1.53.2 RN locale packs (Metro)
+
+- **`node scripts/sync-locale-packs-to-pwa.mjs`** copies **`locale-packs/v1/`** into **`apps/rn-app/locale-packs/v1/`** (and PWA) before **`expo export`**; CI runs this automatically.
+
 ### v1.53.1 validation
 
 - **Web benchmarks:** `node benchmarks/scripts/run-web-benchmarks.mjs` (opens Settings in Playwright).
