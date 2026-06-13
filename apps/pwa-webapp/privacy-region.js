@@ -76,7 +76,7 @@
       return '<section style="margin-bottom:1rem"><h4 style="margin:0 0 0.35rem">' + escapeHtml(title) + '</h4><p style="margin:0;line-height:1.45">' + escapeHtml(summary) + '</p></section>';
     }).join('');
     if (typeof global.showAlertModal === 'function') {
-      global.showAlertModal(html || t('gate.policiesTitle'), t('gate.policiesTitle'));
+      global.showAlertModal(html || t('gate.policiesTitle'), t('gate.policiesTitle'), undefined, { html: true });
     }
   }
 
@@ -209,7 +209,12 @@
         if (newId === oldId) return;
         var msg = t('settings.privacy.regionChangeBody');
         if (typeof global.showConfirmModal === 'function') {
-          global.showConfirmModal(msg, function () { applyRegionChange(newId); }, function () { select.value = oldId; }, t('settings.privacy.regionChangeTitle'));
+          global.showConfirmModal(
+            msg,
+            t('settings.privacy.regionChangeTitle'),
+            function () { applyRegionChange(newId); },
+            function () { select.value = oldId; }
+          );
         } else if (confirm(msg)) applyRegionChange(newId);
         else select.value = oldId;
       });
@@ -289,9 +294,9 @@
         if (typeof global.showConfirmModal === 'function') {
           global.showConfirmModal(
             (result.changelog || t('modal.policyUpdateBody')) + ' ' + t('modal.policyUpdateAccept') + '?',
-            function () { acknowledgePolicyUpdate(result.remoteVersion); },
-            function () { declinePolicyUpdate(); },
             t('modal.policyUpdateTitle'),
+            function () { acknowledgePolicyUpdate(result.remoteVersion); },
+            function () { declinePolicyUpdate(); }
           );
         }
         renderSettingsPane();
