@@ -1,0 +1,102 @@
+{
+  "version": "1.0.0",
+  "policyPackId": "v1.0.0",
+  "regions": {
+    "eea_uk": {
+      "label": "EEA & United Kingdom",
+      "defaultLocale": "en-GB",
+      "supportedLocales": ["en-GB", "fr-FR", "de-DE", "es-ES", "it-IT", "pl-PL", "nl-NL", "pt-PT"],
+      "requiredDataResidency": "default",
+      "policyDocuments": ["global-baseline", "eu-gdpr", "data-subject-rights"],
+      "features": {
+        "localHealthLogging": { "enabled": true, "requiredConsents": ["healthData"] },
+        "cloudEncryptedBackup": { "enabled": true, "requiredConsents": ["healthData", "cloudSync"] },
+        "anonymizedResearchPool": { "enabled": true, "requiredConsents": ["healthData", "anonContribution"] },
+        "onDeviceLlmDownload": { "enabled": true, "requiredConsents": ["healthData", "aiModel"] },
+        "openDataPoolForAi": { "enabled": true, "requiredConsents": ["healthData"] },
+        "bugReports": { "enabled": true, "requiredConsents": [] },
+        "ePrivacyStorageBanner": { "enabled": true, "requiredConsents": [] }
+      }
+    },
+    "us_ca": {
+      "label": "United States — California",
+      "defaultLocale": "en-US",
+      "supportedLocales": ["en-US"],
+      "requiredDataResidency": "default",
+      "policyDocuments": ["global-baseline", "other-jurisdictions-us-ca", "data-subject-rights"],
+      "features": {
+        "localHealthLogging": { "enabled": true, "requiredConsents": ["healthData"] },
+        "cloudEncryptedBackup": { "enabled": true, "requiredConsents": ["healthData", "cloudSync"] },
+        "anonymizedResearchPool": { "enabled": true, "requiredConsents": ["healthData", "anonContribution"] },
+        "onDeviceLlmDownload": { "enabled": true, "requiredConsents": ["healthData", "aiModel"] },
+        "openDataPoolForAi": { "enabled": true, "requiredConsents": ["healthData"] },
+        "bugReports": { "enabled": true, "requiredConsents": [] },
+        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] }
+      }
+    },
+    "us_other": {
+      "label": "United States — other states",
+      "defaultLocale": "en-US",
+      "supportedLocales": ["en-US"],
+      "requiredDataResidency": "default",
+      "policyDocuments": ["global-baseline", "other-jurisdictions-us", "data-subject-rights"],
+      "features": {
+        "localHealthLogging": { "enabled": true, "requiredConsents": ["healthData"] },
+        "cloudEncryptedBackup": { "enabled": true, "requiredConsents": ["healthData", "cloudSync"] },
+        "anonymizedResearchPool": { "enabled": true, "requiredConsents": ["healthData", "anonContribution"] },
+        "onDeviceLlmDownload": { "enabled": true, "requiredConsents": ["healthData", "aiModel"] },
+        "openDataPoolForAi": { "enabled": true, "requiredConsents": ["healthData"] },
+        "bugReports": { "enabled": true, "requiredConsents": [] },
+        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] }
+      }
+    },
+    "au": {
+      "label": "Australia",
+      "defaultLocale": "en-AU",
+      "supportedLocales": ["en-AU"],
+      "requiredDataResidency": "default",
+      "policyDocuments": ["global-baseline", "other-jurisdictions-au", "data-subject-rights"],
+      "features": {
+        "localHealthLogging": { "enabled": true, "requiredConsents": ["healthData"] },
+        "cloudEncryptedBackup": { "enabled": true, "requiredConsents": ["healthData", "cloudSync"] },
+        "anonymizedResearchPool": { "enabled": true, "requiredConsents": ["healthData", "anonContribution"] },
+        "onDeviceLlmDownload": { "enabled": true, "requiredConsents": ["healthData", "aiModel"] },
+        "openDataPoolForAi": { "enabled": true, "requiredConsents": ["healthData"] },
+        "bugReports": { "enabled": true, "requiredConsents": [] },
+        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] }
+      }
+    },
+    "br": {
+      "label": "Brazil",
+      "defaultLocale": "pt-BR",
+      "supportedLocales": ["pt-BR"],
+      "requiredDataResidency": "default",
+      "policyDocuments": ["global-baseline", "other-jurisdictions-br", "data-subject-rights"],
+      "features": {
+        "localHealthLogging": { "enabled": true, "requiredConsents": ["healthData"] },
+        "cloudEncryptedBackup": { "enabled": true, "requiredConsents": ["healthData", "cloudSync"] },
+        "anonymizedResearchPool": { "enabled": true, "requiredConsents": ["healthData", "anonContribution"] },
+        "onDeviceLlmDownload": { "enabled": true, "requiredConsents": ["healthData", "aiModel"] },
+        "openDataPoolForAi": { "enabled": true, "requiredConsents": ["healthData"] },
+        "bugReports": { "enabled": true, "requiredConsents": [] },
+        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] }
+      }
+    },
+    "other": {
+      "label": "Rest of world",
+      "defaultLocale": "en-GB",
+      "supportedLocales": ["en-GB", "en-US", "en-AU", "pt-BR", "fr-FR", "de-DE", "es-ES", "it-IT", "pl-PL", "nl-NL", "pt-PT"],
+      "requiredDataResidency": "default",
+      "policyDocuments": ["global-baseline", "data-subject-rights"],
+      "features": {
+        "localHealthLogging": { "enabled": true, "requiredConsents": ["healthData"] },
+        "cloudEncryptedBackup": { "enabled": true, "requiredConsents": ["healthData", "cloudSync"] },
+        "anonymizedResearchPool": { "enabled": false, "requiredConsents": ["healthData", "anonContribution"] },
+        "onDeviceLlmDownload": { "enabled": true, "requiredConsents": ["healthData", "aiModel"] },
+        "openDataPoolForAi": { "enabled": true, "requiredConsents": ["healthData"] },
+        "bugReports": { "enabled": true, "requiredConsents": [] },
+        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] }
+      }
+    }
+  }
+}
