@@ -64,7 +64,28 @@
     ],
     "testMatch": [
       "<rootDir>/**/*.test.ts?(x)"
-    ]
+    ],
+    "moduleDirectories": [
+      "node_modules",
+      "../../node_modules"
+    ],
+    "moduleNameMapper": {
+      "^@rianell/ai-engine$": "<rootDir>/../../packages/ai-engine/src/index.mjs",
+      "^@rianell/cloud-sync$": "<rootDir>/../../packages/cloud-sync/src/index.mjs",
+      "^@rianell/llm$": "<rootDir>/../../packages/llm/src/index.mjs",
+      "^@rianell/shared$": "<rootDir>/../../packages/shared/src/index.cjs",
+      "^@rianell/tokens$": "<rootDir>/../../packages/tokens/src/index.cjs"
+    },
+    "transform": {
+      "\\.mjs$": [
+        "babel-jest",
+        {
+          "presets": [
+            "babel-preset-expo"
+          ]
+        }
+      ]
+    }
   },
   "private": true
 }
