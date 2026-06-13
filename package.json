@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.53.2",
+  "version": "1.53.3",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp and React Native app",
   "workspaces": [
     "apps/rn-app",
@@ -38,6 +38,7 @@
     "verify:csp": "node scripts/verify-csp-connect-src.mjs",
     "models:download": "node scripts/download-llm-models.mjs",
     "models:verify": "node scripts/verify-llm-models.mjs",
+    "verify:no-model-weights-in-git": "node scripts/verify-no-model-weights-in-git.mjs",
     "models:upload:supabase": "node scripts/upload-llm-models-supabase.mjs"
   },
   "devDependencies": {

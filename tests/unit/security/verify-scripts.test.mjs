@@ -12,3 +12,7 @@ test('verify-csp-connect-src passes', () => {
 test('verify-no-service-role-in-clients passes', () => {
   execSync('node scripts/verify-no-service-role-in-clients.mjs', { stdio: 'pipe' });
 });
+
+test('verify-no-model-weights-in-git passes', () => {
+  execSync('node scripts/verify-no-model-weights-in-git.mjs', { stdio: 'pipe' });
+});

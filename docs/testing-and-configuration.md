@@ -73,6 +73,7 @@ Define variables in **`security/.env`** (copy from [`security/.env.example`](../
 | `scripts/download-llm-models.mjs` | `npm run models:download` | Mirror ONNX weights from Hugging Face into `apps/pwa-webapp/models/` (gitignored) |
 | `scripts/upload-llm-models-supabase.mjs` | `npm run models:upload:supabase` | Upload to bucket `llm-models` with 47 MB chunking; reads `security/.env`; `--purge-local` deletes local weights |
 | `scripts/verify-llm-models.mjs` | `npm run models:verify` | Verify manifest; checks local files or remote Supabase when `SUPABASE_URL` set |
+| `scripts/verify-no-model-weights-in-git.mjs` | `npm run verify:no-model-weights-in-git` | Fail if git tracks ONNX/chunks under `models/` (only manifest + README allowed) |
 
 **Llama 3.2 download** requires `HF_TOKEN` and accepted license on huggingface.co. **Never commit** service role key or weight files.
 
