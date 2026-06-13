@@ -85,6 +85,12 @@
       var key = el.getAttribute('data-i18n');
       if (key) el.textContent = t(key);
     });
+    var settingsOpen = document.getElementById('settingsOverlay');
+    if (settingsOpen && (settingsOpen.classList.contains('settings-overlay--open') || settingsOpen.style.display === 'block') && typeof window.settingsCarouselGo === 'function') {
+      var track = document.getElementById('settingsCarouselTrack');
+      var idx = track ? parseInt(track.getAttribute('data-settings-index') || '0', 10) : 0;
+      window.settingsCarouselGo(idx);
+    }
   }
 
   global.applyNavI18n = function () {

@@ -665,15 +665,17 @@ function initVoiceInputControls() {
 // ============================================
 // Custom Alert Modal
 // ============================================
-function showAlertModal(message, title = 'Alert', onClose) {
+function showAlertModal(message, title = 'Alert', onClose, options) {
   const overlay = document.getElementById('alertModalOverlay');
   const titleEl = document.getElementById('alertModalTitle');
   const messageEl = document.getElementById('alertModalMessage');
+  const opts = options && typeof options === 'object' ? options : {};
+  const useHtml = opts.html === true;
   
   if (!overlay || !titleEl || !messageEl) {
     // Fallback to native alert if modal elements not found
     Logger.warn('Alert modal elements not found, using native alert');
-    alert(message);
+    alert(useHtml ? message.replace(/<[^>]+>/g, '') : message);
     if (typeof onClose === 'function') onClose();
     return;
   }
@@ -683,7 +685,12 @@ function showAlertModal(message, title = 'Alert', onClose) {
   
   // Set content
   titleEl.textContent = title;
-  messageEl.textContent = message;
+  messageEl.classList.toggle('alert-modal-message--html', useHtml);
+  if (useHtml) {
+    messageEl.innerHTML = message;
+  } else {
+    messageEl.textContent = message;
+  }
   
   // OK button: optional callback then close
   const okBtn = overlay.querySelector('.modal-save-btn');
@@ -3736,6 +3743,10 @@ function settingsOverlaySetOpen(overlay, open) {
       overlay.classList.add('settings-overlay--open');
     });
     if (typeof loadSettingsState === 'function') loadSettingsState();
+    if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.renderSettingsPane === 'function') {
+      window.RianellPrivacy.renderSettingsPane();
+    }
+    if (typeof initSettingsCarouselUI === 'function') initSettingsCarouselUI();
   } else {
     overlay.classList.remove('settings-overlay--open');
     var cleaned = false;
@@ -16598,8 +16609,9 @@ function bindSettingsCarouselTouchOnce() {
 function resolveSettingsPaneTitle(pane) {
   if (!pane) return '';
   var key = pane.getAttribute('data-settings-pane-i18n');
-  if (key && global.RianellI18n && typeof global.RianellI18n.t === 'function') {
-    var translated = global.RianellI18n.t(key);
+  var i18n = typeof window !== 'undefined' ? window.RianellI18n : null;
+  if (key && i18n && typeof i18n.t === 'function') {
+    var translated = i18n.t(key);
     if (translated && translated !== key) return translated;
   }
   return pane.getAttribute('data-settings-pane-title') || '';
@@ -16614,8 +16626,10 @@ function ensureSettingsCarouselDots(panes) {
     dotsWrap.removeAttribute('data-carousel-icons');
     return;
   }
+  dotsWrap.style.setProperty('--settings-pane-count', String(n));
   /* Rebuild when pane count changes or when migrating from emoji glyph dots. */
-  if (dotsWrap.childElementCount === n && dotsWrap.getAttribute('data-carousel-icons') === 'svg') return;
+  if (dotsWrap.childElementCount === n && dotsWrap.getAttribute('data-carousel-icons') === 'svg' && dotsWrap.getAttribute('data-pane-count') === String(n)) return;
+  dotsWrap.setAttribute('data-pane-count', String(n));
   dotsWrap.innerHTML = '';
   dotsWrap.setAttribute('data-carousel-icons', 'svg');
   function settingsIconForTitle(title, idx) {
@@ -16827,6 +16841,9 @@ window.settingsCarouselGo = settingsCarouselGo;
         menu.style.display = 'flex';
       }
       if (typeof loadSettingsState === 'function') loadSettingsState();
+      if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.renderSettingsPane === 'function') {
+        window.RianellPrivacy.renderSettingsPane();
+      }
       requestAnimationFrame(function() {
         overlay.classList.add('settings-overlay--open');
       });
