@@ -60,7 +60,7 @@ When subprocessors process data outside the EEA/UK:
 
 1. Rely on provider **Standard Contractual Clauses (SCCs)** or UK IDTA where offered.
 2. Document transfer mechanism in [eu-gdpr.md](eu-gdpr.md) Art. 44–49.
-3. **Supabase region:** select EU region for new projects when primary audience is EEA.
+3. **Supabase region:** select EU region at project creation when primary audience is EEA. Rianell uses **one Supabase project** for all users — see [single-project-residency.md](single-project-residency.md).
 
 ---
 

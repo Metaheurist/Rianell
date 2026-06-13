@@ -2,22 +2,16 @@
 // SUPABASE API CONFIGURATION
 // ============================================
 // Use ONLY ASCII straight single quotes (U+0027 ') around strings - never curly/smart quotes from Word/PDF.
-// A SyntaxError at the `url:` line means the file on the server has bad characters; copy from supabase-config.example.js
-// [!] IMPORTANT: This file contains sensitive credentials
-// DO NOT commit this file to version control (GitHub, etc.)
-// This file is excluded via .gitignore
-
-// Get your credentials from: https://app.supabase.com/project/_/settings/api
-// [!] IMPORTANT: Use the PUBLISHABLE/ANON key, NOT the secret key!
-// Secret keys (sb_secret_...) are for server-side only and will cause "Forbidden" errors in browsers
-// You need the key that starts with "sb_publishable_" from the "Publishable key" section
+// CI injects secrets.SUPABASE_URL / secrets.SUPABASE_ANON_KEY on GitHub Pages deploy.
+// For local dev, replace placeholders below or use localhost interception via the Python server.
 
 (function() {
   try {
-    // Real Supabase configuration (use straight quotes only; avoid pasting from Word/web)
     var REAL_SUPABASE_CONFIG = {
       url: 'https://YOUR_PROJECT_REF.supabase.co',
-      anonKey: 'YOUR_SUPABASE_ANON_KEY'
+      anonKey: 'YOUR_SUPABASE_ANON_KEY',
+      /** Public Storage bucket for ONNX weights (see supabase/Schema.sql). */
+      modelsStorageBucket: 'llm-models'
     };
 
     var SUPABASE_CONFIG = REAL_SUPABASE_CONFIG;
@@ -26,7 +20,6 @@
       window.SUPABASE_CONFIG = SUPABASE_CONFIG;
     }
 
-    // Resolve after async localhost interception check so cloud-sync can init after final URL/key (avoids race with checkAuthStatus).
     if (typeof window !== "undefined") {
       window.__rianellSupabaseConfigPromise = (async function () {
         try {
@@ -49,6 +42,7 @@
                   SUPABASE_CONFIG = {
                     url: status.local_url,
                     anonKey: "local-test-key",
+                    modelsStorageBucket: REAL_SUPABASE_CONFIG.modelsStorageBucket
                   };
                   console.log("Using local Supabase interception (test database)");
                   console.log("  Database: " + (status.database_path || ""));
@@ -73,7 +67,7 @@
     }
   } catch (e) {
     console.warn("Supabase config failed to load:", e.message || e);
-    var safe = { url: "", anonKey: "" };
+    var safe = { url: "", anonKey: "", modelsStorageBucket: "llm-models" };
     if (typeof window !== "undefined") {
       window.SUPABASE_CONFIG = safe;
       window.__rianellSupabaseConfigPromise = Promise.resolve();
