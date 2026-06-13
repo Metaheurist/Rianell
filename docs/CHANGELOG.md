@@ -2,6 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
+**Latest: v1.53.3** - Enforce no LLM weights in git (Supabase-only hosting).
+
+### v1.53.3 - 2026-06-13 - No LLM weights in git
+
+- **`.gitignore`:** Ignore **`apps/pwa-webapp/models/**`** except **`manifest.json`** and **`README.md`**.
+- **CI:** **`verify-no-model-weights-in-git.mjs`** fails if any weight/chunk/onnx path is tracked; site prep strips local **`onnx-community/`** mirrors from deploy copies.
+- **Download script:** Removed stale Git LFS commit hint; points to **`models:upload:supabase -- --purge-local`**.
+
 **Latest: v1.53.2** - RN Metro locale-pack bundling fix.
 
 ### v1.53.2 - 2026-06-13 - RN locale-pack bundling
