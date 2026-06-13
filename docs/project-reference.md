@@ -191,7 +191,7 @@ The app includes GDPR-compliant data sharing:
 
 ## 🔐 Security notes
 
-Start with the full guide: **[SECURITY.md](SECURITY.md)** (see also [Security overview](../README.md#security) in the main README). Supplementary references: [supabase-rls-recommended.sql](supabase-rls-recommended.sql), CI workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) - `security-audit` job (Gitleaks, `npm audit`, `pip-audit`).
+Start with the full guide: **[SECURITY.md](SECURITY.md)** (see also [Security overview](../README.md#security) in the main README). Supplementary references: [supabase-rls-recommended.sql](supabase-rls-recommended.sql), [../supabase/harden-graphql-exposure.sql](../supabase/harden-graphql-exposure.sql) (Security Advisor lints 0026/0027 on live projects), CI workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) - `security-audit` job (Gitleaks, `npm audit`, `pip-audit`).
 
 ⚠️ **Important security considerations**:
 

@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.48.1** - Theme-token SVG UI icons (settings, charts, AI, logs).
+**Latest: v1.48.2** - Supabase GraphQL schema exposure hardening (Security Advisor lints 0026/0027).
+
+### v1.48.2 - 2026-06-13 - Supabase GraphQL schema exposure hardening
+
+- **Supabase (`supabase/harden-graphql-exposure.sql`):** New idempotent SQL script for live projects — drops unused **`pg_graphql`**, revokes **`anon`** grants on `anonymized_data`, `health_data`, `user_keys`, and `bug_reports`, re-applies least-privilege grants, and revokes default **`anon`** SELECT on future public tables. Clears Security Advisor **`pg_graphql_anon_table_exposed`** / **`pg_graphql_authenticated_table_exposed`** warnings.
+- **Supabase (`supabase/Schema.sql`, `docs/supabase-rls-recommended.sql`):** Same **`REVOKE`** / **`DROP EXTENSION`** baseline for fresh test resets and incremental RLS apply.
+- **Docs ([SECURITY.md](SECURITY.md), [app-and-features.md](app-and-features.md), [project-reference.md](project-reference.md), [testing-and-configuration.md](testing-and-configuration.md)):** Document GraphQL introspection risk, remediation script, and operator apply steps.
 
 ### v1.48.1 - 2026-06-13 - Theme-token SVG UI icons
 

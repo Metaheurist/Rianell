@@ -57,14 +57,6 @@ Define variables in **`security/.env`** (copy from [`security/.env.example`](../
 
 1. Create a Supabase project at [supabase.com](https://supabase.com)
 2. Get your project URL, **Publishable** key, and (for server sample generation) the **service_role** secret under **Secret keys** from Settings → API
-3. Create the `anonymized_data` table:
-   ```sql
-   CREATE TABLE anonymized_data (
-     id BIGSERIAL PRIMARY KEY,
-     medical_condition TEXT NOT NULL,
-     anonymized_log JSONB NOT NULL,
-     created_at TIMESTAMP DEFAULT NOW(),
-     updated_at TIMESTAMP DEFAULT NOW()
-   );
-   ```
-4. Add your credentials to **`security/.env`** (or legacy root `.env`) and `supabase-config.js`
+3. Apply table definitions and RLS from [../supabase/Schema.sql](../supabase/Schema.sql) (test reset — wipes auth users) or incremental policies from [supabase-rls-recommended.sql](supabase-rls-recommended.sql) on staging/production
+4. On an **existing** live project, run [../supabase/harden-graphql-exposure.sql](../supabase/harden-graphql-exposure.sql) in the SQL Editor to drop unused **`pg_graphql`** and revoke broad **`anon`** grants (Security Advisor lints 0026/0027) — see [SECURITY.md](SECURITY.md)
+5. Add your credentials to **`security/.env`** (or legacy root `.env`) and `supabase-config.js`

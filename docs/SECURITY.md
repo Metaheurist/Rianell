@@ -84,6 +84,12 @@ Authenticated cloud sync stores a per-user AES key in Supabase **`user_keys.encr
 
 The anon key is present in client bundles by design. **Authorization must be enforced in Supabase** with RLS and least-privilege policies. **Shipped schema:** [../supabase/Schema.sql](../supabase/Schema.sql) enables RLS on `anonymized_data`, `health_data`, `user_keys`, and `bug_reports`. Recommended incremental policies: [supabase-rls-recommended.sql](supabase-rls-recommended.sql). Apply to your live project via the Supabase SQL editor. CI runs [`scripts/verify-rls-baseline.mjs`](../scripts/verify-rls-baseline.mjs) to ensure the recommended SQL doc is not gutted; it does **not** connect to your project.
 
+### GraphQL schema exposure (Security Advisor lints 0026 / 0027)
+
+Supabase ships the `pg_graphql` extension. When `anon` or `authenticated` hold `SELECT` on a table, `/graphql/v1` introspection exposes table and column names even if RLS returns zero rows. This app uses **PostgREST only** (supabase-js), not GraphQL.
+
+To clear `pg_graphql_anon_table_exposed` and `pg_graphql_authenticated_table_exposed` on `anonymized_data`, `health_data`, `user_keys`, and `bug_reports`, run [../supabase/harden-graphql-exposure.sql](../supabase/harden-graphql-exposure.sql) in the SQL Editor. It drops `pg_graphql`, revokes `anon` access on those tables, and re-applies least-privilege grants. Re-run **Security Advisor** afterward to confirm the warnings are gone.
+
 ## Content Security Policy (CSP) and XSS
 
 - The app CSP allows `'unsafe-inline'` and `'unsafe-eval'` for compatibility with inline bootstraps and ML libraries. Tightening this is a **tracked hardening goal**; removing `unsafe-eval` may require bundling or loading changes.
