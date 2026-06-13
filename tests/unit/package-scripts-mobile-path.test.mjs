@@ -16,3 +16,15 @@ test('dev script targets RN Expo, not Capacitor', () => {
   assert.doesNotMatch(dev, /capacitor-app/);
 });
 
+test('build:web syncs tokens before vendor and site build', () => {
+  const buildWeb = String(pkg?.scripts?.['build:web'] || '');
+  assert.match(buildWeb, /sync-tokens-to-pwa/);
+  assert.match(buildWeb, /build-pwa-vendor/);
+  assert.match(buildWeb, /build-site\.mjs/);
+});
+
+test('package-lock has no capacitor-app workspace entry', () => {
+  const lock = fs.readFileSync(new URL('../../package-lock.json', import.meta.url), 'utf8');
+  assert.doesNotMatch(lock, /"apps\/capacitor-app"/);
+});
+

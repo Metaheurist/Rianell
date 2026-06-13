@@ -155,24 +155,19 @@ After the first push (or a manual **Run workflow**), the deployed site will show
 
 See **[react-native-setup.md](react-native-setup.md)** for local dev, typecheck, and tests.
 
-### Legacy Capacitor shell (optional)
-
-The **Capacitor** wrapper in **`apps/capacitor-app/`** still builds a WebView APK for legacy installs. It is **not** the primary mobile path during the RN transition.
-
 ```bash
 npm install
-cd apps/capacitor-app && npm install
-cd apps/capacitor-app && npm run copy-webapp   # copies PWA into public/legacy
-npm run build                                  # Vite shell into apps/capacitor-app/dist
+npm run dev          # Expo dev server (apps/rn-app)
+npm run typecheck:mobile
+npm run test:mobile
 ```
-
-Android Studio: `cd apps/capacitor-app && npx cap open android` (after `npx cap sync android`).
 
 ### CI: App builds on each commit
 
 - **RN CLI** jobs in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): **`rncli-android-apk`**, **`rncli-ios-zip`**, plus Server EXE and GitHub Pages web deploy.
-- **Legacy Capacitor** artifacts are no longer rebuilt every commit; metadata may remain under **`App build/Android/`** and **`App build/Legacy/`**.
 - Download RN APK from the workflow **Artifacts** tab or **Settings → App installation** when served from the same origin as **`App build/RNCLI-Android/latest.json`**.
+
+> **Note:** Legacy Capacitor builds were removed in v1.49.0. Frozen metadata under **`App build/Android/`** and **`App build/Legacy/`** may remain for historical release links only.
 
 ### Using Rianell
 

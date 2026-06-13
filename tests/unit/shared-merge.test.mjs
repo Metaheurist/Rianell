@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
 import { mergeHealthLogs } from '@rianell/shared';
+
+const require = createRequire(import.meta.url);
+const sharedCjs = require('../../packages/shared/src/index.cjs');
 
 test('mergeHealthLogs prefers local over cloud for same date', () => {
   const local = [{ date: '2026-06-01', mood: 8, notes: 'local' }];
@@ -18,4 +22,9 @@ test('mergeHealthLogs unions distinct dates', () => {
   assert.equal(merged.length, 2);
   assert.equal(merged[0].date, '2026-06-01');
   assert.equal(merged[1].date, '2026-06-02');
+});
+
+test('mergeHealthLogs CJS export matches ESM', () => {
+  const input = [{ date: '2026-06-03', mood: 7 }];
+  assert.deepEqual(sharedCjs.mergeHealthLogs(input, []), mergeHealthLogs(input, []));
 });

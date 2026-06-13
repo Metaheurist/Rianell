@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the **PWA** (web/GitHub Pages) and **React Native (Expo)** mobile app, with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.49.0** — platform parity refactor, Capacitor sunset).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.49.1** — platform parity follow-up).
 
 ### Here's what we plan next
 
