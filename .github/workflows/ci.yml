@@ -308,6 +308,7 @@ jobs:
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
+          node scripts/sync-locale-packs-to-pwa.mjs
           cd apps/rn-app
           npx expo export --platform android --platform ios --output-dir dist-expo-prod
           npm ls expo-modules-autolinking
