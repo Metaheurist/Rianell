@@ -32,6 +32,13 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.49.0 platform parity (Capacitor sunset)
+
+- **Two platforms only:** PWA (`apps/pwa-webapp/`) + React Native (`apps/rn-app/`). Legacy Capacitor WebView shell and CI release artifacts removed.
+- **Shared packages:** `@rianell/shared`, `@rianell/ai-engine`, `@rianell/cloud-sync`, `@rianell/llm` — PWA vendor bundles + RN imports share merge/analysis logic.
+- **RN parity:** Cloud sync UI, expanded settings/goals, chart predictions, print export, offline queue flush, native LLM consent path.
+- **CI gates:** `parity:web`, `parity:android`, `parity:ios`, `parity:inventory:check` on every PR.
+
 ### v1.46.24 documentation sync
 
 - **Bug report (web + RN):** Web modal supports optional **More detail** (steps / expected / actual), close button, and bug icon; RN captures recent **`console`** lines for the payload. Server accepts **`page_url`** from **`url`** or **`page_url`**. See [CHANGELOG.md](CHANGELOG.md) v1.46.24.

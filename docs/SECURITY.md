@@ -1,4 +1,4 @@
-# Security model: web, Android (Capacitor), Python server
+# Security model: web, React Native, Python server
 
 This document describes how **Rianell** (this health app) handles health-related data across surfaces, operational defaults, and where to configure controls. It complements OWASP-style practice (see [OWASP Top 10:2025](https://owasp.org/Top10/2025/)).
 
@@ -14,7 +14,7 @@ This document describes how **Rianell** (this health app) handles health-related
 |-------|----------|
 | Environment variables | [security/.env.example](../security/.env.example), [Configuration](testing-and-configuration.md#nav-configuration), [Local secrets directory](#local-secrets-directory-security) below |
 | Supabase RLS examples (SQL) | [supabase-rls-recommended.sql](supabase-rls-recommended.sql) |
-| Android network / cleartext after `cap sync` | [Android: cleartext and mixed content](#android-cleartext-and-mixed-content) below |
+| Android network / cleartext (RN native builds) | [Android: cleartext and mixed content](#android-cleartext-and-mixed-content) below |
 | Automated audits (CI) | Reusable [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) — run only as the **Security & supply-chain checks** job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml) (Gitleaks, **`npm audit --audit-level=high --omit=dev`**, OSV-Scanner, `pip-audit`). Optional **manual** run: **Actions → Reusable security audits → Run workflow**. |
 | Web CSP (meta tag) | [../apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html), [edge header note](../security/cloudflare-headers-recommended.md) |
 
@@ -38,9 +38,7 @@ Log files under **`logs/`** may contain client IPs, sync metadata, and dashboard
 | Surface | Data at risk | Primary controls |
 |--------|----------------|------------------|
 | **Web (PWA)** | `localStorage` / IndexedDB on the device | Browser same-origin policy, CSP ([../apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html)), Supabase **RLS** ([../supabase/Schema.sql](../supabase/Schema.sql)) |
-| **React Native (Expo)** | AsyncStorage (logs, auth session) — **not** encrypted at rest | `@supabase/supabase-js` with publishable key + **RLS**; bug reports via Supabase insert |
-| **Android (Capacitor, legacy)** | Same web assets in WebView + device storage | [../apps/capacitor-app/capacitor.config.ts](../apps/capacitor-app/capacitor.config.ts), Android manifest (after `cap sync`), [network security](#android-cleartext-and-mixed-content), user device security |
-| **iOS (Capacitor, legacy)** | Same web assets in WKWebView + device storage | App Transport Security (HTTPS for remote content by default), Capacitor config, follow Apple signing and distribution guidelines |
+| **React Native (Expo)** | AsyncStorage (logs, auth session) — **not** encrypted at rest | `@supabase/supabase-js` with publishable key + **RLS**; bug reports via Supabase insert; RN CLI Android/iOS builds |
 | **Python server** | LAN exposure, optional proxy to Supabase | Bind address ([../server/config.py](../server/config.py)), gated sensitive APIs, no TLS on dev server |
 
 ## Python server: bind address and threat model
@@ -113,41 +111,33 @@ These are **accepted or environmental** limitations called out so operators and 
 | **Python dev server without TLS** | Use only on loopback or a trusted LAN; never expose raw to the internet. |
 | **GitHub Actions / static deploy secrets** | Production Supabase URL and anon key are injected at deploy from repository secrets; do not commit real secrets to the repo. |
 
-## Android: cleartext and mixed content
+## Android: cleartext and mixed content (React Native)
 
-The Capacitor Android project lives under **`apps/capacitor-app/android/`** after `npx cap add android` and `npx cap sync`.
+Primary Android builds come from **React Native CLI / Expo prebuild** (`apps/rn-app`). The native project under **`apps/rn-app/android/`** (after `npx expo prebuild`) should follow standard Android network security practice.
 
 ### Mixed content
 
-[`apps/capacitor-app/capacitor.config.ts`](../apps/capacitor-app/capacitor.config.ts) sets **`allowMixedContent: false`** so the WebView does not load HTTP subresources on an HTTPS app origin.
+The RN app loads remote HTTPS APIs (Supabase) and local bundled assets. Do **not** enable mixed HTTP subresources on HTTPS origins in production WebViews or embedded browsers.
 
 ### Cleartext traffic
 
-Do **not** rely on **`android:usesCleartextTraffic="true"`** on `<application>` for production. Prefer **`network_security_config.xml`**: default **cleartext off**; optional **domain-scoped** cleartext for dev hosts only.
-
-After **`npx cap sync android`**, run **`node apps/capacitor-app/patch-android-sdk.js`** (CI does this after sync). The script:
-
-- Writes **`android/app/src/main/res/xml/network_security_config.xml`** (cleartext disabled in `<base-config>`, with a **commented** example `<domain-config>` for `localhost` / `10.0.2.2` if you need HTTP during local dev).
-- Adds **`android:networkSecurityConfig="@xml/network_security_config"`** to `<application>`.
-- Removes **`android:usesCleartextTraffic="true"`** if Capacitor or tooling added it.
-
-To allow HTTP to a **specific** dev host, uncomment or extend the `<domain-config>` block in that XML (see [Android network security config](https://developer.android.com/privacy-and-security/security-ssl#ConfigCleartext)).
+Do **not** rely on **`android:usesCleartextTraffic="true"`** on `<application>` for production. Prefer **`network_security_config.xml`**: default **cleartext off**; optional **domain-scoped** cleartext for dev hosts only (e.g. `localhost`, `10.0.2.2`).
 
 ### Android release checklist
 
 On each **release** build (or before tagging):
 
-- Confirm **`usesCleartextTraffic`** is not set to **`true`** on `<application>` (patch script removes it; verify in `AndroidManifest.xml`).
-- Confirm **`network_security_config.xml`** matches your policy (no accidental uncommented wide cleartext).
-- Review **`android:exported`** on activities / providers / receivers (Capacitor defaults; only launcher/main should be exported as needed for deep links).
-- Keep **`allowMixedContent: false`** in `capacitor.config.ts` unless you have a documented exception.
+- Confirm **`usesCleartextTraffic`** is not set to **`true`** on `<application>` in `AndroidManifest.xml`.
+- Confirm **`network_security_config.xml`** matches your policy (no accidental wide cleartext).
+- Review **`android:exported`** on activities / providers / receivers (only what deep links require).
+- Keep Supabase and API calls on **HTTPS** only in production builds.
 
-**Process:** after **`npx cap sync android`**, run **`node apps/capacitor-app/patch-android-sdk.js`** (CI does this on automated builds). See [Local setup (optional)](setup-and-usage.md#local-setup-optional) for the command sequence.
+> **Historical note:** Legacy Capacitor WebView builds were removed in v1.49.0. Old Capacitor-specific patch scripts and config paths no longer apply.
 
 ## Dependency and CI scanning
 
 - **Reusable workflow (no duplicate runs):** [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) is **only** invoked from CI’s **`security-audit`** job (not a second workflow run on every push). It runs **[Gitleaks](https://github.com/gitleaks/gitleaks)** on the working tree, **`npm ci --omit=dev && npm audit --audit-level=high --omit=dev`** at the **repository root** (single [../package-lock.json](../package-lock.json) for all npm workspaces), **OSV-Scanner**, and **`pip-audit`** on `requirements.txt`. Use **workflow_dispatch** on that workflow in Actions if you need a manual scan without a full CI run. Configuration: [`.gitleaks.toml`](../.gitleaks.toml) (path allowlists for templates, `node_modules`, local-only `security/.env`, and build dirs).
-- **Production dependency tree:** Root [../package.json](../package.json) uses **`overrides`** to pin patched versions of high-impact transitive packages (e.g. **`tar`**, **`handlebars`**, **`minimatch`** / **`brace-expansion`**, **`shell-quote`**, **`postcss`**, **`ws`**, **`uuid`**, **`basic-ftp`**, **`ip-address`**, **`tmp`**, **`@capacitor/assets` → `@capacitor/cli@7.6.1`**, **`@xmldom/xmldom@0.8.13`** on **`@expo/plist`**, **`plist`**, **`@trapezedev/project`**, **`mergexml`** (LTS line — **0.9.x** breaks Expo **`prebuild`** because **`@expo/plist`** omits **`mimeType`** on **`parseFromString`**). **`http-proxy-agent@5.0.0`** is overridden to **`7.0.2`** so **`jest-environment-jsdom`** → **`jsdom@20`** no longer pulls **`@tootallnate/once@2`** via the old v5 agent (Dependabot low-severity **GHSA-vpq2-c234-7xj6**). **`@tootallnate/once`** is also pinned to **`^3.0.1`**. `npm ls` may show **`invalid`** next to **`http-proxy-agent`** under **`jsdom`** because **`jsdom`** still declares **`^5.0.0`** in its manifest; the installed v7 agent is API-compatible for Jest’s test environment and **`npm run test:mobile`** is the regression check. **`npm audit --omit=dev`** and a **full** **`npm audit`** are expected to report **no** vulnerabilities with the current lockfile—re-run after lockfile changes and triage any new **Dependabot** alerts. **Python:** **`requirements.txt`** floors include **`cryptography>=46.0.7`** and **`python-dotenv>=1.2.2`** for **OSV-Scanner** / **`pip-audit`**.
+- **Production dependency tree:** Root [../package.json](../package.json) uses **`overrides`** to pin patched versions of high-impact transitive packages (e.g. **`tar`**, **`handlebars`**, **`minimatch`** / **`brace-expansion`**, **`shell-quote`**, **`postcss`**, **`ws`**, **`uuid`**, **`basic-ftp`**, **`ip-address`**, **`tmp`**, **`@xmldom/xmldom@0.8.13`** on **`@expo/plist`**, **`plist`**, **`@trapezedev/project`**, **`mergexml`** (LTS line — **0.9.x** breaks Expo **`prebuild`** because **`@expo/plist`** omits **`mimeType`** on **`parseFromString`**). **`http-proxy-agent@5.0.0`** is overridden to **`7.0.2`** so **`jest-environment-jsdom`** → **`jsdom@20`** no longer pulls **`@tootallnate/once@2`** via the old v5 agent (Dependabot low-severity **GHSA-vpq2-c234-7xj6**). **`@tootallnate/once`** is also pinned to **`^3.0.1`**. `npm ls` may show **`invalid`** next to **`http-proxy-agent`** under **`jsdom`** because **`jsdom`** still declares **`^5.0.0`** in its manifest; the installed v7 agent is API-compatible for Jest’s test environment and **`npm run test:mobile`** is the regression check. **`npm audit --omit=dev`** and a **full** **`npm audit`** are expected to report **no** vulnerabilities with the current lockfile—re-run after lockfile changes and triage any new **Dependabot** alerts. **Python:** **`requirements.txt`** floors include **`cryptography>=46.0.7`** and **`python-dotenv>=1.2.2`** for **OSV-Scanner** / **`pip-audit`**.
 - **CI reference:** The **`security-audit`** job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml) gates downstream mobile bundle jobs. Failures should be triaged like Dependabot alerts. Branch protection should require the **CI** workflow (or the **`Security & supply-chain checks`** job), not a separate duplicate workflow name.
 
 ## Client-side storage and privacy

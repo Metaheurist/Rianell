@@ -43,6 +43,49 @@ module.exports = {
   normalizeAccessibilitySettings,
   LOGS_STORAGE_KEY_V1: 'healthLogs',
   LOGS_STORAGE_KEY_MOBILE_LEGACY: 'rianell.logs.v1',
+  SETTINGS_STORAGE_KEY: 'rianellSettings',
+  GOALS_STORAGE_KEY: 'rianellGoals',
+  PREDICTION_STATE_KEY: 'rianellPredictionState',
+  PREFS_STORAGE_KEY_MOBILE: 'rianell.preferences.v1',
+  LOGS_BACKUP_KEY: 'healthLogs_backup',
+  OFFLINE_QUEUE_KEY: 'healthLogsOfflineQueue',
+  DEFAULT_GOALS: {
+    steps: 10000,
+    hydration: 9,
+    sleep: 5,
+    goodDaysPerWeek: 3,
+  },
+  normalizeGoals: function normalizeGoals(value) {
+    const d = module.exports.DEFAULT_GOALS;
+    const v = value && typeof value === 'object' ? value : {};
+    function clampInt(raw, min, max) {
+      const n = typeof raw === 'number' ? raw : (typeof raw === 'string' ? parseInt(raw, 10) : NaN);
+      if (!Number.isFinite(n)) return undefined;
+      return Math.max(min, Math.min(max, Math.trunc(n)));
+    }
+    return {
+      steps: clampInt(v.steps, 0, 100000) ?? d.steps,
+      hydration: clampInt(v.hydration, 0, 30) ?? d.hydration,
+      sleep: clampInt(v.sleep, 0, 10) ?? d.sleep,
+      goodDaysPerWeek: clampInt(v.goodDaysPerWeek, 0, 7) ?? d.goodDaysPerWeek,
+    };
+  },
+  mergeHealthLogs: function mergeHealthLogs(localLogs, cloudLogs) {
+    const logsMap = new Map();
+    if (Array.isArray(cloudLogs)) {
+      cloudLogs.forEach((log) => {
+        if (log && log.date) logsMap.set(log.date, log);
+      });
+    }
+    if (Array.isArray(localLogs)) {
+      localLogs.forEach((log) => {
+        if (log && log.date) logsMap.set(log.date, log);
+      });
+    }
+    const merged = Array.from(logsMap.values());
+    merged.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return merged;
+  },
   normalizeLogEntry: function normalizeLogEntry(value) {
     const v = value && typeof value === 'object' ? value : {};
 

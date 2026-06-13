@@ -44,13 +44,7 @@ APK output: **`apps/rn-app/android/app/build/outputs/apk/debug/`**
 - **Shared schema**: logs normalized via `@rianell/shared` — see [data-model.md](data-model.md).
 - **Parity**: feature contract in [platform-parity.md](platform-parity.md).
 
-## Legacy Capacitor shell
-
-**`apps/capacitor-app/`** remains for legacy WebView APK builds. New work should target **`apps/rn-app`**. Capacitor copy step:
-
-```bash
-cd apps/capacitor-app && npm run copy-webapp
-```
+> **v1.49.0:** Legacy **`apps/capacitor-app/`** was removed. Mobile development targets **`apps/rn-app`** only (Expo / RN CLI).
 
 ## Related
 
