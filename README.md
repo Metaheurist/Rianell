@@ -32,7 +32,7 @@
 
 <!-- RIANELL_BUILD_INFO_START -->
 
-[![CI builds](https://img.shields.io/badge/build-RN%20223%20%7C%20RN%20iOS%20223%20%7C%20Server%20252%20%7C%20Web%20local-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions)
+[![CI builds](https://img.shields.io/badge/build-RN%20223%20%7C%20RN%20iOS%20223%20%7C%20Server%20252%20%7C%20Web%20254-2e7d32?style=flat-square)](https://github.com/Metaheurist/Rianell/actions/runs/27470801535)
 
 **CI builds** (React Native CLI + server + web)
 
@@ -42,9 +42,9 @@
 | ![Alpha](https://img.shields.io/badge/Alpha-blue?style=flat-square&logoColor=white) **iOS** (Xcode project zip, RN CLI) | **223** |
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x64) | **252** |
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **252** |
-| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **local** |
+| ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **254** |
 
-Latest: [`App build/RNCLI-Android/app-debug-beta.apk`](App%20build/RNCLI-Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-223.zip`](App%20build/iOS/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest-x64.json) · [`App build/Server/rianell-server-x86.exe`](App%20build/Server/latest-x86.json) · [Workflow #local](https://github.com/Metaheurist/Rianell/actions) · `local`
+Latest: [`App build/RNCLI-Android/app-debug-beta.apk`](App%20build/RNCLI-Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-223.zip`](App%20build/iOS/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest-x64.json) · [`App build/Server/rianell-server-x86.exe`](App%20build/Server/latest-x86.json) · [Workflow #254](https://github.com/Metaheurist/Rianell/actions/runs/27470801535) · `6601fdd`
 
 <!-- RIANELL_BUILD_INFO_END -->
 
