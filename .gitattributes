@@ -1,0 +1,2 @@
+# Self-hosted LLM ONNX weights are stored on Supabase Storage (bucket llm-models).
+# Local mirrors under onnx-community/ are gitignored — use npm run models:download then models:upload:supabase.

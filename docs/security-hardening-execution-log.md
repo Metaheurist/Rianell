@@ -57,8 +57,32 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 |----|------|--------|--------|----------|
 | DOC-01 | AI security doc ↔ Transformers.js reality | 2026-06-13 | **done** | [ai-security.md](ai-security.md) |
 | DOC-02 | Data subject rights ↔ PWA/RN settings | 2026-06-13 | **done** | [data-subject-rights.md](privacy/data-subject-rights.md) |
-| DOC-03 | SECURITY.md cross-links to new pack | 2026-06-20 | planned | [SECURITY.md](SECURITY.md) | Optional index section |
-| DOC-04 | README security section links privacy pack | 2026-06-20 | planned | [README.md](../README.md) | |
+| DOC-03 | SECURITY.md cross-links to new pack | 2026-06-13 | **done** | [SECURITY.md](SECURITY.md) | v1.51 privacy region + execution plan link |
+| DOC-04 | README security section links privacy pack | 2026-06-13 | **done** | [README.md](../README.md) | region-policy-execution-plan.md |
+
+---
+
+## 8. Privacy & region policy — v1.51 track
+
+| ID | Milestone | Target | Status | Evidence | Notes |
+|----|-----------|--------|--------|----------|-------|
+| RP-GATE-1 | Shared policy engine + verify-policy-packs CI | 2026-06-13 | **done** | `policy-packs/v1.json`, `packages/shared/src/privacy/` | `npm run verify:policy-packs` |
+| RP-GATE-2 | Region gate + Settings pane (web + RN) | 2026-06-13 | **done** | `privacy-region.js`, `RegionGateScreen.tsx` | Blocks app before init |
+| RP-GATE-3 | `user_privacy_profile` + login overwrite | 2026-06-13 | **done** | `supabase/Schema.sql`, `cloud-sync.js`, `privacyProfile.ts` | Erasure includes profile |
+| RP-GATE-4 | Policy drift + manifest hosting | 2026-06-13 | **done** | `policy-manifest.json`, `checkPolicyDrift.mjs` | |
+| RP-GATE-5 | Multi-residency prep (Phase 5 partial) | 2026-06-13 | **partial** | [multi-residency.md](privacy/multi-residency.md) | Migration wizard deferred |
+
+### Verification matrix (v1.51)
+
+| Command | Expected |
+|---------|----------|
+| `node scripts/verify-policy-packs.mjs` | pass |
+| `node scripts/verify-privacy-docs.mjs` | pass |
+| `npm run test:unit` | pass |
+| `npm run test:mobile` | pass |
+| `npm run parity:inventory:check` | pass |
+
+**Legal trigger:** New privacy region gate and RoPA PA-09 — review on next RoPA cycle (2026-12-01).
 
 ---
 
@@ -69,6 +93,7 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 | 2026-06-01 | — | v1.49.0 Capacitor sunset; shared `@rianell/*` packages |
 | 2026-06-13 | SH-01…04 | Security/privacy documentation pack created |
 | 2026-06-13 | — | v1.49.1 parity follow-up per CHANGELOG |
+| 2026-06-13 | RP-GATE-1…4 | v1.51 privacy region policy engine shipped |
 
 ---
 

@@ -57,6 +57,16 @@ Thumbs.db
 # Supabase local
 .supabase/
 
+# On-device LLM weight mirrors (hosted on Supabase Storage — do not commit)
+apps/pwa-webapp/models/onnx-community/
+apps/pwa-webapp/models/**/onnx/
+apps/pwa-webapp/models/**/*.onnx
+apps/pwa-webapp/models/**/*.onnx_data
+apps/pwa-webapp/models/**/*.part*
+apps/pwa-webapp/models/checksums.json
+!apps/pwa-webapp/models/manifest.json
+!apps/pwa-webapp/models/README.md
+
 # Node modules
 node_modules/
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Verify PWA CSP connect-src includes https endpoints for Supabase/API calls.
+ * Verify PWA CSP connect-src includes https endpoints for Supabase, HF models, etc.
  */
 import fs from 'fs';
 import path from 'path';
@@ -17,4 +17,21 @@ if (!/connect-src[^;]*https:/.test(csp)) {
   console.error('verify-csp-connect-src: connect-src must allow https endpoints');
   process.exit(1);
 }
+
+const requiredHosts = [
+  'https://*.supabase.co',
+  'https://huggingface.co',
+  'https://*.huggingface.co',
+  'https://cas-bridge.xethub.hf.co',
+  'https://*.xethub.hf.co',
+  'https://*.aws.cdn.hf.co',
+];
+
+for (const host of requiredHosts) {
+  if (!csp.includes(host)) {
+    console.error(`verify-csp-connect-src: connect-src missing ${host}`);
+    process.exit(1);
+  }
+}
+
 console.log('verify-csp-connect-src: OK');
