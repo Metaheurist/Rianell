@@ -30,8 +30,8 @@ type GatePhase = 'idle' | 'consent' | 'downloading' | 'ready';
 export function AiModelDownloadGate({ prefs, onChangePrefs, children }: Props) {
   const scheme = useColorScheme() === 'light' ? 'light' : 'dark';
   const tokens = useMemo(
-    () => getTokens({ team: prefs.team, mode: scheme, colorblindMode: prefs.colorblindMode }),
-    [prefs.team, scheme, prefs.colorblindMode]
+    () => getTokens({ team: prefs.team, mode: scheme, colorblindMode: prefs.accessibility.colorblindMode }),
+    [prefs.team, scheme, prefs.accessibility.colorblindMode]
   );
   const [phase, setPhase] = useState<GatePhase>('idle');
   const [progress, setProgress] = useState<LlmDownloadProgress>({ pct: 0, status: 'idle' });
@@ -85,8 +85,6 @@ export function AiModelDownloadGate({ prefs, onChangePrefs, children }: Props) {
       cancelled = true;
     };
   }, [aiEnabled, prefs, prefs.aiModelDownloadConsent]);
-
-  const [fileLabel, setFileLabel] = useState('');
 
   useEffect(() => {
     if (phase !== 'downloading') return;

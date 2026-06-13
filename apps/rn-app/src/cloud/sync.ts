@@ -324,4 +324,4 @@ export async function deleteAllUserDataFromCloud(): Promise<{ ok: boolean; messa
   return { ok: true, message: 'All cloud data deleted for this account.' };
 }
 
-export { mergeHealthLogs, fetchPrivacyProfileAndApply, upsertPrivacyProfile } from './privacyProfile';
+export { fetchPrivacyProfileAndApply, upsertPrivacyProfile } from './privacyProfile';

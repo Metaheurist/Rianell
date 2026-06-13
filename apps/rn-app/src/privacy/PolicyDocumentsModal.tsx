@@ -4,6 +4,8 @@ import { getPolicyDocumentsForRegion } from './helpers';
 import { useT } from '../i18n/I18nProvider';
 import { useTheme } from '../theme/ThemeProvider';
 
+type PolicyDoc = { id: string; title: string; summary: string };
+
 export function PolicyDocumentsModal({
   visible,
   regionId,
@@ -22,7 +24,7 @@ export function PolicyDocumentsModal({
       <View style={[styles.root, { backgroundColor: theme.tokens.color.background }]}>
         <Text style={[styles.title, { color: theme.tokens.color.text }]}>{t('gate.policiesTitle')}</Text>
         <ScrollView style={styles.scroll}>
-            {docs.map((d) => (
+            {(docs as PolicyDoc[]).map((d) => (
               <View key={d.id} style={styles.docBlock}>
                 <Text style={[styles.docTitle, { color: theme.tokens.color.text }]}>
                   {t(`policy.${d.id}.title`) !== `policy.${d.id}.title` ? t(`policy.${d.id}.title`) : d.title}
