@@ -1,13 +1,13 @@
 # PWA bundle sizes
 
-Generated: 2026-06-13T10:47:49.230Z
+Generated: 2026-06-13T11:10:18.502Z
 
 | File | Raw | Gzip |
 |------|-----|------|
-| ci-minified/site/app.js | 1136907 | 192543 |
-| ci-minified/site/app.56341f0a238c.min.js | 682194 | 134193 |
+| ci-minified/site/app.js | 1141047 | 193115 |
+| ci-minified/site/app.0a022052a62b.min.js | 685541 | 134849 |
 | ci-minified/site/apexcharts.min.js | 576627 | 153833 |
-| ci-minified/site/styles.2a84787af20b.css | 367982 | 63474 |
+| ci-minified/site/styles.e21403dc00c2.css | 369093 | 63686 |
 | ci-minified/site/AIEngine.js | 221884 | 38136 |
 | ci-minified/site/cloud-sync.js | 98234 | 18467 |
 | ci-minified/site/export-utils.js | 67880 | 12557 |
@@ -25,5 +25,5 @@ Generated: 2026-06-13T10:47:49.230Z
 | ci-minified/site/background-loader.js | 8321 | 1740 |
 | ci-minified/site/storage-utils.js | 8035 | 1851 |
 
-**JS total (gzip):** 615451 bytes
-**CSS total (gzip):** 67259 bytes
+**JS total (gzip):** 616680 bytes
+**CSS total (gzip):** 67471 bytes

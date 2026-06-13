@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-06-13T10:47:49.230Z",
+  "generatedAt": "2026-06-13T11:10:18.502Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3122229,
-    "cssBytes": 382069,
-    "jsGzipBytes": 615451,
-    "cssGzipBytes": 67259
+    "jsBytes": 3129716,
+    "cssBytes": 383180,
+    "jsGzipBytes": 616680,
+    "cssGzipBytes": 67471
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1136907,
-      "gzipBytes": 192543
+      "bytes": 1141047,
+      "gzipBytes": 193115
     },
     {
-      "file": "ci-minified/site/app.56341f0a238c.min.js",
-      "bytes": 682194,
-      "gzipBytes": 134193
+      "file": "ci-minified/site/app.0a022052a62b.min.js",
+      "bytes": 685541,
+      "gzipBytes": 134849
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -24,9 +24,9 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.2a84787af20b.css",
-      "bytes": 367982,
-      "gzipBytes": 63474
+      "file": "ci-minified/site/styles.e21403dc00c2.css",
+      "bytes": 369093,
+      "gzipBytes": 63686
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -131,7 +131,7 @@
     {
       "file": "ci-minified/site/sw.js",
       "bytes": 4681,
-      "gzipBytes": 1749
+      "gzipBytes": 1750
     },
     {
       "file": "ci-minified/site/supabase-config.js",
