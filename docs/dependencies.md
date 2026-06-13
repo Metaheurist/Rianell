@@ -4,7 +4,7 @@ This page lists **where dependencies are declared** for the Rianell monorepo: **
 
 **Runtime expectations:** Node **>=24.14.1** ([`package.json`](../package.json) `engines`; [`.nvmrc`](../.nvmrc) pins **24.14.1** for local tooling). **Python 3.8+** for the server ([`requirements.txt`](../requirements.txt)).
 
-**Build mapping (see main [README](../README.md)):** Web/PWA (GitHub Pages), React Native (Expo) CLI bundles for Android/iOS, Python server EXE (PyInstaller + optional PyArmor in CI), shared `@rianell/*` workspace packages.
+**Build mapping (see main [README](../README.md)):** Web/PWA (GitHub Pages), React Native (Expo) CLI bundles for Android/iOS, Python server EXE (PyInstaller + optional PyArmor in CI).
 
 ## Authoritative sources
 
@@ -13,7 +13,7 @@ This page lists **where dependencies are declared** for the Rianell monorepo: **
 | npm lockfile (all workspaces) | [`package-lock.json`](../package-lock.json) |
 | Root workspace + overrides | [`package.json`](../package.json) |
 | React Native (Expo) | [`apps/rn-app/package.json`](../apps/rn-app/package.json) |
-| Shared libraries | [`packages/shared/package.json`](../packages/shared/package.json), [`packages/ai-engine/package.json`](../packages/ai-engine/package.json), [`packages/cloud-sync/package.json`](../packages/cloud-sync/package.json), [`packages/llm/package.json`](../packages/llm/package.json), [`packages/tokens/package.json`](../packages/tokens/package.json) |
+| Shared libraries | [`packages/shared/package.json`](../packages/shared/package.json), [`packages/tokens/package.json`](../packages/tokens/package.json) |
 | Benchmarks | [`benchmarks/package.json`](../benchmarks/package.json) |
 | Python server | [`requirements.txt`](../requirements.txt) |
 
@@ -34,7 +34,7 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `esbuild` | 0.28.1 |
 | `sharp` | ^0.33.5 |
 
-**`overrides`** — security pins for nested transitive deps (see full block in [`package.json`](../package.json)).
+**`overrides`** — 24 pin(s): `@expo/plist → @xmldom/xmldom`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
 
 **Workspaces:** `apps/*`, `packages/*`, `benchmarks`.
 
@@ -44,7 +44,7 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 
 ### Build-time (Node, from root)
 
-Uses root **esbuild**, Babel packages, **sharp**, and vendor build scripts (`build-pwa-vendor.mjs`, `sync-tokens-to-pwa.mjs`). Minified bundles are **fingerprinted** (SHA-256 prefix in filenames) for cache busting; see `fingerprint-assets.mjs`. No separate npm manifest under `apps/pwa-webapp/`.
+Uses root **esbuild**, Babel packages (`@babel/generator`, `@babel/parser`, `@babel/traverse`, `@babel/types`), and **sharp** for scripts (`build:web`, icons). Minified bundles are **fingerprinted** (SHA-256 prefix in filenames) for cache busting; see `fingerprint-assets.mjs`. No separate npm manifest under `apps/pwa-webapp/`.
 
 ### Runtime — vendored / local
 
@@ -71,10 +71,14 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 |---------|---------|
 | `@expo/vector-icons` | ^15.0.2 |
 | `@react-native-async-storage/async-storage` | ^3.0.1 |
+| `@react-native-community/netinfo` | ^11.4.1 |
 | `@react-navigation/bottom-tabs` | ^7.15.7 |
 | `@react-navigation/core` | ^7.17.0 |
 | `@react-navigation/native` | ^7.2.0 |
 | `@react-navigation/native-stack` | ^7.14.8 |
+| `@rianell/ai-engine` | file:../../packages/ai-engine |
+| `@rianell/cloud-sync` | file:../../packages/cloud-sync |
+| `@rianell/llm` | file:../../packages/llm |
 | `@rianell/shared` | file:../../packages/shared |
 | `@rianell/tokens` | file:../../packages/tokens |
 | `@supabase/supabase-js` | ^2.100.1 |
@@ -84,6 +88,9 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `expo-constants` | ~55.0.9 |
 | `expo-haptics` | ~55.0.4 |
 | `expo-modules-autolinking` | ^55.0.11 |
+| `expo-print` | ~55.0.4 |
+| `expo-secure-store` | ~55.0.4 |
+| `expo-sharing` | ~55.0.5 |
 | `expo-speech` | ^55.0.9 |
 | `expo-speech-recognition` | ^3.1.2 |
 | `expo-status-bar` | ~55.0.4 |
