@@ -64,6 +64,15 @@
         "ios": "partial"
       },
       "notes": "Vibration API on web where available; native haptics on RN selections/saves; gracefully no-ops when unsupported."
+    },
+    {
+      "id": "on_device_llm",
+      "status": {
+        "web": "supported",
+        "android": "partial",
+        "ios": "partial"
+      },
+      "notes": "PWA/Capacitor WebView: Transformers.js chat models (Llama-3.2-1B tier3-5, SmolLM2-360M tier1-2) with download consent, progress UI, and Cache API persistence. RN: remote endpoint only with deterministic fallback."
     }
   ]
 }

@@ -11,8 +11,8 @@ type LlmFeature = 'summary' | 'suggestNote' | 'motd';
 const cache = new Map<string, string>();
 
 function modelIdFromSize(size: string): string {
-  if (size === 'tier1' || size === 'tier2') return 'flan-t5-small';
-  return 'flan-t5-base';
+  if (size === 'tier1' || size === 'tier2') return 'SmolLM2-360M-Instruct';
+  return 'Llama-3.2-1B-Instruct';
 }
 
 function getLlmEndpoint(): string {
@@ -131,11 +131,11 @@ export async function suggestLogNote(
 }
 
 const MOTD_FALLBACK = [
-  'Small logs build strong health insight over time.',
-  'Consistency beats intensity. One useful entry today is enough.',
-  'Track the pattern, not just the flare. You are building signal.',
-  'Recovery is data too. Better days are part of the trend.',
-  'Notice what helps on good days and repeat it.',
+  'A glass of water is a good way to start the day.',
+  'Sleep is how your body repairs itself.',
+  'A short walk can clear a busy mind.',
+  'Fresh air costs nothing and helps a lot.',
+  'Rest is part of health, not a reward you earn.',
 ];
 
 export async function generateMotd(
@@ -143,7 +143,7 @@ export async function generateMotd(
   benchmark: BenchmarkResult | null,
   recentLogs: number
 ): Promise<string> {
-  const context = JSON.stringify({ recentLogs, intent: 'short motivational health tracker message' });
+  const context = JSON.stringify({ recentLogs, intent: 'simple healthy lifestyle quote for health tracker' });
   return generateWithFallback(
     'motd',
     `motd:${recentLogs}`,

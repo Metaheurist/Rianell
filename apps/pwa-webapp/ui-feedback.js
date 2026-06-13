@@ -8,6 +8,7 @@
   var TOAST_CONTAINER_ID = 'rianellToastStack';
   var OFFLINE_ID = 'rianellOfflineIndicator';
   var UPDATE_BAR_ID = 'rianellUpdateBar';
+  var AI_DOWNLOAD_ID = 'rianellAiModelDownloadBanner';
 
   function prefersReducedMotion() {
     try {
@@ -283,6 +284,51 @@
     if (bar) bar.classList.remove('rianell-update-bar--visible');
   }
 
+  function ensureAiModelDownloadBanner() {
+    var el = document.getElementById(AI_DOWNLOAD_ID);
+    if (el) return el;
+    el = document.createElement('div');
+    el.id = AI_DOWNLOAD_ID;
+    el.className = 'ai-model-download-banner hidden';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.innerHTML =
+      '<div class="ai-model-download-banner__text">' +
+      '<span class="ai-model-download-banner__label">Downloading AI model…</span>' +
+      '<span class="ai-model-download-banner__pct">0%</span>' +
+      '</div>' +
+      '<div class="ai-model-download-banner__track">' +
+      '<div class="ai-model-download-banner__fill" style="width:0%"></div>' +
+      '</div>';
+    document.body.appendChild(el);
+    return el;
+  }
+
+  function updateAiModelDownloadProgressUI(state) {
+    var el = ensureAiModelDownloadBanner();
+    if (!state || !state.active) {
+      el.classList.add('hidden');
+      return;
+    }
+    var pct = typeof state.pct === 'number' ? state.pct : 0;
+    var labelEl = el.querySelector('.ai-model-download-banner__label');
+    var pctEl = el.querySelector('.ai-model-download-banner__pct');
+    var fill = el.querySelector('.ai-model-download-banner__fill');
+    if (labelEl) {
+      labelEl.textContent = state.file
+        ? 'Downloading AI model… ' + String(state.file).split('/').pop()
+        : 'Downloading AI model…';
+    }
+    if (pctEl) pctEl.textContent = pct + '%';
+    if (fill) fill.style.width = Math.max(0, Math.min(100, pct)) + '%';
+    el.classList.remove('hidden');
+  }
+
+  function hideAiModelDownloadProgressUI() {
+    var el = document.getElementById(AI_DOWNLOAD_ID);
+    if (el) el.classList.add('hidden');
+  }
+
   function applyThemeCrossfade(callback) {
     if (prefersReducedMotion()) {
       if (typeof callback === 'function') callback();
@@ -342,6 +388,8 @@
   global.updateOfflineIndicator = updateOfflineIndicator;
   global.showUpdateBar = showUpdateBar;
   global.hideUpdateBar = hideUpdateBar;
+  global.updateAiModelDownloadProgressUI = updateAiModelDownloadProgressUI;
+  global.hideAiModelDownloadProgressUI = hideAiModelDownloadProgressUI;
   global.applyThemeCrossfade = applyThemeCrossfade;
   global.getTabDirection = getTabDirection;
 })(typeof window !== 'undefined' ? window : globalThis);
