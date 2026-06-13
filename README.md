@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the **PWA** (web/GitHub Pages) and **React Native (Expo)** mobile app, with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.50.0** — security hardening and privacy program).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.53.0** — Supabase chunked LLM hosting, download gates, region/i18n, credential hygiene).
 
 ### Here's what we plan next
 
@@ -58,6 +58,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | :--- | :--- |
 | 🔒 | **[Security](docs/SECURITY.md)** - threat model, controls, and v1.50 security program |
 | 🛡️ | **[Privacy program](docs/privacy/global-baseline.md)** - GDPR baseline, RoPA, data-subject rights (`docs/privacy/`) |
+| 📋 | **[Privacy & region execution plan](docs/privacy/region-policy-execution-plan.md)** - Region gate, policy engine, UI localization (single Supabase project) |
 | 🌐 | **[Infrastructure & edge security](docs/infrastructure-and-security-edge.md)** - DNS, Cloudflare, GitHub Pages (no secrets; safe for contributors) |
 | 🏠 | **[App overview & features](docs/app-and-features.md)** - UI, behaviour, screenshots |
 | ⚙️ | **[Installation & usage](docs/setup-and-usage.md)** - server, GitHub Pages, React/Android |

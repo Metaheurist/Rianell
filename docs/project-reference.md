@@ -2,6 +2,11 @@
 
 ## 🗂️ Project Structure
 
+### v1.53.0 documentation sync (LLM scripts + gitignore)
+
+- **Model scripts (repo root):** `models:download`, `models:upload:supabase`, `models:verify` — see [testing-and-configuration.md](testing-and-configuration.md).
+- **Gitignore:** `apps/pwa-webapp/models/**/onnx*` excluded; weights live on Supabase Storage only.
+
 ### v1.46.28 documentation sync (PWA content-hashed bundles)
 
 - **Build:** Production PWA output uses **`app.<hash>.min.js`** and (for **`--site`** / **`.android-dist`**) **`styles.<hash>.css`**, with **`asset-manifest.json`** at the app root. Source **`index.html`** in git still uses **`app.js?v=`** / **`styles.css?v=`** for local development.
@@ -59,6 +64,8 @@ Rianell/
 │   │   ├── cloud-sync.js
 │   │   ├── supabase-config.js
 │   │   ├── summary-llm.js
+│   │   ├── model-chunk-loader.js  # Chunk download + fetch shim for Transformers.js
+│   │   ├── models/                # manifest.json (committed); ONNX weights gitignored → Supabase
 │   │   ├── notifications.js
 │   │   └── …
 │   ├── rn-app/             # React Native (Expo) CLI — primary native mobile surface

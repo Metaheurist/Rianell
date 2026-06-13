@@ -1,5 +1,11 @@
 # Security model: web, React Native, Python server
 
+## v1.53.0 credential hygiene (LLM upload + client config)
+
+- **`supabase-config.js`** in git uses **placeholders only**; GitHub Actions injects `SUPABASE_URL` / `SUPABASE_ANON_KEY` on Pages deploy.
+- **`verify-no-service-role-in-clients.mjs`** fails CI if tracked client files contain `sb_secret_*`, Postgres URLs with passwords, or hardcoded publishable keys.
+- **LLM upload** uses **`SUPABASE_SERVICE_KEY`** from **`security/.env`** only — never commit service role or ONNX weight files (`apps/pwa-webapp/models/**/onnx*` gitignored).
+
 This document describes how **Rianell** (this health app) handles health-related data across surfaces, operational defaults, and where to configure controls. It complements OWASP-style practice (see [OWASP Top 10:2025](https://owasp.org/Top10/2025/)).
 
 ## v1.44.2 documentation sync
@@ -12,7 +18,7 @@ This document describes how **Rianell** (this health app) handles health-related
 
 | Topic | Location |
 |-------|----------|
-| **Privacy program index** | [privacy/global-baseline.md](privacy/global-baseline.md) — [eu-gdpr.md](privacy/eu-gdpr.md), [dpia-health-sync.md](privacy/dpia-health-sync.md), [data-subject-rights.md](privacy/data-subject-rights.md), [subprocessors.md](privacy/subprocessors.md), [other-jurisdictions.md](privacy/other-jurisdictions.md), [ropa.json](privacy/ropa.json) |
+| **Privacy program index** | [privacy/global-baseline.md](privacy/global-baseline.md) — [eu-gdpr.md](privacy/eu-gdpr.md), [dpia-health-sync.md](privacy/dpia-health-sync.md), [data-subject-rights.md](privacy/data-subject-rights.md), [subprocessors.md](privacy/subprocessors.md), [other-jurisdictions.md](privacy/other-jurisdictions.md), [ropa.json](privacy/ropa.json), [region-policy-execution-plan.md](privacy/region-policy-execution-plan.md) |
 | Threat model | [threat-model.md](threat-model.md) |
 | AI security | [ai-security.md](ai-security.md) |
 | Incident response | [incident-response.md](incident-response.md) |
@@ -87,7 +93,7 @@ Authenticated cloud sync stores a per-user AES key in Supabase **`user_keys.encr
 
 ## Supabase and Row Level Security (RLS)
 
-The anon key is present in client bundles by design. **Authorization must be enforced in Supabase** with RLS and least-privilege policies. **Shipped schema:** [../supabase/Schema.sql](../supabase/Schema.sql) enables RLS on `anonymized_data`, `health_data`, `user_keys`, and `bug_reports`. Recommended incremental policies: [supabase-rls-recommended.sql](supabase-rls-recommended.sql). Apply to your live project via the Supabase SQL editor. CI runs [`scripts/verify-rls-baseline.mjs`](../scripts/verify-rls-baseline.mjs) to ensure the recommended SQL doc is not gutted; it does **not** connect to your project.
+The anon key is present in client bundles by design. **Authorization must be enforced in Supabase** with RLS and least-privilege policies. **Shipped schema:** [../supabase/Schema.sql](../supabase/Schema.sql) enables RLS on `anonymized_data`, `health_data`, `user_keys`, `user_privacy_profile`, and `bug_reports`. On login, **`user_privacy_profile` overwrites local privacy region** (see [privacy/region-policy-execution-plan.md](privacy/region-policy-execution-plan.md)).
 
 ### GraphQL schema exposure (Security Advisor lints 0026 / 0027)
 
@@ -122,7 +128,7 @@ Since v1.50.0, **`apps/rn-app/src/cloud/secureStorageAdapter.ts`** persists Supa
 
 ### `connect-src` and third-party hosts
 
-The meta CSP in [`apps/pwa-webapp/index.html`](../apps/pwa-webapp/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts for models), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed. The **Supabase** script tag is **pinned** to a specific version with **Subresource Integrity (SRI)**; **ua-parser-js** CDN tag also uses SRI. Dynamic imports (e.g. Transformers.js) cannot use SRI — pin versions and monitor supply chain. When upgrading `@supabase/supabase-js`, update **`src`**, **`integrity`**, and the comment in `index.html`.
+The meta CSP in [`apps/pwa-webapp/index.html`](../apps/pwa-webapp/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts, and regional `*.aws.cdn.hf.co` for ONNX weight downloads), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed. The **Supabase** script tag is **pinned** to a specific version with **Subresource Integrity (SRI)**; **ua-parser-js** CDN tag also uses SRI. Dynamic imports (e.g. Transformers.js) cannot use SRI — pin versions and monitor supply chain. When upgrading `@supabase/supabase-js`, update **`src`**, **`integrity`**, and the comment in `index.html`.
 
 ## Known residual risks and mitigations
 

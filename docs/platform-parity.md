@@ -7,6 +7,12 @@ This document defines the expected behaviour contract across:
 
 The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm run parity:web`, `parity:android`, `parity:ios`, and `parity:inventory:check` on every PR.
 
+### v1.53.0 parity note (Supabase LLM + download gates)
+
+- **On-device LLM:** Weights from **Supabase Storage** (`llm-models`, chunked); PWA `model-chunk-loader.js`; RN `llmNative.ts` + `modelsBaseUrl.ts`.
+- **Download UX:** PWA blocking modal on installed mobile; skippable on mobile web; desktop banner bottom-right. RN **`AiModelDownloadGate`** blocks until cache ready.
+- **Credential hygiene:** Tracked configs use placeholders; `verify-no-service-role-in-clients` gates CI.
+
 ### v1.50.0 parity note (RN secure storage + anonymized_data)
 
 - **React Native auth:** Supabase session tokens stored in **`expo-secure-store`** via `supabaseAuthStorage` (not AsyncStorage). Android **`allowBackup: false`** in `app.json`.
@@ -28,7 +34,7 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - `local_storage_and_idb`: supported across all targets (subject to platform quota/eviction policies).
 - `ui_toast_feedback`: non-blocking toast/snackbar on PWA (`ui-feedback.js`) and RN (`ToastProvider`).
 - `haptic_feedback`: optional vibration/haptics on supported platforms; no-op elsewhere.
-- `on_device_llm`: PWA uses Transformers.js chat models with consent + progress UI; RN uses `@rianell/llm` consent + curated fallback (`llmNative.ts`) until native ONNX inference ships.
+- `on_device_llm`: PWA Transformers.js with Supabase chunked weights + consent/download UI; RN `@rianell/llm` chunk cache + **`AiModelDownloadGate`** blocking download.
 
 ### v1.48.0 parity note (Llama on-device LLM upgrade)
 

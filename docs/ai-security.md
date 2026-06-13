@@ -1,7 +1,7 @@
 # AI security — on-device LLM and deterministic analysis
 
 **Product:** Rianell  
-**Last updated:** 2026-06-13  
+**Last updated:** 2026-06-13 (v1.53.0 — Supabase chunked LLM hosting)  
 **Related:** [ai-architecture.md](ai-architecture.md) · [threat-model.md](threat-model.md) · [dpia-health-sync.md](privacy/dpia-health-sync.md) · [SECURITY.md](SECURITY.md)
 
 ---
@@ -11,8 +11,8 @@
 | Surface | Technology | Data leaves device? | User control |
 |---------|------------|---------------------|--------------|
 | **Deterministic analysis** | `@rianell/ai-engine` (regression, correlation, flare prediction) | No | Always on when user runs AI Analysis |
-| **On-device LLM (PWA)** | Transformers.js + Hugging Face weights (`SmolLM2-360M-Instruct`, `Llama-3.2-1B-Instruct`) | Weights downloaded from HF; **prompts stay on device** | Consent modal + settings tier |
-| **On-device LLM (RN)** | `@rianell/llm` adapter; native ONNX path planned (`llmNative.ts`) | Same intent as PWA | Consent + curated fallback strings |
+| **On-device LLM (PWA)** | Transformers.js + weights from **Supabase Storage** (chunked) or Hugging Face fallback | Weights downloaded from Supabase/HF; **prompts stay on device** | Consent modal + blocking/skippable download UI by platform |
+| **On-device LLM (RN)** | `@rianell/llm` + `llmNative.ts` (chunk download + cache) | Same as PWA | `AiModelDownloadGate` blocking modal + consent |
 | **Rule-based fallbacks** | Shared MOTD / summary templates | No | Automatic when LLM unavailable or times out |
 | **Anonymized training pool** | Encrypted blobs in `anonymized_data` | Yes (opt-in) | Separate consent in settings |
 
@@ -38,8 +38,9 @@ flowchart TB
 
   subgraph runtime [Runtime]
     TJ[Transformers.js pipeline]
-    Cache[Model cache IDB / FS]
-    HF[Hugging Face CDN / Xet]
+    Cache[Model cache IDB / FS / Cache API]
+    SB[Supabase Storage chunks]
+    HF[Hugging Face CDN fallback]
   end
 
   subgraph outputs [Outputs]
@@ -54,6 +55,7 @@ flowchart TB
   Consent --> Tier
   Tier --> TJ
   HF --> Cache --> TJ
+  SB --> Cache
   TJ --> Timeout
   Timeout -->|success| Text
   Timeout -->|fail| Fallback

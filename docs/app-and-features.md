@@ -32,7 +32,14 @@ flowchart LR
 
 ## ✨ Features
 
-### v1.50.0 security hardening (consent and cloud erasure)
+### v1.53.0 Supabase LLM hosting and download gates
+
+- **On-device LLM weights:** Hosted on **Supabase Storage** bucket `llm-models` (~3.5 GB). Large ONNX files split into **47 MB chunks** (free tier 50 MB limit); PWA and RN download parts and reassemble into local cache. See **`apps/pwa-webapp/models/README.md`**.
+- **Download UX:** Desktop PWA shows progress **bottom-right under + FAB**; **installed mobile PWA** and **RN** use a **blocking** progress modal until the model is cached; **mobile web** can skip with **Not now**.
+- **Host priority (PWA):** Supabase public bucket → same-origin `/models/` → Hugging Face fallback.
+- **Operator scripts:** `npm run models:download`, `models:upload:supabase`, `models:verify` (local or remote). Local weight files are **gitignored**; only `manifest.json` is committed.
+
+### v1.52.0 privacy region and UI localization
 
 - **Health data consent (GDPR Art. 9):** PWA modal before first cloud use; RN `healthDataConsent` / `healthDataConsentAt` in preferences. See [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
 - **Unified cloud deletion:** **Delete cloud data** removes rows from **`health_data`**, **`user_keys`**, **`anonymized_data`**, and **`bug_reports`** for the signed-in user (PWA + RN). RN anonymised sync now targets **`anonymized_data`** (not legacy table names).
