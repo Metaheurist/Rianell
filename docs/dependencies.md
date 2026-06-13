@@ -33,7 +33,7 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `@babel/traverse` | ^7.26.7 |
 | `@babel/types` | ^7.26.7 |
 | `@capacitor/cli` | 7.6.1 |
-| `esbuild` | ^0.25.0 |
+| `esbuild` | ^0.28.1 |
 | `sharp` | ^0.33.5 |
 
 **`overrides`** — 24 pin(s): `@capacitor/assets → @capacitor/cli`, `@expo/plist → @xmldom/xmldom`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
