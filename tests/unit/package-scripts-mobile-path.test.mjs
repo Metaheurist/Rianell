@@ -4,10 +4,11 @@ import fs from 'node:fs';
 
 const pkg = JSON.parse(fs.readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
 
-test('bundle:mobile:prod uses apps/rn-app path', () => {
+test('bundle:mobile:prod syncs packs before expo export', () => {
   const script = String(pkg?.scripts?.['bundle:mobile:prod'] || '');
+  assert.match(script, /sync-locale-packs-to-pwa/);
+  assert.match(script, /sync-policy-pack/);
   assert.match(script, /apps\/rn-app/);
-  assert.doesNotMatch(script, /apps\/mobile/);
 });
 
 test('dev script targets RN Expo, not Capacitor', () => {

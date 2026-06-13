@@ -133,6 +133,7 @@ jobs:
         run: |
           node scripts/generate-locale-overrides.mjs
           node scripts/sync-locale-packs-to-pwa.mjs
+          node scripts/sync-policy-pack.mjs
 
       - name: Build PWA vendor bundles + minified web (temp)
         run: npm run build:web:apk
@@ -311,6 +312,7 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           node scripts/sync-locale-packs-to-pwa.mjs
+          node scripts/sync-policy-pack.mjs
           cd apps/rn-app
           npx expo export --platform android --platform ios --output-dir dist-expo-prod
           npm ls expo-modules-autolinking
