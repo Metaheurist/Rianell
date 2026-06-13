@@ -2,6 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
+**Latest: v1.49.1** - Platform parity follow-up: docs, token sync in build, shared CJS exports.
+
+### v1.49.1 - 2026-06-13 - Platform parity follow-up
+
+- **Build:** `build:web` / `build:web:apk` run **`sync-tokens-to-pwa.mjs`** before vendor + site build (tokens stay aligned in CI).
+- **Docs:** **`setup-and-usage.md`**, **`SECURITY.md`**, **`react-native-setup.md`** — Capacitor paths removed; RN-only mobile guidance.
+- **Shared:** **`@rianell/shared` `index.cjs`** exports storage keys, **`mergeHealthLogs`**, **`normalizeGoals`** (CJS parity with ESM).
+- **Hygiene:** **`.firecrawl/`** gitignored; stale **`apps/capacitor-app`** entry removed from **`package-lock.json`**.
+
 **Latest: v1.49.0** - Platform parity refactor: Capacitor sunset, shared packages, CI gates.
 
 ### v1.49.0 - 2026-06-13 - Platform parity refactor (Capacitor sunset)
