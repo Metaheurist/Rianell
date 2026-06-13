@@ -5,18 +5,35 @@ const MAX_LINES = 200;
 const lines: string[] = [];
 let installed = false;
 
+const REDACT_PATTERNS: RegExp[] = [
+  /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,
+  /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,
+  /\b(?:bpm|backPain|jointPain|medicalCondition|healthLogs|encryption_key)\s*[:=]\s*[^\s,}]+/gi,
+  /\b\d{1,3}\/\d{1,2}\/\d{2,4}\b/g,
+];
+
+function redactSensitiveText(text: string): string {
+  let out = text;
+  for (const pattern of REDACT_PATTERNS) {
+    out = out.replace(pattern, '[REDACTED]');
+  }
+  if (out.length > 2000) out = `${out.slice(0, 2000)}…[truncated]`;
+  return out;
+}
+
 function stringifyArg(arg: unknown): string {
-  if (typeof arg === 'string') return arg;
-  if (arg instanceof Error) return arg.stack || `${arg.name}: ${arg.message}`;
+  if (typeof arg === 'string') return redactSensitiveText(arg);
+  if (arg instanceof Error) return redactSensitiveText(arg.stack || `${arg.name}: ${arg.message}`);
   try {
-    return JSON.stringify(arg);
+    return redactSensitiveText(JSON.stringify(arg));
   } catch {
-    return String(arg);
+    return redactSensitiveText(String(arg));
   }
 }
 
 /**
  * Patches console (once) to keep a ring buffer for bug reports — same idea as the PWA `app.js` hook.
+ * Health-like patterns and tokens are redacted before storage.
  */
 export function installBugReportConsoleCapture(): void {
   if (installed) return;
@@ -47,8 +64,6 @@ function getDiagnosticsBlock(): string {
     `nativeBuild=${Constants.nativeBuildVersion ?? ''}`,
     `executionEnvironment=${Constants.executionEnvironment ?? ''}`,
   ];
-  const deviceName = (Constants as { deviceName?: string }).deviceName;
-  if (deviceName) parts.push(`deviceName=${deviceName}`);
   return parts.join('\n');
 }
 

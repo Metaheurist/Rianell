@@ -976,6 +976,19 @@
     </div>
   </div>
 
+  <!-- Health data consent (GDPR Art. 9 explicit consent for special category data) -->
+  <div class="modal-overlay health-data-consent-overlay" id="healthDataConsentOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="healthDataConsentTitle">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <h3 id="healthDataConsentTitle">Health data processing consent</h3>
+      <p>Rianell stores symptom and wellness logs on your device. This is special-category health data under GDPR. By continuing, you give <strong>explicit consent</strong> (Art. 9(2)(a)) to process health data locally to provide the app. Cloud backup, anonymized contribution, and on-device AI require separate toggles.</p>
+      <p>Contact: <a href="mailto:jan.andersson@rianell.com">jan.andersson@rianell.com</a>. See our privacy policy for your rights.</p>
+      <div class="modal-actions">
+        <button type="button" class="modal-save-btn" onclick="acceptHealthDataConsent()">I agree — continue</button>
+        <button type="button" class="modal-save-btn modal-cancel-btn" onclick="declineHealthDataConsent()">Not now</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings Menu Overlay - Full Page Container -->
   <div class="settings-overlay" id="settingsOverlay" data-benchmark="settings-overlay" role="dialog" aria-modal="true" aria-label="Settings">
     <div class="settings-menu" onclick="event.stopPropagation()">

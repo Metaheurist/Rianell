@@ -49,6 +49,26 @@ These controls are typical for a static site behind Cloudflare. Enable and tune 
 
 - CI writes **[SecurityHeaders.com](https://securityheaders.com/)**-style Markdown under **`security/`**: **`securityheaders-rianell.com.md`** (latest) and per-run history **`security/securityheaders-runs/run-*.md`** (GitHub Actions run number in the filename). See **[security/README.md](../security/README.md)** for how relays and fallbacks work when scans are blocked.
 
+## CI security and supply-chain jobs (v1.50.0)
+
+The **`security-audit`** job in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) invokes [`.github/workflows/security-audit.yml`](../.github/workflows/security-audit.yml) before mobile bundle gates. Checks include:
+
+| Check | Purpose |
+| :--- | :--- |
+| **Gitleaks** (working tree) | Secret scan; blocks on findings |
+| **Gitleaks history** (scheduled) | Full git history scan (non-blocking cleanup signal) |
+| **`verify-no-service-role-in-clients.mjs`** | No service_role in client bundles |
+| **`verify-rls-baseline.mjs`** | RLS SQL doc not gutted |
+| **`verify-privacy-docs.mjs`** | Required privacy/security docs present |
+| **`verify-csp-connect-src.mjs`** | CSP `connect-src` matches live needs |
+| **`generate-security-inventory.mjs`** | PR drift check on [security-inventory.md](security-inventory.md) |
+| **`npm audit`** (prod) | High+ npm vulnerabilities |
+| **OSV-Scanner** | npm + pip lockfiles; SARIF uploaded to GitHub Security |
+| **CycloneDX SBOM** | `sbom.cdx.json` workflow artifact |
+| **`pip-audit`** | Python `requirements.txt` |
+
+See [SECURITY.md](SECURITY.md) for the full matrix and [security/rotation-runbook.md](../security/rotation-runbook.md) for key rotation.
+
 ## Related reading
 
 - [SECURITY.md](SECURITY.md) - threat model and application controls  

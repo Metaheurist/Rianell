@@ -6,6 +6,16 @@
 let importFileData = null;
 let importPreviewData = null;
 
+function escapeImportPreviewHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Show import modal
 function showImportModal() {
   // Close settings modal if open
@@ -291,10 +301,10 @@ function showImportPreview(logs, previewElement, contentElement) {
   for (let i = 0; i < previewCount; i++) {
     const log = logs[i];
     html += `<tr style="border-top: 1px solid rgba(255, 255, 255, 0.1);">
-      <td style="padding: 4px;">${log.date || ''}</td>
-      <td style="padding: 4px;">${log.bpm || ''}</td>
-      <td style="padding: 4px;">${log.backPain || ''}</td>
-      <td style="padding: 4px;">${log.sleep || ''}</td>
+      <td style="padding: 4px;">${escapeImportPreviewHtml(log.date)}</td>
+      <td style="padding: 4px;">${escapeImportPreviewHtml(log.bpm)}</td>
+      <td style="padding: 4px;">${escapeImportPreviewHtml(log.backPain)}</td>
+      <td style="padding: 4px;">${escapeImportPreviewHtml(log.sleep)}</td>
     </tr>`;
   }
   

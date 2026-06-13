@@ -2,6 +2,11 @@
 
 ## ⚙️ Installation
 
+### v1.50.0 documentation sync (consent and erasure UX)
+
+- **Health data consent (GDPR Art. 9):** Before first cloud sync or anonymised contribution, the PWA shows a **Health data processing consent** modal (`#healthDataConsentOverlay`); RN stores `healthDataConsent` / `healthDataConsentAt` in preferences. Decline keeps data local-only.
+- **Cloud erasure (Art. 17):** Settings → **Delete cloud data** runs unified deletion across **`health_data`**, **`user_keys`**, **`anonymized_data`**, and **`bug_reports`** (PWA `deleteAllUserDataFromCloud`; RN `SettingsCloudPane`). Separate actions can remove encrypted backups or anonymised contribution only. See [data-subject-rights.md](privacy/data-subject-rights.md).
+
 ### v1.46.24 documentation sync
 
 - **Dependency inventory:** After changing **`package.json`** (any workspace), **`requirements.txt`**, or PWA CDN URLs in **`apps/pwa-webapp/index.html`**, run **`npm run docs:dependencies`** and commit **`docs/dependencies.md`** so pull-request CI passes. Pushes to **`main`** can auto-commit via **`commit-dependencies-doc`** if the file drifted.
@@ -188,9 +193,10 @@ npm run test:mobile
    - Clear all data: Settings → Clear All Data
 
 4. **Cloud Sync**:
-   - Enable "Contribute anonymised data" in Settings
-   - Accept GDPR agreement
+   - Accept the **Health data processing consent** modal (GDPR Art. 9) before first sync
+   - Enable "Contribute anonymised data" in Settings if desired
    - Data will be anonymised and synced to Supabase
+   - **Delete cloud data** in Settings removes all user-linked rows from Supabase (see v1.50 note above)
 
 <a id="server-dashboard-features"></a>
 
