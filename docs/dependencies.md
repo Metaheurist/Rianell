@@ -33,10 +33,10 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `@babel/traverse` | ^7.26.7 |
 | `@babel/types` | ^7.26.7 |
 | `@capacitor/cli` | 7.6.1 |
-| `esbuild` | ^0.28.1 |
+| `esbuild` | 0.28.1 |
 | `sharp` | ^0.33.5 |
 
-**`overrides`** — 24 pin(s): `@capacitor/assets → @capacitor/cli`, `@expo/plist → @xmldom/xmldom`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
+**`overrides`** — 25 pin(s): `@capacitor/assets → @capacitor/cli`, `@expo/plist → @xmldom/xmldom`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
 
 **Workspaces:** `apps/*`, `packages/*`, `benchmarks`.
 
@@ -138,9 +138,9 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `@capacitor/ios` | ^7.6.0 |
 | `@types/react` | ^18.2.0 |
 | `@types/react-dom` | ^18.2.0 |
-| `@vitejs/plugin-react` | ^4.5.0 |
+| `@vitejs/plugin-react` | ^5.2.0 |
 | `typescript` | ^5.3.0 |
-| `vite` | ^6.4.2 |
+| `vite` | ^8.0.16 |
 
 ---
 
