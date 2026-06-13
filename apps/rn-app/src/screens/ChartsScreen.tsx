@@ -15,6 +15,7 @@ import { RefreshControl } from '../components/legacyRnJsx';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTheme } from '../theme/ThemeProvider';
+import { useT } from '../i18n/I18nProvider';
 import type { MainTabParamList } from '../navigation/RootNavigator';
 import { loadLogs, type LogEntry } from '../storage/logs';
 import type { Preferences } from '../storage/preferences';
@@ -179,6 +180,7 @@ function BalanceVisual({
 export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
   const route = useRoute<ChartsRoute>();
   const theme = useTheme();
+  const { t } = useT();
   const bg =
     theme.tokens.color.background ===
     'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
@@ -289,7 +291,7 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
             },
           ]}
         >
-          <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>Charts</Text>
+          <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>{t('charts.title')}</Text>
           <Text style={[styles.lead, { color: theme.tokens.color.text, fontSize: theme.font(15) }]}>
             {view === 'balance'
               ? 'Wellness balance: mood, sleep, and fatigue trends for the selected range.'

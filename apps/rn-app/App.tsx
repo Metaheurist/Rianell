@@ -12,10 +12,16 @@ import {
 } from './src/storage/preferences';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 import { BootLoadingScreen } from './src/components/BootLoadingScreen';
+import { AiModelDownloadGate } from './src/components/AiModelDownloadGate';
 import { ToastProvider } from './src/components/ui';
 import { refreshDemoModeLogsOnLaunch } from './src/demo/demoMode';
 import { installBugReportConsoleCapture } from './src/utils/bugReportLogs';
 import { flushOfflineQueue } from './src/storage/offlineQueue';
+import { RegionGateScreen } from './src/screens/RegionGateScreen';
+import { isPrivacyRegionConfigured } from './src/privacy/helpers';
+import { fetchPrivacyProfileAndApply, upsertPrivacyProfile } from './src/cloud/privacyProfile';
+import { getSupabaseClient } from './src/cloud/supabaseClient';
+import { I18nProvider } from './src/i18n/I18nProvider';
 
 export default function App() {
   const [prefs, setPrefs] = useState<Preferences | null>(null);
@@ -54,15 +60,61 @@ export default function App() {
     return () => unsub();
   }, []);
 
+  useEffect(() => {
+    const client = getSupabaseClient();
+    if (!client) return;
+    const { data } = client.auth.onAuthStateChange(async (event, session) => {
+      if (event !== 'SIGNED_IN' || !session?.user) return;
+      const cur = await loadPreferences();
+      const { prefs: merged } = await fetchPrivacyProfileAndApply(cur);
+      await savePreferences(merged);
+      setPrefs(merged);
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
+
   if (!prefs) return <BootLoadingScreen team={bootTeam} />;
+
+  if (!isPrivacyRegionConfigured(prefs)) {
+    return (
+      <SafeAreaProvider>
+        <ThemeProvider prefs={prefs}>
+          <I18nProvider prefs={prefs} onLocaleChange={setPrefs}>
+            <RegionGateScreen
+              prefs={prefs}
+              onConfirm={(next) => {
+                setPrefs(next);
+                if (next.privacyRegion === 'eea_uk' && !next.healthDataConsent) {
+                  const withConsent = {
+                    ...next,
+                    healthDataConsent: true,
+                    healthDataConsentAt: new Date().toISOString(),
+                  };
+                  setPrefs(withConsent);
+                  void upsertPrivacyProfile(withConsent);
+                  return;
+                }
+                void upsertPrivacyProfile(next);
+              }}
+            />
+          </I18nProvider>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </SafeAreaProvider>
+    );
+  }
 
   return (
     <SafeAreaProvider>
       <ThemeProvider prefs={prefs}>
-        <ToastProvider>
-          <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
-          <StatusBar style="auto" />
-        </ToastProvider>
+        <I18nProvider prefs={prefs} onLocaleChange={setPrefs}>
+          <ToastProvider>
+            <AiModelDownloadGate prefs={prefs} onChangePrefs={setPrefs}>
+              <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
+            </AiModelDownloadGate>
+          </ToastProvider>
+        </I18nProvider>
+        <StatusBar style="auto" />
       </ThemeProvider>
     </SafeAreaProvider>
   );

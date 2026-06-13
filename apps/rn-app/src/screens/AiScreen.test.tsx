@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { AiScreen } from './AiScreen';
-import { ThemeProvider } from '../theme/ThemeProvider';
+import { renderWithProviders } from '../test/renderWithProviders';
 import { getDefaultPreferences } from '../storage/preferences';
 import { loadLogs } from '../storage/logs';
 import { generateSummaryNote } from '../ai/llm';
@@ -59,10 +59,9 @@ const mockedGenerateSummaryNote = generateSummaryNote as jest.MockedFunction<typ
 
 test('ai screen renders summary from logs', async () => {
   const prefs = getDefaultPreferences();
-  const { findByText, getByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <AiScreen prefs={prefs} />
-    </ThemeProvider>
+  const { findByText, getByText } = renderWithProviders(
+    <AiScreen prefs={prefs} />,
+    { prefs },
   );
 
   await findByText(/What we found/i);
@@ -88,10 +87,9 @@ test('ai screen pull-to-refresh calls loadLogs again', async () => {
   mockedLoadLogs.mockResolvedValue([sampleLogEntry()]);
 
   const prefs = getDefaultPreferences();
-  const { UNSAFE_getByType } = render(
-    <ThemeProvider prefs={prefs}>
-      <AiScreen prefs={prefs} />
-    </ThemeProvider>
+  const { UNSAFE_getByType } = renderWithProviders(
+    <AiScreen prefs={prefs} />,
+    { prefs },
   );
 
   await waitFor(() => expect(mockedLoadLogs).toHaveBeenCalledTimes(1));
@@ -115,10 +113,9 @@ test('ai screen shows disabled copy when aiEnabled is false', async () => {
     aiEnabled: false,
   };
 
-  const { findByText, queryByText } = render(
-    <ThemeProvider prefs={disabledPrefs}>
-      <AiScreen prefs={disabledPrefs} />
-    </ThemeProvider>
+  const { findByText, queryByText } = renderWithProviders(
+    <AiScreen prefs={disabledPrefs} />,
+    { prefs: disabledPrefs },
   );
 
   await findByText(/AI features are disabled in Settings/i);

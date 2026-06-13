@@ -14,6 +14,7 @@ import { LogWizardScreen } from '../screens/LogWizardScreen';
 import type { Preferences } from '../storage/preferences';
 import type { ChartViewMode } from '../charts/summarizeCharts';
 import { Permissions, type ReminderAction } from '../permissions/permissions';
+import { useT } from '../i18n/I18nProvider';
 
 export type RootStackParamList = {
   Tabs: undefined;
@@ -102,6 +103,7 @@ export function RootNavigator({
   onChangePrefs: (next: Preferences) => void;
 }) {
   const theme = useTheme();
+  const { t } = useT();
   const navTheme = theme.mode === 'dark' ? DarkTheme : DefaultTheme;
   const navRef = useNavigationContainerRef<RootStackParamList>();
   const handledInitialActionRef = useRef(false);
@@ -171,7 +173,7 @@ export function RootNavigator({
         <Stack.Screen name="Tabs" options={{ headerShown: false }}>
           {() => <Tabs prefs={prefs} onChangePrefs={onChangePrefs} />}
         </Stack.Screen>
-        <Stack.Screen name="LogWizard" options={{ title: 'Log today' }}>
+        <Stack.Screen name="LogWizard" options={{ title: t('wizard.title') }}>
           {() => <LogWizardScreen prefs={prefs} />}
         </Stack.Screen>
       </Stack.Navigator>
@@ -181,6 +183,7 @@ export function RootNavigator({
 
 function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (next: Preferences) => void }) {
   const theme = useTheme();
+  const { t } = useT();
   const tabBg =
     theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
       ? '#ffffff'
@@ -206,7 +209,7 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
       <Tab.Screen
         name="Home"
         options={{
-          tabBarLabel: 'Home',
+          tabBarLabel: t('nav.home'),
           tabBarIcon: ({ focused, size }: TabBarIconProps) => (
             <TabBarIonicons name="home-outline" focused={focused} size={size} accent={accent} inactive={inactiveLabel} />
           ),
@@ -218,7 +221,7 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
         name="View Logs"
         component={LogsScreenRoute}
         options={{
-          tabBarLabel: 'Logs',
+          tabBarLabel: t('nav.logs'),
           tabBarIcon: ({ focused, size }: TabBarIconProps) => (
             <TabBarIonicons name="list-outline" focused={focused} size={size} accent={accent} inactive={inactiveLabel} />
           ),
@@ -227,7 +230,7 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
       <Tab.Screen
         name="Charts"
         options={{
-          tabBarLabel: 'Charts',
+          tabBarLabel: t('nav.charts'),
           tabBarIcon: ({ focused, size }: TabBarIconProps) => (
             <TabBarIonicons name="bar-chart-outline" focused={focused} size={size} accent={accent} inactive={inactiveLabel} />
           ),
@@ -239,7 +242,7 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
         <Tab.Screen
           name="AI Analysis"
           options={{
-            tabBarLabel: 'AI',
+            tabBarLabel: t('nav.ai'),
             tabBarIcon: ({ focused, size }: TabBarIconProps) => (
               <TabBarIonicons name="sparkles-outline" focused={focused} size={size} accent={accent} inactive={inactiveLabel} />
             ),
@@ -251,7 +254,7 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
       <Tab.Screen
         name="Settings"
         options={{
-          tabBarLabel: 'Settings',
+          tabBarLabel: t('nav.settings'),
           tabBarIcon: ({ focused, size }: TabBarIconProps) => (
             <TabBarIonicons name="settings-outline" focused={focused} size={size} accent={accent} inactive={inactiveLabel} />
           ),

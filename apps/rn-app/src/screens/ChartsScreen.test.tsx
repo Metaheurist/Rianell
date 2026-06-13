@@ -8,9 +8,9 @@ jest.mock('@react-navigation/native', () => {
     useRoute: () => ({ key: 'Charts', name: 'Charts', params: undefined }),
   };
 });
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { ChartsScreen } from './ChartsScreen';
-import { ThemeProvider } from '../theme/ThemeProvider';
+import { renderWithProviders } from '../test/renderWithProviders';
 import { getDefaultPreferences } from '../storage/preferences';
 import { loadLogs } from '../storage/logs';
 
@@ -36,11 +36,7 @@ afterEach(() => {
 
 test('charts shows empty state when no logs in range', async () => {
   const prefs = getDefaultPreferences();
-  const { findByLabelText, getByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <ChartsScreen />
-    </ThemeProvider>
-  );
+  const { findByLabelText, getByText } = renderWithProviders(<ChartsScreen />, { prefs });
 
   await findByLabelText('Charts empty state');
   expect(getByText(/No log entries in this date range/i)).toBeTruthy();
@@ -51,11 +47,7 @@ test('charts pull-to-refresh calls loadLogs again', async () => {
   mockedLoadLogs.mockResolvedValue([]);
 
   const prefs = getDefaultPreferences();
-  const { UNSAFE_getByType } = render(
-    <ThemeProvider prefs={prefs}>
-      <ChartsScreen />
-    </ThemeProvider>
-  );
+  const { UNSAFE_getByType } = renderWithProviders(<ChartsScreen />, { prefs });
 
   await waitFor(() => expect(mockedLoadLogs).toHaveBeenCalledTimes(1));
 
@@ -72,11 +64,7 @@ test('charts pull-to-refresh calls loadLogs again', async () => {
 
 test('charts range and view chips expose accessibility labels', async () => {
   const prefs = getDefaultPreferences();
-  const { findByLabelText } = render(
-    <ThemeProvider prefs={prefs}>
-      <ChartsScreen />
-    </ThemeProvider>
-  );
+  const { findByLabelText } = renderWithProviders(<ChartsScreen />, { prefs });
 
   await findByLabelText('Charts date range 30 days');
   await findByLabelText('Chart view Combined');
@@ -88,11 +76,9 @@ test('balance view shows target snapshot when logs exist', async () => {
 
   const prefs = getDefaultPreferences();
   prefs.goals.moodTarget = 9;
-  const { findByLabelText, getByLabelText, findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <ChartsScreen prefs={prefs} />
-    </ThemeProvider>
-  );
+  const { findByLabelText, getByLabelText, findByText } = renderWithProviders(<ChartsScreen prefs={prefs} />, {
+    prefs,
+  });
 
   await waitFor(() => expect(mockedLoadLogs).toHaveBeenCalled());
   fireEvent.press(getByLabelText('Chart view Balance'));
@@ -124,11 +110,7 @@ test('combined view shows visual trend chart when logs exist', async () => {
   mockedLoadLogs.mockResolvedValue(logs);
 
   const prefs = getDefaultPreferences();
-  const { findByLabelText } = render(
-    <ThemeProvider prefs={prefs}>
-      <ChartsScreen />
-    </ThemeProvider>
-  );
+  const { findByLabelText } = renderWithProviders(<ChartsScreen />, { prefs });
 
   await findByLabelText('Combined trend chart');
 });
@@ -155,11 +137,7 @@ test('individual view shows per-metric visual chart baseline', async () => {
   ]);
 
   const prefs = getDefaultPreferences();
-  const { findAllByLabelText, getByLabelText } = render(
-    <ThemeProvider prefs={prefs}>
-      <ChartsScreen />
-    </ThemeProvider>
-  );
+  const { findAllByLabelText, getByLabelText } = renderWithProviders(<ChartsScreen />, { prefs });
 
   fireEvent.press(getByLabelText('Chart view Individual'));
   const charts = await findAllByLabelText(/Individual trend chart/i);
@@ -171,11 +149,7 @@ test('charts shows reduced-motion hint when OS reduced motion is enabled', async
   mockedLoadLogs.mockResolvedValue([]);
 
   const prefs = getDefaultPreferences();
-  const { findByText } = render(
-    <ThemeProvider prefs={prefs}>
-      <ChartsScreen />
-    </ThemeProvider>
-  );
+  const { findByText } = renderWithProviders(<ChartsScreen />, { prefs });
 
   await findByText(/Reduced motion is enabled/i);
 });

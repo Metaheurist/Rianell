@@ -3765,6 +3765,9 @@ window.toggleSettings = function() {
     settingsOverlaySetOpen(overlay, false);
   } else {
     if (typeof refreshBuildDownloadLinks === 'function') refreshBuildDownloadLinks();
+    if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.renderSettingsPane === 'function') {
+      window.RianellPrivacy.renderSettingsPane();
+    }
     settingsOverlaySetOpen(overlay, true);
     const menu = overlay.querySelector('.settings-menu');
     if (menu) {
@@ -15398,12 +15401,38 @@ let appSettings = {
   useOpenData: false, // Use anonymised data pool for AI training (requires 90+ days)
   aiEnabled: true, // When false: hide AI Analysis tab, chart predictions, and Goals
   preferredLlmModelSize: 'recommended', // 'recommended' | 'tier1'..'tier5' for on-device AI model
-  aiModelDownloadConsent: 'deferred' // 'granted' | 'deferred' — first-run AI model download consent
+  aiModelDownloadConsent: 'deferred', // 'granted' | 'deferred' — first-run AI model download consent
+  privacyRegion: '',
+  privacyRegionSource: '',
+  privacyRegionUpdatedAt: null,
+  policyAcknowledgedVersion: null,
+  policyAcknowledgedAt: null,
+  uiLocale: 'en-GB',
+  uiLocaleSource: '',
+  uiLocaleUpdatedAt: null,
+  dataResidencyCode: 'default',
+  dataResidencyProjectUrl: '',
 };
 
 // Make appSettings available on window for safe access
 if (typeof window !== 'undefined') {
   window.appSettings = appSettings;
+}
+
+function privacyFeatureAvailable(featureKey) {
+  if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.checkFeature === 'function') {
+    var r = window.RianellPrivacy.checkFeature(featureKey);
+    return !r || r.available !== false;
+  }
+  return true;
+}
+
+function startAppAfterPrivacyGate() {
+  if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.awaitGateReady === 'function') {
+    window.RianellPrivacy.awaitGateReady(runAppInit);
+    return;
+  }
+  runAppInit();
 }
 
 // Load settings from localStorage
@@ -15493,6 +15522,15 @@ var __rianellAiDownloadConsentResolve = null;
 function refreshLlmModelSettingsHints() {
   var llmRecommendationHint = document.getElementById('llmModelRecommendationHint');
   var llmStorageHint = document.getElementById('llmModelStorageHint');
+  var statusText = document.getElementById('llmModelStatusText');
+  var progressWrap = document.getElementById('llmModelSettingsProgressWrap');
+  var progressFill = document.getElementById('llmModelSettingsProgressFill');
+  var progressPct = document.getElementById('llmModelSettingsProgressPct');
+  var downloadBtn = document.getElementById('downloadAiModelBtn');
+  var redownloadBtn = document.getElementById('redownloadAiModelBtn');
+  var removeBtn = document.getElementById('removeAiModelCacheBtn');
+  var modelStatus = (typeof window.getAiModelStatus === 'function') ? window.getAiModelStatus() : null;
+
   if (llmRecommendationHint) {
     var info = (typeof window.getResolvedLlmModelInfo === 'function') ? window.getResolvedLlmModelInfo() : null;
     var tierText = 'Run benchmark (reload app) to see recommendation.';
@@ -15509,14 +15547,53 @@ function refreshLlmModelSettingsHints() {
     if (info && info.label) {
       tierText += ' · ' + info.label + ' (' + info.size + ')';
     }
-    var progress = (typeof window.getAiModelDownloadProgress === 'function') ? window.getAiModelDownloadProgress() : null;
-    if (progress && progress.active) {
-      tierText += ' · Downloading… ' + (progress.pct || 0) + '%';
-    } else if (appSettings.aiModelDownloadConsent !== 'granted') {
-      tierText += ' · Model not downloaded yet';
-    }
     llmRecommendationHint.textContent = tierText;
   }
+
+  if (statusText && modelStatus) {
+    var statusLabel = 'Not downloaded';
+    if (modelStatus.state === 'downloading') {
+      statusLabel = 'Downloading… ' + (modelStatus.pct || 0) + '%';
+      if (modelStatus.label) statusLabel += ' (' + modelStatus.label + ')';
+    } else if (modelStatus.state === 'ready') {
+      statusLabel = modelStatus.inMemory
+        ? 'Ready · loaded in memory'
+        : 'Ready · cached on device';
+      if (modelStatus.label) statusLabel += ' (' + modelStatus.label + ')';
+    } else if (modelStatus.state === 'failed') {
+      statusLabel = 'Download failed';
+      if (modelStatus.error) statusLabel += ' — ' + modelStatus.error;
+    } else if (modelStatus.label) {
+      statusLabel = 'Not downloaded · ' + modelStatus.label + ' (' + modelStatus.size + ')';
+    }
+    statusText.textContent = statusLabel;
+    statusText.className = 'llm-model-status llm-model-status--' + modelStatus.state;
+  }
+
+  if (progressWrap) {
+    var showProgress = modelStatus && modelStatus.state === 'downloading';
+    progressWrap.classList.toggle('hidden', !showProgress);
+    progressWrap.setAttribute('aria-hidden', showProgress ? 'false' : 'true');
+    if (showProgress) {
+      var pct = modelStatus.pct || 0;
+      if (progressFill) progressFill.style.width = Math.max(0, Math.min(100, pct)) + '%';
+      if (progressPct) progressPct.textContent = pct + '%';
+    }
+  }
+
+  if (downloadBtn) {
+    downloadBtn.disabled = !!(modelStatus && modelStatus.state === 'downloading');
+    downloadBtn.style.display = (modelStatus && (modelStatus.state === 'not_downloaded' || modelStatus.state === 'failed')) ? '' : 'none';
+  }
+  if (redownloadBtn) {
+    redownloadBtn.disabled = !!(modelStatus && modelStatus.state === 'downloading');
+    redownloadBtn.style.display = (modelStatus && modelStatus.state === 'ready') ? '' : 'none';
+  }
+  if (removeBtn) {
+    removeBtn.disabled = !!(modelStatus && modelStatus.state === 'downloading');
+    removeBtn.style.display = (modelStatus && (modelStatus.state === 'ready' || modelStatus.state === 'failed')) ? '' : 'none';
+  }
+
   if (llmStorageHint && typeof window.getAiModelStorageEstimate === 'function') {
     window.getAiModelStorageEstimate().then(function (est) {
       if (!llmStorageHint) return;
@@ -15542,6 +15619,11 @@ function promptAiModelDownloadConsent(modelId) {
     if (!overlay) {
       resolve(false);
       return;
+    }
+    if (typeof window.applyAiModelDownloadConsentUiMode === 'function') {
+      window.applyAiModelDownloadConsentUiMode();
+    } else if (typeof window.setAiModelDownloadUiMode === 'function') {
+      window.setAiModelDownloadUiMode();
     }
     var info = (typeof window.getResolvedLlmModelInfo === 'function')
       ? window.getResolvedLlmModelInfo()
@@ -15580,6 +15662,38 @@ function closeAiModelDownloadConsentModal(granted) {
     __rianellAiDownloadConsentResolve = null;
   }
 }
+
+async function downloadOrRedownloadAiModel(redownload) {
+  var downloadBtn = document.getElementById('downloadAiModelBtn');
+  var redownloadBtn = document.getElementById('redownloadAiModelBtn');
+  if (downloadBtn) downloadBtn.disabled = true;
+  if (redownloadBtn) redownloadBtn.disabled = true;
+  refreshLlmModelSettingsHints();
+  try {
+    if (redownload && typeof window.clearSummaryLLMCache === 'function') {
+      window.clearSummaryLLMCache();
+    }
+    if (typeof window.preloadSummaryLLM !== 'function') {
+      throw new Error('AI model loader unavailable');
+    }
+    await window.preloadSummaryLLM();
+    if (typeof showToast === 'function') {
+      showToast('AI model downloaded and ready.', { type: 'success' });
+    }
+  } catch (e) {
+    var msg = (e && e.message) ? String(e.message) : 'Download failed';
+    if (msg.indexOf('deferred') !== -1) {
+      if (typeof showToast === 'function') {
+        showToast('Download cancelled.', { type: 'info' });
+      }
+    } else if (typeof showToast === 'function') {
+      showToast('AI model download failed. Check connection and try again.', { type: 'error' });
+    }
+  } finally {
+    refreshLlmModelSettingsHints();
+  }
+}
+if (typeof window !== 'undefined') window.downloadOrRedownloadAiModel = downloadOrRedownloadAiModel;
 
 async function removeDownloadedAiModel() {
   if (typeof window.clearAiModelCache === 'function') {
@@ -16405,6 +16519,16 @@ async function toggleUseOpenData(optionalToggleId) {
 }
 
 function toggleSetting(setting) {
+  var featureMap = {
+    backup: 'cloudEncryptedBackup',
+    contributeAnonData: 'anonymizedResearchPool',
+    useOpenData: 'openDataPoolForAi',
+    aiEnabled: 'onDeviceLlmDownload'
+  };
+  if (featureMap[setting] && !appSettings[setting] && typeof privacyFeatureAvailable === 'function' && !privacyFeatureAvailable(featureMap[setting])) {
+    showAlertModal('This feature is not available for your privacy region or missing required consent.', 'Privacy region');
+    return;
+  }
   appSettings[setting] = !appSettings[setting];
   saveSettings();
   applySettings();
@@ -16471,6 +16595,16 @@ function bindSettingsCarouselTouchOnce() {
   );
 }
 
+function resolveSettingsPaneTitle(pane) {
+  if (!pane) return '';
+  var key = pane.getAttribute('data-settings-pane-i18n');
+  if (key && global.RianellI18n && typeof global.RianellI18n.t === 'function') {
+    var translated = global.RianellI18n.t(key);
+    if (translated && translated !== key) return translated;
+  }
+  return pane.getAttribute('data-settings-pane-title') || '';
+}
+
 function ensureSettingsCarouselDots(panes) {
   var dotsWrap = document.getElementById('settingsCarouselDots');
   if (!dotsWrap) return;
@@ -16486,6 +16620,7 @@ function ensureSettingsCarouselDots(panes) {
   dotsWrap.setAttribute('data-carousel-icons', 'svg');
   function settingsIconForTitle(title, idx) {
     var t = String(title || '').toLowerCase();
+    if (t.indexOf('privacy') !== -1 || t.indexOf('region') !== -1) return 'document';
     if (t.indexOf('personal') !== -1 || t.indexOf('cloud') !== -1) return 'user';
     if (t.indexOf('ai') !== -1 || t.indexOf('goal') !== -1) return 'brain';
     if (t.indexOf('display') !== -1 || t.indexOf('reminder') !== -1) return 'chart-bars';
@@ -16499,7 +16634,7 @@ function ensureSettingsCarouselDots(panes) {
   }
   for (var i = 0; i < n; i++) {
     var dot = document.createElement('button');
-    var paneTitle = (panes[i] && panes[i].getAttribute('data-settings-pane-title')) || ('Section ' + String(i + 1));
+    var paneTitle = resolveSettingsPaneTitle(panes[i]) || ('Section ' + String(i + 1));
     dot.className = 'settings-carousel-dot';
     dot.type = 'button';
     dot.setAttribute('aria-label', 'Go to settings section ' + String(i + 1) + (paneTitle ? ': ' + paneTitle : ''));
@@ -16558,10 +16693,13 @@ function settingsCarouselGo(i) {
     p.setAttribute('aria-hidden', active ? 'false' : 'true');
     if ('inert' in p) p.inert = !active;
   });
-  var title = (panes[i] && panes[i].getAttribute('data-settings-pane-title')) || '';
+  var title = resolveSettingsPaneTitle(panes[i]);
   if (meta) meta.textContent = String(i + 1) + ' / ' + n + (title ? ' - ' + title : '');
   updateSettingsCarouselDots(i);
   window.settingsModalPaneIndex = i;
+  if (i === 7 && typeof refreshLlmModelSettingsHints === 'function') {
+    refreshLlmModelSettingsHints();
+  }
 }
 
 function settingsCarouselStep(delta) {
@@ -19706,7 +19844,7 @@ window.addEventListener('load', () => {
     updateCharts();
   }
 
-  function runPostShellIdleWork() {
+  function runPostShellIdleWork(skipAiPreload) {
     const isLowDevice = typeof window.PerformanceUtils !== 'undefined' && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low';
     const needCharts = appSettings.showCharts && chartSectionEl && logs && logs.length > 0 && !isLowDevice;
     const chartsReady = !needCharts
@@ -19716,7 +19854,8 @@ window.addEventListener('load', () => {
             window.__chartsBuiltDuringLoad = true;
           }).catch(function () {});
         });
-    const aiReady = (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function')
+    const shouldPreloadAi = !skipAiPreload && !window.__rianellAiPreloadedDuringBoot;
+    const aiReady = (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function' || !shouldPreloadAi)
       ? Promise.resolve()
       : runCriticalTask(function () {
           var chain = (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function')
@@ -19766,11 +19905,45 @@ window.addEventListener('load', () => {
     });
   }
 
-  revealAppShell();
-  if (typeof requestIdleCallback !== 'undefined') {
-    requestIdleCallback(runPostShellIdleWork, { timeout: 4000 });
+  function shouldAwaitAiDownloadBeforeShell() {
+    if (appSettings.aiEnabled === false) return false;
+    if (typeof window.isInstalledPwa !== 'function' || !window.isInstalledPwa()) return false;
+    if (typeof window.isMobileViewport !== 'function' || !window.isMobileViewport()) return false;
+    return typeof window.preloadSummaryLLM === 'function';
+  }
+
+  function schedulePostShellIdleWork(skipAiPreload) {
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(function () { runPostShellIdleWork(skipAiPreload); }, { timeout: 4000 });
+    } else {
+      setTimeout(function () { runPostShellIdleWork(skipAiPreload); }, 0);
+    }
+  }
+
+  if (typeof window.setAiModelDownloadUiMode === 'function') {
+    window.setAiModelDownloadUiMode(shouldAwaitAiDownloadBeforeShell() ? 'blocking' : undefined);
+  }
+
+  if (shouldAwaitAiDownloadBeforeShell()) {
+    var aiBootChain = (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function')
+      ? window.PerformanceUtils.ensureAIEngineLoaded()
+      : Promise.resolve();
+    aiBootChain.then(function () {
+      return window.preloadSummaryLLM().then(function () {
+        if (typeof preloadAIForAllRanges === 'function') {
+          return preloadAIForAllRanges();
+        }
+      });
+    }).catch(function () {
+      /* deferred consent or download failure — still reveal shell */
+    }).then(function () {
+      window.__rianellAiPreloadedDuringBoot = true;
+      revealAppShell();
+      schedulePostShellIdleWork(true);
+    });
   } else {
-    setTimeout(runPostShellIdleWork, 0);
+    revealAppShell();
+    schedulePostShellIdleWork(false);
   }
 
   if (!appSettings.weightUnit) {
@@ -19866,16 +20039,16 @@ window.addEventListener('load', () => {
             mode: 'firstRun',
             result: result || { platformType: platformType, tier: tier },
             onContinue: function () {
-              runAppInit();
+              startAppAfterPrivacyGate();
             }
           }) === false) {
-            runAppInit();
+            startAppAfterPrivacyGate();
           }
         });
       }
     );
   } else {
-    runAppInit();
+    startAppAfterPrivacyGate();
   }
   }
 

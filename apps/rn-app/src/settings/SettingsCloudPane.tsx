@@ -9,15 +9,27 @@ import {
 } from '../cloud/sync';
 import { getSupabaseClient } from '../cloud/supabaseClient';
 import { loadPreferences } from '../storage/preferences';
+import { checkFeatureForPrefs } from '../privacy/helpers';
+import type { Preferences } from '../storage/preferences';
 import { useTheme } from '../theme/ThemeProvider';
+import { useT } from '../i18n/I18nProvider';
 
 export function SettingsCloudPane() {
   const theme = useTheme();
+  const { t } = useT();
   const supabase = getSupabaseClient();
   const [session, setSession] = useState<Session | null>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [prefs, setPrefs] = useState<Preferences | null>(null);
+
+  useEffect(() => {
+    void loadPreferences().then(setPrefs);
+  }, []);
+
+  const backupFeature = prefs ? checkFeatureForPrefs(prefs, 'backup') : { available: true };
+  const anonFeature = prefs ? checkFeatureForPrefs(prefs, 'contributeAnonData') : { available: true };
 
   useEffect(() => {
     if (!supabase) return;
@@ -39,16 +51,13 @@ export function SettingsCloudPane() {
   async function onSignIn() {
     if (!supabase) return;
     if (!email.trim() || !password) {
-      Alert.alert('Sign in', 'Enter email and password.');
+      Alert.alert(t('settings.cloud.signIn'), 'Enter email and password.');
       return;
     }
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-      if (error) Alert.alert('Sign in', error.message);
+      const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (error) Alert.alert(t('settings.cloud.signIn'), error.message);
       else setPassword('');
     } finally {
       setBusy(false);
@@ -58,17 +67,14 @@ export function SettingsCloudPane() {
   async function onSignUp() {
     if (!supabase) return;
     if (!email.trim() || !password) {
-      Alert.alert('Sign up', 'Enter email and password.');
+      Alert.alert(t('settings.cloud.signUp'), 'Enter email and password.');
       return;
     }
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-      });
-      if (error) Alert.alert('Sign up', error.message);
-      else Alert.alert('Sign up', 'Check your email to verify your account, then sign in.');
+      const { error } = await supabase.auth.signUp({ email: email.trim(), password });
+      if (error) Alert.alert(t('settings.cloud.signUp'), error.message);
+      else Alert.alert(t('settings.cloud.signUp'), 'Check your email to verify your account.');
     } finally {
       setBusy(false);
     }
@@ -79,7 +85,7 @@ export function SettingsCloudPane() {
     setBusy(true);
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) Alert.alert('Sign out', error.message);
+      if (error) Alert.alert(t('settings.cloud.signOut'), error.message);
     } finally {
       setBusy(false);
     }
@@ -89,9 +95,7 @@ export function SettingsCloudPane() {
     return (
       <View style={styles.block}>
         <Text style={[styles.hint, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-          Cloud sync is not configured. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY (or
-          SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY / SUPABASE_ANON_KEY) in apps/rn-app/.env (see .env.example), then
-          rebuild.
+          {t('settings.cloud.notConfigured')}
         </Text>
       </View>
     );
@@ -101,57 +105,54 @@ export function SettingsCloudPane() {
     return (
       <View style={styles.block}>
         <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-          Signed in as {session.user.email ?? '—'}
+          {t('settings.cloud.signedInAs', { email: session.user.email ?? '—' })}
         </Text>
+        {!backupFeature.available ? (
+          <Text style={[styles.hint, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+            {t('settings.cloud.backupUnavailable')}
+          </Text>
+        ) : null}
         <Pressable
-          style={[styles.btn, { opacity: busy ? 0.6 : 1 }]}
-          onPress={() => void runAction('Sync', syncToCloud)}
-          disabled={busy}
-          accessibilityRole="button"
-          accessibilityLabel="Sync to cloud"
+          style={[styles.btn, { opacity: busy || !backupFeature.available ? 0.6 : 1 }]}
+          onPress={() => void runAction(t('settings.cloud.sync'), syncToCloud)}
+          disabled={busy || !backupFeature.available}
         >
-          <Text style={styles.btnText}>Sync to cloud</Text>
+          <Text style={styles.btnText}>{t('settings.cloud.sync')}</Text>
         </Pressable>
         <Pressable
-          style={[styles.btn, { opacity: busy ? 0.6 : 1 }]}
-          onPress={() => void runAction('Load', loadFromCloud)}
-          disabled={busy}
-          accessibilityRole="button"
-          accessibilityLabel="Load from cloud"
+          style={[styles.btn, { opacity: busy || !backupFeature.available ? 0.6 : 1 }]}
+          onPress={() => void runAction(t('settings.cloud.load'), loadFromCloud)}
+          disabled={busy || !backupFeature.available}
         >
-          <Text style={styles.btnText}>Load from cloud</Text>
+          <Text style={styles.btnText}>{t('settings.cloud.load')}</Text>
         </Pressable>
+        {!anonFeature.available ? (
+          <Text style={[styles.hint, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+            {t('settings.cloud.anonUnavailable')}
+          </Text>
+        ) : null}
         <Pressable
-          style={[styles.btn, { opacity: busy ? 0.6 : 1 }]}
+          style={[styles.btn, { opacity: busy || !anonFeature.available ? 0.6 : 1 }]}
           onPress={() => {
             void (async () => {
-              const prefs = await loadPreferences();
-              await runAction('Anonymized sync', () => syncAnonymizedData(prefs.medicalCondition));
+              const latest = await loadPreferences();
+              if (!checkFeatureForPrefs(latest, 'contributeAnonData').available) return;
+              await runAction(t('settings.cloud.anon'), () => syncAnonymizedData(latest.medicalCondition));
             })();
           }}
-          disabled={busy}
-          accessibilityRole="button"
-          accessibilityLabel="Sync anonymized data"
+          disabled={busy || !anonFeature.available}
         >
-          <Text style={styles.btnText}>Contribute anonymized data</Text>
+          <Text style={styles.btnText}>{t('settings.cloud.anon')}</Text>
         </Pressable>
         <Pressable
           style={[styles.btn, styles.btnDanger, { opacity: busy ? 0.6 : 1 }]}
-          onPress={() => void runAction('Delete cloud data', deleteCloudLogs)}
+          onPress={() => void runAction(t('settings.cloud.delete'), deleteCloudLogs)}
           disabled={busy}
-          accessibilityRole="button"
-          accessibilityLabel="Delete cloud data"
         >
-          <Text style={styles.btnText}>Delete cloud data</Text>
+          <Text style={styles.btnText}>{t('settings.cloud.delete')}</Text>
         </Pressable>
-        <Pressable
-          style={[styles.btn, { opacity: busy ? 0.6 : 1 }]}
-          onPress={() => void onSignOut()}
-          disabled={busy}
-          accessibilityRole="button"
-          accessibilityLabel="Sign out of cloud"
-        >
-          {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Sign out</Text>}
+        <Pressable style={[styles.btn, { opacity: busy ? 0.6 : 1 }]} onPress={() => void onSignOut()} disabled={busy}>
+          {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{t('settings.cloud.signOut')}</Text>}
         </Pressable>
       </View>
     );
@@ -167,7 +168,6 @@ export function SettingsCloudPane() {
         autoCapitalize="none"
         keyboardType="email-address"
         style={[styles.input, { color: theme.tokens.color.text, fontSize: theme.font(15) }]}
-        accessibilityLabel="Cloud email"
       />
       <TextInput
         value={password}
@@ -176,26 +176,13 @@ export function SettingsCloudPane() {
         placeholderTextColor="rgba(255,255,255,0.45)"
         secureTextEntry
         style={[styles.input, { color: theme.tokens.color.text, fontSize: theme.font(15) }]}
-        accessibilityLabel="Cloud password"
       />
       <View style={styles.row}>
-        <Pressable
-          style={[styles.btn, styles.btnHalf, { opacity: busy ? 0.6 : 1 }]}
-          onPress={() => void onSignUp()}
-          disabled={busy}
-          accessibilityRole="button"
-          accessibilityLabel="Sign up for cloud"
-        >
-          {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Sign up</Text>}
+        <Pressable style={[styles.btn, styles.btnHalf, { opacity: busy ? 0.6 : 1 }]} onPress={() => void onSignUp()} disabled={busy}>
+          <Text style={styles.btnText}>{t('settings.cloud.signUp')}</Text>
         </Pressable>
-        <Pressable
-          style={[styles.btn, styles.btnHalf, { opacity: busy ? 0.6 : 1 }]}
-          onPress={() => void onSignIn()}
-          disabled={busy}
-          accessibilityRole="button"
-          accessibilityLabel="Sign in to cloud"
-        >
-          {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Sign in</Text>}
+        <Pressable style={[styles.btn, styles.btnHalf, { opacity: busy ? 0.6 : 1 }]} onPress={() => void onSignIn()} disabled={busy}>
+          <Text style={styles.btnText}>{t('settings.cloud.signIn')}</Text>
         </Pressable>
       </View>
     </View>

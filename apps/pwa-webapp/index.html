@@ -46,7 +46,7 @@
   <!-- PayPal JS SDK: set meta paypal-client-id (REST app Client ID from developer.paypal.com) for in-app Smart Payment Buttons (PayPal, card, Apple Pay / Google Pay when eligible). -->
   <meta name="paypal-client-id" content="">
   <meta name="paypal-currency" content="USD">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.paypal.com; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://api.paypal.com https://api.sandbox.paypal.com https://c.paypal.com; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.paypal.com; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co https://*.aws.cdn.hf.co https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://api.paypal.com https://api.sandbox.paypal.com https://c.paypal.com; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <!-- Note: X-Frame-Options is set via HTTP header in server, not here -->
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -862,10 +862,16 @@
     body:not(.loaded) {
       overflow: hidden;
     }
-    body:not(.loaded) > *:not([id="loadingOverlay"]) {
+    body:not(.loaded) > *:not([id="loadingOverlay"]):not([id="aiModelDownloadProgressOverlay"]):not([id="aiModelDownloadOverlay"]) {
       visibility: hidden;
       opacity: 0;
       pointer-events: none;
+    }
+    body:not(.loaded) .ai-model-download-progress,
+    body:not(.loaded) .ai-model-download-consent {
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: all !important;
     }
     /* Only pin the loading shell while it is shown; allow .hidden to dismiss it (otherwise first-run benchmark modal stays behind an invisible-forced overlay). */
     body:not(.loaded) .loading-overlay:not(.hidden) {
@@ -989,6 +995,21 @@
     </div>
   </div>
 
+  <!-- Privacy region gate (blocks app until region confirmed) -->
+  <div class="privacy-region-gate-overlay" id="privacyRegionGateOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="privacyRegionGateTitle">
+    <div class="privacy-region-gate-card">
+      <h2 id="privacyRegionGateTitle">Privacy region</h2>
+      <p class="privacy-region-gate-lead">Choose where you primarily live. This sets applicable privacy notices and feature rules. We do not use GPS or IP to detect your location.</p>
+      <p class="privacy-region-gate-hint" id="privacyRegionGateHint"></p>
+      <label for="privacyRegionGateSelect" class="privacy-region-gate-label">Your privacy region</label>
+      <select id="privacyRegionGateSelect" class="privacy-region-gate-select"></select>
+      <div class="privacy-region-gate-actions">
+        <button type="button" class="modal-save-btn" id="privacyRegionGateConfirm">Confirm and continue</button>
+        <button type="button" class="modal-save-btn modal-cancel-btn" id="privacyRegionGateViewPolicies">View applicable policies</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings Menu Overlay - Full Page Container -->
   <div class="settings-overlay" id="settingsOverlay" data-benchmark="settings-overlay" role="dialog" aria-modal="true" aria-label="Settings">
     <div class="settings-menu" onclick="event.stopPropagation()">
@@ -1004,7 +1025,31 @@
       </div>
       <div class="settings-content settings-carousel-viewport" id="settingsCarouselViewport">
       <div class="settings-carousel-track" id="settingsCarouselTrack" data-settings-index="0">
-      <div class="settings-carousel-pane" data-settings-pane-title="Personal & cloud sync" role="tabpanel" aria-hidden="false">
+      <div class="settings-carousel-pane" data-settings-pane-title="Privacy & region" data-settings-pane-i18n="settings.privacy.title" role="tabpanel" aria-hidden="false">
+      <div class="settings-section" id="privacyRegionSettingsPane">
+        <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-document"></use></svg>Privacy &amp; region</h4>
+        <div class="settings-option">
+          <label for="privacyRegionSettingsSelect">Privacy region</label>
+          <select id="privacyRegionSettingsSelect" class="item-input"></select>
+        </div>
+        <div class="settings-option">
+          <label for="privacyUiLocaleSelect" id="privacyLanguageLabel">Language</label>
+          <select id="privacyUiLocaleSelect" class="item-input"></select>
+        </div>
+        <div class="settings-option">
+          <label id="privacyStorageLabel">Cloud storage</label>
+          <p id="privacyStorageNote" class="settings-residency-label">—</p>
+        </div>
+        <div class="settings-option settings-option-row">
+          <button type="button" class="settings-data-btn" id="privacyRegionViewPoliciesBtn">View privacy policies</button>
+          <span id="privacyPolicyUpdateBadge" class="privacy-policy-badge" style="display:none;">Policy update</span>
+        </div>
+        <div class="settings-option">
+          <button type="button" class="settings-data-btn" id="privacyRegionGdprBtn">Health data consent (GDPR)</button>
+        </div>
+      </div>
+      </div>
+      <div class="settings-carousel-pane" data-settings-pane-title="Personal & cloud sync" data-settings-pane-i18n="settings.personal.title" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-user"></use></svg>Personal &amp; Cloud Sync</h4>
         <div class="settings-option">
@@ -1099,7 +1144,7 @@
         </div>
       </div>
       </div>
-      <div class="settings-carousel-pane" data-settings-pane-title="AI & Goals" role="tabpanel" aria-hidden="true">
+      <div class="settings-carousel-pane" data-settings-pane-title="AI & Goals" data-settings-pane-i18n="settings.ai.title" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-brain"></use></svg>AI &amp; Goals</h4>
         <div class="settings-option settings-option-with-hint">
@@ -1129,7 +1174,7 @@
         </div>
       </div>
       </div>
-      <div class="settings-carousel-pane" data-settings-pane-title="Display" role="tabpanel" aria-hidden="true">
+      <div class="settings-carousel-pane" data-settings-pane-title="Display" data-settings-pane-i18n="settings.display.title" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-chart-bars"></use></svg>Display Options</h4>
         <div class="settings-option">
@@ -1152,7 +1197,7 @@
         </div>
       </div>
       </div>
-      <div class="settings-carousel-pane" data-settings-pane-title="Customisation" role="tabpanel" aria-hidden="true">
+      <div class="settings-carousel-pane" data-settings-pane-title="Customisation" data-settings-pane-i18n="settings.customisation.title" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-palette"></use></svg>Theme customisation</h4>
         <div class="settings-option">
@@ -1184,7 +1229,7 @@
         </div>
       </div>
       </div>
-      <div class="settings-carousel-pane" data-settings-pane-title="Accessibility" role="tabpanel" aria-hidden="true">
+      <div class="settings-carousel-pane" data-settings-pane-title="Accessibility" data-settings-pane-i18n="settings.accessibility.title" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-accessibility"></use></svg>Accessibility</h4>
         <div class="settings-option settings-option-with-hint">
@@ -1225,7 +1270,7 @@
         <p class="settings-hint">Adjusts accent colors across the app to reduce reliance on red/green cues.</p>
       </div>
       </div>
-      <div class="settings-carousel-pane" data-settings-pane-title="Data options" role="tabpanel" aria-hidden="true">
+      <div class="settings-carousel-pane" data-settings-pane-title="Data options" data-settings-pane-i18n="settings.dataOptions.title" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-save"></use></svg>Data Options</h4>
         <div class="settings-option">
@@ -1246,7 +1291,7 @@
         </div>
       </div>
       </div>
-      <div class="settings-carousel-pane" data-settings-pane-title="Performance" role="tabpanel" aria-hidden="true">
+      <div class="settings-carousel-pane" data-settings-pane-title="Performance" data-settings-pane-i18n="settings.performance.title" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-zap"></use></svg>Performance</h4>
         <div class="settings-option">
@@ -1268,12 +1313,25 @@
             <option value="tier5">Tier 5 (best quality)</option>
           </select>
           <p class="settings-hint" id="llmModelRecommendationHint">Recommended: -</p>
+          <p class="settings-hint settings-llm-status-line" id="llmModelStatusLine">
+            Model status: <span id="llmModelStatusText" class="llm-model-status llm-model-status--unknown">Checking…</span>
+          </p>
+          <div id="llmModelSettingsProgressWrap" class="llm-model-settings-progress hidden" aria-hidden="true">
+            <div class="llm-model-settings-progress__track">
+              <div id="llmModelSettingsProgressFill" class="llm-model-settings-progress__fill" style="width:0%"></div>
+            </div>
+            <span id="llmModelSettingsProgressPct" class="settings-hint">0%</span>
+          </div>
           <p class="settings-hint" id="llmModelStorageHint"></p>
-          <button type="button" class="settings-data-btn" id="removeAiModelCacheBtn" onclick="removeDownloadedAiModel()">Remove downloaded AI model</button>
+          <div class="settings-llm-actions">
+            <button type="button" class="settings-data-btn settings-data-btn--primary" id="downloadAiModelBtn" onclick="downloadOrRedownloadAiModel(false)">Download model</button>
+            <button type="button" class="settings-data-btn" id="redownloadAiModelBtn" onclick="downloadOrRedownloadAiModel(true)" style="display:none">Redownload model</button>
+            <button type="button" class="settings-data-btn" id="removeAiModelCacheBtn" onclick="removeDownloadedAiModel()" style="display:none">Remove downloaded model</button>
+          </div>
         </div>
       </div>
       </div>
-      <div class="settings-carousel-pane" data-settings-pane-title="Data management" role="tabpanel" aria-hidden="true">
+      <div class="settings-carousel-pane" data-settings-pane-title="Data management" data-settings-pane-i18n="settings.dataManagement.title" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-save"></use></svg>Data Management</h4>
         <div class="settings-option app-install-section" id="appInstallSection">
@@ -1490,19 +1548,19 @@
       <span class="tab-nav-indicator" id="tabNavIndicator" aria-hidden="true"></span>
       <button type="button" class="tab-btn main-nav-tab active" data-tab="home" data-benchmark="nav-home" role="tab" aria-selected="true" aria-controls="homeTab" id="tab-home" onclick="switchTab('home')">
         <span class="tab-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-home"/></svg></span>
-        <span class="tab-text">Home</span>
+        <span class="tab-text" data-i18n="nav.home">Home</span>
       </button>
       <button type="button" class="tab-btn main-nav-tab" data-tab="logs" data-benchmark="nav-logs" role="tab" aria-selected="false" aria-controls="logsTab" id="tab-logs" onclick="switchTab('logs')">
         <span class="tab-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-logs"/></svg></span>
-        <span class="tab-text">View Logs</span>
+        <span class="tab-text" data-i18n="nav.logs">View Logs</span>
       </button>
       <button type="button" class="tab-btn main-nav-tab" data-tab="charts" data-benchmark="nav-charts" role="tab" aria-selected="false" aria-controls="chartsTab" id="tab-charts" onclick="switchTab('charts')">
         <span class="tab-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-charts"/></svg></span>
-        <span class="tab-text">Charts</span>
+        <span class="tab-text" data-i18n="nav.charts">Charts</span>
       </button>
       <button type="button" class="tab-btn main-nav-tab" data-tab="ai" data-benchmark="nav-ai" role="tab" aria-selected="false" aria-controls="aiTab" id="tab-ai" onclick="switchTab('ai')">
         <span class="tab-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-ai"/></svg></span>
-        <span class="tab-text">AI Analysis</span>
+        <span class="tab-text" data-i18n="nav.ai">AI Analysis</span>
       </button>
     </div>
 
@@ -1526,7 +1584,7 @@
     <!-- Log wizard (opened via floating + button, not a main nav tab) -->
     <div id="logTab" class="tab-content log-wizard-mode" role="tabpanel" aria-labelledby="logTabTitle">
       <div class="tab-header log-tab-header-wizard">
-        <h2 class="tab-title" id="logTabTitle">Log today</h2>
+        <h2 class="tab-title" id="logTabTitle" data-i18n="wizard.header">Log today</h2>
       </div>
     <form id="logForm">
       <div id="validationSummary" class="form-validation-summary">
@@ -2695,6 +2753,26 @@
     </div>
   </div>
 
+  <!-- AI model download progress (mobile web + installed PWA) -->
+  <div class="modal-overlay ai-model-download-progress" id="aiModelDownloadProgressOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="aiModelDownloadProgressTitle">
+    <div class="modal-content ai-model-download-progress__content" onclick="event.stopPropagation()">
+      <div class="modal-header ai-model-download-progress__header">
+        <h3 id="aiModelDownloadProgressTitle">Downloading AI model</h3>
+      </div>
+      <div class="modal-body ai-model-download-progress__body">
+        <p class="ai-model-download-progress__label">Preparing on-device AI…</p>
+        <div class="ai-model-download-progress__track">
+          <div class="ai-model-download-progress__fill" style="width:0%"></div>
+        </div>
+        <p class="ai-model-download-progress__pct">0%</p>
+        <p class="settings-hint ai-model-download-progress__hint">Wi-Fi recommended. Keep this screen open until the download finishes.</p>
+      </div>
+      <div class="modal-footer alert-modal-footer ai-model-download-progress__footer">
+        <button type="button" class="modal-cancel-btn" id="aiModelDownloadSkipBtn" onclick="skipAiModelDownloadProgress()">Not now</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Performance & AI benchmark modal (first run; view last via God mode → View last benchmark details) -->
   <div class="modal-overlay perf-benchmark-overlay" id="perfBenchmarkOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Performance and AI benchmark">
     <div class="modal-content perf-benchmark-content" onclick="event.stopPropagation()">
@@ -2755,7 +2833,7 @@
   <div class="modal-overlay tutorial-modal-overlay" id="tutorialModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="tutorialModalTitle">
     <div class="modal-content tutorial-modal-content" onclick="event.stopPropagation()">
       <div class="modal-header tutorial-modal-header">
-        <h3 id="tutorialModalTitle">Welcome</h3>
+        <h3 id="tutorialModalTitle" data-i18n="tutorial.welcome">Welcome</h3>
         <button class="modal-close" onclick="closeTutorialModal()" aria-label="Close tutorial">&times;</button>
       </div>
       <div class="tutorial-slides-wrap">
@@ -3356,7 +3434,9 @@
     }
   })();
   </script>
-  <script defer src="vendor/rianell-shared.js?v=1"></script>
+  <script defer src="vendor/rianell-shared.js?v=3"></script>
+  <script defer src="i18n-pwa.js?v=1"></script>
+  <script defer src="privacy-region.js?v=3"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
   <script defer src="app.js?v=35"></script>
   <script defer src="security-utils.js"></script>

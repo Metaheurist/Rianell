@@ -20,10 +20,12 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { getTeamIds } from '@rianell/tokens';
 import type { AppearanceMode, Preferences, PreferredLlmModelSize } from '../storage/preferences';
 import { useTheme } from '../theme/ThemeProvider';
+import { useT } from '../i18n/I18nProvider';
 import { speakLabel } from '../accessibility/tts';
 import { mergeLogsAppend, parseLogImportJson, serializeLogsForExport } from '../data/logExportImport';
 import { loadLogs, saveLogs, persistLogs } from '../storage/logs';
 import { SettingsCloudPane } from '../settings/SettingsCloudPane';
+import { SettingsPrivacyRegionPane } from '../settings/SettingsPrivacyRegionPane';
 import { SettingsAppInstallSection } from '../settings/SettingsAppInstallSection';
 import { printOrShareLogs } from '../utils/printLogs';
 import { clearCachedBenchmark, loadCachedBenchmark, resolveLlmModelSize, runAndCacheBenchmark, type BenchmarkResult } from '../performance/benchmark';
@@ -35,16 +37,17 @@ import {
   type ReminderCapabilities,
 } from '../permissions/permissions';
 
-/** Matches `data-settings-pane-title` order in `apps/pwa-webapp/index.html` settings carousel. */
-const PANE_TITLES = [
-  'Personal & cloud sync',
-  'AI & Goals',
-  'Display',
-  'Customisation',
-  'Accessibility',
-  'Data options',
-  'Performance',
-  'Data management',
+/** Matches `data-settings-pane-i18n` order in `apps/pwa-webapp/index.html` settings carousel. */
+const PANE_TITLE_KEYS = [
+  'settings.privacy.title',
+  'settings.personal.title',
+  'settings.ai.title',
+  'settings.display.title',
+  'settings.customisation.title',
+  'settings.accessibility.title',
+  'settings.dataOptions.title',
+  'settings.performance.title',
+  'settings.dataManagement.title',
 ] as const;
 
 /**
@@ -52,6 +55,7 @@ const PANE_TITLES = [
  */
 function settingsPaneIconName(title: string, idx: number): React.ComponentProps<typeof Ionicons>['name'] {
   const t = title.toLowerCase();
+  if (t.includes('privacy') || t.includes('region')) return 'shield-outline';
   if (t.includes('personal') || t.includes('cloud')) return 'person-outline';
   if (t.includes('ai') || t.includes('goal')) return 'medical-outline';
   if (t.includes('display') || t.includes('reminder')) return 'bar-chart-outline';
@@ -80,9 +84,11 @@ export function SettingsScreen({
   onChangePrefs: (next: Preferences) => void;
 }) {
   const theme = useTheme();
+  const { t: tr } = useT();
+  const paneTitles = PANE_TITLE_KEYS.map((key) => tr(key));
   const { width } = useWindowDimensions();
-  /** Sized like web `settings-carousel-dots` (clamp ~22–32px), shared across eight pane icons. */
-  const settingsPaneIconBtnSize = Math.min(36, Math.max(26, (width - 48 - 7 * 4) / 8));
+  /** Sized like web `settings-carousel-dots` (clamp ~22–32px), shared across nine pane icons. */
+  const settingsPaneIconBtnSize = Math.min(36, Math.max(26, (width - 48 - 8 * 4) / 9));
   const scrollRef = useRef<{ scrollTo: (options: { x: number; animated?: boolean }) => void } | null>(
     null,
   );
@@ -218,7 +224,7 @@ export function SettingsScreen({
   }, []);
 
   function goPane(next: number) {
-    const clamped = Math.max(0, Math.min(PANE_TITLES.length - 1, next));
+    const clamped = Math.max(0, Math.min(PANE_TITLE_KEYS.length - 1, next));
     scrollRef.current?.scrollTo({ x: clamped * width, animated: true });
     setPaneIndex(clamped);
   }
@@ -447,11 +453,11 @@ export function SettingsScreen({
             accessibilityRole="text"
             accessibilityLiveRegion="polite"
           >
-            {paneIndex + 1} / {PANE_TITLES.length} - {PANE_TITLES[paneIndex]}
+            {paneIndex + 1} / {PANE_TITLE_KEYS.length} - {paneTitles[paneIndex]}
           </Text>
           <Pressable
             onPress={() => goPane(paneIndex + 1)}
-            disabled={paneIndex >= PANE_TITLES.length - 1}
+            disabled={paneIndex >= PANE_TITLE_KEYS.length - 1}
             accessibilityRole="button"
             accessibilityLabel="Next settings section"
             style={styles.carouselSide}
@@ -461,12 +467,12 @@ export function SettingsScreen({
         </View>
 
         <View style={styles.paneIconRow} accessibilityRole="tablist">
-          {PANE_TITLES.map((t, i) => {
+          {paneTitles.map((paneTitle, i) => {
             const active = i === paneIndex;
-            const iconName = settingsPaneIconName(t, i);
+            const iconName = settingsPaneIconName(paneTitle, i);
             return (
               <Pressable
-                key={t}
+                key={PANE_TITLE_KEYS[i]}
                 testID={`settings-pane-tab-${i}`}
                 onPress={() => goPane(i)}
                 style={[
@@ -481,7 +487,7 @@ export function SettingsScreen({
                   },
                 ]}
                 accessibilityRole="tab"
-                accessibilityLabel={`${t}${active ? ', selected' : ''}`}
+                accessibilityLabel={`${paneTitle}${active ? ', selected' : ''}`}
                 accessibilityState={{ selected: active }}
               >
                 <Ionicons
@@ -504,13 +510,22 @@ export function SettingsScreen({
         onMomentumScrollEnd={onPaneScrollEnd}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Pane 0 — Personal & cloud sync (web pane 1) */}
+        {/* Pane 0 — Privacy & region (web pane 1) */}
+        <View style={[styles.paneOuter, { width }]}>
+          <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+            <Section title={tr('settings.privacy.title')}>
+              <SettingsPrivacyRegionPane prefs={prefs} onChangePrefs={onChangePrefs} />
+            </Section>
+          </ScrollView>
+        </View>
+
+        {/* Pane 1 — Personal & cloud sync (web pane 2) */}
 
         <View style={[styles.paneOuter, { width }]}>
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title="Personal & cloud sync">
+            <Section title={tr('settings.personal.title')}>
 
               <Hint>Matches web Settings → first carousel pane (account + Supabase).</Hint>
 
@@ -575,7 +590,7 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title="AI & Goals">
+            <Section title={tr('settings.ai.title')}>
 
               <Row label="Enable AI features & Goals">
 
@@ -705,7 +720,7 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title="Display">
+            <Section title={tr('settings.display.title')}>
 
               <Hint>Daily reminders and notification permission (web “Display Options” pane).</Hint>
 
@@ -1193,7 +1208,7 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title="Theme customisation">
+            <Section title={tr('settings.customisation.themeTitle')}>
 
               <Row label="Appearance mode">
 
@@ -1243,7 +1258,7 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title="Accessibility">
+            <Section title={tr('settings.accessibility.title')}>
 
               <Row label="Large text">
 
@@ -1369,7 +1384,7 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title="Data options">
+            <Section title={tr('settings.dataOptions.title')}>
 
               <Row label="Demo mode">
 
@@ -1409,7 +1424,7 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title="Performance">
+            <Section title={tr('settings.performance.title')}>
 
               <Row label="UI animations">
                 <Switch
@@ -1531,7 +1546,7 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title="Data management">
+            <Section title={tr('settings.dataManagement.title')}>
 
               <SettingsAppInstallSection />
 

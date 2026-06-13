@@ -15,6 +15,7 @@ const requiredFiles = [
   'docs/privacy/data-subject-rights.md',
   'docs/privacy/subprocessors.md',
   'docs/privacy/ropa.json',
+  'docs/privacy/region-policy-execution-plan.md',
   'docs/threat-model.md',
   'docs/ai-security.md',
   'docs/incident-response.md',

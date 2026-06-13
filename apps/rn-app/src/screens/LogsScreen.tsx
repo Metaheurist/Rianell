@@ -13,6 +13,7 @@ import {
 import { FlatList, RefreshControl } from '../components/legacyRnJsx';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
+import { useT } from '../i18n/I18nProvider';
 import {
   filterLogsByRange,
   replaceLogEntryByDate,
@@ -78,6 +79,7 @@ function exercisePreview(entry: LogEntry): string {
 
 export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
   const theme = useTheme();
+  const { t } = useT();
   const bg =
     theme.tokens.color.background ===
     'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
@@ -288,7 +290,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
       <View style={styles.card}>
-        <Text style={[styles.title, { color: accent, fontSize: theme.font(22) }]}>View Logs</Text>
+        <Text style={[styles.title, { color: accent, fontSize: theme.font(22) }]}>{t('logs.title')}</Text>
         <Text style={[styles.lead, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
           Filter by date range and sort (Today / 7 / 30 / 90 / All / Custom — web parity).
         </Text>
@@ -415,7 +417,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
 
         {logs.length === 0 ? (
           <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
-            No logs yet. Use Log today on Home to add an entry.
+            {t('logs.emptyHint')}
           </Text>
         ) : (
           <FlatList<LogEntry>
