@@ -44,6 +44,11 @@ expectContains('apps/pwa-webapp/app.js', 'function notifySuccess', 'PWA toast wr
 expectContains('apps/rn-app/src/components/ui/Toast.tsx', 'ToastProvider', 'RN toast provider for UI feedback parity');
 expectContains('apps/pwa-webapp/notifications.js', 'LocalNotifications', 'native notifications plugin path exists');
 expectContains('apps/pwa-webapp/notification-helpers.js', 'isNativeNotificationCapable', 'native-first notification permission handling exists');
+expectContains('apps/pwa-webapp/summary-llm.js', 'onnx-community/Llama-3.2-1B-Instruct', 'PWA on-device LLM uses Llama 3.2 1B chat model');
+expectContains('apps/pwa-webapp/summary-llm.js', 'progress_callback', 'LLM download progress callback wired');
+expectContains('apps/pwa-webapp/app.js', 'promptAiModelDownloadConsent', 'AI model download consent prompt in PWA');
+expectContains('apps/rn-app/src/ai/llm.ts', 'Llama-3.2-1B-Instruct', 'RN remote LLM model naming aligned with PWA');
+expectContains('apps/rn-app/src/ai/llm.ts', /SmolLM2-360M-Instruct/, 'RN tier1-2 model naming aligned with PWA');
 
 if (platform === 'android') {
   expectFile('apps/capacitor-app/android/app/src/main/AndroidManifest.xml', 'Android manifest generated/synced');

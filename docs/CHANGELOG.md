@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.47.1** - MOTD LLM guardrails (relevance filter, cooler sampling, curated-quote-first).
+**Latest: v1.48.0** - On-device LLM upgrade to Llama 3.2 1B (consent, progress, healthy MOTD).
+
+### v1.48.0 - 2026-06-12 - On-device LLM upgrade (Llama 3.2 1B)
+
+- **PWA (`summary-llm.js`):** Replace Flan-T5 with **`onnx-community/Llama-3.2-1B-Instruct`** (tier 3–5, ~670 MB q4) and **`SmolLM2-360M-Instruct`** (tier 1–2, ~200 MB). **`text-generation`** chat pipeline with system/user messages; **q4f16** WebGPU / **q4** WASM dtypes; raised timeouts; warmup after preload.
+- **Download UX:** First-run **consent modal** (`aiModelDownloadConsent`); **`progress_callback`** progress banner + Settings hint; **`navigator.storage.persist()`** after download; **Remove downloaded AI model** in Settings.
+- **MOTD:** **`motd.json`** refreshed with **simple healthy-lifestyle quotes**; LLM persona/themes and **`isUsableMotdText`** gate retuned for lifestyle vocabulary.
+- **AIEngine:** Feature-matrix **memoization** for `layerInput`; GPU correlation only when **≥20** log days.
+- **RN (`llm.ts`):** Remote endpoint model names **`Llama-3.2-1B-Instruct`** / **`SmolLM2-360M-Instruct`**; healthy MOTD fallbacks.
+- **Parity:** **`on_device_llm`** in **`platform-parity.json`**; extended **`check-platform-parity.mjs`**.
+- **Cache:** **`app.js?v=33`**, **`styles.css?v=87`**; **`sw.js`** → **`v2026-06-12-llama-llm`**.
 
 ### v1.47.1 - 2026-06-12 - MOTD LLM guardrails
 
