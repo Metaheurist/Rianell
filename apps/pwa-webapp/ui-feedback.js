@@ -9,6 +9,50 @@
   var OFFLINE_ID = 'rianellOfflineIndicator';
   var UPDATE_BAR_ID = 'rianellUpdateBar';
   var AI_DOWNLOAD_ID = 'rianellAiModelDownloadBanner';
+  var AI_PROGRESS_MODAL_ID = 'aiModelDownloadProgressOverlay';
+  var aiDownloadUiMode = 'desktop';
+
+  function isMobileViewport() {
+    try {
+      return global.matchMedia && global.matchMedia('(max-width: 768px)').matches;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function isInstalledPwa() {
+    try {
+      if (global.matchMedia && global.matchMedia('(display-mode: standalone)').matches) return true;
+      if (global.navigator && global.navigator.standalone === true) return true;
+    } catch (e) {}
+    return false;
+  }
+
+  function isMobileWebDownload() {
+    return isMobileViewport() && !isInstalledPwa();
+  }
+
+  function resolveAiDownloadUiMode() {
+    if (!isMobileViewport()) return 'desktop';
+    if (isInstalledPwa()) return 'blocking';
+    return 'mobile-web';
+  }
+
+  function setAiModelDownloadUiMode(mode) {
+    aiDownloadUiMode = mode || resolveAiDownloadUiMode();
+    applyAiModelDownloadConsentUiMode();
+  }
+
+  function applyAiModelDownloadConsentUiMode() {
+    var overlay = document.getElementById('aiModelDownloadOverlay');
+    if (!overlay) return;
+    var blocking = aiDownloadUiMode === 'blocking';
+    overlay.classList.toggle('ai-model-download-consent--blocking', blocking);
+    var closeBtn = overlay.querySelector('.modal-close');
+    var deferBtn = overlay.querySelector('.modal-cancel-btn');
+    if (closeBtn) closeBtn.style.display = blocking ? 'none' : '';
+    if (deferBtn) deferBtn.style.display = blocking ? 'none' : '';
+  }
 
   function prefersReducedMotion() {
     try {
@@ -289,7 +333,7 @@
     if (el) return el;
     el = document.createElement('div');
     el.id = AI_DOWNLOAD_ID;
-    el.className = 'ai-model-download-banner hidden';
+    el.className = 'ai-model-download-banner ai-model-download-banner--desktop hidden';
     el.setAttribute('role', 'status');
     el.setAttribute('aria-live', 'polite');
     el.innerHTML =
@@ -304,29 +348,123 @@
     return el;
   }
 
-  function updateAiModelDownloadProgressUI(state) {
-    var el = ensureAiModelDownloadBanner();
-    if (!state || !state.active) {
-      el.classList.add('hidden');
-      return;
+  function ensureAiModelDownloadProgressModal() {
+    var el = document.getElementById(AI_PROGRESS_MODAL_ID);
+    if (el) return el;
+    el = document.createElement('div');
+    el.id = AI_PROGRESS_MODAL_ID;
+    el.className = 'modal-overlay ai-model-download-progress';
+    el.style.display = 'none';
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-labelledby', 'aiModelDownloadProgressTitle');
+    el.innerHTML =
+      '<div class="modal-content ai-model-download-progress__content" onclick="event.stopPropagation()">' +
+      '<div class="modal-header ai-model-download-progress__header">' +
+      '<h3 id="aiModelDownloadProgressTitle">Downloading AI model</h3>' +
+      '</div>' +
+      '<div class="modal-body ai-model-download-progress__body">' +
+      '<p class="ai-model-download-progress__label">Preparing on-device AI…</p>' +
+      '<div class="ai-model-download-progress__track">' +
+      '<div class="ai-model-download-progress__fill" style="width:0%"></div>' +
+      '</div>' +
+      '<p class="ai-model-download-progress__pct">0%</p>' +
+      '<p class="settings-hint ai-model-download-progress__hint">Wi-Fi recommended. Keep this screen open until the download finishes.</p>' +
+      '</div>' +
+      '<div class="modal-footer alert-modal-footer ai-model-download-progress__footer">' +
+      '<button type="button" class="modal-cancel-btn" id="aiModelDownloadSkipBtn" onclick="skipAiModelDownloadProgress()">Not now</button>' +
+      '</div>' +
+      '</div>';
+    document.body.appendChild(el);
+    return el;
+  }
+
+  function formatAiDownloadLabel(state) {
+    if (state && state.file) {
+      return 'Downloading AI model… ' + String(state.file).split('/').pop();
     }
+    return 'Downloading AI model…';
+  }
+
+  function applyAiDownloadProgressToElements(state, labelSel, pctSel, fillSel, root) {
+    root = root || document;
     var pct = typeof state.pct === 'number' ? state.pct : 0;
-    var labelEl = el.querySelector('.ai-model-download-banner__label');
-    var pctEl = el.querySelector('.ai-model-download-banner__pct');
-    var fill = el.querySelector('.ai-model-download-banner__fill');
-    if (labelEl) {
-      labelEl.textContent = state.file
-        ? 'Downloading AI model… ' + String(state.file).split('/').pop()
-        : 'Downloading AI model…';
-    }
+    var labelEl = root.querySelector(labelSel);
+    var pctEl = root.querySelector(pctSel);
+    var fill = root.querySelector(fillSel);
+    if (labelEl) labelEl.textContent = formatAiDownloadLabel(state);
     if (pctEl) pctEl.textContent = pct + '%';
     if (fill) fill.style.width = Math.max(0, Math.min(100, pct)) + '%';
-    el.classList.remove('hidden');
+  }
+
+  function showAiModelDownloadProgressModal(state) {
+    var modal = ensureAiModelDownloadProgressModal();
+    var blocking = aiDownloadUiMode === 'blocking';
+    var skipBtn = modal.querySelector('#aiModelDownloadSkipBtn');
+    var hint = modal.querySelector('.ai-model-download-progress__hint');
+    if (skipBtn) skipBtn.style.display = blocking ? 'none' : '';
+    if (hint) {
+      hint.textContent = blocking
+        ? 'Wi-Fi recommended. The app will start when the download finishes.'
+        : 'Wi-Fi recommended. You can continue without the model, but AI features will use text-only fallbacks.';
+    }
+    applyAiDownloadProgressToElements(
+      state,
+      '.ai-model-download-progress__label',
+      '.ai-model-download-progress__pct',
+      '.ai-model-download-progress__fill',
+      modal
+    );
+    modal.style.display = 'flex';
+    if (typeof openModalOverlay === 'function') openModalOverlay(modal);
+    if (blocking && document.body) document.body.classList.add('ai-model-download-blocking');
+  }
+
+  function hideAiModelDownloadProgressModal() {
+    var modal = document.getElementById(AI_PROGRESS_MODAL_ID);
+    if (modal) modal.style.display = 'none';
+    if (typeof closeModalOverlay === 'function') closeModalOverlay(modal);
+    if (document.body) document.body.classList.remove('ai-model-download-blocking');
+  }
+
+  function updateAiModelDownloadProgressUI(state) {
+    if (!state || !state.active) {
+      hideAiModelDownloadProgressUI();
+      return;
+    }
+    var mode = aiDownloadUiMode || resolveAiDownloadUiMode();
+    if (mode === 'desktop') {
+      hideAiModelDownloadProgressModal();
+      var banner = ensureAiModelDownloadBanner();
+      applyAiDownloadProgressToElements(
+        state,
+        '.ai-model-download-banner__label',
+        '.ai-model-download-banner__pct',
+        '.ai-model-download-banner__fill',
+        banner
+      );
+      banner.classList.remove('hidden');
+      return;
+    }
+    var desktopBanner = document.getElementById(AI_DOWNLOAD_ID);
+    if (desktopBanner) desktopBanner.classList.add('hidden');
+    showAiModelDownloadProgressModal(state);
   }
 
   function hideAiModelDownloadProgressUI() {
-    var el = document.getElementById(AI_DOWNLOAD_ID);
-    if (el) el.classList.add('hidden');
+    var banner = document.getElementById(AI_DOWNLOAD_ID);
+    if (banner) banner.classList.add('hidden');
+    hideAiModelDownloadProgressModal();
+  }
+
+  function skipAiModelDownloadProgress() {
+    if (aiDownloadUiMode === 'blocking') return;
+    if (typeof global.cancelAiModelDownload === 'function') {
+      global.cancelAiModelDownload();
+    } else if (typeof global.deferAiModelDownloadConsent === 'function') {
+      global.deferAiModelDownloadConsent();
+    }
+    hideAiModelDownloadProgressUI();
   }
 
   function applyThemeCrossfade(callback) {
@@ -388,8 +526,15 @@
   global.updateOfflineIndicator = updateOfflineIndicator;
   global.showUpdateBar = showUpdateBar;
   global.hideUpdateBar = hideUpdateBar;
+  global.isMobileViewport = isMobileViewport;
+  global.isInstalledPwa = isInstalledPwa;
+  global.isMobileWebDownload = isMobileWebDownload;
+  global.setAiModelDownloadUiMode = setAiModelDownloadUiMode;
+  global.applyAiModelDownloadConsentUiMode = applyAiModelDownloadConsentUiMode;
+  global.resolveAiDownloadUiMode = resolveAiDownloadUiMode;
   global.updateAiModelDownloadProgressUI = updateAiModelDownloadProgressUI;
   global.hideAiModelDownloadProgressUI = hideAiModelDownloadProgressUI;
+  global.skipAiModelDownloadProgress = skipAiModelDownloadProgress;
   global.applyThemeCrossfade = applyThemeCrossfade;
   global.getTabDirection = getTabDirection;
 })(typeof window !== 'undefined' ? window : globalThis);
