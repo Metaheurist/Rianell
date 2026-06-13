@@ -1,6 +1,6 @@
 /* Rianell PWA — versioned cache; user-triggered skipWaiting from app (Update modal). Bump CACHE_NAME when changing SW logic or forcing a full cache reset. */
 var CACHE_PREFIX = 'rianell-static-';
-var CACHE_NAME = CACHE_PREFIX + 'v2026-06-13-parity-refactor';
+var CACHE_NAME = CACHE_PREFIX + 'v2026-06-13-self-hosted-models';
 
 var OFFLINE_HTML =
   '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
@@ -122,7 +122,7 @@ self.addEventListener('fetch', function (e) {
     }
 
     var path = url.pathname;
-    if (!/\.(js|css|png|svg|json|woff2?|ico|webp)$/i.test(path)) return;
+    if (!/\.(js|css|png|svg|json|woff2?|ico|webp|onnx|onnx_data)$/i.test(path) && path.indexOf('/models/') === -1) return;
 
     e.respondWith(
       caches.open(CACHE_NAME).then(function (cache) {
