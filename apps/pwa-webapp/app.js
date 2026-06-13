@@ -15353,7 +15353,8 @@ let appSettings = {
   contributeAnonData: false, // Contribute anonymised data to pool
   useOpenData: false, // Use anonymised data pool for AI training (requires 90+ days)
   aiEnabled: true, // When false: hide AI Analysis tab, chart predictions, and Goals
-  preferredLlmModelSize: 'recommended' // 'recommended' | 'tier1'..'tier5' for on-device AI model
+  preferredLlmModelSize: 'recommended', // 'recommended' | 'tier1'..'tier5' for on-device AI model
+  aiModelDownloadConsent: 'deferred' // 'granted' | 'deferred' — first-run AI model download consent
 };
 
 // Make appSettings available on window for safe access
@@ -15439,8 +15440,123 @@ function setPreferredLlmModel(value) {
   appSettings.preferredLlmModelSize = value;
   saveSettings();
   if (typeof window.clearSummaryLLMCache === 'function') window.clearSummaryLLMCache();
+  if (typeof refreshLlmModelSettingsHints === 'function') refreshLlmModelSettingsHints();
 }
 if (typeof window !== 'undefined') window.setPreferredLlmModel = setPreferredLlmModel;
+
+var __rianellAiDownloadConsentResolve = null;
+
+function refreshLlmModelSettingsHints() {
+  var llmRecommendationHint = document.getElementById('llmModelRecommendationHint');
+  var llmStorageHint = document.getElementById('llmModelStorageHint');
+  if (llmRecommendationHint) {
+    var info = (typeof window.getResolvedLlmModelInfo === 'function') ? window.getResolvedLlmModelInfo() : null;
+    var tierText = 'Run benchmark (reload app) to see recommendation.';
+    if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
+      var platformType = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function')
+        ? window.DeviceBenchmark.getPlatformTypeCached()
+        : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
+      var tier = window.DeviceBenchmark.getPerformanceTier();
+      var full = window.DeviceBenchmark.getFullProfile(platformType, tier, {});
+      var size = full && full.llmModelSize ? full.llmModelSize : 'tier3';
+      var tierNum = size.replace('tier', '');
+      tierText = 'Recommended: Tier ' + (tierNum || size);
+    }
+    if (info && info.label) {
+      tierText += ' · ' + info.label + ' (' + info.size + ')';
+    }
+    var progress = (typeof window.getAiModelDownloadProgress === 'function') ? window.getAiModelDownloadProgress() : null;
+    if (progress && progress.active) {
+      tierText += ' · Downloading… ' + (progress.pct || 0) + '%';
+    } else if (appSettings.aiModelDownloadConsent !== 'granted') {
+      tierText += ' · Model not downloaded yet';
+    }
+    llmRecommendationHint.textContent = tierText;
+  }
+  if (llmStorageHint && typeof window.getAiModelStorageEstimate === 'function') {
+    window.getAiModelStorageEstimate().then(function (est) {
+      if (!llmStorageHint) return;
+      if (!est || !est.usage) {
+        llmStorageHint.textContent = '';
+        return;
+      }
+      var mb = (est.usage / (1024 * 1024)).toFixed(0);
+      llmStorageHint.textContent = 'Browser storage used (incl. AI model): ~' + mb + ' MB';
+    }).catch(function () {
+      if (llmStorageHint) llmStorageHint.textContent = '';
+    });
+  }
+}
+
+function promptAiModelDownloadConsent(modelId) {
+  return new Promise(function (resolve) {
+    if (appSettings.aiModelDownloadConsent === 'granted') {
+      resolve(true);
+      return;
+    }
+    var overlay = document.getElementById('aiModelDownloadOverlay');
+    if (!overlay) {
+      resolve(false);
+      return;
+    }
+    var info = (typeof window.getResolvedLlmModelInfo === 'function')
+      ? window.getResolvedLlmModelInfo()
+      : { label: 'AI model', size: modelId === 'onnx-community/SmolLM2-360M-Instruct' ? '~200 MB' : '~670 MB' };
+    var msg = document.getElementById('aiModelDownloadMessage');
+    if (msg) {
+      msg.textContent = 'Download ' + info.label + ' (' + info.size + ')? Wi-Fi recommended. The model stays on this device and enables AI summaries, note suggestions, and daily quotes.';
+    }
+    __rianellAiDownloadConsentResolve = resolve;
+    overlay.style.display = 'flex';
+    if (typeof openModalOverlay === 'function') openModalOverlay(overlay);
+  });
+}
+if (typeof window !== 'undefined') window.promptAiModelDownloadConsent = promptAiModelDownloadConsent;
+
+function grantAiModelDownloadConsent() {
+  appSettings.aiModelDownloadConsent = 'granted';
+  saveSettings();
+  closeAiModelDownloadConsentModal(true);
+}
+if (typeof window !== 'undefined') window.grantAiModelDownloadConsent = grantAiModelDownloadConsent;
+
+function deferAiModelDownloadConsent() {
+  appSettings.aiModelDownloadConsent = 'deferred';
+  saveSettings();
+  closeAiModelDownloadConsentModal(false);
+}
+if (typeof window !== 'undefined') window.deferAiModelDownloadConsent = deferAiModelDownloadConsent;
+
+function closeAiModelDownloadConsentModal(granted) {
+  var overlay = document.getElementById('aiModelDownloadOverlay');
+  if (overlay) overlay.style.display = 'none';
+  if (typeof closeModalOverlay === 'function') closeModalOverlay(overlay);
+  if (__rianellAiDownloadConsentResolve) {
+    __rianellAiDownloadConsentResolve(!!granted);
+    __rianellAiDownloadConsentResolve = null;
+  }
+}
+
+async function removeDownloadedAiModel() {
+  if (typeof window.clearAiModelCache === 'function') {
+    await window.clearAiModelCache({ resetConsent: true });
+  } else if (typeof window.clearSummaryLLMCache === 'function') {
+    window.clearSummaryLLMCache();
+    appSettings.aiModelDownloadConsent = 'deferred';
+    saveSettings();
+  }
+  if (typeof showToast === 'function') {
+    showToast('Downloaded AI model removed.', { type: 'success' });
+  }
+  refreshLlmModelSettingsHints();
+}
+if (typeof window !== 'undefined') window.removeDownloadedAiModel = removeDownloadedAiModel;
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('rianell-llm-download-progress', function () {
+    refreshLlmModelSettingsHints();
+  });
+}
 
 function applySettings() {
   applyAppearanceMode();
@@ -15935,18 +16051,7 @@ function loadSettingsState() {
     preferredLlmSelect.value = val;
   }
   if (llmRecommendationHint) {
-    if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
-      const platformType = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function')
-        ? window.DeviceBenchmark.getPlatformTypeCached()
-        : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
-      const tier = window.DeviceBenchmark.getPerformanceTier();
-      const full = window.DeviceBenchmark.getFullProfile(platformType, tier, {});
-      const size = full && full.llmModelSize ? full.llmModelSize : 'tier3';
-      const tierNum = size.replace('tier', '');
-      llmRecommendationHint.textContent = 'Recommended: Tier ' + (tierNum || size);
-    } else {
-      llmRecommendationHint.textContent = 'Run benchmark (reload app) to see recommendation.';
-    }
+    refreshLlmModelSettingsHints();
   }
 
   // Update contribute anonymised data toggle

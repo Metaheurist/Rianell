@@ -348,10 +348,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
-  <link rel="preload" href="styles.css?v=86" as="style">
-  <link rel="preload" href="app.js?v=32" as="script">
+  <link rel="preload" href="styles.css?v=87" as="style">
+  <link rel="preload" href="app.js?v=33" as="script">
   <link rel="stylesheet" href="css/tokens.css?v=1">
-  <link rel="stylesheet" href="styles.css?v=86" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=86&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
+  <link rel="stylesheet" href="styles.css?v=87" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=87&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
     /* Critical fallback so if styles.css fails to load (e.g. mobile restart), page is still readable */
     html.rianell-no-styles body { font-family: system-ui, -apple-system, sans-serif; background: #070807; color: #e8eeec; margin: 0; padding: 0; }
@@ -1233,6 +1233,8 @@
             <option value="tier5">Tier 5 (best quality)</option>
           </select>
           <p class="settings-hint" id="llmModelRecommendationHint">Recommended: -</p>
+          <p class="settings-hint" id="llmModelStorageHint"></p>
+          <button type="button" class="settings-data-btn" id="removeAiModelCacheBtn" onclick="removeDownloadedAiModel()">Remove downloaded AI model</button>
         </div>
       </div>
       </div>
@@ -2640,6 +2642,24 @@
     </div>
   </div>
 
+  <!-- AI model download consent -->
+  <div class="modal-overlay ai-model-download-consent" id="aiModelDownloadOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="aiModelDownloadTitle">
+    <div class="modal-content alert-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="aiModelDownloadTitle">Download on-device AI model?</h3>
+        <button type="button" class="modal-close" onclick="deferAiModelDownloadConsent()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body alert-modal-body">
+        <p id="aiModelDownloadMessage">Download the AI model for summaries, note suggestions, and daily quotes. Wi-Fi recommended.</p>
+        <p class="settings-hint">The model is stored on this device only. You can remove it anytime in Settings → Performance.</p>
+      </div>
+      <div class="modal-footer alert-modal-footer ai-model-download-consent__actions">
+        <button type="button" class="modal-cancel-btn" onclick="deferAiModelDownloadConsent()">Not now</button>
+        <button type="button" class="modal-save-btn" onclick="grantAiModelDownloadConsent()">Download now</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Performance & AI benchmark modal (first run; view last via God mode → View last benchmark details) -->
   <div class="modal-overlay perf-benchmark-overlay" id="perfBenchmarkOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Performance and AI benchmark">
     <div class="modal-content perf-benchmark-content" onclick="event.stopPropagation()">
@@ -3301,7 +3321,7 @@
     }
   })();
   </script>
-  <script defer src="app.js?v=32"></script>
+  <script defer src="app.js?v=33"></script>
   <script defer src="security-utils.js"></script>
   <script defer src="encryption-utils.js"></script>
   <script defer src="cloud-sync.js?v=2"></script>

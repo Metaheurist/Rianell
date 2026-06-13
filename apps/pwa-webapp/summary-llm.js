@@ -1,53 +1,54 @@
 /**
- * In-browser LLM for the AI summary note, suggest note, and dashboard MOTD (Transformers.js).
- * Model is chosen by device performance: small on low-end, base on medium/high for better quality.
- * Falls back to rule-based note if the model is unavailable or fails.
+ * In-browser LLM for AI summary note, suggest note, and dashboard MOTD (Transformers.js).
+ * Chat models: Llama-3.2-1B-Instruct (tier 3–5) / SmolLM2-360M-Instruct (tier 1–2).
  */
 (function () {
   'use strict';
 
   var cachedPipeline = null;
   var cachedModelId = null;
-  /** Serializes pipeline load + inference (ONNX Runtime Web rejects concurrent runs on one session). */
   var llmWorkQueue = Promise.resolve();
   var summaryResultCache = null;
   var suggestResultCache = null;
+  var downloadProgressState = { pct: 0, status: 'idle', file: '', active: false };
   var MAX_SUMMARY_CACHE = 8;
   var MAX_SUGGEST_CACHE = 5;
   var MAX_CONTEXT_CHARS = 720;
   var MAX_SUGGEST_CONTEXT_CHARS = 280;
-  var TIMEOUT_MS = 28000;
-  var TIMEOUT_SUGGEST_MS = 12000;
-  /** Covers Transformers.js import + model load + inference so the UI never waits forever on a hung getPipeline(). */
-  var TIMEOUT_SUGGEST_TOTAL_MS = 90000;
-  var TIMEOUT_MOTD_MS = 15000;
+  var TIMEOUT_MS = 45000;
+  var TIMEOUT_SUGGEST_MS = 20000;
+  var TIMEOUT_SUGGEST_TOTAL_MS = 120000;
+  var TIMEOUT_MOTD_MS = 25000;
   var MAX_MOTD_CHARS = 160;
 
-  var MODEL_SMALL = 'Xenova/flan-t5-small';
-  var MODEL_BASE = 'Xenova/flan-t5-base';
-  var MODEL_LARGE = 'Xenova/flan-t5-large';
+  var MODEL_SMALL = 'onnx-community/SmolLM2-360M-Instruct';
+  var MODEL_BASE = 'onnx-community/Llama-3.2-1B-Instruct';
 
-  /**
-   * Tier -> model id and Hugging Face link (for docs / debug).
-   * Tier 5 uses base; large (Xenova/flan-t5-large) often returns 401 from HF, so we use base for top tier until large is public.
-   * Links: tier1-2 https://huggingface.co/Xenova/flan-t5-small | tier3-4-5 https://huggingface.co/Xenova/flan-t5-base | (large) https://huggingface.co/Xenova/flan-t5-large
-   */
   var LLM_TIER_MODELS = {
-    tier1: { id: MODEL_SMALL, link: 'https://huggingface.co/Xenova/flan-t5-small' },
-    tier2: { id: MODEL_SMALL, link: 'https://huggingface.co/Xenova/flan-t5-small' },
-    tier3: { id: MODEL_BASE, link: 'https://huggingface.co/Xenova/flan-t5-base' },
-    tier4: { id: MODEL_BASE, link: 'https://huggingface.co/Xenova/flan-t5-base' },
-    tier5: { id: MODEL_BASE, link: 'https://huggingface.co/Xenova/flan-t5-base' }
+    tier1: { id: MODEL_SMALL, link: 'https://huggingface.co/onnx-community/SmolLM2-360M-Instruct', label: 'SmolLM2 360M', size: '~200 MB' },
+    tier2: { id: MODEL_SMALL, link: 'https://huggingface.co/onnx-community/SmolLM2-360M-Instruct', label: 'SmolLM2 360M', size: '~200 MB' },
+    tier3: { id: MODEL_BASE, link: 'https://huggingface.co/onnx-community/Llama-3.2-1B-Instruct', label: 'Llama 3.2 1B', size: '~670 MB' },
+    tier4: { id: MODEL_BASE, link: 'https://huggingface.co/onnx-community/Llama-3.2-1B-Instruct', label: 'Llama 3.2 1B', size: '~670 MB' },
+    tier5: { id: MODEL_BASE, link: 'https://huggingface.co/onnx-community/Llama-3.2-1B-Instruct', label: 'Llama 3.2 1B', size: '~670 MB' }
   };
 
-  /** Map tier (tier1..tier5) or size (small/base/large) to model id. Tier 1-2 -> small, 3-4-5 -> base (tier5 uses base; large may be gated on HF). */
+  var MOTD_SYSTEM =
+    'You write one short, simple quote about healthy living for a health tracking app. '
+    + 'Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. '
+    + 'Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. '
+    + 'Reply with only the quote sentence.';
+
   function llmTierOrSizeToModelId(tierOrSize) {
     if (tierOrSize === 'tier1' || tierOrSize === 'tier2' || tierOrSize === 'small') return MODEL_SMALL;
     if (tierOrSize === 'tier3' || tierOrSize === 'tier4' || tierOrSize === 'tier5' || tierOrSize === 'base' || tierOrSize === 'large') return MODEL_BASE;
     return MODEL_BASE;
   }
 
-  /** Device class from PerformanceUtils (benchmark-aware) or single fallback when utils not loaded. */
+  function getModelDisplayInfo(modelId) {
+    if (modelId === MODEL_SMALL) return { label: 'SmolLM2 360M', size: '~200 MB' };
+    return { label: 'Llama 3.2 1B', size: '~670 MB' };
+  }
+
   function getDeviceClassForModel() {
     if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.getDevicePerformanceClass === 'function') {
       return window.PerformanceUtils.getDevicePerformanceClass();
@@ -59,9 +60,6 @@
     return deviceClass === 'low' ? MODEL_SMALL : MODEL_BASE;
   }
 
-  /**
-   * Resolve preferred GPU device for pipeline from benchmark cache: 'webgpu' | 'webgl' | null (null = CPU/default).
-   */
   function getPreferredDevice() {
     if (typeof window === 'undefined' || !window.DeviceBenchmark || typeof window.DeviceBenchmark.getCachedResult !== 'function') return null;
     var cached = window.DeviceBenchmark.getCachedResult();
@@ -72,10 +70,6 @@
     return null;
   }
 
-  /**
-   * Resolve which model to use: 1) user override (appSettings.preferredLlmModelSize: tier1-tier5 or small/base/large),
-   * 2) benchmark profile llmModelSize (tier1-tier5), 3) deviceClass fallback.
-   */
   function getResolvedModelId() {
     var prefs = typeof window !== 'undefined' && window.appSettings;
     var preferred = prefs && prefs.preferredLlmModelSize;
@@ -97,108 +91,204 @@
     return getModelIdForDeviceClass(deviceClass);
   }
 
+  function getDownloadConsent() {
+    var prefs = typeof window !== 'undefined' && window.appSettings;
+    return prefs && prefs.aiModelDownloadConsent;
+  }
+
+  function needsDownloadConsent() {
+    return getDownloadConsent() !== 'granted';
+  }
+
+  function reportDownloadProgress(data) {
+    if (!data) return;
+    var pct = downloadProgressState.pct;
+    if (data.status === 'progress' && data.total) {
+      pct = Math.min(100, Math.round((data.loaded / data.total) * 100));
+    } else if (data.progress != null) {
+      pct = Math.min(100, Math.round(Number(data.progress) * 100));
+    } else if (data.status === 'done') {
+      pct = 100;
+    }
+    downloadProgressState = {
+      pct: pct,
+      status: data.status || downloadProgressState.status,
+      file: data.file || '',
+      active: data.status !== 'done' && data.status !== 'ready'
+    };
+    if (typeof window !== 'undefined') {
+      window.__rianellLlmDownloadProgress = downloadProgressState;
+      try {
+        window.dispatchEvent(new CustomEvent('rianell-llm-download-progress', { detail: downloadProgressState }));
+      } catch (e) {}
+      if (typeof window.updateAiModelDownloadProgressUI === 'function') {
+        window.updateAiModelDownloadProgressUI(downloadProgressState);
+      }
+    }
+  }
+
+  function finishDownloadProgress() {
+    reportDownloadProgress({ status: 'done', progress: 1 });
+    downloadProgressState.active = false;
+    if (typeof window !== 'undefined' && typeof window.hideAiModelDownloadProgressUI === 'function') {
+      window.hideAiModelDownloadProgressUI();
+    }
+  }
+
+  async function ensureDownloadConsent() {
+    if (!needsDownloadConsent()) return true;
+    if (typeof window !== 'undefined' && typeof window.promptAiModelDownloadConsent === 'function') {
+      return window.promptAiModelDownloadConsent(getResolvedModelId());
+    }
+    return false;
+  }
+
+  async function requestPersistentStorageIfPossible() {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.storage && typeof navigator.storage.persist === 'function') {
+        await navigator.storage.persist();
+      }
+    } catch (e) {}
+  }
+
   function runQueued(taskFn) {
     var result = llmWorkQueue.then(taskFn);
     llmWorkQueue = result.then(function () {}, function () {});
     return result;
   }
 
-  async function ensurePipelineLoaded() {
+  function resolveDtype(device) {
+    if (device === 'webgpu') return 'q4f16';
+    return 'q4';
+  }
+
+  async function runChatGenerationPipeline(mod, pipelineModelId, opts) {
+    var base = Object.assign({ revision: 'main' }, opts || {});
+    if (base.dtype == null) {
+      base.dtype = resolveDtype(base.device);
+    }
+    base.progress_callback = function (data) {
+      reportDownloadProgress(data);
+    };
+    var origWarn = console.warn;
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn = function () {
+        var s = arguments[0] != null ? String(arguments[0]) : '';
+        if (s.indexOf('dtype not specified') !== -1) return;
+        return origWarn.apply(console, arguments);
+      };
+    }
+    try {
+      return await mod.pipeline('text-generation', pipelineModelId, base);
+    } finally {
+      if (typeof console !== 'undefined') console.warn = origWarn;
+    }
+  }
+
+  async function ensurePipelineLoaded(options) {
+    options = options || {};
+    if (!options.skipConsent && needsDownloadConsent()) {
+      var ok = await ensureDownloadConsent();
+      if (!ok) throw new Error('AI model download deferred');
+    }
+
     var modelId = getResolvedModelId();
     if (cachedPipeline && cachedModelId === modelId) return cachedPipeline;
     cachedPipeline = null;
     cachedModelId = null;
-    if (typeof window !== 'undefined' && window.rianellDebug && typeof console !== 'undefined' && console.debug) {
-      console.debug('Summary LLM getPipeline: modelId=' + modelId + ', revision=main');
-    }
 
-    // Use 3.3.2 for stable WebGPU/WebGL device option; avoid 3.4.x due to "n.env is not a function" (flags_webgl.ts) with ONNX Runtime Web
+    downloadProgressState.active = true;
+    reportDownloadProgress({ status: 'initiate', progress: 0, file: modelId });
+
     var mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.2');
-    // Do not set mod.env.allowLocalModels here; default is false in browser and avoids env API issues
-
     var device = getPreferredDevice();
     var pipelineOpts = { revision: 'main' };
     if (device) pipelineOpts.device = device;
 
-    /**
-     * Explicit dtype + brief console.warn filter while Transformers loads ONNX shards (avoids noisy
-     * "dtype not specified" lines). dtype: fp32 on GPU, q8 on WASM/CPU in the browser.
-     */
-    async function runText2TextPipeline(pipelineModelId, opts) {
-      var base = Object.assign({ revision: 'main' }, opts || {});
-      if (base.dtype == null) {
-        base.dtype = base.device ? 'fp32' : 'q8';
-      }
-      var origWarn = console.warn;
-      if (typeof console !== 'undefined' && console.warn) {
-        console.warn = function () {
-          var s = arguments[0] != null ? String(arguments[0]) : '';
-          if (s.indexOf('dtype not specified') !== -1) return;
-          return origWarn.apply(console, arguments);
-        };
-      }
-      try {
-        return await mod.pipeline('text2text-generation', pipelineModelId, base);
-      } finally {
-        if (typeof console !== 'undefined') console.warn = origWarn;
-      }
-    }
-
-    function loadPipeline(opts) {
-      return runText2TextPipeline(modelId, opts || { revision: 'main' });
+    async function loadPipeline(opts) {
+      return runChatGenerationPipeline(mod, modelId, opts || pipelineOpts);
     }
 
     try {
       cachedPipeline = await loadPipeline(pipelineOpts);
       cachedModelId = modelId;
+      finishDownloadProgress();
+      await requestPersistentStorageIfPossible();
       return cachedPipeline;
     } catch (e) {
       if (device && typeof console !== 'undefined' && console.warn) {
         console.warn('Summary LLM: GPU device ' + device + ' failed, falling back to CPU:', e.message || e);
       }
       try {
-        pipelineOpts.device = undefined;
-        delete pipelineOpts.device;
-        cachedPipeline = await loadPipeline({ revision: 'main' });
+        var cpuOpts = { revision: 'main' };
+        delete cpuOpts.device;
+        cachedPipeline = await runChatGenerationPipeline(mod, modelId, cpuOpts);
         cachedModelId = modelId;
+        finishDownloadProgress();
+        await requestPersistentStorageIfPossible();
         return cachedPipeline;
       } catch (eCpu) {
-        if ((modelId === MODEL_BASE || modelId === MODEL_LARGE) && typeof console !== 'undefined' && console.warn) {
+        if (modelId === MODEL_BASE && typeof console !== 'undefined' && console.warn) {
           console.warn('Summary LLM: ' + modelId + ' failed, retrying with smaller model:', eCpu.message || eCpu);
-        }
-        if (modelId === MODEL_LARGE) {
-          try {
-            cachedPipeline = await runText2TextPipeline(MODEL_BASE, { revision: 'main' });
-            cachedModelId = MODEL_BASE;
-            return cachedPipeline;
-          } catch (e2) {
-            try {
-              cachedPipeline = await runText2TextPipeline(MODEL_SMALL, { revision: 'main' });
-              cachedModelId = MODEL_SMALL;
-              return cachedPipeline;
-            } catch (e3) {
-              throw e3;
-            }
-          }
         }
         if (modelId === MODEL_BASE) {
           try {
-            cachedPipeline = await runText2TextPipeline(MODEL_SMALL, { revision: 'main' });
+            cachedPipeline = await runChatGenerationPipeline(mod, MODEL_SMALL, { revision: 'main' });
             cachedModelId = MODEL_SMALL;
+            finishDownloadProgress();
+            await requestPersistentStorageIfPossible();
             return cachedPipeline;
           } catch (e2) {
+            downloadProgressState.active = false;
+            if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
+              window.showToast('AI model download failed. Using text-only fallbacks.', { type: 'error', action: { label: 'Retry', onClick: function () { clearSummaryLLMCache(); } } });
+            }
             throw e2;
           }
         }
+        downloadProgressState.active = false;
         throw eCpu;
       }
     }
   }
 
-  async function getPipeline() {
+  async function getPipeline(options) {
     return runQueued(function () {
-      return ensurePipelineLoaded();
+      return ensurePipelineLoaded(options);
     });
+  }
+
+  function extractChatReply(out) {
+    if (!out || !out[0]) return '';
+    var gt = out[0].generated_text;
+    if (Array.isArray(gt)) {
+      for (var i = gt.length - 1; i >= 0; i--) {
+        var msg = gt[i];
+        if (msg && (msg.role === 'assistant' || msg.role === 'model') && msg.content) {
+          return String(msg.content).trim();
+        }
+      }
+      var last = gt[gt.length - 1];
+      if (last && typeof last.content === 'string') return last.content.trim();
+    }
+    if (typeof gt === 'string') return gt.trim();
+    return '';
+  }
+
+  function buildChatMessages(systemText, userText) {
+    return [
+      { role: 'system', content: systemText },
+      { role: 'user', content: userText }
+    ];
+  }
+
+  async function runChatInference(systemText, userText, genOpts) {
+    var messages = buildChatMessages(systemText, userText);
+    var out = await runQueued(async function () {
+      var pipe = await ensurePipelineLoaded();
+      return pipe(messages, genOpts);
+    });
+    return extractChatReply(out);
   }
 
   function simpleHash(s) {
@@ -221,16 +311,11 @@
       .trim();
   }
 
-  /**
-   * Build data-rich context: trends snapshot, flare count, then summary/insights/advice.
-   * Keeps the model light by feeding clear, factual bullets so it can be concise and insightful.
-   */
   function buildSummaryContext(analysis, options) {
     var parts = [];
     var logs = (options && options.logs) ? options.logs : [];
     var dayCount = (options && options.dayCount) || logs.length;
 
-    // 1) Data snapshot: period + flares
     var flareCount = logs.filter(function (l) { return l.flare === 'Yes'; }).length;
     var dataLine = dayCount + ' day(s) of data.';
     if (flareCount > 0 && dayCount >= 1) {
@@ -238,7 +323,6 @@
     }
     parts.push(dataLine);
 
-    // 2) Trend bullets (improving / stable / worsening) from analysis.trends
     var trends = analysis.trends || {};
     var improving = [];
     var worsening = [];
@@ -258,7 +342,6 @@
     if (worsening.length) parts.push('Worsening: ' + worsening.slice(0, 4).join(', ') + '.');
     if (stable.length && parts.length <= 2) parts.push('Stable: ' + stable.slice(0, 3).join(', ') + '.');
 
-    // 3) Narrative summary + top insights + one advice
     if (analysis.summary && analysis.summary.trim()) {
       parts.push(stripMarkdown(analysis.summary));
     }
@@ -270,7 +353,6 @@
     if (analysis.advice && analysis.advice.length > 0) {
       parts.push(stripMarkdown(analysis.advice[0]));
     }
-    // Optional: one line from stressors or symptoms if present (enrich without bloating)
     if (analysis.stressorAnalysis && analysis.stressorAnalysis.topStressors && analysis.stressorAnalysis.topStressors.length > 0) {
       var top = analysis.stressorAnalysis.topStressors[0];
       if (top && top.name && !parts.some(function (p) { return p.indexOf(top.name) >= 0; })) {
@@ -289,10 +371,11 @@
     return text.slice(0, last + 1).trim();
   }
 
-  /**
-   * Generate a short, data-informed summary (2–3 sentences) for the patient.
-   * Result is cached by context hash so the same analysis/options return cached text (only update on change).
-   */
+  var SUMMARY_SYSTEM =
+    'You summarise health tracking data for the patient in exactly 2 short sentences. '
+    + 'Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. '
+    + 'Reply with only the summary text.';
+
   async function generateSummaryWithLLM(analysis, options, fallbackNote) {
     var context = buildSummaryContext(analysis, options);
     if (!context || context.length < 10) return fallbackNote;
@@ -302,25 +385,20 @@
     var cached = summaryResultCache.get(contextHash);
     if (cached != null) return cached;
 
-    var prompt = 'Summarise in 2 short sentences for the patient. Use only the data below. Mention 1-2 specific findings (e.g. trends or flares). Be clear and encouraging. Data: ' + context;
-
     try {
       var timeoutPromise = new Promise(function (_, reject) {
         setTimeout(function () { reject(new Error('Summary LLM timeout')); }, TIMEOUT_MS);
       });
-      var out = await Promise.race([
-        runQueued(async function () {
-          var pipe = await ensurePipelineLoaded();
-          return pipe(prompt, {
-            max_new_tokens: 90,
-            do_sample: false,
-            truncation: true
-          });
+      var text = await Promise.race([
+        runChatInference(SUMMARY_SYSTEM, 'Data: ' + context, {
+          max_new_tokens: 120,
+          do_sample: false,
+          temperature: 0.2,
+          truncation: true
         }),
         timeoutPromise
       ]);
 
-      var text = (out && out[0] && out[0].generated_text) ? out[0].generated_text.trim() : '';
       if (text && text.length > 15) {
         text = stripTrailingIncompleteSentence(text);
         if (summaryResultCache.size >= MAX_SUMMARY_CACHE) {
@@ -334,17 +412,10 @@
       if (typeof console !== 'undefined' && console.warn) {
         console.warn('Summary LLM failed, using rule-based note:', e.message || e);
       }
-      if (typeof window !== 'undefined' && window.rianellDebug && typeof console !== 'undefined' && console.debug) {
-        console.debug('Summary LLM: using rule-based fallback');
-      }
     }
     return fallbackNote;
   }
 
-  /**
-   * Build short context for suggest note: today's metrics vs recent 14-day average.
-   * Metrics: backPain, stiffness, fatigue, sleep, jointPain, mobility, dailyFunction, swelling, mood, irritability.
-   */
   function buildSuggestContext(todayStub, recentLogs) {
     var metrics = ['backPain', 'stiffness', 'fatigue', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability'];
     var recent = (recentLogs || []).filter(function (l) { return l.date !== (todayStub && todayStub.date); }).slice(-14);
@@ -373,10 +444,10 @@
     return text.length > MAX_SUGGEST_CONTEXT_CHARS ? text.slice(0, MAX_SUGGEST_CONTEXT_CHARS) : text;
   }
 
-  /**
-   * Generate one short sentence for a daily log note using the same pipeline. Resolves with fallbackText on failure.
-   * Result is cached by context hash so the same context returns cached text (only update on change).
-   */
+  var SUGGEST_SYSTEM =
+    'You write one short sentence for a daily health log note. Compare today to the recent average. '
+    + 'Use only the data provided. Reply with only the note sentence.';
+
   async function generateSuggestNoteWithLLM(contextString, fallbackText) {
     if (!contextString || contextString.length < 10) return fallbackText || '';
 
@@ -385,26 +456,21 @@
     var cached = suggestResultCache.get(contextHash);
     if (cached != null) return cached;
 
-    var prompt = 'Write one short sentence for a daily log note. Use only the data below. Compare today to average. Data: ' + contextString;
-
     async function runSuggest() {
       try {
         var timeoutPromise = new Promise(function (_, reject) {
           setTimeout(function () { reject(new Error('Suggest note LLM timeout')); }, TIMEOUT_SUGGEST_MS);
         });
-        var out = await Promise.race([
-          runQueued(async function () {
-            var pipe = await ensurePipelineLoaded();
-            return pipe(prompt, {
-              max_new_tokens: 48,
-              do_sample: false,
-              truncation: true
-            });
+        var text = await Promise.race([
+          runChatInference(SUGGEST_SYSTEM, 'Data: ' + contextString, {
+            max_new_tokens: 60,
+            do_sample: false,
+            temperature: 0.2,
+            truncation: true
           }),
           timeoutPromise
         ]);
 
-        var text = (out && out[0] && out[0].generated_text) ? out[0].generated_text.trim() : '';
         if (text && text.length > 8) {
           text = stripTrailingIncompleteSentence(text);
           if (suggestResultCache.size >= MAX_SUGGEST_CACHE) {
@@ -435,13 +501,10 @@
     }
   }
 
-  /**
-   * Normalize MOTD: one line, no quotes, length cap. Not cached - each call can differ (fresh nonce in prompt + sampling).
-   */
   function sanitizeMotdText(raw) {
     if (!raw || typeof raw !== 'string') return '';
     var t = raw.replace(/\s+/g, ' ').trim();
-    t = t.replace(/^["'“”]+|["'“”]+$/g, '').trim();
+    t = t.replace(/^["'""]+|["'""]+$/g, '').trim();
     if (t.length > MAX_MOTD_CHARS) {
       var cut = t.slice(0, MAX_MOTD_CHARS);
       var lastSpace = cut.lastIndexOf(' ');
@@ -452,13 +515,8 @@
     return t;
   }
 
-  /**
-   * Relevance gate for LLM MOTD output. Small Flan-T5 models can emit off-topic trivia
-   * (e.g. leaked QA training fragments about users/devices/alarms), so reject anything
-   * that mentions tech/trivia vocabulary, contains digits, or lacks motivational wording.
-   */
-  var MOTD_BLOCKLIST_RE = /\b(users?|devices?|alarms?|passwords?|log\s?in|login|account|click|tap|button|settings?|website|browser|android|iphone|ios|alexa|google|siri|according to|the answer|years? old|per cent|percent)\b/i;
-  var MOTD_RELEVANCE_RE = /\b(you|your|yourself|today|tomorrow|day|days|moment|moments|step|steps|breath|breathe|rest|care|hope|strength|strong|gentle|gently|small|progress|kind|kindness|heal|healing|calm|peace|grow|growth|courage|patience|balance|renew|renewal|journey|begin|start|shine|light|heart|body|mind|well|wellness|better|grace|pause|steady)\b/i;
+  var MOTD_BLOCKLIST_RE = /\b(users?|devices?|alarms?|passwords?|log\s?in|login|account|click|tap|button|settings?|website|browser|android|iphone|ios|alexa|google|siri|according to|the answer|years? old|per cent|percent|hti|app is helpful)\b/i;
+  var MOTD_RELEVANCE_RE = /\b(water|sleep|walk|stretch|breathe|breath|food|eat|meal|rest|sunlight|sun|fresh air|move|movement|steps|hydrat|calm|gentle|balance|health|well|body|mind|stress|pause|quiet|nature|outdoor|warm|cool|light|day|morning|evening|night|energy|recover|repair|kind|simple|small|daily|habit|care|self)\b/i;
 
   function isUsableMotdText(t) {
     if (!t) return false;
@@ -467,53 +525,39 @@
     return MOTD_RELEVANCE_RE.test(t);
   }
 
-  /**
-   * One short motivational line for the dashboard header. No user names. Different on each full load (no cache; random theme + time in prompt; sampling).
-   * Resolves with fallbackText on failure or unusable output.
-   */
   async function generateMotdWithLLM(fallbackText) {
     var themes = [
-      'gentle progress', 'self-care', 'small wins', 'patience', 'renewal',
-      'inner strength', 'balance', 'hope', 'showing up for yourself', 'one step at a time',
-      'self-compassion', 'rest as strength', 'listening inward', 'tiny habits', 'second chances',
-      'seasonal rhythm', 'morning light', 'evening wind-down', 'weekend reset', 'midweek steadiness',
-      'body neutrality', 'moving without pressure', 'eating with kindness', 'hydration as care',
-      'sleep as repair', 'stress as signal', 'anxiety with softness', 'fatigue without blame',
-      'chronic illness grace', 'flare-day realism', 'good enough medicine', 'asking for help',
-      'boundaries that heal', 'joy in small rituals', 'creativity for calm', 'music and mood',
-      'outdoor air', 'stretching gently', 'posture with ease', 'breath as anchor',
-      'gratitude without toxic positivity', 'honest logging', 'data without obsession',
-      'curiosity over criticism', 'forgiving yesterday', 'trusting tomorrow lightly',
-      'community care', 'family balance', 'work-life oxygen', 'digital breaks',
-      'celebrating stillness', 'permission to pause', 'courage in quiet choices',
-      'resilience after setbacks', 'identity beyond symptoms', 'dignity in difficulty',
-      'play and lightness', 'humour that heals', 'colour and comfort', 'fresh starts'
+      'drinking water', 'starting the day with water', 'sleep as repair', 'going to bed on time',
+      'gentle morning stretch', 'a short walk outside', 'fresh air break', 'balanced breakfast',
+      'eating with kindness', 'rest between tasks', 'slowing down at lunch', 'evening wind-down',
+      'breathing before stress', 'stretching your shoulders', 'standing up often', 'sunlight in the morning',
+      'hydration through the day', 'choosing whole foods', 'cooking a simple meal', 'fruit as a snack',
+      'vegetables on your plate', 'walking after dinner', 'quiet time before sleep', 'gratitude for your body',
+      'moving without pressure', 'listening when tired', 'a calm bedtime routine', 'warm tea and rest',
+      'outdoor steps', 'posture with ease', 'one healthy choice today', 'small habits that add up',
+      'permission to rest', 'gentle movement on hard days', 'stress relief through breath', 'mindful eating',
+      'sleep and recovery', 'water with every meal', 'stretching your legs', 'fresh fruit and colour',
+      'balanced meals not perfect meals', 'walking in nature', 'deep breaths when overwhelmed'
     ];
     var theme = themes[Math.floor(Math.random() * themes.length)];
     var nonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
-    var prompt = 'Write one short motivational sentence for a health tracking app. Address the reader in a warm, supportive way. '
-      + 'Do not use anyone\'s name. No medical advice. No quotation marks. Max 22 words. Theme: ' + theme + '. Unique: ' + nonce + '.';
+    var userPrompt = 'Write one simple healthy-lifestyle quote. Theme: ' + theme + '. Unique: ' + nonce + '.';
 
     try {
       var timeoutPromise = new Promise(function (_, reject) {
         setTimeout(function () { reject(new Error('MOTD LLM timeout')); }, TIMEOUT_MOTD_MS);
       });
-      var out = await Promise.race([
-        runQueued(async function () {
-          var pipe = await ensurePipelineLoaded();
-          return pipe(prompt, {
-            max_new_tokens: 56,
-            do_sample: true,
-            // Cooler sampling than before (0.92/0.93): small T5 models drift off-topic when sampled hot.
-            temperature: 0.7,
-            top_p: 0.9,
-            truncation: true
-          });
+      var text = await Promise.race([
+        runChatInference(MOTD_SYSTEM, userPrompt, {
+          max_new_tokens: 40,
+          do_sample: true,
+          temperature: 0.65,
+          top_p: 0.88,
+          truncation: true
         }),
         timeoutPromise
       ]);
 
-      var text = (out && out[0] && out[0].generated_text) ? String(out[0].generated_text).trim() : '';
       text = sanitizeMotdText(text);
       if (text.length >= 12 && text.length <= MAX_MOTD_CHARS + 20) {
         text = stripTrailingIncompleteSentence(text);
@@ -531,20 +575,73 @@
     return fallbackText || '';
   }
 
-  /** Clear cached pipeline so the next use loads the model from current preference (e.g. after changing On-device AI model in Settings). */
+  async function warmupPipeline() {
+    try {
+      await runChatInference(
+        'Reply with OK.',
+        'OK',
+        { max_new_tokens: 2, do_sample: false, temperature: 0.1 }
+      );
+    } catch (e) {}
+  }
+
   function clearSummaryLLMCache() {
     cachedPipeline = null;
     cachedModelId = null;
     llmWorkQueue = Promise.resolve();
+    if (summaryResultCache) summaryResultCache.clear();
+    if (suggestResultCache) suggestResultCache.clear();
+  }
+
+  async function clearAiModelCache(options) {
+    options = options || {};
+    clearSummaryLLMCache();
+    try {
+      if (typeof caches !== 'undefined') {
+        var keys = await caches.keys();
+        await Promise.all(keys.map(function (key) {
+          if (/transformers|huggingface|onnx|models/i.test(key)) {
+            return caches.delete(key);
+          }
+          return Promise.resolve(false);
+        }));
+      }
+    } catch (e) {}
+    if (options.resetConsent && typeof window !== 'undefined' && window.appSettings) {
+      window.appSettings.aiModelDownloadConsent = 'deferred';
+      if (typeof window.saveSettings === 'function') window.saveSettings();
+    }
+  }
+
+  async function getAiModelStorageEstimate() {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.storage && typeof navigator.storage.estimate === 'function') {
+        var est = await navigator.storage.estimate();
+        return { usage: est.usage || 0, quota: est.quota || 0 };
+      }
+    } catch (e) {}
+    return { usage: 0, quota: 0 };
+  }
+
+  function getResolvedLlmModelInfo() {
+    var id = getResolvedModelId();
+    return Object.assign({ id: id }, getModelDisplayInfo(id));
   }
 
   window.generateSummaryWithLLM = generateSummaryWithLLM;
   window.generateSuggestNoteWithLLM = generateSuggestNoteWithLLM;
   window.generateMotdWithLLM = generateMotdWithLLM;
   window.buildSuggestContext = buildSuggestContext;
-  /** Tier -> { id, link } for all tiers (for debug / docs). */
   window.LLM_TIER_MODELS = LLM_TIER_MODELS;
-  /** Preload the pipeline so the app can wait until AI is ready before revealing the UI. Returns a Promise that resolves when the model is loaded. */
-  window.preloadSummaryLLM = function () { return getPipeline(); };
+  window.getResolvedLlmModelInfo = getResolvedLlmModelInfo;
+  window.getAiModelDownloadProgress = function () { return downloadProgressState; };
+  window.getAiModelStorageEstimate = getAiModelStorageEstimate;
+  window.clearAiModelCache = clearAiModelCache;
+  window.preloadSummaryLLM = function () {
+    return getPipeline().then(function (pipe) {
+      return warmupPipeline().then(function () { return pipe; });
+    });
+  };
   window.clearSummaryLLMCache = clearSummaryLLMCache;
+  window.needsAiModelDownloadConsent = needsDownloadConsent;
 })();

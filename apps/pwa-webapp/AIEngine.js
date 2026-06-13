@@ -171,6 +171,18 @@ function computeCorrelationMatrixGPU(numericMatrix, n) {
   }
 }
 
+// Memoize expensive layerInput feature matrix across repeated range switches (same logs window).
+var _layerInputCacheKey = null;
+var _layerInputCacheSnapshot = null;
+
+function buildLayerInputCacheKey(trainingLogs, recentLogs) {
+  var tLen = trainingLogs ? trainingLogs.length : 0;
+  var rLen = recentLogs ? recentLogs.length : 0;
+  var tLast = tLen ? trainingLogs[tLen - 1].date : '';
+  var rLast = rLen ? recentLogs[rLen - 1].date : '';
+  return tLen + ':' + rLen + ':' + tLast + ':' + rLast;
+}
+
 // Neural analysis network: runs all current AI functionality as "layers" with activations
 // Each layer applies existing engine methods (regression, correlation, prediction, etc.) as activator functions
 function NeuralAnalysisNetwork(engine) {
@@ -247,6 +259,12 @@ function NeuralAnalysisNetwork(engine) {
     const recentLogs = ctx.recentLogs;
     const engine = this.engine;
 
+    var inputCacheKey = buildLayerInputCacheKey(trainingLogs, recentLogs);
+    if (_layerInputCacheKey === inputCacheKey && _layerInputCacheSnapshot) {
+      Object.assign(ctx, _layerInputCacheSnapshot);
+      return;
+    }
+
     ctx.dates = trainingLogs.map(log => log.date);
     ctx.flareFlags = trainingLogs.map(log => log.flare === 'Yes' ? 1 : 0);
     ctx.dayOfWeek = trainingLogs.map(log => new Date(log.date).getDay());
@@ -316,7 +334,7 @@ function NeuralAnalysisNetwork(engine) {
     ctx.fullNumericMatrix = numericMatrix;
     ctx.metricNames = metrics;
 
-    if (numericMatrix.length >= 5) {
+    if (numericMatrix.length >= 20) {
       const n = metrics.length;
       const useGPU = await ensureGPUBackend();
       const gpuCorr = useGPU ? computeCorrelationMatrixGPU(numericMatrix, n) : null;
@@ -341,6 +359,18 @@ function NeuralAnalysisNetwork(engine) {
     } else {
       ctx.correlationMatrix = null;
     }
+
+    _layerInputCacheKey = inputCacheKey;
+    _layerInputCacheSnapshot = {
+      dates: ctx.dates,
+      flareFlags: ctx.flareFlags,
+      dayOfWeek: ctx.dayOfWeek,
+      daysSinceLastFlare: ctx.daysSinceLastFlare,
+      metricsData: ctx.metricsData,
+      fullNumericMatrix: ctx.fullNumericMatrix,
+      metricNames: ctx.metricNames,
+      correlationMatrix: ctx.correlationMatrix
+    };
   };
 
   this.layerTrend = function(ctx) {
