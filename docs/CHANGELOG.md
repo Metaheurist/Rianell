@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.48.0** - On-device LLM upgrade to Llama 3.2 1B (consent, progress, healthy MOTD).
+**Latest: v1.48.1** - Theme-token SVG UI icons (settings, charts, AI, logs).
+
+### v1.48.1 - 2026-06-13 - Theme-token SVG UI icons
+
+- **PWA (`index.html`, `styles.css`):** Added a shared inline SVG sprite and **`--ui-icon-*`** tokens so settings, chart controls, log filters, empty states, modal buttons, and data-management actions inherit the active theme instead of rendering colored emoji glyphs.
+- **PWA (`app.js`):** Added **`svgIcon()`** / **`legacyEmojiIcon()`** helpers and replaced generated emoji markers in AI Analysis cards, settings carousel dots, log entry actions, metric labels, chart info boxes, and loading/empty states with tokenized SVG icons.
+- **Cache:** **`app.js?v=34`**, **`styles.css?v=88`**; **`sw.js`** **`CACHE_NAME`** → **`v2026-06-13-svg-icons`**; rebuilt **`app.60ccc8977b36.min.js`**.
 
 ### v1.48.0 - 2026-06-12 - On-device LLM upgrade (Llama 3.2 1B)
 

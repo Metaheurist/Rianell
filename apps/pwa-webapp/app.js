@@ -2533,11 +2533,11 @@ function toggleSignupModalPasswordVisibility() {
   if (!passwordInput || !toggleBtn || !toggleIcon) return;
   if (passwordInput.type === 'password') {
     passwordInput.type = 'text';
-    toggleIcon.textContent = '🙈';
+    toggleIcon.innerHTML = svgIcon('eye', 'ui-svg-icon', 'Hide password');
     toggleBtn.setAttribute('title', 'Hide password');
   } else {
     passwordInput.type = 'password';
-    toggleIcon.textContent = '👁️';
+    toggleIcon.innerHTML = svgIcon('eye', 'ui-svg-icon', 'Show password');
     toggleBtn.setAttribute('title', 'Show password');
   }
 }
@@ -3038,11 +3038,11 @@ function togglePasswordVisibility() {
   // Toggle password visibility
   if (passwordInput.type === 'password') {
     passwordInput.type = 'text';
-    toggleIcon.textContent = '🙈';
+    toggleIcon.innerHTML = svgIcon('eye', 'ui-svg-icon', 'Hide password');
     toggleBtn.setAttribute('title', 'Hide password');
   } else {
     passwordInput.type = 'password';
-    toggleIcon.textContent = '👁️';
+    toggleIcon.innerHTML = svgIcon('eye', 'ui-svg-icon', 'Show password');
     toggleBtn.setAttribute('title', 'Show password');
   }
 }
@@ -3060,6 +3060,39 @@ function escapeHTML(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+function svgIcon(name, className, title) {
+  var safeName = String(name || '').replace(/[^a-z0-9-]/gi, '');
+  var cls = className || 'ui-svg-icon';
+  var label = title ? ' role="img" aria-label="' + escapeAttr(title) + '"' : ' aria-hidden="true"';
+  return '<svg class="' + cls + '"' + label + '><use href="#icon-' + safeName + '"></use></svg>';
+}
+
+function legacyEmojiIcon(emoji, className, title) {
+  var map = {
+    '📊': 'chart-bars',
+    '📈': 'chart-up',
+    '📉': 'chart-down',
+    '⚖️': 'balance',
+    '🧠': 'brain',
+    '⚡': 'zap',
+    '💾': 'save',
+    '📝': 'edit',
+    '✏️': 'edit',
+    '🍽️': 'food',
+    '⚠️': 'notice',
+    '✅': 'chart-up',
+    '🔴': 'notice',
+    '🟡': 'notice',
+    '🟠': 'notice',
+    '💧': 'cloud',
+    '🔒': 'lock',
+    '👁️': 'eye',
+    '📋': 'document',
+    '🗑️': 'trash'
+  };
+  return svgIcon(map[emoji] || 'chart-bars', className || 'ui-svg-icon', title);
 }
 
 function sanitizeHTML(html) {
@@ -3374,7 +3407,7 @@ function showInstallButton() {
   installButton.id = 'installButton';
   installButton.type = 'button';
   installButton.innerHTML =
-    '<span class="data-management-buttons__icon" aria-hidden="true">📱</span><span class="data-management-buttons__label">Install App</span>';
+    '<span class="data-management-buttons__icon" aria-hidden="true">' + svgIcon('save', 'ui-svg-icon') + '</span><span class="data-management-buttons__label">Install App</span>';
   installButton.className = 'settings-data-btn install-app-btn';
   installButton.onclick = installPWA;
   // Place inside Settings panel only (data-management-buttons or settings-footer), never in header
@@ -3476,7 +3509,7 @@ function installOrLaunchPWA() {
       deferredPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === 'accepted') {
           Logger.debug('PWA: User accepted the install prompt');
-          showAlertModal('App installed successfully! 📱\nLook for "Rianell" in your apps.', 'Installation Complete');
+          showAlertModal('App installed successfully!\nLook for "Rianell" in your apps.', 'Installation Complete');
           hideInstallButton();
         } else {
           Logger.debug('PWA: User dismissed the install prompt');
@@ -3502,7 +3535,7 @@ function installOrLaunchPWA() {
 }
 
 function showFileProtocolHelp() {
-  const helpText = `⚠️ PWA Installation Limitation
+  const helpText = `PWA Installation Limitation
 
 Chrome requires HTTPS or localhost to show the automatic install prompt.
 
@@ -3515,7 +3548,7 @@ Chrome requires HTTPS or localhost to show the automatic install prompt.
 
 2. **Manual Installation**:
    • Chrome Menu (⋮) → More Tools → Create Shortcut
-   • Check "Open as window" ✅
+   • Check "Open as window"
    
 3. **Use Edge Browser**:
    • Edge works better with file:// for PWA installation
@@ -3544,7 +3577,7 @@ function openInStandalone() {
     // Focus the new window
     newWindow.focus();
   } else {
-    showAlertModal('⚠️ Popup blocked!\nPlease allow popups for this site and try again.', 'Popup Blocked');
+    showAlertModal('Popup blocked!\nPlease allow popups for this site and try again.', 'Popup Blocked');
   }
 }
 
@@ -3554,7 +3587,7 @@ function showInstallInstructions() {
   
   // Safari on iOS
   if (/iPad|iPhone|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS/.test(navigator.userAgent)) {
-    instructions = `📱 Add to Home Screen (Safari iOS)
+    instructions = `Add to Home Screen (Safari iOS)
 
 1. Tap the Share button (□↑) at the bottom of Safari
 2. Scroll down in the share menu
@@ -3570,7 +3603,7 @@ function showInstallInstructions() {
   }
   // Safari on macOS
   else if (userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('iphone') && !userAgent.includes('ipad')) {
-    instructions = `📱 Add to Dock (Safari macOS)
+    instructions = `Add to Dock (Safari macOS)
 
 1. Click the Share button in Safari toolbar
 2. Select "Add to Dock"
@@ -3583,13 +3616,13 @@ function showInstallInstructions() {
   }
   else if (userAgent.includes('chrome') && !userAgent.includes('edg')) {
     instructions = `
-📱 Install on Chrome:
+Install on Chrome:
 
 METHOD 1 - Create Shortcut:
 1. Click ⋮ menu (top right)
 2. More Tools → Create Shortcut
 3. Name: "Rianell"
-4. ✅ Check "Open as window"
+4. Check "Open as window"
 5. Click "Create"
 
 METHOD 2 - Install Button:
@@ -3602,28 +3635,28 @@ NOTE: Automatic install works best with:
     `;
   } else if (userAgent.includes('firefox')) {
     instructions = `
-📱 Install on Firefox:
+Install on Firefox:
 1. Click the ☰ menu (top right)
 2. Select "Install this site as an app"
 3. Choose a name and click "Install"
     `;
   } else if (userAgent.includes('safari')) {
     instructions = `
-📱 Install on Safari:
+Install on Safari:
 1. Tap the Share button (□↗)
 2. Scroll down and tap "Add to Home Screen"
 3. Tap "Add" to install
     `;
   } else if (userAgent.includes('edg')) {
     instructions = `
-📱 Install on Edge:
+Install on Edge:
 1. Click the ⋯ menu (top right)
 2. Select "Apps" > "Install this site as an app"
 3. Click "Install"
     `;
   } else {
     instructions = `
-📱 Install Instructions:
+Install Instructions:
 Look for an "Install" or "Add to Home Screen" option in your browser's menu.
 
 Most modern browsers support installing web apps!
@@ -5197,27 +5230,27 @@ function renderMetricSelector(allMetrics, selectedMetrics) {
   const metricGroups = [
     {
       name: 'Pain & Symptoms',
-      icon: '🩹',
+      icon: 'notice',
       metrics: ['backPain', 'jointPain', 'stiffness', 'swelling']
     },
     {
       name: 'Energy & Sleep',
-      icon: '💤',
+      icon: 'zap',
       metrics: ['fatigue', 'sleep']
     },
     {
       name: 'Mood & Mental',
-      icon: '🧠',
+      icon: 'brain',
       metrics: ['mood', 'irritability']
     },
     {
       name: 'Physical Function',
-      icon: '🏃',
+      icon: 'chart-up',
       metrics: ['mobility', 'dailyFunction']
     },
     {
       name: 'Environmental & Wellness',
-      icon: '🌡️',
+      icon: 'cloud',
       metrics: ['weatherSensitivity', 'hydration', 'steps']
     }
   ];
@@ -5230,7 +5263,7 @@ function renderMetricSelector(allMetrics, selectedMetrics) {
     const groupHeader = document.createElement('div');
     groupHeader.className = 'metric-group-header';
     groupHeader.innerHTML = `
-      <span class="metric-group-icon">${group.icon}</span>
+      <span class="metric-group-icon">${svgIcon(group.icon, 'metric-svg-icon')}</span>
       <span class="metric-group-title">${group.name}</span>
     `;
     groupDiv.appendChild(groupHeader);
@@ -5449,27 +5482,27 @@ function renderBalanceMetricSelector(allMetrics, selectedMetrics) {
   const metricGroups = [
     {
       name: 'Pain & Symptoms',
-      icon: '🩹',
+      icon: 'notice',
       metrics: ['backPain', 'jointPain', 'stiffness', 'swelling']
     },
     {
       name: 'Energy & Sleep',
-      icon: '💤',
+      icon: 'zap',
       metrics: ['fatigue', 'sleep']
     },
     {
       name: 'Mood & Mental',
-      icon: '🧠',
+      icon: 'brain',
       metrics: ['mood', 'irritability']
     },
     {
       name: 'Physical Function',
-      icon: '🏃',
+      icon: 'chart-up',
       metrics: ['mobility', 'dailyFunction']
     },
     {
       name: 'Environmental & Wellness',
-      icon: '🌡️',
+      icon: 'cloud',
       metrics: ['weatherSensitivity', 'hydration']
     }
   ];
@@ -5482,7 +5515,7 @@ function renderBalanceMetricSelector(allMetrics, selectedMetrics) {
     const groupHeader = document.createElement('div');
     groupHeader.className = 'metric-group-header';
     groupHeader.innerHTML = `
-      <span class="metric-group-icon">${group.icon}</span>
+      <span class="metric-group-icon">${svgIcon(group.icon, 'metric-svg-icon')}</span>
       <span class="metric-group-title">${group.name}</span>
     `;
     groupDiv.appendChild(groupHeader);
@@ -5933,7 +5966,7 @@ async function createBalanceChart() {
 
 async function clearData() {
   // Confirm with user before clearing all data
-  if (!confirm('⚠️ WARNING: This will permanently delete ALL your health data, settings, and log you out of cloud sync.\n\nThis action cannot be undone!\n\nAre you sure you want to continue?')) {
+  if (!confirm('WARNING: This will permanently delete ALL your health data, settings, and log you out of cloud sync.\n\nThis action cannot be undone!\n\nAre you sure you want to continue?')) {
     return;
   }
   
@@ -6181,7 +6214,7 @@ async function clearData() {
   saveSettings();
   
   // Show confirmation and reload app
-  showAlertModal('✅ All data and settings cleared successfully!\n\nThe app will reload in a moment to reset to default state.', 'Data Cleared');
+  showAlertModal('All data and settings cleared successfully!\n\nThe app will reload in a moment to reset to default state.', 'Data Cleared');
   
   // Reload the app to fully reset to default state
   setTimeout(() => {
@@ -6499,7 +6532,7 @@ async function generateAISummary() {
   if (!logs || logs.length === 0) {
     resultsContent.innerHTML = `
       <div class="ai-loading-state">
-        <div class="ai-loading-icon">🧠</div>
+        <div class="ai-loading-icon">${svgIcon('brain', 'empty-placeholder-icon-svg', 'AI analysis')}</div>
         <h3 class="ai-empty-title">No health data yet</h3>
         <p class="ai-empty-desc">Add logs with the + button. Analysis will appear here for your chosen date range.</p>
       </div>
@@ -6559,7 +6592,7 @@ async function generateAISummary() {
   if (filteredLogs.length === 0) {
     resultsContent.innerHTML = `
       <div class="ai-loading-state">
-        <div class="ai-loading-icon">📅</div>
+        <div class="ai-loading-icon">${svgIcon('calendar', 'empty-placeholder-icon-svg', 'Calendar')}</div>
         <h3 class="ai-empty-title">No data in this range</h3>
         <p class="ai-empty-desc">None of your entries fall in ${escapeHTML(dateRangeText)}. Try another range, or tap <strong>+</strong> to add a log for these dates.</p>
       </div>
@@ -6587,7 +6620,7 @@ async function generateAISummary() {
   // Show loading state in results area only (so user sees progress and avoids perceived lag)
   resultsContent.innerHTML = `
     <div class="ai-loading-state">
-      <div class="ai-loading-icon">🧠</div>
+      <div class="ai-loading-icon">${svgIcon('brain', 'empty-placeholder-icon-svg', 'AI analysis')}</div>
       <p class="ai-loading-text">Analyzing your health data…</p>
       <p class="ai-loading-subtext">${sortedLogs.length} days (${escapeHTML(dateRangeText)})</p>
     </div>
@@ -7830,7 +7863,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       if (noteText && noteText.trim()) {
         html += `
       <div class="ai-summary-section ai-animate-in" id="${summaryNoteSectionId}" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title" id="ai-heading-summary-note">📝 Summary note</h3>
+        <h3 class="ai-section-title" id="ai-heading-summary-note">${svgIcon('edit', 'ai-inline-icon', 'Summary note')} Summary note</h3>
         <p class="ai-section-intro">A short line you can copy for yourself or your clinician.</p>
         <p class="ai-generated-note" id="${summaryNoteTextId}">${escapeHTML(noteText.trim())}</p>
         <button type="button" class="ai-copy-note-btn" onclick="typeof copyAIGeneratedNote==='function'&&copyAIGeneratedNote(this)" title="Copy summary note to clipboard" aria-label="Copy summary note to clipboard">Copy note</button>
@@ -7856,19 +7889,19 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   const daysEnergyClarity = logs.filter(l => l.energyClarity && String(l.energyClarity).trim().length > 0).length;
   const daysNotes = logs.filter(l => l.notes && String(l.notes).trim().length > 0).length;
   const statPills = [
-    { icon: '📊', value: numericWithData.length, label: 'Metrics' },
-    { icon: '🔥', value: daysFlare, label: 'Flare days' },
-    { icon: '🍽️', value: daysFood, label: 'Food' },
-    { icon: '🏃', value: daysExercise, label: 'Exercise' },
-    { icon: '😰', value: daysStressors, label: 'Stress' },
-    { icon: '💉', value: daysSymptoms, label: 'Symptoms' },
-    { icon: '📍', value: daysPainLocation, label: 'Pain areas' },
-    { icon: '⚡', value: daysEnergyClarity, label: 'Energy' },
-    { icon: '📝', value: daysNotes, label: 'Notes' }
+    { icon: 'chart-bars', value: numericWithData.length, label: 'Metrics' },
+    { icon: 'notice', value: daysFlare, label: 'Flare days' },
+    { icon: 'food', value: daysFood, label: 'Food' },
+    { icon: 'chart-up', value: daysExercise, label: 'Exercise' },
+    { icon: 'brain', value: daysStressors, label: 'Stress' },
+    { icon: 'notice', value: daysSymptoms, label: 'Symptoms' },
+    { icon: 'balance', value: daysPainLocation, label: 'Pain areas' },
+    { icon: 'zap', value: daysEnergyClarity, label: 'Energy' },
+    { icon: 'edit', value: daysNotes, label: 'Notes' }
   ];
   html += `
     <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title" id="ai-heading-logged">📋 What you logged</h3>
+      <h3 class="ai-section-title" id="ai-heading-logged">${svgIcon('document', 'ai-inline-icon', 'Logged data')} What you logged</h3>
       <p class="ai-section-intro">How many days in this range included each type of entry.</p>
       <div class="ai-stat-pills" role="list">
         ${statPills.map((p, i) => {
@@ -7877,7 +7910,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
               ? p.value + ' metrics with enough data to analyse'
               : p.value + ' days with ' + p.label.toLowerCase() + ' logged';
           return `<div class="ai-stat-pill ai-animate-in" style="animation-delay: ${animationDelay + (i * 40)}ms;" role="listitem" aria-label="${escapeAttr(aria)}">
-          <span class="ai-stat-pill-icon" aria-hidden="true">${p.icon}</span>
+          <span class="ai-stat-pill-icon" aria-hidden="true">${svgIcon(p.icon, 'ai-inline-icon')}</span>
           <span class="ai-stat-pill-value" aria-hidden="true">${p.value}</span>
           <span class="ai-stat-pill-label">${escapeHTML(p.label)}</span>
         </div>`;
@@ -7890,7 +7923,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   // Trends section - simplified for non-technical users
   html += `
     <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title" id="ai-heading-trends">📈 How you're doing</h3>
+      <h3 class="ai-section-title" id="ai-heading-trends">${svgIcon('chart-up', 'ai-inline-icon', 'Trends')} How you're doing</h3>
       <p class="ai-section-intro">Each card compares your recent average to your latest entry. Labels like “Getting better” describe the direction - not a medical judgement.</p>
       <div class="ai-trends-grid" role="list">
   `;
@@ -7908,13 +7941,13 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     // Set icon and color based on status
     let trendIcon, trendColor, predictedColor;
     if (currentStatus === 'improving') {
-      trendIcon = "📈";
+      trendIcon = svgIcon('chart-up', 'ai-inline-icon icon-success', 'Improving');
       trendColor = "#4caf50"; // Green for improving
     } else if (currentStatus === 'worsening') {
-      trendIcon = "📉";
+      trendIcon = svgIcon('chart-down', 'ai-inline-icon icon-danger', 'Declining');
       trendColor = "#f44336"; // Red for worsening
     } else {
-      trendIcon = "➡️";
+      trendIcon = svgIcon('chart-bars', 'ai-inline-icon icon-muted', 'Stable');
       trendColor = "#e91e63"; // Pink/magenta for stable (matches button)
     }
     
@@ -8045,7 +8078,11 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   if (analysis.flareUpRisk) {
     const riskLevel = analysis.flareUpRisk.level;
     const riskColor = riskLevel === 'high' ? '#f44336' : riskLevel === 'moderate' ? '#ff9800' : '#ffc107';
-    const riskIcon = riskLevel === 'high' ? '🔴' : riskLevel === 'moderate' ? '🟡' : '🟠';
+    const riskIcon = riskLevel === 'high'
+      ? svgIcon('notice', 'ai-inline-icon icon-danger', 'High risk')
+      : riskLevel === 'moderate'
+        ? svgIcon('notice', 'ai-inline-icon icon-warning', 'Moderate risk')
+        : svgIcon('notice', 'ai-inline-icon icon-muted', 'Low risk');
     
     const matchCount = analysis.flareUpRisk.matchingMetrics;
     html += `
@@ -8175,7 +8212,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       if (analysis.correlationClusters && analysis.correlationClusters.length > 0) {
         html += `
           <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-            <h3 class="ai-section-title ai-section-green">📊 Groups that change together</h3>
+            <h3 class="ai-section-title ai-section-green">${svgIcon('chart-bars', 'ai-inline-icon', 'Correlations')} Groups that change together</h3>
             <p class="ai-section-intro">These items often showed up together in your logs - useful context, not a rule.</p>
             <ul class="ai-list" style="margin-top: 1rem;">
               ${analysis.correlationClusters.map((cluster, idx) => {
@@ -8195,7 +8232,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     const stressorAnalysis = analysis.stressorAnalysis;
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">😰 Stress and triggers</h3>
+        <h3 class="ai-section-title ai-section-green">${svgIcon('brain', 'ai-inline-icon', 'Stress')} Stress and triggers</h3>
         <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">${formatAIValueText(stressorAnalysis.summary)}</p>
     `;
     
@@ -8216,7 +8253,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     const symptomsAnalysis = analysis.symptomsAndPainAnalysis;
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">💉 Symptoms and where you had pain</h3>
+        <h3 class="ai-section-title ai-section-green">${svgIcon('notice', 'ai-inline-icon', 'Symptoms')} Symptoms and where you had pain</h3>
         <p style="color: rgba(224, 242, 241, 0.8); margin-bottom: 1rem;">${formatAIValueText(symptomsAnalysis.summary)}</p>
     `;
     
@@ -8241,7 +8278,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     const painBodyFigureSVG = getAIPainBodyFigureSVG(painByRegion);
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">📍 Pain by body part</h3>
+        <h3 class="ai-section-title ai-section-green">${svgIcon('balance', 'ai-inline-icon', 'Pain locations')} Pain by body part</h3>
         <div class="ai-pain-body-figure-wrap">
           <div class="ai-pain-body-figure" aria-hidden="true">${painBodyFigureSVG}</div>
           <p class="ai-pain-body-legend"><span class="ai-legend-dot green"></span> good &nbsp; <span class="ai-legend-dot yellow"></span> discomfort &nbsp; <span class="ai-legend-dot red"></span> pain</p>
@@ -8305,7 +8342,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     const nutrition = analysis.nutritionAnalysis;
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">🍽️ Nutrition</h3>
+        <h3 class="ai-section-title ai-section-green">${svgIcon('food', 'ai-inline-icon', 'Nutrition')} Nutrition</h3>
         <div class="ai-nutrition-visual">
           <div class="ai-nutrition-main"><span class="ai-nutrition-value ai-brackets-highlight">${nutrition.avgCalories}</span> <span class="ai-nutrition-unit">cal</span></div>
           <div class="ai-nutrition-main"><span class="ai-nutrition-value ai-brackets-highlight">${nutrition.avgProtein}g</span> <span class="ai-nutrition-unit">protein</span></div>
@@ -8328,7 +8365,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     const ex = analysis.exerciseSummary;
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">🏃 Exercise</h3>
+        <h3 class="ai-section-title ai-section-green">${svgIcon('chart-up', 'ai-inline-icon', 'Exercise')} Exercise</h3>
         <div class="ai-exercise-visual">
           <span class="ai-exercise-value ai-brackets-highlight">${ex.avgMinutesPerDay}</span> <span class="ai-exercise-unit">min avg</span>
           <span class="ai-exercise-days ai-brackets-highlight">${ex.daysWithExercise} days</span>
@@ -8342,7 +8379,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   if (analysis.topExercises && analysis.topExercises.length > 0) {
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">🏃 Top exercises</h3>
+        <h3 class="ai-section-title ai-section-green">${svgIcon('chart-up', 'ai-inline-icon', 'Top exercises')} Top exercises</h3>
         <ul class="ai-list ai-list-pills" style="columns: 2; column-gap: 1rem;">
     `;
     analysis.topExercises.forEach((item, index) => {
@@ -8356,7 +8393,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   if (analysis.topFoods && analysis.topFoods.length > 0) {
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">🍽️ Top foods</h3>
+        <h3 class="ai-section-title ai-section-green">${svgIcon('food', 'ai-inline-icon', 'Top foods')} Top foods</h3>
         <ul class="ai-list ai-list-pills" style="columns: 2; column-gap: 1rem;">
     `;
     analysis.topFoods.forEach((item, index) => {
@@ -8371,7 +8408,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     const nut = analysis.nutritionAnalysis;
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">🍽️ Food summary</h3>
+        <h3 class="ai-section-title ai-section-green">${svgIcon('food', 'ai-inline-icon', 'Food summary')} Food summary</h3>
         <div class="ai-exercise-visual"><span class="ai-exercise-days">${nut.daysWithFood} days</span> with food logged</div>
       </div>
     `;
@@ -8382,13 +8419,15 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   if (analysis.foodExerciseImpacts && analysis.foodExerciseImpacts.length > 0) {
     html += `
       <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title">🍽️ What seems to help</h3>
+        <h3 class="ai-section-title">${svgIcon('food', 'ai-inline-icon', 'Helpful patterns')} What seems to help</h3>
         <div class="ai-trends-grid">
     `;
     
     analysis.foodExerciseImpacts.slice(0, 6).forEach((impact, index) => {
       const impactColor = impact.isPositive ? '#e91e63' : '#ff9800';
-      const impactIcon = impact.isPositive ? '✅' : '⚠️';
+      const impactIcon = impact.isPositive
+        ? svgIcon('chart-up', 'ai-inline-icon icon-success', 'Positive')
+        : svgIcon('notice', 'ai-inline-icon icon-warning', 'Caution');
       let impactType = 'Nutrition';
       if (impact.type === 'food') impactType = 'When you log food';
       else if (impact.type === 'exercise') impactType = 'When you exercise';
@@ -8418,7 +8457,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   if (analysis.anomalies.length > 0) {
     html += `
       <div class="ai-summary-section ai-section-warning ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-orange" id="ai-heading-watch">⚠️ Things to watch</h3>
+        <h3 class="ai-section-title ai-section-orange" id="ai-heading-watch">${svgIcon('notice', 'ai-inline-icon icon-warning', 'Watch')} Things to watch</h3>
         <p class="ai-section-intro">Unusual patterns in your numbers. They are prompts to notice how you feel - not automatic diagnoses.</p>
         <ul class="ai-list ai-list-warning">
     `;
@@ -8433,7 +8472,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   // General management section - simplified
   html += `
     <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title ai-section-green">💡 Important</h3>
+      <h3 class="ai-section-title ai-section-green">${svgIcon('notice', 'ai-inline-icon', 'Important')} Important</h3>
       <p class="ai-disclaimer">For patterns only - talk to your doctor before changing care. You can share this at your next visit. AI data (e.g. prediction weights) is stored on your device and, when signed in, backed up to your cloud account.</p>
     </div>
   `;
@@ -12963,8 +13002,8 @@ function generateLogEntryHTML(log) {
   
   const safeDate = escapeHTML(log.date);
   const editButton = isEditing 
-    ? `<button class="edit-btn save-btn" onclick="event.stopPropagation(); saveInlineEdit('${safeDate}')" title="Save changes">💾</button>`
-    : `<button class="edit-btn" onclick="event.stopPropagation(); enableInlineEdit('${safeDate}')" title="Edit this entry">✏️</button>`;
+    ? `<button class="edit-btn save-btn" onclick="event.stopPropagation(); saveInlineEdit('${safeDate}')" title="Save changes">${svgIcon('save', 'ui-svg-icon', 'Save changes')}</button>`
+    : `<button class="edit-btn" onclick="event.stopPropagation(); enableInlineEdit('${safeDate}')" title="Edit this entry">${svgIcon('edit', 'ui-svg-icon', 'Edit this entry')}</button>`;
   
   return `
     <div class="log-entry-actions" onclick="if(!event.target.closest('button')) toggleLogEntry('${escapeHTML(log.date)}')">
@@ -12982,10 +13021,10 @@ function generateLogEntryHTML(log) {
         }
         <div class="header-badges">
           <button class="header-icon-btn food-btn" onclick="event.stopPropagation(); if(window.openFoodModal) window.openFoodModal('${escapeHTML(log.date)}')" title="Food Log ${foodCount > 0 ? `(${foodCount} items)` : ''}">
-            🍽️${foodCount > 0 ? `<span class="badge-count">${foodCount}</span>` : ''}
+            ${svgIcon('food', 'ui-svg-icon', 'Food log')}${foodCount > 0 ? `<span class="badge-count">${foodCount}</span>` : ''}
           </button>
           <button class="header-icon-btn exercise-btn" onclick="event.stopPropagation(); if(window.openExerciseModal) window.openExerciseModal('${escapeHTML(log.date)}')" title="Exercise Log ${exerciseCount > 0 ? `(${exerciseCount} items)` : ''}">
-            🏃${exerciseCount > 0 ? `<span class="badge-count">${exerciseCount}</span>` : ''}
+            ${svgIcon('chart-up', 'ui-svg-icon', 'Exercise log')}${exerciseCount > 0 ? `<span class="badge-count">${exerciseCount}</span>` : ''}
           </button>
           ${isEditing 
             ? `<select class="inline-edit-flare inline-edit-field inline-edit-field--flare" onclick="event.stopPropagation();">
@@ -13003,14 +13042,14 @@ function generateLogEntryHTML(log) {
       <div class="metric-group vital-signs">
         <h4 class="metric-group-title">Vital Signs</h4>
         <div class="metric-item">
-          <span class="metric-label">❤️ Heart Rate</span>
+          <span class="metric-label">${svgIcon('chart-up', 'metric-svg-icon', 'Heart rate')} Heart Rate</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-bpm inline-edit-field" value="${log.bpm}" min="30" max="120" /><span class="inline-edit-suffix">BPM</span></span>`
             : `<span class="metric-value">${log.bpm} BPM</span>`
           }
         </div>
         <div class="metric-item">
-          <span class="metric-label">⚖️ Weight</span>
+          <span class="metric-label">${svgIcon('balance', 'metric-svg-icon', 'Weight')} Weight</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-weight inline-edit-field" value="${weightDisplay}" min="40" max="200" step="0.1" /><span class="inline-edit-suffix">${weightUnit}</span></span>`
             : `<span class="metric-value">${weightDisplay}${weightUnit}</span>`
@@ -13020,35 +13059,35 @@ function generateLogEntryHTML(log) {
       <div class="metric-group symptoms">
         <h4 class="metric-group-title">Symptoms</h4>
         <div class="metric-item">
-          <span class="metric-label">😴 Fatigue</span>
+          <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Fatigue')} Fatigue</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-fatigue inline-edit-field" value="${log.fatigue}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.fatigue}/10</span>`
           }
         </div>
         <div class="metric-item">
-          <span class="metric-label">🔒 Stiffness</span>
+          <span class="metric-label">${svgIcon('lock', 'metric-svg-icon', 'Stiffness')} Stiffness</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-stiffness inline-edit-field" value="${log.stiffness}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.stiffness}/10</span>`
           }
         </div>
         <div class="metric-item">
-          <span class="metric-label">💢 Back Pain</span>
+          <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Back pain')} Back Pain</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-backPain inline-edit-field" value="${log.backPain}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.backPain}/10</span>`
           }
         </div>
         <div class="metric-item">
-          <span class="metric-label">🦴 Joint Pain</span>
+          <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Joint pain')} Joint Pain</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-jointPain inline-edit-field" value="${log.jointPain}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.jointPain}/10</span>`
           }
         </div>
         <div class="metric-item">
-          <span class="metric-label">💧 Swelling</span>
+          <span class="metric-label">${svgIcon('cloud', 'metric-svg-icon', 'Swelling')} Swelling</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-swelling inline-edit-field" value="${log.swelling}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.swelling}/10</span>`
@@ -13058,21 +13097,21 @@ function generateLogEntryHTML(log) {
       <div class="metric-group wellbeing">
         <h4 class="metric-group-title">Wellbeing</h4>
         <div class="metric-item">
-          <span class="metric-label">🌙 Sleep</span>
+          <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Sleep')} Sleep</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-sleep inline-edit-field" value="${log.sleep}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.sleep}/10</span>`
           }
         </div>
         <div class="metric-item">
-          <span class="metric-label">😊 Mood</span>
+          <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Mood')} Mood</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-mood inline-edit-field" value="${log.mood}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.mood}/10</span>`
           }
         </div>
         <div class="metric-item">
-          <span class="metric-label">😤 Irritability</span>
+          <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Irritability')} Irritability</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-irritability inline-edit-field" value="${log.irritability}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.irritability}/10</span>`
@@ -13082,14 +13121,14 @@ function generateLogEntryHTML(log) {
       <div class="metric-group function">
         <h4 class="metric-group-title">Function</h4>
         <div class="metric-item">
-          <span class="metric-label">🚶 Mobility</span>
+          <span class="metric-label">${svgIcon('chart-up', 'metric-svg-icon', 'Mobility')} Mobility</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-mobility inline-edit-field" value="${log.mobility}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.mobility}/10</span>`
           }
         </div>
         <div class="metric-item">
-          <span class="metric-label">📋 Daily Activities</span>
+          <span class="metric-label">${svgIcon('document', 'metric-svg-icon', 'Daily activities')} Daily Activities</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-dailyFunction inline-edit-field" value="${log.dailyFunction}" min="0" max="10" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.dailyFunction}/10</span>`
@@ -13097,16 +13136,16 @@ function generateLogEntryHTML(log) {
         </div>
       </div>
       <div class="metric-group energy-cognitive">
-        <h4 class="metric-group-title">⚡ Energy & Mental Clarity</h4>
+        <h4 class="metric-group-title">${svgIcon('zap', 'metric-svg-icon', 'Energy')} Energy & Mental Clarity</h4>
         <div class="metric-item">
-          <span class="metric-label">🧠 Energy/Clarity</span>
+          <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Energy clarity')} Energy/Clarity</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap"><input type="text" class="inline-edit-energyClarity inline-edit-field inline-edit-field--energy" value="${escapeHTML(log.energyClarity || '')}" maxlength="50" /></span>`
             : `<span class="metric-value">${log.energyClarity ? escapeHTML(log.energyClarity) : '-'}</span>`
           }
         </div>
         <div class="metric-item">
-          <span class="metric-label">🌤️ Weather Sensitivity</span>
+          <span class="metric-label">${svgIcon('cloud', 'metric-svg-icon', 'Weather sensitivity')} Weather Sensitivity</span>
           ${isEditing 
             ? `<span class="inline-edit-field-wrap inline-edit-field-wrap--compact"><input type="number" class="inline-edit-weatherSensitivity inline-edit-field" value="${log.weatherSensitivity || ''}" min="0" max="10" placeholder="-" /><span class="inline-edit-suffix">/10</span></span>`
             : `<span class="metric-value">${log.weatherSensitivity !== undefined && log.weatherSensitivity !== '' && log.weatherSensitivity != null ? log.weatherSensitivity + '/10' : '-'}</span>`
@@ -13115,16 +13154,16 @@ function generateLogEntryHTML(log) {
       </div>
       ${(log.steps || log.hydration) 
         ? `<div class="metric-group lifestyle-factors">
-          <h4 class="metric-group-title">🏃 Lifestyle Factors</h4>
+          <h4 class="metric-group-title">${svgIcon('chart-up', 'metric-svg-icon', 'Lifestyle')} Lifestyle Factors</h4>
           ${log.steps ? `<div class="metric-item">
-            <span class="metric-label">👣 Steps</span>
+            <span class="metric-label">${svgIcon('chart-up', 'metric-svg-icon', 'Steps')} Steps</span>
             ${isEditing 
               ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-steps inline-edit-field" value="${log.steps}" min="0" max="50000" /></span>`
               : `<span class="metric-value">${log.steps.toLocaleString()}</span>`
             }
           </div>` : ''}
           ${log.hydration ? `<div class="metric-item">
-            <span class="metric-label">💧 Hydration</span>
+            <span class="metric-label">${svgIcon('cloud', 'metric-svg-icon', 'Hydration')} Hydration</span>
             ${isEditing 
               ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-hydration inline-edit-field" value="${log.hydration}" min="0" max="20" step="0.5" /><span class="inline-edit-suffix">glasses</span></span>`
               : `<span class="metric-value">${log.hydration} glasses</span>`
@@ -13133,11 +13172,11 @@ function generateLogEntryHTML(log) {
         </div>` : ''
       }
       <div class="metric-group food-log">
-        <h4 class="metric-group-title">🍽️ Food Log</h4>
+        <h4 class="metric-group-title">${svgIcon('food', 'metric-svg-icon', 'Food log')} Food Log</h4>
         ${getAllFoodItems(log).length > 0 ? formatFoodLogForView(log) : `<div class="metric-item"><span class="metric-label">Items</span><span class="metric-value metric-value-muted">None logged</span></div>`}
       </div>
       <div class="metric-group exercise-log">
-        <h4 class="metric-group-title">🏃 Exercise Log</h4>
+        <h4 class="metric-group-title">${svgIcon('chart-up', 'metric-svg-icon', 'Exercise log')} Exercise Log</h4>
         <div class="metric-item">
           <span class="metric-label">Activities</span>
           ${(log.exercise && log.exercise.length > 0)
@@ -13147,20 +13186,20 @@ function generateLogEntryHTML(log) {
         </div>
       </div>
       <div class="metric-group stress-triggers">
-        <h4 class="metric-group-title">😰 Stress & Triggers</h4>
+        <h4 class="metric-group-title">${svgIcon('brain', 'metric-svg-icon', 'Stress')} Stress & Triggers</h4>
         <div class="metric-item">
-          <span class="metric-label">💥 Stressors</span>
+          <span class="metric-label">${svgIcon('notice', 'metric-svg-icon', 'Stressors')} Stressors</span>
           <span class="metric-value">${(log.stressors && log.stressors.length > 0) ? log.stressors.map(s => escapeHTML(s)).join(', ') : '-'}</span>
         </div>
       </div>
       <div class="metric-group additional-symptoms">
-        <h4 class="metric-group-title">💉 Additional Symptoms</h4>
+        <h4 class="metric-group-title">${svgIcon('notice', 'metric-svg-icon', 'Symptoms')} Additional Symptoms</h4>
         <div class="metric-item">
           <span class="metric-label">Symptoms</span>
           <span class="metric-value">${(log.symptoms && log.symptoms.length > 0) ? log.symptoms.map(s => escapeHTML(s)).join(', ') : '-'}</span>
         </div>
         <div class="metric-item">
-          <span class="metric-label">📍 Pain Location</span>
+          <span class="metric-label">${svgIcon('balance', 'metric-svg-icon', 'Pain location')} Pain Location</span>
           ${isEditing 
             ? `<input type="text" class="inline-edit-painLocation inline-edit-field inline-edit-field--pain" value="${escapeHTML(log.painLocation || '')}" maxlength="150" />`
             : `<span class="metric-value">${log.painLocation ? escapeHTML(log.painLocation) : '-'}</span>`
@@ -13168,7 +13207,7 @@ function generateLogEntryHTML(log) {
         </div>
       </div>
       <div class="metric-group medications-log">
-        <h4 class="metric-group-title">💊 Medication / Supplements</h4>
+        <h4 class="metric-group-title">${svgIcon('save', 'metric-svg-icon', 'Medication')} Medication / Supplements</h4>
         <div class="metric-item">
           <span class="metric-label">Items</span>
           ${(log.medications && log.medications.length > 0)
@@ -13179,8 +13218,8 @@ function generateLogEntryHTML(log) {
       </div>
       </div>
       ${isEditing 
-        ? `<div class="log-notes"><strong>📝 Note:</strong> <textarea class="inline-edit-notes inline-edit-field inline-edit-field--notes" onclick="event.stopPropagation();">${log.notes || ''}</textarea></div>`
-        : (log.notes ? `<div class="log-notes"><strong>📝 Note:</strong> ${escapeHTML(log.notes)}</div>` : '')
+        ? `<div class="log-notes"><strong>${svgIcon('edit', 'metric-svg-icon', 'Note')} Note:</strong> <textarea class="inline-edit-notes inline-edit-field inline-edit-field--notes" onclick="event.stopPropagation();">${log.notes || ''}</textarea></div>`
+        : (log.notes ? `<div class="log-notes"><strong>${svgIcon('edit', 'metric-svg-icon', 'Note')} Note:</strong> ${escapeHTML(log.notes)}</div>` : '')
       }
     </div>
   `;
@@ -14236,7 +14275,7 @@ async function chart(id, label, dataField, color) {
       const infoBox = document.createElement('div');
       infoBox.className = 'chart-info-box';
       infoBox.innerHTML = `
-        <div class="info-icon">ℹ️</div>
+        <div class="info-icon">${svgIcon('notice', 'ui-svg-icon', 'Information')}</div>
         <div class="info-content">
           <strong>Understanding Your Chart:</strong>
           <ul>
@@ -16436,22 +16475,22 @@ function ensureSettingsCarouselDots(panes) {
     dotsWrap.removeAttribute('data-carousel-icons');
     return;
   }
-  /* Rebuild when pane count changes or when migrating from Font Awesome <i> dots (glyphs work without jsDelivr CSS). */
-  if (dotsWrap.childElementCount === n && dotsWrap.getAttribute('data-carousel-icons') === 'glyph') return;
+  /* Rebuild when pane count changes or when migrating from emoji glyph dots. */
+  if (dotsWrap.childElementCount === n && dotsWrap.getAttribute('data-carousel-icons') === 'svg') return;
   dotsWrap.innerHTML = '';
-  dotsWrap.setAttribute('data-carousel-icons', 'glyph');
-  function settingsGlyphForTitle(title, idx) {
+  dotsWrap.setAttribute('data-carousel-icons', 'svg');
+  function settingsIconForTitle(title, idx) {
     var t = String(title || '').toLowerCase();
-    if (t.indexOf('personal') !== -1 || t.indexOf('cloud') !== -1) return '\uD83D\uDC64'; /* person */
-    if (t.indexOf('ai') !== -1 || t.indexOf('goal') !== -1) return '\uD83E\uDDE0'; /* brain */
-    if (t.indexOf('display') !== -1 || t.indexOf('reminder') !== -1) return '\uD83D\uDCCA'; /* bar chart */
-    if (t.indexOf('custom') !== -1 || t.indexOf('theme') !== -1) return '\uD83C\uDFA8'; /* palette */
-    if (t.indexOf('access') !== -1) return '\u267F'; /* wheelchair */
-    if (t.indexOf('data option') !== -1) return '\u2699\uFE0F'; /* gear */
-    if (t.indexOf('performance') !== -1) return '\u26A1'; /* lightning */
-    if (t.indexOf('install') !== -1) return '\uD83D\uDCF1'; /* mobile */
-    if (t.indexOf('data management') !== -1) return '\uD83D\uDCBE'; /* floppy */
-    return (idx % 2 === 0) ? '\u25CF' : '\u25CB'; /* filled / hollow circle */
+    if (t.indexOf('personal') !== -1 || t.indexOf('cloud') !== -1) return 'user';
+    if (t.indexOf('ai') !== -1 || t.indexOf('goal') !== -1) return 'brain';
+    if (t.indexOf('display') !== -1 || t.indexOf('reminder') !== -1) return 'chart-bars';
+    if (t.indexOf('custom') !== -1 || t.indexOf('theme') !== -1) return 'palette';
+    if (t.indexOf('access') !== -1) return 'accessibility';
+    if (t.indexOf('data option') !== -1) return 'save';
+    if (t.indexOf('performance') !== -1) return 'zap';
+    if (t.indexOf('install') !== -1) return 'save';
+    if (t.indexOf('data management') !== -1) return 'save';
+    return idx % 2 === 0 ? 'chart-bars' : 'document';
   }
   for (var i = 0; i < n; i++) {
     var dot = document.createElement('button');
@@ -16462,8 +16501,8 @@ function ensureSettingsCarouselDots(panes) {
     dot.setAttribute('title', paneTitle);
     dot.setAttribute('data-settings-target', String(i));
     dot.innerHTML =
-      '<span class="settings-carousel-dot__icon settings-carousel-dot__icon--glyph" aria-hidden="true">' +
-      settingsGlyphForTitle(paneTitle, i) +
+      '<span class="settings-carousel-dot__icon" aria-hidden="true">' +
+      svgIcon(settingsIconForTitle(paneTitle, i), 'ui-svg-icon') +
       '</span>';
     dot.addEventListener('click', function(e) {
       var idx = parseInt(e.currentTarget.getAttribute('data-settings-target') || '0', 10);
@@ -16906,7 +16945,7 @@ function selectExistingCondition() {
     const logCount = getAllHistoricalLogsSync().length;
     
     showConfirmModal(
-      `⚠️ WARNING: Changing your medical condition will DELETE ALL ${logCount} of your health log entries.\n\nThis action cannot be undone. Are you sure you want to continue?`,
+      `WARNING: Changing your medical condition will DELETE ALL ${logCount} of your health log entries.\n\nThis action cannot be undone. Are you sure you want to continue?`,
       'Confirm Condition Change',
       () => {
         // User confirmed - proceed with condition change
@@ -16968,7 +17007,7 @@ async function addNewCondition() {
     const logCount = getAllHistoricalLogsSync().length;
     
     showConfirmModal(
-      `⚠️ WARNING: Changing your medical condition will DELETE ALL ${logCount} of your health log entries.\n\nThis action cannot be undone. Are you sure you want to continue?`,
+      `WARNING: Changing your medical condition will DELETE ALL ${logCount} of your health log entries.\n\nThis action cannot be undone. Are you sure you want to continue?`,
       'Confirm Condition Change',
       () => {
         // User confirmed - proceed with condition change
@@ -17103,7 +17142,7 @@ function selectTutorialCondition() {
   if (currentCondition && currentCondition !== condition) {
     const logCount = getAllHistoricalLogsSync().length;
     showConfirmModal(
-      `⚠️ WARNING: Changing your medical condition will DELETE ALL ${logCount} of your health log entries.\n\nThis action cannot be undone. Are you sure you want to continue?`,
+      `WARNING: Changing your medical condition will DELETE ALL ${logCount} of your health log entries.\n\nThis action cannot be undone. Are you sure you want to continue?`,
       'Confirm Condition Change',
       () => {
         updateMedicalCondition(condition);
@@ -17146,7 +17185,7 @@ function addTutorialCondition() {
   if (currentCondition && currentCondition !== condition) {
     const logCount = getAllHistoricalLogsSync().length;
     showConfirmModal(
-      `⚠️ WARNING: Changing your medical condition will DELETE ALL ${logCount} of your health log entries.\n\nThis action cannot be undone. Are you sure you want to continue?`,
+      `WARNING: Changing your medical condition will DELETE ALL ${logCount} of your health log entries.\n\nThis action cannot be undone. Are you sure you want to continue?`,
       'Confirm Condition Change',
       () => {
         updateMedicalCondition(condition);
@@ -17896,7 +17935,7 @@ function toggleDemoMode() {
         box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
         text-align: center;
       `;
-      loadingMsg.textContent = '🔄 Generating demo data... This may take a moment.';
+      loadingMsg.textContent = 'Generating demo data... This may take a moment.';
       document.body.appendChild(loadingMsg);
       
       // Backup current data
