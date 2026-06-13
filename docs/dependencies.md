@@ -86,6 +86,7 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `expo` | ~55.0.8 |
 | `expo-av` | ^16.0.8 |
 | `expo-constants` | ~55.0.9 |
+| `expo-file-system` | ~55.0.22 |
 | `expo-haptics` | ~55.0.4 |
 | `expo-modules-autolinking` | ^55.0.11 |
 | `expo-print` | ~55.0.4 |
