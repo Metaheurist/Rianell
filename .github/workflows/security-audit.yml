@@ -6,8 +6,6 @@ name: Reusable security audits
 on:
   workflow_call:
   workflow_dispatch:
-  schedule:
-    - cron: '0 6 * * 1'
 
 permissions:
   contents: read
@@ -101,7 +99,7 @@ jobs:
           path: sbom.cdx.json
 
       - name: Snyk SCA (optional, SNYK_TOKEN)
-        if: env.SNYK_TOKEN != ''
+        if: ${{ secrets.SNYK_TOKEN != '' }}
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -119,19 +117,3 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pip-audit
           pip-audit -r requirements.txt --desc on --ignore-vuln CVE-2026-4539
-
-  gitleaks-history:
-    name: Gitleaks history scan (scheduled)
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - name: Gitleaks (git history, main)
-        run: |
-          set -euo pipefail
-          VERSION=8.28.0
-          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" | tar -xz
-          chmod +x gitleaks
-          ./gitleaks detect --source . --config .gitleaks.toml --verbose --redact || true

@@ -1,0 +1,42 @@
+# Weekly deep secret scan (git history). Separate from reusable security-audit.yml to avoid
+# mixing schedule triggers with workflow_call (and to keep CI graph simpler on push).
+name: Scheduled security scans
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks-history:
+    name: Gitleaks history scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Gitleaks (git history)
+        run: |
+          set -euo pipefail
+          VERSION=8.28.0
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" | tar -xz
+          chmod +x gitleaks
+          ./gitleaks detect --source . --config .gitleaks.toml --verbose --redact || true
+
+  npm-audit-dev:
+    name: npm audit (full tree, report only)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24.14.1"
+          cache: npm
+      - name: npm ci
+        run: npm ci
+      - name: npm audit (dev included)
+        continue-on-error: true
+        run: npm audit --audit-level=moderate
