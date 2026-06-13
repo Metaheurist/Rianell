@@ -99,11 +99,14 @@ jobs:
           path: sbom.cdx.json
 
       - name: Snyk SCA (optional, SNYK_TOKEN)
-        if: ${{ secrets.SNYK_TOKEN != '' }}
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
+          if [ -z "${SNYK_TOKEN:-}" ]; then
+            echo "SNYK_TOKEN not configured — skipping Snyk"
+            exit 0
+          fi
           npm install -g snyk
           snyk test --all-projects --severity-threshold=high || true
 
