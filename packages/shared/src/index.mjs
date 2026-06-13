@@ -185,6 +185,9 @@ export function normalizeLogEntry(value) {
   return omitEmpty(entry);
 }
 
+export * from './privacy/index.mjs';
+export * from './i18n/index.mjs';
+
 export function createSampleLogEntry() {
   return normalizeLogEntry({
     date: new Date().toISOString().slice(0, 10),

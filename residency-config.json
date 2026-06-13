@@ -1,0 +1,21 @@
+{
+  "version": "1",
+  "default": {
+    "label": "Default",
+    "regionLabel": "Operator default",
+    "supabaseUrl": "",
+    "anonKey": ""
+  },
+  "eu": {
+    "label": "EU",
+    "regionLabel": "Frankfurt",
+    "supabaseUrl": "",
+    "anonKey": ""
+  },
+  "us": {
+    "label": "US",
+    "regionLabel": "East",
+    "supabaseUrl": "",
+    "anonKey": ""
+  }
+}
