@@ -2,6 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
+**Latest: v1.53.2** - RN Metro locale-pack bundling fix.
+
+### v1.53.2 - 2026-06-13 - RN locale-pack bundling
+
+- **Metro / Expo export:** `I18nProvider` now requires catalogs from **`apps/rn-app/locale-packs/v1/`** (inside the RN project) instead of repo-root paths Metro cannot resolve.
+- **Sync script:** `scripts/sync-locale-packs-to-pwa.mjs` copies canonical **`locale-packs/v1/`** to both PWA and RN app trees; CI runs sync before **`expo export`**; **`npm run bundle:mobile:prod`** includes sync.
+
 **Latest: v1.53.1** - Privacy/settings UI fixes, CI benchmark + mobile typecheck.
 
 ### v1.53.1 - 2026-06-13 - Privacy/settings UI fixes and CI

@@ -12,19 +12,19 @@ import type { Preferences } from '../storage/preferences';
 type Catalog = { locale: string; label: string; strings: Record<string, string> };
 type CatalogMap = Record<string, Catalog>;
 
-// Bundled catalogs (Metro resolves JSON from repo root)
+// Bundled catalogs (Metro resolves JSON under apps/rn-app/locale-packs/v1/)
 const catalogModules: CatalogMap = {
-  'en-GB': require('../../../../locale-packs/v1/en-GB.json'),
-  'en-US': require('../../../../locale-packs/v1/en-US.json'),
-  'en-AU': require('../../../../locale-packs/v1/en-AU.json'),
-  'pt-BR': require('../../../../locale-packs/v1/pt-BR.json'),
-  'fr-FR': require('../../../../locale-packs/v1/fr-FR.json'),
-  'de-DE': require('../../../../locale-packs/v1/de-DE.json'),
-  'es-ES': require('../../../../locale-packs/v1/es-ES.json'),
-  'it-IT': require('../../../../locale-packs/v1/it-IT.json'),
-  'pl-PL': require('../../../../locale-packs/v1/pl-PL.json'),
-  'nl-NL': require('../../../../locale-packs/v1/nl-NL.json'),
-  'pt-PT': require('../../../../locale-packs/v1/pt-PT.json'),
+  'en-GB': require('../../locale-packs/v1/en-GB.json'),
+  'en-US': require('../../locale-packs/v1/en-US.json'),
+  'en-AU': require('../../locale-packs/v1/en-AU.json'),
+  'pt-BR': require('../../locale-packs/v1/pt-BR.json'),
+  'fr-FR': require('../../locale-packs/v1/fr-FR.json'),
+  'de-DE': require('../../locale-packs/v1/de-DE.json'),
+  'es-ES': require('../../locale-packs/v1/es-ES.json'),
+  'it-IT': require('../../locale-packs/v1/it-IT.json'),
+  'pl-PL': require('../../locale-packs/v1/pl-PL.json'),
+  'nl-NL': require('../../locale-packs/v1/nl-NL.json'),
+  'pt-PT': require('../../locale-packs/v1/pt-PT.json'),
 };
 
 type I18nContextValue = {
