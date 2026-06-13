@@ -10,3 +10,9 @@ test('bundle:mobile:prod uses apps/rn-app path', () => {
   assert.doesNotMatch(script, /apps\/mobile/);
 });
 
+test('dev script targets RN Expo, not Capacitor', () => {
+  const dev = String(pkg?.scripts?.dev || '');
+  assert.match(dev, /apps\/rn-app/);
+  assert.doesNotMatch(dev, /capacitor-app/);
+});
+

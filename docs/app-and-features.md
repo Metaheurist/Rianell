@@ -309,7 +309,7 @@ flowchart LR
 
 ### v1.45.25 documentation sync
 
-- **npm workspaces:** install from repository root with **`npm ci`** / **`npm install`**; a **single** **`package-lock.json`** applies to **`apps/capacitor-app`**, **`apps/rn-app`**, and **`packages/*`** (plus **`apps/pwa-webapp`** tooling via root scripts).
+- **npm workspaces:** install from repository root with **`npm ci`** / **`npm install`**; a **single** **`package-lock.json`** applies to **`apps/rn-app`**, **`packages/*`**, and **`benchmarks`** (plus **`apps/pwa-webapp`** tooling via root scripts).
 - **React Native shell:** bottom tab **labels** (Home, Logs, Charts, AI, Settings); Home **Log today** FAB uses tab-bar height + **Beta** badge; **Charts → Balance** includes a **Targets** snapshot (default 7/10; custom goals parity with web is planned). See **[CHANGELOG.md](CHANGELOG.md)** (v1.45.25).
 
 ### v1.45.3 documentation sync
@@ -431,10 +431,10 @@ flowchart LR
 
 | Channel | Meaning in this app | Where the build number comes from |
 |--------|---------------------|-----------------------------------|
-| **Beta** | Android debug APK, **Install web app** / Add to Home Screen (PWA), and **Install on this iPhone/iPad** (Safari PWA). | **Legacy Capacitor:** `App build/Android/latest.json` → `version` for the APK. The Settings UI shows `(build N)` after fetch. |
-| **Alpha** | **iOS native** artifact only: Xcode project zip (and optional one-tap install URL when `installUrl` is set in the manifest). Not the Safari “Add to Home Screen” flow. | **RN CLI (current):** `App build/iOS/latest.json` and **`App build/RNCLI-Android/latest.json`**. **`version`** is the **sequential RN CLI build** (increments each time CI produces native RN artifacts), **not** the global workflow run number. **Server** and **Web / PWA** rows in the README still use **`GITHUB_RUN_NUMBER`**. **Legacy Capacitor iOS** metadata lives under `App build/Legacy/Capacitor-iOS/`. |
+| **Beta** | Android debug APK, **Install web app** / Add to Home Screen (PWA), and **Install on this iPhone/iPad** (Safari PWA). | **RN CLI:** `App build/RNCLI-Android/latest.json` → `version` for the APK. The Settings UI shows `(build N)` after fetch. |
+| **Alpha** | **iOS native** artifact only: Xcode project zip (and optional one-tap install URL when `installUrl` is set in the manifest). Not the Safari “Add to Home Screen” flow. | **RN CLI:** `App build/iOS/latest.json` and **`App build/RNCLI-Android/latest.json`**. **`version`** is the **sequential RN CLI build** (increments each time CI produces native RN artifacts), **not** the global workflow run number. **Server** and **Web / PWA** rows in the README use **`GITHUB_RUN_NUMBER`**. |
 
-**Build numbers in this README:** The **CI builds** table is **updated automatically** when CI commits **`App build/`** and runs **`scripts/update-readme-build-info.mjs`**. **Legacy builds** reflect frozen Capacitor **`App build/Android/`** and **`App build/Legacy/Capacitor-iOS/`** metadata.
+**Build numbers in this README:** The **CI builds** table is **updated automatically** when CI commits **`App build/`** and runs **`scripts/update-readme-build-info.mjs`**.
 
 The web app reads these manifests at runtime (`apps/pwa-webapp/app.js`, `refreshBuildDownloadLinks`) so the label **(build N)** on install links stays in sync after each CI deploy. **Beta** / **Alpha** pills are fixed labels in the UI: every install/download path except the **iOS native zip/OTA** link is **Beta**; the **iOS native** download is **Alpha**.
 
@@ -464,6 +464,6 @@ The web app reads these manifests at runtime (`apps/pwa-webapp/app.js`, `refresh
 
 - **`apps/pwa-webapp/`** – Static PWA: HTML, CSS, JavaScript, icons, and assets (parity reference for the web UI). The server serves this directory at the root URL.
 - **`apps/rn-app/`** – React Native (Expo) app: native shell, tabs, **Log today** wizard (pain diagram aligned with web outline, energy tiles, etc.), Charts / AI Analysis, Settings (JSON data management + install links). See `npm run typecheck:mobile` and `npm run test:mobile` from the repo root.
-- **`apps/capacitor-app/`** – Legacy Vite + Capacitor shell (WebView); root scripts **`npm run dev`** / **`npm run build:android`** use this path.
+- **`apps/rn-app/`** – React Native (Expo) primary mobile app; root script **`npm run dev`** starts Expo.
 - **`server/`** – Python server package (main server logic in `main.py`, plus config, encryption, Supabase client, sample data, requirements checks). Run from repo root: **`python -m server`**, or on Windows **`server/launch-server.ps1`** (see [Running the Server](#running-the-server)).
 

@@ -2,6 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
+**Latest: v1.49.0** - Platform parity refactor: Capacitor sunset, shared packages, CI gates.
+
+### v1.49.0 - 2026-06-13 - Platform parity refactor (Capacitor sunset)
+
+- **Removed:** Legacy **`apps/capacitor-app/`** WebView shell, **`legacy-capacitor.yml`**, CI Capacitor build/release artifacts, and README Legacy Capacitor build table.
+- **CI (`.github/workflows/ci.yml`):** PWA-only minified prep; **`parity:web` / `android` / `ios`** + **`parity:inventory:check`** in **`unit-tests`**; benchmarks drop Capacitor target.
+- **Shared packages:** **`@rianell/ai-engine`**, **`@rianell/cloud-sync`**, **`@rianell/llm`**; extended **`@rianell/shared`** (`mergeHealthLogs`, goals/preferences keys). PWA vendor bundles **`vendor/rianell-shared.js`**, **`rianell-ai-engine.js`**.
+- **RN:** Full cloud sync (**`sync.ts`**: encrypted backup, anonymized sync, merge/delete); expanded **`preferences.ts`** (profile, anon, goals); Settings cloud actions; Home goals progress; chart mood forecast; backup/offline queue/print helpers; **`llmNative.ts`** consent path.
+- **Docs:** **`platform-parity.json` v2** (product features); **`parity-inventory.mjs`**; **`next-phase-development-plan.md`** roadmap; **`platform-parity.md`** CI section aligned.
+- **Cache:** **`sw.js`** → **`v2026-06-13-parity-refactor`**; **`app.js?v=35`**.
+
 **Latest: v1.48.2** - Supabase GraphQL schema exposure hardening (Security Advisor lints 0026/0027).
 
 ### v1.48.2 - 2026-06-13 - Supabase GraphQL schema exposure hardening

@@ -2,25 +2,27 @@
 # Rianell - unified GitHub Actions (main CI)
 # =============================================================================
 # Security audits: reusable `.github/workflows/security-audit.yml` (job below; not duplicated as its own workflow).
-# Legacy Capacitor Android/iOS: `.github/workflows/legacy-capacitor.yml` (disabled).
 #
 # Sections (jobs appear in dependency order):
 #   1. paths-filter      - Push only: whether to run mobile build/release (skip if
 #                          the only changed paths are under App build/, so bot
 #                          commits do not rebuild APKs or duplicate releases).
-#   2. unit-tests        - `npm run test:unit` (web UI wiring, ci.yml guards, Expo Async Storage plugin).
-#   2b. benchmarks-web   - Lighthouse + Playwright on minified site + Capacitor dist (parallel to unit-tests).
+#   2. unit-tests        - `npm run test:unit` + platform parity (web/android/ios) + inventory
+#   2b. benchmarks-web   - Lighthouse + Playwright on minified PWA site (parallel to unit-tests).
 #   2c. benchmarks-expo  - Hermes bundle stats after `expo export` (downloads expo-bundles artifact).
 #   2d. commit-benchmarks — push to main/master: merge benchmark Markdown and commit `benchmarks/`.
 #   2e. commit-dependencies-doc — push to main/master: regenerate `docs/dependencies.md` from manifests if drifted.
+#   2f. platform-parity  - Static parity hooks + inventory on every PR/push (web + RN).
 #   3. expo-bundle-prod  - Expo React Native: production JS bundles for Android + iOS
 #                          (`expo export` → Hermes .hbc per platform).
 #   4. server-exe        - Build Windows server EXE artifacts (x64 + x86) with PyInstaller.
 #   5. commit-app-build  - Push + mobile: commit App build/ to the branch.
-#   6. publish-release   - Push + mobile: GitHub Release with Expo + Server assets.
+#   6. publish-release   - Push + mobile: GitHub Release with Expo + RNCLI + Server assets.
 #   7. deploy-pages      - Push to main/master: site from apps/pwa-webapp/ + App build/.
-#   8. readme-build-info - After deploy (web-only runs): README CI + legacy build tables.
+#   8. readme-build-info - After deploy (web-only runs): README CI build tables.
 #   9. security-headers-report - After README job: securityheaders.com → security/*.md (avoids parallel bot pushes).
+#
+# Platforms: Web/PWA + React Native (Expo + RNCLI) only.
 # =============================================================================
 
 name: CI
@@ -123,21 +125,14 @@ jobs:
       - name: Install root dependencies
         run: npm ci
 
-      - name: Build minified legacy bundle (temp)
+      - name: Build PWA vendor bundles + minified web (temp)
         run: npm run build:web:apk
-
-      - name: Work around npm optional-deps bug for Rollup (Linux)
-        run: npm install --no-save @rollup/rollup-linux-x64-gnu
-
-      - name: Build minified React shell (temp)
-        run: npm run build:react
 
       - name: Prepare minified temp directories
         run: |
           rm -rf "ci-minified"
           mkdir -p "ci-minified"
           cp -r "apps/pwa-webapp/.android-dist" "ci-minified/web-android-dist"
-          cp -r "apps/capacitor-app/dist" "ci-minified/react-dist"
 
           mkdir -p "ci-minified/site"
           cp -r apps/pwa-webapp/* "ci-minified/site/"
@@ -157,8 +152,8 @@ jobs:
             if (!fs.existsSync(root + '/' + m.mainJs)) throw new Error(label + ': missing ' + m.mainJs);
           }
           assertBundle('ci-minified/web-android-dist', 'web-android-dist');
-          assertBundle('ci-minified/react-dist/legacy', 'react legacy');
           assertBundle('ci-minified/site', 'site');
+          if (!fs.existsSync('ci-minified/site/vendor/rianell-shared.js')) throw new Error('missing vendor/rianell-shared.js');
           "
 
       - name: Upload minified temp artifact
@@ -190,6 +185,13 @@ jobs:
       - name: Run app unit tests
         run: npm run test:unit
 
+      - name: Platform parity checks
+        run: |
+          npm run parity:web
+          npm run parity:android
+          npm run parity:ios
+          npm run parity:inventory:check
+
       - name: Verify docs/dependencies.md matches manifests (pull requests only)
         if: github.event_name == 'pull_request'
         run: |
@@ -201,7 +203,7 @@ jobs:
   # Non-blocking for downstream jobs; commit-benchmarks pushes reports on main/master only.
   # ---------------------------------------------------------------------------
   benchmarks-web:
-    name: Benchmarks (web / PWA / Capacitor)
+    name: Benchmarks (web / PWA)
     needs: [paths-filter, prepare-minified-assets]
     if: |
       github.event_name == 'pull_request' ||
@@ -233,7 +235,6 @@ jobs:
         env:
           BENCHMARK_REPO_ROOT: ${{ github.workspace }}
           BENCHMARK_PWA_ROOT: ${{ github.workspace }}/ci-minified/site
-          BENCHMARK_CAP_ROOT: ${{ github.workspace }}/ci-minified/react-dist
           BENCHMARK_SKIP_README: "1"
         run: node benchmarks/scripts/run-web-benchmarks.mjs
 
@@ -247,7 +248,6 @@ jobs:
           path: |
             benchmarks/web-pwa
             benchmarks/github-pages
-            benchmarks/capacitor-web
 
   # ---------------------------------------------------------------------------
   # Expo production bundle (minified JS) gate
@@ -826,7 +826,7 @@ jobs:
         run: |
           set -e
           RUN="${{ github.run_number }}"
-          mkdir -p release-assets/Expo release-assets/RNCLI/Android release-assets/RNCLI/iOS release-assets/Legacy release-assets/Server release-assets/Meta
+          mkdir -p release-assets/Expo release-assets/RNCLI/Android release-assets/RNCLI/iOS release-assets/Server release-assets/Meta
 
           # Expo bundles (minified production JS for iOS + Android)
           cd gh-release/Expo
@@ -839,22 +839,6 @@ jobs:
           fi
           if [ -d "gh-release/RNCLI-iOS" ]; then
             cp -v "gh-release/RNCLI-iOS/"* "release-assets/RNCLI/iOS/" || true
-          fi
-
-          # Legacy (Capacitor) artifacts are not rebuilt; copy with explicit legacy-capacitor names.
-          if [ -d "App build/Android" ]; then
-            for f in "App build/Android/"*; do
-              [ -f "$f" ] || continue
-              base="$(basename "$f")"
-              cp -v "$f" "release-assets/Legacy/legacy-capacitor-android-${base}"
-            done
-          fi
-          if [ -d "App build/Legacy/Capacitor-iOS" ]; then
-            for f in "App build/Legacy/Capacitor-iOS/"*; do
-              [ -f "$f" ] || continue
-              base="$(basename "$f")"
-              cp -v "$f" "release-assets/Legacy/legacy-capacitor-ios-${base}"
-            done
           fi
 
           cp "gh-release/Server/server-exe-x64/rianell-server-x64.exe" "release-assets/Server/"
@@ -890,11 +874,6 @@ jobs:
             - `Android/` (APK + metadata)
             - `iOS/` (iOS emulator Xcode project zip + metadata)
 
-            ### Legacy Capacitor (metadata artifacts)
-            Directory: `release-assets/Legacy/`
-            - Files are published as `legacy-capacitor-android-*` and `legacy-capacitor-ios-*`
-            - Source paths remain checked-in metadata from `App build/Android/` and `App build/Legacy/Capacitor-iOS/` (legacy builds are no longer rebuilt in CI)
-
             ### Server (Windows EXE)
             Directory: `release-assets/Server/`
             - `rianell-server-x64.exe`
@@ -914,7 +893,6 @@ jobs:
           files: |
             release-assets/Expo/*
             release-assets/RNCLI/**/*
-            release-assets/Legacy/**/*
             release-assets/Server/*
             release-assets/Meta/*
         env:

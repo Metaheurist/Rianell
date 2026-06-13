@@ -4,12 +4,25 @@ const KEY = 'rianell.preferences.v1';
 
 export type AppearanceMode = 'system' | 'light' | 'dark';
 export type PreferredLlmModelSize = 'recommended' | 'tier1' | 'tier2' | 'tier3' | 'tier4' | 'tier5';
+export type WeightUnit = 'kg' | 'lb';
+export type AiModelDownloadConsent = 'granted' | 'deferred';
 
 export type Preferences = {
   team: string;
   appearanceMode: AppearanceMode;
   aiEnabled: boolean;
   demoMode: boolean;
+  userName: string;
+  medicalCondition: string;
+  weightUnit: WeightUnit;
+  contributeAnonData: boolean;
+  useOpenData: boolean;
+  backup: boolean;
+  compress: boolean;
+  animations: boolean;
+  lazyCharts: boolean;
+  lazy: boolean;
+  aiModelDownloadConsent: AiModelDownloadConsent;
   notifications: {
     enabled: boolean;
     dailyReminderTime: string;
@@ -20,6 +33,10 @@ export type Preferences = {
     moodTarget: number;
     sleepTarget: number;
     fatigueTarget: number;
+    steps: number;
+    hydration: number;
+    sleepScore: number;
+    goodDaysPerWeek: number;
   };
   performance: {
     preferredLlmModelSize: PreferredLlmModelSize;
@@ -39,6 +56,17 @@ export function getDefaultPreferences(): Preferences {
     appearanceMode: 'system',
     aiEnabled: true,
     demoMode: false,
+    userName: '',
+    medicalCondition: '',
+    weightUnit: 'kg',
+    contributeAnonData: false,
+    useOpenData: false,
+    backup: true,
+    compress: false,
+    animations: true,
+    lazyCharts: true,
+    lazy: true,
+    aiModelDownloadConsent: 'deferred',
     notifications: {
       enabled: false,
       dailyReminderTime: '20:00',
@@ -49,6 +77,10 @@ export function getDefaultPreferences(): Preferences {
       moodTarget: 7,
       sleepTarget: 7,
       fatigueTarget: 7,
+      steps: 10000,
+      hydration: 9,
+      sleepScore: 5,
+      goodDaysPerWeek: 3,
     },
     performance: {
       preferredLlmModelSize: 'recommended',
@@ -80,6 +112,18 @@ export async function loadPreferences(): Promise<Preferences> {
       appearanceMode,
       aiEnabled: parsed.aiEnabled !== false,
       demoMode: parsed.demoMode === true,
+      userName: typeof parsed.userName === 'string' ? parsed.userName : d.userName,
+      medicalCondition: typeof parsed.medicalCondition === 'string' ? parsed.medicalCondition : d.medicalCondition,
+      weightUnit: parsed.weightUnit === 'lb' ? 'lb' : d.weightUnit,
+      contributeAnonData: parsed.contributeAnonData === true,
+      useOpenData: parsed.useOpenData === true,
+      backup: parsed.backup !== false,
+      compress: parsed.compress === true,
+      animations: parsed.animations !== false,
+      lazyCharts: parsed.lazyCharts !== false,
+      lazy: parsed.lazy !== false && parsed.lazyCharts !== false,
+      aiModelDownloadConsent:
+        parsed.aiModelDownloadConsent === 'granted' ? 'granted' : d.aiModelDownloadConsent,
       notifications: {
         enabled: parsed.notifications?.enabled === true,
         dailyReminderTime:
@@ -103,6 +147,18 @@ export async function loadPreferences(): Promise<Preferences> {
         fatigueTarget: Number.isFinite(parsed.goals?.fatigueTarget)
           ? Math.min(10, Math.max(0, Number(parsed.goals?.fatigueTarget)))
           : d.goals.fatigueTarget,
+        steps: Number.isFinite(parsed.goals?.steps)
+          ? Math.min(100000, Math.max(0, Number(parsed.goals?.steps)))
+          : d.goals.steps,
+        hydration: Number.isFinite(parsed.goals?.hydration)
+          ? Math.min(30, Math.max(0, Number(parsed.goals?.hydration)))
+          : d.goals.hydration,
+        sleepScore: Number.isFinite(parsed.goals?.sleepScore)
+          ? Math.min(10, Math.max(0, Number(parsed.goals?.sleepScore)))
+          : d.goals.sleepScore,
+        goodDaysPerWeek: Number.isFinite(parsed.goals?.goodDaysPerWeek)
+          ? Math.min(7, Math.max(0, Number(parsed.goals?.goodDaysPerWeek)))
+          : d.goals.goodDaysPerWeek,
       },
       performance: {
         preferredLlmModelSize:

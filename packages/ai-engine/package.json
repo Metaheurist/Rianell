@@ -1,0 +1,13 @@
+{
+  "name": "@rianell/ai-engine",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.mjs",
+  "exports": {
+    ".": {
+      "import": "./src/index.mjs",
+      "require": "./src/index.cjs"
+    }
+  }
+}

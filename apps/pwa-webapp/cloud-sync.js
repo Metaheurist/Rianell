@@ -1610,6 +1610,9 @@ async function syncToCloud() {
 
 // Merge health logs from local and cloud, removing duplicates by date
 function mergeHealthLogs(localLogs, cloudLogs) {
+  if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.mergeHealthLogs === 'function') {
+    return window.RianellShared.mergeHealthLogs(localLogs, cloudLogs);
+  }
   const logsMap = new Map();
   
   // Add cloud logs first

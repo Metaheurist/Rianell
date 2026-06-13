@@ -18,6 +18,7 @@ import {
   filterLogsByRange,
   replaceLogEntryByDate,
   sortLogsByDate,
+  type LogCustomRange,
   type LogRangePreset,
   type LogSortOrder,
 } from '../logs/logsViewHelpers';
@@ -28,6 +29,7 @@ import {
   migrateLegacyLogsIfNeeded,
   type LogEntry,
 } from '../storage/logs';
+import { printOrShareLogs } from '../utils/printLogs';
 
 const RANGE_PRESETS: { key: LogRangePreset; label: string; a11y: string }[] = [
   { key: 'today', label: 'Today', a11y: 'Date range, today' },
@@ -35,6 +37,7 @@ const RANGE_PRESETS: { key: LogRangePreset; label: string; a11y: string }[] = [
   { key: 30, label: '30d', a11y: 'Date range, last 30 days' },
   { key: 90, label: '90d', a11y: 'Date range, last 90 days' },
   { key: 'all', label: 'All', a11y: 'Date range, all entries' },
+  { key: 'custom', label: 'Custom', a11y: 'Date range, custom start and end dates' },
 ];
 
 // Approximate fixed row height used by FlatList virtualization hints.
@@ -84,6 +87,8 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [range, setRange] = useState<LogRangePreset>(30);
+  const [customRange, setCustomRange] = useState<LogCustomRange>({ start: '', end: '' });
+  const [printBusy, setPrintBusy] = useState(false);
   const [sortOrder, setSortOrder] = useState<LogSortOrder>('newest');
   const [search, setSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -106,7 +111,10 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
       .catch(() => setLogs([]));
   }, [reloadKey, load]);
 
-  const rangeFiltered = useMemo(() => filterLogsByRange(logs, range), [logs, range]);
+  const rangeFiltered = useMemo(
+    () => filterLogsByRange(logs, range, range === 'custom' ? customRange : undefined),
+    [logs, range, customRange]
+  );
 
   const displayed = useMemo(() => {
     const sorted = sortLogsByDate(rangeFiltered, sortOrder);
@@ -283,7 +291,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
       <View style={styles.card}>
         <Text style={[styles.title, { color: accent, fontSize: theme.font(22) }]}>View Logs</Text>
         <Text style={[styles.lead, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-          Filter by date range and sort (same shortcuts as web: Today / 7 / 30 / 90 / All).
+          Filter by date range and sort (Today / 7 / 30 / 90 / All / Custom — web parity).
         </Text>
 
         <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
@@ -306,6 +314,44 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
             );
           })}
         </ScrollView>
+
+        {range === 'custom' ? (
+          <View style={styles.customRangeRow}>
+            <TextInput
+              value={customRange.start}
+              onChangeText={(start) => setCustomRange((prev) => ({ ...prev, start }))}
+              placeholder="Start YYYY-MM-DD"
+              placeholderTextColor={`${theme.tokens.color.text}88`}
+              accessibilityLabel="Custom range start date"
+              style={[styles.customRangeInput, { color: theme.tokens.color.text, borderColor: accent }]}
+            />
+            <TextInput
+              value={customRange.end}
+              onChangeText={(end) => setCustomRange((prev) => ({ ...prev, end }))}
+              placeholder="End YYYY-MM-DD"
+              placeholderTextColor={`${theme.tokens.color.text}88`}
+              accessibilityLabel="Custom range end date"
+              style={[styles.customRangeInput, { color: theme.tokens.color.text, borderColor: accent }]}
+            />
+          </View>
+        ) : null}
+
+        <Pressable
+          style={[styles.printBtn, { borderColor: accent, opacity: printBusy ? 0.6 : 1 }]}
+          onPress={() => {
+            setPrintBusy(true);
+            printOrShareLogs(displayed)
+              .catch(() => Alert.alert('Print', 'Could not create or share the log PDF.'))
+              .finally(() => setPrintBusy(false));
+          }}
+          disabled={printBusy || !displayed.length}
+          accessibilityRole="button"
+          accessibilityLabel="Print or share filtered logs as PDF"
+        >
+          <Text style={[styles.printBtnText, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+            {printBusy ? 'Preparing PDF…' : 'Print / share PDF'}
+          </Text>
+        </Pressable>
 
         <View style={styles.sortRow}>
           <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
@@ -556,6 +602,23 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   chipLabel: { fontWeight: '600' },
+  customRangeRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  customRangeInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  printBtn: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+  },
+  printBtnText: { fontWeight: '600' },
   sortRow: { marginBottom: 10 },
   sortBtns: { flexDirection: 'row' },
   sortChip: { marginRight: 8 },

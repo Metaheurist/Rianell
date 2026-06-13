@@ -37,6 +37,84 @@ export function normalizeAccessibilitySettings(value) {
 
 export const LOGS_STORAGE_KEY_V1 = 'healthLogs';
 export const LOGS_STORAGE_KEY_MOBILE_LEGACY = 'rianell.logs.v1';
+export const SETTINGS_STORAGE_KEY = 'rianellSettings';
+export const GOALS_STORAGE_KEY = 'rianellGoals';
+export const PREDICTION_STATE_KEY = 'rianellPredictionState';
+export const PREFS_STORAGE_KEY_MOBILE = 'rianell.preferences.v1';
+export const LOGS_BACKUP_KEY = 'healthLogs_backup';
+export const OFFLINE_QUEUE_KEY = 'healthLogsOfflineQueue';
+
+export const DEFAULT_GOALS = {
+  steps: 10000,
+  hydration: 9,
+  sleep: 5,
+  goodDaysPerWeek: 3,
+};
+
+export function normalizeGoals(value) {
+  const d = DEFAULT_GOALS;
+  const v = value && typeof value === 'object' ? value : {};
+  return {
+    steps: clampInt(v.steps, 0, 100000) ?? d.steps,
+    hydration: clampInt(v.hydration, 0, 30) ?? d.hydration,
+    sleep: clampInt(v.sleep, 0, 10) ?? d.sleep,
+    goodDaysPerWeek: clampInt(v.goodDaysPerWeek, 0, 7) ?? d.goodDaysPerWeek,
+  };
+}
+
+export function getDefaultAppSettingsFields() {
+  return {
+    userName: '',
+    weightUnit: 'kg',
+    medicalCondition: '',
+    contributeAnonData: false,
+    useOpenData: false,
+    backup: true,
+    compress: false,
+    animations: true,
+    lazy: true,
+    aiModelDownloadConsent: 'deferred',
+  };
+}
+
+export function normalizePreferencesPartial(value) {
+  const d = getDefaultAppSettingsFields();
+  const v = value && typeof value === 'object' ? value : {};
+  const weightUnit = v.weightUnit === 'lb' ? 'lb' : 'kg';
+  const consent = v.aiModelDownloadConsent;
+  return {
+    userName: typeof v.userName === 'string' ? v.userName.slice(0, 120) : d.userName,
+    weightUnit,
+    medicalCondition: typeof v.medicalCondition === 'string' ? v.medicalCondition.slice(0, 200) : d.medicalCondition,
+    contributeAnonData: v.contributeAnonData === true,
+    useOpenData: v.useOpenData === true,
+    backup: v.backup !== false,
+    compress: v.compress === true,
+    animations: v.animations !== false,
+    lazy: v.lazy !== false,
+    lazyCharts: v.lazyCharts !== false,
+    aiModelDownloadConsent:
+      consent === 'granted' || consent === 'deferred' ? consent : d.aiModelDownloadConsent,
+  };
+}
+
+/** Merge health logs by date; local entries override cloud for the same date. */
+export function mergeHealthLogs(localLogs, cloudLogs) {
+  const logsMap = new Map();
+  if (Array.isArray(cloudLogs)) {
+    cloudLogs.forEach((log) => {
+      if (log && log.date) logsMap.set(log.date, log);
+    });
+  }
+  if (Array.isArray(localLogs)) {
+    localLogs.forEach((log) => {
+      if (log && log.date) logsMap.set(log.date, log);
+    });
+  }
+  const merged = Array.from(logsMap.values());
+  merged.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  return merged;
+}
 
 function clampInt(raw, min, max) {
   const n = typeof raw === 'number' ? raw : (typeof raw === 'string' ? parseInt(raw, 10) : NaN);
