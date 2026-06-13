@@ -4,7 +4,7 @@
 
 - **`supabase-config.js`** in git uses **placeholders only**; GitHub Actions injects `SUPABASE_URL` / `SUPABASE_ANON_KEY` on Pages deploy.
 - **`verify-no-service-role-in-clients.mjs`** fails CI if tracked client files contain `sb_secret_*`, Postgres URLs with passwords, or hardcoded publishable keys.
-- **LLM upload** uses **`SUPABASE_SERVICE_KEY`** from **`security/.env`** only — never commit service role or ONNX weight files (`apps/pwa-webapp/models/**/onnx*` gitignored).
+- **LLM upload** uses **`SUPABASE_SERVICE_KEY`** from **`security/.env`** only — never commit service role or ONNX weight files. **`verify-no-model-weights-in-git`** CI gate allows only **`manifest.json`** + **`README.md`** under **`apps/pwa-webapp/models/`**; weights live on Supabase Storage (chunked).
 
 This document describes how **Rianell** (this health app) handles health-related data across surfaces, operational defaults, and where to configure controls. It complements OWASP-style practice (see [OWASP Top 10:2025](https://owasp.org/Top10/2025/)).
 

@@ -145,6 +145,7 @@ jobs:
 
           mkdir -p "ci-minified/site"
           cp -r apps/pwa-webapp/* "ci-minified/site/"
+          rm -rf "ci-minified/site/models/onnx-community" "ci-minified/site/models/checksums.json" 2>/dev/null || true
           if [ -d "App build" ]; then
             mkdir -p "ci-minified/site/App build"
             cp -r "App build/"* "ci-minified/site/App build/" 2>/dev/null || true
@@ -221,6 +222,7 @@ jobs:
           node scripts/verify-supabase-schema-parity.mjs
           node scripts/verify-csp-connect-src.mjs
           node scripts/verify-no-service-role-in-clients.mjs
+          node scripts/verify-no-model-weights-in-git.mjs
 
   # ---------------------------------------------------------------------------
   # Benchmarks — web (parallel with unit-tests; needs minified site + Capacitor dist)

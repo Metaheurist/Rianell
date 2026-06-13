@@ -132,7 +132,8 @@ async function main() {
   const checksumPath = path.join(MODELS_ROOT, 'checksums.json');
   fs.writeFileSync(checksumPath, `${JSON.stringify({ generatedAt: new Date().toISOString(), models: checksums }, null, 2)}\n`);
   console.log(`\n[models] Done. Wrote ${path.relative(ROOT, checksumPath)}`);
-  console.log('[models] Commit with Git LFS: git add apps/pwa-webapp/models .gitattributes');
+  console.log('[models] Upload to Supabase: npm run models:upload:supabase -- --purge-local');
+  console.log('[models] Do not commit weight files — only manifest.json is tracked in git.');
 }
 
 main().catch((err) => {
