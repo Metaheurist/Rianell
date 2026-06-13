@@ -11,6 +11,8 @@
   var summaryResultCache = null;
   var suggestResultCache = null;
   var downloadProgressState = { pct: 0, status: 'idle', file: '', active: false };
+  var downloadCancelled = false;
+  var lastDownloadError = null;
   var MAX_SUMMARY_CACHE = 8;
   var MAX_SUGGEST_CACHE = 5;
   var MAX_CONTEXT_CHARS = 720;
@@ -100,6 +102,119 @@
     return getDownloadConsent() !== 'granted';
   }
 
+  var selfHostedProbeCache = {};
+
+  /** GitHub Pages project sites live at /RepoName/ — include that in model URLs. */
+  function getAppOriginBase() {
+    if (typeof window === 'undefined' || !window.location) return '/';
+    var origin = window.location.origin || '';
+    var pathname = window.location.pathname || '/';
+    var base = '';
+    if (origin.indexOf('.github.io') !== -1) {
+      var parts = pathname.split('/').filter(Boolean);
+      if (parts.length > 0 && parts[0].indexOf('.') === -1) {
+        base = '/' + parts[0];
+      }
+    }
+    return origin + base + '/';
+  }
+
+  function getSupabaseModelsConfig() {
+    var cfg = typeof window !== 'undefined' && window.SUPABASE_CONFIG;
+    if (!cfg || !cfg.url || String(cfg.url).indexOf('YOUR_PROJECT') !== -1) return null;
+    return {
+      supabaseUrl: cfg.url,
+      modelsStorageBucket: cfg.modelsStorageBucket || 'llm-models'
+    };
+  }
+
+  function buildSupabaseModelsPublicBase(supabaseUrl, bucket) {
+    var url = String(supabaseUrl || '').replace(/\/$/, '');
+    var b = String(bucket || '').trim();
+    if (!url || !b) return '';
+    return url + '/storage/v1/object/public/' + b + '/';
+  }
+
+  function applyTransformersRemote(mod, remoteHost, remotePathTemplate) {
+    if (!mod || !mod.env) return;
+    mod.env.remoteHost = remoteHost;
+    mod.env.remotePathTemplate = remotePathTemplate;
+  }
+
+  async function probeModelsHost(baseUrl, modelId) {
+    if (!baseUrl) return false;
+    var url = String(baseUrl).replace(/\/?$/, '/') + 'models/' + modelId + '/resolve/main/config.json';
+    try {
+      var res = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
+      return !!(res && res.ok);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function resolveModelsRemote(mod, modelId) {
+    var pathTemplate = 'models/{model}/resolve/{revision}/';
+    var sb = getSupabaseModelsConfig();
+    if (sb) {
+      var sbBase = buildSupabaseModelsPublicBase(sb.supabaseUrl, sb.modelsStorageBucket);
+      if (sbBase && await probeModelsHost(sbBase, modelId)) {
+        applyTransformersRemote(mod, sbBase, pathTemplate);
+        return 'supabase';
+      }
+    }
+    var originBase = getAppOriginBase();
+    if (await probeModelsHost(originBase, modelId)) {
+      applyTransformersRemote(mod, originBase, pathTemplate);
+      return 'app-origin';
+    }
+    applyTransformersRemote(mod, 'https://huggingface.co/', '{model}/resolve/{revision}/');
+    return 'huggingface';
+  }
+
+  function loadScriptOnce(src) {
+    return new Promise(function (resolve, reject) {
+      if (typeof document === 'undefined') {
+        resolve();
+        return;
+      }
+      var existing = document.querySelector('script[data-rianell-src="' + src + '"]');
+      if (existing) {
+        if (existing.getAttribute('data-loaded') === '1') resolve();
+        else existing.addEventListener('load', function () { resolve(); });
+        return;
+      }
+      var s = document.createElement('script');
+      s.src = src;
+      s.async = true;
+      s.setAttribute('data-rianell-src', src);
+      s.onload = function () {
+        s.setAttribute('data-loaded', '1');
+        resolve();
+      };
+      s.onerror = function () { reject(new Error('Failed to load ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+
+  async function ensureChunkedModelArtifacts(remoteBase, modelId, mod) {
+    if (!window.RianellModelChunkLoader) {
+      if (typeof window.PerformanceUtils !== 'undefined' && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
+        await window.PerformanceUtils.lazyLoadScript('model-chunk-loader.js');
+      } else {
+        await loadScriptOnce('model-chunk-loader.js');
+      }
+    }
+    if (!window.RianellModelChunkLoader) return;
+    await window.RianellModelChunkLoader.preloadChunkedModelFiles(remoteBase, modelId, function (p) {
+      reportDownloadProgress({
+        status: 'progress',
+        file: (p.file || '') + ' (part ' + p.chunk + '/' + p.chunks + ')',
+        progress: p.chunks ? p.chunk / p.chunks : 0
+      });
+    });
+    window.RianellModelChunkLoader.installModelFetchShim(mod);
+  }
+
   function reportDownloadProgress(data) {
     if (!data) return;
     var pct = downloadProgressState.pct;
@@ -187,9 +302,10 @@
 
   async function ensurePipelineLoaded(options) {
     options = options || {};
+    if (downloadCancelled) throw new Error('AI model download deferred');
     if (!options.skipConsent && needsDownloadConsent()) {
       var ok = await ensureDownloadConsent();
-      if (!ok) throw new Error('AI model download deferred');
+      if (!ok || downloadCancelled) throw new Error('AI model download deferred');
     }
 
     var modelId = getResolvedModelId();
@@ -198,9 +314,16 @@
     cachedModelId = null;
 
     downloadProgressState.active = true;
+    downloadCancelled = false;
+    lastDownloadError = null;
     reportDownloadProgress({ status: 'initiate', progress: 0, file: modelId });
 
     var mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.2');
+    await resolveModelsRemote(mod, modelId);
+    var remoteHost = mod.env && mod.env.remoteHost;
+    if (remoteHost && typeof window !== 'undefined') {
+      await ensureChunkedModelArtifacts(remoteHost, modelId, mod);
+    }
     var device = getPreferredDevice();
     var pipelineOpts = { revision: 'main' };
     if (device) pipelineOpts.device = device;
@@ -212,6 +335,7 @@
     try {
       cachedPipeline = await loadPipeline(pipelineOpts);
       cachedModelId = modelId;
+      lastDownloadError = null;
       finishDownloadProgress();
       await requestPersistentStorageIfPossible();
       return cachedPipeline;
@@ -224,6 +348,7 @@
         delete cpuOpts.device;
         cachedPipeline = await runChatGenerationPipeline(mod, modelId, cpuOpts);
         cachedModelId = modelId;
+        lastDownloadError = null;
         finishDownloadProgress();
         await requestPersistentStorageIfPossible();
         return cachedPipeline;
@@ -235,18 +360,33 @@
           try {
             cachedPipeline = await runChatGenerationPipeline(mod, MODEL_SMALL, { revision: 'main' });
             cachedModelId = MODEL_SMALL;
+            lastDownloadError = null;
             finishDownloadProgress();
             await requestPersistentStorageIfPossible();
             return cachedPipeline;
           } catch (e2) {
             downloadProgressState.active = false;
+            lastDownloadError = (e2 && e2.message) ? String(e2.message) : 'Download failed';
             if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
-              window.showToast('AI model download failed. Using text-only fallbacks.', { type: 'error', action: { label: 'Retry', onClick: function () { clearSummaryLLMCache(); } } });
+              window.showToast('AI model download failed. Using text-only fallbacks.', {
+                type: 'error',
+                action: {
+                  label: 'Retry',
+                  onClick: function () {
+                    if (typeof window.downloadOrRedownloadAiModel === 'function') {
+                      window.downloadOrRedownloadAiModel(true);
+                    } else if (typeof window.clearSummaryLLMCache === 'function') {
+                      window.clearSummaryLLMCache();
+                    }
+                  }
+                }
+              });
             }
             throw e2;
           }
         }
         downloadProgressState.active = false;
+        lastDownloadError = (eCpu && eCpu.message) ? String(eCpu.message) : 'Download failed';
         throw eCpu;
       }
     }
@@ -585,9 +725,32 @@
     } catch (e) {}
   }
 
+  function getAiModelStatus() {
+    var info = getResolvedLlmModelInfo();
+    var base = { modelId: info.id, label: info.label, size: info.size };
+    if (downloadProgressState.active) {
+      return Object.assign({
+        state: 'downloading',
+        pct: downloadProgressState.pct || 0,
+        file: downloadProgressState.file || info.id
+      }, base);
+    }
+    if (lastDownloadError) {
+      return Object.assign({ state: 'failed', error: lastDownloadError }, base);
+    }
+    if (cachedPipeline && cachedModelId) {
+      return Object.assign({ state: 'ready', inMemory: true, cachedModelId: cachedModelId }, base);
+    }
+    if (getDownloadConsent() === 'granted') {
+      return Object.assign({ state: 'ready', inMemory: false }, base);
+    }
+    return Object.assign({ state: 'not_downloaded' }, base);
+  }
+
   function clearSummaryLLMCache() {
     cachedPipeline = null;
     cachedModelId = null;
+    lastDownloadError = null;
     llmWorkQueue = Promise.resolve();
     if (summaryResultCache) summaryResultCache.clear();
     if (suggestResultCache) suggestResultCache.clear();
@@ -596,6 +759,7 @@
   async function clearAiModelCache(options) {
     options = options || {};
     clearSummaryLLMCache();
+    lastDownloadError = null;
     try {
       if (typeof caches !== 'undefined') {
         var keys = await caches.keys();
@@ -635,6 +799,7 @@
   window.LLM_TIER_MODELS = LLM_TIER_MODELS;
   window.getResolvedLlmModelInfo = getResolvedLlmModelInfo;
   window.getAiModelDownloadProgress = function () { return downloadProgressState; };
+  window.getAiModelStatus = getAiModelStatus;
   window.getAiModelStorageEstimate = getAiModelStorageEstimate;
   window.clearAiModelCache = clearAiModelCache;
   window.preloadSummaryLLM = function () {
@@ -644,4 +809,18 @@
   };
   window.clearSummaryLLMCache = clearSummaryLLMCache;
   window.needsAiModelDownloadConsent = needsDownloadConsent;
+  window.cancelAiModelDownload = function () {
+    downloadCancelled = true;
+    downloadProgressState.active = false;
+    lastDownloadError = null;
+    cachedPipeline = null;
+    cachedModelId = null;
+    if (typeof window !== 'undefined' && window.appSettings) {
+      window.appSettings.aiModelDownloadConsent = 'deferred';
+      if (typeof window.saveSettings === 'function') window.saveSettings();
+    }
+    if (typeof window !== 'undefined' && typeof window.hideAiModelDownloadProgressUI === 'function') {
+      window.hideAiModelDownloadProgressUI();
+    }
+  };
 })();

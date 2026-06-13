@@ -1,0 +1,137 @@
+{
+  "version": 2,
+  "description": "On-device LLM weights on Supabase Storage. Large files are split into .partNNN chunks (free tier 50 MB limit).",
+  "models": [
+    {
+      "id": "onnx-community/SmolLM2-360M-Instruct",
+      "sourceRepo": "onnx-community/SmolLM2-360M-Instruct-ONNX",
+      "revision": "main",
+      "label": "SmolLM2 360M",
+      "approxMb": 660,
+      "files": [
+        "config.json",
+        "generation_config.json",
+        "quantize_config.json",
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "special_tokens_map.json",
+        "merges.txt",
+        "vocab.json",
+        {
+          "path": "onnx/model_q4.onnx",
+          "sizeBytes": 386495938,
+          "chunks": [
+            "onnx/model_q4.onnx.part000",
+            "onnx/model_q4.onnx.part001",
+            "onnx/model_q4.onnx.part002",
+            "onnx/model_q4.onnx.part003",
+            "onnx/model_q4.onnx.part004",
+            "onnx/model_q4.onnx.part005",
+            "onnx/model_q4.onnx.part006",
+            "onnx/model_q4.onnx.part007"
+          ]
+        },
+        {
+          "path": "onnx/model_q4f16.onnx",
+          "sizeBytes": 272353302,
+          "chunks": [
+            "onnx/model_q4f16.onnx.part000",
+            "onnx/model_q4f16.onnx.part001",
+            "onnx/model_q4f16.onnx.part002",
+            "onnx/model_q4f16.onnx.part003",
+            "onnx/model_q4f16.onnx.part004",
+            "onnx/model_q4f16.onnx.part005"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "onnx-community/Llama-3.2-1B-Instruct",
+      "sourceRepo": "onnx-community/Llama-3.2-1B-Instruct-ONNX",
+      "revision": "main",
+      "label": "Llama 3.2 1B",
+      "approxMb": 2800,
+      "licenseNote": "Accept Meta Llama 3.2 license on Hugging Face; set HF_TOKEN when downloading.",
+      "files": [
+        "config.json",
+        "generation_config.json",
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "special_tokens_map.json",
+        "onnx/model_q4.onnx",
+        {
+          "path": "onnx/model_q4.onnx_data",
+          "sizeBytes": 1692672000,
+          "chunks": [
+            "onnx/model_q4.onnx_data.part000",
+            "onnx/model_q4.onnx_data.part001",
+            "onnx/model_q4.onnx_data.part002",
+            "onnx/model_q4.onnx_data.part003",
+            "onnx/model_q4.onnx_data.part004",
+            "onnx/model_q4.onnx_data.part005",
+            "onnx/model_q4.onnx_data.part006",
+            "onnx/model_q4.onnx_data.part007",
+            "onnx/model_q4.onnx_data.part008",
+            "onnx/model_q4.onnx_data.part009",
+            "onnx/model_q4.onnx_data.part010",
+            "onnx/model_q4.onnx_data.part011",
+            "onnx/model_q4.onnx_data.part012",
+            "onnx/model_q4.onnx_data.part013",
+            "onnx/model_q4.onnx_data.part014",
+            "onnx/model_q4.onnx_data.part015",
+            "onnx/model_q4.onnx_data.part016",
+            "onnx/model_q4.onnx_data.part017",
+            "onnx/model_q4.onnx_data.part018",
+            "onnx/model_q4.onnx_data.part019",
+            "onnx/model_q4.onnx_data.part020",
+            "onnx/model_q4.onnx_data.part021",
+            "onnx/model_q4.onnx_data.part022",
+            "onnx/model_q4.onnx_data.part023",
+            "onnx/model_q4.onnx_data.part024",
+            "onnx/model_q4.onnx_data.part025",
+            "onnx/model_q4.onnx_data.part026",
+            "onnx/model_q4.onnx_data.part027",
+            "onnx/model_q4.onnx_data.part028",
+            "onnx/model_q4.onnx_data.part029",
+            "onnx/model_q4.onnx_data.part030",
+            "onnx/model_q4.onnx_data.part031",
+            "onnx/model_q4.onnx_data.part032",
+            "onnx/model_q4.onnx_data.part033",
+            "onnx/model_q4.onnx_data.part034"
+          ]
+        },
+        "onnx/model_q4f16.onnx",
+        {
+          "path": "onnx/model_q4f16.onnx_data",
+          "sizeBytes": 1089605632,
+          "chunks": [
+            "onnx/model_q4f16.onnx_data.part000",
+            "onnx/model_q4f16.onnx_data.part001",
+            "onnx/model_q4f16.onnx_data.part002",
+            "onnx/model_q4f16.onnx_data.part003",
+            "onnx/model_q4f16.onnx_data.part004",
+            "onnx/model_q4f16.onnx_data.part005",
+            "onnx/model_q4f16.onnx_data.part006",
+            "onnx/model_q4f16.onnx_data.part007",
+            "onnx/model_q4f16.onnx_data.part008",
+            "onnx/model_q4f16.onnx_data.part009",
+            "onnx/model_q4f16.onnx_data.part010",
+            "onnx/model_q4f16.onnx_data.part011",
+            "onnx/model_q4f16.onnx_data.part012",
+            "onnx/model_q4f16.onnx_data.part013",
+            "onnx/model_q4f16.onnx_data.part014",
+            "onnx/model_q4f16.onnx_data.part015",
+            "onnx/model_q4f16.onnx_data.part016",
+            "onnx/model_q4f16.onnx_data.part017",
+            "onnx/model_q4f16.onnx_data.part018",
+            "onnx/model_q4f16.onnx_data.part019",
+            "onnx/model_q4f16.onnx_data.part020",
+            "onnx/model_q4f16.onnx_data.part021",
+            "onnx/model_q4f16.onnx_data.part022"
+          ]
+        }
+      ]
+    }
+  ],
+  "chunkByteLimit": 49283072
+}
