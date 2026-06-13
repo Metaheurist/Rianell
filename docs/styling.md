@@ -19,6 +19,7 @@ This document describes how the legacy web app’s visual layer is organised: **
 - **Global theme parity**: pulse line, active nav tabs, goals/targets block, loading orbit/ring, and chart empty-state accents are now token-driven so theme selection is end-to-end (including mono).
 - **Early theme on first paint**: `index.html` applies the saved theme class from `rianellSettings.globalTheme` before app boot so loading visuals do not flash mint.
 - **Settings header navigation**: carousel dots were upgraded to clickable mini icon buttons that jump directly to each settings pane.
+- **Theme-token UI icons**: Remaining emoji UI markers were replaced with the inline SVG sprite in `index.html` and the `svgIcon()` helper in `app.js`. Icons use **`--ui-icon-*`** tokens in `styles.css`, so settings, chart controls, log cards, AI cards, and empty states follow the active global theme.
 - **MOTD title look**: quote/title styling now supports a single-tone theme colour with stronger 3D depth layers (less multi-tone glow bleed).
 - **MOTD tap spin** (dark theme, Home tab): the **`.motd-spin-host`** wrapper responds to **`pointerdown`** (and keyboard) with a **3D `rotateX`** spin. There is **no hard ~70° cap**; rapid taps add **stacked** angular velocity so the block can complete **multiple full rotations** before friction. **Each tap increments spring charge**; when spin slows, return-to-neutral uses a **stiffer spring** for higher charge, so **more taps snap the text back faster** (slingshot). **Light mode** and **reduced motion** disable the interaction.
 
