@@ -69,3 +69,13 @@ CREATE POLICY "bug_reports_insert_public"
 CREATE POLICY "bug_reports_select_own"
   ON public.bug_reports FOR SELECT TO authenticated
   USING (user_id IS NOT NULL AND auth.uid() = user_id);
+
+-- GraphQL exposure (Supabase lints 0026/0027): revoke anon SELECT on sensitive tables and
+-- drop pg_graphql if you do not use /graphql/v1. Full script: supabase/harden-graphql-exposure.sql
+REVOKE ALL ON public.anonymized_data FROM anon;
+REVOKE ALL ON public.health_data FROM anon;
+REVOKE ALL ON public.user_keys FROM anon;
+REVOKE ALL ON public.bug_reports FROM anon;
+GRANT INSERT ON public.bug_reports TO anon, authenticated;
+DROP EXTENSION IF EXISTS pg_graphql CASCADE;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM anon;
