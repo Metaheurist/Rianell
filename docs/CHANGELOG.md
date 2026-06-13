@@ -2,6 +2,19 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
+**Latest: v1.50.0** - Security hardening: XSS fixes, unified cloud deletion, RN SecureStore, privacy program, expanded CI.
+
+### v1.50.0 - 2026-06-13 - Security hardening and privacy program
+
+- **P0 XSS:** **`import-utils.js`** — import preview uses **`escapeImportPreviewHtml`** for user-derived strings before DOM insertion.
+- **RN cloud sync:** Anonymised uploads and deletion target **`anonymized_data`** (schema-aligned; fixes legacy table name).
+- **Unified cloud erasure:** **`deleteAllUserDataFromCloud`** deletes **`health_data`**, **`user_keys`**, **`anonymized_data`**, **`bug_reports`** for the signed-in user (PWA + RN).
+- **RN auth:** Supabase session tokens in **`expo-secure-store`**; Android **`allowBackup: false`**.
+- **Health data consent (GDPR Art. 9):** PWA consent modal; RN **`healthDataConsent`** / **`healthDataConsentAt`** preference fields.
+- **Privacy program docs:** **`docs/privacy/*`**, **`docs/threat-model.md`**, **`docs/ai-security.md`**, **`docs/incident-response.md`**, **`docs/crypto-roadmap.md`**, **`security/rotation-runbook.md`**, **`docs/security-inventory.md`** (generated).
+- **CI security:** OSV SARIF upload, **`verify-privacy-docs`**, security inventory PR check, CycloneDX SBOM artifact, scheduled Gitleaks history scan, expanded verify scripts.
+- **Tests:** **`tests/unit/security/`** — XSS import preview, cloud deletion table coverage, verify-script smoke.
+
 **Latest: v1.49.1** - Platform parity follow-up: docs, token sync in build, shared CJS exports.
 
 ### v1.49.1 - 2026-06-13 - Platform parity follow-up

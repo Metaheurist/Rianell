@@ -7,6 +7,11 @@ This document defines the expected behaviour contract across:
 
 The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm run parity:web`, `parity:android`, `parity:ios`, and `parity:inventory:check` on every PR.
 
+### v1.50.0 parity note (RN secure storage + anonymized_data)
+
+- **React Native auth:** Supabase session tokens stored in **`expo-secure-store`** via `supabaseAuthStorage` (not AsyncStorage). Android **`allowBackup: false`** in `app.json`.
+- **Cloud tables:** RN sync and deletion use **`anonymized_data`** (aligned with PWA and schema); unified **`deleteAllUserDataFromCloud`** covers `health_data`, `user_keys`, `anonymized_data`, `bug_reports`.
+
 ### v1.49.0 parity note (Capacitor sunset + shared packages)
 
 - **Capacitor removed:** Legacy **`apps/capacitor-app/`** WebView shell and CI release artifacts are gone; **PWA + React Native (Expo)** are the only app surfaces.

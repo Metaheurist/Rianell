@@ -123,10 +123,12 @@ Server logs are saved to `logs/rianell_YYYYMMDD.log`. The `Rianell` logger uses 
 ## 🛡️ GDPR Compliance
 
 The app includes GDPR-compliant data sharing:
-- Explicit user consent required
+- Explicit user consent required (including **Art. 9 health-data consent** modal on PWA + RN preference fields — see [data-subject-rights.md](privacy/data-subject-rights.md))
 - Data anonymisation before upload
 - Clear privacy agreement
 - User can disable at any time
+
+**Privacy program index:** [docs/privacy/global-baseline.md](privacy/global-baseline.md) — links to [eu-gdpr.md](privacy/eu-gdpr.md), [dpia-health-sync.md](privacy/dpia-health-sync.md), [data-subject-rights.md](privacy/data-subject-rights.md), [subprocessors.md](privacy/subprocessors.md), [other-jurisdictions.md](privacy/other-jurisdictions.md), and [ropa.json](privacy/ropa.json). Security cross-refs: [threat-model.md](threat-model.md), [incident-response.md](incident-response.md), [ai-security.md](ai-security.md).
 
 <a id="nav-troubleshooting"></a>
 
@@ -184,7 +186,7 @@ The app includes GDPR-compliant data sharing:
 
 ## 🔐 Security notes
 
-Start with the full guide: **[SECURITY.md](SECURITY.md)** (see also [Security overview](../README.md#security) in the main README). Supplementary references: [supabase-rls-recommended.sql](supabase-rls-recommended.sql), [../supabase/harden-graphql-exposure.sql](../supabase/harden-graphql-exposure.sql) (Security Advisor lints 0026/0027 on live projects), CI workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) - `security-audit` job (Gitleaks, `npm audit`, `pip-audit`).
+Start with the full guide: **[SECURITY.md](SECURITY.md)** (see also [Security overview](../README.md#security) in the main README). Supplementary references: [supabase-rls-recommended.sql](supabase-rls-recommended.sql), [../supabase/harden-graphql-exposure.sql](../supabase/harden-graphql-exposure.sql) (Security Advisor lints 0026/0027 on live projects), [privacy/global-baseline.md](privacy/global-baseline.md), CI workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) - `security-audit` job (Gitleaks, OSV SARIF, privacy doc verifier, security inventory, SBOM, `npm audit`, `pip-audit`).
 
 ⚠️ **Important security considerations**:
 

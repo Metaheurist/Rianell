@@ -438,9 +438,8 @@ async function syncAnonymizedData() {
               continue;
             }
           } else {
-            // Fallback: use JSON string if encryption not available
-            console.warn('[syncAnonymizedData] encryptAnonymizedData not available, using plain JSON');
-            encryptedLog = JSON.stringify(anonymizedLog);
+            console.warn('[syncAnonymizedData] encryptAnonymizedData not available — skipping log (fail-closed)');
+            continue;
           }
           
           // Add to batch
@@ -1271,8 +1270,7 @@ function generateUserEncryptionKey() {
 // Encrypt data with user-specific key
 async function encryptWithUserKey(data, userKey) {
   if (!userKey) {
-    console.warn('No user key provided, falling back to default encryption');
-    return window.encryptAnonymizedData ? await window.encryptAnonymizedData(data) : JSON.stringify(data);
+    throw new Error('encryptWithUserKey: user encryption key required');
   }
   
   try {
@@ -1964,23 +1962,43 @@ async function deleteCloudLogs() {
       console.warn('Cannot delete cloud logs: not authenticated');
       return;
     }
-    
+
     const userId = cloudSyncState.user.id;
-    console.log('Starting deletion of all cloud health data for user:', userId);
-    
+    console.log('Starting deletion of cloud health backup for user:', userId);
+
     const { error: deleteHealthError } = await client
       .from('health_data')
       .delete()
       .eq('user_id', userId);
-    
+
     if (deleteHealthError) {
       console.error('Error deleting health_data from cloud:', deleteHealthError);
       throw deleteHealthError;
     }
-    
-    console.log('✅ All health data deleted from cloud');
+
+    console.log('✅ Cloud health backup deleted');
   } catch (error) {
     console.error('Error in deleteCloudLogs:', error);
+    throw error;
+  }
+}
+
+async function deleteAnonymizedContributionFromCloud() {
+  try {
+    const client = initSupabase();
+    if (!client || !cloudSyncState.user) {
+      console.warn('Cannot delete anonymized data: not authenticated');
+      return;
+    }
+    const userId = cloudSyncState.user.id;
+    const { error } = await client.from('anonymized_data').delete().eq('user_id', userId);
+    if (error) {
+      console.error('Error deleting anonymized_data:', error);
+      throw error;
+    }
+    console.log('✅ Anonymized contribution removed from cloud');
+  } catch (error) {
+    console.error('Error in deleteAnonymizedContributionFromCloud:', error);
     throw error;
   }
 }
@@ -1992,44 +2010,21 @@ async function deleteAllUserDataFromCloud() {
       console.warn('Cannot delete user data: not authenticated');
       return;
     }
-    
+
     const userId = cloudSyncState.user.id;
-    console.log('Starting deletion of user data from cloud:', userId);
-    console.log('Note: Anonymized data will be preserved for research purposes');
-    
-    const deleteOperations = [];
-    
-    deleteOperations.push(
-      client
-        .from('health_data')
-        .delete()
-        .eq('user_id', userId)
-        .then(result => {
-          if (result.error) {
-            console.error('Error deleting health_data:', result.error);
-            throw result.error;
-          }
-          console.log('✅ Deleted health_data');
-        })
-    );
-    
-    deleteOperations.push(
-      client
-        .from('user_keys')
-        .delete()
-        .eq('user_id', userId)
-        .then(result => {
-          if (result.error) {
-            console.error('Error deleting user_keys:', result.error);
-            throw result.error;
-          }
-          console.log('✅ Deleted user encryption keys');
-        })
-    );
-    
-    await Promise.all(deleteOperations);
-    console.log('✅ User health data and encryption keys deleted from cloud');
-    console.log('✅ Anonymized data preserved for research purposes');
+    console.log('Starting full cloud erasure for user:', userId);
+
+    const tables = ['health_data', 'user_keys', 'anonymized_data', 'bug_reports'];
+    for (const table of tables) {
+      const { error } = await client.from(table).delete().eq('user_id', userId);
+      if (error) {
+        console.error(`Error deleting ${table}:`, error);
+        throw error;
+      }
+      console.log(`✅ Deleted ${table}`);
+    }
+
+    console.log('✅ All user-linked cloud data deleted');
   } catch (error) {
     console.error('Error in deleteAllUserDataFromCloud:', error);
     throw error;
@@ -2048,6 +2043,7 @@ if (typeof window !== 'undefined') {
   window.updateCloudSyncUI = updateCloudSyncUI;
   window.getAnonymizedTrainingData = getAnonymizedTrainingData;
   window.deleteCloudLogs = deleteCloudLogs;
+  window.deleteAnonymizedContributionFromCloud = deleteAnonymizedContributionFromCloud;
   window.deleteAllUserDataFromCloud = deleteAllUserDataFromCloud;
   window.initSupabase = initSupabase;
   window.submitBugReportToSupabase = submitBugReportToSupabase;

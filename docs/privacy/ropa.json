@@ -1,0 +1,302 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "ropa_version": "1.0.0",
+  "product": "Rianell",
+  "controller": {
+    "name": "Rianell project operator",
+    "contact": "See docs/SECURITY.md — private security contact",
+    "eu_establishment": false,
+    "uk_establishment": false,
+    "dpo_appointed": false
+  },
+  "last_updated": "2026-06-13",
+  "next_review": "2026-12-01",
+  "related_documents": [
+    "docs/privacy/global-baseline.md",
+    "docs/privacy/eu-gdpr.md",
+    "docs/privacy/dpia-health-sync.md",
+    "docs/privacy/subprocessors.md",
+    "docs/privacy/data-subject-rights.md"
+  ],
+  "processing_activities": [
+    {
+      "id": "PA-01",
+      "name": "Local health logging",
+      "description": "User records daily health metrics, symptoms, medications, and notes on device.",
+      "purposes": ["Personal health tracking", "Charts and analytics"],
+      "legal_basis_art6": "consent_6_1_a",
+      "legal_basis_art9": "explicit_consent_9_2_a",
+      "data_categories": [
+        "health_metrics",
+        "symptoms",
+        "medications",
+        "free_text_notes",
+        "lifestyle_data"
+      ],
+      "data_subjects": ["app_users"],
+      "special_category": true,
+      "recipients": [],
+      "subprocessors": [],
+      "storage_locations": ["device_local_storage", "device_async_storage", "indexeddb_optional"],
+      "retention": "Until user deletes local data or uninstalls",
+      "security_measures": [
+        "OS_device_lock_recommended",
+        "same_origin_policy_pwa",
+        "no_app_level_encryption_at_rest_v1_49"
+      ],
+      "international_transfers": false,
+      "dpia_reference": "docs/privacy/dpia-health-sync.md",
+      "data_subject_rights": ["access", "rectification", "erasure", "portability", "withdraw_consent"]
+    },
+    {
+      "id": "PA-02",
+      "name": "Cloud encrypted backup",
+      "description": "Authenticated users optionally sync AES-GCM encrypted health logs, settings, and AI state to Supabase.",
+      "purposes": ["Cross-device availability", "Backup and restore"],
+      "legal_basis_art6": "contract_6_1_b",
+      "legal_basis_art9": "explicit_consent_9_2_a",
+      "data_categories": [
+        "encrypted_health_blob",
+        "encrypted_settings_blob",
+        "encrypted_ai_state",
+        "encryption_key_material"
+      ],
+      "data_subjects": ["authenticated_users"],
+      "special_category": true,
+      "recipients": ["supabase_postgres"],
+      "subprocessors": [
+        {
+          "name": "Supabase, Inc.",
+          "role": "database_hosting",
+          "dpa": "standard_terms",
+          "reference": "docs/privacy/subprocessors.md"
+        }
+      ],
+      "storage_locations": ["supabase_region_operator_selected"],
+      "retention": "Until user deletes cloud backup or account erasure",
+      "security_measures": [
+        "tls_in_transit",
+        "aes_gcm_client_encryption",
+        "rls_owner_policies",
+        "user_keys_plaintext_risk_documented"
+      ],
+      "international_transfers": true,
+      "transfer_mechanism": "SCCs_via_supabase_dpa",
+      "dpia_reference": "docs/privacy/dpia-health-sync.md",
+      "data_subject_rights": ["access", "erasure", "portability", "restrict_processing"]
+    },
+    {
+      "id": "PA-03",
+      "name": "Anonymized research contribution",
+      "description": "Opt-in upload of pseudonymized, encrypted health-derived logs for aggregate research.",
+      "purposes": ["Population health insights", "Model and analysis improvement"],
+      "legal_basis_art6": "consent_6_1_a",
+      "legal_basis_art9": "explicit_consent_9_2_a",
+      "data_categories": [
+        "pseudonymous_health_derived_blob",
+        "medical_condition_label",
+        "user_id_link"
+      ],
+      "data_subjects": ["contributing_users"],
+      "special_category": true,
+      "recipients": ["supabase_postgres"],
+      "subprocessors": [
+        {
+          "name": "Supabase, Inc.",
+          "role": "database_hosting",
+          "dpa": "standard_terms"
+        }
+      ],
+      "storage_locations": ["supabase_anonymized_data_table"],
+      "retention": "Until erasure request or successful anonymization unlink",
+      "security_measures": [
+        "client_side_stripping_of_direct_identifiers",
+        "encryption_before_upload",
+        "rls_owner_insert_select"
+      ],
+      "international_transfers": true,
+      "transfer_mechanism": "SCCs_via_supabase_dpa",
+      "dpia_reference": "docs/privacy/dpia-health-sync.md",
+      "data_subject_rights": ["access", "erasure", "object", "withdraw_consent"]
+    },
+    {
+      "id": "PA-04",
+      "name": "User authentication",
+      "description": "Email/password (or future OAuth) via Supabase Auth for cloud features.",
+      "purposes": ["Account security", "Identify data controller relationship"],
+      "legal_basis_art6": "contract_6_1_b",
+      "legal_basis_art9": null,
+      "data_categories": ["email_address", "auth_user_id", "session_tokens"],
+      "data_subjects": ["authenticated_users"],
+      "special_category": false,
+      "recipients": ["supabase_auth"],
+      "subprocessors": [
+        {
+          "name": "Supabase, Inc.",
+          "role": "authentication",
+          "dpa": "standard_terms"
+        }
+      ],
+      "storage_locations": ["supabase_auth_schema", "device_session_storage"],
+      "retention": "Account lifetime",
+      "security_measures": ["jwt_sessions", "https_only", "password_hashing_supabase"],
+      "international_transfers": true,
+      "transfer_mechanism": "SCCs_via_supabase_dpa",
+      "data_subject_rights": ["access", "erasure", "rectification"]
+    },
+    {
+      "id": "PA-05",
+      "name": "On-device AI and LLM",
+      "description": "Deterministic analysis and optional Transformers.js / native LLM inference on local logs.",
+      "purposes": ["Health insights", "Summaries", "Note suggestions", "MOTD"],
+      "legal_basis_art6": "consent_6_1_a",
+      "legal_basis_art9": "explicit_consent_9_2_a",
+      "data_categories": ["health_logs_in_memory", "user_notes_in_prompts"],
+      "data_subjects": ["users_with_ai_enabled"],
+      "special_category": true,
+      "recipients": [],
+      "subprocessors": [
+        {
+          "name": "Hugging Face, Inc.",
+          "role": "model_weight_cdn",
+          "dpa": "standard_terms",
+          "note": "Weights only; prompts not transmitted"
+        }
+      ],
+      "storage_locations": ["device_ram", "model_cache_idb_or_fs"],
+      "retention": "Processing ephemeral; cache until user clears",
+      "security_measures": [
+        "on_device_only_inference",
+        "llm_consent_gate",
+        "timeout_fallback",
+        "output_html_escaping",
+        "model_id_allowlist"
+      ],
+      "international_transfers": true,
+      "transfer_mechanism": "model_download_only",
+      "dpia_reference": "docs/privacy/dpia-health-sync.md",
+      "art_22_position": "no_legal_or_similar_significant_automated_decisions",
+      "reference": "docs/ai-security.md",
+      "data_subject_rights": ["access", "restrict_processing", "withdraw_consent", "object"]
+    },
+    {
+      "id": "PA-06",
+      "name": "Bug and feedback reports",
+      "description": "Optional technical reports including description, UA, page URL, console excerpt.",
+      "purposes": ["Quality assurance", "Security debugging"],
+      "legal_basis_art6": "legitimate_interest_6_1_f",
+      "legal_basis_art9": "not_processed_by_default",
+      "data_categories": [
+        "description_text",
+        "user_agent",
+        "client_ip",
+        "page_url",
+        "console_output",
+        "optional_user_id"
+      ],
+      "data_subjects": ["reporters"],
+      "special_category": false,
+      "recipients": ["supabase_bug_reports_table"],
+      "subprocessors": [
+        {
+          "name": "Supabase, Inc.",
+          "role": "database_hosting",
+          "dpa": "standard_terms"
+        }
+      ],
+      "storage_locations": ["supabase_postgres"],
+      "retention": "24_months_operational",
+      "security_measures": [
+        "insert_only_rls_for_public",
+        "description_length_cap",
+        "no_public_select"
+      ],
+      "international_transfers": true,
+      "data_subject_rights": ["access", "erasure", "object"]
+    },
+    {
+      "id": "PA-07",
+      "name": "Static site and CDN delivery",
+      "description": "Serve PWA assets via GitHub Pages and Cloudflare edge.",
+      "purposes": ["Application hosting", "Performance", "Security edge"],
+      "legal_basis_art6": "legitimate_interest_6_1_f",
+      "legal_basis_art9": null,
+      "data_categories": ["ip_address", "http_headers", "request_paths"],
+      "data_subjects": ["website_visitors"],
+      "special_category": false,
+      "recipients": ["cloudflare", "github_pages"],
+      "subprocessors": [
+        {
+          "name": "Cloudflare, Inc.",
+          "role": "cdn_dns_waf",
+          "dpa": "standard_terms"
+        },
+        {
+          "name": "GitHub, Inc.",
+          "role": "static_hosting",
+          "dpa": "standard_terms"
+        }
+      ],
+      "storage_locations": ["edge_logs_per_provider_policy"],
+      "retention": "Per_subprocessor_policy",
+      "security_measures": ["tls", "hsts_recommended", "bot_fight_mode"],
+      "international_transfers": true,
+      "reference": "docs/infrastructure-and-security-edge.md",
+      "data_subject_rights": ["object", "access_via_provider_logs_on_request"]
+    },
+    {
+      "id": "PA-08",
+      "name": "Optional donations",
+      "description": "PayPal checkout for voluntary project support when enabled.",
+      "purposes": ["Funding"],
+      "legal_basis_art6": "contract_6_1_b",
+      "legal_basis_art9": null,
+      "data_categories": ["payment_identifiers", "payer_email_optional"],
+      "data_subjects": ["donors"],
+      "special_category": false,
+      "recipients": ["paypal"],
+      "subprocessors": [
+        {
+          "name": "PayPal Holdings, Inc.",
+          "role": "payment_processor",
+          "dpa": "merchant_terms"
+        }
+      ],
+      "storage_locations": ["paypal_systems"],
+      "retention": "paypal_policy",
+      "security_measures": ["paypal_pci_scope", "no_health_data_to_paypal"],
+      "international_transfers": true,
+      "data_subject_rights": ["access", "erasure_via_paypal"]
+    }
+  ],
+  "technical_and_organisational_measures": {
+    "summary": "RLS on all user tables; AES-GCM for cloud health blobs; CI Gitleaks/npm audit/OSV; STRIDE threat model; incident response plan with GDPR 72h template.",
+    "documents": [
+      "docs/threat-model.md",
+      "docs/SECURITY.md",
+      "docs/incident-response.md",
+      "security/rotation-runbook.md",
+      "docs/crypto-roadmap.md"
+    ]
+  },
+  "known_gaps": [
+    {
+      "id": "GAP-01",
+      "description": "user_keys.encryption_key stored as plaintext hex in Supabase",
+      "mitigation_ref": "docs/crypto-roadmap.md",
+      "target_milestone": "v1.50"
+    },
+    {
+      "id": "GAP-02",
+      "description": "No app-level encryption for local storage",
+      "mitigation_ref": "docs/SECURITY.md",
+      "target_milestone": "post_v1_50"
+    },
+    {
+      "id": "GAP-03",
+      "description": "anonymized_data retains user_id link",
+      "mitigation_ref": "docs/privacy/dpia-health-sync.md",
+      "target_milestone": "v1.50"
+    }
+  ]
+}

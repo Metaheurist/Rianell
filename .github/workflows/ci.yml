@@ -198,6 +198,18 @@ jobs:
           node scripts/generate-dependencies-doc.mjs
           git diff --exit-code docs/dependencies.md
 
+      - name: Verify docs/security-inventory.md (pull requests only)
+        if: github.event_name == 'pull_request'
+        run: |
+          node scripts/generate-security-inventory.mjs
+          git diff --exit-code docs/security-inventory.md
+
+      - name: Security doc and client verification scripts
+        run: |
+          node scripts/verify-privacy-docs.mjs
+          node scripts/verify-csp-connect-src.mjs
+          node scripts/verify-no-service-role-in-clients.mjs
+
   # ---------------------------------------------------------------------------
   # Benchmarks — web (parallel with unit-tests; needs minified site + Capacitor dist)
   # Non-blocking for downstream jobs; commit-benchmarks pushes reports on main/master only.

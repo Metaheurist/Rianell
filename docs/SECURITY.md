@@ -12,10 +12,17 @@ This document describes how **Rianell** (this health app) handles health-related
 
 | Topic | Location |
 |-------|----------|
+| **Privacy program index** | [privacy/global-baseline.md](privacy/global-baseline.md) — [eu-gdpr.md](privacy/eu-gdpr.md), [dpia-health-sync.md](privacy/dpia-health-sync.md), [data-subject-rights.md](privacy/data-subject-rights.md), [subprocessors.md](privacy/subprocessors.md), [other-jurisdictions.md](privacy/other-jurisdictions.md), [ropa.json](privacy/ropa.json) |
+| Threat model | [threat-model.md](threat-model.md) |
+| AI security | [ai-security.md](ai-security.md) |
+| Incident response | [incident-response.md](incident-response.md) |
+| Crypto roadmap | [crypto-roadmap.md](crypto-roadmap.md) |
+| Key rotation (operators) | [../security/rotation-runbook.md](../security/rotation-runbook.md) |
+| Security inventory (generated) | [security-inventory.md](security-inventory.md) — `npm run docs:security-inventory` |
 | Environment variables | [security/.env.example](../security/.env.example), [Configuration](testing-and-configuration.md#nav-configuration), [Local secrets directory](#local-secrets-directory-security) below |
 | Supabase RLS examples (SQL) | [supabase-rls-recommended.sql](supabase-rls-recommended.sql) |
 | Android network / cleartext (RN native builds) | [Android: cleartext and mixed content](#android-cleartext-and-mixed-content) below |
-| Automated audits (CI) | Reusable [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) — run only as the **Security & supply-chain checks** job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml) (Gitleaks, **`npm audit --audit-level=high --omit=dev`**, OSV-Scanner, `pip-audit`). Optional **manual** run: **Actions → Reusable security audits → Run workflow**. |
+| Automated audits (CI) | Reusable [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) — **Security & supply-chain checks** job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml). See [CI security matrix](#dependency-and-ci-scanning) below. Optional **manual** run: **Actions → Reusable security audits → Run workflow**. |
 | Web CSP (meta tag) | [../apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html), [edge header note](../security/cloudflare-headers-recommended.md) |
 
 ## Server logs
@@ -38,7 +45,7 @@ Log files under **`logs/`** may contain client IPs, sync metadata, and dashboard
 | Surface | Data at risk | Primary controls |
 |--------|----------------|------------------|
 | **Web (PWA)** | `localStorage` / IndexedDB on the device | Browser same-origin policy, CSP ([../apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html)), Supabase **RLS** ([../supabase/Schema.sql](../supabase/Schema.sql)) |
-| **React Native (Expo)** | AsyncStorage (logs, auth session) — **not** encrypted at rest | `@supabase/supabase-js` with publishable key + **RLS**; bug reports via Supabase insert; RN CLI Android/iOS builds |
+| **React Native (Expo)** | AsyncStorage (logs); **Supabase auth session in `expo-secure-store`** (v1.50.0) | `@supabase/supabase-js` with publishable key + **RLS**; bug reports via Supabase insert; RN CLI Android/iOS builds |
 | **Python server** | LAN exposure, optional proxy to Supabase | Bind address ([../server/config.py](../server/config.py)), gated sensitive APIs, no TLS on dev server |
 
 ## Python server: bind address and threat model
@@ -88,6 +95,24 @@ Supabase ships the `pg_graphql` extension. When `anon` or `authenticated` hold `
 
 To clear `pg_graphql_anon_table_exposed` and `pg_graphql_authenticated_table_exposed` on `anonymized_data`, `health_data`, `user_keys`, and `bug_reports`, run [../supabase/harden-graphql-exposure.sql](../supabase/harden-graphql-exposure.sql) in the SQL Editor. It drops `pg_graphql`, revokes `anon` access on those tables, and re-applies least-privilege grants. Re-run **Security Advisor** afterward to confirm the warnings are gone.
 
+## Data classification (v1.50.0)
+
+| Class | Examples | Storage | Encryption | Retention |
+|-------|----------|---------|------------|-----------|
+| **Local health logs** | Daily metrics, notes, food/exercise | PWA `localStorage` / IDB; RN AsyncStorage | None at rest (device OS lock) | Until user clears |
+| **Cloud backup** | Encrypted log blobs | Supabase `health_data` + key in `user_keys` | AES-GCM (client) | Until user deletes cloud data |
+| **Anonymised contribution** | Pseudonymous encrypted payloads | Supabase `anonymized_data` | AES-GCM (client) | Until erasure request |
+| **Auth session** | JWT / refresh tokens | PWA browser storage; RN **`expo-secure-store`** | OS secure enclave / Keychain | Until sign-out |
+| **App settings sync** | Goals, preferences (non-health) | Supabase `health_data` settings blob | Same as backup key | With cloud account |
+| **Bug reports** | Summary, console snapshot | Supabase `bug_reports` | TLS in transit | Until user cloud erasure |
+| **Server logs** | IPs, sync metadata | Local `logs/` (dev server) | N/A | Rotating files |
+
+Unified **Delete cloud data** removes user-linked rows from `health_data`, `user_keys`, `anonymized_data`, and `bug_reports`. See [data-model.md](data-model.md) and [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
+
+### React Native: Supabase auth in SecureStore (v1.50.0)
+
+Since v1.50.0, **`apps/rn-app/src/cloud/secureStorageAdapter.ts`** persists Supabase auth tokens via **`expo-secure-store`** (Keychain / EncryptedSharedPreferences), not AsyncStorage. Health logs remain in AsyncStorage (plaintext at rest). Android builds set **`allowBackup: false`** in `app.json` to reduce token export via OS backup. See [react-native-setup.md](react-native-setup.md).
+
 ## Content Security Policy (CSP) and XSS
 
 - The app CSP allows `'unsafe-inline'` and `'unsafe-eval'` for compatibility with inline bootstraps and ML libraries. Tightening this is a **tracked hardening goal**; removing `unsafe-eval` may require bundling or loading changes.
@@ -136,7 +161,27 @@ On each **release** build (or before tagging):
 
 ## Dependency and CI scanning
 
-- **Reusable workflow (no duplicate runs):** [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) is **only** invoked from CI’s **`security-audit`** job (not a second workflow run on every push). It runs **[Gitleaks](https://github.com/gitleaks/gitleaks)** on the working tree, **`npm ci --omit=dev && npm audit --audit-level=high --omit=dev`** at the **repository root** (single [../package-lock.json](../package-lock.json) for all npm workspaces), **OSV-Scanner**, and **`pip-audit`** on `requirements.txt`. Use **workflow_dispatch** on that workflow in Actions if you need a manual scan without a full CI run. Configuration: [`.gitleaks.toml`](../.gitleaks.toml) (path allowlists for templates, `node_modules`, local-only `security/.env`, and build dirs).
+- **Reusable workflow (no duplicate runs):** [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) is **only** invoked from CI’s **`security-audit`** job (not a second workflow run on every push).
+
+### CI security matrix (v1.50.0 expanded)
+
+| Step | Blocking | Notes |
+|------|----------|-------|
+| **Gitleaks** (working tree) | Yes | Secret scan; `.gitleaks.toml` allowlists |
+| **Gitleaks history** | No | Scheduled / manual only; cleanup signal |
+| **`verify-no-service-role-in-clients.mjs`** | Yes | Client bundles must not embed service_role |
+| **`verify-rls-baseline.mjs`** | Yes | RLS SQL doc baseline intact |
+| **`verify-privacy-docs.mjs`** | Yes | Privacy program docs + `ropa.json` |
+| **`verify-csp-connect-src.mjs`** | Yes | CSP `connect-src` vs app needs |
+| **`generate-security-inventory.mjs`** | PR only | Drift check on [security-inventory.md](security-inventory.md) |
+| **`npm audit --omit=dev`** | Yes | High+ production npm vulnerabilities |
+| **OSV-Scanner** | Yes | `package-lock.json` + `requirements.txt`; SARIF → GitHub Security |
+| **CycloneDX SBOM** | No | `sbom.cdx.json` workflow artifact |
+| **`pip-audit`** | Yes | Python deps |
+| **Snyk** (optional) | No | When `SNYK_TOKEN` secret set |
+
+Local equivalents: `npm run verify:privacy-docs`, `npm run verify:csp`, `npm run docs:security-inventory`. Security unit tests: `tests/unit/security/`.
+
 - **Production dependency tree:** Root [../package.json](../package.json) uses **`overrides`** to pin patched versions of high-impact transitive packages (e.g. **`tar`**, **`handlebars`**, **`minimatch`** / **`brace-expansion`**, **`shell-quote`**, **`postcss`**, **`ws`**, **`uuid`**, **`basic-ftp`**, **`ip-address`**, **`tmp`**, **`@xmldom/xmldom@0.8.13`** on **`@expo/plist`**, **`plist`**, **`@trapezedev/project`**, **`mergexml`** (LTS line — **0.9.x** breaks Expo **`prebuild`** because **`@expo/plist`** omits **`mimeType`** on **`parseFromString`**). **`http-proxy-agent@5.0.0`** is overridden to **`7.0.2`** so **`jest-environment-jsdom`** → **`jsdom@20`** no longer pulls **`@tootallnate/once@2`** via the old v5 agent (Dependabot low-severity **GHSA-vpq2-c234-7xj6**). **`@tootallnate/once`** is also pinned to **`^3.0.1`**. `npm ls` may show **`invalid`** next to **`http-proxy-agent`** under **`jsdom`** because **`jsdom`** still declares **`^5.0.0`** in its manifest; the installed v7 agent is API-compatible for Jest’s test environment and **`npm run test:mobile`** is the regression check. **`npm audit --omit=dev`** and a **full** **`npm audit`** are expected to report **no** vulnerabilities with the current lockfile—re-run after lockfile changes and triage any new **Dependabot** alerts. **Python:** **`requirements.txt`** floors include **`cryptography>=46.0.7`** and **`python-dotenv>=1.2.2`** for **OSV-Scanner** / **`pip-audit`**.
 - **CI reference:** The **`security-audit`** job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml) gates downstream mobile bundle jobs. Failures should be triaged like Dependabot alerts. Branch protection should require the **CI** workflow (or the **`Security & supply-chain checks`** job), not a separate duplicate workflow name.
 
@@ -151,6 +196,6 @@ Health logs in the browser live in **`localStorage`** (and optionally IndexedDB)
 
 ## Contact and reporting
 
-**General questions** about this security model or the project: reach out on LinkedIn: [Johan (typicaljohan)](https://www.linkedin.com/in/typicaljohan/).
+**General questions** about this security model or the project: **jan.andersson@rianell.com** (also LinkedIn: [Johan (typicaljohan)](https://www.linkedin.com/in/typicaljohan/)).
 
-**Security vulnerabilities:** do **not** open a public GitHub issue for an undisclosed vulnerability. Contact the maintainer **privately** (e.g. via LinkedIn with a clear subject line, or another channel you already use with the maintainer) so details can be triaged before any public disclosure.
+**Security vulnerabilities and incidents:** do **not** open a public GitHub issue for an undisclosed vulnerability. Contact **jan.andersson@rianell.com** privately so details can be triaged before public disclosure. See [incident-response.md](incident-response.md) for operator playbooks.

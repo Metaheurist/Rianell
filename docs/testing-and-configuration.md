@@ -60,3 +60,17 @@ Define variables in **`security/.env`** (copy from [`security/.env.example`](../
 3. Apply table definitions and RLS from [../supabase/Schema.sql](../supabase/Schema.sql) (test reset — wipes auth users) or incremental policies from [supabase-rls-recommended.sql](supabase-rls-recommended.sql) on staging/production
 4. On an **existing** live project, run [../supabase/harden-graphql-exposure.sql](../supabase/harden-graphql-exposure.sql) in the SQL Editor to drop unused **`pg_graphql`** and revoke broad **`anon`** grants (Security Advisor lints 0026/0027) — see [SECURITY.md](SECURITY.md)
 5. Add your credentials to **`security/.env`** (or legacy root `.env`) and `supabase-config.js`
+
+### Security verification scripts (v1.50.0)
+
+Run from repo root (also enforced in CI **`security-audit`** job):
+
+| Script | npm alias | Purpose |
+|--------|-----------|---------|
+| `scripts/verify-privacy-docs.mjs` | `npm run verify:privacy-docs` | Required privacy/security docs + valid `ropa.json` |
+| `scripts/verify-rls-baseline.mjs` | — | RLS baseline SQL doc intact |
+| `scripts/verify-csp-connect-src.mjs` | `npm run verify:csp` | CSP `connect-src` coverage |
+| `scripts/verify-no-service-role-in-clients.mjs` | — | No service_role in client sources |
+| `scripts/generate-security-inventory.mjs` | `npm run docs:security-inventory` | Regenerate [security-inventory.md](security-inventory.md) |
+
+**Security unit tests:** `tests/unit/security/` (XSS import preview, cloud deletion tables, verify-script smoke). Included in `npm run test:unit`.

@@ -1,5 +1,7 @@
 # Security automation artifacts
 
+- **`rotation-runbook.md`** — Operator runbook for Supabase keys, encryption keys, and JWT rotation ([docs/SECURITY.md](../docs/SECURITY.md) cross-ref).
+
 - **`securityheaders-rianell.com.md`** — Security report from CI: tries to parse the [SecurityHeaders.com](https://securityheaders.com/) scan page. **Direct** fetches from GitHub Actions often get **403** (bot protection). The script then tries **relay fetches** of the same scan URL (HTML body only): **[AllOrigins](https://allorigins.win/)**, **[corsproxy.io](https://corsproxy.io/)**, **[Codetabs](https://codetabs.com/)** — in that order after direct. These are simple HTTP relays, not interactive “web proxy” homepages ([Proxyium](https://proxyium.com/) and similar); those are built for browsers and do not offer a stable API for CI.
 
 - If no scan HTML is usable, the report falls back to **response headers** from your live site. **`SECURITY_HEADERS_LIVE_URLS`** (optional) lists URLs to try in order (e.g. apex + `www`); requests use a **browser-like** User-Agent. **HTTP 403** from Cloudflare may still include useful `Content-Security-Policy`, `Strict-Transport-Security`, etc.
