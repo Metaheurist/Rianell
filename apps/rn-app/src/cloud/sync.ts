@@ -2,7 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import {
   GOALS_STORAGE_KEY,
-  LOGS_STORAGE_KEY_V1,
   mergeHealthLogs,
   normalizeGoals,
   SETTINGS_STORAGE_KEY,
@@ -13,6 +12,8 @@ import type { LogEntry } from '../storage/logs';
 import { loadLogs, saveLogs } from '../storage/logs';
 import { loadPreferences, savePreferences, type Preferences } from '../storage/preferences';
 
+const ANON_ENCRYPTION_KEY_LS = 'rianellLocalEncryptionKeyHex';
+
 function generateUserEncryptionKey(): string {
   const arr = new Uint8Array(32);
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
@@ -21,6 +22,40 @@ function generateUserEncryptionKey(): string {
     for (let i = 0; i < 32; i++) arr[i] = Math.floor(Math.random() * 256);
   }
   return Array.from(arr, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function getAnonymizedEncryptionKeyHex(): Promise<string> {
+  const stored = await AsyncStorage.getItem(ANON_ENCRYPTION_KEY_LS);
+  if (stored && /^[0-9a-fA-F]{64}$/.test(stored)) return stored;
+  const hex = generateUserEncryptionKey();
+  await AsyncStorage.setItem(ANON_ENCRYPTION_KEY_LS, hex);
+  return hex;
+}
+
+function buildAnonymizedLogPayload(log: LogEntry): Record<string, unknown> {
+  const anonymized: Record<string, unknown> = {
+    date: log.date,
+    bpm: log.bpm,
+    weight: log.weight,
+    backPain: log.backPain,
+    jointPain: log.jointPain,
+    stiffness: log.stiffness,
+    swelling: log.swelling,
+    sleep: log.sleep,
+    mood: log.mood,
+    irritability: log.irritability,
+    mobility: log.mobility,
+    dailyFunction: log.dailyFunction,
+    fatigue: log.fatigue,
+    flare: log.flare,
+    hydration: log.hydration,
+    energyClarity: log.energyClarity,
+  };
+  Object.keys(anonymized).forEach((key) => {
+    const v = anonymized[key];
+    if (v === undefined || v === null || v === '') delete anonymized[key];
+  });
+  return anonymized;
 }
 
 export async function getUserEncryptionKey(client: SupabaseClient, user: User): Promise<string | null> {
@@ -58,6 +93,14 @@ async function writeGoalsFromSettings(settings: Record<string, unknown>): Promis
   if (settings.goals && typeof settings.goals === 'object') {
     await AsyncStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(normalizeGoals(settings.goals)));
   }
+}
+
+async function deleteUserRows(client: SupabaseClient, userId: string, tables: string[]): Promise<string | null> {
+  for (const table of tables) {
+    const { error } = await client.from(table).delete().eq('user_id', userId);
+    if (error) return error.message;
+  }
+  return null;
 }
 
 export async function syncToCloud(): Promise<{ ok: boolean; message: string }> {
@@ -183,20 +226,38 @@ export async function loadFromCloud(): Promise<{ ok: boolean; message: string }>
 export async function syncAnonymizedData(medicalCondition: string): Promise<{ ok: boolean; message: string }> {
   const client = getSupabaseClient();
   if (!client) return { ok: false, message: 'Cloud sync is not configured.' };
+  const { data: sessionData } = await client.auth.getSession();
+  const user = sessionData.session?.user;
+  if (!user) return { ok: false, message: 'Please sign in.' };
   if (!medicalCondition?.trim()) return { ok: false, message: 'Set a medical condition first.' };
 
+  const condition = medicalCondition.trim();
   const logs = await loadLogs();
-  const payload = {
-    condition: medicalCondition.trim(),
-    log_count: logs.length,
-    updated_at: new Date().toISOString(),
-  };
+  if (!logs.length) return { ok: false, message: 'No logs to contribute.' };
 
-  const { error } = await client.from('anonymized_logs').upsert(payload);
+  const anonKey = await getAnonymizedEncryptionKeyHex();
+  const batch: { user_id: string; medical_condition: string; anonymized_log: string }[] = [];
+
+  for (const log of logs) {
+    try {
+      const payload = buildAnonymizedLogPayload(log);
+      const encrypted = await encryptJsonAesGcm(payload, anonKey);
+      batch.push({
+        user_id: user.id,
+        medical_condition: condition,
+        anonymized_log: encrypted,
+      });
+    } catch {
+      return { ok: false, message: 'Encryption failed — anonymized upload blocked.' };
+    }
+  }
+
+  const { error } = await client.from('anonymized_data').insert(batch);
   if (error) return { ok: false, message: error.message };
-  return { ok: true, message: 'Anonymized contribution updated.' };
+  return { ok: true, message: `Anonymized contribution updated (${batch.length} log(s)).` };
 }
 
+/** Deletes encrypted cloud backup only (health_data). */
 export async function deleteCloudLogs(): Promise<{ ok: boolean; message: string }> {
   const client = getSupabaseClient();
   if (!client) return { ok: false, message: 'Cloud sync is not configured.' };
@@ -204,13 +265,40 @@ export async function deleteCloudLogs(): Promise<{ ok: boolean; message: string 
   const user = sessionData.session?.user;
   if (!user) return { ok: false, message: 'Please sign in.' };
 
-  const { error } = await client.from('health_data').delete().eq('user_id', user.id);
-  if (error) return { ok: false, message: error.message };
-  return { ok: true, message: 'Cloud health data deleted.' };
+  const err = await deleteUserRows(client, user.id, ['health_data']);
+  if (err) return { ok: false, message: err };
+  return { ok: true, message: 'Cloud health backup deleted.' };
 }
 
+/** Removes user's anonymized contribution rows only. */
+export async function deleteAnonymizedContributionFromCloud(): Promise<{ ok: boolean; message: string }> {
+  const client = getSupabaseClient();
+  if (!client) return { ok: false, message: 'Cloud sync is not configured.' };
+  const { data: sessionData } = await client.auth.getSession();
+  const user = sessionData.session?.user;
+  if (!user) return { ok: false, message: 'Please sign in.' };
+
+  const err = await deleteUserRows(client, user.id, ['anonymized_data']);
+  if (err) return { ok: false, message: err };
+  return { ok: true, message: 'Anonymized contribution removed from cloud.' };
+}
+
+/** GDPR Art. 17 full cloud erasure: health_data, user_keys, anonymized_data, bug_reports. */
 export async function deleteAllUserDataFromCloud(): Promise<{ ok: boolean; message: string }> {
-  return deleteCloudLogs();
+  const client = getSupabaseClient();
+  if (!client) return { ok: false, message: 'Cloud sync is not configured.' };
+  const { data: sessionData } = await client.auth.getSession();
+  const user = sessionData.session?.user;
+  if (!user) return { ok: false, message: 'Please sign in.' };
+
+  const err = await deleteUserRows(client, user.id, [
+    'health_data',
+    'user_keys',
+    'anonymized_data',
+    'bug_reports',
+  ]);
+  if (err) return { ok: false, message: err };
+  return { ok: true, message: 'All cloud data deleted for this account.' };
 }
 
 export { mergeHealthLogs };

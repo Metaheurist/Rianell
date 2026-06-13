@@ -1729,11 +1729,41 @@ function openShareModalForAIAnalysis() {
 // Cookie consent banner and Cookie policy modal
 // ============================================
 const COOKIE_CONSENT_KEY = 'rianellCookieConsent';
+const COOKIE_CONSENT_AT_KEY = 'rianellCookieConsentAcceptedAt';
+const HEALTH_DATA_CONSENT_KEY = 'rianellHealthDataConsent';
+const HEALTH_DATA_CONSENT_AT_KEY = 'rianellHealthDataConsentAt';
 
 function showCookieBannerIfNeeded() {
   if (localStorage.getItem(COOKIE_CONSENT_KEY)) return;
   const banner = document.getElementById('cookieBanner');
   if (banner) banner.classList.remove('hidden');
+}
+
+function showHealthDataConsentIfNeeded() {
+  if (localStorage.getItem(HEALTH_DATA_CONSENT_KEY) === 'accepted') return;
+  const overlay = document.getElementById('healthDataConsentOverlay');
+  if (overlay) {
+    overlay.style.display = 'flex';
+    document.body.classList.add('modal-active');
+  }
+}
+
+function acceptHealthDataConsent() {
+  try {
+    localStorage.setItem(HEALTH_DATA_CONSENT_KEY, 'accepted');
+    localStorage.setItem(HEALTH_DATA_CONSENT_AT_KEY, new Date().toISOString());
+  } catch (e) {
+    Logger.warn('Could not save health data consent', { error: String(e) });
+  }
+  const overlay = document.getElementById('healthDataConsentOverlay');
+  if (overlay) overlay.style.display = 'none';
+  if (!localStorage.getItem(COOKIE_CONSENT_KEY)) showCookieBannerIfNeeded();
+}
+
+function declineHealthDataConsent() {
+  if (typeof showAlertModal === 'function') {
+    showAlertModal('You can still browse settings, but health logging requires consent to process special-category health data (GDPR Art. 9).', 'Consent required');
+  }
 }
 
 function hideCookieBanner() {
@@ -1744,6 +1774,7 @@ function hideCookieBanner() {
 function acceptCookieConsent() {
   try {
     localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+    localStorage.setItem(COOKIE_CONSENT_AT_KEY, new Date().toISOString());
   } catch (e) {
     Logger.warn('Could not save cookie consent', { error: String(e) });
   }
@@ -13192,7 +13223,7 @@ function generateLogEntryHTML(log) {
       </div>
       </div>
       ${isEditing 
-        ? `<div class="log-notes"><strong>${svgIcon('edit', 'metric-svg-icon', 'Note')} Note:</strong> <textarea class="inline-edit-notes inline-edit-field inline-edit-field--notes" onclick="event.stopPropagation();">${log.notes || ''}</textarea></div>`
+        ? `<div class="log-notes"><strong>${svgIcon('edit', 'metric-svg-icon', 'Note')} Note:</strong> <textarea class="inline-edit-notes inline-edit-field inline-edit-field--notes" onclick="event.stopPropagation();">${escapeHTML(log.notes || '')}</textarea></div>`
         : (log.notes ? `<div class="log-notes"><strong>${svgIcon('edit', 'metric-svg-icon', 'Note')} Note:</strong> ${escapeHTML(log.notes)}</div>` : '')
       }
     </div>
@@ -19653,6 +19684,7 @@ window.addEventListener('load', () => {
         } catch (e) { /* ignore */ }
         var bootRecovery = document.getElementById('rianellBootRecoveryOverlay');
         if (bootRecovery) bootRecovery.remove();
+        showHealthDataConsentIfNeeded();
         showCookieBannerIfNeeded();
         if (typeof initToggleSwitchA11y === 'function') initToggleSwitchA11y(document);
         if (typeof initRipple === 'function') initRipple(document);
@@ -19665,6 +19697,7 @@ window.addEventListener('load', () => {
         } catch (e) { /* ignore */ }
         var bootRecovery = document.getElementById('rianellBootRecoveryOverlay');
         if (bootRecovery) bootRecovery.remove();
+        showHealthDataConsentIfNeeded();
         showCookieBannerIfNeeded();
       }
     });

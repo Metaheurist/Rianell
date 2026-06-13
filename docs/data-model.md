@@ -39,6 +39,19 @@ Both web and RN support saving after **date + flare** only. Normalization fills 
 
 Encrypted backups use AES-GCM. The encryption key for cloud sync is stored in Supabase **`user_keys`** (see [SECURITY.md](SECURITY.md)). Local logs remain plaintext in browser/RN storage unless a future at-rest encryption phase ships.
 
+## Supabase tables (cloud)
+
+| Table | Contents | RLS |
+| :--- | :--- | :--- |
+| **`health_data`** | Encrypted log backup blobs per user | Owner-only |
+| **`user_keys`** | Per-user AES key (hex) for backup encryption | Owner-only |
+| **`anonymized_data`** | Opt-in encrypted anonymised payloads + condition label | Owner CRUD |
+| **`bug_reports`** | In-app bug reports (insert-only for clients) | Insert-only |
+
+## Cloud deletion semantics (v1.50.0)
+
+Unified **Delete cloud data** (PWA `deleteAllUserDataFromCloud`, RN `deleteAllUserDataFromCloud`) deletes all rows where **`user_id`** matches the signed-in user across **`health_data`**, **`user_keys`**, **`anonymized_data`**, and **`bug_reports`**. Narrower actions: delete encrypted backup only (`health_data` + `user_keys`) or anonymised contribution only (`anonymized_data`). Does not delete the Supabase **`auth.users`** record — sign out or contact operator for full account removal. See [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
+
 ## Related
 
 - [SECURITY.md](SECURITY.md) — RLS, encryption, fail-closed sync

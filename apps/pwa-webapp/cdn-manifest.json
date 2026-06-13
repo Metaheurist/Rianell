@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "description": "Pinned third-party CDN assets for PWA. CI verifies URLs in index.html match this manifest.",
+  "packages": [
+    {
+      "name": "ua-parser-js",
+      "url": "https://cdn.jsdelivr.net/npm/ua-parser-js@1.0.37/dist/ua-parser.min.js",
+      "integrity": "sha384-PLACEHOLDER_RUN_npx_subresource-integrity",
+      "crossOrigin": "anonymous"
+    },
+    {
+      "name": "@supabase/supabase-js",
+      "url": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+      "note": "SRI set on index.html script tag — bump version with manifest"
+    }
+  ],
+  "ePrivacy": {
+    "strictlyNecessaryStorage": [
+      "rianellSettings",
+      "healthLogs",
+      "rianellCookieConsent",
+      "rianellHealthDataConsent",
+      "supabase.auth.token"
+    ],
+    "requiresConsent": [
+      "aiModelDownloadConsent",
+      "contributeAnonData",
+      "non-essential analytics (none today)"
+    ]
+  }
+}

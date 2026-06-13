@@ -1,12 +1,12 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
+import { supabaseAuthStorage } from './secureStorageAdapter';
 
 let singleton: SupabaseClient | null = null;
 
 /**
  * Supabase browser client on web uses `SUPABASE_CONFIG`; on native we use Expo `extra` + env at build time.
- * Returns null when URL/key are missing so UI can show a configuration hint.
+ * Auth session tokens are stored in expo-secure-store via supabaseAuthStorage.
  */
 export function getSupabaseClient(): SupabaseClient | null {
   const extra = Constants.expoConfig?.extra ?? {};
@@ -16,7 +16,7 @@ export function getSupabaseClient(): SupabaseClient | null {
   if (!singleton) {
     singleton = createClient(url, key, {
       auth: {
-        storage: AsyncStorage,
+        storage: supabaseAuthStorage,
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: false,

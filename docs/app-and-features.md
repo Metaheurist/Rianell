@@ -32,6 +32,12 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.50.0 security hardening (consent and cloud erasure)
+
+- **Health data consent (GDPR Art. 9):** PWA modal before first cloud use; RN `healthDataConsent` / `healthDataConsentAt` in preferences. See [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
+- **Unified cloud deletion:** **Delete cloud data** removes rows from **`health_data`**, **`user_keys`**, **`anonymized_data`**, and **`bug_reports`** for the signed-in user (PWA + RN). RN anonymised sync now targets **`anonymized_data`** (not legacy table names).
+- **XSS (P0):** Import preview in **`import-utils.js`** escapes user-derived HTML before display.
+
 ### v1.49.0 platform parity (Capacitor sunset)
 
 - **Two platforms only:** PWA (`apps/pwa-webapp/`) + React Native (`apps/rn-app/`). Legacy Capacitor WebView shell and CI release artifacts removed.
@@ -417,7 +423,9 @@ flowchart LR
 **React Native — Charts & AI (Phase B/C):** **Charts** tab: range chips (7/30/90/all) with **accessibility** labels and selected state, pull-to-refresh; per-metric **spark bars** and **left-border** trend rows use **web-aligned** hex colors (`CHART_METRIC_HEX` in `summarizeCharts.ts`); values and deltas use **format helpers** matching web (integer steps, hydration `X.X glasses`, one decimal for mood/sleep/fatigue). **AI Analysis** tab now includes range-based deterministic sections plus a generated **Summary note** through the RN LLM wrapper and AIEngine fallback path. See **`docs/platform-parity.md`** and **[CHANGELOG.md](CHANGELOG.md)** for ongoing refinements. Quality gates: `npm run typecheck:mobile`, `npm run test:mobile`.
 
 ### Cloud sync (Supabase)
-- **Anonymised contribution**: Optional "Contribute anonymised data" in Settings; GDPR-compliant consent; data anonymised before upload; medical condition used for server-side aggregation only.
+- **Anonymised contribution**: Optional "Contribute anonymised data" in Settings; GDPR-compliant consent; data anonymised before upload; inserts into **`anonymized_data`**; medical condition used for server-side aggregation only.
+- **Health data consent**: Art. 9 modal (PWA) and preference fields (RN) required before cloud backup or anonymised upload.
+- **Cloud erasure**: Settings → delete encrypted backup, anonymised contribution, or **all cloud data** (`health_data`, `user_keys`, `anonymized_data`, `bug_reports`).
 - **Auth**: Sign in / sign out; session state; auth state reflected in sync and settings sync.
 - **Settings sync**: Goals and app settings synced to Supabase when signed in (e.g. app_settings table).
 - **Deploy**: On GitHub Pages, Supabase URL and anon key are injected at deploy time from repository secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`); no credentials in the repo.

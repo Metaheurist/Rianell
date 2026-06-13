@@ -1,17 +1,17 @@
 # =============================================================================
 # Security & dependency audits (reusable only — invoked from ci.yml)
-#
-# Do not add push/pull_request here: that duplicated the same scans when CI also
-# calls this file via workflow_call. Use workflow_dispatch for a manual-only run.
 # =============================================================================
 name: Reusable security audits
 
 on:
   workflow_call:
   workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'
 
 permissions:
   contents: read
+  security-events: write
 
 concurrency:
   group: security-audit-${{ github.workflow }}-${{ github.ref }}
@@ -24,6 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Load scanner versions
+        id: versions
+        run: echo "config=$(cat tools/security-scanners.json)" >> $GITHUB_OUTPUT
+
       - name: Gitleaks (secret scan, working tree)
         run: |
           set -euo pipefail
@@ -32,8 +36,17 @@ jobs:
           chmod +x gitleaks
           ./gitleaks detect --source . --config .gitleaks.toml --no-git --verbose --exit-code 1 --redact
 
+      - name: Verify no service_role in client sources
+        run: node scripts/verify-no-service-role-in-clients.mjs
+
       - name: Verify Supabase RLS baseline SQL (docs)
         run: node scripts/verify-rls-baseline.mjs
+
+      - name: Verify privacy documentation
+        run: node scripts/verify-privacy-docs.mjs
+
+      - name: Verify CSP connect-src
+        run: node scripts/verify-csp-connect-src.mjs
 
       - name: Set up Node
         uses: actions/setup-node@v5
@@ -45,20 +58,56 @@ jobs:
       - name: Install dependencies (npm ci, all workspaces)
         run: npm ci
 
-      # Production/installable deps only: devDependency chains (e.g. legacy Capacitor asset tooling) may
-      # still report highs under a full-tree audit; --omit=dev matches shipped/runtime risk for npm gate.
+      - name: Verify security inventory doc (pull requests)
+        if: github.event_name == 'pull_request'
+        run: |
+          node scripts/generate-security-inventory.mjs
+          git diff --exit-code docs/security-inventory.md
+
       - name: Vulnerability scan — npm audit (production deps)
         run: npm audit --audit-level=high --omit=dev
 
-      # OSV-Scanner (https://github.com/google/osv-scanner) — OSV.dev DB; complements npm audit and pip-audit
+      - name: Vulnerability scan — npm audit (dev, non-blocking)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        run: npm audit --audit-level=moderate
+
       - name: Vulnerability scan — OSV-Scanner (OSV.dev)
         run: |
           set -euo pipefail
           VERSION=2.3.5
           curl -sSfL "https://github.com/google/osv-scanner/releases/download/v${VERSION}/osv-scanner_linux_amd64" -o osv-scanner
           chmod +x osv-scanner
+          ./osv-scanner scan -L package-lock.json --format sarif --output osv-npm.sarif || true
           ./osv-scanner scan -L package-lock.json
           ./osv-scanner scan -L requirements.txt
+
+      - name: Upload OSV SARIF
+        if: always() && hashFiles('osv-npm.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
+        with:
+          sarif_file: osv-npm.sarif
+          category: osv-scanner
+
+      - name: Generate CycloneDX SBOM (artifact)
+        continue-on-error: true
+        run: |
+          npx --yes @cyclonedx/cyclonedx-npm@1.19.0 --output-file sbom.cdx.json --omit dev
+      - uses: actions/upload-artifact@v5
+        if: always() && hashFiles('sbom.cdx.json') != ''
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cdx.json
+
+      - name: Snyk SCA (optional, SNYK_TOKEN)
+        if: env.SNYK_TOKEN != ''
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          npm install -g snyk
+          snyk test --all-projects --severity-threshold=high || true
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -70,3 +119,19 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pip-audit
           pip-audit -r requirements.txt --desc on --ignore-vuln CVE-2026-4539
+
+  gitleaks-history:
+    name: Gitleaks history scan (scheduled)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Gitleaks (git history, main)
+        run: |
+          set -euo pipefail
+          VERSION=8.28.0
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" | tar -xz
+          chmod +x gitleaks
+          ./gitleaks detect --source . --config .gitleaks.toml --verbose --redact || true

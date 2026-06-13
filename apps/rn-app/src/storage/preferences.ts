@@ -17,6 +17,8 @@ export type Preferences = {
   weightUnit: WeightUnit;
   contributeAnonData: boolean;
   useOpenData: boolean;
+  healthDataConsent: boolean;
+  healthDataConsentAt: string | null;
   backup: boolean;
   compress: boolean;
   animations: boolean;
@@ -61,6 +63,8 @@ export function getDefaultPreferences(): Preferences {
     weightUnit: 'kg',
     contributeAnonData: false,
     useOpenData: false,
+    healthDataConsent: false,
+    healthDataConsentAt: null,
     backup: true,
     compress: false,
     animations: true,
@@ -117,6 +121,9 @@ export async function loadPreferences(): Promise<Preferences> {
       weightUnit: parsed.weightUnit === 'lb' ? 'lb' : d.weightUnit,
       contributeAnonData: parsed.contributeAnonData === true,
       useOpenData: parsed.useOpenData === true,
+      healthDataConsent: parsed.healthDataConsent === true,
+      healthDataConsentAt:
+        typeof parsed.healthDataConsentAt === 'string' ? parsed.healthDataConsentAt : d.healthDataConsentAt,
       backup: parsed.backup !== false,
       compress: parsed.compress === true,
       animations: parsed.animations !== false,

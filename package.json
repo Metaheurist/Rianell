@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.49.1",
+  "version": "1.50.0",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp and React Native app",
   "workspaces": [
     "apps/rn-app",
@@ -31,7 +31,10 @@
     "benchmark:web": "npm run web --workspace=@rianell/benchmark-runner",
     "benchmark:expo": "npm run expo --workspace=@rianell/benchmark-runner",
     "benchmark:all": "npm run benchmark",
-    "docs:dependencies": "node scripts/generate-dependencies-doc.mjs"
+    "docs:dependencies": "node scripts/generate-dependencies-doc.mjs",
+    "docs:security-inventory": "node scripts/generate-security-inventory.mjs",
+    "verify:privacy-docs": "node scripts/verify-privacy-docs.mjs",
+    "verify:csp": "node scripts/verify-csp-connect-src.mjs"
   },
   "devDependencies": {
     "@babel/generator": "^7.26.5",
