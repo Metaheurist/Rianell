@@ -5,6 +5,54 @@
     "kind": "web",
     "status": "ok",
     "meta": {
+      "timestamp_utc": "2026-06-13T11:10:18.344Z",
+      "git_sha": "68b4b12d5d4ace7b126b5a2ec5bad1719128b430",
+      "runner": "linux",
+      "node": "v24.14.1",
+      "github_run_id": "27465001801",
+      "github_run_attempt": "1"
+    },
+    "lighthouse": {
+      "FCP_ms": 6739,
+      "LCP_ms": 9131,
+      "TBT_ms": 30,
+      "CLS": 0.0212,
+      "SpeedIndex_ms": 6739,
+      "TTI_ms": 9131
+    },
+    "nav": [
+      {
+        "step": "cold_dom_ready_to_main",
+        "ms": 2090
+      },
+      {
+        "step": "click_nav-logs",
+        "ms": 164
+      },
+      {
+        "step": "click_nav-charts",
+        "ms": 152
+      },
+      {
+        "step": "click_nav-home",
+        "ms": 153
+      },
+      {
+        "step": "open_settings",
+        "ms": 6
+      },
+      {
+        "step": "warm_reload_to_main",
+        "ms": 898
+      }
+    ]
+  },
+  {
+    "schema_version": 1,
+    "slug": "capacitor-web",
+    "kind": "web",
+    "status": "ok",
+    "meta": {
       "timestamp_utc": "2026-06-13T10:47:49.051Z",
       "git_sha": "d6308aa327f67b87f41f76bc2971e7a8245ed31e",
       "runner": "linux",
