@@ -32,6 +32,12 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.53.1 privacy/settings UI fixes
+
+- **Settings carousel:** Nine panes (includes Privacy & region); scrollable dot strip; carousel re-inits on open and locale change.
+- **Policy viewer (PWA):** HTML policy summaries render in the alert modal; confirm-dialog argument order fixed for region change and policy updates.
+- **CI:** Web benchmark settings step no longer throws **`global is not defined`**; mobile **`typecheck:mobile`** passes after RN sync/gate/modal fixes.
+
 ### v1.53.0 Supabase LLM hosting and download gates
 
 - **On-device LLM weights:** Hosted on **Supabase Storage** bucket `llm-models` (~3.5 GB). Large ONNX files split into **47 MB chunks** (free tier 50 MB limit); PWA and RN download parts and reassemble into local cache. See **`apps/pwa-webapp/models/README.md`**.

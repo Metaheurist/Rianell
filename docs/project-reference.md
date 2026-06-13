@@ -2,6 +2,11 @@
 
 ## 🗂️ Project Structure
 
+### v1.53.1 documentation sync (settings/privacy fixes)
+
+- **PWA:** Settings carousel nine panes, policy HTML modal, benchmark **`global` → `window`** fix — see [CHANGELOG.md](CHANGELOG.md) v1.53.1.
+- **RN:** Mobile typecheck fixes in **`sync.ts`**, **`AiModelDownloadGate.tsx`**, **`PolicyDocumentsModal.tsx`**.
+
 ### v1.53.0 documentation sync (LLM scripts + gitignore)
 
 - **Model scripts (repo root):** `models:download`, `models:upload:supabase`, `models:verify` — see [testing-and-configuration.md](testing-and-configuration.md).

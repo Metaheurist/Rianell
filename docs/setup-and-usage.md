@@ -2,6 +2,11 @@
 
 ## ⚙️ Installation
 
+### v1.53.1 validation
+
+- **Web benchmarks:** `node benchmarks/scripts/run-web-benchmarks.mjs` (opens Settings in Playwright).
+- **Mobile typecheck:** `npm run typecheck:mobile`.
+
 ### v1.53.0 Supabase LLM weights (operator)
 
 1. Apply **`supabase/Schema.sql`** (includes `llm-models` public bucket).
