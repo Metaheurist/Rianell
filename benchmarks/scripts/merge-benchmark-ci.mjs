@@ -59,7 +59,7 @@ function copyDir(src, dest) {
 
 fs.mkdirSync(out, { recursive: true });
 
-for (const name of ['web-pwa', 'github-pages', 'capacitor-web', 'tier-matrix', 'settings-matrix', 'full-suite', 'god-mode-suite', 'user-journey-suite', 'source-built', 'ai-engine-package', 'ai-engine-layers', 'ai-engine-algos', 'ai-engine-rn']) {
+for (const name of ['web-pwa', 'github-pages', 'capacitor-web']) {
   const s = path.join(webRoot, name);
   if (fs.existsSync(s)) {
     copyDir(s, path.join(out, name));
@@ -92,7 +92,7 @@ if (!mergedExpo) {
   console.warn('merge-benchmark-ci: no expo-rn/latest.md found under', expoRoot);
 }
 
-const SLUGS = ['web-pwa', 'github-pages', 'capacitor-web', 'expo-rn', 'tier-matrix', 'settings-matrix', 'full-suite', 'ai-engine-package', 'ai-engine-layers', 'ai-engine-algos', 'ai-engine-rn'];
+const SLUGS = ['web-pwa', 'github-pages', 'capacitor-web', 'expo-rn'];
 for (const slug of SLUGS) {
   const latestRun = path.join(out, slug, 'latest.run.json');
   if (!fs.existsSync(latestRun)) {

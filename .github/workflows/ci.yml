@@ -8,11 +8,9 @@
 #                          the only changed paths are under App build/, so bot
 #                          commits do not rebuild APKs or duplicate releases).
 #   2. unit-tests        - `npm run test:unit` + platform parity (web/android/ios) + inventory
-#   2b. benchmarks-web      - Lighthouse + Playwright on minified PWA site (parallel to unit-tests).
-#   2c. benchmarks-toolkit  - Full perf toolkit: 10-cell tier matrix, settings matrix, God mode, user journey, Lighthouse, verify --strict.
-#   2d. benchmarks-expo     - Hermes bundle stats after `expo export` (downloads expo-bundles artifact).
-#   2e. benchmarks-ai-*     - Four parallel AI engine jobs (package, layers, algos, RN).
-#   2f. commit-benchmarks   - push to main/master: merge benchmark Markdown and commit `benchmarks/`.
+#   2b. benchmarks-web   - Lighthouse + Playwright on minified PWA site (parallel to unit-tests).
+#   2c. benchmarks-expo  - Hermes bundle stats after `expo export` (downloads expo-bundles artifact).
+#   2d. commit-benchmarks — push to main/master: merge benchmark Markdown and commit `benchmarks/`.
 #   2e. commit-dependencies-doc — push to main/master: regenerate `docs/dependencies.md` from manifests if drifted.
 #   2f. platform-parity  - Static parity hooks + inventory on every PR/push (web + RN).
 #   3. expo-bundle-prod  - Expo React Native: production JS bundles for Android + iOS
@@ -276,60 +274,6 @@ jobs:
             benchmarks/web-pwa
             benchmarks/github-pages
 
-  benchmarks-toolkit:
-    name: Benchmarks (full perf toolkit)
-    needs: [paths-filter, prepare-minified-assets]
-    if: |
-      github.event_name == 'pull_request' ||
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: "24.14.1"
-          cache: npm
-
-      - name: Install root dependencies
-        run: npm ci
-
-      - name: Download minified prebuild
-        uses: actions/download-artifact@v5
-        with:
-          name: minified-prebuild
-          path: ci-minified
-
-      - name: Install Playwright Chromium
-        run: npx playwright install chromium --with-deps
-
-      - name: Export tier profiles
-        run: npm run export-tier-profiles --workspace=@rianell/benchmark-runner
-
-      - name: Run full benchmark toolkit
-        env:
-          BENCHMARK_REPO_ROOT: ${{ github.workspace }}
-          BENCHMARK_PWA_ROOT: ${{ github.workspace }}/ci-minified/site
-          BENCHMARK_SKIP_BUILD: "1"
-          GITHUB_SHA: ${{ github.sha }}
-          GIT_SHA: ${{ github.sha }}
-        run: npm run full-suite --workspace=@rianell/benchmark-runner -- --strict
-
-      - name: Upload toolkit reports
-        uses: actions/upload-artifact@v5
-        with:
-          name: benchmarks-toolkit
-          path: |
-            benchmarks/tier-matrix
-            benchmarks/settings-matrix
-            benchmarks/user-journey-suite
-            benchmarks/god-mode-suite
-            benchmarks/source-built
-            benchmarks/full-suite
-
   # ---------------------------------------------------------------------------
   # Expo production bundle (minified JS) gate
   # ---------------------------------------------------------------------------
@@ -424,154 +368,11 @@ jobs:
           path: benchmarks/expo-rn
 
   # ---------------------------------------------------------------------------
-  # AI engine benchmarks — four parallel jobs (Node package, PWA layers/algos, RN)
-  # ---------------------------------------------------------------------------
-  benchmarks-ai-package:
-    name: Benchmarks (AI engine — Node package)
-    needs: [paths-filter]
-    if: |
-      github.event_name == 'pull_request' ||
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v5
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: "24.14.1"
-          cache: npm
-      - name: Install root dependencies
-        run: npm ci
-      - name: Run AI package microbench
-        env:
-          BENCHMARK_REPO_ROOT: ${{ github.workspace }}
-          GITHUB_SHA: ${{ github.sha }}
-          GIT_SHA: ${{ github.sha }}
-        run: npm run ai-package --workspace=@rianell/benchmark-runner
-      - name: Upload AI package reports
-        uses: actions/upload-artifact@v5
-        with:
-          name: benchmarks-ai-package
-          path: benchmarks/ai-engine-package
-
-  benchmarks-ai-layers:
-    name: Benchmarks (AI engine — PWA layers)
-    needs: [paths-filter, prepare-minified-assets]
-    if: |
-      github.event_name == 'pull_request' ||
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v5
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: "24.14.1"
-          cache: npm
-      - name: Install root dependencies
-        run: npm ci
-      - name: Download minified prebuild
-        uses: actions/download-artifact@v5
-        with:
-          name: minified-prebuild
-          path: ci-minified
-      - name: Install Playwright Chromium
-        run: npx playwright install chromium --with-deps
-      - name: Run AI layers microbench
-        env:
-          BENCHMARK_REPO_ROOT: ${{ github.workspace }}
-          BENCHMARK_PWA_ROOT: ${{ github.workspace }}/ci-minified/site
-          BENCHMARK_SKIP_BUILD: "1"
-          BENCHMARK_BLOCK_LLM: "1"
-          GITHUB_SHA: ${{ github.sha }}
-          GIT_SHA: ${{ github.sha }}
-        run: npm run ai-layers --workspace=@rianell/benchmark-runner
-      - name: Upload AI layers reports
-        uses: actions/upload-artifact@v5
-        with:
-          name: benchmarks-ai-layers
-          path: benchmarks/ai-engine-layers
-
-  benchmarks-ai-algos:
-    name: Benchmarks (AI engine — PWA algos)
-    needs: [paths-filter, prepare-minified-assets]
-    if: |
-      github.event_name == 'pull_request' ||
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v5
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: "24.14.1"
-          cache: npm
-      - name: Install root dependencies
-        run: npm ci
-      - name: Download minified prebuild
-        uses: actions/download-artifact@v5
-        with:
-          name: minified-prebuild
-          path: ci-minified
-      - name: Install Playwright Chromium
-        run: npx playwright install chromium --with-deps
-      - name: Run AI algos microbench
-        env:
-          BENCHMARK_REPO_ROOT: ${{ github.workspace }}
-          BENCHMARK_PWA_ROOT: ${{ github.workspace }}/ci-minified/site
-          BENCHMARK_SKIP_BUILD: "1"
-          BENCHMARK_BLOCK_LLM: "1"
-          GITHUB_SHA: ${{ github.sha }}
-          GIT_SHA: ${{ github.sha }}
-        run: npm run ai-algos --workspace=@rianell/benchmark-runner
-      - name: Upload AI algos reports
-        uses: actions/upload-artifact@v5
-        with:
-          name: benchmarks-ai-algos
-          path: benchmarks/ai-engine-algos
-
-  benchmarks-ai-rn:
-    name: Benchmarks (AI engine — RN summarize)
-    needs: [paths-filter, unit-tests]
-    if: |
-      github.event_name == 'pull_request' ||
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v5
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: "24.14.1"
-          cache: npm
-      - name: Install root dependencies
-        run: npm ci
-      - name: Run AI RN microbench
-        env:
-          BENCHMARK_REPO_ROOT: ${{ github.workspace }}
-          GITHUB_SHA: ${{ github.sha }}
-          GIT_SHA: ${{ github.sha }}
-        run: npm run ai-rn --workspace=@rianell/benchmark-runner
-      - name: Upload AI RN reports
-        uses: actions/upload-artifact@v5
-        with:
-          name: benchmarks-ai-rn
-          path: benchmarks/ai-engine-rn
-
-  # ---------------------------------------------------------------------------
   # Commit merged benchmarks/ on main/master (artifacts always uploaded from benchmark jobs)
   # ---------------------------------------------------------------------------
   commit-benchmarks:
     name: Commit benchmark reports
-    needs: [benchmarks-web, benchmarks-expo, benchmarks-toolkit, benchmarks-ai-package, benchmarks-ai-layers, benchmarks-ai-algos, benchmarks-ai-rn]
+    needs: [benchmarks-web, benchmarks-expo]
     if: |
       github.event_name == 'push' &&
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
@@ -600,52 +401,8 @@ jobs:
           name: benchmarks-expo
           path: be
 
-      - name: Download toolkit benchmark artifact
-        uses: actions/download-artifact@v5
-        continue-on-error: true
-        with:
-          name: benchmarks-toolkit
-          path: bt
-
-      - name: Download AI package benchmark artifact
-        uses: actions/download-artifact@v5
-        continue-on-error: true
-        with:
-          name: benchmarks-ai-package
-          path: bap
-
-      - name: Download AI layers benchmark artifact
-        uses: actions/download-artifact@v5
-        continue-on-error: true
-        with:
-          name: benchmarks-ai-layers
-          path: bl
-
-      - name: Download AI algos benchmark artifact
-        uses: actions/download-artifact@v5
-        continue-on-error: true
-        with:
-          name: benchmarks-ai-algos
-          path: baa
-
-      - name: Download AI RN benchmark artifact
-        uses: actions/download-artifact@v5
-        continue-on-error: true
-        with:
-          name: benchmarks-ai-rn
-          path: brn
-
       - name: Merge reports and update index
-        run: |
-          node benchmarks/scripts/merge-benchmark-ci.mjs bw be "${{ github.workspace }}"
-          for d in tier-matrix settings-matrix user-journey-suite god-mode-suite source-built full-suite; do
-            if [ -d "bt/$d" ]; then cp -r "bt/$d" benchmarks/; fi
-          done
-          for src in bap:ai-engine-package bl:ai-engine-layers baa:ai-engine-algos brn:ai-engine-rn; do
-            dir="${src%%:*}"
-            slug="${src##*:}"
-            if [ -d "$dir/$slug" ]; then cp -r "$dir/$slug" benchmarks/; fi
-          done
+        run: node benchmarks/scripts/merge-benchmark-ci.mjs bw be "${{ github.workspace }}"
 
       - name: Commit and push benchmarks
         run: |

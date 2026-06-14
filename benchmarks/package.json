@@ -9,25 +9,7 @@
     "all": "node scripts/run-all.mjs",
     "compare": "node scripts/generate-benchmark-compare.mjs",
     "update-readme": "node scripts/update-benchmarks-readme.mjs",
-    "playwright:install": "playwright install chromium",
-    "export-tier-profiles": "node scripts/export-tier-profiles.mjs",
-    "tier-matrix": "node scripts/toolkit/run-tier-matrix.mjs",
-    "settings-matrix": "node scripts/toolkit/run-settings-matrix.mjs",
-    "god-mode": "node scripts/toolkit/run-god-mode-suite.mjs",
-    "user-journey": "node scripts/toolkit/run-user-journey.mjs",
-    "full-suite": "node scripts/toolkit/run-full-suite.mjs",
-    "toolkit:verify": "node scripts/toolkit/verify-regression.mjs",
-    "prepare-site": "node scripts/toolkit/prepare-site.mjs",
-    "from-source": "node scripts/toolkit/run-from-source.mjs",
-    "ai-package": "node scripts/toolkit/run-ai-engine-package.mjs",
-    "ai-layers": "node scripts/toolkit/run-ai-engine-layers.mjs",
-    "ai-algos": "node scripts/toolkit/run-ai-engine-algos.mjs",
-    "ai-rn": "node scripts/toolkit/run-ai-engine-rn.mjs",
-    "ai-verify": "node scripts/toolkit/verify-ai-engine.mjs",
-    "ai-all": "node scripts/toolkit/run-ai-engine-all.mjs"
-  },
-  "dependencies": {
-    "@rianell/ai-engine": "file:../packages/ai-engine"
+    "playwright:install": "playwright install chromium"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",

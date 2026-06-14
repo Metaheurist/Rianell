@@ -59,7 +59,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | <img src="docs/icons/home.svg" width="32" height="32" alt="" aria-hidden="true"> | **[App overview & features](docs/app-and-features.md)** - UI, behaviour, screenshots |
 | <img src="docs/icons/settings.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Installation & usage](docs/setup-and-usage.md)** - server, GitHub Pages, React/Android |
 | <img src="docs/icons/flask.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Testing & configuration](docs/testing-and-configuration.md)** |
-| <img src="docs/icons/timer.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Performance benchmarks](benchmarks/README.md)** - reports and tooling under `benchmarks/`; run `npm run benchmark` or **`npm run benchmark:tier-matrix`** for tier 1–5 perf matrix |
+| <img src="docs/icons/timer.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Performance benchmarks](benchmarks/README.md)** - reports and tooling under `benchmarks/`; run `npm run benchmark` |
 | <img src="docs/icons/brain.svg" width="32" height="32" alt="" aria-hidden="true"> | **[AI architecture](docs/ai-architecture.md)** |
 | <img src="docs/icons/folder.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Project reference](docs/project-reference.md)** - tree, deps, dev, GDPR, troubleshooting, security notes |
 | <img src="docs/icons/paperclip.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Dependencies](docs/dependencies.md)** - generated inventory (`npm run docs:dependencies`; CI sync on `main`) — npm workspaces, Python, CDN/runtime, CI tooling |

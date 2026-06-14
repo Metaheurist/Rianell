@@ -39,147 +39,6 @@ function shouldEnableRianellServiceWorker() {
   }
 }
 
-// Benchmark test hooks register early
-(function initBenchmarkTestHooksEarly() {
-  try {
-    var params = typeof URLSearchParams !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    if (!params || !params.has('benchmark_test')) return;
-    window.__rianellTestHooks = window.__rianellTestHooks || {};
-    var hooks = window.__rianellTestHooks;
-    hooks.injectPerformanceTier = hooks.injectPerformanceTier || function (tier, platformType) {
-        tier = Math.max(1, Math.min(5, Math.floor(tier || 3)));
-        platformType = platformType === 'mobile' ? 'mobile' : 'desktop';
-        var payload = { platformType: platformType, tier: tier, scoreMs: 0, injected: true, ts: Date.now(), version: 4 };
-        try { localStorage.setItem('rianellPerfBenchmark', JSON.stringify(payload)); } catch (e) {}
-        if (window.DeviceBenchmark && typeof window.DeviceBenchmark.saveBenchmarkResult === 'function') {
-          window.DeviceBenchmark.saveBenchmarkResult(platformType, tier, { injected: true });
-        }
-        if (window.PerformanceUtils && typeof window.PerformanceUtils.applyBenchmarkToPlatform === 'function') {
-          window.PerformanceUtils.applyBenchmarkToPlatform();
-        }
-      };
-    hooks.getAiBenchMeta = hooks.getAiBenchMeta || function () {
-        var gpu = 'unknown';
-        try { if (window.tf && typeof window.tf.getBackend === 'function') gpu = window.tf.getBackend(); } catch (e) {}
-        return {
-          hasAIEngine: !!window.AIEngine,
-          tier: window.DeviceBenchmark && window.DeviceBenchmark.getPerformanceTier ? window.DeviceBenchmark.getPerformanceTier() : null,
-          platform: window.DeviceBenchmark && window.DeviceBenchmark.getPlatformTypeCached ? window.DeviceBenchmark.getPlatformTypeCached()
-            : (window.DeviceBenchmark && window.DeviceBenchmark.getPlatformType ? window.DeviceBenchmark.getPlatformType() : null),
-          gpu_backend: gpu,
-          deferAI: window.PerformanceUtils && window.PerformanceUtils.getDeviceOpts ? !!window.PerformanceUtils.getDeviceOpts().deferAI : null,
-        };
-      };
-    hooks.runAiLayerBenchmark = hooks.runAiLayerBenchmark || async function (fixtureId, opts) {
-        opts = opts || {};
-        var fixtures = window.__rianellAiFixtures || {};
-        var raw = fixtures[fixtureId];
-        if (!raw || !raw.length) return { error: 'missing_fixture', fixtureId: fixtureId };
-        var logs = JSON.parse(JSON.stringify(raw));
-        if (window.PerformanceUtils && window.PerformanceUtils.ensureAIEngineLoaded) await window.PerformanceUtils.ensureAIEngineLoaded();
-        if (opts.warmGpu && window.AIEngine && window.AIEngine.warmGPUBackend) await window.AIEngine.warmGPUBackend();
-        var AI = window.AIEngine;
-        if (!AI || !AI.NeuralAnalysisNetwork) return { error: 'no_ai_engine' };
-        var catalog = window.__rianellAiCatalog || {};
-        var layerDefs = catalog.layers || [];
-        var medianRuns = opts.medianRuns || (window.__rianellAiBenchOpts && window.__rianellAiBenchOpts.medianRuns) || 1;
-        function emptyAnalysis() {
-          return { trends: {}, correlations: [], anomalies: [], advice: [], patterns: [], riskFactors: [], prioritisedInsights: [], summary: '' };
-        }
-        async function timeProbe(asyncFn, runs) {
-          var samples = [];
-          for (var i = 0; i < runs; i++) {
-            if (AI.resetBenchmarkLayerInputCache) AI.resetBenchmarkLayerInputCache();
-            var t0 = performance.now();
-            await asyncFn();
-            samples.push(performance.now() - t0);
-          }
-          samples.sort(function (a, b) { return a - b; });
-          return { ms: Math.round(samples[samples.length - 1]), ms_median: Math.round(samples[Math.floor(samples.length / 2)]) };
-        }
-        var trainingLogs = logs, recentLogs = logs, layers = {};
-        for (var li = 0; li < layerDefs.length; li++) {
-          var def = layerDefs[li];
-          if (def.id === 'forward_full') continue;
-          var runs = def.id === 'layerInput' ? (parseInt(String(medianRuns), 10) || 1) : 1;
-          if (def.id === 'layerInput') {
-            layers[def.id] = await timeProbe(async function () {
-              var net = new AI.NeuralAnalysisNetwork(AI);
-              await net.layerInput({ trainingLogs: trainingLogs, recentLogs: recentLogs, analysis: emptyAnalysis(), predictionState: { lastPredictions: {}, blendWeights: {} } });
-            }, runs);
-          } else {
-            var net = new AI.NeuralAnalysisNetwork(AI);
-            if (AI.resetBenchmarkLayerInputCache) AI.resetBenchmarkLayerInputCache();
-            var context = { trainingLogs: trainingLogs, recentLogs: recentLogs, analysis: emptyAnalysis(), predictionState: { lastPredictions: {}, blendWeights: {} } };
-            await net.layerInput(context);
-            var t0 = performance.now();
-            if (def.async) await net[def.method](context); else net[def.method](context);
-            layers[def.id] = { ms: Math.round(performance.now() - t0), ms_median: Math.round(performance.now() - t0) };
-          }
-        }
-        layers.forward_full = await timeProbe(async function () {
-          await new AI.NeuralAnalysisNetwork(AI).forward(logs, logs, {});
-        }, parseInt(String(medianRuns), 10) || 1);
-        return { fixtureId: fixtureId, layers: layers, meta: hooks.getAiBenchMeta() };
-      };
-    hooks.runAiAlgoBenchmark = hooks.runAiAlgoBenchmark || async function (algoId, fixtureId) {
-        var fixtures = window.__rianellAiFixtures || {}, raw = fixtures[fixtureId];
-        if (!raw || !raw.length) return { error: 'missing_fixture', fixtureId: fixtureId };
-        var logs = JSON.parse(JSON.stringify(raw));
-        if (window.PerformanceUtils && window.PerformanceUtils.ensureAIEngineLoaded) await window.PerformanceUtils.ensureAIEngineLoaded();
-        var AI = window.AIEngine;
-        if (!AI) return { error: 'no_ai_engine' };
-        var algo = null;
-        var algos = (window.__rianellAiCatalog && window.__rianellAiCatalog.algos) || [];
-        for (var ai = 0; ai < algos.length; ai++) { if (algos[ai].id === algoId) { algo = algos[ai]; break; } }
-        if (!algo) return { error: 'unknown_algo', algoId: algoId };
-        var dataPoints = logs.map(function (l, idx) { return { x: idx, y: parseInt(l.mood, 10) || 0 }; });
-        var values = logs.map(function (l) { return parseInt(l.mood, 10) || 0; });
-        var points2d = logs.map(function (l, idx) { return { x: idx, y: parseInt(l.fatigue, 10) || 0 }; });
-        var xs = logs.map(function (l) { return parseInt(l.mood, 10) || 0; });
-        var ys = logs.map(function (l) { return parseInt(l.sleep, 10) || 0; });
-        var analysis = { trends: {}, correlations: [], anomalies: [], advice: [], patterns: [], riskFactors: [], prioritisedInsights: [], summary: '' };
-        var fn = AI[algo.call];
-        if (typeof fn !== 'function') return { error: 'missing_method', call: algo.call };
-        var t0 = performance.now();
-        switch (algo.input) {
-          case 'dataPoints':
-            if (algo.call === 'performPolynomialRegression') fn.call(AI, dataPoints, 2); else fn.call(AI, dataPoints); break;
-          case 'xyArrays': fn.call(AI, xs, ys); break;
-          case 'points2d': fn.call(AI, points2d, 3); break;
-          case 'values':
-            if (algo.call === 'performARIMAForecast') fn.call(AI, values, 1, 0, 0);
-            else if (algo.call === 'calculateMovingAverage') fn.call(AI, values, 7);
-            else if (algo.call === 'performExponentialSmoothing') fn.call(AI, values, 0.3);
-            else fn.call(AI, values);
-            break;
-          case 'logsAnalysis': fn.call(AI, logs, analysis); break;
-          default: return { error: 'unknown_input', input: algo.input };
-        }
-        return { algoId: algoId, fixtureId: fixtureId, ms: Math.round(performance.now() - t0) };
-      };
-    window.__rianellBenchmarkLite = true;
-    window.__rianellSkipAppBoot = true;
-    function finishBenchmarkLiteShell() {
-      var overlay = document.getElementById('loadingOverlay');
-      if (overlay) overlay.classList.add('hidden');
-      if (document.body) {
-        document.body.classList.remove('loading');
-        document.body.classList.add('loaded');
-        try { document.body.setAttribute('data-benchmark', 'main-ready'); } catch (e2) {}
-      }
-      if (window.PerformanceUtils && typeof window.PerformanceUtils.applyBenchmarkToPlatform === 'function') {
-        window.PerformanceUtils.applyBenchmarkToPlatform();
-      }
-    }
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', finishBenchmarkLiteShell, { once: true });
-    } else {
-      finishBenchmarkLiteShell();
-    }
-  } catch (e) {}
-})();
-
 /** True when startup should not delete Cache Storage (SW manages caches). Sync with shouldEnableRianellServiceWorker. */
 function rianellSwManagesCaches() {
   return shouldEnableRianellServiceWorker();
@@ -20199,75 +20058,8 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 }, true);
 
-// Initialize remaining benchmark test hooks (after app symbols exist; merges with early AI hooks).
-(function initBenchmarkTestHooks() {
-  try {
-    var params = typeof URLSearchParams !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    if (!params || !params.has('benchmark_test')) return;
-    var base = window.__rianellTestHooks || {};
-    window.__rianellTestHooks = Object.assign(base, {
-      injectPerformanceTier: function (tier, platformType) {
-        tier = Math.max(1, Math.min(5, Math.floor(tier || 3)));
-        platformType = platformType === 'mobile' ? 'mobile' : 'desktop';
-        var payload = {
-          platformType: platformType,
-          tier: tier,
-          scoreMs: 0,
-          injected: true,
-          ts: Date.now(),
-          version: 4
-        };
-        try { localStorage.setItem('rianellPerfBenchmark', JSON.stringify(payload)); } catch (e) {}
-        if (window.DeviceBenchmark && typeof window.DeviceBenchmark.saveBenchmarkResult === 'function') {
-          window.DeviceBenchmark.saveBenchmarkResult(platformType, tier, { injected: true });
-        }
-        if (window.PerformanceUtils && typeof window.PerformanceUtils.applyBenchmarkToPlatform === 'function') {
-          window.PerformanceUtils.applyBenchmarkToPlatform();
-        }
-      },
-      setAppSettings: function (patch) {
-        if (!patch || typeof patch !== 'object') return;
-        try {
-          var prev = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
-          var next = Object.assign({}, prev, patch);
-          localStorage.setItem('rianellSettings', JSON.stringify(next));
-          if (typeof appSettings !== 'undefined') Object.assign(appSettings, patch);
-        } catch (e) {}
-      },
-      enableDemoMode: function () {
-        if (typeof appSettings !== 'undefined' && !appSettings.demoMode && typeof toggleDemoMode === 'function') {
-          toggleDemoMode();
-        } else if (typeof appSettings !== 'undefined') {
-          appSettings.demoMode = true;
-          try { localStorage.setItem('rianellSettings', JSON.stringify(appSettings)); } catch (e2) {}
-        }
-      },
-      openGodMode: function () {
-        openModalTestOverlay();
-      },
-      getDeviceOpts: function () {
-        return window.PerformanceUtils && window.PerformanceUtils.getDeviceOpts
-          ? window.PerformanceUtils.getDeviceOpts() : {};
-      },
-      getActiveProfile: function () {
-        if (!window.DeviceBenchmark || typeof window.DeviceBenchmark.getFullProfile !== 'function') return {};
-        var pt = window.DeviceBenchmark.getPlatformTypeCached
-          ? window.DeviceBenchmark.getPlatformTypeCached()
-          : window.DeviceBenchmark.getPlatformType();
-        var tier = window.DeviceBenchmark.getPerformanceTier();
-        return window.DeviceBenchmark.getFullProfile(pt, tier, {});
-      },
-      seedDemoLogs: function () {
-        if (typeof appSettings !== 'undefined' && !appSettings.demoMode) this.enableDemoMode();
-      }
-    });
-  } catch (e) {}
-})();
-
-function runRianellBootAfterDomReady() {
-  if (window.__rianellSkipAppBoot) return;
-  if (window.__rianellBootAfterDomStarted) return;
-  window.__rianellBootAfterDomStarted = true;
+﻿// Initialize the app
+window.addEventListener('load', () => {
   // Show loading overlay immediately (body.loading keeps overlay visible via CSS)
   const loadingOverlay = document.getElementById('loadingOverlay');
   const loadingTextEl = loadingOverlay ? loadingOverlay.querySelector('.loading-text') : null;
@@ -20373,6 +20165,24 @@ function runRianellBootAfterDomReady() {
   }
   
   // Date range and chart section must be set before createCombinedChart (skipRefresh so we don't run createCombinedChart twice)
+  if (window.RianellI18n && typeof window.RianellI18n.onLocaleChange === 'function') {
+    window.RianellI18n.onLocaleChange(function () {
+      // Do not call applyDocumentI18n here ÔÇö it already ran before notifyLocaleChange and would recurse infinitely.
+      if (typeof updateHomeTodayPanel === 'function') updateHomeTodayPanel();
+      if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
+      if (typeof refreshLogWizardDynamicI18n === 'function') refreshLogWizardDynamicI18n();
+      if (typeof updateLogWizardChrome === 'function') {
+        var logTabEl = document.getElementById('logTab');
+        if (tabNameRef === 'log' || (logTabEl && logTabEl.classList.contains('active'))) {
+          updateLogWizardChrome();
+        }
+      }
+      if (typeof refreshChartsForCurrentRange === 'function') refreshChartsForCurrentRange();
+      if (typeof displayAISummary === 'function' && document.getElementById('aiTab') && document.getElementById('aiTab').classList.contains('active')) {
+        displayAISummary();
+      }
+    });
+  }
   try {
     initializeDateFilters();
     setChartDateRange(30, { skipRefresh: true });
@@ -20519,7 +20329,7 @@ function runRianellBootAfterDomReady() {
         }
       });
     }).catch(function () {
-      /* deferred consent or download failure — still reveal shell */
+      /* deferred consent or download failure ÔÇö still reveal shell */
     }).then(function () {
       window.__rianellAiPreloadedDuringBoot = true;
       revealAppShell();
@@ -20604,14 +20414,13 @@ function runRianellBootAfterDomReady() {
   if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.runBenchmarkIfNeeded === 'function') {
     window.DeviceBenchmark.runBenchmarkIfNeeded(
       function (pct, meta) {
-        var label = meta && meta.label ? (' · ' + meta.label) : '';
-        var measureLabel = (typeof tUi === 'function' ? tUi('common.measuring.performance') : 'Measuring performance…');
-        if (measureLabel === 'common.measuring.performance') measureLabel = 'Measuring performance…';
-        if (loadingTextEl) loadingTextEl.textContent = measureLabel + (pct > 0 ? ' ' + pct + '%' : '') + label;
+        var label = meta && meta.label ? (' ┬À ' + meta.label) : '';
+        if (loadingTextEl) loadingTextEl.textContent = tUi('common.measuring.performance') + (pct > 0 ? ' ' + pct + '%' : '') + label;
         setOrbitLoadingProgress(pct);
       },
       function (tier, platformType, result, meta) {
         setOrbitLoadingProgress(100);
+        // Persist benchmark immediately so refreshes do not re-enter first-run flow.
         if (
           result &&
           typeof window !== 'undefined' &&
@@ -20628,7 +20437,7 @@ function runRianellBootAfterDomReady() {
           /* index.html hides body > *:not(#loadingOverlay) until .loaded - without this, the first-run
              benchmark modal is visibility:hidden and Continue never fires; runAppInit never runs (stuck). */
           document.body.classList.add('loaded');
-          /* Show results modal only after a fresh benchmark — skip when reusing cached tier/profile. */
+          /* Show results modal only after a fresh benchmark ÔÇö skip when reusing cached tier/profile. */
           if (meta && meta.cached) {
             startAppAfterPrivacyGate();
             return;
@@ -20652,17 +20461,7 @@ function runRianellBootAfterDomReady() {
 
   (typeof loadMotdJson === 'function' ? loadMotdJson() : Promise.resolve()).then(startAfterMotd, startAfterMotd);
   initVoiceInputControls();
-}
-
-/** Do not wait for window load (fonts/CDN subresources can hang forever and block the shell). */
-function scheduleRianellBootAfterDomReady() {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', runRianellBootAfterDomReady, { once: true });
-  } else {
-    runRianellBootAfterDomReady();
-  }
-}
-scheduleRianellBootAfterDomReady();
+});
 
 function initializeDateFilters() {
   const today = new Date();

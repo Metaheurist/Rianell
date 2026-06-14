@@ -1,10 +1,23 @@
 /**
  * Serves PWA / Capacitor dist folders, runs Lighthouse (median of 3) + navigation timings, writes Markdown.
+ *
+ * Env:
+ *   BENCHMARK_PWA_ROOT   — static site root (default: apps/pwa-webapp/.android-dist or apps/pwa-webapp)
+ *   BENCHMARK_REPO_ROOT  — repo root (default: ../.. from this file)
  */
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { runWebProfile } from './lib/run-web-profile.mjs';
+import { writeBenchmarkMd } from '../reporters/write-md.mjs';
+import {
+  benchmarkMetaBase,
+  buildWebRunPayload,
+  buildWebSkippedPayload,
+  writeLatestRunJson,
+} from '../reporters/write-run-json.mjs';
+import { startStaticServer } from './lib/static-server.mjs';
+import { lighthouseMedian } from './lib/lighthouse-run.mjs';
+import { measureNavigationTimings } from './lib/navigation-timing.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = process.env.BENCHMARK_REPO_ROOT || path.resolve(__dirname, '..', '..');
@@ -17,22 +30,89 @@ function pickPwaRootSync() {
   return path.join(REPO_ROOT, 'apps', 'pwa-webapp');
 }
 
+function meta() {
+  return {
+    timestamp_utc: new Date().toISOString(),
+    git_sha: process.env.GITHUB_SHA || process.env.GIT_SHA || 'local',
+    runner: process.platform,
+    node: process.version,
+  };
+}
+
+async function runOneProfile({ slug, title, startPath, note }) {
+  const root = startPath.root;
+  const entry = startPath.entry;
+  if (!fs.existsSync(path.join(root, 'index.html')) && !fs.existsSync(path.join(root, 'legacy', 'index.html'))) {
+    throw new Error(`Benchmark root missing index: ${root} (expected index.html or legacy/index.html)`);
+  }
+
+  const server = await startStaticServer(root);
+  const base = `http://127.0.0.1:${server.port}`;
+  const url = entry.startsWith('http') ? entry : new URL(entry, `${base}/`).href;
+
+  let lh;
+  let nav;
+  try {
+    lh = await lighthouseMedian(url, 3);
+    nav = await measureNavigationTimings(url, { useBottomNav: false });
+  } finally {
+    await server.close();
+  }
+
+  const lhRows = [
+    { metric: 'FCP', median_ms: lh.median.FCP_ms, unit: 'ms' },
+    { metric: 'LCP', median_ms: lh.median.LCP_ms, unit: 'ms' },
+    { metric: 'TBT', median_ms: lh.median.TBT_ms, unit: 'ms' },
+    { metric: 'CLS', median_value: lh.median.CLS, unit: 'score' },
+    { metric: 'SpeedIndex', median_ms: lh.median.SpeedIndex_ms, unit: 'ms' },
+    { metric: 'TTI', median_ms: lh.median.TTI_ms, unit: 'ms' },
+  ];
+
+  const navRows = nav.map((r) => ({ step: r.step, ms: r.ms }));
+  const runMeta = benchmarkMetaBase();
+
+  const sections = [
+    { title: 'Lighthouse performance (median of 3 runs, desktop, no throttling)', rows: lhRows },
+    { title: 'Navigation / interaction (Playwright, ms)', rows: navRows },
+  ];
+  if (note) {
+    sections.push({ title: 'Notes', rows: [{ detail: note }] });
+  }
+
+  writeBenchmarkMd({
+    platformTitle: title,
+    slug,
+    repoRoot: REPO_ROOT,
+    meta: runMeta,
+    sections,
+  });
+
+  writeLatestRunJson(
+    REPO_ROOT,
+    slug,
+    buildWebRunPayload({
+      slug,
+      meta: runMeta,
+      lighthouseMedian: lh.median,
+      nav,
+    }),
+  );
+}
+
 async function main() {
   const pwaRoot = pickPwaRootSync();
 
-  await runWebProfile({
+  await runOneProfile({
     slug: 'web-pwa',
     title: 'Web / PWA (static minified or dev tree)',
-    root: pwaRoot,
-    entry: '/index.html',
+    startPath: { root: pwaRoot, entry: '/index.html' },
     note: 'Uses minified tree from `apps/pwa-webapp/.android-dist` when present (run `npm run build:web:apk`).',
   });
 
-  await runWebProfile({
+  await runOneProfile({
     slug: 'github-pages',
     title: 'GitHub Pages (equivalent static build)',
-    root: pwaRoot,
-    entry: '/index.html',
+    startPath: { root: pwaRoot, entry: '/index.html' },
     note: 'Same artifact as the PWA row; CI deploys this shape to GitHub Pages (`site/` from minified workflow).',
   });
 

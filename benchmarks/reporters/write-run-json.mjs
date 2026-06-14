@@ -3,7 +3,6 @@ import path from 'path';
 
 /** @typedef {1} BenchmarkRunSchemaVersion */
 export const BENCHMARK_RUN_SCHEMA_VERSION = 1;
-export const BENCHMARK_RUN_SCHEMA_VERSION_V4 = 4;
 
 /**
  * @returns {Record<string, string>}
@@ -126,59 +125,6 @@ export function buildExpoSkippedPayload({ meta, reason }) {
     status: 'skipped',
     meta,
     skip_reason: reason,
-  };
-}
-
-/**
- * @param {object} opts
- * @param {string} opts.slug
- * @param {Record<string, string>} opts.meta
- * @param {object[]} opts.runs
- * @param {object} [opts.optimization]
- * @param {string} [opts.kind]
- * @param {number[]} [opts.llm_blocked_tiers]
- */
-export function buildTierMatrixPayload({
-  slug,
-  meta,
-  runs,
-  optimization = {},
-  kind = 'tier_performance',
-  llm_blocked_tiers = [1, 2],
-}) {
-  const allOk = runs.every((r) => r.status === 'ok');
-  return {
-    schema_version: BENCHMARK_RUN_SCHEMA_VERSION_V4,
-    slug,
-    kind,
-    status: allOk ? 'ok' : 'fail',
-    meta: { ...meta, matrix: `${runs.length}-cell`, llm_blocked_tiers },
-    runs,
-    optimization,
-  };
-}
-
-/**
- * @param {object} opts
- * @param {string} opts.slug
- * @param {string} opts.kind
- * @param {Record<string, string>} opts.meta
- * @param {object[]} opts.probes
- * @param {object} [opts.optimization]
- */
-export function buildAiEnginePayload({ slug, kind, meta, probes, optimization = {} }) {
-  const allOk = probes.every((p) => p.status === 'ok');
-  return {
-    schema_version: BENCHMARK_RUN_SCHEMA_VERSION_V4,
-    slug,
-    kind,
-    status: allOk ? 'ok' : 'fail',
-    meta: {
-      ...meta,
-      probe_count: probes.length,
-    },
-    probes,
-    optimization,
   };
 }
 
