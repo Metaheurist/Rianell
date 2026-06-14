@@ -14,6 +14,7 @@
   var downloadProgressState = { pct: 0, status: 'idle', file: '', active: false };
   var downloadCancelled = false;
   var lastDownloadError = null;
+  var loadGeneration = 0;
   var MAX_SUMMARY_CACHE = 8;
   var MAX_SUGGEST_CACHE = 5;
   var MAX_HOME_QUESTION_CACHE = 8;
@@ -214,21 +215,83 @@
     mod.env.remotePathTemplate = remotePathTemplate;
   }
 
-  async function probeModelsHost(baseUrl, modelId) {
+  function applyHuggingFaceRemote(mod) {
+    applyTransformersRemote(mod, 'https://huggingface.co/', '{model}/resolve/{revision}/');
+  }
+
+  function firstChunkPathFromManifest(manifest, modelId) {
+    if (!manifest || !Array.isArray(manifest.models)) return null;
+    var model = manifest.models.find(function (m) { return m && m.id === modelId; });
+    if (!model || !Array.isArray(model.files)) return null;
+    for (var i = 0; i < model.files.length; i += 1) {
+      var entry = model.files[i];
+      if (entry && typeof entry === 'object' && Array.isArray(entry.chunks) && entry.chunks.length) {
+        return entry.chunks[0];
+      }
+    }
+    return null;
+  }
+
+  function buildSelfHostedModelFileUrl(baseUrl, modelId, revision, filePath) {
+    var base = String(baseUrl || '/').replace(/\/?$/, '/');
+    var rev = revision || 'main';
+    var p = String(filePath || '').replace(/^\/+/, '');
+    return base + 'models/' + modelId + '/resolve/' + rev + '/' + p;
+  }
+
+  async function probeChunkReachable(chunkUrl) {
+    try {
+      var res = await fetch(chunkUrl, {
+        method: 'GET',
+        cache: 'no-cache',
+        headers: { Range: 'bytes=0-0' }
+      });
+      return !!(res && (res.ok || res.status === 206));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /** Self-hosted weights must expose manifest *and* at least one chunk when manifest lists parts. */
+  async function probeSelfHostedModelsHost(baseUrl, modelId) {
     if (!baseUrl) return false;
     var base = String(baseUrl).replace(/\/?$/, '/');
-    // GET (not HEAD): Supabase public storage and some browsers block HEAD under CORS.
-    var candidates = [
-      base + 'models/manifest.json',
-      base + 'models/' + modelId + '/resolve/main/config.json'
-    ];
-    for (var i = 0; i < candidates.length; i++) {
+    try {
+      var manRes = await fetch(base + 'models/manifest.json', { method: 'GET', cache: 'no-cache' });
+      if (manRes && manRes.ok) {
+        var manifest = await manRes.json();
+        var chunkPath = firstChunkPathFromManifest(manifest, modelId);
+        if (chunkPath) {
+          return probeChunkReachable(buildSelfHostedModelFileUrl(base, modelId, 'main', chunkPath));
+        }
+      }
+    } catch (e) {}
+    try {
+      var cfgRes = await fetch(
+        base + 'models/' + modelId + '/resolve/main/config.json',
+        { method: 'GET', cache: 'no-cache' }
+      );
+      return !!(cfgRes && cfgRes.ok);
+    } catch (e2) {
+      return false;
+    }
+  }
+
+  async function probeModelsHost(baseUrl, modelId) {
+    return probeSelfHostedModelsHost(baseUrl, modelId);
+  }
+
+  function failDownloadProgress(errorMsg) {
+    downloadProgressState.active = false;
+    lastDownloadError = errorMsg ? String(errorMsg) : 'Download failed';
+    if (typeof window !== 'undefined' && typeof window.hideAiModelDownloadProgressUI === 'function') {
+      window.hideAiModelDownloadProgressUI();
+    }
+    if (typeof window !== 'undefined') {
       try {
-        var res = await fetch(candidates[i], { method: 'GET', cache: 'no-cache' });
-        if (res && res.ok) return true;
+        window.dispatchEvent(new CustomEvent('rianell-llm-download-progress', { detail: downloadProgressState }));
       } catch (e) {}
     }
-    return false;
   }
 
   async function resolveModelsRemote(mod, modelId) {
@@ -255,11 +318,11 @@
       applyTransformersRemote(mod, originBase, pathTemplate);
       return 'app-origin';
     }
-    applyTransformersRemote(mod, 'https://huggingface.co/', '{model}/resolve/{revision}/');
+    applyHuggingFaceRemote(mod);
     if (typeof console !== 'undefined' && console.warn) {
       console.warn(
-        'Summary LLM: using Hugging Face fallback for model files (Supabase/origin probe failed). ' +
-          'Chunked Supabase weights are not loaded from huggingface.co/manifest.json.'
+        'Summary LLM: using Hugging Face fallback for model files (Supabase/origin probe failed or chunks missing). ' +
+          'For production, inject SUPABASE_URL on deploy and upload weights via npm run models:upload:supabase.'
       );
     }
     return 'huggingface';
@@ -394,6 +457,15 @@
     }
   }
 
+  function bumpLoadGeneration() {
+    loadGeneration += 1;
+    return loadGeneration;
+  }
+
+  function isStaleLoad(gen) {
+    return gen !== loadGeneration || downloadCancelled;
+  }
+
   async function ensurePipelineLoaded(options) {
     options = options || {};
     if (downloadCancelled) throw new Error('AI model download deferred');
@@ -410,6 +482,7 @@
     downloadProgressState.active = true;
     downloadCancelled = false;
     lastDownloadError = null;
+    var myGen = loadGeneration;
     reportDownloadProgress({ status: 'initiate', progress: 0, file: modelId });
 
     var mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.2');
@@ -421,7 +494,20 @@
       typeof window !== 'undefined' &&
       (modelsSource === 'supabase' || modelsSource === 'app-origin')
     ) {
-      await ensureChunkedModelArtifacts(remoteHost, modelId, mod);
+      try {
+        await ensureChunkedModelArtifacts(remoteHost, modelId, mod);
+      } catch (chunkErr) {
+        var chunkMsg = (chunkErr && chunkErr.message) ? String(chunkErr.message) : 'Chunk download failed';
+        if (typeof console !== 'undefined' && console.warn) {
+          console.warn(
+            'Summary LLM: chunked preload failed (' + modelsSource + '), falling back to Hugging Face:',
+            chunkMsg
+          );
+        }
+        applyHuggingFaceRemote(mod);
+        modelsSource = 'huggingface';
+        remoteHost = mod.env && mod.env.remoteHost;
+      }
     }
     var device = getPreferredDevice();
     var pipelineOpts = { revision: 'main' };
@@ -433,12 +519,14 @@
 
     try {
       cachedPipeline = await loadPipeline(pipelineOpts);
+      if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
       cachedModelId = modelId;
       lastDownloadError = null;
       finishDownloadProgress();
       await requestPersistentStorageIfPossible();
       return cachedPipeline;
     } catch (e) {
+      if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
       if (device && typeof console !== 'undefined' && console.warn) {
         console.warn('Summary LLM: GPU device ' + device + ' failed, falling back to CPU:', e.message || e);
       }
@@ -446,6 +534,7 @@
         var cpuOpts = { revision: 'main' };
         delete cpuOpts.device;
         cachedPipeline = await runChatGenerationPipeline(mod, modelId, cpuOpts);
+        if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
         cachedModelId = modelId;
         lastDownloadError = null;
         finishDownloadProgress();
@@ -458,17 +547,14 @@
         if (modelId === MODEL_BASE) {
           try {
             cachedPipeline = await runChatGenerationPipeline(mod, MODEL_SMALL, { revision: 'main' });
+            if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
             cachedModelId = MODEL_SMALL;
             lastDownloadError = null;
             finishDownloadProgress();
             await requestPersistentStorageIfPossible();
             return cachedPipeline;
           } catch (e2) {
-            downloadProgressState.active = false;
-            lastDownloadError = (e2 && e2.message) ? String(e2.message) : 'Download failed';
-            if (typeof window !== 'undefined' && typeof window.hideAiModelDownloadProgressUI === 'function') {
-              window.hideAiModelDownloadProgressUI();
-            }
+            failDownloadProgress((e2 && e2.message) ? String(e2.message) : 'Download failed');
             if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
               window.showToast('AI model download failed. Using text-only fallbacks.', {
                 type: 'error',
@@ -487,11 +573,7 @@
             throw e2;
           }
         }
-        downloadProgressState.active = false;
-        lastDownloadError = (eCpu && eCpu.message) ? String(eCpu.message) : 'Download failed';
-        if (typeof window !== 'undefined' && typeof window.hideAiModelDownloadProgressUI === 'function') {
-          window.hideAiModelDownloadProgressUI();
-        }
+        failDownloadProgress((eCpu && eCpu.message) ? String(eCpu.message) : 'Download failed');
         throw eCpu;
       }
     }
@@ -905,6 +987,7 @@
   }
 
   function clearSummaryLLMCache() {
+    bumpLoadGeneration();
     cachedPipeline = null;
     cachedModelId = null;
     lastDownloadError = null;
@@ -913,24 +996,68 @@
     if (suggestResultCache) suggestResultCache.clear();
   }
 
+  async function clearTransformersIndexedDb() {
+    if (typeof indexedDB === 'undefined') return;
+    var names = [
+      'transformers-cache',
+      'transformersjs-cache',
+      'hf-transformers-cache',
+      'xenova-transformers-cache',
+    ];
+    if (indexedDB.databases) {
+      try {
+        var dbs = await indexedDB.databases();
+        dbs.forEach(function (db) {
+          if (db.name && /transformers|xenova|hf-|huggingface|onnx/i.test(db.name)) {
+            names.push(db.name);
+          }
+        });
+      } catch (e) {}
+    }
+    await Promise.all([].concat(Array.from(new Set(names))).map(function (name) {
+      return new Promise(function (resolve) {
+        var req = indexedDB.deleteDatabase(name);
+        req.onsuccess = req.onerror = req.onblocked = function () { resolve(); };
+      });
+    }));
+  }
+
   async function clearAiModelCache(options) {
     options = options || {};
     clearSummaryLLMCache();
     lastDownloadError = null;
+    downloadProgressState = { pct: 0, status: '', file: '', active: false };
+    try {
+      if (
+        typeof window !== 'undefined' &&
+        window.RianellModelChunkLoader &&
+        typeof window.RianellModelChunkLoader.clearAssembledModelCache === 'function'
+      ) {
+        await window.RianellModelChunkLoader.clearAssembledModelCache();
+      }
+    } catch (e) {}
     try {
       if (typeof caches !== 'undefined') {
         var keys = await caches.keys();
         await Promise.all(keys.map(function (key) {
-          if (/transformers|huggingface|onnx|models/i.test(key)) {
+          if (/transformers|huggingface|onnx|models|rianell/i.test(key)) {
             return caches.delete(key);
           }
           return Promise.resolve(false);
         }));
       }
     } catch (e) {}
+    try {
+      await clearTransformersIndexedDb();
+    } catch (e) {}
     if (options.resetConsent && typeof window !== 'undefined' && window.appSettings) {
       window.appSettings.aiModelDownloadConsent = 'deferred';
       if (typeof window.saveSettings === 'function') window.saveSettings();
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        window.dispatchEvent(new CustomEvent('rianell-llm-download-progress', { detail: downloadProgressState }));
+      } catch (e2) {}
     }
   }
 
@@ -960,25 +1087,26 @@
   window.getAiModelStatus = getAiModelStatus;
   window.getAiModelStorageEstimate = getAiModelStorageEstimate;
   window.clearAiModelCache = clearAiModelCache;
-  window.preloadSummaryLLM = function () {
-    return getPipeline().then(function (pipe) {
+  window.preloadSummaryLLM = function (options) {
+    return getPipeline(options || {}).then(function (pipe) {
       return warmupPipeline().then(function () { return pipe; });
     });
   };
   window.clearSummaryLLMCache = clearSummaryLLMCache;
   window.needsAiModelDownloadConsent = needsDownloadConsent;
-  window.cancelAiModelDownload = function () {
-    downloadCancelled = true;
-    downloadProgressState.active = false;
+  window.resetAiModelDownloadState = function () {
+    bumpLoadGeneration();
+    downloadCancelled = false;
     lastDownloadError = null;
+    downloadProgressState = { pct: 0, status: '', file: '', active: false };
+    llmWorkQueue = Promise.resolve();
+  };
+  window.cancelAiModelDownload = function () {
+    bumpLoadGeneration();
+    downloadCancelled = true;
     cachedPipeline = null;
     cachedModelId = null;
-    if (typeof window !== 'undefined' && window.appSettings) {
-      window.appSettings.aiModelDownloadConsent = 'deferred';
-      if (typeof window.saveSettings === 'function') window.saveSettings();
-    }
-    if (typeof window !== 'undefined' && typeof window.hideAiModelDownloadProgressUI === 'function') {
-      window.hideAiModelDownloadProgressUI();
-    }
+    llmWorkQueue = Promise.resolve();
+    failDownloadProgress('Download cancelled');
   };
 })();
