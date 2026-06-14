@@ -1,7 +1,7 @@
 # AI security — on-device LLM and deterministic analysis
 
 **Product:** Rianell  
-**Last updated:** 2026-06-13 (v1.53.0 — Supabase chunked LLM hosting)  
+**Last updated:** 2026-06-13 (v1.60.0 — prompt packs, locale contract, UGC delimiters)  
 **Related:** [ai-architecture.md](ai-architecture.md) · [threat-model.md](threat-model.md) · [dpia-health-sync.md](privacy/dpia-health-sync.md) · [SECURITY.md](SECURITY.md)
 
 ---
@@ -83,6 +83,7 @@ There is **no cross-user** prompt injection path today (no shared server prompt 
 
 | Control | Implementation |
 |---------|----------------|
+| **UGC delimiters (v1.60)** | User notes in LLM context wrapped in `---USER_NOTE---` / `---END_USER_NOTE---` (`summary-llm.js`); notes never passed through UI translation |
 | Structured prompts | Intent-specific templates (`buildLlmContext`) separate system instructions from user payload |
 | Output length caps | Suggest-note append capped (500 chars on medications step) |
 | Timeout + fallback | Rule-based summary/MOTD if LLM stalls |

@@ -32,6 +32,18 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.61.0 README documentation icons
+
+- **README** documentation table uses **`docs/icons/*.svg`** instead of emoji (GitHub `<img>` references).
+
+### v1.60.0 UI localization (13 locales)
+
+- **Languages:** en-GB (default), en-US, en-AU, pt-BR, fr-FR, de-DE, es-ES, it-IT, pl-PL, nl-NL, pt-PT, **Arabic (ar)**, **Hebrew (he)** — picker in Settings → Privacy & region.
+- **RTL:** Arabic and Hebrew set `dir=rtl` (PWA) and `I18nManager.forceRTL` (RN); chart time axes stay LTR.
+- **UGC policy (B1):** Log notes, symptoms, and meds stay exactly as typed — never auto-translated. Export localizes column headers only; LLM prompts wrap user notes in `---USER_NOTE---` delimiters.
+- **LLM locale (B2):** On-device and proxy LLM requests include explicit client `locale`; output language follows UI locale (ar/he use rule-based + motd fallback only).
+- **Policy (B3):** Machine-translated `policy.*` strings ship with disclaimer banner; en-GB remains authoritative.
+
 ### v1.53.1 privacy/settings UI fixes
 
 - **Settings carousel:** Nine panes (includes Privacy & region); scrollable dot strip; carousel re-inits on open and locale change.

@@ -8,6 +8,13 @@
 - **Operator flow:** `npm run models:download` → `npm run models:upload:supabase -- --purge-local`. Credentials in **`security/.env`** only (service role never in client).
 - See **`apps/pwa-webapp/models/README.md`**, [ai-security.md](ai-security.md), and [CHANGELOG.md](CHANGELOG.md) v1.53.0.
 
+### B2 locale contract (LLM prompts)
+
+- **Client locale is authoritative:** PWA and React Native pass the active UI locale (`resolveActiveLocale` / `RianellI18n.getLocale()`) into every LLM path. RN remote calls include `"locale"` in the POST body (`apps/rn-app/src/ai/llm.ts`); invalid ids fall back to `en-GB` via `isValidLocaleId`.
+- **Prompt packs:** System prompts live in `i18n-packs/prompt-packs/v1/*.json`, loaded by `packages/shared/src/i18n/promptPack.mjs` (Node/tests) and `apps/pwa-webapp/summary-llm.js` (fetch or `window.__rianellPromptPack`). Keys: `motd.system`, `summary.system`, `suggest.system`, plus optional `context.*` strings for summary context building.
+- **No server-side language detection:** Proxies and future server LLM endpoints must not override `locale` from headers or log content.
+- **Rule-based fallbacks:** `@rianell/ai-engine` and RN `analyzeLogs` / `summarizeCharts` accept optional `translate(key, params)` and use `ai.template.*` / `charts.metric.*` keys with English fallback when omitted.
+
 ### v1.44.2 documentation sync
 
 - AI slide presentation now sits within a broader UI theme parity pass so AI surfaces remain visually consistent with selected global themes on web/mobile shells.

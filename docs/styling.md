@@ -2,6 +2,13 @@
 
 This document describes how the legacy web app’s visual layer is organised: **tokens**, **themes**, **major surfaces**, and **operational notes** (cache busting, motion). The canonical stylesheet is **`apps/pwa-webapp/styles.css`** (large single file), with supplemental tokens in **`apps/pwa-webapp/css/tokens.css`**.
 
+## v1.60.0 RTL layout (ar / he)
+
+- **Direction:** `apps/pwa-webapp/i18n-pwa.js` sets **`document.documentElement.dir`** to `rtl` for Arabic and Hebrew via `@rianell/shared` **`textDirection()`**.
+- **CSS:** Base overrides in **`styles.css`** under **`[dir="rtl"]`** — bottom nav, settings carousel dots, wizard progress, tab bar (`flex-direction: row-reverse` where needed). Prefer **logical properties** (`margin-inline-start`, `padding-inline-end`) in new rules.
+- **Charts:** Do **not** mirror time-series axes; wrap embedded LTR user content (notes, numbers) in **bidi isolates** when displayed inside RTL chrome.
+- **RN:** `I18nManager.allowRTL(true)` and **`forceRTL(isRtlLocale(locale))`** on locale change in `App.tsx`.
+
 ## v1.47.0 UI feedback and motion
 
 - **`ui-feedback.js`:** Shared **`showToast`**, haptics, ripple, scroll-reveal, offline banner, theme crossfade helpers, and modal open/close utilities. **`app.js`** wraps success paths with **`notifySuccess`** / **`notifyUser`**.
