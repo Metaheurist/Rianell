@@ -2,7 +2,22 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.68.0** - LC-16–LC-19 i18n quality close-out (Tier A MT, translated prompt/MOTD, RTL, strict CI).
+**Latest: v1.69.1** - Reproducible Tier A locale generation and CI translation coverage fix.
+
+### v1.69.1 - 2026-06-14 - CI translation coverage order
+
+- **CI:** `generate-locale-overrides.mjs` runs before `verify-translation-coverage.mjs --strict` in unit-tests job.
+- **`verify:i18n`:** Same order — generate → sync → verify (no stale en-GB copies in strict check).
+
+### v1.69.0 - 2026-06-14 - Reproducible Tier A locale packs
+
+- **`generate-locale-overrides.mjs`:** Chains rule-based MT + `tier-a-exact-overrides.mjs` for all Tier A locales (fixes ~98% en-GB regression after generate).
+- **Overrides:** Expanded `tier-a-exact-overrides.mjs` (pt-BR Google Translate fill); added `merge-tier-a-overrides-from-packs.mjs`.
+- **Packs:** Committed canonical + PWA + RN locale JSON; Tier A strict coverage passes (pt-BR 1.9%, fr-FR 3.3%, etc.).
+
+### v1.68.1 - 2026-06-14 - Gitleaks i18n allowlist
+
+- **`.gitleaks.toml`:** Allowlist `tier-a-exact-overrides.mjs` and `i18n-packs/` trees — UI strings like “mot de passe” no longer trip `generic-api-key`.
 
 ### v1.68.0 - 2026-06-14 - i18n release gates (LC-19)
 
