@@ -18,6 +18,13 @@
     return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
   }
 
+  function resolveBenchmarkLabel(testId, enFallback) {
+    if (typeof window !== 'undefined' && typeof window.benchmarkTestLabel === 'function') {
+      return window.benchmarkTestLabel({ id: testId, label: enFallback });
+    }
+    return enFallback;
+  }
+
   function getPlatformType() {
     var nav = typeof navigator !== 'undefined' ? navigator : {};
     var ua = nav.userAgent || '';
@@ -749,13 +756,14 @@
       return Math.max(0, Math.min(100, Math.floor((index / Math.max(1, totalSteps)) * 100)));
     }
 
-    function progress(phase, currentLabel) {
+    function progress(phase, testId, enFallback) {
+      var currentLabel = testId ? resolveBenchmarkLabel(testId, enFallback || '') : (enFallback || '');
       var percent = pct();
       if (typeof console !== 'undefined' && console.log) {
         console.log('[Benchmark] progress', percent + '%', 'step', index + '/' + totalSteps, 'phase', phase, 'label', currentLabel || '');
       }
       if (typeof onProgress === 'function') {
-        onProgress(percent, { phase: phase, label: currentLabel });
+        onProgress(percent, { phase: phase, label: currentLabel, id: testId || null });
       }
     }
 
@@ -768,8 +776,8 @@
         finish();
         return;
       }
-      progress('running', 'CPU arithmetic');
-      var cpuRes = runTestSync('cpu', 'CPU arithmetic', function () { return cpuArith(workloads.cpuIterations); }, 'iters', function () {});
+      progress('running', 'cpu', 'CPU arithmetic');
+      var cpuRes = runTestSync('cpu', resolveBenchmarkLabel('cpu', 'CPU arithmetic'), function () { return cpuArith(workloads.cpuIterations); }, 'iters', function () {});
       cpuRes.iterations = workloads.cpuIterations;
       cpuRes.msPer200k = msPer200kFromRun(workloads.cpuIterations, cpuRes.ms);
       cpuMsPer200kSamples.push(cpuRes.msPer200k);
@@ -779,43 +787,43 @@
       if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'CPU arithmetic', 'repeat', rep + 1, 'ms', cpuRes.ms, 'msPer200k', cpuRes.msPer200k);
 
       setTimeout(function () {
-        progress('running', 'Array throughput');
-        var arrRes = runTestSync('array', 'Array throughput', function () { return arrayThroughput(workloads.arraySize); }, 'elems', function () {});
+        progress('running', 'array', 'Array throughput');
+        var arrRes = runTestSync('array', resolveBenchmarkLabel('array', 'Array throughput'), function () { return arrayThroughput(workloads.arraySize); }, 'elems', function () {});
         arrRes.size = workloads.arraySize;
         subtests.push({ repeat: rep, id: arrRes.id, label: arrRes.label, ms: arrRes.ms, size: arrRes.size });
         index++;
         if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'Array throughput', 'repeat', rep + 1, 'ms', arrRes.ms);
 
         setTimeout(function () {
-          progress('running', 'JSON parse/stringify');
-          var jsonRes = runTestSync('json', 'JSON parse/stringify', function () { return jsonParseStringify(jsonPayload); }, 'bytes', function () {});
+          progress('running', 'json', 'JSON parse/stringify');
+          var jsonRes = runTestSync('json', resolveBenchmarkLabel('json', 'JSON parse/stringify'), function () { return jsonParseStringify(jsonPayload); }, 'bytes', function () {});
           jsonRes.size = workloads.jsonSize;
           subtests.push({ repeat: rep, id: jsonRes.id, label: jsonRes.label, ms: jsonRes.ms, size: jsonRes.size });
           index++;
           if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'JSON parse/stringify', 'repeat', rep + 1, 'ms', jsonRes.ms);
 
           setTimeout(function () {
-            progress('running', 'String ops');
-            var strRes = runTestSync('string', 'String ops', function () { return stringOps(workloads.stringSize); }, 'chars', function () {});
+            progress('running', 'string', 'String ops');
+            var strRes = runTestSync('string', resolveBenchmarkLabel('string', 'String ops'), function () { return stringOps(workloads.stringSize); }, 'chars', function () {});
             strRes.size = workloads.stringSize;
             subtests.push({ repeat: rep, id: strRes.id, label: strRes.label, ms: strRes.ms, size: strRes.size });
             index++;
             if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'String ops', 'repeat', rep + 1, 'ms', strRes.ms);
 
             setTimeout(function () {
-              progress('running', 'DOM fragment build');
-              var domRes = runTestSync('dom', 'DOM fragment build', function () { return domFragmentBuild(workloads.domNodes); }, 'nodes', function () {});
+              progress('running', 'dom', 'DOM fragment build');
+              var domRes = runTestSync('dom', resolveBenchmarkLabel('dom', 'DOM fragment build'), function () { return domFragmentBuild(workloads.domNodes); }, 'nodes', function () {});
               domRes.count = workloads.domNodes;
               subtests.push({ repeat: rep, id: domRes.id, label: domRes.label, ms: domRes.ms, count: domRes.count });
               index++;
               if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'DOM fragment build', 'repeat', rep + 1, 'ms', domRes.ms);
 
-              progress('running', 'rAF latency');
+              progress('running', 'raf', 'rAF latency');
               rafLatency(workloads.rafFrames, function (rafRes) {
                 if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'rAF latency', 'repeat', rep + 1, 'avgMs', rafRes.avgMs);
-                subtests.push({ repeat: rep, id: 'raf', label: 'rAF latency', ms: rafRes.avgMs, samples: rafRes.samples });
+                subtests.push({ repeat: rep, id: 'raf', label: resolveBenchmarkLabel('raf', 'rAF latency'), ms: rafRes.avgMs, samples: rafRes.samples });
                 index++;
-                progress('done', '');
+                progress('done', null, '');
                 if (rep + 1 >= repeats) finish();
                 else runRepeat(rep + 1);
               });
@@ -901,7 +909,7 @@
       });
     }
 
-    progress('starting', 'Warmup');
+    progress('starting', 'warmup', 'Warmup');
     setTimeout(function () {
       runRepeat(0);
     }, 0);
