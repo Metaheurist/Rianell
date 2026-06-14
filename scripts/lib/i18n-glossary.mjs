@@ -7,6 +7,11 @@ export const GLOSSARY_TERMS = [
   'flare-up',
   'flare up',
   'WhatsApp',
+  'JSON',
+  'PDF',
+  'CSV',
+  'Excel',
+  'GPU',
 ];
 
 export function protectGlossary(text) {

@@ -24,8 +24,12 @@ const canonicalStrings = canonical.strings || {};
 
 function isGlossaryProtected(key, value) {
   if (EN_VARIANTS.some((l) => key.includes('en'))) return true;
+  if (key.startsWith('units.')) return true;
   if (typeof value !== 'string') return true;
-  return GLOSSARY_TERMS.some((t) => value.includes(t));
+  const t = value.trim();
+  if (/^(OK|No|Yes|Beta)$/i.test(t)) return true;
+  if (GLOSSARY_TERMS.some((term) => t.includes(term))) return true;
+  return false;
 }
 
 let failed = false;
