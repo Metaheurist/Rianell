@@ -20264,8 +20264,10 @@ window.addEventListener('unhandledrejection', (event) => {
   } catch (e) {}
 })();
 
-window.addEventListener('load', () => {
+function runRianellBootAfterDomReady() {
   if (window.__rianellSkipAppBoot) return;
+  if (window.__rianellBootAfterDomStarted) return;
+  window.__rianellBootAfterDomStarted = true;
   // Show loading overlay immediately (body.loading keeps overlay visible via CSS)
   const loadingOverlay = document.getElementById('loadingOverlay');
   const loadingTextEl = loadingOverlay ? loadingOverlay.querySelector('.loading-text') : null;
@@ -20649,7 +20651,17 @@ window.addEventListener('load', () => {
 
   (typeof loadMotdJson === 'function' ? loadMotdJson() : Promise.resolve()).then(startAfterMotd, startAfterMotd);
   initVoiceInputControls();
-});
+}
+
+/** Do not wait for window load (fonts/CDN subresources can hang forever and block the shell). */
+function scheduleRianellBootAfterDomReady() {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runRianellBootAfterDomReady, { once: true });
+  } else {
+    runRianellBootAfterDomReady();
+  }
+}
+scheduleRianellBootAfterDomReady();
 
 function initializeDateFilters() {
   const today = new Date();

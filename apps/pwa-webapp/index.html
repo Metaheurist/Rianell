@@ -3588,7 +3588,24 @@
           '<button type="button" id="rianellBootRecoveryBtn" style="padding:12px 24px;font-size:1rem;background:#4caf50;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;" data-i18n="common.reload">Reload</button>';
         document.body.appendChild(overlay);
         var btn = document.getElementById('rianellBootRecoveryBtn');
-        if (btn) btn.onclick = function () { window.location.reload(); };
+        if (btn) btn.onclick = function () {
+          var reload = function () {
+            try {
+              var u = new URL(window.location.href);
+              u.searchParams.set('_sw', String(Date.now()));
+              window.location.replace(u.toString());
+            } catch (e) {
+              window.location.reload();
+            }
+          };
+          if ('caches' in window) {
+            caches.keys().then(function (names) {
+              return Promise.all(names.map(function (n) { return caches.delete(n); }));
+            }).finally(reload);
+          } else {
+            reload();
+          }
+        };
       }, 22000);
     })();
   </script>
