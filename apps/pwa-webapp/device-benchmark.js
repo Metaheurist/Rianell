@@ -13,6 +13,9 @@
   var BENCHMARK_VERSION = 4;
   var MAX_TIER = 5;
   var DEFAULT_TOTAL_CAP_MS = 1200;
+  var WEB_BOOT_TOTAL_CAP_MS = 20000;
+  var WEB_BOOT_MAX_REPEATS = 2;
+  var WEB_BOOT_ESTIMATE_ITERS = 80000;
   /** Max continuous work per chunk before yielding (keeps loading UI responsive). */
   var BENCHMARK_YIELD_SLICE_MS = 8;
   var BENCHMARK_CHUNK_MAX_ITERS = 12000;
@@ -23,6 +26,42 @@
     } else {
       setTimeout(fn, 0);
     }
+  }
+
+  function isNativeApp() {
+    try {
+      var cap = (typeof window !== 'undefined' && window.Capacitor) ||
+        (typeof window !== 'undefined' && window.parent && window.parent.Capacitor);
+      return !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function getWebBootSuiteOpts() {
+    if (isNativeApp()) {
+      return { boot: false, totalCapMs: DEFAULT_TOTAL_CAP_MS };
+    }
+    return {
+      boot: true,
+      totalCapMs: WEB_BOOT_TOTAL_CAP_MS,
+      maxRepeats: WEB_BOOT_MAX_REPEATS,
+      estimateIters: WEB_BOOT_ESTIMATE_ITERS,
+      skipEstimateRetry: true,
+      skipBorderlineRepeats: true,
+      gpuTimeoutMs: 4000,
+      gpuSamples: 2
+    };
+  }
+
+  function clampBootWorkloads(workloads) {
+    if (!workloads) return workloads;
+    workloads.cpuIterations = Math.min(workloads.cpuIterations, 120000);
+    workloads.arraySize = Math.min(workloads.arraySize, 36000);
+    workloads.stringSize = Math.min(workloads.stringSize, 12000);
+    workloads.jsonSize = Math.min(workloads.jsonSize, 240);
+    workloads.domNodes = Math.min(workloads.domNodes, 160);
+    return workloads;
   }
 
   function nowMs() {
@@ -165,7 +204,10 @@
    * Calls done({ available, backend, scoreMs, good, scoreSamples }).
    * scoreSamples: array of ms per run for stability graph (when available).
    */
-  function runGpuBenchmarkAsync(done) {
+  function runGpuBenchmarkAsync(done, gpuOpts) {
+    gpuOpts = gpuOpts || {};
+    var timeoutMs = gpuOpts.timeoutMs != null ? gpuOpts.timeoutMs : 10000;
+    var maxSamples = gpuOpts.maxSamples != null ? gpuOpts.maxSamples : GPU_STABILITY_SAMPLES;
     var finished = false;
     function safeDone(gpu) {
       if (finished) return;
@@ -179,7 +221,7 @@
         console.warn('[Benchmark] GPU stage timed out; continuing without GPU score');
       }
       safeDone({ available: false, backend: 'none', scoreMs: null, good: false, scoreSamples: [], timedOut: true });
-    }, 10000);
+    }, timeoutMs);
 
     var backend = detectGpuBackendSync();
     if (backend === 'none') {
@@ -193,7 +235,7 @@
       runOne(function (ms) {
         if (ms != null) samples.push(ms);
         runCount++;
-        if (runCount < GPU_STABILITY_SAMPLES) {
+        if (runCount < maxSamples) {
           setTimeout(runNext, 20);
         } else {
           var available = samples.length > 0;
@@ -220,10 +262,14 @@
     return total;
   }
 
-  function cpuArithAsync(iterations, done) {
+  function cpuArithAsync(iterations, done, shouldAbort) {
     var total = 0;
     var i = 0;
     function chunk() {
+      if (shouldAbort && shouldAbort()) {
+        if (typeof done === 'function') done(total);
+        return;
+      }
       var t0 = nowMs();
       var batchStart = i;
       while (i < iterations && (nowMs() - t0) < BENCHMARK_YIELD_SLICE_MS && (i - batchStart) < BENCHMARK_CHUNK_MAX_ITERS) {
@@ -841,7 +887,9 @@
   }
 
   function runSuiteAsync(opts, onProgress, onDone) {
-    var totalCapMs = (opts && opts.totalCapMs) ? opts.totalCapMs : DEFAULT_TOTAL_CAP_MS;
+    opts = opts || {};
+    var totalCapMs = opts.totalCapMs != null ? opts.totalCapMs : DEFAULT_TOTAL_CAP_MS;
+    var suiteBoot = !!opts.boot;
     var startAll = nowMs();
     var platformType = getPlatformType();
     var env = getEnvSnapshot(platformType);
@@ -855,6 +903,10 @@
     var cpuMsSamples = [];
     var index = 0;
     var totalSteps = (repeats * 5) + repeats;
+
+    function overCap() {
+      return (nowMs() - startAll) > totalCapMs;
+    }
 
     function pct() {
       return Math.max(0, Math.min(100, Math.floor((index / Math.max(1, totalSteps)) * 100)));
@@ -875,15 +927,17 @@
       var estMsPer200k = msPer200kFromRun(estimateIters, estMs);
       provisionalTier = msPer200kToTier(estMsPer200k);
       workloads = computeSuiteWorkloads(provisionalTier);
+      if (suiteBoot) workloads = clampBootWorkloads(workloads);
       baseRepeats = provisionalTier <= 2 ? 3 : (provisionalTier <= 5 ? 5 : 7);
       repeats = baseRepeats;
       var thresholdNear = function (x, target, pct) { return Math.abs(x - target) / target <= pct; };
-      var near = thresholdNear(estMsPer200k, 14.0, 0.08) || thresholdNear(estMsPer200k, 18.0, 0.08) || thresholdNear(estMsPer200k, 26.0, 0.08);
+      var near = !opts.skipBorderlineRepeats && (thresholdNear(estMsPer200k, 14.0, 0.08) || thresholdNear(estMsPer200k, 18.0, 0.08) || thresholdNear(estMsPer200k, 26.0, 0.08));
       if (near) repeats = Math.min(baseRepeats + 2, 9);
+      if (opts.maxRepeats != null) repeats = Math.min(repeats, opts.maxRepeats);
       jsonPayload = makeJsonPayload(workloads.jsonSize);
       totalSteps = (repeats * 5) + repeats;
       if (typeof console !== 'undefined' && console.log) {
-        console.log('[Benchmark] start', 'platformType', platformType, 'repeats', repeats, 'totalSteps', totalSteps, 'workloads', workloads);
+        console.log('[Benchmark] start', 'platformType', platformType, 'repeats', repeats, 'totalSteps', totalSteps, 'capMs', totalCapMs, 'workloads', workloads);
       }
       scheduleBenchmarkYield(function () { runRepeat(0); });
     }
@@ -891,16 +945,16 @@
     function runEstimatePass(estimateIters, est0, onReady) {
       cpuArithAsync(estimateIters, function () {
         var estMs = nowMs() - est0;
-        if (estMs < 2 && estimateIters < 1400000) {
+        if (!opts.skipEstimateRetry && estMs < 2 && estimateIters < 1400000) {
           runEstimatePass(1400000, nowMs(), onReady);
           return;
         }
         onReady(estimateIters, estMs);
-      });
+      }, overCap);
     }
 
     function runRepeat(rep) {
-      if ((nowMs() - startAll) > totalCapMs) {
+      if (overCap()) {
         finish();
         return;
       }
@@ -969,7 +1023,7 @@
             });
           });
         });
-      });
+      }, overCap);
     }
 
     function finish() {
@@ -986,7 +1040,7 @@
       // If the result moved across major class boundaries, ensure we have enough repeats (only if we still have budget).
       var classBefore = getLegacyDeviceClass(provisionalTier);
       var classAfter = getLegacyDeviceClass(tier);
-      if (classBefore !== classAfter && repeats < 9 && (nowMs() - startAll) < (totalCapMs * 0.85)) {
+      if (!opts.skipBorderlineRepeats && classBefore !== classAfter && repeats < 9 && (nowMs() - startAll) < (totalCapMs * 0.85)) {
         repeats = Math.min(9, repeats + 2);
         totalSteps = (repeats * 5) + repeats;
         runRepeat(baseRepeats); // add extra repeats
@@ -1045,11 +1099,15 @@
           console.log('[Benchmark] GPU', gpu.backend, gpu.available, gpu.good, gpu.scoreMs);
         }
         onDone(result);
-      });
+      }, { timeoutMs: opts.gpuTimeoutMs, maxSamples: opts.gpuSamples });
     }
 
     progress('starting', 'warmup', 'Warmup');
-    runEstimatePass(280000, nowMs(), configureSuite);
+    if (suiteBoot) {
+      runEstimatePass(opts.estimateIters != null ? opts.estimateIters : WEB_BOOT_ESTIMATE_ITERS, nowMs(), configureSuite);
+    } else {
+      runEstimatePass(opts.estimateIters != null ? opts.estimateIters : 280000, nowMs(), configureSuite);
+    }
   }
 
   function runBenchmarkIfNeeded(onProgress, onComplete) {
@@ -1065,7 +1123,11 @@
     }
     if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] running suite (no cache)');
     if (typeof onProgress === 'function') onProgress(0, { phase: 'starting' });
-    runSuiteAsync({ totalCapMs: DEFAULT_TOTAL_CAP_MS }, onProgress, function (resultObj) {
+    var suiteOpts = getWebBootSuiteOpts();
+    if (typeof console !== 'undefined' && console.log && suiteOpts.boot) {
+      console.log('[Benchmark] web boot suite', 'repeats cap', suiteOpts.maxRepeats, 'capMs', suiteOpts.totalCapMs);
+    }
+    runSuiteAsync(suiteOpts, onProgress, function (resultObj) {
       _lastTier = resultObj.tier;
       _lastPlatformType = resultObj.platformType;
       if (typeof onComplete === 'function') onComplete(resultObj.tier, resultObj.platformType, resultObj, { cached: false });
