@@ -13272,15 +13272,18 @@ function generateLogEntryHTML(log) {
 function toggleLogEntry(logDate) {
   const entry = document.querySelector(`.entry[data-log-date="${logDate}"]`);
   if (!entry) return;
-  
+
+  const content = entry.querySelector('.log-entry-content');
   const arrow = entry.querySelector('.log-entry-arrow');
-  
+
   if (entry.classList.contains('expanded')) {
     entry.classList.remove('expanded');
+    if (content) content.style.display = '';
     if (arrow) arrow.textContent = '▸';
   } else {
     entry.classList.add('expanded');
-    if (arrow) arrow.textContent = '▸';
+    if (content) content.style.display = '';
+    if (arrow) arrow.textContent = '▾';
   }
   if (typeof haptic === 'function') haptic(6);
 }
@@ -13297,15 +13300,9 @@ function buildLogEntryElement(log) {
     div.classList.add("expanded");
   }
   div.innerHTML = generateLogEntryHTML(log);
-  const content = div.querySelector('.log-entry-content');
-  if (content) {
-    if (inlineEditingDate === log.date) {
-      content.style.display = 'block';
-      const arrow = div.querySelector('.log-entry-arrow');
-      if (arrow) arrow.textContent = '';
-    } else {
-      content.style.display = 'none';
-    }
+  if (inlineEditingDate === log.date) {
+    const arrow = div.querySelector('.log-entry-arrow');
+    if (arrow) arrow.textContent = '';
   }
   return div;
 }
