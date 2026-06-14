@@ -981,7 +981,7 @@
   <!-- Cookie consent banner -->
   <div id="cookieBanner" class="cookie-banner hidden" role="region" aria-label="Cookie consent" data-i18n-aria="common.cookie.consent">
     <div class="cookie-banner-inner">
-      <p class="cookie-banner-text">We use local storage and optional cloud sync to run the app. By accepting, you agree to our cookie and data policy.</p>
+      <p class="cookie-banner-text" data-i18n="common.cookie.bannerText">We use local storage and optional cloud sync to run the app. By accepting, you agree to our cookie and data policy.</p>
       <div class="cookie-banner-actions">
         <button type="button" class="cookie-banner-accept" onclick="acceptCookieConsent()" data-i18n="common.accept">Accept</button>
         <button type="button" class="cookie-banner-policy" onclick="openCookiePolicyModal()" data-i18n="common.cookie.policy">Cookie policy</button>
@@ -2858,20 +2858,20 @@
         <button type="button" class="tutorial-arrow tutorial-arrow-left" id="tutorialArrowLeft" onclick="tutorialPrevSlide()" aria-label="Previous slide" data-i18n-aria="common.previous.slide" style="display: none;">‹</button>
         <div class="modal-body tutorial-modal-body">
         <div class="tutorial-slide tutorial-slide-active" id="tutorialSlide0" data-slide="0">
-          <p class="tutorial-text">Do you want to use <strong  data-i18n="nav.ai">AI Analysis</strong> (patterns, insights, summary) and <strong>Goals & targets</strong>? You can turn this on later in Settings.</p>
+          <p class="tutorial-text" data-i18n="tutorial.slide0.body">Do you want to use <strong  data-i18n="nav.ai">AI Analysis</strong> (patterns, insights, summary) and <strong>Goals & targets</strong>? You can turn this on later in Settings.</p>
           <div class="tutorial-ai-choice-buttons">
             <button type="button" class="tutorial-btn tutorial-ai-enable" onclick="setTutorialAIChoice(true)" data-i18n="common.enable">Enable</button>
             <button type="button" class="tutorial-btn tutorial-ai-skip" onclick="setTutorialAIChoice(false)" data-i18n="common.skip.for.now">Skip for now</button>
           </div>
         </div>
         <div class="tutorial-slide" id="tutorialSlide1" data-slide="1">
-          <p class="tutorial-text">Track your health daily: log symptoms, food, exercise, pain areas, and more in one place.</p>
+          <p class="tutorial-text" data-i18n="tutorial.slide1.body">Track your health daily: log symptoms, food, exercise, pain areas, and more in one place.</p>
         </div>
         <div class="tutorial-slide" id="tutorialSlide2" data-slide="2" data-tutorial-ai-only="true">
-          <p class="tutorial-text"><strong  data-i18n="logs.title">View Logs</strong> shows your history. <strong>AI Analysis</strong> finds patterns and correlations across your data.</p>
+          <p class="tutorial-text" data-i18n="tutorial.slide2.body"><strong  data-i18n="logs.title">View Logs</strong> shows your history. <strong>AI Analysis</strong> finds patterns and correlations across your data.</p>
         </div>
         <div class="tutorial-slide" id="tutorialSlide3" data-slide="3" data-tutorial-ai-only="true">
-          <p class="tutorial-text">In <strong  data-i18n="settings.title">Settings</strong>, you can create an account to save your data encrypted in the cloud and share between devices.</p>
+          <p class="tutorial-text" data-i18n="tutorial.slide3.body">In <strong  data-i18n="settings.title">Settings</strong>, you can create an account to save your data encrypted in the cloud and share between devices.</p>
           <p class="tutorial-text" style="margin-top: 8px;" data-i18n="common.add.or.select.your.medical.condition.her">Add or select your medical condition here (same as in Settings):</p>
           <div id="tutorialConditionDisplayContainer" class="tutorial-condition-display-wrap" style="margin-top: 10px;">
             <button type="button" class="settings-data-btn" id="tutorialConditionBtn" onclick="toggleTutorialConditionSelector()" style="width: 100%; text-align: left; justify-content: space-between;">
@@ -2895,27 +2895,27 @@
             </div>
           </div>
           <p class="tutorial-text" style="margin-top: 12px;"><strong  data-i18n="settings.cloud.anon">Contribute anonymised data</strong> - share your anonymised data for analysis and use aggregated data from people with the same condition.</p>
-          <p class="tutorial-text" style="margin-top: 8px;"><strong>Use open data for training AI</strong> - when on, AI uses open shared data; when off, AI uses only your personal data. Used for personalised AI analysis and advice.</p>
+          <p class="tutorial-text" style="margin-top: 8px;" data-i18n="tutorial.slide3.openData"><strong>Use open data for training AI</strong> - when on, AI uses open shared data; when off, AI uses only your personal data. Used for personalised AI analysis and advice.</p>
         </div>
         <div class="tutorial-slide" id="tutorialSlide4" data-slide="4" data-tutorial-ai-only="true">
           <div class="tutorial-toggle-option" style="margin-top: 0;">
             <label class="tutorial-toggle-label" data-i18n="settings.cloud.anon">Contribute anonymised data</label>
             <div class="toggle-switch" id="tutorialContributeAnonDataToggle" onclick="toggleContributeAnonData('tutorialContributeAnonDataToggle')"></div>
           </div>
-          <small class="tutorial-toggle-hint">Share your anonymised data to help improve AI models</small>
+          <small class="tutorial-toggle-hint" data-i18n="tutorial.slide4.anonHint">Share your anonymised data to help improve AI models</small>
           <div class="tutorial-toggle-option" style="margin-top: 14px;">
             <label class="tutorial-toggle-label" data-i18n="common.use.open.data.for.training">Use open data for training</label>
             <div class="toggle-switch" id="tutorialUseOpenDataToggle" onclick="toggleUseOpenData('tutorialUseOpenDataToggle')"></div>
           </div>
-          <small class="tutorial-toggle-hint">Use anonymised data pool for AI training (requires 90+ days of data). Used for personalised AI analysis and advice.</small>
+          <small class="tutorial-toggle-hint" data-i18n="tutorial.slide4.openDataHint">Use anonymised data pool for AI training (requires 90+ days of data). Used for personalised AI analysis and advice.</small>
         </div>
         <div class="tutorial-slide" id="tutorialSlide5" data-slide="5">
-          <p class="tutorial-text">Accessibility options help you make the app easier to read and use from day one. You can change these anytime later in Settings → Accessibility.</p>
+          <p class="tutorial-text" data-i18n="tutorial.slide5.body">Accessibility options help you make the app easier to read and use from day one. You can change these anytime later in Settings → Accessibility.</p>
           <div class="tutorial-toggle-option" style="margin-top: 10px;">
             <label class="tutorial-toggle-label" data-i18n="common.large.text">Large text</label>
             <div class="toggle-switch" id="tutorialAccessibilityLargeTextToggle" onclick="toggleTutorialAccessibilityLargeText()"></div>
           </div>
-          <small class="tutorial-toggle-hint">Quick preset for bigger text across the app.</small>
+          <small class="tutorial-toggle-hint" data-i18n="tutorial.slide5.largeTextHint">Quick preset for bigger text across the app.</small>
 
           <div class="tutorial-toggle-option" style="margin-top: 14px;">
             <label class="tutorial-toggle-label" for="tutorialAccessibilityTextScaleRange" data-i18n="common.font.size">Font size</label>
@@ -2927,16 +2927,16 @@
             <label class="tutorial-toggle-label" data-i18n="common.text.to.speech.tap.to.read">Text-to-speech (tap-to-read)</label>
             <div class="toggle-switch" id="tutorialAccessibilityTtsToggle" onclick="toggleTutorialAccessibilityTtsEnabled()"></div>
           </div>
-          <small class="tutorial-toggle-hint">Tap buttons/controls to hear their label read aloud.</small>
+          <small class="tutorial-toggle-hint" data-i18n="tutorial.slide5.ttsHint">Tap buttons/controls to hear their label read aloud.</small>
 
           <div class="tutorial-toggle-option" style="margin-top: 14px;">
             <label class="tutorial-toggle-label" data-i18n="common.read.mode.auto.read.on.focus">Read mode (auto-read on focus)</label>
             <div class="toggle-switch" id="tutorialAccessibilityReadModeToggle" onclick="toggleTutorialAccessibilityReadMode()"></div>
           </div>
-          <small class="tutorial-toggle-hint">Also reads when a control gets focus (keyboard and assistive navigation).</small>
+          <small class="tutorial-toggle-hint" data-i18n="tutorial.slide5.readModeHint">Also reads when a control gets focus (keyboard and assistive navigation).</small>
         </div>
         <div class="tutorial-slide" id="tutorialSlide6" data-slide="6" data-tutorial-ai-only="true">
-          <p class="tutorial-text">Set <strong  data-i18n="common.goals.targets">Goals & targets</strong> with the target button next to Settings. Choose daily targets for steps, hydration, sleep score, and good days per week.</p>
+          <p class="tutorial-text" data-i18n="tutorial.slide6.body">Set <strong  data-i18n="common.goals.targets">Goals & targets</strong> with the target button next to Settings. Choose daily targets for steps, hydration, sleep score, and good days per week.</p>
           <div class="tutorial-goals-sliders">
             <div class="goals-slider-group">
               <label for="tutorialGoalSteps" data-i18n="common.steps.per.day">Steps per day</label>
@@ -2967,10 +2967,10 @@
               </div>
             </div>
           </div>
-          <p class="tutorial-text" style="margin-top: 10px;">Your progress and &quot;Last 7 days vs targets&quot; appear on the Home tab so you can see how you&apos;re doing.</p>
+          <p class="tutorial-text" style="margin-top: 10px;" data-i18n="tutorial.slide6.progress">Your progress and &quot;Last 7 days vs targets&quot; appear on the Home tab so you can see how you&apos;re doing.</p>
         </div>
         <div class="tutorial-slide" id="tutorialSlide7" data-slide="7">
-          <p class="tutorial-text">You're all set. Close to start logging, try <strong  data-i18n="settings.demo.title">Demo Mode</strong>, or create an account to save your data in the cloud.</p>
+          <p class="tutorial-text" data-i18n="tutorial.slide7.body">You're all set. Close to start logging, try <strong  data-i18n="settings.demo.title">Demo Mode</strong>, or create an account to save your data in the cloud.</p>
         </div>
         </div>
         <button type="button" class="tutorial-arrow tutorial-arrow-right" id="tutorialArrowRight" onclick="tutorialNextSlide()" aria-label="Next slide" data-i18n-aria="common.next.slide">›</button>
@@ -3020,7 +3020,7 @@
         <button class="modal-close" onclick="closeSignupSigninModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
       </div>
       <div class="modal-body cloud-auth-section">
-        <p class="tutorial-text" style="margin-bottom: 12px;">Create an account to save your data encrypted in the cloud and sync between devices.</p>
+        <p class="tutorial-text" style="margin-bottom: 12px;" data-i18n="tutorial.slide3.accountBody">Create an account to save your data encrypted in the cloud and sync between devices.</p>
         <div class="cloud-auth-form">
           <input type="email" id="signupModalEmail" placeholder="Email address" data-i18n-placeholder="common.email.address" class="cloud-input" />
           <div class="password-input-wrapper">

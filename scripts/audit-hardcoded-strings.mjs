@@ -26,6 +26,7 @@ if (checkMode || requireWiring) {
   const missing = results.filter((r) => {
     const text = r.text.trim();
     if (catalogValues.has(text)) return false;
+    if (catalogKeys.has(text)) return false;
     if (catalogKeys.has(r.suggestedKey)) return false;
     return true;
   });

@@ -12,6 +12,7 @@ export const SCAN_FILES = [
   'apps/pwa-webapp/ui-feedback.js',
   'apps/pwa-webapp/summary-llm.js',
   'apps/pwa-webapp/AIEngine.js',
+  'apps/pwa-webapp/device-benchmark.js',
 ];
 
 export const RN_GLOBS = [
@@ -27,6 +28,10 @@ export const STRING_PATTERNS = [
   /<(?:h[1-6]|label|button|span|p)[^>]*>([A-Za-z][^<]{2,80})<\//g,
   /Alert\.alert\(\s*['"]([^'"]{3,120})['"]/g,
   /<Text[^>]*>([A-Za-z][^<{]{2,80})<\/Text>/g,
+  /\{\s*label:\s*['"]([^'"]{3,120})['"]/g,
+  /sectionCard\(\s*['"]([^'"]{3,80})['"]/g,
+  /addRow\([^,]+,\s*['"]([^'"]{3,80})['"]/g,
+  /class="tutorial-text"[^>]*>([A-Za-z][^<]{10,240})</g,
 ];
 
 const SKIP = /^(https?:|#|\{|\/\/|data-|className|var\(|calc\(|true|false|\d)/i;
@@ -112,6 +117,9 @@ export function suggestKey(text, file) {
 function lineIsSkipped(line) {
   if (I18N_LINE.test(line)) return true;
   if (line.includes("t('") || line.includes('t("')) return true;
+  if (/labelKey:\s*['"]/.test(line)) return true;
+  if (/titleKey:\s*['"]/.test(line)) return true;
+  if (/hintKey:\s*['"]/.test(line)) return true;
   return false;
 }
 
@@ -126,6 +134,7 @@ export function scanFile(root, relPath, allowlist) {
   const lines = content.split('\n');
   const found = [];
   const seen = new Set();
+  const { keys: catalogKeys } = loadCatalog(root);
 
   lines.forEach((line, idx) => {
     if (lineIsSkipped(line)) return;
@@ -139,6 +148,7 @@ export function scanFile(root, relPath, allowlist) {
         if (/[<>]/.test(text)) continue;
         if (/\$\{/.test(text)) continue;
         if (isAllowlisted(text, relPath, allowlist)) continue;
+        if (catalogKeys.has(text)) continue;
         const key = `${relPath}:${idx + 1}:${text}`;
         if (seen.has(key)) continue;
         seen.add(key);
