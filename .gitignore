@@ -76,6 +76,8 @@ apps/pwa-webapp/app.*.min.js
 apps/pwa-webapp/asset-manifest.json
 apps/pwa-webapp/.trace-build/
 apps/pwa-webapp/.android-dist/
+ci-minified/
+apps/pwa-webapp/styles.*.css
 
 .aider*
 

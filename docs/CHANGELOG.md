@@ -2,7 +2,18 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.87.0** - Full UI refresh on language change; always-visible clear/redownload model; pl-PL mixed-language fixes; AI benchmark runner fixes (Windows + relative PWA root).
+**Latest: v1.89.0** - Incremental boot patch: heuristic-only web benchmark, DOMContentLoaded boot, minified bundle freeze fix, automated boot audit suite.
+
+### v1.89.0 - 2026-06-15 - Incremental boot patch (production)
+- **PWA boot:** `DOMContentLoaded` entry (`runRianellBootAfterDomReady`); MOTD fetch parallel (non-blocking); inline heuristic tier; privacy gate `initGateUI()` on first show.
+- **`device-benchmark.js`:** Web cold boot uses `getTierFromHeuristic()` only — no sync CPU suite, no 1.4M retry, minimal `rianellPerfBenchmark` cache schema (v5).
+- **`build-site.mjs`:** `minifyIdentifiers: false` — identifier mangling froze minified `app.js` in Chromium.
+- **`summary-llm.js`:** `waitForSupabaseConfigReady()` before model host resolution.
+- **Scripts:** `audit:boot:baseline` / `audit:boot:strict` Playwright gate (`scripts/audit-boot-full.mjs`).
+- **Wiki:** Version-controlled `wiki/` source, `npm run wiki:sync` / `wiki:verify`.
+
+### v1.88.0 - 2026-06-14 - CI benchmark navigation and RN typecheck
+- **`LogWizardScreen.tsx`:** `PREDEFINED_EXERCISES` gains stable `id` keys aligned with PWA `content.exercise.*` locale keys.
 
 ### v1.87.0 - 2026-06-14 - Locale refresh across all tabs
 - **PWA:** `refreshAllTabsForLocaleChange()` re-renders Home, Log wizard, View logs, Charts, AI, and Settings when language changes (no tab switch or reload).
