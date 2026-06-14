@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.88.0** - CI: AI layer/algo Playwright `domcontentloaded` navigation; RN exercise `id` fields for `tContent()` typecheck.
+**Latest: v1.89.0** - Production boot fix (`DOMContentLoaded`), minified bundle freeze fix, SW cache bump, wiki sync tooling.
+
+### v1.89.0 - 2026-06-15 - Production boot and build fixes
+- **PWA boot (`app.js`):** App shell starts on **`DOMContentLoaded`** instead of **`window.load`** so hung Google Fonts or CDN subresources cannot leave [rianell.com](https://rianell.com) stuck on “Loading Rianell…”.
+- **`index.html`:** Boot recovery **Reload** clears Cache Storage and reloads with a cache-bust query.
+- **`sw.js`:** Cache bump to `v2026-06-15-boot-dom` so returning users precache the fixed JS bundle.
+- **`build-site.mjs`:** `minifyIdentifiers: false` — full esbuild `minify: true` identifier mangling froze the minified `app.js` main thread in Chromium.
+- **`summary-llm.js`:** `waitForSupabaseConfigReady()` before model host resolution; **Clear and redownload** resets consent and reopens the download modal.
+- **`app.js`:** `clearAndRedownloadAiModel()` orchestrates cancel → clear → redownload; benchmark lite boot for `?benchmark_test=1`.
+- **Benchmarks:** Playwright always closes browser contexts on success, failure, or interrupt; lower-memory Chromium flags and shorter probe timeouts.
+- **Wiki:** Version-controlled `wiki/` source, `scripts/sync-wiki.mjs`, `npm run wiki:sync` / `wiki:verify` (GitHub Wiki sync).
 
 ### v1.88.0 - 2026-06-14 - CI benchmark navigation and RN typecheck
 - **`ai-engine-probes.mjs`:** `page.goto` uses `waitUntil: 'domcontentloaded'` (not `load`) so deferred Google Fonts / Font Awesome cannot block AI layer/algo jobs for 180s in CI.

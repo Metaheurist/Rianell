@@ -1,10 +1,18 @@
 # Release Notes
 
-## Latest release (v1.88.0)
+## Latest release (v1.89.0)
 
-**Date:** 2026-06-14
+**Date:** 2026-06-15
 
 ### Highlights
+
+- **Production boot:** App starts on `DOMContentLoaded` instead of `window.load` — fixes rianell.com stuck on “Loading Rianell…” when fonts/CDN hang.
+- **Service worker:** Cache bump + boot recovery reload clears stale cached bundles.
+- **Build:** Disabled esbuild identifier mangling on `app.js` (minified bundle no longer freezes the main thread).
+- **On-device model:** Clear/redownload resets consent; Supabase config race fixed for model URLs.
+- **Wiki:** `wiki/` source in repo; `npm run wiki:sync` pushes to GitHub Wiki.
+
+### Previous (v1.88.0)
 
 - **CI benchmarks:** AI layer/algo Playwright jobs use `domcontentloaded` navigation so font/CDN assets cannot block CI for minutes.
 - **React Native:** Log wizard exercise chips use stable `id` keys for localized labels; fixes mobile TypeScript check.

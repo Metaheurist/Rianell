@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the **PWA** (web/GitHub Pages) and **React Native (Expo)** mobile app, with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.88.0** — CI AI benchmark navigation + RN typecheck; **v1.85.0–v1.87.0** locale refresh, model clear/redownload, pl-PL i18n; **v1.78.0–v1.84.0** benchmark toolkit and AI engine CI).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.89.0** — production boot fix, minified bundle freeze fix, SW cache bump; **v1.88.0** CI benchmark navigation; **v1.85.0–v1.87.0** locale refresh and model clear/redownload).
 
 ### Tech stack
 
