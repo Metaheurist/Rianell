@@ -7,6 +7,13 @@ This document defines the expected behaviour contract across:
 
 The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm run parity:web`, `parity:android`, `parity:ios`, and `parity:inventory:check` on every PR.
 
+### v1.60.0 parity note (full UI localization)
+
+- **Catalog:** 325 en-GB keys; PWA `RianellI18n` + RN `useT()` on major screens; `audit-hardcoded-strings.mjs --check` for remaining PWA wizard/settings strings.
+- **LLM i18n:** `i18n-packs/prompt-packs/v1/`; explicit **`locale`** on RN LLM POST (B2); ar/he **ui-only** (rule-based + motd fallback).
+- **RTL:** ar/he in `SHIPPED_LOCALES`; PWA `[dir=rtl]` CSS; RN `I18nManager.forceRTL`.
+- **UGC (B1):** Log text immutable; export headers localized via `export.csv.*` keys.
+
 ### v1.53.1 parity note (settings carousel + policy modals)
 
 - **PWA settings:** Nine-pane carousel with Privacy & region; policy HTML viewer and confirm-modal fixes aligned with shared **`showConfirmModal(message, title, onConfirm, onCancel)`** contract.

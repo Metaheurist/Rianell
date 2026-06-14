@@ -151,7 +151,22 @@
     {
       "id": "ui_string_catalog",
       "status": { "web": "supported", "android": "supported", "ios": "supported" },
-      "notes": "locale-packs/v1 + shared t(); gate, nav, settings, cloud pane tokenized."
+      "notes": "i18n-packs/locale-packs/v1 + shared t(); gate, nav, settings, cloud pane tokenized."
+    },
+    {
+      "id": "ui_string_catalog_full",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "en-GB 805 keys; PWA index.html data-i18n + app.js tUi(); RN useT(); audit-hardcoded-strings.mjs --check in CI."
+    },
+    {
+      "id": "llm_prompt_i18n",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "i18n-packs/prompt-packs/v1 per locale; summary-llm.js + llm.ts send explicit locale (B2); verify-prompt-packs enforces key parity."
+    },
+    {
+      "id": "ui_rtl_ar_he",
+      "status": { "web": "partial", "android": "partial", "ios": "partial" },
+      "notes": "ar/he in SHIPPED_LOCALES; PWA dir + [dir=rtl] CSS; RN I18nManager.forceRTL; llmCapability ui-only for ar/he."
     }
   ]
 }

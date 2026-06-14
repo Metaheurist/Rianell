@@ -23,6 +23,22 @@ export type ChartSummary = {
 /** Matches web Charts tab: Balance focuses on wellness metrics (steps/hydration are separate in web balance chart). */
 export type ChartViewMode = 'balance' | 'individual' | 'combined';
 
+export type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
+
+export type SummarizeOptions = { translate?: TranslateFn };
+
+function tr(
+  translate: TranslateFn | undefined,
+  key: string,
+  fallback: string
+): string {
+  if (typeof translate === 'function') {
+    const result = translate(key);
+    if (typeof result === 'string' && result !== key) return result;
+  }
+  return fallback;
+}
+
 /** Combined-chart series colors from web `app.js` metric definitions (mood/sleep/fatigue/steps/hydration). */
 export const CHART_METRIC_HEX: Record<TrendMetric, string> = {
   mood: '#673ab7',
@@ -56,12 +72,12 @@ export function formatChartMetricDelta(key: TrendMetric, delta: number | null): 
   return `${sign}${delta.toFixed(1)}`;
 }
 
-const METRICS: Array<{ key: TrendMetric; label: string }> = [
-  { key: 'mood', label: 'Mood' },
-  { key: 'sleep', label: 'Sleep' },
-  { key: 'fatigue', label: 'Fatigue' },
-  { key: 'steps', label: 'Steps' },
-  { key: 'hydration', label: 'Hydration' },
+const METRICS: Array<{ key: TrendMetric; labelKey: string; fallback: string }> = [
+  { key: 'mood', labelKey: 'charts.metric.mood', fallback: 'Mood' },
+  { key: 'sleep', labelKey: 'charts.metric.sleep', fallback: 'Sleep' },
+  { key: 'fatigue', labelKey: 'charts.metric.fatigue', fallback: 'Fatigue' },
+  { key: 'steps', labelKey: 'charts.metric.steps', fallback: 'Steps' },
+  { key: 'hydration', labelKey: 'charts.metric.hydration', fallback: 'Hydration' },
 ];
 
 function normalizeSeries(values: number[]): number[] {
@@ -101,9 +117,10 @@ export function filterLogsForCharts(logs: LogEntry[], range: ChartRange): LogEnt
     .sort(byDateAsc);
 }
 
-export function summarizeCharts(logs: LogEntry[], range: ChartRange): ChartSummary {
+export function summarizeCharts(logs: LogEntry[], range: ChartRange, options: SummarizeOptions = {}): ChartSummary {
+  const translate = options.translate;
   const selected = filterLogsForCharts(logs, range);
-  const trends: MetricTrend[] = METRICS.map(({ key, label }) => {
+  const trends: MetricTrend[] = METRICS.map(({ key, labelKey, fallback }) => {
     const values = selected
       .map((log) => log[key])
       .filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
@@ -111,7 +128,15 @@ export function summarizeCharts(logs: LogEntry[], range: ChartRange): ChartSumma
     const current = values.length ? values[values.length - 1] : null;
     const first = values.length ? values[0] : null;
     const delta = current != null && first != null ? current - first : null;
-    return { key, label, average, current, delta, points: values.length, spark: normalizeSeries(values) };
+    return {
+      key,
+      label: tr(translate, labelKey, fallback),
+      average,
+      current,
+      delta,
+      points: values.length,
+      spark: normalizeSeries(values),
+    };
   });
 
   return {

@@ -3,6 +3,40 @@
 // Multi-format export functionality
 // ============================================
 
+function exportUi(key, fallback) {
+  try {
+    if (typeof window !== 'undefined' && window.RianellI18n && typeof window.RianellI18n.t === 'function') {
+      var value = window.RianellI18n.t(key);
+      if (value && value !== key) return value;
+    }
+  } catch (e) { /* ignore */ }
+  return fallback;
+}
+
+function csvHeaderRow() {
+  return [
+    exportUi('export.csv.date', 'Date'),
+    exportUi('export.csv.bpm', 'BPM'),
+    exportUi('export.csv.weight', 'Weight'),
+    exportUi('export.csv.fatigue', 'Fatigue'),
+    exportUi('export.csv.stiffness', 'Stiffness'),
+    exportUi('export.csv.backPain', 'Back Pain'),
+    exportUi('export.csv.sleep', 'Sleep'),
+    exportUi('export.csv.jointPain', 'Joint Pain'),
+    exportUi('export.csv.mobility', 'Mobility'),
+    exportUi('export.csv.dailyFunction', 'Daily Function'),
+    exportUi('export.csv.swelling', 'Swelling'),
+    exportUi('export.csv.flare', 'Flare'),
+    exportUi('export.csv.mood', 'Mood'),
+    exportUi('export.csv.irritability', 'Irritability'),
+    exportUi('export.csv.notes', 'Notes'),
+  ];
+}
+
+function csvColumnHeaders() {
+  return csvHeaderRow().join(',');
+}
+
 // Export data in CSV format
 function exportToCSV(logs) {
   if (logs && logs.length > 8000 && typeof requestIdleCallback !== 'undefined') {
@@ -13,7 +47,7 @@ function exportToCSV(logs) {
 }
 
 function exportToCSVImmediate(logs) {
-  const headers = "Date,BPM,Weight,Fatigue,Stiffness,Back Pain,Sleep,Joint Pain,Mobility,Daily Function,Swelling,Flare,Mood,Irritability,Notes";
+  const headers = csvColumnHeaders();
   const csvContent = headers + "\n" + logs.map(log => {
     return [
       log.date || '',
@@ -1017,7 +1051,7 @@ function generateExcel(logs) {
     
     // Prepare data
     const worksheetData = [
-      ['Date', 'BPM', 'Weight', 'Fatigue', 'Stiffness', 'Back Pain', 'Sleep', 'Joint Pain', 'Mobility', 'Daily Function', 'Swelling', 'Flare', 'Mood', 'Irritability', 'Notes']
+      csvHeaderRow(),
     ];
     
     logs.forEach(log => {

@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import { buildLlmRequestPayload } from '@rianell/shared';
 import type { PreferredLlmModelSize } from '../storage/preferences';
 import type { BenchmarkResult } from '../performance/benchmark';
 import type { AiSummary } from './analyzeLogs';
@@ -34,19 +35,26 @@ function sanitizeOneLine(input: string, maxLen = 220): string {
   return clean.length > maxLen ? `${clean.slice(0, maxLen - 1)}...` : clean;
 }
 
-async function callRemoteLlm(feature: LlmFeature, modelSize: string, context: string): Promise<string | null> {
+async function callRemoteLlm(
+  feature: LlmFeature,
+  modelSize: string,
+  context: string,
+  locale: string
+): Promise<string | null> {
   const endpoint = getLlmEndpoint();
   if (!endpoint) return null;
+  const payload = buildLlmRequestPayload({
+    feature,
+    model: modelIdFromSize(modelSize),
+    modelSize,
+    context,
+    locale,
+  });
   const res = await withTimeout(
     fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        feature,
-        model: modelIdFromSize(modelSize),
-        modelSize,
-        context,
-      }),
+      body: JSON.stringify(payload),
     }),
     5500
   );
@@ -61,14 +69,15 @@ async function generateWithFallback(
   preferredModel: PreferredLlmModelSize,
   benchmark: BenchmarkResult | null,
   context: string,
+  locale: string,
   fallback: () => string
 ): Promise<string> {
-  const cacheKey = `${feature}:${key}`;
+  const cacheKey = `${feature}:${locale}:${key}`;
   const hit = cache.get(cacheKey);
   if (hit) return hit;
   const modelSize = resolveLlmModelSize(preferredModel, benchmark);
   try {
-    const remote = await callRemoteLlm(feature, modelSize, context);
+    const remote = await callRemoteLlm(feature, modelSize, context, locale);
     if (remote) {
       cache.set(cacheKey, remote);
       return remote;
@@ -84,7 +93,8 @@ async function generateWithFallback(
 export async function generateSummaryNote(
   summary: AiSummary,
   preferredModel: PreferredLlmModelSize,
-  benchmark: BenchmarkResult | null
+  benchmark: BenchmarkResult | null,
+  locale: string
 ): Promise<string> {
   const context = JSON.stringify({
     range: summary.rangeLabel,
@@ -102,6 +112,7 @@ export async function generateSummaryNote(
     preferredModel,
     benchmark,
     context,
+    locale,
     () => AIEngine.generateAnalysisNote(summary)
   );
 }
@@ -109,7 +120,8 @@ export async function generateSummaryNote(
 export async function suggestLogNote(
   entry: Partial<LogEntry>,
   preferredModel: PreferredLlmModelSize,
-  benchmark: BenchmarkResult | null
+  benchmark: BenchmarkResult | null,
+  locale: string
 ): Promise<string> {
   const context = JSON.stringify({
     flare: entry.flare,
@@ -126,6 +138,7 @@ export async function suggestLogNote(
     preferredModel,
     benchmark,
     context,
+    locale,
     () => AIEngine.suggestLogNote(entry)
   );
 }
@@ -141,7 +154,8 @@ const MOTD_FALLBACK = [
 export async function generateMotd(
   preferredModel: PreferredLlmModelSize,
   benchmark: BenchmarkResult | null,
-  recentLogs: number
+  recentLogs: number,
+  locale: string
 ): Promise<string> {
   const context = JSON.stringify({ recentLogs, intent: 'simple healthy lifestyle quote for health tracker' });
   return generateWithFallback(
@@ -150,6 +164,7 @@ export async function generateMotd(
     preferredModel,
     benchmark,
     context,
+    locale,
     () => MOTD_FALLBACK[Math.floor(Math.random() * MOTD_FALLBACK.length)] ?? MOTD_FALLBACK[0]
   );
 }
@@ -157,4 +172,3 @@ export async function generateMotd(
 export function clearLlmCacheForTests(): void {
   cache.clear();
 }
-

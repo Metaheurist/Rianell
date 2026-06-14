@@ -24,7 +24,7 @@ test('generateSummaryNote falls back to deterministic engine note', async () => 
     correlations: [],
     groupsThatChangeTogether: [],
   };
-  const note = await generateSummaryNote(summary, 'recommended', null);
+  const note = await generateSummaryNote(summary, 'recommended', null, 'en-GB');
   expect(note.length).toBeGreaterThan(20);
 });
 
@@ -32,13 +32,14 @@ test('suggestLogNote returns text for partial entry context', async () => {
   const text = await suggestLogNote(
     { flare: 'Yes', sleep: 3, fatigue: 8, mood: 4, steps: 2000, symptoms: ['Nausea'] },
     'tier2',
-    null
+    null,
+    'en-GB'
   );
   expect(text.toLowerCase()).toContain('flare');
 });
 
 test('generateMotd returns short line', async () => {
-  const motd = await generateMotd('tier3', null, 12);
+  const motd = await generateMotd('tier3', null, 12, 'en-GB');
   expect(motd.length).toBeGreaterThan(10);
   expect(motd.length).toBeLessThanOrEqual(220);
 });
