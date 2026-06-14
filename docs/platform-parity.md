@@ -7,6 +7,20 @@ This document defines the expected behaviour contract across:
 
 The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm run parity:web`, `parity:android`, `parity:ios`, and `parity:inventory:check` on every PR.
 
+### Home AI suggestions (PWA + RN)
+
+- **Shared engine:** `packages/shared/src/ai/homeSuggestions.mjs` — rule-based chip selection (0–3 chips).
+- **Gating:** AI enabled, logged today, ≥3 days in the last 14-day window.
+- **Answer modal:** `homeQuestion` prompt feature in `summary-llm.js` (PWA) and `llm.ts` (RN); medical disclaimer on both platforms.
+
+### v1.62.0 parity note (LC-11–LC-19 i18n close-out)
+
+- **Wiring complete:** 861 en-GB catalog keys; **0** hardcoded UI audit candidates; `audit-hardcoded-strings.mjs --require-wiring` + `verify-no-hardcoded-ui.mjs --strict` in CI.
+- **Audit infra:** `scripts/.audit/i18n-allowlist.json`, `hardcoded-ui-baseline.json`, shared `i18n-audit-shared.mjs`.
+- **MOTD:** All 13 shipped locales have MOTD packs (≥30 quotes); `verify-motd-packs.mjs` in CI.
+- **MT tooling (LC-16):** `scripts/lib/machine-translate.mjs` + `auto-translate-ui-strings.mjs --translate` (DeepL/Google when credentials set); `verify-translation-coverage.mjs` (warn mode until Tier A MT lands).
+- **RTL (LC-18):** Additional PWA `[dir=rtl]` rules for modals, wizard chrome, settings carousel.
+
 ### v1.60.0 parity note (full UI localization)
 
 - **Catalog:** 325 en-GB keys; PWA `RianellI18n` + RN `useT()` on major screens; `audit-hardcoded-strings.mjs --check` for remaining PWA wizard/settings strings.

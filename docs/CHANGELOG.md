@@ -2,7 +2,32 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.61.0** - README documentation table SVG icons; full UI localization shipped in v1.54.0–v1.60.0.
+**Latest: v1.64.0** - Home AI question chips, i18n wiring close-out (LC-11–LC-19), and `formatDate` View Logs fix.
+
+### v1.64.0 - 2026-06-14 - formatDate fix & mobile CI
+
+- **Shared:** `formatDate` no longer mixes `dateStyle` with granular `weekday`/`month`/`day` options (fixes View Logs crash: `Invalid option : option`).
+- **PWA:** Rebuilt `vendor/rianell-shared.js` (`?v=4`).
+- **RN:** `llm.ts` typecheck for `buildHomeQuestionContext`; `LogWizardScreen.test` uses i18n label `Energy and mental clarity`.
+
+### v1.63.0 - 2026-06-13 - i18n close-out (LC-11–LC-19)
+
+- **LC-11:** `i18n-allowlist.json`, `i18n-audit-shared.mjs`, `--require-wiring` audit mode.
+- **LC-12–14:** PWA `app.js` + `ui-feedback.js` + RN screens wired to `tUi()` / `useT()` (**0** audit candidates).
+- **LC-15:** CI runs `verify-no-hardcoded-ui.mjs --strict` + `--baseline`; `hardcoded-ui-baseline.json` (max 0).
+- **LC-16:** `machine-translate.mjs`, `auto-translate-ui-strings.mjs --translate`, `verify-translation-coverage.mjs` (warn until Tier A MT).
+- **LC-17:** MOTD packs for en-US, en-AU, Tier A locales (30 quotes each); `verify-motd-packs.mjs`.
+- **LC-18:** PWA RTL CSS for modals, wizard chrome, settings carousel.
+- **LC-19:** Parity docs (861 keys); `npm run verify:i18n` expanded.
+
+### v1.62.0 - 2026-06-13 - Home contextual AI question chips
+
+- **Shared:** `homeSuggestions.mjs`, `homeQuestionContext.mjs`, `pickHomeAiSuggestions`, `homeQuestion` prompt feature.
+- **PWA:** Removed redundant Log/Charts/AI quick actions; 0–3 question chips + answer modal; `generateHomeQuestionWithLLM`.
+- **RN:** `HomeScreen` suggestion chips + modal; `answerHomeQuestion()` in `llm.ts`.
+- **i18n:** `home.questions.*` keys (13 locales); `homeQuestion.system` prompt pack.
+- **Tests:** `tests/unit/home-suggestions.test.mjs`; `HomeScreen.test.tsx` chip/modal coverage.
+- **Docs:** `home_ai_suggestions` parity entry; `app-and-features.md` Home section.
 
 ### v1.61.0 - 2026-06-13 - README documentation icons
 
