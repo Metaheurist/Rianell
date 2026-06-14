@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-06-14T08:08:20.432Z",
+  "generatedAt": "2026-06-14T08:25:47.359Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3386484,
-    "cssBytes": 389974,
-    "jsGzipBytes": 659096,
-    "cssGzipBytes": 68761
+    "jsBytes": 3387790,
+    "cssBytes": 390947,
+    "jsGzipBytes": 659484,
+    "cssGzipBytes": 68934
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1170016,
-      "gzipBytes": 197149
+      "bytes": 1170006,
+      "gzipBytes": 197160
     },
     {
-      "file": "ci-minified/site/app.0d223b63cccc.min.js",
-      "bytes": 704695,
-      "gzipBytes": 137861
+      "file": "ci-minified/site/app.89f596c472bc.min.js",
+      "bytes": 704596,
+      "gzipBytes": 137853
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -24,9 +24,9 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.2744f485b3f9.css",
-      "bytes": 375899,
-      "gzipBytes": 64966
+      "file": "ci-minified/site/styles.f1fd047835b4.css",
+      "bytes": 376872,
+      "gzipBytes": 65139
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -50,8 +50,8 @@
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 65574,
-      "gzipBytes": 10957
+      "bytes": 66764,
+      "gzipBytes": 11302
     },
     {
       "file": "ci-minified/site/device-benchmark.js",
@@ -95,8 +95,8 @@
     },
     {
       "file": "ci-minified/site/i18n-pwa.js",
-      "bytes": 13912,
-      "gzipBytes": 2171
+      "bytes": 14137,
+      "gzipBytes": 2211
     },
     {
       "file": "ci-minified/site/logs-idb.js",

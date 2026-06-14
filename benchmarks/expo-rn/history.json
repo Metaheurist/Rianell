@@ -5,6 +5,57 @@
     "kind": "expo",
     "status": "ok",
     "meta": {
+      "timestamp_utc": "2026-06-14T08:26:02.545Z",
+      "git_sha": "afb25d4bca3ab651474c6d7833a776286cb8ef57",
+      "runner": "linux",
+      "node": "v24.14.1",
+      "github_run_id": "27493118482",
+      "github_run_attempt": "1"
+    },
+    "hermes": {
+      "hbc_file_count": 4,
+      "android_gzip_bytes": 3239886,
+      "ios_gzip_bytes": 3230867,
+      "android_raw_bytes": 7550149,
+      "ios_raw_bytes": 7531308,
+      "bundles": [
+        {
+          "platform": "android",
+          "file": "_expo/static/js/android/index-389f0917c61b3b0a8d1ef0c31941cb79.hbc",
+          "bytes": 3664963,
+          "gzip_bytes": 1576093
+        },
+        {
+          "platform": "android",
+          "file": "_expo/static/js/android/index-af77179a915d51c8eaa3cb92fbd1ac9a.hbc",
+          "bytes": 3885186,
+          "gzip_bytes": 1663793
+        },
+        {
+          "platform": "ios",
+          "file": "_expo/static/js/ios/index-57db44f96fd2b97ebd3c94f47faf2f40.hbc",
+          "bytes": 3875754,
+          "gzip_bytes": 1659385
+        },
+        {
+          "platform": "ios",
+          "file": "_expo/static/js/ios/index-bbe32fbc0c4fa4e5312d4cafb0d8d8fe.hbc",
+          "bytes": 3655554,
+          "gzip_bytes": 1571482
+        }
+      ]
+    },
+    "assets": {
+      "total_non_hbc_files": 26,
+      "total_non_hbc_bytes": 402480
+    }
+  },
+  {
+    "schema_version": 1,
+    "slug": "expo-rn",
+    "kind": "expo",
+    "status": "ok",
+    "meta": {
       "timestamp_utc": "2026-06-14T08:08:52.065Z",
       "git_sha": "36e0b4be36a2650aa8da072595d28f6a2e8f3dd0",
       "runner": "linux",
