@@ -2,6 +2,12 @@
 
 ## 🧠 AI Analysis: Neural Network Architecture
 
+### v1.70.2 documentation sync (summary LLM model host)
+
+- **PWA `summary-llm.js`:** Probes `models/manifest.json` with GET on Supabase Storage or same-origin before Hugging Face fallback.
+- **Chunk assembly:** `ensureChunkedModelArtifacts` runs only when `resolveModelsRemote` returns `supabase` or `app-origin` (not `huggingface`).
+- **Deploy:** Placeholder `SUPABASE_CONFIG.url` (`YOUR_PROJECT`) logs a console warning and skips Supabase host.
+
 ### v1.53.0 documentation sync (Supabase LLM hosting)
 
 - **On-device LLM weights** are served from **Supabase Storage** (`llm-models` bucket) as **47 MB chunks** reassembled client-side. PWA: `model-chunk-loader.js` + Transformers.js fetch shim; RN: `llmNative.ts` + `expo-file-system` append merge.

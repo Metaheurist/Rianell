@@ -13,6 +13,11 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Gating:** AI enabled, logged today, ≥3 days in the last 14-day window.
 - **Answer modal:** `homeQuestion` prompt feature in `summary-llm.js` (PWA) and `llm.ts` (RN); medical disclaimer on both platforms.
 
+### v1.70.3 parity note (PWA bugfix release)
+
+- **PWA-only fixes (v1.70.0–v1.70.3):** Settings freeze, log card expand, summary LLM host probe, log share button styling — no RN parity flag changes.
+- **Logs expand:** PWA per-day cards again show full detail body when expanded; RN `LogsScreen` modal detail unchanged.
+
 ### v1.69.1 parity note (CI generate-before-coverage)
 
 - **`verify:i18n`:** `generate-locale-overrides.mjs` → `sync-i18n-assets.mjs` → strict translation coverage.
