@@ -13,13 +13,32 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Gating:** AI enabled, logged today, ≥3 days in the last 14-day window.
 - **Answer modal:** `homeQuestion` prompt feature in `summary-llm.js` (PWA) and `llm.ts` (RN); medical disclaimer on both platforms.
 
-### v1.62.0 parity note (LC-11–LC-19 i18n close-out)
+### v1.68.0 parity note (LC-19 release gates)
+
+- **CI:** `verify-translation-coverage.mjs --strict` in CI and `npm run verify:i18n`.
+- **Catalog:** 861 en-GB keys; **0** hardcoded UI; `ui_string_catalog_full` supported.
+- **Builds:** PWA minified site + Expo prod bundles verified.
+
+### v1.67.0 parity note (LC-18 RTL)
+
+- **RN:** `LogWizardScreen` + `SettingsScreen` mirrored nav/chevrons when `isRtl`.
+- **PWA:** `[dir=rtl]` CSS for modals, wizard, settings carousel.
+- **`ui_rtl_ar_he`:** supported on web, Android, iOS.
+
+### v1.66.0 parity note (LC-17 prompt/MOTD)
+
+- **Scripts:** `translate-prompt-packs.mjs`, `translate-motd-packs.mjs`.
+- **Packs:** Tier A prompt strings translated; all 13 locales ≥30 MOTD quotes.
+
+### v1.65.0 parity note (LC-16 Tier A MT)
+
+- **Pipeline:** `batch-mt-tier-a.mjs`, `tier-a-exact-overrides.mjs`, `verify-translation-coverage.mjs --strict`.
+- **Quality:** Tier A locales ≤5% en-GB identity (glossary-excluded).
+
+### v1.63.0 parity note (LC-11–LC-15 wiring)
 
 - **Wiring complete:** 861 en-GB catalog keys; **0** hardcoded UI audit candidates; `audit-hardcoded-strings.mjs --require-wiring` + `verify-no-hardcoded-ui.mjs --strict` in CI.
 - **Audit infra:** `scripts/.audit/i18n-allowlist.json`, `hardcoded-ui-baseline.json`, shared `i18n-audit-shared.mjs`.
-- **MOTD:** All 13 shipped locales have MOTD packs (≥30 quotes); `verify-motd-packs.mjs` in CI.
-- **MT tooling (LC-16):** `scripts/lib/machine-translate.mjs` + `auto-translate-ui-strings.mjs --translate` (DeepL/Google when credentials set); `verify-translation-coverage.mjs` (warn mode until Tier A MT lands).
-- **RTL (LC-18):** Additional PWA `[dir=rtl]` rules for modals, wizard chrome, settings carousel.
 
 ### v1.60.0 parity note (full UI localization)
 

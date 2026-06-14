@@ -2,10 +2,22 @@
 
 ## 🗂️ Project Structure
 
+### v1.68.0 documentation sync (i18n release gates)
+
+- **Verify:** `npm run verify:i18n` — sync, locale/prompt/motd/HTML/audit, `--require-wiring`, `--strict` hardcoded UI, translation coverage `--strict`.
+- **CI:** `.github/workflows/ci.yml` mirrors the full i18n gate suite.
+- **Parity:** `docs/platform-parity.json` — `ui_string_catalog_full`, `ui_rtl_ar_he`, `llm_prompt_i18n` supported.
+
+### v1.65.0–v1.67.0 documentation sync (LC-16–LC-18)
+
+- **Tier A MT (v1.65):** `scripts/batch-mt-tier-a.mjs`, `apply-tier-a-exact-overrides.mjs`, `verify-translation-coverage.mjs --strict`.
+- **Prompt/MOTD (v1.66):** `translate-prompt-packs.mjs`, `translate-motd-packs.mjs` → canonical `i18n-packs/` then `sync-i18n-assets.mjs`.
+- **RTL (v1.67):** RN `isRtl` row/chevron mirroring in `LogWizardScreen.tsx`, `SettingsScreen.tsx`.
+
 ### v1.61.0 documentation sync (README icons)
 
 - **README:** Documentation table uses **`docs/icons/*.svg`** (referenced via `<img>` for GitHub rendering).
-- **i18n:** See v1.54–v1.60 segments in [CHANGELOG.md](CHANGELOG.md); canonical packs under **`i18n-packs/`**; **`npm run verify:i18n`**.
+- **i18n:** See v1.54–v1.68 segments in [CHANGELOG.md](CHANGELOG.md); canonical packs under **`i18n-packs/`**; **`npm run verify:i18n`**.
 
 ### v1.60.0 documentation sync (full UI localization)
 

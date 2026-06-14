@@ -2,7 +2,31 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.64.0** - Home AI question chips, i18n wiring close-out (LC-11–LC-19), and `formatDate` View Logs fix.
+**Latest: v1.68.0** - LC-16–LC-19 i18n quality close-out (Tier A MT, translated prompt/MOTD, RTL, strict CI).
+
+### v1.68.0 - 2026-06-14 - i18n release gates (LC-19)
+
+- **CI:** `verify-translation-coverage.mjs --strict` in `.github/workflows/ci.yml` and `npm run verify:i18n`.
+- **Parity:** `ui_string_catalog_full` and `ui_rtl_ar_he` supported; `docs/platform-parity.json` + `platform-parity.md` synced.
+- **Builds:** `build:web:apk` + `bundle:mobile:prod` green; Expo prod bundles refreshed.
+
+### v1.67.0 - 2026-06-14 - RTL layout polish (LC-18)
+
+- **RN:** `LogWizardScreen` step dots and nav rows use `row-reverse` when `isRtl`.
+- **RN:** `SettingsScreen` carousel chevrons and nav row mirrored for ar/he.
+- **Parity:** `ui_rtl_ar_he` → supported (PWA `[dir=rtl]` CSS + RN `I18nManager.forceRTL`).
+
+### v1.66.0 - 2026-06-14 - Prompt & MOTD translations (LC-17)
+
+- **Scripts:** `translate-prompt-packs.mjs`, `translate-motd-packs.mjs` — Tier A LLM prompts and top-30 MOTD quotes.
+- **Packs:** All 13 locales have prompt packs with translated `homeQuestion.system`, `summary.system`, etc.; MOTD ≥30 messages per locale.
+- **Verify:** `verify-prompt-packs.mjs` + `verify-motd-packs.mjs` in `verify:i18n`.
+
+### v1.65.0 - 2026-06-14 - Tier A UI translations (LC-16)
+
+- **MT pipeline:** `machine-translate.mjs` (DeepL/Google/MyMemory), `batch-mt-tier-a.mjs`, `tier-a-exact-overrides.mjs`, `apply-tier-a-exact-overrides.mjs`.
+- **Coverage:** Tier A locales pass `verify-translation-coverage.mjs --strict` (≤5% en-GB identity; pt-BR 0.9%, fr-FR 3.0%, etc.).
+- **Glossary:** Expanded `i18n-glossary.mjs` do-not-translate list (Rianell, BPM, Supabase, medical codes).
 
 ### v1.64.0 - 2026-06-14 - formatDate fix & mobile CI
 
@@ -10,15 +34,13 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **PWA:** Rebuilt `vendor/rianell-shared.js` (`?v=4`).
 - **RN:** `llm.ts` typecheck for `buildHomeQuestionContext`; `LogWizardScreen.test` uses i18n label `Energy and mental clarity`.
 
-### v1.63.0 - 2026-06-13 - i18n close-out (LC-11–LC-19)
+### v1.63.0 - 2026-06-13 - i18n wiring & audit gates (LC-11–LC-15)
 
 - **LC-11:** `i18n-allowlist.json`, `i18n-audit-shared.mjs`, `--require-wiring` audit mode.
 - **LC-12–14:** PWA `app.js` + `ui-feedback.js` + RN screens wired to `tUi()` / `useT()` (**0** audit candidates).
 - **LC-15:** CI runs `verify-no-hardcoded-ui.mjs --strict` + `--baseline`; `hardcoded-ui-baseline.json` (max 0).
-- **LC-16:** `machine-translate.mjs`, `auto-translate-ui-strings.mjs --translate`, `verify-translation-coverage.mjs` (warn until Tier A MT).
-- **LC-17:** MOTD packs for en-US, en-AU, Tier A locales (30 quotes each); `verify-motd-packs.mjs`.
-- **LC-18:** PWA RTL CSS for modals, wizard chrome, settings carousel.
-- **LC-19:** Parity docs (861 keys); `npm run verify:i18n` expanded.
+- **MOTD scaffold:** en-US, en-AU, Tier A locale files created (30 quotes each); `verify-motd-packs.mjs`.
+- **RTL (partial):** PWA `[dir=rtl]` CSS for modals, wizard chrome, settings carousel.
 
 ### v1.62.0 - 2026-06-13 - Home contextual AI question chips
 
