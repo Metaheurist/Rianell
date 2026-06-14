@@ -169,6 +169,10 @@ On each **release** build (or before tagging):
 
 - **Reusable workflow (no duplicate runs):** [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) is **only** invoked from CI’s **`security-audit`** job (not a second workflow run on every push).
 
+### v1.68.1 Gitleaks i18n allowlist
+
+- **`.gitleaks.toml`:** Allowlists `scripts/lib/tier-a-exact-overrides.mjs` and `i18n-packs/` trees so translated UI strings containing “password” / “mot de passe” do not false-positive as `generic-api-key`.
+
 ### CI security matrix (v1.50.0 expanded)
 
 | Step | Blocking | Notes |
