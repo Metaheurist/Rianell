@@ -57,6 +57,12 @@ flowchart LR
 - **Host priority (PWA):** Supabase public bucket → same-origin `/models/` → Hugging Face fallback.
 - **Operator scripts:** `npm run models:download`, `models:upload:supabase`, `models:verify` (local or remote). Local weight files are **gitignored**; only `manifest.json` is committed.
 
+### v1.70.3 documentation sync (PWA logs & settings)
+
+- **Settings (v1.70.0):** Gear opens without main-thread freeze; locale refresh no longer recurses through `applyDocumentI18n` + `notifyLocaleChange`.
+- **View logs (v1.70.1):** Tapping a day card expands vitals, symptoms, food, exercise, and notes (action bar + detail body).
+- **Share (v1.70.3):** Per-entry share is a circular green action button matching delete/edit; uses `icon-share` SVG sprite.
+
 ### v1.52.0 privacy region and UI localization
 
 - **Health data consent (GDPR Art. 9):** PWA modal before first cloud use; RN `healthDataConsent` / `healthDataConsentAt` in preferences. See [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
@@ -384,7 +390,7 @@ flowchart LR
 - **Layout**: Extra horizontal padding in the log wizard on small screens; **`--card-content-padding-x`** in `styles.css` sets consistent horizontal inset inside bordered cards (`.form-section` / `.section-content`), including wizard vitals and other steps, log date/flare blocks, and review-so labels, inputs, and controls (e.g. weight unit toggle) are not flush to the card edge. **Tile pickers** (energy & mental clarity, stressors, symptoms, food by meal, exercise by category) open in a **full-screen `<dialog>` bottom sheet** on phones and a centred max-width sheet on wider viewports; chip content is moved into the sheet and restored on close (same IDs and handlers as before). **Add** actions for symptom / energy / stressor use **compact pill** triggers (not full-width bars). **Selected** tiles show a **checkmark** in the corner. Optional **per-section search** filters chips on the client. Sticky wizard actions use a flat bar (no heavy drop shadow behind the button row). **Selected items** (stressors, symptoms, edit-entry lists) use a **glass** sticky strip on mobile and **row chips** (`.item-tag`) that match the card surfaces-not a flat black panel. **Settings** uses a horizontal **carousel** of sections with shared **modal surface** styling (see **[styling.md](styling.md)**).
 - **Icon style**: PWA UI icons in settings, chart controls, log filters/cards, AI analysis cards, empty states, and modal buttons use the shared inline SVG sprite plus **`--ui-icon-*`** theme tokens (via `svgIcon()` for generated markup), replacing colored emoji glyphs so icons follow the selected global theme.
 
-- **View logs**: Date range shortcuts (Today / 7 / 30 / 90 days) or custom dates, **Filter** and **Oldest** / **Newest** sort; **Your entries** lists per-day cards with vitals, symptoms, wellbeing, food, exercise, flare status, and edit / delete / share.
+- **View logs**: Date range shortcuts (Today / 7 / 30 / 90 days) or custom dates, **Filter** and **Oldest** / **Newest** sort; **Your entries** lists per-day cards — tap a card header to expand **vitals, symptoms, wellbeing, food, exercise, and notes**; expanded cards show a circular **delete / edit / share** action bar.
 
 ### Charts and visualisation
 - **Combined chart**: Multi-metric line chart with date range filter; optional AI-powered trend predictions (when AI enabled); metric selector; balance and single-chart views.
