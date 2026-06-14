@@ -51,7 +51,6 @@
     if (typeof I.setLocale === 'function') {
       I.setLocale(prefs.uiLocale || 'en-GB', prefs).then(function () {
         if (typeof I.applyDocumentI18n === 'function') I.applyDocumentI18n();
-        if (typeof global.applyNavI18n === 'function') global.applyNavI18n();
       });
     } else if (typeof I.applyDocumentI18n === 'function') {
       I.applyDocumentI18n();

@@ -60,6 +60,8 @@ flowchart LR
 ### v1.70.3 documentation sync (PWA logs & settings)
 
 - **Settings (v1.70.0):** Gear opens without main-thread freeze; locale refresh no longer recurses through `applyDocumentI18n` + `notifyLocaleChange`.
+- **Locale refresh (v1.87.0):** Changing UI language re-renders all tabs (Home, Logs, Charts, AI, Settings) without reload; home date uses `formatUiDate()`.
+- **On-device model (v1.85.0):** Settings → Performance — always-visible **Clear and redownload model** wipes caches and restarts download.
 - **View logs (v1.70.1):** Tapping a day card expands vitals, symptoms, food, exercise, and notes (action bar + detail body).
 - **Share (v1.70.3):** Per-entry share is a circular green action button matching delete/edit; uses `icon-share` SVG sprite.
 

@@ -2,6 +2,62 @@
 
 ## 🗂️ Project Structure
 
+### v1.87.0 documentation sync (locale refresh all tabs)
+
+- **PWA:** `refreshAllTabsForLocaleChange()` in `app.js`; wired from `i18n-pwa.js` `refreshLocaleUI()`.
+- **Home:** `formatUiDate()` for locale-aware today header.
+- **See:** [testing-and-configuration.md](testing-and-configuration.md) § UI locale refresh.
+
+### v1.86.0 documentation sync (pl-PL mixed-language)
+
+- **Scripts:** `scripts/lib/pl-pl-exact-overrides.mjs`; merged in `lc20-mixed-fixes.mjs`.
+- **Verify:** `verify-mixed-language-strings.mjs --locale=pl-PL`.
+
+### v1.85.0 documentation sync (on-device model clear/redownload)
+
+- **PWA:** Settings → Performance — `clearAndRedownloadAiModel()`; `summary-llm.js` cache wipe; `model-chunk-loader.js` `clearAssembledModelCache()`.
+
+### v1.84.0 documentation sync (AI benchmark runner fixes)
+
+- **`toolkit-env.mjs`:** Relative `BENCHMARK_PWA_ROOT` resolved from repo root.
+- **`run-ai-engine-rn.mjs`:** Root `jest.js` spawn (Windows).
+- **`benchmark:ai-verify -- --strict`:** npm passthrough documented in testing-and-configuration.
+
+### v1.83.0 documentation sync (README icons and copy)
+
+- **README:** `docs/icons/*.svg` — 32×32 tinted tiles for GitHub dark mode; removed next-phase plan section and documentation table row.
+- **PWA:** AI at-a-glance footnote removed (`app.js`, `styles.css`).
+- **Pointers:** [about-and-support.md](about-and-support.md) — changelog + feature docs (no roadmap link in README).
+
+### v1.82.0 documentation sync (AI engine benchmarks)
+
+- **Toolkit:** `benchmarks/scripts/toolkit/run-ai-engine-*.mjs`, `verify-ai-engine.mjs`, `ai-fixtures.mjs`, `ai-engine-catalog.json`, `ai-thresholds.json`.
+- **CI:** `benchmarks-ai-package`, `benchmarks-ai-layers`, `benchmarks-ai-algos`, `benchmarks-ai-rn` jobs; merged in `commit-benchmarks`.
+- **npm:** `benchmark:ai-package`, `benchmark:ai-layers`, `benchmark:ai-algos`, `benchmark:ai-rn`, `benchmark:ai-verify`, `benchmark:ai-all`.
+- **See:** [testing-and-configuration.md](testing-and-configuration.md) § AI engine benchmark suite.
+
+### v1.81.0 documentation sync (benchmark toolkit CI)
+
+- **CI:** `benchmarks-toolkit` — full perf toolkit via `npm run full-suite -- --strict`.
+- **Runbook:** `benchmarks/toolkit/AGENT-RUNBOOK.md`.
+- **compare.md:** tier-matrix and settings-matrix history sections.
+
+### v1.80.0 documentation sync (full-suite orchestrator)
+
+- **`run-full-suite.mjs`:** tier matrix + settings matrix + user journey + Lighthouse + `verify-regression --strict`.
+- **Reports:** `benchmarks/full-suite/`, `benchmarks/source-built/`.
+
+### v1.79.0 documentation sync (God mode and settings autotest)
+
+- **`run-god-mode-suite.mjs`**, **`run-settings-matrix.mjs`**, **`run-user-journey.mjs`**.
+- **PWA:** `data-god-mode` selectors; God mode catalog in `benchmarks/toolkit/god-mode-catalog.json`.
+
+### v1.78.0 documentation sync (tier-matrix performance suite)
+
+- **`run-tier-matrix.mjs`:** 10 cells (tier 1–5 × desktop/mobile); `export-tier-profiles.mjs`.
+- **PWA:** `__rianellTestHooks` on `?benchmark_test=1`; tier 1–2 LLM route block for AIEngine-only probes.
+- **Reports:** `benchmarks/tier-matrix/latest.run.json` (schema v4).
+
 ### v1.77.0 documentation sync (LC-20 i18n gap close-out)
 
 - **Plan:** [i18n-gap-closeout-plan.md](i18n-gap-closeout-plan.md) — segmented delivery v1.71.0–v1.77.0 (all phases done).

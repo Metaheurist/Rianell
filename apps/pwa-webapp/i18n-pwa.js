@@ -151,6 +151,9 @@
   function refreshLocaleUI() {
     applyDocumentI18n();
     global.applyNavI18n();
+    if (typeof global.refreshAllTabsForLocaleChange === 'function') {
+      try { global.refreshAllTabsForLocaleChange(); } catch (e) { /* ignore */ }
+    }
     notifyLocaleChange();
   }
 
