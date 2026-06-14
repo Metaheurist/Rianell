@@ -15765,9 +15765,7 @@ function refreshLlmModelSettingsHints() {
   var progressWrap = document.getElementById('llmModelSettingsProgressWrap');
   var progressFill = document.getElementById('llmModelSettingsProgressFill');
   var progressPct = document.getElementById('llmModelSettingsProgressPct');
-  var downloadBtn = document.getElementById('downloadAiModelBtn');
-  var redownloadBtn = document.getElementById('redownloadAiModelBtn');
-  var removeBtn = document.getElementById('removeAiModelCacheBtn');
+  var downloadBtn = document.getElementById('clearRedownloadAiModelBtn');
   var modelStatus = (typeof window.getAiModelStatus === 'function') ? window.getAiModelStatus() : null;
 
   if (llmRecommendationHint) {
@@ -15821,16 +15819,8 @@ function refreshLlmModelSettingsHints() {
   }
 
   if (downloadBtn) {
-    downloadBtn.disabled = !!(modelStatus && modelStatus.state === 'downloading');
-    downloadBtn.style.display = (modelStatus && (modelStatus.state === 'not_downloaded' || modelStatus.state === 'failed')) ? '' : 'none';
-  }
-  if (redownloadBtn) {
-    redownloadBtn.disabled = !!(modelStatus && modelStatus.state === 'downloading');
-    redownloadBtn.style.display = (modelStatus && modelStatus.state === 'ready') ? '' : 'none';
-  }
-  if (removeBtn) {
-    removeBtn.disabled = !!(modelStatus && modelStatus.state === 'downloading');
-    removeBtn.style.display = (modelStatus && (modelStatus.state === 'ready' || modelStatus.state === 'failed')) ? '' : 'none';
+    downloadBtn.style.display = '';
+    downloadBtn.disabled = !!window.__rianellClearRedownloadBusy;
   }
 
   if (llmStorageHint && typeof window.getAiModelStorageEstimate === 'function') {
@@ -15902,26 +15892,37 @@ function closeAiModelDownloadConsentModal(granted) {
   }
 }
 
-async function downloadOrRedownloadAiModel(redownload) {
-  var downloadBtn = document.getElementById('downloadAiModelBtn');
-  var redownloadBtn = document.getElementById('redownloadAiModelBtn');
-  if (downloadBtn) downloadBtn.disabled = true;
-  if (redownloadBtn) redownloadBtn.disabled = true;
+var __rianellClearRedownloadBusy = false;
+
+async function clearAndRedownloadAiModel() {
+  var btn = document.getElementById('clearRedownloadAiModelBtn');
+  window.__rianellClearRedownloadBusy = true;
+  if (btn) btn.disabled = true;
   refreshLlmModelSettingsHints();
   try {
-    if (redownload && typeof window.clearSummaryLLMCache === 'function') {
+    if (typeof window.cancelAiModelDownload === 'function') {
+      window.cancelAiModelDownload();
+    }
+    if (typeof window.clearAiModelCache === 'function') {
+      await window.clearAiModelCache({ resetConsent: false });
+    } else if (typeof window.clearSummaryLLMCache === 'function') {
       window.clearSummaryLLMCache();
     }
+    if (typeof window.resetAiModelDownloadState === 'function') {
+      window.resetAiModelDownloadState();
+    }
+    appSettings.aiModelDownloadConsent = 'granted';
+    saveSettings();
     if (typeof window.preloadSummaryLLM !== 'function') {
       throw new Error('AI model loader unavailable');
     }
-    await window.preloadSummaryLLM();
+    await window.preloadSummaryLLM({ skipConsent: true });
     if (typeof showToast === 'function') {
-      showToast('AI model downloaded and ready.', { type: 'success' });
+      showToast('AI model cleared and redownloaded.', { type: 'success' });
     }
   } catch (e) {
     var msg = (e && e.message) ? String(e.message) : 'Download failed';
-    if (msg.indexOf('deferred') !== -1) {
+    if (msg.indexOf('deferred') !== -1 || msg.indexOf('cancelled') !== -1) {
       if (typeof showToast === 'function') {
         showToast('Download cancelled.', { type: 'info' });
       }
@@ -15929,23 +15930,20 @@ async function downloadOrRedownloadAiModel(redownload) {
       showToast('AI model download failed. Check connection and try again.', { type: 'error' });
     }
   } finally {
+    window.__rianellClearRedownloadBusy = false;
+    if (btn) btn.disabled = false;
     refreshLlmModelSettingsHints();
   }
+}
+if (typeof window !== 'undefined') window.clearAndRedownloadAiModel = clearAndRedownloadAiModel;
+
+async function downloadOrRedownloadAiModel() {
+  return clearAndRedownloadAiModel();
 }
 if (typeof window !== 'undefined') window.downloadOrRedownloadAiModel = downloadOrRedownloadAiModel;
 
 async function removeDownloadedAiModel() {
-  if (typeof window.clearAiModelCache === 'function') {
-    await window.clearAiModelCache({ resetConsent: true });
-  } else if (typeof window.clearSummaryLLMCache === 'function') {
-    window.clearSummaryLLMCache();
-    appSettings.aiModelDownloadConsent = 'deferred';
-    saveSettings();
-  }
-  if (typeof showToast === 'function') {
-    showToast('Downloaded AI model removed.', { type: 'success' });
-  }
-  refreshLlmModelSettingsHints();
+  return clearAndRedownloadAiModel();
 }
 if (typeof window !== 'undefined') window.removeDownloadedAiModel = removeDownloadedAiModel;
 
@@ -19232,7 +19230,7 @@ function updateHomeTodayPanel() {
   if (greet) greet.textContent = name ? salutation + ', ' + name : salutation;
   var d = new Date();
   if (dateEl) {
-    dateEl.textContent = d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+    dateEl.textContent = formatUiDate(d, { weekday: 'long', month: 'long', day: 'numeric' });
   }
   if (!statusEl) return;
   var yyyy = d.getFullYear();
@@ -19398,6 +19396,48 @@ function openLogWizardFromHome() {
     go();
   }
 }
+
+function refreshAllTabsForLocaleChange() {
+  var hadAiContent = false;
+  var aiResults = document.getElementById('aiResultsContent');
+  if (aiResults && aiResults.innerHTML && aiResults.innerHTML.trim()) hadAiContent = true;
+
+  if (typeof updateHomeTodayPanel === 'function') updateHomeTodayPanel();
+  if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
+  if (typeof updateGoalsProgressBlock === 'function') updateGoalsProgressBlock();
+  if (typeof updateDashboardTitle === 'function') updateDashboardTitle();
+
+  if (typeof refreshLogWizardDynamicI18n === 'function') refreshLogWizardDynamicI18n();
+  if (typeof updateLogWizardChrome === 'function') updateLogWizardChrome();
+  if (typeof renderEnergyClarityTiles === 'function') renderEnergyClarityTiles();
+  if (typeof renderStressorTiles === 'function') renderStressorTiles('logStressorsTiles');
+  if (typeof renderLogSymptomsItems === 'function') renderLogSymptomsItems();
+  if (typeof renderLogMedicationsItems === 'function') renderLogMedicationsItems();
+
+  if (typeof filterLogs === 'function') filterLogs();
+  else if (typeof renderLogs === 'function') renderLogs();
+
+  if (typeof window !== 'undefined') window.__chartsBuiltDuringLoad = false;
+  if (typeof refreshCharts === 'function') refreshCharts();
+
+  if (hadAiContent && typeof generateAISummary === 'function') generateAISummary();
+  if (typeof updateAISummaryButtonState === 'function') updateAISummaryButtonState();
+
+  if (typeof refreshLlmModelSettingsHints === 'function') refreshLlmModelSettingsHints();
+  if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.renderSettingsPane === 'function') {
+    window.RianellPrivacy.renderSettingsPane();
+  }
+  var settingsTrack = document.getElementById('settingsCarouselTrack');
+  if (settingsTrack && typeof settingsCarouselGo === 'function') {
+    var paneIdx = parseInt(settingsTrack.getAttribute('data-settings-index') || '0', 10);
+    settingsCarouselGo(paneIdx);
+  }
+  if (typeof refreshBuildDownloadLinks === 'function') refreshBuildDownloadLinks();
+  if (typeof refreshAppInstallSection === 'function') refreshAppInstallSection();
+  if (typeof updateTutorialConditionDisplay === 'function') updateTutorialConditionDisplay();
+  if (typeof applySettings === 'function') applySettings();
+}
+if (typeof window !== 'undefined') window.refreshAllTabsForLocaleChange = refreshAllTabsForLocaleChange;
 
 function refreshLogWizardDynamicI18n() {
   if (typeof renderLogFoodItems === 'function') renderLogFoodItems();
@@ -20302,24 +20342,6 @@ window.addEventListener('load', () => {
   }
   
   // Date range and chart section must be set before createCombinedChart (skipRefresh so we don't run createCombinedChart twice)
-  if (window.RianellI18n && typeof window.RianellI18n.onLocaleChange === 'function') {
-    window.RianellI18n.onLocaleChange(function () {
-      // Do not call applyDocumentI18n here — it already ran before notifyLocaleChange and would recurse infinitely.
-      if (typeof updateHomeTodayPanel === 'function') updateHomeTodayPanel();
-      if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
-      if (typeof refreshLogWizardDynamicI18n === 'function') refreshLogWizardDynamicI18n();
-      if (typeof updateLogWizardChrome === 'function') {
-        var logTabEl = document.getElementById('logTab');
-        if (tabNameRef === 'log' || (logTabEl && logTabEl.classList.contains('active'))) {
-          updateLogWizardChrome();
-        }
-      }
-      if (typeof refreshChartsForCurrentRange === 'function') refreshChartsForCurrentRange();
-      if (typeof displayAISummary === 'function' && document.getElementById('aiTab') && document.getElementById('aiTab').classList.contains('active')) {
-        displayAISummary();
-      }
-    });
-  }
   try {
     initializeDateFilters();
     setChartDateRange(30, { skipRefresh: true });

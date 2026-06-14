@@ -141,10 +141,26 @@
     mod.env.fetch = installedFetch;
   }
 
+  async function clearAssembledModelCache() {
+    Object.keys(assembledBlobUrls).forEach(function (key) {
+      try {
+        URL.revokeObjectURL(assembledBlobUrls[key]);
+      } catch (e) {}
+      delete assembledBlobUrls[key];
+    });
+    installedFetch = null;
+    if (typeof caches !== 'undefined') {
+      try {
+        await caches.delete(CACHE_NAME);
+      } catch (e) {}
+    }
+  }
+
   if (typeof window !== 'undefined') {
     window.RianellModelChunkLoader = {
       preloadChunkedModelFiles: preloadChunkedModelFiles,
       installModelFetchShim: installModelFetchShim,
+      clearAssembledModelCache: clearAssembledModelCache,
       normalizeModelFileEntries: normalizeModelFileEntries,
       logicalFilePaths: function (model) {
         return normalizeModelFileEntries(model).map(function (e) { return e.path; });
