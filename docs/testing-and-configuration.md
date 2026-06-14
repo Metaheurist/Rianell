@@ -5,7 +5,7 @@
 **Toolchain:** Run tests and scripts with **Node.js 24.14.1+** (see [Installation & usage](setup-and-usage.md) and root `package.json` `engines`). **Unit tests** (`npm run test:unit`) use the Node test runner from the repository root; **mobile** tests use Jest under `apps/rn-app`. When you bump npm/Python/CDN dependency pins, run **`npm run docs:dependencies`** and commit **`docs/dependencies.md`** (see [dependencies.md](dependencies.md)).
 
 
-### v1.68.0 i18n verification commands
+### v1.69.1 i18n verification commands
 
 From the repo root after editing locale/prompt/motd packs:
 
@@ -17,6 +17,7 @@ npm run test:mobile
 `verify:i18n` runs `generate-locale-overrides.mjs` first (Tier A rule-based + exact overrides), then sync and strict coverage.
 
 ```bash
+node scripts/generate-locale-overrides.mjs
 node scripts/sync-i18n-assets.mjs
 node scripts/verify-locale-packs.mjs
 node scripts/verify-prompt-packs.mjs
@@ -32,14 +33,15 @@ node scripts/verify-translation-coverage.mjs --strict
 Tier A locale fill (maintainer):
 
 ```bash
-node scripts/batch-mt-tier-a.mjs          # optional MyMemory/DeepL
-node scripts/apply-tier-a-exact-overrides.mjs
+node scripts/generate-locale-overrides.mjs
+node scripts/merge-tier-a-overrides-from-packs.mjs   # snapshot pack diffs into overrides
+node scripts/build-tier-a-exact-overrides.mjs --locale=pt-BR   # Google MT for remaining keys
 node scripts/translate-prompt-packs.mjs
 node scripts/translate-motd-packs.mjs
 node scripts/sync-i18n-assets.mjs
 ```
 
-### v1.60.0 i18n verification commands
+### v1.68.0 i18n verification commands
 
 From the repo root after editing locale/prompt/motd packs:
 
