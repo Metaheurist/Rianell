@@ -395,6 +395,7 @@
     "common.checking": "Controleren…",
     "common.download.model": "Downloaden model",
     "common.redownload.model": "Model opnieuw downloaden",
+    "common.clear.and.redownload.model": "Clear and redownload model",
     "common.remove.downloaded.model": "Verwijderen downloaded model",
     "common.install.on.this.iphone": "Installeren on this iPhone",
     "common.download.android.react.native.cli": "Downloaden Android (React Native CLI)",

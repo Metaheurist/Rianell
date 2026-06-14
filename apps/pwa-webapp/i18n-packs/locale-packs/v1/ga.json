@@ -395,6 +395,7 @@
     "common.checking": "Ag Coisc litriú",
     "common.download.model": "Samhail íosluchtaithe",
     "common.redownload.model": "Samhail ath - íosluchtaithe",
+    "common.clear.and.redownload.model": "Clear and redownload model",
     "common.remove.downloaded.model": "Bain mionsamhail íoslódáilte",
     "common.install.on.this.iphone": "Suiteáil ar an iPhone seo",
     "common.download.android.react.native.cli": "Íosluchtaigh Android (React CLI Dúchasach)",
