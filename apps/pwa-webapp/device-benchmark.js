@@ -942,7 +942,6 @@
       saveBenchmarkResult(quick);
       if (typeof onProgress === 'function') onProgress(100, { phase: 'heuristic', label: 'Quick estimate' });
       if (typeof onComplete === 'function') onComplete(tier, pt, quick, { cached: false, heuristic: true });
-      scheduleBackgroundFullBenchmark();
       return;
     }
     if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] running suite (no cache)');
@@ -1071,6 +1070,8 @@
       getLegacyDeviceClass: getLegacyDeviceClass,
       isBenchmarkReady: isBenchmarkReady,
       runBenchmarkIfNeeded: runBenchmarkIfNeeded,
+      shouldUseHeuristicBoot: shouldUseHeuristicBoot,
+      scheduleBackgroundFullBenchmark: scheduleBackgroundFullBenchmark,
       saveBenchmarkResult: saveBenchmarkResult,
       clearBenchmarkCache: clearBenchmarkCache,
       getCachedResult: getCachedResult

@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.89.1** - Heuristic benchmark quick-start (no first-visit freeze); SBOM generation fix in CI.
+**Latest: v1.89.2** - Inline heuristic boot (no first-visit freeze); `device-benchmark.js?v=2` cache bust.
+
+### v1.89.2 - 2026-06-15 - Boot shell no longer waits on benchmark callbacks
+- **`app.js`:** First web visit uses **inline heuristic boot** (skips blocking benchmark suite and burst animation); full suite runs in background after 8s.
+- **`device-benchmark.js`:** Export `shouldUseHeuristicBoot`; defer background suite until after shell is visible.
+- **`index.html`:** `device-benchmark.js?v=2` so production fetches the fixed script (unfingerprinted file was stale on rianell.com).
+- **`sw.js`:** Cache bump `v2026-06-15-heuristic-boot2`.
 
 ### v1.89.1 - 2026-06-15 - First-visit benchmark freeze fix
 - **`device-benchmark.js`:** Web/PWA first load uses a **heuristic tier** immediately instead of blocking on the full CPU warmup suite (fixes “Page Unresponsive” on `common.measuring.performance · Warmup`). Full suite runs in the background via `requestIdleCallback`.
