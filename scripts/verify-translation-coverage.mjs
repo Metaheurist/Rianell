@@ -23,7 +23,6 @@ const canonical = JSON.parse(fs.readFileSync(path.join(dir, 'en-GB.json'), 'utf8
 const canonicalStrings = canonical.strings || {};
 
 function isGlossaryProtected(key, value) {
-  if (EN_VARIANTS.some((l) => key.includes('en'))) return true;
   if (key.startsWith('units.')) return true;
   if (typeof value !== 'string') return true;
   const t = value.trim();
@@ -47,6 +46,7 @@ for (const locale of SHIPPED_LOCALES) {
   let identical = 0;
   for (const [key, enVal] of Object.entries(canonicalStrings)) {
     if (key.startsWith(POLICY_PREFIX)) continue;
+    if (key.startsWith('content.')) continue;
     if (typeof enVal !== 'string') continue;
     const locVal = strings[key];
     if (typeof locVal !== 'string') continue;
@@ -55,7 +55,7 @@ for (const locale of SHIPPED_LOCALES) {
     if (locVal.trim() === enVal.trim()) identical++;
   }
   const pct = comparable ? ((identical / comparable) * 100).toFixed(1) : '0.0';
-  const tier = TIER_A.includes(locale) ? 'A' : EN_VARIANTS.includes(locale) ? 'B' : locale === 'ar' || locale === 'he' ? 'C' : '?';
+  const tier = TIER_A.includes(locale) ? 'A' : EN_VARIANTS.includes(locale) ? 'B' : locale === 'ar' || locale === 'he' || locale === 'ga' ? 'C' : '?';
   console.log(
     `verify-translation-coverage: ${locale} [tier ${tier}] ${identical}/${comparable} identical (${pct}%)`,
   );

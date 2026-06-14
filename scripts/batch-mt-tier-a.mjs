@@ -13,7 +13,7 @@ import { hasTranslateCredentials, translateText } from './lib/machine-translate.
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
-const TIER_A = ['pt-BR', 'fr-FR', 'de-DE', 'es-ES', 'it-IT', 'nl-NL', 'pl-PL', 'pt-PT'];
+const TIER_A = ['pt-BR', 'fr-FR', 'de-DE', 'es-ES', 'it-IT', 'nl-NL', 'pl-PL', 'pt-PT', 'ga'];
 const dryRun = process.argv.includes('--dry-run');
 const localeArg = process.argv.find((a) => a.startsWith('--locale='));
 const onlyLocale = localeArg ? localeArg.split('=')[1] : null;

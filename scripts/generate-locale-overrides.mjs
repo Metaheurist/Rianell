@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { canonicalLocalePacksDir } from '../packages/shared/src/i18n/packPaths.mjs';
 import { EXACT_OVERRIDES } from './lib/tier-a-exact-overrides.mjs';
+import { MIXED_FIXES } from './lib/lc20-mixed-fixes.mjs';
 import { applyRuleBasedMt, shouldKeepEnglish } from './lib/rule-based-mt.mjs';
 
 const root = process.cwd();
@@ -29,6 +30,10 @@ function applyTierATranslations(strings, locale) {
     const exact = overrides[key] ?? overrides[enVal];
     if (!exact || exact.trim() === enVal.trim()) continue;
     out[key] = exact;
+  }
+  const mixed = MIXED_FIXES[locale] || {};
+  for (const [key, val] of Object.entries(mixed)) {
+    if (typeof val === 'string' && val.trim()) out[key] = val;
   }
   return out;
 }
@@ -154,19 +159,84 @@ const OVERRIDES = {
       'nav.settings': 'Definições',
     },
   },
+  ga: {
+    label: 'Gaeilge',
+    llmCapability: 'ui-only',
+    strings: {
+      'common.close': 'Dún',
+      'common.cancel': 'Cealaigh',
+      'common.continue': 'Lean ar aghaidh',
+      'common.confirm': 'Deimhnigh',
+      'common.save': 'Sábháil',
+      'common.loading': 'Ag lódáil…',
+      'common.accept': 'Glac',
+      'gate.title': 'Réigiún príobháideachais',
+      'gate.confirm': 'Deimhnigh agus lean ar aghaidh',
+      'settings.privacy.title': 'Príobháideachas & réigiún',
+      'settings.privacy.languageLabel': 'Teanga',
+      'nav.home': 'Baile',
+      'nav.logs': 'Logaí',
+      'nav.charts': 'Cairteacha',
+      'nav.ai': 'Anailís AI',
+      'nav.settings': 'Socruithe',
+      'wizard.action.back': 'Ar ais',
+      'wizard.action.skip': 'Scipeáil',
+      'wizard.action.saveEntry': 'Sábháil iontráil',
+      'wizard.progress.stepOfTotal': 'Céim {current} as {total}',
+      'common.god.mode.test.all.ui': 'Mód Dé – tástáil an UI go léir',
+      'tutorial.done': 'Tosaigh',
+    },
+  },
 };
 
 for (const [locale, meta] of Object.entries(OVERRIDES)) {
-  let strings = { ...canonical.strings, ...(meta.strings || {}) };
+  const filePath = path.join(dir, `${locale}.json`);
+  const existing = fs.existsSync(filePath)
+    ? JSON.parse(fs.readFileSync(filePath, 'utf8'))
+    : { strings: {} };
+  let strings = { ...canonical.strings, ...(existing.strings || {}), ...(meta.strings || {}) };
   if (TIER_A.includes(locale)) {
     strings = applyTierATranslations(strings, locale);
+  }
+  const overrides = EXACT_OVERRIDES[locale] || {};
+  for (const [key, val] of Object.entries(overrides)) {
+    if (typeof val === 'string' && val.trim()) strings[key] = val;
+  }
+  const mixed = MIXED_FIXES[locale] || {};
+  for (const [key, val] of Object.entries(mixed)) {
+    if (typeof val === 'string' && val.trim()) strings[key] = val;
   }
   const out = {
     locale,
     label: meta.label,
     strings,
+    ...(meta.llmCapability ? { llmCapability: meta.llmCapability } : {}),
     ...(TIER_A.includes(locale) ? { machineTranslatedUi: true } : {}),
   };
-  fs.writeFileSync(path.join(dir, `${locale}.json`), `${JSON.stringify(out, null, 2)}\n`, 'utf8');
+  fs.writeFileSync(filePath, `${JSON.stringify(out, null, 2)}\n`, 'utf8');
   console.log('wrote', locale);
+}
+
+/** Preserve ar/he packs: merge canonical keys without overwriting existing translations. */
+const RTL_LOCALES = {
+  ar: { label: 'العربية', llmCapability: 'ui-only' },
+  he: { label: 'עברית', llmCapability: 'ui-only' },
+};
+for (const [locale, meta] of Object.entries(RTL_LOCALES)) {
+  const filePath = path.join(dir, `${locale}.json`);
+  const existing = fs.existsSync(filePath)
+    ? JSON.parse(fs.readFileSync(filePath, 'utf8'))
+    : { strings: {} };
+  const strings = { ...canonical.strings, ...(existing.strings || {}) };
+  for (const [key, val] of Object.entries(canonical.strings || {})) {
+    if (strings[key] === undefined || strings[key] === '') strings[key] = val;
+  }
+  const out = {
+    locale,
+    label: meta.label,
+    strings,
+    llmCapability: meta.llmCapability,
+  };
+  fs.writeFileSync(filePath, `${JSON.stringify(out, null, 2)}\n`, 'utf8');
+  console.log('merged', locale);
 }

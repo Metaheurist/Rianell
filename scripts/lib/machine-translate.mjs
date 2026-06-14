@@ -15,6 +15,7 @@ const LOCALE_TO_DEEPL = {
   'pl-PL': 'PL',
   ar: 'AR',
   he: 'HE',
+  ga: 'GA',
   'en-US': 'EN-US',
   'en-AU': 'EN-GB',
 };
@@ -31,6 +32,7 @@ const LOCALE_TO_MYMEMORY = {
   'pl-PL': 'pl',
   ar: 'ar',
   he: 'he',
+  ga: 'ga',
 };
 
 export function hasTranslateCredentials() {
