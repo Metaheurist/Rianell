@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.77.0",
+  "version": "1.81.0",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp and React Native app",
   "workspaces": [
     "apps/rn-app",
@@ -31,6 +31,11 @@
     "benchmark:web": "npm run web --workspace=@rianell/benchmark-runner",
     "benchmark:expo": "npm run expo --workspace=@rianell/benchmark-runner",
     "benchmark:all": "npm run benchmark",
+    "benchmark:tier-matrix": "npm run tier-matrix --workspace=@rianell/benchmark-runner",
+    "benchmark:settings-matrix": "npm run settings-matrix --workspace=@rianell/benchmark-runner",
+    "benchmark:god-mode": "npm run god-mode --workspace=@rianell/benchmark-runner",
+    "benchmark:full-suite": "npm run full-suite --workspace=@rianell/benchmark-runner",
+    "benchmark:verify": "npm run toolkit:verify --workspace=@rianell/benchmark-runner",
     "docs:dependencies": "node scripts/generate-dependencies-doc.mjs",
     "docs:security-inventory": "node scripts/generate-security-inventory.mjs",
     "verify:privacy-docs": "node scripts/verify-privacy-docs.mjs",

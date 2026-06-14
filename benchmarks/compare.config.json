@@ -1,5 +1,5 @@
 {
   "window": 10,
   "detail_windows": [5, 20],
-  "platforms": ["web-pwa", "github-pages", "capacitor-web", "expo-rn"]
+  "platforms": ["tier-matrix", "settings-matrix", "web-pwa", "github-pages", "capacitor-web", "expo-rn", "ai-engine-package", "ai-engine-layers", "ai-engine-algos", "ai-engine-rn"]
 }
