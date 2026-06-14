@@ -2,6 +2,13 @@
 
 ## 🗂️ Project Structure
 
+### v1.70.3 documentation sync (PWA bugfix release)
+
+- **Settings (v1.70.0):** `i18n-pwa.js` re-entrancy guard; `app.js` `onLocaleChange` no longer calls `applyDocumentI18n` recursively.
+- **Logs (v1.70.1):** Expanded log cards show `.log-entry-content` via CSS class only (no inline `display: none`).
+- **LLM (v1.70.2):** `summary-llm.js` GET manifest probe; chunked loader gated to Supabase/app-origin.
+- **Share UI (v1.70.3):** `icon-share` sprite; circular `.log-entry-actions .share-btn` in `styles.css`.
+
 ### v1.69.1 documentation sync (CI generate order)
 
 - **`verify:i18n`:** Runs `generate-locale-overrides.mjs` before sync and `verify-translation-coverage.mjs --strict`.
