@@ -2,7 +2,70 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.70.3** - PWA stability fixes: settings freeze, log expand, LLM model host, share button UI.
+**Latest: v1.77.0** - LC-20 i18n gap close-out (segmented v1.71.0–v1.77.0): wiring, modals, MT pipeline, content catalogs, MOTD/policy gates, `verify:i18n` expansion.
+
+### v1.77.0 - 2026-06-14 - LC-20 CI closure and documentation
+
+- **`verify:i18n`:** Full pipeline — `build-content-catalog-keys`, `auto-translate-ui-strings`, `translate-motd-packs`, `verify-motd-translation-coverage`, `verify-mixed-language-strings`; coverage `--strict --max-pct=13` (post LC-20 key expansion).
+- **`package.json`:** Version **1.77.0**; documents segmented LC-20 delivery.
+- **Docs:** [i18n-gap-closeout-plan.md](i18n-gap-closeout-plan.md), README, project-reference, testing-and-configuration updated.
+- **Packs:** Synced locale/MOTD/prompt JSON across `i18n-packs/`, PWA, RN, and `packages/shared`.
+
+### v1.76.0 - 2026-06-14 - LC-20f policy localization
+
+- **`auto-translate-policy-strings.mjs`:** Rule-based Tier A fill + optional `--translate` (MyMemory/DeepL/Google); `policy.machineTranslatedNotice` for non-authoritative locales.
+- **Policy packs:** `policy.*` strings updated in locale packs via generate + sync.
+
+### v1.75.0 - 2026-06-14 - LC-20e MOTD coverage
+
+- **`translate-motd-packs.mjs`:** ar/he headline API MT; optional `--all` for messages 31–101.
+- **`verify-motd-translation-coverage.mjs`:** CI gate — Tier A + ga require translated headlines; ar/he ≥30.
+- **MOTD packs:** ar/he first 30 machine-translated; Tier A retains hand-curated top 30.
+
+### v1.74.1 - 2026-06-14 - LC-20h benchmark test labels
+
+- **`device-benchmark.js`:** Progress/test labels resolve via `window.benchmarkTestLabel` and `benchmark.tests.*` keys (cpu, json, dom, raf, array, string, warmup).
+- **PWA `app.js`:** Exposes `benchmarkTestLabel` on `window` for benchmark runner.
+
+### v1.74.0 - 2026-06-14 - LC-20d content catalogs
+
+- **`build-content-catalog-keys.mjs`:** Extracts ~184 `content.*` keys (food, exercise, meals, stressors, symptoms, energy, body regions) into en-GB.
+- **`batch-mt-content-keys.mjs`:** Optional API MT for `content.*` keys still identical to en-GB.
+- **PWA:** `tContent()` resolver wired on wizard tile pickers.
+- **RN:** `LogWizardScreen` `tContent()` for symptoms, energy, stressors, exercise, body regions; `ga` catalog in `I18nProvider`.
+
+### v1.73.0 - 2026-06-14 - LC-20c mixed-language MT pipeline
+
+- **`verify-mixed-language-strings.mjs`:** Warn/strict gate for Frankenstein Tier A strings.
+- **`batch-mt-hybrid-keys.mjs`:** Re-MT hybrid keys from full en-GB sentences.
+- **`lc20-mixed-fixes.mjs`:** Hand-curated de-DE/pl-PL full-sentence overrides merged in `generate-locale-overrides.mjs`.
+- **`generate-locale-overrides.mjs`:** Preserves existing MT on regen; merges ar/he RTL packs.
+- **`verify-translation-coverage.mjs`:** Fixed `content.*` false skip (`key.includes('en')` bug); excludes `content.*` from Tier A % gate.
+- **MT passes:** Tier A + ga batch MT for new LC-20 keys (`godMode.*`, `tutorial.*`, `wizard.review.*`, `benchmark.*`).
+
+### v1.72.1 - 2026-06-14 - LC-20b modals and wizard review
+
+- **God mode:** `godMode.*` keys; `openModalTestOverlay()` uses `titleKey` / `labelKey` / `hintKey`.
+- **Benchmark modal:** `benchmark.*` keys in `openPerfBenchmarkModal()`.
+- **Wizard review:** `wizard.review.*` section titles and row labels via `tUi()`.
+- **Charts:** `loadChart()` uses `charts.metric.*` label keys.
+- **Share modal:** `tUi('common.share')` fallback; PWA update toast uses `common.reload`.
+
+### v1.72.0 - 2026-06-14 - LC-20a wiring and audit scanner
+
+- **Cookie banner:** `data-i18n="common.cookie.bannerText"` on `.cookie-banner-text`.
+- **Install modal:** iOS/iPad fallbacks via `common.install.on.*` keys.
+- **Picker filters:** `logs.picker.filterFoods/Exercises/Options/Stressors/Symptoms` wired in `createTilePickerSearchEl()`.
+- **Tutorial:** `tutorial.slide*.body` and hint keys with `data-i18n` on slides; `tutorial.slide3.accountBody`.
+- **Audit:** `i18n-audit-shared.mjs` scans `sectionCard`, `addRow`, `{ label: }`; catalog key literals skipped; allowlist for model names.
+- **Runtime:** `ensureCatalogs()` before wizard open; `refreshLogWizardDynamicI18n()` on locale change; SW cache `v2026-06-14-lc20-i18n`.
+- **Tests:** `i18n.test.mjs` regression for `common.none` and `logs.form.noExercise` in de-DE.
+
+### v1.71.0 - 2026-06-14 - Irish (ga) locale scaffold
+
+- **`ga` in `SHIPPED_LOCALES`:** UI-only LLM capability; core nav/wizard strings in `generate-locale-overrides.mjs`.
+- **Packs:** `ga.json` locale, MOTD (30 Irish + en tail), prompt (`ui-only`) under `i18n-packs/` and synced app copies.
+- **MT:** Full ga UI batch pass (~562 keys translated).
 
 ### v1.70.3 - 2026-06-14 - Log share button UI
 

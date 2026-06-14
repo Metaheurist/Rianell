@@ -14,30 +14,39 @@ npm run verify:i18n
 npm run test:mobile
 ```
 
-`verify:i18n` runs `generate-locale-overrides.mjs` first (Tier A rule-based + exact overrides), then sync and strict coverage.
+`verify:i18n` (v1.77.0) runs, in order: `build-content-catalog-keys.mjs` → `generate-locale-overrides.mjs` → `auto-translate-ui-strings.mjs` → `auto-translate-policy-strings.mjs` → `translate-motd-packs.mjs` → `sync-i18n-assets.mjs` → locale/prompt/motd/HTML/audit gates → `verify-translation-coverage.mjs --strict --max-pct=13` → `verify-mixed-language-strings.mjs`.
 
 ```bash
+node scripts/build-content-catalog-keys.mjs
 node scripts/generate-locale-overrides.mjs
+node scripts/auto-translate-ui-strings.mjs
+node scripts/auto-translate-policy-strings.mjs
+node scripts/translate-motd-packs.mjs
 node scripts/sync-i18n-assets.mjs
 node scripts/verify-locale-packs.mjs
 node scripts/verify-prompt-packs.mjs
 node scripts/verify-motd-packs.mjs
+node scripts/verify-motd-translation-coverage.mjs
 node scripts/verify-no-html-in-locale-packs.mjs
 node scripts/audit-hardcoded-strings.mjs --check
 node scripts/audit-hardcoded-strings.mjs --require-wiring
 node scripts/verify-no-hardcoded-ui.mjs --strict
 node scripts/verify-no-hardcoded-ui.mjs --baseline
-node scripts/verify-translation-coverage.mjs --strict
+node scripts/verify-translation-coverage.mjs --strict --max-pct=13
+node scripts/verify-mixed-language-strings.mjs
 ```
 
-Tier A locale fill (maintainer):
+Tier A / ga locale fill (maintainer):
 
 ```bash
 node scripts/generate-locale-overrides.mjs
+USE_MYMEMORY_MT=1 node scripts/batch-mt-tier-a.mjs --locale=de-DE
+USE_MYMEMORY_MT=1 node scripts/batch-mt-hybrid-keys.mjs --locale=de-DE
+USE_MYMEMORY_MT=1 node scripts/batch-mt-content-keys.mjs --locale=de-DE
 node scripts/merge-tier-a-overrides-from-packs.mjs   # snapshot pack diffs into overrides
 node scripts/build-tier-a-exact-overrides.mjs --locale=pt-BR   # Google MT for remaining keys
 node scripts/translate-prompt-packs.mjs
-node scripts/translate-motd-packs.mjs
+USE_MYMEMORY_MT=1 node scripts/translate-motd-packs.mjs --all
 node scripts/sync-i18n-assets.mjs
 ```
 
