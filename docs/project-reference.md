@@ -2,6 +2,41 @@
 
 ## 🗂️ Project Structure
 
+### v1.83.0 documentation sync (README icons and copy)
+
+- **README:** `docs/icons/*.svg` — 32×32 tinted tiles for GitHub dark mode; removed next-phase plan section and documentation table row.
+- **PWA:** AI at-a-glance footnote removed (`app.js`, `styles.css`).
+- **Pointers:** [about-and-support.md](about-and-support.md) — changelog + feature docs (no roadmap link in README).
+
+### v1.82.0 documentation sync (AI engine benchmarks)
+
+- **Toolkit:** `benchmarks/scripts/toolkit/run-ai-engine-*.mjs`, `verify-ai-engine.mjs`, `ai-fixtures.mjs`, `ai-engine-catalog.json`, `ai-thresholds.json`.
+- **CI:** `benchmarks-ai-package`, `benchmarks-ai-layers`, `benchmarks-ai-algos`, `benchmarks-ai-rn` jobs; merged in `commit-benchmarks`.
+- **npm:** `benchmark:ai-package`, `benchmark:ai-layers`, `benchmark:ai-algos`, `benchmark:ai-rn`, `benchmark:ai-verify`, `benchmark:ai-all`.
+- **See:** [testing-and-configuration.md](testing-and-configuration.md) § AI engine benchmark suite.
+
+### v1.81.0 documentation sync (benchmark toolkit CI)
+
+- **CI:** `benchmarks-toolkit` — full perf toolkit via `npm run full-suite -- --strict`.
+- **Runbook:** `benchmarks/toolkit/AGENT-RUNBOOK.md`.
+- **compare.md:** tier-matrix and settings-matrix history sections.
+
+### v1.80.0 documentation sync (full-suite orchestrator)
+
+- **`run-full-suite.mjs`:** tier matrix + settings matrix + user journey + Lighthouse + `verify-regression --strict`.
+- **Reports:** `benchmarks/full-suite/`, `benchmarks/source-built/`.
+
+### v1.79.0 documentation sync (God mode and settings autotest)
+
+- **`run-god-mode-suite.mjs`**, **`run-settings-matrix.mjs`**, **`run-user-journey.mjs`**.
+- **PWA:** `data-god-mode` selectors; God mode catalog in `benchmarks/toolkit/god-mode-catalog.json`.
+
+### v1.78.0 documentation sync (tier-matrix performance suite)
+
+- **`run-tier-matrix.mjs`:** 10 cells (tier 1–5 × desktop/mobile); `export-tier-profiles.mjs`.
+- **PWA:** `__rianellTestHooks` on `?benchmark_test=1`; tier 1–2 LLM route block for AIEngine-only probes.
+- **Reports:** `benchmarks/tier-matrix/latest.run.json` (schema v4).
+
 ### v1.77.0 documentation sync (LC-20 i18n gap close-out)
 
 - **Plan:** [i18n-gap-closeout-plan.md](i18n-gap-closeout-plan.md) — segmented delivery v1.71.0–v1.77.0 (all phases done).
@@ -129,6 +164,10 @@ Rianell/
 │   │   └── src/            # Tabs, Log wizard, Charts, AI, Settings, …
 ├── packages/               # @rianell/shared, ai-engine, cloud-sync, llm, tokens
 ├── benchmarks/             # @rianell/benchmark-runner — perf reports (CI + local), scripts, reporters
+│   ├── toolkit/            # tier-profiles.json, thresholds.json, god-mode-catalog.json, AGENT-RUNBOOK.md
+│   ├── scripts/toolkit/    # run-tier-matrix.mjs, run-settings-matrix.mjs, run-full-suite.mjs
+│   ├── tier-matrix/        # schema v4 tier performance reports
+│   └── settings-matrix/    # tier-3 settings variant reports
 ├── scripts/
 ├── docs/
 ├── .github/workflows/
