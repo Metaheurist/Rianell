@@ -14,6 +14,8 @@ import {
 } from '../../../packages/shared/src/i18n/resolveLocale.mjs';
 import { loadCatalogsFromDisk } from '../../../packages/shared/src/i18n/loadCatalogs.mjs';
 import { DEFAULT_LOCALE, DEFAULT_PRIVACY_REGION } from '../../../packages/shared/src/i18n/locales.mjs';
+import { formatDate, formatRelativeDay } from '../../../packages/shared/src/i18n/format.mjs';
+import { isRtlLocale, textDirection } from '../../../packages/shared/src/i18n/rtl.mjs';
 
 const catalogs = loadCatalogsFromDisk();
 
@@ -59,8 +61,31 @@ test('getPolicyDocumentsForRegionI18n returns locale-aware summaries', async () 
     '../../../packages/shared/src/privacy/getPolicyDocumentsI18n.mjs'
   );
   const root = join(dirname(fileURLToPath(import.meta.url)), '../../..');
-  const pack = JSON.parse(readFileSync(join(root, 'policy-packs/v1.json'), 'utf8'));
+  const pack = JSON.parse(readFileSync(join(root, 'i18n-packs/policy-packs/v1.json'), 'utf8'));
   const docs = getPolicyDocumentsForRegionI18n('eea_uk', pack, 'en-GB', catalogs);
   assert.ok(docs.length > 0);
   assert.equal(docs[0].title, 'Global privacy baseline');
+});
+
+test('formatDate uses locale (de-DE)', () => {
+  const d = new Date('2026-06-13T12:00:00Z');
+  const out = formatDate(d, 'de-DE', { dateStyle: 'medium' });
+  assert.ok(typeof out === 'string' && out.length > 0);
+});
+
+test('formatRelativeDay returns Today for today', () => {
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  assert.equal(formatRelativeDay(today, 'en-GB'), 'Today');
+});
+
+test('isRtlLocale detects ar and he', () => {
+  assert.equal(isRtlLocale('ar'), true);
+  assert.equal(isRtlLocale('he-IL'), true);
+  assert.equal(isRtlLocale('en-GB'), false);
+});
+
+test('textDirection returns rtl for Arabic', () => {
+  assert.equal(textDirection('ar'), 'rtl');
+  assert.equal(textDirection('fr-FR'), 'ltr');
 });
