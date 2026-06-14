@@ -5802,6 +5802,7 @@ button.app-log-fab:focus {
 
 .entry.expanded .log-entry-actions {
   display: flex; /* Show when expanded */
+  align-items: center;
   height: auto;
   min-height: 52px;
   opacity: 1;
@@ -7899,6 +7900,39 @@ body.light-mode .chart-share-btn:focus {
 
 .log-entry-actions .share-btn {
   margin-left: auto;
+  align-self: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  max-width: 32px;
+  max-height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+  font-size: 0;
+}
+
+.log-entry-actions .share-btn .ui-svg-icon {
+  width: 16px;
+  height: 16px;
+  color: #fff;
+  filter: none;
+}
+
+.log-entry-actions .share-btn:hover {
+  background: linear-gradient(135deg, #388e3c, #2e7d32);
+  color: #fff;
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.5);
+}
+
+.log-entry-actions .share-btn:active {
+  transform: scale(0.95);
 }
 
 /* Chart share button - in flow above the plot (not over the graph) */
@@ -13418,6 +13452,20 @@ body.light-mode .danger-zone {
     width: 28px;
     height: 28px;
     font-size: 14px;
+  }
+
+  .log-entry-actions .share-btn {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    max-width: 28px;
+    max-height: 28px;
+  }
+
+  .log-entry-actions .share-btn .ui-svg-icon {
+    width: 14px;
+    height: 14px;
   }
   
   .log-actions {
