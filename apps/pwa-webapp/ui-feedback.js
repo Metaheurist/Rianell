@@ -5,6 +5,13 @@
 (function (global) {
   'use strict';
 
+  function tUi(key, params) {
+    if (global.RianellI18n && typeof global.RianellI18n.t === 'function') {
+      return global.RianellI18n.t(key, params);
+    }
+    return key;
+  }
+
   var TOAST_CONTAINER_ID = 'rianellToastStack';
   var OFFLINE_ID = 'rianellOfflineIndicator';
   var UPDATE_BAR_ID = 'rianellUpdateBar';
@@ -315,7 +322,7 @@
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'rianell-update-bar__btn';
-    btn.textContent = 'Restart';
+    btn.textContent = tUi('common.restart');
     btn.addEventListener('click', function () {
       if (typeof onAction === 'function') onAction();
     });
@@ -338,7 +345,7 @@
     el.setAttribute('aria-live', 'polite');
     el.innerHTML =
       '<div class="ai-model-download-banner__text">' +
-      '<span class="ai-model-download-banner__label">Downloading AI model…</span>' +
+      '<span class="ai-model-download-banner__label">' + tUi('common.downloading.ai.model') + '</span>' +
       '<span class="ai-model-download-banner__pct">0%</span>' +
       '</div>' +
       '<div class="ai-model-download-banner__track">' +
@@ -361,18 +368,18 @@
     el.innerHTML =
       '<div class="modal-content ai-model-download-progress__content" onclick="event.stopPropagation()">' +
       '<div class="modal-header ai-model-download-progress__header">' +
-      '<h3 id="aiModelDownloadProgressTitle">Downloading AI model</h3>' +
+      '<h3 id="aiModelDownloadProgressTitle">' + tUi('common.downloading.ai.model') + '</h3>' +
       '</div>' +
       '<div class="modal-body ai-model-download-progress__body">' +
-      '<p class="ai-model-download-progress__label">Preparing on-device AI…</p>' +
+      '<p class="ai-model-download-progress__label">' + tUi('common.preparing.on.device.ai') + '</p>' +
       '<div class="ai-model-download-progress__track">' +
       '<div class="ai-model-download-progress__fill" style="width:0%"></div>' +
       '</div>' +
       '<p class="ai-model-download-progress__pct">0%</p>' +
-      '<p class="settings-hint ai-model-download-progress__hint">Wi-Fi recommended. Keep this screen open until the download finishes.</p>' +
+      '<p class="settings-hint ai-model-download-progress__hint">' + tUi('common.wi.fi.recommended.keep.this.screen.open.') + '</p>' +
       '</div>' +
       '<div class="modal-footer alert-modal-footer ai-model-download-progress__footer">' +
-      '<button type="button" class="modal-cancel-btn" id="aiModelDownloadSkipBtn" onclick="skipAiModelDownloadProgress()">Not now</button>' +
+      '<button type="button" class="modal-cancel-btn" id="aiModelDownloadSkipBtn" onclick="skipAiModelDownloadProgress()">' + tUi('common.not.now') + '</button>' +
       '</div>' +
       '</div>';
     document.body.appendChild(el);

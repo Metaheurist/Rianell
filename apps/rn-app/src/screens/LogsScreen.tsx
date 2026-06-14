@@ -377,11 +377,11 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
             })}
           </View>
         </View>
-        <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Filter</Text>
+        <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('logs.filter')}</Text>
         <TextInput
           value={search}
           onChangeText={setSearch}
-          placeholder="Search notes, symptoms, stressors..."
+          placeholder={t('logs.search.notes.symptoms.stressors')}
           placeholderTextColor="rgba(255,255,255,0.45)"
           style={[styles.input, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
           autoCapitalize="none"
@@ -455,7 +455,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
                   style={[styles.input, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
                   accessibilityLabel="Edit log date"
                 />
-                <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Flare</Text>
+                <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('export.csv.flare')}</Text>
                 <View style={styles.sortBtns}>
                   {(['No', 'Yes'] as const).map((value) => (
                     <Pressable
@@ -481,7 +481,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
                   style={[styles.input, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
                   accessibilityLabel="Edit log bpm"
                 />
-                <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Sleep</Text>
+                <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('export.csv.sleep')}</Text>
                 <TextInput
                   value={editDraft.sleep != null ? String(editDraft.sleep) : ''}
                   onChangeText={(value) => updateDraft({ sleep: value.trim() ? Number(value) : undefined })}
@@ -489,7 +489,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
                   style={[styles.input, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
                   accessibilityLabel="Edit log sleep"
                 />
-                <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Mood</Text>
+                <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('export.csv.mood')}</Text>
                 <TextInput
                   value={editDraft.mood != null ? String(editDraft.mood) : ''}
                   onChangeText={(value) => updateDraft({ mood: value.trim() ? Number(value) : undefined })}
@@ -497,7 +497,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
                   style={[styles.input, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
                   accessibilityLabel="Edit log mood"
                 />
-                <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Fatigue</Text>
+                <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('export.csv.fatigue')}</Text>
                 <TextInput
                   value={editDraft.fatigue != null ? String(editDraft.fatigue) : ''}
                   onChangeText={(value) => updateDraft({ fatigue: value.trim() ? Number(value) : undefined })}

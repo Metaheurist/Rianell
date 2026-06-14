@@ -160,7 +160,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                 {summaryNote || t('ai.loading.generating')}
               </Text>
 
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>At a glance</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('common.at.a.glance')}</Text>
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                 Range: {summary.rangeLabel} ({summary.totalLogs} log{summary.totalLogs === 1 ? '' : 's'})
               </Text>
@@ -215,7 +215,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                 </Text>
               ))}
 
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Important</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.important')}</Text>
               <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
                 {t('ai.disclaimer.medical')}
               </Text>
@@ -248,7 +248,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                 </Text>
               ))}
 
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Groups that change together</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.groups.that.change.together')}</Text>
               <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
                 Clusters of metrics that often shift in the same period.
               </Text>

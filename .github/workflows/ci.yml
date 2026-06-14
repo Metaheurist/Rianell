@@ -222,7 +222,11 @@ jobs:
           node scripts/verify-prompt-packs.mjs
           node scripts/verify-no-html-in-locale-packs.mjs
           node scripts/audit-hardcoded-strings.mjs --check
-          node scripts/verify-no-hardcoded-ui.mjs
+          node scripts/audit-hardcoded-strings.mjs --require-wiring
+          node scripts/verify-no-hardcoded-ui.mjs --strict
+          node scripts/verify-no-hardcoded-ui.mjs --baseline
+          node scripts/verify-motd-packs.mjs
+          node scripts/verify-translation-coverage.mjs
           node scripts/verify-csp-connect-src.mjs
           node scripts/verify-no-service-role-in-clients.mjs
           node scripts/verify-no-model-weights-in-git.mjs
