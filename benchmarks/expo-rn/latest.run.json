@@ -4,43 +4,43 @@
   "kind": "expo",
   "status": "ok",
   "meta": {
-    "timestamp_utc": "2026-06-14T01:03:17.226Z",
-    "git_sha": "5095a3b8917bbb7df4873cd9317d746643d66827",
+    "timestamp_utc": "2026-06-14T08:08:52.065Z",
+    "git_sha": "36e0b4be36a2650aa8da072595d28f6a2e8f3dd0",
     "runner": "linux",
     "node": "v24.14.1",
-    "github_run_id": "27484132166",
+    "github_run_id": "27492730321",
     "github_run_attempt": "1"
   },
   "hermes": {
     "hbc_file_count": 4,
-    "android_gzip_bytes": 2511667,
-    "ios_gzip_bytes": 2504401,
-    "android_raw_bytes": 5831491,
-    "ios_raw_bytes": 5813350,
+    "android_gzip_bytes": 3240548,
+    "ios_gzip_bytes": 3230712,
+    "android_raw_bytes": 7550153,
+    "ios_raw_bytes": 7531311,
     "bundles": [
       {
         "platform": "android",
-        "file": "_expo/static/js/android/index-55770e731066db4db9eb31a1e3e8c5cb.hbc",
-        "bytes": 3648300,
-        "gzip_bytes": 1570358
+        "file": "_expo/static/js/android/index-389f0917c61b3b0a8d1ef0c31941cb79.hbc",
+        "bytes": 3664963,
+        "gzip_bytes": 1576093
       },
       {
         "platform": "android",
-        "file": "_expo/static/js/android/index-681844d8bb32dca14669dcc0b1c8af49.hbc",
-        "bytes": 2183191,
-        "gzip_bytes": 941309
+        "file": "_expo/static/js/android/index-53867d1e0964360f9b2dd5cb485077f1.hbc",
+        "bytes": 3885190,
+        "gzip_bytes": 1664455
       },
       {
         "platform": "ios",
-        "file": "_expo/static/js/ios/index-110a14698957ef5421478e0b10bfc219.hbc",
-        "bytes": 3638878,
-        "gzip_bytes": 1566800
+        "file": "_expo/static/js/ios/index-16d5a3f77c0d0c37a3af54ba510cceff.hbc",
+        "bytes": 3875757,
+        "gzip_bytes": 1659230
       },
       {
         "platform": "ios",
-        "file": "_expo/static/js/ios/index-bb494b2d8ba112690761101a1ff6d52d.hbc",
-        "bytes": 2174472,
-        "gzip_bytes": 937601
+        "file": "_expo/static/js/ios/index-bbe32fbc0c4fa4e5312d4cafb0d8d8fe.hbc",
+        "bytes": 3655554,
+        "gzip_bytes": 1571482
       }
     ]
   },

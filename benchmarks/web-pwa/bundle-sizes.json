@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-14T01:02:24.382Z",
+  "generatedAt": "2026-06-14T08:08:20.432Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3383630,
+    "jsBytes": 3386484,
     "cssBytes": 389974,
-    "jsGzipBytes": 655682,
+    "jsGzipBytes": 659096,
     "cssGzipBytes": 68761
   },
   "files": [
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 104207,
-      "gzipBytes": 15641
+      "bytes": 107061,
+      "gzipBytes": 19055
     },
     {
       "file": "ci-minified/site/cloud-sync.js",
