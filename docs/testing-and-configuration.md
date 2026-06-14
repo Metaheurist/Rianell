@@ -165,7 +165,9 @@ Rule-based AI microbench (no LLM/ONNX) — four parallel CI jobs after `benchmar
 
 **CI:** Uses `ci-minified/site`; artifacts merged on `main`/`master`. See `benchmarks/toolkit/AGENT-RUNBOOK.md`.
 
-**v1.84 fixes:** Relative `BENCHMARK_PWA_ROOT` (repo-root join); Playwright `load` + `ensureAIEngineLoaded` pre-warm; RN runner uses `node_modules/jest/bin/jest.js` on Windows.
+**v1.84 fixes:** Relative `BENCHMARK_PWA_ROOT` (repo-root join); `ensureAIEngineLoaded` pre-warm; RN runner uses `node_modules/jest/bin/jest.js` on Windows.
+
+**v1.88 fix:** AI layer/algo Playwright probes use `waitUntil: 'domcontentloaded'` (full `load` can hang 180s on deferred Google Fonts / Font Awesome in CI).
 
 ### UI locale refresh (v1.87)
 

@@ -2,6 +2,11 @@
 
 ## 🗂️ Project Structure
 
+### v1.88.0 documentation sync (CI benchmark + RN typecheck)
+
+- **`ai-engine-probes.mjs`:** Playwright `domcontentloaded` for AI layer/algo jobs (avoids CDN font/CSS blocking `load` in CI).
+- **RN:** `LogWizardScreen` `PREDEFINED_EXERCISES` `id` keys for `tContent('exercise', …)`.
+
 ### v1.87.0 documentation sync (locale refresh all tabs)
 
 - **PWA:** `refreshAllTabsForLocaleChange()` in `app.js`; wired from `i18n-pwa.js` `refreshLocaleUI()`.

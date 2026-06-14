@@ -2,7 +2,11 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.87.0** - Full UI refresh on language change; always-visible clear/redownload model; pl-PL mixed-language fixes; AI benchmark runner fixes (Windows + relative PWA root).
+**Latest: v1.88.0** - CI: AI layer/algo Playwright `domcontentloaded` navigation; RN exercise `id` fields for `tContent()` typecheck.
+
+### v1.88.0 - 2026-06-14 - CI benchmark navigation and RN typecheck
+- **`ai-engine-probes.mjs`:** `page.goto` uses `waitUntil: 'domcontentloaded'` (not `load`) so deferred Google Fonts / Font Awesome cannot block AI layer/algo jobs for 180s in CI.
+- **`LogWizardScreen.tsx`:** `PREDEFINED_EXERCISES` gains stable `id` keys (`walking`, `cycling`, …) aligned with PWA `content.exercise.*` locale keys; fixes `typecheck:mobile`.
 
 ### v1.87.0 - 2026-06-14 - Locale refresh across all tabs
 - **PWA:** `refreshAllTabsForLocaleChange()` re-renders Home, Log wizard, View logs, Charts, AI, and Settings when language changes (no tab switch or reload).
@@ -24,7 +28,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.84.0 - 2026-06-14 - AI benchmark runner fixes
 - **`toolkit-env.mjs`:** Resolve relative `BENCHMARK_PWA_ROOT` against repo root (fixes Playwright timeout from wrong cwd).
-- **`ai-engine-probes.mjs`:** `waitUntil: load`, pre-warm `ensureAIEngineLoaded` before probes.
+- **`ai-engine-probes.mjs`:** Pre-warm `ensureAIEngineLoaded` before probes (navigation wait strategy corrected in **v1.88.0**).
 - **`run-ai-engine-rn.mjs`:** Invoke root `node_modules/jest/bin/jest.js` (Windows-safe, no `npx.cmd` spawn).
 - **`package.json`:** `benchmark:ai-verify -- --strict` passthrough via npm workspace `--`.
 

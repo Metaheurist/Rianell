@@ -57,6 +57,11 @@ flowchart LR
 - **Host priority (PWA):** Supabase public bucket → same-origin `/models/` → Hugging Face fallback.
 - **Operator scripts:** `npm run models:download`, `models:upload:supabase`, `models:verify` (local or remote). Local weight files are **gitignored**; only `manifest.json` is committed.
 
+### v1.88.0 documentation sync (CI fixes)
+
+- **Benchmarks:** AI layer/algo Playwright jobs navigate with `domcontentloaded` (see `ai-engine-probes.mjs`).
+- **RN Log wizard:** `PREDEFINED_EXERCISES` includes `id` for localized exercise chip labels (`tContent('exercise', id, name)`).
+
 ### v1.70.3 documentation sync (PWA logs & settings)
 
 - **Settings (v1.70.0):** Gear opens without main-thread freeze; locale refresh no longer recurses through `applyDocumentI18n` + `notifyLocaleChange`.
