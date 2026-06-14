@@ -1,17 +1,18 @@
 {
   "locale": "it-IT",
-  "label": "English (UK)",
+  "label": "Italiano",
   "llmCapability": "full",
   "strings": {
-    "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
-    "motd.user": "Write one healthy-lifestyle quote.",
-    "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
-    "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
-    "context.improving": "Improving: {metrics}.",
-    "context.worsening": "Worsening: {metrics}.",
-    "context.stable": "Stable: {metrics}.",
-    "context.dataLine": "{dayCount} day(s) of data.",
-    "context.flares": "Flares: {count} day(s).",
-    "context.topStressor": "Top stressor: {name}{pct}."
+    "motd.system": "Scrivi una breve citazione semplice sulla vita sana per un’app di monitoraggio. Argomenti: sonno, acqua, movimento leggero, riposo, aria fresca, cibo equilibrato o sollievo dallo stress. Parole quotidiane. Max 18 parole. Niente nomi. Niente consigli medici. Niente virgolette. Rispondi solo con la frase.",
+    "motd.user": "Scrivi una citazione su uno stile di vita sano.",
+    "summary.system": "Riassumi i dati di salute per l’utente in esattamente 2 frasi brevi. Usa solo i dati forniti. Menziona 1–2 risultati specifici. Sii chiaro e incoraggiante. Rispondi solo con il riepilogo.",
+    "suggest.system": "Scrivi una frase breve per una nota giornaliera. Confronta oggi con la media recente. Usa solo i dati forniti. Rispondi solo con la frase.",
+    "homeQuestion.system": "Rispondi a una domanda specifica usando solo i dati forniti. Scrivi 3–5 frasi brevi in linguaggio semplice. Niente diagnosi o ordini medici. Sii incoraggiante. Rispondi solo con la risposta.",
+    "context.improving": "In miglioramento: {metrics}.",
+    "context.worsening": "In peggioramento: {metrics}.",
+    "context.stable": "Stabile: {metrics}.",
+    "context.dataLine": "{dayCount} giorno/i di dati.",
+    "context.flares": "Riaccutizzazioni: {count} giorno/i.",
+    "context.topStressor": "Fattore di stress principale: {name}{pct}."
   }
 }
