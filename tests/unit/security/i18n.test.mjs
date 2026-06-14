@@ -108,3 +108,15 @@ test('textDirection returns rtl for Arabic', () => {
   assert.equal(textDirection('ar'), 'rtl');
   assert.equal(textDirection('fr-FR'), 'ltr');
 });
+
+test('de-DE catalog resolves common.none (not raw key)', () => {
+  const val = t('common.none', 'de-DE', catalogs);
+  assert.notEqual(val, 'common.none');
+  assert.equal(val, 'Keine');
+});
+
+test('de-DE catalog resolves logs.form.noExercise', () => {
+  const val = t('logs.form.noExercise', 'de-DE', catalogs);
+  assert.notEqual(val, 'logs.form.noExercise');
+  assert.ok(val.length > 0);
+});

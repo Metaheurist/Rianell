@@ -9,13 +9,6 @@
     "Debug:",
     "X",
     "OR",
-    "Tabs",
-    "Modals",
-    "Developer",
-    "Other",
-    "Charts",
-    "AI range",
-    "Log form sections",
     "Function trace",
     "7d",
     "30d",
@@ -30,7 +23,16 @@
     "PWA",
     "OK",
     "URL:",
-    "UA:"
+    "UA:",
+    "WebGPU",
+    "WebGL",
+    "rAF latency",
+    "CPU arithmetic",
+    "JSON parse/stringify",
+    "DOM fragment build",
+    "Using saved result",
+    "SmolLM2 360M",
+    "Llama 3.2 1B"
   ],
   "patterns": [
     "^Rianell launch error",
@@ -42,7 +44,8 @@
     "YYYY-MM-DD",
     "Flare \\$\\{",
     "^Log now$",
-    "^Open app$"
+    "^Open app$",
+    "^donate$"
   ],
   "files": {
     "apps/pwa-webapp/index.html": {
