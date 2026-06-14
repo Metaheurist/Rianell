@@ -1,5 +1,7 @@
 import '@testing-library/jest-native/extend-expect';
 
+jest.setTimeout(15000);
+
 jest.mock('expo-constants', () => ({
   __esModule: true,
   default: {

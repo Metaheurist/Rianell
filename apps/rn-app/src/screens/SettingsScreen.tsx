@@ -84,7 +84,7 @@ export function SettingsScreen({
   onChangePrefs: (next: Preferences) => void;
 }) {
   const theme = useTheme();
-  const { t } = useT();
+  const { t, isRtl } = useT();
   const paneTitles = PANE_TITLE_KEYS.map((key) => t(key));
   const { width } = useWindowDimensions();
   /** Sized like web `settings-carousel-dots` (clamp ~22–32px), shared across nine pane icons. */
@@ -443,7 +443,7 @@ export function SettingsScreen({
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
       <View style={styles.carouselChrome}>
-        <View style={styles.carouselNav}>
+        <View style={[styles.carouselNav, { flexDirection: isRtl ? 'row-reverse' : 'row' }]}>
           <Pressable
             onPress={() => goPane(paneIndex - 1)}
             disabled={paneIndex <= 0}
@@ -451,7 +451,7 @@ export function SettingsScreen({
             accessibilityLabel="Previous settings section"
             style={styles.carouselSide}
           >
-            <Ionicons name="chevron-back" size={22} color={theme.tokens.color.text} />
+            <Ionicons name={isRtl ? 'chevron-forward' : 'chevron-back'} size={22} color={theme.tokens.color.text} />
           </Pressable>
           <Text
             style={[styles.carouselMeta, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}
@@ -467,7 +467,7 @@ export function SettingsScreen({
             accessibilityLabel="Next settings section"
             style={styles.carouselSide}
           >
-            <Ionicons name="chevron-forward" size={22} color={theme.tokens.color.text} />
+            <Ionicons name={isRtl ? 'chevron-back' : 'chevron-forward'} size={22} color={theme.tokens.color.text} />
           </Pressable>
         </View>
 
