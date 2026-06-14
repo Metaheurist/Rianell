@@ -2,9 +2,13 @@
 
 ## ⚙️ Installation
 
-### v1.53.2 RN locale packs (Metro)
+### v1.60.0 i18n asset sync (Metro / esbuild)
 
-- **`node scripts/sync-locale-packs-to-pwa.mjs`** copies **`locale-packs/v1/`** into **`apps/rn-app/locale-packs/v1/`** (and PWA) before **`expo export`**; CI runs this automatically.
+- **`node scripts/sync-i18n-assets.mjs`** copies canonical **`i18n-packs/`** (locale, prompt, motd, policy) into PWA, RN, and **`packages/shared/`**; regenerates **`promptPackData.mjs`** and runs **`sync-policy-pack.mjs`**. Used by **`build:web`**, **`bundle:mobile:prod`**, and CI before vendor bundle / **`expo export`**.
+- **Language switch:** Settings → Privacy & region → Language; UI refreshes via `onLocaleChange` (PWA) / `I18nProvider` (RN). **13 shipped locales:** en-GB (default), en-US, en-AU, pt-BR, fr-FR, de-DE, es-ES, it-IT, pl-PL, nl-NL, pt-PT, **ar**, **he** (RTL, ui-only LLM).
+- **Build order:** edit canonical JSON under **`i18n-packs/`** → `sync-i18n-assets.mjs` → verify with `node scripts/verify-locale-packs.mjs`.
+
+### v1.53.2 RN locale packs (Metro)
 
 ### v1.53.1 validation
 

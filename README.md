@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the **PWA** (web/GitHub Pages) and **React Native (Expo)** mobile app, with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.53.4** — RN Metro policy-pack bundling fix).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.61.0** — README doc-table SVG icons; **v1.54.0–v1.60.0** full UI localization).
 
 ### Here's what we plan next
 
@@ -52,26 +52,26 @@ Latest: [`App build/RNCLI-Android/app-debug-beta.apk`](App%20build/RNCLI-Android
 
 ### Documentation
 
-Long-form sections live under **`docs/`** so the main README stays short. Open them from the repo’s file tree or use the links below.
+Long-form sections live under **`docs/`** so the main README stays short. Open them from the repo’s file tree or use the links below. Icons are SVG assets under [`docs/icons/`](docs/icons/) (referenced with `<img>` for GitHub compatibility).
 
 | | |
 | :--- | :--- |
-| 🔒 | **[Security](docs/SECURITY.md)** - threat model, controls, and v1.50 security program |
-| 🛡️ | **[Privacy program](docs/privacy/global-baseline.md)** - GDPR baseline, RoPA, data-subject rights (`docs/privacy/`) |
-| 📋 | **[Privacy & region execution plan](docs/privacy/region-policy-execution-plan.md)** - Region gate, policy engine, UI localization (single Supabase project) |
-| 🌐 | **[Infrastructure & edge security](docs/infrastructure-and-security-edge.md)** - DNS, Cloudflare, GitHub Pages (no secrets; safe for contributors) |
-| 🏠 | **[App overview & features](docs/app-and-features.md)** - UI, behaviour, screenshots |
-| ⚙️ | **[Installation & usage](docs/setup-and-usage.md)** - server, GitHub Pages, React/Android |
-| 🧪 | **[Testing & configuration](docs/testing-and-configuration.md)** |
-| ⏱️ | **[Performance benchmarks](benchmarks/README.md)** - reports and tooling under `benchmarks/`; run `npm run benchmark` |
-| 🧠 | **[AI architecture](docs/ai-architecture.md)** |
-| 🗂️ | **[Project reference](docs/project-reference.md)** - tree, deps, dev, GDPR, troubleshooting, security notes |
-| 📎 | **[Dependencies](docs/dependencies.md)** - generated inventory (`npm run docs:dependencies`; CI sync on `main`) — npm workspaces, Python, CDN/runtime, CI tooling |
-| 🎨 | **[Styling](docs/styling.md)** - CSS layout, tokens, settings carousel, tile pickers, cache bust |
-| 📱 | **[Platform parity](docs/platform-parity.md)** - web/android/iOS feature contract and CI parity gates |
-| 👤 | **[About & support](docs/about-and-support.md)** |
-| 📜 | **[Changelog](docs/CHANGELOG.md)** - version history and release notes |
-| 🚀 | **[Next phase development plan](docs/next-phase-development-plan.md)** - upcoming build: RN parity, theming, accessibility, AI acceleration |
+| <img src="docs/icons/lock.svg" width="18" height="18" alt="" aria-hidden="true"> | **[Security](docs/SECURITY.md)** - threat model, controls, and v1.50 security program |
+| <img src="docs/icons/shield.svg" width="18" height="18" alt="" aria-hidden="true"> | **[Privacy program](docs/privacy/global-baseline.md)** - GDPR baseline, RoPA, data-subject rights (`docs/privacy/`) |
+| <img src="docs/icons/clipboard.svg" width="18" height="18" alt="" aria-hidden="true"> | **[Privacy & region execution plan](docs/privacy/region-policy-execution-plan.md)** - Region gate, policy engine, UI localization (single Supabase project) |
+| <img src="docs/icons/globe.svg" width="18" height="18" alt="" aria-hidden="true"> | **[Infrastructure & edge security](docs/infrastructure-and-security-edge.md)** - DNS, Cloudflare, GitHub Pages (no secrets; safe for contributors) |
+| <img src="docs/icons/home.svg" width="18" height="18" alt="" aria-hidden="true"> | **[App overview & features](docs/app-and-features.md)** - UI, behaviour, screenshots |
+| <img src="docs/icons/settings.svg" width="18" height="18" alt="" aria-hidden="true"> | **[Installation & usage](docs/setup-and-usage.md)** - server, GitHub Pages, React/Android |
+| <img src="docs/icons/flask.svg" width="18" height="18" alt="" aria-hidden="true"> | **[Testing & configuration](docs/testing-and-configuration.md)** |
+| <img src="docs/icons/timer.svg" width="18" height="18" alt="" aria-hidden="true"> | **[Performance benchmarks](benchmarks/README.md)** - reports and tooling under `benchmarks/`; run `npm run benchmark` |
+| <img src="docs/icons/brain.svg" width="18" height="18" alt="" aria-hidden="true"> | **[AI architecture](docs/ai-architecture.md)** |
+| <img src="docs/icons/folder.svg" width="18" height="18" alt="" aria-hidden="true"> | **[Project reference](docs/project-reference.md)** - tree, deps, dev, GDPR, troubleshooting, security notes |
+| <img src="docs/icons/paperclip.svg" width="18" height="18" alt="" aria-hidden="true"> | **[Dependencies](docs/dependencies.md)** - generated inventory (`npm run docs:dependencies`; CI sync on `main`) — npm workspaces, Python, CDN/runtime, CI tooling |
+| <img src="docs/icons/palette.svg" width="18" height="18" alt="" aria-hidden="true"> | **[Styling](docs/styling.md)** - CSS layout, tokens, settings carousel, tile pickers, cache bust |
+| <img src="docs/icons/smartphone.svg" width="18" height="18" alt="" aria-hidden="true"> | **[Platform parity](docs/platform-parity.md)** - web/android/iOS feature contract and CI parity gates |
+| <img src="docs/icons/user.svg" width="18" height="18" alt="" aria-hidden="true"> | **[About & support](docs/about-and-support.md)** |
+| <img src="docs/icons/scroll.svg" width="18" height="18" alt="" aria-hidden="true"> | **[Changelog](docs/CHANGELOG.md)** - version history and release notes |
+| <img src="docs/icons/rocket.svg" width="18" height="18" alt="" aria-hidden="true"> | **[Next phase development plan](docs/next-phase-development-plan.md)** - upcoming build: RN parity, theming, accessibility, AI acceleration |
 
 Support contact: **jan.andersson@rianell.com**
 

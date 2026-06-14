@@ -13,6 +13,20 @@ When **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`**, clients on the same LAN may call 
 
 Rate limits apply (`http_security` limiters in `server/`).
 
+## LLM proxy payload (optional dev / LAN)
+
+When a client POSTs to a configured LLM endpoint (React Native `llmEndpoint` extra), the JSON body **must** include an explicit BCP-47 **`locale`** field (for example `en-GB`, `de-DE`). Valid values match `SHIPPED_LOCALES` in `@rianell/shared`; invalid values are coerced to **`en-GB`** client-side before send.
+
+| Field | Type | Notes |
+| :--- | :--- | :--- |
+| `feature` | string | `summary` · `suggestNote` · `motd` |
+| `model` | string | Resolved model id (e.g. `Llama-3.2-1B-Instruct`) |
+| `modelSize` | string | Tier hint (`tier1`–`tier5`) |
+| `context` | string | JSON-serialized feature context (no raw UGC beyond what the feature needs) |
+| `locale` | string | **B2 contract:** client UI locale from `resolveActiveLocale(prefs)` — server must **not** infer language from `Accept-Language`, geo-IP, or log text |
+
+PWA on-device LLM (`summary-llm.js`) loads system prompts from `i18n-packs/prompt-packs/v1/{locale}.json` (or `window.__rianellPromptPack`) with `en-GB` fallback; it does not POST to the dev server unless a separate proxy is configured.
+
 ## Other JSON routes
 
 | Method | Path | Purpose |
