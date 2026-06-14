@@ -14,15 +14,61 @@
   var MAX_TIER = 5;
   var DEFAULT_TOTAL_CAP_MS = 1200;
   /** Max continuous work per chunk before yielding (keeps loading UI responsive). */
-  var BENCHMARK_YIELD_SLICE_MS = 8;
-  var BENCHMARK_CHUNK_MAX_ITERS = 12000;
+  var BENCHMARK_YIELD_SLICE_MS = 6;
+  var BENCHMARK_CHUNK_MAX_ITERS = 6000;
+  var WEB_BOOT_TOTAL_CAP_MS = 20000;
+  var WEB_BOOT_MAX_REPEATS = 2;
+  var WEB_BOOT_ESTIMATE_ITERS = 80000;
+
+  function isCiBenchmarkMode() {
+    try {
+      return typeof URLSearchParams !== 'undefined' && new URLSearchParams(window.location.search).has('benchmark_test');
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /** Production web/PWA first visit: full test types, bounded size/repeats (CI uses ?benchmark_test=1). */
+  function isWebBootBenchmark() {
+    if (isCiBenchmarkMode()) return false;
+    try {
+      var cap = (typeof window !== 'undefined' && window.Capacitor) ||
+        (typeof window !== 'undefined' && window.parent && window.parent.Capacitor);
+      if (cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform()) return false;
+      return true;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function getSuiteOptionsForRun() {
+    if (!isWebBootBenchmark()) {
+      return { boot: false, totalCapMs: DEFAULT_TOTAL_CAP_MS };
+    }
+    return {
+      boot: true,
+      totalCapMs: WEB_BOOT_TOTAL_CAP_MS,
+      maxRepeats: WEB_BOOT_MAX_REPEATS,
+      estimateIters: WEB_BOOT_ESTIMATE_ITERS,
+      skipEstimateRetry: true,
+      skipBorderlineRepeats: true,
+      gpuTimeoutMs: 4000,
+      gpuSamples: 2
+    };
+  }
+
+  function clampBootWorkloads(workloads) {
+    if (!workloads) return workloads;
+    workloads.cpuIterations = Math.min(workloads.cpuIterations, 120000);
+    workloads.arraySize = Math.min(workloads.arraySize, 36000);
+    workloads.stringSize = Math.min(workloads.stringSize, 12000);
+    workloads.jsonSize = Math.min(workloads.jsonSize, 240);
+    workloads.domNodes = Math.min(workloads.domNodes, 160);
+    return workloads;
+  }
 
   function scheduleBenchmarkYield(fn) {
-    if (typeof requestAnimationFrame === 'function') {
-      requestAnimationFrame(function () { setTimeout(fn, 0); });
-    } else {
-      setTimeout(fn, 0);
-    }
+    setTimeout(fn, 0);
   }
 
   function nowMs() {
@@ -165,7 +211,10 @@
    * Calls done({ available, backend, scoreMs, good, scoreSamples }).
    * scoreSamples: array of ms per run for stability graph (when available).
    */
-  function runGpuBenchmarkAsync(done) {
+  function runGpuBenchmarkAsync(done, gpuOpts) {
+    gpuOpts = gpuOpts || {};
+    var sampleTarget = Math.max(1, Math.min(GPU_STABILITY_SAMPLES, gpuOpts.samples || GPU_STABILITY_SAMPLES));
+    var timeoutMs = gpuOpts.timeoutMs != null ? gpuOpts.timeoutMs : 10000;
     var finished = false;
     function safeDone(gpu) {
       if (finished) return;
@@ -173,13 +222,12 @@
       if (gpuTimer) clearTimeout(gpuTimer);
       if (typeof done === 'function') done(gpu);
     }
-    /* Some WebGL/WebGPU stacks never invoke the sample callback; without this the load screen never finishes */
     var gpuTimer = setTimeout(function () {
       if (typeof console !== 'undefined' && console.warn) {
         console.warn('[Benchmark] GPU stage timed out; continuing without GPU score');
       }
       safeDone({ available: false, backend: 'none', scoreMs: null, good: false, scoreSamples: [], timedOut: true });
-    }, 10000);
+    }, timeoutMs);
 
     var backend = detectGpuBackendSync();
     if (backend === 'none') {
@@ -193,7 +241,7 @@
       runOne(function (ms) {
         if (ms != null) samples.push(ms);
         runCount++;
-        if (runCount < GPU_STABILITY_SAMPLES) {
+        if (runCount < sampleTarget) {
           setTimeout(runNext, 20);
         } else {
           var available = samples.length > 0;
@@ -301,22 +349,27 @@
   }
 
   function stringOpsAsync(size, done) {
-    var s = '';
+    var parts = [];
     var i = 0;
     function chunk() {
       var t0 = nowMs();
-      var batch = '';
-      var batchChars = 0;
-      while (i < size && (nowMs() - t0) < BENCHMARK_YIELD_SLICE_MS && batchChars < BENCHMARK_CHUNK_MAX_ITERS) {
-        batch += String.fromCharCode(97 + (i % 26));
+      var batchStart = i;
+      while (i < size && (nowMs() - t0) < BENCHMARK_YIELD_SLICE_MS && (i - batchStart) < BENCHMARK_CHUNK_MAX_ITERS) {
+        parts.push(String.fromCharCode(97 + (i % 26)));
         i++;
-        batchChars++;
       }
-      s += batch;
       if (i < size) scheduleBenchmarkYield(chunk);
       else {
-        var m = s.match(/abc/g);
-        if (typeof done === 'function') done((m && m.length) ? m.length : 0);
+        scheduleBenchmarkYield(function () {
+          var s = parts.join('');
+          parts.length = 0;
+          var count = 0;
+          for (var pos = 0; (pos = s.indexOf('abc', pos)) !== -1; ) {
+            count++;
+            pos += 3;
+          }
+          if (typeof done === 'function') done(count);
+        });
       }
     }
     scheduleBenchmarkYield(chunk);
@@ -831,7 +884,9 @@
   }
 
   function runSuiteAsync(opts, onProgress, onDone) {
-    var totalCapMs = (opts && opts.totalCapMs) ? opts.totalCapMs : DEFAULT_TOTAL_CAP_MS;
+    opts = opts || {};
+    var totalCapMs = opts.totalCapMs != null ? opts.totalCapMs : DEFAULT_TOTAL_CAP_MS;
+    var suiteBoot = !!opts.boot;
     var startAll = nowMs();
     var platformType = getPlatformType();
     var env = getEnvSnapshot(platformType);
@@ -865,11 +920,13 @@
       var estMsPer200k = msPer200kFromRun(estimateIters, estMs);
       provisionalTier = msPer200kToTier(estMsPer200k);
       workloads = computeSuiteWorkloads(provisionalTier);
+      if (suiteBoot) workloads = clampBootWorkloads(workloads);
       baseRepeats = provisionalTier <= 2 ? 3 : (provisionalTier <= 5 ? 5 : 7);
       repeats = baseRepeats;
       var thresholdNear = function (x, target, pct) { return Math.abs(x - target) / target <= pct; };
-      var near = thresholdNear(estMsPer200k, 14.0, 0.08) || thresholdNear(estMsPer200k, 18.0, 0.08) || thresholdNear(estMsPer200k, 26.0, 0.08);
+      var near = !opts.skipBorderlineRepeats && (thresholdNear(estMsPer200k, 14.0, 0.08) || thresholdNear(estMsPer200k, 18.0, 0.08) || thresholdNear(estMsPer200k, 26.0, 0.08));
       if (near) repeats = Math.min(baseRepeats + 2, 9);
+      if (opts.maxRepeats != null) repeats = Math.min(repeats, opts.maxRepeats);
       jsonPayload = makeJsonPayload(workloads.jsonSize);
       totalSteps = (repeats * 5) + repeats;
       if (typeof console !== 'undefined' && console.log) {
@@ -881,7 +938,7 @@
     function runEstimatePass(estimateIters, est0, onReady) {
       cpuArithAsync(estimateIters, function () {
         var estMs = nowMs() - est0;
-        if (estMs < 2 && estimateIters < 1400000) {
+        if (!opts.skipEstimateRetry && estMs < 2 && estimateIters < 1400000) {
           runEstimatePass(1400000, nowMs(), onReady);
           return;
         }
@@ -976,7 +1033,7 @@
       // If the result moved across major class boundaries, ensure we have enough repeats (only if we still have budget).
       var classBefore = getLegacyDeviceClass(provisionalTier);
       var classAfter = getLegacyDeviceClass(tier);
-      if (classBefore !== classAfter && repeats < 9 && (nowMs() - startAll) < (totalCapMs * 0.85)) {
+      if (classBefore !== classAfter && repeats < 9 && !opts.skipBorderlineRepeats && (nowMs() - startAll) < (totalCapMs * 0.85)) {
         repeats = Math.min(9, repeats + 2);
         totalSteps = (repeats * 5) + repeats;
         runRepeat(baseRepeats); // add extra repeats
@@ -1035,11 +1092,18 @@
           console.log('[Benchmark] GPU', gpu.backend, gpu.available, gpu.good, gpu.scoreMs);
         }
         onDone(result);
-      });
+      }, { timeoutMs: opts.gpuTimeoutMs, samples: opts.gpuSamples });
     }
 
     progress('starting', 'warmup', 'Warmup');
-    runEstimatePass(280000, nowMs(), configureSuite);
+    if (suiteBoot) {
+      var bootEstIters = opts.estimateIters != null ? opts.estimateIters : WEB_BOOT_ESTIMATE_ITERS;
+      var bootEst0 = nowMs();
+      cpuArith(bootEstIters);
+      configureSuite(bootEstIters, nowMs() - bootEst0);
+    } else {
+      runEstimatePass(opts.estimateIters != null ? opts.estimateIters : 280000, nowMs(), configureSuite);
+    }
   }
 
   function runBenchmarkIfNeeded(onProgress, onComplete) {
@@ -1055,7 +1119,11 @@
     }
     if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] running suite (no cache)');
     if (typeof onProgress === 'function') onProgress(0, { phase: 'starting' });
-    runSuiteAsync({ totalCapMs: DEFAULT_TOTAL_CAP_MS }, onProgress, function (resultObj) {
+    var suiteOpts = getSuiteOptionsForRun();
+    if (typeof console !== 'undefined' && console.log && suiteOpts.boot) {
+      console.log('[Benchmark] web boot suite', 'repeats', suiteOpts.maxRepeats, 'capMs', suiteOpts.totalCapMs);
+    }
+    runSuiteAsync(suiteOpts, onProgress, function (resultObj) {
       _lastTier = resultObj.tier;
       _lastPlatformType = resultObj.platformType;
       if (typeof onComplete === 'function') onComplete(resultObj.tier, resultObj.platformType, resultObj, { cached: false });
