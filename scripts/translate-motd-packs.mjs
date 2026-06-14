@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { canonicalMotdPacksDir } from '../packages/shared/src/i18n/packPaths.mjs';
+import { hasTranslateCredentials, translateText } from './lib/machine-translate.mjs';
 
 const root = process.cwd();
 const dir = canonicalMotdPacksDir(root);
@@ -285,3 +286,70 @@ for (const locale of TIER_A) {
 }
 
 console.log('translate-motd-packs: done');
+
+// LC-20e: RTL locales — API MT for first 30 when credentials available
+const RTL_MOTD = ['ar', 'he'];
+if (hasTranslateCredentials()) {
+  const delayMs = Number(process.env.MT_DELAY_MS || '400');
+  for (const locale of RTL_MOTD) {
+    const filePath = path.join(dir, `${locale}.json`);
+    const pack = fs.existsSync(filePath)
+      ? JSON.parse(fs.readFileSync(filePath, 'utf8'))
+      : { locale, label: locale, version: 2, messages: [...en.messages] };
+    const messages = [...(pack.messages || en.messages)];
+    while (messages.length < en.messages.length) messages.push(en.messages[messages.length]);
+    let updated = 0;
+    for (let i = 0; i < 30; i++) {
+      if (messages[i] && messages[i] !== en.messages[i]) continue;
+      try {
+        const tr = await translateText(en.messages[i], locale);
+        if (tr && tr !== en.messages[i]) {
+          messages[i] = tr;
+          updated++;
+        }
+      } catch (e) {
+        console.warn(`translate-motd-packs: ${locale}[${i}]: ${e.message}`);
+      }
+      if (delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
+    }
+    if (updated > 0) {
+      fs.writeFileSync(filePath, `${JSON.stringify({ ...pack, locale, messages }, null, 2)}\n`, 'utf8');
+      console.log(`translate-motd-packs: ${locale} — MT ${updated} headline message(s)`);
+    }
+  }
+}
+
+// LC-20e: optional full MOTD MT for messages 30+
+const translateAll = process.argv.includes('--all');
+if (translateAll) {
+  if (!hasTranslateCredentials()) {
+    console.warn('translate-motd-packs: --all requires USE_MYMEMORY_MT=1 or DeepL/Google API');
+    process.exit(0);
+  }
+  const delayMs = Number(process.env.MT_DELAY_MS || '400');
+  const allLocales = [...TIER_A, 'ga', 'ar', 'he'];
+  for (const locale of allLocales) {
+    const filePath = path.join(dir, `${locale}.json`);
+    if (!fs.existsSync(filePath)) continue;
+    const pack = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const messages = [...(pack.messages || [])];
+    let updated = 0;
+    for (let i = 30; i < en.messages.length; i++) {
+      if (messages[i] && messages[i] !== en.messages[i]) continue;
+      try {
+        const tr = await translateText(en.messages[i], locale);
+        if (tr && tr !== en.messages[i]) {
+          messages[i] = tr;
+          updated++;
+        }
+      } catch (e) {
+        console.warn(`translate-motd-packs: ${locale}[${i}]: ${e.message}`);
+      }
+      if (delayMs > 0) await new Promise((r) => setTimeout(r, delayMs));
+    }
+    if (updated > 0) {
+      fs.writeFileSync(filePath, `${JSON.stringify({ ...pack, messages }, null, 2)}\n`, 'utf8');
+      console.log(`translate-motd-packs: ${locale} — MT ${updated} tail message(s)`);
+    }
+  }
+}
