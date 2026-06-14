@@ -726,12 +726,7 @@
     var est0 = nowMs();
     cpuArith(estimateIters);
     var estMs = nowMs() - est0;
-    if (estMs < 2) {
-      estimateIters = 1400000;
-      est0 = nowMs();
-      cpuArith(estimateIters);
-      estMs = nowMs() - est0;
-    }
+    // Do not scale to 1.4M iters on fast CPUs — that freezes the main thread on first visit.
     var estMsPer200k = msPer200kFromRun(estimateIters, estMs);
     var provisionalTier = msPer200kToTier(estMsPer200k);
     var workloads = computeSuiteWorkloads(provisionalTier);
@@ -915,6 +910,48 @@
     }, 0);
   }
 
+  function isNativeApp() {
+    try {
+      var cap = (typeof window !== 'undefined' && window.Capacitor) ||
+        (typeof window !== 'undefined' && window.parent && window.parent.Capacitor);
+      return !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function shouldUseHeuristicBoot() {
+    try {
+      if (typeof URLSearchParams !== 'undefined') {
+        var params = new URLSearchParams(window.location.search);
+        if (params.has('benchmark_test')) return false;
+      }
+      return !isNativeApp();
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function scheduleBackgroundFullBenchmark() {
+    var run = function () {
+      var existing = getCachedResult();
+      if (existing && !existing.heuristic) return;
+      if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] background full suite');
+      runSuiteAsync({ totalCapMs: DEFAULT_TOTAL_CAP_MS }, function () {}, function (resultObj) {
+        saveBenchmarkResult(resultObj);
+        if (typeof window !== 'undefined' && window.PerformanceUtils &&
+            typeof window.PerformanceUtils.applyBenchmarkToPlatform === 'function') {
+          try { window.PerformanceUtils.applyBenchmarkToPlatform(); } catch (e) {}
+        }
+      });
+    };
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(run, { timeout: 12000 });
+    } else {
+      setTimeout(run, 3000);
+    }
+  }
+
   function runBenchmarkIfNeeded(onProgress, onComplete) {
     var cached = getCachedResult();
     if (cached) {
@@ -924,6 +961,26 @@
       // Drive the loading bar once (otherwise onProgress never runs and the bar stays empty)
       if (typeof onProgress === 'function') onProgress(100, { phase: 'cached', label: 'Using saved result' });
       if (typeof onComplete === 'function') onComplete(cached.tier, cached.platformType, cached, { cached: true });
+      return;
+    }
+    if (shouldUseHeuristicBoot()) {
+      var pt = getPlatformType();
+      var tier = getTierFromHeuristic();
+      var quick = {
+        version: BENCHMARK_VERSION,
+        platformType: pt,
+        tier: tier,
+        heuristic: true,
+        ts: Date.now()
+      };
+      if (typeof console !== 'undefined' && console.log) {
+        console.log('[Benchmark] heuristic quick-start', 'tier', tier, 'platformType', pt);
+      }
+      saveBenchmarkResult(quick);
+      _lastTier = tier;
+      _lastPlatformType = pt;
+      if (typeof onProgress === 'function') onProgress(100, { phase: 'heuristic', label: 'Quick estimate' });
+      if (typeof onComplete === 'function') onComplete(tier, pt, quick, { cached: false, heuristic: true });
       return;
     }
     if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] running suite (no cache)');
@@ -1019,6 +1076,8 @@
       getLegacyDeviceClass: getLegacyDeviceClass,
       isBenchmarkReady: isBenchmarkReady,
       runBenchmarkIfNeeded: runBenchmarkIfNeeded,
+      shouldUseHeuristicBoot: shouldUseHeuristicBoot,
+      scheduleBackgroundFullBenchmark: scheduleBackgroundFullBenchmark,
       saveBenchmarkResult: saveBenchmarkResult,
       clearBenchmarkCache: clearBenchmarkCache,
       getCachedResult: getCachedResult

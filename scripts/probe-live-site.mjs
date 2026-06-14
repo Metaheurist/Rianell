@@ -21,6 +21,8 @@ try {
         try { settings = JSON.parse(localStorage.getItem('rianellSettings') || '{}'); } catch (_) {}
         settings.privacyRegion = settings.privacyRegion || 'eea_uk';
         settings.uiLocale = settings.uiLocale || 'en-GB';
+        settings.healthDataConsent = true;
+        settings.policyAcknowledgedVersion = settings.policyAcknowledgedVersion || 'v1.0.0';
         localStorage.setItem('rianellSettings', JSON.stringify(settings));
         if (!localStorage.getItem('rianellPerfBenchmark')) {
           localStorage.setItem('rianellPerfBenchmark', JSON.stringify({
@@ -30,7 +32,7 @@ try {
             score: 100,
             ts: Date.now(),
             cpu: { msPer200k: 10 },
-            gpu: { backend: 'webgl', good: true, available: true }
+            gpu: { backend: 'webgl', good: true, available: true },
           }));
         }
       } catch (_) {}
@@ -59,20 +61,30 @@ try {
         await loc.click({ timeout: 1500 }).catch(() => {});
       }
     };
+    await clickIfVisible('.cookie-banner-accept');
+    const benchOverlay = page.locator('#perfBenchmarkOverlay');
+    if (await benchOverlay.isVisible().catch(() => false)) {
+      await page.evaluate(() => document.getElementById('perfBenchmarkContinueBtn')?.click());
+    }
     await clickIfVisible('#privacyRegionGateConfirm');
     await clickIfVisible('#healthDataConsentOverlay button[type="button"]');
-    await clickIfVisible('.cookie-banner-accept');
-    await clickIfVisible('#perfBenchmarkContinueBtn');
 
-    last = await page.evaluate(() => ({
-      loaded: document.body?.classList.contains('loaded'),
-      boot: !!window.__rianellBootAfterDomStarted,
-      init: !!window.__rianellAppInitStarted,
-      script: document.querySelector('script[src*="app."]')?.getAttribute('src') || '',
-      text: document.querySelector('.loading-text')?.textContent?.slice(0, 50) || '',
-      modalOpen: !!document.getElementById('perfBenchmarkModal')?.classList.contains('open'),
-      hasBenchCache: (() => { try { return !!localStorage.getItem('rianellPerfBenchmark'); } catch (e) { return false; } })(),
-    })).catch((e) => ({ evalErr: e.message }));
+    last = await page.evaluate(() => {
+      const overlay = document.getElementById('perfBenchmarkOverlay');
+      return {
+        loaded: document.body?.classList.contains('loaded'),
+        boot: !!window.__rianellBootAfterDomStarted,
+        init: !!window.__rianellAppInitStarted,
+        pending: !!window.__rianellPendingAppInit,
+        hasRunInit: typeof window.__rianellRunAppInit === 'function',
+        script: document.querySelector('script[src*="app."]')?.getAttribute('src') || '',
+        benchScript: document.querySelector('script[src*="device-benchmark"]')?.getAttribute('src') || '',
+        text: document.querySelector('.loading-text')?.textContent?.slice(0, 60) || '',
+        benchModalVisible: !!(overlay && overlay.style.display !== 'none' && overlay.style.visibility !== 'hidden'),
+        overlayHidden: document.getElementById('loadingOverlay')?.classList.contains('hidden'),
+        hasBenchCache: (() => { try { return !!localStorage.getItem('rianellPerfBenchmark'); } catch (e) { return false; } })(),
+      };
+    }).catch((e) => ({ evalErr: e.message }));
 
     const elapsed = Date.now() - t0;
     if (last.loaded && last.init) {

@@ -20426,27 +20426,20 @@ function runRianellBootAfterDomReady() {
         setOrbitLoadingProgress(pct);
       },
       function (tier, platformType, result, meta) {
-        setOrbitLoadingProgress(100);
-        // Persist benchmark immediately so refreshes do not re-enter first-run flow.
-        if (
-          result &&
-          typeof window !== 'undefined' &&
-          window.DeviceBenchmark &&
-          typeof window.DeviceBenchmark.saveBenchmarkResult === 'function'
-        ) {
-          try { window.DeviceBenchmark.saveBenchmarkResult(result); } catch (e) {}
-        }
-        finishLoadingOverlayWithBurst(function () {
+        function revealShellAfterBenchmark() {
           if (loadingOverlay) {
             loadingOverlay.classList.add('hidden');
             document.body.classList.remove('loading');
           }
-          /* index.html hides body > *:not(#loadingOverlay) until .loaded - without this, the first-run
-             benchmark modal is visibility:hidden and Continue never fires; runAppInit never runs (stuck). */
           document.body.classList.add('loaded');
-          /* Show results modal only after a fresh benchmark ÔÇö skip when reusing cached tier/profile. */
-          if (meta && meta.cached) {
+          if (meta && (meta.cached || meta.heuristic)) {
             startAppAfterPrivacyGate();
+            if (meta.heuristic && window.DeviceBenchmark &&
+                typeof window.DeviceBenchmark.scheduleBackgroundFullBenchmark === 'function') {
+              setTimeout(function () {
+                try { window.DeviceBenchmark.scheduleBackgroundFullBenchmark(); } catch (e) {}
+              }, 8000);
+            }
             return;
           }
           if (openPerfBenchmarkModal({
@@ -20458,7 +20451,22 @@ function runRianellBootAfterDomReady() {
           }) === false) {
             startAppAfterPrivacyGate();
           }
-        });
+        }
+        setOrbitLoadingProgress(100);
+        if (
+          result &&
+          typeof window !== 'undefined' &&
+          window.DeviceBenchmark &&
+          typeof window.DeviceBenchmark.saveBenchmarkResult === 'function' &&
+          !(meta && (meta.cached || meta.heuristic))
+        ) {
+          try { window.DeviceBenchmark.saveBenchmarkResult(result); } catch (e) {}
+        }
+        if (meta && (meta.cached || meta.heuristic)) {
+          revealShellAfterBenchmark();
+          return;
+        }
+        finishLoadingOverlayWithBurst(revealShellAfterBenchmark);
       }
     );
   } else {
