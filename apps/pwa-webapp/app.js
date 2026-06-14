@@ -18373,11 +18373,16 @@ function loadMotdJson() {
   try {
     url = new URL('motd.json', window.location.href).href;
   } catch (e) {}
-  return fetch(url, { cache: 'force-cache' })
-    .then(function (r) {
-      if (!r.ok) throw new Error('motd');
-      return r.json();
+  return Promise.race([
+    fetch(url, { cache: 'force-cache' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('motd');
+        return r.json();
+      }),
+    new Promise(function (_, reject) {
+      setTimeout(function () { reject(new Error('motd-timeout')); }, 5000);
     })
+  ])
     .then(function (data) {
       if (data && Array.isArray(data.messages) && data.messages.length) {
         window.__rianellMotdMessages = data.messages.filter(function (x) {

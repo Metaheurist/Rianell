@@ -13,23 +13,33 @@ const browser = await chromium.launch({
 try {
   const context = await browser.newContext();
   await context.addInitScript((isCold) => {
+    function seedReturningUser() {
+      try {
+        localStorage.setItem('rianellCookieConsent', 'accepted');
+        localStorage.setItem('rianellHealthDataConsent', 'accepted');
+        var settings = {};
+        try { settings = JSON.parse(localStorage.getItem('rianellSettings') || '{}'); } catch (_) {}
+        settings.privacyRegion = settings.privacyRegion || 'eea_uk';
+        settings.uiLocale = settings.uiLocale || 'en-GB';
+        localStorage.setItem('rianellSettings', JSON.stringify(settings));
+        if (!localStorage.getItem('rianellPerfBenchmark')) {
+          localStorage.setItem('rianellPerfBenchmark', JSON.stringify({
+            version: 4,
+            platformType: 'desktop',
+            tier: 4,
+            score: 100,
+            ts: Date.now(),
+            cpu: { msPer200k: 10 },
+            gpu: { backend: 'webgl', good: true, available: true }
+          }));
+        }
+      } catch (_) {}
+    }
     if (isCold) {
       try { localStorage.clear(); sessionStorage.clear(); } catch (_) {}
       return;
     }
-    try {
-      if (!localStorage.getItem('rianellPerfBenchmark')) {
-        localStorage.setItem('rianellPerfBenchmark', JSON.stringify({
-          version: 4,
-          platformType: 'desktop',
-          tier: 4,
-          score: 100,
-          ts: Date.now(),
-          cpu: { msPer200k: 10 },
-          gpu: { backend: 'webgl', good: true, available: true }
-        }));
-      }
-    } catch (_) {}
+    seedReturningUser();
   }, COLD);
   const page = await context.newPage();
   const errors = [];
@@ -43,10 +53,16 @@ try {
 
   let last = null;
   for (let i = 0; i < MAX_WAIT_S; i++) {
-    const btn = page.locator('#perfBenchmarkContinueBtn');
-    if (await btn.isVisible().catch(() => false)) {
-      await btn.click({ timeout: 2000 }).catch(() => {});
-    }
+    const clickIfVisible = async (sel) => {
+      const loc = page.locator(sel);
+      if (await loc.isVisible().catch(() => false)) {
+        await loc.click({ timeout: 1500 }).catch(() => {});
+      }
+    };
+    await clickIfVisible('#privacyRegionGateConfirm');
+    await clickIfVisible('#healthDataConsentOverlay button[type="button"]');
+    await clickIfVisible('.cookie-banner-accept');
+    await clickIfVisible('#perfBenchmarkContinueBtn');
 
     last = await page.evaluate(() => ({
       loaded: document.body?.classList.contains('loaded'),
