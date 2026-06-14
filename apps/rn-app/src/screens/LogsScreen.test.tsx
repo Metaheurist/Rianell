@@ -53,7 +53,7 @@ test('logs screen shows empty state when no logs', async () => {
   const { findByText, getByLabelText } = renderLogs();
 
   await findByText(/No logs yet\./);
-  expect(getByLabelText('Date range, last 30 days')).toBeTruthy();
+  expect(getByLabelText('30d')).toBeTruthy();
   expect(getByLabelText('Sort, newest first')).toBeTruthy();
 });
 
@@ -162,7 +162,7 @@ test('large-list baseline exposes virtualization tuning props', async () => {
   mockLoadLogs.mockResolvedValueOnce(rows as Awaited<ReturnType<typeof import('../storage/logs').loadLogs>>);
 
   const { UNSAFE_getByType, findByText, getByLabelText } = renderLogs();
-  fireEvent.press(getByLabelText('Date range, all entries'));
+  fireEvent.press(getByLabelText('All'));
   await findByText('Showing 260 of 260 entries');
   const list = UNSAFE_getByType(FlatList);
   expect(list.props.getItemLayout).toBeTruthy();

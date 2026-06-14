@@ -239,16 +239,19 @@ function buildPainLocationTextFromState(state: Record<string, PainState>): strin
 function PainBodyDiagram(props: {
   states: Record<string, PainState>;
   onPressRegion: (regionId: string) => void;
+  diagramLabel: string;
+  diagramHint: string;
+  regionA11y: (region: string) => string;
 }) {
-  const { states, onPressRegion } = props;
+  const { states, onPressRegion, diagramLabel, diagramHint, regionA11y } = props;
   const strokeWidth = 2;
 
   // Front-view diagram: same vertical canvas as web (140×280) with outline path; regions are scaled to fill it.
   // Chips below remain the exhaustive fallback for all regions.
   return (
     <View
-      accessibilityLabel="Pain body diagram"
-      accessibilityHint="Tap a region to cycle good, discomfort, then pain"
+      accessibilityLabel={diagramLabel}
+      accessibilityHint={diagramHint}
       style={{ alignItems: 'center', marginVertical: 8 }}
     >
       <Svg width={220} height={440} viewBox="0 0 140 280">
@@ -268,7 +271,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.head ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('head')}
-          accessibilityLabel="Head region"
+          accessibilityLabel={regionA11y('Head')}
         />
 
         {/* Neck */}
@@ -282,7 +285,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.neck ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('neck')}
-          accessibilityLabel="Neck region"
+          accessibilityLabel={regionA11y('Neck')}
         />
 
         {/* Chest */}
@@ -296,7 +299,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.chest ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('chest')}
-          accessibilityLabel="Chest region"
+          accessibilityLabel={regionA11y('Chest')}
         />
 
         {/* Abdomen */}
@@ -310,7 +313,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.abdomen ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('abdomen')}
-          accessibilityLabel="Abdomen region"
+          accessibilityLabel={regionA11y('Abdomen')}
         />
 
         {/* Hips */}
@@ -324,7 +327,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.left_hip ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('left_hip')}
-          accessibilityLabel="Left hip region"
+          accessibilityLabel={regionA11y('Left hip')}
         />
         <Rect
           x={72}
@@ -336,7 +339,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.right_hip ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('right_hip')}
-          accessibilityLabel="Right hip region"
+          accessibilityLabel={regionA11y('Right hip')}
         />
 
         {/* Arms (simplified) */}
@@ -350,7 +353,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.left_shoulder ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('left_shoulder')}
-          accessibilityLabel="Left shoulder region"
+          accessibilityLabel={regionA11y('Left shoulder')}
         />
         <Rect
           x={104}
@@ -362,7 +365,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.right_shoulder ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('right_shoulder')}
-          accessibilityLabel="Right shoulder region"
+          accessibilityLabel={regionA11y('Right shoulder')}
         />
         <Rect
           x={6}
@@ -374,7 +377,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.left_upper_arm ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('left_upper_arm')}
-          accessibilityLabel="Left upper arm region"
+          accessibilityLabel={regionA11y('Left upper arm')}
         />
         <Rect
           x={116}
@@ -386,7 +389,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.right_upper_arm ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('right_upper_arm')}
-          accessibilityLabel="Right upper arm region"
+          accessibilityLabel={regionA11y('Right upper arm')}
         />
         <Rect
           x={6}
@@ -398,7 +401,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.left_forearm ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('left_forearm')}
-          accessibilityLabel="Left forearm region"
+          accessibilityLabel={regionA11y('Left forearm')}
         />
         <Rect
           x={116}
@@ -410,7 +413,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.right_forearm ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('right_forearm')}
-          accessibilityLabel="Right forearm region"
+          accessibilityLabel={regionA11y('Right forearm')}
         />
         <Circle
           cx={15}
@@ -420,7 +423,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.left_elbow ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('left_elbow')}
-          accessibilityLabel="Left elbow region"
+          accessibilityLabel={regionA11y('Left elbow')}
         />
         <Circle
           cx={125}
@@ -430,7 +433,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.right_elbow ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('right_elbow')}
-          accessibilityLabel="Right elbow region"
+          accessibilityLabel={regionA11y('Right elbow')}
         />
         <Circle
           cx={15}
@@ -440,7 +443,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.left_wrist ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('left_wrist')}
-          accessibilityLabel="Left wrist region"
+          accessibilityLabel={regionA11y('Left wrist')}
         />
         <Circle
           cx={125}
@@ -450,7 +453,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.right_wrist ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('right_wrist')}
-          accessibilityLabel="Right wrist region"
+          accessibilityLabel={regionA11y('Right wrist')}
         />
         <Rect
           x={4}
@@ -462,7 +465,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.left_hand ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('left_hand')}
-          accessibilityLabel="Left hand region"
+          accessibilityLabel={regionA11y('Left hand')}
         />
         <Rect
           x={114}
@@ -474,7 +477,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.right_hand ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('right_hand')}
-          accessibilityLabel="Right hand region"
+          accessibilityLabel={regionA11y('Right hand')}
         />
 
         {/* Legs */}
@@ -488,7 +491,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.left_thigh ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('left_thigh')}
-          accessibilityLabel="Left thigh region"
+          accessibilityLabel={regionA11y('Left thigh')}
         />
         <Rect
           x={74}
@@ -500,7 +503,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.right_thigh ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('right_thigh')}
-          accessibilityLabel="Right thigh region"
+          accessibilityLabel={regionA11y('Right thigh')}
         />
         <Circle
           cx={55}
@@ -510,7 +513,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.left_knee ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('left_knee')}
-          accessibilityLabel="Left knee region"
+          accessibilityLabel={regionA11y('Left knee')}
         />
         <Circle
           cx={85}
@@ -520,7 +523,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.right_knee ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('right_knee')}
-          accessibilityLabel="Right knee region"
+          accessibilityLabel={regionA11y('Right knee')}
         />
         <Rect
           x={48}
@@ -532,7 +535,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.left_foot ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('left_foot')}
-          accessibilityLabel="Left foot region"
+          accessibilityLabel={regionA11y('Left foot')}
         />
         <Rect
           x={76}
@@ -544,7 +547,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.right_foot ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('right_foot')}
-          accessibilityLabel="Right foot region"
+          accessibilityLabel={regionA11y('Right foot')}
         />
 
         {/* Lower legs */}
@@ -558,7 +561,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.left_lower_leg ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('left_lower_leg')}
-          accessibilityLabel="Left lower leg region"
+          accessibilityLabel={regionA11y('Left lower leg')}
         />
         <Rect
           x={76}
@@ -570,7 +573,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.right_lower_leg ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('right_lower_leg')}
-          accessibilityLabel="Right lower leg region"
+          accessibilityLabel={regionA11y('Right lower leg')}
         />
         <Circle
           cx={56}
@@ -580,7 +583,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.left_ankle ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('left_ankle')}
-          accessibilityLabel="Left ankle region"
+          accessibilityLabel={regionA11y('Left ankle')}
         />
         <Circle
           cx={84}
@@ -590,7 +593,7 @@ function PainBodyDiagram(props: {
           stroke={painStateStroke(states.right_ankle ?? 0)}
           strokeWidth={strokeWidth}
           onPress={() => onPressRegion('right_ankle')}
-          accessibilityLabel="Right ankle region"
+          accessibilityLabel={regionA11y('Right ankle')}
         />
         </G>
       </Svg>
@@ -659,7 +662,7 @@ type LogWizardScreenProps = { prefs?: Preferences };
 export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {}) {
   const prefs = prefsProp ?? getDefaultPreferences();
   const theme = useTheme();
-  const { t } = useT();
+  const { t, locale } = useT();
   const toast = useToast();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const bg =
@@ -756,9 +759,9 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   }
 
   function confirmClearAll(itemLabel: string, onYes: () => void) {
-    Alert.alert('Clear selection', `Would you like to clear ${itemLabel}?`, [
-      { text: 'No', style: 'cancel' },
-      { text: 'Yes', onPress: onYes },
+    Alert.alert(t('wizard.alert.clearSelection.title'), t('wizard.alert.clearSelection.body', { item: itemLabel }), [
+      { text: t('common.no'), style: 'cancel' },
+      { text: t('common.yes'), onPress: onYes },
     ]);
   }
 
@@ -865,13 +868,13 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     setSuggestNoteBusy(true);
     try {
       const benchmark = await loadCachedBenchmark().catch(() => null);
-      const text = await suggestLogNote(draft, prefs.performance.preferredLlmModelSize, benchmark);
+      const text = await suggestLogNote(draft, prefs.performance.preferredLlmModelSize, benchmark, locale);
       const cur = notes.trim();
       const next = (cur ? `${cur} ${text}` : text).trim();
       setNotes(next.slice(0, 500));
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Could not suggest a note';
-      Alert.alert('Suggest note', msg);
+      const msg = e instanceof Error ? e.message : t('wizard.alert.suggestNote.failed');
+      Alert.alert(t('wizard.alert.suggestNote.title'), msg);
     } finally {
       setSuggestNoteBusy(false);
     }
@@ -879,7 +882,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
 
   function validateStep0() {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date.trim())) {
-      Alert.alert('Validation', 'Date must be YYYY-MM-DD');
+      Alert.alert(t('common.validation.title'), t('common.validation.dateFormat'));
       return false;
     }
     return true;
@@ -900,7 +903,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     try {
       const existing = await loadLogs();
       if (existing.some((l) => l.date === dateValue)) {
-        Alert.alert('Duplicate', `An entry for ${dateValue} already exists. Edit it from View logs.`);
+        Alert.alert(t('wizard.alert.duplicate.title'), t('wizard.alert.duplicate.body', { date: dateValue }));
         return;
       }
       const minimal = normalizeLogEntry({
@@ -918,11 +921,11 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
       });
       await saveLogs(addLogEntry(existing, minimal));
       hapticLight();
-      toast.show(`Minimal log saved for ${dateValue}.`);
+      toast.show(t('wizard.toast.minimalSaved', { date: dateValue }));
       navigation.goBack();
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Could not save entry';
-      Alert.alert('Error', msg);
+      const msg = e instanceof Error ? e.message : t('wizard.alert.saveFailed');
+      Alert.alert(t('common.error'), msg);
     }
   }
 
@@ -932,11 +935,11 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
       const next = addLogEntry(existing, draft);
       await saveLogs(next);
       hapticLight();
-      toast.show('Entry saved successfully.');
+      toast.show(t('wizard.toast.entrySaved'));
       navigation.goBack();
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Could not save entry';
-      Alert.alert('Error', msg);
+      const msg = e instanceof Error ? e.message : t('wizard.alert.saveFailed');
+      Alert.alert(t('common.error'), msg);
     }
   }
 
@@ -949,7 +952,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
           {t('wizard.header')}
         </Text>
         <Text style={[styles.sub, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-          Step {step + 1} of {WIZARD_STEPS}
+          {t('wizard.progress.stepOfTotal', { current: step + 1, total: WIZARD_STEPS })}
         </Text>
         <View style={styles.progressTrack} accessibilityRole="progressbar" accessibilityValue={{ min: 1, max: WIZARD_STEPS, now: step + 1 }}>
           <View style={[styles.progressFill, { width: `${((step + 1) / WIZARD_STEPS) * 100}%`, backgroundColor: theme.tokens.color.accent }]} />
@@ -975,29 +978,29 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
         >
         {step === 0 ? (
           <View>
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Date (YYYY-MM-DD)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.step.date')}</Text>
             <TextInput
               value={date}
               onChangeText={setDate}
               style={[styles.input, { color: theme.tokens.color.text }]}
-              accessibilityLabel="Log date"
+              accessibilityLabel={t('wizard.aria.logDate')}
               autoCapitalize="none"
               autoCorrect={false}
             />
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Flare</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.flare')}</Text>
             <View style={styles.row}>
-              <Choice label="No" selected={flare === 'No'} onPress={() => setFlare('No')} />
-              <Choice label="Yes" selected={flare === 'Yes'} onPress={() => setFlare('Yes')} />
+              <Choice label={t('common.no')} selected={flare === 'No'} onPress={() => setFlare('No')} />
+              <Choice label={t('common.yes')} selected={flare === 'Yes'} onPress={() => setFlare('Yes')} />
             </View>
 
             <Pressable
               onPress={() => void saveQuickMinimal()}
               style={[styles.secondaryBtn, { marginTop: 12, alignSelf: 'stretch' }]}
               accessibilityRole="button"
-              accessibilityLabel="Save minimal log"
+              accessibilityLabel={t('wizard.aria.saveMinimal')}
             >
-              <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Save minimal log</Text>
+              <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.saveMinimal')}</Text>
             </Pressable>
 
             <View style={styles.navRow}>
@@ -1009,18 +1012,18 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 }}
                 style={styles.primaryBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Next step"
+                accessibilityLabel={t('wizard.aria.nextStep')}
               >
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
               </Pressable>
             </View>
           </View>
         ) : step === 1 ? (
           <View>
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>BPM (30–120)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.bpm.30.120')}</Text>
             <TextInput value={bpm} onChangeText={setBpm} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="number-pad" />
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Weight (kg)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.weight.kg')}</Text>
             <TextInput value={weightKg} onChangeText={setWeightKg} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="decimal-pad" />
 
             {/* Sleep / mood / fatigue inputs are part of the Energy & mental clarity step (Step 3, web parity). */}
@@ -1030,41 +1033,47 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 onPress={() => goToStep(0)}
                 style={styles.secondaryBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Previous step"
+                accessibilityLabel={t('wizard.aria.previousStep')}
               >
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
-              <Pressable onPress={() => goToStep(2)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
+              <Pressable onPress={() => goToStep(2)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.nextStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
               </Pressable>
             </View>
           </View>
         ) : step === 2 ? (
           <View>
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Pain locations</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.pain.locations')}</Text>
             <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-              Tap a region to cycle: good → discomfort → pain.
+              {t('wizard.pain.helper')}
             </Text>
-            <PainBodyDiagram states={painStates} onPressRegion={cyclePainRegion} />
+            <PainBodyDiagram
+              states={painStates}
+              onPressRegion={cyclePainRegion}
+              diagramLabel={t('wizard.aria.painBodyDiagram')}
+              diagramHint={t('wizard.aria.painBodyDiagramHint')}
+              regionA11y={(region) => t('wizard.aria.bodyRegion', { region })}
+            />
             <View style={styles.painLegendRow}>
-              <Text style={[styles.painLegendNone, { fontSize: theme.font(12) }]}>Good</Text>
-              <Text style={[styles.painLegendMild, { fontSize: theme.font(12) }]}>Discomfort</Text>
-              <Text style={[styles.painLegendPain, { fontSize: theme.font(12) }]}>Pain</Text>
+              <Text style={[styles.painLegendNone, { fontSize: theme.font(12) }]}>{t('common.good')}</Text>
+              <Text style={[styles.painLegendMild, { fontSize: theme.font(12) }]}>{t('wizard.discomfort')}</Text>
+              <Text style={[styles.painLegendPain, { fontSize: theme.font(12) }]}>{t('common.pain')}</Text>
             </View>
             <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-              Selected: {painCounts.mild} mild, {painCounts.pain} pain
+              {t('wizard.pain.selectedCount', { mild: painCounts.mild, pain: painCounts.pain })}
             </Text>
             {painLocationFromBody ? (
               <View style={{ marginTop: 6 }}>
-                <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>From diagram: {painLocationFromBody}</Text>
+                <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('wizard.pain.fromDiagram', { text: painLocationFromBody })}</Text>
                 <View style={{ marginTop: 6, alignItems: 'flex-start' }}>
                   <Pressable
                     onPress={() => setPainLocation(painLocationFromBody)}
                     style={styles.secondaryBtn}
                     accessibilityRole="button"
-                    accessibilityLabel="Use diagram pain text"
+                    accessibilityLabel={t('wizard.aria.useDiagramPainText')}
                   >
-                    <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Use diagram text</Text>
+                    <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{t('wizard.use.diagram.text')}</Text>
                   </Pressable>
                 </View>
               </View>
@@ -1073,8 +1082,8 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               value={painRegionSearch}
               onChangeText={setPainRegionSearch}
               style={[styles.input, { color: theme.tokens.color.text, marginTop: 8 }]}
-              accessibilityLabel="Search pain body regions"
-              placeholder="Search body regions"
+              accessibilityLabel={t('wizard.aria.searchPainRegions')}
+              placeholder={t('wizard.search.body.regions')}
               placeholderTextColor="rgba(255,255,255,0.6)"
             />
             <View style={styles.chips}>
@@ -1092,27 +1101,27 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             </View>
             {filteredPainRegions.length === 0 ? (
               <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-                No body regions match that search.
+                {t('wizard.pain.noRegionsMatch')}
               </Text>
             ) : null}
             <View style={{ marginTop: 8, alignItems: 'flex-start' }}>
-              <Pressable onPress={clearPainRegions} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Clear pain regions">
-                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear body selections</Text>
+              <Pressable onPress={clearPainRegions} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.clearPainRegions')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{t('wizard.clear.body.selections')}</Text>
               </Pressable>
             </View>
             <TextInput
               value={painLocation}
               onChangeText={setPainLocation}
               style={[styles.input, { color: theme.tokens.color.text }]}
-              accessibilityLabel="Pain locations"
-              placeholder="e.g. Left knee (mild), Right wrist (pain)"
+              accessibilityLabel={t('wizard.aria.painLocations')}
+              placeholder={t('wizard.e.g.left.knee.mild.right.wrist.pain')}
               placeholderTextColor="rgba(255,255,255,0.6)"
             />
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Symptoms</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.step.symptoms')}</Text>
             {frequentSymptoms.length > 0 ? (
               <View style={{ marginBottom: 8 }}>
-                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Frequent symptoms</Text>
+                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('wizard.frequent.symptoms')}</Text>
                 <View style={styles.chips}>
                   {frequentSymptoms.map((opt) => (
                     <Choice key={`freq-sym-${opt}`} label={opt} selected={symptoms.includes(opt)} onPress={() => toggleSymptom(opt)} />
@@ -1140,7 +1149,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             })}
             {symptoms.length ? (
               <View style={{ marginTop: 4 }}>
-                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Selected symptoms</Text>
+                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('wizard.selected.symptoms')}</Text>
                 <View style={styles.chips}>
                   {symptoms.map((item) => (
                     <Choice key={`sym-selected-${item}`} label={item} selected onPress={() => toggleSymptom(item)} />
@@ -1152,84 +1161,84 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                     onPress={() => setSymptoms([])}
                     style={styles.secondaryBtn}
                     accessibilityRole="button"
-                    accessibilityLabel="Clear selected symptoms"
+                    accessibilityLabel={t('wizard.aria.clearSymptoms')}
                   >
-                    <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear selected</Text>
+                    <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{t('wizard.clear.selected')}</Text>
                   </Pressable>
                 </View>
               </View>
             ) : null}
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Add custom symptom</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.add.custom.symptom')}</Text>
             <View style={styles.inlineInputRow}>
               <TextInput
                 value={customSymptom}
                 onChangeText={setCustomSymptom}
                 style={[styles.input, styles.inlineInput, { color: theme.tokens.color.text }]}
-                accessibilityLabel="Custom symptom input"
-                placeholder="Type symptom"
+                accessibilityLabel={t('wizard.aria.customSymptomInput')}
+                placeholder={t('wizard.type.symptom')}
                 placeholderTextColor="rgba(255,255,255,0.6)"
               />
-              <Pressable onPress={addCustomSymptom} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Add custom symptom">
-                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Add</Text>
+              <Pressable onPress={addCustomSymptom} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.add.custom.symptom')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{t('common.add')}</Text>
               </Pressable>
             </View>
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => goToStep(1)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
+              <Pressable onPress={() => goToStep(1)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
-              <Pressable onPress={() => goToStep(3)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
+              <Pressable onPress={() => goToStep(3)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.nextStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
               </Pressable>
             </View>
           </View>
         ) : step === 3 ? (
           <View>
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Energy &amp; mental clarity</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('common.energy.and.mental.clarity')}</Text>
             <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-              Enter fatigue, sleep, and mood scores, then pick one energy &amp; clarity tile (Positive / Neutral / Negative groups).
+              {t('wizard.energy.instructions')}
             </Text>
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Fatigue (1–10)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.fatigue.1.10')}</Text>
             <TextInput
               value={fatigue}
               onChangeText={setFatigue}
               style={[styles.input, { color: theme.tokens.color.text }]}
               keyboardType="number-pad"
-              accessibilityLabel="Fatigue score 1 to 10"
+              accessibilityLabel={t('wizard.aria.fatigueScore')}
             />
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Sleep (1–10)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.sleep.1.10')}</Text>
             <TextInput
               value={sleep}
               onChangeText={setSleep}
               style={[styles.input, { color: theme.tokens.color.text }]}
               keyboardType="number-pad"
-              accessibilityLabel="Sleep quality score 1 to 10"
+              accessibilityLabel={t('wizard.aria.sleepScore')}
             />
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Mood (1–10)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.mood.1.10')}</Text>
             <TextInput
               value={mood}
               onChangeText={setMood}
               style={[styles.input, { color: theme.tokens.color.text }]}
               keyboardType="number-pad"
-              accessibilityLabel="Mood score 1 to 10"
+              accessibilityLabel={t('wizard.aria.moodScore')}
             />
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Energy &amp; clarity</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('common.energy.amp.clarity')}</Text>
             <View style={{ marginTop: 8 }}>
               <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-                {energyClarity ? `Selected: ${energyClarity}` : 'None selected'}
+                {energyClarity ? t('wizard.energy.selectedValue', { value: energyClarity }) : t('common.none.selected')}
               </Text>
               {energyClarity ? (
                 <Pressable
                   onPress={() => setEnergyClarity('')}
                   style={[styles.secondaryBtn, { alignSelf: 'flex-start', marginTop: 6 }]}
                   accessibilityRole="button"
-                  accessibilityLabel="Clear energy and mental clarity"
+                  accessibilityLabel={t('wizard.aria.clearEnergy')}
                 >
-                  <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear selected</Text>
+                  <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{t('wizard.clear.selected')}</Text>
                 </Pressable>
               ) : null}
             </View>
@@ -1238,9 +1247,9 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               onPress={toggleEnergyPicker}
               style={[styles.secondaryBtn, { alignSelf: 'flex-start', marginTop: 10, marginBottom: 8 }]}
               accessibilityRole="button"
-              accessibilityLabel="Toggle energy picker"
+              accessibilityLabel={t('wizard.aria.toggleEnergyPicker')}
             >
-              <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{energyPickerOpen ? 'Hide tiles' : 'Show tiles'}</Text>
+              <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{energyPickerOpen ? t('wizard.aria.hideTiles') : t('wizard.aria.showTiles')}</Text>
             </Pressable>
 
             {energyPickerOpen ? (
@@ -1249,8 +1258,8 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               value={energyClaritySearch}
               onChangeText={setEnergyClaritySearch}
               style={[styles.input, { color: theme.tokens.color.text, marginBottom: 8 }]}
-              accessibilityLabel="Filter energy and mental clarity options"
-              placeholder="Filter options"
+              accessibilityLabel={t('wizard.aria.filterEnergy')}
+              placeholder={t('wizard.filter.options')}
               placeholderTextColor="rgba(255,255,255,0.6)"
             />
 
@@ -1287,23 +1296,23 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               `${o.label} ${o.value}`.toLowerCase().includes(energyClaritySearch.trim().toLowerCase())
             ) ? (
               <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-                No energy options match that search.
+                {t('wizard.energy.noMatch')}
               </Text>
             ) : null}
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => goToStep(2)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
+              <Pressable onPress={() => goToStep(2)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
-              <Pressable onPress={() => goToStep(4)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
+              <Pressable onPress={() => goToStep(4)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.nextStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
               </Pressable>
             </View>
           </View>
         ) : step === 4 ? (
           <View>
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Stress & triggers</Text>
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Irritability (0-10)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.stress.triggers')}</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('common.irritability.0.10')}</Text>
             <View style={styles.chips}>
               {SCORE_0_10_OPTIONS.map((v) => (
                 <Choice key={`ir-${v}`} label={v} selected={irritability === v} onPress={() => setIrritability(v)} />
@@ -1316,7 +1325,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               keyboardType="number-pad"
             />
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Weather sensitivity (1-10)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.weather.sensitivity.1.10')}</Text>
             <View style={styles.chips}>
               {SCORE_1_10_OPTIONS.map((v) => (
                 <Choice key={`ws-${v}`} label={v} selected={weatherSensitivity === v} onPress={() => setWeatherSensitivity(v)} />
@@ -1331,7 +1340,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
 
             {stressors.length ? (
               <View style={{ marginTop: 4, marginBottom: 8 }}>
-                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Selected</Text>
+                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('wizard.selected')}</Text>
                 <View style={styles.chips}>
                   {stressors.map((item) => (
                     <Choice key={`str-selected-${item}`} label={item} selected onPress={() => toggleStressor(item)} />
@@ -1343,9 +1352,9 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                     onPress={() => setStressors([])}
                     style={styles.secondaryBtn}
                     accessibilityRole="button"
-                    accessibilityLabel="Clear selected stressors"
+                    accessibilityLabel={t('wizard.aria.clearStressors')}
                   >
-                    <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear selected</Text>
+                    <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{t('wizard.clear.selected')}</Text>
                   </Pressable>
                 </View>
               </View>
@@ -1355,9 +1364,9 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               onPress={toggleStressorPicker}
               style={[styles.secondaryBtn, { alignSelf: 'flex-start', marginBottom: 8 }]}
               accessibilityRole="button"
-              accessibilityLabel="Toggle stressor picker"
+              accessibilityLabel={t('wizard.aria.toggleStressorPicker')}
             >
-              <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{stressorPickerOpen ? 'Hide stressor picker' : 'Show stressor picker'}</Text>
+              <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{stressorPickerOpen ? t('wizard.aria.hideStressorPicker') : t('wizard.aria.showStressorPicker')}</Text>
             </Pressable>
 
             {stressorPickerOpen ? (
@@ -1366,14 +1375,14 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                   value={stressorSearch}
                   onChangeText={setStressorSearch}
                   style={[styles.input, { color: theme.tokens.color.text }]}
-                  placeholder="Search stressors"
+                  placeholder={t('wizard.search.stressors')}
                   placeholderTextColor="rgba(255,255,255,0.6)"
-                  accessibilityLabel="Search stressors"
+                  accessibilityLabel={t('wizard.search.stressors')}
                 />
 
                 {frequentStressors.length > 0 ? (
                   <View style={{ marginBottom: 8 }}>
-                    <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Frequent</Text>
+                    <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('wizard.frequent')}</Text>
                     <View style={styles.chips}>
                       {frequentStressors
                         .filter((s) => s.toLowerCase().includes(stressorSearch.trim().toLowerCase()))
@@ -1407,33 +1416,33 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 })}
               </View>
             ) : null}
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Add custom stressor</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.add.custom.stressor')}</Text>
             <View style={styles.inlineInputRow}>
               <TextInput
                 value={customStressor}
                 onChangeText={setCustomStressor}
                 style={[styles.input, styles.inlineInput, { color: theme.tokens.color.text }]}
-                accessibilityLabel="Custom stressor input"
-                placeholder="Type stressor"
+                accessibilityLabel={t('wizard.aria.customStressorInput')}
+                placeholder={t('wizard.type.stressor')}
                 placeholderTextColor="rgba(255,255,255,0.6)"
               />
-              <Pressable onPress={addCustomStressor} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Add custom stressor">
-                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Add</Text>
+              <Pressable onPress={addCustomStressor} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.add.custom.stressor')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{t('common.add')}</Text>
               </Pressable>
             </View>
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => goToStep(3)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
+              <Pressable onPress={() => goToStep(3)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
-              <Pressable onPress={() => goToStep(5)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
+              <Pressable onPress={() => goToStep(5)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.nextStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
               </Pressable>
             </View>
           </View>
         ) : step === 5 ? (
           <View>
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Daily function (0-10)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.daily.function.0.10')}</Text>
             <View style={styles.chips}>
               {SCORE_0_10_OPTIONS.map((v) => (
                 <Choice key={`df-${v}`} label={v} selected={dailyFunction === v} onPress={() => setDailyFunction(v)} />
@@ -1444,33 +1453,33 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               onChangeText={setDailyFunction}
               style={[styles.input, { color: theme.tokens.color.text }]}
               keyboardType="number-pad"
-              accessibilityLabel="Daily function"
+              accessibilityLabel={t('wizard.aria.dailyFunction')}
             />
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Steps (if tracked)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('common.steps.if.tracked')}</Text>
             <TextInput
               value={steps}
               onChangeText={setSteps}
               style={[styles.input, { color: theme.tokens.color.text }]}
               keyboardType="number-pad"
-              accessibilityLabel="Steps"
+              accessibilityLabel={t('wizard.aria.steps')}
             />
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Hydration (glasses)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.hydration.glasses')}</Text>
             <TextInput
               value={hydration}
               onChangeText={setHydration}
               style={[styles.input, { color: theme.tokens.color.text }]}
               keyboardType="decimal-pad"
-              accessibilityLabel="Hydration"
+              accessibilityLabel={t('wizard.aria.hydration')}
             />
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => goToStep(4)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
+              <Pressable onPress={() => goToStep(4)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
-              <Pressable onPress={() => goToStep(6)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
+              <Pressable onPress={() => goToStep(6)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.nextStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
               </Pressable>
             </View>
           </View>
@@ -1486,12 +1495,12 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 }}
                 style={styles.secondaryBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Clear all food"
+                accessibilityLabel={t('wizard.clear.all.food')}
               >
-                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear all food</Text>
+                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{t('wizard.clear.all.food')}</Text>
               </Pressable>
             </View>
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Breakfast (comma separated)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.breakfast.comma.separated')}</Text>
             <View style={styles.chips}>
               {FOOD_QUICK_BY_MEAL.breakfast.map((item) => (
                 <Choice
@@ -1509,17 +1518,17 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               onChangeText={setBreakfastText}
               style={[styles.input, { color: theme.tokens.color.text, height: 90 }]}
               multiline
-              accessibilityLabel="Breakfast items"
-              placeholder="e.g. Oatmeal, Yogurt"
+              accessibilityLabel={t('wizard.aria.breakfastItems')}
+              placeholder={t('wizard.e.g.oatmeal.yogurt')}
               placeholderTextColor="rgba(255,255,255,0.6)"
             />
             <View style={styles.chips}>
               {breakfastItems.map((item) => (
-                <Choice key={`bf-sel-${item}`} label={`Remove ${item}`} selected={false} onPress={() => setBreakfastText((prev) => removeCsvItem(prev, item))} />
+                <Choice key={`bf-sel-${item}`} label={t('common.remove.item', { item })} selected={false} onPress={() => setBreakfastText((prev) => removeCsvItem(prev, item))} />
               ))}
             </View>
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Lunch (comma separated)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.lunch.comma.separated')}</Text>
             <View style={styles.chips}>
               {FOOD_QUICK_BY_MEAL.lunch.map((item) => (
                 <Choice
@@ -1537,17 +1546,17 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               onChangeText={setLunchText}
               style={[styles.input, { color: theme.tokens.color.text, height: 90 }]}
               multiline
-              accessibilityLabel="Lunch items"
-              placeholder="e.g. Chicken salad"
+              accessibilityLabel={t('wizard.aria.lunchItems')}
+              placeholder={t('wizard.e.g.chicken.salad')}
               placeholderTextColor="rgba(255,255,255,0.6)"
             />
             <View style={styles.chips}>
               {lunchItems.map((item) => (
-                <Choice key={`lu-sel-${item}`} label={`Remove ${item}`} selected={false} onPress={() => setLunchText((prev) => removeCsvItem(prev, item))} />
+                <Choice key={`lu-sel-${item}`} label={t('common.remove.item', { item })} selected={false} onPress={() => setLunchText((prev) => removeCsvItem(prev, item))} />
               ))}
             </View>
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Dinner (comma separated)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.dinner.comma.separated')}</Text>
             <View style={styles.chips}>
               {FOOD_QUICK_BY_MEAL.dinner.map((item) => (
                 <Choice
@@ -1565,17 +1574,17 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               onChangeText={setDinnerText}
               style={[styles.input, { color: theme.tokens.color.text, height: 90 }]}
               multiline
-              accessibilityLabel="Dinner items"
-              placeholder="e.g. Salmon, Rice"
+              accessibilityLabel={t('wizard.aria.dinnerItems')}
+              placeholder={t('wizard.e.g.salmon.rice')}
               placeholderTextColor="rgba(255,255,255,0.6)"
             />
             <View style={styles.chips}>
               {dinnerItems.map((item) => (
-                <Choice key={`di-sel-${item}`} label={`Remove ${item}`} selected={false} onPress={() => setDinnerText((prev) => removeCsvItem(prev, item))} />
+                <Choice key={`di-sel-${item}`} label={t('common.remove.item', { item })} selected={false} onPress={() => setDinnerText((prev) => removeCsvItem(prev, item))} />
               ))}
             </View>
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Snack (comma separated)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.snack.comma.separated')}</Text>
             <View style={styles.chips}>
               {FOOD_QUICK_BY_MEAL.snack.map((item) => (
                 <Choice
@@ -1593,22 +1602,22 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               onChangeText={setSnackText}
               style={[styles.input, { color: theme.tokens.color.text, height: 90 }]}
               multiline
-              accessibilityLabel="Snack items"
-              placeholder="e.g. Apple, Nuts"
+              accessibilityLabel={t('wizard.aria.snackItems')}
+              placeholder={t('wizard.e.g.apple.nuts')}
               placeholderTextColor="rgba(255,255,255,0.6)"
             />
             <View style={styles.chips}>
               {snackItems.map((item) => (
-                <Choice key={`sn-sel-${item}`} label={`Remove ${item}`} selected={false} onPress={() => setSnackText((prev) => removeCsvItem(prev, item))} />
+                <Choice key={`sn-sel-${item}`} label={t('common.remove.item', { item })} selected={false} onPress={() => setSnackText((prev) => removeCsvItem(prev, item))} />
               ))}
             </View>
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => goToStep(5)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
+              <Pressable onPress={() => goToStep(5)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
-              <Pressable onPress={() => goToStep(7)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
+              <Pressable onPress={() => goToStep(7)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.nextStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
               </Pressable>
             </View>
           </View>
@@ -1619,12 +1628,12 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 onPress={() => setExerciseText('')}
                 style={styles.secondaryBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Clear all exercise"
+                accessibilityLabel={t('wizard.clear.all.exercise')}
               >
-                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear all exercise</Text>
+                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{t('wizard.clear.all.exercise')}</Text>
               </Pressable>
             </View>
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Exercise by category</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.exercise.by.category')}</Text>
             {EXERCISE_CATEGORIES.map((cat) => {
               const options = PREDEFINED_EXERCISES.filter((x) => x.category === cat.id);
               return (
@@ -1650,7 +1659,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 </View>
               );
             })}
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Exercise quick picks</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.exercise.quick.picks')}</Text>
             <View style={styles.chips}>
               {EXERCISE_QUICK_OPTIONS.map((item) => {
                 const count = countCsvItem(exerciseText, item);
@@ -1672,23 +1681,23 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               onChangeText={setExerciseText}
               style={[styles.input, { color: theme.tokens.color.text, height: 90 }]}
               multiline
-              accessibilityLabel="Exercise items"
-              placeholder="e.g. Walking:30, Stretching:15"
+              accessibilityLabel={t('wizard.aria.exerciseItems')}
+              placeholder={t('wizard.e.g.walking.30.stretching.15')}
               placeholderTextColor="rgba(255,255,255,0.6)"
             />
             <View style={styles.chips}>
               {exerciseItems.map((item) => {
                 const token = `${item.name}${item.duration ? `:${item.duration}` : ''}`;
-                return <Choice key={`ex-sel-${token}`} label={`Remove ${token}`} selected={false} onPress={() => setExerciseText((prev) => removeCsvItem(prev, token))} />;
+                return <Choice key={`ex-sel-${token}`} label={t('common.remove.item', { item: token })} selected={false} onPress={() => setExerciseText((prev) => removeCsvItem(prev, token))} />;
               })}
             </View>
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => goToStep(6)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
+              <Pressable onPress={() => goToStep(6)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
-              <Pressable onPress={() => goToStep(8)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
+              <Pressable onPress={() => goToStep(8)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.nextStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
               </Pressable>
             </View>
           </View>
@@ -1699,20 +1708,20 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 onPress={() => setMedicationText('')}
                 style={styles.secondaryBtn}
                 accessibilityRole="button"
-                accessibilityLabel="Clear all medications"
+                accessibilityLabel={t('wizard.clear.all.medications')}
               >
-                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>Clear all medications</Text>
+                <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{t('wizard.clear.all.medications')}</Text>
               </Pressable>
             </View>
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Medications (comma separated)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.medications.comma.separated')}</Text>
             <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-              Enter medication names; times can be added in a future update.
+              {t('wizard.medications.helper')}
             </Text>
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Taken today?</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('common.taken.today')}</Text>
             <View style={styles.row}>
-              <Choice label="Yes" selected={medicationTaken} onPress={() => setMedicationTaken(true)} />
-              <Choice label="No" selected={!medicationTaken} onPress={() => setMedicationTaken(false)} />
+              <Choice label={t('common.yes')} selected={medicationTaken} onPress={() => setMedicationTaken(true)} />
+              <Choice label={t('common.no')} selected={!medicationTaken} onPress={() => setMedicationTaken(false)} />
             </View>
 
             <View style={styles.chips}>
@@ -1731,19 +1740,19 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               value={medicationText}
               onChangeText={setMedicationText}
               style={[styles.input, { color: theme.tokens.color.text }]}
-              accessibilityLabel="Medication names"
-              placeholder="e.g. Ibuprofen, Vitamin D"
+              accessibilityLabel={t('wizard.aria.medicationNames')}
+              placeholder={t('wizard.e.g.ibuprofen.vitamin.d')}
               placeholderTextColor="rgba(255,255,255,0.6)"
             />
             <View style={styles.chips}>
               {parseCsvList(medicationText).map((item) => (
-                <Choice key={`med-sel-${item}`} label={`Remove ${item}`} selected={false} onPress={() => setMedicationText((prev) => removeCsvItem(prev, item))} />
+                <Choice key={`med-sel-${item}`} label={t('common.remove.item', { item })} selected={false} onPress={() => setMedicationText((prev) => removeCsvItem(prev, item))} />
               ))}
             </View>
 
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Notes (Optional)</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.notes.optional')}</Text>
             <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12), marginTop: 0 }]}>
-              Notes {notes.length}/500
+              {t('wizard.notes.charCount', { count: notes.length })}
             </Text>
             <VoiceNotesButton
               value={notes}
@@ -1757,8 +1766,8 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               style={[styles.input, { color: theme.tokens.color.text, height: 120, borderColor: theme.tokens.color.accent }]}
               multiline
               maxLength={500}
-              accessibilityLabel="Log notes"
-              placeholder="Tap here and use voice dictation to quickly add notes about your symptoms, triggers, or activities..."
+              accessibilityLabel={t('wizard.aria.logNotes')}
+              placeholder={t('wizard.notes.placeholder')}
               placeholderTextColor="rgba(255,255,255,0.6)"
             />
             {prefs.aiEnabled !== false ? (
@@ -1767,43 +1776,43 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 disabled={suggestNoteBusy}
                 style={({ pressed }) => [styles.suggestNoteBtn, pressed && { opacity: 0.75 }]}
                 accessibilityRole="button"
-                accessibilityLabel={suggestNoteBusy ? 'Generating suggest note' : 'Suggest note'}
+                accessibilityLabel={suggestNoteBusy ? t('wizard.aria.generatingSuggestNote') : t('wizard.alert.suggestNote.title')}
                 accessibilityState={{ disabled: suggestNoteBusy, busy: suggestNoteBusy }}
               >
                 <Text style={{ color: theme.tokens.color.accent, fontSize: theme.font(15), fontWeight: '700' }}>
-                  {suggestNoteBusy ? 'Generating…' : 'Suggest note'}
+                  {suggestNoteBusy ? t('common.loading.generating') : t('wizard.alert.suggestNote.title')}
                 </Text>
               </Pressable>
             ) : null}
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => goToStep(7)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
+              <Pressable onPress={() => goToStep(7)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
-              <Pressable onPress={() => goToStep(9)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Next step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Next</Text>
+              <Pressable onPress={() => goToStep(9)} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.nextStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
               </Pressable>
             </View>
           </View>
         ) : (
           <View>
-            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>Review</Text>
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.step.review')}</Text>
             <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-              Confirm details before saving.
+              {t('wizard.review.empty')}
             </Text>
             <Text
               style={[styles.reviewBlock, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}
-              accessibilityLabel="Log review summary"
+              accessibilityLabel={t('wizard.aria.reviewSummary')}
             >
               {reviewText}
             </Text>
 
             <View style={styles.navRow}>
-              <Pressable onPress={() => goToStep(8)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel="Previous step">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Back</Text>
+              <Pressable onPress={() => goToStep(8)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
-              <Pressable onPress={save} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel="Save entry">
-                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>Save</Text>
+              <Pressable onPress={save} style={styles.primaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.saveEntry')}>
+                <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.save')}</Text>
               </Pressable>
             </View>
           </View>
@@ -1833,6 +1842,7 @@ function Choice({
   variant?: 'pill' | 'tile';
   tone?: 'default' | 'positive' | 'neutral' | 'negative';
 }) {
+  const { t } = useT();
   const showCount = typeof count === 'number' && count > 0;
   return (
     <Pressable
@@ -1862,7 +1872,7 @@ function Choice({
           }}
           style={styles.choiceCount}
           accessibilityRole="button"
-          accessibilityLabel={`Clear ${label}`}
+          accessibilityLabel={t('common.clear.choice', { label })}
         >
           <Text style={styles.choiceCountText}>{count}</Text>
         </Pressable>

@@ -31,13 +31,13 @@ import {
 } from '../storage/logs';
 import { printOrShareLogs } from '../utils/printLogs';
 
-const RANGE_PRESETS: { key: LogRangePreset; label: string; a11y: string }[] = [
-  { key: 'today', label: 'Today', a11y: 'Date range, today' },
-  { key: 7, label: '7d', a11y: 'Date range, last 7 days' },
-  { key: 30, label: '30d', a11y: 'Date range, last 30 days' },
-  { key: 90, label: '90d', a11y: 'Date range, last 90 days' },
-  { key: 'all', label: 'All', a11y: 'Date range, all entries' },
-  { key: 'custom', label: 'Custom', a11y: 'Date range, custom start and end dates' },
+const RANGE_PRESET_KEYS: { key: LogRangePreset; labelKey: string; a11yKey?: string }[] = [
+  { key: 'today', labelKey: 'common.today' },
+  { key: 7, labelKey: '7d' },
+  { key: 30, labelKey: '30d' },
+  { key: 90, labelKey: '90d' },
+  { key: 'all', labelKey: 'All' },
+  { key: 'custom', labelKey: 'Custom' },
 ];
 
 // Approximate fixed row height used by FlatList virtualization hints.
@@ -177,10 +177,10 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
   }
 
   function deleteEntry(entry: LogEntry) {
-    Alert.alert('Delete entry?', `This will remove ${entry.date} from this device.`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('logs.delete.title'), t('logs.delete.confirm', { date: entry.date }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: () => {
           setLogs((prev) => {
@@ -244,7 +244,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
   async function saveEditedEntry() {
     if (!selectedEntry || !editDraft) return;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(editDraft.date.trim())) {
-      Alert.alert('Validation', 'Date must be YYYY-MM-DD');
+      Alert.alert(t('common.validation.title'), t('common.validation.dateFormat'));
       return;
     }
     const nextEntry: LogEntry = {
@@ -299,8 +299,9 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
           Date range
         </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
-          {RANGE_PRESETS.map(({ key, label, a11y }) => {
+          {RANGE_PRESET_KEYS.map(({ key, labelKey }) => {
             const active = range === key;
+            const label = labelKey === 'common.today' ? t('common.today') : labelKey;
             return (
               <Pressable
                 key={String(key)}
@@ -308,7 +309,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
                 style={[...chipBase, active && { backgroundColor: accent }]}
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
-                accessibilityLabel={a11y}
+                accessibilityLabel={labelKey === 'common.today' ? t('common.today') : label}
               >
                 <Text style={chipText(active)}>{label}</Text>
               </Pressable>
@@ -342,7 +343,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
           onPress={() => {
             setPrintBusy(true);
             printOrShareLogs(displayed)
-              .catch(() => Alert.alert('Print', 'Could not create or share the log PDF.'))
+              .catch(() => Alert.alert(t('settings.print.title'), t('logs.print.failed')))
               .finally(() => setPrintBusy(false));
           }}
           disabled={printBusy || !displayed.length}
@@ -350,7 +351,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
           accessibilityLabel="Print or share filtered logs as PDF"
         >
           <Text style={[styles.printBtnText, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            {printBusy ? 'Preparing PDF…' : 'Print / share PDF'}
+            {printBusy ? t('logs.print.preparing') : t('logs.print.action')}
           </Text>
         </Pressable>
 
@@ -370,7 +371,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
                   accessibilityState={{ selected: active }}
                   accessibilityLabel={ord === 'newest' ? 'Sort, newest first' : 'Sort, oldest first'}
                 >
-                  <Text style={chipText(active)}>{ord === 'newest' ? 'Newest' : 'Oldest'}</Text>
+                  <Text style={chipText(active)}>{ord === 'newest' ? t('logs.sort.newest') : t('logs.sort.oldest')}</Text>
                 </Pressable>
               );
             })}
@@ -443,11 +444,11 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
         <View style={styles.modalBackdrop}>
           <View style={[styles.modalCard, { backgroundColor: 'rgba(20,30,28,0.97)' }]}>
             <Text style={[styles.modalTitle, { color: theme.tokens.color.text, fontSize: theme.font(17) }]}>
-              {selectedEntry?.date ?? 'Log entry'}
+              {selectedEntry?.date ?? t('logs.modal.entryTitle')}
             </Text>
             {isEditingEntry && editDraft ? (
               <View>
-                <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Date</Text>
+                <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('wizard.step.date')}</Text>
                 <TextInput
                   value={editDraft.date}
                   onChangeText={(value) => updateDraft({ date: value })}
@@ -504,7 +505,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
                   style={[styles.input, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
                   accessibilityLabel="Edit log fatigue"
                 />
-                <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>Notes</Text>
+                <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('export.section.notes')}</Text>
                 <TextInput
                   value={editDraft.notes ?? ''}
                   onChangeText={(value) => updateDraft({ notes: value })}
@@ -544,20 +545,20 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
             )}
             <View style={styles.modalActions}>
               <Pressable style={styles.modalBtn} onPress={() => setSelectedEntry(null)} accessibilityRole="button">
-                <Text style={styles.modalBtnText}>Close</Text>
+                <Text style={styles.modalBtnText}>{t('common.close')}</Text>
               </Pressable>
               {isEditingEntry ? (
                 <>
                   <Pressable style={styles.modalBtn} onPress={cancelEditing} accessibilityRole="button" accessibilityLabel="Cancel log edit">
-                    <Text style={styles.modalBtnText}>Cancel</Text>
+                    <Text style={styles.modalBtnText}>{t('common.cancel')}</Text>
                   </Pressable>
                   <Pressable style={styles.modalBtn} onPress={() => void saveEditedEntry()} accessibilityRole="button" accessibilityLabel="Save log edit">
-                    <Text style={styles.modalBtnText}>Save</Text>
+                    <Text style={styles.modalBtnText}>{t('common.save')}</Text>
                   </Pressable>
                 </>
               ) : (
                 <Pressable style={styles.modalBtn} onPress={startEditing} accessibilityRole="button" accessibilityLabel="Edit log entry">
-                  <Text style={styles.modalBtnText}>Edit</Text>
+                  <Text style={styles.modalBtnText}>{t('logs.action.edit')}</Text>
                 </Pressable>
               )}
               <Pressable
@@ -568,7 +569,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
                 accessibilityRole="button"
                 accessibilityLabel="Share log entry"
               >
-                <Text style={styles.modalBtnText}>Share</Text>
+                <Text style={styles.modalBtnText}>{t('common.share')}</Text>
               </Pressable>
               <Pressable
                 style={styles.modalBtn}
@@ -578,7 +579,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
                 accessibilityRole="button"
                 accessibilityLabel="Delete log entry"
               >
-                <Text style={styles.modalBtnText}>Delete</Text>
+                <Text style={styles.modalBtnText}>{t('common.delete')}</Text>
               </Pressable>
             </View>
           </View>

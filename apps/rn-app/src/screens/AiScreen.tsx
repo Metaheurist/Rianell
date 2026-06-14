@@ -18,7 +18,7 @@ function fmt(value: number | null): string {
 
 export function AiScreen({ prefs }: { prefs: Preferences }) {
   const theme = useTheme();
-  const { t } = useT();
+  const { t, locale } = useT();
   const bg =
     theme.tokens.color.background ===
     'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
@@ -33,8 +33,8 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
 
   const summary: AiSummary | null = useMemo(() => {
     if (!prefs.aiEnabled) return null;
-    return summarizeLogsForAi(logs, range);
-  }, [logs, prefs.aiEnabled, range]);
+    return summarizeLogsForAi(logs, range, { translate: t });
+  }, [logs, prefs.aiEnabled, range, t]);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -43,7 +43,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
       const nextLogs = await loadLogs();
       setLogs(nextLogs);
     } catch {
-      setError('Could not load logs for AI analysis.');
+      setError(t('ai.load.failed'));
       setSummaryNote('');
     } finally {
       setRefreshing(false);
@@ -65,7 +65,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
       return;
     }
     if (summary.totalLogs === 0) {
-      setSummaryNote('No logs yet in this range. Add entries to generate a summary note.');
+      setSummaryNote(t('ai.empty.noRangeNote'));
       return;
     }
     void (async () => {
@@ -73,7 +73,8 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
         const note = await generateSummaryNote(
           summary,
           prefs.performance.preferredLlmModelSize,
-          benchmark
+          benchmark,
+          locale
         );
         if (!cancelled) setSummaryNote(note);
       } catch {
@@ -83,7 +84,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
     return () => {
       cancelled = true;
     };
-  }, [benchmark, prefs.aiEnabled, prefs.performance.preferredLlmModelSize, summary]);
+  }, [benchmark, locale, prefs.aiEnabled, prefs.performance.preferredLlmModelSize, summary, t]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
@@ -103,16 +104,16 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
         <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>{t('nav.ai')}</Text>
 
           <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            Log-driven AI summary view: at-a-glance insights, trends, symptoms, stressors, and flare signals.
+            {t('ai.lead')}
           </Text>
 
           {!prefs.aiEnabled ? (
             <Text style={[styles.error, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-              AI features are disabled in Settings. Enable AI features & Goals to view analysis.
+              {t('ai.disabled.hint')}
             </Text>
           ) : null}
 
-          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Range</Text>
+          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.filter.range')}</Text>
           <View style={styles.rangeRow}>
             {RANGE_OPTIONS.map((opt) => {
               const selected = opt === range;
@@ -154,9 +155,9 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
 
           {summary && prefs.aiEnabled ? (
             <>
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Summary note</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.section.summaryNote')}</Text>
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                {summaryNote || 'Generating...'}
+                {summaryNote || t('ai.loading.generating')}
               </Text>
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>At a glance</Text>
@@ -173,7 +174,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                 Top stressors: {summary.topStressors.length ? summary.topStressors.join(', ') : '—'}
               </Text>
 
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>What we found</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.section.whatWeFound')}</Text>
               <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
                 Patterns in everyday language from your own logs in this range.
               </Text>
@@ -187,14 +188,14 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                 Fatigue avg: {fmt(summary.avgFatigue)} / 10
               </Text>
 
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>What you logged</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.section.whatYouLogged')}</Text>
               {summary.whatYouLogged.map((line) => (
                 <Text key={`wyl-${line}`} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                   {line}
                 </Text>
               ))}
 
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>How you're doing</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.section.howYouAreDoing')}</Text>
               <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
                 Recent averages versus latest entries. This is guidance, not diagnosis.
               </Text>
@@ -204,7 +205,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                 </Text>
               ))}
 
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Things to watch</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.section.thingsToWatch')}</Text>
               <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
                 Unusual patterns that may be worth checking in with your symptoms and routine.
               </Text>
@@ -216,7 +217,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Important</Text>
               <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-                For patterns only - talk to your clinician before changing care.
+                {t('ai.disclaimer.medical')}
               </Text>
               {summary.important.map((line) => (
                 <Text key={`imp-${line}`} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
@@ -224,7 +225,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                 </Text>
               ))}
 
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Possible flare-up</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.section.flareUp')}</Text>
               <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
                 A simple score from current log patterns - not a medical test.
               </Text>
@@ -237,7 +238,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                 </Text>
               ))}
 
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Correlations</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.section.correlations')}</Text>
               <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
                 Metrics that tend to move together in your recent logs.
               </Text>
