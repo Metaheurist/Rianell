@@ -30,6 +30,7 @@ jest.mock('../storage/logs', () => ({
 }));
 jest.mock('../ai/llm', () => ({
   generateMotd: jest.fn(async () => 'Test MOTD'),
+  answerHomeQuestion: jest.fn(async () => 'Test answer from AI'),
 }));
 jest.mock('../performance/benchmark', () => ({
   loadCachedBenchmark: jest.fn(async () => null),
@@ -40,6 +41,30 @@ jest.mock('../utils/submitBugReport', () => ({
 
 import { loadLogs } from '../storage/logs';
 import { submitBugReport } from '../utils/submitBugReport';
+import { answerHomeQuestion } from '../ai/llm';
+
+function isoDaysAgo(n: number) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
+function suggestionFixtureLogs() {
+  const logs = [];
+  for (let i = 0; i < 5; i++) {
+    logs.push({
+      date: isoDaysAgo(i),
+      flare: i < 2 ? 'Yes' : 'No',
+      fatigue: 6 + i * 0.5,
+      sleep: 7 - i * 0.3,
+      mood: 6,
+      symptoms: i % 2 === 0 ? ['Headache'] : ['Headache', 'Nausea'],
+      stressors: i === 0 ? ['Work deadline'] : [],
+      notes: i === 0 ? 'Rough morning' : '',
+    });
+  }
+  return logs;
+}
 
 function renderHome() {
   const prefs = getDefaultPreferences();
@@ -102,6 +127,30 @@ test('header Report a bug opens bug report modal and submits', async () => {
   });
   expect(openSpy).not.toHaveBeenCalledWith(expect.stringContaining('SECURITY.md'));
   openSpy.mockRestore();
+});
+
+test('home hides AI suggestion chips when not logged today', async () => {
+  (loadLogs as jest.Mock).mockResolvedValue(suggestionFixtureLogs().slice(1));
+  const { queryByText } = renderHome();
+  await waitFor(() => {
+    expect(loadLogs).toHaveBeenCalled();
+  });
+  expect(queryByText("What's behind my Headache?")).toBeNull();
+});
+
+test('home shows AI suggestion chips when logged today with enough data', async () => {
+  (loadLogs as jest.Mock).mockResolvedValue(suggestionFixtureLogs());
+  const { findByText } = renderHome();
+  await findByText("What's behind my Headache?");
+});
+
+test('tapping a home AI suggestion opens answer modal', async () => {
+  (loadLogs as jest.Mock).mockResolvedValue(suggestionFixtureLogs());
+  const { findByText, getByLabelText } = renderHome();
+  const chip = await findByText("What's behind my Headache?");
+  fireEvent.press(chip);
+  await findByText('Test answer from AI');
+  expect(answerHomeQuestion).toHaveBeenCalled();
 });
 
 test('header Settings navigates to Settings tab', async () => {

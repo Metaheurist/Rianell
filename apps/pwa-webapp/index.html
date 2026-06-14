@@ -349,7 +349,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
   <link rel="preload" href="styles.css?v=89" as="style">
-  <link rel="preload" href="app.js?v=40" as="script">
+  <link rel="preload" href="app.js?v=41" as="script">
   <link rel="stylesheet" href="css/tokens.css?v=1">
   <link rel="stylesheet" href="styles.css?v=89" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=89&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
@@ -1426,6 +1426,22 @@
     </div>
   </div>
 
+  <div class="modal-overlay home-question-modal-overlay" id="homeQuestionModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="homeQuestionModalTitle">
+    <div class="modal-content home-question-modal-content" onclick="event.stopPropagation()" role="document">
+      <div class="modal-header">
+        <h3 id="homeQuestionModalTitle" data-i18n="home.questions.modalTitle">AI insight</h3>
+        <button type="button" class="modal-close" onclick="closeHomeQuestionModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
+      </div>
+      <div class="modal-body home-question-modal-body">
+        <p id="homeQuestionModalBody" class="home-question-answer" aria-live="polite"></p>
+        <p class="home-question-disclaimer" data-i18n="ai.disclaimer.medical">For patterns only — talk to your doctor before changing care.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-save-btn" onclick="closeHomeQuestionModal()" data-i18n="common.close">Close</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay bug-report-modal-overlay" id="bugReportModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Report a bug" data-i18n-aria="home.bugReport.title">
     <div class="modal-content bug-report-modal-content" onclick="event.stopPropagation()" role="document">
       <div class="modal-header">
@@ -1578,11 +1594,7 @@
       </div>
       <div id="homeHeroCard" class="home-hero-card" data-scroll-reveal role="status" aria-live="polite">
         <div id="homeTodayStatus" class="home-today-status"></div>
-        <div class="home-quick-actions">
-          <button type="button" class="action-btn home-quick-action" data-ripple onclick="openLogWizardFromHome()" data-i18n="home.action.logNow">Log now</button>
-          <button type="button" class="action-btn home-quick-action" data-ripple onclick="switchTab('charts')" data-i18n="charts.title">Charts</button>
-          <button type="button" class="action-btn home-quick-action" data-ripple onclick="switchTab('ai')" data-i18n="home.action.aiSummary">AI summary</button>
-        </div>
+        <div id="homeAiSuggestions" class="home-ai-suggestions" hidden aria-live="polite"></div>
       </div>
       <div id="goalsProgressBlock" class="goals-progress-block" style="display: none;" aria-live="polite" data-scroll-reveal></div>
     </div>
@@ -3439,11 +3451,11 @@
     }
   })();
   </script>
-  <script defer src="vendor/rianell-shared.js?v=3"></script>
+  <script defer src="vendor/rianell-shared.js?v=4"></script>
   <script defer src="i18n-pwa.js?v=1"></script>
   <script defer src="privacy-region.js?v=3"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
-  <script defer src="app.js?v=40"></script>
+  <script defer src="app.js?v=41"></script>
   <script defer src="security-utils.js"></script>
   <script defer src="encryption-utils.js"></script>
   <script defer src="cloud-sync.js?v=2"></script>
