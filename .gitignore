@@ -69,6 +69,7 @@ node_modules/
 dist/
 build/
 .firecrawl/
+.wiki-sync/
 apps/pwa-webapp/app.min.js
 .server-dist/
 apps/pwa-webapp/app.*.min.js
