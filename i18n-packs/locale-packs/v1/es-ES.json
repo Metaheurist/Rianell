@@ -395,6 +395,7 @@
     "common.checking": "De cheques…",
     "common.download.model": "Descargar model",
     "common.redownload.model": "Volver a descargar el modelo",
+    "common.clear.and.redownload.model": "Clear and redownload model",
     "common.remove.downloaded.model": "Quitar downloaded model",
     "common.install.on.this.iphone": "Instalar on this iPhone",
     "common.download.android.react.native.cli": "Descargar Android (React Native CLI)",

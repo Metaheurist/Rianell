@@ -2,6 +2,8 @@
  * Full-sentence overrides for Frankenstein (mixed-language) Tier A strings (LC-20c).
  * Applied after rule-based MT in generate-locale-overrides.mjs.
  */
+import { PL_PL_EXACT_OVERRIDES } from './pl-pl-exact-overrides.mjs';
+
 export const MIXED_FIXES = {
   'de-DE': {
     'gate.lead':
@@ -84,5 +86,6 @@ export const MIXED_FIXES = {
     'benchmark.tests.array': 'Przepustowość tablicy',
     'benchmark.tests.string': 'Operacje na ciągach',
     'benchmark.tests.warmup': 'Rozgrzewka',
+    ...PL_PL_EXACT_OVERRIDES,
   },
 };
