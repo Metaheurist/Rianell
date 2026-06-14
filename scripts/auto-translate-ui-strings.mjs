@@ -16,7 +16,7 @@ const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
 const dryRun = process.argv.includes('--dry-run');
 const doTranslate = process.argv.includes('--translate');
-const TIER_A = new Set(['pt-BR', 'fr-FR', 'de-DE', 'es-ES', 'it-IT', 'nl-NL', 'pl-PL', 'pt-PT']);
+const TIER_A = new Set(['pt-BR', 'fr-FR', 'de-DE', 'es-ES', 'it-IT', 'nl-NL', 'pl-PL', 'pt-PT', 'ga']);
 
 const canonical = JSON.parse(fs.readFileSync(path.join(dir, 'en-GB.json'), 'utf8'));
 const canonicalStrings = canonical.strings || {};
