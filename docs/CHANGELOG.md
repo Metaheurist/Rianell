@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.89.0** - Production boot fix (`DOMContentLoaded`), minified bundle freeze fix, SW cache bump, wiki sync tooling.
+**Latest: v1.89.1** - Heuristic benchmark quick-start (no first-visit freeze); SBOM generation fix in CI.
+
+### v1.89.1 - 2026-06-15 - First-visit benchmark freeze fix
+- **`device-benchmark.js`:** Web/PWA first load uses a **heuristic tier** immediately instead of blocking on the full CPU warmup suite (fixes “Page Unresponsive” on `common.measuring.performance · Warmup`). Full suite runs in the background via `requestIdleCallback`.
+- **`app.js`:** Heuristic benchmark skips the first-run results modal; English fallback when i18n is not ready during boot.
+- **`security-audit.yml`:** CycloneDX SBOM uses `--package-lock-only --ignore-npm-errors` (fixes exit code 254 from `npm ls` in workspaces).
 
 ### v1.89.0 - 2026-06-15 - Production boot and build fixes
 - **PWA boot (`app.js`):** App shell starts on **`DOMContentLoaded`** instead of **`window.load`** so hung Google Fonts or CDN subresources cannot leave [rianell.com](https://rianell.com) stuck on “Loading Rianell…”.

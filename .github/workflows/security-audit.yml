@@ -87,7 +87,7 @@ jobs:
       - name: Generate CycloneDX SBOM (artifact)
         continue-on-error: true
         run: |
-          npx --yes @cyclonedx/cyclonedx-npm@1.19.0 --output-file sbom.cdx.json --omit dev
+          npx --yes @cyclonedx/cyclonedx-npm@1.19.0 --output-file sbom.cdx.json --omit dev --package-lock-only --ignore-npm-errors
       - uses: actions/upload-artifact@v5
         if: always() && hashFiles('sbom.cdx.json') != ''
         with:

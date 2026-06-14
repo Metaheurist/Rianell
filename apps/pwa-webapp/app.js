@@ -20605,7 +20605,9 @@ function runRianellBootAfterDomReady() {
     window.DeviceBenchmark.runBenchmarkIfNeeded(
       function (pct, meta) {
         var label = meta && meta.label ? (' · ' + meta.label) : '';
-        if (loadingTextEl) loadingTextEl.textContent = tUi('common.measuring.performance') + (pct > 0 ? ' ' + pct + '%' : '') + label;
+        var measureLabel = (typeof tUi === 'function' ? tUi('common.measuring.performance') : 'Measuring performance…');
+        if (measureLabel === 'common.measuring.performance') measureLabel = 'Measuring performance…';
+        if (loadingTextEl) loadingTextEl.textContent = measureLabel + (pct > 0 ? ' ' + pct + '%' : '') + label;
         setOrbitLoadingProgress(pct);
       },
       function (tier, platformType, result, meta) {
@@ -20628,7 +20630,7 @@ function runRianellBootAfterDomReady() {
              benchmark modal is visibility:hidden and Continue never fires; runAppInit never runs (stuck). */
           document.body.classList.add('loaded');
           /* Show results modal only after a fresh benchmark — skip when reusing cached tier/profile. */
-          if (meta && meta.cached) {
+          if (meta && (meta.cached || meta.heuristic)) {
             startAppAfterPrivacyGate();
             return;
           }
