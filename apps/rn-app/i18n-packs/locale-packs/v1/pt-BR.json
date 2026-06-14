@@ -395,6 +395,7 @@
     "common.checking": "Verificando…",
     "common.download.model": "Baixar model",
     "common.redownload.model": "Baixar novamente o modelo",
+    "common.clear.and.redownload.model": "Clear and redownload model",
     "common.remove.downloaded.model": "Remover downloaded model",
     "common.install.on.this.iphone": "Instalar on this iPhone",
     "common.download.android.react.native.cli": "Baixar Android (React Native CLI)",
