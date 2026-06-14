@@ -4482,7 +4482,7 @@ function updateNotesCounter() {
   }
 }
 
-notesField.addEventListener('input', updateNotesCounter);
+if (notesField) notesField.addEventListener('input', updateNotesCounter);
 
 // Suggest note: LLM when available (same pipeline as Summary note), else rule-based (AIEngine.suggestLogNote)
 (function() {
@@ -15733,20 +15733,29 @@ async function clearAndRedownloadAiModel() {
     if (typeof window.cancelAiModelDownload === 'function') {
       window.cancelAiModelDownload();
     }
+    if (typeof window.hideAiModelDownloadProgressUI === 'function') {
+      window.hideAiModelDownloadProgressUI();
+    }
     if (typeof window.clearAiModelCache === 'function') {
-      await window.clearAiModelCache({ resetConsent: false });
+      await window.clearAiModelCache({ resetConsent: true });
     } else if (typeof window.clearSummaryLLMCache === 'function') {
       window.clearSummaryLLMCache();
+      appSettings.aiModelDownloadConsent = 'deferred';
+      saveSettings();
     }
     if (typeof window.resetAiModelDownloadState === 'function') {
       window.resetAiModelDownloadState();
     }
-    appSettings.aiModelDownloadConsent = 'granted';
-    saveSettings();
+    refreshLlmModelSettingsHints();
+    if (typeof window.setAiModelDownloadUiMode === 'function') {
+      window.setAiModelDownloadUiMode();
+    } else if (typeof window.applyAiModelDownloadConsentUiMode === 'function') {
+      window.applyAiModelDownloadConsentUiMode();
+    }
     if (typeof window.preloadSummaryLLM !== 'function') {
       throw new Error('AI model loader unavailable');
     }
-    await window.preloadSummaryLLM({ skipConsent: true });
+    await window.preloadSummaryLLM();
     if (typeof showToast === 'function') {
       showToast('AI model cleared and redownloaded.', { type: 'success' });
     }
