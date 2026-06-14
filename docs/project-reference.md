@@ -2,6 +2,17 @@
 
 ## 🗂️ Project Structure
 
+### v1.69.1 documentation sync (CI generate order)
+
+- **`verify:i18n`:** Runs `generate-locale-overrides.mjs` before sync and `verify-translation-coverage.mjs --strict`.
+- **CI:** `.github/workflows/ci.yml` unit-tests job aligned.
+
+### v1.69.0 documentation sync (Tier A generate pipeline)
+
+- **Generate:** `scripts/generate-locale-overrides.mjs` — en-GB + curated overrides + rule-based MT + `tier-a-exact-overrides.mjs`.
+- **Maintainer:** `merge-tier-a-overrides-from-packs.mjs`, `build-tier-a-exact-overrides.mjs --locale=pt-BR`.
+- **Gitleaks (v1.68.1):** `.gitleaks.toml` allowlists `i18n-packs/` and `tier-a-exact-overrides.mjs`.
+
 ### v1.68.0 documentation sync (i18n release gates)
 
 - **Verify:** `npm run verify:i18n` — sync, locale/prompt/motd/HTML/audit, `--require-wiring`, `--strict` hardcoded UI, translation coverage `--strict`.
@@ -17,7 +28,7 @@
 ### v1.61.0 documentation sync (README icons)
 
 - **README:** Documentation table uses **`docs/icons/*.svg`** (referenced via `<img>` for GitHub rendering).
-- **i18n:** See v1.54–v1.68 segments in [CHANGELOG.md](CHANGELOG.md); canonical packs under **`i18n-packs/`**; **`npm run verify:i18n`**.
+- **i18n:** See v1.54–v1.69 segments in [CHANGELOG.md](CHANGELOG.md); canonical packs under **`i18n-packs/`**; **`npm run verify:i18n`**.
 
 ### v1.60.0 documentation sync (full UI localization)
 
