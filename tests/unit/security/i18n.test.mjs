@@ -73,6 +73,25 @@ test('formatDate uses locale (de-DE)', () => {
   assert.ok(typeof out === 'string' && out.length > 0);
 });
 
+test('formatDate accepts granular weekday/month/day without mixing dateStyle', () => {
+  const d = new Date('2026-06-13T12:00:00Z');
+  const out = formatDate(d, 'en-GB', {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+  assert.ok(typeof out === 'string' && out.length > 0);
+  assert.doesNotThrow(() => {
+    formatDate(d, 'en-GB', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  });
+});
+
 test('formatRelativeDay returns Today for today', () => {
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
