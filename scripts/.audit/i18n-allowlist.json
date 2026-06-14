@@ -1,0 +1,53 @@
+{
+  "exact": [
+    "Rianell",
+    "BPM",
+    "Supabase",
+    "GDPR",
+    "GPU",
+    "GPU:",
+    "Debug:",
+    "X",
+    "OR",
+    "Tabs",
+    "Modals",
+    "Developer",
+    "Other",
+    "Charts",
+    "AI range",
+    "Log form sections",
+    "Function trace",
+    "7d",
+    "30d",
+    "90d",
+    "All",
+    "Custom",
+    "Email",
+    "JSON",
+    "PDF",
+    "iOS",
+    "Android",
+    "PWA",
+    "OK",
+    "URL:",
+    "UA:"
+  ],
+  "patterns": [
+    "^Rianell launch error",
+    "^\\$\\{",
+    "God mode",
+    "console\\.log",
+    "demo mode",
+    "dev\\)",
+    "YYYY-MM-DD",
+    "Flare \\$\\{",
+    "^Log now$",
+    "^Open app$"
+  ],
+  "files": {
+    "apps/pwa-webapp/index.html": {
+      "exact": ["Copy", "Copied!", "Debug:"],
+      "patterns": ["^Debug: .* error"]
+    }
+  }
+}
