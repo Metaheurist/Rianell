@@ -126,6 +126,61 @@ Define variables in **`security/.env`** (copy from [`security/.env.example`](../
 - **Web benchmarks:** Playwright navigation timings open Settings without **`ReferenceError: global is not defined`** (`resolveSettingsPaneTitle` uses **`window.RianellI18n`**).
 - **Mobile typecheck:** **`npm run typecheck:mobile`** — see [CHANGELOG.md](CHANGELOG.md) v1.53.1.
 
+### Performance tier benchmark toolkit (v1.78–v1.81)
+
+Agent-executable suite under `benchmarks/toolkit/` — runs Playwright probes across **device performance tiers 1–5** × desktop/mobile.
+
+| Command | Purpose |
+|---------|---------|
+| `npm run benchmark:tier-matrix` | 10-cell matrix; tier 1–2 block LLM (AIEngine-only) |
+| `npm run benchmark:settings-matrix` | Tier-3 settings variants (animations, lazy, save-data) |
+| `npm run benchmark:god-mode` | God mode autotest (`-- --tier=3`) |
+| `npm run benchmark:full-suite` | Orchestrator + regression verify |
+| `npm run benchmark:verify -- --strict` | Threshold gate |
+
+**Env:** `TIER_MATRIX_FILTER=1,3,5` (CI fast subset), `TIER_MATRIX_PLATFORM=desktop`, `BENCHMARK_SKIP_BUILD=1`, `BENCHMARK_PWA_ROOT=ci-minified/site`.
+
+**PWA hooks:** `?benchmark_test=1` enables `window.__rianellTestHooks` (`injectPerformanceTier`, `setAppSettings`, `openGodMode`). God mode buttons use `data-god-mode` selectors.
+
+**Reports:** `benchmarks/tier-matrix/latest.run.json` (schema v4), `benchmarks/toolkit/AGENT-RUNBOOK.md`.
+
+**CI:** `benchmarks-toolkit` job runs the **full suite** on PR/push (`npm run full-suite -- --strict`): 10-cell tier matrix, settings matrix, user journey, God mode, Lighthouse, regression verify. Reports committed on `main`/`master` via `commit-benchmarks`.
+
+### AI engine benchmark suite (v1.82)
+
+Rule-based AI microbench (no LLM/ONNX) — four parallel CI jobs after `benchmarks-expo`.
+
+| npm (root) | Output slug | Runtime |
+|------------|-------------|---------|
+| `benchmark:ai-package` | `benchmarks/ai-engine-package/` | Node `@rianell/ai-engine` |
+| `benchmark:ai-layers` | `benchmarks/ai-engine-layers/` | Playwright tier-3 + `AIEngine.js` layers |
+| `benchmark:ai-algos` | `benchmarks/ai-engine-algos/` | Playwright tier-3 + atomic algos |
+| `benchmark:ai-rn` | `benchmarks/ai-engine-rn/` | Jest `summarizeLogsForAi` |
+| `benchmark:ai-verify -- --strict` | exit gate | `ai-thresholds.json` |
+| `benchmark:ai-all` | all four + verify | local orchestrator |
+
+**PWA hooks:** `runAiLayerBenchmark`, `runAiAlgoBenchmark`, `getAiBenchMeta` (requires `?benchmark_test=1`). Fixtures injected via Playwright `addInitScript` from `ai-fixtures.mjs`.
+
+**Env:** `AI_BENCH_FIXTURE_FILTER=logs_30`, `AI_BENCH_MEDIAN=3`, `AI_BENCH_FORCE_CPU=1`, `BENCHMARK_BLOCK_LLM=1` (CI default for Playwright jobs).
+
+**CI:** Uses `ci-minified/site`; artifacts merged on `main`/`master`. See `benchmarks/toolkit/AGENT-RUNBOOK.md`.
+
+**v1.84 fixes:** Relative `BENCHMARK_PWA_ROOT` (repo-root join); Playwright `load` + `ensureAIEngineLoaded` pre-warm; RN runner uses `node_modules/jest/bin/jest.js` on Windows.
+
+### UI locale refresh (v1.87)
+
+Changing language in **Settings → Privacy & region → Language** runs `RianellI18n.refreshLocaleUI()`:
+
+1. `data-i18n` / `data-i18n-placeholder` / aria attributes on static HTML
+2. Bottom nav labels (`applyNavI18n`)
+3. `refreshAllTabsForLocaleChange()` — Home, Log wizard, View logs, Charts, AI (cached), Settings carousel
+
+No full page reload required.
+
+### On-device model clear/redownload (v1.85)
+
+**Settings → Performance → Clear and redownload model** stops any in-flight download, clears IndexedDB + Cache API + assembled chunk cache, and starts a fresh download. See `summary-llm.js` (`clearAiModelCache`, `cancelAiModelDownload`, `resetAiModelDownloadState`).
+
 ### v1.53.0 LLM model scripts (Supabase Storage)
 
 | Script | npm alias | Purpose |
