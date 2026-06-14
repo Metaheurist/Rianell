@@ -8,11 +8,19 @@ import path from 'node:path';
 import { canonicalLocalePacksDir } from '../packages/shared/src/i18n/packPaths.mjs';
 import { GLOSSARY_TERMS, protectGlossary, restoreGlossary } from './lib/i18n-glossary.mjs';
 import { shouldKeepEnglish } from './lib/rule-based-mt.mjs';
+import { EXACT_OVERRIDES as EXISTING_OVERRIDES } from './lib/tier-a-exact-overrides.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
 const outPath = path.join(root, 'scripts/lib/tier-a-exact-overrides.mjs');
 const TIER_A = ['pt-BR', 'fr-FR', 'de-DE', 'es-ES', 'it-IT', 'nl-NL', 'pl-PL', 'pt-PT'];
+const localeArg = process.argv.find((a) => a.startsWith('--locale='));
+const onlyLocale = localeArg ? localeArg.split('=')[1] : null;
+const locales = onlyLocale ? TIER_A.filter((l) => l === onlyLocale) : TIER_A;
+if (onlyLocale && !locales.length) {
+  console.error(`build-tier-a-exact-overrides: unknown locale ${onlyLocale}`);
+  process.exit(1);
+}
 const GOOGLE_TL = {
   'pt-BR': 'pt',
   'pt-PT': 'pt',
@@ -82,10 +90,11 @@ function serializeOverrides(obj) {
   return lines.join('\n');
 }
 
-const EXACT_OVERRIDES = Object.fromEntries(TIER_A.map((l) => [l, {}]));
+const EXACT_OVERRIDES = Object.fromEntries(
+  TIER_A.map((l) => [l, { ...(EXISTING_OVERRIDES[l] || {}) }]),
+);
 
-for (const locale of TIER_A) {
-  const pack = JSON.parse(fs.readFileSync(path.join(dir, `${locale}.json`), 'utf8'));
+for (const locale of locales) {  const pack = JSON.parse(fs.readFileSync(path.join(dir, `${locale}.json`), 'utf8'));
   const strings = pack.strings || {};
   const keys = Object.keys(en).filter((k) => !k.startsWith('policy.'));
   let count = 0;
