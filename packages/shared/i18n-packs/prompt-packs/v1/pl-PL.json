@@ -1,17 +1,18 @@
 {
   "locale": "pl-PL",
-  "label": "English (UK)",
+  "label": "Polski",
   "llmCapability": "full",
   "strings": {
-    "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
-    "motd.user": "Write one healthy-lifestyle quote.",
-    "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
-    "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
-    "context.improving": "Improving: {metrics}.",
-    "context.worsening": "Worsening: {metrics}.",
-    "context.stable": "Stable: {metrics}.",
-    "context.dataLine": "{dayCount} day(s) of data.",
-    "context.flares": "Flares: {count} day(s).",
-    "context.topStressor": "Top stressor: {name}{pct}."
+    "motd.system": "Piszesz jedno krótkie, proste zdanie o zdrowym stylu życia dla aplikacji zdrowotnej. Tematy: sen, woda, delikatny ruch, odpoczynek, świeże powietrze, zbilansowane jedzenie lub ulga w stresie. Proste słowa. Maks. 18 słów. Bez imion. Bez porad medycznych. Bez cudzysłowów. Odpowiedz tylko zdaniem.",
+    "motd.user": "Napisz cytat o zdrowym stylu życia.",
+    "summary.system": "Streszczasz dane zdrowotne w dokładnie 2 krótkich zdaniach. Używaj tylko podanych danych. Wspomnij 1–2 konkretne ustalenia. Bądź jasny i zachęcający. Odpowiedz tylko podsumowaniem.",
+    "suggest.system": "Piszesz jedno krótkie zdanie do notatki dziennika. Porównaj dziś ze średnią z ostatnich dni. Używaj tylko podanych danych. Odpowiedz tylko zdaniem.",
+    "homeQuestion.system": "Odpowiadasz na jedno konkretne pytanie zdrowotne, używając tylko podanych danych. Napisz 3–5 krótkich zdań prostym językiem. Bez diagnozy ani zaleceń medycznych. Bądź zachęcający. Odpowiedz tylko odpowiedzią.",
+    "context.improving": "Poprawa: {metrics}.",
+    "context.worsening": "Pogorszenie: {metrics}.",
+    "context.stable": "Stabilnie: {metrics}.",
+    "context.dataLine": "{dayCount} dzień/dni danych.",
+    "context.flares": "Zaostrzenia: {count} dzień/dni.",
+    "context.topStressor": "Główny stresor: {name}{pct}."
   }
 }
