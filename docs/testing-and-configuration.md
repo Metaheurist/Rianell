@@ -14,7 +14,7 @@ npm run verify:i18n
 npm run test:mobile
 ```
 
-Individual steps (same as CI):
+`verify:i18n` runs `generate-locale-overrides.mjs` first (Tier A rule-based + exact overrides), then sync and strict coverage.
 
 ```bash
 node scripts/sync-i18n-assets.mjs
