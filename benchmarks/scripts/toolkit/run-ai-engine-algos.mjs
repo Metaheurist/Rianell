@@ -9,6 +9,9 @@ import { writeAiEngineMd } from '../../reporters/write-ai-engine-md.mjs';
 import {
   FLAGS,
   createAiBenchmarkPage,
+  disposeAiBenchmarkSession,
+  registerAiBenchmarkShutdown,
+  trackAiBenchmarkSession,
   loadAiCatalog,
   loadAiThresholds,
   checkProbeThreshold,
@@ -16,6 +19,7 @@ import {
 } from '../lib/ai-engine-probes.mjs';
 
 async function main() {
+  registerAiBenchmarkShutdown();
   const repoRoot = getRepoRoot();
   const pwaRoot = getPwaRoot();
   const catalog = loadAiCatalog();
@@ -24,13 +28,19 @@ async function main() {
   const server = await startStaticServer(pwaRoot);
   const baseUrl = `http://127.0.0.1:${server.port}`;
   const browser = await chromium.launch({ headless: true, args: FLAGS });
+  trackAiBenchmarkSession({ browser, server });
 
   /** @type {object[]} */
   const probes = [];
   let benchMeta = {};
+  /** @type {import('playwright').BrowserContext | undefined} */
+  let context;
 
   try {
-    const { context, page, harness, blockLlm } = await createAiBenchmarkPage(browser, baseUrl);
+    const session = await createAiBenchmarkPage(browser, baseUrl);
+    context = session.context;
+    trackAiBenchmarkSession({ context, browser, server });
+    const { page, harness, blockLlm } = session;
 
     for (const fixtureId of fixtures) {
       for (const algo of catalog.algos) {
@@ -84,11 +94,9 @@ async function main() {
         count: consoleSnap.error,
       });
     }
-
-    await context.close();
   } finally {
-    await browser.close();
-    await server.close();
+    await disposeAiBenchmarkSession({ context, browser, server });
+    trackAiBenchmarkSession(null);
   }
 
   const slowest = probes.reduce(

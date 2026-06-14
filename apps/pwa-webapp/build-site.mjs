@@ -147,7 +147,10 @@ if (siteDir) {
   await esbuild.build({
     entryPoints: [appJs],
     outfile: appMin,
-    minify: true,
+    minifyWhitespace: true,
+    minifySyntax: true,
+    // Identifier mangling can freeze the main thread in headless Chromium (Playwright ai-layers).
+    minifyIdentifiers: false,
     legalComments: 'none',
     logLevel: 'info',
   });
@@ -180,7 +183,9 @@ if (siteDir) {
   await esbuild.build({
     entryPoints: [appJs],
     outfile: appMin,
-    minify: true,
+    minifyWhitespace: true,
+    minifySyntax: true,
+    minifyIdentifiers: false,
     legalComments: 'none',
     logLevel: 'info',
   });

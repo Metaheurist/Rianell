@@ -158,6 +158,25 @@ function shouldEnableRianellServiceWorker() {
         }
         return { algoId: algoId, fixtureId: fixtureId, ms: Math.round(performance.now() - t0) };
       };
+    window.__rianellBenchmarkLite = true;
+    window.__rianellSkipAppBoot = true;
+    function finishBenchmarkLiteShell() {
+      var overlay = document.getElementById('loadingOverlay');
+      if (overlay) overlay.classList.add('hidden');
+      if (document.body) {
+        document.body.classList.remove('loading');
+        document.body.classList.add('loaded');
+        try { document.body.setAttribute('data-benchmark', 'main-ready'); } catch (e2) {}
+      }
+      if (window.PerformanceUtils && typeof window.PerformanceUtils.applyBenchmarkToPlatform === 'function') {
+        window.PerformanceUtils.applyBenchmarkToPlatform();
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', finishBenchmarkLiteShell, { once: true });
+    } else {
+      finishBenchmarkLiteShell();
+    }
   } catch (e) {}
 })();
 
@@ -4638,7 +4657,7 @@ function updateNotesCounter() {
   }
 }
 
-notesField.addEventListener('input', updateNotesCounter);
+if (notesField) notesField.addEventListener('input', updateNotesCounter);
 
 // Suggest note: LLM when available (same pipeline as Summary note), else rule-based (AIEngine.suggestLogNote)
 (function() {
@@ -15903,20 +15922,29 @@ async function clearAndRedownloadAiModel() {
     if (typeof window.cancelAiModelDownload === 'function') {
       window.cancelAiModelDownload();
     }
+    if (typeof window.hideAiModelDownloadProgressUI === 'function') {
+      window.hideAiModelDownloadProgressUI();
+    }
     if (typeof window.clearAiModelCache === 'function') {
-      await window.clearAiModelCache({ resetConsent: false });
+      await window.clearAiModelCache({ resetConsent: true });
     } else if (typeof window.clearSummaryLLMCache === 'function') {
       window.clearSummaryLLMCache();
+      appSettings.aiModelDownloadConsent = 'deferred';
+      saveSettings();
     }
     if (typeof window.resetAiModelDownloadState === 'function') {
       window.resetAiModelDownloadState();
     }
-    appSettings.aiModelDownloadConsent = 'granted';
-    saveSettings();
+    refreshLlmModelSettingsHints();
+    if (typeof window.setAiModelDownloadUiMode === 'function') {
+      window.setAiModelDownloadUiMode();
+    } else if (typeof window.applyAiModelDownloadConsentUiMode === 'function') {
+      window.applyAiModelDownloadConsentUiMode();
+    }
     if (typeof window.preloadSummaryLLM !== 'function') {
       throw new Error('AI model loader unavailable');
     }
-    await window.preloadSummaryLLM({ skipConsent: true });
+    await window.preloadSummaryLLM();
     if (typeof showToast === 'function') {
       showToast('AI model cleared and redownloaded.', { type: 'success' });
     }
@@ -20237,6 +20265,7 @@ window.addEventListener('unhandledrejection', (event) => {
 })();
 
 window.addEventListener('load', () => {
+  if (window.__rianellSkipAppBoot) return;
   // Show loading overlay immediately (body.loading keeps overlay visible via CSS)
   const loadingOverlay = document.getElementById('loadingOverlay');
   const loadingTextEl = loadingOverlay ? loadingOverlay.querySelector('.loading-text') : null;

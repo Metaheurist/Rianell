@@ -13,7 +13,57 @@ import {
   VIEWPORTS,
 } from './toolkit-env.mjs';
 
-const FLAGS = ['--no-sandbox', '--disable-dev-shm-usage'];
+const FLAGS = [
+  '--no-sandbox',
+  '--disable-dev-shm-usage',
+  '--disable-gpu',
+  '--disable-extensions',
+  '--disable-background-networking',
+  '--disable-default-apps',
+  '--disable-sync',
+  '--mute-audio',
+];
+
+/** Always close Playwright + static server handles (avoids orphaned chrome-headless-shell). */
+export async function disposeAiBenchmarkSession({ context, browser, server } = {}) {
+  if (context) {
+    try {
+      await context.close();
+    } catch (_) { /* ignore */ }
+  }
+  if (browser) {
+    try {
+      await browser.close();
+    } catch (_) { /* ignore */ }
+  }
+  if (server) {
+    try {
+      await server.close();
+    } catch (_) { /* ignore */ }
+  }
+}
+
+/** @type {{ context?: import('playwright').BrowserContext, browser?: import('playwright').Browser, server?: { close(): Promise<void> } } | null} */
+let activeBenchmarkSession = null;
+
+/** Track handles so SIGINT/SIGTERM can close Chromium when a run is interrupted. */
+export function trackAiBenchmarkSession(session) {
+  activeBenchmarkSession = session;
+}
+
+export function registerAiBenchmarkShutdown() {
+  if (registerAiBenchmarkShutdown.registered) return;
+  registerAiBenchmarkShutdown.registered = true;
+  const shutdown = async (code) => {
+    if (!activeBenchmarkSession) return;
+    await disposeAiBenchmarkSession(activeBenchmarkSession);
+    activeBenchmarkSession = null;
+    process.exit(code);
+  };
+  process.once('SIGINT', () => { void shutdown(130); });
+  process.once('SIGTERM', () => { void shutdown(143); });
+}
+registerAiBenchmarkShutdown.registered = false;
 
 export function loadAiCatalog() {
   const p = path.join(getRepoRoot(), 'benchmarks', 'toolkit', 'ai-engine-catalog.json');
@@ -35,6 +85,21 @@ function parseFixtureFilter(defaultIds) {
   const raw = process.env.AI_BENCH_FIXTURE_FILTER || '';
   if (!raw.trim()) return defaultIds;
   return raw.split(',').map((s) => s.trim()).filter(Boolean);
+}
+
+/** Node-side poll — waitForFunction can stall when the minified app blocks the main thread. */
+async function pollPageUntil(page, predicate, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  let lastErr;
+  while (Date.now() < deadline) {
+    try {
+      if (await page.evaluate(predicate)) return;
+    } catch (e) {
+      lastErr = e;
+    }
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  throw lastErr || new Error(`pollPageUntil timeout after ${timeoutMs}ms`);
 }
 
 /**
@@ -220,34 +285,36 @@ export async function installAiBenchmarkInit(context) {
  */
 export async function createAiBenchmarkPage(browser, baseUrl) {
   const context = await browser.newContext({ viewport: VIEWPORTS.desktop });
-  await installTierInitScript(context, { tier: 3, platformType: 'desktop', demoMode: true });
-  await installAiBenchmarkInit(context);
-  const page = await context.newPage();
-  page.setDefaultTimeout(180000);
-  const blockLlm = process.env.BENCHMARK_BLOCK_LLM !== '0';
-  if (blockLlm) await installLlmRouteBlock(page, { enabled: true });
-  const harness = createObservabilityHarness(page, {
-    tier: 3,
-    runId: 'ai-engine',
-    llm_smoke_allowed: false,
-  });
-  // domcontentloaded: avoid hanging on deferred Google Fonts / Font Awesome (load can exceed 180s in CI).
-  await page.goto(entryUrl(baseUrl), { waitUntil: 'domcontentloaded', timeout: 120000 });
-  await page.waitForFunction(
-    () => typeof window.PerformanceUtils !== 'undefined' && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function',
-    { timeout: 120000 },
-  );
-  await page.evaluate(async () => {
-    if (window.PerformanceUtils && window.PerformanceUtils.ensureAIEngineLoaded) {
-      await window.PerformanceUtils.ensureAIEngineLoaded();
-    }
-  });
-  await acceptCookiesIfVisible(page);
-  await page.waitForFunction(
-    () => window.__rianellTestHooks && typeof window.__rianellTestHooks.runAiLayerBenchmark === 'function',
-    { timeout: 5000 },
-  );
-  return { context, page, harness, blockLlm };
+  try {
+    await installTierInitScript(context, { tier: 3, platformType: 'desktop', demoMode: false });
+    await installAiBenchmarkInit(context);
+    const page = await context.newPage();
+    page.setDefaultTimeout(60000);
+    const blockLlm = process.env.BENCHMARK_BLOCK_LLM !== '0';
+    if (blockLlm) await installLlmRouteBlock(page, { enabled: true });
+    const harness = createObservabilityHarness(page, {
+      tier: 3,
+      runId: 'ai-engine',
+      llm_smoke_allowed: false,
+    });
+    // domcontentloaded: avoid hanging on deferred Google Fonts / Font Awesome (load can exceed 180s in CI).
+    await page.goto(entryUrl(baseUrl), { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await pollPageUntil(
+      page,
+      () => typeof window.PerformanceUtils !== 'undefined' && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function',
+      45000,
+    );
+    await acceptCookiesIfVisible(page);
+    await pollPageUntil(
+      page,
+      () => window.__rianellTestHooks && typeof window.__rianellTestHooks.runAiLayerBenchmark === 'function',
+      15000,
+    );
+    return { context, page, harness, blockLlm };
+  } catch (err) {
+    await context.close().catch(() => {});
+    throw err;
+  }
 }
 
 export function checkProbeThreshold(thresholds, slug, probeId, fixtureId, ms) {

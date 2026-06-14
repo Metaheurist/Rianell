@@ -178,6 +178,16 @@
 
   var selfHostedProbeCache = {};
 
+  async function waitForSupabaseConfigReady() {
+    if (typeof window === 'undefined') return;
+    var p = window.__rianellSupabaseConfigPromise;
+    if (p && typeof p.then === 'function') {
+      try {
+        await p;
+      } catch (e) {}
+    }
+  }
+
   /** GitHub Pages project sites live at /RepoName/ — include that in model URLs. */
   function getAppOriginBase() {
     if (typeof window === 'undefined' || !window.location) return '/';
@@ -295,6 +305,8 @@
   }
 
   async function resolveModelsRemote(mod, modelId) {
+    await waitForSupabaseConfigReady();
+    selfHostedProbeCache = {};
     var pathTemplate = 'models/{model}/resolve/{revision}/';
     var sb = getSupabaseModelsConfig();
     if (!sb && typeof window !== 'undefined' && window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url) {
