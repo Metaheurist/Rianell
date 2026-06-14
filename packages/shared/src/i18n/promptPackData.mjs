@@ -61,6 +61,7 @@ export const PROMPT_PACKS_V1 = {
       "motd.user": "Write one healthy-lifestyle quote.",
       "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
       "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+      "homeQuestion.system": "You answer one specific health-tracking question using only the data provided. Write 3–5 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text.",
       "context.improving": "Improving: {metrics}.",
       "context.worsening": "Worsening: {metrics}.",
       "context.stable": "Stable: {metrics}.",
