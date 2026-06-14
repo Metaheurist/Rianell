@@ -2,7 +2,30 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.69.1** - Reproducible Tier A locale generation and CI translation coverage fix.
+**Latest: v1.70.3** - PWA stability fixes: settings freeze, log expand, LLM model host, share button UI.
+
+### v1.70.3 - 2026-06-14 - Log share button UI
+
+- **PWA:** Log entry share control is a **32×32px circular** green gradient button (matches delete/edit action bar).
+- **Icons:** Added `icon-share` to the SVG sprite; log share uses `svgIcon()` instead of Font Awesome.
+- **CSS:** `align-items: center` on expanded log action bar — fixes flex stretch that made share appear oval.
+
+### v1.70.2 - 2026-06-14 - Summary LLM model host probing
+
+- **PWA `summary-llm.js`:** Probe Supabase/origin with **GET** `manifest.json` (not HEAD) before falling back to Hugging Face.
+- **Chunk loader:** Run `ensureChunkedModelArtifacts` only for `supabase` / `app-origin` hosts — avoids CORS failures on `huggingface.co/models/manifest.json`.
+- **Deploy:** Console warns when `SUPABASE_CONFIG` still has placeholder `YOUR_PROJECT` URL.
+
+### v1.70.1 - 2026-06-14 - Log entry detail expand
+
+- **PWA:** Restored per-day **vitals, symptoms, food, and exercise** when expanding a log card.
+- **Cause:** Inline `display: none` on `.log-entry-content` overrode `.entry.expanded` CSS; removed forced inline hide in `buildLogEntryElement`.
+
+### v1.70.0 - 2026-06-14 - Settings freeze fix
+
+- **PWA:** Opening **Settings** no longer hangs the browser (“Page Unresponsive”).
+- **Cause:** `onLocaleChange` called `applyDocumentI18n()` which re-fired `notifyLocaleChange` in an infinite loop.
+- **Fix:** Removed redundant `applyDocumentI18n` from locale-change listener; added re-entrancy guard in `i18n-pwa.js`.
 
 ### v1.69.1 - 2026-06-14 - CI translation coverage order
 
