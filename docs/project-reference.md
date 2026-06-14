@@ -20,7 +20,7 @@
 
 ### v1.69.1 documentation sync (CI generate order)
 
-- **`verify:i18n`:** Runs `generate-locale-overrides.mjs` before sync and `verify-translation-coverage.mjs --strict`.
+- **CI:** `.github/workflows/ci.yml` unit-tests job runs `npm run verify:i18n` (includes `--max-pct=13` coverage gate).
 - **CI:** `.github/workflows/ci.yml` unit-tests job aligned.
 
 ### v1.69.0 documentation sync (Tier A generate pipeline)
