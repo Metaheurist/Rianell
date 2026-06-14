@@ -29,6 +29,7 @@ const catalogModules: CatalogMap = {
   'pt-PT': require('../../i18n-packs/locale-packs/v1/pt-PT.json'),
   ar: require('../../i18n-packs/locale-packs/v1/ar.json'),
   he: require('../../i18n-packs/locale-packs/v1/he.json'),
+  ga: require('../../i18n-packs/locale-packs/v1/ga.json'),
 };
 
 type I18nContextValue = {
