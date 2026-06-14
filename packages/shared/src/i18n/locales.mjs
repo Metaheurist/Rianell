@@ -13,6 +13,7 @@ export const SHIPPED_LOCALES = [
   'pt-PT',
   'ar',
   'he',
+  'ga',
 ];
 
 export const DEFAULT_LOCALE = 'en-GB';
@@ -21,7 +22,7 @@ export const DEFAULT_PRIVACY_REGION = 'eea_uk';
 export function isValidLocaleId(id) {
   if (typeof id !== 'string') return false;
   if (SHIPPED_LOCALES.includes(id)) return true;
-  return id === 'ar' || id === 'he' || id.startsWith('ar-') || id.startsWith('he-');
+  return id === 'ar' || id === 'he' || id === 'ga' || id.startsWith('ar-') || id.startsWith('he-') || id.startsWith('ga-');
 }
 
 /** Fallback chain: exact → language-only → en-GB */
@@ -49,6 +50,7 @@ export function localeLabel(localeId) {
     'pt-PT': 'Português (Portugal)',
     ar: 'العربية',
     he: 'עברית',
+    ga: 'Gaeilge',
   };
   return labels[localeId] || localeId;
 }
