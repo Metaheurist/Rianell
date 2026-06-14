@@ -216,18 +216,33 @@
 
   async function probeModelsHost(baseUrl, modelId) {
     if (!baseUrl) return false;
-    var url = String(baseUrl).replace(/\/?$/, '/') + 'models/' + modelId + '/resolve/main/config.json';
-    try {
-      var res = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
-      return !!(res && res.ok);
-    } catch (e) {
-      return false;
+    var base = String(baseUrl).replace(/\/?$/, '/');
+    // GET (not HEAD): Supabase public storage and some browsers block HEAD under CORS.
+    var candidates = [
+      base + 'models/manifest.json',
+      base + 'models/' + modelId + '/resolve/main/config.json'
+    ];
+    for (var i = 0; i < candidates.length; i++) {
+      try {
+        var res = await fetch(candidates[i], { method: 'GET', cache: 'no-cache' });
+        if (res && res.ok) return true;
+      } catch (e) {}
     }
+    return false;
   }
 
   async function resolveModelsRemote(mod, modelId) {
     var pathTemplate = 'models/{model}/resolve/{revision}/';
     var sb = getSupabaseModelsConfig();
+    if (!sb && typeof window !== 'undefined' && window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url) {
+      var rawUrl = String(window.SUPABASE_CONFIG.url);
+      if (rawUrl.indexOf('YOUR_PROJECT') !== -1 && typeof console !== 'undefined' && console.warn) {
+        console.warn(
+          'Summary LLM: SUPABASE_CONFIG still has placeholder URL — skipping Supabase model host. ' +
+            'Inject real SUPABASE_URL on deploy (see supabase-config.js).'
+        );
+      }
+    }
     if (sb) {
       var sbBase = buildSupabaseModelsPublicBase(sb.supabaseUrl, sb.modelsStorageBucket);
       if (sbBase && await probeModelsHost(sbBase, modelId)) {
@@ -241,6 +256,12 @@
       return 'app-origin';
     }
     applyTransformersRemote(mod, 'https://huggingface.co/', '{model}/resolve/{revision}/');
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn(
+        'Summary LLM: using Hugging Face fallback for model files (Supabase/origin probe failed). ' +
+          'Chunked Supabase weights are not loaded from huggingface.co/manifest.json.'
+      );
+    }
     return 'huggingface';
   }
 
@@ -392,9 +413,14 @@
     reportDownloadProgress({ status: 'initiate', progress: 0, file: modelId });
 
     var mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.2');
-    await resolveModelsRemote(mod, modelId);
+    var modelsSource = await resolveModelsRemote(mod, modelId);
     var remoteHost = mod.env && mod.env.remoteHost;
-    if (remoteHost && typeof window !== 'undefined') {
+    // Chunk manifest + .partNNN assembly only exists on Supabase / same-origin — not on HF (CORS + no manifest).
+    if (
+      remoteHost &&
+      typeof window !== 'undefined' &&
+      (modelsSource === 'supabase' || modelsSource === 'app-origin')
+    ) {
       await ensureChunkedModelArtifacts(remoteHost, modelId, mod);
     }
     var device = getPreferredDevice();
