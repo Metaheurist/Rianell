@@ -54,6 +54,18 @@ export function buildSuggestPrompt(locale, context, options = {}) {
   return { system, user: `Data: ${context}` };
 }
 
+export function buildHomeQuestionPrompt(locale, context, options = {}) {
+  const pack = loadPromptPack(locale, options.packs);
+  const system = promptString(
+    pack,
+    'homeQuestion.system',
+    'You answer one specific health-tracking question using only the data provided. '
+      + 'Write 3–5 short sentences in plain language. No diagnosis or medical orders. '
+      + 'Be encouraging. Reply with only the answer text.',
+  );
+  return { system, user: context };
+}
+
 /** B2: client sends explicit locale; invalid values fall back to en-GB. */
 export function buildLlmRequestPayload({ feature, model, modelSize, context, locale }) {
   return {
