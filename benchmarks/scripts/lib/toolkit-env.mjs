@@ -9,9 +9,12 @@ export function getRepoRoot() {
 }
 
 export function getPwaRoot() {
-  const env = process.env.BENCHMARK_PWA_ROOT;
-  if (env) return path.resolve(env);
   const repo = getRepoRoot();
+  const env = process.env.BENCHMARK_PWA_ROOT;
+  if (env) {
+    const p = path.isAbsolute(env) ? env : path.join(repo, env);
+    return path.resolve(p);
+  }
   const min = path.join(repo, 'apps', 'pwa-webapp', '.android-dist');
   if (fs.existsSync(path.join(min, 'index.html'))) return min;
   return path.join(repo, 'apps', 'pwa-webapp');

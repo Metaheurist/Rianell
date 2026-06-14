@@ -231,7 +231,16 @@ export async function createAiBenchmarkPage(browser, baseUrl) {
     runId: 'ai-engine',
     llm_smoke_allowed: false,
   });
-  await page.goto(entryUrl(baseUrl), { waitUntil: 'domcontentloaded', timeout: 180000 });
+  await page.goto(entryUrl(baseUrl), { waitUntil: 'load', timeout: 180000 });
+  await page.waitForFunction(
+    () => typeof window.PerformanceUtils !== 'undefined' && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function',
+    { timeout: 120000 },
+  );
+  await page.evaluate(async () => {
+    if (window.PerformanceUtils && window.PerformanceUtils.ensureAIEngineLoaded) {
+      await window.PerformanceUtils.ensureAIEngineLoaded();
+    }
+  });
   await acceptCookiesIfVisible(page);
   await page.waitForFunction(
     () => window.__rianellTestHooks && typeof window.__rianellTestHooks.runAiLayerBenchmark === 'function',

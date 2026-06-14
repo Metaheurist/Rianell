@@ -29,10 +29,10 @@ function main() {
   const tmpPath = path.join(repoRoot, 'benchmarks', 'ai-engine-rn', '.probes.tmp.json');
   fs.mkdirSync(path.dirname(tmpPath), { recursive: true });
 
-  const jestBin = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+  const jestJs = path.join(repoRoot, 'node_modules', 'jest', 'bin', 'jest.js');
   const r = spawnSync(
-    jestBin,
-    ['jest', 'src/ai/ai-engine-benchmark.test.ts', '-t', 'records probe timings', '--runInBand'],
+    process.execPath,
+    [jestJs, 'src/ai/ai-engine-benchmark.test.ts', '-t', 'records probe timings', '--runInBand'],
     {
       cwd: rnRoot,
       env: { ...process.env, AI_BENCH_WRITE: tmpPath },
@@ -41,7 +41,7 @@ function main() {
   );
 
   if (r.status !== 0) {
-    console.error(r.stdout || r.stderr);
+    console.error(r.stdout || r.stderr || r.error?.message || 'jest failed');
     process.exit(r.status || 1);
   }
 
