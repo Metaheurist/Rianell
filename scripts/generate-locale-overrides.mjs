@@ -3,10 +3,35 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { canonicalLocalePacksDir } from '../packages/shared/src/i18n/packPaths.mjs';
+import { EXACT_OVERRIDES } from './lib/tier-a-exact-overrides.mjs';
+import { applyRuleBasedMt, shouldKeepEnglish } from './lib/rule-based-mt.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
 const canonical = JSON.parse(fs.readFileSync(path.join(dir, 'en-GB.json'), 'utf8'));
+const TIER_A = ['pt-BR', 'fr-FR', 'de-DE', 'es-ES', 'it-IT', 'nl-NL', 'pl-PL', 'pt-PT'];
+
+function applyTierATranslations(strings, locale) {
+  const out = { ...strings };
+  for (const [key, enVal] of Object.entries(canonical.strings || {})) {
+    if (key.startsWith('policy.')) continue;
+    if (typeof enVal !== 'string') continue;
+    if (shouldKeepEnglish(enVal)) continue;
+    if ((out[key] || '').trim() !== enVal.trim()) continue;
+    const rule = applyRuleBasedMt(enVal, locale);
+    if (rule.trim() !== enVal.trim()) out[key] = rule;
+  }
+  const overrides = EXACT_OVERRIDES[locale] || {};
+  for (const [key, enVal] of Object.entries(canonical.strings || {})) {
+    if (key.startsWith('policy.')) continue;
+    if (typeof enVal !== 'string') continue;
+    if (shouldKeepEnglish(enVal)) continue;
+    const exact = overrides[key] ?? overrides[enVal];
+    if (!exact || exact.trim() === enVal.trim()) continue;
+    out[key] = exact;
+  }
+  return out;
+}
 
 const OVERRIDES = {
   'en-US': {
@@ -132,8 +157,16 @@ const OVERRIDES = {
 };
 
 for (const [locale, meta] of Object.entries(OVERRIDES)) {
-  const strings = { ...canonical.strings, ...(meta.strings || {}) };
-  const out = { locale, label: meta.label, strings };
+  let strings = { ...canonical.strings, ...(meta.strings || {}) };
+  if (TIER_A.includes(locale)) {
+    strings = applyTierATranslations(strings, locale);
+  }
+  const out = {
+    locale,
+    label: meta.label,
+    strings,
+    ...(TIER_A.includes(locale) ? { machineTranslatedUi: true } : {}),
+  };
   fs.writeFileSync(path.join(dir, `${locale}.json`), `${JSON.stringify(out, null, 2)}\n`, 'utf8');
   console.log('wrote', locale);
 }
