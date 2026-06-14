@@ -2,7 +2,31 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.83.0** - README documentation table icons (32px tinted tiles); remove next-phase plan from README; PWA AI at-a-glance footnote removed.
+**Latest: v1.87.0** - Full UI refresh on language change; always-visible clear/redownload model; pl-PL mixed-language fixes; AI benchmark runner fixes (Windows + relative PWA root).
+
+### v1.87.0 - 2026-06-14 - Locale refresh across all tabs
+- **PWA:** `refreshAllTabsForLocaleChange()` re-renders Home, Log wizard, View logs, Charts, AI, and Settings when language changes (no tab switch or reload).
+- **`i18n-pwa.js`:** `refreshLocaleUI()` calls tab refresh after `data-i18n` + nav hydration.
+- **Home:** `formatUiDate()` for the today header (locale-aware weekday/month).
+- **`privacy-region.js`:** Removed duplicate `applyNavI18n` (handled in `refreshLocaleUI`).
+
+### v1.86.0 - 2026-06-14 - pl-PL mixed-language close-out
+- **`pl-pl-exact-overrides.mjs`:** ~100 full-sentence Polish overrides for Frankenstein MT strings.
+- **`lc20-mixed-fixes.mjs`:** Merges pl-PL overrides on locale regen.
+- **Packs:** `home.status.*`, logs/wizard/tutorial strings; `common.clear.and.redownload.model` in all shipped locales.
+- **Verify:** pl-PL mixed-language hits 106 → 18 (remainder are Polish homographs / false positives).
+
+### v1.85.0 - 2026-06-14 - On-device model clear and redownload
+- **PWA Settings → Performance:** Single always-visible **Clear and redownload model** (replaces conditional download/remove buttons).
+- **`summary-llm.js`:** Stops in-flight download, clears IndexedDB + Cache API + chunk assembler cache; load-generation guard; HF fallback on chunk 404.
+- **`model-chunk-loader.js`:** `clearAssembledModelCache()` for `rianell-llm-assembled-v1`.
+- **`app.js`:** `clearAndRedownloadAiModel()` orchestrates cancel → clear → redownload.
+
+### v1.84.0 - 2026-06-14 - AI benchmark runner fixes
+- **`toolkit-env.mjs`:** Resolve relative `BENCHMARK_PWA_ROOT` against repo root (fixes Playwright timeout from wrong cwd).
+- **`ai-engine-probes.mjs`:** `waitUntil: load`, pre-warm `ensureAIEngineLoaded` before probes.
+- **`run-ai-engine-rn.mjs`:** Invoke root `node_modules/jest/bin/jest.js` (Windows-safe, no `npx.cmd` spawn).
+- **`package.json`:** `benchmark:ai-verify -- --strict` passthrough via npm workspace `--`.
 
 ### v1.83.0 - 2026-06-14 - README and PWA copy polish
 - **README:** Documentation icons regenerated (`docs/icons/*.svg`) — coloured tinted tiles, 32×32 display; **Next phase development plan** row and “Here’s what we plan next” section removed (changelog only for release notes).

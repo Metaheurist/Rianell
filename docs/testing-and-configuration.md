@@ -165,6 +165,22 @@ Rule-based AI microbench (no LLM/ONNX) — four parallel CI jobs after `benchmar
 
 **CI:** Uses `ci-minified/site`; artifacts merged on `main`/`master`. See `benchmarks/toolkit/AGENT-RUNBOOK.md`.
 
+**v1.84 fixes:** Relative `BENCHMARK_PWA_ROOT` (repo-root join); Playwright `load` + `ensureAIEngineLoaded` pre-warm; RN runner uses `node_modules/jest/bin/jest.js` on Windows.
+
+### UI locale refresh (v1.87)
+
+Changing language in **Settings → Privacy & region → Language** runs `RianellI18n.refreshLocaleUI()`:
+
+1. `data-i18n` / `data-i18n-placeholder` / aria attributes on static HTML
+2. Bottom nav labels (`applyNavI18n`)
+3. `refreshAllTabsForLocaleChange()` — Home, Log wizard, View logs, Charts, AI (cached), Settings carousel
+
+No full page reload required.
+
+### On-device model clear/redownload (v1.85)
+
+**Settings → Performance → Clear and redownload model** stops any in-flight download, clears IndexedDB + Cache API + assembled chunk cache, and starts a fresh download. See `summary-llm.js` (`clearAiModelCache`, `cancelAiModelDownload`, `resetAiModelDownloadState`).
+
 ### v1.53.0 LLM model scripts (Supabase Storage)
 
 | Script | npm alias | Purpose |

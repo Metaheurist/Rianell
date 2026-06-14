@@ -2,6 +2,27 @@
 
 ## 🗂️ Project Structure
 
+### v1.87.0 documentation sync (locale refresh all tabs)
+
+- **PWA:** `refreshAllTabsForLocaleChange()` in `app.js`; wired from `i18n-pwa.js` `refreshLocaleUI()`.
+- **Home:** `formatUiDate()` for locale-aware today header.
+- **See:** [testing-and-configuration.md](testing-and-configuration.md) § UI locale refresh.
+
+### v1.86.0 documentation sync (pl-PL mixed-language)
+
+- **Scripts:** `scripts/lib/pl-pl-exact-overrides.mjs`; merged in `lc20-mixed-fixes.mjs`.
+- **Verify:** `verify-mixed-language-strings.mjs --locale=pl-PL`.
+
+### v1.85.0 documentation sync (on-device model clear/redownload)
+
+- **PWA:** Settings → Performance — `clearAndRedownloadAiModel()`; `summary-llm.js` cache wipe; `model-chunk-loader.js` `clearAssembledModelCache()`.
+
+### v1.84.0 documentation sync (AI benchmark runner fixes)
+
+- **`toolkit-env.mjs`:** Relative `BENCHMARK_PWA_ROOT` resolved from repo root.
+- **`run-ai-engine-rn.mjs`:** Root `jest.js` spawn (Windows).
+- **`benchmark:ai-verify -- --strict`:** npm passthrough documented in testing-and-configuration.
+
 ### v1.83.0 documentation sync (README icons and copy)
 
 - **README:** `docs/icons/*.svg` — 32×32 tinted tiles for GitHub dark mode; removed next-phase plan section and documentation table row.
