@@ -170,8 +170,8 @@
     },
     {
       "id": "ui_rtl_ar_he",
-      "status": { "web": "partial", "android": "partial", "ios": "partial" },
-      "notes": "ar/he in SHIPPED_LOCALES; PWA dir + [dir=rtl] CSS; RN I18nManager.forceRTL; llmCapability ui-only for ar/he."
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "ar/he in SHIPPED_LOCALES; PWA dir + [dir=rtl] CSS (modals, wizard, settings carousel); RN I18nManager.forceRTL + mirrored nav/chevrons in LogWizard and Settings."
     }
   ]
 }
