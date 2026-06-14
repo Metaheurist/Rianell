@@ -26,10 +26,15 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import type { MainTabParamList, RootStackParamList } from '../navigation/RootNavigator';
-import { loadLogs } from '../storage/logs';
+import { loadLogs, type LogEntry } from '../storage/logs';
 import type { Preferences } from '../storage/preferences';
 import { loadCachedBenchmark } from '../performance/benchmark';
-import { generateMotd } from '../ai/llm';
+import { generateMotd, answerHomeQuestion } from '../ai/llm';
+import {
+  pickHomeAiSuggestions,
+  analysisSnapshotFromSummary,
+} from '@rianell/shared';
+import { summarizeLogsForAi } from '../ai/analyzeLogs';
 import Constants from 'expo-constants';
 import { getBugReportAttachmentText } from '../utils/bugReportLogs';
 import { submitBugReport } from '../utils/submitBugReport';
@@ -308,6 +313,13 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
   const [bugSubmitting, setBugSubmitting] = useState(false);
   const [motd, setMotd] = useState<string>('');
   const [latestBpm, setLatestBpm] = useState<number | null>(null);
+  const [homeLogs, setHomeLogs] = useState<LogEntry[]>([]);
+  const [homeSuggestions, setHomeSuggestions] = useState<Array<{ id: string; labelKey: string; labelParams?: Record<string, string> }>>([]);
+  const [homeAnalysisSnapshot, setHomeAnalysisSnapshot] = useState<Record<string, unknown> | null>(null);
+  const [questionModalOpen, setQuestionModalOpen] = useState(false);
+  const [activeQuestion, setActiveQuestion] = useState<{ id: string; labelKey: string; labelParams?: Record<string, string> } | null>(null);
+  const [questionAnswer, setQuestionAnswer] = useState('');
+  const [questionLoading, setQuestionLoading] = useState(false);
 
   const refreshBpm = useCallback(() => {
     loadLogs()
@@ -323,14 +335,50 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
   const refreshToday = useCallback(() => {
     const d = todayIso();
     loadLogs()
-      .then((logs) => setLoggedToday(logs.some((l) => l.date === d)))
-      .catch(() => setLoggedToday(false));
+      .then((logs) => {
+        setHomeLogs(logs);
+        setLoggedToday(logs.some((l) => l.date === d));
+      })
+      .catch(() => {
+        setHomeLogs([]);
+        setLoggedToday(false);
+      });
   }, []);
+
+  const refreshHomeSuggestions = useCallback(() => {
+    const d = todayIso();
+    loadLogs()
+      .then((logs) => {
+        setHomeLogs(logs);
+        const logged = logs.some((l) => l.date === d);
+        setLoggedToday(logged);
+        if (!prefs.aiEnabled || !logged) {
+          setHomeSuggestions([]);
+          setHomeAnalysisSnapshot(null);
+          return;
+        }
+        const summary = summarizeLogsForAi(logs, 14, { translate: t });
+        const snap = analysisSnapshotFromSummary(summary, logs);
+        setHomeAnalysisSnapshot(snap);
+        setHomeSuggestions(
+          pickHomeAiSuggestions(logs, snap, { aiEnabled: prefs.aiEnabled, loggedToday: logged })
+        );
+      })
+      .catch(() => {
+        setHomeSuggestions([]);
+        setHomeAnalysisSnapshot(null);
+      });
+  }, [prefs.aiEnabled, t]);
 
   useEffect(() => {
     refreshToday();
     refreshBpm();
-  }, [refreshToday, refreshBpm]);
+    refreshHomeSuggestions();
+  }, [refreshToday, refreshBpm, refreshHomeSuggestions]);
+
+  useEffect(() => {
+    refreshHomeSuggestions();
+  }, [locale, refreshHomeSuggestions]);
 
   useEffect(() => {
     loadLogs()
@@ -346,7 +394,39 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
     useCallback(() => {
       refreshToday();
       refreshBpm();
-    }, [refreshToday, refreshBpm])
+      refreshHomeSuggestions();
+    }, [refreshToday, refreshBpm, refreshHomeSuggestions])
+  );
+
+  const onSuggestionPress = useCallback(
+    (chip: { id: string; labelKey: string; labelParams?: Record<string, string> }) => {
+      const questionText = t(chip.labelKey, chip.labelParams);
+      setActiveQuestion(chip);
+      setQuestionAnswer(t('home.questions.loading'));
+      setQuestionLoading(true);
+      setQuestionModalOpen(true);
+      void (async () => {
+        try {
+          const benchmark = await loadCachedBenchmark().catch(() => null);
+          const snap = homeAnalysisSnapshot || analysisSnapshotFromSummary(summarizeLogsForAi(homeLogs, 14, { translate: t }), homeLogs);
+          const answer = await answerHomeQuestion(
+            chip,
+            questionText,
+            snap,
+            homeLogs,
+            prefs.performance.preferredLlmModelSize,
+            benchmark,
+            locale
+          );
+          setQuestionAnswer(answer);
+        } catch {
+          setQuestionAnswer(t('home.questions.error'));
+        } finally {
+          setQuestionLoading(false);
+        }
+      })();
+    },
+    [homeAnalysisSnapshot, homeLogs, locale, prefs.performance.preferredLlmModelSize, t]
   );
 
   const onGoalsTargets = useCallback(() => {
@@ -443,6 +523,26 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
               : t('home.status.notLoggedTodayDetail')}
         </Text>
         <HomeMotdHeartbeat motd={motd} theme={theme} latestBpm={latestBpm} t={t} />
+        {homeSuggestions.length > 0 ? (
+          <View style={styles.suggestionsRow} accessibilityRole="list">
+            {homeSuggestions.map((chip) => (
+              <Pressable
+                key={chip.id}
+                onPress={() => onSuggestionPress(chip)}
+                style={({ pressed }) => [
+                  styles.suggestionChip,
+                  { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1 },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={t(chip.labelKey, chip.labelParams)}
+              >
+                <Text style={[styles.suggestionChipText, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                  {t(chip.labelKey, chip.labelParams)}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
       </View>
 
       <View style={styles.card} accessibilityLabel={t('home.goals.title')}>
@@ -477,6 +577,47 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
           <Text style={styles.betaBadgeText}>{t('home.fab.betaBadge')}</Text>
         </View>
       </View>
+      <Modal visible={questionModalOpen} animationType="fade" transparent onRequestClose={() => setQuestionModalOpen(false)}>
+        <View style={styles.modalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setQuestionModalOpen(false)}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.close')}
+          />
+          <View style={[styles.modalCard, styles.questionModalCard, { borderColor: `${accent}44`, backgroundColor: 'rgba(14,18,17,0.98)' }]}>
+            <View style={styles.modalHeaderRow}>
+              <Text style={[styles.modalTitle, { color: accent, fontSize: theme.font(18), flex: 1 }]}>
+                {activeQuestion ? t(activeQuestion.labelKey, activeQuestion.labelParams) : t('home.questions.modalTitle')}
+              </Text>
+              <Pressable
+                onPress={() => setQuestionModalOpen(false)}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close')}
+              >
+                <Ionicons name="close" size={26} color={theme.tokens.color.text} />
+              </Pressable>
+            </View>
+            <Text style={[styles.questionAnswer, { color: theme.tokens.color.text, fontSize: theme.font(15) }]}>
+              {questionAnswer}
+            </Text>
+            <Text style={[styles.questionDisclaimer, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+              {t('ai.disclaimer.medical')}
+            </Text>
+            <View style={[styles.modalFooter, { borderTopColor: `${accent}33` }]}>
+              <Pressable
+                style={[styles.modalBtnPrimary, { backgroundColor: accent, opacity: questionLoading ? 0.65 : 1 }]}
+                onPress={() => setQuestionModalOpen(false)}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close')}
+              >
+                <Text style={styles.modalBtnTextPrimary}>{t('common.close')}</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <Modal visible={bugModalOpen} animationType="fade" transparent onRequestClose={() => setBugModalOpen(false)}>
         <View style={styles.modalBackdrop}>
           <Pressable
@@ -514,7 +655,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
                 <TextInput
                   value={bugTitle}
                   onChangeText={setBugTitle}
-                  placeholder="Short summary"
+                  placeholder={t('common.short.summary')}
                   placeholderTextColor="rgba(255,255,255,0.42)"
                   style={[styles.input, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
                   accessibilityLabel="Bug title"
@@ -523,7 +664,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
                 <TextInput
                   value={bugDescription}
                   onChangeText={setBugDescription}
-                  placeholder="What happened?"
+                  placeholder={t('common.what.happened')}
                   placeholderTextColor="rgba(255,255,255,0.42)"
                   style={[styles.input, styles.textarea, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
                   accessibilityLabel="Bug description"
@@ -533,7 +674,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
                 <TextInput
                   value={bugSteps}
                   onChangeText={setBugSteps}
-                  placeholder="Steps to reproduce"
+                  placeholder={t('common.steps.to.reproduce')}
                   placeholderTextColor="rgba(255,255,255,0.42)"
                   style={[styles.input, styles.textareaSm, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
                   accessibilityLabel="Steps to reproduce"
@@ -542,7 +683,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
                 <TextInput
                   value={bugExpected}
                   onChangeText={setBugExpected}
-                  placeholder="Expected behavior"
+                  placeholder={t('common.expected.behavior')}
                   placeholderTextColor="rgba(255,255,255,0.42)"
                   style={[styles.input, styles.textareaSm, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
                   accessibilityLabel="Expected behavior"
@@ -551,7 +692,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
                 <TextInput
                   value={bugActual}
                   onChangeText={setBugActual}
-                  placeholder="Actual behavior"
+                  placeholder={t('common.actual.behavior')}
                   placeholderTextColor="rgba(255,255,255,0.42)"
                   style={[styles.input, styles.textareaSm, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
                   accessibilityLabel="Actual behavior"
@@ -620,6 +761,19 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: '700', marginBottom: 8 },
   text: { fontSize: 16, opacity: 0.95 },
   motd: { marginTop: 10, opacity: 0.82 },
+  suggestionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+  suggestionChip: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(0,0,0,0.22)',
+    maxWidth: '100%',
+  },
+  suggestionChipText: { lineHeight: 18 },
+  questionModalCard: { maxHeight: '70%' },
+  questionAnswer: { lineHeight: 22, marginBottom: 10 },
+  questionDisclaimer: { opacity: 0.82, lineHeight: 18, marginBottom: 4 },
   ecgWrap: { marginTop: 8, width: '100%', maxWidth: 400, alignSelf: 'center' },
   fabWrap: {
     position: 'absolute',

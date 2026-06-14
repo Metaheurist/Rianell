@@ -24,6 +24,9 @@ var RianellShared = (() => {
     DEFAULT_LOCALE: () => DEFAULT_LOCALE,
     DEFAULT_PRIVACY_REGION: () => DEFAULT_PRIVACY_REGION,
     GOALS_STORAGE_KEY: () => GOALS_STORAGE_KEY,
+    HOME_SUGGESTIONS_MAX_CHIPS: () => HOME_SUGGESTIONS_MAX_CHIPS,
+    HOME_SUGGESTIONS_MIN_DAYS: () => HOME_SUGGESTIONS_MIN_DAYS,
+    HOME_SUGGESTIONS_RANGE_DAYS: () => HOME_SUGGESTIONS_RANGE_DAYS,
     LOGS_BACKUP_KEY: () => LOGS_BACKUP_KEY,
     LOGS_STORAGE_KEY_MOBILE_LEGACY: () => LOGS_STORAGE_KEY_MOBILE_LEGACY,
     LOGS_STORAGE_KEY_V1: () => LOGS_STORAGE_KEY_V1,
@@ -36,10 +39,14 @@ var RianellShared = (() => {
     SETTINGS_STORAGE_KEY: () => SETTINGS_STORAGE_KEY,
     SHIPPED_LOCALES: () => SHIPPED_LOCALES,
     UNSET_PRIVACY_REGION: () => UNSET_PRIVACY_REGION,
+    analysisSnapshotFromSummary: () => analysisSnapshotFromSummary,
     applyMigrationPendingFlag: () => applyMigrationPendingFlag,
     applyPrivacyProfileToLocal: () => applyPrivacyProfileToLocal,
     applyRegionDefaultLocale: () => applyRegionDefaultLocale,
     applyRegionDowngradeToggles: () => applyRegionDowngradeToggles,
+    buildHomeQuestionContext: () => buildHomeQuestionContext,
+    buildHomeQuestionFallback: () => buildHomeQuestionFallback,
+    buildHomeQuestionPrompt: () => buildHomeQuestionPrompt,
     buildLlmRequestPayload: () => buildLlmRequestPayload,
     buildMotdPrompt: () => buildMotdPrompt,
     buildSuggestPrompt: () => buildSuggestPrompt,
@@ -48,9 +55,11 @@ var RianellShared = (() => {
     checkPolicyDrift: () => checkPolicyDrift,
     checkPolicyDriftSync: () => checkPolicyDriftSync,
     clearMigrationPending: () => clearMigrationPending,
+    computeHomeAnalysisSnapshot: () => computeHomeAnalysisSnapshot,
     createSampleLogEntry: () => createSampleLogEntry,
     createTranslator: () => createTranslator,
     existsSync: () => existsSync,
+    filterLogsForHomeSuggestions: () => filterLogsForHomeSuggestions,
     formatDate: () => formatDate,
     formatNumber: () => formatNumber,
     formatRelativeDay: () => formatRelativeDay,
@@ -84,6 +93,7 @@ var RianellShared = (() => {
     normalizeGoals: () => normalizeGoals,
     normalizeLogEntry: () => normalizeLogEntry,
     normalizePreferencesPartial: () => normalizePreferencesPartial,
+    pickHomeAiSuggestions: () => pickHomeAiSuggestions,
     prefsToConsents: () => prefsToConsents,
     privacyProfileFromLocal: () => privacyProfileFromLocal,
     readTextFileSync: () => readTextFileSync,
@@ -931,14 +941,40 @@ var RianellShared = (() => {
   }
 
   // packages/shared/src/i18n/format.mjs
+  var GRANULAR_DATE_KEYS = [
+    "weekday",
+    "era",
+    "year",
+    "month",
+    "day",
+    "hour",
+    "minute",
+    "second",
+    "timeZoneName",
+    "fractionalSecondDigits"
+  ];
+  function hasGranularDateOptions(opts) {
+    return GRANULAR_DATE_KEYS.some((k) => opts[k] !== void 0);
+  }
   function formatDate(value, locale, opts = {}) {
     const d = value instanceof Date ? value : new Date(value);
     if (Number.isNaN(d.getTime())) return "";
-    const { dateStyle = "medium", timeStyle, ...rest } = opts;
+    const { dateStyle, timeStyle, ...rest } = opts;
     const intlOpts = { ...rest };
-    if (dateStyle) intlOpts.dateStyle = dateStyle;
-    if (timeStyle) intlOpts.timeStyle = timeStyle;
-    return new Intl.DateTimeFormat(locale || "en-GB", intlOpts).format(d);
+    const granular = hasGranularDateOptions(intlOpts);
+    if (!granular) {
+      intlOpts.dateStyle = dateStyle ?? "medium";
+    } else if (dateStyle !== void 0) {
+      intlOpts.dateStyle = dateStyle;
+    }
+    if (timeStyle !== void 0 && !granular) {
+      intlOpts.timeStyle = timeStyle;
+    }
+    try {
+      return new Intl.DateTimeFormat(locale || "en-GB", intlOpts).format(d);
+    } catch {
+      return d.toLocaleDateString(locale || "en-GB", intlOpts);
+    }
   }
   function formatNumber(value, locale, opts = {}) {
     const n = typeof value === "number" ? value : Number(value);
@@ -996,8 +1032,94 @@ var RianellShared = (() => {
         "context.topStressor": "Top stressor: {name}{pct}."
       }
     },
+    "de-DE": {
+      "locale": "de-DE",
+      "label": "English (UK)",
+      "llmCapability": "full",
+      "strings": {
+        "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
+        "motd.user": "Write one healthy-lifestyle quote.",
+        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+        "context.improving": "Improving: {metrics}.",
+        "context.worsening": "Worsening: {metrics}.",
+        "context.stable": "Stable: {metrics}.",
+        "context.dataLine": "{dayCount} day(s) of data.",
+        "context.flares": "Flares: {count} day(s).",
+        "context.topStressor": "Top stressor: {name}{pct}."
+      }
+    },
+    "en-AU": {
+      "locale": "en-AU",
+      "label": "English (UK)",
+      "llmCapability": "full",
+      "strings": {
+        "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
+        "motd.user": "Write one healthy-lifestyle quote.",
+        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+        "context.improving": "Improving: {metrics}.",
+        "context.worsening": "Worsening: {metrics}.",
+        "context.stable": "Stable: {metrics}.",
+        "context.dataLine": "{dayCount} day(s) of data.",
+        "context.flares": "Flares: {count} day(s).",
+        "context.topStressor": "Top stressor: {name}{pct}."
+      }
+    },
     "en-GB": {
       "locale": "en-GB",
+      "label": "English (UK)",
+      "llmCapability": "full",
+      "strings": {
+        "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
+        "motd.user": "Write one healthy-lifestyle quote.",
+        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+        "homeQuestion.system": "You answer one specific health-tracking question using only the data provided. Write 3\u20135 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text.",
+        "context.improving": "Improving: {metrics}.",
+        "context.worsening": "Worsening: {metrics}.",
+        "context.stable": "Stable: {metrics}.",
+        "context.dataLine": "{dayCount} day(s) of data.",
+        "context.flares": "Flares: {count} day(s).",
+        "context.topStressor": "Top stressor: {name}{pct}."
+      }
+    },
+    "en-US": {
+      "locale": "en-US",
+      "label": "English (UK)",
+      "llmCapability": "full",
+      "strings": {
+        "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
+        "motd.user": "Write one healthy-lifestyle quote.",
+        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+        "context.improving": "Improving: {metrics}.",
+        "context.worsening": "Worsening: {metrics}.",
+        "context.stable": "Stable: {metrics}.",
+        "context.dataLine": "{dayCount} day(s) of data.",
+        "context.flares": "Flares: {count} day(s).",
+        "context.topStressor": "Top stressor: {name}{pct}."
+      }
+    },
+    "es-ES": {
+      "locale": "es-ES",
+      "label": "English (UK)",
+      "llmCapability": "full",
+      "strings": {
+        "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
+        "motd.user": "Write one healthy-lifestyle quote.",
+        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+        "context.improving": "Improving: {metrics}.",
+        "context.worsening": "Worsening: {metrics}.",
+        "context.stable": "Stable: {metrics}.",
+        "context.dataLine": "{dayCount} day(s) of data.",
+        "context.flares": "Flares: {count} day(s).",
+        "context.topStressor": "Top stressor: {name}{pct}."
+      }
+    },
+    "fr-FR": {
+      "locale": "fr-FR",
       "label": "English (UK)",
       "llmCapability": "full",
       "strings": {
@@ -1017,6 +1139,91 @@ var RianellShared = (() => {
       "locale": "he",
       "label": "\u05E2\u05D1\u05E8\u05D9\u05EA",
       "llmCapability": "ui-only",
+      "strings": {
+        "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
+        "motd.user": "Write one healthy-lifestyle quote.",
+        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+        "context.improving": "Improving: {metrics}.",
+        "context.worsening": "Worsening: {metrics}.",
+        "context.stable": "Stable: {metrics}.",
+        "context.dataLine": "{dayCount} day(s) of data.",
+        "context.flares": "Flares: {count} day(s).",
+        "context.topStressor": "Top stressor: {name}{pct}."
+      }
+    },
+    "it-IT": {
+      "locale": "it-IT",
+      "label": "English (UK)",
+      "llmCapability": "full",
+      "strings": {
+        "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
+        "motd.user": "Write one healthy-lifestyle quote.",
+        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+        "context.improving": "Improving: {metrics}.",
+        "context.worsening": "Worsening: {metrics}.",
+        "context.stable": "Stable: {metrics}.",
+        "context.dataLine": "{dayCount} day(s) of data.",
+        "context.flares": "Flares: {count} day(s).",
+        "context.topStressor": "Top stressor: {name}{pct}."
+      }
+    },
+    "nl-NL": {
+      "locale": "nl-NL",
+      "label": "English (UK)",
+      "llmCapability": "full",
+      "strings": {
+        "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
+        "motd.user": "Write one healthy-lifestyle quote.",
+        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+        "context.improving": "Improving: {metrics}.",
+        "context.worsening": "Worsening: {metrics}.",
+        "context.stable": "Stable: {metrics}.",
+        "context.dataLine": "{dayCount} day(s) of data.",
+        "context.flares": "Flares: {count} day(s).",
+        "context.topStressor": "Top stressor: {name}{pct}."
+      }
+    },
+    "pl-PL": {
+      "locale": "pl-PL",
+      "label": "English (UK)",
+      "llmCapability": "full",
+      "strings": {
+        "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
+        "motd.user": "Write one healthy-lifestyle quote.",
+        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+        "context.improving": "Improving: {metrics}.",
+        "context.worsening": "Worsening: {metrics}.",
+        "context.stable": "Stable: {metrics}.",
+        "context.dataLine": "{dayCount} day(s) of data.",
+        "context.flares": "Flares: {count} day(s).",
+        "context.topStressor": "Top stressor: {name}{pct}."
+      }
+    },
+    "pt-BR": {
+      "locale": "pt-BR",
+      "label": "English (UK)",
+      "llmCapability": "full",
+      "strings": {
+        "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
+        "motd.user": "Write one healthy-lifestyle quote.",
+        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+        "context.improving": "Improving: {metrics}.",
+        "context.worsening": "Worsening: {metrics}.",
+        "context.stable": "Stable: {metrics}.",
+        "context.dataLine": "{dayCount} day(s) of data.",
+        "context.flares": "Flares: {count} day(s).",
+        "context.topStressor": "Top stressor: {name}{pct}."
+      }
+    },
+    "pt-PT": {
+      "locale": "pt-PT",
+      "label": "English (UK)",
+      "llmCapability": "full",
       "strings": {
         "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
         "motd.user": "Write one healthy-lifestyle quote.",
@@ -1074,6 +1281,15 @@ var RianellShared = (() => {
     );
     return { system, user: `Data: ${context}` };
   }
+  function buildHomeQuestionPrompt(locale, context, options = {}) {
+    const pack = loadPromptPack(locale, options.packs);
+    const system = promptString(
+      pack,
+      "homeQuestion.system",
+      "You answer one specific health-tracking question using only the data provided. Write 3\u20135 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text."
+    );
+    return { system, user: context };
+  }
   function buildLlmRequestPayload({ feature, model, modelSize, context, locale }) {
     return {
       feature,
@@ -1082,6 +1298,304 @@ var RianellShared = (() => {
       context,
       locale: isValidLocaleId(locale) ? locale : DEFAULT_LOCALE
     };
+  }
+
+  // packages/shared/src/ai/homeSuggestions.mjs
+  var HOME_SUGGESTIONS_RANGE_DAYS = 14;
+  var HOME_SUGGESTIONS_MIN_DAYS = 3;
+  var HOME_SUGGESTIONS_MAX_CHIPS = 3;
+  var SYMPTOM_FREQ_THRESHOLD = 3;
+  var FLARE_DAYS_THRESHOLD = 2;
+  var CORRELATION_THRESHOLD = 0.35;
+  function toDate(value) {
+    if (!value || typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+    const d = /* @__PURE__ */ new Date(`${value}T00:00:00`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  function filterLogsForHomeSuggestions(logs, rangeDays = HOME_SUGGESTIONS_RANGE_DAYS) {
+    if (!Array.isArray(logs)) return [];
+    const today = /* @__PURE__ */ new Date();
+    today.setHours(0, 0, 0, 0);
+    const start = new Date(today);
+    start.setDate(start.getDate() - (rangeDays - 1));
+    return logs.filter((log) => {
+      const d = toDate(log?.date);
+      return !!d && d >= start && d <= today;
+    });
+  }
+  function mean(values) {
+    if (!values.length) return null;
+    return values.reduce((a, b) => a + b, 0) / values.length;
+  }
+  function pearson(xs, ys) {
+    if (xs.length !== ys.length || xs.length < 3) return null;
+    const n = xs.length;
+    const avgX = xs.reduce((a, b) => a + b, 0) / n;
+    const avgY = ys.reduce((a, b) => a + b, 0) / n;
+    let num = 0;
+    let denX = 0;
+    let denY = 0;
+    for (let i = 0; i < n; i++) {
+      const dx = xs[i] - avgX;
+      const dy = ys[i] - avgY;
+      num += dx * dy;
+      denX += dx * dx;
+      denY += dy * dy;
+    }
+    if (denX === 0 || denY === 0) return null;
+    return num / Math.sqrt(denX * denY);
+  }
+  function topSymptomName(logs) {
+    const counts = /* @__PURE__ */ new Map();
+    logs.forEach((log) => {
+      const list = log?.symptoms;
+      if (!Array.isArray(list)) return;
+      list.forEach((x) => {
+        const item = String(x || "").trim();
+        if (!item) return;
+        counts.set(item, (counts.get(item) ?? 0) + 1);
+      });
+    });
+    let best = null;
+    let bestCount = 0;
+    for (const [name, count] of counts) {
+      if (count > bestCount) {
+        best = name;
+        bestCount = count;
+      }
+    }
+    return bestCount >= SYMPTOM_FREQ_THRESHOLD ? { name: best, count: bestCount } : null;
+  }
+  function topStressorName(logs) {
+    const counts = /* @__PURE__ */ new Map();
+    logs.forEach((log) => {
+      const list = log?.stressors;
+      if (!Array.isArray(list)) return;
+      list.forEach((x) => {
+        const item = String(x || "").trim();
+        if (!item) return;
+        counts.set(item, (counts.get(item) ?? 0) + 1);
+      });
+    });
+    let best = null;
+    let bestCount = 0;
+    for (const [name, count] of counts) {
+      if (count > bestCount) {
+        best = name;
+        bestCount = count;
+      }
+    }
+    return bestCount >= 2 ? { name: best, count: bestCount } : null;
+  }
+  function parseTopListItem(item) {
+    const raw = String(item || "").trim();
+    const m = raw.match(/^(.+?)\s*\((\d+)\)$/);
+    return m ? { name: m[1].trim(), count: Number(m[2]) } : { name: raw, count: 0 };
+  }
+  function metricTrend(logs, field) {
+    const sorted = [...logs].sort((a2, b2) => String(a2.date).localeCompare(String(b2.date)));
+    const mid = Math.floor(sorted.length / 2);
+    const first = sorted.slice(0, mid);
+    const second = sorted.slice(mid);
+    const a = mean(first.map((l) => l[field]).filter((v) => typeof v === "number"));
+    const b = mean(second.map((l) => l[field]).filter((v) => typeof v === "number"));
+    if (a == null || b == null) return null;
+    const delta = b - a;
+    if (Math.abs(delta) < 1.2) return null;
+    return { metric: field, direction: delta > 0 ? "up" : "down", delta };
+  }
+  function weekCompare(logs) {
+    const today = /* @__PURE__ */ new Date();
+    today.setHours(0, 0, 0, 0);
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 6);
+    const twoWeeksAgo = new Date(today);
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 13);
+    const thisWeek = logs.filter((l) => {
+      const d = toDate(l.date);
+      return d && d >= weekAgo && d <= today;
+    });
+    const lastWeek = logs.filter((l) => {
+      const d = toDate(l.date);
+      return d && d >= twoWeeksAgo && d < weekAgo;
+    });
+    if (thisWeek.length < 2 || lastWeek.length < 2) return null;
+    for (const field of ["fatigue", "sleep", "mood"]) {
+      const cur = mean(thisWeek.map((l) => l[field]).filter((v) => typeof v === "number"));
+      const prev = mean(lastWeek.map((l) => l[field]).filter((v) => typeof v === "number"));
+      if (cur != null && prev != null && Math.abs(cur - prev) >= 1) {
+        return { field, cur, prev };
+      }
+    }
+    return { comparable: true };
+  }
+  function findCorrelationPair(logs) {
+    const moodSleep = logs.filter((x) => x.mood != null && x.sleep != null);
+    const c1 = pearson(
+      moodSleep.map((x) => x.mood),
+      moodSleep.map((x) => x.sleep)
+    );
+    if (c1 != null && Math.abs(c1) >= CORRELATION_THRESHOLD) {
+      return { a: "mood", b: "sleep", r: c1 };
+    }
+    const sleepFatigue = logs.filter((x) => x.sleep != null && x.fatigue != null);
+    const c2 = pearson(
+      sleepFatigue.map((x) => x.sleep),
+      sleepFatigue.map((x) => x.fatigue)
+    );
+    if (c2 != null && Math.abs(c2) >= CORRELATION_THRESHOLD) {
+      return { a: "sleep", b: "fatigue", r: c2 };
+    }
+    return null;
+  }
+  function computeHomeAnalysisSnapshot(logs, rangeDays = HOME_SUGGESTIONS_RANGE_DAYS) {
+    const selected = filterLogsForHomeSuggestions(logs, rangeDays);
+    const mood = selected.map((x) => x.mood).filter((x) => typeof x === "number");
+    const sleep = selected.map((x) => x.sleep).filter((x) => typeof x === "number");
+    const fatigue = selected.map((x) => x.fatigue).filter((x) => typeof x === "number");
+    return {
+      totalLogs: selected.length,
+      flareDays: selected.filter((x) => x.flare === "Yes").length,
+      avgMood: mean(mood),
+      avgSleep: mean(sleep),
+      avgFatigue: mean(fatigue),
+      topSymptoms: topSymptomName(selected) ? [topSymptomName(selected).name] : [],
+      topStressors: topStressorName(selected) ? [topStressorName(selected).name] : [],
+      _logs: selected
+    };
+  }
+  function analysisSnapshotFromSummary(summary, logs) {
+    const selected = filterLogsForHomeSuggestions(logs || []);
+    const topSym = summary?.topSymptoms?.[0] ? parseTopListItem(summary.topSymptoms[0]) : null;
+    const topStr = summary?.topStressors?.[0] ? parseTopListItem(summary.topStressors[0]) : null;
+    return {
+      totalLogs: summary?.totalLogs ?? selected.length,
+      flareDays: summary?.flareDays ?? 0,
+      avgMood: summary?.avgMood ?? null,
+      avgSleep: summary?.avgSleep ?? null,
+      avgFatigue: summary?.avgFatigue ?? null,
+      topSymptoms: topSym?.name ? [topSym.name] : [],
+      topStressors: topStr?.name ? [topStr.name] : [],
+      correlations: summary?.correlations || [],
+      _logs: selected
+    };
+  }
+  var METRIC_LABELS = {
+    fatigue: "fatigue",
+    sleep: "sleep",
+    mood: "mood"
+  };
+  function pickHomeAiSuggestions(logs, analysis, options = {}) {
+    const {
+      aiEnabled = true,
+      loggedToday = false,
+      rangeDays = HOME_SUGGESTIONS_RANGE_DAYS,
+      minDays = HOME_SUGGESTIONS_MIN_DAYS,
+      maxChips = HOME_SUGGESTIONS_MAX_CHIPS
+    } = options;
+    if (!aiEnabled || !loggedToday) return [];
+    const recent = filterLogsForHomeSuggestions(logs, rangeDays);
+    if (recent.length < minDays) return [];
+    const snapshot = analysis || computeHomeAnalysisSnapshot(logs, rangeDays);
+    const workLogs = snapshot._logs || recent;
+    const picked = [];
+    const used = /* @__PURE__ */ new Set();
+    function add(id, labelKey, labelParams) {
+      if (picked.length >= maxChips || used.has(id)) return;
+      used.add(id);
+      picked.push({ id, labelKey, labelParams: labelParams || {} });
+    }
+    const sym = topSymptomName(workLogs);
+    if (sym) add("symptom", "home.questions.symptom", { symptom: sym.name });
+    const flareDays = snapshot.flareDays ?? workLogs.filter((l) => l.flare === "Yes").length;
+    if (flareDays >= FLARE_DAYS_THRESHOLD) add("flare", "home.questions.flare", {});
+    for (const field of ["fatigue", "sleep", "mood"]) {
+      const trend = metricTrend(workLogs, field);
+      if (!trend) continue;
+      const worsening = field === "fatigue" && trend.direction === "up" || field === "sleep" && trend.direction === "down" || field === "mood" && trend.direction === "down";
+      if (worsening) {
+        add(`trend-${field}`, "home.questions.trend", {
+          metric: METRIC_LABELS[field] || field,
+          direction: trend.direction
+        });
+        break;
+      }
+    }
+    const stressor = snapshot.topStressors?.[0] || (topStressorName(workLogs)?.name ?? null);
+    if (stressor) add("stressor", "home.questions.stressor", { stressor: String(stressor) });
+    const corr = findCorrelationPair(workLogs);
+    if (corr) {
+      add("correlation", "home.questions.correlation", {
+        a: METRIC_LABELS[corr.a] || corr.a,
+        b: METRIC_LABELS[corr.b] || corr.b
+      });
+    }
+    if (weekCompare(workLogs)) add("compare", "home.questions.compare", {});
+    return picked.slice(0, maxChips);
+  }
+  function buildHomeQuestionFallback(suggestion, analysis) {
+    const snap = analysis || {};
+    const id = suggestion?.id || "";
+    if (id === "symptom" && suggestion.labelParams?.symptom) {
+      return `${suggestion.labelParams.symptom} appears often in your recent logs \u2014 track triggers and rest on high-symptom days.`;
+    }
+    if (id === "flare" && snap.flareDays != null) {
+      return `You logged ${snap.flareDays} flare day(s) recently. Note sleep, stress, and activity around those dates.`;
+    }
+    if (id.startsWith("trend-") && snap.avgFatigue != null) {
+      return `Recent averages \u2014 fatigue ${snap.avgFatigue.toFixed(1)}, sleep ${snap.avgSleep != null ? snap.avgSleep.toFixed(1) : "\u2014"}, mood ${snap.avgMood != null ? snap.avgMood.toFixed(1) : "\u2014"} (1\u201310).`;
+    }
+    if (id === "stressor" && suggestion.labelParams?.stressor) {
+      return `${suggestion.labelParams.stressor} shows up in your stress logs \u2014 consider pacing and recovery after high-stress days.`;
+    }
+    if (id === "compare") {
+      return "Compare this week\u2019s scores to last week in Charts to spot gradual shifts.";
+    }
+    return "Keep logging daily \u2014 patterns become clearer with more entries.";
+  }
+
+  // packages/shared/src/ai/homeQuestionContext.mjs
+  var MAX_CONTEXT_CHARS = 720;
+  function wrapUserNote(note) {
+    const raw = String(note || "").trim();
+    if (!raw) return "";
+    return `---USER_NOTE---
+${raw}
+---END_USER_NOTE---`;
+  }
+  function buildHomeQuestionContext({
+    questionText,
+    questionId,
+    labelParams = {},
+    analysis = {},
+    logs = [],
+    rangeDays = HOME_SUGGESTIONS_RANGE_DAYS
+  }) {
+    const parts = [];
+    const q = String(questionText || "").trim();
+    if (q) parts.push(`Question: ${q}`);
+    parts.push(`Range: last ${rangeDays} days.`);
+    const total = analysis.totalLogs ?? (Array.isArray(logs) ? logs.length : 0);
+    parts.push(`${total} logged day(s).`);
+    if (analysis.flareDays != null && analysis.flareDays > 0) {
+      parts.push(`Flares: ${analysis.flareDays} day(s).`);
+    }
+    if (analysis.avgFatigue != null) parts.push(`Fatigue avg: ${analysis.avgFatigue.toFixed(1)}/10.`);
+    if (analysis.avgSleep != null) parts.push(`Sleep avg: ${analysis.avgSleep.toFixed(1)}/10.`);
+    if (analysis.avgMood != null) parts.push(`Mood avg: ${analysis.avgMood.toFixed(1)}/10.`);
+    if (analysis.topSymptoms?.length) {
+      parts.push(`Top symptoms: ${analysis.topSymptoms.slice(0, 3).join(", ")}.`);
+    }
+    if (analysis.topStressors?.length) {
+      parts.push(`Top stressors: ${analysis.topStressors.slice(0, 3).join(", ")}.`);
+    }
+    if (questionId === "correlation" && labelParams.a && labelParams.b) {
+      parts.push(`Focus: link between ${labelParams.a} and ${labelParams.b}.`);
+    }
+    const recentNotes = (logs || []).map((l) => l && l.notes ? String(l.notes).trim() : "").filter(Boolean);
+    if (recentNotes.length) parts.push(wrapUserNote(recentNotes[recentNotes.length - 1]));
+    const text = parts.join(" ");
+    return text.length > MAX_CONTEXT_CHARS ? text.slice(0, MAX_CONTEXT_CHARS) : text;
   }
 
   // packages/shared/src/index.mjs

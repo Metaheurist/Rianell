@@ -10,17 +10,20 @@
   var llmWorkQueue = Promise.resolve();
   var summaryResultCache = null;
   var suggestResultCache = null;
+  var homeQuestionResultCache = null;
   var downloadProgressState = { pct: 0, status: 'idle', file: '', active: false };
   var downloadCancelled = false;
   var lastDownloadError = null;
   var MAX_SUMMARY_CACHE = 8;
   var MAX_SUGGEST_CACHE = 5;
+  var MAX_HOME_QUESTION_CACHE = 8;
   var MAX_CONTEXT_CHARS = 720;
   var MAX_SUGGEST_CONTEXT_CHARS = 280;
   var TIMEOUT_MS = 45000;
   var TIMEOUT_SUGGEST_MS = 20000;
   var TIMEOUT_SUGGEST_TOTAL_MS = 120000;
   var TIMEOUT_MOTD_MS = 25000;
+  var TIMEOUT_HOME_QUESTION_MS = 35000;
   var MAX_MOTD_CHARS = 160;
 
   var MODEL_SMALL = 'onnx-community/SmolLM2-360M-Instruct';
@@ -100,6 +103,14 @@
       'You write one short sentence for a daily health log note. Compare today to the recent average. '
       + 'Use only the data provided. Reply with only the note sentence.');
     return { system: system, user: 'Data: ' + context };
+  }
+
+  function buildHomeQuestionPromptFromPack(pack, context) {
+    var system = promptString(pack, 'homeQuestion.system',
+      'You answer one specific health-tracking question using only the data provided. '
+      + 'Write 3–5 short sentences in plain language. No diagnosis or medical orders. '
+      + 'Be encouraging. Reply with only the answer text.');
+    return { system: system, user: context };
   }
 
   function llmTierOrSizeToModelId(tierOrSize) {
@@ -718,6 +729,47 @@
     }
   }
 
+  async function generateHomeQuestionWithLLM(contextString, fallbackText, questionId) {
+    if (!contextString || contextString.length < 10) return fallbackText || '';
+
+    var cacheKey = simpleHash(String(questionId || 'q') + ':' + contextString);
+    if (!homeQuestionResultCache) homeQuestionResultCache = new Map();
+    var cached = homeQuestionResultCache.get(cacheKey);
+    if (cached != null) return cached;
+
+    try {
+      var pack = await loadPromptPack(getActiveLocale());
+      var prompts = buildHomeQuestionPromptFromPack(pack, contextString);
+      var timeoutPromise = new Promise(function (_, reject) {
+        setTimeout(function () { reject(new Error('Home question LLM timeout')); }, TIMEOUT_HOME_QUESTION_MS);
+      });
+      var text = await Promise.race([
+        runChatInference(prompts.system, prompts.user, {
+          max_new_tokens: 180,
+          do_sample: false,
+          temperature: 0.2,
+          truncation: true
+        }),
+        timeoutPromise
+      ]);
+
+      if (text && text.length > 15) {
+        text = stripTrailingIncompleteSentence(text);
+        if (homeQuestionResultCache.size >= MAX_HOME_QUESTION_CACHE) {
+          var firstKey = homeQuestionResultCache.keys().next().value;
+          if (firstKey != null) homeQuestionResultCache.delete(firstKey);
+        }
+        homeQuestionResultCache.set(cacheKey, text);
+        return text;
+      }
+    } catch (e) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('Home question LLM failed, using fallback:', e.message || e);
+      }
+    }
+    return fallbackText || '';
+  }
+
   function sanitizeMotdText(raw) {
     if (!raw || typeof raw !== 'string') return '';
     var t = raw.replace(/\s+/g, ' ').trim();
@@ -873,6 +925,7 @@
 
   window.generateSummaryWithLLM = generateSummaryWithLLM;
   window.generateSuggestNoteWithLLM = generateSuggestNoteWithLLM;
+  window.generateHomeQuestionWithLLM = generateHomeQuestionWithLLM;
   window.generateMotdWithLLM = generateMotdWithLLM;
   window.buildSuggestContext = buildSuggestContext;
   window.LLM_TIER_MODELS = LLM_TIER_MODELS;
