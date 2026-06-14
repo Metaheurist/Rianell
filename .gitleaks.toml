@@ -7,7 +7,7 @@ title = "Rianell"
 useDefault = true
 
 [allowlist]
-description = "Templates; local gitignored secrets; dependencies and build dirs; README (may quote example CLI output / docs that look like secrets)"
+description = "Templates; local gitignored secrets; dependencies and build dirs; README (may quote example CLI output / docs that look like secrets); i18n UI strings (password labels trigger generic-api-key false positives)"
 paths = [
   '''^README\.md$''',
   '''^security/\.env\.example$''',
@@ -24,4 +24,9 @@ paths = [
   '''^apps/pwa-webapp/\.trace-build/''',
   '''^\.firecrawl/''',
   '''^App build/''',
+  '''^scripts/lib/tier-a-exact-overrides\.mjs$''',
+  '''^i18n-packs/''',
+  '''^apps/pwa-webapp/i18n-packs/''',
+  '''^apps/rn-app/i18n-packs/''',
+  '''^packages/shared/i18n-packs/''',
 ]
