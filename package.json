@@ -35,7 +35,7 @@
     "docs:security-inventory": "node scripts/generate-security-inventory.mjs",
     "verify:privacy-docs": "node scripts/verify-privacy-docs.mjs",
     "verify:policy-packs": "node scripts/verify-policy-packs.mjs",
-    "verify:i18n": "node scripts/sync-i18n-assets.mjs && node scripts/verify-locale-packs.mjs && node scripts/verify-prompt-packs.mjs && node scripts/verify-motd-packs.mjs && node scripts/verify-no-html-in-locale-packs.mjs && node scripts/audit-hardcoded-strings.mjs --check && node scripts/audit-hardcoded-strings.mjs --require-wiring && node scripts/verify-no-hardcoded-ui.mjs --strict && node scripts/verify-no-hardcoded-ui.mjs --baseline && node scripts/verify-translation-coverage.mjs --strict",
+    "verify:i18n": "node scripts/generate-locale-overrides.mjs && node scripts/sync-i18n-assets.mjs && node scripts/verify-locale-packs.mjs && node scripts/verify-prompt-packs.mjs && node scripts/verify-motd-packs.mjs && node scripts/verify-no-html-in-locale-packs.mjs && node scripts/audit-hardcoded-strings.mjs --check && node scripts/audit-hardcoded-strings.mjs --require-wiring && node scripts/verify-no-hardcoded-ui.mjs --strict && node scripts/verify-no-hardcoded-ui.mjs --baseline && node scripts/verify-translation-coverage.mjs --strict",
     "verify:csp": "node scripts/verify-csp-connect-src.mjs",
     "models:download": "node scripts/download-llm-models.mjs",
     "models:verify": "node scripts/verify-llm-models.mjs",
