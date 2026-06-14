@@ -1,0 +1,68 @@
+# Logging Data
+
+Each day you can record vitals, symptoms, lifestyle, and free-text notes. All entries share one **canonical schema** so exports work across web and mobile.
+
+---
+
+## Required field
+
+- **Date** (`YYYY-MM-DD`) — every entry must have a date. Invalid dates default to today.
+
+## Quick save
+
+Save after **date + flare** only. Missing numeric scores are filled with mid-scale defaults so charts and AI still run.
+
+---
+
+## Core fields
+
+| Field | Type | Notes |
+|-------|------|-------|
+| **Flare** | Yes / No | Default No |
+| **BPM** | number | Heart rate; typical range 30–120 |
+| **Weight** | text | kg as decimal string |
+| **Fatigue, stiffness, sleep, joint pain, mobility, daily function, swelling, mood, irritability** | 0–10 | Subjective scales |
+| **Weather sensitivity** | 1–10 | |
+| **Steps** | integer | |
+| **Hydration** | number | Glasses / units |
+| **Notes** | text | Max 500 characters; **never auto-translated** |
+| **Energy / clarity** | text | Max 80 characters |
+| **Pain location** | text | Max 150 characters |
+| **Stressors, symptoms** | lists | Trimmed item lists |
+| **Food** | object | Breakfast, lunch, dinner, snack item lists |
+| **Exercise** | list | Name + optional duration |
+| **Medications** | list | Per-entry medication log |
+
+---
+
+## Viewing and editing
+
+- **View logs** tab — tap a day card to expand full detail.
+- **Edit** or **delete** from the action bar on each entry.
+- **Share** (web) — circular green share button per entry.
+
+---
+
+## Import and export
+
+- **Export** produces JSON aligned with `@rianell/shared` normalization — use for backup or moving between devices.
+- **Import** previews data before merge; user-derived HTML is escaped in the preview.
+- Export **column headers** can be localised; **your note text stays exactly as typed**.
+
+---
+
+## Where data is stored
+
+| Platform | Storage |
+|----------|---------|
+| Web / PWA | `localStorage` (+ optional IndexedDB mirror) |
+| React Native | AsyncStorage |
+
+Optional encrypted cloud copy: [[Cloud-Sync-and-Backup]].
+
+---
+
+## Read more (technical)
+
+- [Data model](https://github.com/Metaheurist/Rianell/blob/main/docs/data-model.md)
+- [App features — log wizard](https://github.com/Metaheurist/Rianell/blob/main/docs/app-and-features.md)

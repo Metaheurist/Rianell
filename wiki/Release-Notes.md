@@ -1,0 +1,41 @@
+# Release Notes
+
+## Latest release (v1.88.0)
+
+**Date:** 2026-06-14
+
+### Highlights
+
+- **CI benchmarks:** AI layer/algo Playwright jobs use `domcontentloaded` navigation so font/CDN assets cannot block CI for minutes.
+- **React Native:** Log wizard exercise chips use stable `id` keys for localized labels; fixes mobile TypeScript check.
+- **Locale refresh (v1.87):** Changing language re-renders all tabs without reload; home date is locale-aware.
+- **On-device model (v1.85):** Settings → Performance adds **Clear and redownload model** for cache reset.
+- **Polish locale (v1.86):** Mixed-language string cleanup for pl-PL packs.
+
+---
+
+## Previous releases (recent)
+
+| Version | Theme |
+|---------|-------|
+| v1.84–v1.87 | AI benchmark toolkit, locale refresh, model redownload |
+| v1.78–v1.83 | Tier-matrix performance suite, God mode autotest, README doc icons |
+| v1.60+ | Full UI localization (13 locales, RTL) |
+| v1.53+ | Supabase-hosted LLM chunks, privacy/settings fixes |
+| v1.49+ | Capacitor sunset; PWA + RN only |
+
+---
+
+## Full changelog
+
+Complete version history with file-level pointers:
+
+[docs/CHANGELOG.md](https://github.com/Metaheurist/Rianell/blob/main/docs/CHANGELOG.md)
+
+---
+
+## Downloads for this release
+
+See [[Downloads]] and [GitHub Releases](https://github.com/Metaheurist/Rianell/releases) for Android APK, iOS zip, server EXE, and web deploy.
+
+After each release, maintainers should refresh this page and the Downloads build table.

@@ -691,6 +691,42 @@ jobs:
           git push origin "${{ github.ref_name }}"
 
   # ---------------------------------------------------------------------------
+  # Sync wiki/ to GitHub Wiki when markdown changes on main/master
+  # Requires repository secret WIKI_PUSH_TOKEN (PAT with push access to Rianell.wiki)
+  # ---------------------------------------------------------------------------
+  sync-wiki-to-github:
+    name: Sync wiki to GitHub Wiki
+    needs: [unit-tests]
+    if: |
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Detect wiki/ changes
+        id: wiki_changes
+        run: |
+          if git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" | grep -q '^wiki/'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify and sync wiki
+        if: steps.wiki_changes.outputs.changed == 'true'
+        env:
+          WIKI_PUSH_TOKEN: ${{ secrets.WIKI_PUSH_TOKEN }}
+        run: |
+          test -n "$WIKI_PUSH_TOKEN" || { echo "WIKI_PUSH_TOKEN secret required for wiki sync"; exit 1; }
+          npm run wiki:verify
+          node scripts/sync-wiki.mjs --ci-token "$WIKI_PUSH_TOKEN"
+
+  # ---------------------------------------------------------------------------
   # React Native CLI native artifacts (no EAS / no EXPO_TOKEN)
   # RN Alpha `version` is sequential (1,2,3…) from rn-build-version — independent of
   # GITHUB_RUN_NUMBER (Server/Web). Counter is read from App build/RNCLI-Android/latest.json;

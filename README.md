@@ -67,6 +67,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | <img src="docs/icons/smartphone.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Platform parity](docs/platform-parity.md)** - web/android/iOS feature contract and CI parity gates |
 | <img src="docs/icons/user.svg" width="32" height="32" alt="" aria-hidden="true"> | **[About & support](docs/about-and-support.md)** |
 | <img src="docs/icons/scroll.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Changelog](docs/CHANGELOG.md)** - version history and release notes |
+| <img src="docs/icons/home.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Wiki](https://github.com/Metaheurist/Rianell/wiki)** - user guides and developer hub (source: `wiki/`) |
 
 Support contact: **jan.andersson@rianell.com**
 
