@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-/** Generate locale-packs from en-GB canonical + per-locale string overrides. */
+/** Generate i18n-packs/locale-packs from en-GB canonical + per-locale string overrides. */
 import fs from 'node:fs';
 import path from 'node:path';
+import { canonicalLocalePacksDir } from '../packages/shared/src/i18n/packPaths.mjs';
 
 const root = process.cwd();
-const dir = path.join(root, 'locale-packs', 'v1');
+const dir = canonicalLocalePacksDir(root);
 const canonical = JSON.parse(fs.readFileSync(path.join(dir, 'en-GB.json'), 'utf8'));
 
 const OVERRIDES = {
