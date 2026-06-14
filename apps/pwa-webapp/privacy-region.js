@@ -64,6 +64,11 @@
       : !!(getPrivacyFields().privacyRegion);
   }
 
+  function getActiveLocale() {
+    if (typeof I.getLocale === 'function') return I.getLocale();
+    return getPrivacyFields().uiLocale || 'en-GB';
+  }
+
   function showPolicyViewerModal(regionId, readOnly) {
     var docs = typeof S.getPolicyDocumentsForRegion === 'function'
       ? S.getPolicyDocumentsForRegion(regionId || getPrivacyFields().privacyRegion || 'other')
@@ -75,6 +80,15 @@
       if (summary === 'policy.' + d.id + '.summary') summary = d.summary;
       return '<section style="margin-bottom:1rem"><h4 style="margin:0 0 0.35rem">' + escapeHtml(title) + '</h4><p style="margin:0;line-height:1.45">' + escapeHtml(summary) + '</p></section>';
     }).join('');
+    var locale = getActiveLocale();
+    if (locale !== 'en-GB') {
+      var notice = t('policy.machineTranslatedNotice');
+      if (notice === 'policy.machineTranslatedNotice') {
+        notice = 'This policy text was machine-translated. The English (UK) version is authoritative.';
+      }
+      var banner = '<div role="note" style="margin-bottom:1rem;padding:0.65rem 0.75rem;border-radius:8px;background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.35);font-size:0.9rem;line-height:1.4">' + escapeHtml(notice) + '</div>';
+      html = banner + html;
+    }
     if (typeof global.showAlertModal === 'function') {
       global.showAlertModal(html || t('gate.policiesTitle'), t('gate.policiesTitle'), undefined, { html: true });
     }
@@ -224,6 +238,7 @@
         var loc = langSelect.value;
         writeSettings({ uiLocale: loc, uiLocaleSource: 'user', uiLocaleUpdatedAt: new Date().toISOString() });
         refreshLocaleUI();
+        if (typeof global.showToast === 'function') global.showToast(t('settings.privacy.languageChanged'), 'info');
         if (global.cloudSyncState && global.cloudSyncState.isAuthenticated && typeof global.upsertPrivacyProfile === 'function') {
           global.upsertPrivacyProfile().catch(function () {});
         }

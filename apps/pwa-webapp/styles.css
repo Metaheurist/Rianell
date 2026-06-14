@@ -15260,3 +15260,10 @@ body.privacy-gate-active > *:not(#privacyRegionGateOverlay):not(#loadingOverlay)
   background: #f59e0b;
   color: #111;
 }
+
+/* RTL layout (ar/he) — logical overrides */
+[dir="rtl"] .bottom-nav { flex-direction: row-reverse; }
+[dir="rtl"] .settings-carousel-dots { direction: rtl; }
+[dir="rtl"] .wizard-progress { direction: rtl; }
+[dir="rtl"] .privacy-policy-badge { margin-left: 0; margin-right: 8px; }
+[dir="rtl"] .tab-bar-inner { flex-direction: row-reverse; }
