@@ -34,6 +34,13 @@ var RianellAIEngine = (() => {
   function mean(values) {
     return avg(values);
   }
+  function tr(translate, key, params, fallback) {
+    if (typeof translate === "function") {
+      const result = translate(key, params);
+      if (typeof result === "string" && result !== key) return result;
+    }
+    return fallback;
+  }
   function topItems(logs, key, limit = 3) {
     const counts = /* @__PURE__ */ new Map();
     logs.forEach((log) => {
@@ -79,7 +86,8 @@ var RianellAIEngine = (() => {
       return d >= start && d <= today;
     });
   }
-  function analyzeHealthMetrics(logs, range = 30) {
+  function analyzeHealthMetrics(logs, range = 30, options = {}) {
+    const translate = options?.translate;
     const selected = filterLogsByRange(logs, range);
     const rangeLabel = range === "all" ? "All time" : `Last ${range} days`;
     const flareDays = selected.filter((x) => x.flare === "Yes").length;
@@ -93,14 +101,21 @@ var RianellAIEngine = (() => {
     if (moodAvg != null) howYouAreDoing.push(`Mood average: ${moodAvg.toFixed(1)} / 10`);
     if (sleepAvg != null) howYouAreDoing.push(`Sleep average: ${sleepAvg.toFixed(1)} / 10`);
     if (fatigueAvg != null) howYouAreDoing.push(`Fatigue average: ${fatigueAvg.toFixed(1)} / 10`);
-    if (!howYouAreDoing.length) howYouAreDoing.push("Not enough scored metrics yet.");
+    if (!howYouAreDoing.length) {
+      howYouAreDoing.push(tr(translate, "ai.template.noData", {}, "Not enough scored metrics yet."));
+    }
     const correlations = [];
     const moodSleepPairs = selected.filter((x) => x.mood != null && x.sleep != null);
     const cMoodSleep = pearson(moodSleepPairs.map((p) => p.mood), moodSleepPairs.map((p) => p.sleep));
     if (cMoodSleep != null && Math.abs(cMoodSleep) >= 0.35) {
-      correlations.push(`Mood and sleep correlation: ${cMoodSleep.toFixed(2)}.`);
+      const metric = "Mood";
+      const templateKey = cMoodSleep > 0 ? "ai.template.improving" : "ai.template.worsening";
+      const fallback = cMoodSleep > 0 ? `${metric} is improving.` : `${metric} is worsening.`;
+      correlations.push(`${tr(translate, templateKey, { metric }, fallback)} (${cMoodSleep.toFixed(2)}).`);
     }
-    if (!correlations.length) correlations.push("No strong metric correlations detected in this range yet.");
+    if (!correlations.length) {
+      correlations.push(tr(translate, "ai.template.noData", {}, "No strong metric correlations detected in this range yet."));
+    }
     let matchingSignals = 0;
     const flareNotes = [];
     if (fatigueAvg != null && fatigueAvg >= 7) {
@@ -153,23 +168,29 @@ var RianellAIEngine = (() => {
     }
     return out;
   }
-  function suggestLogNote(context) {
+  function suggestLogNote(context, options = {}) {
+    const translate = options?.translate;
     const parts = [];
     if (context && context.flare === "Yes") parts.push("Flare day \u2014 rest and hydration may help.");
-    if (context && typeof context.fatigue === "number" && context.fatigue >= 7) parts.push("Fatigue is high today.");
+    if (context && typeof context.fatigue === "number" && context.fatigue >= 7) {
+      parts.push(tr(translate, "ai.template.worsening", { metric: "Fatigue" }, "Fatigue is high today."));
+    }
     if (context && typeof context.sleep === "number" && context.sleep <= 4) parts.push("Sleep was low \u2014 gentle pace recommended.");
-    if (context && typeof context.mood === "number" && context.mood <= 4) parts.push("Mood is low \u2014 be kind to yourself today.");
+    if (context && typeof context.mood === "number" && context.mood <= 4) {
+      parts.push(tr(translate, "ai.template.worsening", { metric: "Mood" }, "Mood is low \u2014 be kind to yourself today."));
+    }
     if (!parts.length) parts.push("Steady day \u2014 note anything that helped or hindered how you felt.");
     return parts.join(" ");
   }
-  function generateAnalysisNote(summary) {
+  function generateAnalysisNote(summary, options = {}) {
+    const translate = options?.translate;
     const parts = [];
     if (summary?.rangeLabel) parts.push(`Range: ${summary.rangeLabel}.`);
     if (summary?.howYouAreDoing?.length) parts.push(summary.howYouAreDoing.join(" "));
     if (summary?.possibleFlareUp?.level) {
       parts.push(`Flare risk: ${summary.possibleFlareUp.level}.`);
     }
-    return parts.join(" ") || "Keep logging to build a clearer picture.";
+    return parts.join(" ") || tr(translate, "ai.template.noData", {}, "Keep logging to build a clearer picture.");
   }
   var AIEngine = {
     analyzeHealthMetrics,

@@ -2,6 +2,23 @@ import type { LogEntry } from '../storage/logs';
 
 export type AiRange = 14 | 30 | 90 | 'all';
 
+export type TranslateFn = (key: string, params?: Record<string, string | number>) => string;
+
+export type SummarizeOptions = { translate?: TranslateFn };
+
+function tr(
+  translate: TranslateFn | undefined,
+  key: string,
+  params: Record<string, string | number> | undefined,
+  fallback: string
+): string {
+  if (typeof translate === 'function') {
+    const result = translate(key, params);
+    if (typeof result === 'string' && result !== key) return result;
+  }
+  return fallback;
+}
+
 export type AiSummary = {
   totalLogs: number;
   rangeLabel: string;
@@ -84,7 +101,8 @@ export function filterLogsByRange(logs: LogEntry[], range: AiRange): LogEntry[] 
   });
 }
 
-export function summarizeLogsForAi(logs: LogEntry[], range: AiRange): AiSummary {
+export function summarizeLogsForAi(logs: LogEntry[], range: AiRange, options: SummarizeOptions = {}): AiSummary {
+  const translate = options.translate;
   const selected = filterLogsByRange(logs, range);
   const rangeLabel = range === 'all' ? 'All time' : `Last ${range} days`;
   const flareDays = selected.filter((x) => x.flare === 'Yes').length;
@@ -111,7 +129,9 @@ export function summarizeLogsForAi(logs: LogEntry[], range: AiRange): AiSummary 
   if (moodAvg != null) howYouAreDoing.push(`Mood average: ${moodAvg.toFixed(1)} / 10`);
   if (sleepAvg != null) howYouAreDoing.push(`Sleep average: ${sleepAvg.toFixed(1)} / 10`);
   if (fatigueAvg != null) howYouAreDoing.push(`Fatigue average: ${fatigueAvg.toFixed(1)} / 10`);
-  if (!howYouAreDoing.length) howYouAreDoing.push('Not enough scored metrics yet.');
+  if (!howYouAreDoing.length) {
+    howYouAreDoing.push(tr(translate, 'ai.template.noData', undefined, 'Not enough scored metrics yet.'));
+  }
 
   const thingsToWatch: string[] = [];
   if (flareDays > 0 && selected.length > 0 && flareDays / selected.length >= 0.4) {
@@ -177,7 +197,9 @@ export function summarizeLogsForAi(logs: LogEntry[], range: AiRange): AiSummary 
     const direction = cMoodFatigue > 0 ? 'goes up when' : 'goes down when';
     correlations.push(`Mood ${strength} ${direction} fatigue (${cMoodFatigue.toFixed(2)}).`);
   }
-  if (!correlations.length) correlations.push('No strong metric correlations detected in this range yet.');
+  if (!correlations.length) {
+    correlations.push(tr(translate, 'ai.template.noData', undefined, 'No strong metric correlations detected in this range yet.'));
+  }
 
   const groupsThatChangeTogether: string[] = [];
   if (cMoodSleep != null && Math.abs(cMoodSleep) >= 0.35) {

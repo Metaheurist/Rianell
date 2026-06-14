@@ -132,8 +132,7 @@ jobs:
       - name: Sync locale packs to PWA
         run: |
           node scripts/generate-locale-overrides.mjs
-          node scripts/sync-locale-packs-to-pwa.mjs
-          node scripts/sync-policy-pack.mjs
+          node scripts/sync-i18n-assets.mjs
 
       - name: Build PWA vendor bundles + minified web (temp)
         run: npm run build:web:apk
@@ -220,7 +219,10 @@ jobs:
           node scripts/verify-privacy-docs.mjs
           node scripts/verify-policy-packs.mjs
           node scripts/verify-locale-packs.mjs
-          node scripts/verify-supabase-schema-parity.mjs
+          node scripts/verify-prompt-packs.mjs
+          node scripts/verify-no-html-in-locale-packs.mjs
+          node scripts/audit-hardcoded-strings.mjs --check
+          node scripts/verify-no-hardcoded-ui.mjs
           node scripts/verify-csp-connect-src.mjs
           node scripts/verify-no-service-role-in-clients.mjs
           node scripts/verify-no-model-weights-in-git.mjs
@@ -311,8 +313,7 @@ jobs:
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          node scripts/sync-locale-packs-to-pwa.mjs
-          node scripts/sync-policy-pack.mjs
+          node scripts/sync-i18n-assets.mjs
           cd apps/rn-app
           npx expo export --platform android --platform ios --output-dir dist-expo-prod
           npm ls expo-modules-autolinking

@@ -34,11 +34,73 @@
     tier5: { id: MODEL_BASE, link: 'https://huggingface.co/onnx-community/Llama-3.2-1B-Instruct', label: 'Llama 3.2 1B', size: '~670 MB' }
   };
 
-  var MOTD_SYSTEM =
-    'You write one short, simple quote about healthy living for a health tracking app. '
-    + 'Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. '
-    + 'Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. '
-    + 'Reply with only the quote sentence.';
+  var promptPackByLocale = {};
+  var promptPackLoadPromises = {};
+
+  function getActiveLocale() {
+    if (typeof window !== 'undefined' && window.RianellI18n && typeof window.RianellI18n.getLocale === 'function') {
+      return window.RianellI18n.getLocale() || 'en-GB';
+    }
+    return 'en-GB';
+  }
+
+  function promptString(pack, key, fallback) {
+    if (pack && pack.strings && typeof pack.strings[key] === 'string') return pack.strings[key];
+    return fallback;
+  }
+
+  function loadPromptPack(locale) {
+    var loc = locale || 'en-GB';
+    if (window.__rianellPromptPack && window.__rianellPromptPack.locale === loc) {
+      promptPackByLocale[loc] = window.__rianellPromptPack;
+      return Promise.resolve(window.__rianellPromptPack);
+    }
+    if (promptPackByLocale[loc]) return Promise.resolve(promptPackByLocale[loc]);
+    if (promptPackLoadPromises[loc]) return promptPackLoadPromises[loc];
+    var url = getAppOriginBase() + 'i18n-packs/prompt-packs/v1/' + encodeURIComponent(loc) + '.json';
+    promptPackLoadPromises[loc] = fetch(url, { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (data) {
+          promptPackByLocale[loc] = data;
+          window.__rianellPromptPack = data;
+          return data;
+        }
+        if (loc !== 'en-GB') return loadPromptPack('en-GB');
+        return { locale: 'en-GB', strings: {} };
+      })
+      .catch(function () {
+        if (loc !== 'en-GB') return loadPromptPack('en-GB');
+        return { locale: 'en-GB', strings: {} };
+      })
+      .finally(function () { delete promptPackLoadPromises[loc]; });
+    return promptPackLoadPromises[loc];
+  }
+
+  function buildMotdPromptFromPack(pack, theme) {
+    var system = promptString(pack, 'motd.system',
+      'You write one short, simple quote about healthy living for a health tracking app. '
+      + 'Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. '
+      + 'Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. '
+      + 'Reply with only the quote sentence.');
+    var userBase = promptString(pack, 'motd.user', 'Write one healthy-lifestyle quote.');
+    return { system: system, user: theme ? (userBase + ' Theme: ' + theme + '.') : userBase };
+  }
+
+  function buildSummaryPromptFromPack(pack, context) {
+    var system = promptString(pack, 'summary.system',
+      'You summarise health tracking data for the patient in exactly 2 short sentences. '
+      + 'Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. '
+      + 'Reply with only the summary text.');
+    return { system: system, user: 'Data: ' + context };
+  }
+
+  function buildSuggestPromptFromPack(pack, context) {
+    var system = promptString(pack, 'suggest.system',
+      'You write one short sentence for a daily health log note. Compare today to the recent average. '
+      + 'Use only the data provided. Reply with only the note sentence.');
+    return { system: system, user: 'Data: ' + context };
+  }
 
   function llmTierOrSizeToModelId(tierOrSize) {
     if (tierOrSize === 'tier1' || tierOrSize === 'tier2' || tierOrSize === 'small') return MODEL_SMALL;
@@ -367,6 +429,9 @@
           } catch (e2) {
             downloadProgressState.active = false;
             lastDownloadError = (e2 && e2.message) ? String(e2.message) : 'Download failed';
+            if (typeof window !== 'undefined' && typeof window.hideAiModelDownloadProgressUI === 'function') {
+              window.hideAiModelDownloadProgressUI();
+            }
             if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
               window.showToast('AI model download failed. Using text-only fallbacks.', {
                 type: 'error',
@@ -387,6 +452,9 @@
         }
         downloadProgressState.active = false;
         lastDownloadError = (eCpu && eCpu.message) ? String(eCpu.message) : 'Download failed';
+        if (typeof window !== 'undefined' && typeof window.hideAiModelDownloadProgressUI === 'function') {
+          window.hideAiModelDownloadProgressUI();
+        }
         throw eCpu;
       }
     }
@@ -451,6 +519,12 @@
       .trim();
   }
 
+  function wrapUserNoteForLlm(note) {
+    var raw = String(note || '').trim();
+    if (!raw) return '';
+    return '---USER_NOTE---\n' + raw + '\n---END_USER_NOTE---';
+  }
+
   function buildSummaryContext(analysis, options) {
     var parts = [];
     var logs = (options && options.logs) ? options.logs : [];
@@ -500,6 +574,11 @@
       }
     }
 
+    var recentNotes = (logs || []).map(function (l) { return l && l.notes ? String(l.notes).trim() : ''; }).filter(Boolean);
+    if (recentNotes.length > 0) {
+      parts.push(wrapUserNoteForLlm(recentNotes[recentNotes.length - 1]));
+    }
+
     var text = parts.join(' ');
     return text.length > MAX_CONTEXT_CHARS ? text.slice(0, MAX_CONTEXT_CHARS) : text;
   }
@@ -511,11 +590,6 @@
     return text.slice(0, last + 1).trim();
   }
 
-  var SUMMARY_SYSTEM =
-    'You summarise health tracking data for the patient in exactly 2 short sentences. '
-    + 'Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. '
-    + 'Reply with only the summary text.';
-
   async function generateSummaryWithLLM(analysis, options, fallbackNote) {
     var context = buildSummaryContext(analysis, options);
     if (!context || context.length < 10) return fallbackNote;
@@ -526,11 +600,13 @@
     if (cached != null) return cached;
 
     try {
+      var pack = await loadPromptPack(getActiveLocale());
+      var prompts = buildSummaryPromptFromPack(pack, context);
       var timeoutPromise = new Promise(function (_, reject) {
         setTimeout(function () { reject(new Error('Summary LLM timeout')); }, TIMEOUT_MS);
       });
       var text = await Promise.race([
-        runChatInference(SUMMARY_SYSTEM, 'Data: ' + context, {
+        runChatInference(prompts.system, prompts.user, {
           max_new_tokens: 120,
           do_sample: false,
           temperature: 0.2,
@@ -581,12 +657,11 @@
     var line2 = 'Recent 14-day average: ' + avgParts.slice(0, 5).join(', ') + '.';
     var flare = (todayStub.flare === 'Yes') ? ' Flare: Yes.' : ' Flare: No.';
     var text = line1 + ' ' + line2 + flare;
+    if (todayStub.notes && String(todayStub.notes).trim()) {
+      text += ' ' + wrapUserNoteForLlm(todayStub.notes);
+    }
     return text.length > MAX_SUGGEST_CONTEXT_CHARS ? text.slice(0, MAX_SUGGEST_CONTEXT_CHARS) : text;
   }
-
-  var SUGGEST_SYSTEM =
-    'You write one short sentence for a daily health log note. Compare today to the recent average. '
-    + 'Use only the data provided. Reply with only the note sentence.';
 
   async function generateSuggestNoteWithLLM(contextString, fallbackText) {
     if (!contextString || contextString.length < 10) return fallbackText || '';
@@ -598,11 +673,13 @@
 
     async function runSuggest() {
       try {
+        var pack = await loadPromptPack(getActiveLocale());
+        var prompts = buildSuggestPromptFromPack(pack, contextString);
         var timeoutPromise = new Promise(function (_, reject) {
           setTimeout(function () { reject(new Error('Suggest note LLM timeout')); }, TIMEOUT_SUGGEST_MS);
         });
         var text = await Promise.race([
-          runChatInference(SUGGEST_SYSTEM, 'Data: ' + contextString, {
+          runChatInference(prompts.system, prompts.user, {
             max_new_tokens: 60,
             do_sample: false,
             temperature: 0.2,
@@ -681,14 +758,16 @@
     ];
     var theme = themes[Math.floor(Math.random() * themes.length)];
     var nonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
-    var userPrompt = 'Write one simple healthy-lifestyle quote. Theme: ' + theme + '. Unique: ' + nonce + '.';
 
     try {
+      var pack = await loadPromptPack(getActiveLocale());
+      var motdPrompts = buildMotdPromptFromPack(pack, theme);
+      var userPrompt = motdPrompts.user + ' Unique: ' + nonce + '.';
       var timeoutPromise = new Promise(function (_, reject) {
         setTimeout(function () { reject(new Error('MOTD LLM timeout')); }, TIMEOUT_MOTD_MS);
       });
       var text = await Promise.race([
-        runChatInference(MOTD_SYSTEM, userPrompt, {
+        runChatInference(motdPrompts.system, userPrompt, {
           max_new_tokens: 40,
           do_sample: true,
           temperature: 0.65,

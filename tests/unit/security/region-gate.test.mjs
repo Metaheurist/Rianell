@@ -31,6 +31,7 @@ test('PWA gates runAppInit behind privacy gate', () => {
   const appJs = readFileSync('apps/pwa-webapp/app.js', 'utf8');
   assert.match(appJs, /startAppAfterPrivacyGate/);
   assert.match(appJs, /RianellPrivacy\.awaitGateReady/);
+  assert.match(appJs, /__rianellRunAppInit/);
 });
 
 test('PWA index.html includes region gate overlay', () => {

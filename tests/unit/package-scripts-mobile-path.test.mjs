@@ -6,8 +6,7 @@ const pkg = JSON.parse(fs.readFileSync(new URL('../../package.json', import.meta
 
 test('bundle:mobile:prod syncs packs before expo export', () => {
   const script = String(pkg?.scripts?.['bundle:mobile:prod'] || '');
-  assert.match(script, /sync-locale-packs-to-pwa/);
-  assert.match(script, /sync-policy-pack/);
+  assert.match(script, /sync-i18n-assets/);
   assert.match(script, /apps\/rn-app/);
 });
 
@@ -20,6 +19,7 @@ test('dev script targets RN Expo, not Capacitor', () => {
 test('build:web syncs tokens before vendor and site build', () => {
   const buildWeb = String(pkg?.scripts?.['build:web'] || '');
   assert.match(buildWeb, /sync-tokens-to-pwa/);
+  assert.match(buildWeb, /sync-i18n-assets/);
   assert.match(buildWeb, /build-pwa-vendor/);
   assert.match(buildWeb, /build-site\.mjs/);
 });
