@@ -50,7 +50,7 @@ test('log wizard can progress through stressors and save', async () => {
 
   fireEvent.press(getAllByText('Nausea')[0]);
   fireEvent.press(getByLabelText('Next step'));
-  await findByText('Energy & mental clarity');
+  await findByText('Energy and mental clarity');
   fireEvent.press(getByText('Mental Clarity'));
   fireEvent.press(getByLabelText('Next step'));
   await findByText('Stress & triggers');
