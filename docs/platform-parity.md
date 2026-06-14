@@ -13,6 +13,20 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Gating:** AI enabled, logged today, ≥3 days in the last 14-day window.
 - **Answer modal:** `homeQuestion` prompt feature in `summary-llm.js` (PWA) and `llm.ts` (RN); medical disclaimer on both platforms.
 
+### v1.69.1 parity note (CI generate-before-coverage)
+
+- **`verify:i18n`:** `generate-locale-overrides.mjs` → `sync-i18n-assets.mjs` → strict translation coverage.
+- **CI:** Unit-tests job mirrors the same generate step before locale/coverage checks.
+
+### v1.69.0 parity note (reproducible Tier A packs)
+
+- **Generate:** `generate-locale-overrides.mjs` applies rule-based MT + exact overrides; locale packs committed at ≤5% en-GB identity.
+- **Maintainer:** `merge-tier-a-overrides-from-packs.mjs`, `build-tier-a-exact-overrides.mjs --locale=…`.
+
+### v1.68.1 parity note (gitleaks allowlist)
+
+- **Security:** `.gitleaks.toml` allowlists i18n translation paths (password UI labels are not secrets).
+
 ### v1.68.0 parity note (LC-19 release gates)
 
 - **CI:** `verify-translation-coverage.mjs --strict` in CI and `npm run verify:i18n`.
