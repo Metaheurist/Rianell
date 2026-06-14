@@ -20601,62 +20601,8 @@ function runRianellBootAfterDomReady() {
     }
   }
 
-  function revealBootShellAfterBenchmark(tier, platformType, result, meta) {
-    setOrbitLoadingProgress(100);
-    if (
-      result &&
-      typeof window !== 'undefined' &&
-      window.DeviceBenchmark &&
-      typeof window.DeviceBenchmark.saveBenchmarkResult === 'function' &&
-      !(meta && meta.cached)
-    ) {
-      try { window.DeviceBenchmark.saveBenchmarkResult(result); } catch (e) {}
-    }
-    function revealAndStart() {
-      if (loadingOverlay) {
-        loadingOverlay.classList.add('hidden');
-        document.body.classList.remove('loading');
-      }
-      document.body.classList.add('loaded');
-      if (meta && (meta.cached || meta.heuristic)) {
-        startAppAfterPrivacyGate();
-        if (meta.heuristic && window.DeviceBenchmark &&
-            typeof window.DeviceBenchmark.scheduleBackgroundFullBenchmark === 'function') {
-          setTimeout(function () {
-            try { window.DeviceBenchmark.scheduleBackgroundFullBenchmark(); } catch (e) {}
-          }, 8000);
-        }
-        return;
-      }
-      if (openPerfBenchmarkModal({
-        mode: 'firstRun',
-        result: result || { platformType: platformType, tier: tier },
-        onContinue: function () {
-          startAppAfterPrivacyGate();
-        }
-      }) === false) {
-        startAppAfterPrivacyGate();
-      }
-    }
-    if (meta && (meta.cached || meta.heuristic)) {
-      revealAndStart();
-      return;
-    }
-    finishLoadingOverlayWithBurst(revealAndStart);
-  }
-
-  var DB = (typeof window !== 'undefined' && window.DeviceBenchmark) ? window.DeviceBenchmark : null;
-  if (DB && typeof DB.shouldUseHeuristicBoot === 'function' && DB.shouldUseHeuristicBoot() &&
-      typeof DB.isBenchmarkReady === 'function' && !DB.isBenchmarkReady()) {
-    var quickPt = typeof DB.getPlatformType === 'function' ? DB.getPlatformType() : 'desktop';
-    var quickTier = typeof DB.getPerformanceTier === 'function' ? DB.getPerformanceTier() : 3;
-    var quickResult = { version: 4, platformType: quickPt, tier: quickTier, heuristic: true, ts: Date.now() };
-    if (typeof console !== 'undefined' && console.log) {
-      console.log('[Benchmark] inline heuristic boot', 'tier', quickTier, 'platformType', quickPt);
-    }
-    revealBootShellAfterBenchmark(quickTier, quickPt, quickResult, { cached: false, heuristic: true });
-  } else if (DB && typeof DB.runBenchmarkIfNeeded === 'function') {
-    DB.runBenchmarkIfNeeded(
+  if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.runBenchmarkIfNeeded === 'function') {
+    window.DeviceBenchmark.runBenchmarkIfNeeded(
       function (pct, meta) {
         var label = meta && meta.label ? (' · ' + meta.label) : '';
         var measureLabel = (typeof tUi === 'function' ? tUi('common.measuring.performance') : 'Measuring performance…');
@@ -20664,7 +20610,40 @@ function runRianellBootAfterDomReady() {
         if (loadingTextEl) loadingTextEl.textContent = measureLabel + (pct > 0 ? ' ' + pct + '%' : '') + label;
         setOrbitLoadingProgress(pct);
       },
-      revealBootShellAfterBenchmark
+      function (tier, platformType, result, meta) {
+        setOrbitLoadingProgress(100);
+        if (
+          result &&
+          typeof window !== 'undefined' &&
+          window.DeviceBenchmark &&
+          typeof window.DeviceBenchmark.saveBenchmarkResult === 'function'
+        ) {
+          try { window.DeviceBenchmark.saveBenchmarkResult(result); } catch (e) {}
+        }
+        finishLoadingOverlayWithBurst(function () {
+          if (loadingOverlay) {
+            loadingOverlay.classList.add('hidden');
+            document.body.classList.remove('loading');
+          }
+          /* index.html hides body > *:not(#loadingOverlay) until .loaded - without this, the first-run
+             benchmark modal is visibility:hidden and Continue never fires; runAppInit never runs (stuck). */
+          document.body.classList.add('loaded');
+          /* Show results modal only after a fresh benchmark — skip when reusing cached tier/profile. */
+          if (meta && meta.cached) {
+            startAppAfterPrivacyGate();
+            return;
+          }
+          if (openPerfBenchmarkModal({
+            mode: 'firstRun',
+            result: result || { platformType: platformType, tier: tier },
+            onContinue: function () {
+              startAppAfterPrivacyGate();
+            }
+          }) === false) {
+            startAppAfterPrivacyGate();
+          }
+        });
+      }
     );
   } else {
     startAppAfterPrivacyGate();

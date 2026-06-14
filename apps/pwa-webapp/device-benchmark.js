@@ -926,24 +926,6 @@
       if (typeof onComplete === 'function') onComplete(cached.tier, cached.platformType, cached, { cached: true });
       return;
     }
-    if (shouldUseHeuristicBoot()) {
-      var pt = getPlatformType();
-      var tier = getTierFromHeuristic();
-      var quick = {
-        version: BENCHMARK_VERSION,
-        platformType: pt,
-        tier: tier,
-        heuristic: true,
-        ts: Date.now()
-      };
-      if (typeof console !== 'undefined' && console.log) {
-        console.log('[Benchmark] heuristic quick-start', 'tier', tier, 'platformType', pt);
-      }
-      saveBenchmarkResult(quick);
-      if (typeof onProgress === 'function') onProgress(100, { phase: 'heuristic', label: 'Quick estimate' });
-      if (typeof onComplete === 'function') onComplete(tier, pt, quick, { cached: false, heuristic: true });
-      return;
-    }
     if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] running suite (no cache)');
     if (typeof onProgress === 'function') onProgress(0, { phase: 'starting' });
     runSuiteAsync({ totalCapMs: DEFAULT_TOTAL_CAP_MS }, onProgress, function (resultObj) {
@@ -951,39 +933,6 @@
       _lastPlatformType = resultObj.platformType;
       if (typeof onComplete === 'function') onComplete(resultObj.tier, resultObj.platformType, resultObj, { cached: false });
     });
-  }
-
-  function shouldUseHeuristicBoot() {
-    try {
-      if (typeof URLSearchParams !== 'undefined') {
-        var params = new URLSearchParams(window.location.search);
-        if (params.has('benchmark_test')) return false;
-      }
-      var cap = (typeof window !== 'undefined' && window.Capacitor) ||
-        (typeof window !== 'undefined' && window.parent && window.parent.Capacitor);
-      if (cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform()) return false;
-      return true;
-    } catch (e) {
-      return true;
-    }
-  }
-
-  function scheduleBackgroundFullBenchmark() {
-    var run = function () {
-      if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] background full suite');
-      runSuiteAsync({ totalCapMs: DEFAULT_TOTAL_CAP_MS }, function () {}, function (resultObj) {
-        saveBenchmarkResult(resultObj);
-        if (typeof window !== 'undefined' && window.PerformanceUtils &&
-            typeof window.PerformanceUtils.applyBenchmarkToPlatform === 'function') {
-          try { window.PerformanceUtils.applyBenchmarkToPlatform(); } catch (e) {}
-        }
-      });
-    };
-    if (typeof requestIdleCallback !== 'undefined') {
-      requestIdleCallback(run, { timeout: 12000 });
-    } else {
-      setTimeout(run, 3000);
-    }
   }
 
   function getFullProfile(platformType, tier, overrides) {
@@ -1070,8 +1019,6 @@
       getLegacyDeviceClass: getLegacyDeviceClass,
       isBenchmarkReady: isBenchmarkReady,
       runBenchmarkIfNeeded: runBenchmarkIfNeeded,
-      shouldUseHeuristicBoot: shouldUseHeuristicBoot,
-      scheduleBackgroundFullBenchmark: scheduleBackgroundFullBenchmark,
       saveBenchmarkResult: saveBenchmarkResult,
       clearBenchmarkCache: clearBenchmarkCache,
       getCachedResult: getCachedResult
