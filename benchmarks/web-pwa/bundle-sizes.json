@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-06-13T16:56:01.295Z",
+  "generatedAt": "2026-06-14T01:02:24.382Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3159587,
-    "cssBytes": 383168,
-    "jsGzipBytes": 622632,
-    "cssGzipBytes": 67481
+    "jsBytes": 3383630,
+    "cssBytes": 389974,
+    "jsGzipBytes": 655682,
+    "cssGzipBytes": 68761
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1142275,
-      "gzipBytes": 193145
+      "bytes": 1170016,
+      "gzipBytes": 197149
     },
     {
-      "file": "ci-minified/site/app.d6e0ad4d4900.min.js",
-      "bytes": 686514,
-      "gzipBytes": 134875
+      "file": "ci-minified/site/app.0d223b63cccc.min.js",
+      "bytes": 704695,
+      "gzipBytes": 137861
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -24,9 +24,9 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.e21403dc00c2.css",
-      "bytes": 369093,
-      "gzipBytes": 63686
+      "file": "ci-minified/site/styles.2744f485b3f9.css",
+      "bytes": 375899,
+      "gzipBytes": 64966
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -34,24 +34,29 @@
       "gzipBytes": 38136
     },
     {
+      "file": "ci-minified/site/vendor/rianell-shared.js",
+      "bytes": 104207,
+      "gzipBytes": 15641
+    },
+    {
       "file": "ci-minified/site/cloud-sync.js",
-      "bytes": 98307,
-      "gzipBytes": 18483
+      "bytes": 102203,
+      "gzipBytes": 19054
     },
     {
       "file": "ci-minified/site/export-utils.js",
-      "bytes": 67880,
-      "gzipBytes": 12557
-    },
-    {
-      "file": "ci-minified/site/device-benchmark.js",
-      "bytes": 60844,
-      "gzipBytes": 9693
+      "bytes": 69270,
+      "gzipBytes": 12704
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 44805,
-      "gzipBytes": 7955
+      "bytes": 65574,
+      "gzipBytes": 10957
+    },
+    {
+      "file": "ci-minified/site/device-benchmark.js",
+      "bytes": 60929,
+      "gzipBytes": 9710
     },
     {
       "file": "ci-minified/site/performance-utils.js",
@@ -59,14 +64,19 @@
       "gzipBytes": 7485
     },
     {
+      "file": "ci-minified/site/ui-feedback.js",
+      "bytes": 33954,
+      "gzipBytes": 5408
+    },
+    {
+      "file": "ci-minified/site/privacy-region.js",
+      "bytes": 29305,
+      "gzipBytes": 4203
+    },
+    {
       "file": "ci-minified/site/import-utils.js",
       "bytes": 24797,
       "gzipBytes": 5284
-    },
-    {
-      "file": "ci-minified/site/ui-feedback.js",
-      "bytes": 24653,
-      "gzipBytes": 4071
     },
     {
       "file": "ci-minified/site/event-handlers.js",
@@ -84,9 +94,9 @@
       "gzipBytes": 4020
     },
     {
-      "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 15053,
-      "gzipBytes": 2947
+      "file": "ci-minified/site/i18n-pwa.js",
+      "bytes": 13912,
+      "gzipBytes": 2171
     },
     {
       "file": "ci-minified/site/logs-idb.js",
@@ -95,13 +105,18 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-ai-engine.js",
-      "bytes": 12047,
-      "gzipBytes": 2849
+      "bytes": 13361,
+      "gzipBytes": 3084
     },
     {
       "file": "ci-minified/site/styles-charts.css",
       "bytes": 11044,
       "gzipBytes": 2619
+    },
+    {
+      "file": "ci-minified/site/model-chunk-loader.js",
+      "bytes": 9311,
+      "gzipBytes": 1884
     },
     {
       "file": "ci-minified/site/device-module.js",
@@ -140,13 +155,13 @@
     },
     {
       "file": "ci-minified/site/sw.js",
-      "bytes": 4687,
-      "gzipBytes": 1754
+      "bytes": 4741,
+      "gzipBytes": 1780
     },
     {
       "file": "ci-minified/site/supabase-config.js",
-      "bytes": 4102,
-      "gzipBytes": 1358
+      "bytes": 3689,
+      "gzipBytes": 1108
     },
     {
       "file": "ci-minified/site/print-styles.css",
@@ -159,14 +174,14 @@
       "gzipBytes": 685
     },
     {
+      "file": "ci-minified/site/supabase-config.example.js",
+      "bytes": 849,
+      "gzipBytes": 451
+    },
+    {
       "file": "ci-minified/site/workers/io-worker.js",
       "bytes": 849,
       "gzipBytes": 384
-    },
-    {
-      "file": "ci-minified/site/supabase-config.example.js",
-      "bytes": 806,
-      "gzipBytes": 428
     },
     {
       "file": "ci-minified/site/css/tokens.css",
