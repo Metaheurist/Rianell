@@ -84,8 +84,8 @@ export function SettingsScreen({
   onChangePrefs: (next: Preferences) => void;
 }) {
   const theme = useTheme();
-  const { t: tr } = useT();
-  const paneTitles = PANE_TITLE_KEYS.map((key) => tr(key));
+  const { t } = useT();
+  const paneTitles = PANE_TITLE_KEYS.map((key) => t(key));
   const { width } = useWindowDimensions();
   /** Sized like web `settings-carousel-dots` (clamp ~22–32px), shared across nine pane icons. */
   const settingsPaneIconBtnSize = Math.min(36, Math.max(26, (width - 48 - 8 * 4) / 9));
@@ -236,7 +236,7 @@ export function SettingsScreen({
 
   async function onExportLogs() {
     if (prefs.demoMode) {
-      Alert.alert('Demo Mode', 'Data export is disabled in demo mode. Demo data is not saved or synced.');
+      Alert.alert(t('settings.demo.title'), t('settings.demo.exportDisabled'));
       return;
     }
     setExportBusy(true);
@@ -245,8 +245,8 @@ export function SettingsScreen({
       const json = serializeLogsForExport(logs);
       await Share.share({ message: json, title: 'Rianell health logs (JSON)' });
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Export failed';
-      Alert.alert('Export', msg);
+      const msg = e instanceof Error ? e.message : t('settings.export.failed');
+      Alert.alert(t('settings.export.title'), msg);
     } finally {
       setExportBusy(false);
     }
@@ -254,7 +254,7 @@ export function SettingsScreen({
 
   async function onPrintLogs() {
     if (prefs.demoMode) {
-      Alert.alert('Demo Mode', 'Print export is disabled in demo mode.');
+      Alert.alert(t('settings.demo.title'), t('settings.demo.printDisabled'));
       return;
     }
     setPrintBusy(true);
@@ -262,8 +262,8 @@ export function SettingsScreen({
       const logs = await loadLogs();
       await printOrShareLogs(logs);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Print failed';
-      Alert.alert('Print', msg);
+      const msg = e instanceof Error ? e.message : t('settings.print.failed');
+      Alert.alert(t('settings.print.title'), msg);
     } finally {
       setPrintBusy(false);
     }
@@ -271,7 +271,7 @@ export function SettingsScreen({
 
   async function applyImport(mode: 'replace' | 'append') {
     if (prefs.demoMode) {
-      Alert.alert('Demo Mode', 'Import is disabled in demo mode. Turn off demo mode first.');
+      Alert.alert(t('settings.demo.title'), t('settings.demo.importDisabled'));
       return;
     }
     try {
@@ -284,32 +284,32 @@ export function SettingsScreen({
       }
       setImportOpen(false);
       setImportText('');
-      Alert.alert('Import', 'Logs saved.');
+      Alert.alert(t('settings.import.title'), t('settings.import.saved'));
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Import failed';
-      Alert.alert('Import', msg);
+      const msg = e instanceof Error ? e.message : t('settings.import.failed');
+      Alert.alert(t('settings.import.title'), msg);
     }
   }
 
   function clearAllLogs() {
     if (prefs.demoMode) {
-      Alert.alert('Demo Mode', 'Turn off demo mode before clearing data.');
+      Alert.alert(t('settings.demo.title'), t('settings.demo.clearDisabled'));
       return;
     }
     Alert.alert(
-      'Clear all data?',
-      'This removes every health log on this device. This cannot be undone.',
+      t('settings.data.clearAll.title'),
+      t('settings.data.clearAll.confirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Clear',
+          text: t('settings.data.clearAll.action'),
           style: 'destructive',
           onPress: async () => {
             try {
               await saveLogs([]);
-              Alert.alert('Cleared', 'All health logs were removed from this device.');
+              Alert.alert(t('common.success'), t('settings.data.clearAll.cleared'));
             } catch (e) {
-              Alert.alert('Error', e instanceof Error ? e.message : 'Could not clear data');
+              Alert.alert(t('common.error'), e instanceof Error ? e.message : t('settings.data.clearAll.failed'));
             }
           },
         },
@@ -323,12 +323,17 @@ export function SettingsScreen({
       const next = await runAndCacheBenchmark();
       setBenchmark(next);
       Alert.alert(
-        'Performance benchmark',
-        `Tier ${next.tier} (${next.deviceClass})\nRecommended model: ${next.llmModelSize}\nScore: ${next.scoreMs.toFixed(1)} ms`
+        t('settings.benchmark.title'),
+        t('settings.benchmark.result', {
+          tier: String(next.tier),
+          deviceClass: next.deviceClass,
+          model: next.llmModelSize,
+          score: next.scoreMs.toFixed(1),
+        })
       );
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Benchmark failed';
-      Alert.alert('Performance benchmark', msg);
+      const msg = e instanceof Error ? e.message : t('settings.benchmark.failed');
+      Alert.alert(t('settings.benchmark.title'), msg);
     } finally {
       setBenchmarkBusy(false);
     }
@@ -341,15 +346,15 @@ export function SettingsScreen({
       if (next) {
         await enableDemoMode();
         onChangePrefs({ ...prefs, demoMode: true });
-        Alert.alert('Demo Mode', 'Demo mode enabled. Sample logs loaded for exploration.');
+        Alert.alert(t('settings.demo.title'), t('settings.demo.enabled'));
       } else {
         await disableDemoMode();
         onChangePrefs({ ...prefs, demoMode: false });
-        Alert.alert('Demo Mode', 'Demo mode disabled. Previous logs restored.');
+        Alert.alert(t('settings.demo.title'), t('settings.demo.disabled'));
       }
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Could not update demo mode.';
-      Alert.alert('Demo Mode', msg);
+      const msg = e instanceof Error ? e.message : t('settings.demo.updateFailed');
+      Alert.alert(t('settings.demo.title'), msg);
     } finally {
       setDemoBusy(false);
     }
@@ -360,14 +365,14 @@ export function SettingsScreen({
       const status = await Permissions.request('notifications');
       setNotificationPermission(status);
       if (status === 'granted') {
-        Alert.alert('Notifications', 'Notification permission granted.');
+        Alert.alert(t('settings.notifications.title'), t('settings.notifications.granted'));
       } else if (status === 'denied') {
-        Alert.alert('Notifications', 'Permission denied. You can retry or update it in system settings.');
+        Alert.alert(t('settings.notifications.title'), t('settings.notifications.denied'));
       } else {
-        Alert.alert('Notifications', 'Notifications are unavailable on this runtime.');
+        Alert.alert(t('settings.notifications.title'), t('settings.notifications.unavailable'));
       }
     } catch {
-      Alert.alert('Notifications', 'Could not request notification permission.');
+      Alert.alert(t('settings.notifications.title'), t('settings.notifications.requestFailed'));
     }
   }
 
@@ -513,7 +518,7 @@ export function SettingsScreen({
         {/* Pane 0 — Privacy & region (web pane 1) */}
         <View style={[styles.paneOuter, { width }]}>
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
-            <Section title={tr('settings.privacy.title')}>
+            <Section title={t('settings.privacy.title')}>
               <SettingsPrivacyRegionPane prefs={prefs} onChangePrefs={onChangePrefs} />
             </Section>
           </ScrollView>
@@ -525,27 +530,27 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title={tr('settings.personal.title')}>
+            <Section title={t('settings.personal.title')}>
 
               <Hint>Matches web Settings → first carousel pane (account + Supabase).</Hint>
 
-              <Row label="Your name">
+              <Row label={t('settings.personal.nameLabel')}>
                 <TextInput
                   value={prefs.userName}
                   onChangeText={(userName) => onChangePrefs({ ...prefs, userName })}
-                  accessibilityLabel="Your name"
-                  placeholder="Optional"
+                  accessibilityLabel={t('settings.personal.nameLabel')}
+                  placeholder={t('settings.personal.namePlaceholder')}
                   placeholderTextColor={`${theme.tokens.color.text}88`}
                   style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
                 />
               </Row>
 
-              <Row label="Medical condition">
+              <Row label={t('settings.personal.conditionLabel')}>
                 <TextInput
                   value={prefs.medicalCondition}
                   onChangeText={(medicalCondition) => onChangePrefs({ ...prefs, medicalCondition })}
-                  accessibilityLabel="Medical condition"
-                  placeholder="Optional"
+                  accessibilityLabel={t('settings.personal.conditionLabel')}
+                  placeholder={t('settings.personal.namePlaceholder')}
                   placeholderTextColor={`${theme.tokens.color.text}88`}
                   style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
                 />
@@ -590,9 +595,9 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title={tr('settings.ai.title')}>
+            <Section title={t('settings.ai.title')}>
 
-              <Row label="Enable AI features & Goals">
+              <Row label={t('settings.ai.enableFeatures')}>
 
                 <Switch
 
@@ -720,7 +725,7 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title={tr('settings.display.title')}>
+            <Section title={t('settings.display.title')}>
 
               <Hint>Daily reminders and notification permission (web “Display Options” pane).</Hint>
 
@@ -1208,7 +1213,7 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title={tr('settings.customisation.themeTitle')}>
+            <Section title={t('settings.customisation.themeTitle')}>
 
               <Row label="Appearance mode">
 
@@ -1258,7 +1263,7 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title={tr('settings.accessibility.title')}>
+            <Section title={t('settings.accessibility.title')}>
 
               <Row label="Large text">
 
@@ -1384,7 +1389,7 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title={tr('settings.dataOptions.title')}>
+            <Section title={t('settings.dataOptions.title')}>
 
               <Row label="Demo mode">
 
@@ -1424,7 +1429,7 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title={tr('settings.performance.title')}>
+            <Section title={t('settings.performance.title')}>
 
               <Row label="UI animations">
                 <Switch
@@ -1546,7 +1551,7 @@ export function SettingsScreen({
 
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
 
-            <Section title={tr('settings.dataManagement.title')}>
+            <Section title={t('settings.dataManagement.title')}>
 
               <SettingsAppInstallSection />
 
@@ -1662,7 +1667,7 @@ export function SettingsScreen({
               },
             ]}
           >
-            <Text style={[styles.modalTitle, { color: theme.tokens.color.text, fontSize: theme.font(17) }]}>Import JSON</Text>
+            <Text style={[styles.modalTitle, { color: theme.tokens.color.text, fontSize: theme.font(17) }]}>{t('logs.import')}</Text>
             <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
               Paste a JSON array of log entries (same shape as web export).
             </Text>
@@ -1677,7 +1682,7 @@ export function SettingsScreen({
             />
             <View style={styles.modalActions}>
               <Pressable style={styles.modalBtn} onPress={() => setImportOpen(false)} accessibilityRole="button">
-                <Text style={[styles.dataBtnText, { color: theme.tokens.color.text }]}>Cancel</Text>
+                <Text style={[styles.dataBtnText, { color: theme.tokens.color.text }]}>{t('common.cancel')}</Text>
               </Pressable>
               <Pressable
                 style={styles.modalBtn}
@@ -1690,9 +1695,9 @@ export function SettingsScreen({
               <Pressable
                 style={styles.modalBtn}
                 onPress={() => {
-                  Alert.alert('Replace all logs?', 'This will replace every log on this device.', [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Replace', style: 'destructive', onPress: () => void applyImport('replace') },
+                  Alert.alert(t('settings.import.replaceTitle'), t('settings.import.replaceBody'), [
+                    { text: t('common.cancel'), style: 'cancel' },
+                    { text: t('settings.import.replaceAction'), style: 'destructive', onPress: () => void applyImport('replace') },
                   ]);
                 }}
                 accessibilityRole="button"

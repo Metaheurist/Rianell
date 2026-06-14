@@ -24,6 +24,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Circle, Path } from 'react-native-svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../theme/ThemeProvider';
+import { useT } from '../i18n/I18nProvider';
 import type { MainTabParamList, RootStackParamList } from '../navigation/RootNavigator';
 import { loadLogs } from '../storage/logs';
 import type { Preferences } from '../storage/preferences';
@@ -87,10 +88,12 @@ function HomeMotdHeartbeat({
   motd,
   theme,
   latestBpm,
+  t,
 }: {
   motd: string;
   theme: ReturnType<typeof useTheme>;
   latestBpm: number | null;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }) {
   const reduceMotion = useReduceMotionFlag();
   const light = theme.mode === 'light';
@@ -222,7 +225,7 @@ function HomeMotdHeartbeat({
   if (light || reduceMotion) {
     return (
       <>
-        <Text style={[styles.motd, { color: textColor, fontSize: theme.font(13) }]}>{motd || 'Loading AI message...'}</Text>
+        <Text style={[styles.motd, { color: textColor, fontSize: theme.font(13) }]}>{motd || t('home.motd.loading')}</Text>
         <View style={styles.ecgWrap} accessibilityElementsHidden>
           <Svg width="100%" height={48} viewBox="0 0 400 60" preserveAspectRatio="xMidYMid meet">
             <Path
@@ -248,7 +251,7 @@ function HomeMotdHeartbeat({
       >
         <Animated.View style={{ transform: [{ perspective: 900 }, { rotateX: spinRotate }] }}>
           <Animated.View style={{ transform: [{ rotate: swayRotate }] }}>
-            <Text style={[styles.motd, { color: textColor, fontSize: theme.font(13) }]}>{motd || 'Loading AI message...'}</Text>
+            <Text style={[styles.motd, { color: textColor, fontSize: theme.font(13) }]}>{motd || t('home.motd.loading')}</Text>
           </Animated.View>
         </Animated.View>
       </Pressable>
@@ -289,6 +292,7 @@ function TargetBullseyeIcon({ color }: { color: string }) {
 
 export function HomeScreen({ prefs }: { prefs: Preferences }) {
   const theme = useTheme();
+  const { t, locale } = useT();
   const tabBarHeight = useBottomTabBarHeight();
   const navigation = useNavigation<HomeNav>();
   const bg = theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)' ? '#ffffff' : theme.tokens.color.background;
@@ -332,11 +336,11 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
     loadLogs()
       .then(async (logs) => {
         const benchmark = await loadCachedBenchmark().catch(() => null);
-        return generateMotd(prefs.performance.preferredLlmModelSize, benchmark, logs.length);
+        return generateMotd(prefs.performance.preferredLlmModelSize, benchmark, logs.length, locale);
       })
       .then(setMotd)
       .catch(() => setMotd('Consistency beats intensity. One useful entry today is enough.'));
-  }, [prefs.performance.preferredLlmModelSize]);
+  }, [locale, prefs.performance.preferredLlmModelSize]);
 
   useFocusEffect(
     useCallback(() => {
@@ -360,7 +364,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
   const onSubmitBugReport = useCallback(async () => {
     const description = bugDescription.trim();
     if (!description) {
-      Alert.alert('Bug report', 'Please describe what happened.');
+      Alert.alert(t('common.bugReport.title'), t('common.bugReport.validation'));
       return;
     }
     setBugSubmitting(true);
@@ -383,17 +387,17 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
       setBugSteps('');
       setBugExpected('');
       setBugActual('');
-      Alert.alert('Bug report', 'Thanks - your bug report was submitted.');
+      Alert.alert(t('common.bugReport.title'), t('common.bugReport.submitted'));
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Failed to submit bug report.';
-      Alert.alert('Bug report', msg, [
-        { text: 'Open SECURITY.md', onPress: () => void Linking.openURL(SECURITY_DOC_URL) },
-        { text: 'Close', style: 'cancel' },
+      const msg = e instanceof Error ? e.message : t('common.bugReport.failed');
+      Alert.alert(t('common.bugReport.title'), msg, [
+        { text: t('common.bugReport.openSecurity'), onPress: () => void Linking.openURL(SECURITY_DOC_URL) },
+        { text: t('common.close'), style: 'cancel' },
       ]);
     } finally {
       setBugSubmitting(false);
     }
-  }, [bugActual, bugDescription, bugExpected, bugSteps, bugTitle]);
+  }, [bugActual, bugDescription, bugExpected, bugSteps, bugTitle, t]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
@@ -422,7 +426,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
             onPress={onSettings}
             style={({ pressed }) => [styles.chromeBtn, chromeShadow(accent), { borderColor: accent, opacity: pressed ? 0.88 : 1 }]}
             accessibilityRole="button"
-            accessibilityLabel="Settings"
+            accessibilityLabel={t('nav.settings')}
           >
             <Ionicons name="settings-outline" size={22} color={accent} />
           </Pressable>
@@ -433,23 +437,30 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
         <Text style={[styles.title, { color: accent, fontSize: theme.font(22) }]}>Rianell</Text>
         <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
           {loggedToday === null
-            ? 'Loading today’s status…'
+            ? t('home.status.loadingToday')
             : loggedToday
-              ? 'You have logged today. Open View logs to browse or edit entries.'
-              : 'No log for today yet. Tap + to record how you feel.'}
+              ? t('home.status.loggedTodayDetail')
+              : t('home.status.notLoggedTodayDetail')}
         </Text>
-        <HomeMotdHeartbeat motd={motd} theme={theme} latestBpm={latestBpm} />
+        <HomeMotdHeartbeat motd={motd} theme={theme} latestBpm={latestBpm} t={t} />
       </View>
 
-      <View style={styles.card} accessibilityLabel="Goals progress">
-        <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>Goals progress</Text>
+      <View style={styles.card} accessibilityLabel={t('home.goals.title')}>
+        <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.goals.title')}</Text>
         <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-          Steps target: {prefs.goals.steps.toLocaleString()} · Hydration: {prefs.goals.hydration} glasses · Sleep score:{' '}
-          {prefs.goals.sleepScore}/10 · Good days/week: {prefs.goals.goodDaysPerWeek}
+          {t('home.goals.summary', {
+            steps: prefs.goals.steps.toLocaleString(),
+            hydration: String(prefs.goals.hydration),
+            sleepScore: String(prefs.goals.sleepScore),
+            goodDays: String(prefs.goals.goodDaysPerWeek),
+          })}
         </Text>
         <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(13), marginTop: 6 }]}>
-          Wellness targets — mood {prefs.goals.moodTarget}/10 · sleep {prefs.goals.sleepTarget}/10 · fatigue{' '}
-          {prefs.goals.fatigueTarget}/10
+          {t('home.goals.wellness', {
+            mood: String(prefs.goals.moodTarget),
+            sleep: String(prefs.goals.sleepTarget),
+            fatigue: String(prefs.goals.fatigueTarget),
+          })}
         </Text>
       </View>
 
@@ -458,12 +469,12 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
           onPress={() => navigation.navigate('LogWizard')}
           style={[styles.fab, { backgroundColor: accent }]}
           accessibilityRole="button"
-          accessibilityLabel="Log today, Beta"
+          accessibilityLabel={`${t('home.action.logNow')}, ${t('home.fab.betaBadge')}`}
         >
           <Text style={styles.fabText}>+</Text>
         </Pressable>
         <View style={styles.betaBadge} pointerEvents="none" accessibilityElementsHidden>
-          <Text style={styles.betaBadgeText}>Beta</Text>
+          <Text style={styles.betaBadgeText}>{t('home.fab.betaBadge')}</Text>
         </View>
       </View>
       <Modal visible={bugModalOpen} animationType="fade" transparent onRequestClose={() => setBugModalOpen(false)}>
@@ -472,7 +483,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
             style={StyleSheet.absoluteFillObject}
             onPress={() => setBugModalOpen(false)}
             accessibilityRole="button"
-            accessibilityLabel="Dismiss"
+            accessibilityLabel={t('motd.dismiss')}
           />
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -480,18 +491,18 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
           >
             <View style={[styles.modalCard, { borderColor: `${accent}44`, backgroundColor: 'rgba(14,18,17,0.98)' }]}>
               <View style={styles.modalHeaderRow}>
-                <Text style={[styles.modalTitle, { color: accent, fontSize: theme.font(18) }]}>Report a bug</Text>
+                <Text style={[styles.modalTitle, { color: accent, fontSize: theme.font(18) }]}>{t('home.bugReport.title')}</Text>
                 <Pressable
                   onPress={() => setBugModalOpen(false)}
                   hitSlop={12}
                   accessibilityRole="button"
-                  accessibilityLabel="Close bug report"
+                  accessibilityLabel={t('common.close')}
                 >
                   <Ionicons name="close" size={26} color={theme.tokens.color.text} />
                 </Pressable>
               </View>
               <Text style={[styles.modalLede, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-                Describe what went wrong. Device info and recent app log lines are attached automatically when you submit.
+                {t('home.bugReport.lede')}
               </Text>
               <ScrollView
                 style={styles.modalScroll}
@@ -499,7 +510,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
                 showsVerticalScrollIndicator
                 indicatorStyle={Platform.OS === 'ios' ? 'default' : undefined}
               >
-                <Text style={[styles.fieldLabel, { color: theme.tokens.color.text }]}>Title (optional)</Text>
+                <Text style={[styles.fieldLabel, { color: theme.tokens.color.text }]}>{t('home.bugReport.field.titleOptional')}</Text>
                 <TextInput
                   value={bugTitle}
                   onChangeText={setBugTitle}
@@ -508,7 +519,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
                   style={[styles.input, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
                   accessibilityLabel="Bug title"
                 />
-                <Text style={[styles.fieldLabel, { color: theme.tokens.color.text }]}>Description *</Text>
+                <Text style={[styles.fieldLabel, { color: theme.tokens.color.text }]}>{t('home.bugReport.field.description')}</Text>
                 <TextInput
                   value={bugDescription}
                   onChangeText={setBugDescription}
@@ -518,7 +529,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
                   accessibilityLabel="Bug description"
                   multiline
                 />
-                <Text style={[styles.fieldLabelOptional, { color: theme.tokens.color.text }]}>More detail (optional)</Text>
+                <Text style={[styles.fieldLabelOptional, { color: theme.tokens.color.text }]}>{t('home.bugReport.field.moreDetail')}</Text>
                 <TextInput
                   value={bugSteps}
                   onChangeText={setBugSteps}
@@ -553,16 +564,16 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
                   onPress={() => setBugModalOpen(false)}
                   accessibilityRole="button"
                 >
-                  <Text style={[styles.modalBtnTextSecondary, { color: theme.tokens.color.text }]}>Cancel</Text>
+                  <Text style={[styles.modalBtnTextSecondary, { color: theme.tokens.color.text }]}>{t('common.cancel')}</Text>
                 </Pressable>
                 <Pressable
                   style={[styles.modalBtnPrimary, { backgroundColor: accent, opacity: bugSubmitting ? 0.65 : 1 }]}
                   onPress={() => void onSubmitBugReport()}
                   accessibilityRole="button"
-                  accessibilityLabel="Submit bug report"
+                  accessibilityLabel={t('common.submit')}
                   disabled={bugSubmitting}
                 >
-                  <Text style={styles.modalBtnTextPrimary}>{bugSubmitting ? 'Submitting…' : 'Submit'}</Text>
+                  <Text style={styles.modalBtnTextPrimary}>{bugSubmitting ? t('common.loading.submitting') : t('common.submit')}</Text>
                 </Pressable>
               </View>
             </View>

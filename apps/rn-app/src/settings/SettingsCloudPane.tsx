@@ -51,7 +51,7 @@ export function SettingsCloudPane() {
   async function onSignIn() {
     if (!supabase) return;
     if (!email.trim() || !password) {
-      Alert.alert(t('settings.cloud.signIn'), 'Enter email and password.');
+      Alert.alert(t('settings.cloud.signIn'), t('settings.cloud.enterCredentials'));
       return;
     }
     setBusy(true);
@@ -67,14 +67,14 @@ export function SettingsCloudPane() {
   async function onSignUp() {
     if (!supabase) return;
     if (!email.trim() || !password) {
-      Alert.alert(t('settings.cloud.signUp'), 'Enter email and password.');
+      Alert.alert(t('settings.cloud.signUp'), t('settings.cloud.enterCredentials'));
       return;
     }
     setBusy(true);
     try {
       const { error } = await supabase.auth.signUp({ email: email.trim(), password });
       if (error) Alert.alert(t('settings.cloud.signUp'), error.message);
-      else Alert.alert(t('settings.cloud.signUp'), 'Check your email to verify your account.');
+      else Alert.alert(t('settings.cloud.signUp'), t('settings.cloud.verifyEmail'));
     } finally {
       setBusy(false);
     }
