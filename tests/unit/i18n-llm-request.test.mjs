@@ -5,6 +5,7 @@ import {
   buildMotdPrompt,
   buildSummaryPrompt,
   buildSuggestPrompt,
+  buildHomeQuestionPrompt,
   loadPromptPack,
 } from '../../packages/shared/src/i18n/promptPack.mjs';
 
@@ -57,4 +58,19 @@ test('buildSuggestPrompt wraps context in user message', () => {
   const { system, user } = buildSuggestPrompt('en-GB', 'Today: Mood 6.');
   assert.ok(system.includes('daily health log'));
   assert.equal(user, 'Data: Today: Mood 6.');
+});
+
+test('buildHomeQuestionPrompt and payload support homeQuestion feature', () => {
+  const { system, user } = buildHomeQuestionPrompt('en-GB', 'Question: Why fatigue up?\n\nRange: last 14 days.');
+  assert.ok(system.includes('3–5') || system.includes('3-5') || system.toLowerCase().includes('sentence'));
+  assert.ok(user.includes('Question:'));
+  const payload = buildLlmRequestPayload({
+    feature: 'homeQuestion',
+    model: 'Llama-3.2-1B-Instruct',
+    modelSize: 'tier3',
+    context: user,
+    locale: 'en-GB',
+  });
+  assert.equal(payload.feature, 'homeQuestion');
+  assert.equal(payload.locale, 'en-GB');
 });
