@@ -1,6 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
+import { I18nManager } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
+import { isRtlLocale, resolveActiveLocale } from '@rianell/shared';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import {
@@ -26,6 +28,16 @@ import { I18nProvider } from './src/i18n/I18nProvider';
 export default function App() {
   const [prefs, setPrefs] = useState<Preferences | null>(null);
   const [bootTeam, setBootTeam] = useState(() => getDefaultPreferences().team);
+
+  useEffect(() => {
+    if (!prefs) return;
+    const locale = resolveActiveLocale(prefs);
+    const rtl = isRtlLocale(locale);
+    I18nManager.allowRTL(true);
+    if (I18nManager.isRTL !== rtl) {
+      I18nManager.forceRTL(rtl);
+    }
+  }, [prefs?.uiLocale, prefs?.privacyRegion]);
 
   useEffect(() => {
     installBugReportConsoleCapture();

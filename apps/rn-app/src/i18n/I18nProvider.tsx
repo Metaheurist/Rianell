@@ -6,29 +6,35 @@ import {
   resolveActiveLocale,
   getDefaultLocaleForRegion,
   applyRegionDefaultLocale,
+  isRtlLocale,
+  textDirection,
 } from '@rianell/shared';
 import type { Preferences } from '../storage/preferences';
 
 type Catalog = { locale: string; label: string; strings: Record<string, string> };
 type CatalogMap = Record<string, Catalog>;
 
-// Bundled catalogs (Metro resolves JSON under apps/rn-app/locale-packs/v1/)
+// Bundled catalogs (Metro resolves JSON under apps/rn-app/i18n-packs/locale-packs/v1/)
 const catalogModules: CatalogMap = {
-  'en-GB': require('../../locale-packs/v1/en-GB.json'),
-  'en-US': require('../../locale-packs/v1/en-US.json'),
-  'en-AU': require('../../locale-packs/v1/en-AU.json'),
-  'pt-BR': require('../../locale-packs/v1/pt-BR.json'),
-  'fr-FR': require('../../locale-packs/v1/fr-FR.json'),
-  'de-DE': require('../../locale-packs/v1/de-DE.json'),
-  'es-ES': require('../../locale-packs/v1/es-ES.json'),
-  'it-IT': require('../../locale-packs/v1/it-IT.json'),
-  'pl-PL': require('../../locale-packs/v1/pl-PL.json'),
-  'nl-NL': require('../../locale-packs/v1/nl-NL.json'),
-  'pt-PT': require('../../locale-packs/v1/pt-PT.json'),
+  'en-GB': require('../../i18n-packs/locale-packs/v1/en-GB.json'),
+  'en-US': require('../../i18n-packs/locale-packs/v1/en-US.json'),
+  'en-AU': require('../../i18n-packs/locale-packs/v1/en-AU.json'),
+  'pt-BR': require('../../i18n-packs/locale-packs/v1/pt-BR.json'),
+  'fr-FR': require('../../i18n-packs/locale-packs/v1/fr-FR.json'),
+  'de-DE': require('../../i18n-packs/locale-packs/v1/de-DE.json'),
+  'es-ES': require('../../i18n-packs/locale-packs/v1/es-ES.json'),
+  'it-IT': require('../../i18n-packs/locale-packs/v1/it-IT.json'),
+  'pl-PL': require('../../i18n-packs/locale-packs/v1/pl-PL.json'),
+  'nl-NL': require('../../i18n-packs/locale-packs/v1/nl-NL.json'),
+  'pt-PT': require('../../i18n-packs/locale-packs/v1/pt-PT.json'),
+  ar: require('../../i18n-packs/locale-packs/v1/ar.json'),
+  he: require('../../i18n-packs/locale-packs/v1/he.json'),
 };
 
 type I18nContextValue = {
   locale: string;
+  direction: 'ltr' | 'rtl';
+  isRtl: boolean;
   t: (key: string, params?: Record<string, string | number>) => string;
   localeOptions: { id: string; label: string }[];
   setLocale: (locale: string, source?: Preferences['uiLocaleSource']) => void;
@@ -88,6 +94,8 @@ export function I18nProvider({
   const value = useMemo<I18nContextValue>(
     () => ({
       locale,
+      direction: textDirection(locale),
+      isRtl: isRtlLocale(locale),
       t,
       localeOptions: SHIPPED_LOCALES.map((id) => ({ id, label: localeLabel(id) })),
       setLocale,
@@ -104,6 +112,8 @@ export function useT() {
   if (!ctx) {
     return {
       locale: 'en-GB',
+      direction: 'ltr',
+      isRtl: false,
       t: (key: string) => key,
       localeOptions: [],
       setLocale: () => {},

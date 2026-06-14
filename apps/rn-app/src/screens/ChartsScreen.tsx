@@ -227,7 +227,7 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
       runLayoutMotion();
       setLogs(next);
     } catch {
-      setError('Could not load logs.');
+      setError(t('charts.load.failed'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -252,7 +252,7 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
     void load();
   };
 
-  const summary = useMemo(() => summarizeCharts(logs, range), [logs, range]);
+  const summary = useMemo(() => summarizeCharts(logs, range, { translate: t }), [logs, range, t]);
   const moodPrediction = useMemo(() => {
     const moodSeries = logs
       .filter((e) => typeof e.mood === 'number')
@@ -294,10 +294,10 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
           <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>{t('charts.title')}</Text>
           <Text style={[styles.lead, { color: theme.tokens.color.text, fontSize: theme.font(15) }]}>
             {view === 'balance'
-              ? 'Wellness balance: mood, sleep, and fatigue trends for the selected range.'
+              ? t('charts.lead.balance')
               : view === 'individual'
-                ? 'Each metric listed separately with deltas and mini trend bars.'
-                : 'Overview plus all key metrics with deltas and mini trend bars.'}
+                ? t('charts.lead.individual')
+                : t('charts.lead.combined')}
           </Text>
 
           {loading && !logs.length ? (
@@ -308,11 +308,16 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
             <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{error}</Text>
           ) : null}
 
-          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>View</Text>
+          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('charts.filter.view')}</Text>
           <View style={styles.viewRow}>
             {VIEW_OPTIONS.map((opt) => {
               const selected = opt === view;
-              const label = opt === 'balance' ? 'Balance' : opt === 'individual' ? 'Individual' : 'Combined';
+              const label =
+                opt === 'balance'
+                  ? t('charts.view.balance')
+                  : opt === 'individual'
+                    ? t('charts.view.individual')
+                    : t('charts.view.combined');
               return (
                 <Pressable
                   key={opt}
@@ -347,7 +352,7 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
             })}
           </View>
 
-          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Range</Text>
+          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('charts.filter.range')}</Text>
           <View style={styles.rangeRow}>
             {RANGE_OPTIONS.map((opt) => {
               const selected = opt === range;
@@ -476,7 +481,7 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
               style={[styles.emptyHint, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
               accessibilityLabel="Charts empty state"
             >
-              No log entries in this date range. Log from Home, widen the range, or pull down to refresh.
+              {t('charts.empty.noEntries')}
             </Text>
           ) : (
             trendsForView.map((trend) => (
@@ -509,7 +514,7 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
                         />
                       ))
                     ) : (
-                      <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>No points yet</Text>
+                      <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('charts.empty.noPoints')}</Text>
                     )}
                   </View>
                 ) : null}

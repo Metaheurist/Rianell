@@ -1,8 +1,8 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { HomeScreen } from './HomeScreen';
-import { ThemeProvider } from '../theme/ThemeProvider';
+import { renderWithProviders } from '../test/renderWithProviders';
 import { getDefaultPreferences } from '../storage/preferences';
 
 const mockNavigate = jest.fn();
@@ -43,11 +43,7 @@ import { submitBugReport } from '../utils/submitBugReport';
 
 function renderHome() {
   const prefs = getDefaultPreferences();
-  return render(
-    <ThemeProvider prefs={prefs}>
-      <HomeScreen prefs={prefs} />
-    </ThemeProvider>
-  );
+  return renderWithProviders(<HomeScreen prefs={prefs} />, { prefs });
 }
 
 beforeEach(() => {
@@ -78,7 +74,7 @@ test('FAB navigates to Log wizard', async () => {
   await waitFor(() => {
     expect(loadLogs).toHaveBeenCalled();
   });
-  fireEvent.press(getByLabelText('Log today, Beta'));
+  fireEvent.press(getByLabelText('Log now, Beta'));
   expect(mockNavigate).toHaveBeenCalledWith('LogWizard');
 });
 
@@ -100,7 +96,7 @@ test('header Report a bug opens bug report modal and submits', async () => {
   fireEvent.press(getByLabelText('Report a bug'));
   await findByText('Report a bug');
   fireEvent.changeText(getByLabelText('Bug description'), 'Repro steps from RN test');
-  fireEvent.press(getByLabelText('Submit bug report'));
+  fireEvent.press(getByLabelText('Submit'));
   await waitFor(() => {
     expect(submitBugReport).toHaveBeenCalled();
   });
