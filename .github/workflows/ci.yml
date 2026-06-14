@@ -218,6 +218,7 @@ jobs:
         run: |
           node scripts/verify-privacy-docs.mjs
           node scripts/verify-policy-packs.mjs
+          node scripts/generate-locale-overrides.mjs
           node scripts/verify-locale-packs.mjs
           node scripts/verify-prompt-packs.mjs
           node scripts/verify-no-html-in-locale-packs.mjs
