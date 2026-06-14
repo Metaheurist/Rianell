@@ -19995,7 +19995,7 @@ window.addEventListener('load', () => {
   // Date range and chart section must be set before createCombinedChart (skipRefresh so we don't run createCombinedChart twice)
   if (window.RianellI18n && typeof window.RianellI18n.onLocaleChange === 'function') {
     window.RianellI18n.onLocaleChange(function () {
-      if (typeof window.RianellI18n.applyDocumentI18n === 'function') window.RianellI18n.applyDocumentI18n();
+      // Do not call applyDocumentI18n here — it already ran before notifyLocaleChange and would recurse infinitely.
       if (typeof updateHomeTodayPanel === 'function') updateHomeTodayPanel();
       if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
       if (typeof updateLogWizardChrome === 'function') {

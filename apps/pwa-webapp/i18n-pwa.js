@@ -8,6 +8,7 @@
   var activeLocale = 'en-GB';
   var loadPromise = null;
   var localeChangeListeners = [];
+  var notifyingLocaleChange = false;
 
   function mergeCatalog(locale, data) {
     if (data) catalogs[locale] = data;
@@ -45,9 +46,15 @@
   }
 
   function notifyLocaleChange() {
-    localeChangeListeners.forEach(function (fn) {
-      try { fn(activeLocale); } catch (e) { /* ignore */ }
-    });
+    if (notifyingLocaleChange) return;
+    notifyingLocaleChange = true;
+    try {
+      localeChangeListeners.forEach(function (fn) {
+        try { fn(activeLocale); } catch (e) { /* ignore */ }
+      });
+    } finally {
+      notifyingLocaleChange = false;
+    }
   }
 
   function setLocale(locale, prefs) {
