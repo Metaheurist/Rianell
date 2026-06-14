@@ -2,9 +2,68 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.53.4** - RN Metro policy-pack bundling fix.
+**Latest: v1.61.0** - README documentation table SVG icons; full UI localization shipped in v1.54.0–v1.60.0.
 
-### v1.53.4 - 2026-06-13 - Policy pack inside @rianell/shared
+### v1.61.0 - 2026-06-13 - README documentation icons
+
+- **Assets:** `docs/icons/*.svg` (16× stroke icons, 18px in table) replace emoji in the README documentation table.
+- **README:** GitHub-compatible `<img src="docs/icons/…">` references; note linking to `docs/icons/`.
+
+### v1.60.0 - 2026-06-13 - Full UI localization (docs release)
+
+Documentation and parity release for the v1.54–v1.59 feature segments below. **`npm run verify:i18n`** runs sync + locale/prompt/HTML/audit checks before CI.
+
+### v1.59.0 - 2026-06-13 - UGC policy & CI i18n gates (P9 + P7)
+
+- **UGC (B1):** Log symptoms/notes/meds never translated; export localizes headers only (`export-utils.js`); LLM notes wrapped in `---USER_NOTE---` delimiters.
+- **CI:** `.github/workflows/ci.yml` — `verify:i18n`, `audit-hardcoded-strings.mjs --check`, `verify-no-hardcoded-ui.mjs` (warn mode).
+- **Tests:** `tests/unit/i18n-ugc.test.mjs`, `i18n-llm-request.test.mjs`.
+- **`docs/platform-parity.json`:** `ui_string_catalog_full` → supported (~850 en-GB keys).
+
+### v1.58.0 - 2026-06-13 - Arabic & Hebrew RTL (P8)
+
+- **Locales:** `ar.json`, `he.json` in `i18n-packs/locale-packs/v1/`; **`SHIPPED_LOCALES`** includes `ar`, `he` (`llmCapability: ui-only`).
+- **PWA:** `i18n-pwa.js` sets `document.documentElement.dir`; `[dir="rtl"]` overrides in `styles.css`.
+- **RN:** `I18nManager.allowRTL` / `forceRTL` in `App.tsx`; `I18nProvider` exposes `direction`, `isRtl`.
+
+### v1.57.0 - 2026-06-13 - Translations & policy auto-translate (P6)
+
+- **Catalog fill:** `generate-locale-overrides.mjs`, `auto-translate-ui-strings.mjs`, `auto-translate-policy-strings.mjs`; 13 locale packs at en-GB key parity.
+- **Prompt/motd:** `prompt-packs/v1/{locale}.json` (13 locales); `motd-packs/v1/`.
+- **Disclaimer (B3):** `policy.machineTranslatedNotice` in PWA policy viewer and RN `PolicyDocumentsModal.tsx` (no legal-review CI gate).
+
+### v1.56.0 - 2026-06-13 - LLM prompt packs & client locale (P5)
+
+- **`packages/shared/src/i18n/promptPack.mjs`** + generated **`promptPackData.mjs`**; **`summary-llm.js`** loads per-locale system prompts.
+- **`apps/rn-app/src/ai/llm.ts`:** POST includes validated **`locale`** (B2 — no server-side language detection).
+- **Docs:** `docs/server-api.md`, `docs/ai-architecture.md` updated.
+
+### v1.55.0 - 2026-06-13 - React Native screens & engine templates (P3 + P4)
+
+- **`useT()`** across Home, LogWizard, Settings, SettingsCloudPane, Charts, AI, Logs; wizard chrome + aria labels catalog-backed.
+- **`packages/ai-engine`:** optional `translate` for `ai.template.*`; **`analyzeLogs.ts`**, **`summarizeCharts.ts`** accept `t`.
+
+### v1.54.0 - 2026-06-13 - i18n-packs, catalog audit & PWA tokenization (P1 + P2)
+
+#### Pack layout & sync
+
+- **Canonical tree:** `i18n-packs/` — `locale-packs/v1/`, `prompt-packs/v1/`, `motd-packs/v1/`, `policy-packs/v1.json` (replaces repo-root `locale-packs/`).
+- **Sync:** `scripts/sync-i18n-assets.mjs` → `apps/pwa-webapp/i18n-packs/`, `apps/rn-app/i18n-packs/`, `packages/shared/i18n-packs/`.
+- **`packPaths.mjs`:** single source for canonical paths in Node scripts and tests.
+
+#### Catalog & audit (P1)
+
+- **`scripts/audit-hardcoded-strings.mjs`**, **`merge-audit-into-catalog.mjs`**, **`apply-html-i18n.mjs`** — en-GB expanded to **~850** plain-text keys; **`--check`** for CI.
+- **Shared:** `format.mjs`, `rtl.mjs`, `promptPack.mjs`; verify scripts for HTML-free locale JSON and prompt parity.
+
+#### PWA tokenization (P2)
+
+- **`index.html`:** ~490 `data-i18n` / placeholder / aria attributes; wizard SVG sprite icons.
+- **`app.js`:** `tUi()`, `formatUiDate()`, chart/AI/share/voice strings; locale refresh via **`onLocaleChange`**; home empty-state fix.
+- **`i18n-pwa.js`:** `dir`/`lang`, placeholder/title/aria application.
+- **Cache:** `app.js?v=40`, **`sw.js`** `CACHE_NAME` → `v2026-06-13-i18n-log-wizard`.
+
+**Latest: v1.53.4** - RN Metro policy-pack bundling fix.
 
 - **Metro / Expo export:** `policyPackData.mjs` imports **`packages/shared/policy-packs/v1.json`** (inside the shared package) instead of repo-root paths Metro cannot resolve.
 - **Sync script:** `scripts/sync-policy-pack.mjs` copies canonical **`policy-packs/v1.json`** into shared; runs in **`build:web`**, **`bundle:mobile:prod`**, and CI before vendor bundle / **`expo export`**.

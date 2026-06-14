@@ -8,15 +8,15 @@
 |--------|--------|
 | EU/US Supabase projects + migration wizard | **One Supabase project, one database** |
 | Privacy region = legal/policy only | Region sets **default UI locale** + policy |
-| English hardcoded | **Tokenized UI** via `locale-packs/v1/` |
+| English hardcoded | **Tokenized UI** via `i18n-packs/locale-packs/v1/` |
 | Default unset | **Default `eea_uk` + `en-GB`**; language override in Settings |
 
 ## Architecture
 
 - **Single cloud:** One URL/key in PWA and RN; no `getSupabaseClientForResidency` routing.
-- **Region → locale:** `policy-packs/v1.json` `defaultLocale` / `supportedLocales` per region.
+- **Region → locale:** `i18n-packs/policy-packs/v1.json` `defaultLocale` / `supportedLocales` per region.
 - **Prefs:** `uiLocale`, `uiLocaleSource`; Supabase `user_privacy_profile.ui_locale` overwrites local on login.
-- **i18n:** `packages/shared/src/i18n/` + `locale-packs/v1/*.json`; PWA `RianellI18n`; RN `I18nProvider` + `useT()`.
+- **i18n:** `packages/shared/src/i18n/` + `i18n-packs/locale-packs/v1/*.json`; PWA `RianellI18n`; RN `I18nProvider` + `useT()`.
 
 See [`single-project-residency.md`](single-project-residency.md) for operator notes.
 
