@@ -1,13 +1,44 @@
 /** Locale-aware formatting helpers (Intl wrappers). */
 
+const GRANULAR_DATE_KEYS = [
+  'weekday',
+  'era',
+  'year',
+  'month',
+  'day',
+  'hour',
+  'minute',
+  'second',
+  'timeZoneName',
+  'fractionalSecondDigits',
+];
+
+function hasGranularDateOptions(opts) {
+  return GRANULAR_DATE_KEYS.some((k) => opts[k] !== undefined);
+}
+
 export function formatDate(value, locale, opts = {}) {
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return '';
-  const { dateStyle = 'medium', timeStyle, ...rest } = opts;
+  const { dateStyle, timeStyle, ...rest } = opts;
   const intlOpts = { ...rest };
-  if (dateStyle) intlOpts.dateStyle = dateStyle;
-  if (timeStyle) intlOpts.timeStyle = timeStyle;
-  return new Intl.DateTimeFormat(locale || 'en-GB', intlOpts).format(d);
+  const granular = hasGranularDateOptions(intlOpts);
+
+  if (!granular) {
+    intlOpts.dateStyle = dateStyle ?? 'medium';
+  } else if (dateStyle !== undefined) {
+    intlOpts.dateStyle = dateStyle;
+  }
+
+  if (timeStyle !== undefined && !granular) {
+    intlOpts.timeStyle = timeStyle;
+  }
+
+  try {
+    return new Intl.DateTimeFormat(locale || 'en-GB', intlOpts).format(d);
+  } catch {
+    return d.toLocaleDateString(locale || 'en-GB', intlOpts);
+  }
 }
 
 export function formatNumber(value, locale, opts = {}) {
