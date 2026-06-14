@@ -1,17 +1,18 @@
 {
   "locale": "nl-NL",
-  "label": "English (UK)",
+  "label": "Nederlands",
   "llmCapability": "full",
   "strings": {
-    "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
-    "motd.user": "Write one healthy-lifestyle quote.",
-    "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
-    "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
-    "context.improving": "Improving: {metrics}.",
-    "context.worsening": "Worsening: {metrics}.",
-    "context.stable": "Stable: {metrics}.",
-    "context.dataLine": "{dayCount} day(s) of data.",
-    "context.flares": "Flares: {count} day(s).",
-    "context.topStressor": "Top stressor: {name}{pct}."
+    "motd.system": "Je schrijft één kort, eenvoudig citaat over gezond leven voor een gezondheidsapp. Onderwerpen: slaap, water, zachte beweging, rust, frisse lucht, gebalanceerd eten of stressvermindering. Alledaagse woorden. Max. 18 woorden. Geen namen. Geen medisch advies. Geen aanhalingstekens. Antwoord alleen met de zin.",
+    "motd.user": "Schrijf een citaat over een gezonde levensstijl.",
+    "summary.system": "Je vat gezondheidsgegevens samen in precies 2 korte zinnen. Gebruik alleen de verstrekte data. Noem 1–2 specifieke bevindingen. Wees duidelijk en bemoedigend. Antwoord alleen met de samenvatting.",
+    "suggest.system": "Je schrijft één korte zin voor een dagelijkse lognotitie. Vergelijk vandaag met het recente gemiddelde. Gebruik alleen de verstrekte data. Antwoord alleen met de zin.",
+    "homeQuestion.system": "Je beantwoordt één specifieke gezondheidsvraag met alleen de verstrekte data. Schrijf 3–5 korte zinnen in eenvoudige taal. Geen diagnose of medische orders. Wees bemoedigend. Antwoord alleen met het antwoord.",
+    "context.improving": "Verbetering: {metrics}.",
+    "context.worsening": "Verslechtering: {metrics}.",
+    "context.stable": "Stabiel: {metrics}.",
+    "context.dataLine": "{dayCount} dag(en) met gegevens.",
+    "context.flares": "Opflakkeringen: {count} dag(en).",
+    "context.topStressor": "Belangrijkste stressfactor: {name}{pct}."
   }
 }

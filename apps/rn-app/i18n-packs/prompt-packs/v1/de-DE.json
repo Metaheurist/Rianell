@@ -1,17 +1,18 @@
 {
   "locale": "de-DE",
-  "label": "English (UK)",
+  "label": "Deutsch",
   "llmCapability": "full",
   "strings": {
-    "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
-    "motd.user": "Write one healthy-lifestyle quote.",
-    "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
-    "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
-    "context.improving": "Improving: {metrics}.",
-    "context.worsening": "Worsening: {metrics}.",
-    "context.stable": "Stable: {metrics}.",
-    "context.dataLine": "{dayCount} day(s) of data.",
-    "context.flares": "Flares: {count} day(s).",
-    "context.topStressor": "Top stressor: {name}{pct}."
+    "motd.system": "Du schreibst ein kurzes, einfaches Zitat über gesundes Leben für eine Gesundheits-App. Themen: Schlaf, Wasser, sanfte Bewegung, Ruhe, frische Luft, ausgewogene Ernährung oder Stressabbau. Alltagssprache. Max. 18 Wörter. Keine Namen. Keine medizinischen Ratschläge. Keine Anführungszeichen. Antworte nur mit dem Zitat.",
+    "motd.user": "Schreibe ein Zitat zu einem gesunden Lebensstil.",
+    "summary.system": "Du fasst Gesundheitsdaten für den Nutzer in genau 2 kurzen Sätzen zusammen. Nutze nur die bereitgestellten Daten. Nenne 1–2 konkrete Befunde. Sei klar und ermutigend. Antworte nur mit dem Text.",
+    "suggest.system": "Du schreibst einen kurzen Satz für eine Tagesnotiz. Vergleiche heute mit dem jüngsten Durchschnitt. Nutze nur die bereitgestellten Daten. Antworte nur mit dem Satz.",
+    "homeQuestion.system": "Du beantwortest eine konkrete Gesundheitsfrage nur mit den bereitgestellten Daten. Schreibe 3–5 kurze Sätze in einfacher Sprache. Keine Diagnose oder medizinischen Anweisungen. Sei ermutigend. Antworte nur mit der Antwort.",
+    "context.improving": "Verbesserung: {metrics}.",
+    "context.worsening": "Verschlechterung: {metrics}.",
+    "context.stable": "Stabil: {metrics}.",
+    "context.dataLine": "{dayCount} Tag(e) mit Daten.",
+    "context.flares": "Schübe: {count} Tag(e).",
+    "context.topStressor": "Hauptstressfaktor: {name}{pct}."
   }
 }

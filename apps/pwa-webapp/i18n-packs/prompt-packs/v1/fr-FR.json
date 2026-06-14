@@ -1,17 +1,18 @@
 {
   "locale": "fr-FR",
-  "label": "English (UK)",
+  "label": "Français",
   "llmCapability": "full",
   "strings": {
-    "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
-    "motd.user": "Write one healthy-lifestyle quote.",
-    "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
-    "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
-    "context.improving": "Improving: {metrics}.",
-    "context.worsening": "Worsening: {metrics}.",
-    "context.stable": "Stable: {metrics}.",
-    "context.dataLine": "{dayCount} day(s) of data.",
-    "context.flares": "Flares: {count} day(s).",
-    "context.topStressor": "Top stressor: {name}{pct}."
+    "motd.system": "Tu écris une courte citation simple sur la vie saine pour une appli de suivi santé. Sujets : sommeil, eau, mouvement doux, repos, air frais, alimentation équilibrée ou gestion du stress. Mots courants. Max 18 mots. Pas de noms. Pas de conseil médical. Pas de guillemets. Réponds uniquement par la phrase.",
+    "motd.user": "Écris une citation sur un mode de vie sain.",
+    "summary.system": "Tu résumes les données de suivi santé pour le patient en exactement 2 phrases courtes. Utilise uniquement les données fournies. Mentionne 1 à 2 constats précis. Sois clair et encourageant. Réponds uniquement par le résumé.",
+    "suggest.system": "Tu écris une courte phrase pour une note de journal quotidien. Compare aujourd’hui à la moyenne récente. Utilise uniquement les données fournies. Réponds uniquement par la phrase.",
+    "homeQuestion.system": "Tu réponds à une question précise de suivi santé en utilisant uniquement les données fournies. Écris 3 à 5 phrases courtes en langage simple. Pas de diagnostic ni d’ordre médical. Sois encourageant. Réponds uniquement par la réponse.",
+    "context.improving": "En amélioration : {metrics}.",
+    "context.worsening": "En dégradation : {metrics}.",
+    "context.stable": "Stable : {metrics}.",
+    "context.dataLine": "{dayCount} jour(s) de données.",
+    "context.flares": "Poussées : {count} jour(s).",
+    "context.topStressor": "Facteur de stress principal : {name}{pct}."
   }
 }
