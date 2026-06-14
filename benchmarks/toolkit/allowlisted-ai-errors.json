@@ -1,0 +1,16 @@
+{
+  "patterns": [
+    "huggingface.co",
+    "summary-llm.js",
+    ".onnx",
+    "/models/",
+    "TensorFlow",
+    "WebGL",
+    "favicon.ico",
+    "Failed to load resource",
+    "net::ERR_ABORTED"
+  ],
+  "allow_when": {
+    "llm_blocked": false
+  }
+}

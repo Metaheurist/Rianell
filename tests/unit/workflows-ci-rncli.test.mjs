@@ -68,6 +68,10 @@ test('Expo bundle job exports from apps/rn-app and verifies autolinking package'
 test('CI includes benchmark jobs (web + expo) and merge commit on main', () => {
   assert.match(ciYml, /benchmarks-web:/);
   assert.match(ciYml, /benchmarks-expo:/);
+  assert.match(ciYml, /benchmarks-ai-package:/);
+  assert.match(ciYml, /benchmarks-ai-layers:/);
+  assert.match(ciYml, /benchmarks-ai-algos:/);
+  assert.match(ciYml, /benchmarks-ai-rn:/);
   assert.match(ciYml, /commit-benchmarks:/);
   assert.match(ciYml, /prepare-minified-assets/);
   assert.match(ciYml, /node benchmarks\/scripts\/run-web-benchmarks\.mjs/);

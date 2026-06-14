@@ -859,6 +859,7 @@ if (typeof window !== 'undefined') {
     getDeviceId,
     platform,
     applyBenchmarkToPlatform,
+    refreshFromBenchmark: applyBenchmarkToPlatform,
     isRianellCapacitorAndroid
   };
   window.PlatformCapabilities = platform;

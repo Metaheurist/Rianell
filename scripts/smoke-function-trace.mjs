@@ -15,6 +15,9 @@ function hello(a, b) {
 const f = () => 1;
 `;
 const out = transformSource(fixture, { moduleId: 'fixture.js' });
+if (!out.includes('__rianellFnTraceOn')) {
+  throw new Error('smoke-function-trace: expected __rianellFnTraceOn fast-path guard');
+}
 const tmp = path.join(__dirname, '..', 'apps', 'pwa-webapp', '.trace-smoke-tmp.js');
 fs.writeFileSync(tmp, out, 'utf8');
 const { execSync } = await import('child_process');

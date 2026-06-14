@@ -1,0 +1,28 @@
+{
+  "ai-engine-package": {
+    "analyzeHealthMetrics": { "logs_30": 50, "logs_365": 200, "logs_1200": 800 },
+    "predictFutureValues": { "logs_30": 10 },
+    "filterLogsByRange": { "logs_1200": 20 }
+  },
+  "ai-engine-layers": {
+    "layerInput": { "logs_30": 800, "logs_365": 3000, "logs_1200": 12000, "sparse_no_food": 800, "dense_symptoms": 2000 },
+    "layerTrend": { "logs_365": 2000, "logs_1200": 8000 },
+    "layerCrossSection": { "logs_365": 2500, "logs_1200": 10000 },
+    "forward_full": { "logs_30": 3000, "logs_365": 15000, "logs_1200": 60000, "sparse_no_food": 3000, "dense_symptoms": 8000 }
+  },
+  "ai-engine-algos": {
+    "linear_regression": { "logs_365": 50 },
+    "kmeans": { "logs_365": 200 },
+    "arima": { "logs_30": 100 },
+    "time_series_analysis": { "logs_365": 500 }
+  },
+  "ai-engine-rn": {
+    "rn_summarize_30": { "logs_365": 300 },
+    "rn_package_parity": { "logs_30": 50 }
+  },
+  "regression": {
+    "forward_full_delta_pct": 15,
+    "layerInput_delta_pct": 20
+  },
+  "max_errors": 0
+}

@@ -3663,5 +3663,11 @@ AIEngine.NeuralAnalysisNetwork = NeuralAnalysisNetwork;
 // Warm WebGL backend when GPU is available so first AI analysis avoids init cost
 AIEngine.warmGPUBackend = function() { return ensureGPUBackend(); };
 
+/** Clear layerInput memo cache (benchmark hooks only). */
+AIEngine.resetBenchmarkLayerInputCache = function() {
+  _layerInputCacheKey = null;
+  _layerInputCacheSnapshot = null;
+};
+
 // Make AIEngine available globally
 window.AIEngine = AIEngine;

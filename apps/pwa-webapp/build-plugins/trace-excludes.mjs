@@ -13,9 +13,10 @@ const EXCLUDED_BASENAMES = new Set([
 
 const EXCLUDED_SUFFIXES = ['.min.js'];
 
-/** Optional: whole file basename (e.g. heavy / fragile loaders). */
+/** Hot-path helpers — skip AST wrap (still traced when gate on via caller only). */
 const EXCLUDED_OPTIONAL_BASENAMES = new Set([
-  // 'summary-llm.js',
+  'performance-utils.js',
+  'device-benchmark.js',
 ]);
 
 /**

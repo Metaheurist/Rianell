@@ -63,34 +63,29 @@ function shouldSkipArrow(path) {
   }
 }
 
-function buildEnterExitWrapper(moduleId, fnName, isArrow) {
-  const argsArg = isArrow
-    ? t.identifier('undefined')
-    : t.identifier('arguments');
+function traceGateExpr() {
+  return t.memberExpression(t.identifier('window'), t.identifier('__rianellFnTraceOn'));
+}
 
-  const enterCall = t.conditionalExpression(
-    t.binaryExpression(
-      '===',
-      t.unaryExpression('typeof', t.identifier('__rianellTraceEnter')),
-      t.stringLiteral('function')
-    ),
-    t.callExpression(t.identifier('__rianellTraceEnter'), [
-      t.stringLiteral(moduleId),
-      t.stringLiteral(fnName),
-      argsArg,
-    ]),
-    t.identifier('undefined')
-  );
-
+function buildTracedBlock(innerStmts, moduleId, fnName, isArrow) {
+  const argsArg = isArrow ? t.identifier('undefined') : t.identifier('arguments');
   const decl = t.variableDeclaration('var', [
-    t.variableDeclarator(t.identifier('__rt'), enterCall),
+    t.variableDeclarator(
+      t.identifier('__rt'),
+      t.callExpression(t.identifier('__rianellTraceEnter'), [
+        t.stringLiteral(moduleId),
+        t.stringLiteral(fnName),
+        argsArg,
+      ])
+    ),
   ]);
-
   const exitStmt = t.expressionStatement(
     t.callExpression(t.identifier('__rianellTraceExit'), [t.identifier('__rt')])
   );
-
-  return { decl, exitStmt };
+  return t.blockStatement([
+    decl,
+    t.tryStatement(t.blockStatement(innerStmts), null, t.blockStatement([exitStmt])),
+  ]);
 }
 
 function wrapBlockBody(path, moduleId, fnName, isArrow) {
@@ -108,16 +103,11 @@ function wrapBlockBody(path, moduleId, fnName, isArrow) {
   const block = path.node.body;
   if (!t.isBlockStatement(block)) return;
 
-  const { decl, exitStmt } = buildEnterExitWrapper(moduleId, fnName, isArrow);
+  const inner = block.body.map((stmt) => t.cloneNode(stmt, true));
+  const tracedBlock = buildTracedBlock(inner, moduleId, fnName, isArrow);
+  const untracedBlock = t.blockStatement(inner);
 
-  const inner = block.body;
-  const trySt = t.tryStatement(
-    t.blockStatement(inner),
-    null,
-    t.blockStatement([exitStmt])
-  );
-
-  block.body = [decl, trySt];
+  block.body = [t.ifStatement(traceGateExpr(), tracedBlock, untracedBlock)];
 }
 
 function visitFunction(path, moduleId) {
