@@ -2,6 +2,15 @@
 
 ## 🗂️ Project Structure
 
+### v1.77.0 documentation sync (LC-20 i18n gap close-out)
+
+- **Plan:** [i18n-gap-closeout-plan.md](i18n-gap-closeout-plan.md) — segmented delivery v1.71.0–v1.77.0 (all phases done).
+- **`verify:i18n`:** Content build → generate → UI fill → policy → MOTD translate → sync → full gate suite including `verify-motd-translation-coverage`, `verify-mixed-language-strings`, coverage `--strict --max-pct=13`.
+- **PWA (v1.72–v1.74):** Cookie/install/picker wiring; god mode / benchmark / wizard review i18n; `tContent()` tile catalogs; `device-benchmark.js` localized test labels.
+- **RN (v1.74):** `LogWizardScreen` `tContent()`; `ga` in `I18nProvider`.
+- **Scripts (v1.73–v1.76):** `lc20-mixed-fixes`, `batch-mt-hybrid-keys`, `build-content-catalog-keys`, `verify-motd-translation-coverage`, `auto-translate-policy-strings`.
+- **ga (v1.71):** Shipped locale with UI-only LLM; batch MT pass.
+
 ### v1.70.3 documentation sync (PWA bugfix release)
 
 - **Settings (v1.70.0):** `i18n-pwa.js` re-entrancy guard; `app.js` `onLocaleChange` no longer calls `applyDocumentI18n` recursively.
