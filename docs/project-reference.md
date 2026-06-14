@@ -13,6 +13,7 @@
 - **Shared runtime:** `packages/shared/src/i18n/` — `translate.mjs`, `resolveLocale.mjs`, `format.mjs`, `rtl.mjs`, `promptPack.mjs`, generated `promptPackData.mjs`.
 - **PWA:** `apps/pwa-webapp/i18n-pwa.js` → `window.RianellI18n`; **RN:** `apps/rn-app/src/i18n/I18nProvider.tsx` → `useT()`.
 - **Verify:** `scripts/verify-locale-packs.mjs`, `verify-prompt-packs.mjs`, `audit-hardcoded-strings.mjs`.
+- **Key naming:** UI strings use `{namespace}.{semantic.slug}` in `i18n-packs/locale-packs/v1/en-GB.json` (e.g. `wizard.saveEntry`, `settings.privacy.title`). Namespaces follow rollout order: `common`, `nav`, `gate`, `consent`, `settings`, `wizard`, `logs`, `modal`, `toast`, `charts`, `ai`, `export`, `tutorial`, `units`, `policy`. Slugs are lowercase dot-separated words derived from English copy; intentional English (brand names, medical codes) is listed in `scripts/.audit/i18n-allowlist.json`.
 
 ### v1.53.1 documentation sync (settings/privacy fixes)
 
