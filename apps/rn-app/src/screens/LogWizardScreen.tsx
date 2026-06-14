@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   LayoutAnimation,
@@ -226,12 +226,16 @@ function energyTileSelectedBorder(tone: 'positive' | 'neutral' | 'negative' | 'd
   return 'rgba(255,255,255,0.5)';
 }
 
-function buildPainLocationTextFromState(state: Record<string, PainState>): string {
+function buildPainLocationTextFromState(
+  state: Record<string, PainState>,
+  regionLabel: (id: string, fallback: string) => string = (_, fb) => fb,
+): string {
   const parts: string[] = [];
   PAIN_BODY_REGIONS.forEach((region) => {
     const v = state[region.id] ?? 0;
-    if (v === 1) parts.push(`${region.label} (mild)`);
-    if (v === 2) parts.push(`${region.label} (pain)`);
+    const label = regionLabel(region.id, region.label);
+    if (v === 1) parts.push(`${label} (mild)`);
+    if (v === 2) parts.push(`${label} (pain)`);
   });
   return parts.join(', ');
 }
@@ -659,10 +663,22 @@ function parseExerciseItems(value: string): Array<{ name: string; duration?: num
 
 type LogWizardScreenProps = { prefs?: Preferences };
 
+function contentSlug(id: string) {
+  return String(id).replace(/[^a-zA-Z0-9_]/g, '_');
+}
+
 export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {}) {
   const prefs = prefsProp ?? getDefaultPreferences();
   const theme = useTheme();
   const { t, locale, isRtl } = useT();
+  const tContent = useCallback(
+    (prefix: string, id: string, fallback: string) => {
+      const key = `content.${prefix}.${contentSlug(id)}`;
+      const val = t(key);
+      return val !== key ? val : fallback;
+    },
+    [t],
+  );
   const toast = useToast();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const bg =
@@ -766,12 +782,17 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     ]);
   }
 
-  const painLocationFromBody = useMemo(() => buildPainLocationTextFromState(painStates), [painStates]);
+  const painLocationFromBody = useMemo(
+    () => buildPainLocationTextFromState(painStates, (id, fb) => tContent('bodyRegion', id, fb)),
+    [painStates, tContent],
+  );
   const filteredPainRegions = useMemo(() => {
     const q = painRegionSearch.trim().toLowerCase();
     if (!q) return PAIN_BODY_REGIONS;
-    return PAIN_BODY_REGIONS.filter((region) => region.label.toLowerCase().includes(q));
-  }, [painRegionSearch]);
+    return PAIN_BODY_REGIONS.filter((region) =>
+      tContent('bodyRegion', region.id, region.label).toLowerCase().includes(q),
+    );
+  }, [painRegionSearch, tContent]);
   const painCounts = useMemo(() => {
     let mild = 0;
     let pain = 0;
@@ -1093,7 +1114,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 return (
                   <BodyRegionChoice
                     key={region.id}
-                    label={region.label}
+                    label={tContent('bodyRegion', region.id, region.label)}
                     state={s}
                     onPress={() => cyclePainRegion(region.id)}
                   />
@@ -1134,12 +1155,12 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               const opts = SYMPTOM_OPTIONS.filter((o) => o.group === grp.id);
               return (
                 <View key={grp.id} style={{ marginBottom: 10 }}>
-                  <Text style={[styles.groupTitle, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{grp.label}</Text>
+                  <Text style={[styles.groupTitle, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{tContent('symptomGroup', grp.id, grp.label)}</Text>
                   <View style={styles.chips}>
                     {opts.map((opt) => (
                       <Choice
                         key={opt.value}
-                        label={opt.label}
+                        label={tContent('symptom', opt.value, opt.label)}
                         selected={symptoms.includes(opt.value)}
                         onPress={() => toggleSymptom(opt.value)}
                       />
@@ -1268,17 +1289,17 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               const opts = ENERGY_CLARITY_OPTIONS.filter((o) => o.mood === grp.id).filter((o) => {
                 const s = energyClaritySearch.trim().toLowerCase();
                 if (!s) return true;
-                return (o.label + ' ' + o.value).toLowerCase().includes(s);
+                return (tContent('energy', o.value, o.label) + ' ' + o.value).toLowerCase().includes(s);
               });
               if (opts.length === 0) return null;
               return (
                 <View key={grp.id} style={{ marginBottom: 10 }}>
-                  <Text style={[styles.groupTitle, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{grp.label}</Text>
+                  <Text style={[styles.groupTitle, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{tContent('energyGroup', grp.id, grp.label)}</Text>
                   <View style={styles.chips}>
                     {opts.map((opt) => (
                       <Choice
                         key={opt.value}
-                        label={opt.label}
+                        label={tContent('energy', opt.value, opt.label)}
                         selected={energyClarity === opt.value}
                         icon={ENERGY_CLARITY_ICONS[opt.value]}
                         variant="tile"
@@ -1294,7 +1315,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             ) : null}
             {energyPickerOpen &&
             !ENERGY_CLARITY_OPTIONS.some((o) =>
-              `${o.label} ${o.value}`.toLowerCase().includes(energyClaritySearch.trim().toLowerCase())
+              `${tContent('energy', o.value, o.label)} ${o.value}`.toLowerCase().includes(energyClaritySearch.trim().toLowerCase())
             ) ? (
               <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
                 {t('wizard.energy.noMatch')}
@@ -1396,17 +1417,17 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
 
                 {STRESSOR_GROUPS.map((grp) => {
                   const opts = STRESSOR_OPTIONS.filter((o) => o.group === grp.id).filter((o) =>
-                    `${o.label} ${o.value}`.toLowerCase().includes(stressorSearch.trim().toLowerCase())
+                    `${tContent('stressor', o.value, o.label)} ${o.value}`.toLowerCase().includes(stressorSearch.trim().toLowerCase())
                   );
                   if (!opts.length) return null;
                   return (
                     <View key={grp.id} style={{ marginBottom: 8 }}>
-                      <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{grp.label}</Text>
+                      <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{tContent('stressorGroup', grp.id, grp.label)}</Text>
                       <View style={styles.chips}>
                         {opts.map((opt) => (
                           <Choice
                             key={`str-${opt.value}`}
-                            label={opt.label}
+                            label={tContent('stressor', opt.value, opt.label)}
                             selected={stressors.includes(opt.value)}
                             onPress={() => toggleStressor(opt.value)}
                           />
@@ -1639,16 +1660,17 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               const options = PREDEFINED_EXERCISES.filter((x) => x.category === cat.id);
               return (
                 <View key={cat.id} style={{ marginBottom: 10 }}>
-                  <Text style={[styles.groupTitle, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{cat.label}</Text>
+                  <Text style={[styles.groupTitle, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{tContent('exerciseCategory', cat.id, cat.label)}</Text>
                   <View style={styles.chips}>
                     {options.map((opt) => {
+                      const exLabel = tContent('exercise', opt.id, opt.name);
                       const token = `${opt.name}:${opt.defaultDuration}`;
                       const count = countCsvItem(exerciseText, token);
                       const selected = count > 0;
                       return (
                         <Choice
                           key={`ex-${token}`}
-                          label={token}
+                          label={`${exLabel}:${opt.defaultDuration}`}
                           selected={selected}
                           count={count}
                           onCountPress={() => confirmClearAll(token, () => setExerciseText((prev) => removeCsvItem(prev, token)))}
