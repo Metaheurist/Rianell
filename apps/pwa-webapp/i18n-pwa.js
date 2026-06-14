@@ -1,5 +1,5 @@
 /**
- * PWA i18n runtime — loads locale-packs from /locale-packs/v1/ and exposes t().
+ * PWA i18n runtime — loads locale packs from /i18n-packs/locale-packs/v1/ and exposes t().
  */
 (function (global) {
   'use strict';
@@ -7,6 +7,7 @@
   var catalogs = {};
   var activeLocale = 'en-GB';
   var loadPromise = null;
+  var localeChangeListeners = [];
 
   function mergeCatalog(locale, data) {
     if (data) catalogs[locale] = data;
@@ -14,7 +15,7 @@
 
   function loadLocale(locale) {
     if (catalogs[locale]) return Promise.resolve(catalogs[locale]);
-    return fetch('locale-packs/v1/' + encodeURIComponent(locale) + '.json', { credentials: 'same-origin' })
+    return fetch('i18n-packs/locale-packs/v1/' + encodeURIComponent(locale) + '.json', { credentials: 'same-origin' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
         mergeCatalog(locale, data);
@@ -25,16 +26,35 @@
 
   function ensureCatalogs(locale) {
     var chain = typeof S.localeFallbackChain === 'function' ? S.localeFallbackChain(locale) : [locale, 'en-GB'];
+    if (S.SHIPPED_LOCALES && S.SHIPPED_LOCALES.length) {
+      chain = chain.filter(function (loc, idx, arr) {
+        return S.SHIPPED_LOCALES.indexOf(loc) >= 0 && arr.indexOf(loc) === idx;
+      });
+    }
+    if (chain.indexOf('en-GB') < 0) chain.push('en-GB');
     var tasks = chain.filter(function (loc) { return !catalogs[loc]; }).map(loadLocale);
     if (!tasks.length) return Promise.resolve();
     if (!loadPromise) loadPromise = Promise.all(tasks).finally(function () { loadPromise = null; });
     return loadPromise;
   }
 
+  function applyDocumentDirection(locale) {
+    var dir = typeof S.textDirection === 'function' ? S.textDirection(locale) : 'ltr';
+    document.documentElement.setAttribute('dir', dir);
+    document.documentElement.setAttribute('lang', locale || 'en-GB');
+  }
+
+  function notifyLocaleChange() {
+    localeChangeListeners.forEach(function (fn) {
+      try { fn(activeLocale); } catch (e) { /* ignore */ }
+    });
+  }
+
   function setLocale(locale, prefs) {
     activeLocale = typeof S.resolveActiveLocale === 'function'
       ? S.resolveActiveLocale(Object.assign({}, prefs || {}, { uiLocale: locale }))
       : locale || 'en-GB';
+    applyDocumentDirection(activeLocale);
     return ensureCatalogs(activeLocale);
   }
 
@@ -78,13 +98,29 @@
     if (gdprBtn) gdprBtn.textContent = t('settings.privacy.gdprConsent');
   }
 
-  function applyDocumentI18n() {
-    hydrateGate();
-    hydratePrivacySettings();
+  function applyDataI18nAttributes() {
     document.querySelectorAll('[data-i18n]').forEach(function (el) {
       var key = el.getAttribute('data-i18n');
       if (key) el.textContent = t(key);
     });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n-placeholder');
+      if (key) el.setAttribute('placeholder', t(key));
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n-title');
+      if (key) el.setAttribute('title', t(key));
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n-aria');
+      if (key) el.setAttribute('aria-label', t(key));
+    });
+  }
+
+  function applyDocumentI18n() {
+    hydrateGate();
+    hydratePrivacySettings();
+    applyDataI18nAttributes();
     var settingsOpen = document.getElementById('settingsOverlay');
     if (settingsOpen && (settingsOpen.classList.contains('settings-overlay--open') || settingsOpen.style.display === 'block') && typeof window.settingsCarouselGo === 'function') {
       var track = document.getElementById('settingsCarouselTrack');
@@ -105,14 +141,23 @@
     });
   };
 
+  function refreshLocaleUI() {
+    applyDocumentI18n();
+    global.applyNavI18n();
+    notifyLocaleChange();
+  }
+
   global.RianellI18n = {
     t: t,
     setLocale: setLocale,
     getLocale: function () { return activeLocale; },
     ensureCatalogs: ensureCatalogs,
     applyDocumentI18n: function () {
-      applyDocumentI18n();
-      global.applyNavI18n();
+      refreshLocaleUI();
+    },
+    refreshLocaleUI: refreshLocaleUI,
+    onLocaleChange: function (fn) {
+      if (typeof fn === 'function') localeChangeListeners.push(fn);
     },
     hydrateGate: hydrateGate,
     hydratePrivacySettings: hydratePrivacySettings,

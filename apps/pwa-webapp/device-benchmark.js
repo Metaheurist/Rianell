@@ -915,7 +915,7 @@
       _lastPlatformType = cached.platformType;
       // Drive the loading bar once (otherwise onProgress never runs and the bar stays empty)
       if (typeof onProgress === 'function') onProgress(100, { phase: 'cached', label: 'Using saved result' });
-      if (typeof onComplete === 'function') onComplete(cached.tier, cached.platformType, cached);
+      if (typeof onComplete === 'function') onComplete(cached.tier, cached.platformType, cached, { cached: true });
       return;
     }
     if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] running suite (no cache)');
@@ -923,7 +923,7 @@
     runSuiteAsync({ totalCapMs: DEFAULT_TOTAL_CAP_MS }, onProgress, function (resultObj) {
       _lastTier = resultObj.tier;
       _lastPlatformType = resultObj.platformType;
-      if (typeof onComplete === 'function') onComplete(resultObj.tier, resultObj.platformType, resultObj);
+      if (typeof onComplete === 'function') onComplete(resultObj.tier, resultObj.platformType, resultObj, { cached: false });
     });
   }
 

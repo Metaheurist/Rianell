@@ -79,6 +79,29 @@ function getApexLineChartTheme() {
   };
 }
 
+/** UI string from active locale catalog (PWA i18n). */
+function tUi(key, params) {
+  if (typeof window !== 'undefined' && window.RianellI18n && typeof window.RianellI18n.t === 'function') {
+    return window.RianellI18n.t(key, params);
+  }
+  return key;
+}
+
+function getActiveUiLocale() {
+  if (typeof window !== 'undefined' && window.RianellI18n && typeof window.RianellI18n.getLocale === 'function') {
+    return window.RianellI18n.getLocale();
+  }
+  return 'en-GB';
+}
+
+function formatUiDate(value, opts) {
+  var locale = getActiveUiLocale();
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (S && typeof S.formatDate === 'function') return S.formatDate(value, locale, opts || {});
+  var d = value instanceof Date ? value : new Date(value);
+  return d.toLocaleDateString(locale, opts || { month: 'short', day: 'numeric' });
+}
+
 function applyApexLineChartThemeToOptions(options) {
   var t = getApexLineChartTheme();
   if (!options) return;
@@ -551,7 +574,7 @@ async function ensureVoiceInputPermission() {
 
 function showVoiceInputPermissionHelp() {
   if (typeof showAlertModal === 'function') {
-    showAlertModal('Microphone permission is required for voice input. Please allow microphone access in your browser/app settings and try again.', 'Voice Input');
+    showAlertModal(tUi('common.microphone.permission.is.required.for.vo'), tUi('common.voice.input'));
   }
 }
 
@@ -559,7 +582,7 @@ async function toggleVoiceInputForField(field, button) {
   var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
     if (typeof showAlertModal === 'function') {
-      showAlertModal('Speech-to-text is not supported on this platform/webview yet.', 'Voice Input');
+      showAlertModal(tUi('common.speech.to.text.is.not.supported.on.this.'), tUi('common.voice.input'));
     }
     return;
   }
@@ -615,7 +638,7 @@ async function toggleVoiceInputForField(field, button) {
       _voiceInputPermissionState = 'denied';
       showVoiceInputPermissionHelp();
     } else if (err === 'audio-capture' && typeof showAlertModal === 'function') {
-      showAlertModal('No microphone detected. Connect a microphone and try again.', 'Voice Input');
+      showAlertModal(tUi('common.no.microphone.detected.connect.a.microph'), tUi('common.voice.input'));
     }
     clearVoiceActiveState();
   };
@@ -665,7 +688,8 @@ function initVoiceInputControls() {
 // ============================================
 // Custom Alert Modal
 // ============================================
-function showAlertModal(message, title = 'Alert', onClose, options) {
+function showAlertModal(message, title, onClose, options) {
+  if (title === undefined || title === 'Alert') title = tUi('common.alert');
   const overlay = document.getElementById('alertModalOverlay');
   const titleEl = document.getElementById('alertModalTitle');
   const messageEl = document.getElementById('alertModalMessage');
@@ -1173,15 +1197,15 @@ function openShareModal(options) {
     if (payload.copyText) {
       addBtn('Copy', () => {
         navigator.clipboard.writeText(payload.copyText).then(() => {
-          if (typeof showAlertModal === 'function') showAlertModal('Copied to clipboard. You can paste into email or any app.', 'Copied');
+          if (typeof showAlertModal === 'function') showAlertModal(tUi('common.copied.to.clipboard.you.can.paste.into.e'), tUi('common.copied'));
         }).catch(() => {
-          if (typeof showAlertModal === 'function') showAlertModal('Could not copy. Use Email or WhatsApp instead.', 'Copy failed');
+          if (typeof showAlertModal === 'function') showAlertModal(tUi('common.could.not.copy.use.email.or.whatsapp.ins'), tUi('common.copy.failed'));
         });
       }, true, '<i class="fa-solid fa-copy" aria-hidden="true"></i>');
       if (payload.copyMarkdown) {
         addBtn('Copy as Markdown', () => {
           navigator.clipboard.writeText(payload.copyMarkdown).then(() => {
-            if (typeof showAlertModal === 'function') showAlertModal('Markdown version copied to clipboard.', 'Copied');
+            if (typeof showAlertModal === 'function') showAlertModal(tUi('common.markdown.version.copied.to.clipboard'), tUi('common.copied'));
           }).catch(() => {});
         }, false, '<i class="fa-solid fa-code" aria-hidden="true"></i>');
       }
@@ -1341,7 +1365,7 @@ function getLogsInCurrentViewRange() {
 function openShareModalForLog(logDate) {
   const log = (typeof logs !== 'undefined' && logs) ? logs.find(l => l.date === logDate) : null;
   if (!log) {
-    if (typeof showAlertModal === 'function') showAlertModal('Entry not found.', 'Share');
+    if (typeof showAlertModal === 'function') showAlertModal(tUi('common.entry.not.found'), tUi('common.share'));
     return;
   }
   const entryText = formatLogEntryAsText(log);
@@ -1360,10 +1384,10 @@ function openShareModalForLog(logDate) {
     URL.revokeObjectURL(link.href);
   };
 
-  const dateLabel = new Date(log.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+  const dateLabel = formatUiDate(log.date, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
   openShareModal({
     mode: 'log',
-    title: 'Share log entry',
+    title: tUi('common.share.log.entry'),
     bodyHTML: '<p class="share-preview-text">Share entry for ' + escapeHTML(dateLabel) + ' by email, WhatsApp, or download as CSV.</p>',
     payload: { emailHref, whatsappHref, downloadCSV }
   });
@@ -1372,7 +1396,7 @@ function openShareModalForLog(logDate) {
 function openShareModalForLogsInRange() {
   const rangeLogs = getLogsInCurrentViewRange();
   if (!rangeLogs || rangeLogs.length === 0) {
-    if (typeof showAlertModal === 'function') showAlertModal('No entries in the selected range to share.', 'Share');
+    if (typeof showAlertModal === 'function') showAlertModal(tUi('common.no.entries.in.the.selected.range.to.shar'), tUi('common.share'));
     return;
   }
 
@@ -1502,24 +1526,25 @@ function injectChartShareButton(container, chartId) {
 
 function getChartTitleFromId(chartId) {
   const map = {
-    bpmChart: 'Resting Heart Rate',
-    fatigueChart: 'Fatigue Level',
-    stiffnessChart: 'Stiffness',
-    backPainChart: 'Back Pain',
-    sleepChart: 'Sleep',
-    jointPainChart: 'Joint Pain',
-    mobilityChart: 'Mobility',
-    dailyFunctionChart: 'Daily Function',
-    swellingChart: 'Swelling',
-    moodChart: 'Mood',
-    irritabilityChart: 'Irritability',
-    weatherSensitivityChart: 'Weather Sensitivity',
-    stepsChart: 'Steps',
-    hydrationChart: 'Hydration',
-    combinedChart: 'Combined metrics',
-    balanceChart: 'Balance chart'
+    bpmChart: 'charts.metric.restingHeartRate',
+    fatigueChart: 'charts.metric.fatigue',
+    stiffnessChart: 'charts.metric.stiffness',
+    backPainChart: 'charts.metric.backPain',
+    sleepChart: 'charts.metric.sleep',
+    jointPainChart: 'charts.metric.jointPain',
+    mobilityChart: 'charts.metric.mobility',
+    dailyFunctionChart: 'charts.metric.dailyFunction',
+    swellingChart: 'charts.metric.swelling',
+    moodChart: 'charts.metric.mood',
+    irritabilityChart: 'charts.metric.irritability',
+    weatherSensitivityChart: 'charts.metric.weatherSensitivity',
+    stepsChart: 'charts.metric.steps',
+    hydrationChart: 'charts.metric.hydration',
+    combinedChart: 'charts.metric.combined',
+    balanceChart: 'charts.metric.balance',
   };
-  return map[chartId] || chartId;
+  const key = map[chartId];
+  return key ? tUi(key) : chartId;
 }
 
 // Build shareable AI analysis as plain text from currentAIAnalysis (no emoji, clean format)
@@ -5047,7 +5072,7 @@ async function createCombinedChart() {
       }
     },
     title: {
-      text: 'Combined Health Metrics Overview',
+      text: tUi('charts.combined.title'),
       align: 'center',
       style: {
         fontSize: '20px',
@@ -5073,7 +5098,7 @@ async function createCombinedChart() {
     xaxis: {
       type: 'datetime',
       title: {
-        text: 'Date',
+        text: tUi('charts.axis.date'),
         style: {
           color: '#e0f2f1',
           fontSize: '14px',
@@ -5095,21 +5120,21 @@ async function createCombinedChart() {
           if (timestamp !== undefined && timestamp !== null) {
             const date = new Date(timestamp);
             if (!isNaN(date.getTime())) {
-              return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              return formatUiDate(date, { month: 'short', day: 'numeric' });
             }
           }
           // Fallback: check if value is a timestamp
           if (typeof value === 'number' && value > 1000000000000) {
             const date = new Date(value);
             if (!isNaN(date.getTime())) {
-              return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              return formatUiDate(date, { month: 'short', day: 'numeric' });
             }
           }
           // If value is a string that looks like a timestamp, try to parse it
           if (typeof value === 'string' && /^\d+$/.test(value) && value.length > 10) {
             const date = new Date(parseInt(value));
             if (!isNaN(date.getTime())) {
-              return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              return formatUiDate(date, { month: 'short', day: 'numeric' });
             }
           }
           return value;
@@ -5118,7 +5143,7 @@ async function createCombinedChart() {
     },
     yaxis: {
       title: {
-        text: 'Level (1-10)',
+        text: tUi('charts.axis.level1to10'),
         style: {
           color: '#e0f2f1',
           fontSize: '14px',
@@ -6552,7 +6577,7 @@ async function generateAISummary() {
     resultsContent.innerHTML = `
       <div class="ai-loading-state">
         <div class="ai-loading-icon">${svgIcon('brain', 'empty-placeholder-icon-svg', 'AI analysis')}</div>
-        <h3 class="ai-empty-title">No health data yet</h3>
+        <h3 class="ai-empty-title">${tUi('ai.empty.noData.title')}</h3>
         <p class="ai-empty-desc">Add logs with the + button. Analysis will appear here for your chosen date range.</p>
       </div>
     `;
@@ -6640,7 +6665,7 @@ async function generateAISummary() {
   resultsContent.innerHTML = `
     <div class="ai-loading-state">
       <div class="ai-loading-icon">${svgIcon('brain', 'empty-placeholder-icon-svg', 'AI analysis')}</div>
-      <p class="ai-loading-text">Analyzing your health data…</p>
+      <p class="ai-loading-text">${tUi('ai.loading.analyzing')}</p>
       <p class="ai-loading-subtext">${sortedLogs.length} days (${escapeHTML(dateRangeText)})</p>
     </div>
   `;
@@ -7845,7 +7870,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     html += `
       <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
         <section class="ai-synopsis-section" aria-labelledby="ai-heading-found">
-        <h3 class="ai-section-title" id="ai-heading-found">🤖 What we found</h3>
+        <h3 class="ai-section-title" id="ai-heading-found">${svgIcon('brain', 'ai-inline-icon', tUi('ai.section.whatWeFound'))} ${tUi('ai.section.whatWeFound')}</h3>
         <p class="ai-section-intro">Patterns described in everyday language. Numbers in highlights come from your own entries. This screen supports self-care - it does not replace medical advice.</p>
         <div class="ai-llm-synopsis" role="region" aria-label="Detailed written findings">
           ${insightsText.split('\n\n').map(para => {
@@ -7882,7 +7907,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       if (noteText && noteText.trim()) {
         html += `
       <div class="ai-summary-section ai-animate-in" id="${summaryNoteSectionId}" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title" id="ai-heading-summary-note">${svgIcon('edit', 'ai-inline-icon', 'Summary note')} Summary note</h3>
+        <h3 class="ai-section-title" id="ai-heading-summary-note">${svgIcon('edit', 'ai-inline-icon', tUi('ai.section.summaryNote'))} ${tUi('ai.section.summaryNote')}</h3>
         <p class="ai-section-intro">A short line you can copy for yourself or your clinician.</p>
         <p class="ai-generated-note" id="${summaryNoteTextId}">${escapeHTML(noteText.trim())}</p>
         <button type="button" class="ai-copy-note-btn" onclick="typeof copyAIGeneratedNote==='function'&&copyAIGeneratedNote(this)" title="Copy summary note to clipboard" aria-label="Copy summary note to clipboard">Copy note</button>
@@ -7920,7 +7945,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   ];
   html += `
     <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title" id="ai-heading-logged">${svgIcon('document', 'ai-inline-icon', 'Logged data')} What you logged</h3>
+      <h3 class="ai-section-title" id="ai-heading-logged">${svgIcon('document', 'ai-inline-icon', tUi('ai.section.whatYouLogged'))} ${tUi('ai.section.whatYouLogged')}</h3>
       <p class="ai-section-intro">How many days in this range included each type of entry.</p>
       <div class="ai-stat-pills" role="list">
         ${statPills.map((p, i) => {
@@ -7942,7 +7967,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   // Trends section - simplified for non-technical users
   html += `
     <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-      <h3 class="ai-section-title" id="ai-heading-trends">${svgIcon('chart-up', 'ai-inline-icon', 'Trends')} How you're doing</h3>
+      <h3 class="ai-section-title" id="ai-heading-trends">${svgIcon('chart-up', 'ai-inline-icon', tUi('ai.section.howYouAreDoing'))} ${tUi('ai.section.howYouAreDoing')}</h3>
       <p class="ai-section-intro">Each card compares your recent average to your latest entry. Labels like “Getting better” describe the direction - not a medical judgement.</p>
       <div class="ai-trends-grid" role="list">
   `;
@@ -8043,7 +8068,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     // Create simple, user-friendly trend description
     let trendDescription = '';
     if (currentStatus === 'improving') {
-      trendDescription = 'Getting Better';
+      trendDescription = tUi('ai.trend.gettingBetter');
     } else if (currentStatus === 'worsening') {
       trendDescription = 'Getting Worse';
     } else {
@@ -8106,7 +8131,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     const matchCount = analysis.flareUpRisk.matchingMetrics;
     html += `
       <div class="ai-summary-section ai-section-warning ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title" id="ai-heading-flare" style="color: ${riskColor};"><span aria-hidden="true">${riskIcon}</span> Possible flare-up</h3>
+        <h3 class="ai-section-title" id="ai-heading-flare" style="color: ${riskColor};"><span aria-hidden="true">${riskIcon}</span> ${tUi('ai.section.flareUp')}</h3>
         <p class="ai-section-intro">A simple score from patterns in your logs - not a medical test.</p>
         <div class="ai-flare-visual">
           <div class="ai-flare-level" style="color: ${riskColor};"><strong>${riskLevel}</strong> <span class="ai-flare-level-note">risk level</span></div>
@@ -8198,7 +8223,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       
       html += `
         <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-          <h3 class="ai-section-title" id="ai-heading-correlations">🔗 Correlations</h3>
+          <h3 class="ai-section-title" id="ai-heading-correlations">🔗 ${tUi('ai.section.correlations')}</h3>
           <p class="ai-section-intro">Metrics that tended to move together in your logs. Tap a row (or press Enter when focused) to show or hide a chart.</p>
           <div class="ai-trends-grid ai-correlations-grid" role="list">
       `;
@@ -8384,7 +8409,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     const ex = analysis.exerciseSummary;
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">${svgIcon('chart-up', 'ai-inline-icon', 'Exercise')} Exercise</h3>
+        <h3 class="ai-section-title ai-section-green">${svgIcon('run', 'ai-inline-icon', 'Exercise')} Exercise</h3>
         <div class="ai-exercise-visual">
           <span class="ai-exercise-value ai-brackets-highlight">${ex.avgMinutesPerDay}</span> <span class="ai-exercise-unit">min avg</span>
           <span class="ai-exercise-days ai-brackets-highlight">${ex.daysWithExercise} days</span>
@@ -8398,7 +8423,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   if (analysis.topExercises && analysis.topExercises.length > 0) {
     html += `
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-green">${svgIcon('chart-up', 'ai-inline-icon', 'Top exercises')} Top exercises</h3>
+        <h3 class="ai-section-title ai-section-green">${svgIcon('run', 'ai-inline-icon', 'Top exercises')} Top exercises</h3>
         <ul class="ai-list ai-list-pills" style="columns: 2; column-gap: 1rem;">
     `;
     analysis.topExercises.forEach((item, index) => {
@@ -8476,7 +8501,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   if (analysis.anomalies.length > 0) {
     html += `
       <div class="ai-summary-section ai-section-warning ai-animate-in" style="animation-delay: ${animationDelay}ms;">
-        <h3 class="ai-section-title ai-section-orange" id="ai-heading-watch">${svgIcon('notice', 'ai-inline-icon icon-warning', 'Watch')} Things to watch</h3>
+        <h3 class="ai-section-title ai-section-orange" id="ai-heading-watch">${svgIcon('notice', 'ai-inline-icon icon-warning', tUi('ai.section.thingsToWatch'))} ${tUi('ai.section.thingsToWatch')}</h3>
         <p class="ai-section-intro">Unusual patterns in your numbers. They are prompts to notice how you feel - not automatic diagnoses.</p>
         <ul class="ai-list ai-list-warning">
     `;
@@ -13008,11 +13033,11 @@ function generateLogEntryHTML(log) {
   const weightUnit = getWeightUnitSuffix();
   
   const dateObj = new Date(log.date);
-  const formattedDate = dateObj.toLocaleDateString('en-US', { 
-    weekday: 'short', 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
+  const formattedDate = formatUiDate(dateObj, {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
   });
   
   const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">Flare-up</span>' : '<span class="flare-badge flare-no">No Flare-up</span>';
@@ -13043,7 +13068,7 @@ function generateLogEntryHTML(log) {
             ${svgIcon('food', 'ui-svg-icon', 'Food log')}${foodCount > 0 ? `<span class="badge-count">${foodCount}</span>` : ''}
           </button>
           <button class="header-icon-btn exercise-btn" onclick="event.stopPropagation(); if(window.openExerciseModal) window.openExerciseModal('${escapeHTML(log.date)}')" title="Exercise Log ${exerciseCount > 0 ? `(${exerciseCount} items)` : ''}">
-            ${svgIcon('chart-up', 'ui-svg-icon', 'Exercise log')}${exerciseCount > 0 ? `<span class="badge-count">${exerciseCount}</span>` : ''}
+            ${svgIcon('run', 'ui-svg-icon', 'Exercise log')}${exerciseCount > 0 ? `<span class="badge-count">${exerciseCount}</span>` : ''}
           </button>
           ${isEditing 
             ? `<select class="inline-edit-flare inline-edit-field inline-edit-field--flare" onclick="event.stopPropagation();">
@@ -14397,7 +14422,7 @@ async function chart(id, label, dataField, color) {
     xaxis: {
       type: 'datetime',
       title: {
-        text: 'Date',
+        text: tUi('charts.axis.date'),
         style: {
           color: '#e0f2f1',
           fontSize: '14px',
@@ -14419,21 +14444,21 @@ async function chart(id, label, dataField, color) {
           if (timestamp !== undefined && timestamp !== null) {
             const date = new Date(timestamp);
             if (!isNaN(date.getTime())) {
-              return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              return formatUiDate(date, { month: 'short', day: 'numeric' });
             }
           }
           // Fallback: check if value is a timestamp
           if (typeof value === 'number' && value > 1000000000000) {
             const date = new Date(value);
             if (!isNaN(date.getTime())) {
-              return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              return formatUiDate(date, { month: 'short', day: 'numeric' });
             }
           }
           // If value is a string that looks like a timestamp, try to parse it
           if (typeof value === 'string' && /^\d+$/.test(value) && value.length > 10) {
             const date = new Date(parseInt(value));
             if (!isNaN(date.getTime())) {
-              return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              return formatUiDate(date, { month: 'short', day: 'numeric' });
             }
           }
           return value;
@@ -14555,7 +14580,7 @@ async function chart(id, label, dataField, color) {
         const isPredictionDate = lastRecordedTimestamp && hoveredTimestamp > lastRecordedTimestamp;
         
         let tooltipContent = `<div style="padding: 8px;">`;
-        tooltipContent += `<div style="font-weight: bold; margin-bottom: 4px;">${new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>`;
+        tooltipContent += `<div style="font-weight: bold; margin-bottom: 4px;">${formatUiDate(date, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>`;
         
         // Show all visible series for this date
         series.forEach((s, idx) => {
@@ -15439,11 +15464,18 @@ function privacyFeatureAvailable(featureKey) {
 }
 
 function startAppAfterPrivacyGate() {
-  if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.awaitGateReady === 'function') {
-    window.RianellPrivacy.awaitGateReady(runAppInit);
+  var initFn = typeof window !== 'undefined' && typeof window.__rianellRunAppInit === 'function'
+    ? window.__rianellRunAppInit
+    : null;
+  if (!initFn) {
+    if (typeof window !== 'undefined') window.__rianellPendingAppInit = true;
     return;
   }
-  runAppInit();
+  if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.awaitGateReady === 'function') {
+    window.RianellPrivacy.awaitGateReady(initFn);
+    return;
+  }
+  initFn();
 }
 
 // Load settings from localStorage
@@ -18966,7 +18998,8 @@ function updateHomeTodayPanel() {
   var hero = document.getElementById('homeHeroCard');
   var name = (typeof appSettings !== 'undefined' && appSettings.userName) ? String(appSettings.userName).trim() : '';
   var hour = new Date().getHours();
-  var salutation = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  var salutationKey = hour < 12 ? 'home.greeting.morning' : hour < 17 ? 'home.greeting.afternoon' : 'home.greeting.evening';
+  var salutation = typeof tUi === 'function' ? tUi(salutationKey) : (hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening');
   if (greet) greet.textContent = name ? salutation + ', ' + name : salutation;
   var d = new Date();
   if (dateEl) {
@@ -18980,13 +19013,20 @@ function updateHomeTodayPanel() {
   var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
   var today = logArr.find(function(l) { return l.date === todayStr; });
   if (today) {
-    statusEl.innerHTML = '<strong>Logged today</strong><p class="home-status-detail">Open View logs to browse or edit your entry.</p>';
+    var loggedTitle = typeof tUi === 'function' ? tUi('home.status.loggedToday') : 'Logged today';
+    var loggedDetail = typeof tUi === 'function' ? tUi('home.status.loggedTodayDetail') : 'Open View logs to browse or edit your entry.';
+    statusEl.innerHTML = '<strong>' + escapeHTML(loggedTitle) + '</strong><p class="home-status-detail">' + escapeHTML(loggedDetail) + '</p>';
     if (hero) hero.classList.add('home-hero-card--logged');
   } else {
-    statusEl.innerHTML = '<strong>Not logged yet</strong><p class="home-status-detail">Tap <span class="home-plus-emphasis" aria-hidden="true">+</span> or Log now to record how you feel.</p>';
+    var notLoggedTitle = typeof tUi === 'function' ? tUi('home.status.notLoggedYet') : 'Not logged yet';
+    var notLoggedDetail = typeof tUi === 'function' ? tUi('home.status.notLoggedTodayDetail') : 'Tap + or Log now to record how you feel.';
+    statusEl.innerHTML = '<strong>' + escapeHTML(notLoggedTitle) + '</strong><p class="home-status-detail">' + escapeHTML(notLoggedDetail).replace('+', '<span class="home-plus-emphasis" aria-hidden="true">+</span>') + '</p>';
     if (hero) hero.classList.remove('home-hero-card--logged');
   }
-  if (hero && typeof initScrollReveal === 'function') initScrollReveal(hero.parentElement);
+  if (hero) {
+    hero.classList.add('rianell-in-view');
+    if (typeof initScrollReveal === 'function') initScrollReveal(hero.parentElement);
+  }
 }
 
 function openLogWizardFromHome() {
@@ -19121,13 +19161,21 @@ function updateLogWizardChrome() {
   var title = document.getElementById('logTabTitle');
   var stepEl = document.querySelector('.log-wizard-step[data-log-step="' + currentLogWizardStep + '"]');
   var stepTitle = stepEl ? (stepEl.getAttribute('data-step-title') || '') : '';
-  if (label) label.textContent = 'Step ' + (currentLogWizardStep + 1) + ' of ' + LOG_WIZARD_TOTAL_STEPS + (stepTitle ? ' - ' + stepTitle : '');
+  if (label) {
+    label.textContent = typeof tUi === 'function'
+      ? tUi('wizard.progress.stepOfTotal', { current: currentLogWizardStep + 1, total: LOG_WIZARD_TOTAL_STEPS }) + (stepTitle ? ' - ' + stepTitle : '')
+      : 'Step ' + (currentLogWizardStep + 1) + ' of ' + LOG_WIZARD_TOTAL_STEPS + (stepTitle ? ' - ' + stepTitle : '');
+  }
   if (fill) fill.style.width = ((currentLogWizardStep + 1) / LOG_WIZARD_TOTAL_STEPS * 100) + '%';
   if (bar) {
     bar.setAttribute('aria-valuenow', String(currentLogWizardStep + 1));
     bar.setAttribute('aria-valuemax', String(LOG_WIZARD_TOTAL_STEPS));
   }
-  if (title) title.textContent = stepTitle ? 'Log: ' + stepTitle : 'Log today';
+  if (title) {
+    title.textContent = stepTitle
+      ? ((typeof tUi === 'function' ? tUi('wizard.header.withStep') : 'Log: ') + stepTitle)
+      : (typeof tUi === 'function' ? tUi('wizard.header') : 'Log today');
+  }
   var backBtn = document.getElementById('logWizardBackBtn');
   var nextBtn = document.getElementById('logWizardNextBtn');
   var skipBtn = document.getElementById('logWizardSkipBtn');
@@ -19137,14 +19185,18 @@ function updateLogWizardChrome() {
   if (backBtn) {
     backBtn.style.display = '';
     backBtn.style.visibility = 'visible';
-    var backText = currentLogWizardStep > 0 ? 'Back' : 'Close';
+    var backText = currentLogWizardStep > 0
+      ? (typeof tUi === 'function' ? tUi('wizard.action.back') : 'Back')
+      : (typeof tUi === 'function' ? tUi('common.close') : 'Close');
     if (backLabel) {
       backLabel.textContent = backText;
     } else {
       backBtn.textContent = backText;
     }
     backBtn.setAttribute('data-nav-mode', currentLogWizardStep > 0 ? 'back' : 'close');
-    backBtn.setAttribute('aria-label', currentLogWizardStep > 0 ? 'Previous step' : 'Close and return to home');
+    backBtn.setAttribute('aria-label', currentLogWizardStep > 0
+      ? (typeof tUi === 'function' ? tUi('wizard.aria.previousStep') : 'Previous step')
+      : (typeof tUi === 'function' ? tUi('wizard.aria.closeReturnHome') : 'Close and return to home'));
     backBtn.tabIndex = 0;
   }
   var dotsWrap = document.getElementById('logWizardStepDots');
@@ -19771,6 +19823,8 @@ window.addEventListener('load', () => {
   }
 
   function runAppInit() {
+  if (typeof window !== 'undefined' && window.__rianellAppInitStarted) return;
+  if (typeof window !== 'undefined') window.__rianellAppInitStarted = true;
   tryLockPortraitOrientationMobile();
   if (typeof initEcgHeartbeatLine === 'function') initEcgHeartbeatLine();
   if (typeof initMotdInteraction === 'function') initMotdInteraction();
@@ -19810,6 +19864,22 @@ window.addEventListener('load', () => {
   }
   
   // Date range and chart section must be set before createCombinedChart (skipRefresh so we don't run createCombinedChart twice)
+  if (window.RianellI18n && typeof window.RianellI18n.onLocaleChange === 'function') {
+    window.RianellI18n.onLocaleChange(function () {
+      if (typeof window.RianellI18n.applyDocumentI18n === 'function') window.RianellI18n.applyDocumentI18n();
+      if (typeof updateHomeTodayPanel === 'function') updateHomeTodayPanel();
+      if (typeof updateLogWizardChrome === 'function') {
+        var logTabEl = document.getElementById('logTab');
+        if (tabNameRef === 'log' || (logTabEl && logTabEl.classList.contains('active'))) {
+          updateLogWizardChrome();
+        }
+      }
+      if (typeof refreshChartsForCurrentRange === 'function') refreshChartsForCurrentRange();
+      if (typeof displayAISummary === 'function' && document.getElementById('aiTab') && document.getElementById('aiTab').classList.contains('active')) {
+        displayAISummary();
+      }
+    });
+  }
   try {
     initializeDateFilters();
     setChartDateRange(30, { skipRefresh: true });
@@ -19843,6 +19913,9 @@ window.addEventListener('load', () => {
         showCookieBannerIfNeeded();
         if (typeof initToggleSwitchA11y === 'function') initToggleSwitchA11y(document);
         if (typeof initRipple === 'function') initRipple(document);
+        if (typeof updateHomeTodayPanel === 'function') {
+          requestAnimationFrame(function () { updateHomeTodayPanel(); });
+        }
         setTimeout(function () { loadingOverlay.remove(); }, 500);
       } else {
         document.body.classList.remove('loading');
@@ -19859,6 +19932,7 @@ window.addEventListener('load', () => {
     scheduleDashboardMotdWithLlm(getRandomMotdFallback());
     renderLogs();
     updateCharts();
+    if (typeof updateHomeTodayPanel === 'function') updateHomeTodayPanel();
   }
 
   function runPostShellIdleWork(skipAiPreload) {
@@ -20026,6 +20100,14 @@ window.addEventListener('load', () => {
     }, 500);
   }
 
+  if (typeof window !== 'undefined') {
+    window.__rianellRunAppInit = runAppInit;
+    if (window.__rianellPendingAppInit) {
+      window.__rianellPendingAppInit = false;
+      startAppAfterPrivacyGate();
+    }
+  }
+
   if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.runBenchmarkIfNeeded === 'function') {
     window.DeviceBenchmark.runBenchmarkIfNeeded(
       function (pct, meta) {
@@ -20033,7 +20115,7 @@ window.addEventListener('load', () => {
         if (loadingTextEl) loadingTextEl.textContent = 'Measuring performance…' + (pct > 0 ? ' ' + pct + '%' : '') + label;
         setOrbitLoadingProgress(pct);
       },
-      function (tier, platformType, result) {
+      function (tier, platformType, result, meta) {
         setOrbitLoadingProgress(100);
         // Persist benchmark immediately so refreshes do not re-enter first-run flow.
         if (
@@ -20052,6 +20134,11 @@ window.addEventListener('load', () => {
           /* index.html hides body > *:not(#loadingOverlay) until .loaded - without this, the first-run
              benchmark modal is visibility:hidden and Continue never fires; runAppInit never runs (stuck). */
           document.body.classList.add('loaded');
+          /* Show results modal only after a fresh benchmark — skip when reusing cached tier/profile. */
+          if (meta && meta.cached) {
+            startAppAfterPrivacyGate();
+            return;
+          }
           if (openPerfBenchmarkModal({
             mode: 'firstRun',
             result: result || { platformType: platformType, tier: tier },
