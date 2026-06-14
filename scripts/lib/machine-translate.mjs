@@ -19,8 +19,45 @@ const LOCALE_TO_DEEPL = {
   'en-AU': 'EN-GB',
 };
 
+/** MyMemory langpair target codes (en|XX). */
+const LOCALE_TO_MYMEMORY = {
+  'pt-BR': 'pt-BR',
+  'pt-PT': 'pt-PT',
+  'fr-FR': 'fr',
+  'de-DE': 'de',
+  'es-ES': 'es',
+  'it-IT': 'it',
+  'nl-NL': 'nl',
+  'pl-PL': 'pl',
+  ar: 'ar',
+  he: 'he',
+};
+
 export function hasTranslateCredentials() {
-  return !!(process.env.DEEPL_AUTH_KEY || process.env.GOOGLE_TRANSLATE_API_KEY);
+  return !!(
+    process.env.DEEPL_AUTH_KEY ||
+    process.env.GOOGLE_TRANSLATE_API_KEY ||
+    process.env.USE_MYMEMORY_MT === '1'
+  );
+}
+
+async function translateViaMyMemory(text, targetLocale) {
+  const target = LOCALE_TO_MYMEMORY[targetLocale];
+  if (!target) return text;
+  const url = new URL('https://api.mymemory.translated.net/get');
+  url.searchParams.set('q', text.slice(0, 500));
+  url.searchParams.set('langpair', `en|${target}`);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`MyMemory HTTP ${res.status}`);
+  const data = await res.json();
+  if (data?.responseStatus && Number(data.responseStatus) >= 400) {
+    throw new Error(`MyMemory status ${data.responseStatus}`);
+  }
+  const translated = data?.responseData?.translatedText;
+  if (typeof translated !== 'string' || !translated.trim()) {
+    throw new Error('MyMemory empty response');
+  }
+  return translated.trim();
 }
 
 export async function translateText(text, targetLocale) {
@@ -67,6 +104,21 @@ export async function translateText(text, targetLocale) {
     const translated = data?.data?.translations?.[0]?.translatedText;
     if (typeof translated !== 'string') throw new Error('Google Translate empty response');
     return restoreGlossary(translated, placeholders);
+  }
+
+  if (process.env.USE_MYMEMORY_MT === '1') {
+    try {
+      const translated = await translateViaMyMemory(protectedText, targetLocale);
+      return restoreGlossary(translated, placeholders);
+    } catch {
+      // fall through to rule-based
+    }
+  }
+
+  const { applyRuleBasedMt } = await import('./rule-based-mt.mjs');
+  const ruleBased = applyRuleBasedMt(trimmed, targetLocale);
+  if (ruleBased.trim() !== trimmed) {
+    return restoreGlossary(ruleBased, placeholders);
   }
 
   return trimmed;
