@@ -13055,7 +13055,7 @@ function generateLogEntryHTML(log) {
         <button class="delete-btn" onclick="event.stopPropagation(); deleteLogEntry('${escapeHTML(log.date)}')" title="${tUi('common.delete.this.entry')}">&times;</button>
         ${editButton}
       </div>
-      <button class="share-btn" onclick="event.stopPropagation(); openShareModalForLog('${safeDate}')" title="${tUi('common.share.this.entry')}" aria-label="${tUi('common.share.this.entry')}"><i class="fa-solid fa-share" aria-hidden="true"></i></button>
+      <button class="share-btn" onclick="event.stopPropagation(); openShareModalForLog('${safeDate}')" title="${tUi('common.share.this.entry')}" aria-label="${tUi('common.share.this.entry')}">${svgIcon('share', 'ui-svg-icon', tUi('common.share.this.entry'))}</button>
     </div>
     <div class="log-entry-header-collapsible" onclick="toggleLogEntry('${escapeHTML(log.date)}')">
       <div class="log-entry-header-content">
