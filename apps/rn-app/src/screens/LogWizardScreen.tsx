@@ -662,13 +662,14 @@ type LogWizardScreenProps = { prefs?: Preferences };
 export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {}) {
   const prefs = prefsProp ?? getDefaultPreferences();
   const theme = useTheme();
-  const { t, locale } = useT();
+  const { t, locale, isRtl } = useT();
   const toast = useToast();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const bg =
     theme.tokens.color.background === 'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
       ? '#ffffff'
       : theme.tokens.color.background;
+  const rowDir = isRtl ? 'row-reverse' : 'row';
 
   const [step, setStep] = useState<Step>(0);
 
@@ -957,7 +958,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
         <View style={styles.progressTrack} accessibilityRole="progressbar" accessibilityValue={{ min: 1, max: WIZARD_STEPS, now: step + 1 }}>
           <View style={[styles.progressFill, { width: `${((step + 1) / WIZARD_STEPS) * 100}%`, backgroundColor: theme.tokens.color.accent }]} />
         </View>
-        <View style={styles.stepDots} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <View style={[styles.stepDots, { flexDirection: rowDir }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           {Array.from({ length: WIZARD_STEPS }, (_, i) => (
             <View
               key={i}
@@ -1003,7 +1004,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.saveMinimal')}</Text>
             </Pressable>
 
-            <View style={styles.navRow}>
+            <View style={[styles.navRow, { flexDirection: rowDir }]}>
               <View style={{ flex: 1 }} />
               <Pressable
                 onPress={() => {
@@ -1028,7 +1029,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
 
             {/* Sleep / mood / fatigue inputs are part of the Energy & mental clarity step (Step 3, web parity). */}
 
-            <View style={styles.navRow}>
+            <View style={[styles.navRow, { flexDirection: rowDir }]}>
               <Pressable
                 onPress={() => goToStep(0)}
                 style={styles.secondaryBtn}
@@ -1183,7 +1184,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               </Pressable>
             </View>
 
-            <View style={styles.navRow}>
+            <View style={[styles.navRow, { flexDirection: rowDir }]}>
               <Pressable onPress={() => goToStep(1)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
@@ -1300,7 +1301,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               </Text>
             ) : null}
 
-            <View style={styles.navRow}>
+            <View style={[styles.navRow, { flexDirection: rowDir }]}>
               <Pressable onPress={() => goToStep(2)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
@@ -1431,7 +1432,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               </Pressable>
             </View>
 
-            <View style={styles.navRow}>
+            <View style={[styles.navRow, { flexDirection: rowDir }]}>
               <Pressable onPress={() => goToStep(3)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
@@ -1474,7 +1475,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               accessibilityLabel={t('wizard.aria.hydration')}
             />
 
-            <View style={styles.navRow}>
+            <View style={[styles.navRow, { flexDirection: rowDir }]}>
               <Pressable onPress={() => goToStep(4)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
@@ -1612,7 +1613,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               ))}
             </View>
 
-            <View style={styles.navRow}>
+            <View style={[styles.navRow, { flexDirection: rowDir }]}>
               <Pressable onPress={() => goToStep(5)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
@@ -1692,7 +1693,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               })}
             </View>
 
-            <View style={styles.navRow}>
+            <View style={[styles.navRow, { flexDirection: rowDir }]}>
               <Pressable onPress={() => goToStep(6)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
@@ -1785,7 +1786,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               </Pressable>
             ) : null}
 
-            <View style={styles.navRow}>
+            <View style={[styles.navRow, { flexDirection: rowDir }]}>
               <Pressable onPress={() => goToStep(7)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>
@@ -1807,7 +1808,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               {reviewText}
             </Text>
 
-            <View style={styles.navRow}>
+            <View style={[styles.navRow, { flexDirection: rowDir }]}>
               <Pressable onPress={() => goToStep(8)} style={styles.secondaryBtn} accessibilityRole="button" accessibilityLabel={t('wizard.aria.previousStep')}>
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
               </Pressable>

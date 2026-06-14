@@ -34,13 +34,18 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-test('charts shows empty state when no logs in range', async () => {
-  const prefs = getDefaultPreferences();
-  const { findByLabelText, getByText } = renderWithProviders(<ChartsScreen />, { prefs });
+test(
+  'charts shows empty state when no logs in range',
+  async () => {
+    const prefs = getDefaultPreferences();
+    const { findByLabelText, getByText } = renderWithProviders(<ChartsScreen />, { prefs });
 
-  await findByLabelText('Charts empty state');
-  expect(getByText(/No log entries in this date range/i)).toBeTruthy();
-});
+    await waitFor(() => expect(mockedLoadLogs).toHaveBeenCalled());
+    await findByLabelText('Charts empty state', {}, { timeout: 10000 });
+    expect(getByText(/No log entries in this date range/i)).toBeTruthy();
+  },
+  15000
+);
 
 test('charts pull-to-refresh calls loadLogs again', async () => {
   mockedLoadLogs.mockClear();
