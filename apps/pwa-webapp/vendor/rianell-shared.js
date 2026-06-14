@@ -40,6 +40,10 @@ var RianellShared = (() => {
     applyPrivacyProfileToLocal: () => applyPrivacyProfileToLocal,
     applyRegionDefaultLocale: () => applyRegionDefaultLocale,
     applyRegionDowngradeToggles: () => applyRegionDowngradeToggles,
+    buildLlmRequestPayload: () => buildLlmRequestPayload,
+    buildMotdPrompt: () => buildMotdPrompt,
+    buildSuggestPrompt: () => buildSuggestPrompt,
+    buildSummaryPrompt: () => buildSummaryPrompt,
     canChooseDataResidency: () => canChooseDataResidency,
     checkPolicyDrift: () => checkPolicyDrift,
     checkPolicyDriftSync: () => checkPolicyDriftSync,
@@ -47,6 +51,9 @@ var RianellShared = (() => {
     createSampleLogEntry: () => createSampleLogEntry,
     createTranslator: () => createTranslator,
     existsSync: () => existsSync,
+    formatDate: () => formatDate,
+    formatNumber: () => formatNumber,
+    formatRelativeDay: () => formatRelativeDay,
     getDefaultAccessibilitySettings: () => getDefaultAccessibilitySettings,
     getDefaultAppSettingsFields: () => getDefaultAppSettingsFields,
     getDefaultLocaleForRegion: () => getDefaultLocaleForRegion,
@@ -63,9 +70,12 @@ var RianellShared = (() => {
     identity: () => identity,
     isCloudSyncBlockedByMigration: () => isCloudSyncBlockedByMigration,
     isPrivacyRegionConfigured: () => isPrivacyRegionConfigured,
+    isRtlLocale: () => isRtlLocale,
     isValidLocaleId: () => isValidLocaleId,
     isValidPrivacyRegion: () => isValidPrivacyRegion,
+    languageNameForLocale: () => languageNameForLocale,
     loadPolicyPackFromDisk: () => loadPolicyPackFromDisk,
+    loadPromptPack: () => loadPromptPack,
     localeFallbackChain: () => localeFallbackChain,
     localeLabel: () => localeLabel,
     mergeHealthLogs: () => mergeHealthLogs,
@@ -83,7 +93,8 @@ var RianellShared = (() => {
     resolvePolicyPack: () => resolvePolicyPack,
     setPolicyPack: () => setPolicyPack,
     suggestPrivacyRegionFromHint: () => suggestPrivacyRegionFromHint,
-    t: () => t
+    t: () => t,
+    textDirection: () => textDirection
   });
 
   // packages/shared/src/privacy/regions.mjs
@@ -156,112 +167,365 @@ var RianellShared = (() => {
     }
   };
 
-  // policy-packs/v1.json
-  var v1_default = {
-    version: "1.0.0",
-    policyPackId: "v1.0.0",
-    regions: {
-      eea_uk: {
-        label: "EEA & United Kingdom",
-        defaultLocale: "en-GB",
-        supportedLocales: ["en-GB", "fr-FR", "de-DE", "es-ES", "it-IT", "pl-PL", "nl-NL", "pt-PT"],
-        requiredDataResidency: "default",
-        policyDocuments: ["global-baseline", "eu-gdpr", "data-subject-rights"],
-        features: {
-          localHealthLogging: { enabled: true, requiredConsents: ["healthData"] },
-          cloudEncryptedBackup: { enabled: true, requiredConsents: ["healthData", "cloudSync"] },
-          anonymizedResearchPool: { enabled: true, requiredConsents: ["healthData", "anonContribution"] },
-          onDeviceLlmDownload: { enabled: true, requiredConsents: ["healthData", "aiModel"] },
-          openDataPoolForAi: { enabled: true, requiredConsents: ["healthData"] },
-          bugReports: { enabled: true, requiredConsents: [] },
-          ePrivacyStorageBanner: { enabled: true, requiredConsents: [] }
+  // packages/shared/src/privacy/policyPackData.mjs
+  var POLICY_PACK_V1 = {
+    "version": "1.0.0",
+    "policyPackId": "v1.0.0",
+    "regions": {
+      "eea_uk": {
+        "label": "EEA & United Kingdom",
+        "defaultLocale": "en-GB",
+        "supportedLocales": [
+          "en-GB",
+          "fr-FR",
+          "de-DE",
+          "es-ES",
+          "it-IT",
+          "pl-PL",
+          "nl-NL",
+          "pt-PT"
+        ],
+        "requiredDataResidency": "default",
+        "policyDocuments": [
+          "global-baseline",
+          "eu-gdpr",
+          "data-subject-rights"
+        ],
+        "features": {
+          "localHealthLogging": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData"
+            ]
+          },
+          "cloudEncryptedBackup": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "cloudSync"
+            ]
+          },
+          "anonymizedResearchPool": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "anonContribution"
+            ]
+          },
+          "onDeviceLlmDownload": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "aiModel"
+            ]
+          },
+          "openDataPoolForAi": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData"
+            ]
+          },
+          "bugReports": {
+            "enabled": true,
+            "requiredConsents": []
+          },
+          "ePrivacyStorageBanner": {
+            "enabled": true,
+            "requiredConsents": []
+          }
         }
       },
-      us_ca: {
-        label: "United States \u2014 California",
-        defaultLocale: "en-US",
-        supportedLocales: ["en-US"],
-        requiredDataResidency: "default",
-        policyDocuments: ["global-baseline", "other-jurisdictions-us-ca", "data-subject-rights"],
-        features: {
-          localHealthLogging: { enabled: true, requiredConsents: ["healthData"] },
-          cloudEncryptedBackup: { enabled: true, requiredConsents: ["healthData", "cloudSync"] },
-          anonymizedResearchPool: { enabled: true, requiredConsents: ["healthData", "anonContribution"] },
-          onDeviceLlmDownload: { enabled: true, requiredConsents: ["healthData", "aiModel"] },
-          openDataPoolForAi: { enabled: true, requiredConsents: ["healthData"] },
-          bugReports: { enabled: true, requiredConsents: [] },
-          ePrivacyStorageBanner: { enabled: false, requiredConsents: [] }
+      "us_ca": {
+        "label": "United States \u2014 California",
+        "defaultLocale": "en-US",
+        "supportedLocales": [
+          "en-US"
+        ],
+        "requiredDataResidency": "default",
+        "policyDocuments": [
+          "global-baseline",
+          "other-jurisdictions-us-ca",
+          "data-subject-rights"
+        ],
+        "features": {
+          "localHealthLogging": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData"
+            ]
+          },
+          "cloudEncryptedBackup": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "cloudSync"
+            ]
+          },
+          "anonymizedResearchPool": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "anonContribution"
+            ]
+          },
+          "onDeviceLlmDownload": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "aiModel"
+            ]
+          },
+          "openDataPoolForAi": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData"
+            ]
+          },
+          "bugReports": {
+            "enabled": true,
+            "requiredConsents": []
+          },
+          "ePrivacyStorageBanner": {
+            "enabled": false,
+            "requiredConsents": []
+          }
         }
       },
-      us_other: {
-        label: "United States \u2014 other states",
-        defaultLocale: "en-US",
-        supportedLocales: ["en-US"],
-        requiredDataResidency: "default",
-        policyDocuments: ["global-baseline", "other-jurisdictions-us", "data-subject-rights"],
-        features: {
-          localHealthLogging: { enabled: true, requiredConsents: ["healthData"] },
-          cloudEncryptedBackup: { enabled: true, requiredConsents: ["healthData", "cloudSync"] },
-          anonymizedResearchPool: { enabled: true, requiredConsents: ["healthData", "anonContribution"] },
-          onDeviceLlmDownload: { enabled: true, requiredConsents: ["healthData", "aiModel"] },
-          openDataPoolForAi: { enabled: true, requiredConsents: ["healthData"] },
-          bugReports: { enabled: true, requiredConsents: [] },
-          ePrivacyStorageBanner: { enabled: false, requiredConsents: [] }
+      "us_other": {
+        "label": "United States \u2014 other states",
+        "defaultLocale": "en-US",
+        "supportedLocales": [
+          "en-US"
+        ],
+        "requiredDataResidency": "default",
+        "policyDocuments": [
+          "global-baseline",
+          "other-jurisdictions-us",
+          "data-subject-rights"
+        ],
+        "features": {
+          "localHealthLogging": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData"
+            ]
+          },
+          "cloudEncryptedBackup": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "cloudSync"
+            ]
+          },
+          "anonymizedResearchPool": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "anonContribution"
+            ]
+          },
+          "onDeviceLlmDownload": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "aiModel"
+            ]
+          },
+          "openDataPoolForAi": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData"
+            ]
+          },
+          "bugReports": {
+            "enabled": true,
+            "requiredConsents": []
+          },
+          "ePrivacyStorageBanner": {
+            "enabled": false,
+            "requiredConsents": []
+          }
         }
       },
-      au: {
-        label: "Australia",
-        defaultLocale: "en-AU",
-        supportedLocales: ["en-AU"],
-        requiredDataResidency: "default",
-        policyDocuments: ["global-baseline", "other-jurisdictions-au", "data-subject-rights"],
-        features: {
-          localHealthLogging: { enabled: true, requiredConsents: ["healthData"] },
-          cloudEncryptedBackup: { enabled: true, requiredConsents: ["healthData", "cloudSync"] },
-          anonymizedResearchPool: { enabled: true, requiredConsents: ["healthData", "anonContribution"] },
-          onDeviceLlmDownload: { enabled: true, requiredConsents: ["healthData", "aiModel"] },
-          openDataPoolForAi: { enabled: true, requiredConsents: ["healthData"] },
-          bugReports: { enabled: true, requiredConsents: [] },
-          ePrivacyStorageBanner: { enabled: false, requiredConsents: [] }
+      "au": {
+        "label": "Australia",
+        "defaultLocale": "en-AU",
+        "supportedLocales": [
+          "en-AU"
+        ],
+        "requiredDataResidency": "default",
+        "policyDocuments": [
+          "global-baseline",
+          "other-jurisdictions-au",
+          "data-subject-rights"
+        ],
+        "features": {
+          "localHealthLogging": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData"
+            ]
+          },
+          "cloudEncryptedBackup": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "cloudSync"
+            ]
+          },
+          "anonymizedResearchPool": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "anonContribution"
+            ]
+          },
+          "onDeviceLlmDownload": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "aiModel"
+            ]
+          },
+          "openDataPoolForAi": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData"
+            ]
+          },
+          "bugReports": {
+            "enabled": true,
+            "requiredConsents": []
+          },
+          "ePrivacyStorageBanner": {
+            "enabled": false,
+            "requiredConsents": []
+          }
         }
       },
-      br: {
-        label: "Brazil",
-        defaultLocale: "pt-BR",
-        supportedLocales: ["pt-BR"],
-        requiredDataResidency: "default",
-        policyDocuments: ["global-baseline", "other-jurisdictions-br", "data-subject-rights"],
-        features: {
-          localHealthLogging: { enabled: true, requiredConsents: ["healthData"] },
-          cloudEncryptedBackup: { enabled: true, requiredConsents: ["healthData", "cloudSync"] },
-          anonymizedResearchPool: { enabled: true, requiredConsents: ["healthData", "anonContribution"] },
-          onDeviceLlmDownload: { enabled: true, requiredConsents: ["healthData", "aiModel"] },
-          openDataPoolForAi: { enabled: true, requiredConsents: ["healthData"] },
-          bugReports: { enabled: true, requiredConsents: [] },
-          ePrivacyStorageBanner: { enabled: false, requiredConsents: [] }
+      "br": {
+        "label": "Brazil",
+        "defaultLocale": "pt-BR",
+        "supportedLocales": [
+          "pt-BR"
+        ],
+        "requiredDataResidency": "default",
+        "policyDocuments": [
+          "global-baseline",
+          "other-jurisdictions-br",
+          "data-subject-rights"
+        ],
+        "features": {
+          "localHealthLogging": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData"
+            ]
+          },
+          "cloudEncryptedBackup": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "cloudSync"
+            ]
+          },
+          "anonymizedResearchPool": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "anonContribution"
+            ]
+          },
+          "onDeviceLlmDownload": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "aiModel"
+            ]
+          },
+          "openDataPoolForAi": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData"
+            ]
+          },
+          "bugReports": {
+            "enabled": true,
+            "requiredConsents": []
+          },
+          "ePrivacyStorageBanner": {
+            "enabled": false,
+            "requiredConsents": []
+          }
         }
       },
-      other: {
-        label: "Rest of world",
-        defaultLocale: "en-GB",
-        supportedLocales: ["en-GB", "en-US", "en-AU", "pt-BR", "fr-FR", "de-DE", "es-ES", "it-IT", "pl-PL", "nl-NL", "pt-PT"],
-        requiredDataResidency: "default",
-        policyDocuments: ["global-baseline", "data-subject-rights"],
-        features: {
-          localHealthLogging: { enabled: true, requiredConsents: ["healthData"] },
-          cloudEncryptedBackup: { enabled: true, requiredConsents: ["healthData", "cloudSync"] },
-          anonymizedResearchPool: { enabled: false, requiredConsents: ["healthData", "anonContribution"] },
-          onDeviceLlmDownload: { enabled: true, requiredConsents: ["healthData", "aiModel"] },
-          openDataPoolForAi: { enabled: true, requiredConsents: ["healthData"] },
-          bugReports: { enabled: true, requiredConsents: [] },
-          ePrivacyStorageBanner: { enabled: false, requiredConsents: [] }
+      "other": {
+        "label": "Rest of world",
+        "defaultLocale": "en-GB",
+        "supportedLocales": [
+          "en-GB",
+          "en-US",
+          "en-AU",
+          "pt-BR",
+          "fr-FR",
+          "de-DE",
+          "es-ES",
+          "it-IT",
+          "pl-PL",
+          "nl-NL",
+          "pt-PT"
+        ],
+        "requiredDataResidency": "default",
+        "policyDocuments": [
+          "global-baseline",
+          "data-subject-rights"
+        ],
+        "features": {
+          "localHealthLogging": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData"
+            ]
+          },
+          "cloudEncryptedBackup": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "cloudSync"
+            ]
+          },
+          "anonymizedResearchPool": {
+            "enabled": false,
+            "requiredConsents": [
+              "healthData",
+              "anonContribution"
+            ]
+          },
+          "onDeviceLlmDownload": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "aiModel"
+            ]
+          },
+          "openDataPoolForAi": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData"
+            ]
+          },
+          "bugReports": {
+            "enabled": true,
+            "requiredConsents": []
+          },
+          "ePrivacyStorageBanner": {
+            "enabled": false,
+            "requiredConsents": []
+          }
         }
       }
     }
   };
-
-  // packages/shared/src/privacy/policyPackData.mjs
-  var POLICY_PACK_V1 = v1_default;
 
   // packages/shared/src/privacy/resolvePolicyPack.mjs
   var cachedPack = null;
@@ -307,12 +571,16 @@ var RianellShared = (() => {
     "it-IT",
     "pl-PL",
     "nl-NL",
-    "pt-PT"
+    "pt-PT",
+    "ar",
+    "he"
   ];
   var DEFAULT_LOCALE = "en-GB";
   var DEFAULT_PRIVACY_REGION = "eea_uk";
   function isValidLocaleId(id) {
-    return typeof id === "string" && SHIPPED_LOCALES.includes(id);
+    if (typeof id !== "string") return false;
+    if (SHIPPED_LOCALES.includes(id)) return true;
+    return id === "ar" || id === "he" || id.startsWith("ar-") || id.startsWith("he-");
   }
   function localeFallbackChain(localeId) {
     const chain = [];
@@ -334,7 +602,9 @@ var RianellShared = (() => {
       "it-IT": "Italiano",
       "pl-PL": "Polski",
       "nl-NL": "Nederlands",
-      "pt-PT": "Portugu\xEAs (Portugal)"
+      "pt-PT": "Portugu\xEAs (Portugal)",
+      ar: "\u0627\u0644\u0639\u0631\u0628\u064A\u0629",
+      he: "\u05E2\u05D1\u05E8\u05D9\u05EA"
     };
     return labels[localeId] || localeId;
   }
@@ -658,6 +928,160 @@ var RianellShared = (() => {
       next.uiLocaleSource = "region";
     }
     return next;
+  }
+
+  // packages/shared/src/i18n/format.mjs
+  function formatDate(value, locale, opts = {}) {
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return "";
+    const { dateStyle = "medium", timeStyle, ...rest } = opts;
+    const intlOpts = { ...rest };
+    if (dateStyle) intlOpts.dateStyle = dateStyle;
+    if (timeStyle) intlOpts.timeStyle = timeStyle;
+    return new Intl.DateTimeFormat(locale || "en-GB", intlOpts).format(d);
+  }
+  function formatNumber(value, locale, opts = {}) {
+    const n = typeof value === "number" ? value : Number(value);
+    if (!Number.isFinite(n)) return "";
+    return new Intl.NumberFormat(locale || "en-GB", opts).format(n);
+  }
+  function formatRelativeDay(iso, locale) {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    const today = /* @__PURE__ */ new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(d);
+    target.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((target - today) / 864e5);
+    if (diffDays === 0) return "Today";
+    if (diffDays === -1) return "Yesterday";
+    if (diffDays === 1) return "Tomorrow";
+    return formatDate(d, locale, { dateStyle: "medium" });
+  }
+  function languageNameForLocale(localeId, displayLocale = "en-GB") {
+    try {
+      const dn = new Intl.DisplayNames([displayLocale], { type: "language" });
+      const [lang] = String(localeId || "").split("-");
+      return dn.of(lang) || localeId;
+    } catch {
+      return localeId;
+    }
+  }
+
+  // packages/shared/src/i18n/rtl.mjs
+  function isRtlLocale(localeId) {
+    const id = String(localeId || "").toLowerCase();
+    return id === "ar" || id.startsWith("ar-") || id === "he" || id.startsWith("he-");
+  }
+  function textDirection(localeId) {
+    return isRtlLocale(localeId) ? "rtl" : "ltr";
+  }
+
+  // packages/shared/src/i18n/promptPackData.mjs
+  var PROMPT_PACKS_V1 = {
+    "ar": {
+      "locale": "ar",
+      "label": "\u0627\u0644\u0639\u0631\u0628\u064A\u0629",
+      "llmCapability": "ui-only",
+      "strings": {
+        "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
+        "motd.user": "Write one healthy-lifestyle quote.",
+        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+        "context.improving": "Improving: {metrics}.",
+        "context.worsening": "Worsening: {metrics}.",
+        "context.stable": "Stable: {metrics}.",
+        "context.dataLine": "{dayCount} day(s) of data.",
+        "context.flares": "Flares: {count} day(s).",
+        "context.topStressor": "Top stressor: {name}{pct}."
+      }
+    },
+    "en-GB": {
+      "locale": "en-GB",
+      "label": "English (UK)",
+      "llmCapability": "full",
+      "strings": {
+        "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
+        "motd.user": "Write one healthy-lifestyle quote.",
+        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+        "context.improving": "Improving: {metrics}.",
+        "context.worsening": "Worsening: {metrics}.",
+        "context.stable": "Stable: {metrics}.",
+        "context.dataLine": "{dayCount} day(s) of data.",
+        "context.flares": "Flares: {count} day(s).",
+        "context.topStressor": "Top stressor: {name}{pct}."
+      }
+    },
+    "he": {
+      "locale": "he",
+      "label": "\u05E2\u05D1\u05E8\u05D9\u05EA",
+      "llmCapability": "ui-only",
+      "strings": {
+        "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
+        "motd.user": "Write one healthy-lifestyle quote.",
+        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+        "context.improving": "Improving: {metrics}.",
+        "context.worsening": "Worsening: {metrics}.",
+        "context.stable": "Stable: {metrics}.",
+        "context.dataLine": "{dayCount} day(s) of data.",
+        "context.flares": "Flares: {count} day(s).",
+        "context.topStressor": "Top stressor: {name}{pct}."
+      }
+    }
+  };
+
+  // packages/shared/src/i18n/promptPack.mjs
+  function loadPromptPack(locale, preloaded) {
+    const chain = localeFallbackChain(isValidLocaleId(locale) ? locale : DEFAULT_LOCALE);
+    for (const loc of chain) {
+      if (preloaded?.[loc]) return preloaded[loc];
+      if (PROMPT_PACKS_V1[loc]) return PROMPT_PACKS_V1[loc];
+    }
+    return PROMPT_PACKS_V1[DEFAULT_LOCALE] || { locale: DEFAULT_LOCALE, strings: {} };
+  }
+  function promptString(pack, key, fallback) {
+    const val = pack?.strings?.[key];
+    return typeof val === "string" ? val : fallback;
+  }
+  function buildMotdPrompt(locale, theme, options = {}) {
+    const pack = loadPromptPack(locale, options.packs);
+    const system = promptString(
+      pack,
+      "motd.system",
+      "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence."
+    );
+    const userBase = promptString(pack, "motd.user", "Write one healthy-lifestyle quote.");
+    const user = theme ? `${userBase} Theme: ${theme}.` : userBase;
+    return { system, user };
+  }
+  function buildSummaryPrompt(locale, context, options = {}) {
+    const pack = loadPromptPack(locale, options.packs);
+    const system = promptString(
+      pack,
+      "summary.system",
+      "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text."
+    );
+    return { system, user: `Data: ${context}` };
+  }
+  function buildSuggestPrompt(locale, context, options = {}) {
+    const pack = loadPromptPack(locale, options.packs);
+    const system = promptString(
+      pack,
+      "suggest.system",
+      "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence."
+    );
+    return { system, user: `Data: ${context}` };
+  }
+  function buildLlmRequestPayload({ feature, model, modelSize, context, locale }) {
+    return {
+      feature,
+      model,
+      modelSize,
+      context,
+      locale: isValidLocaleId(locale) ? locale : DEFAULT_LOCALE
+    };
   }
 
   // packages/shared/src/index.mjs
