@@ -231,7 +231,8 @@ export async function createAiBenchmarkPage(browser, baseUrl) {
     runId: 'ai-engine',
     llm_smoke_allowed: false,
   });
-  await page.goto(entryUrl(baseUrl), { waitUntil: 'load', timeout: 180000 });
+  // domcontentloaded: avoid hanging on deferred Google Fonts / Font Awesome (load can exceed 180s in CI).
+  await page.goto(entryUrl(baseUrl), { waitUntil: 'domcontentloaded', timeout: 120000 });
   await page.waitForFunction(
     () => typeof window.PerformanceUtils !== 'undefined' && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function',
     { timeout: 120000 },

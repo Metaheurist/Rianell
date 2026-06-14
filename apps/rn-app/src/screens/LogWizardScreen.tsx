@@ -147,16 +147,16 @@ const EXERCISE_CATEGORIES = [
 ] as const;
 
 const PREDEFINED_EXERCISES = [
-  { name: 'Walking', defaultDuration: 30, category: 'cardio' },
-  { name: 'Cycling', defaultDuration: 40, category: 'cardio' },
-  { name: 'Swimming', defaultDuration: 25, category: 'cardio' },
-  { name: 'Yoga', defaultDuration: 30, category: 'flexibility' },
-  { name: 'Stretching', defaultDuration: 15, category: 'flexibility' },
-  { name: 'Balance exercises', defaultDuration: 10, category: 'balance' },
-  { name: 'Resistance band exercises', defaultDuration: 15, category: 'strength' },
-  { name: 'Core exercises', defaultDuration: 15, category: 'strength' },
-  { name: 'Meditation / relaxation', defaultDuration: 15, category: 'recovery' },
-  { name: 'Gentle mobility flow', defaultDuration: 15, category: 'recovery' },
+  { id: 'walking', name: 'Walking', defaultDuration: 30, category: 'cardio' },
+  { id: 'cycling', name: 'Cycling', defaultDuration: 40, category: 'cardio' },
+  { id: 'swimming', name: 'Swimming', defaultDuration: 25, category: 'cardio' },
+  { id: 'yoga', name: 'Yoga', defaultDuration: 30, category: 'flexibility' },
+  { id: 'stretching', name: 'Stretching', defaultDuration: 15, category: 'flexibility' },
+  { id: 'balance', name: 'Balance exercises', defaultDuration: 10, category: 'balance' },
+  { id: 'resistance_bands', name: 'Resistance band exercises', defaultDuration: 15, category: 'strength' },
+  { id: 'core', name: 'Core exercises', defaultDuration: 15, category: 'strength' },
+  { id: 'meditation', name: 'Meditation / relaxation', defaultDuration: 15, category: 'recovery' },
+  { id: 'gentle_mobility', name: 'Gentle mobility flow', defaultDuration: 15, category: 'recovery' },
 ] as const;
 
 const PAIN_BODY_REGIONS = [
