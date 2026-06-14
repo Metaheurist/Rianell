@@ -1,4 +1,4 @@
-/** BCP-47 locale IDs shipped in locale-packs/v1. */
+/** BCP-47 locale IDs shipped in i18n-packs/locale-packs/v1. */
 export const SHIPPED_LOCALES = [
   'en-GB',
   'en-US',
@@ -11,13 +11,17 @@ export const SHIPPED_LOCALES = [
   'pl-PL',
   'nl-NL',
   'pt-PT',
+  'ar',
+  'he',
 ];
 
 export const DEFAULT_LOCALE = 'en-GB';
 export const DEFAULT_PRIVACY_REGION = 'eea_uk';
 
 export function isValidLocaleId(id) {
-  return typeof id === 'string' && SHIPPED_LOCALES.includes(id);
+  if (typeof id !== 'string') return false;
+  if (SHIPPED_LOCALES.includes(id)) return true;
+  return id === 'ar' || id === 'he' || id.startsWith('ar-') || id.startsWith('he-');
 }
 
 /** Fallback chain: exact → language-only → en-GB */
@@ -43,6 +47,8 @@ export function localeLabel(localeId) {
     'pl-PL': 'Polski',
     'nl-NL': 'Nederlands',
     'pt-PT': 'Português (Portugal)',
+    ar: 'العربية',
+    he: 'עברית',
   };
   return labels[localeId] || localeId;
 }

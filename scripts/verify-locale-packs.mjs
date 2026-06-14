@@ -3,9 +3,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { SHIPPED_LOCALES } from '../packages/shared/src/i18n/locales.mjs';
+import { canonicalLocalePacksDir } from '../packages/shared/src/i18n/packPaths.mjs';
 
 const root = process.cwd();
-const dir = path.join(root, 'locale-packs', 'v1');
+const dir = canonicalLocalePacksDir(root);
 let failed = false;
 
 function fail(msg) {
@@ -14,7 +15,7 @@ function fail(msg) {
 }
 
 const canonicalPath = path.join(dir, 'en-GB.json');
-if (!fs.existsSync(canonicalPath)) fail('missing locale-packs/v1/en-GB.json');
+if (!fs.existsSync(canonicalPath)) fail('missing i18n-packs/locale-packs/v1/en-GB.json');
 const canonical = JSON.parse(fs.readFileSync(canonicalPath, 'utf8'));
 const canonicalKeys = Object.keys(canonical.strings || {}).sort();
 
