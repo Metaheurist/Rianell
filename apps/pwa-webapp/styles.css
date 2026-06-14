@@ -15163,11 +15163,65 @@ body.log-wizard-active .header-buttons-wrap {
   box-shadow: var(--elev-2);
 }
 
-.home-quick-actions {
+.home-ai-suggestions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 1rem;
+}
+
+.home-ai-suggestions[hidden] {
+  display: none !important;
+}
+
+.home-ai-suggestion {
+  font-size: 0.92rem;
+  line-height: 1.35;
+  text-align: start;
+  max-width: 100%;
+}
+
+.home-question-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home-question-answer {
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.home-question-disclaimer {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.82;
+  line-height: 1.4;
+}
+
+[dir="rtl"] .home-ai-suggestions {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .modal-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .modal-footer {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .home-hero-card .home-status-detail {
+  text-align: right;
+}
+
+[dir="rtl"] .settings-carousel-pane {
+  direction: rtl;
+}
+
+[dir="rtl"] .log-wizard-chrome {
+  direction: rtl;
 }
 
 .pain-region.pain-state-changed { animation: painRegionPulse 420ms var(--ease-spring); }

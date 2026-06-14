@@ -1,5 +1,9 @@
 import Constants from 'expo-constants';
-import { buildLlmRequestPayload } from '@rianell/shared';
+import {
+  buildHomeQuestionContext,
+  buildHomeQuestionFallback,
+  buildLlmRequestPayload,
+} from '@rianell/shared';
 import type { PreferredLlmModelSize } from '../storage/preferences';
 import type { BenchmarkResult } from '../performance/benchmark';
 import type { AiSummary } from './analyzeLogs';
@@ -7,7 +11,7 @@ import { AIEngine } from './engine';
 import type { LogEntry } from '../storage/logs';
 import { resolveLlmModelSize } from '../performance/benchmark';
 
-type LlmFeature = 'summary' | 'suggestNote' | 'motd';
+type LlmFeature = 'summary' | 'suggestNote' | 'motd' | 'homeQuestion';
 
 const cache = new Map<string, string>();
 
@@ -166,6 +170,58 @@ export async function generateMotd(
     context,
     locale,
     () => MOTD_FALLBACK[Math.floor(Math.random() * MOTD_FALLBACK.length)] ?? MOTD_FALLBACK[0]
+  );
+}
+
+type HomeQuestionChip = {
+  id: string;
+  labelKey: string;
+  labelParams?: Record<string, string>;
+};
+
+type HomeAnalysisSnapshot = {
+  totalLogs?: number;
+  flareDays?: number;
+  avgMood?: number | null;
+  avgSleep?: number | null;
+  avgFatigue?: number | null;
+  topSymptoms?: string[];
+  topStressors?: string[];
+};
+
+export async function answerHomeQuestion(
+  chip: HomeQuestionChip,
+  questionText: string,
+  analysis: HomeAnalysisSnapshot,
+  logs: LogEntry[],
+  preferredModel: PreferredLlmModelSize,
+  benchmark: BenchmarkResult | null,
+  locale: string
+): Promise<string> {
+  const context = (
+    buildHomeQuestionContext as (args: {
+      questionText: string;
+      questionId: string;
+      labelParams?: Record<string, string>;
+      analysis?: HomeAnalysisSnapshot;
+      logs?: LogEntry[];
+    }) => string
+  )({
+    questionText,
+    questionId: chip.id,
+    labelParams: chip.labelParams || {},
+    analysis,
+    logs,
+  });
+  const fallback = buildHomeQuestionFallback(chip, analysis);
+  return generateWithFallback(
+    'homeQuestion',
+    `${chip.id}:${context.slice(0, 120)}`,
+    preferredModel,
+    benchmark,
+    context,
+    locale,
+    () => fallback
   );
 }
 

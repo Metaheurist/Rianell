@@ -1016,7 +1016,7 @@ function openPerfBenchmarkModal(options) {
       }
     } else {
       const div = document.createElement('div');
-      div.innerHTML = '<span>GPU</span><span>Not available</span>';
+      div.innerHTML = '<span>GPU</span><span>' + tUi('common.not.available') + '</span>';
       gpuStatsEl.appendChild(div);
     }
   }
@@ -1120,14 +1120,14 @@ function openPerfBenchmarkModal(options) {
 
 function openBenchmarkDetails() {
   if (!isBenchmarkDetailsDesktopViewport()) {
-    showAlertModal('Detailed benchmark results are only available on desktop (wider screen).', 'Performance');
+    showAlertModal(tUi('common.detailed.benchmark.results.are.only.avai'), tUi('settings.performance.title'));
     return;
   }
   const cached = (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.getCachedResult === 'function')
     ? window.DeviceBenchmark.getCachedResult()
     : null;
   if (!cached) {
-    showAlertModal('No cached benchmark found. Run the benchmark by reloading the app (or clear the cache first).', 'Performance');
+    showAlertModal(tUi('common.no.cached.benchmark.found.run.the.benchm'), tUi('settings.performance.title'));
     return;
   }
   openPerfBenchmarkModal({ mode: 'view', result: cached });
@@ -1435,7 +1435,7 @@ function openShareModalForLogsInRange() {
 
   openShareModal({
     mode: 'log',
-    title: 'Share entries in range',
+    title: tUi('common.share.entries.in.range'),
     bodyHTML: '<p class="share-preview-text">Share ' + rangeLogs.length + ' entr' + (rangeLogs.length === 1 ? 'y' : 'ies') + ' in the selected range as email or download as CSV.</p>',
     payload: { emailHref, downloadCSV }
   });
@@ -1445,7 +1445,7 @@ function openShareModalForChart(chartId) {
   const container = document.getElementById(chartId);
   const chartInstance = container && container.chart ? container.chart : (typeof ApexCharts !== 'undefined' && ApexCharts.getChartByID ? ApexCharts.getChartByID(chartId) : null);
   if (!chartInstance || typeof chartInstance.dataURI !== 'function') {
-    if (typeof showAlertModal === 'function') showAlertModal('Chart not ready. Try again in a moment.', 'Share');
+    if (typeof showAlertModal === 'function') showAlertModal(tUi('charts.chart.not.ready.try.again.in.a.moment'), tUi('common.share'));
     return;
   }
   chartInstance.dataURI().then(({ imgURI, blob }) => {
@@ -1466,7 +1466,7 @@ function openShareModalForChart(chartId) {
         navigator.share({ title: subject, text: subject, files: [file] })
           .then(() => { if (typeof closeShareModal === 'function') closeShareModal(); })
           .catch((err) => {
-            if (err.name !== 'AbortError' && typeof showAlertModal === 'function') showAlertModal('Share failed. Try "Save image" then share it in WhatsApp.', 'Share');
+            if (err.name !== 'AbortError' && typeof showAlertModal === 'function') showAlertModal(tUi('common.share.failed.try'), tUi('common.share'));
           });
         return;
       }
@@ -1477,12 +1477,12 @@ function openShareModalForChart(chartId) {
 
     openShareModal({
       mode: 'chart',
-      title: 'Share chart',
+      title: tUi('common.share.chart'),
       bodyHTML: '<img src="' + imgURI + '" alt="Chart preview" class="share-chart-preview"/>',
       payload: { shareToWhatsApp, saveImage }
     });
   }).catch(() => {
-    if (typeof showAlertModal === 'function') showAlertModal('Could not export chart image.', 'Share');
+    if (typeof showAlertModal === 'function') showAlertModal(tUi('common.could.not.export.chart.image'), tUi('common.share'));
   });
 }
 
@@ -1501,7 +1501,7 @@ function injectChartShareButton(container, chartId) {
     btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'chart-share-btn';
-    btn.title = 'Share chart';
+    btn.title = tUi('common.share.chart');
     btn.setAttribute('aria-label', 'Share this chart');
     btn.innerHTML = '<i class="fa-solid fa-share" aria-hidden="true"></i>';
   }
@@ -1727,8 +1727,8 @@ function openShareModalForAIAnalysis() {
   if (!hasContent) {
     openShareModal({
       mode: 'ai',
-      title: 'Share AI analysis',
-      bodyHTML: '<p>No analysis to share. Change the date range or log entries first.</p>',
+      title: tUi('ai.share.title'),
+      bodyHTML: '<p>' + tUi('common.no.analysis.to.share.change.the.date.ran') + '</p>',
       payload: {}
     });
     return;
@@ -1751,7 +1751,7 @@ function openShareModalForAIAnalysis() {
 
   openShareModal({
     mode: 'ai',
-    title: 'Share AI analysis',
+    title: tUi('ai.share.title'),
     bodyHTML: '<p>Copy the summary or send by email or WhatsApp. Plain text only so it pastes correctly everywhere.</p>',
     payload: { emailHref, whatsappHref, copyText: copyText, copyMarkdown: copyMarkdown }
   });
@@ -1794,7 +1794,7 @@ function acceptHealthDataConsent() {
 
 function declineHealthDataConsent() {
   if (typeof showAlertModal === 'function') {
-    showAlertModal('You can still browse settings, but health logging requires consent to process special-category health data (GDPR Art. 9).', 'Consent required');
+    showAlertModal(tUi('common.you.can.still.browse.settings.but.health'), tUi('common.consent.healthDataTitle'));
   }
 }
 
@@ -2017,7 +2017,7 @@ function openDonateModal() {
   if (sdkWrap) sdkWrap.style.display = 'block';
   if (loadingEl) {
     loadingEl.style.display = 'block';
-    loadingEl.textContent = 'Loading payment options…';
+    loadingEl.textContent = tUi('common.loading.payment.options');
   }
   if (hintEl) hintEl.innerHTML = '';
 
@@ -2456,13 +2456,13 @@ function refreshAppInstallSection() {
   var iosLabel = document.getElementById('downloadIosLabel');
 
   if (titleEl) {
-    if (platform === 'ios' || platform === 'android') titleEl.textContent = 'Install on this device';
-    else titleEl.textContent = 'App Installation';
+    if (platform === 'ios' || platform === 'android') titleEl.textContent = tUi('common.install.on.this.device');
+    else titleEl.textContent = tUi('common.app.installation');
   }
   if (installWebAppLabel) {
-    if (platform === 'ios') installWebAppLabel.textContent = 'Add to Home Screen';
-    else if (platform === 'android') installWebAppLabel.textContent = 'Add to Home Screen';
-    else installWebAppLabel.textContent = 'Install web app';
+    if (platform === 'ios') installWebAppLabel.textContent = tUi('common.add.to.home.screen');
+    else if (platform === 'android') installWebAppLabel.textContent = tUi('common.add.to.home.screen');
+    else installWebAppLabel.textContent = tUi('common.install.web.app');
   }
   if (platform === 'ios') {
     if (installIosDevice) installIosDevice.style.display = '';
@@ -2472,13 +2472,13 @@ function refreshAppInstallSection() {
   } else if (platform === 'android') {
     if (installIosDevice) installIosDevice.style.display = 'none';
     if (installWebAppOption) installWebAppOption.style.display = '';
-    if (androidRnCliOption) { androidRnCliOption.style.display = ''; if (androidRnCliLabel) androidRnCliLabel.textContent = 'Install on Android'; }
-    if (iosOption) { iosOption.style.display = ''; if (iosLabel) iosLabel.textContent = 'Download for iOS'; }
+    if (androidRnCliOption) { androidRnCliOption.style.display = ''; if (androidRnCliLabel) androidRnCliLabel.textContent = tUi('common.install.on.android'); }
+    if (iosOption) { iosOption.style.display = ''; if (iosLabel) iosLabel.textContent = tUi('common.download.for.ios'); }
   } else {
     if (installIosDevice) installIosDevice.style.display = 'none';
     if (installWebAppOption) installWebAppOption.style.display = '';
     if (androidRnCliOption) androidRnCliOption.style.display = '';
-    if (iosOption) { iosOption.style.display = ''; if (iosLabel) iosLabel.textContent = 'Download for iOS'; }
+    if (iosOption) { iosOption.style.display = ''; if (iosLabel) iosLabel.textContent = tUi('common.download.for.ios'); }
   }
 }
 
@@ -2718,10 +2718,10 @@ function openModalTestOverlay() {
         { label: 'Settings', action: run(toggleSettings) },
         { label: 'Cookie banner', action: run(function() { var b = document.getElementById('cookieBanner'); if (b) b.classList.remove('hidden'); }) },
         { label: 'Cookie policy', action: run(openCookiePolicyModal) },
-        { label: 'Alert (sample)', action: run(function() { showAlertModal('This is a sample alert for testing.', 'Test Alert'); }) },
+        { label: 'Alert (sample)', action: run(function() { showAlertModal(tUi('common.this.is.a.sample.alert.for.testing'), tUi('common.alert')); }) },
         { label: 'Food log', action: run(function() { openFoodModal(today); }) },
         { label: 'Exercise log', action: run(function() { openExerciseModal(today); }) },
-        { label: 'Edit entry', action: run(function() { if (typeof logs !== 'undefined' && logs && logs.length) openEditEntryModal(firstLogDate); else showAlertModal('No entries to edit. Add a log first.', 'Edit Entry'); }) },
+        { label: 'Edit entry', action: run(function() { if (typeof logs !== 'undefined' && logs && logs.length) openEditEntryModal(firstLogDate); else showAlertModal(tUi('common.no.entries.to.edit.add.a.log.first'), tUi('common.edit.entry')); }) },
         { label: 'Export', action: run(exportData) },
         { label: 'Import', action: run(importData) },
         { label: 'Sign up / Sign in', action: run(openSignupSigninModal) },
@@ -2825,7 +2825,7 @@ function openModalTestOverlay() {
     slider.setAttribute('aria-hidden', 'true');
     var span = document.createElement('span');
     span.className = 'god-mode-trace-toggle-text';
-    span.textContent = 'Log all instrumented functions to console (verbose)';
+    span.textContent = tUi('common.log.all.instrumented.functions.to.consol');
     label.appendChild(cb);
     label.appendChild(slider);
     label.appendChild(span);
@@ -2981,7 +2981,7 @@ function closeGDPRAgreementModal() {
 }
 
 // Show confirmation modal with Yes/No buttons
-function showConfirmModal(message, title = 'Confirm', onConfirm, onCancel, options) {
+function showConfirmModal(message, title = tUi('common.confirm'), onConfirm, onCancel, options) {
   const opts = options && typeof options === 'object' ? options : {};
   const confirmText = typeof opts.confirmText === 'string' ? opts.confirmText : 'Yes, Continue';
   const cancelText = typeof opts.cancelText === 'string' ? opts.cancelText : 'Cancel';
@@ -3444,7 +3444,7 @@ function showInstallButton() {
   installButton.id = 'installButton';
   installButton.type = 'button';
   installButton.innerHTML =
-    '<span class="data-management-buttons__icon" aria-hidden="true">' + svgIcon('save', 'ui-svg-icon') + '</span><span class="data-management-buttons__label">Install App</span>';
+    '<span class="data-management-buttons__icon" aria-hidden="true">' + svgIcon('save', 'ui-svg-icon') + '</span><span class="data-management-buttons__label">' + tUi('common.install.app.2') + '</span>';
   installButton.className = 'settings-data-btn install-app-btn';
   installButton.onclick = installPWA;
   // Place inside Settings panel only (data-management-buttons or settings-footer), never in header
@@ -3524,13 +3524,13 @@ function installOrLaunchPWA() {
   
   // Check if app is already installed
   if (window.matchMedia('(display-mode: standalone)').matches) {
-    showAlertModal('App is already running in standalone mode! 🎉', 'PWA Status');
+    showAlertModal(tUi('common.app.is.already.running.in.standalone.mod'), tUi('common.alert'));
     return;
   }
   
   // Check if running as PWA (Safari)
   if (window.navigator.standalone === true) {
-    showAlertModal('App is already installed as PWA! 🎉', 'PWA Status');
+    showAlertModal(tUi('common.app.is.already.installed.as.pwa'), tUi('common.alert'));
     return;
   }
   
@@ -3546,7 +3546,7 @@ function installOrLaunchPWA() {
       deferredPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === 'accepted') {
           Logger.debug('PWA: User accepted the install prompt');
-          showAlertModal('App installed successfully!\nLook for "Rianell" in your apps.', 'Installation Complete');
+          showAlertModal(tUi('common.app.installed.successfully.nlook.for'), tUi('common.alert'));
           hideInstallButton();
         } else {
           Logger.debug('PWA: User dismissed the install prompt');
@@ -3610,11 +3610,11 @@ function openInStandalone() {
   );
   
   if (newWindow) {
-    showAlertModal('Opening in standalone mode! 🚀\nClose this window and use the new one.', 'Standalone Mode');
+    showAlertModal(tUi('common.opening.in.standalone.mode.nclose.this.w'), tUi('common.alert'));
     // Focus the new window
     newWindow.focus();
   } else {
-    showAlertModal('Popup blocked!\nPlease allow popups for this site and try again.', 'Popup Blocked');
+    showAlertModal(tUi('common.popup.blocked.nplease.allow.popups.for.t'), tUi('common.alert'));
   }
 }
 
@@ -4504,7 +4504,7 @@ notesField.addEventListener('input', updateNotesCounter);
 
       if (useLLM) {
         var btnLabel = suggestBtn.textContent || suggestBtn.innerText;
-        suggestBtn.textContent = 'Generating…';
+        suggestBtn.textContent = tUi('common.loading.generating');
         suggestBtn.disabled = true;
         if (typeof window.generateSuggestNoteWithLLM !== 'function' && window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low' && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
           try {
@@ -4859,7 +4859,7 @@ async function createCombinedChart() {
         predictionsLoadingEl = document.createElement('div');
         predictionsLoadingEl.className = 'chart-predictions-loading-overlay';
         predictionsLoadingEl.setAttribute('aria-live', 'polite');
-        predictionsLoadingEl.textContent = 'Calculating predictions…';
+        predictionsLoadingEl.textContent = tUi('common.calculating.predictions');
         chartContainerEl.appendChild(predictionsLoadingEl);
       }
       try {
@@ -6258,7 +6258,7 @@ async function clearData() {
   saveSettings();
   
   // Show confirmation and reload app
-  showAlertModal('All data and settings cleared successfully!\n\nThe app will reload in a moment to reset to default state.', 'Data Cleared');
+  showAlertModal(tUi('common.all.data.and.settings.cleared.successful'), tUi('toast.saved'));
   
   // Reload the app to fully reset to default state
   setTimeout(() => {
@@ -6271,7 +6271,7 @@ async function clearData() {
 function exportData() {
   // Disable export in demo mode
   if (appSettings.demoMode) {
-    showAlertModal('Data export is disabled in demo mode. Demo data is not saved or synced.', 'Demo Mode');
+    showAlertModal(tUi('common.data.export.is.disabled.in.demo.mode.dem'), tUi('settings.demo.title'));
     return;
   }
 
@@ -6333,7 +6333,7 @@ function importData() {
           // Validate headers
           const expectedHeaders = ['Date', 'BPM', 'Weight', 'Fatigue', 'Stiffness', 'Back Pain', 'Sleep', 'Joint Pain', 'Mobility', 'Daily Function', 'Swelling', 'Flare', 'Mood', 'Irritability', 'Notes'];
           if (!expectedHeaders.every(header => headers.includes(header))) {
-              showAlertModal('Invalid CSV format. Please use a file exported from this app.', 'Import Error');
+              showAlertModal(tUi('common.invalid.csv.format.please.use.a.file.exp'), tUi('settings.import.failed'));
             return;
           }
           
@@ -6367,7 +6367,7 @@ function importData() {
           const newLogs = importedLogs.filter(log => !existingDates.includes(log.date));
           
           if (newLogs.length === 0) {
-              showAlertModal('No new entries to import. All entries in the file already exist.', 'Import Info');
+              showAlertModal(tUi('common.no.new.entries.to.import.all.entries.in.'), tUi('settings.import.title'));
             return;
           }
           
@@ -6381,7 +6381,7 @@ function importData() {
             showAlertModal(`Successfully imported ${newLogs.length} new health entries!`, 'Import Success');
           
         } catch (error) {
-            showAlertModal('Error reading file. Please make sure it\'s a valid CSV file exported from this app.', 'Import Error');
+            showAlertModal(tUi('common.error.reading.file.please.make.sure.it'), tUi('settings.import.failed'));
           console.error('Import error:', error);
             Logger.error('CSV import error', { error: error.message, stack: error.stack });
         }
@@ -6578,7 +6578,7 @@ async function generateAISummary() {
       <div class="ai-loading-state">
         <div class="ai-loading-icon">${svgIcon('brain', 'empty-placeholder-icon-svg', 'AI analysis')}</div>
         <h3 class="ai-empty-title">${tUi('ai.empty.noData.title')}</h3>
-        <p class="ai-empty-desc">Add logs with the + button. Analysis will appear here for your chosen date range.</p>
+        <p class="ai-empty-desc">${tUi('ai.empty.noData.desc')}</p>
       </div>
     `;
     Logger.debug('AI Summary: no logs in range (empty state)');
@@ -6637,7 +6637,7 @@ async function generateAISummary() {
     resultsContent.innerHTML = `
       <div class="ai-loading-state">
         <div class="ai-loading-icon">${svgIcon('calendar', 'empty-placeholder-icon-svg', 'Calendar')}</div>
-        <h3 class="ai-empty-title">No data in this range</h3>
+        <h3 class="ai-empty-title">${tUi('ai.empty.noRange.title')}</h3>
         <p class="ai-empty-desc">None of your entries fall in ${escapeHTML(dateRangeText)}. Try another range, or tap <strong>+</strong> to add a log for these dates.</p>
       </div>
     `;
@@ -6708,7 +6708,7 @@ async function generateAISummary() {
         resultsContent.innerHTML = `
           <div class="ai-error">
             <h3>❌ Error</h3>
-            <p>Something went wrong analysing your data for this range.</p>
+            <p>${tUi('common.something.went.wrong.analysing.your.data')}</p>
             <p style="font-size: 0.9rem; color: #78909c; margin-top: 10px;">${escapeHTML(error.message)}</p>
           </div>
         `;
@@ -6921,7 +6921,7 @@ async function updateSummaryNoteWithLLM(analysis, logs, dayCount) {
   var fallbackText = fallbackNote.trim() || originalText;
   var reqId = ((window.__aiSummaryNoteReqId || 0) + 1);
   window.__aiSummaryNoteReqId = reqId;
-  el.textContent = 'Generating summary…';
+  el.textContent = tUi('common.generating.summary');
   var llmPromise = window.generateSummaryWithLLM(
     analysis,
     { dayCount: dayCount || (logs && logs.length) || 0, logs: logs || [] },
@@ -6956,7 +6956,7 @@ function copyAIGeneratedNote(btn) {
   if (!text) return;
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(function() {
-      if (btn) { btn.textContent = 'Copied!'; setTimeout(function() { btn.textContent = 'Copy note'; }, 2000); }
+      if (btn) { btn.textContent = tUi('common.copied.exclaim'); setTimeout(function() { btn.textContent = tUi('ai.action.copyNote'); }, 2000); }
     }).catch(function() { fallbackCopy(); });
   } else { fallbackCopy(); }
   function fallbackCopy() {
@@ -6967,7 +6967,7 @@ function copyAIGeneratedNote(btn) {
       ta.select();
       document.execCommand('copy');
       document.body.removeChild(ta);
-      if (btn) { btn.textContent = 'Copied!'; setTimeout(function() { btn.textContent = 'Copy note'; }, 2000); }
+      if (btn) { btn.textContent = tUi('common.copied.exclaim'); setTimeout(function() { btn.textContent = tUi('ai.action.copyNote'); }, 2000); }
     } catch (e) {}
   }
 }
@@ -7697,7 +7697,7 @@ function getAIPainBodyFigureSVG(painByRegion) {
     if (score >= 4 || painRatio >= 0.4) return 'ai-pain-region-medium';
     return 'ai-pain-region-low';
   };
-  var svg = '<svg class="ai-pain-body-svg" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg" aria-label="Pain by body part - color shows how each area felt on average">';
+  var svg = '<svg class="ai-pain-body-svg" viewBox="0 0 140 280" xmlns="http://www.w3.org/2000/svg" aria-label="' + tUi('common.pain.by.body.part.color.shows.how.each.a') + '">';
   svg += '<defs><filter id="ai-pain-body-shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.2"/></filter></defs>';
   svg += '<path class="ai-pain-body-outline" d="M70 10 A26 28 0 0 1 70 66 Q58 70 50 78 Q42 90 44 108 Q46 138 48 168 Q50 198 48 238 Q46 268 52 278 L64 280 L76 280 L88 278 Q94 268 92 238 Q90 198 92 168 Q94 138 96 108 Q98 90 90 78 Q82 70 70 66 Z" fill="rgba(255,255,255,0.06)" stroke="rgba(76,175,80,0.25)" stroke-width="0.5"/>';
   var regionPaths = [
@@ -7816,8 +7816,8 @@ function buildAIAnalysisAtAGlance(analysis, logs, dayCount) {
   }
   if (items.length === 0) return '';
   return (
-    '<aside class="ai-at-a-glance" aria-label="Summary in plain language">' +
-    '<h3 class="ai-at-a-glance-title">At a glance</h3>' +
+    '<aside class="ai-at-a-glance" aria-label="' + tUi('common.summary.in.plain.language') + '">' +
+    '<h3 class="ai-at-a-glance-title">' + tUi('common.at.a.glance') + '</h3>' +
     '<ul class="ai-at-a-glance-list">' +
     items.map(function(t) {
       return '<li>' + t + '</li>';
@@ -7872,7 +7872,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
         <section class="ai-synopsis-section" aria-labelledby="ai-heading-found">
         <h3 class="ai-section-title" id="ai-heading-found">${svgIcon('brain', 'ai-inline-icon', tUi('ai.section.whatWeFound'))} ${tUi('ai.section.whatWeFound')}</h3>
         <p class="ai-section-intro">Patterns described in everyday language. Numbers in highlights come from your own entries. This screen supports self-care - it does not replace medical advice.</p>
-        <div class="ai-llm-synopsis" role="region" aria-label="Detailed written findings">
+        <div class="ai-llm-synopsis" role="region" aria-label="${tUi('common.detailed.written.findings')}">
           ${insightsText.split('\n\n').map(para => {
             const trimmed = para.trim();
             if (!trimmed) return '';
@@ -7908,9 +7908,9 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
         html += `
       <div class="ai-summary-section ai-animate-in" id="${summaryNoteSectionId}" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title" id="ai-heading-summary-note">${svgIcon('edit', 'ai-inline-icon', tUi('ai.section.summaryNote'))} ${tUi('ai.section.summaryNote')}</h3>
-        <p class="ai-section-intro">A short line you can copy for yourself or your clinician.</p>
+        <p class="ai-section-intro">${tUi('common.a.short.line.you.can.copy.for.yourself.o')}</p>
         <p class="ai-generated-note" id="${summaryNoteTextId}">${escapeHTML(noteText.trim())}</p>
-        <button type="button" class="ai-copy-note-btn" onclick="typeof copyAIGeneratedNote==='function'&&copyAIGeneratedNote(this)" title="Copy summary note to clipboard" aria-label="Copy summary note to clipboard">Copy note</button>
+        <button type="button" class="ai-copy-note-btn" onclick="typeof copyAIGeneratedNote==='function'&&copyAIGeneratedNote(this)" title="${tUi('common.copy.summary.note.to.clipboard')}" aria-label="${tUi('common.copy.summary.note.to.clipboard')}">${tUi('ai.action.copyNote')}</button>
       </div>`;
         animationDelay += 200 * animStep;
       }
@@ -7946,7 +7946,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   html += `
     <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
       <h3 class="ai-section-title" id="ai-heading-logged">${svgIcon('document', 'ai-inline-icon', tUi('ai.section.whatYouLogged'))} ${tUi('ai.section.whatYouLogged')}</h3>
-      <p class="ai-section-intro">How many days in this range included each type of entry.</p>
+      <p class="ai-section-intro">${tUi('common.how.many.days.in.this.range.included.eac')}</p>
       <div class="ai-stat-pills" role="list">
         ${statPills.map((p, i) => {
           const aria =
@@ -8106,9 +8106,9 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
           <span class="ai-trend-status-chip ai-trend-status-chip--${statusKey}">${escapeHTML(trendDescription)}</span>
         </div>
         <div class="ai-trend-values">
-          <div class="ai-trend-value"><span class="ai-trend-value-label">Typical</span><strong style="color: ${trendColor};">${averageDisplay}</strong></div>
-          <div class="ai-trend-value"><span class="ai-trend-value-label">Latest</span><strong style="color: ${trendColor};">${currentDisplay}</strong></div>
-          ${predictedDisplay ? `<div class="ai-trend-value"><span class="ai-trend-value-label">Outlook</span><strong style="color: ${predictedColor};">${predictedDisplay}</strong></div>` : ''}
+          <div class="ai-trend-value"><span class="ai-trend-value-label">${tUi('common.typical')}</span><strong style="color: ${trendColor};">${averageDisplay}</strong></div>
+          <div class="ai-trend-value"><span class="ai-trend-value-label">${tUi('common.latest')}</span><strong style="color: ${trendColor};">${currentDisplay}</strong></div>
+          ${predictedDisplay ? `<div class="ai-trend-value"><span class="ai-trend-value-label">${tUi('common.outlook')}</span><strong style="color: ${predictedColor};">${predictedDisplay}</strong></div>` : ''}
         </div>
         </div>
       </div>
@@ -8132,9 +8132,9 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
     html += `
       <div class="ai-summary-section ai-section-warning ai-animate-in" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title" id="ai-heading-flare" style="color: ${riskColor};"><span aria-hidden="true">${riskIcon}</span> ${tUi('ai.section.flareUp')}</h3>
-        <p class="ai-section-intro">A simple score from patterns in your logs - not a medical test.</p>
+        <p class="ai-section-intro">${tUi('common.a.simple.score.from.patterns.in.your.log')}</p>
         <div class="ai-flare-visual">
-          <div class="ai-flare-level" style="color: ${riskColor};"><strong>${riskLevel}</strong> <span class="ai-flare-level-note">risk level</span></div>
+          <div class="ai-flare-level" style="color: ${riskColor};"><strong>${riskLevel}</strong> <span class="ai-flare-level-note">${tUi('common.risk.level')}</span></div>
           <div class="ai-flare-dots" aria-hidden="true">
             ${[1,2,3,4,5].map(n => `<span class="ai-flare-dot ${n <= matchCount ? 'active' : ''}" style="${n <= matchCount ? `background: ${riskColor};` : ''}"></span>`).join('')}
           </div>
@@ -8240,7 +8240,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
             <span class="ai-trend-header">
               <strong>${corr.metric1} ${strength} ${direction} ${corr.metric2}</strong>
             </span>
-            <span class="ai-correlation-expand-hint" aria-hidden="true">Chart</span>
+            <span class="ai-correlation-expand-hint" aria-hidden="true">${tUi('charts.chart')}</span>
           </button>
             <div class="metric-radar-chart-container" id="correlationRadarChart_${index}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);" role="region" aria-label="Chart for ${escapeAttr(corr.metric1 + ' and ' + corr.metric2)}">
               <div id="correlationRadarChart_${index}_chart" style="height: 400px;"></div>
@@ -8257,7 +8257,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
         html += `
           <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
             <h3 class="ai-section-title ai-section-green">${svgIcon('chart-bars', 'ai-inline-icon', 'Correlations')} Groups that change together</h3>
-            <p class="ai-section-intro">These items often showed up together in your logs - useful context, not a rule.</p>
+            <p class="ai-section-intro">${tUi('common.these.items.often.showed.up.together.in.')}</p>
             <ul class="ai-list" style="margin-top: 1rem;">
               ${analysis.correlationClusters.map((cluster, idx) => {
                 const clusterNames = cluster.map(m => m.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())).join(', ');
@@ -8388,8 +8388,8 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title ai-section-green">${svgIcon('food', 'ai-inline-icon', 'Nutrition')} Nutrition</h3>
         <div class="ai-nutrition-visual">
-          <div class="ai-nutrition-main"><span class="ai-nutrition-value ai-brackets-highlight">${nutrition.avgCalories}</span> <span class="ai-nutrition-unit">cal</span></div>
-          <div class="ai-nutrition-main"><span class="ai-nutrition-value ai-brackets-highlight">${nutrition.avgProtein}g</span> <span class="ai-nutrition-unit">protein</span></div>
+          <div class="ai-nutrition-main"><span class="ai-nutrition-value ai-brackets-highlight">${nutrition.avgCalories}</span> <span class="ai-nutrition-unit">${tUi('common.cal')}</span></div>
+          <div class="ai-nutrition-main"><span class="ai-nutrition-value ai-brackets-highlight">${nutrition.avgProtein}g</span> <span class="ai-nutrition-unit">${tUi('common.protein')}</span></div>
         </div>
     `;
     if (nutrition.highCalorieDays > 0 || nutrition.lowCalorieDays > 0 || nutrition.highProteinDays > 0 || nutrition.lowProteinDays > 0) {
@@ -8411,7 +8411,7 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
         <h3 class="ai-section-title ai-section-green">${svgIcon('run', 'ai-inline-icon', 'Exercise')} Exercise</h3>
         <div class="ai-exercise-visual">
-          <span class="ai-exercise-value ai-brackets-highlight">${ex.avgMinutesPerDay}</span> <span class="ai-exercise-unit">min avg</span>
+          <span class="ai-exercise-value ai-brackets-highlight">${ex.avgMinutesPerDay}</span> <span class="ai-exercise-unit">${tUi('common.min.avg')}</span>
           <span class="ai-exercise-days ai-brackets-highlight">${ex.daysWithExercise} days</span>
         </div>
       </div>
@@ -9691,14 +9691,14 @@ async function submitBugReport(event) {
   var descriptionEl = document.getElementById('bugReportDescription');
   var description = (descriptionEl && descriptionEl.value ? descriptionEl.value.trim() : '');
   if (!description) {
-    if (typeof showAlertModal === 'function') showAlertModal('Please enter a bug description.', 'Bug Report');
+    if (typeof showAlertModal === 'function') showAlertModal(tUi('common.please.enter.a.bug.description'), tUi('common.bugReport.title'));
     return;
   }
 
   var submitBtn = document.getElementById('bugReportSubmitButton');
   if (submitBtn) {
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
+    submitBtn.textContent = tUi('common.submitting');
   }
 
   var payload = {
@@ -9736,13 +9736,13 @@ async function submitBugReport(event) {
     var form = document.getElementById('bugReportForm');
     if (form && typeof form.reset === 'function') form.reset();
     closeBugReportModal();
-    if (typeof showAlertModal === 'function') showAlertModal('Thanks - your bug report was submitted.', 'Bug Report');
+    if (typeof showAlertModal === 'function') showAlertModal(tUi('common.thanks.your.bug.report.was.submitted'), tUi('common.bugReport.title'));
   } catch (err) {
     if (typeof showAlertModal === 'function') showAlertModal((err && err.message) ? err.message : 'Bug report submission failed.', 'Bug Report');
   } finally {
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit';
+      submitBtn.textContent = tUi('common.submit');
     }
   }
 }
@@ -9859,7 +9859,7 @@ function updateGoalsProgressBlock() {
     var si = insight(stepsMet, 7, goals.steps > 0 ? Math.round((stepsAvg / goals.steps) * 100) : 0);
     rows.push('<div class="goals-metric-row" data-scroll-reveal>' +
       goalsRingSvg(stepsPct) +
-      '<div class="goals-metric-body"><div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-shoe-prints"></i></span><span class="goals-metric-name">Steps</span><span class="goals-metric-nums" data-count-target="' + stepsAvg + '">0 / ' + goals.steps.toLocaleString() + '</span></div>' +
+      '<div class="goals-metric-body"><div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-shoe-prints"></i></span><span class="goals-metric-name">' + tUi('charts.metric.steps') + '</span><span class="goals-metric-nums" data-count-target="' + stepsAvg + '">0 / ' + goals.steps.toLocaleString() + '</span></div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + stepsPct + '%"></div></div>' +
       '<div class="goals-meta"><span class="goals-days" title="' + stepsMet + ' of 7 days met">' + daysDots(stepsMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div></div>');
   }
@@ -9873,7 +9873,7 @@ function updateGoalsProgressBlock() {
     var hydPct = goals.hydration > 0 ? Math.min(100, Math.round((parseFloat(hydAvg) / goals.hydration) * 100)) : 0;
     var si = insight(hydMet, 7, goals.hydration > 0 ? Math.round((parseFloat(hydAvg) / goals.hydration) * 100) : 0);
     rows.push('<div class="goals-metric-row">' +
-      '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-droplet"></i></span><span class="goals-metric-name">Hydration</span><span class="goals-metric-nums">' + hydAvg + ' [' + hydAvgL + ' L] / ' + goals.hydration + ' [' + goalL + ' L]</span></div>' +
+      '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-droplet"></i></span><span class="goals-metric-name">' + tUi('charts.metric.hydration') + '</span><span class="goals-metric-nums">' + hydAvg + ' [' + hydAvgL + ' L] / ' + goals.hydration + ' [' + goalL + ' L]</span></div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + hydPct + '%"></div></div>' +
       '<div class="goals-meta"><span class="goals-days" title="' + hydMet + ' of 7 days met">' + daysDots(hydMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div>');
   }
@@ -9885,7 +9885,7 @@ function updateGoalsProgressBlock() {
     var sleepPct = goals.sleep > 0 ? Math.min(100, Math.round((parseFloat(sleepAvg) / goals.sleep) * 100)) : 0;
     var si = insight(sleepMet, 7, goals.sleep > 0 ? Math.round((parseFloat(sleepAvg) / goals.sleep) * 100) : 0);
     rows.push('<div class="goals-metric-row">' +
-      '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-moon"></i></span><span class="goals-metric-name">Sleep</span><span class="goals-metric-nums">' + sleepAvg + ' / ' + goals.sleep + '</span></div>' +
+      '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-moon"></i></span><span class="goals-metric-name">' + tUi('export.csv.sleep') + '</span><span class="goals-metric-nums">' + sleepAvg + ' / ' + goals.sleep + '</span></div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + sleepPct + '%"></div></div>' +
       '<div class="goals-meta"><span class="goals-days" title="' + sleepMet + ' of 7 days met">' + daysDots(sleepMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div>');
   }
@@ -9896,7 +9896,7 @@ function updateGoalsProgressBlock() {
     var goodLabel = goodThisWeek >= goals.goodDaysPerWeek ? 'On track' : 'Below target';
     var goodPct = goals.goodDaysPerWeek > 0 ? Math.min(100, Math.round((goodThisWeek / goals.goodDaysPerWeek) * 100)) : 0;
     rows.push('<div class="goals-metric-row">' +
-      '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-face-smile"></i></span><span class="goals-metric-name">Good days</span><span class="goals-metric-nums">' + goodThisWeek + ' / ' + goals.goodDaysPerWeek + (streak > 0 ? ' · ' + streak + ' in a row' : '') + '</span></div>' +
+      '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-face-smile"></i></span><span class="goals-metric-name">' + tUi('common.good.days') + '</span><span class="goals-metric-nums">' + goodThisWeek + ' / ' + goals.goodDaysPerWeek + (streak > 0 ? ' · ' + streak + ' in a row' : '') + '</span></div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + goodPct + '%"></div></div>' +
       '<div class="goals-meta"><span class="goals-status-pill ' + goodCls + '">' + goodLabel + '</span></div></div>');
   }
@@ -10417,7 +10417,7 @@ function renderLogFoodCategoryList(category, listId) {
   if (!list) return;
   const items = logFormFoodByCategory[category] || [];
   if (items.length === 0) {
-    list.innerHTML = '<p class="empty-items">None</p>';
+    list.innerHTML = '<p class="empty-items">' + tUi('common.none') + '</p>';
     return;
   }
   list.innerHTML = items.map((item, index) => {
@@ -10438,7 +10438,7 @@ function renderLogFoodCategoryList(category, listId) {
         <span class="item-text">${safeName}</span>
         ${details}
       </div>
-      <button type="button" class="remove-item-btn" onclick="removeLogFoodItem('${category}', ${index})" title="Remove">×</button>
+      <button type="button" class="remove-item-btn" onclick="removeLogFoodItem('${category}', ${index})" title="${tUi('common.remove')}">×</button>
     </div>
   `;
   }).join('');
@@ -10833,7 +10833,7 @@ function renderFrequentFood() {
   container.style.display = 'block';
   var label = document.createElement('span');
   label.className = 'frequent-label';
-  label.textContent = 'Frequent: ';
+  label.textContent = tUi('common.frequent');
   container.appendChild(label);
   opts.forEach(function(o) {
     var predefined = PREDEFINED_FOODS.find(function(f) { return f.name.toLowerCase() === o.key; });
@@ -10845,7 +10845,7 @@ function renderFrequentFood() {
     btn.setAttribute('data-food-id', predefined.id);
     btn.setAttribute('data-food-category', cat);
     btn.textContent = o.display;
-    btn.title = 'Add ' + o.display + ' to ' + cat;
+    btn.title = tUi('common.add') + ' ' + o.display + ' to ' + cat;
     btn.addEventListener('click', function() { addLogFoodItem(cat, predefined.id); });
     container.appendChild(btn);
   });
@@ -10947,7 +10947,7 @@ function renderFrequentExercises() {
   container.style.display = 'block';
   var label = document.createElement('span');
   label.className = 'frequent-label';
-  label.textContent = 'Frequent: ';
+  label.textContent = tUi('common.frequent');
   container.appendChild(label);
   opts.forEach(function(o) {
     var btn = document.createElement('button');
@@ -10955,7 +10955,7 @@ function renderFrequentExercises() {
     btn.className = 'frequent-chip exercise-chip';
     btn.setAttribute('data-exercise-id', o.key);
     btn.textContent = o.display;
-    btn.title = 'Add ' + o.display;
+    btn.title = tUi('common.add') + ' ' + o.display;
     btn.addEventListener('click', function() { addLogExerciseItem(o.key); });
     container.appendChild(btn);
   });
@@ -10968,12 +10968,12 @@ function renderLogExerciseItems() {
   const list = document.getElementById('logExerciseItemsList');
   if (list) {
     if (logFormExerciseItems.length === 0) {
-      list.innerHTML = '<p class="empty-items">No exercise logged yet.</p>';
+      list.innerHTML = '<p class="empty-items">' + tUi('logs.form.noExercise') + '</p>';
     } else {
       list.innerHTML = logFormExerciseItems.map((item, index) => `
         <div class="item-entry">
           <span class="item-text">${formatExerciseDisplay(item)}</span>
-          <button type="button" class="remove-item-btn" onclick="removeLogExerciseItem(${index})" title="Remove">×</button>
+          <button type="button" class="remove-item-btn" onclick="removeLogExerciseItem(${index})" title="${tUi('common.remove')}">×</button>
         </div>
       `).join('');
     }
@@ -11395,7 +11395,7 @@ function renderStressorTiles(containerId) {
       if (opts.length > 0) {
         var label = document.createElement('span');
         label.className = 'frequent-label';
-        label.textContent = 'Frequent: ';
+        label.textContent = tUi('common.frequent');
         freqEl.appendChild(label);
         opts.forEach(function(o) {
           var btn = document.createElement('button');
@@ -11435,7 +11435,7 @@ function renderStressorTiles(containerId) {
       btn.className = 'stressor-chip stressor-chip--' + grp.color;
       btn.setAttribute('data-value', opt.value);
       btn.setAttribute('data-search-text', (opt.label + ' ' + opt.value).toLowerCase());
-      btn.title = 'Toggle: ' + opt.label;
+      btn.title = tUi('common.toggle') + ' ' + opt.label;
       const iconClass = STRESSOR_ICONS[opt.value] || 'fa-solid fa-bolt';
       const iconEl = document.createElement('span');
       iconEl.className = 'stressor-chip-icon';
@@ -11465,7 +11465,7 @@ function renderLogStressorsItems() {
   
   container.innerHTML = '';
   if (logFormStressorsItems.length === 0) {
-    container.innerHTML = '<p class="empty-items">No stressors added yet.</p>';
+    container.innerHTML = '<p class="empty-items">' + tUi('common.no.stressors.added.yet') + '</p>';
     syncStressorTilesVisual('logStressorsTiles');
     return;
   }
@@ -11474,7 +11474,7 @@ function renderLogStressorsItems() {
     itemDiv.className = 'item-tag';
     itemDiv.innerHTML = `
       <span>${escapeHTML(item)}</span>
-      <button type="button" class="remove-item-btn" onclick="removeLogStressorItem(${index})" title="Remove">×</button>
+      <button type="button" class="remove-item-btn" onclick="removeLogStressorItem(${index})" title="${tUi('common.remove')}">×</button>
     `;
     container.appendChild(itemDiv);
   });
@@ -11510,7 +11510,7 @@ function renderSymptomTiles(containerId) {
       if (opts.length > 0) {
         var label = document.createElement('span');
         label.className = 'frequent-label';
-        label.textContent = 'Frequent: ';
+        label.textContent = tUi('common.frequent');
         freqEl.appendChild(label);
         opts.forEach(function(o) {
           var btn = document.createElement('button');
@@ -11550,7 +11550,7 @@ function renderSymptomTiles(containerId) {
       btn.className = 'symptom-chip symptom-chip--' + grp.color;
       btn.setAttribute('data-value', opt.value);
       btn.setAttribute('data-search-text', (opt.label + ' ' + opt.value).toLowerCase());
-      btn.title = 'Toggle: ' + opt.label;
+      btn.title = tUi('common.toggle') + ' ' + opt.label;
       const iconClass = SYMPTOM_ICONS[opt.value] || 'fa-solid fa-circle-dot';
       const iconEl = document.createElement('span');
       iconEl.className = 'symptom-chip-icon';
@@ -11580,14 +11580,14 @@ function renderLogSymptomsItems() {
   
   container.innerHTML = '';
   if (logFormSymptomsItems.length === 0) {
-    container.innerHTML = '<p class="empty-items">No symptoms added yet.</p>';
+    container.innerHTML = '<p class="empty-items">' + tUi('common.no.symptoms.added.yet') + '</p>';
   } else {
     logFormSymptomsItems.forEach((item, index) => {
       const itemDiv = document.createElement('div');
       itemDiv.className = 'item-tag';
       itemDiv.innerHTML = `
         <span>${escapeHTML(item)}</span>
-        <button type="button" class="remove-item-btn" onclick="removeLogSymptomItem(${index})" title="Remove">×</button>
+        <button type="button" class="remove-item-btn" onclick="removeLogSymptomItem(${index})" title="${tUi('common.remove')}">×</button>
       `;
       container.appendChild(itemDiv);
     });
@@ -11619,7 +11619,7 @@ function renderMedTimesDraftTags() {
     span.setAttribute('role', 'listitem');
     span.innerHTML =
       '<span class="medication-time-tag__text">' + escapeHTML(t) + '</span>' +
-      '<button type="button" class="medication-time-tag__remove" onclick="removeMedTimeDraftTag(' + i + ')" title="Remove" aria-label="Remove time">×</button>';
+      '<button type="button" class="medication-time-tag__remove" onclick="removeMedTimeDraftTag(' + i + ')" title="' + tUi('common.remove') + '" aria-label="' + tUi('common.remove.time') + '">×</button>';
     wrap.appendChild(span);
   });
 }
@@ -11688,14 +11688,14 @@ function renderFrequentMedications() {
   container.style.display = 'block';
   var label = document.createElement('span');
   label.className = 'frequent-label';
-  label.textContent = 'Frequent: ';
+  label.textContent = tUi('common.frequent');
   container.appendChild(label);
   opts.forEach(function(o) {
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'frequent-chip';
     btn.textContent = o.display;
-    btn.title = 'Use ' + o.display;
+    btn.title = tUi('common.use') + ' ' + o.display;
     btn.addEventListener('click', function() {
       var nameEl = document.getElementById('medName');
       if (nameEl) {
@@ -11714,7 +11714,7 @@ function renderLogMedicationsItems() {
   if (!list) return;
   list.innerHTML = '';
   if (logFormMedications.length === 0) {
-    list.innerHTML = '<p class="empty-items">No medications or supplements added yet.</p>';
+    list.innerHTML = '<p class="empty-items">' + tUi('common.no.medications.or.supplements.added.yet') + '</p>';
     return;
   }
   logFormMedications.forEach(function(item, index) {
@@ -11730,7 +11730,7 @@ function renderLogMedicationsItems() {
         '<button type="button" class="medication-taken-toggle ' + (item.taken ? 'taken' : '') + '" onclick="toggleLogMedicationTaken(' + index + ')" title="' + (item.taken ? 'Mark as not taken' : 'Mark as taken') + '">' +
           (item.taken ? '✓ Taken' : 'Not taken') +
         '</button>' +
-        '<button type="button" class="remove-item-btn" onclick="removeLogMedicationItem(' + index + ')" title="Remove">×</button>' +
+        '<button type="button" class="remove-item-btn" onclick="removeLogMedicationItem(' + index + ')" title="' + tUi('common.remove') + '">×</button>' +
       '</div>';
     list.appendChild(div);
   });
@@ -11763,7 +11763,7 @@ function renderEditStressorsList() {
   
   container.innerHTML = '';
   if (editStressorsItems.length === 0) {
-    container.innerHTML = '<p class="empty-items">No stressors added yet.</p>';
+    container.innerHTML = '<p class="empty-items">' + tUi('common.no.stressors.added.yet') + '</p>';
     syncStressorTilesVisual('editStressorsTiles');
     return;
   }
@@ -11772,7 +11772,7 @@ function renderEditStressorsList() {
     itemDiv.className = 'item-tag';
     itemDiv.innerHTML = `
       <span>${escapeHTML(item)}</span>
-      <button type="button" class="remove-item-btn" onclick="removeEditStressor(${index})" title="Remove">×</button>
+      <button type="button" class="remove-item-btn" onclick="removeEditStressor(${index})" title="${tUi('common.remove')}">×</button>
     `;
     container.appendChild(itemDiv);
   });
@@ -11805,7 +11805,7 @@ function renderEditSymptomsList() {
   
   container.innerHTML = '';
   if (editSymptomsItems.length === 0) {
-    container.innerHTML = '<p class="empty-items">No symptoms added yet.</p>';
+    container.innerHTML = '<p class="empty-items">' + tUi('common.no.symptoms.added.yet') + '</p>';
     syncSymptomTilesVisual('editSymptomsTiles');
     return;
   }
@@ -11814,7 +11814,7 @@ function renderEditSymptomsList() {
     itemDiv.className = 'item-tag';
     itemDiv.innerHTML = `
       <span>${escapeHTML(item)}</span>
-      <button type="button" class="remove-item-btn" onclick="removeEditSymptom(${index})" title="Remove">×</button>
+      <button type="button" class="remove-item-btn" onclick="removeEditSymptom(${index})" title="${tUi('common.remove')}">×</button>
     `;
     container.appendChild(itemDiv);
   });
@@ -11849,7 +11849,7 @@ function renderEditFoodCategoryList(category) {
   if (!container) return;
   const items = editFoodByCategory[category] || [];
   container.innerHTML = items.length === 0
-    ? '<p class="empty-items">None</p>'
+    ? '<p class="empty-items">' + tUi('common.none') + '</p>'
     : items.map((item, index) => {
         const name = typeof item === 'string' ? item : (item.name || '');
         const calories = typeof item === 'object' && item.calories !== undefined ? item.calories : undefined;
@@ -11861,7 +11861,7 @@ function renderEditFoodCategoryList(category) {
           if (protein !== undefined) parts.push(protein + 'g P');
           details = '<span class="item-detail">(' + parts.join(', ') + ')</span>';
         }
-        return `<div class="item-entry"><div style="flex:1;"><span class="item-text">${escapeHTML(name)}</span>${details}</div><button type="button" class="remove-item-btn" onclick="removeEditFoodItem('${category}', ${index})" title="Remove">×</button></div>`;
+        return `<div class="item-entry"><div style="flex:1;"><span class="item-text">${escapeHTML(name)}</span>${details}</div><button type="button" class="remove-item-btn" onclick="removeEditFoodItem('${category}', ${index})" title="${tUi('common.remove')}">×</button></div>`;
       }).join('');
   var cap = category.charAt(0).toUpperCase() + category.slice(1);
   syncFoodChipsInContainer('editFood' + cap + 'Chips', category, true);
@@ -11927,11 +11927,11 @@ function renderEditExerciseItemsList() {
   const list = document.getElementById('editExerciseItemsList');
   if (!list) return;
   list.innerHTML = editExerciseItems.length === 0
-    ? '<p class="empty-items">No exercise logged yet.</p>'
+    ? '<p class="empty-items">' + tUi('logs.form.noExercise') + '</p>'
     : editExerciseItems.map((item, index) => `
     <div class="item-entry">
       <span class="item-text">${escapeHTML(formatExerciseDisplay(item))}</span>
-      <button type="button" class="remove-item-btn" onclick="removeEditExerciseItem(${index})" title="Remove">×</button>
+      <button type="button" class="remove-item-btn" onclick="removeEditExerciseItem(${index})" title="${tUi('common.remove')}">×</button>
     </div>
   `).join('');
   syncAllEditExerciseChips();
@@ -12130,7 +12130,7 @@ function renderFoodItems() {
     const items = currentFoodByCategory[cat] || [];
     const listId = 'modalFood' + labels[cat] + 'List';
     const itemsHtml = items.length === 0
-      ? '<p class="empty-items">None</p>'
+      ? '<p class="empty-items">' + tUi('common.none') + '</p>'
       : items.map((item, index) => {
           const name = typeof item === 'string' ? item : (item.name || '');
           const calories = typeof item === 'object' && item.calories !== undefined ? item.calories : undefined;
@@ -12149,7 +12149,7 @@ function renderFoodItems() {
         <span class="item-text">${safeName}</span>
         ${details}
       </div>
-      <button class="remove-item-btn" onclick="removeFoodItemModal('${cat}', ${index})" title="Remove">×</button>
+      <button class="remove-item-btn" onclick="removeFoodItemModal('${cat}', ${index})" title="${tUi('common.remove')}">×</button>
     </div>`;
         }).join('');
     const groupsHtml = FOOD_GROUPS.map(grp => {
@@ -12392,11 +12392,11 @@ function renderExerciseItems() {
   const list = document.getElementById('exerciseItemsList');
   if (!list) return;
   const itemsHtml = currentExerciseItems.length === 0
-    ? '<p class="empty-items">No exercise logged yet.</p>'
+    ? '<p class="empty-items">' + tUi('logs.form.noExercise') + '</p>'
     : currentExerciseItems.map((item, index) => `
     <div class="item-entry">
       <span class="item-text">${formatExerciseDisplay(item)}</span>
-      <button class="remove-item-btn" onclick="removeExerciseItem(${index})" title="Remove">×</button>
+      <button class="remove-item-btn" onclick="removeExerciseItem(${index})" title="${tUi('common.remove')}">×</button>
     </div>
   `).join('');
   const categoryBlocks = EXERCISE_CATEGORIES.map(cat => {
@@ -12421,8 +12421,8 @@ function renderExerciseItems() {
   }).join('');
   list.innerHTML = `
     <div class="tile-picker-search-wrap">
-      <label class="visually-hidden" for="exerciseModalTileSearch">Filter exercises</label>
-      <input type="search" class="tile-picker-search" id="exerciseModalTileSearch" placeholder="Filter exercises…" autocomplete="off" aria-label="Filter exercises" />
+      <label class="visually-hidden" for="exerciseModalTileSearch">${tUi('common.filter.exercises')}</label>
+      <input type="search" class="tile-picker-search" id="exerciseModalTileSearch" placeholder="${tUi('logs.picker.filterExercises')}" autocomplete="off" aria-label="${tUi('common.filter.exercises')}" />
     </div>
     <div class="items-list" style="min-height: 24px; margin-bottom: 12px;">${itemsHtml}</div>
     ${categoryBlocks}
@@ -13040,7 +13040,7 @@ function generateLogEntryHTML(log) {
     day: 'numeric',
   });
   
-  const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">Flare-up</span>' : '<span class="flare-badge flare-no">No Flare-up</span>';
+  const flareStatus = log.flare === 'Yes' ? '<span class="flare-badge flare-yes">' + tUi('common.flare.up') + '</span>' : '<span class="flare-badge flare-no">' + tUi('common.no.flare.up') + '</span>';
   const foodCount = getAllFoodItems(log).length;
   const exerciseCount = log.exercise && log.exercise.length > 0 ? log.exercise.length : 0;
   
@@ -13052,10 +13052,10 @@ function generateLogEntryHTML(log) {
   return `
     <div class="log-entry-actions" onclick="if(!event.target.closest('button')) toggleLogEntry('${escapeHTML(log.date)}')">
       <div class="log-entry-actions-left">
-        <button class="delete-btn" onclick="event.stopPropagation(); deleteLogEntry('${escapeHTML(log.date)}')" title="Delete this entry">&times;</button>
+        <button class="delete-btn" onclick="event.stopPropagation(); deleteLogEntry('${escapeHTML(log.date)}')" title="${tUi('common.delete.this.entry')}">&times;</button>
         ${editButton}
       </div>
-      <button class="share-btn" onclick="event.stopPropagation(); openShareModalForLog('${safeDate}')" title="Share this entry" aria-label="Share this entry"><i class="fa-solid fa-share" aria-hidden="true"></i></button>
+      <button class="share-btn" onclick="event.stopPropagation(); openShareModalForLog('${safeDate}')" title="${tUi('common.share.this.entry')}" aria-label="${tUi('common.share.this.entry')}"><i class="fa-solid fa-share" aria-hidden="true"></i></button>
     </div>
     <div class="log-entry-header-collapsible" onclick="toggleLogEntry('${escapeHTML(log.date)}')">
       <div class="log-entry-header-content">
@@ -13084,7 +13084,7 @@ function generateLogEntryHTML(log) {
     <div class="log-entry-content">
       <div class="log-metrics-grid">
       <div class="metric-group vital-signs">
-        <h4 class="metric-group-title">Vital Signs</h4>
+        <h4 class="metric-group-title">${tUi('common.vital.signs')}</h4>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('chart-up', 'metric-svg-icon', 'Heart rate')} Heart Rate</span>
           ${isEditing 
@@ -13101,7 +13101,7 @@ function generateLogEntryHTML(log) {
         </div>
       </div>
       <div class="metric-group symptoms">
-        <h4 class="metric-group-title">Symptoms</h4>
+        <h4 class="metric-group-title">${tUi('wizard.step.symptoms')}</h4>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Fatigue')} Fatigue</span>
           ${isEditing 
@@ -13139,7 +13139,7 @@ function generateLogEntryHTML(log) {
         </div>
       </div>
       <div class="metric-group wellbeing">
-        <h4 class="metric-group-title">Wellbeing</h4>
+        <h4 class="metric-group-title">${tUi('common.wellbeing')}</h4>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('brain', 'metric-svg-icon', 'Sleep')} Sleep</span>
           ${isEditing 
@@ -13163,7 +13163,7 @@ function generateLogEntryHTML(log) {
         </div>
       </div>
       <div class="metric-group function">
-        <h4 class="metric-group-title">Function</h4>
+        <h4 class="metric-group-title">${tUi('common.function')}</h4>
         <div class="metric-item">
           <span class="metric-label">${svgIcon('chart-up', 'metric-svg-icon', 'Mobility')} Mobility</span>
           ${isEditing 
@@ -13209,7 +13209,7 @@ function generateLogEntryHTML(log) {
           ${log.hydration ? `<div class="metric-item">
             <span class="metric-label">${svgIcon('cloud', 'metric-svg-icon', 'Hydration')} Hydration</span>
             ${isEditing 
-              ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-hydration inline-edit-field" value="${log.hydration}" min="0" max="20" step="0.5" /><span class="inline-edit-suffix">glasses</span></span>`
+              ? `<span class="inline-edit-field-wrap"><input type="number" class="inline-edit-hydration inline-edit-field" value="${log.hydration}" min="0" max="20" step="0.5" /><span class="inline-edit-suffix">${tUi('common.glasses')}</span></span>`
               : `<span class="metric-value">${log.hydration} glasses</span>`
             }
           </div>` : ''}
@@ -13217,15 +13217,15 @@ function generateLogEntryHTML(log) {
       }
       <div class="metric-group food-log">
         <h4 class="metric-group-title">${svgIcon('food', 'metric-svg-icon', 'Food log')} Food Log</h4>
-        ${getAllFoodItems(log).length > 0 ? formatFoodLogForView(log) : `<div class="metric-item"><span class="metric-label">Items</span><span class="metric-value metric-value-muted">None logged</span></div>`}
+        ${getAllFoodItems(log).length > 0 ? formatFoodLogForView(log) : `<div class="metric-item"><span class="metric-label">${tUi('common.items')}</span><span class="metric-value metric-value-muted">${tUi('common.none.logged')}</span></div>`}
       </div>
       <div class="metric-group exercise-log">
         <h4 class="metric-group-title">${svgIcon('chart-up', 'metric-svg-icon', 'Exercise log')} Exercise Log</h4>
         <div class="metric-item">
-          <span class="metric-label">Activities</span>
+          <span class="metric-label">${tUi('common.activities')}</span>
           ${(log.exercise && log.exercise.length > 0)
             ? `<span class="metric-value metric-value-list">${log.exercise.map(item => escapeHTML(formatExerciseDisplay(item))).join('; ')}</span>`
-            : `<span class="metric-value metric-value-muted">None logged</span>`
+            : `<span class="metric-value metric-value-muted">${tUi('common.none.logged')}</span>`
           }
         </div>
       </div>
@@ -13239,7 +13239,7 @@ function generateLogEntryHTML(log) {
       <div class="metric-group additional-symptoms">
         <h4 class="metric-group-title">${svgIcon('notice', 'metric-svg-icon', 'Symptoms')} Additional Symptoms</h4>
         <div class="metric-item">
-          <span class="metric-label">Symptoms</span>
+          <span class="metric-label">${tUi('wizard.step.symptoms')}</span>
           <span class="metric-value">${(log.symptoms && log.symptoms.length > 0) ? log.symptoms.map(s => escapeHTML(s)).join(', ') : '-'}</span>
         </div>
         <div class="metric-item">
@@ -13253,10 +13253,10 @@ function generateLogEntryHTML(log) {
       <div class="metric-group medications-log">
         <h4 class="metric-group-title">${svgIcon('save', 'metric-svg-icon', 'Medication')} Medication / Supplements</h4>
         <div class="metric-item">
-          <span class="metric-label">Items</span>
+          <span class="metric-label">${tUi('common.items')}</span>
           ${(log.medications && log.medications.length > 0)
             ? `<span class="metric-value metric-value-list">${log.medications.map(m => escapeHTML(m.name) + (m.times && m.times.length ? ' (' + m.times.join(', ') + ')' : '') + ' – ' + (m.taken ? 'Taken' : 'Not taken')).join('; ')}</span>`
-            : `<span class="metric-value metric-value-muted">None logged</span>`
+            : `<span class="metric-value metric-value-muted">${tUi('common.none.logged')}</span>`
           }
         </div>
       </div>
@@ -13329,8 +13329,8 @@ function renderLogEntries(logsToRender) {
     const allLogs = (typeof window !== 'undefined' && Array.isArray(window.logs)) ? window.logs : logs;
     const hasAnyLogs = Array.isArray(allLogs) && allLogs.length > 0;
     outputEl.innerHTML = hasAnyLogs
-      ? '<p class="empty-items">No logs in this range. Try another range or add a new entry with the + button.</p>'
-      : '<p class="empty-items">No logs yet. Add your first entry with the + button.</p>';
+      ? '<p class="empty-items">' + tUi('common.no.logs.in.this.range.try.another.range.') + '</p>'
+      : '<p class="empty-items">' + tUi('logs.empty.none') + '</p>';
     return;
   }
   const deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
@@ -13790,7 +13790,7 @@ function togglePredictions() {
   const toggleBtn = document.getElementById('predictionToggle');
   if (toggleBtn) {
     toggleBtn.classList.add('active');
-    toggleBtn.title = 'Predictions disabled';
+    toggleBtn.title = tUi('common.predictions.disabled');
   }
   
   // Refresh charts
@@ -15185,15 +15185,15 @@ function saveQuickMinimalLog() {
   var dateValue = (document.getElementById('date') && document.getElementById('date').value || '').trim();
   var flareVal = document.getElementById('flare') && document.getElementById('flare').value;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-    showAlertModal('Pick a valid date first.', 'Validation');
+    showAlertModal(tUi('common.pick.a.valid.date.first'), tUi('common.validation.title'));
     return;
   }
   if (!flareVal) {
-    showAlertModal('Select flare Yes or No.', 'Validation');
+    showAlertModal(tUi('common.select.flare.yes.or.no'), tUi('common.validation.title'));
     return;
   }
   if (logs.some(function (log) { return log.date === dateValue; })) {
-    showAlertModal('An entry for ' + dateValue + ' already exists. Edit it from View Logs.', 'Duplicate');
+    showAlertModal(tUi('wizard.alert.duplicate.body', { date: dateValue }), tUi('wizard.alert.duplicate.title'));
     return;
   }
   var newEntry = {
@@ -15217,7 +15217,7 @@ function saveQuickMinimalLog() {
   logFormStressorsItems = [];
   logFormSymptomsItems = [];
   logFormMedications = [];
-  showAlertModal('Minimal log saved for ' + dateValue + '.', 'Saved');
+  showAlertModal(tUi('wizard.toast.minimalSaved', { date: dateValue }), tUi('toast.saved'));
   switchTab('home');
 }
 if (typeof window !== 'undefined') window.saveQuickMinimalLog = saveQuickMinimalLog;
@@ -15246,7 +15246,7 @@ form.addEventListener("submit", e => {
   const dateValue = document.getElementById("date").value.trim();
   // Validate date format (YYYY-MM-DD)
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-    showAlertModal('Invalid date format', 'Validation Error');
+    showAlertModal(tUi('common.invalid.date.format'), tUi('common.validation.title'));
     return;
   }
   
@@ -15645,7 +15645,7 @@ function refreshLlmModelSettingsHints() {
         return;
       }
       var mb = (est.usage / (1024 * 1024)).toFixed(0);
-      llmStorageHint.textContent = 'Browser storage used (incl. AI model): ~' + mb + ' MB';
+      llmStorageHint.textContent = tUi('common.browser.storage.used.incl.ai.model') + mb + ' MB';
     }).catch(function () {
       if (llmStorageHint) llmStorageHint.textContent = '';
     });
@@ -15673,7 +15673,7 @@ function promptAiModelDownloadConsent(modelId) {
       : { label: 'AI model', size: modelId === 'onnx-community/SmolLM2-360M-Instruct' ? '~200 MB' : '~670 MB' };
     var msg = document.getElementById('aiModelDownloadMessage');
     if (msg) {
-      msg.textContent = 'Download ' + info.label + ' (' + info.size + ')? Wi-Fi recommended. The model stays on this device and enables AI summaries, note suggestions, and daily quotes.';
+      msg.textContent = tUi('common.download') + ' ' + info.label + ' (' + info.size + ')? Wi-Fi recommended. The model stays on this device and enables AI summaries, note suggestions, and daily quotes.';
     }
     __rianellAiDownloadConsentResolve = resolve;
     overlay.style.display = 'flex';
@@ -16105,6 +16105,7 @@ function toggleAIFeatures() {
   saveSettings();
   applyAIFeatureVisibility();
   loadSettingsState();
+  if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
 }
 
 function loadSettingsState() {
@@ -16220,9 +16221,9 @@ function loadSettingsState() {
       const hint = document.getElementById('useOpenDataHint');
       if (hint) {
         if (appSettings.useOpenData) {
-          hint.textContent = 'AI is using anonymised data from other users with the same condition for training.';
+          hint.textContent = tUi('common.ai.is.using.anonymised.data.from.other.u');
         } else {
-          hint.textContent = 'AI is using only your personal data for training.';
+          hint.textContent = tUi('common.ai.is.using.only.your.personal.data.for.');
         }
       }
     }
@@ -16272,9 +16273,9 @@ function loadSettingsState() {
       const hint = document.getElementById('contributeAnonDataHint');
       if (hint) {
         if (appSettings.contributeAnonData) {
-          hint.textContent = 'Your anonymised data is being contributed to help improve AI models.';
+          hint.textContent = tUi('common.your.anonymised.data.is.being.contribute');
         } else {
-          hint.textContent = 'Contribute your anonymised data to help improve AI models';
+          hint.textContent = tUi('common.contribute.your.anonymised.data.to.help.');
         }
       }
     }
@@ -16401,7 +16402,7 @@ async function toggleContributeAnonData(optionalToggleId) {
   const toggleId = optionalToggleId || 'contributeAnonDataToggle';
   // Disable in demo mode
   if (appSettings.demoMode) {
-    showAlertModal('Data contribution is disabled in demo mode. Demo data is not saved or synced.', 'Demo Mode');
+    showAlertModal(tUi('common.data.export.is.disabled.in.demo.mode.dem'), tUi('settings.demo.title'));
     return;
   }
   
@@ -16410,7 +16411,7 @@ async function toggleContributeAnonData(optionalToggleId) {
   const isPlaceholder = !condition || condition.trim() === '' || condition.trim().toLowerCase() === 'medical condition';
   
   if (isPlaceholder) {
-    showAlertModal('Please set a medical condition first to contribute anonymised data.\n\nGo to Settings > Medical Condition to add your condition.', 'Condition Required');
+    showAlertModal(tUi('common.please.set.a.medical.condition.first.to.'), tUi('common.alert'));
     return;
   }
   
@@ -16492,7 +16493,7 @@ async function toggleContributeAnonData(optionalToggleId) {
       loadSettingsState();
       
       // Show confirmation
-      showAlertModal('Anonymised data contribution has been enabled. Your data will be anonymised and used to improve AI predictions.', 'Feature Enabled');
+      showAlertModal(tUi('common.anonymised.data.contribution.has.been.en'), tUi('common.alert'));
     },
     // onDecline - user declined the agreement
     () => {
@@ -16511,12 +16512,12 @@ async function toggleUseOpenData(optionalToggleId) {
   const toggleId = optionalToggleId || 'useOpenDataToggle';
   // Disable in demo mode
   if (appSettings.demoMode) {
-    showAlertModal('Open data training is disabled in demo mode. Demo data is not saved or synced.', 'Demo Mode');
+    showAlertModal(tUi('common.data.export.is.disabled.in.demo.mode.dem'), tUi('settings.demo.title'));
     return;
   }
   
   if (!appSettings.medicalCondition) {
-    showAlertModal('Please set a medical condition first to use open data for training.', 'Condition Required');
+    showAlertModal(tUi('common.please.set.a.medical.condition.first.to..2'), tUi('common.alert'));
     return;
   }
   
@@ -16569,7 +16570,7 @@ function toggleSetting(setting) {
     aiEnabled: 'onDeviceLlmDownload'
   };
   if (featureMap[setting] && !appSettings[setting] && typeof privacyFeatureAvailable === 'function' && !privacyFeatureAvailable(featureMap[setting])) {
-    showAlertModal('This feature is not available for your privacy region or missing required consent.', 'Privacy region');
+    showAlertModal(tUi('common.this.feature.is.not.available.for.your.p'), tUi('gate.title'));
     return;
   }
   appSettings[setting] = !appSettings[setting];
@@ -16589,9 +16590,9 @@ function toggleSetting(setting) {
 function clearBenchmarkCacheAndNotify() {
   if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.clearBenchmarkCache === 'function') {
     window.DeviceBenchmark.clearBenchmarkCache();
-    showAlertModal('Performance benchmark cache cleared. Reload the app to run the benchmark again and see the device-class modal.', 'Developer');
+    showAlertModal(tUi('common.performance.benchmark.cache.cleared.relo'), tUi('common.developer'));
   } else {
-    showAlertModal('Benchmark module not available.', 'Developer');
+    showAlertModal(tUi('common.benchmark.module.not.available'), tUi('common.developer'));
   }
 }
 
@@ -16976,7 +16977,7 @@ function updateUserName() {
 function toggleConditionSelector() {
   // Disable in demo mode
   if (appSettings.demoMode) {
-    showAlertModal('Condition selection is disabled in demo mode. Demo data is not saved or synced.', 'Demo Mode');
+    showAlertModal(tUi('common.condition.selection.is.disabled.in.demo.'), tUi('settings.demo.title'));
     return;
   }
   
@@ -17188,7 +17189,7 @@ async function addNewCondition() {
   
   const condition = input.value.trim();
   if (!condition) {
-    showAlertModal('Please enter a condition name', 'Condition Required');
+    showAlertModal(tUi('common.please.enter.a.condition.name'), tUi('common.alert'));
     return;
   }
   
@@ -17308,7 +17309,7 @@ function updateTutorialConditionDisplay() {
 
 function toggleTutorialConditionSelector() {
   if (appSettings.demoMode) {
-    showAlertModal('Condition selection is disabled in demo mode.', 'Demo Mode');
+    showAlertModal(tUi('common.condition.selection.is.disabled.in.demo..2'), tUi('settings.demo.title'));
     return;
   }
   const selector = document.getElementById('tutorialConditionSelector');
@@ -17370,7 +17371,7 @@ function addTutorialCondition() {
   if (!input) return;
   const condition = input.value.trim();
   if (!condition) {
-    showAlertModal('Please enter a condition name', 'Condition Required');
+    showAlertModal(tUi('common.please.enter.a.condition.name'), tUi('common.alert'));
     return;
   }
   const currentCondition = appSettings.medicalCondition;
@@ -17415,7 +17416,7 @@ function addTutorialCondition() {
 function updateMedicalCondition(condition = null) {
   // Disable in demo mode
   if (appSettings.demoMode) {
-    showAlertModal('Cannot update condition in demo mode. Demo data is not saved or synced.', 'Demo Mode');
+    showAlertModal(tUi('common.cannot.update.condition.in.demo.mode.dem'), tUi('settings.demo.title'));
     return;
   }
   
@@ -17426,7 +17427,7 @@ function updateMedicalCondition(condition = null) {
       condition = newConditionInput.value.trim();
     } else {
       // No condition provided and input is empty - don't set a default
-      showAlertModal('Please enter a medical condition name.', 'Condition Required');
+      showAlertModal(tUi('common.please.enter.a.medical.condition.name'), tUi('common.alert'));
       return;
     }
   }
@@ -17434,7 +17435,7 @@ function updateMedicalCondition(condition = null) {
   // Validate condition is not empty or placeholder
   condition = condition.trim();
   if (!condition || condition.toLowerCase() === 'medical condition') {
-    showAlertModal('Please enter a valid medical condition name.', 'Invalid Condition');
+    showAlertModal(tUi('common.please.enter.a.valid.medical.condition.n'), tUi('common.alert'));
     return;
   }
   
@@ -18127,7 +18128,7 @@ function toggleDemoMode() {
         box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
         text-align: center;
       `;
-      loadingMsg.textContent = 'Generating demo data... This may take a moment.';
+      loadingMsg.textContent = tUi('common.generating.demo.data.this.may.take.a.mom');
       document.body.appendChild(loadingMsg);
       
       // Backup current data
@@ -18553,7 +18554,7 @@ function applyAICustomDateRange() {
   const endInput = document.getElementById('aiEndDate');
   
   if (!startInput || !endInput || !startInput.value || !endInput.value) {
-    showAlertModal('Please select both start and end dates.', 'Date Range');
+    showAlertModal(tUi('common.please.select.both.start.and.end.dates'), tUi('common.alert'));
     return;
   }
   
@@ -19019,14 +19020,142 @@ function updateHomeTodayPanel() {
     if (hero) hero.classList.add('home-hero-card--logged');
   } else {
     var notLoggedTitle = typeof tUi === 'function' ? tUi('home.status.notLoggedYet') : 'Not logged yet';
-    var notLoggedDetail = typeof tUi === 'function' ? tUi('home.status.notLoggedTodayDetail') : 'Tap + or Log now to record how you feel.';
+    var notLoggedDetail = typeof tUi === 'function' ? tUi('home.status.notLoggedTodayDetail') : 'No log for today yet. Tap + to record how you feel.';
     statusEl.innerHTML = '<strong>' + escapeHTML(notLoggedTitle) + '</strong><p class="home-status-detail">' + escapeHTML(notLoggedDetail).replace('+', '<span class="home-plus-emphasis" aria-hidden="true">+</span>') + '</p>';
     if (hero) hero.classList.remove('home-hero-card--logged');
   }
+  if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
   if (hero) {
     hero.classList.add('rianell-in-view');
     if (typeof initScrollReveal === 'function') initScrollReveal(hero.parentElement);
   }
+}
+
+function getHomeSharedAi() {
+  return (typeof window !== 'undefined' && window.RianellShared) ? window.RianellShared : null;
+}
+
+function getTodayDateStr() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function renderHomeAiSuggestions() {
+  var container = document.getElementById('homeAiSuggestions');
+  if (!container) return;
+  var S = getHomeSharedAi();
+  if (!S || typeof S.pickHomeAiSuggestions !== 'function') {
+    container.innerHTML = '';
+    container.hidden = true;
+    return;
+  }
+  var aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
+  var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
+  var todayStr = getTodayDateStr();
+  var loggedToday = logArr.some(function(l) { return l && l.date === todayStr; });
+  var snap = typeof S.computeHomeAnalysisSnapshot === 'function'
+    ? S.computeHomeAnalysisSnapshot(logArr)
+    : null;
+  var chips = S.pickHomeAiSuggestions(logArr, snap, { aiEnabled: aiOn, loggedToday: loggedToday });
+  window._homeAiAnalysisSnapshot = snap;
+  window._homeAiSuggestionChips = chips;
+  if (!chips.length) {
+    container.innerHTML = '';
+    container.hidden = true;
+    return;
+  }
+  container.hidden = false;
+  container.innerHTML = chips.map(function(chip) {
+    return (
+      '<button type="button" class="action-btn home-ai-suggestion" data-ripple data-home-question-id="' +
+      escapeHTML(chip.id) + '">' + escapeHTML(typeof tUi === 'function' ? tUi(chip.labelKey, chip.labelParams) : chip.labelKey) +
+      '</button>'
+    );
+  }).join('');
+  container.querySelectorAll('[data-home-question-id]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      openHomeQuestionModal(btn.getAttribute('data-home-question-id'));
+    });
+  });
+  if (typeof initRipple === 'function') initRipple(container);
+}
+
+function openHomeQuestionModal(questionId) {
+  var chips = window._homeAiSuggestionChips || [];
+  var chip = chips.find(function(c) { return c.id === questionId; });
+  if (!chip) return;
+  window._homeQuestionModalChip = chip;
+  var overlay = document.getElementById('homeQuestionModalOverlay');
+  if (!overlay) return;
+  var titleEl = document.getElementById('homeQuestionModalTitle');
+  var bodyEl = document.getElementById('homeQuestionModalBody');
+  var questionText = typeof tUi === 'function' ? tUi(chip.labelKey, chip.labelParams) : chip.labelKey;
+  if (titleEl) titleEl.textContent = questionText;
+  if (bodyEl) bodyEl.textContent = typeof tUi === 'function' ? tUi('home.questions.loading') : 'Thinking…';
+  overlay.style.display = 'block';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  document.body.classList.add('modal-active');
+  document.body.style.overflow = 'hidden';
+  overlay.onclick = function(e) { if (e.target === overlay) closeHomeQuestionModal(); };
+  var escapeHandler = function(e) {
+    if (e.key === 'Escape') {
+      closeHomeQuestionModal();
+      document.removeEventListener('keydown', escapeHandler);
+    }
+  };
+  document.addEventListener('keydown', escapeHandler);
+  answerHomeQuestionInModal(chip);
+}
+
+function closeHomeQuestionModal() {
+  var overlay = document.getElementById('homeQuestionModalOverlay');
+  if (!overlay) return;
+  overlay.style.display = 'none';
+  overlay.style.visibility = 'hidden';
+  overlay.style.opacity = '0';
+  document.body.classList.remove('modal-active');
+  document.body.style.overflow = '';
+  window._homeQuestionModalChip = null;
+}
+
+async function answerHomeQuestionInModal(chip) {
+  var bodyEl = document.getElementById('homeQuestionModalBody');
+  var S = getHomeSharedAi();
+  var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
+  var snap = window._homeAiAnalysisSnapshot || (S && typeof S.computeHomeAnalysisSnapshot === 'function'
+    ? S.computeHomeAnalysisSnapshot(logArr)
+    : null);
+  var questionText = typeof tUi === 'function' ? tUi(chip.labelKey, chip.labelParams) : chip.labelKey;
+  var fallback = (S && typeof S.buildHomeQuestionFallback === 'function')
+    ? S.buildHomeQuestionFallback(chip, snap)
+    : questionText;
+  var context = (S && typeof S.buildHomeQuestionContext === 'function')
+    ? S.buildHomeQuestionContext({
+      questionText: questionText,
+      questionId: chip.id,
+      labelParams: chip.labelParams || {},
+      analysis: snap || {},
+      logs: logArr
+    })
+    : questionText;
+  try {
+    var answer = fallback;
+    if (typeof generateHomeQuestionWithLLM === 'function') {
+      answer = await generateHomeQuestionWithLLM(context, fallback, chip.id);
+    }
+    if (bodyEl) bodyEl.textContent = answer || fallback;
+  } catch (e) {
+    if (bodyEl) {
+      bodyEl.textContent = typeof tUi === 'function' ? tUi('home.questions.error') : fallback;
+    }
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.renderHomeAiSuggestions = renderHomeAiSuggestions;
+  window.openHomeQuestionModal = openHomeQuestionModal;
+  window.closeHomeQuestionModal = closeHomeQuestionModal;
 }
 
 function openLogWizardFromHome() {
@@ -19151,7 +19280,7 @@ function buildLogReviewSummaryHtml() {
   html.push(sectionCard('Medication & notes', medsNotes));
 
   var output = html.join('');
-  return output || '<p class="log-review-empty">No details yet - you can still save after adding required fields.</p>';
+  return output || '<p class="log-review-empty">' + tUi('common.no.details.yet.you.can.still.save.after.') + '</p>';
 }
 
 function updateLogWizardChrome() {
@@ -19781,7 +19910,7 @@ window.addEventListener('load', () => {
     };
     setTimeout(complete, 640);
   }
-    if (loadingTextEl) loadingTextEl.textContent = 'Loading Rianell…';
+    if (loadingTextEl) loadingTextEl.textContent = tUi('home.loading.app');
   
   // Initial appearance class (will be finalized after settings load)
   try { applyAppearanceMode(); } catch (e) {}
@@ -19868,6 +19997,7 @@ window.addEventListener('load', () => {
     window.RianellI18n.onLocaleChange(function () {
       if (typeof window.RianellI18n.applyDocumentI18n === 'function') window.RianellI18n.applyDocumentI18n();
       if (typeof updateHomeTodayPanel === 'function') updateHomeTodayPanel();
+      if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
       if (typeof updateLogWizardChrome === 'function') {
         var logTabEl = document.getElementById('logTab');
         if (tabNameRef === 'log' || (logTabEl && logTabEl.classList.contains('active'))) {
@@ -19895,7 +20025,7 @@ window.addEventListener('load', () => {
     console.error('Error during initial setup:', e);
   }
   
-  if (loadingTextEl) loadingTextEl.textContent = 'Loading…';
+  if (loadingTextEl) loadingTextEl.textContent = tUi('common.loading');
 
   function revealAppShell() {
     setOrbitLoadingProgress(100);
@@ -20065,7 +20195,7 @@ window.addEventListener('load', () => {
     const toggleBtn = document.getElementById('predictionToggle');
     if (toggleBtn) {
       toggleBtn.classList.remove('active');
-      toggleBtn.title = 'Click to turn off predictions';
+      toggleBtn.title = tUi('common.click.to.turn.off.predictions');
     }
     if (typeof NotificationManager !== 'undefined') {
       setTimeout(function () {
@@ -20095,7 +20225,7 @@ window.addEventListener('load', () => {
       var todayStr = yyyy + '-' + mm + '-' + dd;
       var hasToday = logs.some(function (log) { return log.date === todayStr; });
       if (!hasToday && !window.matchMedia('(display-mode: standalone)').matches && !window.navigator.standalone && appSettings.reminder !== false) {
-        showAlertModal('You have not logged an entry for today.');
+        showAlertModal(tUi('common.you.have.not.logged.an.entry.for.today'));
       }
     }, 500);
   }
@@ -20112,7 +20242,7 @@ window.addEventListener('load', () => {
     window.DeviceBenchmark.runBenchmarkIfNeeded(
       function (pct, meta) {
         var label = meta && meta.label ? (' · ' + meta.label) : '';
-        if (loadingTextEl) loadingTextEl.textContent = 'Measuring performance…' + (pct > 0 ? ' ' + pct + '%' : '') + label;
+        if (loadingTextEl) loadingTextEl.textContent = tUi('common.measuring.performance') + (pct > 0 ? ' ' + pct + '%' : '') + label;
         setOrbitLoadingProgress(pct);
       },
       function (tier, platformType, result, meta) {

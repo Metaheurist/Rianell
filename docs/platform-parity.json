@@ -156,12 +156,17 @@
     {
       "id": "ui_string_catalog_full",
       "status": { "web": "supported", "android": "supported", "ios": "supported" },
-      "notes": "en-GB 805 keys; PWA index.html data-i18n + app.js tUi(); RN useT(); audit-hardcoded-strings.mjs --check in CI."
+      "notes": "861 en-GB keys; PWA index.html data-i18n + app.js tUi(); RN useT(); audit --check + --require-wiring + verify-no-hardcoded-ui --strict in CI."
     },
     {
       "id": "llm_prompt_i18n",
       "status": { "web": "supported", "android": "supported", "ios": "supported" },
       "notes": "i18n-packs/prompt-packs/v1 per locale; summary-llm.js + llm.ts send explicit locale (B2); verify-prompt-packs enforces key parity."
+    },
+    {
+      "id": "home_ai_suggestions",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "0–3 contextual AI question chips on Home when logged today with ≥3 days of data; tap opens answer modal (homeQuestion LLM feature)."
     },
     {
       "id": "ui_rtl_ar_he",
