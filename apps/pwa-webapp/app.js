@@ -87,6 +87,25 @@ function tUi(key, params) {
   return key;
 }
 
+/** Content catalog label (food, exercise, stressor, etc.) with English fallback. */
+function tContent(prefix, id, fallback) {
+  var slug = String(id).replace(/[^a-zA-Z0-9_]/g, '_');
+  var key = 'content.' + prefix + '.' + slug;
+  var val = tUi(key);
+  if (val !== key) return val;
+  return fallback != null ? fallback : String(id);
+}
+
+/** Localized device benchmark per-test label (also used by device-benchmark.js). */
+function benchmarkTestLabel(test) {
+  var id = test && test.id ? String(test.id) : '';
+  var key = 'benchmark.tests.' + id.replace(/-/g, '_');
+  var val = tUi(key);
+  if (val !== key) return val;
+  return test && test.label ? test.label : id;
+}
+if (typeof window !== 'undefined') window.benchmarkTestLabel = benchmarkTestLabel;
+
 function getActiveUiLocale() {
   if (typeof window !== 'undefined' && window.RianellI18n && typeof window.RianellI18n.getLocale === 'function') {
     return window.RianellI18n.getLocale();
@@ -850,7 +869,7 @@ function openPerfBenchmarkModal(options) {
   // Close settings modal if open
   closeSettingsModalIfOpen();
 
-  if (titleEl) titleEl.textContent = mode === 'firstRun' ? 'Performance & AI benchmark' : 'Performance & AI benchmark (last run)';
+  if (titleEl) titleEl.textContent = mode === 'firstRun' ? tUi('benchmark.title') : tUi('benchmark.titleLastRun');
 
   const platformType = result && result.platformType ? result.platformType : 'unknown';
   const tier = result && typeof result.tier === 'number' ? result.tier : null;
@@ -869,19 +888,20 @@ function openPerfBenchmarkModal(options) {
   const llmDisplay = (llmSize && String(llmSize).indexOf('tier') === 0) ? 'Tier ' + String(llmSize).replace('tier', '') : llmSize;
 
   summaryEl.textContent = tier == null
-    ? 'No benchmark result found.'
-    : `Device: ${platformType} · Tier: ${tier} · Class: ${deviceClass} · Recommended AI model: ${llmDisplay}`;
+    ? tUi('benchmark.noResult')
+    : tUi('benchmark.summary', { platform: platformType, tier: tier, deviceClass: deviceClass, model: llmDisplay });
 
   const aiLineEl = document.getElementById('perfBenchmarkAiLine');
-  if (aiLineEl) aiLineEl.textContent = tier != null ? (llmDisplay ? `This device can run up to ${llmDisplay}.` : '') : '';
+  if (aiLineEl) aiLineEl.textContent = tier != null ? (llmDisplay ? tUi('benchmark.aiLine', { model: llmDisplay }) : '') : '';
 
   const gpuLineEl = document.getElementById('perfBenchmarkGpuLine');
   if (gpuLineEl) {
     var gpu = result && result.gpu ? result.gpu : null;
     if (gpu && gpu.available && gpu.backend && gpu.backend !== 'none') {
-      gpuLineEl.textContent = 'GPU: ' + (gpu.backend === 'webgpu' ? 'WebGPU' : gpu.backend === 'webgl' ? 'WebGL' : gpu.backend) + ' available, used for AI.';
+      var gpuBackendLabel = gpu.backend === 'webgpu' ? 'WebGPU' : gpu.backend === 'webgl' ? 'WebGL' : gpu.backend;
+      gpuLineEl.textContent = tUi('benchmark.gpuAvailable', { backend: gpuBackendLabel });
     } else {
-      gpuLineEl.textContent = tier != null ? 'GPU: Not available (using CPU for AI).' : '';
+      gpuLineEl.textContent = tier != null ? tUi('benchmark.gpuUnavailable') : '';
     }
   }
 
@@ -900,8 +920,9 @@ function openPerfBenchmarkModal(options) {
 
       const row = document.createElement('div');
       row.className = 'perf-benchmark-bar-row';
+      const labelText = benchmarkTestLabel(t);
       row.innerHTML = `
-        <div class="perf-benchmark-bar-label" title="${t.label || t.id}">${t.label || t.id}</div>
+        <div class="perf-benchmark-bar-label" title="${escapeAttr(labelText)}">${escapeHTML(labelText)}</div>
         <div class="perf-benchmark-bar-track"><div class="perf-benchmark-bar-fill" style="width:${widthPct}%;"></div></div>
         <div class="perf-benchmark-bar-value">${ms ? ms.toFixed(1) + 'ms' : '-'}</div>
       `;
@@ -910,7 +931,7 @@ function openPerfBenchmarkModal(options) {
   } else {
     const empty = document.createElement('div');
     empty.style.opacity = '0.8';
-    empty.textContent = 'No per-test breakdown available (older cached result). Clear benchmark cache in God mode (` key) and reload to run a full benchmark.';
+    empty.textContent = tUi('benchmark.noPerTestBreakdown');
     barsEl.appendChild(empty);
   }
 
@@ -936,13 +957,13 @@ function openPerfBenchmarkModal(options) {
     const deviceDisplay = [env.deviceVendor, env.deviceModel].filter(Boolean).join(' ') || (env.deviceType || '-');
     const memoryDisplay = env.deviceMemory != null ? String(env.deviceMemory) + ' GB' : (env.estimatedMemoryBucket ? `estimated: ${env.estimatedMemoryBucket}` : '-');
     const kv = [
-      ['Class', deviceClass],
-      ['Repeats', repeats != null ? String(repeats) : '-'],
-      ['Cores', env.cores != null ? String(env.cores) : '-'],
-      ['Memory', memoryDisplay],
-      ['OS', osDisplay],
-      ['Device', deviceDisplay],
-      ['CPU', env.cpuArchitecture || '-']
+      [tUi('benchmark.stat.class'), deviceClass],
+      [tUi('benchmark.stat.repeats'), repeats != null ? String(repeats) : '-'],
+      [tUi('benchmark.stat.cores'), env.cores != null ? String(env.cores) : '-'],
+      [tUi('benchmark.stat.memory'), memoryDisplay],
+      [tUi('benchmark.stat.os'), osDisplay],
+      [tUi('benchmark.stat.device'), deviceDisplay],
+      [tUi('benchmark.stat.cpu'), env.cpuArchitecture || '-']
     ];
     kv.forEach(pair => {
       const div = document.createElement('div');
@@ -983,7 +1004,7 @@ function openPerfBenchmarkModal(options) {
       } else {
         ctx.fillStyle = 'rgba(224,242,241,0.7)';
         ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Arial';
-        ctx.fillText('No stability samples', 14, 26);
+        ctx.fillText(tUi('benchmark.noStabilitySamples'), 14, 26);
       }
     }
   }
@@ -998,9 +1019,9 @@ function openPerfBenchmarkModal(options) {
       const backendLabel = result.gpu.backend === 'webgpu' ? 'WebGPU' : result.gpu.backend === 'webgl' ? 'WebGL' : result.gpu.backend;
       const meanMs = gpuSamples.length ? (gpuSamples.reduce((a, b) => a + b, 0) / gpuSamples.length).toFixed(2) : '-';
       const kv = [
-        ['Backend', backendLabel],
-        ['Samples', gpuSamples.length ? String(gpuSamples.length) : '0'],
-        ['Mean', meanMs !== '-' ? meanMs + ' ms' : '-']
+        [tUi('benchmark.stat.backend'), backendLabel],
+        [tUi('benchmark.stat.samples'), gpuSamples.length ? String(gpuSamples.length) : '0'],
+        [tUi('benchmark.stat.mean'), meanMs !== '-' ? meanMs + ' ms' : '-']
       ];
       kv.forEach(pair => {
         const div = document.createElement('div');
@@ -1011,7 +1032,7 @@ function openPerfBenchmarkModal(options) {
         const hint = document.createElement('div');
         hint.className = 'perf-benchmark-gpu-hint';
         hint.style.cssText = 'margin-top:6px;font-size:0.8rem;opacity:0.85;';
-        hint.textContent = 'Clear benchmark cache (God mode `) and reload to see stability graph.';
+        hint.textContent = tUi('benchmark.clearCacheHint');
         gpuStatsEl.appendChild(hint);
       }
     } else {
@@ -1051,7 +1072,7 @@ function openPerfBenchmarkModal(options) {
       } else {
         ctx.fillStyle = 'rgba(224,242,241,0.7)';
         ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto, Arial';
-        const msg = !gpuAvailable ? 'GPU not available' : gpuSamples.length === 0 ? 'No stability samples (clear cache & reload for graph)' : 'No GPU stability samples';
+        const msg = !gpuAvailable ? tUi('benchmark.gpuNotAvailable') : gpuSamples.length === 0 ? tUi('benchmark.noGpuStabilitySamples') : tUi('benchmark.noStabilitySamples');
         ctx.fillText(msg, 14, 26);
       }
     }
@@ -1080,11 +1101,11 @@ function openPerfBenchmarkModal(options) {
       };
     }
   } catch (e) {}
-  profileEl.textContent = profileSummary ? JSON.stringify(profileSummary, null, 2) : 'Profile not available.';
+  profileEl.textContent = profileSummary ? JSON.stringify(profileSummary, null, 2) : tUi('benchmark.profileNotAvailable');
 
   // Buttons and close behavior
   if (continueBtn) {
-    continueBtn.textContent = mode === 'firstRun' ? 'Continue' : 'Close';
+    continueBtn.textContent = mode === 'firstRun' ? tUi('common.continue') : tUi('common.close');
     continueBtn.onclick = function () {
       if (mode === 'firstRun' && result && typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.saveBenchmarkResult === 'function') {
         window.DeviceBenchmark.saveBenchmarkResult(result);
@@ -1163,7 +1184,7 @@ function openShareModal(options) {
   const mode = options.mode || 'log';
   const payload = options.payload || {};
 
-  if (titleEl) titleEl.textContent = options.title || 'Share';
+  if (titleEl) titleEl.textContent = options.title || tUi('common.share');
 
   bodyEl.innerHTML = options.bodyHTML != null ? options.bodyHTML : '';
   footerEl.innerHTML = '';
@@ -2503,7 +2524,7 @@ function openInstallModal(force) {
   if (iosMain && iosModal) {
     iosModal.href = iosMain.href || 'javascript:void(0)';
     var labelMain = document.getElementById('downloadIosLabel');
-    if (iosLabelModal && labelMain) iosLabelModal.textContent = labelMain.textContent || 'Install on iOS';
+    if (iosLabelModal && labelMain) iosLabelModal.textContent = labelMain.textContent || tUi('common.install.on.ios');
     var vMainIos = iosMain.querySelector('.ios-version');
     var vModalIos = iosModal.querySelector('.ios-version');
     if (vMainIos && vModalIos) vModalIos.textContent = vMainIos.textContent || '';
@@ -2512,7 +2533,7 @@ function openInstallModal(force) {
   var block = document.getElementById('installModalIosDevice');
   var label = document.getElementById('installModalIosDeviceLabel');
   if (block) block.style.display = isIosDevice ? '' : 'none';
-  if (label) label.textContent = /iPad/.test(navigator.userAgent) ? 'Install on this iPad' : 'Install on this iPhone';
+  if (label) label.textContent = /iPad/.test(navigator.userAgent) ? tUi('common.install.on.this.ipad') : tUi('common.install.on.this.iphone');
   overlay.style.display = 'block';
   overlay.style.visibility = 'visible';
   overlay.style.opacity = '1';
@@ -2703,72 +2724,72 @@ function openModalTestOverlay() {
 
   var sections = [
     {
-      title: 'Tabs',
+      titleKey: 'godMode.section.tabs',
       items: [
-        { label: 'Open log wizard', action: run(function() { openLogWizardFromHome(); }) },
-        { label: 'View Logs', action: run(function() { switchTab('logs'); }) },
-        { label: 'Charts', action: run(function() { switchTab('charts'); }) },
-        { label: 'AI Analysis', action: run(function() { switchTab('ai'); }) }
+        { labelKey: 'godMode.openLogWizard', action: run(function() { openLogWizardFromHome(); }) },
+        { labelKey: 'godMode.viewLogs', action: run(function() { switchTab('logs'); }) },
+        { labelKey: 'godMode.charts', action: run(function() { switchTab('charts'); }) },
+        { labelKey: 'godMode.aiAnalysis', action: run(function() { switchTab('ai'); }) }
       ]
     },
     {
-      title: 'Modals',
+      titleKey: 'godMode.section.modals',
       items: [
-        { label: 'Tutorial', action: run(openTutorialModal) },
-        { label: 'Settings', action: run(toggleSettings) },
-        { label: 'Cookie banner', action: run(function() { var b = document.getElementById('cookieBanner'); if (b) b.classList.remove('hidden'); }) },
-        { label: 'Cookie policy', action: run(openCookiePolicyModal) },
-        { label: 'Alert (sample)', action: run(function() { showAlertModal(tUi('common.this.is.a.sample.alert.for.testing'), tUi('common.alert')); }) },
-        { label: 'Food log', action: run(function() { openFoodModal(today); }) },
-        { label: 'Exercise log', action: run(function() { openExerciseModal(today); }) },
-        { label: 'Edit entry', action: run(function() { if (typeof logs !== 'undefined' && logs && logs.length) openEditEntryModal(firstLogDate); else showAlertModal(tUi('common.no.entries.to.edit.add.a.log.first'), tUi('common.edit.entry')); }) },
-        { label: 'Export', action: run(exportData) },
-        { label: 'Import', action: run(importData) },
-        { label: 'Sign up / Sign in', action: run(openSignupSigninModal) },
-        { label: 'GDPR agreement', action: run(function() { showGDPRAgreementModal(function() { closeGDPRAgreementModal(); }, function() { closeGDPRAgreementModal(); }); }) },
-        { label: 'Install modal (post-tutorial)', action: run(function() { openInstallModal(true); }) }
+        { labelKey: 'godMode.tutorial', action: run(openTutorialModal) },
+        { labelKey: 'godMode.settings', action: run(toggleSettings) },
+        { labelKey: 'godMode.cookieBanner', action: run(function() { var b = document.getElementById('cookieBanner'); if (b) b.classList.remove('hidden'); }) },
+        { labelKey: 'godMode.cookiePolicy', action: run(openCookiePolicyModal) },
+        { labelKey: 'godMode.alertSample', action: run(function() { showAlertModal(tUi('common.this.is.a.sample.alert.for.testing'), tUi('common.alert')); }) },
+        { labelKey: 'godMode.foodLog', action: run(function() { openFoodModal(today); }) },
+        { labelKey: 'godMode.exerciseLog', action: run(function() { openExerciseModal(today); }) },
+        { labelKey: 'godMode.editEntry', action: run(function() { if (typeof logs !== 'undefined' && logs && logs.length) openEditEntryModal(firstLogDate); else showAlertModal(tUi('common.no.entries.to.edit.add.a.log.first'), tUi('common.edit.entry')); }) },
+        { labelKey: 'godMode.export', action: run(exportData) },
+        { labelKey: 'godMode.import', action: run(importData) },
+        { labelKey: 'godMode.signUpSignIn', action: run(openSignupSigninModal) },
+        { labelKey: 'godMode.gdprAgreement', action: run(function() { showGDPRAgreementModal(function() { closeGDPRAgreementModal(); }, function() { closeGDPRAgreementModal(); }); }) },
+        { labelKey: 'godMode.installModalPostTutorial', action: run(function() { openInstallModal(true); }) }
       ]
     },
     {
-      title: 'Charts',
+      titleKey: 'godMode.section.charts',
       items: [
-        { label: 'Balance view', action: run(function() { switchTab('charts'); setTimeout(function() { toggleChartView('balance'); }, 100); }) },
-        { label: 'Individual charts', action: run(function() { switchTab('charts'); setTimeout(function() { toggleChartView('individual'); }, 100); }) },
-        { label: 'Combined chart', action: run(function() { switchTab('charts'); setTimeout(function() { toggleChartView('combined'); }, 100); }) },
-        { label: 'Select all (balance)', action: run(function() { if (typeof selectAllBalanceMetrics === 'function') selectAllBalanceMetrics(); }) },
-        { label: 'Deselect all (balance)', action: run(function() { if (typeof deselectAllBalanceMetrics === 'function') deselectAllBalanceMetrics(); }) }
+        { labelKey: 'godMode.balanceView', action: run(function() { switchTab('charts'); setTimeout(function() { toggleChartView('balance'); }, 100); }) },
+        { labelKey: 'godMode.individualCharts', action: run(function() { switchTab('charts'); setTimeout(function() { toggleChartView('individual'); }, 100); }) },
+        { labelKey: 'godMode.combinedChart', action: run(function() { switchTab('charts'); setTimeout(function() { toggleChartView('combined'); }, 100); }) },
+        { labelKey: 'godMode.selectAllBalance', action: run(function() { if (typeof selectAllBalanceMetrics === 'function') selectAllBalanceMetrics(); }) },
+        { labelKey: 'godMode.deselectAllBalance', action: run(function() { if (typeof deselectAllBalanceMetrics === 'function') deselectAllBalanceMetrics(); }) }
       ]
     },
     {
-      title: 'AI range',
+      titleKey: 'godMode.section.aiRange',
       items: [
-        { label: '7 days', action: run(function() { switchTab('ai'); setAIDateRange(7); }) },
-        { label: '30 days', action: run(function() { switchTab('ai'); setAIDateRange(30); }) },
-        { label: '90 days', action: run(function() { switchTab('ai'); setAIDateRange(90); }) }
+        { labelKey: 'godMode.range7days', action: run(function() { switchTab('ai'); setAIDateRange(7); }) },
+        { labelKey: 'godMode.range30days', action: run(function() { switchTab('ai'); setAIDateRange(30); }) },
+        { labelKey: 'godMode.range90days', action: run(function() { switchTab('ai'); setAIDateRange(90); }) }
       ]
     },
     {
-      title: 'Log form sections',
+      titleKey: 'godMode.section.logFormSections',
       items: [
-        { label: 'Open: Basic metrics', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('basicMetrics'); }, 80); }) },
-        { label: 'Open: Symptoms & Pain', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('symptoms'); }, 80); }) },
-        { label: 'Open: Energy & Mental Clarity', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('energyCognitive'); }, 80); }) },
-        { label: 'Open: Food log', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('foodLog'); }, 80); }) },
-        { label: 'Open: Exercise log', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('exerciseLog'); }, 80); }) }
+        { labelKey: 'godMode.openBasicMetrics', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('basicMetrics'); }, 80); }) },
+        { labelKey: 'godMode.openSymptomsPain', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('symptoms'); }, 80); }) },
+        { labelKey: 'godMode.openEnergyClarity', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('energyCognitive'); }, 80); }) },
+        { labelKey: 'godMode.openFoodLog', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('foodLog'); }, 80); }) },
+        { labelKey: 'godMode.openExerciseLog', action: run(function() { switchTab('log'); setTimeout(function() { toggleSection('exerciseLog'); }, 80); }) }
       ]
     },
     {
-      title: 'Developer',
-      hint: 'Clears the cached device performance tier. Reload the app to run the benchmark again and see the device-class modal.',
+      titleKey: 'godMode.section.developer',
+      hintKey: 'godMode.hint.clearBenchmarkCache',
       items: [
-        { label: 'Clear performance benchmark cache', action: run(clearBenchmarkCacheAndNotify) },
-        { label: 'View last benchmark details', action: run(openBenchmarkDetails), desktopOnly: true }
+        { labelKey: 'godMode.clearBenchmarkCache', action: run(clearBenchmarkCacheAndNotify) },
+        { labelKey: 'godMode.viewBenchmarkDetails', action: run(openBenchmarkDetails), desktopOnly: true }
       ]
     },
     {
-      title: 'Other',
+      titleKey: 'godMode.section.other',
       items: [
-        { label: 'Focus skip link', action: run(function() { var s = document.querySelector('.skip-link'); if (s) s.focus(); }) }
+        { labelKey: 'godMode.focusSkipLink', action: run(function() { var s = document.querySelector('.skip-link'); if (s) s.focus(); }) }
       ]
     }
   ];
@@ -2776,10 +2797,10 @@ function openModalTestOverlay() {
   container.innerHTML = sections.map(function(s) {
     var btns = s.items.map(function(item, i) {
       var extraCls = item.desktopOnly ? ' god-mode-btn--desktop-only' : '';
-      return '<button type="button" class="god-mode-btn' + extraCls + '">' + escapeHTML(item.label) + '</button>';
+      return '<button type="button" class="god-mode-btn' + extraCls + '">' + escapeHTML(tUi(item.labelKey)) + '</button>';
     }).join('');
-    var hintHtml = s.hint ? '<p class="god-mode-section-hint">' + escapeHTML(s.hint) + '</p>' : '';
-    return '<section class="god-mode-section"><h4 class="god-mode-section-title">' + escapeHTML(s.title) + '</h4><div class="god-mode-btn-group">' + btns + '</div>' + hintHtml + '</section>';
+    var hintHtml = s.hintKey ? '<p class="god-mode-section-hint">' + escapeHTML(tUi(s.hintKey)) + '</p>' : '';
+    return '<section class="god-mode-section"><h4 class="god-mode-section-title">' + escapeHTML(tUi(s.titleKey)) + '</h4><div class="god-mode-btn-group">' + btns + '</div>' + hintHtml + '</section>';
   }).join('');
 
   sections.forEach(function(s, sIdx) {
@@ -3710,7 +3731,7 @@ function showUpdateNotification() {
   }
   notifySuccess('New version available — reload to update.', {
     duration: 8000,
-    action: { label: 'Reload', onClick: function () { location.reload(); } }
+    action: { label: tUi('common.reload'), onClick: function () { location.reload(); } }
   });
 }
 
@@ -7933,15 +7954,15 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   const daysEnergyClarity = logs.filter(l => l.energyClarity && String(l.energyClarity).trim().length > 0).length;
   const daysNotes = logs.filter(l => l.notes && String(l.notes).trim().length > 0).length;
   const statPills = [
-    { icon: 'chart-bars', value: numericWithData.length, label: 'Metrics' },
-    { icon: 'notice', value: daysFlare, label: 'Flare days' },
-    { icon: 'food', value: daysFood, label: 'Food' },
-    { icon: 'chart-up', value: daysExercise, label: 'Exercise' },
-    { icon: 'brain', value: daysStressors, label: 'Stress' },
-    { icon: 'notice', value: daysSymptoms, label: 'Symptoms' },
-    { icon: 'balance', value: daysPainLocation, label: 'Pain areas' },
-    { icon: 'zap', value: daysEnergyClarity, label: 'Energy' },
-    { icon: 'edit', value: daysNotes, label: 'Notes' }
+    { icon: 'chart-bars', value: numericWithData.length, labelKey: 'ai.stats.metrics', metricsAria: true },
+    { icon: 'notice', value: daysFlare, labelKey: 'ai.stats.flareDays' },
+    { icon: 'food', value: daysFood, labelKey: 'ai.stats.food' },
+    { icon: 'chart-up', value: daysExercise, labelKey: 'ai.stats.exercise' },
+    { icon: 'brain', value: daysStressors, labelKey: 'ai.stats.stress' },
+    { icon: 'notice', value: daysSymptoms, labelKey: 'ai.stats.symptoms' },
+    { icon: 'balance', value: daysPainLocation, labelKey: 'ai.stats.painAreas' },
+    { icon: 'zap', value: daysEnergyClarity, labelKey: 'ai.stats.energy' },
+    { icon: 'edit', value: daysNotes, labelKey: 'ai.stats.notes' }
   ];
   html += `
     <div class="ai-summary-section ai-animate-in" style="animation-delay: ${animationDelay}ms;">
@@ -7949,14 +7970,14 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
       <p class="ai-section-intro">${tUi('common.how.many.days.in.this.range.included.eac')}</p>
       <div class="ai-stat-pills" role="list">
         ${statPills.map((p, i) => {
-          const aria =
-            p.label === 'Metrics'
-              ? p.value + ' metrics with enough data to analyse'
-              : p.value + ' days with ' + p.label.toLowerCase() + ' logged';
+          const label = tUi(p.labelKey);
+          const aria = p.metricsAria
+            ? tUi('ai.stats.metricsAria', { count: p.value })
+            : tUi('ai.stats.daysLoggedAria', { count: p.value, label: label.toLowerCase() });
           return `<div class="ai-stat-pill ai-animate-in" style="animation-delay: ${animationDelay + (i * 40)}ms;" role="listitem" aria-label="${escapeAttr(aria)}">
           <span class="ai-stat-pill-icon" aria-hidden="true">${svgIcon(p.icon, 'ai-inline-icon')}</span>
           <span class="ai-stat-pill-value" aria-hidden="true">${p.value}</span>
-          <span class="ai-stat-pill-label">${escapeHTML(p.label)}</span>
+          <span class="ai-stat-pill-label">${escapeHTML(label)}</span>
         </div>`;
         }).join('')}
       </div>
@@ -10099,6 +10120,7 @@ migrateLogs();
  */
 function buildEcgBeatSegment(x0, yBase) {
   var r = Math.random;
+  var beatAmp = 0.55 + r() * 1.05;
   var y = yBase;
   var parts = [];
   var L = function (x, yy) {
@@ -10107,7 +10129,7 @@ function buildEcgBeatSegment(x0, yBase) {
   // Isoelectric
   L(x0 + 6, y);
   // P wave
-  var pH = 1.2 + r() * 1.6;
+  var pH = (0.8 + r() * 3.2) * beatAmp;
   L(x0 + 9, y);
   L(x0 + 11, y - pH);
   L(x0 + 13, y - pH * (0.35 + r() * 0.25));
@@ -10116,20 +10138,20 @@ function buildEcgBeatSegment(x0, yBase) {
   L(x0 + 22 + r() * 1.5, y);
   // QRS: Q (small down) → R (sharp up) → S (down) → baseline
   var qx = x0 + 24.5 + r() * 1.2;
-  var qy = 31 + r() * 1.8;
-  var rPeak = 3 + r() * 6;
-  var rNarrow = 0.45 + r() * 0.65;
-  var sDepth = 32.5 + r() * 3.5;
+  var qy = y + (0.8 + r() * 2.8) * beatAmp;
+  var rPeak = (2 + r() * 18) * beatAmp;
+  var rNarrow = 0.35 + r() * 0.85;
+  var sDepth = y + (2.5 + r() * 9.5) * beatAmp;
   L(qx, y);
   L(qx + 1.4, qy);
-  L(qx + 3.2, rPeak);
+  L(qx + 3.2, y - rPeak);
   L(qx + 3.2 + rNarrow, y - 0.15);
   L(qx + 5.2, sDepth);
   L(qx + 7, y);
   // ST
   L(x0 + 36, y);
   // T wave (rounded, asymmetric)
-  var tH = 1.8 + r() * 2.2;
+  var tH = (1.0 + r() * 5.5) * beatAmp;
   var tSkew = r() * 4;
   L(x0 + 40, y);
   L(x0 + 42 + tSkew, y - tH * 0.35);
@@ -10176,7 +10198,7 @@ function initEcgHeartbeatLine() {
   path.addEventListener(
     'animationiteration',
     function () {
-      if (Math.random() < 0.55) applyPath();
+      applyPath();
     },
     { passive: true }
   );
@@ -10773,10 +10795,11 @@ function syncSymptomTilesVisual(containerId) {
 function renderFoodChipsForCategory(category, containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  const mealLabel = category.charAt(0).toUpperCase() + category.slice(1);
+  const mealKeyByCategory = { breakfast: 'common.breakfast', lunch: 'common.lunch', dinner: 'common.dinner', snack: 'common.snack' };
+  const mealLabel = tUi(mealKeyByCategory[category] || 'common.breakfast');
   const searchId = 'tileSearch_' + containerId;
   container.innerHTML = '';
-  const searchWrap = createTilePickerSearchEl(searchId, 'Filter foods…', 'Filter ' + mealLabel + ' food options');
+  const searchWrap = createTilePickerSearchEl(searchId, tUi('logs.picker.filterFoods'), tUi('logs.picker.filterFoodsAria', { meal: mealLabel }));
   container.appendChild(searchWrap);
   FOOD_GROUPS.forEach(grp => {
     const foods = PREDEFINED_FOODS.filter(f => (f.group || 'mixed') === grp.id && (!f.meals || f.meals.length === 0 || f.meals.includes(category)));
@@ -10786,24 +10809,25 @@ function renderFoodChipsForCategory(category, containerId) {
     groupDiv.setAttribute('data-group', grp.id);
     const heading = document.createElement('div');
     heading.className = 'food-group__title';
-    heading.textContent = grp.label;
+    heading.textContent = tContent('foodGroup', grp.id, grp.label);
     groupDiv.appendChild(heading);
     const chipsDiv = document.createElement('div');
     chipsDiv.className = 'food-chips';
     foods.forEach(f => {
+      const foodName = tContent('food', f.id, f.name);
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'food-chip food-chip--' + (f.group || 'mixed');
       btn.setAttribute('data-food-id', f.id);
-      btn.setAttribute('data-search-text', (f.name + ' ' + (f.calories || '') + ' ' + (f.protein || '') + ' cal').toLowerCase());
-      btn.title = `Add ${f.name}, ${f.calories} cal to ${mealLabel}`;
+      btn.setAttribute('data-search-text', (foodName + ' ' + (f.calories || '') + ' ' + (f.protein || '') + ' cal').toLowerCase());
+      btn.title = `Add ${foodName}, ${f.calories} cal to ${mealLabel}`;
       const iconClass = FOOD_ICONS[f.id] || 'fa-solid fa-utensils';
       const iconEl = document.createElement('span');
       iconEl.className = 'food-chip-icon';
       iconEl.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i>`;
       const nameSpan = document.createElement('span');
       nameSpan.className = 'food-chip-name';
-      nameSpan.textContent = f.name;
+      nameSpan.textContent = foodName;
       const nutritionSpan = document.createElement('span');
       nutritionSpan.className = 'food-chip-nutrition';
       nutritionSpan.textContent = `${f.calories} cal · ${f.protein}g P`;
@@ -10873,7 +10897,7 @@ function renderExerciseChipsForCategory(category, containerId) {
   const searchId = 'tileSearch_' + containerId;
   let searchWrap = parent.querySelector('.tile-picker-search-wrap');
   if (!searchWrap) {
-    searchWrap = createTilePickerSearchEl(searchId, 'Filter exercises…', 'Filter exercises in this category');
+    searchWrap = createTilePickerSearchEl(searchId, tUi('logs.picker.filterExercises'), tUi('logs.picker.filterExercisesAria'));
     parent.insertBefore(searchWrap, chipsEl);
     const inp = document.getElementById(searchId);
     if (inp) attachTilePickerSearch(parent, inp);
@@ -10884,19 +10908,20 @@ function renderExerciseChipsForCategory(category, containerId) {
   const exercises = PREDEFINED_EXERCISES.filter(e => (e.category || 'cardio') === category);
   chipsEl.innerHTML = '';
   exercises.forEach(ex => {
+    const exName = tContent('exercise', ex.id, ex.name);
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'exercise-chip exercise-chip--' + (ex.category || 'cardio');
     btn.setAttribute('data-exercise-id', ex.id);
-    btn.setAttribute('data-search-text', (ex.name + ' ' + ex.defaultDuration + ' min').toLowerCase());
-    btn.title = `Add ${ex.name}, ${ex.defaultDuration} min`;
+    btn.setAttribute('data-search-text', (exName + ' ' + ex.defaultDuration + ' min').toLowerCase());
+    btn.title = `Add ${exName}, ${ex.defaultDuration} min`;
     const iconClass = EXERCISE_ICONS[ex.id] || 'fa-solid fa-dumbbell';
     const iconEl = document.createElement('span');
     iconEl.className = 'exercise-chip-icon';
     iconEl.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i>`;
     const nameSpan = document.createElement('span');
     nameSpan.className = 'exercise-chip-name';
-    nameSpan.textContent = ex.name;
+    nameSpan.textContent = exName;
     const durationSpan = document.createElement('span');
     durationSpan.className = 'exercise-chip-duration';
     durationSpan.textContent = `${ex.defaultDuration} min`;
@@ -11007,7 +11032,7 @@ function renderEnergyClarityTiles() {
   const currentValue = hidden ? hidden.value : '';
   const ecSearchId = 'tileSearch_energyClarityTiles';
   container.innerHTML = '';
-  container.appendChild(createTilePickerSearchEl(ecSearchId, 'Filter options…', 'Filter energy and mental clarity options'));
+  container.appendChild(createTilePickerSearchEl(ecSearchId, tUi('logs.picker.filterOptions'), tUi('logs.picker.filterOptionsAria')));
   ENERGY_CLARITY_GROUPS.forEach(grp => {
     const opts = ENERGY_CLARITY_OPTIONS.filter(o => o.mood === grp.id);
     if (opts.length === 0) return;
@@ -11016,7 +11041,7 @@ function renderEnergyClarityTiles() {
     groupDiv.setAttribute('data-group', grp.id);
     const heading = document.createElement('div');
     heading.className = 'tile-group__title';
-    heading.textContent = grp.label;
+    heading.textContent = tContent('energyGroup', grp.id, grp.label);
     groupDiv.appendChild(heading);
     const chipsDiv = document.createElement('div');
     chipsDiv.className = 'energy-clarity-chips';
@@ -11025,7 +11050,8 @@ function renderEnergyClarityTiles() {
       btn.type = 'button';
       btn.className = 'energy-clarity-chip energy-clarity-chip--' + opt.mood;
       btn.setAttribute('data-value', opt.value);
-      btn.setAttribute('data-search-text', (opt.label + ' ' + opt.value).toLowerCase());
+      const optLabel = tContent('energy', opt.value, opt.label);
+      btn.setAttribute('data-search-text', (optLabel + ' ' + opt.value).toLowerCase());
       btn.setAttribute('role', 'option');
       btn.setAttribute('aria-selected', currentValue === opt.value ? 'true' : 'false');
       if (currentValue === opt.value) btn.classList.add('selected');
@@ -11035,7 +11061,7 @@ function renderEnergyClarityTiles() {
       iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
       const nameSpan = document.createElement('span');
       nameSpan.className = 'energy-clarity-chip-name';
-      nameSpan.textContent = opt.label;
+      nameSpan.textContent = tContent('energy', opt.value, opt.label);
       btn.appendChild(iconEl);
       btn.appendChild(nameSpan);
       btn.addEventListener('click', () => setEnergyClaritySelection(opt.value));
@@ -11072,7 +11098,7 @@ function renderEditEnergyClarityTiles() {
   const currentValue = hidden ? hidden.value : '';
   const eecSearchId = 'tileSearch_editEnergyClarityTiles';
   container.innerHTML = '';
-  container.appendChild(createTilePickerSearchEl(eecSearchId, 'Filter options…', 'Filter energy and mental clarity options'));
+  container.appendChild(createTilePickerSearchEl(eecSearchId, tUi('logs.picker.filterOptions'), tUi('logs.picker.filterOptionsAria')));
   ENERGY_CLARITY_GROUPS.forEach(grp => {
     const opts = ENERGY_CLARITY_OPTIONS.filter(o => o.mood === grp.id);
     if (opts.length === 0) return;
@@ -11081,7 +11107,7 @@ function renderEditEnergyClarityTiles() {
     groupDiv.setAttribute('data-group', grp.id);
     const heading = document.createElement('div');
     heading.className = 'tile-group__title';
-    heading.textContent = grp.label;
+    heading.textContent = tContent('energyGroup', grp.id, grp.label);
     groupDiv.appendChild(heading);
     const chipsDiv = document.createElement('div');
     chipsDiv.className = 'energy-clarity-chips';
@@ -11090,7 +11116,8 @@ function renderEditEnergyClarityTiles() {
       btn.type = 'button';
       btn.className = 'energy-clarity-chip energy-clarity-chip--' + opt.mood;
       btn.setAttribute('data-value', opt.value);
-      btn.setAttribute('data-search-text', (opt.label + ' ' + opt.value).toLowerCase());
+      const optLabel = tContent('energy', opt.value, opt.label);
+      btn.setAttribute('data-search-text', (optLabel + ' ' + opt.value).toLowerCase());
       btn.setAttribute('role', 'option');
       btn.setAttribute('aria-selected', currentValue === opt.value ? 'true' : 'false');
       if (currentValue === opt.value) btn.classList.add('selected');
@@ -11100,7 +11127,7 @@ function renderEditEnergyClarityTiles() {
       iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
       const nameSpan = document.createElement('span');
       nameSpan.className = 'energy-clarity-chip-name';
-      nameSpan.textContent = opt.label;
+      nameSpan.textContent = tContent('energy', opt.value, opt.label);
       btn.appendChild(iconEl);
       btn.appendChild(nameSpan);
       btn.addEventListener('click', () => setEditEnergyClaritySelection(opt.value));
@@ -11416,7 +11443,7 @@ function renderStressorTiles(containerId) {
   if (!container) return;
   const searchId = 'tileSearch_' + containerId;
   container.innerHTML = '';
-  container.appendChild(createTilePickerSearchEl(searchId, 'Filter stressors…', 'Filter stressors and triggers'));
+  container.appendChild(createTilePickerSearchEl(searchId, tUi('logs.picker.filterStressors'), tUi('logs.picker.filterStressorsAria')));
   STRESSOR_GROUPS.forEach(grp => {
     const opts = STRESSOR_OPTIONS.filter(o => o.group === grp.id);
     if (opts.length === 0) return;
@@ -11425,7 +11452,7 @@ function renderStressorTiles(containerId) {
     groupDiv.setAttribute('data-group', grp.id);
     const heading = document.createElement('div');
     heading.className = 'stressor-group__title';
-    heading.textContent = grp.label;
+    heading.textContent = tContent('stressorGroup', grp.id, grp.label);
     groupDiv.appendChild(heading);
     const chipsDiv = document.createElement('div');
     chipsDiv.className = 'stressor-chips';
@@ -11434,15 +11461,16 @@ function renderStressorTiles(containerId) {
       btn.type = 'button';
       btn.className = 'stressor-chip stressor-chip--' + grp.color;
       btn.setAttribute('data-value', opt.value);
-      btn.setAttribute('data-search-text', (opt.label + ' ' + opt.value).toLowerCase());
-      btn.title = tUi('common.toggle') + ' ' + opt.label;
+      const optLabel = tContent('stressor', opt.value, opt.label);
+      btn.setAttribute('data-search-text', (optLabel + ' ' + opt.value).toLowerCase());
+      btn.title = tUi('common.toggle') + ' ' + optLabel;
       const iconClass = STRESSOR_ICONS[opt.value] || 'fa-solid fa-bolt';
       const iconEl = document.createElement('span');
       iconEl.className = 'stressor-chip-icon';
       iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
       const nameSpan = document.createElement('span');
       nameSpan.className = 'stressor-chip-name';
-      nameSpan.textContent = opt.label;
+      nameSpan.textContent = tContent('stressor', opt.value, opt.label);
       btn.appendChild(iconEl);
       btn.appendChild(nameSpan);
       btn.addEventListener('click', () => {
@@ -11531,7 +11559,7 @@ function renderSymptomTiles(containerId) {
   if (!container) return;
   const symSearchId = 'tileSearch_' + containerId;
   container.innerHTML = '';
-  container.appendChild(createTilePickerSearchEl(symSearchId, 'Filter symptoms…', 'Filter symptoms'));
+  container.appendChild(createTilePickerSearchEl(symSearchId, tUi('logs.picker.filterSymptoms'), tUi('logs.picker.filterSymptomsAria')));
   SYMPTOM_GROUPS.forEach(grp => {
     const opts = SYMPTOM_OPTIONS.filter(o => o.group === grp.id);
     if (opts.length === 0) return;
@@ -11540,7 +11568,7 @@ function renderSymptomTiles(containerId) {
     groupDiv.setAttribute('data-group', grp.id);
     const heading = document.createElement('div');
     heading.className = 'symptom-group__title';
-    heading.textContent = grp.label;
+    heading.textContent = tContent('symptomGroup', grp.id, grp.label);
     groupDiv.appendChild(heading);
     const chipsDiv = document.createElement('div');
     chipsDiv.className = 'symptom-chips';
@@ -11549,15 +11577,16 @@ function renderSymptomTiles(containerId) {
       btn.type = 'button';
       btn.className = 'symptom-chip symptom-chip--' + grp.color;
       btn.setAttribute('data-value', opt.value);
-      btn.setAttribute('data-search-text', (opt.label + ' ' + opt.value).toLowerCase());
-      btn.title = tUi('common.toggle') + ' ' + opt.label;
+      const optLabel = tContent('symptom', opt.value, opt.label);
+      btn.setAttribute('data-search-text', (optLabel + ' ' + opt.value).toLowerCase());
+      btn.title = tUi('common.toggle') + ' ' + optLabel;
       const iconClass = SYMPTOM_ICONS[opt.value] || 'fa-solid fa-circle-dot';
       const iconEl = document.createElement('span');
       iconEl.className = 'symptom-chip-icon';
       iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
       const nameSpan = document.createElement('span');
       nameSpan.className = 'symptom-chip-name';
-      nameSpan.textContent = opt.label;
+      nameSpan.textContent = tContent('symptom', opt.value, opt.label);
       btn.appendChild(iconEl);
       btn.appendChild(nameSpan);
       btn.addEventListener('click', () => {
@@ -11879,7 +11908,7 @@ function renderEditFoodChipsForCategory(category, containerId) {
     groupDiv.setAttribute('data-group', grp.id);
     const heading = document.createElement('div');
     heading.className = 'food-group__title';
-    heading.textContent = grp.label;
+    heading.textContent = tContent('foodGroup', grp.id, grp.label);
     groupDiv.appendChild(heading);
     const chipsDiv = document.createElement('div');
     chipsDiv.className = 'food-chips';
@@ -11894,7 +11923,7 @@ function renderEditFoodChipsForCategory(category, containerId) {
       iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
       const nameSpan = document.createElement('span');
       nameSpan.className = 'food-chip-name';
-      nameSpan.textContent = f.name;
+      nameSpan.textContent = tContent('food', f.id, f.name);
       const nutritionSpan = document.createElement('span');
       nutritionSpan.className = 'food-chip-nutrition';
       nutritionSpan.textContent = f.calories + ' cal · ' + f.protein + 'g P';
@@ -11953,7 +11982,7 @@ function renderEditExerciseChipsForCategory(category, containerId) {
     iconEl.innerHTML = '<i class="' + iconClass + '" aria-hidden="true"></i>';
     const nameSpan = document.createElement('span');
     nameSpan.className = 'exercise-chip-name';
-    nameSpan.textContent = ex.name;
+    nameSpan.textContent = tContent('exercise', ex.id, ex.name);
     const durationSpan = document.createElement('span');
     durationSpan.className = 'exercise-chip-duration';
     durationSpan.textContent = ex.defaultDuration + ' min';
@@ -14920,20 +14949,20 @@ function initializeLazyLoading() {
 
 function loadChart(container, chartType) {
   const chartConfig = {
-    bpm: { label: "Resting Heart Rate", field: "bpm", color: "rgb(76,175,80)" },
-    fatigue: { label: "Fatigue Level", field: "fatigue", color: "rgb(255,152,0)" },
-    stiffness: { label: "Stiffness Level", field: "stiffness", color: "rgb(255,193,7)" },
-    backPain: { label: "Back Pain Level", field: "backPain", color: "rgb(244,67,54)" },
-    sleep: { label: "Sleep Quality", field: "sleep", color: "rgb(63,81,181)" },
-    jointPain: { label: "Joint Pain Level", field: "jointPain", color: "rgb(255,87,34)" },
-    mobility: { label: "Mobility Level", field: "mobility", color: "rgb(0,188,212)" },
-    dailyFunction: { label: "Daily Function Level", field: "dailyFunction", color: "rgb(139,195,74)" },
-    swelling: { label: "Joint Swelling Level", field: "swelling", color: "rgb(156,39,176)" },
-    mood: { label: "Mood Level", field: "mood", color: "rgb(103,58,183)" },
-    irritability: { label: "Irritability Level", field: "irritability", color: "rgb(121,85,72)" },
-    weatherSensitivity: { label: "Weather Sensitivity", field: "weatherSensitivity", color: "rgb(0,150,136)" },
-    steps: { label: "Steps", field: "steps", color: "rgb(100,181,246)" },
-    hydration: { label: "Hydration", field: "hydration", color: "rgb(33,150,243)" }
+    bpm: { labelKey: 'charts.metric.restingHeartRate', field: 'bpm', color: 'rgb(76,175,80)' },
+    fatigue: { labelKey: 'charts.metric.fatigue', field: 'fatigue', color: 'rgb(255,152,0)' },
+    stiffness: { labelKey: 'charts.metric.stiffness', field: 'stiffness', color: 'rgb(255,193,7)' },
+    backPain: { labelKey: 'charts.metric.backPain', field: 'backPain', color: 'rgb(244,67,54)' },
+    sleep: { labelKey: 'charts.metric.sleep', field: 'sleep', color: 'rgb(63,81,181)' },
+    jointPain: { labelKey: 'charts.metric.jointPain', field: 'jointPain', color: 'rgb(255,87,34)' },
+    mobility: { labelKey: 'charts.metric.mobility', field: 'mobility', color: 'rgb(0,188,212)' },
+    dailyFunction: { labelKey: 'charts.metric.dailyFunction', field: 'dailyFunction', color: 'rgb(139,195,74)' },
+    swelling: { labelKey: 'charts.metric.swelling', field: 'swelling', color: 'rgb(156,39,176)' },
+    mood: { labelKey: 'charts.metric.mood', field: 'mood', color: 'rgb(103,58,183)' },
+    irritability: { labelKey: 'charts.metric.irritability', field: 'irritability', color: 'rgb(121,85,72)' },
+    weatherSensitivity: { labelKey: 'charts.metric.weatherSensitivity', field: 'weatherSensitivity', color: 'rgb(0,150,136)' },
+    steps: { labelKey: 'charts.metric.steps', field: 'steps', color: 'rgb(100,181,246)' },
+    hydration: { labelKey: 'charts.metric.hydration', field: 'hydration', color: 'rgb(33,150,243)' }
   };
 
   const config = chartConfig[chartType];
@@ -14948,7 +14977,7 @@ function loadChart(container, chartType) {
       var p = (window.PerformanceUtils && typeof window.PerformanceUtils.ensureApexChartsLoaded === 'function')
         ? window.PerformanceUtils.ensureApexChartsLoaded()
         : Promise.resolve();
-      p.then(function () { return chart(container.id, config.label, config.field, config.color); })
+      p.then(function () { return chart(container.id, tUi(config.labelKey), config.field, config.color); })
         .then(function () { container.classList.add('loaded'); })
         .catch(function () {});
     }, 100); // Small delay for smooth loading effect
@@ -15667,7 +15696,7 @@ function promptAiModelDownloadConsent(modelId) {
     }
     var info = (typeof window.getResolvedLlmModelInfo === 'function')
       ? window.getResolvedLlmModelInfo()
-      : { label: 'AI model', size: modelId === 'onnx-community/SmolLM2-360M-Instruct' ? '~200 MB' : '~670 MB' };
+      : { label: tUi('common.on.device.ai.model'), size: modelId === 'onnx-community/SmolLM2-360M-Instruct' ? '~200 MB' : '~670 MB' };
     var msg = document.getElementById('aiModelDownloadMessage');
     if (msg) {
       msg.textContent = tUi('common.download') + ' ' + info.label + ' (' + info.size + ')? Wi-Fi recommended. The model stays on this device and enables AI summaries, note suggestions, and daily quotes.';
@@ -19156,9 +19185,26 @@ if (typeof window !== 'undefined') {
 }
 
 function openLogWizardFromHome() {
-  switchTab('log', true);
-  setLogWizardStep(0);
-  if (typeof setAppHashFromTab === 'function') setAppHashFromTab('log');
+  var go = function () {
+    switchTab('log', true);
+    setLogWizardStep(0);
+    if (typeof setAppHashFromTab === 'function') setAppHashFromTab('log');
+  };
+  if (window.RianellI18n && typeof window.RianellI18n.ensureCatalogs === 'function') {
+    window.RianellI18n.ensureCatalogs(window.RianellI18n.getLocale()).then(go);
+  } else {
+    go();
+  }
+}
+
+function refreshLogWizardDynamicI18n() {
+  if (typeof renderLogFoodItems === 'function') renderLogFoodItems();
+  if (typeof renderLogExerciseItems === 'function') renderLogExerciseItems();
+  var review = document.getElementById('logReviewSummary');
+  if (review && currentLogWizardStep === LOG_WIZARD_TOTAL_STEPS - 1) {
+    review.innerHTML = buildLogReviewSummaryHtml();
+  }
+  if (typeof updateLogWizardChrome === 'function') updateLogWizardChrome();
 }
 
 function buildLogReviewSummaryHtml() {
@@ -19181,75 +19227,75 @@ function buildLogReviewSummaryHtml() {
     );
   }
 
-  function sectionCard(title, rows, options) {
+  function sectionCard(titleKey, rows, options) {
     var opts = options || {};
     if (!rows.length && !opts.showWhenEmpty) return '';
     var body = rows.length
       ? rows.join('')
-      : '<div class="log-review-empty">Nothing added for this section</div>';
+      : '<div class="log-review-empty">' + escapeHTML(tUi('wizard.review.sectionEmpty')) + '</div>';
     return (
       '<section class="log-review-card">' +
-        '<h4 class="log-review-heading">' + escapeHTML(title) + '</h4>' +
+        '<h4 class="log-review-heading">' + escapeHTML(tUi(titleKey)) + '</h4>' +
         '<div class="log-review-grid">' + body + '</div>' +
       '</section>'
     );
   }
 
   var basics = [];
-  addRow(basics, 'Date', readValue('date'));
-  addRow(basics, 'Flare', readValue('flare'));
-  html.push(sectionCard('Basics', basics, { showWhenEmpty: true }));
+  addRow(basics, tUi('wizard.review.row.date'), readValue('date'));
+  addRow(basics, tUi('wizard.review.row.flare'), readValue('flare'));
+  html.push(sectionCard('wizard.review.basics', basics, { showWhenEmpty: true }));
 
   var vitals = [];
   var bpm = readValue('bpm');
   var weight = readValue('weight');
-  if (bpm) addRow(vitals, 'Heart rate', bpm + ' bpm');
-  if (weight) addRow(vitals, 'Weight', weight + ' ' + (appSettings && appSettings.weightUnit ? appSettings.weightUnit : 'kg'));
-  html.push(sectionCard('Vitals', vitals, { showWhenEmpty: true }));
+  if (bpm) addRow(vitals, tUi('wizard.review.row.heartRate'), bpm + ' bpm');
+  if (weight) addRow(vitals, tUi('wizard.review.row.weight'), weight + ' ' + (appSettings && appSettings.weightUnit ? appSettings.weightUnit : 'kg'));
+  html.push(sectionCard('wizard.review.vitals', vitals, { showWhenEmpty: true }));
 
   var symptoms = [];
   var symptomMap = {
-    stiffness: 'Stiffness',
-    jointPain: 'Joint pain',
-    mobility: 'Mobility',
-    swelling: 'Swelling'
+    stiffness: 'wizard.review.row.stiffness',
+    jointPain: 'wizard.review.row.jointPain',
+    mobility: 'wizard.review.row.mobility',
+    swelling: 'wizard.review.row.swelling'
   };
   Object.keys(symptomMap).forEach(function(id) {
     var v = readValue(id);
-    if (v) addRow(symptoms, symptomMap[id], v + '/10');
+    if (v) addRow(symptoms, tUi(symptomMap[id]), v + '/10');
   });
-  addRow(symptoms, 'Pain locations', readValue('painLocation'));
+  addRow(symptoms, tUi('wizard.review.row.painLocations'), readValue('painLocation'));
   if (typeof logFormSymptomsItems !== 'undefined' && logFormSymptomsItems.length) {
-    addRow(symptoms, 'Selected symptoms', logFormSymptomsItems.join(', '));
+    addRow(symptoms, tUi('wizard.review.row.selectedSymptoms'), logFormSymptomsItems.join(', '));
   }
-  html.push(sectionCard('Symptoms & pain', symptoms));
+  html.push(sectionCard('wizard.review.symptomsPain', symptoms));
 
   var wellbeing = [];
   var wellbeingMap = {
-    fatigue: 'Fatigue',
-    sleep: 'Sleep quality',
-    mood: 'Mood',
-    irritability: 'Irritability',
-    weatherSensitivity: 'Weather sensitivity',
-    dailyFunction: 'Daily function'
+    fatigue: 'wizard.review.row.fatigue',
+    sleep: 'wizard.review.row.sleepQuality',
+    mood: 'wizard.review.row.mood',
+    irritability: 'wizard.review.row.irritability',
+    weatherSensitivity: 'wizard.review.row.weatherSensitivity',
+    dailyFunction: 'wizard.review.row.dailyFunction'
   };
   Object.keys(wellbeingMap).forEach(function(id) {
     var v = readValue(id);
-    if (v) addRow(wellbeing, wellbeingMap[id], v + '/10');
+    if (v) addRow(wellbeing, tUi(wellbeingMap[id]), v + '/10');
   });
   var steps = readValue('steps');
   var hydration = readValue('hydration');
-  if (steps) addRow(wellbeing, 'Steps', steps);
-  if (hydration) addRow(wellbeing, 'Hydration', hydration + ' glasses');
-  addRow(wellbeing, 'Energy / clarity', readValue('energyClarity'));
+  if (steps) addRow(wellbeing, tUi('wizard.review.row.steps'), steps);
+  if (hydration) addRow(wellbeing, tUi('wizard.review.row.hydration'), hydration + ' glasses');
+  addRow(wellbeing, tUi('wizard.review.row.energyClarity'), readValue('energyClarity'));
   if (typeof logFormStressorsItems !== 'undefined' && logFormStressorsItems.length) {
-    addRow(wellbeing, 'Stressors', logFormStressorsItems.join(', '));
+    addRow(wellbeing, tUi('wizard.review.row.stressors'), logFormStressorsItems.join(', '));
   }
-  html.push(sectionCard('Energy & day', wellbeing));
+  html.push(sectionCard('wizard.review.energyDay', wellbeing));
 
   var foodExercise = [];
   if (typeof logFormFoodByCategory !== 'undefined') {
-    var mealNames = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Snack' };
+    var mealKeys = { breakfast: 'common.breakfast', lunch: 'common.lunch', dinner: 'common.dinner', snack: 'common.snack' };
     ['breakfast', 'lunch', 'dinner', 'snack'].forEach(function(meal) {
       var arr = logFormFoodByCategory[meal] || [];
       if (!arr.length) return;
@@ -19257,7 +19303,7 @@ function buildLogReviewSummaryHtml() {
         .map(function(x) { return typeof x === 'string' ? x : (x && x.name ? x.name : ''); })
         .filter(Boolean)
         .join(', ');
-      addRow(foodExercise, mealNames[meal], mealText);
+      addRow(foodExercise, tUi(mealKeys[meal]), mealText);
     });
   }
   if (typeof logFormExerciseItems !== 'undefined' && logFormExerciseItems.length) {
@@ -19265,16 +19311,16 @@ function buildLogReviewSummaryHtml() {
       .map(function(x) { return typeof x === 'string' ? x : (x && x.name ? x.name : ''); })
       .filter(Boolean)
       .join(', ');
-    addRow(foodExercise, 'Exercise', exText);
+    addRow(foodExercise, tUi('wizard.review.row.exercise'), exText);
   }
-  html.push(sectionCard('Food & exercise', foodExercise));
+  html.push(sectionCard('wizard.review.foodExercise', foodExercise));
 
   var medsNotes = [];
   if (typeof logFormMedications !== 'undefined' && logFormMedications.length) {
-    addRow(medsNotes, 'Medications', logFormMedications.map(function(m) { return m.name; }).join(', '));
+    addRow(medsNotes, tUi('wizard.review.row.medications'), logFormMedications.map(function(m) { return m.name; }).join(', '));
   }
-  addRow(medsNotes, 'Notes', readValue('notes'));
-  html.push(sectionCard('Medication & notes', medsNotes));
+  addRow(medsNotes, tUi('wizard.review.row.notes'), readValue('notes'));
+  html.push(sectionCard('wizard.review.medicationNotes', medsNotes));
 
   var output = html.join('');
   return output || '<p class="log-review-empty">' + tUi('common.no.details.yet.you.can.still.save.after.') + '</p>';
@@ -19995,6 +20041,7 @@ window.addEventListener('load', () => {
       // Do not call applyDocumentI18n here — it already ran before notifyLocaleChange and would recurse infinitely.
       if (typeof updateHomeTodayPanel === 'function') updateHomeTodayPanel();
       if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
+      if (typeof refreshLogWizardDynamicI18n === 'function') refreshLogWizardDynamicI18n();
       if (typeof updateLogWizardChrome === 'function') {
         var logTabEl = document.getElementById('logTab');
         if (tabNameRef === 'log' || (logTabEl && logTabEl.classList.contains('active'))) {
