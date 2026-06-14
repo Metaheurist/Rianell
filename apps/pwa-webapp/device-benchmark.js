@@ -13,56 +13,6 @@
   var BENCHMARK_VERSION = 4;
   var MAX_TIER = 5;
   var DEFAULT_TOTAL_CAP_MS = 1200;
-  var WEB_BOOT_TOTAL_CAP_MS = 20000;
-  var WEB_BOOT_MAX_REPEATS = 2;
-  var WEB_BOOT_ESTIMATE_ITERS = 80000;
-  /** Max continuous work per chunk before yielding (keeps loading UI responsive). */
-  var BENCHMARK_YIELD_SLICE_MS = 8;
-  var BENCHMARK_CHUNK_MAX_ITERS = 12000;
-
-  function scheduleBenchmarkYield(fn) {
-    if (typeof requestAnimationFrame === 'function') {
-      requestAnimationFrame(function () { setTimeout(fn, 0); });
-    } else {
-      setTimeout(fn, 0);
-    }
-  }
-
-  function isNativeApp() {
-    try {
-      var cap = (typeof window !== 'undefined' && window.Capacitor) ||
-        (typeof window !== 'undefined' && window.parent && window.parent.Capacitor);
-      return !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
-    } catch (e) {
-      return false;
-    }
-  }
-
-  function getWebBootSuiteOpts() {
-    if (isNativeApp()) {
-      return { boot: false, totalCapMs: DEFAULT_TOTAL_CAP_MS };
-    }
-    return {
-      boot: true,
-      totalCapMs: WEB_BOOT_TOTAL_CAP_MS,
-      maxRepeats: WEB_BOOT_MAX_REPEATS,
-      estimateIters: WEB_BOOT_ESTIMATE_ITERS,
-      skipEstimateRetry: true,
-      skipBorderlineRepeats: true,
-      gpuTimeoutMs: 4000,
-      gpuSamples: 2
-    };
-  }
-
-  function clampBootWorkloads(workloads) {
-    if (!workloads) return workloads;
-    workloads.cpuIterations = Math.min(workloads.cpuIterations, 120000);
-    workloads.arraySize = Math.min(workloads.arraySize, 36000);
-    workloads.stringSize = Math.min(workloads.stringSize, 12000);
-    workloads.jsonSize = Math.min(workloads.jsonSize, 240);
-    workloads.domNodes = Math.min(workloads.domNodes, 160);
-    return workloads;
-  }
 
   function nowMs() {
     return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
@@ -204,10 +154,7 @@
    * Calls done({ available, backend, scoreMs, good, scoreSamples }).
    * scoreSamples: array of ms per run for stability graph (when available).
    */
-  function runGpuBenchmarkAsync(done, gpuOpts) {
-    gpuOpts = gpuOpts || {};
-    var timeoutMs = gpuOpts.timeoutMs != null ? gpuOpts.timeoutMs : 10000;
-    var maxSamples = gpuOpts.maxSamples != null ? gpuOpts.maxSamples : GPU_STABILITY_SAMPLES;
+  function runGpuBenchmarkAsync(done) {
     var finished = false;
     function safeDone(gpu) {
       if (finished) return;
@@ -221,7 +168,7 @@
         console.warn('[Benchmark] GPU stage timed out; continuing without GPU score');
       }
       safeDone({ available: false, backend: 'none', scoreMs: null, good: false, scoreSamples: [], timedOut: true });
-    }, timeoutMs);
+    }, 10000);
 
     var backend = detectGpuBackendSync();
     if (backend === 'none') {
@@ -235,7 +182,7 @@
       runOne(function (ms) {
         if (ms != null) samples.push(ms);
         runCount++;
-        if (runCount < maxSamples) {
+        if (runCount < GPU_STABILITY_SAMPLES) {
           setTimeout(runNext, 20);
         } else {
           var available = samples.length > 0;
@@ -262,26 +209,6 @@
     return total;
   }
 
-  function cpuArithAsync(iterations, done, shouldAbort) {
-    var total = 0;
-    var i = 0;
-    function chunk() {
-      if (shouldAbort && shouldAbort()) {
-        if (typeof done === 'function') done(total);
-        return;
-      }
-      var t0 = nowMs();
-      var batchStart = i;
-      while (i < iterations && (nowMs() - t0) < BENCHMARK_YIELD_SLICE_MS && (i - batchStart) < BENCHMARK_CHUNK_MAX_ITERS) {
-        total = (total + ((i * 31 + 17) % 97)) | 0;
-        i++;
-      }
-      if (i < iterations) scheduleBenchmarkYield(chunk);
-      else if (typeof done === 'function') done(total);
-    }
-    scheduleBenchmarkYield(chunk);
-  }
-
   function arrayThroughput(size) {
     var arr = new Array(size);
     for (var i = 0; i < size; i++) arr[i] = (i * 13) & 255;
@@ -291,38 +218,6 @@
       if ((v & 3) === 0) s += v;
     }
     return s;
-  }
-
-  function arrayThroughputAsync(size, done) {
-    var arr = new Array(size);
-    var i = 0;
-    function fillChunk() {
-      var t0 = nowMs();
-      var batchStart = i;
-      while (i < size && (nowMs() - t0) < BENCHMARK_YIELD_SLICE_MS && (i - batchStart) < BENCHMARK_CHUNK_MAX_ITERS) {
-        arr[i] = (i * 13) & 255;
-        i++;
-      }
-      if (i < size) scheduleBenchmarkYield(fillChunk);
-      else sumChunk();
-    }
-    function sumChunk() {
-      var s = 0;
-      var j = 0;
-      function sum() {
-        var t0 = nowMs();
-        var batchStart = j;
-        while (j < size && (nowMs() - t0) < BENCHMARK_YIELD_SLICE_MS && (j - batchStart) < BENCHMARK_CHUNK_MAX_ITERS) {
-          var v = arr[j];
-          if ((v & 3) === 0) s += v;
-          j++;
-        }
-        if (j < size) scheduleBenchmarkYield(sum);
-        else if (typeof done === 'function') done(s);
-      }
-      scheduleBenchmarkYield(sum);
-    }
-    scheduleBenchmarkYield(fillChunk);
   }
 
   function makeJsonPayload(size) {
@@ -340,42 +235,10 @@
   }
 
   function stringOps(size) {
-    var parts = [];
-    for (var i = 0; i < size; i++) parts.push(String.fromCharCode(97 + (i % 26)));
-    var s = parts.join('');
-    var count = 0;
-    for (var pos = 0; (pos = s.indexOf('abc', pos)) !== -1; ) {
-      count++;
-      pos += 3;
-    }
-    return count;
-  }
-
-  function stringOpsAsync(size, done) {
-    var parts = [];
-    var i = 0;
-    function chunk() {
-      var t0 = nowMs();
-      var batchStart = i;
-      while (i < size && (nowMs() - t0) < BENCHMARK_YIELD_SLICE_MS && (i - batchStart) < BENCHMARK_CHUNK_MAX_ITERS) {
-        parts.push(String.fromCharCode(97 + (i % 26)));
-        i++;
-      }
-      if (i < size) scheduleBenchmarkYield(chunk);
-      else {
-        scheduleBenchmarkYield(function () {
-          var s = parts.join('');
-          parts.length = 0;
-          var count = 0;
-          for (var pos = 0; (pos = s.indexOf('abc', pos)) !== -1; ) {
-            count++;
-            pos += 3;
-          }
-          if (typeof done === 'function') done(count);
-        });
-      }
-    }
-    scheduleBenchmarkYield(chunk);
+    var s = '';
+    for (var i = 0; i < size; i++) s += String.fromCharCode(97 + (i % 26));
+    var m = s.match(/abc/g);
+    return (m && m.length) ? m.length : 0;
   }
 
   function domFragmentBuild(nodeCount) {
@@ -397,40 +260,6 @@
     host.appendChild(frag);
     host.textContent = '';
     return nodeCount;
-  }
-
-  function domFragmentBuildAsync(nodeCount, done) {
-    if (typeof document === 'undefined') {
-      if (typeof done === 'function') done(0);
-      return;
-    }
-    var frag = document.createDocumentFragment();
-    var host = document.getElementById('perfBenchHost');
-    if (!host) {
-      host = document.createElement('div');
-      host.id = 'perfBenchHost';
-      host.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;';
-      document.body.appendChild(host);
-    }
-    var i = 0;
-    function chunk() {
-      var t0 = nowMs();
-      var batchStart = i;
-      while (i < nodeCount && (nowMs() - t0) < BENCHMARK_YIELD_SLICE_MS && (i - batchStart) < BENCHMARK_CHUNK_MAX_ITERS) {
-        var div = document.createElement('div');
-        div.className = 'perf-bench-node';
-        div.textContent = 'x' + i;
-        frag.appendChild(div);
-        i++;
-      }
-      if (i < nodeCount) scheduleBenchmarkYield(chunk);
-      else {
-        host.appendChild(frag);
-        host.textContent = '';
-        if (typeof done === 'function') done(nodeCount);
-      }
-    }
-    scheduleBenchmarkYield(chunk);
   }
 
   function rafLatency(frames, done) {
@@ -887,26 +716,41 @@
   }
 
   function runSuiteAsync(opts, onProgress, onDone) {
-    opts = opts || {};
-    var totalCapMs = opts.totalCapMs != null ? opts.totalCapMs : DEFAULT_TOTAL_CAP_MS;
-    var suiteBoot = !!opts.boot;
+    var totalCapMs = (opts && opts.totalCapMs) ? opts.totalCapMs : DEFAULT_TOTAL_CAP_MS;
     var startAll = nowMs();
     var platformType = getPlatformType();
     var env = getEnvSnapshot(platformType);
-    var provisionalTier = 3;
+
+    // Quick CPU estimate to pick suite workloads.
+    var estimateIters = 280000;
+    var est0 = nowMs();
+    cpuArith(estimateIters);
+    var estMs = nowMs() - est0;
+    if (estMs < 2) {
+      estimateIters = 1400000;
+      est0 = nowMs();
+      cpuArith(estimateIters);
+      estMs = nowMs() - est0;
+    }
+    var estMsPer200k = msPer200kFromRun(estimateIters, estMs);
+    var provisionalTier = msPer200kToTier(estMsPer200k);
     var workloads = computeSuiteWorkloads(provisionalTier);
-    var baseRepeats = 5;
+
+    var baseRepeats = provisionalTier <= 2 ? 3 : (provisionalTier <= 5 ? 5 : 7);
     var repeats = baseRepeats;
+
+    // Borderline tiers: add more repeats for stability.
+    var thresholdNear = function (x, target, pct) { return Math.abs(x - target) / target <= pct; };
+    var near = thresholdNear(estMsPer200k, 14.0, 0.08) || thresholdNear(estMsPer200k, 18.0, 0.08) || thresholdNear(estMsPer200k, 26.0, 0.08);
+    if (near) repeats = Math.min(baseRepeats + 2, 9);
+
     var jsonPayload = makeJsonPayload(workloads.jsonSize);
+
     var subtests = [];
     var cpuMsPer200kSamples = [];
     var cpuMsSamples = [];
     var index = 0;
-    var totalSteps = (repeats * 5) + repeats;
-
-    function overCap() {
-      return (nowMs() - startAll) > totalCapMs;
-    }
+    var totalSteps = (repeats * 5) + repeats; // 6 steps per repeat: cpu, array, json, string, dom, rAF
 
     function pct() {
       return Math.max(0, Math.min(100, Math.floor((index / Math.max(1, totalSteps)) * 100)));
@@ -923,107 +767,70 @@
       }
     }
 
-    function configureSuite(estimateIters, estMs) {
-      var estMsPer200k = msPer200kFromRun(estimateIters, estMs);
-      provisionalTier = msPer200kToTier(estMsPer200k);
-      workloads = computeSuiteWorkloads(provisionalTier);
-      if (suiteBoot) workloads = clampBootWorkloads(workloads);
-      baseRepeats = provisionalTier <= 2 ? 3 : (provisionalTier <= 5 ? 5 : 7);
-      repeats = baseRepeats;
-      var thresholdNear = function (x, target, pct) { return Math.abs(x - target) / target <= pct; };
-      var near = !opts.skipBorderlineRepeats && (thresholdNear(estMsPer200k, 14.0, 0.08) || thresholdNear(estMsPer200k, 18.0, 0.08) || thresholdNear(estMsPer200k, 26.0, 0.08));
-      if (near) repeats = Math.min(baseRepeats + 2, 9);
-      if (opts.maxRepeats != null) repeats = Math.min(repeats, opts.maxRepeats);
-      jsonPayload = makeJsonPayload(workloads.jsonSize);
-      totalSteps = (repeats * 5) + repeats;
-      if (typeof console !== 'undefined' && console.log) {
-        console.log('[Benchmark] start', 'platformType', platformType, 'repeats', repeats, 'totalSteps', totalSteps, 'capMs', totalCapMs, 'workloads', workloads);
-      }
-      scheduleBenchmarkYield(function () { runRepeat(0); });
-    }
-
-    function runEstimatePass(estimateIters, est0, onReady) {
-      cpuArithAsync(estimateIters, function () {
-        var estMs = nowMs() - est0;
-        if (!opts.skipEstimateRetry && estMs < 2 && estimateIters < 1400000) {
-          runEstimatePass(1400000, nowMs(), onReady);
-          return;
-        }
-        onReady(estimateIters, estMs);
-      }, overCap);
+    if (typeof console !== 'undefined' && console.log) {
+      console.log('[Benchmark] start', 'platformType', platformType, 'repeats', repeats, 'totalSteps', totalSteps, 'workloads', workloads);
     }
 
     function runRepeat(rep) {
-      if (overCap()) {
+      if ((nowMs() - startAll) > totalCapMs) {
         finish();
         return;
       }
       progress('running', 'cpu', 'CPU arithmetic');
-      var cpuT0 = nowMs();
-      cpuArithAsync(workloads.cpuIterations, function () {
-        var cpuMs = nowMs() - cpuT0;
-        var cpuRes = {
-          id: 'cpu',
-          label: resolveBenchmarkLabel('cpu', 'CPU arithmetic'),
-          ms: cpuMs,
-          unit: 'iters',
-          iterations: workloads.cpuIterations,
-          msPer200k: msPer200kFromRun(workloads.cpuIterations, cpuMs)
-        };
-        cpuMsPer200kSamples.push(cpuRes.msPer200k);
-        cpuMsSamples.push(cpuRes.ms);
-        subtests.push({ repeat: rep, id: cpuRes.id, label: cpuRes.label, ms: cpuRes.ms, iterations: cpuRes.iterations, msPer200k: cpuRes.msPer200k });
-        index++;
-        if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'CPU arithmetic', 'repeat', rep + 1, 'ms', cpuRes.ms, 'msPer200k', cpuRes.msPer200k);
+      var cpuRes = runTestSync('cpu', resolveBenchmarkLabel('cpu', 'CPU arithmetic'), function () { return cpuArith(workloads.cpuIterations); }, 'iters', function () {});
+      cpuRes.iterations = workloads.cpuIterations;
+      cpuRes.msPer200k = msPer200kFromRun(workloads.cpuIterations, cpuRes.ms);
+      cpuMsPer200kSamples.push(cpuRes.msPer200k);
+      cpuMsSamples.push(cpuRes.ms);
+      subtests.push({ repeat: rep, id: cpuRes.id, label: cpuRes.label, ms: cpuRes.ms, iterations: cpuRes.iterations, msPer200k: cpuRes.msPer200k });
+      index++;
+      if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'CPU arithmetic', 'repeat', rep + 1, 'ms', cpuRes.ms, 'msPer200k', cpuRes.msPer200k);
 
+      setTimeout(function () {
         progress('running', 'array', 'Array throughput');
-        var arrT0 = nowMs();
-        arrayThroughputAsync(workloads.arraySize, function () {
-          var arrMs = nowMs() - arrT0;
-          subtests.push({ repeat: rep, id: 'array', label: resolveBenchmarkLabel('array', 'Array throughput'), ms: arrMs, size: workloads.arraySize });
-          index++;
-          if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'Array throughput', 'repeat', rep + 1, 'ms', arrMs);
+        var arrRes = runTestSync('array', resolveBenchmarkLabel('array', 'Array throughput'), function () { return arrayThroughput(workloads.arraySize); }, 'elems', function () {});
+        arrRes.size = workloads.arraySize;
+        subtests.push({ repeat: rep, id: arrRes.id, label: arrRes.label, ms: arrRes.ms, size: arrRes.size });
+        index++;
+        if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'Array throughput', 'repeat', rep + 1, 'ms', arrRes.ms);
 
+        setTimeout(function () {
           progress('running', 'json', 'JSON parse/stringify');
-          scheduleBenchmarkYield(function () {
-            var jsonT0 = nowMs();
-            var jsonOut = 0;
-            try { jsonOut = jsonParseStringify(jsonPayload); } catch (e) { jsonOut = 0; }
-            var jsonMs = nowMs() - jsonT0;
-            subtests.push({ repeat: rep, id: 'json', label: resolveBenchmarkLabel('json', 'JSON parse/stringify'), ms: jsonMs, size: workloads.jsonSize });
-            index++;
-            if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'JSON parse/stringify', 'repeat', rep + 1, 'ms', jsonMs);
+          var jsonRes = runTestSync('json', resolveBenchmarkLabel('json', 'JSON parse/stringify'), function () { return jsonParseStringify(jsonPayload); }, 'bytes', function () {});
+          jsonRes.size = workloads.jsonSize;
+          subtests.push({ repeat: rep, id: jsonRes.id, label: jsonRes.label, ms: jsonRes.ms, size: jsonRes.size });
+          index++;
+          if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'JSON parse/stringify', 'repeat', rep + 1, 'ms', jsonRes.ms);
 
+          setTimeout(function () {
             progress('running', 'string', 'String ops');
-            var strT0 = nowMs();
-            stringOpsAsync(workloads.stringSize, function () {
-              var strMs = nowMs() - strT0;
-              subtests.push({ repeat: rep, id: 'string', label: resolveBenchmarkLabel('string', 'String ops'), ms: strMs, size: workloads.stringSize });
-              index++;
-              if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'String ops', 'repeat', rep + 1, 'ms', strMs);
+            var strRes = runTestSync('string', resolveBenchmarkLabel('string', 'String ops'), function () { return stringOps(workloads.stringSize); }, 'chars', function () {});
+            strRes.size = workloads.stringSize;
+            subtests.push({ repeat: rep, id: strRes.id, label: strRes.label, ms: strRes.ms, size: strRes.size });
+            index++;
+            if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'String ops', 'repeat', rep + 1, 'ms', strRes.ms);
 
+            setTimeout(function () {
               progress('running', 'dom', 'DOM fragment build');
-              var domT0 = nowMs();
-              domFragmentBuildAsync(workloads.domNodes, function () {
-                var domMs = nowMs() - domT0;
-                subtests.push({ repeat: rep, id: 'dom', label: resolveBenchmarkLabel('dom', 'DOM fragment build'), ms: domMs, count: workloads.domNodes });
-                index++;
-                if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'DOM fragment build', 'repeat', rep + 1, 'ms', domMs);
+              var domRes = runTestSync('dom', resolveBenchmarkLabel('dom', 'DOM fragment build'), function () { return domFragmentBuild(workloads.domNodes); }, 'nodes', function () {});
+              domRes.count = workloads.domNodes;
+              subtests.push({ repeat: rep, id: domRes.id, label: domRes.label, ms: domRes.ms, count: domRes.count });
+              index++;
+              if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'DOM fragment build', 'repeat', rep + 1, 'ms', domRes.ms);
 
-                progress('running', 'raf', 'rAF latency');
-                rafLatency(workloads.rafFrames, function (rafRes) {
-                  if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'rAF latency', 'repeat', rep + 1, 'avgMs', rafRes.avgMs);
-                  subtests.push({ repeat: rep, id: 'raf', label: resolveBenchmarkLabel('raf', 'rAF latency'), ms: rafRes.avgMs, samples: rafRes.samples });
-                  index++;
-                  progress('done', null, '');
-                  if (rep + 1 >= repeats) finish();
-                  else runRepeat(rep + 1);
-                });
+              progress('running', 'raf', 'rAF latency');
+              rafLatency(workloads.rafFrames, function (rafRes) {
+                if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] test', 'rAF latency', 'repeat', rep + 1, 'avgMs', rafRes.avgMs);
+                subtests.push({ repeat: rep, id: 'raf', label: resolveBenchmarkLabel('raf', 'rAF latency'), ms: rafRes.avgMs, samples: rafRes.samples });
+                index++;
+                progress('done', null, '');
+                if (rep + 1 >= repeats) finish();
+                else runRepeat(rep + 1);
               });
-            });
-          });
-        });
-      }, overCap);
+            }, 0);
+          }, 0);
+        }, 0);
+      }, 0);
     }
 
     function finish() {
@@ -1040,7 +847,7 @@
       // If the result moved across major class boundaries, ensure we have enough repeats (only if we still have budget).
       var classBefore = getLegacyDeviceClass(provisionalTier);
       var classAfter = getLegacyDeviceClass(tier);
-      if (!opts.skipBorderlineRepeats && classBefore !== classAfter && repeats < 9 && (nowMs() - startAll) < (totalCapMs * 0.85)) {
+      if (classBefore !== classAfter && repeats < 9 && (nowMs() - startAll) < (totalCapMs * 0.85)) {
         repeats = Math.min(9, repeats + 2);
         totalSteps = (repeats * 5) + repeats;
         runRepeat(baseRepeats); // add extra repeats
@@ -1099,15 +906,13 @@
           console.log('[Benchmark] GPU', gpu.backend, gpu.available, gpu.good, gpu.scoreMs);
         }
         onDone(result);
-      }, { timeoutMs: opts.gpuTimeoutMs, maxSamples: opts.gpuSamples });
+      });
     }
 
     progress('starting', 'warmup', 'Warmup');
-    if (suiteBoot) {
-      runEstimatePass(opts.estimateIters != null ? opts.estimateIters : WEB_BOOT_ESTIMATE_ITERS, nowMs(), configureSuite);
-    } else {
-      runEstimatePass(opts.estimateIters != null ? opts.estimateIters : 280000, nowMs(), configureSuite);
-    }
+    setTimeout(function () {
+      runRepeat(0);
+    }, 0);
   }
 
   function runBenchmarkIfNeeded(onProgress, onComplete) {
@@ -1123,11 +928,7 @@
     }
     if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] running suite (no cache)');
     if (typeof onProgress === 'function') onProgress(0, { phase: 'starting' });
-    var suiteOpts = getWebBootSuiteOpts();
-    if (typeof console !== 'undefined' && console.log && suiteOpts.boot) {
-      console.log('[Benchmark] web boot suite', 'repeats cap', suiteOpts.maxRepeats, 'capMs', suiteOpts.totalCapMs);
-    }
-    runSuiteAsync(suiteOpts, onProgress, function (resultObj) {
+    runSuiteAsync({ totalCapMs: DEFAULT_TOTAL_CAP_MS }, onProgress, function (resultObj) {
       _lastTier = resultObj.tier;
       _lastPlatformType = resultObj.platformType;
       if (typeof onComplete === 'function') onComplete(resultObj.tier, resultObj.platformType, resultObj, { cached: false });
