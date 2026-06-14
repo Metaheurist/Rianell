@@ -1,0 +1,5 @@
+{
+  "maxCandidates": 0,
+  "updated": "2026-06-13",
+  "notes": "LC-15 Phase B: audit-hardcoded-strings + verify-no-hardcoded-ui --strict; zero unwired UI candidates."
+}

@@ -243,7 +243,7 @@ export function SettingsScreen({
     try {
       const logs = await loadLogs();
       const json = serializeLogsForExport(logs);
-      await Share.share({ message: json, title: 'Rianell health logs (JSON)' });
+      await Share.share({ message: json, title: t('settings.rianell.health.logs.json') });
     } catch (e) {
       const msg = e instanceof Error ? e.message : t('settings.export.failed');
       Alert.alert(t('settings.export.title'), msg);
@@ -613,7 +613,7 @@ export function SettingsScreen({
 
             </Section>
 
-            <Section title="Goals & targets">
+            <Section title={t('common.goals.targets')}>
 
               <Hint>Persisted goals feed Charts balance targets (mood, sleep, fatigue).</Hint>
 
@@ -1579,7 +1579,7 @@ export function SettingsScreen({
 
                   <View style={styles.dataBtnRow}>
                     <Ionicons name="share-outline" size={20} color={theme.tokens.color.accent} />
-                    <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>Export logs (JSON)</Text>
+                    <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>{t('settings.export.logs.json')}</Text>
                   </View>
 
                 )}
@@ -1608,7 +1608,7 @@ export function SettingsScreen({
 
                   <View style={styles.dataBtnRow}>
                     <Ionicons name="print-outline" size={20} color={theme.tokens.color.accent} />
-                    <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>Print / share PDF</Text>
+                    <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>{t('logs.print.action')}</Text>
                   </View>
 
                 )}
@@ -1690,7 +1690,7 @@ export function SettingsScreen({
                 accessibilityRole="button"
                 accessibilityLabel="Merge with existing logs"
               >
-                <Text style={[styles.dataBtnText, { color: theme.tokens.color.text }]}>Merge</Text>
+                <Text style={[styles.dataBtnText, { color: theme.tokens.color.text }]}>{t('settings.merge')}</Text>
               </Pressable>
               <Pressable
                 style={styles.modalBtn}
@@ -1703,7 +1703,7 @@ export function SettingsScreen({
                 accessibilityRole="button"
                 accessibilityLabel="Replace all logs"
               >
-                <Text style={[styles.dataBtnText, { color: theme.tokens.color.text }]}>Replace all</Text>
+                <Text style={[styles.dataBtnText, { color: theme.tokens.color.text }]}>{t('settings.replace.all')}</Text>
               </Pressable>
             </View>
           </View>

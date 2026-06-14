@@ -398,7 +398,7 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
 
           {view === 'balance' && !loading && !error && summary.totalLogs > 0 ? (
             <View accessibilityLabel="Charts target snapshot">
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Targets</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('charts.targets')}</Text>
               <Text
                 style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12), marginBottom: 10 }]}
               >
@@ -445,7 +445,7 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
 
           {showOverview ? (
             <>
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Overview</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('charts.overview')}</Text>
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                 {summary.rangeLabel}: {summary.totalLogs} entry{summary.totalLogs === 1 ? '' : 'ies'}
               </Text>
@@ -475,7 +475,7 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
             </>
           ) : null}
 
-          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Metric trends</Text>
+          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('charts.metric.trends')}</Text>
           {noDataInRange ? (
             <Text
               style={[styles.emptyHint, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}

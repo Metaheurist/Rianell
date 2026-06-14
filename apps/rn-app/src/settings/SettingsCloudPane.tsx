@@ -172,7 +172,7 @@ export function SettingsCloudPane() {
       <TextInput
         value={password}
         onChangeText={setPassword}
-        placeholder="Password"
+        placeholder={t('common.password')}
         placeholderTextColor="rgba(255,255,255,0.45)"
         secureTextEntry
         style={[styles.input, { color: theme.tokens.color.text, fontSize: theme.font(15) }]}
