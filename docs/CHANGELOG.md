@@ -2,7 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.89.0** - Incremental boot patch: heuristic-only web benchmark, DOMContentLoaded boot, minified bundle freeze fix, automated boot audit suite.
+**Latest: v1.89.1** - Post-deploy hotfixes: privacy-gate boot i18n, shell locale hydration, CI OSV/supply-chain, artifact upload retry.
+
+### v1.89.1 - 2026-06-15 - Boot i18n, CI security, deploy reliability
+- **PWA boot (Phase 2b):** Privacy gate uses lightweight `refreshGateLocaleUI()` / `hydrateGate()` only — no full `refreshLocaleUI()` before `__rianellAppInitStarted` (fixes guest cold hang and raw `gate.hint` on rianell.com).
+- **`i18n-pwa.js`:** `applyDataI18nAttributes()` gated on `__rianellAppInitStarted`; gate strings hydrated in `hydrateGate()`.
+- **`app.js`:** `revealAppShellWithLocale()` — `ensureCatalogs()` then `refreshLocaleUI()` before shell reveal (fixes raw keys like `home.greeting.evening` after Phase 2b).
+- **`privacy-region.js`:** Settings pane uses `refreshSettingsPaneLocaleUI()`; `refreshAllTabsForLocaleChange()` no-ops until app init.
+- **CI:** `prepare-minified-assets` retries artifact upload once on transient `ECONNRESET`; post-deploy boot audit installs Playwright Chromium (`audit:boot:prepare`).
+- **Supply chain:** Override `@rianell/benchmark-runner → lighthouse → @sentry/node` to **10.58.0** (`@opentelemetry/core` **2.8.0**, OSV GHSA-8988-4f7v-96qf); **`cryptography>=48.0.1`** in `requirements.txt` (OSV GHSA-537c-gmf6-5ccf).
+- **Audit:** `audit-history/phase-2b-f167b31.json` archived after production boot pass.
 
 ### v1.89.0 - 2026-06-15 - Incremental boot patch (production)
 - **PWA boot:** `DOMContentLoaded` entry (`runRianellBootAfterDomReady`); MOTD fetch parallel (non-blocking); inline heuristic tier; privacy gate `initGateUI()` on first show.

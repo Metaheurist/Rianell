@@ -2,6 +2,13 @@
 
 ## 🗂️ Project Structure
 
+### v1.89.1 documentation sync (boot i18n and CI supply-chain)
+
+- **PWA boot:** Phase 2b privacy-gate light i18n; `revealAppShellWithLocale()` restores full locale hydration after catalogs load.
+- **CI:** Minified artifact upload retry; Playwright install for post-deploy `audit:boot:strict`.
+- **Supply chain:** `@sentry/node` override via benchmark `lighthouse`; `cryptography>=48.0.1`.
+- **See:** [testing-and-configuration.md](testing-and-configuration.md) § PWA boot locale hydration; [SECURITY.md](SECURITY.md) dependency floors.
+
 ### v1.87.0 documentation sync (locale refresh all tabs)
 
 - **PWA:** `refreshAllTabsForLocaleChange()` in `app.js`; wired from `i18n-pwa.js` `refreshLocaleUI()`.

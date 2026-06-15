@@ -4,7 +4,7 @@ Schema version: **1** · Generated for Rianell security program.
 ## npm workspaces
 | Package | Version |
 |---------|---------|
-| `rianell` (root) | 1.89.0 |
+| `rianell` (root) | 1.89.1 |
 | `apps/rn-app` | 1.0.0 |
 ## Python
 See `requirements.txt` (scanned by pip-audit in CI).

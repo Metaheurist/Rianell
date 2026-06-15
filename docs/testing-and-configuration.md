@@ -177,6 +177,16 @@ Changing language in **Settings → Privacy & region → Language** runs `Rianel
 
 No full page reload required.
 
+### PWA boot locale hydration (v1.89.1)
+
+**Cold boot** defers heavy i18n until the app shell is ready:
+
+1. **Privacy gate** — `refreshGateLocaleUI()` / `hydrateGate()` only (no `refreshAllTabsForLocaleChange()`).
+2. **`__rianellAppInitStarted`** — set at `runAppInit()`; unlocks `applyDataI18nAttributes()` in `i18n-pwa.js`.
+3. **Shell reveal** — `revealAppShellWithLocale()` runs `ensureCatalogs()` → `refreshLocaleUI()` → `revealAppShell()` so Home and `data-i18n` nodes show translated text, not raw keys.
+
+**Local CI-parity gate:** `powershell -File server/launch-server.ps1` (compiled `.server-dist`), then `npm run audit:boot:prepare` and `PROBE_URL=http://127.0.0.1:8080/ npm run audit:boot:strict`. Production: same strict audit runs post-deploy on `rianell.com`.
+
 ### On-device model clear/redownload (v1.85)
 
 **Settings → Performance → Clear and redownload model** stops any in-flight download, clears IndexedDB + Cache API + assembled chunk cache, and starts a fresh download. See `summary-llm.js` (`clearAiModelCache`, `cancelAiModelDownload`, `resetAiModelDownloadState`).
