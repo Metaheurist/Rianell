@@ -1,16 +1,26 @@
 /**
- * Verify GitHub Pages deploy serves fingerprinted app.*.min.js (CI post-deploy gate).
- * Uses Playwright — curl from GHA runners gets 403 from Cloudflare on rianell.com.
+ * Verify deploy HTML serves fingerprinted app.*.min.js.
+ * CI post-deploy: set PROBE_URL=http://127.0.0.1:9876/ (same site/ as GitHub Pages, local server).
+ * Manual prod check: omit PROBE_URL — uses VERIFY_URLS (default rianell.com + github.io).
  */
 import { chromium } from 'playwright';
 
-const urls = (process.env.VERIFY_URLS || 'https://rianell.com/,https://metaheurist.github.io/Rianell/')
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
-const attempts = Number(process.env.VERIFY_ATTEMPTS || 10);
-const delayMs = Number(process.env.VERIFY_DELAY_MS || 20000);
 const pattern = /app\.[a-f0-9]+\.min\.js/;
+
+function urlsToCheck() {
+  if (process.env.PROBE_URL) {
+    return [process.env.PROBE_URL.replace(/\/?$/, '/')];
+  }
+  return (process.env.VERIFY_URLS || 'https://rianell.com/,https://metaheurist.github.io/Rianell/')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+const urls = urlsToCheck();
+const localProbe = Boolean(process.env.PROBE_URL);
+const attempts = Number(process.env.VERIFY_ATTEMPTS || (localProbe ? 1 : 10));
+const delayMs = Number(process.env.VERIFY_DELAY_MS || (localProbe ? 0 : 20000));
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
@@ -32,7 +42,7 @@ try {
         console.warn(`${url} attempt ${i}:`, err.message);
       }
     }
-    if (i < attempts) {
+    if (i < attempts && delayMs > 0) {
       console.log(`Waiting for Pages HTML (${i}/${attempts})...`);
       await new Promise((r) => setTimeout(r, delayMs));
     }

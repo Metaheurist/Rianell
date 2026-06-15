@@ -1093,8 +1093,9 @@ jobs:
           PROBE_GUEST_PASS_MS: "120000"
         run: npm run audit:boot:baseline
 
-      - name: Live site HTML check (non-blocking; Cloudflare may 403 GHA)
-        continue-on-error: true
+      - name: Verify deploy HTML (local Pages probe only)
+        env:
+          PROBE_URL: http://127.0.0.1:9876/
         run: node scripts/verify-deploy-html.mjs
 
       - name: Benchmark security audit (GitHub Pages site served locally)
