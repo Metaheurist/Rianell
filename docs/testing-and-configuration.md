@@ -187,7 +187,7 @@ No full page reload required.
 
 **Local CI-parity gate:** `powershell -File server/launch-server.ps1` (compiled `.server-dist`), then `npm run audit:boot:prepare` and `PROBE_URL=http://127.0.0.1:8080/ npm run audit:boot:strict`.
 
-**Post-deploy (CI, v1.89.2):** After **`deploy-pages`**, job **`audit-boot-post-deploy`** downloads artifact **`pages-site-probe`** (the same prepared `site/` uploaded to GitHub Pages), serves it with **`python -m server`** on the audit runner, and runs **`audit:boot:baseline`** against `http://127.0.0.1:9876/`. Live **`rianell.com`** HTML verify is **non-blocking** (Cloudflare **403** from GitHub Actions IPs). Strict production audit remains the local **`launch-server.ps1`** gate before push.
+**Post-deploy (CI, v1.89.2):** After **`deploy-pages`**, job **`audit-boot-post-deploy`** downloads artifact **`pages-site-probe`** (the same prepared `site/` uploaded to GitHub Pages), serves it with **`python -m server`** on the audit runner, and runs **`audit:boot:baseline`** and **`verify-deploy-html.mjs`** against `http://127.0.0.1:9876/` only — no live **`rianell.com`** / **github.io** requests from GHA (Cloudflare **403**). Strict production audit remains the local **`launch-server.ps1`** gate before push.
 
 ### CI dependency caching (v1.89.2)
 
