@@ -1117,15 +1117,19 @@ jobs:
 
       - name: Start local probe server (Cloudflare blocks GHA on rianell.com)
         run: |
-          npx --yes serve ci-minified/site -l 9876 &
-          for i in 1 2 3 4 5 6 7 8 9 10; do
-            if curl -fsS http://127.0.0.1:9876/ | grep -qE 'app\\.[a-f0-9]+\\.min\\.js'; then
-              echo "Local probe server ready"
+          set -euo pipefail
+          MAIN_JS=$(node -pe "JSON.parse(require('fs').readFileSync('ci-minified/site/asset-manifest.json','utf8')).mainJs")
+          python3 -m http.server 9876 --directory ci-minified/site >/tmp/probe-server.log 2>&1 &
+          echo "$MAIN_JS" > /tmp/probe-main-js.txt
+          for i in $(seq 1 15); do
+            if curl -fsS "http://127.0.0.1:9876/${MAIN_JS}" -o /dev/null; then
+              echo "Local probe server ready (${MAIN_JS})"
               exit 0
             fi
             sleep 2
           done
           echo "Local probe server failed to start" >&2
+          tail -n 20 /tmp/probe-server.log || true
           exit 1
 
       - name: Strict boot audit (local deploy bundle)
