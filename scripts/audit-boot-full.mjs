@@ -72,7 +72,7 @@ async function bootProbe(cold) {
     try {
       await page.waitForSelector('script[src*="app."]', { timeout: 90000 });
     } catch (e) {
-      fail('DEPLOY_HTML_MISSING');
+      // Script may appear after domcontentloaded; final snap below decides.
     }
 
     let last = null;
@@ -123,6 +123,8 @@ async function bootProbe(cold) {
       if (i % 10 === 0) console.error(`+${Math.round(elapsed / 1000)}s`, cold ? 'guest' : 'warm', JSON.stringify(last));
       await page.waitForTimeout(500);
     }
+
+    if (!last?.script?.includes('app.')) fail('DEPLOY_HTML_MISSING');
 
     return {
       ok: false,
