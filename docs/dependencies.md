@@ -27,14 +27,16 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 
 | Package | Version |
 |---------|---------|
+| `@babel/core` | 7.29.7 |
 | `@babel/generator` | ^7.26.5 |
 | `@babel/parser` | ^7.26.7 |
 | `@babel/traverse` | ^7.26.7 |
 | `@babel/types` | ^7.26.7 |
 | `esbuild` | 0.28.1 |
+| `js-yaml` | 4.2.0 |
 | `sharp` | ^0.33.5 |
 
-**`overrides`** — 24 pin(s): `@expo/plist → @xmldom/xmldom`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
+**`overrides`** — 27 pin(s): `@babel/core`, `@expo/plist → @xmldom/xmldom`, `@istanbuljs/load-nyc-config → js-yaml`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
 
 **Workspaces:** `apps/*`, `packages/*`, `benchmarks`.
 
