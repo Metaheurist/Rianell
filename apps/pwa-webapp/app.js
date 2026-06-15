@@ -20111,6 +20111,21 @@ function runRianellBootAfterDomReady() {
   
   if (loadingTextEl) loadingTextEl.textContent = tUi('common.loading');
 
+  function revealAppShellWithLocale() {
+    var I = (typeof window !== 'undefined' && window.RianellI18n) ? window.RianellI18n : null;
+    var ready = (I && typeof I.ensureCatalogs === 'function')
+      ? I.ensureCatalogs(I.getLocale())
+      : Promise.resolve();
+    ready.then(function () {
+      if (I && typeof I.refreshLocaleUI === 'function') {
+        I.refreshLocaleUI();
+      }
+      revealAppShell();
+    }).catch(function () {
+      revealAppShell();
+    });
+  }
+
   function revealAppShell() {
     setOrbitLoadingProgress(100);
     finishLoadingOverlayWithBurst(function () {
@@ -20243,11 +20258,11 @@ function runRianellBootAfterDomReady() {
       /* deferred consent or download failure — still reveal shell */
     }).then(function () {
       window.__rianellAiPreloadedDuringBoot = true;
-      revealAppShell();
+      revealAppShellWithLocale();
       schedulePostShellIdleWork(true);
     });
   } else {
-    revealAppShell();
+    revealAppShellWithLocale();
     schedulePostShellIdleWork(false);
   }
 
