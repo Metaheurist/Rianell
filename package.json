@@ -40,7 +40,9 @@
     "models:download": "node scripts/download-llm-models.mjs",
     "models:verify": "node scripts/verify-llm-models.mjs",
     "verify:no-model-weights-in-git": "node scripts/verify-no-model-weights-in-git.mjs",
-    "models:upload:supabase": "node scripts/upload-llm-models-supabase.mjs"
+    "models:upload:supabase": "node scripts/upload-llm-models-supabase.mjs",
+    "audit:boot:baseline": "node scripts/audit-boot-full.mjs",
+    "audit:boot:strict": "node scripts/audit-boot-full.mjs"
   },
   "devDependencies": {
     "@babel/generator": "^7.26.5",
