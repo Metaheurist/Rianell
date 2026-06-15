@@ -1,0 +1,4 @@
+# CI-only Python packages (server EXE build). Listed separately so pip cache
+# invalidates when these change, without touching requirements.txt.
+pyinstaller
+pyarmor

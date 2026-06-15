@@ -2,6 +2,13 @@
 
 ## 🗂️ Project Structure
 
+### v1.89.2 documentation sync (CI caching and post-deploy audit)
+
+- **CI:** Dependency caches (npm, pip, Playwright, Gradle, security-tool binaries); composite actions under `.github/actions/`; **`pages-site-probe`** artifact for post-deploy boot audit on the exact GitHub Pages tree.
+- **Workflow:** Gate jobs cancel the run on failure; benchmark jobs continue independently.
+- **Boot audit:** Local serve of deploy artifact (Cloudflare blocks GHA on live `rianell.com`); fix false `DEPLOY_HTML_MISSING`.
+- **See:** [testing-and-configuration.md](testing-and-configuration.md) § CI dependency caching and post-deploy audit; [wiki/Build-Test-and-CI.md](../wiki/Build-Test-and-CI.md).
+
 ### v1.89.1 documentation sync (boot i18n and CI supply-chain)
 
 - **PWA boot:** Phase 2b privacy-gate light i18n; `revealAppShellWithLocale()` restores full locale hydration after catalogs load.
