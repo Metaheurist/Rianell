@@ -97,6 +97,16 @@ function configureCiRemote() {
   run(`git -C "${wikiClone}" remote set-url origin "${authed}"`);
 }
 
+function configureGitIdentity() {
+  const name = process.env.GIT_COMMITTER_NAME || process.env.GIT_AUTHOR_NAME || 'github-actions[bot]';
+  const email =
+    process.env.GIT_COMMITTER_EMAIL ||
+    process.env.GIT_AUTHOR_EMAIL ||
+    'github-actions[bot]@users.noreply.github.com';
+  run(`git -C "${wikiClone}" config user.name "${name.replace(/"/g, '\\"')}"`);
+  run(`git -C "${wikiClone}" config user.email "${email.replace(/"/g, '\\"')}"`);
+}
+
 function main() {
   if (!fs.existsSync(wikiSource) || !fs.existsSync(path.join(wikiSource, 'Home.md'))) {
     console.error('sync-wiki: wiki/Home.md is required');
@@ -130,6 +140,7 @@ function main() {
     process.exit(0);
   }
 
+  configureGitIdentity();
   run(`git -C "${wikiClone}" commit -m "${commitMessage.replace(/"/g, '\\"')}"`);
   const hash = runQuiet(`git -C "${wikiClone}" rev-parse --short HEAD`);
   run(`git -C "${wikiClone}" push origin HEAD`);
