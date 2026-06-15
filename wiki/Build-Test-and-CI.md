@@ -67,13 +67,16 @@ Caches miss only when lockfiles or pinned tool versions change:
 
 | Layer | Invalidates when |
 |-------|------------------|
-| npm | `package-lock.json` changes |
-| pip | `requirements.txt` or `.github/ci-pip-extras.txt` changes |
+| npm store + node_modules | `package-lock.json` changes |
+| pip | `requirements.txt` or `.github/ci-pip-*.txt` changes |
 | Playwright browsers | `package-lock.json` changes |
+| Expo / Metro | lockfiles change |
 | Gradle (Android) | root lockfile or `apps/rn-app/package.json` changes |
+| Android SDK | same as Gradle key (API 36 / NDK 27) |
+| PyInstaller (Windows) | Python requirements / pip extras change |
 | Gitleaks / OSV binaries | workflow pin version bumped |
 
-Reusable actions: `.github/actions/setup-node-ci`, `setup-python-ci`, `install-playwright-chromium`, `prepare-pages-site`.
+Reusable actions: `.github/actions/setup-node-ci`, `setup-python-ci`, `install-playwright-chromium`, `prepare-pages-site`, `cache-expo`, `cache-android-sdk`.
 
 ---
 

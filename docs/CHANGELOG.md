@@ -6,6 +6,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 
 ### v1.89.2 - 2026-06-15 - CI caching, post-deploy audit, workflow efficiency
 - **CI caching:** Reusable actions `setup-node-ci`, `setup-python-ci`, `install-playwright-chromium`; npm (`package-lock.json`), pip (`requirements.txt` + `.github/ci-pip-extras.txt`), Playwright browsers, Gradle (Android APK), Gitleaks/OSV binaries — cache invalidates only when lockfiles or pinned tool versions change.
+- **CI caching (extended):** `node_modules` restore (skip `npm ci` on hit), Expo/Metro (`cache-expo`), Android SDK (`cache-android-sdk`), PyInstaller cache on Windows, pip-audit via `ci-pip-audit-tools.txt`, npx cache for CycloneDX.
 - **Post-deploy audit:** `deploy-pages` uploads **`pages-site-probe`** (exact prepared `site/` tree sent to GitHub Pages); **`audit-boot-post-deploy`** downloads it on a separate runner, serves via `python -m server`, runs baseline boot audit locally (Cloudflare returns **403** to GHA on `rianell.com`).
 - **`prepare-pages-site`:** Shared composite action — copy minified prebuild → verify fingerprint → inject Supabase (deploy and audit parity).
 - **Cancel on failure:** Gate jobs call `cancel-workflow-on-failure` so Android/server/release jobs stop when unit tests, deploy, or boot audit fail (benchmark jobs still run).

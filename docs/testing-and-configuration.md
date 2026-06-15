@@ -195,11 +195,15 @@ Caches invalidate when lockfiles or pinned tool versions change (not every run):
 
 | Cache | Key | Composite / action |
 |-------|-----|------------------|
-| npm | `package-lock.json` | `./.github/actions/setup-node-ci` |
-| pip | `requirements.txt`, `.github/ci-pip-extras.txt` | `./.github/actions/setup-python-ci` |
+| npm store | `package-lock.json` | `./.github/actions/setup-node-ci` |
+| node_modules | `package-lock.json` hash | `setup-node-ci` (skip `npm ci` on hit) |
+| pip | `requirements.txt`, `ci-pip-*.txt` | `./.github/actions/setup-python-ci` |
 | Playwright | `package-lock.json` hash | `./.github/actions/install-playwright-chromium` |
+| Expo / Metro | lockfiles | `./.github/actions/cache-expo` |
 | Gradle | `package-lock.json` + `apps/rn-app/package.json` | `actions/cache` on Android APK job |
-| Gitleaks / OSV | pinned release version | `security-audit.yml` |
+| Android SDK | API 36 + NDK 27 paths | `./.github/actions/cache-android-sdk` |
+| PyInstaller | requirements + pip extras | `actions/cache` on Windows server EXE job |
+| Gitleaks / OSV / npx | pinned version or lockfile | `security-audit.yml` |
 
 Gate jobs (**unit-tests**, **prepare-minified-assets**, **expo-bundle-prod**, **deploy-pages**, **audit-boot-post-deploy**) cancel the workflow on failure so mobile/server/release jobs do not burn minutes after a failed gate. Benchmark jobs are intentionally **not** cancelled.
 
