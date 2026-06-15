@@ -91,6 +91,7 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `expo-file-system` | ~55.0.22 |
 | `expo-haptics` | ~55.0.4 |
 | `expo-modules-autolinking` | ^55.0.11 |
+| `expo-modules-core` | ~55.0.25 |
 | `expo-print` | ~55.0.4 |
 | `expo-secure-store` | ~55.0.4 |
 | `expo-sharing` | ~55.0.5 |
@@ -117,6 +118,7 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `babel-preset-expo` | ~55.0.12 |
 | `jest` | ^29.7.0 |
 | `jest-expo` | ~55.0.11 |
+| `lodash` | ^4.18.1 |
 | `react-test-renderer` | 19.2.4 |
 | `stacktrace-js` | ^2.0.2 |
 | `typescript` | ~5.9.2 |
