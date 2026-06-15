@@ -42,7 +42,7 @@
     "verify:no-model-weights-in-git": "node scripts/verify-no-model-weights-in-git.mjs",
     "models:upload:supabase": "node scripts/upload-llm-models-supabase.mjs",
     "audit:boot:baseline": "node scripts/audit-boot-full.mjs",
-    "audit:boot:prepare": "npx playwright install chromium",
+    "audit:boot:prepare": "npx playwright install chromium --with-deps",
     "audit:boot:strict": "node scripts/audit-boot-full.mjs",
     "wiki:verify": "node scripts/verify-wiki.mjs",
     "wiki:sync": "node scripts/sync-wiki.mjs",

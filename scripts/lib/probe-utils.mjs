@@ -42,12 +42,12 @@ export function killHeadless() {
 }
 
 export async function getChromium() {
-  const benchPlaywright = path.resolve(__dirname, '../../benchmarks/node_modules/playwright/index.mjs');
   try {
-    const mod = await import(benchPlaywright);
+    const mod = await import('playwright');
     return mod.chromium;
   } catch (_) {
-    const mod = await import('playwright');
+    const benchPlaywright = path.resolve(__dirname, '../../benchmarks/node_modules/playwright/index.mjs');
+    const mod = await import(benchPlaywright);
     return mod.chromium;
   }
 }
