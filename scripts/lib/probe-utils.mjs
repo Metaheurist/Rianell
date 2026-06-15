@@ -60,6 +60,7 @@ export async function evalTimeout(page, fn, arg, ms = 2000) {
 }
 
 export const HEARTBEAT_INIT = `
+  window.__rianellReloadStreamOk = false;
   window.__rianellHeartbeat = Date.now();
   window.__rianellLongTasks = [];
   window.__rianellBootDone = false;

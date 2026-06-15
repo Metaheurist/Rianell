@@ -19202,6 +19202,7 @@ function openLogWizardFromHome() {
 }
 
 function refreshAllTabsForLocaleChange() {
+  if (typeof window !== 'undefined' && !window.__rianellAppInitStarted) return;
   var hadAiContent = false;
   var aiResults = document.getElementById('aiResultsContent');
   if (aiResults && aiResults.innerHTML && aiResults.innerHTML.trim()) hadAiContent = true;

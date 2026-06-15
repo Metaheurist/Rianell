@@ -46,14 +46,36 @@
     return typeof I.t === 'function' ? I.t(key, params) : key;
   }
 
+  function refreshGateLocaleUI() {
+    var prefs = readSettings();
+    if (typeof I.setLocale === 'function') {
+      return I.setLocale(prefs.uiLocale || 'en-GB', prefs).then(function () {
+        if (typeof I.hydrateGate === 'function') I.hydrateGate();
+      });
+    }
+    if (typeof I.hydrateGate === 'function') I.hydrateGate();
+    return Promise.resolve();
+  }
+
+  function refreshSettingsPaneLocaleUI() {
+    var prefs = readSettings();
+    if (typeof I.setLocale === 'function') {
+      return I.setLocale(prefs.uiLocale || 'en-GB', prefs).then(function () {
+        if (typeof I.hydratePrivacySettings === 'function') I.hydratePrivacySettings();
+      });
+    }
+    if (typeof I.hydratePrivacySettings === 'function') I.hydratePrivacySettings();
+    return Promise.resolve();
+  }
+
   function refreshLocaleUI() {
     var prefs = readSettings();
     if (typeof I.setLocale === 'function') {
       I.setLocale(prefs.uiLocale || 'en-GB', prefs).then(function () {
-        if (typeof I.applyDocumentI18n === 'function') I.applyDocumentI18n();
+        if (typeof I.refreshLocaleUI === 'function') I.refreshLocaleUI();
       });
-    } else if (typeof I.applyDocumentI18n === 'function') {
-      I.applyDocumentI18n();
+    } else if (typeof I.refreshLocaleUI === 'function') {
+      I.refreshLocaleUI();
     }
   }
 
@@ -153,7 +175,7 @@
     var overlay = document.getElementById('privacyRegionGateOverlay');
     if (!overlay) return;
     overlay.style.display = 'flex';
-    refreshLocaleUI();
+    refreshGateLocaleUI();
     var select = document.getElementById('privacyRegionGateSelect');
     if (select && typeof S.getRegionLabels === 'function') {
       var labels = S.getRegionLabels(S.getPolicyPack ? S.getPolicyPack() : null);
@@ -165,8 +187,6 @@
         : 'eea_uk';
       if (!hint || !select.querySelector('option[value="' + hint + '"]')) hint = 'eea_uk';
       select.value = hint;
-      var hintEl = document.getElementById('privacyRegionGateHint');
-      if (hintEl) hintEl.textContent = t('gate.hint');
     }
   }
 
@@ -197,7 +217,7 @@
   function renderSettingsPane() {
     var pane = document.getElementById('privacyRegionSettingsPane');
     if (!pane) return;
-    refreshLocaleUI();
+    refreshSettingsPaneLocaleUI();
     var fields = getPrivacyFields();
     var select = pane.querySelector('#privacyRegionSettingsSelect');
     if (select && typeof S.getRegionLabels === 'function') {

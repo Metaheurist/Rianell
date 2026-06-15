@@ -144,7 +144,7 @@
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.clearColor(0.1, 0.2, 0.3, 1);
       }
-      if (gl.finish) gl.finish();
+      /* gl.finish() can block the main thread indefinitely on headless / software GL stacks */
       cb(nowMs() - t0);
     } catch (e) { cb(null); }
   }
@@ -975,10 +975,12 @@
       _lastPlatformType = platformType;
       if (typeof onProgress === 'function') onProgress(100, { phase: 'heuristic', label: 'Device tier' });
       if (typeof onComplete === 'function') onComplete(tier, platformType, result, { cached: true, heuristic: true });
-      runGpuBenchmarkAsync(function (gpu) {
-        result.gpu = gpu;
-        saveBenchmarkResultMinimal(result);
-      });
+      setTimeout(function () {
+        runGpuBenchmarkAsync(function (gpu) {
+          result.gpu = gpu;
+          saveBenchmarkResultMinimal(result);
+        });
+      }, 0);
       return;
     }
     if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] running suite (no cache)');
