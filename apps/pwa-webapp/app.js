@@ -20418,63 +20418,81 @@ function runRianellBootAfterDomReady() {
     }
   }
 
-  if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.runBenchmarkIfNeeded === 'function') {
-    window.DeviceBenchmark.runBenchmarkIfNeeded(
+  function revealBootShellAfterBenchmark(tier, platformType, result, meta) {
+    setOrbitLoadingProgress(100);
+    if (
+      result &&
+      typeof window !== 'undefined' &&
+      window.DeviceBenchmark &&
+      typeof window.DeviceBenchmark.saveBenchmarkResult === 'function' &&
+      !(meta && (meta.cached || meta.heuristic))
+    ) {
+      try { window.DeviceBenchmark.saveBenchmarkResult(result); } catch (e) {}
+    }
+    function revealAndStart() {
+      if (loadingOverlay) {
+        loadingOverlay.classList.add('hidden');
+        document.body.classList.remove('loading');
+      }
+      document.body.classList.add('loaded');
+      if (meta && (meta.cached || meta.heuristic)) {
+        startAppAfterPrivacyGate();
+        if (meta.heuristic && window.DeviceBenchmark &&
+            typeof window.DeviceBenchmark.scheduleBackgroundFullBenchmark === 'function') {
+          setTimeout(function () {
+            try { window.DeviceBenchmark.scheduleBackgroundFullBenchmark(); } catch (e) {}
+          }, 8000);
+        }
+        return;
+      }
+      if (openPerfBenchmarkModal({
+        mode: 'firstRun',
+        result: result || { platformType: platformType, tier: tier },
+        onContinue: function () {
+          startAppAfterPrivacyGate();
+        }
+      }) === false) {
+        startAppAfterPrivacyGate();
+      }
+    }
+    if (meta && (meta.cached || meta.heuristic)) {
+      revealAndStart();
+      return;
+    }
+    finishLoadingOverlayWithBurst(revealAndStart);
+  }
+
+  var DB = (typeof window !== 'undefined' && window.DeviceBenchmark) ? window.DeviceBenchmark : null;
+  if (DB && typeof DB.shouldUseHeuristicBoot === 'function' && DB.shouldUseHeuristicBoot() &&
+      typeof DB.isBenchmarkReady === 'function' && !DB.isBenchmarkReady()) {
+    var quickPt = typeof DB.getPlatformType === 'function' ? DB.getPlatformType() : 'desktop';
+    var quickTier = typeof DB.getPerformanceTier === 'function' ? DB.getPerformanceTier() : 3;
+    var quickResult = { version: 4, platformType: quickPt, tier: quickTier, heuristic: true, ts: Date.now() };
+    if (typeof console !== 'undefined' && console.log) {
+      console.log('[Benchmark] inline heuristic boot', 'tier', quickTier, 'platformType', quickPt);
+    }
+    try { DB.saveBenchmarkResult(quickResult); } catch (e) {}
+    revealBootShellAfterBenchmark(quickTier, quickPt, quickResult, { cached: false, heuristic: true });
+  } else if (DB && typeof DB.runBenchmarkIfNeeded === 'function') {
+    DB.runBenchmarkIfNeeded(
       function (pct, meta) {
-        var label = meta && meta.label ? (' ┬À ' + meta.label) : '';
-        if (loadingTextEl) loadingTextEl.textContent = tUi('common.measuring.performance') + (pct > 0 ? ' ' + pct + '%' : '') + label;
+        var label = meta && meta.label ? (' · ' + meta.label) : '';
+        var measureLabel = (typeof tUi === 'function' ? tUi('common.measuring.performance') : 'Measuring performance…');
+        if (measureLabel === 'common.measuring.performance') measureLabel = 'Measuring performance…';
+        if (loadingTextEl) loadingTextEl.textContent = measureLabel + (pct > 0 ? ' ' + pct + '%' : '') + label;
         setOrbitLoadingProgress(pct);
       },
-      function (tier, platformType, result, meta) {
-        function revealShellAfterBenchmark() {
-          if (loadingOverlay) {
-            loadingOverlay.classList.add('hidden');
-            document.body.classList.remove('loading');
-          }
-          document.body.classList.add('loaded');
-          if (meta && (meta.cached || meta.heuristic)) {
-            startAppAfterPrivacyGate();
-            if (meta.heuristic && window.DeviceBenchmark &&
-                typeof window.DeviceBenchmark.scheduleBackgroundFullBenchmark === 'function') {
-              setTimeout(function () {
-                try { window.DeviceBenchmark.scheduleBackgroundFullBenchmark(); } catch (e) {}
-              }, 8000);
-            }
-            return;
-          }
-          if (openPerfBenchmarkModal({
-            mode: 'firstRun',
-            result: result || { platformType: platformType, tier: tier },
-            onContinue: function () {
-              startAppAfterPrivacyGate();
-            }
-          }) === false) {
-            startAppAfterPrivacyGate();
-          }
-        }
-        setOrbitLoadingProgress(100);
-        if (
-          result &&
-          typeof window !== 'undefined' &&
-          window.DeviceBenchmark &&
-          typeof window.DeviceBenchmark.saveBenchmarkResult === 'function' &&
-          !(meta && (meta.cached || meta.heuristic))
-        ) {
-          try { window.DeviceBenchmark.saveBenchmarkResult(result); } catch (e) {}
-        }
-        if (meta && (meta.cached || meta.heuristic)) {
-          revealShellAfterBenchmark();
-          return;
-        }
-        finishLoadingOverlayWithBurst(revealShellAfterBenchmark);
-      }
+      revealBootShellAfterBenchmark
     );
   } else {
     startAppAfterPrivacyGate();
   }
   }
 
-  (typeof loadMotdJson === 'function' ? loadMotdJson() : Promise.resolve()).then(startAfterMotd, startAfterMotd);
+  startAfterMotd();
+  if (typeof loadMotdJson === 'function') {
+    loadMotdJson().catch(function () {});
+  }
   initVoiceInputControls();
 }
 
