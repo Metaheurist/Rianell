@@ -48,14 +48,21 @@
     "wiki:sync:dry-run": "node scripts/sync-wiki.mjs --dry-run"
   },
   "devDependencies": {
+    "@babel/core": "7.29.7",
     "@babel/generator": "^7.26.5",
     "@babel/parser": "^7.26.7",
     "@babel/traverse": "^7.26.7",
     "@babel/types": "^7.26.7",
     "esbuild": "0.28.1",
-    "sharp": "^0.33.5"
+    "sharp": "^0.33.5",
+    "js-yaml": "4.2.0"
   },
   "overrides": {
+    "@babel/core": "$@babel/core",
+    "js-yaml": "$js-yaml",
+    "@istanbuljs/load-nyc-config": {
+      "js-yaml": "4.2.0"
+    },
     "esbuild": "0.28.1",
     "@xmldom/xmldom": "0.8.13",
     "@expo/plist": {
