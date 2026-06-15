@@ -127,6 +127,7 @@
 
   var gateUnlockCallbacks = [];
   var gateVisible = false;
+  var gateUiBound = false;
 
   function unlockApp() {
     gateVisible = false;
@@ -148,6 +149,7 @@
 
   function showGate() {
     gateVisible = true;
+    initGateUI();
     document.body.classList.add('privacy-gate-active');
     var overlay = document.getElementById('privacyRegionGateOverlay');
     if (!overlay) return;
@@ -170,10 +172,12 @@
   }
 
   function initGateUI() {
+    if (gateUiBound) return;
     var btn = document.getElementById('privacyRegionGateConfirm');
     var viewBtn = document.getElementById('privacyRegionGateViewPolicies');
     var select = document.getElementById('privacyRegionGateSelect');
     if (btn && select) {
+      gateUiBound = true;
       btn.addEventListener('click', function () { confirmRegion(select.value, 'onboarding'); });
     }
     if (viewBtn && select) {

@@ -19930,7 +19930,9 @@ window.addEventListener('unhandledrejection', (event) => {
 }, true);
 
 // Initialize the app
-window.addEventListener('load', () => {
+function runRianellBootAfterDomReady() {
+  if (window.__rianellBootAfterDomStarted) return;
+  window.__rianellBootAfterDomStarted = true;
   // Show loading overlay immediately (body.loading keeps overlay visible via CSS)
   const loadingOverlay = document.getElementById('loadingOverlay');
   const loadingTextEl = loadingOverlay ? loadingOverlay.querySelector('.loading-text') : null;
@@ -20282,57 +20284,89 @@ window.addEventListener('load', () => {
     }
   }
 
-  if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.runBenchmarkIfNeeded === 'function') {
-    window.DeviceBenchmark.runBenchmarkIfNeeded(
+  function revealBootShellAfterBenchmark(tier, platformType, result, meta) {
+    setOrbitLoadingProgress(100);
+    if (
+      result &&
+      typeof window !== 'undefined' &&
+      window.DeviceBenchmark &&
+      typeof window.DeviceBenchmark.saveBenchmarkResult === 'function' &&
+      !(meta && (meta.cached || meta.heuristic))
+    ) {
+      try { window.DeviceBenchmark.saveBenchmarkResult(result); } catch (e) {}
+    }
+    function revealAndStart() {
+      if (loadingOverlay) {
+        loadingOverlay.classList.add('hidden');
+        document.body.classList.remove('loading');
+      }
+      document.body.classList.add('loaded');
+      if (meta && (meta.cached || meta.heuristic)) {
+        startAppAfterPrivacyGate();
+        return;
+      }
+      if (openPerfBenchmarkModal({
+        mode: 'firstRun',
+        result: result || { platformType: platformType, tier: tier },
+        onContinue: function () {
+          startAppAfterPrivacyGate();
+        }
+      }) === false) {
+        startAppAfterPrivacyGate();
+      }
+    }
+    if (meta && (meta.cached || meta.heuristic)) {
+      revealAndStart();
+      return;
+    }
+    finishLoadingOverlayWithBurst(revealAndStart);
+  }
+
+  var DB = (typeof window !== 'undefined' && window.DeviceBenchmark) ? window.DeviceBenchmark : null;
+  if (DB && typeof DB.shouldUseHeuristicBoot === 'function' && DB.shouldUseHeuristicBoot() &&
+      typeof DB.isBenchmarkReady === 'function' && !DB.isBenchmarkReady()) {
+    var quickPt = typeof DB.getPlatformType === 'function' ? DB.getPlatformType() : 'desktop';
+    var quickTier = typeof DB.getPerformanceTier === 'function' ? DB.getPerformanceTier() : 3;
+    var quickResult = { version: 5, platformType: quickPt, tier: quickTier, heuristic: true, ts: Date.now() };
+    if (typeof console !== 'undefined' && console.log) {
+      console.log('[Benchmark] inline heuristic boot', 'tier', quickTier, 'platformType', quickPt);
+    }
+    if (typeof DB.saveBenchmarkResultMinimal === 'function') {
+      try { DB.saveBenchmarkResultMinimal(quickResult); } catch (e) {}
+    } else {
+      try { DB.saveBenchmarkResult(quickResult); } catch (e) {}
+    }
+    revealBootShellAfterBenchmark(quickTier, quickPt, quickResult, { cached: true, heuristic: true });
+  } else if (DB && typeof DB.runBenchmarkIfNeeded === 'function') {
+    DB.runBenchmarkIfNeeded(
       function (pct, meta) {
         var label = meta && meta.label ? (' · ' + meta.label) : '';
         if (loadingTextEl) loadingTextEl.textContent = tUi('common.measuring.performance') + (pct > 0 ? ' ' + pct + '%' : '') + label;
         setOrbitLoadingProgress(pct);
       },
-      function (tier, platformType, result, meta) {
-        setOrbitLoadingProgress(100);
-        // Persist benchmark immediately so refreshes do not re-enter first-run flow.
-        if (
-          result &&
-          typeof window !== 'undefined' &&
-          window.DeviceBenchmark &&
-          typeof window.DeviceBenchmark.saveBenchmarkResult === 'function'
-        ) {
-          try { window.DeviceBenchmark.saveBenchmarkResult(result); } catch (e) {}
-        }
-        finishLoadingOverlayWithBurst(function () {
-          if (loadingOverlay) {
-            loadingOverlay.classList.add('hidden');
-            document.body.classList.remove('loading');
-          }
-          /* index.html hides body > *:not(#loadingOverlay) until .loaded - without this, the first-run
-             benchmark modal is visibility:hidden and Continue never fires; runAppInit never runs (stuck). */
-          document.body.classList.add('loaded');
-          /* Show results modal only after a fresh benchmark — skip when reusing cached tier/profile. */
-          if (meta && meta.cached) {
-            startAppAfterPrivacyGate();
-            return;
-          }
-          if (openPerfBenchmarkModal({
-            mode: 'firstRun',
-            result: result || { platformType: platformType, tier: tier },
-            onContinue: function () {
-              startAppAfterPrivacyGate();
-            }
-          }) === false) {
-            startAppAfterPrivacyGate();
-          }
-        });
-      }
+      revealBootShellAfterBenchmark
     );
   } else {
     startAppAfterPrivacyGate();
   }
   }
 
-  (typeof loadMotdJson === 'function' ? loadMotdJson() : Promise.resolve()).then(startAfterMotd, startAfterMotd);
+  startAfterMotd();
+  if (typeof loadMotdJson === 'function') {
+    loadMotdJson().catch(function () {});
+  }
   initVoiceInputControls();
-});
+}
+
+/** Do not wait for window load (fonts/CDN subresources can hang forever and block the shell). */
+function scheduleRianellBootAfterDomReady() {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runRianellBootAfterDomReady, { once: true });
+  } else {
+    runRianellBootAfterDomReady();
+  }
+}
+scheduleRianellBootAfterDomReady();
 
 function initializeDateFilters() {
   const today = new Date();
