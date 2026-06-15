@@ -167,10 +167,24 @@ jobs:
           "
 
       - name: Upload minified temp artifact
+        id: upload_minified
+        continue-on-error: true
         uses: actions/upload-artifact@v5
         with:
           name: minified-prebuild
           path: ci-minified/
+
+      - name: Retry upload minified temp artifact (transient ECONNRESET)
+        id: upload_minified_retry
+        if: steps.upload_minified.outcome == 'failure'
+        uses: actions/upload-artifact@v5
+        with:
+          name: minified-prebuild
+          path: ci-minified/
+
+      - name: Fail if artifact upload did not succeed
+        if: steps.upload_minified.outcome == 'failure' && steps.upload_minified_retry.outcome != 'success'
+        run: exit 1
 
   # ---------------------------------------------------------------------------
   # Unit tests (app functionality wiring checks)
