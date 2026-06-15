@@ -84,6 +84,8 @@
     if (lead) lead.textContent = t('gate.lead');
     var label = document.querySelector('label[for="privacyRegionGateSelect"]');
     if (label) label.textContent = t('gate.regionLabel');
+    var hint = document.getElementById('privacyRegionGateHint');
+    if (hint) hint.textContent = t('gate.hint');
   }
 
   function hydratePrivacySettings() {
@@ -127,12 +129,14 @@
   function applyDocumentI18n() {
     hydrateGate();
     hydratePrivacySettings();
-    applyDataI18nAttributes();
-    var settingsOpen = document.getElementById('settingsOverlay');
-    if (settingsOpen && (settingsOpen.classList.contains('settings-overlay--open') || settingsOpen.style.display === 'block') && typeof window.settingsCarouselGo === 'function') {
-      var track = document.getElementById('settingsCarouselTrack');
-      var idx = track ? parseInt(track.getAttribute('data-settings-index') || '0', 10) : 0;
-      window.settingsCarouselGo(idx);
+    if (typeof global !== 'undefined' && global.__rianellAppInitStarted) {
+      applyDataI18nAttributes();
+      var settingsOpen = document.getElementById('settingsOverlay');
+      if (settingsOpen && (settingsOpen.classList.contains('settings-overlay--open') || settingsOpen.style.display === 'block') && typeof global.settingsCarouselGo === 'function') {
+        var track = document.getElementById('settingsCarouselTrack');
+        var idx = track ? parseInt(track.getAttribute('data-settings-index') || '0', 10) : 0;
+        global.settingsCarouselGo(idx);
+      }
     }
   }
 
@@ -162,9 +166,7 @@
     setLocale: setLocale,
     getLocale: function () { return activeLocale; },
     ensureCatalogs: ensureCatalogs,
-    applyDocumentI18n: function () {
-      refreshLocaleUI();
-    },
+    applyDocumentI18n: applyDocumentI18n,
     refreshLocaleUI: refreshLocaleUI,
     onLocaleChange: function (fn) {
       if (typeof fn === 'function') localeChangeListeners.push(fn);

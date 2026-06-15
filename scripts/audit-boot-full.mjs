@@ -68,7 +68,7 @@ async function bootProbe(cold) {
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message.slice(0, 120)));
 
-    await page.goto(PROBE_URL, { waitUntil: 'load', timeout: 120000 });
+    await page.goto(PROBE_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
 
     let last = null;
     for (let i = 0; i < 90; i++) {
@@ -78,23 +78,29 @@ async function bootProbe(cold) {
       try {
         last = await readSnap(page, cfg.evalTimeoutMs);
       } catch (e) {
-        if (e.message === 'EVAL_TIMEOUT') fail('EVAL_TIMEOUT');
-        throw e;
+        if (e.message === 'EVAL_TIMEOUT') {
+          fail('EVAL_TIMEOUT');
+          last = null;
+        } else {
+          throw e;
+        }
       }
 
-      const hbAge = Date.now() - (last.heartbeat || 0);
-      if (hbAge > cfg.heartbeatStaleMs && !(last.init && last.loaded)) {
+      const hbAge = last ? Date.now() - (last.heartbeat || 0) : cfg.heartbeatStaleMs + 1;
+      if (last && hbAge > cfg.heartbeatStaleMs && !(last.init && last.loaded)) {
         fail('HEARTBEAT_STALE');
       }
-      if (last.recovery) fail('RECOVERY_OVERLAY');
+      if (last && last.recovery) fail('RECOVERY_OVERLAY');
 
-      for (const lt of last.longTasks || []) {
-        if (lt.d > 50) maxLong50++;
-        if (lt.d > 2000) maxLong2000 = Math.max(maxLong2000, lt.d);
+      if (last) {
+        for (const lt of last.longTasks || []) {
+          if (lt.d > 50) maxLong50++;
+          if (lt.d > 2000) maxLong2000 = Math.max(maxLong2000, lt.d);
+        }
       }
 
       const elapsed = Date.now() - t0;
-      if (last.init && last.loaded) {
+      if (last && last.init && last.loaded) {
         return {
           ok: true,
           cold,
