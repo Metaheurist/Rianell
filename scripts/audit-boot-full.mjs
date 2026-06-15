@@ -69,6 +69,11 @@ async function bootProbe(cold) {
     page.on('pageerror', (e) => errors.push(e.message.slice(0, 120)));
 
     await page.goto(PROBE_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
+    try {
+      await page.waitForSelector('script[src*="app."]', { timeout: 90000 });
+    } catch (e) {
+      fail('DEPLOY_HTML_MISSING');
+    }
 
     let last = null;
     for (let i = 0; i < 90; i++) {
