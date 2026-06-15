@@ -19,7 +19,9 @@ export function profileConfig() {
   const strict = AUDIT_PROFILE === 'strict';
   return {
     strict,
-    passMs: Number(process.env.PROBE_PASS_MS || (strict ? 6000 : 8000)),
+    passMs: Number(process.env.PROBE_PASS_MS || (strict ? 4000 : 8000)),
+    warmPassMs: Number(process.env.PROBE_WARM_PASS_MS || (strict ? 3000 : 8000)),
+    guestPassMs: Number(process.env.PROBE_GUEST_PASS_MS || (strict ? 2000 : 8000)),
     allowBenchmarkModal: !strict,
     longtask50Max: strict ? 3 : 10,
     longtask2000Max: 0,
