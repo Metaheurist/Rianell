@@ -1107,9 +1107,6 @@ function openPerfBenchmarkModal(options) {
   if (continueBtn) {
     continueBtn.textContent = mode === 'firstRun' ? tUi('common.continue') : tUi('common.close');
     continueBtn.onclick = function () {
-      if (mode === 'firstRun' && result && typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.saveBenchmarkResult === 'function') {
-        window.DeviceBenchmark.saveBenchmarkResult(result);
-      }
       closePerfBenchmarkModal();
       if (options && typeof options.onContinue === 'function') options.onContinue();
     };
@@ -20086,21 +20083,30 @@ function runRianellBootAfterDomReady() {
     saveLogsToStorage();
   }
   
-  // Date range and chart section must be set before createCombinedChart (skipRefresh so we don't run createCombinedChart twice)
-  try {
-    initializeDateFilters();
-    setChartDateRange(30, { skipRefresh: true });
-    setPredictionRange(7);
-  // Use 30 days so charts and log list have data on first load (setLogViewRange overwrites chartDateRange)
-  setLogViewRange(30);
-  if (appSettings.showCharts) {
-      ensureChartsStylesLoaded();
-      const chartSection = document.getElementById('chartSection');
-      if (chartSection) chartSection.classList.remove('hidden');
+  // Date range and chart section — defer to idle so boot shell stays responsive.
+  function scheduleBootChartSetup() {
+    var run = function () {
+      try {
+        initializeDateFilters();
+        setChartDateRange(30, { skipRefresh: true });
+        setPredictionRange(7);
+        setLogViewRange(30);
+        if (appSettings.showCharts) {
+          ensureChartsStylesLoaded();
+          const chartSection = document.getElementById('chartSection');
+          if (chartSection) chartSection.classList.remove('hidden');
+        }
+      } catch (e) {
+        console.error('Error during initial setup:', e);
+      }
+    };
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(run, { timeout: 2000 });
+    } else {
+      setTimeout(run, 0);
     }
-  } catch (e) {
-    console.error('Error during initial setup:', e);
   }
+  scheduleBootChartSetup();
   
   if (loadingTextEl) loadingTextEl.textContent = tUi('common.loading');
 

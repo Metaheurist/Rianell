@@ -1074,6 +1074,7 @@
       getLegacyDeviceClass: getLegacyDeviceClass,
       isBenchmarkReady: isBenchmarkReady,
       runBenchmarkIfNeeded: runBenchmarkIfNeeded,
+      runSuiteAsync: runSuiteAsync,
       saveBenchmarkResult: saveBenchmarkResult,
       saveBenchmarkResultMinimal: saveBenchmarkResultMinimal,
       shouldUseHeuristicBoot: shouldUseHeuristicBoot,

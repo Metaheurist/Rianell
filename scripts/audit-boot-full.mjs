@@ -51,10 +51,12 @@ async function bootProbe(cold) {
             policyAcknowledgedVersion: 'v1.0.0',
           }));
           localStorage.setItem('rianellPerfBenchmark', JSON.stringify({
-            version: 4,
+            version: 5,
             platformType: 'desktop',
             tier: 4,
+            heuristic: true,
             ts: Date.now(),
+            gpu: { good: false, backend: 'none' },
           }));
         } catch (_) {}
         return;
@@ -164,7 +166,8 @@ async function postInitProbe(page) {
 
 function judgeBoot(result, label) {
   let ok = result.ok;
-  if (result.elapsedMs > cfg.passMs) {
+  const passMs = label === 'guest' ? (cfg.guestPassMs || cfg.passMs) : (cfg.warmPassMs || cfg.passMs);
+  if (result.elapsedMs > passMs) {
     ok = false;
     fail('SLOW_BOOT');
   }
