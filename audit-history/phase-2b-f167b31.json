@@ -1,0 +1,37 @@
+{
+  "ok": true,
+  "profile": "strict",
+  "ts": "2026-06-15T19:41:27.127Z",
+  "deploy": {
+    "appHash": "c89a29a8ea98",
+    "appScript": "app.c89a29a8ea98.min.js",
+    "benchVersion": "6"
+  },
+  "previousAppHash": null,
+  "warm": {
+    "ok": true,
+    "elapsedMs": 1620,
+    "clickedBenchmark": false,
+    "maxLong50": 1,
+    "script": "app.c89a29a8ea98.min.js"
+  },
+  "guest": {
+    "ok": true,
+    "elapsedMs": 1142,
+    "clickedBenchmark": false,
+    "maxLong50": 0,
+    "benchModal": false,
+    "script": "app.c89a29a8ea98.min.js",
+    "bench": "device-benchmark.js?v=6"
+  },
+  "postInit": {
+    "elapsedMs": 5028,
+    "evalTimeouts": 0
+  },
+  "security": {
+    "ok": true,
+    "profile": "strict",
+    "failed": []
+  },
+  "failureCodes": []
+}
