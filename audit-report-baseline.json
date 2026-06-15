@@ -1,0 +1,37 @@
+{
+  "ok": true,
+  "profile": "baseline",
+  "ts": "2026-06-15T17:22:31.145Z",
+  "deploy": {
+    "appHash": "97de231f1252",
+    "appScript": "app.97de231f1252.min.js",
+    "benchVersion": "none"
+  },
+  "previousAppHash": null,
+  "warm": {
+    "ok": true,
+    "elapsedMs": 4960,
+    "clickedBenchmark": false,
+    "maxLong50": 0,
+    "script": "app.97de231f1252.min.js"
+  },
+  "guest": {
+    "ok": true,
+    "elapsedMs": 2722,
+    "clickedBenchmark": true,
+    "maxLong50": 0,
+    "benchModal": false,
+    "script": "app.97de231f1252.min.js",
+    "bench": "device-benchmark.js"
+  },
+  "postInit": {
+    "elapsedMs": 5019,
+    "evalTimeouts": 0
+  },
+  "security": {
+    "ok": true,
+    "profile": "legacy",
+    "failed": []
+  },
+  "failureCodes": []
+}
