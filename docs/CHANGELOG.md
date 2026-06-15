@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.89.1** - Post-deploy hotfixes: privacy-gate boot i18n, shell locale hydration, CI OSV/supply-chain, artifact upload retry.
+**Latest: v1.89.2** - CI dependency caching, post-deploy Pages-site audit parity, cancel-on-gate-failure.
+
+### v1.89.2 - 2026-06-15 - CI caching, post-deploy audit, workflow efficiency
+- **CI caching:** Reusable actions `setup-node-ci`, `setup-python-ci`, `install-playwright-chromium`; npm (`package-lock.json`), pip (`requirements.txt` + `.github/ci-pip-extras.txt`), Playwright browsers, Gradle (Android APK), Gitleaks/OSV binaries — cache invalidates only when lockfiles or pinned tool versions change.
+- **Post-deploy audit:** `deploy-pages` uploads **`pages-site-probe`** (exact prepared `site/` tree sent to GitHub Pages); **`audit-boot-post-deploy`** downloads it on a separate runner, serves via `python -m server`, runs baseline boot audit locally (Cloudflare returns **403** to GHA on `rianell.com`).
+- **`prepare-pages-site`:** Shared composite action — copy minified prebuild → verify fingerprint → inject Supabase (deploy and audit parity).
+- **Cancel on failure:** Gate jobs call `cancel-workflow-on-failure` so Android/server/release jobs stop when unit tests, deploy, or boot audit fail (benchmark jobs still run).
+- **Boot audit:** Fix false **`DEPLOY_HTML_MISSING`** when `app.*.min.js` appears after `waitForSelector` timeout; mobile Jest **`lodash`** + **`expo-modules-core`** direct deps for workspace preset resolution.
 
 ### v1.89.1 - 2026-06-15 - Boot i18n, CI security, deploy reliability
 - **PWA boot (Phase 2b):** Privacy gate uses lightweight `refreshGateLocaleUI()` / `hydrateGate()` only — no full `refreshLocaleUI()` before `__rianellAppInitStarted` (fixes guest cold hang and raw `gate.hint` on rianell.com).
