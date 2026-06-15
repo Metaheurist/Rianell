@@ -1070,13 +1070,23 @@ jobs:
 
       - name: Verify live deploy HTML
         run: |
-          for i in 1 2 3 4 5 6; do
-            if curl -fsS "https://rianell.com/" | grep -q 'app\..*\.min\.js'; then
-              echo "rianell.com serves fingerprinted app bundle"
-              exit 0
-            fi
-            echo "Waiting for Pages HTML ($i/6)..."
-            sleep 15
+          set -euo pipefail
+          fetch_html() {
+            curl -fsSL \
+              -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rianell-CI/1.0" \
+              -H "Accept: text/html,application/xhtml+xml;q=0.9,*/*;q=0.8" \
+              -H "Accept-Language: en-GB,en;q=0.9" \
+              "$1"
+          }
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            for url in "https://rianell.com/" "https://metaheurist.github.io/Rianell/"; do
+              if fetch_html "$url" | grep -qE 'app\.[a-f0-9]+\.min\.js'; then
+                echo "Deploy HTML contains fingerprinted app bundle ($url)"
+                exit 0
+              fi
+            done
+            echo "Waiting for Pages HTML ($i/10)..."
+            sleep 20
           done
           echo "Deploy HTML missing app.<hash>.min.js" >&2
           exit 1
