@@ -1028,33 +1028,18 @@ jobs:
           name: minified-prebuild
           path: ci-minified
 
-      - name: Prepare site from minified temp artifact
-        run: |
-          rm -rf site
-          cp -r "ci-minified/site" site
-          node -e "
-          const fs = require('fs');
-          const m = JSON.parse(fs.readFileSync('site/asset-manifest.json', 'utf8'));
-          if (!m.mainJs || !fs.existsSync('site/' + m.mainJs)) process.exit(1);
-          "
-
-      - name: Inject Supabase config for GitHub Pages (from secrets)
+      - name: Prepare GitHub Pages site (minified bundle + Supabase)
+        uses: ./.github/actions/prepare-pages-site
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        run: |
-          node -e "
-          const fs = require('fs');
-          const path = 'site/supabase-config.js';
-          let c = fs.readFileSync(path, 'utf8');
-          const url = process.env.SUPABASE_URL || '';
-          const key = process.env.SUPABASE_ANON_KEY || '';
-          // JSON.stringify so keys/URLs with quotes or backslashes cannot break the JS file (fixes SyntaxError on line ~19)
-          // Match committed placeholders or real project values in REAL_SUPABASE_CONFIG
-          c = c.replace(/url:\s*['"][^'"]*['"]/, 'url: ' + JSON.stringify(url || 'https://YOUR_PROJECT_REF.supabase.co'));
-          c = c.replace(/anonKey:\s*['"][^'"]*['"]/, 'anonKey: ' + JSON.stringify(key || 'YOUR_SUPABASE_ANON_KEY'));
-          fs.writeFileSync(path, c);
-          "
+
+      - name: Upload prepared site for post-deploy audit
+        uses: actions/upload-artifact@v5
+        with:
+          name: pages-site-probe
+          path: site
+          retention-days: 1
 
       - name: Upload artifact (web app + App build as site root)
         uses: actions/upload-pages-artifact@v4
@@ -1072,10 +1057,10 @@ jobs:
         uses: ./.github/actions/cancel-workflow-on-failure
 
   # ---------------------------------------------------------------------------
-  # Post-deploy boot audit (artifact served locally — Cloudflare blocks GHA on rianell.com)
+  # Post-deploy boot audit — same site/ bytes as GitHub Pages, served on this runner
   # ---------------------------------------------------------------------------
   audit-boot-post-deploy:
-    name: Post-deploy boot audit (local artifact)
+    name: Post-deploy boot audit (Pages site)
     needs: [deploy-pages]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
@@ -1106,60 +1091,44 @@ jobs:
       - name: Install Python server dependencies
         run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
 
-      - name: Download minified site artifact
+      - name: Download deployed Pages site (same files as GitHub Pages)
         uses: actions/download-artifact@v5
         with:
-          name: minified-prebuild
-          path: ci-minified
+          name: pages-site-probe
+          path: site
 
-      - name: Verify deploy bundle in artifact
+      - name: Verify Pages site bundle
         run: |
           node -e "
           const fs = require('fs');
-          const root = 'ci-minified/site';
+          const root = 'site';
           const m = JSON.parse(fs.readFileSync(root + '/asset-manifest.json', 'utf8'));
           if (!/^app\\.[a-f0-9]+\\.min\\.js$/.test(m.mainJs)) throw new Error('asset-manifest mainJs not fingerprinted');
           if (!fs.existsSync(root + '/' + m.mainJs)) throw new Error('missing ' + m.mainJs);
-          console.log('Deploy bundle OK:', m.mainJs);
+          console.log('Probe site matches deploy:', m.mainJs);
           "
 
-      - name: Inject Supabase config into probe site
+      - name: Start probe server (Rianell HTTP — same site/ tree as GitHub Pages)
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        run: |
-          node -e "
-          const fs = require('fs');
-          const path = 'ci-minified/site/supabase-config.js';
-          let c = fs.readFileSync(path, 'utf8');
-          const url = process.env.SUPABASE_URL || '';
-          const key = process.env.SUPABASE_ANON_KEY || '';
-          c = c.replace(/url:\s*['\"][^'\"]*['\"]/, 'url: ' + JSON.stringify(url || 'https://YOUR_PROJECT_REF.supabase.co'));
-          c = c.replace(/anonKey:\s*['\"][^'\"]*['\"]/, 'anonKey: ' + JSON.stringify(key || 'YOUR_SUPABASE_ANON_KEY'));
-          fs.writeFileSync(path, c);
-          "
-
-      - name: Start local probe server (Rianell HTTP server; Cloudflare blocks GHA)
-        env:
-          RIANELL_WEB_DIR: ${{ github.workspace }}/ci-minified/site
+          RIANELL_WEB_DIR: ${{ github.workspace }}/site
           PORT: "9876"
           HOST: "127.0.0.1"
         run: |
           set -euo pipefail
-          MAIN_JS=$(node -pe "JSON.parse(require('fs').readFileSync('ci-minified/site/asset-manifest.json','utf8')).mainJs")
+          MAIN_JS=$(node -pe "JSON.parse(require('fs').readFileSync('site/asset-manifest.json','utf8')).mainJs")
           python -m server >/tmp/probe-server.log 2>&1 &
           for i in $(seq 1 20); do
             if curl -fsS "http://127.0.0.1:9876/${MAIN_JS}" -o /dev/null; then
-              echo "Local probe server ready (${MAIN_JS})"
+              echo "Pages probe server ready (${MAIN_JS})"
               exit 0
             fi
             sleep 2
           done
-          echo "Local probe server failed to start" >&2
+          echo "Pages probe server failed to start" >&2
           tail -n 40 /tmp/probe-server.log || true
           exit 1
 
-      - name: Boot audit (local deploy bundle; baseline — strict blocks benchmark modal)
+      - name: Boot audit (GitHub Pages site served locally)
         env:
           AUDIT_PROFILE: baseline
           PROBE_URL: http://127.0.0.1:9876/
@@ -1172,7 +1141,7 @@ jobs:
         continue-on-error: true
         run: node scripts/verify-deploy-html.mjs
 
-      - name: Benchmark security audit (local deploy bundle)
+      - name: Benchmark security audit (GitHub Pages site served locally)
         env:
           AUDIT_PROFILE: baseline
           PROBE_URL: http://127.0.0.1:9876/
