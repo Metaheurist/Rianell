@@ -43,14 +43,17 @@ function generate() {
   const schemaSql = readText('supabase/Schema.sql');
   const appJs = readText('apps/pwa-webapp/app.js');
   const cloudSync = readText('apps/pwa-webapp/cloud-sync.js');
+  const benchJs = readText('apps/pwa-webapp/device-benchmark.js');
 
   const cdnUrls = extractCdnUrls(indexHtml);
   const sriLines = (indexHtml.match(/integrity="[^"]+"/g) || []).length;
 
   const localStorageKeys = extractStorageKeys(
-    appJs + cloudSync,
+    appJs + cloudSync + benchJs,
     /localStorage\.(?:getItem|setItem|removeItem)\(['"]([^'"]+)['"]/g
   );
+  localStorageKeys.push('rianellPerfBenchmark');
+  const uniqueStorageKeys = [...new Set(localStorageKeys)].sort();
 
   const tables = [...schemaSql.matchAll(/CREATE TABLE public\.(\w+)/g)].map((m) => m[1]);
 
@@ -80,8 +83,8 @@ function generate() {
     '',
     '## Sensitive localStorage keys (sample)',
     '',
-    ...localStorageKeys.slice(0, 40).map((k) => `- \`${k}\``),
-    localStorageKeys.length > 40 ? `- … and ${localStorageKeys.length - 40} more` : '',
+    ...uniqueStorageKeys.slice(0, 40).map((k) => `- \`${k}\``),
+    uniqueStorageKeys.length > 40 ? `- … and ${uniqueStorageKeys.length - 40} more` : '',
     '',
     '## Supabase tables',
     '',
