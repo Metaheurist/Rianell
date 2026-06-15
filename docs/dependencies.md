@@ -36,7 +36,7 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `js-yaml` | 4.2.0 |
 | `sharp` | ^0.33.5 |
 
-**`overrides`** — 27 pin(s): `@babel/core`, `@expo/plist → @xmldom/xmldom`, `@istanbuljs/load-nyc-config → js-yaml`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
+**`overrides`** — 28 pin(s): `@babel/core`, `@expo/plist → @xmldom/xmldom`, `@istanbuljs/load-nyc-config → js-yaml`, `@rianell/benchmark-runner → lighthouse → @sentry/node`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
 
 **Workspaces:** `apps/*`, `packages/*`, `benchmarks`.
 
