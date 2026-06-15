@@ -56,6 +56,17 @@ Contact: **jan.andersson@rianell.com** for account deletion or access requests t
 
 ---
 
+## Device performance tier (local only)
+
+Rianell stores a small **`rianellPerfBenchmark`** entry in your browser’s local storage so the app can tune charts and AI preload for your device. It contains only:
+
+- Performance tier (1–5), desktop/mobile flag, timestamp, and optional GPU backend hint
+- No health logs, no network upload, no vendor/model fingerprint in the minimal schema
+
+This is **strictly necessary** for on-device performance tuning (not tracking). You can clear it via God mode → clear benchmark cache, or by clearing site data for rianell.com.
+
+---
+
 ## Read more (technical)
 
 - [Privacy program — global baseline](https://github.com/Metaheurist/Rianell/blob/main/docs/privacy/global-baseline.md)

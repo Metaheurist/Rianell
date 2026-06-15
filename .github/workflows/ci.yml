@@ -1031,11 +1031,41 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ---------------------------------------------------------------------------
+  # Post-deploy boot audit (strict profile against live rianell.com)
+  # ---------------------------------------------------------------------------
+  audit-boot-post-deploy:
+    name: Post-deploy boot audit (strict)
+    needs: [deploy-pages]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24.14.1"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait for Pages propagation
+        run: sleep 90
+
+      - name: Strict boot audit
+        env:
+          AUDIT_PROFILE: strict
+          PROBE_URL: https://rianell.com/
+        run: npm run audit:boot:strict
+
+  # ---------------------------------------------------------------------------
   # README beta table (push to main, web-only runs - mobile runs update README in commit-app-build)
   # ---------------------------------------------------------------------------
   readme-build-info:
     name: Update README beta build info
-    needs: [deploy-pages, paths-filter]
+    needs: [deploy-pages, paths-filter, audit-boot-post-deploy]
     if: |
       success() &&
       github.event_name == 'push' &&
