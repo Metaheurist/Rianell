@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-06-15T20:06:32.548Z",
+  "generatedAt": "2026-06-15T21:58:00.234Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3525729,
+    "jsBytes": 3528001,
     "cssBytes": 390947,
-    "jsGzipBytes": 672504,
+    "jsGzipBytes": 672762,
     "cssGzipBytes": 68934
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1179189,
-      "gzipBytes": 198335
+      "bytes": 1180593,
+      "gzipBytes": 198480
     },
     {
-      "file": "ci-minified/site/app.c89a29a8ea98.min.js",
-      "bytes": 815296,
-      "gzipBytes": 147513
+      "file": "ci-minified/site/app.a9c3c06e788c.min.js",
+      "bytes": 816164,
+      "gzipBytes": 147626
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
