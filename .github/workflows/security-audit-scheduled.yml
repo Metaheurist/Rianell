@@ -18,25 +18,31 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - name: Gitleaks (git history)
+
+      - name: Restore Gitleaks binary
+        id: gitleaks-cache
+        uses: actions/cache@v4
+        with:
+          path: gitleaks
+          key: gitleaks-8.28.0-${{ runner.os }}-x64
+
+      - name: Download Gitleaks
+        if: steps.gitleaks-cache.outputs.cache-hit != 'true'
         run: |
           set -euo pipefail
           VERSION=8.28.0
           curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" | tar -xz
           chmod +x gitleaks
-          ./gitleaks detect --source . --config .gitleaks.toml --verbose --redact || true
+
+      - name: Gitleaks (git history)
+        run: ./gitleaks detect --source . --config .gitleaks.toml --verbose --redact || true
 
   npm-audit-dev:
     name: npm audit (full tree, report only)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: "24.14.1"
-          cache: npm
-      - name: npm ci
-        run: npm ci
+      - uses: ./.github/actions/setup-node-ci
       - name: npm audit (dev included)
         continue-on-error: true
         run: npm audit --audit-level=moderate

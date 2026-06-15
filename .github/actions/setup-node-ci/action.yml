@@ -1,13 +1,29 @@
 name: Setup Node.js (cached)
-description: Node 24.14.1 with npm cache keyed on package-lock.json; optional npm ci.
+description: Node 24.14.1, npm store cache, optional node_modules cache, optional npm ci.
 inputs:
   install:
-    description: Run npm ci when true
+    description: Run npm ci when true (skipped on node_modules cache hit)
+    required: false
+    default: "true"
+  cache-node-modules:
+    description: Restore/save node_modules from lockfile hash
     required: false
     default: "true"
 runs:
   using: composite
   steps:
+    - name: Restore node_modules
+      if: inputs.cache-node-modules == 'true'
+      uses: actions/cache@v4
+      id: node-modules-cache
+      with:
+        path: |
+          node_modules
+          apps/rn-app/node_modules
+        key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          node-modules-${{ runner.os }}-
+
     - name: Setup Node.js
       uses: actions/setup-node@v5
       with:
@@ -16,6 +32,11 @@ runs:
         cache-dependency-path: package-lock.json
 
     - name: Install root dependencies
-      if: inputs.install == 'true'
+      if: inputs.install == 'true' && (inputs.cache-node-modules != 'true' || steps.node-modules-cache.outputs.cache-hit != 'true')
       shell: bash
       run: npm ci
+
+    - name: Verify node_modules (cache hit)
+      if: inputs.install == 'true' && inputs.cache-node-modules == 'true' && steps.node-modules-cache.outputs.cache-hit == 'true'
+      shell: bash
+      run: test -d node_modules || npm ci

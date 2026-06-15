@@ -1,0 +1,16 @@
+name: Cache Android SDK
+description: Restore NDK/platforms/build-tools after setup-android (keyed on RN lockfiles).
+runs:
+  using: composite
+  steps:
+    - name: Restore Android SDK cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          /usr/local/lib/android/sdk/ndk
+          /usr/local/lib/android/sdk/platforms
+          /usr/local/lib/android/sdk/build-tools
+          /usr/local/lib/android/sdk/platform-tools
+        key: android-sdk-${{ runner.os }}-api36-ndk27-${{ hashFiles('package-lock.json', 'apps/rn-app/package.json') }}
+        restore-keys: |
+          android-sdk-${{ runner.os }}-

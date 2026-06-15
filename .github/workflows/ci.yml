@@ -40,10 +40,13 @@ on:
 # All jobs that run npm/expo below pin Node 24.14.1 LTS via actions/setup-node (see node-version).
 #
 # Dependency caching (invalidates when lockfiles / versions change):
-#   npm        — package-lock.json via ./.github/actions/setup-node-ci
-#   pip        — requirements.txt + .github/ci-pip-extras.txt via setup-python-ci
-#   Playwright — playwright version in package-lock.json (~/.cache/ms-playwright)
-#   Gradle     — package-lock.json + apps/rn-app/package.json (~/.gradle/caches)
+#   npm        — package-lock.json + node_modules via ./.github/actions/setup-node-ci
+#   pip        — requirements.txt + ci-pip-*.txt via setup-python-ci
+#   Playwright — package-lock.json hash (~/.cache/ms-playwright)
+#   Expo/Metro — lockfiles (~/.expo, apps/rn-app/.expo)
+#   Gradle     — package-lock.json + apps/rn-app/package.json
+#   Android SDK— API 36 + NDK 27 paths under /usr/local/lib/android/sdk
+#   Gitleaks/OSV — pinned release versions
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
@@ -306,6 +309,8 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-node-ci
 
+      - uses: ./.github/actions/cache-expo
+
       - name: Typecheck + test Expo app
         run: |
           npm run typecheck:mobile
@@ -481,6 +486,11 @@ jobs:
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - uses: ./.github/actions/setup-node-ci
+        with:
+          install: "false"
+          cache-node-modules: "false"
+
       - name: Verify and sync wiki
         if: steps.wiki_changes.outputs.changed == 'true'
         env:
@@ -532,12 +542,16 @@ jobs:
 
       - uses: ./.github/actions/setup-node-ci
 
+      - uses: ./.github/actions/cache-expo
+
       # Do not enable Gradle dependency caching on setup-java — apps/rn-app/android is created by expo prebuild, so no wrapper exists at checkout.
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: "17"
+
+      - uses: ./.github/actions/cache-android-sdk
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -606,6 +620,8 @@ jobs:
 
       - uses: ./.github/actions/setup-node-ci
 
+      - uses: ./.github/actions/cache-expo
+
       - name: Generate native project (expo prebuild -> RN CLI)
         working-directory: apps/rn-app
         env:
@@ -663,6 +679,14 @@ jobs:
           cache-dependency-path: |
             requirements.txt
             .github/ci-pip-extras.txt
+            .github/ci-pip-audit-tools.txt
+
+      - name: Cache PyInstaller build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~\AppData\Local\pyinstaller
+          key: pyinstaller-${{ matrix.arch }}-${{ hashFiles('requirements.txt', '.github/ci-pip-extras.txt') }}
 
       - name: Install server dependencies
         shell: pwsh
@@ -794,10 +818,10 @@ jobs:
             echo '{"version":${{ github.run_number }},"file":"rianell-server-x64.exe"}' > "App build/Server/latest.json"
           fi
 
-      - name: Setup Node (README build-info script)
-        uses: actions/setup-node@v5
+      - uses: ./.github/actions/setup-node-ci
         with:
-          node-version: "24.14.1"
+          install: "false"
+          cache-node-modules: "false"
 
       - name: Write README beta build info
         env:
@@ -1131,9 +1155,10 @@ jobs:
           git fetch origin "${{ github.ref_name }}"
           git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
 
-      - uses: actions/setup-node@v5
+      - uses: ./.github/actions/setup-node-ci
         with:
-          node-version: "24.14.1"
+          install: "false"
+          cache-node-modules: "false"
 
       - name: Write README beta build info
         env:
@@ -1175,9 +1200,10 @@ jobs:
           git fetch origin "${{ github.ref_name }}"
           git checkout -B "${{ github.ref_name }}" "origin/${{ github.ref_name }}"
 
-      - uses: actions/setup-node@v5
+      - uses: ./.github/actions/setup-node-ci
         with:
-          node-version: "24.14.1"
+          install: "false"
+          cache-node-modules: "false"
 
       - name: Generate Markdown security reports
         env:

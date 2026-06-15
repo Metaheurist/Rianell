@@ -102,6 +102,12 @@ jobs:
           sarif_file: osv-npm.sarif
           category: osv-scanner
 
+      - name: Cache npx downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm/_npx
+          key: npx-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
       - name: Generate CycloneDX SBOM (artifact)
         continue-on-error: true
         run: |
@@ -125,11 +131,11 @@ jobs:
           snyk test --all-projects --severity-threshold=high || true
 
       - uses: ./.github/actions/setup-python-ci
+        with:
+          install-audit-tools: "true"
 
       - name: Vulnerability scan — pip-audit (requirements.txt)
-        run: |
-          python -m pip install pip-audit
-          pip-audit -r requirements.txt --desc on --ignore-vuln CVE-2026-4539
+        run: pip-audit -r requirements.txt --desc on --ignore-vuln CVE-2026-4539
 
       - name: Cancel workflow on failure
         if: failure()
