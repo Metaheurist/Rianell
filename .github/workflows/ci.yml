@@ -1051,6 +1051,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright Chromium (boot audit)
+        working-directory: benchmarks
+        run: npx playwright install chromium --with-deps
+
       - name: Wait for Pages propagation
         run: sleep 90
 
