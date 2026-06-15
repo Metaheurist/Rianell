@@ -61,9 +61,6 @@ jobs:
       - name: Vulnerability scan — npm audit (production deps)
         run: npm audit --audit-level=high --omit=dev
 
-      - name: Benchmark security audit
-        run: node scripts/audit-benchmark-security.mjs
-
       - name: Vulnerability scan — npm audit (dev, non-blocking)
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         continue-on-error: true

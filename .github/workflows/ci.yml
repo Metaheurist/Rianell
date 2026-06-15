@@ -1060,6 +1060,12 @@ jobs:
           PROBE_URL: https://rianell.com/
         run: npm run audit:boot:strict
 
+      - name: Benchmark security audit
+        env:
+          AUDIT_PROFILE: strict
+          PROBE_URL: https://rianell.com/
+        run: node scripts/audit-benchmark-security.mjs
+
   # ---------------------------------------------------------------------------
   # README beta table (push to main, web-only runs - mobile runs update README in commit-app-build)
   # ---------------------------------------------------------------------------
