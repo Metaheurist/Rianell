@@ -114,6 +114,9 @@ jobs:
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
     steps:
       - uses: actions/checkout@v5
         with:
@@ -186,6 +189,10 @@ jobs:
         if: steps.upload_minified.outcome == 'failure' && steps.upload_minified_retry.outcome != 'success'
         run: exit 1
 
+      - name: Cancel workflow on failure
+        if: failure()
+        uses: ./.github/actions/cancel-workflow-on-failure
+
   # ---------------------------------------------------------------------------
   # Unit tests (app functionality wiring checks)
   # ---------------------------------------------------------------------------
@@ -197,6 +204,9 @@ jobs:
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
     steps:
       - uses: actions/checkout@v5
       - name: Setup Node.js
@@ -236,6 +246,10 @@ jobs:
           node scripts/verify-csp-connect-src.mjs
           node scripts/verify-no-service-role-in-clients.mjs
           node scripts/verify-no-model-weights-in-git.mjs
+
+      - name: Cancel workflow on failure
+        if: failure()
+        uses: ./.github/actions/cancel-workflow-on-failure
 
   # ---------------------------------------------------------------------------
   # Benchmarks — web (parallel with unit-tests; needs minified site + Capacitor dist)
@@ -299,6 +313,9 @@ jobs:
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
     steps:
       - uses: actions/checkout@v5
       - name: Setup Node.js
@@ -338,6 +355,10 @@ jobs:
         with:
           name: expo-bundles
           path: apps/rn-app/dist-expo-prod/
+
+      - name: Cancel workflow on failure
+        if: failure()
+        uses: ./.github/actions/cancel-workflow-on-failure
 
   # ---------------------------------------------------------------------------
   # Benchmarks — Expo Hermes bundle stats (after expo export)
@@ -990,6 +1011,7 @@ jobs:
       contents: read
       pages: write
       id-token: write
+      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -1044,6 +1066,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Cancel workflow on failure
+        if: failure()
+        uses: ./.github/actions/cancel-workflow-on-failure
+
   # ---------------------------------------------------------------------------
   # Post-deploy boot audit (strict profile against live rianell.com)
   # ---------------------------------------------------------------------------
@@ -1052,6 +1078,9 @@ jobs:
     needs: [deploy-pages]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
     steps:
       - uses: actions/checkout@v5
 
@@ -1069,27 +1098,7 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       - name: Verify live deploy HTML
-        run: |
-          set -euo pipefail
-          fetch_html() {
-            curl -fsSL \
-              -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Rianell-CI/1.0" \
-              -H "Accept: text/html,application/xhtml+xml;q=0.9,*/*;q=0.8" \
-              -H "Accept-Language: en-GB,en;q=0.9" \
-              "$1"
-          }
-          for i in 1 2 3 4 5 6 7 8 9 10; do
-            for url in "https://rianell.com/" "https://metaheurist.github.io/Rianell/"; do
-              if fetch_html "$url" | grep -qE 'app\.[a-f0-9]+\.min\.js'; then
-                echo "Deploy HTML contains fingerprinted app bundle ($url)"
-                exit 0
-              fi
-            done
-            echo "Waiting for Pages HTML ($i/10)..."
-            sleep 20
-          done
-          echo "Deploy HTML missing app.<hash>.min.js" >&2
-          exit 1
+        run: node scripts/verify-deploy-html.mjs
 
       - name: Wait for Pages propagation
         run: sleep 30
@@ -1105,6 +1114,10 @@ jobs:
           AUDIT_PROFILE: strict
           PROBE_URL: https://rianell.com/
         run: node scripts/audit-benchmark-security.mjs
+
+      - name: Cancel workflow on failure
+        if: failure()
+        uses: ./.github/actions/cancel-workflow-on-failure
 
   # ---------------------------------------------------------------------------
   # README beta table (push to main, web-only runs - mobile runs update README in commit-app-build)

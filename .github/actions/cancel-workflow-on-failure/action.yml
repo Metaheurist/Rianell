@@ -1,0 +1,14 @@
+name: Cancel workflow on failure
+description: Cancel the workflow run when a gate job fails so sibling jobs do not burn CI minutes.
+runs:
+  using: composite
+  steps:
+    - uses: actions/github-script@v7
+      with:
+        script: |
+          core.info('Gate job failed — cancelling workflow run.');
+          await github.rest.actions.cancelWorkflowRun({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            run_id: context.runId,
+          });

@@ -19,6 +19,10 @@ jobs:
   security-audit:
     name: Secret scan & dependency audits
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: write
     steps:
       - uses: actions/checkout@v5
 
@@ -116,3 +120,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pip-audit
           pip-audit -r requirements.txt --desc on --ignore-vuln CVE-2026-4539
+
+      - name: Cancel workflow on failure
+        if: failure()
+        uses: ./.github/actions/cancel-workflow-on-failure
