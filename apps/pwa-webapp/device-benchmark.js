@@ -10,7 +10,7 @@
   'use strict';
 
   var CACHE_KEY = 'rianellPerfBenchmark';
-  var BENCHMARK_VERSION = 4;
+  var BENCHMARK_VERSION = 5;
   var MAX_TIER = 5;
   var DEFAULT_TOTAL_CAP_MS = 1200;
 
@@ -667,6 +667,30 @@
     return getPlatformType();
   }
 
+  function isNativeApp() {
+    try {
+      var cap = typeof window !== 'undefined' && window.Capacitor;
+      return !!(cap && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform());
+    } catch (e) { return false; }
+  }
+
+  function shouldUseHeuristicBoot() {
+    return typeof window !== 'undefined' && !isNativeApp();
+  }
+
+  function saveBenchmarkResultMinimal(obj) {
+    if (!obj || typeof obj !== 'object') return;
+    var gpu = obj.gpu || {};
+    saveBenchmarkResult({
+      version: BENCHMARK_VERSION,
+      platformType: obj.platformType,
+      tier: obj.tier,
+      heuristic: !!obj.heuristic,
+      ts: obj.ts != null ? obj.ts : Date.now(),
+      gpu: { good: !!gpu.good, backend: gpu.backend || 'none' }
+    });
+  }
+
   function saveBenchmarkResult(platformType, tier, details) {
     try {
       if (typeof localStorage === 'undefined' || !localStorage.setItem) return;
@@ -716,22 +740,31 @@
   }
 
   function runSuiteAsync(opts, onProgress, onDone) {
+    if (shouldUseHeuristicBoot() && !(opts && opts.forceFullSuite)) {
+      var pt = getPlatformType();
+      var ht = getTierFromHeuristic();
+      var quick = {
+        version: BENCHMARK_VERSION,
+        platformType: pt,
+        tier: ht,
+        heuristic: true,
+        ts: Date.now(),
+        gpu: { good: false, backend: 'none' }
+      };
+      saveBenchmarkResultMinimal(quick);
+      if (typeof onDone === 'function') onDone(quick);
+      return;
+    }
     var totalCapMs = (opts && opts.totalCapMs) ? opts.totalCapMs : DEFAULT_TOTAL_CAP_MS;
     var startAll = nowMs();
     var platformType = getPlatformType();
     var env = getEnvSnapshot(platformType);
 
-    // Quick CPU estimate to pick suite workloads.
+    // Quick CPU estimate to pick suite workloads (single pass — no 1.4M retry on fast PCs).
     var estimateIters = 280000;
     var est0 = nowMs();
     cpuArith(estimateIters);
     var estMs = nowMs() - est0;
-    if (estMs < 2) {
-      estimateIters = 1400000;
-      est0 = nowMs();
-      cpuArith(estimateIters);
-      estMs = nowMs() - est0;
-    }
     var estMsPer200k = msPer200kFromRun(estimateIters, estMs);
     var provisionalTier = msPer200kToTier(estMsPer200k);
     var workloads = computeSuiteWorkloads(provisionalTier);
@@ -926,9 +959,31 @@
       if (typeof onComplete === 'function') onComplete(cached.tier, cached.platformType, cached, { cached: true });
       return;
     }
+    if (shouldUseHeuristicBoot()) {
+      var platformType = getPlatformType();
+      var tier = getTierFromHeuristic();
+      var result = {
+        version: BENCHMARK_VERSION,
+        platformType: platformType,
+        tier: tier,
+        heuristic: true,
+        ts: Date.now(),
+        gpu: { good: false, backend: 'none' }
+      };
+      saveBenchmarkResultMinimal(result);
+      _lastTier = tier;
+      _lastPlatformType = platformType;
+      if (typeof onProgress === 'function') onProgress(100, { phase: 'heuristic', label: 'Device tier' });
+      if (typeof onComplete === 'function') onComplete(tier, platformType, result, { cached: true, heuristic: true });
+      runGpuBenchmarkAsync(function (gpu) {
+        result.gpu = gpu;
+        saveBenchmarkResultMinimal(result);
+      });
+      return;
+    }
     if (typeof console !== 'undefined' && console.log) console.log('[Benchmark] running suite (no cache)');
     if (typeof onProgress === 'function') onProgress(0, { phase: 'starting' });
-    runSuiteAsync({ totalCapMs: DEFAULT_TOTAL_CAP_MS }, onProgress, function (resultObj) {
+    runSuiteAsync({ totalCapMs: DEFAULT_TOTAL_CAP_MS, forceFullSuite: true }, onProgress, function (resultObj) {
       _lastTier = resultObj.tier;
       _lastPlatformType = resultObj.platformType;
       if (typeof onComplete === 'function') onComplete(resultObj.tier, resultObj.platformType, resultObj, { cached: false });
@@ -1020,6 +1075,8 @@
       isBenchmarkReady: isBenchmarkReady,
       runBenchmarkIfNeeded: runBenchmarkIfNeeded,
       saveBenchmarkResult: saveBenchmarkResult,
+      saveBenchmarkResultMinimal: saveBenchmarkResultMinimal,
+      shouldUseHeuristicBoot: shouldUseHeuristicBoot,
       clearBenchmarkCache: clearBenchmarkCache,
       getCachedResult: getCachedResult
     };

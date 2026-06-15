@@ -1,6 +1,6 @@
 /* Rianell PWA — versioned cache; user-triggered skipWaiting from app (Update modal). Bump CACHE_NAME when changing SW logic or forcing a full cache reset. */
 var CACHE_PREFIX = 'rianell-static-';
-var CACHE_NAME = CACHE_PREFIX + 'v2026-06-14-lc20-i18n';
+var CACHE_NAME = CACHE_PREFIX + 'v2026-06-14-boot-heuristic-v5';
 
 var OFFLINE_HTML =
   '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
