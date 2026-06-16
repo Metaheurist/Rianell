@@ -30,7 +30,7 @@
     "CPU arithmetic",
     "JSON parse/stringify",
     "DOM fragment build",
-    "Using saved result",
+    "Using saved result"
   ],
   "patterns": [
     "^Rianell launch error",
