@@ -117,6 +117,7 @@ jobs:
         with:
           name: sbom-cyclonedx
           path: sbom.cdx.json
+          retention-days: 1
 
       - name: Snyk SCA (optional, SNYK_TOKEN)
         continue-on-error: true

@@ -88,3 +88,9 @@ audit-report*.json
 scripts/.audit/*
 !scripts/.audit/i18n-allowlist.json
 !scripts/.audit/hardcoded-ui-baseline.json
+
+# CI binaries → GitHub Releases only; repo keeps manifest JSON under artifacts/
+artifacts/**/*.apk
+artifacts/**/*.exe
+artifacts/**/*.zip
+artifacts/**/dist-expo-prod/

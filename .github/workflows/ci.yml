@@ -198,6 +198,7 @@ jobs:
         with:
           name: minified-prebuild
           path: ci-minified/
+          retention-days: 1
 
       - name: Retry upload minified temp artifact (transient ECONNRESET)
         id: upload_minified_retry
@@ -206,6 +207,7 @@ jobs:
         with:
           name: minified-prebuild
           path: ci-minified/
+          retention-days: 1
 
       - name: Fail if artifact upload did not succeed
         if: steps.upload_minified.outcome == 'failure' && steps.upload_minified_retry.outcome != 'success'
@@ -264,6 +266,7 @@ jobs:
           path: |
             benchmarks/web-pwa
             benchmarks/github-pages
+          retention-days: 1
 
   deploy-pages:
     name: "2 · Deploy GitHub Pages"
@@ -364,6 +367,7 @@ jobs:
         with:
           name: expo-bundles
           path: apps/rn-app/dist-expo-prod/
+          retention-days: 1
 
       - name: Cancel workflow on failure
         if: failure()
@@ -478,6 +482,7 @@ jobs:
         with:
           name: server-exe-${{ matrix.arch }}
           path: artifacts/Server/
+          retention-days: 1
 
       - name: Artifact note (PR)
         if: github.event_name == 'pull_request'
@@ -611,6 +616,7 @@ jobs:
         with:
           name: benchmarks-expo
           path: benchmarks/expo-rn
+          retention-days: 1
 
   rncli-android-apk:
     name: "3 · Android APK (React Native CI)"
@@ -685,6 +691,7 @@ jobs:
         with:
           name: rncli-android-dist
           path: rncli-android-dist/
+          retention-days: 1
 
   rncli-ios-zip:
     name: "3 · iOS emulator Xcode project zip"
@@ -728,6 +735,7 @@ jobs:
         with:
           name: rncli-ios-dist
           path: rncli-ios-dist/
+          retention-days: 1
 
   audit-boot-post-deploy:
     name: "3 · Post-deploy boot audit (Pages site)"
@@ -980,7 +988,7 @@ jobs:
 
   publish-release:
     name: "4 · Publish GitHub Release"
-    needs: [paths-filter, expo-bundle-prod, server-exe, rncli-android-apk, rncli-ios-zip]
+    needs: [paths-filter, server-exe, rncli-android-apk]
     if: |
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       needs.paths-filter.outputs.mobile_release == 'true'
@@ -990,23 +998,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Download Expo bundles artifact
-        uses: actions/download-artifact@v5
-        with:
-          name: expo-bundles
-          path: gh-release/Expo/dist-expo-prod
-
       - name: Download RN CLI Android APK artifact
         uses: actions/download-artifact@v5
         with:
           name: rncli-android-dist
           path: gh-release/RNCLI-Android/
-
-      - name: Download RN CLI iOS emulator zip artifact
-        uses: actions/download-artifact@v5
-        with:
-          name: rncli-ios-dist
-          path: gh-release/RNCLI-iOS/
 
       - name: Download Server EXE binaries
         uses: actions/download-artifact@v5
@@ -1014,21 +1010,15 @@ jobs:
           pattern: server-exe-*
           path: gh-release/Server
 
-      - name: Prepare release assets (this run only)
+      - name: Prepare release assets (APK + EXE only)
         run: |
           set -e
           RUN="${{ github.run_number }}"
-          mkdir -p release-assets/Expo release-assets/RNCLI/Android release-assets/RNCLI/iOS release-assets/Server release-assets/Meta
-
-          cd gh-release/Expo
-          zip -r "../../release-assets/Expo/rianell-expo-bundles-${RUN}.zip" "dist-expo-prod"
-          cd ../..
+          mkdir -p release-assets/RNCLI/Android release-assets/Server
 
           if [ -d "gh-release/RNCLI-Android" ]; then
-            cp -v "gh-release/RNCLI-Android/"* "release-assets/RNCLI/Android/" || true
-          fi
-          if [ -d "gh-release/RNCLI-iOS" ]; then
-            cp -v "gh-release/RNCLI-iOS/"* "release-assets/RNCLI/iOS/" || true
+            cp -v gh-release/RNCLI-Android/*.apk release-assets/RNCLI/Android/ 2>/dev/null || true
+            cp -v gh-release/RNCLI-Android/latest.json release-assets/RNCLI/Android/ 2>/dev/null || true
           fi
 
           cp "gh-release/Server/server-exe-x64/rianell-server-x64.exe" "release-assets/Server/"
@@ -1038,7 +1028,6 @@ jobs:
           if [ -f "gh-release/Server/server-exe-x64/latest.json" ]; then
             cp "gh-release/Server/server-exe-x64/latest.json" "release-assets/Server/server-latest.json"
           fi
-          cp "docs/platform-parity.json" "release-assets/Meta/platform-parity.json"
           echo "Release files:"
           find release-assets -type f | sort
 
@@ -1053,38 +1042,26 @@ jobs:
             - Branch: `${{ github.ref_name }}`
             - Commit: `${{ github.sha }}`
 
-            ## Assets
+            ## Assets (APK + Windows EXE only)
 
-            ### Expo (React Native)
-            Directory: `release-assets/Expo/`
-            - `rianell-expo-bundles-${{ github.run_number }}.zip` (minified production JS bundles for iOS + Android)
-
-            ### React Native CLI (native release artifacts)
-            Directory: `release-assets/RNCLI/`
-            - `Android/` (APK + metadata)
-            - `iOS/` (iOS emulator Xcode project zip + metadata)
+            ### Android APK
+            Directory: `release-assets/RNCLI/Android/`
 
             ### Server (Windows EXE)
             Directory: `release-assets/Server/`
             - `rianell-server-x64.exe`
             - `rianell-server-x86.exe`
-            - `server-latest.json`, `latest-x64.json`, `latest-x86.json` (metadata)
-
-            ### Parity metadata
-            Directory: `release-assets/Meta/`
-            - `platform-parity.json` (machine-readable platform support matrix)
 
             ## Notes
-            - This release is generated automatically by CI.
-            - A workflow commit updates `artifacts/` on the branch so download links in the app/README stay current.
+            - Expo bundles and iOS zips stay in Actions artifacts (1-day retention) and are not attached to releases.
+            - `artifacts/*/latest.json` manifests on the branch point at this release.
           draft: false
           prerelease: false
           fail_on_unmatched_files: true
           files: |
-            release-assets/Expo/*
-            release-assets/RNCLI/**/*
-            release-assets/Server/*
-            release-assets/Meta/*
+            release-assets/RNCLI/Android/*
+            release-assets/Server/*.exe
+            release-assets/Server/*.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
