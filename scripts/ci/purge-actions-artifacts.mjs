@@ -35,11 +35,7 @@ function ghDelete(path) {
 const all = [];
 let page = 1;
 while (true) {
-  const batch = ghJson([
-    `repos/${REPO}/actions/artifacts`,
-    '-f', `per_page=100`,
-    '-f', `page=${page}`,
-  ]);
+  const batch = ghJson([`repos/${REPO}/actions/artifacts?per_page=100&page=${page}`]);
   const items = batch.artifacts || [];
   all.push(...items);
   if (items.length < 100) break;
