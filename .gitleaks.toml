@@ -25,6 +25,7 @@ paths = [
   '''^\.firecrawl/''',
   '''^artifacts/''',
   '''^scripts/lib/tier-a-exact-overrides\.mjs$''',
+  '''^packages/build-tools/src/tier-a-exact-overrides\.mjs$''',
   '''^i18n-packs/''',
   '''^apps/pwa-webapp/i18n-packs/''',
   '''^apps/rn-app/i18n-packs/''',
