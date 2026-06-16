@@ -203,7 +203,9 @@ Rianell/
 ├── benchmarks/             # @rianell/benchmark-runner — perf reports (CI + local), scripts, reporters
 ├── scripts/
 ├── docs/
+│   └── archive/            # deprecated config snapshots (Phase 23)
 ├── .github/workflows/
+├── audit-history/          # boot audit JSON (baseline.json tracked)
 ├── artifacts/              # CI artifacts + latest.json (download links)
 ├── server/                 # Python HTTP server (serves apps/pwa-webapp by default)
 ├── security/

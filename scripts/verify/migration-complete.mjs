@@ -25,6 +25,7 @@ run('verify:csp', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'ver
 run('verify:privacy-docs', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'verify:privacy-docs']);
 run('parity', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'parity']);
 run('typecheck', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'typecheck']);
+run('verify:root-hygiene', process.execPath, ['scripts/verify/migration-root-hygiene.mjs']);
 
 if (fs.existsSync(path.join(root, 'turbo.json'))) {
   run('turbo dry-run', process.platform === 'win32' ? 'npx.cmd' : 'npx', ['turbo', 'run', 'build', '--dry-run']);

@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.90.0",
+  "version": "1.90.1",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp and React Native app",
   "workspaces": [
     "apps/rn-app",
@@ -47,6 +47,8 @@
     "audit:boot:baseline": "node scripts/audit/audit-boot-full.mjs",
     "audit:boot:prepare": "npx playwright install chromium --with-deps",
     "audit:boot:strict": "node scripts/audit/audit-boot-full.mjs",
+    "audit:boot:save-baseline": "node -e \"require('fs').copyFileSync('audit-history/latest-boot-audit.json','audit-history/baseline.json')\"",
+    "verify:root-hygiene": "node scripts/verify/migration-root-hygiene.mjs",
     "wiki:verify": "node scripts/wiki/verify-wiki.mjs",
     "wiki:sync": "node scripts/wiki/sync-wiki.mjs",
     "wiki:sync:dry-run": "node scripts/wiki/sync-wiki.mjs --dry-run",
@@ -54,6 +56,7 @@
     "verify:migration:release": "node scripts/verify/migration-release.mjs",
     "verify:migration": "node scripts/verify/migration-complete.mjs",
     "migrate:deploy-observe": "node scripts/ci/migration-deploy-observe.mjs",
+    "migrate:root-hygiene-observe": "node scripts/ci/migration-root-hygiene-observe.mjs",
     "deploy:probe-live": "node scripts/ci/deploy-probe-loop.mjs",
     "deploy:probe-llm-live": "node scripts/ci/probe-llm-download-live.mjs",
     "deploy:hf-rollout-loop": "node scripts/ci/hf-rollout-deploy-loop.mjs",

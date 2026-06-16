@@ -7,7 +7,7 @@ const ciYml = fs.readFileSync(new URL('../../.github/workflows/ci.yml', import.m
 test('CI includes RN CLI native artifact jobs (no EXPO_TOKEN)', () => {
   assert.match(ciYml, /rncli-android-apk:/);
   assert.match(ciYml, /rncli-ios-zip:/);
-  assert.match(ciYml, /React Native CLI \(native release artifacts\)/);
+  assert.match(ciYml, /Android APK \(React Native CI\)/);
 
   // The whole point of these jobs is to avoid token-gated EAS cloud builds.
   // (Mentions in comments are fine; hard dependencies / secret reads are not.)
@@ -47,13 +47,11 @@ test('RN CLI Android collect step globs APK from repo root (not android/ cwd)', 
   );
 });
 
-test('publish-release depends on RN CLI artifacts', () => {
-  // Guard against accidental removal from the release pipeline.
-  assert.match(ciYml, /publish-release:\s*[\s\S]*needs:\s*\[[^\]]*rncli-android-apk[^\]]*rncli-ios-zip[^\]]*\]/m);
+test('publish-release depends on RN CLI Android artifact (APK + EXE only)', () => {
+  assert.match(ciYml, /publish-release:\s*[\s\S]*needs:\s*\[[^\]]*rncli-android-apk[^\]]*\]/m);
   assert.match(ciYml, /Download RN CLI Android APK artifact/);
-  assert.match(ciYml, /Download RN CLI iOS emulator zip artifact/);
   assert.match(ciYml, /release-assets\/RNCLI\/Android/);
-  assert.match(ciYml, /release-assets\/RNCLI\/iOS/);
+  assert.match(ciYml, /APK \+ EXE only/);
 });
 
 test('RN jobs source Supabase from shared SUPABASE_* secrets', () => {
