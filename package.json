@@ -59,6 +59,7 @@
     "deploy:hf-rollout-loop": "node scripts/ci/hf-rollout-deploy-loop.mjs",
     "ci:purge-artifacts": "node scripts/ci/purge-actions-artifacts.mjs",
     "ci:rerun-until-green": "node scripts/ci/ci-rerun-until-green.mjs",
+    "ci:audit-llm-live": "node scripts/ci/ci-rerun-until-green.mjs",
     "turbo:build": "npx turbo run build",
     "turbo:typecheck": "npx turbo run typecheck"
   },
