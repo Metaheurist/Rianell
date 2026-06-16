@@ -25,7 +25,7 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 | ID | Milestone | Target | Status | Evidence | Notes |
 |----|-----------|--------|--------|----------|-------|
 | P50-01 | Parity inventory green on all settings keys | 2026-06-20 | planned | `npm run parity:inventory:check` | Baseline v1.49.1 |
-| P50-02 | RN native ONNX LLM path spike (or documented defer) | 2026-06-27 | planned | `apps/rn-app/src/llm/llmNative.ts` | Linked to AI security |
+| P50-02 | RN native ONNX LLM path spike (or documented defer) | 2026-06-27 | **done** | `apps/rn-app/src/ai/llmNative.ts`, `apps/rn-app/src/ai/llmJs.ts`, `apps/rn-app/src/ai/llmRuntime.ts` | Dual runtime: Expo Go WASM + dev/prod ORT wrapper |
 | P50-03 | Notifications delivery semantics parity sign-off | 2026-07-04 | planned | [platform-parity.md](platform-parity.md) | Phase E close |
 | P50-04 | Charts prediction-overlay parity | 2026-07-11 | planned | RN Charts screen | Phase B |
 | P50-05 | View Logs virtualization final strategy | 2026-07-18 | planned | `LogsScreen.tsx` | Large-list perf |

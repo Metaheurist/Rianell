@@ -81,7 +81,7 @@ Required for cloud sync testing and LLM model hosting:
 
 1. Apply [`supabase/Schema.sql`](https://github.com/Metaheurist/Rianell/blob/main/supabase/Schema.sql).
 2. PWA client config: `apps/pwa-webapp/supabase-config.js` (placeholders locally; CI injects on deploy).
-3. LLM weights: `npm run models:download` then `npm run models:upload:supabase` (operator; server-only credentials in the `security/` folder only).
+3. LLM weights (optional dev mirror): `npm run models:download` (HF-only runtime; do not upload to Supabase).
 
 ---
 

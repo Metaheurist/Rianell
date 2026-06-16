@@ -321,7 +321,7 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 
 - **`.gitignore`:** Ignore **`apps/pwa-webapp/models/**`** except **`manifest.json`** and **`README.md`**.
 - **CI:** **`verify-no-model-weights-in-git.mjs`** fails if any weight/chunk/onnx path is tracked; site prep strips local **`onnx-community/`** mirrors from deploy copies.
-- **Download script:** Removed stale Git LFS commit hint; points to **`models:upload:supabase -- --purge-local`**.
+- **Download script:** Removed stale Git LFS commit hint; Supabase upload is now deprecated (HF-only runtime).
 
 **Latest: v1.53.2** - RN Metro locale-pack bundling fix.
 
@@ -358,7 +358,7 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 #### On-device LLM — Supabase Storage (chunked)
 
 - **Hosting:** ONNX weights served from public Supabase bucket **`llm-models`** (~3.5 GB total). Free-tier **50 MB/object** limit handled by **47 MB `.partNNN` chunks**; clients reassemble into on-device cache.
-- **Upload:** `npm run models:upload:supabase` (reads `security/.env`; `--purge-local` removes local weights after upload). Skips already-uploaded parts via remote HEAD checks.
+- **Upload:** Deprecated (HF-only runtime; Supabase model hosting removed).
 - **Manifest v2:** `apps/pwa-webapp/models/manifest.json` lists logical paths + chunk metadata; **weights gitignored** (only manifest + README committed).
 - **PWA:** `model-chunk-loader.js` downloads chunks, merges to Cache API, hooks Transformers.js `env.fetch`; host priority **Supabase → same-origin → Hugging Face**.
 - **RN:** `llmNative.ts` downloads chunks via `expo-file-system` `File.write({ append })` into `documentDirectory/rianell-models/`.
@@ -387,7 +387,7 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 - **`supabase-config.js`:** Placeholders only (`YOUR_PROJECT_REF`); CI injects GitHub secrets on Pages deploy (regex matches committed or placeholder values).
 - **`verify-no-service-role-in-clients.mjs`:** Fails on tracked `sb_secret_*`, Postgres URLs with passwords, hardcoded publishable keys/URLs in config.
 - **`.gitignore`:** `apps/pwa-webapp/models/**/onnx*` and weight mirrors excluded; **Git LFS rules removed** (`.gitattributes` cleared).
-- **Never commit:** `security/.env` service role key; use only for `models:upload:supabase`.
+- **Never commit:** `security/.env` service role key.
 
 ### Unreleased / v1.52.0 - Region, policy & UI localization (merged into v1.53.0 above)
 

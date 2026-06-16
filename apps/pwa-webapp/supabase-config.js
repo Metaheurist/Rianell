@@ -9,9 +9,7 @@
   try {
     var REAL_SUPABASE_CONFIG = {
       url: 'https://YOUR_PROJECT_REF.supabase.co',
-      anonKey: 'YOUR_SUPABASE_ANON_KEY',
-      /** Public Storage bucket for ONNX weights (see supabase/Schema.sql). */
-      modelsStorageBucket: 'llm-models'
+      anonKey: 'YOUR_SUPABASE_ANON_KEY'
     };
 
     var SUPABASE_CONFIG = REAL_SUPABASE_CONFIG;
@@ -41,8 +39,7 @@
                 if (status.interception_enabled) {
                   SUPABASE_CONFIG = {
                     url: status.local_url,
-                    anonKey: "local-test-key",
-                    modelsStorageBucket: REAL_SUPABASE_CONFIG.modelsStorageBucket
+                    anonKey: "local-test-key"
                   };
                   console.log("Using local Supabase interception (test database)");
                   console.log("  Database: " + (status.database_path || ""));
@@ -67,7 +64,7 @@
     }
   } catch (e) {
     console.warn("Supabase config failed to load:", e.message || e);
-    var safe = { url: "", anonKey: "", modelsStorageBucket: "llm-models" };
+    var safe = { url: "", anonKey: "" };
     if (typeof window !== "undefined") {
       window.SUPABASE_CONFIG = safe;
       window.__rianellSupabaseConfigPromise = Promise.resolve();

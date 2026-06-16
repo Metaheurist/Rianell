@@ -2,7 +2,7 @@
 // DEVICE BENCHMARK
 // Platform type (mobile/desktop), CPU benchmark → tier 1–5, expansive profile tables.
 // Oriented around device performance and on-device AI runnability: each profile has
-// llmModelSize ('tier1'..'tier5') - tier1-2 SmolLM2-360M, tier3-5 Llama-3.2-1B (on-device chat models).
+// llmModelSize ('tier1'..'tier5') maps to tier 1–2 (small package) or tier 3–5 (large package).
 // Load after device-module.js, before performance-utils.js. Cache in localStorage.
 // ============================================
 

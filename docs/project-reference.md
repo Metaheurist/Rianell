@@ -133,8 +133,8 @@
 
 ### v1.53.0 documentation sync (LLM scripts + gitignore)
 
-- **Model scripts (repo root):** `models:download`, `models:upload:supabase`, `models:verify` — see [testing-and-configuration.md](testing-and-configuration.md).
-- **Gitignore:** `apps/pwa-webapp/models/**/onnx*` excluded; weights live on Supabase Storage only.
+- **Model scripts (repo root):** `models:download`, `models:verify` — see [testing-and-configuration.md](testing-and-configuration.md).
+- **Gitignore:** `apps/pwa-webapp/models/**/onnx*` excluded; weights are HF-only and must never be committed.
 
 ### v1.46.28 documentation sync (PWA content-hashed bundles)
 

@@ -1,9 +1,25 @@
 export const LLM_MODEL_SMALL = 'SmolLM2-360M-Instruct';
 export const LLM_MODEL_BASE = 'Llama-3.2-1B-Instruct';
 
-/** Transformers.js / self-hosted path ids (under /models/{id}/resolve/…). */
-export const LLM_MODEL_SMALL_ID = 'onnx-community/SmolLM2-360M-Instruct';
-export const LLM_MODEL_BASE_ID = 'onnx-community/Llama-3.2-1B-Instruct';
+/** Canonical Hugging Face repo ids (onnx-community *-ONNX mirrors). */
+export const LLM_MODEL_SMALL_ID = 'onnx-community/SmolLM2-360M-Instruct-ONNX';
+export const LLM_MODEL_BASE_ID = 'onnx-community/Llama-3.2-1B-Instruct-ONNX';
+
+export const HF_REMOTE_HOST = 'https://huggingface.co/';
+export const HF_REMOTE_PATH_TEMPLATE = '{model}/resolve/{revision}/';
+
+export function buildHuggingFaceModelFileUrl(modelId, revision, filePath) {
+  const base = HF_REMOTE_HOST.replace(/\/?$/, '/');
+  const rev = revision || 'main';
+  const p = String(filePath || '').replace(/^\/+/, '');
+  return `${base}${modelId}/resolve/${rev}/${p}`;
+}
+
+export function resolveHfModelId(manifestEntry) {
+  if (!manifestEntry) return '';
+  if (typeof manifestEntry === 'string') return manifestEntry;
+  return manifestEntry.sourceRepo || manifestEntry.id || '';
+}
 
 export function modelIdFromTier(tier) {
   if (tier === 'tier1' || tier === 'tier2') return LLM_MODEL_SMALL_ID;
@@ -18,7 +34,7 @@ export function buildSelfHostedModelFileUrl(baseUrl, modelId, revision, file) {
   return `${base}models/${modelId}/resolve/${rev}/${path}`;
 }
 
-/** Public Supabase Storage base for mirrored /models/… tree (bucket must be public-read). */
+/** Public Supabase Storage base for mirrored /models/… tree (legacy upload script only). */
 export function buildSupabaseModelsPublicBase(supabaseProjectUrl, bucketName) {
   const url = String(supabaseProjectUrl || '').replace(/\/$/, '');
   const bucket = String(bucketName || '').trim();
@@ -30,26 +46,20 @@ export const DEFAULT_MODELS_STORAGE_BUCKET = 'llm-models';
 
 export const MODELS_REMOTE_PATH_TEMPLATE = 'models/{model}/resolve/{revision}/';
 
-/** Resolve remoteHost + pathTemplate for Transformers.js (Supabase > caller-supplied > Hugging Face). */
-export function resolveModelsRemoteHost(options) {
-  options = options || {};
-  const supabaseBase = buildSupabaseModelsPublicBase(
-    options.supabaseUrl,
-    options.modelsStorageBucket || DEFAULT_MODELS_STORAGE_BUCKET
-  );
-  if (options.preferSupabase !== false && supabaseBase) {
-    return { remoteHost: supabaseBase, remotePathTemplate: MODELS_REMOTE_PATH_TEMPLATE, source: 'supabase' };
-  }
-  if (options.appOriginBase) {
-    return {
-      remoteHost: options.appOriginBase,
-      remotePathTemplate: MODELS_REMOTE_PATH_TEMPLATE,
-      source: 'app-origin',
-    };
+/** Resolve remoteHost + pathTemplate for Transformers.js — HF Hub only at runtime. */
+export function resolveModelsRemoteHost(options = {}) {
+  if (options.preferSupabase === true && options.supabaseUrl) {
+    const supabaseBase = buildSupabaseModelsPublicBase(
+      options.supabaseUrl,
+      options.modelsStorageBucket || DEFAULT_MODELS_STORAGE_BUCKET
+    );
+    if (supabaseBase) {
+      return { remoteHost: supabaseBase, remotePathTemplate: MODELS_REMOTE_PATH_TEMPLATE, source: 'supabase' };
+    }
   }
   return {
-    remoteHost: 'https://huggingface.co/',
-    remotePathTemplate: '{model}/resolve/{revision}/',
+    remoteHost: HF_REMOTE_HOST,
+    remotePathTemplate: HF_REMOTE_PATH_TEMPLATE,
     source: 'huggingface',
   };
 }
@@ -58,6 +68,8 @@ export function buildModelsManifestUrl(baseUrl) {
   const base = String(baseUrl || '/').replace(/\/?$/, '/');
   return `${base}models/manifest.json`;
 }
+
+export const MANIFEST_CATALOG_URL = 'https://rianell.com/models/manifest.json';
 
 export {
   DEFAULT_CHUNK_BYTE_LIMIT,

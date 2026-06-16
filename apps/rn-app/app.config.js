@@ -50,10 +50,6 @@ module.exports = {
       supabaseAnonKey,
       llmEndpoint,
       modelsBaseUrl,
-      modelsStorageBucket: firstNonEmpty(
-        process.env.EXPO_PUBLIC_MODELS_SUPABASE_BUCKET,
-        'llm-models'
-      ),
     },
   },
 };

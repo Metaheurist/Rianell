@@ -4,15 +4,14 @@
 
 ### v1.70.2 documentation sync (summary LLM model host)
 
-- **PWA `summary-llm.js`:** Probes `models/manifest.json` with GET on Supabase Storage or same-origin before Hugging Face fallback.
-- **Chunk assembly:** `ensureChunkedModelArtifacts` runs only when `resolveModelsRemote` returns `supabase` or `app-origin` (not `huggingface`).
-- **Deploy:** Placeholder `SUPABASE_CONFIG.url` (`YOUR_PROJECT`) logs a console warning and skips Supabase host.
+- **PWA `summary-llm.js`:** Uses Hugging Face Hub only (onnx-community `*-ONNX` repos).
+- **Chunk assembly:** Supabase chunk paths are legacy only; HF serves full ONNX files.
+- **Deploy:** `SUPABASE_CONFIG` is auth/sync only (no model bucket).
 
 ### v1.53.0 documentation sync (Supabase LLM hosting)
 
-- **On-device LLM weights** are served from **Supabase Storage** (`llm-models` bucket) as **47 MB chunks** reassembled client-side. PWA: `model-chunk-loader.js` + Transformers.js fetch shim; RN: `llmNative.ts` + `expo-file-system` append merge.
-- **Operator flow:** `npm run models:download` → `npm run models:upload:supabase -- --purge-local`. Credentials in **`security/.env`** only (service role never in client).
-- See **`apps/pwa-webapp/models/README.md`**, [ai-security.md](ai-security.md), and [CHANGELOG.md](CHANGELOG.md) v1.53.0.
+- **Deprecated:** Supabase Storage hosting of ONNX weights has been removed in favor of Hugging Face Hub only.
+- See **`apps/pwa-webapp/models/README.md`** for the current HF-only model download contract.
 
 ### B2 locale contract (LLM prompts)
 

@@ -10,6 +10,7 @@ import type { AiSummary } from './analyzeLogs';
 import { AIEngine } from './engine';
 import type { LogEntry } from '../storage/logs';
 import { resolveLlmModelSize } from '../performance/benchmark';
+import { isOnDeviceLlmReady, runOnDeviceChat } from './llmNative';
 
 type LlmFeature = 'summary' | 'suggestNote' | 'motd' | 'homeQuestion';
 
@@ -74,12 +75,29 @@ async function generateWithFallback(
   benchmark: BenchmarkResult | null,
   context: string,
   locale: string,
-  fallback: () => string
+  fallback: () => string,
+  prefs?: { uiLocale?: string; performance: { preferredLlmModelSize: PreferredLlmModelSize } } | null
 ): Promise<string> {
   const cacheKey = `${feature}:${locale}:${key}`;
   const hit = cache.get(cacheKey);
   if (hit) return hit;
   const modelSize = resolveLlmModelSize(preferredModel, benchmark);
+  if (prefs) {
+    try {
+      if (await isOnDeviceLlmReady(prefs as any)) {
+        const onDevice = await runOnDeviceChat(prefs as any, feature, context, locale);
+        if (onDevice) {
+          const clean = sanitizeOneLine(onDevice);
+          if (clean) {
+            cache.set(cacheKey, clean);
+            return clean;
+          }
+        }
+      }
+    } catch {
+      // fall through
+    }
+  }
   try {
     const remote = await callRemoteLlm(feature, modelSize, context, locale);
     if (remote) {
@@ -98,7 +116,8 @@ export async function generateSummaryNote(
   summary: AiSummary,
   preferredModel: PreferredLlmModelSize,
   benchmark: BenchmarkResult | null,
-  locale: string
+  locale: string,
+  prefs?: any
 ): Promise<string> {
   const context = JSON.stringify({
     range: summary.rangeLabel,
@@ -117,7 +136,8 @@ export async function generateSummaryNote(
     benchmark,
     context,
     locale,
-    () => AIEngine.generateAnalysisNote(summary)
+    () => AIEngine.generateAnalysisNote(summary),
+    prefs || null
   );
 }
 
@@ -125,7 +145,8 @@ export async function suggestLogNote(
   entry: Partial<LogEntry>,
   preferredModel: PreferredLlmModelSize,
   benchmark: BenchmarkResult | null,
-  locale: string
+  locale: string,
+  prefs?: any
 ): Promise<string> {
   const context = JSON.stringify({
     flare: entry.flare,
@@ -143,7 +164,8 @@ export async function suggestLogNote(
     benchmark,
     context,
     locale,
-    () => AIEngine.suggestLogNote(entry)
+    () => AIEngine.suggestLogNote(entry),
+    prefs || null
   );
 }
 
@@ -159,7 +181,8 @@ export async function generateMotd(
   preferredModel: PreferredLlmModelSize,
   benchmark: BenchmarkResult | null,
   recentLogs: number,
-  locale: string
+  locale: string,
+  prefs?: any
 ): Promise<string> {
   const context = JSON.stringify({ recentLogs, intent: 'simple healthy lifestyle quote for health tracker' });
   return generateWithFallback(
@@ -169,7 +192,8 @@ export async function generateMotd(
     benchmark,
     context,
     locale,
-    () => MOTD_FALLBACK[Math.floor(Math.random() * MOTD_FALLBACK.length)] ?? MOTD_FALLBACK[0]
+    () => MOTD_FALLBACK[Math.floor(Math.random() * MOTD_FALLBACK.length)] ?? MOTD_FALLBACK[0],
+    prefs || null
   );
 }
 
@@ -196,7 +220,8 @@ export async function answerHomeQuestion(
   logs: LogEntry[],
   preferredModel: PreferredLlmModelSize,
   benchmark: BenchmarkResult | null,
-  locale: string
+  locale: string,
+  prefs?: any
 ): Promise<string> {
   const context = (
     buildHomeQuestionContext as (args: {
@@ -221,7 +246,8 @@ export async function answerHomeQuestion(
     benchmark,
     context,
     locale,
-    () => fallback
+    () => fallback,
+    prefs || null
   );
 }
 

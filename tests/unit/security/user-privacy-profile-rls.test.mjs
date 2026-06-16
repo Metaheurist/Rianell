@@ -19,9 +19,8 @@ test('Schema grants authenticated CRUD on user_privacy_profile', () => {
   assert.match(sql, /REVOKE ALL ON public\.user_privacy_profile FROM anon/);
 });
 
-test('Schema.sql defines public llm-models storage bucket without list policy', () => {
+test('Schema.sql does not require llm-models storage bucket (HF-only weights)', () => {
   const sql = readFileSync('supabase/Schema.sql', 'utf8');
-  assert.match(sql, /INSERT INTO storage\.buckets/);
-  assert.match(sql, /'llm-models'/);
-  assert.doesNotMatch(sql, /CREATE POLICY "Public read llm-models"/);
+  assert.doesNotMatch(sql, /INSERT INTO storage\.buckets/);
+  assert.doesNotMatch(sql, /'llm-models'/);
 });

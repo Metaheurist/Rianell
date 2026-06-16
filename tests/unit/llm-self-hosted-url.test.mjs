@@ -8,7 +8,7 @@ import {
 
 test('modelIdFromTier returns full onnx-community ids', () => {
   assert.equal(modelIdFromTier('tier1'), LLM_MODEL_SMALL_ID);
-  assert.equal(modelIdFromTier('tier3'), 'onnx-community/Llama-3.2-1B-Instruct');
+  assert.equal(modelIdFromTier('tier3'), 'onnx-community/Llama-3.2-1B-Instruct-ONNX');
 });
 
 test('buildSelfHostedModelFileUrl matches PWA /models/ layout', () => {
@@ -20,7 +20,7 @@ test('buildSelfHostedModelFileUrl matches PWA /models/ layout', () => {
   );
   assert.equal(
     url,
-    'https://example.github.io/Health-app/models/onnx-community/SmolLM2-360M-Instruct/resolve/main/config.json'
+    'https://example.github.io/Health-app/models/onnx-community/SmolLM2-360M-Instruct-ONNX/resolve/main/config.json'
   );
 });
 
@@ -31,6 +31,6 @@ test('buildSupabaseModelsPublicBase matches Storage public URL layout', async ()
   const file = buildSelfHostedModelFileUrl(base, LLM_MODEL_SMALL_ID, 'main', 'config.json');
   assert.equal(
     file,
-    'https://abc.supabase.co/storage/v1/object/public/llm-models/models/onnx-community/SmolLM2-360M-Instruct/resolve/main/config.json'
+    'https://abc.supabase.co/storage/v1/object/public/llm-models/models/onnx-community/SmolLM2-360M-Instruct-ONNX/resolve/main/config.json'
   );
 });

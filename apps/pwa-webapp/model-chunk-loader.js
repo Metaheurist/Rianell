@@ -69,7 +69,7 @@
       var chunkPath = entry.chunks[i];
       var chunkUrl = buildModelFileUrl(baseUrl, modelId, revision, chunkPath);
       if (typeof onProgress === 'function') {
-        onProgress({ file: entry.path, chunk: i + 1, chunks: entry.chunks.length });
+        onProgress({ part: i + 1, parts: entry.chunks.length });
       }
       var res = await fetch(chunkUrl, { cache: 'no-store' });
       if (!res.ok) {

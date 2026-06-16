@@ -1,6 +1,6 @@
 /**
  * In-browser LLM for AI summary note, suggest note, and dashboard MOTD (Transformers.js).
- * Chat models: Llama-3.2-1B-Instruct (tier 3–5) / SmolLM2-360M-Instruct (tier 1–2).
+ * Tier 1–2 and tier 3–5 on-device packages (internal HF ids are not shown in UI).
  */
 (function () {
   'use strict';
@@ -27,15 +27,15 @@
   var TIMEOUT_HOME_QUESTION_MS = 35000;
   var MAX_MOTD_CHARS = 160;
 
-  var MODEL_SMALL = 'onnx-community/SmolLM2-360M-Instruct';
-  var MODEL_BASE = 'onnx-community/Llama-3.2-1B-Instruct';
+  var MODEL_SMALL = 'onnx-community/SmolLM2-360M-Instruct-ONNX';
+  var MODEL_BASE = 'onnx-community/Llama-3.2-1B-Instruct-ONNX';
 
   var LLM_TIER_MODELS = {
-    tier1: { id: MODEL_SMALL, link: 'https://huggingface.co/onnx-community/SmolLM2-360M-Instruct', label: 'SmolLM2 360M', size: '~200 MB' },
-    tier2: { id: MODEL_SMALL, link: 'https://huggingface.co/onnx-community/SmolLM2-360M-Instruct', label: 'SmolLM2 360M', size: '~200 MB' },
-    tier3: { id: MODEL_BASE, link: 'https://huggingface.co/onnx-community/Llama-3.2-1B-Instruct', label: 'Llama 3.2 1B', size: '~670 MB' },
-    tier4: { id: MODEL_BASE, link: 'https://huggingface.co/onnx-community/Llama-3.2-1B-Instruct', label: 'Llama 3.2 1B', size: '~670 MB' },
-    tier5: { id: MODEL_BASE, link: 'https://huggingface.co/onnx-community/Llama-3.2-1B-Instruct', label: 'Llama 3.2 1B', size: '~670 MB' }
+    tier1: { id: MODEL_SMALL, size: '~200 MB', approxBytes: 209715200 },
+    tier2: { id: MODEL_SMALL, size: '~200 MB', approxBytes: 209715200 },
+    tier3: { id: MODEL_BASE, size: '~670 MB', approxBytes: 702545920 },
+    tier4: { id: MODEL_BASE, size: '~670 MB', approxBytes: 702545920 },
+    tier5: { id: MODEL_BASE, size: '~670 MB', approxBytes: 702545920 }
   };
 
   var promptPackByLocale = {};
@@ -120,9 +120,60 @@
     return MODEL_BASE;
   }
 
+  function resolvePreferredTierKey() {
+    var prefs = typeof window !== 'undefined' && window.appSettings;
+    var preferred = prefs && prefs.preferredLlmModelSize;
+    if (preferred && preferred !== 'recommended' && /^tier[1-5]$/.test(preferred)) {
+      return preferred;
+    }
+    if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
+      var platformType = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function')
+        ? window.DeviceBenchmark.getPlatformTypeCached()
+        : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
+      var tier = window.DeviceBenchmark.getPerformanceTier();
+      var full = window.DeviceBenchmark.getFullProfile(platformType, tier, {});
+      if (full && full.llmModelSize && /^tier[1-5]$/.test(full.llmModelSize)) {
+        return full.llmModelSize;
+      }
+    }
+    var deviceClass = getDeviceClassForModel();
+    return deviceClass === 'low' ? 'tier1' : 'tier5';
+  }
+
+  function tierKeyToDisplay(tierKey) {
+    var key = tierKey && /^tier[1-5]$/.test(tierKey) ? tierKey : 'tier3';
+    var tierMeta = LLM_TIER_MODELS[key] || LLM_TIER_MODELS.tier3;
+    var tierNum = key.replace('tier', '');
+    return {
+      tierKey: key,
+      tier: tierNum,
+      tierLabel: 'Tier ' + tierNum,
+      size: tierMeta.size,
+      approxBytes: tierMeta.approxBytes
+    };
+  }
+
+  function getResolvedLlmTierInfo() {
+    return tierKeyToDisplay(resolvePreferredTierKey());
+  }
+
   function getModelDisplayInfo(modelId) {
-    if (modelId === MODEL_SMALL) return { label: 'SmolLM2 360M', size: '~200 MB' };
-    return { label: 'Llama 3.2 1B', size: '~670 MB' };
+    var tierInfo = getResolvedLlmTierInfo();
+    if (modelId === MODEL_SMALL && (tierInfo.tier === '3' || tierInfo.tier === '4' || tierInfo.tier === '5')) {
+      return tierKeyToDisplay('tier2');
+    }
+    if (modelId === MODEL_BASE && (tierInfo.tier === '1' || tierInfo.tier === '2')) {
+      return tierKeyToDisplay('tier3');
+    }
+    return tierInfo;
+  }
+
+  function sanitizeDownloadFileLabel(file) {
+    if (!file) return '';
+    var text = String(file);
+    var partMatch = text.match(/part\s+(\d+)\s*\/\s*(\d+)/i);
+    if (partMatch) return 'model parts ' + partMatch[1] + '/' + partMatch[2];
+    return 'model parts';
   }
 
   function getDeviceClassForModel() {
@@ -176,18 +227,6 @@
     return getDownloadConsent() !== 'granted';
   }
 
-  var selfHostedProbeCache = {};
-
-  async function waitForSupabaseConfigReady() {
-    if (typeof window === 'undefined') return;
-    var p = window.__rianellSupabaseConfigPromise;
-    if (p && typeof p.then === 'function') {
-      try {
-        await p;
-      } catch (e) {}
-    }
-  }
-
   /** GitHub Pages project sites live at /RepoName/ — include that in model URLs. */
   function getAppOriginBase() {
     if (typeof window === 'undefined' || !window.location) return '/';
@@ -203,22 +242,6 @@
     return origin + base + '/';
   }
 
-  function getSupabaseModelsConfig() {
-    var cfg = typeof window !== 'undefined' && window.SUPABASE_CONFIG;
-    if (!cfg || !cfg.url || String(cfg.url).indexOf('YOUR_PROJECT') !== -1) return null;
-    return {
-      supabaseUrl: cfg.url,
-      modelsStorageBucket: cfg.modelsStorageBucket || 'llm-models'
-    };
-  }
-
-  function buildSupabaseModelsPublicBase(supabaseUrl, bucket) {
-    var url = String(supabaseUrl || '').replace(/\/$/, '');
-    var b = String(bucket || '').trim();
-    if (!url || !b) return '';
-    return url + '/storage/v1/object/public/' + b + '/';
-  }
-
   function applyTransformersRemote(mod, remoteHost, remotePathTemplate) {
     if (!mod || !mod.env) return;
     mod.env.remoteHost = remoteHost;
@@ -227,68 +250,6 @@
 
   function applyHuggingFaceRemote(mod) {
     applyTransformersRemote(mod, 'https://huggingface.co/', '{model}/resolve/{revision}/');
-  }
-
-  function firstChunkPathFromManifest(manifest, modelId) {
-    if (!manifest || !Array.isArray(manifest.models)) return null;
-    var model = manifest.models.find(function (m) { return m && m.id === modelId; });
-    if (!model || !Array.isArray(model.files)) return null;
-    for (var i = 0; i < model.files.length; i += 1) {
-      var entry = model.files[i];
-      if (entry && typeof entry === 'object' && Array.isArray(entry.chunks) && entry.chunks.length) {
-        return entry.chunks[0];
-      }
-    }
-    return null;
-  }
-
-  function buildSelfHostedModelFileUrl(baseUrl, modelId, revision, filePath) {
-    var base = String(baseUrl || '/').replace(/\/?$/, '/');
-    var rev = revision || 'main';
-    var p = String(filePath || '').replace(/^\/+/, '');
-    return base + 'models/' + modelId + '/resolve/' + rev + '/' + p;
-  }
-
-  async function probeChunkReachable(chunkUrl) {
-    try {
-      var res = await fetch(chunkUrl, {
-        method: 'GET',
-        cache: 'no-cache',
-        headers: { Range: 'bytes=0-0' }
-      });
-      return !!(res && (res.ok || res.status === 206));
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /** Self-hosted weights must expose manifest *and* at least one chunk when manifest lists parts. */
-  async function probeSelfHostedModelsHost(baseUrl, modelId) {
-    if (!baseUrl) return false;
-    var base = String(baseUrl).replace(/\/?$/, '/');
-    try {
-      var manRes = await fetch(base + 'models/manifest.json', { method: 'GET', cache: 'no-cache' });
-      if (manRes && manRes.ok) {
-        var manifest = await manRes.json();
-        var chunkPath = firstChunkPathFromManifest(manifest, modelId);
-        if (chunkPath) {
-          return probeChunkReachable(buildSelfHostedModelFileUrl(base, modelId, 'main', chunkPath));
-        }
-      }
-    } catch (e) {}
-    try {
-      var cfgRes = await fetch(
-        base + 'models/' + modelId + '/resolve/main/config.json',
-        { method: 'GET', cache: 'no-cache' }
-      );
-      return !!(cfgRes && cfgRes.ok);
-    } catch (e2) {
-      return false;
-    }
-  }
-
-  async function probeModelsHost(baseUrl, modelId) {
-    return probeSelfHostedModelsHost(baseUrl, modelId);
   }
 
   function failDownloadProgress(errorMsg) {
@@ -306,84 +267,12 @@
     }
   }
 
-  async function resolveModelsRemote(mod, modelId) {
-    await waitForSupabaseConfigReady();
-    selfHostedProbeCache = {};
-    var pathTemplate = 'models/{model}/resolve/{revision}/';
-    var sb = getSupabaseModelsConfig();
-    if (!sb && typeof window !== 'undefined' && window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url) {
-      var rawUrl = String(window.SUPABASE_CONFIG.url);
-      if (rawUrl.indexOf('YOUR_PROJECT') !== -1 && typeof console !== 'undefined' && console.warn) {
-        console.warn(
-          'Summary LLM: SUPABASE_CONFIG still has placeholder URL — skipping Supabase model host. ' +
-            'Inject real SUPABASE_URL on deploy (see supabase-config.js).'
-        );
-      }
-    }
-    if (sb) {
-      var sbBase = buildSupabaseModelsPublicBase(sb.supabaseUrl, sb.modelsStorageBucket);
-      if (sbBase && await probeModelsHost(sbBase, modelId)) {
-        applyTransformersRemote(mod, sbBase, pathTemplate);
-        return 'supabase';
-      }
-    }
-    var originBase = getAppOriginBase();
-    if (await probeModelsHost(originBase, modelId)) {
-      applyTransformersRemote(mod, originBase, pathTemplate);
-      return 'app-origin';
-    }
+  async function resolveModelsRemote(mod) {
     applyHuggingFaceRemote(mod);
-    if (typeof console !== 'undefined' && console.warn) {
-      console.warn(
-        'Summary LLM: using Hugging Face fallback for model files (Supabase/origin probe failed or chunks missing). ' +
-          'For production, inject SUPABASE_URL on deploy and upload weights via npm run models:upload:supabase.'
-      );
+    if (mod && mod.env) {
+      mod.env.useBrowserCache = true;
     }
     return 'huggingface';
-  }
-
-  function loadScriptOnce(src) {
-    return new Promise(function (resolve, reject) {
-      if (typeof document === 'undefined') {
-        resolve();
-        return;
-      }
-      var existing = document.querySelector('script[data-rianell-src="' + src + '"]');
-      if (existing) {
-        if (existing.getAttribute('data-loaded') === '1') resolve();
-        else existing.addEventListener('load', function () { resolve(); });
-        return;
-      }
-      var s = document.createElement('script');
-      s.src = src;
-      s.async = true;
-      s.setAttribute('data-rianell-src', src);
-      s.onload = function () {
-        s.setAttribute('data-loaded', '1');
-        resolve();
-      };
-      s.onerror = function () { reject(new Error('Failed to load ' + src)); };
-      document.head.appendChild(s);
-    });
-  }
-
-  async function ensureChunkedModelArtifacts(remoteBase, modelId, mod) {
-    if (!window.RianellModelChunkLoader) {
-      if (typeof window.PerformanceUtils !== 'undefined' && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
-        await window.PerformanceUtils.lazyLoadScript('model-chunk-loader.js');
-      } else {
-        await loadScriptOnce('model-chunk-loader.js');
-      }
-    }
-    if (!window.RianellModelChunkLoader) return;
-    await window.RianellModelChunkLoader.preloadChunkedModelFiles(remoteBase, modelId, function (p) {
-      reportDownloadProgress({
-        status: 'progress',
-        file: (p.file || '') + ' (part ' + p.chunk + '/' + p.chunks + ')',
-        progress: p.chunks ? p.chunk / p.chunks : 0
-      });
-    });
-    window.RianellModelChunkLoader.installModelFetchShim(mod);
   }
 
   function reportDownloadProgress(data) {
@@ -399,7 +288,7 @@
     downloadProgressState = {
       pct: pct,
       status: data.status || downloadProgressState.status,
-      file: data.file || '',
+      file: sanitizeDownloadFileLabel(data.file || ''),
       active: data.status !== 'done' && data.status !== 'ready'
     };
     if (typeof window !== 'undefined') {
@@ -500,34 +389,13 @@
     reportDownloadProgress({ status: 'initiate', progress: 0, file: modelId });
 
     var mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.2');
-    var modelsSource = await resolveModelsRemote(mod, modelId);
-    var remoteHost = mod.env && mod.env.remoteHost;
-    // Chunk manifest + .partNNN assembly only exists on Supabase / same-origin — not on HF (CORS + no manifest).
-    if (
-      remoteHost &&
-      typeof window !== 'undefined' &&
-      (modelsSource === 'supabase' || modelsSource === 'app-origin')
-    ) {
-      try {
-        await ensureChunkedModelArtifacts(remoteHost, modelId, mod);
-      } catch (chunkErr) {
-        var chunkMsg = (chunkErr && chunkErr.message) ? String(chunkErr.message) : 'Chunk download failed';
-        if (typeof console !== 'undefined' && console.warn) {
-          console.warn(
-            'Summary LLM: chunked preload failed (' + modelsSource + '), falling back to Hugging Face:',
-            chunkMsg
-          );
-        }
-        applyHuggingFaceRemote(mod);
-        modelsSource = 'huggingface';
-        remoteHost = mod.env && mod.env.remoteHost;
-      }
-    }
+    await resolveModelsRemote(mod);
     var device = getPreferredDevice();
     var pipelineOpts = { revision: 'main' };
     if (device) pipelineOpts.device = device;
 
     async function loadPipeline(opts) {
+      applyHuggingFaceRemote(mod);
       return runChatGenerationPipeline(mod, modelId, opts || pipelineOpts);
     }
 
@@ -545,6 +413,7 @@
         console.warn('Summary LLM: GPU device ' + device + ' failed, falling back to CPU:', e.message || e);
       }
       try {
+        applyHuggingFaceRemote(mod);
         var cpuOpts = { revision: 'main' };
         delete cpuOpts.device;
         cachedPipeline = await runChatGenerationPipeline(mod, modelId, cpuOpts);
@@ -556,10 +425,11 @@
         return cachedPipeline;
       } catch (eCpu) {
         if (modelId === MODEL_BASE && typeof console !== 'undefined' && console.warn) {
-          console.warn('Summary LLM: ' + modelId + ' failed, retrying with smaller model:', eCpu.message || eCpu);
+          console.warn('Summary LLM: tier package failed, retrying smaller tier:', eCpu.message || eCpu);
         }
         if (modelId === MODEL_BASE) {
           try {
+            applyHuggingFaceRemote(mod);
             cachedPipeline = await runChatGenerationPipeline(mod, MODEL_SMALL, { revision: 'main' });
             if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
             cachedModelId = MODEL_SMALL;
@@ -980,7 +850,12 @@
 
   function getAiModelStatus() {
     var info = getResolvedLlmModelInfo();
-    var base = { modelId: info.id, label: info.label, size: info.size };
+    var base = {
+      modelId: info.id,
+      tierLabel: info.tierLabel,
+      size: info.size,
+      approxBytes: info.approxBytes
+    };
     if (downloadProgressState.active) {
       return Object.assign({
         state: 'downloading',
@@ -1097,6 +972,7 @@
   window.buildSuggestContext = buildSuggestContext;
   window.LLM_TIER_MODELS = LLM_TIER_MODELS;
   window.getResolvedLlmModelInfo = getResolvedLlmModelInfo;
+  window.getResolvedLlmTierInfo = getResolvedLlmTierInfo;
   window.getAiModelDownloadProgress = function () { return downloadProgressState; };
   window.getAiModelStatus = getAiModelStatus;
   window.getAiModelStorageEstimate = getAiModelStorageEstimate;
