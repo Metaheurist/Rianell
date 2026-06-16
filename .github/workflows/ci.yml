@@ -103,6 +103,9 @@ jobs:
       - name: Doc links and stale path scan
         run: node scripts/verify/doc-links.mjs --strict
 
+      - name: Root directory hygiene (Phase 23)
+        run: npm run verify:root-hygiene
+
       - name: Nested lockfile guard (workspaces)
         run: node scripts/verify/nested-lockfile-guard.mjs
 

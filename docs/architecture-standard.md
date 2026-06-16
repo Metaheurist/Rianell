@@ -37,8 +37,11 @@ scripts/
   models/              LLM weight download/upload/verify
   dev/                 cross-platform dev:web launcher
   lib/                 deprecated shims → @rianell/build-tools
+  migration/legacy/    one-shot Phase 2 migration scripts (archived)
+audit-history/         boot audit JSON (baseline + phase archives tracked)
 artifacts/             CI binaries + latest.json (was App build/)
 docs/                  developer documentation (authoritative for devs)
+  archive/             deprecated config snapshots (e.g. residency-config.json)
 wiki/                  GitHub Wiki source (user-facing)
 server/                Python HTTP + launch-server.ps1
 i18n-packs/            canonical locale/policy/MOTD packs
@@ -142,7 +145,7 @@ Tool: `scripts/verify/doc-links.mjs`
 **Checks:**
 - Relative links in `docs/**/*.md`, `wiki/**/*.md`, `README.md`, `security/**/*.md`
 - Forbidden stale paths in `package.json`, `.github/**/*.yml`, `scripts/**/*.mjs`, `apps/**/*.{js,ts,tsx}`, `server/*.ps1`
-- Forbidden: `App build/` (except CHANGELOG history), flat `scripts/*.mjs` post–Phase 7
+- Forbidden: `App build/` (except CHANGELOG history), flat `scripts/*.mjs` post–Phase 7, root `tools/`, root `audit-report*.json`, root `residency-config.json` (Phase 23)
 - Broken `#anchor` cross-refs in architecture-standard
 
 **Usage:** `node scripts/verify/doc-links.mjs --strict` (exit 0 required)
@@ -167,5 +170,6 @@ Tool: `scripts/verify/doc-links.mjs`
 | 20 | Final sign-off | verified | 2026-06-16 |
 | 21 | Temp tests teardown | verified | 2026-06-16 |
 | 22 | Deploy-observe loop | verified (local stages) | 2026-06-16 |
+| 23 | Root directory hygiene | verified | 2026-06-14 |
 
-**Epic status:** v1.90.0 on `main` — apply Cloudflare 301 for legacy artifact URLs after Pages deploy (see [migration-signoff.md](migration-signoff.md)).
+**Epic status:** v1.90.1 on `main` — apply Cloudflare 301 for legacy artifact URLs after Pages deploy (see [migration-signoff.md](migration-signoff.md)).

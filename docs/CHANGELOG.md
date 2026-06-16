@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.90.0** - Codebase architecture standard and monorepo layout refactor (Phases 0–22).
+**Latest: v1.90.1** - Root directory hygiene (Phase 23).
+
+### v1.90.1 - 2026-06-14 - Root directory hygiene (Phase 23)
+- **Audit:** Boot audit JSON consolidated under `audit-history/` (`baseline.json` tracked; `latest-boot-audit.json` gitignored).
+- **Archive:** Deprecated `residency-config.json` moved to `docs/archive/`.
+- **Scripts:** Legacy `tools/` absorbed into `scripts/migration/legacy/`.
+- **Verify:** `npm run verify:root-hygiene` + CI unit-tests gate; `doc-links` forbidden patterns for root clutter paths.
 
 ### v1.90.0 - 2026-06-16 - Architecture standard and layout refactor
 - **Standard:** [`docs/architecture-standard.md`](architecture-standard.md) and [`AGENTS.md`](../AGENTS.md) — canonical directory map, workspace graph, artifact policy, migration log.

@@ -60,7 +60,7 @@ Rianell uses **one** Supabase project for all users. See [single-project-residen
 4. Verify schema parity: `node scripts/verify/verify-supabase-schema-parity.mjs`.
 5. Revoke the previous anon key after traffic confirms the new deploy.
 
-**Legacy (deprecated):** Dual EU/US projects and `residency-config.json` were removed in v1.52 — see [multi-residency.md](../docs/privacy/multi-residency.md).
+**Legacy (deprecated):** Dual EU/US projects and residency config were removed in v1.52 — archived copy at [docs/archive/residency-config.json](../docs/archive/residency-config.json); see [multi-residency.md](../docs/privacy/multi-residency.md).
 
 ### 3.3 Service role (secret) key
 
