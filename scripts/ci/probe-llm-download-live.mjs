@@ -74,7 +74,9 @@ async function runOnce() {
     page.on('pageerror', (e) => errors.push(String(e.message || e).slice(0, 180)));
     page.on('console', (msg) => {
       const text = msg.text ? msg.text() : '';
-      if (/content security policy|csp|connect-src/i.test(text)) errors.push(text.slice(0, 180));
+      if (!/content security policy|csp|connect-src/i.test(text)) return;
+      if (/cloudflareinsights|beacon\.min\.js|email-decode\.min\.js|cdn-cgi\/scripts/i.test(text)) return;
+      errors.push(text.slice(0, 180));
     });
     page.on('requestfinished', async (req) => {
       const url = req.url();
