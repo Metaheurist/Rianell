@@ -6534,7 +6534,8 @@ body.modal-active {
 
 body.modal-active .modal-overlay,
 body.modal-active .settings-overlay,
-body.modal-active .ai-modal-overlay {
+body.modal-active .ai-modal-overlay,
+body.modal-active .health-data-consent-overlay {
   pointer-events: all;
 }
 
@@ -8006,7 +8007,7 @@ body.light-mode .chart-share-btn:focus {
 .tutorial-modal-body {
   flex: 1;
   min-width: 0;
-  padding: 24px 20px;
+  padding: 24px 28px;
   min-height: 100px;
   max-height: 50vh;
   overflow-y: auto;
@@ -8017,6 +8018,7 @@ body.light-mode .chart-share-btn:focus {
 .tutorial-slide {
   display: none;
   animation: tutorialSlideIn 0.25s ease-out;
+  padding-inline: 4px;
 }
 
 .tutorial-slide.tutorial-slide-active {
@@ -15307,9 +15309,42 @@ body.log-wizard-active .header-buttons-wrap {
 }
 
 /* Privacy region gate */
-body.privacy-gate-active > *:not(#privacyRegionGateOverlay):not(#loadingOverlay) {
+body.privacy-gate-active > *:not(#privacyRegionGateOverlay):not(#loadingOverlay):not(#healthDataConsentOverlay) {
   visibility: hidden !important;
   pointer-events: none !important;
+}
+.health-data-consent-overlay {
+  z-index: 100001 !important;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.health-data-consent-modal {
+  max-width: 520px;
+  width: min(520px, 100%);
+  max-height: min(85vh, 100%);
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+.health-data-consent-body {
+  padding: 20px 24px;
+  line-height: 1.55;
+}
+.health-data-consent-body p {
+  margin: 0 0 12px;
+}
+.health-data-consent-body p:last-child {
+  margin-bottom: 0;
+}
+.health-data-consent-footer {
+  flex-direction: column;
+  align-items: stretch;
+}
+.health-data-consent-footer .modal-save-btn {
+  width: 100%;
 }
 .privacy-region-gate-overlay {
   position: fixed;

@@ -1784,6 +1784,8 @@ const COOKIE_CONSENT_KEY = 'rianellCookieConsent';
 const COOKIE_CONSENT_AT_KEY = 'rianellCookieConsentAcceptedAt';
 const HEALTH_DATA_CONSENT_KEY = 'rianellHealthDataConsent';
 const HEALTH_DATA_CONSENT_AT_KEY = 'rianellHealthDataConsentAt';
+let _healthDataConsentCallback = null;
+let _healthDataConsentUiBound = false;
 
 function showCookieBannerIfNeeded() {
   if (localStorage.getItem(COOKIE_CONSENT_KEY)) return;
@@ -1791,31 +1793,91 @@ function showCookieBannerIfNeeded() {
   if (banner) banner.classList.remove('hidden');
 }
 
-function showHealthDataConsentIfNeeded() {
-  if (localStorage.getItem(HEALTH_DATA_CONSENT_KEY) === 'accepted') return;
+function syncHealthDataConsentToSettings(atIso) {
+  const at = atIso || new Date().toISOString();
+  try {
+    const raw = localStorage.getItem('rianellSettings');
+    const settings = raw ? JSON.parse(raw) : {};
+    settings.healthDataConsent = true;
+    settings.healthDataConsentAt = at;
+    localStorage.setItem('rianellSettings', JSON.stringify(settings));
+    if (window.appSettings) {
+      window.appSettings.healthDataConsent = true;
+      window.appSettings.healthDataConsentAt = at;
+    }
+  } catch (e) {
+    Logger.warn('Could not sync health data consent to settings', { error: String(e) });
+  }
+}
+
+function showHealthDataConsentOverlay() {
+  const overlay = document.getElementById('healthDataConsentOverlay');
+  if (!overlay) return;
+  overlay.style.display = 'flex';
+  overlay.classList.add('modal-overlay--open');
+  document.body.classList.add('modal-active');
+}
+
+function hideHealthDataConsentOverlay() {
   const overlay = document.getElementById('healthDataConsentOverlay');
   if (overlay) {
-    overlay.style.display = 'flex';
-    document.body.classList.add('modal-active');
+    overlay.style.display = 'none';
+    overlay.classList.remove('modal-overlay--open');
   }
+  document.body.classList.remove('modal-active');
+}
+
+function bindHealthDataConsentUi() {
+  if (_healthDataConsentUiBound) return;
+  _healthDataConsentUiBound = true;
+  const acceptBtn = document.getElementById('healthDataConsentAcceptBtn');
+  const declineBtn = document.getElementById('healthDataConsentDeclineBtn');
+  if (acceptBtn) acceptBtn.addEventListener('click', acceptHealthDataConsent);
+  if (declineBtn) declineBtn.addEventListener('click', declineHealthDataConsent);
+}
+
+function showHealthDataConsentIfNeeded() {
+  if (localStorage.getItem(HEALTH_DATA_CONSENT_KEY) === 'accepted') return;
+  bindHealthDataConsentUi();
+  showHealthDataConsentOverlay();
+}
+
+function showHealthDataConsentModal(onAccepted) {
+  _healthDataConsentCallback = typeof onAccepted === 'function' ? onAccepted : null;
+  bindHealthDataConsentUi();
+  showHealthDataConsentOverlay();
 }
 
 function acceptHealthDataConsent() {
+  const at = new Date().toISOString();
   try {
     localStorage.setItem(HEALTH_DATA_CONSENT_KEY, 'accepted');
-    localStorage.setItem(HEALTH_DATA_CONSENT_AT_KEY, new Date().toISOString());
+    localStorage.setItem(HEALTH_DATA_CONSENT_AT_KEY, at);
   } catch (e) {
     Logger.warn('Could not save health data consent', { error: String(e) });
   }
-  const overlay = document.getElementById('healthDataConsentOverlay');
-  if (overlay) overlay.style.display = 'none';
+  syncHealthDataConsentToSettings(at);
+  hideHealthDataConsentOverlay();
   if (!localStorage.getItem(COOKIE_CONSENT_KEY)) showCookieBannerIfNeeded();
+  if (_healthDataConsentCallback) {
+    const cb = _healthDataConsentCallback;
+    _healthDataConsentCallback = null;
+    cb();
+  }
 }
 
 function declineHealthDataConsent() {
+  hideHealthDataConsentOverlay();
+  _healthDataConsentCallback = null;
   if (typeof showAlertModal === 'function') {
     showAlertModal(tUi('common.you.can.still.browse.settings.but.health'), tUi('common.consent.healthDataTitle'));
   }
+}
+
+if (typeof window !== 'undefined') {
+  window.acceptHealthDataConsent = acceptHealthDataConsent;
+  window.declineHealthDataConsent = declineHealthDataConsent;
+  window.showHealthDataConsentModal = showHealthDataConsentModal;
 }
 
 function hideCookieBanner() {
@@ -20395,3 +20457,96 @@ function initializeDateFilters() {
     }, 100);
   }
 }
+
+/** Inline onclick/onchange in index.html require globals; app.js is an ES module (and CI bundles IIFE). */
+function attachInlineHandlersToWindow() {
+  if (typeof window === 'undefined') return;
+  const fns = {
+    acceptCookieConsent,
+    addLogMedicationItem,
+    addMedTimeTagFromPicker,
+    addNewCondition,
+    addTutorialCondition,
+    applyAICustomDateRange,
+    applyCustomDateRange,
+    clearAndRedownloadAiModel,
+    clearData,
+    closeAlertModal,
+    closeBugReportModal,
+    closeCookiePolicyModal,
+    closeEditEntryModal,
+    closeExerciseModal,
+    closeFoodModal,
+    closeGDPRAgreementModal,
+    closeGoalsModal,
+    closeHomeQuestionModal,
+    closeInstallModal,
+    closeModalTestOverlay,
+    closePerfBenchmarkModal,
+    closeShareModal,
+    closeSignupSigninModal,
+    closeTutorialModal,
+    deferAiModelDownloadConsent,
+    exportData,
+    filterLogs,
+    finishTutorial,
+    finishTutorialAndOpenSignup,
+    grantAiModelDownloadConsent,
+    handleCloudLoginFromModal,
+    handleCloudSignUpFromModal,
+    importData,
+    installOrLaunchPWA,
+    openBugReportModal,
+    openCookiePolicyModal,
+    openGoalsModal,
+    openLogWizardFromHome,
+    openShareModalForAIAnalysis,
+    openTutorialModal,
+    saveEditedEntry,
+    saveExerciseLog,
+    saveFoodLog,
+    saveGoalsAndClose,
+    saveQuickMinimalLog,
+    selectExistingCondition,
+    selectTutorialCondition,
+    setAIDateRange,
+    setChartDateRange,
+    setGlobalTheme,
+    setLogViewRange,
+    setPredictionRange,
+    setSortOrder,
+    setTutorialAIChoice,
+    settingsCarouselStep,
+    switchTab,
+    toggleAIFeatures,
+    toggleAccessibilityLargeText,
+    toggleAccessibilityReadMode,
+    toggleAccessibilityTtsEnabled,
+    toggleBalanceSelectAll,
+    toggleChartView,
+    toggleCollapsibleSection,
+    toggleCombinedSelectAll,
+    toggleConditionSelector,
+    toggleContributeAnonData,
+    toggleDemoMode,
+    toggleEditWeightUnit,
+    togglePasswordVisibility,
+    togglePredictions,
+    toggleSetting,
+    toggleSignupModalPasswordVisibility,
+    toggleTutorialAccessibilityLargeText,
+    toggleTutorialAccessibilityReadMode,
+    toggleTutorialAccessibilityTtsEnabled,
+    toggleTutorialConditionSelector,
+    toggleUseOpenData,
+    toggleWeightUnit,
+    tutorialNextSlide,
+    tutorialPrevSlide,
+    updateUserName,
+    showGDPRAgreementModal,
+  };
+  Object.keys(fns).forEach((name) => {
+    if (typeof fns[name] === 'function') window[name] = fns[name];
+  });
+}
+attachInlineHandlersToWindow();
