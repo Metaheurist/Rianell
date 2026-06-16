@@ -177,12 +177,6 @@ These are installed or invoked in workflows **to build or test**; they are not n
 | `pip install pyinstaller` | Build Windows server `.exe` |
 | `pip install pyarmor` | Optional obfuscation step for server sources in CI (see workflow) |
 
-### [`.github/workflows/expo-native-build.yml`](../.github/workflows/expo-native-build.yml)
-
-| Tool | Role |
-|------|------|
-| `npm install -g eas-cli` | EAS CLI when that workflow runs |
-
 ### [`.github/workflows/security-audit.yml`](../.github/workflows/security-audit.yml) (reusable **only** — called from `ci.yml`; no separate `on: push` to avoid duplicate runs)
 
 | Tool | Role |
