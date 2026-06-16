@@ -56,9 +56,10 @@ async function runOnce() {
           healthDataConsent: true,
           policyAcknowledgedVersion: 'v1.0.0',
           aiModelDownloadConsent: 'granted',
+          preferredLlmModelSize: 'tier' + tier,
         }));
         localStorage.setItem('rianellPerfBenchmark', JSON.stringify({
-          version: 4,
+          version: 5,
           platformType: 'desktop',
           tier,
           ts: Date.now(),
@@ -95,7 +96,7 @@ async function runOnce() {
       await page.waitForTimeout(500);
     }
 
-    // Trigger download + inference warmup.
+    // Trigger download + inference warmup (summary-llm.js is lazy-loaded after boot).
     await page.evaluate(() => {
       try {
         if (window.appSettings) window.appSettings.aiModelDownloadConsent = 'granted';
@@ -103,11 +104,21 @@ async function runOnce() {
       } catch (_) {}
     });
 
-    await page.evaluate(async () => {
-      if (typeof window.preloadSummaryLLM === 'function') {
-        await window.preloadSummaryLLM();
-      }
-    });
+    try {
+      await page.waitForFunction(
+        () => typeof window.preloadSummaryLLM === 'function',
+        { timeout: 180000 }
+      );
+      await page.evaluate(async () => {
+        try {
+          await window.preloadSummaryLLM();
+        } catch (err) {
+          throw new Error(String(err && err.message ? err.message : err).slice(0, 240));
+        }
+      });
+    } catch (err) {
+      errors.push('preloadSummaryLLM: ' + String(err.message || err).slice(0, 240));
+    }
 
     let final = null;
     while (Date.now() - t0 < DOWNLOAD_TIMEOUT_MS) {
@@ -129,7 +140,11 @@ async function runOnce() {
 
 let last = null;
 for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
-  last = await runOnce();
+  try {
+    last = await runOnce();
+  } catch (err) {
+    last = { ok: false, error: String(err.message || err).slice(0, 240) };
+  }
   console.log('LLM_PROBE', JSON.stringify({ attempt, url: URL, ...last }));
   if (last.ok) process.exit(0);
   if (attempt < ATTEMPTS) {
