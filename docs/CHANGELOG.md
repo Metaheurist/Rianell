@@ -13,6 +13,8 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Verify:** `scripts/verify/doc-links.mjs --strict`, `i18n-all.mjs`, migration orchestrators (`verify:migration:*`), nested lockfile CI guard.
 - **CI:** `commit-app-build` manifest-only policy; binaries via GitHub Releases.
 - **Scale:** `server/routes/` module split; PWA `src/buildDownloads.js`; `turbo.json` task caching.
+- **Docs:** README architecture row; setup-and-usage v1.90.0 section; `docs/migration-signoff.md` operator checklist.
+- **`.gitignore`:** root-only `/build/` ignore so `scripts/build/` orchestrators are tracked in git.
 
 ### v1.89.2 - 2026-06-15 - CI caching, post-deploy audit, workflow efficiency
 - **CI caching:** Reusable actions `setup-node-ci`, `setup-python-ci`, `install-playwright-chromium`; npm (`package-lock.json`), pip (`requirements.txt` + `.github/ci-pip-extras.txt`), Playwright browsers, Gradle (Android APK), Gitleaks/OSV binaries — cache invalidates only when lockfiles or pinned tool versions change.

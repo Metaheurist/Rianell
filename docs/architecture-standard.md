@@ -168,4 +168,4 @@ Tool: `scripts/verify/doc-links.mjs`
 | 21 | Temp tests teardown | verified | 2026-06-16 |
 | 22 | Deploy-observe loop | verified (local stages) | 2026-06-16 |
 
-**Epic status:** local verification complete (Phases 0–22 local stages); merge to `main` + CI green + Cloudflare 301 remain operator tasks — see [migration-signoff.md](migration-signoff.md)
+**Epic status:** v1.90.0 on `main` — apply Cloudflare 301 for legacy artifact URLs after Pages deploy (see [migration-signoff.md](migration-signoff.md)).

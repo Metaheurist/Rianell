@@ -16,7 +16,6 @@ Do **not** skip verification checkpoints. Do **not** edit the plan file in `.cur
 | Command | When |
 |---------|------|
 | `npm run test:unit` | Every phase |
-| `npm run test:migration` | Phases 2–20 (removed Phase 21) |
 | `npm run verify:migration:foundation` | After Phase 7 |
 | `npm run verify:migration` | Phase 20+ |
 | `npm run migrate:deploy-observe` | Phase 22 epic close |
@@ -26,6 +25,6 @@ Do **not** skip verification checkpoints. Do **not** edit the plan file in `.cur
 - **`apps/`** — deployables (`@rianell/pwa-webapp`, `@rianell/rn-app`)
 - **`packages/`** — shared `@rianell/*` libraries
 - **`scripts/`** — nested by concern (`build/`, `i18n/`, `verify/`, `ci/`, `audit/`, `wiki/`, `models/`, `dev/`)
-- **`artifacts/`** — CI binaries + `latest.json` (renamed from `artifacts/`)
+- **`artifacts/`** — CI binaries + `latest.json` (renamed from legacy `App build/`)
 - **`server/`** — Python HTTP (not an npm workspace)
 - **`i18n-packs/`** — canonical locale source at repo root

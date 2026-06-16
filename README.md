@@ -65,6 +65,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | <img src="docs/icons/flask.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Testing & configuration](docs/testing-and-configuration.md)** |
 | <img src="docs/icons/timer.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Performance benchmarks](benchmarks/README.md)** - reports and tooling under `benchmarks/`; run `npm run benchmark` |
 | <img src="docs/icons/brain.svg" width="32" height="32" alt="" aria-hidden="true"> | **[AI architecture](docs/ai-architecture.md)** |
+| <img src="docs/icons/folder.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Architecture standard](docs/architecture-standard.md)** - repo layout, workspaces, scripts, artifacts policy, migration log |
 | <img src="docs/icons/folder.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Project reference](docs/project-reference.md)** - tree, deps, dev, GDPR, troubleshooting, security notes |
 | <img src="docs/icons/paperclip.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Dependencies](docs/dependencies.md)** - generated inventory (`npm run docs:dependencies`; CI sync on `main`) — npm workspaces, Python, CDN/runtime, CI tooling |
 | <img src="docs/icons/palette.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Styling](docs/styling.md)** - CSS layout, tokens, settings carousel, tile pickers, cache bust |

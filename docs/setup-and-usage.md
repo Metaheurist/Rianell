@@ -2,6 +2,17 @@
 
 ## ⚙️ Installation
 
+### v1.90.0 architecture layout (scripts, artifacts, workspaces)
+
+Canonical layout: **[architecture-standard.md](architecture-standard.md)** and **[AGENTS.md](../AGENTS.md)**.
+
+- **Build (PWA):** `npm run build:web` or `npm run build:web:apk` — orchestrated by `scripts/build/run-web.mjs` (sync i18n → vendor → esbuild).
+- **Build (RN export):** `npm run bundle:mobile:prod` — `scripts/build/run-mobile-export.mjs`.
+- **Local web dev:** `npm run dev:web` (cross-platform; Windows runs `launch-server.ps1`, Unix runs minify + `python -m server`).
+- **CI artifacts:** binaries and manifests under **`artifacts/`** (renamed from legacy `App build/`). Git tracks **`latest.json`** only; APK/EXE/zips ship via GitHub Releases.
+- **Verify gates:** `npm run verify:migration:foundation` (after layout changes), `npm run verify:migration` (full sign-off), `node scripts/verify/doc-links.mjs --strict`.
+- **Scripts:** nested under `scripts/{build,i18n,verify,ci,audit,wiki,models,dev}/` — not flat `scripts/*.mjs`.
+
 ### v1.60.0 i18n asset sync (Metro / esbuild)
 
 - **`node scripts/i18n/sync-i18n-assets.mjs`** copies canonical **`i18n-packs/`** (locale, prompt, motd, policy) into PWA, RN, and **`packages/shared/`**; regenerates **`promptPackData.mjs`** and runs **`sync-policy-pack.mjs`**. Used by **`build:web`**, **`bundle:mobile:prod`**, and CI before vendor bundle / **`expo export`**.
