@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
+ * Legacy Phase 2 one-shot — do not run without review.
  * One-time Phase 2: nest scripts/*.mjs into category subdirs + flat shims.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const scriptsDir = path.join(root, 'scripts');
 
 const MAP = {

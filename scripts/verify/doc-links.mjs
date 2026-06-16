@@ -13,7 +13,10 @@ const errors = [];
 
 const FORBIDDEN = [
   { pattern: /App build\//g, allow: ['docs/CHANGELOG.md', 'docs/architecture-standard.md', 'AGENTS.md', 'security/cloudflare-headers-recommended.md'] },
-  { pattern: /(?:^|[\s('"'])scripts\/(?!build\/|i18n\/|verify\/|ci\/|audit\/|wiki\/|models\/|dev\/|lib\/)[a-z0-9-]+\.mjs/gi, allow: ['docs/CHANGELOG.md', 'docs/setup-and-usage.md'] },
+  { pattern: /(?:^|[\s('"'])scripts\/(?!build\/|i18n\/|verify\/|ci\/|audit\/|wiki\/|models\/|dev\/|lib\/|migration\/)[a-z0-9-]+\.mjs/gi, allow: ['docs/CHANGELOG.md', 'docs/setup-and-usage.md'] },
+  { pattern: /(?:^|[\s('"'])tools\//g, allow: ['docs/CHANGELOG.md', 'docs/architecture-standard.md'] },
+  { pattern: /(?:^|[\s('"'])residency-config\.json/g, allow: ['docs/CHANGELOG.md', 'docs/archive/residency-config.json', 'security/rotation-runbook.md', 'docs/architecture-standard.md', 'scripts/verify/migration-root-hygiene.mjs'] },
+  { pattern: /(?:^|[\s('"'])audit-report(?:-baseline|-previous)?\.json/g, allow: ['docs/CHANGELOG.md', 'docs/architecture-standard.md', 'scripts/verify/migration-root-hygiene.mjs'] },
 ];
 
 function rel(p) {

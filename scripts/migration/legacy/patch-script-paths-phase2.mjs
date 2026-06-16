@@ -1,9 +1,10 @@
 #!/usr/bin/env node
+/** Legacy Phase 2 one-shot — do not run without review. */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const MAP = {
   'build-pwa-vendor.mjs': 'build/build-pwa-vendor.mjs',
   'sync-tokens-to-pwa.mjs': 'build/sync-tokens-to-pwa.mjs',
