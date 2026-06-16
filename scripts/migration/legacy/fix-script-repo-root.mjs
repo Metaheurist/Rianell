@@ -1,9 +1,10 @@
 #!/usr/bin/env node
+/** Legacy Phase 2 one-shot — do not run without review. */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const scriptsDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts');
+const scriptsDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const subdirs = ['build', 'i18n', 'verify', 'ci', 'audit', 'wiki', 'models'];
 
 for (const sub of subdirs) {
