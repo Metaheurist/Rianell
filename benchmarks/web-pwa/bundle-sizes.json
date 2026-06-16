@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-06-15T23:06:50.316Z",
+  "generatedAt": "2026-06-16T05:55:16.379Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3528001,
-    "cssBytes": 390947,
-    "jsGzipBytes": 672762,
-    "cssGzipBytes": 68934
+    "jsBytes": 3402480,
+    "cssBytes": 390953,
+    "jsGzipBytes": 652797,
+    "cssGzipBytes": 68939
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1180593,
-      "gzipBytes": 198480
+      "bytes": 1176909,
+      "gzipBytes": 198076
     },
     {
-      "file": "ci-minified/site/app.a9c3c06e788c.min.js",
-      "bytes": 816164,
-      "gzipBytes": 147626
+      "file": "ci-minified/site/app.e037d4921e39.min.js",
+      "bytes": 692861,
+      "gzipBytes": 127410
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -174,6 +174,11 @@
       "gzipBytes": 685
     },
     {
+      "file": "ci-minified/site/src/buildDownloads.js",
+      "bytes": 1466,
+      "gzipBytes": 655
+    },
+    {
       "file": "ci-minified/site/supabase-config.example.js",
       "bytes": 849,
       "gzipBytes": 451
@@ -185,8 +190,8 @@
     },
     {
       "file": "ci-minified/site/css/tokens.css",
-      "bytes": 499,
-      "gzipBytes": 322
+      "bytes": 505,
+      "gzipBytes": 327
     }
   ]
 }
