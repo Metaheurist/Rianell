@@ -1,0 +1,54 @@
+# Isolated live HF model download probe — not cancelled by sibling CI gate jobs.
+name: Audit LLM live
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths:
+      - '.github/workflows/audit-llm-live.yml'
+      - 'scripts/ci/probe-llm-download-live.mjs'
+      - 'scripts/ci/deploy-probe-loop.mjs'
+      - 'scripts/audit/verify-deploy-html.mjs'
+      - 'packages/build-tools/src/probe-llm-assertions.mjs'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: audit-llm-live-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  audit-llm-download-live:
+    name: Live LLM download (rianell.com / Cloudflare)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-node-ci
+
+      - uses: ./.github/actions/install-playwright-chromium
+
+      - name: Wait for live deploy HTML
+        env:
+          VERIFY_URLS: https://rianell.com/
+          VERIFY_ATTEMPTS: "12"
+          VERIFY_DELAY_MS: "30000"
+        run: node scripts/audit/verify-deploy-html.mjs
+
+      - name: Live boot probe (Cloudflare)
+        env:
+          PROBE_URL: https://rianell.com/
+        run: node scripts/ci/deploy-probe-loop.mjs
+
+      - name: Live HF model download probe (Cloudflare)
+        env:
+          PROBE_URL: https://rianell.com/
+          PROBE_DOWNLOAD_TIMEOUT_MS: "900000"
+          PROBE_TIER: "1"
+        run: node scripts/ci/probe-llm-download-live.mjs
