@@ -563,6 +563,8 @@
     "common.lifestyle.factors.optional": "Lifestyle Factors (Optional)",
     "common.alert": "Alert",
     "common.download.on.device.ai.model": "Download on-device AI model?",
+    "common.download.on.device.ai.package": "Download on-device AI package ({tier}, {size})? Wi-Fi recommended. The package stays on this device and enables AI summaries, note suggestions, and daily quotes.",
+    "common.status.unavailable": "Status unavailable",
     "common.download.now": "Download now",
     "common.downloading.ai.model": "Downloading AI model",
     "common.preparing.on.device.ai": "Preparing on-device AI…",

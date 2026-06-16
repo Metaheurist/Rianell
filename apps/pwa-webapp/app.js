@@ -15726,7 +15726,7 @@ function refreshLlmModelSettingsHints() {
       ensureSummaryLlmLoadedForSettings().then(function () {
         refreshLlmModelSettingsHints();
       }).catch(function () {
-        statusText.textContent = 'Status unavailable';
+        statusText.textContent = tUi('common.status.unavailable');
         statusText.className = 'llm-model-status llm-model-status--failed';
       });
     } else if (modelStatus) {
@@ -15796,7 +15796,10 @@ function promptAiModelDownloadConsent(modelId) {
       : { tierLabel: 'Tier 3', size: '~670 MB' };
     var msg = document.getElementById('aiModelDownloadMessage');
     if (msg) {
-      msg.textContent = 'Download on-device AI package (' + info.tierLabel + ', ' + info.size + ')? Wi-Fi recommended. The package stays on this device and enables AI summaries, note suggestions, and daily quotes.';
+      msg.textContent = tUi('common.download.on.device.ai.package', {
+        tier: info.tierLabel,
+        size: info.size
+      });
     }
     __rianellAiDownloadConsentResolve = resolve;
     overlay.style.display = 'flex';

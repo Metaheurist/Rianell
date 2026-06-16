@@ -563,6 +563,8 @@
     "common.lifestyle.factors.optional": "Fachtóirí Stíl Mhaireachtála (Roghnach)",
     "common.alert": "Airdeall@ item: intable Text context",
     "common.download.on.device.ai.model": "Íoslódáil samhail IS ar ghléas?",
+    "common.download.on.device.ai.package": "Download on-device AI package ({tier}, {size})? Wi-Fi recommended. The package stays on this device and enables AI summaries, note suggestions, and daily quotes.",
+    "common.status.unavailable": "Status unavailable",
     "common.download.now": "Íosluchtaigh Anois@ info: tooltip",
     "common.downloading.ai.model": "Samhail IS á híoslódáil",
     "common.preparing.on.device.ai": "IS ar an ngléas á ullmhú…",

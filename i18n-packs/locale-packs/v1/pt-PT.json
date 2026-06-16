@@ -563,6 +563,8 @@
     "common.lifestyle.factors.optional": "Fatores de estilo de vida (opcional)",
     "common.alert": "Alerta",
     "common.download.on.device.ai.model": "Transferir on-device AI model?",
+    "common.download.on.device.ai.package": "Transferir on-device AI package ({tier}, {size})? Wi-Fi recommended. The package stays on this device and enables AI summaries, note suggestions, and daily quotes.",
+    "common.status.unavailable": "Status unavailable",
     "common.download.now": "Transferir now",
     "common.downloading.ai.model": "Baixando modelo de IA",
     "common.preparing.on.device.ai": "Preparando IA no dispositivo…",
