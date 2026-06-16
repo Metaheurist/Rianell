@@ -299,7 +299,9 @@
     }
     if (typeof window !== 'undefined') {
       try {
-        window.dispatchEvent(new CustomEvent('rianell-llm-download-progress', { detail: downloadProgressState }));
+        window.dispatchEvent(new CustomEvent('rianell-llm-download-progress', {
+          detail: Object.assign({}, downloadProgressState, { failed: true, error: lastDownloadError })
+        }));
       } catch (e) {}
     }
   }
