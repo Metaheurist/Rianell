@@ -211,13 +211,13 @@ Gate jobs (**unit-tests**, **prepare-minified-assets**, **expo-bundle-prod**, **
 
 **Settings → Performance → Clear and redownload model** stops any in-flight download, clears IndexedDB + Cache API + assembled chunk cache, and starts a fresh download. See `summary-llm.js` (`clearAiModelCache`, `cancelAiModelDownload`, `resetAiModelDownloadState`).
 
-### v1.53.0 LLM model scripts (Supabase Storage)
+### v1.53.0 LLM model scripts (HF-only)
 
 | Script | npm alias | Purpose |
 |--------|-----------|---------|
 | `scripts/models/download-llm-models.mjs` | `npm run models:download` | Mirror ONNX weights from Hugging Face into `apps/pwa-webapp/models/` (gitignored) |
-| `scripts/models/upload-llm-models-supabase.mjs` | `npm run models:upload:supabase` | Upload to bucket `llm-models` with 47 MB chunking; reads `security/.env`; `--purge-local` deletes local weights |
-| `scripts/models/verify-llm-models.mjs` | `npm run models:verify` | Verify manifest; checks local files or remote Supabase when `SUPABASE_URL` set |
+| `scripts/models/upload-llm-models-supabase.mjs` | `npm run models:upload:supabase` | **Deprecated** (disabled). Supabase model hosting removed. |
+| `scripts/models/verify-llm-models.mjs` | `npm run models:verify` | Verify manifest; checks local files (and optional remote HEAD checks) |
 | `scripts/models/verify-no-model-weights-in-git.mjs` | `npm run verify:no-model-weights-in-git` | Fail if git tracks ONNX/chunks under `models/` (only manifest + README allowed) |
 
 **Llama 3.2 download** requires `HF_TOKEN` and accepted license on huggingface.co. **Never commit** service role key or weight files.

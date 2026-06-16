@@ -388,9 +388,16 @@
 
   function formatAiDownloadLabel(state) {
     if (state && state.file) {
-      return 'Downloading AI model… ' + String(state.file).split('/').pop();
+      var text = String(state.file);
+      var partMatch = text.match(/part\s+(\d+)\s*\/\s*(\d+)/i);
+      if (partMatch) {
+        return 'Downloading model parts… ' + partMatch[1] + '/' + partMatch[2];
+      }
     }
-    return 'Downloading AI model…';
+    if (state && typeof state.pct === 'number') {
+      return 'Downloading model parts… ' + state.pct + '%';
+    }
+    return 'Downloading model parts…';
   }
 
   function applyAiDownloadProgressToElements(state, labelSel, pctSel, fillSel, root) {

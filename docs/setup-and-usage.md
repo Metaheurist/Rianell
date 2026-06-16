@@ -26,13 +26,9 @@ Canonical layout: **[architecture-standard.md](architecture-standard.md)** and *
 - **Web benchmarks:** `node benchmarks/scripts/run-web-benchmarks.mjs` (opens Settings in Playwright).
 - **Mobile typecheck:** `npm run typecheck:mobile`.
 
-### v1.53.0 Supabase LLM weights (operator)
+### v1.53.0 On-device LLM weights (HF-only)
 
-1. Apply **`supabase/Schema.sql`** (includes `llm-models` public bucket).
-2. Add **`SUPABASE_URL`** and **`SUPABASE_SERVICE_KEY`** (service role) to **`security/.env`** — never commit this file.
-3. Download weights locally: `npm run models:download` (optional `HF_TOKEN` for Llama).
-4. Upload: `npm run models:upload:supabase -- --purge-local` (chunks large files; updates committed `manifest.json`).
-5. GitHub Actions: set repository secrets **`SUPABASE_URL`** and **`SUPABASE_ANON_KEY`** for Pages deploy (CI injects into `supabase-config.js`).
+On-device weights download from Hugging Face Hub only (onnx-community `*-ONNX` repos). No Supabase Storage bucket is required.
 
 ### v1.50.0 documentation sync (consent and erasure UX)
 

@@ -41,7 +41,7 @@
     {
       "id": "on_device_llm",
       "status": { "web": "supported", "android": "supported", "ios": "partial" },
-      "notes": "Web: Transformers.js Llama/SmolLM2 with consent and progress. RN: remote endpoint + rule fallback; native ONNX path in @rianell/llm when device supports."
+      "notes": "Web: Transformers.js with HF-hosted onnx-community *-ONNX repos (consent + progress). RN: HF-only download cache + on-device inference (Expo Go: Transformers.js WASM; dev/prod build: ORT via react-native-transformers + onnxruntime-react-native), with remote endpoint and AIEngine fallbacks."
     },
     {
       "id": "cloud_sync_encrypted",

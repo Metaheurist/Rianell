@@ -50,12 +50,12 @@ flowchart LR
 - **Policy viewer (PWA):** HTML policy summaries render in the alert modal; confirm-dialog argument order fixed for region change and policy updates.
 - **CI:** Web benchmark settings step no longer throws **`global is not defined`**; mobile **`typecheck:mobile`** passes after RN sync/gate/modal fixes.
 
-### v1.53.0 Supabase LLM hosting and download gates
+### v1.53.0 On-device LLM download gates
 
-- **On-device LLM weights:** Hosted on **Supabase Storage** bucket `llm-models` (~3.5 GB). Large ONNX files split into **47 MB chunks** (free tier 50 MB limit); PWA and RN download parts and reassemble into local cache. See **`apps/pwa-webapp/models/README.md`**.
+- **On-device LLM weights:** Downloaded from **Hugging Face Hub** (onnx-community `*-ONNX` repos) and cached locally. See **`apps/pwa-webapp/models/README.md`**.
 - **Download UX:** Desktop PWA shows progress **bottom-right under + FAB**; **installed mobile PWA** and **RN** use a **blocking** progress modal until the model is cached; **mobile web** can skip with **Not now**.
-- **Host priority (PWA):** Supabase public bucket → same-origin `/models/` → Hugging Face fallback.
-- **Operator scripts:** `npm run models:download`, `models:upload:supabase`, `models:verify` (local or remote). Local weight files are **gitignored**; only `manifest.json` is committed.
+- **Host priority (PWA):** Hugging Face only.
+- **Operator scripts:** `npm run models:download`, `models:verify`. Supabase upload is deprecated/disabled.
 
 ### v1.70.3 documentation sync (PWA logs & settings)
 

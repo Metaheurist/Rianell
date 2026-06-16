@@ -7,7 +7,7 @@
 -- Run in: Supabase Dashboard → SQL Editor, or: psql $DATABASE_URL -f supabase/Schema.sql
 --
 -- Includes Row Level Security (RLS) policies. The browser embeds the anon key; security depends on RLS.
--- Also creates public Storage bucket `llm-models` for on-device LLM ONNX weights (upload via npm run models:upload:supabase).
+-- NOTE: On-device LLM weights are HF-only (no Supabase Storage bucket required).
 
 BEGIN;
 
@@ -199,28 +199,5 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM anon;
 
 -- App uses PostgREST only; drop pg_graphql to avoid schema introspection (lints 0026/0027).
 DROP EXTENSION IF EXISTS pg_graphql CASCADE;
-
--- ---------------------------------------------------------------------------
--- Storage: public-read bucket for on-device LLM ONNX weights (~3.5 GB mirror).
--- Upload: npm run models:upload:supabase (SUPABASE_SERVICE_ROLE_KEY in security/.env).
--- Large ONNX files are split into 47 MB .partNNN chunks (Supabase free tier 50 MB/object limit).
--- Object path: models/onnx-community/.../resolve/main/... or .../file.onnx.part000
--- Safe to re-run: ON CONFLICT / DROP POLICY IF EXISTS.
--- ---------------------------------------------------------------------------
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES (
-  'llm-models',
-  'llm-models',
-  true,
-  5242880000,
-  ARRAY['application/json', 'application/octet-stream', 'text/plain']
-)
-ON CONFLICT (id) DO UPDATE SET
-  public = EXCLUDED.public,
-  file_size_limit = EXCLUDED.file_size_limit;
-
--- No SELECT policy on storage.objects — public bucket serves direct object URLs only
--- (/storage/v1/object/public/llm-models/…). A broad SELECT would let anyone list the bucket.
--- Uploads use service role only (no anon/authenticated INSERT policy).
 
 COMMIT;

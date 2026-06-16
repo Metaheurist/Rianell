@@ -31,8 +31,6 @@
     "JSON parse/stringify",
     "DOM fragment build",
     "Using saved result",
-    "SmolLM2 360M",
-    "Llama 3.2 1B"
   ],
   "patterns": [
     "^Rianell launch error",

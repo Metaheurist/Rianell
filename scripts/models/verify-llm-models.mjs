@@ -104,10 +104,10 @@ async function main() {
 
   const missing = missingLocal + missingRemote;
   if (missing) {
-    console.error(`[verify-llm-models] ${missing} issue(s) — run npm run models:download or models:upload:supabase`);
+    console.error(`[verify-llm-models] ${missing} issue(s) — run npm run models:download`);
     process.exit(1);
   }
-  console.log('[verify-llm-models] OK — manifest verified (local and/or Supabase)');
+  console.log('[verify-llm-models] OK — manifest verified (local and/or remote checks)');
 }
 
 main().catch((err) => {

@@ -1,17 +1,12 @@
 #!/usr/bin/env node
 /**
- * Upload mirrored LLM weights to Supabase Storage with chunking for free-tier limits (50 MB/object).
+ * DEPRECATED: Supabase-hosted ONNX weights are no longer used (HF-only runtime).
  *
- * Prerequisites:
- *   1. Apply supabase/Schema.sql (storage bucket section)
- *   2. npm run models:download  (local files under apps/pwa-webapp/models/)
- *   3. Credentials in security/.env or env: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
- *
- * Usage:
- *   npm run models:upload:supabase
- *   npm run models:upload:supabase -- --model smollm
- *   npm run models:upload:supabase -- --purge-local   # delete local weights after upload
+ * This script is intentionally disabled to prevent reintroducing Supabase model hosting.
  */
+console.error('[models] DEPRECATED: HF-only model download. Supabase upload is disabled.');
+process.exit(1);
+
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -30,7 +25,7 @@ const MANIFEST_PATH = path.join(MODELS_ROOT, 'manifest.json');
 const DEFAULT_BUCKET = 'llm-models';
 
 function parseArgs(argv) {
-  const out = { model: 'all', bucket: DEFAULT_BUCKET, purgeLocal: false, force: false };
+  const out = { model: 'all', bucket: DEFAULT_BUCKET, purgeLocal: false, force: false, opaqueChunks: false };
   for (let i = 2; i < argv.length; i += 1) {
     if (argv[i] === '--model' && argv[i + 1]) {
       out.model = String(argv[i + 1]).toLowerCase();
@@ -42,6 +37,8 @@ function parseArgs(argv) {
       out.purgeLocal = true;
     } else if (argv[i] === '--force') {
       out.force = true;
+    } else if (argv[i] === '--opaque-chunks') {
+      out.opaqueChunks = true;
     }
   }
   return out;
@@ -113,7 +110,7 @@ async function uploadFile(client, bucket, objectPath, localPath) {
   return uploadBuffer(client, bucket, objectPath, buffer);
 }
 
-async function uploadLogicalFile(client, bucket, modelId, revision, logicalPath, publicBase, chunkByteLimit, force) {
+async function uploadLogicalFile(client, bucket, modelId, revision, logicalPath, publicBase, chunkByteLimit, force, opaqueChunks, packIndex) {
   const local = localModelPath(modelId, revision, logicalPath);
   if (!fs.existsSync(local)) {
     throw new Error(`Missing local file ${local}`);
@@ -140,7 +137,7 @@ async function uploadLogicalFile(client, bucket, modelId, revision, logicalPath,
   const fd = fs.openSync(local, 'r');
   try {
     for (const part of plan.chunks) {
-      const chunkRel = chunkPartPath(logicalPath, part.index);
+      const chunkRel = chunkPartPath(logicalPath, part.index, opaqueChunks ? { opaque: true, packIndex } : {});
       const chunkObjectPath = storagePath(modelId, revision, chunkRel);
       chunkRelPaths.push(chunkRel);
 
@@ -239,7 +236,9 @@ async function main() {
         entry.path,
         publicBase,
         DEFAULT_CHUNK_BYTE_LIMIT,
-        args.force
+        args.force,
+        args.opaqueChunks,
+        uploadedEntries.filter((e) => e.chunks && e.chunks.length).length
       );
       uploadedEntries.push(result);
     }

@@ -1,8 +1,11 @@
 /** Supabase free tier object limit is 50 MB — stay under with a safety margin. */
 export const DEFAULT_CHUNK_BYTE_LIMIT = 47 * 1024 * 1024;
 
-export function chunkPartPath(logicalPath, index) {
+export function chunkPartPath(logicalPath, index, options = {}) {
   const n = String(index).padStart(3, '0');
+  if (options.opaque && options.packIndex != null) {
+    return `parts/p${options.packIndex}/c${n}.bin`;
+  }
   return `${logicalPath}.part${n}`;
 }
 

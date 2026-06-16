@@ -54,6 +54,9 @@
     "verify:migration:release": "node scripts/verify/migration-release.mjs",
     "verify:migration": "node scripts/verify/migration-complete.mjs",
     "migrate:deploy-observe": "node scripts/ci/migration-deploy-observe.mjs",
+    "deploy:probe-live": "node scripts/ci/deploy-probe-loop.mjs",
+    "deploy:probe-llm-live": "node scripts/ci/probe-llm-download-live.mjs",
+    "deploy:hf-rollout-loop": "node scripts/ci/hf-rollout-deploy-loop.mjs",
     "turbo:build": "npx turbo run build",
     "turbo:typecheck": "npx turbo run typecheck"
   },

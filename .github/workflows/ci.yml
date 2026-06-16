@@ -807,6 +807,41 @@ jobs:
         if: failure()
         uses: ./.github/actions/cancel-workflow-on-failure
 
+  audit-llm-download-live:
+    name: "3 · Live LLM download (rianell.com / Cloudflare)"
+    needs: [deploy-pages, audit-boot-post-deploy]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/setup-node-ci
+
+      - uses: ./.github/actions/install-playwright-chromium
+
+      - name: Wait for live deploy HTML
+        env:
+          VERIFY_URLS: https://rianell.com/
+          VERIFY_ATTEMPTS: "12"
+          VERIFY_DELAY_MS: "30000"
+        run: node scripts/audit/verify-deploy-html.mjs
+
+      - name: Live boot probe (Cloudflare)
+        env:
+          PROBE_URL: https://rianell.com/
+        run: node scripts/ci/deploy-probe-loop.mjs
+
+      - name: Live HF model download probe (Cloudflare)
+        env:
+          PROBE_URL: https://rianell.com/
+          PROBE_DOWNLOAD_TIMEOUT_MS: "900000"
+          PROBE_TIER: "1"
+        run: node scripts/ci/probe-llm-download-live.mjs
+
   # ═══════════════════════════════════════════════════════════════════════════
   # Phase 4 — Bot commits, release, live checks
   # ═══════════════════════════════════════════════════════════════════════════

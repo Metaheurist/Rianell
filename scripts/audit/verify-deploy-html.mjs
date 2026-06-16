@@ -6,6 +6,12 @@
 import { chromium } from 'playwright';
 
 const pattern = /app\.[a-f0-9]+\.min\.js/;
+const preloadRe = /<link\s+[^>]*rel="preload"[^>]*as="script"[^>]*href="([^"]*app\.[a-f0-9]+\.min\.js)"[^>]*>/i;
+const scriptRe = /<script\s+[^>]*src="([^"]*app\.[a-f0-9]+\.min\.js)"[^>]*><\/script>/i;
+
+function hasAnonymousCrossorigin(tagHtml) {
+  return /\scrossorigin="anonymous"/i.test(tagHtml);
+}
 
 function urlsToCheck() {
   if (process.env.PROBE_URL) {
@@ -33,6 +39,12 @@ try {
         if (status > 0 && status < 400) {
           const html = await page.content();
           if (pattern.test(html)) {
+            const preload = html.match(preloadRe);
+            const script = html.match(scriptRe);
+            if (!preload || !script) throw new Error('Deploy HTML missing preload or script tag for app bundle');
+            if (!hasAnonymousCrossorigin(preload[0]) || !hasAnonymousCrossorigin(script[0])) {
+              throw new Error('Deploy HTML missing crossorigin=\"anonymous\" on preload/script app bundle tags');
+            }
             console.log(`Deploy HTML contains fingerprinted app bundle (${url})`);
             process.exit(0);
           }

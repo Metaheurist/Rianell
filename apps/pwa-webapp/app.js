@@ -15631,6 +15631,65 @@ function ensureSummaryLlmLoadedForSettings() {
   return Promise.resolve();
 }
 
+var __rianellLlmStoragePollId = null;
+var __rianellLlmStorageBaseline = null;
+
+function formatLlmStorageHintMb(bytes) {
+  var mb = Math.max(0, Number(bytes) || 0) / (1024 * 1024);
+  if (mb < 1) return '<1';
+  return String(Math.round(mb));
+}
+
+function updateLlmStorageHint() {
+  var llmStorageHint = document.getElementById('llmModelStorageHint');
+  if (!llmStorageHint || typeof window.getAiModelStorageEstimate !== 'function') return;
+
+  var modelStatus = (typeof window.getAiModelStatus === 'function') ? window.getAiModelStatus() : null;
+  var downloading = !!(modelStatus && modelStatus.state === 'downloading');
+  var tierInfo = (typeof window.getResolvedLlmTierInfo === 'function') ? window.getResolvedLlmTierInfo() : null;
+
+  window.getAiModelStorageEstimate().then(function (est) {
+    if (!llmStorageHint) return;
+    var usage = est && est.usage ? est.usage : 0;
+    if (downloading && tierInfo && tierInfo.approxBytes) {
+      var baseline = __rianellLlmStorageBaseline != null ? __rianellLlmStorageBaseline : usage;
+      var pct = modelStatus && typeof modelStatus.pct === 'number' ? modelStatus.pct : 0;
+      var estimated = baseline + Math.round((tierInfo.approxBytes * pct) / 100);
+      usage = Math.max(usage, estimated);
+    }
+    if (!usage && !downloading) {
+      llmStorageHint.textContent = '';
+      return;
+    }
+    llmStorageHint.textContent = tUi('common.browser.storage.used.incl.ai.model') + formatLlmStorageHintMb(usage) + ' MB';
+  }).catch(function () {
+    if (llmStorageHint) llmStorageHint.textContent = '';
+  });
+}
+
+function startLlmStoragePoll() {
+  if (__rianellLlmStoragePollId) return;
+  if (typeof window.getAiModelStorageEstimate === 'function') {
+    window.getAiModelStorageEstimate().then(function (est) {
+      __rianellLlmStorageBaseline = est && est.usage ? est.usage : 0;
+      updateLlmStorageHint();
+    }).catch(function () {
+      __rianellLlmStorageBaseline = 0;
+      updateLlmStorageHint();
+    });
+  }
+  __rianellLlmStoragePollId = setInterval(updateLlmStorageHint, 750);
+}
+
+function stopLlmStoragePoll() {
+  if (__rianellLlmStoragePollId) {
+    clearInterval(__rianellLlmStoragePollId);
+    __rianellLlmStoragePollId = null;
+  }
+  __rianellLlmStorageBaseline = null;
+  updateLlmStorageHint();
+}
+
 function refreshLlmModelSettingsHints() {
   var llmRecommendationHint = document.getElementById('llmModelRecommendationHint');
   var llmStorageHint = document.getElementById('llmModelStorageHint');
@@ -15654,8 +15713,8 @@ function refreshLlmModelSettingsHints() {
       var tierNum = size.replace('tier', '');
       tierText = 'Recommended: Tier ' + (tierNum || size);
     }
-    if (info && info.label) {
-      tierText += ' · ' + info.label + ' (' + info.size + ')';
+    if (info && info.size) {
+      tierText += ' (' + info.size + ')';
     }
     llmRecommendationHint.textContent = tierText;
   }
@@ -15674,17 +15733,16 @@ function refreshLlmModelSettingsHints() {
     var statusLabel = 'Not downloaded';
     if (modelStatus.state === 'downloading') {
       statusLabel = 'Downloading… ' + (modelStatus.pct || 0) + '%';
-      if (modelStatus.label) statusLabel += ' (' + modelStatus.label + ')';
     } else if (modelStatus.state === 'ready') {
       statusLabel = modelStatus.inMemory
         ? 'Ready · loaded in memory'
         : 'Ready · cached on device';
-      if (modelStatus.label) statusLabel += ' (' + modelStatus.label + ')';
+      if (modelStatus.tierLabel) statusLabel += ' · ' + modelStatus.tierLabel;
     } else if (modelStatus.state === 'failed') {
       statusLabel = 'Download failed';
       if (modelStatus.error) statusLabel += ' — ' + modelStatus.error;
-    } else if (modelStatus.label) {
-      statusLabel = 'Not downloaded · ' + modelStatus.label + ' (' + modelStatus.size + ')';
+    } else if (modelStatus.tierLabel) {
+      statusLabel = 'Not downloaded · ' + modelStatus.tierLabel + ' (' + modelStatus.size + ')';
     }
     statusText.textContent = statusLabel;
     statusText.className = 'llm-model-status llm-model-status--' + modelStatus.state;
@@ -15708,17 +15766,12 @@ function refreshLlmModelSettingsHints() {
   }
 
   if (llmStorageHint && typeof window.getAiModelStorageEstimate === 'function') {
-    window.getAiModelStorageEstimate().then(function (est) {
-      if (!llmStorageHint) return;
-      if (!est || !est.usage) {
-        llmStorageHint.textContent = '';
-        return;
-      }
-      var mb = (est.usage / (1024 * 1024)).toFixed(0);
-      llmStorageHint.textContent = tUi('common.browser.storage.used.incl.ai.model') + mb + ' MB';
-    }).catch(function () {
-      if (llmStorageHint) llmStorageHint.textContent = '';
-    });
+    var downloadingNow = !!(modelStatus && modelStatus.state === 'downloading');
+    if (downloadingNow) {
+      startLlmStoragePoll();
+    } else {
+      stopLlmStoragePoll();
+    }
   }
 }
 
@@ -15738,12 +15791,12 @@ function promptAiModelDownloadConsent(modelId) {
     } else if (typeof window.setAiModelDownloadUiMode === 'function') {
       window.setAiModelDownloadUiMode();
     }
-    var info = (typeof window.getResolvedLlmModelInfo === 'function')
-      ? window.getResolvedLlmModelInfo()
-      : { label: tUi('common.on.device.ai.model'), size: modelId === 'onnx-community/SmolLM2-360M-Instruct' ? '~200 MB' : '~670 MB' };
+    var info = (typeof window.getResolvedLlmTierInfo === 'function')
+      ? window.getResolvedLlmTierInfo()
+      : { tierLabel: 'Tier 3', size: '~670 MB' };
     var msg = document.getElementById('aiModelDownloadMessage');
     if (msg) {
-      msg.textContent = tUi('common.download') + ' ' + info.label + ' (' + info.size + ')? Wi-Fi recommended. The model stays on this device and enables AI summaries, note suggestions, and daily quotes.';
+      msg.textContent = 'Download on-device AI package (' + info.tierLabel + ', ' + info.size + ')? Wi-Fi recommended. The package stays on this device and enables AI summaries, note suggestions, and daily quotes.';
     }
     __rianellAiDownloadConsentResolve = resolve;
     overlay.style.display = 'flex';
@@ -15841,8 +15894,14 @@ async function removeDownloadedAiModel() {
 if (typeof window !== 'undefined') window.removeDownloadedAiModel = removeDownloadedAiModel;
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('rianell-llm-download-progress', function () {
+  window.addEventListener('rianell-llm-download-progress', function (event) {
     refreshLlmModelSettingsHints();
+    var detail = event && event.detail;
+    if (detail && detail.active) {
+      startLlmStoragePoll();
+    } else if (!detail || !detail.active) {
+      stopLlmStoragePoll();
+    }
   });
 }
 
@@ -18424,6 +18483,10 @@ function scheduleDashboardMotdWithLlm(fallbackTitle) {
   var deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
     ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
   if (deviceOpts.deferAI) return;
+  try {
+    var ms = (typeof window.getAiModelStatus === 'function') ? window.getAiModelStatus() : null;
+    if (ms && ms.state === 'downloading') return;
+  } catch (e) {}
   // Curated motd.json quotes are the primary MOTD; the on-device LLM only
   // occasionally replaces them (small models can produce off-topic lines).
   // One roll per page load (stable across repeated calls in the same session).
