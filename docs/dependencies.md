@@ -35,6 +35,7 @@ The PWA under `apps/pwa-webapp/` has **no** `package.json`; it is bundled with *
 | `esbuild` | 0.28.1 |
 | `js-yaml` | 4.2.0 |
 | `sharp` | ^0.33.5 |
+| `turbo` | ^2.9.18 |
 
 **`overrides`** — 28 pin(s): `@babel/core`, `@expo/plist → @xmldom/xmldom`, `@istanbuljs/load-nyc-config → js-yaml`, `@rianell/benchmark-runner → lighthouse → @sentry/node`, `@tootallnate/once`, `@trapezedev/project → @xmldom/xmldom`, `@xmldom/xmldom`, `basic-ftp`, `brace-expansion`, `esbuild`, `handlebars`, `http-proxy-agent`, `http-proxy-agent@5.0.0`, `ip-address`, `js-yaml`, `mergexml → @xmldom/xmldom`, `minimatch`, `plist → @xmldom/xmldom`, `postcss`, `react-devtools-core → shell-quote`, `replace → minimatch`, `semver`, `send`, `shell-quote`, `tar`, `tmp`, `uuid`, `ws`. See the full `overrides` block in [`package.json`](../package.json).
 
@@ -176,7 +177,7 @@ These are installed or invoked in workflows **to build or test**; they are not n
 | `pip install pyinstaller` | Build Windows server `.exe` |
 | `pip install pyarmor` | Optional obfuscation step for server sources in CI (see workflow) |
 
-### [`.github/workflows/archive/expo-native-build.yml`](../.github/workflows/archive/expo-native-build.yml)
+### [`.github/workflows/expo-native-build.yml`](../.github/workflows/expo-native-build.yml)
 
 | Tool | Role |
 |------|------|
