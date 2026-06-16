@@ -79,7 +79,7 @@ flowchart TB
 
 ## i18n pipeline
 
-Canonical strings: `i18n-packs/` → `scripts/sync-i18n-assets.mjs` → PWA, RN, and `packages/shared`.
+Canonical strings: `i18n-packs/` → `scripts/i18n/sync-i18n-assets.mjs` → PWA, RN, and `packages/shared`.
 
 Verify before PR: `npm run verify:i18n`.
 

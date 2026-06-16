@@ -18,10 +18,10 @@ Official builds are produced by GitHub Actions and published with each release. 
 ## Where to download
 
 1. **Releases page** — [github.com/Metaheurist/Rianell/releases](https://github.com/Metaheurist/Rianell/releases) (attached assets).
-2. **App build folder** in the repo (CI-updated `latest.json` pointers):
-   - Android: `App build/RNCLI-Android/` — see `latest.json` for current APK filename
-   - iOS: `App build/iOS/` — see `latest.json` for current zip
-   - Server: `App build/Server/` — `rianell-server-x64.exe`, `rianell-server-x86.exe`
+2. **artifacts folder** in the repo (CI-updated `latest.json` pointers):
+   - Android: `artifacts/RNCLI-Android/` — see `latest.json` for current APK filename
+   - iOS: `artifacts/iOS/` — see `latest.json` for current zip
+   - Server: `artifacts/Server/` — `rianell-server-x64.exe`, `rianell-server-x86.exe`
 
 Check the root [README](https://github.com/Metaheurist/Rianell/blob/main/README.md) CI build table for the latest build numbers.
 

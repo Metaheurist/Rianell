@@ -1,0 +1,10 @@
+{
+  "name": "@rianell/pwa-webapp",
+  "private": true,
+  "version": "1.90.0",
+  "scripts": {
+    "build": "node build-site.mjs",
+    "build:apk": "node build-site.mjs --skip-trace",
+    "typecheck": "node --check app.js"
+  }
+}

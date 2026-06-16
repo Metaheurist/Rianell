@@ -57,7 +57,7 @@ Rianell uses **one** Supabase project for all users. See [single-project-residen
 1. Rotate the project's anon/publishable key in the Supabase dashboard.
 2. Update GitHub Actions secrets `SUPABASE_URL` and `SUPABASE_ANON_KEY` (and matching RN/PWA build env).
 3. Redeploy PWA and rebuild RN binaries.
-4. Verify schema parity: `node scripts/verify-supabase-schema-parity.mjs`.
+4. Verify schema parity: `node scripts/verify/verify-supabase-schema-parity.mjs`.
 5. Revoke the previous anon key after traffic confirms the new deploy.
 
 **Legacy (deprecated):** Dual EU/US projects and `residency-config.json` were removed in v1.52 — see [multi-residency.md](../docs/privacy/multi-residency.md).

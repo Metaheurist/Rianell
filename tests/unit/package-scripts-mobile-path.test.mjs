@@ -4,10 +4,9 @@ import fs from 'node:fs';
 
 const pkg = JSON.parse(fs.readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
 
-test('bundle:mobile:prod syncs packs before expo export', () => {
+test('bundle:mobile:prod uses run-mobile-export orchestrator', () => {
   const script = String(pkg?.scripts?.['bundle:mobile:prod'] || '');
-  assert.match(script, /sync-i18n-assets/);
-  assert.match(script, /apps\/rn-app/);
+  assert.match(script, /run-mobile-export\.mjs/);
 });
 
 test('dev script targets RN Expo, not Capacitor', () => {
@@ -16,12 +15,9 @@ test('dev script targets RN Expo, not Capacitor', () => {
   assert.doesNotMatch(dev, /capacitor-app/);
 });
 
-test('build:web syncs tokens before vendor and site build', () => {
+test('build:web uses run-web orchestrator', () => {
   const buildWeb = String(pkg?.scripts?.['build:web'] || '');
-  assert.match(buildWeb, /sync-tokens-to-pwa/);
-  assert.match(buildWeb, /sync-i18n-assets/);
-  assert.match(buildWeb, /build-pwa-vendor/);
-  assert.match(buildWeb, /build-site\.mjs/);
+  assert.match(buildWeb, /run-web\.mjs/);
 });
 
 test('package-lock has no capacitor-app workspace entry', () => {

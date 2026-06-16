@@ -2,6 +2,8 @@
 
 ## 🗂️ Project Structure
 
+**Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
+
 ### v1.89.2 documentation sync (CI caching and post-deploy audit)
 
 - **CI:** Dependency caches (npm, pip, Playwright, Gradle, security-tool binaries); composite actions under `.github/actions/`; **`pages-site-probe`** artifact for post-deploy boot audit on the exact GitHub Pages tree.
@@ -95,7 +97,7 @@
 
 ### v1.69.0 documentation sync (Tier A generate pipeline)
 
-- **Generate:** `scripts/generate-locale-overrides.mjs` — en-GB + curated overrides + rule-based MT + `tier-a-exact-overrides.mjs`.
+- **Generate:** `scripts/i18n/generate-locale-overrides.mjs` — en-GB + curated overrides + rule-based MT + `tier-a-exact-overrides.mjs`.
 - **Maintainer:** `merge-tier-a-overrides-from-packs.mjs`, `build-tier-a-exact-overrides.mjs --locale=pt-BR`.
 - **Gitleaks (v1.68.1):** `.gitleaks.toml` allowlists `i18n-packs/` and `tier-a-exact-overrides.mjs`.
 
@@ -107,7 +109,7 @@
 
 ### v1.65.0–v1.67.0 documentation sync (LC-16–LC-18)
 
-- **Tier A MT (v1.65):** `scripts/batch-mt-tier-a.mjs`, `apply-tier-a-exact-overrides.mjs`, `verify-translation-coverage.mjs --strict`.
+- **Tier A MT (v1.65):** `scripts/i18n/batch-mt-tier-a.mjs`, `apply-tier-a-exact-overrides.mjs`, `verify-translation-coverage.mjs --strict`.
 - **Prompt/MOTD (v1.66):** `translate-prompt-packs.mjs`, `translate-motd-packs.mjs` → canonical `i18n-packs/` then `sync-i18n-assets.mjs`.
 - **RTL (v1.67):** RN `isRtl` row/chevron mirroring in `LogWizardScreen.tsx`, `SettingsScreen.tsx`.
 
@@ -118,10 +120,10 @@
 
 ### v1.60.0 documentation sync (full UI localization)
 
-- **i18n paths:** `i18n-packs/` — `locale-packs/v1/` (UI + policy strings), `prompt-packs/v1/` (LLM templates), `motd-packs/v1/` (offline quotes), `policy-packs/v1.json`; synced by **`scripts/sync-i18n-assets.mjs`**.
+- **i18n paths:** `i18n-packs/` — `locale-packs/v1/` (UI + policy strings), `prompt-packs/v1/` (LLM templates), `motd-packs/v1/` (offline quotes), `policy-packs/v1.json`; synced by **`scripts/i18n/sync-i18n-assets.mjs`**.
 - **Shared runtime:** `packages/shared/src/i18n/` — `translate.mjs`, `resolveLocale.mjs`, `format.mjs`, `rtl.mjs`, `promptPack.mjs`, generated `promptPackData.mjs`.
 - **PWA:** `apps/pwa-webapp/i18n-pwa.js` → `window.RianellI18n`; **RN:** `apps/rn-app/src/i18n/I18nProvider.tsx` → `useT()`.
-- **Verify:** `scripts/verify-locale-packs.mjs`, `verify-prompt-packs.mjs`, `audit-hardcoded-strings.mjs`.
+- **Verify:** `scripts/verify/verify-locale-packs.mjs`, `verify-prompt-packs.mjs`, `audit-hardcoded-strings.mjs`.
 - **Key naming:** UI strings use `{namespace}.{semantic.slug}` in `i18n-packs/locale-packs/v1/en-GB.json` (e.g. `wizard.saveEntry`, `settings.privacy.title`). Namespaces follow rollout order: `common`, `nav`, `gate`, `consent`, `settings`, `wizard`, `logs`, `modal`, `toast`, `charts`, `ai`, `export`, `tutorial`, `units`, `policy`. Slugs are lowercase dot-separated words derived from English copy; intentional English (brand names, medical codes) is listed in `scripts/.audit/i18n-allowlist.json`.
 
 ### v1.53.1 documentation sync (settings/privacy fixes)
@@ -149,7 +151,7 @@
 
 ### v1.46.11 documentation sync (RN README build vs workflow run)
 
-- **CI:** README **Alpha RN** rows use the **sequential RN build** from **`rn-build-version`** (stored in **`App build/RNCLI-Android/latest.json`**). **Server** and **Web / PWA** rows still follow **`GITHUB_RUN_NUMBER`**. Metadata-only fallback commits keep JSON in sync when large binaries cannot be pushed.
+- **CI:** README **Alpha RN** rows use the **sequential RN build** from **`rn-build-version`** (stored in **`artifacts/RNCLI-Android/latest.json`**). **Server** and **Web / PWA** rows still follow **`GITHUB_RUN_NUMBER`**. Metadata-only fallback commits keep JSON in sync when large binaries cannot be pushed.
 - **Next-phase plan:** `docs/next-phase-development-plan.md` is a short status note (no active roadmap items).
 
 ### v1.46.10 documentation sync (CI RN build numbers)
@@ -202,7 +204,7 @@ Rianell/
 ├── scripts/
 ├── docs/
 ├── .github/workflows/
-├── App build/              # CI artifacts + latest.json (download links)
+├── artifacts/              # CI artifacts + latest.json (download links)
 ├── server/                 # Python HTTP server (serves apps/pwa-webapp by default)
 ├── security/
 └── logs/

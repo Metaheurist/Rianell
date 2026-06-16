@@ -1,0 +1,17 @@
+{
+  "name": "@rianell/build-tools",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./repo-paths": "./src/repo-paths.mjs",
+    "./probe-utils": "./src/probe-utils.mjs",
+    "./i18n-glossary": "./src/i18n-glossary.mjs",
+    "./machine-translate": "./src/machine-translate.mjs",
+    "./rule-based-mt": "./src/rule-based-mt.mjs",
+    "./tier-a-exact-overrides": "./src/tier-a-exact-overrides.mjs",
+    "./lc20-mixed-fixes": "./src/lc20-mixed-fixes.mjs",
+    "./pl-pl-exact-overrides": "./src/pl-pl-exact-overrides.mjs"
+  }
+}

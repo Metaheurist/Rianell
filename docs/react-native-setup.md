@@ -1,6 +1,6 @@
 # React Native (Expo) setup
 
-Primary mobile target is **`apps/rn-app`** (Expo SDK 55, React Native 0.83). CI builds debug APK and iOS Xcode project zips under **`App build/RNCLI-Android/`** and **`App build/iOS/`**.
+Primary mobile target is **`apps/rn-app`** (Expo SDK 55, React Native 0.83). CI builds debug APK and iOS Xcode project zips under **`artifacts/RNCLI-Android/`** and **`artifacts/iOS/`**.
 
 ## Prerequisites
 

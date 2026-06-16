@@ -41,7 +41,7 @@ if (-not $NoCompile) {
 
     # Mirror the CI deploy-pages preparation path:
     # 1) Copy apps/pwa-webapp/* to site
-    # 2) Copy App build/* if present
+    # 2) Copy artifacts/* if present
     # 3) npm ci
     # 4) node apps/pwa-webapp/build-site.mjs --site site (fingerprints app + styles; patches index.html)
     if (Test-Path -LiteralPath $LocalSiteDir) {
@@ -50,9 +50,9 @@ if (-not $NoCompile) {
     New-Item -ItemType Directory -Path $LocalSiteDir | Out-Null
     Copy-Item -Path (Join-Path $ProjectRoot "apps\pwa-webapp\*") -Destination $LocalSiteDir -Recurse -Force
 
-    $AppBuildDir = Join-Path $ProjectRoot "App build"
+    $AppBuildDir = Join-Path $ProjectRoot "artifacts"
     if (Test-Path -LiteralPath $AppBuildDir) {
-        $SiteAppBuildDir = Join-Path $LocalSiteDir "App build"
+        $SiteAppBuildDir = Join-Path $LocalSiteDir "artifacts"
         New-Item -ItemType Directory -Path $SiteAppBuildDir -Force | Out-Null
         Copy-Item -Path (Join-Path $AppBuildDir "*") -Destination $SiteAppBuildDir -Recurse -Force
     }

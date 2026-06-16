@@ -23,7 +23,7 @@ paths = [
   '''^logs/''',
   '''^apps/pwa-webapp/\.trace-build/''',
   '''^\.firecrawl/''',
-  '''^App build/''',
+  '''^artifacts/''',
   '''^scripts/lib/tier-a-exact-overrides\.mjs$''',
   '''^i18n-packs/''',
   '''^apps/pwa-webapp/i18n-packs/''',

@@ -471,18 +471,18 @@ flowchart LR
 ### Install and run options
 - **React Native (`apps/rn-app`)**: Settings intentionally focuses on **in-app data management** (JSON export/import). Install/download actions are web/PWA entry-point UX and are not shown inside RN builds.
 - **PWA / Install web app**: Add to home screen from Settings (globe icon); runs standalone and works offline. Shown in the UI with a **Beta** tag (same channel as the Android APK).
-- **Install on Android**: Download APK from Settings (or Install modal); CI builds debug APK on push and commits to `App build/Android/` for same-origin download links. Shown with a **Beta** tag.
+- **Install on Android**: Download APK from Settings (or Install modal); CI builds debug APK on push and commits to `artifacts/Android/` for same-origin download links. Shown with a **Beta** tag.
 - **Install on iOS (device)**: Add to Home Screen from Safari (Settings or Install modal) - **Beta** (PWA install path).
-- **iOS native build (Xcode zip / optional OTA)**: Download the zip from Settings when offered; this path is **Alpha** in the UI. Build metadata lives in `App build/iOS/latest.json`.
+- **iOS native build (Xcode zip / optional OTA)**: Download the zip from Settings when offered; this path is **Alpha** in the UI. Build metadata lives in `artifacts/iOS/latest.json`.
 
 #### Release channels (Beta vs Alpha) and build numbers
 
 | Channel | Meaning in this app | Where the build number comes from |
 |--------|---------------------|-----------------------------------|
-| **Beta** | Android debug APK, **Install web app** / Add to Home Screen (PWA), and **Install on this iPhone/iPad** (Safari PWA). | **RN CLI:** `App build/RNCLI-Android/latest.json` → `version` for the APK. The Settings UI shows `(build N)` after fetch. |
-| **Alpha** | **iOS native** artifact only: Xcode project zip (and optional one-tap install URL when `installUrl` is set in the manifest). Not the Safari “Add to Home Screen” flow. | **RN CLI:** `App build/iOS/latest.json` and **`App build/RNCLI-Android/latest.json`**. **`version`** is the **sequential RN CLI build** (increments each time CI produces native RN artifacts), **not** the global workflow run number. **Server** and **Web / PWA** rows in the README use **`GITHUB_RUN_NUMBER`**. |
+| **Beta** | Android debug APK, **Install web app** / Add to Home Screen (PWA), and **Install on this iPhone/iPad** (Safari PWA). | **RN CLI:** `artifacts/RNCLI-Android/latest.json` → `version` for the APK. The Settings UI shows `(build N)` after fetch. |
+| **Alpha** | **iOS native** artifact only: Xcode project zip (and optional one-tap install URL when `installUrl` is set in the manifest). Not the Safari “Add to Home Screen” flow. | **RN CLI:** `artifacts/iOS/latest.json` and **`artifacts/RNCLI-Android/latest.json`**. **`version`** is the **sequential RN CLI build** (increments each time CI produces native RN artifacts), **not** the global workflow run number. **Server** and **Web / PWA** rows in the README use **`GITHUB_RUN_NUMBER`**. |
 
-**Build numbers in this README:** The **CI builds** table is **updated automatically** when CI commits **`App build/`** and runs **`scripts/update-readme-build-info.mjs`**.
+**Build numbers in this README:** The **CI builds** table is **updated automatically** when CI commits **`artifacts/`** and runs **`scripts/ci/update-readme-build-info.mjs`**.
 
 The web app reads these manifests at runtime (`apps/pwa-webapp/app.js`, `refreshBuildDownloadLinks`) so the label **(build N)** on install links stays in sync after each CI deploy. **Beta** / **Alpha** pills are fixed labels in the UI: every install/download path except the **iOS native zip/OTA** link is **Beta**; the **iOS native** download is **Alpha**.
 

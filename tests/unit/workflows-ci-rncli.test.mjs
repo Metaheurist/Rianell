@@ -7,7 +7,7 @@ const ciYml = fs.readFileSync(new URL('../../.github/workflows/ci.yml', import.m
 test('CI includes RN CLI native artifact jobs (no EXPO_TOKEN)', () => {
   assert.match(ciYml, /rncli-android-apk:/);
   assert.match(ciYml, /rncli-ios-zip:/);
-  assert.match(ciYml, /# React Native CLI native artifacts \(no EAS \/ no EXPO_TOKEN\)/);
+  assert.match(ciYml, /React Native CLI \(native release artifacts\)/);
 
   // The whole point of these jobs is to avoid token-gated EAS cloud builds.
   // (Mentions in comments are fine; hard dependencies / secret reads are not.)
@@ -24,10 +24,13 @@ test('RN CLI jobs use rn-build-version sequential counter (not workflow run for 
   assert.match(ciYml, /RN_BUILD:\s*\$\{\{\s*needs\.rn-build-version\.outputs\.rn_build\s*\}\}/);
 });
 
-test('commit-app-build large-file fallback commits RN/Server latest.json metadata', () => {
-  assert.match(ciYml, /App build\/RNCLI-Android\/latest\.json/);
-  assert.match(ciYml, /App build\/iOS\/latest\.json/);
-  assert.match(ciYml, /App build\/Server\/latest/);
+test('commit-app-build commits manifest JSON only (Phase 14)', () => {
+  assert.match(ciYml, /Commit artifact manifests to repo/);
+  assert.match(ciYml, /artifacts\/RNCLI-Android\/latest\.json/);
+  assert.match(ciYml, /artifacts\/iOS\/latest\.json/);
+  assert.match(ciYml, /artifacts\/Server\/latest/);
+  assert.match(ciYml, /manifest-only policy/);
+  assert.doesNotMatch(ciYml, /App build\//);
 });
 
 test('RN CLI Android job must not use setup-java cache:gradle before prebuild', () => {
@@ -59,9 +62,9 @@ test('RN jobs source Supabase from shared SUPABASE_* secrets', () => {
   assert.match(ciYml, /SUPABASE_PUBLISHABLE_KEY:\s*\$\{\{\s*secrets\.SUPABASE_ANON_KEY\s*\}\}/);
 });
 
-test('Expo bundle job exports from apps/rn-app and verifies autolinking package', () => {
-  assert.match(ciYml, /Expo export — production bundles[\s\S]*cd apps\/rn-app/m);
-  assert.match(ciYml, /npx expo export --platform android --platform ios --output-dir dist-expo-prod/);
+test('Expo bundle job uses run-mobile-export orchestrator and verifies autolinking package', () => {
+  assert.match(ciYml, /Expo export — production bundles[\s\S]*run-mobile-export\.mjs/m);
+  assert.match(ciYml, /test -d "apps\/rn-app\/dist-expo-prod"/);
   assert.match(ciYml, /npm ls expo-modules-autolinking/);
 });
 

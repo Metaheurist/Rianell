@@ -2,7 +2,7 @@
 
 **Rianell** is a web-based health tracking app (live site **[rianell.com](https://rianell.com/)**). This repository builds the **PWA** (web/GitHub Pages) and **React Native (Expo)** mobile app, with data visualisation, analytics, and optional cloud sync.
 
-**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.89.2** — CI dependency caching, post-deploy Pages-site audit, cancel-on-gate-failure; **v1.89.1** boot i18n and supply-chain; **v1.89.0** incremental boot patch).
+**Latest changes:** **[CHANGELOG.md](docs/CHANGELOG.md)** (current **v1.90.0** — architecture standard, nested scripts, `artifacts/` rename, build-tools workspace; **v1.89.2** CI caching and post-deploy audit).
 
 ### Here's what we plan next
 
@@ -44,7 +44,7 @@
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Server** EXE (x86) | **312** |
 | ![Beta](https://img.shields.io/badge/Beta-orange?style=flat-square&logoColor=white) **Web / PWA** (GitHub Pages deploy) | **333** |
 
-Latest: [`App build/RNCLI-Android/app-debug-beta.apk`](App%20build/RNCLI-Android/latest.json) · [`App build/iOS/Health-Tracker-ios-alpha-build-227.zip`](App%20build/iOS/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest.json) · [`App build/Server/rianell-server-x64.exe`](App%20build/Server/latest-x64.json) · [`App build/Server/rianell-server-x86.exe`](App%20build/Server/latest-x86.json) · [Workflow #333](https://github.com/Metaheurist/Rianell/actions/runs/27582159029) · `8c88228`
+Latest: [`artifacts/RNCLI-Android/app-debug-beta.apk`](artifacts/RNCLI-Android/latest.json) · [`artifacts/iOS/Health-Tracker-ios-alpha-build-227.zip`](artifacts/iOS/latest.json) · [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest.json) · [`artifacts/Server/rianell-server-x64.exe`](artifacts/Server/latest-x64.json) · [`artifacts/Server/rianell-server-x86.exe`](artifacts/Server/latest-x86.json) · [Workflow #333](https://github.com/Metaheurist/Rianell/actions/runs/27582159029) · `8c88228`
 
 <!-- RIANELL_BUILD_INFO_END -->
 

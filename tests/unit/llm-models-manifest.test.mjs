@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** @test scripts/verify-llm-models.mjs manifest shape */
+/** @test scripts/models/verify-llm-models.mjs manifest shape */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';

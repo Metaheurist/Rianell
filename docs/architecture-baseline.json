@@ -1,0 +1,31 @@
+{
+  "capturedAt": "2026-06-14",
+  "purpose": "Pre-migration inventory for Phase 18 diff",
+  "topLevelDirs": [
+    "apps",
+    "packages",
+    "scripts",
+    "docs",
+    "wiki",
+    "App build",
+    "server",
+    "i18n-packs",
+    "benchmarks",
+    "supabase",
+    "security",
+    "tests",
+    ".github"
+  ],
+  "scriptsRootMjsCount": 65,
+  "workspaces": [
+    "apps/rn-app",
+    "packages/*",
+    "benchmarks"
+  ],
+  "emptyPackageStubs": [
+    "packages/api-client",
+    "packages/design-tokens",
+    "packages/types"
+  ],
+  "artifactsDirBeforeRename": "App build"
+}

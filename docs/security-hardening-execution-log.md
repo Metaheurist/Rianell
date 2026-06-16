@@ -76,8 +76,8 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 
 | Command | Expected |
 |---------|----------|
-| `node scripts/verify-policy-packs.mjs` | pass |
-| `node scripts/verify-privacy-docs.mjs` | pass |
+| `node scripts/verify/verify-policy-packs.mjs` | pass |
+| `node scripts/verify/verify-privacy-docs.mjs` | pass |
 | `npm run test:unit` | pass |
 | `npm run test:mobile` | pass |
 | `npm run parity:inventory:check` | pass |
