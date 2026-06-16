@@ -45,23 +45,23 @@ jobs:
         run: ./gitleaks detect --source . --config .gitleaks.toml --no-git --verbose --exit-code 1 --redact
 
       - name: Verify no service_role in client sources
-        run: node scripts/verify-no-service-role-in-clients.mjs
+        run: node scripts/verify/verify-no-service-role-in-clients.mjs
 
       - name: Verify Supabase RLS baseline SQL (docs)
-        run: node scripts/verify-rls-baseline.mjs
+        run: node scripts/verify/verify-rls-baseline.mjs
 
       - name: Verify privacy documentation
-        run: node scripts/verify-privacy-docs.mjs
+        run: node scripts/verify/verify-privacy-docs.mjs
 
       - name: Verify CSP connect-src
-        run: node scripts/verify-csp-connect-src.mjs
+        run: node scripts/verify/verify-csp-connect-src.mjs
 
       - uses: ./.github/actions/setup-node-ci
 
       - name: Verify security inventory doc (pull requests)
         if: github.event_name == 'pull_request'
         run: |
-          node scripts/generate-security-inventory.mjs
+          node scripts/ci/generate-security-inventory.mjs
           git diff --exit-code docs/security-inventory.md
 
       - name: Vulnerability scan — npm audit (production deps)

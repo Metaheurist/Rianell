@@ -583,14 +583,15 @@ var RianellShared = (() => {
     "nl-NL",
     "pt-PT",
     "ar",
-    "he"
+    "he",
+    "ga"
   ];
   var DEFAULT_LOCALE = "en-GB";
   var DEFAULT_PRIVACY_REGION = "eea_uk";
   function isValidLocaleId(id) {
     if (typeof id !== "string") return false;
     if (SHIPPED_LOCALES.includes(id)) return true;
-    return id === "ar" || id === "he" || id.startsWith("ar-") || id.startsWith("he-");
+    return id === "ar" || id === "he" || id === "ga" || id.startsWith("ar-") || id.startsWith("he-") || id.startsWith("ga-");
   }
   function localeFallbackChain(localeId) {
     const chain = [];
@@ -614,7 +615,8 @@ var RianellShared = (() => {
       "nl-NL": "Nederlands",
       "pt-PT": "Portugu\xEAs (Portugal)",
       ar: "\u0627\u0644\u0639\u0631\u0628\u064A\u0629",
-      he: "\u05E2\u05D1\u05E8\u05D9\u05EA"
+      he: "\u05E2\u05D1\u05E8\u05D9\u05EA",
+      ga: "Gaeilge"
     };
     return labels[localeId] || localeId;
   }
@@ -1136,6 +1138,24 @@ var RianellShared = (() => {
         "context.dataLine": "{dayCount} jour(s) de donn\xE9es.",
         "context.flares": "Pouss\xE9es : {count} jour(s).",
         "context.topStressor": "Facteur de stress principal : {name}{pct}."
+      }
+    },
+    "ga": {
+      "locale": "ga",
+      "label": "Gaeilge",
+      "llmCapability": "ui-only",
+      "strings": {
+        "motd.system": "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence.",
+        "motd.user": "Write one healthy-lifestyle quote.",
+        "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
+        "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
+        "homeQuestion.system": "You answer one specific health-tracking question using only the data provided. Write 3\u20135 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text.",
+        "context.improving": "Improving: {metrics}.",
+        "context.worsening": "Worsening: {metrics}.",
+        "context.stable": "Stable: {metrics}.",
+        "context.dataLine": "{dayCount} day(s) of data.",
+        "context.flares": "Flares: {count} day(s).",
+        "context.topStressor": "Top stressor: {name}{pct}."
       }
     },
     "he": {

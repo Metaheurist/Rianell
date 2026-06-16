@@ -17,37 +17,37 @@ npm run test:mobile
 `verify:i18n` (v1.77.0) runs, in order: `build-content-catalog-keys.mjs` → `generate-locale-overrides.mjs` → `auto-translate-ui-strings.mjs` → `auto-translate-policy-strings.mjs` → `translate-motd-packs.mjs` → `sync-i18n-assets.mjs` → locale/prompt/motd/HTML/audit gates → `verify-translation-coverage.mjs --strict --max-pct=13` → `verify-mixed-language-strings.mjs`.
 
 ```bash
-node scripts/build-content-catalog-keys.mjs
-node scripts/generate-locale-overrides.mjs
-node scripts/auto-translate-ui-strings.mjs
-node scripts/auto-translate-policy-strings.mjs
-node scripts/translate-motd-packs.mjs
-node scripts/sync-i18n-assets.mjs
-node scripts/verify-locale-packs.mjs
-node scripts/verify-prompt-packs.mjs
-node scripts/verify-motd-packs.mjs
-node scripts/verify-motd-translation-coverage.mjs
-node scripts/verify-no-html-in-locale-packs.mjs
-node scripts/audit-hardcoded-strings.mjs --check
-node scripts/audit-hardcoded-strings.mjs --require-wiring
-node scripts/verify-no-hardcoded-ui.mjs --strict
-node scripts/verify-no-hardcoded-ui.mjs --baseline
-node scripts/verify-translation-coverage.mjs --strict --max-pct=13
-node scripts/verify-mixed-language-strings.mjs
+node scripts/i18n/build-content-catalog-keys.mjs
+node scripts/i18n/generate-locale-overrides.mjs
+node scripts/i18n/auto-translate-ui-strings.mjs
+node scripts/i18n/auto-translate-policy-strings.mjs
+node scripts/i18n/translate-motd-packs.mjs
+node scripts/i18n/sync-i18n-assets.mjs
+node scripts/verify/verify-locale-packs.mjs
+node scripts/verify/verify-prompt-packs.mjs
+node scripts/verify/verify-motd-packs.mjs
+node scripts/verify/verify-motd-translation-coverage.mjs
+node scripts/verify/verify-no-html-in-locale-packs.mjs
+node scripts/verify/audit-hardcoded-strings.mjs --check
+node scripts/verify/audit-hardcoded-strings.mjs --require-wiring
+node scripts/verify/verify-no-hardcoded-ui.mjs --strict
+node scripts/verify/verify-no-hardcoded-ui.mjs --baseline
+node scripts/verify/verify-translation-coverage.mjs --strict --max-pct=13
+node scripts/verify/verify-mixed-language-strings.mjs
 ```
 
 Tier A / ga locale fill (maintainer):
 
 ```bash
-node scripts/generate-locale-overrides.mjs
-USE_MYMEMORY_MT=1 node scripts/batch-mt-tier-a.mjs --locale=de-DE
-USE_MYMEMORY_MT=1 node scripts/batch-mt-hybrid-keys.mjs --locale=de-DE
-USE_MYMEMORY_MT=1 node scripts/batch-mt-content-keys.mjs --locale=de-DE
-node scripts/merge-tier-a-overrides-from-packs.mjs   # snapshot pack diffs into overrides
-node scripts/build-tier-a-exact-overrides.mjs --locale=pt-BR   # Google MT for remaining keys
-node scripts/translate-prompt-packs.mjs
-USE_MYMEMORY_MT=1 node scripts/translate-motd-packs.mjs --all
-node scripts/sync-i18n-assets.mjs
+node scripts/i18n/generate-locale-overrides.mjs
+USE_MYMEMORY_MT=1 node scripts/i18n/batch-mt-tier-a.mjs --locale=de-DE
+USE_MYMEMORY_MT=1 node scripts/i18n/batch-mt-hybrid-keys.mjs --locale=de-DE
+USE_MYMEMORY_MT=1 node scripts/i18n/batch-mt-content-keys.mjs --locale=de-DE
+node scripts/i18n/merge-tier-a-overrides-from-packs.mjs   # snapshot pack diffs into overrides
+node scripts/i18n/build-tier-a-exact-overrides.mjs --locale=pt-BR   # Google MT for remaining keys
+node scripts/i18n/translate-prompt-packs.mjs
+USE_MYMEMORY_MT=1 node scripts/i18n/translate-motd-packs.mjs --all
+node scripts/i18n/sync-i18n-assets.mjs
 ```
 
 ### v1.68.0 i18n verification commands
@@ -55,11 +55,11 @@ node scripts/sync-i18n-assets.mjs
 From the repo root after editing locale/prompt/motd packs:
 
 ```bash
-node scripts/sync-i18n-assets.mjs
-node scripts/verify-locale-packs.mjs
-node scripts/verify-prompt-packs.mjs
-node scripts/verify-no-html-in-locale-packs.mjs
-node scripts/audit-hardcoded-strings.mjs --check
+node scripts/i18n/sync-i18n-assets.mjs
+node scripts/verify/verify-locale-packs.mjs
+node scripts/verify/verify-prompt-packs.mjs
+node scripts/verify/verify-no-html-in-locale-packs.mjs
+node scripts/verify/audit-hardcoded-strings.mjs --check
 npm run test:unit
 npm run typecheck:mobile
 npm run test:mobile
@@ -215,10 +215,10 @@ Gate jobs (**unit-tests**, **prepare-minified-assets**, **expo-bundle-prod**, **
 
 | Script | npm alias | Purpose |
 |--------|-----------|---------|
-| `scripts/download-llm-models.mjs` | `npm run models:download` | Mirror ONNX weights from Hugging Face into `apps/pwa-webapp/models/` (gitignored) |
-| `scripts/upload-llm-models-supabase.mjs` | `npm run models:upload:supabase` | Upload to bucket `llm-models` with 47 MB chunking; reads `security/.env`; `--purge-local` deletes local weights |
-| `scripts/verify-llm-models.mjs` | `npm run models:verify` | Verify manifest; checks local files or remote Supabase when `SUPABASE_URL` set |
-| `scripts/verify-no-model-weights-in-git.mjs` | `npm run verify:no-model-weights-in-git` | Fail if git tracks ONNX/chunks under `models/` (only manifest + README allowed) |
+| `scripts/models/download-llm-models.mjs` | `npm run models:download` | Mirror ONNX weights from Hugging Face into `apps/pwa-webapp/models/` (gitignored) |
+| `scripts/models/upload-llm-models-supabase.mjs` | `npm run models:upload:supabase` | Upload to bucket `llm-models` with 47 MB chunking; reads `security/.env`; `--purge-local` deletes local weights |
+| `scripts/models/verify-llm-models.mjs` | `npm run models:verify` | Verify manifest; checks local files or remote Supabase when `SUPABASE_URL` set |
+| `scripts/models/verify-no-model-weights-in-git.mjs` | `npm run verify:no-model-weights-in-git` | Fail if git tracks ONNX/chunks under `models/` (only manifest + README allowed) |
 
 **Llama 3.2 download** requires `HF_TOKEN` and accepted license on huggingface.co. **Never commit** service role key or weight files.
 
@@ -228,10 +228,10 @@ Run from repo root (also enforced in CI **`security-audit`** job):
 
 | Script | npm alias | Purpose |
 |--------|-----------|---------|
-| `scripts/verify-privacy-docs.mjs` | `npm run verify:privacy-docs` | Required privacy/security docs + valid `ropa.json` |
-| `scripts/verify-rls-baseline.mjs` | — | RLS baseline SQL doc intact |
-| `scripts/verify-csp-connect-src.mjs` | `npm run verify:csp` | CSP `connect-src` coverage |
-| `scripts/verify-no-service-role-in-clients.mjs` | — | No service_role / sb_secret / hardcoded keys in **tracked** client sources |
-| `scripts/generate-security-inventory.mjs` | `npm run docs:security-inventory` | Regenerate [security-inventory.md](security-inventory.md) |
+| `scripts/verify/verify-privacy-docs.mjs` | `npm run verify:privacy-docs` | Required privacy/security docs + valid `ropa.json` |
+| `scripts/verify/verify-rls-baseline.mjs` | — | RLS baseline SQL doc intact |
+| `scripts/verify/verify-csp-connect-src.mjs` | `npm run verify:csp` | CSP `connect-src` coverage |
+| `scripts/verify/verify-no-service-role-in-clients.mjs` | — | No service_role / sb_secret / hardcoded keys in **tracked** client sources |
+| `scripts/ci/generate-security-inventory.mjs` | `npm run docs:security-inventory` | Regenerate [security-inventory.md](security-inventory.md) |
 
 **Security unit tests:** `tests/unit/security/` (XSS import preview, cloud deletion tables, verify-script smoke). Included in `npm run test:unit`.

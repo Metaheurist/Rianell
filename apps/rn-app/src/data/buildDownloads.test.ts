@@ -6,7 +6,7 @@ import {
 
 test('manifestUrlForChannel matches web path layout', () => {
   expect(manifestUrlForChannel('androidRnCli')).toBe(
-    `${DEFAULT_APP_BUILD_SITE_ORIGIN}/${encodeURI('App build/RNCLI-Android/latest.json')}`
+    `${DEFAULT_APP_BUILD_SITE_ORIGIN}/${encodeURI('artifacts/RNCLI-Android/latest.json')}`
   );
 });
 
@@ -26,5 +26,5 @@ test('artifactUrlFromManifest joins folder + file', () => {
       file: 'app-debug-beta-1.apk',
       version: 1,
     })
-  ).toBe(`${DEFAULT_APP_BUILD_SITE_ORIGIN}/${encodeURI('App build/Android/app-debug-beta-1.apk')}`);
+  ).toBe(`${DEFAULT_APP_BUILD_SITE_ORIGIN}/${encodeURI('artifacts/Android/app-debug-beta-1.apk')}`);
 });

@@ -176,7 +176,7 @@ These are installed or invoked in workflows **to build or test**; they are not n
 | `pip install pyinstaller` | Build Windows server `.exe` |
 | `pip install pyarmor` | Optional obfuscation step for server sources in CI (see workflow) |
 
-### [`.github/workflows/expo-native-build.yml`](../.github/workflows/expo-native-build.yml)
+### [`.github/workflows/archive/expo-native-build.yml`](../.github/workflows/archive/expo-native-build.yml)
 
 | Tool | Role |
 |------|------|
@@ -195,4 +195,4 @@ These are installed or invoked in workflows **to build or test**; they are not n
 
 ## Maintaining this doc
 
-This file is **generated** by [`scripts/generate-dependencies-doc.mjs`](../scripts/generate-dependencies-doc.mjs). **CI** runs the generator on every workflow; pushes to **main** / **master** may commit updates automatically. On **pull requests**, CI fails if the committed file does not match the generator output — run `node scripts/generate-dependencies-doc.mjs` locally and commit `docs/dependencies.md` with manifest changes.
+This file is **generated** by [`scripts/ci/generate-dependencies-doc.mjs`](../scripts/ci/generate-dependencies-doc.mjs). **CI** runs the generator on every workflow; pushes to **main** / **master** may commit updates automatically. On **pull requests**, CI fails if the committed file does not match the generator output — run `node scripts/ci/generate-dependencies-doc.mjs` locally and commit `docs/dependencies.md` with manifest changes.

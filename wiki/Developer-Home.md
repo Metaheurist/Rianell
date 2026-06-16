@@ -25,7 +25,7 @@ Rianell/
 ├── docs/               # Maintainer documentation
 ├── wiki/               # This wiki (synced to GitHub Wiki)
 ├── benchmarks/         # Performance + AI benchmark runner
-└── App build/          # CI artifacts (APK, iOS zip, server EXE)
+└── artifacts/          # CI artifacts (APK, iOS zip, server EXE)
 ```
 
 ---
@@ -80,6 +80,7 @@ Business logic lives in `packages/*` so web and mobile stay aligned:
 
 ## Deep documentation
 
+- [Architecture standard](https://github.com/Metaheurist/Rianell/blob/main/docs/architecture-standard.md)
 - [Project reference](https://github.com/Metaheurist/Rianell/blob/main/docs/project-reference.md)
 - [Setup & usage](https://github.com/Metaheurist/Rianell/blob/main/docs/setup-and-usage.md)
 - [Security](https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md)

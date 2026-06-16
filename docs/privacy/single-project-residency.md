@@ -19,7 +19,7 @@ All users share **one Supabase project and one PostgreSQL database**. Privacy re
 ## Policy strings in locale packs (v1.60)
 
 - **`policy.*`** UI strings (titles, summaries) live in **`i18n-packs/locale-packs/v1/{locale}.json`** alongside app chrome.
-- Non–en-GB locales may include **machine-translated** policy text merged by **`scripts/auto-translate-policy-strings.mjs`**. This is **not** blocked by legal review in CI.
+- Non–en-GB locales may include **machine-translated** policy text merged by **`scripts/i18n/auto-translate-policy-strings.mjs`**. This is **not** blocked by legal review in CI.
 - **Disclaimer:** `policy.machineTranslatedNotice` is shown in the PWA policy viewer and RN **`PolicyDocumentsModal`** for non–en-GB locales; **en-GB** text and linked policy pack remain authoritative.
 
 ## Related

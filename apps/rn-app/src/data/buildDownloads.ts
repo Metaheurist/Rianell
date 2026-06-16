@@ -1,14 +1,14 @@
 /**
- * Resolves public latest.json manifests under App build on rianell.com (same as web Settings refreshBuildDownloadLinks).
+ * Resolves public latest.json manifests under artifacts on rianell.com (same as web Settings refreshBuildDownloadLinks).
  */
 export const DEFAULT_APP_BUILD_SITE_ORIGIN = 'https://rianell.com';
 
 export type BuildChannel = 'androidLegacy' | 'androidRnCli' | 'ios';
 
 const CHANNEL_PREFIX: Record<BuildChannel, string> = {
-  androidLegacy: 'App build/Android/',
-  androidRnCli: 'App build/RNCLI-Android/',
-  ios: 'App build/iOS/',
+  androidLegacy: 'artifacts/Android/',
+  androidRnCli: 'artifacts/RNCLI-Android/',
+  ios: 'artifacts/iOS/',
 };
 
 export function manifestUrlForChannel(channel: BuildChannel): string {

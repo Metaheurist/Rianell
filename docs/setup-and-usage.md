@@ -4,9 +4,9 @@
 
 ### v1.60.0 i18n asset sync (Metro / esbuild)
 
-- **`node scripts/sync-i18n-assets.mjs`** copies canonical **`i18n-packs/`** (locale, prompt, motd, policy) into PWA, RN, and **`packages/shared/`**; regenerates **`promptPackData.mjs`** and runs **`sync-policy-pack.mjs`**. Used by **`build:web`**, **`bundle:mobile:prod`**, and CI before vendor bundle / **`expo export`**.
+- **`node scripts/i18n/sync-i18n-assets.mjs`** copies canonical **`i18n-packs/`** (locale, prompt, motd, policy) into PWA, RN, and **`packages/shared/`**; regenerates **`promptPackData.mjs`** and runs **`sync-policy-pack.mjs`**. Used by **`build:web`**, **`bundle:mobile:prod`**, and CI before vendor bundle / **`expo export`**.
 - **Language switch:** Settings → Privacy & region → Language; UI refreshes via `onLocaleChange` (PWA) / `I18nProvider` (RN). **13 shipped locales:** en-GB (default), en-US, en-AU, pt-BR, fr-FR, de-DE, es-ES, it-IT, pl-PL, nl-NL, pt-PT, **ar**, **he** (RTL, ui-only LLM).
-- **Build order:** edit canonical JSON under **`i18n-packs/`** → `sync-i18n-assets.mjs` → verify with `node scripts/verify-locale-packs.mjs`.
+- **Build order:** edit canonical JSON under **`i18n-packs/`** → `sync-i18n-assets.mjs` → verify with `node scripts/verify/verify-locale-packs.mjs`.
 
 ### v1.53.2 RN locale packs (Metro)
 
@@ -151,7 +151,7 @@ The server will:
 2. **Network Access**: The server defaults to **loopback** (`127.0.0.1`). To open the app from another device on your LAN, set **`HOST=0.0.0.0`** in **`security/.env`** (or legacy root `.env`) and use your PC’s LAN IP (see [SECURITY.md](SECURITY.md)). For sensitive dev APIs from non-loopback clients, set **`HEALTH_APP_SENSITIVE_APIS_ON_LAN=1`** (trusted networks only). Optional **`HEALTH_APP_SENSITIVE_APIS_LAN_SECRET`**: when set, clients must send **`X-Rianell-LAN-Secret`** for those APIs. Server logs use **rotation** (size-capped); see [SECURITY.md](SECURITY.md).
 3. **Production**: Deploy files to a web server (no local server needed)
 
-**Install manifest URLs (Android / iOS `latest.json`):** On `localhost`, `127.0.0.1`, and `::1`, the app does **not** fetch `App build/Android/latest.json` or `App build/iOS/latest.json`, because those files are produced by CI and deployed with the site. Default install links still point at fallback paths. To test manifest-driven links locally, open the devtools console and run `sessionStorage.setItem('forceAppBuildManifest','1')`, then reload.
+**Install manifest URLs (Android / iOS `latest.json`):** On `localhost`, `127.0.0.1`, and `::1`, the app does **not** fetch `artifacts/Android/latest.json` or `artifacts/iOS/latest.json`, because those files are produced by CI and deployed with the site. Default install links still point at fallback paths. To test manifest-driven links locally, open the devtools console and run `sessionStorage.setItem('forceAppBuildManifest','1')`, then reload.
 
 <a id="github-pages-app-at-repo-root"></a>
 
@@ -161,7 +161,7 @@ The app lives in **`apps/pwa-webapp/`**, so GitHub Pages will not see `index.htm
 
 1. In the repo: **Settings → Pages**
 2. Under **Build and deployment**, set **Source** to **GitHub Actions**
-3. The unified workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs the **`deploy-pages`** job on push to `main`/`master` and deploys a prepared **`site/`** folder as the site root (copy of **`apps/pwa-webapp/`** plus `App build/` if present), so `index.html` is served correctly. The **`prepare-minified-assets`** job runs **`node apps/pwa-webapp/build-site.mjs --site ci-minified/site`**: instrument first-party JS (optional function trace hooks), esbuild minify, then **content-hash** the main bundle to **`app.<hash>.min.js`**, fingerprint **`styles.css`** → **`styles.<hash>.css`**, write **`asset-manifest.json`**, and patch **`index.html`** (preload, links, script). This replaces stable **`app.min.js`** / query-string-only cache busting for production deploys.
+3. The unified workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) runs the **`deploy-pages`** job on push to `main`/`master` and deploys a prepared **`site/`** folder as the site root (copy of **`apps/pwa-webapp/`** plus `artifacts/` if present), so `index.html` is served correctly. The **`prepare-minified-assets`** job runs **`node apps/pwa-webapp/build-site.mjs --site ci-minified/site`**: instrument first-party JS (optional function trace hooks), esbuild minify, then **content-hash** the main bundle to **`app.<hash>.min.js`**, fingerprint **`styles.css`** → **`styles.<hash>.css`**, write **`asset-manifest.json`**, and patch **`index.html`** (preload, links, script). This replaces stable **`app.min.js`** / query-string-only cache busting for production deploys.
 
 **Custom domain (`rianell.com`):** In **Settings → Pages**, set the custom domain and keep **Enforce HTTPS** on. At your DNS provider, use GitHub’s documented records (apex: four **A** records to `185.199.108.153`–`185.199.111.153`; **www**: **CNAME** to `<user>.github.io`). This repo includes **`apps/pwa-webapp/CNAME`** (contents: `rianell.com`) so each deploy publishes the domain hint at the site root, alongside the GitHub UI setting.
 
@@ -177,8 +177,8 @@ After the first push (or a manual **Run workflow**), the deployed site will show
 
 **React Native (Expo)** in **`apps/rn-app`** is the current mobile app. CI produces **Alpha** builds on every push to `main`/`master`:
 
-- **Android APK**: **`App build/RNCLI-Android/`** (`latest.json` + `app-debug-beta.apk`)
-- **iOS**: Xcode project zip under **`App build/iOS/`**
+- **Android APK**: **`artifacts/RNCLI-Android/`** (`latest.json` + `app-debug-beta.apk`)
+- **iOS**: Xcode project zip under **`artifacts/iOS/`**
 
 See **[react-native-setup.md](react-native-setup.md)** for local dev, typecheck, and tests.
 
@@ -189,12 +189,12 @@ npm run typecheck:mobile
 npm run test:mobile
 ```
 
-### CI: App builds on each commit
+### CI: artifactss on each commit
 
 - **RN CLI** jobs in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): **`rncli-android-apk`**, **`rncli-ios-zip`**, plus Server EXE and GitHub Pages web deploy.
-- Download RN APK from the workflow **Artifacts** tab or **Settings → App installation** when served from the same origin as **`App build/RNCLI-Android/latest.json`**.
+- Download RN APK from the workflow **Artifacts** tab or **Settings → App installation** when served from the same origin as **`artifacts/RNCLI-Android/latest.json`**.
 
-> **Note:** Legacy Capacitor builds were removed in v1.49.0. Frozen metadata under **`App build/Android/`** and **`App build/Legacy/`** may remain for historical release links only.
+> **Note:** Legacy Capacitor builds were removed in v1.49.0. Frozen metadata under **`artifacts/Android/`** and **`artifacts/Legacy/`** may remain for historical release links only.
 
 ### Using Rianell
 

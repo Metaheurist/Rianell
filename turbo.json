@@ -1,0 +1,17 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["app.*.min.js", "asset-manifest.json", ".android-dist/**"]
+    },
+    "build:apk": {
+      "dependsOn": ["^build"],
+      "outputs": ["app.*.min.js", "asset-manifest.json", ".android-dist/**"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "outputs": []
+    }
+  }
+}

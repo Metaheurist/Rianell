@@ -38,10 +38,10 @@ Multi-project residency, migration wizard, storage chooser, dual CI secrets — 
 ## Verification
 
 ```bash
-node scripts/verify-policy-packs.mjs
-node scripts/verify-locale-packs.mjs
-node scripts/verify-privacy-docs.mjs
-node scripts/verify-supabase-schema-parity.mjs
+node scripts/verify/verify-policy-packs.mjs
+node scripts/verify/verify-locale-packs.mjs
+node scripts/verify/verify-privacy-docs.mjs
+node scripts/verify/verify-supabase-schema-parity.mjs
 npm run test:unit
 npm run test:mobile
 npm run parity:inventory:check

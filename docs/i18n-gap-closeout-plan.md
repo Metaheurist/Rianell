@@ -38,10 +38,10 @@ de-DE / pl-PL examples: `Protokoll:Exercise`, `Speichern Entry`, `Hinzufügen no
 
 **Fix pipeline:**
 
-1. `node scripts/verify-translation-coverage.mjs --strict` — list identical-to-en-GB keys
-2. `node scripts/audit-hardcoded-strings.mjs --check` — find remaining source hits
+1. `node scripts/verify/verify-translation-coverage.mjs --strict` — list identical-to-en-GB keys
+2. `node scripts/verify/audit-hardcoded-strings.mjs --check` — find remaining source hits
 3. Expand `scripts/lib/tier-a-exact-overrides.mjs` per locale for wizard, logs, settings, modals
-4. Re-run `node scripts/generate-locale-overrides.mjs` → `sync-i18n-assets.mjs`
+4. Re-run `node scripts/i18n/generate-locale-overrides.mjs` → `sync-i18n-assets.mjs`
 5. Human review: search packs for `\b(the|and|Entry|Log|Save)\b` inside non-en locales
 
 **Target:** Tier A ≤5% en-GB identity **and** zero mixed-language sentences (new grep script).
@@ -64,8 +64,8 @@ All locales have ≥30 messages (`verify-motd-packs.mjs`).
 
 **Fix:**
 
-1. Extend `scripts/translate-motd-packs.mjs` to cover **all** messages (not only top 30)
-2. Add `scripts/verify-motd-translation-coverage.mjs` — fail if message[i] === en-GB[i] for Tier A / ga
+1. Extend `scripts/i18n/translate-motd-packs.mjs` to cover **all** messages (not only top 30)
+2. Add `scripts/verify/verify-motd-translation-coverage.mjs` — fail if message[i] === en-GB[i] for Tier A / ga
 3. CI: add to `verify:i18n`
 
 ### F. Prompt packs
@@ -81,8 +81,8 @@ Tier A + ar/he have translated LLM system strings. **ga** ships `llmCapability: 
 | MOTD pack (30 Irish + en tail) | Done — extend to full 107 in LC-20e |
 | Prompt pack (`ui-only`) | Done |
 | `sync-i18n-assets.mjs` | Done |
-| Full UI MT | Run `USE_MYMEMORY_MT=1 node scripts/auto-translate-ui-strings.mjs --translate` (or DeepL `GA`) |
-| Privacy policy strings | `node scripts/auto-translate-policy-strings.mjs` after ga pack exists |
+| Full UI MT | Run `USE_MYMEMORY_MT=1 node scripts/i18n/auto-translate-ui-strings.mjs --translate` (or DeepL `GA`) |
+| Privacy policy strings | `node scripts/i18n/auto-translate-policy-strings.mjs` after ga pack exists |
 | RN Settings language picker | Auto via shared `localeLabel('ga')` |
 
 ## Segmented delivery (versions)

@@ -239,7 +239,7 @@ flowchart LR
 | M-06 | SRI / pinning for all static third-party scripts | P2 | Partial | [SECURITY.md](SECURITY.md) |
 | M-07 | Supabase HIPAA Projects evaluation | P2 | Spike | [crypto-roadmap.md](crypto-roadmap.md) |
 | M-08 | Prompt-injection guardrails for on-device LLM | P2 | Documented | [ai-security.md](ai-security.md) |
-| M-09 | Automated RLS verification against live project | P3 | Open | `scripts/verify-rls-baseline.mjs` (doc-only today) |
+| M-09 | Automated RLS verification against live project | P3 | Open | `scripts/verify/verify-rls-baseline.mjs` (doc-only today) |
 | M-10 | `security.txt` on production host | P3 | Open | [infrastructure-and-security-edge.md](infrastructure-and-security-edge.md) |
 
 ---

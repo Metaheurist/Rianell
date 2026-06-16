@@ -1,3 +1,5 @@
+import { getBuildBaseUrls, shouldFetchAppBuildManifests } from './src/buildDownloads.js';
+
 // ============================================
 // Static host detection (no /api on this origin: skip reload stream and server logging)
 // Only localhost / 127.0.0.1 run the Python dev server with /api/reload and /api/log.
@@ -2350,26 +2352,6 @@ function maybeShowInstallModalOnce() {
     if (localStorage.getItem('rianellInstallModalAfterTutorialSeen')) return;
     openInstallModal(false);
   } catch (err) {}
-}
-
-function getBuildBaseUrls() {
-  var path = window.location.pathname || '/';
-  var base = path.substring(0, path.lastIndexOf('/') + 1);
-  var baseUrl = window.location.origin + (base.startsWith('/') ? base : '/' + base);
-  return {
-    androidRnCli: baseUrl + encodeURI('App build/RNCLI-Android/'),
-    ios: baseUrl + encodeURI('App build/iOS/')
-  };
-}
-
-/** Skip latest.json fetch on local dev (avoids 404 noise); set sessionStorage.forceAppBuildManifest = '1' to test locally. */
-function shouldFetchAppBuildManifests() {
-  try {
-    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('forceAppBuildManifest') === '1') return true;
-  } catch (e) {}
-  var h = (window.location && window.location.hostname) ? String(window.location.hostname).toLowerCase() : '';
-  if (h === 'localhost' || h === '127.0.0.1' || h === '[::1]') return false;
-  return true;
 }
 
 function refreshBuildDownloadLinks() {
@@ -5477,44 +5459,6 @@ function deselectAllMetrics() {
     createCombinedChart();
   }
   updateCombinedSelectAllButton();
-}
-
-// Select all balance metrics (excluding steps)
-function selectAllBalanceMetrics() {
-  const allBalanceMetrics = [
-    'fatigue', 'stiffness', 'backPain', 'sleep', 'jointPain', 'mobility', 'dailyFunction',
-    'swelling', 'mood', 'irritability', 'weatherSensitivity', 'hydration'
-  ];
-  appSettings.balanceChartSelectedMetrics = [...allBalanceMetrics];
-  saveSettings();
-  
-  // Update checkboxes
-  const checkboxes = document.querySelectorAll('#balanceMetricCheckboxes .metric-checkbox');
-  checkboxes.forEach(cb => {
-    cb.checked = true;
-  });
-  
-  // Re-render chart
-  if (appSettings.chartView === 'balance') {
-    createBalanceChart();
-  }
-}
-
-// Deselect all balance metrics
-function deselectAllBalanceMetrics() {
-  appSettings.balanceChartSelectedMetrics = [];
-  saveSettings();
-  
-  // Update checkboxes
-  const checkboxes = document.querySelectorAll('#balanceMetricCheckboxes .metric-checkbox');
-  checkboxes.forEach(cb => {
-    cb.checked = false;
-  });
-  
-  // Re-render chart (will show empty)
-  if (appSettings.chartView === 'balance') {
-    createBalanceChart();
-  }
 }
 
 // Render balance metric selector UI (excluding steps) - Grouped by category
@@ -18248,8 +18192,7 @@ function toggleDemoMode() {
 function updateConditionContext(conditionName) {
   // Update the condition context with user's condition
   CONDITION_CONTEXT.name = conditionName;
-  
-  // Update description based on common conditions (can be expanded)
+
   const conditionDescriptions = {
     'Ankylosing Spondylitis': 'A chronic inflammatory arthritis affecting the spine and joints',
     'Rheumatoid Arthritis': 'An autoimmune disorder causing joint inflammation and pain',
@@ -18257,12 +18200,28 @@ function updateConditionContext(conditionName) {
     'Arthritis': 'A general term for conditions affecting joints and surrounding tissues',
     'Lupus': 'An autoimmune disease that can affect various body systems',
     'Osteoarthritis': 'A degenerative joint disease causing cartilage breakdown',
-    'Psoriatic Arthritis': 'A form of arthritis associated with psoriasis'
+    'Psoriatic Arthritis': 'A form of arthritis associated with psoriasis',
   };
-  
-  CONDITION_CONTEXT.description = conditionDescriptions[conditionName] || 'A chronic health condition requiring ongoing management';
-  
-  // Keep existing metrics and treatment areas (can be customized per condition later)
+
+  if (conditionDescriptions[conditionName]) {
+    CONDITION_CONTEXT.description = conditionDescriptions[conditionName];
+  } else {
+    const lower = String(conditionName || '').toLowerCase();
+    if (lower.includes('ankylosing') || lower.includes('spondylitis')) {
+      CONDITION_CONTEXT.description = 'A chronic inflammatory arthritis affecting the spine and joints';
+    } else if (lower.includes('fibromyalgia')) {
+      CONDITION_CONTEXT.description = 'A condition characterized by widespread pain and fatigue';
+    } else if (lower.includes('lupus')) {
+      CONDITION_CONTEXT.description = 'An autoimmune disease that can affect various parts of the body';
+    } else if (lower.includes('rheumatoid')) {
+      CONDITION_CONTEXT.description = 'An autoimmune condition causing joint inflammation and pain';
+    } else if (lower.includes('arthritis')) {
+      CONDITION_CONTEXT.description = 'A condition affecting joints and mobility';
+    } else {
+      CONDITION_CONTEXT.description = 'A chronic health condition requiring ongoing management';
+    }
+  }
+
   Logger.debug('Condition context updated', { condition: conditionName });
 }
 
@@ -18286,25 +18245,6 @@ function updateMedicalConditionOld() {
   updateConditionContext(condition);
   
   notifySuccess('Medical condition updated to: ' + condition);
-}
-
-// Update condition context dynamically
-function updateConditionContext(conditionName) {
-  CONDITION_CONTEXT.name = conditionName;
-  // Update description based on condition (you can expand this)
-  if (conditionName.toLowerCase().includes('ankylosing') || conditionName.toLowerCase().includes('spondylitis')) {
-    CONDITION_CONTEXT.description = 'A chronic inflammatory arthritis affecting the spine and joints';
-  } else if (conditionName.toLowerCase().includes('arthritis')) {
-    CONDITION_CONTEXT.description = 'A condition affecting joints and mobility';
-  } else if (conditionName.toLowerCase().includes('fibromyalgia')) {
-    CONDITION_CONTEXT.description = 'A condition characterized by widespread pain and fatigue';
-  } else if (conditionName.toLowerCase().includes('lupus')) {
-    CONDITION_CONTEXT.description = 'An autoimmune disease that can affect various parts of the body';
-  } else if (conditionName.toLowerCase().includes('rheumatoid')) {
-    CONDITION_CONTEXT.description = 'An autoimmune condition causing joint inflammation and pain';
-  } else {
-    CONDITION_CONTEXT.description = 'A chronic health condition requiring ongoing management';
-  }
 }
 
 /** If motd.json fails to load (offline, 404), show this single line until retry. */
@@ -19976,7 +19916,7 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 }, true);
 
-// Initialize the app
+﻿// Initialize the app
 function runRianellBootAfterDomReady() {
   if (window.__rianellBootAfterDomStarted) return;
   window.__rianellBootAfterDomStarted = true;

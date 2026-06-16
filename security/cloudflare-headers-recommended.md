@@ -48,3 +48,13 @@ Tune **`microphone`**, **`geolocation`**, and **`camera`** to match product need
 - **`beforeinstallpromptevent.preventDefault()`** — PWA install UX; informational.
 
 See also **[docs/infrastructure-and-security-edge.md](../docs/infrastructure-and-security-edge.md)** and **[SECURITY.md](../docs/SECURITY.md)** (CSP section).
+
+## Artifact path redirect (post–architecture migration)
+
+After renaming **`artifacts/`** → **`artifacts/`** on GitHub Pages, apply a **Bulk Redirect** or **Redirect Rule** in Cloudflare:
+
+| Source | Target | Status |
+|--------|--------|--------|
+| `/artifacts/*` | `/artifacts/$1` | **301** |
+
+This preserves bookmarks and external links that still use the old path with a space-encoded URL.

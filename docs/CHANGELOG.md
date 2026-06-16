@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.89.2** - CI dependency caching, post-deploy Pages-site audit parity, cancel-on-gate-failure.
+**Latest: v1.90.0** - Codebase architecture standard and monorepo layout refactor (Phases 0–22).
+
+### v1.90.0 - 2026-06-16 - Architecture standard and layout refactor
+- **Standard:** [`docs/architecture-standard.md`](architecture-standard.md) and [`AGENTS.md`](../AGENTS.md) — canonical directory map, workspace graph, artifact policy, migration log.
+- **Scripts:** All root automation nested under `scripts/{build,i18n,verify,ci,audit,wiki,models,dev}/`; flat `scripts/*.mjs` shims removed.
+- **Artifacts:** legacy artifact directory renamed to **`artifacts/`**; CI, PWA, RN, server, and docs updated; Cloudflare 301 runbook for legacy URLs.
+- **Workspaces:** `@rianell/pwa-webapp` added; `@rianell/build-tools` package from former `scripts/lib/` helpers.
+- **Build:** `scripts/build/run-web.mjs` and `run-mobile-export.mjs` orchestrators; cross-platform `npm run dev:web`.
+- **Verify:** `scripts/verify/doc-links.mjs --strict`, `i18n-all.mjs`, migration orchestrators (`verify:migration:*`), nested lockfile CI guard.
+- **CI:** `commit-app-build` manifest-only policy; binaries via GitHub Releases.
+- **Scale:** `server/routes/` module split; PWA `src/buildDownloads.js`; `turbo.json` task caching.
 
 ### v1.89.2 - 2026-06-15 - CI caching, post-deploy audit, workflow efficiency
 - **CI caching:** Reusable actions `setup-node-ci`, `setup-python-ci`, `install-playwright-chromium`; npm (`package-lock.json`), pip (`requirements.txt` + `.github/ci-pip-extras.txt`), Playwright browsers, Gradle (Android APK), Gitleaks/OSV binaries — cache invalidates only when lockfiles or pinned tool versions change.
@@ -26,7 +36,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **`device-benchmark.js`:** Web cold boot uses `getTierFromHeuristic()` only — no sync CPU suite, no 1.4M retry, minimal `rianellPerfBenchmark` cache schema (v5).
 - **`build-site.mjs`:** `minifyIdentifiers: false` — identifier mangling froze minified `app.js` in Chromium.
 - **`summary-llm.js`:** `waitForSupabaseConfigReady()` before model host resolution.
-- **Scripts:** `audit:boot:baseline` / `audit:boot:strict` Playwright gate (`scripts/audit-boot-full.mjs`).
+- **Scripts:** `audit:boot:baseline` / `audit:boot:strict` Playwright gate (`scripts/audit/audit-boot-full.mjs`).
 - **Wiki:** Version-controlled `wiki/` source, `npm run wiki:sync` / `wiki:verify`.
 
 ### v1.88.0 - 2026-06-14 - CI benchmark navigation and RN typecheck
@@ -282,12 +292,12 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 #### Pack layout & sync
 
 - **Canonical tree:** `i18n-packs/` — `locale-packs/v1/`, `prompt-packs/v1/`, `motd-packs/v1/`, `policy-packs/v1.json` (replaces repo-root `locale-packs/`).
-- **Sync:** `scripts/sync-i18n-assets.mjs` → `apps/pwa-webapp/i18n-packs/`, `apps/rn-app/i18n-packs/`, `packages/shared/i18n-packs/`.
+- **Sync:** `scripts/i18n/sync-i18n-assets.mjs` → `apps/pwa-webapp/i18n-packs/`, `apps/rn-app/i18n-packs/`, `packages/shared/i18n-packs/`.
 - **`packPaths.mjs`:** single source for canonical paths in Node scripts and tests.
 
 #### Catalog & audit (P1)
 
-- **`scripts/audit-hardcoded-strings.mjs`**, **`merge-audit-into-catalog.mjs`**, **`apply-html-i18n.mjs`** — en-GB expanded to **~850** plain-text keys; **`--check`** for CI.
+- **`scripts/verify/audit-hardcoded-strings.mjs`**, **`merge-audit-into-catalog.mjs`**, **`apply-html-i18n.mjs`** — en-GB expanded to **~850** plain-text keys; **`--check`** for CI.
 - **Shared:** `format.mjs`, `rtl.mjs`, `promptPack.mjs`; verify scripts for HTML-free locale JSON and prompt parity.
 
 #### PWA tokenization (P2)
@@ -300,7 +310,7 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 **Latest: v1.53.4** - RN Metro policy-pack bundling fix.
 
 - **Metro / Expo export:** `policyPackData.mjs` imports **`packages/shared/policy-packs/v1.json`** (inside the shared package) instead of repo-root paths Metro cannot resolve.
-- **Sync script:** `scripts/sync-policy-pack.mjs` copies canonical **`policy-packs/v1.json`** into shared; runs in **`build:web`**, **`bundle:mobile:prod`**, and CI before vendor bundle / **`expo export`**.
+- **Sync script:** `scripts/i18n/sync-policy-pack.mjs` copies canonical **`policy-packs/v1.json`** into shared; runs in **`build:web`**, **`bundle:mobile:prod`**, and CI before vendor bundle / **`expo export`**.
 - **Verify:** `verify-policy-packs.mjs` checks embedded copy stays in sync with canonical pack.
 
 **Latest: v1.53.3** - Enforce no LLM weights in git (Supabase-only hosting).
@@ -316,7 +326,7 @@ Documentation and parity release for the v1.54–v1.59 feature segments below. *
 ### v1.53.2 - 2026-06-13 - RN locale-pack bundling
 
 - **Metro / Expo export:** `I18nProvider` now requires catalogs from **`apps/rn-app/locale-packs/v1/`** (inside the RN project) instead of repo-root paths Metro cannot resolve.
-- **Sync script:** `scripts/sync-locale-packs-to-pwa.mjs` copies canonical **`locale-packs/v1/`** to both PWA and RN app trees; CI runs sync before **`expo export`**; **`npm run bundle:mobile:prod`** includes sync.
+- **Sync script:** `scripts/i18n/sync-locale-packs-to-pwa.mjs` copies canonical **`locale-packs/v1/`** to both PWA and RN app trees; CI runs sync before **`expo export`**; **`npm run bundle:mobile:prod`** includes sync.
 
 **Latest: v1.53.1** - Privacy/settings UI fixes, CI benchmark + mobile typecheck.
 
@@ -546,7 +556,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 - **[docs/app-and-features.md](app-and-features.md)**: Service worker bullet aligned with **rianell.com** / **\*.github.io** default registration; console section links to troubleshooting; PWA restart note.
 - **GitHub Actions:** [`.github/workflows/security-audit.yml`](../.github/workflows/security-audit.yml) runs only as **`workflow_call`** / **`workflow_dispatch`** (no duplicate **`push`** / **`pull_request`** alongside **`ci.yml`**). **`commit-dependencies-doc`** job may refresh **[dependencies.md](dependencies.md)** on **`main`** / **`master`** after merges.
 - **Dependencies / CI:** Root **`overrides`** pin **`@capacitor/assets`** to **`@capacitor/cli@7.6.1`** (drops nested **CLI 5.x** and **`tar@6.2.1`**); **`@trapezedev/project`** and **`mergexml`** pin **`@xmldom/xmldom@0.8.12`**. **`package-lock.json`** regenerated so **OSV-Scanner** no longer flags dev-only **`tar`** / **`@xmldom/xmldom`** advisories from those chains. `npm ls` may still report **`invalid`** for **`@xmldom/xmldom`** where upstream manifests request **`^0.7.x`**; the installed **0.8.12** is intentional.
-- **Docs automation:** [`scripts/generate-dependencies-doc.mjs`](../scripts/generate-dependencies-doc.mjs) + **`npm run docs:dependencies`** regenerate **[dependencies.md](dependencies.md)**. **CI** verifies the file on **pull requests** and may commit updates on pushes to **main** / **master** (see **`commit-dependencies-doc`** in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)).
+- **Docs automation:** [`scripts/ci/generate-dependencies-doc.mjs`](../scripts/ci/generate-dependencies-doc.mjs) + **`npm run docs:dependencies`** regenerate **[dependencies.md](dependencies.md)**. **CI** verifies the file on **pull requests** and may commit updates on pushes to **main** / **master** (see **`commit-dependencies-doc`** in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)).
 - **Web / PWA (`apps/pwa-webapp/`):** Bug report modal — close control, scroll wrapper, optional fields under **More detail**, bug icon asset, **`styles.css?v=84`** cache bust; console log note clarified for dev/local server.
 - **React Native (`apps/rn-app/`):** **`installBugReportConsoleCapture`** ([`src/utils/bugReportLogs.ts`](../apps/rn-app/src/utils/bugReportLogs.ts)) attaches recent **`console`** output for bug reports on launch.
 - **Python server (`server/main.py`):** Bug report ingest accepts **`page_url`** from either **`url`** or **`page_url`** in the JSON payload (client naming parity).
@@ -591,7 +601,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 ### v1.46.17 - 2026-03-29 - Dependencies: `http-proxy-agent` override; documentation UK English
 
 - **npm:** Root **`overrides`** now replace **`http-proxy-agent@5.0.0`** (from **`jsdom@20`** / **`jest-expo`**) with **`7.0.2`**, eliminating the vulnerable **`@tootallnate/once@<3.0.1`** chain in the lockfile; **`package-lock.json`** regenerated. **`npm audit`** reports **0** vulnerabilities; **`npm run test:mobile`** passes.
-- **Docs:** [docs/SECURITY.md](SECURITY.md) documents the override and expected **`npm ls`** peer note; **`scripts/apply-uk-english-md.mjs`** run across all **`*.md`** files (UK spelling in prose; CSS **`overscroll-behavior`**, JSON **`sync_behavior`**, and code identifiers preserved).
+- **Docs:** [docs/SECURITY.md](SECURITY.md) documents the override and expected **`npm ls`** peer note; **`scripts/ci/apply-uk-english-md.mjs`** run across all **`*.md`** files (UK spelling in prose; CSS **`overscroll-behavior`**, JSON **`sync_behavior`**, and code identifiers preserved).
 
 ### v1.46.16 - 2026-03-29 - Web MOTD 3D spin + docs: security header run history
 
@@ -601,7 +611,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 ### v1.46.15 - 2026-03-29 - Security Headers CI: relay scan page, browser-like live fetch
 
 - **Problem:** **securityheaders.com** and sometimes the **live site** return **403** from GitHub Actions (bot / Cloudflare). Browser-only proxy sites (e.g. Proxyium) are **not** usable from CI (no stable API).
-- **Fix (`scripts/fetch-securityheaders-report.mjs`):** After a failed **direct** scan fetch, try **HTML relays** in order: **AllOrigins**, **corsproxy.io**, **Codetabs** — then parse the SecurityHeaders scan page when any relay returns usable HTML. **Live header** fallback tries **`SECURITY_HEADERS_LIVE_URLS`** (CI: `https://rianell.com` then `https://www.rianell.com`) with a **Chrome-like** User-Agent. YAML may include **`securityheaders_scan_relay`**. **`security/README.md`** explains relays vs interactive proxies.
+- **Fix (`scripts/audit/fetch-securityheaders-report.mjs`):** After a failed **direct** scan fetch, try **HTML relays** in order: **AllOrigins**, **corsproxy.io**, **Codetabs** — then parse the SecurityHeaders scan page when any relay returns usable HTML. **Live header** fallback tries **`SECURITY_HEADERS_LIVE_URLS`** (CI: `https://rianell.com` then `https://www.rianell.com`) with a **Chrome-like** User-Agent. YAML may include **`securityheaders_scan_relay`**. **`security/README.md`** explains relays vs interactive proxies.
 
 ### v1.46.14 - 2026-03-29 - Docs: benchmark paths and repo tree
 
@@ -617,13 +627,13 @@ Shipped as one release commit with four staged bodies (security → performance 
 ### v1.46.12 - 2026-03-29 - CI: Security Headers job tolerates securityheaders.com 403
 
 - **Problem:** `curl` to **securityheaders.com** returned **403** on GitHub Actions (bot protection / Cloudflare).
-- **Fix:** **`scripts/fetch-securityheaders-report.mjs`** now uses **Node `fetch`** with browser-like headers, then on failure writes a report from **`GET https://rianell.com`** response headers. Removed the separate curl step from **`.github/workflows/ci.yml`**. **`security/README.md`** updated.
+- **Fix:** **`scripts/audit/fetch-securityheaders-report.mjs`** now uses **Node `fetch`** with browser-like headers, then on failure writes a report from **`GET https://rianell.com`** response headers. Removed the separate curl step from **`.github/workflows/ci.yml`**. **`security/README.md`** updated.
 
 ### v1.46.11 - 2026-03-29 - CI: restore RN-only build counter + docs
 
 - **README / CI:** **`rn-build-version`** job is **restored**. **Alpha RN Android / RN iOS** rows read **`version`** from the sequential counter (same as **`App build/RNCLI-Android/latest.json`** / iOS zips), **not** **`GITHUB_RUN_NUMBER`**. **Server** and **Web / PWA** rows still use the workflow run number. This keeps RN build counts meaningful (how many mobile artifact runs) while Server/Web stay aligned with overall CI runs.
 - **Large-file fallback** (from v1.46.10) remains: small **`latest.json`** files still commit with README when binaries fail to push, so the sequential RN counter can advance.
-- **Docs:** **`docs/next-phase-development-plan.md`** replaced with a short status note — **no active roadmap items**; pointers to CHANGELOG and feature docs. **`docs/project-reference.md`**, **`scripts/update-readme-build-info.mjs`**, **`benchmarks/README.md`**, **`docs/app-and-features.md`** updated for RN vs workflow numbering.
+- **Docs:** **`docs/next-phase-development-plan.md`** replaced with a short status note — **no active roadmap items**; pointers to CHANGELOG and feature docs. **`docs/project-reference.md`**, **`scripts/ci/update-readme-build-info.mjs`**, **`benchmarks/README.md`**, **`docs/app-and-features.md`** updated for RN vs workflow numbering.
 - **Tests:** **`tests/unit/workflows-ci-rncli.test.mjs`** expects **`rn-build-version`** + **`needs.rn-build-version.outputs.rn_build`**.
 
 ### v1.46.10 - 2026-03-29 - CI: RN Alpha build numbers + commit fallback
@@ -632,7 +642,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 - **Fix (`.github/workflows/ci.yml`):**
   - Removed **`rn-build-version`**; **`rncli-android-apk`** and **`rncli-ios-zip`** set **`version`** (and iOS zip basename `<N>`) from **`github.run_number`**, matching **Server** `latest.json` and the **Web / PWA** row in the README build table for the same workflow run.
   - **Large-file fallback:** after a size/quota rejection, the fallback commit now stages **small metadata** — **`App build/RNCLI-Android/latest.json`**, **`App build/iOS/latest.json`**, and **`App build/Server/latest*.json`** — together with **`README.md`**, so GitHub Pages and the README badge stay consistent even when APK/zip binaries cannot be pushed to git.
-- **Docs:** **`scripts/update-readme-build-info.mjs`** header comment; **`docs/next-phase-development-plan.md`** §2, §3.2, §6; **`benchmarks/README.md`** (CI build numbering note); **`docs/app-and-features.md`** release-channel table footnote; **`docs/project-reference.md`** checkpoint.
+- **Docs:** **`scripts/ci/update-readme-build-info.mjs`** header comment; **`docs/next-phase-development-plan.md`** §2, §3.2, §6; **`benchmarks/README.md`** (CI build numbering note); **`docs/app-and-features.md`** release-channel table footnote; **`docs/project-reference.md`** checkpoint.
 - **Tests:** **`tests/unit/workflows-ci-rncli.test.mjs`** — assert **`github.run_number`** stamping and fallback paths; **`rn-build-version`** assertions removed.
 
 ### v1.46.9 - 2026-03-29 - Benchmark history, comparison Markdown, CI merge
@@ -683,7 +693,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 
 - **CI reliability (`commit-app-build`):** `.github/workflows/ci.yml` now tolerates GitHub large-file/quota push rejections (GH001/LFS/size-limit path) for full `App build/` commits and falls back to a README-only metadata push so post-build documentation still updates.
 - **Release artifact clarity:** legacy artifacts in `publish-release` are now emitted with explicit `legacy-capacitor-android-*` and `legacy-capacitor-ios-*` names to avoid confusion with RN CLI outputs.
-- **Docs/readme sync:** `scripts/update-readme-build-info.mjs` now labels legacy entries as **legacy Capacitor Android/iOS** in the README build-info block.
+- **Docs/readme sync:** `scripts/ci/update-readme-build-info.mjs` now labels legacy entries as **legacy Capacitor Android/iOS** in the README build-info block.
 
 ### v1.46.1 - 2026-03-27 - Documentation sync checkpoint
 
@@ -1137,7 +1147,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 
 ### v1.45.21 - 2026-03-26 - README CI tables + RN build sequence
 
-- **README / `scripts/update-readme-build-info.mjs`**:
+- **README / `scripts/ci/update-readme-build-info.mjs`**:
   - **CI builds** table: **Alpha** React Native CLI **Android APK** and **iOS** zip (from `App build/RNCLI-Android/` and `App build/iOS/`), plus Server + Web rows.
   - **Legacy builds** table: Capacitor **Android** + **iOS** metadata under `App build/Android/` and **`App build/Legacy/Capacitor-iOS/`** (frozen last Capacitor iOS manifest).
 - **CI (`.github/workflows/ci.yml`)**:
@@ -1380,7 +1390,7 @@ Shipped as one release commit with four staged bodies (security → performance 
   - Server EXE artifacts are now prepared and included in GitHub release assets.
   - README build-info generator now supports a **Server** build channel by reading `App build/Server/latest.json`.
 - **Icons / Branding**:
-  - Added `scripts/generate-icon-set.mjs` and `npm run icons:generate` to regenerate base icon sizes from a single source image.
+  - Added `scripts/build/generate-icon-set.mjs` and `npm run icons:generate` to regenerate base icon sizes from a single source image.
   - Regenerated base and beta icon sets from a new source image.
   - Beta icon badge updated to **theme green** and moved to the **top-right** corner.
   - Floating `+` beta tag (`.app-beta-badge`) updated to the same green theme palette.
