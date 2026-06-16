@@ -1,8 +1,13 @@
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const auditDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../audit-history');
+const defaultReport = path.join(auditDir, 'latest-boot-audit.json');
 
 const reportPath = process.argv.includes('--from-report')
   ? process.argv[process.argv.indexOf('--from-report') + 1]
-  : 'audit-report.json';
+  : defaultReport;
 
 if (!fs.existsSync(reportPath)) {
   console.error('No report at', reportPath);

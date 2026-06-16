@@ -16,6 +16,9 @@ import {
 } from '@rianell/build-tools/probe-utils';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const AUDIT_DIR = path.join(__dirname, '../../audit-history');
+const DEFAULT_REPORT = path.join(AUDIT_DIR, 'latest-boot-audit.json');
+const PREVIOUS_REPORT = path.join(AUDIT_DIR, 'latest-boot-audit-previous.json');
 const cfg = profileConfig();
 const failureCodes = [];
 
@@ -207,7 +210,7 @@ async function main() {
   console.error('audit-boot-full', { profile: getAuditProfile(), url: PROBE_URL, cfg });
 
   let previousHash = null;
-  const prevPath = path.join(__dirname, '../../audit-report-previous.json');
+  const prevPath = PREVIOUS_REPORT;
   if (fs.existsSync(prevPath)) {
     try {
       previousHash = JSON.parse(fs.readFileSync(prevPath, 'utf8')).deploy?.appHash;
@@ -265,7 +268,8 @@ async function main() {
     failureCodes,
   };
 
-  const outPath = path.join(__dirname, '../../audit-report.json');
+  const outPath = process.env.AUDIT_REPORT_PATH || DEFAULT_REPORT;
+  fs.mkdirSync(AUDIT_DIR, { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(report, null, 2));
   console.log(JSON.stringify(report));
   process.exit(report.ok ? 0 : 1);
