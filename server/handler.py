@@ -1,15 +1,17 @@
 """Rianell HTTP request handler."""
 import http.server
+import socket
 import socketserver
 import threading
 import time
 from urllib.parse import urlparse
 
-from .. import config
+from . import config
 from .routes.api import ApiRoutesMixin
 from .routes.static import StaticRoutesMixin
 
 logger = config.logger
+file_handler = config.file_handler
 connection_lock = config.connection_lock
 active_connections = config.active_connections
 last_activity = config.last_activity
