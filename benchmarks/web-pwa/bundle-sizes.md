@@ -1,11 +1,11 @@
 # PWA bundle sizes
 
-Generated: 2026-06-16T10:38:36.624Z
+Generated: 2026-06-16T10:55:22.793Z
 
 | File | Raw | Gzip |
 |------|-----|------|
-| ci-minified/site/app.js | 1183192 | 199284 |
-| ci-minified/site/app.f4a799d3ef4f.min.js | 768719 | 140261 |
+| ci-minified/site/app.js | 1184509 | 199504 |
+| ci-minified/site/app.3f10aa9d7829.min.js | 769697 | 140437 |
 | ci-minified/site/apexcharts.min.js | 576627 | 153833 |
 | ci-minified/site/styles.bdaa2a5105ce.css | 377684 | 65294 |
 | ci-minified/site/AIEngine.js | 221884 | 38136 |
@@ -25,5 +25,5 @@ Generated: 2026-06-16T10:38:36.624Z
 | ci-minified/site/logs-idb.js | 13809 | 1351 |
 | ci-minified/site/vendor/rianell-ai-engine.js | 13361 | 3084 |
 
-**JS total (gzip):** 666887 bytes
+**JS total (gzip):** 667283 bytes
 **CSS total (gzip):** 69094 bytes
