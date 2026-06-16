@@ -57,6 +57,8 @@
     "deploy:probe-live": "node scripts/ci/deploy-probe-loop.mjs",
     "deploy:probe-llm-live": "node scripts/ci/probe-llm-download-live.mjs",
     "deploy:hf-rollout-loop": "node scripts/ci/hf-rollout-deploy-loop.mjs",
+    "ci:purge-artifacts": "node scripts/ci/purge-actions-artifacts.mjs",
+    "ci:rerun-until-green": "node scripts/ci/ci-rerun-until-green.mjs",
     "turbo:build": "npx turbo run build",
     "turbo:typecheck": "npx turbo run typecheck"
   },
