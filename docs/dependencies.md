@@ -73,6 +73,7 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | Package | Version |
 |---------|---------|
 | `@expo/vector-icons` | ^15.0.2 |
+| `@huggingface/transformers` | 3.3.2 |
 | `@react-native-async-storage/async-storage` | ^3.0.1 |
 | `@react-native-community/netinfo` | ^11.4.1 |
 | `@react-navigation/bottom-tabs` | ^7.15.7 |
@@ -99,12 +100,14 @@ CSP and additional script hosts (e.g. ML/PayPal-related `connect-src` entries) a
 | `expo-speech` | ^55.0.9 |
 | `expo-speech-recognition` | ^3.1.2 |
 | `expo-status-bar` | ~55.0.4 |
+| `onnxruntime-react-native` | ^1.22.0 |
 | `react` | 19.2.4 |
 | `react-freeze` | ^1.0.0 |
 | `react-native` | 0.83.2 |
 | `react-native-safe-area-context` | ^5.7.0 |
 | `react-native-screens` | ^4.24.0 |
 | `react-native-svg` | ^15.12.0 |
+| `react-native-transformers` | ^1.0.0 |
 | `warn-once` | ^0.1.1 |
 
 **`devDependencies`**
