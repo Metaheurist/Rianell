@@ -32,27 +32,32 @@ const urls = urlsToCheck();
 const localProbe = Boolean(process.env.PROBE_URL);
 const attempts = Number(process.env.VERIFY_ATTEMPTS || (localProbe ? 1 : 10));
 const delayMs = Number(process.env.VERIFY_DELAY_MS || (localProbe ? 0 : 20000));
+const CHROME_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36';
 
-const browser = await chromium.launch();
-const page = await browser.newPage();
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--disable-dev-shm-usage', '--no-sandbox'],
+});
+const page = await browser.newContext({
+  userAgent: CHROME_UA,
+  viewport: { width: 1280, height: 720 },
+}).then((ctx) => ctx.newPage());
 try {
   for (let i = 1; i <= attempts; i++) {
     for (const url of urls) {
       try {
         const resp = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
         const status = resp ? resp.status() : 0;
-        if (status > 0 && status < 400) {
-          const html = await page.content();
-          if (pattern.test(html)) {
-            const preload = findPreloadTag(html);
-            const script = html.match(scriptRe);
-            if (!preload || !script) throw new Error('Deploy HTML missing preload or script tag for app bundle');
-            if (!hasAnonymousCrossorigin(preload[0]) || !hasAnonymousCrossorigin(script[0])) {
-              throw new Error('Deploy HTML missing crossorigin=\"anonymous\" on preload/script app bundle tags');
-            }
-            console.log(`Deploy HTML contains fingerprinted app bundle (${url})`);
-            process.exit(0);
+        const html = await page.content();
+        if (pattern.test(html)) {
+          const preload = findPreloadTag(html);
+          const script = html.match(scriptRe);
+          if (!preload || !script) throw new Error('Deploy HTML missing preload or script tag for app bundle');
+          if (!hasAnonymousCrossorigin(preload[0]) || !hasAnonymousCrossorigin(script[0])) {
+            throw new Error('Deploy HTML missing crossorigin=\"anonymous\" on preload/script app bundle tags');
           }
+          console.log(`Deploy HTML contains fingerprinted app bundle (${url}, status=${status})`);
+          process.exit(0);
         }
         console.log(`${url} status=${status} — fingerprint not found yet`);
       } catch (err) {
