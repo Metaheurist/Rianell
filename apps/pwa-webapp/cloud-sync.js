@@ -866,6 +866,13 @@ function updateCloudSyncUI() {
 
 // Check authentication status on load
 async function checkAuthStatus() {
+  if (typeof supabase === 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.ensureSupabaseLoaded === 'function') {
+    try {
+      await window.PerformanceUtils.ensureSupabaseLoaded();
+    } catch (e) {
+      /* library blocked or offline — handled below */
+    }
+  }
   const client = initSupabase();
   if (!client) {
     try {

@@ -15621,6 +15621,16 @@ if (typeof window !== 'undefined') window.setPreferredLlmModel = setPreferredLlm
 
 var __rianellAiDownloadConsentResolve = null;
 
+function ensureSummaryLlmLoadedForSettings() {
+  if (typeof window !== 'undefined' && typeof window.getAiModelStatus === 'function') {
+    return Promise.resolve();
+  }
+  if (typeof window !== 'undefined' && window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
+    return window.PerformanceUtils.lazyLoadScript('summary-llm.js');
+  }
+  return Promise.resolve();
+}
+
 function refreshLlmModelSettingsHints() {
   var llmRecommendationHint = document.getElementById('llmModelRecommendationHint');
   var llmStorageHint = document.getElementById('llmModelStorageHint');
@@ -15650,7 +15660,17 @@ function refreshLlmModelSettingsHints() {
     llmRecommendationHint.textContent = tierText;
   }
 
-  if (statusText && modelStatus) {
+  if (statusText) {
+    if (typeof window.getAiModelStatus !== 'function') {
+      statusText.textContent = tUi('common.checking');
+      statusText.className = 'llm-model-status llm-model-status--unknown';
+      ensureSummaryLlmLoadedForSettings().then(function () {
+        refreshLlmModelSettingsHints();
+      }).catch(function () {
+        statusText.textContent = 'Status unavailable';
+        statusText.className = 'llm-model-status llm-model-status--failed';
+      });
+    } else if (modelStatus) {
     var statusLabel = 'Not downloaded';
     if (modelStatus.state === 'downloading') {
       statusLabel = 'Downloading… ' + (modelStatus.pct || 0) + '%';
@@ -15668,6 +15688,7 @@ function refreshLlmModelSettingsHints() {
     }
     statusText.textContent = statusLabel;
     statusText.className = 'llm-model-status llm-model-status--' + modelStatus.state;
+    }
   }
 
   if (progressWrap) {
@@ -16811,7 +16832,11 @@ function settingsCarouselGo(i) {
   updateSettingsCarouselDots(i);
   window.settingsModalPaneIndex = i;
   if (i === 7 && typeof refreshLlmModelSettingsHints === 'function') {
-    refreshLlmModelSettingsHints();
+    ensureSummaryLlmLoadedForSettings().then(function () {
+      refreshLlmModelSettingsHints();
+    }).catch(function () {
+      refreshLlmModelSettingsHints();
+    });
   }
 }
 
