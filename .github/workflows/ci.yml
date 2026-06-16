@@ -34,8 +34,6 @@ on:
 # https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  CI_RUNNABLE: ${{ github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
-  CI_MAIN_PUSH: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
 
 permissions:
   contents: read
@@ -89,7 +87,7 @@ jobs:
   unit-tests:
     name: "1 · Unit tests and platform parity"
     needs: [paths-filter]
-    if: env.CI_RUNNABLE == 'true'
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -143,7 +141,7 @@ jobs:
   prepare-minified-assets:
     name: "1 · Prepare minified web assets"
     needs: [paths-filter]
-    if: env.CI_RUNNABLE == 'true'
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -220,7 +218,7 @@ jobs:
   security-audit:
     name: "1 · Security and supply-chain audit"
     needs: [paths-filter]
-    if: env.CI_RUNNABLE == 'true'
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: read
       security-events: write
@@ -234,7 +232,7 @@ jobs:
   benchmarks-web:
     name: "2 · Benchmarks (web / PWA)"
     needs: [paths-filter, prepare-minified-assets]
-    if: env.CI_RUNNABLE == 'true'
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -326,7 +324,7 @@ jobs:
   expo-bundle-prod:
     name: "2 · Expo prod bundle (gate)"
     needs: [paths-filter, unit-tests, security-audit]
-    if: env.CI_RUNNABLE == 'true'
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -490,7 +488,7 @@ jobs:
   commit-dependencies-doc:
     name: "2 · Commit dependencies inventory"
     needs: [unit-tests]
-    if: env.CI_MAIN_PUSH == 'true'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
     concurrency:
       group: ci-bot-push-${{ github.ref }}
@@ -522,7 +520,7 @@ jobs:
   sync-wiki-to-github:
     name: "2 · Sync wiki to GitHub Wiki"
     needs: [unit-tests]
-    if: env.CI_MAIN_PUSH == 'true'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
     concurrency:
       group: ci-bot-push-${{ github.ref }}
@@ -588,7 +586,7 @@ jobs:
   benchmarks-expo:
     name: "3 · Benchmarks (Expo / RN)"
     needs: [paths-filter, expo-bundle-prod]
-    if: env.CI_RUNNABLE == 'true'
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -734,7 +732,7 @@ jobs:
   audit-boot-post-deploy:
     name: "3 · Post-deploy boot audit (Pages site)"
     needs: [deploy-pages]
-    if: env.CI_MAIN_PUSH == 'true'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -815,7 +813,7 @@ jobs:
   commit-benchmarks:
     name: "4 · Commit benchmark reports"
     needs: [benchmarks-web, benchmarks-expo]
-    if: env.CI_MAIN_PUSH == 'true'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
     concurrency:
       group: ci-bot-push-${{ github.ref }}
@@ -1060,7 +1058,7 @@ jobs:
     needs: [deploy-pages, paths-filter, audit-boot-post-deploy]
     if: |
       success() &&
-      env.CI_MAIN_PUSH == 'true' &&
+      github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') &&
       needs.paths-filter.outputs.mobile_release != 'true'
     runs-on: ubuntu-latest
     concurrency:
@@ -1105,7 +1103,7 @@ jobs:
     needs: [deploy-pages, audit-boot-post-deploy]
     if: |
       success() &&
-      env.CI_MAIN_PUSH == 'true'
+      github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
     concurrency:
       group: ci-bot-push-${{ github.ref }}
