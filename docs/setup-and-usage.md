@@ -9,7 +9,7 @@ Canonical layout: **[architecture-standard.md](architecture-standard.md)** and *
 - **Build (PWA):** `npm run build:web` or `npm run build:web:apk` — orchestrated by `scripts/build/run-web.mjs` (sync i18n → vendor → esbuild).
 - **Build (RN export):** `npm run bundle:mobile:prod` — `scripts/build/run-mobile-export.mjs`.
 - **Local web dev:** `npm run dev:web` (cross-platform; Windows runs `launch-server.ps1`, Unix runs minify + `python -m server`).
-- **CI artifacts:** binaries and manifests under **`artifacts/`** (renamed from legacy `App build/`). Git tracks **`latest.json`** only; APK/EXE/zips ship via GitHub Releases.
+- **CI artifacts:** binaries and manifests under **`artifacts/`** (renamed from the legacy spaced artifact directory). Git tracks **`latest.json`** only; APK/EXE/zips ship via GitHub Releases.
 - **Verify gates:** `npm run verify:migration:foundation` (after layout changes), `npm run verify:migration` (full sign-off), `node scripts/verify/doc-links.mjs --strict`.
 - **Scripts:** nested under `scripts/{build,i18n,verify,ci,audit,wiki,models,dev}/` — not flat `scripts/*.mjs`.
 
