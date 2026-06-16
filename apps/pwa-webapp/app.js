@@ -2932,15 +2932,45 @@ function closeModalTestOverlay() {
   document.body.style.overflow = '';
 }
 
-document.addEventListener('keydown', function(e) {
-  if (e.key !== '`') return;
-  if (typeof appSettings === 'undefined' || !appSettings.demoMode) return;
-  var tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
-  var isInput = tag === 'input' || tag === 'textarea' || tag === 'select' || (e.target && e.target.isContentEditable);
-  if (isInput) return;
+function isGodModeOverlayOpen() {
+  var overlay = document.getElementById('modalTestOverlay');
+  if (!overlay) return false;
+  var display = overlay.style.display;
+  return display === 'block' || display === 'flex';
+}
+
+function isBackquoteKey(e) {
+  if (!e || e.altKey || e.ctrlKey || e.metaKey) return false;
+  if (e.code === 'Backquote') return true;
+  return e.key === '`' || e.key === '~';
+}
+
+function isTypingTarget(target) {
+  if (!target) return false;
+  var tag = target.tagName ? target.tagName.toLowerCase() : '';
+  return tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable;
+}
+
+function handleGlobalBackquoteKey(e) {
+  if (!isBackquoteKey(e)) return;
+  if (isTypingTarget(e.target)) return;
   e.preventDefault();
+
+  if (e.shiftKey) {
+    if (typeof openTutorialModal === 'function') openTutorialModal();
+    return;
+  }
+
+  if (isGodModeOverlayOpen()) {
+    closeModalTestOverlay();
+    return;
+  }
+
   openModalTestOverlay();
-});
+}
+
+// Backtick ` toggles God mode; Shift+` reopens tutorial (see index.html hints)
+document.addEventListener('keydown', handleGlobalBackquoteKey);
 
 // Show GDPR Data Agreement Modal
 function showGDPRAgreementModal(onAgree, onDecline) {
@@ -20500,6 +20530,7 @@ function attachInlineHandlersToWindow() {
     openCookiePolicyModal,
     openGoalsModal,
     openLogWizardFromHome,
+    openModalTestOverlay,
     openShareModalForAIAnalysis,
     openTutorialModal,
     saveEditedEntry,
