@@ -47,11 +47,15 @@ function initializeEventHandlers() {
   const cloudAutoSync = document.getElementById('cloudAutoSync');
   
   if (userNameInput) {
-    userNameInput.addEventListener('change', updateUserName);
+    userNameInput.addEventListener('change', function () {
+      if (typeof window.updateUserName === 'function') window.updateUserName();
+    });
   }
-  
+
   if (medicalConditionInput) {
-    medicalConditionInput.addEventListener('change', updateMedicalCondition);
+    medicalConditionInput.addEventListener('change', function () {
+      if (typeof window.updateMedicalCondition === 'function') window.updateMedicalCondition();
+    });
   }
   
   // Reminder time input
@@ -241,7 +245,7 @@ function initializeEventHandlers() {
   tabButtons.forEach(btn => {
     btn.addEventListener('click', function() {
       const tab = this.getAttribute('data-tab');
-      switchTab(tab);
+      if (typeof window.switchTab === 'function') window.switchTab(tab);
     });
   });
   
