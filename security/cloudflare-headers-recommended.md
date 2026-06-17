@@ -6,6 +6,19 @@ The PWA ships a full **Content Security Policy** in **`apps/pwa-webapp/index.htm
 - `Loading the stylesheet … violates … style-src` (**`fonts.googleapis.com`**, **`cdn.jsdelivr.net`** Font Awesome)
 - `Supabase library not loaded` / dynamic import failures for **`@huggingface/transformers`**
 
+## Report-only CSP noise (Cloudflare challenge / monitoring)
+
+If the console shows many lines like:
+
+`Loading the script … violates … script-src 'unsafe-inline' 'unsafe-eval'` **and** `The policy is report-only, so the violation has been logged but no further action has been taken`
+
+that is **not blocking** the page today — it is Cloudflare (or a security product) **logging** what *would* be blocked under a stricter policy. Typical sources:
+
+- **Challenge platform** scripts under `/cdn-cgi/challenge-platform/`
+- A **Content-Security-Policy-Report-Only** header missing `'self'`, `worker-src`, and Hugging Face / Supabase hosts
+
+**Action:** In Cloudflare, remove duplicate **Report-Only** CSP rules, or align them with the full policy in **`index.html`**. When Cloudflare switches the same rule from report-only to **enforce**, same-origin scripts (`app.*.min.js`, `summary-llm.js`, `sw.js`) and HF model fetches will break unless `'self'` and the meta **`connect-src`** hosts are included.
+
 ## Fix (pick one)
 
 ### A) Prefer: remove duplicate HTTP `Content-Security-Policy` (recommended)
