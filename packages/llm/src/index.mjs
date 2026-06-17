@@ -107,6 +107,7 @@ export {
   resolvePlatformKind,
   resolveLlmPreset,
   shouldCapTierForMemory,
+  resolveWasmOnlyCap,
   modelNeedsExternalData,
   modelOnnxAttempts,
   LAST_STABLE_PRESET_KEY,

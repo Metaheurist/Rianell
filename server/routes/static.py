@@ -19,7 +19,7 @@ class StaticRoutesMixin:
             if path_only.startswith('/api/'):
                 return False
             ext = Path(path_only).suffix.lower()
-            if ext not in ('.js', '.css', '.html', '.json', '.svg'):
+            if ext not in ('.js', '.mjs', '.css', '.html', '.json', '.svg'):
                 return False
             try:
                 fs_path = self.translate_path(self.path)
@@ -108,7 +108,7 @@ class StaticRoutesMixin:
             else:
                 parsed = urlparse(self.path)
                 p = parsed.path.split('?')[0].lower()
-                if p.endswith(('.js', '.css', '.png', '.svg', '.ico', '.webp', '.woff', '.woff2', '.json')) and not p.endswith('index.html'):
+                if p.endswith(('.js', '.mjs', '.css', '.png', '.svg', '.ico', '.webp', '.woff', '.woff2', '.json', '.wasm')) and not p.endswith('index.html'):
                     self.send_header('Cache-Control', 'public, max-age=86400, must-revalidate')
                 else:
                     self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
@@ -120,8 +120,12 @@ class StaticRoutesMixin:
         def guess_type(self, path):
             """Override to set correct MIME types"""
             # Ensure JavaScript files are served with correct MIME type
+            if path.endswith('.mjs'):
+                return 'application/javascript'
             if path.endswith('.js'):
                 return 'application/javascript'
+            if path.endswith('.wasm'):
+                return 'application/wasm'
             if path.endswith('.json'):
                 return 'application/json'
             if path.endswith('.css'):

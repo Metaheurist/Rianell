@@ -15,14 +15,11 @@
       seen[key] = true;
       plans.push({ device: device, dtype: dtype, revision: 'main' });
     }
-    var skipWebgl = platformKind === 'pwa_mobile' || platformKind === 'rn_expo_go';
     for (var i = 0; i < gpuCandidates.length; i++) {
       var device = gpuCandidates[i];
       if (device === 'webgpu') {
         add('webgpu', 'q4f16');
         add('webgpu', 'q4');
-      } else if (device === 'webgl' && !skipWebgl) {
-        add('webgl', 'q4');
       }
     }
     return plans;
@@ -49,6 +46,6 @@
     buildPwaLoadAttempts: buildPwaLoadAttempts,
     buildPwaWasmAttempt: buildPwaWasmAttempt,
     resolvePlatformKindFromWindow: resolvePlatformKindFromWindow,
-    version: 1
+    version: 2
   };
 })(typeof window !== 'undefined' ? window : globalThis);

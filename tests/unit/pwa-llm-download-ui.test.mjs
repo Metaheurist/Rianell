@@ -15,8 +15,9 @@ const styles = fs.readFileSync(
   'utf8',
 );
 
-test('PWA LLM download UI references Hugging Face (not generic model parts)', () => {
-  assert.match(uiFeedback, /Downloading from Hugging Face/);
+test('PWA LLM download UI uses generic i18n label (not Hugging Face filenames)', () => {
+  assert.match(uiFeedback, /common\.downloading\.ai\.model/);
+  assert.doesNotMatch(uiFeedback, /Downloading from Hugging Face/);
   assert.doesNotMatch(uiFeedback, /Downloading model parts/);
   assert.doesNotMatch(summaryLlm, /return 'model parts'/);
 });
@@ -37,7 +38,13 @@ test('summary-llm uses GPU load ladder not getPreferredDevice', () => {
   assert.match(summaryLlm, /warmupPipelineOrThrow/);
 });
 
+test('summary-llm does not pass webgl to Transformers load ladder', () => {
+  assert.doesNotMatch(summaryLlm, /device:\s*'webgl'/);
+  assert.match(summaryLlm, /probeWebGpuAdapterAsync/);
+});
+
 test('getAiModelStatus ready requires in-memory pipeline', () => {
-  assert.match(summaryLlm, /state: 'consented'/);
-  assert.match(summaryLlm, /inMemory: true/);
+  assert.match(summaryLlm, /state:\s*'ready'/);
+  assert.match(summaryLlm, /inMemory:\s*true/);
+  assert.match(summaryLlm, /cachedPipeline && cachedModelId/);
 });

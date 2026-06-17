@@ -4,6 +4,7 @@ import {
   resolvePlatformKind,
   resolveLlmPreset,
   shouldCapTierForMemory,
+  resolveWasmOnlyCap,
   modelNeedsExternalData,
   LLM_MODEL_BASE_ID,
   LLM_MODEL_SMALL_ID,
@@ -32,6 +33,39 @@ test('shouldCapTierForMemory lowers tier on low RAM mobile', () => {
   });
   assert.equal(r.capped, true);
   assert.equal(r.tier, 'tier3');
+});
+
+test('shouldCapTierForMemory lowers tier on low RAM desktop', () => {
+  const r = shouldCapTierForMemory({
+    platformKind: 'pwa_desktop',
+    tier: 'tier5',
+    deviceMemory: 3,
+  });
+  assert.equal(r.capped, true);
+  assert.equal(r.tier, 'tier3');
+});
+
+test('resolveWasmOnlyCap lowers tier 5 to tier 2 when no webgpu', () => {
+  const r = resolveWasmOnlyCap({ tier: 'tier5', webGpuAvailable: false });
+  assert.equal(r.capped, true);
+  assert.equal(r.tier, 'tier2');
+});
+
+test('resolveWasmOnlyCap allows large on wasm with override and memory floor', () => {
+  const r = resolveWasmOnlyCap({
+    tier: 'tier5',
+    webGpuAvailable: false,
+    forceLargeOnWasm: true,
+    deviceMemory: 8,
+  });
+  assert.equal(r.capped, false);
+  assert.equal(r.tier, 'tier5');
+});
+
+test('resolveWasmOnlyCap keeps tier when webgpu available', () => {
+  const r = resolveWasmOnlyCap({ tier: 'tier5', webGpuAvailable: true });
+  assert.equal(r.capped, false);
+  assert.equal(r.tier, 'tier5');
 });
 
 test('modelNeedsExternalData only for Llama', () => {

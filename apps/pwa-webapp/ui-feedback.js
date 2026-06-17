@@ -398,11 +398,7 @@
   }
 
   function formatAiDownloadLabel(state) {
-    var fileLabel = state && state.file ? String(state.file).trim() : '';
-    if (fileLabel) {
-      return 'Downloading from Hugging Face… ' + fileLabel;
-    }
-    return 'Downloading from Hugging Face…';
+    return tUi('common.downloading.ai.model');
   }
 
   function applyAiDownloadProgressToElements(state, labelSel, pctSel, fillSel, root) {

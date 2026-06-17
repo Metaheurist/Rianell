@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.90.1",
+  "version": "1.91.0",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp and React Native app",
   "workspaces": [
     "apps/rn-app",
@@ -67,7 +67,12 @@
     "turbo:build": "npx turbo run build",
     "turbo:typecheck": "npx turbo run typecheck",
     "postinstall": "node scripts/build/patch-onnxruntime-gradle.mjs && node scripts/build/sync-llm-tier-benchmark.mjs && node scripts/build/sync-llm-load-ladder.mjs",
-    "sync:llm-pwa": "node scripts/build/sync-llm-tier-benchmark.mjs && node scripts/build/sync-llm-load-ladder.mjs"
+    "sync:llm-pwa": "node scripts/build/sync-llm-tier-benchmark.mjs && node scripts/build/sync-llm-load-ladder.mjs",
+    "vendor:transformers": "node scripts/build/vendor-transformers.mjs",
+    "test:llm-hardware": "node scripts/test/llm-hardware-matrix.mjs",
+    "preflight:llm-chunk": "node scripts/test/preflight-llm-chunk.mjs",
+    "verify:push-contract": "node scripts/verify/push-notification-contract.mjs",
+    "agentic:llm-full-scope": "node scripts/ci/agentic-llm-full-scope.mjs"
   },
   "devDependencies": {
     "@babel/core": "7.29.7",

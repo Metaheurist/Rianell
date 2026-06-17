@@ -11,7 +11,7 @@
 | Surface | Technology | Data leaves device? | User control |
 |---------|------------|---------------------|--------------|
 | **Deterministic analysis** | `@rianell/ai-engine` (regression, correlation, flare prediction) | No | Always on when user runs AI Analysis |
-| **On-device LLM (PWA)** | Transformers.js `@3.3.2` (jsDelivr) + **Hugging Face Hub** weights only | Weights downloaded from HF; **prompts stay on device** | Consent modal + download UI; GPU (WebGPU/WebGL) tried before WASM |
+| **On-device LLM (PWA)** | Transformers.js `@3.3.2` (self-hosted `/vendor/` or jsDelivr fallback) + **Hugging Face Hub** weights only | Weights downloaded from HF; **prompts stay on device** | Consent modal + download UI; **WebGPU** tried before WASM (`webgl` is not a valid Transformers device) |
 | **On-device LLM (RN)** | `@rianell/llm` + `llmNative.ts` (ORT) or `llmJs.ts` (Expo Go WASM) | HF Hub download to app documents; prompts on device | `AiModelDownloadGate`; Android NNAPI / iOS CoreML before CPU |
 | **Rule-based fallbacks** | Shared MOTD / summary templates | No | Automatic when LLM unavailable or times out |
 | **Anonymized training pool** | Encrypted blobs in `anonymized_data` | Yes (opt-in) | Separate consent in settings |
@@ -63,7 +63,7 @@ flowchart TB
 
 **Package references:** `packages/llm` (`runtime-profiles.mjs`, `load-ladder.mjs`, `tier-benchmark.mjs`), PWA `summary-llm.js`, RN `llmNative.ts` / `llmJs.ts`.
 
-**Load order (GPU-first):** WebGPU (q4f16→q4) → WebGL (q4) on desktop; WebGPU then WASM on mobile PWA; NNAPI/CoreML then CPU on RN native; WASM q4 last resort everywhere.
+**Load order (GPU-first):** WebGPU (q4f16→q4) → WASM q4 on PWA (all platforms); NNAPI/CoreML then CPU on RN native; WASM q4 last resort on Expo Go. Transformers.js browser devices are **webgpu** and **wasm** only.
 
 ---
 

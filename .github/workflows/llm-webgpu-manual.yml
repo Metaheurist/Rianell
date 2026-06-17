@@ -1,0 +1,30 @@
+name: LLM WebGPU manual matrix
+
+on:
+  workflow_dispatch:
+    inputs:
+      probe_url:
+        description: 'PWA URL to probe'
+        required: true
+        default: 'https://rianell.com/'
+
+jobs:
+  webgpu-tier5:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - name: WebGPU tier5 profile (headless WASM fallback expected on GHA)
+        env:
+          PROBE_URL: ${{ inputs.probe_url }}
+          PROBE_TIER: '5'
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          PROBE_GPU_AVAILABLE: '0'
+          PROBE_MATRIX_FAIL_FAST: '1'
+        run: node scripts/ci/probe-llm-download-live.mjs

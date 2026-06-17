@@ -1,0 +1,29 @@
+{
+  "version": "3.3.2",
+  "files": {
+    "transformers.min.js": {
+      "sha256": "c73cd971f2a75c81dbfa6634754fd6e0cc86772cdfe1b041127833b533902955",
+      "bytes": 818481
+    },
+    "transformers.min.js.map": {
+      "sha256": "770ed61b39ce64f7a20e04da808cd96527e52efd96a2376b0da8bb25cf5f8279",
+      "bytes": 2498652
+    },
+    "transformers.min.mjs": {
+      "sha256": "73267918a4f6755530a01ce25ca005d0f1bf54052e9868ec3c2516b2f8d6995f",
+      "bytes": 430204
+    },
+    "transformers.min.mjs.map": {
+      "sha256": "580e389be80c7e0670c7f6e43331a0007919c2888ae297496375b3d1974bde2f",
+      "bytes": 1700430
+    },
+    "ort-wasm-simd-threaded.jsep.mjs": {
+      "sha256": "9cee9463024309bdda66ace9b818b7bf9f284a5e6af7f1ea5b65ddb0aea0f7ca",
+      "bytes": 49241
+    },
+    "ort-wasm-simd-threaded.jsep.wasm": {
+      "sha256": "719a76c6d550f926da215dff9e711bb90ea68a7e246e8745d47331d6059c8e2f",
+      "bytes": 22792576
+    }
+  }
+}

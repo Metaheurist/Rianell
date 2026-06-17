@@ -19,14 +19,11 @@ export function buildPwaLoadAttempts(options = {}) {
   }
 
   const devices = Array.isArray(gpuCandidates) ? gpuCandidates : [];
-  const skipWebgl = platformKind === 'pwa_mobile' || platformKind === 'rn_expo_go';
 
   for (const device of devices) {
     if (device === 'webgpu') {
       add('webgpu', 'q4f16');
       add('webgpu', 'q4');
-    } else if (device === 'webgl' && !skipWebgl) {
-      add('webgl', 'q4');
     }
   }
 
