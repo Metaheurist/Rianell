@@ -1,22 +1,27 @@
 {
-  "generatedAt": "2026-06-17T15:38:15.689Z",
+  "generatedAt": "2026-06-17T18:46:24.220Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3505401,
+    "jsBytes": 4354269,
     "cssBytes": 391804,
-    "jsGzipBytes": 670385,
+    "jsGzipBytes": 884337,
     "cssGzipBytes": 69099
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1190532,
-      "gzipBytes": 200265
+      "bytes": 1194499,
+      "gzipBytes": 201115
     },
     {
-      "file": "ci-minified/site/app.be8e8b04048c.min.js",
-      "bytes": 774145,
-      "gzipBytes": 141047
+      "file": "ci-minified/site/vendor/transformers/transformers.min.js",
+      "bytes": 818481,
+      "gzipBytes": 207722
+    },
+    {
+      "file": "ci-minified/site/app.0046ccb57dbc.min.js",
+      "bytes": 788846,
+      "gzipBytes": 144112
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -45,8 +50,8 @@
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 77584,
-      "gzipBytes": 12744
+      "bytes": 84465,
+      "gzipBytes": 13665
     },
     {
       "file": "ci-minified/site/export-utils.js",
@@ -65,8 +70,8 @@
     },
     {
       "file": "ci-minified/site/ui-feedback.js",
-      "bytes": 34560,
-      "gzipBytes": 5495
+      "bytes": 34381,
+      "gzipBytes": 5431
     },
     {
       "file": "ci-minified/site/privacy-region.js",
@@ -155,8 +160,13 @@
     },
     {
       "file": "ci-minified/site/sw.js",
-      "bytes": 4742,
-      "gzipBytes": 1784
+      "bytes": 6198,
+      "gzipBytes": 2263
+    },
+    {
+      "file": "ci-minified/site/push-subscribe.js",
+      "bytes": 3738,
+      "gzipBytes": 1027
     },
     {
       "file": "ci-minified/site/supabase-config.js",
@@ -165,8 +175,8 @@
     },
     {
       "file": "ci-minified/site/llm-load-ladder-sync.js",
-      "bytes": 3278,
-      "gzipBytes": 890
+      "bytes": 3101,
+      "gzipBytes": 842
     },
     {
       "file": "ci-minified/site/print-styles.css",
