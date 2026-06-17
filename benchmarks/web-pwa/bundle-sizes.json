@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-06-17T13:32:43.222Z",
+  "generatedAt": "2026-06-17T14:11:53.722Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3491320,
+    "jsBytes": 3505247,
     "cssBytes": 391804,
-    "jsGzipBytes": 667416,
+    "jsGzipBytes": 670310,
     "cssGzipBytes": 69099
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1190245,
-      "gzipBytes": 200220
+      "bytes": 1190532,
+      "gzipBytes": 200265
     },
     {
-      "file": "ci-minified/site/app.29738de8eac6.min.js",
-      "bytes": 773921,
-      "gzipBytes": 141009
+      "file": "ci-minified/site/app.be8e8b04048c.min.js",
+      "bytes": 774145,
+      "gzipBytes": 141047
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -44,14 +44,14 @@
       "gzipBytes": 19148
     },
     {
+      "file": "ci-minified/site/summary-llm.js",
+      "bytes": 77430,
+      "gzipBytes": 12669
+    },
+    {
       "file": "ci-minified/site/export-utils.js",
       "bytes": 69270,
       "gzipBytes": 12704
-    },
-    {
-      "file": "ci-minified/site/summary-llm.js",
-      "bytes": 68808,
-      "gzipBytes": 11262
     },
     {
       "file": "ci-minified/site/device-benchmark.js",
@@ -164,6 +164,11 @@
       "gzipBytes": 1022
     },
     {
+      "file": "ci-minified/site/llm-load-ladder-sync.js",
+      "bytes": 3278,
+      "gzipBytes": 890
+    },
+    {
       "file": "ci-minified/site/print-styles.css",
       "bytes": 2532,
       "gzipBytes": 854
@@ -172,6 +177,11 @@
       "file": "ci-minified/site/trace-runtime.js",
       "bytes": 1803,
       "gzipBytes": 685
+    },
+    {
+      "file": "ci-minified/site/llm-tier-benchmark-sync.js",
+      "bytes": 1516,
+      "gzipBytes": 514
     },
     {
       "file": "ci-minified/site/src/buildDownloads.js",
