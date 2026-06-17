@@ -15093,8 +15093,9 @@ body.light-mode .tile-picker-search::placeholder {
   display: none !important;
 }
 
+.ai-model-download-consent,
 .ai-model-download-progress {
-  z-index: 100008;
+  z-index: 100010 !important;
 }
 
 .ai-model-download-progress__content {

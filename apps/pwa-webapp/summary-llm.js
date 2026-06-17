@@ -170,10 +170,13 @@
 
   function sanitizeDownloadFileLabel(file) {
     if (!file) return '';
-    var text = String(file);
+    var text = String(file).trim();
+    if (!text) return '';
     var partMatch = text.match(/part\s+(\d+)\s*\/\s*(\d+)/i);
-    if (partMatch) return 'model parts ' + partMatch[1] + '/' + partMatch[2];
-    return 'model parts';
+    if (partMatch) return 'Hugging Face file ' + partMatch[1] + '/' + partMatch[2];
+    var base = text.split(/[/\\]/).pop() || text;
+    if (/\.(onnx|json|bin|txt|model)$/i.test(base) || base.length <= 64) return base;
+    return text.length <= 64 ? text : text.slice(0, 61) + '…';
   }
 
   function getDeviceClassForModel() {
@@ -189,6 +192,8 @@
 
   function getPreferredDevice() {
     if (typeof window === 'undefined' || !window.DeviceBenchmark || typeof window.DeviceBenchmark.getCachedResult !== 'function') return null;
+    // Large ONNX packages are unreliable on WebGPU in browsers; prefer WASM after download.
+    if (getResolvedModelId() === MODEL_BASE) return null;
     var cached = window.DeviceBenchmark.getCachedResult();
     if (!cached || !cached.gpu || !cached.gpu.available) return null;
     var backend = cached.gpu.backend;
@@ -253,8 +258,9 @@
   }
 
   function failDownloadProgress(errorMsg) {
+    if (downloadCancelled) return;
     downloadProgressState.active = false;
-    lastDownloadError = errorMsg ? String(errorMsg) : 'Download failed';
+    lastDownloadError = errorMsg ? formatDownloadError(errorMsg) : 'Download failed';
     if (typeof window !== 'undefined' && typeof window.hideAiModelDownloadProgressUI === 'function') {
       window.hideAiModelDownloadProgressUI();
     }
@@ -275,7 +281,33 @@
     return 'huggingface';
   }
 
+  function formatDownloadError(err) {
+    if (err == null) return 'Download failed';
+    if (typeof err === 'string') return err;
+    if (err.message) return String(err.message);
+    return String(err);
+  }
+
+  function cancelDownloadInFlight() {
+    bumpLoadGeneration();
+    downloadCancelled = true;
+    cachedPipeline = null;
+    cachedModelId = null;
+    llmWorkQueue = Promise.resolve();
+    lastDownloadError = null;
+    downloadProgressState = { pct: 0, status: 'idle', file: '', active: false };
+    if (typeof window !== 'undefined') {
+      try {
+        window.dispatchEvent(new CustomEvent('rianell-llm-download-progress', { detail: downloadProgressState }));
+      } catch (e) {}
+      if (typeof window.hideAiModelDownloadProgressUI === 'function') {
+        window.hideAiModelDownloadProgressUI();
+      }
+    }
+  }
+
   function reportDownloadProgress(data) {
+    if (downloadCancelled) return;
     if (!data) return;
     var pct = downloadProgressState.pct;
     if (data.status === 'progress' && data.total) {
@@ -414,8 +446,7 @@
       }
       try {
         applyHuggingFaceRemote(mod);
-        var cpuOpts = { revision: 'main' };
-        delete cpuOpts.device;
+        var cpuOpts = { revision: 'main', dtype: 'q4' };
         cachedPipeline = await runChatGenerationPipeline(mod, modelId, cpuOpts);
         if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
         cachedModelId = modelId;
@@ -430,7 +461,7 @@
         if (modelId === MODEL_BASE) {
           try {
             applyHuggingFaceRemote(mod);
-            cachedPipeline = await runChatGenerationPipeline(mod, MODEL_SMALL, { revision: 'main' });
+            cachedPipeline = await runChatGenerationPipeline(mod, MODEL_SMALL, { revision: 'main', dtype: 'q4' });
             if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
             cachedModelId = MODEL_SMALL;
             lastDownloadError = null;
@@ -438,7 +469,7 @@
             await requestPersistentStorageIfPossible();
             return cachedPipeline;
           } catch (e2) {
-            failDownloadProgress((e2 && e2.message) ? String(e2.message) : 'Download failed');
+            failDownloadProgress(formatDownloadError(e2));
             if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
               window.showToast('AI model download failed. Using text-only fallbacks.', {
                 type: 'error',
@@ -457,7 +488,7 @@
             throw e2;
           }
         }
-        failDownloadProgress((eCpu && eCpu.message) ? String(eCpu.message) : 'Download failed');
+        failDownloadProgress(formatDownloadError(eCpu));
         throw eCpu;
       }
     }
@@ -991,12 +1022,5 @@
     downloadProgressState = { pct: 0, status: '', file: '', active: false };
     llmWorkQueue = Promise.resolve();
   };
-  window.cancelAiModelDownload = function () {
-    bumpLoadGeneration();
-    downloadCancelled = true;
-    cachedPipeline = null;
-    cachedModelId = null;
-    llmWorkQueue = Promise.resolve();
-    failDownloadProgress('Download cancelled');
-  };
+  window.cancelAiModelDownload = cancelDownloadInFlight;
 })();

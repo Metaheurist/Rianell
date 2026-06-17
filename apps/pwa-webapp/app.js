@@ -15740,7 +15740,9 @@ function refreshLlmModelSettingsHints() {
       if (modelStatus.tierLabel) statusLabel += ' · ' + modelStatus.tierLabel;
     } else if (modelStatus.state === 'failed') {
       statusLabel = 'Download failed';
-      if (modelStatus.error) statusLabel += ' — ' + modelStatus.error;
+      if (modelStatus.error && modelStatus.error !== 'Download failed') {
+        statusLabel += ' — ' + modelStatus.error;
+      }
     } else if (modelStatus.tierLabel) {
       statusLabel = 'Not downloaded · ' + modelStatus.tierLabel + ' (' + modelStatus.size + ')';
     }
@@ -15803,6 +15805,9 @@ function promptAiModelDownloadConsent(modelId) {
     }
     __rianellAiDownloadConsentResolve = resolve;
     overlay.style.display = 'flex';
+    if (overlay.parentNode !== document.body) {
+      document.body.appendChild(overlay);
+    }
     if (typeof openModalOverlay === 'function') openModalOverlay(overlay);
   });
 }

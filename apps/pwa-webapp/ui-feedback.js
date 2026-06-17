@@ -162,9 +162,20 @@
     }, prefersReducedMotion() ? 0 : 220);
   }
 
+  function bringOverlayToFront(overlay) {
+    if (!overlay || !overlay.parentNode) return;
+    document.body.appendChild(overlay);
+  }
+
   function openModalOverlay(overlay, options) {
     if (!overlay) return;
     options = options || {};
+    if (
+      overlay.classList.contains('ai-model-download-consent') ||
+      overlay.classList.contains('ai-model-download-progress')
+    ) {
+      bringOverlayToFront(overlay);
+    }
     overlay.style.display = 'block';
     overlay.style.visibility = 'visible';
     overlay.style.opacity = '1';
@@ -387,17 +398,11 @@
   }
 
   function formatAiDownloadLabel(state) {
-    if (state && state.file) {
-      var text = String(state.file);
-      var partMatch = text.match(/part\s+(\d+)\s*\/\s*(\d+)/i);
-      if (partMatch) {
-        return 'Downloading model parts… ' + partMatch[1] + '/' + partMatch[2];
-      }
+    var fileLabel = state && state.file ? String(state.file).trim() : '';
+    if (fileLabel) {
+      return 'Downloading from Hugging Face… ' + fileLabel;
     }
-    if (state && typeof state.pct === 'number') {
-      return 'Downloading model parts… ' + state.pct + '%';
-    }
-    return 'Downloading model parts…';
+    return 'Downloading from Hugging Face…';
   }
 
   function applyAiDownloadProgressToElements(state, labelSel, pctSel, fillSel, root) {
