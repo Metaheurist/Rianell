@@ -21,6 +21,8 @@ function run(label, cmd, args = []) {
 
 run('migration:foundation', process.execPath, ['scripts/verify/migration-foundation.mjs']);
 run('verify:i18n', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'verify:i18n']);
+run('verify:llm-security', process.execPath, ['scripts/verify/llm-security-contract.mjs']);
+run('sync:llm-pwa', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'sync:llm-pwa']);
 run('verify:csp', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'verify:csp']);
 run('verify:privacy-docs', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'verify:privacy-docs']);
 run('parity', process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'parity']);

@@ -40,6 +40,7 @@
     "verify:policy-packs": "node scripts/verify/verify-policy-packs.mjs",
     "verify:i18n": "node scripts/verify/i18n-all.mjs",
     "verify:csp": "node scripts/verify/verify-csp-connect-src.mjs",
+    "verify:llm-security": "node scripts/verify/llm-security-contract.mjs",
     "models:download": "node scripts/models/download-llm-models.mjs",
     "models:verify": "node scripts/models/verify-llm-models.mjs",
     "verify:no-model-weights-in-git": "node scripts/models/verify-no-model-weights-in-git.mjs",
@@ -65,7 +66,8 @@
     "ci:audit-llm-live": "node scripts/ci/ci-rerun-until-green.mjs",
     "turbo:build": "npx turbo run build",
     "turbo:typecheck": "npx turbo run typecheck",
-    "postinstall": "node scripts/build/patch-onnxruntime-gradle.mjs"
+    "postinstall": "node scripts/build/patch-onnxruntime-gradle.mjs && node scripts/build/sync-llm-tier-benchmark.mjs && node scripts/build/sync-llm-load-ladder.mjs",
+    "sync:llm-pwa": "node scripts/build/sync-llm-tier-benchmark.mjs && node scripts/build/sync-llm-load-ladder.mjs"
   },
   "devDependencies": {
     "@babel/core": "7.29.7",

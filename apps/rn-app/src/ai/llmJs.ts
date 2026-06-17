@@ -1,7 +1,7 @@
 import { pipeline, env } from '@huggingface/transformers';
 import * as LegacyFileSystem from 'expo-file-system/legacy';
 import type { PreferredLlmModelSize } from '../storage/preferences';
-import { modelIdFromTier } from '@rianell/llm';
+import { buildExpoGoLoadAttempts, modelIdFromTier } from '@rianell/llm';
 
 type LlmFeature = 'summary' | 'suggestNote' | 'motd' | 'homeQuestion';
 
@@ -12,6 +12,11 @@ let jsInitPromise: Promise<void> | null = null;
 function cacheDirForModel(modelId: string): string {
   const root = LegacyFileSystem.documentDirectory ?? '';
   return `${root}rianell-models-js/${encodeURIComponent(modelId)}/`;
+}
+
+function resolveModelIdFromPreferred(preferredModel: PreferredLlmModelSize): string {
+  const tier = preferredModel === 'recommended' ? 'tier3' : preferredModel;
+  return modelIdFromTier(tier === 'tier1' || tier === 'tier2' ? 'tier1' : 'tier3');
 }
 
 async function ensureJsPipeline(modelId: string): Promise<void> {
@@ -26,8 +31,18 @@ async function ensureJsPipeline(modelId: string): Promise<void> {
     env.useBrowserCache = false;
     env.cacheDir = cacheDirForModel(modelId);
 
-    jsPipeline = await pipeline('text-generation', modelId, { revision: 'main' });
-    jsModelId = modelId;
+    const attempts = buildExpoGoLoadAttempts();
+    let lastErr: unknown;
+    for (const opts of attempts) {
+      try {
+        jsPipeline = await pipeline('text-generation', modelId, opts as { revision: string; dtype: 'q4' });
+        jsModelId = modelId;
+        return;
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    throw lastErr instanceof Error ? lastErr : new Error('Expo Go LLM init failed');
   })().finally(() => {
     jsInitPromise = null;
   });
@@ -35,8 +50,7 @@ async function ensureJsPipeline(modelId: string): Promise<void> {
 }
 
 export async function isJsLlmReady(preferredModel: PreferredLlmModelSize): Promise<boolean> {
-  const tier = preferredModel === 'recommended' ? 'tier3' : preferredModel;
-  const modelId = modelIdFromTier(tier === 'tier1' || tier === 'tier2' ? 'tier1' : 'tier3');
+  const modelId = resolveModelIdFromPreferred(preferredModel);
   await ensureJsPipeline(modelId);
   return Boolean(jsPipeline);
 }
@@ -47,12 +61,10 @@ export async function runJsChat(
   context: string,
   locale: string
 ): Promise<string | null> {
-  const tier = preferredModel === 'recommended' ? 'tier3' : preferredModel;
-  const modelId = modelIdFromTier(tier === 'tier1' || tier === 'tier2' ? 'tier1' : 'tier3');
+  const modelId = resolveModelIdFromPreferred(preferredModel);
   await ensureJsPipeline(modelId);
   if (!jsPipeline) return null;
 
-  // Keep prompts extremely simple for now; the PWA has richer prompt packs.
   const prompt = `Locale: ${locale}. Feature: ${feature}.\n\n${context}`;
 
   const out = await (jsPipeline as any)(prompt, {
@@ -86,4 +98,3 @@ export async function disposeJsLlm(): Promise<void> {
     jsModelId = null;
   }
 }
-

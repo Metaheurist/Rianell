@@ -15737,6 +15737,10 @@ function refreshLlmModelSettingsHints() {
       statusLabel = modelStatus.inMemory
         ? 'Ready · loaded in memory'
         : 'Ready · cached on device';
+      if (modelStatus.activeBackend) statusLabel += ' · ' + modelStatus.activeBackend;
+      if (modelStatus.tierLabel) statusLabel += ' · ' + modelStatus.tierLabel;
+    } else if (modelStatus.state === 'consented') {
+      statusLabel = 'Consented · not loaded yet';
       if (modelStatus.tierLabel) statusLabel += ' · ' + modelStatus.tierLabel;
     } else if (modelStatus.state === 'failed') {
       statusLabel = 'Download failed';
