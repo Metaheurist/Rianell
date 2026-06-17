@@ -2179,13 +2179,14 @@ body.light-mode .log-wizard-nav-btn--primary {
 .tab-nav-indicator {
   position: absolute;
   bottom: calc(var(--space-unit) * 2);
-  left: calc(var(--space-unit) * 2);
+  left: 0;
   height: 3px;
   border-radius: 2px;
   background: var(--primary-color);
   box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
   transition: transform var(--transition-fluid), width var(--transition-fluid);
   pointer-events: none;
+  will-change: transform, width;
 }
 
 .tab-navigation::-webkit-scrollbar {

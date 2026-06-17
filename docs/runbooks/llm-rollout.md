@@ -25,19 +25,20 @@ Tier 5 Llama probes require `HF_TOKEN` in environment.
 
 ## Settings
 
-- **Engine:** Settings → AI inference engine (`auto` | `onnx` | `mlc` | `gguf`)  
-- **Backend label:** Shown in model status when loaded (`webgpu`, `wasm`, etc.)  
+- **Processing mode:** Settings → **How summaries run** (`auto` | `onnx` | `mlc` | `gguf`) — user-facing labels: Automatic (recommended), Compatible mode, Fast mode (uses graphics), Experimental  
+- **Backend label:** Shown in model status when loaded (e.g. “graphics acceleration”, “standard processing”, “fast mode”)  
+- **Advanced:** “Allow full-quality model without graphics acceleration” — requires ≥8 GB memory + consent  
 - **CDN rollback:** `localStorage.rianellTransformersCdn=1`  
 - **Vendor rollback:** Re-run `npm run vendor:transformers` with pinned 3.3.2 tarball from runbook archive
+
+## Cloudflare CSP
+
+Keep LLM connect-src on `'self'` + `https://huggingface.co` + `https://cdn.jsdelivr.net` + `https://raw.githubusercontent.com` (MLC WASM libs). Report-only violations are expected until headers are aligned — see `security/cloudflare-headers-recommended.md`.
 
 ## Manual CI
 
 - WebGPU tier 5: `.github/workflows/llm-webgpu-manual.yml`  
 - RN GPU: `.github/workflows/llm-rn-gpu-manual.yml`
-
-## Cloudflare CSP
-
-Keep LLM connect-src on `'self'` + `https://huggingface.co` + `https://cdn.jsdelivr.net`. Report-only violations are expected until headers are aligned — see `security/cloudflare-headers-recommended.md`.
 
 ## RN parity
 

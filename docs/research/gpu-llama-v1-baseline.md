@@ -9,11 +9,18 @@ Research baseline for PWA GPU LLM rollout. See [agentic-gpu-v1](../../scripts/ci
 - **Symptom:** `navigator.gpu.requestAdapter()` succeeds; Transformers.js pipeline load with `device: 'webgpu'` fails with numeric ORT error `557856688`.
 - **Impact:** Path 1 (ONNX WebGPU) cannot serve Llama 1B on GPU on affected Windows Chrome builds.
 - **Mitigation:** Invalidate `rianell.webgpu.adapterOk` session cache on pipeline failure; route to Path 2 (WebLLM MLC) or WASM SmolLM cap.
-- **Reference:** [ORT WebGPU EP](https://onnxruntime.ai/docs/tutorials/web/ep-webgpu.html), [ORT Web troubleshooting](https://onnxruntime.ai/docs/tutorials/web/trouble-shooting.html)
+
+### MLC Path 2 worker callback (v1.92.1)
+
+- **Symptom:** `Failed to execute 'postMessage' on 'Worker': function … could not be cloned` when loading MLC after ORT WebGPU failure.
+- **Cause:** Passing `initProgressCallback` inside `engineConfig` or wrong `CreateWebWorkerMLCEngine` argument order.
+- **Fix:** `new WebWorkerMLCEngine(worker, {})`, then `setInitProgressCallback()` on main thread, then `reload(modelId)`. CSP must allow `raw.githubusercontent.com` for MLC WASM libs.
 
 ### Adapter probe vs pipeline success
 
 Adapter probe (`probeWebGpuAdapterAsync`) is necessary but **not sufficient**. Pipeline errors must downgrade the cache and trigger alternate paths.
+
+**Reference:** [ORT WebGPU EP](https://onnxruntime.ai/docs/tutorials/web/ep-webgpu.html), [ORT Web troubleshooting](https://onnxruntime.ai/docs/tutorials/web/trouble-shooting.html)
 
 ### WASM fallback tier cap
 

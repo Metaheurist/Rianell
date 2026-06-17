@@ -15637,18 +15637,44 @@ function setPreferredLlmEngine(value) {
 }
 if (typeof window !== 'undefined') window.setPreferredLlmEngine = setPreferredLlmEngine;
 
+function formatLlmBackendLabel(backend) {
+  if (!backend) return '';
+  var b = String(backend);
+  if (b === 'webgpu' || b.indexOf('webnn') === 0) {
+    return typeof tUi === 'function' ? tUi('common.llm.backend.graphics') : 'graphics acceleration';
+  }
+  if (b === 'wasm') {
+    return typeof tUi === 'function' ? tUi('common.llm.backend.standard') : 'standard processing';
+  }
+  return b;
+}
+
+function formatLlmEngineLabel(engine) {
+  if (engine === 'mlc') {
+    return typeof tUi === 'function' ? tUi('common.llm.engine.label.mlc') : 'fast mode';
+  }
+  if (engine === 'gguf') {
+    return typeof tUi === 'function' ? tUi('common.llm.engine.label.gguf') : 'experimental';
+  }
+  return '';
+}
+
 function togglePreferredLlmForceLargeOnWasm() {
   var dm = (typeof navigator !== 'undefined' && navigator.deviceMemory) ? navigator.deviceMemory : null;
   if (!appSettings.preferredLlmForceLargeOnWasm && dm != null && dm < 8) {
     if (typeof showToast === 'function') {
-      showToast('Large WASM model requires at least 8 GB device memory.', { type: 'warning' });
+      showToast(
+        typeof tUi === 'function' ? tUi('common.llm.wasm.memory.warning') : 'Full-quality model needs at least 8 GB memory.',
+        { type: 'warning' }
+      );
     }
     return;
   }
   if (!appSettings.preferredLlmForceLargeOnWasm) {
-    var ok = typeof window.confirm === 'function'
-      ? window.confirm('Enable the large AI model on WASM-only browsers? This may be slow or run out of memory.')
-      : true;
+    var confirmMsg = typeof tUi === 'function'
+      ? tUi('common.llm.wasm.large.confirm')
+      : 'Allow the full-quality model without graphics acceleration? It may be slow or run out of memory on this device.';
+    var ok = typeof window.confirm === 'function' ? window.confirm(confirmMsg) : true;
     if (!ok) return;
   }
   appSettings.preferredLlmForceLargeOnWasm = !appSettings.preferredLlmForceLargeOnWasm;
@@ -15812,10 +15838,9 @@ function refreshLlmModelSettingsHints() {
       statusLabel = modelStatus.inMemory
         ? 'Ready · loaded in memory'
         : 'Ready · cached on device';
-      if (modelStatus.activeBackend) statusLabel += ' · ' + modelStatus.activeBackend;
-      if (modelStatus.activeEngine && modelStatus.activeEngine !== 'onnx') {
-        statusLabel += ' · engine ' + modelStatus.activeEngine;
-      }
+      if (modelStatus.activeBackend) statusLabel += ' · ' + formatLlmBackendLabel(modelStatus.activeBackend);
+      var engineLabel = formatLlmEngineLabel(modelStatus.activeEngine);
+      if (engineLabel) statusLabel += ' · ' + engineLabel;
       if (modelStatus.tierLabel) statusLabel += ' · ' + modelStatus.tierLabel;
     } else if (modelStatus.state === 'consented') {
       statusLabel = 'Consented · not loaded yet';
@@ -19998,6 +20023,28 @@ function ensureChartsStylesLoaded() {
 }
 
 // Tab switching functionality
+function updateTabNavIndicator(tabName) {
+  var nav = document.querySelector('.tab-navigation');
+  var indicator = document.getElementById('tabNavIndicator');
+  if (!nav || !indicator) return;
+  var selectedBtnTop = nav.querySelector('.tab-btn[data-tab="' + (tabName || tabNameRef || 'home') + '"]');
+  if (!selectedBtnTop) {
+    indicator.style.width = '0';
+    indicator.style.opacity = '0';
+    return;
+  }
+  indicator.style.width = selectedBtnTop.offsetWidth + 'px';
+  indicator.style.transform = 'translateX(' + selectedBtnTop.offsetLeft + 'px)';
+  indicator.style.opacity = '1';
+}
+
+if (typeof window !== 'undefined' && !window.__rianellTabNavIndicatorResize) {
+  window.__rianellTabNavIndicatorResize = true;
+  window.addEventListener('resize', function() {
+    updateTabNavIndicator();
+  });
+}
+
 function switchTab(tabName, skipHash) {
   const allTabs = document.querySelectorAll('.tab-content');
   const selectedTab = document.getElementById(tabName + 'Tab');
@@ -20021,21 +20068,7 @@ function switchTab(tabName, skipHash) {
       selectedTab.style.visibility = 'visible';
       selectedTab.style.opacity = '1';
     }
-    var selectedBtnTop = document.querySelector('.tab-navigation .tab-btn[data-tab="' + tabName + '"]');
-    var nav = document.querySelector('.tab-navigation');
-    var indicator = document.getElementById('tabNavIndicator');
-    if (nav && indicator) {
-      if (selectedBtnTop) {
-        var left = selectedBtnTop.offsetLeft;
-        var w = selectedBtnTop.offsetWidth;
-        indicator.style.width = w + 'px';
-        indicator.style.transform = 'translateX(' + left + 'px)';
-        indicator.style.opacity = '1';
-      } else {
-        indicator.style.width = '0';
-        indicator.style.opacity = '0';
-      }
-    }
+    updateTabNavIndicator(tabName);
     var fabWrap = document.getElementById('appFabWrap');
     if (fabWrap) fabWrap.classList.toggle('app-fab-wrap--hidden', tabName === 'log');
     if (tabName !== 'ai') {

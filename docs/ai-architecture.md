@@ -2,6 +2,12 @@
 
 ## 🧠 AI Analysis: Neural Network Architecture
 
+### v1.92.1 documentation sync (GPU LLM V1 rollout + UX)
+
+- **PWA load ladder (tier 3–5):** Path 1 Transformers.js ONNX (WebGPU → WebNN → WASM) → Path 2 WebLLM MLC (`@mlc-ai/web-llm@0.2.84`, worker + `setInitProgressCallback`) → Path 3 GGUF spike (flag) → WASM SmolLM cap. ORT WebGPU pipeline failure (`557856688`) invalidates adapter cache and skips to Path 2.
+- **Settings UX:** “How summaries run” selector with plain-language options (Automatic, Compatible mode, Fast mode, Experimental); status shows friendly backend labels—not ONNX/MLC/WASM jargon.
+- **CSP:** `connect-src` includes `https://raw.githubusercontent.com` for MLC WASM libs. See `docs/runbooks/llm-rollout.md` and `docs/research/gpu-llama-v1-baseline.md`.
+
 ### v1.70.2 documentation sync (summary LLM model host)
 
 - **PWA `summary-llm.js`:** Uses Hugging Face Hub only (onnx-community `*-ONNX` repos). Load order: WebGPU (q4f16→q4) → WASM q4 last resort. Transformers.js devices are **webgpu** and **wasm** only (no WebGL). Self-hosted Transformers `@3.3.2` at `/vendor/transformers/` with jsDelivr fallback flag. Presets from `packages/llm` (`load-ladder.mjs`, `runtime-profiles.mjs`).
