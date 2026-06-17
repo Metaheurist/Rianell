@@ -834,6 +834,8 @@ jobs:
 
       - uses: ./.github/actions/install-playwright-chromium
 
+      - uses: ./.github/actions/setup-python-ci
+
       - name: Wait for live deploy HTML
         env:
           VERIFY_URLS: https://rianell.com/
@@ -846,9 +848,35 @@ jobs:
           PROBE_URL: https://rianell.com/
         run: node scripts/ci/deploy-probe-loop.mjs
 
-      - name: Live HF model download probe (Cloudflare)
+      - name: Download deployed Pages site (LLM probe — bypass Cloudflare bot CSP)
+        uses: actions/download-artifact@v5
+        with:
+          name: pages-site-probe
+          path: site
+
+      - name: Start probe server (same bundle as GitHub Pages)
         env:
-          PROBE_URL: https://rianell.com/
+          RIANELL_WEB_DIR: ${{ github.workspace }}/site
+          PORT: "9876"
+          HOST: "127.0.0.1"
+        run: |
+          set -euo pipefail
+          MAIN_JS=$(node -pe "JSON.parse(require('fs').readFileSync('site/asset-manifest.json','utf8')).mainJs")
+          python -m server >/tmp/llm-probe-server.log 2>&1 &
+          for i in $(seq 1 20); do
+            if curl -fsS "http://127.0.0.1:9876/${MAIN_JS}" -o /dev/null; then
+              echo "LLM probe server ready (${MAIN_JS})"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "LLM probe server failed to start" >&2
+          tail -n 40 /tmp/llm-probe-server.log || true
+          exit 1
+
+      - name: Live HF model download probe (Pages bundle, local)
+        env:
+          PROBE_URL: http://127.0.0.1:9876/
           PROBE_DOWNLOAD_TIMEOUT_MS: "900000"
           PROBE_TIER: "1"
           PROBE_GPU_AVAILABLE: "0"
