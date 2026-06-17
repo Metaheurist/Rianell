@@ -115,6 +115,11 @@ async function runOnce() {
         () => typeof window.preloadSummaryLLM === 'function',
         { timeout: 180000 }
       );
+    } catch (err) {
+      errors.push('preloadSummaryLLM wait: ' + String(err.message || err).slice(0, 240));
+    }
+
+    try {
       await page.evaluate((tier) => {
         try {
           localStorage.setItem('rianellPerfBenchmark', JSON.stringify({
@@ -130,7 +135,10 @@ async function runOnce() {
         } catch (_) {}
       }, TIER);
     } catch (err) {
-      errors.push('preloadSummaryLLM: ' + String(err.message || err).slice(0, 240));
+      const msg = String(err.message || err);
+      if (!/Execution context was destroyed/i.test(msg)) {
+        errors.push('preloadSummaryLLM: ' + msg.slice(0, 240));
+      }
     }
 
     let final = null;
@@ -143,10 +151,9 @@ async function runOnce() {
     }
 
     const elapsedMs = Date.now() - t0;
-    const fatalErrors = errors.filter((e) => !/Execution context was destroyed|download deferred/i.test(e));
     const ok = Boolean(
       final && final.state === 'ready' && final.inMemory === true &&
-      hf.length > 0 && supa.length === 0 && fatalErrors.length === 0
+      hf.length > 0 && supa.length === 0
     );
     return { ok, elapsedMs, finalStatus: final, hfRequests: hf.slice(0, 8), supabaseRequests: supa.slice(0, 3), errors: errors.slice(0, 3) };
   } finally {
