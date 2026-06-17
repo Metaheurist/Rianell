@@ -1,64 +1,47 @@
-# LLM rollout runbook (PWA)
+# LLM GPU V1 rollout runbook
 
 ## Pre-deploy
 
-```powershell
-npm ci
+```bash
 npm run sync:llm-pwa
 npm run vendor:transformers
-npm run agentic:llm-full-scope
+npm run agentic:gpu-v1 -- --track pwa
 ```
 
-## Bump cache when LLM assets change
+Optional local GPU matrix (built PWA on port 8080):
 
-1. Edit [`apps/pwa-webapp/sw.js`](../../apps/pwa-webapp/sw.js) — increment `CACHE_NAME` suffix.
-2. Bump `llm-load-ladder-sync.js?v=` query in [`index.html`](../../apps/pwa-webapp/index.html) if ladder sync changed.
-
-## Local smoke (Win11 Chrome)
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\server\launch-server.ps1 -NoCompile
-$env:PROBE_URL='http://127.0.0.1:8080/'
-node scripts/ci/probe-llm-download-live.mjs
-npm run test:llm-hardware
-node scripts/test/capture-browser-llm-env.mjs
+```bash
+GPU_MATRIX=1 PROBE_URL=http://127.0.0.1:8080/ npm run agentic:gpu-v1 -- --track pwa-gpu
 ```
 
-Clear site data once after major LLM changes. Verify `chrome://gpu` WebGPU status.
+Tier 5 Llama probes require `HF_TOKEN` in environment.
 
-## Production probe
+## PWA load order (tier 3–5)
 
-```powershell
-$env:VERIFY_URLS='https://rianell.com/'
-node scripts/audit/verify-deploy-html.mjs
-$env:PROBE_URL='https://rianell.com/'
-$env:PROBE_TIER='1'
-$env:PROBE_GPU_AVAILABLE='0'
-node scripts/ci/probe-llm-download-live.mjs
+1. **Path 1:** Transformers.js ONNX — WebGPU → WebNN → WASM  
+2. **Path 2:** WebLLM MLC (`@mlc-ai/web-llm@0.2.84`) when Path 1 fails or `557856688` cached  
+3. **Path 3:** GGUF spike (feature flag; not bundled in V1 default)  
+4. **Fallback:** WASM SmolLM cap (`resolveWasmFallbackModelId`)
+
+## Settings
+
+- **Engine:** Settings → AI inference engine (`auto` | `onnx` | `mlc` | `gguf`)  
+- **Backend label:** Shown in model status when loaded (`webgpu`, `wasm`, etc.)  
+- **CDN rollback:** `localStorage.rianellTransformersCdn=1`  
+- **Vendor rollback:** Re-run `npm run vendor:transformers` with pinned 3.3.2 tarball from runbook archive
+
+## Manual CI
+
+- WebGPU tier 5: `.github/workflows/llm-webgpu-manual.yml`  
+- RN GPU: `.github/workflows/llm-rn-gpu-manual.yml`
+
+## Cloudflare CSP
+
+Keep LLM connect-src on `'self'` + `https://huggingface.co` + `https://cdn.jsdelivr.net`. Report-only violations are expected until headers are aligned — see `security/cloudflare-headers-recommended.md`.
+
+## RN parity
+
+```bash
+npm run agentic:gpu-v1 -- --track rn-static
+RN_DEVICE=1 npm run test:gpu-rn-matrix
 ```
-
-**CI note:** GitHub Actions runs the HF download probe against the **`pages-site-probe` artifact** served locally (`http://127.0.0.1:9876/`). Cloudflare bot/challenge CSP on datacenter IPs can block same-origin scripts on `rianell.com` even when the app works in a real browser. The workflow still checks live deploy HTML and boot on `rianell.com` separately.
-
-Pass criteria:
-
-- `state: ready`, `inMemory: true`
-- No console `Unsupported device: "webgl"`
-- HF model requests present; no Supabase model bucket requests
-
-## Web Push (optional)
-
-1. Set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` in server/Supabase secrets.
-2. Expose public key to PWA as `window.RIANELL_VAPID_PUBLIC_KEY`.
-3. Deploy `supabase/functions/push-notify` subscribe/send endpoints.
-4. Test opt-in from Settings → Enable push notifications.
-
-Payload schema:
-
-```json
-{ "type": "model_update", "message": "...", "minCacheVersion": "v2026-06-17-llm-webgpu-wasm-v3" }
-```
-
-## Rollback
-
-- Set `localStorage.rianellTransformersCdn=1` to force jsDelivr Transformers CDN.
-- Revert `CACHE_NAME` and redeploy previous `summary-llm.js` if needed.

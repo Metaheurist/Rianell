@@ -2,7 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.91.0** - PWA LLM load fix (WebGPU/WASM, self-host, push).
+**Latest: v1.92.0** - GPU LLM V1 (dual runtime, agentic gates, RN parity hardening).
+
+### v1.92.0 - 2026-06-17 - GPU LLM V1
+- **PWA Path 1:** GPU error taxonomy (`557856688`), WebNN ladder slots, ORT WebGPU tuning, pipeline-fail session cache.
+- **PWA Path 2:** WebLLM MLC adapter (`@mlc-ai/web-llm@0.2.84`) with Web Worker; lazy `summary-llm-mlc.js`.
+- **PWA Path 3:** GGUF spike module (`summary-llm-gguf.js`) behind engine flag.
+- **Router:** ONNX → MLC → GGUF → WASM SmolLM cap; Settings engine selector (`auto`/`onnx`/`mlc`/`gguf`).
+- **RN:** Native warmup, OOM→SmolLM retry, `getNativeActiveBackend`.
+- **CI/scripts:** `agentic:gpu-v1`, `test:gpu-llama-matrix`, `gpu-parity-contract`, `llm-rn-gpu-manual.yml`, `sync-llm-runtime-profiles`.
+- **Docs:** `docs/research/gpu-llama-v1-baseline.md`, `docs/runbooks/llm-rollout.md`, v4 migration notes.
 
 ### v1.91.0 - 2026-06-17 - PWA LLM load fix (full scope)
 - **Load path:** Removed invalid Transformers `webgl` device; WebGPU adapter probe with session cache; WASM-only auto-cap tier 3–5 → SmolLM (`resolveWasmOnlyCap`).

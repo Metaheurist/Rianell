@@ -9,6 +9,10 @@
   var cachedModelId = null;
   var cachedActiveBackend = null;
   var cachedActiveDtype = null;
+  var cachedActiveEngine = 'onnx';
+  var cachedMlcEngine = null;
+  var mlcScriptPromise = null;
+  var ggufScriptPromise = null;
   var llmWorkQueue = Promise.resolve();
   var summaryResultCache = null;
   var suggestResultCache = null;
@@ -21,6 +25,10 @@
   var webGpuAdapterProbePromise = null;
   var WEBGPU_CACHE_KEY = 'rianell.webgpu.adapterOk';
   var WEBGPU_CACHE_TTL_MS = 86400000;
+  var GPU_PIPELINE_FAIL_KEY = 'rianell.llm.gpuPipelineFail';
+  var WEBNN_CACHE_KEY = 'rianell.webnn.available';
+  var WEBNN_CACHE_TTL_MS = 86400000;
+  var webNnProbePromise = null;
   var wasmCapToastShown = false;
   var MAX_SUMMARY_CACHE = 8;
   var MAX_SUGGEST_CACHE = 5;
@@ -148,6 +156,108 @@
 
   function isWebGpuAvailableCached() {
     return readWebGpuCache() === true;
+  }
+
+  function classifyGpuLoadError(err) {
+    var msg = String(err && err.message ? err.message : err || '');
+    var codeMatch = msg.match(/\b(\d{6,10})\b/);
+    var code = codeMatch ? codeMatch[1] : null;
+    if (code === '557856688') {
+      return { class: 'ort_webgpu_pipeline_fail', code: code, retryPath: 'mlc' };
+    }
+    if (/webgpu|wgpu|gpu/i.test(msg) && /fail|error|invalid|unsupported/i.test(msg)) {
+      return { class: 'webgpu_generic', code: code, retryPath: 'mlc' };
+    }
+    if (/out of memory|oom|memory allocation/i.test(msg)) {
+      return { class: 'oom', code: code, retryPath: 'wasm_cap' };
+    }
+    return { class: 'unknown', code: code, retryPath: 'wasm' };
+  }
+
+  function readGpuPipelineFailCache() {
+    try {
+      if (typeof sessionStorage === 'undefined') return null;
+      var raw = sessionStorage.getItem(GPU_PIPELINE_FAIL_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (parsed && parsed.ts && (Date.now() - parsed.ts) < WEBGPU_CACHE_TTL_MS) return parsed;
+    } catch (e) {}
+    return null;
+  }
+
+  function writeGpuPipelineFailCache(info) {
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem(GPU_PIPELINE_FAIL_KEY, JSON.stringify(Object.assign({}, info, { ts: Date.now() })));
+      }
+    } catch (e) {}
+  }
+
+  function shouldSkipOnnxPath1ForLlama(modelId) {
+    if (modelId !== MODEL_BASE) return false;
+    var pref = resolveLlmEnginePreference();
+    if (pref === 'mlc' || pref === 'gguf') return true;
+    var fail = readGpuPipelineFailCache();
+    return !!(fail && (fail.class === 'ort_webgpu_pipeline_fail' || fail.retryPath === 'mlc'));
+  }
+
+  function resolveLlmEnginePreference() {
+    try {
+      if (typeof window !== 'undefined' && window.appSettings && window.appSettings.preferredLlmEngine) {
+        var setting = window.appSettings.preferredLlmEngine;
+        if (setting === 'onnx' || setting === 'mlc' || setting === 'gguf' || setting === 'auto') return setting;
+      }
+      if (typeof localStorage !== 'undefined') {
+        var v = localStorage.getItem('rianellLlmEngine');
+        if (v === 'onnx' || v === 'mlc' || v === 'gguf' || v === 'auto') return v;
+      }
+    } catch (e) {}
+    return 'auto';
+  }
+
+  function readWebNnCache() {
+    try {
+      if (typeof sessionStorage === 'undefined') return null;
+      var raw = sessionStorage.getItem(WEBNN_CACHE_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (parsed && parsed.ts && (Date.now() - parsed.ts) < WEBNN_CACHE_TTL_MS) return !!parsed.ok;
+    } catch (e) {}
+    return null;
+  }
+
+  function writeWebNnCache(ok) {
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem(WEBNN_CACHE_KEY, JSON.stringify({ ok: !!ok, ts: Date.now() }));
+      }
+    } catch (e) {}
+  }
+
+  function isWebNnAvailableCached() {
+    return readWebNnCache() === true;
+  }
+
+  async function probeWebNnAsync() {
+    var cached = readWebNnCache();
+    if (cached !== null) return cached;
+    if (webNnProbePromise) return webNnProbePromise;
+    webNnProbePromise = (async function () {
+      var ok = false;
+      try {
+        ok = typeof navigator !== 'undefined' && typeof navigator.ml !== 'undefined'
+          && typeof navigator.ml.createContext === 'function';
+      } catch (e) {
+        ok = false;
+      }
+      writeWebNnCache(ok);
+      return ok;
+    })();
+    try {
+      return await webNnProbePromise;
+    } finally {
+      webNnProbePromise = null;
+    }
   }
 
   async function probeWebGpuAdapterAsync() {
@@ -323,6 +433,11 @@
     if (isWebGpuAvailableCached()) {
       ordered.push('webgpu');
     }
+    if (isWebNnAvailableCached()) {
+      ordered.push('webnn-gpu');
+      ordered.push('webnn-npu');
+      ordered.push('webnn-cpu');
+    }
     return ordered;
   }
 
@@ -333,6 +448,40 @@
       if (bench && bench.gpu && bench.gpu.available === false) return;
     }
     await probeWebGpuAdapterAsync();
+    await probeWebNnAsync();
+  }
+
+  function ensureMlcScriptsLoaded() {
+    if (mlcScriptPromise) return mlcScriptPromise;
+    mlcScriptPromise = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = getAppOriginBase() + 'summary-llm-mlc.js';
+      s.async = true;
+      s.onload = function () { resolve(); };
+      s.onerror = function () { reject(new Error('Failed to load summary-llm-mlc.js')); };
+      document.head.appendChild(s);
+    });
+    return mlcScriptPromise;
+  }
+
+  function ensureGgufScriptsLoaded() {
+    if (ggufScriptPromise) return ggufScriptPromise;
+    ggufScriptPromise = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = getAppOriginBase() + 'summary-llm-gguf.js';
+      s.async = true;
+      s.onload = function () { resolve(); };
+      s.onerror = function () { reject(new Error('Failed to load summary-llm-gguf.js')); };
+      document.head.appendChild(s);
+    });
+    return ggufScriptPromise;
+  }
+
+  function configureOrtWebGpu(mod) {
+    try {
+      if (!mod || !mod.env || !mod.env.webgpu) return;
+      mod.env.webgpu.validateInputContent = true;
+    } catch (e) {}
   }
 
   /** GPU load attempts in priority order; WASM is never included here. */
@@ -429,11 +578,16 @@
         return pipe;
       } catch (e) {
         lastErr = e;
-        if (plan.device === 'webgpu') {
+        var gpuClass = classifyGpuLoadError(e);
+        if (plan.device === 'webgpu' || (plan.device && plan.device.indexOf('webnn') === 0)) {
           writeWebGpuCache(false);
+          if (gpuClass.class === 'ort_webgpu_pipeline_fail' || gpuClass.retryPath === 'mlc') {
+            writeGpuPipelineFailCache(gpuClass);
+          }
         }
         if (typeof console !== 'undefined' && console.warn) {
-          console.warn('Summary LLM: attempt failed (' + label + '):', e.message || e);
+          console.warn('Summary LLM: attempt failed (' + label + '):', e.message || e,
+            gpuClass.code ? ('[' + gpuClass.class + ' ' + gpuClass.code + ']') : ('[' + gpuClass.class + ']'));
         }
       }
     }
@@ -441,6 +595,13 @@
   }
 
   async function warmupPipelineOrThrow() {
+    if (cachedActiveEngine === 'mlc' && cachedMlcEngine && window.RianellLlmMlc) {
+      await window.RianellLlmMlc.runMlcChat(cachedMlcEngine, 'Reply with OK.', 'OK', {
+        max_new_tokens: 2,
+        temperature: 0.1
+      });
+      return;
+    }
     await runChatInference(
       'Reply with OK.',
       'OK',
@@ -674,6 +835,8 @@
       cachedModelId = null;
       cachedActiveBackend = null;
       cachedActiveDtype = null;
+      cachedActiveEngine = 'onnx';
+      cachedMlcEngine = null;
 
       downloadProgressState.active = true;
       downloadCancelled = false;
@@ -686,21 +849,81 @@
       await ensureGpuCandidatesReady();
 
       var mod = await importTransformersModule(false);
+      configureOrtWebGpu(mod);
       await resolveModelsRemote(mod);
 
       var gpuPlans = buildLoadPlansForPwa(getGpuDeviceCandidates(), platformKind);
+      if (shouldSkipOnnxPath1ForLlama(modelId)) {
+        gpuPlans = gpuPlans.filter(function (p) { return p.device !== 'webgpu'; });
+      }
       var wasmPlan = buildWasmAttempt();
       var loadModelId = modelId;
       var loaded = false;
+      var gpuErr = null;
 
       try {
-        cachedPipeline = await tryLoadWithPlans(mod, loadModelId, gpuPlans, myGen);
-        loaded = true;
-      } catch (gpuErr) {
-        if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
+        if (gpuPlans.length > 0) {
+          cachedPipeline = await tryLoadWithPlans(mod, loadModelId, gpuPlans, myGen);
+          cachedActiveEngine = 'onnx';
+          loaded = true;
+        } else {
+          throw new Error('ONNX GPU path skipped (prior pipeline failure or engine preference)');
+        }
+      } catch (e1) {
+        gpuErr = e1;
+      }
+
+      if (!loaded && !isStaleLoad(myGen)) {
         writeWebGpuCache(false);
+        var enginePref = resolveLlmEnginePreference();
+        if (loadModelId === MODEL_BASE && enginePref !== 'onnx' && enginePref !== 'gguf') {
+          try {
+            await ensureMlcScriptsLoaded();
+            var mlcApi = typeof window !== 'undefined' && window.RianellLlmMlc;
+            if (mlcApi && typeof mlcApi.ensureMlcEngine === 'function') {
+              cachedMlcEngine = await mlcApi.ensureMlcEngine(mlcApi.allowedModel, reportDownloadProgress);
+              if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
+              cachedPipeline = { __rianellEngine: 'mlc' };
+              cachedActiveEngine = 'mlc';
+              cachedActiveBackend = 'webgpu';
+              cachedActiveDtype = 'q4f16';
+              loaded = true;
+            }
+          } catch (mlcErr) {
+            if (typeof console !== 'undefined' && console.warn) {
+              console.warn('Summary LLM: MLC path failed:', mlcErr.message || mlcErr);
+            }
+          }
+        }
+      }
+
+      if (!loaded && !isStaleLoad(myGen)) {
+        var enginePref2 = resolveLlmEnginePreference();
+        if (loadModelId === MODEL_BASE && enginePref2 !== 'onnx' && enginePref2 !== 'mlc') {
+          try {
+            await ensureGgufScriptsLoaded();
+            var ggufApi = typeof window !== 'undefined' && window.RianellLlmGguf;
+            if (ggufApi && typeof ggufApi.ensureGgufEngine === 'function') {
+              await ggufApi.ensureGgufEngine(ggufApi.allowedModelPrefix, reportDownloadProgress);
+              if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
+              cachedPipeline = { __rianellEngine: 'gguf' };
+              cachedActiveEngine = 'gguf';
+              cachedActiveBackend = 'webgpu';
+              cachedActiveDtype = 'q4';
+              loaded = true;
+            }
+          } catch (ggufErr) {
+            if (typeof console !== 'undefined' && console.warn) {
+              console.warn('Summary LLM: GGUF path unavailable:', ggufErr.message || ggufErr);
+            }
+          }
+        }
+      }
+
+      if (!loaded) {
+        if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
         if (typeof console !== 'undefined' && console.warn) {
-          console.warn('Summary LLM: GPU attempts failed, trying WASM:', gpuErr.message || gpuErr);
+          console.warn('Summary LLM: GPU/MLC attempts failed, trying WASM:', gpuErr && (gpuErr.message || gpuErr));
         }
         try {
           var modWasm = gpuPlans.length > 0 ? await importTransformersModule(true) : mod;
@@ -709,6 +932,7 @@
           cachedPipeline = await runChatGenerationPipeline(modWasm, wasmModelId, wasmPlan);
           if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
           loadModelId = wasmModelId;
+          cachedActiveEngine = 'onnx';
           cachedActiveBackend = 'wasm';
           cachedActiveDtype = 'q4';
           loaded = true;
@@ -820,6 +1044,12 @@
   }
 
   async function runChatInference(systemText, userText, genOpts) {
+    if (cachedActiveEngine === 'mlc' && cachedMlcEngine && window.RianellLlmMlc) {
+      return runQueued(async function () {
+        await ensurePipelineLoaded();
+        return window.RianellLlmMlc.runMlcChat(cachedMlcEngine, userText, systemText, genOpts || {});
+      });
+    }
     var messages = buildChatMessages(systemText, userText);
     var out = await runQueued(async function () {
       var pipe = await ensurePipelineLoaded();
@@ -1176,7 +1406,8 @@
       size: info.size,
       approxBytes: info.approxBytes,
       activeBackend: cachedActiveBackend,
-      activeDtype: cachedActiveDtype
+      activeDtype: cachedActiveDtype,
+      activeEngine: cachedActiveEngine
     };
     if (downloadProgressState.active) {
       return Object.assign({
@@ -1203,10 +1434,17 @@
 
   function clearSummaryLLMCache() {
     bumpLoadGeneration();
+    if (cachedActiveEngine === 'mlc' && window.RianellLlmMlc && typeof window.RianellLlmMlc.disposeMlcEngine === 'function') {
+      window.RianellLlmMlc.disposeMlcEngine().catch(function () {});
+    }
     cachedPipeline = null;
     cachedModelId = null;
     cachedActiveBackend = null;
     cachedActiveDtype = null;
+    cachedActiveEngine = 'onnx';
+    cachedMlcEngine = null;
+    mlcScriptPromise = null;
+    ggufScriptPromise = null;
     lastDownloadError = null;
     llmWorkQueue = Promise.resolve();
     if (summaryResultCache) summaryResultCache.clear();

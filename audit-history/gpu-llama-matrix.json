@@ -1,0 +1,11 @@
+{
+  "url": "http://127.0.0.1:9877/",
+  "results": [
+    {
+      "profile": "win11_chrome_tier5_webgpu",
+      "skipped": true,
+      "reason": "no HF_TOKEN"
+    }
+  ],
+  "ts": 1781731749585
+}

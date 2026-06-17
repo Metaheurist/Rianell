@@ -14,7 +14,18 @@ import {
 
   buildRnLoadAttempts,
 
+  parseOomError,
+
+  LAST_STABLE_PRESET_KEY,
+
 } from '@rianell/llm';
+
+import {
+  buildHomeQuestionPrompt,
+  buildMotdPrompt,
+  buildSuggestPrompt,
+  buildSummaryPrompt,
+} from '@rianell/shared';
 
 import { Directory, File, Paths } from 'expo-file-system';
 
@@ -77,12 +88,35 @@ let downloadProgress: LlmDownloadProgress = { pct: 0, status: 'idle' };
 
 let nativePipelineKey: string | null = null;
 
+let nativeActiveBackend: string | null = null;
+
+let nativeLoadedModelId: string | null = null;
+
 const progressListeners = new Set<ProgressListener>();
 
 
 
 function nativePlatformKind(): 'rn_android' | 'rn_ios' {
   return Platform.OS === 'ios' ? 'rn_ios' : 'rn_android';
+}
+
+function buildNativeLlmPrompt(
+  feature: 'summary' | 'suggestNote' | 'motd' | 'homeQuestion',
+  context: string,
+  locale: string
+): { system: string; user: string } {
+  switch (feature) {
+    case 'motd':
+      return buildMotdPrompt(locale);
+    case 'summary':
+      return buildSummaryPrompt(locale, context);
+    case 'suggestNote':
+      return buildSuggestPrompt(locale, context);
+    case 'homeQuestion':
+      return buildHomeQuestionPrompt(locale, context);
+    default:
+      return { system: '', user: context };
+  }
 }
 
 async function createHfFetch(cacheDir: string) {
@@ -96,6 +130,15 @@ async function createHfFetch(cacheDir: string) {
     const res = await FileSystem.downloadAsync(url, localPath);
     return res.uri;
   };
+}
+
+async function warmupNativePipeline(): Promise<void> {
+  const { Pipeline } = await import('react-native-transformers');
+  let out = '';
+  await Pipeline.TextGeneration.generate('Reply with OK.', (t: string) => {
+    out = t;
+  });
+  if (!out) throw new Error('Native LLM warmup failed');
 }
 
 async function ensureNativePipeline(modelId: string, cacheDir: string): Promise<void> {
@@ -116,13 +159,63 @@ async function ensureNativePipeline(modelId: string, cacheDir: string): Promise<
         verbose: __DEV__,
       });
       nativePipelineKey = key;
+      nativeLoadedModelId = modelId;
+      nativeActiveBackend = attempt.executionProviders[0] || 'cpu';
+      await warmupNativePipeline();
+      await AsyncStorage.setItem(
+        LAST_STABLE_PRESET_KEY,
+        JSON.stringify({ modelId, activeBackend: nativeActiveBackend, ts: Date.now() })
+      );
       return;
     } catch (err) {
       lastErr = err;
+      if (parseOomError(err) && modelId !== modelIdFromTier('tier1')) {
+        try {
+          const smallId = modelIdFromTier('tier1');
+          const smallCacheDir = getNativeModelCacheDir(smallId, 'main');
+          const smallFetch = await createHfFetch(smallCacheDir);
+          const smallAttempts = buildRnLoadAttempts({ platformKind: nativePlatformKind(), modelId: smallId });
+          for (const smallAttempt of smallAttempts) {
+            try {
+              await Pipeline.TextGeneration.init(smallId, smallAttempt.onnxPath, {
+                fetch: smallFetch,
+                executionProviders: smallAttempt.executionProviders,
+                externalData: smallAttempt.externalData,
+                verbose: __DEV__,
+              });
+              nativePipelineKey = `${smallId}:${smallCacheDir}`;
+              nativeLoadedModelId = smallId;
+              nativeActiveBackend = smallAttempt.executionProviders[0] || 'cpu';
+              await warmupNativePipeline();
+              return;
+            } catch (smallErr) {
+              lastErr = smallErr;
+            }
+          }
+        } catch (_) {
+          /* fall through */
+        }
+      }
     }
   }
 
   throw lastErr instanceof Error ? lastErr : new Error('Native LLM init failed');
+}
+
+export function getNativeActiveBackend(): string | null {
+  return nativeActiveBackend;
+}
+
+export function getNativeAiModelStatus(): {
+  modelId: string | null;
+  activeBackend: string | null;
+  state: 'idle' | 'downloading' | 'ready';
+} {
+  return {
+    modelId: nativeLoadedModelId,
+    activeBackend: nativeActiveBackend,
+    state: downloadProgress.status === 'downloading' ? 'downloading' : nativePipelineKey ? 'ready' : 'idle',
+  };
 }
 
 function emitProgress(next: LlmDownloadProgress) {
@@ -467,12 +560,9 @@ export async function generateMotdNative(prefs: Preferences): Promise<string> {
   if (consent !== 'granted') return pickMotdFallback();
 
   try {
-    const t = await runOnDeviceChat(
-      prefs,
-      'motd',
-      'Write one short healthy-lifestyle quote. Max 18 words. Plain language.',
-      prefs.uiLocale || 'en-GB'
-    );
+    const locale = prefs.uiLocale || 'en-GB';
+    const { user } = buildMotdPrompt(locale);
+    const t = await runOnDeviceChat(prefs, 'motd', user, locale);
     if (t) return t;
   } catch (_) {}
   return pickMotdFallback();
@@ -521,8 +611,8 @@ export async function runOnDeviceChat(
 
   const { Pipeline } = await import('react-native-transformers');
 
-  const system = `You answer using only the provided data. Locale: ${locale}. Feature: ${feature}.`;
-  const prompt = `${system}\n\n${context}`;
+  const prompts = buildNativeLlmPrompt(feature, context, locale);
+  const prompt = `${prompts.system}\n\n${prompts.user}`;
   let text = '';
   await Pipeline.TextGeneration.generate(prompt, (t: string) => {
     text = t;

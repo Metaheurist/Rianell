@@ -2,10 +2,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   buildPwaLoadAttempts,
+  buildPwaWebNnAttempts,
   buildPwaWasmAttempt,
   buildRnLoadAttempts,
   buildExpoGoLoadAttempts,
   backendLabelFromAttempt,
+  classifyGpuLoadError,
   LLM_MODEL_BASE_ID,
   LLM_MODEL_SMALL_ID,
 } from '../../packages/llm/src/index.mjs';
@@ -61,4 +63,27 @@ test('expo go wasm only', () => {
 test('backendLabelFromAttempt', () => {
   assert.equal(backendLabelFromAttempt({ device: 'webgpu' }), 'webgpu');
   assert.equal(backendLabelFromAttempt({ executionProviders: ['nnapi', 'cpu'] }), 'nnapi');
+});
+
+test('buildPwaWebNnAttempts includes webnn devices', () => {
+  const plans = buildPwaWebNnAttempts();
+  assert.ok(plans.length >= 4);
+  assert.ok(plans.some((p) => p.device === 'webnn-gpu'));
+  assert.ok(plans.every((p) => p.device.startsWith('webnn')));
+});
+
+test('LLM_TRY_Q4_BEFORE_Q4F16 reorders webgpu dtypes', () => {
+  const prev = process.env.LLM_TRY_Q4_BEFORE_Q4F16;
+  process.env.LLM_TRY_Q4_BEFORE_Q4F16 = '1';
+  const plans = buildPwaLoadAttempts({ gpuCandidates: ['webgpu'] });
+  assert.equal(plans[0].dtype, 'q4');
+  assert.equal(plans[1].dtype, 'q4f16');
+  if (prev === undefined) delete process.env.LLM_TRY_Q4_BEFORE_Q4F16;
+  else process.env.LLM_TRY_Q4_BEFORE_Q4F16 = prev;
+});
+
+test('classifyGpuLoadError detects 557856688', () => {
+  const c = classifyGpuLoadError(new Error('WebGPU failed with code 557856688'));
+  assert.equal(c.class, 'ort_webgpu_pipeline_fail');
+  assert.equal(c.retryPath, 'mlc');
 });

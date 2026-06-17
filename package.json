@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.91.0",
+  "version": "1.92.0",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp and React Native app",
   "workspaces": [
     "apps/rn-app",
@@ -66,13 +66,17 @@
     "ci:audit-llm-live": "node scripts/ci/ci-rerun-until-green.mjs",
     "turbo:build": "npx turbo run build",
     "turbo:typecheck": "npx turbo run typecheck",
-    "postinstall": "node scripts/build/patch-onnxruntime-gradle.mjs && node scripts/build/sync-llm-tier-benchmark.mjs && node scripts/build/sync-llm-load-ladder.mjs",
-    "sync:llm-pwa": "node scripts/build/sync-llm-tier-benchmark.mjs && node scripts/build/sync-llm-load-ladder.mjs",
+    "postinstall": "node scripts/build/patch-onnxruntime-gradle.mjs && node scripts/build/sync-llm-tier-benchmark.mjs && node scripts/build/sync-llm-load-ladder.mjs && node scripts/build/sync-llm-runtime-profiles.mjs",
+    "sync:llm-pwa": "node scripts/build/sync-llm-tier-benchmark.mjs && node scripts/build/sync-llm-load-ladder.mjs && node scripts/build/sync-llm-runtime-profiles.mjs",
     "vendor:transformers": "node scripts/build/vendor-transformers.mjs",
     "test:llm-hardware": "node scripts/test/llm-hardware-matrix.mjs",
     "preflight:llm-chunk": "node scripts/test/preflight-llm-chunk.mjs",
     "verify:push-contract": "node scripts/verify/push-notification-contract.mjs",
-    "agentic:llm-full-scope": "node scripts/ci/agentic-llm-full-scope.mjs"
+    "agentic:llm-full-scope": "node scripts/ci/agentic-llm-full-scope.mjs",
+    "agentic:gpu-v1": "node scripts/ci/agentic-gpu-v1.mjs",
+    "test:gpu-llama-matrix": "node scripts/test/gpu-llama-matrix.mjs",
+    "test:gpu-rn-matrix": "node scripts/test/gpu-rn-matrix.mjs",
+    "test:webnn-probe": "node scripts/test/webnn-probe.mjs"
   },
   "devDependencies": {
     "@babel/core": "7.29.7",

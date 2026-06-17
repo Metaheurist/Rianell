@@ -2,6 +2,12 @@ import { pipeline, env } from '@huggingface/transformers';
 import * as LegacyFileSystem from 'expo-file-system/legacy';
 import type { PreferredLlmModelSize } from '../storage/preferences';
 import { buildExpoGoLoadAttempts, modelIdFromTier } from '@rianell/llm';
+import {
+  buildHomeQuestionPrompt,
+  buildMotdPrompt,
+  buildSuggestPrompt,
+  buildSummaryPrompt,
+} from '@rianell/shared';
 
 type LlmFeature = 'summary' | 'suggestNote' | 'motd' | 'homeQuestion';
 
@@ -65,7 +71,25 @@ export async function runJsChat(
   await ensureJsPipeline(modelId);
   if (!jsPipeline) return null;
 
-  const prompt = `Locale: ${locale}. Feature: ${feature}.\n\n${context}`;
+  let prompts: { system: string; user: string };
+  switch (feature) {
+    case 'motd':
+      prompts = buildMotdPrompt(locale);
+      break;
+    case 'summary':
+      prompts = buildSummaryPrompt(locale, context);
+      break;
+    case 'suggestNote':
+      prompts = buildSuggestPrompt(locale, context);
+      break;
+    case 'homeQuestion':
+      prompts = buildHomeQuestionPrompt(locale, context);
+      break;
+    default:
+      prompts = { system: '', user: context };
+  }
+
+  const prompt = `${prompts.system}\n\n${prompts.user}`;
 
   const out = await (jsPipeline as any)(prompt, {
     max_new_tokens: feature === 'motd' ? 40 : 140,
