@@ -39,6 +39,14 @@ test('RN CLI Android job must not use setup-java cache:gradle before prebuild', 
   assert.doesNotMatch(ciYml, /cache:\s*gradle/);
 });
 
+test('setup-node-ci patches onnxruntime for Gradle 9', () => {
+  const action = fs.readFileSync(
+    new URL('../../.github/actions/setup-node-ci/action.yml', import.meta.url),
+    'utf8',
+  );
+  assert.match(action, /patch-onnxruntime-gradle\.mjs/);
+});
+
 test('RN CLI Android collect step globs APK from repo root (not android/ cwd)', () => {
   // Collect runs with default working-directory = workspace root; path must include apps/rn-app/android/.
   assert.match(
