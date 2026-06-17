@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-17T14:11:53.722Z",
+  "generatedAt": "2026-06-17T14:59:06.003Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3505247,
+    "jsBytes": 3505184,
     "cssBytes": 391804,
-    "jsGzipBytes": 670310,
+    "jsGzipBytes": 670342,
     "cssGzipBytes": 69099
   },
   "files": [
@@ -45,8 +45,8 @@
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 77430,
-      "gzipBytes": 12669
+      "bytes": 77367,
+      "gzipBytes": 12701
     },
     {
       "file": "ci-minified/site/export-utils.js",
