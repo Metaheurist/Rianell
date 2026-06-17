@@ -14,6 +14,7 @@ function read(rel) {
 }
 
 const summaryLlm = read('apps/pwa-webapp/summary-llm.js');
+const summaryLlmMlc = read('apps/pwa-webapp/summary-llm-mlc.js');
 const indexHtml = read('apps/pwa-webapp/index.html');
 const loadLadderSync = read('apps/pwa-webapp/llm-load-ladder-sync.js');
 
@@ -52,6 +53,18 @@ if (!existsSync(join(root, 'apps/pwa-webapp/llm-load-ladder-sync.js'))) {
 if (!existsSync(join(root, 'apps/pwa-webapp/llm-tier-benchmark-sync.js'))) {
   errors.push('missing apps/pwa-webapp/llm-tier-benchmark-sync.js — run npm run sync:llm-pwa');
 }
+if (!existsSync(join(root, 'apps/pwa-webapp/llm-runtime-profiles-sync.js'))) {
+  errors.push('missing apps/pwa-webapp/llm-runtime-profiles-sync.js — run npm run sync:llm-pwa');
+}
+if (!summaryLlmMlc.includes('Llama-3.2-1B-Instruct-q4f16_1-MLC')) {
+  errors.push('summary-llm-mlc.js must allowlist single MLC model id');
+}
+if (!summaryLlmMlc.includes('@mlc-ai/web-llm@0.2.84')) {
+  errors.push('summary-llm-mlc.js must pin @mlc-ai/web-llm@0.2.84');
+}
+if (!indexHtml.includes('llm-runtime-profiles-sync.js')) {
+  errors.push('index.html must load llm-runtime-profiles-sync.js');
+}
 
 const vendorManifest = join(root, 'apps/pwa-webapp/vendor/transformers/vendor-manifest.json');
 if (hasVendorPath && !existsSync(vendorManifest)) {
@@ -61,6 +74,15 @@ if (hasVendorPath && !existsSync(vendorManifest)) {
 const llmNative = read('apps/rn-app/src/ai/llmNative.ts');
 if (!llmNative.includes('buildRnLoadAttempts')) {
   errors.push('llmNative.ts must use buildRnLoadAttempts');
+}
+if (!llmNative.includes('getNativeActiveBackend')) {
+  errors.push('llmNative.ts must expose getNativeActiveBackend');
+}
+if (!llmNative.includes('buildNativeLlmPrompt') && !llmNative.includes('buildMotdPrompt')) {
+  errors.push('llmNative.ts must use shared prompt packs (buildMotdPrompt / buildNativeLlmPrompt)');
+}
+if (!llmNative.includes('warmupNativePipeline')) {
+  errors.push('llmNative.ts must warmup native pipeline after init');
 }
 if (!llmNative.includes('externalData')) {
   errors.push('llmNative.ts must pass externalData to ORT init');

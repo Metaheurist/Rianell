@@ -41,7 +41,12 @@
     {
       "id": "on_device_llm",
       "status": { "web": "supported", "android": "supported", "ios": "partial" },
-      "notes": "GPU-first load order via @rianell/llm presets: PWA WebGPU→WASM (webgpu/wasm only); RN Android NNAPI→CPU, iOS CoreML→CPU, Expo Go WASM. HF Hub onnx-community *-ONNX only. WASM-only auto-cap tier 3–5 to SmolLM unless advanced override. Settings show activeBackend when loaded."
+      "notes": "GPU-first: PWA WebGPU/WebNN ONNX → WebLLM MLC → WASM cap; RN NNAPI/CoreML. Settings show activeBackend + engine when loaded."
+    },
+    {
+      "id": "llm_gpu_backend_label",
+      "status": { "web": "supported", "android": "supported", "ios": "partial" },
+      "notes": "PWA getAiModelStatus activeBackend/activeEngine; RN getNativeActiveBackend after ORT init."
     },
     {
       "id": "cloud_sync_encrypted",

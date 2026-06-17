@@ -116,11 +116,16 @@ export {
 
 export {
   buildPwaLoadAttempts,
+  buildPwaWebNnAttempts,
   buildPwaWasmAttempt,
   buildExpoGoLoadAttempts,
   buildRnLoadAttempts,
   backendLabelFromAttempt,
 } from './load-ladder.mjs';
+
+export { classifyGpuLoadError, GPU_PIPELINE_FAIL_KEY } from './gpu-errors.mjs';
+export { MLC_LLAMA_MODEL_ID, ALLOWED_MLC_MODEL_IDS, isAllowedMlcModelId } from './mlc-config.mjs';
+export { GGUF_LLAMA_MODEL_ID, ALLOWED_GGUF_MODEL_IDS, isAllowedGgufModelId } from './gguf-config.mjs';
 
 /** Shared LLM request shape for web and RN adapters. */
 export function buildLlmContext(intent, payload) {

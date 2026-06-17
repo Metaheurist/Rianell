@@ -15497,6 +15497,7 @@ let appSettings = {
   aiEnabled: true, // When false: hide AI Analysis tab, chart predictions, and Goals
   preferredLlmModelSize: 'recommended', // 'recommended' | 'tier1'..'tier5' for on-device AI model
   preferredLlmForceLargeOnWasm: false,
+  preferredLlmEngine: 'auto', // auto | onnx | mlc | gguf
   pushNotificationsEnabled: false,
   aiModelDownloadConsent: 'deferred', // 'granted' | 'deferred' — first-run AI model download consent
   privacyRegion: '',
@@ -15620,6 +15621,21 @@ function setPreferredLlmModel(value) {
   if (typeof refreshLlmModelSettingsHints === 'function') refreshLlmModelSettingsHints();
 }
 if (typeof window !== 'undefined') window.setPreferredLlmModel = setPreferredLlmModel;
+
+function setPreferredLlmEngine(value) {
+  var valid = value === 'auto' || value === 'onnx' || value === 'mlc' || value === 'gguf';
+  if (!valid) return;
+  appSettings.preferredLlmEngine = value;
+  saveSettings();
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('rianellLlmEngine', value === 'auto' ? 'auto' : value);
+    }
+  } catch (e) {}
+  if (typeof window.clearSummaryLLMCache === 'function') window.clearSummaryLLMCache();
+  if (typeof refreshLlmModelSettingsHints === 'function') refreshLlmModelSettingsHints();
+}
+if (typeof window !== 'undefined') window.setPreferredLlmEngine = setPreferredLlmEngine;
 
 function togglePreferredLlmForceLargeOnWasm() {
   var dm = (typeof navigator !== 'undefined' && navigator.deviceMemory) ? navigator.deviceMemory : null;
@@ -15797,6 +15813,9 @@ function refreshLlmModelSettingsHints() {
         ? 'Ready · loaded in memory'
         : 'Ready · cached on device';
       if (modelStatus.activeBackend) statusLabel += ' · ' + modelStatus.activeBackend;
+      if (modelStatus.activeEngine && modelStatus.activeEngine !== 'onnx') {
+        statusLabel += ' · engine ' + modelStatus.activeEngine;
+      }
       if (modelStatus.tierLabel) statusLabel += ' · ' + modelStatus.tierLabel;
     } else if (modelStatus.state === 'consented') {
       statusLabel = 'Consented · not loaded yet';
@@ -16468,6 +16487,17 @@ function loadSettingsState() {
       ? appSettings.preferredLlmModelSize
       : 'recommended';
     preferredLlmSelect.value = val;
+  }
+  var preferredLlmEngineSelect = document.getElementById('preferredLlmEngineSelect');
+  if (preferredLlmEngineSelect) {
+    var engineVal = appSettings.preferredLlmEngine || 'auto';
+    if (engineVal !== 'auto' && engineVal !== 'onnx' && engineVal !== 'mlc' && engineVal !== 'gguf') engineVal = 'auto';
+    preferredLlmEngineSelect.value = engineVal;
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('rianellLlmEngine', engineVal);
+      }
+    } catch (e) {}
   }
   if (llmRecommendationHint) {
     refreshLlmModelSettingsHints();

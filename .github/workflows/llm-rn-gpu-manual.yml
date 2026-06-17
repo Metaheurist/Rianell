@@ -1,0 +1,25 @@
+name: LLM RN GPU manual matrix
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'android or ios'
+        required: true
+        default: 'android'
+
+jobs:
+  rn-gpu-manual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: RN GPU matrix (static + profile docs)
+        run: npm run test:gpu-rn-matrix
+      - name: RN static parity
+        run: npm run agentic:gpu-v1 -- --track rn-static
