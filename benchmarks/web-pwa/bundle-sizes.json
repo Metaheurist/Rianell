@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-06-16T10:55:22.793Z",
+  "generatedAt": "2026-06-17T11:51:08.898Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3487599,
+    "jsBytes": 3489281,
     "cssBytes": 391765,
-    "jsGzipBytes": 667283,
+    "jsGzipBytes": 667096,
     "cssGzipBytes": 69094
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 1184509,
-      "gzipBytes": 199504
+      "bytes": 1190068,
+      "gzipBytes": 200176
     },
     {
-      "file": "ci-minified/site/app.3f10aa9d7829.min.js",
-      "bytes": 769697,
-      "gzipBytes": 140437
+      "file": "ci-minified/site/app.7b3915e8f0b1.min.js",
+      "bytes": 773811,
+      "gzipBytes": 140974
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -40,13 +40,8 @@
     },
     {
       "file": "ci-minified/site/cloud-sync.js",
-      "bytes": 102203,
-      "gzipBytes": 19054
-    },
-    {
-      "file": "ci-minified/site/summary-llm.js",
-      "bytes": 75625,
-      "gzipBytes": 12475
+      "bytes": 102510,
+      "gzipBytes": 19148
     },
     {
       "file": "ci-minified/site/export-utils.js",
@@ -54,9 +49,14 @@
       "gzipBytes": 12704
     },
     {
+      "file": "ci-minified/site/summary-llm.js",
+      "bytes": 67378,
+      "gzipBytes": 11028
+    },
+    {
       "file": "ci-minified/site/device-benchmark.js",
-      "bytes": 65679,
-      "gzipBytes": 10438
+      "bytes": 65675,
+      "gzipBytes": 10427
     },
     {
       "file": "ci-minified/site/performance-utils.js",
@@ -65,8 +65,8 @@
     },
     {
       "file": "ci-minified/site/ui-feedback.js",
-      "bytes": 33954,
-      "gzipBytes": 5408
+      "bytes": 34238,
+      "gzipBytes": 5488
     },
     {
       "file": "ci-minified/site/privacy-region.js",
@@ -115,8 +115,8 @@
     },
     {
       "file": "ci-minified/site/model-chunk-loader.js",
-      "bytes": 10285,
-      "gzipBytes": 1984
+      "bytes": 10251,
+      "gzipBytes": 1981
     },
     {
       "file": "ci-minified/site/device-module.js",
@@ -160,8 +160,8 @@
     },
     {
       "file": "ci-minified/site/supabase-config.js",
-      "bytes": 3689,
-      "gzipBytes": 1108
+      "bytes": 3435,
+      "gzipBytes": 1022
     },
     {
       "file": "ci-minified/site/print-styles.css",
@@ -179,14 +179,14 @@
       "gzipBytes": 655
     },
     {
-      "file": "ci-minified/site/supabase-config.example.js",
-      "bytes": 849,
-      "gzipBytes": 451
-    },
-    {
       "file": "ci-minified/site/workers/io-worker.js",
       "bytes": 849,
       "gzipBytes": 384
+    },
+    {
+      "file": "ci-minified/site/supabase-config.example.js",
+      "bytes": 806,
+      "gzipBytes": 428
     },
     {
       "file": "ci-minified/site/css/tokens.css",
