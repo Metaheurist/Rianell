@@ -184,10 +184,10 @@
     return null;
   }
 
-  function resolveWasmOnlyCapForTier(tierKey) {
+  function resolveWasmOnlyCapForTier(tierKey, webGpuOverride) {
     var prefs = typeof window !== 'undefined' && window.appSettings;
     var forceLarge = !!(prefs && prefs.preferredLlmForceLargeOnWasm);
-    var webGpu = isWebGpuAvailableCached();
+    var webGpu = webGpuOverride != null ? webGpuOverride : isWebGpuAvailableCached();
     if (typeof window !== 'undefined' && window.RianellLlmRuntimeProfiles &&
         typeof window.RianellLlmRuntimeProfiles.resolveWasmOnlyCap === 'function') {
       return window.RianellLlmRuntimeProfiles.resolveWasmOnlyCap({
@@ -213,8 +213,8 @@
     return { tier: tierKey, capped: false, warning: null };
   }
 
-  function applyWasmCapToTierKey(tierKey) {
-    var cap = resolveWasmOnlyCapForTier(tierKey);
+  function applyWasmCapToTierKey(tierKey, webGpuOverride) {
+    var cap = resolveWasmOnlyCapForTier(tierKey, webGpuOverride);
     if (cap.capped && cap.warning && !wasmCapToastShown &&
         typeof window !== 'undefined' && typeof window.showToast === 'function') {
       wasmCapToastShown = true;
@@ -223,7 +223,7 @@
     return cap.tier;
   }
 
-  function resolvePreferredTierKey() {
+  function getPreferredTierKeyUncapped() {
     var prefs = typeof window !== 'undefined' && window.appSettings;
     var preferred = prefs && prefs.preferredLlmModelSize;
     var tierKey;
@@ -243,7 +243,17 @@
       var deviceClass = getDeviceClassForModel();
       tierKey = deviceClass === 'low' ? 'tier1' : 'tier5';
     }
-    return applyWasmCapToTierKey(tierKey);
+    return tierKey;
+  }
+
+  function resolvePreferredTierKey() {
+    return applyWasmCapToTierKey(getPreferredTierKeyUncapped());
+  }
+
+  function resolveWasmFallbackModelId(currentModelId) {
+    if (currentModelId !== MODEL_BASE) return currentModelId;
+    var wasmTier = applyWasmCapToTierKey(getPreferredTierKeyUncapped(), false);
+    return llmTierOrSizeToModelId(wasmTier);
   }
 
   function tierKeyToDisplay(tierKey) {
@@ -695,8 +705,10 @@
         try {
           var modWasm = gpuPlans.length > 0 ? await importTransformersModule(true) : mod;
           applyHuggingFaceRemote(modWasm);
-          cachedPipeline = await runChatGenerationPipeline(modWasm, loadModelId, wasmPlan);
+          var wasmModelId = gpuPlans.length > 0 ? resolveWasmFallbackModelId(loadModelId) : loadModelId;
+          cachedPipeline = await runChatGenerationPipeline(modWasm, wasmModelId, wasmPlan);
           if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
+          loadModelId = wasmModelId;
           cachedActiveBackend = 'wasm';
           cachedActiveDtype = 'q4';
           loaded = true;
