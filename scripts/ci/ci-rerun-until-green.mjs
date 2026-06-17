@@ -54,8 +54,9 @@ function deployOk(runId) {
 }
 
 function isGreen(viewed, deploy, llm) {
+  if (viewed.conclusion === 'cancelled') return false;
   if (viewed.conclusion === 'success' && llm.ok) return true;
-  if (llm.ok && (deploy.skipped || deploy.ok)) return true;
+  if (llm.ok && !llm.skipped && (deploy.skipped || deploy.ok)) return true;
   return false;
 }
 
