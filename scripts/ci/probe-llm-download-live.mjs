@@ -40,7 +40,10 @@ async function clickThrough(page) {
 
 async function runOnce() {
   killHeadless();
-  const browser = await chromium.launch({ headless: true, args: ['--disable-dev-shm-usage', '--no-sandbox'] });
+  const browser = await chromium.launch({
+    headless: true,
+    args: ['--disable-dev-shm-usage', '--no-sandbox', '--disable-gpu'],
+  });
   try {
     const ctx = await browser.newContext({
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36',
@@ -63,6 +66,7 @@ async function runOnce() {
           platformType: 'desktop',
           tier,
           ts: Date.now(),
+          gpu: { available: false, backend: 'none', good: false, scoreMs: null, scoreSamples: [] },
         }));
       } catch (_) {}
     }, TIER);

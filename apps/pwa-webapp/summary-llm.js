@@ -193,9 +193,7 @@
   }
 
   function detectGpuBackendFallback() {
-    if (typeof navigator !== 'undefined' && navigator.gpu && typeof navigator.gpu.requestAdapter === 'function') {
-      return 'webgpu';
-    }
+    // Do not treat navigator.gpu alone as WebGPU-capable (headless/CI false positives).
     try {
       if (typeof document !== 'undefined') {
         var canvas = document.createElement('canvas');
