@@ -9,6 +9,14 @@ test('bundle:mobile:prod uses run-mobile-export orchestrator', () => {
   assert.match(script, /run-mobile-export\.mjs/);
 });
 
+test('run-mobile-export stubs native LLM deps for Hermes export gate', () => {
+  const script = fs.readFileSync(
+    new URL('../../scripts/build/run-mobile-export.mjs', import.meta.url),
+    'utf8',
+  );
+  assert.match(script, /RIANELL_EXPO_EXPORT_STUB_NATIVE_LLM:\s*['"]1['"]/);
+});
+
 test('dev script targets RN Expo, not Capacitor', () => {
   const dev = String(pkg?.scripts?.dev || '');
   assert.match(dev, /apps\/rn-app/);
