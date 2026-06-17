@@ -38,7 +38,11 @@ const expoArgs = [
 const exportResult = spawnSync('npx', expoArgs, {
   cwd: rnApp,
   stdio: 'inherit',
-  env: process.env,
+  env: {
+    ...process.env,
+    // CI export gate bundles Hermes output; native ORT deps are stubbed in metro.config.js.
+    RIANELL_EXPO_EXPORT_STUB_NATIVE_LLM: '1',
+  },
   shell: process.platform === 'win32',
 });
 if (exportResult.status !== 0) {
