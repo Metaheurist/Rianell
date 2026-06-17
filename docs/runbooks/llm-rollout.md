@@ -33,8 +33,11 @@ $env:VERIFY_URLS='https://rianell.com/'
 node scripts/audit/verify-deploy-html.mjs
 $env:PROBE_URL='https://rianell.com/'
 $env:PROBE_TIER='1'
+$env:PROBE_GPU_AVAILABLE='0'
 node scripts/ci/probe-llm-download-live.mjs
 ```
+
+**CI note:** GitHub Actions runs the HF download probe against the **`pages-site-probe` artifact** served locally (`http://127.0.0.1:9876/`). Cloudflare bot/challenge CSP on datacenter IPs can block same-origin scripts on `rianell.com` even when the app works in a real browser. The workflow still checks live deploy HTML and boot on `rianell.com` separately.
 
 Pass criteria:
 

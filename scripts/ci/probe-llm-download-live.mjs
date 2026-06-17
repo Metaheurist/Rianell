@@ -108,6 +108,11 @@ async function runOnce() {
       if (/Unsupported device:\s*"webgl"/i.test(text)) errors.push(text.slice(0, 180));
       if (!/content security policy|csp|connect-src/i.test(text)) return;
       if (/cloudflareinsights|beacon\.min\.js|email-decode\.min\.js|cdn-cgi\/scripts/i.test(text)) return;
+      // Combined Cloudflare HTTP CSP + meta CSP blocks 'self' scripts on bot/datacenter IPs.
+      if (/script-src 'unsafe-inline' 'unsafe-eval'/i.test(text) && !/'self'/i.test(text)) {
+        errors.push('cloudflare_csp_blocked_self_scripts');
+        return;
+      }
       errors.push(text.slice(0, 180));
     });
     page.on('requestfinished', async (req) => {
@@ -185,12 +190,17 @@ async function runOnce() {
     }
 
     const elapsedMs = Date.now() - t0;
+    const cloudflareCsp = errors.some((e) => e === 'cloudflare_csp_blocked_self_scripts');
     const ok = Boolean(
       final && final.state === 'ready' && final.inMemory === true &&
       hf.length > 0 && supa.length === 0 &&
       !errors.some((e) => /Unsupported device:\s*"webgl"/i.test(e))
     );
-    return { ok, elapsedMs, finalStatus: final, hfRequests: hf.slice(0, 8), supabaseRequests: supa.slice(0, 3), errors: errors.slice(0, 3) };
+    const outErrors = errors.filter((e) => e !== 'cloudflare_csp_blocked_self_scripts').slice(0, 3);
+    if (cloudflareCsp && !ok) {
+      outErrors.unshift('Cloudflare HTTP CSP blocked same-origin scripts (use local Pages probe in CI)');
+    }
+    return { ok, elapsedMs, finalStatus: final, hfRequests: hf.slice(0, 8), supabaseRequests: supa.slice(0, 3), errors: outErrors };
   } finally {
     await browser.close();
     killHeadless();
