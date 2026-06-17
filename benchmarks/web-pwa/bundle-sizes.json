@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-17T20:00:07.501Z",
+  "generatedAt": "2026-06-17T21:48:13.052Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3516753,
+    "jsBytes": 3536146,
     "cssBytes": 391804,
-    "jsGzipBytes": 845159,
+    "jsGzipBytes": 850398,
     "cssGzipBytes": 69099
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 851313,
-      "gzipBytes": 185594
+      "bytes": 852667,
+      "gzipBytes": 185852
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.e93c892fe904.min.js",
-      "bytes": 583531,
-      "gzipBytes": 133967
+      "file": "ci-minified/site/app.901fbdf347ae.min.js",
+      "bytes": 584572,
+      "gzipBytes": 134166
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -50,8 +50,8 @@
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 50492,
-      "gzipBytes": 12237
+      "bytes": 60178,
+      "gzipBytes": 13925
     },
     {
       "file": "ci-minified/site/export-utils.js",
@@ -164,6 +164,11 @@
       "gzipBytes": 967
     },
     {
+      "file": "ci-minified/site/summary-llm-mlc.js",
+      "bytes": 3207,
+      "gzipBytes": 1235
+    },
+    {
       "file": "ci-minified/site/supabase-config.js",
       "bytes": 2891,
       "gzipBytes": 939
@@ -174,9 +179,19 @@
       "gzipBytes": 854
     },
     {
+      "file": "ci-minified/site/llm-load-ladder-sync.js",
+      "bytes": 2376,
+      "gzipBytes": 872
+    },
+    {
       "file": "ci-minified/site/push-subscribe.js",
       "bytes": 2251,
       "gzipBytes": 881
+    },
+    {
+      "file": "ci-minified/site/llm-runtime-profiles-sync.js",
+      "bytes": 1859,
+      "gzipBytes": 798
     },
     {
       "file": "ci-minified/site/trace-runtime.js",
@@ -184,9 +199,9 @@
       "gzipBytes": 685
     },
     {
-      "file": "ci-minified/site/llm-load-ladder-sync.js",
-      "bytes": 1765,
-      "gzipBytes": 685
+      "file": "ci-minified/site/summary-llm-gguf.js",
+      "bytes": 1356,
+      "gzipBytes": 654
     },
     {
       "file": "ci-minified/site/src/buildDownloads.js",
@@ -212,6 +227,11 @@
       "file": "ci-minified/site/css/tokens.css",
       "bytes": 505,
       "gzipBytes": 327
+    },
+    {
+      "file": "ci-minified/site/llm-mlc-worker.js",
+      "bytes": 279,
+      "gzipBytes": 220
     }
   ]
 }
