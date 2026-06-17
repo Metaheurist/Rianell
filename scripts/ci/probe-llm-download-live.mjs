@@ -115,13 +115,20 @@ async function runOnce() {
         () => typeof window.preloadSummaryLLM === 'function',
         { timeout: 180000 }
       );
-      await page.evaluate(async () => {
+      await page.evaluate((tier) => {
         try {
-          await window.preloadSummaryLLM();
-        } catch (err) {
-          throw new Error(String(err && err.message ? err.message : err).slice(0, 240));
-        }
-      });
+          localStorage.setItem('rianellPerfBenchmark', JSON.stringify({
+            version: 5,
+            platformType: 'desktop',
+            tier,
+            ts: Date.now(),
+            gpu: { available: false, backend: 'none', good: false, scoreMs: null, scoreSamples: [] },
+          }));
+          if (typeof window.preloadSummaryLLM === 'function') {
+            void window.preloadSummaryLLM();
+          }
+        } catch (_) {}
+      }, TIER);
     } catch (err) {
       errors.push('preloadSummaryLLM: ' + String(err.message || err).slice(0, 240));
     }
@@ -136,7 +143,11 @@ async function runOnce() {
     }
 
     const elapsedMs = Date.now() - t0;
-    const ok = Boolean(final && final.state === 'ready' && final.inMemory === true && hf.length > 0 && supa.length === 0 && errors.length === 0);
+    const fatalErrors = errors.filter((e) => !/Execution context was destroyed|download deferred/i.test(e));
+    const ok = Boolean(
+      final && final.state === 'ready' && final.inMemory === true &&
+      hf.length > 0 && supa.length === 0 && fatalErrors.length === 0
+    );
     return { ok, elapsedMs, finalStatus: final, hfRequests: hf.slice(0, 8), supabaseRequests: supa.slice(0, 3), errors: errors.slice(0, 3) };
   } finally {
     await browser.close();

@@ -212,13 +212,20 @@
       seen[dev] = true;
       ordered.push(dev);
     }
+    var benchmarkSaysNoGpu = false;
     if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.getCachedResult === 'function') {
       var cached = window.DeviceBenchmark.getCachedResult();
-      if (cached && cached.gpu && cached.gpu.available) {
-        add(cached.gpu.backend);
+      if (cached && cached.gpu) {
+        if (cached.gpu.available) {
+          add(cached.gpu.backend);
+        } else if (cached.gpu.available === false) {
+          benchmarkSaysNoGpu = true;
+        }
       }
     }
-    add(detectGpuBackendFallback());
+    if (!benchmarkSaysNoGpu) {
+      add(detectGpuBackendFallback());
+    }
     return ordered;
   }
 
