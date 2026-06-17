@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scoreMsToTier, tierToLlmModelSize } from '@rianell/llm';
 import type { PreferredLlmModelSize } from '../storage/preferences';
 
 const KEY = 'rianell.performance-benchmark.v1';
@@ -19,20 +20,11 @@ function nowMs(): number {
 }
 
 function classifyTier(scoreMs: number): BenchmarkResult['tier'] {
-  // Lower score is better (elapsed ms for same workload).
-  if (scoreMs <= 14) return 5;
-  if (scoreMs <= 26) return 4;
-  if (scoreMs <= 44) return 3;
-  if (scoreMs <= 72) return 2;
-  return 1;
+  return scoreMsToTier(scoreMs) as BenchmarkResult['tier'];
 }
 
 function modelSizeFromTier(tier: BenchmarkResult['tier']): BenchmarkResult['llmModelSize'] {
-  if (tier >= 5) return 'tier5';
-  if (tier === 4) return 'tier4';
-  if (tier === 3) return 'tier3';
-  if (tier === 2) return 'tier2';
-  return 'tier1';
+  return tierToLlmModelSize(tier) as BenchmarkResult['llmModelSize'];
 }
 
 function classFromTier(tier: BenchmarkResult['tier']): DeviceClass {

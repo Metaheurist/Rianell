@@ -4,7 +4,8 @@
 
 ### v1.70.2 documentation sync (summary LLM model host)
 
-- **PWA `summary-llm.js`:** Uses Hugging Face Hub only (onnx-community `*-ONNX` repos).
+- **PWA `summary-llm.js`:** Uses Hugging Face Hub only (onnx-community `*-ONNX` repos). Load order: WebGPU (q4f16→q4) → WebGL (q4) on desktop; WebGPU → WASM on mobile; WASM q4 last resort. Presets from `packages/llm` (`load-ladder.mjs`, `runtime-profiles.mjs`).
+- **RN `llmNative.ts`:** ORT via `react-native-transformers`; Android NNAPI→CPU, iOS CoreML→CPU; `externalData` for Llama weights. Expo Go: `llmJs.ts` WASM q4.
 - **Chunk assembly:** Supabase chunk paths are legacy only; HF serves full ONNX files.
 - **Deploy:** `SUPABASE_CONFIG` is auth/sync only (no model bucket).
 

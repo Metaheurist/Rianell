@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "description": "On-device LLM weights on Supabase Storage. Large files are split into .partNNN chunks (free tier 50 MB limit).",
+  "description": "On-device LLM weights from Hugging Face Hub (onnx-community *-ONNX). Chunk metadata is legacy upload tooling only.",
   "models": [
     {
       "id": "onnx-community/SmolLM2-360M-Instruct-ONNX",

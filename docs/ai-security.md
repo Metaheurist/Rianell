@@ -1,7 +1,7 @@
 # AI security — on-device LLM and deterministic analysis
 
 **Product:** Rianell  
-**Last updated:** 2026-06-13 (v1.60.0 — prompt packs, locale contract, UGC delimiters)  
+**Last updated:** 2026-06-14 (v1.91.0 — HF-only runtime, GPU-first load order, CVE baseline)  
 **Related:** [ai-architecture.md](ai-architecture.md) · [threat-model.md](threat-model.md) · [dpia-health-sync.md](privacy/dpia-health-sync.md) · [SECURITY.md](SECURITY.md)
 
 ---
@@ -11,8 +11,8 @@
 | Surface | Technology | Data leaves device? | User control |
 |---------|------------|---------------------|--------------|
 | **Deterministic analysis** | `@rianell/ai-engine` (regression, correlation, flare prediction) | No | Always on when user runs AI Analysis |
-| **On-device LLM (PWA)** | Transformers.js + weights from **Supabase Storage** (chunked) or Hugging Face fallback | Weights downloaded from Supabase/HF; **prompts stay on device** | Consent modal + blocking/skippable download UI by platform |
-| **On-device LLM (RN)** | `@rianell/llm` + `llmNative.ts` (chunk download + cache) | Same as PWA | `AiModelDownloadGate` blocking modal + consent |
+| **On-device LLM (PWA)** | Transformers.js `@3.3.2` (jsDelivr) + **Hugging Face Hub** weights only | Weights downloaded from HF; **prompts stay on device** | Consent modal + download UI; GPU (WebGPU/WebGL) tried before WASM |
+| **On-device LLM (RN)** | `@rianell/llm` + `llmNative.ts` (ORT) or `llmJs.ts` (Expo Go WASM) | HF Hub download to app documents; prompts on device | `AiModelDownloadGate`; Android NNAPI / iOS CoreML before CPU |
 | **Rule-based fallbacks** | Shared MOTD / summary templates | No | Automatic when LLM unavailable or times out |
 | **Anonymized training pool** | Encrypted blobs in `anonymized_data` | Yes (opt-in) | Separate consent in settings |
 
@@ -37,10 +37,9 @@ flowchart TB
   end
 
   subgraph runtime [Runtime]
-    TJ[Transformers.js pipeline]
+    TJ[Transformers.js / ORT pipeline]
     Cache[Model cache IDB / FS / Cache API]
-    SB[Supabase Storage chunks]
-    HF[Hugging Face CDN fallback]
+    HF[Hugging Face Hub onnx-community repos]
   end
 
   subgraph outputs [Outputs]
@@ -55,7 +54,6 @@ flowchart TB
   Consent --> Tier
   Tier --> TJ
   HF --> Cache --> TJ
-  SB --> Cache
   TJ --> Timeout
   Timeout -->|success| Text
   Timeout -->|fail| Fallback
@@ -63,7 +61,9 @@ flowchart TB
   Fallback --> UI
 ```
 
-**Package references:** `packages/llm/src/index.mjs` (model IDs, context shape), PWA LLM loader, RN `llmNative.ts` placeholder.
+**Package references:** `packages/llm` (`runtime-profiles.mjs`, `load-ladder.mjs`, `tier-benchmark.mjs`), PWA `summary-llm.js`, RN `llmNative.ts` / `llmJs.ts`.
+
+**Load order (GPU-first):** WebGPU (q4f16→q4) → WebGL (q4) on desktop; WebGPU then WASM on mobile PWA; NNAPI/CoreML then CPU on RN native; WASM q4 last resort everywhere.
 
 ---
 
@@ -109,8 +109,9 @@ See [threat-model.md](threat-model.md) M-08.
 
 | Artifact | Source | Integrity |
 |----------|--------|-----------|
-| Transformers.js | Dynamic import / jsDelivr (CSP `connect-src`) | Version pinned in package lock; no SRI on dynamic import |
-| Model weights | `huggingface.co` / Xet bridge hosts | Model ID whitelist in `@rianell/llm` |
+| Transformers.js | `cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.2` | Pinned; not `@latest`; CSP `connect-src` |
+| onnxruntime-react-native | npm lockfile `^1.22.0` | CI OSV + npm audit |
+| Model weights | `huggingface.co` / Xet bridge hosts only | Model ID whitelist in `@rianell/llm` |
 | Tokenizers / configs | Bundled with model repo | HF commit hash implicit in cache |
 
 ### 4.2 Risks
@@ -121,11 +122,23 @@ See [threat-model.md](threat-model.md) M-08.
 
 ### 4.3 Mitigations
 
-1. **Allowlist model IDs** — only `SmolLM2-360M-Instruct` and `Llama-3.2-1B-Instruct` tiers unless explicitly extended in release notes.
-2. **CI scanning** — `npm audit`, OSV-Scanner, Gitleaks per [SECURITY.md](SECURITY.md).
-3. **CSP `connect-src`** — limits fetch targets to known HF hosts (see `index.html`).
-4. **Cache inspection** — operators can clear model cache from settings when behaviour is anomalous.
-5. **Future:** verify weight checksums against published SHA256 in repo metadata before first run.
+1. **Allowlist model IDs** — only `onnx-community/SmolLM2-360M-Instruct-ONNX` and `onnx-community/Llama-3.2-1B-Instruct-ONNX` unless extended in release notes.
+2. **Llama 3.2 gated repo** — user may need accepted HF license + `HF_TOKEN` for tier 3–5 downloads; never commit tokens.
+3. **CI scanning** — `npm audit`, OSV-Scanner, Gitleaks per [SECURITY.md](SECURITY.md).
+4. **CSP `connect-src`** — limits fetch targets to known HF hosts (see `index.html`).
+5. **Cache inspection** — operators can clear model cache from settings when behaviour is anomalous.
+6. **Future:** verify weight checksums against published SHA256 in repo metadata before first run.
+
+### 4.3a CVE disposition (2026-06-14 baseline)
+
+Run `npm audit --omit=dev` and OSV-Scanner in CI ([`security-audit.yml`](../.github/workflows/security-audit.yml)). Inference stack pins:
+
+| Package | Pin | Notes |
+|---------|-----|-------|
+| `@huggingface/transformers` | 3.3.2 | PWA CDN + RN override; upgrade only with parity tests |
+| `onnxruntime-react-native` | ^1.22.0 | Android Gradle patch via `patch-onnxruntime-gradle.mjs` |
+
+High/critical production CVEs must be fixed or documented with accepted risk before release.
 
 ### 4.4 Update policy
 

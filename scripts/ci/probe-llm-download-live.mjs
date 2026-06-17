@@ -132,7 +132,7 @@ async function runOnce() {
     }
 
     const elapsedMs = Date.now() - t0;
-    const ok = Boolean(final && final.state === 'ready' && hf.length > 0 && supa.length === 0 && errors.length === 0);
+    const ok = Boolean(final && final.state === 'ready' && final.inMemory === true && hf.length > 0 && supa.length === 0 && errors.length === 0);
     return { ok, elapsedMs, finalStatus: final, hfRequests: hf.slice(0, 8), supabaseRequests: supa.slice(0, 3), errors: errors.slice(0, 3) };
   } finally {
     await browser.close();

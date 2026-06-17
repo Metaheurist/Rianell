@@ -30,3 +30,14 @@ test('cancelAiModelDownload ignores late progress after cancel', () => {
   assert.match(summaryLlm, /if \(downloadCancelled\) return/);
   assert.match(summaryLlm, /window\.cancelAiModelDownload = cancelDownloadInFlight/);
 });
+
+test('summary-llm uses GPU load ladder not getPreferredDevice', () => {
+  assert.doesNotMatch(summaryLlm, /getPreferredDevice/);
+  assert.match(summaryLlm, /tryLoadWithPlans/);
+  assert.match(summaryLlm, /warmupPipelineOrThrow/);
+});
+
+test('getAiModelStatus ready requires in-memory pipeline', () => {
+  assert.match(summaryLlm, /state: 'consented'/);
+  assert.match(summaryLlm, /inMemory: true/);
+});

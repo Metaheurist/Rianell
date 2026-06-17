@@ -94,6 +94,33 @@ export function pickMotdFallback(rng = Math.random) {
   return list[Math.floor(rng() * list.length)];
 }
 
+export {
+  msPer200kToTier,
+  scoreMsToTier,
+  tierToLlmModelSize,
+  modelSizeFromTierNumber,
+  TIER_KEYS,
+} from './tier-benchmark.mjs';
+
+export {
+  PLATFORM_KINDS,
+  resolvePlatformKind,
+  resolveLlmPreset,
+  shouldCapTierForMemory,
+  modelNeedsExternalData,
+  modelOnnxAttempts,
+  LAST_STABLE_PRESET_KEY,
+  parseOomError,
+} from './runtime-profiles.mjs';
+
+export {
+  buildPwaLoadAttempts,
+  buildPwaWasmAttempt,
+  buildExpoGoLoadAttempts,
+  buildRnLoadAttempts,
+  backendLabelFromAttempt,
+} from './load-ladder.mjs';
+
 /** Shared LLM request shape for web and RN adapters. */
 export function buildLlmContext(intent, payload) {
   return { intent, payload, ts: Date.now() };

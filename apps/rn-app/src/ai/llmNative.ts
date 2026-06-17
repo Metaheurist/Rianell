@@ -12,6 +12,8 @@ import {
 
   pickMotdFallback,
 
+  buildRnLoadAttempts,
+
 } from '@rianell/llm';
 
 import { Directory, File, Paths } from 'expo-file-system';
@@ -21,6 +23,7 @@ import * as LegacyFileSystem from 'expo-file-system/legacy';
 import type { Preferences } from '../storage/preferences';
 
 import * as FileSystem from 'expo-file-system';
+import { Platform } from 'react-native';
 import { buildManifestUrl, buildHfFileUrl, getManifestCatalogUrl } from './modelsBaseUrl';
 import { detectLlmRuntime } from './llmRuntime';
 
@@ -72,12 +75,57 @@ type ProgressListener = (progress: LlmDownloadProgress) => void;
 
 let downloadProgress: LlmDownloadProgress = { pct: 0, status: 'idle' };
 
+let nativePipelineKey: string | null = null;
+
 const progressListeners = new Set<ProgressListener>();
 
 
 
-function emitProgress(next: LlmDownloadProgress) {
+function nativePlatformKind(): 'rn_android' | 'rn_ios' {
+  return Platform.OS === 'ios' ? 'rn_ios' : 'rn_android';
+}
 
+async function createHfFetch(cacheDir: string) {
+  return async (url: string) => {
+    const rel = url.split('/resolve/').pop() || '';
+    const localPath = `${cacheDir}${rel.replace(/^main\//, '')}`.replace(/\\/g, '/');
+    const info = await FileSystem.getInfoAsync(localPath);
+    if (info.exists) return localPath;
+    const destDir = `${localPath.split('/').slice(0, -1).join('/')}/`;
+    await FileSystem.makeDirectoryAsync(destDir, { intermediates: true }).catch(() => {});
+    const res = await FileSystem.downloadAsync(url, localPath);
+    return res.uri;
+  };
+}
+
+async function ensureNativePipeline(modelId: string, cacheDir: string): Promise<void> {
+  const key = `${modelId}:${cacheDir}`;
+  if (nativePipelineKey === key) return;
+
+  const { Pipeline } = await import('react-native-transformers');
+  const fetchHf = await createHfFetch(cacheDir);
+  const attempts = buildRnLoadAttempts({ platformKind: nativePlatformKind(), modelId });
+  let lastErr: unknown;
+
+  for (const attempt of attempts) {
+    try {
+      await Pipeline.TextGeneration.init(modelId, attempt.onnxPath, {
+        fetch: fetchHf,
+        executionProviders: attempt.executionProviders,
+        externalData: attempt.externalData,
+        verbose: __DEV__,
+      });
+      nativePipelineKey = key;
+      return;
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+
+  throw lastErr instanceof Error ? lastErr : new Error('Native LLM init failed');
+}
+
+function emitProgress(next: LlmDownloadProgress) {
   downloadProgress = next;
 
   progressListeners.forEach((fn) => fn(next));
@@ -463,25 +511,15 @@ export async function runOnDeviceChat(
     return mod.runJsChat(feature, prefs.performance.preferredLlmModelSize, context, locale);
   }
 
-  const { Pipeline } = await import('react-native-transformers');
   const modelId = resolveNativeModelId(prefs);
   const manifest = await fetchModelsManifest('');
   const entry = manifest.models.find((m) => m.id === modelId);
   if (!entry) return null;
   const cacheDir = getNativeModelCacheDir(modelId, entry.revision);
 
-  await Pipeline.TextGeneration.init(modelId, 'onnx/model_q4.onnx', {
-    fetch: async (url: string) => {
-      const rel = url.split('/resolve/').pop() || '';
-      const localPath = `${cacheDir}${rel.replace(/^main\//, '')}`.replace(/\\/g, '/');
-      const info = await FileSystem.getInfoAsync(localPath);
-      if (info.exists) return localPath;
-      const destDir = localPath.split('/').slice(0, -1).join('/') + '/';
-      await FileSystem.makeDirectoryAsync(destDir, { intermediates: true }).catch(() => {});
-      const res = await FileSystem.downloadAsync(url, localPath);
-      return res.uri;
-    },
-  });
+  await ensureNativePipeline(modelId, cacheDir);
+
+  const { Pipeline } = await import('react-native-transformers');
 
   const system = `You answer using only the provided data. Locale: ${locale}. Feature: ${feature}.`;
   const prompt = `${system}\n\n${context}`;

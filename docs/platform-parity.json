@@ -41,7 +41,7 @@
     {
       "id": "on_device_llm",
       "status": { "web": "supported", "android": "supported", "ios": "partial" },
-      "notes": "Web: Transformers.js with HF-hosted onnx-community *-ONNX repos (consent + progress). RN: HF-only download cache + on-device inference (Expo Go: Transformers.js WASM; dev/prod build: ORT via react-native-transformers + onnxruntime-react-native), with remote endpoint and AIEngine fallbacks."
+      "notes": "GPU/NPU-first load order via @rianell/llm presets: PWA WebGPU→WebGL→WASM; RN Android NNAPI→CPU, iOS CoreML→CPU, Expo Go WASM. HF Hub onnx-community *-ONNX only. Settings show activeBackend when loaded."
     },
     {
       "id": "cloud_sync_encrypted",
