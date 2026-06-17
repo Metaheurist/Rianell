@@ -32,8 +32,8 @@ test('pwa_mobile never includes webgl', () => {
   assert.equal(plans[0].device, 'webgpu');
 });
 
-test('buildPwaWasmAttempt is q4', () => {
-  assert.deepEqual(buildPwaWasmAttempt(), { revision: 'main', dtype: 'q4' });
+test('buildPwaWasmAttempt is wasm q4', () => {
+  assert.deepEqual(buildPwaWasmAttempt(), { revision: 'main', device: 'wasm', dtype: 'q4' });
 });
 
 test('buildRnLoadAttempts nnapi before cpu only ep', () => {

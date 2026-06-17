@@ -26,7 +26,7 @@
   }
 
   function buildPwaWasmAttempt() {
-    return { revision: 'main', dtype: 'q4' };
+    return { revision: 'main', device: 'wasm', dtype: 'q4' };
   }
 
   function resolvePlatformKindFromWindow() {
