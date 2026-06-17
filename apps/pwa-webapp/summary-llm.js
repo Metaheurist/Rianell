@@ -447,12 +447,22 @@
     return getAppOriginBase() + 'vendor/transformers/transformers.min.js';
   }
 
+  function configureSelfHostedOrtWasm(mod) {
+    try {
+      if (typeof localStorage !== 'undefined' && localStorage.getItem('rianellTransformersCdn') === '1') return;
+      if (!mod || !mod.env || !mod.env.backends || !mod.env.backends.onnx || !mod.env.backends.onnx.wasm) return;
+      mod.env.backends.onnx.wasm.wasmPaths = getAppOriginBase() + 'vendor/transformers/';
+    } catch (e) {}
+  }
+
   async function importTransformersModule(fresh) {
     var url = resolveTransformersImportUrl();
     if (fresh) {
       url += (url.indexOf('?') >= 0 ? '&' : '?') + 'llmWasmRetry=' + Date.now();
     }
-    return import(url);
+    var mod = await import(url);
+    configureSelfHostedOrtWasm(mod);
+    return mod;
   }
 
   function getResolvedModelId() {

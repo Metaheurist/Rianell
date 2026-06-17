@@ -163,7 +163,9 @@ jobs:
           node scripts/i18n/sync-i18n-assets.mjs
 
       - name: Build PWA vendor bundles + minified web (temp)
-        run: npm run build:web:apk
+        run: |
+          npm run vendor:transformers
+          npm run build:web:apk
 
       - name: Prepare minified temp directories
         run: |
@@ -178,7 +180,7 @@ jobs:
             mkdir -p "ci-minified/site/artifacts"
             cp -r "artifacts/"* "ci-minified/site/artifacts/" 2>/dev/null || true
           fi
-          node apps/pwa-webapp/build-site.mjs --site "ci-minified/site"
+          node apps/pwa-webapp/build-site.mjs --site "ci-minified/site" --skip-trace
 
           node -e "
           const fs = require('fs');
@@ -192,6 +194,10 @@ jobs:
           assertBundle('ci-minified/web-android-dist', 'web-android-dist');
           assertBundle('ci-minified/site', 'site');
           if (!fs.existsSync('ci-minified/site/vendor/rianell-shared.js')) throw new Error('missing vendor/rianell-shared.js');
+          const vendorWasm = 'ci-minified/site/vendor/transformers/ort-wasm-simd-threaded.jsep.wasm';
+          if (!fs.existsSync(vendorWasm)) throw new Error('missing vendor/transformers wasm — run npm run vendor:transformers');
+          if (fs.statSync(vendorWasm).size < 1000000) throw new Error('vendor wasm too small (corrupt or LFS pointer)');
+          if (!fs.existsSync('ci-minified/site/vendor/transformers/transformers.min.js')) throw new Error('missing vendor/transformers/transformers.min.js');
           "
 
       - name: Upload minified temp artifact
@@ -874,12 +880,27 @@ jobs:
           tail -n 40 /tmp/llm-probe-server.log || true
           exit 1
 
+      - name: Verify LLM vendor assets in Pages probe bundle
+        run: |
+          node -e "
+          const fs = require('fs');
+          const root = 'site';
+          const wasm = root + '/vendor/transformers/ort-wasm-simd-threaded.jsep.wasm';
+          const js = root + '/vendor/transformers/transformers.min.js';
+          if (!fs.existsSync(wasm)) throw new Error('missing ' + wasm);
+          if (fs.statSync(wasm).size < 1000000) throw new Error('wasm corrupt or LFS pointer');
+          if (!fs.existsSync(js)) throw new Error('missing ' + js);
+          console.log('LLM vendor OK:', wasm, fs.statSync(wasm).size, 'bytes');
+          "
+
       - name: Live HF model download probe (Pages bundle, local)
         env:
           PROBE_URL: http://127.0.0.1:9876/
           PROBE_DOWNLOAD_TIMEOUT_MS: "900000"
           PROBE_TIER: "1"
           PROBE_GPU_AVAILABLE: "0"
+          PROBE_ATTEMPTS: "2"
+          PROBE_ATTEMPT_DELAY_MS: "30000"
         run: node scripts/ci/probe-llm-download-live.mjs
 
   # ═══════════════════════════════════════════════════════════════════════════
