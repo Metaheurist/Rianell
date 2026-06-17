@@ -62,6 +62,7 @@ async function runOnce() {
     });
     await ctx.addInitScript(({ tier, gpuAvailable, gpuBackend, extraSettings }) => {
       try {
+        localStorage.setItem('rianellEnableStaticSW', '0');
         localStorage.setItem('rianellCookieConsent', 'accepted');
         localStorage.setItem('rianellHealthDataConsent', 'accepted');
         localStorage.setItem('rianellSettings', JSON.stringify(Object.assign({
@@ -97,6 +98,8 @@ async function runOnce() {
     const page = await ctx.newPage();
     const hf = [];
     const supa = [];
+    const vendor = [];
+    const failedRequests = [];
     const errors = [];
     page.on('pageerror', (e) => {
       const msg = String(e.message || e).slice(0, 180);
@@ -119,11 +122,17 @@ async function runOnce() {
       const url = req.url();
       if (isSupabaseLlmModelsRequest(url)) supa.push(url);
       if (isHuggingFaceModelsRequest(url)) hf.push(url);
+      if (/\/vendor\/transformers\//i.test(url)) vendor.push(url);
     });
     page.on('requestfailed', (req) => {
       const url = req.url();
+      const fail = req.failure()?.errorText || 'failed';
+      failedRequests.push(url.slice(0, 220) + ' (' + fail + ')');
       if (isSupabaseLlmModelsRequest(url)) supa.push(url);
       if (isHuggingFaceModelsRequest(url)) hf.push(url);
+      if (/\/vendor\/transformers\//i.test(url) || /cdn\.jsdelivr\.net\/npm\/@huggingface\/transformers/i.test(url)) {
+        vendor.push(url + ' [FAILED]');
+      }
     });
 
     const t0 = Date.now();
@@ -181,11 +190,40 @@ async function runOnce() {
     }
 
     let final = null;
+    let failPolls = 0;
+    let redownloaded = false;
     while (Date.now() - t0 < DOWNLOAD_TIMEOUT_MS) {
       await clickThrough(page);
       final = await page.evaluate(() => (typeof window.getAiModelStatus === 'function') ? window.getAiModelStatus() : null);
       if (final && final.state === 'ready') break;
-      if (final && final.state === 'failed') break;
+      if (final && final.state === 'failed') {
+        failPolls += 1;
+        const elapsed = Date.now() - t0;
+        if (!redownloaded && failPolls >= 2 && elapsed < 180000) {
+          redownloaded = true;
+          failPolls = 0;
+          await page.evaluate(({ tier, gpuAvailable, gpuBackend }) => {
+            try {
+              if (typeof window.clearAndRedownloadAiModel === 'function') {
+                void window.clearAndRedownloadAiModel();
+              } else if (typeof window.preloadSummaryLLM === 'function') {
+                void window.preloadSummaryLLM();
+              }
+              localStorage.setItem('rianellPerfBenchmark', JSON.stringify({
+                version: 5,
+                platformType: 'desktop',
+                tier,
+                ts: Date.now(),
+                gpu: { available: gpuAvailable, backend: gpuBackend, good: gpuAvailable, scoreMs: null, scoreSamples: [] },
+              }));
+            } catch (_) {}
+          }, { tier: TIER, gpuAvailable: GPU_AVAILABLE, gpuBackend: GPU_BACKEND });
+          continue;
+        }
+        if (elapsed > 120000 || failPolls >= 8) break;
+      } else {
+        failPolls = 0;
+      }
       await page.waitForTimeout(2000);
     }
 
@@ -200,7 +238,16 @@ async function runOnce() {
     if (cloudflareCsp && !ok) {
       outErrors.unshift('Cloudflare HTTP CSP blocked same-origin scripts (use local Pages probe in CI)');
     }
-    return { ok, elapsedMs, finalStatus: final, hfRequests: hf.slice(0, 8), supabaseRequests: supa.slice(0, 3), errors: outErrors };
+    return {
+      ok,
+      elapsedMs,
+      finalStatus: final,
+      hfRequests: hf.slice(0, 8),
+      vendorRequests: vendor.slice(0, 6),
+      failedRequests: failedRequests.slice(0, 6),
+      supabaseRequests: supa.slice(0, 3),
+      errors: outErrors,
+    };
   } finally {
     await browser.close();
     killHeadless();
