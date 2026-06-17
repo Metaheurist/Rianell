@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.92.0** - GPU LLM V1 (dual runtime, agentic gates, RN parity hardening).
+**Latest: v1.92.1** - GPU LLM Path 2 production fixes, plain-language AI settings, tab indicator alignment.
+
+### v1.92.1 - 2026-06-17 - GPU Path 2 fixes, UX polish
+- **PWA MLC (Path 2):** Fix WebLLM worker setup — progress callback on main thread only (avoids `postMessage` clone error); correct `WebWorkerMLCEngine` + `reload(modelId)` API.
+- **PWA WASM fallback:** Always cap tier 3–5 to SmolLM on GPU/MLC failure (even when ONNX WebGPU is skipped via session cache); disable HF browser cache on WASM retry when Cache API `put` fails.
+- **CSP:** Add `https://raw.githubusercontent.com` for MLC WASM libs (`mlc-ai/binary-mlc-llm-libs`); update `verify:csp-connect-src` and Cloudflare runbook.
+- **Settings UX:** Replace technical engine labels (ONNX/MLC/WASM/GGUF) with plain language (“How summaries run”, “Automatic (recommended)”, “Fast mode (uses graphics)”, etc.); friendly backend/status labels; FR/IT/NL translations.
+- **Nav:** Fix desktop tab underline (`#tabNavIndicator`) — remove double padding offset; `updateTabNavIndicator()` + resize handler.
 
 ### v1.92.0 - 2026-06-17 - GPU LLM V1
 - **PWA Path 1:** GPU error taxonomy (`557856688`), WebNN ladder slots, ORT WebGPU tuning, pipeline-fail session cache.

@@ -1323,14 +1323,14 @@
             <option value="tier4">Tier 4</option>
             <option value="tier5">Tier 5 (best quality)</option>
           </select>
-          <label for="preferredLlmEngineSelect" class="settings-sub-label" data-i18n="common.ai.inference.engine">AI inference engine</label>
+          <label for="preferredLlmEngineSelect" class="settings-sub-label" data-i18n="common.ai.inference.engine">How summaries run</label>
           <select id="preferredLlmEngineSelect" class="settings-select" aria-describedby="llmEngineHint" onchange="setPreferredLlmEngine(this.value)">
-            <option value="auto">Auto (WebGPU ONNX → MLC → WASM)</option>
-            <option value="onnx">ONNX WebGPU / WASM only</option>
-            <option value="mlc">WebLLM MLC (WebGPU)</option>
-            <option value="gguf">GGUF experimental</option>
+            <option value="auto" data-i18n="common.llm.engine.auto">Automatic (recommended)</option>
+            <option value="onnx" data-i18n="common.llm.engine.onnx">Compatible mode</option>
+            <option value="mlc" data-i18n="common.llm.engine.mlc">Fast mode (uses graphics)</option>
+            <option value="gguf" data-i18n="common.llm.engine.gguf">Experimental</option>
           </select>
-          <p class="settings-hint" id="llmEngineHint" data-i18n="common.llm.engine.hint">Engine used after model download. Auto picks the best GPU path for your browser.</p>
+          <p class="settings-hint" id="llmEngineHint" data-i18n="common.llm.engine.hint">After the model downloads, Automatic tries the fastest option your browser supports, then switches if needed.</p>
           <p class="settings-hint" id="llmModelRecommendationHint" data-i18n="common.recommended">Recommended: -</p>
           <p class="settings-hint settings-llm-status-line" id="llmModelStatusLine">
             Model status: <span id="llmModelStatusText" class="llm-model-status llm-model-status--unknown" data-i18n="common.checking">Checking…</span>
@@ -1346,8 +1346,8 @@
             <button type="button" class="settings-data-btn settings-data-btn--primary" id="clearRedownloadAiModelBtn" onclick="clearAndRedownloadAiModel()" data-i18n="common.clear.and.redownload.model">Clear and redownload model</button>
           </div>
           <div class="settings-option settings-option--stacked">
-            <label data-i18n="common.force.large.ai.model.on.wasm">Allow large AI model without GPU (advanced)</label>
-            <p class="settings-hint" data-i18n="common.requires.8.gb.device.memory.may.be.slow">Requires 8 GB+ device memory. May be slow or fail on WASM-only browsers.</p>
+            <label data-i18n="common.force.large.ai.model.on.wasm">Allow full-quality model without graphics acceleration (advanced)</label>
+            <p class="settings-hint" data-i18n="common.requires.8.gb.device.memory.may.be.slow">Needs at least 8 GB memory. May be slow or fail on browsers without graphics support.</p>
             <div class="toggle-switch" id="forceLargeLlmWasmToggle" onclick="togglePreferredLlmForceLargeOnWasm()" role="switch" aria-checked="false"></div>
           </div>
         </div>

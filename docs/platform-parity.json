@@ -41,12 +41,12 @@
     {
       "id": "on_device_llm",
       "status": { "web": "supported", "android": "supported", "ios": "partial" },
-      "notes": "GPU-first: PWA WebGPU/WebNN ONNX → WebLLM MLC → WASM cap; RN NNAPI/CoreML. Settings show activeBackend + engine when loaded."
+      "notes": "GPU-first: PWA WebGPU/WebNN ONNX → WebLLM MLC → WASM cap; RN NNAPI/CoreML. Settings → How summaries run; status shows friendly backend labels."
     },
     {
       "id": "llm_gpu_backend_label",
       "status": { "web": "supported", "android": "supported", "ios": "partial" },
-      "notes": "PWA getAiModelStatus activeBackend/activeEngine; RN getNativeActiveBackend after ORT init."
+      "notes": "PWA getAiModelStatus activeBackend/activeEngine with user-facing labels; RN getNativeActiveBackend after ORT init."
     },
     {
       "id": "cloud_sync_encrypted",
