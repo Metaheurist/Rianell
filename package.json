@@ -64,7 +64,8 @@
     "ci:rerun-until-green": "node scripts/ci/ci-rerun-until-green.mjs",
     "ci:audit-llm-live": "node scripts/ci/ci-rerun-until-green.mjs",
     "turbo:build": "npx turbo run build",
-    "turbo:typecheck": "npx turbo run typecheck"
+    "turbo:typecheck": "npx turbo run typecheck",
+    "postinstall": "node scripts/build/patch-onnxruntime-gradle.mjs"
   },
   "devDependencies": {
     "@babel/core": "7.29.7",

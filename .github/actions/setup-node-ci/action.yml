@@ -40,3 +40,8 @@ runs:
       if: inputs.install == 'true' && inputs.cache-node-modules == 'true' && steps.node-modules-cache.outputs.cache-hit == 'true'
       shell: bash
       run: test -d node_modules || npm ci
+
+    - name: Patch onnxruntime Gradle (Gradle 9)
+      if: inputs.install == 'true'
+      shell: bash
+      run: node scripts/build/patch-onnxruntime-gradle.mjs
