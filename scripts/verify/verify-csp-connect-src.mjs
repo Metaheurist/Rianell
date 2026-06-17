@@ -25,6 +25,7 @@ const requiredHosts = [
   'https://cas-bridge.xethub.hf.co',
   'https://*.xethub.hf.co',
   'https://*.aws.cdn.hf.co',
+  'https://raw.githubusercontent.com',
 ];
 
 for (const host of requiredHosts) {

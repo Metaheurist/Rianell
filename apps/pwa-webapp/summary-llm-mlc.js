@@ -41,23 +41,31 @@
     }
     if (enginePromise && activeModelId === mid) return enginePromise;
     enginePromise = (async function () {
-      var webllm = await loadWebLlmModule();
-      var worker = new Worker(getWorkerUrl(), { type: 'module' });
-      var initProgress = function (report) {
-        if (typeof progressCallback === 'function') {
-          progressCallback({
-            status: 'progress',
-            progress: report.progress,
-            file: report.text || 'MLC weights',
-          });
+      try {
+        var webllm = await loadWebLlmModule();
+        var worker = new Worker(getWorkerUrl(), { type: 'module' });
+        var initProgress = function (report) {
+          if (typeof progressCallback === 'function') {
+            progressCallback({
+              status: 'progress',
+              progress: report.progress,
+              file: report.text || 'MLC weights',
+            });
+          }
+        };
+        // Callback must be set on main thread only — never in engineConfig (postMessage clone error).
+        var engine = new webllm.WebWorkerMLCEngine(worker, {});
+        if (typeof engine.setInitProgressCallback === 'function') {
+          engine.setInitProgressCallback(initProgress);
         }
-      };
-      var engine = await webllm.CreateWebWorkerMLCEngine(worker, {
-        initProgressCallback: initProgress,
-      });
-      await engine.reload(mid);
-      activeModelId = mid;
-      return engine;
+        await engine.reload(mid);
+        activeModelId = mid;
+        return engine;
+      } catch (e) {
+        enginePromise = null;
+        activeModelId = null;
+        throw e;
+      }
     })();
     return enginePromise;
   }
