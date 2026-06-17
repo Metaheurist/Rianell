@@ -22,6 +22,7 @@ paths = [
   '''^build/''',
   '''^logs/''',
   '''^apps/pwa-webapp/\.trace-build/''',
+  '''^apps/pwa-webapp/vendor/transformers/''',
   '''^\.firecrawl/''',
   '''^artifacts/''',
   '''^scripts/lib/tier-a-exact-overrides\.mjs$''',
