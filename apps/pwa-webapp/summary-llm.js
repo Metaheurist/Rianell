@@ -589,6 +589,9 @@
           console.warn('Summary LLM: attempt failed (' + label + '):', e.message || e,
             gpuClass.code ? ('[' + gpuClass.class + ' ' + gpuClass.code + ']') : ('[' + gpuClass.class + ']'));
         }
+        if (gpuClass.retryPath === 'mlc' && plan.device === 'webgpu') {
+          break;
+        }
       }
     }
     throw lastErr || new Error('All GPU load attempts failed');
@@ -690,19 +693,28 @@
     }
   }
 
-  async function resolveModelsRemote(mod) {
+  async function resolveModelsRemote(mod, options) {
+    options = options || {};
     applyHuggingFaceRemote(mod);
     if (mod && mod.env) {
-      mod.env.useBrowserCache = true;
+      mod.env.useBrowserCache = options.useBrowserCache !== false;
     }
     return 'huggingface';
   }
 
   function formatDownloadError(err) {
     if (err == null) return 'Download failed';
-    if (typeof err === 'string') return err;
-    if (err.message) return String(err.message);
-    return String(err);
+    var msg = typeof err === 'string' ? err : (err.message ? String(err.message) : String(err));
+    if (/\b557856688\b/.test(msg)) {
+      return 'GPU inference unavailable on this browser — trying alternate engine';
+    }
+    if (/Failed to execute 'put' on 'Cache'|browser cache/i.test(msg)) {
+      return 'Model cache error — retrying without cache';
+    }
+    if (/could not be cloned|postMessage.*Worker/i.test(msg)) {
+      return 'MLC worker setup failed — retrying alternate engine';
+    }
+    return msg;
   }
 
   function cancelDownloadInFlight() {
@@ -878,6 +890,9 @@
         var enginePref = resolveLlmEnginePreference();
         if (loadModelId === MODEL_BASE && enginePref !== 'onnx' && enginePref !== 'gguf') {
           try {
+            if (typeof console !== 'undefined' && console.info) {
+              console.info('Summary LLM: trying WebLLM MLC (Path 2) after ONNX WebGPU failure');
+            }
             await ensureMlcScriptsLoaded();
             var mlcApi = typeof window !== 'undefined' && window.RianellLlmMlc;
             if (mlcApi && typeof mlcApi.ensureMlcEngine === 'function') {
@@ -888,6 +903,8 @@
               cachedActiveBackend = 'webgpu';
               cachedActiveDtype = 'q4f16';
               loaded = true;
+            } else if (typeof console !== 'undefined' && console.warn) {
+              console.warn('Summary LLM: MLC adapter unavailable after script load');
             }
           } catch (mlcErr) {
             if (typeof console !== 'undefined' && console.warn) {
@@ -928,7 +945,8 @@
         try {
           var modWasm = gpuPlans.length > 0 ? await importTransformersModule(true) : mod;
           applyHuggingFaceRemote(modWasm);
-          var wasmModelId = gpuPlans.length > 0 ? resolveWasmFallbackModelId(loadModelId) : loadModelId;
+          await resolveModelsRemote(modWasm, { useBrowserCache: false });
+          var wasmModelId = resolveWasmFallbackModelId(loadModelId);
           cachedPipeline = await runChatGenerationPipeline(modWasm, wasmModelId, wasmPlan);
           if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
           loadModelId = wasmModelId;
@@ -948,6 +966,7 @@
             }
             try {
               applyHuggingFaceRemote(modWasm);
+              await resolveModelsRemote(modWasm, { useBrowserCache: false });
               cachedPipeline = await runChatGenerationPipeline(modWasm, MODEL_SMALL, wasmPlan);
               if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
               loadModelId = MODEL_SMALL;
