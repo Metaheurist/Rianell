@@ -393,6 +393,8 @@
     "common.enable.animations": "Enable animations",
     "common.lazy.load.charts": "Lazy load charts",
     "common.on.device.ai.model": "On-device AI model",
+    "common.ai.inference.engine": "AI inference engine",
+    "common.llm.engine.hint": "Engine used after model download. Auto picks the best GPU path for your browser.",
     "common.recommended": "Recommended: -",
     "common.checking": "Checking…",
     "common.download.model": "Download model",
