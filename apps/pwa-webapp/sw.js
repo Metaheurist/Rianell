@@ -1,6 +1,6 @@
 /* Rianell PWA — versioned cache; user-triggered skipWaiting from app (Update modal). Bump CACHE_NAME when changing SW logic or forcing a full cache reset. */
 var CACHE_PREFIX = 'rianell-static-';
-var CACHE_NAME = CACHE_PREFIX + 'v2026-06-15-privacy-gate-i18n-v2';
+var CACHE_NAME = CACHE_PREFIX + 'v2026-06-17-llm-webgpu-wasm-v3';
 
 var OFFLINE_HTML =
   '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
@@ -139,4 +139,52 @@ self.addEventListener('fetch', function (e) {
       })
     );
   } catch (err) {}
+});
+
+function parsePushPayload(event) {
+  try {
+    if (!event.data) return null;
+    var text = event.data.text ? event.data.text() : '';
+    if (!text) return null;
+    return JSON.parse(text);
+  } catch (e) {
+    return null;
+  }
+}
+
+self.addEventListener('push', function (event) {
+  var payload = parsePushPayload(event) || {};
+  var title = payload.title || 'Rianell';
+  var body = payload.message || payload.body || 'An update is available.';
+  var data = {
+    type: payload.type || 'app_update',
+    minCacheVersion: payload.minCacheVersion || null,
+    url: payload.url || '/',
+  };
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: body,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      data: data,
+    })
+  );
+});
+
+self.addEventListener('notificationclick', function (event) {
+  event.notification.close();
+  var data = event.notification && event.notification.data ? event.notification.data : {};
+  var targetUrl = data.url || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+      for (var i = 0; i < clientList.length; i++) {
+        var client = clientList[i];
+        if ('focus' in client) {
+          client.postMessage({ type: 'RIANELL_PUSH_CLICK', data: data });
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(targetUrl);
+    })
+  );
 });

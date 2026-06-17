@@ -1337,6 +1337,16 @@
           <div class="settings-llm-actions">
             <button type="button" class="settings-data-btn settings-data-btn--primary" id="clearRedownloadAiModelBtn" onclick="clearAndRedownloadAiModel()" data-i18n="common.clear.and.redownload.model">Clear and redownload model</button>
           </div>
+          <div class="settings-option settings-option--stacked">
+            <label data-i18n="common.force.large.ai.model.on.wasm">Allow large AI model without GPU (advanced)</label>
+            <p class="settings-hint">Requires 8 GB+ device memory. May be slow or fail on WASM-only browsers.</p>
+            <div class="toggle-switch" id="forceLargeLlmWasmToggle" onclick="togglePreferredLlmForceLargeOnWasm()" role="switch" aria-checked="false"></div>
+          </div>
+        </div>
+        <div class="settings-option settings-option--stacked">
+          <label data-i18n="common.push.notifications.updates">Push notifications for app updates</label>
+          <p class="settings-hint">Optional. We'll only notify you about important app or AI model updates.</p>
+          <button type="button" class="settings-data-btn" id="pushNotificationsOptInBtn" onclick="subscribePushFromSettings()">Enable push notifications</button>
         </div>
       </div>
       </div>
@@ -3420,10 +3430,11 @@
     crossorigin="anonymous"></script>
   <script defer src="device-module.js"></script>
   <script defer src="llm-tier-benchmark-sync.js?v=1"></script>
-  <script defer src="llm-load-ladder-sync.js?v=1"></script>
+  <script defer src="llm-load-ladder-sync.js?v=2"></script>
   <script defer src="device-benchmark.js?v=6"></script>
   <script defer src="performance-utils.js"></script>
   <script defer src="ui-feedback.js?v=1"></script>
+  <script defer src="push-subscribe.js?v=1"></script>
   <script defer src="background-loader.js"></script>
   <script defer src="android-update-check.js?v=1"></script>
   <script>

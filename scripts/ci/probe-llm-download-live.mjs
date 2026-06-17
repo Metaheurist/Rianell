@@ -7,6 +7,17 @@ const DOWNLOAD_TIMEOUT_MS = Number(process.env.PROBE_DOWNLOAD_TIMEOUT_MS || 9000
 const ATTEMPTS = Number(process.env.PROBE_ATTEMPTS || 3);
 const ATTEMPT_DELAY_MS = Number(process.env.PROBE_ATTEMPT_DELAY_MS || 120000);
 const TIER = Number(process.env.PROBE_TIER || 1);
+const GPU_AVAILABLE = process.env.PROBE_GPU_AVAILABLE !== '0';
+const GPU_BACKEND = process.env.PROBE_GPU_BACKEND || (GPU_AVAILABLE ? 'webgpu' : 'none');
+const USER_AGENT = process.env.PROBE_USER_AGENT
+  || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36';
+const EXTRA_SETTINGS = (() => {
+  try {
+    return process.env.PROBE_SETTINGS_JSON ? JSON.parse(process.env.PROBE_SETTINGS_JSON) : {};
+  } catch (_) {
+    return {};
+  }
+})();
 
 function killHeadless() {
   try {
@@ -46,38 +57,55 @@ async function runOnce() {
   });
   try {
     const ctx = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36',
+      userAgent: USER_AGENT,
       viewport: { width: 1280, height: 720 },
     });
-    await ctx.addInitScript((tier) => {
+    await ctx.addInitScript(({ tier, gpuAvailable, gpuBackend, extraSettings }) => {
       try {
         localStorage.setItem('rianellCookieConsent', 'accepted');
         localStorage.setItem('rianellHealthDataConsent', 'accepted');
-        localStorage.setItem('rianellSettings', JSON.stringify({
+        localStorage.setItem('rianellSettings', JSON.stringify(Object.assign({
           privacyRegion: 'eea_uk',
           uiLocale: 'en-GB',
           healthDataConsent: true,
           policyAcknowledgedVersion: 'v1.0.0',
           aiModelDownloadConsent: 'granted',
           preferredLlmModelSize: 'tier' + tier,
-        }));
+        }, extraSettings || {})));
         localStorage.setItem('rianellPerfBenchmark', JSON.stringify({
           version: 5,
           platformType: 'desktop',
           tier,
           ts: Date.now(),
-          gpu: { available: false, backend: 'none', good: false, scoreMs: null, scoreSamples: [] },
+          gpu: {
+            available: gpuAvailable,
+            backend: gpuBackend,
+            good: gpuAvailable,
+            scoreMs: null,
+            scoreSamples: [],
+          },
         }));
+        try {
+          sessionStorage.setItem('rianell.webgpu.adapterOk', JSON.stringify({
+            ok: gpuAvailable,
+            ts: Date.now(),
+          }));
+        } catch (_) {}
       } catch (_) {}
-    }, TIER);
+    }, { tier: TIER, gpuAvailable: GPU_AVAILABLE, gpuBackend: GPU_BACKEND, extraSettings: EXTRA_SETTINGS });
 
     const page = await ctx.newPage();
     const hf = [];
     const supa = [];
     const errors = [];
-    page.on('pageerror', (e) => errors.push(String(e.message || e).slice(0, 180)));
+    page.on('pageerror', (e) => {
+      const msg = String(e.message || e).slice(0, 180);
+      if (/Unsupported device:\s*"webgl"/i.test(msg)) errors.push(msg);
+      else errors.push(msg);
+    });
     page.on('console', (msg) => {
       const text = msg.text ? msg.text() : '';
+      if (/Unsupported device:\s*"webgl"/i.test(text)) errors.push(text.slice(0, 180));
       if (!/content security policy|csp|connect-src/i.test(text)) return;
       if (/cloudflareinsights|beacon\.min\.js|email-decode\.min\.js|cdn-cgi\/scripts/i.test(text)) return;
       errors.push(text.slice(0, 180));
@@ -120,20 +148,26 @@ async function runOnce() {
     }
 
     try {
-      await page.evaluate((tier) => {
+      await page.evaluate(({ tier, gpuAvailable, gpuBackend }) => {
         try {
           localStorage.setItem('rianellPerfBenchmark', JSON.stringify({
             version: 5,
             platformType: 'desktop',
             tier,
             ts: Date.now(),
-            gpu: { available: false, backend: 'none', good: false, scoreMs: null, scoreSamples: [] },
+            gpu: {
+              available: gpuAvailable,
+              backend: gpuBackend,
+              good: gpuAvailable,
+              scoreMs: null,
+              scoreSamples: [],
+            },
           }));
           if (typeof window.preloadSummaryLLM === 'function') {
             void window.preloadSummaryLLM();
           }
         } catch (_) {}
-      }, TIER);
+      }, { tier: TIER, gpuAvailable: GPU_AVAILABLE, gpuBackend: GPU_BACKEND });
     } catch (err) {
       const msg = String(err.message || err);
       if (!/Execution context was destroyed/i.test(msg)) {
@@ -153,7 +187,8 @@ async function runOnce() {
     const elapsedMs = Date.now() - t0;
     const ok = Boolean(
       final && final.state === 'ready' && final.inMemory === true &&
-      hf.length > 0 && supa.length === 0
+      hf.length > 0 && supa.length === 0 &&
+      !errors.some((e) => /Unsupported device:\s*"webgl"/i.test(e))
     );
     return { ok, elapsedMs, finalStatus: final, hfRequests: hf.slice(0, 8), supabaseRequests: supa.slice(0, 3), errors: errors.slice(0, 3) };
   } finally {

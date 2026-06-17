@@ -17,6 +17,11 @@
   var downloadCancelled = false;
   var lastDownloadError = null;
   var loadGeneration = 0;
+  var loadInFlight = null;
+  var webGpuAdapterProbePromise = null;
+  var WEBGPU_CACHE_KEY = 'rianell.webgpu.adapterOk';
+  var WEBGPU_CACHE_TTL_MS = 86400000;
+  var wasmCapToastShown = false;
   var MAX_SUMMARY_CACHE = 8;
   var MAX_SUGGEST_CACHE = 5;
   var MAX_HOME_QUESTION_CACHE = 8;
@@ -122,24 +127,123 @@
     return MODEL_BASE;
   }
 
+  function readWebGpuCache() {
+    try {
+      if (typeof sessionStorage === 'undefined') return null;
+      var raw = sessionStorage.getItem(WEBGPU_CACHE_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (parsed && parsed.ts && (Date.now() - parsed.ts) < WEBGPU_CACHE_TTL_MS) return !!parsed.ok;
+    } catch (e) {}
+    return null;
+  }
+
+  function writeWebGpuCache(ok) {
+    try {
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem(WEBGPU_CACHE_KEY, JSON.stringify({ ok: !!ok, ts: Date.now() }));
+      }
+    } catch (e) {}
+  }
+
+  function isWebGpuAvailableCached() {
+    return readWebGpuCache() === true;
+  }
+
+  async function probeWebGpuAdapterAsync() {
+    var cached = readWebGpuCache();
+    if (cached !== null) return cached;
+    if (webGpuAdapterProbePromise) return webGpuAdapterProbePromise;
+    webGpuAdapterProbePromise = (async function () {
+      if (typeof navigator === 'undefined' || !navigator.gpu ||
+          typeof navigator.gpu.requestAdapter !== 'function') {
+        writeWebGpuCache(false);
+        return false;
+      }
+      try {
+        var adapter = await navigator.gpu.requestAdapter({ powerPreference: 'high-performance' });
+        var ok = !!adapter;
+        writeWebGpuCache(ok);
+        return ok;
+      } catch (e) {
+        writeWebGpuCache(false);
+        return false;
+      } finally {
+        webGpuAdapterProbePromise = null;
+      }
+    })();
+    return webGpuAdapterProbePromise;
+  }
+
+  function getDeviceMemoryGb() {
+    var nav = typeof navigator !== 'undefined' ? navigator : {};
+    if (typeof window !== 'undefined' && window.isSecureContext === true &&
+        typeof nav.deviceMemory === 'number' && nav.deviceMemory > 0) {
+      return nav.deviceMemory;
+    }
+    return null;
+  }
+
+  function resolveWasmOnlyCapForTier(tierKey) {
+    var prefs = typeof window !== 'undefined' && window.appSettings;
+    var forceLarge = !!(prefs && prefs.preferredLlmForceLargeOnWasm);
+    var webGpu = isWebGpuAvailableCached();
+    if (typeof window !== 'undefined' && window.RianellLlmRuntimeProfiles &&
+        typeof window.RianellLlmRuntimeProfiles.resolveWasmOnlyCap === 'function') {
+      return window.RianellLlmRuntimeProfiles.resolveWasmOnlyCap({
+        tier: tierKey,
+        webGpuAvailable: webGpu,
+        forceLargeOnWasm: forceLarge,
+        deviceMemory: getDeviceMemoryGb()
+      });
+    }
+    if (webGpu || tierKey === 'tier1' || tierKey === 'tier2') {
+      return { tier: tierKey, capped: false, warning: null };
+    }
+    if (forceLarge && getDeviceMemoryGb() != null && getDeviceMemoryGb() >= 8) {
+      return { tier: tierKey, capped: false, warning: null };
+    }
+    if (tierKey === 'tier3' || tierKey === 'tier4' || tierKey === 'tier5') {
+      return {
+        tier: 'tier2',
+        capped: true,
+        warning: 'No GPU acceleration available; using smaller AI model for stability.'
+      };
+    }
+    return { tier: tierKey, capped: false, warning: null };
+  }
+
+  function applyWasmCapToTierKey(tierKey) {
+    var cap = resolveWasmOnlyCapForTier(tierKey);
+    if (cap.capped && cap.warning && !wasmCapToastShown &&
+        typeof window !== 'undefined' && typeof window.showToast === 'function') {
+      wasmCapToastShown = true;
+      window.showToast(cap.warning, { type: 'info' });
+    }
+    return cap.tier;
+  }
+
   function resolvePreferredTierKey() {
     var prefs = typeof window !== 'undefined' && window.appSettings;
     var preferred = prefs && prefs.preferredLlmModelSize;
+    var tierKey;
     if (preferred && preferred !== 'recommended' && /^tier[1-5]$/.test(preferred)) {
-      return preferred;
-    }
-    if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
+      tierKey = preferred;
+    } else if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
       var platformType = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function')
         ? window.DeviceBenchmark.getPlatformTypeCached()
         : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
       var tier = window.DeviceBenchmark.getPerformanceTier();
       var full = window.DeviceBenchmark.getFullProfile(platformType, tier, {});
-      if (full && full.llmModelSize && /^tier[1-5]$/.test(full.llmModelSize)) {
-        return full.llmModelSize;
-      }
+      tierKey = (full && full.llmModelSize && /^tier[1-5]$/.test(full.llmModelSize))
+        ? full.llmModelSize
+        : null;
     }
-    var deviceClass = getDeviceClassForModel();
-    return deviceClass === 'low' ? 'tier1' : 'tier5';
+    if (!tierKey) {
+      var deviceClass = getDeviceClassForModel();
+      tierKey = deviceClass === 'low' ? 'tier1' : 'tier5';
+    }
+    return applyWasmCapToTierKey(tierKey);
   }
 
   function tierKeyToDisplay(tierKey) {
@@ -193,22 +297,15 @@
   }
 
   function detectGpuBackendFallback() {
-    // Do not treat navigator.gpu alone as WebGPU-capable (headless/CI false positives).
-    try {
-      if (typeof document !== 'undefined') {
-        var canvas = document.createElement('canvas');
-        if (canvas.getContext('webgl2') || canvas.getContext('webgl')) return 'webgl';
-      }
-    } catch (e) {}
     return null;
   }
 
-  /** Ordered GPU backends to try before WASM/CPU (benchmark cache, then live probe). */
+  /** Ordered GPU backends to try before WASM/CPU (benchmark cache webgpu only, then adapter probe cache). */
   function getGpuDeviceCandidates() {
     var ordered = [];
     var seen = Object.create(null);
     function add(dev) {
-      if (!dev || dev === 'none' || seen[dev]) return;
+      if (!dev || dev === 'none' || dev === 'webgl' || seen[dev]) return;
       seen[dev] = true;
       ordered.push(dev);
     }
@@ -216,17 +313,27 @@
     if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.getCachedResult === 'function') {
       var cached = window.DeviceBenchmark.getCachedResult();
       if (cached && cached.gpu) {
-        if (cached.gpu.available) {
-          add(cached.gpu.backend);
+        if (cached.gpu.available && cached.gpu.backend === 'webgpu') {
+          add('webgpu');
         } else if (cached.gpu.available === false) {
           benchmarkSaysNoGpu = true;
         }
       }
     }
-    if (!benchmarkSaysNoGpu) {
-      add(detectGpuBackendFallback());
+    if (!benchmarkSaysNoGpu && isWebGpuAvailableCached()) {
+      add('webgpu');
     }
     return ordered;
+  }
+
+  async function ensureGpuCandidatesReady() {
+    if (typeof window !== 'undefined' && window.DeviceBenchmark &&
+        typeof window.DeviceBenchmark.getCachedResult === 'function') {
+      var bench = window.DeviceBenchmark.getCachedResult();
+      if (bench && bench.gpu && bench.gpu.available === false) return;
+    }
+    if (getGpuDeviceCandidates().indexOf('webgpu') >= 0) return;
+    await probeWebGpuAdapterAsync();
   }
 
   /** GPU load attempts in priority order; WASM is never included here. */
@@ -236,8 +343,6 @@
       if (device === 'webgpu') {
         plans.push({ device: 'webgpu', dtype: 'q4f16' });
         plans.push({ device: 'webgpu', dtype: 'q4' });
-      } else if (device === 'webgl') {
-        plans.push({ device: 'webgl', dtype: 'q4' });
       }
     });
     return plans;
@@ -315,7 +420,7 @@
       if (isStaleLoad(myGen) || downloadCancelled) throw new Error('AI model download deferred');
       var plan = plans[i];
       var label = plan.device ? (plan.device + ' ' + (plan.dtype || '')) : 'wasm';
-      reportDownloadProgress({ status: 'progress', progress: 0, file: 'Trying ' + label.trim() + '…' });
+      reportDownloadProgress({ status: 'progress', progress: 0, file: '' });
       try {
         applyHuggingFaceRemote(mod);
         var pipe = await runChatGenerationPipeline(mod, loadModelId, plan);
@@ -341,25 +446,17 @@
     );
   }
 
+  function resolveTransformersImportUrl() {
+    try {
+      if (typeof localStorage !== 'undefined' && localStorage.getItem('rianellTransformersCdn') === '1') {
+        return 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.2';
+      }
+    } catch (e) {}
+    return getAppOriginBase() + 'vendor/transformers/transformers.min.js';
+  }
+
   function getResolvedModelId() {
-    var prefs = typeof window !== 'undefined' && window.appSettings;
-    var preferred = prefs && prefs.preferredLlmModelSize;
-    if (preferred && preferred !== 'recommended') {
-      return llmTierOrSizeToModelId(preferred);
-    }
-    if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.isBenchmarkReady === 'function' && window.DeviceBenchmark.isBenchmarkReady()) {
-      var platformType = (typeof window.DeviceBenchmark.getPlatformTypeCached === 'function')
-        ? window.DeviceBenchmark.getPlatformTypeCached()
-        : (typeof window.DeviceBenchmark.getPlatformType === 'function' ? window.DeviceBenchmark.getPlatformType() : 'desktop');
-      var tier = window.DeviceBenchmark.getPerformanceTier();
-      var full = window.DeviceBenchmark.getFullProfile(platformType, tier, {});
-      var size = full && full.llmModelSize;
-      if (size) return llmTierOrSizeToModelId(size);
-    }
-    var deviceClass = (typeof window !== 'undefined' && window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass)
-      ? window.PerformanceUtils.platform.deviceClass
-      : getDeviceClassForModel();
-    return getModelIdForDeviceClass(deviceClass);
+    return llmTierOrSizeToModelId(resolvePreferredTierKey());
   }
 
   function getDownloadConsent() {
@@ -550,108 +647,122 @@
 
     var modelId = getResolvedModelId();
     if (cachedPipeline && cachedModelId === modelId) return cachedPipeline;
-    cachedPipeline = null;
-    cachedModelId = null;
-    cachedActiveBackend = null;
-    cachedActiveDtype = null;
+    if (loadInFlight) return loadInFlight;
 
-    downloadProgressState.active = true;
-    downloadCancelled = false;
-    lastDownloadError = null;
-    var myGen = loadGeneration;
-    var platformKind = getPlatformKindForLoad();
-    maybeWarnMemoryCap(platformKind);
-    reportDownloadProgress({ status: 'initiate', progress: 0, file: modelId });
-
-    var mod = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.2');
-    await resolveModelsRemote(mod);
-
-    var gpuPlans = buildLoadPlansForPwa(getGpuDeviceCandidates(), platformKind);
-    var wasmPlan = buildWasmAttempt();
-    var loadModelId = modelId;
-    var loaded = false;
-
-    try {
-      cachedPipeline = await tryLoadWithPlans(mod, loadModelId, gpuPlans, myGen);
-      loaded = true;
-    } catch (gpuErr) {
-      if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
-      if (typeof console !== 'undefined' && console.warn) {
-        console.warn('Summary LLM: GPU attempts failed, trying WASM:', gpuErr.message || gpuErr);
-      }
-      try {
-        applyHuggingFaceRemote(mod);
-        cachedPipeline = await runChatGenerationPipeline(mod, loadModelId, wasmPlan);
-        if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
-        cachedActiveBackend = 'wasm';
-        cachedActiveDtype = 'q4';
-        loaded = true;
-      } catch (wasmErr) {
-        if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
-        var oom = parseOomError(wasmErr) || parseOomError(gpuErr);
-        if (loadModelId === MODEL_BASE) {
-          if (typeof console !== 'undefined' && console.warn) {
-            console.warn('Summary LLM: large package failed' + (oom ? ' (OOM)' : '') + ', retrying smaller model');
-          }
-          if (typeof window !== 'undefined' && typeof window.showToast === 'function' && oom) {
-            window.showToast('Not enough memory for the large model — using the smaller package.', { type: 'info' });
-          }
-          try {
-            applyHuggingFaceRemote(mod);
-            cachedPipeline = await runChatGenerationPipeline(mod, MODEL_SMALL, wasmPlan);
-            if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
-            loadModelId = MODEL_SMALL;
-            cachedActiveBackend = 'wasm';
-            cachedActiveDtype = 'q4';
-            loaded = true;
-          } catch (smallErr) {
-            failDownloadProgress(formatDownloadError(smallErr));
-            if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
-              window.showToast('AI model download failed. Using text-only fallbacks.', {
-                type: 'error',
-                action: {
-                  label: 'Retry',
-                  onClick: function () {
-                    if (typeof window.downloadOrRedownloadAiModel === 'function') {
-                      window.downloadOrRedownloadAiModel(true);
-                    } else if (typeof window.clearSummaryLLMCache === 'function') {
-                      window.clearSummaryLLMCache();
-                    }
-                  }
-                }
-              });
-            }
-            throw smallErr;
-          }
-        } else {
-          failDownloadProgress(formatDownloadError(wasmErr));
-          throw wasmErr;
-        }
-      }
-    }
-
-    if (!loaded || !cachedPipeline) {
-      failDownloadProgress('Model load failed');
-      throw new Error('Model load failed');
-    }
-
-    cachedModelId = loadModelId;
-    try {
-      await warmupPipelineOrThrow();
-    } catch (warmErr) {
+    loadInFlight = (async function () {
       cachedPipeline = null;
       cachedModelId = null;
       cachedActiveBackend = null;
       cachedActiveDtype = null;
-      failDownloadProgress(formatDownloadError(warmErr));
-      throw warmErr;
-    }
 
-    lastDownloadError = null;
-    persistLastStablePreset(cachedModelId, cachedActiveBackend, cachedActiveDtype);
-    finishDownloadProgress();
-    await requestPersistentStorageIfPossible();
-    return cachedPipeline;
+      downloadProgressState.active = true;
+      downloadCancelled = false;
+      lastDownloadError = null;
+      var myGen = loadGeneration;
+      var platformKind = getPlatformKindForLoad();
+      maybeWarnMemoryCap(platformKind);
+      reportDownloadProgress({ status: 'initiate', progress: 0, file: '' });
+
+      await ensureGpuCandidatesReady();
+
+      var mod = await import(resolveTransformersImportUrl());
+      await resolveModelsRemote(mod);
+
+      var gpuPlans = buildLoadPlansForPwa(getGpuDeviceCandidates(), platformKind);
+      var wasmPlan = buildWasmAttempt();
+      var loadModelId = modelId;
+      var loaded = false;
+
+      try {
+        cachedPipeline = await tryLoadWithPlans(mod, loadModelId, gpuPlans, myGen);
+        loaded = true;
+      } catch (gpuErr) {
+        if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
+        if (typeof console !== 'undefined' && console.warn) {
+          console.warn('Summary LLM: GPU attempts failed, trying WASM:', gpuErr.message || gpuErr);
+        }
+        try {
+          applyHuggingFaceRemote(mod);
+          cachedPipeline = await runChatGenerationPipeline(mod, loadModelId, wasmPlan);
+          if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
+          cachedActiveBackend = 'wasm';
+          cachedActiveDtype = 'q4';
+          loaded = true;
+        } catch (wasmErr) {
+          if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
+          var oom = parseOomError(wasmErr) || parseOomError(gpuErr);
+          if (loadModelId === MODEL_BASE) {
+            if (typeof console !== 'undefined' && console.warn) {
+              console.warn('Summary LLM: large package failed' + (oom ? ' (OOM)' : '') + ', retrying smaller model');
+            }
+            if (typeof window !== 'undefined' && typeof window.showToast === 'function' && oom) {
+              window.showToast('Not enough memory for the large model — using the smaller package.', { type: 'info' });
+            }
+            try {
+              applyHuggingFaceRemote(mod);
+              cachedPipeline = await runChatGenerationPipeline(mod, MODEL_SMALL, wasmPlan);
+              if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
+              loadModelId = MODEL_SMALL;
+              cachedActiveBackend = 'wasm';
+              cachedActiveDtype = 'q4';
+              loaded = true;
+            } catch (smallErr) {
+              failDownloadProgress(formatDownloadError(smallErr));
+              if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
+                window.showToast('AI model download failed. Using text-only fallbacks.', {
+                  type: 'error',
+                  action: {
+                    label: 'Retry',
+                    onClick: function () {
+                      if (typeof window.clearAndRedownloadAiModel === 'function') {
+                        window.clearAndRedownloadAiModel();
+                      } else if (typeof window.downloadOrRedownloadAiModel === 'function') {
+                        window.downloadOrRedownloadAiModel();
+                      } else if (typeof window.clearSummaryLLMCache === 'function') {
+                        window.clearSummaryLLMCache();
+                      }
+                    }
+                  }
+                });
+              }
+              throw smallErr;
+            }
+          } else {
+            failDownloadProgress(formatDownloadError(wasmErr));
+            throw wasmErr;
+          }
+        }
+      }
+
+      if (!loaded || !cachedPipeline) {
+        failDownloadProgress('Model load failed');
+        throw new Error('Model load failed');
+      }
+
+      cachedModelId = loadModelId;
+      try {
+        await warmupPipelineOrThrow();
+      } catch (warmErr) {
+        cachedPipeline = null;
+        cachedModelId = null;
+        cachedActiveBackend = null;
+        cachedActiveDtype = null;
+        failDownloadProgress(formatDownloadError(warmErr));
+        throw warmErr;
+      }
+
+      lastDownloadError = null;
+      persistLastStablePreset(cachedModelId, cachedActiveBackend, cachedActiveDtype);
+      finishDownloadProgress();
+      await requestPersistentStorageIfPossible();
+      return cachedPipeline;
+    })();
+
+    try {
+      return await loadInFlight;
+    } finally {
+      loadInFlight = null;
+    }
   }
 
   async function getPipeline(options) {
@@ -1122,6 +1233,12 @@
     } catch (e) {}
     try {
       await clearTransformersIndexedDb();
+    } catch (e) {}
+    try {
+      if (typeof window !== 'undefined' && window.RianellModelChunkLoader &&
+          typeof window.RianellModelChunkLoader.clearAssembledModelCache === 'function') {
+        await window.RianellModelChunkLoader.clearAssembledModelCache();
+      }
     } catch (e) {}
     if (options.resetConsent && typeof window !== 'undefined' && window.appSettings) {
       window.appSettings.aiModelDownloadConsent = 'deferred';

@@ -60,24 +60,68 @@ export function resolveLlmPreset(options = {}) {
 export function shouldCapTierForMemory({ platformKind, tier, deviceMemory }) {
   const tierKey = /^tier[1-5]$/.test(tier) ? tier : tierToLlmModelSize(tier);
   const isMobile = platformKind === 'pwa_mobile' || platformKind === 'rn_android' || platformKind === 'rn_ios' || platformKind === 'rn_expo_go';
-  if (!isMobile || deviceMemory == null || deviceMemory <= 0) {
+
+  if (deviceMemory != null && deviceMemory > 0) {
+    if (!isMobile && deviceMemory < 4 && (tierKey === 'tier5' || tierKey === 'tier4')) {
+      return {
+        tier: 'tier3',
+        capped: true,
+        warning: 'Limited system memory; tier lowered for stability.',
+      };
+    }
+    if (isMobile && deviceMemory < 4 && (tierKey === 'tier5' || tierKey === 'tier4')) {
+      return {
+        tier: 'tier3',
+        capped: true,
+        warning: 'Device memory is limited; tier lowered for stability.',
+      };
+    }
+    if (isMobile && deviceMemory < 3 && tierKey === 'tier3') {
+      return {
+        tier: 'tier2',
+        capped: true,
+        warning: 'Device memory is limited; using a smaller model tier.',
+      };
+    }
+  }
+
+  return { tier: tierKey, capped: false, warning: null };
+}
+
+/**
+ * When WebGPU is unavailable, cap tier 3–5 to tier 2 (SmolLM) unless user opts into large-on-WASM.
+ * @param {{ tier: string, webGpuAvailable: boolean, forceLargeOnWasm?: boolean, deviceMemory?: number|null }} options
+ */
+export function resolveWasmOnlyCap(options = {}) {
+  const {
+    tier = 'tier3',
+    webGpuAvailable = false,
+    forceLargeOnWasm = false,
+    deviceMemory = null,
+  } = options;
+  const tierKey = /^tier[1-5]$/.test(tier) ? tier : tierToLlmModelSize(tier);
+
+  if (webGpuAvailable) {
     return { tier: tierKey, capped: false, warning: null };
   }
-  if (deviceMemory < 4 && (tierKey === 'tier5' || tierKey === 'tier4')) {
+
+  if (tierKey === 'tier1' || tierKey === 'tier2') {
+    return { tier: tierKey, capped: false, warning: null };
+  }
+
+  if (forceLargeOnWasm && deviceMemory != null && deviceMemory >= 8) {
     return {
-      tier: 'tier3',
-      capped: true,
-      warning: 'Device memory is limited; tier lowered for stability.',
+      tier: tierKey,
+      capped: false,
+      warning: 'Large model on WASM-only — may be slow or run out of memory.',
     };
   }
-  if (deviceMemory < 3 && tierKey === 'tier3') {
-    return {
-      tier: 'tier2',
-      capped: true,
-      warning: 'Device memory is limited; using a smaller model tier.',
-    };
-  }
-  return { tier: tierKey, capped: false, warning: null };
+
+  return {
+    tier: 'tier2',
+    capped: true,
+    warning: 'No GPU acceleration available; using smaller AI model for stability.',
+  };
 }
 
 /** ONNX relative paths per quant attempt (RN / manifest). */

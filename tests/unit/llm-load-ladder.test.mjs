@@ -10,23 +10,26 @@ import {
   LLM_MODEL_SMALL_ID,
 } from '../../packages/llm/src/index.mjs';
 
-test('buildPwaLoadAttempts orders webgpu before webgl', () => {
+test('buildPwaLoadAttempts orders webgpu dtypes only', () => {
   const plans = buildPwaLoadAttempts({
     platformKind: 'pwa_desktop',
     gpuCandidates: ['webgpu', 'webgl'],
   });
-  assert.ok(plans.length >= 3);
+  assert.equal(plans.length, 2);
   assert.equal(plans[0].device, 'webgpu');
   assert.equal(plans[0].dtype, 'q4f16');
-  assert.equal(plans[plans.length - 1].device, 'webgl');
+  assert.equal(plans[1].device, 'webgpu');
+  assert.equal(plans[1].dtype, 'q4');
+  assert.ok(plans.every((p) => p.device !== 'webgl'));
 });
 
-test('pwa_mobile skips webgl', () => {
+test('pwa_mobile never includes webgl', () => {
   const plans = buildPwaLoadAttempts({
     platformKind: 'pwa_mobile',
     gpuCandidates: ['webgl', 'webgpu'],
   });
   assert.ok(plans.every((p) => p.device !== 'webgl'));
+  assert.equal(plans[0].device, 'webgpu');
 });
 
 test('buildPwaWasmAttempt is q4', () => {

@@ -15496,6 +15496,8 @@ let appSettings = {
   useOpenData: false, // Use anonymised data pool for AI training (requires 90+ days)
   aiEnabled: true, // When false: hide AI Analysis tab, chart predictions, and Goals
   preferredLlmModelSize: 'recommended', // 'recommended' | 'tier1'..'tier5' for on-device AI model
+  preferredLlmForceLargeOnWasm: false,
+  pushNotificationsEnabled: false,
   aiModelDownloadConsent: 'deferred', // 'granted' | 'deferred' — first-run AI model download consent
   privacyRegion: '',
   privacyRegionSource: '',
@@ -15618,6 +15620,63 @@ function setPreferredLlmModel(value) {
   if (typeof refreshLlmModelSettingsHints === 'function') refreshLlmModelSettingsHints();
 }
 if (typeof window !== 'undefined') window.setPreferredLlmModel = setPreferredLlmModel;
+
+function togglePreferredLlmForceLargeOnWasm() {
+  var dm = (typeof navigator !== 'undefined' && navigator.deviceMemory) ? navigator.deviceMemory : null;
+  if (!appSettings.preferredLlmForceLargeOnWasm && dm != null && dm < 8) {
+    if (typeof showToast === 'function') {
+      showToast('Large WASM model requires at least 8 GB device memory.', { type: 'warning' });
+    }
+    return;
+  }
+  if (!appSettings.preferredLlmForceLargeOnWasm) {
+    var ok = typeof window.confirm === 'function'
+      ? window.confirm('Enable the large AI model on WASM-only browsers? This may be slow or run out of memory.')
+      : true;
+    if (!ok) return;
+  }
+  appSettings.preferredLlmForceLargeOnWasm = !appSettings.preferredLlmForceLargeOnWasm;
+  saveSettings();
+  var toggle = document.getElementById('forceLargeLlmWasmToggle');
+  if (toggle) {
+    toggle.classList.toggle('active', !!appSettings.preferredLlmForceLargeOnWasm);
+    toggle.setAttribute('aria-checked', appSettings.preferredLlmForceLargeOnWasm ? 'true' : 'false');
+  }
+  if (typeof window.clearSummaryLLMCache === 'function') window.clearSummaryLLMCache();
+  if (typeof refreshLlmModelSettingsHints === 'function') refreshLlmModelSettingsHints();
+}
+if (typeof window !== 'undefined') window.togglePreferredLlmForceLargeOnWasm = togglePreferredLlmForceLargeOnWasm;
+
+async function subscribePushFromSettings() {
+  try {
+    if (!window.RianellPushSubscribe || typeof window.RianellPushSubscribe.subscribe !== 'function') {
+      throw new Error('Push module not loaded.');
+    }
+    await window.RianellPushSubscribe.subscribe();
+    appSettings.pushNotificationsEnabled = true;
+    saveSettings();
+    if (typeof showToast === 'function') showToast('Push notifications enabled.', { type: 'success' });
+  } catch (e) {
+    var msg = (e && e.message) ? String(e.message) : 'Push setup failed';
+    if (typeof showToast === 'function') showToast(msg, { type: 'error' });
+  }
+}
+if (typeof window !== 'undefined') window.subscribePushFromSettings = subscribePushFromSettings;
+
+async function registerPushSubscription(subscriptionJson) {
+  if (!subscriptionJson || !subscriptionJson.endpoint) return;
+  try {
+    if (typeof window.SUPABASE_CONFIG === 'undefined' || !window.SUPABASE_CONFIG.url) return;
+    var url = String(window.SUPABASE_CONFIG.url).replace(/\/$/, '') + '/functions/v1/push-notify/subscribe';
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subscription: subscriptionJson }),
+      credentials: 'omit',
+    });
+  } catch (e) {}
+}
+if (typeof window !== 'undefined') window.registerPushSubscription = registerPushSubscription;
 
 var __rianellAiDownloadConsentResolve = null;
 
@@ -16412,6 +16471,12 @@ function loadSettingsState() {
   }
   if (llmRecommendationHint) {
     refreshLlmModelSettingsHints();
+  }
+  var forceLargeToggle = document.getElementById('forceLargeLlmWasmToggle');
+  if (forceLargeToggle) {
+    var forceOn = !!appSettings.preferredLlmForceLargeOnWasm;
+    forceLargeToggle.classList.toggle('active', forceOn);
+    forceLargeToggle.setAttribute('aria-checked', forceOn ? 'true' : 'false');
   }
 
   // Update contribute anonymised data toggle
@@ -18497,7 +18562,7 @@ function scheduleDashboardMotdWithLlm(fallbackTitle) {
   if (deviceOpts.deferAI) return;
   try {
     var ms = (typeof window.getAiModelStatus === 'function') ? window.getAiModelStatus() : null;
-    if (ms && ms.state === 'downloading') return;
+    if (ms && (ms.state === 'downloading' || ms.state !== 'ready' || !ms.inMemory)) return;
   } catch (e) {}
   // Curated motd.json quotes are the primary MOTD; the on-device LLM only
   // occasionally replaces them (small models can produce off-topic lines).
@@ -20617,6 +20682,8 @@ function attachInlineHandlersToWindow() {
     closeSignupSigninModal,
     closeTutorialModal,
     deferAiModelDownloadConsent,
+    deleteLogEntry,
+    enableInlineEdit,
     exportData,
     filterLogs,
     finishTutorial,
@@ -20632,11 +20699,13 @@ function attachInlineHandlersToWindow() {
     openLogWizardFromHome,
     openModalTestOverlay,
     openShareModalForAIAnalysis,
+    openShareModalForLog,
     openTutorialModal,
     saveEditedEntry,
     saveExerciseLog,
     saveFoodLog,
     saveGoalsAndClose,
+    saveInlineEdit,
     saveQuickMinimalLog,
     selectExistingCondition,
     selectTutorialCondition,
@@ -20661,6 +20730,7 @@ function attachInlineHandlersToWindow() {
     toggleContributeAnonData,
     toggleDemoMode,
     toggleEditWeightUnit,
+    toggleLogEntry,
     togglePasswordVisibility,
     togglePredictions,
     toggleSetting,

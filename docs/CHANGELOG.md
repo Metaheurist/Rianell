@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.90.1** - Root directory hygiene (Phase 23).
+**Latest: v1.91.0** - PWA LLM load fix (WebGPU/WASM, self-host, push).
+
+### v1.91.0 - 2026-06-17 - PWA LLM load fix (full scope)
+- **Load path:** Removed invalid Transformers `webgl` device; WebGPU adapter probe with session cache; WASM-only auto-cap tier 3–5 → SmolLM (`resolveWasmOnlyCap`).
+- **Stability:** Single-flight `ensurePipelineLoaded`; MOTD gated on `ready` + `inMemory`; Retry clears cache via `clearAndRedownloadAiModel`.
+- **UX:** Generic “Downloading AI model” progress label (no HF filenames in UI).
+- **Self-host:** `npm run vendor:transformers` copies Transformers.js 3.3.2 + ORT wasm to `apps/pwa-webapp/vendor/transformers/`; CDN rollback via `localStorage.rianellTransformersCdn=1`.
+- **Push:** SW `push` / `notificationclick` handlers; opt-in Settings flow via `push-subscribe.js`; `verify:push-contract`.
+- **Advanced:** Settings toggle `preferredLlmForceLargeOnWasm` (8 GB+ memory + consent).
+- **CI/scripts:** `test:llm-hardware`, `preflight:llm-chunk`, `agentic:llm-full-scope`, manual `llm-webgpu-manual.yml`; probe rejects webgl console errors.
+- **SW cache:** Bump `CACHE_NAME` for LLM asset rollout.
 
 ### v1.90.1 - 2026-06-14 - Root directory hygiene (Phase 23)
 - **Audit:** Boot audit JSON consolidated under `audit-history/` (`baseline.json` tracked; `latest-boot-audit.json` gitignored).
