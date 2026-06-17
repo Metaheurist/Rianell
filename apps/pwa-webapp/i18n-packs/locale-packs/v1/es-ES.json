@@ -393,6 +393,8 @@
     "common.enable.animations": "Habilitar animaciones",
     "common.lazy.load.charts": "Lazy load Gráficos",
     "common.on.device.ai.model": "Modelo de IA en el dispositivo",
+    "common.ai.inference.engine": "AI inference engine",
+    "common.llm.engine.hint": "Engine used after model download. Auto picks the best GPU path for your browser.",
     "common.recommended": "Recomendado: -",
     "common.checking": "De cheques…",
     "common.download.model": "Descargar model",

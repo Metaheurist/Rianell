@@ -1323,14 +1323,14 @@
             <option value="tier4">Tier 4</option>
             <option value="tier5">Tier 5 (best quality)</option>
           </select>
-          <label for="preferredLlmEngineSelect" class="settings-sub-label">AI inference engine</label>
+          <label for="preferredLlmEngineSelect" class="settings-sub-label" data-i18n="common.ai.inference.engine">AI inference engine</label>
           <select id="preferredLlmEngineSelect" class="settings-select" aria-describedby="llmEngineHint" onchange="setPreferredLlmEngine(this.value)">
             <option value="auto">Auto (WebGPU ONNX → MLC → WASM)</option>
             <option value="onnx">ONNX WebGPU / WASM only</option>
             <option value="mlc">WebLLM MLC (WebGPU)</option>
             <option value="gguf">GGUF experimental</option>
           </select>
-          <p class="settings-hint" id="llmEngineHint">Engine used after model download. Auto picks the best GPU path for your browser.</p>
+          <p class="settings-hint" id="llmEngineHint" data-i18n="common.llm.engine.hint">Engine used after model download. Auto picks the best GPU path for your browser.</p>
           <p class="settings-hint" id="llmModelRecommendationHint" data-i18n="common.recommended">Recommended: -</p>
           <p class="settings-hint settings-llm-status-line" id="llmModelStatusLine">
             Model status: <span id="llmModelStatusText" class="llm-model-status llm-model-status--unknown" data-i18n="common.checking">Checking…</span>

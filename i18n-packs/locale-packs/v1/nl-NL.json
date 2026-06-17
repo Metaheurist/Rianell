@@ -393,6 +393,8 @@
     "common.enable.animations": "Animaties inschakelen",
     "common.lazy.load.charts": "Lazy load Grafieken",
     "common.on.device.ai.model": "AI-model op het apparaat",
+    "common.ai.inference.engine": "AI inference engine",
+    "common.llm.engine.hint": "Engine used after model download. Auto picks the best GPU path for your browser.",
     "common.recommended": "Aanbevolen: -",
     "common.checking": "Controleren…",
     "common.download.model": "Downloaden model",
