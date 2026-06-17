@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-17T18:46:24.220Z",
+  "generatedAt": "2026-06-17T19:18:40.177Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4354269,
+    "jsBytes": 4354317,
     "cssBytes": 391804,
-    "jsGzipBytes": 884337,
+    "jsGzipBytes": 884344,
     "cssGzipBytes": 69099
   },
   "files": [
@@ -50,8 +50,8 @@
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 84465,
-      "gzipBytes": 13665
+      "bytes": 84487,
+      "gzipBytes": 13663
     },
     {
       "file": "ci-minified/site/export-utils.js",
@@ -175,8 +175,8 @@
     },
     {
       "file": "ci-minified/site/llm-load-ladder-sync.js",
-      "bytes": 3101,
-      "gzipBytes": 842
+      "bytes": 3127,
+      "gzipBytes": 851
     },
     {
       "file": "ci-minified/site/print-styles.css",
