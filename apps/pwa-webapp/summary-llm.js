@@ -300,28 +300,18 @@
     return null;
   }
 
-  /** Ordered GPU backends to try before WASM/CPU (benchmark cache webgpu only, then adapter probe cache). */
+  /** Ordered GPU backends to try before WASM/CPU (adapter probe cache only — never benchmark alone). */
   function getGpuDeviceCandidates() {
     var ordered = [];
-    var seen = Object.create(null);
-    function add(dev) {
-      if (!dev || dev === 'none' || dev === 'webgl' || seen[dev]) return;
-      seen[dev] = true;
-      ordered.push(dev);
-    }
-    var benchmarkSaysNoGpu = false;
-    if (typeof window !== 'undefined' && window.DeviceBenchmark && typeof window.DeviceBenchmark.getCachedResult === 'function') {
+    if (typeof window !== 'undefined' && window.DeviceBenchmark &&
+        typeof window.DeviceBenchmark.getCachedResult === 'function') {
       var cached = window.DeviceBenchmark.getCachedResult();
-      if (cached && cached.gpu) {
-        if (cached.gpu.available && cached.gpu.backend === 'webgpu') {
-          add('webgpu');
-        } else if (cached.gpu.available === false) {
-          benchmarkSaysNoGpu = true;
-        }
+      if (cached && cached.gpu && cached.gpu.available === false) {
+        return ordered;
       }
     }
-    if (!benchmarkSaysNoGpu && isWebGpuAvailableCached()) {
-      add('webgpu');
+    if (isWebGpuAvailableCached()) {
+      ordered.push('webgpu');
     }
     return ordered;
   }
@@ -332,7 +322,6 @@
       var bench = window.DeviceBenchmark.getCachedResult();
       if (bench && bench.gpu && bench.gpu.available === false) return;
     }
-    if (getGpuDeviceCandidates().indexOf('webgpu') >= 0) return;
     await probeWebGpuAdapterAsync();
   }
 
@@ -378,7 +367,7 @@
         typeof window.RianellLlmLoadLadder.buildPwaWasmAttempt === 'function') {
       return window.RianellLlmLoadLadder.buildPwaWasmAttempt();
     }
-    return { revision: 'main', dtype: 'q4' };
+    return { revision: 'main', device: 'wasm', dtype: 'q4' };
   }
 
   function buildWasmPipelineOpts() {
@@ -430,6 +419,9 @@
         return pipe;
       } catch (e) {
         lastErr = e;
+        if (plan.device === 'webgpu') {
+          writeWebGpuCache(false);
+        }
         if (typeof console !== 'undefined' && console.warn) {
           console.warn('Summary LLM: attempt failed (' + label + '):', e.message || e);
         }
@@ -453,6 +445,14 @@
       }
     } catch (e) {}
     return getAppOriginBase() + 'vendor/transformers/transformers.min.js';
+  }
+
+  async function importTransformersModule(fresh) {
+    var url = resolveTransformersImportUrl();
+    if (fresh) {
+      url += (url.indexOf('?') >= 0 ? '&' : '?') + 'llmWasmRetry=' + Date.now();
+    }
+    return import(url);
   }
 
   function getResolvedModelId() {
@@ -665,7 +665,7 @@
 
       await ensureGpuCandidatesReady();
 
-      var mod = await import(resolveTransformersImportUrl());
+      var mod = await importTransformersModule(false);
       await resolveModelsRemote(mod);
 
       var gpuPlans = buildLoadPlansForPwa(getGpuDeviceCandidates(), platformKind);
@@ -678,12 +678,14 @@
         loaded = true;
       } catch (gpuErr) {
         if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
+        writeWebGpuCache(false);
         if (typeof console !== 'undefined' && console.warn) {
           console.warn('Summary LLM: GPU attempts failed, trying WASM:', gpuErr.message || gpuErr);
         }
         try {
-          applyHuggingFaceRemote(mod);
-          cachedPipeline = await runChatGenerationPipeline(mod, loadModelId, wasmPlan);
+          var modWasm = gpuPlans.length > 0 ? await importTransformersModule(true) : mod;
+          applyHuggingFaceRemote(modWasm);
+          cachedPipeline = await runChatGenerationPipeline(modWasm, loadModelId, wasmPlan);
           if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
           cachedActiveBackend = 'wasm';
           cachedActiveDtype = 'q4';
@@ -699,8 +701,8 @@
               window.showToast('Not enough memory for the large model — using the smaller package.', { type: 'info' });
             }
             try {
-              applyHuggingFaceRemote(mod);
-              cachedPipeline = await runChatGenerationPipeline(mod, MODEL_SMALL, wasmPlan);
+              applyHuggingFaceRemote(modWasm);
+              cachedPipeline = await runChatGenerationPipeline(modWasm, MODEL_SMALL, wasmPlan);
               if (isStaleLoad(myGen)) throw new Error('AI model download deferred');
               loadModelId = MODEL_SMALL;
               cachedActiveBackend = 'wasm';

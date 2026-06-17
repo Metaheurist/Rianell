@@ -32,7 +32,7 @@ export function buildPwaLoadAttempts(options = {}) {
 
 /** WASM / CPU last resort for PWA. */
 export function buildPwaWasmAttempt() {
-  return { revision: 'main', dtype: 'q4' };
+  return { revision: 'main', device: 'wasm', dtype: 'q4' };
 }
 
 /** Expo Go: WASM only (no WebGPU in RN JS runtime). */

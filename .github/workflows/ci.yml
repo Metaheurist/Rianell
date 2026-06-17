@@ -851,6 +851,7 @@ jobs:
           PROBE_URL: https://rianell.com/
           PROBE_DOWNLOAD_TIMEOUT_MS: "900000"
           PROBE_TIER: "1"
+          PROBE_GPU_AVAILABLE: "0"
         run: node scripts/ci/probe-llm-download-live.mjs
 
   # ═══════════════════════════════════════════════════════════════════════════
