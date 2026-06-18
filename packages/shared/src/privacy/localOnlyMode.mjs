@@ -5,6 +5,7 @@ export const LOCAL_ONLY_NETWORK_FEATURES = [
   { id: 'anonymizedSync', labelKey: 'settings.privacy.localOnly.anonymizedSync' },
   { id: 'modelDownload', labelKey: 'settings.privacy.localOnly.modelDownload' },
   { id: 'bugReport', labelKey: 'settings.privacy.localOnly.bugReport' },
+  { id: 'remoteLlm', labelKey: 'settings.privacy.localOnly.remoteLlm' },
 ];
 
 export function isLocalOnlyModeEnabled(prefs) {

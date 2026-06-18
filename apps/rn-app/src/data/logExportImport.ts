@@ -1,4 +1,10 @@
-import { normalizeLogEntry } from '@rianell/shared';
+import {
+  LOG_CSV_ENGLISH_HEADERS,
+  LOG_CSV_I18N_KEYS,
+  logsToCsv,
+  normalizeLogEntry,
+  parseLogsCsv,
+} from '@rianell/shared';
 import type { LogEntry } from '../storage/logs';
 
 export function serializeLogsForExport(logs: LogEntry[]): string {
@@ -20,4 +26,31 @@ export function mergeLogsAppend(existing: LogEntry[], incoming: LogEntry[]): Log
     if (!byDate.has(n.date)) byDate.set(n.date, n);
   }
   return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export function serializeLogsCsvForExport(
+  logs: LogEntry[],
+  t: (key: string) => string,
+): string {
+  return logsToCsv(logs, (fieldId: string) => {
+    const key = LOG_CSV_I18N_KEYS[fieldId as keyof typeof LOG_CSV_I18N_KEYS];
+    const translated = key ? t(key) : '';
+    if (translated && translated !== key) return translated;
+    return LOG_CSV_ENGLISH_HEADERS[fieldId as keyof typeof LOG_CSV_ENGLISH_HEADERS] || fieldId;
+  });
+}
+
+export function parseLogImportCsv(text: string, t?: (key: string) => string): LogEntry[] {
+  const aliasMap: Record<string, string | string[]> = {};
+  for (const [id, en] of Object.entries(LOG_CSV_ENGLISH_HEADERS)) {
+    const key = LOG_CSV_I18N_KEYS[id as keyof typeof LOG_CSV_I18N_KEYS];
+    const labels = [en];
+    if (t && key) {
+      const tr = t(key);
+      if (tr && tr !== key) labels.push(tr);
+    }
+    aliasMap[id] = labels;
+  }
+  const raw = parseLogsCsv(text, aliasMap as Parameters<typeof parseLogsCsv>[1]);
+  return raw.map((x) => normalizeLogEntry(x) as LogEntry);
 }

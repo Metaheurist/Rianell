@@ -1,6 +1,6 @@
 # Platform parity inventory
 
-Generated: 2026-06-18T19:43:38.028Z
+Generated: 2026-06-18T21:31:19.864Z
 
 ## Settings / preferences field parity
 
@@ -37,6 +37,8 @@ Generated: 2026-06-18T19:43:38.028Z
 | localOnlyMode | yes | yes |
 | appLockEnabled | yes | yes |
 | processingActivityLog | yes | yes |
+| cloudAutoSyncOnOpen | yes | yes |
+| cloudAutoSyncDailyTime | yes | yes |
 
 ## Cloud sync exports
 

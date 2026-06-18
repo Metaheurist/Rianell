@@ -205,6 +205,8 @@ export * from './privacy/index.mjs';
 export * from './i18n/index.mjs';
 export * from './settings/index.mjs';
 export * from './logging/index.mjs';
+export * from './export/logCsv.mjs';
+export * from './sync/logSyncConflicts.mjs';
 
 export function createSampleLogEntry() {
   return normalizeLogEntry({

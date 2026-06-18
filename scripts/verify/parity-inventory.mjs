@@ -45,6 +45,8 @@ const PWA_SETTINGS_KEYS = [
   'localOnlyMode',
   'appLockEnabled',
   'processingActivityLog',
+  'cloudAutoSyncOnOpen',
+  'cloudAutoSyncDailyTime',
 ];
 
 const RN_PREF_FIELDS = [
@@ -77,6 +79,8 @@ const RN_PREF_FIELDS = [
   'localOnlyMode',
   'appLockEnabled',
   'processingActivityLog',
+  'cloudAutoSyncOnOpen',
+  'cloudAutoSyncDailyTime',
 ];
 
 const CLOUD_EXPORTS = [

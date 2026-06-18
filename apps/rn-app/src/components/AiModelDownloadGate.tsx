@@ -18,6 +18,7 @@ import {
   subscribeNativeLlmDownloadProgress,
   type LlmDownloadProgress,
 } from '../ai/llmNative';
+import { recordProcessingActivity } from '../storage/processingActivity';
 
 type Props = {
   prefs: Preferences;
@@ -76,6 +77,7 @@ export function AiModelDownloadGate({ prefs, onChangePrefs, children }: Props) {
       try {
         await preloadNativeLlm(prefs);
         if (!cancelled) {
+          await recordProcessingActivity(prefs, { type: 'model_download', detail: modelId }, onChangePrefs);
           setProgress({ pct: 100, status: 'ready' });
           setPhase('ready');
         }

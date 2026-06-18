@@ -22,7 +22,13 @@ import type { AppearanceMode, Preferences, PreferredLlmModelSize } from '../stor
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import { speakLabel } from '../accessibility/tts';
-import { mergeLogsAppend, parseLogImportJson, serializeLogsForExport } from '../data/logExportImport';
+import {
+  mergeLogsAppend,
+  parseLogImportCsv,
+  parseLogImportJson,
+  serializeLogsCsvForExport,
+  serializeLogsForExport,
+} from '../data/logExportImport';
 import { encryptExportWithPassphrase } from '@rianell/shared';
 import { recordProcessingActivity } from '../storage/processingActivity';
 import { loadLogs, saveLogs, persistLogs } from '../storage/logs';
@@ -114,6 +120,7 @@ export function SettingsScreen({
   const tts = { enabled: prefs.accessibility.ttsEnabled, readModeEnabled: prefs.accessibility.ttsReadModeEnabled };
 
   const [importOpen, setImportOpen] = useState(false);
+  const [importFormat, setImportFormat] = useState<'json' | 'csv'>('json');
   const [importText, setImportText] = useState('');
   const [profileImportOpen, setProfileImportOpen] = useState(false);
   const [profileImportText, setProfileImportText] = useState('');
@@ -270,6 +277,25 @@ export function SettingsScreen({
     }
   }
 
+  async function onExportLogsCsv() {
+    if (prefs.demoMode) {
+      Alert.alert(t('settings.demo.title'), t('settings.demo.exportDisabled'));
+      return;
+    }
+    setExportBusy(true);
+    try {
+      const logs = await loadLogs();
+      const csv = serializeLogsCsvForExport(logs, t);
+      await Share.share({ message: csv, title: t('settings.export.logs.csv') });
+      await recordProcessingActivity(prefs, { type: 'export', detail: 'csv' }, onChangePrefs);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : t('settings.export.failed');
+      Alert.alert(t('settings.export.title'), msg);
+    } finally {
+      setExportBusy(false);
+    }
+  }
+
   async function onExportLogsEncrypted(passphrase: string) {
     setExportBusy(true);
     try {
@@ -305,13 +331,14 @@ export function SettingsScreen({
     }
   }
 
-  async function applyImport(mode: 'replace' | 'append') {
+  async function applyImport(mode: 'replace' | 'append', format: 'json' | 'csv' = 'json') {
     if (prefs.demoMode) {
       Alert.alert(t('settings.demo.title'), t('settings.demo.importDisabled'));
       return;
     }
     try {
-      const incoming = parseLogImportJson(importText);
+      const incoming =
+        format === 'csv' ? parseLogImportCsv(importText, t) : parseLogImportJson(importText);
       if (mode === 'replace') {
         await persistLogs(incoming, { backup: prefs.backup, compress: prefs.compress });
       } else {
@@ -1792,6 +1819,17 @@ export function SettingsScreen({
 
               <Pressable
                 style={[styles.dataBtn, { opacity: exportBusy ? 0.6 : 1 }]}
+                onPress={() => void onExportLogsCsv()}
+                disabled={exportBusy}
+                accessibilityRole="button"
+              >
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>
+                  {t('settings.export.logs.csv')}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={[styles.dataBtn, { opacity: exportBusy ? 0.6 : 1 }]}
                 onPress={() => setEncryptExportOpen(true)}
                 disabled={exportBusy}
                 accessibilityRole="button"
@@ -1834,7 +1872,10 @@ export function SettingsScreen({
 
                 style={styles.dataBtn}
 
-                onPress={() => setImportOpen(true)}
+                onPress={() => {
+                  setImportFormat('json');
+                  setImportOpen(true);
+                }}
 
                 accessibilityRole="button"
 
@@ -1844,6 +1885,20 @@ export function SettingsScreen({
 
                 <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>📥 Import logs (JSON)</Text>
 
+              </Pressable>
+
+              <Pressable
+                style={styles.dataBtn}
+                onPress={() => {
+                  setImportText('');
+                  setImportFormat('csv');
+                  setImportOpen(true);
+                }}
+                accessibilityRole="button"
+              >
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>
+                  {t('settings.import.logs.csv')}
+                </Text>
               </Pressable>
 
               <Pressable
@@ -1884,13 +1939,15 @@ export function SettingsScreen({
           >
             <Text style={[styles.modalTitle, { color: theme.tokens.color.text, fontSize: theme.font(17) }]}>{t('logs.import')}</Text>
             <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
-              Paste a JSON array of log entries (same shape as web export).
+              {importFormat === 'csv'
+                ? 'Paste CSV with a header row (same columns as web export).'
+                : 'Paste a JSON array of log entries (same shape as web export).'}
             </Text>
             <TextInput
               value={importText}
               onChangeText={setImportText}
               multiline
-              placeholder="[...]"
+              placeholder={importFormat === 'csv' ? 'Date,BPM,...' : '[...]'}
               placeholderTextColor={theme.mode === 'light' ? 'rgba(0,0,0,0.38)' : 'rgba(255,255,255,0.45)'}
               style={[styles.importInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
               accessibilityLabel="Import JSON text"
@@ -1901,7 +1958,7 @@ export function SettingsScreen({
               </Pressable>
               <Pressable
                 style={styles.modalBtn}
-                onPress={() => void applyImport('append')}
+                onPress={() => void applyImport('append', importFormat)}
                 accessibilityRole="button"
                 accessibilityLabel="Merge with existing logs"
               >
@@ -1912,7 +1969,7 @@ export function SettingsScreen({
                 onPress={() => {
                   Alert.alert(t('settings.import.replaceTitle'), t('settings.import.replaceBody'), [
                     { text: t('common.cancel'), style: 'cancel' },
-                    { text: t('settings.import.replaceAction'), style: 'destructive', onPress: () => void applyImport('replace') },
+                    { text: t('settings.import.replaceAction'), style: 'destructive', onPress: () => void applyImport('replace', importFormat) },
                   ]);
                 }}
                 accessibilityRole="button"

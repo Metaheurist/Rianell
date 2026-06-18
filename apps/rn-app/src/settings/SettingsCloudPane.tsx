@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
 import {
   deleteCloudLogs,
   loadFromCloud,
   syncAnonymizedData,
   syncToCloud,
+  type SyncConflictPolicy,
 } from '../cloud/sync';
 import { getSupabaseClient } from '../cloud/supabaseClient';
-import { loadPreferences } from '../storage/preferences';
+import { loadPreferences, savePreferences, type Preferences } from '../storage/preferences';
 import { checkFeatureForPrefs } from '../privacy/helpers';
-import type { Preferences } from '../storage/preferences';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 
@@ -43,6 +43,34 @@ export function SettingsCloudPane() {
     try {
       const result = await fn();
       Alert.alert(label, result.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onSyncToCloud() {
+    setBusy(true);
+    try {
+      const result = await syncToCloud();
+      if (result.needsConflictResolution) {
+        Alert.alert(
+          t('settings.cloud.conflictTitle'),
+          t('settings.cloud.conflictBody', { count: String(result.conflictCount ?? 0) }),
+          [
+            { text: t('common.cancel'), style: 'cancel' },
+            {
+              text: t('settings.cloud.keepCloud'),
+              onPress: () => void runAction(t('settings.cloud.sync'), () => syncToCloud({ conflictPolicy: 'cloud' as SyncConflictPolicy })),
+            },
+            {
+              text: t('settings.cloud.keepLocal'),
+              onPress: () => void runAction(t('settings.cloud.sync'), () => syncToCloud({ conflictPolicy: 'local' as SyncConflictPolicy })),
+            },
+          ],
+        );
+        return;
+      }
+      Alert.alert(t('settings.cloud.sync'), result.message);
     } finally {
       setBusy(false);
     }
@@ -114,11 +142,23 @@ export function SettingsCloudPane() {
         ) : null}
         <Pressable
           style={[styles.btn, { opacity: busy || !backupFeature.available ? 0.6 : 1 }]}
-          onPress={() => void runAction(t('settings.cloud.sync'), syncToCloud)}
+          onPress={() => void onSyncToCloud()}
           disabled={busy || !backupFeature.available}
         >
           <Text style={styles.btnText}>{t('settings.cloud.sync')}</Text>
         </Pressable>
+        <View style={styles.row}>
+          <Text style={[styles.hint, { color: theme.tokens.color.text, flex: 1 }]}>{t('settings.cloud.autoSyncOnOpen')}</Text>
+          <Switch
+            value={!!prefs?.cloudAutoSyncOnOpen}
+            onValueChange={(cloudAutoSyncOnOpen) => {
+              if (!prefs) return;
+              const next = { ...prefs, cloudAutoSyncOnOpen };
+              setPrefs(next);
+              void savePreferences(next);
+            }}
+          />
+        </View>
         <Pressable
           style={[styles.btn, { opacity: busy || !backupFeature.available ? 0.6 : 1 }]}
           onPress={() => void runAction(t('settings.cloud.load'), loadFromCloud)}
