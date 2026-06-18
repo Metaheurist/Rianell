@@ -2081,10 +2081,10 @@ export function SettingsScreen({
                   style={[styles.modalBtn, migrationSource === 'bearable' && { opacity: 1 }]}
                   onPress={() => setMigrationSource('bearable')}
                 >
-                  <Text style={{ color: theme.tokens.color.text }}>Bearable</Text>
+                  <Text style={{ color: theme.tokens.color.text }}>{t('settings.import.migration.bearable')}</Text>
                 </Pressable>
                 <Pressable style={styles.modalBtn} onPress={() => setMigrationSource('flaredown')}>
-                  <Text style={{ color: theme.tokens.color.text }}>Flaredown</Text>
+                  <Text style={{ color: theme.tokens.color.text }}>{t('settings.import.migration.flaredown')}</Text>
                 </Pressable>
               </View>
             ) : null}
@@ -2153,7 +2153,7 @@ export function SettingsScreen({
             <TextInput
               value={webDavUser}
               onChangeText={setWebDavUser}
-              placeholder="Username"
+              placeholder={t('settings.data.webdav.username')}
               placeholderTextColor={theme.tokens.color.textMuted}
               style={[styles.importInput, { minHeight: 44, color: theme.tokens.color.text }]}
               autoCapitalize="none"
@@ -2161,7 +2161,7 @@ export function SettingsScreen({
             <TextInput
               value={webDavPass}
               onChangeText={setWebDavPass}
-              placeholder="Password"
+              placeholder={t('settings.data.webdav.password')}
               placeholderTextColor={theme.tokens.color.textMuted}
               secureTextEntry
               style={[styles.importInput, { minHeight: 44, color: theme.tokens.color.text }]}
