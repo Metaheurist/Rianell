@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" class="rianell-appearance-dark rianell-theme-mint">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Rianell Design Catalog (dev)</title>
+  <link rel="stylesheet" href="../css/tokens.css" />
+  <link rel="stylesheet" href="../styles.css" />
+  <style>
+    .catalog-page { max-width: 960px; margin: 0 auto; padding: 1.5rem; color: var(--color-text, #e0f2f1); }
+    .catalog-page h1 { margin-bottom: 0.25rem; }
+    .catalog-page .catalog-lead { opacity: 0.85; margin-bottom: 2rem; }
+    .catalog-section { margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .catalog-section h2 { font-size: 1.15rem; margin-bottom: 0.35rem; }
+    .catalog-section p.catalog-desc { font-size: 0.9rem; opacity: 0.75; margin-bottom: 1rem; }
+    .catalog-row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+    .catalog-token-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; }
+    .catalog-token-swatch { border-radius: 8px; padding: 0.75rem; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.12); }
+    .catalog-token-swatch__chip { width: 100%; height: 2rem; border-radius: 4px; margin-bottom: 0.35rem; }
+    .catalog-card-demo { padding: 1rem 1.25rem; border-radius: 12px; background: rgba(255,255,255,0.06); max-width: 320px; }
+    .catalog-gaps { font-size: 0.9rem; }
+    .catalog-gaps li { margin-bottom: 0.35rem; }
+    .catalog-meta { font-size: 0.8rem; opacity: 0.6; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <main class="catalog-page">
+    <h1>Rianell design catalog</h1>
+    <p class="catalog-lead">
+      Dev-only static catalog (Plan 01 T2). Tokens from <code>@rianell/tokens</code> via
+      <code>css/tokens.css</code>; components reuse PWA <code>styles.css</code> classes.
+      Run <code>npm run design-catalog</code> while <code>npm run dev:web</code> is active.
+    </p>
+
+    <section class="catalog-section" id="tokens">
+      <h2>1. Design tokens</h2>
+      <p class="catalog-desc">Semantic colors and motion tokens synced from <code>packages/tokens</code>.</p>
+      <div class="catalog-token-grid">
+        <div class="catalog-token-swatch">
+          <div class="catalog-token-swatch__chip" style="background: var(--color-success)"></div>
+          --color-success
+        </div>
+        <div class="catalog-token-swatch">
+          <div class="catalog-token-swatch__chip" style="background: var(--color-danger)"></div>
+          --color-danger
+        </div>
+        <div class="catalog-token-swatch">
+          <div class="catalog-token-swatch__chip" style="background: var(--color-warning)"></div>
+          --color-warning
+        </div>
+        <div class="catalog-token-swatch">
+          <div class="catalog-token-swatch__chip" style="background: var(--color-info)"></div>
+          --color-info
+        </div>
+        <div class="catalog-token-swatch">
+          <div class="catalog-token-swatch__chip" style="background: var(--color-ai-accent)"></div>
+          --color-ai-accent
+        </div>
+        <div class="catalog-token-swatch">
+          <div class="catalog-token-swatch__chip" style="background: #7bdf8c"></div>
+          mint accent (theme)
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-section" id="buttons">
+      <h2>2. Buttons &amp; tabs</h2>
+      <p class="catalog-desc">Primary actions and main navigation tab buttons.</p>
+      <div class="catalog-row">
+        <button type="button" class="tab-btn active" aria-selected="true">Active tab</button>
+        <button type="button" class="tab-btn" aria-selected="false">Inactive tab</button>
+        <button type="button" class="settings-button-top" title="Settings" aria-label="Settings">⚙</button>
+      </div>
+    </section>
+
+    <section class="catalog-section" id="cards">
+      <h2>3. Cards</h2>
+      <p class="catalog-desc">Home hero card pattern (dashboard summary).</p>
+      <div class="home-hero-card catalog-card-demo" id="homeHeroCard">
+        <h3 class="home-greeting" style="margin:0 0 0.5rem">Good morning</h3>
+        <p class="home-status-detail" style="margin:0">Example status copy for the design catalog.</p>
+      </div>
+    </section>
+
+    <section class="catalog-section" id="toggles">
+      <h2>4. Toggle switches</h2>
+      <p class="catalog-desc">Settings preference toggles (off / on).</p>
+      <div class="catalog-row">
+        <div class="settings-option">
+          <label>Reminders</label>
+          <div class="toggle-switch" role="switch" aria-checked="false" tabindex="0"></div>
+        </div>
+        <div class="settings-option">
+          <label>Sound</label>
+          <div class="toggle-switch active" role="switch" aria-checked="true" tabindex="0"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-section" id="sliders">
+      <h2>5. Sliders</h2>
+      <p class="catalog-desc">Accessibility text scale range input.</p>
+      <div class="settings-option settings-option-with-hint" style="max-width:320px">
+        <label for="catalogTextScale">Text scale</label>
+        <input type="range" id="catalogTextScale" min="0.85" max="1.6" step="0.05" value="1" />
+        <span class="settings-hint" id="catalogTextScaleLabel">100%</span>
+      </div>
+    </section>
+
+    <section class="catalog-section" id="settings-panes">
+      <h2>6. Settings panes &amp; theme choices</h2>
+      <p class="catalog-desc">Carousel pane shell and global theme picker chips.</p>
+      <div class="settings-carousel-pane settings-carousel-pane--active catalog-card-demo" style="max-width:100%">
+        <h3 class="settings-pane-title" style="margin-top:0">Display &amp; reminders</h3>
+        <p class="settings-hint">Example settings pane content block.</p>
+      </div>
+      <div class="catalog-row" style="margin-top:1rem">
+        <button type="button" class="settings-theme-choice settings-theme-choice--mint settings-theme-choice--active" data-theme="mint" aria-checked="true">
+          <span class="settings-theme-choice__swatch"></span>
+          <span class="settings-theme-choice__label">Mint</span>
+        </button>
+        <button type="button" class="settings-theme-choice settings-theme-choice--red-black" data-theme="red-black" aria-checked="false">
+          <span class="settings-theme-choice__swatch"></span>
+          <span class="settings-theme-choice__label">Red / black</span>
+        </button>
+        <button type="button" class="settings-theme-choice settings-theme-choice--mono" data-theme="mono" aria-checked="false">
+          <span class="settings-theme-choice__swatch"></span>
+          <span class="settings-theme-choice__label">Mono</span>
+        </button>
+        <button type="button" class="settings-theme-choice settings-theme-choice--rainbow" data-theme="rainbow" aria-checked="false">
+          <span class="settings-theme-choice__swatch"></span>
+          <span class="settings-theme-choice__label">Rainbow</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="catalog-section" id="rn-gaps">
+      <h2>React Native parity gaps</h2>
+      <p class="catalog-desc">PWA patterns not yet mirrored in RN design tokens / components.</p>
+      <ul class="catalog-gaps">
+        <li><strong>Settings carousel</strong> — RN uses screen stack; no swipe carousel equivalent.</li>
+        <li><strong>Theme choice chips</strong> — four global themes in PWA; RN theme picker partial.</li>
+        <li><strong>Toggle switch styling</strong> — RN uses platform Switch; custom mint styling differs.</li>
+        <li><strong>Tab bar</strong> — PWA bottom nav + desktop tabs; RN Expo Router tabs separate layout.</li>
+        <li><strong>Home hero card</strong> — adaptive layout / scroll-reveal not ported to RN Home screen.</li>
+        <li><strong>ApexCharts views</strong> — web-only chart library; RN uses different chart stack.</li>
+      </ul>
+    </section>
+
+    <p class="catalog-meta">Plan 01 T2 · dev-only · excluded from production minify bundle</p>
+  </main>
+  <script>
+    (function () {
+      var range = document.getElementById('catalogTextScale');
+      var label = document.getElementById('catalogTextScaleLabel');
+      if (range && label) {
+        range.addEventListener('input', function () {
+          label.textContent = Math.round(parseFloat(range.value) * 100) + '%';
+        });
+      }
+      document.querySelectorAll('.toggle-switch').forEach(function (el) {
+        el.addEventListener('click', function () {
+          el.classList.toggle('active');
+          el.setAttribute('aria-checked', el.classList.contains('active') ? 'true' : 'false');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

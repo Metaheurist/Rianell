@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.92.4",
+  "version": "1.92.5",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp and React Native app",
   "workspaces": [
     "apps/rn-app",
@@ -77,7 +77,12 @@
     "agentic:gpu-v1": "node scripts/ci/agentic-gpu-v1.mjs",
     "test:gpu-llama-matrix": "node scripts/test/gpu-llama-matrix.mjs",
     "test:gpu-rn-matrix": "node scripts/test/gpu-rn-matrix.mjs",
-    "test:webnn-probe": "node scripts/test/webnn-probe.mjs"
+    "test:webnn-probe": "node scripts/test/webnn-probe.mjs",
+    "projects:gate": "powershell -ExecutionPolicy Bypass -File scripts/projects/post-plan-gate.ps1",
+    "projects:gate:fast": "powershell -ExecutionPolicy Bypass -File scripts/projects/post-plan-gate.ps1 -NoCompile",
+    "projects:ci-watch": "node scripts/projects/watch-ci-main.mjs",
+    "projects:generate-docs": "node scripts/projects/generate-plan-folder-docs.mjs",
+    "design-catalog": "node scripts/dev/open-design-catalog.mjs"
   },
   "devDependencies": {
     "@babel/core": "7.29.7",
