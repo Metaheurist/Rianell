@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-18T19:09:05.667Z",
+  "generatedAt": "2026-06-18T19:57:57.780Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3599312,
+    "jsBytes": 3627949,
     "cssBytes": 395381,
-    "jsGzipBytes": 864022,
+    "jsGzipBytes": 870803,
     "cssGzipBytes": 69545
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 852582,
-      "gzipBytes": 185612
+      "bytes": 859878,
+      "gzipBytes": 187132
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.c78aaaa5c0b6.min.js",
-      "bytes": 600807,
-      "gzipBytes": 137057
+      "file": "ci-minified/site/app.81993060ac20.min.js",
+      "bytes": 606467,
+      "gzipBytes": 138281
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -40,13 +40,13 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 104144,
-      "gzipBytes": 23672
+      "bytes": 114999,
+      "gzipBytes": 26390
     },
     {
       "file": "ci-minified/site/cloud-sync.js",
-      "bytes": 86186,
-      "gzipBytes": 18368
+      "bytes": 87656,
+      "gzipBytes": 18664
     },
     {
       "file": "ci-minified/site/summary-llm.js",
@@ -84,14 +84,14 @@
       "gzipBytes": 4950
     },
     {
+      "file": "ci-minified/site/privacy-region.js",
+      "bytes": 16637,
+      "gzipBytes": 3764
+    },
+    {
       "file": "ci-minified/site/event-handlers.js",
       "bytes": 16621,
       "gzipBytes": 3219
-    },
-    {
-      "file": "ci-minified/site/privacy-region.js",
-      "bytes": 16451,
-      "gzipBytes": 3723
     },
     {
       "file": "ci-minified/site/notifications.js",
@@ -172,6 +172,11 @@
       "file": "ci-minified/site/summary-llm-mlc.js",
       "bytes": 3534,
       "gzipBytes": 1315
+    },
+    {
+      "file": "ci-minified/site/modules/app-lock.js",
+      "bytes": 3170,
+      "gzipBytes": 982
     },
     {
       "file": "ci-minified/site/supabase-config.js",
