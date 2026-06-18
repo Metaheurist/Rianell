@@ -30,6 +30,24 @@ All entries require a **`date`** (`YYYY-MM-DD`). Other fields are optional; empt
 | `food` | object | `{ breakfast, lunch, dinner, snack }` arrays of items |
 | `exercise` | array | `{ name, duration? }` |
 | `medications` | array | Per-entry medication log |
+| `subEntries` | array | L8 AM/PM partial saves: `{ id, period: 'AM'\|'PM'\|'partial', mood?, fatigue?, sleep?, jointPain?, notes?, savedAt }` |
+| `cycle` | object | L7 `{ cycleDay?, phase?, flow?, pmsSymptoms?[] }` when cycle module enabled |
+| `medicationDoses` | array | L3 per-dose log: `{ drug, status: 'taken'\|'skipped'\|'missed', scheduledAt? }` |
+
+## Preferences (Plan 04 logging)
+
+Stored in app settings / RN `Preferences` (not in each log entry):
+
+| Field | Type | Notes |
+| :--- | :--- | :--- |
+| `logFavorites` | object | `{ meals[], exercises[], medCombos[] }` for one-tap re-log (L2) |
+| `symptomTemplates` | array | User-learned chip sets per condition (L6) |
+| `medSchedule` | array | Scheduled drugs + dose times for wizard dose chips (L3) |
+| `cycleModuleEnabled` | boolean | Shows cycle fields in wizard (L7) |
+| `barcodeFoodLoggingEnabled` | boolean | Open Food Facts lookup in food step (L5) |
+| `guidedVoiceLogEnabled` | boolean | STT → field extraction in wizard (L11) |
+
+`trackingProfile` (Plan 03) gates progressive wizard categories (L1): food, exercise, medications unlock on a day schedule.
 
 ## Minimal log (quick save)
 

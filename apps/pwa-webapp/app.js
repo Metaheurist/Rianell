@@ -9471,6 +9471,10 @@ const PREDEFINED_EXERCISES = [
 
 // Initialize food and exercise arrays early (before DOMContentLoaded)
 let logFormFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
+let logFormSubEntryPeriod = 'partial';
+let logFormCycleDay = '';
+let logFormCyclePhase = '';
+let logFormCycleFlow = '';
 let logFormExerciseItems = []; // array of { name, duration } (duration in minutes)
 let logFormStressorsItems = [];
 let logFormSymptomsItems = [];
@@ -15305,7 +15309,7 @@ form.addEventListener("submit", e => {
     })
     .filter(item => item.name.length > 0);
   
-  const newEntry = {
+  let newEntry = {
     date: dateValue,
     bpm: Math.max(30, Math.min(120, parseInt(document.getElementById("bpm").value) || 0)), // Clamp between 30-120
     weight: weightValue.toFixed(1), // Always store as kg
@@ -15332,8 +15336,14 @@ form.addEventListener("submit", e => {
     hydration: document.getElementById("hydration")?.value ? parseFloat(document.getElementById("hydration").value) : undefined,
     medications: logFormMedications.length > 0 ? logFormMedications.map(function(m) {
       return { name: escapeHTML(m.name.trim().substring(0, 80)), times: (m.times || []).slice(0, 10), taken: !!m.taken };
-    }) : undefined
+    }) : undefined,
+    ...collectPlan04LogFields(dateValue),
   };
+
+  var Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (Shared && typeof Shared.normalizeLogEntry === 'function') {
+    newEntry = Shared.normalizeLogEntry(newEntry);
+  }
 
   // Remove undefined values to keep data clean
   Object.keys(newEntry).forEach(key => {
@@ -15345,6 +15355,29 @@ form.addEventListener("submit", e => {
   // Check for duplicate dates - prevent multiple entries for the same day
   const existingEntry = logs.find(log => log.date === newEntry.date);
   if (existingEntry) {
+    if (newEntry.subEntries && newEntry.subEntries.length && Shared && typeof Shared.mergeLogEntriesForDate === 'function') {
+      var mergedEntry = Shared.normalizeLogEntry(Shared.mergeLogEntriesForDate(existingEntry, newEntry));
+      var mergeIdx = logs.findIndex(function (log) { return log.date === newEntry.date; });
+      logs[mergeIdx] = mergedEntry;
+      Logger.info('Health log sub-entry merged', { date: newEntry.date, totalEntries: logs.length });
+      recordFrequentOptionsFromEntry(mergedEntry);
+      var wasOfflineMerge = !navigator.onLine;
+      if (wasOfflineMerge) addToOfflineQueue(newEntry.date);
+      saveLogsToStorage();
+      if (!wasOfflineMerge && appSettings.contributeAnonData && !appSettings.demoMode && typeof syncAnonymizedData === 'function') {
+        setTimeout(function () { syncAnonymizedData(); }, 1000);
+      }
+      logFormFoodByCategory = { breakfast: [], lunch: [], dinner: [], snack: [] };
+      logFormExerciseItems = [];
+      logFormStressorsItems = [];
+      logFormSymptomsItems = [];
+      logFormMedications = [];
+      if (typeof clearLogDraft === 'function') clearLogDraft();
+      if (typeof setLogWizardStep === 'function') setLogWizardStep(0, true);
+      showAlertModal(tUi('wizard.toast.entrySaved'), tUi('toast.saved'));
+      switchTab('home');
+      return;
+    }
     // Show validation error instead of allowing duplicate
     showAlertModal(`An entry for ${newEntry.date} already exists. Please edit the existing entry instead of creating a new one.`, 'Duplicate Entry');
     Logger.warn('Duplicate entry prevented', { date: newEntry.date });
@@ -15492,6 +15525,12 @@ let appSettings = {
   localeDefaultsApplied: false,
   weightUnitSource: 'default',
   replayTutorial: false,
+  logFavorites: { meals: [], exercises: [], medCombos: [] },
+  symptomTemplates: [],
+  medSchedule: [],
+  cycleModuleEnabled: false,
+  barcodeFoodLoggingEnabled: false,
+  guidedVoiceLogEnabled: false,
 };
 
 // Make appSettings available on window for safe access
@@ -16556,6 +16595,14 @@ function loadSettingsState() {
     demoModeToggle.style.cursor = 'pointer';
     demoModeToggle.style.pointerEvents = 'auto';
   }
+
+  var cycleModuleToggle = document.getElementById('cycleModuleToggle');
+  if (cycleModuleToggle) cycleModuleToggle.classList.toggle('active', !!appSettings.cycleModuleEnabled);
+  var barcodeFoodToggle = document.getElementById('barcodeFoodToggle');
+  if (barcodeFoodToggle) barcodeFoodToggle.classList.toggle('active', !!appSettings.barcodeFoodLoggingEnabled);
+  var guidedVoiceToggle = document.getElementById('guidedVoiceToggle');
+  if (guidedVoiceToggle) guidedVoiceToggle.classList.toggle('active', !!appSettings.guidedVoiceLogEnabled);
+  if (typeof syncLogWizardPlan04Ui === 'function') syncLogWizardPlan04Ui();
   
   // Update medical condition display and disable in demo mode
   const medicalConditionDisplay = document.getElementById('medicalConditionDisplay');
@@ -19580,6 +19627,7 @@ function setLogWizardStep(step, skipHashUpdate) {
     if (review) review.innerHTML = buildLogReviewSummaryHtml();
   }
   updateLogWizardChrome();
+  if (step === 0 && typeof syncLogWizardPlan04Ui === 'function') syncLogWizardPlan04Ui();
   var panel = document.getElementById('logTab');
   if (panel) {
     if (step === LOG_WIZARD_TOTAL_STEPS - 1) {
@@ -19613,6 +19661,62 @@ function validateLogWizardStep(step) {
   return true;
 }
 
+function syncLogWizardPlan04Ui() {
+  var cycleBlock = document.getElementById('logCycleBlock');
+  if (cycleBlock) {
+    cycleBlock.classList.toggle('hidden', !appSettings.cycleModuleEnabled);
+  }
+}
+
+function collectPlan04LogFields(dateValue) {
+  var out = {};
+  var periodEl = document.getElementById('logSubEntryPeriod');
+  var period = periodEl && periodEl.value ? periodEl.value : 'partial';
+  if (period === 'AM' || period === 'PM') {
+    out.subEntries = [{
+      id: (dateValue || '') + '-' + period,
+      period: period,
+      savedAt: new Date().toISOString(),
+    }];
+  }
+  if (appSettings.cycleModuleEnabled) {
+    var cycle = {};
+    var cd = document.getElementById('logCycleDay');
+    var phaseEl = document.getElementById('logCyclePhase');
+    var flowEl = document.getElementById('logCycleFlow');
+    if (cd && cd.value) cycle.cycleDay = parseInt(cd.value, 10);
+    if (phaseEl && phaseEl.value) cycle.phase = phaseEl.value;
+    if (flowEl && flowEl.value) cycle.flow = flowEl.value;
+    if (Object.keys(cycle).length) out.cycle = cycle;
+  }
+  return out;
+}
+
+function rianellShouldShowWizardCategory(category) {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (S && typeof S.shouldShowWizardCategory === 'function' && appSettings.trackingProfile) {
+    return S.shouldShowWizardCategory(appSettings.trackingProfile, category);
+  }
+  return true;
+}
+
+function resolveLogWizardStep(step, direction) {
+  var s = step;
+  while (s >= 0 && s < LOG_WIZARD_TOTAL_STEPS) {
+    if (direction > 0) {
+      if (s === 6 && !rianellShouldShowWizardCategory('food')) { s++; continue; }
+      if (s === 7 && !rianellShouldShowWizardCategory('exercise')) { s++; continue; }
+      if (s === 8 && !rianellShouldShowWizardCategory('medications')) { s++; continue; }
+    } else if (direction < 0) {
+      if (s === 8 && !rianellShouldShowWizardCategory('medications')) { s--; continue; }
+      if (s === 7 && !rianellShouldShowWizardCategory('exercise')) { s--; continue; }
+      if (s === 6 && !rianellShouldShowWizardCategory('food')) { s--; continue; }
+    }
+    return s;
+  }
+  return Math.max(0, Math.min(LOG_WIZARD_TOTAL_STEPS - 1, step));
+}
+
 function logWizardGoNext() {
   if (!validateLogWizardStep(currentLogWizardStep)) {
     var summaryElement = document.getElementById('validationSummary');
@@ -19622,7 +19726,7 @@ function logWizardGoNext() {
     return;
   }
   if (currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1) {
-    setLogWizardStep(currentLogWizardStep + 1);
+    setLogWizardStep(resolveLogWizardStep(currentLogWizardStep + 1, 1));
   }
 }
 
@@ -19700,13 +19804,13 @@ function logWizardSkipCurrentStep() {
   if (!canSkip) return;
   clearLogWizardStepData(currentLogWizardStep);
   if (currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1) {
-    setLogWizardStep(currentLogWizardStep + 1);
+    setLogWizardStep(resolveLogWizardStep(currentLogWizardStep + 1, 1));
   }
 }
 
 function logWizardGoBack() {
   if (currentLogWizardStep > 0) {
-    setLogWizardStep(currentLogWizardStep - 1);
+    setLogWizardStep(resolveLogWizardStep(currentLogWizardStep - 1, -1));
   } else {
     if (typeof switchTab === 'function') switchTab('home', true);
   }

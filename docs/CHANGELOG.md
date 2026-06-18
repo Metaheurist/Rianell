@@ -2,7 +2,19 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.92.7** - Plan 03: Settings & onboarding (S1–S8).
+**Latest: v1.92.8** - Plan 04: Logging & data capture (L1–L11 excl. NR).
+
+### v1.92.8 - 2026-06-18 - Plan 04 logging & data capture (L1–L11)
+- **L1:** Progressive wizard category unlock from `trackingProfile` (food / exercise / meds schedule).
+- **L2:** Log favourites (meals, exercises) in preferences + one-tap chips in RN/PWA wizard.
+- **L3:** Medication schedule model, per-dose taken/skipped/missed in wizard; settings editor on RN.
+- **L5:** Open Food Facts barcode lookup in RN wizard (feature-flagged).
+- **L6:** User-learned symptom template chips per condition in settings + wizard.
+- **L7:** Cycle day / phase / flow fields with optional module toggle.
+- **L8:** AM/PM sub-entries in shared schema; merge-on-save when same date.
+- **L9:** RN offline queue wired on wizard save (`wizardPersist` + unit tests).
+- **L11:** Deterministic guided voice field extraction (feature-flagged).
+- **Shared:** `normalizeLogEntry` extensions, `docs/data-model.md`, parity inventory, Tier A i18n overrides.
 
 ### v1.92.7 - 2026-06-18 - Plan 03 settings & onboarding (S1–S8)
 - **S1:** RN tutorial modal + replay from Settings; PWA “Show tutorial again”.

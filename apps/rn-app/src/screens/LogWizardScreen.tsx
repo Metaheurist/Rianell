@@ -28,6 +28,9 @@ import {
   getSymptomChipsForCondition,
   shouldShowWizardCategory,
   extractLogFieldsFromVoiceTranscript,
+  buildTodayMedDoseStatuses,
+  fetchOpenFoodFactsProduct,
+  formatBarcodeFoodLabel,
 } from '@rianell/shared';
 import { buildLogReviewSummary, parseMedicationNamesCsv } from '../log/buildLogReviewSummary';
 import type { RootStackParamList } from '../navigation/RootNavigator';
@@ -735,6 +738,9 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   const [cycleDay, setCycleDay] = useState('');
   const [cyclePhase, setCyclePhase] = useState('');
   const [cycleFlow, setCycleFlow] = useState('');
+  const [barcodeInput, setBarcodeInput] = useState('');
+  const [barcodeBusy, setBarcodeBusy] = useState(false);
+  const [medDoseStatus, setMedDoseStatus] = useState<Record<string, 'taken' | 'skipped' | 'missed'>>({});
 
   if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -822,6 +828,10 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   const showMedicationsStep = shouldShowWizardCategory(prefs.trackingProfile, 'medications');
   const favoriteMeals = prefs.logFavorites?.meals ?? [];
   const favoriteExercises = prefs.logFavorites?.exercises ?? [];
+  const todayMedDoses = useMemo(
+    () => buildTodayMedDoseStatuses(prefs.medSchedule, date),
+    [prefs.medSchedule, date],
+  );
   const breakfastItems = useMemo(() => parseCsvList(breakfastText), [breakfastText]);
   const lunchItems = useMemo(() => parseCsvList(lunchText), [lunchText]);
   const dinnerItems = useMemo(() => parseCsvList(dinnerText), [dinnerText]);
@@ -896,6 +906,12 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               flow: cycleFlow || undefined,
             }
           : undefined,
+      medicationDoses: todayMedDoses.length
+        ? todayMedDoses.map((d) => ({
+            ...d,
+            status: medDoseStatus[d.scheduledAt] || d.status,
+          }))
+        : undefined,
     };
     return normalizeLogEntry(base) as LogEntry;
   }, [
@@ -928,6 +944,8 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     cyclePhase,
     cycleFlow,
     prefs.cycleModuleEnabled,
+    todayMedDoses,
+    medDoseStatus,
   ]);
 
   async function onSuggestNote() {
@@ -962,6 +980,22 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   function goToStep(next: Step) {
     hapticLight();
     setStep(next);
+  }
+
+  async function lookupBarcodeFood() {
+    if (!prefs.barcodeFoodLoggingEnabled || barcodeBusy || !barcodeInput.trim()) return;
+    setBarcodeBusy(true);
+    try {
+      const product = await fetchOpenFoodFactsProduct(barcodeInput.trim());
+      const label = formatBarcodeFoodLabel(product);
+      if (label) setBreakfastText((prev) => addCsvItem(prev, label));
+      toast.show(t('wizard.barcode.added', { name: label }));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : t('wizard.barcode.failed');
+      Alert.alert(t('common.error'), msg);
+    } finally {
+      setBarcodeBusy(false);
+    }
   }
 
   function applyNotesFromVoice(nextNotes: string) {
@@ -1623,6 +1657,22 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 </View>
               </View>
             ) : null}
+            {prefs.barcodeFoodLoggingEnabled ? (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.barcode.title')}</Text>
+                <TextInput
+                  value={barcodeInput}
+                  onChangeText={setBarcodeInput}
+                  style={[styles.input, { color: theme.tokens.color.text }]}
+                  keyboardType="number-pad"
+                  placeholder={t('wizard.barcode.placeholder')}
+                  placeholderTextColor="rgba(255,255,255,0.6)"
+                />
+                <Pressable onPress={() => void lookupBarcodeFood()} style={[styles.secondaryBtn, { marginTop: 6 }]} disabled={barcodeBusy}>
+                  <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{barcodeBusy ? t('common.loading') : t('wizard.barcode.lookup')}</Text>
+                </Pressable>
+              </View>
+            ) : null}
             <View style={{ marginTop: 6, marginBottom: 8, alignItems: 'flex-start' }}>
               <Pressable
                 onPress={() => {
@@ -1763,6 +1813,30 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
           </View>
         ) : step === 7 ? (
           <View>
+            {!showExerciseStep ? (
+              <>
+                <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('wizard.progressive.exerciseLocked')}</Text>
+                <View style={[styles.navRow, { flexDirection: rowDir }]}>
+                  <Pressable onPress={() => goToStep(6)} style={styles.secondaryBtn} accessibilityRole="button">
+                    <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
+                  </Pressable>
+                  <Pressable onPress={() => goToStep(8)} style={styles.primaryBtn} accessibilityRole="button">
+                    <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
+                  </Pressable>
+                </View>
+              </>
+            ) : (
+              <>
+            {favoriteExercises.length > 0 ? (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('wizard.favoriteExercises')}</Text>
+                <View style={styles.chips}>
+                  {favoriteExercises.map((item) => (
+                    <Choice key={`fav-ex-${item}`} label={item} selected={exerciseText.includes(item)} onPress={() => setExerciseText((prev) => addCsvItem(prev, item))} />
+                  ))}
+                </View>
+              </View>
+            ) : null}
             <View style={{ marginTop: 6, marginBottom: 8, alignItems: 'flex-start' }}>
               <Pressable
                 onPress={() => setExerciseText('')}
@@ -1841,9 +1915,39 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
               </Pressable>
             </View>
+              </>
+            )}
           </View>
         ) : step === 8 ? (
           <View>
+            {!showMedicationsStep ? (
+              <>
+                <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('wizard.progressive.medsLocked')}</Text>
+                <View style={[styles.navRow, { flexDirection: rowDir }]}>
+                  <Pressable onPress={() => goToStep(7)} style={styles.secondaryBtn} accessibilityRole="button">
+                    <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
+                  </Pressable>
+                  <Pressable onPress={() => goToStep(9)} style={styles.primaryBtn} accessibilityRole="button">
+                    <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
+                  </Pressable>
+                </View>
+              </>
+            ) : (
+              <>
+            {todayMedDoses.length > 0 ? (
+              <View style={{ marginBottom: 10 }}>
+                <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.medSchedule.today')}</Text>
+                {todayMedDoses.map((dose) => (
+                  <View key={dose.scheduledAt} style={[styles.row, { flexDirection: rowDir, marginBottom: 6 }]}>
+                    <Text style={{ color: theme.tokens.color.text, flex: 1, fontSize: theme.font(13) }}>
+                      {dose.drug} · {dose.scheduledAt.slice(11, 16)}
+                    </Text>
+                    <Choice label={t('wizard.med.taken')} selected={medDoseStatus[dose.scheduledAt] === 'taken'} onPress={() => setMedDoseStatus((p) => ({ ...p, [dose.scheduledAt]: 'taken' }))} />
+                    <Choice label={t('wizard.med.skipped')} selected={medDoseStatus[dose.scheduledAt] === 'skipped'} onPress={() => setMedDoseStatus((p) => ({ ...p, [dose.scheduledAt]: 'skipped' }))} />
+                  </View>
+                ))}
+              </View>
+            ) : null}
             <View style={{ marginTop: 6, marginBottom: 8, alignItems: 'flex-start' }}>
               <Pressable
                 onPress={() => setMedicationText('')}
@@ -1934,6 +2038,8 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
               </Pressable>
             </View>
+              </>
+            )}
           </View>
         ) : (
           <View>

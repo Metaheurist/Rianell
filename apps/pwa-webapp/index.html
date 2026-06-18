@@ -1314,6 +1314,21 @@
           <small style="display: block; opacity: 0.7; font-size: 0.85rem; text-align: right; width: 100%;">Demo data is not saved or synced</small>
         </div>
       </div>
+      <div class="settings-section">
+        <h4 data-i18n="settings.dataOptions.loggingSection">Logging modules</h4>
+        <div class="settings-option">
+          <label data-i18n="settings.logging.cycleModule">Cycle tracking module</label>
+          <div class="toggle-switch" id="cycleModuleToggle" onclick="toggleSetting('cycleModuleEnabled')"></div>
+        </div>
+        <div class="settings-option">
+          <label data-i18n="settings.logging.barcodeFood">Barcode food logging</label>
+          <div class="toggle-switch" id="barcodeFoodToggle" onclick="toggleSetting('barcodeFoodLoggingEnabled')"></div>
+        </div>
+        <div class="settings-option">
+          <label data-i18n="settings.logging.guidedVoice">Guided voice log extraction</label>
+          <div class="toggle-switch" id="guidedVoiceToggle" onclick="toggleSetting('guidedVoiceLogEnabled')"></div>
+        </div>
+      </div>
       </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Performance" data-i18n-title="settings.performance.title" data-settings-pane-i18n="settings.performance.title" role="tabpanel" aria-hidden="true">
       <div class="settings-section">
@@ -1681,6 +1696,43 @@
             <option value="Yes" data-i18n="common.yes">Yes</option>
           </select>
           <div class="validation-message" id="flare-error"></div>
+        </div>
+      </div>
+      <div class="log-required-block">
+        <label for="logSubEntryPeriod" data-i18n="wizard.subEntry.period">Entry period</label>
+        <div class="input-container">
+          <select id="logSubEntryPeriod">
+            <option value="partial" data-i18n="wizard.subEntry.fullDay">Full day</option>
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+          </select>
+        </div>
+      </div>
+      <div class="log-required-block hidden" id="logCycleBlock">
+        <p class="settings-hint" data-i18n="wizard.cycle.title">Cycle tracking</p>
+        <label for="logCycleDay" data-i18n="wizard.cycle.day">Cycle day</label>
+        <div class="input-container">
+          <input type="number" id="logCycleDay" min="1" max="45" />
+        </div>
+        <label for="logCyclePhase" data-i18n="wizard.cycle.phase">Phase</label>
+        <div class="input-container">
+          <select id="logCyclePhase">
+            <option value="">—</option>
+            <option value="menstrual">Menstrual</option>
+            <option value="follicular">Follicular</option>
+            <option value="ovulation">Ovulation</option>
+            <option value="luteal">Luteal</option>
+          </select>
+        </div>
+        <label for="logCycleFlow" data-i18n="wizard.cycle.flow">Flow</label>
+        <div class="input-container">
+          <select id="logCycleFlow">
+            <option value="">—</option>
+            <option value="none">None</option>
+            <option value="light">Light</option>
+            <option value="medium">Medium</option>
+            <option value="heavy">Heavy</option>
+          </select>
         </div>
       </div>
       <p class="settings-hint log-quick-log-hint" data-i18n="common.only.need.date.and.flare.save.a.minimal.">Only need date and flare? Save a minimal entry and add details later.</p>
