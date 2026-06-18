@@ -28,8 +28,27 @@ jest.mock('../ai/llm', () => ({
   suggestLogNote: jest.fn(async () => 'AI suggested line.'),
 }));
 
+jest.mock('@react-native-community/netinfo', () => ({
+  fetch: jest.fn(async () => ({ isConnected: true })),
+  addEventListener: jest.fn(() => () => {}),
+}));
+
+/** Progressive L1 unlocks food/exercise/meds over time — tests need all categories visible. */
+function wizardTestPrefs(override?: Partial<ReturnType<typeof getDefaultPreferences>>) {
+  const prefs = getDefaultPreferences();
+  return {
+    ...prefs,
+    trackingProfile: {
+      condition: 'Test condition',
+      fields: { mood: true, pain: true, notes: true, sleep: true, fatigue: true },
+      configuredAt: new Date(Date.now() - 86400000 * 30).toISOString(),
+    },
+    ...override,
+  };
+}
+
 function renderWizard(overridePrefs?: ReturnType<typeof getDefaultPreferences>) {
-  const prefs = overridePrefs ?? getDefaultPreferences();
+  const prefs = overridePrefs ?? wizardTestPrefs();
   return renderWithProviders(<LogWizardScreen prefs={prefs} />, { prefs });
 }
 
@@ -257,8 +276,7 @@ test('suggest note appends AI text on medications step', async () => {
 });
 
 test('suggest note control is hidden when AI is disabled', async () => {
-  const prefs = getDefaultPreferences();
-  prefs.aiEnabled = false;
+  const prefs = wizardTestPrefs({ aiEnabled: false });
   const { getByLabelText, queryByLabelText, findByText } = renderWizard(prefs);
 
   for (let i = 0; i < 8; i++) {
