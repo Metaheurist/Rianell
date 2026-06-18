@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.92.3** - UI typography (hyphens), console noise reduction, Summary LLM timeouts, AI & Goals layout fix.
+**Latest: v1.92.4** - GitHub Actions Node 24-native action majors; drop FORCE_JAVASCRIPT flag; verify guard.
+
+### v1.92.4 - 2026-06-14 - GitHub Actions Node 24 migration
+- **Action runtimes:** Upgrade first-party pins to Node 24-native majors — `actions/cache@v5` (11 sites), `upload-pages-artifact@v5` + `deploy-pages@v5`, `actions/setup-java@v5`, `actions/github-script@v8`, `softprops/action-gh-release@v3`.
+- **Manual LLM workflows:** `llm-webgpu-manual.yml` and `llm-rn-gpu-manual.yml` use `checkout@v5` + `setup-node-ci` (dedupe `npm ci` / Playwright install).
+- **FORCE flag removed:** Drop `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24` from `ci.yml` and `audit-llm-live.yml`; header comment documents job Node vs action runtime.
+- **Verify guard:** `scripts/verify/verify-github-actions-node24.mjs` + `npm run verify:github-actions`; wired into CI unit-tests job.
 
 ### v1.92.3 - 2026-06-14 - UI hyphens, console hygiene, LLM timeouts
 - **Typography:** Replace em dashes (`—`) with hyphens (`-`) across all user-facing UI copy — locale/MOTD/policy i18n packs, tier-A translation overrides, home AI suggestions, policy titles, PWA/RN screens.
@@ -617,7 +623,7 @@ Shipped as one release commit with four staged bodies (security → performance 
 ### v1.46.22 - 2026-04-12 - Tooling: Node.js 24.14.1 LTS
 
 - **Node / npm:** Root **`engines.node`** set to **`>=24.14.1`**. **`.nvmrc`** and **`.node-version`** at the repository root pin **24.14.1** for local development. **`package-lock.json`** regenerated under Node 24.
-- **CI:** All **`actions/setup-node`** steps use **`node-version: "24.14.1"`** (`.github/workflows/ci.yml`, `security-audit.yml`, `expo-native-build.yml`, `legacy-capacitor.yml`). Header comment in **`ci.yml`** documents job Node vs `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`.
+- **CI:** All **`actions/setup-node`** steps use **`node-version: "24.14.1"`** via **`setup-node-ci`** composite (`.github/workflows/ci.yml`, `security-audit.yml`, archived `expo-native-build.yml`). First-party JS action pins (cache, pages, setup-java, github-script, softprops release) run on Node 24-native majors; **`FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`** removed.
 - **npm overrides:** **`@xmldom/xmldom`** pinned to **0.8.12** where the resolver honours it (legacy **@capacitor/assets** / Trapeze nested copies may still warn on a full `npm audit`).
 - **Legacy Capacitor shell:** **`vite`** raised to **`^6.4.2`** (security patches in the 6.4 line).
 - **React Native tests:** **`react-test-renderer`** pinned to **19.2.4** to match **`react`** and avoid peer resolution drift.

@@ -1,7 +1,7 @@
 {
   "name": "rianell",
   "private": true,
-  "version": "1.92.3",
+  "version": "1.92.4",
   "description": "Rianell - health dashboard (rianell.com); PWA webapp and React Native app",
   "workspaces": [
     "apps/rn-app",
@@ -50,6 +50,7 @@
     "audit:boot:strict": "node scripts/audit/audit-boot-full.mjs",
     "audit:boot:save-baseline": "node -e \"require('fs').copyFileSync('audit-history/latest-boot-audit.json','audit-history/baseline.json')\"",
     "verify:root-hygiene": "node scripts/verify/migration-root-hygiene.mjs",
+    "verify:github-actions": "node scripts/verify/verify-github-actions-node24.mjs",
     "wiki:verify": "node scripts/wiki/verify-wiki.mjs",
     "wiki:sync": "node scripts/wiki/sync-wiki.mjs",
     "wiki:sync:dry-run": "node scripts/wiki/sync-wiki.mjs --dry-run",
