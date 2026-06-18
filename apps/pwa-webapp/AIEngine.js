@@ -3136,13 +3136,16 @@ const AIEngine = {
     const metrics = ['backPain', 'stiffness', 'fatigue', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability'];
     const higherIsBetter = ['sleep', 'mobility', 'mood', 'dailyFunction'];
     const recent = recentLogs.filter(l => l.date !== log.date).slice(-14);
-    if (recent.length === 0) return '';
+    if (recent.length === 0) {
+      if (log.flare === 'Yes') return 'Flare day — note how you feel and pace activity.';
+      return '';
+    }
     const parts = [];
     metrics.forEach(metric => {
       const v = metric === 'weight' ? parseFloat(log[metric]) : (parseInt(log[metric], 10) || 0);
       if (isNaN(v)) return;
       const vals = recent.map(l => metric === 'weight' ? parseFloat(l[metric]) : (parseInt(l[metric], 10) || 0)).filter(x => !isNaN(x));
-      if (vals.length < 3) return;
+      if (vals.length < 2) return;
       const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
       const diff = v - avg;
       const name = metric.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
@@ -3154,7 +3157,11 @@ const AIEngine = {
         else if (diff <= -1) parts.push({ text: name + ' improved vs average', score: -diff });
       }
     });
-    if (parts.length === 0) return '';
+    if (parts.length === 0) {
+      if (log.flare === 'Yes') return 'Flare day — similar to recent entries; note any changes you felt.';
+      if (recent.length >= 1) return 'Similar to your recent entries; note anything that felt different today.';
+      return '';
+    }
     parts.sort((a, b) => b.score - a.score);
     const top = parts.slice(0, 2).map(p => p.text).join('; ');
     return top ? top + '.' : '';

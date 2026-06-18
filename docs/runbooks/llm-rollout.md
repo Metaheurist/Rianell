@@ -25,9 +25,10 @@ Tier 5 Llama probes require `HF_TOKEN` in environment.
 
 ## Settings
 
-- **Processing mode:** Settings → **How summaries run** (`auto` | `onnx` | `mlc` | `gguf`) — user-facing labels: Automatic (recommended), Compatible mode, Fast mode (uses graphics), Experimental  
+- **Performance tab:** Model status and download progress are always visible; manual tier, processing mode, storage, maintenance, and force-large WASM live under **Advanced** (collapsed by default, auto-expands when overrides or download are active).
+- **Processing mode:** Settings → Performance → **Advanced** → **How summaries run** (`auto` | `onnx` | `mlc` | `gguf`) — user-facing labels: Automatic (recommended), Compatible mode, Fast mode (uses graphics), Experimental  
 - **Backend label:** Shown in model status when loaded (e.g. “graphics acceleration”, “standard processing”, “fast mode”)  
-- **Advanced:** “Allow full-quality model without graphics acceleration” — requires ≥8 GB memory + consent  
+- **Force-large WASM:** Under **Advanced** — “Allow full-quality model without graphics acceleration”; requires ≥8 GB memory + consent  
 - **CDN rollback:** `localStorage.rianellTransformersCdn=1`  
 - **Vendor rollback:** Re-run `npm run vendor:transformers` with pinned 3.3.2 tarball from runbook archive
 

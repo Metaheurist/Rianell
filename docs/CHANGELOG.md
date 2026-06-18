@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.92.1** - GPU LLM Path 2 production fixes, plain-language AI settings, tab indicator alignment.
+**Latest: v1.92.2** - Settings Performance Advanced disclosure, suggest note fix, settings UX polish.
+
+### v1.92.2 - 2026-06-14 - Settings Performance Advanced, suggest note
+- **Settings Performance (PWA):** Collapse manual AI controls (tier, engine, storage, clear/redownload, force-large WASM) behind a collapsed-by-default **Advanced** `<details>` section; model status and download progress stay visible; auto-expands when non-default prefs or active download.
+- **Suggest note:** Fix silent failure when AI engine not ready — rule-based fallback, lazy-load `summary-llm.js`, user feedback when empty; relax readiness/context thresholds in `summary-llm.js` / `AIEngine.js`.
+- **Settings UX:** Hide scrollbars in settings carousel/content panes; medical-condition gate opens Settings → Personal instead of alert with literal `\n\n`.
+- **i18n:** `settings.performance.advanced` + hint; shorten force-large label (no redundant “advanced” suffix).
 
 ### v1.92.1 - 2026-06-17 - GPU Path 2 fixes, UX polish
 - **PWA MLC (Path 2):** Fix WebLLM worker setup — progress callback on main thread only (avoids `postMessage` clone error); correct `WebWorkerMLCEngine` + `reload(modelId)` API.

@@ -1213,7 +1213,7 @@
   function buildSuggestContext(todayStub, recentLogs) {
     var metrics = ['backPain', 'stiffness', 'fatigue', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability'];
     var recent = (recentLogs || []).filter(function (l) { return l.date !== (todayStub && todayStub.date); }).slice(-14);
-    if (recent.length < 2) return '';
+    if (recent.length < 1) return '';
 
     var todayParts = [];
     var avgParts = [];
@@ -1223,7 +1223,7 @@
       var num = m === 'weight' ? parseFloat(v) : (parseInt(v, 10) || 0);
       if (isNaN(num)) return;
       var vals = recent.map(function (l) { return m === 'weight' ? parseFloat(l[m]) : (parseInt(l[m], 10) || 0); }).filter(function (x) { return !isNaN(x); });
-      if (vals.length < 2) return;
+      if (vals.length < 1) return;
       var avg = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
       var name = metricLabel(m);
       todayParts.push(name + ' ' + (m === 'weight' ? num.toFixed(1) : num));
@@ -1417,6 +1417,10 @@
     return warmupPipelineOrThrow();
   }
 
+  function isAiModelReadyForInference() {
+    return !!(cachedPipeline && cachedModelId && !downloadProgressState.active && !lastDownloadError);
+  }
+
   function getAiModelStatus() {
     var info = getResolvedLlmModelInfo();
     var base = {
@@ -1557,6 +1561,7 @@
   window.getResolvedLlmTierInfo = getResolvedLlmTierInfo;
   window.getAiModelDownloadProgress = function () { return downloadProgressState; };
   window.getAiModelStatus = getAiModelStatus;
+  window.isAiModelReadyForInference = isAiModelReadyForInference;
   window.getAiModelStorageEstimate = getAiModelStorageEstimate;
   window.clearAiModelCache = clearAiModelCache;
   window.preloadSummaryLLM = function (options) {

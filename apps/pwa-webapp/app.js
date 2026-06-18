@@ -4555,27 +4555,62 @@ function updateNotesCounter() {
 
 if (notesField) notesField.addEventListener('input', updateNotesCounter);
 
-// Suggest note: LLM when available (same pipeline as Summary note), else rule-based (AIEngine.suggestLogNote)
+// Suggest note: LLM when pipeline ready, else rule-based (AIEngine.suggestLogNote)
 (function() {
   var suggestBtn = document.getElementById('suggestNoteBtn');
   if (!suggestBtn) return;
+
+  function readSuggestStub() {
+    var dateEl = document.getElementById('date');
+    var stub = { date: dateEl ? dateEl.value : '' };
+    var flareEl = document.getElementById('flare');
+    if (flareEl) stub.flare = flareEl.value || 'No';
+    ['backPain', 'stiffness', 'fatigue', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability', 'weight'].forEach(function(m) {
+      var el = document.getElementById(m);
+      if (!el) return;
+      stub[m] = m === 'weight' ? parseFloat(el.value) : (parseInt(el.value, 10) || 0);
+    });
+    return stub;
+  }
+
+  function notifySuggestEmpty() {
+    var msg = typeof tUi === 'function' ? tUi('wizard.alert.suggestNote.failed') : 'Could not suggest a note';
+    if (typeof showAlertModal === 'function') {
+      showAlertModal(
+        'Adjust a few sliders or add more past logs so we can compare today to your recent average.',
+        msg
+      );
+    } else if (typeof showToast === 'function') {
+      showToast(msg, { type: 'info' });
+    }
+  }
+
   suggestBtn.addEventListener('click', async function() {
     if (window.PerformanceUtils && typeof window.PerformanceUtils.ensureAIEngineLoaded === 'function') {
       try {
         await window.PerformanceUtils.ensureAIEngineLoaded();
       } catch (e) {
-        return;
+        if (typeof console !== 'undefined' && console.warn) {
+          console.warn('Suggest note: AIEngine load failed, continuing with rule-based only:', e);
+        }
       }
     }
     if (!window.AIEngine || typeof window.AIEngine.suggestLogNote !== 'function') return;
-    var dateEl = document.getElementById('date');
-    var stub = { date: dateEl ? dateEl.value : '' };
-    var flareEl = document.getElementById('flare');
-    if (flareEl) stub.flare = flareEl.value || 'No';
-    ['backPain', 'stiffness', 'fatigue', 'sleep', 'jointPain', 'mobility', 'dailyFunction', 'swelling', 'mood', 'irritability'].forEach(function(m) {
-      var el = document.getElementById(m);
-      if (el) stub[m] = m === 'weight' ? parseFloat(el.value) : (parseInt(el.value, 10) || 0);
-    });
+
+    var stub = readSuggestStub();
+    var btnLabel = suggestBtn.textContent || suggestBtn.innerText;
+
+    function applySuggestion(text) {
+      var trimmed = (text || '').trim();
+      if (trimmed && notesField) {
+        var cur = (notesField.value || '').trim();
+        notesField.value = cur ? cur + ' ' + trimmed : trimmed;
+        updateNotesCounter();
+        return true;
+      }
+      return false;
+    }
+
     try {
       var raw = typeof localStorage !== 'undefined' && localStorage.getItem('healthLogs');
       var allLogs = raw ? JSON.parse(raw) : [];
@@ -4584,53 +4619,45 @@ if (notesField) notesField.addEventListener('input', updateNotesCounter);
         : allLogs.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
       var fallback = window.AIEngine.suggestLogNote(stub, { recentLogs: sorted });
       var contextStr = (typeof window.buildSuggestContext === 'function') ? window.buildSuggestContext(stub, sorted) : '';
-      var useLLM = (typeof window.generateSuggestNoteWithLLM === 'function' || (window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low')) && contextStr && contextStr.length >= 30;
 
-      function applySuggestion(text) {
-        if (text && notesField) {
-          var cur = (notesField.value || '').trim();
-          notesField.value = cur ? cur + ' ' + text : text;
-          updateNotesCounter();
-        }
+      if (contextStr && contextStr.length >= 30 && typeof window.generateSuggestNoteWithLLM !== 'function'
+          && window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
+        try {
+          await window.PerformanceUtils.lazyLoadScript('summary-llm.js');
+        } catch (e) {}
       }
+
+      var llmReady = typeof window.isAiModelReadyForInference === 'function' && window.isAiModelReadyForInference();
+      var useLLM = llmReady && typeof window.generateSuggestNoteWithLLM === 'function'
+        && contextStr && contextStr.length >= 30;
 
       if (useLLM) {
-        var btnLabel = suggestBtn.textContent || suggestBtn.innerText;
-        suggestBtn.textContent = tUi('common.loading.generating');
+        suggestBtn.textContent = typeof tUi === 'function' ? tUi('common.loading.generating') : 'Generating…';
         suggestBtn.disabled = true;
-        if (typeof window.generateSuggestNoteWithLLM !== 'function' && window.PerformanceUtils && window.PerformanceUtils.platform && window.PerformanceUtils.platform.deviceClass === 'low' && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
-          try {
-            await window.PerformanceUtils.lazyLoadScript('summary-llm.js');
-          } catch (e) {}
-        }
-        if (typeof window.generateSuggestNoteWithLLM === 'function') {
-          window.generateSuggestNoteWithLLM(contextStr, fallback || '')
-            .then(function(text) {
-              applySuggestion(text || fallback);
-            })
-            .catch(function() {
-              applySuggestion(fallback);
-            })
-            .finally(function() {
-              suggestBtn.textContent = btnLabel;
-              suggestBtn.disabled = false;
-            });
-        } else {
-          applySuggestion(fallback);
-          suggestBtn.textContent = btnLabel;
-          suggestBtn.disabled = false;
-        }
+        window.generateSuggestNoteWithLLM(contextStr, fallback || '')
+          .then(function(text) {
+            if (!applySuggestion(text || fallback)) notifySuggestEmpty();
+          })
+          .catch(function() {
+            if (!applySuggestion(fallback)) notifySuggestEmpty();
+          })
+          .finally(function() {
+            suggestBtn.textContent = btnLabel;
+            suggestBtn.disabled = false;
+          });
       } else {
-        applySuggestion(fallback);
+        if (!applySuggestion(fallback)) notifySuggestEmpty();
       }
     } catch (e) {
-      if (window.AIEngine && typeof window.AIEngine.suggestLogNote === 'function') {
-        var sorted = [];
-        try {
-          var raw = typeof localStorage !== 'undefined' && localStorage.getItem('healthLogs');
-          if (raw) sorted = JSON.parse(raw).sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
-        } catch (e2) {}
-        applySuggestion(window.AIEngine.suggestLogNote(stub, { recentLogs: sorted }));
+      try {
+        var sortedFallback = [];
+        var raw2 = typeof localStorage !== 'undefined' && localStorage.getItem('healthLogs');
+        if (raw2) sortedFallback = JSON.parse(raw2).sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+        var stub2 = readSuggestStub();
+        var text = window.AIEngine.suggestLogNote(stub2, { recentLogs: sortedFallback });
+        if (!applySuggestion(text)) notifySuggestEmpty();
+      } catch (e2) {
+        notifySuggestEmpty();
       }
     }
   });
@@ -15619,6 +15646,7 @@ function setPreferredLlmModel(value) {
   saveSettings();
   if (typeof window.clearSummaryLLMCache === 'function') window.clearSummaryLLMCache();
   if (typeof refreshLlmModelSettingsHints === 'function') refreshLlmModelSettingsHints();
+  if (typeof syncSettingsPerformanceAdvancedDisclosure === 'function') syncSettingsPerformanceAdvancedDisclosure();
 }
 if (typeof window !== 'undefined') window.setPreferredLlmModel = setPreferredLlmModel;
 
@@ -15634,6 +15662,7 @@ function setPreferredLlmEngine(value) {
   } catch (e) {}
   if (typeof window.clearSummaryLLMCache === 'function') window.clearSummaryLLMCache();
   if (typeof refreshLlmModelSettingsHints === 'function') refreshLlmModelSettingsHints();
+  if (typeof syncSettingsPerformanceAdvancedDisclosure === 'function') syncSettingsPerformanceAdvancedDisclosure();
 }
 if (typeof window !== 'undefined') window.setPreferredLlmEngine = setPreferredLlmEngine;
 
@@ -15686,6 +15715,7 @@ function togglePreferredLlmForceLargeOnWasm() {
   }
   if (typeof window.clearSummaryLLMCache === 'function') window.clearSummaryLLMCache();
   if (typeof refreshLlmModelSettingsHints === 'function') refreshLlmModelSettingsHints();
+  if (typeof syncSettingsPerformanceAdvancedDisclosure === 'function') syncSettingsPerformanceAdvancedDisclosure();
 }
 if (typeof window !== 'undefined') window.togglePreferredLlmForceLargeOnWasm = togglePreferredLlmForceLargeOnWasm;
 
@@ -15791,6 +15821,43 @@ function stopLlmStoragePoll() {
   updateLlmStorageHint();
 }
 
+var __settingsPerfAdvancedToggleBound = false;
+
+function shouldOpenSettingsPerformanceAdvanced() {
+  if (!appSettings) return false;
+  var tier = appSettings.preferredLlmModelSize || 'recommended';
+  if (tier !== 'recommended') return true;
+  var engine = appSettings.preferredLlmEngine || 'auto';
+  if (engine !== 'auto') return true;
+  if (appSettings.preferredLlmForceLargeOnWasm) return true;
+  var progressWrap = document.getElementById('llmModelSettingsProgressWrap');
+  if (progressWrap && !progressWrap.classList.contains('hidden')) return true;
+  var modelStatus = (typeof window.getAiModelStatus === 'function') ? window.getAiModelStatus() : null;
+  if (modelStatus && (modelStatus.state === 'downloading' || modelStatus.state === 'failed')) return true;
+  return false;
+}
+
+function syncSettingsPerformanceAdvancedDisclosure() {
+  var details = document.getElementById('settingsPerformanceAdvanced');
+  if (!details) return;
+  if (!__settingsPerfAdvancedToggleBound) {
+    __settingsPerfAdvancedToggleBound = true;
+    details.addEventListener('toggle', function () {
+      var summaryEl = details.querySelector('.settings-performance-advanced-summary');
+      if (summaryEl) summaryEl.setAttribute('aria-expanded', details.open ? 'true' : 'false');
+    });
+  }
+  var summary = details.querySelector('.settings-performance-advanced-summary');
+  var shouldOpen = shouldOpenSettingsPerformanceAdvanced();
+  if (shouldOpen) {
+    details.open = true;
+  }
+  if (summary) {
+    summary.classList.toggle('settings-performance-advanced-summary--active', shouldOpen);
+    summary.setAttribute('aria-expanded', details.open ? 'true' : 'false');
+  }
+}
+
 function refreshLlmModelSettingsHints() {
   var llmRecommendationHint = document.getElementById('llmModelRecommendationHint');
   var llmStorageHint = document.getElementById('llmModelStorageHint');
@@ -15881,6 +15948,10 @@ function refreshLlmModelSettingsHints() {
     } else {
       stopLlmStoragePoll();
     }
+  }
+
+  if (typeof syncSettingsPerformanceAdvancedDisclosure === 'function') {
+    syncSettingsPerformanceAdvancedDisclosure();
   }
 }
 
@@ -16533,6 +16604,9 @@ function loadSettingsState() {
     forceLargeToggle.classList.toggle('active', forceOn);
     forceLargeToggle.setAttribute('aria-checked', forceOn ? 'true' : 'false');
   }
+  if (typeof syncSettingsPerformanceAdvancedDisclosure === 'function') {
+    syncSettingsPerformanceAdvancedDisclosure();
+  }
 
   // Update contribute anonymised data toggle
   const contributeAnonDataToggle = document.getElementById('contributeAnonDataToggle');
@@ -16674,6 +16748,63 @@ function toggleTutorialAccessibilityReadMode() {
 }
 if (typeof window !== 'undefined') window.toggleTutorialAccessibilityReadMode = toggleTutorialAccessibilityReadMode;
 
+function getSettingsPaneIndexByI18nKey(i18nKey) {
+  var track = document.getElementById('settingsCarouselTrack');
+  if (!track) return 1;
+  var panes = track.querySelectorAll('.settings-carousel-pane');
+  for (var i = 0; i < panes.length; i++) {
+    if (panes[i].getAttribute('data-settings-pane-i18n') === i18nKey) return i;
+  }
+  return 1;
+}
+
+function openSettingsToMedicalCondition() {
+  var personalPaneIndex = getSettingsPaneIndexByI18nKey('settings.personal.title');
+
+  function revealMedicalConditionEditor() {
+    if (typeof settingsCarouselGo === 'function') {
+      settingsCarouselGo(personalPaneIndex);
+    }
+    window.settingsModalConditionSelectorOpen = true;
+    var selector = document.getElementById('medicalConditionSelector');
+    var displayContainer = document.getElementById('medicalConditionDisplayContainer');
+    if (selector && selector.style.display === 'none') {
+      if (typeof toggleConditionSelector === 'function') toggleConditionSelector();
+    } else if (selector) {
+      selector.style.display = 'block';
+      if (displayContainer) displayContainer.style.display = 'none';
+      if (typeof loadAvailableConditions === 'function') {
+        loadAvailableConditions('existingConditionsSelect');
+      }
+    }
+    setTimeout(function() {
+      var panes = document.querySelectorAll('.settings-carousel-pane');
+      var pane = panes[personalPaneIndex];
+      var focusTarget = document.getElementById('newConditionInput')
+        || document.getElementById('existingConditionsSelect')
+        || document.getElementById('medicalConditionBtn');
+      if (pane && focusTarget) {
+        try {
+          focusTarget.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        } catch (e) {
+          focusTarget.scrollIntoView(true);
+        }
+        if (typeof focusTarget.focus === 'function') focusTarget.focus({ preventScroll: true });
+      }
+    }, 320);
+  }
+
+  var overlay = document.getElementById('settingsOverlay');
+  var settingsOpen = overlay && overlay.classList.contains('settings-overlay--open');
+  if (!settingsOpen && typeof toggleSettings === 'function') {
+    toggleSettings();
+    setTimeout(revealMedicalConditionEditor, 120);
+  } else {
+    revealMedicalConditionEditor();
+  }
+}
+if (typeof window !== 'undefined') window.openSettingsToMedicalCondition = openSettingsToMedicalCondition;
+
 // Toggle contribute anonymised data
 // optionalToggleId: use 'tutorialContributeAnonDataToggle' when called from tutorial
 async function toggleContributeAnonData(optionalToggleId) {
@@ -16689,7 +16820,7 @@ async function toggleContributeAnonData(optionalToggleId) {
   const isPlaceholder = !condition || condition.trim() === '' || condition.trim().toLowerCase() === 'medical condition';
   
   if (isPlaceholder) {
-    showAlertModal(tUi('common.please.set.a.medical.condition.first.to.'), tUi('common.alert'));
+    openSettingsToMedicalCondition();
     return;
   }
   
@@ -16794,8 +16925,11 @@ async function toggleUseOpenData(optionalToggleId) {
     return;
   }
   
-  if (!appSettings.medicalCondition) {
-    showAlertModal(tUi('common.please.set.a.medical.condition.first.to..2'), tUi('common.alert'));
+  const condition = appSettings.medicalCondition || '';
+  const isPlaceholder = !condition || condition.trim() === '' || condition.trim().toLowerCase() === 'medical condition';
+
+  if (isPlaceholder) {
+    openSettingsToMedicalCondition();
     return;
   }
   
