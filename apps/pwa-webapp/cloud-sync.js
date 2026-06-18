@@ -846,6 +846,10 @@ function updateCloudSyncUI() {
     if (autoSyncCheckbox) {
       autoSyncCheckbox.checked = cloudSyncState.autoSync;
     }
+    const autoSyncOnOpenCheckbox = document.getElementById('cloudAutoSyncOnOpen');
+    if (autoSyncOnOpenCheckbox && typeof window !== 'undefined' && window.appSettings) {
+      autoSyncOnOpenCheckbox.checked = !!window.appSettings.cloudAutoSyncOnOpen;
+    }
     if (lastSyncText) {
       if (cloudSyncState.lastSync) {
         const lastSyncDate = new Date(cloudSyncState.lastSync);
@@ -1412,7 +1416,8 @@ async function decryptWithUserKey(encryptedData, userKey) {
 }
 
 // Sync user's health data to cloud (health_data table)
-async function syncToCloud() {
+async function syncToCloud(options) {
+  options = options && typeof options === 'object' ? options : {};
   if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.shouldAllowNetworkOperation === 'function') {
     if (!window.RianellShared.shouldAllowNetworkOperation(window.appSettings || {}, 'cloudSync')) {
       if (typeof showAlertModal === 'function') {
@@ -1517,8 +1522,25 @@ async function syncToCloud() {
       }
     }
     
-    // Merge logs: combine cloud and local, remove duplicates by date
-    const mergedLogs = mergeHealthLogs(localLogs, cloudLogs);
+    // Merge logs: detect conflicts before merge (Plan 06 D3)
+    const S = typeof window !== 'undefined' ? window.RianellShared : null;
+    const conflicts = S && typeof S.findLogSyncConflicts === 'function'
+      ? S.findLogSyncConflicts(localLogs, cloudLogs)
+      : [];
+    if (conflicts.length && !options.conflictPolicy) {
+      showSyncConflictModal(conflicts.length);
+      if (syncBtn) {
+        syncBtn.disabled = false;
+        syncBtn.innerHTML = '<span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-cloud"></use></svg> Sync Now</span>';
+      }
+      if (syncStatusIndicator) {
+        syncStatusIndicator.classList.remove('status-syncing');
+      }
+      return;
+    }
+    const mergedLogs = (conflicts.length && options.conflictPolicy && S && typeof S.mergeHealthLogsWithConflictPolicy === 'function')
+      ? S.mergeHealthLogsWithConflictPolicy(localLogs, cloudLogs, options.conflictPolicy)
+      : mergeHealthLogs(localLogs, cloudLogs);
     
     // Merge settings: local takes precedence over cloud
     const settingsJson = localStorage.getItem('rianellSettings');
@@ -1784,6 +1806,14 @@ async function syncDeletedLogToCloud(deletedDate) {
 
 // Load user's health data from cloud
 async function loadFromCloud() {
+  if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.shouldAllowNetworkOperation === 'function') {
+    if (!window.RianellShared.shouldAllowNetworkOperation(window.appSettings || {}, 'cloudSync')) {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal(tUi('settings.privacy.localOnly.cloudSync') + ' — disabled in local-only mode.', tUi('settings.privacy.localOnly.title'));
+      }
+      return;
+    }
+  }
   if (!cloudSyncState.isAuthenticated || !cloudSyncState.user) {
     console.warn('Cannot load from cloud: not authenticated');
     return;
@@ -2091,6 +2121,52 @@ async function upsertPrivacyProfile() {
   if (error) console.warn('upsertPrivacyProfile:', error);
 }
 
+/** Plan 06 D3 — conflict resolution modal (keep device / keep cloud / cancel). */
+function showSyncConflictModal(count) {
+  const overlay = document.getElementById('alertModalOverlay');
+  const titleEl = document.getElementById('alertModalTitle');
+  const messageEl = document.getElementById('alertModalMessage');
+  const footer = overlay ? overlay.querySelector('.alert-modal-footer') : null;
+  const title = typeof tUi === 'function' ? tUi('settings.cloud.conflictTitle') : 'Sync conflict';
+  let body = typeof tUi === 'function' ? tUi('settings.cloud.conflictBody') : '{count} date(s) differ between this device and the cloud.';
+  body = body.replace('{count}', String(count));
+  const keepLocal = typeof tUi === 'function' ? tUi('settings.cloud.keepLocal') : 'Keep device';
+  const keepCloud = typeof tUi === 'function' ? tUi('settings.cloud.keepCloud') : 'Keep cloud';
+  const cancel = typeof tUi === 'function' ? tUi('common.cancel') : 'Cancel';
+  if (!overlay || !titleEl || !messageEl || !footer) {
+    if (typeof confirm === 'function' && confirm(body + '\n\nKeep device copy?')) {
+      syncToCloud({ conflictPolicy: 'local' });
+    }
+    return;
+  }
+  titleEl.textContent = title;
+  messageEl.textContent = body;
+  footer.innerHTML = `
+    <button class="modal-save-btn" id="syncConflictKeepLocal">${keepLocal}</button>
+    <button class="modal-save-btn" id="syncConflictKeepCloud">${keepCloud}</button>
+    <button class="modal-save-btn modal-cancel-btn" id="syncConflictCancel">${cancel}</button>
+  `;
+  overlay.style.display = 'block';
+  document.body.classList.add('modal-active');
+  const cleanup = () => {
+    if (typeof closeAlertModal === 'function') closeAlertModal();
+    footer.innerHTML = '<button class="modal-save-btn" onclick="closeAlertModal()">OK</button>';
+  };
+  const localBtn = document.getElementById('syncConflictKeepLocal');
+  const cloudBtn = document.getElementById('syncConflictKeepCloud');
+  const cancelBtn = document.getElementById('syncConflictCancel');
+  if (localBtn) localBtn.onclick = () => { cleanup(); syncToCloud({ conflictPolicy: 'local' }); };
+  if (cloudBtn) cloudBtn.onclick = () => { cleanup(); syncToCloud({ conflictPolicy: 'cloud' }); };
+  if (cancelBtn) cancelBtn.onclick = () => cleanup();
+}
+
+function toggleCloudAutoSyncOnOpen() {
+  const checkbox = document.getElementById('cloudAutoSyncOnOpen');
+  if (!checkbox || typeof window === 'undefined' || !window.appSettings) return;
+  window.appSettings.cloudAutoSyncOnOpen = checkbox.checked;
+  if (typeof saveSettings === 'function') saveSettings();
+}
+
 async function deleteAllUserDataFromCloud() {
   try {
     const client = initSupabase();
@@ -2250,6 +2326,15 @@ if (typeof window !== 'undefined') {
       originalToggleAutoSync();
     }
   };
+
+  window.toggleCloudAutoSyncOnOpen = toggleCloudAutoSyncOnOpen;
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible') return;
+    if (!window.appSettings || !window.appSettings.cloudAutoSyncOnOpen) return;
+    if (!cloudSyncState.isAuthenticated) return;
+    setTimeout(function () { syncToCloud(); }, 500);
+  });
 }
 
 async function ensureSupabaseClientReady() {

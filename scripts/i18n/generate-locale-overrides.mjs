@@ -10,6 +10,7 @@ import { PLAN02_TIER_A_OVERRIDES } from '../lib/plan02-tier-a-overrides.mjs';
 import { PLAN03_TIER_A_OVERRIDES } from '../lib/plan03-tier-a-overrides.mjs';
 import { PLAN04_TIER_A_OVERRIDES } from '../lib/plan04-tier-a-overrides.mjs';
 import { PLAN05_TIER_A_OVERRIDES } from '../lib/plan05-tier-a-overrides.mjs';
+import { PLAN06_TIER_A_OVERRIDES } from '../lib/plan06-tier-a-overrides.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
@@ -53,6 +54,10 @@ function applyTierATranslations(strings, locale) {
   }
   const plan05 = PLAN05_TIER_A_OVERRIDES[locale] || {};
   for (const [key, val] of Object.entries(plan05)) {
+    if (typeof val === 'string' && val.trim()) out[key] = val;
+  }
+  const plan06 = PLAN06_TIER_A_OVERRIDES[locale] || {};
+  for (const [key, val] of Object.entries(plan06)) {
     if (typeof val === 'string' && val.trim()) out[key] = val;
   }
   return out;

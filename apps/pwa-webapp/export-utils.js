@@ -1198,6 +1198,11 @@ function performExport(format) {
     }
     
     closeExportModal();
+    if (format === 'json' || format === 'csv') {
+      if (typeof window.recordProcessingActivityPwa === 'function') {
+        window.recordProcessingActivityPwa({ type: 'export', detail: format });
+      }
+    }
     showAlertModal(`Data exported successfully as ${format.toUpperCase()}!`, 'Export Success');
   } catch (error) {
     console.error('Export error:', error);

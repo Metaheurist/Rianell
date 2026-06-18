@@ -9,6 +9,7 @@ import type { BenchmarkResult } from '../performance/benchmark';
 import type { AiSummary } from './analyzeLogs';
 import { AIEngine } from './engine';
 import type { LogEntry } from '../storage/logs';
+import { loadPreferences } from '../storage/preferences';
 import { resolveLlmModelSize } from '../performance/benchmark';
 import { isOnDeviceLlmReady, runOnDeviceChat } from './llmNative';
 
@@ -99,10 +100,14 @@ async function generateWithFallback(
     }
   }
   try {
-    const remote = await callRemoteLlm(feature, modelSize, context, locale);
-    if (remote) {
-      cache.set(cacheKey, remote);
-      return remote;
+    const fullPrefs = await loadPreferences();
+    const { shouldAllowNetworkOperation } = await import('@rianell/shared');
+    if (shouldAllowNetworkOperation(fullPrefs, 'remoteLlm')) {
+      const remote = await callRemoteLlm(feature, modelSize, context, locale);
+      if (remote) {
+        cache.set(cacheKey, remote);
+        return remote;
+      }
     }
   } catch {
     // fall through

@@ -15542,6 +15542,8 @@ let appSettings = {
   localOnlyMode: false,
   appLockEnabled: false,
   processingActivityLog: [],
+  cloudAutoSyncOnOpen: false,
+  cloudAutoSyncDailyTime: null,
 };
 
 // Make appSettings available on window for safe access
@@ -15597,6 +15599,7 @@ function loadSettings() {
   normalizeChartViewSettings();
   appSettings.localOnlyMode = appSettings.localOnlyMode === true;
   appSettings.appLockEnabled = appSettings.appLockEnabled === true;
+  appSettings.cloudAutoSyncOnOpen = appSettings.cloudAutoSyncOnOpen === true;
   if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.readProcessingActivity === 'function') {
     appSettings.processingActivityLog = window.RianellShared.readProcessingActivity(appSettings.processingActivityLog);
   } else if (!Array.isArray(appSettings.processingActivityLog)) {
@@ -15611,6 +15614,9 @@ function loadSettings() {
   // Apply loaded settings to UI
   applySettings();
   loadSettingsState();
+  if (appSettings.appLockEnabled && typeof window !== 'undefined' && window.RianellAppLock && typeof window.RianellAppLock.bindAppLock === 'function') {
+    window.RianellAppLock.bindAppLock();
+  }
   applyAccessibilityTtsSettings();
   applyAccessibilityTextScale();
   applyAccessibilityColorblindMode();
@@ -16818,6 +16824,7 @@ function loadSettingsState() {
 
   var localOnlyToggle = document.getElementById('localOnlyModeToggle');
   if (localOnlyToggle) localOnlyToggle.classList.toggle('active', !!appSettings.localOnlyMode);
+  syncLocalOnlyFeatureMatrixUi();
   var appLockToggle = document.getElementById('appLockToggle');
   if (appLockToggle) appLockToggle.classList.toggle('active', !!appSettings.appLockEnabled);
   syncPrivacyActivityLogUi();
@@ -17140,6 +17147,21 @@ function recordProcessingActivityPwa(entry) {
 }
 if (typeof window !== 'undefined') window.recordProcessingActivityPwa = recordProcessingActivityPwa;
 
+function syncLocalOnlyFeatureMatrixUi() {
+  var matrix = document.getElementById('localOnlyFeatureMatrix');
+  var list = document.getElementById('localOnlyFeatureList');
+  if (!matrix || !list) return;
+  var show = !!appSettings.localOnlyMode;
+  matrix.style.display = show ? 'block' : 'none';
+  if (!show) return;
+  var features = (window.RianellShared && Array.isArray(window.RianellShared.LOCAL_ONLY_NETWORK_FEATURES))
+    ? window.RianellShared.LOCAL_ONLY_NETWORK_FEATURES
+    : [];
+  list.innerHTML = features.map(function (f) {
+    return '<li>' + tUi(f.labelKey) + '</li>';
+  }).join('');
+}
+
 function syncPrivacyActivityLogUi() {
   var hint = document.getElementById('privacyActivityLogHint');
   if (!hint) return;
@@ -17224,11 +17246,33 @@ async function exportEncryptedData() {
     showAlertModal(tUi('common.data.export.is.disabled.in.demo.mode.dem'), tUi('settings.demo.title'));
     return;
   }
+  var overlay = document.getElementById('encryptedExportModalOverlay');
+  var input = document.getElementById('encryptedExportPassphrase');
+  if (overlay) {
+    if (input) input.value = '';
+    overlay.style.display = 'block';
+    document.body.classList.add('modal-active');
+    if (input) input.focus();
+    return;
+  }
+  await submitEncryptedExportFromModal();
+}
+if (typeof window !== 'undefined') window.exportEncryptedData = exportEncryptedData;
+
+function closeEncryptedExportModal() {
+  var overlay = document.getElementById('encryptedExportModalOverlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.classList.remove('modal-active');
+}
+if (typeof window !== 'undefined') window.closeEncryptedExportModal = closeEncryptedExportModal;
+
+async function submitEncryptedExportFromModal() {
   if (!window.RianellShared || typeof window.RianellShared.encryptExportWithPassphrase !== 'function') {
     showAlertModal('Encrypted export is unavailable.', tUi('settings.export.title'));
     return;
   }
-  var passphrase = typeof prompt === 'function' ? prompt(tUi('settings.export.encrypted.placeholder')) : null;
+  var input = document.getElementById('encryptedExportPassphrase');
+  var passphrase = input ? input.value : '';
   if (!passphrase || passphrase.length < 8) {
     showAlertModal(tUi('settings.export.encrypted.placeholder'), tUi('settings.export.encrypted.title'));
     return;
@@ -17247,12 +17291,13 @@ async function exportEncryptedData() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     recordProcessingActivityPwa({ type: 'encrypted_export' });
+    closeEncryptedExportModal();
     showAlertModal(tUi('settings.export.encrypted.done'), tUi('settings.export.encrypted.title'));
   } catch (e) {
     showAlertModal((e && e.message) ? e.message : tUi('settings.export.failed'), tUi('settings.export.title'));
   }
 }
-if (typeof window !== 'undefined') window.exportEncryptedData = exportEncryptedData;
+if (typeof window !== 'undefined') window.submitEncryptedExportFromModal = submitEncryptedExportFromModal;
 
 function toggleSetting(setting) {
   var featureMap = {

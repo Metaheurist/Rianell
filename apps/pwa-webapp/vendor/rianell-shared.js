@@ -35,6 +35,9 @@ var RianellShared = (() => {
     LOGS_BACKUP_KEY: () => LOGS_BACKUP_KEY,
     LOGS_STORAGE_KEY_MOBILE_LEGACY: () => LOGS_STORAGE_KEY_MOBILE_LEGACY,
     LOGS_STORAGE_KEY_V1: () => LOGS_STORAGE_KEY_V1,
+    LOG_CSV_ENGLISH_HEADERS: () => LOG_CSV_ENGLISH_HEADERS,
+    LOG_CSV_FIELD_IDS: () => LOG_CSV_FIELD_IDS,
+    LOG_CSV_I18N_KEYS: () => LOG_CSV_I18N_KEYS,
     MIGRATION_COPY: () => MIGRATION_COPY,
     OFFLINE_QUEUE_KEY: () => OFFLINE_QUEUE_KEY,
     POLICY_BODIES: () => POLICY_BODIES,
@@ -86,6 +89,7 @@ var RianellShared = (() => {
     extractLogFieldsFromVoiceTranscript: () => extractLogFieldsFromVoiceTranscript,
     fetchOpenFoodFactsProduct: () => fetchOpenFoodFactsProduct,
     filterLogsForHomeSuggestions: () => filterLogsForHomeSuggestions,
+    findLogSyncConflicts: () => findLogSyncConflicts,
     formatActivityTypeLabel: () => formatActivityTypeLabel,
     formatBarcodeFoodLabel: () => formatBarcodeFoodLabel,
     formatDate: () => formatDate,
@@ -124,7 +128,9 @@ var RianellShared = (() => {
     localOnlyBlockReason: () => localOnlyBlockReason,
     localeFallbackChain: () => localeFallbackChain,
     localeLabel: () => localeLabel,
+    logsToCsv: () => logsToCsv,
     mergeHealthLogs: () => mergeHealthLogs,
+    mergeHealthLogsWithConflictPolicy: () => mergeHealthLogsWithConflictPolicy,
     mergeLogEntriesForDate: () => mergeLogEntriesForDate,
     needsDataResidencyMigration: () => needsDataResidencyMigration,
     normalizeAccessibilitySettings: () => normalizeAccessibilitySettings,
@@ -144,6 +150,7 @@ var RianellShared = (() => {
     normalizeSubEntry: () => normalizeSubEntry,
     normalizeSymptomTemplates: () => normalizeSymptomTemplates,
     normalizeTrackingProfile: () => normalizeTrackingProfile,
+    parseLogsCsv: () => parseLogsCsv,
     parseSettingsProfileImport: () => parseSettingsProfileImport,
     pickHomeAiSuggestions: () => pickHomeAiSuggestions,
     prefsToConsents: () => prefsToConsents,
@@ -1091,7 +1098,8 @@ var RianellShared = (() => {
     { id: "cloudSync", labelKey: "settings.privacy.localOnly.cloudSync" },
     { id: "anonymizedSync", labelKey: "settings.privacy.localOnly.anonymizedSync" },
     { id: "modelDownload", labelKey: "settings.privacy.localOnly.modelDownload" },
-    { id: "bugReport", labelKey: "settings.privacy.localOnly.bugReport" }
+    { id: "bugReport", labelKey: "settings.privacy.localOnly.bugReport" },
+    { id: "remoteLlm", labelKey: "settings.privacy.localOnly.remoteLlm" }
   ];
   function isLocalOnlyModeEnabled(prefs) {
     const p = prefs && typeof prefs === "object" ? prefs : {};
@@ -1854,8 +1862,8 @@ var RianellShared = (() => {
     if (!aiEnabled || !loggedToday) return [];
     const recent = filterLogsForHomeSuggestions(logs, rangeDays);
     if (recent.length < minDays) return [];
-    const snapshot = analysis || computeHomeAnalysisSnapshot(logs, rangeDays);
-    const workLogs = snapshot._logs || recent;
+    const snapshot2 = analysis || computeHomeAnalysisSnapshot(logs, rangeDays);
+    const workLogs = snapshot2._logs || recent;
     const picked = [];
     const used = /* @__PURE__ */ new Set();
     function add(id, labelKey, labelParams) {
@@ -1865,7 +1873,7 @@ var RianellShared = (() => {
     }
     const sym = topSymptomName(workLogs);
     if (sym) add("symptom", "home.questions.symptom", { symptom: sym.name });
-    const flareDays = snapshot.flareDays ?? workLogs.filter((l) => l.flare === "Yes").length;
+    const flareDays = snapshot2.flareDays ?? workLogs.filter((l) => l.flare === "Yes").length;
     if (flareDays >= FLARE_DAYS_THRESHOLD) add("flare", "home.questions.flare", {});
     for (const field of ["fatigue", "sleep", "mood"]) {
       const trend = metricTrend(workLogs, field);
@@ -1879,7 +1887,7 @@ var RianellShared = (() => {
         break;
       }
     }
-    const stressor = snapshot.topStressors?.[0] || (topStressorName(workLogs)?.name ?? null);
+    const stressor = snapshot2.topStressors?.[0] || (topStressorName(workLogs)?.name ?? null);
     if (stressor) add("stressor", "home.questions.stressor", { stressor: String(stressor) });
     const corr = findCorrelationPair(workLogs);
     if (corr) {
@@ -2346,6 +2354,208 @@ ${raw}
       if (out[k] === void 0) delete out[k];
     });
     return out;
+  }
+
+  // packages/shared/src/export/logCsv.mjs
+  var LOG_CSV_FIELD_IDS = [
+    "date",
+    "bpm",
+    "weight",
+    "fatigue",
+    "stiffness",
+    "backPain",
+    "sleep",
+    "jointPain",
+    "mobility",
+    "dailyFunction",
+    "swelling",
+    "flare",
+    "mood",
+    "irritability",
+    "notes"
+  ];
+  var LOG_CSV_I18N_KEYS = {
+    date: "export.csv.date",
+    bpm: "export.csv.bpm",
+    weight: "export.csv.weight",
+    fatigue: "export.csv.fatigue",
+    stiffness: "export.csv.stiffness",
+    backPain: "export.csv.backPain",
+    sleep: "export.csv.sleep",
+    jointPain: "export.csv.jointPain",
+    mobility: "export.csv.mobility",
+    dailyFunction: "export.csv.dailyFunction",
+    swelling: "export.csv.swelling",
+    flare: "export.csv.flare",
+    mood: "export.csv.mood",
+    irritability: "export.csv.irritability",
+    notes: "export.csv.notes"
+  };
+  var LOG_CSV_ENGLISH_HEADERS = {
+    date: "Date",
+    bpm: "BPM",
+    weight: "Weight",
+    fatigue: "Fatigue",
+    stiffness: "Stiffness",
+    backPain: "Back Pain",
+    sleep: "Sleep",
+    jointPain: "Joint Pain",
+    mobility: "Mobility",
+    dailyFunction: "Daily Function",
+    swelling: "Swelling",
+    flare: "Flare",
+    mood: "Mood",
+    irritability: "Irritability",
+    notes: "Notes"
+  };
+  function escapeCsvCell(value) {
+    const s = value == null ? "" : String(value);
+    if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+      return `"${s.replace(/"/g, '""')}"`;
+    }
+    return s;
+  }
+  function logsToCsv(logs, labelForField) {
+    const label = typeof labelForField === "function" ? labelForField : (id) => LOG_CSV_ENGLISH_HEADERS[id] || id;
+    const header = LOG_CSV_FIELD_IDS.map((id) => escapeCsvCell(label(id))).join(",");
+    const rows = (Array.isArray(logs) ? logs : []).map(
+      (log) => LOG_CSV_FIELD_IDS.map((id) => {
+        let v = log && log[id];
+        if (id === "notes" && typeof v === "string") v = v.replace(/,/g, ";");
+        return escapeCsvCell(v ?? "");
+      }).join(",")
+    );
+    return [header, ...rows].join("\n");
+  }
+  function parseCsvLine(line) {
+    const values = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === "," && !inQuotes) {
+        values.push(current.trim());
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+    values.push(current.trim());
+    return values;
+  }
+  function headerToFieldId(header, aliasMap) {
+    const h = header.trim();
+    if (!h) return null;
+    const lower = h.toLowerCase();
+    for (const id of LOG_CSV_FIELD_IDS) {
+      const raw = aliasMap[id];
+      const aliases = Array.isArray(raw) ? raw : typeof raw === "string" && raw ? [raw, LOG_CSV_ENGLISH_HEADERS[id]] : [LOG_CSV_ENGLISH_HEADERS[id]];
+      if (aliases.some((a) => a && a.toLowerCase() === lower)) return id;
+    }
+    return null;
+  }
+  function parseLogsCsv(text, aliasMap = LOG_CSV_ENGLISH_HEADERS) {
+    const lines = String(text || "").split(/\r?\n/).filter((l) => l.trim());
+    if (lines.length < 2) throw new Error("CSV must include a header row and at least one data row.");
+    const headers = parseCsvLine(lines[0]);
+    const fieldIndexes = {};
+    headers.forEach((h, idx) => {
+      const id = headerToFieldId(h, aliasMap);
+      if (id) fieldIndexes[id] = idx;
+    });
+    if (fieldIndexes.date === void 0) throw new Error("CSV header row must include a Date column.");
+    const logs = [];
+    for (let i = 1; i < lines.length; i++) {
+      const values = parseCsvLine(lines[i]);
+      if (!values.some((v) => v)) continue;
+      const raw = {};
+      LOG_CSV_FIELD_IDS.forEach((id) => {
+        const idx = fieldIndexes[id];
+        if (idx === void 0 || values[idx] === void 0) return;
+        let v = values[idx];
+        if (v.startsWith('"') && v.endsWith('"')) v = v.slice(1, -1).replace(/""/g, '"');
+        raw[id] = v;
+      });
+      logs.push(raw);
+    }
+    return logs;
+  }
+
+  // packages/shared/src/sync/logSyncConflicts.mjs
+  var CONFLICT_KEYS = [
+    "bpm",
+    "weight",
+    "fatigue",
+    "stiffness",
+    "backPain",
+    "sleep",
+    "jointPain",
+    "mobility",
+    "dailyFunction",
+    "swelling",
+    "flare",
+    "mood",
+    "irritability",
+    "notes"
+  ];
+  function snapshot(entry) {
+    const out = {};
+    for (const k of CONFLICT_KEYS) {
+      const v = entry && entry[k];
+      if (v !== void 0 && v !== null && v !== "") out[k] = v;
+    }
+    return JSON.stringify(out);
+  }
+  function findLogSyncConflicts(localLogs, cloudLogs) {
+    const cloudByDate = /* @__PURE__ */ new Map();
+    if (Array.isArray(cloudLogs)) {
+      for (const log of cloudLogs) {
+        if (log && log.date) cloudByDate.set(log.date, log);
+      }
+    }
+    const conflicts = [];
+    if (!Array.isArray(localLogs)) return conflicts;
+    for (const local of localLogs) {
+      if (!local || !local.date) continue;
+      const cloud = cloudByDate.get(local.date);
+      if (!cloud) continue;
+      if (snapshot(local) !== snapshot(cloud)) {
+        conflicts.push({ date: local.date, local, cloud });
+      }
+    }
+    return conflicts;
+  }
+  function mergeHealthLogsWithConflictPolicy(localLogs, cloudLogs, policy = "local", perDate = {}) {
+    const cloudMap = /* @__PURE__ */ new Map();
+    const localMap = /* @__PURE__ */ new Map();
+    if (Array.isArray(cloudLogs)) cloudLogs.forEach((l) => {
+      if (l?.date) cloudMap.set(l.date, l);
+    });
+    if (Array.isArray(localLogs)) localLogs.forEach((l) => {
+      if (l?.date) localMap.set(l.date, l);
+    });
+    const conflictDates = new Set(findLogSyncConflicts(localLogs, cloudLogs).map((c) => c.date));
+    const dates = /* @__PURE__ */ new Set([...cloudMap.keys(), ...localMap.keys()]);
+    const merged = [];
+    for (const date of dates) {
+      const local = localMap.get(date);
+      const cloud = cloudMap.get(date);
+      if (local && cloud && conflictDates.has(date)) {
+        const pick = perDate[date] === "cloud" ? "cloud" : perDate[date] === "local" ? "local" : policy;
+        merged.push(pick === "cloud" ? cloud : local);
+      } else {
+        merged.push(local || cloud);
+      }
+    }
+    merged.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return merged;
   }
 
   // packages/shared/src/index.mjs

@@ -3,6 +3,9 @@ import type { SupabaseClient, User } from '@supabase/supabase-js';
 import {
   GOALS_STORAGE_KEY,
   mergeHealthLogs,
+  mergeHealthLogsWithConflictPolicy,
+  findLogSyncConflicts,
+  appendProcessingActivity,
   normalizeGoals,
   SETTINGS_STORAGE_KEY,
 } from '@rianell/shared';
@@ -104,7 +107,24 @@ async function deleteUserRows(client: SupabaseClient, userId: string, tables: st
   return null;
 }
 
-export async function syncToCloud(): Promise<{ ok: boolean; message: string }> {
+export type SyncConflictPolicy = 'local' | 'cloud';
+
+export type SyncResult = {
+  ok: boolean;
+  message: string;
+  needsConflictResolution?: boolean;
+  conflictCount?: number;
+};
+
+async function logSyncActivity(prefs: Preferences, type: 'cloud_sync' | 'anon_sync', detail: string) {
+  const next = {
+    ...prefs,
+    processingActivityLog: appendProcessingActivity(prefs.processingActivityLog, { type, detail }),
+  };
+  await savePreferences(next);
+}
+
+export async function syncToCloud(options?: { conflictPolicy?: SyncConflictPolicy }): Promise<SyncResult> {
   const prefs = await loadPreferences();
   const client = getSupabaseClient();
   if (!client) return { ok: false, message: 'Cloud sync is not configured.' };
@@ -160,9 +180,28 @@ export async function syncToCloud(): Promise<{ ok: boolean; message: string }> {
     }
   }
 
-  const mergedLogs = mergeHealthLogs(localLogs, cloudLogs) as LogEntry[];
-  const settingsOut = { ...cloudSettings, ...mergedSettings };
+  const mergedLogs = (() => {
+    const conflicts = findLogSyncConflicts(localLogs, cloudLogs);
+    if (conflicts.length && !options?.conflictPolicy) {
+      return null;
+    }
+    if (options?.conflictPolicy) {
+      return mergeHealthLogsWithConflictPolicy(localLogs, cloudLogs, options.conflictPolicy) as LogEntry[];
+    }
+    return mergeHealthLogs(localLogs, cloudLogs) as LogEntry[];
+  })();
 
+  if (!mergedLogs) {
+    const conflictCount = findLogSyncConflicts(localLogs, cloudLogs).length;
+    return {
+      ok: false,
+      message: `${conflictCount} date(s) differ between device and cloud.`,
+      needsConflictResolution: true,
+      conflictCount,
+    };
+  }
+
+  const settingsOut = { ...cloudSettings, ...mergedSettings };
   const encryptedLogs = await encryptJsonAesGcm(mergedLogs, userKey);
   const encryptedSettings = await encryptJsonAesGcm(settingsOut, userKey);
 
@@ -175,10 +214,16 @@ export async function syncToCloud(): Promise<{ ok: boolean; message: string }> {
 
   if (error) return { ok: false, message: error.message };
   await saveLogs(mergedLogs);
+  await logSyncActivity(prefs, 'cloud_sync', `${mergedLogs.length} logs`);
   return { ok: true, message: `Synced ${mergedLogs.length} log(s).` };
 }
 
-export async function loadFromCloud(): Promise<{ ok: boolean; message: string }> {
+export async function loadFromCloud(): Promise<SyncResult> {
+  const prefs = await loadPreferences();
+  const { shouldAllowNetworkOperation } = await import('@rianell/shared');
+  if (!shouldAllowNetworkOperation(prefs, 'cloudSync')) {
+    return { ok: false, message: 'Cloud load is disabled while local-only mode is on.' };
+  }
   const client = getSupabaseClient();
   if (!client) return { ok: false, message: 'Cloud sync is not configured.' };
   const { data: sessionData } = await client.auth.getSession();
@@ -284,6 +329,7 @@ export async function syncAnonymizedData(medicalCondition: string): Promise<{ ok
 
   const { error } = await client.from('anonymized_data').insert(batch);
   if (error) return { ok: false, message: error.message };
+  await logSyncActivity(prefs, 'anon_sync', `${batch.length} logs`);
   return { ok: true, message: `Anonymized contribution updated (${batch.length} log(s)).` };
 }
 

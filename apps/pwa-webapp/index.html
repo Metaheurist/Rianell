@@ -1079,6 +1079,10 @@
           <label data-i18n="settings.privacy.localOnly.title">Local-only mode</label>
           <div class="toggle-switch" id="localOnlyModeToggle" onclick="toggleSetting('localOnlyMode')"></div>
         </div>
+        <div id="localOnlyFeatureMatrix" class="settings-hint" style="display:none;">
+          <p data-i18n="settings.privacy.localOnly.disabledLead">While enabled, these network features are blocked:</p>
+          <ul id="localOnlyFeatureList"></ul>
+        </div>
         <div class="settings-option">
           <label data-i18n="settings.privacy.appLock.enable">App lock (PIN)</label>
           <div class="toggle-switch" id="appLockToggle" onclick="toggleAppLockSetting()"></div>
@@ -1170,6 +1174,10 @@
           </div>
           <div class="cloud-sync-info">
             <small id="cloudLastSync">Last sync: Never</small>
+            <label class="cloud-auto-sync">
+              <input type="checkbox" id="cloudAutoSyncOnOpen" onchange="toggleCloudAutoSyncOnOpen()" />
+              <span data-i18n="settings.cloud.autoSyncOnOpen">Auto-sync when app opens</span>
+            </label>
             <label class="cloud-auto-sync">
               <input type="checkbox" id="cloudAutoSync" onchange="toggleAutoSync()" />
               <span  data-i18n="common.auto.sync.on.changes">Auto-sync on changes</span>
@@ -2865,6 +2873,24 @@
       </div>
       <div class="modal-footer alert-modal-footer">
         <button class="modal-save-btn" onclick="closeAlertModal()" data-i18n="common.ok">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Encrypted export modal (Plan 05 P4) -->
+  <div class="modal-overlay" id="encryptedExportModalOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="encryptedExportModalTitle">
+    <div class="modal-content alert-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="encryptedExportModalTitle" data-i18n="settings.export.encrypted.title">Password-protected export</h3>
+        <button type="button" class="modal-close" onclick="closeEncryptedExportModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
+      </div>
+      <div class="modal-body alert-modal-body">
+        <p data-i18n="settings.export.encrypted.hint">Uses PBKDF2 (120k iterations) + AES-256-GCM. Keep your passphrase safe — it cannot be recovered.</p>
+        <input type="password" id="encryptedExportPassphrase" class="cloud-input" autocomplete="new-password" data-i18n-placeholder="settings.export.encrypted.placeholder" placeholder="Export passphrase (min 8 characters)" />
+      </div>
+      <div class="modal-footer alert-modal-footer">
+        <button type="button" class="modal-save-btn" onclick="submitEncryptedExportFromModal()" data-i18n="settings.export.encrypted.action">Encrypted export</button>
+        <button type="button" class="modal-save-btn modal-cancel-btn" onclick="closeEncryptedExportModal()" data-i18n="common.cancel">Cancel</button>
       </div>
     </div>
   </div>

@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
-import { I18nManager } from 'react-native';
+import { AppState, I18nManager } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { isRtlLocale, isTrackingProfileConfigured, resolveActiveLocale } from '@rianell/shared';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -22,6 +22,7 @@ import { flushOfflineQueue } from './src/storage/offlineQueue';
 import { RegionGateScreen } from './src/screens/RegionGateScreen';
 import { isPrivacyRegionConfigured } from './src/privacy/helpers';
 import { fetchPrivacyProfileAndApply, upsertPrivacyProfile } from './src/cloud/privacyProfile';
+import { syncToCloud } from './src/cloud/sync';
 import { getSupabaseClient } from './src/cloud/supabaseClient';
 import { TutorialModal } from './src/components/TutorialModal';
 import { TrackingProfileWizard } from './src/components/TrackingProfileWizard';
@@ -88,6 +89,16 @@ export default function App() {
     });
     return () => data.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!prefs?.cloudAutoSyncOnOpen) return;
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        void syncToCloud().catch(() => {});
+      }
+    });
+    return () => sub.remove();
+  }, [prefs?.cloudAutoSyncOnOpen]);
 
   if (!prefs) return <BootLoadingScreen team={bootTeam} />;
 
