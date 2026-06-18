@@ -1,21 +1,38 @@
 name: Install Playwright Chromium (cached)
-description: Restore browser binaries from cache; full download only when lockfile/version changes.
+description: Restore browser binaries from cache; full download only when Playwright version changes.
 runs:
   using: composite
   steps:
+    - name: Resolve Playwright version for cache key
+      id: pw-version
+      shell: bash
+      run: |
+        set -euo pipefail
+        ver=$(node -pe "JSON.parse(require('fs').readFileSync('package-lock.json','utf8')).packages['node_modules/playwright'].version")
+        echo "version=$ver" >> "$GITHUB_OUTPUT"
+
     - name: Restore Playwright browsers cache
       uses: actions/cache@v5
       id: playwright-cache
       with:
         path: ~/.cache/ms-playwright
-        key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+        key: playwright-${{ runner.os }}-${{ steps.pw-version.outputs.version }}
+        restore-keys: |
+          playwright-${{ runner.os }}-
 
-    - name: Install Playwright Chromium (full)
-      if: steps.playwright-cache.outputs.cache-hit != 'true'
+    - name: Install Playwright Chromium
       shell: bash
-      run: npx playwright install chromium --with-deps
-
-    - name: Link Playwright Chromium (cache hit)
-      if: steps.playwright-cache.outputs.cache-hit == 'true'
-      shell: bash
-      run: npx playwright install chromium
+      run: |
+        set -euo pipefail
+        if [ "${{ steps.playwright-cache.outputs.cache-hit }}" = "true" ]; then
+          echo "Playwright cache hit — linking chromium"
+          npx playwright install chromium
+          exit 0
+        fi
+        # Partial restore or cold: prefer browser download only (skip slow apt on CI).
+        if npx playwright install chromium; then
+          echo "Playwright chromium installed without apt deps"
+          exit 0
+        fi
+        echo "Browser-only install failed; installing system deps (max 20 min)..."
+        timeout 1200 npx playwright install chromium --with-deps
