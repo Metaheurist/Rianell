@@ -39,6 +39,8 @@
     "settings.accessibility.title": "Inrochtaineacht",
     "settings.dataOptions.title": "Roghanna sonraí",
     "settings.performance.title": "Feidhmíocht",
+    "settings.performance.advanced": "Advanced",
+    "settings.performance.advanced.hint": "Manual model tier, processing mode, and troubleshooting options.",
     "settings.dataManagement.title": "DM",
     "settings.cloud.sync": "Sioncronaigh go néal",
     "settings.cloud.load": "Luchtaigh ó scamall",

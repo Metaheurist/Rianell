@@ -39,6 +39,8 @@
     "settings.accessibility.title": "Toegankelijkheid",
     "settings.dataOptions.title": "Gegevensopties",
     "settings.performance.title": "Prestaties",
+    "settings.performance.advanced": "Advanced",
+    "settings.performance.advanced.hint": "Manual model tier, processing mode, and troubleshooting options.",
     "settings.dataManagement.title": "Gegevensbeheer",
     "settings.cloud.sync": "Synchroniseren met de cloud",
     "settings.cloud.load": "Laden vanuit de cloud",

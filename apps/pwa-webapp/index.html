@@ -1314,24 +1314,7 @@
           <div class="toggle-switch active" id="lazyToggle" onclick="toggleSetting('lazy')"></div>
         </div>
         <div class="settings-option settings-option-llm-model">
-          <label for="preferredLlmModelSelect" data-i18n="common.on.device.ai.model">On-device AI model</label>
-          <select id="preferredLlmModelSelect" class="settings-select" aria-describedby="llmModelRecommendationHint" onchange="setPreferredLlmModel(this.value)">
-            <option value="recommended">Use recommended (for this device)</option>
-            <option value="tier1">Tier 1 (fastest, lowest memory)</option>
-            <option value="tier2">Tier 2</option>
-            <option value="tier3">Tier 3</option>
-            <option value="tier4">Tier 4</option>
-            <option value="tier5">Tier 5 (best quality)</option>
-          </select>
-          <label for="preferredLlmEngineSelect" class="settings-sub-label" data-i18n="common.ai.inference.engine">How summaries run</label>
-          <select id="preferredLlmEngineSelect" class="settings-select" aria-describedby="llmEngineHint" onchange="setPreferredLlmEngine(this.value)">
-            <option value="auto" data-i18n="common.llm.engine.auto">Automatic (recommended)</option>
-            <option value="onnx" data-i18n="common.llm.engine.onnx">Compatible mode</option>
-            <option value="mlc" data-i18n="common.llm.engine.mlc">Fast mode (uses graphics)</option>
-            <option value="gguf" data-i18n="common.llm.engine.gguf">Experimental</option>
-          </select>
-          <p class="settings-hint" id="llmEngineHint" data-i18n="common.llm.engine.hint">After the model downloads, Automatic tries the fastest option your browser supports, then switches if needed.</p>
-          <p class="settings-hint" id="llmModelRecommendationHint" data-i18n="common.recommended">Recommended: -</p>
+          <label data-i18n="common.on.device.ai.model">On-device AI model</label>
           <p class="settings-hint settings-llm-status-line" id="llmModelStatusLine">
             Model status: <span id="llmModelStatusText" class="llm-model-status llm-model-status--unknown" data-i18n="common.checking">Checking…</span>
           </p>
@@ -1341,15 +1324,41 @@
             </div>
             <span id="llmModelSettingsProgressPct" class="settings-hint">0%</span>
           </div>
-          <p class="settings-hint" id="llmModelStorageHint"></p>
-          <div class="settings-llm-actions">
-            <button type="button" class="settings-data-btn settings-data-btn--primary" id="clearRedownloadAiModelBtn" onclick="clearAndRedownloadAiModel()" data-i18n="common.clear.and.redownload.model">Clear and redownload model</button>
-          </div>
-          <div class="settings-option settings-option--stacked">
-            <label data-i18n="common.force.large.ai.model.on.wasm">Allow full-quality model without graphics acceleration (advanced)</label>
-            <p class="settings-hint" data-i18n="common.requires.8.gb.device.memory.may.be.slow">Needs at least 8 GB memory. May be slow or fail on browsers without graphics support.</p>
-            <div class="toggle-switch" id="forceLargeLlmWasmToggle" onclick="togglePreferredLlmForceLargeOnWasm()" role="switch" aria-checked="false"></div>
-          </div>
+          <details class="settings-performance-advanced" id="settingsPerformanceAdvanced">
+            <summary class="settings-performance-advanced-summary" aria-controls="settingsPerformanceAdvancedBody" aria-expanded="false">
+              <span class="settings-performance-advanced-summary__label" data-i18n="settings.performance.advanced">Advanced</span>
+              <span class="settings-performance-advanced-summary__hint" data-i18n="settings.performance.advanced.hint">Manual model tier, processing mode, and troubleshooting options.</span>
+            </summary>
+            <div class="settings-performance-advanced-body" id="settingsPerformanceAdvancedBody">
+              <label for="preferredLlmModelSelect" class="settings-sub-label" data-i18n="common.on.device.ai.model">On-device AI model</label>
+              <select id="preferredLlmModelSelect" class="settings-select" aria-describedby="llmModelRecommendationHint" onchange="setPreferredLlmModel(this.value)">
+                <option value="recommended">Use recommended (for this device)</option>
+                <option value="tier1">Tier 1 (fastest, lowest memory)</option>
+                <option value="tier2">Tier 2</option>
+                <option value="tier3">Tier 3</option>
+                <option value="tier4">Tier 4</option>
+                <option value="tier5">Tier 5 (best quality)</option>
+              </select>
+              <label for="preferredLlmEngineSelect" class="settings-sub-label" data-i18n="common.ai.inference.engine">How summaries run</label>
+              <select id="preferredLlmEngineSelect" class="settings-select" aria-describedby="llmEngineHint" onchange="setPreferredLlmEngine(this.value)">
+                <option value="auto" data-i18n="common.llm.engine.auto">Automatic (recommended)</option>
+                <option value="onnx" data-i18n="common.llm.engine.onnx">Compatible mode</option>
+                <option value="mlc" data-i18n="common.llm.engine.mlc">Fast mode (uses graphics)</option>
+                <option value="gguf" data-i18n="common.llm.engine.gguf">Experimental</option>
+              </select>
+              <p class="settings-hint" id="llmEngineHint" data-i18n="common.llm.engine.hint">After the model downloads, Automatic tries the fastest option your browser supports, then switches if needed.</p>
+              <p class="settings-hint" id="llmModelRecommendationHint" data-i18n="common.recommended">Recommended: -</p>
+              <p class="settings-hint" id="llmModelStorageHint"></p>
+              <div class="settings-llm-actions">
+                <button type="button" class="settings-data-btn settings-data-btn--primary" id="clearRedownloadAiModelBtn" onclick="clearAndRedownloadAiModel()" data-i18n="common.clear.and.redownload.model">Clear and redownload model</button>
+              </div>
+              <div class="settings-option settings-option--stacked settings-option--nested">
+                <label data-i18n="common.force.large.ai.model.on.wasm">Allow full-quality model without graphics acceleration</label>
+                <p class="settings-hint" data-i18n="common.requires.8.gb.device.memory.may.be.slow">Needs at least 8 GB memory. May be slow or fail on browsers without graphics support.</p>
+                <div class="toggle-switch" id="forceLargeLlmWasmToggle" onclick="togglePreferredLlmForceLargeOnWasm()" role="switch" aria-checked="false"></div>
+              </div>
+            </div>
+          </details>
         </div>
         <div class="settings-option settings-option--stacked">
           <label data-i18n="common.push.notifications.updates">Push notifications for app updates</label>

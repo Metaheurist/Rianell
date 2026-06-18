@@ -39,6 +39,8 @@
     "settings.accessibility.title": "Accesibilidad",
     "settings.dataOptions.title": "Opciones de datos",
     "settings.performance.title": "Rendimiento",
+    "settings.performance.advanced": "Advanced",
+    "settings.performance.advanced.hint": "Manual model tier, processing mode, and troubleshooting options.",
     "settings.dataManagement.title": "Gestión de datos",
     "settings.cloud.sync": "Sincronizar con la nube",
     "settings.cloud.load": "Cargar desde la nube",
