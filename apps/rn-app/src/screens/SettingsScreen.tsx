@@ -26,10 +26,18 @@ import {
   mergeLogsAppend,
   parseLogImportCsv,
   parseLogImportJson,
+  parseLogImportMigration,
   serializeLogsCsvForExport,
   serializeLogsForExport,
 } from '../data/logExportImport';
-import { encryptExportWithPassphrase } from '@rianell/shared';
+import {
+  buildEncryptedBackupBlob,
+  createReadOnlyShareEnvelope,
+  encryptExportWithPassphrase,
+  logsToFhirBundle,
+  putWebDavEncryptedBackup,
+  shareEnvelopeToPortableJson,
+} from '@rianell/shared';
 import { recordProcessingActivity } from '../storage/processingActivity';
 import { loadLogs, saveLogs, persistLogs } from '../storage/logs';
 import { SettingsCloudPane } from '../settings/SettingsCloudPane';
@@ -120,12 +128,19 @@ export function SettingsScreen({
   const tts = { enabled: prefs.accessibility.ttsEnabled, readModeEnabled: prefs.accessibility.ttsReadModeEnabled };
 
   const [importOpen, setImportOpen] = useState(false);
-  const [importFormat, setImportFormat] = useState<'json' | 'csv'>('json');
+  const [importFormat, setImportFormat] = useState<'json' | 'csv' | 'migration'>('json');
+  const [migrationSource, setMigrationSource] = useState<'bearable' | 'flaredown'>('bearable');
   const [importText, setImportText] = useState('');
   const [profileImportOpen, setProfileImportOpen] = useState(false);
   const [profileImportText, setProfileImportText] = useState('');
   const [exportBusy, setExportBusy] = useState(false);
   const [encryptExportOpen, setEncryptExportOpen] = useState(false);
+  const [shareExportOpen, setShareExportOpen] = useState(false);
+  const [webDavOpen, setWebDavOpen] = useState(false);
+  const [webDavUrl, setWebDavUrl] = useState('');
+  const [webDavUser, setWebDavUser] = useState('');
+  const [webDavPass, setWebDavPass] = useState('');
+  const [webDavPassphrase, setWebDavPassphrase] = useState('');
   const [anonPoolOpen, setAnonPoolOpen] = useState(false);
   const [printBusy, setPrintBusy] = useState(false);
   const [demoBusy, setDemoBusy] = useState(false);
@@ -331,14 +346,81 @@ export function SettingsScreen({
     }
   }
 
-  async function applyImport(mode: 'replace' | 'append', format: 'json' | 'csv' = 'json') {
+  async function onExportLogsFhir() {
+    if (prefs.demoMode) {
+      Alert.alert(t('settings.demo.title'), t('settings.demo.exportDisabled'));
+      return;
+    }
+    setExportBusy(true);
+    try {
+      const logs = await loadLogs();
+      const bundle = logsToFhirBundle(logs);
+      await Share.share({ message: JSON.stringify(bundle, null, 2), title: t('settings.data.export.fhir') });
+      await recordProcessingActivity(prefs, { type: 'export', detail: 'fhir' }, onChangePrefs);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : t('settings.export.failed');
+      Alert.alert(t('settings.export.title'), msg);
+    } finally {
+      setExportBusy(false);
+    }
+  }
+
+  async function onExportShareLink(passphrase: string) {
+    setExportBusy(true);
+    try {
+      const logs = await loadLogs();
+      const envelope = await createReadOnlyShareEnvelope(logs, passphrase);
+      const json = shareEnvelopeToPortableJson(envelope);
+      await Share.share({ message: json, title: t('settings.data.export.shareLink') });
+      await recordProcessingActivity(prefs, { type: 'export', detail: 'share_link' }, onChangePrefs);
+      setShareExportOpen(false);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : t('settings.export.failed');
+      Alert.alert(t('settings.export.title'), msg);
+    } finally {
+      setExportBusy(false);
+    }
+  }
+
+  async function onWebDavBackup() {
+    if (!webDavUrl.trim() || webDavPassphrase.length < 8) return;
+    setExportBusy(true);
+    try {
+      const logs = await loadLogs();
+      const body = await buildEncryptedBackupBlob(logs, webDavPassphrase);
+      await putWebDavEncryptedBackup({
+        url: webDavUrl.trim(),
+        username: webDavUser,
+        password: webDavPass,
+        body,
+      });
+      await recordProcessingActivity(prefs, { type: 'export', detail: 'webdav' }, onChangePrefs);
+      setWebDavOpen(false);
+      setWebDavUrl('');
+      setWebDavUser('');
+      setWebDavPass('');
+      setWebDavPassphrase('');
+      Alert.alert(t('settings.export.title'), t('settings.import.saved'));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : t('settings.export.failed');
+      Alert.alert(t('settings.export.title'), msg);
+    } finally {
+      setExportBusy(false);
+    }
+  }
+
+  async function applyImport(mode: 'replace' | 'append', format: 'json' | 'csv' | 'migration' = 'json') {
     if (prefs.demoMode) {
       Alert.alert(t('settings.demo.title'), t('settings.demo.importDisabled'));
       return;
     }
     try {
       const incoming =
-        format === 'csv' ? parseLogImportCsv(importText, t) : parseLogImportJson(importText);
+        format === 'migration'
+          ? parseLogImportMigration(importText, migrationSource)
+          : format === 'csv'
+            ? parseLogImportCsv(importText, t)
+            : parseLogImportJson(importText);
       if (mode === 'replace') {
         await persistLogs(incoming, { backup: prefs.backup, compress: prefs.compress });
       } else {
@@ -1840,6 +1922,39 @@ export function SettingsScreen({
               </Pressable>
 
               <Pressable
+                style={[styles.dataBtn, { opacity: exportBusy ? 0.6 : 1 }]}
+                onPress={() => void onExportLogsFhir()}
+                disabled={exportBusy}
+                accessibilityRole="button"
+              >
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>
+                  {t('settings.data.export.fhir')}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={[styles.dataBtn, { opacity: exportBusy ? 0.6 : 1 }]}
+                onPress={() => setShareExportOpen(true)}
+                disabled={exportBusy}
+                accessibilityRole="button"
+              >
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>
+                  {t('settings.data.export.shareLink')}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={[styles.dataBtn, { opacity: exportBusy ? 0.6 : 1 }]}
+                onPress={() => setWebDavOpen(true)}
+                disabled={exportBusy}
+                accessibilityRole="button"
+              >
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>
+                  {t('settings.data.export.webdav')}
+                </Text>
+              </Pressable>
+
+              <Pressable
 
                 style={[styles.dataBtn, { opacity: printBusy ? 0.6 : 1 }]}
 
@@ -1902,6 +2017,21 @@ export function SettingsScreen({
               </Pressable>
 
               <Pressable
+                style={styles.dataBtn}
+                onPress={() => {
+                  setImportText('');
+                  setImportFormat('migration');
+                  setMigrationSource('bearable');
+                  setImportOpen(true);
+                }}
+                accessibilityRole="button"
+              >
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>
+                  {t('settings.data.import.migrationSource')}
+                </Text>
+              </Pressable>
+
+              <Pressable
 
                 style={[styles.dataBtn, styles.dangerBtn]}
 
@@ -1939,10 +2069,25 @@ export function SettingsScreen({
           >
             <Text style={[styles.modalTitle, { color: theme.tokens.color.text, fontSize: theme.font(17) }]}>{t('logs.import')}</Text>
             <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
-              {importFormat === 'csv'
-                ? 'Paste CSV with a header row (same columns as web export).'
-                : 'Paste a JSON array of log entries (same shape as web export).'}
+              {importFormat === 'migration'
+                ? 'Paste a Bearable or Flaredown CSV export (header row required).'
+                : importFormat === 'csv'
+                  ? 'Paste CSV with a header row (same columns as web export).'
+                  : 'Paste a JSON array of log entries (same shape as web export).'}
             </Text>
+            {importFormat === 'migration' ? (
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+                <Pressable
+                  style={[styles.modalBtn, migrationSource === 'bearable' && { opacity: 1 }]}
+                  onPress={() => setMigrationSource('bearable')}
+                >
+                  <Text style={{ color: theme.tokens.color.text }}>Bearable</Text>
+                </Pressable>
+                <Pressable style={styles.modalBtn} onPress={() => setMigrationSource('flaredown')}>
+                  <Text style={{ color: theme.tokens.color.text }}>Flaredown</Text>
+                </Pressable>
+              </View>
+            ) : null}
             <TextInput
               value={importText}
               onChangeText={setImportText}
@@ -1987,6 +2132,61 @@ export function SettingsScreen({
         onClose={() => setEncryptExportOpen(false)}
         onSubmit={(passphrase) => void onExportLogsEncrypted(passphrase)}
       />
+      <EncryptedExportModal
+        visible={shareExportOpen}
+        busy={exportBusy}
+        onClose={() => setShareExportOpen(false)}
+        onSubmit={(passphrase) => void onExportShareLink(passphrase)}
+      />
+      <Modal visible={webDavOpen} animationType="slide" transparent onRequestClose={() => setWebDavOpen(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { backgroundColor: theme.tokens.color.background }]}>
+            <Text style={[styles.modalTitle, { color: theme.tokens.color.text }]}>{t('settings.data.export.webdav')}</Text>
+            <TextInput
+              value={webDavUrl}
+              onChangeText={setWebDavUrl}
+              placeholder="https://dav.example.com/backups"
+              placeholderTextColor={theme.tokens.color.textMuted}
+              style={[styles.importInput, { minHeight: 44, color: theme.tokens.color.text }]}
+              autoCapitalize="none"
+            />
+            <TextInput
+              value={webDavUser}
+              onChangeText={setWebDavUser}
+              placeholder="Username"
+              placeholderTextColor={theme.tokens.color.textMuted}
+              style={[styles.importInput, { minHeight: 44, color: theme.tokens.color.text }]}
+              autoCapitalize="none"
+            />
+            <TextInput
+              value={webDavPass}
+              onChangeText={setWebDavPass}
+              placeholder="Password"
+              placeholderTextColor={theme.tokens.color.textMuted}
+              secureTextEntry
+              style={[styles.importInput, { minHeight: 44, color: theme.tokens.color.text }]}
+            />
+            <TextInput
+              value={webDavPassphrase}
+              onChangeText={setWebDavPassphrase}
+              placeholder={t('settings.export.encrypted.placeholder')}
+              placeholderTextColor={theme.tokens.color.textMuted}
+              secureTextEntry
+              style={[styles.importInput, { minHeight: 44, color: theme.tokens.color.text }]}
+            />
+            <Pressable
+              style={[styles.dataBtn, { opacity: exportBusy || webDavPassphrase.length < 8 ? 0.6 : 1 }]}
+              disabled={exportBusy || webDavPassphrase.length < 8}
+              onPress={() => void onWebDavBackup()}
+            >
+              <Text style={[styles.dataBtnText, { color: theme.tokens.color.text }]}>{t('settings.data.export.webdav')}</Text>
+            </Pressable>
+            <Pressable style={styles.modalBtn} onPress={() => setWebDavOpen(false)}>
+              <Text style={{ color: theme.tokens.color.textMuted }}>{t('common.cancel')}</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
       <AnonPoolFieldChecklist
         visible={anonPoolOpen}
         onClose={() => setAnonPoolOpen(false)}

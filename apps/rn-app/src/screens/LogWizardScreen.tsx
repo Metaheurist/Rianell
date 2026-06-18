@@ -28,6 +28,7 @@ import {
   getSymptomChipsForCondition,
   shouldShowWizardCategory,
   extractLogFieldsFromVoiceTranscript,
+  stampLogEntryForCaregiver,
   buildTodayMedDoseStatuses,
   fetchOpenFoodFactsProduct,
   formatBarcodeFoodLabel,
@@ -913,7 +914,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
           }))
         : undefined,
     };
-    return normalizeLogEntry(base) as LogEntry;
+    return stampLogEntryForCaregiver(normalizeLogEntry(base) as LogEntry, prefs);
   }, [
     date,
     flare,
@@ -946,6 +947,9 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     prefs.cycleModuleEnabled,
     todayMedDoses,
     medDoseStatus,
+    prefs.caregiverModeEnabled,
+    prefs.caregiverDependentName,
+    prefs.caregiverRelationship,
   ]);
 
   async function onSuggestNote() {
@@ -1025,7 +1029,8 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
         Alert.alert(t('wizard.alert.duplicate.title'), t('wizard.alert.duplicate.body', { date: dateValue }));
         return;
       }
-      const minimal = normalizeLogEntry({
+      const minimal = stampLogEntryForCaregiver(
+        normalizeLogEntry({
         date: dateValue,
         flare,
         fatigue: 5,
@@ -1037,7 +1042,9 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
         swelling: 5,
         mood: 5,
         irritability: 5,
-      });
+      }),
+        prefs,
+      );
       await persistWizardLogEntry(existing, minimal);
       hapticLight();
       toast.show(t('wizard.toast.minimalSaved', { date: dateValue }));

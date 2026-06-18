@@ -118,6 +118,9 @@ export type Preferences = {
   processingActivityLog: Array<{ type: string; at: string; detail?: string }>;
   cloudAutoSyncOnOpen: boolean;
   cloudAutoSyncDailyTime: string | null;
+  caregiverModeEnabled: boolean;
+  caregiverDependentName: string;
+  caregiverRelationship: 'parent' | 'guardian' | 'other';
 };
 
 export function getDefaultPreferences(): Preferences {
@@ -203,6 +206,9 @@ export function getDefaultPreferences(): Preferences {
     processingActivityLog: [],
     cloudAutoSyncOnOpen: false,
     cloudAutoSyncDailyTime: null,
+    caregiverModeEnabled: false,
+    caregiverDependentName: '',
+    caregiverRelationship: 'parent',
   };
 }
 
@@ -366,6 +372,12 @@ export async function loadPreferences(): Promise<Preferences> {
         typeof parsed.cloudAutoSyncDailyTime === 'string' && /^\d{2}:\d{2}$/.test(parsed.cloudAutoSyncDailyTime)
           ? parsed.cloudAutoSyncDailyTime
           : null,
+      caregiverModeEnabled: parsed.caregiverModeEnabled === true,
+      caregiverDependentName: typeof parsed.caregiverDependentName === 'string' ? parsed.caregiverDependentName : '',
+      caregiverRelationship:
+        parsed.caregiverRelationship === 'guardian' || parsed.caregiverRelationship === 'other'
+          ? parsed.caregiverRelationship
+          : 'parent',
     };
     return applyLocaleDefaultsToPrefs(base, base.uiLocale) as Preferences;
   } catch {

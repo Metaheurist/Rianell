@@ -123,12 +123,16 @@ function handleImportFileSelect(event) {
   }
   
   const format = formatSelect ? formatSelect.value : 'csv';
+  const migrationSource = event.target.getAttribute('data-migration-source');
   
   const reader = new FileReader();
   reader.onload = function(e) {
     (async function () {
     try {
-      if (format === 'csv') {
+      if (migrationSource && window.RianellShared && typeof window.RianellShared.parseMigrationCsv === 'function') {
+        importPreviewData = window.RianellShared.parseMigrationCsv(e.target.result, migrationSource);
+        event.target.removeAttribute('data-migration-source');
+      } else if (format === 'csv') {
         importPreviewData = parseCSV(e.target.result);
       } else if (format === 'json') {
         var rawJson = e.target.result;

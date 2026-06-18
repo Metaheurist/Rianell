@@ -4,6 +4,7 @@ import {
   logsToCsv,
   normalizeLogEntry,
   parseLogsCsv,
+  parseMigrationCsv,
 } from '@rianell/shared';
 import type { LogEntry } from '../storage/logs';
 
@@ -53,4 +54,8 @@ export function parseLogImportCsv(text: string, t?: (key: string) => string): Lo
   }
   const raw = parseLogsCsv(text, aliasMap as Parameters<typeof parseLogsCsv>[1]);
   return raw.map((x) => normalizeLogEntry(x) as LogEntry);
+}
+
+export function parseLogImportMigration(text: string, sourceId: 'bearable' | 'flaredown'): LogEntry[] {
+  return parseMigrationCsv(text, sourceId).map((x) => normalizeLogEntry(x) as LogEntry);
 }

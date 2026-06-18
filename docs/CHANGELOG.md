@@ -2,7 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.93.0** - Plan 06: Cloud sync & data portability (D1–D3; D4–D7 deferred).
+**Latest: v1.93.1** - Plans 05–06 complete (7/7 each): caregiver mode, FHIR-lite, migration import, share link, WebDAV.
+
+### v1.93.1 - 2026-06-18 - Plans 05–06 feature completion (P6, D4–D7)
+- **P6:** Caregiver / proxy logging — toggle + dependent name (RN + PWA); `stampLogEntryForCaregiver` on save.
+- **D4:** FHIR R4-lite Observation bundle export (`fhirLite.mjs`).
+- **D5:** Bearable / Flaredown CSV migration import (`migrationAssistants.mjs`).
+- **D6:** Time-limited encrypted read-only share envelope (`shareReadOnlyLink.mjs`).
+- **D7:** Encrypted WebDAV backup PUT (`webdavBackup.mjs`).
+- **Tests:** caregiver-mode, fhir-lite, migration-assistants (+192 unit tests).
+- **Vendor:** PWA `rianell-shared.js` rebuild.
 
 ### v1.93.0 - 2026-06-18 - Plan 06 cloud sync & portability (D1–D3)
 - **D1:** RN CSV export/import parity with PWA (`logCsv.mjs`, Settings data management).
@@ -10,7 +19,6 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **D3:** Sync conflict resolution UI when same-date logs diverge (RN alert + PWA modal).
 - **Plan 05 parity:** PWA local-only feature matrix, encrypted export modal, app-lock cold start, export activity logging, `loadFromCloud` local-only gate, `remoteLlm` gate.
 - **Shared:** `logSyncConflicts.mjs`; vendor bundle rebuild; Tier A i18n overrides.
-- **D4–D7:** FHIR-lite, migration imports, clinician link, WebDAV — deferred.
 
 ### v1.92.9 - 2026-06-18 - Plan 05 privacy & compliance (P1–P5, P7)
 - **P1:** Full in-app policy viewer with extended body paragraphs (RN modal + PWA privacy-region).

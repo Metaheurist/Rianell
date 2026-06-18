@@ -206,6 +206,10 @@ export * from './i18n/index.mjs';
 export * from './settings/index.mjs';
 export * from './logging/index.mjs';
 export * from './export/logCsv.mjs';
+export * from './export/fhirLite.mjs';
+export * from './export/shareReadOnlyLink.mjs';
+export * from './export/webdavBackup.mjs';
+export * from './import/migrationAssistants.mjs';
 export * from './sync/logSyncConflicts.mjs';
 
 export function createSampleLogEntry() {
