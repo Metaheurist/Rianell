@@ -67,7 +67,7 @@
     "ci:audit-llm-live": "node scripts/ci/ci-rerun-until-green.mjs",
     "turbo:build": "npx turbo run build",
     "turbo:typecheck": "npx turbo run typecheck",
-    "postinstall": "node scripts/build/patch-onnxruntime-gradle.mjs && node scripts/build/sync-llm-tier-benchmark.mjs && node scripts/build/sync-llm-load-ladder.mjs && node scripts/build/sync-llm-runtime-profiles.mjs",
+    "postinstall": "node scripts/build/root-postinstall.mjs",
     "sync:llm-pwa": "node scripts/build/sync-llm-tier-benchmark.mjs && node scripts/build/sync-llm-load-ladder.mjs && node scripts/build/sync-llm-runtime-profiles.mjs",
     "vendor:transformers": "node scripts/build/vendor-transformers.mjs",
     "test:llm-hardware": "node scripts/test/llm-hardware-matrix.mjs",
