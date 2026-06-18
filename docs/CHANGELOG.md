@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.92.4** - GitHub Actions Node 24-native action majors; drop FORCE_JAVASCRIPT flag; verify guard.
+**Latest: v1.92.5** - Plan 01: PWA settings module extraction + dev design catalog.
+
+### v1.92.5 - 2026-06-18 - Plan 01 platform & architecture (T1, T2)
+- **T1 (PWA modules):** Extract settings overlay + carousel into `apps/pwa-webapp/modules/settings.js`; wire from `app.js` with stable `window.toggleSettings` contract.
+- **T2 (Design catalog):** Static dev-only catalog at `apps/pwa-webapp/design-catalog/` wired to `@rianell/tokens` + PWA styles; `npm run design-catalog`; excluded from production mirror in `build-site.mjs`.
+- **DevEx:** Post-plan gate server wait extended to 600s for CI-parity compile on slow hosts.
 
 ### v1.92.4 - 2026-06-14 - GitHub Actions Node 24 migration
 - **Action runtimes:** Upgrade first-party pins to Node 24-native majors — `actions/cache@v5` (11 sites), `upload-pages-artifact@v5` + `deploy-pages@v5`, `actions/setup-java@v5`, `actions/github-script@v8`, `softprops/action-gh-release@v3`.

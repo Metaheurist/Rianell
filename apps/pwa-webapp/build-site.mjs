@@ -54,7 +54,7 @@ function walkJsFiles(dir, acc = []) {
     const p = path.join(dir, name);
     const st = fs.statSync(p);
     if (st.isDirectory()) {
-      if (name === 'node_modules' || name === '.trace-build') continue;
+      if (name === 'node_modules' || name === '.trace-build' || name === 'design-catalog') continue;
       walkJsFiles(p, acc);
     } else if (name.endsWith('.js')) acc.push(p);
   }
@@ -88,7 +88,7 @@ function mirrorWeb(webRoot, outRoot, instrumentJs) {
       const st = fs.statSync(src);
       const dest = path.join(outRoot, rel, name);
       if (st.isDirectory()) {
-        if (name === 'node_modules' || name === '.trace-build') continue;
+        if (name === 'node_modules' || name === '.trace-build' || name === 'design-catalog') continue;
         walkCopy(path.join(rel, name));
       } else {
         mkdirp(path.dirname(dest));
