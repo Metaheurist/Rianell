@@ -39,6 +39,7 @@ import Constants from 'expo-constants';
 import { buildLogReviewSummary } from '../log/buildLogReviewSummary';
 import { speakLabel } from '../accessibility/tts';
 import { submitBugReport } from '../utils/submitBugReport';
+import { getBugReportAttachmentText } from '../utils/bugReportLogs';
 
 /** Web `index.html` parity: top chrome includes bug-report modal entry. */
 const SECURITY_DOC_URL = 'https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md';
