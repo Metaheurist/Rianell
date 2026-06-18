@@ -27,6 +27,11 @@ import { loadLogs, saveLogs, persistLogs } from '../storage/logs';
 import { SettingsCloudPane } from '../settings/SettingsCloudPane';
 import { SettingsPrivacyRegionPane } from '../settings/SettingsPrivacyRegionPane';
 import { SettingsAppInstallSection } from '../settings/SettingsAppInstallSection';
+import { SettingsConsentDashboard } from '../settings/SettingsConsentDashboard';
+import {
+  buildSettingsProfileExport,
+  PROFILE_AVATAR_IDS,
+} from '@rianell/shared';
 import { printOrShareLogs } from '../utils/printLogs';
 import { clearCachedBenchmark, loadCachedBenchmark, resolveLlmModelSize, runAndCacheBenchmark, type BenchmarkResult } from '../performance/benchmark';
 import { disableDemoMode, enableDemoMode } from '../demo/demoMode';
@@ -85,7 +90,9 @@ export function SettingsScreen({
 }) {
   const theme = useTheme();
   const { t, isRtl } = useT();
+  const [settingsSearch, setSettingsSearch] = useState('');
   const paneTitles = PANE_TITLE_KEYS.map((key) => t(key));
+  const searchHaystack = PANE_TITLE_KEYS.map((key, i) => ({ i, text: `${t(key)} ${key}`.toLowerCase() }));
   const { width } = useWindowDimensions();
   /** Sized like web `settings-carousel-dots` (clamp ~22–32px), shared across nine pane icons. */
   const settingsPaneIconBtnSize = Math.min(36, Math.max(26, (width - 48 - 8 * 4) / 9));
@@ -102,6 +109,8 @@ export function SettingsScreen({
 
   const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState('');
+  const [profileImportOpen, setProfileImportOpen] = useState(false);
+  const [profileImportText, setProfileImportText] = useState('');
   const [exportBusy, setExportBusy] = useState(false);
   const [printBusy, setPrintBusy] = useState(false);
   const [demoBusy, setDemoBusy] = useState(false);
@@ -504,6 +513,27 @@ export function SettingsScreen({
             );
           })}
         </View>
+        <TextInput
+          value={settingsSearch}
+          onChangeText={(q) => {
+            setSettingsSearch(q);
+            const needle = q.trim().toLowerCase();
+            if (!needle) return;
+            const hit = searchHaystack.find((row) => row.text.includes(needle));
+            if (hit) goPane(hit.i);
+          }}
+          placeholder={t('settings.search.placeholder')}
+          placeholderTextColor={`${theme.tokens.color.text}66`}
+          accessibilityLabel={t('settings.search.placeholder')}
+          style={[
+            styles.searchInput,
+            {
+              color: theme.tokens.color.text,
+              borderColor: `${theme.tokens.color.text}33`,
+              backgroundColor: `${theme.tokens.color.text}0D`,
+            },
+          ]}
+        />
       </View>
 
       <ScrollView
@@ -520,6 +550,7 @@ export function SettingsScreen({
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
             <Section title={t('settings.privacy.title')}>
               <SettingsPrivacyRegionPane prefs={prefs} onChangePrefs={onChangePrefs} />
+              <SettingsConsentDashboard prefs={prefs} onChangePrefs={onChangePrefs} />
             </Section>
           </ScrollView>
         </View>
@@ -543,6 +574,31 @@ export function SettingsScreen({
                   placeholderTextColor={`${theme.tokens.color.text}88`}
                   style={[styles.timeInput, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
                 />
+              </Row>
+
+              <Row label={t('settings.profile.avatarLabel')}>
+                <View style={styles.avatarRow}>
+                  {PROFILE_AVATAR_IDS.map((id) => {
+                    const iconName =
+                      id === 'sun' ? 'sunny-outline' : id === 'pulse' ? 'fitness-outline' : `${id}-outline`;
+                    return (
+                    <Pressable
+                      key={id}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: prefs.profileAvatar === id }}
+                      onPress={() => onChangePrefs({ ...prefs, profileAvatar: id })}
+                      style={[
+                        styles.avatarChip,
+                        {
+                          borderColor: prefs.profileAvatar === id ? theme.tokens.color.accent : `${theme.tokens.color.text}33`,
+                        },
+                      ]}
+                    >
+                      <Ionicons name={iconName as 'leaf-outline'} size={18} color={theme.tokens.color.text} />
+                    </Pressable>
+                    );
+                  })}
+                </View>
               </Row>
 
               <Row label={t('settings.personal.conditionLabel')}>
@@ -728,6 +784,16 @@ export function SettingsScreen({
             <Section title={t('settings.display.title')}>
 
               <Hint>Daily reminders and notification permission (web “Display Options” pane).</Hint>
+
+              <Pressable
+                style={styles.dataBtn}
+                accessibilityRole="button"
+                onPress={() => onChangePrefs({ ...prefs, tutorialSeen: false, replayTutorial: true })}
+              >
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>
+                  {t('settings.tutorial.showAgain')}
+                </Text>
+              </Pressable>
 
               <Row label="Enable daily reminder">
 
@@ -1462,6 +1528,14 @@ export function SettingsScreen({
 
             <Section title={t('settings.dataOptions.title')}>
 
+              <Row label={t('settings.simpleMode.label')}>
+                <Switch
+                  value={prefs.simpleMode === true}
+                  onValueChange={(simpleMode) => onChangePrefs({ ...prefs, simpleMode })}
+                />
+              </Row>
+              <Hint>{t('settings.simpleMode.hint')}</Hint>
+
               <Row label="Demo mode">
 
                 <Switch value={prefs.demoMode === true} onValueChange={(on) => void setDemoMode(on)} disabled={demoBusy} />
@@ -1518,6 +1592,8 @@ export function SettingsScreen({
 
               <Hint>Use the benchmark below to pick an on-device AI model tier.</Hint>
 
+              {!prefs.simpleMode ? (
+              <>
               <Row label="On-device AI model">
 
                 <InlineChoices
@@ -1607,6 +1683,10 @@ export function SettingsScreen({
                 </Pressable>
 
               </View>
+              </>
+              ) : (
+                <Hint>{t('settings.simpleMode.hint')}</Hint>
+              )}
 
             </Section>
 
@@ -1625,6 +1705,19 @@ export function SettingsScreen({
             <Section title={t('settings.dataManagement.title')}>
 
               <SettingsAppInstallSection />
+
+              <Pressable
+                style={styles.dataBtn}
+                accessibilityRole="button"
+                onPress={async () => {
+                  const payload = buildSettingsProfileExport(prefs, prefs.goals);
+                  await Share.share({ message: JSON.stringify(payload, null, 2) });
+                }}
+              >
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>
+                  {t('settings.profile.export')}
+                </Text>
+              </Pressable>
 
               <Hint>Export JSON matches web portability; import accepts the same array format (replace or merge by date).</Hint>
 
@@ -1958,4 +2051,15 @@ const styles = StyleSheet.create({
     minWidth: 96,
     textAlign: 'right',
   },
+  searchInput: {
+    marginTop: 8,
+    marginHorizontal: 4,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+  },
+  avatarRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' },
+  avatarChip: { borderWidth: 1, borderRadius: 999, padding: 8 },
 });

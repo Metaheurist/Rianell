@@ -2,7 +2,18 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.92.6** - Plan 02: Accessibility & i18n (I1–I5).
+**Latest: v1.92.7** - Plan 03: Settings & onboarding (S1–S8).
+
+### v1.92.7 - 2026-06-18 - Plan 03 settings & onboarding (S1–S8)
+- **S1:** RN tutorial modal + replay from Settings; PWA “Show tutorial again”.
+- **S2:** Tracking profile wizard (condition + minimal field set) in RN; `trackingProfile` in shared prefs.
+- **S3:** Locale-derived defaults (`weightUnit`, `dateFormat`, `firstDayOfWeek`) via `@rianell/shared`.
+- **S4:** Settings search filtering 9 panes (PWA + RN).
+- **S5:** Simple mode toggle hides AI tab, advanced performance, anon pool entry points.
+- **S6:** Profile avatar presets + display name theme field.
+- **S7:** Consent dashboard with revoke actions (PWA hooks + RN pane).
+- **S8:** Portable settings + goals JSON export (`rianell-settings-profile`).
+- **Fix:** Advanced settings no longer force-open during AI model download.
 
 ### v1.92.6 - 2026-06-18 - Plan 02 accessibility & i18n (I1–I5)
 - **I1 (i18n gaps):** Localize health consent body, colorblind option labels, read-mode hint, and new settings keys across PWA + RN; Tier A overrides for Plan 02 keys.

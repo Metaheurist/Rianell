@@ -31,6 +31,11 @@ const PWA_SETTINGS_KEYS = [
   'compress',
   'animations',
   'lazy',
+  'simpleMode',
+  'trackingProfile',
+  'profileAvatar',
+  'dateFormat',
+  'firstDayOfWeek',
 ];
 
 const RN_PREF_FIELDS = [
@@ -49,6 +54,11 @@ const RN_PREF_FIELDS = [
   'compress',
   'animations',
   'lazyCharts',
+  'simpleMode',
+  'trackingProfile',
+  'profileAvatar',
+  'dateFormat',
+  'firstDayOfWeek',
 ];
 
 const CLOUD_EXPORTS = [

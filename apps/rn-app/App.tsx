@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { I18nManager } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
-import { isRtlLocale, resolveActiveLocale } from '@rianell/shared';
+import { isRtlLocale, isTrackingProfileConfigured, resolveActiveLocale } from '@rianell/shared';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import {
@@ -23,6 +23,9 @@ import { RegionGateScreen } from './src/screens/RegionGateScreen';
 import { isPrivacyRegionConfigured } from './src/privacy/helpers';
 import { fetchPrivacyProfileAndApply, upsertPrivacyProfile } from './src/cloud/privacyProfile';
 import { getSupabaseClient } from './src/cloud/supabaseClient';
+import { TutorialModal } from './src/components/TutorialModal';
+import { TrackingProfileWizard } from './src/components/TrackingProfileWizard';
+import { markTutorialSeen } from './src/storage/preferences';
 import { I18nProvider } from './src/i18n/I18nProvider';
 
 export default function App() {
@@ -121,9 +124,44 @@ export default function App() {
       <ThemeProvider prefs={prefs}>
         <I18nProvider prefs={prefs} onLocaleChange={setPrefs}>
           <ToastProvider>
-            <AiModelDownloadGate prefs={prefs} onChangePrefs={setPrefs}>
-              <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
-            </AiModelDownloadGate>
+            {!prefs.tutorialSeen ? (
+              <TutorialModal
+                prefs={prefs}
+                visible
+                onSetAiEnabled={(enabled) => setPrefs({ ...prefs, aiEnabled: enabled })}
+                onFinish={() => {
+                  void markTutorialSeen({ ...prefs, replayTutorial: false }).then(setPrefs);
+                }}
+              />
+            ) : !isTrackingProfileConfigured(prefs.trackingProfile) ? (
+              <TrackingProfileWizard
+                prefs={prefs}
+                visible
+                onComplete={(profile, medicalCondition) => {
+                  setPrefs({
+                    ...prefs,
+                    trackingProfile: profile,
+                    medicalCondition: medicalCondition || prefs.medicalCondition,
+                  });
+                }}
+              />
+            ) : (
+              <>
+                <AiModelDownloadGate prefs={prefs} onChangePrefs={setPrefs}>
+                  <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
+                </AiModelDownloadGate>
+                {prefs.replayTutorial ? (
+                  <TutorialModal
+                    prefs={prefs}
+                    visible
+                    onSetAiEnabled={(enabled) => setPrefs({ ...prefs, aiEnabled: enabled })}
+                    onFinish={() => {
+                      void markTutorialSeen({ ...prefs, replayTutorial: false }).then(setPrefs);
+                    }}
+                  />
+                ) : null}
+              </>
+            )}
           </ToastProvider>
         </I18nProvider>
         <StatusBar style="auto" />

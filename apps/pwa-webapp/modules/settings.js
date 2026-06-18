@@ -498,11 +498,29 @@ export function installSettingsModule(deps) {
     refreshBuildDownloadLinks,
   });
 
+  function filterSettingsPanes(query) {
+    var needle = (query || '').trim().toLowerCase();
+    var track = document.getElementById('settingsCarouselTrack');
+    if (!track) return;
+    var panes = track.querySelectorAll('.settings-carousel-pane');
+    var firstHit = -1;
+    panes.forEach(function (pane, idx) {
+      var title = (pane.getAttribute('data-settings-pane-i18n') || pane.getAttribute('data-settings-pane-title') || '').toLowerCase();
+      var body = (pane.textContent || '').toLowerCase();
+      var match = !needle || title.indexOf(needle) >= 0 || body.indexOf(needle) >= 0;
+      pane.classList.toggle('settings-carousel-pane--search-hidden', !match);
+      if (match && firstHit < 0) firstHit = idx;
+    });
+    if (firstHit >= 0 && needle) settingsCarouselGo(firstHit);
+  }
+  if (typeof window !== 'undefined') window.filterSettingsPanes = filterSettingsPanes;
+
   return {
     captureSettingsModalCarouselState,
     settingsCarouselGo,
     settingsCarouselStep,
     initSettingsCarouselUI,
+    filterSettingsPanes,
     getSettingsPaneIndexByI18nKey,
     settingsOverlaySetOpen: function (overlay, open) {
       settingsOverlaySetOpen(overlay, open, { loadSettingsState, initSettingsCarouselUI });

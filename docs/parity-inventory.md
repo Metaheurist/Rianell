@@ -1,6 +1,6 @@
 # Platform parity inventory
 
-Generated: 2026-06-17T21:30:36.317Z
+Generated: 2026-06-18T17:33:01.541Z
 
 ## Settings / preferences field parity
 
@@ -23,6 +23,11 @@ Generated: 2026-06-17T21:30:36.317Z
 | compress | yes | yes |
 | animations | yes | yes |
 | lazy | yes | yes |
+| simpleMode | yes | yes |
+| trackingProfile | yes | yes |
+| profileAvatar | yes | yes |
+| dateFormat | yes | yes |
+| firstDayOfWeek | yes | yes |
 
 ## Cloud sync exports
 
