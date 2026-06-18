@@ -18,11 +18,17 @@ import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
-import { addLogEntry, getFrequentLogItems, loadLogs, saveLogs, type LogEntry } from '../storage/logs';
+import { addLogEntry, getFrequentLogItems, loadLogs, type LogEntry } from '../storage/logs';
+import { persistWizardLogEntry } from '../storage/wizardPersist';
 import { getDefaultPreferences, type Preferences } from '../storage/preferences';
 import { suggestLogNote } from '../ai/llm';
 import { loadCachedBenchmark } from '../performance/benchmark';
-import { normalizeLogEntry } from '@rianell/shared';
+import {
+  normalizeLogEntry,
+  getSymptomChipsForCondition,
+  shouldShowWizardCategory,
+  extractLogFieldsFromVoiceTranscript,
+} from '@rianell/shared';
 import { buildLogReviewSummary, parseMedicationNamesCsv } from '../log/buildLogReviewSummary';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import { VoiceNotesButton } from '../voice/VoiceNotesButton';
@@ -725,6 +731,10 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   const [energyClaritySearch, setEnergyClaritySearch] = useState('');
   const [energyPickerOpen, setEnergyPickerOpen] = useState(true);
   const [painRegionSearch, setPainRegionSearch] = useState('');
+  const [subEntryPeriod, setSubEntryPeriod] = useState<'AM' | 'PM' | 'partial'>('partial');
+  const [cycleDay, setCycleDay] = useState('');
+  const [cyclePhase, setCyclePhase] = useState('');
+  const [cycleFlow, setCycleFlow] = useState('');
 
   if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -803,6 +813,15 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     });
     return { mild, pain };
   }, [painStates]);
+  const symptomTemplateChips = useMemo(
+    () => getSymptomChipsForCondition(prefs.symptomTemplates, prefs.medicalCondition || prefs.trackingProfile?.condition),
+    [prefs.symptomTemplates, prefs.medicalCondition, prefs.trackingProfile],
+  );
+  const showFoodStep = shouldShowWizardCategory(prefs.trackingProfile, 'food');
+  const showExerciseStep = shouldShowWizardCategory(prefs.trackingProfile, 'exercise');
+  const showMedicationsStep = shouldShowWizardCategory(prefs.trackingProfile, 'medications');
+  const favoriteMeals = prefs.logFavorites?.meals ?? [];
+  const favoriteExercises = prefs.logFavorites?.exercises ?? [];
   const breakfastItems = useMemo(() => parseCsvList(breakfastText), [breakfastText]);
   const lunchItems = useMemo(() => parseCsvList(lunchText), [lunchText]);
   const dinnerItems = useMemo(() => parseCsvList(dinnerText), [dinnerText]);
@@ -856,6 +875,27 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
         ? exerciseItems
         : undefined,
       medications: medicationItems.length ? medicationItems : undefined,
+      subEntries:
+        subEntryPeriod !== 'partial' || notes || mood || fatigue || sleep
+          ? [
+              {
+                id: `${date}-${subEntryPeriod}`,
+                period: subEntryPeriod,
+                mood: mood ? Number(mood) : undefined,
+                fatigue: fatigue ? Number(fatigue) : undefined,
+                sleep: sleep ? Number(sleep) : undefined,
+                notes: notes || undefined,
+              },
+            ]
+          : undefined,
+      cycle:
+        prefs.cycleModuleEnabled && (cycleDay || cyclePhase || cycleFlow)
+          ? {
+              cycleDay: cycleDay ? Number(cycleDay) : undefined,
+              phase: cyclePhase || undefined,
+              flow: cycleFlow || undefined,
+            }
+          : undefined,
     };
     return normalizeLogEntry(base) as LogEntry;
   }, [
@@ -883,6 +923,11 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     exerciseItems,
     medicationItems,
     painLocationFromBody,
+    subEntryPeriod,
+    cycleDay,
+    cyclePhase,
+    cycleFlow,
+    prefs.cycleModuleEnabled,
   ]);
 
   async function onSuggestNote() {
@@ -919,6 +964,24 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     setStep(next);
   }
 
+  function applyNotesFromVoice(nextNotes: string) {
+    const trimmed = nextNotes.slice(0, 500);
+    setNotes(trimmed);
+    if (!prefs.guidedVoiceLogEnabled) return;
+    const extracted = extractLogFieldsFromVoiceTranscript(trimmed) as {
+      mood?: number;
+      fatigue?: number;
+      sleep?: number;
+      jointPain?: number;
+      flare?: string;
+    };
+    if (extracted.mood != null) setMood(String(extracted.mood));
+    if (extracted.fatigue != null) setFatigue(String(extracted.fatigue));
+    if (extracted.sleep != null) setSleep(String(extracted.sleep));
+    if (extracted.jointPain != null) setPainLocation(String(extracted.jointPain));
+    if (extracted.flare === 'Yes') setFlare('Yes');
+  }
+
   async function saveQuickMinimal() {
     if (!validateStep0()) return;
     const dateValue = date.trim();
@@ -941,7 +1004,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
         mood: 5,
         irritability: 5,
       });
-      await saveLogs(addLogEntry(existing, minimal));
+      await persistWizardLogEntry(existing, minimal);
       hapticLight();
       toast.show(t('wizard.toast.minimalSaved', { date: dateValue }));
       navigation.goBack();
@@ -954,8 +1017,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   async function save() {
     try {
       const existing = await loadLogs();
-      const next = addLogEntry(existing, draft);
-      await saveLogs(next);
+      await persistWizardLogEntry(existing, draft);
       hapticLight();
       toast.show(t('wizard.toast.entrySaved'));
       navigation.goBack();
@@ -1022,6 +1084,19 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 }}
               />
             </View>
+
+            <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.subEntry.period')}</Text>
+            <View style={styles.row}>
+              <Choice label="AM" selected={subEntryPeriod === 'AM'} onPress={() => setSubEntryPeriod('AM')} />
+              <Choice label="PM" selected={subEntryPeriod === 'PM'} onPress={() => setSubEntryPeriod('PM')} />
+              <Choice label={t('wizard.subEntry.fullDay')} selected={subEntryPeriod === 'partial'} onPress={() => setSubEntryPeriod('partial')} />
+            </View>
+            {prefs.cycleModuleEnabled ? (
+              <View style={{ marginTop: 8 }}>
+                <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.cycle.title')}</Text>
+                <TextInput value={cycleDay} onChangeText={setCycleDay} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="number-pad" placeholder={t('wizard.cycle.day')} placeholderTextColor="rgba(255,255,255,0.6)" />
+              </View>
+            ) : null}
 
             <Pressable
               onPress={() => void saveQuickMinimal()}
@@ -1154,6 +1229,16 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 <View style={styles.chips}>
                   {frequentSymptoms.map((opt) => (
                     <Choice key={`freq-sym-${opt}`} label={opt} selected={symptoms.includes(opt)} onPress={() => toggleSymptom(opt)} />
+                  ))}
+                </View>
+              </View>
+            ) : null}
+            {symptomTemplateChips.length > 0 ? (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('wizard.symptomTemplates')}</Text>
+                <View style={styles.chips}>
+                  {symptomTemplateChips.map((opt: string) => (
+                    <Choice key={`tpl-sym-${opt}`} label={opt} selected={symptoms.includes(opt)} onPress={() => toggleSymptom(opt)} />
                   ))}
                 </View>
               </View>
@@ -1514,6 +1599,30 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
           </View>
         ) : step === 6 ? (
           <View>
+            {!showFoodStep ? (
+              <>
+                <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('wizard.progressive.foodLocked')}</Text>
+                <View style={[styles.navRow, { flexDirection: rowDir }]}>
+                  <Pressable onPress={() => goToStep(5)} style={styles.secondaryBtn} accessibilityRole="button">
+                    <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
+                  </Pressable>
+                  <Pressable onPress={() => goToStep(7)} style={styles.primaryBtn} accessibilityRole="button">
+                    <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
+                  </Pressable>
+                </View>
+              </>
+            ) : (
+              <>
+            {favoriteMeals.length > 0 ? (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={[styles.frequentLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{t('wizard.favoriteMeals')}</Text>
+                <View style={styles.chips}>
+                  {favoriteMeals.map((item) => (
+                    <Choice key={`fav-meal-${item}`} label={item} selected={breakfastItems.includes(item)} onPress={() => setBreakfastText((prev) => addCsvItem(prev, item))} />
+                  ))}
+                </View>
+              </View>
+            ) : null}
             <View style={{ marginTop: 6, marginBottom: 8, alignItems: 'flex-start' }}>
               <Pressable
                 onPress={() => {
@@ -1649,6 +1758,8 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                 <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('common.next')}</Text>
               </Pressable>
             </View>
+              </>
+            )}
           </View>
         ) : step === 7 ? (
           <View>
@@ -1786,7 +1897,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             </Text>
             <VoiceNotesButton
               value={notes}
-              onChangeText={(t) => setNotes(t.slice(0, 500))}
+              onChangeText={applyNotesFromVoice}
               accent={theme.tokens.color.accent}
               textColor={theme.tokens.color.text}
             />

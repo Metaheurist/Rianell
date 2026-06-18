@@ -1,3 +1,9 @@
+import {
+  normalizeCycleFields,
+  normalizeSubEntries,
+  normalizeMedicationDoses,
+} from './logging/logSchema.mjs';
+
 export function identity(value) {
   return value;
 }
@@ -183,6 +189,10 @@ export function normalizeLogEntry(value) {
     steps: typeof v.steps === 'number' ? v.steps : (typeof v.steps === 'string' ? parseInt(v.steps, 10) : undefined),
     hydration: typeof v.hydration === 'number' ? v.hydration : (typeof v.hydration === 'string' ? parseFloat(v.hydration) : undefined),
     medications: Array.isArray(v.medications) ? v.medications : undefined,
+    subEntries: normalizeSubEntries(v.subEntries),
+    cycle: normalizeCycleFields(v.cycle),
+    medicationDoses: normalizeMedicationDoses(v.medicationDoses),
+    barcodeFood: typeof v.barcodeFood === 'string' ? v.barcodeFood.slice(0, 200) : undefined,
   };
 
   if (entry.steps != null && !Number.isFinite(entry.steps)) entry.steps = undefined;
@@ -194,6 +204,7 @@ export function normalizeLogEntry(value) {
 export * from './privacy/index.mjs';
 export * from './i18n/index.mjs';
 export * from './settings/index.mjs';
+export * from './logging/index.mjs';
 
 export function createSampleLogEntry() {
   return normalizeLogEntry({
