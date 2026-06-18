@@ -78,6 +78,12 @@ function initSupabase() {
  */
 async function syncAnonymizedData() {
   console.log('[syncAnonymizedData] Starting sync...');
+  if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.shouldAllowNetworkOperation === 'function') {
+    if (!window.RianellShared.shouldAllowNetworkOperation(window.appSettings || {}, 'anonymizedSync')) {
+      console.log('[syncAnonymizedData] Blocked by local-only mode');
+      return;
+    }
+  }
   if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.checkFeature === 'function') {
     var anonAvail = window.RianellPrivacy.checkFeature('anonymizedResearchPool');
     if (!anonAvail.available) {
@@ -570,6 +576,9 @@ async function syncAnonymizedData() {
     }
     
     console.log(`[syncAnonymizedData] Sync completed. Synced ${newlySyncedDates.length} log(s).`);
+    if (newlySyncedDates.length > 0 && typeof window.recordProcessingActivityPwa === 'function') {
+      window.recordProcessingActivityPwa({ type: 'anon_sync', detail: newlySyncedDates.length + ' logs' });
+    }
     
     // Log total sync to server if any records were synced
     if (newlySyncedDates.length > 0) {
@@ -1404,6 +1413,14 @@ async function decryptWithUserKey(encryptedData, userKey) {
 
 // Sync user's health data to cloud (health_data table)
 async function syncToCloud() {
+  if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.shouldAllowNetworkOperation === 'function') {
+    if (!window.RianellShared.shouldAllowNetworkOperation(window.appSettings || {}, 'cloudSync')) {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal('Cloud sync is disabled while local-only mode is on.', 'Local-only mode');
+      }
+      return;
+    }
+  }
   if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.checkFeature === 'function') {
     var backupAvail = window.RianellPrivacy.checkFeature('cloudEncryptedBackup');
     if (!backupAvail.available) {
@@ -1596,6 +1613,9 @@ async function syncToCloud() {
     cloudSyncState.lastSync = new Date().toISOString();
     saveCloudSyncState();
     updateCloudSyncUI();
+    if (typeof window.recordProcessingActivityPwa === 'function') {
+      window.recordProcessingActivityPwa({ type: 'cloud_sync', detail: mergedLogs.length + ' logs' });
+    }
     
     if (typeof showAlertModal === 'function') {
       showAlertModal(
@@ -2249,6 +2269,11 @@ async function ensureSupabaseClientReady() {
  * @param {Object} payload - title, description, steps, expected_behavior, actual_behavior, console_output, app_theme, user_agent, url/page_url, client_timestamp
  */
 async function submitBugReportToSupabase(payload) {
+  if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.shouldAllowNetworkOperation === 'function') {
+    if (!window.RianellShared.shouldAllowNetworkOperation(window.appSettings || {}, 'bugReport')) {
+      throw new Error('Bug reports are disabled while local-only mode is on.');
+    }
+  }
   if (isSupabaseConfigPlaceholder()) {
     throw new Error('Bug reports require Supabase configuration (see supabase-config.js).');
   }

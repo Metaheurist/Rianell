@@ -42,6 +42,9 @@ const PWA_SETTINGS_KEYS = [
   'cycleModuleEnabled',
   'barcodeFoodLoggingEnabled',
   'guidedVoiceLogEnabled',
+  'localOnlyMode',
+  'appLockEnabled',
+  'processingActivityLog',
 ];
 
 const RN_PREF_FIELDS = [
@@ -71,6 +74,9 @@ const RN_PREF_FIELDS = [
   'cycleModuleEnabled',
   'barcodeFoodLoggingEnabled',
   'guidedVoiceLogEnabled',
+  'localOnlyMode',
+  'appLockEnabled',
+  'processingActivityLog',
 ];
 
 const CLOUD_EXPORTS = [

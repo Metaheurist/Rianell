@@ -984,6 +984,16 @@
     </div>
   </div>
 
+  <!-- App lock overlay (Plan 05 P7) -->
+  <div class="modal-overlay app-lock-overlay" id="appLockOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="appLockTitle">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <h3 id="appLockTitle" data-i18n="settings.privacy.appLock.title">App lock</h3>
+      <p data-i18n="settings.privacy.appLock.lead">Enter your passcode to unlock Rianell.</p>
+      <input type="password" id="appLockPinInput" class="item-input" autocomplete="off" inputmode="text" maxlength="64" data-i18n-placeholder="settings.privacy.appLock.setupPrompt" placeholder="Passcode (min 8 characters)" />
+      <button type="button" class="modal-save-btn" id="appLockUnlockBtn" data-i18n="settings.privacy.appLock.unlock">Unlock</button>
+    </div>
+  </div>
+
   <!-- Cookie consent banner -->
   <div id="cookieBanner" class="cookie-banner hidden" role="region" aria-label="Cookie consent" data-i18n-aria="common.cookie.consent">
     <div class="cookie-banner-inner">
@@ -1065,6 +1075,15 @@
         <div class="settings-option">
           <button type="button" class="settings-data-btn" id="privacyRegionGdprBtn" data-i18n="settings.privacy.gdprConsent">Health data consent (GDPR)</button>
         </div>
+        <div class="settings-option">
+          <label data-i18n="settings.privacy.localOnly.title">Local-only mode</label>
+          <div class="toggle-switch" id="localOnlyModeToggle" onclick="toggleSetting('localOnlyMode')"></div>
+        </div>
+        <div class="settings-option">
+          <label data-i18n="settings.privacy.appLock.enable">App lock (PIN)</label>
+          <div class="toggle-switch" id="appLockToggle" onclick="toggleAppLockSetting()"></div>
+        </div>
+        <p class="settings-hint" id="privacyActivityLogHint" data-i18n="settings.privacy.activity.empty">No processing events recorded yet.</p>
       </div>
       </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Personal & cloud sync" data-i18n-title="settings.personal.title" data-settings-pane-i18n="settings.personal.title" role="tabpanel" aria-hidden="true">
@@ -1420,6 +1439,9 @@
           </div>
           <div class="data-management-buttons__cell">
             <button type="button" class="settings-data-btn export-btn" onclick="exportData()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-document"></use></svg></span><span class="data-management-buttons__label" data-i18n="common.export.data">Export Data</span></button>
+          </div>
+          <div class="data-management-buttons__cell">
+            <button type="button" class="settings-data-btn export-btn" onclick="exportEncryptedData()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-lock"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.export.encrypted.action">Encrypted export</span></button>
           </div>
           <div class="data-management-buttons__cell">
             <button type="button" class="settings-data-btn import-btn" onclick="importData()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-save"></use></svg></span><span class="data-management-buttons__label" data-i18n="common.import.data">Import Data</span></button>
@@ -3550,7 +3572,8 @@
     }
   })();
   </script>
-  <script defer src="vendor/rianell-shared.js?v=4"></script>
+  <script defer src="vendor/rianell-shared.js?v=5"></script>
+  <script defer src="modules/app-lock.js?v=1"></script>
   <script defer src="i18n-pwa.js?v=3"></script>
   <script defer src="privacy-region.js?v=5"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>

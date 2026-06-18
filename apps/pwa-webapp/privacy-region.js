@@ -99,7 +99,10 @@
       var summary = t('policy.' + d.id + '.summary');
       if (title === 'policy.' + d.id + '.title') title = d.title;
       if (summary === 'policy.' + d.id + '.summary') summary = d.summary;
-      return '<section style="margin-bottom:1rem"><h4 style="margin:0 0 0.35rem">' + escapeHtml(title) + '</h4><p style="margin:0;line-height:1.45">' + escapeHtml(summary) + '</p></section>';
+      var bodyHtml = (d.body || []).map(function (para) {
+        return '<p style="margin:0.5rem 0 0;line-height:1.45">' + escapeHtml(para) + '</p>';
+      }).join('');
+      return '<section style="margin-bottom:1rem"><h4 style="margin:0 0 0.35rem">' + escapeHtml(title) + '</h4><p style="margin:0;line-height:1.45">' + escapeHtml(summary) + '</p>' + bodyHtml + '</section>';
     }).join('');
     var locale = getActiveLocale();
     if (locale !== 'en-GB') {

@@ -117,6 +117,10 @@ export async function syncToCloud(): Promise<{ ok: boolean; message: string }> {
   if (!avail.available) {
     return { ok: false, message: 'Cloud backup is not available for your privacy region or missing consent.' };
   }
+  const { shouldAllowNetworkOperation } = await import('@rianell/shared');
+  if (!shouldAllowNetworkOperation(prefs, 'cloudSync')) {
+    return { ok: false, message: 'Cloud sync is disabled while local-only mode is on.' };
+  }
 
   const userKey = await getUserEncryptionKey(client, user);
   if (!userKey) return { ok: false, message: 'Could not obtain encryption key.' };
@@ -249,6 +253,10 @@ export async function syncAnonymizedData(medicalCondition: string): Promise<{ ok
   );
   if (!avail.available) {
     return { ok: false, message: 'Anonymized contribution is not available for your privacy region.' };
+  }
+  const { shouldAllowNetworkOperation } = await import('@rianell/shared');
+  if (!shouldAllowNetworkOperation(prefs, 'anonymizedSync')) {
+    return { ok: false, message: 'Anonymized sync is disabled while local-only mode is on.' };
   }
 
   if (!medicalCondition?.trim()) return { ok: false, message: 'Set a medical condition first.' };

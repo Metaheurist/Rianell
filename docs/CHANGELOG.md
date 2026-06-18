@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.92.8** - Plan 04: Logging & data capture (L1–L11 excl. NR).
+**Latest: v1.92.9** - Plan 05: Privacy, compliance & trust (P1–P5, P7; P6 deferred).
+
+### v1.92.9 - 2026-06-18 - Plan 05 privacy & compliance (P1–P5, P7)
+- **P1:** Full in-app policy viewer with extended body paragraphs (RN modal + PWA privacy-region).
+- **P2:** Append-only local processing activity log (sync, model download, export events).
+- **P3:** Local-only mode gates cloud sync, anon pool, model download, and bug reports.
+- **P4:** PBKDF2 + AES-GCM password-protected export for clinician handoff prep.
+- **P5:** Anonymised pool field checklist before enabling contribution.
+- **P7:** App lock — RN biometrics (`expo-local-authentication`); PWA passcode overlay on background.
+- **P6:** Teen/caregiver mode deferred pending legal review (documented in MASTER).
+- **Shared:** `@rianell/shared` privacy modules; parity inventory; Tier A i18n overrides.
 
 ### v1.92.8 - 2026-06-18 - Plan 04 logging & data capture (L1–L11)
 - **L1:** Progressive wizard category unlock from `trackingProfile` (food / exercise / meds schedule).

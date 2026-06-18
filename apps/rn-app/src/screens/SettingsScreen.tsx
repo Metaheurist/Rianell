@@ -23,11 +23,16 @@ import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import { speakLabel } from '../accessibility/tts';
 import { mergeLogsAppend, parseLogImportJson, serializeLogsForExport } from '../data/logExportImport';
+import { encryptExportWithPassphrase } from '@rianell/shared';
+import { recordProcessingActivity } from '../storage/processingActivity';
 import { loadLogs, saveLogs, persistLogs } from '../storage/logs';
 import { SettingsCloudPane } from '../settings/SettingsCloudPane';
 import { SettingsPrivacyRegionPane } from '../settings/SettingsPrivacyRegionPane';
 import { SettingsAppInstallSection } from '../settings/SettingsAppInstallSection';
 import { SettingsConsentDashboard } from '../settings/SettingsConsentDashboard';
+import { SettingsPrivacyTrustPane } from '../settings/SettingsPrivacyTrustPane';
+import { AnonPoolFieldChecklist } from '../settings/AnonPoolFieldChecklist';
+import { EncryptedExportModal } from '../settings/EncryptedExportModal';
 import { SettingsLoggingPane } from '../settings/SettingsLoggingPane';
 import {
   buildSettingsProfileExport,
@@ -113,6 +118,8 @@ export function SettingsScreen({
   const [profileImportOpen, setProfileImportOpen] = useState(false);
   const [profileImportText, setProfileImportText] = useState('');
   const [exportBusy, setExportBusy] = useState(false);
+  const [encryptExportOpen, setEncryptExportOpen] = useState(false);
+  const [anonPoolOpen, setAnonPoolOpen] = useState(false);
   const [printBusy, setPrintBusy] = useState(false);
   const [demoBusy, setDemoBusy] = useState(false);
   const [benchmark, setBenchmark] = useState<BenchmarkResult | null>(null);
@@ -254,6 +261,25 @@ export function SettingsScreen({
       const logs = await loadLogs();
       const json = serializeLogsForExport(logs);
       await Share.share({ message: json, title: t('settings.rianell.health.logs.json') });
+      await recordProcessingActivity(prefs, { type: 'export', detail: 'json' }, onChangePrefs);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : t('settings.export.failed');
+      Alert.alert(t('settings.export.title'), msg);
+    } finally {
+      setExportBusy(false);
+    }
+  }
+
+  async function onExportLogsEncrypted(passphrase: string) {
+    setExportBusy(true);
+    try {
+      const logs = await loadLogs();
+      const parsed = JSON.parse(serializeLogsForExport(logs));
+      const envelope = await encryptExportWithPassphrase({ logs: parsed }, passphrase);
+      const json = JSON.stringify(envelope, null, 2);
+      await Share.share({ message: json, title: t('settings.export.encrypted.fileTitle') });
+      await recordProcessingActivity(prefs, { type: 'encrypted_export' }, onChangePrefs);
+      setEncryptExportOpen(false);
     } catch (e) {
       const msg = e instanceof Error ? e.message : t('settings.export.failed');
       Alert.alert(t('settings.export.title'), msg);
@@ -551,6 +577,11 @@ export function SettingsScreen({
           <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
             <Section title={t('settings.privacy.title')}>
               <SettingsPrivacyRegionPane prefs={prefs} onChangePrefs={onChangePrefs} />
+              <SettingsPrivacyTrustPane
+                prefs={prefs}
+                onChangePrefs={onChangePrefs}
+                onRequestAnonPoolEnable={() => setAnonPoolOpen(true)}
+              />
               <SettingsConsentDashboard prefs={prefs} onChangePrefs={onChangePrefs} />
             </Section>
           </ScrollView>
@@ -625,7 +656,13 @@ export function SettingsScreen({
               <Row label="Contribute anonymized data">
                 <Switch
                   value={prefs.contributeAnonData === true}
-                  onValueChange={(contributeAnonData) => onChangePrefs({ ...prefs, contributeAnonData })}
+                  onValueChange={(next) => {
+                    if (next && !prefs.contributeAnonData) {
+                      setAnonPoolOpen(true);
+                      return;
+                    }
+                    onChangePrefs({ ...prefs, contributeAnonData: next });
+                  }}
                 />
               </Row>
 
@@ -1754,6 +1791,17 @@ export function SettingsScreen({
               </Pressable>
 
               <Pressable
+                style={[styles.dataBtn, { opacity: exportBusy ? 0.6 : 1 }]}
+                onPress={() => setEncryptExportOpen(true)}
+                disabled={exportBusy}
+                accessibilityRole="button"
+              >
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>
+                  {t('settings.export.encrypted.action')}
+                </Text>
+              </Pressable>
+
+              <Pressable
 
                 style={[styles.dataBtn, { opacity: printBusy ? 0.6 : 1 }]}
 
@@ -1876,6 +1924,24 @@ export function SettingsScreen({
           </View>
         </View>
       </Modal>
+      <EncryptedExportModal
+        visible={encryptExportOpen}
+        busy={exportBusy}
+        onClose={() => setEncryptExportOpen(false)}
+        onSubmit={(passphrase) => void onExportLogsEncrypted(passphrase)}
+      />
+      <AnonPoolFieldChecklist
+        visible={anonPoolOpen}
+        onClose={() => setAnonPoolOpen(false)}
+        onConfirm={() => {
+          setAnonPoolOpen(false);
+          onChangePrefs({
+            ...prefs,
+            contributeAnonData: true,
+            contributeAnonDataAt: new Date().toISOString(),
+          });
+        }}
+      />
     </SafeAreaView>
   );
 }

@@ -20,22 +20,30 @@ var RianellShared = (() => {
   // packages/shared/src/index.mjs
   var index_exports = {};
   __export(index_exports, {
+    ANON_POOL_EXCLUDED_FIELDS: () => ANON_POOL_EXCLUDED_FIELDS,
+    ANON_POOL_INCLUDED_FIELDS: () => ANON_POOL_INCLUDED_FIELDS,
     DEFAULT_GOALS: () => DEFAULT_GOALS,
     DEFAULT_LOCALE: () => DEFAULT_LOCALE,
     DEFAULT_PRIVACY_REGION: () => DEFAULT_PRIVACY_REGION,
+    ENCRYPTED_EXPORT_FORMAT: () => ENCRYPTED_EXPORT_FORMAT,
+    ENCRYPTED_EXPORT_KDF_ITERATIONS: () => ENCRYPTED_EXPORT_KDF_ITERATIONS,
     GOALS_STORAGE_KEY: () => GOALS_STORAGE_KEY,
     HOME_SUGGESTIONS_MAX_CHIPS: () => HOME_SUGGESTIONS_MAX_CHIPS,
     HOME_SUGGESTIONS_MIN_DAYS: () => HOME_SUGGESTIONS_MIN_DAYS,
     HOME_SUGGESTIONS_RANGE_DAYS: () => HOME_SUGGESTIONS_RANGE_DAYS,
+    LOCAL_ONLY_NETWORK_FEATURES: () => LOCAL_ONLY_NETWORK_FEATURES,
     LOGS_BACKUP_KEY: () => LOGS_BACKUP_KEY,
     LOGS_STORAGE_KEY_MOBILE_LEGACY: () => LOGS_STORAGE_KEY_MOBILE_LEGACY,
     LOGS_STORAGE_KEY_V1: () => LOGS_STORAGE_KEY_V1,
     MIGRATION_COPY: () => MIGRATION_COPY,
     OFFLINE_QUEUE_KEY: () => OFFLINE_QUEUE_KEY,
+    POLICY_BODIES: () => POLICY_BODIES,
     POLICY_SUMMARIES: () => POLICY_SUMMARIES,
     PREDICTION_STATE_KEY: () => PREDICTION_STATE_KEY,
     PREFS_STORAGE_KEY_MOBILE: () => PREFS_STORAGE_KEY_MOBILE,
     PRIVACY_REGIONS: () => PRIVACY_REGIONS,
+    PROCESSING_ACTIVITY_LOG_KEY: () => PROCESSING_ACTIVITY_LOG_KEY,
+    PROCESSING_ACTIVITY_LOG_MAX: () => PROCESSING_ACTIVITY_LOG_MAX,
     PROFILE_AVATAR_IDS: () => PROFILE_AVATAR_IDS,
     PROGRESSIVE_CATEGORIES: () => PROGRESSIVE_CATEGORIES,
     SETTINGS_PROFILE_EXPORT_VERSION: () => SETTINGS_PROFILE_EXPORT_VERSION,
@@ -45,6 +53,7 @@ var RianellShared = (() => {
     UNSET_PRIVACY_REGION: () => UNSET_PRIVACY_REGION,
     addLogFavorite: () => addLogFavorite,
     analysisSnapshotFromSummary: () => analysisSnapshotFromSummary,
+    appendProcessingActivity: () => appendProcessingActivity,
     applyLocaleDefaultsToPrefs: () => applyLocaleDefaultsToPrefs,
     applyMigrationPendingFlag: () => applyMigrationPendingFlag,
     applyPrivacyProfileToLocal: () => applyPrivacyProfileToLocal,
@@ -68,13 +77,16 @@ var RianellShared = (() => {
     createSampleLogEntry: () => createSampleLogEntry,
     createTranslator: () => createTranslator,
     daysSinceTrackingProfileStart: () => daysSinceTrackingProfileStart,
+    decryptExportWithPassphrase: () => decryptExportWithPassphrase,
     deriveDateFormatFromLocale: () => deriveDateFormatFromLocale,
     deriveFirstDayOfWeekFromLocale: () => deriveFirstDayOfWeekFromLocale,
     deriveWeightUnitFromLocale: () => deriveWeightUnitFromLocale,
+    encryptExportWithPassphrase: () => encryptExportWithPassphrase,
     existsSync: () => existsSync,
     extractLogFieldsFromVoiceTranscript: () => extractLogFieldsFromVoiceTranscript,
     fetchOpenFoodFactsProduct: () => fetchOpenFoodFactsProduct,
     filterLogsForHomeSuggestions: () => filterLogsForHomeSuggestions,
+    formatActivityTypeLabel: () => formatActivityTypeLabel,
     formatBarcodeFoodLabel: () => formatBarcodeFoodLabel,
     formatDate: () => formatDate,
     formatNumber: () => formatNumber,
@@ -84,6 +96,7 @@ var RianellShared = (() => {
     getDefaultLocaleForRegion: () => getDefaultLocaleForRegion,
     getDefaultTrackingProfileFields: () => getDefaultTrackingProfileFields,
     getFeatureAvailability: () => getFeatureAvailability,
+    getPolicyBodyParagraphs: () => getPolicyBodyParagraphs,
     getPolicyDocumentsForRegion: () => getPolicyDocumentsForRegion,
     getPolicyDocumentsForRegionI18n: () => getPolicyDocumentsForRegionI18n,
     getPolicyPack: () => getPolicyPack,
@@ -98,6 +111,7 @@ var RianellShared = (() => {
     getVisibleTrackingFields: () => getVisibleTrackingFields,
     identity: () => identity,
     isCloudSyncBlockedByMigration: () => isCloudSyncBlockedByMigration,
+    isLocalOnlyModeEnabled: () => isLocalOnlyModeEnabled,
     isLogCategoryUnlocked: () => isLogCategoryUnlocked,
     isPrivacyRegionConfigured: () => isPrivacyRegionConfigured,
     isRtlLocale: () => isRtlLocale,
@@ -107,12 +121,14 @@ var RianellShared = (() => {
     languageNameForLocale: () => languageNameForLocale,
     loadPolicyPackFromDisk: () => loadPolicyPackFromDisk,
     loadPromptPack: () => loadPromptPack,
+    localOnlyBlockReason: () => localOnlyBlockReason,
     localeFallbackChain: () => localeFallbackChain,
     localeLabel: () => localeLabel,
     mergeHealthLogs: () => mergeHealthLogs,
     mergeLogEntriesForDate: () => mergeLogEntriesForDate,
     needsDataResidencyMigration: () => needsDataResidencyMigration,
     normalizeAccessibilitySettings: () => normalizeAccessibilitySettings,
+    normalizeActivityEntry: () => normalizeActivityEntry,
     normalizeCycleFields: () => normalizeCycleFields,
     normalizeDisplayNameTheme: () => normalizeDisplayNameTheme,
     normalizeGoals: () => normalizeGoals,
@@ -132,12 +148,14 @@ var RianellShared = (() => {
     pickHomeAiSuggestions: () => pickHomeAiSuggestions,
     prefsToConsents: () => prefsToConsents,
     privacyProfileFromLocal: () => privacyProfileFromLocal,
+    readProcessingActivity: () => readProcessingActivity,
     readTextFileSync: () => readTextFileSync,
     resolveActiveLocale: () => resolveActiveLocale,
     resolveAuthResidencyCode: () => resolveAuthResidencyCode,
     resolveDataResidency: () => resolveDataResidency,
     resolvePolicyPack: () => resolvePolicyPack,
     setPolicyPack: () => setPolicyPack,
+    shouldAllowNetworkOperation: () => shouldAllowNetworkOperation,
     shouldShowWizardCategory: () => shouldShowWizardCategory,
     suggestPrivacyRegionFromHint: () => suggestPrivacyRegionFromHint,
     t: () => t,
@@ -681,10 +699,51 @@ var RianellShared = (() => {
     };
   }
 
+  // packages/shared/src/privacy/policyBodies.mjs
+  var POLICY_BODIES = {
+    "global-baseline": [
+      "Rianell is a personal wellness tracker. Your health logs are stored on your device unless you turn on optional cloud backup.",
+      "Optional features \u2014 encrypted cloud backup, anonymised research contribution, and on-device AI \u2014 each need separate consent. You can change or withdraw consent in Settings.",
+      "You can export your data or delete local and cloud copies at any time from Settings \u2192 Data options."
+    ],
+    "eu-gdpr": [
+      "Under GDPR Article 9, health-related data is special-category data. We rely on your explicit consent to process logs on your device and for any optional cloud, research, or AI features.",
+      "You have the right to access, rectify, erase, restrict, port, and object to processing. Withdraw consent in Settings; this does not affect lawfulness of processing before withdrawal.",
+      "Our operator acts as controller for account and cloud data. Sub-processors are listed in the privacy pack hosted with the app."
+    ],
+    "data-subject-rights": [
+      "Download a copy of your logs via Settings \u2192 Export. Correct entries in the log wizard or View logs.",
+      "Delete local data from Settings \u2192 Clear all data. Delete cloud backup separately via Delete cloud data when signed in.",
+      "For formal data-subject requests beyond in-app tools, contact the operator using the details in SECURITY.md."
+    ],
+    "other-jurisdictions-us-ca": [
+      "We do not sell personal information. California residents may request to know, delete, and correct personal information we hold.",
+      "Rianell is consumer wellness self-tracking, not a HIPAA-covered medical record unless used under a healthcare business associate agreement."
+    ],
+    "other-jurisdictions-us": [
+      "State privacy laws may grant access and deletion rights similar to our global baseline. Health logs stay on your device by default."
+    ],
+    "other-jurisdictions-au": [
+      "Australian Privacy Principles apply to personal information we hold. You may access and correct your data through in-app export and edit tools.",
+      "Notifiable data breach rules apply to serious incidents affecting your information held by the operator."
+    ],
+    "other-jurisdictions-br": [
+      "LGPD grants confirmation, access, correction, anonymisation, portability, and deletion rights. Consent is the primary basis for health-related processing in the app."
+    ]
+  };
+  function getPolicyBodyParagraphs(docId) {
+    const rows = POLICY_BODIES[docId];
+    return Array.isArray(rows) ? rows.slice() : [];
+  }
+
   // packages/shared/src/privacy/getPolicyDocuments.mjs
   function getPolicyDocumentsForRegion(regionId, pack) {
     const resolved = resolvePolicyPack(regionId, pack);
-    return (resolved.policyDocuments || []).map((docId) => POLICY_SUMMARIES[docId]).filter(Boolean);
+    return (resolved.policyDocuments || []).map((docId) => {
+      const summary = POLICY_SUMMARIES[docId];
+      if (!summary) return null;
+      return { ...summary, body: getPolicyBodyParagraphs(docId) };
+    }).filter(Boolean);
   }
 
   // packages/shared/src/i18n/locales.mjs
@@ -1025,6 +1084,157 @@ var RianellShared = (() => {
   }
   function clearMigrationPending(prefs, _code, _url) {
     return { ...prefs, migrationPending: false };
+  }
+
+  // packages/shared/src/privacy/localOnlyMode.mjs
+  var LOCAL_ONLY_NETWORK_FEATURES = [
+    { id: "cloudSync", labelKey: "settings.privacy.localOnly.cloudSync" },
+    { id: "anonymizedSync", labelKey: "settings.privacy.localOnly.anonymizedSync" },
+    { id: "modelDownload", labelKey: "settings.privacy.localOnly.modelDownload" },
+    { id: "bugReport", labelKey: "settings.privacy.localOnly.bugReport" }
+  ];
+  function isLocalOnlyModeEnabled(prefs) {
+    const p = prefs && typeof prefs === "object" ? prefs : {};
+    return p.localOnlyMode === true;
+  }
+  function shouldAllowNetworkOperation(prefs, featureId) {
+    if (!isLocalOnlyModeEnabled(prefs)) return true;
+    const blocked = new Set(LOCAL_ONLY_NETWORK_FEATURES.map((f) => f.id));
+    return !blocked.has(featureId);
+  }
+  function localOnlyBlockReason(featureId) {
+    return { blocked: true, featureId, reason: "local_only_mode" };
+  }
+
+  // packages/shared/src/privacy/processingActivityLog.mjs
+  var PROCESSING_ACTIVITY_LOG_KEY = "rianellProcessingActivityLog";
+  var PROCESSING_ACTIVITY_LOG_MAX = 500;
+  var VALID_TYPES = /* @__PURE__ */ new Set(["cloud_sync", "anon_sync", "model_download", "export", "encrypted_export"]);
+  function normalizeActivityEntry(raw) {
+    const v = raw && typeof raw === "object" ? raw : {};
+    const type = VALID_TYPES.has(v.type) ? v.type : "export";
+    const at = typeof v.at === "string" ? v.at : (/* @__PURE__ */ new Date()).toISOString();
+    const detail = typeof v.detail === "string" ? v.detail.slice(0, 200) : void 0;
+    const out = { type, at };
+    if (detail) out.detail = detail;
+    return out;
+  }
+  function appendProcessingActivity(existing, entry) {
+    const list = Array.isArray(existing) ? existing.map(normalizeActivityEntry) : [];
+    list.unshift(normalizeActivityEntry(entry));
+    return list.slice(0, PROCESSING_ACTIVITY_LOG_MAX);
+  }
+  function readProcessingActivity(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw.map(normalizeActivityEntry).slice(0, PROCESSING_ACTIVITY_LOG_MAX);
+  }
+  function formatActivityTypeLabel(type) {
+    switch (type) {
+      case "cloud_sync":
+        return "settings.privacy.activity.cloudSync";
+      case "anon_sync":
+        return "settings.privacy.activity.anonSync";
+      case "model_download":
+        return "settings.privacy.activity.modelDownload";
+      case "encrypted_export":
+        return "settings.privacy.activity.encryptedExport";
+      default:
+        return "settings.privacy.activity.export";
+    }
+  }
+
+  // packages/shared/src/privacy/anonPoolFieldManifest.mjs
+  var ANON_POOL_INCLUDED_FIELDS = [
+    { id: "date", labelKey: "settings.privacy.anonPool.field.date" },
+    { id: "vitals", labelKey: "settings.privacy.anonPool.field.vitals" },
+    { id: "scores", labelKey: "settings.privacy.anonPool.field.scores" },
+    { id: "flare", labelKey: "settings.privacy.anonPool.field.flare" },
+    { id: "foodNames", labelKey: "settings.privacy.anonPool.field.foodNames" },
+    { id: "exercise", labelKey: "settings.privacy.anonPool.field.exercise" },
+    { id: "stepsHydration", labelKey: "settings.privacy.anonPool.field.stepsHydration" },
+    { id: "energyClarity", labelKey: "settings.privacy.anonPool.field.energyClarity" }
+  ];
+  var ANON_POOL_EXCLUDED_FIELDS = [
+    { id: "notes", labelKey: "settings.privacy.anonPool.field.notes" },
+    { id: "symptoms", labelKey: "settings.privacy.anonPool.field.symptoms" },
+    { id: "stressors", labelKey: "settings.privacy.anonPool.field.stressors" },
+    { id: "painLocation", labelKey: "settings.privacy.anonPool.field.painLocation" },
+    { id: "userName", labelKey: "settings.privacy.anonPool.field.userName" },
+    { id: "medicalCondition", labelKey: "settings.privacy.anonPool.field.medicalCondition" }
+  ];
+
+  // packages/shared/src/privacy/encryptedExport.mjs
+  var ENCRYPTED_EXPORT_FORMAT = "rianell-encrypted-export-v1";
+  var ENCRYPTED_EXPORT_KDF_ITERATIONS = 12e4;
+  function getSubtle(subtle) {
+    const s = subtle || typeof globalThis !== "undefined" && globalThis.crypto && globalThis.crypto.subtle;
+    if (!s) throw new Error("Web Crypto subtle not available");
+    return s;
+  }
+  function randomBytes(n) {
+    const arr = new Uint8Array(n);
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) crypto.getRandomValues(arr);
+    else throw new Error("crypto.getRandomValues not available");
+    return arr;
+  }
+  function bytesToBase64(bytes) {
+    if (typeof Buffer !== "undefined") return Buffer.from(bytes).toString("base64");
+    let binary = "";
+    bytes.forEach((b) => {
+      binary += String.fromCharCode(b);
+    });
+    return btoa(binary);
+  }
+  function base64ToBytes(b64) {
+    if (typeof Buffer !== "undefined") return new Uint8Array(Buffer.from(b64, "base64"));
+    const binary = atob(b64);
+    const out = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
+    return out;
+  }
+  async function deriveExportKey(passphrase, salt, subtle) {
+    const enc = new TextEncoder();
+    const cryptoSubtle = getSubtle(subtle);
+    const keyMaterial = await cryptoSubtle.importKey("raw", enc.encode(passphrase), "PBKDF2", false, ["deriveKey"]);
+    return cryptoSubtle.deriveKey(
+      { name: "PBKDF2", salt, iterations: ENCRYPTED_EXPORT_KDF_ITERATIONS, hash: "SHA-256" },
+      keyMaterial,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt", "decrypt"]
+    );
+  }
+  async function encryptExportWithPassphrase(payload, passphrase, subtle) {
+    if (typeof passphrase !== "string" || passphrase.length < 8) {
+      throw new Error("Passphrase must be at least 8 characters");
+    }
+    const cryptoSubtle = getSubtle(subtle);
+    const salt = randomBytes(16);
+    const iv = randomBytes(12);
+    const key = await deriveExportKey(passphrase, salt, cryptoSubtle);
+    const encoded = new TextEncoder().encode(JSON.stringify(payload));
+    const cipher = await cryptoSubtle.encrypt({ name: "AES-GCM", iv }, key, encoded);
+    return {
+      format: ENCRYPTED_EXPORT_FORMAT,
+      kdf: "PBKDF2",
+      iterations: ENCRYPTED_EXPORT_KDF_ITERATIONS,
+      salt: bytesToBase64(salt),
+      iv: bytesToBase64(iv),
+      ciphertext: bytesToBase64(new Uint8Array(cipher))
+    };
+  }
+  async function decryptExportWithPassphrase(envelope, passphrase, subtle) {
+    if (!envelope || envelope.format !== ENCRYPTED_EXPORT_FORMAT) {
+      throw new Error("Unsupported encrypted export format");
+    }
+    if (typeof passphrase !== "string" || !passphrase) throw new Error("Passphrase required");
+    const cryptoSubtle = getSubtle(subtle);
+    const salt = base64ToBytes(envelope.salt);
+    const iv = base64ToBytes(envelope.iv);
+    const cipher = base64ToBytes(envelope.ciphertext);
+    const key = await deriveExportKey(passphrase, salt, cryptoSubtle);
+    const plain = await cryptoSubtle.decrypt({ name: "AES-GCM", iv }, key, cipher);
+    return JSON.parse(new TextDecoder().decode(plain));
   }
 
   // packages/shared/src/i18n/resolveLocale.mjs

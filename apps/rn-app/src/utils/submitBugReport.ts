@@ -16,6 +16,12 @@ export type BugReportPayload = {
  * Insert a bug report via Supabase RLS (insert-only for anon/authenticated).
  */
 export async function submitBugReport(payload: BugReportPayload): Promise<void> {
+  const { loadPreferences } = await import('../storage/preferences');
+  const { shouldAllowNetworkOperation } = await import('@rianell/shared');
+  const prefs = await loadPreferences();
+  if (!shouldAllowNetworkOperation(prefs, 'bugReport')) {
+    throw new Error('Bug reports are disabled while local-only mode is on.');
+  }
   const client = getSupabaseClient();
   if (!client) {
     throw new Error('Bug reports require Supabase configuration (EXPO_PUBLIC_SUPABASE_URL and key).');
