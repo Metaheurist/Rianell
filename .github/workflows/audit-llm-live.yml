@@ -12,9 +12,6 @@ on:
       - 'scripts/audit/verify-deploy-html.mjs'
       - 'packages/build-tools/src/probe-llm-assertions.mjs'
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
 permissions:
   contents: read
 

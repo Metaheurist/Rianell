@@ -3,7 +3,7 @@ description: Cancel the workflow run when a gate job fails so sibling jobs do no
 runs:
   using: composite
   steps:
-    - uses: actions/github-script@v7
+    - uses: actions/github-script@v8
       with:
         script: |
           core.info('Gate job failed — cancelling workflow run.');

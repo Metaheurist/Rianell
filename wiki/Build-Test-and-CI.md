@@ -101,6 +101,13 @@ Caches miss only when lockfiles or pinned tool versions change:
 
 Reusable actions: `.github/actions/setup-node-ci`, `setup-python-ci`, `install-playwright-chromium`, `prepare-pages-site`, `cache-expo`, `cache-android-sdk`.
 
+### Node 24 (job runtime vs action runtime)
+
+- **Job Node runtime:** `setup-node-ci` pins **24.14.1** (matches root `engines`, `.nvmrc`, `.node-version`).
+- **JS action runtime:** First-party pins use Node 24-native majors (`cache@v5`, `setup-java@v5`, `upload-pages-artifact@v5`, `deploy-pages@v5`, `github-script@v8`, `softprops/action-gh-release@v3`). Hosted runners default to Node 24 for JS actions (Jun 2026).
+- **Regression guard:** `npm run verify:github-actions` (also runs in CI unit-tests) fails on legacy `@v4`/`@v7`/`@v2` pins or `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24`.
+- **Residual annotations:** Platform workflows (Automatic Dependency Submission) and `github/codeql-action/upload-sarif@v3` may still report Node 20 until upstream bumps.
+
 ---
 
 ## Benchmarks
