@@ -36,21 +36,30 @@ var RianellShared = (() => {
     PREDICTION_STATE_KEY: () => PREDICTION_STATE_KEY,
     PREFS_STORAGE_KEY_MOBILE: () => PREFS_STORAGE_KEY_MOBILE,
     PRIVACY_REGIONS: () => PRIVACY_REGIONS,
+    PROFILE_AVATAR_IDS: () => PROFILE_AVATAR_IDS,
+    PROGRESSIVE_CATEGORIES: () => PROGRESSIVE_CATEGORIES,
+    SETTINGS_PROFILE_EXPORT_VERSION: () => SETTINGS_PROFILE_EXPORT_VERSION,
     SETTINGS_STORAGE_KEY: () => SETTINGS_STORAGE_KEY,
     SHIPPED_LOCALES: () => SHIPPED_LOCALES,
+    TRACKING_PROFILE_FIELD_KEYS: () => TRACKING_PROFILE_FIELD_KEYS,
     UNSET_PRIVACY_REGION: () => UNSET_PRIVACY_REGION,
+    addLogFavorite: () => addLogFavorite,
     analysisSnapshotFromSummary: () => analysisSnapshotFromSummary,
+    applyLocaleDefaultsToPrefs: () => applyLocaleDefaultsToPrefs,
     applyMigrationPendingFlag: () => applyMigrationPendingFlag,
     applyPrivacyProfileToLocal: () => applyPrivacyProfileToLocal,
     applyRegionDefaultLocale: () => applyRegionDefaultLocale,
     applyRegionDowngradeToggles: () => applyRegionDowngradeToggles,
+    buildConsentDashboardEntries: () => buildConsentDashboardEntries,
     buildHomeQuestionContext: () => buildHomeQuestionContext,
     buildHomeQuestionFallback: () => buildHomeQuestionFallback,
     buildHomeQuestionPrompt: () => buildHomeQuestionPrompt,
     buildLlmRequestPayload: () => buildLlmRequestPayload,
     buildMotdPrompt: () => buildMotdPrompt,
+    buildSettingsProfileExport: () => buildSettingsProfileExport,
     buildSuggestPrompt: () => buildSuggestPrompt,
     buildSummaryPrompt: () => buildSummaryPrompt,
+    buildTodayMedDoseStatuses: () => buildTodayMedDoseStatuses,
     canChooseDataResidency: () => canChooseDataResidency,
     checkPolicyDrift: () => checkPolicyDrift,
     checkPolicyDriftSync: () => checkPolicyDriftSync,
@@ -58,14 +67,22 @@ var RianellShared = (() => {
     computeHomeAnalysisSnapshot: () => computeHomeAnalysisSnapshot,
     createSampleLogEntry: () => createSampleLogEntry,
     createTranslator: () => createTranslator,
+    daysSinceTrackingProfileStart: () => daysSinceTrackingProfileStart,
+    deriveDateFormatFromLocale: () => deriveDateFormatFromLocale,
+    deriveFirstDayOfWeekFromLocale: () => deriveFirstDayOfWeekFromLocale,
+    deriveWeightUnitFromLocale: () => deriveWeightUnitFromLocale,
     existsSync: () => existsSync,
+    extractLogFieldsFromVoiceTranscript: () => extractLogFieldsFromVoiceTranscript,
+    fetchOpenFoodFactsProduct: () => fetchOpenFoodFactsProduct,
     filterLogsForHomeSuggestions: () => filterLogsForHomeSuggestions,
+    formatBarcodeFoodLabel: () => formatBarcodeFoodLabel,
     formatDate: () => formatDate,
     formatNumber: () => formatNumber,
     formatRelativeDay: () => formatRelativeDay,
     getDefaultAccessibilitySettings: () => getDefaultAccessibilitySettings,
     getDefaultAppSettingsFields: () => getDefaultAppSettingsFields,
     getDefaultLocaleForRegion: () => getDefaultLocaleForRegion,
+    getDefaultTrackingProfileFields: () => getDefaultTrackingProfileFields,
     getFeatureAvailability: () => getFeatureAvailability,
     getPolicyDocumentsForRegion: () => getPolicyDocumentsForRegion,
     getPolicyDocumentsForRegionI18n: () => getPolicyDocumentsForRegionI18n,
@@ -76,10 +93,15 @@ var RianellShared = (() => {
     getResidencyDisplayLabel: () => getResidencyDisplayLabel,
     getResidencyRegistry: () => getResidencyRegistry,
     getSupportedLocalesForRegion: () => getSupportedLocalesForRegion,
+    getSymptomChipsForCondition: () => getSymptomChipsForCondition,
+    getUnlockedLogCategories: () => getUnlockedLogCategories,
+    getVisibleTrackingFields: () => getVisibleTrackingFields,
     identity: () => identity,
     isCloudSyncBlockedByMigration: () => isCloudSyncBlockedByMigration,
+    isLogCategoryUnlocked: () => isLogCategoryUnlocked,
     isPrivacyRegionConfigured: () => isPrivacyRegionConfigured,
     isRtlLocale: () => isRtlLocale,
+    isTrackingProfileConfigured: () => isTrackingProfileConfigured,
     isValidLocaleId: () => isValidLocaleId,
     isValidPrivacyRegion: () => isValidPrivacyRegion,
     languageNameForLocale: () => languageNameForLocale,
@@ -88,11 +110,25 @@ var RianellShared = (() => {
     localeFallbackChain: () => localeFallbackChain,
     localeLabel: () => localeLabel,
     mergeHealthLogs: () => mergeHealthLogs,
+    mergeLogEntriesForDate: () => mergeLogEntriesForDate,
     needsDataResidencyMigration: () => needsDataResidencyMigration,
     normalizeAccessibilitySettings: () => normalizeAccessibilitySettings,
+    normalizeCycleFields: () => normalizeCycleFields,
+    normalizeDisplayNameTheme: () => normalizeDisplayNameTheme,
     normalizeGoals: () => normalizeGoals,
     normalizeLogEntry: () => normalizeLogEntry,
+    normalizeLogFavorites: () => normalizeLogFavorites,
+    normalizeMedSchedule: () => normalizeMedSchedule,
+    normalizeMedScheduleEntry: () => normalizeMedScheduleEntry,
+    normalizeMedicationDose: () => normalizeMedicationDose,
+    normalizeMedicationDoses: () => normalizeMedicationDoses,
     normalizePreferencesPartial: () => normalizePreferencesPartial,
+    normalizeProfileAvatar: () => normalizeProfileAvatar,
+    normalizeSubEntries: () => normalizeSubEntries,
+    normalizeSubEntry: () => normalizeSubEntry,
+    normalizeSymptomTemplates: () => normalizeSymptomTemplates,
+    normalizeTrackingProfile: () => normalizeTrackingProfile,
+    parseSettingsProfileImport: () => parseSettingsProfileImport,
     pickHomeAiSuggestions: () => pickHomeAiSuggestions,
     prefsToConsents: () => prefsToConsents,
     privacyProfileFromLocal: () => privacyProfileFromLocal,
@@ -102,10 +138,92 @@ var RianellShared = (() => {
     resolveDataResidency: () => resolveDataResidency,
     resolvePolicyPack: () => resolvePolicyPack,
     setPolicyPack: () => setPolicyPack,
+    shouldShowWizardCategory: () => shouldShowWizardCategory,
     suggestPrivacyRegionFromHint: () => suggestPrivacyRegionFromHint,
     t: () => t,
-    textDirection: () => textDirection
+    textDirection: () => textDirection,
+    upsertSymptomTemplate: () => upsertSymptomTemplate
   });
+
+  // packages/shared/src/logging/logSchema.mjs
+  var SUB_ENTRY_PERIODS = /* @__PURE__ */ new Set(["AM", "PM", "partial"]);
+  function clampInt(raw, min, max) {
+    const n = typeof raw === "number" ? raw : typeof raw === "string" ? parseInt(raw, 10) : NaN;
+    if (!Number.isFinite(n)) return void 0;
+    return Math.max(min, Math.min(max, Math.round(n)));
+  }
+  function normalizeString(raw, maxLen) {
+    if (typeof raw !== "string") return void 0;
+    const s = raw.trim();
+    if (!s) return void 0;
+    if (typeof maxLen === "number") return s.slice(0, maxLen);
+    return s;
+  }
+  function normalizeCycleFields(value) {
+    const v = value && typeof value === "object" ? value : {};
+    const phase = v.phase === "menstrual" || v.phase === "follicular" || v.phase === "ovulation" || v.phase === "luteal" ? v.phase : void 0;
+    const flow = v.flow === "none" || v.flow === "light" || v.flow === "medium" || v.flow === "heavy" ? v.flow : void 0;
+    const cycleDay = clampInt(v.cycleDay, 1, 45);
+    const pmsSymptoms = Array.isArray(v.pmsSymptoms) ? v.pmsSymptoms.filter((x) => typeof x === "string" && x.trim()).map((x) => x.trim()).slice(0, 20) : void 0;
+    const out = { cycleDay, phase, flow, pmsSymptoms };
+    Object.keys(out).forEach((k) => {
+      if (out[k] === void 0 || Array.isArray(out[k]) && out[k].length === 0) delete out[k];
+    });
+    return Object.keys(out).length ? out : void 0;
+  }
+  function normalizeSubEntry(value) {
+    const v = value && typeof value === "object" ? value : {};
+    const period = SUB_ENTRY_PERIODS.has(v.period) ? v.period : "partial";
+    const id = typeof v.id === "string" && v.id.trim() ? v.id.trim().slice(0, 40) : `${period}-${Date.now()}`;
+    const entry = {
+      id,
+      period,
+      mood: clampInt(v.mood, 0, 10),
+      fatigue: clampInt(v.fatigue, 0, 10),
+      sleep: clampInt(v.sleep, 0, 10),
+      jointPain: clampInt(v.jointPain, 0, 10),
+      notes: normalizeString(v.notes, 500),
+      savedAt: typeof v.savedAt === "string" ? v.savedAt : (/* @__PURE__ */ new Date()).toISOString()
+    };
+    Object.keys(entry).forEach((k) => {
+      if (entry[k] === void 0) delete entry[k];
+    });
+    return entry;
+  }
+  function normalizeSubEntries(raw) {
+    if (!Array.isArray(raw)) return void 0;
+    const items = raw.map((x) => normalizeSubEntry(x)).filter((x) => Object.keys(x).length > 1);
+    return items.length ? items.slice(0, 8) : void 0;
+  }
+  function normalizeMedicationDose(value) {
+    const v = value && typeof value === "object" ? value : {};
+    const status = v.status === "taken" || v.status === "skipped" || v.status === "missed" ? v.status : void 0;
+    const drug = normalizeString(v.drug, 120);
+    const scheduledAt = typeof v.scheduledAt === "string" ? v.scheduledAt.slice(0, 40) : void 0;
+    if (!drug && !status) return void 0;
+    return { drug: drug || "Medication", status: status || "taken", scheduledAt };
+  }
+  function normalizeMedicationDoses(raw) {
+    if (!Array.isArray(raw)) return void 0;
+    const items = raw.map((x) => normalizeMedicationDose(x)).filter(Boolean);
+    return items.length ? items.slice(0, 24) : void 0;
+  }
+  function mergeLogEntriesForDate(existing, incoming) {
+    const base = { ...existing, ...incoming, date: existing.date || incoming.date };
+    const subA = normalizeSubEntries(existing.subEntries) || [];
+    const subB = normalizeSubEntries(incoming.subEntries) || [];
+    if (subA.length || subB.length) {
+      const byId = /* @__PURE__ */ new Map();
+      [...subA, ...subB].forEach((s) => byId.set(s.id, s));
+      base.subEntries = [...byId.values()];
+    }
+    if (incoming.cycle) base.cycle = normalizeCycleFields(incoming.cycle) || base.cycle;
+    if (incoming.medicationDoses) {
+      const doses = normalizeMedicationDoses([...normalizeMedicationDoses(existing.medicationDoses) || [], ...normalizeMedicationDoses(incoming.medicationDoses) || []]);
+      if (doses) base.medicationDoses = doses;
+    }
+    return base;
+  }
 
   // packages/shared/src/privacy/regions.mjs
   var PRIVACY_REGIONS = ["eea_uk", "us_ca", "us_other", "au", "br", "other"];
@@ -1628,6 +1746,398 @@ ${raw}
     return text.length > MAX_CONTEXT_CHARS ? text.slice(0, MAX_CONTEXT_CHARS) : text;
   }
 
+  // packages/shared/src/settings/trackingProfile.mjs
+  var TRACKING_PROFILE_FIELD_KEYS = ["mood", "pain", "notes", "sleep", "fatigue"];
+  function getDefaultTrackingProfileFields() {
+    return {
+      mood: true,
+      pain: true,
+      notes: true,
+      sleep: false,
+      fatigue: false
+    };
+  }
+  function normalizeTrackingProfile(value) {
+    const d = {
+      condition: "",
+      fields: getDefaultTrackingProfileFields(),
+      configuredAt: null
+    };
+    const v = value && typeof value === "object" ? value : {};
+    const fieldsIn = v.fields && typeof v.fields === "object" ? v.fields : {};
+    const fields = { ...d.fields };
+    for (const key of TRACKING_PROFILE_FIELD_KEYS) {
+      if (typeof fieldsIn[key] === "boolean") fields[key] = fieldsIn[key];
+    }
+    return {
+      condition: typeof v.condition === "string" ? v.condition.slice(0, 200) : d.condition,
+      fields,
+      configuredAt: typeof v.configuredAt === "string" ? v.configuredAt : d.configuredAt
+    };
+  }
+  function isTrackingProfileConfigured(profile) {
+    const p = normalizeTrackingProfile(profile);
+    return !!p.configuredAt;
+  }
+
+  // packages/shared/src/settings/localeDefaults.mjs
+  var LB_LOCALES = /* @__PURE__ */ new Set(["en-US", "en-us"]);
+  function deriveWeightUnitFromLocale(locale) {
+    const tag = typeof locale === "string" ? locale.trim() : "";
+    if (LB_LOCALES.has(tag) || tag.endsWith("-US")) return "lb";
+    return "kg";
+  }
+  function deriveFirstDayOfWeekFromLocale(locale) {
+    try {
+      const loc = typeof locale === "string" && locale ? locale : "en-GB";
+      const parts = new Intl.Locale(loc).weekInfo;
+      if (parts && (parts.firstDay === 0 || parts.firstDay === 1 || parts.firstDay === 6)) {
+        return parts.firstDay;
+      }
+    } catch (_) {
+    }
+    const tag = (typeof locale === "string" ? locale : "en-GB").toLowerCase();
+    if (tag.startsWith("en-us")) return 0;
+    return 1;
+  }
+  function deriveDateFormatFromLocale(locale) {
+    const tag = (typeof locale === "string" ? locale : "en-GB").toLowerCase();
+    if (tag.startsWith("en-us")) return "MDY";
+    if (tag.startsWith("ja") || tag.startsWith("zh") || tag.startsWith("ko")) return "YMD";
+    return "DMY";
+  }
+  function applyLocaleDefaultsToPrefs(prefs, locale) {
+    const next = { ...prefs && typeof prefs === "object" ? prefs : {} };
+    const loc = typeof locale === "string" && locale ? locale : next.uiLocale || "en-GB";
+    if (!next.localeDefaultsApplied) {
+      if (!next.weightUnitSource || next.weightUnitSource === "default") {
+        next.weightUnit = deriveWeightUnitFromLocale(loc);
+        next.weightUnitSource = "locale";
+      }
+      next.dateFormat = next.dateFormat || deriveDateFormatFromLocale(loc);
+      next.firstDayOfWeek = typeof next.firstDayOfWeek === "number" ? next.firstDayOfWeek : deriveFirstDayOfWeekFromLocale(loc);
+      next.localeDefaultsApplied = true;
+    }
+    return next;
+  }
+
+  // packages/shared/src/settings/avatars.mjs
+  var PROFILE_AVATAR_IDS = ["leaf", "heart", "star", "sun", "pulse", "shield"];
+  function normalizeProfileAvatar(value) {
+    const id = typeof value === "string" ? value.trim() : "";
+    return PROFILE_AVATAR_IDS.includes(id) ? id : "leaf";
+  }
+  function normalizeDisplayNameTheme(value) {
+    const allowed = ["mint", "coral", "sky", "violet", "gold"];
+    const v = typeof value === "string" ? value.trim() : "";
+    return allowed.includes(v) ? v : "mint";
+  }
+
+  // packages/shared/src/settings/consentDashboard.mjs
+  function buildConsentDashboardEntries(input) {
+    const p = input && typeof input === "object" ? input : {};
+    const rows = [];
+    rows.push({
+      id: "healthData",
+      granted: p.healthDataConsent === true,
+      updatedAt: p.healthDataConsentAt || null,
+      revokeField: "healthDataConsent"
+    });
+    rows.push({
+      id: "cookie",
+      granted: p.cookieConsent === true,
+      updatedAt: p.cookieConsentAt || null,
+      revokeField: "cookieConsent"
+    });
+    rows.push({
+      id: "aiModel",
+      granted: p.aiModelDownloadConsent === "granted",
+      updatedAt: p.aiModelDownloadConsentAt || null,
+      revokeField: "aiModelDownloadConsent",
+      revokeValue: "deferred"
+    });
+    rows.push({
+      id: "push",
+      granted: p.pushNotificationsEnabled === true || p.notificationsEnabled === true,
+      updatedAt: p.pushNotificationsEnabledAt || p.notificationsEnabledAt || null,
+      revokeField: "pushNotificationsEnabled"
+    });
+    rows.push({
+      id: "anonPool",
+      granted: p.contributeAnonData === true,
+      updatedAt: p.contributeAnonDataAt || null,
+      revokeField: "contributeAnonData"
+    });
+    return rows;
+  }
+
+  // packages/shared/src/settings/profileExport.mjs
+  var SETTINGS_PROFILE_EXPORT_VERSION = 1;
+  function buildSettingsProfileExport(prefs, goals) {
+    return {
+      kind: "rianell-settings-profile",
+      version: SETTINGS_PROFILE_EXPORT_VERSION,
+      exportedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      settings: prefs && typeof prefs === "object" ? { ...prefs } : {},
+      goals: goals && typeof goals === "object" ? { ...goals } : {}
+    };
+  }
+  function parseSettingsProfileImport(raw) {
+    let parsed = raw;
+    if (typeof raw === "string") {
+      parsed = JSON.parse(raw);
+    }
+    if (!parsed || typeof parsed !== "object") {
+      throw new Error("invalid_profile");
+    }
+    if (parsed.kind !== "rianell-settings-profile") {
+      throw new Error("wrong_kind");
+    }
+    const version = typeof parsed.version === "number" ? parsed.version : 0;
+    if (version > SETTINGS_PROFILE_EXPORT_VERSION) {
+      throw new Error("unsupported_version");
+    }
+    const settings = parsed.settings && typeof parsed.settings === "object" ? parsed.settings : {};
+    const goals = parsed.goals && typeof parsed.goals === "object" ? parsed.goals : {};
+    return { settings, goals, exportedAt: parsed.exportedAt || null };
+  }
+
+  // packages/shared/src/logging/favorites.mjs
+  var MAX_FAVORITES = 24;
+  function normalizeFavoriteItem(value, maxLen = 120) {
+    if (typeof value !== "string") return null;
+    const s = value.trim().slice(0, maxLen);
+    return s || null;
+  }
+  function normalizeFavoriteList(raw, maxLen) {
+    if (!Array.isArray(raw)) return [];
+    const seen = /* @__PURE__ */ new Set();
+    const out = [];
+    for (const item of raw) {
+      const s = normalizeFavoriteItem(item, maxLen);
+      if (!s || seen.has(s.toLowerCase())) continue;
+      seen.add(s.toLowerCase());
+      out.push(s);
+      if (out.length >= MAX_FAVORITES) break;
+    }
+    return out;
+  }
+  function normalizeLogFavorites(value) {
+    const v = value && typeof value === "object" ? value : {};
+    return {
+      meals: normalizeFavoriteList(v.meals, 200),
+      exercises: normalizeFavoriteList(v.exercises, 120),
+      medCombos: normalizeFavoriteList(v.medCombos, 200)
+    };
+  }
+  function addLogFavorite(favorites, kind, label) {
+    const base = normalizeLogFavorites(favorites);
+    const key = kind === "meals" || kind === "exercises" || kind === "medCombos" ? kind : null;
+    if (!key) return base;
+    const s = normalizeFavoriteItem(label);
+    if (!s) return base;
+    const next = [s, ...base[key].filter((x) => x.toLowerCase() !== s.toLowerCase())].slice(0, MAX_FAVORITES);
+    return { ...base, [key]: next };
+  }
+
+  // packages/shared/src/logging/symptomTemplates.mjs
+  var MAX_TEMPLATES = 12;
+  var MAX_CHIPS = 40;
+  function normalizeSymptomTemplates(value) {
+    if (!Array.isArray(value)) return [];
+    const out = [];
+    for (const row of value) {
+      if (!row || typeof row !== "object") continue;
+      const condition = typeof row.condition === "string" ? row.condition.trim().slice(0, 120) : "";
+      const chips = Array.isArray(row.chips) ? row.chips.filter((x) => typeof x === "string" && x.trim()).map((x) => x.trim().slice(0, 80)).slice(0, MAX_CHIPS) : [];
+      if (!condition && !chips.length) continue;
+      out.push({ condition: condition || "General", chips });
+      if (out.length >= MAX_TEMPLATES) break;
+    }
+    return out;
+  }
+  function getSymptomChipsForCondition(templates, condition) {
+    const list = normalizeSymptomTemplates(templates);
+    const needle = (condition || "").trim().toLowerCase();
+    if (!needle) return list[0]?.chips || [];
+    const exact = list.find((t2) => t2.condition.toLowerCase() === needle);
+    if (exact) return exact.chips;
+    const partial = list.find((t2) => t2.condition.toLowerCase().includes(needle) || needle.includes(t2.condition.toLowerCase()));
+    return partial?.chips || list[0]?.chips || [];
+  }
+  function upsertSymptomTemplate(templates, condition, chips) {
+    const list = normalizeSymptomTemplates(templates);
+    const cond = (condition || "General").trim().slice(0, 120);
+    const chipList = Array.isArray(chips) ? chips.filter((x) => typeof x === "string" && x.trim()).map((x) => x.trim().slice(0, 80)).slice(0, MAX_CHIPS) : [];
+    const idx = list.findIndex((t2) => t2.condition.toLowerCase() === cond.toLowerCase());
+    if (idx >= 0) {
+      const next = [...list];
+      next[idx] = { condition: cond, chips: chipList };
+      return next;
+    }
+    return [...list, { condition: cond, chips: chipList }].slice(-MAX_TEMPLATES);
+  }
+
+  // packages/shared/src/logging/medSchedule.mjs
+  var MAX_SCHEDULE = 20;
+  function normalizeTime(value) {
+    if (typeof value !== "string" || !/^\d{2}:\d{2}$/.test(value)) return null;
+    const [h, m] = value.split(":").map(Number);
+    if (h < 0 || h > 23 || m < 0 || m > 59) return null;
+    return value;
+  }
+  function normalizeMedScheduleEntry(value) {
+    const v = value && typeof value === "object" ? value : {};
+    const drug = typeof v.drug === "string" ? v.drug.trim().slice(0, 120) : "";
+    const dose = typeof v.dose === "string" ? v.dose.trim().slice(0, 80) : "";
+    const times = Array.isArray(v.times) ? v.times.map(normalizeTime).filter(Boolean).slice(0, 8) : [];
+    const id = typeof v.id === "string" && v.id.trim() ? v.id.trim().slice(0, 40) : `med-${drug.slice(0, 20) || "rx"}`;
+    if (!drug && !times.length) return null;
+    return { id, drug: drug || "Medication", dose, times, enabled: v.enabled !== false };
+  }
+  function normalizeMedSchedule(raw) {
+    if (!Array.isArray(raw)) return [];
+    const out = [];
+    const seen = /* @__PURE__ */ new Set();
+    for (const row of raw) {
+      const entry = normalizeMedScheduleEntry(row);
+      if (!entry || seen.has(entry.id)) continue;
+      seen.add(entry.id);
+      out.push(entry);
+      if (out.length >= MAX_SCHEDULE) break;
+    }
+    return out;
+  }
+  function buildTodayMedDoseStatuses(schedule, dateIso, takenMap = {}) {
+    const day = typeof dateIso === "string" ? dateIso.slice(0, 10) : (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    const entries = normalizeMedSchedule(schedule).filter((e) => e.enabled !== false);
+    const doses = [];
+    entries.forEach((entry) => {
+      entry.times.forEach((time) => {
+        const key = `${entry.id}@${day}T${time}`;
+        const status = takenMap[key] === "skipped" || takenMap[key] === "missed" ? takenMap[key] : takenMap[key] === "taken" ? "taken" : "pending";
+        doses.push({
+          drug: entry.drug,
+          dose: entry.dose,
+          scheduledAt: `${day}T${time}`,
+          status,
+          scheduleId: entry.id
+        });
+      });
+    });
+    return doses;
+  }
+
+  // packages/shared/src/logging/progressiveTracking.mjs
+  var PROGRESSIVE_CATEGORIES = ["core", "sleep", "food", "exercise", "medications", "cycle"];
+  var UNLOCK_DAYS = {
+    core: 0,
+    sleep: 3,
+    food: 7,
+    exercise: 14,
+    medications: 21,
+    cycle: 28
+  };
+  function daysSinceTrackingProfileStart(profile) {
+    const p = normalizeTrackingProfile(profile);
+    if (!p.configuredAt) return 0;
+    const start = Date.parse(p.configuredAt);
+    if (!Number.isFinite(start)) return 0;
+    return Math.max(0, Math.floor((Date.now() - start) / 864e5));
+  }
+  function getUnlockedLogCategories(profile) {
+    const days = daysSinceTrackingProfileStart(profile);
+    return PROGRESSIVE_CATEGORIES.filter((cat) => days >= (UNLOCK_DAYS[cat] ?? 0));
+  }
+  function isLogCategoryUnlocked(profile, category) {
+    return getUnlockedLogCategories(profile).includes(category);
+  }
+  function getVisibleTrackingFields(profile) {
+    const p = normalizeTrackingProfile(profile);
+    const unlocked = new Set(getUnlockedLogCategories(profile));
+    const fields = { ...p.fields };
+    if (!unlocked.has("sleep")) {
+      fields.sleep = false;
+      fields.fatigue = false;
+    }
+    return fields;
+  }
+  function shouldShowWizardCategory(profile, category) {
+    if (!isLogCategoryUnlocked(profile, category)) return false;
+    if (category === "core") return true;
+    if (category === "sleep") {
+      const f = getVisibleTrackingFields(profile);
+      return f.sleep || f.fatigue;
+    }
+    return true;
+  }
+
+  // packages/shared/src/logging/barcodeFood.mjs
+  var OFF_API = "https://world.openfoodfacts.org/api/v2/product";
+  async function fetchOpenFoodFactsProduct(barcode, fetchImpl = globalThis.fetch) {
+    const code = String(barcode || "").replace(/\D/g, "");
+    if (code.length < 8) throw new Error("Invalid barcode");
+    if (typeof fetchImpl !== "function") throw new Error("fetch unavailable");
+    const res = await fetchImpl(`${OFF_API}/${code}.json`, {
+      headers: { Accept: "application/json", "User-Agent": "Rianell/1.0 (health PWA; contact: support@rianell.com)" }
+    });
+    if (!res.ok) throw new Error(`Open Food Facts HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.status !== 1 || !data.product) throw new Error("Product not found");
+    const p = data.product;
+    const name = p.product_name || p.generic_name || p.brands || "Unknown product";
+    const brand = typeof p.brands === "string" ? p.brands.split(",")[0].trim() : "";
+    return {
+      barcode: code,
+      name: String(name).trim().slice(0, 200),
+      brand: brand.slice(0, 120),
+      nutriScore: typeof p.nutriscore_grade === "string" ? p.nutriscore_grade.toUpperCase().slice(0, 1) : void 0,
+      serving: typeof p.serving_size === "string" ? p.serving_size.slice(0, 80) : void 0
+    };
+  }
+  function formatBarcodeFoodLabel(product) {
+    if (!product || typeof product !== "object") return "";
+    const parts = [product.brand, product.name].filter(Boolean);
+    return parts.join(" \u2014 ").slice(0, 200);
+  }
+
+  // packages/shared/src/logging/voiceLogExtract.mjs
+  var MOOD_WORDS = [
+    ["great", 9],
+    ["good", 7],
+    ["okay", 5],
+    ["low", 3],
+    ["awful", 2]
+  ];
+  function extractLogFieldsFromVoiceTranscript(text) {
+    const raw = typeof text === "string" ? text.trim() : "";
+    if (!raw) return { notes: "" };
+    const lower = raw.toLowerCase();
+    let mood;
+    for (const [word, score] of MOOD_WORDS) {
+      if (lower.includes(word)) {
+        mood = score;
+        break;
+      }
+    }
+    const fatigueMatch = lower.match(/fatigue(?: level)?\s*(?:was|is|at)?\s*(\d{1,2})/);
+    const sleepMatch = lower.match(/sleep(?: was| is| score)?\s*(?:was|is|at)?\s*(\d{1,2})/);
+    const painMatch = lower.match(/pain(?: level)?\s*(?:was|is|at)?\s*(\d{1,2})/);
+    const flare = /\bflare\b|\bflaring\b/.test(lower) ? "Yes" : void 0;
+    const out = {
+      notes: raw.slice(0, 500),
+      mood: mood ?? (fatigueMatch ? void 0 : 5),
+      fatigue: fatigueMatch ? Math.min(10, parseInt(fatigueMatch[1], 10)) : void 0,
+      sleep: sleepMatch ? Math.min(10, parseInt(sleepMatch[1], 10)) : void 0,
+      jointPain: painMatch ? Math.min(10, parseInt(painMatch[1], 10)) : void 0,
+      flare
+    };
+    Object.keys(out).forEach((k) => {
+      if (out[k] === void 0) delete out[k];
+    });
+    return out;
+  }
+
   // packages/shared/src/index.mjs
   function identity(value) {
     return value;
@@ -1685,10 +2195,10 @@ ${raw}
     const d = DEFAULT_GOALS;
     const v = value && typeof value === "object" ? value : {};
     return {
-      steps: clampInt(v.steps, 0, 1e5) ?? d.steps,
-      hydration: clampInt(v.hydration, 0, 30) ?? d.hydration,
-      sleep: clampInt(v.sleep, 0, 10) ?? d.sleep,
-      goodDaysPerWeek: clampInt(v.goodDaysPerWeek, 0, 7) ?? d.goodDaysPerWeek
+      steps: clampInt2(v.steps, 0, 1e5) ?? d.steps,
+      hydration: clampInt2(v.hydration, 0, 30) ?? d.hydration,
+      sleep: clampInt2(v.sleep, 0, 10) ?? d.sleep,
+      goodDaysPerWeek: clampInt2(v.goodDaysPerWeek, 0, 7) ?? d.goodDaysPerWeek
     };
   }
   function getDefaultAppSettingsFields() {
@@ -1740,12 +2250,12 @@ ${raw}
     merged.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     return merged;
   }
-  function clampInt(raw, min, max) {
+  function clampInt2(raw, min, max) {
     const n = typeof raw === "number" ? raw : typeof raw === "string" ? parseInt(raw, 10) : NaN;
     if (!Number.isFinite(n)) return void 0;
     return Math.max(min, Math.min(max, Math.trunc(n)));
   }
-  function normalizeString(raw, maxLen) {
+  function normalizeString2(raw, maxLen) {
     if (typeof raw !== "string") return void 0;
     const s = raw.trim();
     if (!s) return void 0;
@@ -1766,30 +2276,34 @@ ${raw}
     const date = typeof v.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v.date) ? v.date : (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
     const entry = {
       date,
-      bpm: clampInt(v.bpm, 30, 120),
+      bpm: clampInt2(v.bpm, 30, 120),
       weight: typeof v.weight === "string" ? v.weight : typeof v.weight === "number" ? v.weight.toFixed(1) : void 0,
       // stored as kg string (web)
-      fatigue: clampInt(v.fatigue, 0, 10),
-      stiffness: clampInt(v.stiffness, 0, 10),
-      sleep: clampInt(v.sleep, 0, 10),
-      jointPain: clampInt(v.jointPain, 0, 10),
-      mobility: clampInt(v.mobility, 0, 10),
-      dailyFunction: clampInt(v.dailyFunction, 0, 10),
-      swelling: clampInt(v.swelling, 0, 10),
+      fatigue: clampInt2(v.fatigue, 0, 10),
+      stiffness: clampInt2(v.stiffness, 0, 10),
+      sleep: clampInt2(v.sleep, 0, 10),
+      jointPain: clampInt2(v.jointPain, 0, 10),
+      mobility: clampInt2(v.mobility, 0, 10),
+      dailyFunction: clampInt2(v.dailyFunction, 0, 10),
+      swelling: clampInt2(v.swelling, 0, 10),
       flare: v.flare === "Yes" ? "Yes" : v.flare === "No" ? "No" : "No",
-      mood: clampInt(v.mood, 0, 10),
-      irritability: clampInt(v.irritability, 0, 10),
-      notes: normalizeString(v.notes, 500),
+      mood: clampInt2(v.mood, 0, 10),
+      irritability: clampInt2(v.irritability, 0, 10),
+      notes: normalizeString2(v.notes, 500),
       food: v.food && typeof v.food === "object" ? v.food : void 0,
       exercise: Array.isArray(v.exercise) ? v.exercise : void 0,
-      energyClarity: normalizeString(v.energyClarity, 80),
+      energyClarity: normalizeString2(v.energyClarity, 80),
       stressors: Array.isArray(v.stressors) ? v.stressors.filter((x) => typeof x === "string" && x.trim()).map((x) => x.trim()).slice(0, 50) : void 0,
       symptoms: Array.isArray(v.symptoms) ? v.symptoms.filter((x) => typeof x === "string" && x.trim()).map((x) => x.trim()).slice(0, 80) : void 0,
-      weatherSensitivity: clampInt(v.weatherSensitivity, 1, 10),
-      painLocation: normalizeString(v.painLocation, 150),
+      weatherSensitivity: clampInt2(v.weatherSensitivity, 1, 10),
+      painLocation: normalizeString2(v.painLocation, 150),
       steps: typeof v.steps === "number" ? v.steps : typeof v.steps === "string" ? parseInt(v.steps, 10) : void 0,
       hydration: typeof v.hydration === "number" ? v.hydration : typeof v.hydration === "string" ? parseFloat(v.hydration) : void 0,
-      medications: Array.isArray(v.medications) ? v.medications : void 0
+      medications: Array.isArray(v.medications) ? v.medications : void 0,
+      subEntries: normalizeSubEntries(v.subEntries),
+      cycle: normalizeCycleFields(v.cycle),
+      medicationDoses: normalizeMedicationDoses(v.medicationDoses),
+      barcodeFood: typeof v.barcodeFood === "string" ? v.barcodeFood.slice(0, 200) : void 0
     };
     if (entry.steps != null && !Number.isFinite(entry.steps)) entry.steps = void 0;
     if (entry.hydration != null && !Number.isFinite(entry.hydration)) entry.hydration = void 0;

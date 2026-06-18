@@ -28,6 +28,7 @@ import { SettingsCloudPane } from '../settings/SettingsCloudPane';
 import { SettingsPrivacyRegionPane } from '../settings/SettingsPrivacyRegionPane';
 import { SettingsAppInstallSection } from '../settings/SettingsAppInstallSection';
 import { SettingsConsentDashboard } from '../settings/SettingsConsentDashboard';
+import { SettingsLoggingPane } from '../settings/SettingsLoggingPane';
 import {
   buildSettingsProfileExport,
   PROFILE_AVATAR_IDS,
@@ -1559,6 +1560,8 @@ export function SettingsScreen({
               </Row>
 
               <Hint>Backup runs before saves when enabled; compression is best-effort on native storage.</Hint>
+
+              <SettingsLoggingPane prefs={prefs} onChangePrefs={onChangePrefs} />
 
             </Section>
 

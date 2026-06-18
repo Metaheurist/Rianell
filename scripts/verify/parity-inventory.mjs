@@ -36,6 +36,12 @@ const PWA_SETTINGS_KEYS = [
   'profileAvatar',
   'dateFormat',
   'firstDayOfWeek',
+  'logFavorites',
+  'symptomTemplates',
+  'medSchedule',
+  'cycleModuleEnabled',
+  'barcodeFoodLoggingEnabled',
+  'guidedVoiceLogEnabled',
 ];
 
 const RN_PREF_FIELDS = [
@@ -59,6 +65,12 @@ const RN_PREF_FIELDS = [
   'profileAvatar',
   'dateFormat',
   'firstDayOfWeek',
+  'logFavorites',
+  'symptomTemplates',
+  'medSchedule',
+  'cycleModuleEnabled',
+  'barcodeFoodLoggingEnabled',
+  'guidedVoiceLogEnabled',
 ];
 
 const CLOUD_EXPORTS = [
