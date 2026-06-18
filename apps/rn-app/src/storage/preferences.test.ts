@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { applyLocaleDefaultsToPrefs } from '@rianell/shared';
 import { getDefaultPreferences, loadPreferences, savePreferences, type Preferences } from './preferences';
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -32,7 +33,8 @@ test('getDefaultPreferences matches contract', () => {
 test('loadPreferences returns defaults when empty', async () => {
   mockedAsyncStorage.getItem.mockResolvedValueOnce(null);
   const p = await loadPreferences();
-  expect(p).toEqual(getDefaultPreferences());
+  const d = getDefaultPreferences();
+  expect(p).toEqual(applyLocaleDefaultsToPrefs(d, d.uiLocale));
 });
 
 test('loadPreferences clamps textScale and preserves aiEnabled default true', async () => {
