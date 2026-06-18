@@ -4,7 +4,7 @@ import { getPolicyDocumentsForRegion } from './helpers';
 import { useT } from '../i18n/I18nProvider';
 import { useTheme } from '../theme/ThemeProvider';
 
-type PolicyDoc = { id: string; title: string; summary: string };
+type PolicyDoc = { id: string; title: string; summary: string; body?: string[] };
 
 export function PolicyDocumentsModal({
   visible,
@@ -48,6 +48,11 @@ export function PolicyDocumentsModal({
                 <Text style={[styles.docBody, { color: theme.tokens.color.textMuted }]}>
                   {t(`policy.${d.id}.summary`) !== `policy.${d.id}.summary` ? t(`policy.${d.id}.summary`) : d.summary}
                 </Text>
+                {(d.body || []).map((para, i) => (
+                  <Text key={i} style={[styles.docBody, { color: theme.tokens.color.textMuted, marginTop: 8 }]}>
+                    {para}
+                  </Text>
+                ))}
               </View>
             ))}
           </ScrollView>

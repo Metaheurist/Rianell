@@ -1,6 +1,6 @@
 # Platform parity inventory
 
-Generated: 2026-06-18T17:33:01.541Z
+Generated: 2026-06-18T19:43:38.028Z
 
 ## Settings / preferences field parity
 
@@ -28,6 +28,15 @@ Generated: 2026-06-18T17:33:01.541Z
 | profileAvatar | yes | yes |
 | dateFormat | yes | yes |
 | firstDayOfWeek | yes | yes |
+| logFavorites | yes | yes |
+| symptomTemplates | yes | yes |
+| medSchedule | yes | yes |
+| cycleModuleEnabled | yes | yes |
+| barcodeFoodLoggingEnabled | yes | yes |
+| guidedVoiceLogEnabled | yes | yes |
+| localOnlyMode | yes | yes |
+| appLockEnabled | yes | yes |
+| processingActivityLog | yes | yes |
 
 ## Cloud sync exports
 

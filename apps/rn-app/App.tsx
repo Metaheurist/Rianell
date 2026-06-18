@@ -26,6 +26,7 @@ import { getSupabaseClient } from './src/cloud/supabaseClient';
 import { TutorialModal } from './src/components/TutorialModal';
 import { TrackingProfileWizard } from './src/components/TrackingProfileWizard';
 import { markTutorialSeen } from './src/storage/preferences';
+import { AppLockGate } from './src/components/AppLockGate';
 import { I18nProvider } from './src/i18n/I18nProvider';
 
 export default function App() {
@@ -148,7 +149,9 @@ export default function App() {
             ) : (
               <>
                 <AiModelDownloadGate prefs={prefs} onChangePrefs={setPrefs}>
-                  <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
+                  <AppLockGate enabled={prefs.appLockEnabled}>
+                    <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
+                  </AppLockGate>
                 </AiModelDownloadGate>
                 {prefs.replayTutorial ? (
                   <TutorialModal

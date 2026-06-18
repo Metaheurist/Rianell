@@ -10,3 +10,8 @@ export * from './profileSync.mjs';
 export * from './checkPolicyDrift.mjs';
 export * from './residencyRouting.mjs';
 export * from './migrationState.mjs';
+export * from './localOnlyMode.mjs';
+export * from './processingActivityLog.mjs';
+export * from './anonPoolFieldManifest.mjs';
+export * from './encryptedExport.mjs';
+export * from './policyBodies.mjs';

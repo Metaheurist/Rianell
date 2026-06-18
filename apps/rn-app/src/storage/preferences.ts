@@ -7,6 +7,7 @@ import {
   normalizeProfileAvatar,
   normalizeSymptomTemplates,
   normalizeTrackingProfile,
+  readProcessingActivity,
 } from '@rianell/shared';
 
 const KEY = 'rianell.preferences.v1';
@@ -112,6 +113,9 @@ export type Preferences = {
   cycleModuleEnabled: boolean;
   barcodeFoodLoggingEnabled: boolean;
   guidedVoiceLogEnabled: boolean;
+  localOnlyMode: boolean;
+  appLockEnabled: boolean;
+  processingActivityLog: Array<{ type: string; at: string; detail?: string }>;
 };
 
 export function getDefaultPreferences(): Preferences {
@@ -192,6 +196,9 @@ export function getDefaultPreferences(): Preferences {
     cycleModuleEnabled: false,
     barcodeFoodLoggingEnabled: false,
     guidedVoiceLogEnabled: false,
+    localOnlyMode: false,
+    appLockEnabled: false,
+    processingActivityLog: [],
   };
 }
 
@@ -347,6 +354,9 @@ export async function loadPreferences(): Promise<Preferences> {
       cycleModuleEnabled: parsed.cycleModuleEnabled === true,
       barcodeFoodLoggingEnabled: parsed.barcodeFoodLoggingEnabled === true,
       guidedVoiceLogEnabled: parsed.guidedVoiceLogEnabled === true,
+      localOnlyMode: parsed.localOnlyMode === true,
+      appLockEnabled: parsed.appLockEnabled === true,
+      processingActivityLog: readProcessingActivity(parsed.processingActivityLog),
     };
     return applyLocaleDefaultsToPrefs(base, base.uiLocale) as Preferences;
   } catch {

@@ -9719,6 +9719,14 @@ function closeBugReportModal() {
 
 async function submitBugReport(event) {
   if (event && typeof event.preventDefault === 'function') event.preventDefault();
+  if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.shouldAllowNetworkOperation === 'function') {
+    if (!window.RianellShared.shouldAllowNetworkOperation(appSettings || {}, 'bugReport')) {
+      if (typeof showAlertModal === 'function') {
+        showAlertModal(tUi('settings.privacy.localOnly.bugReportBlocked'), tUi('settings.privacy.localOnly.title'));
+      }
+      return;
+    }
+  }
   var descriptionEl = document.getElementById('bugReportDescription');
   var description = (descriptionEl && descriptionEl.value ? descriptionEl.value.trim() : '');
   if (!description) {
@@ -15531,6 +15539,9 @@ let appSettings = {
   cycleModuleEnabled: false,
   barcodeFoodLoggingEnabled: false,
   guidedVoiceLogEnabled: false,
+  localOnlyMode: false,
+  appLockEnabled: false,
+  processingActivityLog: [],
 };
 
 // Make appSettings available on window for safe access
@@ -15584,6 +15595,13 @@ function loadSettings() {
     appSettings.accessibility = { ttsEnabled: false, readModeEnabled: false, largeTextEnabled: false, textScale: 1, colorblindMode: 'none' };
   }
   normalizeChartViewSettings();
+  appSettings.localOnlyMode = appSettings.localOnlyMode === true;
+  appSettings.appLockEnabled = appSettings.appLockEnabled === true;
+  if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.readProcessingActivity === 'function') {
+    appSettings.processingActivityLog = window.RianellShared.readProcessingActivity(appSettings.processingActivityLog);
+  } else if (!Array.isArray(appSettings.processingActivityLog)) {
+    appSettings.processingActivityLog = [];
+  }
   
   // Make appSettings available on window for Logger to access safely
   if (typeof window !== 'undefined') {
@@ -15963,6 +15981,15 @@ function refreshLlmModelSettingsHints() {
 
 function promptAiModelDownloadConsent(modelId) {
   return new Promise(function (resolve) {
+    if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.shouldAllowNetworkOperation === 'function') {
+      if (!window.RianellShared.shouldAllowNetworkOperation(appSettings || {}, 'modelDownload')) {
+        if (typeof showAlertModal === 'function') {
+          showAlertModal(tUi('settings.privacy.localOnly.modelDownloadBlocked'), tUi('settings.privacy.localOnly.title'));
+        }
+        resolve(false);
+        return;
+      }
+    }
     if (appSettings.aiModelDownloadConsent === 'granted') {
       resolve(true);
       return;
@@ -16788,6 +16815,12 @@ function loadSettingsState() {
 
   // Show only install options relevant to current platform (iOS / Android / desktop)
   if (typeof refreshAppInstallSection === 'function') refreshAppInstallSection();
+
+  var localOnlyToggle = document.getElementById('localOnlyModeToggle');
+  if (localOnlyToggle) localOnlyToggle.classList.toggle('active', !!appSettings.localOnlyMode);
+  var appLockToggle = document.getElementById('appLockToggle');
+  if (appLockToggle) appLockToggle.classList.toggle('active', !!appSettings.appLockEnabled);
+  syncPrivacyActivityLogUi();
 }
 
 var captureSettingsModalCarouselState;
@@ -16967,7 +17000,8 @@ async function toggleContributeAnonData(optionalToggleId) {
     return;
   }
   
-  // If enabling, show GDPR agreement first
+  // If enabling, show field checklist then GDPR agreement
+  showAnonPoolFieldChecklistModal(function () {
   showGDPRAgreementModal(
     // onAgree - user accepted the agreement
     async () => {
@@ -17035,6 +17069,7 @@ async function toggleContributeAnonData(optionalToggleId) {
       if (settingsToggle) settingsToggle.classList.remove('active');
     }
   );
+  });
 }
 
 // Toggle use open data for training
@@ -17095,6 +17130,129 @@ async function toggleUseOpenData(optionalToggleId) {
   
   loadSettingsState();
 }
+
+function recordProcessingActivityPwa(entry) {
+  if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.appendProcessingActivity === 'function') {
+    appSettings.processingActivityLog = window.RianellShared.appendProcessingActivity(appSettings.processingActivityLog, entry);
+    saveSettings();
+    syncPrivacyActivityLogUi();
+  }
+}
+if (typeof window !== 'undefined') window.recordProcessingActivityPwa = recordProcessingActivityPwa;
+
+function syncPrivacyActivityLogUi() {
+  var hint = document.getElementById('privacyActivityLogHint');
+  if (!hint) return;
+  var log = Array.isArray(appSettings.processingActivityLog) ? appSettings.processingActivityLog : [];
+  if (log.length === 0) {
+    hint.textContent = tUi('settings.privacy.activity.empty');
+    return;
+  }
+  hint.textContent = log.slice(0, 5).map(function (row) {
+    var labelKey = (window.RianellShared && typeof window.RianellShared.formatActivityTypeLabel === 'function')
+      ? window.RianellShared.formatActivityTypeLabel(row.type)
+      : row.type;
+    return row.at.slice(0, 16).replace('T', ' ') + ' · ' + tUi(labelKey);
+  }).join('\n');
+}
+
+async function toggleAppLockSetting() {
+  if (appSettings.appLockEnabled) {
+    if (window.RianellAppLock && typeof window.RianellAppLock.disableAppLock === 'function') {
+      await window.RianellAppLock.disableAppLock();
+    } else {
+      appSettings.appLockEnabled = false;
+      saveSettings();
+    }
+    loadSettingsState();
+    return;
+  }
+  var passcode = typeof prompt === 'function'
+    ? prompt(tUi('settings.privacy.appLock.setupPrompt'))
+    : null;
+  if (!passcode || passcode.length < 8) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal(tUi('settings.privacy.appLock.setupPrompt'), tUi('settings.privacy.appLock.title'));
+    }
+    loadSettingsState();
+    return;
+  }
+  var confirmPass = typeof prompt === 'function' ? prompt(tUi('settings.privacy.appLock.confirmPrompt')) : null;
+  if (passcode !== confirmPass) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal(tUi('settings.privacy.appLock.mismatch'), tUi('settings.privacy.appLock.title'));
+    }
+    loadSettingsState();
+    return;
+  }
+  try {
+    if (window.RianellAppLock && typeof window.RianellAppLock.enableAppLock === 'function') {
+      await window.RianellAppLock.enableAppLock(passcode);
+      if (typeof window.RianellAppLock.bindAppLock === 'function') window.RianellAppLock.bindAppLock();
+    } else {
+      appSettings.appLockEnabled = true;
+      saveSettings();
+    }
+  } catch (e) {
+    if (typeof showAlertModal === 'function') {
+      showAlertModal((e && e.message) ? e.message : 'Could not enable app lock.', tUi('settings.privacy.appLock.title'));
+    }
+  }
+  loadSettingsState();
+}
+if (typeof window !== 'undefined') window.toggleAppLockSetting = toggleAppLockSetting;
+
+function showAnonPoolFieldChecklistModal(onConfirm) {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!S || !Array.isArray(S.ANON_POOL_INCLUDED_FIELDS)) {
+    onConfirm();
+    return;
+  }
+  var inc = S.ANON_POOL_INCLUDED_FIELDS.map(function (f) { return '· ' + tUi(f.labelKey); }).join('\n');
+  var exc = S.ANON_POOL_EXCLUDED_FIELDS.map(function (f) { return '· ' + tUi(f.labelKey); }).join('\n');
+  var body = tUi('settings.privacy.anonPool.lead') + '\n\n' + tUi('settings.privacy.anonPool.included') + ':\n' + inc
+    + '\n\n' + tUi('settings.privacy.anonPool.excluded') + ':\n' + exc;
+  if (typeof showConfirmModal === 'function') {
+    showConfirmModal(body, tUi('settings.privacy.anonPool.title'), onConfirm, tUi('settings.privacy.anonPool.confirm'));
+  } else if (typeof confirm === 'function' && confirm(body)) {
+    onConfirm();
+  }
+}
+
+async function exportEncryptedData() {
+  if (appSettings.demoMode) {
+    showAlertModal(tUi('common.data.export.is.disabled.in.demo.mode.dem'), tUi('settings.demo.title'));
+    return;
+  }
+  if (!window.RianellShared || typeof window.RianellShared.encryptExportWithPassphrase !== 'function') {
+    showAlertModal('Encrypted export is unavailable.', tUi('settings.export.title'));
+    return;
+  }
+  var passphrase = typeof prompt === 'function' ? prompt(tUi('settings.export.encrypted.placeholder')) : null;
+  if (!passphrase || passphrase.length < 8) {
+    showAlertModal(tUi('settings.export.encrypted.placeholder'), tUi('settings.export.encrypted.title'));
+    return;
+  }
+  try {
+    var logs = typeof getAllHistoricalLogsSync === 'function' ? getAllHistoricalLogsSync() : [];
+    var envelope = await window.RianellShared.encryptExportWithPassphrase({ logs: logs }, passphrase);
+    var json = JSON.stringify(envelope, null, 2);
+    var blob = new Blob([json], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = 'rianell-encrypted-export.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    recordProcessingActivityPwa({ type: 'encrypted_export' });
+    showAlertModal(tUi('settings.export.encrypted.done'), tUi('settings.export.encrypted.title'));
+  } catch (e) {
+    showAlertModal((e && e.message) ? e.message : tUi('settings.export.failed'), tUi('settings.export.title'));
+  }
+}
+if (typeof window !== 'undefined') window.exportEncryptedData = exportEncryptedData;
 
 function toggleSetting(setting) {
   var featureMap = {

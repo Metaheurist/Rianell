@@ -53,6 +53,11 @@ export function AiModelDownloadGate({ prefs, onChangePrefs, children }: Props) {
     }
     let cancelled = false;
     void (async () => {
+      const { shouldAllowNetworkOperation } = await import('@rianell/shared');
+      if (!shouldAllowNetworkOperation(prefs, 'modelDownload')) {
+        setPhase('ready');
+        return;
+      }
       const consent = prefs.aiModelDownloadConsent === 'granted'
         ? 'granted'
         : await getAiModelDownloadConsent();
