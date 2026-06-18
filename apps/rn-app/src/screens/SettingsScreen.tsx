@@ -393,6 +393,7 @@ export function SettingsScreen({
         username: webDavUser,
         password: webDavPass,
         body,
+        filename: `rianell-backup-${new Date().toISOString().slice(0, 10)}.json`,
       });
       await recordProcessingActivity(prefs, { type: 'export', detail: 'webdav' }, onChangePrefs);
       setWebDavOpen(false);
