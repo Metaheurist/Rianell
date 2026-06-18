@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.92.5** - Plan 01: PWA settings module extraction + dev design catalog.
+**Latest: v1.92.6** - Plan 02: Accessibility & i18n (I1–I5).
+
+### v1.92.6 - 2026-06-18 - Plan 02 accessibility & i18n (I1–I5)
+- **I1 (i18n gaps):** Localize health consent body, colorblind option labels, read-mode hint, and new settings keys across PWA + RN; Tier A overrides for Plan 02 keys.
+- **I2 (Plain language):** B1 summary toggle in PWA/RN settings; `plainLanguageEnabled` in shared accessibility prefs; `summary.system.plain` prompt when enabled.
+- **I3 (Haptics):** Medium haptic on flare “Yes” in RN log wizard.
+- **I4 (TTS):** “Read today’s entry” on RN home when logged today (`speakLabel` + log review summary).
+- **I5 (Chart palettes):** High-contrast chart palette setting (PWA CSS vars + Apex theme branch; RN settings choice).
 
 ### v1.92.5 - 2026-06-18 - Plan 01 platform & architecture (T1, T2)
 - **T1 (PWA modules):** Extract settings overlay + carousel into `apps/pwa-webapp/modules/settings.js`; wire from `app.js` with stable `window.toggleSettings` contract.

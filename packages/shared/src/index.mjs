@@ -16,6 +16,8 @@ export function getDefaultAccessibilitySettings() {
     largeTextEnabled: false,
     ttsEnabled: false,
     ttsReadModeEnabled: false,
+    plainLanguageEnabled: false,
+    chartPaletteMode: 'standard',
     colorblindMode: 'none', // reserved
   };
 }
@@ -26,11 +28,15 @@ export function normalizeAccessibilitySettings(value) {
   const textScaleRaw = typeof v.textScale === 'number' ? v.textScale : d.textScale;
   const textScale = Number.isFinite(textScaleRaw) ? Math.min(2, Math.max(0.75, textScaleRaw)) : d.textScale;
   const colorblindMode = typeof v.colorblindMode === 'string' ? v.colorblindMode : d.colorblindMode;
+  const chartPaletteMode =
+    v.chartPaletteMode === 'high-contrast' ? 'high-contrast' : d.chartPaletteMode;
   return {
     textScale,
     largeTextEnabled: v.largeTextEnabled === true,
     ttsEnabled: v.ttsEnabled === true,
     ttsReadModeEnabled: v.ttsReadModeEnabled === true,
+    plainLanguageEnabled: v.plainLanguageEnabled === true,
+    chartPaletteMode,
     colorblindMode,
   };
 }

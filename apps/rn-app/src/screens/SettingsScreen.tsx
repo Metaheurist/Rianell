@@ -1349,13 +1349,22 @@ export function SettingsScreen({
 
 
 
-              <Row label="Colorblind mode">
+              <Row label={t('common.colorblind.mode')}>
 
                 <InlineChoices
 
                   value={prefs.accessibility.colorblindMode}
 
                   options={['none', 'deuteranopia', 'protanopia', 'tritanopia', 'high-contrast']}
+
+                  getLabel={(v) => {
+                    if (v === 'none') return t('common.none');
+                    if (v === 'deuteranopia') return t('common.colorblind.deuteranopia');
+                    if (v === 'protanopia') return t('common.colorblind.protanopia');
+                    if (v === 'tritanopia') return t('common.colorblind.tritanopia');
+                    if (v === 'high-contrast') return t('common.colorblind.highContrast');
+                    return v;
+                  }}
 
                   onChange={(v) =>
 
@@ -1374,6 +1383,68 @@ export function SettingsScreen({
                 />
 
               </Row>
+
+              <Row label={t('settings.accessibility.plainLanguage')}>
+
+                <Switch
+
+                  value={prefs.accessibility.plainLanguageEnabled}
+
+                  onValueChange={(on) =>
+
+                    onChangePrefs({
+
+                      ...prefs,
+
+                      accessibility: { ...prefs.accessibility, plainLanguageEnabled: on },
+
+                    })
+
+                  }
+
+                />
+
+              </Row>
+
+              <Hint>{t('settings.accessibility.plainLanguageHint')}</Hint>
+
+              <Row label={t('settings.accessibility.chartPalette')}>
+
+                <InlineChoices
+
+                  value={prefs.accessibility.chartPaletteMode}
+
+                  options={['standard', 'high-contrast']}
+
+                  getLabel={(v) =>
+
+                    v === 'high-contrast'
+
+                      ? t('settings.accessibility.chartPaletteHighContrast')
+
+                      : t('settings.accessibility.chartPaletteStandard')
+
+                  }
+
+                  onChange={(v) =>
+
+                    onChangePrefs({
+
+                      ...prefs,
+
+                      accessibility: { ...prefs.accessibility, chartPaletteMode: v },
+
+                    })
+
+                  }
+
+                  tts={tts}
+
+                />
+
+              </Row>
+
+              <Hint>{t('settings.accessibility.chartPaletteHint')}</Hint>
 
             </Section>
 
@@ -1752,26 +1823,29 @@ function InlineChoices({
   options,
   onChange,
   tts,
+  getLabel,
 }: {
   value: string;
   options: string[];
   onChange: (v: string) => void;
   tts: { enabled: boolean; readModeEnabled: boolean };
+  getLabel?: (v: string) => string;
 }) {
   const theme = useTheme();
   return (
     <View style={styles.choiceRow}>
       {options.map((o) => {
         const active = o === value;
+        const label = getLabel ? getLabel(o) : o;
         return (
           <Pressable
             key={o}
             onPress={() => {
-              speakLabel(o, tts);
+              speakLabel(label, tts);
               onChange(o);
             }}
             onFocus={() => {
-              if (tts.readModeEnabled) speakLabel(o, tts);
+              if (tts.readModeEnabled) speakLabel(label, tts);
             }}
             style={[
               styles.choice,
@@ -1780,7 +1854,7 @@ function InlineChoices({
               },
             ]}
             accessibilityRole="button"
-            accessibilityLabel={o}
+            accessibilityLabel={label}
           >
             <Text
               style={[
@@ -1791,7 +1865,7 @@ function InlineChoices({
                 },
               ]}
             >
-              {o}
+              {label}
             </Text>
           </Pressable>
         );

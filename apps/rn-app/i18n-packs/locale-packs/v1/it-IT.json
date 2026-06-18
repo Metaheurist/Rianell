@@ -1206,7 +1206,21 @@
     "benchmark.tests.raf": "rAF latency",
     "benchmark.tests.array": "Array throughput",
     "benchmark.tests.string": "String ops",
-    "benchmark.tests.warmup": "Warmup"
+    "benchmark.tests.warmup": "Warmup",
+    "common.consent.healthDataBody": "Rianell memorizza sintomi e benessere sul dispositivo. Sono dati sanitari di categoria speciale secondo il GDPR. Continuando, dai consenso esplicito (art. 9(2)(a)) al trattamento locale per usare l’app. Backup cloud, contributo anonimo e IA on-device richiedono opzioni separate.",
+    "common.consent.healthDataContact": "Contatto: jan.andersson@rianell.com. Vedi l’informativa privacy per i tuoi diritti.",
+    "common.colorblind.deuteranopia": "Deuteranopia (rosso/verde)",
+    "common.colorblind.protanopia": "Protanopia (rosso/verde)",
+    "common.colorblind.tritanopia": "Tritanopia (blu/giallo)",
+    "common.colorblind.highContrast": "Alto contrasto",
+    "common.read.mode.focus.hint": "Se attivo: i controlli con focus vengono letti ad alta voce (tastiera e navigazione assistiva).",
+    "settings.accessibility.plainLanguage": "Riassunti in linguaggio semplice",
+    "settings.accessibility.plainLanguageHint": "Se attivo: i riassunti IA usano parole più semplici (livello B1). Le note del diario non vengono riscritte.",
+    "settings.accessibility.chartPalette": "Palette grafici",
+    "settings.accessibility.chartPaletteStandard": "Standard",
+    "settings.accessibility.chartPaletteHighContrast": "Alto contrasto",
+    "settings.accessibility.chartPaletteHint": "I colori dei grafici sono separati dal tema dell’app.",
+    "home.action.readTodayEntry": "Leggi voce di oggi"
   },
   "machineTranslatedUi": true
 }

@@ -6,6 +6,7 @@ import { canonicalLocalePacksDir } from '../../packages/shared/src/i18n/packPath
 import { EXACT_OVERRIDES } from '../lib/tier-a-exact-overrides.mjs';
 import { MIXED_FIXES } from '../lib/lc20-mixed-fixes.mjs';
 import { applyRuleBasedMt, shouldKeepEnglish } from '../lib/rule-based-mt.mjs';
+import { PLAN02_TIER_A_OVERRIDES } from '../lib/plan02-tier-a-overrides.mjs';
 
 const root = process.cwd();
 const dir = canonicalLocalePacksDir(root);
@@ -33,6 +34,10 @@ function applyTierATranslations(strings, locale) {
   }
   const mixed = MIXED_FIXES[locale] || {};
   for (const [key, val] of Object.entries(mixed)) {
+    if (typeof val === 'string' && val.trim()) out[key] = val;
+  }
+  const plan02 = PLAN02_TIER_A_OVERRIDES[locale] || {};
+  for (const [key, val] of Object.entries(plan02)) {
     if (typeof val === 'string' && val.trim()) out[key] = val;
   }
   return out;

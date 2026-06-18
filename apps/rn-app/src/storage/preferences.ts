@@ -58,6 +58,8 @@ export type Preferences = {
     largeTextEnabled: boolean;
     ttsEnabled: boolean;
     ttsReadModeEnabled: boolean;
+    plainLanguageEnabled: boolean;
+    chartPaletteMode: string;
     colorblindMode: string;
   };
 };
@@ -114,6 +116,8 @@ export function getDefaultPreferences(): Preferences {
       largeTextEnabled: false,
       ttsEnabled: false,
       ttsReadModeEnabled: false,
+      plainLanguageEnabled: false,
+      chartPaletteMode: 'standard',
       colorblindMode: 'none',
     },
   };
@@ -229,6 +233,9 @@ export async function loadPreferences(): Promise<Preferences> {
         largeTextEnabled: parsed.accessibility?.largeTextEnabled === true,
         ttsEnabled: parsed.accessibility?.ttsEnabled === true,
         ttsReadModeEnabled: parsed.accessibility?.ttsReadModeEnabled === true,
+        plainLanguageEnabled: parsed.accessibility?.plainLanguageEnabled === true,
+        chartPaletteMode:
+          parsed.accessibility?.chartPaletteMode === 'high-contrast' ? 'high-contrast' : d.accessibility.chartPaletteMode,
         colorblindMode: typeof parsed.accessibility?.colorblindMode === 'string' ? parsed.accessibility!.colorblindMode : d.accessibility.colorblindMode,
       },
     };
