@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-18T13:13:52.293Z",
+  "generatedAt": "2026-06-18T16:30:28.038Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3550564,
+    "jsBytes": 3554697,
     "cssBytes": 395184,
-    "jsGzipBytes": 853414,
+    "jsGzipBytes": 853809,
     "cssGzipBytes": 69480
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 859079,
-      "gzipBytes": 187066
+      "bytes": 841832,
+      "gzipBytes": 183395
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.403ec790038d.min.js",
-      "bytes": 589812,
-      "gzipBytes": 135278
+      "file": "ci-minified/site/app.a24f0eec47ef.min.js",
+      "bytes": 591474,
+      "gzipBytes": 135127
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -72,6 +72,11 @@
       "file": "ci-minified/site/ui-feedback.js",
       "bytes": 20156,
       "gzipBytes": 4880
+    },
+    {
+      "file": "ci-minified/site/modules/settings.js",
+      "bytes": 19718,
+      "gzipBytes": 4217
     },
     {
       "file": "ci-minified/site/import-utils.js",
