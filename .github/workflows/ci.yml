@@ -754,6 +754,7 @@ jobs:
     needs: [deploy-pages]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     permissions:
       contents: read
       actions: write
