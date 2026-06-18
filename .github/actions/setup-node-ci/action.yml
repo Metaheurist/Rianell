@@ -34,12 +34,16 @@ runs:
     - name: Install root dependencies
       if: inputs.install == 'true' && (inputs.cache-node-modules != 'true' || steps.node-modules-cache.outputs.cache-hit != 'true')
       shell: bash
-      run: npm ci
+      run: |
+        corepack enable
+        npm ci
 
     - name: Verify node_modules (cache hit)
       if: inputs.install == 'true' && inputs.cache-node-modules == 'true' && steps.node-modules-cache.outputs.cache-hit == 'true'
       shell: bash
-      run: test -d node_modules || npm ci
+      run: |
+        corepack enable
+        test -d node_modules || npm ci
 
     - name: Patch onnxruntime Gradle (Gradle 9)
       if: inputs.install == 'true'
