@@ -147,7 +147,7 @@ var RianellShared = (() => {
     },
     "eu-gdpr": {
       id: "eu-gdpr",
-      title: "EEA & UK \u2014 GDPR",
+      title: "EEA & UK - GDPR",
       summary: "Health data is special-category data under GDPR Art. 9. We rely on your explicit consent to process it locally and for optional cloud, research, and AI features. You have rights of access, rectification, erasure, restriction, portability, and objection."
     },
     "data-subject-rights": {
@@ -162,17 +162,17 @@ var RianellShared = (() => {
     },
     "other-jurisdictions-us": {
       id: "other-jurisdictions-us",
-      title: "United States \u2014 other states",
+      title: "United States - other states",
       summary: "Consumer wellness self-tracking is generally outside HIPAA unless you are a covered entity or business associate. State privacy laws may grant access and deletion rights similar to our global baseline."
     },
     "other-jurisdictions-au": {
       id: "other-jurisdictions-au",
-      title: "Australia \u2014 APPs",
+      title: "Australia - APPs",
       summary: "Australian Privacy Principles apply to personal information we hold. You may access and correct your data. Notifiable data breach rules apply to serious incidents affecting your information."
     },
     "other-jurisdictions-br": {
       id: "other-jurisdictions-br",
-      title: "Brazil \u2014 LGPD",
+      title: "Brazil - LGPD",
       summary: "LGPD grants rights of confirmation, access, correction, anonymisation, portability, and deletion. Consent is the primary legal basis for health-related processing in the app."
     }
   };
@@ -246,7 +246,7 @@ var RianellShared = (() => {
         }
       },
       "us_ca": {
-        "label": "United States \u2014 California",
+        "label": "United States - California",
         "defaultLocale": "en-US",
         "supportedLocales": [
           "en-US"
@@ -302,7 +302,7 @@ var RianellShared = (() => {
         }
       },
       "us_other": {
-        "label": "United States \u2014 other states",
+        "label": "United States - other states",
         "defaultLocale": "en-US",
         "supportedLocales": [
           "en-US"
@@ -1084,7 +1084,8 @@ var RianellShared = (() => {
         "context.stable": "Stable: {metrics}.",
         "context.dataLine": "{dayCount} day(s) of data.",
         "context.flares": "Flares: {count} day(s).",
-        "context.topStressor": "Top stressor: {name}{pct}."
+        "context.topStressor": "Top stressor: {name}{pct}.",
+        "summary.system.plain": "You summarise health tracking data in exactly 2 short sentences using plain B1 English (simple words, short clauses). Use only the data provided. Mention 1-2 findings. Be encouraging. Reply with only the summary text."
       }
     },
     "en-US": {
@@ -1293,10 +1294,11 @@ var RianellShared = (() => {
   }
   function buildSummaryPrompt(locale, context, options = {}) {
     const pack = loadPromptPack(locale, options.packs);
+    const plain = options.plainLanguage === true;
     const system = promptString(
       pack,
-      "summary.system",
-      "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text."
+      plain ? "summary.system.plain" : "summary.system",
+      plain ? "You summarise health tracking data in exactly 2 short sentences using plain B1 English (simple words, short clauses). Use only the data provided. Mention 1-2 findings. Be encouraging. Reply with only the summary text." : "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text."
     );
     return { system, user: `Data: ${context}` };
   }
@@ -1565,21 +1567,21 @@ var RianellShared = (() => {
     const snap = analysis || {};
     const id = suggestion?.id || "";
     if (id === "symptom" && suggestion.labelParams?.symptom) {
-      return `${suggestion.labelParams.symptom} appears often in your recent logs \u2014 track triggers and rest on high-symptom days.`;
+      return `${suggestion.labelParams.symptom} appears often in your recent logs - track triggers and rest on high-symptom days.`;
     }
     if (id === "flare" && snap.flareDays != null) {
       return `You logged ${snap.flareDays} flare day(s) recently. Note sleep, stress, and activity around those dates.`;
     }
     if (id.startsWith("trend-") && snap.avgFatigue != null) {
-      return `Recent averages \u2014 fatigue ${snap.avgFatigue.toFixed(1)}, sleep ${snap.avgSleep != null ? snap.avgSleep.toFixed(1) : "\u2014"}, mood ${snap.avgMood != null ? snap.avgMood.toFixed(1) : "\u2014"} (1\u201310).`;
+      return `Recent averages - fatigue ${snap.avgFatigue.toFixed(1)}, sleep ${snap.avgSleep != null ? snap.avgSleep.toFixed(1) : "-"}, mood ${snap.avgMood != null ? snap.avgMood.toFixed(1) : "-"} (1\u201310).`;
     }
     if (id === "stressor" && suggestion.labelParams?.stressor) {
-      return `${suggestion.labelParams.stressor} shows up in your stress logs \u2014 consider pacing and recovery after high-stress days.`;
+      return `${suggestion.labelParams.stressor} shows up in your stress logs - consider pacing and recovery after high-stress days.`;
     }
     if (id === "compare") {
       return "Compare this week\u2019s scores to last week in Charts to spot gradual shifts.";
     }
-    return "Keep logging daily \u2014 patterns become clearer with more entries.";
+    return "Keep logging daily - patterns become clearer with more entries.";
   }
 
   // packages/shared/src/ai/homeQuestionContext.mjs
@@ -1642,6 +1644,8 @@ ${raw}
       largeTextEnabled: false,
       ttsEnabled: false,
       ttsReadModeEnabled: false,
+      plainLanguageEnabled: false,
+      chartPaletteMode: "standard",
       colorblindMode: "none"
       // reserved
     };
@@ -1652,11 +1656,14 @@ ${raw}
     const textScaleRaw = typeof v.textScale === "number" ? v.textScale : d.textScale;
     const textScale = Number.isFinite(textScaleRaw) ? Math.min(2, Math.max(0.75, textScaleRaw)) : d.textScale;
     const colorblindMode = typeof v.colorblindMode === "string" ? v.colorblindMode : d.colorblindMode;
+    const chartPaletteMode = v.chartPaletteMode === "high-contrast" ? "high-contrast" : d.chartPaletteMode;
     return {
       textScale,
       largeTextEnabled: v.largeTextEnabled === true,
       ttsEnabled: v.ttsEnabled === true,
       ttsReadModeEnabled: v.ttsReadModeEnabled === true,
+      plainLanguageEnabled: v.plainLanguageEnabled === true,
+      chartPaletteMode,
       colorblindMode
     };
   }

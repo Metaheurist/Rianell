@@ -1,4 +1,12 @@
 /* Deferred chart + ApexCharts styles (loaded when opening Charts tab). */
+body.chart-palette-high-contrast {
+  --chart-series-1: #ffffff;
+  --chart-series-2: #ffd600;
+  --chart-series-3: #00e5ff;
+  --chart-series-4: #ff4081;
+  --chart-grid: rgba(255, 255, 255, 0.35);
+}
+
 .chart-container {
   margin: 30px 0 0 0;
   margin-bottom: 0;

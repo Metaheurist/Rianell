@@ -1206,7 +1206,21 @@
     "benchmark.tests.raf": "rAF latency",
     "benchmark.tests.array": "Array throughput",
     "benchmark.tests.string": "String ops",
-    "benchmark.tests.warmup": "Warmup"
+    "benchmark.tests.warmup": "Warmup",
+    "common.consent.healthDataBody": "Rianell slaat symptoom- en welzijnslogs op uw apparaat op. Dit zijn bijzondere gezondheidsgegevens onder de AVG. Door verder te gaan geeft u uitdrukkelijke toestemming (art. 9(2)(a)) voor lokale verwerking om de app te laten werken. Cloudback-up, anonieme bijdrage en on-device AI vereisen aparte schakelaars.",
+    "common.consent.healthDataContact": "Contact: jan.andersson@rianell.com. Zie ons privacybeleid voor uw rechten.",
+    "common.colorblind.deuteranopia": "Deuteranopie (rood/groen)",
+    "common.colorblind.protanopia": "Protanopie (rood/groen)",
+    "common.colorblind.tritanopia": "Tritanopie (blauw/geel)",
+    "common.colorblind.highContrast": "Hoog contrast",
+    "common.read.mode.focus.hint": "Indien aan: gefocuste bedieningselementen worden ook hardop voorgelezen (toetsenbord en assistieve navigatie).",
+    "settings.accessibility.plainLanguage": "Samenvattingen in eenvoudige taal",
+    "settings.accessibility.plainLanguageHint": "Indien aan: AI-samenvattingen gebruiken eenvoudigere woorden (B1-niveau). Uw lognotities worden nooit herschreven.",
+    "settings.accessibility.chartPalette": "Grafiekkleurenpalet",
+    "settings.accessibility.chartPaletteStandard": "Standaard",
+    "settings.accessibility.chartPaletteHighContrast": "Hoog contrast",
+    "settings.accessibility.chartPaletteHint": "Grafiekkleuren zijn gescheiden van het app-thema.",
+    "home.action.readTodayEntry": "Lees invoer van vandaag"
   },
   "machineTranslatedUi": true
 }

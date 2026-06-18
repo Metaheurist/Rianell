@@ -33,12 +33,15 @@ export function buildMotdPrompt(locale, theme, options = {}) {
 
 export function buildSummaryPrompt(locale, context, options = {}) {
   const pack = loadPromptPack(locale, options.packs);
+  const plain = options.plainLanguage === true;
   const system = promptString(
     pack,
-    'summary.system',
-    'You summarise health tracking data for the patient in exactly 2 short sentences. '
-      + 'Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. '
-      + 'Reply with only the summary text.',
+    plain ? 'summary.system.plain' : 'summary.system',
+    plain
+      ? 'You summarise health tracking data in exactly 2 short sentences using plain B1 English (simple words, short clauses). Use only the data provided. Mention 1-2 findings. Be encouraging. Reply with only the summary text.'
+      : 'You summarise health tracking data for the patient in exactly 2 short sentences. '
+          + 'Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. '
+          + 'Reply with only the summary text.',
   );
   return { system, user: `Data: ${context}` };
 }

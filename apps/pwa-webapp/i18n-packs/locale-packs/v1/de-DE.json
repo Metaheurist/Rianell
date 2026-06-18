@@ -1206,7 +1206,21 @@
     "benchmark.tests.raf": "rAF-Latenz",
     "benchmark.tests.array": "Array-Durchsatz",
     "benchmark.tests.string": "String-Operationen",
-    "benchmark.tests.warmup": "Aufwärmen"
+    "benchmark.tests.warmup": "Aufwärmen",
+    "common.consent.healthDataBody": "Rianell speichert Symptom- und Wellness-Protokolle auf Ihrem Gerät. Das sind besondere Gesundheitsdaten nach der DSGVO. Wenn Sie fortfahren, erteilen Sie ausdrückliche Einwilligung (Art. 9 Abs. 2 lit. a) zur lokalen Verarbeitung für die App. Cloud-Backup, anonyme Beiträge und KI auf dem Gerät sind separate Schalter.",
+    "common.consent.healthDataContact": "Kontakt: jan.andersson@rianell.com. Siehe Datenschutzerklärung für Ihre Rechte.",
+    "common.colorblind.deuteranopia": "Deuteranopie (Rot/Grün)",
+    "common.colorblind.protanopia": "Protanopie (Rot/Grün)",
+    "common.colorblind.tritanopia": "Tritanopie (Blau/Gelb)",
+    "common.colorblind.highContrast": "Hoher Kontrast",
+    "common.read.mode.focus.hint": "Wenn aktiv: fokussierte Steuerelemente werden auch vorgelesen (Tastatur und assistive Navigation).",
+    "settings.accessibility.plainLanguage": "Einfache Sprache in Zusammenfassungen",
+    "settings.accessibility.plainLanguageHint": "Wenn aktiv: KI-Zusammenfassungen nutzen einfachere Wörter (B1-Niveau). Ihre Log-Notizen werden nie umgeschrieben.",
+    "settings.accessibility.chartPalette": "Diagramm-Farbpalette",
+    "settings.accessibility.chartPaletteStandard": "Standard",
+    "settings.accessibility.chartPaletteHighContrast": "Hoher Kontrast",
+    "settings.accessibility.chartPaletteHint": "Diagrammfarben sind vom App-Theme getrennt.",
+    "home.action.readTodayEntry": "Heutigen Eintrag vorlesen"
   },
   "machineTranslatedUi": true
 }

@@ -13,6 +13,7 @@
     "context.stable": "Stable: {metrics}.",
     "context.dataLine": "{dayCount} day(s) of data.",
     "context.flares": "Flares: {count} day(s).",
-    "context.topStressor": "Top stressor: {name}{pct}."
+    "context.topStressor": "Top stressor: {name}{pct}.",
+    "summary.system.plain": "You summarise health tracking data in exactly 2 short sentences using plain B1 English (simple words, short clauses). Use only the data provided. Mention 1-2 findings. Be encouraging. Reply with only the summary text."
   }
 }

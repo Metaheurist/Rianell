@@ -1206,7 +1206,21 @@
     "benchmark.tests.raf": "rAF latency",
     "benchmark.tests.array": "Array throughput",
     "benchmark.tests.string": "String ops",
-    "benchmark.tests.warmup": "Warmup"
+    "benchmark.tests.warmup": "Warmup",
+    "common.consent.healthDataBody": "Rianell enregistre vos symptômes et bilans sur votre appareil. Ce sont des données de santé sensibles au sens du RGPD. En continuant, vous donnez votre consentement explicite (art. 9(2)(a)) au traitement local pour faire fonctionner l’application. La sauvegarde cloud, la contribution anonymisée et l’IA sur l’appareil nécessitent des options séparées.",
+    "common.consent.healthDataContact": "Contact : jan.andersson@rianell.com. Consultez notre politique de confidentialité pour vos droits.",
+    "common.colorblind.deuteranopia": "Deutéranopie (rouge/vert)",
+    "common.colorblind.protanopia": "Protanopie (rouge/vert)",
+    "common.colorblind.tritanopia": "Tritanopie (bleu/jaune)",
+    "common.colorblind.highContrast": "Contraste élevé",
+    "common.read.mode.focus.hint": "Activé : les contrôles focalisés sont aussi lus à voix haute (clavier et navigation assistée).",
+    "settings.accessibility.plainLanguage": "Résumés en langage simple",
+    "settings.accessibility.plainLanguageHint": "Activé : les résumés IA utilisent des mots plus simples (niveau B1). Vos notes de journal ne sont jamais réécrites.",
+    "settings.accessibility.chartPalette": "Palette des graphiques",
+    "settings.accessibility.chartPaletteStandard": "Standard",
+    "settings.accessibility.chartPaletteHighContrast": "Contraste élevé",
+    "settings.accessibility.chartPaletteHint": "Les couleurs des graphiques sont distinctes du thème de l’application.",
+    "home.action.readTodayEntry": "Lire l’entrée du jour"
   },
   "machineTranslatedUi": true
 }

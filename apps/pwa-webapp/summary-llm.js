@@ -108,10 +108,19 @@
   }
 
   function buildSummaryPromptFromPack(pack, context) {
-    var system = promptString(pack, 'summary.system',
-      'You summarise health tracking data for the patient in exactly 2 short sentences. '
-      + 'Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. '
-      + 'Reply with only the summary text.');
+    var plain =
+      typeof appSettings !== 'undefined' &&
+      appSettings.accessibility &&
+      appSettings.accessibility.plainLanguageEnabled === true;
+    var system = promptString(
+      pack,
+      plain ? 'summary.system.plain' : 'summary.system',
+      plain
+        ? 'You summarise health tracking data in exactly 2 short sentences using plain B1 English (simple words, short clauses). Use only the data provided. Mention 1-2 findings. Be encouraging. Reply with only the summary text.'
+        : 'You summarise health tracking data for the patient in exactly 2 short sentences. '
+            + 'Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. '
+            + 'Reply with only the summary text.'
+    );
     return { system: system, user: 'Data: ' + context };
   }
 

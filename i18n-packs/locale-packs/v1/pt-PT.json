@@ -1206,7 +1206,21 @@
     "benchmark.tests.raf": "rAF latency",
     "benchmark.tests.array": "Array throughput",
     "benchmark.tests.string": "String ops",
-    "benchmark.tests.warmup": "Warmup"
+    "benchmark.tests.warmup": "Warmup",
+    "common.consent.healthDataBody": "A Rianell guarda registos de sintomas e bem-estar no seu dispositivo. São dados de saúde de categoria especial ao abrigo do RGPD. Ao continuar, dá consentimento explícito (art. 9.º(2)(a)) para processamento local para fornecer a app. Cópia de segurança na cloud, contribuição anonimizada e IA no dispositivo requerem opções separadas.",
+    "common.consent.healthDataContact": "Contacto: jan.andersson@rianell.com. Consulte a nossa política de privacidade para os seus direitos.",
+    "common.colorblind.deuteranopia": "Deuteranopia (vermelho/verde)",
+    "common.colorblind.protanopia": "Protanopia (vermelho/verde)",
+    "common.colorblind.tritanopia": "Tritanopia (azul/amarelo)",
+    "common.colorblind.highContrast": "Alto contraste",
+    "common.read.mode.focus.hint": "Quando ativo: controlos com foco também são lidos em voz alta (teclado e navegação assistiva).",
+    "settings.accessibility.plainLanguage": "Resumos em linguagem simples",
+    "settings.accessibility.plainLanguageHint": "Quando ativo: resumos de IA usam palavras mais simples (nível B1). As notas do registo nunca são reescritas.",
+    "settings.accessibility.chartPalette": "Paleta de gráficos",
+    "settings.accessibility.chartPaletteStandard": "Padrão",
+    "settings.accessibility.chartPaletteHighContrast": "Alto contraste",
+    "settings.accessibility.chartPaletteHint": "As cores dos gráficos são separadas do tema da app.",
+    "home.action.readTodayEntry": "Ler entrada de hoje"
   },
   "machineTranslatedUi": true
 }

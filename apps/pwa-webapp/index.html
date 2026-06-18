@@ -1002,8 +1002,8 @@
         <h3 id="healthDataConsentTitle" data-i18n="common.consent.healthDataTitle">Health data processing consent</h3>
       </div>
       <div class="modal-body health-data-consent-body">
-        <p>Rianell stores symptom and wellness logs on your device. This is special-category health data under GDPR. By continuing, you give <strong>explicit consent</strong> (Art. 9(2)(a)) to process health data locally to provide the app. Cloud backup, anonymized contribution, and on-device AI require separate toggles.</p>
-        <p>Contact: <a href="mailto:jan.andersson@rianell.com">jan.andersson@rianell.com</a>. See our privacy policy for your rights.</p>
+        <p data-i18n="common.consent.healthDataBody">Rianell stores symptom and wellness logs on your device. This is special-category health data under GDPR. By continuing, you give explicit consent (Art. 9(2)(a)) to process health data locally to provide the app. Cloud backup, anonymized contribution, and on-device AI require separate toggles.</p>
+        <p data-i18n="common.consent.healthDataContact">Contact: jan.andersson@rianell.com. See our privacy policy for your rights.</p>
       </div>
       <div class="modal-footer health-data-consent-footer">
         <button type="button" id="healthDataConsentAcceptBtn" class="modal-save-btn" data-i18n="common.i.agree.continue">I agree - continue</button>
@@ -1016,7 +1016,7 @@
   <div class="privacy-region-gate-overlay" id="privacyRegionGateOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="privacyRegionGateTitle">
     <div class="privacy-region-gate-card">
       <h2 id="privacyRegionGateTitle" data-i18n="settings.privacy.regionGateTitle">Privacy region</h2>
-      <p class="privacy-region-gate-lead">Choose where you primarily live. This sets applicable privacy notices and feature rules. We do not use GPS or IP to detect your location.</p>
+      <p class="privacy-region-gate-lead" data-i18n="gate.lead">Choose where you primarily live. This sets applicable privacy notices, UI language, and feature rules. We do not use GPS or IP to detect your location.</p>
       <p class="privacy-region-gate-hint" id="privacyRegionGateHint"></p>
       <label for="privacyRegionGateSelect" class="privacy-region-gate-label" data-i18n="gate.regionLabel">Your privacy region</label>
       <select id="privacyRegionGateSelect" class="privacy-region-gate-select"></select>
@@ -1263,19 +1263,34 @@
           <label  data-i18n="common.read.mode.auto.read.on.focus">Read mode (auto-read on focus)</label>
           <div class="toggle-switch" id="accessibilityReadModeToggle" onclick="toggleAccessibilityReadMode()"></div>
         </div>
-        <p class="settings-hint">When on: focused controls are also read aloud (keyboard and assistive navigation).</p>
+        <p class="settings-hint" data-i18n="common.read.mode.focus.hint">When on: focused controls are also read aloud (keyboard and assistive navigation).</p>
 
         <div class="settings-option" style="margin-top: 14px;">
           <label for="accessibilityColorblindSelect" data-i18n="common.colorblind.mode">Colorblind mode</label>
           <select id="accessibilityColorblindSelect" class="settings-select" onchange="setAccessibilityColorblindMode(this.value)">
             <option value="none" data-i18n="common.none">None</option>
-            <option value="deuteranopia">Deuteranopia (red/green)</option>
-            <option value="protanopia">Protanopia (red/green)</option>
-            <option value="tritanopia">Tritanopia (blue/yellow)</option>
-            <option value="high-contrast">High contrast</option>
+            <option value="deuteranopia" data-i18n="common.colorblind.deuteranopia">Deuteranopia (red/green)</option>
+            <option value="protanopia" data-i18n="common.colorblind.protanopia">Protanopia (red/green)</option>
+            <option value="tritanopia" data-i18n="common.colorblind.tritanopia">Tritanopia (blue/yellow)</option>
+            <option value="high-contrast" data-i18n="common.colorblind.highContrast">High contrast</option>
           </select>
         </div>
         <p class="settings-hint" data-i18n="common.adjusts.accent.colors.across.the.app.to.">Adjusts accent colors across the app to reduce reliance on red/green cues.</p>
+
+        <div class="settings-option settings-option-with-hint" style="margin-top: 14px;">
+          <label data-i18n="settings.accessibility.plainLanguage">Plain language summaries</label>
+          <div class="toggle-switch" id="accessibilityPlainLanguageToggle" role="switch" aria-checked="false" tabindex="0" onclick="toggleAccessibilityPlainLanguage()"></div>
+        </div>
+        <p class="settings-hint" data-i18n="settings.accessibility.plainLanguageHint">When on: AI summaries use simpler words (B1 level). Your log notes are never rewritten.</p>
+
+        <div class="settings-option settings-option-with-hint" style="margin-top: 14px;">
+          <label for="accessibilityChartPaletteSelect" data-i18n="settings.accessibility.chartPalette">Chart colour palette</label>
+          <select id="accessibilityChartPaletteSelect" class="settings-select" onchange="setAccessibilityChartPalette(this.value)">
+            <option value="standard" data-i18n="settings.accessibility.chartPaletteStandard">Standard</option>
+            <option value="high-contrast" data-i18n="settings.accessibility.chartPaletteHighContrast">High contrast</option>
+          </select>
+        </div>
+        <p class="settings-hint" data-i18n="settings.accessibility.chartPaletteHint">Chart colours are separate from the app theme.</p>
       </div>
       </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Data options" data-i18n-title="settings.dataOptions.title" data-settings-pane-i18n="settings.dataOptions.title" role="tabpanel" aria-hidden="true">

@@ -73,6 +73,21 @@ function isWebAppLightMode() {
 /** Line/column ApexCharts: axis, grid, legend, tooltip. */
 function getApexLineChartTheme() {
   var light = isWebAppLightMode();
+  var highContrast =
+    typeof appSettings !== 'undefined' &&
+    appSettings.accessibility &&
+    appSettings.accessibility.chartPaletteMode === 'high-contrast';
+  if (highContrast) {
+    return {
+      mode: light ? 'light' : 'dark',
+      tooltipTheme: light ? 'light' : 'dark',
+      text: light ? '#000000' : '#ffffff',
+      gridBorder: light ? '#333333' : '#cccccc',
+      legendColor: light ? '#000000' : '#ffffff',
+      crosshair: light ? '#444444' : '#dddddd',
+      tooltipDescription: light ? '#222222' : '#eeeeee',
+    };
+  }
   return {
     mode: light ? 'light' : 'dark',
     tooltipTheme: light ? 'light' : 'dark',
@@ -16260,6 +16275,37 @@ function setAccessibilityColorblindMode(mode) {
 }
 if (typeof window !== 'undefined') window.setAccessibilityColorblindMode = setAccessibilityColorblindMode;
 
+function applyAccessibilityChartPalette() {
+  try {
+    var mode =
+      appSettings.accessibility && appSettings.accessibility.chartPaletteMode === 'high-contrast'
+        ? 'high-contrast'
+        : 'standard';
+    document.body.classList.toggle('chart-palette-high-contrast', mode === 'high-contrast');
+  } catch (e) {}
+}
+
+function setAccessibilityChartPalette(mode) {
+  if (!appSettings.accessibility || typeof appSettings.accessibility !== 'object') {
+    appSettings.accessibility = { ttsEnabled: false, readModeEnabled: false, largeTextEnabled: false, textScale: 1, colorblindMode: 'none' };
+  }
+  appSettings.accessibility.chartPaletteMode = mode === 'high-contrast' ? 'high-contrast' : 'standard';
+  saveSettings();
+  applyAccessibilityChartPalette();
+  loadSettingsState();
+}
+if (typeof window !== 'undefined') window.setAccessibilityChartPalette = setAccessibilityChartPalette;
+
+function toggleAccessibilityPlainLanguage() {
+  if (!appSettings.accessibility || typeof appSettings.accessibility !== 'object') {
+    appSettings.accessibility = { ttsEnabled: false, readModeEnabled: false, largeTextEnabled: false, textScale: 1, colorblindMode: 'none' };
+  }
+  appSettings.accessibility.plainLanguageEnabled = !appSettings.accessibility.plainLanguageEnabled;
+  saveSettings();
+  loadSettingsState();
+}
+if (typeof window !== 'undefined') window.toggleAccessibilityPlainLanguage = toggleAccessibilityPlainLanguage;
+
 function setAccessibilityTextScale(value) {
   if (!appSettings.accessibility || typeof appSettings.accessibility !== 'object') {
     appSettings.accessibility = { ttsEnabled: false, readModeEnabled: false, largeTextEnabled: false, textScale: 1, colorblindMode: 'none' };
@@ -16409,6 +16455,19 @@ function loadSettingsState() {
   if (cbSelect && appSettings.accessibility) {
     cbSelect.value = appSettings.accessibility.colorblindMode || 'none';
   }
+
+  var plainLangToggle = document.getElementById('accessibilityPlainLanguageToggle');
+  if (plainLangToggle && appSettings.accessibility) {
+    plainLangToggle.classList.toggle('active', !!appSettings.accessibility.plainLanguageEnabled);
+    plainLangToggle.setAttribute('aria-checked', appSettings.accessibility.plainLanguageEnabled ? 'true' : 'false');
+  }
+
+  var chartPaletteSelect = document.getElementById('accessibilityChartPaletteSelect');
+  if (chartPaletteSelect && appSettings.accessibility) {
+    chartPaletteSelect.value =
+      appSettings.accessibility.chartPaletteMode === 'high-contrast' ? 'high-contrast' : 'standard';
+  }
+  if (typeof applyAccessibilityChartPalette === 'function') applyAccessibilityChartPalette();
 
   // Update demo mode toggle (same as other toggles)
   const demoModeToggle = document.getElementById('demoModeToggle');

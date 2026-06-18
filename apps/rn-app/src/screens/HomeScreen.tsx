@@ -36,7 +36,8 @@ import {
 } from '@rianell/shared';
 import { summarizeLogsForAi } from '../ai/analyzeLogs';
 import Constants from 'expo-constants';
-import { getBugReportAttachmentText } from '../utils/bugReportLogs';
+import { buildLogReviewSummary } from '../log/buildLogReviewSummary';
+import { speakLabel } from '../accessibility/tts';
 import { submitBugReport } from '../utils/submitBugReport';
 
 /** Web `index.html` parity: top chrome includes bug-report modal entry. */
@@ -429,6 +430,28 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
     [homeAnalysisSnapshot, homeLogs, locale, prefs.performance.preferredLlmModelSize, t]
   );
 
+  const onReadTodayEntry = useCallback(async () => {
+    if (!prefs.accessibility.ttsEnabled) {
+      Alert.alert(t('common.text.to.speech.tap.to.read'), t('common.when.enabled.tapping.buttons.controls.re'));
+      return;
+    }
+    const d = todayIso();
+    try {
+      const logs = await loadLogs();
+      const entry = logs.find((l) => l.date === d);
+      if (!entry) {
+        Alert.alert(t('home.status.notLoggedYet'), t('home.status.notLoggedTodayDetail'));
+        return;
+      }
+      speakLabel(buildLogReviewSummary(entry), {
+        enabled: prefs.accessibility.ttsEnabled,
+        readModeEnabled: false,
+      });
+    } catch {
+      Alert.alert(t('common.error'), t('wizard.alert.saveFailed'));
+    }
+  }, [prefs.accessibility.ttsEnabled, t]);
+
   const onGoalsTargets = useCallback(() => {
     navigation.navigate('Charts', { initialView: 'balance' });
   }, [navigation]);
@@ -522,6 +545,19 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
               ? t('home.status.loggedTodayDetail')
               : t('home.status.notLoggedTodayDetail')}
         </Text>
+        {loggedToday ? (
+          <Pressable
+            onPress={() => void onReadTodayEntry()}
+            style={({ pressed }) => [
+              styles.readTodayBtn,
+              { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1 },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={t('home.action.readTodayEntry')}
+          >
+            <Text style={{ color: accent, fontSize: theme.font(14) }}>{t('home.action.readTodayEntry')}</Text>
+          </Pressable>
+        ) : null}
         <HomeMotdHeartbeat motd={motd} theme={theme} latestBpm={latestBpm} t={t} />
         {homeSuggestions.length > 0 ? (
           <View style={styles.suggestionsRow} accessibilityRole="list">
@@ -760,6 +796,14 @@ const styles = StyleSheet.create({
   card: { borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)' },
   title: { fontSize: 22, fontWeight: '700', marginBottom: 8 },
   text: { fontSize: 16, opacity: 0.95 },
+  readTodayBtn: {
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
   motd: { marginTop: 10, opacity: 0.82 },
   suggestionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   suggestionChip: {

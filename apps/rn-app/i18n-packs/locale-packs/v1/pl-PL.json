@@ -1206,7 +1206,21 @@
     "benchmark.tests.raf": "Opóźnienie rAF",
     "benchmark.tests.array": "Przepustowość tablicy",
     "benchmark.tests.string": "Operacje na ciągach",
-    "benchmark.tests.warmup": "Rozgrzewka"
+    "benchmark.tests.warmup": "Rozgrzewka",
+    "common.consent.healthDataBody": "Rianell stores symptom and wellness logs on your device. This is special-category health data under GDPR. By continuing, you give explicit consent (Art. 9(2)(a)) to process health data locally to provide the app. Cloud backup, anonymized contribution, and on-device AI require separate toggles.",
+    "common.consent.healthDataContact": "Contact: jan.andersson@rianell.com. See our privacy policy for your rights.",
+    "common.colorblind.deuteranopia": "Deuteranopia (red/green)",
+    "common.colorblind.protanopia": "Protanopia (red/green)",
+    "common.colorblind.tritanopia": "Tritanopia (blue/yellow)",
+    "common.colorblind.highContrast": "High contrast",
+    "common.read.mode.focus.hint": "When on: focused controls are also read aloud (keyboard and assistive navigation).",
+    "settings.accessibility.plainLanguage": "Plain Język summaries",
+    "settings.accessibility.plainLanguageHint": "When on: AI summaries use simpler words (B1 level). Your log notes are never rewritten.",
+    "settings.accessibility.chartPalette": "Chart colour palette",
+    "settings.accessibility.chartPaletteStandard": "Standard",
+    "settings.accessibility.chartPaletteHighContrast": "High contrast",
+    "settings.accessibility.chartPaletteHint": "Chart colours are separate from the app theme.",
+    "home.action.readTodayEntry": "Read Dziś's entry"
   },
   "machineTranslatedUi": true
 }

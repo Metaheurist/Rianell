@@ -1013,7 +1013,14 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.flare')}</Text>
             <View style={styles.row}>
               <Choice label={t('common.no')} selected={flare === 'No'} onPress={() => setFlare('No')} />
-              <Choice label={t('common.yes')} selected={flare === 'Yes'} onPress={() => setFlare('Yes')} />
+              <Choice
+                label={t('common.yes')}
+                selected={flare === 'Yes'}
+                onPress={() => {
+                  setFlare('Yes');
+                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+                }}
+              />
             </View>
 
             <Pressable
