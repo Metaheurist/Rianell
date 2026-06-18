@@ -2,7 +2,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   applyLocaleDefaultsToPrefs,
   normalizeDisplayNameTheme,
+  normalizeLogFavorites,
+  normalizeMedSchedule,
   normalizeProfileAvatar,
+  normalizeSymptomTemplates,
   normalizeTrackingProfile,
 } from '@rianell/shared';
 
@@ -99,6 +102,16 @@ export type Preferences = {
     chartPaletteMode: string;
     colorblindMode: string;
   };
+  logFavorites: {
+    meals: string[];
+    exercises: string[];
+    medCombos: string[];
+  };
+  symptomTemplates: Array<{ condition: string; chips: string[] }>;
+  medSchedule: Array<{ id: string; drug: string; dose: string; times: string[]; enabled: boolean }>;
+  cycleModuleEnabled: boolean;
+  barcodeFoodLoggingEnabled: boolean;
+  guidedVoiceLogEnabled: boolean;
 };
 
 export function getDefaultPreferences(): Preferences {
@@ -173,6 +186,12 @@ export function getDefaultPreferences(): Preferences {
       chartPaletteMode: 'standard',
       colorblindMode: 'none',
     },
+    logFavorites: normalizeLogFavorites(null),
+    symptomTemplates: [],
+    medSchedule: [],
+    cycleModuleEnabled: false,
+    barcodeFoodLoggingEnabled: false,
+    guidedVoiceLogEnabled: false,
   };
 }
 
@@ -322,6 +341,12 @@ export async function loadPreferences(): Promise<Preferences> {
           parsed.accessibility?.chartPaletteMode === 'high-contrast' ? 'high-contrast' : d.accessibility.chartPaletteMode,
         colorblindMode: typeof parsed.accessibility?.colorblindMode === 'string' ? parsed.accessibility!.colorblindMode : d.accessibility.colorblindMode,
       },
+      logFavorites: normalizeLogFavorites(parsed.logFavorites),
+      symptomTemplates: normalizeSymptomTemplates(parsed.symptomTemplates),
+      medSchedule: normalizeMedSchedule(parsed.medSchedule),
+      cycleModuleEnabled: parsed.cycleModuleEnabled === true,
+      barcodeFoodLoggingEnabled: parsed.barcodeFoodLoggingEnabled === true,
+      guidedVoiceLogEnabled: parsed.guidedVoiceLogEnabled === true,
     };
     return applyLocaleDefaultsToPrefs(base, base.uiLocale) as Preferences;
   } catch {

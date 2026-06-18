@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LOGS_STORAGE_KEY_V1, LOGS_STORAGE_KEY_MOBILE_LEGACY, normalizeLogEntry, createSampleLogEntry } from '@rianell/shared';
+import { LOGS_STORAGE_KEY_V1, LOGS_STORAGE_KEY_MOBILE_LEGACY, normalizeLogEntry, createSampleLogEntry, mergeLogEntriesForDate } from '@rianell/shared';
 import { backupLogs, compressLogsIfEnabled } from './backup';
 
 export type LogEntry = ReturnType<typeof normalizeLogEntry>;
@@ -49,7 +49,14 @@ export function makeSampleLog(): LogEntry {
 
 export function addLogEntry(existing: LogEntry[], nextEntry: LogEntry): LogEntry[] {
   const normalized = normalizeLogEntry(nextEntry);
-  if (existing.some((l) => l.date === normalized.date)) {
+  const idx = existing.findIndex((l) => l.date === normalized.date);
+  if (idx >= 0) {
+    if (normalized.subEntries?.length) {
+      const merged = normalizeLogEntry(mergeLogEntriesForDate(existing[idx], normalized));
+      const next = [...existing];
+      next[idx] = merged;
+      return next;
+    }
     throw new Error(`Duplicate entry for ${normalized.date}`);
   }
   return [...existing, normalized];
