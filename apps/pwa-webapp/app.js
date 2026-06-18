@@ -15352,6 +15352,9 @@ form.addEventListener("submit", e => {
   if (Shared && typeof Shared.normalizeLogEntry === 'function') {
     newEntry = Shared.normalizeLogEntry(newEntry);
   }
+  if (Shared && typeof Shared.stampLogEntryForCaregiver === 'function') {
+    newEntry = Shared.stampLogEntryForCaregiver(newEntry, appSettings);
+  }
 
   // Remove undefined values to keep data clean
   Object.keys(newEntry).forEach(key => {
@@ -15544,6 +15547,9 @@ let appSettings = {
   processingActivityLog: [],
   cloudAutoSyncOnOpen: false,
   cloudAutoSyncDailyTime: null,
+  caregiverModeEnabled: false,
+  caregiverDependentName: '',
+  caregiverRelationship: 'parent',
 };
 
 // Make appSettings available on window for safe access
@@ -15600,6 +15606,18 @@ function loadSettings() {
   appSettings.localOnlyMode = appSettings.localOnlyMode === true;
   appSettings.appLockEnabled = appSettings.appLockEnabled === true;
   appSettings.cloudAutoSyncOnOpen = appSettings.cloudAutoSyncOnOpen === true;
+  if (window.RianellShared && typeof window.RianellShared.normalizeCaregiverSettings === 'function') {
+    var cg = window.RianellShared.normalizeCaregiverSettings(appSettings);
+    appSettings.caregiverModeEnabled = cg.caregiverModeEnabled;
+    appSettings.caregiverDependentName = cg.caregiverDependentName;
+    appSettings.caregiverRelationship = cg.caregiverRelationship;
+  } else {
+    appSettings.caregiverModeEnabled = appSettings.caregiverModeEnabled === true;
+    appSettings.caregiverDependentName = typeof appSettings.caregiverDependentName === 'string' ? appSettings.caregiverDependentName : '';
+    appSettings.caregiverRelationship = appSettings.caregiverRelationship === 'guardian' || appSettings.caregiverRelationship === 'other'
+      ? appSettings.caregiverRelationship
+      : 'parent';
+  }
   if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.readProcessingActivity === 'function') {
     appSettings.processingActivityLog = window.RianellShared.readProcessingActivity(appSettings.processingActivityLog);
   } else if (!Array.isArray(appSettings.processingActivityLog)) {
@@ -16827,6 +16845,12 @@ function loadSettingsState() {
   syncLocalOnlyFeatureMatrixUi();
   var appLockToggle = document.getElementById('appLockToggle');
   if (appLockToggle) appLockToggle.classList.toggle('active', !!appSettings.appLockEnabled);
+  var caregiverToggle = document.getElementById('caregiverModeToggle');
+  if (caregiverToggle) caregiverToggle.classList.toggle('active', !!appSettings.caregiverModeEnabled);
+  var caregiverRow = document.getElementById('caregiverDependentRow');
+  if (caregiverRow) caregiverRow.style.display = appSettings.caregiverModeEnabled ? 'block' : 'none';
+  var caregiverNameInput = document.getElementById('caregiverDependentNameInput');
+  if (caregiverNameInput) caregiverNameInput.value = appSettings.caregiverDependentName || '';
   syncPrivacyActivityLogUi();
 }
 
@@ -17298,6 +17322,124 @@ async function submitEncryptedExportFromModal() {
   }
 }
 if (typeof window !== 'undefined') window.submitEncryptedExportFromModal = submitEncryptedExportFromModal;
+
+function toggleCaregiverMode() {
+  appSettings.caregiverModeEnabled = !appSettings.caregiverModeEnabled;
+  if (window.RianellShared && typeof window.RianellShared.normalizeCaregiverSettings === 'function') {
+    var cg = window.RianellShared.normalizeCaregiverSettings(appSettings);
+    appSettings.caregiverModeEnabled = cg.caregiverModeEnabled;
+    appSettings.caregiverDependentName = cg.caregiverDependentName;
+    appSettings.caregiverRelationship = cg.caregiverRelationship;
+  }
+  saveSettings();
+  loadSettingsState();
+}
+if (typeof window !== 'undefined') window.toggleCaregiverMode = toggleCaregiverMode;
+
+function updateCaregiverDependentName() {
+  var input = document.getElementById('caregiverDependentNameInput');
+  appSettings.caregiverDependentName = input ? String(input.value || '').trim() : '';
+  saveSettings();
+}
+if (typeof window !== 'undefined') window.updateCaregiverDependentName = updateCaregiverDependentName;
+
+async function exportFhirBundle() {
+  if (appSettings.demoMode) {
+    showAlertModal(tUi('common.data.export.is.disabled.in.demo.mode.dem'), tUi('settings.demo.title'));
+    return;
+  }
+  var Shared = window.RianellShared;
+  if (!Shared || typeof Shared.logsToFhirBundle !== 'function') return;
+  var logs = typeof getAllHistoricalLogsSync === 'function' ? getAllHistoricalLogsSync() : [];
+  var bundle = Shared.logsToFhirBundle(logs);
+  var json = JSON.stringify(bundle, null, 2);
+  var blob = new Blob([json], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement('a');
+  link.href = url;
+  link.download = 'rianell-fhir-bundle.json';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  recordProcessingActivityPwa({ type: 'export', detail: 'fhir' });
+}
+if (typeof window !== 'undefined') window.exportFhirBundle = exportFhirBundle;
+
+async function exportReadOnlyShareLink() {
+  if (appSettings.demoMode) {
+    showAlertModal(tUi('common.data.export.is.disabled.in.demo.mode.dem'), tUi('settings.demo.title'));
+    return;
+  }
+  var passphrase = window.prompt(tUi('settings.export.encrypted.placeholder'));
+  if (!passphrase || passphrase.length < 8) return;
+  var Shared = window.RianellShared;
+  if (!Shared || typeof Shared.createReadOnlyShareEnvelope !== 'function') return;
+  try {
+    var logs = typeof getAllHistoricalLogsSync === 'function' ? getAllHistoricalLogsSync() : [];
+    var envelope = await Shared.createReadOnlyShareEnvelope(logs, passphrase);
+    var json = Shared.shareEnvelopeToPortableJson ? Shared.shareEnvelopeToPortableJson(envelope) : JSON.stringify(envelope, null, 2);
+    var blob = new Blob([json], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = 'rianell-share-link.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    recordProcessingActivityPwa({ type: 'export', detail: 'share_link' });
+  } catch (e) {
+    showAlertModal((e && e.message) ? e.message : tUi('settings.export.failed'), tUi('settings.export.title'));
+  }
+}
+if (typeof window !== 'undefined') window.exportReadOnlyShareLink = exportReadOnlyShareLink;
+
+function openWebDavBackupModal() {
+  if (appSettings.demoMode) {
+    showAlertModal(tUi('common.data.export.is.disabled.in.demo.mode.dem'), tUi('settings.demo.title'));
+    return;
+  }
+  var url = window.prompt('WebDAV URL (https://...)');
+  if (!url) return;
+  var user = window.prompt('WebDAV username') || '';
+  var pass = window.prompt('WebDAV password') || '';
+  var passphrase = window.prompt(tUi('settings.export.encrypted.placeholder'));
+  if (!passphrase || passphrase.length < 8) return;
+  void submitWebDavBackup(url, user, pass, passphrase);
+}
+if (typeof window !== 'undefined') window.openWebDavBackupModal = openWebDavBackupModal;
+
+async function submitWebDavBackup(url, user, pass, passphrase) {
+  var Shared = window.RianellShared;
+  if (!Shared || typeof Shared.putWebDavEncryptedBackup !== 'function') return;
+  try {
+    var logs = typeof getAllHistoricalLogsSync === 'function' ? getAllHistoricalLogsSync() : [];
+    var body = await Shared.buildEncryptedBackupBlob(logs, passphrase);
+    await Shared.putWebDavEncryptedBackup({ url: url, username: user, password: pass, body: body });
+    recordProcessingActivityPwa({ type: 'export', detail: 'webdav' });
+    showAlertModal(tUi('settings.import.saved'), tUi('settings.data.export.webdav'));
+  } catch (e) {
+    showAlertModal((e && e.message) ? e.message : tUi('settings.export.failed'), tUi('settings.export.title'));
+  }
+}
+if (typeof window !== 'undefined') window.submitWebDavBackup = submitWebDavBackup;
+
+function importMigrationCsv() {
+  var source = window.prompt('Migration source: bearable or flaredown', 'bearable');
+  if (!source) return;
+  var normalized = String(source).trim().toLowerCase();
+  if (normalized !== 'bearable' && normalized !== 'flaredown') {
+    showAlertModal('Use bearable or flaredown.', tUi('logs.import'));
+    return;
+  }
+  var input = document.getElementById('importFileInput');
+  if (!input) return;
+  input.setAttribute('data-migration-source', normalized);
+  input.setAttribute('accept', '.csv');
+  input.click();
+}
+if (typeof window !== 'undefined') window.importMigrationCsv = importMigrationCsv;
 
 function toggleSetting(setting) {
   var featureMap = {

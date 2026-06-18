@@ -22,6 +22,7 @@ var RianellShared = (() => {
   __export(index_exports, {
     ANON_POOL_EXCLUDED_FIELDS: () => ANON_POOL_EXCLUDED_FIELDS,
     ANON_POOL_INCLUDED_FIELDS: () => ANON_POOL_INCLUDED_FIELDS,
+    CAREGIVER_RELATIONSHIPS: () => CAREGIVER_RELATIONSHIPS,
     DEFAULT_GOALS: () => DEFAULT_GOALS,
     DEFAULT_LOCALE: () => DEFAULT_LOCALE,
     DEFAULT_PRIVACY_REGION: () => DEFAULT_PRIVACY_REGION,
@@ -39,6 +40,7 @@ var RianellShared = (() => {
     LOG_CSV_FIELD_IDS: () => LOG_CSV_FIELD_IDS,
     LOG_CSV_I18N_KEYS: () => LOG_CSV_I18N_KEYS,
     MIGRATION_COPY: () => MIGRATION_COPY,
+    MIGRATION_SOURCES: () => MIGRATION_SOURCES,
     OFFLINE_QUEUE_KEY: () => OFFLINE_QUEUE_KEY,
     POLICY_BODIES: () => POLICY_BODIES,
     POLICY_SUMMARIES: () => POLICY_SUMMARIES,
@@ -51,6 +53,7 @@ var RianellShared = (() => {
     PROGRESSIVE_CATEGORIES: () => PROGRESSIVE_CATEGORIES,
     SETTINGS_PROFILE_EXPORT_VERSION: () => SETTINGS_PROFILE_EXPORT_VERSION,
     SETTINGS_STORAGE_KEY: () => SETTINGS_STORAGE_KEY,
+    SHARE_LINK_FORMAT: () => SHARE_LINK_FORMAT,
     SHIPPED_LOCALES: () => SHIPPED_LOCALES,
     TRACKING_PROFILE_FIELD_KEYS: () => TRACKING_PROFILE_FIELD_KEYS,
     UNSET_PRIVACY_REGION: () => UNSET_PRIVACY_REGION,
@@ -63,11 +66,13 @@ var RianellShared = (() => {
     applyRegionDefaultLocale: () => applyRegionDefaultLocale,
     applyRegionDowngradeToggles: () => applyRegionDowngradeToggles,
     buildConsentDashboardEntries: () => buildConsentDashboardEntries,
+    buildEncryptedBackupBlob: () => buildEncryptedBackupBlob,
     buildHomeQuestionContext: () => buildHomeQuestionContext,
     buildHomeQuestionFallback: () => buildHomeQuestionFallback,
     buildHomeQuestionPrompt: () => buildHomeQuestionPrompt,
     buildLlmRequestPayload: () => buildLlmRequestPayload,
     buildMotdPrompt: () => buildMotdPrompt,
+    buildProxyLogMetadata: () => buildProxyLogMetadata,
     buildSettingsProfileExport: () => buildSettingsProfileExport,
     buildSuggestPrompt: () => buildSuggestPrompt,
     buildSummaryPrompt: () => buildSummaryPrompt,
@@ -77,6 +82,7 @@ var RianellShared = (() => {
     checkPolicyDriftSync: () => checkPolicyDriftSync,
     clearMigrationPending: () => clearMigrationPending,
     computeHomeAnalysisSnapshot: () => computeHomeAnalysisSnapshot,
+    createReadOnlyShareEnvelope: () => createReadOnlyShareEnvelope,
     createSampleLogEntry: () => createSampleLogEntry,
     createTranslator: () => createTranslator,
     daysSinceTrackingProfileStart: () => daysSinceTrackingProfileStart,
@@ -128,13 +134,16 @@ var RianellShared = (() => {
     localOnlyBlockReason: () => localOnlyBlockReason,
     localeFallbackChain: () => localeFallbackChain,
     localeLabel: () => localeLabel,
+    logToFhirObservations: () => logToFhirObservations,
     logsToCsv: () => logsToCsv,
+    logsToFhirBundle: () => logsToFhirBundle,
     mergeHealthLogs: () => mergeHealthLogs,
     mergeHealthLogsWithConflictPolicy: () => mergeHealthLogsWithConflictPolicy,
     mergeLogEntriesForDate: () => mergeLogEntriesForDate,
     needsDataResidencyMigration: () => needsDataResidencyMigration,
     normalizeAccessibilitySettings: () => normalizeAccessibilitySettings,
     normalizeActivityEntry: () => normalizeActivityEntry,
+    normalizeCaregiverSettings: () => normalizeCaregiverSettings,
     normalizeCycleFields: () => normalizeCycleFields,
     normalizeDisplayNameTheme: () => normalizeDisplayNameTheme,
     normalizeGoals: () => normalizeGoals,
@@ -151,10 +160,12 @@ var RianellShared = (() => {
     normalizeSymptomTemplates: () => normalizeSymptomTemplates,
     normalizeTrackingProfile: () => normalizeTrackingProfile,
     parseLogsCsv: () => parseLogsCsv,
+    parseMigrationCsv: () => parseMigrationCsv,
     parseSettingsProfileImport: () => parseSettingsProfileImport,
     pickHomeAiSuggestions: () => pickHomeAiSuggestions,
     prefsToConsents: () => prefsToConsents,
     privacyProfileFromLocal: () => privacyProfileFromLocal,
+    putWebDavEncryptedBackup: () => putWebDavEncryptedBackup,
     readProcessingActivity: () => readProcessingActivity,
     readTextFileSync: () => readTextFileSync,
     resolveActiveLocale: () => resolveActiveLocale,
@@ -162,8 +173,10 @@ var RianellShared = (() => {
     resolveDataResidency: () => resolveDataResidency,
     resolvePolicyPack: () => resolvePolicyPack,
     setPolicyPack: () => setPolicyPack,
+    shareEnvelopeToPortableJson: () => shareEnvelopeToPortableJson,
     shouldAllowNetworkOperation: () => shouldAllowNetworkOperation,
     shouldShowWizardCategory: () => shouldShowWizardCategory,
+    stampLogEntryForCaregiver: () => stampLogEntryForCaregiver,
     suggestPrivacyRegionFromHint: () => suggestPrivacyRegionFromHint,
     t: () => t,
     textDirection: () => textDirection,
@@ -1243,6 +1256,33 @@ var RianellShared = (() => {
     const key = await deriveExportKey(passphrase, salt, cryptoSubtle);
     const plain = await cryptoSubtle.decrypt({ name: "AES-GCM", iv }, key, cipher);
     return JSON.parse(new TextDecoder().decode(plain));
+  }
+
+  // packages/shared/src/privacy/caregiverMode.mjs
+  var CAREGIVER_RELATIONSHIPS = ["parent", "guardian", "other"];
+  function normalizeCaregiverSettings(prefs) {
+    const p = prefs && typeof prefs === "object" ? prefs : {};
+    const relationship = CAREGIVER_RELATIONSHIPS.includes(p.caregiverRelationship) ? p.caregiverRelationship : "parent";
+    const enabled = p.caregiverModeEnabled === true;
+    return {
+      caregiverModeEnabled: enabled,
+      caregiverDependentName: enabled && typeof p.caregiverDependentName === "string" ? p.caregiverDependentName.trim() : "",
+      caregiverRelationship: relationship
+    };
+  }
+  function buildProxyLogMetadata(prefs) {
+    const c = normalizeCaregiverSettings(prefs);
+    if (!c.caregiverModeEnabled) return {};
+    return {
+      proxyLoggedBy: "caregiver",
+      proxyRelationship: c.caregiverRelationship,
+      dependentLabel: c.caregiverDependentName || "dependent"
+    };
+  }
+  function stampLogEntryForCaregiver(entry, prefs) {
+    const meta = buildProxyLogMetadata(prefs);
+    if (!meta.proxyLoggedBy) return entry;
+    return { ...entry, ...meta };
   }
 
   // packages/shared/src/i18n/resolveLocale.mjs
@@ -2485,6 +2525,212 @@ ${raw}
       });
       logs.push(raw);
     }
+    return logs;
+  }
+
+  // packages/shared/src/export/fhirLite.mjs
+  var METRIC_CODES = {
+    mood: { system: "http://loinc.org", code: "80296-7", display: "Mood" },
+    sleep: { system: "http://loinc.org", code: "93832-4", display: "Sleep duration" },
+    fatigue: { system: "http://loinc.org", code: "75826-7", display: "Fatigue" },
+    bpm: { system: "http://loinc.org", code: "8867-4", display: "Heart rate" },
+    weight: { system: "http://loinc.org", code: "29463-7", display: "Body weight" }
+  };
+  function observationFor(log, field, value) {
+    const coding = METRIC_CODES[field];
+    if (!coding || value === void 0 || value === null || value === "") return null;
+    const num = Number(value);
+    const isNum = Number.isFinite(num);
+    return {
+      resourceType: "Observation",
+      status: "final",
+      category: [{ coding: [{ system: "http://terminology.hl7.org/CodeSystem/observation-category", code: "survey" }] }],
+      code: { coding: [coding] },
+      subject: { display: "Rianell user" },
+      effectiveDateTime: `${log.date}T12:00:00Z`,
+      valueQuantity: isNum ? { value: num, unit: field === "weight" ? "kg" : field === "bpm" ? "/min" : "{score}" } : void 0,
+      valueString: isNum ? void 0 : String(value)
+    };
+  }
+  function logToFhirObservations(log) {
+    if (!log || !log.date) return [];
+    const out = [];
+    for (const field of Object.keys(METRIC_CODES)) {
+      const obs = observationFor(log, field, log[field]);
+      if (obs) out.push(obs);
+    }
+    if (log.notes) {
+      out.push({
+        resourceType: "Observation",
+        status: "final",
+        code: { text: "Daily notes" },
+        effectiveDateTime: `${log.date}T12:00:00Z`,
+        valueString: String(log.notes).slice(0, 2e3)
+      });
+    }
+    return out;
+  }
+  function logsToFhirBundle(logs) {
+    const entries = [];
+    const list = Array.isArray(logs) ? logs : [];
+    for (const log of list) {
+      for (const obs of logToFhirObservations(log)) {
+        entries.push({ fullUrl: `urn:uuid:rianell-${log.date}-${obs.code?.coding?.[0]?.code || "note"}`, resource: obs });
+      }
+    }
+    return {
+      resourceType: "Bundle",
+      type: "collection",
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      entry: entries
+    };
+  }
+
+  // packages/shared/src/export/shareReadOnlyLink.mjs
+  var SHARE_LINK_FORMAT = "rianell-share-v1";
+  async function createReadOnlyShareEnvelope(logs, passphrase, expiresInHours = 72) {
+    const hours = Math.min(168, Math.max(1, Number(expiresInHours) || 72));
+    const expiresAt = new Date(Date.now() + hours * 3600 * 1e3).toISOString();
+    const envelope = await encryptExportWithPassphrase(
+      { logs: Array.isArray(logs) ? logs : [], share: { readOnly: true, expiresAt } },
+      passphrase
+    );
+    return {
+      format: SHARE_LINK_FORMAT,
+      encrypted: envelope,
+      expiresAt,
+      exportFormat: ENCRYPTED_EXPORT_FORMAT
+    };
+  }
+  function shareEnvelopeToPortableJson(envelope) {
+    return JSON.stringify(envelope, null, 2);
+  }
+
+  // packages/shared/src/export/webdavBackup.mjs
+  async function buildEncryptedBackupBlob(logs, passphrase) {
+    const envelope = await encryptExportWithPassphrase({ logs: Array.isArray(logs) ? logs : [] }, passphrase);
+    return JSON.stringify(envelope);
+  }
+  async function putWebDavEncryptedBackup({ url, username, password, body, filename }) {
+    const base = String(url || "").replace(/\/$/, "");
+    if (!base.startsWith("http")) throw new Error("WebDAV URL must start with http:// or https://");
+    const name = filename || `rianell-backup-${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}.json`;
+    const target = `${base}/${encodeURIComponent(name)}`;
+    const auth = typeof btoa === "function" ? btoa(`${username}:${password}`) : Buffer.from(`${username}:${password}`, "utf8").toString("base64");
+    const res = await fetch(target, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${auth}`
+      },
+      body
+    });
+    if (!res.ok) throw new Error(`WebDAV upload failed (${res.status})`);
+    return { url: target, status: res.status };
+  }
+
+  // packages/shared/src/import/migrationAssistants.mjs
+  var BEARABLE_ALIASES = {
+    date: ["Date", "date", "Day"],
+    mood: ["Mood", "mood"],
+    sleep: ["Sleep", "sleep", "Sleep quality"],
+    fatigue: ["Energy", "Fatigue", "fatigue"],
+    notes: ["Notes", "Note", "notes"],
+    flare: ["Symptom severity", "Flare", "flare"]
+  };
+  var FLAREDOWN_ALIASES = {
+    date: ["date", "Date", "entry_date"],
+    mood: ["mood", "Mood"],
+    sleep: ["sleep", "Sleep"],
+    fatigue: ["fatigue", "Fatigue", "energy"],
+    notes: ["notes", "Notes", "journal"],
+    flare: ["flare", "Flare", "symptom_level"]
+  };
+  var MIGRATION_SOURCES = [
+    { id: "bearable", labelKey: "settings.import.migration.bearable" },
+    { id: "flaredown", labelKey: "settings.import.migration.flaredown" },
+    { id: "generic", labelKey: "settings.import.migration.generic" }
+  ];
+  function parseCsvLine2(line) {
+    const values = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else inQuotes = !inQuotes;
+      } else if (char === "," && !inQuotes) {
+        values.push(current.trim());
+        current = "";
+      } else current += char;
+    }
+    values.push(current.trim());
+    return values;
+  }
+  function mapRow(headers, values, aliasMap) {
+    const fieldIndexes = {};
+    headers.forEach((h, idx) => {
+      const lower = h.trim().toLowerCase();
+      for (const [id, aliases] of Object.entries(aliasMap)) {
+        if (aliases.some((a) => a.toLowerCase() === lower)) {
+          fieldIndexes[id] = idx;
+          break;
+        }
+      }
+    });
+    const raw = {};
+    for (const [id, idx] of Object.entries(fieldIndexes)) {
+      if (values[idx] !== void 0) raw[id] = values[idx];
+    }
+    return raw;
+  }
+  function normalizeMigrationDate(raw) {
+    const s = String(raw || "").trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    const dmy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (dmy) {
+      const dd = dmy[1].padStart(2, "0");
+      const mm = dmy[2].padStart(2, "0");
+      return `${dmy[3]}-${mm}-${dd}`;
+    }
+    return "";
+  }
+  function normalizeMigrationRow(raw) {
+    const date = normalizeMigrationDate(raw.date);
+    if (!date) return null;
+    const mood = Number.parseInt(raw.mood, 10);
+    const sleep = Number.parseInt(raw.sleep, 10);
+    const fatigue = Number.parseInt(raw.fatigue, 10);
+    const entry = {
+      date,
+      mood: Number.isFinite(mood) ? mood : void 0,
+      sleep: Number.isFinite(sleep) ? sleep : void 0,
+      fatigue: Number.isFinite(fatigue) ? fatigue : void 0,
+      notes: typeof raw.notes === "string" ? raw.notes.trim().slice(0, 500) : void 0,
+      flare: raw.flare && Number(raw.flare) >= 7 ? "Yes" : "No"
+    };
+    Object.keys(entry).forEach((k) => {
+      if (entry[k] === void 0) delete entry[k];
+    });
+    return entry;
+  }
+  function parseMigrationCsv(text, sourceId = "generic") {
+    const lines = String(text || "").split(/\r?\n/).filter((l) => l.trim());
+    if (lines.length < 2) throw new Error("Migration CSV must include a header row and data.");
+    const headers = parseCsvLine2(lines[0]);
+    const aliasMap = sourceId === "flaredown" ? FLAREDOWN_ALIASES : sourceId === "bearable" ? BEARABLE_ALIASES : { ...BEARABLE_ALIASES, ...FLAREDOWN_ALIASES };
+    const logs = [];
+    for (let i = 1; i < lines.length; i++) {
+      const values = parseCsvLine2(lines[i]);
+      if (!values.some((v) => v)) continue;
+      const raw = mapRow(headers, values, aliasMap);
+      const entry = normalizeMigrationRow(raw);
+      if (entry) logs.push(entry);
+    }
+    if (!logs.length) throw new Error("No rows could be mapped. Check column headers for your export source.");
     return logs;
   }
 
