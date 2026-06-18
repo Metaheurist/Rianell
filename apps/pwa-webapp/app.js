@@ -15483,6 +15483,15 @@ let appSettings = {
   uiLocaleUpdatedAt: null,
   dataResidencyCode: 'default',
   dataResidencyProjectUrl: '',
+  simpleMode: false,
+  profileAvatar: 'leaf',
+  displayNameTheme: 'mint',
+  trackingProfile: { condition: '', fields: { mood: true, pain: true, notes: true, sleep: false, fatigue: false }, configuredAt: null },
+  dateFormat: 'DMY',
+  firstDayOfWeek: 1,
+  localeDefaultsApplied: false,
+  weightUnitSource: 'default',
+  replayTutorial: false,
 };
 
 // Make appSettings available on window for safe access
@@ -15769,7 +15778,8 @@ function stopLlmStoragePoll() {
 
 var __settingsPerfAdvancedToggleBound = false;
 
-function shouldOpenSettingsPerformanceAdvanced() {
+/** Green-dot hint: non-default prefs, active download, or failed download. */
+function shouldHighlightSettingsPerformanceAdvanced() {
   if (!appSettings) return false;
   var tier = appSettings.preferredLlmModelSize || 'recommended';
   if (tier !== 'recommended') return true;
@@ -15780,6 +15790,17 @@ function shouldOpenSettingsPerformanceAdvanced() {
   if (progressWrap && !progressWrap.classList.contains('hidden')) return true;
   var modelStatus = (typeof window.getAiModelStatus === 'function') ? window.getAiModelStatus() : null;
   if (modelStatus && (modelStatus.state === 'downloading' || modelStatus.state === 'failed')) return true;
+  return false;
+}
+
+/** Auto-expand only when manual overrides are set — not during download (progress stays visible above). */
+function shouldAutoExpandSettingsPerformanceAdvanced() {
+  if (!appSettings) return false;
+  var tier = appSettings.preferredLlmModelSize || 'recommended';
+  if (tier !== 'recommended') return true;
+  var engine = appSettings.preferredLlmEngine || 'auto';
+  if (engine !== 'auto') return true;
+  if (appSettings.preferredLlmForceLargeOnWasm) return true;
   return false;
 }
 
@@ -15794,12 +15815,12 @@ function syncSettingsPerformanceAdvancedDisclosure() {
     });
   }
   var summary = details.querySelector('.settings-performance-advanced-summary');
-  var shouldOpen = shouldOpenSettingsPerformanceAdvanced();
-  if (shouldOpen) {
+  var shouldHighlight = shouldHighlightSettingsPerformanceAdvanced();
+  if (shouldAutoExpandSettingsPerformanceAdvanced()) {
     details.open = true;
   }
   if (summary) {
-    summary.classList.toggle('settings-performance-advanced-summary--active', shouldOpen);
+    summary.classList.toggle('settings-performance-advanced-summary--active', shouldHighlight);
     summary.setAttribute('aria-expanded', details.open ? 'true' : 'false');
   }
 }
@@ -16379,7 +16400,7 @@ function setGlobalTheme(theme) {
 if (typeof window !== 'undefined') window.setGlobalTheme = setGlobalTheme;
 
 function applyAIFeatureVisibility() {
-  var on = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
+  var on = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false && appSettings.simpleMode !== true;
   var tabAi = document.getElementById('tab-ai');
   var aiTabPanel = document.getElementById('aiTab');
   var predictionGroup = document.querySelector('.filter-group');
@@ -16407,7 +16428,65 @@ function applyAIFeatureVisibility() {
   }
   var bottomAi = document.getElementById('bottom-tab-ai');
   if (bottomAi) bottomAi.style.display = on ? '' : 'none';
+  applySimpleModeSettingsVisibility();
 }
+
+function applySimpleModeSettingsVisibility() {
+  var simple = appSettings && appSettings.simpleMode === true;
+  var adv = document.getElementById('settingsPerformanceAdvanced');
+  if (adv) adv.style.display = simple ? 'none' : '';
+  var anonToggle = document.getElementById('contributeAnonDataToggle');
+  if (anonToggle) {
+    var row = anonToggle.closest('.settings-option');
+    if (row) row.style.display = simple ? 'none' : '';
+  }
+  var openDataToggle = document.getElementById('useOpenDataToggle');
+  if (openDataToggle) {
+    var row2 = openDataToggle.closest('.settings-option');
+    if (row2) row2.style.display = simple ? 'none' : '';
+  }
+}
+
+function toggleSimpleMode() {
+  appSettings.simpleMode = !appSettings.simpleMode;
+  saveSettings();
+  applyAIFeatureVisibility();
+  loadSettingsState();
+}
+if (typeof window !== 'undefined') window.toggleSimpleMode = toggleSimpleMode;
+
+function openTutorialFromSettings() {
+  try { localStorage.removeItem('rianellTutorialSeen'); } catch (e) {}
+  appSettings.replayTutorial = true;
+  saveSettings();
+  if (typeof closeSettings === 'function') closeSettings();
+  if (typeof openTutorialModal === 'function') openTutorialModal();
+}
+if (typeof window !== 'undefined') window.openTutorialFromSettings = openTutorialFromSettings;
+
+function exportSettingsProfile() {
+  var goals = {};
+  try {
+    var raw = localStorage.getItem('rianellGoals');
+    if (raw) goals = JSON.parse(raw);
+  } catch (e) {}
+  var payload = {
+    kind: 'rianell-settings-profile',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    settings: Object.assign({}, appSettings),
+    goals: goals,
+  };
+  var text = JSON.stringify(payload, null, 2);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function () {
+      if (typeof showAlertModal === 'function') showAlertModal(tUi('settings.profile.exportSuccess'), tUi('settings.title'));
+    }).catch(function () {
+      if (typeof showAlertModal === 'function') showAlertModal(text.slice(0, 500) + '…', tUi('settings.profile.export'));
+    });
+  }
+}
+if (typeof window !== 'undefined') window.exportSettingsProfile = exportSettingsProfile;
 
 function toggleAIFeatures() {
   appSettings.aiEnabled = !appSettings.aiEnabled;

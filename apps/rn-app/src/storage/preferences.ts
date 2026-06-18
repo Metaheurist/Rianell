@@ -1,11 +1,32 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  applyLocaleDefaultsToPrefs,
+  normalizeDisplayNameTheme,
+  normalizeProfileAvatar,
+  normalizeTrackingProfile,
+} from '@rianell/shared';
 
 const KEY = 'rianell.preferences.v1';
+const TUTORIAL_SEEN_KEY = 'rianellTutorialSeen';
 
 export type AppearanceMode = 'system' | 'light' | 'dark';
 export type PreferredLlmModelSize = 'recommended' | 'tier1' | 'tier2' | 'tier3' | 'tier4' | 'tier5';
 export type WeightUnit = 'kg' | 'lb';
 export type AiModelDownloadConsent = 'granted' | 'deferred';
+export type DateFormatPref = 'DMY' | 'MDY' | 'YMD' | 'locale';
+export type WeightUnitSource = 'default' | 'locale' | 'user';
+
+export type TrackingProfile = {
+  condition: string;
+  fields: {
+    mood: boolean;
+    pain: boolean;
+    notes: boolean;
+    sleep: boolean;
+    fatigue: boolean;
+  };
+  configuredAt: string | null;
+};
 
 export type Preferences = {
   team: string;
@@ -14,6 +35,22 @@ export type Preferences = {
   demoMode: boolean;
   userName: string;
   medicalCondition: string;
+  profileAvatar: string;
+  displayNameTheme: string;
+  trackingProfile: TrackingProfile;
+  tutorialSeen: boolean;
+  replayTutorial: boolean;
+  simpleMode: boolean;
+  dateFormat: DateFormatPref;
+  firstDayOfWeek: number;
+  localeDefaultsApplied: boolean;
+  weightUnitSource: WeightUnitSource;
+  cookieConsent: boolean;
+  cookieConsentAt: string | null;
+  pushNotificationsEnabled: boolean;
+  pushNotificationsEnabledAt: string | null;
+  contributeAnonDataAt: string | null;
+  aiModelDownloadConsentAt: string | null;
   weightUnit: WeightUnit;
   contributeAnonData: boolean;
   useOpenData: boolean;
@@ -72,6 +109,22 @@ export function getDefaultPreferences(): Preferences {
     demoMode: false,
     userName: '',
     medicalCondition: '',
+    profileAvatar: 'leaf',
+    displayNameTheme: 'mint',
+    trackingProfile: normalizeTrackingProfile(null),
+    tutorialSeen: false,
+    replayTutorial: false,
+    simpleMode: false,
+    dateFormat: 'DMY',
+    firstDayOfWeek: 1,
+    localeDefaultsApplied: false,
+    weightUnitSource: 'default',
+    cookieConsent: false,
+    cookieConsentAt: null,
+    pushNotificationsEnabled: false,
+    pushNotificationsEnabledAt: null,
+    contributeAnonDataAt: null,
+    aiModelDownloadConsentAt: null,
     weightUnit: 'kg',
     contributeAnonData: false,
     useOpenData: false,
@@ -126,7 +179,11 @@ export function getDefaultPreferences(): Preferences {
 export async function loadPreferences(): Promise<Preferences> {
   try {
     const raw = await AsyncStorage.getItem(KEY);
-    if (!raw) return getDefaultPreferences();
+    const tutorialFlag = await AsyncStorage.getItem(TUTORIAL_SEEN_KEY);
+    if (!raw) {
+      const d = getDefaultPreferences();
+      return applyLocaleDefaultsToPrefs(d, d.uiLocale) as Preferences;
+    }
     const parsed = JSON.parse(raw) as Partial<Preferences>;
     const d = getDefaultPreferences();
     const appearanceMode =
@@ -135,13 +192,40 @@ export async function loadPreferences(): Promise<Preferences> {
         : d.appearanceMode;
     const textScaleRaw = parsed.accessibility?.textScale ?? d.accessibility.textScale;
     const textScale = Number.isFinite(textScaleRaw) ? Math.min(2, Math.max(0.75, Number(textScaleRaw))) : d.accessibility.textScale;
-    return {
+    const base: Preferences = {
       team: typeof parsed.team === 'string' ? parsed.team : d.team,
       appearanceMode,
       aiEnabled: parsed.aiEnabled !== false,
       demoMode: parsed.demoMode === true,
       userName: typeof parsed.userName === 'string' ? parsed.userName : d.userName,
       medicalCondition: typeof parsed.medicalCondition === 'string' ? parsed.medicalCondition : d.medicalCondition,
+      profileAvatar: normalizeProfileAvatar(parsed.profileAvatar),
+      displayNameTheme: normalizeDisplayNameTheme(parsed.displayNameTheme),
+      trackingProfile: normalizeTrackingProfile(parsed.trackingProfile),
+      tutorialSeen: parsed.tutorialSeen === true || tutorialFlag === '1',
+      replayTutorial: parsed.replayTutorial === true,
+      simpleMode: parsed.simpleMode === true,
+      dateFormat:
+        parsed.dateFormat === 'DMY' || parsed.dateFormat === 'MDY' || parsed.dateFormat === 'YMD' || parsed.dateFormat === 'locale'
+          ? parsed.dateFormat
+          : d.dateFormat,
+      firstDayOfWeek: parsed.firstDayOfWeek === 0 || parsed.firstDayOfWeek === 1 || parsed.firstDayOfWeek === 6
+        ? parsed.firstDayOfWeek
+        : d.firstDayOfWeek,
+      localeDefaultsApplied: parsed.localeDefaultsApplied === true,
+      weightUnitSource:
+        parsed.weightUnitSource === 'locale' || parsed.weightUnitSource === 'user' || parsed.weightUnitSource === 'default'
+          ? parsed.weightUnitSource
+          : d.weightUnitSource,
+      cookieConsent: parsed.cookieConsent === true,
+      cookieConsentAt: typeof parsed.cookieConsentAt === 'string' ? parsed.cookieConsentAt : d.cookieConsentAt,
+      pushNotificationsEnabled: parsed.pushNotificationsEnabled === true || parsed.notifications?.enabled === true,
+      pushNotificationsEnabledAt:
+        typeof parsed.pushNotificationsEnabledAt === 'string' ? parsed.pushNotificationsEnabledAt : d.pushNotificationsEnabledAt,
+      contributeAnonDataAt:
+        typeof parsed.contributeAnonDataAt === 'string' ? parsed.contributeAnonDataAt : d.contributeAnonDataAt,
+      aiModelDownloadConsentAt:
+        typeof parsed.aiModelDownloadConsentAt === 'string' ? parsed.aiModelDownloadConsentAt : d.aiModelDownloadConsentAt,
       weightUnit: parsed.weightUnit === 'lb' ? 'lb' : d.weightUnit,
       contributeAnonData: parsed.contributeAnonData === true,
       useOpenData: parsed.useOpenData === true,
@@ -239,9 +323,17 @@ export async function loadPreferences(): Promise<Preferences> {
         colorblindMode: typeof parsed.accessibility?.colorblindMode === 'string' ? parsed.accessibility!.colorblindMode : d.accessibility.colorblindMode,
       },
     };
+    return applyLocaleDefaultsToPrefs(base, base.uiLocale) as Preferences;
   } catch {
     return getDefaultPreferences();
   }
+}
+
+export async function markTutorialSeen(prefs: Preferences): Promise<Preferences> {
+  const next = { ...prefs, tutorialSeen: true };
+  await AsyncStorage.setItem(TUTORIAL_SEEN_KEY, '1');
+  await savePreferences(next);
+  return next;
 }
 
 export async function savePreferences(prefs: Preferences): Promise<void> {

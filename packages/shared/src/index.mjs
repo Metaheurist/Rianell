@@ -193,6 +193,7 @@ export function normalizeLogEntry(value) {
 
 export * from './privacy/index.mjs';
 export * from './i18n/index.mjs';
+export * from './settings/index.mjs';
 
 export function createSampleLogEntry() {
   return normalizeLogEntry({

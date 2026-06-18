@@ -1037,6 +1037,7 @@
           <h3 class="settings-title" data-i18n="settings.title">Settings</h3>
           <p class="settings-carousel-meta" id="settingsCarouselMeta" aria-live="polite"></p>
           <div class="settings-carousel-dots" id="settingsCarouselDots" role="tablist" aria-label="Settings sections" data-i18n-aria="common.settings.sections"></div>
+          <input type="search" id="settingsSearchInput" class="settings-search-input" data-i18n-placeholder="settings.search.placeholder" placeholder="Search settings…" aria-label="Search settings" oninput="filterSettingsPanes(this.value)" />
         </div>
         <button type="button" class="settings-close" onclick="event.preventDefault(); event.stopPropagation(); closeSettings();">&times;</button>
       </div>

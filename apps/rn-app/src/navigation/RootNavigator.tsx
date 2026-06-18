@@ -59,6 +59,7 @@ function TabBarIonicons({
 }
 
 export function shouldShowAiTab(prefs: Preferences) {
+  if (prefs.simpleMode) return false;
   return prefs.aiEnabled !== false;
 }
 
