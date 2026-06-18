@@ -4,7 +4,7 @@ import type { LogEntry } from '../storage/logs';
 export function buildLogReviewSummary(entry: LogEntry): string {
   const lines: string[] = [];
   lines.push(`Date: ${entry.date}`);
-  lines.push(`Flare: ${entry.flare ?? '—'}`);
+  lines.push(`Flare: ${entry.flare ?? '-'}`);
   if (entry.bpm != null) lines.push(`BPM: ${entry.bpm}`);
   if (entry.weight) lines.push(`Weight (kg): ${entry.weight}`);
   if (entry.sleep != null) lines.push(`Sleep: ${entry.sleep}/10`);

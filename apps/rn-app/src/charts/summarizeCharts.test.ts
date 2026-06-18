@@ -33,7 +33,7 @@ test('formatChartMetricValue matches web rules (steps int, hydration glasses)', 
   expect(formatChartMetricValue('steps', 12345.4)).toBe('12,345');
   expect(formatChartMetricValue('hydration', 6.25)).toBe('6.3 glasses');
   expect(formatChartMetricValue('mood', 7)).toBe('7.0');
-  expect(formatChartMetricValue('mood', null)).toBe('—');
+  expect(formatChartMetricValue('mood', null)).toBe('-');
 });
 
 test('formatChartMetricDelta prefixes sign for steps and hydration', () => {

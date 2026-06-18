@@ -1,8 +1,8 @@
 /**
- * Polish (pl-PL) exact UI overrides — fixes Frankenstein MT / leftover English.
+ * Polish (pl-PL) exact UI overrides - fixes Frankenstein MT / leftover English.
  */
 export const PL_PL_EXACT_OVERRIDES = {
-  'gate.hint': 'Sugerowane na podstawie Twojej lokalizacji/strefy czasowej — prosimy o potwierdzenie.',
+  'gate.hint': 'Sugerowane na podstawie Twojej lokalizacji/strefy czasowej - prosimy o potwierdzenie.',
   'settings.privacy.languageRestored': 'Język przywrócony z Twojego konta',
   'settings.cloud.delete': 'Usuń dane w chmurze',
   'settings.cloud.verifyEmail': 'Sprawdź e-mail, aby zweryfikować konto.',
@@ -24,7 +24,7 @@ export const PL_PL_EXACT_OVERRIDES = {
   'home.goals.summary':
     'Cel kroków: {steps} · Nawodnienie: {hydration} szklanek · Ocena snu: {sleepScore}/10 · Dobre dni/tydz.: {goodDays}',
   'home.goals.wellness':
-    'Cele wellness — Nastrój {Nastrój}/10 · Sen {Sen}/10 · Zmęczenie {Zmęczenie}/10',
+    'Cele wellness - Nastrój {Nastrój}/10 · Sen {Sen}/10 · Zmęczenie {Zmęczenie}/10',
   'logs.emptyHint': 'Brak wpisów. Użyj Zapisz wpis na stronie głównej, aby dodać wpis.',
   'logs.empty': 'Brak wpisów. Dodaj swój pierwszy wpis.',
   'logs.empty.none': 'Brak wpisów. Dodaj pierwszy wpis przyciskiem +.',
@@ -40,7 +40,7 @@ export const PL_PL_EXACT_OVERRIDES = {
   'wizard.action.saveMinimal': 'Zapisz minimalny wpis',
   'wizard.action.saveEntry': 'Zapisz wpis',
   'wizard.review.empty':
-    'Brak szczegółów — nadal możesz zapisać po uzupełnieniu wymaganych pól.',
+    'Brak szczegółów - nadal możesz zapisać po uzupełnieniu wymaganych pól.',
   'wizard.pain.helper': 'Dotknij regionu, aby przełączać: dobrze → dyskomfort → ból.',
   'wizard.notes.placeholder': 'Dodaj notatki o tym, jak się czujesz…',
   'wizard.alert.duplicate.body':
@@ -136,7 +136,7 @@ export const PL_PL_EXACT_OVERRIDES = {
   'common.performance.benchmark.cache.cleared.relo':
     'Pamięć podręczna benchmarku wydajności wyczyszczona. Przeładuj aplikację, aby ponownie uruchomić benchmark.',
   'common.no.details.yet.you.can.still.save.after.':
-    'Brak szczegółów — nadal możesz zapisać po uzupełnieniu wymaganych pól.',
+    'Brak szczegółów - nadal możesz zapisać po uzupełnieniu wymaganych pól.',
   'logs.picker.filterExercisesAria': 'Filtruj ćwiczenia w tej kategorii',
   'logs.picker.filterOptionsAria': 'Filtruj opcje energii i jasności umysłu',
   'logs.picker.filterStressorsAria': 'Filtruj stresory i wyzwalacze',

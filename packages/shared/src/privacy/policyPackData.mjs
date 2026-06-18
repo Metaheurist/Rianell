@@ -68,7 +68,7 @@ export const POLICY_PACK_V1 = {
       }
     },
     "us_ca": {
-      "label": "United States — California",
+      "label": "United States - California",
       "defaultLocale": "en-US",
       "supportedLocales": [
         "en-US"
@@ -124,7 +124,7 @@ export const POLICY_PACK_V1 = {
       }
     },
     "us_other": {
-      "label": "United States — other states",
+      "label": "United States - other states",
       "defaultLocale": "en-US",
       "supportedLocales": [
         "en-US"

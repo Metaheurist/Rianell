@@ -29,7 +29,7 @@
       return {
         tier: tierKey,
         capped: false,
-        warning: 'Large model on WASM-only — may be slow or run out of memory.'
+        warning: 'Large model on WASM-only - may be slow or run out of memory.'
       };
     }
     return {

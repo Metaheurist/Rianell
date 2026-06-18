@@ -13,7 +13,7 @@ import { generateSummaryNote } from '../ai/llm';
 const RANGE_OPTIONS: AiRange[] = [14, 30, 90, 'all'];
 
 function fmt(value: number | null): string {
-  return value == null ? '—' : value.toFixed(1);
+  return value == null ? '-' : value.toFixed(1);
 }
 
 export function AiScreen({ prefs }: { prefs: Preferences }) {
@@ -168,10 +168,10 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                 Flare days: {summary.flareDays}
               </Text>
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                Top symptoms: {summary.topSymptoms.length ? summary.topSymptoms.join(', ') : '—'}
+                Top symptoms: {summary.topSymptoms.length ? summary.topSymptoms.join(', ') : '-'}
               </Text>
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                Top stressors: {summary.topStressors.length ? summary.topStressors.join(', ') : '—'}
+                Top stressors: {summary.topStressors.length ? summary.topStressors.join(', ') : '-'}
               </Text>
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.section.whatWeFound')}</Text>

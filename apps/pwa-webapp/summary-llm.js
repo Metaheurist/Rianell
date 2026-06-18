@@ -36,6 +36,7 @@
   var MAX_CONTEXT_CHARS = 720;
   var MAX_SUGGEST_CONTEXT_CHARS = 280;
   var TIMEOUT_MS = 45000;
+  var LOAD_TIMEOUT_MS = 180000;
   var TIMEOUT_SUGGEST_MS = 20000;
   var TIMEOUT_SUGGEST_TOTAL_MS = 120000;
   var TIMEOUT_MOTD_MS = 25000;
@@ -558,7 +559,7 @@
     var tierKey = resolvePreferredTierKey();
     if (dm < 4 && (tierKey === 'tier5' || tierKey === 'tier4') &&
         typeof window !== 'undefined' && typeof window.showToast === 'function') {
-      window.showToast('Large model tier on limited memory — may fall back automatically.', { type: 'info' });
+      window.showToast('Large model tier on limited memory - may fall back automatically.', { type: 'info' });
     }
   }
 
@@ -706,13 +707,13 @@
     if (err == null) return 'Download failed';
     var msg = typeof err === 'string' ? err : (err.message ? String(err.message) : String(err));
     if (/\b557856688\b/.test(msg)) {
-      return 'GPU inference unavailable on this browser — trying alternate engine';
+      return 'GPU inference unavailable on this browser - trying alternate engine';
     }
     if (/Failed to execute 'put' on 'Cache'|browser cache/i.test(msg)) {
-      return 'Model cache error — retrying without cache';
+      return 'Model cache error - retrying without cache';
     }
     if (/could not be cloned|postMessage.*Worker/i.test(msg)) {
-      return 'MLC worker setup failed — retrying alternate engine';
+      return 'MLC worker setup failed - retrying alternate engine';
     }
     return msg;
   }
@@ -811,6 +812,8 @@
       console.warn = function () {
         var s = arguments[0] != null ? String(arguments[0]) : '';
         if (s.indexOf('dtype not specified') !== -1) return;
+        if (s.indexOf('Unable to determine content-length from response headers') !== -1) return;
+        if (s.indexOf('Unable to add response to browser cache') !== -1) return;
         return origWarn.apply(console, arguments);
       };
     }
@@ -962,7 +965,7 @@
               console.warn('Summary LLM: large package failed' + (oom ? ' (OOM)' : '') + ', retrying smaller model');
             }
             if (typeof window !== 'undefined' && typeof window.showToast === 'function' && oom) {
-              window.showToast('Not enough memory for the large model — using the smaller package.', { type: 'info' });
+              window.showToast('Not enough memory for the large model - using the smaller package.', { type: 'info' });
             }
             try {
               applyHuggingFaceRemote(modWasm);
@@ -1077,6 +1080,32 @@
     return extractChatReply(out);
   }
 
+  function isPipelineReadyForChat() {
+    return !!(cachedPipeline && cachedModelId && !downloadProgressState.active && !lastDownloadError);
+  }
+
+  function promiseWithTimeout(ms, errMsg) {
+    return new Promise(function (_, reject) {
+      setTimeout(function () { reject(new Error(errMsg)); }, ms);
+    });
+  }
+
+  async function awaitPipelineForInference(loadTimeoutMs) {
+    if (isPipelineReadyForChat()) return true;
+    await Promise.race([
+      ensurePipelineLoaded(),
+      promiseWithTimeout(loadTimeoutMs || LOAD_TIMEOUT_MS, 'Summary LLM load timeout')
+    ]);
+    return isPipelineReadyForChat();
+  }
+
+  async function raceChatInference(systemText, userText, genOpts, inferenceTimeoutMs, timeoutMessage) {
+    return Promise.race([
+      runChatInference(systemText, userText, genOpts),
+      promiseWithTimeout(inferenceTimeoutMs, timeoutMessage)
+    ]);
+  }
+
   function simpleHash(s) {
     if (typeof s !== 'string' || s.length === 0) return '0';
     var h = 5381;
@@ -1178,20 +1207,23 @@
     if (cached != null) return cached;
 
     try {
+      var ready = await awaitPipelineForInference(LOAD_TIMEOUT_MS);
+      if (!ready) return fallbackNote;
+
       var pack = await loadPromptPack(getActiveLocale());
       var prompts = buildSummaryPromptFromPack(pack, context);
-      var timeoutPromise = new Promise(function (_, reject) {
-        setTimeout(function () { reject(new Error('Summary LLM timeout')); }, TIMEOUT_MS);
-      });
-      var text = await Promise.race([
-        runChatInference(prompts.system, prompts.user, {
+      var text = await raceChatInference(
+        prompts.system,
+        prompts.user,
+        {
           max_new_tokens: 120,
           do_sample: false,
           temperature: 0.2,
           truncation: true
-        }),
-        timeoutPromise
-      ]);
+        },
+        TIMEOUT_MS,
+        'Summary LLM timeout'
+      );
 
       if (text && text.length > 15) {
         text = stripTrailingIncompleteSentence(text);
@@ -1251,20 +1283,23 @@
 
     async function runSuggest() {
       try {
+        var ready = await awaitPipelineForInference(TIMEOUT_SUGGEST_TOTAL_MS);
+        if (!ready) return fallbackText || '';
+
         var pack = await loadPromptPack(getActiveLocale());
         var prompts = buildSuggestPromptFromPack(pack, contextString);
-        var timeoutPromise = new Promise(function (_, reject) {
-          setTimeout(function () { reject(new Error('Suggest note LLM timeout')); }, TIMEOUT_SUGGEST_MS);
-        });
-        var text = await Promise.race([
-          runChatInference(prompts.system, prompts.user, {
+        var text = await raceChatInference(
+          prompts.system,
+          prompts.user,
+          {
             max_new_tokens: 60,
             do_sample: false,
             temperature: 0.2,
             truncation: true
-          }),
-          timeoutPromise
-        ]);
+          },
+          TIMEOUT_SUGGEST_MS,
+          'Suggest note LLM timeout'
+        );
 
         if (text && text.length > 8) {
           text = stripTrailingIncompleteSentence(text);
@@ -1305,20 +1340,23 @@
     if (cached != null) return cached;
 
     try {
+      var ready = await awaitPipelineForInference(LOAD_TIMEOUT_MS);
+      if (!ready) return fallbackText || '';
+
       var pack = await loadPromptPack(getActiveLocale());
       var prompts = buildHomeQuestionPromptFromPack(pack, contextString);
-      var timeoutPromise = new Promise(function (_, reject) {
-        setTimeout(function () { reject(new Error('Home question LLM timeout')); }, TIMEOUT_HOME_QUESTION_MS);
-      });
-      var text = await Promise.race([
-        runChatInference(prompts.system, prompts.user, {
+      var text = await raceChatInference(
+        prompts.system,
+        prompts.user,
+        {
           max_new_tokens: 180,
           do_sample: false,
           temperature: 0.2,
           truncation: true
-        }),
-        timeoutPromise
-      ]);
+        },
+        TIMEOUT_HOME_QUESTION_MS,
+        'Home question LLM timeout'
+      );
 
       if (text && text.length > 15) {
         text = stripTrailingIncompleteSentence(text);
@@ -1379,22 +1417,25 @@
     var nonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
 
     try {
+      var ready = await awaitPipelineForInference(LOAD_TIMEOUT_MS);
+      if (!ready) return fallbackText || '';
+
       var pack = await loadPromptPack(getActiveLocale());
       var motdPrompts = buildMotdPromptFromPack(pack, theme);
       var userPrompt = motdPrompts.user + ' Unique: ' + nonce + '.';
-      var timeoutPromise = new Promise(function (_, reject) {
-        setTimeout(function () { reject(new Error('MOTD LLM timeout')); }, TIMEOUT_MOTD_MS);
-      });
-      var text = await Promise.race([
-        runChatInference(motdPrompts.system, userPrompt, {
+      var text = await raceChatInference(
+        motdPrompts.system,
+        userPrompt,
+        {
           max_new_tokens: 40,
           do_sample: true,
           temperature: 0.65,
           top_p: 0.88,
           truncation: true
-        }),
-        timeoutPromise
-      ]);
+        },
+        TIMEOUT_MOTD_MS,
+        'MOTD LLM timeout'
+      );
 
       text = sanitizeMotdText(text);
       if (text.length >= 12 && text.length <= MAX_MOTD_CHARS + 20) {
@@ -1418,7 +1459,7 @@
   }
 
   function isAiModelReadyForInference() {
-    return !!(cachedPipeline && cachedModelId && !downloadProgressState.active && !lastDownloadError);
+    return isPipelineReadyForChat();
   }
 
   function getAiModelStatus() {

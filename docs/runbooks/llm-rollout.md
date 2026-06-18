@@ -5,6 +5,7 @@
 ```bash
 npm run sync:llm-pwa
 npm run vendor:transformers
+npm run verify:csp
 npm run agentic:gpu-v1 -- --track pwa
 ```
 
@@ -34,7 +35,13 @@ Tier 5 Llama probes require `HF_TOKEN` in environment.
 
 ## Cloudflare CSP
 
-Keep LLM connect-src on `'self'` + `https://huggingface.co` + `https://cdn.jsdelivr.net` + `https://raw.githubusercontent.com` (MLC WASM libs). Report-only violations are expected until headers are aligned — see `security/cloudflare-headers-recommended.md`.
+Keep LLM connect-src on `'self'` + `https://huggingface.co` + `https://cdn.jsdelivr.net` + `https://raw.githubusercontent.com` (MLC WASM libs). Report-only violations are expected until headers are aligned - see `security/cloudflare-headers-recommended.md`. Run `npm run verify:csp` before deploy (includes live Report-Only header check on rianell.com; set `SKIP_CSP_LIVE=1` offline).
+
+## Summary LLM timeouts (v1.92.3+)
+
+- **Load:** 180s for first pipeline/model fetch (`LOAD_TIMEOUT_MS`).
+- **Inference:** 45s per chat/suggest call after pipeline is ready (`raceChatInference`).
+- Benign console noise (CSP Report-Only subframes, WebGPU skip, HF cache warnings) is filtered early in `index.html` / `app.js` - do not treat as regressions during GPU matrix probes.
 
 ## Manual CI
 

@@ -11868,7 +11868,7 @@ body.light-mode .goals-status-pill.below {
 
 /* Horizontal clip only — `overflow: hidden` on both axes broke vertical scroll inside panes on mobile PWA/Safari. */
 .settings-carousel-viewport {
-  overflow-x: clip !important;
+  overflow-x: hidden !important;
   overflow-y: hidden;
   flex: 1;
   min-height: 0;
@@ -11924,8 +11924,7 @@ body.light-mode .goals-status-pill.below {
   -ms-overflow-style: none;
   box-sizing: border-box;
   padding-bottom: 0.5rem;
-  /* `contain: paint` prevented reliable touch scrolling on iOS for long settings panes */
-  contain: layout;
+  /* Avoid `contain: paint` (broke iOS touch scroll) and `contain: layout` (carousel bleed on desktop). */
 }
 
 .settings-carousel-pane::-webkit-scrollbar {
@@ -11935,6 +11934,8 @@ body.light-mode .goals-status-pill.below {
 /* Hide off-screen panes so carousel slides don’t bleed into the active pane */
 .settings-carousel-pane[aria-hidden="true"] {
   visibility: hidden;
+  pointer-events: none;
+  user-select: none;
 }
 
 .settings-carousel-pane[aria-hidden="false"] {
@@ -12183,6 +12184,7 @@ body.light-mode .settings-carousel-dot--active {
 
 /* Hint-only rows (no toggle): label is visually-hidden + full-width hint paragraph */
 .settings-option.settings-option-with-hint:not(:has(.toggle-switch)) {
+  position: relative;
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
@@ -12197,15 +12199,19 @@ body.light-mode .settings-carousel-dot--active {
 }
 
 .visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  animation: none !important;
+  transform: none !important;
+  flex: none !important;
 }
 
 .settings-option {

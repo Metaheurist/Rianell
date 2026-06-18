@@ -13,11 +13,11 @@ function openUrl(url: string) {
 
 export function SettingsAppInstallSection() {
   const theme = useTheme();
-  const version = Constants.expoConfig?.version ?? '—';
+  const version = Constants.expoConfig?.version ?? '-';
   const build =
     Platform.OS === 'ios'
-      ? String(Constants.expoConfig?.ios?.buildNumber ?? '—')
-      : String(Constants.expoConfig?.android?.versionCode ?? '—');
+      ? String(Constants.expoConfig?.ios?.buildNumber ?? '-')
+      : String(Constants.expoConfig?.android?.versionCode ?? '-');
 
   return (
     <View style={styles.block}>

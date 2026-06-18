@@ -57,7 +57,7 @@ export function filterTrendsForChartView(trends: MetricTrend[], view: ChartViewM
 
 /** Display formatting aligned with web `formatChartMetricValue` / chart tooltips (`apps/pwa-webapp/app.js`). */
 export function formatChartMetricValue(key: TrendMetric, value: number | null): string {
-  if (value == null || !Number.isFinite(value)) return '—';
+  if (value == null || !Number.isFinite(value)) return '-';
   if (key === 'steps') return Math.round(value).toLocaleString();
   if (key === 'hydration') return `${value.toFixed(1)} glasses`;
   return value.toFixed(1);
@@ -65,7 +65,7 @@ export function formatChartMetricValue(key: TrendMetric, value: number | null): 
 
 /** Delta line for trend summary (sign + formatted magnitude). */
 export function formatChartMetricDelta(key: TrendMetric, delta: number | null): string {
-  if (delta == null || !Number.isFinite(delta)) return '—';
+  if (delta == null || !Number.isFinite(delta)) return '-';
   const sign = delta >= 0 ? '+' : '';
   if (key === 'steps') return `${sign}${Math.round(delta).toLocaleString()}`;
   if (key === 'hydration') return `${sign}${delta.toFixed(1)}`;

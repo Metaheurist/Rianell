@@ -1,5 +1,5 @@
 /**
- * GGUF / llama.cpp browser adapter (Path 3) — lazy spike behind feature flag.
+ * GGUF / llama.cpp browser adapter (Path 3) - lazy spike behind feature flag.
  * Full inference requires a vendored WASM build; this module gates and documents the path.
  */
 (function (global) {
@@ -20,7 +20,7 @@
     if (typeof progressCallback === 'function') {
       progressCallback({ status: 'progress', progress: 0, file: 'GGUF runtime' });
     }
-    throw new Error('GGUF Path 3 runtime not bundled — enable after llama.cpp WASM vendor step');
+    throw new Error('GGUF Path 3 runtime not bundled - enable after llama.cpp WASM vendor step');
   }
 
   async function runGgufChat(engine, userPrompt, systemPrompt, options) {
