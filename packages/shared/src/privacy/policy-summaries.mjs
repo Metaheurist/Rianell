@@ -8,7 +8,7 @@ export const POLICY_SUMMARIES = {
   },
   'eu-gdpr': {
     id: 'eu-gdpr',
-    title: 'EEA & UK — GDPR',
+    title: 'EEA & UK - GDPR',
     summary:
       'Health data is special-category data under GDPR Art. 9. We rely on your explicit consent to process it locally and for optional cloud, research, and AI features. You have rights of access, rectification, erasure, restriction, portability, and objection.',
   },
@@ -26,19 +26,19 @@ export const POLICY_SUMMARIES = {
   },
   'other-jurisdictions-us': {
     id: 'other-jurisdictions-us',
-    title: 'United States — other states',
+    title: 'United States - other states',
     summary:
       'Consumer wellness self-tracking is generally outside HIPAA unless you are a covered entity or business associate. State privacy laws may grant access and deletion rights similar to our global baseline.',
   },
   'other-jurisdictions-au': {
     id: 'other-jurisdictions-au',
-    title: 'Australia — APPs',
+    title: 'Australia - APPs',
     summary:
       'Australian Privacy Principles apply to personal information we hold. You may access and correct your data. Notifiable data breach rules apply to serious incidents affecting your information.',
   },
   'other-jurisdictions-br': {
     id: 'other-jurisdictions-br',
-    title: 'Brazil — LGPD',
+    title: 'Brazil - LGPD',
     summary:
       'LGPD grants rights of confirmation, access, correction, anonymisation, portability, and deletion. Consent is the primary legal basis for health-related processing in the app.',
   },

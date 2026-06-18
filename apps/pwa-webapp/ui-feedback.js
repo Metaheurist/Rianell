@@ -307,7 +307,7 @@
     } catch (e) {}
     el.textContent = queued > 0
       ? queued + ' log' + (queued === 1 ? '' : 's') + ' will sync when back online'
-      : 'You are offline — changes stay on this device';
+      : 'You are offline - changes stay on this device';
     el.classList.remove('hidden');
   }
 

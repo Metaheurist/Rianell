@@ -337,6 +337,23 @@ function headersMarkdownTable(headers) {
   return out + '\n';
 }
 
+function auditReportOnlyCsp(headers) {
+  const ro = headers.get('content-security-policy-report-only');
+  if (!ro) return '';
+  const lower = ro.toLowerCase();
+  const narrow =
+    (lower.includes('script-src') && !lower.includes("'self'")) ||
+    /connect-src\s+'none'/i.test(ro);
+  if (!narrow) return '';
+  return (
+    '## CSP Report-Only (action required)\n\n' +
+    'Live response includes a **narrow** `Content-Security-Policy-Report-Only` header that conflicts with the meta CSP in `apps/pwa-webapp/index.html`. ' +
+    'This floods the browser console with report-only violations and will break the PWA if enforced.\n\n' +
+    '**Remove** the Report-Only rule in Cloudflare or paste the full policy from `index.html`. See `security/cloudflare-headers-recommended.md`.\n\n' +
+    '```\n' + ro.slice(0, 500) + (ro.length > 500 ? '…' : '') + '\n```\n\n'
+  );
+}
+
 async function fetchLiveSiteHeadersOnce(siteUrl) {
   const res = await fetch(siteUrl, {
     method: 'GET',
@@ -488,6 +505,7 @@ async function main() {
       md += `**HTTP status:** ${live.status}  \n`;
       md += `**Final URL:** ${live.finalUrl}  \n`;
       md += `**Response body length (bytes):** ${live.bodySampleLen}\n\n`;
+      md += auditReportOnlyCsp(live.headers);
       md += headersMarkdownTable(live.headers);
     } catch (e) {
       md += `*Failed to fetch live site: ${e && e.message ? e.message : String(e)}*\n`;

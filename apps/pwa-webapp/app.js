@@ -3800,7 +3800,7 @@ function showUpdateNotification() {
     showUpdateBar('A new version of Rianell is ready', function () { location.reload(); });
     return;
   }
-  notifySuccess('New version available — reload to update.', {
+  notifySuccess('New version available - reload to update.', {
     duration: 8000,
     action: { label: tUi('common.reload'), onClick: function () { location.reload(); } }
   });
@@ -10651,7 +10651,7 @@ function setPickerChipWithCount(btn, count, onCountBadgeClick) {
   b.type = 'button';
   b.className = 'picker-chip-count-btn';
   b.textContent = String(n);
-  b.setAttribute('aria-label', 'Clear all ' + n + ' — confirm');
+  b.setAttribute('aria-label', 'Clear all ' + n + ' - confirm');
   if (typeof onCountBadgeClick === 'function') {
     b.addEventListener('click', function(ev) {
       ev.preventDefault();
@@ -15526,7 +15526,7 @@ let appSettings = {
   preferredLlmForceLargeOnWasm: false,
   preferredLlmEngine: 'auto', // auto | onnx | mlc | gguf
   pushNotificationsEnabled: false,
-  aiModelDownloadConsent: 'deferred', // 'granted' | 'deferred' — first-run AI model download consent
+  aiModelDownloadConsent: 'deferred', // 'granted' | 'deferred' - first-run AI model download consent
   privacyRegion: '',
   privacyRegionSource: '',
   privacyRegionUpdatedAt: null,
@@ -15915,7 +15915,7 @@ function refreshLlmModelSettingsHints() {
     } else if (modelStatus.state === 'failed') {
       statusLabel = 'Download failed';
       if (modelStatus.error && modelStatus.error !== 'Download failed') {
-        statusLabel += ' — ' + modelStatus.error;
+        statusLabel += ' - ' + modelStatus.error;
       }
     } else if (modelStatus.tierLabel) {
       statusLabel = 'Not downloaded · ' + modelStatus.tierLabel + ' (' + modelStatus.size + ')';

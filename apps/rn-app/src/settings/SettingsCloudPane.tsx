@@ -105,7 +105,7 @@ export function SettingsCloudPane() {
     return (
       <View style={styles.block}>
         <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-          {t('settings.cloud.signedInAs', { email: session.user.email ?? '—' })}
+          {t('settings.cloud.signedInAs', { email: session.user.email ?? '-' })}
         </Text>
         {!backupFeature.available ? (
           <Text style={[styles.hint, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>

@@ -273,19 +273,19 @@ export function buildHomeQuestionFallback(suggestion, analysis) {
   const snap = analysis || {};
   const id = suggestion?.id || '';
   if (id === 'symptom' && suggestion.labelParams?.symptom) {
-    return `${suggestion.labelParams.symptom} appears often in your recent logs — track triggers and rest on high-symptom days.`;
+    return `${suggestion.labelParams.symptom} appears often in your recent logs - track triggers and rest on high-symptom days.`;
   }
   if (id === 'flare' && snap.flareDays != null) {
     return `You logged ${snap.flareDays} flare day(s) recently. Note sleep, stress, and activity around those dates.`;
   }
   if (id.startsWith('trend-') && snap.avgFatigue != null) {
-    return `Recent averages — fatigue ${snap.avgFatigue.toFixed(1)}, sleep ${snap.avgSleep != null ? snap.avgSleep.toFixed(1) : '—'}, mood ${snap.avgMood != null ? snap.avgMood.toFixed(1) : '—'} (1–10).`;
+    return `Recent averages - fatigue ${snap.avgFatigue.toFixed(1)}, sleep ${snap.avgSleep != null ? snap.avgSleep.toFixed(1) : '-'}, mood ${snap.avgMood != null ? snap.avgMood.toFixed(1) : '-'} (1–10).`;
   }
   if (id === 'stressor' && suggestion.labelParams?.stressor) {
-    return `${suggestion.labelParams.stressor} shows up in your stress logs — consider pacing and recovery after high-stress days.`;
+    return `${suggestion.labelParams.stressor} shows up in your stress logs - consider pacing and recovery after high-stress days.`;
   }
   if (id === 'compare') {
     return 'Compare this week’s scores to last week in Charts to spot gradual shifts.';
   }
-  return 'Keep logging daily — patterns become clearer with more entries.';
+  return 'Keep logging daily - patterns become clearer with more entries.';
 }

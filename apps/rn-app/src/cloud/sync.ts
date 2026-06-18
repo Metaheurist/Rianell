@@ -270,7 +270,7 @@ export async function syncAnonymizedData(medicalCondition: string): Promise<{ ok
         anonymized_log: encrypted,
       });
     } catch {
-      return { ok: false, message: 'Encryption failed — anonymized upload blocked.' };
+      return { ok: false, message: 'Encryption failed - anonymized upload blocked.' };
     }
   }
 

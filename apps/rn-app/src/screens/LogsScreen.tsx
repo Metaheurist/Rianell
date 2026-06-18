@@ -44,17 +44,17 @@ const RANGE_PRESET_KEYS: { key: LogRangePreset; labelKey: string; a11yKey?: stri
 const LOG_ROW_HEIGHT = 104;
 
 function listPreview(items: unknown, max = 3): string {
-  if (!Array.isArray(items) || !items.length) return '—';
+  if (!Array.isArray(items) || !items.length) return '-';
   const parts = items
     .filter((x): x is string => typeof x === 'string' && x.trim().length > 0)
     .slice(0, max);
-  if (!parts.length) return '—';
+  if (!parts.length) return '-';
   return parts.join(', ') + (items.length > max ? '…' : '');
 }
 
 function foodPreview(entry: LogEntry): string {
   const food = entry.food;
-  if (!food) return '—';
+  if (!food) return '-';
   const all = [
     ...(Array.isArray(food.breakfast) ? food.breakfast : []),
     ...(Array.isArray(food.lunch) ? food.lunch : []),
@@ -65,7 +65,7 @@ function foodPreview(entry: LogEntry): string {
 }
 
 function exercisePreview(entry: LogEntry): string {
-  if (!Array.isArray(entry.exercise) || !entry.exercise.length) return '—';
+  if (!Array.isArray(entry.exercise) || !entry.exercise.length) return '-';
   const names = entry.exercise
     .map((item: unknown) => {
       if (!item || typeof item !== 'object') return '';
@@ -164,11 +164,11 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
   async function shareEntry(entry: LogEntry) {
     const payload = [
       `Date: ${entry.date}`,
-      `Flare: ${entry.flare ?? '—'}`,
-      `BPM: ${entry.bpm ?? '—'}`,
-      `Sleep: ${entry.sleep ?? '—'}`,
-      `Mood: ${entry.mood ?? '—'}`,
-      `Fatigue: ${entry.fatigue ?? '—'}`,
+      `Flare: ${entry.flare ?? '-'}`,
+      `BPM: ${entry.bpm ?? '-'}`,
+      `Sleep: ${entry.sleep ?? '-'}`,
+      `Mood: ${entry.mood ?? '-'}`,
+      `Fatigue: ${entry.fatigue ?? '-'}`,
       entry.notes ? `Notes: ${entry.notes}` : '',
     ]
       .filter(Boolean)
@@ -212,8 +212,8 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
           {item.date}
         </Text>
         <Text style={[styles.rowMeta, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-          {item.flare ? `Flare ${item.flare}` : 'Flare —'} · {item.bpm != null ? `BPM ${item.bpm}` : 'BPM —'} ·{' '}
-          {item.sleep != null ? `Sleep ${item.sleep}` : 'Sleep —'} · {item.mood != null ? `Mood ${item.mood}` : 'Mood —'}
+          {item.flare ? `Flare ${item.flare}` : 'Flare -'} · {item.bpm != null ? `BPM ${item.bpm}` : 'BPM -'} ·{' '}
+          {item.sleep != null ? `Sleep ${item.sleep}` : 'Sleep -'} · {item.mood != null ? `Mood ${item.mood}` : 'Mood -'}
         </Text>
         <Text style={[styles.rowDetail, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
           Symptoms: {listPreview(item.symptoms)} · Stressors: {listPreview(item.stressors)}
@@ -292,7 +292,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
       <View style={styles.card}>
         <Text style={[styles.title, { color: accent, fontSize: theme.font(22) }]}>{t('logs.title')}</Text>
         <Text style={[styles.lead, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-          Filter by date range and sort (Today / 7 / 30 / 90 / All / Custom — web parity).
+          Filter by date range and sort (Today / 7 / 30 / 90 / All / Custom - web parity).
         </Text>
 
         <Text style={[styles.sectionLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
@@ -517,9 +517,9 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
             ) : (
               <View>
                 <Text style={[styles.rowMeta, { color: theme.tokens.color.text, fontSize: theme.font(14), marginBottom: 8 }]}>
-                  {selectedEntry?.flare ? `Flare ${selectedEntry.flare}` : 'Flare —'} · {selectedEntry?.bpm != null ? `BPM ${selectedEntry.bpm}` : 'BPM —'} ·{' '}
-                  {selectedEntry?.sleep != null ? `Sleep ${selectedEntry.sleep}` : 'Sleep —'} ·{' '}
-                  {selectedEntry?.mood != null ? `Mood ${selectedEntry.mood}` : 'Mood —'}
+                  {selectedEntry?.flare ? `Flare ${selectedEntry.flare}` : 'Flare -'} · {selectedEntry?.bpm != null ? `BPM ${selectedEntry.bpm}` : 'BPM -'} ·{' '}
+                  {selectedEntry?.sleep != null ? `Sleep ${selectedEntry.sleep}` : 'Sleep -'} ·{' '}
+                  {selectedEntry?.mood != null ? `Mood ${selectedEntry.mood}` : 'Mood -'}
                 </Text>
                 <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14), marginBottom: 6 }]}>
                   Symptoms: {listPreview(selectedEntry?.symptoms)}
@@ -528,13 +528,13 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
                   Stressors: {listPreview(selectedEntry?.stressors)}
                 </Text>
                 <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14), marginBottom: 6 }]}>
-                  Pain locations: {selectedEntry?.painLocation || '—'}
+                  Pain locations: {selectedEntry?.painLocation || '-'}
                 </Text>
                 <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14), marginBottom: 6 }]}>
-                  Food: {selectedEntry ? foodPreview(selectedEntry) : '—'}
+                  Food: {selectedEntry ? foodPreview(selectedEntry) : '-'}
                 </Text>
                 <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14), marginBottom: 6 }]}>
-                  Exercise: {selectedEntry ? exercisePreview(selectedEntry) : '—'}
+                  Exercise: {selectedEntry ? exercisePreview(selectedEntry) : '-'}
                 </Text>
                 {selectedEntry?.notes ? (
                   <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14), marginBottom: 8 }]}>

@@ -3137,7 +3137,7 @@ const AIEngine = {
     const higherIsBetter = ['sleep', 'mobility', 'mood', 'dailyFunction'];
     const recent = recentLogs.filter(l => l.date !== log.date).slice(-14);
     if (recent.length === 0) {
-      if (log.flare === 'Yes') return 'Flare day — note how you feel and pace activity.';
+      if (log.flare === 'Yes') return 'Flare day - note how you feel and pace activity.';
       return '';
     }
     const parts = [];
@@ -3158,7 +3158,7 @@ const AIEngine = {
       }
     });
     if (parts.length === 0) {
-      if (log.flare === 'Yes') return 'Flare day — similar to recent entries; note any changes you felt.';
+      if (log.flare === 'Yes') return 'Flare day - similar to recent entries; note any changes you felt.';
       if (recent.length >= 1) return 'Similar to your recent entries; note anything that felt different today.';
       return '';
     }

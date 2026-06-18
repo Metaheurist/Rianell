@@ -19,6 +19,8 @@ that is **not blocking** the page today — it is Cloudflare (or a security prod
 
 **Action:** In Cloudflare, remove duplicate **Report-Only** CSP rules, or align them with the full policy in **`index.html`**. When Cloudflare switches the same rule from report-only to **enforce**, same-origin scripts (`app.*.min.js`, `summary-llm.js`, `sw.js`) and HF model fetches will break unless `'self'` and the meta **`connect-src`** hosts are included.
 
+CI checks: `npm run verify:csp` includes **`verify-csp-report-only-live.mjs`**, which fails when a narrow Report-Only header is detected on the live site. The security headers job also records Report-Only issues in `security/securityheaders-rianell.com.md`.
+
 ## Fix (pick one)
 
 ### A) Prefer: remove duplicate HTTP `Content-Security-Policy` (recommended)

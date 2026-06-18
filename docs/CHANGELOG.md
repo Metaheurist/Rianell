@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.92.2** - Settings Performance Advanced disclosure, suggest note fix, settings UX polish.
+**Latest: v1.92.3** - UI typography (hyphens), console noise reduction, Summary LLM timeouts, AI & Goals layout fix.
+
+### v1.92.3 - 2026-06-14 - UI hyphens, console hygiene, LLM timeouts
+- **Typography:** Replace em dashes (`—`) with hyphens (`-`) across all user-facing UI copy — locale/MOTD/policy i18n packs, tier-A translation overrides, home AI suggestions, policy titles, PWA/RN screens.
+- **AI & Goals (PWA):** Fix stray left-edge box in Settings carousel — `overflow-x: hidden`, stronger hidden-pane rules, simplified hint rows in `index.html`.
+- **Console hygiene:** Early `__rianellIsBenignConsoleNoise` filter (CSP Report-Only subframe noise, WebGPU/WASM fallback, HF cache warnings); `patchConsoleLevel('log')` parity with warn/error.
+- **Summary LLM:** Split model load timeout (180s) vs inference timeout (45s); `awaitPipelineForInference()` + `raceChatInference()` for chat/suggest flows.
+- **CSP verify:** `verify-csp-report-only-live.mjs` wired into `verify:csp`; Cloudflare runbook + securityheaders audit note for Report-Only alignment.
 
 ### v1.92.2 - 2026-06-14 - Settings Performance Advanced, suggest note
 - **Settings Performance (PWA):** Collapse manual AI controls (tier, engine, storage, clear/redownload, force-large WASM) behind a collapsed-by-default **Advanced** `<details>` section; model status and download progress stay visible; auto-expands when non-default prefs or active download.

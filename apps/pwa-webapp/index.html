@@ -68,6 +68,11 @@
         if (/session_state\.cc:126[0-9]/i.test(t)) return true;
         if (/powerPreference option is currently ignored/i.test(t)) return true;
         if (/crbug\.com\/369219127/i.test(t)) return true;
+        if (/Unable to determine content-length from response headers/i.test(t)) return true;
+        if (/Unable to add response to browser cache/i.test(t)) return true;
+        if (/violates the following Content Security Policy directive/i.test(t) && /report-only/i.test(t)) return true;
+        if (/Content-Security-Policy-Report-Only|connect-src 'none'/i.test(t)) return true;
+        if (/cdn-cgi\/challenge-platform/i.test(t) && /Content Security Policy/i.test(t)) return true;
         if (/rokt\.com|rokt-icons\.woff/i.test(t) && /preload/i.test(t)) return true;
         return false;
       };
@@ -107,6 +112,7 @@
       }
       patchConsoleLevel('error');
       patchConsoleLevel('warn');
+      patchConsoleLevel('log');
 
       window.addEventListener('unhandledrejection', function (ev) {
         if (window.__rianellIsBenignConsoleNoise(rejectionText(ev.reason))) {
@@ -254,7 +260,7 @@
         if (!p) return;
         p.style.display = 'block';
         var title = document.getElementById('rianellLaunchErrorTitle');
-        if (title) title.textContent = 'Debug: ' + errors.length + ' error(s) — ' + (isStandaloneMode() ? 'installed (standalone)' : 'browser tab');
+        if (title) title.textContent = 'Debug: ' + errors.length + ' error(s) - ' + (isStandaloneMode() ? 'installed (standalone)' : 'browser tab');
         var body = document.getElementById('rianellLaunchErrorBody');
         if (body) body.textContent = errors.map(formatError).join('\n\n');
       }
@@ -399,7 +405,7 @@
     })();
   </script>
   <style>
-    /* @rianell/loader-tokens — sync hex with packages/tokens/src/index.mjs (TEAM_TOKENS[].loader) */
+    /* @rianell/loader-tokens - sync hex with packages/tokens/src/index.mjs (TEAM_TOKENS[].loader) */
     html.rianell-appearance-dark.rianell-theme-mint {
       --loader-primary: #7bdf8c;
       --loader-bright: #d6ffdd;
@@ -1000,7 +1006,7 @@
         <p>Contact: <a href="mailto:jan.andersson@rianell.com">jan.andersson@rianell.com</a>. See our privacy policy for your rights.</p>
       </div>
       <div class="modal-footer health-data-consent-footer">
-        <button type="button" id="healthDataConsentAcceptBtn" class="modal-save-btn" data-i18n="common.i.agree.continue">I agree — continue</button>
+        <button type="button" id="healthDataConsentAcceptBtn" class="modal-save-btn" data-i18n="common.i.agree.continue">I agree - continue</button>
         <button type="button" id="healthDataConsentDeclineBtn" class="modal-save-btn modal-cancel-btn" data-i18n="common.not.now">Not now</button>
       </div>
     </div>
@@ -1049,7 +1055,7 @@
         </div>
         <div class="settings-option">
           <label id="privacyStorageLabel" data-i18n="settings.privacy.storageLabel">Cloud storage</label>
-          <p id="privacyStorageNote" class="settings-residency-label">—</p>
+          <p id="privacyStorageNote" class="settings-residency-label">-</p>
         </div>
         <div class="settings-option settings-option-row">
           <button type="button" class="settings-data-btn" id="privacyRegionViewPoliciesBtn" data-i18n="settings.privacy.viewPolicies">View privacy policies</button>
@@ -1165,24 +1171,15 @@
         <p class="settings-hint">When on: AI Analysis tab, chart predictions, and Goals & targets are available. When off: they are hidden. You can change this anytime.</p>
         <div class="settings-option" style="margin-top: 14px;">
           <label  data-i18n="settings.cloud.anon">Contribute anonymised data</label>
-          <div class="toggle-switch" id="contributeAnonDataToggle" onclick="toggleContributeAnonData()"></div>
+          <div class="toggle-switch" id="contributeAnonDataToggle" onclick="toggleContributeAnonData()" role="switch" aria-describedby="contributeAnonDataHint"></div>
         </div>
-        <div class="settings-option settings-option-with-hint">
-          <label class="visually-hidden" data-i18n="common.helper">Helper</label>
-          <p class="settings-hint" id="contributeAnonDataHint" data-i18n="common.contribute.your.anonymised.data.to.help.">Contribute your anonymised data to help improve AI models</p>
-        </div>
+        <p class="settings-hint" id="contributeAnonDataHint" data-i18n="common.contribute.your.anonymised.data.to.help.">Contribute your anonymised data to help improve AI models</p>
         <div class="settings-option">
           <label  data-i18n="common.use.open.data.for.training">Use open data for training</label>
-          <div class="toggle-switch" id="useOpenDataToggle" onclick="toggleUseOpenData()"></div>
+          <div class="toggle-switch" id="useOpenDataToggle" onclick="toggleUseOpenData()" role="switch" aria-describedby="useOpenDataHint"></div>
         </div>
-        <div class="settings-option settings-option-with-hint">
-          <label class="visually-hidden" data-i18n="common.helper">Helper</label>
-          <p class="settings-hint" id="useOpenDataHint" data-i18n="common.use.anonymised.data.pool.for.ai.training">Use anonymised data pool for AI training (requires 90+ days of data)</p>
-        </div>
-        <div class="settings-option settings-option-with-hint">
-          <label class="visually-hidden" data-i18n="common.helper">Helper</label>
-          <p class="settings-hint" data-i18n="common.used.for.personalised.ai.analysis.and.ad">Used for personalised AI analysis and advice</p>
-        </div>
+        <p class="settings-hint" id="useOpenDataHint" data-i18n="common.use.anonymised.data.pool.for.ai.training">Use anonymised data pool for AI training (requires 90+ days of data)</p>
+        <p class="settings-hint" data-i18n="common.used.for.personalised.ai.analysis.and.ad">Used for personalised AI analysis and advice</p>
       </div>
       </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Display" data-i18n-title="settings.display.title" data-settings-pane-i18n="settings.display.title" role="tabpanel" aria-hidden="true">
@@ -1464,7 +1461,7 @@
       </div>
       <div class="modal-body home-question-modal-body">
         <p id="homeQuestionModalBody" class="home-question-answer" aria-live="polite"></p>
-        <p class="home-question-disclaimer" data-i18n="ai.disclaimer.medical">For patterns only — talk to your doctor before changing care.</p>
+        <p class="home-question-disclaimer" data-i18n="ai.disclaimer.medical">For patterns only - talk to your doctor before changing care.</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="modal-save-btn" onclick="closeHomeQuestionModal()" data-i18n="common.close">Close</button>
@@ -1480,7 +1477,7 @@
       </div>
       <div class="bug-report-modal-scroll">
         <div class="modal-body bug-report-modal-body">
-          <p class="bug-report-lede">Describe the issue. Optional fields are below — keep the required description short if you can.</p>
+          <p class="bug-report-lede">Describe the issue. Optional fields are below - keep the required description short if you can.</p>
           <form id="bugReportForm" onsubmit="submitBugReport(event)">
             <label for="bugReportTitle">Title <span class="bug-report-label-hint">(optional)</span></label>
             <input type="text" id="bugReportTitle" maxlength="160" placeholder="Short summary" data-i18n-placeholder="common.short.summary" autocomplete="off">
