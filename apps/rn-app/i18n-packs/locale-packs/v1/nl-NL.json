@@ -564,6 +564,8 @@
     "settings.notifications.denied": "Permission denied. You can retry or update it in system Instellingen.",
     "settings.notifications.unavailable": "Meldingen zijn niet beschikbaar tijdens deze runtime.",
     "settings.notifications.requestFailed": "Kan geen meldingsrechten aanvragen.",
+    "settings.notifications.scheduledLearned": "Daily reminder scheduled at {time} (learned from your log times).",
+    "settings.notifications.scheduledFixed": "Daily reminder scheduled at {time}.",
     "logs.print.failed": "Could not create or Delen the log PDF.",
     "logs.print.preparing": "Preparing PDF…",
     "logs.print.action": "Print / Delen PDF",

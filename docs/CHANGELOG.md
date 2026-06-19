@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.104.0** - Plan 10 phase D: contextual home gap questions (H7).
+**Latest: v1.105.0** - Plan 11 phase A: smart reminder timing (R1).
+
+### v1.105.0 - 2026-06-19 - Plan 11 Notifications phase A (R1)
+- **R1:** Learn median log time from 14 days of `savedAt` stamps; schedule daily reminder at learned time (fallback to user setting).
+- **R1:** Missed-log nudge at median + 30 min — one-shot local notification (RN) or web notification (PWA) when still unlogged.
+- **Shared:** `smartReminder.mjs` (`resolveSmartReminderTime`, `shouldFireMissedLogNudge`, `stampLogSavedAtForSave`); top-level `savedAt` on log entries.
+- **PWA + RN:** Smart scheduling in notifications/settings; stamp `savedAt` on wizard saves.
+- **Tests:** 6 plan11-phase-a tests (263 total).
 
 ### v1.104.0 - 2026-06-19 - Plan 10 Home phase D (H7)
 - **H7:** Yesterday logging gap detection (food, meds, sleep) → one daily contextual home question chip via `homeQuestion` intent.

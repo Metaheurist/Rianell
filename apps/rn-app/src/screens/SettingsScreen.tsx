@@ -61,6 +61,7 @@ import {
   type ReminderAction,
   type ReminderCapabilities,
 } from '../permissions/permissions';
+import { resolveEffectiveReminderSchedule } from '../notifications/smartReminderSync';
 
 /** Matches `data-settings-pane-i18n` order in `apps/pwa-webapp/index.html` settings carousel. */
 const PANE_TITLE_KEYS = [
@@ -149,6 +150,8 @@ export function SettingsScreen({
   const [notificationPermission, setNotificationPermission] = useState<'unavailable' | 'denied' | 'granted'>('unavailable');
   const [notificationScheduleState, setNotificationScheduleState] = useState<'idle' | 'scheduled' | 'invalid-time' | 'unavailable'>('idle');
   const [notificationDeliveryState, setNotificationDeliveryState] = useState<DailyReminderResult['delivery']>('runtime-unavailable');
+  const [effectiveReminderTime, setEffectiveReminderTime] = useState(prefs.notifications.dailyReminderTime);
+  const [smartReminderLearned, setSmartReminderLearned] = useState(false);
   const [lastReminderAction, setLastReminderAction] = useState<ReminderAction>('none');
   const [unknownReminderActionCount, setUnknownReminderActionCount] = useState(0);
   const [lastUnknownReminderActionAt, setLastUnknownReminderActionAt] = useState<string | null>(null);
@@ -200,12 +203,16 @@ export function SettingsScreen({
         }
         return;
       }
+      const schedule = await resolveEffectiveReminderSchedule(prefs);
       const result = await Permissions.scheduleDailyReminder({
         enabled: prefs.notifications.enabled,
-        time: prefs.notifications.dailyReminderTime,
+        time: schedule.reminderTime,
+        missedNudgeTime: schedule.missedNudgeTime,
         soundEnabled: prefs.notifications.soundEnabled,
       });
       if (cancelled) return;
+      setSmartReminderLearned(schedule.learned);
+      setEffectiveReminderTime(schedule.reminderTime);
       setNotificationDeliveryState(result.delivery);
       if (result.ok) {
         setNotificationScheduleState(prefs.notifications.enabled ? 'scheduled' : 'idle');
@@ -1107,7 +1114,9 @@ export function SettingsScreen({
 
                 <Text style={[styles.hint, { fontSize: theme.font(13), color: `${theme.tokens.color.text}CC` }]}>
 
-                  Daily reminder scheduled at {prefs.notifications.dailyReminderTime}.
+                  {smartReminderLearned
+                    ? t('settings.notifications.scheduledLearned', { time: effectiveReminderTime })
+                    : t('settings.notifications.scheduledFixed', { time: effectiveReminderTime })}
 
                 </Text>
 

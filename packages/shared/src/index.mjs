@@ -193,6 +193,7 @@ export function normalizeLogEntry(value) {
     subEntries: normalizeSubEntries(v.subEntries),
     cycle: normalizeCycleFields(v.cycle),
     medicationDoses: normalizeMedicationDoses(v.medicationDoses),
+    savedAt: typeof v.savedAt === 'string' ? v.savedAt.slice(0, 40) : undefined,
     barcodeFood: typeof v.barcodeFood === 'string' ? v.barcodeFood.slice(0, 200) : undefined,
     customMetrics: normalizeCustomMetricValues(v.customMetrics),
   };
@@ -207,6 +208,7 @@ export * from './privacy/index.mjs';
 export * from './i18n/index.mjs';
 export * from './settings/index.mjs';
 export * from './logging/index.mjs';
+export * from './notifications/index.mjs';
 export * from './home/index.mjs';
 export * from './export/logCsv.mjs';
 export * from './export/fhirLite.mjs';

@@ -564,6 +564,8 @@
     "settings.notifications.denied": "Cead diúltaithe. Is féidir leat é a atriail nó a nuashonrú i socruithe an chórais.",
     "settings.notifications.unavailable": "Níl fógraí ar fáil ag an am reatha seo.",
     "settings.notifications.requestFailed": "Níorbh fhéidir cead fógra a iarraidh.",
+    "settings.notifications.scheduledLearned": "Daily reminder scheduled at {time} (learned from your log times).",
+    "settings.notifications.scheduledFixed": "Daily reminder scheduled at {time}.",
     "logs.print.failed": "Níorbh fhéidir an logchomhad __ GLOSS8 __ a chruthú nó a roinnt.",
     "logs.print.preparing": "Ag ullmhú PDF...",
     "logs.print.action": "Priontáil / roinn PDF",

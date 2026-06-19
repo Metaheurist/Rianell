@@ -564,6 +564,8 @@
     "settings.notifications.denied": "Permission denied. You can retry or update it in system Impostazioni.",
     "settings.notifications.unavailable": "Le notifiche non sono disponibili in questo runtime.",
     "settings.notifications.requestFailed": "Impossibile richiedere l'autorizzazione alla notifica.",
+    "settings.notifications.scheduledLearned": "Daily reminder scheduled at {time} (learned from your log times).",
+    "settings.notifications.scheduledFixed": "Daily reminder scheduled at {time}.",
     "logs.print.failed": "Could not create or Condividi the log PDF.",
     "logs.print.preparing": "Preparing PDF…",
     "logs.print.action": "Print / Condividi PDF",

@@ -564,6 +564,8 @@
     "settings.notifications.denied": "Permission denied. You can retry or update it in system Ustawienia.",
     "settings.notifications.unavailable": "Powiadomienia są niedostępne w tym środowisku wykonawczym.",
     "settings.notifications.requestFailed": "Nie można poprosić o pozwolenie na powiadomienie.",
+    "settings.notifications.scheduledLearned": "Daily reminder scheduled at {time} (learned from your log times).",
+    "settings.notifications.scheduledFixed": "Daily reminder scheduled at {time}.",
     "logs.print.failed": "Nie udało się utworzyć ani udostępnić pliku PDF z dziennikiem.",
     "logs.print.preparing": "Preparing PDF…",
     "logs.print.action": "Print / Udostępnij PDF",

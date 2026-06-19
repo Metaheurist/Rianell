@@ -15455,6 +15455,13 @@ function saveQuickMinimalLog() {
     mood: 5,
     irritability: 5
   };
+  var SharedQuick = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (SharedQuick && typeof SharedQuick.normalizeLogEntry === 'function') {
+    newEntry = SharedQuick.normalizeLogEntry(newEntry);
+  }
+  if (SharedQuick && typeof SharedQuick.stampLogSavedAtForSave === 'function') {
+    newEntry = SharedQuick.stampLogSavedAtForSave(newEntry, null);
+  }
   logs.push(newEntry);
   saveLogsToStorage();
   if (typeof clearLogDraft === 'function') clearLogDraft();
@@ -15558,6 +15565,11 @@ form.addEventListener("submit", e => {
     newEntry = Shared.stampLogEntryForCaregiver(newEntry, appSettings);
   }
 
+  const existingEntry = logs.find(log => log.date === newEntry.date);
+  if (Shared && typeof Shared.stampLogSavedAtForSave === 'function') {
+    newEntry = Shared.stampLogSavedAtForSave(newEntry, existingEntry);
+  }
+
   // Remove undefined values to keep data clean
   Object.keys(newEntry).forEach(key => {
     if (newEntry[key] === undefined || newEntry[key] === '') {
@@ -15566,10 +15578,12 @@ form.addEventListener("submit", e => {
   });
   
   // Check for duplicate dates - prevent multiple entries for the same day
-  const existingEntry = logs.find(log => log.date === newEntry.date);
   if (existingEntry) {
     if (newEntry.subEntries && newEntry.subEntries.length && Shared && typeof Shared.mergeLogEntriesForDate === 'function') {
       var mergedEntry = Shared.normalizeLogEntry(Shared.mergeLogEntriesForDate(existingEntry, newEntry));
+      if (Shared && typeof Shared.stampLogSavedAtForSave === 'function') {
+        mergedEntry = Shared.stampLogSavedAtForSave(mergedEntry, existingEntry);
+      }
       var mergeIdx = logs.findIndex(function (log) { return log.date === newEntry.date; });
       logs[mergeIdx] = mergedEntry;
       Logger.info('Health log sub-entry merged', { date: newEntry.date, totalEntries: logs.length });

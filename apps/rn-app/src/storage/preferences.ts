@@ -91,6 +91,7 @@ export type Preferences = {
     dailyReminderTime: string;
     soundEnabled: boolean;
     snoozeMinutes: number;
+    smartMissedNudgeDate: string | null;
   };
   goals: {
     moodTarget: number;
@@ -198,6 +199,7 @@ export function getDefaultPreferences(): Preferences {
       dailyReminderTime: '20:00',
       soundEnabled: true,
       snoozeMinutes: 30,
+      smartMissedNudgeDate: null,
     },
     goals: {
       moodTarget: 7,
@@ -348,6 +350,11 @@ export async function loadPreferences(): Promise<Preferences> {
         snoozeMinutes: Number.isFinite(parsed.notifications?.snoozeMinutes)
           ? Math.min(120, Math.max(5, Number(parsed.notifications?.snoozeMinutes)))
           : d.notifications.snoozeMinutes,
+        smartMissedNudgeDate:
+          typeof parsed.notifications?.smartMissedNudgeDate === 'string' &&
+          /^\d{4}-\d{2}-\d{2}$/.test(parsed.notifications.smartMissedNudgeDate)
+            ? parsed.notifications.smartMissedNudgeDate
+            : d.notifications.smartMissedNudgeDate,
       },
       goals: {
         moodTarget: Number.isFinite(parsed.goals?.moodTarget)
