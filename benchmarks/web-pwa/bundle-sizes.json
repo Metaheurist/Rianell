@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-19T16:33:44.725Z",
+  "generatedAt": "2026-06-19T17:02:50.599Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3839833,
+    "jsBytes": 3856913,
     "cssBytes": 399739,
-    "jsGzipBytes": 917671,
+    "jsGzipBytes": 921752,
     "cssGzipBytes": 70226
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 900547,
-      "gzipBytes": 195344
+      "bytes": 906530,
+      "gzipBytes": 196628
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.d19d59b35596.min.js",
-      "bytes": 639905,
-      "gzipBytes": 145594
+      "file": "ci-minified/site/app.84b1c72644cf.min.js",
+      "bytes": 644755,
+      "gzipBytes": 146688
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 191312,
-      "gzipBytes": 44216
+      "bytes": 193737,
+      "gzipBytes": 44797
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -74,14 +74,14 @@
       "gzipBytes": 6872
     },
     {
+      "file": "ci-minified/site/notifications.js",
+      "bytes": 22441,
+      "gzipBytes": 5514
+    },
+    {
       "file": "ci-minified/site/modules/settings.js",
       "bytes": 20625,
       "gzipBytes": 4391
-    },
-    {
-      "file": "ci-minified/site/notifications.js",
-      "bytes": 20465,
-      "gzipBytes": 5230
     },
     {
       "file": "ci-minified/site/ui-feedback.js",
@@ -135,8 +135,8 @@
     },
     {
       "file": "ci-minified/site/sw.js",
-      "bytes": 6198,
-      "gzipBytes": 2263
+      "bytes": 6208,
+      "gzipBytes": 2268
     },
     {
       "file": "ci-minified/site/storage-utils.js",
@@ -179,6 +179,11 @@
       "gzipBytes": 982
     },
     {
+      "file": "ci-minified/site/push-subscribe.js",
+      "bytes": 3133,
+      "gzipBytes": 1148
+    },
+    {
       "file": "ci-minified/site/summary-llm-gguf.js",
       "bytes": 3009,
       "gzipBytes": 1136
@@ -197,11 +202,6 @@
       "file": "ci-minified/site/llm-load-ladder-sync.js",
       "bytes": 2376,
       "gzipBytes": 872
-    },
-    {
-      "file": "ci-minified/site/push-subscribe.js",
-      "bytes": 2251,
-      "gzipBytes": 881
     },
     {
       "file": "ci-minified/site/llm-runtime-profiles-sync.js",
@@ -234,9 +234,19 @@
       "gzipBytes": 332
     },
     {
+      "file": "ci-minified/site/push-config.example.js",
+      "bytes": 514,
+      "gzipBytes": 312
+    },
+    {
       "file": "ci-minified/site/css/tokens.css",
       "bytes": 505,
       "gzipBytes": 327
+    },
+    {
+      "file": "ci-minified/site/push-config.js",
+      "bytes": 440,
+      "gzipBytes": 254
     },
     {
       "file": "ci-minified/site/llm-mlc-worker.js",
