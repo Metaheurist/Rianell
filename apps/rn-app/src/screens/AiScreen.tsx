@@ -10,7 +10,8 @@ import { runDeterministicAnalysis, exportAnalysisJsonForResearch, type AiRange }
 import type { Preferences } from '../storage/preferences';
 import { loadCachedBenchmark, type BenchmarkResult } from '../performance/benchmark';
 import { generateSummaryNote, generateClinicianVisitBrief, generateDoctorQuestions, generateStructuredInsights, sendWeekChatMessage, type WeekChatTurn } from '../ai/llm';
-import { MAX_WEEK_CHAT_TURNS, canSendWeekChatTurn } from '@rianell/shared';
+import { MAX_WEEK_CHAT_TURNS, canSendWeekChatTurn, POOL_INSIGHT_MIN_K } from '@rianell/shared';
+import { fetchPoolInsights } from '../cloud/sync';
 
 const RANGE_OPTIONS: AiRange[] = [14, 30, 90, 'all'];
 
@@ -42,6 +43,8 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
   const [weekChatTurns, setWeekChatTurns] = useState<WeekChatTurn[]>([]);
   const [weekChatInput, setWeekChatInput] = useState('');
   const [weekChatLoading, setWeekChatLoading] = useState(false);
+  const [poolInsightMessage, setPoolInsightMessage] = useState<string | null>(null);
+  const [poolInsights, setPoolInsights] = useState<Array<{ id: string; highFlarePct: number; lowFlarePct: number; kMin: number }>>([]);
 
   const analysis = useMemo(() => {
     if (!prefs.aiEnabled) return null;
@@ -79,6 +82,31 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    if (!prefs.contributeAnonData || !prefs.medicalCondition?.trim()) {
+      setPoolInsights([]);
+      setPoolInsightMessage(null);
+      return;
+    }
+    void fetchPoolInsights(prefs.medicalCondition).then((result) => {
+      if (!result.ok) {
+        setPoolInsights([]);
+        setPoolInsightMessage(result.message);
+        return;
+      }
+      setPoolInsightMessage(
+        result.insights.suppressed
+          ? t('research.pool.insights.suppressed', { kMin: String(result.insights.kMin || POOL_INSIGHT_MIN_K) })
+          : null,
+      );
+      setPoolInsights(
+        (result.insights.insights || []).filter((row): row is { id: string; highFlarePct: number; lowFlarePct: number; kMin: number } =>
+          row?.id === 'sleep-flare' && typeof row.highFlarePct === 'number',
+        ),
+      );
+    });
+  }, [prefs.contributeAnonData, prefs.medicalCondition, t]);
 
   useEffect(() => {
     let cancelled = false;
@@ -463,6 +491,34 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
               >
                 <Text style={{ color: theme.tokens.color.accent, fontWeight: '700' }}>{t('ai.export.analysis.json.research')}</Text>
               </Pressable>
+
+              {prefs.contributeAnonData ? (
+                <View style={{ marginTop: 12 }}>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                    {t('research.pool.insights.title')}
+                  </Text>
+                  <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                    {t('research.pool.insights.lead', { kMin: String(POOL_INSIGHT_MIN_K) })}
+                  </Text>
+                  {poolInsightMessage ? (
+                    <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                      {poolInsightMessage}
+                    </Text>
+                  ) : null}
+                  {poolInsights.map((insight) => (
+                    <Text
+                      key={insight.id}
+                      style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                    >
+                      {t('research.pool.insight.sleepFlare', {
+                        highPct: String(insight.highFlarePct),
+                        lowPct: String(insight.lowFlarePct),
+                        kMin: String(insight.kMin),
+                      })}
+                    </Text>
+                  ))}
+                </View>
+              ) : null}
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.section.whatYouLogged')}</Text>
               {summary.whatYouLogged.map((line) => (

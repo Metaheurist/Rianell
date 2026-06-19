@@ -1210,6 +1210,9 @@
           <div class="toggle-switch" id="contributeAnonDataToggle" onclick="toggleContributeAnonData()" role="switch" aria-describedby="contributeAnonDataHint"></div>
         </div>
         <p class="settings-hint" id="contributeAnonDataHint" data-i18n="common.contribute.your.anonymised.data.to.help.">Contribute your anonymised data to help improve AI models</p>
+        <div class="settings-option" style="margin-top: 8px;">
+          <button type="button" class="modal-save-btn" onclick="typeof exportContributionHistoryUI==='function'&&exportContributionHistoryUI()" data-i18n="research.pool.export.action">Export my contribution history</button>
+        </div>
         <div class="settings-option">
           <label  data-i18n="common.use.open.data.for.training">Use open data for training</label>
           <div class="toggle-switch" id="useOpenDataToggle" onclick="toggleUseOpenData()" role="switch" aria-describedby="useOpenDataHint"></div>

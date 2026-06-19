@@ -49,6 +49,7 @@ CREATE TABLE public.anonymized_data (
   user_id uuid,
   anonymized_log text NOT NULL,
   medical_condition text,
+  research_facets jsonb,
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT anonymized_data_pkey PRIMARY KEY (id),
   CONSTRAINT anonymized_data_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id)

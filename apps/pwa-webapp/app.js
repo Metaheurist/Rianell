@@ -8602,6 +8602,15 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
 
   // General management section - simplified
   html += `
+    <div class="ai-summary-section ai-animate-in" id="aiPoolInsightsSection" style="animation-delay: ${animationDelay}ms;">
+      <h3 class="ai-section-title" id="ai-heading-pool-insights">${svgIcon('brain', 'ai-inline-icon', tUi('research.pool.insights.title'))} ${tUi('research.pool.insights.title')}</h3>
+      <p class="ai-section-intro">${tUi('research.pool.insights.lead', { kMin: String((window.RianellShared && window.RianellShared.POOL_INSIGHT_MIN_K) || 5) })}</p>
+      <div id="aiPoolInsightsBody"><p class="ai-section-intro">${tUi('research.pool.insights.loading')}</p></div>
+    </div>
+  `;
+  animationDelay += 200 * animStep;
+
+  html += `
     <div class="ai-summary-section ai-section-info ai-animate-in" style="animation-delay: ${animationDelay}ms;">
       <h3 class="ai-section-title ai-section-green">${svgIcon('notice', 'ai-inline-icon', 'Important')} Important</h3>
       <p class="ai-disclaimer">For patterns only - talk to your doctor before changing care. You can share this at your next visit. AI data (e.g. prediction weights) is stored on your device and, when signed in, backed up to your cloud account.</p>
@@ -8626,6 +8635,10 @@ function displayAISummary(analysis, logs, dayCount, webLLMInsights = null, dateR
   // Set the HTML content (drop stale rails that were reparented to #appShell)
   purgeAItimelineDetachedOverlays();
   resultsContent.innerHTML = html;
+
+  if (typeof loadPoolInsightsPanel === 'function') {
+    loadPoolInsightsPanel();
+  }
 
   requestAnimationFrame(function() {
     requestAnimationFrame(function() {
@@ -17366,6 +17379,73 @@ function openSettingsToMedicalCondition() {
   }
 }
 if (typeof window !== 'undefined') window.openSettingsToMedicalCondition = openSettingsToMedicalCondition;
+
+async function exportContributionHistoryUI() {
+  if (typeof exportContributionHistory !== 'function') {
+    if (typeof showAlertModal === 'function') showAlertModal(tUi('common.export.unavailable'), tUi('research.pool.export.action'));
+    return;
+  }
+  try {
+    const result = await exportContributionHistory();
+    if (!result.ok || !result.json) {
+      if (typeof showAlertModal === 'function') showAlertModal(result.message || 'Export failed.', tUi('research.pool.export.action'));
+      return;
+    }
+    const blob = new Blob([result.json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'rianell-contribution-export.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    if (typeof showAlertModal === 'function') showAlertModal(result.message, tUi('research.pool.export.action'));
+  } catch (e) {
+    if (typeof showAlertModal === 'function') showAlertModal(tUi('settings.export.failed'), tUi('research.pool.export.action'));
+  }
+}
+if (typeof window !== 'undefined') window.exportContributionHistoryUI = exportContributionHistoryUI;
+
+async function loadPoolInsightsPanel() {
+  const body = document.getElementById('aiPoolInsightsBody');
+  if (!body) return;
+  const condition = (window.appSettings && window.appSettings.medicalCondition) || '';
+  if (!window.appSettings || !window.appSettings.contributeAnonData) {
+    body.innerHTML = '<p class="ai-section-intro">' + escapeHTML(tUi('research.pool.insights.optInRequired')) + '</p>';
+    return;
+  }
+  if (typeof fetchPoolInsights !== 'function') {
+    body.innerHTML = '<p class="ai-section-intro">' + escapeHTML(tUi('research.pool.insights.unavailable')) + '</p>';
+    return;
+  }
+  try {
+    const result = await fetchPoolInsights(condition);
+    if (!result.ok) {
+      body.innerHTML = '<p class="ai-section-intro">' + escapeHTML(result.message || tUi('research.pool.insights.unavailable')) + '</p>';
+      return;
+    }
+    const insights = result.insights && result.insights.insights ? result.insights.insights : [];
+    if (!insights.length) {
+      const kMin = (result.insights && result.insights.kMin) || 5;
+      body.innerHTML = '<p class="ai-section-intro">' + escapeHTML(tUi('research.pool.insights.suppressed', { kMin: String(kMin) })) + '</p>';
+      return;
+    }
+    body.innerHTML = insights.map(function (insight) {
+      if (insight.id === 'sleep-flare') {
+        return '<p class="ai-bullet-point">' + escapeHTML(tUi('research.pool.insight.sleepFlare', {
+          highPct: String(insight.highFlarePct),
+          lowPct: String(insight.lowFlarePct),
+          kMin: String(insight.kMin || 5)
+        })) + '</p>';
+      }
+      return '';
+    }).join('');
+  } catch (e) {
+    body.innerHTML = '<p class="ai-section-intro">' + escapeHTML(tUi('research.pool.insights.unavailable')) + '</p>';
+  }
+}
+if (typeof window !== 'undefined') window.loadPoolInsightsPanel = loadPoolInsightsPanel;
 
 // Toggle contribute anonymised data
 // optionalToggleId: use 'tutorialContributeAnonDataToggle' when called from tutorial

@@ -28,6 +28,7 @@ var RianellShared = (() => {
     APPOINTMENT_RANGE_DAYS: () => APPOINTMENT_RANGE_DAYS,
     BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS: () => BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS,
     CAREGIVER_RELATIONSHIPS: () => CAREGIVER_RELATIONSHIPS,
+    CONTRIBUTION_EXPORT_FORMAT: () => CONTRIBUTION_EXPORT_FORMAT,
     DEFAULT_GOALS: () => DEFAULT_GOALS,
     DEFAULT_LOCALE: () => DEFAULT_LOCALE,
     DEFAULT_PRIVACY_REGION: () => DEFAULT_PRIVACY_REGION,
@@ -57,6 +58,8 @@ var RianellShared = (() => {
     OFFLINE_QUEUE_KEY: () => OFFLINE_QUEUE_KEY,
     POLICY_BODIES: () => POLICY_BODIES,
     POLICY_SUMMARIES: () => POLICY_SUMMARIES,
+    POOL_CONTRIBUTION_MIN_DAYS: () => POOL_CONTRIBUTION_MIN_DAYS,
+    POOL_INSIGHT_MIN_K: () => POOL_INSIGHT_MIN_K,
     PREDICTION_STATE_KEY: () => PREDICTION_STATE_KEY,
     PREFS_STORAGE_KEY_MOBILE: () => PREFS_STORAGE_KEY_MOBILE,
     PRIVACY_REGIONS: () => PRIVACY_REGIONS,
@@ -92,6 +95,8 @@ var RianellShared = (() => {
     appointmentCountdownLabelKey: () => appointmentCountdownLabelKey,
     auditGoldenPrompt: () => auditGoldenPrompt,
     buildAirQualityUrl: () => buildAirQualityUrl,
+    buildAnonymizedInsertRow: () => buildAnonymizedInsertRow,
+    buildAnonymizedLogPayload: () => buildAnonymizedLogPayload,
     buildAppointmentChartRows: () => buildAppointmentChartRows,
     buildAppointmentReportHtml: () => buildAppointmentReportHtml,
     buildAppointmentReportModel: () => buildAppointmentReportModel,
@@ -117,13 +122,16 @@ var RianellShared = (() => {
     buildProxyLogMetadata: () => buildProxyLogMetadata,
     buildQrHandoffLogsSubset: () => buildQrHandoffLogsSubset,
     buildReEngagementNotificationContent: () => buildReEngagementNotificationContent,
+    buildResearchFacetsFromLog: () => buildResearchFacetsFromLog,
     buildSettingsProfileExport: () => buildSettingsProfileExport,
+    buildSleepFlareInsight: () => buildSleepFlareInsight,
     buildStreakReminderNotificationContent: () => buildStreakReminderNotificationContent,
     buildStructuredSummaryPrompt: () => buildStructuredSummaryPrompt,
     buildSuggestPrompt: () => buildSuggestPrompt,
     buildSummaryPrompt: () => buildSummaryPrompt,
     buildTimelineSvg: () => buildTimelineSvg,
     buildTodayMedDoseStatuses: () => buildTodayMedDoseStatuses,
+    buildUserCohortsFromFacets: () => buildUserCohortsFromFacets,
     buildWeatherForecastUrl: () => buildWeatherForecastUrl,
     buildWeekChatContext: () => buildWeekChatContext,
     buildWeekChatFallback: () => buildWeekChatFallback,
@@ -131,8 +139,10 @@ var RianellShared = (() => {
     buildWeekChatUserPayload: () => buildWeekChatUserPayload,
     canAnswerHomeQuestionToday: () => canAnswerHomeQuestionToday,
     canChooseDataResidency: () => canChooseDataResidency,
+    canExportContributionHistory: () => canExportContributionHistory,
     canOfferWebPush: () => canOfferWebPush,
     canSendWeekChatTurn: () => canSendWeekChatTurn,
+    canViewPoolInsights: () => canViewPoolInsights,
     checkPolicyDrift: () => checkPolicyDrift,
     checkPolicyDriftSync: () => checkPolicyDriftSync,
     clearMigrationPending: () => clearMigrationPending,
@@ -146,6 +156,7 @@ var RianellShared = (() => {
     computeHomeCardContext: () => computeHomeCardContext,
     computeHomeStreakSnapshot: () => computeHomeStreakSnapshot,
     computeMedianLogTimeMinutes: () => computeMedianLogTimeMinutes,
+    computePoolInsightsFromFacets: () => computePoolInsightsFromFacets,
     createQrHandoffPayload: () => createQrHandoffPayload,
     createReadOnlyShareEnvelope: () => createReadOnlyShareEnvelope,
     createSampleLogEntry: () => createSampleLogEntry,
@@ -171,8 +182,10 @@ var RianellShared = (() => {
     filterLogsForAppointment: () => filterLogsForAppointment,
     filterLogsForHomeSuggestions: () => filterLogsForHomeSuggestions,
     findLogSyncConflicts: () => findLogSyncConflicts,
+    flareToBit: () => flareToBit,
     formatActivityTypeLabel: () => formatActivityTypeLabel,
     formatBarcodeFoodLabel: () => formatBarcodeFoodLabel,
+    formatContributionExport: () => formatContributionExport,
     formatDate: () => formatDate,
     formatNumber: () => formatNumber,
     formatRelativeDay: () => formatRelativeDay,
@@ -215,6 +228,7 @@ var RianellShared = (() => {
     isRtlLocale: () => isRtlLocale,
     isTrackingProfileConfigured: () => isTrackingProfileConfigured,
     isValidLocaleId: () => isValidLocaleId,
+    isValidMedicalConditionForPool: () => isValidMedicalConditionForPool,
     isValidPrivacyRegion: () => isValidPrivacyRegion,
     isWeatherCacheFresh: () => isWeatherCacheFresh,
     isoWeekKey: () => isoWeekKey,
@@ -255,6 +269,7 @@ var RianellShared = (() => {
     normalizeMedScheduleEntry: () => normalizeMedScheduleEntry,
     normalizeMedicationDose: () => normalizeMedicationDose,
     normalizeMedicationDoses: () => normalizeMedicationDoses,
+    normalizePoolInsightsRpcResult: () => normalizePoolInsightsRpcResult,
     normalizePreferencesPartial: () => normalizePreferencesPartial,
     normalizeProfileAvatar: () => normalizeProfileAvatar,
     normalizeSubEntries: () => normalizeSubEntries,
@@ -308,7 +323,8 @@ var RianellShared = (() => {
     textDirection: () => textDirection,
     touchLastActiveAt: () => touchLastActiveAt,
     upsertSymptomTemplate: () => upsertSymptomTemplate,
-    validateRemoteLlmEndpoint: () => validateRemoteLlmEndpoint
+    validateRemoteLlmEndpoint: () => validateRemoteLlmEndpoint,
+    validateResearchFacets: () => validateResearchFacets
   });
 
   // packages/shared/src/logging/logSchema.mjs
@@ -2213,18 +2229,18 @@ var RianellShared = (() => {
     const n = xs.length;
     const avgX = xs.reduce((a, b) => a + b, 0) / n;
     const avgY = ys.reduce((a, b) => a + b, 0) / n;
-    let num = 0;
+    let num2 = 0;
     let denX = 0;
     let denY = 0;
     for (let i = 0; i < n; i++) {
       const dx = xs[i] - avgX;
       const dy = ys[i] - avgY;
-      num += dx * dy;
+      num2 += dx * dy;
       denX += dx * dx;
       denY += dy * dy;
     }
     if (denX === 0 || denY === 0) return null;
-    return num / Math.sqrt(denX * denY);
+    return num2 / Math.sqrt(denX * denY);
   }
   function topSymptomName(logs) {
     const counts = /* @__PURE__ */ new Map();
@@ -4121,8 +4137,8 @@ ${hist}`);
   function observationFor(log, field, value) {
     const coding = METRIC_CODES[field];
     if (!coding || value === void 0 || value === null || value === "") return null;
-    const num = Number(value);
-    const isNum = Number.isFinite(num);
+    const num2 = Number(value);
+    const isNum = Number.isFinite(num2);
     return {
       resourceType: "Observation",
       status: "final",
@@ -4130,7 +4146,7 @@ ${hist}`);
       code: { coding: [coding] },
       subject: { display: "Rianell user" },
       effectiveDateTime: `${log.date}T12:00:00Z`,
-      valueQuantity: isNum ? { value: num, unit: field === "weight" ? "kg" : field === "bpm" ? "/min" : "{score}" } : void 0,
+      valueQuantity: isNum ? { value: num2, unit: field === "weight" ? "kg" : field === "bpm" ? "/min" : "{score}" } : void 0,
       valueString: isNum ? void 0 : String(value)
     };
   }
@@ -4568,6 +4584,232 @@ ${questionsBlock}
       logs: Array.isArray(data?.logs) ? data.logs : [],
       expiresAt: payload.expiresAt,
       readOnly: true
+    };
+  }
+
+  // packages/shared/src/research/researchFacets.mjs
+  function num(v) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  function flareToBit(flare) {
+    if (flare === "Yes" || flare === true || flare === 1) return 1;
+    if (flare === "No" || flare === false || flare === 0) return 0;
+    return null;
+  }
+  function buildResearchFacetsFromLog(log) {
+    if (!log?.date || !/^\d{4}-\d{2}-\d{2}$/.test(String(log.date))) return null;
+    const out = { date: String(log.date) };
+    const sleep = num(log.sleep);
+    const fatigue = num(log.fatigue);
+    const mood = num(log.mood);
+    const flare = flareToBit(log.flare);
+    if (sleep != null) out.sleep = sleep;
+    if (fatigue != null) out.fatigue = fatigue;
+    if (mood != null) out.mood = mood;
+    if (flare != null) out.flare = flare;
+    if (Object.keys(out).length <= 1) return null;
+    return out;
+  }
+  function validateResearchFacets(facets) {
+    if (!facets || typeof facets !== "object") return false;
+    if (!facets.date || !/^\d{4}-\d{2}-\d{2}$/.test(String(facets.date))) return false;
+    for (const key of Object.keys(facets)) {
+      if (key === "date") continue;
+      if (key === "flare") {
+        if (facets.flare !== 0 && facets.flare !== 1) return false;
+        continue;
+      }
+      const n = num(facets[key]);
+      if (n == null || n < 0 || n > 10) return false;
+    }
+    return true;
+  }
+
+  // packages/shared/src/research/poolGates.mjs
+  var POOL_INSIGHT_MIN_K = 5;
+  var POOL_CONTRIBUTION_MIN_DAYS = 90;
+  var PLACEHOLDER_CONDITIONS = /* @__PURE__ */ new Set(["", "medical condition"]);
+  function isValidMedicalConditionForPool(value) {
+    const trimmed = String(value || "").trim();
+    if (!trimmed) return false;
+    return !PLACEHOLDER_CONDITIONS.has(trimmed.toLowerCase());
+  }
+  function canExportContributionHistory(prefs, opts = {}) {
+    if (!opts.signedIn) return { allowed: false, reason: "signIn" };
+    if (!prefs?.contributeAnonData) return { allowed: false, reason: "optIn" };
+    if (!isValidMedicalConditionForPool(prefs.medicalCondition)) {
+      return { allowed: false, reason: "condition" };
+    }
+    return { allowed: true };
+  }
+  function canViewPoolInsights(prefs, opts = {}) {
+    const poolDayCount = Number(opts.poolDayCount) || 0;
+    if (!opts.signedIn) return { allowed: false, reason: "signIn" };
+    if (!prefs?.contributeAnonData) return { allowed: false, reason: "optIn" };
+    if (!isValidMedicalConditionForPool(prefs.medicalCondition)) {
+      return { allowed: false, reason: "condition" };
+    }
+    if (poolDayCount < POOL_CONTRIBUTION_MIN_DAYS) {
+      return { allowed: false, reason: "minDays", minDays: POOL_CONTRIBUTION_MIN_DAYS, poolDayCount };
+    }
+    return { allowed: true };
+  }
+
+  // packages/shared/src/research/poolInsights.mjs
+  function mean5(values) {
+    const list = values.filter((v) => v != null && Number.isFinite(v));
+    if (!list.length) return null;
+    return list.reduce((a, b) => a + b, 0) / list.length;
+  }
+  function buildUserCohortsFromFacets(rows, kMin = POOL_INSIGHT_MIN_K) {
+    const byUser = /* @__PURE__ */ new Map();
+    for (const row of Array.isArray(rows) ? rows : []) {
+      const userId = row?.user_id || row?.userId;
+      const facets = row?.research_facets || row?.facets;
+      if (!userId || !facets || typeof facets !== "object") continue;
+      if (!byUser.has(userId)) byUser.set(userId, []);
+      byUser.get(userId).push(facets);
+    }
+    const highSleep = [];
+    const lowSleep = [];
+    for (const [, days] of byUser) {
+      const sleepVals = days.map((d) => Number(d.sleep)).filter((v) => Number.isFinite(v));
+      const avgSleep = mean5(sleepVals);
+      if (avgSleep == null) continue;
+      const flareDays = days.filter((d) => flareToBit(d.flare) === 1).length;
+      const flareRate = days.length ? flareDays / days.length : null;
+      if (flareRate == null) continue;
+      const entry = { avgSleep, flareRate, dayCount: days.length };
+      if (avgSleep >= 7) highSleep.push(entry);
+      else lowSleep.push(entry);
+    }
+    return {
+      highSleep,
+      lowSleep,
+      contributorCount: byUser.size,
+      kMin,
+      highSleepCohort: highSleep.length,
+      lowSleepCohort: lowSleep.length
+    };
+  }
+  function buildSleepFlareInsight(cohorts) {
+    const kMin = cohorts?.kMin ?? POOL_INSIGHT_MIN_K;
+    const high = cohorts?.highSleep || [];
+    const low = cohorts?.lowSleep || [];
+    if (high.length < kMin || low.length < kMin) return null;
+    const highFlare = mean5(high.map((h) => h.flareRate));
+    const lowFlare = mean5(low.map((h) => h.flareRate));
+    if (highFlare == null || lowFlare == null) return null;
+    if (highFlare >= lowFlare) return null;
+    return {
+      id: "sleep-flare",
+      kMin,
+      highSleepCohort: high.length,
+      lowSleepCohort: low.length,
+      highFlarePct: Math.round(highFlare * 100),
+      lowFlarePct: Math.round(lowFlare * 100)
+    };
+  }
+  function computePoolInsightsFromFacets(rows, opts = {}) {
+    const kMin = opts.kMin ?? POOL_INSIGHT_MIN_K;
+    const cohorts = buildUserCohortsFromFacets(rows, kMin);
+    const insights = [];
+    const sleepFlare = buildSleepFlareInsight(cohorts);
+    if (sleepFlare) insights.push(sleepFlare);
+    return {
+      kMin,
+      contributorCount: cohorts.contributorCount,
+      insights,
+      suppressed: insights.length === 0
+    };
+  }
+  function normalizePoolInsightsRpcResult(data) {
+    if (!data || typeof data !== "object") {
+      return { kMin: POOL_INSIGHT_MIN_K, contributorCount: 0, insights: [], suppressed: true };
+    }
+    const insights = Array.isArray(data.insights) ? data.insights : [];
+    return {
+      kMin: Number(data.kMin) || POOL_INSIGHT_MIN_K,
+      contributorCount: Number(data.contributorCount) || 0,
+      insights,
+      suppressed: insights.length === 0
+    };
+  }
+
+  // packages/shared/src/research/contributionExport.mjs
+  var CONTRIBUTION_EXPORT_FORMAT = "rianell-contribution-export-v1";
+  function formatContributionExport(rows, opts = {}) {
+    const list = Array.isArray(rows) ? rows : [];
+    return {
+      format: CONTRIBUTION_EXPORT_FORMAT,
+      exportedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      medicalCondition: opts.medicalCondition || null,
+      rowCount: list.length,
+      rows: list.map((row) => ({
+        id: row.id ?? null,
+        createdAt: row.created_at || row.createdAt || null,
+        medicalCondition: row.medical_condition || row.medicalCondition || null,
+        researchFacets: row.research_facets || row.researchFacets || null,
+        decrypted: row.decrypted ?? null
+      })),
+      retentionNote: "Opting out stops future uploads. Existing rows remain until you delete them from Settings or request erasure."
+    };
+  }
+
+  // packages/shared/src/research/anonPoolPayload.mjs
+  function buildAnonymizedLogPayload(log) {
+    const anonymized = {
+      date: log?.date,
+      bpm: log?.bpm,
+      weight: log?.weight,
+      backPain: log?.backPain,
+      jointPain: log?.jointPain,
+      stiffness: log?.stiffness,
+      swelling: log?.swelling,
+      sleep: log?.sleep,
+      mood: log?.mood,
+      irritability: log?.irritability,
+      mobility: log?.mobility,
+      dailyFunction: log?.dailyFunction,
+      fatigue: log?.fatigue,
+      flare: log?.flare,
+      hydration: log?.hydration,
+      steps: log?.steps,
+      weatherSensitivity: log?.weatherSensitivity,
+      energyClarity: log?.energyClarity,
+      exercise: log?.exercise,
+      food: flattenFood(log?.food)
+    };
+    Object.keys(anonymized).forEach((key) => {
+      const v = anonymized[key];
+      if (v === void 0 || v === null || v === "") delete anonymized[key];
+    });
+    return anonymized;
+  }
+  function flattenFood(food) {
+    if (!food) return void 0;
+    const arr = Array.isArray(food) ? food : [].concat(
+      food.breakfast || [],
+      food.lunch || [],
+      food.dinner || [],
+      food.snack || []
+    );
+    if (!arr.length) return void 0;
+    return arr.map((item) => ({
+      name: item && item.name || "",
+      calories: item && item.calories,
+      protein: item && item.protein
+    }));
+  }
+  function buildAnonymizedInsertRow(log, opts) {
+    const payload = buildAnonymizedLogPayload(log);
+    const research_facets = buildResearchFacetsFromLog(log);
+    return {
+      user_id: opts.userId,
+      medical_condition: opts.medicalCondition,
+      anonymized_log: opts.encryptedLog,
+      research_facets
     };
   }
 
