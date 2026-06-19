@@ -100,10 +100,17 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
           ? t('research.pool.insights.suppressed', { kMin: String(result.insights.kMin || POOL_INSIGHT_MIN_K) })
           : null,
       );
+      const sleepFlareRows = (result.insights.insights || []).filter(
+        (row: { id?: string; highFlarePct?: number; lowFlarePct?: number; kMin?: number }) =>
+          row.id === 'sleep-flare' && typeof row.highFlarePct === 'number',
+      );
       setPoolInsights(
-        (result.insights.insights || []).filter((row): row is { id: string; highFlarePct: number; lowFlarePct: number; kMin: number } =>
-          row?.id === 'sleep-flare' && typeof row.highFlarePct === 'number',
-        ),
+        sleepFlareRows.map((row: { id?: string; highFlarePct?: number; lowFlarePct?: number; kMin?: number }) => ({
+          id: row.id as string,
+          highFlarePct: row.highFlarePct as number,
+          lowFlarePct: row.lowFlarePct as number,
+          kMin: row.kMin ?? POOL_INSIGHT_MIN_K,
+        })),
       );
     });
   }, [prefs.contributeAnonData, prefs.medicalCondition, t]);
