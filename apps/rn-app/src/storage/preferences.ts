@@ -98,6 +98,8 @@ export type Preferences = {
     lastActiveAt: string | null;
     reEngagementNudgeAt: string | null;
     reEngagementNudgesEnabled: boolean;
+    streakReminderNudgeDate: string | null;
+    streakReminderNudgesEnabled: boolean;
   };
   goals: {
     moodTarget: number;
@@ -212,6 +214,8 @@ export function getDefaultPreferences(): Preferences {
       lastActiveAt: null,
       reEngagementNudgeAt: null,
       reEngagementNudgesEnabled: true,
+      streakReminderNudgeDate: null,
+      streakReminderNudgesEnabled: true,
     },
     goals: {
       moodTarget: 7,
@@ -389,6 +393,15 @@ export async function loadPreferences(): Promise<Preferences> {
             : d.notifications.reEngagementNudgeAt,
         reEngagementNudgesEnabled:
           parsed.notifications?.reEngagementNudgesEnabled === false ? false : d.notifications.reEngagementNudgesEnabled,
+        streakReminderNudgeDate:
+          typeof parsed.notifications?.streakReminderNudgeDate === 'string' &&
+          /^\d{4}-\d{2}-\d{2}$/.test(parsed.notifications.streakReminderNudgeDate)
+            ? parsed.notifications.streakReminderNudgeDate
+            : d.notifications.streakReminderNudgeDate,
+        streakReminderNudgesEnabled:
+          parsed.notifications?.streakReminderNudgesEnabled === false
+            ? false
+            : d.notifications.streakReminderNudgesEnabled,
       },
       goals: {
         moodTarget: Number.isFinite(parsed.goals?.moodTarget)

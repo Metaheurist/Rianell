@@ -614,6 +614,8 @@
     "common.disable.push.notifications": "Disable push notifications",
     "common.re.engagement.reminders": "Re-engagement Promemoria",
     "common.re.engagement.hint": "Optional gentle reminder if you have not opened the app for 7 days. At most one per idle period.",
+    "common.streak.reminder.notifications": "Streak Promemoria",
+    "common.streak.reminder.hint": "Optional gentle reminder when you have calm days in a row (pairs with Home streak card). No achievements or scores.",
     "common.notification.permission": "Autorizzazione di notifica",
     "common.request.permission": "Richiedi autorizzazione",
     "common.requires.8.gb.device.memory.may.be.slow": "Richiede almeno 8 GB di memoria. Può essere lento o non riuscire su browser senza accelerazione grafica.",

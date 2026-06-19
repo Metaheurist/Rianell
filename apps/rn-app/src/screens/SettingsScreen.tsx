@@ -1032,6 +1032,30 @@ export function SettingsScreen({
 
               <Hint>Gentle reminder after 7 days without opening the app. At most one per idle period.</Hint>
 
+              <Row label="Streak reminders">
+
+                <Switch
+
+                  value={prefs.notifications.streakReminderNudgesEnabled}
+
+                  onValueChange={(on) =>
+
+                    onChangePrefs({
+
+                      ...prefs,
+
+                      notifications: { ...prefs.notifications, streakReminderNudgesEnabled: on },
+
+                    })
+
+                  }
+
+                />
+
+              </Row>
+
+              <Hint>Optional when you have calm days in a row (pairs with Home streak card). No achievements.</Hint>
+
               <Row label="Reminder sound">
 
                 <Switch

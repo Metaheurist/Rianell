@@ -119,6 +119,9 @@ export default function App() {
     prefs?.notifications.reEngagementNudgesEnabled,
     prefs?.notifications.reEngagementNudgeAt,
     prefs?.notifications.lastActiveAt,
+    prefs?.notifications.streakReminderNudgesEnabled,
+    prefs?.notifications.streakReminderNudgeDate,
+    prefs?.homeStreakCardDismissed,
     prefs?.medSchedule,
     prefs?.aiEnabled,
   ]);

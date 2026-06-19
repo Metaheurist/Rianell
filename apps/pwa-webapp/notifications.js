@@ -407,6 +407,37 @@ const NotificationManager = {
     const logs = this.getHealthLogs();
     const now = new Date();
     const todayStr = this.getLocalDateStr(now);
+    const settings = this.getAppSettings();
+    const streakEnabled = settings.streakReminderNudgesEnabled !== false;
+    if (
+      streakEnabled &&
+      !settings.homeStreakCardDismissed &&
+      typeof Shared.shouldFireStreakReminderNudge === 'function'
+    ) {
+      const lastStreakNudge = localStorage.getItem('lastStreakReminderNudgeDate');
+      const streakResult = Shared.shouldFireStreakReminderNudge(logs, now, {
+        enabled: true,
+        homeStreakCardDismissed: settings.homeStreakCardDismissed === true,
+        fallbackHHMM: this.fallbackReminderTime || '20:00',
+        lastNudgeDate: lastStreakNudge || undefined,
+        todayStr,
+      });
+      if (streakResult.fire) {
+        const content = Shared.buildStreakReminderNotificationContent
+          ? Shared.buildStreakReminderNotificationContent(streakResult)
+          : { title: 'Recent patterns', body: 'Still time to log today.', url: '/?quick=true' };
+        this.showNotification(content.title, content.body, content.url || '/?quick=true');
+        localStorage.setItem('lastStreakReminderNudgeDate', todayStr);
+        localStorage.setItem('lastSmartMissedNudgeDate', todayStr);
+        return;
+      }
+      if (
+        (streakResult.goodDayStreak ?? 0) >= (Shared.STREAK_REMINDER_MIN_STREAK || 2) &&
+        lastStreakNudge === todayStr
+      ) {
+        return;
+      }
+    }
     const lastNudge = localStorage.getItem('lastSmartMissedNudgeDate');
     const result = Shared.shouldFireMissedLogNudge(logs, now, {
       fallbackHHMM: this.fallbackReminderTime || '20:00',

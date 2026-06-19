@@ -15736,6 +15736,7 @@ let appSettings = {
   pushNotificationsEnabled: false,
   pushNotificationsEnabledAt: null,
   reEngagementNudgesEnabled: true,
+  streakReminderNudgesEnabled: true,
   lastActiveAt: null,
   lastReEngagementNudgeAt: null,
   aiModelDownloadConsent: 'deferred', // 'granted' | 'deferred' - first-run AI model download consent
@@ -16109,6 +16110,17 @@ function toggleReEngagementNudges() {
   }
 }
 if (typeof window !== 'undefined') window.toggleReEngagementNudges = toggleReEngagementNudges;
+
+function toggleStreakReminderNudges() {
+  appSettings.streakReminderNudgesEnabled = appSettings.streakReminderNudgesEnabled !== false ? false : true;
+  saveSettings();
+  var toggle = document.getElementById('streakReminderToggle');
+  if (toggle) {
+    toggle.classList.toggle('active', appSettings.streakReminderNudgesEnabled !== false);
+    toggle.setAttribute('aria-checked', appSettings.streakReminderNudgesEnabled !== false ? 'true' : 'false');
+  }
+}
+if (typeof window !== 'undefined') window.toggleStreakReminderNudges = toggleStreakReminderNudges;
 
 async function registerPushSubscription(subscriptionJson) {
   if (!subscriptionJson || !subscriptionJson.endpoint) return;
@@ -17130,6 +17142,12 @@ function loadSettingsState() {
     var reOn = appSettings.reEngagementNudgesEnabled !== false;
     reEngagementToggle.classList.toggle('active', reOn);
     reEngagementToggle.setAttribute('aria-checked', reOn ? 'true' : 'false');
+  }
+  var streakReminderToggle = document.getElementById('streakReminderToggle');
+  if (streakReminderToggle) {
+    var streakOn = appSettings.streakReminderNudgesEnabled !== false;
+    streakReminderToggle.classList.toggle('active', streakOn);
+    streakReminderToggle.setAttribute('aria-checked', streakOn ? 'true' : 'false');
   }
 
   // Update contribute anonymised data toggle

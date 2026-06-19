@@ -44,6 +44,7 @@ const NOTIFICATION_SNOOZE_ID = 'rianell-reminder-snooze';
 const NOTIFICATION_SMART_MISSED_ID = 'rianell-smart-missed-nudge';
 const NOTIFICATION_FLARE_RISK_ID = 'rianell-flare-risk-nudge';
 const NOTIFICATION_RE_ENGAGEMENT_ID = 'rianell-re-engagement-nudge';
+const NOTIFICATION_STREAK_REMINDER_ID = 'rianell-streak-reminder-nudge';
 const NOTIFICATION_CHANNEL_ID = 'rianell-reminders';
 const NOTIFICATION_CATEGORY_ID = 'rianell-reminder-actions';
 const NOTIFICATION_MED_DOSE_CATEGORY_ID = 'rianell-med-dose-actions';
@@ -544,6 +545,36 @@ export const Permissions = {
           body: 'A quick check-in keeps your health trends useful. Tap to log today.',
           sound: soundEnabled ? 'default' : null,
           data: { kind: 're-engagement' },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes?.TIME_INTERVAL ?? 'timeInterval',
+          seconds: 2,
+          repeats: false,
+        },
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  async scheduleStreakReminderNudgeNow(goodDayStreak: number, soundEnabled = true): Promise<boolean> {
+    const Notifications = await loadExpoNotifications();
+    if (!Notifications?.scheduleNotificationAsync) return false;
+    const body =
+      goodDayStreak <= 1
+        ? 'One calm day in a row. A quick log keeps your picture complete.'
+        : `${goodDayStreak} calm day(s) in a row. Still time to log today — no scores, just continuity.`;
+    try {
+      if (Notifications?.cancelScheduledNotificationAsync) {
+        await Notifications.cancelScheduledNotificationAsync(NOTIFICATION_STREAK_REMINDER_ID);
+      }
+      await Notifications.scheduleNotificationAsync({
+        identifier: NOTIFICATION_STREAK_REMINDER_ID,
+        content: {
+          title: 'Recent patterns',
+          body,
+          sound: soundEnabled ? 'default' : null,
+          data: { kind: 'streak-reminder', goodDayStreak },
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes?.TIME_INTERVAL ?? 'timeInterval',

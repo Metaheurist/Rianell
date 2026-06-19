@@ -70,6 +70,7 @@ var RianellShared = (() => {
     SMART_REMINDER_GRACE_MINUTES: () => SMART_REMINDER_GRACE_MINUTES,
     SMART_REMINDER_MIN_SAMPLES: () => SMART_REMINDER_MIN_SAMPLES,
     SMART_REMINDER_WINDOW_DAYS: () => SMART_REMINDER_WINDOW_DAYS,
+    STREAK_REMINDER_MIN_STREAK: () => STREAK_REMINDER_MIN_STREAK,
     TRACKING_PROFILE_FIELD_KEYS: () => TRACKING_PROFILE_FIELD_KEYS,
     UNSET_PRIVACY_REGION: () => UNSET_PRIVACY_REGION,
     WEATHER_CACHE_MS: () => WEATHER_CACHE_MS,
@@ -104,6 +105,7 @@ var RianellShared = (() => {
     buildProxyLogMetadata: () => buildProxyLogMetadata,
     buildReEngagementNotificationContent: () => buildReEngagementNotificationContent,
     buildSettingsProfileExport: () => buildSettingsProfileExport,
+    buildStreakReminderNotificationContent: () => buildStreakReminderNotificationContent,
     buildStructuredSummaryPrompt: () => buildStructuredSummaryPrompt,
     buildSuggestPrompt: () => buildSuggestPrompt,
     buildSummaryPrompt: () => buildSummaryPrompt,
@@ -272,6 +274,7 @@ var RianellShared = (() => {
     shouldFireMedDoseReminder: () => shouldFireMedDoseReminder,
     shouldFireMissedLogNudge: () => shouldFireMissedLogNudge,
     shouldFireReEngagementNudge: () => shouldFireReEngagementNudge,
+    shouldFireStreakReminderNudge: () => shouldFireStreakReminderNudge,
     shouldShowAppointmentCard: () => shouldShowAppointmentCard,
     shouldShowWizardCategory: () => shouldShowWizardCategory,
     stampLogEntryForCaregiver: () => stampLogEntryForCaregiver,
@@ -3644,6 +3647,43 @@ ${hist}`);
     const flareFreeDays = computeFlareFreeDays(logs);
     const showCard = !dismissed && (goodDayStreak >= minStreak || flareFreeDays >= minStreak);
     return { goodDayStreak, flareFreeDays, showCard };
+  }
+
+  // packages/shared/src/notifications/streakReminderNudge.mjs
+  var STREAK_REMINDER_MIN_STREAK = 2;
+  function shouldFireStreakReminderNudge(logs, now = /* @__PURE__ */ new Date(), opts = {}) {
+    if (opts.enabled === false) return { fire: false, reason: "disabled" };
+    if (opts.homeStreakCardDismissed === true) return { fire: false, reason: "h3-dismissed" };
+    const todayStr = opts.todayStr ?? localDateStrFromNow(now);
+    const goodDayStreak = computeGoodDayStreak(logs);
+    const minStreak = opts.minStreak ?? STREAK_REMINDER_MIN_STREAK;
+    if (goodDayStreak < minStreak) {
+      return { fire: false, reason: "streak-too-short", goodDayStreak };
+    }
+    const timing = shouldFireMissedLogNudge(logs, now, {
+      fallbackHHMM: opts.fallbackHHMM,
+      lastNudgeDate: opts.lastNudgeDate,
+      todayStr,
+      now
+    });
+    if (!timing.fire) return { ...timing, goodDayStreak };
+    return {
+      fire: true,
+      reason: "streak-reminder",
+      goodDayStreak,
+      flareFreeDays: computeFlareFreeDays(logs),
+      nudgeHHMM: timing.nudgeHHMM
+    };
+  }
+  function buildStreakReminderNotificationContent(snapshot2 = {}) {
+    const goodDays = snapshot2.goodDayStreak ?? 0;
+    const flareFree = snapshot2.flareFreeDays ?? 0;
+    const body = goodDays <= 1 ? "One calm day in a row. A quick log keeps your picture complete." : `${goodDays} calm day(s) in a row \xB7 ${flareFree} flare-free. Still time to log today \u2014 no scores, just continuity.`;
+    return {
+      title: "Recent patterns",
+      body,
+      url: "/?quick=true"
+    };
   }
 
   // packages/shared/src/home/homeAppointment.mjs
