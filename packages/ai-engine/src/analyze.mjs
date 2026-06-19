@@ -11,6 +11,11 @@ import { buildWeeklyDigest } from './weeklyDigest.mjs';
 import { compareTreatmentWindows } from './treatmentTimeline.mjs';
 import { applyConditionPack } from './conditionPacks.mjs';
 
+/**
+ * @param {Array<Record<string, unknown>>} logs
+ * @param {14|30|90|'all'|number} [range]
+ * @param {Record<string, unknown>} [options]
+ */
 export function runDeterministicAnalysis(logs, range = 30, options = {}) {
   const summary = summarizeLogsForAi(logs, range, options);
   const selected = summary._selectedLogs || [];
