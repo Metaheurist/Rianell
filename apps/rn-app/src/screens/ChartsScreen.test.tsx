@@ -88,7 +88,7 @@ test('balance view shows target snapshot when logs exist', async () => {
   await waitFor(() => expect(mockedLoadLogs).toHaveBeenCalled());
   fireEvent.press(getByLabelText('Chart view Balance'));
   await findByLabelText('Charts target snapshot');
-  await findByLabelText('Balance visual chart');
+  await findByLabelText('Balance radar chart');
   await findByText(/target 9.0/);
 });
 
