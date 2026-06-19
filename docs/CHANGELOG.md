@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.102.0** - Plan 10 phase B: pacing widget + micro-check-ins (H2, H4).
+**Latest: v1.103.0** - Plan 10 phase C: streaks, weather strip, appointment countdown (H3, H5, H6).
+
+### v1.103.0 - 2026-06-19 - Plan 10 Home phase C (H3, H5, H6)
+- **H3:** Good-day streak + flare-free counter on Home — dismissible, non-gamified (`computeHomeStreakSnapshot`).
+- **H5:** Opt-in weather/air strip via Open-Meteo (pressure, temp, US AQI) with CC BY attribution (PWA + RN).
+- **H6:** Appointment countdown card (14-day window) with visit-prep CTA to AI Analysis (PWA + RN).
+- **Tests:** 7 plan10-phase-c tests (250 total).
 
 ### v1.102.0 - 2026-06-19 - Plan 10 Home phase B (H2, H4)
 - **H2:** Energy budget / pacing widget on Home — `buildTodayPacingBudget` with flare-adjusted planned spoons; links to Charts (PWA + RN).

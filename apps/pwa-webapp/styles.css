@@ -15419,6 +15419,67 @@ body.log-wizard-active .header-buttons-wrap {
   opacity: 0.85;
 }
 
+.home-streak-card,
+.home-weather-card,
+.home-appointment-card {
+  background: var(--card-bg-glass);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  margin-bottom: var(--section-gap);
+  box-shadow: var(--elev-2);
+}
+
+.home-streak-card[hidden],
+.home-weather-card[hidden],
+.home-appointment-card[hidden] {
+  display: none !important;
+}
+
+.home-card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 0.35rem;
+}
+
+.home-streak-dismiss {
+  background: none;
+  border: none;
+  color: var(--text-secondary, var(--text-primary));
+  font-size: 0.85rem;
+  cursor: pointer;
+  opacity: 0.85;
+}
+
+.home-streak-title,
+.home-weather-title,
+.home-appointment-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.home-streak-summary,
+.home-weather-summary,
+.home-appointment-summary {
+  margin: 0 0 0.5rem;
+  line-height: 1.45;
+}
+
+.home-weather-attribution {
+  font-size: 0.82rem;
+  opacity: 0.85;
+}
+
+.home-appointment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 0.35rem;
+}
+
 .micro-checkin-modal-body {
   display: flex;
   flex-direction: column;

@@ -28,6 +28,7 @@ import { useT } from '../i18n/I18nProvider';
 import type { MainTabParamList, RootStackParamList } from '../navigation/RootNavigator';
 import { loadLogs, saveLogs, type LogEntry } from '../storage/logs';
 import type { Preferences } from '../storage/preferences';
+import { savePreferences } from '../storage/preferences';
 import { loadCachedBenchmark } from '../performance/benchmark';
 import { generateMotd, answerHomeQuestion } from '../ai/llm';
 import {
@@ -38,8 +39,16 @@ import {
   applyMicroCheckin,
   completedCheckinPeriods,
   HOME_CHECKIN_PERIODS,
+  computeHomeStreakSnapshot,
+  daysUntilAppointment,
+  shouldShowAppointmentCard,
+  appointmentCountdownLabelKey,
+  fetchHomeWeatherSnapshot,
+  isWeatherCacheFresh,
+  normalizeWeatherCoords,
 } from '@rianell/shared';
 import { buildTodayPacingBudget } from '../ai/engine';
+import { requestWeatherCoords } from '../utils/homeWeatherLocation';
 import { summarizeLogsForAi } from '../ai/analyzeLogs';
 import Constants from 'expo-constants';
 import { buildLogReviewSummary } from '../log/buildLogReviewSummary';
@@ -317,7 +326,13 @@ function TargetBullseyeIcon({ color }: { color: string }) {
   );
 }
 
-export function HomeScreen({ prefs }: { prefs: Preferences }) {
+export function HomeScreen({
+  prefs,
+  onChangePrefs,
+}: {
+  prefs: Preferences;
+  onChangePrefs?: (next: Preferences) => void;
+}) {
   const theme = useTheme();
   const { t, locale } = useT();
   const tabBarHeight = useBottomTabBarHeight();
@@ -348,11 +363,62 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
   const [checkinSleep, setCheckinSleep] = useState('');
   const [checkinFatigue, setCheckinFatigue] = useState('');
   const [checkinSaving, setCheckinSaving] = useState(false);
+  const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
+  const [appointmentDraft, setAppointmentDraft] = useState('');
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherSnapshot, setWeatherSnapshot] = useState(prefs.weatherCache);
 
   const todayStr = todayIso();
   const pacingBudget = useMemo(() => buildTodayPacingBudget(homeLogs, todayStr), [homeLogs, todayStr]);
   const todayLog = useMemo(() => homeLogs.find((l) => l.date === todayStr), [homeLogs, todayStr]);
   const doneCheckinPeriods = useMemo(() => completedCheckinPeriods(todayLog), [todayLog]);
+  const streakSnapshot = useMemo(
+    () => computeHomeStreakSnapshot(homeLogs, { dismissed: prefs.homeStreakCardDismissed }),
+    [homeLogs, prefs.homeStreakCardDismissed]
+  );
+  const appointmentDays = useMemo(
+    () => (prefs.nextAppointmentDate ? daysUntilAppointment(prefs.nextAppointmentDate, todayStr) : null),
+    [prefs.nextAppointmentDate, todayStr]
+  );
+  const showAppointment = useMemo(
+    () =>
+      !prefs.nextAppointmentDate ||
+      shouldShowAppointmentCard(prefs.nextAppointmentDate, todayStr),
+    [prefs.nextAppointmentDate, todayStr]
+  );
+
+  const persistPrefs = useCallback(
+    async (next: Preferences) => {
+      await savePreferences(next);
+      onChangePrefs?.(next);
+    },
+    [onChangePrefs]
+  );
+
+  useEffect(() => {
+    setWeatherSnapshot(prefs.weatherCache);
+  }, [prefs.weatherCache]);
+
+  useEffect(() => {
+    if (!prefs.weatherStripEnabled) return;
+    if (isWeatherCacheFresh(prefs.weatherCache)) return;
+    if (prefs.weatherLat == null || prefs.weatherLon == null) return;
+    let alive = true;
+    setWeatherLoading(true);
+    void fetchHomeWeatherSnapshot(prefs.weatherLat, prefs.weatherLon)
+      .then(async (snap) => {
+        if (!alive || !snap) return;
+        setWeatherSnapshot(snap);
+        const next = { ...prefs, weatherCache: snap };
+        await persistPrefs(next);
+      })
+      .finally(() => {
+        if (alive) setWeatherLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [persistPrefs, prefs.weatherLat, prefs.weatherLon, prefs.weatherStripEnabled, prefs.weatherCache?.fetchedAt]);
 
   const refreshBpm = useCallback(() => {
     loadLogs()
@@ -542,8 +608,19 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
         showGoals: true,
         hasPacingData: pacingBudget != null,
         showCheckin: true,
+        showStreak: streakSnapshot.showCard,
+        showWeather: true,
+        showAppointment,
       }),
-    [homeLogs, prefs.aiEnabled, prefs.simpleMode, pacingBudget, todayStr]
+    [
+      homeLogs,
+      pacingBudget,
+      prefs.aiEnabled,
+      prefs.simpleMode,
+      showAppointment,
+      streakSnapshot.showCard,
+      todayStr,
+    ]
   );
   const cardOrder = useMemo(() => resolveHomeCardOrder(cardContext), [cardContext]);
 
@@ -580,6 +657,60 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
       setCheckinSaving(false);
     }
   }, [checkinFatigue, checkinMood, checkinPeriod, checkinSleep, homeLogs, refreshHomeSuggestions, t, todayStr]);
+
+  const onDismissStreak = useCallback(() => {
+    void persistPrefs({ ...prefs, homeStreakCardDismissed: true });
+  }, [persistPrefs, prefs]);
+
+  const onEnableWeather = useCallback(async () => {
+    setWeatherLoading(true);
+    try {
+      const coords = await requestWeatherCoords();
+      if (!coords) {
+        Alert.alert(t('home.weather.title'), t('home.weather.locationDenied'));
+        return;
+      }
+      const rounded = normalizeWeatherCoords(coords.lat, coords.lon);
+      if (!rounded) return;
+      const snap = await fetchHomeWeatherSnapshot(rounded.lat, rounded.lon);
+      const next = {
+        ...prefs,
+        weatherStripEnabled: true,
+        weatherLat: rounded.lat,
+        weatherLon: rounded.lon,
+        weatherCache: snap,
+      };
+      setWeatherSnapshot(snap);
+      await persistPrefs(next);
+    } finally {
+      setWeatherLoading(false);
+    }
+  }, [persistPrefs, prefs, t]);
+
+  const onOpenAppointmentModal = useCallback(() => {
+    setAppointmentDraft(prefs.nextAppointmentDate ?? '');
+    setAppointmentModalOpen(true);
+  }, [prefs.nextAppointmentDate]);
+
+  const onSaveAppointment = useCallback(async () => {
+    const raw = appointmentDraft.trim();
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : null;
+    if (!date) {
+      Alert.alert(t('home.appointment.title'), t('home.appointment.invalidDate'));
+      return;
+    }
+    await persistPrefs({ ...prefs, nextAppointmentDate: date });
+    setAppointmentModalOpen(false);
+  }, [appointmentDraft, persistPrefs, prefs, t]);
+
+  const onClearAppointment = useCallback(async () => {
+    await persistPrefs({ ...prefs, nextAppointmentDate: null });
+    setAppointmentModalOpen(false);
+  }, [persistPrefs, prefs]);
+
+  const onPrepReport = useCallback(() => {
+    navigation.navigate('AI Analysis');
+  }, [navigation]);
 
   const renderHomeCard = (cardId: string) => {
     if (cardId === 'nudge') {
@@ -641,6 +772,130 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
               ))}
             </View>
           ) : null}
+        </View>
+      );
+    }
+    if (cardId === 'streak') {
+      return (
+        <View key="streak" style={styles.card} accessibilityLabel={t('home.streak.title')}>
+          <View style={styles.cardHeaderRow}>
+            <Text style={[styles.title, { color: accent, fontSize: theme.font(18), flex: 1, marginBottom: 0 }]}>
+              {t('home.streak.title')}
+            </Text>
+            <Pressable onPress={() => void onDismissStreak()} accessibilityRole="button" accessibilityLabel={t('home.streak.dismiss')}>
+              <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(12), opacity: 0.8 }}>{t('home.streak.dismiss')}</Text>
+            </Pressable>
+          </View>
+          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14), marginTop: 8 }]}>
+            {t('home.streak.summary', {
+              goodDays: streakSnapshot.goodDayStreak,
+              flareFree: streakSnapshot.flareFreeDays,
+            })}
+          </Text>
+        </View>
+      );
+    }
+    if (cardId === 'weather') {
+      if (!prefs.weatherStripEnabled) {
+        return (
+          <View key="weather" style={styles.card} accessibilityLabel={t('home.weather.title')}>
+            <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.weather.title')}</Text>
+            <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+              {t('home.weather.enableHint')}
+            </Text>
+            <Pressable
+              onPress={() => void onEnableWeather()}
+              style={({ pressed }) => [
+                styles.readTodayBtn,
+                { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1, marginTop: 10 },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={t('home.weather.enable')}
+              disabled={weatherLoading}
+            >
+              <Text style={{ color: accent, fontSize: theme.font(14) }}>
+                {weatherLoading ? t('home.weather.loading') : t('home.weather.enable')}
+              </Text>
+            </Pressable>
+          </View>
+        );
+      }
+      const snap = weatherSnapshot;
+      return (
+        <View key="weather" style={styles.card} accessibilityLabel={t('home.weather.title')}>
+          <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.weather.title')}</Text>
+          {snap ? (
+            <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+              {t('home.weather.summary', {
+                temp: snap.tempC != null ? String(snap.tempC) : '—',
+                pressure: snap.pressureHpa != null ? String(snap.pressureHpa) : '—',
+                aqi: snap.usAqi != null ? String(snap.usAqi) : '—',
+              })}
+            </Text>
+          ) : (
+            <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+              {weatherLoading ? t('home.weather.loading') : t('home.weather.enableHint')}
+            </Text>
+          )}
+          <Pressable
+            onPress={() => void Linking.openURL('https://open-meteo.com/')}
+            style={{ marginTop: 8 }}
+            accessibilityRole="link"
+            accessibilityLabel={t('home.weather.attribution')}
+          >
+            <Text style={{ color: accent, fontSize: theme.font(12), opacity: 0.9 }}>{t('home.weather.attribution')}</Text>
+          </Pressable>
+        </View>
+      );
+    }
+    if (cardId === 'appointment') {
+      if (!prefs.nextAppointmentDate) {
+        return (
+          <View key="appointment" style={styles.card} accessibilityLabel={t('home.appointment.title')}>
+            <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.appointment.title')}</Text>
+            <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+              {t('home.appointment.setupHint')}
+            </Text>
+            <Pressable
+              onPress={onOpenAppointmentModal}
+              style={({ pressed }) => [
+                styles.readTodayBtn,
+                { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1, marginTop: 10 },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={t('home.appointment.setDate')}
+            >
+              <Text style={{ color: accent, fontSize: theme.font(14) }}>{t('home.appointment.setDate')}</Text>
+            </Pressable>
+          </View>
+        );
+      }
+      if (appointmentDays == null) return null;
+      const labelKey = appointmentCountdownLabelKey(appointmentDays);
+      return (
+        <View key="appointment" style={styles.card} accessibilityLabel={t('home.appointment.title')}>
+          <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.appointment.title')}</Text>
+          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+            {t(labelKey, { days: appointmentDays, date: prefs.nextAppointmentDate ?? '' })}
+          </Text>
+          <View style={styles.checkinRow}>
+            <Pressable
+              onPress={onPrepReport}
+              style={({ pressed }) => [styles.checkinBtn, { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1 }]}
+              accessibilityRole="button"
+              accessibilityLabel={t('home.appointment.prepCta')}
+            >
+              <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(13) }}>{t('home.appointment.prepCta')}</Text>
+            </Pressable>
+            <Pressable
+              onPress={onOpenAppointmentModal}
+              style={({ pressed }) => [styles.checkinBtn, { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1 }]}
+              accessibilityRole="button"
+              accessibilityLabel={t('home.appointment.edit')}
+            >
+              <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(13) }}>{t('home.appointment.edit')}</Text>
+            </Pressable>
+          </View>
         </View>
       );
     }
@@ -996,6 +1251,55 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
           </KeyboardAvoidingView>
         </View>
       </Modal>
+      <Modal visible={appointmentModalOpen} animationType="fade" transparent onRequestClose={() => setAppointmentModalOpen(false)}>
+        <View style={styles.modalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setAppointmentModalOpen(false)}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.close')}
+          />
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalKb}>
+            <View style={[styles.modalCard, { borderColor: `${accent}44`, backgroundColor: 'rgba(14,18,17,0.98)' }]}>
+              <View style={styles.modalHeaderRow}>
+                <Text style={[styles.modalTitle, { color: accent, fontSize: theme.font(18), flex: 1 }]}>
+                  {t('home.appointment.setDate')}
+                </Text>
+                <Pressable onPress={() => setAppointmentModalOpen(false)} accessibilityRole="button" accessibilityLabel={t('common.close')}>
+                  <Ionicons name="close" size={24} color={accent} />
+                </Pressable>
+              </View>
+              <Text style={[styles.fieldLabel, { color: theme.tokens.color.text }]}>{t('home.appointment.dateLabel')}</Text>
+              <TextInput
+                value={appointmentDraft}
+                onChangeText={setAppointmentDraft}
+                placeholder="YYYY-MM-DD"
+                style={[styles.input, { color: theme.tokens.color.text }]}
+                autoCapitalize="none"
+                accessibilityLabel={t('home.appointment.dateLabel')}
+              />
+              <View style={[styles.modalFooter, { borderTopColor: `${accent}33` }]}>
+                {prefs.nextAppointmentDate ? (
+                  <Pressable
+                    style={[styles.modalBtnSecondary, { borderColor: `${accent}55` }]}
+                    onPress={() => void onClearAppointment()}
+                    accessibilityRole="button"
+                  >
+                    <Text style={[styles.modalBtnTextSecondary, { color: theme.tokens.color.text }]}>{t('home.appointment.clear')}</Text>
+                  </Pressable>
+                ) : null}
+                <Pressable
+                  style={[styles.modalBtnPrimary, { backgroundColor: accent }]}
+                  onPress={() => void onSaveAppointment()}
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.modalBtnTextPrimary}>{t('common.save')}</Text>
+                </Pressable>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1033,6 +1337,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.42)',
   },
   card: { borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)', marginBottom: 12 },
+  cardHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   nudgeCard: {
     backgroundColor: 'rgba(76,175,80,0.12)',
     borderWidth: 1,

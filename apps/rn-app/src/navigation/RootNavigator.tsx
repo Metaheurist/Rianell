@@ -216,7 +216,7 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
           ),
         }}
       >
-        {() => <HomeScreen prefs={prefs} />}
+        {() => <HomeScreen prefs={prefs} onChangePrefs={onChangePrefs} />}
       </Tab.Screen>
       <Tab.Screen
         name="View Logs"

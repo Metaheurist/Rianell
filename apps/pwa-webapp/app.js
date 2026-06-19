@@ -15754,6 +15754,12 @@ let appSettings = {
   caregiverDependentName: '',
   caregiverRelationship: 'parent',
   customChartMetrics: [],
+  homeStreakCardDismissed: false,
+  weatherStripEnabled: false,
+  weatherLat: null,
+  weatherLon: null,
+  weatherCache: null,
+  nextAppointmentDate: null,
 };
 
 // Make appSettings available on window for safe access
@@ -19748,6 +19754,13 @@ function applyHomeCardLayout() {
   var pacingBudget = engine && typeof engine.buildTodayPacingBudget === 'function'
     ? engine.buildTodayPacingBudget(logArr, todayStr)
     : null;
+  var streakSnap = S && typeof S.computeHomeStreakSnapshot === 'function'
+    ? S.computeHomeStreakSnapshot(logArr, { dismissed: appSettings.homeStreakCardDismissed === true })
+    : { showCard: false };
+  var showAppointment = !appSettings.nextAppointmentDate || (
+    S && typeof S.shouldShowAppointmentCard === 'function' &&
+    S.shouldShowAppointmentCard(appSettings.nextAppointmentDate, todayStr)
+  );
   var ctx = typeof S.computeHomeCardContext === 'function'
     ? S.computeHomeCardContext(logArr, todayStr, {
         aiEnabled: typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false,
@@ -19755,6 +19768,9 @@ function applyHomeCardLayout() {
         showGoals: hasGoals,
         hasPacingData: pacingBudget != null,
         showCheckin: true,
+        showStreak: streakSnap.showCard === true,
+        showWeather: true,
+        showAppointment: showAppointment === true,
       })
     : null;
   if (!ctx) return;
@@ -19771,6 +19787,9 @@ function applyHomeCardLayout() {
   }
   if (typeof renderHomePacingCard === 'function') renderHomePacingCard(logArr, todayStr, pacingBudget, ctx);
   if (typeof renderHomeCheckinCard === 'function') renderHomeCheckinCard(logArr, todayStr, ctx);
+  if (typeof renderHomeStreakCard === 'function') renderHomeStreakCard(logArr, streakSnap, ctx);
+  if (typeof renderHomeWeatherCard === 'function') renderHomeWeatherCard(ctx);
+  if (typeof renderHomeAppointmentCard === 'function') renderHomeAppointmentCard(todayStr, ctx);
   var header = homeTab.querySelector('.home-today-header');
   var insertAfter = header;
   order.forEach(function(cardId) {
@@ -19919,6 +19938,211 @@ if (typeof window !== 'undefined') {
   window.openMicroCheckinModal = openMicroCheckinModal;
   window.closeMicroCheckinModal = closeMicroCheckinModal;
   window.saveMicroCheckinAndClose = saveMicroCheckinAndClose;
+}
+
+function renderHomeStreakCard(logArr, streakSnap, ctx) {
+  var card = document.getElementById('homeStreakCard');
+  if (!card) return;
+  if (!ctx || !ctx.showStreak || !streakSnap) {
+    card.hidden = true;
+    card.innerHTML = '';
+    return;
+  }
+  card.hidden = false;
+  var title = typeof tUi === 'function' ? tUi('home.streak.title') : 'Recent patterns';
+  var summary = typeof tUi === 'function'
+    ? tUi('home.streak.summary', { goodDays: streakSnap.goodDayStreak, flareFree: streakSnap.flareFreeDays })
+    : (streakSnap.goodDayStreak + ' good · ' + streakSnap.flareFreeDays + ' flare-free');
+  var dismiss = typeof tUi === 'function' ? tUi('home.streak.dismiss') : 'Dismiss';
+  card.innerHTML =
+    '<div class="home-card-header-row"><h3 class="home-streak-title">' + escapeHTML(title) + '</h3>' +
+    '<button type="button" class="home-streak-dismiss" data-home-streak-dismiss>' + escapeHTML(dismiss) + '</button></div>' +
+    '<p class="home-streak-summary">' + escapeHTML(summary) + '</p>';
+  var btn = card.querySelector('[data-home-streak-dismiss]');
+  if (btn) {
+    btn.onclick = function() {
+      appSettings.homeStreakCardDismissed = true;
+      if (typeof saveSettings === 'function') saveSettings();
+      if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
+    };
+  }
+}
+
+var _homeWeatherFetchInFlight = false;
+
+function renderHomeWeatherCard(ctx) {
+  var card = document.getElementById('homeWeatherCard');
+  if (!card) return;
+  if (!ctx || !ctx.showWeather) {
+    card.hidden = true;
+    card.innerHTML = '';
+    return;
+  }
+  card.hidden = false;
+  var S = getHomeSharedAi();
+  var title = typeof tUi === 'function' ? tUi('home.weather.title') : 'Weather & air';
+  var attr = typeof tUi === 'function' ? tUi('home.weather.attribution') : 'Open-Meteo';
+  if (!appSettings.weatherStripEnabled) {
+    var hint = typeof tUi === 'function' ? tUi('home.weather.enableHint') : 'Opt in to local weather.';
+    var enable = typeof tUi === 'function' ? tUi('home.weather.enable') : 'Enable';
+    card.innerHTML =
+      '<h3 class="home-weather-title">' + escapeHTML(title) + '</h3>' +
+      '<p class="home-weather-summary">' + escapeHTML(hint) + '</p>' +
+      '<button type="button" class="action-btn home-weather-enable" data-ripple>' + escapeHTML(enable) + '</button>';
+    var enableBtn = card.querySelector('.home-weather-enable');
+    if (enableBtn) {
+      enableBtn.onclick = function() { enableHomeWeatherStrip(card); };
+    }
+    if (typeof initRipple === 'function') initRipple(card);
+    return;
+  }
+  var snap = appSettings.weatherCache;
+  var body = '';
+  if (snap && (snap.tempC != null || snap.pressureHpa != null || snap.usAqi != null)) {
+    body = typeof tUi === 'function'
+      ? tUi('home.weather.summary', {
+          temp: snap.tempC != null ? snap.tempC : '—',
+          pressure: snap.pressureHpa != null ? snap.pressureHpa : '—',
+          aqi: snap.usAqi != null ? snap.usAqi : '—',
+        })
+      : (String(snap.tempC) + '°C');
+  } else {
+    body = typeof tUi === 'function' ? tUi('home.weather.loading') : 'Loading…';
+    maybeRefreshHomeWeather();
+  }
+  card.innerHTML =
+    '<h3 class="home-weather-title">' + escapeHTML(title) + '</h3>' +
+    '<p class="home-weather-summary">' + escapeHTML(body) + '</p>' +
+    '<a class="home-weather-attribution" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">' + escapeHTML(attr) + '</a>';
+}
+
+function maybeRefreshHomeWeather() {
+  var S = getHomeSharedAi();
+  if (!S || _homeWeatherFetchInFlight) return;
+  if (!appSettings.weatherStripEnabled || appSettings.weatherLat == null || appSettings.weatherLon == null) return;
+  if (typeof S.isWeatherCacheFresh === 'function' && S.isWeatherCacheFresh(appSettings.weatherCache)) return;
+  if (typeof S.fetchHomeWeatherSnapshot !== 'function') return;
+  _homeWeatherFetchInFlight = true;
+  S.fetchHomeWeatherSnapshot(appSettings.weatherLat, appSettings.weatherLon).then(function(snap) {
+    _homeWeatherFetchInFlight = false;
+    if (!snap) return;
+    appSettings.weatherCache = snap;
+    if (typeof saveSettings === 'function') saveSettings();
+    if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
+  }).catch(function() {
+    _homeWeatherFetchInFlight = false;
+  });
+}
+
+function enableHomeWeatherStrip(cardEl) {
+  if (typeof navigator === 'undefined' || !navigator.geolocation) {
+    if (typeof showToast === 'function') {
+      showToast(typeof tUi === 'function' ? tUi('home.weather.locationDenied') : 'Location denied', { type: 'error' });
+    }
+    return;
+  }
+  var S = getHomeSharedAi();
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    var rounded = S && typeof S.normalizeWeatherCoords === 'function'
+      ? S.normalizeWeatherCoords(pos.coords.latitude, pos.coords.longitude)
+      : null;
+    if (!rounded) return;
+    appSettings.weatherStripEnabled = true;
+    appSettings.weatherLat = rounded.lat;
+    appSettings.weatherLon = rounded.lon;
+    if (typeof saveSettings === 'function') saveSettings();
+    if (S && typeof S.fetchHomeWeatherSnapshot === 'function') {
+      S.fetchHomeWeatherSnapshot(rounded.lat, rounded.lon).then(function(snap) {
+        if (snap) {
+          appSettings.weatherCache = snap;
+          if (typeof saveSettings === 'function') saveSettings();
+        }
+        if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
+      });
+    } else if (typeof applyHomeCardLayout === 'function') {
+      applyHomeCardLayout();
+    }
+  }, function() {
+    if (typeof showToast === 'function') {
+      showToast(typeof tUi === 'function' ? tUi('home.weather.locationDenied') : 'Location denied', { type: 'error' });
+    }
+  }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
+}
+
+function renderHomeAppointmentCard(todayStr, ctx) {
+  var card = document.getElementById('homeAppointmentCard');
+  if (!card) return;
+  var S = getHomeSharedAi();
+  if (!ctx || !ctx.showAppointment) {
+    card.hidden = true;
+    card.innerHTML = '';
+    return;
+  }
+  card.hidden = false;
+  var title = typeof tUi === 'function' ? tUi('home.appointment.title') : 'Upcoming visit';
+  if (!appSettings.nextAppointmentDate) {
+    var setup = typeof tUi === 'function' ? tUi('home.appointment.setupHint') : 'Add your next visit.';
+    var setDate = typeof tUi === 'function' ? tUi('home.appointment.setDate') : 'Set date';
+    card.innerHTML =
+      '<h3 class="home-appointment-title">' + escapeHTML(title) + '</h3>' +
+      '<p class="home-appointment-summary">' + escapeHTML(setup) + '</p>' +
+      '<button type="button" class="action-btn home-appointment-set" data-ripple>' + escapeHTML(setDate) + '</button>';
+    var setBtn = card.querySelector('.home-appointment-set');
+    if (setBtn) setBtn.onclick = function() { openHomeAppointmentPrompt(); };
+    if (typeof initRipple === 'function') initRipple(card);
+    return;
+  }
+  var days = S && typeof S.daysUntilAppointment === 'function'
+    ? S.daysUntilAppointment(appSettings.nextAppointmentDate, todayStr)
+    : null;
+  if (days == null) {
+    card.hidden = true;
+    return;
+  }
+  var labelKey = S && typeof S.appointmentCountdownLabelKey === 'function'
+    ? S.appointmentCountdownLabelKey(days)
+    : 'home.appointment.inDays';
+  var summary = typeof tUi === 'function'
+    ? tUi(labelKey, { days: days, date: appSettings.nextAppointmentDate })
+    : ('In ' + days + ' days');
+  var prep = typeof tUi === 'function' ? tUi('home.appointment.prepCta') : 'Prep report';
+  var edit = typeof tUi === 'function' ? tUi('home.appointment.edit') : 'Edit';
+  card.innerHTML =
+    '<h3 class="home-appointment-title">' + escapeHTML(title) + '</h3>' +
+    '<p class="home-appointment-summary">' + escapeHTML(summary) + '</p>' +
+    '<div class="home-appointment-actions">' +
+    '<button type="button" class="action-btn home-appointment-prep" data-ripple>' + escapeHTML(prep) + '</button>' +
+    '<button type="button" class="action-btn home-appointment-edit" data-ripple>' + escapeHTML(edit) + '</button>' +
+    '</div>';
+  var prepBtn = card.querySelector('.home-appointment-prep');
+  if (prepBtn) {
+    prepBtn.onclick = function() {
+      if (typeof switchTab === 'function') switchTab('ai');
+    };
+  }
+  var editBtn = card.querySelector('.home-appointment-edit');
+  if (editBtn) editBtn.onclick = function() { openHomeAppointmentPrompt(); };
+  if (typeof initRipple === 'function') initRipple(card);
+}
+
+function openHomeAppointmentPrompt() {
+  var current = appSettings.nextAppointmentDate || '';
+  var label = typeof tUi === 'function' ? tUi('home.appointment.dateLabel') : 'Visit date (YYYY-MM-DD)';
+  var raw = typeof window !== 'undefined' ? window.prompt(label, current) : null;
+  if (raw == null) return;
+  var trimmed = String(raw).trim();
+  if (!trimmed) {
+    appSettings.nextAppointmentDate = null;
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    appSettings.nextAppointmentDate = trimmed;
+  } else {
+    if (typeof showToast === 'function') {
+      showToast(typeof tUi === 'function' ? tUi('home.appointment.invalidDate') : 'Invalid date', { type: 'error' });
+    }
+    return;
+  }
+  if (typeof saveSettings === 'function') saveSettings();
+  if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
 }
 
 function updateHomeTodayPanel() {
