@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-19T16:08:26.493Z",
+  "generatedAt": "2026-06-19T16:33:44.725Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3828763,
+    "jsBytes": 3839833,
     "cssBytes": 399739,
-    "jsGzipBytes": 915225,
+    "jsGzipBytes": 917671,
     "cssGzipBytes": 70226
   },
   "files": [
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 183137,
-      "gzipBytes": 42293
+      "bytes": 191312,
+      "gzipBytes": 44216
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -79,6 +79,11 @@
       "gzipBytes": 4391
     },
     {
+      "file": "ci-minified/site/notifications.js",
+      "bytes": 20465,
+      "gzipBytes": 5230
+    },
+    {
       "file": "ci-minified/site/ui-feedback.js",
       "bytes": 20156,
       "gzipBytes": 4880
@@ -87,11 +92,6 @@
       "file": "ci-minified/site/import-utils.js",
       "bytes": 19409,
       "gzipBytes": 5029
-    },
-    {
-      "file": "ci-minified/site/notifications.js",
-      "bytes": 17570,
-      "gzipBytes": 4707
     },
     {
       "file": "ci-minified/site/privacy-region.js",
