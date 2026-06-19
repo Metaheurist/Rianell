@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { RefreshControl } from '../components/legacyRnJsx';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
@@ -9,7 +9,8 @@ import { Share } from 'react-native';
 import { runDeterministicAnalysis, exportAnalysisJsonForResearch, type AiRange } from '../ai/analyzeLogs';
 import type { Preferences } from '../storage/preferences';
 import { loadCachedBenchmark, type BenchmarkResult } from '../performance/benchmark';
-import { generateSummaryNote, generateClinicianVisitBrief, generateStructuredInsights } from '../ai/llm';
+import { generateSummaryNote, generateClinicianVisitBrief, generateStructuredInsights, sendWeekChatMessage, type WeekChatTurn } from '../ai/llm';
+import { MAX_WEEK_CHAT_TURNS, canSendWeekChatTurn } from '@rianell/shared';
 
 const RANGE_OPTIONS: AiRange[] = [14, 30, 90, 'all'];
 
@@ -36,6 +37,9 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
   const [clinicianBrief, setClinicianBrief] = useState<string>('');
   const [structuredInsights, setStructuredInsights] = useState<string>('');
   const [clinicianBriefLoading, setClinicianBriefLoading] = useState(false);
+  const [weekChatTurns, setWeekChatTurns] = useState<WeekChatTurn[]>([]);
+  const [weekChatInput, setWeekChatInput] = useState('');
+  const [weekChatLoading, setWeekChatLoading] = useState(false);
 
   const analysis = useMemo(() => {
     if (!prefs.aiEnabled) return null;
@@ -334,6 +338,81 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                 </Text>
               ) : null}
 
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                {t('ai.weekChat.section')}
+              </Text>
+              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                {t('ai.weekChat.hint', { max: String(MAX_WEEK_CHAT_TURNS) })}
+              </Text>
+              {weekChatTurns.map((turn, idx) => (
+                <View key={`week-chat-${idx}`} style={{ marginBottom: 8 }}>
+                  <Text style={[styles.metric, { color: theme.tokens.color.accent, fontSize: theme.font(13) }]}>
+                    {turn.user}
+                  </Text>
+                  <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                    {turn.assistant}
+                  </Text>
+                </View>
+              ))}
+              {canSendWeekChatTurn(weekChatTurns.length) ? (
+                <>
+                  <TextInput
+                    value={weekChatInput}
+                    onChangeText={setWeekChatInput}
+                    placeholder={t('ai.weekChat.placeholder')}
+                    placeholderTextColor={`${theme.tokens.color.text}88`}
+                    editable={!weekChatLoading}
+                    style={[
+                      styles.weekChatInput,
+                      {
+                        color: theme.tokens.color.text,
+                        borderColor: `${theme.tokens.color.text}33`,
+                        fontSize: theme.font(14),
+                      },
+                    ]}
+                  />
+                  <Pressable
+                    style={[styles.rangeChip, { alignSelf: 'flex-start', marginTop: 8, opacity: weekChatLoading ? 0.6 : 1 }]}
+                    disabled={weekChatLoading || !weekChatInput.trim()}
+                    onPress={() => {
+                      if (!summary || weekChatLoading || !weekChatInput.trim()) return;
+                      const message = weekChatInput.trim();
+                      setWeekChatLoading(true);
+                      void sendWeekChatMessage(
+                        summary,
+                        logs,
+                        weekChatTurns,
+                        message,
+                        prefs.performance.preferredLlmModelSize,
+                        benchmark,
+                        locale,
+                        prefs
+                      )
+                        .then(({ reply, canSendAnother }) => {
+                          setWeekChatTurns((prev) => [...prev, { user: message, assistant: reply }]);
+                          setWeekChatInput('');
+                          if (!canSendAnother) setWeekChatInput('');
+                        })
+                        .catch(() => setError(t('settings.export.failed')))
+                        .finally(() => setWeekChatLoading(false));
+                    }}
+                  >
+                    <Text style={{ color: theme.tokens.color.accent, fontWeight: '700' }}>
+                      {weekChatLoading ? t('ai.weekChat.loading') : t('ai.weekChat.send')}
+                    </Text>
+                  </Pressable>
+                  <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                    {t('ai.weekChat.turnsLeft', {
+                      left: String(MAX_WEEK_CHAT_TURNS - weekChatTurns.length),
+                    })}
+                  </Text>
+                </>
+              ) : (
+                <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                  {t('ai.weekChat.limitReached')}
+                </Text>
+              )}
+
               <Pressable
                 style={[styles.rangeChip, { alignSelf: 'flex-start', marginTop: 8 }]}
                 onPress={() => {
@@ -442,5 +521,13 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   rangeChipText: { fontWeight: '800' },
+  weekChatInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 8,
+    minHeight: 44,
+  },
 });
 

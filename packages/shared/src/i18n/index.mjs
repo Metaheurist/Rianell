@@ -32,3 +32,16 @@ export {
   parseStructuredLlmOutput,
   formatStructuredLlmOutput,
 } from '../ai/structuredLlmOutput.mjs';
+export {
+  normalizeLlmCoachPersona,
+  coachPersonaPromptKey,
+  LLM_COACH_PERSONAS,
+} from '../ai/llmCoachPersona.mjs';
+export {
+  MAX_WEEK_CHAT_TURNS,
+  canSendWeekChatTurn,
+  buildWeekChatContext,
+  formatWeekChatHistory,
+  buildWeekChatUserPayload,
+  buildWeekChatFallback,
+} from '../ai/weekChat.mjs';

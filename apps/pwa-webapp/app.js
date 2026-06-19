@@ -15513,6 +15513,7 @@ let appSettings = {
   useOpenData: false, // Use anonymised data pool for AI training (requires 90+ days)
   aiEnabled: true, // When false: hide AI Analysis tab, chart predictions, and Goals
   preferredLlmModelSize: 'recommended', // 'recommended' | 'tier1'..'tier5' for on-device AI model
+  llmCoachPersona: 'encouraging', // encouraging | clinical | minimal
   preferredLlmForceLargeOnWasm: false,
   preferredLlmEngine: 'auto', // auto | onnx | mlc | gguf
   pushNotificationsEnabled: false,
@@ -15685,6 +15686,15 @@ function setPreferredLlmModel(value) {
   if (typeof syncSettingsPerformanceAdvancedDisclosure === 'function') syncSettingsPerformanceAdvancedDisclosure();
 }
 if (typeof window !== 'undefined') window.setPreferredLlmModel = setPreferredLlmModel;
+
+function setLlmCoachPersona(value) {
+  var valid = value === 'encouraging' || value === 'clinical' || value === 'minimal';
+  if (!valid) return;
+  appSettings.llmCoachPersona = value;
+  saveSettings();
+  if (typeof syncSettingsPerformanceAdvancedDisclosure === 'function') syncSettingsPerformanceAdvancedDisclosure();
+}
+if (typeof window !== 'undefined') window.setLlmCoachPersona = setLlmCoachPersona;
 
 function setPreferredLlmEngine(value) {
   var valid = value === 'auto' || value === 'onnx' || value === 'mlc' || value === 'gguf';
@@ -15867,6 +15877,8 @@ function shouldHighlightSettingsPerformanceAdvanced() {
   var engine = appSettings.preferredLlmEngine || 'auto';
   if (engine !== 'auto') return true;
   if (appSettings.preferredLlmForceLargeOnWasm) return true;
+  var persona = appSettings.llmCoachPersona || 'encouraging';
+  if (persona !== 'encouraging') return true;
   var progressWrap = document.getElementById('llmModelSettingsProgressWrap');
   if (progressWrap && !progressWrap.classList.contains('hidden')) return true;
   var modelStatus = (typeof window.getAiModelStatus === 'function') ? window.getAiModelStatus() : null;
@@ -15882,6 +15894,8 @@ function shouldAutoExpandSettingsPerformanceAdvanced() {
   var engine = appSettings.preferredLlmEngine || 'auto';
   if (engine !== 'auto') return true;
   if (appSettings.preferredLlmForceLargeOnWasm) return true;
+  var persona = appSettings.llmCoachPersona || 'encouraging';
+  if (persona !== 'encouraging') return true;
   return false;
 }
 
@@ -16761,6 +16775,12 @@ function loadSettingsState() {
         localStorage.setItem('rianellLlmEngine', engineVal);
       }
     } catch (e) {}
+  }
+  var llmCoachPersonaSelect = document.getElementById('llmCoachPersonaSelect');
+  if (llmCoachPersonaSelect) {
+    var personaVal = appSettings.llmCoachPersona || 'encouraging';
+    if (personaVal !== 'clinical' && personaVal !== 'minimal') personaVal = 'encouraging';
+    llmCoachPersonaSelect.value = personaVal;
   }
   if (llmRecommendationHint) {
     refreshLlmModelSettingsHints();

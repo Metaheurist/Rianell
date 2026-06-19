@@ -1,7 +1,7 @@
 import { pipeline, env } from '@huggingface/transformers';
 import * as LegacyFileSystem from 'expo-file-system/legacy';
-import type { PreferredLlmModelSize } from '../storage/preferences';
-import { buildExpoGoLoadAttempts, modelIdFromTier } from '@rianell/llm';
+import type { Preferences, PreferredLlmModelSize } from '../storage/preferences';
+import { buildExpoGoLoadAttempts, modelIdFromTier, resolveLlmModelSizeForFeature } from '@rianell/llm';
 import {
   buildHomeQuestionPrompt,
   buildMotdPrompt,
@@ -10,6 +10,7 @@ import {
   buildClinicianBriefPrompt,
   buildExplainChartPrompt,
   buildStructuredSummaryPrompt,
+  buildWeekChatPrompt,
 } from '@rianell/shared';
 
 type LlmFeature =
@@ -19,7 +20,8 @@ type LlmFeature =
   | 'homeQuestion'
   | 'clinicianBrief'
   | 'explainChart'
-  | 'structuredSummary';
+  | 'structuredSummary'
+  | 'weekChat';
 
 let jsPipeline: Awaited<ReturnType<typeof pipeline>> | null = null;
 let jsModelId: string | null = null;
@@ -30,9 +32,15 @@ function cacheDirForModel(modelId: string): string {
   return `${root}rianell-models-js/${encodeURIComponent(modelId)}/`;
 }
 
-function resolveModelIdFromPreferred(preferredModel: PreferredLlmModelSize): string {
-  const tier = preferredModel === 'recommended' ? 'tier3' : preferredModel;
-  return modelIdFromTier(tier === 'tier1' || tier === 'tier2' ? 'tier1' : 'tier3');
+function resolveModelIdForFeature(preferredModel: PreferredLlmModelSize, feature: LlmFeature): string {
+  const baseTier = preferredModel === 'recommended' ? 'tier3' : preferredModel;
+  const resolved = resolveLlmModelSizeForFeature(baseTier, feature);
+  return modelIdFromTier(resolved === 'tier1' || resolved === 'tier2' ? 'tier1' : 'tier3');
+}
+
+function promptOptions(prefs?: Preferences | null) {
+  const persona = prefs?.performance?.llmCoachPersona;
+  return persona ? { persona } : {};
 }
 
 async function ensureJsPipeline(modelId: string): Promise<void> {
@@ -66,7 +74,7 @@ async function ensureJsPipeline(modelId: string): Promise<void> {
 }
 
 export async function isJsLlmReady(preferredModel: PreferredLlmModelSize): Promise<boolean> {
-  const modelId = resolveModelIdFromPreferred(preferredModel);
+  const modelId = resolveModelIdForFeature(preferredModel, 'summary');
   await ensureJsPipeline(modelId);
   return Boolean(jsPipeline);
 }
@@ -75,34 +83,39 @@ export async function runJsChat(
   feature: LlmFeature,
   preferredModel: PreferredLlmModelSize,
   context: string,
-  locale: string
+  locale: string,
+  prefs?: Preferences | null
 ): Promise<string | null> {
-  const modelId = resolveModelIdFromPreferred(preferredModel);
+  const modelId = resolveModelIdForFeature(preferredModel, feature);
   await ensureJsPipeline(modelId);
   if (!jsPipeline) return null;
 
+  const opts = promptOptions(prefs);
   let prompts: { system: string; user: string };
   switch (feature) {
     case 'motd':
-      prompts = buildMotdPrompt(locale);
+      prompts = buildMotdPrompt(locale, undefined, opts);
       break;
     case 'summary':
-      prompts = buildSummaryPrompt(locale, context);
+      prompts = buildSummaryPrompt(locale, context, opts);
       break;
     case 'suggestNote':
-      prompts = buildSuggestPrompt(locale, context);
+      prompts = buildSuggestPrompt(locale, context, opts);
       break;
     case 'homeQuestion':
-      prompts = buildHomeQuestionPrompt(locale, context);
+      prompts = buildHomeQuestionPrompt(locale, context, opts);
       break;
     case 'clinicianBrief':
-      prompts = buildClinicianBriefPrompt(locale, context);
+      prompts = buildClinicianBriefPrompt(locale, context, opts);
       break;
     case 'explainChart':
-      prompts = buildExplainChartPrompt(locale, context);
+      prompts = buildExplainChartPrompt(locale, context, opts);
       break;
     case 'structuredSummary':
-      prompts = buildStructuredSummaryPrompt(locale, context);
+      prompts = buildStructuredSummaryPrompt(locale, context, opts);
+      break;
+    case 'weekChat':
+      prompts = buildWeekChatPrompt(locale, context, opts);
       break;
     default:
       prompts = { system: '', user: context };
@@ -112,7 +125,15 @@ export async function runJsChat(
 
   const out = await (jsPipeline as any)(prompt, {
     max_new_tokens:
-      feature === 'motd' ? 40 : feature === 'structuredSummary' ? 220 : feature === 'clinicianBrief' ? 260 : 180,
+      feature === 'motd'
+        ? 40
+        : feature === 'structuredSummary'
+          ? 220
+          : feature === 'clinicianBrief'
+            ? 260
+            : feature === 'weekChat'
+              ? 200
+              : 180,
     do_sample: feature === 'motd',
     temperature: feature === 'motd' ? 0.7 : 0.2,
     truncation: true,

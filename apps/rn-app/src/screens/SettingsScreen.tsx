@@ -18,7 +18,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { getTeamIds } from '@rianell/tokens';
-import type { AppearanceMode, Preferences, PreferredLlmModelSize } from '../storage/preferences';
+import type { AppearanceMode, LlmCoachPersona, Preferences, PreferredLlmModelSize } from '../storage/preferences';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import { speakLabel } from '../accessibility/tts';
@@ -1763,6 +1763,46 @@ export function SettingsScreen({
                         ...prefs.performance,
 
                         preferredLlmModelSize: v as PreferredLlmModelSize,
+
+                      },
+
+                    })
+
+                  }
+
+                  tts={tts}
+
+                />
+
+              </Row>
+
+              <Row label={t('settings.performance.llmCoachPersona')}>
+
+                <InlineChoices
+
+                  value={prefs.performance.llmCoachPersona}
+
+                  options={['encouraging', 'clinical', 'minimal']}
+
+                  getLabel={(v) =>
+                    v === 'clinical'
+                      ? t('settings.performance.llmCoachPersona.clinical')
+                      : v === 'minimal'
+                        ? t('settings.performance.llmCoachPersona.minimal')
+                        : t('settings.performance.llmCoachPersona.encouraging')
+                  }
+
+                  onChange={(v) =>
+
+                    onChangePrefs({
+
+                      ...prefs,
+
+                      performance: {
+
+                        ...prefs.performance,
+
+                        llmCoachPersona: v as LlmCoachPersona,
 
                       },
 
