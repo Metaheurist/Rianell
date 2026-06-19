@@ -47,6 +47,7 @@ import { SettingsConsentDashboard } from '../settings/SettingsConsentDashboard';
 import { SettingsPrivacyTrustPane } from '../settings/SettingsPrivacyTrustPane';
 import { AnonPoolFieldChecklist } from '../settings/AnonPoolFieldChecklist';
 import { EncryptedExportModal } from '../settings/EncryptedExportModal';
+import { QrHandoffModal } from '../settings/QrHandoffModal';
 import { SettingsLoggingPane } from '../settings/SettingsLoggingPane';
 import {
   buildSettingsProfileExport,
@@ -136,6 +137,7 @@ export function SettingsScreen({
   const [profileImportText, setProfileImportText] = useState('');
   const [exportBusy, setExportBusy] = useState(false);
   const [encryptExportOpen, setEncryptExportOpen] = useState(false);
+  const [qrHandoffOpen, setQrHandoffOpen] = useState(false);
   const [shareExportOpen, setShareExportOpen] = useState(false);
   const [webDavOpen, setWebDavOpen] = useState(false);
   const [webDavUrl, setWebDavUrl] = useState('');
@@ -2023,6 +2025,17 @@ export function SettingsScreen({
 
               <Pressable
                 style={[styles.dataBtn, { opacity: exportBusy ? 0.6 : 1 }]}
+                onPress={() => setQrHandoffOpen(true)}
+                disabled={exportBusy}
+                accessibilityRole="button"
+              >
+                <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>
+                  {t('settings.export.qrHandoff.action')}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                style={[styles.dataBtn, { opacity: exportBusy ? 0.6 : 1 }]}
                 onPress={() => void onExportLogsFhir()}
                 disabled={exportBusy}
                 accessibilityRole="button"
@@ -2237,6 +2250,12 @@ export function SettingsScreen({
         busy={exportBusy}
         onClose={() => setShareExportOpen(false)}
         onSubmit={(passphrase) => void onExportShareLink(passphrase)}
+      />
+      <QrHandoffModal
+        visible={qrHandoffOpen}
+        busy={exportBusy}
+        onClose={() => setQrHandoffOpen(false)}
+        onBusyChange={setExportBusy}
       />
       <Modal visible={webDavOpen} animationType="slide" transparent onRequestClose={() => setWebDavOpen(false)}>
         <View style={styles.modalBackdrop}>

@@ -31,6 +31,7 @@ import {
   buildExplainChartPrompt,
   buildStructuredSummaryPrompt,
   buildWeekChatPrompt,
+  buildDoctorQuestionsPrompt,
 } from '@rianell/shared';
 
 import { Directory, File, Paths } from 'expo-file-system';
@@ -115,7 +116,8 @@ function buildNativeLlmPrompt(
     | 'clinicianBrief'
     | 'explainChart'
     | 'structuredSummary'
-    | 'weekChat',
+    | 'weekChat'
+    | 'doctorQuestions',
   context: string,
   locale: string,
   prefs: Preferences
@@ -139,6 +141,8 @@ function buildNativeLlmPrompt(
       return buildStructuredSummaryPrompt(locale, context, opts);
     case 'weekChat':
       return buildWeekChatPrompt(locale, context, opts);
+    case 'doctorQuestions':
+      return buildDoctorQuestionsPrompt(locale, context, opts);
     default:
       return { system: '', user: context };
   }
@@ -628,7 +632,8 @@ export async function runOnDeviceChat(
     | 'clinicianBrief'
     | 'explainChart'
     | 'structuredSummary'
-    | 'weekChat',
+    | 'weekChat'
+    | 'doctorQuestions',
   context: string,
   locale: string
 ): Promise<string | null> {

@@ -169,6 +169,14 @@
     return { system: system, user: 'Patient data: ' + context };
   }
 
+  function buildDoctorQuestionsPromptFromPack(pack, context) {
+    var system = promptString(pack, 'doctorQuestions.system',
+      'You suggest exactly three short questions a patient could ask their clinician at an upcoming visit. '
+      + 'Use only the wellness tracking data provided. Wellness framing only — not medical advice or diagnosis. '
+      + 'Reply as a numbered list (1-3), one question per line, no extra commentary.');
+    return { system: system, user: 'Recent trends: ' + context };
+  }
+
   function buildExplainChartPromptFromPack(pack, context) {
     var system = promptString(pack, 'explainChart.system',
       'You explain a health chart range in plain language for the patient. '
@@ -1546,6 +1554,49 @@
     return fallbackText || '';
   }
 
+  async function generateDoctorQuestionsWithLLM(analysis, options, fallbackList) {
+    if (!isLlmInferenceAllowedForActiveLocale()) return fallbackList || [];
+    var context = '';
+    if (window.RianellShared && typeof window.RianellShared.buildDoctorQuestionsContext === 'function') {
+      context = window.RianellShared.buildDoctorQuestionsContext({
+        analysis: analysis,
+        logs: options && options.logs,
+        rangeLabel: options && options.rangeLabel,
+      });
+    }
+    if (!context || context.length < 8) {
+      if (window.RianellShared && typeof window.RianellShared.buildDoctorQuestionsFallback === 'function') {
+        return window.RianellShared.buildDoctorQuestionsFallback(analysis || {});
+      }
+      return fallbackList || [];
+    }
+    try {
+      var ready = await awaitPipelineForInference(LOAD_TIMEOUT_MS);
+      if (!ready) return fallbackList || [];
+      var pack = await loadPromptPack(getActiveLocale());
+      var prompts = buildDoctorQuestionsPromptFromPack(pack, context);
+      var text = await raceChatInference(
+        prompts.system,
+        prompts.user,
+        { max_new_tokens: 180, do_sample: false, temperature: 0.2, truncation: true },
+        TIMEOUT_MS,
+        'Doctor questions LLM timeout'
+      );
+      if (text && window.RianellShared && typeof window.RianellShared.parseDoctorQuestionsResponse === 'function') {
+        var parsed = window.RianellShared.parseDoctorQuestionsResponse(text);
+        if (parsed.length) return parsed;
+      }
+    } catch (e) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('Doctor questions LLM failed, using fallback:', e.message || e);
+      }
+    }
+    if (window.RianellShared && typeof window.RianellShared.buildDoctorQuestionsFallback === 'function') {
+      return window.RianellShared.buildDoctorQuestionsFallback(analysis || {});
+    }
+    return fallbackList || [];
+  }
+
   async function generateExplainChartWithLLM(chartSummary, options, fallbackText) {
     if (!isLlmInferenceAllowedForActiveLocale()) return fallbackText || '';
     var context = '';
@@ -1852,6 +1903,7 @@
   window.generateSuggestNoteWithLLM = generateSuggestNoteWithLLM;
   window.generateHomeQuestionWithLLM = generateHomeQuestionWithLLM;
   window.generateClinicianBriefWithLLM = generateClinicianBriefWithLLM;
+  window.generateDoctorQuestionsWithLLM = generateDoctorQuestionsWithLLM;
   window.generateExplainChartWithLLM = generateExplainChartWithLLM;
   window.generateStructuredSummaryWithLLM = generateStructuredSummaryWithLLM;
   window.generateWeekChatWithLLM = generateWeekChatWithLLM;

@@ -1,5 +1,6 @@
 import { roundWeatherCoord } from './homeWeather.mjs';
 import { parseAppointmentDate } from './homeAppointment.mjs';
+import { normalizeTreatmentStarts } from '../clinician/medTimeline.mjs';
 
 export function normalizeHomeDashboardPrefs(raw) {
   const v = raw && typeof raw === 'object' ? raw : {};
@@ -22,6 +23,7 @@ export function normalizeHomeDashboardPrefs(raw) {
     weatherLon: lon,
     weatherCache,
     nextAppointmentDate: parseAppointmentDate(v.nextAppointmentDate),
+    treatmentStarts: normalizeTreatmentStarts(v.treatmentStarts),
     homeGapQuestionCache:
       v.homeGapQuestionCache && typeof v.homeGapQuestionCache === 'object'
         ? v.homeGapQuestionCache

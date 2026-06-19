@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.108.0** - Plan 11 phase D: achievement-free streak reminders (R6).
+**Latest: v1.109.0** - Plan 12: clinician prep PDF, QR handoff, med timeline, doctor questions (CL1–CL5).
+
+### v1.109.0 - 2026-06-19 - Plan 12 Clinician & sharing (CL1, CL2, CL4, CL5)
+- **CL1:** Appointment prep PDF — chart summary, meds, flare calendar, optional N2 brief + CL5 questions; H6 prep CTA opens PDF (PWA print + RN expo-print/share).
+- **CL2:** Ephemeral encrypted QR handoff (P4 crypto, 60 min TTL, bounded payload); PWA QR modal + RN share token from Settings.
+- **CL4:** Medication timeline rows in appointment PDF; `treatmentStarts` pref + infer-from-logs fallback.
+- **CL5:** New `doctorQuestions` LLM intent — 3 wellness-framed questions (PWA + RN AI tab).
+- **Shared:** `clinician/*`, `doctorQuestionsContext.mjs`; golden prompt audit 9 intents.
+- **Tests:** 7 plan12-phase-a tests (287 total).
 
 ### v1.108.0 - 2026-06-19 - Plan 11 Notifications phase D (R6)
 - **R6:** Optional streak reminder paired with H3 — calm-day streak context replaces generic missed-log nudge when streak ≥ 2; respects H3 card dismiss; user-disable toggle; no achievements.

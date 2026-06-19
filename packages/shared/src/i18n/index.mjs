@@ -36,6 +36,11 @@ export {
   buildClinicianBriefFallback,
 } from '../ai/clinicianBriefContext.mjs';
 export {
+  buildDoctorQuestionsContext,
+  buildDoctorQuestionsFallback,
+  parseDoctorQuestionsResponse,
+} from '../ai/doctorQuestionsContext.mjs';
+export {
   buildExplainChartContext,
   buildExplainChartFallback,
 } from '../ai/explainChartContext.mjs';

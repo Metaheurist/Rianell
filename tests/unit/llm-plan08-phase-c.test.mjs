@@ -30,7 +30,7 @@ test('isPwaOnDeviceLlmOnly is always true', () => {
 });
 
 test('golden prompt audit passes for all shipped locales and intents', () => {
-  assert.equal(GOLDEN_LLM_INTENTS.length, 8);
+  assert.equal(GOLDEN_LLM_INTENTS.length, 9);
   assert.ok(GOLDEN_LLM_LOCALES.length >= 14);
   const { errors, checked } = runGoldenPromptAudit();
   assert.equal(errors.length, 0, errors.join('; '));

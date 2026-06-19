@@ -15780,6 +15780,7 @@ let appSettings = {
   weatherLon: null,
   weatherCache: null,
   nextAppointmentDate: null,
+  treatmentStarts: [],
   homeGapQuestionCache: null,
   homeQuestionAnswerState: null,
 };
@@ -20258,12 +20259,62 @@ function renderHomeAppointmentCard(todayStr, ctx) {
   var prepBtn = card.querySelector('.home-appointment-prep');
   if (prepBtn) {
     prepBtn.onclick = function() {
-      if (typeof switchTab === 'function') switchTab('ai');
+      if (typeof runAppointmentPrepReport === 'function') {
+        void runAppointmentPrepReport();
+      }
     };
   }
   var editBtn = card.querySelector('.home-appointment-edit');
   if (editBtn) editBtn.onclick = function() { openHomeAppointmentPrompt(); };
   if (typeof initRipple === 'function') initRipple(card);
+}
+
+async function runAppointmentPrepReport() {
+  var tUi = typeof window.tUi === 'function' ? window.tUi : null;
+  try {
+    if (typeof showToast === 'function') {
+      showToast(tUi ? tUi('home.appointment.prepBusy') : 'Building prep report…', { type: 'info' });
+    }
+    var Perf = window.PerformanceUtils;
+    if (Perf && typeof Perf.lazyLoadScript === 'function') {
+      await Perf.lazyLoadScript('appointment-pdf.js');
+    }
+    var logs = typeof getHealthLogsArray === 'function' ? getHealthLogsArray() : [];
+    var briefText = '';
+    var doctorQuestions = [];
+    if (appSettings.aiEnabled !== false && Perf && typeof Perf.lazyLoadScript === 'function') {
+      try {
+        await Perf.lazyLoadScript('summary-llm.js');
+        var dayCount = 14;
+        var analysis = null;
+        if (window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function') {
+          analysis = await window.AIEngine.analyzeHealthMetrics(logs, logs.slice(), { rangeDays: dayCount });
+        }
+        if (analysis && typeof generateClinicianBriefWithLLM === 'function') {
+          briefText = await generateClinicianBriefWithLLM(
+            analysis,
+            { logs: logs, rangeLabel: 'Last ' + dayCount + ' days', goals: appSettings.goals },
+            ''
+          );
+        }
+        if (analysis && typeof generateDoctorQuestionsWithLLM === 'function') {
+          doctorQuestions = await generateDoctorQuestionsWithLLM(
+            analysis,
+            { logs: logs, rangeLabel: 'Last ' + dayCount + ' days' },
+            []
+          );
+        }
+      } catch (llmErr) { /* optional LLM sections */ }
+    }
+    if (window.RianellAppointmentPdf && typeof window.RianellAppointmentPdf.generate === 'function') {
+      await window.RianellAppointmentPdf.generate({ logs: logs, briefText: briefText, doctorQuestions: doctorQuestions });
+    } else {
+      throw new Error('Appointment PDF module not loaded');
+    }
+  } catch (e) {
+    var msg = (e && e.message) ? String(e.message) : 'Prep report failed';
+    if (typeof showToast === 'function') showToast(msg, { type: 'error' });
+  }
 }
 
 function openHomeAppointmentPrompt() {

@@ -153,6 +153,7 @@ export type Preferences = {
     fetchedAt: number;
   } | null;
   nextAppointmentDate: string | null;
+  treatmentStarts: Array<{ date: string; label: string }>;
   homeGapQuestionCache: { date: string; gapId: string } | null;
   homeQuestionAnswerState: { date: string; count: number } | null;
 };
@@ -260,6 +261,7 @@ export function getDefaultPreferences(): Preferences {
     weatherLon: null,
     weatherCache: null,
     nextAppointmentDate: null,
+    treatmentStarts: [],
     homeGapQuestionCache: null,
     homeQuestionAnswerState: null,
   };
