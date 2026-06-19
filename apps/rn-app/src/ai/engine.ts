@@ -23,3 +23,35 @@ export type PredictedPoint = {
   lower: number;
   upper: number;
 };
+
+export type FlarePostMortemResult = {
+  flareDate: string;
+  windowDays: number;
+  beforeDays: number;
+  afterDays: number;
+  metrics: Array<{
+    key: string;
+    label: string;
+    beforeAvg: number | null;
+    afterAvg: number | null;
+    delta: number | null;
+    diverged: boolean;
+  }>;
+  diverging: Array<{
+    key: string;
+    label: string;
+    beforeAvg: number | null;
+    afterAvg: number | null;
+    delta: number | null;
+    diverged: boolean;
+  }>;
+};
+
+export type PacingChartRow = {
+  date: string;
+  planned: number;
+  actual: number;
+  rawActual: number;
+  fatigue: number | null;
+  overpaced: boolean;
+};
