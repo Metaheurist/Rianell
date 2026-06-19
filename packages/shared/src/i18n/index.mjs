@@ -15,6 +15,11 @@ export {
   HOME_SUGGESTIONS_MIN_DAYS,
   HOME_SUGGESTIONS_MAX_CHIPS,
 } from '../ai/homeSuggestions.mjs';
+export {
+  computeHomeCardContext,
+  resolveHomeCardOrder,
+  isLoggingStreakBroken,
+} from '../ai/homeCardRegistry.mjs';
 export { buildHomeQuestionContext } from '../ai/homeQuestionContext.mjs';
 export {
   buildClinicianBriefContext,

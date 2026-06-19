@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   Alert,
@@ -33,6 +33,8 @@ import { generateMotd, answerHomeQuestion } from '../ai/llm';
 import {
   pickHomeAiSuggestions,
   analysisSnapshotFromSummary,
+  computeHomeCardContext,
+  resolveHomeCardOrder,
 } from '@rianell/shared';
 import { summarizeLogsForAi } from '../ai/analyzeLogs';
 import Constants from 'expo-constants';
@@ -354,7 +356,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
         setHomeLogs(logs);
         const logged = logs.some((l) => l.date === d);
         setLoggedToday(logged);
-        if (!prefs.aiEnabled || !logged) {
+        if (!prefs.aiEnabled || prefs.simpleMode || !logged) {
           setHomeSuggestions([]);
           setHomeAnalysisSnapshot(null);
           return;
@@ -370,7 +372,7 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
         setHomeSuggestions([]);
         setHomeAnalysisSnapshot(null);
       });
-  }, [prefs.aiEnabled, t]);
+  }, [prefs.aiEnabled, prefs.simpleMode, t]);
 
   useEffect(() => {
     refreshToday();
@@ -503,6 +505,105 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
     }
   }, [bugActual, bugDescription, bugExpected, bugSteps, bugTitle, t]);
 
+  const cardContext = useMemo(
+    () =>
+      computeHomeCardContext(homeLogs, todayIso(), {
+        aiEnabled: prefs.aiEnabled,
+        simpleMode: prefs.simpleMode,
+        showGoals: true,
+      }),
+    [homeLogs, prefs.aiEnabled, prefs.simpleMode]
+  );
+  const cardOrder = useMemo(() => resolveHomeCardOrder(cardContext), [cardContext]);
+
+  const renderHomeCard = (cardId: string) => {
+    if (cardId === 'nudge') {
+      return (
+        <View
+          key="nudge"
+          style={[styles.card, styles.nudgeCard, { borderColor: `${accent}55` }]}
+          accessibilityRole="text"
+          accessibilityLabel={t('home.nudge.streakBroken')}
+        >
+          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+            {t('home.nudge.streakBroken')}
+          </Text>
+        </View>
+      );
+    }
+    if (cardId === 'hero') {
+      return (
+        <View key="hero" style={styles.card}>
+          <Text style={[styles.title, { color: accent, fontSize: theme.font(22) }]}>Rianell</Text>
+          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
+            {loggedToday === null
+              ? t('home.status.loadingToday')
+              : loggedToday
+                ? t('home.status.loggedTodayDetail')
+                : t('home.status.notLoggedTodayDetail')}
+          </Text>
+          {loggedToday ? (
+            <Pressable
+              onPress={() => void onReadTodayEntry()}
+              style={({ pressed }) => [
+                styles.readTodayBtn,
+                { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1 },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={t('home.action.readTodayEntry')}
+            >
+              <Text style={{ color: accent, fontSize: theme.font(14) }}>{t('home.action.readTodayEntry')}</Text>
+            </Pressable>
+          ) : null}
+          <HomeMotdHeartbeat motd={motd} theme={theme} latestBpm={latestBpm} t={t} />
+          {cardContext.showAiQuestions && homeSuggestions.length > 0 ? (
+            <View style={styles.suggestionsRow} accessibilityRole="list">
+              {homeSuggestions.map((chip) => (
+                <Pressable
+                  key={chip.id}
+                  onPress={() => onSuggestionPress(chip)}
+                  style={({ pressed }) => [
+                    styles.suggestionChip,
+                    { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1 },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={t(chip.labelKey, chip.labelParams)}
+                >
+                  <Text style={[styles.suggestionChipText, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                    {t(chip.labelKey, chip.labelParams)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
+        </View>
+      );
+    }
+    if (cardId === 'goals') {
+      return (
+        <View key="goals" style={styles.card} accessibilityLabel={t('home.goals.title')}>
+          <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.goals.title')}</Text>
+          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+            {t('home.goals.summary', {
+              steps: prefs.goals.steps.toLocaleString(),
+              hydration: String(prefs.goals.hydration),
+              sleepScore: String(prefs.goals.sleepScore),
+              goodDays: String(prefs.goals.goodDaysPerWeek),
+            })}
+          </Text>
+          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(13), marginTop: 6 }]}>
+            {t('home.goals.wellness', {
+              mood: String(prefs.goals.moodTarget),
+              sleep: String(prefs.goals.sleepTarget),
+              fatigue: String(prefs.goals.fatigueTarget),
+            })}
+          </Text>
+        </View>
+      );
+    }
+    return null;
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>
       <View style={styles.headerRow}>
@@ -537,69 +638,9 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
         </View>
       </View>
 
-      <View style={styles.card}>
-        <Text style={[styles.title, { color: accent, fontSize: theme.font(22) }]}>Rianell</Text>
-        <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
-          {loggedToday === null
-            ? t('home.status.loadingToday')
-            : loggedToday
-              ? t('home.status.loggedTodayDetail')
-              : t('home.status.notLoggedTodayDetail')}
-        </Text>
-        {loggedToday ? (
-          <Pressable
-            onPress={() => void onReadTodayEntry()}
-            style={({ pressed }) => [
-              styles.readTodayBtn,
-              { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1 },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={t('home.action.readTodayEntry')}
-          >
-            <Text style={{ color: accent, fontSize: theme.font(14) }}>{t('home.action.readTodayEntry')}</Text>
-          </Pressable>
-        ) : null}
-        <HomeMotdHeartbeat motd={motd} theme={theme} latestBpm={latestBpm} t={t} />
-        {homeSuggestions.length > 0 ? (
-          <View style={styles.suggestionsRow} accessibilityRole="list">
-            {homeSuggestions.map((chip) => (
-              <Pressable
-                key={chip.id}
-                onPress={() => onSuggestionPress(chip)}
-                style={({ pressed }) => [
-                  styles.suggestionChip,
-                  { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1 },
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel={t(chip.labelKey, chip.labelParams)}
-              >
-                <Text style={[styles.suggestionChipText, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-                  {t(chip.labelKey, chip.labelParams)}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        ) : null}
-      </View>
-
-      <View style={styles.card} accessibilityLabel={t('home.goals.title')}>
-        <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.goals.title')}</Text>
-        <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-          {t('home.goals.summary', {
-            steps: prefs.goals.steps.toLocaleString(),
-            hydration: String(prefs.goals.hydration),
-            sleepScore: String(prefs.goals.sleepScore),
-            goodDays: String(prefs.goals.goodDaysPerWeek),
-          })}
-        </Text>
-        <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(13), marginTop: 6 }]}>
-          {t('home.goals.wellness', {
-            mood: String(prefs.goals.moodTarget),
-            sleep: String(prefs.goals.sleepTarget),
-            fatigue: String(prefs.goals.fatigueTarget),
-          })}
-        </Text>
-      </View>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {cardOrder.map((cardId) => renderHomeCard(cardId))}
+      </ScrollView>
 
       <View style={[styles.fabWrap, { bottom: tabBarHeight + 16 }]}>
         <Pressable
@@ -794,7 +835,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(0,0,0,0.42)',
   },
-  card: { borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)' },
+  card: { borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)', marginBottom: 12 },
+  nudgeCard: {
+    backgroundColor: 'rgba(76,175,80,0.12)',
+    borderWidth: 1,
+  },
+  scrollContent: { paddingBottom: 96 },
   title: { fontSize: 22, fontWeight: '700', marginBottom: 8 },
   text: { fontSize: 16, opacity: 0.95 },
   readTodayBtn: {

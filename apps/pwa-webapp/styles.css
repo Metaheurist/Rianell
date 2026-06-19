@@ -15349,6 +15349,21 @@ body.log-wizard-active .header-buttons-wrap {
   box-shadow: var(--elev-2);
 }
 
+.home-nudge-card {
+  background: rgba(76, 175, 80, 0.12);
+  border: 1px solid rgba(76, 175, 80, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  margin-bottom: var(--section-gap);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.home-nudge-card[hidden] {
+  display: none !important;
+}
+
 .home-ai-suggestions {
   display: flex;
   flex-wrap: wrap;

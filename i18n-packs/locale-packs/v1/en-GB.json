@@ -495,6 +495,7 @@
     "home.questions.modalTitle": "AI insight",
     "home.goals.summary": "Steps target: {steps} · Hydration: {hydration} glasses · Sleep score: {sleepScore}/10 · Good days/week: {goodDays}",
     "home.goals.wellness": "Wellness targets - mood {mood}/10 · sleep {sleep}/10 · fatigue {fatigue}/10",
+    "home.nudge.streakBroken": "You logged yesterday but not yet today. A short check-in helps spot patterns.",
     "home.bugReport.title": "Report a bug",
     "home.bugReport.lede": "Describe what went wrong. Device info and recent app log lines are attached automatically when you submit.",
     "home.bugReport.field.titleOptional": "Title (optional)",

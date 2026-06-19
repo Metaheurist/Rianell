@@ -10008,6 +10008,7 @@ function updateGoalsProgressBlock() {
   block.querySelectorAll('[data-count-target]').forEach(function (el) {
     if (typeof countUp === 'function') countUp(el, parseFloat(el.getAttribute('data-count-target')) || 0, 600);
   });
+  if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
 }
 
 function flushOfflineQueue() {
@@ -19734,6 +19735,44 @@ function initializeLogWizardSections() {
   });
 }
 
+function applyHomeCardLayout() {
+  var S = getHomeSharedAi();
+  if (!S || typeof S.resolveHomeCardOrder !== 'function') return;
+  var homeTab = document.getElementById('homeTab');
+  if (!homeTab) return;
+  var todayStr = getTodayDateStr();
+  var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
+  var goalsBlock = document.getElementById('goalsProgressBlock');
+  var hasGoals = goalsBlock && goalsBlock.getAttribute('data-has-goals') === 'true';
+  var ctx = typeof S.computeHomeCardContext === 'function'
+    ? S.computeHomeCardContext(logArr, todayStr, {
+        aiEnabled: typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false,
+        simpleMode: typeof appSettings !== 'undefined' && appSettings.simpleMode === true,
+        showGoals: hasGoals,
+      })
+    : null;
+  if (!ctx) return;
+  var order = S.resolveHomeCardOrder(ctx);
+  var nudge = document.getElementById('homeNudgeCard');
+  if (nudge) {
+    if (order.indexOf('nudge') >= 0) {
+      nudge.hidden = false;
+      nudge.textContent = typeof tUi === 'function' ? tUi('home.nudge.streakBroken') : 'You logged yesterday but not yet today.';
+    } else {
+      nudge.hidden = true;
+      nudge.textContent = '';
+    }
+  }
+  var header = homeTab.querySelector('.home-today-header');
+  var insertAfter = header;
+  order.forEach(function(cardId) {
+    var el = homeTab.querySelector('[data-home-card="' + cardId + '"]');
+    if (!el || !insertAfter || !insertAfter.parentNode) return;
+    insertAfter.parentNode.insertBefore(el, insertAfter.nextSibling);
+    insertAfter = el;
+  });
+}
+
 function updateHomeTodayPanel() {
   var greet = document.getElementById('homeGreeting');
   var dateEl = document.getElementById('homeTodayDate');
@@ -19767,6 +19806,7 @@ function updateHomeTodayPanel() {
     if (hero) hero.classList.remove('home-hero-card--logged');
   }
   if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();
+  if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
   if (hero) {
     hero.classList.add('rianell-in-view');
     if (typeof initScrollReveal === 'function') initScrollReveal(hero.parentElement);
@@ -19791,7 +19831,7 @@ function renderHomeAiSuggestions() {
     container.hidden = true;
     return;
   }
-  var aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
+  var aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false && appSettings.simpleMode !== true;
   var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
   var todayStr = getTodayDateStr();
   var loggedToday = logArr.some(function(l) { return l && l.date === todayStr; });
