@@ -133,7 +133,7 @@ export function WeeklyReviewScreen({
           correlationLines.length ? (
             correlationLines.map((line: { id: string; label: string; detail?: string }) => (
               <Text key={line.id} style={[styles.body, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                · {line.label} {line.detail ? `— ${line.detail}` : ''}
+                · {line.label} {line.detail ? `, ${line.detail}` : ''}
               </Text>
             ))
           ) : (

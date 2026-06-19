@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.112.0** - Docs: migrate `Projects/` to `docs/plans/`; consolidate Supabase SQL.
+**Latest: v1.113.0** - Mood tab, Home UX refresh, i18n/CSP fixes, em-dash copy cleanup.
+
+### v1.113.0 - 2026-06-18 - Mood tab, Home UX, i18n & CSP fixes
+- **Mood tab:** New primary nav tab (PWA + RN) between Charts and AI — mood metrics from log answers, recent-feeling sparkline, AM/midday/PM micro-check-in, PHQ/GAD shortcuts, Charts mood link; `apps/pwa-webapp/modules/mood-tab.js`, RN `MoodScreen.tsx`.
+- **Shared:** `packages/shared/src/mood/moodMetrics.mjs` — `collectMoodReadings`, `summarizeMoodMetrics`, `moodQualitativeKey`; PWA vendor rebuild (`rianell-shared.js`, `rianell-ai-engine.js`).
+- **Home UX:** Opt-in weather inline in welcome/date header (standalone weather card removed); micro-check-in removed from Home (lives on Mood tab); Upcoming visit / appointment Home card removed (`homeCardRegistry`); CL1 appointment PDF prep unchanged in clinician flows.
+- **i18n:** Settings cross-cutting sections refresh via `applyDocumentI18n()`; PHQ/GAD screening + weekly review modals wait for catalogs (`withCatalogsReady`, `refreshOpenModalI18n` on locale change); `nav.mood` and `mood.*` keys across 14 locale packs.
+- **Copy:** Replaced em dashes (—) with en dashes or commas in UI strings (locale + prompt packs, PWA/RN/shared/ai-engine).
+- **PWA:** Data-management settings tiles — one button per grid cell; CSP `connect-src` allows Open-Meteo (`api.open-meteo.com`, `air-quality-api.open-meteo.com`); `verify-csp-connect-src` gate updated.
+- **Tests:** `mood-metrics.test.mjs` (3); plan14 mental-health i18n keys; plan10/plan04 adjustments; **308** unit tests total.
+- **Security:** `npm audit` clean; CVE review notes in SECURITY.md (Supabase Auth operator floor, dev-only Metro CVE-2025-11953).
 
 ### v1.112.0 - 2026-06-19 - Docs: execution plans + Supabase schema
 - **Plans:** Migrated gitignored `Projects/` → tracked **`docs/plans/`** (MASTER, 14 plan runbooks, EXTERNAL-SETUP, rollout gates, verify scripts).

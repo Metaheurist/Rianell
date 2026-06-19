@@ -78,15 +78,15 @@ export function predictFutureValues(series, days = 7) {
 export function suggestLogNote(context, options = {}) {
   const translate = options?.translate;
   const parts = [];
-  if (context && context.flare === 'Yes') parts.push('Flare day — rest and hydration may help.');
+  if (context && context.flare === 'Yes') parts.push('Flare day. Rest and hydration may help.');
   if (context && typeof context.fatigue === 'number' && context.fatigue >= 7) {
     parts.push(tr(translate, 'ai.template.worsening', { metric: 'Fatigue' }, 'Fatigue is high today.'));
   }
-  if (context && typeof context.sleep === 'number' && context.sleep <= 4) parts.push('Sleep was low — gentle pace recommended.');
+  if (context && typeof context.sleep === 'number' && context.sleep <= 4) parts.push('Sleep was low. Gentle pace recommended.');
   if (context && typeof context.mood === 'number' && context.mood <= 4) {
-    parts.push(tr(translate, 'ai.template.worsening', { metric: 'Mood' }, 'Mood is low — be kind to yourself today.'));
+    parts.push(tr(translate, 'ai.template.worsening', { metric: 'Mood' }, 'Mood is low. Be kind to yourself today.'));
   }
-  if (!parts.length) parts.push('Steady day — note anything that helped or hindered how you felt.');
+  if (!parts.length) parts.push('Steady day. Note anything that helped or hindered how you felt.');
   return parts.join(' ');
 }
 

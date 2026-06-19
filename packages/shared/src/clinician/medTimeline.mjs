@@ -87,7 +87,7 @@ export function buildTimelineSvg(rows, opts = {}) {
       const y = 36 + i * rowH;
       const barW = Math.max(40, width - left - 24);
       const label = String(row.label || '').slice(0, 18);
-      const detail = `${row.preFatigueAvg ?? '—'} → ${row.postFatigueAvg ?? '—'}`;
+      const detail = `${row.preFatigueAvg ?? '-'} → ${row.postFatigueAvg ?? '-'}`;
       return `<text x="8" y="${y + 12}" font-size="10" fill="#333">${label}</text>` +
         `<rect x="${left}" y="${y}" width="${barW}" height="16" fill="rgba(76,175,80,0.25)" stroke="#4caf50"/>` +
         `<text x="${left + 6}" y="${y + 12}" font-size="9" fill="#222">${row.startDate} · fatigue ${detail}</text>`;

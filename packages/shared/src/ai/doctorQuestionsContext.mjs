@@ -22,7 +22,7 @@ export function buildDoctorQuestionsFallback(analysis = {}) {
     'What should I keep monitoring after this appointment?',
   ];
   if (analysis.flareDays > 0) {
-    q[1] = `I had ${analysis.flareDays} flare day(s) recently — what might be useful to review together?`;
+    q[1] = `I had ${analysis.flareDays} flare day(s) recently. What might be useful to review together?`;
   }
   return q;
 }

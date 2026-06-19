@@ -57,6 +57,7 @@ var RianellShared = (() => {
     MENTAL_HEALTH_DISCLAIMER_I18N: () => MENTAL_HEALTH_DISCLAIMER_I18N,
     MIGRATION_COPY: () => MIGRATION_COPY,
     MIGRATION_SOURCES: () => MIGRATION_SOURCES,
+    MOOD_CHECKIN_PERIODS: () => MOOD_CHECKIN_PERIODS,
     OFFLINE_QUEUE_KEY: () => OFFLINE_QUEUE_KEY,
     ON_DEVICE_MOAT_BULLET_KEYS: () => ON_DEVICE_MOAT_BULLET_KEYS,
     PHQ2_QUESTIONS: () => PHQ2_QUESTIONS,
@@ -159,6 +160,7 @@ var RianellShared = (() => {
     coachPersonaPromptKey: () => coachPersonaPromptKey,
     collectFlareCalendarEntries: () => collectFlareCalendarEntries,
     collectMedicationList: () => collectMedicationList,
+    collectMoodReadings: () => collectMoodReadings,
     completedCheckinPeriods: () => completedCheckinPeriods,
     computeFlareFreeDays: () => computeFlareFreeDays,
     computeGoodDayStreak: () => computeGoodDayStreak,
@@ -190,6 +192,7 @@ var RianellShared = (() => {
     extractMedDoseTakenMap: () => extractMedDoseTakenMap,
     fetchHomeWeatherSnapshot: () => fetchHomeWeatherSnapshot,
     fetchOpenFoodFactsProduct: () => fetchOpenFoodFactsProduct,
+    filterLogsByDays: () => filterLogsByDays,
     filterLogsForAppointment: () => filterLogsForAppointment,
     filterLogsForHomeSuggestions: () => filterLogsForHomeSuggestions,
     findLogSyncConflicts: () => findLogSyncConflicts,
@@ -267,6 +270,7 @@ var RianellShared = (() => {
     mergeHealthLogsWithConflictPolicy: () => mergeHealthLogsWithConflictPolicy,
     mergeLogEntriesForDate: () => mergeLogEntriesForDate,
     minutesToHHMM: () => minutesToHHMM,
+    moodQualitativeKey: () => moodQualitativeKey,
     needsDataResidencyMigration: () => needsDataResidencyMigration,
     nextHomeQuestionAnswerState: () => nextHomeQuestionAnswerState,
     normalizeAccessibilitySettings: () => normalizeAccessibilitySettings,
@@ -343,6 +347,7 @@ var RianellShared = (() => {
     suggestPrivacyRegionFromHint: () => suggestPrivacyRegionFromHint,
     summarizeCorrelationStep: () => summarizeCorrelationStep,
     summarizeDigestStep: () => summarizeDigestStep,
+    summarizeMoodMetrics: () => summarizeMoodMetrics,
     t: () => t,
     textDirection: () => textDirection,
     touchLastActiveAt: () => touchLastActiveAt,
@@ -957,7 +962,7 @@ var RianellShared = (() => {
   var POLICY_BODIES = {
     "global-baseline": [
       "Rianell is a personal wellness tracker. Your health logs are stored on your device unless you turn on optional cloud backup.",
-      "Optional features \u2014 encrypted cloud backup, anonymised research contribution, and on-device AI \u2014 each need separate consent. You can change or withdraw consent in Settings.",
+      "Optional features (encrypted cloud backup, anonymised research contribution, and on-device AI) each need separate consent. You can change or withdraw consent in Settings.",
       "You can export your data or delete local and cloud copies at any time from Settings \u2192 Data options."
     ],
     "eu-gdpr": [
@@ -1690,7 +1695,7 @@ var RianellShared = (() => {
         "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
         "homeQuestion.system": "You answer one specific health-tracking question using only the data provided. Write 3\u20135 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text.",
         "clinicianBrief.system": "You write a one-page clinician visit prep brief from health-tracking data. Use only the data provided. Structure: key patterns, symptom/stressor highlights, questions to ask the clinician. Plain language. No diagnosis or treatment orders. Max 180 words. Reply with only the brief text.",
-        "doctorQuestions.system": "You suggest exactly three short questions a patient could ask their clinician at an upcoming visit. Use only the wellness tracking data provided. Wellness framing only \u2014 not medical advice or diagnosis. Reply as a numbered list (1-3), one question per line, no extra commentary.",
+        "doctorQuestions.system": "You suggest exactly three short questions a patient could ask their clinician at an upcoming visit. Use only the wellness tracking data provided. Wellness framing only, not medical advice or diagnosis. Reply as a numbered list (1-3), one question per line, no extra commentary.",
         "explainChart.system": "You explain a health chart range in plain language for the patient. Use only the metrics provided. Mention trends and one practical observation. No diagnosis. Max 4 short sentences. Reply with only the narration text.",
         "structured.system": 'You analyse health-tracking data and reply with JSON only: {"insights":["..."],"actions":["..."],"confidence":0.0}. insights: up to 3 short pattern observations. actions: up to 2 gentle self-care ideas. confidence: 0-1 number. Use only provided data. No diagnosis or prescriptions.',
         "weekChat.system": "You are a wellness diary coach. Answer using only the health log context provided. Max 4 short sentences. No diagnosis, prescriptions, or tool use. Stay within the conversation scope. Reply with only your answer text.",
@@ -1987,7 +1992,7 @@ var RianellShared = (() => {
       promptString(
         pack,
         "doctorQuestions.system",
-        "You suggest exactly three short questions a patient could ask their clinician at an upcoming visit. Use only the wellness tracking data provided. Wellness framing only \u2014 not medical advice or diagnosis. Reply as a numbered list (1-3), one question per line, no extra commentary."
+        "You suggest exactly three short questions a patient could ask their clinician at an upcoming visit. Use only the wellness tracking data provided. Wellness framing only, not medical advice or diagnosis. Reply as a numbered list (1-3), one question per line, no extra commentary."
       ),
       pack,
       options.persona
@@ -2514,10 +2519,7 @@ var RianellShared = (() => {
   var HOME_CARDS = [
     { id: "nudge", basePriority: 40 },
     { id: "weeklyReview", basePriority: 68 },
-    { id: "appointment", basePriority: 78 },
-    { id: "weather", basePriority: 48 },
     { id: "streak", basePriority: 38 },
-    { id: "checkin", basePriority: 70 },
     { id: "pacing", basePriority: 55 },
     { id: "hero", basePriority: 100 },
     { id: "goals", basePriority: 60 }
@@ -2545,7 +2547,6 @@ var RianellShared = (() => {
       showCheckin = true,
       showStreak = false,
       showWeather = false,
-      showAppointment = false,
       showWeeklyReview = false
     } = options;
     const loggedToday = Array.isArray(logs) && logs.some((l) => l?.date === todayStr);
@@ -2562,7 +2563,6 @@ var RianellShared = (() => {
       showCheckin: showCheckin !== false && simpleMode !== true,
       showStreak: showStreak === true,
       showWeather: showWeather === true,
-      showAppointment: showAppointment === true,
       showWeeklyReview: showWeeklyReview === true
     };
   }
@@ -2573,21 +2573,15 @@ var RianellShared = (() => {
       if (card.id === "nudge" && (!ctx.streakBroken || ctx.loggedToday)) continue;
       if (card.id === "goals" && !ctx.showGoals) continue;
       if (card.id === "pacing" && !ctx.showPacing) continue;
-      if (card.id === "checkin" && !ctx.showCheckin) continue;
       if (card.id === "streak" && !ctx.showStreak) continue;
-      if (card.id === "weather" && !ctx.showWeather) continue;
-      if (card.id === "appointment" && !ctx.showAppointment) continue;
       if (card.id === "weeklyReview" && !ctx.showWeeklyReview) continue;
       let priority = card.basePriority;
       if (ctx.loggedToday && card.id === "goals") priority += 50;
-      if (ctx.loggedToday && card.id === "checkin") priority += 35;
       if (ctx.loggedToday && card.id === "pacing") priority += 20;
       if (!ctx.loggedToday && card.id === "hero") priority += 30;
       if (!ctx.loggedToday && card.id === "nudge") priority += 80;
       if (ctx.streakBroken && card.id === "nudge") priority += 20;
-      if (ctx.showAppointment && card.id === "appointment") priority += 25;
       if (ctx.showWeeklyReview && card.id === "weeklyReview") priority += 40;
-      if (ctx.loggedToday && card.id === "weather") priority += 15;
       scored.push({ id: card.id, priority });
     }
     return scored.sort((a, b) => b.priority - a.priority).map((c) => c.id);
@@ -2731,7 +2725,7 @@ ${raw}
       "What should I keep monitoring after this appointment?"
     ];
     if (analysis.flareDays > 0) {
-      q[1] = `I had ${analysis.flareDays} flare day(s) recently \u2014 what might be useful to review together?`;
+      q[1] = `I had ${analysis.flareDays} flare day(s) recently. What might be useful to review together?`;
     }
     return q;
   }
@@ -2763,9 +2757,9 @@ ${raw}
     if (flareDays > 0) parts.push(`Flare days: ${flareDays}.`);
     for (const trend of (trends || []).slice(0, 6)) {
       if (!trend || !trend.label) continue;
-      const avg = trend.average != null && Number.isFinite(trend.average) ? trend.average.toFixed(1) : "\u2014";
-      const cur = trend.current != null && Number.isFinite(trend.current) ? trend.current.toFixed(1) : "\u2014";
-      const delta = trend.delta != null && Number.isFinite(trend.delta) ? `${trend.delta >= 0 ? "+" : ""}${trend.delta.toFixed(1)}` : "\u2014";
+      const avg = trend.average != null && Number.isFinite(trend.average) ? trend.average.toFixed(1) : "-";
+      const cur = trend.current != null && Number.isFinite(trend.current) ? trend.current.toFixed(1) : "-";
+      const delta = trend.delta != null && Number.isFinite(trend.delta) ? `${trend.delta >= 0 ? "+" : ""}${trend.delta.toFixed(1)}` : "-";
       parts.push(`${trend.label}: avg ${avg}, latest ${cur}, change ${delta} (${trend.points || 0} points).`);
     }
     const text = parts.join(" ");
@@ -2775,7 +2769,7 @@ ${raw}
     const trend = chartSummary.trends?.[0];
     if (!trend) return "Not enough chart data to narrate this range yet.";
     const label = trend.label || trend.key || "Metric";
-    const avg = trend.average != null ? Number(trend.average).toFixed(1) : "\u2014";
+    const avg = trend.average != null ? Number(trend.average).toFixed(1) : "-";
     return `${label} averaged ${avg} over ${chartSummary.rangeLabel || "this range"}.`;
   }
 
@@ -2891,7 +2885,7 @@ ${hist}`);
     if (flare > 0) {
       return `You logged ${total} days with ${flare} flare day(s). Rest and steady routines may help this week.`;
     }
-    return `You logged ${total} days this period. Keep noting what helps \u2014 patterns build with steady logging.`;
+    return `You logged ${total} days this period. Keep noting what helps; patterns build with steady logging.`;
   }
 
   // packages/shared/src/ai/llmOnDevicePolicy.mjs
@@ -3393,7 +3387,7 @@ ${hist}`);
   function formatBarcodeFoodLabel(product) {
     if (!product || typeof product !== "object") return "";
     const parts = [product.brand, product.name].filter(Boolean);
-    return parts.join(" \u2014 ").slice(0, 200);
+    return parts.join(", ").slice(0, 200);
   }
 
   // packages/shared/src/logging/voiceLogExtract.mjs
@@ -3800,7 +3794,7 @@ ${hist}`);
   function buildStreakReminderNotificationContent(snapshot2 = {}) {
     const goodDays = snapshot2.goodDayStreak ?? 0;
     const flareFree = snapshot2.flareFreeDays ?? 0;
-    const body = goodDays <= 1 ? "One calm day in a row. A quick log keeps your picture complete." : `${goodDays} calm day(s) in a row \xB7 ${flareFree} flare-free. Still time to log today \u2014 no scores, just continuity.`;
+    const body = goodDays <= 1 ? "One calm day in a row. A quick log keeps your picture complete." : `${goodDays} calm day(s) in a row \xB7 ${flareFree} flare-free. Still time to log today, no scores, just continuity.`;
     return {
       title: "Recent patterns",
       body,
@@ -3989,7 +3983,7 @@ ${hist}`);
       const y = 36 + i * rowH;
       const barW = Math.max(40, width - left - 24);
       const label = String(row.label || "").slice(0, 18);
-      const detail = `${row.preFatigueAvg ?? "\u2014"} \u2192 ${row.postFatigueAvg ?? "\u2014"}`;
+      const detail = `${row.preFatigueAvg ?? "-"} \u2192 ${row.postFatigueAvg ?? "-"}`;
       return `<text x="8" y="${y + 12}" font-size="10" fill="#333">${label}</text><rect x="${left}" y="${y}" width="${barW}" height="16" fill="rgba(76,175,80,0.25)" stroke="#4caf50"/><text x="${left + 6}" y="${y + 12}" font-size="9" fill="#222">${row.startDate} \xB7 fatigue ${detail}</text>`;
     }).join("");
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${bars}</svg>`;
@@ -4449,7 +4443,7 @@ ${hist}`);
   }
 
   // packages/shared/src/clinician/appointmentReport.mjs
-  var APPOINTMENT_DISCLAIMER = "Wellness tracking only \u2014 not medical advice, diagnosis, or treatment. Discuss patterns with your clinician.";
+  var APPOINTMENT_DISCLAIMER = "Wellness tracking only, not medical advice, diagnosis, or treatment. Discuss patterns with your clinician.";
   var APPOINTMENT_RANGE_DAYS = 30;
   function sortLogsNewestFirst(logs) {
     return [...Array.isArray(logs) ? logs : []].sort(
@@ -4536,7 +4530,7 @@ ${hist}`);
     const flareList = (m.flareDates || []).length ? (m.flareDates || []).map((d) => `<li>${escapeHtml(d)}</li>`).join("") : "<li>None recorded in range</li>";
     const medList = (m.medications || []).length ? (m.medications || []).map((d) => `<li>${escapeHtml(d)}</li>`).join("") : "<li>None listed</li>";
     const timeline = (m.timelineRows || []).map(
-      (row) => `<tr><td>${escapeHtml(row.startDate)}</td><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.preFatigueAvg ?? "\u2014")}</td><td>${escapeHtml(row.postFatigueAvg ?? "\u2014")}</td></tr>`
+      (row) => `<tr><td>${escapeHtml(row.startDate)}</td><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.preFatigueAvg ?? "-")}</td><td>${escapeHtml(row.postFatigueAvg ?? "-")}</td></tr>`
     ).join("");
     const questions = (m.doctorQuestions || []).map((q, i) => `<li>${escapeHtml(q)}</li>`).join("");
     const apptLine = m.appointmentDate ? `<p><strong>Upcoming visit:</strong> ${escapeHtml(m.appointmentDate)}</p>` : "";
@@ -4608,7 +4602,7 @@ ${questionsBlock}
     };
     const token = JSON.stringify(payload);
     if (token.length > QR_HANDOFF_MAX_CHARS) {
-      throw new Error("Handoff payload too large for QR \u2014 try fewer logs or use encrypted file export");
+      throw new Error("Handoff payload too large for QR. Try fewer logs or use encrypted file export");
     }
     return { token, expiresAt, logCount: subset.length };
   }
@@ -4998,6 +4992,117 @@ ${questionsBlock}
     return CRISIS_BY_REGION.other;
   }
   var MENTAL_HEALTH_DISCLAIMER_I18N = "mentalHealth.disclaimer";
+
+  // packages/shared/src/mood/moodMetrics.mjs
+  var MOOD_CHECKIN_PERIODS = HOME_CHECKIN_PERIODS;
+  var PERIOD_ORDER = { AM: 0, midday: 1, PM: 2 };
+  function clampMood(v) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return null;
+    return Math.min(10, Math.max(0, Math.round(n)));
+  }
+  function toDateStr4(d) {
+    return d.toISOString().slice(0, 10);
+  }
+  function filterLogsByDays(logs, days, todayStr) {
+    const list = Array.isArray(logs) ? logs : [];
+    const end = /^\d{4}-\d{2}-\d{2}$/.test(todayStr || "") ? /* @__PURE__ */ new Date(`${todayStr}T12:00:00`) : /* @__PURE__ */ new Date();
+    const start = new Date(end);
+    start.setDate(start.getDate() - (Math.max(1, days) - 1));
+    const startStr = toDateStr4(start);
+    const endStr = todayStr || toDateStr4(end);
+    return list.filter((l) => l?.date && l.date >= startStr && l.date <= endStr);
+  }
+  function collectMoodReadings(logs, days = 14, todayStr) {
+    const rangeLogs = filterLogsByDays(logs, days, todayStr).sort(
+      (a, b) => String(b.date).localeCompare(String(a.date))
+    );
+    const out = [];
+    for (const log of rangeLogs) {
+      const daily = clampMood(log.mood);
+      if (daily != null) {
+        out.push({ date: log.date, period: null, mood: daily, source: "daily" });
+      }
+      const subs = Array.isArray(log.subEntries) ? log.subEntries : [];
+      for (const sub of subs) {
+        const m = clampMood(sub?.mood);
+        if (m == null) continue;
+        const period = typeof sub.period === "string" ? sub.period : null;
+        out.push({ date: log.date, period, mood: m, source: "checkin" });
+      }
+    }
+    out.sort((a, b) => {
+      const dc = String(b.date).localeCompare(String(a.date));
+      if (dc !== 0) return dc;
+      const pa = a.period ? PERIOD_ORDER[a.period] ?? 9 : 10;
+      const pb = b.period ? PERIOD_ORDER[b.period] ?? 9 : 10;
+      return pa - pb;
+    });
+    return out;
+  }
+  function summarizeMoodMetrics(logs, opts = {}) {
+    const days = opts.days ?? 14;
+    const todayStr = opts.todayStr;
+    const moodTarget = opts.moodTarget ?? 7;
+    const readings = collectMoodReadings(logs, days, todayStr);
+    if (!readings.length) {
+      return {
+        days,
+        count: 0,
+        average: null,
+        latest: null,
+        trend: null,
+        atTargetCount: 0,
+        belowTargetCount: 0,
+        moodTarget,
+        readings: [],
+        dailyAverages: []
+      };
+    }
+    const sum = readings.reduce((s, r) => s + r.mood, 0);
+    const avg = Math.round(sum / readings.length * 10) / 10;
+    const latest = readings[0];
+    const chronological = [...readings].sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    const mid = Math.floor(chronological.length / 2);
+    const firstHalf = chronological.slice(0, mid || 1);
+    const secondHalf = chronological.slice(mid || 1);
+    const avgFirst = firstHalf.reduce((s, r) => s + r.mood, 0) / firstHalf.length;
+    const avgSecond = secondHalf.length ? secondHalf.reduce((s, r) => s + r.mood, 0) / secondHalf.length : avgFirst;
+    let trend = "stable";
+    if (avgSecond - avgFirst >= 0.5) trend = "up";
+    else if (avgFirst - avgSecond >= 0.5) trend = "down";
+    const atTarget = readings.filter((r) => r.mood >= moodTarget).length;
+    const byDate = /* @__PURE__ */ new Map();
+    for (const r of readings) {
+      if (!byDate.has(r.date)) byDate.set(r.date, []);
+      byDate.get(r.date).push(r.mood);
+    }
+    const dailyAverages = [...byDate.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([date, moods]) => ({
+      date,
+      average: Math.round(moods.reduce((s, m) => s + m, 0) / moods.length * 10) / 10,
+      count: moods.length
+    }));
+    return {
+      days,
+      count: readings.length,
+      average: avg,
+      latest,
+      trend,
+      atTargetCount: atTarget,
+      belowTargetCount: readings.length - atTarget,
+      moodTarget,
+      readings: readings.slice(0, 30),
+      dailyAverages
+    };
+  }
+  function moodQualitativeKey(score) {
+    const n = clampMood(score);
+    if (n == null) return "mood.qualitative.none";
+    if (n <= 3) return "mood.qualitative.low";
+    if (n <= 5) return "mood.qualitative.moderate";
+    if (n <= 7) return "mood.qualitative.okay";
+    return "mood.qualitative.good";
+  }
 
   // packages/shared/src/index.mjs
   function identity(value) {

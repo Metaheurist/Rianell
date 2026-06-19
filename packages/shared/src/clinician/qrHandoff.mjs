@@ -35,7 +35,7 @@ export async function createQrHandoffPayload(logs, passphrase, opts = {}) {
   };
   const token = JSON.stringify(payload);
   if (token.length > QR_HANDOFF_MAX_CHARS) {
-    throw new Error('Handoff payload too large for QR — try fewer logs or use encrypted file export');
+    throw new Error('Handoff payload too large for QR. Try fewer logs or use encrypted file export');
   }
   return { token, expiresAt, logCount: subset.length };
 }

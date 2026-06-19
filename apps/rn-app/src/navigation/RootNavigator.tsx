@@ -8,6 +8,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { HomeScreen } from '../screens/HomeScreen';
 import { LogsScreenRoute } from '../screens/LogsScreenRoute';
 import { ChartsScreen } from '../screens/ChartsScreen';
+import { MoodScreen } from '../screens/MoodScreen';
 import { AiScreen } from '../screens/AiScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { WeeklyReviewScreen } from '../screens/WeeklyReviewScreen';
@@ -29,6 +30,7 @@ export type MainTabParamList = {
   Home: undefined;
   'View Logs': undefined;
   Charts: { initialView?: ChartViewMode } | undefined;
+  Mood: undefined;
   'AI Analysis': undefined;
   Settings: undefined;
 };
@@ -267,6 +269,17 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
         }}
       >
         {() => <ChartsScreen prefs={prefs} onChangePrefs={onChangePrefs} />}
+      </Tab.Screen>
+      <Tab.Screen
+        name="Mood"
+        options={{
+          tabBarLabel: t('nav.mood'),
+          tabBarIcon: ({ focused, size }: TabBarIconProps) => (
+            <TabBarIonicons name="happy-outline" focused={focused} size={size} accent={accent} inactive={inactiveLabel} />
+          ),
+        }}
+      >
+        {() => <MoodScreen prefs={prefs} />}
       </Tab.Screen>
       {shouldShowAiTab(prefs) ? (
         <Tab.Screen

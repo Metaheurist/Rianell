@@ -1505,12 +1505,72 @@ body.light-mode .app-log-fab {
 /* Home / Today */
 .home-today-header {
   margin-bottom: 1rem;
+  text-align: center;
+}
+
+.home-today-greeting {
+  margin-bottom: 0.35rem;
+  text-align: center;
+}
+
+.home-today-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 16px;
 }
 
 .home-today-sub {
-  margin: 0.35rem 0 0 0;
+  margin: 0;
   font-size: var(--text-sm);
   opacity: 0.85;
+  text-align: left;
+  flex: 0 1 auto;
+}
+
+.home-weather-strip {
+  flex: 1 1 12rem;
+  min-width: 0;
+  text-align: right;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+.home-weather-strip[hidden] {
+  display: none !important;
+}
+
+.home-weather-strip__summary {
+  margin: 0;
+  opacity: 0.92;
+}
+
+.home-weather-strip__hint {
+  margin: 0;
+  opacity: 0.78;
+  font-size: 0.88em;
+}
+
+.home-weather-strip__enable {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--neon-lime, var(--primary-color));
+  font-size: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.home-weather-strip__attribution {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  opacity: 0.72;
 }
 
 .home-today-status {
@@ -12800,19 +12860,18 @@ body.light-mode .date-separator {
   width: 100%;
 }
 
-/* Settings Data Management - equal-width cells, matching height + corner radius */
+/* Settings Data Management - responsive tile grid (one action per cell) */
 .data-management-buttons {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
   gap: 10px;
   margin-bottom: 15px;
+  width: 100%;
 }
 
 .data-management-buttons__cell {
-  flex: 1 1 0;
-  min-width: 0;
   display: flex;
+  min-width: 0;
 }
 
 .data-management-buttons .settings-data-btn {
@@ -12856,6 +12915,8 @@ body.light-mode .date-separator {
 .data-management-buttons #installWebAppLabel {
   display: block;
   max-width: 100%;
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 .settings-data-btn {
@@ -15364,14 +15425,22 @@ body.log-wizard-active .header-buttons-wrap {
   display: none !important;
 }
 
-.home-pacing-card,
-.home-checkin-card {
+.home-pacing-card {
   background: var(--card-bg-glass);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-lg);
   padding: 1rem 1.25rem;
   margin-bottom: var(--section-gap);
   box-shadow: var(--elev-2);
+}
+
+.home-hero-card .home-checkin-card {
+  margin-top: 0.85rem;
+  margin-bottom: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .home-pacing-card[hidden],
@@ -15410,18 +15479,39 @@ body.log-wizard-active .header-buttons-wrap {
   gap: 10px;
 }
 
+.home-checkin-btn {
+  position: relative;
+  min-width: 3.25rem;
+  min-height: 3.25rem;
+  padding: 0.55rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-checkin-icon {
+  width: 1.55rem;
+  height: 1.55rem;
+  color: var(--neon-lime, var(--primary-color));
+}
+
 .home-checkin-btn.is-done {
   opacity: 0.65;
 }
 
-.home-checkin-done {
-  font-size: 0.85em;
-  opacity: 0.85;
+.home-checkin-done-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  font-size: 0.62rem;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 6px;
+  background: rgba(76, 175, 80, 0.28);
+  color: var(--text-primary);
 }
 
-.home-streak-card,
-.home-weather-card,
-.home-appointment-card {
+.home-streak-card {
   background: var(--card-bg-glass);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-lg);
@@ -15430,9 +15520,7 @@ body.log-wizard-active .header-buttons-wrap {
   box-shadow: var(--elev-2);
 }
 
-.home-streak-card[hidden],
-.home-weather-card[hidden],
-.home-appointment-card[hidden] {
+.home-streak-card[hidden] {
   display: none !important;
 }
 
@@ -15453,31 +15541,15 @@ body.log-wizard-active .header-buttons-wrap {
   opacity: 0.85;
 }
 
-.home-streak-title,
-.home-weather-title,
-.home-appointment-title {
+.home-streak-title {
   margin: 0 0 0.5rem;
   font-size: 1.05rem;
   font-weight: 700;
 }
 
-.home-streak-summary,
-.home-weather-summary,
-.home-appointment-summary {
+.home-streak-summary {
   margin: 0 0 0.5rem;
   line-height: 1.45;
-}
-
-.home-weather-attribution {
-  font-size: 0.82rem;
-  opacity: 0.85;
-}
-
-.home-appointment-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 0.35rem;
 }
 
 .micro-checkin-modal-body {
@@ -15695,6 +15767,122 @@ body.privacy-gate-active > *:not(#privacyRegionGateOverlay):not(#loadingOverlay)
 
 /* RTL layout (ar/he) — logical overrides */
 [dir="rtl"] .bottom-nav { flex-direction: row-reverse; }
+
+/* Mood tab */
+.mood-tab-content {
+  padding: 0 0 1.5rem;
+}
+.mood-lead {
+  margin: 0 0 1rem;
+  opacity: 0.88;
+  line-height: 1.45;
+}
+.mood-empty {
+  margin: 0 0 1.25rem;
+  opacity: 0.85;
+}
+.mood-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 1.25rem;
+}
+.mood-metric-card {
+  background: var(--card-bg-glass);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  padding: 0.85rem 1rem;
+  box-shadow: var(--elev-1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.mood-metric-label {
+  font-size: 0.78rem;
+  opacity: 0.82;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.mood-metric-value {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--accent-primary, #4caf50);
+  line-height: 1.1;
+}
+.mood-metric-suffix {
+  font-size: 0.95rem;
+  font-weight: 500;
+  opacity: 0.75;
+}
+.mood-metric-hint {
+  font-size: 0.82rem;
+  opacity: 0.8;
+  line-height: 1.35;
+}
+.mood-sparkline {
+  color: var(--accent-primary, #4caf50);
+  margin-top: 0.25rem;
+}
+.mood-section-title {
+  margin: 0 0 0.65rem;
+  font-size: 1rem;
+}
+.mood-recent-section {
+  margin-bottom: 1.25rem;
+}
+.mood-reading-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.mood-reading-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--surface-border);
+}
+.mood-reading-score {
+  font-weight: 700;
+  min-width: 3.25rem;
+  color: var(--accent-primary, #4caf50);
+}
+.mood-reading-meta {
+  font-size: 0.88rem;
+  opacity: 0.88;
+  flex: 1;
+}
+.mood-checkin-section {
+  margin-bottom: 1.25rem;
+}
+.mood-checkin-periods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.mood-checkin-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 5.5rem;
+  padding: 0.65rem 0.75rem !important;
+}
+.mood-checkin-btn.is-done {
+  opacity: 0.55;
+}
+.mood-checkin-label {
+  font-size: 0.78rem;
+}
+.mood-checkin-done {
+  font-size: 0.68rem;
+  opacity: 0.85;
+}
+.mood-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 [dir="rtl"] .settings-carousel-dots { direction: rtl; }
 [dir="rtl"] .wizard-progress { direction: rtl; }
 [dir="rtl"] .privacy-policy-badge { margin-left: 0; margin-right: 8px; }

@@ -46,7 +46,7 @@
   <!-- PayPal JS SDK: set meta paypal-client-id (REST app Client ID from developer.paypal.com) for in-app Smart Payment Buttons (PayPal, card, Apple Pay / Google Pay when eligible). -->
   <meta name="paypal-client-id" content="">
   <meta name="paypal-currency" content="USD">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.paypal.com; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co https://*.aws.cdn.hf.co https://raw.githubusercontent.com https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://api.paypal.com https://api.sandbox.paypal.com https://c.paypal.com; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.paypal.com; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co https://*.aws.cdn.hf.co https://raw.githubusercontent.com https://api.open-meteo.com https://air-quality-api.open-meteo.com https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://api.paypal.com https://api.sandbox.paypal.com https://c.paypal.com; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <!-- Note: X-Frame-Options is set via HTTP header in server, not here -->
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -969,6 +969,9 @@
     <symbol id="icon-pill" viewBox="0 0 24 24"><path d="M8.2 5.2a4.8 4.8 0 0 1 6.8 0l2.8 2.8a4.8 4.8 0 0 1 0 6.8l-2.8 2.8a4.8 4.8 0 0 1-6.8 0L5.4 12a4.8 4.8 0 0 1 0-6.8Z"/><path d="m14.8 7.2 2 2"/></symbol>
     <symbol id="icon-stress" viewBox="0 0 24 24"><path d="M7 14H5.5a3.5 3.5 0 0 1-.4-7A4.5 4.5 0 0 1 13.5 6a3.5 3.5 0 0 1 6.8 1.2 3 3 0 0 1-.3 6.8H7"/><path d="M13 18v3M11 21h4"/></symbol>
     <symbol id="icon-activity" viewBox="0 0 24 24"><path d="M4 12h4l2-7 4 14 2-7h4"/></symbol>
+    <symbol id="icon-checkin-am" viewBox="0 0 24 24"><path d="M4 18h16"/><path d="M12 16V6"/><path d="m8 10 4-4 4 4"/><circle cx="12" cy="8" r="3.2"/></symbol>
+    <symbol id="icon-checkin-midday" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></symbol>
+    <symbol id="icon-checkin-pm" viewBox="0 0 24 24"><path d="M20 14.5A7.5 7.5 0 0 1 8.6 8.6 6.5 6.5 0 1 0 20 14.5Z"/></symbol>
   </svg>
   <!-- Loading Overlay -->
   <div class="loading-overlay" id="loadingOverlay">
@@ -1103,7 +1106,7 @@
           <p class="settings-hint" data-i18n="progressiveDisclosure.lead">Rianell unlocks complexity gradually so day one stays simple.</p>
           <ul id="progressiveDisclosureList" class="settings-hint"></ul>
           <h4 data-i18n="mentalHealth.title">Wellness check-in</h4>
-          <p class="settings-hint" data-i18n="mentalHealth.lead">Optional PHQ-2 and GAD-2 screeners for self-reflection — not a diagnosis.</p>
+          <p class="settings-hint" data-i18n="mentalHealth.lead">Optional PHQ-2 and GAD-2 screeners for self-reflection, not a diagnosis.</p>
           <p class="settings-hint" data-i18n="mentalHealth.disclaimer">This is not medical advice or a diagnosis.</p>
           <button type="button" class="settings-data-btn" id="mentalHealthPhq2Btn" data-i18n="mentalHealth.phq2.action">PHQ-2 mood screen</button>
           <button type="button" class="settings-data-btn" id="mentalHealthGad2Btn" data-i18n="mentalHealth.gad2.action">GAD-2 anxiety screen</button>
@@ -1492,10 +1495,20 @@
           </div>
           <div class="data-management-buttons__cell">
             <button type="button" class="settings-data-btn export-btn" onclick="exportEncryptedData()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-lock"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.export.encrypted.action">Encrypted export</span></button>
+          </div>
+          <div class="data-management-buttons__cell">
             <button type="button" class="settings-data-btn export-btn" onclick="RianellQrHandoff && RianellQrHandoff.open()"><span class="data-management-buttons__label" data-i18n="settings.export.qrHandoff.action">QR handoff (in-office)</span></button>
+          </div>
+          <div class="data-management-buttons__cell">
             <button type="button" class="settings-data-btn export-btn" onclick="exportFhirBundle()"><span class="data-management-buttons__label" data-i18n="settings.data.export.fhir">Export FHIR-lite bundle</span></button>
+          </div>
+          <div class="data-management-buttons__cell">
             <button type="button" class="settings-data-btn export-btn" onclick="exportReadOnlyShareLink()"><span class="data-management-buttons__label" data-i18n="settings.data.export.shareLink">Create read-only share link</span></button>
+          </div>
+          <div class="data-management-buttons__cell">
             <button type="button" class="settings-data-btn export-btn" onclick="openWebDavBackupModal()"><span class="data-management-buttons__label" data-i18n="settings.data.export.webdav">Backup to WebDAV</span></button>
+          </div>
+          <div class="data-management-buttons__cell">
             <button type="button" class="settings-data-btn import-btn" onclick="importMigrationCsv()"><span class="data-management-buttons__label" data-i18n="settings.data.import.migrationSource">Import from Bearable or Flaredown</span></button>
           </div>
           <div class="data-management-buttons__cell">
@@ -1664,6 +1677,11 @@
         <path d="M4 19V5M4 19h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         <path d="M8 17V11M12 17V7M16 17v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </symbol>
+      <symbol id="rianell-nav-mood" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M8.5 10.5h.01M15.5 10.5h.01" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M8.5 15c1.2 1.5 2.5 2.25 3.5 2.25S14.8 16.5 16 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </symbol>
       <symbol id="rianell-nav-ai" viewBox="0 0 24 24">
         <path d="M12 3 13.5 8.5 19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
         <path d="M5 19l1.2 2.4M19 19l-1.2 2.4M3 14h2.4M18.6 14H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -1747,6 +1765,10 @@
         <span class="tab-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-charts"/></svg></span>
         <span class="tab-text" data-i18n="nav.charts">Charts</span>
       </button>
+      <button type="button" class="tab-btn main-nav-tab" data-tab="mood" data-benchmark="nav-mood" role="tab" aria-selected="false" aria-controls="moodTab" id="tab-mood" onclick="switchTab('mood')">
+        <span class="tab-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-mood"/></svg></span>
+        <span class="tab-text" data-i18n="nav.mood">Mood</span>
+      </button>
       <button type="button" class="tab-btn main-nav-tab" data-tab="ai" data-benchmark="nav-ai" role="tab" aria-selected="false" aria-controls="aiTab" id="tab-ai" onclick="switchTab('ai')">
         <span class="tab-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-ai"/></svg></span>
         <span class="tab-text" data-i18n="nav.ai">AI Analysis</span>
@@ -1756,18 +1778,19 @@
     <!-- Home / Today -->
     <div id="homeTab" class="tab-content active" role="tabpanel" aria-labelledby="tab-home">
       <div class="home-today-header">
-        <h2 class="tab-title" id="homeGreeting" data-i18n="home.greeting.today">Today</h2>
-        <p class="home-today-sub" id="homeTodayDate" aria-live="polite"></p>
+        <h2 class="tab-title home-today-greeting" id="homeGreeting" data-i18n="home.greeting.today">Today</h2>
+        <div class="home-today-meta">
+          <p class="home-today-sub" id="homeTodayDate" aria-live="polite"></p>
+          <div id="homeWeatherStrip" class="home-weather-strip" aria-live="polite" hidden></div>
+        </div>
       </div>
       <div id="homeNudgeCard" class="home-nudge-card" data-home-card="nudge" hidden role="status" aria-live="polite"></div>
-      <div id="homeCheckinCard" class="home-checkin-card" data-home-card="checkin" hidden></div>
       <div id="homePacingCard" class="home-pacing-card" data-home-card="pacing" hidden></div>
       <div id="homeStreakCard" class="home-streak-card" data-home-card="streak" hidden></div>
-      <div id="homeWeatherCard" class="home-weather-card" data-home-card="weather" hidden></div>
-      <div id="homeAppointmentCard" class="home-appointment-card" data-home-card="appointment" hidden></div>
       <div id="homeWeeklyReviewCard" class="home-weekly-review-card" data-home-card="weeklyReview" hidden></div>
       <div id="homeHeroCard" class="home-hero-card" data-home-card="hero" data-scroll-reveal role="status" aria-live="polite">
         <div id="homeTodayStatus" class="home-today-status"></div>
+        <div id="homeCheckinCard" class="home-checkin-card" data-home-card="checkin" hidden></div>
         <div id="homeAiSuggestions" class="home-ai-suggestions" hidden aria-live="polite"></div>
       </div>
       <div id="goalsProgressBlock" class="goals-progress-block" data-home-card="goals" style="display: none;" aria-live="polite" data-scroll-reveal></div>
@@ -1833,7 +1856,7 @@
         <label for="logCyclePhase" data-i18n="wizard.cycle.phase">Phase</label>
         <div class="input-container">
           <select id="logCyclePhase">
-            <option value="">—</option>
+            <option value="">-</option>
             <option value="menstrual">Menstrual</option>
             <option value="follicular">Follicular</option>
             <option value="ovulation">Ovulation</option>
@@ -1843,7 +1866,7 @@
         <label for="logCycleFlow" data-i18n="wizard.cycle.flow">Flow</label>
         <div class="input-container">
           <select id="logCycleFlow">
-            <option value="">—</option>
+            <option value="">-</option>
             <option value="none">None</option>
             <option value="light">Light</option>
             <option value="medium">Medium</option>
@@ -2359,6 +2382,28 @@
       </section>
     </div>
 
+    <!-- Mood Tab -->
+    <div id="moodTab" class="tab-content" role="tabpanel" aria-labelledby="tab-mood">
+      <div class="tab-header">
+        <h2 class="tab-title" data-i18n="mood.title">Mood</h2>
+      </div>
+      <section class="tab-filters" aria-label="Mood range" data-i18n-aria="mood.rangeLabel">
+        <div class="chart-date-range-filter">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label class="filter-label" data-i18n="mood.rangeLabel">Recent period</label>
+              <div class="date-range-buttons">
+                <button type="button" class="date-range-btn" data-mood-days="7" id="moodRange7Days">7 Days</button>
+                <button type="button" class="date-range-btn active" data-mood-days="14" id="moodRange14Days">14 Days</button>
+                <button type="button" class="date-range-btn" data-mood-days="30" id="moodRange30Days">30 Days</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="moodTabContent" class="tab-content-section mood-tab-content" aria-live="polite"></section>
+    </div>
+
     <!-- AI Analysis Tab -->
     <div id="aiTab" class="tab-content" role="tabpanel" aria-labelledby="tab-ai">
       <div class="tab-header">
@@ -2562,7 +2607,11 @@
       </button>
       <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="charts" data-benchmark="nav-charts" aria-controls="chartsTab" id="bottom-tab-charts" onclick="switchTab('charts')">
         <span class="app-bottom-nav-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-charts"/></svg></span>
-        <span class="app-bottom-nav-text" data-i18n="charts.title">Charts</span>
+        <span class="app-bottom-nav-text" data-i18n="nav.charts">Charts</span>
+      </button>
+      <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="mood" data-benchmark="nav-mood" aria-controls="moodTab" id="bottom-tab-mood" onclick="switchTab('mood')">
+        <span class="app-bottom-nav-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-mood"/></svg></span>
+        <span class="app-bottom-nav-text" data-i18n="nav.mood">Mood</span>
       </button>
       <button type="button" class="app-bottom-nav-btn main-nav-tab" data-tab="ai" data-benchmark="nav-ai" aria-controls="aiTab" id="bottom-tab-ai" onclick="switchTab('ai')">
         <span class="app-bottom-nav-icon" aria-hidden="true"><svg class="tab-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><use href="#rianell-nav-ai"/></svg></span>
@@ -2976,7 +3025,7 @@
         <button type="button" class="modal-close" onclick="closeEncryptedExportModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
       </div>
       <div class="modal-body alert-modal-body">
-        <p data-i18n="settings.export.encrypted.hint">Uses PBKDF2 (120k iterations) + AES-256-GCM. Keep your passphrase safe — it cannot be recovered.</p>
+        <p data-i18n="settings.export.encrypted.hint">Uses PBKDF2 (120k iterations) + AES-256-GCM. Keep your passphrase safe. It cannot be recovered.</p>
         <input type="password" id="encryptedExportPassphrase" class="cloud-input" autocomplete="new-password" data-i18n-placeholder="settings.export.encrypted.placeholder" placeholder="Export passphrase (min 8 characters)" />
       </div>
       <div class="modal-footer alert-modal-footer">
@@ -3712,7 +3761,8 @@
   </script>
   <script defer src="vendor/rianell-shared.js?v=5"></script>
   <script defer src="modules/app-lock.js?v=1"></script>
-  <script defer src="modules/weekly-review.js?v=1"></script>
+  <script defer src="modules/weekly-review.js?v=2"></script>
+  <script defer src="modules/mood-tab.js?v=1"></script>
   <script defer src="i18n-pwa.js?v=3"></script>
   <script defer src="privacy-region.js?v=5"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>

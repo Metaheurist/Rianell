@@ -36,7 +36,7 @@ export function buildStreakReminderNotificationContent(snapshot = {}) {
   const body =
     goodDays <= 1
       ? 'One calm day in a row. A quick log keeps your picture complete.'
-      : `${goodDays} calm day(s) in a row · ${flareFree} flare-free. Still time to log today — no scores, just continuity.`;
+      : `${goodDays} calm day(s) in a row · ${flareFree} flare-free. Still time to log today, no scores, just continuity.`;
   return {
     title: 'Recent patterns',
     body,

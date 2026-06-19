@@ -3,10 +3,7 @@
 const HOME_CARDS = [
   { id: 'nudge', basePriority: 40 },
   { id: 'weeklyReview', basePriority: 68 },
-  { id: 'appointment', basePriority: 78 },
-  { id: 'weather', basePriority: 48 },
   { id: 'streak', basePriority: 38 },
-  { id: 'checkin', basePriority: 70 },
   { id: 'pacing', basePriority: 55 },
   { id: 'hero', basePriority: 100 },
   { id: 'goals', basePriority: 60 },
@@ -43,7 +40,6 @@ export function computeHomeCardContext(logs, todayStr, options = {}) {
     showCheckin = true,
     showStreak = false,
     showWeather = false,
-    showAppointment = false,
     showWeeklyReview = false,
   } = options;
   const loggedToday = Array.isArray(logs) && logs.some((l) => l?.date === todayStr);
@@ -60,7 +56,6 @@ export function computeHomeCardContext(logs, todayStr, options = {}) {
     showCheckin: showCheckin !== false && simpleMode !== true,
     showStreak: showStreak === true,
     showWeather: showWeather === true,
-    showAppointment: showAppointment === true,
     showWeeklyReview: showWeeklyReview === true,
   };
 }
@@ -77,21 +72,15 @@ export function resolveHomeCardOrder(context) {
     if (card.id === 'nudge' && (!ctx.streakBroken || ctx.loggedToday)) continue;
     if (card.id === 'goals' && !ctx.showGoals) continue;
     if (card.id === 'pacing' && !ctx.showPacing) continue;
-    if (card.id === 'checkin' && !ctx.showCheckin) continue;
     if (card.id === 'streak' && !ctx.showStreak) continue;
-    if (card.id === 'weather' && !ctx.showWeather) continue;
-    if (card.id === 'appointment' && !ctx.showAppointment) continue;
     if (card.id === 'weeklyReview' && !ctx.showWeeklyReview) continue;
     let priority = card.basePriority;
     if (ctx.loggedToday && card.id === 'goals') priority += 50;
-    if (ctx.loggedToday && card.id === 'checkin') priority += 35;
     if (ctx.loggedToday && card.id === 'pacing') priority += 20;
     if (!ctx.loggedToday && card.id === 'hero') priority += 30;
     if (!ctx.loggedToday && card.id === 'nudge') priority += 80;
     if (ctx.streakBroken && card.id === 'nudge') priority += 20;
-    if (ctx.showAppointment && card.id === 'appointment') priority += 25;
     if (ctx.showWeeklyReview && card.id === 'weeklyReview') priority += 40;
-    if (ctx.loggedToday && card.id === 'weather') priority += 15;
     scored.push({ id: card.id, priority });
   }
 

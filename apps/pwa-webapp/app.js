@@ -15300,9 +15300,9 @@ function renderChartsInsightsPanel() {
       if (m.beforeAvg == null && m.afterAvg == null) return;
       html += `<p class="charts-insight-line">${escapeHTML(tUi('charts.flarePostMortem.metricLine', {
         label: m.label,
-        before: m.beforeAvg != null ? m.beforeAvg.toFixed(1) : '—',
-        after: m.afterAvg != null ? m.afterAvg.toFixed(1) : '—',
-        delta: m.delta != null ? (m.delta >= 0 ? `+${m.delta.toFixed(1)}` : m.delta.toFixed(1)) : '—',
+        before: m.beforeAvg != null ? m.beforeAvg.toFixed(1) : '-',
+        after: m.afterAvg != null ? m.afterAvg.toFixed(1) : '-',
+        delta: m.delta != null ? (m.delta >= 0 ? `+${m.delta.toFixed(1)}` : m.delta.toFixed(1)) : '-',
       }))}</p>`;
     });
   }
@@ -15330,9 +15330,9 @@ function renderChartsInsightsPanel() {
       if (cur == null && prev == null) return;
       html += `<p class="charts-insight-line">${escapeHTML(tUi('charts.compare.metricLine', {
         metric: key.charAt(0).toUpperCase() + key.slice(1),
-        current: cur != null ? cur.toFixed(1) : '—',
-        previous: prev != null ? prev.toFixed(1) : '—',
-        delta: d != null ? (d >= 0 ? `+${d.toFixed(1)}` : d.toFixed(1)) : '—',
+        current: cur != null ? cur.toFixed(1) : '-',
+        previous: prev != null ? prev.toFixed(1) : '-',
+        delta: d != null ? (d >= 0 ? `+${d.toFixed(1)}` : d.toFixed(1)) : '-',
       }))}</p>`;
     });
   }
@@ -15343,7 +15343,7 @@ function renderChartsInsightsPanel() {
         date: row.date,
         planned: row.planned,
         actual: row.actual,
-        fatigue: row.fatigue != null ? row.fatigue : '—',
+        fatigue: row.fatigue != null ? row.fatigue : '-',
       }))}${row.overpaced ? ' ⚠' : ''}</p>`;
     });
   }
@@ -15890,6 +15890,9 @@ function loadSettings() {
   }
   if (typeof window !== 'undefined' && window.RianellWeeklyReview && typeof window.RianellWeeklyReview.bindWeeklyReviewModule === 'function') {
     window.RianellWeeklyReview.bindWeeklyReviewModule();
+  }
+  if (typeof window !== 'undefined' && window.RianellMoodTab && typeof window.RianellMoodTab.bindMoodTabModule === 'function') {
+    window.RianellMoodTab.bindMoodTabModule();
   }
   applyAccessibilityTtsSettings();
   applyAccessibilityTextScale();
@@ -19984,10 +19987,6 @@ function applyHomeCardLayout() {
   var streakSnap = S && typeof S.computeHomeStreakSnapshot === 'function'
     ? S.computeHomeStreakSnapshot(logArr, { dismissed: appSettings.homeStreakCardDismissed === true })
     : { showCard: false };
-  var showAppointment = !appSettings.nextAppointmentDate || (
-    S && typeof S.shouldShowAppointmentCard === 'function' &&
-    S.shouldShowAppointmentCard(appSettings.nextAppointmentDate, todayStr)
-  );
   var showWeeklyReview = false;
   if (S && typeof S.canOfferWeeklyReview === 'function') {
     var wrGate = S.canOfferWeeklyReview(logArr, {
@@ -20004,10 +20003,9 @@ function applyHomeCardLayout() {
         simpleMode: typeof appSettings !== 'undefined' && appSettings.simpleMode === true,
         showGoals: hasGoals,
         hasPacingData: pacingBudget != null,
-        showCheckin: true,
+        showCheckin: false,
         showStreak: streakSnap.showCard === true,
         showWeather: true,
-        showAppointment: showAppointment === true,
         showWeeklyReview: showWeeklyReview === true,
       })
     : null;
@@ -20026,14 +20024,14 @@ function applyHomeCardLayout() {
   if (typeof renderHomePacingCard === 'function') renderHomePacingCard(logArr, todayStr, pacingBudget, ctx);
   if (typeof renderHomeCheckinCard === 'function') renderHomeCheckinCard(logArr, todayStr, ctx);
   if (typeof renderHomeStreakCard === 'function') renderHomeStreakCard(logArr, streakSnap, ctx);
-  if (typeof renderHomeWeatherCard === 'function') renderHomeWeatherCard(ctx);
-  if (typeof renderHomeAppointmentCard === 'function') renderHomeAppointmentCard(todayStr, ctx);
+  renderHomeWeatherStrip(ctx);
   if (typeof window !== 'undefined' && window.RianellWeeklyReview && typeof window.RianellWeeklyReview.renderHomeWeeklyReviewCard === 'function') {
     window.RianellWeeklyReview.renderHomeWeeklyReviewCard(todayStr, ctx);
   }
   var header = homeTab.querySelector('.home-today-header');
   var insertAfter = header;
   order.forEach(function(cardId) {
+    if (cardId === 'checkin' || cardId === 'weather' || cardId === 'appointment') return;
     var el = homeTab.querySelector('[data-home-card="' + cardId + '"]');
     if (!el || !insertAfter || !insertAfter.parentNode) return;
     insertAfter.parentNode.insertBefore(el, insertAfter.nextSibling);
@@ -20042,6 +20040,12 @@ function applyHomeCardLayout() {
 }
 
 var _microCheckinPeriod = null;
+
+function checkinPeriodIconName(period) {
+  if (period === 'AM') return 'checkin-am';
+  if (period === 'PM') return 'checkin-pm';
+  return 'checkin-midday';
+}
 
 function renderHomePacingCard(logArr, todayStr, pacingBudget, ctx) {
   var card = document.getElementById('homePacingCard');
@@ -20097,9 +20101,10 @@ function renderHomeCheckinCard(logArr, todayStr, ctx) {
     var labelKey = period === 'AM' ? 'home.checkin.am' : period === 'PM' ? 'home.checkin.pm' : 'home.checkin.midday';
     var label = typeof tUi === 'function' ? tUi(labelKey) : period;
     var isDone = done.has(period);
-    html += '<button type="button" class="action-btn home-checkin-btn' + (isDone ? ' is-done' : '') + '" data-checkin-period="' + escapeHTML(period) + '" data-ripple' + (isDone ? ' disabled' : '') + '>';
-    html += escapeHTML(label);
-    if (isDone) html += ' <span class="home-checkin-done">' + escapeHTML(doneLabel) + '</span>';
+    var ariaLabel = isDone ? label + ', ' + doneLabel : label;
+    html += '<button type="button" class="action-btn home-checkin-btn' + (isDone ? ' is-done' : '') + '" data-checkin-period="' + escapeHTML(period) + '" data-ripple' + (isDone ? ' disabled' : '') + ' aria-label="' + escapeAttr(ariaLabel) + '">';
+    html += svgIcon(checkinPeriodIconName(period), 'home-checkin-icon');
+    if (isDone) html += '<span class="home-checkin-done-badge" aria-hidden="true">' + escapeHTML(doneLabel) + '</span>';
     html += '</button>';
   });
   html += '</div>';
@@ -20170,6 +20175,10 @@ function saveMicroCheckinAndClose() {
     }
     closeMicroCheckinModal();
     if (typeof updateHomeTodayPanel === 'function') updateHomeTodayPanel();
+    if (window.RianellMoodTab && typeof window.RianellMoodTab.renderMoodTab === 'function') {
+      var moodPanel = document.getElementById('moodTab');
+      if (moodPanel && moodPanel.classList.contains('active')) window.RianellMoodTab.renderMoodTab();
+    }
   } catch (err) {
     if (typeof showToast === 'function') showToast(String(err && err.message ? err.message : err), { type: 'error' });
   }
@@ -20211,30 +20220,27 @@ function renderHomeStreakCard(logArr, streakSnap, ctx) {
 
 var _homeWeatherFetchInFlight = false;
 
-function renderHomeWeatherCard(ctx) {
-  var card = document.getElementById('homeWeatherCard');
-  if (!card) return;
+function renderHomeWeatherStrip(ctx) {
+  var strip = document.getElementById('homeWeatherStrip');
+  if (!strip) return;
   if (!ctx || !ctx.showWeather) {
-    card.hidden = true;
-    card.innerHTML = '';
+    strip.hidden = true;
+    strip.innerHTML = '';
     return;
   }
-  card.hidden = false;
-  var S = getHomeSharedAi();
-  var title = typeof tUi === 'function' ? tUi('home.weather.title') : 'Weather & air';
+  strip.hidden = false;
   var attr = typeof tUi === 'function' ? tUi('home.weather.attribution') : 'Open-Meteo';
   if (!appSettings.weatherStripEnabled) {
     var hint = typeof tUi === 'function' ? tUi('home.weather.enableHint') : 'Opt in to local weather.';
     var enable = typeof tUi === 'function' ? tUi('home.weather.enable') : 'Enable';
-    card.innerHTML =
-      '<h3 class="home-weather-title">' + escapeHTML(title) + '</h3>' +
-      '<p class="home-weather-summary">' + escapeHTML(hint) + '</p>' +
-      '<button type="button" class="action-btn home-weather-enable" data-ripple>' + escapeHTML(enable) + '</button>';
-    var enableBtn = card.querySelector('.home-weather-enable');
+    strip.innerHTML =
+      '<p class="home-weather-strip__hint">' + escapeHTML(hint) + '</p>' +
+      '<button type="button" class="home-weather-strip__enable" data-ripple>' + escapeHTML(enable) + '</button>';
+    var enableBtn = strip.querySelector('.home-weather-strip__enable');
     if (enableBtn) {
-      enableBtn.onclick = function() { enableHomeWeatherStrip(card); };
+      enableBtn.onclick = function() { enableHomeWeatherStrip(); };
     }
-    if (typeof initRipple === 'function') initRipple(card);
+    if (typeof initRipple === 'function') initRipple(strip);
     return;
   }
   var snap = appSettings.weatherCache;
@@ -20242,19 +20248,18 @@ function renderHomeWeatherCard(ctx) {
   if (snap && (snap.tempC != null || snap.pressureHpa != null || snap.usAqi != null)) {
     body = typeof tUi === 'function'
       ? tUi('home.weather.summary', {
-          temp: snap.tempC != null ? snap.tempC : '—',
-          pressure: snap.pressureHpa != null ? snap.pressureHpa : '—',
-          aqi: snap.usAqi != null ? snap.usAqi : '—',
+          temp: snap.tempC != null ? snap.tempC : '-',
+          pressure: snap.pressureHpa != null ? snap.pressureHpa : '-',
+          aqi: snap.usAqi != null ? snap.usAqi : '-',
         })
       : (String(snap.tempC) + '°C');
   } else {
     body = typeof tUi === 'function' ? tUi('home.weather.loading') : 'Loading…';
     maybeRefreshHomeWeather();
   }
-  card.innerHTML =
-    '<h3 class="home-weather-title">' + escapeHTML(title) + '</h3>' +
-    '<p class="home-weather-summary">' + escapeHTML(body) + '</p>' +
-    '<a class="home-weather-attribution" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">' + escapeHTML(attr) + '</a>';
+  strip.innerHTML =
+    '<p class="home-weather-strip__summary">' + escapeHTML(body) + '</p>' +
+    '<a class="home-weather-strip__attribution" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">' + escapeHTML(attr) + '</a>';
 }
 
 function maybeRefreshHomeWeather() {
@@ -20275,7 +20280,7 @@ function maybeRefreshHomeWeather() {
   });
 }
 
-function enableHomeWeatherStrip(cardEl) {
+function enableHomeWeatherStrip() {
   if (typeof navigator === 'undefined' || !navigator.geolocation) {
     if (typeof showToast === 'function') {
       showToast(typeof tUi === 'function' ? tUi('home.weather.locationDenied') : 'Location denied', { type: 'error' });
@@ -20308,132 +20313,6 @@ function enableHomeWeatherStrip(cardEl) {
       showToast(typeof tUi === 'function' ? tUi('home.weather.locationDenied') : 'Location denied', { type: 'error' });
     }
   }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
-}
-
-function renderHomeAppointmentCard(todayStr, ctx) {
-  var card = document.getElementById('homeAppointmentCard');
-  if (!card) return;
-  var S = getHomeSharedAi();
-  if (!ctx || !ctx.showAppointment) {
-    card.hidden = true;
-    card.innerHTML = '';
-    return;
-  }
-  card.hidden = false;
-  var title = typeof tUi === 'function' ? tUi('home.appointment.title') : 'Upcoming visit';
-  if (!appSettings.nextAppointmentDate) {
-    var setup = typeof tUi === 'function' ? tUi('home.appointment.setupHint') : 'Add your next visit.';
-    var setDate = typeof tUi === 'function' ? tUi('home.appointment.setDate') : 'Set date';
-    card.innerHTML =
-      '<h3 class="home-appointment-title">' + escapeHTML(title) + '</h3>' +
-      '<p class="home-appointment-summary">' + escapeHTML(setup) + '</p>' +
-      '<button type="button" class="action-btn home-appointment-set" data-ripple>' + escapeHTML(setDate) + '</button>';
-    var setBtn = card.querySelector('.home-appointment-set');
-    if (setBtn) setBtn.onclick = function() { openHomeAppointmentPrompt(); };
-    if (typeof initRipple === 'function') initRipple(card);
-    return;
-  }
-  var days = S && typeof S.daysUntilAppointment === 'function'
-    ? S.daysUntilAppointment(appSettings.nextAppointmentDate, todayStr)
-    : null;
-  if (days == null) {
-    card.hidden = true;
-    return;
-  }
-  var labelKey = S && typeof S.appointmentCountdownLabelKey === 'function'
-    ? S.appointmentCountdownLabelKey(days)
-    : 'home.appointment.inDays';
-  var summary = typeof tUi === 'function'
-    ? tUi(labelKey, { days: days, date: appSettings.nextAppointmentDate })
-    : ('In ' + days + ' days');
-  var prep = typeof tUi === 'function' ? tUi('home.appointment.prepCta') : 'Prep report';
-  var edit = typeof tUi === 'function' ? tUi('home.appointment.edit') : 'Edit';
-  card.innerHTML =
-    '<h3 class="home-appointment-title">' + escapeHTML(title) + '</h3>' +
-    '<p class="home-appointment-summary">' + escapeHTML(summary) + '</p>' +
-    '<div class="home-appointment-actions">' +
-    '<button type="button" class="action-btn home-appointment-prep" data-ripple>' + escapeHTML(prep) + '</button>' +
-    '<button type="button" class="action-btn home-appointment-edit" data-ripple>' + escapeHTML(edit) + '</button>' +
-    '</div>';
-  var prepBtn = card.querySelector('.home-appointment-prep');
-  if (prepBtn) {
-    prepBtn.onclick = function() {
-      if (typeof runAppointmentPrepReport === 'function') {
-        void runAppointmentPrepReport();
-      }
-    };
-  }
-  var editBtn = card.querySelector('.home-appointment-edit');
-  if (editBtn) editBtn.onclick = function() { openHomeAppointmentPrompt(); };
-  if (typeof initRipple === 'function') initRipple(card);
-}
-
-async function runAppointmentPrepReport() {
-  var tUi = typeof window.tUi === 'function' ? window.tUi : null;
-  try {
-    if (typeof showToast === 'function') {
-      showToast(tUi ? tUi('home.appointment.prepBusy') : 'Building prep report…', { type: 'info' });
-    }
-    var Perf = window.PerformanceUtils;
-    if (Perf && typeof Perf.lazyLoadScript === 'function') {
-      await Perf.lazyLoadScript('appointment-pdf.js');
-    }
-    var logs = typeof getHealthLogsArray === 'function' ? getHealthLogsArray() : [];
-    var briefText = '';
-    var doctorQuestions = [];
-    if (appSettings.aiEnabled !== false && Perf && typeof Perf.lazyLoadScript === 'function') {
-      try {
-        await Perf.lazyLoadScript('summary-llm.js');
-        var dayCount = 14;
-        var analysis = null;
-        if (window.AIEngine && typeof window.AIEngine.analyzeHealthMetrics === 'function') {
-          analysis = await window.AIEngine.analyzeHealthMetrics(logs, logs.slice(), { rangeDays: dayCount });
-        }
-        if (analysis && typeof generateClinicianBriefWithLLM === 'function') {
-          briefText = await generateClinicianBriefWithLLM(
-            analysis,
-            { logs: logs, rangeLabel: 'Last ' + dayCount + ' days', goals: appSettings.goals },
-            ''
-          );
-        }
-        if (analysis && typeof generateDoctorQuestionsWithLLM === 'function') {
-          doctorQuestions = await generateDoctorQuestionsWithLLM(
-            analysis,
-            { logs: logs, rangeLabel: 'Last ' + dayCount + ' days' },
-            []
-          );
-        }
-      } catch (llmErr) { /* optional LLM sections */ }
-    }
-    if (window.RianellAppointmentPdf && typeof window.RianellAppointmentPdf.generate === 'function') {
-      await window.RianellAppointmentPdf.generate({ logs: logs, briefText: briefText, doctorQuestions: doctorQuestions });
-    } else {
-      throw new Error('Appointment PDF module not loaded');
-    }
-  } catch (e) {
-    var msg = (e && e.message) ? String(e.message) : 'Prep report failed';
-    if (typeof showToast === 'function') showToast(msg, { type: 'error' });
-  }
-}
-
-function openHomeAppointmentPrompt() {
-  var current = appSettings.nextAppointmentDate || '';
-  var label = typeof tUi === 'function' ? tUi('home.appointment.dateLabel') : 'Visit date (YYYY-MM-DD)';
-  var raw = typeof window !== 'undefined' ? window.prompt(label, current) : null;
-  if (raw == null) return;
-  var trimmed = String(raw).trim();
-  if (!trimmed) {
-    appSettings.nextAppointmentDate = null;
-  } else if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-    appSettings.nextAppointmentDate = trimmed;
-  } else {
-    if (typeof showToast === 'function') {
-      showToast(typeof tUi === 'function' ? tUi('home.appointment.invalidDate') : 'Invalid date', { type: 'error' });
-    }
-    return;
-  }
-  if (typeof saveSettings === 'function') saveSettings();
-  if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
 }
 
 function updateHomeTodayPanel() {
@@ -21225,6 +21104,7 @@ function parseAppHash() {
   }
   if (h === 'logs') return { tab: 'logs' };
   if (h === 'charts') return { tab: 'charts' };
+  if (h === 'mood') return { tab: 'mood' };
   if (h === 'ai') return { tab: 'ai' };
   return { tab: 'home' };
 }
@@ -21359,6 +21239,12 @@ function switchTab(tabName, skipHash) {
   // View Logs tab: default to last 7 days
   if (tabName === 'logs') {
     if (typeof setLogViewRange === 'function') setLogViewRange(7);
+  }
+
+  if (tabName === 'mood') {
+    if (window.RianellMoodTab && typeof window.RianellMoodTab.renderMoodTab === 'function') {
+      window.RianellMoodTab.renderMoodTab();
+    }
   }
   
   // Special handling for AI tab - initialize date range

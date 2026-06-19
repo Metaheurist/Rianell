@@ -1813,7 +1813,7 @@ async function loadFromCloud() {
   if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.shouldAllowNetworkOperation === 'function') {
     if (!window.RianellShared.shouldAllowNetworkOperation(window.appSettings || {}, 'cloudSync')) {
       if (typeof showAlertModal === 'function') {
-        showAlertModal(tUi('settings.privacy.localOnly.cloudSync') + ' — disabled in local-only mode.', tUi('settings.privacy.localOnly.title'));
+        showAlertModal(tUi('settings.privacy.localOnly.cloudSync') + ', disabled in local-only mode.', tUi('settings.privacy.localOnly.title'));
       }
       return;
     }

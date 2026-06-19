@@ -60,9 +60,9 @@ Single source of truth for required features, execution plans, and progress. **A
 | H1 | done | **Adaptive home layout** — reorder cards by usage | M, ★ | v1.101.0 card registry |
 | H2 | done | **Energy budget / pacing widget** — daily spoons from fatigue + flare history | M, ★ | v1.102.0 Home widget |
 | H3 | done | **Good day streak & flare-free counter** | Q | v1.103.0 dismissible card |
-| H4 | done | **Micro-check-ins** — partial logs from Home | M | v1.102.0 AM/midday/PM |
-| H5 | done | **Weather & environment strip** — barometric/AQI opt-in | M | v1.103.0 Open-Meteo |
-| H6 | done | **Appointment countdown card** | Q | v1.103.0 prep CTA → AI |
+| H4 | done | **Micro-check-ins** — partial logs from Mood tab | M | v1.113.0 Mood tab; was Home v1.102.0 |
+| H5 | done | **Weather & environment strip** — barometric/AQI opt-in | M | v1.113.0 inline header; was card v1.103.0 |
+| H6 | done | **Appointment countdown card** | Q | v1.113.0 removed from Home; CL1 PDF prep v1.109.0 |
 | H7 | done | **Contextual home questions** — LLM from yesterday's gaps | M, ★ | v1.104.0 gap detection |
 
 ---
