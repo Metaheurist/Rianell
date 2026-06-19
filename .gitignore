@@ -94,10 +94,6 @@ scripts/.audit/*
 !scripts/.audit/i18n-allowlist.json
 !scripts/.audit/hardcoded-ui-baseline.json
 
-# Local agent execution workspace (plans + gate scripts — not committed)
-/Projects/
-/scripts/projects/
-
 # CI binaries → GitHub Releases only; repo keeps manifest JSON under artifacts/
 artifacts/**/*.apk
 artifacts/**/*.exe

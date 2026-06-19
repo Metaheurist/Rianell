@@ -41,6 +41,7 @@ scripts/
 audit-history/         boot audit JSON (baseline + phase archives tracked)
 artifacts/             CI binaries + latest.json (was App build/)
 docs/                  developer documentation (authoritative for devs)
+  plans/               execution plans 01–14, MASTER, external setup, rollout gates
   archive/             deprecated config snapshots (e.g. residency-config.json)
 wiki/                  GitHub Wiki source (user-facing)
 server/                Python HTTP + launch-server.ps1

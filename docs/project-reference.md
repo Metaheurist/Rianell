@@ -4,6 +4,10 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### Execution plans (01–14)
+
+Feature rollout runbooks, MASTER tracker, external setup, and rollout gates live under **[plans/](plans/)** (formerly gitignored `Projects/`). Start with [plans/MASTER.md](plans/MASTER.md) and [plans/00-execution-index.md](plans/00-execution-index.md).
+
 ### v1.89.2 documentation sync (CI caching and post-deploy audit)
 
 - **CI:** Dependency caches (npm, pip, Playwright, Gradle, security-tool binaries); composite actions under `.github/actions/`; **`pages-site-probe`** artifact for post-deploy boot audit on the exact GitHub Pages tree.
@@ -324,7 +328,7 @@ The app includes GDPR-compliant data sharing:
 
 ## 🔐 Security notes
 
-Start with the full guide: **[SECURITY.md](SECURITY.md)** (see also [Security overview](../README.md#security) in the main README). Supplementary references: [supabase-rls-recommended.sql](supabase-rls-recommended.sql), [../supabase/harden-graphql-exposure.sql](../supabase/harden-graphql-exposure.sql) (Security Advisor lints 0026/0027 on live projects), [privacy/global-baseline.md](privacy/global-baseline.md), CI workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) - `security-audit` job (Gitleaks, OSV SARIF, privacy doc verifier, security inventory, SBOM, `npm audit`, `pip-audit`).
+Start with the full guide: **[SECURITY.md](SECURITY.md)** (see also [Security overview](../README.md#security) in the main README). Supplementary references: [../supabase/Schema.sql](../supabase/Schema.sql) (tables, RLS, grants, RPCs), [privacy/global-baseline.md](privacy/global-baseline.md), CI workflow [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) - `security-audit` job (Gitleaks, OSV SARIF, privacy doc verifier, security inventory, SBOM, `npm audit`, `pip-audit`).
 
 ⚠️ **Important security considerations**:
 

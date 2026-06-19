@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.111.0** - Plan 14: cross-cutting integration capstone (X14.1–X14.5).
+**Latest: v1.112.0** - Docs: migrate `Projects/` to `docs/plans/`; consolidate Supabase SQL.
+
+### v1.112.0 - 2026-06-19 - Docs: execution plans + Supabase schema
+- **Plans:** Migrated gitignored `Projects/` → tracked **`docs/plans/`** (MASTER, 14 plan runbooks, EXTERNAL-SETUP, rollout gates, verify scripts).
+- **Supabase:** Single idempotent **`supabase/Schema.sql`** (tables, RLS, grants, RE1 RPCs, §5 verification); removed `pool-insights-rpc.sql` and `harden-graphql-exposure.sql`; added **`supabase/APPLY.md`**.
+- **Docs:** AGENTS.md, architecture-standard, project-reference, SECURITY, testing-and-configuration updated; `verify-rls-baseline` reads Schema.sql.
 
 ### v1.111.0 - 2026-06-19 - Plan 14 Cross-cutting concepts (X14.1–X14.5)
 - **X14.1:** Weekly Health Review ritual — Home card + 5-step flow (correlations → digest → visit brief → PDF); PWA modal + RN `WeeklyReviewScreen`.
