@@ -23,6 +23,7 @@ var RianellShared = (() => {
     ALLOWED_LLM_MODEL_HOSTS: () => ALLOWED_LLM_MODEL_HOSTS,
     ANON_POOL_EXCLUDED_FIELDS: () => ANON_POOL_EXCLUDED_FIELDS,
     ANON_POOL_INCLUDED_FIELDS: () => ANON_POOL_INCLUDED_FIELDS,
+    APPOINTMENT_COUNTDOWN_DAYS: () => APPOINTMENT_COUNTDOWN_DAYS,
     BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS: () => BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS,
     CAREGIVER_RELATIONSHIPS: () => CAREGIVER_RELATIONSHIPS,
     DEFAULT_GOALS: () => DEFAULT_GOALS,
@@ -64,6 +65,7 @@ var RianellShared = (() => {
     SHIPPED_LOCALES: () => SHIPPED_LOCALES,
     TRACKING_PROFILE_FIELD_KEYS: () => TRACKING_PROFILE_FIELD_KEYS,
     UNSET_PRIVACY_REGION: () => UNSET_PRIVACY_REGION,
+    WEATHER_CACHE_MS: () => WEATHER_CACHE_MS,
     addLogFavorite: () => addLogFavorite,
     analysisSnapshotFromSummary: () => analysisSnapshotFromSummary,
     appendProcessingActivity: () => appendProcessingActivity,
@@ -73,7 +75,9 @@ var RianellShared = (() => {
     applyPrivacyProfileToLocal: () => applyPrivacyProfileToLocal,
     applyRegionDefaultLocale: () => applyRegionDefaultLocale,
     applyRegionDowngradeToggles: () => applyRegionDowngradeToggles,
+    appointmentCountdownLabelKey: () => appointmentCountdownLabelKey,
     auditGoldenPrompt: () => auditGoldenPrompt,
+    buildAirQualityUrl: () => buildAirQualityUrl,
     buildClinicianBriefContext: () => buildClinicianBriefContext,
     buildClinicianBriefFallback: () => buildClinicianBriefFallback,
     buildClinicianBriefPrompt: () => buildClinicianBriefPrompt,
@@ -93,6 +97,7 @@ var RianellShared = (() => {
     buildSuggestPrompt: () => buildSuggestPrompt,
     buildSummaryPrompt: () => buildSummaryPrompt,
     buildTodayMedDoseStatuses: () => buildTodayMedDoseStatuses,
+    buildWeatherForecastUrl: () => buildWeatherForecastUrl,
     buildWeekChatContext: () => buildWeekChatContext,
     buildWeekChatFallback: () => buildWeekChatFallback,
     buildWeekChatPrompt: () => buildWeekChatPrompt,
@@ -104,14 +109,18 @@ var RianellShared = (() => {
     clearMigrationPending: () => clearMigrationPending,
     coachPersonaPromptKey: () => coachPersonaPromptKey,
     completedCheckinPeriods: () => completedCheckinPeriods,
+    computeFlareFreeDays: () => computeFlareFreeDays,
+    computeGoodDayStreak: () => computeGoodDayStreak,
     computeHomeAnalysisSnapshot: () => computeHomeAnalysisSnapshot,
     computeHomeCardContext: () => computeHomeCardContext,
+    computeHomeStreakSnapshot: () => computeHomeStreakSnapshot,
     createReadOnlyShareEnvelope: () => createReadOnlyShareEnvelope,
     createSampleLogEntry: () => createSampleLogEntry,
     createTranslator: () => createTranslator,
     customMetricFieldKey: () => customMetricFieldKey,
     customMetricIdFromField: () => customMetricIdFromField,
     daysSinceTrackingProfileStart: () => daysSinceTrackingProfileStart,
+    daysUntilAppointment: () => daysUntilAppointment,
     decryptExportWithPassphrase: () => decryptExportWithPassphrase,
     deriveDateFormatFromLocale: () => deriveDateFormatFromLocale,
     deriveFirstDayOfWeekFromLocale: () => deriveFirstDayOfWeekFromLocale,
@@ -119,6 +128,7 @@ var RianellShared = (() => {
     encryptExportWithPassphrase: () => encryptExportWithPassphrase,
     existsSync: () => existsSync,
     extractLogFieldsFromVoiceTranscript: () => extractLogFieldsFromVoiceTranscript,
+    fetchHomeWeatherSnapshot: () => fetchHomeWeatherSnapshot,
     fetchOpenFoodFactsProduct: () => fetchOpenFoodFactsProduct,
     filterLogsForHomeSuggestions: () => filterLogsForHomeSuggestions,
     findLogSyncConflicts: () => findLogSyncConflicts,
@@ -151,6 +161,7 @@ var RianellShared = (() => {
     identity: () => identity,
     isCloudSyncBlockedByMigration: () => isCloudSyncBlockedByMigration,
     isCustomMetricField: () => isCustomMetricField,
+    isGoodDayLog: () => isGoodDayLog,
     isLlmInferenceAllowed: () => isLlmInferenceAllowed,
     isLocalOnlyModeEnabled: () => isLocalOnlyModeEnabled,
     isLogCategoryUnlocked: () => isLogCategoryUnlocked,
@@ -161,6 +172,7 @@ var RianellShared = (() => {
     isTrackingProfileConfigured: () => isTrackingProfileConfigured,
     isValidLocaleId: () => isValidLocaleId,
     isValidPrivacyRegion: () => isValidPrivacyRegion,
+    isWeatherCacheFresh: () => isWeatherCacheFresh,
     languageNameForLocale: () => languageNameForLocale,
     loadPolicyPackFromDisk: () => loadPolicyPackFromDisk,
     loadPromptPack: () => loadPromptPack,
@@ -183,6 +195,7 @@ var RianellShared = (() => {
     normalizeCycleFields: () => normalizeCycleFields,
     normalizeDisplayNameTheme: () => normalizeDisplayNameTheme,
     normalizeGoals: () => normalizeGoals,
+    normalizeHomeDashboardPrefs: () => normalizeHomeDashboardPrefs,
     normalizeLlmCoachPersona: () => normalizeLlmCoachPersona,
     normalizeLogEntry: () => normalizeLogEntry,
     normalizeLogFavorites: () => normalizeLogFavorites,
@@ -196,10 +209,13 @@ var RianellShared = (() => {
     normalizeSubEntry: () => normalizeSubEntry,
     normalizeSymptomTemplates: () => normalizeSymptomTemplates,
     normalizeTrackingProfile: () => normalizeTrackingProfile,
+    normalizeWeatherCoords: () => normalizeWeatherCoords,
+    parseAppointmentDate: () => parseAppointmentDate,
     parseLogsCsv: () => parseLogsCsv,
     parseMigrationCsv: () => parseMigrationCsv,
     parseSettingsProfileImport: () => parseSettingsProfileImport,
     parseStructuredLlmOutput: () => parseStructuredLlmOutput,
+    parseWeatherApiResponse: () => parseWeatherApiResponse,
     periodForHour: () => periodForHour,
     pickHomeAiSuggestions: () => pickHomeAiSuggestions,
     prefsToConsents: () => prefsToConsents,
@@ -213,11 +229,13 @@ var RianellShared = (() => {
     resolveDataResidency: () => resolveDataResidency,
     resolveHomeCardOrder: () => resolveHomeCardOrder,
     resolvePolicyPack: () => resolvePolicyPack,
+    roundWeatherCoord: () => roundWeatherCoord,
     runGoldenPromptAudit: () => runGoldenPromptAudit,
     sanitizeCustomMetricLabel: () => sanitizeCustomMetricLabel,
     setPolicyPack: () => setPolicyPack,
     shareEnvelopeToPortableJson: () => shareEnvelopeToPortableJson,
     shouldAllowNetworkOperation: () => shouldAllowNetworkOperation,
+    shouldShowAppointmentCard: () => shouldShowAppointmentCard,
     shouldShowWizardCategory: () => shouldShowWizardCategory,
     stampLogEntryForCaregiver: () => stampLogEntryForCaregiver,
     suggestPrivacyRegionFromHint: () => suggestPrivacyRegionFromHint,
@@ -2162,6 +2180,9 @@ var RianellShared = (() => {
   // packages/shared/src/ai/homeCardRegistry.mjs
   var HOME_CARDS = [
     { id: "nudge", basePriority: 40 },
+    { id: "appointment", basePriority: 78 },
+    { id: "weather", basePriority: 48 },
+    { id: "streak", basePriority: 38 },
     { id: "checkin", basePriority: 70 },
     { id: "pacing", basePriority: 55 },
     { id: "hero", basePriority: 100 },
@@ -2187,7 +2208,10 @@ var RianellShared = (() => {
       simpleMode = false,
       showGoals = true,
       hasPacingData = false,
-      showCheckin = true
+      showCheckin = true,
+      showStreak = false,
+      showWeather = false,
+      showAppointment = false
     } = options;
     const loggedToday = Array.isArray(logs) && logs.some((l) => l?.date === todayStr);
     const streakBroken = isLoggingStreakBroken(logs, todayStr);
@@ -2200,7 +2224,10 @@ var RianellShared = (() => {
       showGoals: showGoals !== false && aiEnabled !== false,
       showAiQuestions,
       showPacing: hasPacingData === true,
-      showCheckin: showCheckin !== false && simpleMode !== true
+      showCheckin: showCheckin !== false && simpleMode !== true,
+      showStreak: showStreak === true,
+      showWeather: showWeather === true,
+      showAppointment: showAppointment === true
     };
   }
   function resolveHomeCardOrder(context) {
@@ -2211,6 +2238,9 @@ var RianellShared = (() => {
       if (card.id === "goals" && !ctx.showGoals) continue;
       if (card.id === "pacing" && !ctx.showPacing) continue;
       if (card.id === "checkin" && !ctx.showCheckin) continue;
+      if (card.id === "streak" && !ctx.showStreak) continue;
+      if (card.id === "weather" && !ctx.showWeather) continue;
+      if (card.id === "appointment" && !ctx.showAppointment) continue;
       let priority = card.basePriority;
       if (ctx.loggedToday && card.id === "goals") priority += 50;
       if (ctx.loggedToday && card.id === "checkin") priority += 35;
@@ -2218,6 +2248,8 @@ var RianellShared = (() => {
       if (!ctx.loggedToday && card.id === "hero") priority += 30;
       if (!ctx.loggedToday && card.id === "nudge") priority += 80;
       if (ctx.streakBroken && card.id === "nudge") priority += 20;
+      if (ctx.showAppointment && card.id === "appointment") priority += 25;
+      if (ctx.loggedToday && card.id === "weather") priority += 15;
       scored.push({ id: card.id, priority });
     }
     return scored.sort((a, b) => b.priority - a.priority).map((c) => c.id);
@@ -3008,6 +3040,176 @@ ${hist}`);
       if (out[k] === void 0) delete out[k];
     });
     return out;
+  }
+
+  // packages/shared/src/home/homeStreakStats.mjs
+  function parseMood(log) {
+    if (log?.mood == null || log.mood === "") return null;
+    const n = typeof log.mood === "number" ? log.mood : parseInt(String(log.mood), 10);
+    return Number.isFinite(n) ? n : null;
+  }
+  function isGoodDayLog(log) {
+    if (!log || typeof log !== "object") return false;
+    const noFlare = log.flare !== "Yes";
+    const mood = parseMood(log);
+    const moodOk = mood == null || mood >= 6;
+    return noFlare && moodOk;
+  }
+  function logsNewestFirst(logs) {
+    return [...Array.isArray(logs) ? logs : []].sort(
+      (a, b) => String(b?.date || "").localeCompare(String(a?.date || ""))
+    );
+  }
+  function computeGoodDayStreak(logs) {
+    const sorted = logsNewestFirst(logs);
+    let streak = 0;
+    for (const log of sorted) {
+      if (isGoodDayLog(log)) streak += 1;
+      else break;
+    }
+    return streak;
+  }
+  function computeFlareFreeDays(logs) {
+    const sorted = logsNewestFirst(logs);
+    let count = 0;
+    for (const log of sorted) {
+      if (log?.flare === "Yes") break;
+      if (log?.date) count += 1;
+    }
+    return count;
+  }
+  function computeHomeStreakSnapshot(logs, options = {}) {
+    const dismissed = options.dismissed === true;
+    const minStreak = typeof options.minStreak === "number" ? options.minStreak : 2;
+    const goodDayStreak = computeGoodDayStreak(logs);
+    const flareFreeDays = computeFlareFreeDays(logs);
+    const showCard = !dismissed && (goodDayStreak >= minStreak || flareFreeDays >= minStreak);
+    return { goodDayStreak, flareFreeDays, showCard };
+  }
+
+  // packages/shared/src/home/homeAppointment.mjs
+  var APPOINTMENT_COUNTDOWN_DAYS = 14;
+  function parseAppointmentDate(value) {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+    return value;
+  }
+  function daysUntilAppointment(appointmentDate, todayStr) {
+    const a = parseAppointmentDate(appointmentDate);
+    const t2 = parseAppointmentDate(todayStr);
+    if (!a || !t2) return null;
+    const ms = (/* @__PURE__ */ new Date(`${a}T12:00:00`)).getTime() - (/* @__PURE__ */ new Date(`${t2}T12:00:00`)).getTime();
+    return Math.round(ms / 864e5);
+  }
+  function shouldShowAppointmentCard(appointmentDate, todayStr, maxDays = APPOINTMENT_COUNTDOWN_DAYS) {
+    const days = daysUntilAppointment(appointmentDate, todayStr);
+    if (days == null) return false;
+    return days >= 0 && days <= maxDays;
+  }
+  function appointmentCountdownLabelKey(days) {
+    if (days === 0) return "home.appointment.today";
+    if (days === 1) return "home.appointment.tomorrow";
+    return "home.appointment.inDays";
+  }
+
+  // packages/shared/src/home/homeWeather.mjs
+  var WEATHER_CACHE_MS = 60 * 60 * 1e3;
+  function roundWeatherCoord(value) {
+    if (typeof value !== "number" || !Number.isFinite(value)) return null;
+    return Math.round(value * 100) / 100;
+  }
+  function normalizeWeatherCoords(lat, lon) {
+    const la = roundWeatherCoord(lat);
+    const lo = roundWeatherCoord(lon);
+    if (la == null || lo == null) return null;
+    if (la < -90 || la > 90 || lo < -180 || lo > 180) return null;
+    return { lat: la, lon: lo };
+  }
+  function buildWeatherForecastUrl(lat, lon) {
+    const coords = normalizeWeatherCoords(lat, lon);
+    if (!coords) return null;
+    const params = new URLSearchParams({
+      latitude: String(coords.lat),
+      longitude: String(coords.lon),
+      current: "pressure_msl,temperature_2m",
+      timezone: "auto"
+    });
+    return `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
+  }
+  function buildAirQualityUrl(lat, lon) {
+    const coords = normalizeWeatherCoords(lat, lon);
+    if (!coords) return null;
+    const params = new URLSearchParams({
+      latitude: String(coords.lat),
+      longitude: String(coords.lon),
+      current: "us_aqi"
+    });
+    return `https://air-quality-api.open-meteo.com/v1/air-quality?${params.toString()}`;
+  }
+  function parseWeatherApiResponse(forecastJson, aqiJson) {
+    const current = forecastJson?.current;
+    if (!current || typeof current !== "object") return null;
+    const temp = typeof current.temperature_2m === "number" ? Number(current.temperature_2m.toFixed(1)) : null;
+    const pressure = typeof current.pressure_msl === "number" ? Math.round(current.pressure_msl) : null;
+    const usAqi = aqiJson?.current && typeof aqiJson.current.us_aqi === "number" ? Math.round(aqiJson.current.us_aqi) : null;
+    if (temp == null && pressure == null && usAqi == null) return null;
+    return {
+      tempC: temp,
+      pressureHpa: pressure,
+      usAqi,
+      fetchedAt: Date.now()
+    };
+  }
+  function isWeatherCacheFresh(cache, maxAgeMs = WEATHER_CACHE_MS) {
+    if (!cache || typeof cache !== "object") return false;
+    const at = cache.fetchedAt;
+    return typeof at === "number" && Date.now() - at < maxAgeMs;
+  }
+  async function fetchHomeWeatherSnapshot(lat, lon, options = {}) {
+    const coords = normalizeWeatherCoords(lat, lon);
+    if (!coords) return null;
+    const fetchFn = options.fetchFn || (typeof fetch === "function" ? fetch.bind(globalThis) : null);
+    if (!fetchFn) return null;
+    const forecastUrl = buildWeatherForecastUrl(coords.lat, coords.lon);
+    const aqiUrl = buildAirQualityUrl(coords.lat, coords.lon);
+    if (!forecastUrl) return null;
+    const forecastRes = await fetchFn(forecastUrl);
+    if (!forecastRes?.ok) return null;
+    const forecastJson = await forecastRes.json();
+    let aqiJson = null;
+    if (aqiUrl) {
+      try {
+        const aqiRes = await fetchFn(aqiUrl);
+        if (aqiRes?.ok) aqiJson = await aqiRes.json();
+      } catch {
+        aqiJson = null;
+      }
+    }
+    return parseWeatherApiResponse(forecastJson, aqiJson);
+  }
+
+  // packages/shared/src/home/homeDashboardPrefs.mjs
+  function normalizeHomeDashboardPrefs(raw) {
+    const v = raw && typeof raw === "object" ? raw : {};
+    const lat = roundWeatherCoord(v.weatherLat);
+    const lon = roundWeatherCoord(v.weatherLon);
+    let weatherCache = null;
+    if (v.weatherCache && typeof v.weatherCache === "object") {
+      weatherCache = v.weatherCache;
+    } else if (typeof v.weatherCacheJson === "string" && v.weatherCacheJson) {
+      try {
+        weatherCache = JSON.parse(v.weatherCacheJson);
+      } catch {
+        weatherCache = null;
+      }
+    }
+    return {
+      homeStreakCardDismissed: v.homeStreakCardDismissed === true,
+      weatherStripEnabled: v.weatherStripEnabled === true,
+      weatherLat: lat,
+      weatherLon: lon,
+      weatherCache,
+      nextAppointmentDate: parseAppointmentDate(v.nextAppointmentDate)
+    };
   }
 
   // packages/shared/src/export/logCsv.mjs

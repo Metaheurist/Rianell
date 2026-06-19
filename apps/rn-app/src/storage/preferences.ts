@@ -8,6 +8,7 @@ import {
   normalizeSymptomTemplates,
   normalizeTrackingProfile,
   normalizeCustomChartMetrics,
+  normalizeHomeDashboardPrefs,
   readProcessingActivity,
 } from '@rianell/shared';
 
@@ -132,6 +133,17 @@ export type Preferences = {
   caregiverDependentName: string;
   caregiverRelationship: 'parent' | 'guardian' | 'other';
   customChartMetrics: CustomChartMetric[];
+  homeStreakCardDismissed: boolean;
+  weatherStripEnabled: boolean;
+  weatherLat: number | null;
+  weatherLon: number | null;
+  weatherCache: {
+    tempC: number | null;
+    pressureHpa: number | null;
+    usAqi: number | null;
+    fetchedAt: number;
+  } | null;
+  nextAppointmentDate: string | null;
 };
 
 export function getDefaultPreferences(): Preferences {
@@ -222,6 +234,12 @@ export function getDefaultPreferences(): Preferences {
     caregiverDependentName: '',
     caregiverRelationship: 'parent',
     customChartMetrics: [],
+    homeStreakCardDismissed: false,
+    weatherStripEnabled: false,
+    weatherLat: null,
+    weatherLon: null,
+    weatherCache: null,
+    nextAppointmentDate: null,
   };
 }
 
@@ -398,6 +416,7 @@ export async function loadPreferences(): Promise<Preferences> {
           ? parsed.caregiverRelationship
           : 'parent',
       customChartMetrics: normalizeCustomChartMetrics(parsed.customChartMetrics),
+      ...normalizeHomeDashboardPrefs(parsed),
     };
     return applyLocaleDefaultsToPrefs(base, base.uiLocale) as Preferences;
   } catch {
