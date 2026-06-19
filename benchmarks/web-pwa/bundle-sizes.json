@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-19T06:21:09.859Z",
+  "generatedAt": "2026-06-19T07:14:43.354Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3723508,
-    "cssBytes": 395381,
-    "jsGzipBytes": 891294,
-    "cssGzipBytes": 69545
+    "jsBytes": 3748092,
+    "cssBytes": 396839,
+    "jsGzipBytes": 897310,
+    "cssGzipBytes": 69814
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 869709,
-      "gzipBytes": 188896
+      "bytes": 877371,
+      "gzipBytes": 190747
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.397862eb55f3.min.js",
-      "bytes": 614799,
-      "gzipBytes": 139757
+      "file": "ci-minified/site/app.34dfe87f4e6b.min.js",
+      "bytes": 621105,
+      "gzipBytes": 141362
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -65,8 +65,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-ai-engine.js",
-      "bytes": 30475,
-      "gzipBytes": 7643
+      "bytes": 41091,
+      "gzipBytes": 10203
     },
     {
       "file": "ci-minified/site/performance-utils.js",
@@ -110,8 +110,8 @@
     },
     {
       "file": "ci-minified/site/styles-charts.css",
-      "bytes": 11241,
-      "gzipBytes": 2684
+      "bytes": 12699,
+      "gzipBytes": 2953
     },
     {
       "file": "ci-minified/site/device-module.js",
