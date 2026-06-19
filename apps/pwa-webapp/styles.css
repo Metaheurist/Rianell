@@ -15364,6 +15364,89 @@ body.log-wizard-active .header-buttons-wrap {
   display: none !important;
 }
 
+.home-pacing-card,
+.home-checkin-card {
+  background: var(--card-bg-glass);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  margin-bottom: var(--section-gap);
+  box-shadow: var(--elev-2);
+}
+
+.home-pacing-card[hidden],
+.home-checkin-card[hidden] {
+  display: none !important;
+}
+
+.home-pacing-title,
+.home-checkin-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.home-pacing-summary {
+  margin: 0 0 0.5rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+}
+
+.home-pacing-warning {
+  margin: 0 0 0.65rem;
+  font-size: 0.92rem;
+  color: var(--accent-warning, #ffb74d);
+  line-height: 1.4;
+}
+
+.home-pacing-link {
+  margin-top: 0.25rem;
+}
+
+.home-checkin-periods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.home-checkin-btn.is-done {
+  opacity: 0.65;
+}
+
+.home-checkin-done {
+  font-size: 0.85em;
+  opacity: 0.85;
+}
+
+.micro-checkin-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.micro-checkin-lede {
+  margin: 0 0 4px;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
+.micro-checkin-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.micro-checkin-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--surface-border);
+  background: var(--input-bg, rgba(0, 0, 0, 0.2));
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
 .home-ai-suggestions {
   display: flex;
   flex-wrap: wrap;

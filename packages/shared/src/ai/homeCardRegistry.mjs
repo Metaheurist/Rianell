@@ -2,6 +2,8 @@
 
 const HOME_CARDS = [
   { id: 'nudge', basePriority: 40 },
+  { id: 'checkin', basePriority: 70 },
+  { id: 'pacing', basePriority: 55 },
   { id: 'hero', basePriority: 100 },
   { id: 'goals', basePriority: 60 },
 ];
@@ -33,6 +35,8 @@ export function computeHomeCardContext(logs, todayStr, options = {}) {
     aiEnabled = true,
     simpleMode = false,
     showGoals = true,
+    hasPacingData = false,
+    showCheckin = true,
   } = options;
   const loggedToday = Array.isArray(logs) && logs.some((l) => l?.date === todayStr);
   const streakBroken = isLoggingStreakBroken(logs, todayStr);
@@ -44,6 +48,8 @@ export function computeHomeCardContext(logs, todayStr, options = {}) {
     simpleMode: simpleMode === true,
     showGoals: showGoals !== false && aiEnabled !== false,
     showAiQuestions,
+    showPacing: hasPacingData === true,
+    showCheckin: showCheckin !== false && simpleMode !== true,
   };
 }
 
@@ -58,8 +64,12 @@ export function resolveHomeCardOrder(context) {
   for (const card of HOME_CARDS) {
     if (card.id === 'nudge' && (!ctx.streakBroken || ctx.loggedToday)) continue;
     if (card.id === 'goals' && !ctx.showGoals) continue;
+    if (card.id === 'pacing' && !ctx.showPacing) continue;
+    if (card.id === 'checkin' && !ctx.showCheckin) continue;
     let priority = card.basePriority;
     if (ctx.loggedToday && card.id === 'goals') priority += 50;
+    if (ctx.loggedToday && card.id === 'checkin') priority += 35;
+    if (ctx.loggedToday && card.id === 'pacing') priority += 20;
     if (!ctx.loggedToday && card.id === 'hero') priority += 30;
     if (!ctx.loggedToday && card.id === 'nudge') priority += 80;
     if (ctx.streakBroken && card.id === 'nudge') priority += 20;

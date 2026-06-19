@@ -19,6 +19,7 @@ export {
   cycleBandsToApexAnnotations,
   compareChartPeriods,
   buildPacingChartSeries,
+  buildTodayPacingBudget,
   buildBalanceRadarData,
   BALANCE_RADAR_BUILTIN,
   CYCLE_PHASE_COLORS,

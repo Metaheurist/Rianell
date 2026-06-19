@@ -19744,11 +19744,17 @@ function applyHomeCardLayout() {
   var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
   var goalsBlock = document.getElementById('goalsProgressBlock');
   var hasGoals = goalsBlock && goalsBlock.getAttribute('data-has-goals') === 'true';
+  var engine = typeof window !== 'undefined' ? window.RianellAIEngine : null;
+  var pacingBudget = engine && typeof engine.buildTodayPacingBudget === 'function'
+    ? engine.buildTodayPacingBudget(logArr, todayStr)
+    : null;
   var ctx = typeof S.computeHomeCardContext === 'function'
     ? S.computeHomeCardContext(logArr, todayStr, {
         aiEnabled: typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false,
         simpleMode: typeof appSettings !== 'undefined' && appSettings.simpleMode === true,
         showGoals: hasGoals,
+        hasPacingData: pacingBudget != null,
+        showCheckin: true,
       })
     : null;
   if (!ctx) return;
@@ -19763,6 +19769,8 @@ function applyHomeCardLayout() {
       nudge.textContent = '';
     }
   }
+  if (typeof renderHomePacingCard === 'function') renderHomePacingCard(logArr, todayStr, pacingBudget, ctx);
+  if (typeof renderHomeCheckinCard === 'function') renderHomeCheckinCard(logArr, todayStr, ctx);
   var header = homeTab.querySelector('.home-today-header');
   var insertAfter = header;
   order.forEach(function(cardId) {
@@ -19771,6 +19779,146 @@ function applyHomeCardLayout() {
     insertAfter.parentNode.insertBefore(el, insertAfter.nextSibling);
     insertAfter = el;
   });
+}
+
+var _microCheckinPeriod = null;
+
+function renderHomePacingCard(logArr, todayStr, pacingBudget, ctx) {
+  var card = document.getElementById('homePacingCard');
+  if (!card) return;
+  if (!ctx || !ctx.showPacing || !pacingBudget) {
+    card.hidden = true;
+    card.innerHTML = '';
+    return;
+  }
+  card.hidden = false;
+  var summary = typeof tUi === 'function'
+    ? tUi('home.pacing.summary', { planned: pacingBudget.planned, actual: pacingBudget.rawActual })
+    : ('Planned ' + pacingBudget.planned + '/10 · used ' + pacingBudget.rawActual);
+  var overHtml = pacingBudget.overpaced
+    ? '<p class="home-pacing-warning">' + escapeHTML(typeof tUi === 'function' ? tUi('home.pacing.overpaced') : 'You may have overpaced today.') + '</p>'
+    : '';
+  var linkLabel = typeof tUi === 'function' ? tUi('home.pacing.linkCharts') : 'View pacing chart';
+  card.innerHTML =
+    '<h3 class="home-pacing-title">' + escapeHTML(typeof tUi === 'function' ? tUi('home.pacing.title') : 'Energy budget today') + '</h3>' +
+    '<p class="home-pacing-summary">' + escapeHTML(summary) + '</p>' + overHtml +
+    '<button type="button" class="action-btn home-pacing-link" data-ripple>' + escapeHTML(linkLabel) + '</button>';
+  var linkBtn = card.querySelector('.home-pacing-link');
+  if (linkBtn) {
+    linkBtn.onclick = function() {
+      if (typeof switchTab === 'function') switchTab('charts');
+      setTimeout(function() {
+        if (typeof toggleChartView === 'function') toggleChartView('balance');
+      }, 100);
+    };
+  }
+  if (typeof initRipple === 'function') initRipple(card);
+}
+
+function renderHomeCheckinCard(logArr, todayStr, ctx) {
+  var card = document.getElementById('homeCheckinCard');
+  if (!card) return;
+  var S = getHomeSharedAi();
+  if (!ctx || !ctx.showCheckin) {
+    card.hidden = true;
+    card.innerHTML = '';
+    return;
+  }
+  var todayLog = logArr.find(function(l) { return l && l.date === todayStr; });
+  var done = S && typeof S.completedCheckinPeriods === 'function'
+    ? S.completedCheckinPeriods(todayLog)
+    : new Set();
+  var periods = S && Array.isArray(S.HOME_CHECKIN_PERIODS) ? S.HOME_CHECKIN_PERIODS : ['AM', 'midday', 'PM'];
+  card.hidden = false;
+  var title = typeof tUi === 'function' ? tUi('home.checkin.title') : 'Quick check-in';
+  var doneLabel = typeof tUi === 'function' ? tUi('home.checkin.done') : 'Done';
+  var html = '<h3 class="home-checkin-title">' + escapeHTML(title) + '</h3><div class="home-checkin-periods">';
+  periods.forEach(function(period) {
+    var labelKey = period === 'AM' ? 'home.checkin.am' : period === 'PM' ? 'home.checkin.pm' : 'home.checkin.midday';
+    var label = typeof tUi === 'function' ? tUi(labelKey) : period;
+    var isDone = done.has(period);
+    html += '<button type="button" class="action-btn home-checkin-btn' + (isDone ? ' is-done' : '') + '" data-checkin-period="' + escapeHTML(period) + '" data-ripple' + (isDone ? ' disabled' : '') + '>';
+    html += escapeHTML(label);
+    if (isDone) html += ' <span class="home-checkin-done">' + escapeHTML(doneLabel) + '</span>';
+    html += '</button>';
+  });
+  html += '</div>';
+  card.innerHTML = html;
+  card.querySelectorAll('[data-checkin-period]').forEach(function(btn) {
+    if (btn.disabled) return;
+    btn.addEventListener('click', function() {
+      openMicroCheckinModal(btn.getAttribute('data-checkin-period'));
+    });
+  });
+  if (typeof initRipple === 'function') initRipple(card);
+}
+
+function openMicroCheckinModal(period) {
+  _microCheckinPeriod = period;
+  var overlay = document.getElementById('microCheckinModalOverlay');
+  if (!overlay) return;
+  var mood = document.getElementById('microCheckinMood');
+  var sleep = document.getElementById('microCheckinSleep');
+  var fatigue = document.getElementById('microCheckinFatigue');
+  if (mood) mood.value = '';
+  if (sleep) sleep.value = '';
+  if (fatigue) fatigue.value = '';
+  overlay.style.display = 'block';
+  overlay.style.visibility = 'visible';
+  overlay.style.opacity = '1';
+  document.body.classList.add('modal-active');
+  document.body.style.overflow = 'hidden';
+  overlay.onclick = function(e) { if (e.target === overlay) closeMicroCheckinModal(); };
+}
+
+function closeMicroCheckinModal() {
+  var overlay = document.getElementById('microCheckinModalOverlay');
+  if (!overlay) return;
+  overlay.style.display = 'none';
+  overlay.style.visibility = 'hidden';
+  overlay.style.opacity = '0';
+  document.body.classList.remove('modal-active');
+  document.body.style.overflow = '';
+  _microCheckinPeriod = null;
+}
+
+function saveMicroCheckinAndClose() {
+  var S = getHomeSharedAi();
+  if (!S || typeof S.applyMicroCheckin !== 'function' || !_microCheckinPeriod) return;
+  var todayStr = getTodayDateStr();
+  function parseScore(id) {
+    var el = document.getElementById(id);
+    if (!el || el.value === '') return undefined;
+    var n = parseInt(el.value, 10);
+    if (isNaN(n) || n < 1 || n > 10) return undefined;
+    return n;
+  }
+  var metrics = {
+    mood: parseScore('microCheckinMood'),
+    sleep: parseScore('microCheckinSleep'),
+    fatigue: parseScore('microCheckinFatigue'),
+  };
+  if (metrics.mood == null && metrics.sleep == null && metrics.fatigue == null) return;
+  var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
+  try {
+    var next = S.applyMicroCheckin(logArr, todayStr, _microCheckinPeriod, metrics);
+    logs = next;
+    if (typeof window !== 'undefined') window.logs = next;
+    if (typeof saveLogsToStorage === 'function') saveLogsToStorage();
+    if (typeof showToast === 'function') {
+      showToast(typeof tUi === 'function' ? tUi('home.checkin.saved') : 'Check-in saved.', { type: 'success' });
+    }
+    closeMicroCheckinModal();
+    if (typeof updateHomeTodayPanel === 'function') updateHomeTodayPanel();
+  } catch (err) {
+    if (typeof showToast === 'function') showToast(String(err && err.message ? err.message : err), { type: 'error' });
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.openMicroCheckinModal = openMicroCheckinModal;
+  window.closeMicroCheckinModal = closeMicroCheckinModal;
+  window.saveMicroCheckinAndClose = saveMicroCheckinAndClose;
 }
 
 function updateHomeTodayPanel() {

@@ -1,6 +1,6 @@
 /** Plan 04 — extended log entry fields (L7 cycle, L8 sub-entries, L3 med doses). */
 
-const SUB_ENTRY_PERIODS = new Set(['AM', 'PM', 'partial']);
+const SUB_ENTRY_PERIODS = new Set(['AM', 'midday', 'PM', 'partial']);
 
 function clampInt(raw, min, max) {
   const n = typeof raw === 'number' ? raw : typeof raw === 'string' ? parseInt(raw, 10) : NaN;

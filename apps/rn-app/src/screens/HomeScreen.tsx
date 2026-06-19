@@ -26,7 +26,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import type { MainTabParamList, RootStackParamList } from '../navigation/RootNavigator';
-import { loadLogs, type LogEntry } from '../storage/logs';
+import { loadLogs, saveLogs, type LogEntry } from '../storage/logs';
 import type { Preferences } from '../storage/preferences';
 import { loadCachedBenchmark } from '../performance/benchmark';
 import { generateMotd, answerHomeQuestion } from '../ai/llm';
@@ -35,7 +35,11 @@ import {
   analysisSnapshotFromSummary,
   computeHomeCardContext,
   resolveHomeCardOrder,
+  applyMicroCheckin,
+  completedCheckinPeriods,
+  HOME_CHECKIN_PERIODS,
 } from '@rianell/shared';
+import { buildTodayPacingBudget } from '../ai/engine';
 import { summarizeLogsForAi } from '../ai/analyzeLogs';
 import Constants from 'expo-constants';
 import { buildLogReviewSummary } from '../log/buildLogReviewSummary';
@@ -53,6 +57,20 @@ type HomeNav = CompositeNavigationProp<
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
+}
+
+type CheckinPeriod = 'AM' | 'midday' | 'PM';
+
+function parseScore1to10(raw: string): number | undefined {
+  const n = Number(raw.trim());
+  if (!Number.isFinite(n) || n < 1 || n > 10) return undefined;
+  return Math.round(n);
+}
+
+function checkinPeriodLabelKey(period: CheckinPeriod): string {
+  if (period === 'AM') return 'home.checkin.am';
+  if (period === 'PM') return 'home.checkin.pm';
+  return 'home.checkin.midday';
 }
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -324,6 +342,17 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
   const [activeQuestion, setActiveQuestion] = useState<{ id: string; labelKey: string; labelParams?: Record<string, string> } | null>(null);
   const [questionAnswer, setQuestionAnswer] = useState('');
   const [questionLoading, setQuestionLoading] = useState(false);
+  const [checkinModalOpen, setCheckinModalOpen] = useState(false);
+  const [checkinPeriod, setCheckinPeriod] = useState<CheckinPeriod>('AM');
+  const [checkinMood, setCheckinMood] = useState('');
+  const [checkinSleep, setCheckinSleep] = useState('');
+  const [checkinFatigue, setCheckinFatigue] = useState('');
+  const [checkinSaving, setCheckinSaving] = useState(false);
+
+  const todayStr = todayIso();
+  const pacingBudget = useMemo(() => buildTodayPacingBudget(homeLogs, todayStr), [homeLogs, todayStr]);
+  const todayLog = useMemo(() => homeLogs.find((l) => l.date === todayStr), [homeLogs, todayStr]);
+  const doneCheckinPeriods = useMemo(() => completedCheckinPeriods(todayLog), [todayLog]);
 
   const refreshBpm = useCallback(() => {
     loadLogs()
@@ -507,14 +536,50 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
 
   const cardContext = useMemo(
     () =>
-      computeHomeCardContext(homeLogs, todayIso(), {
+      computeHomeCardContext(homeLogs, todayStr, {
         aiEnabled: prefs.aiEnabled,
         simpleMode: prefs.simpleMode,
         showGoals: true,
+        hasPacingData: pacingBudget != null,
+        showCheckin: true,
       }),
-    [homeLogs, prefs.aiEnabled, prefs.simpleMode]
+    [homeLogs, prefs.aiEnabled, prefs.simpleMode, pacingBudget, todayStr]
   );
   const cardOrder = useMemo(() => resolveHomeCardOrder(cardContext), [cardContext]);
+
+  const openCheckinModal = useCallback((period: CheckinPeriod) => {
+    setCheckinPeriod(period);
+    setCheckinMood('');
+    setCheckinSleep('');
+    setCheckinFatigue('');
+    setCheckinModalOpen(true);
+  }, []);
+
+  const onSaveCheckin = useCallback(async () => {
+    const metrics = {
+      mood: parseScore1to10(checkinMood),
+      sleep: parseScore1to10(checkinSleep),
+      fatigue: parseScore1to10(checkinFatigue),
+    };
+    if (metrics.mood == null && metrics.sleep == null && metrics.fatigue == null) {
+      Alert.alert(t('home.checkin.modalTitle'), t('wizard.energy.instructions'));
+      return;
+    }
+    setCheckinSaving(true);
+    try {
+      const next = applyMicroCheckin(homeLogs, todayStr, checkinPeriod, metrics);
+      await saveLogs(next);
+      setHomeLogs(next);
+      setLoggedToday(true);
+      setCheckinModalOpen(false);
+      refreshHomeSuggestions();
+      Alert.alert(t('home.checkin.modalTitle'), t('home.checkin.saved'));
+    } catch {
+      Alert.alert(t('common.error'), t('wizard.alert.saveFailed'));
+    } finally {
+      setCheckinSaving(false);
+    }
+  }, [checkinFatigue, checkinMood, checkinPeriod, checkinSleep, homeLogs, refreshHomeSuggestions, t, todayStr]);
 
   const renderHomeCard = (cardId: string) => {
     if (cardId === 'nudge') {
@@ -576,6 +641,69 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
               ))}
             </View>
           ) : null}
+        </View>
+      );
+    }
+    if (cardId === 'pacing' && pacingBudget) {
+      return (
+        <View key="pacing" style={styles.card} accessibilityLabel={t('home.pacing.title')}>
+          <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.pacing.title')}</Text>
+          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+            {t('home.pacing.summary', { planned: pacingBudget.planned, actual: pacingBudget.rawActual })}
+          </Text>
+          {pacingBudget.overpaced ? (
+            <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(13), marginTop: 6, opacity: 0.9 }]}>
+              {t('home.pacing.overpaced')}
+            </Text>
+          ) : null}
+          <Pressable
+            onPress={() => navigation.navigate('Charts', { initialView: 'balance' })}
+            style={({ pressed }) => [
+              styles.readTodayBtn,
+              { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1, marginTop: 10 },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={t('home.pacing.linkCharts')}
+          >
+            <Text style={{ color: accent, fontSize: theme.font(14) }}>{t('home.pacing.linkCharts')}</Text>
+          </Pressable>
+        </View>
+      );
+    }
+    if (cardId === 'checkin') {
+      return (
+        <View key="checkin" style={styles.card} accessibilityLabel={t('home.checkin.title')}>
+          <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.checkin.title')}</Text>
+          <View style={styles.checkinRow}>
+            {(HOME_CHECKIN_PERIODS as readonly CheckinPeriod[]).map((period) => {
+              const done = doneCheckinPeriods.has(period);
+              return (
+                <Pressable
+                  key={period}
+                  disabled={done}
+                  onPress={() => openCheckinModal(period)}
+                  style={({ pressed }) => [
+                    styles.checkinBtn,
+                    {
+                      borderColor: `${accent}66`,
+                      opacity: done ? 0.55 : pressed ? 0.88 : 1,
+                    },
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    done
+                      ? `${t(checkinPeriodLabelKey(period))}, ${t('home.checkin.done')}`
+                      : t(checkinPeriodLabelKey(period))
+                  }
+                >
+                  <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(13) }}>
+                    {t(checkinPeriodLabelKey(period))}
+                    {done ? ` · ${t('home.checkin.done')}` : ''}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
       );
     }
@@ -799,6 +927,75 @@ export function HomeScreen({ prefs }: { prefs: Preferences }) {
           </KeyboardAvoidingView>
         </View>
       </Modal>
+      <Modal visible={checkinModalOpen} animationType="fade" transparent onRequestClose={() => setCheckinModalOpen(false)}>
+        <View style={styles.modalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={() => setCheckinModalOpen(false)}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.close')}
+          />
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalKb}>
+            <View style={[styles.modalCard, { borderColor: `${accent}44`, backgroundColor: 'rgba(14,18,17,0.98)' }]}>
+              <View style={styles.modalHeaderRow}>
+                <Text style={[styles.modalTitle, { color: accent, fontSize: theme.font(18), flex: 1 }]}>
+                  {t('home.checkin.modalTitle')} — {t(checkinPeriodLabelKey(checkinPeriod))}
+                </Text>
+                <Pressable onPress={() => setCheckinModalOpen(false)} accessibilityRole="button" accessibilityLabel={t('common.close')}>
+                  <Ionicons name="close" size={24} color={accent} />
+                </Pressable>
+              </View>
+              <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(13), marginBottom: 12 }]}>
+                {t('wizard.energy.instructions')}
+              </Text>
+              <Text style={[styles.fieldLabel, { color: theme.tokens.color.text }]}>{t('wizard.mood.1.10')}</Text>
+              <TextInput
+                value={checkinMood}
+                onChangeText={setCheckinMood}
+                style={[styles.input, { color: theme.tokens.color.text }]}
+                keyboardType="number-pad"
+                accessibilityLabel={t('wizard.aria.moodScore')}
+              />
+              <Text style={[styles.fieldLabel, { color: theme.tokens.color.text, marginTop: 4 }]}>{t('wizard.sleep.1.10')}</Text>
+              <TextInput
+                value={checkinSleep}
+                onChangeText={setCheckinSleep}
+                style={[styles.input, { color: theme.tokens.color.text }]}
+                keyboardType="number-pad"
+                accessibilityLabel={t('wizard.aria.sleepScore')}
+              />
+              <Text style={[styles.fieldLabel, { color: theme.tokens.color.text, marginTop: 4 }]}>{t('wizard.fatigue.1.10')}</Text>
+              <TextInput
+                value={checkinFatigue}
+                onChangeText={setCheckinFatigue}
+                style={[styles.input, { color: theme.tokens.color.text }]}
+                keyboardType="number-pad"
+                accessibilityLabel={t('wizard.aria.fatigueScore')}
+              />
+              <View style={[styles.modalFooter, { borderTopColor: `${accent}33` }]}>
+                <Pressable
+                  style={[styles.modalBtnSecondary, { borderColor: `${accent}55` }]}
+                  onPress={() => setCheckinModalOpen(false)}
+                  accessibilityRole="button"
+                >
+                  <Text style={[styles.modalBtnTextSecondary, { color: theme.tokens.color.text }]}>{t('common.cancel')}</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.modalBtnPrimary, { backgroundColor: accent, opacity: checkinSaving ? 0.65 : 1 }]}
+                  onPress={() => void onSaveCheckin()}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('home.checkin.save')}
+                  disabled={checkinSaving}
+                >
+                  <Text style={styles.modalBtnTextPrimary}>
+                    {checkinSaving ? t('common.loading.submitting') : t('home.checkin.save')}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -862,6 +1059,14 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
   suggestionChipText: { lineHeight: 18 },
+  checkinRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+  checkinBtn: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(0,0,0,0.22)',
+  },
   questionModalCard: { maxHeight: '70%' },
   questionAnswer: { lineHeight: 22, marginBottom: 10 },
   questionDisclaimer: { opacity: 0.82, lineHeight: 18, marginBottom: 4 },
