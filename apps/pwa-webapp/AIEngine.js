@@ -435,6 +435,12 @@ function NeuralAnalysisNetwork(engine) {
 
   this.layerInterpretation = function(ctx) {
     const a = ctx.analysis;
+    if (typeof window !== 'undefined' && window.RianellAIEngine && typeof window.RianellAIEngine.rankNeuralAnalysisInsights === 'function') {
+      const ranked = window.RianellAIEngine.rankNeuralAnalysisInsights(a, 7);
+      a.prioritisedInsights = ranked.prioritisedInsights;
+      a.rankedInsights = ranked.insights;
+      return;
+    }
     const items = [];
     (a.anomalies || []).forEach(text => items.push({ text: text, score: 0.9, source: 'anomaly' }));
     (a.riskFactors || []).forEach(text => items.push({ text: text, score: 0.85, source: 'risk' }));
