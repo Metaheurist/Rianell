@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-19T05:18:00.334Z",
+  "generatedAt": "2026-06-19T05:59:01.307Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3688392,
+    "jsBytes": 3716027,
     "cssBytes": 395381,
-    "jsGzipBytes": 884012,
+    "jsGzipBytes": 889025,
     "cssGzipBytes": 69545
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 868700,
-      "gzipBytes": 188654
+      "bytes": 869709,
+      "gzipBytes": 188896
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.4bc96d970af0.min.js",
-      "bytes": 613980,
-      "gzipBytes": 139611
+      "file": "ci-minified/site/app.397862eb55f3.min.js",
+      "bytes": 614799,
+      "gzipBytes": 139757
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -40,8 +40,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 131738,
-      "gzipBytes": 30630
+      "bytes": 146938,
+      "gzipBytes": 33379
     },
     {
       "file": "ci-minified/site/cloud-sync.js",
@@ -50,8 +50,8 @@
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 62814,
-      "gzipBytes": 14581
+      "bytes": 73421,
+      "gzipBytes": 16457
     },
     {
       "file": "ci-minified/site/export-utils.js",
