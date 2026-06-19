@@ -51,6 +51,28 @@
   line-height: 1.45;
   opacity: 0.92;
 }
+.charts-cycle-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.charts-cycle-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 0.78rem;
+  text-transform: capitalize;
+}
+.charts-cycle-chip i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
 
 body.chart-palette-high-contrast {
   --chart-series-1: #ffffff;

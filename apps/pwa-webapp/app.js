@@ -5285,6 +5285,15 @@ async function createCombinedChart() {
       }
     }
   };
+  if (appSettings.cycleModuleEnabled && window.RianellAIEngine && typeof window.RianellAIEngine.buildCyclePhaseBands === 'function') {
+    const chronoCombined = [...filteredLogs].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const cycleOverlay = window.RianellAIEngine.buildCyclePhaseBands(chronoCombined);
+    const cycleAnns = window.RianellAIEngine.cycleBandsToApexAnnotations(cycleOverlay.bands);
+    if (cycleAnns.length) {
+      options.annotations = options.annotations || {};
+      options.annotations.xaxis = (options.annotations.xaxis || []).concat(cycleAnns);
+    }
+  }
   
   applyApexLineChartThemeToOptions(options);
   
@@ -14763,6 +14772,21 @@ async function chart(id, label, dataField, color) {
       }]
     } : {}
   };
+  if (appSettings.cycleModuleEnabled && window.RianellAIEngine && typeof window.RianellAIEngine.buildCyclePhaseBands === 'function' && (dataField === 'mood' || dataField === 'jointPain' || dataField === 'backPain')) {
+    const chronoInd = getAllHistoricalLogsSync().filter(function (log) {
+      const logDate = new Date(log.date);
+      const start = chartDateRange.startDate ? new Date(chartDateRange.startDate) : null;
+      const end = chartDateRange.endDate ? new Date(chartDateRange.endDate) : null;
+      if (start && end) return logDate >= start && logDate <= end;
+      return true;
+    }).sort(function (a, b) { return new Date(a.date) - new Date(b.date); });
+    const cycleOverlayInd = window.RianellAIEngine.buildCyclePhaseBands(chronoInd);
+    const cycleAnnsInd = window.RianellAIEngine.cycleBandsToApexAnnotations(cycleOverlayInd.bands);
+    if (cycleAnnsInd.length) {
+      options.annotations = options.annotations || {};
+      options.annotations.xaxis = (options.annotations.xaxis || []).concat(cycleAnnsInd);
+    }
+  }
 
   applyApexLineChartThemeToOptions(options);
 
@@ -15158,6 +15182,15 @@ function renderChartsInsightsPanel() {
   const postMortem = typeof engine.buildFlarePostMortem === 'function'
     ? engine.buildFlarePostMortem(chronological)
     : null;
+  const cycleOverlay = appSettings.cycleModuleEnabled && typeof engine.buildCyclePhaseBands === 'function'
+    ? engine.buildCyclePhaseBands(chronological)
+    : { bands: [], markers: [] };
+  const periodCompare = typeof engine.compareChartPeriods === 'function'
+    ? engine.compareChartPeriods(chronological)
+    : null;
+  const pacingSeries = typeof engine.buildPacingChartSeries === 'function'
+    ? engine.buildPacingChartSeries(chronological, 'all').slice(-7)
+    : [];
   let forecastHtml = '';
   const moodSeries = chronological
     .filter((log) => log.mood != null && log.mood !== '')
@@ -15174,7 +15207,7 @@ function renderChartsInsightsPanel() {
       }))}</p>`;
     }
   }
-  if (!cards.length && !postMortem && !forecastHtml) {
+  if (!cards.length && !postMortem && !forecastHtml && !cycleOverlay.bands.length && !periodCompare && !pacingSeries.length) {
     panel.innerHTML = '';
     panel.classList.add('hidden');
     return;
@@ -15210,6 +15243,44 @@ function renderChartsInsightsPanel() {
   }
   if (forecastHtml) {
     html += `<h3 class="charts-insight-heading">${escapeHTML(tUi('charts.forecast.section'))}</h3>${forecastHtml}`;
+  }
+  if (cycleOverlay.bands.length) {
+    html += `<h3 class="charts-insight-heading">${escapeHTML(tUi('charts.cycle.title'))}</h3>`;
+    html += '<div class="charts-cycle-legend">';
+    cycleOverlay.bands.forEach((band) => {
+      html += `<span class="charts-cycle-chip" style="border-color:${escapeHTML(band.color)}"><i style="background:${escapeHTML(band.color)}"></i>${escapeHTML(band.label)}</span>`;
+    });
+    html += '</div>';
+  }
+  if (periodCompare && periodCompare.current.stats.logDays > 0) {
+    html += `<h3 class="charts-insight-heading">${escapeHTML(tUi('charts.compare.title'))}</h3>`;
+    html += `<p class="charts-insight-lede">${escapeHTML(tUi('charts.compare.lede', {
+      current: periodCompare.current.label,
+      previous: periodCompare.previous.label,
+    }))}</p>`;
+    ['mood', 'sleep', 'fatigue'].forEach((key) => {
+      const cur = periodCompare.current.stats[`${key}Avg`];
+      const prev = periodCompare.previous.stats[`${key}Avg`];
+      const d = periodCompare.deltas[key];
+      if (cur == null && prev == null) return;
+      html += `<p class="charts-insight-line">${escapeHTML(tUi('charts.compare.metricLine', {
+        metric: key.charAt(0).toUpperCase() + key.slice(1),
+        current: cur != null ? cur.toFixed(1) : '—',
+        previous: prev != null ? prev.toFixed(1) : '—',
+        delta: d != null ? (d >= 0 ? `+${d.toFixed(1)}` : d.toFixed(1)) : '—',
+      }))}</p>`;
+    });
+  }
+  if (pacingSeries.length) {
+    html += `<h3 class="charts-insight-heading">${escapeHTML(tUi('charts.pacing.title'))}</h3>`;
+    pacingSeries.forEach((row) => {
+      html += `<p class="charts-insight-line">${escapeHTML(tUi('charts.pacing.dayLine', {
+        date: row.date,
+        planned: row.planned,
+        actual: row.actual,
+        fatigue: row.fatigue != null ? row.fatigue : '—',
+      }))}${row.overpaced ? ' ⚠' : ''}</p>`;
+    });
   }
   panel.innerHTML = html;
   panel.classList.remove('hidden');

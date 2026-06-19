@@ -15,6 +15,11 @@ export {
   buildCorrelationCards,
   buildFlarePostMortem,
   correlationConfidenceLevel,
+  buildCyclePhaseBands,
+  cycleBandsToApexAnnotations,
+  compareChartPeriods,
+  buildPacingChartSeries,
+  CYCLE_PHASE_COLORS,
 } from './chartAnalytics.mjs';
 export { detectMetricAnomalies } from './anomalies.mjs';
 export { buildWeeklyDigest } from './weeklyDigest.mjs';
