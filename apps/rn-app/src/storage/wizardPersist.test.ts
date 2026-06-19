@@ -29,7 +29,7 @@ test('persistWizardLogEntry enqueues when offline', async () => {
   const entry = { date: '2026-06-18' } as LogEntry;
   await persistWizardLogEntry([], entry);
   expect(mockedSaveLogs).toHaveBeenCalled();
-  expect(mockedEnqueue).toHaveBeenCalledWith(entry);
+  expect(mockedEnqueue).toHaveBeenCalledWith(expect.objectContaining({ date: '2026-06-18', savedAt: expect.any(String) }));
 });
 
 test('persistWizardLogEntry skips queue when online', async () => {

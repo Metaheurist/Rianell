@@ -32,6 +32,18 @@ jest.mock('../performance/benchmark', () => ({
   clearCachedBenchmark: jest.fn(async () => {}),
   resolveLlmModelSize: jest.fn(() => 'tier3'),
 }));
+
+jest.mock('../notifications/smartReminderSync', () => ({
+  resolveEffectiveReminderSchedule: jest.fn(async (prefs: { notifications: { dailyReminderTime: string } }) => ({
+    logs: [],
+    todayStr: '2026-06-19',
+    reminderTime: prefs.notifications.dailyReminderTime,
+    missedNudgeTime: undefined,
+    learned: false,
+  })),
+  maybeFireSmartMissedLogNudge: jest.fn(async () => {}),
+}));
+
 jest.mock('../permissions/permissions', () => ({
   Permissions: {
     getStatus: jest.fn(async () => 'denied'),
