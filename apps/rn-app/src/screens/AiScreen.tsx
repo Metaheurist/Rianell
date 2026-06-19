@@ -5,7 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import { loadLogs } from '../storage/logs';
-import { summarizeLogsForAi, type AiRange, type AiSummary } from '../ai/analyzeLogs';
+import { Share } from 'react-native';
+import { runDeterministicAnalysis, exportAnalysisJsonForResearch, type AiRange } from '../ai/analyzeLogs';
 import type { Preferences } from '../storage/preferences';
 import { loadCachedBenchmark, type BenchmarkResult } from '../performance/benchmark';
 import { generateSummaryNote } from '../ai/llm';
@@ -31,10 +32,22 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const summary: AiSummary | null = useMemo(() => {
+  const [expandedInsightId, setExpandedInsightId] = useState<string | null>(null);
+
+  const analysis = useMemo(() => {
     if (!prefs.aiEnabled) return null;
-    return summarizeLogsForAi(logs, range, { translate: t });
-  }, [logs, prefs.aiEnabled, range, t]);
+    return runDeterministicAnalysis(logs, range, {
+      translate: t,
+      goals: prefs.goals,
+      conditionPack: prefs.medicalCondition?.toLowerCase().includes('migraine')
+        ? 'migraine'
+        : prefs.medicalCondition?.toLowerCase().includes('ibs')
+          ? 'ibs'
+          : undefined,
+    });
+  }, [logs, prefs.aiEnabled, prefs.goals, prefs.medicalCondition, range, t]);
+
+  const summary = analysis?.summary ?? null;
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -187,6 +200,94 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                 Fatigue avg: {fmt(summary.avgFatigue)} / 10
               </Text>
+
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Top insights</Text>
+              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                Ranked by impact. Tap for contributing dates (informational only).
+              </Text>
+              {(analysis?.insights ?? []).map((insight) => (
+                <Pressable
+                  key={insight.id}
+                  onPress={() => setExpandedInsightId(expandedInsightId === insight.id ? null : insight.id)}
+                  accessibilityRole="button"
+                >
+                  <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                    {insight.rank}. {insight.text} ({insight.confidence}%)
+                  </Text>
+                  {expandedInsightId === insight.id && insight.why?.contributingDates?.length ? (
+                    <Text style={[styles.meta, { color: theme.tokens.color.textMuted, fontSize: theme.font(12) }]}>
+                      Dates: {insight.why.contributingDates.join(', ')}
+                    </Text>
+                  ) : null}
+                </Pressable>
+              ))}
+
+              {analysis?.triggerHypotheses?.length ? (
+                <>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Trigger hypotheses</Text>
+                  {analysis.triggerHypotheses.map((h) => (
+                    <Text key={h.id} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                      {h.label}: +{h.lift}% flare lift ({h.overlap} days)
+                    </Text>
+                  ))}
+                </>
+              ) : null}
+
+              {analysis?.weeklyDigest ? (
+                <>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Weekly digest</Text>
+                  <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                    {analysis.weeklyDigest.headline}
+                  </Text>
+                </>
+              ) : null}
+
+              {analysis?.anomalies?.length ? (
+                <>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Anomaly alerts</Text>
+                  {analysis.anomalies.map((a) => (
+                    <Text key={a.id} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                      {a.message}
+                    </Text>
+                  ))}
+                </>
+              ) : null}
+
+              {analysis?.treatmentComparisons?.length ? (
+                <>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Treatment windows</Text>
+                  {analysis.treatmentComparisons.map((t) => (
+                    <Text key={t.id} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                      {t.label}: fatigue {t.preFatigueAvg ?? '—'} → {t.postFatigueAvg ?? '—'}
+                    </Text>
+                  ))}
+                </>
+              ) : null}
+
+              {analysis?.conditionHints?.hints?.length ? (
+                <>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Condition pack</Text>
+                  {analysis.conditionHints.hints.map((hint) => (
+                    <Text key={hint} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                      {hint}
+                    </Text>
+                  ))}
+                </>
+              ) : null}
+
+              <Pressable
+                style={[styles.rangeChip, { alignSelf: 'flex-start', marginTop: 8 }]}
+                onPress={() => {
+                  try {
+                    const json = exportAnalysisJsonForResearch(analysis, { optIn: true });
+                    void Share.share({ message: json, title: 'Analysis export' });
+                  } catch {
+                    setError(t('settings.export.failed'));
+                  }
+                }}
+              >
+                <Text style={{ color: theme.tokens.color.accent, fontWeight: '700' }}>Export analysis JSON (research)</Text>
+              </Pressable>
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.section.whatYouLogged')}</Text>
               {summary.whatYouLogged.map((line) => (

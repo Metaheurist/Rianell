@@ -1,10 +1,26 @@
+import { summarizeLogsForAi } from './summarize.mjs';
+import { runDeterministicAnalysis, rankNeuralAnalysisInsights } from './analyze.mjs';
+
+export { filterLogsByRange, summarizeLogsForAi } from './summarize.mjs';
+export {
+  collectInsightCandidates,
+  collectInsightCandidatesFromSummary,
+  rankInsightItems,
+  rankPrioritisedInsights,
+  rankPrioritisedInsightsFromSummary,
+  buildInsightWhy,
+} from './insightRanking.mjs';
+export { computeTriggerHypotheses } from './triggerHypotheses.mjs';
+export { detectMetricAnomalies } from './anomalies.mjs';
+export { buildWeeklyDigest } from './weeklyDigest.mjs';
+export { compareTreatmentWindows } from './treatmentTimeline.mjs';
+export { CONDITION_ANALYSIS_PACKS, applyConditionPack } from './conditionPacks.mjs';
+export { exportAnalysisJsonForResearch } from './researchExport.mjs';
+export { runDeterministicAnalysis, rankNeuralAnalysisInsights } from './analyze.mjs';
+
 function avg(values) {
   if (!values.length) return null;
   return values.reduce((a, b) => a + b, 0) / values.length;
-}
-
-function mean(values) {
-  return avg(values);
 }
 
 function tr(translate, key, params, fallback) {
@@ -15,113 +31,9 @@ function tr(translate, key, params, fallback) {
   return fallback;
 }
 
-function topItems(logs, key, limit = 3) {
-  const counts = new Map();
-  logs.forEach((log) => {
-    const list = log[key];
-    if (!Array.isArray(list)) return;
-    list.forEach((x) => {
-      if (typeof x !== 'string') return;
-      const item = x.trim();
-      if (!item) return;
-      counts.set(item, (counts.get(item) ?? 0) + 1);
-    });
-  });
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, limit)
-    .map(([name, count]) => `${name} (${count})`);
+/** @deprecated Use summarizeLogsForAi / runDeterministicAnalysis — kept for vendor backward compat */
+export function analyzeHealthMetrics(logs, range = 30, options = {}) {  return summarizeLogsForAi(logs, range, options);
 }
-
-function pearson(xs, ys) {
-  if (xs.length !== ys.length || xs.length < 3) return null;
-  const n = xs.length;
-  const avgX = xs.reduce((a, b) => a + b, 0) / n;
-  const avgY = ys.reduce((a, b) => a + b, 0) / n;
-  let num = 0;
-  let denX = 0;
-  let denY = 0;
-  for (let i = 0; i < n; i++) {
-    const dx = xs[i] - avgX;
-    const dy = ys[i] - avgY;
-    num += dx * dy;
-    denX += dx * dx;
-    denY += dy * dy;
-  }
-  if (denX === 0 || denY === 0) return null;
-  return num / Math.sqrt(denX * denY);
-}
-
-export function filterLogsByRange(logs, range) {
-  if (range === 'all') return logs;
-  const days = typeof range === 'number' ? range : 30;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const start = new Date(today);
-  start.setDate(start.getDate() - (days - 1));
-  return logs.filter((log) => {
-    if (!log || !/^\d{4}-\d{2}-\d{2}$/.test(log.date)) return false;
-    const d = new Date(`${log.date}T00:00:00`);
-    return d >= start && d <= today;
-  });
-}
-
-export function analyzeHealthMetrics(logs, range = 30, options = {}) {
-  const translate = options?.translate;
-  const selected = filterLogsByRange(logs, range);
-  const rangeLabel = range === 'all' ? 'All time' : `Last ${range} days`;
-  const flareDays = selected.filter((x) => x.flare === 'Yes').length;
-  const mood = selected.map((x) => x.mood).filter((x) => x != null);
-  const sleep = selected.map((x) => x.sleep).filter((x) => x != null);
-  const fatigue = selected.map((x) => x.fatigue).filter((x) => x != null);
-  const moodAvg = mean(mood);
-  const sleepAvg = mean(sleep);
-  const fatigueAvg = mean(fatigue);
-
-  const howYouAreDoing = [];
-  if (moodAvg != null) howYouAreDoing.push(`Mood average: ${moodAvg.toFixed(1)} / 10`);
-  if (sleepAvg != null) howYouAreDoing.push(`Sleep average: ${sleepAvg.toFixed(1)} / 10`);
-  if (fatigueAvg != null) howYouAreDoing.push(`Fatigue average: ${fatigueAvg.toFixed(1)} / 10`);
-  if (!howYouAreDoing.length) {
-    howYouAreDoing.push(tr(translate, 'ai.template.noData', {}, 'Not enough scored metrics yet.'));
-  }
-
-  const correlations = [];
-  const moodSleepPairs = selected.filter((x) => x.mood != null && x.sleep != null);
-  const cMoodSleep = pearson(moodSleepPairs.map((p) => p.mood), moodSleepPairs.map((p) => p.sleep));
-  if (cMoodSleep != null && Math.abs(cMoodSleep) >= 0.35) {
-    const metric = 'Mood';
-    const templateKey = cMoodSleep > 0 ? 'ai.template.improving' : 'ai.template.worsening';
-    const fallback = cMoodSleep > 0
-      ? `${metric} is improving.`
-      : `${metric} is worsening.`;
-    correlations.push(`${tr(translate, templateKey, { metric }, fallback)} (${cMoodSleep.toFixed(2)}).`);
-  }
-  if (!correlations.length) {
-    correlations.push(tr(translate, 'ai.template.noData', {}, 'No strong metric correlations detected in this range yet.'));
-  }
-
-  let matchingSignals = 0;
-  const flareNotes = [];
-  if (fatigueAvg != null && fatigueAvg >= 7) { matchingSignals += 1; flareNotes.push('Fatigue is elevated.'); }
-  if (sleepAvg != null && sleepAvg <= 4) { matchingSignals += 1; flareNotes.push('Sleep score is low.'); }
-  const level = matchingSignals >= 4 ? 'High' : matchingSignals >= 2 ? 'Medium' : 'Low';
-
-  return {
-    totalLogs: selected.length,
-    rangeLabel,
-    flareDays,
-    avgMood: moodAvg,
-    avgSleep: sleepAvg,
-    avgFatigue: fatigueAvg,
-    topSymptoms: topItems(selected, 'symptoms'),
-    topStressors: topItems(selected, 'stressors'),
-    howYouAreDoing,
-    correlations,
-    possibleFlareUp: { level, matchingSignals, notes: flareNotes.length ? flareNotes : ['No strong flare-up indicators.'] },
-  };
-}
-
 export function predictFutureValues(series, days = 7) {
   if (!series.length || days < 1) return [];
   const xs = series.map((_, i) => i + 1);
@@ -170,9 +82,7 @@ export function generateAnalysisNote(summary, options = {}) {
   const parts = [];
   if (summary?.rangeLabel) parts.push(`Range: ${summary.rangeLabel}.`);
   if (summary?.howYouAreDoing?.length) parts.push(summary.howYouAreDoing.join(' '));
-  if (summary?.possibleFlareUp?.level) {
-    parts.push(`Flare risk: ${summary.possibleFlareUp.level}.`);
-  }
+  if (summary?.possibleFlareUp?.level) parts.push(`Flare risk: ${summary.possibleFlareUp.level}.`);
   return parts.join(' ') || tr(translate, 'ai.template.noData', {}, 'Keep logging to build a clearer picture.');
 }
 
@@ -181,4 +91,6 @@ export const AIEngine = {
   predictFutureValues,
   suggestLogNote,
   generateAnalysisNote,
+  runDeterministicAnalysis,
+  rankNeuralAnalysisInsights,
 };

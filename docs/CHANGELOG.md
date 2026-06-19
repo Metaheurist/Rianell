@@ -2,7 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.93.1** - Plans 05–06 complete (7/7 each): caregiver mode, FHIR-lite, migration import, share link, WebDAV.
+**Latest: v1.94.0** - Plan 07: unified `@rianell/ai-engine` deterministic pipeline (A1–A8).
+
+### v1.94.0 - 2026-06-18 - Plan 07 AI engine (A1–A8)
+- **A1:** Consolidated RN analysis into `@rianell/ai-engine`; PWA `layerInterpretation` delegates to shared `rankNeuralAnalysisInsights`.
+- **A2:** Tap-to-expand insight “why” with contributing dates on RN AI tab.
+- **A3:** Trigger hypothesis engine (flare lift ranking).
+- **A5:** Local anomaly detection vs baseline.
+- **A6:** Deterministic weekly digest module.
+- **A4/A7/A8:** Treatment window compare, condition packs, research JSON export APIs + RN UI hooks.
+- **Tests:** 8 ai-engine parity tests (198 total).
 
 ### v1.93.1 - 2026-06-18 - Plans 05–06 feature completion (P6, D4–D7)
 - **P6:** Caregiver / proxy logging — toggle + dependent name (RN + PWA); `stampLogEntryForCaregiver` on save.
