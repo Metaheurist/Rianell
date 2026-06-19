@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-18T22:23:58.959Z",
+  "generatedAt": "2026-06-19T05:18:00.334Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3666175,
+    "jsBytes": 3688392,
     "cssBytes": 395381,
-    "jsGzipBytes": 879096,
+    "jsGzipBytes": 884012,
     "cssGzipBytes": 69545
   },
   "files": [
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/AIEngine.js",
-      "bytes": 166794,
-      "gzipBytes": 36462
+      "bytes": 167134,
+      "gzipBytes": 36525
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
@@ -62,6 +62,11 @@
       "file": "ci-minified/site/device-benchmark.js",
       "bytes": 41261,
       "gzipBytes": 9157
+    },
+    {
+      "file": "ci-minified/site/vendor/rianell-ai-engine.js",
+      "bytes": 30475,
+      "gzipBytes": 7643
     },
     {
       "file": "ci-minified/site/performance-utils.js",
@@ -107,11 +112,6 @@
       "file": "ci-minified/site/styles-charts.css",
       "bytes": 11241,
       "gzipBytes": 2684
-    },
-    {
-      "file": "ci-minified/site/vendor/rianell-ai-engine.js",
-      "bytes": 8598,
-      "gzipBytes": 2790
     },
     {
       "file": "ci-minified/site/device-module.js",
