@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-19T07:14:43.354Z",
+  "generatedAt": "2026-06-19T14:16:42.556Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3748092,
-    "cssBytes": 396839,
-    "jsGzipBytes": 897310,
-    "cssGzipBytes": 69814
+    "jsBytes": 3781008,
+    "cssBytes": 398609,
+    "jsGzipBytes": 905112,
+    "cssGzipBytes": 70066
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 877371,
-      "gzipBytes": 190747
+      "bytes": 888474,
+      "gzipBytes": 193178
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.34dfe87f4e6b.min.js",
-      "bytes": 621105,
-      "gzipBytes": 141362
+      "file": "ci-minified/site/app.472935785c59.min.js",
+      "bytes": 630242,
+      "gzipBytes": 143633
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -29,9 +29,9 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.977f2369c870.css",
-      "bytes": 381103,
-      "gzipBytes": 65680
+      "file": "ci-minified/site/styles.c5f292239091.css",
+      "bytes": 382873,
+      "gzipBytes": 65932
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -40,8 +40,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 151986,
-      "gzipBytes": 34961
+      "bytes": 159546,
+      "gzipBytes": 36846
     },
     {
       "file": "ci-minified/site/cloud-sync.js",
@@ -59,14 +59,14 @@
       "gzipBytes": 11683
     },
     {
+      "file": "ci-minified/site/vendor/rianell-ai-engine.js",
+      "bytes": 46207,
+      "gzipBytes": 11418
+    },
+    {
       "file": "ci-minified/site/device-benchmark.js",
       "bytes": 41261,
       "gzipBytes": 9157
-    },
-    {
-      "file": "ci-minified/site/vendor/rianell-ai-engine.js",
-      "bytes": 41091,
-      "gzipBytes": 10203
     },
     {
       "file": "ci-minified/site/performance-utils.js",
