@@ -20,8 +20,10 @@ var RianellShared = (() => {
   // packages/shared/src/index.mjs
   var index_exports = {};
   __export(index_exports, {
+    ALLOWED_LLM_MODEL_HOSTS: () => ALLOWED_LLM_MODEL_HOSTS,
     ANON_POOL_EXCLUDED_FIELDS: () => ANON_POOL_EXCLUDED_FIELDS,
     ANON_POOL_INCLUDED_FIELDS: () => ANON_POOL_INCLUDED_FIELDS,
+    BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS: () => BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS,
     CAREGIVER_RELATIONSHIPS: () => CAREGIVER_RELATIONSHIPS,
     DEFAULT_GOALS: () => DEFAULT_GOALS,
     DEFAULT_LOCALE: () => DEFAULT_LOCALE,
@@ -29,6 +31,8 @@ var RianellShared = (() => {
     ENCRYPTED_EXPORT_FORMAT: () => ENCRYPTED_EXPORT_FORMAT,
     ENCRYPTED_EXPORT_KDF_ITERATIONS: () => ENCRYPTED_EXPORT_KDF_ITERATIONS,
     GOALS_STORAGE_KEY: () => GOALS_STORAGE_KEY,
+    GOLDEN_LLM_INTENTS: () => GOLDEN_LLM_INTENTS,
+    GOLDEN_LLM_LOCALES: () => GOLDEN_LLM_LOCALES,
     HOME_SUGGESTIONS_MAX_CHIPS: () => HOME_SUGGESTIONS_MAX_CHIPS,
     HOME_SUGGESTIONS_MIN_DAYS: () => HOME_SUGGESTIONS_MIN_DAYS,
     HOME_SUGGESTIONS_RANGE_DAYS: () => HOME_SUGGESTIONS_RANGE_DAYS,
@@ -67,6 +71,7 @@ var RianellShared = (() => {
     applyPrivacyProfileToLocal: () => applyPrivacyProfileToLocal,
     applyRegionDefaultLocale: () => applyRegionDefaultLocale,
     applyRegionDowngradeToggles: () => applyRegionDowngradeToggles,
+    auditGoldenPrompt: () => auditGoldenPrompt,
     buildClinicianBriefContext: () => buildClinicianBriefContext,
     buildClinicianBriefFallback: () => buildClinicianBriefFallback,
     buildClinicianBriefPrompt: () => buildClinicianBriefPrompt,
@@ -143,6 +148,7 @@ var RianellShared = (() => {
     isLocalOnlyModeEnabled: () => isLocalOnlyModeEnabled,
     isLogCategoryUnlocked: () => isLogCategoryUnlocked,
     isPrivacyRegionConfigured: () => isPrivacyRegionConfigured,
+    isPwaOnDeviceLlmOnly: () => isPwaOnDeviceLlmOnly,
     isRtlLocale: () => isRtlLocale,
     isTrackingProfileConfigured: () => isTrackingProfileConfigured,
     isValidLocaleId: () => isValidLocaleId,
@@ -193,6 +199,7 @@ var RianellShared = (() => {
     resolveAuthResidencyCode: () => resolveAuthResidencyCode,
     resolveDataResidency: () => resolveDataResidency,
     resolvePolicyPack: () => resolvePolicyPack,
+    runGoldenPromptAudit: () => runGoldenPromptAudit,
     setPolicyPack: () => setPolicyPack,
     shareEnvelopeToPortableJson: () => shareEnvelopeToPortableJson,
     shouldAllowNetworkOperation: () => shouldAllowNetworkOperation,
@@ -201,7 +208,8 @@ var RianellShared = (() => {
     suggestPrivacyRegionFromHint: () => suggestPrivacyRegionFromHint,
     t: () => t,
     textDirection: () => textDirection,
-    upsertSymptomTemplate: () => upsertSymptomTemplate
+    upsertSymptomTemplate: () => upsertSymptomTemplate,
+    validateRemoteLlmEndpoint: () => validateRemoteLlmEndpoint
   });
 
   // packages/shared/src/logging/logSchema.mjs
@@ -1479,6 +1487,10 @@ var RianellShared = (() => {
         "clinicianBrief.system": "You write a one-page clinician visit prep brief from health-tracking data. Use only the data provided. Structure: key patterns, symptom/stressor highlights, questions to ask the clinician. Plain language. No diagnosis or treatment orders. Max 180 words. Reply with only the brief text.",
         "explainChart.system": "You explain a health chart range in plain language for the patient. Use only the metrics provided. Mention trends and one practical observation. No diagnosis. Max 4 short sentences. Reply with only the narration text.",
         "structured.system": 'You analyse health-tracking data and reply with JSON only: {"insights":["..."],"actions":["..."],"confidence":0.0}. insights: up to 3 short pattern observations. actions: up to 2 gentle self-care ideas. confidence: 0-1 number. Use only provided data. No diagnosis or prescriptions.',
+        "weekChat.system": "You are a wellness diary coach. Answer using only the health log context provided. Max 4 short sentences. No diagnosis, prescriptions, or tool use. Stay within the conversation scope. Reply with only your answer text.",
+        "persona.encouraging": "Use a warm, encouraging tone.",
+        "persona.clinical": "Use a neutral, factual tone without hype.",
+        "persona.minimal": "Use the fewest words possible; one short sentence when enough.",
         "context.improving": "Improving: {metrics}.",
         "context.worsening": "Worsening: {metrics}.",
         "context.stable": "Stable: {metrics}.",
@@ -2314,6 +2326,111 @@ ${hist}`);
       return `You logged ${total} days with ${flare} flare day(s). Rest and steady routines may help this week.`;
     }
     return `You logged ${total} days this period. Keep noting what helps \u2014 patterns build with steady logging.`;
+  }
+
+  // packages/shared/src/ai/llmOnDevicePolicy.mjs
+  var BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS = [
+    /api\.openai\.com/i,
+    /api\.anthropic\.com/i,
+    /generativelanguage\.googleapis\.com/i,
+    /api\.cohere\.ai/i,
+    /api\.mistral\.ai/i,
+    /api\.groq\.com/i,
+    /api\.together\.xyz/i,
+    /openrouter\.ai/i,
+    /api\.perplexity\.ai/i
+  ];
+  var ALLOWED_LLM_MODEL_HOSTS = [
+    "huggingface.co",
+    "cdn.jsdelivr.net"
+  ];
+  function validateRemoteLlmEndpoint(endpoint) {
+    const raw = String(endpoint || "").trim();
+    if (!raw) return { allowed: true };
+    let host = "";
+    try {
+      host = new URL(raw).hostname.toLowerCase();
+    } catch {
+      return { allowed: false, reason: "invalid_url" };
+    }
+    if (BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS.some((re) => re.test(host))) {
+      return { allowed: false, reason: "commercial_api_blocked" };
+    }
+    return { allowed: true };
+  }
+  function isPwaOnDeviceLlmOnly() {
+    return true;
+  }
+
+  // packages/shared/src/ai/llmGoldenPrompts.mjs
+  var GOLDEN_LLM_LOCALES = SHIPPED_LOCALES;
+  var SAMPLE_CONTEXT = {
+    summary: '{"totalLogs":7,"flareDays":1,"avgSleep":6.5}',
+    suggest: '{"sleep":7,"fatigue":4,"mood":6}',
+    homeQuestion: "Question: How is my sleep?\nRange: last 14 days.\n7 logged day(s).",
+    clinicianBrief: "Range: Last 14 days. 7 logged day(s). Flare days: 1.",
+    explainChart: "Chart range: Last 7 days. Mood avg 6.2.",
+    structuredSummary: '{"totalLogs":7,"flareDays":0}',
+    weekChat: "Week scope: Last 14 days.\nUser: What patterns do you see?"
+  };
+  var WELLNESS_GUARDRAIL_RES = [
+    /no diagnosis|no medical|wellness|only the data|no prescription|no tool|reply with only/i,
+    /keine diagnose|keine medizinisch|nur die|antworte nur|bereitgestellten/i,
+    /sin diagnóstico|sin consejo médico|solo los datos|responde solo/i,
+    /pas de diagnostic|pas de conseil médical|uniquement les données|réponds uniquement/i,
+    /niente diagnosi|niente consigli medici|solo i dati|rispondi solo/i,
+    /geen diagnose|geen medisch|alleen de verstrekte|antwoord alleen/i,
+    /bez diagnozy|bez porad medycznych|tylko podanych|odpowiedz tylko/i,
+    /sem diagnóstico|sem conselho médico|apenas os dados|responda apenas|responde apenas/i
+  ];
+  function hasWellnessGuardrail(system) {
+    const sys = String(system || "");
+    return WELLNESS_GUARDRAIL_RES.some((re) => re.test(sys));
+  }
+  var GOLDEN_LLM_INTENTS = (
+    /** @type {GoldenIntent[]} */
+    [
+      { id: "motd", build: (locale) => buildMotdPrompt(locale, "water") },
+      { id: "summary", build: (locale) => buildSummaryPrompt(locale, SAMPLE_CONTEXT.summary) },
+      { id: "suggestNote", build: (locale) => buildSuggestPrompt(locale, SAMPLE_CONTEXT.suggest) },
+      { id: "homeQuestion", build: (locale) => buildHomeQuestionPrompt(locale, SAMPLE_CONTEXT.homeQuestion) },
+      { id: "clinicianBrief", build: (locale) => buildClinicianBriefPrompt(locale, SAMPLE_CONTEXT.clinicianBrief) },
+      { id: "explainChart", build: (locale) => buildExplainChartPrompt(locale, SAMPLE_CONTEXT.explainChart) },
+      { id: "structuredSummary", build: (locale) => buildStructuredSummaryPrompt(locale, SAMPLE_CONTEXT.structuredSummary) },
+      { id: "weekChat", build: (locale) => buildWeekChatPrompt(locale, SAMPLE_CONTEXT.weekChat) }
+    ]
+  );
+  function auditGoldenPrompt(intentId, system, user) {
+    const errors = [];
+    const sys = String(system || "").trim();
+    const usr = String(user || "").trim();
+    if (sys.length < 16) errors.push(`${intentId}: system prompt too short`);
+    if (usr.length < 3) errors.push(`${intentId}: user prompt too short`);
+    if (!hasWellnessGuardrail(sys)) {
+      errors.push(`${intentId}: missing wellness guardrail in system prompt`);
+    }
+    if (intentId === "structuredSummary" && !/json/i.test(sys)) {
+      errors.push(`${intentId}: structured intent must mention JSON`);
+    }
+    if (intentId === "weekChat" && !/coach|conversation|scope/i.test(sys)) {
+      errors.push(`${intentId}: week chat system prompt missing scope guardrail`);
+    }
+    return errors;
+  }
+  function runGoldenPromptAudit(locales = GOLDEN_LLM_LOCALES) {
+    const errors = [];
+    let checked = 0;
+    for (const locale of locales) {
+      for (const intent of GOLDEN_LLM_INTENTS) {
+        checked += 1;
+        const { system, user } = intent.build(locale);
+        errors.push(...auditGoldenPrompt(intent.id, system, user));
+        if (!isLlmInferenceAllowed(locale) && ["ar", "he", "ga"].includes(locale)) {
+          continue;
+        }
+      }
+    }
+    return { errors, checked };
   }
 
   // packages/shared/src/settings/trackingProfile.mjs

@@ -45,3 +45,15 @@ export {
   buildWeekChatUserPayload,
   buildWeekChatFallback,
 } from '../ai/weekChat.mjs';
+export {
+  validateRemoteLlmEndpoint,
+  isPwaOnDeviceLlmOnly,
+  BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS,
+  ALLOWED_LLM_MODEL_HOSTS,
+} from '../ai/llmOnDevicePolicy.mjs';
+export {
+  GOLDEN_LLM_INTENTS,
+  GOLDEN_LLM_LOCALES,
+  auditGoldenPrompt,
+  runGoldenPromptAudit,
+} from '../ai/llmGoldenPrompts.mjs';
