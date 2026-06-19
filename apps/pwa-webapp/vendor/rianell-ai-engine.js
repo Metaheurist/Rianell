@@ -472,16 +472,16 @@ var RianellAIEngine = (() => {
   function compareTreatmentWindows(logs, treatmentStarts = []) {
     const list = [...Array.isArray(logs) ? logs : []].sort((a, b) => a.date.localeCompare(b.date));
     const starts = Array.isArray(treatmentStarts) ? treatmentStarts : [];
-    return starts.filter((t) => t && t.date && /^\d{4}-\d{2}-\d{2}$/.test(t.date)).map((treatment) => {
+    return starts.filter((t) => t && t.date && /^\d{4}-\d{2}-\d{2}$/.test(t.date)).flatMap((treatment) => {
       const idx = list.findIndex((l) => l.date >= treatment.date);
-      if (idx < 0) return null;
+      if (idx < 0) return [];
       const pre = list.slice(Math.max(0, idx - 14), idx);
       const post = list.slice(idx, idx + 14);
       const preFatigue = mean4(pre.map((l) => l.fatigue).filter((v) => v != null));
       const postFatigue = mean4(post.map((l) => l.fatigue).filter((v) => v != null));
       const preFlare = pre.length ? pre.filter((l) => l.flare === "Yes").length / pre.length : null;
       const postFlare = post.length ? post.filter((l) => l.flare === "Yes").length / post.length : null;
-      return {
+      return [{
         id: `treatment:${treatment.date}`,
         label: treatment.label || treatment.name || "Treatment start",
         startDate: treatment.date,
@@ -491,8 +491,8 @@ var RianellAIEngine = (() => {
         postFatigueAvg: postFatigue != null ? Number(postFatigue.toFixed(1)) : null,
         preFlareRate: preFlare != null ? Math.round(preFlare * 100) : null,
         postFlareRate: postFlare != null ? Math.round(postFlare * 100) : null
-      };
-    }).filter(Boolean);
+      }];
+    });
   }
 
   // packages/ai-engine/src/conditionPacks.mjs

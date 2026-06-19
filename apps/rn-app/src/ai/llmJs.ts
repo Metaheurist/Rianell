@@ -7,9 +7,19 @@ import {
   buildMotdPrompt,
   buildSuggestPrompt,
   buildSummaryPrompt,
+  buildClinicianBriefPrompt,
+  buildExplainChartPrompt,
+  buildStructuredSummaryPrompt,
 } from '@rianell/shared';
 
-type LlmFeature = 'summary' | 'suggestNote' | 'motd' | 'homeQuestion';
+type LlmFeature =
+  | 'summary'
+  | 'suggestNote'
+  | 'motd'
+  | 'homeQuestion'
+  | 'clinicianBrief'
+  | 'explainChart'
+  | 'structuredSummary';
 
 let jsPipeline: Awaited<ReturnType<typeof pipeline>> | null = null;
 let jsModelId: string | null = null;
@@ -85,6 +95,15 @@ export async function runJsChat(
     case 'homeQuestion':
       prompts = buildHomeQuestionPrompt(locale, context);
       break;
+    case 'clinicianBrief':
+      prompts = buildClinicianBriefPrompt(locale, context);
+      break;
+    case 'explainChart':
+      prompts = buildExplainChartPrompt(locale, context);
+      break;
+    case 'structuredSummary':
+      prompts = buildStructuredSummaryPrompt(locale, context);
+      break;
     default:
       prompts = { system: '', user: context };
   }
@@ -92,7 +111,8 @@ export async function runJsChat(
   const prompt = `${prompts.system}\n\n${prompts.user}`;
 
   const out = await (jsPipeline as any)(prompt, {
-    max_new_tokens: feature === 'motd' ? 40 : 140,
+    max_new_tokens:
+      feature === 'motd' ? 40 : feature === 'structuredSummary' ? 220 : feature === 'clinicianBrief' ? 260 : 180,
     do_sample: feature === 'motd',
     temperature: feature === 'motd' ? 0.7 : 0.2,
     truncation: true,

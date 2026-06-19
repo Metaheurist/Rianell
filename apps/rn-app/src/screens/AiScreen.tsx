@@ -9,7 +9,7 @@ import { Share } from 'react-native';
 import { runDeterministicAnalysis, exportAnalysisJsonForResearch, type AiRange } from '../ai/analyzeLogs';
 import type { Preferences } from '../storage/preferences';
 import { loadCachedBenchmark, type BenchmarkResult } from '../performance/benchmark';
-import { generateSummaryNote } from '../ai/llm';
+import { generateSummaryNote, generateClinicianVisitBrief, generateStructuredInsights } from '../ai/llm';
 
 const RANGE_OPTIONS: AiRange[] = [14, 30, 90, 'all'];
 
@@ -33,6 +33,9 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
   const [error, setError] = useState<string | null>(null);
 
   const [expandedInsightId, setExpandedInsightId] = useState<string | null>(null);
+  const [clinicianBrief, setClinicianBrief] = useState<string>('');
+  const [structuredInsights, setStructuredInsights] = useState<string>('');
+  const [clinicianBriefLoading, setClinicianBriefLoading] = useState(false);
 
   const analysis = useMemo(() => {
     if (!prefs.aiEnabled) return null;
@@ -273,6 +276,62 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                     </Text>
                   ))}
                 </>
+              ) : null}
+
+              <Pressable
+                style={[styles.rangeChip, { alignSelf: 'flex-start', marginTop: 8 }]}
+                onPress={() => {
+                  if (!summary || clinicianBriefLoading) return;
+                  setClinicianBriefLoading(true);
+                  void generateClinicianVisitBrief(
+                    summary,
+                    logs,
+                    prefs.performance.preferredLlmModelSize,
+                    benchmark,
+                    locale,
+                    prefs
+                  )
+                    .then((text) => setClinicianBrief(text))
+                    .catch(() => setError(t('settings.export.failed')))
+                    .finally(() => setClinicianBriefLoading(false));
+                }}
+              >
+                <Text style={{ color: theme.tokens.color.accent, fontWeight: '700' }}>
+                  {clinicianBriefLoading ? t('ai.clinicianBrief.loading') : t('ai.clinicianBrief.action')}
+                </Text>
+              </Pressable>
+
+              {clinicianBrief ? (
+                <>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                    {t('ai.clinicianBrief.section')}
+                  </Text>
+                  <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                    {clinicianBrief}
+                  </Text>
+                </>
+              ) : null}
+
+              <Pressable
+                style={[styles.rangeChip, { alignSelf: 'flex-start', marginTop: 8 }]}
+                onPress={() => {
+                  if (!summary) return;
+                  void generateStructuredInsights(
+                    summary,
+                    prefs.performance.preferredLlmModelSize,
+                    benchmark,
+                    locale,
+                    prefs
+                  ).then((text) => setStructuredInsights(text));
+                }}
+              >
+                <Text style={{ color: theme.tokens.color.accent, fontWeight: '700' }}>{t('ai.structuredInsights.section')}</Text>
+              </Pressable>
+
+              {structuredInsights ? (
+                <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                  {structuredInsights}
+                </Text>
               ) : null}
 
               <Pressable

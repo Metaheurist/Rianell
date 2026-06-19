@@ -16,3 +16,19 @@ export {
   HOME_SUGGESTIONS_MAX_CHIPS,
 } from '../ai/homeSuggestions.mjs';
 export { buildHomeQuestionContext } from '../ai/homeQuestionContext.mjs';
+export {
+  buildClinicianBriefContext,
+  buildClinicianBriefFallback,
+} from '../ai/clinicianBriefContext.mjs';
+export {
+  buildExplainChartContext,
+  buildExplainChartFallback,
+} from '../ai/explainChartContext.mjs';
+export {
+  getLlmCapability,
+  isLlmInferenceAllowed,
+} from '../ai/llmCapability.mjs';
+export {
+  parseStructuredLlmOutput,
+  formatStructuredLlmOutput,
+} from '../ai/structuredLlmOutput.mjs';

@@ -2,18 +2,33 @@ import Constants from 'expo-constants';
 import {
   buildHomeQuestionContext,
   buildHomeQuestionFallback,
+  buildClinicianBriefContext,
+  buildClinicianBriefFallback,
+  buildExplainChartContext,
+  buildExplainChartFallback,
   buildLlmRequestPayload,
+  isLlmInferenceAllowed,
+  parseStructuredLlmOutput,
+  formatStructuredLlmOutput,
 } from '@rianell/shared';
 import type { PreferredLlmModelSize } from '../storage/preferences';
 import type { BenchmarkResult } from '../performance/benchmark';
 import type { AiSummary } from './analyzeLogs';
 import { AIEngine } from './engine';
 import type { LogEntry } from '../storage/logs';
+import type { ChartSummary } from '../charts/summarizeCharts';
 import { loadPreferences } from '../storage/preferences';
 import { resolveLlmModelSize } from '../performance/benchmark';
 import { isOnDeviceLlmReady, runOnDeviceChat } from './llmNative';
 
-type LlmFeature = 'summary' | 'suggestNote' | 'motd' | 'homeQuestion';
+export type LlmFeature =
+  | 'summary'
+  | 'suggestNote'
+  | 'motd'
+  | 'homeQuestion'
+  | 'clinicianBrief'
+  | 'explainChart'
+  | 'structuredSummary';
 
 const cache = new Map<string, string>();
 
@@ -39,6 +54,12 @@ function sanitizeOneLine(input: string, maxLen = 220): string {
   const clean = input.replace(/\s+/g, ' ').trim();
   if (!clean) return '';
   return clean.length > maxLen ? `${clean.slice(0, maxLen - 1)}...` : clean;
+}
+
+function sanitizeMultiline(input: string, maxLen = 1400): string {
+  const clean = input.replace(/\r\n/g, '\n').trim();
+  if (!clean) return '';
+  return clean.length > maxLen ? `${clean.slice(0, maxLen - 1)}…` : clean;
 }
 
 async function callRemoteLlm(
@@ -77,21 +98,36 @@ async function generateWithFallback(
   context: string,
   locale: string,
   fallback: () => string,
-  prefs?: { uiLocale?: string; performance: { preferredLlmModelSize: PreferredLlmModelSize } } | null
+  prefs?: { uiLocale?: string; performance: { preferredLlmModelSize: PreferredLlmModelSize } } | null,
+  options?: { multiline?: boolean; structured?: boolean }
 ): Promise<string> {
   const cacheKey = `${feature}:${locale}:${key}`;
   const hit = cache.get(cacheKey);
   if (hit) return hit;
+  const finish = (raw: string) => {
+    const clean = options?.structured
+      ? raw
+      : options?.multiline
+        ? sanitizeMultiline(raw)
+        : sanitizeOneLine(raw);
+    if (clean) cache.set(cacheKey, clean);
+    return clean;
+  };
+  if (!isLlmInferenceAllowed(locale)) {
+    return finish(fallback());
+  }
   const modelSize = resolveLlmModelSize(preferredModel, benchmark);
   if (prefs) {
     try {
       if (await isOnDeviceLlmReady(prefs as any)) {
         const onDevice = await runOnDeviceChat(prefs as any, feature, context, locale);
         if (onDevice) {
-          const clean = sanitizeOneLine(onDevice);
-          if (clean) {
-            cache.set(cacheKey, clean);
-            return clean;
+          if (options?.structured) {
+            const parsed = parseStructuredLlmOutput(onDevice);
+            if (parsed) return finish(formatStructuredLlmOutput(parsed));
+          } else {
+            const clean = options?.multiline ? sanitizeMultiline(onDevice) : sanitizeOneLine(onDevice);
+            if (clean) return finish(clean);
           }
         }
       }
@@ -105,16 +141,17 @@ async function generateWithFallback(
     if (shouldAllowNetworkOperation(fullPrefs, 'remoteLlm')) {
       const remote = await callRemoteLlm(feature, modelSize, context, locale);
       if (remote) {
-        cache.set(cacheKey, remote);
-        return remote;
+        if (options?.structured) {
+          const parsed = parseStructuredLlmOutput(remote);
+          if (parsed) return finish(formatStructuredLlmOutput(parsed));
+        }
+        return finish(remote);
       }
     }
   } catch {
     // fall through
   }
-  const local = sanitizeOneLine(fallback());
-  cache.set(cacheKey, local);
-  return local;
+  return finish(fallback());
 }
 
 export async function generateSummaryNote(
@@ -258,4 +295,100 @@ export async function answerHomeQuestion(
 
 export function clearLlmCacheForTests(): void {
   cache.clear();
+}
+
+export async function generateClinicianVisitBrief(
+  summary: AiSummary,
+  logs: LogEntry[],
+  preferredModel: PreferredLlmModelSize,
+  benchmark: BenchmarkResult | null,
+  locale: string,
+  prefs?: any
+): Promise<string> {
+  const context = buildClinicianBriefContext({
+    analysis: summary,
+    logs,
+    rangeLabel: summary.rangeLabel,
+    goals: prefs?.goals,
+  });
+  return generateWithFallback(
+    'clinicianBrief',
+    `${summary.rangeLabel}:${summary.totalLogs}`,
+    preferredModel,
+    benchmark,
+    context,
+    locale,
+    () => buildClinicianBriefFallback(summary),
+    prefs || null,
+    { multiline: true }
+  );
+}
+
+export async function explainChartRange(
+  chartSummary: ChartSummary,
+  viewMode: string,
+  preferredModel: PreferredLlmModelSize,
+  benchmark: BenchmarkResult | null,
+  locale: string,
+  prefs?: any
+): Promise<string> {
+  const context = buildExplainChartContext({
+    rangeLabel: chartSummary.rangeLabel,
+    viewMode,
+    trends: chartSummary.trends,
+    totalLogs: chartSummary.totalLogs,
+    flareDays: chartSummary.flareDays,
+  });
+  return generateWithFallback(
+    'explainChart',
+    `${chartSummary.rangeLabel}:${viewMode}:${chartSummary.totalLogs}`,
+    preferredModel,
+    benchmark,
+    context,
+    locale,
+    () => buildExplainChartFallback(chartSummary),
+    prefs || null,
+    { multiline: true }
+  );
+}
+
+export async function generateStructuredInsights(
+  summary: AiSummary,
+  preferredModel: PreferredLlmModelSize,
+  benchmark: BenchmarkResult | null,
+  locale: string,
+  prefs?: any
+): Promise<string> {
+  const context = JSON.stringify({
+    range: summary.rangeLabel,
+    totalLogs: summary.totalLogs,
+    flareDays: summary.flareDays,
+    avgMood: summary.avgMood,
+    avgSleep: summary.avgSleep,
+    avgFatigue: summary.avgFatigue,
+    topSymptoms: summary.topSymptoms.slice(0, 5),
+    thingsToWatch: summary.thingsToWatch?.slice(0, 3),
+  });
+  const ruleFallback = () => {
+    const lines = summary.thingsToWatch?.slice(0, 2) || [];
+    const parsed = parseStructuredLlmOutput(
+      JSON.stringify({
+        insights: lines.length ? lines : ['Patterns are still forming from your logs.'],
+        actions: ['Keep logging daily to strengthen trend signals.'],
+        confidence: 0.5,
+      })
+    );
+    return parsed ? formatStructuredLlmOutput(parsed) : '';
+  };
+  return generateWithFallback(
+    'structuredSummary',
+    `structured:${summary.rangeLabel}:${summary.totalLogs}`,
+    preferredModel,
+    benchmark,
+    context,
+    locale,
+    ruleFallback,
+    prefs || null,
+    { structured: true, multiline: true }
+  );
 }
