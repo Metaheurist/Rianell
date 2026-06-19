@@ -5,6 +5,54 @@
     "kind": "web",
     "status": "ok",
     "meta": {
+      "timestamp_utc": "2026-06-19T18:04:36.703Z",
+      "git_sha": "7f4603ca11032288701885c3bbcccd71f9887941",
+      "runner": "linux",
+      "node": "v24.14.1",
+      "github_run_id": "27841255831",
+      "github_run_attempt": "1"
+    },
+    "lighthouse": {
+      "FCP_ms": 10498,
+      "LCP_ms": 14991,
+      "TBT_ms": 135,
+      "CLS": 0,
+      "SpeedIndex_ms": 10648,
+      "TTI_ms": 14991
+    },
+    "nav": [
+      {
+        "step": "cold_dom_ready_to_main",
+        "ms": 357
+      },
+      {
+        "step": "click_nav-logs",
+        "ms": 166
+      },
+      {
+        "step": "click_nav-charts",
+        "ms": 152
+      },
+      {
+        "step": "click_nav-home",
+        "ms": 152
+      },
+      {
+        "step": "open_settings",
+        "ms": 11
+      },
+      {
+        "step": "warm_reload_to_main",
+        "ms": 124
+      }
+    ]
+  },
+  {
+    "schema_version": 1,
+    "slug": "web-pwa",
+    "kind": "web",
+    "status": "ok",
+    "meta": {
       "timestamp_utc": "2026-06-19T17:23:49.525Z",
       "git_sha": "5cf02ee694e0a0630d79145745e5ab85a91d2e5d",
       "runner": "linux",
