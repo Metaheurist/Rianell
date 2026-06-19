@@ -8,6 +8,15 @@ import {
   appendProcessingActivity,
   normalizeGoals,
   SETTINGS_STORAGE_KEY,
+  buildAnonymizedLogPayload,
+  buildAnonymizedInsertRow,
+  buildResearchFacetsFromLog,
+  canExportContributionHistory,
+  canViewPoolInsights,
+  formatContributionExport,
+  normalizePoolInsightsRpcResult,
+  POOL_INSIGHT_MIN_K,
+  isValidMedicalConditionForPool,
 } from '@rianell/shared';
 import { decryptJsonAesGcm, encryptJsonAesGcm } from '@rianell/cloud-sync';
 import { getSupabaseClient } from './supabaseClient';
@@ -34,32 +43,6 @@ async function getAnonymizedEncryptionKeyHex(): Promise<string> {
   const hex = generateUserEncryptionKey();
   await AsyncStorage.setItem(ANON_ENCRYPTION_KEY_LS, hex);
   return hex;
-}
-
-function buildAnonymizedLogPayload(log: LogEntry): Record<string, unknown> {
-  const anonymized: Record<string, unknown> = {
-    date: log.date,
-    bpm: log.bpm,
-    weight: log.weight,
-    backPain: log.backPain,
-    jointPain: log.jointPain,
-    stiffness: log.stiffness,
-    swelling: log.swelling,
-    sleep: log.sleep,
-    mood: log.mood,
-    irritability: log.irritability,
-    mobility: log.mobility,
-    dailyFunction: log.dailyFunction,
-    fatigue: log.fatigue,
-    flare: log.flare,
-    hydration: log.hydration,
-    energyClarity: log.energyClarity,
-  };
-  Object.keys(anonymized).forEach((key) => {
-    const v = anonymized[key];
-    if (v === undefined || v === null || v === '') delete anonymized[key];
-  });
-  return anonymized;
 }
 
 export async function getUserEncryptionKey(client: SupabaseClient, user: User): Promise<string | null> {
@@ -290,7 +273,7 @@ export async function syncAnonymizedData(medicalCondition: string): Promise<{ ok
   if (!user) return { ok: false, message: 'Please sign in.' };
 
   const prefs = await loadPreferences();
-  const { getFeatureAvailability, prefsToConsents } = await import('@rianell/shared');
+  const { getFeatureAvailability, prefsToConsents, shouldAllowNetworkOperation } = await import('@rianell/shared');
   const avail = getFeatureAvailability(
     prefs.privacyRegion || 'other',
     'anonymizedResearchPool',
@@ -299,38 +282,164 @@ export async function syncAnonymizedData(medicalCondition: string): Promise<{ ok
   if (!avail.available) {
     return { ok: false, message: 'Anonymized contribution is not available for your privacy region.' };
   }
-  const { shouldAllowNetworkOperation } = await import('@rianell/shared');
   if (!shouldAllowNetworkOperation(prefs, 'anonymizedSync')) {
     return { ok: false, message: 'Anonymized sync is disabled while local-only mode is on.' };
   }
+  if (!prefs.contributeAnonData) {
+    return { ok: false, message: 'Enable anonymised research pool contribution in Settings first.' };
+  }
+  if (prefs.demoMode) {
+    return { ok: false, message: 'Anonymised contribution is disabled in demo mode.' };
+  }
 
-  if (!medicalCondition?.trim()) return { ok: false, message: 'Set a medical condition first.' };
+  const condition = medicalCondition?.trim() || prefs.medicalCondition?.trim() || '';
+  if (!isValidMedicalConditionForPool(condition)) {
+    return { ok: false, message: 'Set a medical condition first.' };
+  }
 
-  const condition = medicalCondition.trim();
   const logs = await loadLogs();
   if (!logs.length) return { ok: false, message: 'No logs to contribute.' };
 
-  const anonKey = await getAnonymizedEncryptionKeyHex();
-  const batch: { user_id: string; medical_condition: string; anonymized_log: string }[] = [];
+  const { data: existingRows } = await client
+    .from('anonymized_data')
+    .select('research_facets')
+    .eq('user_id', user.id)
+    .eq('medical_condition', condition);
+  const syncedDates = new Set(
+    (existingRows || [])
+      .map((row) => (row.research_facets as { date?: string } | null)?.date)
+      .filter((d): d is string => typeof d === 'string' && d.length > 0),
+  );
 
-  for (const log of logs) {
+  const logsToSync = logs.filter((log) => log.date && !syncedDates.has(log.date));
+  if (!logsToSync.length) {
+    return { ok: true, message: 'All logs already contributed for this condition.' };
+  }
+
+  const anonKey = await getAnonymizedEncryptionKeyHex();
+  const batch: ReturnType<typeof buildAnonymizedInsertRow>[] = [];
+
+  for (const log of logsToSync) {
+    if (!buildResearchFacetsFromLog(log)) continue;
     try {
       const payload = buildAnonymizedLogPayload(log);
       const encrypted = await encryptJsonAesGcm(payload, anonKey);
-      batch.push({
-        user_id: user.id,
-        medical_condition: condition,
-        anonymized_log: encrypted,
-      });
+      batch.push(
+        buildAnonymizedInsertRow(log, {
+          userId: user.id,
+          medicalCondition: condition,
+          encryptedLog: encrypted,
+        }),
+      );
     } catch {
       return { ok: false, message: 'Encryption failed - anonymized upload blocked.' };
     }
   }
 
+  if (!batch.length) return { ok: false, message: 'No eligible logs to contribute.' };
+
   const { error } = await client.from('anonymized_data').insert(batch);
   if (error) return { ok: false, message: error.message };
   await logSyncActivity(prefs, 'anon_sync', `${batch.length} logs`);
   return { ok: true, message: `Anonymized contribution updated (${batch.length} log(s)).` };
+}
+
+export async function fetchOwnContributionRows(): Promise<{
+  ok: boolean;
+  message: string;
+  rows: Array<Record<string, unknown>>;
+}> {
+  const client = getSupabaseClient();
+  if (!client) return { ok: false, message: 'Cloud sync is not configured.', rows: [] };
+  const { data: sessionData } = await client.auth.getSession();
+  const user = sessionData.session?.user;
+  if (!user) return { ok: false, message: 'Please sign in.', rows: [] };
+
+  const { data, error } = await client
+    .from('anonymized_data')
+    .select('id, created_at, medical_condition, anonymized_log, research_facets')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: true });
+  if (error) return { ok: false, message: error.message, rows: [] };
+  return { ok: true, message: '', rows: (data || []) as Array<Record<string, unknown>> };
+}
+
+export async function exportContributionHistory(): Promise<{ ok: boolean; message: string; json?: string }> {
+  const prefs = await loadPreferences();
+  const client = getSupabaseClient();
+  const signedIn = !!(client && (await client.auth.getSession()).data.session?.user);
+  const gate = canExportContributionHistory(prefs, { signedIn });
+  if (!gate.allowed) {
+    const msg =
+      gate.reason === 'signIn'
+        ? 'Please sign in.'
+        : gate.reason === 'optIn'
+          ? 'Enable anonymised research pool contribution first.'
+          : 'Set a medical condition first.';
+    return { ok: false, message: msg };
+  }
+
+  const fetched = await fetchOwnContributionRows();
+  if (!fetched.ok) return { ok: false, message: fetched.message };
+
+  const anonKey = await getAnonymizedEncryptionKeyHex();
+  const decryptedRows = [];
+  for (const row of fetched.rows) {
+    let decrypted: unknown = null;
+    const blob = row.anonymized_log;
+    if (typeof blob === 'string' && blob.length > 0) {
+      try {
+        decrypted = await decryptJsonAesGcm(blob, anonKey);
+      } catch {
+        decrypted = null;
+      }
+    }
+    decryptedRows.push({ ...row, decrypted });
+  }
+
+  const bundle = formatContributionExport(decryptedRows, { medicalCondition: prefs.medicalCondition });
+  return { ok: true, message: `Exported ${bundle.rowCount} contribution row(s).`, json: JSON.stringify(bundle, null, 2) };
+}
+
+export async function countPoolContributionDays(condition: string): Promise<number> {
+  const client = getSupabaseClient();
+  if (!client || !isValidMedicalConditionForPool(condition)) return 0;
+  const { data, error } = await client.rpc('count_pool_contribution_days', { p_condition: condition.trim() });
+  if (error) return 0;
+  return Number(data) || 0;
+}
+
+export async function fetchPoolInsights(condition: string): Promise<{
+  ok: boolean;
+  message: string;
+  insights: ReturnType<typeof normalizePoolInsightsRpcResult>;
+}> {
+  const empty = normalizePoolInsightsRpcResult(null);
+  const prefs = await loadPreferences();
+  const client = getSupabaseClient();
+  const signedIn = !!(client && (await client.auth.getSession()).data.session?.user);
+  const poolDayCount = await countPoolContributionDays(condition);
+  const gate = canViewPoolInsights(prefs, { signedIn, poolDayCount });
+  if (!gate.allowed) {
+    const msg =
+      gate.reason === 'signIn'
+        ? 'Please sign in.'
+        : gate.reason === 'optIn'
+          ? 'Enable anonymised research pool contribution first.'
+          : gate.reason === 'condition'
+            ? 'Set a medical condition first.'
+            : `Pool insights unlock after ${gate.minDays ?? 90} days of contributions (currently ${poolDayCount}).`;
+    return { ok: false, message: msg, insights: empty };
+  }
+
+  if (!client) return { ok: false, message: 'Cloud sync is not configured.', insights: empty };
+
+  const { data, error } = await client.rpc('get_k_anon_pool_insights', {
+    p_condition: condition.trim(),
+    p_k: POOL_INSIGHT_MIN_K,
+  });
+  if (error) return { ok: false, message: error.message, insights: empty };
+  return { ok: true, message: '', insights: normalizePoolInsightsRpcResult(data) };
 }
 
 /** Deletes encrypted cloud backup only (health_data). */

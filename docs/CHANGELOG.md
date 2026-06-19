@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.109.0** - Plan 12: clinician prep PDF, QR handoff, med timeline, doctor questions (CL1–CL5).
+**Latest: v1.110.0** - Plan 13: research pool export (RE4) + k-anon insights (RE1).
+
+### v1.110.0 - 2026-06-19 - Plan 13 Research & anonymized pool (RE1, RE4)
+- **RE4:** Export own anonymized contribution rows — decrypt locally, `rianell-contribution-export-v1` JSON; Settings export (PWA + RN).
+- **RE1:** K-anonymous pool insights via `get_k_anon_pool_insights` RPC (k≥5); sleep≥7h vs flare cohort insight; 90-day + opt-in gates; AI tab panel (PWA + RN).
+- **Sync:** `research_facets` on insert, `user_id` on PWA anon upload, RN dedup + `contributeAnonData`/`demoMode` gates; shared `anonPoolPayload.mjs`.
+- **Schema:** `research_facets jsonb` on `anonymized_data`; `supabase/pool-insights-rpc.sql`.
+- **Tests:** 8 plan13-research-pool tests (295 total).
 
 ### v1.109.0 - 2026-06-19 - Plan 12 Clinician & sharing (CL1, CL2, CL4, CL5)
 - **CL1:** Appointment prep PDF — chart summary, meds, flare calendar, optional N2 brief + CL5 questions; H6 prep CTA opens PDF (PWA print + RN expo-print/share).

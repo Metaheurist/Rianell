@@ -129,6 +129,11 @@ async function syncAnonymizedData() {
     console.error('[syncAnonymizedData] SUPABASE_CONFIG:', window.SUPABASE_CONFIG);
     return;
   }
+
+  if (!cloudSyncState.isAuthenticated || !cloudSyncState.user) {
+    console.log('[syncAnonymizedData] Sign-in required for anonymized contribution');
+    return;
+  }
   
   try {
     // Get logs from localStorage - make a copy to prevent any modifications
@@ -394,7 +399,10 @@ async function syncAnonymizedData() {
       for (const log of batch) {
         try {
           // Create anonymized version of the log (remove PII like notes, stressors, symptoms, painLocation)
-          const anonymizedLog = {
+          const S = window.RianellShared || {};
+          const buildPayload = typeof S.buildAnonymizedLogPayload === 'function' ? S.buildAnonymizedLogPayload : null;
+          const buildFacets = typeof S.buildResearchFacetsFromLog === 'function' ? S.buildResearchFacetsFromLog : null;
+          const anonymizedLog = buildPayload ? buildPayload(log) : {
             date: log.date,
             bpm: log.bpm,
             weight: log.weight,
@@ -411,7 +419,6 @@ async function syncAnonymizedData() {
             weatherSensitivity: log.weatherSensitivity,
             steps: log.steps,
             hydration: log.hydration,
-            // Include food (flatten category object to array for sync) and exercise
             food: (function() {
               if (!log.food) return undefined;
               const arr = Array.isArray(log.food) ? log.food : [].concat(log.food.breakfast || [], log.food.lunch || [], log.food.dinner || [], log.food.snack || []);
@@ -422,17 +429,11 @@ async function syncAnonymizedData() {
               })) : undefined;
             })(),
             exercise: log.exercise,
-            // Include optional fields (but NOT stressors, symptoms, painLocation - these are PII)
             energyClarity: log.energyClarity
-            // Explicitly exclude: stressors, symptoms, painLocation, notes
           };
-          
-          // Remove undefined/null values
-          Object.keys(anonymizedLog).forEach(key => {
-            if (anonymizedLog[key] === undefined || anonymizedLog[key] === null || anonymizedLog[key] === '') {
-              delete anonymizedLog[key];
-            }
-          });
+          if (!buildFacets || !buildFacets(log)) {
+            continue;
+          }
           
           // Encrypt the anonymized log using the shared encryption key
           let encryptedLog;
@@ -456,9 +457,12 @@ async function syncAnonymizedData() {
           }
           
           // Add to batch
+          const research_facets = buildFacets(log);
           batchData.push({
+            user_id: cloudSyncState.user.id,
             medical_condition: medicalCondition,
-            anonymized_log: encryptedLog
+            anonymized_log: encryptedLog,
+            research_facets: research_facets
           });
           
           // Track dates and keys for this batch (will only be added if insert succeeds)
@@ -2085,6 +2089,107 @@ async function deleteAnonymizedContributionFromCloud() {
   }
 }
 
+async function fetchOwnContributionRows() {
+  const client = initSupabase();
+  if (!client || !cloudSyncState.user) {
+    return { ok: false, message: 'Please sign in.', rows: [] };
+  }
+  const { data, error } = await client
+    .from('anonymized_data')
+    .select('id, created_at, medical_condition, anonymized_log, research_facets')
+    .eq('user_id', cloudSyncState.user.id)
+    .order('created_at', { ascending: true });
+  if (error) return { ok: false, message: error.message, rows: [] };
+  return { ok: true, message: '', rows: data || [] };
+}
+
+async function exportContributionHistory() {
+  const S = window.RianellShared || {};
+  const prefs = window.appSettings || {};
+  const signedIn = !!(cloudSyncState.isAuthenticated && cloudSyncState.user);
+  if (typeof S.canExportContributionHistory !== 'function' || typeof S.formatContributionExport !== 'function') {
+    return { ok: false, message: 'Export helpers unavailable.' };
+  }
+  const gate = S.canExportContributionHistory(prefs, { signedIn });
+  if (!gate.allowed) {
+    const msg = gate.reason === 'signIn'
+      ? 'Please sign in.'
+      : gate.reason === 'optIn'
+        ? 'Enable anonymised research pool contribution first.'
+        : 'Set a medical condition first.';
+    return { ok: false, message: msg };
+  }
+  const fetched = await fetchOwnContributionRows();
+  if (!fetched.ok) return fetched;
+
+  const decryptFn = window.decryptAnonymizedData || (typeof decryptAnonymizedData !== 'undefined' ? decryptAnonymizedData : null);
+  const rows = [];
+  for (const row of fetched.rows) {
+    let decrypted = null;
+    if (decryptFn && row.anonymized_log) {
+      try {
+        decrypted = await decryptFn(row.anonymized_log);
+      } catch (e) {
+        decrypted = null;
+      }
+    }
+    rows.push(Object.assign({}, row, { decrypted: decrypted }));
+  }
+  const bundle = S.formatContributionExport(rows, { medicalCondition: prefs.medicalCondition });
+  return {
+    ok: true,
+    message: 'Exported ' + bundle.rowCount + ' contribution row(s).',
+    json: JSON.stringify(bundle, null, 2)
+  };
+}
+
+async function countPoolContributionDays(condition) {
+  const client = initSupabase();
+  const S = window.RianellShared || {};
+  if (!client || typeof S.isValidMedicalConditionForPool !== 'function' || !S.isValidMedicalConditionForPool(condition)) {
+    return 0;
+  }
+  const { data, error } = await client.rpc('count_pool_contribution_days', { p_condition: String(condition).trim() });
+  if (error) return 0;
+  return Number(data) || 0;
+}
+
+async function fetchPoolInsights(condition) {
+  const S = window.RianellShared || {};
+  const prefs = window.appSettings || {};
+  const empty = typeof S.normalizePoolInsightsRpcResult === 'function'
+    ? S.normalizePoolInsightsRpcResult(null)
+    : { kMin: 5, contributorCount: 0, insights: [], suppressed: true };
+  const signedIn = !!(cloudSyncState.isAuthenticated && cloudSyncState.user);
+  const poolDayCount = await countPoolContributionDays(condition);
+  if (typeof S.canViewPoolInsights !== 'function') {
+    return { ok: false, message: 'Pool insights unavailable.', insights: empty };
+  }
+  const gate = S.canViewPoolInsights(prefs, { signedIn: signedIn, poolDayCount: poolDayCount });
+  if (!gate.allowed) {
+    const msg = gate.reason === 'signIn'
+      ? 'Please sign in.'
+      : gate.reason === 'optIn'
+        ? 'Enable anonymised research pool contribution first.'
+        : gate.reason === 'condition'
+          ? 'Set a medical condition first.'
+          : 'Pool insights unlock after ' + (gate.minDays || 90) + ' days of contributions (currently ' + poolDayCount + ').';
+    return { ok: false, message: msg, insights: empty };
+  }
+  const client = initSupabase();
+  if (!client) return { ok: false, message: 'Cloud sync is not configured.', insights: empty };
+  const kMin = S.POOL_INSIGHT_MIN_K || 5;
+  const { data, error } = await client.rpc('get_k_anon_pool_insights', {
+    p_condition: String(condition).trim(),
+    p_k: kMin
+  });
+  if (error) return { ok: false, message: error.message, insights: empty };
+  const insights = typeof S.normalizePoolInsightsRpcResult === 'function'
+    ? S.normalizePoolInsightsRpcResult(data)
+    : empty;
+  return { ok: true, message: '', insights: insights };
+}
+
 async function fetchPrivacyProfileAndApply(showToast) {
   const client = initSupabase();
   if (!client || !cloudSyncState.user) return null;
@@ -2208,6 +2313,10 @@ if (typeof window !== 'undefined') {
   window.getAnonymizedTrainingData = getAnonymizedTrainingData;
   window.deleteCloudLogs = deleteCloudLogs;
   window.deleteAnonymizedContributionFromCloud = deleteAnonymizedContributionFromCloud;
+  window.fetchOwnContributionRows = fetchOwnContributionRows;
+  window.exportContributionHistory = exportContributionHistory;
+  window.countPoolContributionDays = countPoolContributionDays;
+  window.fetchPoolInsights = fetchPoolInsights;
   window.deleteAllUserDataFromCloud = deleteAllUserDataFromCloud;
   window.fetchPrivacyProfileAndApply = fetchPrivacyProfileAndApply;
   window.upsertPrivacyProfile = upsertPrivacyProfile;
