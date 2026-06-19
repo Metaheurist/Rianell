@@ -470,7 +470,10 @@ export function HomeScreen({
         });
         setHomeSuggestions(bundle.chips);
         if (bundle.gapCacheUpdate) {
-          void persistPrefs({ ...prefs, homeGapQuestionCache: bundle.gapCacheUpdate });
+          void persistPrefs({
+            ...prefs,
+            homeGapQuestionCache: bundle.gapCacheUpdate as { date: string; gapId: string },
+          });
         }
       })
       .catch(() => {
