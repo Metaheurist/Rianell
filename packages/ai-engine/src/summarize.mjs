@@ -68,6 +68,11 @@ export function filterLogsByRange(logs, range) {
   });
 }
 
+/**
+ * @param {Array<Record<string, unknown>>} logs
+ * @param {14|30|90|'all'|number} [range]
+ * @param {Record<string, unknown>} [options]
+ */
 export function summarizeLogsForAi(logs, range = 30, options = {}) {
   const translate = options?.translate;
   const selected = filterLogsByRange(logs, range);
