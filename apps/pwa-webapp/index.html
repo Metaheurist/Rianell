@@ -1411,6 +1411,12 @@
               </select>
               <p class="settings-hint" id="llmEngineHint" data-i18n="common.llm.engine.hint">After the model downloads, Automatic tries the fastest option your browser supports, then switches if needed.</p>
               <p class="settings-hint" id="llmModelRecommendationHint" data-i18n="common.recommended">Recommended: -</p>
+              <label for="llmCoachPersonaSelect" class="settings-sub-label" data-i18n="settings.performance.llmCoachPersona">Diary coach tone</label>
+              <select id="llmCoachPersonaSelect" class="settings-select" onchange="setLlmCoachPersona(this.value)">
+                <option value="encouraging" data-i18n="settings.performance.llmCoachPersona.encouraging">Encouraging</option>
+                <option value="clinical" data-i18n="settings.performance.llmCoachPersona.clinical">Clinical</option>
+                <option value="minimal" data-i18n="settings.performance.llmCoachPersona.minimal">Minimal</option>
+              </select>
               <p class="settings-hint" id="llmModelStorageHint"></p>
               <div class="settings-llm-actions">
                 <button type="button" class="settings-data-btn settings-data-btn--primary" id="clearRedownloadAiModelBtn" onclick="clearAndRedownloadAiModel()" data-i18n="common.clear.and.redownload.model">Clear and redownload model</button>

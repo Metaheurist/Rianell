@@ -69,6 +69,27 @@
     return fallback;
   }
 
+  var INSTANT_LLM_FEATURES = { motd: true, suggestNote: true };
+
+  function isInstantLlmFeature(feature) {
+    return !!(feature && INSTANT_LLM_FEATURES[feature]);
+  }
+
+  function getCoachPersona() {
+    var p = (typeof appSettings !== 'undefined' && appSettings.llmCoachPersona) || 'encouraging';
+    return p === 'clinical' || p === 'minimal' ? p : 'encouraging';
+  }
+
+  function applyCoachPersona(system, pack) {
+    var suffix = promptString(pack, 'persona.' + getCoachPersona(), '');
+    return suffix ? system + ' ' + suffix : system;
+  }
+
+  function getResolvedModelIdForFeature(feature) {
+    if (isInstantLlmFeature(feature)) return MODEL_SMALL;
+    return getResolvedModelId();
+  }
+
   function loadPromptPack(locale) {
     var loc = locale || 'en-GB';
     if (window.__rianellPromptPack && window.__rianellPromptPack.locale === loc) {
@@ -98,11 +119,11 @@
   }
 
   function buildMotdPromptFromPack(pack, theme) {
-    var system = promptString(pack, 'motd.system',
+    var system = applyCoachPersona(promptString(pack, 'motd.system',
       'You write one short, simple quote about healthy living for a health tracking app. '
       + 'Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. '
       + 'Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. '
-      + 'Reply with only the quote sentence.');
+      + 'Reply with only the quote sentence.'), pack);
     var userBase = promptString(pack, 'motd.user', 'Write one healthy-lifestyle quote.');
     return { system: system, user: theme ? (userBase + ' Theme: ' + theme + '.') : userBase };
   }
@@ -112,7 +133,7 @@
       typeof appSettings !== 'undefined' &&
       appSettings.accessibility &&
       appSettings.accessibility.plainLanguageEnabled === true;
-    var system = promptString(
+    var system = applyCoachPersona(promptString(
       pack,
       plain ? 'summary.system.plain' : 'summary.system',
       plain
@@ -120,14 +141,14 @@
         : 'You summarise health tracking data for the patient in exactly 2 short sentences. '
             + 'Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. '
             + 'Reply with only the summary text.'
-    );
+    ), pack);
     return { system: system, user: 'Data: ' + context };
   }
 
   function buildSuggestPromptFromPack(pack, context) {
-    var system = promptString(pack, 'suggest.system',
+    var system = applyCoachPersona(promptString(pack, 'suggest.system',
       'You write one short sentence for a daily health log note. Compare today to the recent average. '
-      + 'Use only the data provided. Reply with only the note sentence.');
+      + 'Use only the data provided. Reply with only the note sentence.'), pack);
     return { system: system, user: 'Data: ' + context };
   }
 
@@ -157,12 +178,20 @@
   }
 
   function buildStructuredSummaryPromptFromPack(pack, context) {
-    var system = promptString(pack, 'structured.system',
+    var system = applyCoachPersona(promptString(pack, 'structured.system',
       'You analyse health-tracking data and reply with JSON only: '
       + '{"insights":["..."],"actions":["..."],"confidence":0.0}. '
       + 'insights: up to 3 short pattern observations. actions: up to 2 gentle self-care ideas. '
-      + 'confidence: 0-1 number. Use only provided data. No diagnosis or prescriptions.');
+      + 'confidence: 0-1 number. Use only provided data. No diagnosis or prescriptions.'), pack);
     return { system: system, user: 'Data: ' + context };
+  }
+
+  function buildWeekChatPromptFromPack(pack, userPayload) {
+    var system = applyCoachPersona(promptString(pack, 'weekChat.system',
+      'You are a wellness diary coach. Answer using only the health log context provided. '
+      + 'Max 4 short sentences. No diagnosis, prescriptions, or tool use. '
+      + 'Stay within the conversation scope. Reply with only your answer text.'), pack);
+    return { system: system, user: userPayload };
   }
 
   function isLlmInferenceAllowedForActiveLocale() {
@@ -922,7 +951,7 @@
       if (!ok || downloadCancelled) throw new Error('AI model download deferred');
     }
 
-    var modelId = getResolvedModelId();
+    var modelId = options.modelId || getResolvedModelId();
     if (cachedPipeline && cachedModelId === modelId) return cachedPipeline;
     if (loadInFlight) return loadInFlight;
 
@@ -1146,16 +1175,16 @@
     ];
   }
 
-  async function runChatInference(systemText, userText, genOpts) {
+  async function runChatInference(systemText, userText, genOpts, pipelineOptions) {
     if (cachedActiveEngine === 'mlc' && cachedMlcEngine && window.RianellLlmMlc) {
       return runQueued(async function () {
-        await ensurePipelineLoaded();
+        await ensurePipelineLoaded(pipelineOptions || {});
         return window.RianellLlmMlc.runMlcChat(cachedMlcEngine, userText, systemText, genOpts || {});
       });
     }
     var messages = buildChatMessages(systemText, userText);
     var out = await runQueued(async function () {
-      var pipe = await ensurePipelineLoaded();
+      var pipe = await ensurePipelineLoaded(pipelineOptions || {});
       return pipe(messages, genOpts);
     });
     return extractChatReply(out);
@@ -1171,18 +1200,20 @@
     });
   }
 
-  async function awaitPipelineForInference(loadTimeoutMs) {
-    if (isPipelineReadyForChat()) return true;
+  async function awaitPipelineForInference(loadTimeoutMs, options) {
+    options = options || {};
+    var modelId = options.modelId || getResolvedModelId();
+    if (cachedPipeline && cachedModelId === modelId && isPipelineReadyForChat()) return true;
     await Promise.race([
-      ensurePipelineLoaded(),
+      ensurePipelineLoaded(Object.assign({}, options, { modelId: modelId })),
       promiseWithTimeout(loadTimeoutMs || LOAD_TIMEOUT_MS, 'Summary LLM load timeout')
     ]);
     return isPipelineReadyForChat();
   }
 
-  async function raceChatInference(systemText, userText, genOpts, inferenceTimeoutMs, timeoutMessage) {
+  async function raceChatInference(systemText, userText, genOpts, inferenceTimeoutMs, timeoutMessage, pipelineOptions) {
     return Promise.race([
-      runChatInference(systemText, userText, genOpts),
+      runChatInference(systemText, userText, genOpts, pipelineOptions),
       promiseWithTimeout(inferenceTimeoutMs, timeoutMessage)
     ]);
   }
@@ -1365,7 +1396,7 @@
 
     async function runSuggest() {
       try {
-        var ready = await awaitPipelineForInference(TIMEOUT_SUGGEST_TOTAL_MS);
+        var ready = await awaitPipelineForInference(TIMEOUT_SUGGEST_TOTAL_MS, { modelId: MODEL_SMALL });
         if (!ready) return fallbackText || '';
 
         var pack = await loadPromptPack(getActiveLocale());
@@ -1380,7 +1411,8 @@
             truncation: true
           },
           TIMEOUT_SUGGEST_MS,
-          'Suggest note LLM timeout'
+          'Suggest note LLM timeout',
+          { modelId: MODEL_SMALL }
         );
 
         if (text && text.length > 8) {
@@ -1552,6 +1584,30 @@
     return fallbackText || '';
   }
 
+  async function generateWeekChatWithLLM(userPayload, fallbackText) {
+    if (!isLlmInferenceAllowedForActiveLocale()) return fallbackText || '';
+    if (!userPayload || String(userPayload).length < 8) return fallbackText || '';
+    try {
+      var ready = await awaitPipelineForInference(LOAD_TIMEOUT_MS);
+      if (!ready) return fallbackText || '';
+      var pack = await loadPromptPack(getActiveLocale());
+      var prompts = buildWeekChatPromptFromPack(pack, userPayload);
+      var text = await raceChatInference(
+        prompts.system,
+        prompts.user,
+        { max_new_tokens: 200, do_sample: false, temperature: 0.2, truncation: true },
+        TIMEOUT_HOME_QUESTION_MS,
+        'Week chat LLM timeout'
+      );
+      if (text && text.length > 8) return stripTrailingIncompleteSentence(text);
+    } catch (e) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('Week chat LLM failed, using fallback:', e.message || e);
+      }
+    }
+    return fallbackText || '';
+  }
+
   function sanitizeMotdText(raw) {
     if (!raw || typeof raw !== 'string') return '';
     var t = raw.replace(/\s+/g, ' ').trim();
@@ -1594,7 +1650,7 @@
     var nonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
 
     try {
-      var ready = await awaitPipelineForInference(LOAD_TIMEOUT_MS);
+      var ready = await awaitPipelineForInference(LOAD_TIMEOUT_MS, { modelId: MODEL_SMALL });
       if (!ready) return fallbackText || '';
 
       var pack = await loadPromptPack(getActiveLocale());
@@ -1611,7 +1667,8 @@
           truncation: true
         },
         TIMEOUT_MOTD_MS,
-        'MOTD LLM timeout'
+        'MOTD LLM timeout',
+        { modelId: MODEL_SMALL }
       );
 
       text = sanitizeMotdText(text);
@@ -1775,6 +1832,7 @@
   window.generateClinicianBriefWithLLM = generateClinicianBriefWithLLM;
   window.generateExplainChartWithLLM = generateExplainChartWithLLM;
   window.generateStructuredSummaryWithLLM = generateStructuredSummaryWithLLM;
+  window.generateWeekChatWithLLM = generateWeekChatWithLLM;
   window.generateMotdWithLLM = generateMotdWithLLM;
   window.buildSuggestContext = buildSuggestContext;
   window.LLM_TIER_MODELS = LLM_TIER_MODELS;

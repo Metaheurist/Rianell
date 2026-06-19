@@ -32,6 +32,7 @@ var RianellShared = (() => {
     HOME_SUGGESTIONS_MAX_CHIPS: () => HOME_SUGGESTIONS_MAX_CHIPS,
     HOME_SUGGESTIONS_MIN_DAYS: () => HOME_SUGGESTIONS_MIN_DAYS,
     HOME_SUGGESTIONS_RANGE_DAYS: () => HOME_SUGGESTIONS_RANGE_DAYS,
+    LLM_COACH_PERSONAS: () => LLM_COACH_PERSONAS,
     LOCAL_ONLY_NETWORK_FEATURES: () => LOCAL_ONLY_NETWORK_FEATURES,
     LOGS_BACKUP_KEY: () => LOGS_BACKUP_KEY,
     LOGS_STORAGE_KEY_MOBILE_LEGACY: () => LOGS_STORAGE_KEY_MOBILE_LEGACY,
@@ -39,6 +40,7 @@ var RianellShared = (() => {
     LOG_CSV_ENGLISH_HEADERS: () => LOG_CSV_ENGLISH_HEADERS,
     LOG_CSV_FIELD_IDS: () => LOG_CSV_FIELD_IDS,
     LOG_CSV_I18N_KEYS: () => LOG_CSV_I18N_KEYS,
+    MAX_WEEK_CHAT_TURNS: () => MAX_WEEK_CHAT_TURNS,
     MIGRATION_COPY: () => MIGRATION_COPY,
     MIGRATION_SOURCES: () => MIGRATION_SOURCES,
     OFFLINE_QUEUE_KEY: () => OFFLINE_QUEUE_KEY,
@@ -84,10 +86,16 @@ var RianellShared = (() => {
     buildSuggestPrompt: () => buildSuggestPrompt,
     buildSummaryPrompt: () => buildSummaryPrompt,
     buildTodayMedDoseStatuses: () => buildTodayMedDoseStatuses,
+    buildWeekChatContext: () => buildWeekChatContext,
+    buildWeekChatFallback: () => buildWeekChatFallback,
+    buildWeekChatPrompt: () => buildWeekChatPrompt,
+    buildWeekChatUserPayload: () => buildWeekChatUserPayload,
     canChooseDataResidency: () => canChooseDataResidency,
+    canSendWeekChatTurn: () => canSendWeekChatTurn,
     checkPolicyDrift: () => checkPolicyDrift,
     checkPolicyDriftSync: () => checkPolicyDriftSync,
     clearMigrationPending: () => clearMigrationPending,
+    coachPersonaPromptKey: () => coachPersonaPromptKey,
     computeHomeAnalysisSnapshot: () => computeHomeAnalysisSnapshot,
     createReadOnlyShareEnvelope: () => createReadOnlyShareEnvelope,
     createSampleLogEntry: () => createSampleLogEntry,
@@ -109,6 +117,7 @@ var RianellShared = (() => {
     formatNumber: () => formatNumber,
     formatRelativeDay: () => formatRelativeDay,
     formatStructuredLlmOutput: () => formatStructuredLlmOutput,
+    formatWeekChatHistory: () => formatWeekChatHistory,
     getDefaultAccessibilitySettings: () => getDefaultAccessibilitySettings,
     getDefaultAppSettingsFields: () => getDefaultAppSettingsFields,
     getDefaultLocaleForRegion: () => getDefaultLocaleForRegion,
@@ -157,6 +166,7 @@ var RianellShared = (() => {
     normalizeCycleFields: () => normalizeCycleFields,
     normalizeDisplayNameTheme: () => normalizeDisplayNameTheme,
     normalizeGoals: () => normalizeGoals,
+    normalizeLlmCoachPersona: () => normalizeLlmCoachPersona,
     normalizeLogEntry: () => normalizeLogEntry,
     normalizeLogFavorites: () => normalizeLogFavorites,
     normalizeMedSchedule: () => normalizeMedSchedule,
@@ -1658,6 +1668,15 @@ var RianellShared = (() => {
     }
   };
 
+  // packages/shared/src/ai/llmCoachPersona.mjs
+  var LLM_COACH_PERSONAS = ["encouraging", "clinical", "minimal"];
+  function normalizeLlmCoachPersona(value) {
+    return LLM_COACH_PERSONAS.includes(value) ? value : "encouraging";
+  }
+  function coachPersonaPromptKey(persona) {
+    return `persona.${normalizeLlmCoachPersona(persona)}`;
+  }
+
   // packages/shared/src/i18n/promptPack.mjs
   function loadPromptPack(locale, preloaded) {
     const chain = localeFallbackChain(isValidLocaleId(locale) ? locale : DEFAULT_LOCALE);
@@ -1671,12 +1690,21 @@ var RianellShared = (() => {
     const val = pack?.strings?.[key];
     return typeof val === "string" ? val : fallback;
   }
+  function applyCoachPersona(system, pack, persona) {
+    if (!persona) return system;
+    const suffix = promptString(pack, coachPersonaPromptKey(persona), "");
+    return suffix ? `${system} ${suffix}` : system;
+  }
   function buildMotdPrompt(locale, theme, options = {}) {
     const pack = loadPromptPack(locale, options.packs);
-    const system = promptString(
+    const system = applyCoachPersona(
+      promptString(
+        pack,
+        "motd.system",
+        "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence."
+      ),
       pack,
-      "motd.system",
-      "You write one short, simple quote about healthy living for a health tracking app. Topics: sleep, water, gentle movement, rest, fresh air, balanced food, or stress relief. Use plain everyday words. Max 18 words. No names. No medical advice. No quotation marks. Reply with only the quote sentence."
+      options.persona
     );
     const userBase = promptString(pack, "motd.user", "Write one healthy-lifestyle quote.");
     const user = theme ? `${userBase} Theme: ${theme}.` : userBase;
@@ -1685,57 +1713,94 @@ var RianellShared = (() => {
   function buildSummaryPrompt(locale, context, options = {}) {
     const pack = loadPromptPack(locale, options.packs);
     const plain = options.plainLanguage === true;
-    const system = promptString(
+    const system = applyCoachPersona(
+      promptString(
+        pack,
+        plain ? "summary.system.plain" : "summary.system",
+        plain ? "You summarise health tracking data in exactly 2 short sentences using plain B1 English (simple words, short clauses). Use only the data provided. Mention 1-2 findings. Be encouraging. Reply with only the summary text." : "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text."
+      ),
       pack,
-      plain ? "summary.system.plain" : "summary.system",
-      plain ? "You summarise health tracking data in exactly 2 short sentences using plain B1 English (simple words, short clauses). Use only the data provided. Mention 1-2 findings. Be encouraging. Reply with only the summary text." : "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text."
+      options.persona
     );
     return { system, user: `Data: ${context}` };
   }
   function buildSuggestPrompt(locale, context, options = {}) {
     const pack = loadPromptPack(locale, options.packs);
-    const system = promptString(
+    const system = applyCoachPersona(
+      promptString(
+        pack,
+        "suggest.system",
+        "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence."
+      ),
       pack,
-      "suggest.system",
-      "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence."
+      options.persona
     );
     return { system, user: `Data: ${context}` };
   }
   function buildHomeQuestionPrompt(locale, context, options = {}) {
     const pack = loadPromptPack(locale, options.packs);
-    const system = promptString(
+    const system = applyCoachPersona(
+      promptString(
+        pack,
+        "homeQuestion.system",
+        "You answer one specific health-tracking question using only the data provided. Write 3\u20135 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text."
+      ),
       pack,
-      "homeQuestion.system",
-      "You answer one specific health-tracking question using only the data provided. Write 3\u20135 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text."
+      options.persona
     );
     return { system, user: context };
   }
   function buildClinicianBriefPrompt(locale, context, options = {}) {
     const pack = loadPromptPack(locale, options.packs);
-    const system = promptString(
+    const system = applyCoachPersona(
+      promptString(
+        pack,
+        "clinicianBrief.system",
+        "You write a one-page clinician visit prep brief from health-tracking data. Use only the data provided. Structure: key patterns, symptom/stressor highlights, questions to ask the clinician. Plain language. No diagnosis or treatment orders. Max 180 words. Reply with only the brief text."
+      ),
       pack,
-      "clinicianBrief.system",
-      "You write a one-page clinician visit prep brief from health-tracking data. Use only the data provided. Structure: key patterns, symptom/stressor highlights, questions to ask the clinician. Plain language. No diagnosis or treatment orders. Max 180 words. Reply with only the brief text."
+      options.persona
     );
     return { system, user: `Patient data: ${context}` };
   }
   function buildExplainChartPrompt(locale, context, options = {}) {
     const pack = loadPromptPack(locale, options.packs);
-    const system = promptString(
+    const system = applyCoachPersona(
+      promptString(
+        pack,
+        "explainChart.system",
+        "You explain a health chart range in plain language for the patient. Use only the metrics provided. Mention trends and one practical observation. No diagnosis. Max 4 short sentences. Reply with only the narration text."
+      ),
       pack,
-      "explainChart.system",
-      "You explain a health chart range in plain language for the patient. Use only the metrics provided. Mention trends and one practical observation. No diagnosis. Max 4 short sentences. Reply with only the narration text."
+      options.persona
     );
     return { system, user: `Chart data: ${context}` };
   }
   function buildStructuredSummaryPrompt(locale, context, options = {}) {
     const pack = loadPromptPack(locale, options.packs);
-    const system = promptString(
+    const system = applyCoachPersona(
+      promptString(
+        pack,
+        "structured.system",
+        'You analyse health-tracking data and reply with JSON only: {"insights":["..."],"actions":["..."],"confidence":0.0}. insights: up to 3 short pattern observations. actions: up to 2 gentle self-care ideas. confidence: 0-1 number. Use only provided data. No diagnosis or prescriptions.'
+      ),
       pack,
-      "structured.system",
-      'You analyse health-tracking data and reply with JSON only: {"insights":["..."],"actions":["..."],"confidence":0.0}. insights: up to 3 short pattern observations. actions: up to 2 gentle self-care ideas. confidence: 0-1 number. Use only provided data. No diagnosis or prescriptions.'
+      options.persona
     );
     return { system, user: `Data: ${context}` };
+  }
+  function buildWeekChatPrompt(locale, userPayload, options = {}) {
+    const pack = loadPromptPack(locale, options.packs);
+    const system = applyCoachPersona(
+      promptString(
+        pack,
+        "weekChat.system",
+        "You are a wellness diary coach. Answer using only the health log context provided. Max 4 short sentences. No diagnosis, prescriptions, or tool use. Stay within the conversation scope. Reply with only your answer text."
+      ),
+      pack,
+      options.persona
+    );
+    return { system, user: userPayload };
   }
   function buildLlmRequestPayload({ feature, model, modelSize, context, locale }) {
     return {
@@ -2183,6 +2248,72 @@ ${raw}
       lines.push(`Confidence: ${Math.round(structured.confidence * 100)}%`);
     }
     return lines.join("\n");
+  }
+
+  // packages/shared/src/ai/weekChat.mjs
+  var MAX_CONTEXT_CHARS4 = 720;
+  var MAX_WEEK_CHAT_TURNS = 5;
+  function wrapUserNote3(note) {
+    const raw = String(note || "").trim();
+    if (!raw) return "";
+    return `---USER_NOTE---
+${raw}
+---END_USER_NOTE---`;
+  }
+  function canSendWeekChatTurn(turnCount) {
+    return turnCount < MAX_WEEK_CHAT_TURNS;
+  }
+  function buildWeekChatContext({
+    analysis = {},
+    logs = [],
+    rangeLabel = "Last 14 days",
+    rangeDays = 14
+  }) {
+    const parts = [];
+    parts.push(`Week scope: ${rangeLabel} (${rangeDays} days).`);
+    const total = analysis.totalLogs ?? (Array.isArray(logs) ? logs.length : 0);
+    parts.push(`${total} logged day(s).`);
+    if (analysis.flareDays != null && analysis.flareDays > 0) {
+      parts.push(`Flares: ${analysis.flareDays} day(s).`);
+    }
+    if (analysis.avgFatigue != null) parts.push(`Fatigue avg: ${analysis.avgFatigue.toFixed(1)}/10.`);
+    if (analysis.avgSleep != null) parts.push(`Sleep avg: ${analysis.avgSleep.toFixed(1)}/10.`);
+    if (analysis.avgMood != null) parts.push(`Mood avg: ${analysis.avgMood.toFixed(1)}/10.`);
+    if (analysis.topSymptoms?.length) {
+      parts.push(`Top symptoms: ${analysis.topSymptoms.slice(0, 3).join(", ")}.`);
+    }
+    if (analysis.topStressors?.length) {
+      parts.push(`Top stressors: ${analysis.topStressors.slice(0, 3).join(", ")}.`);
+    }
+    const recentNotes = (logs || []).map((l) => l && l.notes ? String(l.notes).trim() : "").filter(Boolean);
+    if (recentNotes.length) parts.push(wrapUserNote3(recentNotes[recentNotes.length - 1]));
+    const text = parts.join(" ");
+    return text.length > MAX_CONTEXT_CHARS4 ? text.slice(0, MAX_CONTEXT_CHARS4) : text;
+  }
+  function formatWeekChatHistory(turns) {
+    if (!Array.isArray(turns) || !turns.length) return "";
+    return turns.map((t2, i) => `Turn ${i + 1}:
+User: ${String(t2.user || "").trim()}
+Assistant: ${String(t2.assistant || "").trim()}`).join("\n\n");
+  }
+  function buildWeekChatUserPayload({ baseContext, history, userMessage }) {
+    const parts = [String(baseContext || "").trim()];
+    const hist = String(history || "").trim();
+    if (hist) parts.push(`Conversation:
+${hist}`);
+    parts.push(`User: ${String(userMessage || "").trim()}`);
+    return parts.filter(Boolean).join("\n\n");
+  }
+  function buildWeekChatFallback(analysis = {}) {
+    const total = analysis.totalLogs ?? 0;
+    if (total < 3) {
+      return "Log a few more days this week and I can spot patterns more clearly.";
+    }
+    const flare = analysis.flareDays ?? 0;
+    if (flare > 0) {
+      return `You logged ${total} days with ${flare} flare day(s). Rest and steady routines may help this week.`;
+    }
+    return `You logged ${total} days this period. Keep noting what helps \u2014 patterns build with steady logging.`;
   }
 
   // packages/shared/src/settings/trackingProfile.mjs

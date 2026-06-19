@@ -1,12 +1,15 @@
-/** Plan 08 i18n — Tier A overrides for LLM UI keys (phase A). */
+/** Plan 08 i18n — Tier A overrides for LLM UI keys (phases A–B). */
 const PLAN08_FR = {
   'ai.clinicianBrief.action': 'Brief de préparation de visite',
   'ai.clinicianBrief.loading': 'Préparation du brief…',
   'ai.clinicianBrief.section': 'Brief de visite',
   'ai.structuredInsights.section': 'Aperçus structurés',
+  'ai.weekChat.section': 'Questions sur ma semaine',
+  'ai.weekChat.send': 'Envoyer',
   'charts.explain.action': 'Expliquer ce graphique',
   'charts.explain.loading': 'Explication du graphique…',
   'charts.explain.section': 'Explication du graphique',
+  'settings.performance.llmCoachPersona': 'Ton du coach journal',
 };
 
 const PLAN08_DE = {
@@ -14,9 +17,12 @@ const PLAN08_DE = {
   'ai.clinicianBrief.loading': 'Brief wird erstellt…',
   'ai.clinicianBrief.section': 'Besuchsvorbereitung',
   'ai.structuredInsights.section': 'Strukturierte Erkenntnisse',
+  'ai.weekChat.section': 'Fragen zu meiner Woche',
+  'ai.weekChat.send': 'Senden',
   'charts.explain.action': 'Diagramm erklären',
   'charts.explain.loading': 'Diagramm wird erklärt…',
   'charts.explain.section': 'Diagrammerklärung',
+  'settings.performance.llmCoachPersona': 'Tagebuch-Coach-Ton',
 };
 
 const PLAN08_ES = {

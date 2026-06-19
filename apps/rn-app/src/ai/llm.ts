@@ -10,7 +10,14 @@ import {
   isLlmInferenceAllowed,
   parseStructuredLlmOutput,
   formatStructuredLlmOutput,
+  buildWeekChatContext,
+  formatWeekChatHistory,
+  buildWeekChatUserPayload,
+  buildWeekChatFallback,
+  canSendWeekChatTurn,
+  MAX_WEEK_CHAT_TURNS,
 } from '@rianell/shared';
+import { resolveLlmModelSizeForFeature } from '@rianell/llm';
 import type { PreferredLlmModelSize } from '../storage/preferences';
 import type { BenchmarkResult } from '../performance/benchmark';
 import type { AiSummary } from './analyzeLogs';
@@ -28,7 +35,8 @@ export type LlmFeature =
   | 'homeQuestion'
   | 'clinicianBrief'
   | 'explainChart'
-  | 'structuredSummary';
+  | 'structuredSummary'
+  | 'weekChat';
 
 const cache = new Map<string, string>();
 
@@ -102,21 +110,27 @@ async function generateWithFallback(
   options?: { multiline?: boolean; structured?: boolean }
 ): Promise<string> {
   const cacheKey = `${feature}:${locale}:${key}`;
-  const hit = cache.get(cacheKey);
-  if (hit) return hit;
+  const skipCache = feature === 'weekChat';
+  if (!skipCache) {
+    const hit = cache.get(cacheKey);
+    if (hit) return hit;
+  }
   const finish = (raw: string) => {
     const clean = options?.structured
       ? raw
       : options?.multiline
         ? sanitizeMultiline(raw)
         : sanitizeOneLine(raw);
-    if (clean) cache.set(cacheKey, clean);
+    if (clean && !skipCache) cache.set(cacheKey, clean);
     return clean;
   };
   if (!isLlmInferenceAllowed(locale)) {
     return finish(fallback());
   }
-  const modelSize = resolveLlmModelSize(preferredModel, benchmark);
+  const modelSize = resolveLlmModelSizeForFeature(
+    resolveLlmModelSize(preferredModel, benchmark),
+    feature
+  );
   if (prefs) {
     try {
       if (await isOnDeviceLlmReady(prefs as any)) {
@@ -310,7 +324,7 @@ export async function generateClinicianVisitBrief(
     logs,
     rangeLabel: summary.rangeLabel,
     goals: prefs?.goals,
-  });
+  } as unknown as Parameters<typeof buildClinicianBriefContext>[0]);
   return generateWithFallback(
     'clinicianBrief',
     `${summary.rangeLabel}:${summary.totalLogs}`,
@@ -338,7 +352,7 @@ export async function explainChartRange(
     trends: chartSummary.trends,
     totalLogs: chartSummary.totalLogs,
     flareDays: chartSummary.flareDays,
-  });
+  } as unknown as Parameters<typeof buildExplainChartContext>[0]);
   return generateWithFallback(
     'explainChart',
     `${chartSummary.rangeLabel}:${viewMode}:${chartSummary.totalLogs}`,
@@ -391,4 +405,49 @@ export async function generateStructuredInsights(
     prefs || null,
     { structured: true, multiline: true }
   );
+}
+
+export type WeekChatTurn = { user: string; assistant: string };
+
+export async function sendWeekChatMessage(
+  summary: AiSummary,
+  logs: LogEntry[],
+  turns: WeekChatTurn[],
+  userMessage: string,
+  preferredModel: PreferredLlmModelSize,
+  benchmark: BenchmarkResult | null,
+  locale: string,
+  prefs?: any
+): Promise<{ reply: string; canSendAnother: boolean }> {
+  const trimmed = userMessage.replace(/\s+/g, ' ').trim();
+  if (!trimmed) {
+    return { reply: '', canSendAnother: canSendWeekChatTurn(turns.length) };
+  }
+  if (!canSendWeekChatTurn(turns.length)) {
+    return { reply: '', canSendAnother: false };
+  }
+  const rangeDays = typeof summary.rangeLabel === 'string' && summary.rangeLabel.includes('14') ? 14 : 30;
+  const baseContext = buildWeekChatContext({
+    analysis: summary,
+    logs: logs as Array<{ notes?: string }>,
+    rangeLabel: summary.rangeLabel,
+    rangeDays,
+  });
+  const history = formatWeekChatHistory(turns);
+  const payload = buildWeekChatUserPayload({ baseContext, history, userMessage: trimmed });
+  const reply = await generateWithFallback(
+    'weekChat',
+    `${turns.length}:${trimmed.slice(0, 80)}`,
+    preferredModel,
+    benchmark,
+    payload,
+    locale,
+    () => buildWeekChatFallback(summary),
+    prefs || null,
+    { multiline: true }
+  );
+  return {
+    reply,
+    canSendAnother: turns.length + 1 < MAX_WEEK_CHAT_TURNS,
+  };
 }

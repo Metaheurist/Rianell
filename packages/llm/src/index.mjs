@@ -103,6 +103,12 @@ export {
 } from './tier-benchmark.mjs';
 
 export {
+  INSTANT_LLM_FEATURES,
+  isInstantLlmFeature,
+  resolveLlmModelSizeForFeature,
+} from './instant-tier.mjs';
+
+export {
   PLATFORM_KINDS,
   resolvePlatformKind,
   resolveLlmPreset,

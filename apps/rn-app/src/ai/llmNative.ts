@@ -18,6 +18,8 @@ import {
 
   LAST_STABLE_PRESET_KEY,
 
+  isInstantLlmFeature,
+
 } from '@rianell/llm';
 
 import {
@@ -28,6 +30,7 @@ import {
   buildClinicianBriefPrompt,
   buildExplainChartPrompt,
   buildStructuredSummaryPrompt,
+  buildWeekChatPrompt,
 } from '@rianell/shared';
 
 import { Directory, File, Paths } from 'expo-file-system';
@@ -111,25 +114,31 @@ function buildNativeLlmPrompt(
     | 'homeQuestion'
     | 'clinicianBrief'
     | 'explainChart'
-    | 'structuredSummary',
+    | 'structuredSummary'
+    | 'weekChat',
   context: string,
-  locale: string
+  locale: string,
+  prefs: Preferences
 ): { system: string; user: string } {
+  const persona = prefs.performance?.llmCoachPersona;
+  const opts = persona ? { persona } : {};
   switch (feature) {
     case 'motd':
-      return buildMotdPrompt(locale);
+      return buildMotdPrompt(locale, undefined, opts);
     case 'summary':
-      return buildSummaryPrompt(locale, context);
+      return buildSummaryPrompt(locale, context, opts);
     case 'suggestNote':
-      return buildSuggestPrompt(locale, context);
+      return buildSuggestPrompt(locale, context, opts);
     case 'homeQuestion':
-      return buildHomeQuestionPrompt(locale, context);
+      return buildHomeQuestionPrompt(locale, context, opts);
     case 'clinicianBrief':
-      return buildClinicianBriefPrompt(locale, context);
+      return buildClinicianBriefPrompt(locale, context, opts);
     case 'explainChart':
-      return buildExplainChartPrompt(locale, context);
+      return buildExplainChartPrompt(locale, context, opts);
     case 'structuredSummary':
-      return buildStructuredSummaryPrompt(locale, context);
+      return buildStructuredSummaryPrompt(locale, context, opts);
+    case 'weekChat':
+      return buildWeekChatPrompt(locale, context, opts);
     default:
       return { system: '', user: context };
   }
@@ -291,6 +300,11 @@ export function resolveNativeModelId(prefs: Preferences): string {
 
   return modelIdFromTier('tier3');
 
+}
+
+export function resolveNativeModelIdForFeature(prefs: Preferences, feature: string): string {
+  if (isInstantLlmFeature(feature)) return modelIdFromTier('tier1');
+  return resolveNativeModelId(prefs);
 }
 
 
@@ -577,7 +591,9 @@ export async function generateMotdNative(prefs: Preferences): Promise<string> {
 
   try {
     const locale = prefs.uiLocale || 'en-GB';
-    const { user } = buildMotdPrompt(locale);
+    const { user } = buildMotdPrompt(locale, undefined, {
+      persona: prefs.performance?.llmCoachPersona,
+    });
     const t = await runOnDeviceChat(prefs, 'motd', user, locale);
     if (t) return t;
   } catch (_) {}
@@ -611,7 +627,8 @@ export async function runOnDeviceChat(
     | 'homeQuestion'
     | 'clinicianBrief'
     | 'explainChart'
-    | 'structuredSummary',
+    | 'structuredSummary'
+    | 'weekChat',
   context: string,
   locale: string
 ): Promise<string | null> {
@@ -621,10 +638,10 @@ export async function runOnDeviceChat(
 
   if (detectLlmRuntime() === 'transformers-wasm') {
     const mod = await import('./llmJs');
-    return mod.runJsChat(feature, prefs.performance.preferredLlmModelSize, context, locale);
+    return mod.runJsChat(feature, prefs.performance.preferredLlmModelSize, context, locale, prefs);
   }
 
-  const modelId = resolveNativeModelId(prefs);
+  const modelId = resolveNativeModelIdForFeature(prefs, feature);
   const manifest = await fetchModelsManifest('');
   const entry = manifest.models.find((m) => m.id === modelId);
   if (!entry) return null;
@@ -634,7 +651,7 @@ export async function runOnDeviceChat(
 
   const { Pipeline } = await import('react-native-transformers');
 
-  const prompts = buildNativeLlmPrompt(feature, context, locale);
+  const prompts = buildNativeLlmPrompt(feature, context, locale, prefs);
   const prompt = `${prompts.system}\n\n${prompts.user}`;
   let text = '';
   await Pipeline.TextGeneration.generate(prompt, (t: string) => {

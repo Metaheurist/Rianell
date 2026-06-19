@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.95.0** - Plan 08 phase A: clinician brief, explain chart, structured JSON, ui-only gate (N2–N5).
+**Latest: v1.96.0** - Plan 08 phase B: bounded week chat, diary coach personas, instant MOTD/suggest tier (N1, N6, N7).
+
+### v1.96.0 - 2026-06-18 - Plan 08 LLM phase B (N1, N6, N7)
+- **N1:** Bounded "Ask about my week" chat — max 5 turns, scoped log context, RN AI tab UI + PWA `generateWeekChatWithLLM`.
+- **N6:** Diary coach personas — encouraging/clinical/minimal tone presets in settings → prompt pack suffixes (RN + PWA).
+- **N7:** Instant model tier — MOTD and suggest note route to SmolLM/tier1 via `resolveLlmModelSizeForFeature`.
+- **Tests:** 9 llm-plan08-phase-b tests (215 total).
 
 ### v1.95.0 - 2026-06-18 - Plan 08 LLM phase A (N2–N5)
 - **N2:** Clinician visit prep brief — shared context + prompt pack; RN AI tab + PWA `generateClinicianBriefWithLLM`.

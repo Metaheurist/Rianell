@@ -15,6 +15,7 @@ const TUTORIAL_SEEN_KEY = 'rianellTutorialSeen';
 
 export type AppearanceMode = 'system' | 'light' | 'dark';
 export type PreferredLlmModelSize = 'recommended' | 'tier1' | 'tier2' | 'tier3' | 'tier4' | 'tier5';
+export type LlmCoachPersona = 'encouraging' | 'clinical' | 'minimal';
 export type WeightUnit = 'kg' | 'lb';
 export type AiModelDownloadConsent = 'granted' | 'deferred';
 export type DateFormatPref = 'DMY' | 'MDY' | 'YMD' | 'locale';
@@ -93,6 +94,7 @@ export type Preferences = {
   };
   performance: {
     preferredLlmModelSize: PreferredLlmModelSize;
+    llmCoachPersona: LlmCoachPersona;
   };
   accessibility: {
     textScale: number;
@@ -185,6 +187,7 @@ export function getDefaultPreferences(): Preferences {
     },
     performance: {
       preferredLlmModelSize: 'recommended',
+      llmCoachPersona: 'encouraging',
     },
     accessibility: {
       textScale: 1,
@@ -347,6 +350,12 @@ export async function loadPreferences(): Promise<Preferences> {
           parsed.performance?.preferredLlmModelSize === 'recommended'
             ? parsed.performance.preferredLlmModelSize
             : d.performance.preferredLlmModelSize,
+        llmCoachPersona:
+          parsed.performance?.llmCoachPersona === 'clinical' ||
+          parsed.performance?.llmCoachPersona === 'minimal' ||
+          parsed.performance?.llmCoachPersona === 'encouraging'
+            ? parsed.performance.llmCoachPersona
+            : d.performance.llmCoachPersona,
       },
       accessibility: {
         textScale,
