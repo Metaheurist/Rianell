@@ -21,10 +21,12 @@ var RianellAIEngine = (() => {
   var index_exports = {};
   __export(index_exports, {
     AIEngine: () => AIEngine,
+    BALANCE_RADAR_BUILTIN: () => BALANCE_RADAR_BUILTIN,
     CONDITION_ANALYSIS_PACKS: () => CONDITION_ANALYSIS_PACKS,
     CYCLE_PHASE_COLORS: () => CYCLE_PHASE_COLORS,
     analyzeHealthMetrics: () => analyzeHealthMetrics,
     applyConditionPack: () => applyConditionPack,
+    buildBalanceRadarData: () => buildBalanceRadarData,
     buildCorrelationCards: () => buildCorrelationCards,
     buildCyclePhaseBands: () => buildCyclePhaseBands,
     buildFlarePostMortem: () => buildFlarePostMortem,
@@ -480,7 +482,7 @@ var RianellAIEngine = (() => {
   function compareTreatmentWindows(logs, treatmentStarts = []) {
     const list = [...Array.isArray(logs) ? logs : []].sort((a, b) => a.date.localeCompare(b.date));
     const starts = Array.isArray(treatmentStarts) ? treatmentStarts : [];
-    return starts.filter((t) => t && t.date && /^\d{4}-\d{2}-\d{2}$/.test(t.date)).flatMap((treatment) => {
+    return starts.filter((t2) => t2 && t2.date && /^\d{4}-\d{2}-\d{2}$/.test(t2.date)).flatMap((treatment) => {
       const idx = list.findIndex((l) => l.date >= treatment.date);
       if (idx < 0) return [];
       const pre = list.slice(Math.max(0, idx - 14), idx);
@@ -578,6 +580,27 @@ var RianellAIEngine = (() => {
       insights: ranked,
       prioritisedInsights: ranked.map((i) => i.text)
     };
+  }
+
+  // packages/shared/src/charts/customMetrics.mjs
+  function customMetricFieldKey(id) {
+    return `custom_${id}`;
+  }
+  function isCustomMetricField(field) {
+    return typeof field === "string" && field.startsWith("custom_");
+  }
+  function readCustomMetricRadarValue(log, def) {
+    const bag = log?.customMetrics;
+    if (!bag || typeof bag !== "object") return null;
+    const raw = bag[def.id];
+    if (def.type === "boolean") {
+      if (typeof raw === "boolean") return raw ? 10 : 0;
+      if (raw === "Yes") return 10;
+      if (raw === "No") return 0;
+      return null;
+    }
+    if (typeof raw === "number" && Number.isFinite(raw)) return Math.max(0, Math.min(10, raw));
+    return null;
   }
 
   // packages/ai-engine/src/chartAnalytics.mjs
@@ -819,6 +842,69 @@ var RianellAIEngine = (() => {
     const fatigueVals = prior.map((l) => l.fatigue).filter((v) => typeof v === "number");
     const avgFatigue = mean5(fatigueVals) ?? 5;
     return Math.max(1, Math.min(10, Math.round(10 - avgFatigue)));
+  }
+  var BALANCE_RADAR_BUILTIN = [
+    { field: "fatigue", label: "Fatigue", max: 10 },
+    { field: "stiffness", label: "Stiffness", max: 10 },
+    { field: "backPain", label: "Back Pain", max: 10 },
+    { field: "sleep", label: "Sleep Quality", max: 10 },
+    { field: "jointPain", label: "Joint Pain", max: 10 },
+    { field: "mobility", label: "Mobility", max: 10 },
+    { field: "dailyFunction", label: "Daily Function", max: 10 },
+    { field: "swelling", label: "Swelling", max: 10 },
+    { field: "mood", label: "Mood", max: 10 },
+    { field: "irritability", label: "Irritability", max: 10 },
+    { field: "weatherSensitivity", label: "Weather Sensitivity", max: 10 },
+    { field: "hydration", label: "Hydration", max: 20, radarMax: 10 }
+  ];
+  function readBuiltinRadarValue(log, metric) {
+    const raw = log[metric.field];
+    if (raw === void 0 || raw === null || raw === "") return null;
+    const val = typeof raw === "number" ? raw : parseFloat(raw);
+    if (!Number.isFinite(val) || val < 0) return null;
+    if (metric.field === "hydration") {
+      return Math.min(metric.radarMax ?? 10, Math.max(0, val / metric.max * (metric.radarMax ?? 10)));
+    }
+    return Math.min(10, Math.max(0, val));
+  }
+  function metricCatalog(customMetrics = []) {
+    const custom = (Array.isArray(customMetrics) ? customMetrics : []).map((def) => ({
+      field: customMetricFieldKey(def.id),
+      label: def.label,
+      max: def.type === "boolean" ? 1 : 10,
+      radarMax: 10,
+      customDef: def
+    }));
+    return [...BALANCE_RADAR_BUILTIN, ...custom];
+  }
+  function buildBalanceRadarData(logs, options = {}) {
+    const range = options.range ?? "all";
+    const selected = range === "all" ? [...Array.isArray(logs) ? logs : []].sort(byDateAsc) : filterLogsByRange(logs, range).sort(byDateAsc);
+    const catalog = metricCatalog(options.customMetrics);
+    const selectedFields = Array.isArray(options.selectedFields) && options.selectedFields.length ? options.selectedFields : ["mood", "sleep", "fatigue"];
+    const metrics = catalog.filter((m) => selectedFields.includes(m.field));
+    if (metrics.length < 3) return { labels: [], values: [], metrics: [] };
+    const rows = [];
+    for (const metric of metrics) {
+      const values = selected.map((log) => {
+        if (metric.customDef) return readCustomMetricRadarValue(log, metric.customDef);
+        return readBuiltinRadarValue(log, metric);
+      }).filter((v) => v != null);
+      if (!values.length) continue;
+      const avg2 = values.reduce((a, b) => a + b, 0) / values.length;
+      rows.push({
+        field: metric.field,
+        label: metric.label,
+        value: Number(avg2.toFixed(2)),
+        isCustom: isCustomMetricField(metric.field)
+      });
+    }
+    if (rows.length < 3) return { labels: [], values: [], metrics: [] };
+    return {
+      labels: rows.map((r) => r.label),
+      values: rows.map((r) => r.value),
+      metrics: rows
+    };
   }
   function buildPacingChartSeries(logs, range = 30) {
     const selected = range === "all" ? [...Array.isArray(logs) ? logs : []].sort(byDateAsc) : filterLogsByRange(logs, range).sort(byDateAsc);

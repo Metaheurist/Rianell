@@ -7,8 +7,16 @@ import {
   normalizeProfileAvatar,
   normalizeSymptomTemplates,
   normalizeTrackingProfile,
+  normalizeCustomChartMetrics,
   readProcessingActivity,
 } from '@rianell/shared';
+
+export type CustomChartMetric = {
+  id: string;
+  label: string;
+  type: 'scale' | 'boolean';
+  color: string;
+};
 
 const KEY = 'rianell.preferences.v1';
 const TUTORIAL_SEEN_KEY = 'rianellTutorialSeen';
@@ -123,6 +131,7 @@ export type Preferences = {
   caregiverModeEnabled: boolean;
   caregiverDependentName: string;
   caregiverRelationship: 'parent' | 'guardian' | 'other';
+  customChartMetrics: CustomChartMetric[];
 };
 
 export function getDefaultPreferences(): Preferences {
@@ -212,6 +221,7 @@ export function getDefaultPreferences(): Preferences {
     caregiverModeEnabled: false,
     caregiverDependentName: '',
     caregiverRelationship: 'parent',
+    customChartMetrics: [],
   };
 }
 
@@ -387,6 +397,7 @@ export async function loadPreferences(): Promise<Preferences> {
         parsed.caregiverRelationship === 'guardian' || parsed.caregiverRelationship === 'other'
           ? parsed.caregiverRelationship
           : 'parent',
+      customChartMetrics: normalizeCustomChartMetrics(parsed.customChartMetrics),
     };
     return applyLocaleDefaultsToPrefs(base, base.uiLocale) as Preferences;
   } catch {

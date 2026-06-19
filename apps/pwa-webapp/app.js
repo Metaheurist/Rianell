@@ -1230,6 +1230,7 @@ function openShareModal(options) {
     if (payload.downloadCSV) addBtn('Download CSV', payload.downloadCSV, true, '<i class="fa-solid fa-file-csv" aria-hidden="true"></i>');
   } else if (mode === 'chart') {
     if (payload.saveImage) addBtn('Save image', payload.saveImage, true, '<i class="fa-solid fa-file-image" aria-hidden="true"></i>');
+    if (payload.savePdf) addBtn('Save PDF', payload.savePdf, true, '<i class="fa-solid fa-file-pdf" aria-hidden="true"></i>');
     if (payload.shareToWhatsApp) addBtn('WhatsApp', payload.shareToWhatsApp, true, '<i class="fa-brands fa-whatsapp" aria-hidden="true"></i>');
   } else if (mode === 'ai') {
     if (payload.copyText) {
@@ -1499,6 +1500,41 @@ function openShareModalForChart(chartId) {
       a.click();
     };
 
+    const savePdf = () => {
+      function doPdf() {
+        try {
+          const lib = window.jspdf || window.jsPDF;
+          const jsPDF = lib && (lib.jsPDF || lib);
+          if (!jsPDF) {
+            if (typeof showAlertModal === 'function') showAlertModal(tUi('charts.export.pdfUnavailable'), tUi('common.share'));
+            return;
+          }
+          const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+          doc.setFontSize(14);
+          doc.text(subject, 40, 40);
+          doc.setFontSize(10);
+          doc.text('Generated ' + new Date().toLocaleString(), 40, 58);
+          const imgData = imgURI.indexOf('base64,') >= 0 ? imgURI : imgURI;
+          doc.addImage(imgData, 'PNG', 40, 72, 520, 300);
+          doc.save('health-chart-' + chartId + '-' + (new Date().toISOString().split('T')[0]) + '.pdf');
+        } catch (err) {
+          console.error('Chart PDF export failed', err);
+          if (typeof showAlertModal === 'function') showAlertModal(tUi('charts.export.pdfFailed'), tUi('common.share'));
+        }
+      }
+      if (typeof window.jspdf === 'undefined' && typeof window.jsPDF === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
+        script.onload = doPdf;
+        script.onerror = () => {
+          if (typeof showAlertModal === 'function') showAlertModal(tUi('charts.export.pdfUnavailable'), tUi('common.share'));
+        };
+        document.head.appendChild(script);
+        return;
+      }
+      doPdf();
+    };
+
     const shareToWhatsApp = () => {
       if (file && typeof navigator !== 'undefined' && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         navigator.share({ title: subject, text: subject, files: [file] })
@@ -1517,7 +1553,7 @@ function openShareModalForChart(chartId) {
       mode: 'chart',
       title: tUi('common.share.chart'),
       bodyHTML: '<img src="' + imgURI + '" alt="Chart preview" class="share-chart-preview"/>',
-      payload: { shareToWhatsApp, saveImage }
+      payload: { shareToWhatsApp, saveImage, savePdf }
     });
   }).catch(() => {
     if (typeof showAlertModal === 'function') showAlertModal(tUi('common.could.not.export.chart.image'), tUi('common.share'));
@@ -5765,6 +5801,28 @@ function deselectAllBalanceMetrics() {
 }
 
 // Create Balance Chart (Radar Chart)
+function getBalanceCustomMetricDefs() {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!S || typeof S.normalizeCustomChartMetrics !== 'function') return [];
+  return S.normalizeCustomChartMetrics(appSettings.customChartMetrics || []);
+}
+
+function readBalanceMetricValue(log, metric) {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (metric.customDef && S && typeof S.readCustomMetricRadarValue === 'function') {
+    return S.readCustomMetricRadarValue(log, metric.customDef);
+  }
+  var value = log[metric.field];
+  if (metric.field === 'hydration') {
+    if (value === undefined || value === null || value === '' || isNaN(parseFloat(value))) return null;
+    var h = parseFloat(value);
+    return Math.min(10, Math.max(0, (h / 20) * 10));
+  }
+  if (value === undefined || value === null || value === '' || isNaN(parseFloat(value))) return null;
+  var val = parseFloat(value);
+  return Math.min(10, Math.max(0, val));
+}
+
 async function createBalanceChart() {
   var _perfT0 = Date.now();
   try {
@@ -5842,6 +5900,19 @@ async function createBalanceChart() {
     { field: 'weatherSensitivity', name: 'Weather Sensitivity', color: '#e91e63', scale: '1-10' },
     { field: 'hydration', name: 'Hydration (glasses)', color: '#00bcd4', scale: '0-20' }
   ];
+  var customDefs = getBalanceCustomMetricDefs();
+  for (var ci = 0; ci < customDefs.length; ci++) {
+    var cdef = customDefs[ci];
+    var S = typeof window !== 'undefined' ? window.RianellShared : null;
+    var cfield = S && typeof S.customMetricFieldKey === 'function' ? S.customMetricFieldKey(cdef.id) : ('custom_' + cdef.id);
+    allMetrics.push({
+      field: cfield,
+      name: cdef.label,
+      color: cdef.color || '#78909c',
+      scale: cdef.type === 'boolean' ? 'yes/no' : '0-10',
+      customDef: cdef
+    });
+  }
   
   // Get selected metrics from settings (enforce minimum of 3)
   let selectedMetrics = appSettings.balanceChartSelectedMetrics || [];
@@ -5869,18 +5940,8 @@ async function createBalanceChart() {
   // Calculate averages for each metric
   const radarData = metrics.map(metric => {
     const values = filteredLogs
-      .filter(log => {
-        const value = log[metric.field];
-        if (metric.field === 'hydration') {
-          return value !== undefined && value !== null && value !== '' && !isNaN(parseFloat(value)) && parseFloat(value) >= 0;
-        }
-        // For other metrics, check if value exists and is a valid number (can be 0)
-        return value !== undefined && value !== null && value !== '' && !isNaN(parseFloat(value)) && parseFloat(value) >= 0;
-      })
-      .map(log => {
-        const val = parseFloat(log[metric.field]);
-        return isNaN(val) ? 0 : val;
-      });
+      .map(log => readBalanceMetricValue(log, metric))
+      .filter(v => v != null);
     
     if (values.length === 0) {
       Logger.debug('Balance chart: no data found for metric (empty state)', { field: metric.field });
@@ -5889,23 +5950,12 @@ async function createBalanceChart() {
     
     const sum = values.reduce((a, b) => a + b, 0);
     const average = sum / values.length;
-    
-    // Normalize hydration to 0-10 scale (max 20 glasses = 10)
-    if (metric.field === 'hydration') {
-      const normalized = (average / 20) * 10;
-      return Math.min(10, Math.max(0, normalized)); // Clamp to 0-10
-    }
-    
-    // Clamp other metrics to 0-10 range
-    return Math.min(10, Math.max(0, average));
+    return Number(average.toFixed(2));
   });
   
   // Filter out metrics with no data (all zeros) to avoid empty chart
   const metricsWithData = metrics.filter((metric, index) => {
-    const hasData = radarData[index] > 0 || filteredLogs.some(log => {
-      const value = log[metric.field];
-      return value !== undefined && value !== null && value !== '' && !isNaN(parseFloat(value));
-    });
+    const hasData = radarData[index] > 0 || filteredLogs.some(log => readBalanceMetricValue(log, metric) != null);
     return hasData;
   });
   
@@ -15702,6 +15752,7 @@ let appSettings = {
   caregiverModeEnabled: false,
   caregiverDependentName: '',
   caregiverRelationship: 'parent',
+  customChartMetrics: [],
 };
 
 // Make appSettings available on window for safe access
@@ -15769,6 +15820,11 @@ function loadSettings() {
     appSettings.caregiverRelationship = appSettings.caregiverRelationship === 'guardian' || appSettings.caregiverRelationship === 'other'
       ? appSettings.caregiverRelationship
       : 'parent';
+  }
+  if (window.RianellShared && typeof window.RianellShared.normalizeCustomChartMetrics === 'function') {
+    appSettings.customChartMetrics = window.RianellShared.normalizeCustomChartMetrics(appSettings.customChartMetrics);
+  } else if (!Array.isArray(appSettings.customChartMetrics)) {
+    appSettings.customChartMetrics = [];
   }
   if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.readProcessingActivity === 'function') {
     appSettings.processingActivityLog = window.RianellShared.readProcessingActivity(appSettings.processingActivityLog);

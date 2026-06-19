@@ -14,6 +14,7 @@ export {
   cycleBandsToApexAnnotations,
   compareChartPeriods,
   buildPacingChartSeries,
+  buildBalanceRadarData,
   CYCLE_PHASE_COLORS,
 } from '@rianell/ai-engine';
 

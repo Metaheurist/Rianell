@@ -36,16 +36,20 @@ import {
   buildCyclePhaseBands,
   compareChartPeriods,
   buildPacingChartSeries,
+  buildBalanceRadarData,
   predictFutureValues,
   type PredictedPoint,
   type FlarePostMortemResult,
   type PacingChartRow,
 } from '../ai/engine';
+import { BalanceRadarChart } from '../charts/BalanceRadarChart';
+import { buildRadarSvgForExport, printOrShareChartReport } from '../utils/printChartReport';
 import { explainChartRange } from '../ai/llm';
 
 const RANGE_OPTIONS: ChartRange[] = [7, 14, 30, 90, 'all'];
 
 const VIEW_OPTIONS: ChartViewMode[] = ['balance', 'individual', 'combined'];
+const BALANCE_TREND_KEYS: Array<'mood' | 'sleep' | 'fatigue'> = ['mood', 'sleep', 'fatigue'];
 
 function ChartLoadingSkeleton({ accent, textColor }: { accent: string; textColor: string }) {
   const pulse = useRef(new Animated.Value(0.35)).current;
@@ -152,44 +156,6 @@ function IndividualMetricChart({
   );
 }
 
-function BalanceVisual({
-  trends,
-}: {
-  trends: Array<{ key: keyof typeof CHART_METRIC_HEX; label: string; current: number | null }>;
-}) {
-  const theme = useTheme();
-  const rows = trends
-    .map((trend) => ({
-      ...trend,
-      pct:
-        trend.current != null && Number.isFinite(trend.current)
-          ? Math.max(0, Math.min(100, (trend.current / 10) * 100))
-          : 0,
-    }))
-    .filter((row) => row.key === 'mood' || row.key === 'sleep' || row.key === 'fatigue');
-  if (!rows.length) return null;
-  return (
-    <View style={styles.balanceVisualCard} accessibilityLabel="Balance visual chart">
-      {rows.map((row) => (
-        <View key={`balance-${row.key}`} style={styles.balanceVisualRow}>
-          <Text style={[styles.balanceVisualLabel, { color: theme.tokens.color.text }]}>{row.label}</Text>
-          <View style={styles.balanceVisualTrack}>
-            <View
-              style={[
-                styles.balanceVisualFill,
-                {
-                  width: `${row.pct}%`,
-                  backgroundColor: CHART_METRIC_HEX[row.key],
-                },
-              ]}
-            />
-          </View>
-        </View>
-      ))}
-    </View>
-  );
-}
-
 function PredictionBandVisual({ point, color }: { point: PredictedPoint; color: string }) {
   const lowerPct = Math.max(0, Math.min(100, (point.lower / 10) * 100));
   const upperPct = Math.max(0, Math.min(100, (point.upper / 10) * 100));
@@ -281,6 +247,7 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
   const [chartExplanation, setChartExplanation] = useState('');
   const [explainLoading, setExplainLoading] = useState(false);
   const [benchmark, setBenchmark] = useState<BenchmarkResult | null>(null);
+  const [exportingChart, setExportingChart] = useState(false);
 
   useEffect(() => {
     if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -355,10 +322,13 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
     [rangeLogs, prefs?.cycleModuleEnabled]
   );
   const periodCompare = useMemo(() => compareChartPeriods(rangeLogs), [rangeLogs]);
-  const pacingSeries = useMemo(
-    () => buildPacingChartSeries(rangeLogs, range).slice(-7) as PacingChartRow[],
-    [rangeLogs, range]
-  );
+  const pacingSeries = useMemo(() => {
+    const build = buildPacingChartSeries as (
+      logs: typeof rangeLogs,
+      range?: number | 'all'
+    ) => PacingChartRow[];
+    return build(rangeLogs, range).slice(-7);
+  }, [rangeLogs, range]);
   const moodForecast = useMemo(() => {
     const moodSeries = rangeLogs
       .filter((e) => typeof e.mood === 'number')
@@ -371,6 +341,16 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
     () => filterTrendsForChartView(summary.trends, view),
     [summary.trends, view]
   );
+  const customMetrics = prefs?.customChartMetrics ?? [];
+  const balanceRadar = useMemo(() => {
+    const customFields = customMetrics.map((m) => `custom_${m.id}`);
+    const selected = [...BALANCE_TREND_KEYS, ...customFields];
+    return buildBalanceRadarData(rangeLogs, {
+      selectedFields: selected,
+      customMetrics,
+      range: 'all',
+    });
+  }, [rangeLogs, customMetrics]);
 
   const showOverview = view === 'combined';
   const showSparks = view !== 'balance';
@@ -496,6 +476,44 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
             })}
           </View>
 
+          {!noDataInRange ? (
+            <Pressable
+              style={[styles.rangeChip, { alignSelf: 'flex-start', marginTop: 8 }]}
+              accessibilityRole="button"
+              accessibilityLabel={t('charts.export.action')}
+              disabled={exportingChart}
+              onPress={() => {
+                if (exportingChart) return;
+                setExportingChart(true);
+                const viewLabel =
+                  view === 'balance'
+                    ? t('charts.view.balance')
+                    : view === 'individual'
+                      ? t('charts.view.individual')
+                      : t('charts.view.combined');
+                const rows = trendsForView.map((trend) => ({
+                  label: trend.label,
+                  value: `avg ${formatChartMetricValue(trend.key, trend.average)} · current ${formatChartMetricValue(trend.key, trend.current)}`,
+                }));
+                const radarSvg =
+                  view === 'balance' && balanceRadar.labels.length >= 3
+                    ? buildRadarSvgForExport(balanceRadar.labels, balanceRadar.values)
+                    : undefined;
+                void printOrShareChartReport({
+                  title: t('charts.export.title'),
+                  viewLabel,
+                  rangeLabel: summary.rangeLabel,
+                  rows,
+                  radarSvg,
+                }).finally(() => setExportingChart(false));
+              }}
+            >
+              <Text style={{ color: theme.tokens.color.accent, fontWeight: '700' }}>
+                {exportingChart ? t('charts.export.loading') : t('charts.export.action')}
+              </Text>
+            </Pressable>
+          ) : null}
+
           {prefs?.aiEnabled && !noDataInRange ? (
             <>
               <Pressable
@@ -576,13 +594,22 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
                   </View>
                 );
               })}
-              <BalanceVisual
-                trends={filterTrendsForChartView(summary.trends, 'balance').map((trend) => ({
-                  key: trend.key,
-                  label: trend.label,
-                  current: trend.current,
-                }))}
-              />
+              {balanceRadar.labels.length >= 3 ? (
+                <BalanceRadarChart
+                  points={balanceRadar.labels.map((label, i) => ({
+                    label,
+                    value: balanceRadar.values[i] ?? 0,
+                  }))}
+                  textColor={theme.tokens.color.text}
+                  color={theme.tokens.color.accent}
+                  a11yLabel={t('charts.radar.a11y')}
+                />
+              ) : null}
+              {customMetrics.length > 0 ? (
+                <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                  {t('charts.customMetrics.legend', { count: customMetrics.length })}
+                </Text>
+              ) : null}
             </View>
           ) : null}
 
