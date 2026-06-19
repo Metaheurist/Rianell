@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.107.0** - Plan 11 phase C: production Web Push + gentle re-engagement (R4, R5).
+**Latest: v1.108.0** - Plan 11 phase D: achievement-free streak reminders (R6).
+
+### v1.108.0 - 2026-06-19 - Plan 11 Notifications phase D (R6)
+- **R6:** Optional streak reminder paired with H3 — calm-day streak context replaces generic missed-log nudge when streak ≥ 2; respects H3 card dismiss; user-disable toggle; no achievements.
+- **Shared:** `streakReminderNudge.mjs`; prefs `streakReminderNudgeDate`, `streakReminderNudgesEnabled`.
+- **Tests:** 6 plan11-phase-d tests (280 total).
 
 ### v1.107.0 - 2026-06-19 - Plan 11 Notifications phase C (R4, R5)
 - **R4:** Production PWA Web Push — `push-config.js` VAPID inject at Pages deploy; consent/region gates via `canOfferWebPush`; enable/disable UI; `RIANELL_PUSH_CLICK` routing; SW icon path fix.

@@ -2,6 +2,7 @@ import {
   buildFlareRiskNotificationContent,
   buildMedDoseNotificationContent,
   buildReEngagementNotificationContent,
+  buildStreakReminderNotificationContent,
   hasEnabledMedSchedule,
   hasLoggedToday,
   listTodayMedDoseReminders,
@@ -12,6 +13,8 @@ import {
   shouldFireFlareRiskNudge,
   shouldFireMissedLogNudge,
   shouldFireReEngagementNudge,
+  shouldFireStreakReminderNudge,
+  STREAK_REMINDER_MIN_STREAK,
   touchLastActiveAt,
 } from '@rianell/shared';
 import { Permissions } from '../permissions/permissions';
@@ -66,6 +69,39 @@ export async function maybeFireSmartMissedLogNudge(
   if (!prefs.notifications.enabled) return;
   const logs = await loadLogs();
   const todayStr = localDateStrFromNow(now);
+  const streakEnabled = prefs.notifications.streakReminderNudgesEnabled !== false;
+  if (streakEnabled && !prefs.homeStreakCardDismissed) {
+    const streakResult = shouldFireStreakReminderNudge(logs, now, {
+      enabled: true,
+      homeStreakCardDismissed: prefs.homeStreakCardDismissed,
+      fallbackHHMM: prefs.notifications.dailyReminderTime,
+      lastNudgeDate: prefs.notifications.streakReminderNudgeDate ?? undefined,
+      todayStr,
+    });
+    if (streakResult.fire && streakResult.goodDayStreak != null) {
+      const ok = await Permissions.scheduleStreakReminderNudgeNow(
+        streakResult.goodDayStreak,
+        prefs.notifications.soundEnabled,
+      );
+      if (!ok) return;
+      void buildStreakReminderNotificationContent(streakResult);
+      onPrefsUpdate({
+        ...prefs,
+        notifications: {
+          ...prefs.notifications,
+          streakReminderNudgeDate: todayStr,
+          smartMissedNudgeDate: todayStr,
+        },
+      });
+      return;
+    }
+    if (
+      (streakResult.goodDayStreak ?? 0) >= STREAK_REMINDER_MIN_STREAK &&
+      prefs.notifications.streakReminderNudgeDate === todayStr
+    ) {
+      return;
+    }
+  }
   const result = shouldFireMissedLogNudge(logs, now, {
     fallbackHHMM: prefs.notifications.dailyReminderTime,
     lastNudgeDate: prefs.notifications.smartMissedNudgeDate ?? undefined,
