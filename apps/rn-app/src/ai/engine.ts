@@ -10,6 +10,11 @@ export {
   buildCorrelationCards,
   buildFlarePostMortem,
   correlationConfidenceLevel,
+  buildCyclePhaseBands,
+  cycleBandsToApexAnnotations,
+  compareChartPeriods,
+  buildPacingChartSeries,
+  CYCLE_PHASE_COLORS,
 } from '@rianell/ai-engine';
 
 export type PredictedPoint = {

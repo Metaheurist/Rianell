@@ -33,6 +33,9 @@ import { loadCachedBenchmark, type BenchmarkResult } from '../performance/benchm
 import {
   buildCorrelationCards,
   buildFlarePostMortem,
+  buildCyclePhaseBands,
+  compareChartPeriods,
+  buildPacingChartSeries,
   predictFutureValues,
   type PredictedPoint,
 } from '../ai/engine';
@@ -206,6 +209,56 @@ function PredictionBandVisual({ point, color }: { point: PredictedPoint; color: 
   );
 }
 
+function PacingDayRow({
+  date,
+  planned,
+  actual,
+  fatigue,
+  overpaced,
+  textColor,
+  accent,
+}: {
+  date: string;
+  planned: number;
+  actual: number;
+  fatigue: number | null;
+  overpaced: boolean;
+  textColor: string;
+  accent: string;
+}) {
+  return (
+    <View style={styles.pacingRow}>
+      <Text style={[styles.meta, { color: textColor, fontSize: 12, flex: 1 }]}>{date}</Text>
+      <View style={styles.pacingBars}>
+        <View style={[styles.pacingBarTrack, { backgroundColor: `${textColor}14` }]}>
+          <View style={[styles.pacingBarFill, { width: `${planned * 10}%`, backgroundColor: `${accent}55` }]} />
+        </View>
+        <View style={[styles.pacingBarTrack, { backgroundColor: `${textColor}14` }]}>
+          <View
+            style={[
+              styles.pacingBarFill,
+              {
+                width: `${Math.min(100, actual * 10)}%`,
+                backgroundColor: overpaced ? '#ef5350' : CHART_METRIC_HEX.steps,
+              },
+            ]}
+          />
+        </View>
+        {fatigue != null ? (
+          <View style={[styles.pacingBarTrack, { backgroundColor: `${textColor}14` }]}>
+            <View
+              style={[
+                styles.pacingBarFill,
+                { width: `${fatigue * 10}%`, backgroundColor: CHART_METRIC_HEX.fatigue },
+              ]}
+            />
+          </View>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
 export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
   const route = useRoute<ChartsRoute>();
   const theme = useTheme();
@@ -292,6 +345,12 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
   const rangeLogs = useMemo(() => filterLogsForCharts(logs, range), [logs, range]);
   const correlationCards = useMemo(() => buildCorrelationCards(rangeLogs, 'all'), [rangeLogs]);
   const flarePostMortem = useMemo(() => buildFlarePostMortem(rangeLogs), [rangeLogs]);
+  const cycleOverlay = useMemo(
+    () => (prefs?.cycleModuleEnabled ? buildCyclePhaseBands(rangeLogs) : { bands: [], markers: [] }),
+    [rangeLogs, prefs?.cycleModuleEnabled]
+  );
+  const periodCompare = useMemo(() => compareChartPeriods(rangeLogs), [rangeLogs]);
+  const pacingSeries = useMemo(() => buildPacingChartSeries(rangeLogs, range).slice(-7), [rangeLogs, range]);
   const moodForecast = useMemo(() => {
     const moodSeries = rangeLogs
       .filter((e) => typeof e.mood === 'number')
@@ -574,6 +633,81 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
             </>
           ) : null}
 
+          {cycleOverlay.bands.length > 0 ? (
+            <>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                {t('charts.cycle.title')}
+              </Text>
+              <View style={styles.cycleLegendRow}>
+                {cycleOverlay.bands.map((band) => (
+                  <View
+                    key={`${band.phase}-${band.startDate}`}
+                    style={[styles.cycleChip, { borderColor: band.color }]}
+                  >
+                    <View style={[styles.cycleDot, { backgroundColor: band.color }]} />
+                    <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(12) }}>{band.label}</Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          ) : null}
+
+          {periodCompare && periodCompare.current.stats.logDays > 0 ? (
+            <>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                {t('charts.compare.title')}
+              </Text>
+              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                {t('charts.compare.lede', {
+                  current: periodCompare.current.label,
+                  previous: periodCompare.previous.label,
+                })}
+              </Text>
+              {(['mood', 'sleep', 'fatigue'] as const).map((key) => {
+                const cur = periodCompare.current.stats[`${key}Avg`];
+                const prev = periodCompare.previous.stats[`${key}Avg`];
+                const d = periodCompare.deltas[key];
+                if (cur == null && prev == null) return null;
+                return (
+                  <Text
+                    key={`cmp-${key}`}
+                    style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                  >
+                    {t('charts.compare.metricLine', {
+                      metric: key.charAt(0).toUpperCase() + key.slice(1),
+                      current: cur != null ? cur.toFixed(1) : '—',
+                      previous: prev != null ? prev.toFixed(1) : '—',
+                      delta: d != null ? (d >= 0 ? `+${d.toFixed(1)}` : d.toFixed(1)) : '—',
+                    })}
+                  </Text>
+                );
+              })}
+            </>
+          ) : null}
+
+          {pacingSeries.length > 0 ? (
+            <>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                {t('charts.pacing.title')}
+              </Text>
+              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                {t('charts.pacing.legend')}
+              </Text>
+              {pacingSeries.map((row) => (
+                <PacingDayRow
+                  key={`pace-${row.date}`}
+                  date={row.date}
+                  planned={row.planned}
+                  actual={row.actual}
+                  fatigue={row.fatigue}
+                  overpaced={row.overpaced}
+                  textColor={theme.tokens.color.text}
+                  accent={theme.tokens.color.accent}
+                />
+              ))}
+            </>
+          ) : null}
+
           {showOverview ? (
             <>
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('charts.overview')}</Text>
@@ -846,4 +980,19 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginLeft: -4,
   },
+  cycleLegendRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+  cycleChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  cycleDot: { width: 10, height: 10, borderRadius: 5 },
+  pacingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
+  pacingBars: { flex: 2, gap: 3 },
+  pacingBarTrack: { height: 6, borderRadius: 4, overflow: 'hidden' },
+  pacingBarFill: { height: '100%', borderRadius: 4, minWidth: 2 },
 });

@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.98.0** - Plan 09 phase A+B: chart view persistence, correlation cards, flare post-mortem, forecast bands (C10, C1, C2, C7).
+**Latest: v1.99.0** - Plan 09 phase C: cycle overlay, period compare, spoon/pacing chart (C4, C5, C9).
+
+### v1.99.0 - 2026-06-19 - Plan 09 Charts phase C (C4, C5, C9)
+- **C4:** Menstrual cycle phase bands on mood/pain charts (Apex xaxis regions + insights legend when L7 enabled).
+- **C5:** Month-over-month period compare with A4 treatment window markers via `compareChartPeriods`.
+- **C9:** Spoon/pacing chart — planned capacity vs actual exercise vs fatigue (`buildPacingChartSeries`).
+- **Tests:** 4 plan09-phase-c tests (230 total).
 
 ### v1.98.0 - 2026-06-19 - Plan 09 Charts phase A+B (C10, C1, C2, C7)
 - **C10:** PWA Charts tab restores saved `chartView` (Balance/Individual/Combined) instead of forcing Balance.

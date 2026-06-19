@@ -22,17 +22,22 @@ var RianellAIEngine = (() => {
   __export(index_exports, {
     AIEngine: () => AIEngine,
     CONDITION_ANALYSIS_PACKS: () => CONDITION_ANALYSIS_PACKS,
+    CYCLE_PHASE_COLORS: () => CYCLE_PHASE_COLORS,
     analyzeHealthMetrics: () => analyzeHealthMetrics,
     applyConditionPack: () => applyConditionPack,
     buildCorrelationCards: () => buildCorrelationCards,
+    buildCyclePhaseBands: () => buildCyclePhaseBands,
     buildFlarePostMortem: () => buildFlarePostMortem,
     buildInsightWhy: () => buildInsightWhy,
+    buildPacingChartSeries: () => buildPacingChartSeries,
     buildWeeklyDigest: () => buildWeeklyDigest,
     collectInsightCandidates: () => collectInsightCandidates,
     collectInsightCandidatesFromSummary: () => collectInsightCandidatesFromSummary,
+    compareChartPeriods: () => compareChartPeriods,
     compareTreatmentWindows: () => compareTreatmentWindows,
     computeTriggerHypotheses: () => computeTriggerHypotheses,
     correlationConfidenceLevel: () => correlationConfidenceLevel,
+    cycleBandsToApexAnnotations: () => cycleBandsToApexAnnotations,
     detectMetricAnomalies: () => detectMetricAnomalies,
     exportAnalysisJsonForResearch: () => exportAnalysisJsonForResearch,
     filterLogsByRange: () => filterLogsByRange,
@@ -692,6 +697,146 @@ var RianellAIEngine = (() => {
       metrics,
       diverging: metrics.filter((m) => m.diverged)
     };
+  }
+  var CYCLE_PHASE_COLORS = {
+    menstrual: "#e91e63",
+    follicular: "#81c784",
+    ovulation: "#ffd54f",
+    luteal: "#9575cd"
+  };
+  var CYCLE_PHASES = /* @__PURE__ */ new Set(["menstrual", "follicular", "ovulation", "luteal"]);
+  function toDateStr(d) {
+    return d.toISOString().slice(0, 10);
+  }
+  function monthWindow(refDateStr, offsetMonths = 0) {
+    const ref = /^\d{4}-\d{2}-\d{2}$/.test(refDateStr) ? /* @__PURE__ */ new Date(`${refDateStr}T12:00:00`) : /* @__PURE__ */ new Date();
+    const start = new Date(ref.getFullYear(), ref.getMonth() + offsetMonths, 1);
+    const end = new Date(ref.getFullYear(), ref.getMonth() + offsetMonths + 1, 0);
+    const label = start.toLocaleString("en-GB", { month: "short", year: "numeric" });
+    return { startDate: toDateStr(start), endDate: toDateStr(end), label };
+  }
+  function summarizeMetricWindow(logs, startDate, endDate) {
+    const rows = logs.filter((l) => l.date >= startDate && l.date <= endDate);
+    const mood = mean5(rows.map((l) => l.mood).filter((v) => typeof v === "number"));
+    const sleep = mean5(rows.map((l) => l.sleep).filter((v) => typeof v === "number"));
+    const fatigue = mean5(rows.map((l) => l.fatigue).filter((v) => typeof v === "number"));
+    const flareDays = rows.filter((l) => l.flare === "Yes").length;
+    return {
+      logDays: rows.length,
+      moodAvg: mood != null ? Number(mood.toFixed(2)) : null,
+      sleepAvg: sleep != null ? Number(sleep.toFixed(2)) : null,
+      fatigueAvg: fatigue != null ? Number(fatigue.toFixed(2)) : null,
+      flareDays
+    };
+  }
+  function buildCyclePhaseBands(logs) {
+    const sorted = [...Array.isArray(logs) ? logs : []].filter((l) => l?.cycle?.phase && CYCLE_PHASES.has(l.cycle.phase)).sort(byDateAsc);
+    if (!sorted.length) return { bands: [], markers: [] };
+    const bands = [];
+    let runPhase = sorted[0].cycle.phase;
+    let runStart = sorted[0].date;
+    let runEnd = sorted[0].date;
+    for (let i = 1; i < sorted.length; i += 1) {
+      const log = sorted[i];
+      const phase = log.cycle.phase;
+      const prev = sorted[i - 1];
+      const gapDays = (new Date(log.date) - new Date(prev.date)) / 864e5;
+      if (phase === runPhase && gapDays <= 2) {
+        runEnd = log.date;
+        continue;
+      }
+      bands.push({
+        phase: runPhase,
+        label: runPhase,
+        startDate: runStart,
+        endDate: runEnd,
+        color: CYCLE_PHASE_COLORS[runPhase] || "#78909c"
+      });
+      runPhase = phase;
+      runStart = log.date;
+      runEnd = log.date;
+    }
+    bands.push({
+      phase: runPhase,
+      label: runPhase,
+      startDate: runStart,
+      endDate: runEnd,
+      color: CYCLE_PHASE_COLORS[runPhase] || "#78909c"
+    });
+    const markers = sorted.map((l) => ({
+      date: l.date,
+      phase: l.cycle.phase,
+      cycleDay: l.cycle.cycleDay ?? null
+    }));
+    return { bands, markers };
+  }
+  function cycleBandsToApexAnnotations(bands) {
+    if (!Array.isArray(bands) || !bands.length) return [];
+    return bands.map((b) => ({
+      x: (/* @__PURE__ */ new Date(`${b.startDate}T00:00:00`)).getTime(),
+      x2: (/* @__PURE__ */ new Date(`${b.endDate}T23:59:59`)).getTime(),
+      fillColor: b.color,
+      opacity: 0.14,
+      borderWidth: 0,
+      label: {
+        text: b.label,
+        style: { fontSize: "10px", background: "transparent", color: b.color }
+      }
+    }));
+  }
+  function compareChartPeriods(logs, options = {}) {
+    const sorted = [...Array.isArray(logs) ? logs : []].sort(byDateAsc);
+    if (!sorted.length) return null;
+    const refDate = options.refDate || sorted[sorted.length - 1].date;
+    const current = monthWindow(refDate, 0);
+    const previous = monthWindow(refDate, -1);
+    const currentStats = summarizeMetricWindow(sorted, current.startDate, current.endDate);
+    const previousStats = summarizeMetricWindow(sorted, previous.startDate, previous.endDate);
+    const delta = (cur, prev) => cur != null && prev != null ? Number((cur - prev).toFixed(2)) : null;
+    const treatmentMarkers = compareTreatmentWindows(sorted, options.treatmentStarts || []);
+    return {
+      mode: "month",
+      current: { ...current, stats: currentStats },
+      previous: { ...previous, stats: previousStats },
+      deltas: {
+        mood: delta(currentStats.moodAvg, previousStats.moodAvg),
+        sleep: delta(currentStats.sleepAvg, previousStats.sleepAvg),
+        fatigue: delta(currentStats.fatigueAvg, previousStats.fatigueAvg),
+        flareDays: currentStats.flareDays - previousStats.flareDays
+      },
+      treatmentMarkers
+    };
+  }
+  function exerciseSpoonLoad(log) {
+    if (!Array.isArray(log?.exercise)) return 0;
+    return log.exercise.reduce((sum, ex) => {
+      const dur = typeof ex?.duration === "number" && Number.isFinite(ex.duration) ? ex.duration : 15;
+      return sum + Math.min(3, dur / 15);
+    }, 0);
+  }
+  function plannedSpoonsForIndex(sorted, index) {
+    const prior = sorted.slice(Math.max(0, index - 7), index);
+    const fatigueVals = prior.map((l) => l.fatigue).filter((v) => typeof v === "number");
+    const avgFatigue = mean5(fatigueVals) ?? 5;
+    return Math.max(1, Math.min(10, Math.round(10 - avgFatigue)));
+  }
+  function buildPacingChartSeries(logs, range = 30) {
+    const selected = range === "all" ? [...Array.isArray(logs) ? logs : []].sort(byDateAsc) : filterLogsByRange(logs, range).sort(byDateAsc);
+    return selected.map((log, index) => {
+      const planned = plannedSpoonsForIndex(selected, index);
+      const rawActual = exerciseSpoonLoad(log);
+      const actual = Number(Math.min(planned, rawActual).toFixed(1));
+      const fatigue = typeof log.fatigue === "number" ? log.fatigue : null;
+      const overpaced = rawActual > planned;
+      return {
+        date: log.date,
+        planned,
+        actual,
+        rawActual: Number(rawActual.toFixed(1)),
+        fatigue,
+        overpaced
+      };
+    });
   }
 
   // packages/ai-engine/src/researchExport.mjs

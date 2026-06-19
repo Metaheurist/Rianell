@@ -11,6 +11,13 @@ const PLAN09_FR = {
   'charts.flarePostMortem.metricLine': '{label} : {before} avant → {after} après (Δ {delta})',
   'charts.forecast.section': 'Prévision',
   'charts.forecast.uncertainty': 'Humeur +{days} j : ~{value}/10 ({lower}–{upper})',
+  'charts.cycle.title': 'Superposition de phase du cycle',
+  'charts.compare.title': 'Comparer les périodes',
+  'charts.compare.lede': '{current} vs {previous}',
+  'charts.compare.metricLine': '{metric} : {current} maintenant · {previous} avant (Δ {delta})',
+  'charts.pacing.title': 'Cuillères / rythme',
+  'charts.pacing.legend': 'Barres : capacité prévue · activité réelle · fatigue',
+  'charts.pacing.dayLine': '{date} : prévu {planned} · fait {actual} · fatigue {fatigue}',
 };
 
 const PLAN09_DE = {
@@ -25,6 +32,13 @@ const PLAN09_DE = {
   'charts.flarePostMortem.metricLine': '{label}: {before} davor → {after} danach (Δ {delta})',
   'charts.forecast.section': 'Prognose',
   'charts.forecast.uncertainty': 'Stimmung +{days} T.: ~{value}/10 ({lower}–{upper})',
+  'charts.cycle.title': 'Zyklusphasen-Overlay',
+  'charts.compare.title': 'Perioden vergleichen',
+  'charts.compare.lede': '{current} vs {previous}',
+  'charts.compare.metricLine': '{metric}: {current} jetzt · {previous} zuvor (Δ {delta})',
+  'charts.pacing.title': 'Löffel / Pacing',
+  'charts.pacing.legend': 'Balken: geplante Kapazität · tatsächliche Aktivität · Müdigkeit',
+  'charts.pacing.dayLine': '{date}: Plan {planned} · gemacht {actual} · Müdigkeit {fatigue}',
 };
 
 const PLAN09_ES = {
@@ -39,6 +53,13 @@ const PLAN09_ES = {
   'charts.flarePostMortem.metricLine': '{label}: {before} antes → {after} después (Δ {delta})',
   'charts.forecast.section': 'Pronóstico',
   'charts.forecast.uncertainty': 'Ánimo +{days} d: ~{value}/10 ({lower}–{upper})',
+  'charts.cycle.title': 'Superposición de fase del ciclo',
+  'charts.compare.title': 'Comparar periodos',
+  'charts.compare.lede': '{current} vs {previous}',
+  'charts.compare.metricLine': '{metric}: {current} ahora · {previous} antes (Δ {delta})',
+  'charts.pacing.title': 'Cucharas / ritmo',
+  'charts.pacing.legend': 'Barras: capacidad planificada · actividad real · fatiga',
+  'charts.pacing.dayLine': '{date}: plan {planned} · hecho {actual} · fatiga {fatigue}',
 };
 
 const PLAN09_IT = {
@@ -53,6 +74,13 @@ const PLAN09_IT = {
   'charts.flarePostMortem.metricLine': '{label}: {before} prima → {after} dopo (Δ {delta})',
   'charts.forecast.section': 'Previsione',
   'charts.forecast.uncertainty': 'Umore +{days} g: ~{value}/10 ({lower}–{upper})',
+  'charts.cycle.title': 'Sovrapposizione fase ciclo',
+  'charts.compare.title': 'Confronta periodi',
+  'charts.compare.lede': '{current} vs {previous}',
+  'charts.compare.metricLine': '{metric}: {current} ora · {previous} prima (Δ {delta})',
+  'charts.pacing.title': 'Cucchiai / ritmo',
+  'charts.pacing.legend': 'Barre: capacità pianificata · attività reale · affaticamento',
+  'charts.pacing.dayLine': '{date}: piano {planned} · fatto {actual} · affaticamento {fatigue}',
 };
 
 const PLAN09_NL = {
@@ -67,6 +95,13 @@ const PLAN09_NL = {
   'charts.flarePostMortem.metricLine': '{label}: {before} vóór → {after} na (Δ {delta})',
   'charts.forecast.section': 'Prognose',
   'charts.forecast.uncertainty': 'Stemming +{days} d: ~{value}/10 ({lower}–{upper})',
+  'charts.cycle.title': 'Cyclusfase-overlay',
+  'charts.compare.title': 'Periodes vergelijken',
+  'charts.compare.lede': '{current} vs {previous}',
+  'charts.compare.metricLine': '{metric}: {current} nu · {previous} eerder (Δ {delta})',
+  'charts.pacing.title': 'Lepels / pacing',
+  'charts.pacing.legend': 'Balken: geplande capaciteit · werkelijke activiteit · vermoeidheid',
+  'charts.pacing.dayLine': '{date}: plan {planned} · gedaan {actual} · vermoeidheid {fatigue}',
 };
 
 const PLAN09_PL = {
@@ -81,6 +116,13 @@ const PLAN09_PL = {
   'charts.flarePostMortem.metricLine': '{label}: {before} przed → {after} po (Δ {delta})',
   'charts.forecast.section': 'Prognoza',
   'charts.forecast.uncertainty': 'Nastrój +{days} d: ~{value}/10 ({lower}–{upper})',
+  'charts.cycle.title': 'Nakładka fazy cyklu',
+  'charts.compare.title': 'Porównaj okresy',
+  'charts.compare.lede': '{current} vs {previous}',
+  'charts.compare.metricLine': '{metric}: {current} teraz · {previous} wcześniej (Δ {delta})',
+  'charts.pacing.title': 'Łyżki / tempo',
+  'charts.pacing.legend': 'Paski: planowana pojemność · rzeczywista aktywność · zmęczenie',
+  'charts.pacing.dayLine': '{date}: plan {planned} · zrobiono {actual} · zmęczenie {fatigue}',
 };
 
 const PLAN09_PT = {
@@ -95,6 +137,13 @@ const PLAN09_PT = {
   'charts.flarePostMortem.metricLine': '{label}: {before} antes → {after} depois (Δ {delta})',
   'charts.forecast.section': 'Previsão',
   'charts.forecast.uncertainty': 'Humor +{days} d: ~{value}/10 ({lower}–{upper})',
+  'charts.cycle.title': 'Sobreposição de fase do ciclo',
+  'charts.compare.title': 'Comparar períodos',
+  'charts.compare.lede': '{current} vs {previous}',
+  'charts.compare.metricLine': '{metric}: {current} agora · {previous} antes (Δ {delta})',
+  'charts.pacing.title': 'Colheres / ritmo',
+  'charts.pacing.legend': 'Barras: capacidade planeada · atividade real · fadiga',
+  'charts.pacing.dayLine': '{date}: plano {planned} · feito {actual} · fadiga {fatigue}',
 };
 
 export const PLAN09_TIER_A_OVERRIDES = {
