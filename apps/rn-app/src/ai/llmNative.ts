@@ -25,6 +25,9 @@ import {
   buildMotdPrompt,
   buildSuggestPrompt,
   buildSummaryPrompt,
+  buildClinicianBriefPrompt,
+  buildExplainChartPrompt,
+  buildStructuredSummaryPrompt,
 } from '@rianell/shared';
 
 import { Directory, File, Paths } from 'expo-file-system';
@@ -101,7 +104,14 @@ function nativePlatformKind(): 'rn_android' | 'rn_ios' {
 }
 
 function buildNativeLlmPrompt(
-  feature: 'summary' | 'suggestNote' | 'motd' | 'homeQuestion',
+  feature:
+    | 'summary'
+    | 'suggestNote'
+    | 'motd'
+    | 'homeQuestion'
+    | 'clinicianBrief'
+    | 'explainChart'
+    | 'structuredSummary',
   context: string,
   locale: string
 ): { system: string; user: string } {
@@ -114,6 +124,12 @@ function buildNativeLlmPrompt(
       return buildSuggestPrompt(locale, context);
     case 'homeQuestion':
       return buildHomeQuestionPrompt(locale, context);
+    case 'clinicianBrief':
+      return buildClinicianBriefPrompt(locale, context);
+    case 'explainChart':
+      return buildExplainChartPrompt(locale, context);
+    case 'structuredSummary':
+      return buildStructuredSummaryPrompt(locale, context);
     default:
       return { system: '', user: context };
   }
@@ -588,7 +604,14 @@ export async function isOnDeviceLlmReady(prefs: Preferences): Promise<boolean> {
 
 export async function runOnDeviceChat(
   prefs: Preferences,
-  feature: 'summary' | 'suggestNote' | 'motd' | 'homeQuestion',
+  feature:
+    | 'summary'
+    | 'suggestNote'
+    | 'motd'
+    | 'homeQuestion'
+    | 'clinicianBrief'
+    | 'explainChart'
+    | 'structuredSummary',
   context: string,
   locale: string
 ): Promise<string | null> {

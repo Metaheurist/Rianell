@@ -139,6 +139,78 @@
     return { system: system, user: context };
   }
 
+  function buildClinicianBriefPromptFromPack(pack, context) {
+    var system = promptString(pack, 'clinicianBrief.system',
+      'You write a one-page clinician visit prep brief from health-tracking data. '
+      + 'Use only the data provided. Structure: key patterns, symptom/stressor highlights, '
+      + 'questions to ask the clinician. Plain language. No diagnosis or treatment orders. '
+      + 'Max 180 words. Reply with only the brief text.');
+    return { system: system, user: 'Patient data: ' + context };
+  }
+
+  function buildExplainChartPromptFromPack(pack, context) {
+    var system = promptString(pack, 'explainChart.system',
+      'You explain a health chart range in plain language for the patient. '
+      + 'Use only the metrics provided. Mention trends and one practical observation. '
+      + 'No diagnosis. Max 4 short sentences. Reply with only the narration text.');
+    return { system: system, user: 'Chart data: ' + context };
+  }
+
+  function buildStructuredSummaryPromptFromPack(pack, context) {
+    var system = promptString(pack, 'structured.system',
+      'You analyse health-tracking data and reply with JSON only: '
+      + '{"insights":["..."],"actions":["..."],"confidence":0.0}. '
+      + 'insights: up to 3 short pattern observations. actions: up to 2 gentle self-care ideas. '
+      + 'confidence: 0-1 number. Use only provided data. No diagnosis or prescriptions.');
+    return { system: system, user: 'Data: ' + context };
+  }
+
+  function isLlmInferenceAllowedForActiveLocale() {
+    var loc = getActiveLocale();
+    var pack = promptPackByLocale[loc];
+    if (pack && pack.llmCapability === 'ui-only') return false;
+    return true;
+  }
+
+  function parseStructuredLlmOutputLocal(raw) {
+    if (window.RianellShared && typeof window.RianellShared.parseStructuredLlmOutput === 'function') {
+      return window.RianellShared.parseStructuredLlmOutput(raw);
+    }
+    if (!raw || typeof raw !== 'string') return null;
+    try {
+      var trimmed = raw.trim();
+      var match = trimmed.match(/\{[\s\S]*\}/);
+      var parsed = JSON.parse(match ? match[0] : trimmed);
+      if (!parsed || typeof parsed !== 'object') return null;
+      var insights = Array.isArray(parsed.insights) ? parsed.insights.filter(function (x) { return typeof x === 'string'; }) : [];
+      var actions = Array.isArray(parsed.actions) ? parsed.actions.filter(function (x) { return typeof x === 'string'; }) : [];
+      var confidence = Number(parsed.confidence);
+      if (!isFinite(confidence)) confidence = 0.5;
+      if (!insights.length && !actions.length) return null;
+      return { insights: insights, actions: actions, confidence: confidence };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function formatStructuredLlmOutputLocal(structured) {
+    if (window.RianellShared && typeof window.RianellShared.formatStructuredLlmOutput === 'function') {
+      return window.RianellShared.formatStructuredLlmOutput(structured);
+    }
+    if (!structured) return '';
+    var lines = [];
+    if (structured.insights && structured.insights.length) {
+      lines.push('Insights:');
+      structured.insights.forEach(function (line) { lines.push('• ' + line); });
+    }
+    if (structured.actions && structured.actions.length) {
+      lines.push('Actions:');
+      structured.actions.forEach(function (line) { lines.push('• ' + line); });
+    }
+    if (structured.confidence != null) lines.push('Confidence: ' + Math.round(structured.confidence * 100) + '%');
+    return lines.join('\n');
+  }
+
   function llmTierOrSizeToModelId(tierOrSize) {
     if (tierOrSize === 'tier1' || tierOrSize === 'tier2' || tierOrSize === 'small') return MODEL_SMALL;
     if (tierOrSize === 'tier3' || tierOrSize === 'tier4' || tierOrSize === 'tier5' || tierOrSize === 'base' || tierOrSize === 'large') return MODEL_BASE;
@@ -1207,6 +1279,7 @@
   }
 
   async function generateSummaryWithLLM(analysis, options, fallbackNote) {
+    if (!isLlmInferenceAllowedForActiveLocale()) return fallbackNote;
     var context = buildSummaryContext(analysis, options);
     if (!context || context.length < 10) return fallbackNote;
 
@@ -1379,6 +1452,101 @@
     } catch (e) {
       if (typeof console !== 'undefined' && console.warn) {
         console.warn('Home question LLM failed, using fallback:', e.message || e);
+      }
+    }
+    return fallbackText || '';
+  }
+
+  async function generateClinicianBriefWithLLM(analysis, options, fallbackText) {
+    if (!isLlmInferenceAllowedForActiveLocale()) return fallbackText || '';
+    var context = '';
+    if (window.RianellShared && typeof window.RianellShared.buildClinicianBriefContext === 'function') {
+      context = window.RianellShared.buildClinicianBriefContext({
+        analysis: analysis,
+        logs: options && options.logs,
+        rangeLabel: options && options.rangeLabel,
+        goals: options && options.goals,
+      });
+    } else {
+      context = buildSummaryContext(analysis, options);
+    }
+    if (!context || context.length < 10) return fallbackText || '';
+    try {
+      var ready = await awaitPipelineForInference(LOAD_TIMEOUT_MS);
+      if (!ready) return fallbackText || '';
+      var pack = await loadPromptPack(getActiveLocale());
+      var prompts = buildClinicianBriefPromptFromPack(pack, context);
+      var text = await raceChatInference(
+        prompts.system,
+        prompts.user,
+        { max_new_tokens: 260, do_sample: false, temperature: 0.2, truncation: true },
+        TIMEOUT_MS,
+        'Clinician brief LLM timeout'
+      );
+      if (text && text.length > 20) return stripTrailingIncompleteSentence(text);
+    } catch (e) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('Clinician brief LLM failed, using fallback:', e.message || e);
+      }
+    }
+    return fallbackText || '';
+  }
+
+  async function generateExplainChartWithLLM(chartSummary, options, fallbackText) {
+    if (!isLlmInferenceAllowedForActiveLocale()) return fallbackText || '';
+    var context = '';
+    if (window.RianellShared && typeof window.RianellShared.buildExplainChartContext === 'function') {
+      context = window.RianellShared.buildExplainChartContext({
+        rangeLabel: chartSummary && chartSummary.rangeLabel,
+        viewMode: options && options.viewMode,
+        trends: chartSummary && chartSummary.trends,
+        totalLogs: chartSummary && chartSummary.totalLogs,
+        flareDays: chartSummary && chartSummary.flareDays,
+      });
+    }
+    if (!context || context.length < 10) return fallbackText || '';
+    try {
+      var ready = await awaitPipelineForInference(LOAD_TIMEOUT_MS);
+      if (!ready) return fallbackText || '';
+      var pack = await loadPromptPack(getActiveLocale());
+      var prompts = buildExplainChartPromptFromPack(pack, context);
+      var text = await raceChatInference(
+        prompts.system,
+        prompts.user,
+        { max_new_tokens: 180, do_sample: false, temperature: 0.2, truncation: true },
+        TIMEOUT_MS,
+        'Explain chart LLM timeout'
+      );
+      if (text && text.length > 15) return stripTrailingIncompleteSentence(text);
+    } catch (e) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('Explain chart LLM failed, using fallback:', e.message || e);
+      }
+    }
+    return fallbackText || '';
+  }
+
+  async function generateStructuredSummaryWithLLM(analysis, options, fallbackText) {
+    if (!isLlmInferenceAllowedForActiveLocale()) return fallbackText || '';
+    var context = buildSummaryContext(analysis, options);
+    if (!context || context.length < 10) return fallbackText || '';
+    try {
+      var ready = await awaitPipelineForInference(LOAD_TIMEOUT_MS);
+      if (!ready) return fallbackText || '';
+      var pack = await loadPromptPack(getActiveLocale());
+      var prompts = buildStructuredSummaryPromptFromPack(pack, context);
+      var text = await raceChatInference(
+        prompts.system,
+        prompts.user,
+        { max_new_tokens: 220, do_sample: false, temperature: 0.1, truncation: true },
+        TIMEOUT_MS,
+        'Structured summary LLM timeout'
+      );
+      var parsed = parseStructuredLlmOutputLocal(text);
+      if (parsed) return formatStructuredLlmOutputLocal(parsed);
+    } catch (e) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('Structured summary LLM failed, using fallback:', e.message || e);
       }
     }
     return fallbackText || '';
@@ -1604,6 +1772,9 @@
   window.generateSummaryWithLLM = generateSummaryWithLLM;
   window.generateSuggestNoteWithLLM = generateSuggestNoteWithLLM;
   window.generateHomeQuestionWithLLM = generateHomeQuestionWithLLM;
+  window.generateClinicianBriefWithLLM = generateClinicianBriefWithLLM;
+  window.generateExplainChartWithLLM = generateExplainChartWithLLM;
+  window.generateStructuredSummaryWithLLM = generateStructuredSummaryWithLLM;
   window.generateMotdWithLLM = generateMotdWithLLM;
   window.buildSuggestContext = buildSuggestContext;
   window.LLM_TIER_MODELS = LLM_TIER_MODELS;

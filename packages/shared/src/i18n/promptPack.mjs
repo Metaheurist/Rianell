@@ -69,6 +69,44 @@ export function buildHomeQuestionPrompt(locale, context, options = {}) {
   return { system, user: context };
 }
 
+export function buildClinicianBriefPrompt(locale, context, options = {}) {
+  const pack = loadPromptPack(locale, options.packs);
+  const system = promptString(
+    pack,
+    'clinicianBrief.system',
+    'You write a one-page clinician visit prep brief from health-tracking data. '
+      + 'Use only the data provided. Structure: key patterns, symptom/stressor highlights, '
+      + 'questions to ask the clinician. Plain language. No diagnosis or treatment orders. '
+      + 'Max 180 words. Reply with only the brief text.',
+  );
+  return { system, user: `Patient data: ${context}` };
+}
+
+export function buildExplainChartPrompt(locale, context, options = {}) {
+  const pack = loadPromptPack(locale, options.packs);
+  const system = promptString(
+    pack,
+    'explainChart.system',
+    'You explain a health chart range in plain language for the patient. '
+      + 'Use only the metrics provided. Mention trends and one practical observation. '
+      + 'No diagnosis. Max 4 short sentences. Reply with only the narration text.',
+  );
+  return { system, user: `Chart data: ${context}` };
+}
+
+export function buildStructuredSummaryPrompt(locale, context, options = {}) {
+  const pack = loadPromptPack(locale, options.packs);
+  const system = promptString(
+    pack,
+    'structured.system',
+    'You analyse health-tracking data and reply with JSON only: '
+      + '{"insights":["..."],"actions":["..."],"confidence":0.0}. '
+      + 'insights: up to 3 short pattern observations. actions: up to 2 gentle self-care ideas. '
+      + 'confidence: 0-1 number. Use only provided data. No diagnosis or prescriptions.',
+  );
+  return { system, user: `Data: ${context}` };
+}
+
 /** B2: client sends explicit locale; invalid values fall back to en-GB. */
 export function buildLlmRequestPayload({ feature, model, modelSize, context, locale }) {
   return {

@@ -65,8 +65,14 @@ var RianellShared = (() => {
     applyPrivacyProfileToLocal: () => applyPrivacyProfileToLocal,
     applyRegionDefaultLocale: () => applyRegionDefaultLocale,
     applyRegionDowngradeToggles: () => applyRegionDowngradeToggles,
+    buildClinicianBriefContext: () => buildClinicianBriefContext,
+    buildClinicianBriefFallback: () => buildClinicianBriefFallback,
+    buildClinicianBriefPrompt: () => buildClinicianBriefPrompt,
     buildConsentDashboardEntries: () => buildConsentDashboardEntries,
     buildEncryptedBackupBlob: () => buildEncryptedBackupBlob,
+    buildExplainChartContext: () => buildExplainChartContext,
+    buildExplainChartFallback: () => buildExplainChartFallback,
+    buildExplainChartPrompt: () => buildExplainChartPrompt,
     buildHomeQuestionContext: () => buildHomeQuestionContext,
     buildHomeQuestionFallback: () => buildHomeQuestionFallback,
     buildHomeQuestionPrompt: () => buildHomeQuestionPrompt,
@@ -74,6 +80,7 @@ var RianellShared = (() => {
     buildMotdPrompt: () => buildMotdPrompt,
     buildProxyLogMetadata: () => buildProxyLogMetadata,
     buildSettingsProfileExport: () => buildSettingsProfileExport,
+    buildStructuredSummaryPrompt: () => buildStructuredSummaryPrompt,
     buildSuggestPrompt: () => buildSuggestPrompt,
     buildSummaryPrompt: () => buildSummaryPrompt,
     buildTodayMedDoseStatuses: () => buildTodayMedDoseStatuses,
@@ -101,11 +108,13 @@ var RianellShared = (() => {
     formatDate: () => formatDate,
     formatNumber: () => formatNumber,
     formatRelativeDay: () => formatRelativeDay,
+    formatStructuredLlmOutput: () => formatStructuredLlmOutput,
     getDefaultAccessibilitySettings: () => getDefaultAccessibilitySettings,
     getDefaultAppSettingsFields: () => getDefaultAppSettingsFields,
     getDefaultLocaleForRegion: () => getDefaultLocaleForRegion,
     getDefaultTrackingProfileFields: () => getDefaultTrackingProfileFields,
     getFeatureAvailability: () => getFeatureAvailability,
+    getLlmCapability: () => getLlmCapability,
     getPolicyBodyParagraphs: () => getPolicyBodyParagraphs,
     getPolicyDocumentsForRegion: () => getPolicyDocumentsForRegion,
     getPolicyDocumentsForRegionI18n: () => getPolicyDocumentsForRegionI18n,
@@ -121,6 +130,7 @@ var RianellShared = (() => {
     getVisibleTrackingFields: () => getVisibleTrackingFields,
     identity: () => identity,
     isCloudSyncBlockedByMigration: () => isCloudSyncBlockedByMigration,
+    isLlmInferenceAllowed: () => isLlmInferenceAllowed,
     isLocalOnlyModeEnabled: () => isLocalOnlyModeEnabled,
     isLogCategoryUnlocked: () => isLogCategoryUnlocked,
     isPrivacyRegionConfigured: () => isPrivacyRegionConfigured,
@@ -162,6 +172,7 @@ var RianellShared = (() => {
     parseLogsCsv: () => parseLogsCsv,
     parseMigrationCsv: () => parseMigrationCsv,
     parseSettingsProfileImport: () => parseSettingsProfileImport,
+    parseStructuredLlmOutput: () => parseStructuredLlmOutput,
     pickHomeAiSuggestions: () => pickHomeAiSuggestions,
     prefsToConsents: () => prefsToConsents,
     privacyProfileFromLocal: () => privacyProfileFromLocal,
@@ -1455,6 +1466,9 @@ var RianellShared = (() => {
         "summary.system": "You summarise health tracking data for the patient in exactly 2 short sentences. Use only the data provided. Mention 1-2 specific findings. Be clear and encouraging. Reply with only the summary text.",
         "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
         "homeQuestion.system": "You answer one specific health-tracking question using only the data provided. Write 3\u20135 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text.",
+        "clinicianBrief.system": "You write a one-page clinician visit prep brief from health-tracking data. Use only the data provided. Structure: key patterns, symptom/stressor highlights, questions to ask the clinician. Plain language. No diagnosis or treatment orders. Max 180 words. Reply with only the brief text.",
+        "explainChart.system": "You explain a health chart range in plain language for the patient. Use only the metrics provided. Mention trends and one practical observation. No diagnosis. Max 4 short sentences. Reply with only the narration text.",
+        "structured.system": 'You analyse health-tracking data and reply with JSON only: {"insights":["..."],"actions":["..."],"confidence":0.0}. insights: up to 3 short pattern observations. actions: up to 2 gentle self-care ideas. confidence: 0-1 number. Use only provided data. No diagnosis or prescriptions.',
         "context.improving": "Improving: {metrics}.",
         "context.worsening": "Worsening: {metrics}.",
         "context.stable": "Stable: {metrics}.",
@@ -1695,6 +1709,33 @@ var RianellShared = (() => {
       "You answer one specific health-tracking question using only the data provided. Write 3\u20135 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text."
     );
     return { system, user: context };
+  }
+  function buildClinicianBriefPrompt(locale, context, options = {}) {
+    const pack = loadPromptPack(locale, options.packs);
+    const system = promptString(
+      pack,
+      "clinicianBrief.system",
+      "You write a one-page clinician visit prep brief from health-tracking data. Use only the data provided. Structure: key patterns, symptom/stressor highlights, questions to ask the clinician. Plain language. No diagnosis or treatment orders. Max 180 words. Reply with only the brief text."
+    );
+    return { system, user: `Patient data: ${context}` };
+  }
+  function buildExplainChartPrompt(locale, context, options = {}) {
+    const pack = loadPromptPack(locale, options.packs);
+    const system = promptString(
+      pack,
+      "explainChart.system",
+      "You explain a health chart range in plain language for the patient. Use only the metrics provided. Mention trends and one practical observation. No diagnosis. Max 4 short sentences. Reply with only the narration text."
+    );
+    return { system, user: `Chart data: ${context}` };
+  }
+  function buildStructuredSummaryPrompt(locale, context, options = {}) {
+    const pack = loadPromptPack(locale, options.packs);
+    const system = promptString(
+      pack,
+      "structured.system",
+      'You analyse health-tracking data and reply with JSON only: {"insights":["..."],"actions":["..."],"confidence":0.0}. insights: up to 3 short pattern observations. actions: up to 2 gentle self-care ideas. confidence: 0-1 number. Use only provided data. No diagnosis or prescriptions.'
+    );
+    return { system, user: `Data: ${context}` };
   }
   function buildLlmRequestPayload({ feature, model, modelSize, context, locale }) {
     return {
@@ -2002,6 +2043,146 @@ ${raw}
     if (recentNotes.length) parts.push(wrapUserNote(recentNotes[recentNotes.length - 1]));
     const text = parts.join(" ");
     return text.length > MAX_CONTEXT_CHARS ? text.slice(0, MAX_CONTEXT_CHARS) : text;
+  }
+
+  // packages/shared/src/ai/clinicianBriefContext.mjs
+  var MAX_CONTEXT_CHARS2 = 900;
+  function wrapUserNote2(note) {
+    const raw = String(note || "").trim();
+    if (!raw) return "";
+    return `---USER_NOTE---
+${raw}
+---END_USER_NOTE---`;
+  }
+  function buildClinicianBriefContext({
+    analysis = {},
+    logs = [],
+    rangeLabel = "",
+    goals = null
+  } = {}) {
+    const parts = [];
+    if (rangeLabel) parts.push(`Range: ${rangeLabel}.`);
+    const total = analysis.totalLogs ?? (Array.isArray(logs) ? logs.length : 0);
+    parts.push(`${total} logged day(s).`);
+    if (analysis.flareDays != null && analysis.flareDays > 0) {
+      parts.push(`Flare days: ${analysis.flareDays}.`);
+    }
+    if (analysis.avgMood != null) parts.push(`Mood avg: ${Number(analysis.avgMood).toFixed(1)}/10.`);
+    if (analysis.avgSleep != null) parts.push(`Sleep avg: ${Number(analysis.avgSleep).toFixed(1)}/10.`);
+    if (analysis.avgFatigue != null) parts.push(`Fatigue avg: ${Number(analysis.avgFatigue).toFixed(1)}/10.`);
+    if (analysis.topSymptoms?.length) {
+      parts.push(`Top symptoms: ${analysis.topSymptoms.slice(0, 4).join(", ")}.`);
+    }
+    if (analysis.topStressors?.length) {
+      parts.push(`Top stressors: ${analysis.topStressors.slice(0, 4).join(", ")}.`);
+    }
+    if (analysis.correlations?.length) {
+      parts.push(`Patterns: ${analysis.correlations.slice(0, 2).join(" ")}`);
+    }
+    if (analysis.thingsToWatch?.length) {
+      parts.push(`Watch: ${analysis.thingsToWatch.slice(0, 2).join(" ")}`);
+    }
+    if (goals && typeof goals === "object") {
+      const goalBits = [];
+      if (goals.sleep != null) goalBits.push(`sleep goal ${goals.sleep}/10`);
+      if (goals.steps != null) goalBits.push(`steps goal ${goals.steps}`);
+      if (goalBits.length) parts.push(`Goals: ${goalBits.join(", ")}.`);
+    }
+    const recentNotes = (logs || []).map((l) => l && l.notes ? String(l.notes).trim() : "").filter(Boolean);
+    if (recentNotes.length) parts.push(wrapUserNote2(recentNotes[recentNotes.length - 1]));
+    const text = parts.join(" ");
+    return text.length > MAX_CONTEXT_CHARS2 ? text.slice(0, MAX_CONTEXT_CHARS2) : text;
+  }
+  function buildClinicianBriefFallback(analysis = {}) {
+    const lines = [];
+    if (analysis.rangeLabel) lines.push(`Period: ${analysis.rangeLabel}.`);
+    if (analysis.totalLogs != null) lines.push(`${analysis.totalLogs} logged days.`);
+    if (analysis.flareDays) lines.push(`${analysis.flareDays} flare day(s) in range.`);
+    if (analysis.avgFatigue != null) lines.push(`Average fatigue ${Number(analysis.avgFatigue).toFixed(1)}/10.`);
+    if (analysis.topSymptoms?.length) lines.push(`Frequent symptoms: ${analysis.topSymptoms.slice(0, 3).join(", ")}.`);
+    if (!lines.length) return "Add more logs to generate a visit prep summary.";
+    return lines.join(" ");
+  }
+
+  // packages/shared/src/ai/explainChartContext.mjs
+  var MAX_CONTEXT_CHARS3 = 720;
+  function buildExplainChartContext({
+    rangeLabel = "",
+    viewMode = "combined",
+    trends = [],
+    totalLogs = 0,
+    flareDays = 0
+  } = {}) {
+    const parts = [];
+    if (rangeLabel) parts.push(`Chart range: ${rangeLabel}.`);
+    parts.push(`View: ${viewMode}.`);
+    parts.push(`${totalLogs} logged day(s).`);
+    if (flareDays > 0) parts.push(`Flare days: ${flareDays}.`);
+    for (const trend of (trends || []).slice(0, 6)) {
+      if (!trend || !trend.label) continue;
+      const avg = trend.average != null && Number.isFinite(trend.average) ? trend.average.toFixed(1) : "\u2014";
+      const cur = trend.current != null && Number.isFinite(trend.current) ? trend.current.toFixed(1) : "\u2014";
+      const delta = trend.delta != null && Number.isFinite(trend.delta) ? `${trend.delta >= 0 ? "+" : ""}${trend.delta.toFixed(1)}` : "\u2014";
+      parts.push(`${trend.label}: avg ${avg}, latest ${cur}, change ${delta} (${trend.points || 0} points).`);
+    }
+    const text = parts.join(" ");
+    return text.length > MAX_CONTEXT_CHARS3 ? text.slice(0, MAX_CONTEXT_CHARS3) : text;
+  }
+  function buildExplainChartFallback(chartSummary = {}) {
+    const trend = chartSummary.trends?.[0];
+    if (!trend) return "Not enough chart data to narrate this range yet.";
+    const label = trend.label || trend.key || "Metric";
+    const avg = trend.average != null ? Number(trend.average).toFixed(1) : "\u2014";
+    return `${label} averaged ${avg} over ${chartSummary.rangeLabel || "this range"}.`;
+  }
+
+  // packages/shared/src/ai/llmCapability.mjs
+  function getLlmCapability(locale, options = {}) {
+    const loc = isValidLocaleId(locale) ? locale : DEFAULT_LOCALE;
+    const pack = loadPromptPack(loc, options.packs);
+    return pack?.llmCapability === "ui-only" ? "ui-only" : "full";
+  }
+  function isLlmInferenceAllowed(locale, options = {}) {
+    return getLlmCapability(locale, options) !== "ui-only";
+  }
+
+  // packages/shared/src/ai/structuredLlmOutput.mjs
+  function parseStructuredLlmOutput(raw) {
+    if (!raw || typeof raw !== "string") return null;
+    let parsed;
+    try {
+      const trimmed = raw.trim();
+      const match = trimmed.match(/\{[\s\S]*\}/);
+      const jsonStr = match ? match[0] : trimmed;
+      parsed = JSON.parse(jsonStr);
+    } catch {
+      return null;
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    const insights = Array.isArray(parsed.insights) ? parsed.insights.filter((x) => typeof x === "string").map((x) => x.trim()).filter(Boolean).slice(0, 8) : [];
+    const actions = Array.isArray(parsed.actions) ? parsed.actions.filter((x) => typeof x === "string").map((x) => x.trim()).filter(Boolean).slice(0, 6) : [];
+    let confidence = parsed.confidence;
+    if (typeof confidence === "string") confidence = parseFloat(confidence);
+    if (!Number.isFinite(confidence)) confidence = insights.length ? 0.65 : 0.45;
+    confidence = Math.max(0, Math.min(1, confidence));
+    if (!insights.length && !actions.length) return null;
+    return { insights, actions, confidence };
+  }
+  function formatStructuredLlmOutput(structured) {
+    if (!structured) return "";
+    const lines = [];
+    if (structured.insights?.length) {
+      lines.push("Insights:");
+      structured.insights.forEach((line) => lines.push(`\u2022 ${line}`));
+    }
+    if (structured.actions?.length) {
+      lines.push("Actions:");
+      structured.actions.forEach((line) => lines.push(`\u2022 ${line}`));
+    }
+    if (structured.confidence != null) {
+      lines.push(`Confidence: ${Math.round(structured.confidence * 100)}%`);
+    }
+    return lines.join("\n");
   }
 
   // packages/shared/src/settings/trackingProfile.mjs

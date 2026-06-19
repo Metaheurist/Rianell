@@ -6,6 +6,9 @@ const engines = (process.env.LLM_ENGINE || 'onnx,mlc').split(',').map((s) => s.t
 const prompts = [
   { id: 'motd', system: 'Reply with one short health quote.', user: 'Write a quote about water.' },
   { id: 'summary', system: 'Summarize in one sentence.', user: 'Data: 7 days, sleep stable.' },
+  { id: 'clinicianBrief', system: 'Write visit prep brief.', user: 'Patient data: 14 days, 2 flares.' },
+  { id: 'explainChart', system: 'Explain chart trends.', user: 'Chart data: mood avg 6.2.' },
+  { id: 'structuredSummary', system: 'Reply JSON only.', user: 'Data: fatigue stable.' },
 ];
 
 console.log('llm-golden-prompts engine checklist:', engines.join(', '));

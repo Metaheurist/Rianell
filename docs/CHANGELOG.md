@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.94.0** - Plan 07: unified `@rianell/ai-engine` deterministic pipeline (A1–A8).
+**Latest: v1.95.0** - Plan 08 phase A: clinician brief, explain chart, structured JSON, ui-only gate (N2–N5).
+
+### v1.95.0 - 2026-06-18 - Plan 08 LLM phase A (N2–N5)
+- **N2:** Clinician visit prep brief — shared context + prompt pack; RN AI tab + PWA `generateClinicianBriefWithLLM`.
+- **N3:** Explain this chart — chart context builder; RN Charts tab + PWA `generateExplainChartWithLLM`.
+- **N4:** Multilingual LLM enforcement — `isLlmInferenceAllowed` blocks inference for ar/he/ga ui-only locales.
+- **N5:** Structured JSON output — `parseStructuredLlmOutput` schema validation; RN structured insights + PWA helper.
+- **Tests:** 8 llm-plan08 tests (206 total); golden prompts expanded for new intents.
 
 ### v1.94.0 - 2026-06-18 - Plan 07 AI engine (A1–A8)
 - **A1:** Consolidated RN analysis into `@rianell/ai-engine`; PWA `layerInterpretation` delegates to shared `rankNeuralAnalysisInsights`.

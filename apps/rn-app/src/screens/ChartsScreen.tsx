@@ -28,7 +28,9 @@ import {
   type ChartRange,
   type ChartViewMode,
 } from '../charts/summarizeCharts';
+import { loadCachedBenchmark, type BenchmarkResult } from '../performance/benchmark';
 import { predictFutureValues } from '../ai/engine';
+import { explainChartRange } from '../ai/llm';
 
 const RANGE_OPTIONS: ChartRange[] = [7, 14, 30, 90, 'all'];
 
@@ -180,7 +182,7 @@ function BalanceVisual({
 export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
   const route = useRoute<ChartsRoute>();
   const theme = useTheme();
-  const { t } = useT();
+  const { t, locale } = useT();
   const bg =
     theme.tokens.color.background ===
     'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
@@ -194,6 +196,9 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reducedMotionEnabled, setReducedMotionEnabled] = useState(false);
+  const [chartExplanation, setChartExplanation] = useState('');
+  const [explainLoading, setExplainLoading] = useState(false);
+  const [benchmark, setBenchmark] = useState<BenchmarkResult | null>(null);
 
   useEffect(() => {
     if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -213,6 +218,10 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
       mounted = false;
       sub.remove();
     };
+  }, []);
+
+  useEffect(() => {
+    void loadCachedBenchmark().then(setBenchmark).catch(() => setBenchmark(null));
   }, []);
 
   const runLayoutMotion = useCallback(() => {
@@ -390,6 +399,44 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
               );
             })}
           </View>
+
+          {prefs?.aiEnabled && !noDataInRange ? (
+            <>
+              <Pressable
+                style={[styles.rangeChip, { alignSelf: 'flex-start', marginTop: 8 }]}
+                accessibilityRole="button"
+                onPress={() => {
+                  if (explainLoading) return;
+                  setExplainLoading(true);
+                  void explainChartRange(
+                    summary,
+                    view,
+                    prefs?.performance?.preferredLlmModelSize ?? 'recommended',
+                    benchmark,
+                    locale,
+                    prefs
+                  )
+                    .then((text) => setChartExplanation(text))
+                    .finally(() => setExplainLoading(false));
+                }}
+              >
+                <Text style={{ color: theme.tokens.color.accent, fontWeight: '700' }}>
+                  {explainLoading ? t('charts.explain.loading') : t('charts.explain.action')}
+                </Text>
+              </Pressable>
+              {chartExplanation ? (
+                <>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                    {t('charts.explain.section')}
+                  </Text>
+                  <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                    {chartExplanation}
+                  </Text>
+                </>
+              ) : null}
+            </>
+          ) : null}
+
           {reducedMotionEnabled ? (
             <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
               Reduced motion is enabled; chart transitions use minimal animation.
