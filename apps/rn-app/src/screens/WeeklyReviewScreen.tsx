@@ -131,7 +131,7 @@ export function WeeklyReviewScreen({
 
         {current.id === 'correlations' ? (
           correlationLines.length ? (
-            correlationLines.map((line) => (
+            correlationLines.map((line: { id: string; label: string; detail?: string }) => (
               <Text key={line.id} style={[styles.body, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                 · {line.label} {line.detail ? `— ${line.detail}` : ''}
               </Text>
@@ -144,12 +144,12 @@ export function WeeklyReviewScreen({
         {current.id === 'digest' ? (
           <>
             <Text style={[styles.body, { color: theme.tokens.color.text }]}>{digest.headline}</Text>
-            {digest.improvements.map((line) => (
+            {digest.improvements.map((line: string) => (
               <Text key={`imp-${line}`} style={[styles.body, { color: theme.tokens.color.text }]}>
                 + {line}
               </Text>
             ))}
-            {digest.concerns.map((line) => (
+            {digest.concerns.map((line: string) => (
               <Text key={`con-${line}`} style={[styles.body, { color: theme.tokens.color.text }]}>
                 − {line}
               </Text>
