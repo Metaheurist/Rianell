@@ -38,6 +38,13 @@ jest.mock('../performance/benchmark', () => ({
 jest.mock('../utils/submitBugReport', () => ({
   submitBugReport: jest.fn(async () => undefined),
 }));
+jest.mock('../storage/preferences', () => {
+  const actual = jest.requireActual('../storage/preferences');
+  return {
+    ...actual,
+    savePreferences: jest.fn(async () => undefined),
+  };
+});
 
 import { loadLogs } from '../storage/logs';
 import { submitBugReport } from '../utils/submitBugReport';
