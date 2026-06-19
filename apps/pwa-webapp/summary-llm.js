@@ -1467,8 +1467,10 @@
 
   async function generateHomeQuestionWithLLM(contextString, fallbackText, questionId) {
     if (!contextString || contextString.length < 10) return fallbackText || '';
+    if (!isLlmInferenceAllowedForActiveLocale()) return fallbackText || '';
 
-    var cacheKey = simpleHash(String(questionId || 'q') + ':' + contextString);
+    var todayKey = (typeof getTodayDateStr === 'function' ? getTodayDateStr() : new Date().toISOString().slice(0, 10));
+    var cacheKey = simpleHash(String(questionId || 'q') + ':' + todayKey + ':' + contextString);
     if (!homeQuestionResultCache) homeQuestionResultCache = new Map();
     var cached = homeQuestionResultCache.get(cacheKey);
     if (cached != null) return cached;

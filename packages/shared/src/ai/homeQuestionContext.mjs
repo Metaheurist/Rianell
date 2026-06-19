@@ -1,4 +1,5 @@
 import { HOME_SUGGESTIONS_RANGE_DAYS } from './homeSuggestions.mjs';
+import { yesterdayOf } from './homeGapDetection.mjs';
 
 const MAX_CONTEXT_CHARS = 720;
 
@@ -48,6 +49,20 @@ export function buildHomeQuestionContext({
   }
   if (questionId === 'correlation' && labelParams.a && labelParams.b) {
     parts.push(`Focus: link between ${labelParams.a} and ${labelParams.b}.`);
+  }
+  if (questionId === 'gap-meds') {
+    parts.push('Focus: yesterday medication adherence gap.');
+  }
+  if (questionId === 'gap-sleep') {
+    parts.push('Focus: missing sleep score yesterday.');
+  }
+  if (questionId === 'gap-food') {
+    parts.push('Focus: empty food log yesterday.');
+  }
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const yStr = yesterdayOf(todayStr);
+  if (yStr && questionId && String(questionId).startsWith('gap-')) {
+    parts.push(`Yesterday (${yStr}) logging gap.`);
   }
 
   const recentNotes = (logs || [])

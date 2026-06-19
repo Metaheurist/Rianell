@@ -604,6 +604,9 @@ var RianellAIEngine = (() => {
     return null;
   }
 
+  // packages/shared/src/home/homeWeather.mjs
+  var WEATHER_CACHE_MS = 60 * 60 * 1e3;
+
   // packages/ai-engine/src/chartAnalytics.mjs
   var METRIC_PAIRS = [
     { metric1: "mood", metric2: "sleep", label1: "Mood", label2: "Sleep" },

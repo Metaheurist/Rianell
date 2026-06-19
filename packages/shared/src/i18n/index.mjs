@@ -7,6 +7,7 @@ export * from './promptPack.mjs';
 
 export {
   pickHomeAiSuggestions,
+  pickHomeAiSuggestionBundle,
   computeHomeAnalysisSnapshot,
   analysisSnapshotFromSummary,
   buildHomeQuestionFallback,
@@ -15,6 +16,15 @@ export {
   HOME_SUGGESTIONS_MIN_DAYS,
   HOME_SUGGESTIONS_MAX_CHIPS,
 } from '../ai/homeSuggestions.mjs';
+export {
+  detectHomeLoggingGaps,
+  pickDailyHomeGapQuestion,
+  canAnswerHomeQuestionToday,
+  nextHomeQuestionAnswerState,
+  normalizeHomeGapQuestionCache,
+  normalizeHomeQuestionAnswerState,
+  MAX_HOME_QUESTION_ANSWERS_PER_DAY,
+} from '../ai/homeGapDetection.mjs';
 export {
   computeHomeCardContext,
   resolveHomeCardOrder,
