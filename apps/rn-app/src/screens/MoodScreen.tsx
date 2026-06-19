@@ -37,7 +37,7 @@ import {
 } from '@rianell/shared';
 
 type MoodRange = 7 | 14 | 30;
-type CheckinPeriod = (typeof HOME_CHECKIN_PERIODS)[number];
+type CheckinPeriod = 'AM' | 'midday' | 'PM';
 type ScreeningKind = 'phq2' | 'gad2';
 
 const RANGE_OPTIONS: MoodRange[] = [7, 14, 30];
