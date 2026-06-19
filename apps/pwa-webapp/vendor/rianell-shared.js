@@ -62,6 +62,7 @@ var RianellShared = (() => {
     PROCESSING_ACTIVITY_LOG_MAX: () => PROCESSING_ACTIVITY_LOG_MAX,
     PROFILE_AVATAR_IDS: () => PROFILE_AVATAR_IDS,
     PROGRESSIVE_CATEGORIES: () => PROGRESSIVE_CATEGORIES,
+    RE_ENGAGEMENT_IDLE_DAYS: () => RE_ENGAGEMENT_IDLE_DAYS,
     SETTINGS_PROFILE_EXPORT_VERSION: () => SETTINGS_PROFILE_EXPORT_VERSION,
     SETTINGS_STORAGE_KEY: () => SETTINGS_STORAGE_KEY,
     SHARE_LINK_FORMAT: () => SHARE_LINK_FORMAT,
@@ -101,6 +102,7 @@ var RianellShared = (() => {
     buildMedDoseNotificationContent: () => buildMedDoseNotificationContent,
     buildMotdPrompt: () => buildMotdPrompt,
     buildProxyLogMetadata: () => buildProxyLogMetadata,
+    buildReEngagementNotificationContent: () => buildReEngagementNotificationContent,
     buildSettingsProfileExport: () => buildSettingsProfileExport,
     buildStructuredSummaryPrompt: () => buildStructuredSummaryPrompt,
     buildSuggestPrompt: () => buildSuggestPrompt,
@@ -113,6 +115,7 @@ var RianellShared = (() => {
     buildWeekChatUserPayload: () => buildWeekChatUserPayload,
     canAnswerHomeQuestionToday: () => canAnswerHomeQuestionToday,
     canChooseDataResidency: () => canChooseDataResidency,
+    canOfferWebPush: () => canOfferWebPush,
     canSendWeekChatTurn: () => canSendWeekChatTurn,
     checkPolicyDrift: () => checkPolicyDrift,
     checkPolicyDriftSync: () => checkPolicyDriftSync,
@@ -130,6 +133,7 @@ var RianellShared = (() => {
     createTranslator: () => createTranslator,
     customMetricFieldKey: () => customMetricFieldKey,
     customMetricIdFromField: () => customMetricIdFromField,
+    daysSinceIso: () => daysSinceIso,
     daysSinceTrackingProfileStart: () => daysSinceTrackingProfileStart,
     daysUntilAppointment: () => daysUntilAppointment,
     decryptExportWithPassphrase: () => decryptExportWithPassphrase,
@@ -267,6 +271,7 @@ var RianellShared = (() => {
     shouldFireFlareRiskNudge: () => shouldFireFlareRiskNudge,
     shouldFireMedDoseReminder: () => shouldFireMedDoseReminder,
     shouldFireMissedLogNudge: () => shouldFireMissedLogNudge,
+    shouldFireReEngagementNudge: () => shouldFireReEngagementNudge,
     shouldShowAppointmentCard: () => shouldShowAppointmentCard,
     shouldShowWizardCategory: () => shouldShowWizardCategory,
     stampLogEntryForCaregiver: () => stampLogEntryForCaregiver,
@@ -274,6 +279,7 @@ var RianellShared = (() => {
     suggestPrivacyRegionFromHint: () => suggestPrivacyRegionFromHint,
     t: () => t,
     textDirection: () => textDirection,
+    touchLastActiveAt: () => touchLastActiveAt,
     upsertSymptomTemplate: () => upsertSymptomTemplate,
     validateRemoteLlmEndpoint: () => validateRemoteLlmEndpoint
   });
@@ -3545,6 +3551,53 @@ ${hist}`);
       title: "High fatigue week",
       body: "Patterns suggest an unusually fatiguing week. Consider pacing and logging how you feel.",
       severity: evalResult?.severity || "medium"
+    };
+  }
+
+  // packages/shared/src/notifications/webPushConsent.mjs
+  function canOfferWebPush(prefs, opts = {}) {
+    const p = prefs && typeof prefs === "object" ? prefs : {};
+    const vapid = String(opts.vapidPublicKey || "").trim();
+    if (!vapid) return { ok: false, reason: "vapid-unconfigured" };
+    if (p.demoMode === true) return { ok: false, reason: "demo-mode" };
+    if (p.localOnlyMode === true) return { ok: false, reason: "local-only" };
+    if (!isPrivacyRegionConfigured(p)) return { ok: false, reason: "region-unconfigured" };
+    if (p.privacyRegion === "eea_uk" && p.healthDataConsent !== true) {
+      return { ok: false, reason: "health-consent-required" };
+    }
+    return { ok: true };
+  }
+
+  // packages/shared/src/notifications/reEngagementNudge.mjs
+  var RE_ENGAGEMENT_IDLE_DAYS = 7;
+  function touchLastActiveAt(now = /* @__PURE__ */ new Date()) {
+    return now.toISOString();
+  }
+  function daysSinceIso(iso, now = /* @__PURE__ */ new Date()) {
+    if (!iso || typeof iso !== "string") return Infinity;
+    const t2 = Date.parse(iso);
+    if (!Number.isFinite(t2)) return Infinity;
+    return (now.getTime() - t2) / 864e5;
+  }
+  function shouldFireReEngagementNudge(now = /* @__PURE__ */ new Date(), opts = {}) {
+    if (opts.enabled === false) return { fire: false, reason: "disabled" };
+    const lastActiveAt = opts.lastActiveAt;
+    if (!lastActiveAt) return { fire: false, reason: "no-activity-baseline" };
+    const idleDays = daysSinceIso(lastActiveAt, now);
+    if (idleDays < RE_ENGAGEMENT_IDLE_DAYS) {
+      return { fire: false, reason: "not-idle-enough", idleDays };
+    }
+    const lastNudge = opts.lastReEngagementNudgeAt;
+    if (lastNudge && Date.parse(lastNudge) >= Date.parse(lastActiveAt)) {
+      return { fire: false, reason: "already-nudged", idleDays };
+    }
+    return { fire: true, reason: "idle-7d", idleDays };
+  }
+  function buildReEngagementNotificationContent() {
+    return {
+      title: "We miss you",
+      body: "A quick check-in keeps your health trends useful. Tap to log today.",
+      url: "/?quick=true"
     };
   }
 

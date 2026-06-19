@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.106.0** - Plan 11 phase B: med dose reminders + flare risk nudge (R2, R3).
+**Latest: v1.107.0** - Plan 11 phase C: production Web Push + gentle re-engagement (R4, R5).
+
+### v1.107.0 - 2026-06-19 - Plan 11 Notifications phase C (R4, R5)
+- **R4:** Production PWA Web Push — `push-config.js` VAPID inject at Pages deploy; consent/region gates via `canOfferWebPush`; enable/disable UI; `RIANELL_PUSH_CLICK` routing; SW icon path fix.
+- **R5:** Gentle 7-day re-engagement — single nudge per idle period; user-disable toggle (RN + PWA); `lastActiveAt` activity tracking.
+- **Shared:** `webPushConsent.mjs`, `reEngagementNudge.mjs`.
+- **Tests:** 5 plan11-phase-c tests (274 total).
 
 ### v1.106.0 - 2026-06-19 - Plan 11 Notifications phase B (R2, R3)
 - **R2:** L3 medication dose local reminders — schedule at dose times; taken opens log wizard, snooze +15 min (RN + PWA).

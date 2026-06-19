@@ -47,3 +47,23 @@ runs:
         c = c.replace(/anonKey:\s*['\"][^'\"]*['\"]/, 'anonKey: ' + JSON.stringify(key || 'YOUR_SUPABASE_ANON_KEY'));
         fs.writeFileSync(path, c);
         "
+
+    - name: Inject Web Push VAPID public key for GitHub Pages
+      shell: bash
+      env:
+        VAPID_PUBLIC_KEY: ${{ env.VAPID_PUBLIC_KEY }}
+        SITE_PATH: ${{ inputs.site-path }}
+      run: |
+        set -euo pipefail
+        node -e "
+        const fs = require('fs');
+        const path = process.env.SITE_PATH + '/push-config.js';
+        if (!fs.existsSync(path)) {
+          console.log('push-config.js missing — skipping VAPID inject');
+          process.exit(0);
+        }
+        let c = fs.readFileSync(path, 'utf8');
+        const key = process.env.VAPID_PUBLIC_KEY || '';
+        c = c.replace(/vapidPublicKey:\s*['\"][^'\"]*['\"]/, 'vapidPublicKey: ' + JSON.stringify(key || 'YOUR_VAPID_PUBLIC_KEY'));
+        fs.writeFileSync(path, c);
+        "

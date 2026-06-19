@@ -1,6 +1,7 @@
 import {
   buildFlareRiskNotificationContent,
   buildMedDoseNotificationContent,
+  buildReEngagementNotificationContent,
   hasEnabledMedSchedule,
   hasLoggedToday,
   listTodayMedDoseReminders,
@@ -10,6 +11,8 @@ import {
   resolveSmartReminderTime,
   shouldFireFlareRiskNudge,
   shouldFireMissedLogNudge,
+  shouldFireReEngagementNudge,
+  touchLastActiveAt,
 } from '@rianell/shared';
 import { Permissions } from '../permissions/permissions';
 import { loadLogs } from '../storage/logs';
@@ -142,6 +145,51 @@ export async function maybeFireFlareRiskNudge(
   });
 }
 
+export function touchEngagementActivity(
+  prefs: Preferences,
+  onPrefsUpdate: (next: Preferences) => void,
+  now = new Date(),
+): void {
+  const prev = prefs.notifications.lastActiveAt;
+  if (prev) {
+    const prevMs = Date.parse(prev);
+    const nowMs = now.getTime();
+    if (Number.isFinite(prevMs) && nowMs - prevMs < 5 * 60_000) return;
+  }
+  const at = touchLastActiveAt(now);
+  onPrefsUpdate({
+    ...prefs,
+    notifications: {
+      ...prefs.notifications,
+      lastActiveAt: at,
+    },
+  });
+}
+
+export async function maybeFireReEngagementNudge(
+  prefs: Preferences,
+  onPrefsUpdate: (next: Preferences) => void,
+  now = new Date(),
+): Promise<void> {
+  if (prefs.notifications.reEngagementNudgesEnabled === false) return;
+  const result = shouldFireReEngagementNudge(now, {
+    enabled: prefs.notifications.reEngagementNudgesEnabled,
+    lastActiveAt: prefs.notifications.lastActiveAt ?? undefined,
+    lastReEngagementNudgeAt: prefs.notifications.reEngagementNudgeAt ?? undefined,
+  });
+  if (!result.fire) return;
+  const ok = await Permissions.scheduleReEngagementNudgeNow(prefs.notifications.soundEnabled);
+  if (!ok) return;
+  void buildReEngagementNotificationContent();
+  onPrefsUpdate({
+    ...prefs,
+    notifications: {
+      ...prefs.notifications,
+      reEngagementNudgeAt: now.toISOString(),
+    },
+  });
+}
+
 export async function syncEngagementNotifications(
   prefs: Preferences,
   onPrefsUpdate: (next: Preferences) => void,
@@ -151,6 +199,8 @@ export async function syncEngagementNotifications(
   await maybeFireSmartMissedLogNudge(prefs, onPrefsUpdate, now);
   await maybeFireMedDoseReminders(prefs, onPrefsUpdate, now);
   await maybeFireFlareRiskNudge(prefs, onPrefsUpdate, now);
+  await maybeFireReEngagementNudge(prefs, onPrefsUpdate, now);
+  touchEngagementActivity(prefs, onPrefsUpdate, now);
 }
 
 export async function handleMedDoseNotificationAction(

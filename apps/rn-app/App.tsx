@@ -116,6 +116,9 @@ export default function App() {
     prefs?.notifications.dailyReminderTime,
     prefs?.notifications.smartMissedNudgeDate,
     prefs?.notifications.flareRiskNudgeWeek,
+    prefs?.notifications.reEngagementNudgesEnabled,
+    prefs?.notifications.reEngagementNudgeAt,
+    prefs?.notifications.lastActiveAt,
     prefs?.medSchedule,
     prefs?.aiEnabled,
   ]);
