@@ -201,9 +201,9 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                 Fatigue avg: {fmt(summary.avgFatigue)} / 10
               </Text>
 
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Top insights</Text>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.top.insights')}</Text>
               <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-                Ranked by impact. Tap for contributing dates (informational only).
+                {t('ai.top.insights.hint')}
               </Text>
               {(analysis?.insights ?? []).map((insight) => (
                 <Pressable
@@ -224,7 +224,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
 
               {analysis?.triggerHypotheses?.length ? (
                 <>
-                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Trigger hypotheses</Text>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.trigger.hypotheses')}</Text>
                   {analysis.triggerHypotheses.map((h) => (
                     <Text key={h.id} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                       {h.label}: +{h.lift}% flare lift ({h.overlap} days)
@@ -235,7 +235,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
 
               {analysis?.weeklyDigest ? (
                 <>
-                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Weekly digest</Text>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.weekly.digest')}</Text>
                   <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                     {analysis.weeklyDigest.headline}
                   </Text>
@@ -244,7 +244,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
 
               {analysis?.anomalies?.length ? (
                 <>
-                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Anomaly alerts</Text>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.anomaly.alerts')}</Text>
                   {analysis.anomalies.map((a) => (
                     <Text key={a.id} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                       {a.message}
@@ -255,7 +255,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
 
               {analysis?.treatmentComparisons?.length ? (
                 <>
-                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Treatment windows</Text>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.treatment.windows')}</Text>
                   {analysis.treatmentComparisons.map((t) => (
                     <Text key={t.id} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                       {t.label}: fatigue {t.preFatigueAvg ?? '—'} → {t.postFatigueAvg ?? '—'}
@@ -266,7 +266,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
 
               {analysis?.conditionHints?.hints?.length ? (
                 <>
-                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>Condition pack</Text>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.condition.pack')}</Text>
                   {analysis.conditionHints.hints.map((hint) => (
                     <Text key={hint} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                       {hint}
@@ -280,13 +280,13 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                 onPress={() => {
                   try {
                     const json = exportAnalysisJsonForResearch(analysis, { optIn: true });
-                    void Share.share({ message: json, title: 'Analysis export' });
+                    void Share.share({ message: json, title: t('ai.analysis.export') });
                   } catch {
                     setError(t('settings.export.failed'));
                   }
                 }}
               >
-                <Text style={{ color: theme.tokens.color.accent, fontWeight: '700' }}>Export analysis JSON (research)</Text>
+                <Text style={{ color: theme.tokens.color.accent, fontWeight: '700' }}>{t('ai.export.analysis.json.research')}</Text>
               </Pressable>
 
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.section.whatYouLogged')}</Text>
