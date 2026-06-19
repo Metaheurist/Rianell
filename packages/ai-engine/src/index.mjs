@@ -11,6 +11,11 @@ export {
   buildInsightWhy,
 } from './insightRanking.mjs';
 export { computeTriggerHypotheses } from './triggerHypotheses.mjs';
+export {
+  buildCorrelationCards,
+  buildFlarePostMortem,
+  correlationConfidenceLevel,
+} from './chartAnalytics.mjs';
 export { detectMetricAnomalies } from './anomalies.mjs';
 export { buildWeeklyDigest } from './weeklyDigest.mjs';
 export { compareTreatmentWindows } from './treatmentTimeline.mjs';

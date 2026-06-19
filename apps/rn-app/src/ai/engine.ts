@@ -7,6 +7,9 @@ export {
   runDeterministicAnalysis,
   rankNeuralAnalysisInsights,
   summarizeLogsForAi,
+  buildCorrelationCards,
+  buildFlarePostMortem,
+  correlationConfidenceLevel,
 } from '@rianell/ai-engine';
 
 export type PredictedPoint = {
