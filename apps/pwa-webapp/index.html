@@ -1532,6 +1532,28 @@
     </div>
   </div>
 
+  <div class="modal-overlay micro-checkin-modal-overlay" id="microCheckinModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="microCheckinModalTitle">
+    <div class="modal-content micro-checkin-modal-content" onclick="event.stopPropagation()" role="document">
+      <div class="modal-header">
+        <h3 id="microCheckinModalTitle" data-i18n="home.checkin.modalTitle">Quick check-in</h3>
+        <button type="button" class="modal-close" onclick="closeMicroCheckinModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
+      </div>
+      <div class="modal-body micro-checkin-modal-body">
+        <p class="micro-checkin-lede" data-i18n="wizard.energy.instructions">Rate mood, sleep, and fatigue from 1–10.</p>
+        <label class="micro-checkin-label" for="microCheckinMood" data-i18n="wizard.mood.1.10">Mood (1–10)</label>
+        <input type="number" id="microCheckinMood" class="micro-checkin-input" min="1" max="10" inputmode="numeric" />
+        <label class="micro-checkin-label" for="microCheckinSleep" data-i18n="wizard.sleep.1.10">Sleep (1–10)</label>
+        <input type="number" id="microCheckinSleep" class="micro-checkin-input" min="1" max="10" inputmode="numeric" />
+        <label class="micro-checkin-label" for="microCheckinFatigue" data-i18n="wizard.fatigue.1.10">Fatigue (1–10)</label>
+        <input type="number" id="microCheckinFatigue" class="micro-checkin-input" min="1" max="10" inputmode="numeric" />
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="modal-cancel-btn" onclick="closeMicroCheckinModal()" data-i18n="common.cancel">Cancel</button>
+        <button type="button" class="modal-save-btn" onclick="saveMicroCheckinAndClose()" data-i18n="home.checkin.save">Save check-in</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay home-question-modal-overlay" id="homeQuestionModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="homeQuestionModalTitle">
     <div class="modal-content home-question-modal-content" onclick="event.stopPropagation()" role="document">
       <div class="modal-header">
@@ -1699,6 +1721,8 @@
         <p class="home-today-sub" id="homeTodayDate" aria-live="polite"></p>
       </div>
       <div id="homeNudgeCard" class="home-nudge-card" data-home-card="nudge" hidden role="status" aria-live="polite"></div>
+      <div id="homeCheckinCard" class="home-checkin-card" data-home-card="checkin" hidden></div>
+      <div id="homePacingCard" class="home-pacing-card" data-home-card="pacing" hidden></div>
       <div id="homeHeroCard" class="home-hero-card" data-home-card="hero" data-scroll-reveal role="status" aria-live="polite">
         <div id="homeTodayStatus" class="home-today-status"></div>
         <div id="homeAiSuggestions" class="home-ai-suggestions" hidden aria-live="polite"></div>

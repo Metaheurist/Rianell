@@ -33,6 +33,7 @@ var RianellShared = (() => {
     GOALS_STORAGE_KEY: () => GOALS_STORAGE_KEY,
     GOLDEN_LLM_INTENTS: () => GOLDEN_LLM_INTENTS,
     GOLDEN_LLM_LOCALES: () => GOLDEN_LLM_LOCALES,
+    HOME_CHECKIN_PERIODS: () => HOME_CHECKIN_PERIODS,
     HOME_SUGGESTIONS_MAX_CHIPS: () => HOME_SUGGESTIONS_MAX_CHIPS,
     HOME_SUGGESTIONS_MIN_DAYS: () => HOME_SUGGESTIONS_MIN_DAYS,
     HOME_SUGGESTIONS_RANGE_DAYS: () => HOME_SUGGESTIONS_RANGE_DAYS,
@@ -67,6 +68,7 @@ var RianellShared = (() => {
     analysisSnapshotFromSummary: () => analysisSnapshotFromSummary,
     appendProcessingActivity: () => appendProcessingActivity,
     applyLocaleDefaultsToPrefs: () => applyLocaleDefaultsToPrefs,
+    applyMicroCheckin: () => applyMicroCheckin,
     applyMigrationPendingFlag: () => applyMigrationPendingFlag,
     applyPrivacyProfileToLocal: () => applyPrivacyProfileToLocal,
     applyRegionDefaultLocale: () => applyRegionDefaultLocale,
@@ -101,6 +103,7 @@ var RianellShared = (() => {
     checkPolicyDriftSync: () => checkPolicyDriftSync,
     clearMigrationPending: () => clearMigrationPending,
     coachPersonaPromptKey: () => coachPersonaPromptKey,
+    completedCheckinPeriods: () => completedCheckinPeriods,
     computeHomeAnalysisSnapshot: () => computeHomeAnalysisSnapshot,
     computeHomeCardContext: () => computeHomeCardContext,
     createReadOnlyShareEnvelope: () => createReadOnlyShareEnvelope,
@@ -197,6 +200,7 @@ var RianellShared = (() => {
     parseMigrationCsv: () => parseMigrationCsv,
     parseSettingsProfileImport: () => parseSettingsProfileImport,
     parseStructuredLlmOutput: () => parseStructuredLlmOutput,
+    periodForHour: () => periodForHour,
     pickHomeAiSuggestions: () => pickHomeAiSuggestions,
     prefsToConsents: () => prefsToConsents,
     privacyProfileFromLocal: () => privacyProfileFromLocal,
@@ -224,7 +228,7 @@ var RianellShared = (() => {
   });
 
   // packages/shared/src/logging/logSchema.mjs
-  var SUB_ENTRY_PERIODS = /* @__PURE__ */ new Set(["AM", "PM", "partial"]);
+  var SUB_ENTRY_PERIODS = /* @__PURE__ */ new Set(["AM", "midday", "PM", "partial"]);
   function clampInt(raw, min, max) {
     const n = typeof raw === "number" ? raw : typeof raw === "string" ? parseInt(raw, 10) : NaN;
     if (!Number.isFinite(n)) return void 0;
@@ -2158,6 +2162,8 @@ var RianellShared = (() => {
   // packages/shared/src/ai/homeCardRegistry.mjs
   var HOME_CARDS = [
     { id: "nudge", basePriority: 40 },
+    { id: "checkin", basePriority: 70 },
+    { id: "pacing", basePriority: 55 },
     { id: "hero", basePriority: 100 },
     { id: "goals", basePriority: 60 }
   ];
@@ -2179,7 +2185,9 @@ var RianellShared = (() => {
     const {
       aiEnabled = true,
       simpleMode = false,
-      showGoals = true
+      showGoals = true,
+      hasPacingData = false,
+      showCheckin = true
     } = options;
     const loggedToday = Array.isArray(logs) && logs.some((l) => l?.date === todayStr);
     const streakBroken = isLoggingStreakBroken(logs, todayStr);
@@ -2190,7 +2198,9 @@ var RianellShared = (() => {
       aiEnabled: aiEnabled !== false,
       simpleMode: simpleMode === true,
       showGoals: showGoals !== false && aiEnabled !== false,
-      showAiQuestions
+      showAiQuestions,
+      showPacing: hasPacingData === true,
+      showCheckin: showCheckin !== false && simpleMode !== true
     };
   }
   function resolveHomeCardOrder(context) {
@@ -2199,8 +2209,12 @@ var RianellShared = (() => {
     for (const card of HOME_CARDS) {
       if (card.id === "nudge" && (!ctx.streakBroken || ctx.loggedToday)) continue;
       if (card.id === "goals" && !ctx.showGoals) continue;
+      if (card.id === "pacing" && !ctx.showPacing) continue;
+      if (card.id === "checkin" && !ctx.showCheckin) continue;
       let priority = card.basePriority;
       if (ctx.loggedToday && card.id === "goals") priority += 50;
+      if (ctx.loggedToday && card.id === "checkin") priority += 35;
+      if (ctx.loggedToday && card.id === "pacing") priority += 20;
       if (!ctx.loggedToday && card.id === "hero") priority += 30;
       if (!ctx.loggedToday && card.id === "nudge") priority += 80;
       if (ctx.streakBroken && card.id === "nudge") priority += 20;
@@ -2718,6 +2732,46 @@ ${hist}`);
     const settings = parsed.settings && typeof parsed.settings === "object" ? parsed.settings : {};
     const goals = parsed.goals && typeof parsed.goals === "object" ? parsed.goals : {};
     return { settings, goals, exportedAt: parsed.exportedAt || null };
+  }
+
+  // packages/shared/src/logging/microCheckin.mjs
+  var HOME_CHECKIN_PERIODS = ["AM", "midday", "PM"];
+  function periodForHour(hour) {
+    const h = typeof hour === "number" ? hour : (/* @__PURE__ */ new Date()).getHours();
+    if (h < 11) return "AM";
+    if (h < 17) return "midday";
+    return "PM";
+  }
+  function completedCheckinPeriods(todayLog) {
+    const subs = Array.isArray(todayLog?.subEntries) ? todayLog.subEntries : [];
+    return new Set(
+      subs.map((s) => s?.period).filter((p) => typeof p === "string" && HOME_CHECKIN_PERIODS.includes(p))
+    );
+  }
+  function byDateAsc(a, b) {
+    return String(a.date).localeCompare(String(b.date));
+  }
+  function applyMicroCheckin(logs, todayStr, period, metrics = {}) {
+    if (!HOME_CHECKIN_PERIODS.includes(period)) {
+      throw new Error(`Invalid check-in period: ${period}`);
+    }
+    const sub = normalizeSubEntry({
+      id: `${todayStr}-${period}`,
+      period,
+      mood: metrics.mood,
+      sleep: metrics.sleep,
+      fatigue: metrics.fatigue
+    });
+    const incoming = { date: todayStr, flare: "No", subEntries: [sub] };
+    const list = Array.isArray(logs) ? [...logs] : [];
+    const idx = list.findIndex((l) => l?.date === todayStr);
+    if (idx >= 0) {
+      const merged = mergeLogEntriesForDate(list[idx], incoming);
+      const next = [...list];
+      next[idx] = merged;
+      return next.sort(byDateAsc);
+    }
+    return [...list, { ...incoming }].sort(byDateAsc);
   }
 
   // packages/shared/src/logging/favorites.mjs

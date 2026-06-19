@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.101.0** - Plan 10 phase A: adaptive home card layout (H1).
+**Latest: v1.102.0** - Plan 10 phase B: pacing widget + micro-check-ins (H2, H4).
+
+### v1.102.0 - 2026-06-19 - Plan 10 Home phase B (H2, H4)
+- **H2:** Energy budget / pacing widget on Home — `buildTodayPacingBudget` with flare-adjusted planned spoons; links to Charts (PWA + RN).
+- **H4:** AM/midday/PM micro-check-ins — `applyMicroCheckin` partial sub-entries from Home modal (PWA + RN).
+- **Tests:** 5 plan10-phase-b tests (243 total).
 
 ### v1.101.0 - 2026-06-19 - Plan 10 Home phase A (H1)
 - **H1:** Adaptive home card registry — reorder hero/goals/nudge by context (`resolveHomeCardOrder`); PWA DOM layout + RN ScrollView.

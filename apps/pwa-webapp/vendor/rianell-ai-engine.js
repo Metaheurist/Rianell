@@ -32,6 +32,7 @@ var RianellAIEngine = (() => {
     buildFlarePostMortem: () => buildFlarePostMortem,
     buildInsightWhy: () => buildInsightWhy,
     buildPacingChartSeries: () => buildPacingChartSeries,
+    buildTodayPacingBudget: () => buildTodayPacingBudget,
     buildWeeklyDigest: () => buildWeeklyDigest,
     collectInsightCandidates: () => collectInsightCandidates,
     collectInsightCandidatesFromSummary: () => collectInsightCandidatesFromSummary,
@@ -923,6 +924,33 @@ var RianellAIEngine = (() => {
         overpaced
       };
     });
+  }
+  function buildTodayPacingBudget(logs, todayStr) {
+    const sorted = [...Array.isArray(logs) ? logs : []].sort(byDateAsc);
+    const idx = sorted.findIndex((l) => l.date === todayStr);
+    const prior = idx >= 0 ? sorted.slice(0, idx) : sorted.filter((l) => l.date < todayStr);
+    if (prior.length < 2) return null;
+    const working = idx >= 0 ? sorted : [...prior, { date: todayStr }];
+    const indexForPlan = idx >= 0 ? idx : prior.length;
+    let planned = plannedSpoonsForIndex(working, indexForPlan);
+    const recentFlares = working.slice(Math.max(0, indexForPlan - 7), indexForPlan).filter((l) => l.flare === "Yes").length;
+    if (recentFlares >= 2) planned = Math.max(1, planned - 1);
+    if (recentFlares >= 4) planned = Math.max(1, planned - 2);
+    const todayLog = idx >= 0 ? sorted[idx] : null;
+    const rawActual = todayLog ? exerciseSpoonLoad(todayLog) : 0;
+    const actual = todayLog ? Number(Math.min(planned, rawActual).toFixed(1)) : 0;
+    const fatigue = todayLog && typeof todayLog.fatigue === "number" ? todayLog.fatigue : null;
+    const overpaced = rawActual > planned;
+    return {
+      date: todayStr,
+      planned,
+      actual,
+      rawActual: Number(rawActual.toFixed(1)),
+      fatigue,
+      overpaced,
+      recentFlares,
+      hasTodayLog: idx >= 0
+    };
   }
 
   // packages/ai-engine/src/researchExport.mjs

@@ -15,6 +15,7 @@ export {
   compareChartPeriods,
   buildPacingChartSeries,
   buildBalanceRadarData,
+  buildTodayPacingBudget,
   CYCLE_PHASE_COLORS,
 } from '@rianell/ai-engine';
 
