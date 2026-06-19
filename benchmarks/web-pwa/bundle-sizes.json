@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-19T20:34:59.308Z",
+  "generatedAt": "2026-06-19T22:18:58.715Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3936095,
-    "cssBytes": 399739,
-    "jsGzipBytes": 940423,
-    "cssGzipBytes": 70226
+    "jsBytes": 3943456,
+    "cssBytes": 403151,
+    "jsGzipBytes": 942922,
+    "cssGzipBytes": 70793
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 914456,
-      "gzipBytes": 198138
+      "bytes": 909235,
+      "gzipBytes": 197221
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.483d7817f2a1.min.js",
-      "bytes": 651081,
-      "gzipBytes": 147939
+      "file": "ci-minified/site/app.a5f696e9be86.min.js",
+      "bytes": 646995,
+      "gzipBytes": 147132
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -29,14 +29,14 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.4e92e5e91d6e.css",
-      "bytes": 384003,
-      "gzipBytes": 66092
+      "file": "ci-minified/site/styles.5f4f6a38a11e.css",
+      "bytes": 387415,
+      "gzipBytes": 66659
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 231376,
-      "gzipBytes": 53928
+      "bytes": 235181,
+      "gzipBytes": 54948
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -45,13 +45,13 @@
     },
     {
       "file": "ci-minified/site/cloud-sync.js",
-      "bytes": 96871,
-      "gzipBytes": 20732
+      "bytes": 96868,
+      "gzipBytes": 20736
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 76908,
-      "gzipBytes": 17024
+      "bytes": 76905,
+      "gzipBytes": 17025
     },
     {
       "file": "ci-minified/site/export-utils.js",
@@ -60,8 +60,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-ai-engine.js",
-      "bytes": 46294,
-      "gzipBytes": 11458
+      "bytes": 46264,
+      "gzipBytes": 11455
     },
     {
       "file": "ci-minified/site/device-benchmark.js",
@@ -85,8 +85,8 @@
     },
     {
       "file": "ci-minified/site/ui-feedback.js",
-      "bytes": 20156,
-      "gzipBytes": 4880
+      "bytes": 20164,
+      "gzipBytes": 4884
     },
     {
       "file": "ci-minified/site/import-utils.js",
@@ -105,8 +105,8 @@
     },
     {
       "file": "ci-minified/site/modules/weekly-review.js",
-      "bytes": 13123,
-      "gzipBytes": 3231
+      "bytes": 15071,
+      "gzipBytes": 3561
     },
     {
       "file": "ci-minified/site/security-utils.js",
@@ -119,14 +119,19 @@
       "gzipBytes": 2953
     },
     {
-      "file": "ci-minified/site/device-module.js",
-      "bytes": 7306,
-      "gzipBytes": 2118
+      "file": "ci-minified/site/modules/mood-tab.js",
+      "bytes": 10481,
+      "gzipBytes": 2802
     },
     {
       "file": "ci-minified/site/i18n-pwa.js",
-      "bytes": 7065,
-      "gzipBytes": 1982
+      "bytes": 7530,
+      "gzipBytes": 2046
+    },
+    {
+      "file": "ci-minified/site/device-module.js",
+      "bytes": 7306,
+      "gzipBytes": 2118
     },
     {
       "file": "ci-minified/site/encryption-utils.js",
@@ -215,8 +220,8 @@
     },
     {
       "file": "ci-minified/site/appointment-pdf.js",
-      "bytes": 2020,
-      "gzipBytes": 810
+      "bytes": 2017,
+      "gzipBytes": 811
     },
     {
       "file": "ci-minified/site/llm-runtime-profiles-sync.js",
