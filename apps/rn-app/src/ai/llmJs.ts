@@ -11,6 +11,7 @@ import {
   buildExplainChartPrompt,
   buildStructuredSummaryPrompt,
   buildWeekChatPrompt,
+  buildDoctorQuestionsPrompt,
 } from '@rianell/shared';
 
 type LlmFeature =
@@ -21,7 +22,8 @@ type LlmFeature =
   | 'clinicianBrief'
   | 'explainChart'
   | 'structuredSummary'
-  | 'weekChat';
+  | 'weekChat'
+  | 'doctorQuestions';
 
 let jsPipeline: Awaited<ReturnType<typeof pipeline>> | null = null;
 let jsModelId: string | null = null;
@@ -117,6 +119,9 @@ export async function runJsChat(
     case 'weekChat':
       prompts = buildWeekChatPrompt(locale, context, opts);
       break;
+    case 'doctorQuestions':
+      prompts = buildDoctorQuestionsPrompt(locale, context, opts);
+      break;
     default:
       prompts = { system: '', user: context };
   }
@@ -131,6 +136,8 @@ export async function runJsChat(
           ? 220
           : feature === 'clinicianBrief'
             ? 260
+            : feature === 'doctorQuestions'
+              ? 180
             : feature === 'weekChat'
               ? 200
               : 180,

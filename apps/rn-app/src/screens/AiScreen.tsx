@@ -9,7 +9,7 @@ import { Share } from 'react-native';
 import { runDeterministicAnalysis, exportAnalysisJsonForResearch, type AiRange } from '../ai/analyzeLogs';
 import type { Preferences } from '../storage/preferences';
 import { loadCachedBenchmark, type BenchmarkResult } from '../performance/benchmark';
-import { generateSummaryNote, generateClinicianVisitBrief, generateStructuredInsights, sendWeekChatMessage, type WeekChatTurn } from '../ai/llm';
+import { generateSummaryNote, generateClinicianVisitBrief, generateDoctorQuestions, generateStructuredInsights, sendWeekChatMessage, type WeekChatTurn } from '../ai/llm';
 import { MAX_WEEK_CHAT_TURNS, canSendWeekChatTurn } from '@rianell/shared';
 
 const RANGE_OPTIONS: AiRange[] = [14, 30, 90, 'all'];
@@ -37,6 +37,8 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
   const [clinicianBrief, setClinicianBrief] = useState<string>('');
   const [structuredInsights, setStructuredInsights] = useState<string>('');
   const [clinicianBriefLoading, setClinicianBriefLoading] = useState(false);
+  const [doctorQuestions, setDoctorQuestions] = useState<string[]>([]);
+  const [doctorQuestionsLoading, setDoctorQuestionsLoading] = useState(false);
   const [weekChatTurns, setWeekChatTurns] = useState<WeekChatTurn[]>([]);
   const [weekChatInput, setWeekChatInput] = useState('');
   const [weekChatLoading, setWeekChatLoading] = useState(false);
@@ -313,6 +315,41 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                   <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                     {clinicianBrief}
                   </Text>
+                </>
+              ) : null}
+
+              <Pressable
+                style={[styles.rangeChip, { alignSelf: 'flex-start', marginTop: 8 }]}
+                onPress={() => {
+                  if (!summary || doctorQuestionsLoading) return;
+                  setDoctorQuestionsLoading(true);
+                  void generateDoctorQuestions(
+                    summary,
+                    prefs.performance.preferredLlmModelSize,
+                    benchmark,
+                    locale,
+                    prefs
+                  )
+                    .then((items) => setDoctorQuestions(items))
+                    .catch(() => setError(t('settings.export.failed')))
+                    .finally(() => setDoctorQuestionsLoading(false));
+                }}
+              >
+                <Text style={{ color: theme.tokens.color.accent, fontWeight: '700' }}>
+                  {doctorQuestionsLoading ? t('ai.doctorQuestions.loading') : t('ai.doctorQuestions.action')}
+                </Text>
+              </Pressable>
+
+              {doctorQuestions.length ? (
+                <>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                    {t('ai.doctorQuestions.section')}
+                  </Text>
+                  {doctorQuestions.map((q, idx) => (
+                    <Text key={`dq-${idx}`} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                      {idx + 1}. {q}
+                    </Text>
+                  ))}
                 </>
               ) : null}
 

@@ -30,7 +30,7 @@ import { loadLogs, saveLogs, type LogEntry } from '../storage/logs';
 import type { Preferences } from '../storage/preferences';
 import { savePreferences } from '../storage/preferences';
 import { loadCachedBenchmark } from '../performance/benchmark';
-import { generateMotd, answerHomeQuestion } from '../ai/llm';
+import { generateMotd, answerHomeQuestion, generateClinicianVisitBrief, generateDoctorQuestions } from '../ai/llm';
 import {
   pickHomeAiSuggestionBundle,
   analysisSnapshotFromSummary,
@@ -55,6 +55,7 @@ import Constants from 'expo-constants';
 import { buildLogReviewSummary } from '../log/buildLogReviewSummary';
 import { speakLabel } from '../accessibility/tts';
 import { submitBugReport } from '../utils/submitBugReport';
+import { printOrShareAppointmentReport } from '../utils/appointmentPdf';
 import { getBugReportAttachmentText } from '../utils/bugReportLogs';
 
 /** Web `index.html` parity: top chrome includes bug-report modal entry. */
@@ -366,6 +367,7 @@ export function HomeScreen({
   const [checkinSaving, setCheckinSaving] = useState(false);
   const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
   const [appointmentDraft, setAppointmentDraft] = useState('');
+  const [prepBusy, setPrepBusy] = useState(false);
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherSnapshot, setWeatherSnapshot] = useState(prefs.weatherCache);
 
@@ -737,8 +739,47 @@ export function HomeScreen({
   }, [persistPrefs, prefs]);
 
   const onPrepReport = useCallback(() => {
-    navigation.navigate('AI Analysis');
-  }, [navigation]);
+    if (prepBusy) return;
+    setPrepBusy(true);
+    void (async () => {
+      try {
+        const logs = homeLogs.length ? homeLogs : await loadLogs();
+        let briefText = '';
+        let doctorQuestions: string[] = [];
+        if (prefs.aiEnabled) {
+          const summary = summarizeLogsForAi(logs, 14, { translate: t });
+          const benchmark = await loadCachedBenchmark().catch(() => null);
+          const [brief, questions] = await Promise.all([
+            generateClinicianVisitBrief(
+              summary,
+              logs,
+              prefs.performance.preferredLlmModelSize,
+              benchmark,
+              locale,
+              prefs
+            ).catch(() => ''),
+            generateDoctorQuestions(
+              summary,
+              prefs.performance.preferredLlmModelSize,
+              benchmark,
+              locale,
+              prefs
+            ).catch(() => [] as string[]),
+          ]);
+          briefText = brief;
+          doctorQuestions = questions;
+        }
+        await printOrShareAppointmentReport({ logs, prefs, briefText, doctorQuestions });
+      } catch (e) {
+        Alert.alert(
+          t('home.appointment.prepCta'),
+          e instanceof Error ? e.message : t('settings.export.failed')
+        );
+      } finally {
+        setPrepBusy(false);
+      }
+    })();
+  }, [homeLogs, locale, prefs, prepBusy, t]);
 
   const renderHomeCard = (cardId: string) => {
     if (cardId === 'nudge') {
@@ -909,11 +950,14 @@ export function HomeScreen({
           <View style={styles.checkinRow}>
             <Pressable
               onPress={onPrepReport}
-              style={({ pressed }) => [styles.checkinBtn, { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1 }]}
+              disabled={prepBusy}
+              style={({ pressed }) => [styles.checkinBtn, { borderColor: `${accent}66`, opacity: pressed || prepBusy ? 0.88 : 1 }]}
               accessibilityRole="button"
               accessibilityLabel={t('home.appointment.prepCta')}
             >
-              <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(13) }}>{t('home.appointment.prepCta')}</Text>
+              <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(13) }}>
+                {prepBusy ? t('home.appointment.prepBusy') : t('home.appointment.prepCta')}
+              </Text>
             </Pressable>
             <Pressable
               onPress={onOpenAppointmentModal}

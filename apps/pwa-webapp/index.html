@@ -1476,6 +1476,7 @@
           </div>
           <div class="data-management-buttons__cell">
             <button type="button" class="settings-data-btn export-btn" onclick="exportEncryptedData()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-lock"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.export.encrypted.action">Encrypted export</span></button>
+            <button type="button" class="settings-data-btn export-btn" onclick="RianellQrHandoff && RianellQrHandoff.open()"><span class="data-management-buttons__label" data-i18n="settings.export.qrHandoff.action">QR handoff (in-office)</span></button>
             <button type="button" class="settings-data-btn export-btn" onclick="exportFhirBundle()"><span class="data-management-buttons__label" data-i18n="settings.data.export.fhir">Export FHIR-lite bundle</span></button>
             <button type="button" class="settings-data-btn export-btn" onclick="exportReadOnlyShareLink()"><span class="data-management-buttons__label" data-i18n="settings.data.export.shareLink">Create read-only share link</span></button>
             <button type="button" class="settings-data-btn export-btn" onclick="openWebDavBackupModal()"><span class="data-management-buttons__label" data-i18n="settings.data.export.webdav">Backup to WebDAV</span></button>
@@ -2954,6 +2955,23 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="qrHandoffOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="qrHandoffModalTitle">
+    <div class="modal-content alert-modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="qrHandoffModalTitle" data-i18n="settings.export.qrHandoff.title">QR handoff (in-office)</h3>
+        <button type="button" class="modal-close" onclick="RianellQrHandoff && RianellQrHandoff.close()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
+      </div>
+      <div class="modal-body alert-modal-body" style="text-align:center;">
+        <p data-i18n="settings.export.qrHandoff.scanHint">Show this QR to your clinician. View-only, expires automatically.</p>
+        <canvas id="qrHandoffCanvas" width="220" height="220" style="margin:12px auto;"></canvas>
+        <p id="qrHandoffMeta" class="settings-hint"></p>
+      </div>
+      <div class="modal-footer alert-modal-footer">
+        <button type="button" class="modal-save-btn modal-cancel-btn" onclick="RianellQrHandoff && RianellQrHandoff.close()" data-i18n="common.close">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- AI model download consent -->
   <div class="modal-overlay ai-model-download-consent" id="aiModelDownloadOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="aiModelDownloadTitle">
     <div class="modal-content alert-modal-content" onclick="event.stopPropagation()">
@@ -3627,6 +3645,8 @@
   <script defer src="performance-utils.js"></script>
   <script defer src="ui-feedback.js?v=1"></script>
   <script defer src="push-subscribe.js?v=1"></script>
+  <script defer src="appointment-pdf.js?v=1"></script>
+  <script defer src="qr-handoff.js?v=1"></script>
   <script defer src="background-loader.js"></script>
   <script defer src="android-update-check.js?v=1"></script>
   <script>

@@ -17,6 +17,9 @@ import {
   buildWeekChatFallback,
   canSendWeekChatTurn,
   MAX_WEEK_CHAT_TURNS,
+  buildDoctorQuestionsContext,
+  buildDoctorQuestionsFallback,
+  parseDoctorQuestionsResponse,
 } from '@rianell/shared';
 import { resolveLlmModelSizeForFeature } from '@rianell/llm';
 import type { PreferredLlmModelSize } from '../storage/preferences';
@@ -37,7 +40,8 @@ export type LlmFeature =
   | 'clinicianBrief'
   | 'explainChart'
   | 'structuredSummary'
-  | 'weekChat';
+  | 'weekChat'
+  | 'doctorQuestions';
 
 const cache = new Map<string, string>();
 
@@ -314,6 +318,34 @@ export async function answerHomeQuestion(
 
 export function clearLlmCacheForTests(): void {
   cache.clear();
+}
+
+export async function generateDoctorQuestions(
+  summary: AiSummary,
+  preferredModel: PreferredLlmModelSize,
+  benchmark: BenchmarkResult | null,
+  locale: string,
+  prefs?: any
+): Promise<string[]> {
+  const context = buildDoctorQuestionsContext({
+    analysis: summary,
+    logs: [],
+    rangeLabel: summary.rangeLabel,
+  });
+  const fallback = buildDoctorQuestionsFallback(summary);
+  const raw = await generateWithFallback(
+    'doctorQuestions',
+    `dq:${summary.rangeLabel}:${summary.totalLogs}`,
+    preferredModel,
+    benchmark,
+    context,
+    locale,
+    () => fallback.join('\n'),
+    prefs || null,
+    { multiline: true }
+  );
+  const parsed = parseDoctorQuestionsResponse(raw);
+  return parsed.length ? parsed : fallback;
 }
 
 export async function generateClinicianVisitBrief(

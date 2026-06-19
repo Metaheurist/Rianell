@@ -24,6 +24,8 @@ var RianellShared = (() => {
     ANON_POOL_EXCLUDED_FIELDS: () => ANON_POOL_EXCLUDED_FIELDS,
     ANON_POOL_INCLUDED_FIELDS: () => ANON_POOL_INCLUDED_FIELDS,
     APPOINTMENT_COUNTDOWN_DAYS: () => APPOINTMENT_COUNTDOWN_DAYS,
+    APPOINTMENT_DISCLAIMER: () => APPOINTMENT_DISCLAIMER,
+    APPOINTMENT_RANGE_DAYS: () => APPOINTMENT_RANGE_DAYS,
     BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS: () => BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS,
     CAREGIVER_RELATIONSHIPS: () => CAREGIVER_RELATIONSHIPS,
     DEFAULT_GOALS: () => DEFAULT_GOALS,
@@ -62,6 +64,9 @@ var RianellShared = (() => {
     PROCESSING_ACTIVITY_LOG_MAX: () => PROCESSING_ACTIVITY_LOG_MAX,
     PROFILE_AVATAR_IDS: () => PROFILE_AVATAR_IDS,
     PROGRESSIVE_CATEGORIES: () => PROGRESSIVE_CATEGORIES,
+    QR_HANDOFF_DEFAULT_TTL_MINUTES: () => QR_HANDOFF_DEFAULT_TTL_MINUTES,
+    QR_HANDOFF_FORMAT: () => QR_HANDOFF_FORMAT,
+    QR_HANDOFF_MAX_CHARS: () => QR_HANDOFF_MAX_CHARS,
     RE_ENGAGEMENT_IDLE_DAYS: () => RE_ENGAGEMENT_IDLE_DAYS,
     SETTINGS_PROFILE_EXPORT_VERSION: () => SETTINGS_PROFILE_EXPORT_VERSION,
     SETTINGS_STORAGE_KEY: () => SETTINGS_STORAGE_KEY,
@@ -87,10 +92,16 @@ var RianellShared = (() => {
     appointmentCountdownLabelKey: () => appointmentCountdownLabelKey,
     auditGoldenPrompt: () => auditGoldenPrompt,
     buildAirQualityUrl: () => buildAirQualityUrl,
+    buildAppointmentChartRows: () => buildAppointmentChartRows,
+    buildAppointmentReportHtml: () => buildAppointmentReportHtml,
+    buildAppointmentReportModel: () => buildAppointmentReportModel,
     buildClinicianBriefContext: () => buildClinicianBriefContext,
     buildClinicianBriefFallback: () => buildClinicianBriefFallback,
     buildClinicianBriefPrompt: () => buildClinicianBriefPrompt,
     buildConsentDashboardEntries: () => buildConsentDashboardEntries,
+    buildDoctorQuestionsContext: () => buildDoctorQuestionsContext,
+    buildDoctorQuestionsFallback: () => buildDoctorQuestionsFallback,
+    buildDoctorQuestionsPrompt: () => buildDoctorQuestionsPrompt,
     buildEncryptedBackupBlob: () => buildEncryptedBackupBlob,
     buildExplainChartContext: () => buildExplainChartContext,
     buildExplainChartFallback: () => buildExplainChartFallback,
@@ -101,14 +112,17 @@ var RianellShared = (() => {
     buildHomeQuestionPrompt: () => buildHomeQuestionPrompt,
     buildLlmRequestPayload: () => buildLlmRequestPayload,
     buildMedDoseNotificationContent: () => buildMedDoseNotificationContent,
+    buildMedicationTimeline: () => buildMedicationTimeline,
     buildMotdPrompt: () => buildMotdPrompt,
     buildProxyLogMetadata: () => buildProxyLogMetadata,
+    buildQrHandoffLogsSubset: () => buildQrHandoffLogsSubset,
     buildReEngagementNotificationContent: () => buildReEngagementNotificationContent,
     buildSettingsProfileExport: () => buildSettingsProfileExport,
     buildStreakReminderNotificationContent: () => buildStreakReminderNotificationContent,
     buildStructuredSummaryPrompt: () => buildStructuredSummaryPrompt,
     buildSuggestPrompt: () => buildSuggestPrompt,
     buildSummaryPrompt: () => buildSummaryPrompt,
+    buildTimelineSvg: () => buildTimelineSvg,
     buildTodayMedDoseStatuses: () => buildTodayMedDoseStatuses,
     buildWeatherForecastUrl: () => buildWeatherForecastUrl,
     buildWeekChatContext: () => buildWeekChatContext,
@@ -123,6 +137,8 @@ var RianellShared = (() => {
     checkPolicyDriftSync: () => checkPolicyDriftSync,
     clearMigrationPending: () => clearMigrationPending,
     coachPersonaPromptKey: () => coachPersonaPromptKey,
+    collectFlareCalendarEntries: () => collectFlareCalendarEntries,
+    collectMedicationList: () => collectMedicationList,
     completedCheckinPeriods: () => completedCheckinPeriods,
     computeFlareFreeDays: () => computeFlareFreeDays,
     computeGoodDayStreak: () => computeGoodDayStreak,
@@ -130,6 +146,7 @@ var RianellShared = (() => {
     computeHomeCardContext: () => computeHomeCardContext,
     computeHomeStreakSnapshot: () => computeHomeStreakSnapshot,
     computeMedianLogTimeMinutes: () => computeMedianLogTimeMinutes,
+    createQrHandoffPayload: () => createQrHandoffPayload,
     createReadOnlyShareEnvelope: () => createReadOnlyShareEnvelope,
     createSampleLogEntry: () => createSampleLogEntry,
     createTranslator: () => createTranslator,
@@ -139,6 +156,7 @@ var RianellShared = (() => {
     daysSinceTrackingProfileStart: () => daysSinceTrackingProfileStart,
     daysUntilAppointment: () => daysUntilAppointment,
     decryptExportWithPassphrase: () => decryptExportWithPassphrase,
+    decryptQrHandoffToken: () => decryptQrHandoffToken,
     deriveDateFormatFromLocale: () => deriveDateFormatFromLocale,
     deriveFirstDayOfWeekFromLocale: () => deriveFirstDayOfWeekFromLocale,
     deriveWeightUnitFromLocale: () => deriveWeightUnitFromLocale,
@@ -150,6 +168,7 @@ var RianellShared = (() => {
     extractMedDoseTakenMap: () => extractMedDoseTakenMap,
     fetchHomeWeatherSnapshot: () => fetchHomeWeatherSnapshot,
     fetchOpenFoodFactsProduct: () => fetchOpenFoodFactsProduct,
+    filterLogsForAppointment: () => filterLogsForAppointment,
     filterLogsForHomeSuggestions: () => filterLogsForHomeSuggestions,
     findLogSyncConflicts: () => findLogSyncConflicts,
     formatActivityTypeLabel: () => formatActivityTypeLabel,
@@ -181,6 +200,7 @@ var RianellShared = (() => {
     hasEnabledMedSchedule: () => hasEnabledMedSchedule,
     hasLoggedToday: () => hasLoggedToday,
     identity: () => identity,
+    inferTreatmentStartsFromLogs: () => inferTreatmentStartsFromLogs,
     isCloudSyncBlockedByMigration: () => isCloudSyncBlockedByMigration,
     isCustomMetricField: () => isCustomMetricField,
     isGoodDayLog: () => isGoodDayLog,
@@ -191,6 +211,7 @@ var RianellShared = (() => {
     isMedDoseSnoozed: () => isMedDoseSnoozed,
     isPrivacyRegionConfigured: () => isPrivacyRegionConfigured,
     isPwaOnDeviceLlmOnly: () => isPwaOnDeviceLlmOnly,
+    isQrHandoffExpired: () => isQrHandoffExpired,
     isRtlLocale: () => isRtlLocale,
     isTrackingProfileConfigured: () => isTrackingProfileConfigured,
     isValidLocaleId: () => isValidLocaleId,
@@ -240,10 +261,13 @@ var RianellShared = (() => {
     normalizeSubEntry: () => normalizeSubEntry,
     normalizeSymptomTemplates: () => normalizeSymptomTemplates,
     normalizeTrackingProfile: () => normalizeTrackingProfile,
+    normalizeTreatmentStarts: () => normalizeTreatmentStarts,
     normalizeWeatherCoords: () => normalizeWeatherCoords,
     parseAppointmentDate: () => parseAppointmentDate,
+    parseDoctorQuestionsResponse: () => parseDoctorQuestionsResponse,
     parseLogsCsv: () => parseLogsCsv,
     parseMigrationCsv: () => parseMigrationCsv,
+    parseQrHandoffToken: () => parseQrHandoffToken,
     parseSettingsProfileImport: () => parseSettingsProfileImport,
     parseStructuredLlmOutput: () => parseStructuredLlmOutput,
     parseWeatherApiResponse: () => parseWeatherApiResponse,
@@ -1626,6 +1650,7 @@ var RianellShared = (() => {
         "suggest.system": "You write one short sentence for a daily health log note. Compare today to the recent average. Use only the data provided. Reply with only the note sentence.",
         "homeQuestion.system": "You answer one specific health-tracking question using only the data provided. Write 3\u20135 short sentences in plain language. No diagnosis or medical orders. Be encouraging. Reply with only the answer text.",
         "clinicianBrief.system": "You write a one-page clinician visit prep brief from health-tracking data. Use only the data provided. Structure: key patterns, symptom/stressor highlights, questions to ask the clinician. Plain language. No diagnosis or treatment orders. Max 180 words. Reply with only the brief text.",
+        "doctorQuestions.system": "You suggest exactly three short questions a patient could ask their clinician at an upcoming visit. Use only the wellness tracking data provided. Wellness framing only \u2014 not medical advice or diagnosis. Reply as a numbered list (1-3), one question per line, no extra commentary.",
         "explainChart.system": "You explain a health chart range in plain language for the patient. Use only the metrics provided. Mention trends and one practical observation. No diagnosis. Max 4 short sentences. Reply with only the narration text.",
         "structured.system": 'You analyse health-tracking data and reply with JSON only: {"insights":["..."],"actions":["..."],"confidence":0.0}. insights: up to 3 short pattern observations. actions: up to 2 gentle self-care ideas. confidence: 0-1 number. Use only provided data. No diagnosis or prescriptions.',
         "weekChat.system": "You are a wellness diary coach. Answer using only the health log context provided. Max 4 short sentences. No diagnosis, prescriptions, or tool use. Stay within the conversation scope. Reply with only your answer text.",
@@ -1915,6 +1940,19 @@ var RianellShared = (() => {
       options.persona
     );
     return { system, user: `Patient data: ${context}` };
+  }
+  function buildDoctorQuestionsPrompt(locale, context, options = {}) {
+    const pack = loadPromptPack(locale, options.packs);
+    const system = applyCoachPersona(
+      promptString(
+        pack,
+        "doctorQuestions.system",
+        "You suggest exactly three short questions a patient could ask their clinician at an upcoming visit. Use only the wellness tracking data provided. Wellness framing only \u2014 not medical advice or diagnosis. Reply as a numbered list (1-3), one question per line, no extra commentary."
+      ),
+      pack,
+      options.persona
+    );
+    return { system, user: `Recent trends: ${context}` };
   }
   function buildExplainChartPrompt(locale, context, options = {}) {
     const pack = loadPromptPack(locale, options.packs);
@@ -2627,8 +2665,45 @@ ${raw}
     return lines.join(" ");
   }
 
+  // packages/shared/src/ai/doctorQuestionsContext.mjs
+  var MAX_CONTEXT_CHARS3 = 800;
+  function buildDoctorQuestionsContext({ analysis = {}, logs = [], rangeLabel = "" } = {}) {
+    const parts = [];
+    if (rangeLabel) parts.push(`Range: ${rangeLabel}.`);
+    if (analysis.avgMood != null) parts.push(`Mood avg ${Number(analysis.avgMood).toFixed(1)}/10.`);
+    if (analysis.avgSleep != null) parts.push(`Sleep avg ${Number(analysis.avgSleep).toFixed(1)}/10.`);
+    if (analysis.avgFatigue != null) parts.push(`Fatigue avg ${Number(analysis.avgFatigue).toFixed(1)}/10.`);
+    if (analysis.flareDays != null) parts.push(`Flare days: ${analysis.flareDays}.`);
+    if (analysis.topSymptoms?.length) parts.push(`Symptoms: ${analysis.topSymptoms.slice(0, 3).join(", ")}.`);
+    if (analysis.thingsToWatch?.length) parts.push(`Watch: ${analysis.thingsToWatch.slice(0, 2).join(" ")}`);
+    const text = parts.join(" ");
+    return text.length > MAX_CONTEXT_CHARS3 ? text.slice(0, MAX_CONTEXT_CHARS3) : text;
+  }
+  function buildDoctorQuestionsFallback(analysis = {}) {
+    const q = [
+      "What patterns in my recent logs are worth discussing at this visit?",
+      "Could changes in sleep or fatigue relate to what I have been tracking?",
+      "What should I keep monitoring after this appointment?"
+    ];
+    if (analysis.flareDays > 0) {
+      q[1] = `I had ${analysis.flareDays} flare day(s) recently \u2014 what might be useful to review together?`;
+    }
+    return q;
+  }
+  function parseDoctorQuestionsResponse(text) {
+    const raw = String(text || "").trim();
+    if (!raw) return [];
+    const lines = raw.split(/\n+/).map((l) => l.replace(/^\s*[\d•\-*.]+\s*/, "").trim()).filter((l) => l.length > 8);
+    const unique = [];
+    for (const line of lines) {
+      if (!unique.includes(line)) unique.push(line);
+      if (unique.length >= 3) break;
+    }
+    return unique.slice(0, 3);
+  }
+
   // packages/shared/src/ai/explainChartContext.mjs
-  var MAX_CONTEXT_CHARS3 = 720;
+  var MAX_CONTEXT_CHARS4 = 720;
   function buildExplainChartContext({
     rangeLabel = "",
     viewMode = "combined",
@@ -2649,7 +2724,7 @@ ${raw}
       parts.push(`${trend.label}: avg ${avg}, latest ${cur}, change ${delta} (${trend.points || 0} points).`);
     }
     const text = parts.join(" ");
-    return text.length > MAX_CONTEXT_CHARS3 ? text.slice(0, MAX_CONTEXT_CHARS3) : text;
+    return text.length > MAX_CONTEXT_CHARS4 ? text.slice(0, MAX_CONTEXT_CHARS4) : text;
   }
   function buildExplainChartFallback(chartSummary = {}) {
     const trend = chartSummary.trends?.[0];
@@ -2709,7 +2784,7 @@ ${raw}
   }
 
   // packages/shared/src/ai/weekChat.mjs
-  var MAX_CONTEXT_CHARS4 = 720;
+  var MAX_CONTEXT_CHARS5 = 720;
   var MAX_WEEK_CHAT_TURNS = 5;
   function wrapUserNote3(note) {
     const raw = String(note || "").trim();
@@ -2746,7 +2821,7 @@ ${raw}
     const recentNotes = (logs || []).map((l) => l && l.notes ? String(l.notes).trim() : "").filter(Boolean);
     if (recentNotes.length) parts.push(wrapUserNote3(recentNotes[recentNotes.length - 1]));
     const text = parts.join(" ");
-    return text.length > MAX_CONTEXT_CHARS4 ? text.slice(0, MAX_CONTEXT_CHARS4) : text;
+    return text.length > MAX_CONTEXT_CHARS5 ? text.slice(0, MAX_CONTEXT_CHARS5) : text;
   }
   function formatWeekChatHistory(turns) {
     if (!Array.isArray(turns) || !turns.length) return "";
@@ -2815,6 +2890,7 @@ ${hist}`);
     suggest: '{"sleep":7,"fatigue":4,"mood":6}',
     homeQuestion: "Question: How is my sleep?\nRange: last 14 days.\n7 logged day(s).",
     clinicianBrief: "Range: Last 14 days. 7 logged day(s). Flare days: 1.",
+    doctorQuestions: "Range: Last 14 days. Mood avg 6.2/10. Fatigue avg 5.1/10. Flare days: 1.",
     explainChart: "Chart range: Last 7 days. Mood avg 6.2.",
     structuredSummary: '{"totalLogs":7,"flareDays":0}',
     weekChat: "Week scope: Last 14 days.\nUser: What patterns do you see?"
@@ -2841,6 +2917,7 @@ ${hist}`);
       { id: "suggestNote", build: (locale) => buildSuggestPrompt(locale, SAMPLE_CONTEXT.suggest) },
       { id: "homeQuestion", build: (locale) => buildHomeQuestionPrompt(locale, SAMPLE_CONTEXT.homeQuestion) },
       { id: "clinicianBrief", build: (locale) => buildClinicianBriefPrompt(locale, SAMPLE_CONTEXT.clinicianBrief) },
+      { id: "doctorQuestions", build: (locale) => buildDoctorQuestionsPrompt(locale, SAMPLE_CONTEXT.doctorQuestions) },
       { id: "explainChart", build: (locale) => buildExplainChartPrompt(locale, SAMPLE_CONTEXT.explainChart) },
       { id: "structuredSummary", build: (locale) => buildStructuredSummaryPrompt(locale, SAMPLE_CONTEXT.structuredSummary) },
       { id: "weekChat", build: (locale) => buildWeekChatPrompt(locale, SAMPLE_CONTEXT.weekChat) }
@@ -3786,6 +3863,93 @@ ${hist}`);
     return parseWeatherApiResponse(forecastJson, aqiJson);
   }
 
+  // packages/shared/src/clinician/medTimeline.mjs
+  function mean3(values) {
+    if (!values.length) return null;
+    return values.reduce((a, b) => a + b, 0) / values.length;
+  }
+  function normalizeTreatmentStarts(value) {
+    if (!Array.isArray(value)) return [];
+    return value.filter((t2) => t2 && typeof t2.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(t2.date)).map((t2) => ({
+      date: t2.date,
+      label: String(t2.label || t2.name || t2.drug || "Treatment start").slice(0, 80)
+    }));
+  }
+  function inferTreatmentStartsFromLogs(logs) {
+    const list = [...Array.isArray(logs) ? logs : []].sort(
+      (a, b) => String(a?.date || "").localeCompare(String(b?.date || ""))
+    );
+    const seen = /* @__PURE__ */ new Set();
+    const starts = [];
+    for (const log of list) {
+      const names = [];
+      if (Array.isArray(log.medications)) {
+        log.medications.forEach((m) => {
+          const n = typeof m === "string" ? m : m?.name || m?.drug;
+          if (n) names.push(String(n).trim());
+        });
+      }
+      if (Array.isArray(log.medicationDoses)) {
+        log.medicationDoses.forEach((d) => {
+          if (d?.drug) names.push(String(d.drug).trim());
+        });
+      }
+      for (const name of names) {
+        if (!name || seen.has(name)) continue;
+        seen.add(name);
+        starts.push({ date: log.date, label: name });
+      }
+    }
+    return starts.slice(0, 12);
+  }
+  function buildMedicationTimeline(logs, treatmentStarts = [], opts = {}) {
+    const list = [...Array.isArray(logs) ? logs : []].sort(
+      (a, b) => String(a?.date || "").localeCompare(String(b?.date || ""))
+    );
+    const explicit = normalizeTreatmentStarts(treatmentStarts);
+    const starts = explicit.length ? explicit : inferTreatmentStartsFromLogs(logs);
+    const windowDays = opts.windowDays ?? 14;
+    const rows = starts.flatMap((treatment) => {
+      const idx = list.findIndex((l) => l.date >= treatment.date);
+      if (idx < 0) return [];
+      const pre = list.slice(Math.max(0, idx - windowDays), idx);
+      const post = list.slice(idx, idx + windowDays);
+      const preFatigue = mean3(pre.map((l) => l.fatigue).filter((v) => v != null));
+      const postFatigue = mean3(post.map((l) => l.fatigue).filter((v) => v != null));
+      return [
+        {
+          id: `treatment:${treatment.date}`,
+          label: treatment.label,
+          startDate: treatment.date,
+          preDays: pre.length,
+          postDays: post.length,
+          preFatigueAvg: preFatigue != null ? Number(preFatigue.toFixed(1)) : null,
+          postFatigueAvg: postFatigue != null ? Number(postFatigue.toFixed(1)) : null
+        }
+      ];
+    });
+    const dates = list.map((l) => l.date).filter(Boolean);
+    const spanStart = dates[0] || null;
+    const spanEnd = dates[dates.length - 1] || null;
+    return { rows, spanStart, spanEnd };
+  }
+  function buildTimelineSvg(rows, opts = {}) {
+    const list = Array.isArray(rows) ? rows : [];
+    if (!list.length) return "";
+    const width = opts.width ?? 520;
+    const rowH = 28;
+    const height = 40 + list.length * rowH;
+    const left = 120;
+    const bars = list.map((row, i) => {
+      const y = 36 + i * rowH;
+      const barW = Math.max(40, width - left - 24);
+      const label = String(row.label || "").slice(0, 18);
+      const detail = `${row.preFatigueAvg ?? "\u2014"} \u2192 ${row.postFatigueAvg ?? "\u2014"}`;
+      return `<text x="8" y="${y + 12}" font-size="10" fill="#333">${label}</text><rect x="${left}" y="${y}" width="${barW}" height="16" fill="rgba(76,175,80,0.25)" stroke="#4caf50"/><text x="${left + 6}" y="${y + 12}" font-size="9" fill="#222">${row.startDate} \xB7 fatigue ${detail}</text>`;
+    }).join("");
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${bars}</svg>`;
+  }
+
   // packages/shared/src/home/homeDashboardPrefs.mjs
   function normalizeHomeDashboardPrefs(raw) {
     const v = raw && typeof raw === "object" ? raw : {};
@@ -3808,6 +3972,7 @@ ${hist}`);
       weatherLon: lon,
       weatherCache,
       nextAppointmentDate: parseAppointmentDate(v.nextAppointmentDate),
+      treatmentStarts: normalizeTreatmentStarts(v.treatmentStarts),
       homeGapQuestionCache: v.homeGapQuestionCache && typeof v.homeGapQuestionCache === "object" ? v.homeGapQuestionCache : null,
       homeQuestionAnswerState: v.homeQuestionAnswerState && typeof v.homeQuestionAnswerState === "object" ? v.homeQuestionAnswerState : null
     };
@@ -4219,6 +4384,191 @@ ${hist}`);
     }
     merged.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     return merged;
+  }
+
+  // packages/shared/src/clinician/appointmentReport.mjs
+  var APPOINTMENT_DISCLAIMER = "Wellness tracking only \u2014 not medical advice, diagnosis, or treatment. Discuss patterns with your clinician.";
+  var APPOINTMENT_RANGE_DAYS = 30;
+  function sortLogsNewestFirst(logs) {
+    return [...Array.isArray(logs) ? logs : []].sort(
+      (a, b) => String(b?.date || "").localeCompare(String(a?.date || ""))
+    );
+  }
+  function filterLogsForAppointment(logs, days = APPOINTMENT_RANGE_DAYS, todayStr) {
+    const today = todayStr || (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    const end = /* @__PURE__ */ new Date(`${today}T12:00:00`);
+    const start = new Date(end);
+    start.setDate(start.getDate() - days);
+    return (Array.isArray(logs) ? logs : []).filter((log) => {
+      if (!log?.date || !/^\d{4}-\d{2}-\d{2}$/.test(log.date)) return false;
+      const d = /* @__PURE__ */ new Date(`${log.date}T12:00:00`);
+      return d >= start && d <= end;
+    });
+  }
+  function mean4(values) {
+    if (!values.length) return null;
+    return values.reduce((a, b) => a + b, 0) / values.length;
+  }
+  function buildAppointmentChartRows(logs, days = 14) {
+    const slice = filterLogsForAppointment(logs, days);
+    const mood = slice.map((l) => l.mood).filter((v) => v != null);
+    const sleep = slice.map((l) => l.sleep).filter((v) => v != null);
+    const fatigue = slice.map((l) => l.fatigue).filter((v) => v != null);
+    const flareDays = slice.filter((l) => l.flare === "Yes").length;
+    const rows = [
+      { label: "Logged days", value: String(slice.length) },
+      { label: "Flare days", value: String(flareDays) }
+    ];
+    const moodAvg = mean4(mood);
+    const sleepAvg = mean4(sleep);
+    const fatigueAvg = mean4(fatigue);
+    if (moodAvg != null) rows.push({ label: "Mood (avg /10)", value: moodAvg.toFixed(1) });
+    if (sleepAvg != null) rows.push({ label: "Sleep (avg /10)", value: sleepAvg.toFixed(1) });
+    if (fatigueAvg != null) rows.push({ label: "Fatigue (avg /10)", value: fatigueAvg.toFixed(1) });
+    return rows;
+  }
+  function collectFlareCalendarEntries(logs, days = APPOINTMENT_RANGE_DAYS, todayStr) {
+    return filterLogsForAppointment(logs, days, todayStr).filter((l) => l.flare === "Yes").map((l) => l.date).sort();
+  }
+  function collectMedicationList(logs, medSchedule = []) {
+    const names = /* @__PURE__ */ new Set();
+    (Array.isArray(medSchedule) ? medSchedule : []).forEach((m) => {
+      if (m?.enabled !== false && m?.drug) names.add(String(m.drug).trim());
+    });
+    sortLogsNewestFirst(logs).slice(0, 30).forEach((log) => {
+      if (Array.isArray(log.medications)) {
+        log.medications.forEach((med) => {
+          const n = typeof med === "string" ? med : med?.name || med?.drug;
+          if (n) names.add(String(n).trim());
+        });
+      }
+      if (Array.isArray(log.medicationDoses)) {
+        log.medicationDoses.forEach((d) => {
+          if (d?.drug) names.add(String(d.drug).trim());
+        });
+      }
+    });
+    return [...names].filter(Boolean).sort();
+  }
+  function buildAppointmentReportModel(logs, opts = {}) {
+    const rangeDays = opts.rangeDays ?? APPOINTMENT_RANGE_DAYS;
+    const filtered = filterLogsForAppointment(logs, rangeDays, opts.todayStr);
+    return {
+      appointmentDate: opts.appointmentDate || null,
+      rangeLabel: opts.rangeLabel || `Last ${rangeDays} days`,
+      briefText: opts.briefText || "",
+      chartRows: buildAppointmentChartRows(logs, Math.min(14, rangeDays)),
+      flareDates: collectFlareCalendarEntries(logs, rangeDays, opts.todayStr),
+      medications: collectMedicationList(filtered, opts.medSchedule),
+      timelineRows: Array.isArray(opts.timelineRows) ? opts.timelineRows : [],
+      doctorQuestions: Array.isArray(opts.doctorQuestions) ? opts.doctorQuestions : [],
+      disclaimer: opts.disclaimer || APPOINTMENT_DISCLAIMER
+    };
+  }
+  function escapeHtml(s) {
+    return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function buildAppointmentReportHtml(model) {
+    const m = model && typeof model === "object" ? model : {};
+    const chartRows = (m.chartRows || []).map((r) => `<tr><td>${escapeHtml(r.label)}</td><td>${escapeHtml(r.value)}</td></tr>`).join("");
+    const flareList = (m.flareDates || []).length ? (m.flareDates || []).map((d) => `<li>${escapeHtml(d)}</li>`).join("") : "<li>None recorded in range</li>";
+    const medList = (m.medications || []).length ? (m.medications || []).map((d) => `<li>${escapeHtml(d)}</li>`).join("") : "<li>None listed</li>";
+    const timeline = (m.timelineRows || []).map(
+      (row) => `<tr><td>${escapeHtml(row.startDate)}</td><td>${escapeHtml(row.label)}</td><td>${escapeHtml(row.preFatigueAvg ?? "\u2014")}</td><td>${escapeHtml(row.postFatigueAvg ?? "\u2014")}</td></tr>`
+    ).join("");
+    const questions = (m.doctorQuestions || []).map((q, i) => `<li>${escapeHtml(q)}</li>`).join("");
+    const apptLine = m.appointmentDate ? `<p><strong>Upcoming visit:</strong> ${escapeHtml(m.appointmentDate)}</p>` : "";
+    const briefBlock = m.briefText ? `<h2>Visit prep summary</h2><p style="white-space:pre-wrap">${escapeHtml(m.briefText)}</p>` : "<p><em>Generate a clinician brief in the app to include AI summary text.</em></p>";
+    const questionsBlock = questions ? `<h2>Questions for my clinician</h2><ol>${questions}</ol>` : "";
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Rianell appointment report</title>
+<style>
+body{font-family:system-ui,sans-serif;padding:28px;color:#222;font-size:13px;line-height:1.45}
+h1{font-size:20px;margin:0 0 8px}
+h2{font-size:15px;margin:20px 0 8px;border-bottom:1px solid #ddd;padding-bottom:4px}
+table{border-collapse:collapse;width:100%;margin:8px 0}
+td,th{border:1px solid #ccc;padding:6px 8px;text-align:left}
+.footer{font-size:11px;color:#666;margin-top:24px;border-top:1px solid #eee;padding-top:10px}
+.page{page-break-after:always}
+.page:last-child{page-break-after:auto}
+</style></head><body>
+<div class="page">
+<h1>Rianell appointment report</h1>
+<p><strong>Range:</strong> ${escapeHtml(m.rangeLabel)}</p>
+${apptLine}
+${briefBlock}
+<h2>Chart summary</h2>
+<table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>${chartRows}</tbody></table>
+${questionsBlock}
+<p class="footer">${escapeHtml(m.disclaimer)}</p>
+</div>
+<div class="page">
+<h2>Medications</h2>
+<ul>${medList}</ul>
+<h2>Flare calendar</h2>
+<ul>${flareList}</ul>
+<h2>Treatment timeline</h2>
+<table><thead><tr><th>Start</th><th>Label</th><th>Pre fatigue</th><th>Post fatigue</th></tr></thead>
+<tbody>${timeline || '<tr><td colspan="4">No treatment markers recorded</td></tr>'}</tbody></table>
+<p class="footer">${escapeHtml(m.disclaimer)}</p>
+</div>
+</body></html>`;
+  }
+
+  // packages/shared/src/clinician/qrHandoff.mjs
+  var QR_HANDOFF_FORMAT = "rianell-qr-handoff-v1";
+  var QR_HANDOFF_MAX_CHARS = 2400;
+  var QR_HANDOFF_DEFAULT_TTL_MINUTES = 60;
+  function buildQrHandoffLogsSubset(logs, maxLogs = 14) {
+    const list = [...Array.isArray(logs) ? logs : []].sort(
+      (a, b) => String(a?.date || "").localeCompare(String(b?.date || ""))
+    );
+    return list.slice(-Math.max(1, Math.min(30, maxLogs)));
+  }
+  async function createQrHandoffPayload(logs, passphrase, opts = {}) {
+    if (typeof passphrase !== "string" || passphrase.length < 8) {
+      throw new Error("Passphrase must be at least 8 characters");
+    }
+    const ttlMin = Math.min(180, Math.max(5, Number(opts.ttlMinutes) || QR_HANDOFF_DEFAULT_TTL_MINUTES));
+    const expiresAt = new Date(Date.now() + ttlMin * 6e4).toISOString();
+    const subset = buildQrHandoffLogsSubset(logs, opts.maxLogs ?? 14);
+    const encrypted = await encryptExportWithPassphrase(
+      {
+        logs: subset,
+        handoff: { readOnly: true, expiresAt, format: QR_HANDOFF_FORMAT }
+      },
+      passphrase,
+      opts.subtle
+    );
+    const payload = {
+      format: QR_HANDOFF_FORMAT,
+      expiresAt,
+      encrypted
+    };
+    const token = JSON.stringify(payload);
+    if (token.length > QR_HANDOFF_MAX_CHARS) {
+      throw new Error("Handoff payload too large for QR \u2014 try fewer logs or use encrypted file export");
+    }
+    return { token, expiresAt, logCount: subset.length };
+  }
+  function parseQrHandoffToken(token) {
+    if (typeof token !== "string" || !token.trim()) throw new Error("Empty handoff token");
+    const parsed = JSON.parse(token);
+    if (!parsed || parsed.format !== QR_HANDOFF_FORMAT) throw new Error("Unsupported handoff format");
+    return parsed;
+  }
+  function isQrHandoffExpired(payload, now = /* @__PURE__ */ new Date()) {
+    if (!payload?.expiresAt) return true;
+    return Date.parse(payload.expiresAt) <= now.getTime();
+  }
+  async function decryptQrHandoffToken(token, passphrase, opts = {}) {
+    const payload = parseQrHandoffToken(token);
+    if (isQrHandoffExpired(payload, opts.now)) throw new Error("Handoff expired");
+    const data = await decryptExportWithPassphrase(payload.encrypted, passphrase, opts.subtle);
+    return {
+      logs: Array.isArray(data?.logs) ? data.logs : [],
+      expiresAt: payload.expiresAt,
+      readOnly: true
+    };
   }
 
   // packages/shared/src/index.mjs

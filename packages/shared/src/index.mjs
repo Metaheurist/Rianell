@@ -217,6 +217,7 @@ export * from './export/webdavBackup.mjs';
 export * from './import/migrationAssistants.mjs';
 export * from './sync/logSyncConflicts.mjs';
 export * from './charts/customMetrics.mjs';
+export * from './clinician/index.mjs';
 
 export function createSampleLogEntry() {
   return normalizeLogEntry({
