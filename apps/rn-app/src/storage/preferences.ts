@@ -92,6 +92,9 @@ export type Preferences = {
     soundEnabled: boolean;
     snoozeMinutes: number;
     smartMissedNudgeDate: string | null;
+    medDoseReminderNotifiedAt: Record<string, string>;
+    medDoseSnoozeUntil: Record<string, string>;
+    flareRiskNudgeWeek: string | null;
   };
   goals: {
     moodTarget: number;
@@ -200,6 +203,9 @@ export function getDefaultPreferences(): Preferences {
       soundEnabled: true,
       snoozeMinutes: 30,
       smartMissedNudgeDate: null,
+      medDoseReminderNotifiedAt: {},
+      medDoseSnoozeUntil: {},
+      flareRiskNudgeWeek: null,
     },
     goals: {
       moodTarget: 7,
@@ -355,6 +361,20 @@ export async function loadPreferences(): Promise<Preferences> {
           /^\d{4}-\d{2}-\d{2}$/.test(parsed.notifications.smartMissedNudgeDate)
             ? parsed.notifications.smartMissedNudgeDate
             : d.notifications.smartMissedNudgeDate,
+        medDoseReminderNotifiedAt:
+          parsed.notifications?.medDoseReminderNotifiedAt &&
+          typeof parsed.notifications.medDoseReminderNotifiedAt === 'object'
+            ? parsed.notifications.medDoseReminderNotifiedAt
+            : d.notifications.medDoseReminderNotifiedAt,
+        medDoseSnoozeUntil:
+          parsed.notifications?.medDoseSnoozeUntil && typeof parsed.notifications.medDoseSnoozeUntil === 'object'
+            ? parsed.notifications.medDoseSnoozeUntil
+            : d.notifications.medDoseSnoozeUntil,
+        flareRiskNudgeWeek:
+          typeof parsed.notifications?.flareRiskNudgeWeek === 'string' &&
+          /^\d{4}-W\d{2}$/.test(parsed.notifications.flareRiskNudgeWeek)
+            ? parsed.notifications.flareRiskNudgeWeek
+            : d.notifications.flareRiskNudgeWeek,
       },
       goals: {
         moodTarget: Number.isFinite(parsed.goals?.moodTarget)

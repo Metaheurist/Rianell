@@ -48,6 +48,8 @@ var RianellShared = (() => {
     LOG_CSV_I18N_KEYS: () => LOG_CSV_I18N_KEYS,
     MAX_HOME_QUESTION_ANSWERS_PER_DAY: () => MAX_HOME_QUESTION_ANSWERS_PER_DAY,
     MAX_WEEK_CHAT_TURNS: () => MAX_WEEK_CHAT_TURNS,
+    MED_DOSE_FIRE_WINDOW_MS: () => MED_DOSE_FIRE_WINDOW_MS,
+    MED_DOSE_SNOOZE_MINUTES: () => MED_DOSE_SNOOZE_MINUTES,
     MIGRATION_COPY: () => MIGRATION_COPY,
     MIGRATION_SOURCES: () => MIGRATION_SOURCES,
     OFFLINE_QUEUE_KEY: () => OFFLINE_QUEUE_KEY,
@@ -91,10 +93,12 @@ var RianellShared = (() => {
     buildExplainChartContext: () => buildExplainChartContext,
     buildExplainChartFallback: () => buildExplainChartFallback,
     buildExplainChartPrompt: () => buildExplainChartPrompt,
+    buildFlareRiskNotificationContent: () => buildFlareRiskNotificationContent,
     buildHomeQuestionContext: () => buildHomeQuestionContext,
     buildHomeQuestionFallback: () => buildHomeQuestionFallback,
     buildHomeQuestionPrompt: () => buildHomeQuestionPrompt,
     buildLlmRequestPayload: () => buildLlmRequestPayload,
+    buildMedDoseNotificationContent: () => buildMedDoseNotificationContent,
     buildMotdPrompt: () => buildMotdPrompt,
     buildProxyLogMetadata: () => buildProxyLogMetadata,
     buildSettingsProfileExport: () => buildSettingsProfileExport,
@@ -134,8 +138,10 @@ var RianellShared = (() => {
     deriveWeightUnitFromLocale: () => deriveWeightUnitFromLocale,
     detectHomeLoggingGaps: () => detectHomeLoggingGaps,
     encryptExportWithPassphrase: () => encryptExportWithPassphrase,
+    evaluateFatigueWeekAnomaly: () => evaluateFatigueWeekAnomaly,
     existsSync: () => existsSync,
     extractLogFieldsFromVoiceTranscript: () => extractLogFieldsFromVoiceTranscript,
+    extractMedDoseTakenMap: () => extractMedDoseTakenMap,
     fetchHomeWeatherSnapshot: () => fetchHomeWeatherSnapshot,
     fetchOpenFoodFactsProduct: () => fetchOpenFoodFactsProduct,
     filterLogsForHomeSuggestions: () => filterLogsForHomeSuggestions,
@@ -166,6 +172,7 @@ var RianellShared = (() => {
     getSymptomChipsForCondition: () => getSymptomChipsForCondition,
     getUnlockedLogCategories: () => getUnlockedLogCategories,
     getVisibleTrackingFields: () => getVisibleTrackingFields,
+    hasEnabledMedSchedule: () => hasEnabledMedSchedule,
     hasLoggedToday: () => hasLoggedToday,
     identity: () => identity,
     isCloudSyncBlockedByMigration: () => isCloudSyncBlockedByMigration,
@@ -175,6 +182,7 @@ var RianellShared = (() => {
     isLocalOnlyModeEnabled: () => isLocalOnlyModeEnabled,
     isLogCategoryUnlocked: () => isLogCategoryUnlocked,
     isLoggingStreakBroken: () => isLoggingStreakBroken,
+    isMedDoseSnoozed: () => isMedDoseSnoozed,
     isPrivacyRegionConfigured: () => isPrivacyRegionConfigured,
     isPwaOnDeviceLlmOnly: () => isPwaOnDeviceLlmOnly,
     isRtlLocale: () => isRtlLocale,
@@ -182,7 +190,9 @@ var RianellShared = (() => {
     isValidLocaleId: () => isValidLocaleId,
     isValidPrivacyRegion: () => isValidPrivacyRegion,
     isWeatherCacheFresh: () => isWeatherCacheFresh,
+    isoWeekKey: () => isoWeekKey,
     languageNameForLocale: () => languageNameForLocale,
+    listTodayMedDoseReminders: () => listTodayMedDoseReminders,
     loadPolicyPackFromDisk: () => loadPolicyPackFromDisk,
     loadPromptPack: () => loadPromptPack,
     localDateStrFromNow: () => localDateStrFromNow,
@@ -192,6 +202,7 @@ var RianellShared = (() => {
     logToFhirObservations: () => logToFhirObservations,
     logsToCsv: () => logsToCsv,
     logsToFhirBundle: () => logsToFhirBundle,
+    medDoseReminderNotificationId: () => medDoseReminderNotificationId,
     mergeHealthLogs: () => mergeHealthLogs,
     mergeHealthLogsWithConflictPolicy: () => mergeHealthLogsWithConflictPolicy,
     mergeLogEntriesForDate: () => mergeLogEntriesForDate,
@@ -253,6 +264,8 @@ var RianellShared = (() => {
     setPolicyPack: () => setPolicyPack,
     shareEnvelopeToPortableJson: () => shareEnvelopeToPortableJson,
     shouldAllowNetworkOperation: () => shouldAllowNetworkOperation,
+    shouldFireFlareRiskNudge: () => shouldFireFlareRiskNudge,
+    shouldFireMedDoseReminder: () => shouldFireMedDoseReminder,
     shouldFireMissedLogNudge: () => shouldFireMissedLogNudge,
     shouldShowAppointmentCard: () => shouldShowAppointmentCard,
     shouldShowWizardCategory: () => shouldShowWizardCategory,
@@ -3388,6 +3401,151 @@ ${hist}`);
       return { ...entry, savedAt: existingEntry.savedAt };
     }
     return { ...entry, savedAt: when.toISOString() };
+  }
+
+  // packages/shared/src/notifications/medDoseReminders.mjs
+  var MED_DOSE_SNOOZE_MINUTES = 15;
+  var MED_DOSE_FIRE_WINDOW_MS = 6e4;
+  function medDoseReminderNotificationId(scheduledAt) {
+    const safe = String(scheduledAt || "").replace(/[^0-9A-Za-z]/g, "");
+    return `rianell-med-dose-${safe || "unknown"}`;
+  }
+  function extractMedDoseTakenMap(logs, dateStr) {
+    const map = {};
+    if (!Array.isArray(logs) || !dateStr) return map;
+    const log = logs.find((l) => l && l.date === dateStr);
+    if (!log) return map;
+    if (Array.isArray(log.medicationDoses)) {
+      log.medicationDoses.forEach((d) => {
+        if (!d?.scheduledAt || !d.status) return;
+        if (d.status === "taken" || d.status === "skipped" || d.status === "missed") {
+          map[d.scheduledAt] = d.status;
+        }
+      });
+    }
+    return map;
+  }
+  function parseScheduledAt(scheduledAt) {
+    if (typeof scheduledAt !== "string" || !scheduledAt.includes("T")) return null;
+    const [date, time] = scheduledAt.split("T");
+    const m = /^(\d{2}):(\d{2})$/.exec(time || "");
+    if (!m || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+    return { date, hour: Number(m[1]), minute: Number(m[2]) };
+  }
+  function isMedDoseSnoozed(scheduledAt, snoozeUntilMap, now = /* @__PURE__ */ new Date()) {
+    if (!snoozeUntilMap || typeof snoozeUntilMap !== "object") return false;
+    const until = snoozeUntilMap[scheduledAt];
+    if (typeof until !== "string") return false;
+    const t2 = new Date(until);
+    return !Number.isNaN(t2.getTime()) && t2 > now;
+  }
+  function listTodayMedDoseReminders(schedule, logs, now = /* @__PURE__ */ new Date(), opts = {}) {
+    const todayStr = opts.todayStr ?? localDateStrFromNow(now);
+    const takenFromLog = extractMedDoseTakenMap(logs, todayStr);
+    const takenMap = { ...takenFromLog, ...opts.takenMap || {} };
+    const doses = buildTodayMedDoseStatuses(schedule, todayStr, takenMap).filter((d) => d.status === "pending");
+    const notified = opts.notifiedAt || {};
+    const snoozeUntil = opts.snoozeUntil || {};
+    return doses.map((dose) => {
+      const parsed = parseScheduledAt(dose.scheduledAt);
+      if (!parsed) return null;
+      const triggerAt = /* @__PURE__ */ new Date(`${parsed.date}T${String(parsed.hour).padStart(2, "0")}:${String(parsed.minute).padStart(2, "0")}:00`);
+      const snoozed = isMedDoseSnoozed(dose.scheduledAt, snoozeUntil, now);
+      const alreadyNotified = notified[dose.scheduledAt] === todayStr;
+      const fire = shouldFireMedDoseReminder(dose, now, { todayStr, snoozeUntil, notified, triggerAt });
+      return {
+        ...dose,
+        triggerAt: triggerAt.toISOString(),
+        fire: fire.fire,
+        fireReason: fire.reason,
+        schedule: fire.schedule,
+        snoozed,
+        alreadyNotified
+      };
+    }).filter(Boolean);
+  }
+  function shouldFireMedDoseReminder(dose, now = /* @__PURE__ */ new Date(), opts = {}) {
+    const todayStr = opts.todayStr ?? localDateStrFromNow(now);
+    const scheduledAt = dose?.scheduledAt;
+    if (!scheduledAt || dose.status !== "pending") return { fire: false, schedule: false, reason: "not-pending" };
+    if (isMedDoseSnoozed(scheduledAt, opts.snoozeUntil, now)) {
+      return { fire: false, schedule: false, reason: "snoozed" };
+    }
+    const notified = opts.notifiedAt || {};
+    if (notified[scheduledAt] === todayStr) return { fire: false, schedule: false, reason: "already-notified" };
+    const parsed = parseScheduledAt(scheduledAt);
+    if (!parsed || parsed.date !== todayStr) return { fire: false, schedule: false, reason: "not-today" };
+    const triggerAt = opts.triggerAt instanceof Date ? opts.triggerAt : /* @__PURE__ */ new Date(`${parsed.date}T${String(parsed.hour).padStart(2, "0")}:${String(parsed.minute).padStart(2, "0")}:00`);
+    const delta = now.getTime() - triggerAt.getTime();
+    if (delta < 0) return { fire: false, schedule: true, reason: "upcoming", triggerAt: triggerAt.toISOString() };
+    if (delta <= MED_DOSE_FIRE_WINDOW_MS) return { fire: true, schedule: false, reason: "due-now", triggerAt: triggerAt.toISOString() };
+    if (delta <= 30 * 6e4) return { fire: true, schedule: false, reason: "overdue", triggerAt: triggerAt.toISOString() };
+    return { fire: false, schedule: false, reason: "missed-window" };
+  }
+  function hasEnabledMedSchedule(schedule) {
+    return normalizeMedSchedule(schedule).some((e) => e.enabled !== false && Array.isArray(e.times) && e.times.length > 0);
+  }
+  function buildMedDoseNotificationContent(dose) {
+    const label = dose?.dose ? `${dose.drug} (${dose.dose})` : dose?.drug || "Medication";
+    return {
+      title: "Medication reminder",
+      body: `Time for ${label}. Mark taken when you log today.`,
+      scheduledAt: dose.scheduledAt
+    };
+  }
+
+  // packages/shared/src/notifications/flareRiskNudge.mjs
+  function mean2(values) {
+    if (!values.length) return null;
+    return values.reduce((a, b) => a + b, 0) / values.length;
+  }
+  function isoWeekKey(date = /* @__PURE__ */ new Date()) {
+    const d = date instanceof Date ? new Date(date.getTime()) : new Date(date);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+    const week1 = new Date(d.getFullYear(), 0, 4);
+    const weekNo = 1 + Math.round(((d.getTime() - week1.getTime()) / 864e5 - 3 + (week1.getDay() + 6) % 7) / 7);
+    return `${d.getFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+  }
+  function evaluateFatigueWeekAnomaly(logs, opts = {}) {
+    const list = [...Array.isArray(logs) ? logs : []].sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    const baselineDays = opts.baselineDays ?? 30;
+    const recentDays = opts.recentDays ?? 7;
+    const baseline = list.slice(-baselineDays);
+    const recent = list.slice(-recentDays);
+    const baseVals = baseline.map((l) => l.fatigue).filter((v) => v != null);
+    const recentVals = recent.map((l) => l.fatigue).filter((v) => v != null);
+    if (baseVals.length < 3 || recentVals.length < 2) {
+      return { elevated: false, reason: "insufficient-data" };
+    }
+    const baseAvg = mean2(baseVals);
+    const recentAvg = mean2(recentVals);
+    if (baseAvg == null || recentAvg == null) return { elevated: false, reason: "no-averages" };
+    const delta = recentAvg - baseAvg;
+    const threshold = 2;
+    if (delta < threshold) return { elevated: false, reason: "below-threshold", delta };
+    const severity = Math.abs(delta) >= 3 ? "high" : "medium";
+    return {
+      elevated: true,
+      severity,
+      delta: Number(delta.toFixed(1)),
+      baselineAvg: Number(baseAvg.toFixed(1)),
+      recentAvg: Number(recentAvg.toFixed(1))
+    };
+  }
+  function shouldFireFlareRiskNudge(logs, now = /* @__PURE__ */ new Date(), opts = {}) {
+    const evalResult = evaluateFatigueWeekAnomaly(logs, opts);
+    if (!evalResult.elevated) return { fire: false, reason: evalResult.reason || "no-anomaly", eval: evalResult };
+    const week = isoWeekKey(now);
+    if (opts.lastNudgeWeek === week) return { fire: false, reason: "already-nudged", week, eval: evalResult };
+    return { fire: true, week, eval: evalResult };
+  }
+  function buildFlareRiskNotificationContent(evalResult) {
+    return {
+      title: "High fatigue week",
+      body: "Patterns suggest an unusually fatiguing week. Consider pacing and logging how you feel.",
+      severity: evalResult?.severity || "medium"
+    };
   }
 
   // packages/shared/src/home/homeStreakStats.mjs

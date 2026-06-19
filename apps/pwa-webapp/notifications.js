@@ -106,7 +106,8 @@ const NotificationManager = {
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         this.checkReminderTime();
-        this.checkSmartMissedLogNudge();
+        this.checkMedDoseReminders();
+        this.checkFlareRiskNudge();
       }
     });
   },
@@ -323,6 +324,76 @@ const NotificationManager = {
     }
 
     this.checkSmartMissedLogNudge();
+    this.checkMedDoseReminders();
+    this.checkFlareRiskNudge();
+  },
+
+  getAppSettings() {
+    try {
+      return JSON.parse(localStorage.getItem('rianellSettings') || '{}');
+    } catch (e) {
+      return {};
+    }
+  },
+
+  getMedDoseNotificationState() {
+    try {
+      return JSON.parse(localStorage.getItem('rianellMedDoseNotify') || '{}');
+    } catch (e) {
+      return { notifiedAt: {}, snoozeUntil: {} };
+    }
+  },
+
+  saveMedDoseNotificationState(state) {
+    try {
+      localStorage.setItem('rianellMedDoseNotify', JSON.stringify(state));
+    } catch (e) { /* ignore */ }
+  },
+
+  checkMedDoseReminders() {
+    if (!this.isReminderEnabled()) return;
+    if (this.permission !== 'granted') return;
+    const Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+    if (!Shared || typeof Shared.listTodayMedDoseReminders !== 'function') return;
+    const settings = this.getAppSettings();
+    const schedule = settings.medSchedule || [];
+    if (!Shared.hasEnabledMedSchedule || !Shared.hasEnabledMedSchedule(schedule)) return;
+    const logs = this.getHealthLogs();
+    const now = new Date();
+    const todayStr = this.getLocalDateStr(now);
+    const state = this.getMedDoseNotificationState();
+    const pending = Shared.listTodayMedDoseReminders(schedule, logs, now, {
+      todayStr,
+      notifiedAt: state.notifiedAt || {},
+      snoozeUntil: state.snoozeUntil || {},
+    }).filter((d) => d.fire);
+    if (!pending.length) return;
+    const dose = pending[0];
+    const content = Shared.buildMedDoseNotificationContent
+      ? Shared.buildMedDoseNotificationContent(dose)
+      : { title: 'Medication reminder', body: `Time for ${dose.drug}.` };
+    this.showNotification(content.title, content.body, '/?quick=true');
+    state.notifiedAt = { ...(state.notifiedAt || {}), [dose.scheduledAt]: todayStr };
+    this.saveMedDoseNotificationState(state);
+  },
+
+  checkFlareRiskNudge() {
+    if (!this.isReminderEnabled()) return;
+    if (this.permission !== 'granted') return;
+    const settings = this.getAppSettings();
+    if (settings.aiEnabled === false) return;
+    const Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+    if (!Shared || typeof Shared.shouldFireFlareRiskNudge !== 'function') return;
+    const logs = this.getHealthLogs();
+    const now = new Date();
+    const lastWeek = localStorage.getItem('lastFlareRiskNudgeWeek');
+    const result = Shared.shouldFireFlareRiskNudge(logs, now, { lastNudgeWeek: lastWeek || undefined });
+    if (!result.fire || !result.week) return;
+    const content = Shared.buildFlareRiskNotificationContent
+      ? Shared.buildFlareRiskNotificationContent(result.eval)
+      : { title: 'High fatigue week', body: 'Patterns suggest an unusually fatiguing week.' };
+    this.showNotification(content.title, content.body, '/?tab=ai');
+    localStorage.setItem('lastFlareRiskNudgeWeek', result.week);
   },
 
   checkSmartMissedLogNudge() {
@@ -355,7 +426,7 @@ const NotificationManager = {
     // Check if entry already exists for today
     const today = new Date();
     const todayStr = this.getLocalDateStr(today);
-    const logs = JSON.parse(localStorage.getItem('healthLogs') || '[]');
+    const logs = this.getHealthLogs();
     const hasToday = logs.some(log => log.date === todayStr);
     
     if (hasToday) {
