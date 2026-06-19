@@ -38,6 +38,8 @@ import {
   buildPacingChartSeries,
   predictFutureValues,
   type PredictedPoint,
+  type FlarePostMortemResult,
+  type PacingChartRow,
 } from '../ai/engine';
 import { explainChartRange } from '../ai/llm';
 
@@ -344,13 +346,19 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
   const summary = useMemo(() => summarizeCharts(logs, range, { translate: t }), [logs, range, t]);
   const rangeLogs = useMemo(() => filterLogsForCharts(logs, range), [logs, range]);
   const correlationCards = useMemo(() => buildCorrelationCards(rangeLogs, 'all'), [rangeLogs]);
-  const flarePostMortem = useMemo(() => buildFlarePostMortem(rangeLogs), [rangeLogs]);
+  const flarePostMortem = useMemo(
+    () => buildFlarePostMortem(rangeLogs) as FlarePostMortemResult | null,
+    [rangeLogs]
+  );
   const cycleOverlay = useMemo(
     () => (prefs?.cycleModuleEnabled ? buildCyclePhaseBands(rangeLogs) : { bands: [], markers: [] }),
     [rangeLogs, prefs?.cycleModuleEnabled]
   );
   const periodCompare = useMemo(() => compareChartPeriods(rangeLogs), [rangeLogs]);
-  const pacingSeries = useMemo(() => buildPacingChartSeries(rangeLogs, range).slice(-7), [rangeLogs, range]);
+  const pacingSeries = useMemo(
+    () => buildPacingChartSeries(rangeLogs, range).slice(-7) as PacingChartRow[],
+    [rangeLogs, range]
+  );
   const moodForecast = useMemo(() => {
     const moodSeries = rangeLogs
       .filter((e) => typeof e.mood === 'number')
