@@ -66,6 +66,7 @@ function playHeartbeatSound() {
 const NotificationManager = {
   permission: null,
   reminderTime: null,
+  fallbackReminderTime: '20:00',
   reminderInterval: null,
   nativeNotificationId: 9001,
   initialized: false,
@@ -101,6 +102,13 @@ const NotificationManager = {
     
     // Check if we need to show today's reminder
     this.checkTodayReminder();
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        this.checkReminderTime();
+        this.checkSmartMissedLogNudge();
+      }
+    });
   },
   
   // Show install prompt for Safari
@@ -182,12 +190,36 @@ const NotificationManager = {
     }
   },
   
+  getHealthLogs() {
+    try {
+      return JSON.parse(localStorage.getItem('healthLogs') || '[]');
+    } catch (e) {
+      return [];
+    }
+  },
+
+  getLocalDateStr(now = new Date()) {
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  },
+
+  getEffectiveReminderTime() {
+    const Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+    const logs = this.getHealthLogs();
+    const fallback = this.fallbackReminderTime || '20:00';
+    if (Shared && typeof Shared.resolveSmartReminderTime === 'function') {
+      return Shared.resolveSmartReminderTime(logs, fallback).time;
+    }
+    return fallback;
+  },
+
   // Load reminder settings
   loadReminderSettings() {
     try {
       const settings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
-      this.reminderTime = settings.reminderTime || '20:00'; // Default 8 PM
+      this.fallbackReminderTime = settings.reminderTime || '20:00';
+      this.reminderTime = this.getEffectiveReminderTime();
     } catch (e) {
+      this.fallbackReminderTime = '20:00';
       this.reminderTime = '20:00';
     }
   },
@@ -196,7 +228,7 @@ const NotificationManager = {
   saveReminderSettings() {
     try {
       const settings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
-      settings.reminderTime = this.reminderTime;
+      settings.reminderTime = this.fallbackReminderTime || this.reminderTime;
       localStorage.setItem('rianellSettings', JSON.stringify(settings));
     } catch (e) {
       console.error('Error saving reminder settings:', e);
@@ -224,7 +256,8 @@ const NotificationManager = {
   },
 
   getNextReminderDate() {
-    const [hours, minutes] = String(this.reminderTime || '20:00').split(':').map(Number);
+    const effective = this.getEffectiveReminderTime();
+    const [hours, minutes] = String(effective || '20:00').split(':').map(Number);
     const now = new Date();
     const next = new Date();
     next.setHours(Number.isFinite(hours) ? hours : 20, Number.isFinite(minutes) ? minutes : 0, 0, 0);
@@ -268,6 +301,8 @@ const NotificationManager = {
   checkReminderTime() {
     if (!this.isReminderEnabled()) return;
     if (this.permission !== 'granted') return;
+
+    this.reminderTime = this.getEffectiveReminderTime();
     
     const now = new Date();
     const [hours, minutes] = this.reminderTime.split(':').map(Number);
@@ -286,6 +321,31 @@ const NotificationManager = {
         localStorage.setItem('lastReminderDate', today);
       }
     }
+
+    this.checkSmartMissedLogNudge();
+  },
+
+  checkSmartMissedLogNudge() {
+    if (!this.isReminderEnabled()) return;
+    if (this.permission !== 'granted') return;
+    const Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+    if (!Shared || typeof Shared.shouldFireMissedLogNudge !== 'function') return;
+    const logs = this.getHealthLogs();
+    const now = new Date();
+    const todayStr = this.getLocalDateStr(now);
+    const lastNudge = localStorage.getItem('lastSmartMissedNudgeDate');
+    const result = Shared.shouldFireMissedLogNudge(logs, now, {
+      fallbackHHMM: this.fallbackReminderTime || '20:00',
+      lastNudgeDate: lastNudge || undefined,
+      todayStr,
+    });
+    if (!result.fire) return;
+    this.showNotification(
+      'Still time to log today',
+      'A quick check-in keeps your health trends accurate.',
+      '/?quick=true'
+    );
+    localStorage.setItem('lastSmartMissedNudgeDate', todayStr);
   },
   
   // Send daily reminder notification
@@ -294,7 +354,7 @@ const NotificationManager = {
     
     // Check if entry already exists for today
     const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
+    const todayStr = this.getLocalDateStr(today);
     const logs = JSON.parse(localStorage.getItem('healthLogs') || '[]');
     const hasToday = logs.some(log => log.date === todayStr);
     
@@ -369,8 +429,8 @@ const NotificationManager = {
     if (!this.isReminderEnabled()) return;
     
     const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-    const logs = JSON.parse(localStorage.getItem('healthLogs') || '[]');
+    const todayStr = this.getLocalDateStr(today);
+    const logs = this.getHealthLogs();
     const hasToday = logs.some(log => log.date === todayStr);
     
     if (!hasToday && document.visibilityState === 'visible') {
@@ -394,7 +454,8 @@ const NotificationManager = {
   
   // Set reminder time
   async setReminderTime(time) {
-    this.reminderTime = time;
+    this.fallbackReminderTime = time;
+    this.reminderTime = this.getEffectiveReminderTime();
     this.saveReminderSettings();
     if (this.isReminderEnabled()) {
       await this.scheduleReminders();

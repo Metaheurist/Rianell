@@ -6,6 +6,7 @@ export type DailyReminderOptions = {
   enabled: boolean;
   time: string;
   soundEnabled: boolean;
+  missedNudgeTime?: string;
 };
 
 export type DailyReminderResult = {
@@ -33,6 +34,7 @@ export type ReminderCapabilities = {
 
 const NOTIFICATION_REMINDER_ID = 'rianell-daily-reminder';
 const NOTIFICATION_SNOOZE_ID = 'rianell-reminder-snooze';
+const NOTIFICATION_SMART_MISSED_ID = 'rianell-smart-missed-nudge';
 const NOTIFICATION_CHANNEL_ID = 'rianell-reminders';
 const NOTIFICATION_CATEGORY_ID = 'rianell-reminder-actions';
 
@@ -61,7 +63,7 @@ export function mapNotificationResponseToReminderAction(
   defaultActionIdentifier?: string,
   dismissedActionIdentifier?: string
 ): ReminderAction {
-  if (notificationIdentifier !== NOTIFICATION_REMINDER_ID && notificationIdentifier !== NOTIFICATION_SNOOZE_ID) {
+  if (notificationIdentifier !== NOTIFICATION_REMINDER_ID && notificationIdentifier !== NOTIFICATION_SNOOZE_ID && notificationIdentifier !== NOTIFICATION_SMART_MISSED_ID) {
     return 'none';
   }
   const normalized = normalizeReminderActionIdentifier(actionIdentifier, defaultActionIdentifier, dismissedActionIdentifier);
@@ -191,6 +193,7 @@ export const Permissions = {
       }
       if (Notifications?.cancelScheduledNotificationAsync) {
         await Notifications.cancelScheduledNotificationAsync(NOTIFICATION_REMINDER_ID);
+        await Notifications.cancelScheduledNotificationAsync(NOTIFICATION_SMART_MISSED_ID);
       }
       if (!opts.enabled) return { ok: true, delivery: 'disabled' };
       const t = parseTimeHHMM(opts.time);
@@ -210,6 +213,32 @@ export const Permissions = {
           ...(channelConfigured ? { channelId: NOTIFICATION_CHANNEL_ID } : {}),
         },
       });
+      if (opts.missedNudgeTime) {
+        const nudge = parseTimeHHMM(opts.missedNudgeTime);
+        if (nudge) {
+          const now = new Date();
+          const triggerAt = new Date();
+          triggerAt.setHours(nudge.hour, nudge.minute, 0, 0);
+          if (triggerAt > now) {
+            const seconds = Math.max(60, Math.floor((triggerAt.getTime() - now.getTime()) / 1000));
+            await Notifications.scheduleNotificationAsync({
+              identifier: NOTIFICATION_SMART_MISSED_ID,
+              content: {
+                title: 'Still time to log today',
+                body: 'A quick check-in keeps your health trends accurate.',
+                sound: opts.soundEnabled ? 'default' : null,
+                ...(categoryConfigured ? { categoryIdentifier: NOTIFICATION_CATEGORY_ID } : {}),
+              },
+              trigger: {
+                type: Notifications.SchedulableTriggerInputTypes?.TIME_INTERVAL ?? 'timeInterval',
+                seconds,
+                repeats: false,
+                ...(channelConfigured ? { channelId: NOTIFICATION_CHANNEL_ID } : {}),
+              },
+            });
+          }
+        }
+      }
       return {
         ok: true,
         delivery: channelConfigured && categoryConfigured
@@ -290,6 +319,31 @@ export const Permissions = {
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes?.TIME_INTERVAL ?? 'timeInterval',
           seconds: Math.max(60, Math.floor(minutes * 60)),
+          repeats: false,
+        },
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  async scheduleSmartMissedLogNudgeNow(soundEnabled = true): Promise<boolean> {
+    const Notifications = await loadExpoNotifications();
+    if (!Notifications?.scheduleNotificationAsync) return false;
+    try {
+      if (Notifications?.cancelScheduledNotificationAsync) {
+        await Notifications.cancelScheduledNotificationAsync(NOTIFICATION_SMART_MISSED_ID);
+      }
+      await Notifications.scheduleNotificationAsync({
+        identifier: NOTIFICATION_SMART_MISSED_ID,
+        content: {
+          title: 'Still time to log today',
+          body: 'A quick check-in keeps your health trends accurate.',
+          sound: soundEnabled ? 'default' : null,
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes?.TIME_INTERVAL ?? 'timeInterval',
+          seconds: 2,
           repeats: false,
         },
       });
