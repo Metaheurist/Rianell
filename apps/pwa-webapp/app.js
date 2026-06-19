@@ -4826,6 +4826,7 @@ function toggleChartView(viewType) {
       updateCharts();
     }
   }
+  if (typeof renderChartsInsightsPanel === 'function') renderChartsInsightsPanel();
 }
 
 async function createCombinedChart() {
@@ -15132,10 +15133,88 @@ async function updateChartsImmediate() {
   if (typeof enforceChartSectionView === 'function') {
     enforceChartSectionView(getCurrentChartView());
   }
+  if (typeof renderChartsInsightsPanel === 'function') renderChartsInsightsPanel();
   perfLog('Charts updateChartsImmediate (14 charts)', Date.now() - _perfT0, {});
 }
 
 // Update empty state placeholder visibility
+function renderChartsInsightsPanel() {
+  const panel = document.getElementById('chartsInsightsPanel');
+  if (!panel) return;
+  const engine = window.RianellAIEngine;
+  if (!engine || typeof engine.buildCorrelationCards !== 'function') {
+    panel.innerHTML = '';
+    panel.classList.add('hidden');
+    return;
+  }
+  const filtered = typeof getFilteredLogs === 'function' ? getFilteredLogs() : (logs || []);
+  if (!filtered.length) {
+    panel.innerHTML = '';
+    panel.classList.add('hidden');
+    return;
+  }
+  const chronological = [...filtered].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const cards = engine.buildCorrelationCards(chronological, 'all');
+  const postMortem = typeof engine.buildFlarePostMortem === 'function'
+    ? engine.buildFlarePostMortem(chronological)
+    : null;
+  let forecastHtml = '';
+  const moodSeries = chronological
+    .filter((log) => log.mood != null && log.mood !== '')
+    .map((log) => Number(log.mood));
+  if (moodSeries.length >= 2 && typeof engine.predictFutureValues === 'function') {
+    const pts = engine.predictFutureValues(moodSeries, 3);
+    const last = pts[pts.length - 1];
+    if (last) {
+      forecastHtml = `<p class="charts-insight-forecast">${escapeHTML(tUi('charts.forecast.uncertainty', {
+        days: 3,
+        value: last.value.toFixed(1),
+        lower: last.lower.toFixed(1),
+        upper: last.upper.toFixed(1),
+      }))}</p>`;
+    }
+  }
+  if (!cards.length && !postMortem && !forecastHtml) {
+    panel.innerHTML = '';
+    panel.classList.add('hidden');
+    return;
+  }
+  let html = '';
+  if (cards.length) {
+    html += `<h3 class="charts-insight-heading">${escapeHTML(tUi('charts.correlations.title'))}</h3><div class="charts-insight-cards">`;
+    cards.forEach((card) => {
+      const confKey = `charts.correlations.confidence.${card.confidence}`;
+      const dirKey = card.direction === 'positive' ? 'charts.correlations.positive' : 'charts.correlations.negative';
+      html += `<div class="charts-insight-card"><span class="charts-insight-badge">${escapeHTML(tUi(confKey))}</span> `;
+      html += `<strong>${escapeHTML(card.label1)}</strong> ${escapeHTML(tUi(dirKey))} <strong>${escapeHTML(card.label2)}</strong> `;
+      html += `<span class="charts-insight-meta">(${card.coefficient})</span></div>`;
+    });
+    html += '</div>';
+  }
+  if (postMortem) {
+    html += `<h3 class="charts-insight-heading">${escapeHTML(tUi('charts.flarePostMortem.title'))}</h3>`;
+    html += `<p class="charts-insight-lede">${escapeHTML(tUi('charts.flarePostMortem.window', {
+      days: postMortem.windowDays,
+      date: postMortem.flareDate,
+    }))}</p>`;
+    const metrics = postMortem.diverging.length ? postMortem.diverging : postMortem.metrics;
+    metrics.forEach((m) => {
+      if (m.beforeAvg == null && m.afterAvg == null) return;
+      html += `<p class="charts-insight-line">${escapeHTML(tUi('charts.flarePostMortem.metricLine', {
+        label: m.label,
+        before: m.beforeAvg != null ? m.beforeAvg.toFixed(1) : '—',
+        after: m.afterAvg != null ? m.afterAvg.toFixed(1) : '—',
+        delta: m.delta != null ? (m.delta >= 0 ? `+${m.delta.toFixed(1)}` : m.delta.toFixed(1)) : '—',
+      }))}</p>`;
+    });
+  }
+  if (forecastHtml) {
+    html += `<h3 class="charts-insight-heading">${escapeHTML(tUi('charts.forecast.section'))}</h3>${forecastHtml}`;
+  }
+  panel.innerHTML = html;
+  panel.classList.remove('hidden');
+}
+
 function updateChartEmptyState(hasData) {
   const placeholder = document.getElementById('chartEmptyPlaceholder');
   const combinedContainer = document.getElementById('combinedChartContainer');
@@ -15154,6 +15233,7 @@ function updateChartEmptyState(hasData) {
     if (typeof enforceChartSectionView === 'function') {
       enforceChartSectionView(getCurrentChartView());
     }
+    if (typeof renderChartsInsightsPanel === 'function') renderChartsInsightsPanel();
   }
 }
 
@@ -20415,10 +20495,8 @@ function switchTab(tabName, skipHash) {
     const chartSection = document.getElementById('chartSection');
     if (chartSection) {
       chartSection.classList.remove('hidden');
-      // Always show balance view when opening the Charts tab
-      appSettings.chartView = 'balance';
-      saveSettings();
-      toggleChartView('balance');
+      normalizeChartViewSettings();
+      toggleChartView(getCurrentChartView());
       schedulePrecomputeChartResults();
     }
   }

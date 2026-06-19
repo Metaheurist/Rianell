@@ -22,6 +22,7 @@ import type { Preferences } from '../storage/preferences';
 import {
   CHART_METRIC_HEX,
   filterTrendsForChartView,
+  filterLogsForCharts,
   formatChartMetricDelta,
   formatChartMetricValue,
   summarizeCharts,
@@ -29,7 +30,12 @@ import {
   type ChartViewMode,
 } from '../charts/summarizeCharts';
 import { loadCachedBenchmark, type BenchmarkResult } from '../performance/benchmark';
-import { predictFutureValues } from '../ai/engine';
+import {
+  buildCorrelationCards,
+  buildFlarePostMortem,
+  predictFutureValues,
+  type PredictedPoint,
+} from '../ai/engine';
 import { explainChartRange } from '../ai/llm';
 
 const RANGE_OPTIONS: ChartRange[] = [7, 14, 30, 90, 'all'];
@@ -179,6 +185,27 @@ function BalanceVisual({
   );
 }
 
+function PredictionBandVisual({ point, color }: { point: PredictedPoint; color: string }) {
+  const lowerPct = Math.max(0, Math.min(100, (point.lower / 10) * 100));
+  const upperPct = Math.max(0, Math.min(100, (point.upper / 10) * 100));
+  const valuePct = Math.max(0, Math.min(100, (point.value / 10) * 100));
+  return (
+    <View style={styles.predictionBandTrack} accessibilityLabel="Forecast uncertainty band">
+      <View
+        style={[
+          styles.predictionBandRange,
+          {
+            left: `${lowerPct}%`,
+            width: `${Math.max(2, upperPct - lowerPct)}%`,
+            backgroundColor: `${color}44`,
+          },
+        ]}
+      />
+      <View style={[styles.predictionBandDot, { left: `${valuePct}%`, backgroundColor: color }]} />
+    </View>
+  );
+}
+
 export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
   const route = useRoute<ChartsRoute>();
   const theme = useTheme();
@@ -262,15 +289,17 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
   };
 
   const summary = useMemo(() => summarizeCharts(logs, range, { translate: t }), [logs, range, t]);
-  const moodPrediction = useMemo(() => {
-    const moodSeries = logs
+  const rangeLogs = useMemo(() => filterLogsForCharts(logs, range), [logs, range]);
+  const correlationCards = useMemo(() => buildCorrelationCards(rangeLogs, 'all'), [rangeLogs]);
+  const flarePostMortem = useMemo(() => buildFlarePostMortem(rangeLogs), [rangeLogs]);
+  const moodForecast = useMemo(() => {
+    const moodSeries = rangeLogs
       .filter((e) => typeof e.mood === 'number')
-      .sort((a, b) => a.date.localeCompare(b.date))
       .map((e) => e.mood as number);
     if (moodSeries.length < 2) return null;
-    const next = predictFutureValues(moodSeries, 3);
-    return next.length ? next[next.length - 1] : null;
-  }, [logs]);
+    const pts = predictFutureValues(moodSeries, 3);
+    return pts.length ? pts[pts.length - 1] : null;
+  }, [rangeLogs]);
   const trendsForView = useMemo(
     () => filterTrendsForChartView(summary.trends, view),
     [summary.trends, view]
@@ -490,6 +519,61 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
             </View>
           ) : null}
 
+          {correlationCards.length > 0 ? (
+            <>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                {t('charts.correlations.title')}
+              </Text>
+              {correlationCards.map((card) => (
+                <View
+                  key={card.id}
+                  style={[styles.insightCard, { borderLeftColor: CHART_METRIC_HEX.mood }]}
+                >
+                  <Text style={[styles.insightBadge, { color: theme.tokens.color.accent, fontSize: theme.font(11) }]}>
+                    {t(`charts.correlations.confidence.${card.confidence}`)}
+                  </Text>
+                  <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                    {card.label1}{' '}
+                    {t(card.direction === 'positive' ? 'charts.correlations.positive' : 'charts.correlations.negative')}{' '}
+                    {card.label2} ({card.coefficient})
+                  </Text>
+                </View>
+              ))}
+            </>
+          ) : null}
+
+          {flarePostMortem ? (
+            <>
+              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                {t('charts.flarePostMortem.title')}
+              </Text>
+              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+                {t('charts.flarePostMortem.window', {
+                  days: flarePostMortem.windowDays,
+                  date: flarePostMortem.flareDate,
+                })}
+              </Text>
+              {(flarePostMortem.diverging.length ? flarePostMortem.diverging : flarePostMortem.metrics).map((m) => (
+                <Text
+                  key={`flare-${m.key}`}
+                  style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
+                >
+                  {t('charts.flarePostMortem.metricLine', {
+                    label: m.label,
+                    before: m.beforeAvg != null ? m.beforeAvg.toFixed(1) : '—',
+                    after: m.afterAvg != null ? m.afterAvg.toFixed(1) : '—',
+                    delta:
+                      m.delta != null
+                        ? m.delta >= 0
+                          ? `+${m.delta.toFixed(1)}`
+                          : m.delta.toFixed(1)
+                        : '—',
+                  })}
+                </Text>
+              ))}
+            </>
+          ) : null}
+
           {showOverview ? (
             <>
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('charts.overview')}</Text>
@@ -499,10 +583,21 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                 Flare days: {summary.flareDays}
               </Text>
-              {moodPrediction ? (
-                <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                  Mood forecast (+3d): ~{moodPrediction.value.toFixed(1)}/10
-                </Text>
+              {moodForecast ? (
+                <>
+                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                    {t('charts.forecast.section')}
+                  </Text>
+                  <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                    {t('charts.forecast.uncertainty', {
+                      days: 3,
+                      value: moodForecast.value.toFixed(1),
+                      lower: moodForecast.lower.toFixed(1),
+                      upper: moodForecast.upper.toFixed(1),
+                    })}
+                  </Text>
+                  <PredictionBandVisual point={moodForecast} color={CHART_METRIC_HEX.mood} />
+                </>
               ) : null}
               {trendsForView.some((trend) => trend.spark.length > 1) ? (
                 <CombinedTrendChart
@@ -719,4 +814,36 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   balanceVisualFill: { height: '100%', borderRadius: 6, minWidth: 2 },
+  insightCard: {
+    borderLeftWidth: 3,
+    paddingLeft: 10,
+    paddingVertical: 8,
+    marginBottom: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)',
+  },
+  insightBadge: { fontWeight: '800', marginBottom: 4, textTransform: 'uppercase' },
+  predictionBandTrack: {
+    marginTop: 6,
+    marginBottom: 10,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  predictionBandRange: {
+    position: 'absolute',
+    top: 2,
+    bottom: 2,
+    borderRadius: 5,
+  },
+  predictionBandDot: {
+    position: 'absolute',
+    top: 3,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginLeft: -4,
+  },
 });

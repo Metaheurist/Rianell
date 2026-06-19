@@ -2,7 +2,14 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.97.0** - Plan 08 phase C: golden prompts CI, GGUF Path 3 adapter, PWA on-device-only (N9, N10, N11).
+**Latest: v1.98.0** - Plan 09 phase A+B: chart view persistence, correlation cards, flare post-mortem, forecast bands (C10, C1, C2, C7).
+
+### v1.98.0 - 2026-06-19 - Plan 09 Charts phase A+B (C10, C1, C2, C7)
+- **C10:** PWA Charts tab restores saved `chartView` (Balance/Individual/Combined) instead of forcing Balance.
+- **C1:** Automatic correlation cards with confidence badges on Charts tab (PWA + RN) via `buildCorrelationCards`.
+- **C2:** Flare post-mortem 7-day before/after timeline via `buildFlarePostMortem`.
+- **C7:** Mood forecast uncertainty bands (`lower`/`upper`) on RN + PWA insights panel.
+- **Tests:** 4 plan09-phase-b tests (226 total).
 
 ### v1.97.0 - 2026-06-19 - Plan 08 LLM phase C (N9, N10, N11)
 - **N9:** Golden prompt regression — per-locale × 8-intent audit via `llmGoldenPrompts.mjs`; CI gate in unit tests + `llm-golden-prompts.mjs`.

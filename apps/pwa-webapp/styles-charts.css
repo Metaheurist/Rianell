@@ -1,4 +1,57 @@
-/* Deferred chart + ApexCharts styles (loaded when opening Charts tab). */
+.charts-insights-panel {
+  margin: 12px 0 20px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(28, 28, 28, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.charts-insights-panel.hidden {
+  display: none;
+}
+.charts-insight-heading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  opacity: 0.9;
+}
+.charts-insight-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.charts-insight-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border-left: 3px solid var(--accent, #7dd3fc);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.charts-insight-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  margin-right: 6px;
+  border-radius: 6px;
+  background: rgba(125, 211, 252, 0.18);
+}
+.charts-insight-meta {
+  opacity: 0.75;
+  font-size: 0.82rem;
+}
+.charts-insight-lede,
+.charts-insight-line,
+.charts-insight-forecast {
+  margin: 0 0 6px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  opacity: 0.92;
+}
+
 body.chart-palette-high-contrast {
   --chart-series-1: #ffffff;
   --chart-series-2: #ffd600;
