@@ -1698,11 +1698,12 @@
         <h2 class="tab-title" id="homeGreeting" data-i18n="home.greeting.today">Today</h2>
         <p class="home-today-sub" id="homeTodayDate" aria-live="polite"></p>
       </div>
-      <div id="homeHeroCard" class="home-hero-card" data-scroll-reveal role="status" aria-live="polite">
+      <div id="homeNudgeCard" class="home-nudge-card" data-home-card="nudge" hidden role="status" aria-live="polite"></div>
+      <div id="homeHeroCard" class="home-hero-card" data-home-card="hero" data-scroll-reveal role="status" aria-live="polite">
         <div id="homeTodayStatus" class="home-today-status"></div>
         <div id="homeAiSuggestions" class="home-ai-suggestions" hidden aria-live="polite"></div>
       </div>
-      <div id="goalsProgressBlock" class="goals-progress-block" style="display: none;" aria-live="polite" data-scroll-reveal></div>
+      <div id="goalsProgressBlock" class="goals-progress-block" data-home-card="goals" style="display: none;" aria-live="polite" data-scroll-reveal></div>
     </div>
 
     <!-- Log wizard (opened via floating + button, not a main nav tab) -->

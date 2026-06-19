@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.100.0** - Plan 09 phase D: RN radar chart, chart PDF export, custom metrics (C3, C6, C8).
+**Latest: v1.101.0** - Plan 10 phase A: adaptive home card layout (H1).
+
+### v1.101.0 - 2026-06-19 - Plan 10 Home phase A (H1)
+- **H1:** Adaptive home card registry — reorder hero/goals/nudge by context (`resolveHomeCardOrder`); PWA DOM layout + RN ScrollView.
+- **H1:** Gentle streak-broken nudge when logged yesterday but not today; simple mode hides AI question chips.
+- **Tests:** 4 plan10-phase-a tests (238 total).
 
 ### v1.100.0 - 2026-06-19 - Plan 09 Charts phase D (C3, C6, C8)
 - **C3:** RN balance radar/spider chart via `BalanceRadarChart` + `buildBalanceRadarData` (PWA Apex parity).
