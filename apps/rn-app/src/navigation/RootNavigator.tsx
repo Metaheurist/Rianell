@@ -11,6 +11,7 @@ import { ChartsScreen } from '../screens/ChartsScreen';
 import { AiScreen } from '../screens/AiScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { WeeklyReviewScreen } from '../screens/WeeklyReviewScreen';
+import { LogWizardScreen } from '../screens/LogWizardScreen';
 import type { Preferences } from '../storage/preferences';
 import type { ChartViewMode } from '../charts/summarizeCharts';
 import { Permissions, type ReminderAction } from '../permissions/permissions';
