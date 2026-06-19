@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-19T05:59:01.307Z",
+  "generatedAt": "2026-06-19T06:21:09.859Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3716027,
+    "jsBytes": 3723508,
     "cssBytes": 395381,
-    "jsGzipBytes": 889025,
+    "jsGzipBytes": 891294,
     "cssGzipBytes": 69545
   },
   "files": [
@@ -40,8 +40,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 146938,
-      "gzipBytes": 33379
+      "bytes": 151986,
+      "gzipBytes": 34961
     },
     {
       "file": "ci-minified/site/cloud-sync.js",
@@ -50,8 +50,8 @@
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 73421,
-      "gzipBytes": 16457
+      "bytes": 74197,
+      "gzipBytes": 16653
     },
     {
       "file": "ci-minified/site/export-utils.js",
@@ -179,6 +179,11 @@
       "gzipBytes": 982
     },
     {
+      "file": "ci-minified/site/summary-llm-gguf.js",
+      "bytes": 3009,
+      "gzipBytes": 1136
+    },
+    {
       "file": "ci-minified/site/supabase-config.js",
       "bytes": 2891,
       "gzipBytes": 939
@@ -207,11 +212,6 @@
       "file": "ci-minified/site/trace-runtime.js",
       "bytes": 1803,
       "gzipBytes": 685
-    },
-    {
-      "file": "ci-minified/site/summary-llm-gguf.js",
-      "bytes": 1352,
-      "gzipBytes": 645
     },
     {
       "file": "ci-minified/site/src/buildDownloads.js",
