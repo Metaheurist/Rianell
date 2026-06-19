@@ -61,7 +61,7 @@ import {
   type ReminderAction,
   type ReminderCapabilities,
 } from '../permissions/permissions';
-import { resolveEffectiveReminderSchedule } from '../notifications/smartReminderSync';
+import { resolveEffectiveReminderSchedule, syncMedDoseReminders } from '../notifications/smartReminderSync';
 
 /** Matches `data-settings-pane-i18n` order in `apps/pwa-webapp/index.html` settings carousel. */
 const PANE_TITLE_KEYS = [
@@ -213,6 +213,7 @@ export function SettingsScreen({
       if (cancelled) return;
       setSmartReminderLearned(schedule.learned);
       setEffectiveReminderTime(schedule.reminderTime);
+      await syncMedDoseReminders(prefs);
       setNotificationDeliveryState(result.delivery);
       if (result.ok) {
         setNotificationScheduleState(prefs.notifications.enabled ? 'scheduled' : 'idle');
@@ -230,6 +231,7 @@ export function SettingsScreen({
     prefs.notifications.dailyReminderTime,
     prefs.notifications.enabled,
     prefs.notifications.soundEnabled,
+    prefs.medSchedule,
   ]);
 
   useEffect(() => {

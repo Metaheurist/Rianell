@@ -1,8 +1,14 @@
 import {
+  buildFlareRiskNotificationContent,
+  buildMedDoseNotificationContent,
+  hasEnabledMedSchedule,
   hasLoggedToday,
+  listTodayMedDoseReminders,
   localDateStrFromNow,
+  MED_DOSE_SNOOZE_MINUTES,
   resolveMissedLogNudgeTimeHHMM,
   resolveSmartReminderTime,
+  shouldFireFlareRiskNudge,
   shouldFireMissedLogNudge,
 } from '@rianell/shared';
 import { Permissions } from '../permissions/permissions';
@@ -25,6 +31,28 @@ export async function resolveEffectiveReminderSchedule(
     missedNudgeTime: hasLoggedToday(logs, todayStr) ? undefined : missedNudgeTime,
     learned,
   };
+}
+
+export async function syncMedDoseReminders(prefs: Preferences, now = new Date()): Promise<void> {
+  if (!prefs.notifications.enabled || !hasEnabledMedSchedule(prefs.medSchedule)) return;
+  const logs = await loadLogs();
+  const todayStr = localDateStrFromNow(now);
+  const doses = listTodayMedDoseReminders(prefs.medSchedule, logs, now, {
+    todayStr,
+    notifiedAt: prefs.notifications.medDoseReminderNotifiedAt || {},
+    snoozeUntil: prefs.notifications.medDoseSnoozeUntil || {},
+  }).filter((d) => d.schedule);
+
+  await Permissions.scheduleMedDoseReminders({
+    enabled: true,
+    soundEnabled: prefs.notifications.soundEnabled,
+    doses: doses.map((d) => ({
+      scheduledAt: d.scheduledAt,
+      drug: d.drug,
+      dose: d.dose,
+      triggerAt: d.triggerAt,
+    })),
+  });
 }
 
 export async function maybeFireSmartMissedLogNudge(
@@ -50,4 +78,116 @@ export async function maybeFireSmartMissedLogNudge(
       smartMissedNudgeDate: todayStr,
     },
   });
+}
+
+export async function maybeFireMedDoseReminders(
+  prefs: Preferences,
+  onPrefsUpdate: (next: Preferences) => void,
+  now = new Date(),
+): Promise<void> {
+  if (!prefs.notifications.enabled || !hasEnabledMedSchedule(prefs.medSchedule)) return;
+  const logs = await loadLogs();
+  const todayStr = localDateStrFromNow(now);
+  const pending = listTodayMedDoseReminders(prefs.medSchedule, logs, now, {
+    todayStr,
+    notifiedAt: prefs.notifications.medDoseReminderNotifiedAt || {},
+    snoozeUntil: prefs.notifications.medDoseSnoozeUntil || {},
+  }).filter((d) => d.fire);
+
+  if (!pending.length) return;
+  const dose = pending[0];
+  const ok = await Permissions.scheduleMedDoseNudgeNow(
+    {
+      scheduledAt: dose.scheduledAt,
+      drug: dose.drug,
+      dose: dose.dose,
+      triggerAt: dose.triggerAt,
+    },
+    prefs.notifications.soundEnabled,
+  );
+  if (!ok) return;
+  void buildMedDoseNotificationContent(dose);
+  onPrefsUpdate({
+    ...prefs,
+    notifications: {
+      ...prefs.notifications,
+      medDoseReminderNotifiedAt: {
+        ...(prefs.notifications.medDoseReminderNotifiedAt || {}),
+        [dose.scheduledAt]: todayStr,
+      },
+    },
+  });
+}
+
+export async function maybeFireFlareRiskNudge(
+  prefs: Preferences,
+  onPrefsUpdate: (next: Preferences) => void,
+  now = new Date(),
+): Promise<void> {
+  if (!prefs.notifications.enabled || prefs.aiEnabled === false) return;
+  const logs = await loadLogs();
+  const result = shouldFireFlareRiskNudge(logs, now, {
+    lastNudgeWeek: prefs.notifications.flareRiskNudgeWeek ?? undefined,
+  });
+  if (!result.fire || !result.week) return;
+  const ok = await Permissions.scheduleFlareRiskNudgeNow(prefs.notifications.soundEnabled);
+  if (!ok) return;
+  void buildFlareRiskNotificationContent(result.eval);
+  onPrefsUpdate({
+    ...prefs,
+    notifications: {
+      ...prefs.notifications,
+      flareRiskNudgeWeek: result.week,
+    },
+  });
+}
+
+export async function syncEngagementNotifications(
+  prefs: Preferences,
+  onPrefsUpdate: (next: Preferences) => void,
+  now = new Date(),
+): Promise<void> {
+  await syncMedDoseReminders(prefs, now);
+  await maybeFireSmartMissedLogNudge(prefs, onPrefsUpdate, now);
+  await maybeFireMedDoseReminders(prefs, onPrefsUpdate, now);
+  await maybeFireFlareRiskNudge(prefs, onPrefsUpdate, now);
+}
+
+export async function handleMedDoseNotificationAction(
+  prefs: Preferences,
+  onPrefsUpdate: (next: Preferences) => void,
+  action: 'taken' | 'snooze' | 'default' | 'none' | 'unknown',
+  scheduledAt?: string,
+): Promise<'open-log' | 'none'> {
+  if (action === 'none' || action === 'unknown') return 'none';
+  if (!scheduledAt) return action === 'taken' || action === 'default' ? 'open-log' : 'none';
+  const logs = await loadLogs();
+  const todayStr = localDateStrFromNow();
+  const dose = listTodayMedDoseReminders(prefs.medSchedule, logs, new Date(), {
+    todayStr,
+    notifiedAt: prefs.notifications.medDoseReminderNotifiedAt || {},
+    snoozeUntil: prefs.notifications.medDoseSnoozeUntil || {},
+  }).find((d) => d.scheduledAt === scheduledAt);
+
+  if (action === 'snooze' && dose) {
+    const until = new Date(Date.now() + MED_DOSE_SNOOZE_MINUTES * 60_000).toISOString();
+    await Permissions.scheduleMedDoseSnooze(
+      { scheduledAt: dose.scheduledAt, drug: dose.drug, dose: dose.dose, triggerAt: dose.triggerAt },
+      MED_DOSE_SNOOZE_MINUTES,
+      prefs.notifications.soundEnabled,
+    );
+    onPrefsUpdate({
+      ...prefs,
+      notifications: {
+        ...prefs.notifications,
+        medDoseSnoozeUntil: {
+          ...(prefs.notifications.medDoseSnoozeUntil || {}),
+          [scheduledAt]: until,
+        },
+      },
+    });
+    return 'none';
+  }
+
+  return action === 'taken' || action === 'default' ? 'open-log' : 'none';
 }

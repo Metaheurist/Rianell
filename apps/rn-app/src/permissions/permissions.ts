@@ -23,6 +23,13 @@ export type DailyReminderResult = {
 };
 
 export type ReminderAction = 'log-now' | 'later' | 'default' | 'unknown' | 'none';
+export type MedDoseAction = 'taken' | 'snooze' | 'default' | 'none';
+export type MedDoseReminderPayload = {
+  scheduledAt: string;
+  drug: string;
+  dose?: string;
+  triggerAt: string;
+};
 export type ReminderCapabilities = {
   hasScheduling: boolean;
   hasAndroidChannel: boolean;
@@ -35,8 +42,11 @@ export type ReminderCapabilities = {
 const NOTIFICATION_REMINDER_ID = 'rianell-daily-reminder';
 const NOTIFICATION_SNOOZE_ID = 'rianell-reminder-snooze';
 const NOTIFICATION_SMART_MISSED_ID = 'rianell-smart-missed-nudge';
+const NOTIFICATION_FLARE_RISK_ID = 'rianell-flare-risk-nudge';
 const NOTIFICATION_CHANNEL_ID = 'rianell-reminders';
 const NOTIFICATION_CATEGORY_ID = 'rianell-reminder-actions';
+const NOTIFICATION_MED_DOSE_CATEGORY_ID = 'rianell-med-dose-actions';
+const MED_DOSE_ID_PREFIX = 'rianell-med-dose-';
 
 export function normalizeReminderActionIdentifier(
   actionIdentifier: unknown,
@@ -73,6 +83,25 @@ export function mapNotificationResponseToReminderAction(
     return 'default';
   }
   return normalized;
+}
+
+export function mapNotificationResponseToMedDoseAction(
+  notificationIdentifier: unknown,
+  actionIdentifier: unknown,
+  defaultActionIdentifier?: string,
+  dismissedActionIdentifier?: string,
+): MedDoseAction {
+  if (typeof notificationIdentifier !== 'string' || !notificationIdentifier.startsWith(MED_DOSE_ID_PREFIX)) {
+    return 'none';
+  }
+  const raw = typeof actionIdentifier === 'string' ? actionIdentifier.trim() : '';
+  if (dismissedActionIdentifier && raw === dismissedActionIdentifier) return 'none';
+  if (defaultActionIdentifier && raw === defaultActionIdentifier) return 'default';
+  const normalized = raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  if (normalized === 'taken' || normalized === 'mark-taken') return 'taken';
+  if (normalized === 'snooze' || normalized === 'later') return 'snooze';
+  if (normalized === 'default') return 'default';
+  return raw ? 'default' : 'none';
 }
 
 function parseTimeHHMM(value: string): { hour: number; minute: number } | null {
@@ -350,6 +379,181 @@ export const Permissions = {
       return true;
     } catch {
       return false;
+    }
+  },
+  async scheduleMedDoseReminders(opts: {
+    enabled: boolean;
+    soundEnabled: boolean;
+    doses: MedDoseReminderPayload[];
+  }): Promise<{ scheduled: number }> {
+    const Notifications = await loadExpoNotifications();
+    if (!Notifications?.scheduleNotificationAsync) return { scheduled: 0 };
+    try {
+      const scheduled = await Notifications.getAllScheduledNotificationsAsync?.();
+      if (Array.isArray(scheduled)) {
+        for (const item of scheduled) {
+          const id = item?.identifier;
+          if (typeof id === 'string' && id.startsWith(MED_DOSE_ID_PREFIX) && Notifications.cancelScheduledNotificationAsync) {
+            await Notifications.cancelScheduledNotificationAsync(id);
+          }
+        }
+      }
+      if (!opts.enabled || !opts.doses.length) return { scheduled: 0 };
+
+      let channelConfigured = false;
+      let categoryConfigured = false;
+      if (Notifications?.setNotificationChannelAsync && Notifications?.AndroidImportance) {
+        await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_ID, {
+          name: 'Daily reminders',
+          importance: Notifications.AndroidImportance.DEFAULT,
+          sound: opts.soundEnabled ? 'default' : null,
+        });
+        channelConfigured = true;
+      }
+      if (Notifications?.setNotificationCategoryAsync) {
+        await Notifications.setNotificationCategoryAsync(NOTIFICATION_MED_DOSE_CATEGORY_ID, [
+          { identifier: 'taken', buttonTitle: 'Taken', options: { opensAppToForeground: true } },
+          { identifier: 'snooze', buttonTitle: 'Snooze', options: { opensAppToForeground: false } },
+        ]);
+        categoryConfigured = true;
+      }
+
+      const now = Date.now();
+      let count = 0;
+      for (const dose of opts.doses) {
+        const triggerAt = new Date(dose.triggerAt);
+        if (Number.isNaN(triggerAt.getTime()) || triggerAt.getTime() <= now) continue;
+        const id = `${MED_DOSE_ID_PREFIX}${dose.scheduledAt.replace(/[^0-9A-Za-z]/g, '')}`;
+        const label = dose.dose ? `${dose.drug} (${dose.dose})` : dose.drug;
+        await Notifications.scheduleNotificationAsync({
+          identifier: id,
+          content: {
+            title: 'Medication reminder',
+            body: `Time for ${label}. Mark taken when you log today.`,
+            sound: opts.soundEnabled ? 'default' : null,
+            data: { scheduledAt: dose.scheduledAt, kind: 'med-dose' },
+            ...(categoryConfigured ? { categoryIdentifier: NOTIFICATION_MED_DOSE_CATEGORY_ID } : {}),
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes?.DATE ?? 'date',
+            date: triggerAt,
+            ...(channelConfigured ? { channelId: NOTIFICATION_CHANNEL_ID } : {}),
+          },
+        });
+        count += 1;
+      }
+      return { scheduled: count };
+    } catch {
+      return { scheduled: 0 };
+    }
+  },
+  async scheduleMedDoseNudgeNow(dose: MedDoseReminderPayload, soundEnabled = true): Promise<boolean> {
+    const Notifications = await loadExpoNotifications();
+    if (!Notifications?.scheduleNotificationAsync) return false;
+    try {
+      const id = `${MED_DOSE_ID_PREFIX}${dose.scheduledAt.replace(/[^0-9A-Za-z]/g, '')}`;
+      if (Notifications?.cancelScheduledNotificationAsync) {
+        await Notifications.cancelScheduledNotificationAsync(id);
+      }
+      const label = dose.dose ? `${dose.drug} (${dose.dose})` : dose.drug;
+      await Notifications.scheduleNotificationAsync({
+        identifier: id,
+        content: {
+          title: 'Medication reminder',
+          body: `Time for ${label}. Mark taken when you log today.`,
+          sound: soundEnabled ? 'default' : null,
+          data: { scheduledAt: dose.scheduledAt, kind: 'med-dose' },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes?.TIME_INTERVAL ?? 'timeInterval',
+          seconds: 2,
+          repeats: false,
+        },
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  async scheduleMedDoseSnooze(dose: MedDoseReminderPayload, minutes: number, soundEnabled = true): Promise<boolean> {
+    const Notifications = await loadExpoNotifications();
+    if (!Notifications?.scheduleNotificationAsync) return false;
+    try {
+      const id = `${MED_DOSE_ID_PREFIX}snooze-${dose.scheduledAt.replace(/[^0-9A-Za-z]/g, '')}`;
+      if (Notifications?.cancelScheduledNotificationAsync) {
+        await Notifications.cancelScheduledNotificationAsync(id);
+      }
+      const label = dose.dose ? `${dose.drug} (${dose.dose})` : dose.drug;
+      await Notifications.scheduleNotificationAsync({
+        identifier: id,
+        content: {
+          title: 'Medication reminder (snoozed)',
+          body: `Reminder: ${label}`,
+          sound: soundEnabled ? 'default' : null,
+          data: { scheduledAt: dose.scheduledAt, kind: 'med-dose-snooze' },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes?.TIME_INTERVAL ?? 'timeInterval',
+          seconds: Math.max(60, Math.floor(minutes * 60)),
+          repeats: false,
+        },
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  async scheduleFlareRiskNudgeNow(soundEnabled = true): Promise<boolean> {
+    const Notifications = await loadExpoNotifications();
+    if (!Notifications?.scheduleNotificationAsync) return false;
+    try {
+      if (Notifications?.cancelScheduledNotificationAsync) {
+        await Notifications.cancelScheduledNotificationAsync(NOTIFICATION_FLARE_RISK_ID);
+      }
+      await Notifications.scheduleNotificationAsync({
+        identifier: NOTIFICATION_FLARE_RISK_ID,
+        content: {
+          title: 'High fatigue week',
+          body: 'Patterns suggest an unusually fatiguing week. Consider pacing and logging how you feel.',
+          sound: soundEnabled ? 'default' : null,
+          data: { kind: 'flare-risk' },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes?.TIME_INTERVAL ?? 'timeInterval',
+          seconds: 2,
+          repeats: false,
+        },
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  async subscribeMedDoseActions(onAction: (action: MedDoseAction, scheduledAt?: string) => void): Promise<() => void> {
+    const Notifications = await loadExpoNotifications();
+    if (!Notifications?.addNotificationResponseReceivedListener) return () => {};
+    try {
+      const sub = Notifications.addNotificationResponseReceivedListener((response: any) => {
+        const identifier = response?.notification?.request?.identifier;
+        const action = mapNotificationResponseToMedDoseAction(
+          identifier,
+          response?.actionIdentifier,
+          Notifications.DEFAULT_ACTION_IDENTIFIER,
+          Notifications.DISMISSED_ACTION_IDENTIFIER,
+        );
+        if (action === 'none') return;
+        const scheduledAt = response?.notification?.request?.content?.data?.scheduledAt;
+        onAction(action, typeof scheduledAt === 'string' ? scheduledAt : undefined);
+      });
+      return () => {
+        try {
+          sub?.remove?.();
+        } catch {
+          // no-op
+        }
+      };
+    } catch {
+      return () => {};
     }
   },
   async getReminderCapabilities(): Promise<ReminderCapabilities> {

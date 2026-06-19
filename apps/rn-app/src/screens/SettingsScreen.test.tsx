@@ -41,7 +41,12 @@ jest.mock('../notifications/smartReminderSync', () => ({
     missedNudgeTime: undefined,
     learned: false,
   })),
+  syncMedDoseReminders: jest.fn(async () => {}),
   maybeFireSmartMissedLogNudge: jest.fn(async () => {}),
+  maybeFireMedDoseReminders: jest.fn(async () => {}),
+  maybeFireFlareRiskNudge: jest.fn(async () => {}),
+  syncEngagementNotifications: jest.fn(async () => {}),
+  handleMedDoseNotificationAction: jest.fn(async () => 'none'),
 }));
 
 jest.mock('../permissions/permissions', () => ({

@@ -5,7 +5,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { isRtlLocale, isTrackingProfileConfigured, resolveActiveLocale } from '@rianell/shared';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/navigation/RootNavigator';
-import { maybeFireSmartMissedLogNudge } from './src/notifications/smartReminderSync';
+import { syncEngagementNotifications } from './src/notifications/smartReminderSync';
 import {
   getDefaultPreferences,
   loadPreferences,
@@ -104,14 +104,21 @@ export default function App() {
   useEffect(() => {
     if (!prefs) return;
     const run = () => {
-      void maybeFireSmartMissedLogNudge(prefs, setPrefs).catch(() => {});
+      void syncEngagementNotifications(prefs, setPrefs).catch(() => {});
     };
     run();
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') run();
     });
     return () => sub.remove();
-  }, [prefs?.notifications.enabled, prefs?.notifications.dailyReminderTime, prefs?.notifications.smartMissedNudgeDate]);
+  }, [
+    prefs?.notifications.enabled,
+    prefs?.notifications.dailyReminderTime,
+    prefs?.notifications.smartMissedNudgeDate,
+    prefs?.notifications.flareRiskNudgeWeek,
+    prefs?.medSchedule,
+    prefs?.aiEnabled,
+  ]);
 
   if (!prefs) return <BootLoadingScreen team={bootTeam} />;
 

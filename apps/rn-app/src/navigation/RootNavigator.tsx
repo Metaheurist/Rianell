@@ -14,6 +14,7 @@ import { LogWizardScreen } from '../screens/LogWizardScreen';
 import type { Preferences } from '../storage/preferences';
 import type { ChartViewMode } from '../charts/summarizeCharts';
 import { Permissions, type ReminderAction } from '../permissions/permissions';
+import { handleMedDoseNotificationAction } from '../notifications/smartReminderSync';
 import { useT } from '../i18n/I18nProvider';
 
 export type RootStackParamList = {
@@ -167,6 +168,29 @@ export function RootNavigator({
       dispose();
     };
   }, [navRef, prefs.notifications.snoozeMinutes]);
+
+  useEffect(() => {
+    let mounted = true;
+    let dispose = () => {};
+
+    const openLogWizard = () => {
+      if (!mounted || !navRef.isReady()) return;
+      navRef.navigate('LogWizard');
+    };
+
+    void Permissions.subscribeMedDoseActions((action, scheduledAt) => {
+      void handleMedDoseNotificationAction(prefs, onChangePrefs, action, scheduledAt).then((next) => {
+        if (next === 'open-log') openLogWizard();
+      });
+    }).then((cleanup) => {
+      dispose = cleanup;
+    });
+
+    return () => {
+      mounted = false;
+      dispose();
+    };
+  }, [navRef, prefs, onChangePrefs]);
 
   return (
     <NavigationContainer ref={navRef} theme={navTheme}>

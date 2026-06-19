@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.105.0** - Plan 11 phase A: smart reminder timing (R1).
+**Latest: v1.106.0** - Plan 11 phase B: med dose reminders + flare risk nudge (R2, R3).
+
+### v1.106.0 - 2026-06-19 - Plan 11 Notifications phase B (R2, R3)
+- **R2:** L3 medication dose local reminders — schedule at dose times; taken opens log wizard, snooze +15 min (RN + PWA).
+- **R3:** Flare-risk nudge when A5-aligned fatigue anomaly detected — max one per ISO week (RN + PWA).
+- **Shared:** `medDoseReminders.mjs`, `flareRiskNudge.mjs`; prefs `medDoseReminderNotifiedAt`, `flareRiskNudgeWeek`.
+- **Tests:** 6 plan11-phase-b tests (269 total).
 
 ### v1.105.0 - 2026-06-19 - Plan 11 Notifications phase A (R1)
 - **R1:** Learn median log time from 14 days of `savedAt` stamps; schedule daily reminder at learned time (fallback to user setting).
