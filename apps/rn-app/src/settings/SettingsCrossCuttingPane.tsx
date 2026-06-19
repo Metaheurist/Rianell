@@ -10,7 +10,7 @@ import {
   interpretPhq2Score,
   interpretGad2Score,
   getCrisisResourcesForRegion,
-  MENTAL_HEALTH_DISCLAIMER_KEY,
+  MENTAL_HEALTH_DISCLAIMER_I18N,
 } from '@rianell/shared';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
@@ -65,7 +65,7 @@ export function SettingsCrossCuttingPane({ prefs }: { prefs: Preferences }) {
       <Text style={[styles.hint, { color: theme.tokens.color.textMuted }]}>{t('progressiveDisclosure.lead')}</Text>
       {milestones.map((m) => (
         <Text key={m.id} style={[styles.bullet, { color: theme.tokens.color.textMuted }]}>
-          · {t(m.labelKey)}
+          · {t(m.i18n)}
         </Text>
       ))}
 
@@ -73,7 +73,7 @@ export function SettingsCrossCuttingPane({ prefs }: { prefs: Preferences }) {
         {t('mentalHealth.title')}
       </Text>
       <Text style={[styles.hint, { color: theme.tokens.color.textMuted }]}>{t('mentalHealth.lead')}</Text>
-      <Text style={[styles.disclaimer, { color: theme.tokens.color.textMuted }]}>{t(MENTAL_HEALTH_DISCLAIMER_KEY)}</Text>
+      <Text style={[styles.disclaimer, { color: theme.tokens.color.textMuted }]}>{t(MENTAL_HEALTH_DISCLAIMER_I18N)}</Text>
       <Pressable onPress={() => openScreening('phq2')} style={styles.linkRow}>
         <Text style={{ color: theme.tokens.color.accent, fontWeight: '600' }}>{t('mentalHealth.phq2.action')}</Text>
       </Pressable>
@@ -89,13 +89,13 @@ export function SettingsCrossCuttingPane({ prefs }: { prefs: Preferences }) {
           <Text style={[styles.heading, { color: theme.tokens.color.textPrimary }]}>
             {screeningKind === 'phq2' ? t('mentalHealth.phq2.title') : t('mentalHealth.gad2.title')}
           </Text>
-          <Text style={[styles.disclaimer, { color: theme.tokens.color.textMuted }]}>{t(MENTAL_HEALTH_DISCLAIMER_KEY)}</Text>
+          <Text style={[styles.disclaimer, { color: theme.tokens.color.textMuted }]}>{t(MENTAL_HEALTH_DISCLAIMER_I18N)}</Text>
 
           {!showResult ? (
             <>
               {questions.map((q) => (
                 <View key={q.id} style={styles.questionBlock}>
-                  <Text style={{ color: theme.tokens.color.textPrimary, marginBottom: 8 }}>{t(q.labelKey)}</Text>
+                  <Text style={{ color: theme.tokens.color.textPrimary, marginBottom: 8 }}>{t(q.i18n)}</Text>
                   {SCREENING_RESPONSE_OPTIONS.map((opt) => {
                     const selected = responses[q.id] === opt.value;
                     return (
@@ -110,7 +110,7 @@ export function SettingsCrossCuttingPane({ prefs }: { prefs: Preferences }) {
                           },
                         ]}
                       >
-                        <Text style={{ color: theme.tokens.color.textPrimary }}>{t(opt.labelKey)}</Text>
+                        <Text style={{ color: theme.tokens.color.textPrimary }}>{t(opt.i18n)}</Text>
                       </Pressable>
                     );
                   })}
@@ -128,11 +128,11 @@ export function SettingsCrossCuttingPane({ prefs }: { prefs: Preferences }) {
             <>
               <Text style={[styles.heading, { color: theme.tokens.color.textPrimary }]}>{t('mentalHealth.result.title')}</Text>
               <Text style={{ color: theme.tokens.color.textPrimary, marginBottom: 8 }}>
-                {t(interpretation.labelKey)} ({scored.total}/6)
+                {t(interpretation.i18n)} ({scored.total}/6)
               </Text>
               {crisisLinks.map((link) => (
                 <Pressable key={link.url} onPress={() => void Linking.openURL(link.url)} style={styles.linkRow}>
-                  <Text style={{ color: theme.tokens.color.accent }}>{t(link.nameKey)}</Text>
+                  <Text style={{ color: theme.tokens.color.accent }}>{t(link.i18n)}</Text>
                 </Pressable>
               ))}
             </>

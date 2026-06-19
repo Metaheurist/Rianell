@@ -1,11 +1,11 @@
 /** Plan 14 X14.1 — Weekly Health Review ritual steps and gates. */
 
 export const WEEKLY_REVIEW_STEPS = [
-  { id: 'correlations', labelKey: 'weeklyReview.step.correlations' },
-  { id: 'digest', labelKey: 'weeklyReview.step.digest' },
-  { id: 'brief', labelKey: 'weeklyReview.step.brief' },
-  { id: 'confirm', labelKey: 'weeklyReview.step.confirm' },
-  { id: 'pdf', labelKey: 'weeklyReview.step.pdf' },
+  { id: 'correlations', i18n: 'weeklyReview.step.correlations' },
+  { id: 'digest', i18n: 'weeklyReview.step.digest' },
+  { id: 'brief', i18n: 'weeklyReview.step.brief' },
+  { id: 'confirm', i18n: 'weeklyReview.step.confirm' },
+  { id: 'pdf', i18n: 'weeklyReview.step.pdf' },
 ];
 
 export const WEEKLY_REVIEW_MIN_LOG_DAYS = 7;
