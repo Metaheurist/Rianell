@@ -108,6 +108,8 @@ const NotificationManager = {
         this.checkReminderTime();
         this.checkMedDoseReminders();
         this.checkFlareRiskNudge();
+        this.checkReEngagementNudge();
+        if (typeof window.touchLastActiveAtPwa === 'function') window.touchLastActiveAtPwa();
       }
     });
   },
@@ -326,6 +328,7 @@ const NotificationManager = {
     this.checkSmartMissedLogNudge();
     this.checkMedDoseReminders();
     this.checkFlareRiskNudge();
+    this.checkReEngagementNudge();
   },
 
   getAppSettings() {
@@ -417,6 +420,32 @@ const NotificationManager = {
       '/?quick=true'
     );
     localStorage.setItem('lastSmartMissedNudgeDate', todayStr);
+  },
+
+  checkReEngagementNudge() {
+    if (this.permission !== 'granted') return;
+    const settings = this.getAppSettings();
+    if (settings.reEngagementNudgesEnabled === false) return;
+    const Shared = typeof window !== 'undefined' ? window.RianellShared : null;
+    if (!Shared || typeof Shared.shouldFireReEngagementNudge !== 'function') return;
+    const now = new Date();
+    const result = Shared.shouldFireReEngagementNudge(now, {
+      enabled: settings.reEngagementNudgesEnabled !== false,
+      lastActiveAt: settings.lastActiveAt || undefined,
+      lastReEngagementNudgeAt: settings.lastReEngagementNudgeAt || undefined,
+    });
+    if (!result.fire) return;
+    const content = Shared.buildReEngagementNotificationContent
+      ? Shared.buildReEngagementNotificationContent()
+      : { title: 'We miss you', body: 'A quick check-in keeps your health trends useful.', url: '/?quick=true' };
+    this.showNotification(content.title, content.body, content.url || '/?quick=true');
+    try {
+      settings.lastReEngagementNudgeAt = now.toISOString();
+      localStorage.setItem('rianellSettings', JSON.stringify({ ...this.getAppSettings(), ...settings }));
+      if (typeof window !== 'undefined' && window.appSettings) {
+        window.appSettings.lastReEngagementNudgeAt = settings.lastReEngagementNudgeAt;
+      }
+    } catch (e) { /* ignore */ }
   },
   
   // Send daily reminder notification
@@ -566,6 +595,15 @@ if ('serviceWorker' in navigator) {
       const url = event.data.url || '/';
       window.focus();
       window.location.href = url;
+      return;
+    }
+    if (event.data && event.data.type === 'RIANELL_PUSH_CLICK') {
+      const data = event.data.data || {};
+      const url = data.url || '/?quick=true';
+      if (typeof window.touchLastActiveAtPwa === 'function') window.touchLastActiveAtPwa();
+      window.focus();
+      const target = url.startsWith('http') ? url : (window.location.origin + (url.startsWith('/') ? url : '/' + url));
+      window.location.href = target;
     }
   });
 }

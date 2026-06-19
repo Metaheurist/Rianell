@@ -95,6 +95,9 @@ export type Preferences = {
     medDoseReminderNotifiedAt: Record<string, string>;
     medDoseSnoozeUntil: Record<string, string>;
     flareRiskNudgeWeek: string | null;
+    lastActiveAt: string | null;
+    reEngagementNudgeAt: string | null;
+    reEngagementNudgesEnabled: boolean;
   };
   goals: {
     moodTarget: number;
@@ -206,6 +209,9 @@ export function getDefaultPreferences(): Preferences {
       medDoseReminderNotifiedAt: {},
       medDoseSnoozeUntil: {},
       flareRiskNudgeWeek: null,
+      lastActiveAt: null,
+      reEngagementNudgeAt: null,
+      reEngagementNudgesEnabled: true,
     },
     goals: {
       moodTarget: 7,
@@ -375,6 +381,14 @@ export async function loadPreferences(): Promise<Preferences> {
           /^\d{4}-W\d{2}$/.test(parsed.notifications.flareRiskNudgeWeek)
             ? parsed.notifications.flareRiskNudgeWeek
             : d.notifications.flareRiskNudgeWeek,
+        lastActiveAt:
+          typeof parsed.notifications?.lastActiveAt === 'string' ? parsed.notifications.lastActiveAt : d.notifications.lastActiveAt,
+        reEngagementNudgeAt:
+          typeof parsed.notifications?.reEngagementNudgeAt === 'string'
+            ? parsed.notifications.reEngagementNudgeAt
+            : d.notifications.reEngagementNudgeAt,
+        reEngagementNudgesEnabled:
+          parsed.notifications?.reEngagementNudgesEnabled === false ? false : d.notifications.reEngagementNudgesEnabled,
       },
       goals: {
         moodTarget: Number.isFinite(parsed.goals?.moodTarget)

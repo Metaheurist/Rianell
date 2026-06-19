@@ -1008,6 +1008,30 @@ export function SettingsScreen({
 
               </Row>
 
+              <Row label="Re-engagement reminders">
+
+                <Switch
+
+                  value={prefs.notifications.reEngagementNudgesEnabled}
+
+                  onValueChange={(on) =>
+
+                    onChangePrefs({
+
+                      ...prefs,
+
+                      notifications: { ...prefs.notifications, reEngagementNudgesEnabled: on },
+
+                    })
+
+                  }
+
+                />
+
+              </Row>
+
+              <Hint>Gentle reminder after 7 days without opening the app. At most one per idle period.</Hint>
+
               <Row label="Reminder sound">
 
                 <Switch

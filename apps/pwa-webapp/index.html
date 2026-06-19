@@ -1233,6 +1233,11 @@
           <label  data-i18n="common.enable.sound.notifications">Enable sound notifications</label>
           <div class="toggle-switch" id="soundToggle" onclick="toggleSetting('sound')"></div>
         </div>
+        <div class="settings-option">
+          <label>Re-engagement reminders</label>
+          <div class="toggle-switch" id="reEngagementToggle" onclick="toggleReEngagementNudges()" role="switch" aria-checked="true"></div>
+        </div>
+        <p class="settings-hint">Optional gentle reminder if you have not opened the app for 7 days. At most one per idle period.</p>
         <div class="settings-option" style="flex-direction: column; align-items: flex-start;">
           <label style="margin-bottom: 8px;" data-i18n="common.notification.permission">Notification permission</label>
           <button class="cloud-btn notification-permission-btn" onclick="requestNotificationPermission()" style="padding: 8px 16px; font-size: 0.85rem; width: 100%; max-width: 200px;">
@@ -1432,7 +1437,9 @@
         <div class="settings-option settings-option--stacked">
           <label data-i18n="common.push.notifications.updates">Push notifications for app updates</label>
           <p class="settings-hint" data-i18n="common.optional.we.ll.only.notify.you.about.imp">Optional. We'll only notify you about important app or AI model updates.</p>
+          <p class="settings-hint" id="pushNotificationsGateHint" style="display: none;"></p>
           <button type="button" class="settings-data-btn" id="pushNotificationsOptInBtn" onclick="subscribePushFromSettings()" data-i18n="common.enable.push.notifications">Enable push notifications</button>
+          <button type="button" class="settings-data-btn" id="pushNotificationsOptOutBtn" onclick="unsubscribePushFromSettings()" style="display: none;">Disable push notifications</button>
         </div>
       </div>
       </div>
@@ -3594,8 +3601,10 @@
 
   <!-- Supabase: set fallback first so a bad supabase-config.js (e.g. smart quotes) does not break the page -->
   <script>window.SUPABASE_CONFIG = window.SUPABASE_CONFIG || { url: '', anonKey: '' };</script>
+  <script>window.RIANELL_VAPID_PUBLIC_KEY = window.RIANELL_VAPID_PUBLIC_KEY || '';</script>
   <!-- If you see "SyntaxError" in supabase-config.js on the live site, redeploy a valid file (see supabase-config.example.js). -->
   <script defer src="supabase-config.js"></script>
+  <script defer src="push-config.js"></script>
   <!-- TensorFlow + AIEngine: loaded on demand via PerformanceUtils.ensureAIEngineLoaded() -->
   <script defer src="storage-utils.js?v=1"></script>
   <script defer src="logs-idb.js?v=1"></script>

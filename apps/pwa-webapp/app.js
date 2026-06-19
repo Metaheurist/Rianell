@@ -10049,6 +10049,7 @@ function saveLogsToStorage() {
   if (window.RianellLogsIDB && typeof window.RianellLogsIDB.scheduleMirror === 'function') {
     window.RianellLogsIDB.scheduleMirror(logs);
   }
+  if (typeof touchLastActiveAtPwa === 'function') touchLastActiveAtPwa();
 }
 
 // Load logs - handle both compressed and uncompressed data
@@ -15733,6 +15734,10 @@ let appSettings = {
   preferredLlmForceLargeOnWasm: false,
   preferredLlmEngine: 'auto', // auto | onnx | mlc | gguf
   pushNotificationsEnabled: false,
+  pushNotificationsEnabledAt: null,
+  reEngagementNudgesEnabled: true,
+  lastActiveAt: null,
+  lastReEngagementNudgeAt: null,
   aiModelDownloadConsent: 'deferred', // 'granted' | 'deferred' - first-run AI model download consent
   privacyRegion: '',
   privacyRegionSource: '',
@@ -16000,9 +16005,26 @@ async function subscribePushFromSettings() {
     if (!window.RianellPushSubscribe || typeof window.RianellPushSubscribe.subscribe !== 'function') {
       throw new Error('Push module not loaded.');
     }
+    var vapid = typeof window.RianellPushSubscribe.getVapidPublicKey === 'function'
+      ? window.RianellPushSubscribe.getVapidPublicKey()
+      : (window.RIANELL_VAPID_PUBLIC_KEY || '');
+    if (window.RianellShared && typeof window.RianellShared.canOfferWebPush === 'function') {
+      var gate = window.RianellShared.canOfferWebPush(appSettings, { vapidPublicKey: vapid });
+      if (!gate.ok) {
+        if (gate.reason === 'health-consent-required') throw new Error('Health data consent is required before enabling push.');
+        if (gate.reason === 'region-unconfigured') throw new Error('Choose your privacy region in Settings first.');
+        if (gate.reason === 'local-only') throw new Error('Push is unavailable in local-only mode.');
+        if (gate.reason === 'vapid-unconfigured') throw new Error('Push is not configured on this server.');
+        throw new Error('Push notifications are not available in your current settings.');
+      }
+    } else if (!vapid || vapid === 'YOUR_VAPID_PUBLIC_KEY') {
+      throw new Error('Push is not configured on this server.');
+    }
     await window.RianellPushSubscribe.subscribe();
     appSettings.pushNotificationsEnabled = true;
+    appSettings.pushNotificationsEnabledAt = new Date().toISOString();
     saveSettings();
+    if (typeof syncPushSettingsUi === 'function') syncPushSettingsUi();
     if (typeof showToast === 'function') showToast('Push notifications enabled.', { type: 'success' });
   } catch (e) {
     var msg = (e && e.message) ? String(e.message) : 'Push setup failed';
@@ -16010,6 +16032,83 @@ async function subscribePushFromSettings() {
   }
 }
 if (typeof window !== 'undefined') window.subscribePushFromSettings = subscribePushFromSettings;
+
+async function unsubscribePushFromSettings() {
+  try {
+    if (window.RianellPushSubscribe && typeof window.RianellPushSubscribe.unsubscribe === 'function') {
+      await window.RianellPushSubscribe.unsubscribe();
+    }
+    appSettings.pushNotificationsEnabled = false;
+    appSettings.pushNotificationsEnabledAt = null;
+    saveSettings();
+    if (typeof syncPushSettingsUi === 'function') syncPushSettingsUi();
+    if (typeof showToast === 'function') showToast('Push notifications disabled.', { type: 'success' });
+  } catch (e) {
+    var msg = (e && e.message) ? String(e.message) : 'Push disable failed';
+    if (typeof showToast === 'function') showToast(msg, { type: 'error' });
+  }
+}
+if (typeof window !== 'undefined') window.unsubscribePushFromSettings = unsubscribePushFromSettings;
+
+function syncPushSettingsUi() {
+  var vapid = (typeof window !== 'undefined' && window.RIANELL_VAPID_PUBLIC_KEY) ? String(window.RIANELL_VAPID_PUBLIC_KEY).trim() : '';
+  var gateOk = true;
+  var gateReason = '';
+  if (window.RianellShared && typeof window.RianellShared.canOfferWebPush === 'function') {
+    var gate = window.RianellShared.canOfferWebPush(appSettings, { vapidPublicKey: vapid });
+    gateOk = gate.ok === true;
+    gateReason = gate.reason || '';
+  } else if (!vapid || vapid === 'YOUR_VAPID_PUBLIC_KEY') {
+    gateOk = false;
+    gateReason = 'vapid-unconfigured';
+  }
+  var optInBtn = document.getElementById('pushNotificationsOptInBtn');
+  var optOutBtn = document.getElementById('pushNotificationsOptOutBtn');
+  var hint = document.getElementById('pushNotificationsGateHint');
+  var enabled = appSettings.pushNotificationsEnabled === true;
+  if (optInBtn) {
+    optInBtn.style.display = (!enabled && gateOk) ? '' : 'none';
+    optInBtn.disabled = !gateOk;
+  }
+  if (optOutBtn) {
+    optOutBtn.style.display = enabled ? '' : 'none';
+  }
+  if (hint) {
+    if (!gateOk) {
+      var msg = 'Push is unavailable until privacy region and consent are set.';
+      if (gateReason === 'vapid-unconfigured') msg = 'Push is not configured on this deployment.';
+      else if (gateReason === 'health-consent-required') msg = 'Accept health data consent before enabling push.';
+      else if (gateReason === 'local-only') msg = 'Push is disabled in local-only mode.';
+      hint.textContent = msg;
+      hint.style.display = '';
+    } else {
+      hint.style.display = 'none';
+      hint.textContent = '';
+    }
+  }
+}
+if (typeof window !== 'undefined') window.syncPushSettingsUi = syncPushSettingsUi;
+
+function touchLastActiveAtPwa(now) {
+  var at = (window.RianellShared && typeof window.RianellShared.touchLastActiveAt === 'function')
+    ? window.RianellShared.touchLastActiveAt(now || new Date())
+    : new Date().toISOString();
+  appSettings.lastActiveAt = at;
+  try { saveSettings(); } catch (e) { /* ignore */ }
+  if (typeof window !== 'undefined') window.appSettings = appSettings;
+}
+if (typeof window !== 'undefined') window.touchLastActiveAtPwa = touchLastActiveAtPwa;
+
+function toggleReEngagementNudges() {
+  appSettings.reEngagementNudgesEnabled = appSettings.reEngagementNudgesEnabled !== false ? false : true;
+  saveSettings();
+  var toggle = document.getElementById('reEngagementToggle');
+  if (toggle) {
+    toggle.classList.toggle('active', appSettings.reEngagementNudgesEnabled !== false);
+    toggle.setAttribute('aria-checked', appSettings.reEngagementNudgesEnabled !== false ? 'true' : 'false');
+  }
+}
+if (typeof window !== 'undefined') window.toggleReEngagementNudges = toggleReEngagementNudges;
 
 async function registerPushSubscription(subscriptionJson) {
   if (!subscriptionJson || !subscriptionJson.endpoint) return;
@@ -17023,6 +17122,14 @@ function loadSettingsState() {
   }
   if (typeof syncSettingsPerformanceAdvancedDisclosure === 'function') {
     syncSettingsPerformanceAdvancedDisclosure();
+  }
+
+  if (typeof syncPushSettingsUi === 'function') syncPushSettingsUi();
+  var reEngagementToggle = document.getElementById('reEngagementToggle');
+  if (reEngagementToggle) {
+    var reOn = appSettings.reEngagementNudgesEnabled !== false;
+    reEngagementToggle.classList.toggle('active', reOn);
+    reEngagementToggle.setAttribute('aria-checked', reOn ? 'true' : 'false');
   }
 
   // Update contribute anonymised data toggle
@@ -21245,6 +21352,7 @@ function runRianellBootAfterDomReady() {
     }
   } catch (e) { /* ignore */ }
   loadSettings();
+  if (typeof touchLastActiveAtPwa === 'function') touchLastActiveAtPwa();
 
   // Shared link: /#Demo enables demo mode and reloads (or restarts if already in demo).
   try {
@@ -21648,6 +21756,18 @@ function scheduleRianellBootAfterDomReady() {
   }
 }
 scheduleRianellBootAfterDomReady();
+
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', function (event) {
+    if (!event.data || event.data.type !== 'RIANELL_PUSH_CLICK') return;
+    var data = event.data.data || {};
+    var url = data.url || '/?quick=true';
+    if (typeof touchLastActiveAtPwa === 'function') touchLastActiveAtPwa();
+    try { window.focus(); } catch (e) {}
+    var target = url.indexOf('http') === 0 ? url : (window.location.origin + (url.indexOf('/') === 0 ? url : '/' + url));
+    window.location.href = target;
+  });
+}
 
 function initializeDateFilters() {
   const today = new Date();
