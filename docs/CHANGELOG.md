@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.99.0** - Plan 09 phase C: cycle overlay, period compare, spoon/pacing chart (C4, C5, C9).
+**Latest: v1.100.0** - Plan 09 phase D: RN radar chart, chart PDF export, custom metrics (C3, C6, C8).
+
+### v1.100.0 - 2026-06-19 - Plan 09 Charts phase D (C3, C6, C8)
+- **C3:** RN balance radar/spider chart via `BalanceRadarChart` + `buildBalanceRadarData` (PWA Apex parity).
+- **C6:** One-click chart PDF export — PWA share modal adds Save PDF (jsPDF); RN uses `expo-print` + share sheet.
+- **C8:** User-defined custom metrics schema (`customMetrics.mjs`), log normalization, balance chart picker integration.
+- **Tests:** 4 plan09-phase-d tests (234 total).
 
 ### v1.99.0 - 2026-06-19 - Plan 09 Charts phase C (C4, C5, C9)
 - **C4:** Menstrual cycle phase bands on mood/pain charts (Apex xaxis regions + insights legend when L7 enabled).

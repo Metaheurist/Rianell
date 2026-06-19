@@ -19,6 +19,8 @@ export {
   cycleBandsToApexAnnotations,
   compareChartPeriods,
   buildPacingChartSeries,
+  buildBalanceRadarData,
+  BALANCE_RADAR_BUILTIN,
   CYCLE_PHASE_COLORS,
 } from './chartAnalytics.mjs';
 export { detectMetricAnomalies } from './anomalies.mjs';

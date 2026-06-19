@@ -1,5 +1,10 @@
 import { filterLogsByRange } from './summarize.mjs';
 import { compareTreatmentWindows } from './treatmentTimeline.mjs';
+import {
+  customMetricFieldKey,
+  isCustomMetricField,
+  readCustomMetricRadarValue,
+} from '@rianell/shared';
 
 const METRIC_PAIRS = [
   { metric1: 'mood', metric2: 'sleep', label1: 'Mood', label2: 'Sleep' },
@@ -303,6 +308,89 @@ function plannedSpoonsForIndex(sorted, index) {
  * @param {Array<Record<string, unknown>>} logs
  * @param {14|30|90|'all'|number} [range]
  */
+/** Built-in balance radar axes (PWA `createBalanceChart` parity; steps excluded). */
+export const BALANCE_RADAR_BUILTIN = [
+  { field: 'fatigue', label: 'Fatigue', max: 10 },
+  { field: 'stiffness', label: 'Stiffness', max: 10 },
+  { field: 'backPain', label: 'Back Pain', max: 10 },
+  { field: 'sleep', label: 'Sleep Quality', max: 10 },
+  { field: 'jointPain', label: 'Joint Pain', max: 10 },
+  { field: 'mobility', label: 'Mobility', max: 10 },
+  { field: 'dailyFunction', label: 'Daily Function', max: 10 },
+  { field: 'swelling', label: 'Swelling', max: 10 },
+  { field: 'mood', label: 'Mood', max: 10 },
+  { field: 'irritability', label: 'Irritability', max: 10 },
+  { field: 'weatherSensitivity', label: 'Weather Sensitivity', max: 10 },
+  { field: 'hydration', label: 'Hydration', max: 20, radarMax: 10 },
+];
+
+function readBuiltinRadarValue(log, metric) {
+  const raw = log[metric.field];
+  if (raw === undefined || raw === null || raw === '') return null;
+  const val = typeof raw === 'number' ? raw : parseFloat(raw);
+  if (!Number.isFinite(val) || val < 0) return null;
+  if (metric.field === 'hydration') {
+    return Math.min(metric.radarMax ?? 10, Math.max(0, (val / metric.max) * (metric.radarMax ?? 10)));
+  }
+  return Math.min(10, Math.max(0, val));
+}
+
+function metricCatalog(customMetrics = []) {
+  const custom = (Array.isArray(customMetrics) ? customMetrics : []).map((def) => ({
+    field: customMetricFieldKey(def.id),
+    label: def.label,
+    max: def.type === 'boolean' ? 1 : 10,
+    radarMax: 10,
+    customDef: def,
+  }));
+  return [...BALANCE_RADAR_BUILTIN, ...custom];
+}
+
+/**
+ * Plan 09 C3 — balance radar/spider series for RN + export.
+ * @param {Array<Record<string, unknown>>} logs
+ * @param {{ selectedFields?: string[], customMetrics?: Array<{ id: string, label: string, type: string }>, range?: number|'all' }} [options]
+ */
+export function buildBalanceRadarData(logs, options = {}) {
+  const range = options.range ?? 'all';
+  const selected =
+    range === 'all'
+      ? [...(Array.isArray(logs) ? logs : [])].sort(byDateAsc)
+      : filterLogsByRange(logs, range).sort(byDateAsc);
+  const catalog = metricCatalog(options.customMetrics);
+  const selectedFields =
+    Array.isArray(options.selectedFields) && options.selectedFields.length
+      ? options.selectedFields
+      : ['mood', 'sleep', 'fatigue'];
+  const metrics = catalog.filter((m) => selectedFields.includes(m.field));
+  if (metrics.length < 3) return { labels: [], values: [], metrics: [] };
+
+  const rows = [];
+  for (const metric of metrics) {
+    const values = selected
+      .map((log) => {
+        if (metric.customDef) return readCustomMetricRadarValue(log, metric.customDef);
+        return readBuiltinRadarValue(log, metric);
+      })
+      .filter((v) => v != null);
+    if (!values.length) continue;
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    rows.push({
+      field: metric.field,
+      label: metric.label,
+      value: Number(avg.toFixed(2)),
+      isCustom: isCustomMetricField(metric.field),
+    });
+  }
+
+  if (rows.length < 3) return { labels: [], values: [], metrics: [] };
+  return {
+    labels: rows.map((r) => r.label),
+    values: rows.map((r) => r.value),
+    metrics: rows,
+  };
+}
+
 export function buildPacingChartSeries(logs, range = 30) {
   const selected =
     range === 'all'

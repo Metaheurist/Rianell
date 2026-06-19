@@ -3,6 +3,7 @@ import {
   normalizeSubEntries,
   normalizeMedicationDoses,
 } from './logging/logSchema.mjs';
+import { normalizeCustomMetricValues } from './charts/customMetrics.mjs';
 
 export function identity(value) {
   return value;
@@ -193,6 +194,7 @@ export function normalizeLogEntry(value) {
     cycle: normalizeCycleFields(v.cycle),
     medicationDoses: normalizeMedicationDoses(v.medicationDoses),
     barcodeFood: typeof v.barcodeFood === 'string' ? v.barcodeFood.slice(0, 200) : undefined,
+    customMetrics: normalizeCustomMetricValues(v.customMetrics),
   };
 
   if (entry.steps != null && !Number.isFinite(entry.steps)) entry.steps = undefined;
@@ -211,6 +213,7 @@ export * from './export/shareReadOnlyLink.mjs';
 export * from './export/webdavBackup.mjs';
 export * from './import/migrationAssistants.mjs';
 export * from './sync/logSyncConflicts.mjs';
+export * from './charts/customMetrics.mjs';
 
 export function createSampleLogEntry() {
   return normalizeLogEntry({

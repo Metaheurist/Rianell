@@ -18,6 +18,11 @@ const PLAN09_FR = {
   'charts.pacing.title': 'Cuillères / rythme',
   'charts.pacing.legend': 'Barres : capacité prévue · activité réelle · fatigue',
   'charts.pacing.dayLine': '{date} : prévu {planned} · fait {actual} · fatigue {fatigue}',
+  'charts.export.action': 'Exporter le graphique PDF',
+  'charts.export.loading': 'Préparation de l’export…',
+  'charts.export.title': 'Rapport graphique santé',
+  'charts.radar.a11y': 'Graphique radar équilibre',
+  'charts.customMetrics.legend': '{count} métrique(s) personnalisée(s) dans la vue équilibre',
 };
 
 const PLAN09_DE = {
@@ -39,6 +44,11 @@ const PLAN09_DE = {
   'charts.pacing.title': 'Löffel / Pacing',
   'charts.pacing.legend': 'Balken: geplante Kapazität · tatsächliche Aktivität · Müdigkeit',
   'charts.pacing.dayLine': '{date}: Plan {planned} · gemacht {actual} · Müdigkeit {fatigue}',
+  'charts.export.action': 'Diagramm als PDF exportieren',
+  'charts.export.loading': 'Export wird vorbereitet…',
+  'charts.export.title': 'Gesundheitsdiagramm-Bericht',
+  'charts.radar.a11y': 'Balance-Radardiagramm',
+  'charts.customMetrics.legend': '{count} benutzerdefinierte Metrik(en) in der Balance-Ansicht',
 };
 
 const PLAN09_ES = {
@@ -60,6 +70,11 @@ const PLAN09_ES = {
   'charts.pacing.title': 'Cucharas / ritmo',
   'charts.pacing.legend': 'Barras: capacidad planificada · actividad real · fatiga',
   'charts.pacing.dayLine': '{date}: plan {planned} · hecho {actual} · fatiga {fatigue}',
+  'charts.export.action': 'Exportar gráfico PDF',
+  'charts.export.loading': 'Preparando exportación…',
+  'charts.export.title': 'Informe de gráfico de salud',
+  'charts.radar.a11y': 'Gráfico radar de equilibrio',
+  'charts.customMetrics.legend': '{count} métrica(s) personalizada(s) en vista equilibrio',
 };
 
 const PLAN09_IT = {
@@ -81,6 +96,11 @@ const PLAN09_IT = {
   'charts.pacing.title': 'Cucchiai / ritmo',
   'charts.pacing.legend': 'Barre: capacità pianificata · attività reale · affaticamento',
   'charts.pacing.dayLine': '{date}: piano {planned} · fatto {actual} · affaticamento {fatigue}',
+  'charts.export.action': 'Esporta grafico PDF',
+  'charts.export.loading': 'Preparazione export…',
+  'charts.export.title': 'Report grafico salute',
+  'charts.radar.a11y': 'Grafico radar equilibrio',
+  'charts.customMetrics.legend': '{count} metrica/e personalizzata/e nella vista equilibrio',
 };
 
 const PLAN09_NL = {
@@ -102,6 +122,11 @@ const PLAN09_NL = {
   'charts.pacing.title': 'Lepels / pacing',
   'charts.pacing.legend': 'Balken: geplande capaciteit · werkelijke activiteit · vermoeidheid',
   'charts.pacing.dayLine': '{date}: plan {planned} · gedaan {actual} · vermoeidheid {fatigue}',
+  'charts.export.action': 'Grafiek exporteren als PDF',
+  'charts.export.loading': 'Export voorbereiden…',
+  'charts.export.title': 'Gezondheidsgrafiekrapport',
+  'charts.radar.a11y': 'Balance radardiagram',
+  'charts.customMetrics.legend': '{count} aangepaste metriek(en) in balance-weergave',
 };
 
 const PLAN09_PL = {
@@ -123,6 +148,11 @@ const PLAN09_PL = {
   'charts.pacing.title': 'Łyżki / tempo',
   'charts.pacing.legend': 'Paski: planowana pojemność · rzeczywista aktywność · zmęczenie',
   'charts.pacing.dayLine': '{date}: plan {planned} · zrobiono {actual} · zmęczenie {fatigue}',
+  'charts.export.action': 'Eksportuj wykres PDF',
+  'charts.export.loading': 'Przygotowywanie eksportu…',
+  'charts.export.title': 'Raport wykresu zdrowia',
+  'charts.radar.a11y': 'Wykres radarowy równowagi',
+  'charts.customMetrics.legend': '{count} własne metryki w widoku równowagi',
 };
 
 const PLAN09_PT = {
@@ -144,6 +174,11 @@ const PLAN09_PT = {
   'charts.pacing.title': 'Colheres / ritmo',
   'charts.pacing.legend': 'Barras: capacidade planeada · atividade real · fadiga',
   'charts.pacing.dayLine': '{date}: plano {planned} · feito {actual} · fadiga {fatigue}',
+  'charts.export.action': 'Exportar gráfico PDF',
+  'charts.export.loading': 'A preparar exportação…',
+  'charts.export.title': 'Relatório de gráfico de saúde',
+  'charts.radar.a11y': 'Gráfico radar de equilíbrio',
+  'charts.customMetrics.legend': '{count} métrica(s) personalizada(s) na vista equilíbrio',
 };
 
 export const PLAN09_TIER_A_OVERRIDES = {
