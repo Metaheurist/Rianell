@@ -1,20 +1,34 @@
 #!/usr/bin/env node
 /**
- * Golden prompt parity across PWA engines (onnx / mlc / gguf).
+ * Golden prompt regression — per-locale × per-intent prompt pack audit (Plan 08 N9).
  */
-const engines = (process.env.LLM_ENGINE || 'onnx,mlc').split(',').map((s) => s.trim()).filter(Boolean);
-const prompts = [
-  { id: 'motd', system: 'Reply with one short health quote.', user: 'Write a quote about water.' },
-  { id: 'summary', system: 'Summarize in one sentence.', user: 'Data: 7 days, sleep stable.' },
-  { id: 'clinicianBrief', system: 'Write visit prep brief.', user: 'Patient data: 14 days, 2 flares.' },
-  { id: 'explainChart', system: 'Explain chart trends.', user: 'Chart data: mood avg 6.2.' },
-  { id: 'structuredSummary', system: 'Reply JSON only.', user: 'Data: fatigue stable.' },
-];
+import {
+  GOLDEN_LLM_INTENTS,
+  GOLDEN_LLM_LOCALES,
+  runGoldenPromptAudit,
+} from '../../packages/shared/src/ai/llmGoldenPrompts.mjs';
+import { isLlmInferenceAllowed } from '../../packages/shared/src/ai/llmCapability.mjs';
+
+const engines = (process.env.LLM_ENGINE || 'onnx,mlc,gguf').split(',').map((s) => s.trim()).filter(Boolean);
+
+console.log('llm-golden-prompts: auditing', GOLDEN_LLM_INTENTS.length, 'intents ×', GOLDEN_LLM_LOCALES.length, 'locales');
+const { errors, checked } = runGoldenPromptAudit();
+if (errors.length) {
+  console.error('llm-golden-prompts FAILED:');
+  errors.forEach((e) => console.error(' -', e));
+  process.exit(1);
+}
+console.log('llm-golden-prompts: audited', checked, 'prompt pairs — OK');
+
+const uiOnly = GOLDEN_LLM_LOCALES.filter((loc) => !isLlmInferenceAllowed(loc));
+if (uiOnly.length) {
+  console.log('llm-golden-prompts: ui-only locales blocked at inference:', uiOnly.join(', '));
+}
 
 console.log('llm-golden-prompts engine checklist:', engines.join(', '));
 for (const engine of engines) {
-  for (const p of prompts) {
-    console.log(`[${engine}] ${p.id}: documented (run with PROBE_URL + loaded model for live compare)`);
+  for (const intent of GOLDEN_LLM_INTENTS) {
+    console.log(`[${engine}] ${intent.id}: prompt pack OK (live compare needs PROBE_URL + loaded model)`);
   }
 }
 

@@ -763,6 +763,17 @@
     return getDownloadConsent() !== 'granted';
   }
 
+  function isLlmNetworkAllowed() {
+    var prefs = typeof window !== 'undefined' && window.appSettings;
+    if (!prefs) return true;
+    if (prefs.localOnlyMode === true) return false;
+    return true;
+  }
+
+  function isPwaOnDeviceLlmOnly() {
+    return true;
+  }
+
   /** GitHub Pages project sites live at /RepoName/ — include that in model URLs. */
   function getAppOriginBase() {
     if (typeof window === 'undefined' || !window.location) return '/';
@@ -946,6 +957,9 @@
   async function ensurePipelineLoaded(options) {
     options = options || {};
     if (downloadCancelled) throw new Error('AI model download deferred');
+    if (!isLlmNetworkAllowed()) {
+      throw new Error('On-device model download blocked in local-only mode');
+    }
     if (!options.skipConsent && needsDownloadConsent()) {
       var ok = await ensureDownloadConsent();
       if (!ok || downloadCancelled) throw new Error('AI model download deferred');
@@ -1176,6 +1190,12 @@
   }
 
   async function runChatInference(systemText, userText, genOpts, pipelineOptions) {
+    if (cachedActiveEngine === 'gguf' && window.RianellLlmGguf) {
+      return runQueued(async function () {
+        await ensurePipelineLoaded(pipelineOptions || {});
+        return window.RianellLlmGguf.runGgufChat(cachedPipeline, userText, systemText, genOpts || {});
+      });
+    }
     if (cachedActiveEngine === 'mlc' && cachedMlcEngine && window.RianellLlmMlc) {
       return runQueued(async function () {
         await ensurePipelineLoaded(pipelineOptions || {});
@@ -1850,6 +1870,8 @@
   };
   window.clearSummaryLLMCache = clearSummaryLLMCache;
   window.needsAiModelDownloadConsent = needsDownloadConsent;
+  window.isPwaOnDeviceLlmOnly = isPwaOnDeviceLlmOnly;
+  window.isLlmNetworkAllowed = isLlmNetworkAllowed;
   window.resetAiModelDownloadState = function () {
     bumpLoadGeneration();
     downloadCancelled = false;

@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.96.0** - Plan 08 phase B: bounded week chat, diary coach personas, instant MOTD/suggest tier (N1, N6, N7).
+**Latest: v1.97.0** - Plan 08 phase C: golden prompts CI, GGUF Path 3 adapter, PWA on-device-only (N9, N10, N11).
+
+### v1.97.0 - 2026-06-19 - Plan 08 LLM phase C (N9, N10, N11)
+- **N9:** Golden prompt regression — per-locale × 8-intent audit via `llmGoldenPrompts.mjs`; CI gate in unit tests + `llm-golden-prompts.mjs`.
+- **N10:** GGUF Path 3 adapter completed — allowlist, status probe, `runChatInference` gguf branch; WASM vendor hook at `vendor/llama-cpp/llama.js`.
+- **N11:** PWA on-device-only policy — `isPwaOnDeviceLlmOnly`, local-only mode blocks model download; no commercial LLM endpoints.
+- **Tests:** 7 llm-plan08-phase-c tests (222 total).
 
 ### v1.96.0 - 2026-06-18 - Plan 08 LLM phase B (N1, N6, N7)
 - **N1:** Bounded "Ask about my week" chat — max 5 turns, scoped log context, RN AI tab UI + PWA `generateWeekChatWithLLM`.

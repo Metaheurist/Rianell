@@ -14,6 +14,7 @@ function read(rel) {
 }
 
 const summaryLlm = read('apps/pwa-webapp/summary-llm.js');
+const summaryLlmGguf = read('apps/pwa-webapp/summary-llm-gguf.js');
 const summaryLlmMlc = read('apps/pwa-webapp/summary-llm-mlc.js');
 const indexHtml = read('apps/pwa-webapp/index.html');
 const loadLadderSync = read('apps/pwa-webapp/llm-load-ladder-sync.js');
@@ -61,6 +62,27 @@ if (!summaryLlmMlc.includes('Llama-3.2-1B-Instruct-q4f16_1-MLC')) {
 }
 if (!summaryLlmMlc.includes('@mlc-ai/web-llm@0.2.84')) {
   errors.push('summary-llm-mlc.js must pin @mlc-ai/web-llm@0.2.84');
+}
+if (!summaryLlmGguf.includes('RianellLlmGguf')) {
+  errors.push('summary-llm-gguf.js must export RianellLlmGguf');
+}
+if (!summaryLlmGguf.includes('isAllowedGgufModel')) {
+  errors.push('summary-llm-gguf.js must allowlist GGUF model ids');
+}
+if (!summaryLlmGguf.includes('getGgufPathStatus')) {
+  errors.push('summary-llm-gguf.js must expose getGgufPathStatus');
+}
+if (!summaryLlm.includes('isLlmNetworkAllowed')) {
+  errors.push('summary-llm.js must gate downloads with isLlmNetworkAllowed (local-only mode)');
+}
+if (!summaryLlm.includes('isPwaOnDeviceLlmOnly')) {
+  errors.push('summary-llm.js must expose isPwaOnDeviceLlmOnly');
+}
+if (/api\.openai\.com|api\.anthropic\.com|openrouter\.ai/i.test(summaryLlm)) {
+  errors.push('summary-llm.js must not reference commercial LLM API hosts');
+}
+if (!summaryLlm.includes("cachedActiveEngine === 'gguf'")) {
+  errors.push('summary-llm.js must wire GGUF engine in runChatInference');
 }
 if (!indexHtml.includes('llm-runtime-profiles-sync.js')) {
   errors.push('index.html must load llm-runtime-profiles-sync.js');
