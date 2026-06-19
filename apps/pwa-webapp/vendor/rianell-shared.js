@@ -46,6 +46,7 @@ var RianellShared = (() => {
     LOG_CSV_ENGLISH_HEADERS: () => LOG_CSV_ENGLISH_HEADERS,
     LOG_CSV_FIELD_IDS: () => LOG_CSV_FIELD_IDS,
     LOG_CSV_I18N_KEYS: () => LOG_CSV_I18N_KEYS,
+    MAX_HOME_QUESTION_ANSWERS_PER_DAY: () => MAX_HOME_QUESTION_ANSWERS_PER_DAY,
     MAX_WEEK_CHAT_TURNS: () => MAX_WEEK_CHAT_TURNS,
     MIGRATION_COPY: () => MIGRATION_COPY,
     MIGRATION_SOURCES: () => MIGRATION_SOURCES,
@@ -102,6 +103,7 @@ var RianellShared = (() => {
     buildWeekChatFallback: () => buildWeekChatFallback,
     buildWeekChatPrompt: () => buildWeekChatPrompt,
     buildWeekChatUserPayload: () => buildWeekChatUserPayload,
+    canAnswerHomeQuestionToday: () => canAnswerHomeQuestionToday,
     canChooseDataResidency: () => canChooseDataResidency,
     canSendWeekChatTurn: () => canSendWeekChatTurn,
     checkPolicyDrift: () => checkPolicyDrift,
@@ -125,6 +127,7 @@ var RianellShared = (() => {
     deriveDateFormatFromLocale: () => deriveDateFormatFromLocale,
     deriveFirstDayOfWeekFromLocale: () => deriveFirstDayOfWeekFromLocale,
     deriveWeightUnitFromLocale: () => deriveWeightUnitFromLocale,
+    detectHomeLoggingGaps: () => detectHomeLoggingGaps,
     encryptExportWithPassphrase: () => encryptExportWithPassphrase,
     existsSync: () => existsSync,
     extractLogFieldsFromVoiceTranscript: () => extractLogFieldsFromVoiceTranscript,
@@ -186,6 +189,7 @@ var RianellShared = (() => {
     mergeHealthLogsWithConflictPolicy: () => mergeHealthLogsWithConflictPolicy,
     mergeLogEntriesForDate: () => mergeLogEntriesForDate,
     needsDataResidencyMigration: () => needsDataResidencyMigration,
+    nextHomeQuestionAnswerState: () => nextHomeQuestionAnswerState,
     normalizeAccessibilitySettings: () => normalizeAccessibilitySettings,
     normalizeActivityEntry: () => normalizeActivityEntry,
     normalizeCaregiverSettings: () => normalizeCaregiverSettings,
@@ -196,6 +200,8 @@ var RianellShared = (() => {
     normalizeDisplayNameTheme: () => normalizeDisplayNameTheme,
     normalizeGoals: () => normalizeGoals,
     normalizeHomeDashboardPrefs: () => normalizeHomeDashboardPrefs,
+    normalizeHomeGapQuestionCache: () => normalizeHomeGapQuestionCache,
+    normalizeHomeQuestionAnswerState: () => normalizeHomeQuestionAnswerState,
     normalizeLlmCoachPersona: () => normalizeLlmCoachPersona,
     normalizeLogEntry: () => normalizeLogEntry,
     normalizeLogFavorites: () => normalizeLogFavorites,
@@ -217,6 +223,8 @@ var RianellShared = (() => {
     parseStructuredLlmOutput: () => parseStructuredLlmOutput,
     parseWeatherApiResponse: () => parseWeatherApiResponse,
     periodForHour: () => periodForHour,
+    pickDailyHomeGapQuestion: () => pickDailyHomeGapQuestion,
+    pickHomeAiSuggestionBundle: () => pickHomeAiSuggestionBundle,
     pickHomeAiSuggestions: () => pickHomeAiSuggestions,
     prefsToConsents: () => prefsToConsents,
     privacyProfileFromLocal: () => privacyProfileFromLocal,
@@ -1923,6 +1931,184 @@ var RianellShared = (() => {
     };
   }
 
+  // packages/shared/src/ai/homeGapDetection.mjs
+  var HOME_GAP_IDS = ["gap-meds", "gap-sleep", "gap-food"];
+  var MAX_HOME_QUESTION_ANSWERS_PER_DAY = 3;
+  function toDate(value) {
+    if (!value || typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+    const d = /* @__PURE__ */ new Date(`${value}T00:00:00`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  function toDateStr(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+  function yesterdayOf(todayStr) {
+    const d = toDate(todayStr);
+    if (!d) return null;
+    d.setDate(d.getDate() - 1);
+    return toDateStr(d);
+  }
+  function logByDate(logs, dateStr) {
+    if (!Array.isArray(logs) || !dateStr) return null;
+    return logs.find((l) => l && l.date === dateStr) || null;
+  }
+  function isFoodEmpty(log) {
+    if (!log) return true;
+    const f = log.food;
+    if (!f) return true;
+    if (Array.isArray(f)) return f.length === 0;
+    if (typeof f === "object") {
+      return !["breakfast", "lunch", "dinner", "snack"].some(
+        (k) => Array.isArray(f[k]) && f[k].length > 0
+      );
+    }
+    return true;
+  }
+  function isSleepMissing(log) {
+    return !log || typeof log.sleep !== "number";
+  }
+  function hasMissedMeds(log) {
+    if (!log) return false;
+    if (Array.isArray(log.medicationDoses)) {
+      return log.medicationDoses.some((d) => d && (d.status === "missed" || d.status === "skipped"));
+    }
+    if (Array.isArray(log.medications)) {
+      return log.medications.some((m) => m && m.taken === false);
+    }
+    return false;
+  }
+  function isMedsUnlogged(log) {
+    if (!log) return true;
+    const doses = Array.isArray(log.medicationDoses) ? log.medicationDoses.length : 0;
+    const meds = Array.isArray(log.medications) ? log.medications.length : 0;
+    return doses === 0 && meds === 0;
+  }
+  function recentLogsBefore(logs, beforeDateStr, windowDays = 7) {
+    const end = toDate(beforeDateStr);
+    if (!end) return [];
+    const start = new Date(end);
+    start.setDate(start.getDate() - windowDays);
+    return (logs || []).filter((log) => {
+      const d = toDate(log?.date);
+      return d && d >= start && d < end;
+    });
+  }
+  function userTracksFood(logs, beforeDateStr, windowDays = 7) {
+    const recent = recentLogsBefore(logs, beforeDateStr, windowDays);
+    return recent.filter((l) => !isFoodEmpty(l)).length >= 2;
+  }
+  function userTracksSleep(logs, windowDays = 14, todayStr = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)) {
+    const end = toDate(todayStr);
+    if (!end) return false;
+    const start = new Date(end);
+    start.setDate(start.getDate() - (windowDays - 1));
+    const recent = (logs || []).filter((log) => {
+      const d = toDate(log?.date);
+      return d && d >= start && d <= end;
+    });
+    return recent.filter((l) => typeof l.sleep === "number").length >= 3;
+  }
+  function userTracksMeds(logs, medSchedule, windowDays = 14, todayStr = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)) {
+    if (Array.isArray(medSchedule) && medSchedule.length > 0) return true;
+    const end = toDate(todayStr);
+    if (!end) return false;
+    const start = new Date(end);
+    start.setDate(start.getDate() - (windowDays - 1));
+    let count = 0;
+    for (const log of logs || []) {
+      const d = toDate(log?.date);
+      if (!d || d < start || d > end) continue;
+      const doses = Array.isArray(log.medicationDoses) ? log.medicationDoses.length : 0;
+      const meds = Array.isArray(log.medications) ? log.medications.length : 0;
+      if (doses > 0 || meds > 0) count += 1;
+    }
+    return count >= 2;
+  }
+  function detectHomeLoggingGaps(logs, options = {}) {
+    const {
+      todayStr = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+      medSchedule = []
+    } = options;
+    const yStr = yesterdayOf(todayStr);
+    if (!yStr) return [];
+    const yesterday = logByDate(logs, yStr);
+    const gaps = [];
+    if (userTracksMeds(logs, medSchedule, 14, todayStr)) {
+      if (!yesterday) {
+        gaps.push({ id: "gap-meds", reason: "no_log" });
+      } else if (hasMissedMeds(yesterday)) {
+        gaps.push({ id: "gap-meds", reason: "missed" });
+      } else if (isMedsUnlogged(yesterday)) {
+        gaps.push({ id: "gap-meds", reason: "unlogged" });
+      }
+    }
+    if (userTracksSleep(logs, 14, todayStr)) {
+      if (yesterday && isSleepMissing(yesterday) && (typeof yesterday.fatigue === "number" || typeof yesterday.mood === "number" || typeof yesterday.jointPain === "number")) {
+        gaps.push({ id: "gap-sleep", reason: "missing" });
+      }
+    }
+    if (userTracksFood(logs, todayStr)) {
+      if (yesterday && isFoodEmpty(yesterday)) {
+        gaps.push({ id: "gap-food", reason: "empty" });
+      }
+    }
+    return gaps.sort(
+      (a, b) => HOME_GAP_IDS.indexOf(a.id) - HOME_GAP_IDS.indexOf(b.id)
+    );
+  }
+  var GAP_LABEL_KEYS = {
+    "gap-meds": "home.questions.gapMeds",
+    "gap-sleep": "home.questions.gapSleep",
+    "gap-food": "home.questions.gapFood"
+  };
+  function gapToHomeQuestionChip(gap) {
+    if (!gap?.id || !GAP_LABEL_KEYS[gap.id]) return null;
+    return { id: gap.id, labelKey: GAP_LABEL_KEYS[gap.id], labelParams: {} };
+  }
+  function normalizeHomeGapQuestionCache(raw) {
+    const v = raw && typeof raw === "object" ? raw : {};
+    const date = typeof v.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v.date) ? v.date : null;
+    const gapId = typeof v.gapId === "string" && HOME_GAP_IDS.includes(v.gapId) ? v.gapId : null;
+    if (!date || !gapId) return null;
+    return { date, gapId };
+  }
+  function normalizeHomeQuestionAnswerState(raw, todayStr) {
+    const v = raw && typeof raw === "object" ? raw : {};
+    const date = typeof v.date === "string" ? v.date : null;
+    const count = typeof v.count === "number" && v.count >= 0 ? Math.floor(v.count) : 0;
+    if (date !== todayStr) return { date: todayStr, count: 0 };
+    return { date: todayStr, count };
+  }
+  function canAnswerHomeQuestionToday(state, todayStr) {
+    const normalized = normalizeHomeQuestionAnswerState(state, todayStr);
+    return normalized.count < MAX_HOME_QUESTION_ANSWERS_PER_DAY;
+  }
+  function nextHomeQuestionAnswerState(state, todayStr) {
+    const normalized = normalizeHomeQuestionAnswerState(state, todayStr);
+    return { date: todayStr, count: normalized.count + 1 };
+  }
+  function pickDailyHomeGapQuestion(logs, options = {}) {
+    const {
+      todayStr = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+      homeGapQuestionCache = null,
+      medSchedule = []
+    } = options;
+    const gaps = detectHomeLoggingGaps(logs, { todayStr, medSchedule });
+    if (!gaps.length) return { chip: null, cacheUpdate: null };
+    const cache = normalizeHomeGapQuestionCache(homeGapQuestionCache);
+    if (cache?.date === todayStr) {
+      const cachedGap = gaps.find((g) => g.id === cache.gapId);
+      if (cachedGap) {
+        return { chip: gapToHomeQuestionChip(cachedGap), cacheUpdate: null };
+      }
+    }
+    const top = gaps[0];
+    return {
+      chip: gapToHomeQuestionChip(top),
+      cacheUpdate: { date: todayStr, gapId: top.id }
+    };
+  }
+
   // packages/shared/src/ai/homeSuggestions.mjs
   var HOME_SUGGESTIONS_RANGE_DAYS = 14;
   var HOME_SUGGESTIONS_MIN_DAYS = 3;
@@ -1930,7 +2116,7 @@ var RianellShared = (() => {
   var SYMPTOM_FREQ_THRESHOLD = 3;
   var FLARE_DAYS_THRESHOLD = 2;
   var CORRELATION_THRESHOLD = 0.35;
-  function toDate(value) {
+  function toDate2(value) {
     if (!value || typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
     const d = /* @__PURE__ */ new Date(`${value}T00:00:00`);
     return Number.isNaN(d.getTime()) ? null : d;
@@ -1942,7 +2128,7 @@ var RianellShared = (() => {
     const start = new Date(today);
     start.setDate(start.getDate() - (rangeDays - 1));
     return logs.filter((log) => {
-      const d = toDate(log?.date);
+      const d = toDate2(log?.date);
       return !!d && d >= start && d <= today;
     });
   }
@@ -2035,11 +2221,11 @@ var RianellShared = (() => {
     const twoWeeksAgo = new Date(today);
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 13);
     const thisWeek = logs.filter((l) => {
-      const d = toDate(l.date);
+      const d = toDate2(l.date);
       return d && d >= weekAgo && d <= today;
     });
     const lastWeek = logs.filter((l) => {
-      const d = toDate(l.date);
+      const d = toDate2(l.date);
       return d && d >= twoWeeksAgo && d < weekAgo;
     });
     if (thisWeek.length < 2 || lastWeek.length < 2) return null;
@@ -2108,26 +2294,49 @@ var RianellShared = (() => {
     sleep: "sleep",
     mood: "mood"
   };
-  function pickHomeAiSuggestions(logs, analysis, options = {}) {
+  function pickHomeAiSuggestionBundle(logs, analysis, options = {}) {
     const {
       aiEnabled = true,
       loggedToday = false,
       rangeDays = HOME_SUGGESTIONS_RANGE_DAYS,
       minDays = HOME_SUGGESTIONS_MIN_DAYS,
-      maxChips = HOME_SUGGESTIONS_MAX_CHIPS
+      maxChips = HOME_SUGGESTIONS_MAX_CHIPS,
+      todayStr = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+      homeGapQuestionCache = null,
+      medSchedule = [],
+      homeQuestionAnswerState = null
     } = options;
-    if (!aiEnabled || !loggedToday) return [];
-    const recent = filterLogsForHomeSuggestions(logs, rangeDays);
-    if (recent.length < minDays) return [];
-    const snapshot2 = analysis || computeHomeAnalysisSnapshot(logs, rangeDays);
-    const workLogs = snapshot2._logs || recent;
     const picked = [];
     const used = /* @__PURE__ */ new Set();
+    let gapCacheUpdate = null;
+    if (!aiEnabled) {
+      return { chips: [], gapCacheUpdate: null };
+    }
     function add(id, labelKey, labelParams) {
       if (picked.length >= maxChips || used.has(id)) return;
       used.add(id);
       picked.push({ id, labelKey, labelParams: labelParams || {} });
     }
+    if (canAnswerHomeQuestionToday(homeQuestionAnswerState, todayStr)) {
+      const gapPick = pickDailyHomeGapQuestion(logs, {
+        todayStr,
+        homeGapQuestionCache,
+        medSchedule
+      });
+      if (gapPick.chip) {
+        gapCacheUpdate = gapPick.cacheUpdate;
+        add(gapPick.chip.id, gapPick.chip.labelKey, gapPick.chip.labelParams);
+      }
+    }
+    if (!loggedToday) {
+      return { chips: picked.slice(0, maxChips), gapCacheUpdate };
+    }
+    const recent = filterLogsForHomeSuggestions(logs, rangeDays);
+    if (recent.length < minDays) {
+      return { chips: picked.slice(0, maxChips), gapCacheUpdate };
+    }
+    const snapshot2 = analysis || computeHomeAnalysisSnapshot(logs, rangeDays);
+    const workLogs = snapshot2._logs || recent;
     const sym = topSymptomName(workLogs);
     if (sym) add("symptom", "home.questions.symptom", { symptom: sym.name });
     const flareDays = snapshot2.flareDays ?? workLogs.filter((l) => l.flare === "Yes").length;
@@ -2154,7 +2363,10 @@ var RianellShared = (() => {
       });
     }
     if (weekCompare(workLogs)) add("compare", "home.questions.compare", {});
-    return picked.slice(0, maxChips);
+    return { chips: picked.slice(0, maxChips), gapCacheUpdate };
+  }
+  function pickHomeAiSuggestions(logs, analysis, options = {}) {
+    return pickHomeAiSuggestionBundle(logs, analysis, options).chips;
   }
   function buildHomeQuestionFallback(suggestion, analysis) {
     const snap = analysis || {};
@@ -2174,6 +2386,15 @@ var RianellShared = (() => {
     if (id === "compare") {
       return "Compare this week\u2019s scores to last week in Charts to spot gradual shifts.";
     }
+    if (id === "gap-meds") {
+      return "Yesterday\u2019s medication log looks incomplete or includes missed doses. Note what happened and any side effects.";
+    }
+    if (id === "gap-sleep") {
+      return "Sleep was not logged yesterday even though you tracked other scores. A quick sleep rating helps link rest to symptoms.";
+    }
+    if (id === "gap-food") {
+      return "No food was logged yesterday. Even a light note about meals can reveal triggers alongside symptoms.";
+    }
     return "Keep logging daily - patterns become clearer with more entries.";
   }
 
@@ -2188,19 +2409,19 @@ var RianellShared = (() => {
     { id: "hero", basePriority: 100 },
     { id: "goals", basePriority: 60 }
   ];
-  function toDateStr(d) {
+  function toDateStr2(d) {
     return d.toISOString().slice(0, 10);
   }
-  function yesterdayOf(todayStr) {
+  function yesterdayOf2(todayStr) {
     const d = /^\d{4}-\d{2}-\d{2}$/.test(todayStr) ? /* @__PURE__ */ new Date(`${todayStr}T12:00:00`) : /* @__PURE__ */ new Date();
     d.setDate(d.getDate() - 1);
-    return toDateStr(d);
+    return toDateStr2(d);
   }
   function isLoggingStreakBroken(logs, todayStr) {
     if (!Array.isArray(logs) || !todayStr) return false;
     const dates = new Set(logs.map((l) => l?.date).filter(Boolean));
     if (dates.has(todayStr)) return false;
-    return dates.has(yesterdayOf(todayStr));
+    return dates.has(yesterdayOf2(todayStr));
   }
   function computeHomeCardContext(logs, todayStr, options = {}) {
     const {
@@ -2292,6 +2513,20 @@ ${raw}
     }
     if (questionId === "correlation" && labelParams.a && labelParams.b) {
       parts.push(`Focus: link between ${labelParams.a} and ${labelParams.b}.`);
+    }
+    if (questionId === "gap-meds") {
+      parts.push("Focus: yesterday medication adherence gap.");
+    }
+    if (questionId === "gap-sleep") {
+      parts.push("Focus: missing sleep score yesterday.");
+    }
+    if (questionId === "gap-food") {
+      parts.push("Focus: empty food log yesterday.");
+    }
+    const todayStr = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    const yStr = yesterdayOf(todayStr);
+    if (yStr && questionId && String(questionId).startsWith("gap-")) {
+      parts.push(`Yesterday (${yStr}) logging gap.`);
     }
     const recentNotes = (logs || []).map((l) => l && l.notes ? String(l.notes).trim() : "").filter(Boolean);
     if (recentNotes.length) parts.push(wrapUserNote(recentNotes[recentNotes.length - 1]));
@@ -3208,7 +3443,9 @@ ${hist}`);
       weatherLat: lat,
       weatherLon: lon,
       weatherCache,
-      nextAppointmentDate: parseAppointmentDate(v.nextAppointmentDate)
+      nextAppointmentDate: parseAppointmentDate(v.nextAppointmentDate),
+      homeGapQuestionCache: v.homeGapQuestionCache && typeof v.homeGapQuestionCache === "object" ? v.homeGapQuestionCache : null,
+      homeQuestionAnswerState: v.homeQuestionAnswerState && typeof v.homeQuestionAnswerState === "object" ? v.homeQuestionAnswerState : null
     };
   }
 

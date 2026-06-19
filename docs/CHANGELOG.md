@@ -2,7 +2,13 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.103.0** - Plan 10 phase C: streaks, weather strip, appointment countdown (H3, H5, H6).
+**Latest: v1.104.0** - Plan 10 phase D: contextual home gap questions (H7).
+
+### v1.104.0 - 2026-06-19 - Plan 10 Home phase D (H7)
+- **H7:** Yesterday logging gap detection (food, meds, sleep) → one daily contextual home question chip via `homeQuestion` intent.
+- **Shared:** `homeGapDetection.mjs`, `pickHomeAiSuggestionBundle`, daily gap cache + 3/day LLM answer turn cap; ui-only locales use fallback only.
+- **PWA + RN:** Gap chip on Home even before today's log; prefs cache `homeGapQuestionCache` / `homeQuestionAnswerState`.
+- **Tests:** 7 plan10-phase-d tests (257 total).
 
 ### v1.103.0 - 2026-06-19 - Plan 10 Home phase C (H3, H5, H6)
 - **H3:** Good-day streak + flare-free counter on Home — dismissible, non-gamified (`computeHomeStreakSnapshot`).

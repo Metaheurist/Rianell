@@ -1,5 +1,10 @@
 /** Rule-based contextual AI question chips for Home (PWA + RN parity). */
 
+import {
+  canAnswerHomeQuestionToday,
+  pickDailyHomeGapQuestion,
+} from './homeGapDetection.mjs';
+
 export const HOME_SUGGESTIONS_RANGE_DAYS = 14;
 export const HOME_SUGGESTIONS_MIN_DAYS = 3;
 export const HOME_SUGGESTIONS_MAX_CHIPS = 3;
@@ -201,32 +206,58 @@ const METRIC_LABELS = {
 };
 
 /**
- * @returns {Array<{ id: string, labelKey: string, labelParams: Record<string, string> }>}
+ * @returns {{ chips: Array<{ id: string, labelKey: string, labelParams: Record<string, string> }>, gapCacheUpdate: object|null }}
  */
-export function pickHomeAiSuggestions(logs, analysis, options = {}) {
+export function pickHomeAiSuggestionBundle(logs, analysis, options = {}) {
   const {
     aiEnabled = true,
     loggedToday = false,
     rangeDays = HOME_SUGGESTIONS_RANGE_DAYS,
     minDays = HOME_SUGGESTIONS_MIN_DAYS,
     maxChips = HOME_SUGGESTIONS_MAX_CHIPS,
+    todayStr = new Date().toISOString().slice(0, 10),
+    homeGapQuestionCache = null,
+    medSchedule = [],
+    homeQuestionAnswerState = null,
   } = options;
 
-  if (!aiEnabled || !loggedToday) return [];
-
-  const recent = filterLogsForHomeSuggestions(logs, rangeDays);
-  if (recent.length < minDays) return [];
-
-  const snapshot = analysis || computeHomeAnalysisSnapshot(logs, rangeDays);
-  const workLogs = snapshot._logs || recent;
   const picked = [];
   const used = new Set();
+  let gapCacheUpdate = null;
+
+  if (!aiEnabled) {
+    return { chips: [], gapCacheUpdate: null };
+  }
 
   function add(id, labelKey, labelParams) {
     if (picked.length >= maxChips || used.has(id)) return;
     used.add(id);
     picked.push({ id, labelKey, labelParams: labelParams || {} });
   }
+
+  if (canAnswerHomeQuestionToday(homeQuestionAnswerState, todayStr)) {
+    const gapPick = pickDailyHomeGapQuestion(logs, {
+      todayStr,
+      homeGapQuestionCache,
+      medSchedule,
+    });
+    if (gapPick.chip) {
+      gapCacheUpdate = gapPick.cacheUpdate;
+      add(gapPick.chip.id, gapPick.chip.labelKey, gapPick.chip.labelParams);
+    }
+  }
+
+  if (!loggedToday) {
+    return { chips: picked.slice(0, maxChips), gapCacheUpdate };
+  }
+
+  const recent = filterLogsForHomeSuggestions(logs, rangeDays);
+  if (recent.length < minDays) {
+    return { chips: picked.slice(0, maxChips), gapCacheUpdate };
+  }
+
+  const snapshot = analysis || computeHomeAnalysisSnapshot(logs, rangeDays);
+  const workLogs = snapshot._logs || recent;
 
   const sym = topSymptomName(workLogs);
   if (sym) add('symptom', 'home.questions.symptom', { symptom: sym.name });
@@ -265,7 +296,14 @@ export function pickHomeAiSuggestions(logs, analysis, options = {}) {
 
   if (weekCompare(workLogs)) add('compare', 'home.questions.compare', {});
 
-  return picked.slice(0, maxChips);
+  return { chips: picked.slice(0, maxChips), gapCacheUpdate };
+}
+
+/**
+ * @returns {Array<{ id: string, labelKey: string, labelParams: Record<string, string> }>}
+ */
+export function pickHomeAiSuggestions(logs, analysis, options = {}) {
+  return pickHomeAiSuggestionBundle(logs, analysis, options).chips;
 }
 
 /** Deterministic fallback when LLM unavailable. */
@@ -286,6 +324,15 @@ export function buildHomeQuestionFallback(suggestion, analysis) {
   }
   if (id === 'compare') {
     return 'Compare this week’s scores to last week in Charts to spot gradual shifts.';
+  }
+  if (id === 'gap-meds') {
+    return 'Yesterday’s medication log looks incomplete or includes missed doses. Note what happened and any side effects.';
+  }
+  if (id === 'gap-sleep') {
+    return 'Sleep was not logged yesterday even though you tracked other scores. A quick sleep rating helps link rest to symptoms.';
+  }
+  if (id === 'gap-food') {
+    return 'No food was logged yesterday. Even a light note about meals can reveal triggers alongside symptoms.';
   }
   return 'Keep logging daily - patterns become clearer with more entries.';
 }

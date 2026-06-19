@@ -8,6 +8,7 @@ import {
   buildExplainChartFallback,
   buildLlmRequestPayload,
   isLlmInferenceAllowed,
+  canAnswerHomeQuestionToday,
   parseStructuredLlmOutput,
   formatStructuredLlmOutput,
   buildWeekChatContext,
@@ -295,6 +296,10 @@ export async function answerHomeQuestion(
     logs,
   });
   const fallback = buildHomeQuestionFallback(chip, analysis);
+  const todayKey = new Date().toISOString().slice(0, 10);
+  if (!canAnswerHomeQuestionToday(prefs?.homeQuestionAnswerState, todayKey)) {
+    return fallback;
+  }
   return generateWithFallback(
     'homeQuestion',
     `${chip.id}:${context.slice(0, 120)}`,

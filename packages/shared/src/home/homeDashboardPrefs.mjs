@@ -22,5 +22,13 @@ export function normalizeHomeDashboardPrefs(raw) {
     weatherLon: lon,
     weatherCache,
     nextAppointmentDate: parseAppointmentDate(v.nextAppointmentDate),
+    homeGapQuestionCache:
+      v.homeGapQuestionCache && typeof v.homeGapQuestionCache === 'object'
+        ? v.homeGapQuestionCache
+        : null,
+    homeQuestionAnswerState:
+      v.homeQuestionAnswerState && typeof v.homeQuestionAnswerState === 'object'
+        ? v.homeQuestionAnswerState
+        : null,
   };
 }

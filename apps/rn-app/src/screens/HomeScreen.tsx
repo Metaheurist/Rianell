@@ -32,7 +32,7 @@ import { savePreferences } from '../storage/preferences';
 import { loadCachedBenchmark } from '../performance/benchmark';
 import { generateMotd, answerHomeQuestion } from '../ai/llm';
 import {
-  pickHomeAiSuggestions,
+  pickHomeAiSuggestionBundle,
   analysisSnapshotFromSummary,
   computeHomeCardContext,
   resolveHomeCardOrder,
@@ -46,6 +46,7 @@ import {
   fetchHomeWeatherSnapshot,
   isWeatherCacheFresh,
   normalizeWeatherCoords,
+  nextHomeQuestionAnswerState,
 } from '@rianell/shared';
 import { buildTodayPacingBudget } from '../ai/engine';
 import { requestWeatherCoords } from '../utils/homeWeatherLocation';
@@ -451,7 +452,7 @@ export function HomeScreen({
         setHomeLogs(logs);
         const logged = logs.some((l) => l.date === d);
         setLoggedToday(logged);
-        if (!prefs.aiEnabled || prefs.simpleMode || !logged) {
+        if (!prefs.aiEnabled || prefs.simpleMode) {
           setHomeSuggestions([]);
           setHomeAnalysisSnapshot(null);
           return;
@@ -459,15 +460,32 @@ export function HomeScreen({
         const summary = summarizeLogsForAi(logs, 14, { translate: t });
         const snap = analysisSnapshotFromSummary(summary, logs);
         setHomeAnalysisSnapshot(snap);
-        setHomeSuggestions(
-          pickHomeAiSuggestions(logs, snap, { aiEnabled: prefs.aiEnabled, loggedToday: logged })
-        );
+        const bundle = pickHomeAiSuggestionBundle(logs, snap, {
+          aiEnabled: prefs.aiEnabled,
+          loggedToday: logged,
+          todayStr: d,
+          homeGapQuestionCache: prefs.homeGapQuestionCache,
+          medSchedule: prefs.medSchedule,
+          homeQuestionAnswerState: prefs.homeQuestionAnswerState,
+        });
+        setHomeSuggestions(bundle.chips);
+        if (bundle.gapCacheUpdate) {
+          void persistPrefs({ ...prefs, homeGapQuestionCache: bundle.gapCacheUpdate });
+        }
       })
       .catch(() => {
         setHomeSuggestions([]);
         setHomeAnalysisSnapshot(null);
       });
-  }, [prefs.aiEnabled, prefs.simpleMode, t]);
+  }, [
+    prefs.aiEnabled,
+    prefs.simpleMode,
+    prefs.homeGapQuestionCache,
+    prefs.medSchedule,
+    prefs.homeQuestionAnswerState,
+    persistPrefs,
+    t,
+  ]);
 
   useEffect(() => {
     refreshToday();
@@ -518,6 +536,13 @@ export function HomeScreen({
             locale
           );
           setQuestionAnswer(answer);
+          void persistPrefs({
+            ...prefs,
+            homeQuestionAnswerState: nextHomeQuestionAnswerState(
+              prefs.homeQuestionAnswerState,
+              todayIso(),
+            ),
+          });
         } catch {
           setQuestionAnswer(t('home.questions.error'));
         } finally {
@@ -525,7 +550,7 @@ export function HomeScreen({
         }
       })();
     },
-    [homeAnalysisSnapshot, homeLogs, locale, prefs.performance.preferredLlmModelSize, t]
+    [homeAnalysisSnapshot, homeLogs, locale, persistPrefs, prefs, t]
   );
 
   const onReadTodayEntry = useCallback(async () => {

@@ -15760,6 +15760,8 @@ let appSettings = {
   weatherLon: null,
   weatherCache: null,
   nextAppointmentDate: null,
+  homeGapQuestionCache: null,
+  homeQuestionAnswerState: null,
 };
 
 // Make appSettings available on window for safe access
@@ -20210,7 +20212,21 @@ function renderHomeAiSuggestions() {
   var snap = typeof S.computeHomeAnalysisSnapshot === 'function'
     ? S.computeHomeAnalysisSnapshot(logArr)
     : null;
-  var chips = S.pickHomeAiSuggestions(logArr, snap, { aiEnabled: aiOn, loggedToday: loggedToday });
+  var bundle = typeof S.pickHomeAiSuggestionBundle === 'function'
+    ? S.pickHomeAiSuggestionBundle(logArr, snap, {
+      aiEnabled: aiOn,
+      loggedToday: loggedToday,
+      todayStr: todayStr,
+      homeGapQuestionCache: appSettings.homeGapQuestionCache,
+      medSchedule: appSettings.medSchedule || [],
+      homeQuestionAnswerState: appSettings.homeQuestionAnswerState
+    })
+    : { chips: S.pickHomeAiSuggestions(logArr, snap, { aiEnabled: aiOn, loggedToday: loggedToday }), gapCacheUpdate: null };
+  var chips = bundle.chips || [];
+  if (bundle.gapCacheUpdate) {
+    appSettings.homeGapQuestionCache = bundle.gapCacheUpdate;
+    if (typeof saveSettings === 'function') saveSettings();
+  }
   window._homeAiAnalysisSnapshot = snap;
   window._homeAiSuggestionChips = chips;
   if (!chips.length) {
@@ -20295,10 +20311,21 @@ async function answerHomeQuestionInModal(chip) {
     : questionText;
   try {
     var answer = fallback;
-    if (typeof generateHomeQuestionWithLLM === 'function') {
+    var S = getHomeSharedAi();
+    var canLlm = S && typeof S.canAnswerHomeQuestionToday === 'function'
+      ? S.canAnswerHomeQuestionToday(appSettings.homeQuestionAnswerState, getTodayDateStr())
+      : true;
+    if (typeof generateHomeQuestionWithLLM === 'function' && canLlm) {
       answer = await generateHomeQuestionWithLLM(context, fallback, chip.id);
     }
     if (bodyEl) bodyEl.textContent = answer || fallback;
+    if (S && typeof S.nextHomeQuestionAnswerState === 'function') {
+      appSettings.homeQuestionAnswerState = S.nextHomeQuestionAnswerState(
+        appSettings.homeQuestionAnswerState,
+        getTodayDateStr()
+      );
+      if (typeof saveSettings === 'function') saveSettings();
+    }
   } catch (e) {
     if (bodyEl) {
       bodyEl.textContent = typeof tUi === 'function' ? tUi('home.questions.error') : fallback;
