@@ -26,7 +26,7 @@ This document describes how **Rianell** (this health app) handles health-related
 | Key rotation (operators) | [../security/rotation-runbook.md](../security/rotation-runbook.md) |
 | Security inventory (generated) | [security-inventory.md](security-inventory.md) — `npm run docs:security-inventory` |
 | Environment variables | [security/.env.example](../security/.env.example), [Configuration](testing-and-configuration.md#nav-configuration), [Local secrets directory](#local-secrets-directory-security) below |
-| Supabase RLS examples (SQL) | [supabase-rls-recommended.sql](supabase-rls-recommended.sql) |
+| Supabase schema (SQL) | [../supabase/Schema.sql](../supabase/Schema.sql) |
 | Android network / cleartext (RN native builds) | [Android: cleartext and mixed content](#android-cleartext-and-mixed-content) below |
 | Automated audits (CI) | Reusable [../.github/workflows/security-audit.yml](../.github/workflows/security-audit.yml) — **Security & supply-chain checks** job in [../.github/workflows/ci.yml](../.github/workflows/ci.yml). See [CI security matrix](#dependency-and-ci-scanning) below. Optional **manual** run: **Actions → Reusable security audits → Run workflow**. |
 | Web CSP (meta tag) | [../apps/pwa-webapp/index.html](../apps/pwa-webapp/index.html), [edge header note](../security/cloudflare-headers-recommended.md) |
@@ -99,7 +99,7 @@ The anon key is present in client bundles by design. **Authorization must be enf
 
 Supabase ships the `pg_graphql` extension. When `anon` or `authenticated` hold `SELECT` on a table, `/graphql/v1` introspection exposes table and column names even if RLS returns zero rows. This app uses **PostgREST only** (supabase-js), not GraphQL.
 
-To clear `pg_graphql_anon_table_exposed` and `pg_graphql_authenticated_table_exposed` on `anonymized_data`, `health_data`, `user_keys`, and `bug_reports`, run [../supabase/harden-graphql-exposure.sql](../supabase/harden-graphql-exposure.sql) in the SQL Editor. It drops `pg_graphql`, revokes `anon` access on those tables, and re-applies least-privilege grants. Re-run **Security Advisor** afterward to confirm the warnings are gone.
+To clear `pg_graphql_anon_table_exposed` and `pg_graphql_authenticated_table_exposed` on `anonymized_data`, `health_data`, `user_keys`, and `bug_reports`, run [../supabase/Schema.sql](../supabase/Schema.sql) in the SQL Editor (§3 drops `pg_graphql`, revokes `anon` access, and re-applies least-privilege grants). Re-run **Security Advisor** afterward to confirm the warnings are gone.
 
 ## Data classification (v1.50.0)
 
