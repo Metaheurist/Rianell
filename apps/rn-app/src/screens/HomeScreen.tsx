@@ -30,7 +30,7 @@ import { loadLogs, saveLogs, type LogEntry } from '../storage/logs';
 import type { Preferences } from '../storage/preferences';
 import { savePreferences } from '../storage/preferences';
 import { loadCachedBenchmark } from '../performance/benchmark';
-import { generateMotd, answerHomeQuestion, generateClinicianVisitBrief, generateDoctorQuestions } from '../ai/llm';
+import { generateMotd, answerHomeQuestion } from '../ai/llm';
 import {
   pickHomeAiSuggestionBundle,
   analysisSnapshotFromSummary,
@@ -42,13 +42,11 @@ import {
   completedCheckinPeriods,
   HOME_CHECKIN_PERIODS,
   computeHomeStreakSnapshot,
-  daysUntilAppointment,
-  shouldShowAppointmentCard,
-  appointmentCountdownLabelKey,
   fetchHomeWeatherSnapshot,
   isWeatherCacheFresh,
   normalizeWeatherCoords,
   nextHomeQuestionAnswerState,
+  formatDate,
 } from '@rianell/shared';
 import { buildTodayPacingBudget } from '../ai/engine';
 import { requestWeatherCoords } from '../utils/homeWeatherLocation';
@@ -57,7 +55,6 @@ import Constants from 'expo-constants';
 import { buildLogReviewSummary } from '../log/buildLogReviewSummary';
 import { speakLabel } from '../accessibility/tts';
 import { submitBugReport } from '../utils/submitBugReport';
-import { printOrShareAppointmentReport } from '../utils/appointmentPdf';
 import { getBugReportAttachmentText } from '../utils/bugReportLogs';
 
 /** Web `index.html` parity: top chrome includes bug-report modal entry. */
@@ -84,6 +81,12 @@ function checkinPeriodLabelKey(period: CheckinPeriod): string {
   if (period === 'AM') return 'home.checkin.am';
   if (period === 'PM') return 'home.checkin.pm';
   return 'home.checkin.midday';
+}
+
+function checkinPeriodIcon(period: CheckinPeriod): keyof typeof Ionicons.glyphMap {
+  if (period === 'AM') return 'sunny-outline';
+  if (period === 'PM') return 'moon-outline';
+  return 'sunny';
 }
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -367,9 +370,6 @@ export function HomeScreen({
   const [checkinSleep, setCheckinSleep] = useState('');
   const [checkinFatigue, setCheckinFatigue] = useState('');
   const [checkinSaving, setCheckinSaving] = useState(false);
-  const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
-  const [appointmentDraft, setAppointmentDraft] = useState('');
-  const [prepBusy, setPrepBusy] = useState(false);
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherSnapshot, setWeatherSnapshot] = useState(prefs.weatherCache);
 
@@ -380,16 +380,6 @@ export function HomeScreen({
   const streakSnapshot = useMemo(
     () => computeHomeStreakSnapshot(homeLogs, { dismissed: prefs.homeStreakCardDismissed }),
     [homeLogs, prefs.homeStreakCardDismissed]
-  );
-  const appointmentDays = useMemo(
-    () => (prefs.nextAppointmentDate ? daysUntilAppointment(prefs.nextAppointmentDate, todayStr) : null),
-    [prefs.nextAppointmentDate, todayStr]
-  );
-  const showAppointment = useMemo(
-    () =>
-      !prefs.nextAppointmentDate ||
-      shouldShowAppointmentCard(prefs.nextAppointmentDate, todayStr),
-    [prefs.nextAppointmentDate, todayStr]
   );
   const showWeeklyReview = useMemo(() => {
     const gate = canOfferWeeklyReview(homeLogs, {
@@ -648,10 +638,9 @@ export function HomeScreen({
         simpleMode: prefs.simpleMode,
         showGoals: true,
         hasPacingData: pacingBudget != null,
-        showCheckin: true,
+        showCheckin: false,
         showStreak: streakSnapshot.showCard,
         showWeather: true,
-        showAppointment,
         showWeeklyReview,
       }),
     [
@@ -659,13 +648,25 @@ export function HomeScreen({
       pacingBudget,
       prefs.aiEnabled,
       prefs.simpleMode,
-      showAppointment,
       showWeeklyReview,
       streakSnapshot.showCard,
       todayStr,
     ]
   );
   const cardOrder = useMemo(() => resolveHomeCardOrder(cardContext), [cardContext]);
+
+  const homeSalutation = useMemo(() => {
+    const hour = new Date().getHours();
+    const key = hour < 12 ? 'home.greeting.morning' : hour < 17 ? 'home.greeting.afternoon' : 'home.greeting.evening';
+    const base = t(key);
+    const name = prefs.userName?.trim();
+    return name ? `${base}, ${name}` : base;
+  }, [prefs.userName, t]);
+
+  const homeDateLabel = useMemo(
+    () => formatDate(new Date(), locale, { weekday: 'long', month: 'long', day: 'numeric' }),
+    [locale],
+  );
 
   const openCheckinModal = useCallback((period: CheckinPeriod) => {
     setCheckinPeriod(period);
@@ -730,70 +731,6 @@ export function HomeScreen({
     }
   }, [persistPrefs, prefs, t]);
 
-  const onOpenAppointmentModal = useCallback(() => {
-    setAppointmentDraft(prefs.nextAppointmentDate ?? '');
-    setAppointmentModalOpen(true);
-  }, [prefs.nextAppointmentDate]);
-
-  const onSaveAppointment = useCallback(async () => {
-    const raw = appointmentDraft.trim();
-    const date = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : null;
-    if (!date) {
-      Alert.alert(t('home.appointment.title'), t('home.appointment.invalidDate'));
-      return;
-    }
-    await persistPrefs({ ...prefs, nextAppointmentDate: date });
-    setAppointmentModalOpen(false);
-  }, [appointmentDraft, persistPrefs, prefs, t]);
-
-  const onClearAppointment = useCallback(async () => {
-    await persistPrefs({ ...prefs, nextAppointmentDate: null });
-    setAppointmentModalOpen(false);
-  }, [persistPrefs, prefs]);
-
-  const onPrepReport = useCallback(() => {
-    if (prepBusy) return;
-    setPrepBusy(true);
-    void (async () => {
-      try {
-        const logs = homeLogs.length ? homeLogs : await loadLogs();
-        let briefText = '';
-        let doctorQuestions: string[] = [];
-        if (prefs.aiEnabled) {
-          const summary = summarizeLogsForAi(logs, 14, { translate: t });
-          const benchmark = await loadCachedBenchmark().catch(() => null);
-          const [brief, questions] = await Promise.all([
-            generateClinicianVisitBrief(
-              summary,
-              logs,
-              prefs.performance.preferredLlmModelSize,
-              benchmark,
-              locale,
-              prefs
-            ).catch(() => ''),
-            generateDoctorQuestions(
-              summary,
-              prefs.performance.preferredLlmModelSize,
-              benchmark,
-              locale,
-              prefs
-            ).catch(() => [] as string[]),
-          ]);
-          briefText = brief;
-          doctorQuestions = questions;
-        }
-        await printOrShareAppointmentReport({ logs, prefs, briefText, doctorQuestions });
-      } catch (e) {
-        Alert.alert(
-          t('home.appointment.prepCta'),
-          e instanceof Error ? e.message : t('settings.export.failed')
-        );
-      } finally {
-        setPrepBusy(false);
-      }
-    })();
-  }, [homeLogs, locale, prefs, prepBusy, t]);
-
   const renderHomeCard = (cardId: string) => {
     if (cardId === 'nudge') {
       return (
@@ -832,6 +769,46 @@ export function HomeScreen({
             >
               <Text style={{ color: accent, fontSize: theme.font(14) }}>{t('home.action.readTodayEntry')}</Text>
             </Pressable>
+          ) : null}
+          {cardContext.showCheckin ? (
+            <View style={styles.heroCheckinWrap} accessibilityLabel={t('home.checkin.title')}>
+              <Text style={[styles.heroCheckinTitle, { color: theme.tokens.color.textPrimary, fontSize: theme.font(16) }]}>
+                {t('home.checkin.title')}
+              </Text>
+              <View style={styles.checkinRow}>
+                {(HOME_CHECKIN_PERIODS as readonly CheckinPeriod[]).map((period) => {
+                  const done = doneCheckinPeriods.has(period);
+                  return (
+                    <Pressable
+                      key={period}
+                      disabled={done}
+                      onPress={() => openCheckinModal(period)}
+                      style={({ pressed }) => [
+                        styles.checkinBtn,
+                        styles.checkinIconBtn,
+                        {
+                          borderColor: `${accent}66`,
+                          opacity: done ? 0.55 : pressed ? 0.88 : 1,
+                        },
+                      ]}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        done
+                          ? `${t(checkinPeriodLabelKey(period))}, ${t('home.checkin.done')}`
+                          : t(checkinPeriodLabelKey(period))
+                      }
+                    >
+                      <Ionicons name={checkinPeriodIcon(period)} size={24} color={accent} />
+                      {done ? (
+                        <Text style={[styles.checkinDoneBadge, { color: theme.tokens.color.text, fontSize: theme.font(10) }]}>
+                          {t('home.checkin.done')}
+                        </Text>
+                      ) : null}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
           ) : null}
           <HomeMotdHeartbeat motd={motd} theme={theme} latestBpm={latestBpm} t={t} />
           {cardContext.showAiQuestions && homeSuggestions.length > 0 ? (
@@ -877,59 +854,6 @@ export function HomeScreen({
         </View>
       );
     }
-    if (cardId === 'weather') {
-      if (!prefs.weatherStripEnabled) {
-        return (
-          <View key="weather" style={styles.card} accessibilityLabel={t('home.weather.title')}>
-            <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.weather.title')}</Text>
-            <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-              {t('home.weather.enableHint')}
-            </Text>
-            <Pressable
-              onPress={() => void onEnableWeather()}
-              style={({ pressed }) => [
-                styles.readTodayBtn,
-                { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1, marginTop: 10 },
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel={t('home.weather.enable')}
-              disabled={weatherLoading}
-            >
-              <Text style={{ color: accent, fontSize: theme.font(14) }}>
-                {weatherLoading ? t('home.weather.loading') : t('home.weather.enable')}
-              </Text>
-            </Pressable>
-          </View>
-        );
-      }
-      const snap = weatherSnapshot;
-      return (
-        <View key="weather" style={styles.card} accessibilityLabel={t('home.weather.title')}>
-          <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.weather.title')}</Text>
-          {snap ? (
-            <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-              {t('home.weather.summary', {
-                temp: snap.tempC != null ? String(snap.tempC) : '—',
-                pressure: snap.pressureHpa != null ? String(snap.pressureHpa) : '—',
-                aqi: snap.usAqi != null ? String(snap.usAqi) : '—',
-              })}
-            </Text>
-          ) : (
-            <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-              {weatherLoading ? t('home.weather.loading') : t('home.weather.enableHint')}
-            </Text>
-          )}
-          <Pressable
-            onPress={() => void Linking.openURL('https://open-meteo.com/')}
-            style={{ marginTop: 8 }}
-            accessibilityRole="link"
-            accessibilityLabel={t('home.weather.attribution')}
-          >
-            <Text style={{ color: accent, fontSize: theme.font(12), opacity: 0.9 }}>{t('home.weather.attribution')}</Text>
-          </Pressable>
-        </View>
-      );
-    }
     if (cardId === 'weeklyReview') {
       return (
         <View key="weeklyReview" style={styles.card} accessibilityLabel={t('weeklyReview.card.title')}>
@@ -963,60 +887,6 @@ export function HomeScreen({
         </View>
       );
     }
-    if (cardId === 'appointment') {
-      if (!prefs.nextAppointmentDate) {
-        return (
-          <View key="appointment" style={styles.card} accessibilityLabel={t('home.appointment.title')}>
-            <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.appointment.title')}</Text>
-            <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-              {t('home.appointment.setupHint')}
-            </Text>
-            <Pressable
-              onPress={onOpenAppointmentModal}
-              style={({ pressed }) => [
-                styles.readTodayBtn,
-                { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1, marginTop: 10 },
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel={t('home.appointment.setDate')}
-            >
-              <Text style={{ color: accent, fontSize: theme.font(14) }}>{t('home.appointment.setDate')}</Text>
-            </Pressable>
-          </View>
-        );
-      }
-      if (appointmentDays == null) return null;
-      const labelKey = appointmentCountdownLabelKey(appointmentDays);
-      return (
-        <View key="appointment" style={styles.card} accessibilityLabel={t('home.appointment.title')}>
-          <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.appointment.title')}</Text>
-          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            {t(labelKey, { days: appointmentDays, date: prefs.nextAppointmentDate ?? '' })}
-          </Text>
-          <View style={styles.checkinRow}>
-            <Pressable
-              onPress={onPrepReport}
-              disabled={prepBusy}
-              style={({ pressed }) => [styles.checkinBtn, { borderColor: `${accent}66`, opacity: pressed || prepBusy ? 0.88 : 1 }]}
-              accessibilityRole="button"
-              accessibilityLabel={t('home.appointment.prepCta')}
-            >
-              <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(13) }}>
-                {prepBusy ? t('home.appointment.prepBusy') : t('home.appointment.prepCta')}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={onOpenAppointmentModal}
-              style={({ pressed }) => [styles.checkinBtn, { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1 }]}
-              accessibilityRole="button"
-              accessibilityLabel={t('home.appointment.edit')}
-            >
-              <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(13) }}>{t('home.appointment.edit')}</Text>
-            </Pressable>
-          </View>
-        </View>
-      );
-    }
     if (cardId === 'pacing' && pacingBudget) {
       return (
         <View key="pacing" style={styles.card} accessibilityLabel={t('home.pacing.title')}>
@@ -1040,43 +910,6 @@ export function HomeScreen({
           >
             <Text style={{ color: accent, fontSize: theme.font(14) }}>{t('home.pacing.linkCharts')}</Text>
           </Pressable>
-        </View>
-      );
-    }
-    if (cardId === 'checkin') {
-      return (
-        <View key="checkin" style={styles.card} accessibilityLabel={t('home.checkin.title')}>
-          <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.checkin.title')}</Text>
-          <View style={styles.checkinRow}>
-            {(HOME_CHECKIN_PERIODS as readonly CheckinPeriod[]).map((period) => {
-              const done = doneCheckinPeriods.has(period);
-              return (
-                <Pressable
-                  key={period}
-                  disabled={done}
-                  onPress={() => openCheckinModal(period)}
-                  style={({ pressed }) => [
-                    styles.checkinBtn,
-                    {
-                      borderColor: `${accent}66`,
-                      opacity: done ? 0.55 : pressed ? 0.88 : 1,
-                    },
-                  ]}
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    done
-                      ? `${t(checkinPeriodLabelKey(period))}, ${t('home.checkin.done')}`
-                      : t(checkinPeriodLabelKey(period))
-                  }
-                >
-                  <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(13) }}>
-                    {t(checkinPeriodLabelKey(period))}
-                    {done ? ` · ${t('home.checkin.done')}` : ''}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
         </View>
       );
     }
@@ -1140,6 +973,53 @@ export function HomeScreen({
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.homeTodayHeader} accessibilityRole="header">
+          <Text style={[styles.homeGreeting, { color: accent, fontSize: theme.font(22) }]}>{homeSalutation}</Text>
+          <View style={styles.homeTodayMeta}>
+            <Text style={[styles.homeDateLabel, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+              {homeDateLabel}
+            </Text>
+            {cardContext.showWeather ? (
+              <View style={styles.homeWeatherStrip} accessibilityLabel={t('home.weather.title')}>
+                {!prefs.weatherStripEnabled ? (
+                  <Pressable
+                    onPress={() => void onEnableWeather()}
+                    disabled={weatherLoading}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('home.weather.enable')}
+                  >
+                    <Text style={{ color: accent, fontSize: theme.font(13), fontWeight: '600', textAlign: 'right' }}>
+                      {weatherLoading ? t('home.weather.loading') : t('home.weather.enable')}
+                    </Text>
+                  </Pressable>
+                ) : weatherSnapshot ? (
+                  <>
+                    <Text style={[styles.homeWeatherSummary, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                      {t('home.weather.summary', {
+                        temp: weatherSnapshot.tempC != null ? String(weatherSnapshot.tempC) : '-',
+                        pressure: weatherSnapshot.pressureHpa != null ? String(weatherSnapshot.pressureHpa) : '-',
+                        aqi: weatherSnapshot.usAqi != null ? String(weatherSnapshot.usAqi) : '-',
+                      })}
+                    </Text>
+                    <Pressable
+                      onPress={() => void Linking.openURL('https://open-meteo.com/')}
+                      accessibilityRole="link"
+                      accessibilityLabel={t('home.weather.attribution')}
+                    >
+                      <Text style={{ color: accent, fontSize: theme.font(11), opacity: 0.85, textAlign: 'right' }}>
+                        {t('home.weather.attribution')}
+                      </Text>
+                    </Pressable>
+                  </>
+                ) : (
+                  <Text style={[styles.homeWeatherSummary, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                    {weatherLoading ? t('home.weather.loading') : t('home.weather.enableHint')}
+                  </Text>
+                )}
+              </View>
+            ) : null}
+          </View>
+        </View>
         {cardOrder.map((cardId) => renderHomeCard(cardId))}
       </ScrollView>
 
@@ -1312,7 +1192,7 @@ export function HomeScreen({
             <View style={[styles.modalCard, { borderColor: `${accent}44`, backgroundColor: 'rgba(14,18,17,0.98)' }]}>
               <View style={styles.modalHeaderRow}>
                 <Text style={[styles.modalTitle, { color: accent, fontSize: theme.font(18), flex: 1 }]}>
-                  {t('home.checkin.modalTitle')} — {t(checkinPeriodLabelKey(checkinPeriod))}
+                  {t('home.checkin.modalTitle')}: {t(checkinPeriodLabelKey(checkinPeriod))}
                 </Text>
                 <Pressable onPress={() => setCheckinModalOpen(false)} accessibilityRole="button" accessibilityLabel={t('common.close')}>
                   <Ionicons name="close" size={24} color={accent} />
@@ -1369,55 +1249,6 @@ export function HomeScreen({
           </KeyboardAvoidingView>
         </View>
       </Modal>
-      <Modal visible={appointmentModalOpen} animationType="fade" transparent onRequestClose={() => setAppointmentModalOpen(false)}>
-        <View style={styles.modalBackdrop}>
-          <Pressable
-            style={StyleSheet.absoluteFillObject}
-            onPress={() => setAppointmentModalOpen(false)}
-            accessibilityRole="button"
-            accessibilityLabel={t('common.close')}
-          />
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalKb}>
-            <View style={[styles.modalCard, { borderColor: `${accent}44`, backgroundColor: 'rgba(14,18,17,0.98)' }]}>
-              <View style={styles.modalHeaderRow}>
-                <Text style={[styles.modalTitle, { color: accent, fontSize: theme.font(18), flex: 1 }]}>
-                  {t('home.appointment.setDate')}
-                </Text>
-                <Pressable onPress={() => setAppointmentModalOpen(false)} accessibilityRole="button" accessibilityLabel={t('common.close')}>
-                  <Ionicons name="close" size={24} color={accent} />
-                </Pressable>
-              </View>
-              <Text style={[styles.fieldLabel, { color: theme.tokens.color.text }]}>{t('home.appointment.dateLabel')}</Text>
-              <TextInput
-                value={appointmentDraft}
-                onChangeText={setAppointmentDraft}
-                placeholder="YYYY-MM-DD"
-                style={[styles.input, { color: theme.tokens.color.text }]}
-                autoCapitalize="none"
-                accessibilityLabel={t('home.appointment.dateLabel')}
-              />
-              <View style={[styles.modalFooter, { borderTopColor: `${accent}33` }]}>
-                {prefs.nextAppointmentDate ? (
-                  <Pressable
-                    style={[styles.modalBtnSecondary, { borderColor: `${accent}55` }]}
-                    onPress={() => void onClearAppointment()}
-                    accessibilityRole="button"
-                  >
-                    <Text style={[styles.modalBtnTextSecondary, { color: theme.tokens.color.text }]}>{t('home.appointment.clear')}</Text>
-                  </Pressable>
-                ) : null}
-                <Pressable
-                  style={[styles.modalBtnPrimary, { backgroundColor: accent }]}
-                  onPress={() => void onSaveAppointment()}
-                  accessibilityRole="button"
-                >
-                  <Text style={styles.modalBtnTextPrimary}>{t('common.save')}</Text>
-                </Pressable>
-              </View>
-            </View>
-          </KeyboardAvoidingView>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -1461,6 +1292,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   scrollContent: { paddingBottom: 96 },
+  homeTodayHeader: { marginBottom: 16, alignItems: 'center' },
+  homeGreeting: { fontWeight: '700', textAlign: 'center', marginBottom: 6 },
+  homeTodayMeta: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  homeDateLabel: { opacity: 0.85, flexShrink: 1 },
+  homeWeatherStrip: { flex: 1, minWidth: 140, alignItems: 'flex-end' },
+  homeWeatherSummary: { textAlign: 'right', lineHeight: 18 },
   title: { fontSize: 22, fontWeight: '700', marginBottom: 8 },
   text: { fontSize: 16, opacity: 0.95 },
   readTodayBtn: {
@@ -1483,12 +1327,33 @@ const styles = StyleSheet.create({
   },
   suggestionChipText: { lineHeight: 18 },
   checkinRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+  heroCheckinWrap: { marginTop: 12, width: '100%' },
+  heroCheckinTitle: { fontWeight: '700', marginBottom: 6 },
   checkinBtn: {
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     backgroundColor: 'rgba(0,0,0,0.22)',
+  },
+  checkinIconBtn: {
+    position: 'relative',
+    minWidth: 52,
+    minHeight: 52,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkinDoneBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: 'rgba(76,175,80,0.28)',
+    overflow: 'hidden',
   },
   questionModalCard: { maxHeight: '70%' },
   questionAnswer: { lineHeight: 22, marginBottom: 10 },

@@ -27,5 +27,5 @@ export async function fetchOpenFoodFactsProduct(barcode, fetchImpl = globalThis.
 export function formatBarcodeFoodLabel(product) {
   if (!product || typeof product !== 'object') return '';
   const parts = [product.brand, product.name].filter(Boolean);
-  return parts.join(' — ').slice(0, 200);
+  return parts.join(', ').slice(0, 200);
 }

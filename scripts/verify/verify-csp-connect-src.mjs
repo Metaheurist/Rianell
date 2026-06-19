@@ -26,6 +26,8 @@ const requiredHosts = [
   'https://*.xethub.hf.co',
   'https://*.aws.cdn.hf.co',
   'https://raw.githubusercontent.com',
+  'https://api.open-meteo.com',
+  'https://air-quality-api.open-meteo.com',
 ];
 
 for (const host of requiredHosts) {

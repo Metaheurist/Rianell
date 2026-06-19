@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import {
   canOfferWeeklyReview,
   isoWeekMondayKey,
@@ -12,10 +15,21 @@ import {
   interpretPhq2Score,
   interpretGad2Score,
   getCrisisResourcesForRegion,
+  PHQ2_QUESTIONS,
+  GAD2_QUESTIONS,
+  SCREENING_RESPONSE_OPTIONS,
+  MENTAL_HEALTH_DISCLAIMER_I18N,
   normalizePresentationModePrefs,
   getPresentationChartRange,
   shouldLockChartRangeInPresentation,
 } from '@rianell/shared';
+import { t } from '../../packages/shared/src/i18n/translate.mjs';
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const EN_GB = JSON.parse(
+  readFileSync(path.join(ROOT, 'i18n-packs/locale-packs/v1/en-GB.json'), 'utf8'),
+);
+const CATALOGS = { 'en-GB': EN_GB };
 
 const LOGS = Array.from({ length: 8 }, (_, i) => ({
   date: `2026-06-${String(i + 1).padStart(2, '0')}`,
@@ -81,4 +95,36 @@ test('presentation mode prefs normalize and lock 7-day range', () => {
 test('on-device moat and progressive disclosure keys exported', () => {
   assert.ok(getOnDeviceMoatBulletKeys().length >= 4);
   assert.ok(getProgressiveDisclosureMilestones().some((m) => m.id === 'day1'));
+});
+
+test('settings cross-cutting i18n keys resolve in en-GB catalog', () => {
+  for (const key of getOnDeviceMoatBulletKeys()) {
+    const val = t(key, 'en-GB', CATALOGS);
+    assert.notEqual(val, key, `missing translation for ${key}`);
+  }
+  for (const milestone of getProgressiveDisclosureMilestones()) {
+    const val = t(milestone.i18n, 'en-GB', CATALOGS);
+    assert.notEqual(val, milestone.i18n, `missing translation for ${milestone.i18n}`);
+  }
+});
+
+test('mental health screening i18n keys resolve in en-GB catalog', () => {
+  const keys = [
+    'mentalHealth.phq2.title',
+    'mentalHealth.gad2.title',
+    'mentalHealth.submit',
+    'mentalHealth.result.title',
+    MENTAL_HEALTH_DISCLAIMER_I18N,
+    'mentalHealth.phq2.low',
+    'mentalHealth.phq2.elevated',
+    'mentalHealth.gad2.low',
+    'mentalHealth.gad2.elevated',
+  ];
+  for (const q of [...PHQ2_QUESTIONS, ...GAD2_QUESTIONS]) keys.push(q.i18n);
+  for (const opt of SCREENING_RESPONSE_OPTIONS) keys.push(opt.i18n);
+  for (const link of getCrisisResourcesForRegion('eea_uk')) keys.push(link.i18n);
+  for (const key of keys) {
+    const val = t(key, 'en-GB', CATALOGS);
+    assert.notEqual(val, key, `missing translation for ${key}`);
+  }
 });

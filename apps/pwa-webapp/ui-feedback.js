@@ -502,7 +502,7 @@
     });
   }
 
-  var TAB_ORDER = ['home', 'logs', 'charts', 'ai'];
+  var TAB_ORDER = ['home', 'logs', 'charts', 'mood', 'ai'];
 
   function getTabDirection(fromTab, toTab) {
     var a = TAB_ORDER.indexOf(fromTab);

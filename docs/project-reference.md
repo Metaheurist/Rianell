@@ -4,6 +4,15 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v1.113.0 documentation sync (Mood tab and Home UX)
+
+- **Navigation:** Primary tabs are **Home → Logs → Charts → Mood → AI** (PWA bottom bar + top strip; RN bottom tabs). Settings remains a header action, not a main tab.
+- **Mood tab:** Metrics from submitted log mood/irritability answers, recent-feeling list, AM/midday/PM check-in, PHQ/GAD shortcuts, Charts mood link; shared `packages/shared/src/mood/moodMetrics.mjs`.
+- **Home:** Weather strip inline under greeting/date (H5); micro-check-in and appointment countdown cards removed from Home stack.
+- **i18n:** Cross-cutting Settings + screening modals hydrate after catalogs load; em-dash copy cleanup across locale/prompt packs.
+- **CSP:** Open-Meteo hosts in `connect-src`; see [SECURITY.md](SECURITY.md).
+- **See:** [app-and-features.md](app-and-features.md) § App shell; [CHANGELOG.md](CHANGELOG.md) v1.113.0.
+
 ### Execution plans (01–14)
 
 Feature rollout runbooks, MASTER tracker, external setup, and rollout gates live under **[plans/](plans/)** (formerly gitignored `Projects/`). Start with [plans/MASTER.md](plans/MASTER.md) and [plans/00-execution-index.md](plans/00-execution-index.md).

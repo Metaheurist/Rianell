@@ -172,7 +172,7 @@
   function buildDoctorQuestionsPromptFromPack(pack, context) {
     var system = promptString(pack, 'doctorQuestions.system',
       'You suggest exactly three short questions a patient could ask their clinician at an upcoming visit. '
-      + 'Use only the wellness tracking data provided. Wellness framing only — not medical advice or diagnosis. '
+      + 'Use only the wellness tracking data provided. Wellness framing only, not medical advice or diagnosis. '
       + 'Reply as a numbered list (1-3), one question per line, no extra commentary.');
     return { system: system, user: 'Recent trends: ' + context };
   }

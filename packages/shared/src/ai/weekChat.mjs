@@ -78,5 +78,5 @@ export function buildWeekChatFallback(analysis = {}) {
   if (flare > 0) {
     return `You logged ${total} days with ${flare} flare day(s). Rest and steady routines may help this week.`;
   }
-  return `You logged ${total} days this period. Keep noting what helps — patterns build with steady logging.`;
+  return `You logged ${total} days this period. Keep noting what helps; patterns build with steady logging.`;
 }

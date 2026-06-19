@@ -7,15 +7,54 @@
   var _screeningKind = 'phq2';
   var _screeningResponses = {};
   var _screeningResult = false;
+  var _modalMode = null;
+
+  function withCatalogsReady(fn) {
+    var I = global.RianellI18n;
+    if (I && typeof I.ensureCatalogs === 'function') {
+      var loc = typeof I.getLocale === 'function' ? I.getLocale() : 'en-GB';
+      return I.ensureCatalogs(loc).then(fn).catch(fn);
+    }
+    fn();
+  }
+
+  function isWeeklyReviewModalOpen() {
+    var modal = document.getElementById('weeklyReviewModal');
+    return !!(modal && modal.style.display === 'flex');
+  }
+
+  function setWeeklyReviewModalTitle(key) {
+    var titleEl = document.getElementById('weeklyReviewModalTitle');
+    if (titleEl) titleEl.textContent = t(key);
+  }
+
+  function refreshOpenModalI18n() {
+    if (!isWeeklyReviewModalOpen()) return;
+    if (_modalMode === 'screening') {
+      var titleKey = _screeningKind === 'gad2' ? 'mentalHealth.gad2.title' : 'mentalHealth.phq2.title';
+      setWeeklyReviewModalTitle(titleKey);
+      renderScreeningModalBody();
+      return;
+    }
+    if (_modalMode === 'weekly') {
+      setWeeklyReviewModalTitle('weeklyReview.title');
+      renderWeeklyReviewModalBody();
+    }
+  }
 
   function openScreeningModal(kind) {
+    _modalMode = 'screening';
     _screeningKind = kind === 'gad2' ? 'gad2' : 'phq2';
     _screeningResponses = {};
     _screeningResult = false;
     var modal = document.getElementById('weeklyReviewModal');
     if (!modal) return;
-    modal.style.display = 'flex';
-    renderScreeningModalBody();
+    var titleKey = _screeningKind === 'gad2' ? 'mentalHealth.gad2.title' : 'mentalHealth.phq2.title';
+    withCatalogsReady(function () {
+      modal.style.display = 'flex';
+      setWeeklyReviewModalTitle(titleKey);
+      renderScreeningModalBody();
+    });
   }
 
   function renderScreeningModalBody() {
@@ -66,6 +105,9 @@
 
   function t(key, params) {
     if (typeof global.tUi === 'function') return global.tUi(key, params || {});
+    if (global.RianellI18n && typeof global.RianellI18n.t === 'function') {
+      return global.RianellI18n.t(key, params || {});
+    }
     return key;
   }
 
@@ -123,7 +165,7 @@
       var lines = correlationLines(logArr);
       if (!lines.length) html += '<p>' + escapeHTML(t('weeklyReview.correlations.empty')) + '</p>';
       lines.forEach(function (line) {
-        html += '<p>· ' + escapeHTML(line.label) + (line.detail ? ' — ' + escapeHTML(line.detail) : '') + '</p>';
+        html += '<p>· ' + escapeHTML(line.label) + (line.detail ? ', ' + escapeHTML(line.detail) : '') + '</p>';
       });
     } else if (current.id === 'digest') {
       var digest = digestFromLogs(logArr);
@@ -186,17 +228,25 @@
   }
 
   function openWeeklyReviewModal() {
+    _modalMode = 'weekly';
     _step = 0;
     _briefText = '';
     var modal = document.getElementById('weeklyReviewModal');
     if (!modal) return;
-    modal.style.display = 'flex';
-    renderWeeklyReviewModalBody();
+    withCatalogsReady(function () {
+      modal.style.display = 'flex';
+      setWeeklyReviewModalTitle('weeklyReview.title');
+      renderWeeklyReviewModalBody();
+    });
   }
 
   function closeWeeklyReviewModal() {
     var modal = document.getElementById('weeklyReviewModal');
     if (modal) modal.style.display = 'none';
+    _modalMode = null;
+    _screeningResult = false;
+    _screeningResponses = {};
+    setWeeklyReviewModalTitle('weeklyReview.title');
   }
 
   function finishWeeklyReviewPdf() {
@@ -275,7 +325,10 @@
     if (phqBtn) phqBtn.onclick = function () { openScreeningModal('phq2'); };
     var gadBtn = document.getElementById('mentalHealthGad2Btn');
     if (gadBtn) gadBtn.onclick = function () { openScreeningModal('gad2'); };
-    renderSettingsCrossCutting();
+    if (global.RianellI18n && typeof global.RianellI18n.onLocaleChange === 'function') {
+      global.RianellI18n.onLocaleChange(function () { refreshOpenModalI18n(); });
+    }
+    withCatalogsReady(renderSettingsCrossCutting);
     bindChartsPresentationMode();
   }
 
@@ -286,5 +339,6 @@
     bindWeeklyReviewModule: bindWeeklyReviewModule,
     bindChartsPresentationMode: bindChartsPresentationMode,
     renderSettingsCrossCutting: renderSettingsCrossCutting,
+    refreshOpenModalI18n: refreshOpenModalI18n,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

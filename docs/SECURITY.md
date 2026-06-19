@@ -8,6 +8,14 @@
 
 This document describes how **Rianell** (this health app) handles health-related data across surfaces, operational defaults, and where to configure controls. It complements OWASP-style practice (see [OWASP Top 10:2025](https://owasp.org/Top10/2025/)).
 
+## v1.113.0 dependency and CVE review
+
+- **`npm audit`** at release: **0** production vulnerabilities (Jun 2026).
+- **Operator checklist:** If Apple or Azure OAuth is enabled on self-hosted Supabase Auth, confirm Auth **≥ 2.185.0** (CVE-2026-31813). Hosted Supabase projects: verify dashboard version.
+- **Dev-only:** CVE-2025-11953 (Metro bundler RCE) affects React Native CLI tooling, not shipped app bundles; keep CLI updated on developer machines.
+- **Patched in tree:** `@supabase/auth-js` 2.108.2 (CVE-2025-48370); `protobufjs` 7.6.4 (CVE-2026-41242). React Server Components / React2Shell (CVE-2025-55182) not applicable (no RSC).
+- **Residual app-layer risks** (tracked, not closed in v1.113.0): plaintext `user_keys` in Supabase, CSP `unsafe-inline`/`unsafe-eval`, prefer `getUser()` over `getSession()` for auth decisions, dev-server encryption-key API, SecureStorage fail-open paths, anon `bug_reports` INSERT policy.
+
 ## v1.44.2 documentation sync
 
 - App settings cloud backup now includes additional local setting keys beyond `rianellSettings`; treat those synced preferences as user data and cover them in your data handling/privacy review.
@@ -128,7 +136,7 @@ Since v1.50.0, **`apps/rn-app/src/cloud/secureStorageAdapter.ts`** persists Supa
 
 ### `connect-src` and third-party hosts
 
-The meta CSP in [`apps/pwa-webapp/index.html`](../apps/pwa-webapp/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts, and regional `*.aws.cdn.hf.co` for ONNX weight downloads), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed. The **Supabase** script tag is **pinned** to a specific version with **Subresource Integrity (SRI)**; **ua-parser-js** CDN tag also uses SRI. Dynamic imports (e.g. Transformers.js) cannot use SRI — pin versions and monitor supply chain. When upgrading `@supabase/supabase-js`, update **`src`**, **`integrity`**, and the comment in `index.html`.
+The meta CSP in [`apps/pwa-webapp/index.html`](../apps/pwa-webapp/index.html) **`connect-src`** includes Supabase (`*.supabase.co`), **jsDelivr**, **Hugging Face** (`huggingface.co`, `*.huggingface.co`, Xet bridge hosts, and regional `*.aws.cdn.hf.co` for ONNX weight downloads), **Open-Meteo** (`api.open-meteo.com`, `air-quality-api.open-meteo.com` for opt-in home weather), and PayPal when donations are enabled. If you **tighten CSP** or add **HTTP headers**, every required origin must remain allowed. The **Supabase** script tag is **pinned** to a specific version with **Subresource Integrity (SRI)**; **ua-parser-js** CDN tag also uses SRI. Dynamic imports (e.g. Transformers.js) cannot use SRI — pin versions and monitor supply chain. When upgrading `@supabase/supabase-js`, update **`src`**, **`integrity`**, and the comment in `index.html`.
 
 ## Known residual risks and mitigations
 

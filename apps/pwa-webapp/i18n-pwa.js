@@ -129,6 +129,14 @@
   function applyDocumentI18n() {
     hydrateGate();
     hydratePrivacySettings();
+    if (typeof global !== 'undefined' && global.RianellWeeklyReview) {
+      if (typeof global.RianellWeeklyReview.renderSettingsCrossCutting === 'function') {
+        global.RianellWeeklyReview.renderSettingsCrossCutting();
+      }
+      if (typeof global.RianellWeeklyReview.refreshOpenModalI18n === 'function') {
+        global.RianellWeeklyReview.refreshOpenModalI18n();
+      }
+    }
     if (typeof global !== 'undefined' && global.__rianellAppInitStarted) {
       applyDataI18nAttributes();
       var settingsOpen = document.getElementById('settingsOverlay');
@@ -145,6 +153,7 @@
       'nav.home': document.querySelectorAll('[data-tab="home"] .tab-text'),
       'nav.logs': document.querySelectorAll('[data-tab="logs"] .tab-text'),
       'nav.charts': document.querySelectorAll('[data-tab="charts"] .tab-text'),
+      'nav.mood': document.querySelectorAll('[data-tab="mood"] .tab-text'),
       'nav.ai': document.querySelectorAll('[data-tab="ai"] .tab-text'),
     };
     Object.keys(navMap).forEach(function (key) {

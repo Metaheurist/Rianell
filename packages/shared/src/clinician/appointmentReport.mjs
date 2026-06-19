@@ -1,7 +1,7 @@
 /** Plan 12 CL1 — appointment mode PDF sections (charts summary + brief + meds + flare calendar). */
 
 export const APPOINTMENT_DISCLAIMER =
-  'Wellness tracking only — not medical advice, diagnosis, or treatment. Discuss patterns with your clinician.';
+  'Wellness tracking only, not medical advice, diagnosis, or treatment. Discuss patterns with your clinician.';
 
 export const APPOINTMENT_RANGE_DAYS = 30;
 
@@ -116,7 +116,7 @@ export function buildAppointmentReportHtml(model) {
     .map(
       (row) =>
         `<tr><td>${escapeHtml(row.startDate)}</td><td>${escapeHtml(row.label)}</td>` +
-        `<td>${escapeHtml(row.preFatigueAvg ?? '—')}</td><td>${escapeHtml(row.postFatigueAvg ?? '—')}</td></tr>`,
+        `<td>${escapeHtml(row.preFatigueAvg ?? '-')}</td><td>${escapeHtml(row.postFatigueAvg ?? '-')}</td></tr>`,
     )
     .join('');
   const questions = (m.doctorQuestions || [])

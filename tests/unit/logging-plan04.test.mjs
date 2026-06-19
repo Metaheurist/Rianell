@@ -71,5 +71,5 @@ test('voice extract maps wellness transcript fields', () => {
 });
 
 test('barcode food label formats product', () => {
-  assert.equal(formatBarcodeFoodLabel({ brand: 'Brand', name: 'Bar' }), 'Brand — Bar');
+  assert.equal(formatBarcodeFoodLabel({ brand: 'Brand', name: 'Bar' }), 'Brand, Bar');
 });

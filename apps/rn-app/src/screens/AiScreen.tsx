@@ -302,7 +302,7 @@ export function AiScreen({ prefs }: { prefs: Preferences }) {
                   <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('ai.treatment.windows')}</Text>
                   {analysis.treatmentComparisons.map((comparison) => (
                     <Text key={comparison.id} style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                      {comparison.label}: fatigue {comparison.preFatigueAvg ?? '—'} → {comparison.postFatigueAvg ?? '—'}
+                      {comparison.label}: fatigue {comparison.preFatigueAvg ?? '-'} → {comparison.postFatigueAvg ?? '-'}
                     </Text>
                   ))}
                 </>

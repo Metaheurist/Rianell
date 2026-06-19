@@ -418,6 +418,12 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Web/Capacitor:** notification behaviour includes reminder controls tied to runtime delivery paths.
 - **React Native:** Settings now includes notification preference controls (enable, reminder time, sound) plus permission status/request baseline. Full OS scheduling/channel parity remains open.
 
+### v1.113.0 parity note (Mood tab and Home UX)
+
+- **Web + RN:** Fifth primary tab **Mood** (between Charts and AI) with mood metrics, recent feelings, AM/midday/PM check-in, PHQ/GAD shortcuts, and Charts mood link; shared `moodMetrics.mjs`.
+- **Home:** Inline opt-in weather in greeting header; micro-check-in and appointment countdown cards removed from Home stack (check-in on Mood tab).
+- **i18n:** Screening modals and Settings cross-cutting sections hydrate after locale catalogs load.
+
 ### v1.45.49 parity note (Goals target persistence baseline)
 
 - **Web:** Goals & targets settings persist and drive charts/goals surfaces.

@@ -32,7 +32,7 @@
     });
     var html = Shared.buildAppointmentReportHtml(model);
     var printWin = window.open('', '_blank');
-    if (!printWin) throw new Error('Popup blocked — allow popups to save PDF');
+    if (!printWin) throw new Error('Popup blocked. Allow popups to save PDF');
     printWin.document.write(html);
     printWin.document.close();
     printWin.focus();

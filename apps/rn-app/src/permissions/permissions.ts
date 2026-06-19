@@ -563,7 +563,7 @@ export const Permissions = {
     const body =
       goodDayStreak <= 1
         ? 'One calm day in a row. A quick log keeps your picture complete.'
-        : `${goodDayStreak} calm day(s) in a row. Still time to log today — no scores, just continuity.`;
+        : `${goodDayStreak} calm day(s) in a row. Still time to log today, no scores, just continuity.`;
     try {
       if (Notifications?.cancelScheduledNotificationAsync) {
         await Notifications.cancelScheduledNotificationAsync(NOTIFICATION_STREAK_REMINDER_ID);

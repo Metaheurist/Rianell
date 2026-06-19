@@ -526,7 +526,7 @@ var RianellAIEngine = (() => {
     if (!pack) return { pack: null, hints: [] };
     const hints = [...pack.advice];
     if (analysis?.possibleFlareUp?.level === "High") {
-      hints.unshift(`(${pack.id}) Elevated flare signals \u2014 review ${pack.watchMetrics.join(", ")}.`);
+      hints.unshift(`(${pack.id}) Elevated flare signals. Review ${pack.watchMetrics.join(", ")}.`);
     }
     return { pack, hints: hints.slice(0, 3) };
   }
@@ -1023,15 +1023,15 @@ var RianellAIEngine = (() => {
   function suggestLogNote(context, options = {}) {
     const translate = options?.translate;
     const parts = [];
-    if (context && context.flare === "Yes") parts.push("Flare day \u2014 rest and hydration may help.");
+    if (context && context.flare === "Yes") parts.push("Flare day. Rest and hydration may help.");
     if (context && typeof context.fatigue === "number" && context.fatigue >= 7) {
       parts.push(tr2(translate, "ai.template.worsening", { metric: "Fatigue" }, "Fatigue is high today."));
     }
-    if (context && typeof context.sleep === "number" && context.sleep <= 4) parts.push("Sleep was low \u2014 gentle pace recommended.");
+    if (context && typeof context.sleep === "number" && context.sleep <= 4) parts.push("Sleep was low. Gentle pace recommended.");
     if (context && typeof context.mood === "number" && context.mood <= 4) {
-      parts.push(tr2(translate, "ai.template.worsening", { metric: "Mood" }, "Mood is low \u2014 be kind to yourself today."));
+      parts.push(tr2(translate, "ai.template.worsening", { metric: "Mood" }, "Mood is low. Be kind to yourself today."));
     }
-    if (!parts.length) parts.push("Steady day \u2014 note anything that helped or hindered how you felt.");
+    if (!parts.length) parts.push("Steady day. Note anything that helped or hindered how you felt.");
     return parts.join(" ");
   }
   function generateAnalysisNote(summary, options = {}) {

@@ -701,14 +701,14 @@ export function ChartsScreen({
                 >
                   {t('charts.flarePostMortem.metricLine', {
                     label: m.label,
-                    before: m.beforeAvg != null ? m.beforeAvg.toFixed(1) : '—',
-                    after: m.afterAvg != null ? m.afterAvg.toFixed(1) : '—',
+                    before: m.beforeAvg != null ? m.beforeAvg.toFixed(1) : '-',
+                    after: m.afterAvg != null ? m.afterAvg.toFixed(1) : '-',
                     delta:
                       m.delta != null
                         ? m.delta >= 0
                           ? `+${m.delta.toFixed(1)}`
                           : m.delta.toFixed(1)
-                        : '—',
+                        : '-',
                   })}
                 </Text>
               ))}
@@ -757,9 +757,9 @@ export function ChartsScreen({
                   >
                     {t('charts.compare.metricLine', {
                       metric: key.charAt(0).toUpperCase() + key.slice(1),
-                      current: cur != null ? cur.toFixed(1) : '—',
-                      previous: prev != null ? prev.toFixed(1) : '—',
-                      delta: d != null ? (d >= 0 ? `+${d.toFixed(1)}` : d.toFixed(1)) : '—',
+                      current: cur != null ? cur.toFixed(1) : '-',
+                      previous: prev != null ? prev.toFixed(1) : '-',
+                      delta: d != null ? (d >= 0 ? `+${d.toFixed(1)}` : d.toFixed(1)) : '-',
                     })}
                   </Text>
                 );

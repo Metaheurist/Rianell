@@ -18,7 +18,7 @@ export function applyConditionPack(packId, analysis) {
   if (!pack) return { pack: null, hints: [] };
   const hints = [...pack.advice];
   if (analysis?.possibleFlareUp?.level === 'High') {
-    hints.unshift(`(${pack.id}) Elevated flare signals — review ${pack.watchMetrics.join(', ')}.`);
+    hints.unshift(`(${pack.id}) Elevated flare signals. Review ${pack.watchMetrics.join(', ')}.`);
   }
   return { pack, hints: hints.slice(0, 3) };
 }
