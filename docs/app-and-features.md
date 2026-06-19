@@ -462,7 +462,7 @@ flowchart LR
 - **Auth**: Sign in / sign out; session state; auth state reflected in sync and settings sync.
 - **Settings sync**: Goals and app settings synced to Supabase when signed in (e.g. app_settings table).
 - **Deploy**: On GitHub Pages, Supabase URL and anon key are injected at deploy time from repository secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`); no credentials in the repo.
-- **Database hardening**: The app uses PostgREST (supabase-js) only, not GraphQL. Operators on existing Supabase projects should run [../supabase/harden-graphql-exposure.sql](../supabase/harden-graphql-exposure.sql) after RLS setup to clear Security Advisor **`pg_graphql_*_table_exposed`** warnings — see [SECURITY.md](SECURITY.md).
+- **Database hardening**: The app uses PostgREST (supabase-js) only, not GraphQL. Run [../supabase/Schema.sql](../supabase/Schema.sql) to apply RLS and clear Security Advisor **`pg_graphql_*_table_exposed`** warnings — see [SECURITY.md](SECURITY.md).
 
 ### Notifications and reminders
 - **Daily reminder**: Configurable time; system notification when the app is in the background.

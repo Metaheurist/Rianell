@@ -44,7 +44,7 @@ Update this file when a milestone completes or slips. Do not edit [next-phase-de
 | SH-04 | Crypto roadmap approved | 2026-06-13 | **done** | [crypto-roadmap.md](crypto-roadmap.md) | Passphrase spike scheduled |
 | SH-05 | Passphrase-derived key spike (POC) | 2026-06-30 | planned | `packages/cloud-sync` | No production cutover |
 | SH-06 | Cloudflare CSP alignment audit | 2026-07-07 | planned | [cloudflare-headers-recommended.md](../security/cloudflare-headers-recommended.md) | No duplicate narrow CSP |
-| SH-07 | Supabase Security Advisor clean (GraphQL lints) | 2026-07-14 | planned | [harden-graphql-exposure.sql](../supabase/harden-graphql-exposure.sql) | Run in SQL Editor |
+| SH-07 | Supabase Security Advisor clean (GraphQL lints) | 2026-07-14 | planned | [Schema.sql](../supabase/Schema.sql) | Run in SQL Editor |
 | SH-08 | Quarterly secret rotation drill | 2026-07-21 | planned | [rotation-runbook.md](../security/rotation-runbook.md) | Tabletop + anon key roll in staging |
 | SH-09 | `security.txt` on production host | 2026-08-01 | planned | `/.well-known/security.txt` | [infrastructure-and-security-edge.md](infrastructure-and-security-edge.md) |
 | SH-10 | **v1.50 security gate** — SH-05…09 triaged | 2026-07-31 | planned | This log | Accept deferrals with risk note |

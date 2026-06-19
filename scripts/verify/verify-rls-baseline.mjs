@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * CI guard: ensures docs/supabase-rls-recommended.sql still documents RLS baseline.
+ * CI guard: ensures supabase/Schema.sql still documents RLS baseline.
  * Does not connect to Supabase - operators must enable RLS in the dashboard (see docs/SECURITY.md).
  */
 import fs from 'fs';
@@ -8,7 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const sqlPath = path.join(__dirname, '../..', 'docs', 'supabase-rls-recommended.sql');
+const sqlPath = path.join(__dirname, '../..', 'supabase', 'Schema.sql');
 
 const required = [
   ['ENABLE ROW LEVEL SECURITY', 'RLS enable examples'],
@@ -36,4 +36,4 @@ for (const [needle, desc] of required) {
 if (failed) {
   process.exit(1);
 }
-console.log('verify-rls-baseline: docs/supabase-rls-recommended.sql baseline OK');
+console.log('verify-rls-baseline: supabase/Schema.sql baseline OK');
