@@ -30,6 +30,9 @@ export function TrackingProfileWizard({
         <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>
           {t('settings.trackingProfile.lead')}
         </Text>
+        <Text style={[styles.lead, { color: theme.tokens.color.textSecondary, marginTop: 12 }]}>
+          {t('progressiveDisclosure.lead')}
+        </Text>
         <ScrollView contentContainerStyle={styles.body}>
           <Text style={[styles.label, { color: theme.tokens.color.textPrimary }]}>
             {t('common.medical.condition')}

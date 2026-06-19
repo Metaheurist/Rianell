@@ -15796,6 +15796,8 @@ let appSettings = {
   treatmentStarts: [],
   homeGapQuestionCache: null,
   homeQuestionAnswerState: null,
+  chartsPresentationMode: false,
+  weeklyReviewDismissedWeek: null,
 };
 
 // Make appSettings available on window for safe access
@@ -15885,6 +15887,9 @@ function loadSettings() {
   loadSettingsState();
   if (appSettings.appLockEnabled && typeof window !== 'undefined' && window.RianellAppLock && typeof window.RianellAppLock.bindAppLock === 'function') {
     window.RianellAppLock.bindAppLock();
+  }
+  if (typeof window !== 'undefined' && window.RianellWeeklyReview && typeof window.RianellWeeklyReview.bindWeeklyReviewModule === 'function') {
+    window.RianellWeeklyReview.bindWeeklyReviewModule();
   }
   applyAccessibilityTtsSettings();
   applyAccessibilityTextScale();
@@ -19983,6 +19988,16 @@ function applyHomeCardLayout() {
     S && typeof S.shouldShowAppointmentCard === 'function' &&
     S.shouldShowAppointmentCard(appSettings.nextAppointmentDate, todayStr)
   );
+  var showWeeklyReview = false;
+  if (S && typeof S.canOfferWeeklyReview === 'function') {
+    var wrGate = S.canOfferWeeklyReview(logArr, {
+      simpleMode: typeof appSettings !== 'undefined' && appSettings.simpleMode === true,
+      aiEnabled: typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false,
+      todayStr: todayStr,
+      weeklyReviewDismissedWeek: appSettings.weeklyReviewDismissedWeek || null,
+    });
+    showWeeklyReview = wrGate.allowed === true;
+  }
   var ctx = typeof S.computeHomeCardContext === 'function'
     ? S.computeHomeCardContext(logArr, todayStr, {
         aiEnabled: typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false,
@@ -19993,6 +20008,7 @@ function applyHomeCardLayout() {
         showStreak: streakSnap.showCard === true,
         showWeather: true,
         showAppointment: showAppointment === true,
+        showWeeklyReview: showWeeklyReview === true,
       })
     : null;
   if (!ctx) return;
@@ -20012,6 +20028,9 @@ function applyHomeCardLayout() {
   if (typeof renderHomeStreakCard === 'function') renderHomeStreakCard(logArr, streakSnap, ctx);
   if (typeof renderHomeWeatherCard === 'function') renderHomeWeatherCard(ctx);
   if (typeof renderHomeAppointmentCard === 'function') renderHomeAppointmentCard(todayStr, ctx);
+  if (typeof window !== 'undefined' && window.RianellWeeklyReview && typeof window.RianellWeeklyReview.renderHomeWeeklyReviewCard === 'function') {
+    window.RianellWeeklyReview.renderHomeWeeklyReviewCard(todayStr, ctx);
+  }
   var header = homeTab.querySelector('.home-today-header');
   var insertAfter = header;
   order.forEach(function(cardId) {

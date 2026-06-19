@@ -7,6 +7,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   UIManager,
   View,
@@ -19,6 +20,9 @@ import { useT } from '../i18n/I18nProvider';
 import type { MainTabParamList } from '../navigation/RootNavigator';
 import { loadLogs, type LogEntry } from '../storage/logs';
 import type { Preferences } from '../storage/preferences';
+import {
+  getPresentationChartRange,
+} from '@rianell/shared';
 import {
   CHART_METRIC_HEX,
   filterTrendsForChartView,
@@ -227,10 +231,19 @@ function PacingDayRow({
   );
 }
 
-export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
+export function ChartsScreen({
+  prefs,
+  onChangePrefs,
+}: {
+  prefs?: Preferences;
+  onChangePrefs?: (next: Preferences) => void;
+}) {
   const route = useRoute<ChartsRoute>();
   const theme = useTheme();
   const { t, locale } = useT();
+  const presentationMode = prefs?.chartsPresentationMode === true;
+  const fontScale = presentationMode ? 1.25 : 1;
+  const f = (size: number) => theme.font(size * fontScale);
   const bg =
     theme.tokens.color.background ===
     'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
@@ -310,8 +323,16 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
     void load();
   };
 
-  const summary = useMemo(() => summarizeCharts(logs, range, { translate: t }), [logs, range, t]);
-  const rangeLogs = useMemo(() => filterLogsForCharts(logs, range), [logs, range]);
+  useEffect(() => {
+    if (presentationMode) {
+      setRange(getPresentationChartRange(7) as ChartRange);
+    }
+  }, [presentationMode]);
+
+  const effectiveRange: ChartRange = presentationMode ? (getPresentationChartRange(7) as ChartRange) : range;
+
+  const summary = useMemo(() => summarizeCharts(logs, effectiveRange, { translate: t }), [logs, effectiveRange, t]);
+  const rangeLogs = useMemo(() => filterLogsForCharts(logs, effectiveRange), [logs, effectiveRange]);
   const correlationCards = useMemo(() => buildCorrelationCards(rangeLogs, 'all'), [rangeLogs]);
   const flarePostMortem = useMemo(
     () => buildFlarePostMortem(rangeLogs) as FlarePostMortemResult | null,
@@ -376,8 +397,30 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
             },
           ]}
         >
-          <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: theme.font(22) }]}>{t('charts.title')}</Text>
-          <Text style={[styles.lead, { color: theme.tokens.color.text, fontSize: theme.font(15) }]}>
+          <Text style={[styles.title, { color: theme.tokens.color.accent, fontSize: f(22) }]}>{t('charts.title')}</Text>
+          {prefs && onChangePrefs ? (
+            <View style={styles.presentationRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: f(13) }]}>
+                  {t('charts.presentation.toggle')}
+                </Text>
+                <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: f(12), opacity: 0.85 }]}>
+                  {t('charts.presentation.lead')}
+                </Text>
+              </View>
+              <Switch
+                value={presentationMode}
+                onValueChange={(chartsPresentationMode) => onChangePrefs({ ...prefs, chartsPresentationMode })}
+                accessibilityLabel={t('charts.presentation.toggle')}
+              />
+            </View>
+          ) : null}
+          {presentationMode ? (
+            <Text style={[styles.metric, { color: theme.tokens.color.accent, fontSize: f(13), marginBottom: 8 }]}>
+              {t('charts.presentation.activeHint')}
+            </Text>
+          ) : null}
+          <Text style={[styles.lead, { color: theme.tokens.color.text, fontSize: f(15) }]}>
             {view === 'balance'
               ? t('charts.lead.balance')
               : view === 'individual'
@@ -393,7 +436,9 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
             <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{error}</Text>
           ) : null}
 
-          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('charts.filter.view')}</Text>
+          {!presentationMode ? (
+            <>
+          <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: f(13) }]}>{t('charts.filter.view')}</Text>
           <View style={styles.viewRow}>
             {VIEW_OPTIONS.map((opt) => {
               const selected = opt === view;
@@ -548,6 +593,8 @@ export function ChartsScreen({ prefs }: { prefs?: Preferences }) {
                   </Text>
                 </>
               ) : null}
+            </>
+          ) : null}
             </>
           ) : null}
 
@@ -866,6 +913,7 @@ const styles = StyleSheet.create({
   sparkBar: { width: 6, borderRadius: 4 },
   rangeRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   viewRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 4 },
+  presentationRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
   rangeChip: {
     paddingVertical: 8,
     paddingHorizontal: 12,

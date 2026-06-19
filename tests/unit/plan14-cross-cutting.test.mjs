@@ -1,0 +1,84 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  canOfferWeeklyReview,
+  isoWeekMondayKey,
+  summarizeCorrelationStep,
+  summarizeDigestStep,
+  WEEKLY_REVIEW_MIN_LOG_DAYS,
+  getOnDeviceMoatBulletKeys,
+  getProgressiveDisclosureMilestones,
+  scoreScreeningResponses,
+  interpretPhq2Score,
+  interpretGad2Score,
+  getCrisisResourcesForRegion,
+  normalizePresentationModePrefs,
+  getPresentationChartRange,
+  shouldLockChartRangeInPresentation,
+} from '@rianell/shared';
+
+const LOGS = Array.from({ length: 8 }, (_, i) => ({
+  date: `2026-06-${String(i + 1).padStart(2, '0')}`,
+  mood: 6,
+  sleep: 7,
+  fatigue: 4,
+}));
+
+test('canOfferWeeklyReview requires min log days and respects dismiss week', () => {
+  const short = canOfferWeeklyReview(LOGS.slice(0, 3), { aiEnabled: true, simpleMode: false, todayStr: '2026-06-08' });
+  assert.equal(short.allowed, false);
+  assert.equal(short.reason, 'minDays');
+  assert.equal(short.minDays, WEEKLY_REVIEW_MIN_LOG_DAYS);
+
+  const week = isoWeekMondayKey('2026-06-08');
+  const dismissed = canOfferWeeklyReview(LOGS, {
+    aiEnabled: true,
+    simpleMode: false,
+    todayStr: '2026-06-08',
+    weeklyReviewDismissedWeek: week,
+  });
+  assert.equal(dismissed.allowed, false);
+  assert.equal(dismissed.reason, 'dismissed');
+
+  const ok = canOfferWeeklyReview(LOGS, { aiEnabled: true, simpleMode: false, todayStr: '2026-06-08' });
+  assert.equal(ok.allowed, true);
+});
+
+test('summarizeCorrelationStep caps to three cards', () => {
+  const cards = Array.from({ length: 5 }, (_, i) => ({ id: 'c' + i, label: 'A & B', detail: 'r=0.5' }));
+  const out = summarizeCorrelationStep(cards);
+  assert.equal(out.length, 3);
+  assert.equal(out[0].label, 'A & B');
+});
+
+test('summarizeDigestStep normalizes digest object', () => {
+  const out = summarizeDigestStep({ headline: 'Stable week', improvements: ['sleep'], concerns: [] });
+  assert.equal(out.headline, 'Stable week');
+  assert.deepEqual(out.improvements, ['sleep']);
+});
+
+test('mental health screening scores PHQ-2/GAD-2', () => {
+  const low = scoreScreeningResponses([{ value: 0 }, { value: 1 }]);
+  assert.equal(low.total, 1);
+  assert.equal(interpretPhq2Score(low.total).level, 'low');
+  const high = scoreScreeningResponses([{ value: 3 }, { value: 2 }]);
+  assert.equal(interpretGad2Score(high.total).level, 'elevated');
+});
+
+test('getCrisisResourcesForRegion returns regional links', () => {
+  assert.ok(getCrisisResourcesForRegion('eea_uk').length >= 1);
+  assert.ok(getCrisisResourcesForRegion('us').some((r) => r.url.includes('988')));
+});
+
+test('presentation mode prefs normalize and lock 7-day range', () => {
+  const prefs = normalizePresentationModePrefs({ chartsPresentationMode: true, weeklyReviewDismissedWeek: '2026-06-02' });
+  assert.equal(prefs.chartsPresentationMode, true);
+  assert.equal(prefs.weeklyReviewDismissedWeek, '2026-06-02');
+  assert.equal(getPresentationChartRange(30), 7);
+  assert.equal(shouldLockChartRangeInPresentation(true), true);
+});
+
+test('on-device moat and progressive disclosure keys exported', () => {
+  assert.ok(getOnDeviceMoatBulletKeys().length >= 4);
+  assert.ok(getProgressiveDisclosureMilestones().some((m) => m.id === 'day1'));
+});

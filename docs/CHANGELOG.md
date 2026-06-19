@@ -2,7 +2,16 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.110.0** - Plan 13: research pool export (RE4) + k-anon insights (RE1).
+**Latest: v1.111.0** - Plan 14: cross-cutting integration capstone (X14.1–X14.5).
+
+### v1.111.0 - 2026-06-19 - Plan 14 Cross-cutting concepts (X14.1–X14.5)
+- **X14.1:** Weekly Health Review ritual — Home card + 5-step flow (correlations → digest → visit brief → PDF); PWA modal + RN `WeeklyReviewScreen`.
+- **X14.2:** On-device AI moat copy in Settings (PWA + RN) — local inference default, pool opt-in, local-only alignment.
+- **X14.3:** Progressive disclosure milestones in Settings + tracking wizard lead (day 1 → week 2 → month 2 → pool).
+- **X14.4:** Charts telehealth presentation mode — 7-day lock, large fonts, minimal chrome (PWA toggle + RN switch).
+- **X14.5:** PHQ-2/GAD-2 wellness screeners + regional crisis links; disclaimers (not diagnostic).
+- **Shared:** `packages/shared/src/crossCutting/*`; home card `weeklyReview`; prefs `chartsPresentationMode`, `weeklyReviewDismissedWeek`.
+- **Tests:** 7 plan14-cross-cutting tests (302 total).
 
 ### v1.110.0 - 2026-06-19 - Plan 13 Research & anonymized pool (RE1, RE4)
 - **RE4:** Export own anonymized contribution rows — decrypt locally, `rianell-contribution-export-v1` JSON; Settings export (PWA + RN).

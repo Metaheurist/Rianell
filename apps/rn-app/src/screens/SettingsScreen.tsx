@@ -45,6 +45,7 @@ import { SettingsPrivacyRegionPane } from '../settings/SettingsPrivacyRegionPane
 import { SettingsAppInstallSection } from '../settings/SettingsAppInstallSection';
 import { SettingsConsentDashboard } from '../settings/SettingsConsentDashboard';
 import { SettingsPrivacyTrustPane } from '../settings/SettingsPrivacyTrustPane';
+import { SettingsCrossCuttingPane } from '../settings/SettingsCrossCuttingPane';
 import { AnonPoolFieldChecklist } from '../settings/AnonPoolFieldChecklist';
 import { EncryptedExportModal } from '../settings/EncryptedExportModal';
 import { QrHandoffModal } from '../settings/QrHandoffModal';
@@ -703,6 +704,7 @@ export function SettingsScreen({
                 onChangePrefs={onChangePrefs}
                 onRequestAnonPoolEnable={() => setAnonPoolOpen(true)}
               />
+              <SettingsCrossCuttingPane prefs={prefs} />
               <SettingsConsentDashboard prefs={prefs} onChangePrefs={onChangePrefs} />
             </Section>
           </ScrollView>

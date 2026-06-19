@@ -34,6 +34,7 @@ var RianellShared = (() => {
     DEFAULT_PRIVACY_REGION: () => DEFAULT_PRIVACY_REGION,
     ENCRYPTED_EXPORT_FORMAT: () => ENCRYPTED_EXPORT_FORMAT,
     ENCRYPTED_EXPORT_KDF_ITERATIONS: () => ENCRYPTED_EXPORT_KDF_ITERATIONS,
+    GAD2_QUESTIONS: () => GAD2_QUESTIONS,
     GOALS_STORAGE_KEY: () => GOALS_STORAGE_KEY,
     GOLDEN_LLM_INTENTS: () => GOLDEN_LLM_INTENTS,
     GOLDEN_LLM_LOCALES: () => GOLDEN_LLM_LOCALES,
@@ -53,24 +54,30 @@ var RianellShared = (() => {
     MAX_WEEK_CHAT_TURNS: () => MAX_WEEK_CHAT_TURNS,
     MED_DOSE_FIRE_WINDOW_MS: () => MED_DOSE_FIRE_WINDOW_MS,
     MED_DOSE_SNOOZE_MINUTES: () => MED_DOSE_SNOOZE_MINUTES,
+    MENTAL_HEALTH_DISCLAIMER_KEY: () => MENTAL_HEALTH_DISCLAIMER_KEY,
     MIGRATION_COPY: () => MIGRATION_COPY,
     MIGRATION_SOURCES: () => MIGRATION_SOURCES,
     OFFLINE_QUEUE_KEY: () => OFFLINE_QUEUE_KEY,
+    ON_DEVICE_MOAT_BULLET_KEYS: () => ON_DEVICE_MOAT_BULLET_KEYS,
+    PHQ2_QUESTIONS: () => PHQ2_QUESTIONS,
     POLICY_BODIES: () => POLICY_BODIES,
     POLICY_SUMMARIES: () => POLICY_SUMMARIES,
     POOL_CONTRIBUTION_MIN_DAYS: () => POOL_CONTRIBUTION_MIN_DAYS,
     POOL_INSIGHT_MIN_K: () => POOL_INSIGHT_MIN_K,
     PREDICTION_STATE_KEY: () => PREDICTION_STATE_KEY,
     PREFS_STORAGE_KEY_MOBILE: () => PREFS_STORAGE_KEY_MOBILE,
+    PRESENTATION_CHART_RANGE_DAYS: () => PRESENTATION_CHART_RANGE_DAYS,
     PRIVACY_REGIONS: () => PRIVACY_REGIONS,
     PROCESSING_ACTIVITY_LOG_KEY: () => PROCESSING_ACTIVITY_LOG_KEY,
     PROCESSING_ACTIVITY_LOG_MAX: () => PROCESSING_ACTIVITY_LOG_MAX,
     PROFILE_AVATAR_IDS: () => PROFILE_AVATAR_IDS,
     PROGRESSIVE_CATEGORIES: () => PROGRESSIVE_CATEGORIES,
+    PROGRESSIVE_DISCLOSURE_MILESTONES: () => PROGRESSIVE_DISCLOSURE_MILESTONES,
     QR_HANDOFF_DEFAULT_TTL_MINUTES: () => QR_HANDOFF_DEFAULT_TTL_MINUTES,
     QR_HANDOFF_FORMAT: () => QR_HANDOFF_FORMAT,
     QR_HANDOFF_MAX_CHARS: () => QR_HANDOFF_MAX_CHARS,
     RE_ENGAGEMENT_IDLE_DAYS: () => RE_ENGAGEMENT_IDLE_DAYS,
+    SCREENING_RESPONSE_OPTIONS: () => SCREENING_RESPONSE_OPTIONS,
     SETTINGS_PROFILE_EXPORT_VERSION: () => SETTINGS_PROFILE_EXPORT_VERSION,
     SETTINGS_STORAGE_KEY: () => SETTINGS_STORAGE_KEY,
     SHARE_LINK_FORMAT: () => SHARE_LINK_FORMAT,
@@ -82,6 +89,8 @@ var RianellShared = (() => {
     TRACKING_PROFILE_FIELD_KEYS: () => TRACKING_PROFILE_FIELD_KEYS,
     UNSET_PRIVACY_REGION: () => UNSET_PRIVACY_REGION,
     WEATHER_CACHE_MS: () => WEATHER_CACHE_MS,
+    WEEKLY_REVIEW_MIN_LOG_DAYS: () => WEEKLY_REVIEW_MIN_LOG_DAYS,
+    WEEKLY_REVIEW_STEPS: () => WEEKLY_REVIEW_STEPS,
     addLogFavorite: () => addLogFavorite,
     addMinutesToHHMM: () => addMinutesToHHMM,
     analysisSnapshotFromSummary: () => analysisSnapshotFromSummary,
@@ -141,6 +150,7 @@ var RianellShared = (() => {
     canChooseDataResidency: () => canChooseDataResidency,
     canExportContributionHistory: () => canExportContributionHistory,
     canOfferWebPush: () => canOfferWebPush,
+    canOfferWeeklyReview: () => canOfferWeeklyReview,
     canSendWeekChatTurn: () => canSendWeekChatTurn,
     canViewPoolInsights: () => canViewPoolInsights,
     checkPolicyDrift: () => checkPolicyDrift,
@@ -157,6 +167,7 @@ var RianellShared = (() => {
     computeHomeStreakSnapshot: () => computeHomeStreakSnapshot,
     computeMedianLogTimeMinutes: () => computeMedianLogTimeMinutes,
     computePoolInsightsFromFacets: () => computePoolInsightsFromFacets,
+    countDistinctLogDays: () => countDistinctLogDays,
     createQrHandoffPayload: () => createQrHandoffPayload,
     createReadOnlyShareEnvelope: () => createReadOnlyShareEnvelope,
     createSampleLogEntry: () => createSampleLogEntry,
@@ -191,16 +202,20 @@ var RianellShared = (() => {
     formatRelativeDay: () => formatRelativeDay,
     formatStructuredLlmOutput: () => formatStructuredLlmOutput,
     formatWeekChatHistory: () => formatWeekChatHistory,
+    getCrisisResourcesForRegion: () => getCrisisResourcesForRegion,
     getDefaultAccessibilitySettings: () => getDefaultAccessibilitySettings,
     getDefaultAppSettingsFields: () => getDefaultAppSettingsFields,
     getDefaultLocaleForRegion: () => getDefaultLocaleForRegion,
     getDefaultTrackingProfileFields: () => getDefaultTrackingProfileFields,
     getFeatureAvailability: () => getFeatureAvailability,
     getLlmCapability: () => getLlmCapability,
+    getOnDeviceMoatBulletKeys: () => getOnDeviceMoatBulletKeys,
     getPolicyBodyParagraphs: () => getPolicyBodyParagraphs,
     getPolicyDocumentsForRegion: () => getPolicyDocumentsForRegion,
     getPolicyDocumentsForRegionI18n: () => getPolicyDocumentsForRegionI18n,
     getPolicyPack: () => getPolicyPack,
+    getPresentationChartRange: () => getPresentationChartRange,
+    getProgressiveDisclosureMilestones: () => getProgressiveDisclosureMilestones,
     getRegionLabels: () => getRegionLabels,
     getResidencyChooserOptions: () => getResidencyChooserOptions,
     getResidencyConfigFromEnv: () => getResidencyConfigFromEnv,
@@ -214,6 +229,8 @@ var RianellShared = (() => {
     hasLoggedToday: () => hasLoggedToday,
     identity: () => identity,
     inferTreatmentStartsFromLogs: () => inferTreatmentStartsFromLogs,
+    interpretGad2Score: () => interpretGad2Score,
+    interpretPhq2Score: () => interpretPhq2Score,
     isCloudSyncBlockedByMigration: () => isCloudSyncBlockedByMigration,
     isCustomMetricField: () => isCustomMetricField,
     isGoodDayLog: () => isGoodDayLog,
@@ -226,12 +243,14 @@ var RianellShared = (() => {
     isPwaOnDeviceLlmOnly: () => isPwaOnDeviceLlmOnly,
     isQrHandoffExpired: () => isQrHandoffExpired,
     isRtlLocale: () => isRtlLocale,
+    isSundayReviewDay: () => isSundayReviewDay,
     isTrackingProfileConfigured: () => isTrackingProfileConfigured,
     isValidLocaleId: () => isValidLocaleId,
     isValidMedicalConditionForPool: () => isValidMedicalConditionForPool,
     isValidPrivacyRegion: () => isValidPrivacyRegion,
     isWeatherCacheFresh: () => isWeatherCacheFresh,
     isoWeekKey: () => isoWeekKey,
+    isoWeekMondayKey: () => isoWeekMondayKey,
     languageNameForLocale: () => languageNameForLocale,
     listTodayMedDoseReminders: () => listTodayMedDoseReminders,
     loadPolicyPackFromDisk: () => loadPolicyPackFromDisk,
@@ -271,6 +290,7 @@ var RianellShared = (() => {
     normalizeMedicationDoses: () => normalizeMedicationDoses,
     normalizePoolInsightsRpcResult: () => normalizePoolInsightsRpcResult,
     normalizePreferencesPartial: () => normalizePreferencesPartial,
+    normalizePresentationModePrefs: () => normalizePresentationModePrefs,
     normalizeProfileAvatar: () => normalizeProfileAvatar,
     normalizeSubEntries: () => normalizeSubEntries,
     normalizeSubEntry: () => normalizeSubEntry,
@@ -306,6 +326,7 @@ var RianellShared = (() => {
     roundWeatherCoord: () => roundWeatherCoord,
     runGoldenPromptAudit: () => runGoldenPromptAudit,
     sanitizeCustomMetricLabel: () => sanitizeCustomMetricLabel,
+    scoreScreeningResponses: () => scoreScreeningResponses,
     setPolicyPack: () => setPolicyPack,
     shareEnvelopeToPortableJson: () => shareEnvelopeToPortableJson,
     shouldAllowNetworkOperation: () => shouldAllowNetworkOperation,
@@ -314,11 +335,14 @@ var RianellShared = (() => {
     shouldFireMissedLogNudge: () => shouldFireMissedLogNudge,
     shouldFireReEngagementNudge: () => shouldFireReEngagementNudge,
     shouldFireStreakReminderNudge: () => shouldFireStreakReminderNudge,
+    shouldLockChartRangeInPresentation: () => shouldLockChartRangeInPresentation,
     shouldShowAppointmentCard: () => shouldShowAppointmentCard,
     shouldShowWizardCategory: () => shouldShowWizardCategory,
     stampLogEntryForCaregiver: () => stampLogEntryForCaregiver,
     stampLogSavedAtForSave: () => stampLogSavedAtForSave,
     suggestPrivacyRegionFromHint: () => suggestPrivacyRegionFromHint,
+    summarizeCorrelationStep: () => summarizeCorrelationStep,
+    summarizeDigestStep: () => summarizeDigestStep,
     t: () => t,
     textDirection: () => textDirection,
     touchLastActiveAt: () => touchLastActiveAt,
@@ -2489,6 +2513,7 @@ var RianellShared = (() => {
   // packages/shared/src/ai/homeCardRegistry.mjs
   var HOME_CARDS = [
     { id: "nudge", basePriority: 40 },
+    { id: "weeklyReview", basePriority: 68 },
     { id: "appointment", basePriority: 78 },
     { id: "weather", basePriority: 48 },
     { id: "streak", basePriority: 38 },
@@ -2520,7 +2545,8 @@ var RianellShared = (() => {
       showCheckin = true,
       showStreak = false,
       showWeather = false,
-      showAppointment = false
+      showAppointment = false,
+      showWeeklyReview = false
     } = options;
     const loggedToday = Array.isArray(logs) && logs.some((l) => l?.date === todayStr);
     const streakBroken = isLoggingStreakBroken(logs, todayStr);
@@ -2536,7 +2562,8 @@ var RianellShared = (() => {
       showCheckin: showCheckin !== false && simpleMode !== true,
       showStreak: showStreak === true,
       showWeather: showWeather === true,
-      showAppointment: showAppointment === true
+      showAppointment: showAppointment === true,
+      showWeeklyReview: showWeeklyReview === true
     };
   }
   function resolveHomeCardOrder(context) {
@@ -2550,6 +2577,7 @@ var RianellShared = (() => {
       if (card.id === "streak" && !ctx.showStreak) continue;
       if (card.id === "weather" && !ctx.showWeather) continue;
       if (card.id === "appointment" && !ctx.showAppointment) continue;
+      if (card.id === "weeklyReview" && !ctx.showWeeklyReview) continue;
       let priority = card.basePriority;
       if (ctx.loggedToday && card.id === "goals") priority += 50;
       if (ctx.loggedToday && card.id === "checkin") priority += 35;
@@ -2558,6 +2586,7 @@ var RianellShared = (() => {
       if (!ctx.loggedToday && card.id === "nudge") priority += 80;
       if (ctx.streakBroken && card.id === "nudge") priority += 20;
       if (ctx.showAppointment && card.id === "appointment") priority += 25;
+      if (ctx.showWeeklyReview && card.id === "weeklyReview") priority += 40;
       if (ctx.loggedToday && card.id === "weather") priority += 15;
       scored.push({ id: card.id, priority });
     }
@@ -3966,6 +3995,22 @@ ${hist}`);
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${bars}</svg>`;
   }
 
+  // packages/shared/src/crossCutting/presentationMode.mjs
+  var PRESENTATION_CHART_RANGE_DAYS = 7;
+  function normalizePresentationModePrefs(raw) {
+    const v = raw && typeof raw === "object" ? raw : {};
+    return {
+      chartsPresentationMode: v.chartsPresentationMode === true,
+      weeklyReviewDismissedWeek: typeof v.weeklyReviewDismissedWeek === "string" ? v.weeklyReviewDismissedWeek : null
+    };
+  }
+  function getPresentationChartRange(currentRange) {
+    return PRESENTATION_CHART_RANGE_DAYS;
+  }
+  function shouldLockChartRangeInPresentation(presentationMode) {
+    return presentationMode === true;
+  }
+
   // packages/shared/src/home/homeDashboardPrefs.mjs
   function normalizeHomeDashboardPrefs(raw) {
     const v = raw && typeof raw === "object" ? raw : {};
@@ -3990,7 +4035,8 @@ ${hist}`);
       nextAppointmentDate: parseAppointmentDate(v.nextAppointmentDate),
       treatmentStarts: normalizeTreatmentStarts(v.treatmentStarts),
       homeGapQuestionCache: v.homeGapQuestionCache && typeof v.homeGapQuestionCache === "object" ? v.homeGapQuestionCache : null,
-      homeQuestionAnswerState: v.homeQuestionAnswerState && typeof v.homeQuestionAnswerState === "object" ? v.homeQuestionAnswerState : null
+      homeQuestionAnswerState: v.homeQuestionAnswerState && typeof v.homeQuestionAnswerState === "object" ? v.homeQuestionAnswerState : null,
+      ...normalizePresentationModePrefs(v)
     };
   }
 
@@ -4812,6 +4858,146 @@ ${questionsBlock}
       research_facets
     };
   }
+
+  // packages/shared/src/crossCutting/weeklyReview.mjs
+  var WEEKLY_REVIEW_STEPS = [
+    { id: "correlations", labelKey: "weeklyReview.step.correlations" },
+    { id: "digest", labelKey: "weeklyReview.step.digest" },
+    { id: "brief", labelKey: "weeklyReview.step.brief" },
+    { id: "confirm", labelKey: "weeklyReview.step.confirm" },
+    { id: "pdf", labelKey: "weeklyReview.step.pdf" }
+  ];
+  var WEEKLY_REVIEW_MIN_LOG_DAYS = 7;
+  function isoWeekKey2(dateStr) {
+    const d = /^\d{4}-\d{2}-\d{2}$/.test(String(dateStr || "")) ? /* @__PURE__ */ new Date(`${dateStr}T12:00:00`) : /* @__PURE__ */ new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d);
+    monday.setDate(diff);
+    return monday.toISOString().slice(0, 10);
+  }
+  function isoWeekMondayKey(dateStr) {
+    return isoWeekKey2(dateStr);
+  }
+  function isSundayReviewDay(todayStr) {
+    const d = /^\d{4}-\d{2}-\d{2}$/.test(String(todayStr || "")) ? /* @__PURE__ */ new Date(`${todayStr}T12:00:00`) : /* @__PURE__ */ new Date();
+    return d.getDay() === 0;
+  }
+  function countDistinctLogDays(logs) {
+    const dates = new Set((Array.isArray(logs) ? logs : []).map((l) => l?.date).filter(Boolean));
+    return dates.size;
+  }
+  function canOfferWeeklyReview(logs, opts = {}) {
+    if (opts.simpleMode) return { allowed: false, reason: "simpleMode" };
+    if (opts.aiEnabled === false) return { allowed: false, reason: "aiOff" };
+    const dayCount = countDistinctLogDays(logs);
+    if (dayCount < WEEKLY_REVIEW_MIN_LOG_DAYS) {
+      return { allowed: false, reason: "minDays", minDays: WEEKLY_REVIEW_MIN_LOG_DAYS, dayCount };
+    }
+    const today = opts.todayStr || (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    const sunday = isSundayReviewDay(today);
+    const dismissedWeek = opts.weeklyReviewDismissedWeek || null;
+    const thisWeek = isoWeekKey2(today);
+    if (dismissedWeek === thisWeek && !opts.force) {
+      return { allowed: false, reason: "dismissed" };
+    }
+    return { allowed: true, sundayHighlight: sunday, logDayCount: dayCount };
+  }
+  function summarizeCorrelationStep(correlationCards) {
+    const list = Array.isArray(correlationCards) ? correlationCards : [];
+    return list.slice(0, 3).map((c) => ({
+      id: c.id || c.metricA,
+      label: c.label || (c.label1 && c.label2 ? `${c.label1} & ${c.label2}` : c.title || ""),
+      detail: c.detail || c.summary || (c.coefficient != null ? `${c.direction || "corr"} (${c.coefficient})` : ""),
+      confidence: c.confidence || c.confidenceLevel || null
+    }));
+  }
+  function summarizeDigestStep(digest) {
+    if (!digest || typeof digest !== "object") {
+      return { headline: "", improvements: [], concerns: [], goalStatus: [] };
+    }
+    return {
+      headline: digest.headline || "",
+      improvements: Array.isArray(digest.improvements) ? digest.improvements : [],
+      concerns: Array.isArray(digest.concerns) ? digest.concerns : [],
+      goalStatus: Array.isArray(digest.goalStatus) ? digest.goalStatus : []
+    };
+  }
+
+  // packages/shared/src/crossCutting/progressiveDisclosure.mjs
+  var PROGRESSIVE_DISCLOSURE_MILESTONES = [
+    { id: "day1", labelKey: "progressiveDisclosure.milestone.day1", unlockDay: 0 },
+    { id: "week2", labelKey: "progressiveDisclosure.milestone.week2", unlockDay: 14 },
+    { id: "month2", labelKey: "progressiveDisclosure.milestone.month2", unlockDay: 60 },
+    { id: "pool", labelKey: "progressiveDisclosure.milestone.pool", unlockDay: 90, optional: true }
+  ];
+  var ON_DEVICE_MOAT_BULLET_KEYS = [
+    "onDeviceMoat.bullet.localInference",
+    "onDeviceMoat.bullet.noCloudLlmDefault",
+    "onDeviceMoat.bullet.poolOptIn",
+    "onDeviceMoat.bullet.localOnly"
+  ];
+  function getProgressiveDisclosureMilestones() {
+    return PROGRESSIVE_DISCLOSURE_MILESTONES;
+  }
+  function getOnDeviceMoatBulletKeys() {
+    return ON_DEVICE_MOAT_BULLET_KEYS;
+  }
+
+  // packages/shared/src/crossCutting/mentalHealthScreening.mjs
+  var PHQ2_QUESTIONS = [
+    { id: "phq2_1", labelKey: "mentalHealth.phq2.q1" },
+    { id: "phq2_2", labelKey: "mentalHealth.phq2.q2" }
+  ];
+  var GAD2_QUESTIONS = [
+    { id: "gad2_1", labelKey: "mentalHealth.gad2.q1" },
+    { id: "gad2_2", labelKey: "mentalHealth.gad2.q2" }
+  ];
+  var SCREENING_RESPONSE_OPTIONS = [
+    { value: 0, labelKey: "mentalHealth.response.notAtAll" },
+    { value: 1, labelKey: "mentalHealth.response.severalDays" },
+    { value: 2, labelKey: "mentalHealth.response.moreThanHalf" },
+    { value: 3, labelKey: "mentalHealth.response.nearlyEveryDay" }
+  ];
+  var CRISIS_BY_REGION = {
+    eea_uk: [
+      { nameKey: "mentalHealth.crisis.samaritans", url: "https://www.samaritans.org/" },
+      { nameKey: "mentalHealth.crisis.nhs111", url: "https://www.nhs.uk/nhs-services/urgent-and-emergency-care-services/when-to-call-111/" }
+    ],
+    us: [{ nameKey: "mentalHealth.crisis.us988", url: "https://988lifeline.org/" }],
+    ca: [{ nameKey: "mentalHealth.crisis.ca988", url: "https://988.ca/" }],
+    au: [{ nameKey: "mentalHealth.crisis.lifelineAu", url: "https://www.lifeline.org.au/" }],
+    other: [{ nameKey: "mentalHealth.crisis.findaHelpline", url: "https://findahelpline.com/" }]
+  };
+  function scoreScreeningResponses(responses) {
+    const list = Array.isArray(responses) ? responses : [];
+    let total = 0;
+    let answered = 0;
+    for (const r of list) {
+      const v = Number(r?.value);
+      if (!Number.isFinite(v) || v < 0 || v > 3) continue;
+      total += v;
+      answered += 1;
+    }
+    return { total, answered, complete: answered === list.length && list.length > 0 };
+  }
+  function interpretPhq2Score(total) {
+    if (total >= 3) return { level: "elevated", labelKey: "mentalHealth.phq2.elevated" };
+    return { level: "low", labelKey: "mentalHealth.phq2.low" };
+  }
+  function interpretGad2Score(total) {
+    if (total >= 3) return { level: "elevated", labelKey: "mentalHealth.gad2.elevated" };
+    return { level: "low", labelKey: "mentalHealth.gad2.low" };
+  }
+  function getCrisisResourcesForRegion(regionId) {
+    const key = String(regionId || "other").toLowerCase();
+    if (key === "eea_uk" || key === "uk") return CRISIS_BY_REGION.eea_uk;
+    if (key === "us" || key === "us_ca") return CRISIS_BY_REGION.us;
+    if (key === "ca") return CRISIS_BY_REGION.ca;
+    if (key === "au") return CRISIS_BY_REGION.au;
+    return CRISIS_BY_REGION.other;
+  }
+  var MENTAL_HEALTH_DISCLAIMER_KEY = "mentalHealth.disclaimer";
 
   // packages/shared/src/index.mjs
   function identity(value) {

@@ -156,6 +156,8 @@ export type Preferences = {
   treatmentStarts: Array<{ date: string; label: string }>;
   homeGapQuestionCache: { date: string; gapId: string } | null;
   homeQuestionAnswerState: { date: string; count: number } | null;
+  chartsPresentationMode: boolean;
+  weeklyReviewDismissedWeek: string | null;
 };
 
 export function getDefaultPreferences(): Preferences {
@@ -264,6 +266,8 @@ export function getDefaultPreferences(): Preferences {
     treatmentStarts: [],
     homeGapQuestionCache: null,
     homeQuestionAnswerState: null,
+    chartsPresentationMode: false,
+    weeklyReviewDismissedWeek: null,
   };
 }
 
