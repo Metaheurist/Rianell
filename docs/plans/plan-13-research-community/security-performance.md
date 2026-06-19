@@ -2,7 +2,7 @@
 
 **Section 12:** Research & anonymized pool · **IDs:** RE1, RE4
 
-Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](../../ai-security.md), and Firecrawl research in [.firecrawl/projects/](../../../.firecrawl/projects/).
+Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](../../ai-security.md), and Firecrawl research in ``.firecrawl/projects/`` (gitignored local cache).
 
 ---
 
