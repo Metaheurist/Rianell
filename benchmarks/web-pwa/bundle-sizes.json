@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-19T18:36:54.283Z",
+  "generatedAt": "2026-06-19T19:28:47.079Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3912347,
+    "jsBytes": 3936095,
     "cssBytes": 399739,
-    "jsGzipBytes": 934595,
+    "jsGzipBytes": 940423,
     "cssGzipBytes": 70226
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 913420,
-      "gzipBytes": 197964
+      "bytes": 914456,
+      "gzipBytes": 198138
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.8ea24801bec9.min.js",
-      "bytes": 650270,
-      "gzipBytes": 147759
+      "file": "ci-minified/site/app.483d7817f2a1.min.js",
+      "bytes": 651081,
+      "gzipBytes": 147939
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -35,8 +35,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 222598,
-      "gzipBytes": 51685
+      "bytes": 231376,
+      "gzipBytes": 53928
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -102,6 +102,11 @@
       "file": "ci-minified/site/event-handlers.js",
       "bytes": 16621,
       "gzipBytes": 3219
+    },
+    {
+      "file": "ci-minified/site/modules/weekly-review.js",
+      "bytes": 13123,
+      "gzipBytes": 3231
     },
     {
       "file": "ci-minified/site/security-utils.js",
