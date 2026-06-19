@@ -1,6 +1,7 @@
 import { roundWeatherCoord } from './homeWeather.mjs';
 import { parseAppointmentDate } from './homeAppointment.mjs';
 import { normalizeTreatmentStarts } from '../clinician/medTimeline.mjs';
+import { normalizePresentationModePrefs } from '../crossCutting/presentationMode.mjs';
 
 export function normalizeHomeDashboardPrefs(raw) {
   const v = raw && typeof raw === 'object' ? raw : {};
@@ -32,5 +33,6 @@ export function normalizeHomeDashboardPrefs(raw) {
       v.homeQuestionAnswerState && typeof v.homeQuestionAnswerState === 'object'
         ? v.homeQuestionAnswerState
         : null,
+    ...normalizePresentationModePrefs(v),
   };
 }

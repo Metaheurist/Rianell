@@ -1095,6 +1095,19 @@
           <label data-i18n="settings.privacy.caregiver.dependentName">Dependent name</label>
           <input type="text" id="caregiverDependentNameInput" class="item-input" onchange="updateCaregiverDependentName()" />
         </div>
+        <div class="settings-section settings-cross-cutting">
+          <h4 data-i18n="onDeviceMoat.title">On-device AI</h4>
+          <p class="settings-hint" data-i18n="onDeviceMoat.lead">Rianell keeps inference on your device by default. Cloud features are always opt-in.</p>
+          <ul id="onDeviceMoatList" class="settings-hint"></ul>
+          <h4 data-i18n="progressiveDisclosure.title">Progressive disclosure</h4>
+          <p class="settings-hint" data-i18n="progressiveDisclosure.lead">Rianell unlocks complexity gradually so day one stays simple.</p>
+          <ul id="progressiveDisclosureList" class="settings-hint"></ul>
+          <h4 data-i18n="mentalHealth.title">Wellness check-in</h4>
+          <p class="settings-hint" data-i18n="mentalHealth.lead">Optional PHQ-2 and GAD-2 screeners for self-reflection — not a diagnosis.</p>
+          <p class="settings-hint" data-i18n="mentalHealth.disclaimer">This is not medical advice or a diagnosis.</p>
+          <button type="button" class="settings-data-btn" id="mentalHealthPhq2Btn" data-i18n="mentalHealth.phq2.action">PHQ-2 mood screen</button>
+          <button type="button" class="settings-data-btn" id="mentalHealthGad2Btn" data-i18n="mentalHealth.gad2.action">GAD-2 anxiety screen</button>
+        </div>
         <p class="settings-hint" id="privacyActivityLogHint" data-i18n="settings.privacy.activity.empty">No processing events recorded yet.</p>
       </div>
       </div>
@@ -1570,6 +1583,16 @@
     </div>
   </div>
 
+  <div class="modal-overlay weekly-review-modal-overlay" id="weeklyReviewModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="weeklyReviewModalTitle">
+    <div class="modal-content weekly-review-modal-content" onclick="event.stopPropagation()" role="document">
+      <div class="modal-header">
+        <h3 id="weeklyReviewModalTitle" data-i18n="weeklyReview.title">Weekly Health Review</h3>
+        <button type="button" class="modal-close" id="weeklyReviewModalClose" aria-label="Close" data-i18n-aria="common.close">&times;</button>
+      </div>
+      <div class="modal-body" id="weeklyReviewModalBody"></div>
+    </div>
+  </div>
+
   <div class="modal-overlay home-question-modal-overlay" id="homeQuestionModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="homeQuestionModalTitle">
     <div class="modal-content home-question-modal-content" onclick="event.stopPropagation()" role="document">
       <div class="modal-header">
@@ -1742,6 +1765,7 @@
       <div id="homeStreakCard" class="home-streak-card" data-home-card="streak" hidden></div>
       <div id="homeWeatherCard" class="home-weather-card" data-home-card="weather" hidden></div>
       <div id="homeAppointmentCard" class="home-appointment-card" data-home-card="appointment" hidden></div>
+      <div id="homeWeeklyReviewCard" class="home-weekly-review-card" data-home-card="weeklyReview" hidden></div>
       <div id="homeHeroCard" class="home-hero-card" data-home-card="hero" data-scroll-reveal role="status" aria-live="polite">
         <div id="homeTodayStatus" class="home-today-status"></div>
         <div id="homeAiSuggestions" class="home-ai-suggestions" hidden aria-live="polite"></div>
@@ -2376,6 +2400,10 @@
     <div id="chartsTab" class="tab-content" role="tabpanel" aria-labelledby="tab-charts">
       <section class="tab-filters" aria-label="Chart view and date range" data-i18n-aria="common.chart.view.and.date.range">
         <div class="tab-header">
+          <div class="settings-option settings-option-row charts-presentation-row">
+            <label data-i18n="charts.presentation.toggle">Telehealth presentation mode</label>
+            <div class="toggle-switch" id="chartsPresentationModeToggle" title="Large fonts, 7-day snapshot" data-i18n-title="charts.presentation.lead"></div>
+          </div>
           <div class="chart-view-toggle">
             <button class="view-toggle-btn" onclick="toggleChartView('balance')" id="balanceViewBtn">
               <span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-balance"></use></svg></span> Balance
@@ -3684,6 +3712,7 @@
   </script>
   <script defer src="vendor/rianell-shared.js?v=5"></script>
   <script defer src="modules/app-lock.js?v=1"></script>
+  <script defer src="modules/weekly-review.js?v=1"></script>
   <script defer src="i18n-pwa.js?v=3"></script>
   <script defer src="privacy-region.js?v=5"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>

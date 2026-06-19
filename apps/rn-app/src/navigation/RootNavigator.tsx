@@ -10,7 +10,7 @@ import { LogsScreenRoute } from '../screens/LogsScreenRoute';
 import { ChartsScreen } from '../screens/ChartsScreen';
 import { AiScreen } from '../screens/AiScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
-import { LogWizardScreen } from '../screens/LogWizardScreen';
+import { WeeklyReviewScreen } from '../screens/WeeklyReviewScreen';
 import type { Preferences } from '../storage/preferences';
 import type { ChartViewMode } from '../charts/summarizeCharts';
 import { Permissions, type ReminderAction } from '../permissions/permissions';
@@ -20,6 +20,7 @@ import { useT } from '../i18n/I18nProvider';
 export type RootStackParamList = {
   Tabs: undefined;
   LogWizard: undefined;
+  WeeklyReview: undefined;
 };
 
 /** Bottom tab routes + params (Charts can open in Balance from Home header — web `header-buttons-wrap` parity). */
@@ -201,6 +202,9 @@ export function RootNavigator({
         <Stack.Screen name="LogWizard" options={{ title: t('wizard.title') }}>
           {() => <LogWizardScreen prefs={prefs} />}
         </Stack.Screen>
+        <Stack.Screen name="WeeklyReview" options={{ title: t('weeklyReview.title') }}>
+          {() => <WeeklyReviewScreen prefs={prefs} onChangePrefs={onChangePrefs} />}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -261,7 +265,7 @@ function Tabs({ prefs, onChangePrefs }: { prefs: Preferences; onChangePrefs: (ne
           ),
         }}
       >
-        {() => <ChartsScreen prefs={prefs} />}
+        {() => <ChartsScreen prefs={prefs} onChangePrefs={onChangePrefs} />}
       </Tab.Screen>
       {shouldShowAiTab(prefs) ? (
         <Tab.Screen

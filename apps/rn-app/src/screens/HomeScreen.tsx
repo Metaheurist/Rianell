@@ -36,6 +36,8 @@ import {
   analysisSnapshotFromSummary,
   computeHomeCardContext,
   resolveHomeCardOrder,
+  canOfferWeeklyReview,
+  isoWeekMondayKey,
   applyMicroCheckin,
   completedCheckinPeriods,
   HOME_CHECKIN_PERIODS,
@@ -389,6 +391,15 @@ export function HomeScreen({
       shouldShowAppointmentCard(prefs.nextAppointmentDate, todayStr),
     [prefs.nextAppointmentDate, todayStr]
   );
+  const showWeeklyReview = useMemo(() => {
+    const gate = canOfferWeeklyReview(homeLogs, {
+      simpleMode: prefs.simpleMode,
+      aiEnabled: prefs.aiEnabled,
+      todayStr,
+      weeklyReviewDismissedWeek: prefs.weeklyReviewDismissedWeek,
+    });
+    return gate.allowed;
+  }, [homeLogs, prefs.aiEnabled, prefs.simpleMode, prefs.weeklyReviewDismissedWeek, todayStr]);
 
   const persistPrefs = useCallback(
     async (next: Preferences) => {
@@ -641,6 +652,7 @@ export function HomeScreen({
         showStreak: streakSnapshot.showCard,
         showWeather: true,
         showAppointment,
+        showWeeklyReview,
       }),
     [
       homeLogs,
@@ -648,6 +660,7 @@ export function HomeScreen({
       prefs.aiEnabled,
       prefs.simpleMode,
       showAppointment,
+      showWeeklyReview,
       streakSnapshot.showCard,
       todayStr,
     ]
@@ -913,6 +926,39 @@ export function HomeScreen({
             accessibilityLabel={t('home.weather.attribution')}
           >
             <Text style={{ color: accent, fontSize: theme.font(12), opacity: 0.9 }}>{t('home.weather.attribution')}</Text>
+          </Pressable>
+        </View>
+      );
+    }
+    if (cardId === 'weeklyReview') {
+      return (
+        <View key="weeklyReview" style={styles.card} accessibilityLabel={t('weeklyReview.card.title')}>
+          <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('weeklyReview.card.title')}</Text>
+          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+            {t('weeklyReview.card.lead')}
+          </Text>
+          <Pressable
+            onPress={() => navigation.navigate('WeeklyReview')}
+            style={({ pressed }) => [
+              styles.readTodayBtn,
+              { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1, marginTop: 10 },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={t('weeklyReview.card.action')}
+          >
+            <Text style={{ color: accent, fontSize: theme.font(14) }}>{t('weeklyReview.card.action')}</Text>
+          </Pressable>
+          <Pressable
+            onPress={() =>
+              void persistPrefs({ ...prefs, weeklyReviewDismissedWeek: isoWeekMondayKey(todayStr) })
+            }
+            style={{ marginTop: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('weeklyReview.card.dismiss')}
+          >
+            <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(12), opacity: 0.8 }}>
+              {t('weeklyReview.card.dismiss')}
+            </Text>
           </Pressable>
         </View>
       );
