@@ -27,10 +27,10 @@
     html += '<p class="settings-hint">' + escapeHTML(t('mentalHealth.disclaimer')) + '</p>';
     if (!_screeningResult) {
       questions.forEach(function (q) {
-        html += '<div class="weekly-review-question"><p>' + escapeHTML(t(q.labelKey)) + '</p>';
+        html += '<div class="weekly-review-question"><p>' + escapeHTML(t(q.i18n)) + '</p>';
         (S.SCREENING_RESPONSE_OPTIONS || []).forEach(function (opt) {
           var sel = _screeningResponses[q.id] === opt.value;
-          html += '<button type="button" class="action-btn screening-opt' + (sel ? ' active' : '') + '" data-q="' + q.id + '" data-v="' + opt.value + '">' + escapeHTML(t(opt.labelKey)) + '</button>';
+          html += '<button type="button" class="action-btn screening-opt' + (sel ? ' active' : '') + '" data-q="' + q.id + '" data-v="' + opt.value + '">' + escapeHTML(t(opt.i18n)) + '</button>';
         });
         html += '</div>';
       });
@@ -39,13 +39,13 @@
       var responses = questions.map(function (q) { return { value: _screeningResponses[q.id] }; });
       var scored = S.scoreScreeningResponses ? S.scoreScreeningResponses(responses) : { total: 0 };
       var interp = _screeningKind === 'gad2'
-        ? (S.interpretGad2Score ? S.interpretGad2Score(scored.total) : { labelKey: 'mentalHealth.gad2.low' })
-        : (S.interpretPhq2Score ? S.interpretPhq2Score(scored.total) : { labelKey: 'mentalHealth.phq2.low' });
+        ? (S.interpretGad2Score ? S.interpretGad2Score(scored.total) : { i18n: 'mentalHealth.gad2.low' })
+        : (S.interpretPhq2Score ? S.interpretPhq2Score(scored.total) : { i18n: 'mentalHealth.phq2.low' });
       html += '<p><strong>' + escapeHTML(t('mentalHealth.result.title')) + '</strong></p>';
-      html += '<p>' + escapeHTML(t(interp.labelKey)) + ' (' + scored.total + '/6)</p>';
+      html += '<p>' + escapeHTML(t(interp.i18n)) + ' (' + scored.total + '/6)</p>';
       var crisis = S.getCrisisResourcesForRegion ? S.getCrisisResourcesForRegion(getSettings().privacyRegion || 'other') : [];
       crisis.forEach(function (link) {
-        html += '<p><a href="' + escapeHTML(link.url) + '" target="_blank" rel="noopener">' + escapeHTML(t(link.nameKey)) + '</a></p>';
+        html += '<p><a href="' + escapeHTML(link.url) + '" target="_blank" rel="noopener">' + escapeHTML(t(link.i18n)) + '</a></p>';
       });
     }
     body.innerHTML = html;
@@ -114,10 +114,10 @@
     var body = document.getElementById('weeklyReviewModalBody');
     if (!body) return;
     var steps = S.WEEKLY_REVIEW_STEPS || [];
-    var current = steps[_step] || { id: 'correlations', labelKey: 'weeklyReview.step.correlations' };
+    var current = steps[_step] || { id: 'correlations', i18n: 'weeklyReview.step.correlations' };
     var logArr = getLogs();
     var html = '<p class="weekly-review-progress">' + escapeHTML(t('weeklyReview.progress', { current: String(_step + 1), total: String(steps.length || 5) })) + '</p>';
-    html += '<h3>' + escapeHTML(t(current.labelKey)) + '</h3>';
+    html += '<h3>' + escapeHTML(t(current.i18n)) + '</h3>';
 
     if (current.id === 'correlations') {
       var lines = correlationLines(logArr);
@@ -261,7 +261,7 @@
     var milestoneList = document.getElementById('progressiveDisclosureList');
     if (milestoneList && S.getProgressiveDisclosureMilestones) {
       milestoneList.innerHTML = S.getProgressiveDisclosureMilestones().map(function (m) {
-        return '<li>' + escapeHTML(t(m.labelKey)) + '</li>';
+        return '<li>' + escapeHTML(t(m.i18n)) + '</li>';
       }).join('');
     }
   }

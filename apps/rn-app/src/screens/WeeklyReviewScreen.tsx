@@ -126,7 +126,7 @@ export function WeeklyReviewScreen({
           {t('weeklyReview.progress', { current: String(step + 1), total: String(WEEKLY_REVIEW_STEPS.length) })}
         </Text>
         <Text style={[styles.stepTitle, { color: theme.tokens.color.accent, fontSize: theme.font(16) }]}>
-          {t(current.labelKey)}
+          {t(current.i18n)}
         </Text>
 
         {current.id === 'correlations' ? (

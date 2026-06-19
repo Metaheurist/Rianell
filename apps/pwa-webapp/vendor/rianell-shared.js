@@ -54,7 +54,7 @@ var RianellShared = (() => {
     MAX_WEEK_CHAT_TURNS: () => MAX_WEEK_CHAT_TURNS,
     MED_DOSE_FIRE_WINDOW_MS: () => MED_DOSE_FIRE_WINDOW_MS,
     MED_DOSE_SNOOZE_MINUTES: () => MED_DOSE_SNOOZE_MINUTES,
-    MENTAL_HEALTH_DISCLAIMER_KEY: () => MENTAL_HEALTH_DISCLAIMER_KEY,
+    MENTAL_HEALTH_DISCLAIMER_I18N: () => MENTAL_HEALTH_DISCLAIMER_I18N,
     MIGRATION_COPY: () => MIGRATION_COPY,
     MIGRATION_SOURCES: () => MIGRATION_SOURCES,
     OFFLINE_QUEUE_KEY: () => OFFLINE_QUEUE_KEY,
@@ -4861,11 +4861,11 @@ ${questionsBlock}
 
   // packages/shared/src/crossCutting/weeklyReview.mjs
   var WEEKLY_REVIEW_STEPS = [
-    { id: "correlations", labelKey: "weeklyReview.step.correlations" },
-    { id: "digest", labelKey: "weeklyReview.step.digest" },
-    { id: "brief", labelKey: "weeklyReview.step.brief" },
-    { id: "confirm", labelKey: "weeklyReview.step.confirm" },
-    { id: "pdf", labelKey: "weeklyReview.step.pdf" }
+    { id: "correlations", i18n: "weeklyReview.step.correlations" },
+    { id: "digest", i18n: "weeklyReview.step.digest" },
+    { id: "brief", i18n: "weeklyReview.step.brief" },
+    { id: "confirm", i18n: "weeklyReview.step.confirm" },
+    { id: "pdf", i18n: "weeklyReview.step.pdf" }
   ];
   var WEEKLY_REVIEW_MIN_LOG_DAYS = 7;
   function isoWeekKey2(dateStr) {
@@ -4926,10 +4926,10 @@ ${questionsBlock}
 
   // packages/shared/src/crossCutting/progressiveDisclosure.mjs
   var PROGRESSIVE_DISCLOSURE_MILESTONES = [
-    { id: "day1", labelKey: "progressiveDisclosure.milestone.day1", unlockDay: 0 },
-    { id: "week2", labelKey: "progressiveDisclosure.milestone.week2", unlockDay: 14 },
-    { id: "month2", labelKey: "progressiveDisclosure.milestone.month2", unlockDay: 60 },
-    { id: "pool", labelKey: "progressiveDisclosure.milestone.pool", unlockDay: 90, optional: true }
+    { id: "day1", i18n: "progressiveDisclosure.milestone.day1", unlockDay: 0 },
+    { id: "week2", i18n: "progressiveDisclosure.milestone.week2", unlockDay: 14 },
+    { id: "month2", i18n: "progressiveDisclosure.milestone.month2", unlockDay: 60 },
+    { id: "pool", i18n: "progressiveDisclosure.milestone.pool", unlockDay: 90, optional: true }
   ];
   var ON_DEVICE_MOAT_BULLET_KEYS = [
     "onDeviceMoat.bullet.localInference",
@@ -4946,28 +4946,28 @@ ${questionsBlock}
 
   // packages/shared/src/crossCutting/mentalHealthScreening.mjs
   var PHQ2_QUESTIONS = [
-    { id: "phq2_1", labelKey: "mentalHealth.phq2.q1" },
-    { id: "phq2_2", labelKey: "mentalHealth.phq2.q2" }
+    { id: "phq2_1", i18n: "mentalHealth.phq2.q1" },
+    { id: "phq2_2", i18n: "mentalHealth.phq2.q2" }
   ];
   var GAD2_QUESTIONS = [
-    { id: "gad2_1", labelKey: "mentalHealth.gad2.q1" },
-    { id: "gad2_2", labelKey: "mentalHealth.gad2.q2" }
+    { id: "gad2_1", i18n: "mentalHealth.gad2.q1" },
+    { id: "gad2_2", i18n: "mentalHealth.gad2.q2" }
   ];
   var SCREENING_RESPONSE_OPTIONS = [
-    { value: 0, labelKey: "mentalHealth.response.notAtAll" },
-    { value: 1, labelKey: "mentalHealth.response.severalDays" },
-    { value: 2, labelKey: "mentalHealth.response.moreThanHalf" },
-    { value: 3, labelKey: "mentalHealth.response.nearlyEveryDay" }
+    { value: 0, i18n: "mentalHealth.response.notAtAll" },
+    { value: 1, i18n: "mentalHealth.response.severalDays" },
+    { value: 2, i18n: "mentalHealth.response.moreThanHalf" },
+    { value: 3, i18n: "mentalHealth.response.nearlyEveryDay" }
   ];
   var CRISIS_BY_REGION = {
     eea_uk: [
-      { nameKey: "mentalHealth.crisis.samaritans", url: "https://www.samaritans.org/" },
-      { nameKey: "mentalHealth.crisis.nhs111", url: "https://www.nhs.uk/nhs-services/urgent-and-emergency-care-services/when-to-call-111/" }
+      { i18n: "mentalHealth.crisis.samaritans", url: "https://www.samaritans.org/" },
+      { i18n: "mentalHealth.crisis.nhs111", url: "https://www.nhs.uk/nhs-services/urgent-and-emergency-care-services/when-to-call-111/" }
     ],
-    us: [{ nameKey: "mentalHealth.crisis.us988", url: "https://988lifeline.org/" }],
-    ca: [{ nameKey: "mentalHealth.crisis.ca988", url: "https://988.ca/" }],
-    au: [{ nameKey: "mentalHealth.crisis.lifelineAu", url: "https://www.lifeline.org.au/" }],
-    other: [{ nameKey: "mentalHealth.crisis.findaHelpline", url: "https://findahelpline.com/" }]
+    us: [{ i18n: "mentalHealth.crisis.us988", url: "https://988lifeline.org/" }],
+    ca: [{ i18n: "mentalHealth.crisis.ca988", url: "https://988.ca/" }],
+    au: [{ i18n: "mentalHealth.crisis.lifelineAu", url: "https://www.lifeline.org.au/" }],
+    other: [{ i18n: "mentalHealth.crisis.findaHelpline", url: "https://findahelpline.com/" }]
   };
   function scoreScreeningResponses(responses) {
     const list = Array.isArray(responses) ? responses : [];
@@ -4982,12 +4982,12 @@ ${questionsBlock}
     return { total, answered, complete: answered === list.length && list.length > 0 };
   }
   function interpretPhq2Score(total) {
-    if (total >= 3) return { level: "elevated", labelKey: "mentalHealth.phq2.elevated" };
-    return { level: "low", labelKey: "mentalHealth.phq2.low" };
+    if (total >= 3) return { level: "elevated", i18n: "mentalHealth.phq2.elevated" };
+    return { level: "low", i18n: "mentalHealth.phq2.low" };
   }
   function interpretGad2Score(total) {
-    if (total >= 3) return { level: "elevated", labelKey: "mentalHealth.gad2.elevated" };
-    return { level: "low", labelKey: "mentalHealth.gad2.low" };
+    if (total >= 3) return { level: "elevated", i18n: "mentalHealth.gad2.elevated" };
+    return { level: "low", i18n: "mentalHealth.gad2.low" };
   }
   function getCrisisResourcesForRegion(regionId) {
     const key = String(regionId || "other").toLowerCase();
@@ -4997,7 +4997,7 @@ ${questionsBlock}
     if (key === "au") return CRISIS_BY_REGION.au;
     return CRISIS_BY_REGION.other;
   }
-  var MENTAL_HEALTH_DISCLAIMER_KEY = "mentalHealth.disclaimer";
+  var MENTAL_HEALTH_DISCLAIMER_I18N = "mentalHealth.disclaimer";
 
   // packages/shared/src/index.mjs
   function identity(value) {
