@@ -2,7 +2,7 @@
 
 **Section 11:** Clinician & sharing · **IDs:** CL1, CL2, CL4, CL5
 
-Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](../../ai-security.md), and Firecrawl research in [.firecrawl/projects/](../../../.firecrawl/projects/).
+Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](../../ai-security.md), and Firecrawl research in ``.firecrawl/projects/`` (gitignored local cache).
 
 ---
 
