@@ -47,11 +47,16 @@
     _screeningKind = kind === 'gad2' ? 'gad2' : 'phq2';
     _screeningResponses = {};
     _screeningResult = false;
+    var questions = _screeningKind === 'gad2' ? (S.GAD2_QUESTIONS || []) : (S.PHQ2_QUESTIONS || []);
+    questions.forEach(function (q) {
+      _screeningResponses[q.id] = 0;
+    });
     var modal = document.getElementById('weeklyReviewModal');
     if (!modal) return;
     var titleKey = _screeningKind === 'gad2' ? 'mentalHealth.gad2.title' : 'mentalHealth.phq2.title';
     withCatalogsReady(function () {
       modal.style.display = 'flex';
+      modal.classList.add('screening-modal-open');
       setWeeklyReviewModalTitle(titleKey);
       renderScreeningModalBody();
     });
@@ -61,19 +66,28 @@
     var body = document.getElementById('weeklyReviewModalBody');
     if (!body || !S.SCREENING_RESPONSE_OPTIONS) return;
     var questions = _screeningKind === 'gad2' ? (S.GAD2_QUESTIONS || []) : (S.PHQ2_QUESTIONS || []);
-    var titleKey = _screeningKind === 'gad2' ? 'mentalHealth.gad2.title' : 'mentalHealth.phq2.title';
-    var html = '<h3>' + escapeHTML(t(titleKey)) + '</h3>';
-    html += '<p class="settings-hint">' + escapeHTML(t('mentalHealth.disclaimer')) + '</p>';
+    var options = S.SCREENING_RESPONSE_OPTIONS || [];
+    var html = '<p class="settings-hint screening-disclaimer">' + escapeHTML(t('mentalHealth.disclaimer')) + '</p>';
     if (!_screeningResult) {
+      html += '<div class="screening-form">';
       questions.forEach(function (q) {
-        html += '<div class="weekly-review-question"><p>' + escapeHTML(t(q.i18n)) + '</p>';
-        (S.SCREENING_RESPONSE_OPTIONS || []).forEach(function (opt) {
-          var sel = _screeningResponses[q.id] === opt.value;
-          html += '<button type="button" class="action-btn screening-opt' + (sel ? ' active' : '') + '" data-q="' + q.id + '" data-v="' + opt.value + '">' + escapeHTML(t(opt.i18n)) + '</button>';
-        });
+        var val = Number.isFinite(_screeningResponses[q.id]) ? _screeningResponses[q.id] : 0;
+        var opt = options[val] || options[0];
+        var sliderId = 'screening-slider-' + q.id;
+        html += '<div class="screening-slider-block" data-q="' + escapeHTML(q.id) + '">';
+        html += '<p class="screening-question">' + escapeHTML(t(q.i18n)) + '</p>';
+        html += '<div class="screening-slider-row">';
+        html += '<input type="range" class="screening-slider" id="' + sliderId + '" min="0" max="3" step="1" value="' + val + '" aria-valuemin="0" aria-valuemax="3" aria-valuenow="' + val + '" aria-valuetext="' + escapeHTML(t(opt.i18n)) + '">';
+        html += '<output class="screening-slider-value" for="' + sliderId + '">' + escapeHTML(t(opt.i18n)) + '</output>';
         html += '</div>';
+        html += '<div class="screening-slider-ticks" aria-hidden="true">';
+        options.forEach(function (o) {
+          html += '<span>' + escapeHTML(t(o.i18n)) + '</span>';
+        });
+        html += '</div></div>';
       });
-      html += '<button type="button" class="action-btn" id="screeningSubmitBtn">' + escapeHTML(t('mentalHealth.submit')) + '</button>';
+      html += '</div>';
+      html += '<div class="screening-submit-footer"><button type="button" class="action-btn screening-submit-btn" id="screeningSubmitBtn">' + escapeHTML(t('mentalHealth.submit')) + '</button></div>';
     } else {
       var responses = questions.map(function (q) { return { value: _screeningResponses[q.id] }; });
       var scored = S.scoreScreeningResponses ? S.scoreScreeningResponses(responses) : { total: 0 };
@@ -83,15 +97,29 @@
       html += '<p><strong>' + escapeHTML(t('mentalHealth.result.title')) + '</strong></p>';
       html += '<p>' + escapeHTML(t(interp.i18n)) + ' (' + scored.total + '/6)</p>';
       var crisis = S.getCrisisResourcesForRegion ? S.getCrisisResourcesForRegion(getSettings().privacyRegion || 'other') : [];
-      crisis.forEach(function (link) {
-        html += '<p><a href="' + escapeHTML(link.url) + '" target="_blank" rel="noopener">' + escapeHTML(t(link.i18n)) + '</a></p>';
-      });
+      if (crisis.length) {
+        html += '<div class="crisis-help-buttons" role="group" aria-label="' + escapeHTML(t('mentalHealth.crisis.groupLabel')) + '">';
+        crisis.forEach(function (link) {
+          html += '<a class="crisis-help-btn" href="' + escapeHTML(link.url) + '" target="_blank" rel="noopener noreferrer">'
+            + '<svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-life-ring"></use></svg>'
+            + '<span>' + escapeHTML(t(link.i18n)) + '</span></a>';
+        });
+        html += '</div>';
+      }
     }
     body.innerHTML = html;
-    body.querySelectorAll('.screening-opt').forEach(function (btn) {
-      btn.onclick = function () {
-        _screeningResponses[btn.getAttribute('data-q')] = Number(btn.getAttribute('data-v'));
-        renderScreeningModalBody();
+    body.querySelectorAll('.screening-slider').forEach(function (slider) {
+      slider.oninput = function () {
+        var block = slider.closest('.screening-slider-block');
+        var qId = block && block.getAttribute('data-q');
+        if (!qId) return;
+        var nextVal = Number(slider.value);
+        _screeningResponses[qId] = nextVal;
+        var opt = options[nextVal] || options[0];
+        slider.setAttribute('aria-valuenow', String(nextVal));
+        slider.setAttribute('aria-valuetext', t(opt.i18n));
+        var out = block.querySelector('.screening-slider-value');
+        if (out) out.textContent = t(opt.i18n);
       };
     });
     var submit = document.getElementById('screeningSubmitBtn');
@@ -242,7 +270,10 @@
 
   function closeWeeklyReviewModal() {
     var modal = document.getElementById('weeklyReviewModal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+      modal.style.display = 'none';
+      modal.classList.remove('screening-modal-open');
+    }
     _modalMode = null;
     _screeningResult = false;
     _screeningResponses = {};
@@ -301,7 +332,7 @@
     bindChartsPresentationMode();
   }
 
-  function renderSettingsCrossCutting() {
+  function renderSettingsPerformanceLearn() {
     var moatList = document.getElementById('onDeviceMoatList');
     if (moatList && S.getOnDeviceMoatBulletKeys) {
       moatList.innerHTML = S.getOnDeviceMoatBulletKeys().map(function (key) {
@@ -321,14 +352,10 @@
     if (closeBtn) closeBtn.onclick = closeWeeklyReviewModal;
     var presToggle = document.getElementById('chartsPresentationModeToggle');
     if (presToggle) presToggle.onclick = toggleChartsPresentationMode;
-    var phqBtn = document.getElementById('mentalHealthPhq2Btn');
-    if (phqBtn) phqBtn.onclick = function () { openScreeningModal('phq2'); };
-    var gadBtn = document.getElementById('mentalHealthGad2Btn');
-    if (gadBtn) gadBtn.onclick = function () { openScreeningModal('gad2'); };
     if (global.RianellI18n && typeof global.RianellI18n.onLocaleChange === 'function') {
       global.RianellI18n.onLocaleChange(function () { refreshOpenModalI18n(); });
     }
-    withCatalogsReady(renderSettingsCrossCutting);
+    withCatalogsReady(renderSettingsPerformanceLearn);
     bindChartsPresentationMode();
   }
 
@@ -338,7 +365,9 @@
     renderHomeWeeklyReviewCard: renderHomeWeeklyReviewCard,
     bindWeeklyReviewModule: bindWeeklyReviewModule,
     bindChartsPresentationMode: bindChartsPresentationMode,
-    renderSettingsCrossCutting: renderSettingsCrossCutting,
+    renderSettingsPerformanceLearn: renderSettingsPerformanceLearn,
+    /** @deprecated use renderSettingsPerformanceLearn */
+    renderSettingsCrossCutting: renderSettingsPerformanceLearn,
     refreshOpenModalI18n: refreshOpenModalI18n,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
