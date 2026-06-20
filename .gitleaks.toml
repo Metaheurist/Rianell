@@ -31,4 +31,8 @@ paths = [
   '''^apps/pwa-webapp/i18n-packs/''',
   '''^apps/rn-app/i18n-packs/''',
   '''^packages/shared/i18n-packs/''',
+  '''^packages/shared/src/analytics/smartlookConfig\.mjs$''',
+  '''^apps/pwa-webapp/smartlook-config\.js$''',
+  '''^apps/pwa-webapp/smartlook-config\.example\.js$''',
+  '''^apps/pwa-webapp/smartlook\.js$''',
 ]
