@@ -418,6 +418,14 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Web/Capacitor:** notification behaviour includes reminder controls tied to runtime delivery paths.
 - **React Native:** Settings now includes notification preference controls (enable, reminder time, sound) plus permission status/request baseline. Full OS scheduling/channel parity remains open.
 
+### v1.114.0 parity note (Security lock tab and UX trim)
+
+- **Settings:** Ten carousel panes; **Security lock** tab 10 on PWA + RN (passcode, caregiver/proxy). Privacy pane no longer hosts app lock or caregiver.
+- **Home:** Merged hero streak nudge; pacing widget card removed (Charts C9 series may still exist).
+- **Charts:** Insights panel removed on both platforms.
+- **Screening:** PHQ-2/GAD-2 slider UX aligned PWA/RN.
+- **Logging modules:** Cycle wizard fields both platforms; **barcode food** and **guided voice extraction** wizard UI **RN only** today (PWA toggles without wizard hooks).
+
 ### v1.113.0 parity note (Mood tab and Home UX)
 
 - **Web + RN:** Fifth primary tab **Mood** (between Charts and AI) with mood metrics, recent feelings, AM/midday/PM check-in, PHQ/GAD shortcuts, and Charts mood link; shared `moodMetrics.mjs`.

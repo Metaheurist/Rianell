@@ -347,6 +347,15 @@ flowchart LR
 
 ### v1.45.26 documentation sync
 
+### v1.114.0 documentation sync
+
+- **Security lock (Settings tab 10):** Passcode setup with masked fields; caregiver/proxy logging moved here from Privacy; tab icon shows locked vs unlocked state.
+- **Home:** Hero status card includes streak nudge text when relevant; energy-budget/pacing card removed.
+- **Charts:** Correlation/forecast/compare/pacing insights panel removed.
+- **Screening:** PHQ-2/GAD-2 slider UX and friendlier copy on PWA and RN.
+- **Logging modules:** Cycle/barcode/voice toggles affect the **log wizard** only; barcode and guided-voice flows are RN-complete; PWA wizard wiring for those two is pending.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.114.0.
+
 ### v1.113.0 documentation sync
 
 - **Mood tab:** Fifth primary tab (between Charts and AI) on PWA and RN — mood metrics from log answers, recent feelings, AM/midday/PM micro-check-in, PHQ/GAD shortcuts, link to Charts mood series.
