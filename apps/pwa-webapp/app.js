@@ -1922,7 +1922,11 @@ function acceptHealthDataConsent() {
 
 function declineHealthDataConsent() {
   hideHealthDataConsentOverlay();
-  _healthDataConsentCallback = null;
+  if (_healthDataConsentCallback) {
+    var cb = _healthDataConsentCallback;
+    _healthDataConsentCallback = null;
+    cb();
+  }
   if (typeof showAlertModal === 'function') {
     showAlertModal(tUi('common.you.can.still.browse.settings.but.health'), tUi('common.consent.healthDataTitle'));
   }
@@ -15709,7 +15713,16 @@ function startAppAfterPrivacyGate() {
 function loadSettings() {
   const savedSettings = localStorage.getItem('rianellSettings');
   if (savedSettings) {
-    appSettings = { ...appSettings, ...JSON.parse(savedSettings) };
+    try {
+      appSettings = { ...appSettings, ...JSON.parse(savedSettings) };
+    } catch (e) {
+      if (window.SecurityUtils && window.SecurityUtils.safeLogError) {
+        window.SecurityUtils.safeLogError('Could not parse saved settings; using defaults', e);
+      } else {
+        console.warn('Could not parse saved settings; using defaults', e);
+      }
+      try { localStorage.removeItem('rianellSettings'); } catch (err) {}
+    }
   }
   if (window.RianellShared && typeof window.RianellShared.applyLocaleDefaultsToPrefs === 'function') {
     var prefsLocale = appSettings.uiLocale || getActiveUiLocale();

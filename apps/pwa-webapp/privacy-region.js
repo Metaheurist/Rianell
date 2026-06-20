@@ -139,6 +139,8 @@
     refreshLocaleUI();
     if (selectedId === 'eea_uk' && !getPrivacyFields().healthDataConsent) {
       if (typeof global.showHealthDataConsentModal === 'function') {
+        /* Drop privacy-gate-active before health consent; otherwise the shell stays visibility:hidden behind the modal. */
+        hidePrivacyGateOverlay();
         global.showHealthDataConsentModal(function () { unlockApp(); });
         return;
       }
@@ -153,11 +155,15 @@
   var gateVisible = false;
   var gateUiBound = false;
 
-  function unlockApp() {
+  function hidePrivacyGateOverlay() {
     gateVisible = false;
     var overlay = document.getElementById('privacyRegionGateOverlay');
     if (overlay) overlay.style.display = 'none';
     document.body.classList.remove('privacy-gate-active');
+  }
+
+  function unlockApp() {
+    hidePrivacyGateOverlay();
     var cbs = gateUnlockCallbacks.slice();
     gateUnlockCallbacks = [];
     cbs.forEach(function (cb) {
