@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-19T22:18:58.715Z",
+  "generatedAt": "2026-06-20T08:00:21.444Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3943456,
-    "cssBytes": 403151,
-    "jsGzipBytes": 942922,
-    "cssGzipBytes": 70793
+    "jsBytes": 3946528,
+    "cssBytes": 407356,
+    "jsGzipBytes": 942966,
+    "cssGzipBytes": 71301
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 909235,
-      "gzipBytes": 197221
+      "bytes": 906259,
+      "gzipBytes": 196288
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.a5f696e9be86.min.js",
-      "bytes": 646995,
-      "gzipBytes": 147132
+      "file": "ci-minified/site/app.41476cf76ced.min.js",
+      "bytes": 646532,
+      "gzipBytes": 146658
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -29,14 +29,14 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.5f4f6a38a11e.css",
-      "bytes": 387415,
-      "gzipBytes": 66659
+      "file": "ci-minified/site/styles.2e1d355f817f.css",
+      "bytes": 393153,
+      "gzipBytes": 67472
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 235181,
-      "gzipBytes": 54948
+      "bytes": 237718,
+      "gzipBytes": 55544
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -80,8 +80,8 @@
     },
     {
       "file": "ci-minified/site/modules/settings.js",
-      "bytes": 20625,
-      "gzipBytes": 4391
+      "bytes": 22688,
+      "gzipBytes": 4716
     },
     {
       "file": "ci-minified/site/ui-feedback.js",
@@ -105,8 +105,8 @@
     },
     {
       "file": "ci-minified/site/modules/weekly-review.js",
-      "bytes": 15071,
-      "gzipBytes": 3561
+      "bytes": 16613,
+      "gzipBytes": 3987
     },
     {
       "file": "ci-minified/site/security-utils.js",
@@ -115,18 +115,18 @@
     },
     {
       "file": "ci-minified/site/styles-charts.css",
-      "bytes": 12699,
-      "gzipBytes": 2953
+      "bytes": 11166,
+      "gzipBytes": 2648
     },
     {
       "file": "ci-minified/site/modules/mood-tab.js",
-      "bytes": 10481,
-      "gzipBytes": 2802
+      "bytes": 10681,
+      "gzipBytes": 2883
     },
     {
       "file": "ci-minified/site/i18n-pwa.js",
-      "bytes": 7530,
-      "gzipBytes": 2046
+      "bytes": 7699,
+      "gzipBytes": 2069
     },
     {
       "file": "ci-minified/site/device-module.js",
