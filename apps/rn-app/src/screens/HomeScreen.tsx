@@ -997,45 +997,30 @@ export function HomeScreen({
                     onPress={() => void onEnableWeather()}
                     disabled={weatherLoading}
                     accessibilityRole="button"
-                    accessibilityLabel={t('home.weather.enable')}
+                    accessibilityLabel={t('home.weather.enablePrompt')}
                     style={[
                       styles.homeWeatherEnablePrompt,
                       {
                         borderColor: `${accent}33`,
-                        backgroundColor: `${theme.tokens.color.text}08`,
                       },
                     ]}
                   >
                     <Ionicons
                       name="cloudy-outline"
-                      size={18}
+                      size={16}
                       color={accent}
                       style={styles.homeWeatherEnableIcon}
                     />
-                    <View style={styles.homeWeatherEnableCopy}>
-                      <Text
-                        style={{
-                          color: theme.tokens.color.text,
-                          fontSize: theme.font(12),
-                          fontWeight: '500',
-                          textAlign: 'right',
-                        }}
-                      >
-                        {weatherLoading ? t('home.weather.loading') : t('home.weather.enablePrompt')}
-                      </Text>
-                      {!weatherLoading ? (
-                        <Text
-                          style={{
-                            color: theme.tokens.color.text,
-                            fontSize: theme.font(10),
-                            opacity: 0.68,
-                            textAlign: 'right',
-                          }}
-                        >
-                          {t('home.weather.enableHint')}
-                        </Text>
-                      ) : null}
-                    </View>
+                    <Text
+                      style={{
+                        color: theme.tokens.color.text,
+                        fontSize: theme.font(11),
+                        fontWeight: '500',
+                        opacity: 0.88,
+                      }}
+                    >
+                      {weatherLoading ? t('home.weather.loading') : t('home.weather.enablePrompt')}
+                    </Text>
                   </Pressable>
                 ) : weatherSnapshot && weatherDisplay ? (
                   <View
@@ -1067,7 +1052,7 @@ export function HomeScreen({
                   </Text>
                 ) : (
                   <Text style={[styles.homeWeatherSummary, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-                    {weatherLoading ? t('home.weather.loading') : t('home.weather.enableHint')}
+                    {weatherLoading ? t('home.weather.loading') : t('home.weather.enablePrompt')}
                   </Text>
                 )}
               </View>
@@ -1380,19 +1365,17 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   homeDateLabel: { opacity: 0.85, flexShrink: 1 },
-  homeWeatherStrip: { flex: 1, minWidth: 140, alignItems: 'flex-end' },
+  homeWeatherStrip: { flexShrink: 0, alignItems: 'flex-end' },
   homeWeatherEnablePrompt: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 12,
+    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 999,
     borderWidth: 1,
-    maxWidth: '100%',
   },
   homeWeatherEnableIcon: { opacity: 0.78 },
-  homeWeatherEnableCopy: { flexShrink: 1, alignItems: 'flex-end', gap: 1 },
   homeWeatherLayout: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 8 },
   homeWeatherMetrics: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 8 },
   homeWeatherMetric: { flexDirection: 'row', alignItems: 'center', gap: 4 },

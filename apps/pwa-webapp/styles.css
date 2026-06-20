@@ -1607,28 +1607,33 @@ body.light-mode .app-log-fab {
   font-size: 0.88em;
 }
 
+.home-weather-strip--prompt {
+  flex: 0 0 auto;
+}
+
 .home-weather-enable-prompt {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
-  padding: 6px 10px;
+  padding: 4px 8px;
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  background: var(--card-bg-glass);
+  border-radius: var(--radius-full);
+  background: transparent;
   color: var(--text-primary);
   font: inherit;
-  line-height: 1.35;
-  text-align: right;
+  font-size: 0.82em;
+  line-height: 1.2;
+  white-space: nowrap;
   cursor: pointer;
-  opacity: 0.9;
+  opacity: 0.82;
   transition: opacity var(--dur-fast), border-color var(--dur-fast), background var(--dur-fast);
 }
 
 .home-weather-enable-prompt:hover {
   opacity: 1;
   border-color: color-mix(in srgb, var(--primary-color) 24%, var(--border-subtle));
-  background: color-mix(in srgb, var(--primary-color) 5%, var(--card-bg-glass));
+  background: color-mix(in srgb, var(--primary-color) 5%, transparent);
 }
 
 .home-weather-enable-prompt:focus-visible {
@@ -1644,24 +1649,14 @@ body.light-mode .app-log-fab {
   opacity: 0.78;
 }
 
-.home-weather-enable-prompt__copy {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 1px;
-  min-width: 0;
+.home-weather-enable-prompt__icon .home-weather-icon {
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
-.home-weather-enable-prompt__lead {
-  font-size: 0.88em;
+.home-weather-enable-prompt__label {
   font-weight: 500;
-  color: var(--text-primary);
-}
-
-.home-weather-enable-prompt__hint {
-  font-size: 0.76em;
-  opacity: 0.72;
-  color: var(--text-secondary, var(--text-primary));
+  opacity: 0.9;
 }
 
 

@@ -20467,15 +20467,10 @@ function homeWeatherIconClass(iconId, extra) {
 }
 
 function renderHomeWeatherEnablePromptHtml() {
-  var prompt = typeof tUi === 'function' ? tUi('home.weather.enablePrompt') : 'Add local weather';
-  var hint = typeof tUi === 'function' ? tUi('home.weather.enableHint') : 'Optional local weather';
-  var aria = typeof tUi === 'function' ? tUi('home.weather.enable') : 'Enable local weather';
-  return '<button type="button" class="home-weather-enable-prompt" data-ripple aria-label="' + escapeAttr(aria) + '">' +
+  var label = typeof tUi === 'function' ? tUi('home.weather.enablePrompt') : 'Optional weather';
+  return '<button type="button" class="home-weather-enable-prompt" data-ripple aria-label="' + escapeAttr(label) + '">' +
     '<span class="home-weather-enable-prompt__icon" aria-hidden="true">' + svgIcon('weather-cloudy', 'home-weather-icon icon-muted') + '</span>' +
-    '<span class="home-weather-enable-prompt__copy">' +
-    '<span class="home-weather-enable-prompt__lead">' + escapeHTML(prompt) + '</span>' +
-    '<span class="home-weather-enable-prompt__hint">' + escapeHTML(hint) + '</span>' +
-    '</span></button>';
+    '<span class="home-weather-enable-prompt__label">' + escapeHTML(label) + '</span></button>';
 }
 
 function renderHomeWeatherStripHtml(snap) {
@@ -20519,6 +20514,7 @@ function renderHomeWeatherStrip(ctx) {
     return;
   }
   strip.hidden = false;
+  strip.classList.toggle('home-weather-strip--prompt', !appSettings.weatherStripEnabled);
   if (!appSettings.weatherStripEnabled) {
     strip.innerHTML = renderHomeWeatherEnablePromptHtml();
     var enableBtn = strip.querySelector('.home-weather-enable-prompt');
