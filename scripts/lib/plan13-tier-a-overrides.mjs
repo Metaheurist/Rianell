@@ -16,13 +16,13 @@ const FR = {
   ...BASE,
   'research.pool.export.action': 'Exporter mon historique de contribution',
   'research.pool.export.shareTitle': 'Export de contribution Rianell',
-  'research.pool.insights.title': 'Insights du pool de recherche',
-  'research.pool.insights.lead': 'Tendances k-anonymisées des contributeurs avec votre condition (k minimum={kMin}). Jamais d’individus.',
-  'research.pool.insights.loading': 'Chargement des insights…',
-  'research.pool.insights.suppressed': 'Pas assez de contributeurs pour un motif sûr (k≥{kMin}).',
-  'research.pool.insights.optInRequired': 'Activez le pool anonymisé pour voir les insights agrégés.',
-  'research.pool.insights.unavailable': 'Insights indisponibles pour le moment.',
-  'research.pool.insight.sleepFlare': 'Les contributeurs avec ≥7h de sommeil signalent des poussées {highPct}% des jours vs {lowPct}% pour moins de sommeil (k≥{kMin}).',
+  'research.pool.insights.title': 'Insights communautaires',
+  'research.pool.insights.lead': 'Tendances de personnes avec une condition similaire, regroupées à partir d’au moins {kMin} contributeurs anonymes. Aucune donnée personnelle n’est jamais affichée.',
+  'research.pool.insights.loading': 'Chargement des tendances…',
+  'research.pool.insights.suppressed': 'Il faut au moins {kMin} contributeurs similaires avant de pouvoir afficher une tendance en toute sécurité.',
+  'research.pool.insights.optInRequired': 'Activez le partage anonyme pour la recherche dans Réglages pour voir les tendances de la communauté.',
+  'research.pool.insights.unavailable': 'Les insights communautaires ne sont pas disponibles pour le moment.',
+  'research.pool.insight.sleepFlare': 'Parmi les contributeurs, ceux qui dorment en moyenne 7 h ou plus signalent des poussées {highPct} % des jours, contre {lowPct} % pour un sommeil plus court.',
 };
 
 const DE = {
@@ -30,12 +30,12 @@ const DE = {
   'research.pool.export.action': 'Meinen Beitragsverlauf exportieren',
   'research.pool.export.shareTitle': 'Rianell-Beitragsexport',
   'research.pool.insights.title': 'Forschungspool-Einblicke',
-  'research.pool.insights.lead': 'K-anonymisierte Muster von Mitwirkenden mit Ihrer Erkrankung (Mindest-k={kMin}). Keine Einzelpersonen.',
-  'research.pool.insights.loading': 'Pool-Einblicke werden geladen…',
-  'research.pool.insights.suppressed': 'Noch zu wenige Mitwirkende für ein sicheres Muster (k≥{kMin}).',
-  'research.pool.insights.optInRequired': 'Aktivieren Sie den anonymen Pool für aggregierte Einblicke.',
-  'research.pool.insights.unavailable': 'Pool-Einblicke derzeit nicht verfügbar.',
-  'research.pool.insight.sleepFlare': 'Mitwirkende mit ≥7h Schlaf melden Schübe an {highPct}% der Tage vs {lowPct}% bei weniger Schlaf (k≥{kMin}).',
+  'research.pool.insights.lead': 'So vergleichen sich Menschen mit einer ähnlichen Erkrankung — aus mindestens {kMin} anonymen Mitwirkenden. Persönliche Daten werden nie angezeigt.',
+  'research.pool.insights.loading': 'Gemeinschaftstrends werden geladen…',
+  'research.pool.insights.suppressed': 'Mindestens {kMin} ähnliche Mitwirkende nötig, bevor wir einen Trend sicher anzeigen können.',
+  'research.pool.insights.optInRequired': 'Schalten Sie anonyme Forschungsfreigabe in den Einstellungen ein, um Gemeinschaftstrends zu sehen.',
+  'research.pool.insights.unavailable': 'Gemeinschaftseinblicke sind derzeit nicht verfügbar.',
+  'research.pool.insight.sleepFlare': 'Mitwirkende mit durchschnittlich 7+ Stunden Schlaf melden Schübe an {highPct} % der Tage, gegenüber {lowPct} % bei weniger Schlaf.',
 };
 
 const ES = {
@@ -43,8 +43,11 @@ const ES = {
   'research.pool.export.action': 'Exportar mi historial de contribución',
   'research.pool.export.shareTitle': 'Exportación de contribución Rianell',
   'research.pool.insights.title': 'Insights del pool de investigación',
-  'research.pool.insights.lead': 'Patrones k-anonimizados de contribuyentes con su condición (k mínimo={kMin}). Sin individuos.',
-  'research.pool.insight.sleepFlare': 'Quienes promedian ≥7h de sueño reportan brotes el {highPct}% de los días vs {lowPct}% con menos sueño (k≥{kMin}).',
+  'research.pool.insights.lead': 'Tendencias de personas con una condición similar, a partir de al menos {kMin} colaboradores anónimos. Nunca se muestran datos personales.',
+  'research.pool.insights.loading': 'Cargando tendencias de la comunidad…',
+  'research.pool.insights.suppressed': 'Necesitamos al menos {kMin} colaboradores similares antes de mostrar una tendencia con seguridad.',
+  'research.pool.insights.optInRequired': 'Activa el intercambio anónimo para investigación en Ajustes para ver tendencias de la comunidad.',
+  'research.pool.insight.sleepFlare': 'Entre los colaboradores, quienes duermen de media 7 h o más reportan brotes el {highPct} % de los días, frente al {lowPct} % con menos sueño.',
 };
 
 const IT = {
@@ -52,7 +55,11 @@ const IT = {
   'research.pool.export.action': 'Esporta la mia cronologia di contributo',
   'research.pool.export.shareTitle': 'Export contributi Rianell',
   'research.pool.insights.title': 'Insight del pool di ricerca',
-  'research.pool.insight.sleepFlare': 'Chi dorme in media ≥7h segnala riacutizzazioni il {highPct}% dei giorni vs {lowPct}% con meno sonno (k≥{kMin}).',
+  'research.pool.insights.lead': 'Tendenze da persone con una condizione simile, da almeno {kMin} contributori anonimi. Nessun dato personale viene mai mostrato.',
+  'research.pool.insights.loading': 'Caricamento tendenze della comunità…',
+  'research.pool.insights.suppressed': 'Servono almeno {kMin} contributori simili prima di mostrare una tendenza in sicurezza.',
+  'research.pool.insights.optInRequired': 'Attiva la condivisione anonima per la ricerca nelle Impostazioni per vedere le tendenze della comunità.',
+  'research.pool.insight.sleepFlare': 'Tra i contributori, chi dorme in media 7 ore o più segnala riacutizzazioni il {highPct} % dei giorni, contro il {lowPct} % con meno sonno.',
 };
 
 const NL = {
@@ -60,7 +67,7 @@ const NL = {
   'research.pool.export.action': 'Mijn bijdragegeschiedenis exporteren',
   'research.pool.export.shareTitle': 'Rianell-bijdrage-export',
   'research.pool.insights.title': 'Inzichten onderzoekspool',
-  'research.pool.insight.sleepFlare': 'Bijdragers met ≥7u slaap melden opflakkeringen op {highPct}% van de dagen vs {lowPct}% bij minder slaap (k≥{kMin}).',
+  'research.pool.insight.sleepFlare': 'Bijdragers met gemiddeld 7+ uur slaap melden opflakkeringen op {highPct} % van de dagen, tegen {lowPct} % bij minder slaap.',
 };
 
 const PL = {
@@ -68,7 +75,7 @@ const PL = {
   'research.pool.export.action': 'Eksportuj historię mojego wkładu',
   'research.pool.export.shareTitle': 'Eksport wkładu Rianell',
   'research.pool.insights.title': 'Wgląd w pulę badawczą',
-  'research.pool.insight.sleepFlare': 'Współtwórcy ze średnio ≥7h snu zgłaszają zaostrzenia w {highPct}% dni vs {lowPct}% przy krótszym śnie (k≥{kMin}).',
+  'research.pool.insight.sleepFlare': 'Wśród współtwórców osoby śpiące średnio 7+ godzin zgłaszają zaostrzenia w {highPct} % dni, w porównaniu z {lowPct} % przy krótszym śnie.',
 };
 
 const PT = {
@@ -76,7 +83,7 @@ const PT = {
   'research.pool.export.action': 'Exportar o meu historial de contribuição',
   'research.pool.export.shareTitle': 'Exportação de contribuição Rianell',
   'research.pool.insights.title': 'Insights do pool de investigação',
-  'research.pool.insight.sleepFlare': 'Contribuidores com ≥7h de sono reportam surtos em {highPct}% dos dias vs {lowPct}% com menos sono (k≥{kMin}).',
+  'research.pool.insight.sleepFlare': 'Entre os contribuidores, quem dorme em média 7+ horas reporta surtos em {highPct} % dos dias, contra {lowPct} % com menos sono.',
 };
 
 const PT_BR = {
