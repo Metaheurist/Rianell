@@ -70,6 +70,9 @@ dist/
 /build/
 .firecrawl/
 .wiki-sync/
+.cursor/
+ci-probe-test/
+apps/rn-app/dist-expo-prod/
 apps/pwa-webapp/app.min.js
 .server-dist/
 apps/pwa-webapp/app.*.min.js
