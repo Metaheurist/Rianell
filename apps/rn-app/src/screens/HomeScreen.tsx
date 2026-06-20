@@ -48,7 +48,7 @@ import {
   nextHomeQuestionAnswerState,
   formatDate,
 } from '@rianell/shared';
-import { getWeatherDisplayMetrics, weatherIconIonName } from '../utils/weatherIcons';
+import { getWeatherDisplayMetrics, resolveWeatherIconColor, weatherIconIonName } from '../utils/weatherIcons';
 import { requestWeatherCoords } from '../utils/homeWeatherLocation';
 import { summarizeLogsForAi } from '../ai/analyzeLogs';
 import Constants from 'expo-constants';
@@ -580,7 +580,7 @@ export function HomeScreen({
         Alert.alert(t('home.status.notLoggedYet'), t('home.status.notLoggedTodayDetail'));
         return;
       }
-      speakLabel(buildLogReviewSummary(entry), {
+      speakLabel(buildLogReviewSummary(entry, locale), {
         enabled: prefs.accessibility.ttsEnabled,
         readModeEnabled: false,
       });
@@ -660,6 +660,10 @@ export function HomeScreen({
     ]
   );
   const cardOrder = useMemo(() => resolveHomeCardOrder(cardContext), [cardContext]);
+  const visibleCardOrder = useMemo(
+    () => cardOrder.filter((id) => id !== 'streak' && id !== 'weeklyReview'),
+    [cardOrder]
+  );
 
   const homeSalutation = useMemo(() => {
     const hour = new Date().getHours();
@@ -711,6 +715,10 @@ export function HomeScreen({
   const onDismissStreak = useCallback(() => {
     void persistPrefs({ ...prefs, homeStreakCardDismissed: true });
   }, [persistPrefs, prefs]);
+
+  const onDismissWeeklyReview = useCallback(() => {
+    void persistPrefs({ ...prefs, weeklyReviewDismissedWeek: isoWeekMondayKey(todayStr) });
+  }, [persistPrefs, prefs, todayStr]);
 
   const onEnableWeather = useCallback(async () => {
     setWeatherLoading(true);
@@ -787,6 +795,27 @@ export function HomeScreen({
               <Text style={{ color: accent, fontSize: theme.font(14) }}>{t('home.action.readTodayEntry')}</Text>
             </Pressable>
           ) : null}
+          {cardContext.showStreak ? (
+            <View style={[styles.heroInset, { borderTopColor: `${accent}33` }]} accessibilityLabel={t('home.streak.title')}>
+              <Pressable
+                onPress={() => void onDismissStreak()}
+                style={({ pressed }) => [styles.insetDismiss, { borderColor: `${accent}44`, opacity: pressed ? 0.75 : 1 }]}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close')}
+              >
+                <Ionicons name="close" size={18} color={accent} />
+              </Pressable>
+              <Text style={[styles.insetTitle, { color: theme.tokens.color.textPrimary, fontSize: theme.font(15) }]}>
+                {t('home.streak.title')}
+              </Text>
+              <Text style={[styles.insetBody, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                {t('home.streak.summary', {
+                  goodDays: streakSnapshot.goodDayStreak,
+                  flareFree: streakSnapshot.flareFreeDays,
+                })}
+              </Text>
+            </View>
+          ) : null}
           {cardContext.showCheckin ? (
             <View style={styles.heroCheckinWrap} accessibilityLabel={t('home.checkin.title')}>
               <Text style={[styles.heroCheckinTitle, { color: theme.tokens.color.textPrimary, fontSize: theme.font(16) }]}>
@@ -815,9 +844,23 @@ export function HomeScreen({
                           : t(checkinPeriodLabelKey(period))
                       }
                     >
-                      <Ionicons name={checkinPeriodIcon(period)} size={24} color={accent} />
+                      <Ionicons
+                        name={checkinPeriodIcon(period)}
+                        size={theme.font(30)}
+                        color={done ? `${accent}88` : accent}
+                      />
+                      <Text
+                        style={{
+                          color: done ? `${accent}88` : accent,
+                          fontSize: theme.font(12),
+                          fontWeight: '600',
+                          marginTop: 2,
+                        }}
+                      >
+                        {t(checkinPeriodLabelKey(period))}
+                      </Text>
                       {done ? (
-                        <Text style={[styles.checkinDoneBadge, { color: theme.tokens.color.text, fontSize: theme.font(10) }]}>
+                        <Text style={[styles.checkinDoneBadge, { color: theme.tokens.color.text, fontSize: theme.font(10), backgroundColor: `${theme.tokens.color.success}44` }]}>
                           {t('home.checkin.done')}
                         </Text>
                       ) : null}
@@ -848,61 +891,38 @@ export function HomeScreen({
               ))}
             </View>
           ) : null}
+          {showWeeklyReview ? (
+            <View style={[styles.heroInset, { borderTopColor: `${accent}33` }]} accessibilityLabel={t('weeklyReview.card.title')}>
+              <Pressable
+                onPress={() => void onDismissWeeklyReview()}
+                style={({ pressed }) => [styles.insetDismiss, { borderColor: `${accent}44`, opacity: pressed ? 0.75 : 1 }]}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close')}
+              >
+                <Ionicons name="close" size={18} color={accent} />
+              </Pressable>
+              <Text style={[styles.insetTitle, { color: accent, fontSize: theme.font(16) }]}>{t('weeklyReview.card.title')}</Text>
+              <Text style={[styles.insetBody, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
+                {t('weeklyReview.card.lead')}
+              </Text>
+              <Pressable
+                onPress={() => navigation.navigate('WeeklyReview')}
+                style={({ pressed }) => [
+                  styles.readTodayBtn,
+                  { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1, marginTop: 8 },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={t('weeklyReview.card.action')}
+              >
+                <Text style={{ color: accent, fontSize: theme.font(14) }}>{t('weeklyReview.card.action')}</Text>
+              </Pressable>
+            </View>
+          ) : null}
         </View>
       );
     }
-    if (cardId === 'streak') {
-      return (
-        <View key="streak" style={styles.card} accessibilityLabel={t('home.streak.title')}>
-          <View style={styles.cardHeaderRow}>
-            <Text style={[styles.title, { color: accent, fontSize: theme.font(18), flex: 1, marginBottom: 0 }]}>
-              {t('home.streak.title')}
-            </Text>
-            <Pressable onPress={() => void onDismissStreak()} accessibilityRole="button" accessibilityLabel={t('home.streak.dismiss')}>
-              <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(12), opacity: 0.8 }}>{t('home.streak.dismiss')}</Text>
-            </Pressable>
-          </View>
-          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14), marginTop: 8 }]}>
-            {t('home.streak.summary', {
-              goodDays: streakSnapshot.goodDayStreak,
-              flareFree: streakSnapshot.flareFreeDays,
-            })}
-          </Text>
-        </View>
-      );
-    }
-    if (cardId === 'weeklyReview') {
-      return (
-        <View key="weeklyReview" style={styles.card} accessibilityLabel={t('weeklyReview.card.title')}>
-          <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('weeklyReview.card.title')}</Text>
-          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            {t('weeklyReview.card.lead')}
-          </Text>
-          <Pressable
-            onPress={() => navigation.navigate('WeeklyReview')}
-            style={({ pressed }) => [
-              styles.readTodayBtn,
-              { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1, marginTop: 10 },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={t('weeklyReview.card.action')}
-          >
-            <Text style={{ color: accent, fontSize: theme.font(14) }}>{t('weeklyReview.card.action')}</Text>
-          </Pressable>
-          <Pressable
-            onPress={() =>
-              void persistPrefs({ ...prefs, weeklyReviewDismissedWeek: isoWeekMondayKey(todayStr) })
-            }
-            style={{ marginTop: 8 }}
-            accessibilityRole="button"
-            accessibilityLabel={t('weeklyReview.card.dismiss')}
-          >
-            <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(12), opacity: 0.8 }}>
-              {t('weeklyReview.card.dismiss')}
-            </Text>
-          </Pressable>
-        </View>
-      );
+    if (cardId === 'streak' || cardId === 'weeklyReview') {
+      return null;
     }
     if (cardId === 'goals') {
       return (
@@ -978,10 +998,44 @@ export function HomeScreen({
                     disabled={weatherLoading}
                     accessibilityRole="button"
                     accessibilityLabel={t('home.weather.enable')}
+                    style={[
+                      styles.homeWeatherEnablePrompt,
+                      {
+                        borderColor: `${accent}33`,
+                        backgroundColor: `${theme.tokens.color.text}08`,
+                      },
+                    ]}
                   >
-                    <Text style={{ color: accent, fontSize: theme.font(13), fontWeight: '600', textAlign: 'right' }}>
-                      {weatherLoading ? t('home.weather.loading') : t('home.weather.enable')}
-                    </Text>
+                    <Ionicons
+                      name="cloudy-outline"
+                      size={18}
+                      color={accent}
+                      style={styles.homeWeatherEnableIcon}
+                    />
+                    <View style={styles.homeWeatherEnableCopy}>
+                      <Text
+                        style={{
+                          color: theme.tokens.color.text,
+                          fontSize: theme.font(12),
+                          fontWeight: '500',
+                          textAlign: 'right',
+                        }}
+                      >
+                        {weatherLoading ? t('home.weather.loading') : t('home.weather.enablePrompt')}
+                      </Text>
+                      {!weatherLoading ? (
+                        <Text
+                          style={{
+                            color: theme.tokens.color.text,
+                            fontSize: theme.font(10),
+                            opacity: 0.68,
+                            textAlign: 'right',
+                          }}
+                        >
+                          {t('home.weather.enableHint')}
+                        </Text>
+                      ) : null}
+                    </View>
                   </Pressable>
                 ) : weatherSnapshot && weatherDisplay ? (
                   <View
@@ -993,7 +1047,7 @@ export function HomeScreen({
                       <Ionicons
                         name={weatherIconIonName(weatherDisplay.conditionIcon)}
                         size={22}
-                        color={accent}
+                        color={resolveWeatherIconColor(theme.tokens, weatherDisplay.conditionIcon)}
                         accessibilityElementsHidden
                         importantForAccessibility="no"
                       />
@@ -1001,7 +1055,7 @@ export function HomeScreen({
                     <View style={styles.homeWeatherMetrics}>
                       {weatherDisplay.metrics.map((metric) => (
                         <View key={metric.key} style={styles.homeWeatherMetric} accessibilityElementsHidden importantForAccessibility="no">
-                          <Ionicons name={weatherIconIonName(metric.icon)} size={14} color={accent} />
+                          <Ionicons name={weatherIconIonName(metric.icon)} size={14} color={resolveWeatherIconColor(theme.tokens, metric.icon)} />
                           <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(12) }}>{metric.text}</Text>
                         </View>
                       ))}
@@ -1020,7 +1074,7 @@ export function HomeScreen({
             ) : null}
           </View>
         </View>
-        {cardOrder.map((cardId) => renderHomeCard(cardId))}
+        {visibleCardOrder.map((cardId) => renderHomeCard(cardId))}
       </ScrollView>
 
       <View style={[styles.fabWrap, { bottom: tabBarHeight + 16 }]}>
@@ -1286,6 +1340,27 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.42)',
   },
   card: { borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)', marginBottom: 12 },
+  heroInset: {
+    position: 'relative',
+    marginTop: 12,
+    paddingTop: 12,
+    paddingRight: 32,
+    borderTopWidth: 1,
+  },
+  insetDismiss: {
+    position: 'absolute',
+    top: 10,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  insetTitle: { fontWeight: '700', marginBottom: 4 },
+  insetBody: { lineHeight: 20, opacity: 0.92 },
   cardHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   heroStreakNudgeCard: {
     backgroundColor: 'rgba(76,175,80,0.12)',
@@ -1306,6 +1381,18 @@ const styles = StyleSheet.create({
   },
   homeDateLabel: { opacity: 0.85, flexShrink: 1 },
   homeWeatherStrip: { flex: 1, minWidth: 140, alignItems: 'flex-end' },
+  homeWeatherEnablePrompt: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    maxWidth: '100%',
+  },
+  homeWeatherEnableIcon: { opacity: 0.78 },
+  homeWeatherEnableCopy: { flexShrink: 1, alignItems: 'flex-end', gap: 1 },
   homeWeatherLayout: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 8 },
   homeWeatherMetrics: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 8 },
   homeWeatherMetric: { flexDirection: 'row', alignItems: 'center', gap: 4 },
@@ -1340,11 +1427,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     backgroundColor: 'rgba(0,0,0,0.22)',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   checkinIconBtn: {
     position: 'relative',
-    minWidth: 52,
-    minHeight: 52,
+    minWidth: 72,
+    minHeight: 72,
     paddingHorizontal: 10,
     paddingVertical: 10,
     alignItems: 'center',
@@ -1357,7 +1447,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingVertical: 2,
     borderRadius: 6,
-    backgroundColor: 'rgba(76,175,80,0.28)',
     overflow: 'hidden',
   },
   questionModalCard: { maxHeight: '70%' },

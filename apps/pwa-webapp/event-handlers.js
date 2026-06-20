@@ -77,6 +77,15 @@ function initializeEventHandlers() {
       }
     });
   }
+
+  const pushNotificationsOptInBtn = document.getElementById('pushNotificationsOptInBtn');
+  if (pushNotificationsOptInBtn) {
+    pushNotificationsOptInBtn.addEventListener('click', function() {
+      if (typeof subscribePushFromSettings === 'function') {
+        void subscribePushFromSettings();
+      }
+    });
+  }
   
   if (reminderToggle) {
     reminderToggle.addEventListener('click', () => toggleSetting('reminder'));

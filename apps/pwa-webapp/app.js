@@ -1292,19 +1292,19 @@ function formatLogEntryAsText(log) {
     '  Heart rate: ' + (log.bpm || '-') + ' BPM',
     '  Weight: ' + (weightDisplay != null && weightDisplay !== '' ? weightDisplay : '-') + ' ' + (weightUnit || ''),
     '',
-    'SYMPTOMS (1–10)',
+    'SYMPTOMS (1-10)',
     '  Fatigue: ' + (log.fatigue ?? '-'),
     '  Stiffness: ' + (log.stiffness ?? '-'),
     '  Back pain: ' + (log.backPain ?? '-'),
     '  Joint pain: ' + (log.jointPain ?? '-'),
     '  Swelling: ' + (log.swelling ?? '-'),
     '',
-    'WELLBEING (1–10)',
+    'WELLBEING (1-10)',
     '  Sleep: ' + (log.sleep ?? '-'),
     '  Mood: ' + (log.mood ?? '-'),
     '  Irritability: ' + (log.irritability ?? '-'),
     '',
-    'FUNCTION (1–10)',
+    'FUNCTION (1-10)',
     '  Mobility: ' + (log.mobility ?? '-'),
     '  Daily activities: ' + (log.dailyFunction ?? '-'),
     '',
@@ -1409,7 +1409,7 @@ function openShareModalForLog(logDate) {
   }
   const entryText = formatLogEntryAsText(log);
   const body = EMAIL_SYNOPSIS_INTRO + '\n\n' + entryText + '\n\n' + EMAIL_SYNOPSIS_FOOTER;
-  const subject = 'Health summary – ' + (log.date || '');
+  const subject = 'Health summary - ' + (log.date || '');
   const emailHref = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
   const whatsappHref = 'https://wa.me/?text=' + encodeURIComponent(subject + '\n\n' + body);
 
@@ -1444,7 +1444,7 @@ function openShareModalForLogsInRange() {
   const startVal = startDateInput && startDateInput.value ? startDateInput.value : '';
   const endVal = endDateInput && endDateInput.value ? endDateInput.value : '';
   const rangeLabel = startVal && endVal ? (startVal === endVal ? startVal : startVal + ' to ' + endVal) : (rangeLogs.length + ' entries');
-  const subject = 'Health summary – ' + rangeLabel;
+  const subject = 'Health summary - ' + rangeLabel;
   const header = EMAIL_SYNOPSIS_INTRO + '\n\nPeriod: ' + rangeLabel + '\nNumber of entries: ' + rangeLogs.length + '\n\n';
   const textParts = rangeLogs.map(log => formatLogEntryAsText(log));
   const divider = '\n\n════════════════════════════════════════\n\n';
@@ -1489,7 +1489,7 @@ function openShareModalForChart(chartId) {
   }
   chartInstance.dataURI().then(({ imgURI, blob }) => {
     const chartTitle = getChartTitleFromId(chartId);
-    const subject = 'Health chart – ' + (chartTitle || chartId);
+    const subject = 'Health chart - ' + (chartTitle || chartId);
     const filename = 'health-chart-' + chartId + '-' + (new Date().toISOString().split('T')[0]) + '.png';
     const file = blob ? new File([blob], filename, { type: 'image/png' }) : null;
 
@@ -1816,7 +1816,7 @@ function openShareModalForAIAnalysis() {
     ? buildAIAnalysisShareText(dateRangeText)
     : formatAIAnalysisTextForEmail(resultsContent.innerText.trim());
   formattedBody = stripEmojiForShare(formattedBody);
-  var subject = 'Health analysis summary – ' + (dateRangeText || 'selected period');
+  var subject = 'Health analysis summary - ' + (dateRangeText || 'selected period');
   var emailHref = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(formattedBody);
   var whatsappText = subject + '\n\n' + formattedBody;
   var whatsappHref = 'https://wa.me/?text=' + encodeURIComponent(whatsappText);
@@ -3599,7 +3599,8 @@ function showInstallButton() {
   installButton.className = 'settings-data-btn install-app-btn';
   installButton.onclick = installPWA;
   // Place inside Settings panel only (data-management-buttons or settings-footer), never in header
-  const buttonContainer = document.querySelector('.data-management-buttons') ||
+  const buttonContainer = document.querySelector('.data-management-buttons--install') ||
+    document.querySelector('.data-management-buttons') ||
     document.querySelector('.settings-footer') ||
     document.body;
   if (buttonContainer) {
@@ -6708,7 +6709,7 @@ async function generateAISummary() {
       end.setHours(23, 59, 59, 999);
       return logDate >= start && logDate <= end;
     });
-    dateRangeText = `${new Date(startDate).toLocaleDateString()} to ${new Date(endDate).toLocaleDateString()}`;
+    dateRangeText = `${formatUiDate(startDate, { dateStyle: 'medium' })} to ${formatUiDate(endDate, { dateStyle: 'medium' })}`;
   } else {
     const days = aiDateRange.type || 7;
     const endDate = new Date();
@@ -6828,7 +6829,7 @@ function getAIPreloadData() {
       var d = new Date(log.date);
       return d >= start && d <= end;
     });
-    dateRangeText = start.toLocaleDateString() + ' to ' + end.toLocaleDateString();
+    dateRangeText = formatUiDate(start, { dateStyle: 'medium' }) + ' to ' + formatUiDate(end, { dateStyle: 'medium' });
   } else {
     var days = aiDateRange.type || 7;
     var endDate = new Date();
@@ -13158,8 +13159,7 @@ function generateLogEntryHTML(log) {
   const weightDisplay = getWeightInDisplayUnit(parseFloat(log.weight));
   const weightUnit = getWeightUnitSuffix();
   
-  const dateObj = new Date(log.date);
-  const formattedDate = formatUiDate(dateObj, {
+  const formattedDate = formatUiDate(log.date, {
     weekday: 'short',
     year: 'numeric',
     month: 'short',
@@ -13381,7 +13381,7 @@ function generateLogEntryHTML(log) {
         <div class="metric-item">
           <span class="metric-label">${tUi('common.items')}</span>
           ${(log.medications && log.medications.length > 0)
-            ? `<span class="metric-value metric-value-list">${log.medications.map(m => escapeHTML(m.name) + (m.times && m.times.length ? ' (' + m.times.join(', ') + ')' : '') + ' – ' + (m.taken ? 'Taken' : 'Not taken')).join('; ')}</span>`
+            ? `<span class="metric-value metric-value-list">${log.medications.map(m => escapeHTML(m.name) + (m.times && m.times.length ? ' (' + m.times.join(', ') + ')' : '') + ' - ' + (m.taken ? 'Taken' : 'Not taken')).join('; ')}</span>`
             : `<span class="metric-value metric-value-muted">${tUi('common.none.logged')}</span>`
           }
         </div>
@@ -15644,7 +15644,7 @@ let appSettings = {
   profileAvatar: 'leaf',
   displayNameTheme: 'mint',
   trackingProfile: { condition: '', fields: { mood: true, pain: true, notes: true, sleep: false, fatigue: false }, configuredAt: null },
-  dateFormat: 'DMY',
+  dateFormat: 'locale',
   firstDayOfWeek: 1,
   localeDefaultsApplied: false,
   weightUnitSource: 'default',
@@ -15710,6 +15710,10 @@ function loadSettings() {
   const savedSettings = localStorage.getItem('rianellSettings');
   if (savedSettings) {
     appSettings = { ...appSettings, ...JSON.parse(savedSettings) };
+  }
+  if (window.RianellShared && typeof window.RianellShared.applyLocaleDefaultsToPrefs === 'function') {
+    var prefsLocale = appSettings.uiLocale || getActiveUiLocale();
+    appSettings = window.RianellShared.applyLocaleDefaultsToPrefs(appSettings, prefsLocale);
   }
   try {
     if (!appSettings.accessibility || typeof appSettings.accessibility !== 'object') {
@@ -15902,12 +15906,27 @@ if (typeof window !== 'undefined') window.togglePreferredLlmForceLargeOnWasm = t
 
 async function subscribePushFromSettings() {
   try {
+    if (!('Notification' in window)) {
+      throw new Error('Notifications are not supported in this browser.');
+    }
+    if (Notification.permission === 'denied') {
+      throw new Error('Notifications are blocked. Allow them in your browser settings, then try again.');
+    }
+    if (Notification.permission === 'default') {
+      var perm = await Notification.requestPermission();
+      if (perm !== 'granted') {
+        throw new Error('Notification permission denied.');
+      }
+    }
     if (!window.RianellPushSubscribe || typeof window.RianellPushSubscribe.subscribe !== 'function') {
       throw new Error('Push module not loaded.');
     }
     var vapid = typeof window.RianellPushSubscribe.getVapidPublicKey === 'function'
       ? window.RianellPushSubscribe.getVapidPublicKey()
       : (window.RIANELL_VAPID_PUBLIC_KEY || '');
+    var vapidOk = window.RianellShared && typeof window.RianellShared.isConfiguredVapidPublicKey === 'function'
+      ? window.RianellShared.isConfiguredVapidPublicKey(vapid)
+      : (String(vapid || '').trim().length > 0 && String(vapid).trim() !== 'YOUR_VAPID_PUBLIC_KEY');
     if (window.RianellShared && typeof window.RianellShared.canOfferWebPush === 'function') {
       var gate = window.RianellShared.canOfferWebPush(appSettings, { vapidPublicKey: vapid });
       if (!gate.ok) {
@@ -15917,18 +15936,20 @@ async function subscribePushFromSettings() {
         if (gate.reason === 'vapid-unconfigured') throw new Error('Push is not configured on this server.');
         throw new Error('Push notifications are not available in your current settings.');
       }
-    } else if (!vapid || vapid === 'YOUR_VAPID_PUBLIC_KEY') {
+    } else if (!vapidOk) {
       throw new Error('Push is not configured on this server.');
     }
-    await window.RianellPushSubscribe.subscribe();
+    await window.RianellPushSubscribe.subscribe({ skipPermissionRequest: true });
     appSettings.pushNotificationsEnabled = true;
     appSettings.pushNotificationsEnabledAt = new Date().toISOString();
     saveSettings();
     if (typeof syncPushSettingsUi === 'function') syncPushSettingsUi();
+    if (typeof updateNotificationPermissionStatus === 'function') updateNotificationPermissionStatus();
     if (typeof showToast === 'function') showToast('Push notifications enabled.', { type: 'success' });
   } catch (e) {
     var msg = (e && e.message) ? String(e.message) : 'Push setup failed';
     if (typeof showToast === 'function') showToast(msg, { type: 'error' });
+    if (typeof updateNotificationPermissionStatus === 'function') updateNotificationPermissionStatus();
   }
 }
 if (typeof window !== 'undefined') window.subscribePushFromSettings = subscribePushFromSettings;
@@ -15958,7 +15979,11 @@ function syncPushSettingsUi() {
     var gate = window.RianellShared.canOfferWebPush(appSettings, { vapidPublicKey: vapid });
     gateOk = gate.ok === true;
     gateReason = gate.reason || '';
-  } else if (!vapid || vapid === 'YOUR_VAPID_PUBLIC_KEY') {
+  } else if (
+    window.RianellShared && typeof window.RianellShared.isConfiguredVapidPublicKey === 'function'
+      ? !window.RianellShared.isConfiguredVapidPublicKey(vapid)
+      : (!vapid || vapid === 'YOUR_VAPID_PUBLIC_KEY')
+  ) {
     gateOk = false;
     gateReason = 'vapid-unconfigured';
   }
@@ -19957,7 +19982,7 @@ function applyHomeCardLayout() {
   var header = homeTab.querySelector('.home-today-header');
   var insertAfter = header;
   order.forEach(function(cardId) {
-    if (cardId === 'checkin' || cardId === 'weather' || cardId === 'appointment') return;
+    if (cardId === 'checkin' || cardId === 'weather' || cardId === 'appointment' || cardId === 'streak' || cardId === 'weeklyReview' || cardId === 'hero') return;
     var el = homeTab.querySelector('[data-home-card="' + cardId + '"]');
     if (!el || !insertAfter || !insertAfter.parentNode) return;
     insertAfter.parentNode.insertBefore(el, insertAfter.nextSibling);
@@ -20085,6 +20110,11 @@ if (typeof window !== 'undefined') {
   window.saveMicroCheckinAndClose = saveMicroCheckinAndClose;
 }
 
+function homeInsetDismissButtonHtml() {
+  var label = typeof tUi === 'function' ? tUi('common.close') : 'Close';
+  return '<button type="button" class="home-inset-dismiss" aria-label="' + escapeAttr(label) + '">&times;</button>';
+}
+
 function renderHomeStreakCard(logArr, streakSnap, ctx) {
   var card = document.getElementById('homeStreakCard');
   if (!card) return;
@@ -20098,12 +20128,11 @@ function renderHomeStreakCard(logArr, streakSnap, ctx) {
   var summary = typeof tUi === 'function'
     ? tUi('home.streak.summary', { goodDays: streakSnap.goodDayStreak, flareFree: streakSnap.flareFreeDays })
     : (streakSnap.goodDayStreak + ' good · ' + streakSnap.flareFreeDays + ' flare-free');
-  var dismiss = typeof tUi === 'function' ? tUi('home.streak.dismiss') : 'Dismiss';
   card.innerHTML =
-    '<div class="home-card-header-row"><h3 class="home-streak-title">' + escapeHTML(title) + '</h3>' +
-    '<button type="button" class="home-streak-dismiss" data-home-streak-dismiss>' + escapeHTML(dismiss) + '</button></div>' +
-    '<p class="home-streak-summary">' + escapeHTML(summary) + '</p>';
-  var btn = card.querySelector('[data-home-streak-dismiss]');
+    homeInsetDismissButtonHtml() +
+    '<h4 class="home-inset-title">' + escapeHTML(title) + '</h4>' +
+    '<p class="home-inset-body">' + escapeHTML(summary) + '</p>';
+  var btn = card.querySelector('.home-inset-dismiss');
   if (btn) {
     btn.onclick = function() {
       appSettings.homeStreakCardDismissed = true;
@@ -20126,6 +20155,31 @@ function homeWeatherSummaryText(snap) {
     : String(snap.tempC) + '°C';
 }
 
+function homeWeatherIconClass(iconId, extra) {
+  var S = getHomeSharedAi();
+  var tone = S && typeof S.resolveWeatherIconTone === 'function'
+    ? S.resolveWeatherIconTone(iconId)
+    : 'default';
+  var cls = 'home-weather-icon';
+  if (tone === 'success') cls += ' icon-success';
+  else if (tone === 'warning') cls += ' icon-warning';
+  else if (tone === 'danger') cls += ' icon-danger';
+  if (extra) cls += ' ' + extra;
+  return cls;
+}
+
+function renderHomeWeatherEnablePromptHtml() {
+  var prompt = typeof tUi === 'function' ? tUi('home.weather.enablePrompt') : 'Add local weather';
+  var hint = typeof tUi === 'function' ? tUi('home.weather.enableHint') : 'Optional local weather';
+  var aria = typeof tUi === 'function' ? tUi('home.weather.enable') : 'Enable local weather';
+  return '<button type="button" class="home-weather-enable-prompt" data-ripple aria-label="' + escapeAttr(aria) + '">' +
+    '<span class="home-weather-enable-prompt__icon" aria-hidden="true">' + svgIcon('weather-cloudy', 'home-weather-icon icon-muted') + '</span>' +
+    '<span class="home-weather-enable-prompt__copy">' +
+    '<span class="home-weather-enable-prompt__lead">' + escapeHTML(prompt) + '</span>' +
+    '<span class="home-weather-enable-prompt__hint">' + escapeHTML(hint) + '</span>' +
+    '</span></button>';
+}
+
 function renderHomeWeatherStripHtml(snap) {
   var S = getHomeSharedAi();
   var display = S && typeof S.buildWeatherDisplayMetrics === 'function'
@@ -20137,12 +20191,12 @@ function renderHomeWeatherStripHtml(snap) {
   }
   var html = '<div class="home-weather-strip__layout" role="img" aria-label="' + escapeAttr(summaryAria) + '">';
   if (display.conditionIcon && display.conditionIcon !== 'weather-unknown') {
-    html += '<span class="home-weather-strip__condition" aria-hidden="true">' + svgIcon(display.conditionIcon, 'home-weather-icon home-weather-icon--condition') + '</span>';
+    html += '<span class="home-weather-strip__condition" aria-hidden="true">' + svgIcon(display.conditionIcon, homeWeatherIconClass(display.conditionIcon, 'home-weather-icon--condition')) + '</span>';
   }
   html += '<div class="home-weather-strip__metrics">';
   display.metrics.forEach(function (metric) {
     html += '<span class="home-weather-metric" aria-hidden="true">';
-    html += svgIcon(metric.icon, 'home-weather-icon');
+    html += svgIcon(metric.icon, homeWeatherIconClass(metric.icon));
     html += '<span class="home-weather-metric__text">' + escapeHTML(metric.text) + '</span>';
     html += '</span>';
   });
@@ -20168,12 +20222,8 @@ function renderHomeWeatherStrip(ctx) {
   }
   strip.hidden = false;
   if (!appSettings.weatherStripEnabled) {
-    var hint = typeof tUi === 'function' ? tUi('home.weather.enableHint') : 'Opt in to local weather.';
-    var enable = typeof tUi === 'function' ? tUi('home.weather.enable') : 'Enable';
-    strip.innerHTML =
-      '<p class="home-weather-strip__hint">' + escapeHTML(hint) + '</p>' +
-      '<button type="button" class="home-weather-strip__enable" data-ripple>' + escapeHTML(enable) + '</button>';
-    var enableBtn = strip.querySelector('.home-weather-strip__enable');
+    strip.innerHTML = renderHomeWeatherEnablePromptHtml();
+    var enableBtn = strip.querySelector('.home-weather-enable-prompt');
     if (enableBtn) {
       enableBtn.onclick = function() { enableHomeWeatherStrip(); };
     }
@@ -20355,26 +20405,45 @@ function renderHomeAiSuggestions() {
       '</button>'
     );
   }).join('');
-  container.querySelectorAll('[data-home-question-id]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
+  if (!container._homeAiSuggestionsClickBound) {
+    container._homeAiSuggestionsClickBound = true;
+    container.addEventListener('click', function(e) {
+      var btn = e.target && e.target.closest ? e.target.closest('[data-home-question-id]') : null;
+      if (!btn || !container.contains(btn)) return;
       openHomeQuestionModal(btn.getAttribute('data-home-question-id'));
     });
-  });
+  }
   if (typeof initRipple === 'function') initRipple(container);
+}
+
+var _homeQuestionModalRequestId = 0;
+
+function homeQuestionLoadingText() {
+  return typeof tUi === 'function' ? tUi('home.questions.loading') : 'Thinking…';
+}
+
+function setHomeQuestionModalBody(text) {
+  var bodyEl = document.getElementById('homeQuestionModalBody');
+  if (bodyEl) bodyEl.textContent = text;
+}
+
+function isHomeQuestionModalRequestStale(requestId) {
+  return requestId !== _homeQuestionModalRequestId;
 }
 
 function openHomeQuestionModal(questionId) {
   var chips = window._homeAiSuggestionChips || [];
   var chip = chips.find(function(c) { return c.id === questionId; });
   if (!chip) return;
+  _homeQuestionModalRequestId += 1;
+  var requestId = _homeQuestionModalRequestId;
   window._homeQuestionModalChip = chip;
   var overlay = document.getElementById('homeQuestionModalOverlay');
   if (!overlay) return;
   var titleEl = document.getElementById('homeQuestionModalTitle');
-  var bodyEl = document.getElementById('homeQuestionModalBody');
   var questionText = typeof tUi === 'function' ? tUi(chip.labelKey, chip.labelParams) : chip.labelKey;
   if (titleEl) titleEl.textContent = questionText;
-  if (bodyEl) bodyEl.textContent = typeof tUi === 'function' ? tUi('home.questions.loading') : 'Thinking…';
+  setHomeQuestionModalBody(homeQuestionLoadingText());
   overlay.style.display = 'block';
   overlay.style.visibility = 'visible';
   overlay.style.opacity = '1';
@@ -20388,10 +20457,11 @@ function openHomeQuestionModal(questionId) {
     }
   };
   document.addEventListener('keydown', escapeHandler);
-  answerHomeQuestionInModal(chip);
+  answerHomeQuestionInModal(chip, requestId);
 }
 
 function closeHomeQuestionModal() {
+  _homeQuestionModalRequestId += 1;
   var overlay = document.getElementById('homeQuestionModalOverlay');
   if (!overlay) return;
   overlay.style.display = 'none';
@@ -20402,8 +20472,7 @@ function closeHomeQuestionModal() {
   window._homeQuestionModalChip = null;
 }
 
-async function answerHomeQuestionInModal(chip) {
-  var bodyEl = document.getElementById('homeQuestionModalBody');
+async function answerHomeQuestionInModal(chip, requestId) {
   var S = getHomeSharedAi();
   var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
   var snap = window._homeAiAnalysisSnapshot || (S && typeof S.computeHomeAnalysisSnapshot === 'function'
@@ -20422,26 +20491,35 @@ async function answerHomeQuestionInModal(chip) {
       logs: logArr
     })
     : questionText;
+  var answer = fallback;
   try {
-    var answer = fallback;
-    var S = getHomeSharedAi();
     var canLlm = S && typeof S.canAnswerHomeQuestionToday === 'function'
       ? S.canAnswerHomeQuestionToday(appSettings.homeQuestionAnswerState, getTodayDateStr())
       : true;
     if (typeof generateHomeQuestionWithLLM === 'function' && canLlm) {
       answer = await generateHomeQuestionWithLLM(context, fallback, chip.id);
     }
-    if (bodyEl) bodyEl.textContent = answer || fallback;
-    if (S && typeof S.nextHomeQuestionAnswerState === 'function') {
-      appSettings.homeQuestionAnswerState = S.nextHomeQuestionAnswerState(
-        appSettings.homeQuestionAnswerState,
-        getTodayDateStr()
-      );
-      if (typeof saveSettings === 'function') saveSettings();
+    if (!isHomeQuestionModalRequestStale(requestId)) {
+      setHomeQuestionModalBody(answer || fallback);
+      if (S && typeof S.nextHomeQuestionAnswerState === 'function') {
+        appSettings.homeQuestionAnswerState = S.nextHomeQuestionAnswerState(
+          appSettings.homeQuestionAnswerState,
+          getTodayDateStr()
+        );
+        if (typeof saveSettings === 'function') saveSettings();
+      }
     }
   } catch (e) {
-    if (bodyEl) {
-      bodyEl.textContent = typeof tUi === 'function' ? tUi('home.questions.error') : fallback;
+    if (!isHomeQuestionModalRequestStale(requestId)) {
+      setHomeQuestionModalBody(typeof tUi === 'function' ? tUi('home.questions.error') : fallback);
+    }
+  } finally {
+    if (!isHomeQuestionModalRequestStale(requestId)) {
+      var bodyEl = document.getElementById('homeQuestionModalBody');
+      var loadingText = homeQuestionLoadingText();
+      if (bodyEl && bodyEl.textContent === loadingText) {
+        setHomeQuestionModalBody(fallback);
+      }
     }
   }
 }
@@ -20553,7 +20631,8 @@ function buildLogReviewSummaryHtml() {
   }
 
   var basics = [];
-  addRow(basics, tUi('wizard.review.row.date'), readValue('date'));
+  var dateRaw = readValue('date');
+  addRow(basics, tUi('wizard.review.row.date'), dateRaw ? formatUiDate(dateRaw, { dateStyle: 'medium' }) : '');
   addRow(basics, tUi('wizard.review.row.flare'), readValue('flare'));
   html.push(sectionCard('wizard.review.basics', basics, { showWhenEmpty: true }));
 
@@ -20751,6 +20830,7 @@ function setLogWizardStep(step, skipHashUpdate) {
     if (review) review.innerHTML = buildLogReviewSummaryHtml();
   }
   updateLogWizardChrome();
+  if (typeof syncLogWizardProgressiveLocks === 'function') syncLogWizardProgressiveLocks();
   if (step === 0 && typeof syncLogWizardPlan04Ui === 'function') syncLogWizardPlan04Ui();
   var panel = document.getElementById('logTab');
   if (panel) {
@@ -20824,21 +20904,35 @@ function rianellShouldShowWizardCategory(category) {
   return true;
 }
 
-function resolveLogWizardStep(step, direction) {
-  var s = step;
-  while (s >= 0 && s < LOG_WIZARD_TOTAL_STEPS) {
-    if (direction > 0) {
-      if (s === 6 && !rianellShouldShowWizardCategory('food')) { s++; continue; }
-      if (s === 7 && !rianellShouldShowWizardCategory('exercise')) { s++; continue; }
-      if (s === 8 && !rianellShouldShowWizardCategory('medications')) { s++; continue; }
-    } else if (direction < 0) {
-      if (s === 8 && !rianellShouldShowWizardCategory('medications')) { s--; continue; }
-      if (s === 7 && !rianellShouldShowWizardCategory('exercise')) { s--; continue; }
-      if (s === 6 && !rianellShouldShowWizardCategory('food')) { s--; continue; }
-    }
-    return s;
-  }
+function resolveLogWizardStep(step) {
   return Math.max(0, Math.min(LOG_WIZARD_TOTAL_STEPS - 1, step));
+}
+
+var LOG_WIZARD_PROGRESSIVE_LOCKS = [
+  { step: 6, category: 'food', i18nKey: 'wizard.progressive.foodLocked', sectionSelector: '#foodLog' },
+  { step: 7, category: 'exercise', i18nKey: 'wizard.progressive.exerciseLocked', sectionSelector: '#exerciseLog' },
+  { step: 8, category: 'medications', i18nKey: 'wizard.progressive.medsLocked', sectionSelector: '#medications' }
+];
+
+function syncLogWizardProgressiveLocks() {
+  LOG_WIZARD_PROGRESSIVE_LOCKS.forEach(function(cfg) {
+    var stepEl = document.querySelector('.log-wizard-step[data-log-step="' + cfg.step + '"]');
+    if (!stepEl) return;
+    var unlocked = rianellShouldShowWizardCategory(cfg.category);
+    var lockEl = stepEl.querySelector('.log-wizard-progressive-lock');
+    if (!lockEl) {
+      lockEl = document.createElement('p');
+      lockEl.className = 'log-wizard-progressive-lock field-hint';
+      stepEl.insertBefore(lockEl, stepEl.firstChild);
+    }
+    lockEl.textContent = typeof tUi === 'function' ? tUi(cfg.i18nKey) : '';
+    lockEl.hidden = unlocked;
+    var content = stepEl.querySelector(cfg.sectionSelector);
+    if (content) {
+      var section = content.closest('.form-section');
+      if (section) section.hidden = !unlocked;
+    }
+  });
 }
 
 function logWizardGoNext() {
@@ -20850,7 +20944,7 @@ function logWizardGoNext() {
     return;
   }
   if (currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1) {
-    setLogWizardStep(resolveLogWizardStep(currentLogWizardStep + 1, 1));
+    setLogWizardStep(resolveLogWizardStep(currentLogWizardStep + 1));
   }
 }
 
@@ -20928,13 +21022,13 @@ function logWizardSkipCurrentStep() {
   if (!canSkip) return;
   clearLogWizardStepData(currentLogWizardStep);
   if (currentLogWizardStep < LOG_WIZARD_TOTAL_STEPS - 1) {
-    setLogWizardStep(resolveLogWizardStep(currentLogWizardStep + 1, 1));
+    setLogWizardStep(resolveLogWizardStep(currentLogWizardStep + 1));
   }
 }
 
 function logWizardGoBack() {
   if (currentLogWizardStep > 0) {
-    setLogWizardStep(resolveLogWizardStep(currentLogWizardStep - 1, -1));
+    setLogWizardStep(resolveLogWizardStep(currentLogWizardStep - 1));
   } else {
     if (typeof switchTab === 'function') switchTab('home', true);
   }

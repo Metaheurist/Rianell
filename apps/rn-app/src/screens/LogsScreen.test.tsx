@@ -1,6 +1,7 @@
 import React from 'react';
 import { FlatList } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { formatIsoDate } from '@rianell/shared';
 import { LogsScreen } from './LogsScreen';
 import { renderWithProviders } from '../test/renderWithProviders';
 import { getDefaultPreferences } from '../storage/preferences';
@@ -48,6 +49,10 @@ function renderLogs() {
   return renderWithProviders(<LogsScreen />, { prefs });
 }
 
+function displayDate(iso: string): string {
+  return formatIsoDate(iso, 'en-GB', { dateStyle: 'medium' });
+}
+
 test('logs screen shows empty state when no logs', async () => {
   mockLoadLogs.mockResolvedValueOnce([]);
   const { findByText, getByLabelText } = renderLogs();
@@ -68,7 +73,7 @@ test('logs screen shows entries and count after load', async () => {
   const { findByText } = renderLogs();
 
   await findByText('Showing 2 of 2 entries');
-  await findByText(newer);
+  await findByText(displayDate(newer));
 });
 
 test('logs screen text filter narrows results', async () => {
@@ -83,7 +88,7 @@ test('logs screen text filter narrows results', async () => {
   await findByText('Showing 2 of 2 entries');
   fireEvent.changeText(getByLabelText('Filter logs text'), 'headache');
   await findByText('Showing 1 of 2 entries');
-  expect(queryByText(newer)).toBeNull();
+  expect(queryByText(displayDate(newer))).toBeNull();
 });
 
 test('logs entry opens detail modal with share/delete actions', async () => {
@@ -105,7 +110,7 @@ test('logs entry opens detail modal with share/delete actions', async () => {
   ] as Awaited<ReturnType<typeof import('../storage/logs').loadLogs>>);
 
   const { findByLabelText, findByText, findAllByText } = renderLogs();
-  fireEvent.press(await findByLabelText(`Open log entry ${day}`));
+  fireEvent.press(await findByLabelText(`Open log entry ${displayDate(day)}`));
   await findByText('Share');
   await findByLabelText('Delete log entry');
   expect((await findAllByText(/Symptoms: Nausea/)).length).toBeGreaterThan(0);
@@ -125,7 +130,7 @@ test('logs entry edit flow updates details and persists', async () => {
   mockedSaveLogs.mockClear();
 
   const { findByLabelText, findByDisplayValue, getByLabelText, findByText, findAllByText } = renderLogs();
-  fireEvent.press(await findByLabelText(`Open log entry ${day}`));
+  fireEvent.press(await findByLabelText(`Open log entry ${displayDate(day)}`));
   fireEvent.press(await findByLabelText('Edit log entry'));
   await findByDisplayValue(day);
 
@@ -147,7 +152,7 @@ test('logs entry edit flow updates details and persists', async () => {
   await findByText(/No logs yet\./);
   const sampleDate = ymdDaysFromToday(0);
   fireEvent.press(getByLabelText('Add sample log'));
-  await waitFor(() => findByText(sampleDate));
+  await waitFor(() => findByText(displayDate(sampleDate)));
 });
 
 test('large-list baseline exposes virtualization tuning props', async () => {

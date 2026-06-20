@@ -174,7 +174,7 @@ export function getDefaultPreferences(): Preferences {
     tutorialSeen: false,
     replayTutorial: false,
     simpleMode: false,
-    dateFormat: 'DMY',
+    dateFormat: 'locale',
     firstDayOfWeek: 1,
     localeDefaultsApplied: false,
     weightUnitSource: 'default',

@@ -32,6 +32,7 @@ import {
   buildTodayMedDoseStatuses,
   fetchOpenFoodFactsProduct,
   formatBarcodeFoodLabel,
+  formatIsoDate,
 } from '@rianell/shared';
 import { buildLogReviewSummary, parseMedicationNamesCsv } from '../log/buildLogReviewSummary';
 import type { RootStackParamList } from '../navigation/RootNavigator';
@@ -1026,7 +1027,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     try {
       const existing = await loadLogs();
       if (existing.some((l) => l.date === dateValue)) {
-        Alert.alert(t('wizard.alert.duplicate.title'), t('wizard.alert.duplicate.body', { date: dateValue }));
+        Alert.alert(t('wizard.alert.duplicate.title'), t('wizard.alert.duplicate.body', { date: formatIsoDate(dateValue, locale, { dateStyle: 'medium' }) }));
         return;
       }
       const minimal = stampLogEntryForCaregiver(
@@ -1047,7 +1048,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
       );
       await persistWizardLogEntry(existing, minimal);
       hapticLight();
-      toast.show(t('wizard.toast.minimalSaved', { date: dateValue }));
+      toast.show(t('wizard.toast.minimalSaved', { date: formatIsoDate(dateValue, locale, { dateStyle: 'medium' }) }));
       navigation.goBack();
     } catch (e) {
       const msg = e instanceof Error ? e.message : t('wizard.alert.saveFailed');
@@ -1068,7 +1069,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     }
   }
 
-  const reviewText = useMemo(() => buildLogReviewSummary(draft), [draft]);
+  const reviewText = useMemo(() => buildLogReviewSummary(draft, locale), [draft, locale]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bg }]}>

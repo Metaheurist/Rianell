@@ -1,9 +1,10 @@
 import type { LogEntry } from '../storage/logs';
+import { formatIsoDate } from '@rianell/shared';
 
 /** Plain-text summary for the Review step (web parity: log review before save). */
-export function buildLogReviewSummary(entry: LogEntry): string {
+export function buildLogReviewSummary(entry: LogEntry, locale = 'en-GB'): string {
   const lines: string[] = [];
-  lines.push(`Date: ${entry.date}`);
+  lines.push(`Date: ${formatIsoDate(entry.date, locale, { dateStyle: 'medium' })}`);
   lines.push(`Flare: ${entry.flare ?? '-'}`);
   if (entry.bpm != null) lines.push(`BPM: ${entry.bpm}`);
   if (entry.weight) lines.push(`Weight (kg): ${entry.weight}`);

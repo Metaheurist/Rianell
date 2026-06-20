@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, Share, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import {
   formatActivityTypeLabel,
   LOCAL_ONLY_NETWORK_FEATURES,
 } from '@rianell/shared';
-import { exportContributionHistory } from '../cloud/sync';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import type { Preferences } from '../storage/preferences';
@@ -65,22 +64,6 @@ export function SettingsPrivacyTrustPane({ prefs, onChangePrefs, onRequestAnonPo
 
       <Pressable onPress={onRequestAnonPoolEnable} style={[styles.btn, { borderColor: theme.tokens.color.border }]}>
         <Text style={{ color: theme.tokens.color.textPrimary }}>{t('settings.privacy.anonPool.reviewFields')}</Text>
-      </Pressable>
-
-      <Pressable
-        onPress={() => {
-          void (async () => {
-            const result = await exportContributionHistory();
-            if (!result.ok || !result.json) {
-              Alert.alert(t('research.pool.export.action'), result.message);
-              return;
-            }
-            await Share.share({ message: result.json, title: t('research.pool.export.shareTitle') });
-          })();
-        }}
-        style={[styles.btn, { borderColor: theme.tokens.color.border }]}
-      >
-        <Text style={{ color: theme.tokens.color.textPrimary }}>{t('research.pool.export.action')}</Text>
       </Pressable>
 
       <PolicyDocumentsModal visible={policyOpen} regionId={prefs.privacyRegion} onClose={() => setPolicyOpen(false)} />

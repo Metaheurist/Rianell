@@ -17,8 +17,32 @@ function hasGranularDateOptions(opts) {
   return GRANULAR_DATE_KEYS.some((k) => opts[k] !== undefined);
 }
 
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Parse YYYY-MM-DD as local noon to avoid UTC day-shift in western timezones. */
+export function parseIsoDateLocal(iso) {
+  const raw = typeof iso === 'string' ? iso.trim() : '';
+  if (!ISO_DATE_RE.test(raw)) return null;
+  const d = new Date(`${raw}T12:00:00`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function coerceDateValue(value) {
+  if (value instanceof Date) return value;
+  const local = parseIsoDateLocal(value);
+  if (local) return local;
+  return new Date(value);
+}
+
+/** Format a stored log date (YYYY-MM-DD) for display using the active UI locale. */
+export function formatIsoDate(iso, locale, opts = {}) {
+  const d = parseIsoDateLocal(iso);
+  if (!d) return typeof iso === 'string' ? iso : '';
+  return formatDate(d, locale, opts);
+}
+
 export function formatDate(value, locale, opts = {}) {
-  const d = value instanceof Date ? value : new Date(value);
+  const d = coerceDateValue(value);
   if (Number.isNaN(d.getTime())) return '';
   const { dateStyle, timeStyle, ...rest } = opts;
   const intlOpts = { ...rest };

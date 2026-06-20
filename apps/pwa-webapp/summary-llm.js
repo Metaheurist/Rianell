@@ -1516,6 +1516,13 @@
         console.warn('Home question LLM failed, using fallback:', e.message || e);
       }
     }
+    if (fallbackText) {
+      if (homeQuestionResultCache.size >= MAX_HOME_QUESTION_CACHE) {
+        var evictKey = homeQuestionResultCache.keys().next().value;
+        if (evictKey != null) homeQuestionResultCache.delete(evictKey);
+      }
+      homeQuestionResultCache.set(cacheKey, fallbackText);
+    }
     return fallbackText || '';
   }
 

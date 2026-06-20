@@ -17,6 +17,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
+import { formatIsoDate } from '@rianell/shared';
 import type { MainTabParamList } from '../navigation/RootNavigator';
 import { loadLogs, saveLogs, type LogEntry } from '../storage/logs';
 import type { Preferences } from '../storage/preferences';
@@ -128,7 +129,7 @@ function ScreeningFrequencySlider({
 
 export function MoodScreen({ prefs }: { prefs: Preferences }) {
   const theme = useTheme();
-  const { t } = useT();
+  const { t, locale } = useT();
   const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
   const accent = theme.tokens.color.accent;
   const bg =
@@ -326,7 +327,7 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
                 <View key={`${r.date}-${r.period ?? 'daily'}-${idx}`} style={[styles.readingRow, { borderColor: theme.tokens.color.border }]}>
                   <Text style={[styles.readingScore, { color: accent }]}>{r.mood}/10</Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: theme.tokens.color.textPrimary }}>{r.date}</Text>
+                    <Text style={{ color: theme.tokens.color.textPrimary }}>{formatIsoDate(r.date, locale, { dateStyle: 'medium' })}</Text>
                     <Text style={{ color: theme.tokens.color.textMuted, fontSize: theme.font(12) }}>
                       {meta} · {t(moodQualitativeKey(r.mood))}
                     </Text>
