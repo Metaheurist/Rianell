@@ -68,6 +68,64 @@ function periodMetaLabel(period: string | null, t: (key: string) => string): str
   return '';
 }
 
+function ScreeningFrequencySlider({
+  value,
+  onChange,
+  accent,
+  textColor,
+  borderColor,
+  t,
+}: {
+  value: number;
+  onChange: (next: number) => void;
+  accent: string;
+  textColor: string;
+  borderColor: string;
+  t: (key: string) => string;
+}) {
+  const idx = Math.max(0, Math.min(3, value));
+  const fillPct = (idx / 3) * 100;
+  return (
+    <View style={styles.screeningSlider}>
+      <View style={[styles.screeningSliderTrack, { backgroundColor: `${textColor}14` }]}>
+        <View style={[styles.screeningSliderFill, { width: `${fillPct}%`, backgroundColor: `${accent}55` }]} />
+        <View style={styles.screeningSliderTicks}>
+          {SCREENING_RESPONSE_OPTIONS.map((opt) => {
+            const active = idx === opt.value;
+            return (
+              <Pressable
+                key={opt.value}
+                onPress={() => onChange(opt.value)}
+                style={styles.screeningSliderTickHit}
+                accessibilityRole="adjustable"
+                accessibilityState={{ selected: active }}
+                accessibilityLabel={t(opt.i18n)}
+              >
+                <View
+                  style={[
+                    styles.screeningSliderTick,
+                    { borderColor: active ? accent : borderColor },
+                    active ? { backgroundColor: accent, transform: [{ scale: 1.12 }] } : null,
+                  ]}
+                />
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+      <Text style={[styles.screeningSliderLabel, { color: textColor }]}>{t(SCREENING_RESPONSE_OPTIONS[idx].i18n)}</Text>
+      <View style={styles.screeningSliderEnds}>
+        <Text style={[styles.screeningSliderEndLabel, { color: `${textColor}99` }]}>
+          {t(SCREENING_RESPONSE_OPTIONS[0].i18n)}
+        </Text>
+        <Text style={[styles.screeningSliderEndLabel, { color: `${textColor}99` }]}>
+          {t(SCREENING_RESPONSE_OPTIONS[3].i18n)}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 export function MoodScreen({ prefs }: { prefs: Preferences }) {
   const theme = useTheme();
   const { t } = useT();
@@ -173,8 +231,13 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
   };
 
   const openScreening = (kind: ScreeningKind) => {
+    const questions = kind === 'phq2' ? PHQ2_QUESTIONS : GAD2_QUESTIONS;
+    const initial: Record<string, number> = {};
+    questions.forEach((q) => {
+      initial[q.id] = 0;
+    });
     setScreeningKind(kind);
-    setResponses({});
+    setResponses(initial);
     setShowResult(false);
     setScreeningOpen(true);
   };
@@ -295,8 +358,8 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
                       },
                     ]}
                   >
-                    <Ionicons name={checkinPeriodIcon(period)} size={24} color={accent} />
-                    <Text style={{ color: theme.tokens.color.textPrimary, fontSize: theme.font(12) }}>
+                    <Ionicons name={checkinPeriodIcon(period)} size={26} color={accent} />
+                    <Text style={[styles.checkinBtnLabel, { color: accent, fontSize: theme.font(12) }]}>
                       {t(checkinPeriodLabelKey(period))}
                     </Text>
                     {done ? (
@@ -386,35 +449,33 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
           {!showResult ? (
             <>
               {screeningQuestions.map((q) => (
-                <View key={q.id} style={{ marginTop: 16 }}>
-                  <Text style={{ color: theme.tokens.color.textPrimary, marginBottom: 8 }}>{t(q.i18n)}</Text>
-                  {SCREENING_RESPONSE_OPTIONS.map((opt) => {
-                    const selected = responses[q.id] === opt.value;
-                    return (
-                      <Pressable
-                        key={`${q.id}-${opt.value}`}
-                        onPress={() => setResponses((prev) => ({ ...prev, [q.id]: opt.value }))}
-                        style={[
-                          styles.optionRow,
-                          {
-                            borderColor: selected ? accent : theme.tokens.color.border,
-                            backgroundColor: selected ? `${accent}18` : 'transparent',
-                          },
-                        ]}
-                      >
-                        <Text style={{ color: theme.tokens.color.textPrimary }}>{t(opt.i18n)}</Text>
-                      </Pressable>
-                    );
-                  })}
+                <View key={q.id} style={styles.screeningQuestionBlock}>
+                  <Text style={[styles.screeningQuestion, { color: theme.tokens.color.textPrimary }]}>
+                    {t(q.i18n)}
+                  </Text>
+                  <ScreeningFrequencySlider
+                    value={responses[q.id] ?? 0}
+                    onChange={(next) => setResponses((prev) => ({ ...prev, [q.id]: next }))}
+                    accent={accent}
+                    textColor={theme.tokens.color.textPrimary}
+                    borderColor={theme.tokens.color.border}
+                    t={t}
+                  />
                 </View>
               ))}
-              <Pressable
-                disabled={!scored.complete}
-                onPress={() => setShowResult(true)}
-                style={[styles.primaryBtn, { opacity: scored.complete ? 1 : 0.5, backgroundColor: accent }]}
-              >
-                <Text style={styles.primaryBtnText}>{t('mentalHealth.submit')}</Text>
-              </Pressable>
+              <View style={styles.screeningSubmitFooter}>
+                <Pressable
+                  disabled={!scored.complete}
+                  onPress={() => setShowResult(true)}
+                  style={[
+                    styles.primaryBtn,
+                    styles.screeningSubmitBtn,
+                    { opacity: scored.complete ? 1 : 0.5, backgroundColor: accent },
+                  ]}
+                >
+                  <Text style={styles.primaryBtnText}>{t('mentalHealth.submit')}</Text>
+                </Pressable>
+              </View>
             </>
           ) : (
             <>
@@ -423,8 +484,16 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
                 {t(interpretation.i18n)} ({scored.total}/6)
               </Text>
               {crisisLinks.map((link) => (
-                <Pressable key={link.url} onPress={() => void Linking.openURL(link.url)} style={{ marginTop: 10 }}>
-                  <Text style={{ color: accent }}>{t(link.i18n)}</Text>
+                <Pressable
+                  key={link.url}
+                  accessibilityRole="link"
+                  onPress={() => void Linking.openURL(link.url)}
+                  style={[
+                    styles.crisisHelpBtn,
+                    { borderColor: theme.tokens.color.border, backgroundColor: theme.tokens.color.surfaceRaised },
+                  ]}
+                >
+                  <Text style={[styles.crisisHelpBtnText, { color: accent }]}>{t(link.i18n)}</Text>
                 </Pressable>
               ))}
             </>
@@ -474,8 +543,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     alignItems: 'center',
+    justifyContent: 'center',
     minWidth: 88,
-    gap: 4,
+    gap: 6,
+  },
+  checkinBtnLabel: {
+    fontWeight: '600',
+    textAlign: 'center',
   },
   actions: { marginTop: 20, gap: 10 },
   actionBtn: { paddingVertical: 8 },
@@ -485,5 +559,73 @@ const styles = StyleSheet.create({
   input: { borderWidth: 1, borderRadius: 8, padding: 12, fontSize: 16 },
   primaryBtn: { marginTop: 20, borderRadius: 10, padding: 14, alignItems: 'center' },
   primaryBtnText: { color: '#fff', fontWeight: '700' },
-  optionRow: { borderWidth: 1, borderRadius: 8, padding: 10, marginTop: 6 },
+  crisisHelpBtn: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  crisisHelpBtnText: { fontWeight: '700', textAlign: 'center' },
+  screeningQuestionBlock: {
+    marginTop: 16,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    gap: 10,
+  },
+  screeningQuestion: { fontWeight: '600', lineHeight: 22 },
+  screeningSlider: { gap: 8 },
+  screeningSliderTrack: {
+    height: 34,
+    borderRadius: 999,
+    justifyContent: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  screeningSliderFill: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    borderRadius: 999,
+  },
+  screeningSliderTicks: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    zIndex: 1,
+  },
+  screeningSliderTickHit: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  screeningSliderTick: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  screeningSliderLabel: { fontWeight: '600', textAlign: 'center', minHeight: 20 },
+  screeningSliderEnds: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  screeningSliderEndLabel: { flex: 1, fontSize: 11, lineHeight: 14 },
+  screeningSubmitFooter: {
+    marginTop: 20,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.14)',
+    alignItems: 'center',
+  },
+  screeningSubmitBtn: { width: '100%', maxWidth: 280, marginTop: 0 },
 });

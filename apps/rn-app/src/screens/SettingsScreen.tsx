@@ -45,7 +45,8 @@ import { SettingsPrivacyRegionPane } from '../settings/SettingsPrivacyRegionPane
 import { SettingsAppInstallSection } from '../settings/SettingsAppInstallSection';
 import { SettingsConsentDashboard } from '../settings/SettingsConsentDashboard';
 import { SettingsPrivacyTrustPane } from '../settings/SettingsPrivacyTrustPane';
-import { SettingsCrossCuttingPane } from '../settings/SettingsCrossCuttingPane';
+import { SettingsSecurityLockPane } from '../settings/SettingsSecurityLockPane';
+import { SettingsPerformanceLearnPane } from '../settings/SettingsPerformanceLearnPane';
 import { AnonPoolFieldChecklist } from '../settings/AnonPoolFieldChecklist';
 import { EncryptedExportModal } from '../settings/EncryptedExportModal';
 import { QrHandoffModal } from '../settings/QrHandoffModal';
@@ -76,12 +77,21 @@ const PANE_TITLE_KEYS = [
   'settings.dataOptions.title',
   'settings.performance.title',
   'settings.dataManagement.title',
+  'settings.security.title',
 ] as const;
 
 /**
  * Ionicons names aligned with `settingsIconForTitle` in `apps/pwa-webapp/app.js` (Font Awesome → Ionicons).
  */
-function settingsPaneIconName(title: string, idx: number): React.ComponentProps<typeof Ionicons>['name'] {
+function settingsPaneIconName(
+  title: string,
+  idx: number,
+  paneKey?: string,
+  appLockEnabled?: boolean,
+): React.ComponentProps<typeof Ionicons>['name'] {
+  if (paneKey === 'settings.security.title') {
+    return appLockEnabled ? 'lock-closed' : 'lock-open';
+  }
   const t = title.toLowerCase();
   if (t.includes('privacy') || t.includes('region')) return 'shield-outline';
   if (t.includes('personal') || t.includes('cloud')) return 'person-outline';
@@ -93,6 +103,7 @@ function settingsPaneIconName(title: string, idx: number): React.ComponentProps<
   if (t.includes('performance')) return 'flash-outline';
   if (t.includes('install')) return 'phone-portrait-outline';
   if (t.includes('data management')) return 'save-outline';
+  if (t.includes('security')) return 'lock-open';
   return idx % 2 === 0 ? 'ellipse-outline' : 'ellipse';
 }
 
@@ -117,8 +128,8 @@ export function SettingsScreen({
   const paneTitles = PANE_TITLE_KEYS.map((key) => t(key));
   const searchHaystack = PANE_TITLE_KEYS.map((key, i) => ({ i, text: `${t(key)} ${key}`.toLowerCase() }));
   const { width } = useWindowDimensions();
-  /** Sized like web `settings-carousel-dots` (clamp ~22–32px), shared across nine pane icons. */
-  const settingsPaneIconBtnSize = Math.min(36, Math.max(26, (width - 48 - 8 * 4) / 9));
+  /** Sized like web `settings-carousel-dots` (clamp ~22–32px), shared across ten pane icons. */
+  const settingsPaneIconBtnSize = Math.min(36, Math.max(26, (width - 48 - 8 * 4) / 10));
   const scrollRef = useRef<{ scrollTo: (options: { x: number; animated?: boolean }) => void } | null>(
     null,
   );
@@ -632,7 +643,7 @@ export function SettingsScreen({
         <View style={styles.paneIconRow} accessibilityRole="tablist">
           {paneTitles.map((paneTitle, i) => {
             const active = i === paneIndex;
-            const iconName = settingsPaneIconName(paneTitle, i);
+            const iconName = settingsPaneIconName(paneTitle, i, PANE_TITLE_KEYS[i], prefs.appLockEnabled);
             return (
               <Pressable
                 key={PANE_TITLE_KEYS[i]}
@@ -704,7 +715,6 @@ export function SettingsScreen({
                 onChangePrefs={onChangePrefs}
                 onRequestAnonPoolEnable={() => setAnonPoolOpen(true)}
               />
-              <SettingsCrossCuttingPane prefs={prefs} />
               <SettingsConsentDashboard prefs={prefs} onChangePrefs={onChangePrefs} />
             </Section>
           </ScrollView>
@@ -1941,6 +1951,8 @@ export function SettingsScreen({
                 <Hint>{t('settings.simpleMode.hint')}</Hint>
               )}
 
+              <SettingsPerformanceLearnPane />
+
             </Section>
 
           </ScrollView>
@@ -2161,6 +2173,22 @@ export function SettingsScreen({
                 <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text }]}>🗑️ Clear all data</Text>
 
               </Pressable>
+
+            </Section>
+
+          </ScrollView>
+
+        </View>
+
+        {/* Pane 9 — Security lock (web pane 10) */}
+
+        <View style={[styles.paneOuter, { width }]}>
+
+          <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+
+            <Section title={t('settings.security.title')}>
+
+              <SettingsSecurityLockPane prefs={prefs} onChangePrefs={onChangePrefs} />
 
             </Section>
 
