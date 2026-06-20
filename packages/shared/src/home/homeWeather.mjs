@@ -21,7 +21,7 @@ export function buildWeatherForecastUrl(lat, lon) {
   const params = new URLSearchParams({
     latitude: String(coords.lat),
     longitude: String(coords.lon),
-    current: 'pressure_msl,temperature_2m',
+    current: 'pressure_msl,temperature_2m,weather_code',
     timezone: 'auto',
   });
   return `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
@@ -49,11 +49,14 @@ export function parseWeatherApiResponse(forecastJson, aqiJson) {
     aqiJson?.current && typeof aqiJson.current.us_aqi === 'number'
       ? Math.round(aqiJson.current.us_aqi)
       : null;
+  const weatherCode =
+    typeof current.weather_code === 'number' ? Math.round(current.weather_code) : null;
   if (temp == null && pressure == null && usAqi == null) return null;
   return {
     tempC: temp,
     pressureHpa: pressure,
     usAqi,
+    weatherCode,
     fetchedAt: Date.now(),
   };
 }
@@ -77,9 +80,14 @@ export async function fetchHomeWeatherSnapshot(lat, lon, options = {}) {
   const forecastUrl = buildWeatherForecastUrl(coords.lat, coords.lon);
   const aqiUrl = buildAirQualityUrl(coords.lat, coords.lon);
   if (!forecastUrl) return null;
-  const forecastRes = await fetchFn(forecastUrl);
-  if (!forecastRes?.ok) return null;
-  const forecastJson = await forecastRes.json();
+  let forecastJson = null;
+  try {
+    const forecastRes = await fetchFn(forecastUrl);
+    if (!forecastRes?.ok) return null;
+    forecastJson = await forecastRes.json();
+  } catch {
+    return null;
+  }
   let aqiJson = null;
   if (aqiUrl) {
     try {

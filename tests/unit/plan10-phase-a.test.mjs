@@ -27,10 +27,12 @@ test('resolveHomeCardOrder promotes goals when logged today', () => {
   assert.ok(order.includes('hero'));
 });
 
-test('resolveHomeCardOrder shows nudge when streak broken', () => {
+test('resolveHomeCardOrder promotes hero when streak broken (nudge merged into hero status)', () => {
   const ctx = computeHomeCardContext(LOGS, '2026-06-19');
+  assert.equal(ctx.streakBroken, true);
   const order = resolveHomeCardOrder(ctx);
-  assert.equal(order[0], 'nudge');
+  assert.ok(!order.includes('nudge'));
+  assert.equal(order[0], 'hero');
 });
 
 test('simple mode hides AI questions context flag', () => {

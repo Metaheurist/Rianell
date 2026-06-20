@@ -38,16 +38,15 @@ test('periodForHour maps morning midday evening', () => {
   assert.ok(HOME_CHECKIN_PERIODS.includes('midday'));
 });
 
-test('home card order includes pacing when enabled; check-in lives in hero card', () => {
+test('home card order includes hero; check-in lives in hero card', () => {
   const ctx = computeHomeCardContext(LOGS, '2026-06-19', {
-    hasPacingData: true,
     showCheckin: true,
   });
   const order = resolveHomeCardOrder(ctx);
-  assert.ok(order.includes('pacing'));
   assert.ok(order.includes('hero'));
   assert.equal(ctx.showCheckin, true);
   assert.ok(!order.includes('checkin'));
+  assert.ok(!order.includes('pacing'));
 });
 
 test('completedCheckinPeriods tracks AM midday PM', () => {
