@@ -130,7 +130,9 @@
     hydrateGate();
     hydratePrivacySettings();
     if (typeof global !== 'undefined' && global.RianellWeeklyReview) {
-      if (typeof global.RianellWeeklyReview.renderSettingsCrossCutting === 'function') {
+      if (typeof global.RianellWeeklyReview.renderSettingsPerformanceLearn === 'function') {
+        global.RianellWeeklyReview.renderSettingsPerformanceLearn();
+      } else if (typeof global.RianellWeeklyReview.renderSettingsCrossCutting === 'function') {
         global.RianellWeeklyReview.renderSettingsCrossCutting();
       }
       if (typeof global.RianellWeeklyReview.refreshOpenModalI18n === 'function') {

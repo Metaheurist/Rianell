@@ -142,6 +142,7 @@ var RianellShared = (() => {
     buildTimelineSvg: () => buildTimelineSvg,
     buildTodayMedDoseStatuses: () => buildTodayMedDoseStatuses,
     buildUserCohortsFromFacets: () => buildUserCohortsFromFacets,
+    buildWeatherDisplayMetrics: () => buildWeatherDisplayMetrics,
     buildWeatherForecastUrl: () => buildWeatherForecastUrl,
     buildWeekChatContext: () => buildWeekChatContext,
     buildWeekChatFallback: () => buildWeekChatFallback,
@@ -321,12 +322,16 @@ var RianellShared = (() => {
     readProcessingActivity: () => readProcessingActivity,
     readTextFileSync: () => readTextFileSync,
     resolveActiveLocale: () => resolveActiveLocale,
+    resolveAqiIconId: () => resolveAqiIconId,
     resolveAuthResidencyCode: () => resolveAuthResidencyCode,
+    resolveConditionIconId: () => resolveConditionIconId,
     resolveDataResidency: () => resolveDataResidency,
     resolveHomeCardOrder: () => resolveHomeCardOrder,
     resolveMissedLogNudgeTimeHHMM: () => resolveMissedLogNudgeTimeHHMM,
     resolvePolicyPack: () => resolvePolicyPack,
+    resolvePressureIconId: () => resolvePressureIconId,
     resolveSmartReminderTime: () => resolveSmartReminderTime,
+    resolveTempIconId: () => resolveTempIconId,
     roundWeatherCoord: () => roundWeatherCoord,
     runGoldenPromptAudit: () => runGoldenPromptAudit,
     sanitizeCustomMetricLabel: () => sanitizeCustomMetricLabel,
@@ -2517,10 +2522,8 @@ var RianellShared = (() => {
 
   // packages/shared/src/ai/homeCardRegistry.mjs
   var HOME_CARDS = [
-    { id: "nudge", basePriority: 40 },
     { id: "weeklyReview", basePriority: 68 },
     { id: "streak", basePriority: 38 },
-    { id: "pacing", basePriority: 55 },
     { id: "hero", basePriority: 100 },
     { id: "goals", basePriority: 60 }
   ];
@@ -2543,7 +2546,6 @@ var RianellShared = (() => {
       aiEnabled = true,
       simpleMode = false,
       showGoals = true,
-      hasPacingData = false,
       showCheckin = true,
       showStreak = false,
       showWeather = false,
@@ -2559,7 +2561,6 @@ var RianellShared = (() => {
       simpleMode: simpleMode === true,
       showGoals: showGoals !== false && aiEnabled !== false,
       showAiQuestions,
-      showPacing: hasPacingData === true,
       showCheckin: showCheckin !== false && simpleMode !== true,
       showStreak: showStreak === true,
       showWeather: showWeather === true,
@@ -2570,17 +2571,13 @@ var RianellShared = (() => {
     const ctx = context || {};
     const scored = [];
     for (const card of HOME_CARDS) {
-      if (card.id === "nudge" && (!ctx.streakBroken || ctx.loggedToday)) continue;
       if (card.id === "goals" && !ctx.showGoals) continue;
-      if (card.id === "pacing" && !ctx.showPacing) continue;
       if (card.id === "streak" && !ctx.showStreak) continue;
       if (card.id === "weeklyReview" && !ctx.showWeeklyReview) continue;
       let priority = card.basePriority;
       if (ctx.loggedToday && card.id === "goals") priority += 50;
-      if (ctx.loggedToday && card.id === "pacing") priority += 20;
       if (!ctx.loggedToday && card.id === "hero") priority += 30;
-      if (!ctx.loggedToday && card.id === "nudge") priority += 80;
-      if (ctx.streakBroken && card.id === "nudge") priority += 20;
+      if (ctx.streakBroken && !ctx.loggedToday && card.id === "hero") priority += 80;
       if (ctx.showWeeklyReview && card.id === "weeklyReview") priority += 40;
       scored.push({ id: card.id, priority });
     }
@@ -3845,7 +3842,7 @@ ${hist}`);
     const params = new URLSearchParams({
       latitude: String(coords.lat),
       longitude: String(coords.lon),
-      current: "pressure_msl,temperature_2m",
+      current: "pressure_msl,temperature_2m,weather_code",
       timezone: "auto"
     });
     return `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
@@ -3866,11 +3863,13 @@ ${hist}`);
     const temp = typeof current.temperature_2m === "number" ? Number(current.temperature_2m.toFixed(1)) : null;
     const pressure = typeof current.pressure_msl === "number" ? Math.round(current.pressure_msl) : null;
     const usAqi = aqiJson?.current && typeof aqiJson.current.us_aqi === "number" ? Math.round(aqiJson.current.us_aqi) : null;
+    const weatherCode = typeof current.weather_code === "number" ? Math.round(current.weather_code) : null;
     if (temp == null && pressure == null && usAqi == null) return null;
     return {
       tempC: temp,
       pressureHpa: pressure,
       usAqi,
+      weatherCode,
       fetchedAt: Date.now()
     };
   }
@@ -3887,9 +3886,14 @@ ${hist}`);
     const forecastUrl = buildWeatherForecastUrl(coords.lat, coords.lon);
     const aqiUrl = buildAirQualityUrl(coords.lat, coords.lon);
     if (!forecastUrl) return null;
-    const forecastRes = await fetchFn(forecastUrl);
-    if (!forecastRes?.ok) return null;
-    const forecastJson = await forecastRes.json();
+    let forecastJson = null;
+    try {
+      const forecastRes = await fetchFn(forecastUrl);
+      if (!forecastRes?.ok) return null;
+      forecastJson = await forecastRes.json();
+    } catch {
+      return null;
+    }
     let aqiJson = null;
     if (aqiUrl) {
       try {
@@ -3900,6 +3904,69 @@ ${hist}`);
       }
     }
     return parseWeatherApiResponse(forecastJson, aqiJson);
+  }
+
+  // packages/shared/src/home/weatherIcons.mjs
+  function resolveConditionIconId(weatherCode) {
+    const code = typeof weatherCode === "number" && Number.isFinite(weatherCode) ? weatherCode : null;
+    if (code == null) return "weather-unknown";
+    if (code === 0) return "weather-clear";
+    if (code === 1 || code === 2) return "weather-partly-cloudy";
+    if (code === 3) return "weather-cloudy";
+    if (code === 45 || code === 48) return "weather-fog";
+    if (code >= 51 && code <= 67 || code >= 80 && code <= 82) return "weather-rain";
+    if (code >= 71 && code <= 77 || code >= 85 && code <= 86) return "weather-snow";
+    if (code >= 95 && code <= 99) return "weather-thunder";
+    return "weather-cloudy";
+  }
+  function resolveTempIconId(tempC) {
+    if (typeof tempC !== "number" || !Number.isFinite(tempC)) return "weather-temp-mild";
+    if (tempC < 5) return "weather-temp-cold";
+    if (tempC < 20) return "weather-temp-mild";
+    if (tempC < 28) return "weather-temp-warm";
+    return "weather-temp-hot";
+  }
+  function resolvePressureIconId(pressureHpa) {
+    if (typeof pressureHpa !== "number" || !Number.isFinite(pressureHpa)) return "weather-pressure";
+    if (pressureHpa < 1e3) return "weather-pressure-low";
+    if (pressureHpa > 1020) return "weather-pressure-high";
+    return "weather-pressure";
+  }
+  function resolveAqiIconId(usAqi) {
+    if (typeof usAqi !== "number" || !Number.isFinite(usAqi)) return "weather-aqi-moderate";
+    if (usAqi <= 50) return "weather-aqi-good";
+    if (usAqi <= 100) return "weather-aqi-moderate";
+    return "weather-aqi-poor";
+  }
+  function buildWeatherDisplayMetrics(snapshot2) {
+    if (!snapshot2 || typeof snapshot2 !== "object") return null;
+    const metrics = [];
+    if (snapshot2.tempC != null) {
+      metrics.push({
+        key: "temp",
+        icon: resolveTempIconId(snapshot2.tempC),
+        text: `${snapshot2.tempC}\xB0C`
+      });
+    }
+    if (snapshot2.pressureHpa != null) {
+      metrics.push({
+        key: "pressure",
+        icon: resolvePressureIconId(snapshot2.pressureHpa),
+        text: `${snapshot2.pressureHpa} hPa`
+      });
+    }
+    if (snapshot2.usAqi != null) {
+      metrics.push({
+        key: "aqi",
+        icon: resolveAqiIconId(snapshot2.usAqi),
+        text: `AQI ${snapshot2.usAqi}`
+      });
+    }
+    if (!metrics.length) return null;
+    return {
+      conditionIcon: resolveConditionIconId(snapshot2.weatherCode),
+      metrics
+    };
   }
 
   // packages/shared/src/clinician/medTimeline.mjs

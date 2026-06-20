@@ -62,7 +62,9 @@
 
   function svgIcon(name, className) {
     if (typeof global.svgIcon === 'function') return global.svgIcon(name, className);
-    return '';
+    var safeName = String(name || '').replace(/[^a-z0-9-]/gi, '');
+    var cls = className || 'ui-svg-icon';
+    return '<svg class="' + cls + '" aria-hidden="true"><use href="#icon-' + safeName + '"></use></svg>';
   }
 
   function renderMoodSparkline(dailyAverages) {

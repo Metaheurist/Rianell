@@ -2572,8 +2572,12 @@ function refreshAppInstallSection() {
   var iosLabel = document.getElementById('downloadIosLabel');
 
   if (titleEl) {
-    if (platform === 'ios' || platform === 'android') titleEl.textContent = tUi('common.install.on.this.device');
-    else titleEl.textContent = tUi('common.app.installation');
+    var titleTextEl = titleEl.querySelector('[data-i18n="settings.data.install.title"]') || titleEl.querySelector('span');
+    var titleText = (platform === 'ios' || platform === 'android')
+      ? tUi('common.install.on.this.device')
+      : tUi('settings.data.install.title');
+    if (titleTextEl) titleTextEl.textContent = titleText;
+    else titleEl.textContent = titleText;
   }
   if (installWebAppLabel) {
     if (platform === 'ios') installWebAppLabel.textContent = tUi('common.add.to.home.screen');
@@ -3277,6 +3281,7 @@ function svgIcon(name, className, title) {
   var label = title ? ' role="img" aria-label="' + escapeAttr(title) + '"' : ' aria-hidden="true"';
   return '<svg class="' + cls + '"' + label + '><use href="#icon-' + safeName + '"></use></svg>';
 }
+if (typeof window !== 'undefined') window.svgIcon = svgIcon;
 
 function sanitizeHTML(html) {
   if (typeof html !== 'string') return '';
@@ -4862,7 +4867,6 @@ function toggleChartView(viewType) {
       updateCharts();
     }
   }
-  if (typeof renderChartsInsightsPanel === 'function') renderChartsInsightsPanel();
 }
 
 async function createCombinedChart() {
@@ -15222,133 +15226,7 @@ async function updateChartsImmediate() {
   if (typeof enforceChartSectionView === 'function') {
     enforceChartSectionView(getCurrentChartView());
   }
-  if (typeof renderChartsInsightsPanel === 'function') renderChartsInsightsPanel();
   perfLog('Charts updateChartsImmediate (14 charts)', Date.now() - _perfT0, {});
-}
-
-// Update empty state placeholder visibility
-function renderChartsInsightsPanel() {
-  const panel = document.getElementById('chartsInsightsPanel');
-  if (!panel) return;
-  const engine = window.RianellAIEngine;
-  if (!engine || typeof engine.buildCorrelationCards !== 'function') {
-    panel.innerHTML = '';
-    panel.classList.add('hidden');
-    return;
-  }
-  const filtered = typeof getFilteredLogs === 'function' ? getFilteredLogs() : (logs || []);
-  if (!filtered.length) {
-    panel.innerHTML = '';
-    panel.classList.add('hidden');
-    return;
-  }
-  const chronological = [...filtered].sort((a, b) => new Date(a.date) - new Date(b.date));
-  const cards = engine.buildCorrelationCards(chronological, 'all');
-  const postMortem = typeof engine.buildFlarePostMortem === 'function'
-    ? engine.buildFlarePostMortem(chronological)
-    : null;
-  const cycleOverlay = appSettings.cycleModuleEnabled && typeof engine.buildCyclePhaseBands === 'function'
-    ? engine.buildCyclePhaseBands(chronological)
-    : { bands: [], markers: [] };
-  const periodCompare = typeof engine.compareChartPeriods === 'function'
-    ? engine.compareChartPeriods(chronological)
-    : null;
-  const pacingSeries = typeof engine.buildPacingChartSeries === 'function'
-    ? engine.buildPacingChartSeries(chronological, 'all').slice(-7)
-    : [];
-  let forecastHtml = '';
-  const moodSeries = chronological
-    .filter((log) => log.mood != null && log.mood !== '')
-    .map((log) => Number(log.mood));
-  if (moodSeries.length >= 2 && typeof engine.predictFutureValues === 'function') {
-    const pts = engine.predictFutureValues(moodSeries, 3);
-    const last = pts[pts.length - 1];
-    if (last) {
-      forecastHtml = `<p class="charts-insight-forecast">${escapeHTML(tUi('charts.forecast.uncertainty', {
-        days: 3,
-        value: last.value.toFixed(1),
-        lower: last.lower.toFixed(1),
-        upper: last.upper.toFixed(1),
-      }))}</p>`;
-    }
-  }
-  if (!cards.length && !postMortem && !forecastHtml && !cycleOverlay.bands.length && !periodCompare && !pacingSeries.length) {
-    panel.innerHTML = '';
-    panel.classList.add('hidden');
-    return;
-  }
-  let html = '';
-  if (cards.length) {
-    html += `<h3 class="charts-insight-heading">${escapeHTML(tUi('charts.correlations.title'))}</h3><div class="charts-insight-cards">`;
-    cards.forEach((card) => {
-      const confKey = `charts.correlations.confidence.${card.confidence}`;
-      const dirKey = card.direction === 'positive' ? 'charts.correlations.positive' : 'charts.correlations.negative';
-      html += `<div class="charts-insight-card"><span class="charts-insight-badge">${escapeHTML(tUi(confKey))}</span> `;
-      html += `<strong>${escapeHTML(card.label1)}</strong> ${escapeHTML(tUi(dirKey))} <strong>${escapeHTML(card.label2)}</strong> `;
-      html += `<span class="charts-insight-meta">(${card.coefficient})</span></div>`;
-    });
-    html += '</div>';
-  }
-  if (postMortem) {
-    html += `<h3 class="charts-insight-heading">${escapeHTML(tUi('charts.flarePostMortem.title'))}</h3>`;
-    html += `<p class="charts-insight-lede">${escapeHTML(tUi('charts.flarePostMortem.window', {
-      days: postMortem.windowDays,
-      date: postMortem.flareDate,
-    }))}</p>`;
-    const metrics = postMortem.diverging.length ? postMortem.diverging : postMortem.metrics;
-    metrics.forEach((m) => {
-      if (m.beforeAvg == null && m.afterAvg == null) return;
-      html += `<p class="charts-insight-line">${escapeHTML(tUi('charts.flarePostMortem.metricLine', {
-        label: m.label,
-        before: m.beforeAvg != null ? m.beforeAvg.toFixed(1) : '-',
-        after: m.afterAvg != null ? m.afterAvg.toFixed(1) : '-',
-        delta: m.delta != null ? (m.delta >= 0 ? `+${m.delta.toFixed(1)}` : m.delta.toFixed(1)) : '-',
-      }))}</p>`;
-    });
-  }
-  if (forecastHtml) {
-    html += `<h3 class="charts-insight-heading">${escapeHTML(tUi('charts.forecast.section'))}</h3>${forecastHtml}`;
-  }
-  if (cycleOverlay.bands.length) {
-    html += `<h3 class="charts-insight-heading">${escapeHTML(tUi('charts.cycle.title'))}</h3>`;
-    html += '<div class="charts-cycle-legend">';
-    cycleOverlay.bands.forEach((band) => {
-      html += `<span class="charts-cycle-chip" style="border-color:${escapeHTML(band.color)}"><i style="background:${escapeHTML(band.color)}"></i>${escapeHTML(band.label)}</span>`;
-    });
-    html += '</div>';
-  }
-  if (periodCompare && periodCompare.current.stats.logDays > 0) {
-    html += `<h3 class="charts-insight-heading">${escapeHTML(tUi('charts.compare.title'))}</h3>`;
-    html += `<p class="charts-insight-lede">${escapeHTML(tUi('charts.compare.lede', {
-      current: periodCompare.current.label,
-      previous: periodCompare.previous.label,
-    }))}</p>`;
-    ['mood', 'sleep', 'fatigue'].forEach((key) => {
-      const cur = periodCompare.current.stats[`${key}Avg`];
-      const prev = periodCompare.previous.stats[`${key}Avg`];
-      const d = periodCompare.deltas[key];
-      if (cur == null && prev == null) return;
-      html += `<p class="charts-insight-line">${escapeHTML(tUi('charts.compare.metricLine', {
-        metric: key.charAt(0).toUpperCase() + key.slice(1),
-        current: cur != null ? cur.toFixed(1) : '-',
-        previous: prev != null ? prev.toFixed(1) : '-',
-        delta: d != null ? (d >= 0 ? `+${d.toFixed(1)}` : d.toFixed(1)) : '-',
-      }))}</p>`;
-    });
-  }
-  if (pacingSeries.length) {
-    html += `<h3 class="charts-insight-heading">${escapeHTML(tUi('charts.pacing.title'))}</h3>`;
-    pacingSeries.forEach((row) => {
-      html += `<p class="charts-insight-line">${escapeHTML(tUi('charts.pacing.dayLine', {
-        date: row.date,
-        planned: row.planned,
-        actual: row.actual,
-        fatigue: row.fatigue != null ? row.fatigue : '-',
-      }))}${row.overpaced ? ' ⚠' : ''}</p>`;
-    });
-  }
-  panel.innerHTML = html;
-  panel.classList.remove('hidden');
 }
 
 function updateChartEmptyState(hasData) {
@@ -15369,7 +15247,6 @@ function updateChartEmptyState(hasData) {
     if (typeof enforceChartSectionView === 'function') {
       enforceChartSectionView(getCurrentChartView());
     }
-    if (typeof renderChartsInsightsPanel === 'function') renderChartsInsightsPanel();
   }
 }
 
@@ -17241,11 +17118,21 @@ function loadSettingsState() {
   if (localOnlyToggle) localOnlyToggle.classList.toggle('active', !!appSettings.localOnlyMode);
   syncLocalOnlyFeatureMatrixUi();
   var appLockToggle = document.getElementById('appLockToggle');
-  if (appLockToggle) appLockToggle.classList.toggle('active', !!appSettings.appLockEnabled);
+  if (appLockToggle) {
+    var appLockPending = appLockToggle.getAttribute('data-pending') === '1';
+    appLockToggle.classList.toggle('active', !!appSettings.appLockEnabled || appLockPending);
+    appLockToggle.setAttribute('aria-checked', appSettings.appLockEnabled || appLockPending ? 'true' : 'false');
+  }
+  syncAppLockSetupPanelUi();
+  if (_settingsModule && typeof _settingsModule.refreshSettingsSecurityLockTabIcon === 'function') {
+    _settingsModule.refreshSettingsSecurityLockTabIcon();
+  }
   var caregiverToggle = document.getElementById('caregiverModeToggle');
   if (caregiverToggle) caregiverToggle.classList.toggle('active', !!appSettings.caregiverModeEnabled);
   var caregiverRow = document.getElementById('caregiverDependentRow');
   if (caregiverRow) caregiverRow.style.display = appSettings.caregiverModeEnabled ? 'block' : 'none';
+  var caregiverHint = document.getElementById('caregiverModeHint');
+  if (caregiverHint) caregiverHint.style.display = appSettings.caregiverModeEnabled ? 'block' : 'none';
   var caregiverNameInput = document.getElementById('caregiverDependentNameInput');
   if (caregiverNameInput) caregiverNameInput.value = appSettings.caregiverDependentName || '';
   syncPrivacyActivityLogUi();
@@ -17666,7 +17553,40 @@ function syncPrivacyActivityLogUi() {
   }).join('\n');
 }
 
+function clearAppLockSetupFields() {
+  var pin = document.getElementById('appLockPinSetupInput');
+  var confirm = document.getElementById('appLockPinConfirmInput');
+  if (pin) pin.value = '';
+  if (confirm) confirm.value = '';
+}
+
+function syncAppLockSetupPanelUi() {
+  var panel = document.getElementById('appLockSetupPanel');
+  var toggle = document.getElementById('appLockToggle');
+  var statusRow = document.getElementById('appLockStatusRow');
+  var statusIcon = document.getElementById('appLockStatusIcon');
+  var statusLabel = document.getElementById('appLockStatusLabel');
+  var enabled = !!(appSettings && appSettings.appLockEnabled);
+  var pending = toggle && toggle.getAttribute('data-pending') === '1';
+  var showPanel = enabled || pending;
+  if (panel) panel.style.display = showPanel ? 'block' : 'none';
+  if (!showPanel) clearAppLockSetupFields();
+  if (statusRow) statusRow.style.display = enabled ? 'flex' : 'none';
+  if (statusIcon) {
+    var use = statusIcon.querySelector('use');
+    if (use) use.setAttribute('href', enabled ? '#icon-lock' : '#icon-lock-open');
+  }
+  if (statusLabel) {
+    statusLabel.textContent = enabled
+      ? tUi('settings.security.statusLocked')
+      : tUi('settings.security.statusUnlocked');
+    statusLabel.setAttribute('data-i18n', enabled ? 'settings.security.statusLocked' : 'settings.security.statusUnlocked');
+  }
+}
+
 async function toggleAppLockSetting() {
+  var toggle = document.getElementById('appLockToggle');
+  var pending = toggle && toggle.getAttribute('data-pending') === '1';
   if (appSettings.appLockEnabled) {
     if (window.RianellAppLock && typeof window.RianellAppLock.disableAppLock === 'function') {
       await window.RianellAppLock.disableAppLock();
@@ -17674,25 +17594,41 @@ async function toggleAppLockSetting() {
       appSettings.appLockEnabled = false;
       saveSettings();
     }
+    if (toggle) toggle.removeAttribute('data-pending');
+    clearAppLockSetupFields();
     loadSettingsState();
     return;
   }
-  var passcode = typeof prompt === 'function'
-    ? prompt(tUi('settings.privacy.appLock.setupPrompt'))
-    : null;
+  if (pending) {
+    if (toggle) toggle.removeAttribute('data-pending');
+    clearAppLockSetupFields();
+    syncAppLockSetupPanelUi();
+    loadSettingsState();
+    return;
+  }
+  if (toggle) toggle.setAttribute('data-pending', '1');
+  syncAppLockSetupPanelUi();
+  loadSettingsState();
+  var pinInput = document.getElementById('appLockPinSetupInput');
+  if (pinInput && pinInput.focus) pinInput.focus();
+}
+if (typeof window !== 'undefined') window.toggleAppLockSetting = toggleAppLockSetting;
+
+async function saveAppLockPasscode() {
+  var pinEl = document.getElementById('appLockPinSetupInput');
+  var confirmEl = document.getElementById('appLockPinConfirmInput');
+  var passcode = pinEl && pinEl.value ? pinEl.value : '';
+  var confirmPass = confirmEl && confirmEl.value ? confirmEl.value : '';
   if (!passcode || passcode.length < 8) {
     if (typeof showAlertModal === 'function') {
-      showAlertModal(tUi('settings.privacy.appLock.setupPrompt'), tUi('settings.privacy.appLock.title'));
+      showAlertModal(tUi('settings.privacy.appLock.setupPrompt'), tUi('settings.security.title'));
     }
-    loadSettingsState();
     return;
   }
-  var confirmPass = typeof prompt === 'function' ? prompt(tUi('settings.privacy.appLock.confirmPrompt')) : null;
   if (passcode !== confirmPass) {
     if (typeof showAlertModal === 'function') {
-      showAlertModal(tUi('settings.privacy.appLock.mismatch'), tUi('settings.privacy.appLock.title'));
+      showAlertModal(tUi('settings.privacy.appLock.mismatch'), tUi('settings.security.title'));
     }
-    loadSettingsState();
     return;
   }
   try {
@@ -17703,14 +17639,20 @@ async function toggleAppLockSetting() {
       appSettings.appLockEnabled = true;
       saveSettings();
     }
+    var toggle = document.getElementById('appLockToggle');
+    if (toggle) toggle.removeAttribute('data-pending');
+    clearAppLockSetupFields();
+    if (typeof notifySuccess === 'function') {
+      notifySuccess(tUi('settings.security.statusLocked'));
+    }
   } catch (e) {
     if (typeof showAlertModal === 'function') {
-      showAlertModal((e && e.message) ? e.message : 'Could not enable app lock.', tUi('settings.privacy.appLock.title'));
+      showAlertModal((e && e.message) ? e.message : 'Could not enable app lock.', tUi('settings.security.title'));
     }
   }
   loadSettingsState();
 }
-if (typeof window !== 'undefined') window.toggleAppLockSetting = toggleAppLockSetting;
+if (typeof window !== 'undefined') window.saveAppLockPasscode = saveAppLockPasscode;
 
 function showAnonPoolFieldChecklistModal(onConfirm) {
   var S = typeof window !== 'undefined' ? window.RianellShared : null;
@@ -19980,10 +19922,6 @@ function applyHomeCardLayout() {
   var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
   var goalsBlock = document.getElementById('goalsProgressBlock');
   var hasGoals = goalsBlock && goalsBlock.getAttribute('data-has-goals') === 'true';
-  var engine = typeof window !== 'undefined' ? window.RianellAIEngine : null;
-  var pacingBudget = engine && typeof engine.buildTodayPacingBudget === 'function'
-    ? engine.buildTodayPacingBudget(logArr, todayStr)
-    : null;
   var streakSnap = S && typeof S.computeHomeStreakSnapshot === 'function'
     ? S.computeHomeStreakSnapshot(logArr, { dismissed: appSettings.homeStreakCardDismissed === true })
     : { showCard: false };
@@ -20002,7 +19940,6 @@ function applyHomeCardLayout() {
         aiEnabled: typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false,
         simpleMode: typeof appSettings !== 'undefined' && appSettings.simpleMode === true,
         showGoals: hasGoals,
-        hasPacingData: pacingBudget != null,
         showCheckin: false,
         showStreak: streakSnap.showCard === true,
         showWeather: true,
@@ -20011,17 +19948,6 @@ function applyHomeCardLayout() {
     : null;
   if (!ctx) return;
   var order = S.resolveHomeCardOrder(ctx);
-  var nudge = document.getElementById('homeNudgeCard');
-  if (nudge) {
-    if (order.indexOf('nudge') >= 0) {
-      nudge.hidden = false;
-      nudge.textContent = typeof tUi === 'function' ? tUi('home.nudge.streakBroken') : 'You logged yesterday but not yet today.';
-    } else {
-      nudge.hidden = true;
-      nudge.textContent = '';
-    }
-  }
-  if (typeof renderHomePacingCard === 'function') renderHomePacingCard(logArr, todayStr, pacingBudget, ctx);
   if (typeof renderHomeCheckinCard === 'function') renderHomeCheckinCard(logArr, todayStr, ctx);
   if (typeof renderHomeStreakCard === 'function') renderHomeStreakCard(logArr, streakSnap, ctx);
   renderHomeWeatherStrip(ctx);
@@ -20045,38 +19971,6 @@ function checkinPeriodIconName(period) {
   if (period === 'AM') return 'checkin-am';
   if (period === 'PM') return 'checkin-pm';
   return 'checkin-midday';
-}
-
-function renderHomePacingCard(logArr, todayStr, pacingBudget, ctx) {
-  var card = document.getElementById('homePacingCard');
-  if (!card) return;
-  if (!ctx || !ctx.showPacing || !pacingBudget) {
-    card.hidden = true;
-    card.innerHTML = '';
-    return;
-  }
-  card.hidden = false;
-  var summary = typeof tUi === 'function'
-    ? tUi('home.pacing.summary', { planned: pacingBudget.planned, actual: pacingBudget.rawActual })
-    : ('Planned ' + pacingBudget.planned + '/10 · used ' + pacingBudget.rawActual);
-  var overHtml = pacingBudget.overpaced
-    ? '<p class="home-pacing-warning">' + escapeHTML(typeof tUi === 'function' ? tUi('home.pacing.overpaced') : 'You may have overpaced today.') + '</p>'
-    : '';
-  var linkLabel = typeof tUi === 'function' ? tUi('home.pacing.linkCharts') : 'View pacing chart';
-  card.innerHTML =
-    '<h3 class="home-pacing-title">' + escapeHTML(typeof tUi === 'function' ? tUi('home.pacing.title') : 'Energy budget today') + '</h3>' +
-    '<p class="home-pacing-summary">' + escapeHTML(summary) + '</p>' + overHtml +
-    '<button type="button" class="action-btn home-pacing-link" data-ripple>' + escapeHTML(linkLabel) + '</button>';
-  var linkBtn = card.querySelector('.home-pacing-link');
-  if (linkBtn) {
-    linkBtn.onclick = function() {
-      if (typeof switchTab === 'function') switchTab('charts');
-      setTimeout(function() {
-        if (typeof toggleChartView === 'function') toggleChartView('balance');
-      }, 100);
-    };
-  }
-  if (typeof initRipple === 'function') initRipple(card);
 }
 
 function renderHomeCheckinCard(logArr, todayStr, ctx) {
@@ -20104,6 +19998,7 @@ function renderHomeCheckinCard(logArr, todayStr, ctx) {
     var ariaLabel = isDone ? label + ', ' + doneLabel : label;
     html += '<button type="button" class="action-btn home-checkin-btn' + (isDone ? ' is-done' : '') + '" data-checkin-period="' + escapeHTML(period) + '" data-ripple' + (isDone ? ' disabled' : '') + ' aria-label="' + escapeAttr(ariaLabel) + '">';
     html += svgIcon(checkinPeriodIconName(period), 'home-checkin-icon');
+    html += '<span class="home-checkin-label">' + escapeHTML(label) + '</span>';
     if (isDone) html += '<span class="home-checkin-done-badge" aria-hidden="true">' + escapeHTML(doneLabel) + '</span>';
     html += '</button>';
   });
@@ -20220,6 +20115,49 @@ function renderHomeStreakCard(logArr, streakSnap, ctx) {
 
 var _homeWeatherFetchInFlight = false;
 
+function homeWeatherSummaryText(snap) {
+  if (!snap) return '';
+  return typeof tUi === 'function'
+    ? tUi('home.weather.summary', {
+        temp: snap.tempC != null ? snap.tempC : '-',
+        pressure: snap.pressureHpa != null ? snap.pressureHpa : '-',
+        aqi: snap.usAqi != null ? snap.usAqi : '-',
+      })
+    : String(snap.tempC) + '°C';
+}
+
+function renderHomeWeatherStripHtml(snap) {
+  var S = getHomeSharedAi();
+  var display = S && typeof S.buildWeatherDisplayMetrics === 'function'
+    ? S.buildWeatherDisplayMetrics(snap)
+    : null;
+  var summaryAria = homeWeatherSummaryText(snap);
+  if (!display || !display.metrics.length) {
+    return '<p class="home-weather-strip__summary">' + escapeHTML(summaryAria || (typeof tUi === 'function' ? tUi('home.weather.loading') : 'Loading…')) + '</p>';
+  }
+  var html = '<div class="home-weather-strip__layout" role="img" aria-label="' + escapeAttr(summaryAria) + '">';
+  if (display.conditionIcon && display.conditionIcon !== 'weather-unknown') {
+    html += '<span class="home-weather-strip__condition" aria-hidden="true">' + svgIcon(display.conditionIcon, 'home-weather-icon home-weather-icon--condition') + '</span>';
+  }
+  html += '<div class="home-weather-strip__metrics">';
+  display.metrics.forEach(function (metric) {
+    html += '<span class="home-weather-metric" aria-hidden="true">';
+    html += svgIcon(metric.icon, 'home-weather-icon');
+    html += '<span class="home-weather-metric__text">' + escapeHTML(metric.text) + '</span>';
+    html += '</span>';
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function showHomeWeatherUnavailable() {
+  var strip = document.getElementById('homeWeatherStrip');
+  if (!strip) return;
+  var msg = typeof tUi === 'function' ? tUi('home.weather.unavailable') : 'Weather unavailable.';
+  strip.innerHTML =
+    '<p class="home-weather-strip__hint">' + escapeHTML(msg) + '</p>';
+}
+
 function renderHomeWeatherStrip(ctx) {
   var strip = document.getElementById('homeWeatherStrip');
   if (!strip) return;
@@ -20229,7 +20167,6 @@ function renderHomeWeatherStrip(ctx) {
     return;
   }
   strip.hidden = false;
-  var attr = typeof tUi === 'function' ? tUi('home.weather.attribution') : 'Open-Meteo';
   if (!appSettings.weatherStripEnabled) {
     var hint = typeof tUi === 'function' ? tUi('home.weather.enableHint') : 'Opt in to local weather.';
     var enable = typeof tUi === 'function' ? tUi('home.weather.enable') : 'Enable';
@@ -20244,22 +20181,13 @@ function renderHomeWeatherStrip(ctx) {
     return;
   }
   var snap = appSettings.weatherCache;
-  var body = '';
   if (snap && (snap.tempC != null || snap.pressureHpa != null || snap.usAqi != null)) {
-    body = typeof tUi === 'function'
-      ? tUi('home.weather.summary', {
-          temp: snap.tempC != null ? snap.tempC : '-',
-          pressure: snap.pressureHpa != null ? snap.pressureHpa : '-',
-          aqi: snap.usAqi != null ? snap.usAqi : '-',
-        })
-      : (String(snap.tempC) + '°C');
+    strip.innerHTML = renderHomeWeatherStripHtml(snap);
   } else {
-    body = typeof tUi === 'function' ? tUi('home.weather.loading') : 'Loading…';
+    var loading = typeof tUi === 'function' ? tUi('home.weather.loading') : 'Loading…';
+    strip.innerHTML = '<p class="home-weather-strip__summary">' + escapeHTML(loading) + '</p>';
     maybeRefreshHomeWeather();
   }
-  strip.innerHTML =
-    '<p class="home-weather-strip__summary">' + escapeHTML(body) + '</p>' +
-    '<a class="home-weather-strip__attribution" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">' + escapeHTML(attr) + '</a>';
 }
 
 function maybeRefreshHomeWeather() {
@@ -20271,12 +20199,16 @@ function maybeRefreshHomeWeather() {
   _homeWeatherFetchInFlight = true;
   S.fetchHomeWeatherSnapshot(appSettings.weatherLat, appSettings.weatherLon).then(function(snap) {
     _homeWeatherFetchInFlight = false;
-    if (!snap) return;
+    if (!snap) {
+      showHomeWeatherUnavailable();
+      return;
+    }
     appSettings.weatherCache = snap;
     if (typeof saveSettings === 'function') saveSettings();
     if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
   }).catch(function() {
     _homeWeatherFetchInFlight = false;
+    showHomeWeatherUnavailable();
   });
 }
 
@@ -20302,7 +20234,12 @@ function enableHomeWeatherStrip() {
         if (snap) {
           appSettings.weatherCache = snap;
           if (typeof saveSettings === 'function') saveSettings();
+        } else {
+          showHomeWeatherUnavailable();
         }
+        if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
+      }).catch(function() {
+        showHomeWeatherUnavailable();
         if (typeof applyHomeCardLayout === 'function') applyHomeCardLayout();
       });
     } else if (typeof applyHomeCardLayout === 'function') {
@@ -20336,15 +20273,23 @@ function updateHomeTodayPanel() {
   var todayStr = yyyy + '-' + mm + '-' + dd;
   var logArr = typeof window.logs !== 'undefined' && window.logs ? window.logs : [];
   var today = logArr.find(function(l) { return l.date === todayStr; });
+  var S = getHomeSharedAi();
+  var streakBroken = S && typeof S.isLoggingStreakBroken === 'function'
+    ? S.isLoggingStreakBroken(logArr, todayStr)
+    : false;
   if (today) {
     var loggedTitle = typeof tUi === 'function' ? tUi('home.status.loggedToday') : 'Logged today';
     var loggedDetail = typeof tUi === 'function' ? tUi('home.status.loggedTodayDetail') : 'Open View logs to browse or edit your entry.';
     statusEl.innerHTML = '<strong>' + escapeHTML(loggedTitle) + '</strong><p class="home-status-detail">' + escapeHTML(loggedDetail) + '</p>';
+    statusEl.classList.remove('home-today-status--streak-nudge');
     if (hero) hero.classList.add('home-hero-card--logged');
   } else {
     var notLoggedTitle = typeof tUi === 'function' ? tUi('home.status.notLoggedYet') : 'Not logged yet';
-    var notLoggedDetail = typeof tUi === 'function' ? tUi('home.status.notLoggedTodayDetail') : 'No log for today yet. Tap + to record how you feel.';
+    var notLoggedDetail = streakBroken
+      ? (typeof tUi === 'function' ? tUi('home.status.notLoggedStreakBrokenDetail') : 'You logged yesterday but not yet today. Tap + to record how you feel.')
+      : (typeof tUi === 'function' ? tUi('home.status.notLoggedTodayDetail') : 'No log for today yet. Tap + to record how you feel.');
     statusEl.innerHTML = '<strong>' + escapeHTML(notLoggedTitle) + '</strong><p class="home-status-detail">' + escapeHTML(notLoggedDetail).replace('+', '<span class="home-plus-emphasis" aria-hidden="true">+</span>') + '</p>';
+    statusEl.classList.toggle('home-today-status--streak-nudge', streakBroken);
     if (hero) hero.classList.remove('home-hero-card--logged');
   }
   if (typeof renderHomeAiSuggestions === 'function') renderHomeAiSuggestions();

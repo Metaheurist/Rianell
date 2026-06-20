@@ -135,6 +135,40 @@ function resolveSettingsPaneTitle(pane) {
   return pane.getAttribute('data-settings-pane-title') || '';
 }
 
+function getSettingsAppLockIconState() {
+  var enabled = typeof window !== 'undefined' && window.appSettings && window.appSettings.appLockEnabled;
+  return enabled ? 'locked' : 'unlocked';
+}
+
+function findSettingsSecurityLockPaneIndex(panes) {
+  if (!panes || !panes.length) return -1;
+  for (var i = 0; i < panes.length; i++) {
+    if (panes[i].getAttribute('data-settings-pane-i18n') === 'settings.security.title') return i;
+  }
+  return -1;
+}
+
+function refreshSettingsSecurityLockTabIcon(svgIcon) {
+  var track = document.getElementById('settingsCarouselTrack');
+  if (!track) return;
+  var panes = track.querySelectorAll('.settings-carousel-pane');
+  var idx = findSettingsSecurityLockPaneIndex(panes);
+  if (idx < 0) return;
+  var dotsWrap = document.getElementById('settingsCarouselDots');
+  if (!dotsWrap) return;
+  var dot = dotsWrap.querySelector('.settings-carousel-dot[data-settings-target="' + String(idx) + '"]');
+  if (!dot) {
+    ensureSettingsCarouselDots(panes, svgIcon);
+    return;
+  }
+  var enabled = typeof window !== 'undefined' && window.appSettings && window.appSettings.appLockEnabled;
+  var iconWrap = dot.querySelector('.settings-carousel-dot__icon');
+  if (iconWrap && typeof svgIcon === 'function') {
+    iconWrap.innerHTML = svgIcon(enabled ? 'lock' : 'lock-open', 'ui-svg-icon');
+  }
+  dotsWrap.setAttribute('data-app-lock-state', getSettingsAppLockIconState());
+}
+
 function ensureSettingsCarouselDots(panes, svgIcon) {
   var dotsWrap = document.getElementById('settingsCarouselDots');
   if (!dotsWrap) return;
@@ -148,15 +182,22 @@ function ensureSettingsCarouselDots(panes, svgIcon) {
   if (
     dotsWrap.childElementCount === n &&
     dotsWrap.getAttribute('data-carousel-icons') === 'svg' &&
-    dotsWrap.getAttribute('data-pane-count') === String(n)
+    dotsWrap.getAttribute('data-pane-count') === String(n) &&
+    dotsWrap.getAttribute('data-app-lock-state') === getSettingsAppLockIconState()
   ) {
     return;
   }
   dotsWrap.setAttribute('data-pane-count', String(n));
+  dotsWrap.setAttribute('data-app-lock-state', getSettingsAppLockIconState());
   dotsWrap.innerHTML = '';
   dotsWrap.setAttribute('data-carousel-icons', 'svg');
 
-  function settingsIconForTitle(title, idx) {
+  function settingsIconForTitle(title, idx, paneEl) {
+    var paneKey = paneEl && paneEl.getAttribute ? paneEl.getAttribute('data-settings-pane-i18n') : '';
+    if (paneKey === 'settings.security.title') {
+      var enabled = typeof window !== 'undefined' && window.appSettings && window.appSettings.appLockEnabled;
+      return enabled ? 'lock' : 'lock-open';
+    }
     var t = String(title || '').toLowerCase();
     if (t.indexOf('privacy') !== -1 || t.indexOf('region') !== -1) return 'document';
     if (t.indexOf('personal') !== -1 || t.indexOf('cloud') !== -1) return 'user';
@@ -168,6 +209,7 @@ function ensureSettingsCarouselDots(panes, svgIcon) {
     if (t.indexOf('performance') !== -1) return 'zap';
     if (t.indexOf('install') !== -1) return 'save';
     if (t.indexOf('data management') !== -1) return 'save';
+    if (t.indexOf('security') !== -1) return 'lock-open';
     return idx % 2 === 0 ? 'chart-bars' : 'document';
   }
 
@@ -181,7 +223,7 @@ function ensureSettingsCarouselDots(panes, svgIcon) {
     dot.setAttribute('data-settings-target', String(i));
     dot.innerHTML =
       '<span class="settings-carousel-dot__icon" aria-hidden="true">' +
-      svgIcon(settingsIconForTitle(paneTitle, i), 'ui-svg-icon') +
+      svgIcon(settingsIconForTitle(paneTitle, i, panes[i]), 'ui-svg-icon') +
       '</span>';
     dot.addEventListener('click', function (e) {
       var idx = parseInt(e.currentTarget.getAttribute('data-settings-target') || '0', 10);
@@ -522,6 +564,9 @@ export function installSettingsModule(deps) {
     initSettingsCarouselUI,
     filterSettingsPanes,
     getSettingsPaneIndexByI18nKey,
+    refreshSettingsSecurityLockTabIcon: function () {
+      refreshSettingsSecurityLockTabIcon(svgIcon);
+    },
     settingsOverlaySetOpen: function (overlay, open) {
       settingsOverlaySetOpen(overlay, open, { loadSettingsState, initSettingsCarouselUI });
     },
