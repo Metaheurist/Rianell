@@ -646,6 +646,13 @@ var RianellShared = (() => {
           "ePrivacyStorageBanner": {
             "enabled": true,
             "requiredConsents": []
+          },
+          "sessionRecording": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "sessionRecording"
+            ]
           }
         }
       },
@@ -702,6 +709,13 @@ var RianellShared = (() => {
           "ePrivacyStorageBanner": {
             "enabled": false,
             "requiredConsents": []
+          },
+          "sessionRecording": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "sessionRecording"
+            ]
           }
         }
       },
@@ -758,6 +772,13 @@ var RianellShared = (() => {
           "ePrivacyStorageBanner": {
             "enabled": false,
             "requiredConsents": []
+          },
+          "sessionRecording": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "sessionRecording"
+            ]
           }
         }
       },
@@ -814,6 +835,13 @@ var RianellShared = (() => {
           "ePrivacyStorageBanner": {
             "enabled": false,
             "requiredConsents": []
+          },
+          "sessionRecording": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "sessionRecording"
+            ]
           }
         }
       },
@@ -870,6 +898,13 @@ var RianellShared = (() => {
           "ePrivacyStorageBanner": {
             "enabled": false,
             "requiredConsents": []
+          },
+          "sessionRecording": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "sessionRecording"
+            ]
           }
         }
       },
@@ -935,6 +970,13 @@ var RianellShared = (() => {
           "ePrivacyStorageBanner": {
             "enabled": false,
             "requiredConsents": []
+          },
+          "sessionRecording": {
+            "enabled": true,
+            "requiredConsents": [
+              "healthData",
+              "sessionRecording"
+            ]
           }
         }
       }
@@ -971,7 +1013,8 @@ var RianellShared = (() => {
   var POLICY_BODIES = {
     "global-baseline": [
       "Rianell is a personal wellness tracker. Your health logs are stored on your device unless you turn on optional cloud backup.",
-      "Optional features (encrypted cloud backup, anonymised research contribution, and on-device AI) each need separate consent. You can change or withdraw consent in Settings.",
+      "Optional features (encrypted cloud backup, anonymised research contribution, on-device AI, and optional session recording) each need separate consent. You can change or withdraw consent in Settings.",
+      "Session recording (Smartlook) is off by default. When enabled, it may capture screens you view, including health data you have entered. You can turn it off at any time under Settings \u2192 Privacy.",
       "You can export your data or delete local and cloud copies at any time from Settings \u2192 Data options."
     ],
     "eu-gdpr": [
@@ -1124,6 +1167,7 @@ var RianellShared = (() => {
     if (key === "cloudSync") return c.cloudSync === true || c.backup === true;
     if (key === "anonContribution") return c.anonContribution === true || c.contributeAnonData === true;
     if (key === "aiModel") return c.aiModel === true || c.aiEnabled === true || c.aiModelDownloadConsent === "granted";
+    if (key === "sessionRecording") return c.sessionRecording === true;
     return c[key] === true;
   }
   function getFeatureAvailability(regionId, featureKey, consents, pack) {
@@ -1147,7 +1191,8 @@ var RianellShared = (() => {
       ["backup", "cloudEncryptedBackup"],
       ["contributeAnonData", "anonymizedResearchPool"],
       ["useOpenData", "openDataPoolForAi"],
-      ["aiEnabled", "onDeviceLlmDownload"]
+      ["aiEnabled", "onDeviceLlmDownload"],
+      ["sessionRecording", "sessionRecording"]
     ];
     for (const [field, featureKey] of checks) {
       const avail = getFeatureAvailability(newRegionId, featureKey, consents, pack);
@@ -1166,7 +1211,8 @@ var RianellShared = (() => {
       contributeAnonData: p.contributeAnonData === true,
       aiModel: p.aiEnabled !== false && (p.aiModelDownloadConsent === "granted" || p.aiEnabled === true),
       aiEnabled: p.aiEnabled !== false,
-      aiModelDownloadConsent: p.aiModelDownloadConsent
+      aiModelDownloadConsent: p.aiModelDownloadConsent,
+      sessionRecording: p.sessionRecording === true
     };
   }
 
@@ -1360,7 +1406,8 @@ var RianellShared = (() => {
     { id: "anonymizedSync", labelKey: "settings.privacy.localOnly.anonymizedSync" },
     { id: "modelDownload", labelKey: "settings.privacy.localOnly.modelDownload" },
     { id: "bugReport", labelKey: "settings.privacy.localOnly.bugReport" },
-    { id: "remoteLlm", labelKey: "settings.privacy.localOnly.remoteLlm" }
+    { id: "remoteLlm", labelKey: "settings.privacy.localOnly.remoteLlm" },
+    { id: "sessionRecording", labelKey: "settings.privacy.localOnly.sessionRecording" }
   ];
   function isLocalOnlyModeEnabled(prefs) {
     const p = prefs && typeof prefs === "object" ? prefs : {};
@@ -3137,6 +3184,12 @@ ${hist}`);
       granted: p.contributeAnonData === true,
       updatedAt: p.contributeAnonDataAt || null,
       revokeField: "contributeAnonData"
+    });
+    rows.push({
+      id: "sessionRecording",
+      granted: p.sessionRecording === true,
+      updatedAt: p.sessionRecordingAt || null,
+      revokeField: "sessionRecording"
     });
     return rows;
   }

@@ -155,15 +155,38 @@
   var gateVisible = false;
   var gateUiBound = false;
 
+  function logGateState(phase) {
+    if (typeof console !== 'undefined' && console.log) {
+      console.log('[Rianell boot]', JSON.stringify({
+        phase: phase,
+        gateVisible: gateVisible,
+        privacyGate: !!(document.body && document.body.classList.contains('privacy-gate-active')),
+        loaded: !!(document.body && document.body.classList.contains('loaded')),
+      }));
+    }
+    if (typeof global !== 'undefined') {
+      global.__rianellBootLog = global.__rianellBootLog || [];
+      global.__rianellBootLog.push({
+        t: Date.now(),
+        phase: phase,
+        gateVisible: gateVisible,
+        privacyGate: !!(document.body && document.body.classList.contains('privacy-gate-active')),
+        loaded: !!(document.body && document.body.classList.contains('loaded')),
+      });
+    }
+  }
+
   function hidePrivacyGateOverlay() {
     gateVisible = false;
     var overlay = document.getElementById('privacyRegionGateOverlay');
     if (overlay) overlay.style.display = 'none';
     document.body.classList.remove('privacy-gate-active');
+    logGateState('hidePrivacyGateOverlay');
   }
 
   function unlockApp() {
     hidePrivacyGateOverlay();
+    logGateState('unlockApp');
     var cbs = gateUnlockCallbacks.slice();
     gateUnlockCallbacks = [];
     cbs.forEach(function (cb) {
@@ -181,6 +204,7 @@
     gateVisible = true;
     initGateUI();
     document.body.classList.add('privacy-gate-active');
+    logGateState('showGate');
     var overlay = document.getElementById('privacyRegionGateOverlay');
     if (!overlay) return;
     overlay.style.display = 'flex';

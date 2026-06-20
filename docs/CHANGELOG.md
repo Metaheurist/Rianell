@@ -2,7 +2,15 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.114.0** - Security lock settings tab, Home/Charts UX trim, screening sliders, i18n copy.
+**Latest: v1.115.0** - PWA boot black-screen fix, Smartlook session recording (opt-in), shell layout probes.
+
+### v1.115.0 - 2026-06-20 - PWA boot shell fix, Smartlook session recording
+- **PWA boot (black screen):** `#appShell` was nested inside `#settingsOverlay` due to a missing `</div>` in `index.html` — shell reported `shellVis: visible` but `shellW/H: 0` and painted nothing. Fixed DOM structure; added `ensureAppShellDomPlacement()` runtime reparent for cached HTML; expanded `[Rianell boot]` diagnostics (`shellParentId`, `shellMisplaced`, `mainW/H`, open modals).
+- **Boot probes:** `npm run audit:probe-shell`, `audit:probe-shell:screenshot`, `scripts/audit/probe-shell-layout-debug.mjs`, `scripts/audit/check-dom-nesting.mjs`; `tests/unit/pwa-boot-shell.test.mjs`.
+- **Smartlook (opt-in):** EU session recording on PWA + RN — off by default; Settings → Privacy & region → Session recording; Consent dashboard revoke; blocked in local-only mode. PWA `smartlook.js`; RN `sessionRecording.ts` + `react-native-smartlook-analytics`; CSP `connect-src` for `*.smartlook.com` / `*.smartlook.cloud`.
+- **Privacy docs:** [smartlook-session-recording.md](privacy/smartlook-session-recording.md), subprocessors, RoPA **PA-10**, policy pack `sessionRecording` consent, FREE-TIER-POLICY.
+- **i18n:** `settings.privacy.sessionRecording.*` keys (en-GB + policy pack sync).
+- **Tests:** `smartlook-session-recording.test.mjs`; consent dashboard **6 rows**; **326** unit tests total.
 
 ### v1.114.0 - 2026-06-18 - Security lock tab, Home/Charts UX, screening sliders
 - **Settings:** Tenth carousel pane **Security lock** (PWA + RN) — app passcode setup with hidden PIN + confirm fields; locked/unlocked icons on tab dot; **caregiver / proxy logging** moved from Privacy pane; app lock removed from tab 1.

@@ -768,7 +768,8 @@
   }
 
   function needsDownloadConsent() {
-    return getDownloadConsent() !== 'granted';
+    var consent = getDownloadConsent();
+    return consent !== 'granted' && consent !== 'deferred';
   }
 
   function isLlmNetworkAllowed() {
@@ -902,6 +903,7 @@
   }
 
   async function ensureDownloadConsent() {
+    if (getDownloadConsent() === 'deferred') return false;
     if (!needsDownloadConsent()) return true;
     if (typeof window !== 'undefined' && typeof window.promptAiModelDownloadConsent === 'function') {
       return window.promptAiModelDownloadConsent(getResolvedModelId());

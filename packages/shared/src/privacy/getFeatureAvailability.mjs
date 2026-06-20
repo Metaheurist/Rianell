@@ -7,6 +7,7 @@ function consentOk(consents, key) {
   if (key === 'cloudSync') return c.cloudSync === true || c.backup === true;
   if (key === 'anonContribution') return c.anonContribution === true || c.contributeAnonData === true;
   if (key === 'aiModel') return c.aiModel === true || c.aiEnabled === true || c.aiModelDownloadConsent === 'granted';
+  if (key === 'sessionRecording') return c.sessionRecording === true;
   return c[key] === true;
 }
 
@@ -33,6 +34,7 @@ export function applyRegionDowngradeToggles(prefs, oldRegionId, newRegionId, pac
     ['contributeAnonData', 'anonymizedResearchPool'],
     ['useOpenData', 'openDataPoolForAi'],
     ['aiEnabled', 'onDeviceLlmDownload'],
+    ['sessionRecording', 'sessionRecording'],
   ];
   for (const [field, featureKey] of checks) {
     const avail = getFeatureAvailability(newRegionId, featureKey, consents, pack);
@@ -53,5 +55,6 @@ export function prefsToConsents(prefs) {
     aiModel: p.aiEnabled !== false && (p.aiModelDownloadConsent === 'granted' || p.aiEnabled === true),
     aiEnabled: p.aiEnabled !== false,
     aiModelDownloadConsent: p.aiModelDownloadConsent,
+    sessionRecording: p.sessionRecording === true,
   };
 }

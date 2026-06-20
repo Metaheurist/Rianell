@@ -28,6 +28,9 @@ const requiredHosts = [
   'https://raw.githubusercontent.com',
   'https://api.open-meteo.com',
   'https://air-quality-api.open-meteo.com',
+  'https://web-sdk.smartlook.com',
+  'https://*.smartlook.com',
+  'https://*.smartlook.cloud',
 ];
 
 for (const host of requiredHosts) {
