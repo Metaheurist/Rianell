@@ -6,6 +6,37 @@ The PWA ships a full **Content Security Policy** in **`apps/pwa-webapp/index.htm
 - `Loading the stylesheet … violates … style-src` (**`fonts.googleapis.com`**, **`cdn.jsdelivr.net`** Font Awesome)
 - `Supabase library not loaded` / dynamic import failures for **`@huggingface/transformers`**
 
+## Open-Meteo weather (H5) — common production break
+
+Home weather uses **[Open-Meteo](https://open-meteo.com/)** — **free, public, no API key or subscription**. Endpoints:
+
+| Host | Purpose |
+|------|---------|
+| `https://api.open-meteo.com` | Forecast (pressure, temperature) |
+| `https://air-quality-api.open-meteo.com` | US AQI (optional) |
+
+If the console shows `Fetch API cannot load https://api.open-meteo.com/... violates Content Security Policy`, the **HTTP** CSP at Cloudflare is **out of date**. The PWA **meta** tag in `index.html` already allows these hosts; a **narrower edge header** still blocks fetches because browsers require **both** policies to allow each origin.
+
+**Symptom check:** In DevTools → Network → document response headers, find `content-security-policy`. If `connect-src` lists Supabase/Hugging Face but **not** `api.open-meteo.com`, update Cloudflare (below).
+
+### Cloudflare: update `connect-src` (step by step)
+
+1. Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/) → select zone **rianell.com**.
+2. **Rules** → **Transform Rules** → **Modify Response Header** (or **Rules** → **Response Header Transform Rules**).
+3. Find the rule that **sets** `Content-Security-Policy` (often named for client-side security or custom headers).
+4. **Either (recommended for simplicity):** **Delete** that rule so only the PWA **meta** CSP applies (single source of truth on each deploy).
+5. **Or:** Edit the rule value and paste the full policy from section **B** below (must include `https://api.open-meteo.com` and `https://air-quality-api.open-meteo.com` inside `connect-src`).
+6. **Save** and **Purge cache** (Caching → Purge Everything) for HTML if needed.
+7. Hard-refresh the site (Ctrl+Shift+R) and confirm weather loads without CSP errors.
+
+**Permissions-Policy:** Weather opt-in needs geolocation. Keep `geolocation=(self)` in the edge header (do not use `geolocation=()`).
+
+**Verify locally after the change:**
+
+```bash
+npm run verify:csp
+```
+
 ## Report-only CSP noise (Cloudflare challenge / monitoring)
 
 If the console shows many lines like:
