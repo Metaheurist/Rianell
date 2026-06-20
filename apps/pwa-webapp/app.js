@@ -15694,6 +15694,17 @@ function privacyFeatureAvailable(featureKey) {
   return true;
 }
 
+function clearPrivacyGateShellLock() {
+  if (typeof document === 'undefined' || !document.body) return;
+  document.body.classList.remove('privacy-gate-active');
+  var gate = document.getElementById('privacyRegionGateOverlay');
+  if (gate) gate.style.display = 'none';
+  var shell = document.getElementById('appShell');
+  if (shell) {
+    try { shell.removeAttribute('inert'); } catch (e) { /* ignore */ }
+  }
+}
+
 function startAppAfterPrivacyGate() {
   var initFn = typeof window !== 'undefined' && typeof window.__rianellRunAppInit === 'function'
     ? window.__rianellRunAppInit
@@ -21569,12 +21580,13 @@ function runRianellBootAfterDomReady() {
   }
 
   function revealAppShell() {
+    clearPrivacyGateShellLock();
+    document.body.classList.remove('loading');
+    document.body.classList.add('loaded');
     setOrbitLoadingProgress(100);
     finishLoadingOverlayWithBurst(function () {
       if (loadingOverlay) {
         loadingOverlay.classList.add('hidden');
-        document.body.classList.remove('loading');
-        document.body.classList.add('loaded');
         try {
           document.body.setAttribute('data-benchmark', 'main-ready');
         } catch (e) { /* ignore */ }
@@ -21589,8 +21601,6 @@ function runRianellBootAfterDomReady() {
         }
         setTimeout(function () { loadingOverlay.remove(); }, 500);
       } else {
-        document.body.classList.remove('loading');
-        document.body.classList.add('loaded');
         try {
           document.body.setAttribute('data-benchmark', 'main-ready');
         } catch (e) { /* ignore */ }
@@ -21791,6 +21801,7 @@ function runRianellBootAfterDomReady() {
       try { window.DeviceBenchmark.saveBenchmarkResult(result); } catch (e) {}
     }
     function revealAndStart() {
+      clearPrivacyGateShellLock();
       if (loadingOverlay) {
         loadingOverlay.classList.add('hidden');
         document.body.classList.remove('loading');
