@@ -14,6 +14,7 @@ const requiredFiles = [
   'docs/privacy/dpia-health-sync.md',
   'docs/privacy/data-subject-rights.md',
   'docs/privacy/subprocessors.md',
+  'docs/privacy/smartlook-session-recording.md',
   'docs/privacy/ropa.json',
   'docs/privacy/region-policy-execution-plan.md',
   'docs/threat-model.md',

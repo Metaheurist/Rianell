@@ -48,6 +48,26 @@ runs:
         fs.writeFileSync(path, c);
         "
 
+    - name: Inject Smartlook project key for GitHub Pages
+      shell: bash
+      env:
+        SMARTLOOK_PROJECT_KEY: ${{ env.SMARTLOOK_PROJECT_KEY }}
+        SITE_PATH: ${{ inputs.site-path }}
+      run: |
+        set -euo pipefail
+        node -e "
+        const fs = require('fs');
+        const path = process.env.SITE_PATH + '/smartlook-config.js';
+        if (!fs.existsSync(path)) {
+          console.log('smartlook-config.js missing — skipping Smartlook inject');
+          process.exit(0);
+        }
+        let c = fs.readFileSync(path, 'utf8');
+        const key = process.env.SMARTLOOK_PROJECT_KEY || '';
+        c = c.replace(/projectKey:\s*['\"][^'\"]*['\"]/, 'projectKey: ' + JSON.stringify(key || 'YOUR_SMARTLOOK_PROJECT_KEY'));
+        fs.writeFileSync(path, c);
+        "
+
     - name: Inject Web Push VAPID public key for GitHub Pages
       shell: bash
       env:

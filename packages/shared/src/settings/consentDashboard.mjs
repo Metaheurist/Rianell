@@ -34,6 +34,12 @@ export function buildConsentDashboardEntries(input) {
     updatedAt: p.contributeAnonDataAt || null,
     revokeField: 'contributeAnonData',
   });
+  rows.push({
+    id: 'sessionRecording',
+    granted: p.sessionRecording === true,
+    updatedAt: p.sessionRecordingAt || null,
+    revokeField: 'sessionRecording',
+  });
 
   return rows;
 }

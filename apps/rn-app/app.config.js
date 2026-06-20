@@ -36,6 +36,10 @@ const iosBundleIdentifier = firstNonEmpty(
   appJson?.expo?.ios?.bundleIdentifier,
   'com.anonymous.mobile'
 );
+const smartlookProjectKey = firstNonEmpty(
+  process.env.EXPO_PUBLIC_SMARTLOOK_PROJECT_KEY,
+  process.env.SMARTLOOK_PROJECT_KEY
+);
 
 module.exports = {
   expo: {
@@ -48,6 +52,7 @@ module.exports = {
       ...(appJson.expo.extra || {}),
       supabaseUrl,
       supabaseAnonKey,
+      smartlookProjectKey,
       llmEndpoint,
       modelsBaseUrl,
     },
