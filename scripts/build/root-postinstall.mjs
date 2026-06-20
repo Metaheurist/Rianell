@@ -28,6 +28,7 @@ if (alreadyRan()) {
 
 const steps = [
   'node scripts/build/patch-onnxruntime-gradle.mjs',
+  'node scripts/build/patch-smartlook-kotlin.mjs',
   'node scripts/build/sync-llm-tier-benchmark.mjs',
   'node scripts/build/sync-llm-load-ladder.mjs',
   'node scripts/build/sync-llm-runtime-profiles.mjs',
