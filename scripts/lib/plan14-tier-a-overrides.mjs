@@ -1,5 +1,187 @@
 /** Plan 14 i18n — Tier A overrides for cross-cutting keys (full translations). */
 
+const WEEKLY_REVIEW_UI_FR = {
+  'weeklyReview.correlations.lede': 'Tendances des deux dernières semaines — touchez un onglet ci-dessus pour explorer chaque section.',
+  'weeklyReview.correlation.lead': '{label} : lien {confidence} — les mesures évoluent {direction} ensemble (r={coef}).',
+  'weeklyReview.correlation.positive': 'dans le même sens',
+  'weeklyReview.correlation.negative': 'en sens opposé',
+  'weeklyReview.correlation.confidence.high': 'Fort',
+  'weeklyReview.correlation.confidence.medium': 'Modéré',
+  'weeklyReview.correlation.confidence.low': 'Léger',
+  'weeklyReview.correlation.coef': 'r = {value}',
+  'weeklyReview.digest.lede': 'Comparé à la semaine précédente (échelle 0–10) :',
+  'weeklyReview.digest.empty': 'Continuez à enregistrer quotidiennement pour débloquer votre synthèse hebdomadaire.',
+  'weeklyReview.digest.emptyDetail': 'Il faut au moins sept jours avec humeur, sommeil et fatigue.',
+  'weeklyReview.digest.change': '{metric} : {current}/10 cette semaine ({kind} par rapport à {prior}/10).',
+  'weeklyReview.digest.kind.improvement': 'en hausse',
+  'weeklyReview.digest.kind.concern': 'en baisse',
+  'weeklyReview.metric.mood': 'Humeur',
+  'weeklyReview.metric.sleep': 'Sommeil',
+  'weeklyReview.metric.fatigue': 'Fatigue',
+  'weeklyReview.chart.prior': 'Préc.',
+  'weeklyReview.chart.thisWeek': 'Sem.',
+  'weeklyReview.carousel.sections': 'Sections du bilan hebdomadaire',
+  'weeklyReview.tab.goto': 'Aller à la section {index} : {title}',
+  'weeklyReview.brief.lede': 'Un aperçu clair à partager lors de votre prochain rendez-vous.',
+  'weeklyReview.confirm.detail': 'Votre PDF inclut corrélations, synthèse et brief de visite — rien ne quitte cet appareil sauf si vous le partagez.',
+};
+
+const WEEKLY_REVIEW_UI_DE = {
+  'weeklyReview.correlations.lede': 'Muster der letzten zwei Wochen — tippen Sie oben auf einen Tab, um jeden Abschnitt zu öffnen.',
+  'weeklyReview.correlation.lead': '{label}: {confidence}er Zusammenhang — Werte bewegen sich {direction} (r={coef}).',
+  'weeklyReview.correlation.positive': 'in die gleiche Richtung',
+  'weeklyReview.correlation.negative': 'in entgegengesetzte Richtung',
+  'weeklyReview.correlation.confidence.high': 'Stark',
+  'weeklyReview.correlation.confidence.medium': 'Mäßig',
+  'weeklyReview.correlation.confidence.low': 'Leicht',
+  'weeklyReview.correlation.coef': 'r = {value}',
+  'weeklyReview.digest.lede': 'Im Vergleich zur Vorwoche (Skala 0–10):',
+  'weeklyReview.digest.empty': 'Protokollieren Sie täglich weiter, um Ihre Wochenzusammenfassung freizuschalten.',
+  'weeklyReview.digest.emptyDetail': 'Wir benötigen mindestens sieben Tage mit Stimmungs-, Schlaf- und Müdigkeitswerten.',
+  'weeklyReview.digest.change': '{metric}: {current}/10 diese Woche ({kind} von {prior}/10).',
+  'weeklyReview.digest.kind.improvement': 'gestiegen',
+  'weeklyReview.digest.kind.concern': 'gesunken',
+  'weeklyReview.metric.mood': 'Stimmung',
+  'weeklyReview.metric.sleep': 'Schlaf',
+  'weeklyReview.metric.fatigue': 'Müdigkeit',
+  'weeklyReview.chart.prior': 'Vorh.',
+  'weeklyReview.chart.thisWeek': 'Woche',
+  'weeklyReview.carousel.sections': 'Abschnitte des Wochenrückblicks',
+  'weeklyReview.tab.goto': 'Zu Abschnitt {index}: {title}',
+  'weeklyReview.brief.lede': 'Eine verständliche Zusammenfassung für Ihren nächsten Termin.',
+  'weeklyReview.confirm.detail': 'Ihr PDF enthält Korrelationen, Digest und Besuchsvorbereitung — nichts verlässt dieses Gerät, außer Sie teilen es.',
+};
+
+const WEEKLY_REVIEW_UI_ES = {
+  'weeklyReview.correlations.lede': 'Patrones de las últimas dos semanas — toque una pestaña arriba para explorar cada sección.',
+  'weeklyReview.correlation.lead': '{label}: vínculo {confidence} — las métricas se mueven {direction} juntas (r={coef}).',
+  'weeklyReview.correlation.positive': 'en la misma dirección',
+  'weeklyReview.correlation.negative': 'en direcciones opuestas',
+  'weeklyReview.correlation.confidence.high': 'Fuerte',
+  'weeklyReview.correlation.confidence.medium': 'Moderado',
+  'weeklyReview.correlation.confidence.low': 'Leve',
+  'weeklyReview.correlation.coef': 'r = {value}',
+  'weeklyReview.digest.lede': 'Comparado con la semana anterior (escala 0–10):',
+  'weeklyReview.digest.empty': 'Siga registrando a diario para desbloquear su resumen semanal.',
+  'weeklyReview.digest.emptyDetail': 'Necesitamos al menos siete días con puntuaciones de ánimo, sueño y fatiga.',
+  'weeklyReview.digest.change': '{metric}: {current}/10 esta semana ({kind} desde {prior}/10).',
+  'weeklyReview.digest.kind.improvement': 'al alza',
+  'weeklyReview.digest.kind.concern': 'a la baja',
+  'weeklyReview.metric.mood': 'Ánimo',
+  'weeklyReview.metric.sleep': 'Sueño',
+  'weeklyReview.metric.fatigue': 'Fatiga',
+  'weeklyReview.chart.prior': 'Ant.',
+  'weeklyReview.chart.thisWeek': 'Sem.',
+  'weeklyReview.carousel.sections': 'Secciones de la revisión semanal',
+  'weeklyReview.tab.goto': 'Ir a la sección {index}: {title}',
+  'weeklyReview.brief.lede': 'Un resumen claro para compartir en su próxima cita.',
+  'weeklyReview.confirm.detail': 'Su PDF incluye correlaciones, resumen y brief de visita — nada sale de este dispositivo salvo que lo comparta.',
+};
+
+const WEEKLY_REVIEW_UI_IT = {
+  'weeklyReview.correlations.lede': 'Andamenti delle ultime due settimane — tocca una scheda sopra per esplorare ogni sezione.',
+  'weeklyReview.correlation.lead': '{label}: collegamento {confidence} — le metriche si muovono {direction} insieme (r={coef}).',
+  'weeklyReview.correlation.positive': 'nella stessa direzione',
+  'weeklyReview.correlation.negative': 'in direzioni opposte',
+  'weeklyReview.correlation.confidence.high': 'Forte',
+  'weeklyReview.correlation.confidence.medium': 'Moderato',
+  'weeklyReview.correlation.confidence.low': 'Lieve',
+  'weeklyReview.correlation.coef': 'r = {value}',
+  'weeklyReview.digest.lede': 'Rispetto alla settimana precedente (scala 0–10):',
+  'weeklyReview.digest.empty': 'Continua a registrare ogni giorno per sbloccare il riepilogo settimanale.',
+  'weeklyReview.digest.emptyDetail': 'Servono almeno sette giorni con punteggi di umore, sonno e affaticamento.',
+  'weeklyReview.digest.change': '{metric}: {current}/10 questa settimana ({kind} da {prior}/10).',
+  'weeklyReview.digest.kind.improvement': 'in aumento',
+  'weeklyReview.digest.kind.concern': 'in calo',
+  'weeklyReview.metric.mood': 'Umore',
+  'weeklyReview.metric.sleep': 'Sonno',
+  'weeklyReview.metric.fatigue': 'Affaticamento',
+  'weeklyReview.chart.prior': 'Prec.',
+  'weeklyReview.chart.thisWeek': 'Sett.',
+  'weeklyReview.carousel.sections': 'Sezioni della revisione settimanale',
+  'weeklyReview.tab.goto': 'Vai alla sezione {index}: {title}',
+  'weeklyReview.brief.lede': 'Un riepilogo chiaro da condividere al prossimo appuntamento.',
+  'weeklyReview.confirm.detail': 'Il PDF include correlazioni, riepilogo e brief di visita — nulla lascia questo dispositivo salvo condivisione.',
+};
+
+const WEEKLY_REVIEW_UI_NL = {
+  'weeklyReview.correlations.lede': 'Patronen van de afgelopen twee weken — tik op een tab hierboven om elke sectie te bekijken.',
+  'weeklyReview.correlation.lead': '{label}: {confidence} verband — metingen bewegen {direction} samen (r={coef}).',
+  'weeklyReview.correlation.positive': 'in dezelfde richting',
+  'weeklyReview.correlation.negative': 'in tegengestelde richting',
+  'weeklyReview.correlation.confidence.high': 'Sterk',
+  'weeklyReview.correlation.confidence.medium': 'Matig',
+  'weeklyReview.correlation.confidence.low': 'Licht',
+  'weeklyReview.correlation.coef': 'r = {value}',
+  'weeklyReview.digest.lede': 'Vergeleken met de vorige week (schaal 0–10):',
+  'weeklyReview.digest.empty': 'Blijf dagelijks loggen om je wekelijkse samenvatting te ontgrendelen.',
+  'weeklyReview.digest.emptyDetail': 'We hebben minstens zeven dagen met stemming-, slaap- en vermoeidheidsscores nodig.',
+  'weeklyReview.digest.change': '{metric}: {current}/10 deze week ({kind} van {prior}/10).',
+  'weeklyReview.digest.kind.improvement': 'gestegen',
+  'weeklyReview.digest.kind.concern': 'gedaald',
+  'weeklyReview.metric.mood': 'Stemming',
+  'weeklyReview.metric.sleep': 'Slaap',
+  'weeklyReview.metric.fatigue': 'Vermoeidheid',
+  'weeklyReview.chart.prior': 'Vorig',
+  'weeklyReview.chart.thisWeek': 'Week',
+  'weeklyReview.carousel.sections': 'Secties van de wekelijkse review',
+  'weeklyReview.tab.goto': 'Ga naar sectie {index}: {title}',
+  'weeklyReview.brief.lede': 'Een helder overzicht om te delen bij je volgende afspraak.',
+  'weeklyReview.confirm.detail': 'Je PDF bevat correlaties, samenvatting en bezoekbrief — niets verlaat dit apparaat tenzij je deelt.',
+};
+
+const WEEKLY_REVIEW_UI_PL = {
+  'weeklyReview.correlations.lede': 'Wzorce z ostatnich dwóch tygodni — dotknij zakładki powyżej, aby przejrzeć każdą sekcję.',
+  'weeklyReview.correlation.lead': '{label}: {confidence} powiązanie — wskaźniki zmieniają się {direction} razem (r={coef}).',
+  'weeklyReview.correlation.positive': 'w tym samym kierunku',
+  'weeklyReview.correlation.negative': 'w przeciwnych kierunkach',
+  'weeklyReview.correlation.confidence.high': 'Silne',
+  'weeklyReview.correlation.confidence.medium': 'Umiarkowane',
+  'weeklyReview.correlation.confidence.low': 'Łagodne',
+  'weeklyReview.correlation.coef': 'r = {value}',
+  'weeklyReview.digest.lede': 'W porównaniu z poprzednim tygodniem (skala 0–10):',
+  'weeklyReview.digest.empty': 'Kontynuuj codzienne logowanie, aby odblokować tygodniowe podsumowanie.',
+  'weeklyReview.digest.emptyDetail': 'Potrzebujemy co najmniej siedmiu dni z wynikami nastroju, snu i zmęczenia.',
+  'weeklyReview.digest.change': '{metric}: {current}/10 w tym tygodniu ({kind} z {prior}/10).',
+  'weeklyReview.digest.kind.improvement': 'w górę',
+  'weeklyReview.digest.kind.concern': 'w dół',
+  'weeklyReview.metric.mood': 'Nastrój',
+  'weeklyReview.metric.sleep': 'Sen',
+  'weeklyReview.metric.fatigue': 'Zmęczenie',
+  'weeklyReview.chart.prior': 'Popr.',
+  'weeklyReview.chart.thisWeek': 'Tydz.',
+  'weeklyReview.carousel.sections': 'Sekcje tygodniowego przeglądu',
+  'weeklyReview.tab.goto': 'Przejdź do sekcji {index}: {title}',
+  'weeklyReview.brief.lede': 'Przejrzyste podsumowanie do udostępnienia na następnej wizycie.',
+  'weeklyReview.confirm.detail': 'PDF zawiera korelacje, podsumowanie i brief wizyty — nic nie opuszcza urządzenia, chyba że udostępnisz.',
+};
+
+const WEEKLY_REVIEW_UI_PT = {
+  'weeklyReview.correlations.lede': 'Padrões das últimas duas semanas — toque num separador acima para explorar cada secção.',
+  'weeklyReview.correlation.lead': '{label}: ligação {confidence} — as métricas movem-se {direction} juntas (r={coef}).',
+  'weeklyReview.correlation.positive': 'na mesma direção',
+  'weeklyReview.correlation.negative': 'em direções opostas',
+  'weeklyReview.correlation.confidence.high': 'Forte',
+  'weeklyReview.correlation.confidence.medium': 'Moderada',
+  'weeklyReview.correlation.confidence.low': 'Ligeira',
+  'weeklyReview.correlation.coef': 'r = {value}',
+  'weeklyReview.digest.lede': 'Comparado com a semana anterior (escala 0–10):',
+  'weeklyReview.digest.empty': 'Continue a registar diariamente para desbloquear o resumo semanal.',
+  'weeklyReview.digest.emptyDetail': 'Precisamos de pelo menos sete dias com pontuações de humor, sono e fadiga.',
+  'weeklyReview.digest.change': '{metric}: {current}/10 esta semana ({kind} de {prior}/10).',
+  'weeklyReview.digest.kind.improvement': 'a subir',
+  'weeklyReview.digest.kind.concern': 'a descer',
+  'weeklyReview.metric.mood': 'Humor',
+  'weeklyReview.metric.sleep': 'Sono',
+  'weeklyReview.metric.fatigue': 'Fadiga',
+  'weeklyReview.chart.prior': 'Ant.',
+  'weeklyReview.chart.thisWeek': 'Sem.',
+  'weeklyReview.carousel.sections': 'Secções da revisão semanal',
+  'weeklyReview.tab.goto': 'Ir para a secção {index}: {title}',
+  'weeklyReview.brief.lede': 'Um resumo claro para partilhar na próxima consulta.',
+  'weeklyReview.confirm.detail': 'O PDF inclui correlações, resumo e brief de visita — nada sai deste dispositivo salvo se partilhar.',
+};
+
 const P14_FR = {
   'weeklyReview.title': 'Bilan santé hebdomadaire',
   'weeklyReview.progress': 'Étape {current} sur {total}',
@@ -60,6 +242,7 @@ const P14_FR = {
   'mentalHealth.crisis.ca988': 'Ligne 988 (Canada)',
   'mentalHealth.crisis.lifelineAu': 'Lifeline Australie',
   'mentalHealth.crisis.findaHelpline': 'Find A Helpline (monde)',
+  ...WEEKLY_REVIEW_UI_FR,
 };
 
 const P14_DE = {
@@ -122,6 +305,7 @@ const P14_DE = {
   'mentalHealth.crisis.ca988': '988 Krisenhotline (Kanada)',
   'mentalHealth.crisis.lifelineAu': 'Lifeline Australien',
   'mentalHealth.crisis.findaHelpline': 'Find A Helpline (weltweit)',
+  ...WEEKLY_REVIEW_UI_DE,
 };
 
 const P14_ES = {
@@ -137,6 +321,7 @@ const P14_ES = {
   'mentalHealth.title': 'Control de bienestar',
   'mentalHealth.phq2.title': 'Cribado de ánimo PHQ-2',
   'mentalHealth.gad2.title': 'Cribado de ansiedad GAD-2',
+  ...WEEKLY_REVIEW_UI_ES,
 };
 
 const P14_IT = {
@@ -147,6 +332,7 @@ const P14_IT = {
   'onDeviceMoat.title': 'IA sul dispositivo',
   'progressiveDisclosure.title': 'Rivelazione progressiva',
   'mentalHealth.title': 'Check-in benessere',
+  ...WEEKLY_REVIEW_UI_IT,
 };
 
 const P14_NL = {
@@ -156,6 +342,7 @@ const P14_NL = {
   'weeklyReview.card.action': 'Review starten',
   'onDeviceMoat.title': 'AI op het apparaat',
   'mentalHealth.title': 'Welzijns-check-in',
+  ...WEEKLY_REVIEW_UI_NL,
 };
 
 const P14_PL = {
@@ -165,6 +352,7 @@ const P14_PL = {
   'weeklyReview.card.action': 'Rozpocznij przegląd',
   'onDeviceMoat.title': 'AI na urządzeniu',
   'mentalHealth.title': 'Kontrola samopoczucia',
+  ...WEEKLY_REVIEW_UI_PL,
 };
 
 const P14_PT = {
@@ -172,6 +360,7 @@ const P14_PT = {
   'weeklyReview.title': 'Revisão semanal de saúde',
   'weeklyReview.card.title': 'Revisão semanal de saúde',
   'weeklyReview.card.action': 'Iniciar revisão',
+  ...WEEKLY_REVIEW_UI_PT,
 };
 
 /** Mood tab keys (v1.113.0) — keeps Tier A locales under verify:i18n 13% cap */
