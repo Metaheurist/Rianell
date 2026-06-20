@@ -470,6 +470,9 @@ export async function loadPreferences(): Promise<Preferences> {
       barcodeFoodLoggingEnabled: parsed.barcodeFoodLoggingEnabled === true,
       guidedVoiceLogEnabled: parsed.guidedVoiceLogEnabled === true,
       localOnlyMode: parsed.localOnlyMode === true,
+      sessionRecording: parsed.sessionRecording === true,
+      sessionRecordingAt:
+        typeof parsed.sessionRecordingAt === 'string' ? parsed.sessionRecordingAt : d.sessionRecordingAt,
       appLockEnabled: parsed.appLockEnabled === true,
       processingActivityLog: readProcessingActivity(parsed.processingActivityLog),
       cloudAutoSyncOnOpen: parsed.cloudAutoSyncOnOpen === true,
