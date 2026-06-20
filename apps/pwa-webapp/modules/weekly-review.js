@@ -302,13 +302,15 @@
     }
     card.hidden = false;
     card.innerHTML =
-      '<h3 class="home-weekly-review-title">' + escapeHTML(t('weeklyReview.card.title')) + '</h3>' +
-      '<p class="home-weekly-review-lead">' + escapeHTML(t('weeklyReview.card.lead')) + '</p>' +
+      '<button type="button" class="home-inset-dismiss" aria-label="' + escapeHTML(t('common.close')) + '">&times;</button>' +
+      '<h4 class="home-inset-title">' + escapeHTML(t('weeklyReview.card.title')) + '</h4>' +
+      '<p class="home-inset-body">' + escapeHTML(t('weeklyReview.card.lead')) + '</p>' +
+      '<div class="home-inset-actions">' +
       '<button type="button" class="action-btn home-weekly-review-start" data-ripple>' + escapeHTML(t('weeklyReview.card.action')) + '</button>' +
-      '<button type="button" class="text-btn home-weekly-review-dismiss">' + escapeHTML(t('weeklyReview.card.dismiss')) + '</button>';
+      '</div>';
     var startBtn = card.querySelector('.home-weekly-review-start');
     if (startBtn) startBtn.onclick = openWeeklyReviewModal;
-    var dismissBtn = card.querySelector('.home-weekly-review-dismiss');
+    var dismissBtn = card.querySelector('.home-inset-dismiss');
     if (dismissBtn) dismissBtn.onclick = function () {
       if (S.isoWeekMondayKey) saveSettingsPatch({ weeklyReviewDismissedWeek: S.isoWeekMondayKey(todayStr) });
       if (typeof global.applyHomeCardLayout === 'function') global.applyHomeCardLayout();

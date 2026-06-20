@@ -14,7 +14,7 @@ import {
 } from '../../../packages/shared/src/i18n/resolveLocale.mjs';
 import { loadCatalogsFromDisk } from '../../../packages/shared/src/i18n/loadCatalogs.mjs';
 import { DEFAULT_LOCALE, DEFAULT_PRIVACY_REGION } from '../../../packages/shared/src/i18n/locales.mjs';
-import { formatDate, formatRelativeDay } from '../../../packages/shared/src/i18n/format.mjs';
+import { formatDate, formatIsoDate, formatRelativeDay } from '../../../packages/shared/src/i18n/format.mjs';
 import { isRtlLocale, textDirection } from '../../../packages/shared/src/i18n/rtl.mjs';
 
 const catalogs = loadCatalogsFromDisk();
@@ -90,6 +90,20 @@ test('formatDate accepts granular weekday/month/day without mixing dateStyle', (
       day: 'numeric',
     });
   });
+});
+
+test('formatIsoDate formats YYYY-MM-DD with locale (en-US vs en-GB)', () => {
+  const iso = '2026-06-13';
+  const us = formatIsoDate(iso, 'en-US', { dateStyle: 'medium' });
+  const gb = formatIsoDate(iso, 'en-GB', { dateStyle: 'medium' });
+  assert.ok(us.length > 0 && gb.length > 0);
+  assert.notEqual(us, gb);
+});
+
+test('formatDate parses ISO date strings without UTC day shift', () => {
+  const out = formatDate('2026-06-13', 'en-GB', { day: 'numeric', month: 'numeric', year: 'numeric' });
+  assert.match(out, /13/);
+  assert.match(out, /2026/);
 });
 
 test('formatRelativeDay returns Today for today', () => {

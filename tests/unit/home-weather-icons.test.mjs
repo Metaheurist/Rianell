@@ -5,6 +5,7 @@ import {
   resolveTempIconId,
   resolvePressureIconId,
   resolveAqiIconId,
+  resolveWeatherIconTone,
   buildWeatherDisplayMetrics,
 } from '../../packages/shared/src/home/weatherIcons.mjs';
 import { parseWeatherApiResponse } from '../../packages/shared/src/home/homeWeather.mjs';
@@ -36,6 +37,15 @@ test('resolveAqiIconId tiers air quality', () => {
   assert.equal(resolveAqiIconId(25), 'weather-aqi-good');
   assert.equal(resolveAqiIconId(75), 'weather-aqi-moderate');
   assert.equal(resolveAqiIconId(150), 'weather-aqi-poor');
+});
+
+test('resolveWeatherIconTone maps semantic tiers', () => {
+  assert.equal(resolveWeatherIconTone('weather-aqi-good'), 'success');
+  assert.equal(resolveWeatherIconTone('weather-aqi-moderate'), 'warning');
+  assert.equal(resolveWeatherIconTone('weather-aqi-poor'), 'danger');
+  assert.equal(resolveWeatherIconTone('weather-temp-cold'), 'warning');
+  assert.equal(resolveWeatherIconTone('weather-temp-mild'), 'default');
+  assert.equal(resolveWeatherIconTone('weather-cloudy'), 'default');
 });
 
 test('buildWeatherDisplayMetrics returns condition + metric icons', () => {

@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Switch, Text, TextInput, View, Share } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
 import {
   deleteCloudLogs,
-  exportContributionHistory,
   loadFromCloud,
   syncAnonymizedData,
   syncToCloud,
@@ -184,27 +183,6 @@ export function SettingsCloudPane() {
           disabled={busy || !anonFeature.available}
         >
           <Text style={styles.btnText}>{t('settings.cloud.anon')}</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.btn, { opacity: busy || !anonFeature.available ? 0.6 : 1 }]}
-          onPress={() => {
-            void (async () => {
-              setBusy(true);
-              try {
-                const result = await exportContributionHistory();
-                if (!result.ok || !result.json) {
-                  Alert.alert(t('research.pool.export.action'), result.message);
-                  return;
-                }
-                await Share.share({ message: result.json, title: t('research.pool.export.shareTitle') });
-              } finally {
-                setBusy(false);
-              }
-            })();
-          }}
-          disabled={busy || !anonFeature.available}
-        >
-          <Text style={styles.btnText}>{t('research.pool.export.action')}</Text>
         </Pressable>
         <Pressable
           style={[styles.btn, styles.btnDanger, { opacity: busy ? 0.6 : 1 }]}

@@ -13,6 +13,22 @@ function exportUi(key, fallback) {
   return fallback;
 }
 
+function formatRegionalDate(value) {
+  var locale =
+    (typeof window !== 'undefined' &&
+      window.RianellI18n &&
+      typeof window.RianellI18n.getLocale === 'function' &&
+      window.RianellI18n.getLocale()) ||
+    (typeof window !== 'undefined' && window.appSettings && window.appSettings.uiLocale) ||
+    'en-GB';
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (S && typeof S.formatDate === 'function') {
+    return S.formatDate(value, locale, { dateStyle: 'medium' });
+  }
+  var d = value instanceof Date ? value : new Date(value);
+  return d.toLocaleDateString(locale, { dateStyle: 'medium' });
+}
+
 function csvHeaderRow() {
   return [
     exportUi('export.csv.date', 'Date'),
@@ -142,9 +158,9 @@ function generatePDF(logs) {
     
     // Date range
     if (logs.length > 0) {
-      const dates = logs.map(l => new Date(l.date)).sort((a, b) => a - b);
-      const startDate = dates[0].toLocaleDateString();
-      const endDate = dates[dates.length - 1].toLocaleDateString();
+      const dates = logs.map(l => l.date).filter(Boolean).sort();
+      const startDate = formatRegionalDate(dates[0]);
+      const endDate = formatRegionalDate(dates[dates.length - 1]);
       doc.setFontSize(10);
       doc.text(`Date Range: ${startDate} - ${endDate}`, 14, 30);
       doc.text(`Total Entries: ${logs.length}`, 14, 36);
@@ -176,7 +192,7 @@ function generatePDF(logs) {
         yPos = 20;
       }
       
-      doc.text(log.date || '', 14, yPos);
+      doc.text(formatRegionalDate(log.date || ''), 14, yPos);
       doc.text(log.bpm || '', 50, yPos);
       doc.text(log.weight || '', 65, yPos);
       doc.text(log.backPain || '', 85, yPos);

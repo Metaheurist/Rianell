@@ -1236,6 +1236,9 @@
         </div>
         <p class="settings-hint" id="useOpenDataHint" data-i18n="common.use.anonymised.data.pool.for.ai.training">Use anonymised data pool for AI training (requires 90+ days of data)</p>
         <p class="settings-hint" data-i18n="common.used.for.personalised.ai.analysis.and.ad">Used for personalised AI analysis and advice</p>
+        <div class="settings-pane-footer">
+          <button type="button" id="exportContributionHistoryBtn" class="modal-save-btn settings-pane-footer__btn" onclick="typeof exportContributionHistoryUI==='function'&&exportContributionHistoryUI()" data-i18n="research.pool.export.action">Export my contribution history</button>
+        </div>
       </div>
       </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Display" data-i18n-title="settings.display.title" data-settings-pane-i18n="settings.display.title" role="tabpanel" aria-hidden="true">
@@ -1494,17 +1497,15 @@
             <button type="button" class="settings-data-btn install-ios-device-btn" onclick="installOrLaunchPWA()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-globe"></use></svg></span><span id="installOnIosDeviceLabel" data-i18n="common.install.on.this.iphone">Install on this iPhone</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></button>
             <p class="settings-install-hint">Opens instructions to add the app to your Home Screen. Works offline like a native app.</p>
           </div>
-          <div class="app-install-download-stack">
-            <div class="app-install-download-row" id="androidRnCliDownloadOption">
+          <div class="data-management-buttons data-management-buttons--install">
+            <div class="data-management-buttons__cell" id="androidRnCliDownloadOption">
               <a id="downloadRnCliApkLink" class="settings-data-btn install-android-btn app-install-store-link" target="_blank" rel="noopener" href="javascript:void(0)"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-android"></use></svg></span><span class="app-install-store-link__text"><span id="downloadRnCliAndroidLabel" data-i18n="common.download.android.react.native.cli">Download Android (React Native CLI)</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></span><span class="android-version app-install-build-meta" aria-hidden="true"></span></a>
             </div>
-            <div class="app-install-download-row" id="iosDownloadOption">
+            <div class="data-management-buttons__cell" id="iosDownloadOption">
               <a id="downloadIosLink" class="settings-data-btn install-ios-btn app-install-store-link" target="_blank" rel="noopener" href="javascript:void(0)"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-apple"></use></svg></span><span class="app-install-store-link__text"><span id="downloadIosLabel" data-i18n="common.download.for.ios">Download for iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span></span><span class="ios-version app-install-build-meta" aria-hidden="true"></span></a>
             </div>
-          </div>
-          <div class="data-management-buttons data-management-buttons--install">
             <div class="data-management-buttons__cell" id="installWebAppOption">
-              <button type="button" class="settings-data-btn install-app-btn" onclick="installOrLaunchPWA()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-globe"></use></svg></span><span id="installWebAppLabel" data-i18n="common.install.web.app">Install web app</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></button>
+              <button type="button" class="settings-data-btn install-app-btn app-install-store-link" onclick="installOrLaunchPWA()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-globe"></use></svg></span><span class="app-install-store-link__text"><span id="installWebAppLabel" data-i18n="common.install.web.app">Install web app</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></span><span class="app-install-build-meta app-install-build-meta--spacer" aria-hidden="true"></span></button>
             </div>
           </div>
         </div>
@@ -1516,7 +1517,7 @@
             <button type="button" class="settings-data-btn export-btn" onclick="exportData()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-document"></use></svg></span><span class="data-management-buttons__label" data-i18n="common.export.data">Export Data</span></button>
           </div>
           <div class="data-management-buttons__cell">
-            <button type="button" class="settings-data-btn export-btn" onclick="exportEncryptedData()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-lock"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.export.encrypted.action">Encrypted export</span></button>
+            <button type="button" class="settings-data-btn export-btn" onclick="exportEncryptedData()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-lock"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.export.encrypted.action">Create protected export</span></button>
           </div>
           <div class="data-management-buttons__cell">
             <button type="button" class="settings-data-btn export-btn" onclick="RianellQrHandoff && RianellQrHandoff.open()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-qr"></use></svg></span><span class="data-management-buttons__label" data-i18n="settings.export.qrHandoff.action">QR handoff (in-office)</span></button>
@@ -1563,7 +1564,7 @@
         <div id="appLockSetupPanel" class="app-lock-setup-panel" style="display:none;">
           <div id="appLockStatusRow" class="app-lock-status-row" style="display:none;" aria-live="polite">
             <svg class="app-lock-status-icon ui-svg-icon" id="appLockStatusIcon" aria-hidden="true"><use href="#icon-lock"></use></svg>
-            <span id="appLockStatusLabel" data-i18n="settings.security.statusLocked">Locked — passcode required</span>
+            <span id="appLockStatusLabel" data-i18n="settings.security.statusLocked">Locked - passcode required</span>
           </div>
           <div class="settings-option">
             <label for="appLockPinSetupInput" data-i18n="settings.privacy.appLock.setupPrompt">Set a passcode (min 8 characters)</label>
@@ -1588,10 +1589,6 @@
         </div>
       </div>
       </div>
-      </div>
-      </div>
-      <div class="settings-global-footer">
-        <button type="button" id="exportContributionHistoryBtn" class="modal-save-btn settings-global-footer__btn" onclick="typeof exportContributionHistoryUI==='function'&&exportContributionHistoryUI()" data-i18n="research.pool.export.action">Export my contribution history</button>
       </div>
       </div>
       <button type="button" class="settings-carousel-side settings-carousel-side--next" id="settingsCarouselNext" onclick="settingsCarouselStep(1)" aria-label="Next settings section" data-i18n-aria="common.next.settings.section">›</button>
@@ -1622,7 +1619,7 @@
           </div>
         </div>
         <div class="goals-slider-group">
-          <label for="goalSleep" data-i18n="common.sleep.quality.score.1.10">Sleep quality (score 1–10)</label>
+          <label for="goalSleep" data-i18n="common.sleep.quality.score.1.10">Sleep quality (score 1-10)</label>
           <div class="goals-slider-row">
             <input type="range" id="goalSleep" min="0" max="10" step="1" value="0" oninput="updateGoalLabel('goalSleep', 'goalSleepLabel', 0, 'score')">
             <span id="goalSleepLabel" class="goals-value-label" data-i18n="common.off">Off</span>
@@ -1649,12 +1646,12 @@
         <button type="button" class="modal-close" onclick="closeMicroCheckinModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
       </div>
       <div class="modal-body micro-checkin-modal-body">
-        <p class="micro-checkin-lede" data-i18n="wizard.energy.instructions">Rate mood, sleep, and fatigue from 1–10.</p>
-        <label class="micro-checkin-label" for="microCheckinMood" data-i18n="wizard.mood.1.10">Mood (1–10)</label>
+        <p class="micro-checkin-lede" data-i18n="wizard.energy.instructions">Rate mood, sleep, and fatigue from 1-10.</p>
+        <label class="micro-checkin-label" for="microCheckinMood" data-i18n="wizard.mood.1.10">Mood (1-10)</label>
         <input type="number" id="microCheckinMood" class="micro-checkin-input" min="1" max="10" inputmode="numeric" />
-        <label class="micro-checkin-label" for="microCheckinSleep" data-i18n="wizard.sleep.1.10">Sleep (1–10)</label>
+        <label class="micro-checkin-label" for="microCheckinSleep" data-i18n="wizard.sleep.1.10">Sleep (1-10)</label>
         <input type="number" id="microCheckinSleep" class="micro-checkin-input" min="1" max="10" inputmode="numeric" />
-        <label class="micro-checkin-label" for="microCheckinFatigue" data-i18n="wizard.fatigue.1.10">Fatigue (1–10)</label>
+        <label class="micro-checkin-label" for="microCheckinFatigue" data-i18n="wizard.fatigue.1.10">Fatigue (1-10)</label>
         <input type="number" id="microCheckinFatigue" class="micro-checkin-input" min="1" max="10" inputmode="numeric" />
       </div>
       <div class="modal-footer">
@@ -1683,9 +1680,6 @@
       <div class="modal-body home-question-modal-body">
         <p id="homeQuestionModalBody" class="home-question-answer" aria-live="polite"></p>
         <p class="home-question-disclaimer" data-i18n="ai.disclaimer.medical">For patterns only - talk to your doctor before changing care.</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="modal-save-btn" onclick="closeHomeQuestionModal()" data-i18n="common.close">Close</button>
       </div>
     </div>
   </div>
@@ -1852,10 +1846,10 @@
           <div id="homeWeatherStrip" class="home-weather-strip" aria-live="polite" hidden></div>
         </div>
       </div>
-      <div id="homeStreakCard" class="home-streak-card" data-home-card="streak" hidden></div>
-      <div id="homeWeeklyReviewCard" class="home-weekly-review-card" data-home-card="weeklyReview" hidden></div>
       <div id="homeHeroCard" class="home-hero-card" data-home-card="hero" data-scroll-reveal role="status" aria-live="polite">
         <div id="homeTodayStatus" class="home-today-status"></div>
+        <div id="homeStreakCard" class="home-hero-inset home-streak-inset" data-home-card="streak" hidden></div>
+        <div id="homeWeeklyReviewCard" class="home-hero-inset home-weekly-review-inset" data-home-card="weeklyReview" hidden></div>
         <div id="homeCheckinCard" class="home-checkin-card" data-home-card="checkin" hidden></div>
         <div id="homeAiSuggestions" class="home-ai-suggestions" hidden aria-live="polite"></div>
       </div>
@@ -2114,7 +2108,7 @@
               <p id="energyClaritySelectedLabel" class="energy-clarity-selected" aria-live="polite" data-i18n="common.none.selected">None selected</p>
             </div>
             <div class="energy-clarity-collapsible">
-              <button type="button" class="energy-clarity-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--energy" aria-hidden="true">+</span><span class="tile-picker-trigger__label" data-i18n="common.energy.amp.clarity">Energy &amp; clarity</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
+              <button type="button" class="energy-clarity-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--energy" aria-hidden="true">+</span><span class="tile-picker-trigger__label" data-i18n="common.energy.amp.clarity">Energy & clarity</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
               <div class="tile-picker-slot">
                 <div class="tile-picker-anchor">
                   <div id="energyClarityTiles" class="energy-clarity-tiles" role="listbox" aria-label="Energy and mental clarity options" data-i18n-aria="common.energy.and.mental.clarity.options"></div>
@@ -2816,7 +2810,7 @@
               <input type="hidden" id="editEnergyClarity" name="editEnergyClarity" value="" />
               <p id="editEnergyClaritySelectedLabel" class="energy-clarity-selected" aria-live="polite" data-i18n="common.none.selected">None selected</p>
               <div class="energy-clarity-collapsible">
-                <button type="button" class="energy-clarity-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--energy" aria-hidden="true">+</span><span class="tile-picker-trigger__label" data-i18n="common.energy.amp.clarity">Energy &amp; clarity</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
+                <button type="button" class="energy-clarity-summary tile-picker-trigger" aria-expanded="false" aria-controls="tilePickerSheet"><span class="tile-picker-trigger__icon tile-picker-trigger__icon--energy" aria-hidden="true">+</span><span class="tile-picker-trigger__label" data-i18n="common.energy.amp.clarity">Energy & clarity</span><span class="tile-picker-trigger__chev" aria-hidden="true">›</span></button>
                 <div class="tile-picker-slot">
                   <div class="tile-picker-anchor">
                     <div id="editEnergyClarityTiles" class="energy-clarity-tiles" role="listbox" aria-label="Energy and mental clarity options" data-i18n-aria="common.energy.and.mental.clarity.options"></div>
@@ -3090,11 +3084,11 @@
         <button type="button" class="modal-close" onclick="closeEncryptedExportModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
       </div>
       <div class="modal-body alert-modal-body">
-        <p data-i18n="settings.export.encrypted.hint">Uses PBKDF2 (120k iterations) + AES-256-GCM. Keep your passphrase safe. It cannot be recovered.</p>
-        <input type="password" id="encryptedExportPassphrase" class="cloud-input" autocomplete="new-password" data-i18n-placeholder="settings.export.encrypted.placeholder" placeholder="Export passphrase (min 8 characters)" />
+        <p data-i18n="settings.export.encrypted.hint">Choose a password to lock this file. You will need it to open the export later. We cannot recover it if you forget.</p>
+        <input type="password" id="encryptedExportPassphrase" class="cloud-input" autocomplete="new-password" data-i18n-placeholder="settings.export.encrypted.placeholder" placeholder="Choose a password (at least 8 characters)" />
       </div>
       <div class="modal-footer alert-modal-footer">
-        <button type="button" class="modal-save-btn" onclick="submitEncryptedExportFromModal()" data-i18n="settings.export.encrypted.action">Encrypted export</button>
+        <button type="button" class="modal-save-btn" onclick="submitEncryptedExportFromModal()" data-i18n="settings.export.encrypted.action">Create protected export</button>
         <button type="button" class="modal-save-btn modal-cancel-btn" onclick="closeEncryptedExportModal()" data-i18n="common.cancel">Cancel</button>
       </div>
     </div>
@@ -3198,10 +3192,10 @@
   </div>
 
   <!-- God mode overlay (` key): test all UI elements -->
-  <div class="modal-overlay" id="modalTestOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="God mode – test all UI" data-i18n-aria="common.god.mode.test.all.ui">
+  <div class="modal-overlay" id="modalTestOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="God mode - test all UI" data-i18n-aria="common.god.mode.test.all.ui">
     <div class="modal-content god-mode-content" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <h3  data-i18n="common.god.mode.test.all.ui">God mode – test all UI</h3>
+        <h3  data-i18n="common.god.mode.test.all.ui">God mode - test all UI</h3>
         <button type="button" class="modal-close" onclick="closeModalTestOverlay()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
       </div>
       <div class="modal-body god-mode-body">
@@ -3317,7 +3311,7 @@
               </div>
             </div>
             <div class="goals-slider-group">
-              <label for="tutorialGoalSleep" data-i18n="common.sleep.quality.score.1.10">Sleep quality (score 1–10)</label>
+              <label for="tutorialGoalSleep" data-i18n="common.sleep.quality.score.1.10">Sleep quality (score 1-10)</label>
               <div class="goals-slider-row">
                 <input type="range" id="tutorialGoalSleep" min="0" max="10" step="1" value="0" oninput="updateGoalLabel('tutorialGoalSleep', 'tutorialGoalSleepLabel', 0, 'score')">
                 <span id="tutorialGoalSleepLabel" class="goals-value-label" data-i18n="common.off">Off</span>

@@ -38,7 +38,10 @@ export function applyLocaleDefaultsToPrefs(prefs, locale) {
       next.weightUnit = deriveWeightUnitFromLocale(loc);
       next.weightUnitSource = 'locale';
     }
-    next.dateFormat = next.dateFormat || deriveDateFormatFromLocale(loc);
+    // Factory DMY default means "not chosen" — follow locale until user overrides.
+    if (!next.dateFormat || next.dateFormat === 'DMY') {
+      next.dateFormat = 'locale';
+    }
     next.firstDayOfWeek =
       typeof next.firstDayOfWeek === 'number'
         ? next.firstDayOfWeek

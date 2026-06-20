@@ -51,6 +51,7 @@ import { AnonPoolFieldChecklist } from '../settings/AnonPoolFieldChecklist';
 import { EncryptedExportModal } from '../settings/EncryptedExportModal';
 import { QrHandoffModal } from '../settings/QrHandoffModal';
 import { SettingsLoggingPane } from '../settings/SettingsLoggingPane';
+import { exportContributionHistory } from '../cloud/sync';
 import {
   buildSettingsProfileExport,
   PROFILE_AVATAR_IDS,
@@ -123,7 +124,7 @@ export function SettingsScreen({
   onChangePrefs: (next: Preferences) => void;
 }) {
   const theme = useTheme();
-  const { t, isRtl } = useT();
+  const { t, isRtl, locale } = useT();
   const [settingsSearch, setSettingsSearch] = useState('');
   const paneTitles = PANE_TITLE_KEYS.map((key) => t(key));
   const searchHaystack = PANE_TITLE_KEYS.map((key, i) => ({ i, text: `${t(key)} ${key}`.toLowerCase() }));
@@ -360,7 +361,7 @@ export function SettingsScreen({
     setPrintBusy(true);
     try {
       const logs = await loadLogs();
-      await printOrShareLogs(logs);
+      await printOrShareLogs(logs, locale);
     } catch (e) {
       const msg = e instanceof Error ? e.message : t('settings.print.failed');
       Alert.alert(t('settings.print.title'), msg);
@@ -939,6 +940,26 @@ export function SettingsScreen({
               </Row>
 
             </Section>
+
+            <Pressable
+              style={[styles.dataBtn, styles.aiGoalsFooterBtn, { borderColor: `${theme.tokens.color.accent}44` }]}
+              accessibilityRole="button"
+              accessibilityLabel={t('research.pool.export.action')}
+              onPress={() => {
+                void (async () => {
+                  const result = await exportContributionHistory();
+                  if (!result.ok || !result.json) {
+                    Alert.alert(t('research.pool.export.action'), result.message);
+                    return;
+                  }
+                  await Share.share({ message: result.json, title: t('research.pool.export.shareTitle') });
+                })();
+              }}
+            >
+              <Text style={[styles.dataBtnText, { fontSize: theme.font(15), color: theme.tokens.color.text, fontWeight: '600' }]}>
+                {t('research.pool.export.action')}
+              </Text>
+            </Pressable>
 
           </ScrollView>
 
@@ -2489,6 +2510,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.14)',
     alignItems: 'center',
   },
+  aiGoalsFooterBtn: { marginTop: 16, borderWidth: 1 },
   dataBtnText: { fontWeight: '800' },
   dataBtnRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   dangerBtn: {

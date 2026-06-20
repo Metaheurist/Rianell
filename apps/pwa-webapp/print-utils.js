@@ -133,11 +133,27 @@ function printReport() {
   }, 250);
 }
 
+function formatRegionalDate(value) {
+  var locale =
+    (typeof window !== 'undefined' &&
+      window.RianellI18n &&
+      typeof window.RianellI18n.getLocale === 'function' &&
+      window.RianellI18n.getLocale()) ||
+    (typeof window !== 'undefined' && window.appSettings && window.appSettings.uiLocale) ||
+    'en-GB';
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (S && typeof S.formatDate === 'function') {
+    return S.formatDate(value, locale, { dateStyle: 'medium' });
+  }
+  var d = value instanceof Date ? value : new Date(value);
+  return d.toLocaleDateString(locale, { dateStyle: 'medium' });
+}
+
 function generatePrintContent(logs, userName, conditionName) {
-  const dates = logs.map(l => new Date(l.date)).sort((a, b) => a - b);
-  const startDate = dates.length > 0 ? dates[0].toLocaleDateString() : 'N/A';
-  const endDate = dates.length > 0 ? dates[dates.length - 1].toLocaleDateString() : 'N/A';
-  const today = new Date().toLocaleDateString();
+  const dates = logs.map(l => l.date).filter(Boolean).sort();
+  const startDate = dates.length > 0 ? formatRegionalDate(dates[0]) : 'N/A';
+  const endDate = dates.length > 0 ? formatRegionalDate(dates[dates.length - 1]) : 'N/A';
+  const today = formatRegionalDate(new Date());
   
   // Calculate summary statistics
   const avgBPM = logs.length > 0 ? Math.round(logs.reduce((sum, l) => sum + (parseFloat(l.bpm) || 0), 0) / logs.length) : 0;

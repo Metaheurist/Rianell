@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   canOfferWebPush,
+  isConfiguredVapidPublicKey,
   shouldFireReEngagementNudge,
   touchLastActiveAt,
   buildReEngagementNotificationContent,
@@ -17,6 +18,8 @@ test('canOfferWebPush requires VAPID, region, and EEA health consent', () => {
   };
   assert.equal(canOfferWebPush(base, { vapidPublicKey: 'abc' }).ok, true);
   assert.equal(canOfferWebPush(base, { vapidPublicKey: '' }).ok, false);
+  assert.equal(isConfiguredVapidPublicKey('YOUR_VAPID_PUBLIC_KEY'), false);
+  assert.equal(canOfferWebPush(base, { vapidPublicKey: 'YOUR_VAPID_PUBLIC_KEY' }).reason, 'vapid-unconfigured');
   assert.equal(canOfferWebPush({ ...base, healthDataConsent: false }, { vapidPublicKey: 'abc' }).reason, 'health-consent-required');
   assert.equal(canOfferWebPush({ ...base, privacyRegion: '' }, { vapidPublicKey: 'abc' }).reason, 'region-unconfigured');
   assert.equal(canOfferWebPush({ ...base, localOnlyMode: true }, { vapidPublicKey: 'abc' }).reason, 'local-only');

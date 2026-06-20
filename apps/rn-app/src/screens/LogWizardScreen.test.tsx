@@ -56,7 +56,7 @@ test('log wizard can progress through stressors and save', async () => {
   const { getByLabelText, findByText, findByLabelText, getByText, getAllByText } = renderWizard();
 
   fireEvent.press(getByLabelText('Next step'));
-  await findByText('BPM (30–120)');
+  await findByText('BPM (30-120)');
 
   fireEvent.press(getByLabelText('Next step'));
   await findByText('Symptoms');

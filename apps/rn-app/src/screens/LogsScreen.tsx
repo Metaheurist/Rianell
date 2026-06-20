@@ -14,6 +14,7 @@ import { FlatList, RefreshControl } from '../components/legacyRnJsx';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
+import { formatIsoDate } from '@rianell/shared';
 import {
   filterLogsByRange,
   replaceLogEntryByDate,
@@ -79,7 +80,7 @@ function exercisePreview(entry: LogEntry): string {
 
 export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
   const theme = useTheme();
-  const { t } = useT();
+  const { t, locale } = useT();
   const bg =
     theme.tokens.color.background ===
     'linear-gradient(135deg, #a8e6cf 0%, #c8e6c9 25%, #e8f5e8 75%, #f1f8e9 100%)'
@@ -96,6 +97,11 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
   const [selectedEntry, setSelectedEntry] = useState<LogEntry | null>(null);
   const [isEditingEntry, setIsEditingEntry] = useState(false);
   const [editDraft, setEditDraft] = useState<LogEntry | null>(null);
+
+  const formatLogDate = useCallback(
+    (iso: string) => formatIsoDate(iso, locale, { dateStyle: 'medium' }),
+    [locale],
+  );
 
   const load = React.useCallback(async () => {
     try {
@@ -163,7 +169,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
 
   async function shareEntry(entry: LogEntry) {
     const payload = [
-      `Date: ${entry.date}`,
+      `Date: ${formatLogDate(entry.date)}`,
       `Flare: ${entry.flare ?? '-'}`,
       `BPM: ${entry.bpm ?? '-'}`,
       `Sleep: ${entry.sleep ?? '-'}`,
@@ -173,11 +179,11 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
     ]
       .filter(Boolean)
       .join('\n');
-    await Share.share({ message: payload, title: `Rianell log ${entry.date}` });
+    await Share.share({ message: payload, title: `Rianell log ${formatLogDate(entry.date)}` });
   }
 
   function deleteEntry(entry: LogEntry) {
-    Alert.alert(t('logs.delete.title'), t('logs.delete.confirm', { date: entry.date }), [
+    Alert.alert(t('logs.delete.title'), t('logs.delete.confirm', { date: formatLogDate(entry.date) }), [
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('common.delete'),
@@ -206,10 +212,10 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
         style={styles.row}
         onPress={() => openEntry(item)}
         accessibilityRole="button"
-        accessibilityLabel={`Open log entry ${item.date}`}
+        accessibilityLabel={`Open log entry ${formatLogDate(item.date)}`}
       >
         <Text style={[styles.rowTitle, { color: theme.tokens.color.text, fontSize: theme.font(15) }]}>
-          {item.date}
+          {formatLogDate(item.date)}
         </Text>
         <Text style={[styles.rowMeta, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
           {item.flare ? `Flare ${item.flare}` : 'Flare -'} · {item.bpm != null ? `BPM ${item.bpm}` : 'BPM -'} ·{' '}
@@ -223,7 +229,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
         </Text>
       </Pressable>
     ),
-    [theme.tokens.color.text, theme]
+    [theme.tokens.color.text, theme, formatLogDate]
   );
 
   function startEditing() {
@@ -342,7 +348,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
           style={[styles.printBtn, { borderColor: accent, opacity: printBusy ? 0.6 : 1 }]}
           onPress={() => {
             setPrintBusy(true);
-            printOrShareLogs(displayed)
+            printOrShareLogs(displayed, locale)
               .catch(() => Alert.alert(t('settings.print.title'), t('logs.print.failed')))
               .finally(() => setPrintBusy(false));
           }}
@@ -444,7 +450,7 @@ export function LogsScreen({ reloadKey }: { reloadKey?: number }) {
         <View style={styles.modalBackdrop}>
           <View style={[styles.modalCard, { backgroundColor: 'rgba(20,30,28,0.97)' }]}>
             <Text style={[styles.modalTitle, { color: theme.tokens.color.text, fontSize: theme.font(17) }]}>
-              {selectedEntry?.date ?? t('logs.modal.entryTitle')}
+              {selectedEntry ? formatLogDate(selectedEntry.date) : t('logs.modal.entryTitle')}
             </Text>
             {isEditingEntry && editDraft ? (
               <View>

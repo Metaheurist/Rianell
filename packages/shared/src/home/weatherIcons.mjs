@@ -31,6 +31,23 @@ export function resolvePressureIconId(pressureHpa) {
   return 'weather-pressure';
 }
 
+/** @typedef {'default' | 'success' | 'warning' | 'danger'} WeatherIconTone */
+
+/** @param {string} iconId */
+export function resolveWeatherIconTone(iconId) {
+  const id = String(iconId || '');
+  if (id.startsWith('weather-aqi-')) {
+    if (id === 'weather-aqi-good') return 'success';
+    if (id === 'weather-aqi-moderate') return 'warning';
+    return 'danger';
+  }
+  if (id.startsWith('weather-temp-')) {
+    if (id === 'weather-temp-cold' || id === 'weather-temp-hot') return 'warning';
+    return 'default';
+  }
+  return 'default';
+}
+
 /** @param {number | null | undefined} usAqi */
 export function resolveAqiIconId(usAqi) {
   if (typeof usAqi !== 'number' || !Number.isFinite(usAqi)) return 'weather-aqi-moderate';

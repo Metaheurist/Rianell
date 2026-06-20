@@ -22,19 +22,28 @@
     return '';
   }
 
-  async function getRegistration() {
-    if (!('serviceWorker' in navigator)) return null;
-    return navigator.serviceWorker.ready;
+  function getPushPrefs() {
+    if (typeof window !== 'undefined' && window.appSettings && typeof window.appSettings === 'object') {
+      return window.appSettings;
+    }
+    try {
+      return JSON.parse(localStorage.getItem('rianellSettings') || '{}');
+    } catch (e) {
+      return {};
+    }
   }
 
-  async function subscribePushNotifications() {
-    var vapid = getVapidPublicKey();
-    if (!vapid) throw new Error('Push is not configured on this server.');
-    if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.canOfferWebPush === 'function') {
-      var settings = {};
-      try {
-        settings = JSON.parse(localStorage.getItem('rianellSettings') || '{}');
-      } catch (e) { /* ignore */ }
+  function isConfiguredVapid(vapid) {
+    if (window.RianellShared && typeof window.RianellShared.isConfiguredVapidPublicKey === 'function') {
+      return window.RianellShared.isConfiguredVapidPublicKey(vapid);
+    }
+    var key = String(vapid || '').trim();
+    return key.length > 0 && key !== 'YOUR_VAPID_PUBLIC_KEY';
+  }
+
+  function assertCanOfferWebPush(settings, vapid) {
+    if (!isConfiguredVapid(vapid)) throw new Error('Push is not configured on this server.');
+    if (window.RianellShared && typeof window.RianellShared.canOfferWebPush === 'function') {
       var gate = window.RianellShared.canOfferWebPush(settings, { vapidPublicKey: vapid });
       if (!gate.ok) {
         var reason = gate.reason || 'unavailable';
@@ -43,10 +52,48 @@
         if (reason === 'local-only') throw new Error('Push is unavailable in local-only mode.');
         throw new Error('Push notifications are not available in your current settings.');
       }
+      return;
     }
+    if (!isConfiguredVapid(vapid)) throw new Error('Push is not configured on this server.');
+  }
+
+  async function ensureNotificationPermission(skipPermissionRequest) {
     if (!('Notification' in window)) throw new Error('Notifications are not supported in this browser.');
+    if (Notification.permission === 'denied') {
+      throw new Error('Notifications are blocked. Allow them in your browser settings, then try again.');
+    }
+    if (skipPermissionRequest) {
+      if (Notification.permission !== 'granted') throw new Error('Notification permission not granted.');
+      return;
+    }
+    if (Notification.permission === 'granted') return;
     var perm = await Notification.requestPermission();
     if (perm !== 'granted') throw new Error('Notification permission denied.');
+  }
+
+  async function getRegistration() {
+    if (!('serviceWorker' in navigator)) return null;
+    if (window.__rianellSwRegistration) return window.__rianellSwRegistration;
+    var regs = await navigator.serviceWorker.getRegistrations();
+    if (!regs.length) {
+      throw new Error('Service worker is not active on this host. Install the web app or open with ?sw=1 to enable push.');
+    }
+    return Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise(function (_resolve, reject) {
+        setTimeout(function () {
+          reject(new Error('Service worker is still starting. Try again in a moment.'));
+        }, 10000);
+      }),
+    ]);
+  }
+
+  async function subscribePushNotifications(opts) {
+    opts = opts || {};
+    var vapid = getVapidPublicKey();
+    var settings = getPushPrefs();
+    assertCanOfferWebPush(settings, vapid);
+    await ensureNotificationPermission(!!opts.skipPermissionRequest);
     var reg = await getRegistration();
     if (!reg || !reg.pushManager) throw new Error('Push manager unavailable.');
     var sub = await reg.pushManager.subscribe({
@@ -63,10 +110,12 @@
   }
 
   async function unsubscribePushNotifications() {
-    var reg = await getRegistration();
-    if (!reg || !reg.pushManager) return;
-    var sub = await reg.pushManager.getSubscription();
-    if (sub) await sub.unsubscribe();
+    try {
+      var reg = await getRegistration();
+      if (!reg || !reg.pushManager) return;
+      var sub = await reg.pushManager.getSubscription();
+      if (sub) await sub.unsubscribe();
+    } catch (e) { /* ignore */ }
     try { localStorage.removeItem(SUB_KEY); } catch (e) {}
   }
 

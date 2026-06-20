@@ -202,6 +202,7 @@ var RianellShared = (() => {
     formatBarcodeFoodLabel: () => formatBarcodeFoodLabel,
     formatContributionExport: () => formatContributionExport,
     formatDate: () => formatDate,
+    formatIsoDate: () => formatIsoDate,
     formatNumber: () => formatNumber,
     formatRelativeDay: () => formatRelativeDay,
     formatStructuredLlmOutput: () => formatStructuredLlmOutput,
@@ -236,6 +237,7 @@ var RianellShared = (() => {
     interpretGad2Score: () => interpretGad2Score,
     interpretPhq2Score: () => interpretPhq2Score,
     isCloudSyncBlockedByMigration: () => isCloudSyncBlockedByMigration,
+    isConfiguredVapidPublicKey: () => isConfiguredVapidPublicKey,
     isCustomMetricField: () => isCustomMetricField,
     isGoodDayLog: () => isGoodDayLog,
     isLlmInferenceAllowed: () => isLlmInferenceAllowed,
@@ -305,6 +307,7 @@ var RianellShared = (() => {
     normalizeWeatherCoords: () => normalizeWeatherCoords,
     parseAppointmentDate: () => parseAppointmentDate,
     parseDoctorQuestionsResponse: () => parseDoctorQuestionsResponse,
+    parseIsoDateLocal: () => parseIsoDateLocal,
     parseLogsCsv: () => parseLogsCsv,
     parseMigrationCsv: () => parseMigrationCsv,
     parseQrHandoffToken: () => parseQrHandoffToken,
@@ -332,6 +335,7 @@ var RianellShared = (() => {
     resolvePressureIconId: () => resolvePressureIconId,
     resolveSmartReminderTime: () => resolveSmartReminderTime,
     resolveTempIconId: () => resolveTempIconId,
+    resolveWeatherIconTone: () => resolveWeatherIconTone,
     roundWeatherCoord: () => roundWeatherCoord,
     runGoldenPromptAudit: () => runGoldenPromptAudit,
     sanitizeCustomMetricLabel: () => sanitizeCustomMetricLabel,
@@ -1578,8 +1582,26 @@ var RianellShared = (() => {
   function hasGranularDateOptions(opts) {
     return GRANULAR_DATE_KEYS.some((k) => opts[k] !== void 0);
   }
+  var ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+  function parseIsoDateLocal(iso) {
+    const raw = typeof iso === "string" ? iso.trim() : "";
+    if (!ISO_DATE_RE.test(raw)) return null;
+    const d = /* @__PURE__ */ new Date(`${raw}T12:00:00`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  function coerceDateValue(value) {
+    if (value instanceof Date) return value;
+    const local = parseIsoDateLocal(value);
+    if (local) return local;
+    return new Date(value);
+  }
+  function formatIsoDate(iso, locale, opts = {}) {
+    const d = parseIsoDateLocal(iso);
+    if (!d) return typeof iso === "string" ? iso : "";
+    return formatDate(d, locale, opts);
+  }
   function formatDate(value, locale, opts = {}) {
-    const d = value instanceof Date ? value : new Date(value);
+    const d = coerceDateValue(value);
     if (Number.isNaN(d.getTime())) return "";
     const { dateStyle, timeStyle, ...rest } = opts;
     const intlOpts = { ...rest };
@@ -3060,7 +3082,9 @@ ${hist}`);
         next.weightUnit = deriveWeightUnitFromLocale(loc);
         next.weightUnitSource = "locale";
       }
-      next.dateFormat = next.dateFormat || deriveDateFormatFromLocale(loc);
+      if (!next.dateFormat || next.dateFormat === "DMY") {
+        next.dateFormat = "locale";
+      }
       next.firstDayOfWeek = typeof next.firstDayOfWeek === "number" ? next.firstDayOfWeek : deriveFirstDayOfWeekFromLocale(loc);
       next.localeDefaultsApplied = true;
     }
@@ -3671,10 +3695,14 @@ ${hist}`);
   }
 
   // packages/shared/src/notifications/webPushConsent.mjs
+  function isConfiguredVapidPublicKey(vapidPublicKey) {
+    const vapid = String(vapidPublicKey || "").trim();
+    return vapid.length > 0 && vapid !== "YOUR_VAPID_PUBLIC_KEY";
+  }
   function canOfferWebPush(prefs, opts = {}) {
     const p = prefs && typeof prefs === "object" ? prefs : {};
     const vapid = String(opts.vapidPublicKey || "").trim();
-    if (!vapid) return { ok: false, reason: "vapid-unconfigured" };
+    if (!isConfiguredVapidPublicKey(vapid)) return { ok: false, reason: "vapid-unconfigured" };
     if (p.demoMode === true) return { ok: false, reason: "demo-mode" };
     if (p.localOnlyMode === true) return { ok: false, reason: "local-only" };
     if (!isPrivacyRegionConfigured(p)) return { ok: false, reason: "region-unconfigured" };
@@ -3931,6 +3959,19 @@ ${hist}`);
     if (pressureHpa < 1e3) return "weather-pressure-low";
     if (pressureHpa > 1020) return "weather-pressure-high";
     return "weather-pressure";
+  }
+  function resolveWeatherIconTone(iconId) {
+    const id = String(iconId || "");
+    if (id.startsWith("weather-aqi-")) {
+      if (id === "weather-aqi-good") return "success";
+      if (id === "weather-aqi-moderate") return "warning";
+      return "danger";
+    }
+    if (id.startsWith("weather-temp-")) {
+      if (id === "weather-temp-cold" || id === "weather-temp-hot") return "warning";
+      return "default";
+    }
+    return "default";
   }
   function resolveAqiIconId(usAqi) {
     if (typeof usAqi !== "number" || !Number.isFinite(usAqi)) return "weather-aqi-moderate";

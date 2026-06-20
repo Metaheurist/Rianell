@@ -1,7 +1,9 @@
 import type Ionicons from '@expo/vector-icons/Ionicons';
-import { buildWeatherDisplayMetrics } from '@rianell/shared';
+import { getTokens } from '@rianell/tokens';
+import { buildWeatherDisplayMetrics, resolveWeatherIconTone } from '@rianell/shared';
 
 type IonName = keyof typeof Ionicons.glyphMap;
+type ThemeTokens = ReturnType<typeof getTokens>;
 
 const WEATHER_ICON_ION_MAP: Record<string, IonName> = {
   'weather-clear': 'sunny-outline',
@@ -26,6 +28,14 @@ const WEATHER_ICON_ION_MAP: Record<string, IonName> = {
 
 export function weatherIconIonName(iconId: string): IonName {
   return WEATHER_ICON_ION_MAP[iconId] || 'cloud-outline';
+}
+
+export function resolveWeatherIconColor(tokens: ThemeTokens, iconId: string): string {
+  const tone = resolveWeatherIconTone(iconId);
+  if (tone === 'success') return tokens.color.success;
+  if (tone === 'warning') return tokens.color.warning;
+  if (tone === 'danger') return tokens.color.danger;
+  return tokens.color.accent;
 }
 
 export type WeatherDisplayMetrics = NonNullable<ReturnType<typeof buildWeatherDisplayMetrics>>;
