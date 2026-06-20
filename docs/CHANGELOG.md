@@ -2,7 +2,19 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.113.0** - Mood tab, Home UX refresh, i18n/CSP fixes, em-dash copy cleanup.
+**Latest: v1.114.0** - Security lock settings tab, Home/Charts UX trim, screening sliders, i18n copy.
+
+### v1.114.0 - 2026-06-18 - Security lock tab, Home/Charts UX, screening sliders
+- **Settings:** Tenth carousel pane **Security lock** (PWA + RN) — app passcode setup with hidden PIN + confirm fields; locked/unlocked icons on tab dot; **caregiver / proxy logging** moved from Privacy pane; app lock removed from tab 1.
+- **Home:** Merged streak-nudge copy into hero status card; removed separate nudge card and **energy budget / pacing** Home card (`homeCardRegistry`).
+- **Charts:** Removed insights panel (metric correlations, forecast bands, compare periods, spoon/pacing strip) on PWA and RN.
+- **Screening:** PHQ-2 and GAD-2 use range sliders (not vertical button stacks); friendlier titles; centered submit; PWA `weekly-review.js` + RN `MoodScreen`.
+- **i18n:** Plain-language **research pool** copy (no K-anonymity jargon); `settings.security.*` keys; Tier-A overrides (plan13/plan14); synced 14 locale packs.
+- **Shared:** `weatherIcons.mjs` + RN `weatherIcons.ts`; home weather strip uses shared icon mapping; `home-weather-icons` unit test.
+- **RN settings:** `SettingsSecurityLockPane`, `SettingsPerformanceLearnPane` (moat + milestones accordion); removed `SettingsCrossCuttingPane`.
+- **Security ops:** `verify-csp-connect-src-live.mjs`; Cloudflare header notes for Open-Meteo `connect-src`.
+- **Logging modules:** Toggles still gate **log wizard** only — cycle on step 1; barcode + guided voice fully wired on **RN** food/notes steps; **PWA barcode/voice UI not yet wired** (documented in project-reference).
+- **Tests:** **314** unit tests total.
 
 ### v1.113.0 - 2026-06-18 - Mood tab, Home UX, i18n & CSP fixes
 - **Mood tab:** New primary nav tab (PWA + RN) between Charts and AI — mood metrics from log answers, recent-feeling sparkline, AM/midday/PM micro-check-in, PHQ/GAD shortcuts, Charts mood link; `apps/pwa-webapp/modules/mood-tab.js`, RN `MoodScreen.tsx`.

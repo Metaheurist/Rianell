@@ -4,6 +4,15 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v1.114.0 documentation sync (Security lock tab and UX trim)
+
+- **Settings carousel:** Ten panes — **Security lock** is tab 10 (passcode + caregiver/proxy); Privacy tab 1 no longer includes app lock or caregiver toggles.
+- **Home:** Single hero status card merges streak nudge when applicable; pacing/energy-budget card removed.
+- **Charts:** Insights side panel removed; core chart series and presentation mode unchanged.
+- **Screening:** PHQ-2/GAD-2 sliders in weekly-review modal (PWA) and Mood tab (RN).
+- **Logging modules** (Settings → Data options): `cycleModuleEnabled` shows cycle fields on **log wizard step 1**; `barcodeFoodLoggingEnabled` and `guidedVoiceLogEnabled` are **RN-only** in the wizard today (food step day 7+; notes voice extraction). PWA toggles persist but wizard UI for barcode/voice is not wired yet.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.114.0; [platform-parity.md](platform-parity.md) v1.114.0 note.
+
 ### v1.113.0 documentation sync (Mood tab and Home UX)
 
 - **Navigation:** Primary tabs are **Home → Logs → Charts → Mood → AI** (PWA bottom bar + top strip; RN bottom tabs). Settings remains a header action, not a main tab.
