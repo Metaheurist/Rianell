@@ -48,7 +48,7 @@ import {
   nextHomeQuestionAnswerState,
   formatDate,
 } from '@rianell/shared';
-import { buildTodayPacingBudget } from '../ai/engine';
+import { getWeatherDisplayMetrics, weatherIconIonName } from '../utils/weatherIcons';
 import { requestWeatherCoords } from '../utils/homeWeatherLocation';
 import { summarizeLogsForAi } from '../ai/analyzeLogs';
 import Constants from 'expo-constants';
@@ -372,9 +372,17 @@ export function HomeScreen({
   const [checkinSaving, setCheckinSaving] = useState(false);
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherSnapshot, setWeatherSnapshot] = useState(prefs.weatherCache);
+  const weatherDisplay = useMemo(() => getWeatherDisplayMetrics(weatherSnapshot), [weatherSnapshot]);
+  const weatherSummaryLabel = useMemo(() => {
+    if (!weatherSnapshot) return '';
+    return t('home.weather.summary', {
+      temp: weatherSnapshot.tempC != null ? String(weatherSnapshot.tempC) : '-',
+      pressure: weatherSnapshot.pressureHpa != null ? String(weatherSnapshot.pressureHpa) : '-',
+      aqi: weatherSnapshot.usAqi != null ? String(weatherSnapshot.usAqi) : '-',
+    });
+  }, [t, weatherSnapshot]);
 
   const todayStr = todayIso();
-  const pacingBudget = useMemo(() => buildTodayPacingBudget(homeLogs, todayStr), [homeLogs, todayStr]);
   const todayLog = useMemo(() => homeLogs.find((l) => l.date === todayStr), [homeLogs, todayStr]);
   const doneCheckinPeriods = useMemo(() => completedCheckinPeriods(todayLog), [todayLog]);
   const streakSnapshot = useMemo(
@@ -637,7 +645,6 @@ export function HomeScreen({
         aiEnabled: prefs.aiEnabled,
         simpleMode: prefs.simpleMode,
         showGoals: true,
-        hasPacingData: pacingBudget != null,
         showCheckin: false,
         showStreak: streakSnapshot.showCard,
         showWeather: true,
@@ -645,7 +652,6 @@ export function HomeScreen({
       }),
     [
       homeLogs,
-      pacingBudget,
       prefs.aiEnabled,
       prefs.simpleMode,
       showWeeklyReview,
@@ -732,31 +738,42 @@ export function HomeScreen({
   }, [persistPrefs, prefs, t]);
 
   const renderHomeCard = (cardId: string) => {
-    if (cardId === 'nudge') {
+    if (cardId === 'hero') {
+      const notLoggedDetail = cardContext.streakBroken
+        ? t('home.status.notLoggedStreakBrokenDetail')
+        : t('home.status.notLoggedTodayDetail');
       return (
         <View
-          key="nudge"
-          style={[styles.card, styles.nudgeCard, { borderColor: `${accent}55` }]}
-          accessibilityRole="text"
-          accessibilityLabel={t('home.nudge.streakBroken')}
+          key="hero"
+          style={[
+            styles.card,
+            !loggedToday && cardContext.streakBroken ? styles.heroStreakNudgeCard : null,
+          ]}
         >
-          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            {t('home.nudge.streakBroken')}
-          </Text>
-        </View>
-      );
-    }
-    if (cardId === 'hero') {
-      return (
-        <View key="hero" style={styles.card}>
           <Text style={[styles.title, { color: accent, fontSize: theme.font(22) }]}>Rianell</Text>
-          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
-            {loggedToday === null
-              ? t('home.status.loadingToday')
-              : loggedToday
-                ? t('home.status.loggedTodayDetail')
-                : t('home.status.notLoggedTodayDetail')}
-          </Text>
+          {loggedToday === null ? (
+            <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
+              {t('home.status.loadingToday')}
+            </Text>
+          ) : loggedToday ? (
+            <>
+              <Text style={[styles.heroStatusTitle, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
+                {t('home.status.loggedToday')}
+              </Text>
+              <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
+                {t('home.status.loggedTodayDetail')}
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text style={[styles.heroStatusTitle, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
+                {t('home.status.notLoggedYet')}
+              </Text>
+              <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(16) }]}>
+                {notLoggedDetail}
+              </Text>
+            </>
+          )}
           {loggedToday ? (
             <Pressable
               onPress={() => void onReadTodayEntry()}
@@ -887,32 +904,6 @@ export function HomeScreen({
         </View>
       );
     }
-    if (cardId === 'pacing' && pacingBudget) {
-      return (
-        <View key="pacing" style={styles.card} accessibilityLabel={t('home.pacing.title')}>
-          <Text style={[styles.title, { color: accent, fontSize: theme.font(18) }]}>{t('home.pacing.title')}</Text>
-          <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-            {t('home.pacing.summary', { planned: pacingBudget.planned, actual: pacingBudget.rawActual })}
-          </Text>
-          {pacingBudget.overpaced ? (
-            <Text style={[styles.text, { color: theme.tokens.color.text, fontSize: theme.font(13), marginTop: 6, opacity: 0.9 }]}>
-              {t('home.pacing.overpaced')}
-            </Text>
-          ) : null}
-          <Pressable
-            onPress={() => navigation.navigate('Charts', { initialView: 'balance' })}
-            style={({ pressed }) => [
-              styles.readTodayBtn,
-              { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1, marginTop: 10 },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={t('home.pacing.linkCharts')}
-          >
-            <Text style={{ color: accent, fontSize: theme.font(14) }}>{t('home.pacing.linkCharts')}</Text>
-          </Pressable>
-        </View>
-      );
-    }
     if (cardId === 'goals') {
       return (
         <View key="goals" style={styles.card} accessibilityLabel={t('home.goals.title')}>
@@ -992,25 +983,34 @@ export function HomeScreen({
                       {weatherLoading ? t('home.weather.loading') : t('home.weather.enable')}
                     </Text>
                   </Pressable>
+                ) : weatherSnapshot && weatherDisplay ? (
+                  <View
+                    style={styles.homeWeatherLayout}
+                    accessibilityRole="text"
+                    accessibilityLabel={weatherSummaryLabel}
+                  >
+                    {weatherDisplay.conditionIcon !== 'weather-unknown' ? (
+                      <Ionicons
+                        name={weatherIconIonName(weatherDisplay.conditionIcon)}
+                        size={22}
+                        color={accent}
+                        accessibilityElementsHidden
+                        importantForAccessibility="no"
+                      />
+                    ) : null}
+                    <View style={styles.homeWeatherMetrics}>
+                      {weatherDisplay.metrics.map((metric) => (
+                        <View key={metric.key} style={styles.homeWeatherMetric} accessibilityElementsHidden importantForAccessibility="no">
+                          <Ionicons name={weatherIconIonName(metric.icon)} size={14} color={accent} />
+                          <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(12) }}>{metric.text}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
                 ) : weatherSnapshot ? (
-                  <>
-                    <Text style={[styles.homeWeatherSummary, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-                      {t('home.weather.summary', {
-                        temp: weatherSnapshot.tempC != null ? String(weatherSnapshot.tempC) : '-',
-                        pressure: weatherSnapshot.pressureHpa != null ? String(weatherSnapshot.pressureHpa) : '-',
-                        aqi: weatherSnapshot.usAqi != null ? String(weatherSnapshot.usAqi) : '-',
-                      })}
-                    </Text>
-                    <Pressable
-                      onPress={() => void Linking.openURL('https://open-meteo.com/')}
-                      accessibilityRole="link"
-                      accessibilityLabel={t('home.weather.attribution')}
-                    >
-                      <Text style={{ color: accent, fontSize: theme.font(11), opacity: 0.85, textAlign: 'right' }}>
-                        {t('home.weather.attribution')}
-                      </Text>
-                    </Pressable>
-                  </>
+                  <Text style={[styles.homeWeatherSummary, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
+                    {weatherSummaryLabel}
+                  </Text>
                 ) : (
                   <Text style={[styles.homeWeatherSummary, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
                     {weatherLoading ? t('home.weather.loading') : t('home.weather.enableHint')}
@@ -1287,10 +1287,12 @@ const styles = StyleSheet.create({
   },
   card: { borderRadius: 16, padding: 16, backgroundColor: 'rgba(0,0,0,0.18)', marginBottom: 12 },
   cardHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  nudgeCard: {
+  heroStreakNudgeCard: {
     backgroundColor: 'rgba(76,175,80,0.12)',
     borderWidth: 1,
+    borderColor: 'rgba(76,175,80,0.35)',
   },
+  heroStatusTitle: { fontWeight: '700', marginBottom: 6 },
   scrollContent: { paddingBottom: 96 },
   homeTodayHeader: { marginBottom: 16, alignItems: 'center' },
   homeGreeting: { fontWeight: '700', textAlign: 'center', marginBottom: 6 },
@@ -1304,6 +1306,9 @@ const styles = StyleSheet.create({
   },
   homeDateLabel: { opacity: 0.85, flexShrink: 1 },
   homeWeatherStrip: { flex: 1, minWidth: 140, alignItems: 'flex-end' },
+  homeWeatherLayout: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 8 },
+  homeWeatherMetrics: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', gap: 8 },
+  homeWeatherMetric: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   homeWeatherSummary: { textAlign: 'right', lineHeight: 18 },
   title: { fontSize: 22, fontWeight: '700', marginBottom: 8 },
   text: { fontSize: 16, opacity: 0.95 },

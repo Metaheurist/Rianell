@@ -35,16 +35,7 @@ import {
 } from '../charts/summarizeCharts';
 import { loadCachedBenchmark, type BenchmarkResult } from '../performance/benchmark';
 import {
-  buildCorrelationCards,
-  buildFlarePostMortem,
-  buildCyclePhaseBands,
-  compareChartPeriods,
-  buildPacingChartSeries,
   buildBalanceRadarData,
-  predictFutureValues,
-  type PredictedPoint,
-  type FlarePostMortemResult,
-  type PacingChartRow,
 } from '../ai/engine';
 import { BalanceRadarChart } from '../charts/BalanceRadarChart';
 import { buildRadarSvgForExport, printOrShareChartReport } from '../utils/printChartReport';
@@ -160,77 +151,6 @@ function IndividualMetricChart({
   );
 }
 
-function PredictionBandVisual({ point, color }: { point: PredictedPoint; color: string }) {
-  const lowerPct = Math.max(0, Math.min(100, (point.lower / 10) * 100));
-  const upperPct = Math.max(0, Math.min(100, (point.upper / 10) * 100));
-  const valuePct = Math.max(0, Math.min(100, (point.value / 10) * 100));
-  return (
-    <View style={styles.predictionBandTrack} accessibilityLabel="Forecast uncertainty band">
-      <View
-        style={[
-          styles.predictionBandRange,
-          {
-            left: `${lowerPct}%`,
-            width: `${Math.max(2, upperPct - lowerPct)}%`,
-            backgroundColor: `${color}44`,
-          },
-        ]}
-      />
-      <View style={[styles.predictionBandDot, { left: `${valuePct}%`, backgroundColor: color }]} />
-    </View>
-  );
-}
-
-function PacingDayRow({
-  date,
-  planned,
-  actual,
-  fatigue,
-  overpaced,
-  textColor,
-  accent,
-}: {
-  date: string;
-  planned: number;
-  actual: number;
-  fatigue: number | null;
-  overpaced: boolean;
-  textColor: string;
-  accent: string;
-}) {
-  return (
-    <View style={styles.pacingRow}>
-      <Text style={[styles.meta, { color: textColor, fontSize: 12, flex: 1 }]}>{date}</Text>
-      <View style={styles.pacingBars}>
-        <View style={[styles.pacingBarTrack, { backgroundColor: `${textColor}14` }]}>
-          <View style={[styles.pacingBarFill, { width: `${planned * 10}%`, backgroundColor: `${accent}55` }]} />
-        </View>
-        <View style={[styles.pacingBarTrack, { backgroundColor: `${textColor}14` }]}>
-          <View
-            style={[
-              styles.pacingBarFill,
-              {
-                width: `${Math.min(100, actual * 10)}%`,
-                backgroundColor: overpaced ? '#ef5350' : CHART_METRIC_HEX.steps,
-              },
-            ]}
-          />
-        </View>
-        {fatigue != null ? (
-          <View style={[styles.pacingBarTrack, { backgroundColor: `${textColor}14` }]}>
-            <View
-              style={[
-                styles.pacingBarFill,
-                { width: `${fatigue * 10}%`, backgroundColor: CHART_METRIC_HEX.fatigue },
-              ]}
-            />
-          </View>
-        ) : null}
-      </View>
-    </View>
-  );
-}
-
 export function ChartsScreen({
   prefs,
   onChangePrefs,
@@ -333,31 +253,6 @@ export function ChartsScreen({
 
   const summary = useMemo(() => summarizeCharts(logs, effectiveRange, { translate: t }), [logs, effectiveRange, t]);
   const rangeLogs = useMemo(() => filterLogsForCharts(logs, effectiveRange), [logs, effectiveRange]);
-  const correlationCards = useMemo(() => buildCorrelationCards(rangeLogs, 'all'), [rangeLogs]);
-  const flarePostMortem = useMemo(
-    () => buildFlarePostMortem(rangeLogs) as FlarePostMortemResult | null,
-    [rangeLogs]
-  );
-  const cycleOverlay = useMemo(
-    () => (prefs?.cycleModuleEnabled ? buildCyclePhaseBands(rangeLogs) : { bands: [], markers: [] }),
-    [rangeLogs, prefs?.cycleModuleEnabled]
-  );
-  const periodCompare = useMemo(() => compareChartPeriods(rangeLogs), [rangeLogs]);
-  const pacingSeries = useMemo(() => {
-    const build = buildPacingChartSeries as (
-      logs: typeof rangeLogs,
-      range?: number | 'all'
-    ) => PacingChartRow[];
-    return build(rangeLogs, range).slice(-7);
-  }, [rangeLogs, range]);
-  const moodForecast = useMemo(() => {
-    const moodSeries = rangeLogs
-      .filter((e) => typeof e.mood === 'number')
-      .map((e) => e.mood as number);
-    if (moodSeries.length < 2) return null;
-    const pts = predictFutureValues(moodSeries, 3);
-    return pts.length ? pts[pts.length - 1] : null;
-  }, [rangeLogs]);
   const trendsForView = useMemo(
     () => filterTrendsForChartView(summary.trends, view),
     [summary.trends, view]
@@ -660,136 +555,6 @@ export function ChartsScreen({
             </View>
           ) : null}
 
-          {correlationCards.length > 0 ? (
-            <>
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-                {t('charts.correlations.title')}
-              </Text>
-              {correlationCards.map((card) => (
-                <View
-                  key={card.id}
-                  style={[styles.insightCard, { borderLeftColor: CHART_METRIC_HEX.mood }]}
-                >
-                  <Text style={[styles.insightBadge, { color: theme.tokens.color.accent, fontSize: theme.font(11) }]}>
-                    {t(`charts.correlations.confidence.${card.confidence}`)}
-                  </Text>
-                  <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                    {card.label1}{' '}
-                    {t(card.direction === 'positive' ? 'charts.correlations.positive' : 'charts.correlations.negative')}{' '}
-                    {card.label2} ({card.coefficient})
-                  </Text>
-                </View>
-              ))}
-            </>
-          ) : null}
-
-          {flarePostMortem ? (
-            <>
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-                {t('charts.flarePostMortem.title')}
-              </Text>
-              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-                {t('charts.flarePostMortem.window', {
-                  days: flarePostMortem.windowDays,
-                  date: flarePostMortem.flareDate,
-                })}
-              </Text>
-              {(flarePostMortem.diverging.length ? flarePostMortem.diverging : flarePostMortem.metrics).map((m) => (
-                <Text
-                  key={`flare-${m.key}`}
-                  style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
-                >
-                  {t('charts.flarePostMortem.metricLine', {
-                    label: m.label,
-                    before: m.beforeAvg != null ? m.beforeAvg.toFixed(1) : '-',
-                    after: m.afterAvg != null ? m.afterAvg.toFixed(1) : '-',
-                    delta:
-                      m.delta != null
-                        ? m.delta >= 0
-                          ? `+${m.delta.toFixed(1)}`
-                          : m.delta.toFixed(1)
-                        : '-',
-                  })}
-                </Text>
-              ))}
-            </>
-          ) : null}
-
-          {cycleOverlay.bands.length > 0 ? (
-            <>
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-                {t('charts.cycle.title')}
-              </Text>
-              <View style={styles.cycleLegendRow}>
-                {cycleOverlay.bands.map((band) => (
-                  <View
-                    key={`${band.phase}-${band.startDate}`}
-                    style={[styles.cycleChip, { borderColor: band.color }]}
-                  >
-                    <View style={[styles.cycleDot, { backgroundColor: band.color }]} />
-                    <Text style={{ color: theme.tokens.color.text, fontSize: theme.font(12) }}>{band.label}</Text>
-                  </View>
-                ))}
-              </View>
-            </>
-          ) : null}
-
-          {periodCompare && periodCompare.current.stats.logDays > 0 ? (
-            <>
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-                {t('charts.compare.title')}
-              </Text>
-              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-                {t('charts.compare.lede', {
-                  current: periodCompare.current.label,
-                  previous: periodCompare.previous.label,
-                })}
-              </Text>
-              {(['mood', 'sleep', 'fatigue'] as const).map((key) => {
-                const cur = periodCompare.current.stats[`${key}Avg`];
-                const prev = periodCompare.previous.stats[`${key}Avg`];
-                const d = periodCompare.deltas[key];
-                if (cur == null && prev == null) return null;
-                return (
-                  <Text
-                    key={`cmp-${key}`}
-                    style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}
-                  >
-                    {t('charts.compare.metricLine', {
-                      metric: key.charAt(0).toUpperCase() + key.slice(1),
-                      current: cur != null ? cur.toFixed(1) : '-',
-                      previous: prev != null ? prev.toFixed(1) : '-',
-                      delta: d != null ? (d >= 0 ? `+${d.toFixed(1)}` : d.toFixed(1)) : '-',
-                    })}
-                  </Text>
-                );
-              })}
-            </>
-          ) : null}
-
-          {pacingSeries.length > 0 ? (
-            <>
-              <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-                {t('charts.pacing.title')}
-              </Text>
-              <Text style={[styles.meta, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-                {t('charts.pacing.legend')}
-              </Text>
-              {pacingSeries.map((row) => (
-                <PacingDayRow
-                  key={`pace-${row.date}`}
-                  date={row.date}
-                  planned={row.planned}
-                  actual={row.actual}
-                  fatigue={row.fatigue}
-                  overpaced={row.overpaced}
-                  textColor={theme.tokens.color.text}
-                  accent={theme.tokens.color.accent}
-                />
-              ))}
-            </>
-          ) : null}
-
           {showOverview ? (
             <>
               <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('charts.overview')}</Text>
@@ -799,22 +564,6 @@ export function ChartsScreen({
               <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
                 Flare days: {summary.flareDays}
               </Text>
-              {moodForecast ? (
-                <>
-                  <Text style={[styles.section, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
-                    {t('charts.forecast.section')}
-                  </Text>
-                  <Text style={[styles.metric, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                    {t('charts.forecast.uncertainty', {
-                      days: 3,
-                      value: moodForecast.value.toFixed(1),
-                      lower: moodForecast.lower.toFixed(1),
-                      upper: moodForecast.upper.toFixed(1),
-                    })}
-                  </Text>
-                  <PredictionBandVisual point={moodForecast} color={CHART_METRIC_HEX.mood} />
-                </>
-              ) : null}
               {trendsForView.some((trend) => trend.spark.length > 1) ? (
                 <CombinedTrendChart
                   series={trendsForView
@@ -1031,51 +780,4 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   balanceVisualFill: { height: '100%', borderRadius: 6, minWidth: 2 },
-  insightCard: {
-    borderLeftWidth: 3,
-    paddingLeft: 10,
-    paddingVertical: 8,
-    marginBottom: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)',
-  },
-  insightBadge: { fontWeight: '800', marginBottom: 4, textTransform: 'uppercase' },
-  predictionBandTrack: {
-    marginTop: 6,
-    marginBottom: 10,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  predictionBandRange: {
-    position: 'absolute',
-    top: 2,
-    bottom: 2,
-    borderRadius: 5,
-  },
-  predictionBandDot: {
-    position: 'absolute',
-    top: 3,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginLeft: -4,
-  },
-  cycleLegendRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
-  cycleChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  cycleDot: { width: 10, height: 10, borderRadius: 5 },
-  pacingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  pacingBars: { flex: 2, gap: 3 },
-  pacingBarTrack: { height: 6, borderRadius: 4, overflow: 'hidden' },
-  pacingBarFill: { height: '100%', borderRadius: 4, minWidth: 2 },
 });
