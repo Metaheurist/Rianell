@@ -302,6 +302,41 @@
       "international_transfers": true,
       "reference": "docs/privacy/region-policy-execution-plan.md",
       "data_subject_rights": ["access", "rectification", "erasure", "portability", "withdraw_consent"]
+    },
+    {
+      "id": "PA-10",
+      "name": "Optional session recording (Smartlook)",
+      "description": "When the user opts in under Settings → Privacy, screen interaction recordings are sent to Smartlook Analytics (EU region) to improve usability.",
+      "purposes": ["Product improvement", "Usability diagnostics"],
+      "legal_basis_art6": "consent_6_1_a",
+      "legal_basis_art9": "explicit_consent_9_2_a",
+      "data_categories": [
+        "screen_interactions",
+        "device_metadata",
+        "ip_address",
+        "health_ui_content_when_visible"
+      ],
+      "data_subjects": ["app_users_opt_in"],
+      "special_category": true,
+      "recipients": ["smartlook_analytics"],
+      "subprocessors": [
+        {
+          "name": "Smartlook Analytics s.r.o.",
+          "role": "session_recording_hosting",
+          "dpa": "standard_terms",
+          "reference": "docs/privacy/subprocessors.md"
+        }
+      ],
+      "storage_locations": ["smartlook_eu"],
+      "retention": "Per Smartlook project settings until user opts out or erasure request",
+      "security_measures": [
+        "opt_in_default_off",
+        "local_only_mode_blocks_sdk",
+        "consent_dashboard_revoke",
+        "eu_region_configured"
+      ],
+      "international_transfers": false,
+      "data_subject_rights": ["access", "erasure", "withdraw_consent", "object"]
     }
   ],
   "technical_and_organisational_measures": {

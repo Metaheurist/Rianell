@@ -3,7 +3,8 @@
 export const POLICY_BODIES = {
   'global-baseline': [
     'Rianell is a personal wellness tracker. Your health logs are stored on your device unless you turn on optional cloud backup.',
-    'Optional features (encrypted cloud backup, anonymised research contribution, and on-device AI) each need separate consent. You can change or withdraw consent in Settings.',
+    'Optional features (encrypted cloud backup, anonymised research contribution, on-device AI, and optional session recording) each need separate consent. You can change or withdraw consent in Settings.',
+    'Session recording (Smartlook) is off by default. When enabled, it may capture screens you view, including health data you have entered. You can turn it off at any time under Settings → Privacy.',
     'You can export your data or delete local and cloud copies at any time from Settings → Data options.',
   ],
   'eu-gdpr': [

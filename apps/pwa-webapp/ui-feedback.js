@@ -176,7 +176,10 @@
     ) {
       bringOverlayToFront(overlay);
     }
-    overlay.style.display = 'block';
+    var useFlex = overlay.classList.contains('ai-model-download-consent')
+      || overlay.classList.contains('health-data-consent-overlay')
+      || overlay.classList.contains('privacy-region-gate-overlay');
+    overlay.style.display = useFlex ? 'flex' : 'block';
     overlay.style.visibility = 'visible';
     overlay.style.opacity = '1';
     overlay.classList.remove('modal-overlay--closing');
@@ -213,6 +216,9 @@
         var main = document.getElementById('appShell');
         if (main && main.removeAttribute) {
           try { main.removeAttribute('inert'); } catch (e) {}
+        }
+        if (typeof global.ensureShellContentVisible === 'function') {
+          global.ensureShellContentVisible();
         }
       }
       if (typeof options.onClosed === 'function') options.onClosed();

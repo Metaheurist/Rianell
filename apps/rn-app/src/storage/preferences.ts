@@ -134,6 +134,8 @@ export type Preferences = {
   barcodeFoodLoggingEnabled: boolean;
   guidedVoiceLogEnabled: boolean;
   localOnlyMode: boolean;
+  sessionRecording: boolean;
+  sessionRecordingAt: string | null;
   appLockEnabled: boolean;
   processingActivityLog: Array<{ type: string; at: string; detail?: string }>;
   cloudAutoSyncOnOpen: boolean;
@@ -249,6 +251,8 @@ export function getDefaultPreferences(): Preferences {
     barcodeFoodLoggingEnabled: false,
     guidedVoiceLogEnabled: false,
     localOnlyMode: false,
+    sessionRecording: false,
+    sessionRecordingAt: null,
     appLockEnabled: false,
     processingActivityLog: [],
     cloudAutoSyncOnOpen: false,

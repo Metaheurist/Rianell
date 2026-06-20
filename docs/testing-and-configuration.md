@@ -184,6 +184,21 @@ No full page reload required.
 2. **`__rianellAppInitStarted`** — set at `runAppInit()`; unlocks `applyDataI18nAttributes()` in `i18n-pwa.js`.
 3. **Shell reveal** — `revealAppShellWithLocale()` runs `ensureCatalogs()` → `refreshLocaleUI()` → `revealAppShell()` so Home and `data-i18n` nodes show translated text, not raw keys.
 
+### PWA shell boot probes (v1.115.0)
+
+**Symptom:** Blank/black viewport after load with boot logs showing `shellVis: visible` but `shellW: 0`, `shellH: 0`.
+
+**Root cause (v1.115.0):** `#appShell` was parsed as a child of `#settingsOverlay` when the settings overlay was missing a closing `</div>`. Hidden overlay ⇒ zero-size shell.
+
+**Guards:** `ensureAppShellDomPlacement()` on DOM ready; `ensureShellContentVisible()` after modals; `[Rianell boot]` JSON logs include `shellParentId`, `shellMisplaced`, `mainW`, `mainH`, `openModalIds`.
+
+| Command | Purpose |
+|---------|---------|
+| `npm run audit:probe-shell` | Guest flow — shell visible + greeting after onboarding |
+| `npm run audit:probe-shell:screenshot` | DOM rects + screenshot to `audit-history/probe-shell-screenshot.png` |
+| `npm run audit:probe-shell:layout` | Deep layout diagnostic (parent chain, blockers, boot log tail) |
+| `node scripts/audit/check-dom-nesting.mjs` | Verify `#appShell` is not nested under `#settingsOverlay` in `index.html` |
+
 **Local CI-parity gate:** `powershell -File server/launch-server.ps1` (compiled `.server-dist`), then `npm run audit:boot:prepare` and `PROBE_URL=http://127.0.0.1:8080/ npm run audit:boot:strict`.
 
 **Post-deploy (CI, v1.89.2):** After **`deploy-pages`**, job **`audit-boot-post-deploy`** downloads artifact **`pages-site-probe`** (the same prepared `site/` uploaded to GitHub Pages), serves it with **`python -m server`** on the audit runner, and runs **`audit:boot:baseline`** and **`verify-deploy-html.mjs`** against `http://127.0.0.1:9876/` only — no live **`rianell.com`** / **github.io** requests from GHA (Cloudflare **403**). Strict production audit remains the local **`launch-server.ps1`** gate before push.

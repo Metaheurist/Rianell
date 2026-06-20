@@ -46,7 +46,7 @@
   <!-- PayPal JS SDK: set meta paypal-client-id (REST app Client ID from developer.paypal.com) for in-app Smart Payment Buttons (PayPal, card, Apple Pay / Google Pay when eligible). -->
   <meta name="paypal-client-id" content="">
   <meta name="paypal-currency" content="USD">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.paypal.com; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co https://*.aws.cdn.hf.co https://raw.githubusercontent.com https://api.open-meteo.com https://air-quality-api.open-meteo.com https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://api.paypal.com https://api.sandbox.paypal.com https://c.paypal.com; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.paypal.com https://web-sdk.smartlook.com https://*.smartlook.com https://*.smartlook.cloud; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co https://*.aws.cdn.hf.co https://raw.githubusercontent.com https://api.open-meteo.com https://air-quality-api.open-meteo.com https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://api.paypal.com https://api.sandbox.paypal.com https://c.paypal.com https://web-sdk.smartlook.com https://*.smartlook.com https://*.smartlook.cloud; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <!-- Note: X-Frame-Options is set via HTTP header in server, not here -->
   <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
@@ -355,7 +355,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Font Awesome: deferred after first paint to reduce render-blocking CSS -->
   <link rel="preload" href="styles.css?v=89" as="style">
-  <link rel="modulepreload" href="app.js?v=41" crossorigin>
+  <link rel="modulepreload" href="app.js?v=42" crossorigin>
   <link rel="stylesheet" href="css/tokens.css?v=1">
   <link rel="stylesheet" href="styles.css?v=89" id="mainStylesheet" onerror="var l=this;if(!l.dataset.retried){l.dataset.retried='1';var s=document.createElement('link');s.rel='stylesheet';s.href='styles.css?v=89&amp;r='+Date.now();s.id='mainStylesheetRetry';document.head.appendChild(s);}">
   <style>
@@ -892,6 +892,36 @@
       opacity: 1;
       pointer-events: auto;
     }
+    /* Beat stale privacy-gate-active from cached scripts during onboarding. */
+    body.loaded #appShell,
+    body.loaded .app-fab-wrap,
+    body.loaded .app-mobile-bottom-chrome,
+    body.loaded #cookieBanner {
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+    body.loaded #appShell {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: block;
+    }
+    body.loaded #loadingOverlay.hidden {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    body.loaded .tab-content.active {
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+    body.loaded #main-content,
+    body.loaded .container {
+      opacity: 1 !important;
+      visibility: visible !important;
+      transform: none !important;
+    }
     body.loaded .loading-overlay {
       transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
     }
@@ -1114,6 +1144,15 @@
         <div id="localOnlyFeatureMatrix" class="settings-hint" style="display:none;">
           <p data-i18n="settings.privacy.localOnly.disabledLead">While enabled, these network features are blocked:</p>
           <ul id="localOnlyFeatureList"></ul>
+        </div>
+        <div class="settings-option">
+          <label data-i18n="settings.privacy.sessionRecording.title">Session recording</label>
+          <div class="toggle-switch" id="sessionRecordingToggle" onclick="toggleSessionRecordingSetting()"></div>
+        </div>
+        <p class="settings-hint" id="sessionRecordingHint" data-i18n="settings.privacy.sessionRecording.hint">Optional screen recordings (Smartlook) to help improve the app. Off by default. May capture health screens you visit. Turn off here at any time.</p>
+        <div class="settings-option" id="consentDashboardSection">
+          <h5 data-i18n="settings.consent.dashboardTitle">Consent dashboard</h5>
+          <div id="consentDashboardList" class="consent-dashboard-list"></div>
         </div>
         <p class="settings-hint" id="privacyActivityLogHint" data-i18n="settings.privacy.activity.empty">No processing events recorded yet.</p>
       </div>
@@ -1593,6 +1632,7 @@
       </div>
       <button type="button" class="settings-carousel-side settings-carousel-side--next" id="settingsCarouselNext" onclick="settingsCarouselStep(1)" aria-label="Next settings section" data-i18n-aria="common.next.settings.section">›</button>
     </div>
+  </div>
   </div>
 
   <!-- Goals & Targets Modal -->
@@ -3823,9 +3863,10 @@
   <script defer src="modules/weekly-review.js?v=4"></script>
   <script defer src="modules/mood-tab.js?v=1"></script>
   <script defer src="i18n-pwa.js?v=3"></script>
-  <script defer src="privacy-region.js?v=5"></script>
+  <script defer src="privacy-region.js?v=6"></script>
+  <script defer src="smartlook.js?v=1"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
-  <script type="module" defer src="app.js?v=41"></script>
+  <script type="module" defer src="app.js?v=42"></script>
   <script defer src="security-utils.js"></script>
   <script defer src="encryption-utils.js"></script>
   <script defer src="cloud-sync.js?v=2"></script>

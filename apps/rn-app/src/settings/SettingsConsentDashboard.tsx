@@ -26,6 +26,8 @@ export function SettingsConsentDashboard({
     notificationsEnabled: prefs.notifications.enabled,
     contributeAnonData: prefs.contributeAnonData,
     contributeAnonDataAt: prefs.contributeAnonDataAt,
+    sessionRecording: prefs.sessionRecording,
+    sessionRecordingAt: prefs.sessionRecordingAt,
   });
 
   function revoke(row: (typeof rows)[number]) {
@@ -52,6 +54,9 @@ export function SettingsConsentDashboard({
           } else if (row.id === 'anonPool') {
             next.contributeAnonData = false;
             next.contributeAnonDataAt = null;
+          } else if (row.id === 'sessionRecording') {
+            next.sessionRecording = false;
+            next.sessionRecordingAt = null;
           }
           onChangePrefs(next);
         },

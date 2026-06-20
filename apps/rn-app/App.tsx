@@ -30,6 +30,7 @@ import { TrackingProfileWizard } from './src/components/TrackingProfileWizard';
 import { markTutorialSeen } from './src/storage/preferences';
 import { AppLockGate } from './src/components/AppLockGate';
 import { I18nProvider } from './src/i18n/I18nProvider';
+import { applySessionRecording } from './src/analytics/sessionRecording';
 
 export default function App() {
   const [prefs, setPrefs] = useState<Preferences | null>(null);
@@ -100,6 +101,17 @@ export default function App() {
     });
     return () => sub.remove();
   }, [prefs?.cloudAutoSyncOnOpen]);
+
+  useEffect(() => {
+    if (!prefs) return;
+    applySessionRecording(prefs);
+  }, [
+    prefs?.sessionRecording,
+    prefs?.localOnlyMode,
+    prefs?.demoMode,
+    prefs?.healthDataConsent,
+    prefs?.privacyRegion,
+  ]);
 
   useEffect(() => {
     if (!prefs) return;

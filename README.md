@@ -25,8 +25,13 @@
 [![esbuild](https://img.shields.io/badge/esbuild-bundle-FFCF00?style=flat-square&logo=esbuild&logoColor=000)](https://esbuild.github.io/)
 [![ApexCharts](https://img.shields.io/badge/ApexCharts-charts-008FFB?style=flat-square)](https://apexcharts.com/)
 [![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI-2088FF?style=flat-square&logo=githubactions&logoColor=white)](https://github.com/features/actions)
+[![Smartlook](https://img.shields.io/badge/Smartlook-Session%20recording%20(EU%20opt--in)-FF6B35?style=flat-square&logo=smartlook&logoColor=white)](https://www.smartlook.com/)
 
 **React Native (Expo) builds:** CI produces minified **Expo production bundles** for **iOS + Android** as a merge gate. **`npm run dev`** starts the Expo dev server (`apps/rn-app`).
+
+### Session recording (Smartlook)
+
+Optional **session recording** (Smartlook, EU region) helps improve usability on **PWA and React Native**. It is **off by default** and only runs after explicit opt-in under **Settings → Privacy & region**. Users can turn it off anytime or revoke consent from the **Consent dashboard**. Blocked while **local-only mode** is on. See **[docs/privacy/smartlook-session-recording.md](docs/privacy/smartlook-session-recording.md)** and the [subprocessor register](docs/privacy/subprocessors.md).
 
 **Repository**: [github.com/Metaheurist/Rianell](https://github.com/Metaheurist/Rianell)
 
@@ -58,6 +63,7 @@ Long-form sections live under **`docs/`** so the main README stays short. Open t
 | :--- | :--- |
 | <img src="docs/icons/lock.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Security](docs/SECURITY.md)** - threat model, controls, and v1.50 security program |
 | <img src="docs/icons/shield.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Privacy program](docs/privacy/global-baseline.md)** - GDPR baseline, RoPA, data-subject rights (`docs/privacy/`) |
+| <img src="docs/icons/shield.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Smartlook session recording](docs/privacy/smartlook-session-recording.md)** - opt-in EU session analytics (PWA + RN), consent and CSP |
 | <img src="docs/icons/clipboard.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Privacy & region execution plan](docs/privacy/region-policy-execution-plan.md)** - Region gate, policy engine, UI localization (single Supabase project) |
 | <img src="docs/icons/globe.svg" width="32" height="32" alt="" aria-hidden="true"> | **[Infrastructure & edge security](docs/infrastructure-and-security-edge.md)** - DNS, Cloudflare, GitHub Pages (no secrets; safe for contributors) |
 | <img src="docs/icons/home.svg" width="32" height="32" alt="" aria-hidden="true"> | **[App overview & features](docs/app-and-features.md)** - UI, behaviour, screenshots |

@@ -31,7 +31,7 @@ Settings → **Privacy & region** controls language and regional policies.
 | **Access / portability** | Settings → Export JSON backup |
 | **Rectification** | View logs → Edit entry |
 | **Erasure** | Delete entry; Delete cloud data; clear local storage |
-| **Withdraw consent** | Decline or revoke in Settings; disable cloud sync |
+| **Withdraw consent** | Decline or revoke in Settings; disable cloud sync; revoke **Session recording (Smartlook)** |
 | **Object to research use** | Turn off anonymised contribution |
 
 Target response time for operator-assisted requests: **30 days** (GDPR Art. 12).
@@ -40,10 +40,27 @@ Contact: **jan.andersson@rianell.com** for account deletion or access requests t
 
 ---
 
+## Optional session recording (Smartlook)
+
+Rianell can record how you use the app to help fix usability issues. This is **optional** and **off by default**.
+
+| | |
+|---|---|
+| **When it runs** | Only after you turn on **Session recording** in Settings → Privacy & region and confirm |
+| **What it may capture** | Screens you visit, taps, and scrolling — including health data visible on screen |
+| **Where data goes** | Smartlook Analytics (EU region) — see [subprocessor register](https://github.com/Metaheurist/Rianell/blob/main/docs/privacy/subprocessors.md) |
+| **How to stop** | Turn the toggle off, or **Consent dashboard → Revoke** |
+| **Local-only mode** | Blocks session recording along with other network features |
+
+Technical details: [Smartlook session recording](https://github.com/Metaheurist/Rianell/blob/main/docs/privacy/smartlook-session-recording.md).
+
+---
+
 ## What we don’t do
 
 - Sell your health logs
 - Send logs to third-party LLM APIs by default (on-device model optional)
+- Record your sessions by default (Smartlook is opt-in only)
 - Auto-translate your personal notes or symptom text
 
 ---
@@ -70,5 +87,6 @@ This is **strictly necessary** for on-device performance tuning (not tracking). 
 ## Read more (technical)
 
 - [Privacy program — global baseline](https://github.com/Metaheurist/Rianell/blob/main/docs/privacy/global-baseline.md)
+- [Smartlook session recording (technical)](https://github.com/Metaheurist/Rianell/blob/main/docs/privacy/smartlook-session-recording.md)
 - [Data subject rights UX mapping](https://github.com/Metaheurist/Rianell/blob/main/docs/privacy/data-subject-rights.md)
 - [SECURITY.md](https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md)

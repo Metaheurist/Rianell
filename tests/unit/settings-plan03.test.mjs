@@ -28,8 +28,9 @@ test('settings profile export round-trip', () => {
   assert.equal(parsed.goals.steps, 5000);
 });
 
-test('consent dashboard lists five consent rows', () => {
+test('consent dashboard lists six consent rows', () => {
   const rows = buildConsentDashboardEntries({ healthDataConsent: true, contributeAnonData: false });
-  assert.equal(rows.length, 5);
+  assert.equal(rows.length, 6);
   assert.equal(rows[0].id, 'healthData');
+  assert.ok(rows.some((r) => r.id === 'sessionRecording'));
 });

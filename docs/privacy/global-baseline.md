@@ -1,8 +1,8 @@
 # Global privacy baseline
 
 **Product:** Rianell  
-**Last updated:** 2026-06-13  
-**Related:** [eu-gdpr.md](eu-gdpr.md) · [other-jurisdictions.md](other-jurisdictions.md) · [ropa.json](ropa.json) · [data-subject-rights.md](data-subject-rights.md)
+**Last updated:** 2026-06-20  
+**Related:** [eu-gdpr.md](eu-gdpr.md) · [other-jurisdictions.md](other-jurisdictions.md) · [ropa.json](ropa.json) · [data-subject-rights.md](data-subject-rights.md) · [smartlook-session-recording.md](smartlook-session-recording.md)
 
 ---
 
@@ -31,10 +31,10 @@ Rianell is a **personal wellness** application, not a regulated medical device o
 ## 3. Privacy principles (operational)
 
 1. **Local-first:** Core logging works offline; cloud is optional.
-2. **Transparency:** In-app GDPR agreement, cookie/health consent, AI disclosure.
-3. **User control:** Export, delete cloud data, disable anonymized contribution.
+2. **Transparency:** In-app GDPR agreement, cookie/health consent, AI disclosure, and optional Smartlook session recording (off by default).
+3. **User control:** Export, delete cloud data, disable anonymized contribution, opt out of session recording in Settings.
 4. **Security by design:** RLS, AES-GCM for cloud blobs, fail-closed encrypt ([SECURITY.md](../SECURITY.md)).
-5. **No sale of personal data:** No advertising network integration.
+5. **No sale of personal data:** No advertising network integration. Optional Smartlook session recording requires explicit opt-in.
 6. **Special-category care:** Explicit Art. 9 consent before health logging (EEA/UK).
 
 ---

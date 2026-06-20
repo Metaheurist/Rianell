@@ -64,6 +64,13 @@ export const POLICY_PACK_V1 = {
         "ePrivacyStorageBanner": {
           "enabled": true,
           "requiredConsents": []
+        },
+        "sessionRecording": {
+          "enabled": true,
+          "requiredConsents": [
+            "healthData",
+            "sessionRecording"
+          ]
         }
       }
     },
@@ -120,6 +127,13 @@ export const POLICY_PACK_V1 = {
         "ePrivacyStorageBanner": {
           "enabled": false,
           "requiredConsents": []
+        },
+        "sessionRecording": {
+          "enabled": true,
+          "requiredConsents": [
+            "healthData",
+            "sessionRecording"
+          ]
         }
       }
     },
@@ -176,6 +190,13 @@ export const POLICY_PACK_V1 = {
         "ePrivacyStorageBanner": {
           "enabled": false,
           "requiredConsents": []
+        },
+        "sessionRecording": {
+          "enabled": true,
+          "requiredConsents": [
+            "healthData",
+            "sessionRecording"
+          ]
         }
       }
     },
@@ -232,6 +253,13 @@ export const POLICY_PACK_V1 = {
         "ePrivacyStorageBanner": {
           "enabled": false,
           "requiredConsents": []
+        },
+        "sessionRecording": {
+          "enabled": true,
+          "requiredConsents": [
+            "healthData",
+            "sessionRecording"
+          ]
         }
       }
     },
@@ -288,6 +316,13 @@ export const POLICY_PACK_V1 = {
         "ePrivacyStorageBanner": {
           "enabled": false,
           "requiredConsents": []
+        },
+        "sessionRecording": {
+          "enabled": true,
+          "requiredConsents": [
+            "healthData",
+            "sessionRecording"
+          ]
         }
       }
     },
@@ -353,6 +388,13 @@ export const POLICY_PACK_V1 = {
         "ePrivacyStorageBanner": {
           "enabled": false,
           "requiredConsents": []
+        },
+        "sessionRecording": {
+          "enabled": true,
+          "requiredConsents": [
+            "healthData",
+            "sessionRecording"
+          ]
         }
       }
     }
