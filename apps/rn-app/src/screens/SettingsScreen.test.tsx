@@ -99,24 +99,24 @@ async function renderSettingsScreen(
   return utils;
 }
 
-test('settings carousel: nine panes match web settings carousel titles', async () => {
+test('settings carousel: ten panes match web settings carousel titles', async () => {
   const prefs = { ...getDefaultPreferences(), privacyRegion: 'eea_uk' };
   const { getByText, getByTestId } = await renderSettingsScreen(prefs);
 
-  getByText('1 / 9 - Privacy & region');
+  getByText('1 / 10 - Privacy & region');
 
   fireEvent.press(getByTestId('settings-pane-tab-1'));
-  getByText('2 / 9 - Personal & cloud sync');
+  getByText('2 / 10 - Personal & cloud sync');
   getByText(/Cloud sync is not configured/);
 
   fireEvent.press(getByTestId('settings-pane-tab-2'));
-  getByText('3 / 9 - AI & Goals');
+  getByText('3 / 10 - AI & Goals');
   getByText('Enable AI features & Goals');
   getByText('Goals & targets');
   getByText('Mood target (0-10)');
 
   fireEvent.press(getByTestId('settings-pane-tab-3'));
-  getByText('4 / 9 - Display');
+  getByText('4 / 10 - Display');
   getByText('Enable daily reminder');
   getByText('Reminder sound');
   getByText('Snooze minutes (later action)');
@@ -124,28 +124,33 @@ test('settings carousel: nine panes match web settings carousel titles', async (
   getByText(/Action policy: log-now to Log today/i);
 
   fireEvent.press(getByTestId('settings-pane-tab-4'));
-  getByText('5 / 9 - Customisation');
+  getByText('5 / 10 - Customisation');
   getByText('Theme customisation');
 
   fireEvent.press(getByTestId('settings-pane-tab-5'));
-  getByText('6 / 9 - Accessibility');
+  getByText('6 / 10 - Accessibility');
   getByText('Large text');
   getByText('Text-to-speech (tap-to-read)');
   getByText('Read mode (auto-read on focus)');
 
   fireEvent.press(getByTestId('settings-pane-tab-6'));
-  getByText('7 / 9 - Data options');
+  getByText('7 / 10 - Data options');
   getByText('Demo mode');
 
   fireEvent.press(getByTestId('settings-pane-tab-7'));
-  getByText('8 / 9 - Performance');
+  getByText('8 / 10 - Performance');
   getByText('On-device AI model');
 
   fireEvent.press(getByTestId('settings-pane-tab-8'));
-  getByText('9 / 9 - Data management');
+  getByText('9 / 10 - Data management');
   getByText('Export logs (JSON)');
   getByText('📥 Import logs (JSON)');
   getByText('🗑️ Clear all data');
+
+  fireEvent.press(getByTestId('settings-pane-tab-9'));
+  getByText('10 / 10 - Security lock');
+  getByText('App lock (passcode)');
+  getByText('Caregiver / proxy logging');
 });
 
 test('goals target inputs trigger preference updates', async () => {
