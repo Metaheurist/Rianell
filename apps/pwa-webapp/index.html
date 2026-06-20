@@ -892,6 +892,15 @@
       opacity: 1;
       pointer-events: auto;
     }
+    /* Beat any stale privacy-gate-active from cached scripts during onboarding. */
+    body.loaded #appShell,
+    body.loaded .app-fab-wrap,
+    body.loaded .app-mobile-bottom-chrome,
+    body.loaded #cookieBanner {
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
     body.loaded .loading-overlay {
       transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
     }
@@ -3823,7 +3832,7 @@
   <script defer src="modules/weekly-review.js?v=4"></script>
   <script defer src="modules/mood-tab.js?v=1"></script>
   <script defer src="i18n-pwa.js?v=3"></script>
-  <script defer src="privacy-region.js?v=5"></script>
+  <script defer src="privacy-region.js?v=6"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
   <script type="module" defer src="app.js?v=41"></script>
   <script defer src="security-utils.js"></script>

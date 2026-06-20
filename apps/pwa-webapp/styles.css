@@ -16085,8 +16085,11 @@ body.log-wizard-active .header-buttons-wrap {
   .status-syncing { animation: none !important; }
 }
 
-/* Privacy region gate */
-body.privacy-gate-active > *:not(#privacyRegionGateOverlay):not(#loadingOverlay):not(#healthDataConsentOverlay) {
+/* Privacy region gate — hide app chrome only (not every body child; broad rules left a black sheet behind consent modals). */
+body.privacy-gate-active #appShell,
+body.privacy-gate-active .app-fab-wrap,
+body.privacy-gate-active .app-mobile-bottom-chrome,
+body.privacy-gate-active .header-buttons-wrap {
   visibility: hidden !important;
   pointer-events: none !important;
 }
