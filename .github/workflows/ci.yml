@@ -316,6 +316,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          SMARTLOOK_PROJECT_KEY: ${{ secrets.SMARTLOOK_PROJECT_KEY }}
 
       - name: Upload prepared site for post-deploy audit
         uses: actions/upload-artifact@v5
@@ -366,6 +367,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_SMARTLOOK_PROJECT_KEY: ${{ secrets.SMARTLOOK_PROJECT_KEY }}
         run: |
           node scripts/build/run-mobile-export.mjs
           npm ls expo-modules-autolinking
@@ -679,6 +681,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_SMARTLOOK_PROJECT_KEY: ${{ secrets.SMARTLOOK_PROJECT_KEY }}
         run: npx expo prebuild --platform android --no-install
 
       - name: Assemble Android debug APK
@@ -730,6 +733,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_SMARTLOOK_PROJECT_KEY: ${{ secrets.SMARTLOOK_PROJECT_KEY }}
         run: npx expo prebuild --platform ios --no-install
 
       - name: Zip iOS project for emulator usage

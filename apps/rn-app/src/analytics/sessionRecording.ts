@@ -1,8 +1,13 @@
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { getFeatureAvailability, prefsToConsents, shouldAllowNetworkOperation } from '@rianell/shared';
 import type { Preferences } from '../storage/preferences';
 
-const PROJECT_KEY = 'c205987c47aef0b2da2a93569620b15a81bef013';
+function getProjectKey(): string {
+  const extra = Constants.expoConfig?.extra ?? {};
+  const key = typeof extra.smartlookProjectKey === 'string' ? extra.smartlookProjectKey.trim() : '';
+  return key && key !== 'YOUR_SMARTLOOK_PROJECT_KEY' ? key : '';
+}
 
 type SmartlookModule = {
   instance: {
@@ -50,8 +55,10 @@ export function applySessionRecording(prefs: Preferences): void {
     }
     return;
   }
+  const projectKey = getProjectKey();
+  if (!projectKey) return;
   try {
-    sl.instance.preferences.setProjectKey(PROJECT_KEY);
+    sl.instance.preferences.setProjectKey(projectKey);
     if (!started) {
       sl.instance.start();
       started = true;

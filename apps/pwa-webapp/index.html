@@ -3804,9 +3804,11 @@
   <!-- Supabase: set fallback first so a bad supabase-config.js (e.g. smart quotes) does not break the page -->
   <script>window.SUPABASE_CONFIG = window.SUPABASE_CONFIG || { url: '', anonKey: '' };</script>
   <script>window.RIANELL_VAPID_PUBLIC_KEY = window.RIANELL_VAPID_PUBLIC_KEY || '';</script>
+  <script>window.SMARTLOOK_CONFIG = window.SMARTLOOK_CONFIG || { projectKey: '', region: 'eu' };</script>
   <!-- If you see "SyntaxError" in supabase-config.js on the live site, redeploy a valid file (see supabase-config.example.js). -->
   <script defer src="supabase-config.js"></script>
   <script defer src="push-config.js"></script>
+  <script defer src="smartlook-config.js"></script>
   <!-- TensorFlow + AIEngine: loaded on demand via PerformanceUtils.ensureAIEngineLoaded() -->
   <script defer src="storage-utils.js?v=1"></script>
   <script defer src="logs-idb.js?v=1"></script>

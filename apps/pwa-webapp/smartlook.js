@@ -5,9 +5,22 @@
 (function (global) {
   'use strict';
 
-  var PROJECT_KEY = 'c205987c47aef0b2da2a93569620b15a81bef013';
-  var REGION = 'eu';
   var SDK_URL = 'https://web-sdk.smartlook.com/recorder.js';
+
+  function getConfig() {
+    var cfg = global.SMARTLOOK_CONFIG;
+    return (cfg && typeof cfg === 'object') ? cfg : {};
+  }
+
+  function getProjectKey() {
+    var key = typeof getConfig().projectKey === 'string' ? getConfig().projectKey.trim() : '';
+    return key && key !== 'YOUR_SMARTLOOK_PROJECT_KEY' ? key : '';
+  }
+
+  function getRegion() {
+    var region = typeof getConfig().region === 'string' ? getConfig().region.trim() : '';
+    return region || 'eu';
+  }
   var scriptLoading = false;
   var initialized = false;
 
@@ -72,10 +85,12 @@
       pauseRecording();
       return;
     }
+    var projectKey = getProjectKey();
+    if (!projectKey) return;
     ensureSdkLoaded(function () {
       if (!initialized) {
         try {
-          global.smartlook('init', PROJECT_KEY, { region: REGION });
+          global.smartlook('init', projectKey, { region: getRegion() });
           initialized = true;
         } catch (e) {
           console.warn('[Rianell] Smartlook init failed', e);
