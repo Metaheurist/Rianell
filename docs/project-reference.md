@@ -4,6 +4,13 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v1.115.0 documentation sync (PWA boot shell + Smartlook)
+
+- **PWA boot:** `#appShell` must be a direct `<body>` child — not inside `#settingsOverlay`. Missing closing tag caused a black/blank viewport (`shellW/H: 0`). Fixed in `index.html`; `ensureAppShellDomPlacement()` reparents on boot for stale cached HTML; `logBootState()` logs `shellParentId`, `shellMisplaced`, layout blockers.
+- **Shell probes:** `npm run audit:probe-shell`, `audit:probe-shell:screenshot`, `audit:probe-shell:layout` (layout + DOM parent check); `scripts/audit/check-dom-nesting.mjs` for HTML div balance.
+- **Smartlook:** Optional EU session recording (PWA + RN) — off by default; Settings → Privacy → Session recording; see [smartlook-session-recording.md](privacy/smartlook-session-recording.md).
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.115.0; [testing-and-configuration.md](testing-and-configuration.md) § PWA shell boot probes.
+
 ### v1.114.0 documentation sync (Security lock tab and UX trim)
 
 - **Settings carousel:** Ten panes — **Security lock** is tab 10 (passcode + caregiver/proxy); Privacy tab 1 no longer includes app lock or caregiver toggles.
@@ -284,11 +291,26 @@ Server logs are saved to `logs/rianell_YYYYMMDD.log`. The `Rianell` logger uses 
 
 The app includes GDPR-compliant data sharing:
 - Explicit user consent required (including **Art. 9 health-data consent** modal on PWA + RN preference fields — see [data-subject-rights.md](privacy/data-subject-rights.md))
+- Optional **Smartlook session recording** (off by default; Settings → Privacy → Session recording) — see [smartlook-session-recording.md](privacy/smartlook-session-recording.md)
 - Data anonymisation before upload
 - Clear privacy agreement
 - User can disable at any time
 
-**Privacy program index:** [docs/privacy/global-baseline.md](privacy/global-baseline.md) — links to [eu-gdpr.md](privacy/eu-gdpr.md), [dpia-health-sync.md](privacy/dpia-health-sync.md), [data-subject-rights.md](privacy/data-subject-rights.md), [subprocessors.md](privacy/subprocessors.md), [other-jurisdictions.md](privacy/other-jurisdictions.md), and [ropa.json](privacy/ropa.json). Security cross-refs: [threat-model.md](threat-model.md), [incident-response.md](incident-response.md), [ai-security.md](ai-security.md).
+**Privacy program index:** [docs/privacy/global-baseline.md](privacy/global-baseline.md) — links to [eu-gdpr.md](privacy/eu-gdpr.md), [dpia-health-sync.md](privacy/dpia-health-sync.md), [data-subject-rights.md](privacy/data-subject-rights.md), [subprocessors.md](privacy/subprocessors.md), [smartlook-session-recording.md](privacy/smartlook-session-recording.md), [other-jurisdictions.md](privacy/other-jurisdictions.md), and [ropa.json](privacy/ropa.json). Security cross-refs: [threat-model.md](threat-model.md), [incident-response.md](incident-response.md), [ai-security.md](ai-security.md).
+
+<a id="nav-smartlook"></a>
+
+## Smartlook session recording (opt-in)
+
+| Item | Detail |
+|------|--------|
+| **Default** | Off — no SDK load until user opts in |
+| **User UI** | Settings → Privacy & region → Session recording; Consent dashboard revoke |
+| **PWA** | `apps/pwa-webapp/smartlook.js` (Web SDK, EU region) |
+| **RN** | `apps/rn-app/src/analytics/sessionRecording.ts` + `react-native-smartlook-analytics` (dev build; not Expo Go) |
+| **Shared** | `sessionRecording` pref; policy feature in `i18n-packs/policy-packs/v1.json`; `packages/shared/src/settings/consentDashboard.mjs` |
+| **CSP** | `apps/pwa-webapp/index.html`; verified by `scripts/verify/verify-csp-connect-src.mjs` |
+| **Privacy docs** | [smartlook-session-recording.md](privacy/smartlook-session-recording.md), [subprocessors.md](privacy/subprocessors.md), RoPA **PA-10** |
 
 <a id="nav-troubleshooting"></a>
 

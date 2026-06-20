@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import {
   formatActivityTypeLabel,
+  getFeatureAvailability,
   LOCAL_ONLY_NETWORK_FEATURES,
-} from '@rianell/shared';
-import { useTheme } from '../theme/ThemeProvider';
+  prefsToConsents,
+} from '@rianell/shared';import { useTheme } from '../theme/ThemeProvider';
 import { useT } from '../i18n/I18nProvider';
 import type { Preferences } from '../storage/preferences';
 import { PolicyDocumentsModal } from '../privacy/PolicyDocumentsModal';
@@ -47,6 +48,44 @@ export function SettingsPrivacyTrustPane({ prefs, onChangePrefs, onRequestAnonPo
           ))}
         </View>
       ) : null}
+
+      <Row label={t('settings.privacy.sessionRecording.title')}>
+        <Switch
+          value={prefs.sessionRecording}
+          disabled={prefs.demoMode || prefs.localOnlyMode}
+          onValueChange={(nextOn) => {
+            if (nextOn) {
+              const regionId = prefs.privacyRegion || 'other';
+              const avail = getFeatureAvailability(regionId, 'sessionRecording', prefsToConsents(prefs));
+              if (!avail.available) {
+                Alert.alert(t('gate.title'), t('common.this.feature.is.not.available.for.your.p'));
+                return;
+              }
+              Alert.alert(
+                t('settings.privacy.sessionRecording.consentTitle'),
+                t('settings.privacy.sessionRecording.consentBody'),
+                [
+                  { text: t('common.cancel'), style: 'cancel' },
+                  {
+                    text: t('common.i.agree.continue'),
+                    onPress: () =>
+                      onChangePrefs({
+                        ...prefs,
+                        sessionRecording: true,
+                        sessionRecordingAt: new Date().toISOString(),
+                      }),
+                  },
+                ],
+              );
+              return;
+            }
+            onChangePrefs({ ...prefs, sessionRecording: false, sessionRecordingAt: null });
+          }}
+        />
+      </Row>
+      <Text style={[styles.hint, { color: theme.tokens.color.textMuted }]}>
+        {t('settings.privacy.sessionRecording.hint')}
+      </Text>
 
       <Text style={[styles.subheading, { color: theme.tokens.color.textPrimary }]}>
         {t('settings.privacy.activity.title')}

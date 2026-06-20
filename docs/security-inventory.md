@@ -4,7 +4,7 @@ Schema version: **1** · Generated for Rianell security program.
 ## npm workspaces
 | Package | Version |
 |---------|---------|
-| `rianell` (root) | 1.89.2 |
+| `rianell` (root) | 1.93.0 |
 | `apps/rn-app` | 1.0.0 |
 ## Python
 See `requirements.txt` (scanned by pip-audit in CI).
@@ -32,16 +32,12 @@ SRI integrity attributes in index.html: **1** (expand via `apps/pwa-webapp/cdn-m
 - `rianellFunctionTrace`
 - `rianellGoals`
 - `rianellInstallModalAfterTutorialSeen`
+- `rianellLlmEngine`
 - `rianellPerfBenchmark`
 - `rianellPerfLongTasks`
 - `rianellPredictionState`
 - `rianellSettings`
 - `rianellTutorialSeen`
 ## Supabase tables
-- `public.user_privacy_profile`
-- `public.anonymized_data`
-- `public.health_data`
-- `public.user_keys`
-- `public.bug_reports`
 ## Subprocessors
 See [docs/privacy/subprocessors.md](privacy/subprocessors.md).

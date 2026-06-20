@@ -26,6 +26,7 @@
 | Barcode nutrition lookup | [Open Food Facts](https://world.openfoodfacts.org/data) | $0 | 04 (L5) | Allowlist `openfoodfacts.org` only; SSRF guard |
 | On-device LLM | Hugging Face model files + Transformers.js / ONNX / GGUF | $0 download | 08 | Pin `@huggingface/transformers` 3.3.2; gated by P3 local-only |
 | Web Push | VAPID (self-generated) | $0 | 11, 14 | Private key server-side only |
+| Session recording (opt-in) | [Smartlook](https://www.smartlook.com/) free tier | $0 | All | EU region; off by default; consent-gated in Settings |
 | User cloud backup | WebDAV (user's own server) | $0 to user | 06 (D7) | Google Drive / iCloud OAuth **deferred** |
 
 ---
@@ -38,7 +39,7 @@
 | Paid weather APIs (OpenWeather paid tier, etc.) | Cost + API key | 10 (H5) | Use Open-Meteo |
 | Wearables / HealthKit / Fitbit | Xcode + Apple Developer; platform OAuth | 04 (L10), 08 (N8) | **Excluded (NR)** — not in scope |
 | `service_role` Supabase key in client | Full DB bypass | 05, 06 | `verify-no-service-role-in-clients` |
-| Third-party analytics / crash SDKs with paid tiers | Cost + PHI risk | All | Use local bug report + optional anon sync |
+| Third-party analytics / crash SDKs with paid tiers | Cost + PHI risk | All | Smartlook free tier allowed **only** with explicit opt-in + local-only block; no default tracking |
 
 ---
 

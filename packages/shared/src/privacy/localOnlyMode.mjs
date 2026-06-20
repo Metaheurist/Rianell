@@ -6,6 +6,7 @@ export const LOCAL_ONLY_NETWORK_FEATURES = [
   { id: 'modelDownload', labelKey: 'settings.privacy.localOnly.modelDownload' },
   { id: 'bugReport', labelKey: 'settings.privacy.localOnly.bugReport' },
   { id: 'remoteLlm', labelKey: 'settings.privacy.localOnly.remoteLlm' },
+  { id: 'sessionRecording', labelKey: 'settings.privacy.localOnly.sessionRecording' },
 ];
 
 export function isLocalOnlyModeEnabled(prefs) {

@@ -1936,6 +1936,8 @@ if (typeof window !== 'undefined') {
   window.acceptHealthDataConsent = acceptHealthDataConsent;
   window.declineHealthDataConsent = declineHealthDataConsent;
   window.showHealthDataConsentModal = showHealthDataConsentModal;
+  window.ensureShellContentVisible = ensureShellContentVisible;
+  window.ensureAppShellDomPlacement = ensureAppShellDomPlacement;
 }
 
 function hideCookieBanner() {
@@ -15660,6 +15662,8 @@ let appSettings = {
   barcodeFoodLoggingEnabled: false,
   guidedVoiceLogEnabled: false,
   localOnlyMode: false,
+  sessionRecording: false,
+  sessionRecordingAt: null,
   appLockEnabled: false,
   processingActivityLog: [],
   cloudAutoSyncOnOpen: false,
@@ -15694,6 +15698,98 @@ function privacyFeatureAvailable(featureKey) {
   return true;
 }
 
+function logBootState(phase, extra) {
+  var snap = {
+    phase: phase,
+    loaded: !!(typeof document !== 'undefined' && document.body && document.body.classList.contains('loaded')),
+    privacyGate: !!(typeof document !== 'undefined' && document.body && document.body.classList.contains('privacy-gate-active')),
+    aiBlocking: !!(typeof document !== 'undefined' && document.body && document.body.classList.contains('ai-model-download-blocking')),
+    modalActive: !!(typeof document !== 'undefined' && document.body && document.body.classList.contains('modal-active')),
+    init: !!(typeof window !== 'undefined' && window.__rianellAppInitStarted),
+  };
+  try {
+    var shell = typeof document !== 'undefined' ? document.getElementById('appShell') : null;
+    if (shell) {
+      var r = shell.getBoundingClientRect();
+      var cs = getComputedStyle(shell);
+      snap.shellW = Math.round(r.width);
+      snap.shellH = Math.round(r.height);
+      snap.shellVis = cs.visibility;
+      snap.shellOp = cs.opacity;
+      snap.shellDisplay = cs.display;
+      snap.shellInert = shell.hasAttribute('inert');
+      var parent = shell.parentElement;
+      snap.shellParentId = parent ? (parent.id || parent.className || parent.tagName) : null;
+      snap.shellMisplaced = !!(parent && parent.id === 'settingsOverlay');
+    }
+    var main = typeof document !== 'undefined' ? document.getElementById('main-content') : null;
+    if (main) {
+      var mr = main.getBoundingClientRect();
+      var mcs = getComputedStyle(main);
+      snap.mainW = Math.round(mr.width);
+      snap.mainH = Math.round(mr.height);
+      snap.mainOp = mcs.opacity;
+      snap.mainDisplay = mcs.display;
+    }
+    var activeTab = typeof document !== 'undefined' ? document.querySelector('.tab-content.active') : null;
+    if (activeTab) snap.activeTabId = activeTab.id || null;
+    var loading = typeof document !== 'undefined' ? document.getElementById('loadingOverlay') : null;
+    if (loading) {
+      var lcs = getComputedStyle(loading);
+      snap.loadingHidden = loading.classList.contains('hidden');
+      snap.loadingVis = lcs.visibility;
+      snap.loadingOp = lcs.opacity;
+      snap.loadingDisplay = lcs.display;
+    } else {
+      snap.loadingHidden = true;
+    }
+    var openModals = typeof document !== 'undefined'
+      ? document.querySelectorAll('.modal-overlay--open, .settings-overlay--open, .modal-overlay[style*="flex"], .modal-overlay[style*="block"]')
+      : [];
+    snap.openModals = openModals.length;
+    if (openModals.length) {
+      snap.openModalIds = Array.prototype.map.call(openModals, function (el) {
+        return el.id || el.className;
+      }).slice(0, 6);
+    }
+    var settings = typeof document !== 'undefined' ? document.getElementById('settingsOverlay') : null;
+    if (settings) {
+      var scs = getComputedStyle(settings);
+      snap.settingsDisplay = scs.display;
+      snap.settingsOpen = settings.classList.contains('settings-overlay--open');
+    }
+  } catch (e) { /* ignore */ }
+  if (extra && typeof extra === 'object') {
+    Object.keys(extra).forEach(function (k) { snap[k] = extra[k]; });
+  }
+  if (typeof window !== 'undefined') {
+    window.__rianellBootLog = window.__rianellBootLog || [];
+    window.__rianellBootLog.push(Object.assign({ t: Date.now() }, snap));
+  }
+  if (typeof console !== 'undefined' && console.log) {
+    console.log('[Rianell boot]', JSON.stringify(snap));
+  }
+}
+
+/** Older HTML shipped #appShell nested inside #settingsOverlay — reparent to body so the shell paints. */
+function ensureAppShellDomPlacement() {
+  if (typeof document === 'undefined' || !document.body) return false;
+  var shell = document.getElementById('appShell');
+  if (!shell) return false;
+  var parent = shell.parentElement;
+  if (!parent || parent === document.body) return false;
+  if (parent.id !== 'settingsOverlay') return false;
+  var anchor = document.getElementById('settingsOverlay') || parent;
+  if (anchor && anchor.parentNode) {
+    anchor.parentNode.insertBefore(shell, anchor.nextSibling);
+    logBootState('ensureAppShellDomPlacement', { reparented: true });
+    return true;
+  }
+  document.body.appendChild(shell);
+  logBootState('ensureAppShellDomPlacement', { reparented: true, fallback: 'append' });
+  return true;
+}
+
 function clearPrivacyGateShellLock() {
   if (typeof document === 'undefined' || !document.body) return;
   document.body.classList.remove('privacy-gate-active');
@@ -15703,14 +15799,60 @@ function clearPrivacyGateShellLock() {
   if (shell) {
     try { shell.removeAttribute('inert'); } catch (e) { /* ignore */ }
   }
+  logBootState('clearPrivacyGateShellLock');
+}
+
+function ensureShellContentVisible() {
+  if (typeof document === 'undefined') return;
+  ensureAppShellDomPlacement();
+  var shell = document.getElementById('appShell');
+  if (shell) {
+    try { shell.removeAttribute('inert'); } catch (e) { /* ignore */ }
+    shell.style.removeProperty('visibility');
+    shell.style.removeProperty('opacity');
+  }
+  var main = document.getElementById('main-content');
+  if (main) {
+    main.style.opacity = '1';
+    main.style.visibility = 'visible';
+    main.style.transform = 'none';
+  }
+  document.querySelectorAll('.tab-content.active').forEach(function (tab) {
+    tab.style.display = 'block';
+    tab.style.visibility = 'visible';
+    tab.style.opacity = '1';
+  });
+}
+
+function markShellPainted() {
+  if (typeof window !== 'undefined') window.__rianellShellPainted = true;
+  ensureShellContentVisible();
+  logBootState('shellPainted');
+}
+
+function waitForShellPainted() {
+  if (typeof window !== 'undefined' && window.__rianellShellPainted) return Promise.resolve();
+  return new Promise(function (resolve) {
+    var deadline = Date.now() + 5000;
+    (function tick() {
+      if ((typeof window !== 'undefined' && window.__rianellShellPainted) || Date.now() >= deadline) {
+        resolve();
+        return;
+      }
+      if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(tick);
+      else setTimeout(tick, 32);
+    })();
+  });
 }
 
 function startAppAfterPrivacyGate() {
+  logBootState('startAppAfterPrivacyGate');
   var initFn = typeof window !== 'undefined' && typeof window.__rianellRunAppInit === 'function'
     ? window.__rianellRunAppInit
     : null;
   if (!initFn) {
     if (typeof window !== 'undefined') window.__rianellPendingAppInit = true;
+    logBootState('startAppAfterPrivacyGate:deferred', { pending: true });
     return;
   }
   if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.awaitGateReady === 'function') {
@@ -15757,6 +15899,8 @@ function loadSettings() {
   }
   normalizeChartViewSettings();
   appSettings.localOnlyMode = appSettings.localOnlyMode === true;
+  appSettings.sessionRecording = appSettings.sessionRecording === true;
+  appSettings.sessionRecordingAt = typeof appSettings.sessionRecordingAt === 'string' ? appSettings.sessionRecordingAt : null;
   appSettings.appLockEnabled = appSettings.appLockEnabled === true;
   appSettings.cloudAutoSyncOnOpen = appSettings.cloudAutoSyncOnOpen === true;
   if (window.RianellShared && typeof window.RianellShared.normalizeCaregiverSettings === 'function') {
@@ -15790,6 +15934,9 @@ function loadSettings() {
   // Apply loaded settings to UI
   applySettings();
   loadSettingsState();
+  if (typeof window !== 'undefined' && window.RianellSmartlook && typeof window.RianellSmartlook.apply === 'function') {
+    window.RianellSmartlook.apply();
+  }
   if (appSettings.appLockEnabled && typeof window !== 'undefined' && window.RianellAppLock && typeof window.RianellAppLock.bindAppLock === 'function') {
     window.RianellAppLock.bindAppLock();
   }
@@ -16307,6 +16454,7 @@ function refreshLlmModelSettingsHints() {
 }
 
 function promptAiModelDownloadConsent(modelId) {
+  return waitForShellPainted().then(function () {
   return new Promise(function (resolve) {
     if (typeof window !== 'undefined' && window.RianellShared && typeof window.RianellShared.shouldAllowNetworkOperation === 'function') {
       if (!window.RianellShared.shouldAllowNetworkOperation(appSettings || {}, 'modelDownload')) {
@@ -16348,6 +16496,7 @@ function promptAiModelDownloadConsent(modelId) {
     }
     if (typeof openModalOverlay === 'function') openModalOverlay(overlay);
   });
+  });
 }
 if (typeof window !== 'undefined') window.promptAiModelDownloadConsent = promptAiModelDownloadConsent;
 
@@ -16369,6 +16518,7 @@ function closeAiModelDownloadConsentModal(granted) {
   var overlay = document.getElementById('aiModelDownloadOverlay');
   if (overlay) overlay.style.display = 'none';
   if (typeof closeModalOverlay === 'function') closeModalOverlay(overlay);
+  ensureShellContentVisible();
   if (__rianellAiDownloadConsentResolve) {
     __rianellAiDownloadConsentResolve(!!granted);
     __rianellAiDownloadConsentResolve = null;
@@ -17166,6 +17316,19 @@ function loadSettingsState() {
   var localOnlyToggle = document.getElementById('localOnlyModeToggle');
   if (localOnlyToggle) localOnlyToggle.classList.toggle('active', !!appSettings.localOnlyMode);
   syncLocalOnlyFeatureMatrixUi();
+  var sessionRecordingToggle = document.getElementById('sessionRecordingToggle');
+  if (sessionRecordingToggle) {
+    var srOn = appSettings.sessionRecording === true;
+    sessionRecordingToggle.classList.toggle('active', srOn);
+    if (appSettings.demoMode || appSettings.localOnlyMode) {
+      sessionRecordingToggle.style.opacity = '0.5';
+      sessionRecordingToggle.style.cursor = 'not-allowed';
+    } else {
+      sessionRecordingToggle.style.opacity = '1';
+      sessionRecordingToggle.style.cursor = 'pointer';
+    }
+  }
+  syncConsentDashboardUi();
   var appLockToggle = document.getElementById('appLockToggle');
   if (appLockToggle) {
     var appLockPending = appLockToggle.getAttribute('data-pending') === '1';
@@ -17586,6 +17749,103 @@ function syncLocalOnlyFeatureMatrixUi() {
   }).join('');
 }
 
+function getCookieConsentFieldsForDashboard() {
+  var granted = false;
+  var at = null;
+  try {
+    granted = !!localStorage.getItem(COOKIE_CONSENT_KEY);
+    at = localStorage.getItem(COOKIE_CONSENT_AT_KEY);
+  } catch (e) {}
+  return { cookieConsent: granted, cookieConsentAt: at };
+}
+
+function revokeConsentDashboardRow(rowId) {
+  var body = tUi('settings.consent.revokeBody');
+  var title = tUi('settings.consent.revokeTitle');
+  var confirmLabel = tUi('settings.consent.revokeConfirm');
+  var onConfirm = function () {
+    if (rowId === 'healthData') {
+      appSettings.healthDataConsent = false;
+      appSettings.healthDataConsentAt = null;
+    } else if (rowId === 'cookie') {
+      try {
+        localStorage.removeItem(COOKIE_CONSENT_KEY);
+        localStorage.removeItem(COOKIE_CONSENT_AT_KEY);
+      } catch (e) {}
+      showCookieBannerIfNeeded();
+    } else if (rowId === 'aiModel') {
+      appSettings.aiModelDownloadConsent = 'deferred';
+      appSettings.aiModelDownloadConsentAt = null;
+    } else if (rowId === 'push') {
+      appSettings.pushNotificationsEnabled = false;
+      appSettings.pushNotificationsEnabledAt = null;
+    } else if (rowId === 'anonPool') {
+      appSettings.contributeAnonData = false;
+      appSettings.contributeAnonDataAt = null;
+    } else if (rowId === 'sessionRecording') {
+      appSettings.sessionRecording = false;
+      appSettings.sessionRecordingAt = null;
+      if (typeof window !== 'undefined' && window.RianellSmartlook && typeof window.RianellSmartlook.apply === 'function') {
+        window.RianellSmartlook.apply();
+      }
+    }
+    saveSettings();
+    loadSettingsState();
+  };
+  if (typeof showConfirmModal === 'function') {
+    showConfirmModal(body, title, onConfirm, confirmLabel);
+  } else if (typeof confirm === 'function' && confirm(body)) onConfirm();
+}
+
+function syncConsentDashboardUi() {
+  var list = document.getElementById('consentDashboardList');
+  if (!list || !window.RianellShared || typeof window.RianellShared.buildConsentDashboardEntries !== 'function') return;
+  var cookieFields = getCookieConsentFieldsForDashboard();
+  var rows = window.RianellShared.buildConsentDashboardEntries(Object.assign({}, appSettings, cookieFields));
+  list.innerHTML = rows.map(function (row) {
+    var title = tUi('settings.consent.' + row.id + '.title');
+    var status = row.granted ? tUi('settings.consent.statusGranted') : tUi('settings.consent.statusNotGranted');
+    var when = row.updatedAt ? ' · ' + String(row.updatedAt).slice(0, 10) : '';
+    var revokeBtn = row.granted
+      ? '<button type="button" class="settings-data-btn consent-dashboard-revoke" data-consent-id="' + row.id + '">' + tUi('settings.consent.revoke') + '</button>'
+      : '';
+    return '<div class="consent-dashboard-row"><div><strong>' + title + '</strong><br><span class="settings-hint">' + status + when + '</span></div>' + revokeBtn + '</div>';
+  }).join('');
+  var buttons = list.querySelectorAll('.consent-dashboard-revoke');
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].onclick = function () {
+      var id = this.getAttribute('data-consent-id');
+      if (id) revokeConsentDashboardRow(id);
+    };
+  }
+}
+
+function toggleSessionRecordingSetting() {
+  if (appSettings.demoMode) {
+    showAlertModal(tUi('settings.demo.exportDisabled'), tUi('settings.demo.title'));
+    return;
+  }
+  if (appSettings.localOnlyMode) {
+    showAlertModal(tUi('settings.privacy.localOnly.sessionRecordingBlocked'), tUi('settings.privacy.localOnly.title'));
+    return;
+  }
+  if (!appSettings.sessionRecording) {
+    if (!privacyFeatureAvailable('sessionRecording')) {
+      showAlertModal(tUi('common.this.feature.is.not.available.for.your.p'), tUi('gate.title'));
+      return;
+    }
+    var body = tUi('settings.privacy.sessionRecording.consentBody');
+    var title = tUi('settings.privacy.sessionRecording.consentTitle');
+    var onConfirm = function () { toggleSetting('sessionRecording'); };
+    if (typeof showConfirmModal === 'function') {
+      showConfirmModal(body, title, onConfirm, tUi('common.i.agree.continue'));
+      return;
+    }
+  }
+  toggleSetting('sessionRecording');
+}
+if (typeof window !== 'undefined') window.toggleSessionRecordingSetting = toggleSessionRecordingSetting;
+
 function syncPrivacyActivityLogUi() {
   var hint = document.getElementById('privacyActivityLogHint');
   if (!hint) return;
@@ -17901,16 +18161,30 @@ function toggleSetting(setting) {
     backup: 'cloudEncryptedBackup',
     contributeAnonData: 'anonymizedResearchPool',
     useOpenData: 'openDataPoolForAi',
-    aiEnabled: 'onDeviceLlmDownload'
+    aiEnabled: 'onDeviceLlmDownload',
+    sessionRecording: 'sessionRecording',
   };
   if (featureMap[setting] && !appSettings[setting] && typeof privacyFeatureAvailable === 'function' && !privacyFeatureAvailable(featureMap[setting])) {
     showAlertModal(tUi('common.this.feature.is.not.available.for.your.p'), tUi('gate.title'));
     return;
   }
+  if (setting === 'sessionRecording' && appSettings.demoMode) {
+    showAlertModal(tUi('common.disabled.in.demo.mode'), tUi('settings.demo.title'));
+    return;
+  }
   appSettings[setting] = !appSettings[setting];
+  if (setting === 'sessionRecording') {
+    appSettings.sessionRecordingAt = appSettings.sessionRecording ? new Date().toISOString() : null;
+  }
   saveSettings();
   applySettings();
   loadSettingsState();
+
+  if (setting === 'sessionRecording' || setting === 'localOnlyMode') {
+    if (typeof window !== 'undefined' && window.RianellSmartlook && typeof window.RianellSmartlook.apply === 'function') {
+      window.RianellSmartlook.apply();
+    }
+  }
 
   // Special handling for reminder setting
   if (setting === 'reminder' && typeof NotificationManager !== 'undefined') {
@@ -20193,15 +20467,10 @@ function homeWeatherIconClass(iconId, extra) {
 }
 
 function renderHomeWeatherEnablePromptHtml() {
-  var prompt = typeof tUi === 'function' ? tUi('home.weather.enablePrompt') : 'Add local weather';
-  var hint = typeof tUi === 'function' ? tUi('home.weather.enableHint') : 'Optional local weather';
-  var aria = typeof tUi === 'function' ? tUi('home.weather.enable') : 'Enable local weather';
-  return '<button type="button" class="home-weather-enable-prompt" data-ripple aria-label="' + escapeAttr(aria) + '">' +
+  var label = typeof tUi === 'function' ? tUi('home.weather.enablePrompt') : 'Optional weather';
+  return '<button type="button" class="home-weather-enable-prompt" data-ripple aria-label="' + escapeAttr(label) + '">' +
     '<span class="home-weather-enable-prompt__icon" aria-hidden="true">' + svgIcon('weather-cloudy', 'home-weather-icon icon-muted') + '</span>' +
-    '<span class="home-weather-enable-prompt__copy">' +
-    '<span class="home-weather-enable-prompt__lead">' + escapeHTML(prompt) + '</span>' +
-    '<span class="home-weather-enable-prompt__hint">' + escapeHTML(hint) + '</span>' +
-    '</span></button>';
+    '<span class="home-weather-enable-prompt__label">' + escapeHTML(label) + '</span></button>';
 }
 
 function renderHomeWeatherStripHtml(snap) {
@@ -20245,6 +20514,7 @@ function renderHomeWeatherStrip(ctx) {
     return;
   }
   strip.hidden = false;
+  strip.classList.toggle('home-weather-strip--prompt', !appSettings.weatherStripEnabled);
   if (!appSettings.weatherStripEnabled) {
     strip.innerHTML = renderHomeWeatherEnablePromptHtml();
     var enableBtn = strip.querySelector('.home-weather-enable-prompt');
@@ -21432,6 +21702,7 @@ window.addEventListener('unhandledrejection', (event) => {
 function runRianellBootAfterDomReady() {
   if (window.__rianellBootAfterDomStarted) return;
   window.__rianellBootAfterDomStarted = true;
+  if (typeof ensureAppShellDomPlacement === 'function') ensureAppShellDomPlacement();
   // Show loading overlay immediately (body.loading keeps overlay visible via CSS)
   const loadingOverlay = document.getElementById('loadingOverlay');
   const loadingTextEl = loadingOverlay ? loadingOverlay.querySelector('.loading-text') : null;
@@ -21583,6 +21854,7 @@ function runRianellBootAfterDomReady() {
     clearPrivacyGateShellLock();
     document.body.classList.remove('loading');
     document.body.classList.add('loaded');
+    logBootState('revealAppShell:start');
     setOrbitLoadingProgress(100);
     finishLoadingOverlayWithBurst(function () {
       if (loadingOverlay) {
@@ -21609,8 +21881,20 @@ function runRianellBootAfterDomReady() {
         showHealthDataConsentIfNeeded();
         showCookieBannerIfNeeded();
       }
+      logBootState('revealAppShell:done', {
+        shellVis: (function () {
+          var el = document.getElementById('appShell');
+          return el ? getComputedStyle(el).visibility : null;
+        })(),
+      });
+      if (typeof requestAnimationFrame !== 'undefined') {
+        requestAnimationFrame(function () {
+          requestAnimationFrame(markShellPainted);
+        });
+      } else {
+        markShellPainted();
+      }
     });
-    scheduleDashboardMotdWithLlm(getRandomMotdFallback());
     renderLogs();
     updateCharts();
     if (typeof updateHomeTodayPanel === 'function') updateHomeTodayPanel();
@@ -21626,7 +21910,8 @@ function runRianellBootAfterDomReady() {
             window.__chartsBuiltDuringLoad = true;
           }).catch(function () {});
         });
-    const shouldPreloadAi = !skipAiPreload && !window.__rianellAiPreloadedDuringBoot;
+    const shouldPreloadAi = !skipAiPreload && !window.__rianellAiPreloadedDuringBoot
+      && appSettings.aiModelDownloadConsent !== 'deferred';
     const aiReady = (appSettings.aiEnabled === false || typeof window.preloadSummaryLLM !== 'function' || !shouldPreloadAi)
       ? Promise.resolve()
       : runCriticalTask(function () {
@@ -21640,6 +21925,7 @@ function runRianellBootAfterDomReady() {
           }).catch(function () {});
         });
     Promise.allSettled([chartsReady, aiReady]).then(function () {
+      scheduleDashboardMotdWithLlm(getRandomMotdFallback());
       if (appSettings.aiEnabled !== false && window.DeviceBenchmark && window.DeviceBenchmark.getCachedResult) {
         var cached = window.DeviceBenchmark.getCachedResult();
         if (cached && cached.gpu && cached.gpu.good) {
@@ -21685,10 +21971,20 @@ function runRianellBootAfterDomReady() {
   }
 
   function schedulePostShellIdleWork(skipAiPreload) {
-    if (typeof requestIdleCallback !== 'undefined') {
-      requestIdleCallback(function () { runPostShellIdleWork(skipAiPreload); }, { timeout: 4000 });
+    var run = function () { runPostShellIdleWork(skipAiPreload); };
+    /* Let the shell paint before AI download consent can cover it with a full-screen backdrop. */
+    var delayMs = skipAiPreload ? 0 : 1200;
+    var start = function () {
+      if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(run, { timeout: 4000 });
+      } else {
+        setTimeout(run, 0);
+      }
+    };
+    if (delayMs > 0) {
+      setTimeout(start, delayMs);
     } else {
-      setTimeout(function () { runPostShellIdleWork(skipAiPreload); }, 0);
+      start();
     }
   }
 
@@ -21757,6 +22053,7 @@ function runRianellBootAfterDomReady() {
     }
     // On /tutorial serve tutorial by itself for demo/testing; otherwise show tutorial once for new users
     setTimeout(function () {
+      waitForShellPainted().then(function () {
       if (typeof isTutorialTestPage === 'function' && isTutorialTestPage()) {
         if (typeof openTutorialModal === 'function') openTutorialModal();
       } else if (typeof tryDemoHashLinkOnboarding === 'function' && tryDemoHashLinkOnboarding()) {
@@ -21778,6 +22075,7 @@ function runRianellBootAfterDomReady() {
       if (!hasToday && !window.matchMedia('(display-mode: standalone)').matches && !window.navigator.standalone && appSettings.reminder !== false) {
         showAlertModal(tUi('common.you.have.not.logged.an.entry.for.today'));
       }
+      });
     }, 500);
   }
 
@@ -21807,6 +22105,7 @@ function runRianellBootAfterDomReady() {
         document.body.classList.remove('loading');
       }
       document.body.classList.add('loaded');
+      logBootState('revealAndStart');
       if (meta && (meta.cached || meta.heuristic)) {
         startAppAfterPrivacyGate();
         return;

@@ -15,7 +15,8 @@
         "onDeviceLlmDownload": { "enabled": true, "requiredConsents": ["healthData", "aiModel"] },
         "openDataPoolForAi": { "enabled": true, "requiredConsents": ["healthData"] },
         "bugReports": { "enabled": true, "requiredConsents": [] },
-        "ePrivacyStorageBanner": { "enabled": true, "requiredConsents": [] }
+        "ePrivacyStorageBanner": { "enabled": true, "requiredConsents": [] },
+        "sessionRecording": { "enabled": true, "requiredConsents": ["healthData", "sessionRecording"] }
       }
     },
     "us_ca": {
@@ -31,7 +32,8 @@
         "onDeviceLlmDownload": { "enabled": true, "requiredConsents": ["healthData", "aiModel"] },
         "openDataPoolForAi": { "enabled": true, "requiredConsents": ["healthData"] },
         "bugReports": { "enabled": true, "requiredConsents": [] },
-        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] }
+        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] },
+        "sessionRecording": { "enabled": true, "requiredConsents": ["healthData", "sessionRecording"] }
       }
     },
     "us_other": {
@@ -47,7 +49,8 @@
         "onDeviceLlmDownload": { "enabled": true, "requiredConsents": ["healthData", "aiModel"] },
         "openDataPoolForAi": { "enabled": true, "requiredConsents": ["healthData"] },
         "bugReports": { "enabled": true, "requiredConsents": [] },
-        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] }
+        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] },
+        "sessionRecording": { "enabled": true, "requiredConsents": ["healthData", "sessionRecording"] }
       }
     },
     "au": {
@@ -63,7 +66,8 @@
         "onDeviceLlmDownload": { "enabled": true, "requiredConsents": ["healthData", "aiModel"] },
         "openDataPoolForAi": { "enabled": true, "requiredConsents": ["healthData"] },
         "bugReports": { "enabled": true, "requiredConsents": [] },
-        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] }
+        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] },
+        "sessionRecording": { "enabled": true, "requiredConsents": ["healthData", "sessionRecording"] }
       }
     },
     "br": {
@@ -79,7 +83,8 @@
         "onDeviceLlmDownload": { "enabled": true, "requiredConsents": ["healthData", "aiModel"] },
         "openDataPoolForAi": { "enabled": true, "requiredConsents": ["healthData"] },
         "bugReports": { "enabled": true, "requiredConsents": [] },
-        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] }
+        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] },
+        "sessionRecording": { "enabled": true, "requiredConsents": ["healthData", "sessionRecording"] }
       }
     },
     "other": {
@@ -95,7 +100,8 @@
         "onDeviceLlmDownload": { "enabled": true, "requiredConsents": ["healthData", "aiModel"] },
         "openDataPoolForAi": { "enabled": true, "requiredConsents": ["healthData"] },
         "bugReports": { "enabled": true, "requiredConsents": [] },
-        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] }
+        "ePrivacyStorageBanner": { "enabled": false, "requiredConsents": [] },
+        "sessionRecording": { "enabled": true, "requiredConsents": ["healthData", "sessionRecording"] }
       }
     }
   }

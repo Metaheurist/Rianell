@@ -1,8 +1,8 @@
 # Subprocessors and infrastructure providers
 
 **Product:** Rianell  
-**Last updated:** 2026-06-13  
-**Related:** [global-baseline.md](global-baseline.md) · [ropa.json](ropa.json) · [eu-gdpr.md](eu-gdpr.md) · [infrastructure-and-security-edge.md](../infrastructure-and-security-edge.md)
+**Last updated:** 2026-06-20  
+**Related:** [global-baseline.md](global-baseline.md) · [ropa.json](ropa.json) · [eu-gdpr.md](eu-gdpr.md) · [smartlook-session-recording.md](smartlook-session-recording.md) · [infrastructure-and-security-edge.md](../infrastructure-and-security-edge.md)
 
 ---
 
@@ -34,6 +34,7 @@ This register lists third parties that process personal data on behalf of Rianel
 | **jsDelivr / Prospect One** | CDN for JavaScript libraries (e.g. Transformers.js, pinned Supabase UMD) | IP, referer | Global CDN | **Standard terms** | Subresource Integrity on fixed scripts where applicable |
 | **Google Fonts / Font CDN providers** | Web fonts (if loaded from CDN) | IP, referer | Global | **Standard terms** | Consider self-hosting to reduce disclosure |
 | **Font Awesome** | Icon webfont/CSS CDN | IP | Global | **Standard terms** | Loaded per CSP in PWA |
+| **Smartlook Analytics s.r.o.** | Optional session recording (web + mobile SDK) when user opts in | Screen interactions, device metadata, IP; may include health UI the user views | EU (`region: eu`) | **Standard terms** — [Smartlook DPA](https://www.smartlook.com/help/privacy-statement/) | Off by default; gated by `sessionRecording` consent + local-only mode |
 | **Expo / EAS (if used)** | RN build and OTA updates when enabled | Developer account data; minimal end-user PII in default self-build flow | US | **Standard terms** | End-user data stays in app + Supabase path |
 | **Apple / Google** | App store distribution (if published) | Store account metadata | Per store policy | **Platform terms** | App does not use store IAP for health features today |
 
@@ -49,6 +50,7 @@ flowchart TB
   User --> SB[Supabase — auth + DB]
   User --> HF[Hugging Face — model files]
   User --> PP[PayPal — donations only]
+  User --> SL[Smartlook — session recording opt-in]
   GHP --> CDN[jsDelivr / font CDNs]
 ```
 
@@ -81,6 +83,7 @@ Before adding a new subprocessor:
 
 | Date | Change |
 |------|--------|
+| 2026-06-20 | Added Smartlook Analytics (optional session recording, EU, consent-gated) |
 | 2026-06-13 | Initial register for v1.49.x stack |
 
 ---

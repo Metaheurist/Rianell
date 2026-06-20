@@ -32,6 +32,19 @@ flowchart LR
 
 ## ✨ Features
 
+### v1.115.0 PWA boot shell (DOM placement)
+
+- **`#appShell`** is a direct child of `<body>`, sibling of `#settingsOverlay` — never nested inside the settings overlay (hidden overlay collapses shell to 0×0).
+- **Runtime:** `ensureAppShellDomPlacement()` in `app.js`; boot logs via `logBootState()` / `window.__rianellBootLog`.
+- **Verify:** `npm run audit:probe-shell:layout`; `tests/unit/pwa-boot-shell.test.mjs`.
+
+### v1.114.0+ Smartlook session recording (opt-in)
+
+- **Purpose:** Optional EU session recordings (Smartlook) to improve usability — **off by default**.
+- **Controls:** Settings → Privacy & region → **Session recording**; **Consent dashboard** revoke; blocked in **local-only mode**.
+- **Platforms:** PWA (`apps/pwa-webapp/smartlook.js`); RN (`react-native-smartlook-analytics`, `apps/rn-app/src/analytics/sessionRecording.ts`).
+- **Docs:** [privacy/smartlook-session-recording.md](privacy/smartlook-session-recording.md), [subprocessors.md](privacy/subprocessors.md), RoPA **PA-10**.
+
 ### v1.61.0 README documentation icons
 
 - **README** documentation table uses **`docs/icons/*.svg`** instead of emoji (GitHub `<img>` references).
