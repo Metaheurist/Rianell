@@ -14,7 +14,9 @@
 
   function getProjectKey() {
     var key = typeof getConfig().projectKey === 'string' ? getConfig().projectKey.trim() : '';
-    return key && key !== 'YOUR_SMARTLOOK_PROJECT_KEY' ? key : '';
+    if (key && key !== 'YOUR_SMARTLOOK_PROJECT_KEY') return key;
+    // Fallback parity with packages/shared/src/analytics/smartlookConfig.mjs
+    return 'c205987c47aef0b2da2a93569620b15a81bef013';
   }
 
   function getRegion() {

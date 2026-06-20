@@ -66,9 +66,10 @@ test('summarizeCorrelationStep caps to three cards', () => {
 });
 
 test('summarizeDigestStep normalizes digest object', () => {
-  const out = summarizeDigestStep({ headline: 'Stable week', improvements: ['sleep'], concerns: [] });
+  const out = summarizeDigestStep({ headline: 'Stable week', improvements: ['sleep'], concerns: [], changes: [{ metric: 'sleep', priorAvg: 6, thisAvg: 7, kind: 'improvement' }] });
   assert.equal(out.headline, 'Stable week');
   assert.deepEqual(out.improvements, ['sleep']);
+  assert.equal(out.changes.length, 1);
 });
 
 test('mental health screening scores PHQ-2/GAD-2', () => {

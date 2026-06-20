@@ -53,7 +53,10 @@ If Cloudflare adds a narrower HTTP CSP, mirror these hosts in edge headers — s
 
 ## 5. Operator notes
 
-- Project key is configured in `smartlook.js` (PWA) and `sessionRecording.ts` (RN). Rotate in Smartlook dashboard if compromised.
+- Project key: `packages/shared/src/analytics/smartlookConfig.mjs` (PWA `smartlook-config.js`, RN `app.config.js` + env `EXPO_PUBLIC_SMARTLOOK_PROJECT_KEY`). GitHub Actions secret `SMARTLOOK_PROJECT_KEY` overrides on Pages deploy when set.
+- Web init: `smartlook('init', projectKey, { region: 'eu' })` in `apps/pwa-webapp/smartlook.js`.
+- Mobile: EU region is bound to the Smartlook project; RN uses `react-native-smartlook-analytics` with the same project key.
+- Rotate in Smartlook dashboard if compromised.
 - Smartlook free tier is listed in [FREE-TIER-POLICY.md](../plans/FREE-TIER-POLICY.md).
 - Subprocessor register: [subprocessors.md](subprocessors.md). RoPA activity: **PA-10** in [ropa.json](ropa.json).
 

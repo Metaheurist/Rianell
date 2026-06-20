@@ -1,12 +1,17 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { getFeatureAvailability, prefsToConsents, shouldAllowNetworkOperation } from '@rianell/shared';
+import {
+  getFeatureAvailability,
+  prefsToConsents,
+  resolveSmartlookProjectKey,
+  shouldAllowNetworkOperation,
+} from '@rianell/shared';
 import type { Preferences } from '../storage/preferences';
 
 function getProjectKey(): string {
   const extra = Constants.expoConfig?.extra ?? {};
-  const key = typeof extra.smartlookProjectKey === 'string' ? extra.smartlookProjectKey.trim() : '';
-  return key && key !== 'YOUR_SMARTLOOK_PROJECT_KEY' ? key : '';
+  const fromExtra = typeof extra.smartlookProjectKey === 'string' ? extra.smartlookProjectKey : '';
+  return resolveSmartlookProjectKey(fromExtra);
 }
 
 type SmartlookModule = {

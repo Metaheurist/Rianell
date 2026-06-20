@@ -5,6 +5,9 @@
   'use strict';
   var S = global.RianellShared || {};
   var catalogs = {};
+  var motdCatalogs = {};
+  var motdLoadPromises = {};
+  var activeMotdMessages = null;
   var activeLocale = 'en-GB';
   var loadPromise = null;
   var localeChangeListeners = [];
@@ -107,8 +110,62 @@
     if (gdprBtn) gdprBtn.textContent = t('settings.privacy.gdprConsent');
   }
 
+  function normalizeMotdMessages(data) {
+    if (!data || !Array.isArray(data.messages)) return [];
+    return data.messages.filter(function (x) {
+      return typeof x === 'string' && String(x).trim().length > 0;
+    });
+  }
+
+  function loadMotdPack(locale) {
+    if (motdCatalogs[locale]) return Promise.resolve(motdCatalogs[locale]);
+    if (motdLoadPromises[locale]) return motdLoadPromises[locale];
+    motdLoadPromises[locale] = fetch('i18n-packs/motd-packs/v1/' + encodeURIComponent(locale) + '.json', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        var messages = normalizeMotdMessages(data);
+        if (messages.length) motdCatalogs[locale] = messages;
+        delete motdLoadPromises[locale];
+        return motdCatalogs[locale] || null;
+      })
+      .catch(function () {
+        delete motdLoadPromises[locale];
+        return null;
+      });
+    return motdLoadPromises[locale];
+  }
+
+  function ensureMotdMessages(locale) {
+    var chain = typeof S.localeFallbackChain === 'function' ? S.localeFallbackChain(locale) : [locale, 'en-GB'];
+    if (S.SHIPPED_LOCALES && S.SHIPPED_LOCALES.length) {
+      chain = chain.filter(function (loc, idx, arr) {
+        return S.SHIPPED_LOCALES.indexOf(loc) >= 0 && arr.indexOf(loc) === idx;
+      });
+    }
+    if (chain.indexOf('en-GB') < 0) chain.push('en-GB');
+    var seq = Promise.resolve(null);
+    chain.forEach(function (loc) {
+      seq = seq.then(function (found) {
+        if (found && found.length) return found;
+        return loadMotdPack(loc);
+      });
+    });
+    return seq.then(function (messages) {
+      activeMotdMessages = messages && messages.length ? messages : null;
+      if (typeof global !== 'undefined') {
+        global.__rianellMotdMessages = activeMotdMessages;
+      }
+      return activeMotdMessages;
+    });
+  }
+
+  function getMotdMessages() {
+    return activeMotdMessages;
+  }
+
   function applyDataI18nAttributes() {
     document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      if (el.id === 'dashboardTitle') return;
       var key = el.getAttribute('data-i18n');
       if (key) el.textContent = t(key);
     });
@@ -164,12 +221,22 @@
   };
 
   function refreshLocaleUI() {
-    applyDocumentI18n();
-    global.applyNavI18n();
-    if (typeof global.refreshAllTabsForLocaleChange === 'function') {
-      try { global.refreshAllTabsForLocaleChange(); } catch (e) { /* ignore */ }
-    }
-    notifyLocaleChange();
+    return ensureMotdMessages(activeLocale).then(function () {
+      if (typeof global !== 'undefined') {
+        if (global.__rianellMotdLoadedLocale !== activeLocale) {
+          global.__rianellMotdSessionPick = null;
+          global.__rianellMotdLoadedLocale = activeLocale;
+        }
+      }
+      applyDocumentI18n();
+      global.applyNavI18n();
+      if (typeof global.refreshAllTabsForLocaleChange === 'function') {
+        try { global.refreshAllTabsForLocaleChange(); } catch (e) { /* ignore */ }
+      } else if (typeof global.updateDashboardTitle === 'function') {
+        try { global.updateDashboardTitle(); } catch (e) { /* ignore */ }
+      }
+      notifyLocaleChange();
+    });
   }
 
   global.RianellI18n = {
@@ -177,6 +244,8 @@
     setLocale: setLocale,
     getLocale: function () { return activeLocale; },
     ensureCatalogs: ensureCatalogs,
+    ensureMotdMessages: ensureMotdMessages,
+    getMotdMessages: getMotdMessages,
     applyDocumentI18n: applyDocumentI18n,
     refreshLocaleUI: refreshLocaleUI,
     onLocaleChange: function (fn) {

@@ -72,6 +72,23 @@ test('detectMetricAnomalies flags fatigue spikes', () => {
 test('buildWeeklyDigest returns improvements or concerns', () => {
   const digest = buildWeeklyDigest(FIXTURE_LOGS, { sleep: 5 });
   assert.ok(digest.headline);
+  assert.ok(Array.isArray(digest.changes));
+});
+
+test('buildWeeklyDigest ignores out-of-range metric values', () => {
+  const logs = [
+    ...FIXTURE_LOGS,
+    { date: '2026-06-08', mood: 1414285, sleep: 13014285, fatigue: 807936 },
+    { date: '2026-06-09', mood: 6, sleep: 7, fatigue: 5 },
+  ];
+  const digest = buildWeeklyDigest(logs, { sleep: 5 });
+  for (const change of digest.changes) {
+    assert.ok(change.priorAvg >= 0 && change.priorAvg <= 10);
+    assert.ok(change.thisAvg >= 0 && change.thisAvg <= 10);
+  }
+  for (const line of [...digest.improvements, ...digest.concerns]) {
+    assert.ok(!line.includes('1414285'), line);
+  }
 });
 
 test('exportAnalysisJsonForResearch requires opt-in', () => {

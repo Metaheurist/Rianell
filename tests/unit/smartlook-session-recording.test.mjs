@@ -33,3 +33,13 @@ test('consent dashboard includes session recording row', () => {
   assert.equal(row.granted, true);
   assert.equal(row.revokeField, 'sessionRecording');
 });
+
+test('shared Smartlook config defaults (PWA + RN parity)', async () => {
+  const { SMARTLOOK_PROJECT_KEY, SMARTLOOK_REGION, resolveSmartlookProjectKey, resolveSmartlookRegion } =
+    await import('@rianell/shared');
+  assert.equal(SMARTLOOK_PROJECT_KEY, 'c205987c47aef0b2da2a93569620b15a81bef013');
+  assert.equal(SMARTLOOK_REGION, 'eu');
+  assert.equal(resolveSmartlookProjectKey(''), SMARTLOOK_PROJECT_KEY);
+  assert.equal(resolveSmartlookProjectKey('YOUR_SMARTLOOK_PROJECT_KEY'), SMARTLOOK_PROJECT_KEY);
+  assert.equal(resolveSmartlookRegion(''), 'eu');
+});

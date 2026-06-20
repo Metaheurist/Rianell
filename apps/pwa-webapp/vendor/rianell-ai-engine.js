@@ -434,9 +434,38 @@ var RianellAIEngine = (() => {
   }
 
   // packages/ai-engine/src/weeklyDigest.mjs
+  var METRIC_LABELS = {
+    mood: "Mood",
+    sleep: "Sleep",
+    fatigue: "Fatigue"
+  };
+  var TRACKED_METRICS = ["mood", "sleep", "fatigue"];
   function mean3(values) {
     if (!values.length) return null;
     return values.reduce((a, b) => a + b, 0) / values.length;
+  }
+  function readScaleMetric(log, field) {
+    const raw = log?.[field];
+    if (raw == null || raw === "") return null;
+    const n = typeof raw === "number" ? raw : parseFloat(String(raw));
+    if (!Number.isFinite(n) || n < 0 || n > 10) return null;
+    return n;
+  }
+  function formatChangeMessage(metric, prior, current, kind) {
+    const label = METRIC_LABELS[metric] || metric;
+    const p = prior.toFixed(1);
+    const c = current.toFixed(1);
+    if (kind === "improvement") {
+      if (metric === "fatigue") return `${label} eased (${p} \u2192 ${c}/10).`;
+      return `${label} averaged ${c}/10 (up from ${p}).`;
+    }
+    if (metric === "fatigue") return `${label} increased (${p} \u2192 ${c}/10).`;
+    return `${label} averaged ${c}/10 (down from ${p}).`;
+  }
+  function buildHeadline(improvements, concerns) {
+    if (improvements.length) return "Your week shows positive shifts in a few areas.";
+    if (concerns.length) return "A few metrics shifted this week \u2014 worth a look.";
+    return "Keep logging to build your weekly digest.";
   }
   function buildWeeklyDigest(logs, goals = {}) {
     const list = [...Array.isArray(logs) ? logs : []].sort((a, b) => a.date.localeCompare(b.date));
@@ -444,22 +473,63 @@ var RianellAIEngine = (() => {
     const priorWeek = list.slice(-14, -7);
     const improvements = [];
     const concerns = [];
+    const changes = [];
     const goalStatus = [];
-    for (const metric of ["mood", "sleep", "fatigue"]) {
-      const tw = mean3(thisWeek.map((l) => l[metric]).filter((v) => v != null));
-      const pw = mean3(priorWeek.map((l) => l[metric]).filter((v) => v != null));
+    for (const metric of TRACKED_METRICS) {
+      const tw = mean3(thisWeek.map((l) => readScaleMetric(l, metric)).filter((v) => v != null));
+      const pw = mean3(priorWeek.map((l) => readScaleMetric(l, metric)).filter((v) => v != null));
       if (tw == null || pw == null) continue;
       const delta = tw - pw;
       if (metric === "fatigue") {
-        if (delta <= -0.5) improvements.push(`Fatigue improved (${pw.toFixed(1)} \u2192 ${tw.toFixed(1)}).`);
-        if (delta >= 0.5) concerns.push(`Fatigue worsened (${pw.toFixed(1)} \u2192 ${tw.toFixed(1)}).`);
+        if (delta <= -0.5) {
+          const msg = formatChangeMessage(metric, pw, tw, "improvement");
+          improvements.push(msg);
+          changes.push({
+            metric,
+            priorAvg: Number(pw.toFixed(1)),
+            thisAvg: Number(tw.toFixed(1)),
+            delta: Number(delta.toFixed(1)),
+            kind: "improvement"
+          });
+        }
+        if (delta >= 0.5) {
+          const msg = formatChangeMessage(metric, pw, tw, "concern");
+          concerns.push(msg);
+          changes.push({
+            metric,
+            priorAvg: Number(pw.toFixed(1)),
+            thisAvg: Number(tw.toFixed(1)),
+            delta: Number(delta.toFixed(1)),
+            kind: "concern"
+          });
+        }
       } else {
-        if (delta >= 0.5) improvements.push(`${metric} improved (${pw.toFixed(1)} \u2192 ${tw.toFixed(1)}).`);
-        if (delta <= -0.5) concerns.push(`${metric} declined (${pw.toFixed(1)} \u2192 ${tw.toFixed(1)}).`);
+        if (delta >= 0.5) {
+          const msg = formatChangeMessage(metric, pw, tw, "improvement");
+          improvements.push(msg);
+          changes.push({
+            metric,
+            priorAvg: Number(pw.toFixed(1)),
+            thisAvg: Number(tw.toFixed(1)),
+            delta: Number(delta.toFixed(1)),
+            kind: "improvement"
+          });
+        }
+        if (delta <= -0.5) {
+          const msg = formatChangeMessage(metric, pw, tw, "concern");
+          concerns.push(msg);
+          changes.push({
+            metric,
+            priorAvg: Number(pw.toFixed(1)),
+            thisAvg: Number(tw.toFixed(1)),
+            delta: Number(delta.toFixed(1)),
+            kind: "concern"
+          });
+        }
       }
     }
     if (goals.sleep != null) {
-      const twSleep = mean3(thisWeek.map((l) => l.sleep).filter((v) => v != null));
+      const twSleep = mean3(thisWeek.map((l) => readScaleMetric(l, "sleep")).filter((v) => v != null));
       goalStatus.push({
         goal: "sleep",
         target: goals.sleep,
@@ -470,8 +540,9 @@ var RianellAIEngine = (() => {
     return {
       improvements: improvements.slice(0, 3),
       concerns: concerns.slice(0, 3),
+      changes: changes.slice(0, 6),
       goalStatus,
-      headline: improvements[0] || concerns[0] || "Keep logging to build your weekly digest."
+      headline: buildHeadline(improvements, concerns)
     };
   }
 
@@ -613,7 +684,7 @@ var RianellAIEngine = (() => {
     { metric1: "sleep", metric2: "fatigue", label1: "Sleep", label2: "Fatigue" },
     { metric1: "mood", metric2: "fatigue", label1: "Mood", label2: "Fatigue" }
   ];
-  var TRACKED_METRICS = [
+  var TRACKED_METRICS2 = [
     { key: "mood", label: "Mood" },
     { key: "sleep", label: "Sleep" },
     { key: "fatigue", label: "Fatigue" }
@@ -701,7 +772,7 @@ var RianellAIEngine = (() => {
     const flareDate = sorted[flareIndex].date;
     const before = sorted.slice(Math.max(0, flareIndex - windowDays), flareIndex);
     const after = sorted.slice(flareIndex + 1, flareIndex + 1 + windowDays);
-    const metrics = TRACKED_METRICS.map(({ key, label }) => {
+    const metrics = TRACKED_METRICS2.map(({ key, label }) => {
       const beforeVals = before.map((l) => l[key]).filter((v) => typeof v === "number" && Number.isFinite(v));
       const afterVals = after.map((l) => l[key]).filter((v) => typeof v === "number" && Number.isFinite(v));
       const beforeAvg = mean5(beforeVals);
