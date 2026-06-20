@@ -1,4 +1,5 @@
 // Copy to smartlook-config.js on the server and replace placeholders.
+// Canonical defaults: packages/shared/src/analytics/smartlookConfig.mjs
 // Must be valid JavaScript: use only ASCII straight single quotes (') - not curly quotes from Word/PDF.
 (function () {
   try {

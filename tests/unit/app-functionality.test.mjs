@@ -88,7 +88,8 @@ test('setGlobalTheme applies in-place without forcing reload', () => {
 });
 
 test('dashboard title logic keeps MOTD scoped to home tab', () => {
-  assert.match(appJs, /if \(activeTab !== 'home'\) return;/);
+  assert.match(appJs, /if \(activeTab !== 'home'\)/);
+  assert.match(appJs, /titleContainer\.style\.display = 'none'/);
   assert.match(appJs, /document\.title = 'Rianell';/);
 });
 

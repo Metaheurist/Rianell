@@ -1009,10 +1009,10 @@
     <symbol id="icon-pill" viewBox="0 0 24 24"><path d="M8.2 5.2a4.8 4.8 0 0 1 6.8 0l2.8 2.8a4.8 4.8 0 0 1 0 6.8l-2.8 2.8a4.8 4.8 0 0 1-6.8 0L5.4 12a4.8 4.8 0 0 1 0-6.8Z"/><path d="m14.8 7.2 2 2"/></symbol>
     <symbol id="icon-stress" viewBox="0 0 24 24"><path d="M7 14H5.5a3.5 3.5 0 0 1-.4-7A4.5 4.5 0 0 1 13.5 6a3.5 3.5 0 0 1 6.8 1.2 3 3 0 0 1-.3 6.8H7"/><path d="M13 18v3M11 21h4"/></symbol>
     <symbol id="icon-activity" viewBox="0 0 24 24"><path d="M4 12h4l2-7 4 14 2-7h4"/></symbol>
-    <symbol id="icon-checkin-am" viewBox="0 0 24 24"><path d="M4 18h16"/><path d="M12 16V6"/><path d="m8 10 4-4 4 4"/><circle cx="12" cy="8" r="3.2"/></symbol>
-    <symbol id="icon-checkin-midday" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></symbol>
+    <symbol id="icon-checkin-am" viewBox="0 0 24 24"><path d="M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 16V6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m8 10 4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="icon-checkin-midday" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
     <symbol id="icon-learn" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M8 7h8"/></symbol>
-    <symbol id="icon-checkin-pm" viewBox="0 0 24 24"><path d="M20 14.5A7.5 7.5 0 0 1 8.6 8.6 6.5 6.5 0 1 0 20 14.5Z"/></symbol>
+    <symbol id="icon-checkin-pm" viewBox="0 0 24 24"><path d="M20 14.5A7.5 7.5 0 0 1 8.6 8.6 6.5 6.5 0 1 0 20 14.5Z" fill="currentColor" stroke="none"/></symbol>
     <symbol id="icon-weather-clear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></symbol>
     <symbol id="icon-weather-partly-cloudy" viewBox="0 0 24 24"><circle cx="8.5" cy="9" r="3"/><path d="M8.5 5.5V4M8.5 14v1.5M4.5 9H3M14 9h1.5M5.4 5.4 4.3 4.3M11.7 12.7l1.1 1.1M5.4 12.6 4.3 13.7M11.7 5.4 12.8 4.3"/><path d="M7 18h10.5a4 4 0 0 0 .3-8 5.5 5.5 0 0 0-10.5 1.8A4 4 0 0 0 7 18Z"/></symbol>
     <symbol id="icon-weather-cloudy" viewBox="0 0 24 24"><path d="M7 18h11a4 4 0 0 0 .3-8 6 6 0 0 0-11.3-1.9A5 5 0 0 0 7 18Z"/></symbol>
@@ -1150,7 +1150,7 @@
           <div class="toggle-switch" id="sessionRecordingToggle" onclick="toggleSessionRecordingSetting()"></div>
         </div>
         <p class="settings-hint" id="sessionRecordingHint" data-i18n="settings.privacy.sessionRecording.hint">Optional screen recordings (Smartlook) to help improve the app. Off by default. May capture health screens you visit. Turn off here at any time.</p>
-        <div class="settings-option" id="consentDashboardSection">
+        <div class="settings-consent-dashboard" id="consentDashboardSection">
           <h5 data-i18n="settings.consent.dashboardTitle">Consent dashboard</h5>
           <div id="consentDashboardList" class="consent-dashboard-list"></div>
         </div>
@@ -1630,9 +1630,9 @@
       </div>
       </div>
       </div>
+      </div>
       <button type="button" class="settings-carousel-side settings-carousel-side--next" id="settingsCarouselNext" onclick="settingsCarouselStep(1)" aria-label="Next settings section" data-i18n-aria="common.next.settings.section">›</button>
     </div>
-  </div>
   </div>
 
   <!-- Goals & Targets Modal -->
@@ -1817,7 +1817,7 @@
     <div class="title-container">
       <div class="motd-spin-host" id="motdSpinHost">
         <div class="motd-sway-wrap">
-          <h1 id="dashboardTitle" data-text="Rianell" data-i18n="common.rianell">Rianell</h1>
+          <h1 id="dashboardTitle" data-text="Rianell">Rianell</h1>
         </div>
       </div>
       <div class="heartbeat-line">
@@ -3804,7 +3804,7 @@
   <!-- Supabase: set fallback first so a bad supabase-config.js (e.g. smart quotes) does not break the page -->
   <script>window.SUPABASE_CONFIG = window.SUPABASE_CONFIG || { url: '', anonKey: '' };</script>
   <script>window.RIANELL_VAPID_PUBLIC_KEY = window.RIANELL_VAPID_PUBLIC_KEY || '';</script>
-  <script>window.SMARTLOOK_CONFIG = window.SMARTLOOK_CONFIG || { projectKey: '', region: 'eu' };</script>
+  <script>window.SMARTLOOK_CONFIG = window.SMARTLOOK_CONFIG || { projectKey: 'c205987c47aef0b2da2a93569620b15a81bef013', region: 'eu' };</script>
   <!-- If you see "SyntaxError" in supabase-config.js on the live site, redeploy a valid file (see supabase-config.example.js). -->
   <script defer src="supabase-config.js"></script>
   <script defer src="push-config.js"></script>
@@ -3862,7 +3862,7 @@
   </script>
   <script defer src="vendor/rianell-shared.js?v=5"></script>
   <script defer src="modules/app-lock.js?v=1"></script>
-  <script defer src="modules/weekly-review.js?v=4"></script>
+  <script defer src="modules/weekly-review.js?v=5"></script>
   <script defer src="modules/mood-tab.js?v=1"></script>
   <script defer src="i18n-pwa.js?v=3"></script>
   <script defer src="privacy-region.js?v=6"></script>

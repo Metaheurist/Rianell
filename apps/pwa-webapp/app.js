@@ -9917,27 +9917,12 @@ function getLogsLast7Days() {
   });
 }
 
-function goalsRingSvg(pct) {
-  var r = 28;
-  var c = 2 * Math.PI * r;
-  var off = c * (1 - Math.min(100, Math.max(0, pct)) / 100);
-  return '<svg class="goals-ring" width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">' +
-    '<circle class="goals-ring__track" cx="32" cy="32" r="' + r + '" fill="none" stroke-width="6"/>' +
-    '<circle class="goals-ring__fill" cx="32" cy="32" r="' + r + '" fill="none" stroke-width="6" ' +
-    'stroke-dasharray="' + c.toFixed(2) + '" stroke-dashoffset="' + c.toFixed(2) + '" data-target-offset="' + off.toFixed(2) + '"/></svg>';
-}
-
 function animateGoalsBars(block) {
   if (!block) return;
   block.querySelectorAll('.goals-bar-fill').forEach(function (bar) {
     var w = bar.style.width;
     bar.style.width = '0%';
     requestAnimationFrame(function () { bar.style.width = w; });
-  });
-  block.querySelectorAll('.goals-ring__fill').forEach(function (ring) {
-    var target = ring.getAttribute('data-target-offset');
-    ring.setAttribute('stroke-dashoffset', ring.getAttribute('stroke-dasharray') || '0');
-    requestAnimationFrame(function () { ring.setAttribute('stroke-dashoffset', target || '0'); });
   });
 }
 
@@ -9980,11 +9965,10 @@ function updateGoalsProgressBlock() {
     var stepsMet = stepsLogs.filter(function(l) { return parseInt(l.steps, 10) >= goals.steps; }).length;
     var stepsPct = goals.steps > 0 ? Math.min(100, Math.round((stepsAvg / goals.steps) * 100)) : 0;
     var si = insight(stepsMet, 7, goals.steps > 0 ? Math.round((stepsAvg / goals.steps) * 100) : 0);
-    rows.push('<div class="goals-metric-row" data-scroll-reveal>' +
-      goalsRingSvg(stepsPct) +
-      '<div class="goals-metric-body"><div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-shoe-prints"></i></span><span class="goals-metric-name">' + tUi('charts.metric.steps') + '</span><span class="goals-metric-nums" data-count-target="' + stepsAvg + '">0 / ' + goals.steps.toLocaleString() + '</span></div>' +
+    rows.push('<div class="goals-metric-row">' +
+      '<div class="goals-metric-head"><span class="goals-icon" aria-hidden="true"><i class="fa-solid fa-shoe-prints"></i></span><span class="goals-metric-name">' + tUi('charts.metric.steps') + '</span><span class="goals-metric-nums" data-count-target="' + stepsAvg + '">0 / ' + goals.steps.toLocaleString() + '</span></div>' +
       '<div class="goals-bar-wrap"><div class="goals-bar-fill" style="width:' + stepsPct + '%"></div></div>' +
-      '<div class="goals-meta"><span class="goals-days" title="' + stepsMet + ' of 7 days met">' + daysDots(stepsMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div></div>');
+      '<div class="goals-meta"><span class="goals-days" title="' + stepsMet + ' of 7 days met">' + daysDots(stepsMet) + '</span><span class="goals-status-pill ' + si.cls + '">' + si.label + '</span></div></div>');
   }
   if (goals.hydration > 0) {
     var hydLogs = last7.filter(function(l) { var v = parseFloat(l.hydration); return v != null && !isNaN(v) && v >= 0; });
@@ -19517,42 +19501,37 @@ function updateMedicalConditionOld() {
   notifySuccess('Medical condition updated to: ' + condition);
 }
 
-/** If motd.json fails to load (offline, 404), show this single line until retry. */
-const MOTD_FALLBACK_MINIMAL = ['Rianell'];
-
-/**
- * Loads MOTD lines from web/motd.json (see repo). Sets window.__rianellMotdMessages.
- * @returns {Promise<void>}
- */
-function loadMotdJson() {
-  if (typeof window === 'undefined' || typeof fetch !== 'function') {
-    return Promise.resolve();
-  }
-  var url = 'motd.json';
-  try {
-    url = new URL('motd.json', window.location.href).href;
-  } catch (e) {}
-  return fetch(url, { cache: 'force-cache' })
-    .then(function (r) {
-      if (!r.ok) throw new Error('motd');
-      return r.json();
-    })
-    .then(function (data) {
-      if (data && Array.isArray(data.messages) && data.messages.length) {
-        window.__rianellMotdMessages = data.messages.filter(function (x) {
-          return typeof x === 'string' && String(x).trim().length > 0;
-        });
-      }
-    })
-    .catch(function () {
-      window.__rianellMotdMessages = null;
-    });
-}
+/** Offline fallback when locale MOTD packs cannot be loaded. */
+const MOTD_FALLBACK_MINIMAL = [
+  'A glass of water is a good way to start the day.',
+  'Sleep is how your body repairs itself.',
+  'Small steps add up to a healthier week.',
+  'Gentle movement is still movement.',
+  'Rest is part of health, not a reward you earn.',
+];
 
 function getMotdMessageList() {
+  var I = typeof window !== 'undefined' ? window.RianellI18n : null;
+  if (I && typeof I.getMotdMessages === 'function') {
+    var localized = I.getMotdMessages();
+    if (localized && localized.length) return localized;
+  }
   var w = typeof window !== 'undefined' ? window.__rianellMotdMessages : null;
   if (w && Array.isArray(w) && w.length) return w;
   return MOTD_FALLBACK_MINIMAL;
+}
+
+/**
+ * Loads locale MOTD pack via RianellI18n (i18n-packs/motd-packs/v1).
+ * @returns {Promise<void>}
+ */
+function loadMotdJson() {
+  var I = typeof window !== 'undefined' ? window.RianellI18n : null;
+  if (!I || typeof I.ensureMotdMessages !== 'function') return Promise.resolve();
+  var locale = typeof I.getLocale === 'function' ? I.getLocale() : 'en-GB';
+  return I.ensureMotdMessages(locale).then(function () {
+    if (typeof updateDashboardTitle === 'function') updateDashboardTitle();
+  }).catch(function () {});
 }
 
 /**
@@ -19560,7 +19539,7 @@ function getMotdMessageList() {
  */
 function getRandomMotdFallback() {
   const list = getMotdMessageList();
-  if (!list.length) return 'Rianell';
+  if (!list.length) return MOTD_FALLBACK_MINIMAL[0];
   if (typeof window !== 'undefined' && window.__rianellMotdSessionPick != null) {
     return window.__rianellMotdSessionPick;
   }
@@ -19568,52 +19547,6 @@ function getRandomMotdFallback() {
   var pick = list[idx];
   if (typeof window !== 'undefined') window.__rianellMotdSessionPick = pick;
   return pick;
-}
-
-/**
- * Runs after the app shell is visible so MOTD LLM does not contend with preloadSummaryLLM during startup.
- */
-function scheduleDashboardMotdWithLlm(fallbackTitle) {
-  var deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
-    ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
-  if (deviceOpts.deferAI) return;
-  try {
-    var ms = (typeof window.getAiModelStatus === 'function') ? window.getAiModelStatus() : null;
-    if (ms && (ms.state === 'downloading' || ms.state !== 'ready' || !ms.inMemory)) return;
-  } catch (e) {}
-  // Curated motd.json quotes are the primary MOTD; the on-device LLM only
-  // occasionally replaces them (small models can produce off-topic lines).
-  // One roll per page load (stable across repeated calls in the same session).
-  if (window.__rianellMotdLlmRoll == null) window.__rianellMotdLlmRoll = Math.random();
-  if (window.__rianellMotdLlmRoll >= 0.3) return;
-  var fb = fallbackTitle != null ? fallbackTitle : getRandomMotdFallback();
-  (async function motdDashboardTitle() {
-    if (typeof window.generateMotdWithLLM !== 'function') {
-      if (window.PerformanceUtils && typeof window.PerformanceUtils.lazyLoadScript === 'function') {
-        try {
-          await window.PerformanceUtils.lazyLoadScript('summary-llm.js');
-        } catch (e) {}
-      }
-    }
-    if (typeof window.generateMotdWithLLM !== 'function') return;
-    try {
-      var motd = await window.generateMotdWithLLM(fb);
-      var t = motd && motd.trim ? motd.trim() : '';
-      if (!t || t === fb) return;
-      var el = document.getElementById('dashboardTitle');
-      if (!el) return;
-      // Keep MOTD quote only on Home tab; avoid applying async result after tab switch.
-      var activeTab = tabNameRef || 'home';
-      if (activeTab !== 'home') return;
-      el.textContent = t;
-      el.setAttribute('data-text', t);
-      if (typeof syncMobileFixedTitlePadding === 'function') {
-        requestAnimationFrame(function() {
-          syncMobileFixedTitlePadding();
-        });
-      }
-    } catch (e) {}
-  })();
 }
 
 function updateDashboardTitle() {
@@ -19645,13 +19578,6 @@ function updateDashboardTitle() {
     requestAnimationFrame(function() {
       syncMobileFixedTitlePadding();
     });
-  }
-
-  var deviceOpts = (window.PerformanceUtils && typeof window.PerformanceUtils.getDeviceOpts === 'function')
-    ? window.PerformanceUtils.getDeviceOpts() : { deferAI: false };
-  if (deviceOpts.deferAI) return;
-  if (document.body && document.body.classList.contains('loaded')) {
-    scheduleDashboardMotdWithLlm(fallbackTitle);
   }
 }
 
@@ -21837,15 +21763,21 @@ function runRianellBootAfterDomReady() {
 
   function revealAppShellWithLocale() {
     var I = (typeof window !== 'undefined' && window.RianellI18n) ? window.RianellI18n : null;
-    var ready = (I && typeof I.ensureCatalogs === 'function')
-      ? I.ensureCatalogs(I.getLocale())
+    var locale = I && typeof I.getLocale === 'function' ? I.getLocale() : 'en-GB';
+    var catalogsReady = (I && typeof I.ensureCatalogs === 'function')
+      ? I.ensureCatalogs(locale)
       : Promise.resolve();
-    ready.then(function () {
+    var motdReady = (I && typeof I.ensureMotdMessages === 'function')
+      ? I.ensureMotdMessages(locale)
+      : Promise.resolve();
+    Promise.all([catalogsReady, motdReady]).then(function () {
       if (I && typeof I.refreshLocaleUI === 'function') {
-        I.refreshLocaleUI();
+        return I.refreshLocaleUI();
       }
+    }).then(function () {
       revealAppShell();
     }).catch(function () {
+      if (typeof updateDashboardTitle === 'function') updateDashboardTitle();
       revealAppShell();
     });
   }
@@ -21925,7 +21857,7 @@ function runRianellBootAfterDomReady() {
           }).catch(function () {});
         });
     Promise.allSettled([chartsReady, aiReady]).then(function () {
-      scheduleDashboardMotdWithLlm(getRandomMotdFallback());
+      if (typeof updateDashboardTitle === 'function') updateDashboardTitle();
       if (appSettings.aiEnabled !== false && window.DeviceBenchmark && window.DeviceBenchmark.getCachedResult) {
         var cached = window.DeviceBenchmark.getCachedResult();
         if (cached && cached.gpu && cached.gpu.good) {

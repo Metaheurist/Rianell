@@ -59,22 +59,30 @@ export function summarizeCorrelationStep(correlationCards) {
   return list.slice(0, 3).map((c) => ({
     id: c.id || c.metricA,
     label: c.label || (c.label1 && c.label2 ? `${c.label1} & ${c.label2}` : c.title || ''),
+    label1: c.label1 || null,
+    label2: c.label2 || null,
+    metric1: c.metric1 || null,
+    metric2: c.metric2 || null,
+    coefficient: c.coefficient != null ? c.coefficient : null,
+    direction: c.direction || null,
     detail:
       c.detail ||
       c.summary ||
       (c.coefficient != null ? `${c.direction || 'corr'} (${c.coefficient})` : ''),
     confidence: c.confidence || c.confidenceLevel || null,
+    sampleSize: c.sampleSize != null ? c.sampleSize : null,
   }));
 }
 
 export function summarizeDigestStep(digest) {
   if (!digest || typeof digest !== 'object') {
-    return { headline: '', improvements: [], concerns: [], goalStatus: [] };
+    return { headline: '', improvements: [], concerns: [], changes: [], goalStatus: [] };
   }
   return {
     headline: digest.headline || '',
     improvements: Array.isArray(digest.improvements) ? digest.improvements : [],
     concerns: Array.isArray(digest.concerns) ? digest.concerns : [],
+    changes: Array.isArray(digest.changes) ? digest.changes : [],
     goalStatus: Array.isArray(digest.goalStatus) ? digest.goalStatus : [],
   };
 }

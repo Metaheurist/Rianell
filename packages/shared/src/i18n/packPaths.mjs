@@ -26,3 +26,4 @@ export function canonicalPolicyPackPath(root) {
 /** Relative URL segment for PWA fetch (no leading slash). */
 export const PWA_LOCALE_PACKS_URL = `${I18N_PACKS_DIR}/locale-packs/v1`;
 export const PWA_PROMPT_PACKS_URL = `${I18N_PACKS_DIR}/prompt-packs/v1`;
+export const PWA_MOTD_PACKS_URL = `${I18N_PACKS_DIR}/motd-packs/v1`;

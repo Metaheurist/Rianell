@@ -36,9 +36,20 @@ const iosBundleIdentifier = firstNonEmpty(
   appJson?.expo?.ios?.bundleIdentifier,
   'com.anonymous.mobile'
 );
-const smartlookProjectKey = firstNonEmpty(
-  process.env.EXPO_PUBLIC_SMARTLOOK_PROJECT_KEY,
-  process.env.SMARTLOOK_PROJECT_KEY
+const { resolveSmartlookProjectKey, resolveSmartlookRegion } =
+  require('../../packages/shared/src/analytics/smartlookConfig.mjs');
+
+const smartlookProjectKey = resolveSmartlookProjectKey(
+  firstNonEmpty(
+    process.env.EXPO_PUBLIC_SMARTLOOK_PROJECT_KEY,
+    process.env.SMARTLOOK_PROJECT_KEY
+  )
+);
+const smartlookRegion = resolveSmartlookRegion(
+  firstNonEmpty(
+    process.env.EXPO_PUBLIC_SMARTLOOK_REGION,
+    process.env.SMARTLOOK_REGION
+  )
 );
 
 module.exports = {
@@ -53,6 +64,7 @@ module.exports = {
       supabaseUrl,
       supabaseAnonKey,
       smartlookProjectKey,
+      smartlookRegion,
       llmEndpoint,
       modelsBaseUrl,
     },
