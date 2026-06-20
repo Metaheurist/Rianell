@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-20T08:00:21.444Z",
+  "generatedAt": "2026-06-20T09:59:44.516Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 3946528,
-    "cssBytes": 407356,
-    "jsGzipBytes": 942966,
-    "cssGzipBytes": 71301
+    "jsBytes": 3959607,
+    "cssBytes": 410253,
+    "jsGzipBytes": 946113,
+    "cssGzipBytes": 71791
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 906259,
-      "gzipBytes": 196288
+      "bytes": 910484,
+      "gzipBytes": 197234
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.41476cf76ced.min.js",
-      "bytes": 646532,
-      "gzipBytes": 146658
+      "file": "ci-minified/site/app.7ba18753cd5a.min.js",
+      "bytes": 650089,
+      "gzipBytes": 147570
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -29,14 +29,14 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.2e1d355f817f.css",
-      "bytes": 393153,
-      "gzipBytes": 67472
+      "file": "ci-minified/site/styles.25d619d35e89.css",
+      "bytes": 396050,
+      "gzipBytes": 67962
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 237718,
-      "gzipBytes": 55544
+      "bytes": 239258,
+      "gzipBytes": 55947
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -50,13 +50,13 @@
     },
     {
       "file": "ci-minified/site/summary-llm.js",
-      "bytes": 76905,
-      "gzipBytes": 17025
+      "bytes": 77211,
+      "gzipBytes": 17064
     },
     {
       "file": "ci-minified/site/export-utils.js",
-      "bytes": 48659,
-      "gzipBytes": 11683
+      "bytes": 49307,
+      "gzipBytes": 11830
     },
     {
       "file": "ci-minified/site/vendor/rianell-ai-engine.js",
@@ -94,19 +94,19 @@
       "gzipBytes": 5029
     },
     {
-      "file": "ci-minified/site/privacy-region.js",
-      "bytes": 16637,
-      "gzipBytes": 3764
-    },
-    {
       "file": "ci-minified/site/event-handlers.js",
-      "bytes": 16621,
-      "gzipBytes": 3219
+      "bytes": 16939,
+      "gzipBytes": 3268
     },
     {
       "file": "ci-minified/site/modules/weekly-review.js",
-      "bytes": 16613,
-      "gzipBytes": 3987
+      "bytes": 16640,
+      "gzipBytes": 4017
+    },
+    {
+      "file": "ci-minified/site/privacy-region.js",
+      "bytes": 16637,
+      "gzipBytes": 3764
     },
     {
       "file": "ci-minified/site/security-utils.js",
@@ -134,14 +134,14 @@
       "gzipBytes": 2118
     },
     {
+      "file": "ci-minified/site/print-utils.js",
+      "bytes": 6849,
+      "gzipBytes": 2113
+    },
+    {
       "file": "ci-minified/site/encryption-utils.js",
       "bytes": 6239,
       "gzipBytes": 1997
-    },
-    {
-      "file": "ci-minified/site/print-utils.js",
-      "bytes": 6222,
-      "gzipBytes": 1916
     },
     {
       "file": "ci-minified/site/sw.js",
@@ -169,6 +169,11 @@
       "gzipBytes": 1515
     },
     {
+      "file": "ci-minified/site/push-subscribe.js",
+      "bytes": 4964,
+      "gzipBytes": 1572
+    },
+    {
       "file": "ci-minified/site/android-update-check.js",
       "bytes": 3731,
       "gzipBytes": 1412
@@ -192,11 +197,6 @@
       "file": "ci-minified/site/modules/app-lock.js",
       "bytes": 3170,
       "gzipBytes": 982
-    },
-    {
-      "file": "ci-minified/site/push-subscribe.js",
-      "bytes": 3133,
-      "gzipBytes": 1148
     },
     {
       "file": "ci-minified/site/summary-llm-gguf.js",
