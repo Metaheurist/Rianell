@@ -41,7 +41,11 @@ var RianellShared = (() => {
     ENCRYPTED_EXPORT_KDF_ITERATIONS: () => ENCRYPTED_EXPORT_KDF_ITERATIONS,
     FIRST_RUN_STEP_IDS: () => FIRST_RUN_STEP_IDS,
     FIRST_RUN_STEP_META: () => FIRST_RUN_STEP_META,
+    GAD2_MAX_SCORE: () => GAD2_MAX_SCORE,
     GAD2_QUESTIONS: () => GAD2_QUESTIONS,
+    GAD7_FOLLOWUP_QUESTIONS: () => GAD7_FOLLOWUP_QUESTIONS,
+    GAD7_MAX_SCORE: () => GAD7_MAX_SCORE,
+    GAD7_QUESTIONS: () => GAD7_QUESTIONS,
     GOALS_STORAGE_KEY: () => GOALS_STORAGE_KEY,
     GOLDEN_LLM_INTENTS: () => GOLDEN_LLM_INTENTS,
     GOLDEN_LLM_LOCALES: () => GOLDEN_LLM_LOCALES,
@@ -67,7 +71,12 @@ var RianellShared = (() => {
     MOOD_CHECKIN_PERIODS: () => MOOD_CHECKIN_PERIODS,
     OFFLINE_QUEUE_KEY: () => OFFLINE_QUEUE_KEY,
     ON_DEVICE_MOAT_BULLET_KEYS: () => ON_DEVICE_MOAT_BULLET_KEYS,
+    PHQ2_MAX_SCORE: () => PHQ2_MAX_SCORE,
     PHQ2_QUESTIONS: () => PHQ2_QUESTIONS,
+    PHQ9_FOLLOWUP_QUESTIONS: () => PHQ9_FOLLOWUP_QUESTIONS,
+    PHQ9_ITEM9_ID: () => PHQ9_ITEM9_ID,
+    PHQ9_MAX_SCORE: () => PHQ9_MAX_SCORE,
+    PHQ9_QUESTIONS: () => PHQ9_QUESTIONS,
     POLICY_BODIES: () => POLICY_BODIES,
     POLICY_SUMMARIES: () => POLICY_SUMMARIES,
     POOL_CONTRIBUTION_MIN_DAYS: () => POOL_CONTRIBUTION_MIN_DAYS,
@@ -245,7 +254,9 @@ var RianellShared = (() => {
     identity: () => identity,
     inferTreatmentStartsFromLogs: () => inferTreatmentStartsFromLogs,
     interpretGad2Score: () => interpretGad2Score,
+    interpretGad7Score: () => interpretGad7Score,
     interpretPhq2Score: () => interpretPhq2Score,
+    interpretPhq9Score: () => interpretPhq9Score,
     isCloudSyncBlockedByMigration: () => isCloudSyncBlockedByMigration,
     isConfiguredVapidPublicKey: () => isConfiguredVapidPublicKey,
     isCustomMetricField: () => isCustomMetricField,
@@ -256,6 +267,7 @@ var RianellShared = (() => {
     isLogCategoryUnlocked: () => isLogCategoryUnlocked,
     isLoggingStreakBroken: () => isLoggingStreakBroken,
     isMedDoseSnoozed: () => isMedDoseSnoozed,
+    isPhq9SuicideItemPositive: () => isPhq9SuicideItemPositive,
     isPrivacyRegionConfigured: () => isPrivacyRegionConfigured,
     isPwaOnDeviceLlmOnly: () => isPwaOnDeviceLlmOnly,
     isQrHandoffExpired: () => isQrHandoffExpired,
@@ -282,9 +294,11 @@ var RianellShared = (() => {
     logsToCsv: () => logsToCsv,
     logsToFhirBundle: () => logsToFhirBundle,
     medDoseReminderNotificationId: () => medDoseReminderNotificationId,
+    mergeGad7Responses: () => mergeGad7Responses,
     mergeHealthLogs: () => mergeHealthLogs,
     mergeHealthLogsWithConflictPolicy: () => mergeHealthLogsWithConflictPolicy,
     mergeLogEntriesForDate: () => mergeLogEntriesForDate,
+    mergePhq9Responses: () => mergePhq9Responses,
     migrateFirstRunWizardPrefs: () => migrateFirstRunWizardPrefs,
     minutesToHHMM: () => minutesToHHMM,
     moodQualitativeKey: () => moodQualitativeKey,
@@ -355,6 +369,8 @@ var RianellShared = (() => {
     roundWeatherCoord: () => roundWeatherCoord,
     runGoldenPromptAudit: () => runGoldenPromptAudit,
     sanitizeCustomMetricLabel: () => sanitizeCustomMetricLabel,
+    scoreGad7FromResponses: () => scoreGad7FromResponses,
+    scorePhq9FromResponses: () => scorePhq9FromResponses,
     scoreScreeningResponses: () => scoreScreeningResponses,
     setPolicyPack: () => setPolicyPack,
     shareEnvelopeToPortableJson: () => shareEnvelopeToPortableJson,
@@ -364,6 +380,8 @@ var RianellShared = (() => {
     shouldFireMissedLogNudge: () => shouldFireMissedLogNudge,
     shouldFireReEngagementNudge: () => shouldFireReEngagementNudge,
     shouldFireStreakReminderNudge: () => shouldFireStreakReminderNudge,
+    shouldOfferGad7FollowUp: () => shouldOfferGad7FollowUp,
+    shouldOfferPhq9FollowUp: () => shouldOfferPhq9FollowUp,
     shouldShowAppointmentCard: () => shouldShowAppointmentCard,
     shouldShowWizardCategory: () => shouldShowWizardCategory,
     shouldSkipFirstRunStep: () => shouldSkipFirstRunStep,
@@ -5150,6 +5168,33 @@ ${questionsBlock}
     { id: "gad2_1", i18n: "mentalHealth.gad2.q1" },
     { id: "gad2_2", i18n: "mentalHealth.gad2.q2" }
   ];
+  var PHQ9_QUESTIONS = [
+    { id: "phq9_1", i18n: "mentalHealth.phq2.q1" },
+    { id: "phq9_2", i18n: "mentalHealth.phq2.q2" },
+    { id: "phq9_3", i18n: "mentalHealth.phq9.q3" },
+    { id: "phq9_4", i18n: "mentalHealth.phq9.q4" },
+    { id: "phq9_5", i18n: "mentalHealth.phq9.q5" },
+    { id: "phq9_6", i18n: "mentalHealth.phq9.q6" },
+    { id: "phq9_7", i18n: "mentalHealth.phq9.q7" },
+    { id: "phq9_8", i18n: "mentalHealth.phq9.q8" },
+    { id: "phq9_9", i18n: "mentalHealth.phq9.q9" }
+  ];
+  var GAD7_QUESTIONS = [
+    { id: "gad7_1", i18n: "mentalHealth.gad2.q1" },
+    { id: "gad7_2", i18n: "mentalHealth.gad2.q2" },
+    { id: "gad7_3", i18n: "mentalHealth.gad7.q3" },
+    { id: "gad7_4", i18n: "mentalHealth.gad7.q4" },
+    { id: "gad7_5", i18n: "mentalHealth.gad7.q5" },
+    { id: "gad7_6", i18n: "mentalHealth.gad7.q6" },
+    { id: "gad7_7", i18n: "mentalHealth.gad7.q7" }
+  ];
+  var PHQ9_FOLLOWUP_QUESTIONS = PHQ9_QUESTIONS.slice(2);
+  var GAD7_FOLLOWUP_QUESTIONS = GAD7_QUESTIONS.slice(2);
+  var PHQ9_MAX_SCORE = 27;
+  var GAD7_MAX_SCORE = 21;
+  var PHQ2_MAX_SCORE = 6;
+  var GAD2_MAX_SCORE = 6;
+  var PHQ9_ITEM9_ID = "phq9_9";
   var SCREENING_RESPONSE_OPTIONS = [
     { value: 0, i18n: "mentalHealth.response.notAtAll" },
     { value: 1, i18n: "mentalHealth.response.severalDays" },
@@ -5178,6 +5223,48 @@ ${questionsBlock}
     }
     return { total, answered, complete: answered === list.length && list.length > 0 };
   }
+  function shouldOfferPhq9FollowUp(phq2Total) {
+    return Number(phq2Total) >= 3;
+  }
+  function shouldOfferGad7FollowUp(gad2Total) {
+    return Number(gad2Total) >= 3;
+  }
+  var PHQ2_TO_PHQ9_ID = { phq2_1: "phq9_1", phq2_2: "phq9_2" };
+  var GAD2_TO_GAD7_ID = { gad2_1: "gad7_1", gad2_2: "gad7_2" };
+  function mergePhq9Responses(phq2Responses, followUpResponses) {
+    const merged = {};
+    for (const q of PHQ2_QUESTIONS) {
+      const phq9Id = PHQ2_TO_PHQ9_ID[q.id];
+      if (phq9Id) merged[phq9Id] = Number(phq2Responses?.[q.id]) || 0;
+    }
+    for (const q of PHQ9_FOLLOWUP_QUESTIONS) {
+      merged[q.id] = Number(followUpResponses?.[q.id]) || 0;
+    }
+    return merged;
+  }
+  function mergeGad7Responses(gad2Responses, followUpResponses) {
+    const merged = {};
+    for (const q of GAD2_QUESTIONS) {
+      const gad7Id = GAD2_TO_GAD7_ID[q.id];
+      if (gad7Id) merged[gad7Id] = Number(gad2Responses?.[q.id]) || 0;
+    }
+    for (const q of GAD7_FOLLOWUP_QUESTIONS) {
+      merged[q.id] = Number(followUpResponses?.[q.id]) || 0;
+    }
+    return merged;
+  }
+  function scorePhq9FromResponses(responseMap) {
+    const responses = PHQ9_QUESTIONS.map((q) => ({ value: responseMap?.[q.id] }));
+    return scoreScreeningResponses(responses);
+  }
+  function scoreGad7FromResponses(responseMap) {
+    const responses = GAD7_QUESTIONS.map((q) => ({ value: responseMap?.[q.id] }));
+    return scoreScreeningResponses(responses);
+  }
+  function isPhq9SuicideItemPositive(responseMap) {
+    const v = Number(responseMap?.[PHQ9_ITEM9_ID]);
+    return Number.isFinite(v) && v >= 1;
+  }
   function interpretPhq2Score(total) {
     if (total >= 3) return { level: "elevated", i18n: "mentalHealth.phq2.elevated" };
     return { level: "low", i18n: "mentalHealth.phq2.low" };
@@ -5185,6 +5272,21 @@ ${questionsBlock}
   function interpretGad2Score(total) {
     if (total >= 3) return { level: "elevated", i18n: "mentalHealth.gad2.elevated" };
     return { level: "low", i18n: "mentalHealth.gad2.low" };
+  }
+  function interpretPhq9Score(total) {
+    const t2 = Number(total);
+    if (t2 >= 20) return { level: "severe", i18n: "mentalHealth.phq9.severity.severe" };
+    if (t2 >= 15) return { level: "moderatelySevere", i18n: "mentalHealth.phq9.severity.moderatelySevere" };
+    if (t2 >= 10) return { level: "moderate", i18n: "mentalHealth.phq9.severity.moderate" };
+    if (t2 >= 5) return { level: "mild", i18n: "mentalHealth.phq9.severity.mild" };
+    return { level: "minimal", i18n: "mentalHealth.phq9.severity.minimal" };
+  }
+  function interpretGad7Score(total) {
+    const t2 = Number(total);
+    if (t2 >= 15) return { level: "severe", i18n: "mentalHealth.gad7.severity.severe" };
+    if (t2 >= 10) return { level: "moderate", i18n: "mentalHealth.gad7.severity.moderate" };
+    if (t2 >= 5) return { level: "mild", i18n: "mentalHealth.gad7.severity.mild" };
+    return { level: "minimal", i18n: "mentalHealth.gad7.severity.minimal" };
   }
   function getCrisisResourcesForRegion(regionId) {
     const key = String(regionId || "other").toLowerCase();

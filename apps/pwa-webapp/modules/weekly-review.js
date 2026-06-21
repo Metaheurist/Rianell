@@ -16,6 +16,14 @@
 
   var _screeningResult = false;
 
+  var _screeningPhase = 'initial';
+
+  var _initialScreeningResponses = {};
+
+  var _screeningMergedResponses = {};
+
+  var _screeningFullInstrument = false;
+
   var _modalMode = null;
 
   var _carouselBound = false;
@@ -124,6 +132,14 @@
 
     _screeningResult = false;
 
+    _screeningPhase = 'initial';
+
+    _initialScreeningResponses = {};
+
+    _screeningMergedResponses = {};
+
+    _screeningFullInstrument = false;
+
     var questions = _screeningKind === 'gad2' ? (S.GAD2_QUESTIONS || []) : (S.PHQ2_QUESTIONS || []);
 
     questions.forEach(function (q) {
@@ -154,19 +170,45 @@
 
 
 
+  function getScreeningQuestionsForPhase() {
+
+    if (_screeningPhase === 'followup') {
+
+      return _screeningKind === 'gad2'
+
+        ? (S.GAD7_FOLLOWUP_QUESTIONS || [])
+
+        : (S.PHQ9_FOLLOWUP_QUESTIONS || []);
+
+    }
+
+    return _screeningKind === 'gad2' ? (S.GAD2_QUESTIONS || []) : (S.PHQ2_QUESTIONS || []);
+
+  }
+
+
+
   function renderScreeningModalBody() {
 
     var body = document.getElementById('weeklyReviewModalBody');
 
     if (!body || !S.SCREENING_RESPONSE_OPTIONS) return;
 
-    var questions = _screeningKind === 'gad2' ? (S.GAD2_QUESTIONS || []) : (S.PHQ2_QUESTIONS || []);
+    var questions = getScreeningQuestionsForPhase();
 
     var options = S.SCREENING_RESPONSE_OPTIONS || [];
 
     var html = '<p class="settings-hint screening-disclaimer">' + escapeHTML(t('mentalHealth.disclaimer')) + '</p>';
 
     if (!_screeningResult) {
+
+      if (_screeningPhase === 'followup') {
+
+        var introKey = _screeningKind === 'gad2' ? 'mentalHealth.gad2.followUpIntro' : 'mentalHealth.phq2.followUpIntro';
+
+        html += '<p class="settings-hint screening-followup-intro">' + escapeHTML(t(introKey)) + '</p>';
+
+      }
 
       html += '<div class="screening-form">';
 
@@ -204,23 +246,61 @@
 
       html += '</div>';
 
-      html += '<div class="screening-submit-footer"><button type="button" class="action-btn screening-submit-btn" id="screeningSubmitBtn">' + escapeHTML(t('mentalHealth.submit')) + '</button></div>';
+      var submitKey = _screeningPhase === 'followup' ? 'mentalHealth.submitFollowUp' : 'mentalHealth.submit';
+
+      html += '<div class="screening-submit-footer"><button type="button" class="action-btn screening-submit-btn" id="screeningSubmitBtn">' + escapeHTML(t(submitKey)) + '</button></div>';
 
     } else {
 
-      var responses = questions.map(function (q) { return { value: _screeningResponses[q.id] }; });
+      var scored = { total: 0 };
 
-      var scored = S.scoreScreeningResponses ? S.scoreScreeningResponses(responses) : { total: 0 };
+      var interp = { i18n: 'mentalHealth.phq2.low' };
 
-      var interp = _screeningKind === 'gad2'
+      var maxScore = 6;
 
-        ? (S.interpretGad2Score ? S.interpretGad2Score(scored.total) : { i18n: 'mentalHealth.gad2.low' })
+      if (_screeningFullInstrument) {
 
-        : (S.interpretPhq2Score ? S.interpretPhq2Score(scored.total) : { i18n: 'mentalHealth.phq2.low' });
+        scored = _screeningKind === 'gad2'
+
+          ? (S.scoreGad7FromResponses ? S.scoreGad7FromResponses(_screeningMergedResponses) : { total: 0 })
+
+          : (S.scorePhq9FromResponses ? S.scorePhq9FromResponses(_screeningMergedResponses) : { total: 0 });
+
+        interp = _screeningKind === 'gad2'
+
+          ? (S.interpretGad7Score ? S.interpretGad7Score(scored.total) : { i18n: 'mentalHealth.gad7.severity.minimal' })
+
+          : (S.interpretPhq9Score ? S.interpretPhq9Score(scored.total) : { i18n: 'mentalHealth.phq9.severity.minimal' });
+
+        maxScore = _screeningKind === 'gad2' ? (S.GAD7_MAX_SCORE || 21) : (S.PHQ9_MAX_SCORE || 27);
+
+        if (_screeningKind === 'phq2' && S.isPhq9SuicideItemPositive && S.isPhq9SuicideItemPositive(_screeningMergedResponses)) {
+
+          html += '<p class="screening-item9-crisis" role="alert"><strong>' + escapeHTML(t('mentalHealth.phq9.item9Crisis')) + '</strong></p>';
+
+        }
+
+      } else {
+
+        var initialQuestions = _screeningKind === 'gad2' ? (S.GAD2_QUESTIONS || []) : (S.PHQ2_QUESTIONS || []);
+
+        var initialResponses = initialQuestions.map(function (q) { return { value: _screeningResponses[q.id] }; });
+
+        scored = S.scoreScreeningResponses ? S.scoreScreeningResponses(initialResponses) : { total: 0 };
+
+        interp = _screeningKind === 'gad2'
+
+          ? (S.interpretGad2Score ? S.interpretGad2Score(scored.total) : { i18n: 'mentalHealth.gad2.low' })
+
+          : (S.interpretPhq2Score ? S.interpretPhq2Score(scored.total) : { i18n: 'mentalHealth.phq2.low' });
+
+        maxScore = _screeningKind === 'gad2' ? (S.GAD2_MAX_SCORE || 6) : (S.PHQ2_MAX_SCORE || 6);
+
+      }
 
       html += '<p><strong>' + escapeHTML(t('mentalHealth.result.title')) + '</strong></p>';
 
-      html += '<p>' + escapeHTML(t(interp.i18n)) + ' (' + scored.total + '/6)</p>';
+      html += '<p>' + escapeHTML(t(interp.i18n)) + ' (' + scored.total + '/' + maxScore + ')</p>';
 
       var crisis = S.getCrisisResourcesForRegion ? S.getCrisisResourcesForRegion(getSettings().privacyRegion || 'other') : [];
 
@@ -281,6 +361,54 @@
       var complete = questions.every(function (q) { return Number.isFinite(_screeningResponses[q.id]); });
 
       if (!complete) return;
+
+      if (_screeningPhase === 'initial') {
+
+        var initialQuestions = _screeningKind === 'gad2' ? (S.GAD2_QUESTIONS || []) : (S.PHQ2_QUESTIONS || []);
+
+        var initialResponses = initialQuestions.map(function (q) { return { value: _screeningResponses[q.id] }; });
+
+        var initialScored = S.scoreScreeningResponses ? S.scoreScreeningResponses(initialResponses) : { total: 0 };
+
+        var offerFollowUp = _screeningKind === 'gad2'
+
+          ? (S.shouldOfferGad7FollowUp ? S.shouldOfferGad7FollowUp(initialScored.total) : false)
+
+          : (S.shouldOfferPhq9FollowUp ? S.shouldOfferPhq9FollowUp(initialScored.total) : false);
+
+        if (offerFollowUp) {
+
+          _initialScreeningResponses = Object.assign({}, _screeningResponses);
+
+          _screeningPhase = 'followup';
+
+          _screeningResponses = {};
+
+          var followUpQs = getScreeningQuestionsForPhase();
+
+          followUpQs.forEach(function (q) { _screeningResponses[q.id] = 0; });
+
+          renderScreeningModalBody();
+
+          return;
+
+        }
+
+        _screeningFullInstrument = false;
+
+      } else if (_screeningPhase === 'followup') {
+
+        _screeningMergedResponses = _screeningKind === 'gad2'
+
+          ? (S.mergeGad7Responses ? S.mergeGad7Responses(_initialScreeningResponses, _screeningResponses) : {})
+
+          : (S.mergePhq9Responses ? S.mergePhq9Responses(_initialScreeningResponses, _screeningResponses) : {});
+
+        _screeningFullInstrument = true;
+
+      }
+
+      _screeningPhase = 'result';
 
       _screeningResult = true;
 
@@ -1077,6 +1205,14 @@
     _screeningResult = false;
 
     _screeningResponses = {};
+
+    _screeningPhase = 'initial';
+
+    _initialScreeningResponses = {};
+
+    _screeningMergedResponses = {};
+
+    _screeningFullInstrument = false;
 
     setWeeklyReviewModalTitle('weeklyReview.title');
 

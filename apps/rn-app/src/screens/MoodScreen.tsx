@@ -29,10 +29,25 @@ import {
   moodQualitativeKey,
   PHQ2_QUESTIONS,
   GAD2_QUESTIONS,
+  PHQ9_FOLLOWUP_QUESTIONS,
+  GAD7_FOLLOWUP_QUESTIONS,
+  PHQ9_MAX_SCORE,
+  GAD7_MAX_SCORE,
+  PHQ2_MAX_SCORE,
+  GAD2_MAX_SCORE,
   SCREENING_RESPONSE_OPTIONS,
   scoreScreeningResponses,
   interpretPhq2Score,
   interpretGad2Score,
+  interpretPhq9Score,
+  interpretGad7Score,
+  shouldOfferPhq9FollowUp,
+  shouldOfferGad7FollowUp,
+  mergePhq9Responses,
+  mergeGad7Responses,
+  scorePhq9FromResponses,
+  scoreGad7FromResponses,
+  isPhq9SuicideItemPositive,
   getCrisisResourcesForRegion,
   MENTAL_HEALTH_DISCLAIMER_I18N,
 } from '@rianell/shared';
@@ -40,6 +55,7 @@ import {
 type MoodRange = 7 | 14 | 30;
 type CheckinPeriod = 'AM' | 'midday' | 'PM';
 type ScreeningKind = 'phq2' | 'gad2';
+type ScreeningPhase = 'initial' | 'followup' | 'result';
 
 const RANGE_OPTIONS: MoodRange[] = [7, 14, 30];
 
@@ -151,7 +167,11 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
 
   const [screeningOpen, setScreeningOpen] = useState(false);
   const [screeningKind, setScreeningKind] = useState<ScreeningKind>('phq2');
+  const [screeningPhase, setScreeningPhase] = useState<ScreeningPhase>('initial');
   const [responses, setResponses] = useState<Record<string, number>>({});
+  const [initialResponses, setInitialResponses] = useState<Record<string, number>>({});
+  const [mergedResponses, setMergedResponses] = useState<Record<string, number>>({});
+  const [screeningFullInstrument, setScreeningFullInstrument] = useState(false);
   const [showResult, setShowResult] = useState(false);
 
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -190,14 +210,54 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
     [prefs.privacyRegion],
   );
 
-  const screeningQuestions = screeningKind === 'phq2' ? PHQ2_QUESTIONS : GAD2_QUESTIONS;
-  const scored = scoreScreeningResponses(
+  const screeningQuestions =
+    screeningPhase === 'followup'
+      ? screeningKind === 'phq2'
+        ? PHQ9_FOLLOWUP_QUESTIONS
+        : GAD7_FOLLOWUP_QUESTIONS
+      : screeningKind === 'phq2'
+        ? PHQ2_QUESTIONS
+        : GAD2_QUESTIONS;
+
+  const activeScored = scoreScreeningResponses(
     screeningQuestions.map((q) => ({ id: q.id, value: responses[q.id] })),
   );
-  const interpretation =
-    screeningKind === 'phq2'
-      ? interpretPhq2Score(scored.total)
-      : interpretGad2Score(scored.total);
+
+  const resultScored = useMemo(() => {
+    if (!showResult) return { total: 0, complete: false, answered: 0 };
+    if (screeningFullInstrument) {
+      return screeningKind === 'phq2'
+        ? scorePhq9FromResponses(mergedResponses)
+        : scoreGad7FromResponses(mergedResponses);
+    }
+    const initialQs = screeningKind === 'phq2' ? PHQ2_QUESTIONS : GAD2_QUESTIONS;
+    return scoreScreeningResponses(initialQs.map((q) => ({ id: q.id, value: responses[q.id] })));
+  }, [showResult, screeningFullInstrument, screeningKind, mergedResponses, responses]);
+
+  const resultMaxScore = showResult
+    ? screeningFullInstrument
+      ? screeningKind === 'phq2'
+        ? PHQ9_MAX_SCORE
+        : GAD7_MAX_SCORE
+      : screeningKind === 'phq2'
+        ? PHQ2_MAX_SCORE
+        : GAD2_MAX_SCORE
+    : 6;
+
+  const interpretation = showResult
+    ? screeningFullInstrument
+      ? screeningKind === 'phq2'
+        ? interpretPhq9Score(resultScored.total)
+        : interpretGad7Score(resultScored.total)
+      : screeningKind === 'phq2'
+        ? interpretPhq2Score(resultScored.total)
+        : interpretGad2Score(resultScored.total)
+    : screeningKind === 'phq2'
+      ? interpretPhq2Score(activeScored.total)
+      : interpretGad2Score(activeScored.total);
+
+  const showItem9Crisis =
+    showResult && screeningFullInstrument && screeningKind === 'phq2' && isPhq9SuicideItemPositive(mergedResponses);
 
   const openCheckinModal = (period: CheckinPeriod) => {
     setCheckinPeriod(period);
@@ -238,9 +298,44 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
       initial[q.id] = 0;
     });
     setScreeningKind(kind);
+    setScreeningPhase('initial');
     setResponses(initial);
+    setInitialResponses({});
+    setMergedResponses({});
+    setScreeningFullInstrument(false);
     setShowResult(false);
     setScreeningOpen(true);
+  };
+
+  const onScreeningSubmit = () => {
+    if (!activeScored.complete) return;
+    if (screeningPhase === 'initial') {
+      const offerFollowUp =
+        screeningKind === 'phq2'
+          ? shouldOfferPhq9FollowUp(activeScored.total)
+          : shouldOfferGad7FollowUp(activeScored.total);
+      if (offerFollowUp) {
+        setInitialResponses({ ...responses });
+        const followUpQs = screeningKind === 'phq2' ? PHQ9_FOLLOWUP_QUESTIONS : GAD7_FOLLOWUP_QUESTIONS;
+        const next: Record<string, number> = {};
+        followUpQs.forEach((q) => {
+          next[q.id] = 0;
+        });
+        setResponses(next);
+        setScreeningPhase('followup');
+        return;
+      }
+      setScreeningFullInstrument(false);
+    } else if (screeningPhase === 'followup') {
+      const merged =
+        screeningKind === 'phq2'
+          ? mergePhq9Responses(initialResponses, responses)
+          : mergeGad7Responses(initialResponses, responses);
+      setMergedResponses(merged);
+      setScreeningFullInstrument(true);
+    }
+    setScreeningPhase('result');
+    setShowResult(true);
   };
 
   const trendKey =
@@ -449,6 +544,11 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
           </Text>
           {!showResult ? (
             <>
+              {screeningPhase === 'followup' ? (
+                <Text style={{ color: theme.tokens.color.textMuted, marginBottom: 12, lineHeight: 20 }}>
+                  {t(screeningKind === 'phq2' ? 'mentalHealth.phq2.followUpIntro' : 'mentalHealth.gad2.followUpIntro')}
+                </Text>
+              ) : null}
               {screeningQuestions.map((q) => (
                 <View key={q.id} style={styles.screeningQuestionBlock}>
                   <Text style={[styles.screeningQuestion, { color: theme.tokens.color.textPrimary }]}>
@@ -466,23 +566,43 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
               ))}
               <View style={styles.screeningSubmitFooter}>
                 <Pressable
-                  disabled={!scored.complete}
-                  onPress={() => setShowResult(true)}
+                  disabled={!activeScored.complete}
+                  onPress={onScreeningSubmit}
                   style={[
                     styles.primaryBtn,
                     styles.screeningSubmitBtn,
-                    { opacity: scored.complete ? 1 : 0.5, backgroundColor: accent },
+                    { opacity: activeScored.complete ? 1 : 0.5, backgroundColor: accent },
                   ]}
                 >
-                  <Text style={styles.primaryBtnText}>{t('mentalHealth.submit')}</Text>
+                  <Text style={styles.primaryBtnText}>
+                    {t(screeningPhase === 'followup' ? 'mentalHealth.submitFollowUp' : 'mentalHealth.submit')}
+                  </Text>
                 </Pressable>
               </View>
             </>
           ) : (
             <>
+              {showItem9Crisis ? (
+                <Text
+                  accessibilityRole="alert"
+                  style={{
+                    color: theme.tokens.color.textPrimary,
+                    fontWeight: '700',
+                    marginBottom: 12,
+                    lineHeight: 22,
+                    padding: 12,
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: accent,
+                    backgroundColor: `${accent}14`,
+                  }}
+                >
+                  {t('mentalHealth.phq9.item9Crisis')}
+                </Text>
+              ) : null}
               <Text style={[styles.sectionTitle, { color: theme.tokens.color.textPrimary }]}>{t('mentalHealth.result.title')}</Text>
               <Text style={{ color: theme.tokens.color.textPrimary, marginBottom: 8 }}>
-                {t(interpretation.i18n)} ({scored.total}/6)
+                {t(interpretation.i18n)} ({resultScored.total}/{resultMaxScore})
               </Text>
               {crisisLinks.map((link) => (
                 <Pressable

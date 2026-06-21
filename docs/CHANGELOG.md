@@ -2,7 +2,18 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.115.0** - PWA boot black-screen fix, Smartlook session recording (opt-in), shell layout probes.
+**Latest: v1.116.0** - Stepped PHQ-9/GAD-7 mental health follow-up when initial screening score is elevated.
+
+### v1.116.0 - 2026-06-21 - Stepped PHQ-9/GAD-7 screening follow-up
+- **Screening (X14.5):** Quick mood check (PHQ-2) and Quick anxiety check (GAD-2) now offer **stepped follow-up** when initial score ≥ 3 — PHQ-9 items 3–9 (7 questions) or GAD-7 items 3–7 (5 questions). Low scores still show `/6` result without follow-up; full instruments score `/27` or `/21` with severity bands.
+- **Crisis protocol:** PHQ-9 item 9 (self-harm thoughts) ≥ 1 shows prominent crisis alert before result; regional HTTPS crisis links unchanged.
+- **Data:** Screening answers remain **ephemeral** (in-memory until modal close; no cloud sync).
+- **Shared:** `packages/shared/src/crossCutting/mentalHealthScreening.mjs` — `PHQ9_QUESTIONS`, `GAD7_QUESTIONS`, follow-up gates, merge/score helpers, `interpretPhq9Score` / `interpretGad7Score`, `isPhq9SuicideItemPositive`.
+- **PWA:** Multi-phase state machine in `weekly-review.js` (`initial` → `followup` → `result`); styles for follow-up intro and item-9 crisis block.
+- **RN:** Parity in `MoodScreen.tsx` — same phased flow, dynamic score max, item-9 crisis UI.
+- **i18n:** 24+ new `mentalHealth.phq9.*` / `mentalHealth.gad7.*` keys (en-GB canonical + Tier-A overrides for 8 locales); synced 14 locale packs.
+- **Tests:** 5 new plan14-cross-cutting tests (follow-up gates, full scoring, severity bands, item-9 detection, i18n coverage); **341** unit tests total.
+- **Docs:** plan-14 security-performance note; app-and-features, platform-parity, project-reference sync sections.
 
 ### v1.115.0 - 2026-06-20 - PWA boot shell fix, Smartlook session recording
 - **PWA boot (black screen):** `#appShell` was nested inside `#settingsOverlay` due to a missing `</div>` in `index.html` — shell reported `shellVis: visible` but `shellW/H: 0` and painted nothing. Fixed DOM structure; added `ensureAppShellDomPlacement()` runtime reparent for cached HTML; expanded `[Rianell boot]` diagnostics (`shellParentId`, `shellMisplaced`, `mainW/H`, open modals).
