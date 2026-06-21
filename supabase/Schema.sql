@@ -15,7 +15,7 @@
 --   §1 Tables (user_privacy_profile, anonymized_data + research_facets, health_data, user_keys, bug_reports)
 --   §2 Row Level Security policies
 --   §3 Grants + GraphQL hardening (Security Advisor lints 0026/0027)
---   §4 Plan 13 RE1 pool RPCs (get_k_anon_pool_insights, count_pool_contribution_days)
+--   §4 Plan 13 RE1 pool RPCs (get_k_anon_pool_insights, count_pool_contribution_days; anon EXECUTE revoked — lint 0028)
 --   §5 Post-apply verification SELECTs
 --
 -- Dev/staging FULL WIPE ONLY: uncomment §0 TEST RESET (destroys all tables, auth users, data).
@@ -358,6 +358,7 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION public.get_k_anon_pool_insights(text, integer) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_k_anon_pool_insights(text, integer) FROM anon;
 GRANT EXECUTE ON FUNCTION public.get_k_anon_pool_insights(text, integer) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.count_pool_contribution_days(p_condition text)
@@ -373,6 +374,7 @@ AS $$
 $$;
 
 REVOKE ALL ON FUNCTION public.count_pool_contribution_days(text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.count_pool_contribution_days(text) FROM anon;
 GRANT EXECUTE ON FUNCTION public.count_pool_contribution_days(text) TO authenticated;
 
 COMMIT;

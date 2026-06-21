@@ -4,6 +4,12 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v1.117.1 documentation sync (Supabase pool RPC hardening)
+
+- **Schema §4:** `REVOKE EXECUTE ON FUNCTION … FROM anon` for `get_k_anon_pool_insights` and `count_pool_contribution_days`; `GRANT EXECUTE` remains **`authenticated`** only.
+- **Security Advisor:** Lint **0028** (anon callable) should clear after re-apply; **0029** (authenticated + SECURITY DEFINER) is accepted for RE1.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.117.1; [SECURITY.md](SECURITY.md) § Pool insight RPCs; [supabase/APPLY.md](../supabase/APPLY.md).
+
 ### v1.117.0 documentation sync (Achievements & logging unlock)
 
 - **Progressive unlock:** Food/exercise/medication wizard steps remain gated by `getUnlockedLogCategories`; achievements surface the same schedule as themed badges with optional unlock notifications.

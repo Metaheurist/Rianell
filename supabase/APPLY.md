@@ -28,7 +28,7 @@ Scroll to **§5 POST-APPLY VERIFICATION** at the bottom of `Schema.sql`, select 
 | `rpc` | 2 rows: `count_pool_contribution_days`, `get_k_anon_pool_insights` |
 | `column` | `anonymized_data.research_facets` → `ok` |
 
-Then: **Database → Security Advisor** — GraphQL exposure warnings (0026/0027) should clear after §3.
+Then: **Database → Security Advisor** — GraphQL exposure warnings (0026/0027) should clear after §3; pool RPC **anon EXECUTE** warnings (0028) should clear after §4 `REVOKE EXECUTE … FROM anon`.
 
 ## Smoke test (app)
 

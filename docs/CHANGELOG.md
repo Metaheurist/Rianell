@@ -2,7 +2,12 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.117.0** - Achievements layer for progressive logging unlocks (food 7d, exercise 14d, medication 21d).
+**Latest: v1.117.1** - Supabase pool RPC hardening (revoke anon EXECUTE; Security Advisor lint 0028).
+
+### v1.117.1 - 2026-06-21 - Supabase pool RPC security hardening
+- **Schema:** `supabase/Schema.sql` §4 — explicit `REVOKE EXECUTE … FROM anon` on `get_k_anon_pool_insights` and `count_pool_contribution_days` (Plan 13 RE1). Clears Security Advisor **0028** (`anon_security_definer_function_executable`); **0029** for `authenticated` remains accepted (signed-in-only RPC by design).
+- **Docs:** SECURITY.md pool RPC section; APPLY.md Security Advisor note.
+- **Tests:** Schema RLS test asserts anon revoke on both pool RPCs; **353** unit tests total.
 
 ### v1.117.0 - 2026-06-21 - Achievements & progressive logging unlock
 - **Achievements:** Food (day 7), exercise (day 14), and medication (day 21) logging unlocks derived from `progressiveTracking.mjs` — unlock state computed from `trackingProfile.configuredAt`, not client-trusted flags.
@@ -12,6 +17,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Cloud:** Supabase **`user_achievements`** table (jsonb `achievements`, owner RLS); PWA `achievements-sync.js`; RN `achievementsSync.ts`; included in unified cloud deletion.
 - **RN:** New `GoalsModal` + `AchievementsPane`; Home targets button opens modal (not Charts); achievement tick on foreground.
 - **i18n:** `achievements.*`, `common.goals.hint`, streak-hint clarification; synced 14 locale packs.
+- **i18n (follow-up):** Tier-A overrides in `achievements-tier-a-overrides.mjs` keep translation coverage under 13% identical (`380b1b7`).
 - **Tests:** 12 new achievement tests (core, notifications, RLS, cloud deletion); **353** unit tests total.
 - **Docs:** data-model, SECURITY, APPLY.md (6 tables), platform-parity, project-reference sync.
 

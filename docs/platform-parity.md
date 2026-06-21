@@ -418,6 +418,11 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Web/Capacitor:** notification behaviour includes reminder controls tied to runtime delivery paths.
 - **React Native:** Settings now includes notification preference controls (enable, reminder time, sound) plus permission status/request baseline. Full OS scheduling/channel parity remains open.
 
+### v1.117.1 parity note (Supabase pool RPC grants)
+
+- **No app parity change** — PWA/RN still call pool RPCs only when signed in with research opt-in.
+- **Operator:** Re-run `Schema.sql` §4 so `anon` cannot execute RE1 RPCs (Security Advisor 0028).
+
 ### v1.117.0 parity note (Achievements & Goals carousel)
 
 - **Goals modal:** PWA + RN two-pane carousel — **Goals** (steps, hydration, sleep, good-days targets) and **Achievements** (logging unlock badges).
