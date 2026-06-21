@@ -13,6 +13,10 @@ const REQUIRED_CONNECT_HOSTS = [
   'https://api.open-meteo.com',
   'https://air-quality-api.open-meteo.com',
   'https://raw.githubusercontent.com',
+  'https://world.openfoodfacts.org',
+  'https://web-sdk.smartlook.com',
+  'https://*.smartlook.com',
+  'https://*.smartlook.cloud',
 ];
 
 if (process.env.SKIP_CSP_LIVE === '1') {
