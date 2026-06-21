@@ -111,7 +111,7 @@
     {
       "id": "tutorial_onboarding",
       "status": { "web": "supported", "android": "supported", "ios": "supported" },
-      "notes": "First-run tutorial modal / RN onboarding screen."
+      "notes": "Unified first-run wizard (region, consents, tracking profile, tutorial, AI download, install on PWA); Settings replay uses standalone tutorial modal."
     },
     {
       "id": "storage_compression_backup",
@@ -131,7 +131,7 @@
     {
       "id": "privacy_region_gate",
       "status": { "web": "supported", "android": "supported", "ios": "supported" },
-      "notes": "Blocking region gate before tutorial/tabs; locale/timezone suggestion only."
+      "notes": "Privacy region is step 1 of the unified first-run wizard; standalone gate remains for Settings and policy drift."
     },
     {
       "id": "privacy_region_settings_pane",

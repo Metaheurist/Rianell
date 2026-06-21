@@ -2404,7 +2404,11 @@ function closeTutorialModal() {
     document.body.style.overflow = '';
   }
   if (!isTutorialTestPage()) {
-    try { localStorage.setItem('rianellTutorialSeen', '1'); } catch (err) {}
+    if (typeof window !== 'undefined' && window.RianellFirstRunWizard && window.RianellFirstRunWizard.isActive && window.RianellFirstRunWizard.isActive()) {
+      /* wizard marks seen on complete */
+    } else {
+      try { localStorage.setItem('rianellTutorialSeen', '1'); } catch (err) {}
+    }
   }
 }
 
@@ -2461,6 +2465,14 @@ function tutorialPrevSlide() {
 }
 
 function finishTutorial(enableDemo) {
+  if (typeof window !== 'undefined' && window.RianellFirstRunWizard && window.RianellFirstRunWizard.isActive && window.RianellFirstRunWizard.isActive()) {
+    if (enableDemo && typeof appSettings !== 'undefined' && !appSettings.demoMode && typeof toggleDemoMode === 'function') {
+      toggleDemoMode();
+    }
+    closeTutorialModal();
+    window.RianellFirstRunWizard.onTutorialFinished();
+    return;
+  }
   closeTutorialModal();
   if (enableDemo && typeof appSettings !== 'undefined' && !appSettings.demoMode && typeof toggleDemoMode === 'function') {
     toggleDemoMode();
@@ -21796,8 +21808,10 @@ function runRianellBootAfterDomReady() {
         } catch (e) { /* ignore */ }
         var bootRecovery = document.getElementById('rianellBootRecoveryOverlay');
         if (bootRecovery) bootRecovery.remove();
-        showHealthDataConsentIfNeeded();
-        showCookieBannerIfNeeded();
+        if (!(typeof window !== 'undefined' && window.RianellFirstRunWizard && typeof window.RianellFirstRunWizard.shouldSuppressStandaloneModals === 'function' && window.RianellFirstRunWizard.shouldSuppressStandaloneModals())) {
+          showHealthDataConsentIfNeeded();
+          showCookieBannerIfNeeded();
+        }
         if (typeof initToggleSwitchA11y === 'function') initToggleSwitchA11y(document);
         if (typeof initRipple === 'function') initRipple(document);
         if (typeof updateHomeTodayPanel === 'function') {
@@ -21810,8 +21824,10 @@ function runRianellBootAfterDomReady() {
         } catch (e) { /* ignore */ }
         var bootRecovery = document.getElementById('rianellBootRecoveryOverlay');
         if (bootRecovery) bootRecovery.remove();
-        showHealthDataConsentIfNeeded();
-        showCookieBannerIfNeeded();
+        if (!(typeof window !== 'undefined' && window.RianellFirstRunWizard && typeof window.RianellFirstRunWizard.shouldSuppressStandaloneModals === 'function' && window.RianellFirstRunWizard.shouldSuppressStandaloneModals())) {
+          showHealthDataConsentIfNeeded();
+          showCookieBannerIfNeeded();
+        }
       }
       logBootState('revealAppShell:done', {
         shellVis: (function () {
@@ -21990,6 +22006,8 @@ function runRianellBootAfterDomReady() {
         if (typeof openTutorialModal === 'function') openTutorialModal();
       } else if (typeof tryDemoHashLinkOnboarding === 'function' && tryDemoHashLinkOnboarding()) {
         /* One-time #demo link: random goals + optional tutorial; skip default first-run tutorial */
+      } else if (typeof window !== 'undefined' && window.RianellFirstRunWizard && typeof window.RianellFirstRunWizard.openIfNeeded === 'function' && window.RianellFirstRunWizard.openIfNeeded()) {
+        /* unified first-run wizard */
       } else if (typeof maybeShowTutorialOnce === 'function') {
         maybeShowTutorialOnce();
       }

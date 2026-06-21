@@ -20,7 +20,8 @@ async function snap(label) {
     privacyGate: document.body.classList.contains('privacy-gate-active'),
     modalActive: document.body.classList.contains('modal-active'),
     aiBlocking: document.body.classList.contains('ai-model-download-blocking'),
-    gateDisplay: document.getElementById('privacyRegionGateOverlay')?.style.display,
+    wizardDisplay: document.getElementById('firstRunWizardOverlay')?.style.display,
+    wizardActive: document.body.classList.contains('first-run-wizard-active'),
     healthDisplay: document.getElementById('healthDataConsentOverlay')?.style.display,
     aiDisplay: document.getElementById('aiModelDownloadOverlay')?.style.display,
     cookieHidden: document.getElementById('cookieBanner')?.classList.contains('hidden'),
@@ -46,6 +47,33 @@ if (await gateBtn.isVisible().catch(() => false)) {
   await page.waitForTimeout(1500);
   await snap('2-after-gate');
 }
+
+for (let i = 0; i < 12; i++) {
+  const wizardOpen = await page.locator('#firstRunWizardOverlay').isVisible().catch(() => false);
+  if (!wizardOpen) break;
+  if (await page.locator('.tutorial-ai-enable').isVisible().catch(() => false)) {
+    await page.locator('.tutorial-ai-enable').click();
+    await page.waitForTimeout(800);
+    continue;
+  }
+  if (await page.locator('#tutorialFinishBtn').isVisible().catch(() => false)) {
+    await page.locator('#tutorialFinishBtn').click();
+    await page.waitForTimeout(800);
+    continue;
+  }
+  if (await page.locator('#firstRunWizardContinueBtn').isVisible().catch(() => false)) {
+    await page.locator('#firstRunWizardContinueBtn').click();
+    await page.waitForTimeout(800);
+    continue;
+  }
+  if (await page.locator('#firstRunWizardBackBtn').isVisible().catch(() => false)) {
+    await page.locator('#firstRunWizardBackBtn').click();
+    await page.waitForTimeout(800);
+    continue;
+  }
+  break;
+}
+await snap('2b-after-wizard-steps');
 
 const healthBtn = page.locator('#healthDataConsentAcceptBtn');
 if (await healthBtn.isVisible().catch(() => false)) {

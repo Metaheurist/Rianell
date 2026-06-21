@@ -16705,3 +16705,60 @@ body.privacy-gate-active #cookieBanner {
 [dir="rtl"] .wizard-progress { direction: rtl; }
 [dir="rtl"] .privacy-policy-badge { margin-left: 0; margin-right: 8px; }
 [dir="rtl"] .tab-bar-inner { flex-direction: row-reverse; }
+
+.first-run-wizard-overlay {
+  z-index: 100001;
+}
+.first-run-wizard-content {
+  max-width: min(520px, 96vw);
+  max-height: min(90vh, 720px);
+  display: flex;
+  flex-direction: column;
+}
+.first-run-wizard-body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 120px;
+}
+.first-run-wizard-step-meta {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+.first-run-wizard-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  padding-top: 12px;
+}
+.first-run-wizard-footer .modal-save-btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+.first-run-wizard-lead {
+  line-height: 1.45;
+  margin: 0 0 12px;
+}
+.first-run-wizard-input {
+  width: 100%;
+  margin-bottom: 8px;
+}
+.first-run-wizard-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  min-height: 44px;
+}
+.first-run-wizard-inline-btn {
+  margin-top: 12px;
+}
+.first-run-wizard-tutorial-mount .tutorial-modal-content {
+  box-shadow: none;
+  max-height: none;
+}
+body.first-run-wizard-active #appShell {
+  pointer-events: none;
+}

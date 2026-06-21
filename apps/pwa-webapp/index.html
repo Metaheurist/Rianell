@@ -868,7 +868,7 @@
     body:not(.loaded) {
       overflow: hidden;
     }
-    body:not(.loaded) > *:not([id="loadingOverlay"]):not([id="aiModelDownloadProgressOverlay"]):not([id="aiModelDownloadOverlay"]):not([id="privacyRegionGateOverlay"]):not([id="healthDataConsentOverlay"]):not([id="cookieBanner"]):not([id="rianellBootRecoveryOverlay"]):not([id="cssReloadOverlay"]) {
+    body:not(.loaded) > *:not([id="loadingOverlay"]):not([id="aiModelDownloadProgressOverlay"]):not([id="aiModelDownloadOverlay"]):not([id="privacyRegionGateOverlay"]):not([id="firstRunWizardOverlay"]):not([id="healthDataConsentOverlay"]):not([id="cookieBanner"]):not([id="rianellBootRecoveryOverlay"]):not([id="cssReloadOverlay"]) {
       visibility: hidden;
       opacity: 0;
       pointer-events: none;
@@ -1080,6 +1080,21 @@
       <div class="modal-footer health-data-consent-footer">
         <button type="button" id="healthDataConsentAcceptBtn" class="modal-save-btn" data-i18n="common.i.agree.continue">I agree - continue</button>
         <button type="button" id="healthDataConsentDeclineBtn" class="modal-save-btn modal-cancel-btn" data-i18n="common.not.now">Not now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unified first-run onboarding wizard (replaces separate first-launch modals) -->
+  <div class="modal-overlay first-run-wizard-overlay" id="firstRunWizardOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="firstRunWizardTitle">
+    <div class="modal-content first-run-wizard-content" onclick="event.stopPropagation()">
+      <div class="modal-header first-run-wizard-header">
+        <h3 id="firstRunWizardTitle" data-i18n="onboarding.title">Welcome to Rianell</h3>
+        <p id="firstRunWizardStepMeta" class="first-run-wizard-step-meta" aria-live="polite"></p>
+      </div>
+      <div class="modal-body first-run-wizard-body" id="firstRunWizardBody"></div>
+      <div class="modal-footer first-run-wizard-footer" id="firstRunWizardFooter">
+        <button type="button" id="firstRunWizardBackBtn" class="modal-save-btn modal-cancel-btn" data-i18n="common.back">Back</button>
+        <button type="button" id="firstRunWizardContinueBtn" class="modal-save-btn" data-i18n="common.continue">Continue</button>
       </div>
     </div>
   </div>
@@ -3860,12 +3875,13 @@
     }
   })();
   </script>
-  <script defer src="vendor/rianell-shared.js?v=5"></script>
+  <script defer src="vendor/rianell-shared.js?v=6"></script>
   <script defer src="modules/app-lock.js?v=1"></script>
   <script defer src="modules/weekly-review.js?v=5"></script>
   <script defer src="modules/mood-tab.js?v=1"></script>
   <script defer src="i18n-pwa.js?v=3"></script>
-  <script defer src="privacy-region.js?v=6"></script>
+  <script defer src="privacy-region.js?v=7"></script>
+  <script defer src="first-run-wizard.js?v=1"></script>
   <script defer src="smartlook.js?v=1"></script>
   <script defer src="vendor/rianell-ai-engine.js?v=1"></script>
   <script type="module" defer src="app.js?v=42"></script>

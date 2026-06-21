@@ -138,7 +138,7 @@
     writeSettings(merged);
     refreshLocaleUI();
     if (selectedId === 'eea_uk' && !getPrivacyFields().healthDataConsent) {
-      if (typeof global.showHealthDataConsentModal === 'function') {
+      if (typeof global.showHealthDataConsentModal === 'function' && !(global.RianellFirstRunWizard && global.RianellFirstRunWizard.shouldSuppressStandaloneModals && global.RianellFirstRunWizard.shouldSuppressStandaloneModals())) {
         /* Drop privacy-gate-active before health consent; otherwise the shell stays visibility:hidden behind the modal. */
         hidePrivacyGateOverlay();
         global.showHealthDataConsentModal(function () { unlockApp(); });
@@ -149,6 +149,34 @@
       global.upsertPrivacyProfile().catch(function () {});
     }
     unlockApp();
+  }
+
+  function confirmRegionForWizard(selectedId, source) {
+    var now = new Date().toISOString();
+    var prefs = readSettings();
+    var pack = S.getPolicyPack ? S.getPolicyPack() : null;
+    var merged = typeof S.applyRegionDefaultLocale === 'function'
+      ? S.applyRegionDefaultLocale(Object.assign({}, prefs, {
+          privacyRegion: selectedId,
+          privacyRegionSource: source || 'onboarding',
+          privacyRegionUpdatedAt: now,
+          policyAcknowledgedVersion: (pack && pack.policyPackId) || 'v1.0.0',
+          policyAcknowledgedAt: now,
+          uiLocaleSource: 'onboarding',
+        }), selectedId, pack)
+      : Object.assign(prefs, { privacyRegion: selectedId, uiLocale: 'en-GB' });
+    writeSettings(merged);
+    refreshLocaleUI();
+    if (global.cloudSyncState && global.cloudSyncState.isAuthenticated && typeof global.upsertPrivacyProfile === 'function') {
+      global.upsertPrivacyProfile().catch(function () {});
+    }
+    return merged;
+  }
+
+  function shouldDeferToFirstRunWizard() {
+    return global.RianellFirstRunWizard &&
+      typeof global.RianellFirstRunWizard.shouldDeferRegionGate === 'function' &&
+      global.RianellFirstRunWizard.shouldDeferRegionGate();
   }
 
   var gateUnlockCallbacks = [];
@@ -196,6 +224,10 @@
 
   function awaitGateReady(cb) {
     if (isConfigured()) { cb(); return; }
+    if (shouldDeferToFirstRunWizard()) {
+      cb();
+      return;
+    }
     gateUnlockCallbacks.push(cb);
     if (!gateVisible) showGate();
   }
@@ -404,14 +436,18 @@
       I.setLocale(prefs.uiLocale || 'en-GB', prefs).then(function () {
         initGateUI();
         bindSettingsPane();
-        if (!isConfigured()) showGate();
-        else runDriftCheck();
+        if (!isConfigured()) {
+          if (!shouldDeferToFirstRunWizard()) showGate();
+          else logGateState('deferToFirstRunWizard');
+        } else runDriftCheck();
       });
     } else {
       initGateUI();
       bindSettingsPane();
-      if (!isConfigured()) showGate();
-      else runDriftCheck();
+      if (!isConfigured()) {
+        if (!shouldDeferToFirstRunWizard()) showGate();
+        else logGateState('deferToFirstRunWizard');
+      } else runDriftCheck();
     }
   });
 
@@ -421,6 +457,7 @@
     getPrivacyFields: getPrivacyFields,
     isConfigured: isConfigured,
     awaitGateReady: awaitGateReady,
+    confirmRegionForWizard: confirmRegionForWizard,
     showPolicyViewerModal: showPolicyViewerModal,
     applyProfileFromCloud: applyProfileFromCloud,
     renderSettingsPane: renderSettingsPane,

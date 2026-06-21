@@ -222,6 +222,7 @@ export * from './research/index.mjs';
 export * from './crossCutting/index.mjs';
 export * from './mood/index.mjs';
 export * from './analytics/index.mjs';
+export * from './onboarding/index.mjs';
 
 export function createSampleLogEntry() {
   return normalizeLogEntry({

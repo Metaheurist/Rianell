@@ -516,6 +516,7 @@ flowchart LR
 The web app reads these manifests at runtime (`apps/pwa-webapp/app.js`, `refreshBuildDownloadLinks`) so the label **(build N)** on install links stays in sync after each CI deploy. **Beta** / **Alpha** pills are fixed labels in the UI: every install/download path except the **iOS native zip/OTA** link is **Beta**; the **iOS native** download is **Alpha**.
 
 ### Tutorial and onboarding
+- **First-run wizard**: One modal stepper on first launch combines privacy region, health data consent (EEA/UK), cookie consent, tracking profile, tutorial slides, on-device AI download consent, and (PWA only) install options. Benchmark still runs on the loading overlay before the wizard opens.
 - **Tutorial**: First-run slides (Welcome, Log entry, View & AI, Settings & data, Data options, Goals, You're all set); first card "Enable AI & Goals?" (Enable / Skip); skipping hides AI-related slides.
 - **Install modal**: Post-tutorial modal (once) with web/Android/iOS install options; can be retriggered from God mode.
 
