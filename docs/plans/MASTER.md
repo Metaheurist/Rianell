@@ -263,7 +263,7 @@ Single source of truth for required features, execution plans, and progress. **A
 | X14.2 | done | **On-device AI as the moat** | P3, N*, RE opt-in | v1.111.0 Settings moat copy |
 | X14.3 | done | **Progressive disclosure philosophy** | L1, S2, S5 | v1.111.0 milestone schedule |
 | X14.4 | done | **Telehealth companion mode** | CL1, C6 | v1.111.0 charts presentation mode |
-| X14.5 | done | **Mental health adjacency (careful scope)** | PHQ-2/GAD-2, crisis links | v1.111.0 wellness screeners |
+| X14.5 | done | **Mental health adjacency (careful scope)** | PHQ-2/GAD-2 + stepped PHQ-9/GAD-7 follow-up, crisis links | v1.116.0 stepped follow-up; v1.111.0 initial screeners |
 
 ---
 

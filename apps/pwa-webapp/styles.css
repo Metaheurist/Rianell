@@ -2876,6 +2876,21 @@ body.light-mode .crisis-help-btn {
   line-height: 1.45;
 }
 
+.screening-followup-intro {
+  margin: 0 0 1rem;
+  line-height: 1.45;
+}
+
+.screening-item9-crisis {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--primary-color);
+  background: rgba(74, 222, 128, 0.08);
+  line-height: 1.45;
+  color: var(--text-primary);
+}
+
 .screening-form {
   display: flex;
   flex-direction: column;

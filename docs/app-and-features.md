@@ -360,6 +360,12 @@ flowchart LR
 
 ### v1.45.26 documentation sync
 
+### v1.116.0 documentation sync
+
+- **Screening (X14.5):** Stepped PHQ-9/GAD-7 follow-up when PHQ-2 or GAD-2 score ≥ 3; severity bands on full instrument; PHQ-9 item 9 triggers prominent crisis UI; answers ephemeral (not persisted).
+- **PWA + RN:** Multi-phase modal flow (`initial` → `followup` → `result`) in `weekly-review.js` and `MoodScreen.tsx`.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.116.0; [plan-14 security-performance](plans/plan-14-cross-cutting/security-performance.md).
+
 ### v1.114.0 documentation sync
 
 - **Security lock (Settings tab 10):** Passcode setup with masked fields; caregiver/proxy logging moved here from Privacy; tab icon shows locked vs unlocked state.

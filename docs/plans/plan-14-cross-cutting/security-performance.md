@@ -8,7 +8,7 @@ Cross-checked against repo [SECURITY.md](../../SECURITY.md), [ai-security.md](..
 
 ## CVE & exploit surface
 
-- X14.5 PHQ-2/GAD-2: not diagnostic; crisis links HTTPS only; no scores sent to cloud without consent.
+- X14.5 PHQ-2/GAD-2 with stepped PHQ-9/GAD-7 follow-up when initial score ≥3: not diagnostic; PHQ-9 item 9 triggers prominent crisis UI; crisis links HTTPS only; screening answers/scores ephemeral (no cloud without consent).
 - X14.1 Weekly Review PDF: same controls as CL1.
 
 **CI baseline:** `npm audit --omit=dev`, OSV-Scanner, Gitleaks in [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml). High/critical production deps must be fixed or accepted-risk documented before plan rollout commit.

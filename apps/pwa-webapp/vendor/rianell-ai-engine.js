@@ -694,6 +694,30 @@ var RianellAIEngine = (() => {
   // packages/shared/src/home/homeWeather.mjs
   var WEATHER_CACHE_MS = 60 * 60 * 1e3;
 
+  // packages/shared/src/crossCutting/mentalHealthScreening.mjs
+  var PHQ9_QUESTIONS = [
+    { id: "phq9_1", i18n: "mentalHealth.phq2.q1" },
+    { id: "phq9_2", i18n: "mentalHealth.phq2.q2" },
+    { id: "phq9_3", i18n: "mentalHealth.phq9.q3" },
+    { id: "phq9_4", i18n: "mentalHealth.phq9.q4" },
+    { id: "phq9_5", i18n: "mentalHealth.phq9.q5" },
+    { id: "phq9_6", i18n: "mentalHealth.phq9.q6" },
+    { id: "phq9_7", i18n: "mentalHealth.phq9.q7" },
+    { id: "phq9_8", i18n: "mentalHealth.phq9.q8" },
+    { id: "phq9_9", i18n: "mentalHealth.phq9.q9" }
+  ];
+  var GAD7_QUESTIONS = [
+    { id: "gad7_1", i18n: "mentalHealth.gad2.q1" },
+    { id: "gad7_2", i18n: "mentalHealth.gad2.q2" },
+    { id: "gad7_3", i18n: "mentalHealth.gad7.q3" },
+    { id: "gad7_4", i18n: "mentalHealth.gad7.q4" },
+    { id: "gad7_5", i18n: "mentalHealth.gad7.q5" },
+    { id: "gad7_6", i18n: "mentalHealth.gad7.q6" },
+    { id: "gad7_7", i18n: "mentalHealth.gad7.q7" }
+  ];
+  var PHQ9_FOLLOWUP_QUESTIONS = PHQ9_QUESTIONS.slice(2);
+  var GAD7_FOLLOWUP_QUESTIONS = GAD7_QUESTIONS.slice(2);
+
   // packages/ai-engine/src/chartAnalytics.mjs
   var METRIC_PAIRS = [
     { metric1: "mood", metric2: "sleep", label1: "Mood", label2: "Sleep" },

@@ -138,7 +138,7 @@ This plan does not introduce new feature IDs from MASTER §1–13; it **integrat
 
 ### Phase E — X14.5 Mental health adjacency
 
-- [x] PHQ-2/GAD-2 screening UI — wellness-only, not diagnosis
+- [x] PHQ-2/GAD-2 screening UI with stepped PHQ-9/GAD-7 follow-up when score ≥ 3 — wellness-only, not diagnosis
 - [x] Regional crisis resource links from `privacy-region.js` / policy packs
 - [x] Legal review before shipping; follow `docs/ai-security.md` boundaries
 

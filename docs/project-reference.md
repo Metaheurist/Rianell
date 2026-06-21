@@ -4,6 +4,13 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v1.116.0 documentation sync (Stepped PHQ-9/GAD-7 screening)
+
+- **Mental health screeners:** PHQ-2/GAD-2 remain entry points on Mood tab (hidden in simple mode). Initial score ≥ 3 triggers stepped PHQ-9 or GAD-7 follow-up questions in the weekly-review modal (PWA) and Mood screening modal (RN).
+- **Scoring:** Shared `@rianell/shared` `mentalHealthScreening.mjs` — `shouldOfferPhq9FollowUp` / `shouldOfferGad7FollowUp`, merge helpers, severity interpreters, `isPhq9SuicideItemPositive`.
+- **Privacy:** Screening responses are not written to logs, IndexedDB, AsyncStorage, or Supabase.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.116.0; [platform-parity.md](platform-parity.md) v1.116.0 note.
+
 ### v1.115.0 documentation sync (PWA boot shell + Smartlook)
 
 - **PWA boot:** `#appShell` must be a direct `<body>` child — not inside `#settingsOverlay`. Missing closing tag caused a black/blank viewport (`shellW/H: 0`). Fixed in `index.html`; `ensureAppShellDomPlacement()` reparents on boot for stale cached HTML; `logBootState()` logs `shellParentId`, `shellMisplaced`, layout blockers.

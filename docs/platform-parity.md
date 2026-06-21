@@ -418,6 +418,13 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Web/Capacitor:** notification behaviour includes reminder controls tied to runtime delivery paths.
 - **React Native:** Settings now includes notification preference controls (enable, reminder time, sound) plus permission status/request baseline. Full OS scheduling/channel parity remains open.
 
+### v1.116.0 parity note (Stepped PHQ-9/GAD-7 screening)
+
+- **Screening:** PHQ-2/GAD-2 initial phase unchanged; score ≥ 3 unlocks PHQ-9 (7 follow-up items) or GAD-7 (5 follow-up items) on PWA + RN.
+- **Results:** Low path shows `/6`; full instrument shows severity band + `/27` or `/21`.
+- **Crisis:** PHQ-9 item 9 positive → alert before result; regional crisis links on all result paths.
+- **Data:** Ephemeral only — cleared on modal close; no logs/cloud export.
+
 ### v1.114.0 parity note (Security lock tab and UX trim)
 
 - **Settings:** Ten carousel panes; **Security lock** tab 10 on PWA + RN (passcode, caregiver/proxy). Privacy pane no longer hosts app lock or caregiver.
