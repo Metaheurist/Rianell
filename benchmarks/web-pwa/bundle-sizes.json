@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-06-21T20:33:20.934Z",
+  "generatedAt": "2026-06-21T20:49:39.414Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4044657,
-    "cssBytes": 426860,
-    "jsGzipBytes": 965210,
-    "cssGzipBytes": 74475
+    "jsBytes": 4054301,
+    "cssBytes": 427174,
+    "jsGzipBytes": 966901,
+    "cssGzipBytes": 74536
   },
   "files": [
     {
@@ -29,14 +29,14 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.07a870b0883e.css",
-      "bytes": 412657,
-      "gzipBytes": 70646
+      "file": "ci-minified/site/styles.7a9189174f3f.css",
+      "bytes": 412971,
+      "gzipBytes": 70707
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 247283,
-      "gzipBytes": 57700
+      "bytes": 251865,
+      "gzipBytes": 58526
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -55,8 +55,8 @@
     },
     {
       "file": "ci-minified/site/vendor/rianell-ai-engine.js",
-      "bytes": 49367,
-      "gzipBytes": 12060
+      "bytes": 50436,
+      "gzipBytes": 12297
     },
     {
       "file": "ci-minified/site/export-utils.js",
@@ -70,8 +70,8 @@
     },
     {
       "file": "ci-minified/site/modules/weekly-review.js",
-      "bytes": 29173,
-      "gzipBytes": 6672
+      "bytes": 33166,
+      "gzipBytes": 7300
     },
     {
       "file": "ci-minified/site/performance-utils.js",
