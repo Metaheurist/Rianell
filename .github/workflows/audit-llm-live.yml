@@ -49,6 +49,7 @@ jobs:
           PROBE_DOWNLOAD_TIMEOUT_MS: "900000"
           PROBE_TIER: "1"
           PROBE_GPU_AVAILABLE: "0"
+          PROBE_TRANSFORMERS_CDN: "1"
           PROBE_ATTEMPTS: "2"
           PROBE_ATTEMPT_DELAY_MS: "30000"
         run: node scripts/ci/probe-llm-download-live.mjs
