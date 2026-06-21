@@ -1,31 +1,31 @@
 # Release Notes
 
-## Latest release (v1.89.2)
+## Latest release (v1.118.0)
 
-**Date:** 2026-06-15
+**Date:** 2026-06-21
 
 ### Highlights
 
-- **CI faster:** Dependency caching for npm, pip, Playwright, Gradle, and security scanners — caches refresh only when lockfiles or tool versions change.
-- **Post-deploy audit:** Boot audit probes the **exact** `site/` tree uploaded to GitHub Pages (served locally on the audit runner); avoids Cloudflare **403** on live `rianell.com` from GitHub Actions.
-- **Workflow efficiency:** Failed gate jobs cancel the rest of the run (benchmark jobs still complete).
-- **Boot i18n (v1.89.1):** Privacy gate light locale hydration; `revealAppShellWithLocale()` fixes raw keys on Home after Phase 2b.
+- **Onboarding:** First-run wizard streamlined — tracking profile deferred to Settings; session recording disclosed during setup (on by default, opt out anytime).
+- **Smartlook:** Default-on after onboarding disclosure; SDK gated until you see the notice or enable in Settings.
+- **Settings (web):** Consent dashboard on Privacy & region pane; Goals modal carousel navigation fixed.
+- **Achievements (v1.117):** Goals modal two-pane carousel with progressive logging unlock badges (food/exercise/meds).
+- **Screening (v1.116):** Stepped PHQ-9/GAD-7 follow-up when quick checks score ≥ 3.
 
-### Previous (v1.89.0)
+### Previous (v1.117.1)
 
-- **Production boot:** App starts on `DOMContentLoaded` instead of `window.load` — fixes rianell.com stuck on “Loading Rianell…” when fonts/CDN hang.
-- **Service worker:** Cache bump + boot recovery reload clears stale cached bundles.
-- **Build:** Disabled esbuild identifier mangling on `app.js` (minified bundle no longer freezes the main thread).
-- **On-device model:** Clear/redownload resets consent; Supabase config race fixed for model URLs.
-- **Wiki:** `wiki/` source in repo; `npm run wiki:sync` pushes to GitHub Wiki.
+- **Supabase:** Pool insight RPCs no longer executable by `anon` (Security Advisor lint 0028).
+- **RN:** Typecheck fixes for Goals modal and achievements.
 
-### Previous (v1.88.0)
+### Previous (v1.117.0)
 
-- **CI benchmarks:** AI layer/algo Playwright jobs use `domcontentloaded` navigation so font/CDN assets cannot block CI for minutes.
-- **React Native:** Log wizard exercise chips use stable `id` keys for localized labels; fixes mobile TypeScript check.
-- **Locale refresh (v1.87):** Changing language re-renders all tabs without reload; home date is locale-aware.
-- **On-device model (v1.85):** Settings → Performance adds **Clear and redownload model** for cache reset.
-- **Polish locale (v1.86):** Mixed-language string cleanup for pl-PL packs.
+- **Achievements:** Food, exercise, and medication logging unlock badges with optional unlock notifications.
+- **Goals modal:** PWA + RN carousel — targets + achievements panes.
+
+### Previous (v1.115.0)
+
+- **PWA boot:** Fixed black screen when `#appShell` was nested inside settings overlay.
+- **Smartlook (initial):** EU session recording infrastructure (PWA + RN).
 
 ---
 
@@ -33,12 +33,12 @@
 
 | Version | Theme |
 |---------|-------|
-| v1.89.1 | Boot i18n hotfix, OSV/supply-chain, deploy artifact retry |
-| v1.84–v1.87 | AI benchmark toolkit, locale refresh, model redownload |
-| v1.78–v1.83 | Tier-matrix performance suite, God mode autotest, README doc icons |
+| v1.116.0 | Stepped PHQ-9/GAD-7 screening follow-up |
+| v1.115.0 | PWA boot shell fix, Smartlook infrastructure |
+| v1.114.0 | Security lock settings tab, Home/Charts UX trim |
+| v1.113.0 | Mood tab, Home weather inline, i18n fixes |
+| v1.89.1–v1.89.2 | CI caching, post-deploy boot audit |
 | v1.60+ | Full UI localization (13 locales, RTL) |
-| v1.53+ | Supabase-hosted LLM chunks, privacy/settings fixes |
-| v1.49+ | Capacitor sunset; PWA + RN only |
 
 ---
 

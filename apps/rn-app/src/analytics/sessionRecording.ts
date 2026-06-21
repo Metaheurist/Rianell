@@ -4,6 +4,7 @@ import {
   getFeatureAvailability,
   prefsToConsents,
   resolveSmartlookProjectKey,
+  shouldActivateSessionRecording,
   shouldAllowNetworkOperation,
 } from '@rianell/shared';
 import type { Preferences } from '../storage/preferences';
@@ -39,7 +40,7 @@ function getSmartlook(): SmartlookModule | null {
 
 export function shouldEnableSessionRecording(prefs: Preferences): boolean {
   if (prefs.demoMode) return false;
-  if (prefs.sessionRecording !== true) return false;
+  if (!shouldActivateSessionRecording(prefs)) return false;
   if (!shouldAllowNetworkOperation(prefs, 'sessionRecording')) return false;
   const regionId = prefs.privacyRegion || 'other';
   const avail = getFeatureAvailability(regionId, 'sessionRecording', prefsToConsents(prefs));

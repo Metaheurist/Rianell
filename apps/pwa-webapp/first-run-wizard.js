@@ -177,57 +177,117 @@
     if (continueBtn) continueBtn.textContent = t('common.accept');
   }
 
-  function renderTrackingProfileStep(body) {
-    var profile = S.normalizeTrackingProfile
-      ? S.normalizeTrackingProfile(readPrefs().trackingProfile)
-      : { condition: '', fields: { mood: true, pain: true, notes: true, sleep: false, fatigue: false } };
-    var keys = S.TRACKING_PROFILE_FIELD_KEYS || ['mood', 'pain', 'notes', 'sleep', 'fatigue'];
+  function renderSessionRecordingStep(body) {
+    var prefs = readPrefs();
+    var enabled = prefs.sessionRecording !== false;
     body.innerHTML =
-      '<p class="first-run-wizard-lead">' + escapeHtml(t('settings.trackingProfile.lead')) + '</p>' +
-      '<p class="first-run-wizard-lead">' + escapeHtml(t('progressiveDisclosure.lead')) + '</p>' +
-      '<label class="privacy-region-gate-label" for="firstRunWizardCondition">' + escapeHtml(t('common.medical.condition')) + '</label>' +
-      '<input type="text" id="firstRunWizardCondition" class="item-input first-run-wizard-input" placeholder="' + escapeHtml(t('common.enter.your.condition')) + '" value="' + escapeHtml(profile.condition || readPrefs().medicalCondition || '') + '" />' +
-      '<p class="privacy-region-gate-label" style="margin-top:12px;">' + escapeHtml(t('settings.trackingProfile.fieldsLabel')) + '</p>' +
-      keys.map(function (key) {
-        var checked = profile.fields && profile.fields[key] ? ' checked' : '';
-        return '<label class="first-run-wizard-toggle-row"><span>' + escapeHtml(t('settings.trackingProfile.field.' + key)) + '</span>' +
-          '<input type="checkbox" data-tracking-field="' + key + '"' + checked + ' /></label>';
-      }).join('');
+      '<p class="first-run-wizard-lead">' + escapeHtml(t('onboarding.sessionRecording.body')) + '</p>' +
+      '<div class="settings-option first-run-wizard-toggle-row">' +
+      '<label for="firstRunWizardSessionRecordingToggle">' + escapeHtml(t('onboarding.sessionRecording.toggleLabel')) + '</label>' +
+      '<div class="toggle-switch' + (enabled ? ' active' : '') + '" id="firstRunWizardSessionRecordingToggle" role="switch" aria-checked="' + (enabled ? 'true' : 'false') + '" tabindex="0"></div>' +
+      '</div>' +
+      '<p class="settings-hint">' + escapeHtml(t('settings.privacy.sessionRecording.hint')) + '</p>';
     showFooter(true);
     var continueBtn = document.getElementById('firstRunWizardContinueBtn');
     if (continueBtn) continueBtn.textContent = t('common.continue');
+    var toggle = document.getElementById('firstRunWizardSessionRecordingToggle');
+    if (toggle && !toggle.dataset.bound) {
+      toggle.dataset.bound = '1';
+      toggle.addEventListener('click', toggleFirstRunSessionRecording);
+      toggle.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleFirstRunSessionRecording();
+        }
+      });
+    }
+  }
+
+  function toggleFirstRunSessionRecording() {
+    var toggle = document.getElementById('firstRunWizardSessionRecordingToggle');
+    if (!toggle) return;
+    var next = !toggle.classList.contains('active');
+    toggle.classList.toggle('active', next);
+    toggle.setAttribute('aria-checked', next ? 'true' : 'false');
+  }
+
+  function confirmSessionRecordingStep() {
+    var toggle = document.getElementById('firstRunWizardSessionRecordingToggle');
+    var enabled = toggle ? toggle.classList.contains('active') : readPrefs().sessionRecording !== false;
+    var now = new Date().toISOString();
+    writePrefs({
+      sessionRecording: enabled,
+      sessionRecordingAt: enabled ? now : null,
+      sessionRecordingDisclosureAt: now,
+    });
+    if (typeof global.RianellSmartlook && typeof global.RianellSmartlook.apply === 'function') {
+      global.RianellSmartlook.apply();
+    }
+    if (typeof global.loadSettingsState === 'function') global.loadSettingsState();
+    advanceStep();
+  }
+
+  global.toggleFirstRunSessionRecording = toggleFirstRunSessionRecording;
+
+  function getTutorialVisibleIndicesSafe() {
+    if (typeof global.getTutorialVisibleIndices === 'function') return global.getTutorialVisibleIndices();
+    return [0, 1, 2, 3, 4, 5, 6, 7];
+  }
+
+  function syncTutorialWizardFooter() {
+    if (!active || !plan[stepIndex] || plan[stepIndex].id !== 'tutorial') return;
+    var continueBtn = document.getElementById('firstRunWizardContinueBtn');
+    var backBtn = document.getElementById('firstRunWizardBackBtn');
+    if (!continueBtn) return;
+
+    var activeSlide = document.querySelector('.tutorial-slide.tutorial-slide-active');
+    var idx = activeSlide ? parseInt(activeSlide.dataset.slide, 10) : 0;
+    var visible = getTutorialVisibleIndicesSafe();
+    var pos = visible.indexOf(idx);
+    var isLast = pos >= 0 && pos === visible.length - 1;
+    var isSlide0 = idx === 0;
+
+    continueBtn.style.display = isSlide0 ? 'none' : 'inline-block';
+    if (!isSlide0) continueBtn.textContent = isLast ? t('common.finish') : t('common.next');
+
+    if (backBtn) {
+      backBtn.style.display = 'inline-block';
+      backBtn.textContent = t('common.skip.for.now');
+    }
+
+    var titleEl = document.getElementById('firstRunWizardTitle');
+    var tutorialTitle = document.getElementById('tutorialModalTitle');
+    if (titleEl && tutorialTitle && tutorialTitle.textContent) {
+      titleEl.textContent = tutorialTitle.textContent;
+    }
   }
 
   function mountTutorialStep(body) {
     body.innerHTML = '';
-    showFooter(false);
-    var mount = document.getElementById('firstRunWizardTutorialMount');
-    if (!mount) {
-      mount = document.createElement('div');
-      mount.id = 'firstRunWizardTutorialMount';
-      mount.className = 'first-run-wizard-tutorial-mount';
-      body.appendChild(mount);
+    showFooter(true);
+    var mount = document.createElement('div');
+    mount.id = 'firstRunWizardTutorialMount';
+    mount.className = 'first-run-wizard-tutorial-mount';
+    body.appendChild(mount);
+
+    var slidesWrap = document.querySelector('#tutorialModalOverlay .tutorial-slides-wrap');
+    if (slidesWrap && !mount.contains(slidesWrap)) {
+      _tutorialContentHome = document.querySelector('#tutorialModalOverlay .tutorial-modal-content');
+      mount.appendChild(slidesWrap);
     }
-    mount.style.display = 'block';
-    var tutorialContent = document.querySelector('#tutorialModalOverlay .tutorial-modal-content');
-    if (tutorialContent && !mount.contains(tutorialContent)) {
-      _tutorialContentHome = tutorialContent.parentElement;
-      mount.appendChild(tutorialContent);
-    }
-    var closeBtn = tutorialContent && tutorialContent.querySelector('.modal-close');
-    if (closeBtn) closeBtn.style.display = 'none';
+
     if (typeof global.showTutorialSlide === 'function') global.showTutorialSlide(0);
     if (typeof global.updateTutorialConditionDisplay === 'function') global.updateTutorialConditionDisplay();
+    syncTutorialWizardFooter();
   }
 
   function restoreTutorialContent() {
-    var tutorialContent = document.querySelector('#firstRunWizardTutorialMount .tutorial-modal-content') ||
-      document.querySelector('#tutorialModalOverlay .tutorial-modal-content');
-    if (tutorialContent && _tutorialContentHome && ! _tutorialContentHome.contains(tutorialContent)) {
-      _tutorialContentHome.appendChild(tutorialContent);
+    var slidesWrap = document.querySelector('#firstRunWizardTutorialMount .tutorial-slides-wrap');
+    if (slidesWrap && _tutorialContentHome && !_tutorialContentHome.contains(slidesWrap)) {
+      var footer = _tutorialContentHome.querySelector('.tutorial-modal-footer');
+      if (footer) _tutorialContentHome.insertBefore(slidesWrap, footer);
+      else _tutorialContentHome.appendChild(slidesWrap);
     }
-    var closeBtn = tutorialContent && tutorialContent.querySelector('.modal-close');
-    if (closeBtn) closeBtn.style.display = '';
     _tutorialContentHome = null;
   }
 
@@ -246,20 +306,25 @@
   function renderInstallStep(body) {
     body.innerHTML = '';
     showFooter(true);
-    var installContent = document.querySelector('#installModalOverlay .install-modal-content');
-    if (installContent) {
-      var clone = installContent.cloneNode(true);
-      clone.querySelectorAll('.modal-close').forEach(function (el) { el.remove(); });
+    var mount = document.createElement('div');
+    mount.className = 'first-run-wizard-install-mount';
+    body.appendChild(mount);
+    var installBody = document.querySelector('#installModalOverlay .install-modal-content .modal-body');
+    if (installBody) {
+      var clone = installBody.cloneNode(true);
       clone.querySelectorAll('[onclick*="closeInstallModal"]').forEach(function (el) {
-        el.removeAttribute('onclick');
+        var onclick = el.getAttribute('onclick') || '';
+        el.setAttribute('onclick', onclick.replace(/closeInstallModal\(\);?\s*/g, ''));
       });
-      body.appendChild(clone);
+      mount.appendChild(clone);
       if (typeof global.refreshBuildDownloadLinks === 'function') global.refreshBuildDownloadLinks();
     } else {
-      body.innerHTML = '<p class="first-run-wizard-lead">' + escapeHtml(t('common.add.rianell.to.your.device.for.quick.acc')) + '</p>';
+      mount.innerHTML = '<p class="first-run-wizard-lead">' + escapeHtml(t('common.add.rianell.to.your.device.for.quick.acc')) + '</p>';
     }
     var continueBtn = document.getElementById('firstRunWizardContinueBtn');
-    if (continueBtn) continueBtn.textContent = t('common.continue');
+    var backBtn = document.getElementById('firstRunWizardBackBtn');
+    if (continueBtn) continueBtn.textContent = t('common.skip.for.now');
+    if (backBtn) backBtn.style.display = stepIndex > 0 ? 'inline-block' : 'none';
   }
 
   function renderCurrentStep() {
@@ -268,12 +333,15 @@
     setStepMeta();
     var stepId = plan[stepIndex].id;
     var backBtn = document.getElementById('firstRunWizardBackBtn');
-    if (backBtn) backBtn.style.display = stepIndex > 0 && stepId !== 'tutorial' ? 'inline-block' : 'none';
+    if (backBtn && stepId !== 'tutorial') {
+      backBtn.style.display = stepIndex > 0 ? 'inline-block' : 'none';
+      backBtn.textContent = t('common.back');
+    }
 
     if (stepId === 'region') renderRegionStep(body);
     else if (stepId === 'healthConsent') renderHealthConsentStep(body);
     else if (stepId === 'cookies') renderCookiesStep(body);
-    else if (stepId === 'trackingProfile') renderTrackingProfileStep(body);
+    else if (stepId === 'sessionRecording') renderSessionRecordingStep(body);
     else if (stepId === 'tutorial') mountTutorialStep(body);
     else if (stepId === 'aiDownload') renderAiDownloadStep(body);
     else if (stepId === 'install') renderInstallStep(body);
@@ -311,19 +379,17 @@
     advanceStep();
   }
 
-  function saveTrackingProfileStep() {
-    var conditionEl = document.getElementById('firstRunWizardCondition');
-    var condition = conditionEl ? String(conditionEl.value || '').trim().slice(0, 200) : '';
-    var fields = S.getDefaultTrackingProfileFields ? S.getDefaultTrackingProfileFields() : { mood: true, pain: true, notes: true, sleep: false, fatigue: false };
-    document.querySelectorAll('[data-tracking-field]').forEach(function (el) {
-      var key = el.getAttribute('data-tracking-field');
-      if (key && fields.hasOwnProperty(key)) fields[key] = el.checked;
-    });
-    var profile = S.normalizeTrackingProfile
-      ? S.normalizeTrackingProfile({ condition: condition, fields: fields, configuredAt: new Date().toISOString() })
-      : { condition: condition, fields: fields, configuredAt: new Date().toISOString() };
-    writePrefs({ trackingProfile: profile, medicalCondition: condition || readPrefs().medicalCondition });
-    advanceStep();
+  function advanceTutorialStep() {
+    var activeSlide = document.querySelector('.tutorial-slide.tutorial-slide-active');
+    var idx = activeSlide ? parseInt(activeSlide.dataset.slide, 10) : 0;
+    var visible = getTutorialVisibleIndicesSafe();
+    var pos = visible.indexOf(idx);
+    if (pos >= 0 && pos < visible.length - 1) {
+      if (typeof global.showTutorialSlide === 'function') global.showTutorialSlide(visible[pos + 1]);
+      syncTutorialWizardFooter();
+      return;
+    }
+    onTutorialFinished();
   }
 
   function handleAiDownloadStep(downloadNow) {
@@ -348,13 +414,18 @@
     if (step.id === 'region') confirmRegionStep();
     else if (step.id === 'healthConsent') acceptHealthConsentStep();
     else if (step.id === 'cookies') acceptCookiesStep();
-    else if (step.id === 'trackingProfile') saveTrackingProfileStep();
+    else if (step.id === 'sessionRecording') confirmSessionRecordingStep();
+    else if (step.id === 'tutorial') advanceTutorialStep();
     else if (step.id === 'aiDownload') handleAiDownloadStep(true);
     else if (step.id === 'install') completeInstallStep();
   }
 
   function onBack() {
     var step = plan[stepIndex];
+    if (step && step.id === 'tutorial') {
+      onTutorialFinished();
+      return;
+    }
     if (step && step.id === 'aiDownload') {
       handleAiDownloadStep(false);
       return;
@@ -470,5 +541,6 @@
     openIfNeeded: openIfNeeded,
     onTutorialFinished: onTutorialFinished,
     advanceFromTutorial: onTutorialFinished,
+    syncTutorialFooter: syncTutorialWizardFooter,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

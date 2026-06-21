@@ -12,7 +12,7 @@ Open the **gear icon** to access a scrollable **settings carousel** with grouped
 | **Data options** | Demo mode, import/export, clear local data |
 | **Data management** | App version, install links (web) or release links (native) |
 | **Performance** | On-device AI model download, clear/redownload, benchmarks |
-| **Privacy & region** | Language, region gate, policy viewer, health consent, optional **Session recording (Smartlook)**, consent dashboard |
+| **Privacy & region** | Language, region gate, policy documents, health consent, **session recording disclosure**, consent dashboard (revoke consents), optional Smartlook toggle |
 | **Cloud** | Sign-in, sync, delete cloud data, anonymised contribution |
 | **Goals** | Targets shown on Home |
 | **Accessibility** | Text sizing and contrast-related options where available |

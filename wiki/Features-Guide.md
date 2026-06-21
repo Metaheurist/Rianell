@@ -40,7 +40,12 @@ Detailed field reference: [[Logging-Data]].
 
 ## Goals and targets
 
-Set personal targets (e.g. steps, hydration) in **Settings**. Home shows progress against active goals.
+Open **Goals & targets** from Home or Settings. The modal has two panes:
+
+- **Targets** — steps, hydration, sleep quality, good-days per week
+- **Achievements** — badges for progressive logging unlocks (food day 7, exercise day 14, medications day 21)
+
+Swipe or use arrows to move between panes. Locked wizard steps link here when a category is not yet unlocked.
 
 ---
 

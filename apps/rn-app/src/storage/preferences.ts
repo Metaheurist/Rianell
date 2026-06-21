@@ -138,6 +138,7 @@ export type Preferences = {
   localOnlyMode: boolean;
   sessionRecording: boolean;
   sessionRecordingAt: string | null;
+  sessionRecordingDisclosureAt: string | null;
   appLockEnabled: boolean;
   processingActivityLog: Array<{ type: string; at: string; detail?: string }>;
   cloudAutoSyncOnOpen: boolean;
@@ -257,8 +258,9 @@ export function getDefaultPreferences(): Preferences {
     barcodeFoodLoggingEnabled: false,
     guidedVoiceLogEnabled: false,
     localOnlyMode: false,
-    sessionRecording: false,
+    sessionRecording: true,
     sessionRecordingAt: null,
+    sessionRecordingDisclosureAt: null,
     appLockEnabled: false,
     processingActivityLog: [],
     cloudAutoSyncOnOpen: false,
@@ -481,6 +483,10 @@ export async function loadPreferences(): Promise<Preferences> {
       sessionRecording: parsed.sessionRecording === true,
       sessionRecordingAt:
         typeof parsed.sessionRecordingAt === 'string' ? parsed.sessionRecordingAt : d.sessionRecordingAt,
+      sessionRecordingDisclosureAt:
+        typeof parsed.sessionRecordingDisclosureAt === 'string'
+          ? parsed.sessionRecordingDisclosureAt
+          : d.sessionRecordingDisclosureAt,
       appLockEnabled: parsed.appLockEnabled === true,
       processingActivityLog: readProcessingActivity(parsed.processingActivityLog),
       cloudAutoSyncOnOpen: parsed.cloudAutoSyncOnOpen === true,

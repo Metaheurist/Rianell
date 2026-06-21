@@ -38,11 +38,13 @@ flowchart LR
 - **Runtime:** `ensureAppShellDomPlacement()` in `app.js`; boot logs via `logBootState()` / `window.__rianellBootLog`.
 - **Verify:** `npm run audit:probe-shell:layout`; `tests/unit/pwa-boot-shell.test.mjs`.
 
-### v1.114.0+ Smartlook session recording (opt-in)
+### v1.118.0+ Smartlook session recording (default-on after disclosure)
 
-- **Purpose:** Optional EU session recordings (Smartlook) to improve usability — **off by default**.
-- **Controls:** Settings → Privacy & region → **Session recording**; **Consent dashboard** (Data management, expandable) to revoke; blocked in **local-only mode**.
-- **Platforms:** PWA (`apps/pwa-webapp/smartlook.js`); RN (`react-native-smartlook-analytics`, `apps/rn-app/src/analytics/sessionRecording.ts`).
+- **Purpose:** Optional EU session analytics (Smartlook) — **on by default after onboarding disclosure**; opt out during first-run or in Settings anytime.
+- **Gate:** `shouldActivateSessionRecording()` — pref alone does not start SDK until disclosure or Settings enable timestamp.
+- **First-run:** Shared `sessionRecording` step after cookies (PWA + RN); toggle default on.
+- **Controls:** Settings → Privacy & region → **Session recording**; **Consent dashboard** (Privacy pane) to revoke; blocked in **local-only mode**.
+- **Platforms:** PWA (`smartlook.js`); RN (`sessionRecording.ts` + `react-native-smartlook-analytics`).
 - **Docs:** [privacy/smartlook-session-recording.md](privacy/smartlook-session-recording.md), [subprocessors.md](privacy/subprocessors.md), RoPA **PA-10**.
 
 ### v1.61.0 README documentation icons

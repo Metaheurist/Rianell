@@ -1,4 +1,8 @@
 import { isPrivacyRegionConfigured } from '../privacy/profileSync.mjs';
+import {
+  isTrackingProfileConfigured,
+  normalizeTrackingProfile,
+} from '../settings/trackingProfile.mjs';
 import { FIRST_RUN_STEP_IDS, shouldSkipFirstRunStep } from './firstRunSteps.mjs';
 
 /**
@@ -60,6 +64,13 @@ export function migrateFirstRunWizardPrefs(prefs, ctx) {
 export function completeFirstRunWizard(prefs) {
   const p = prefs && typeof prefs === 'object' ? { ...prefs } : {};
   const now = new Date().toISOString();
+  if (!isTrackingProfileConfigured(p.trackingProfile)) {
+    const condition = typeof p.medicalCondition === 'string' ? p.medicalCondition : '';
+    p.trackingProfile = normalizeTrackingProfile({
+      condition,
+      configuredAt: now,
+    });
+  }
   return {
     ...p,
     firstRunWizardCompletedAt: now,

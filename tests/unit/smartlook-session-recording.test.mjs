@@ -4,7 +4,9 @@ import {
   buildConsentDashboardEntries,
   getFeatureAvailability,
   prefsToConsents,
+  shouldActivateSessionRecording,
   shouldAllowNetworkOperation,
+  shouldSkipFirstRunStep,
 } from '@rianell/shared';
 
 test('session recording requires health data and explicit opt-in', () => {
@@ -42,4 +44,40 @@ test('shared Smartlook config defaults (PWA + RN parity)', async () => {
   assert.equal(resolveSmartlookProjectKey(''), SMARTLOOK_PROJECT_KEY);
   assert.equal(resolveSmartlookProjectKey('YOUR_SMARTLOOK_PROJECT_KEY'), SMARTLOOK_PROJECT_KEY);
   assert.equal(resolveSmartlookRegion(''), 'eu');
+});
+
+test('shouldActivateSessionRecording requires disclosure or explicit enable', () => {
+  assert.equal(shouldActivateSessionRecording({ sessionRecording: true }), false);
+  assert.equal(
+    shouldActivateSessionRecording({
+      sessionRecording: true,
+      sessionRecordingDisclosureAt: '2026-06-20T12:00:00.000Z',
+    }),
+    true,
+  );
+  assert.equal(
+    shouldActivateSessionRecording({
+      sessionRecording: true,
+      sessionRecordingAt: '2026-06-20T12:00:00.000Z',
+    }),
+    true,
+  );
+  assert.equal(
+    shouldActivateSessionRecording({
+      sessionRecording: false,
+      sessionRecordingDisclosureAt: '2026-06-20T12:00:00.000Z',
+    }),
+    false,
+  );
+});
+
+test('sessionRecording onboarding step skipped after disclosure', () => {
+  assert.equal(
+    shouldSkipFirstRunStep(
+      'sessionRecording',
+      { sessionRecordingDisclosureAt: '2026-06-20T12:00:00.000Z' },
+      { platform: 'pwa' },
+    ),
+    true,
+  );
 });

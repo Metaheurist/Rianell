@@ -22,9 +22,16 @@ test('buildFirstRunPlan includes core steps for fresh PWA user', () => {
   const plan = buildFirstRunPlan(basePrefs, { platform: 'pwa' });
   const ids = plan.map((s) => s.id);
   assert.ok(ids.includes('region'));
+  assert.ok(ids.includes('sessionRecording'));
   assert.ok(ids.includes('tutorial'));
   assert.ok(ids.includes('install'));
   assert.equal(ids.includes('healthConsent'), false);
+  assert.equal(ids.includes('trackingProfile'), false);
+});
+
+test('trackingProfile step skipped during first-run wizard', () => {
+  assert.equal(shouldSkipFirstRunStep('trackingProfile', basePrefs, { platform: 'pwa' }), true);
+  assert.equal(shouldSkipFirstRunStep('trackingProfile', basePrefs, { platform: 'rn' }), true);
 });
 
 test('healthConsent step appears for eea_uk region', () => {
@@ -68,4 +75,12 @@ test('completeFirstRunWizard sets flags', () => {
   const next = completeFirstRunWizard(basePrefs);
   assert.ok(next.firstRunWizardCompletedAt);
   assert.equal(next.tutorialSeen, true);
+  assert.ok(next.trackingProfile && typeof next.trackingProfile === 'object');
+  assert.ok(next.trackingProfile.configuredAt);
+});
+
+test('sessionRecording step included for fresh user when feature enabled for region', () => {
+  assert.equal(shouldSkipFirstRunStep('sessionRecording', basePrefs, { platform: 'pwa' }), false);
+  const plan = buildFirstRunPlan(basePrefs, { platform: 'rn' });
+  assert.ok(plan.some((s) => s.id === 'sessionRecording'));
 });

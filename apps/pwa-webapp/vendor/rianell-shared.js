@@ -386,6 +386,7 @@ var RianellShared = (() => {
     scoreScreeningResponses: () => scoreScreeningResponses,
     setPolicyPack: () => setPolicyPack,
     shareEnvelopeToPortableJson: () => shareEnvelopeToPortableJson,
+    shouldActivateSessionRecording: () => shouldActivateSessionRecording,
     shouldAllowNetworkOperation: () => shouldAllowNetworkOperation,
     shouldFireAchievementUnlockNotification: () => shouldFireAchievementUnlockNotification,
     shouldFireFlareRiskNudge: () => shouldFireFlareRiskNudge,
@@ -1062,7 +1063,7 @@ var RianellShared = (() => {
     "global-baseline": [
       "Rianell is a personal wellness tracker. Your health logs are stored on your device unless you turn on optional cloud backup.",
       "Optional features (encrypted cloud backup, anonymised research contribution, on-device AI, and optional session recording) each need separate consent. You can change or withdraw consent in Settings.",
-      "Session recording (Smartlook) is off by default. When enabled, anonymised session data is used only for heatmaps and error tracking in the EU\u2014not for reviewing your health screens. You can turn it off at any time under Settings \u2192 Privacy.",
+      "Session recording (Smartlook) is on by default after onboarding. You are notified during setup and can opt out immediately or later in Settings. When enabled, anonymised session data is used only for heatmaps and error tracking in the EU\u2014not for reviewing your health screens. You can turn it off at any time under Settings \u2192 Privacy.",
       "You can export your data or delete local and cloud copies at any time from Settings \u2192 Data options."
     ],
     "eu-gdpr": [
@@ -5439,11 +5440,21 @@ ${questionsBlock}
     return region || SMARTLOOK_REGION;
   }
 
+  // packages/shared/src/analytics/sessionRecordingPrefs.mjs
+  function shouldActivateSessionRecording(prefs) {
+    const p = prefs && typeof prefs === "object" ? prefs : {};
+    if (p.sessionRecording !== true) return false;
+    const disclosed = typeof p.sessionRecordingDisclosureAt === "string" && p.sessionRecordingDisclosureAt.length > 0;
+    const enabledAt = typeof p.sessionRecordingAt === "string" && p.sessionRecordingAt.length > 0;
+    return disclosed || enabledAt;
+  }
+
   // packages/shared/src/onboarding/firstRunSteps.mjs
   var FIRST_RUN_STEP_IDS = [
     "region",
     "healthConsent",
     "cookies",
+    "sessionRecording",
     "trackingProfile",
     "tutorial",
     "aiDownload",
@@ -5453,6 +5464,7 @@ ${questionsBlock}
     region: { titleKey: "onboarding.step.region" },
     healthConsent: { titleKey: "onboarding.step.healthConsent" },
     cookies: { titleKey: "onboarding.step.cookies" },
+    sessionRecording: { titleKey: "onboarding.step.sessionRecording" },
     trackingProfile: { titleKey: "onboarding.step.trackingProfile" },
     tutorial: { titleKey: "onboarding.step.tutorial" },
     aiDownload: { titleKey: "onboarding.step.aiDownload" },
@@ -5470,8 +5482,19 @@ ${questionsBlock}
         if (p.cookieConsent === true) return true;
         if (c.cookieConsentAccepted === true) return true;
         return false;
+      case "sessionRecording":
+        if (typeof p.sessionRecordingDisclosureAt === "string" && p.sessionRecordingDisclosureAt.length > 0) {
+          return true;
+        }
+        {
+          const regionId = typeof p.privacyRegion === "string" && p.privacyRegion ? p.privacyRegion : "other";
+          const resolved = resolvePolicyPack(regionId);
+          const feat = resolved.features?.sessionRecording;
+          if (!feat || feat.enabled === false) return true;
+        }
+        return false;
       case "trackingProfile":
-        return isTrackingProfileConfigured(p.trackingProfile);
+        return true;
       case "tutorial":
         return false;
       case "aiDownload":
@@ -5518,6 +5541,13 @@ ${questionsBlock}
   function completeFirstRunWizard(prefs) {
     const p = prefs && typeof prefs === "object" ? { ...prefs } : {};
     const now = (/* @__PURE__ */ new Date()).toISOString();
+    if (!isTrackingProfileConfigured(p.trackingProfile)) {
+      const condition = typeof p.medicalCondition === "string" ? p.medicalCondition : "";
+      p.trackingProfile = normalizeTrackingProfile({
+        condition,
+        configuredAt: now
+      });
+    }
     return {
       ...p,
       firstRunWizardCompletedAt: now,

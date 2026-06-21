@@ -1,129 +1,142 @@
 /**
  * Goals modal carousel (2 panes: targets + achievements).
  */
+(function (global) {
+  'use strict';
 
-function goalsSvgIcon(name, className) {
-  var safeName = String(name || '').replace(/[^a-z0-9-]/gi, '');
-  var cls = className || 'ui-svg-icon';
-  return '<svg class="' + cls + '" aria-hidden="true"><use href="#icon-' + safeName + '"></use></svg>';
-}
-
-function ensureGoalsCarouselDots(panes) {
-  var dots = document.getElementById('goalsCarouselDots');
-  if (!dots) return;
-  if (dots.childElementCount === panes.length) return;
-  dots.innerHTML = '';
-  var titles = ['common.goals.targets', 'achievements.title'];
-  for (var i = 0; i < panes.length; i++) {
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'goals-carousel-dot';
-    btn.setAttribute('role', 'tab');
-    btn.setAttribute('aria-label', 'Pane ' + (i + 1));
-    btn.setAttribute('data-i18n-aria', titles[i] || 'common.goals.targets');
-    btn.innerHTML = goalsSvgIcon(i === 0 ? 'balance' : 'zap', 'goals-dot-icon-svg');
-    btn.onclick = function (idx) {
-      return function () {
-        goalsCarouselGo(idx);
-      };
-    }(i);
-    dots.appendChild(btn);
+  function goalsT(key) {
+    if (typeof global.tUi === 'function') return global.tUi(key);
+    if (typeof global.t === 'function') return global.t(key);
+    return key;
   }
-}
 
-function updateGoalsCarouselDots(activeIndex) {
-  var dots = document.querySelectorAll('#goalsCarouselDots .goals-carousel-dot');
-  dots.forEach(function (dot, idx) {
-    var active = idx === activeIndex;
-    dot.classList.toggle('goals-carousel-dot--active', active);
-    dot.setAttribute('aria-selected', active ? 'true' : 'false');
-    dot.setAttribute('aria-current', active ? 'true' : 'false');
-  });
-}
-
-function bindGoalsCarouselTouchOnce() {
-  if (window._goalsCarouselTouchBound) return;
-  var vp = document.getElementById('goalsCarouselViewport');
-  if (!vp) return;
-  window._goalsCarouselTouchBound = true;
-  var startX = null;
-  vp.addEventListener(
-    'touchstart',
-    function (e) {
-      if (!e.changedTouches || !e.changedTouches.length) return;
-      startX = e.changedTouches[0].screenX;
-    },
-    { passive: true }
-  );
-  vp.addEventListener(
-    'touchend',
-    function (e) {
-      if (startX == null || !e.changedTouches || !e.changedTouches.length) return;
-      var dx = e.changedTouches[0].screenX - startX;
-      startX = null;
-      if (Math.abs(dx) < 56) return;
-      goalsCarouselStep(dx < 0 ? 1 : -1);
-    },
-    { passive: true }
-  );
-}
-
-export function goalsCarouselGo(i) {
-  var track = document.getElementById('goalsCarouselTrack');
-  var vp = document.getElementById('goalsCarouselViewport');
-  var meta = document.getElementById('goalsCarouselMeta');
-  var prev = document.getElementById('goalsCarouselPrev');
-  var next = document.getElementById('goalsCarouselNext');
-  if (!track || !vp) return;
-  var panes = track.querySelectorAll('.goals-carousel-pane');
-  var n = panes.length;
-  if (n < 1) return;
-  ensureGoalsCarouselDots(panes);
-  if (i < 0) i = 0;
-  if (i >= n) i = n - 1;
-  track.setAttribute('data-goals-index', String(i));
-  track.style.setProperty('--goals-pane-index', String(i));
-  track.style.setProperty('--goals-pane-count', String(n));
-  vp.style.setProperty('--goals-pane-count', String(n));
-  if (prev) {
-    prev.disabled = i <= 0;
-    prev.setAttribute('aria-disabled', i <= 0 ? 'true' : 'false');
+  function goalsSvgIcon(name, className) {
+    var safeName = String(name || '').replace(/[^a-z0-9-]/gi, '');
+    var cls = className || 'ui-svg-icon';
+    return '<svg class="' + cls + '" aria-hidden="true"><use href="#icon-' + safeName + '"></use></svg>';
   }
-  if (next) {
-    next.disabled = i >= n - 1;
-    next.setAttribute('aria-disabled', i >= n - 1 ? 'true' : 'false');
+
+  function ensureGoalsCarouselDots(panes) {
+    var dots = document.getElementById('goalsCarouselDots');
+    if (!dots) return;
+    if (dots.childElementCount === panes.length) return;
+    dots.innerHTML = '';
+    var titles = ['common.goals.targets', 'achievements.title'];
+    for (var i = 0; i < panes.length; i++) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'goals-carousel-dot';
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-label', 'Pane ' + (i + 1));
+      btn.setAttribute('data-i18n-aria', titles[i] || 'common.goals.targets');
+      btn.innerHTML = goalsSvgIcon(i === 0 ? 'balance' : 'zap', 'goals-dot-icon-svg');
+      btn.onclick = (function (idx) {
+        return function () {
+          goalsCarouselGo(idx);
+        };
+      })(i);
+      dots.appendChild(btn);
+    }
   }
-  panes.forEach(function (p, idx) {
-    var active = idx === i;
-    p.classList.toggle('goals-carousel-pane--active', active);
-    p.setAttribute('aria-hidden', active ? 'false' : 'true');
-    if ('inert' in p) p.inert = !active;
-  });
-  var titleEl = panes[i] && panes[i].getAttribute('data-i18n-title');
-  var titleText = titleEl && typeof window.t === 'function' ? window.t(titleEl) : panes[i]?.getAttribute('data-pane-title') || '';
-  if (meta) meta.textContent = String(i + 1) + ' / ' + n + (titleText ? ' — ' + titleText : '');
-  updateGoalsCarouselDots(i);
-  window.goalsModalPaneIndex = i;
-  if (i === 1 && typeof window.renderAchievementsPane === 'function') {
-    window.renderAchievementsPane();
+
+  function updateGoalsCarouselDots(activeIndex) {
+    var dots = document.querySelectorAll('#goalsCarouselDots .goals-carousel-dot');
+    dots.forEach(function (dot, idx) {
+      var active = idx === activeIndex;
+      dot.classList.toggle('goals-carousel-dot--active', active);
+      dot.setAttribute('aria-selected', active ? 'true' : 'false');
+      dot.setAttribute('aria-current', active ? 'true' : 'false');
+    });
   }
-}
 
-export function goalsCarouselStep(delta) {
-  var track = document.getElementById('goalsCarouselTrack');
-  if (!track) return;
-  var i = parseInt(track.getAttribute('data-goals-index') || '0', 10);
-  goalsCarouselGo(i + delta);
-}
+  function bindGoalsCarouselTouchOnce() {
+    if (global._goalsCarouselTouchBound) return;
+    var vp = document.getElementById('goalsCarouselViewport');
+    if (!vp) return;
+    global._goalsCarouselTouchBound = true;
+    var startX = null;
+    vp.addEventListener(
+      'touchstart',
+      function (e) {
+        if (!e.changedTouches || !e.changedTouches.length) return;
+        startX = e.changedTouches[0].screenX;
+      },
+      { passive: true }
+    );
+    vp.addEventListener(
+      'touchend',
+      function (e) {
+        if (startX == null || !e.changedTouches || !e.changedTouches.length) return;
+        var dx = e.changedTouches[0].screenX - startX;
+        startX = null;
+        if (Math.abs(dx) < 56) return;
+        goalsCarouselStep(dx < 0 ? 1 : -1);
+      },
+      { passive: true }
+    );
+  }
 
-export function initGoalsCarouselUI(paneIndex) {
-  bindGoalsCarouselTouchOnce();
-  var saved = typeof paneIndex === 'number' ? paneIndex : typeof window.goalsModalPaneIndex === 'number' ? window.goalsModalPaneIndex : 0;
-  goalsCarouselGo(saved);
-}
+  function goalsCarouselGo(i) {
+    var track = document.getElementById('goalsCarouselTrack');
+    var vp = document.getElementById('goalsCarouselViewport');
+    var meta = document.getElementById('goalsCarouselMeta');
+    var prev = document.getElementById('goalsCarouselPrev');
+    var next = document.getElementById('goalsCarouselNext');
+    if (!track || !vp) return;
+    var panes = track.querySelectorAll('.goals-carousel-pane');
+    var n = panes.length;
+    if (n < 1) return;
+    ensureGoalsCarouselDots(panes);
+    if (i < 0) i = 0;
+    if (i >= n) i = n - 1;
+    track.setAttribute('data-goals-index', String(i));
+    track.style.setProperty('--goals-pane-index', String(i));
+    track.style.setProperty('--goals-pane-count', String(n));
+    vp.style.setProperty('--goals-pane-count', String(n));
+    if (prev) {
+      prev.disabled = i <= 0;
+      prev.setAttribute('aria-disabled', i <= 0 ? 'true' : 'false');
+    }
+    if (next) {
+      next.disabled = i >= n - 1;
+      next.setAttribute('aria-disabled', i >= n - 1 ? 'true' : 'false');
+    }
+    panes.forEach(function (p, idx) {
+      var active = idx === i;
+      p.classList.toggle('goals-carousel-pane--active', active);
+      p.setAttribute('aria-hidden', active ? 'false' : 'true');
+      if ('inert' in p) p.inert = !active;
+    });
+    var pane = panes[i];
+    var titleKey = pane && pane.getAttribute('data-i18n-title');
+    var titleText = titleKey ? goalsT(titleKey) : (pane && pane.getAttribute('data-pane-title')) || '';
+    if (meta) meta.textContent = String(i + 1) + ' / ' + n + (titleText ? ' — ' + titleText : '');
+    updateGoalsCarouselDots(i);
+    global.goalsModalPaneIndex = i;
+    if (i === 1 && typeof global.renderAchievementsPane === 'function') {
+      global.renderAchievementsPane();
+    }
+  }
 
-if (typeof window !== 'undefined') {
-  window.goalsCarouselGo = goalsCarouselGo;
-  window.goalsCarouselStep = goalsCarouselStep;
-  window.initGoalsCarouselUI = initGoalsCarouselUI;
-}
+  function goalsCarouselStep(delta) {
+    var track = document.getElementById('goalsCarouselTrack');
+    if (!track) return;
+    var i = parseInt(track.getAttribute('data-goals-index') || '0', 10);
+    goalsCarouselGo(i + delta);
+  }
+
+  function initGoalsCarouselUI(paneIndex) {
+    bindGoalsCarouselTouchOnce();
+    var saved =
+      typeof paneIndex === 'number'
+        ? paneIndex
+        : typeof global.goalsModalPaneIndex === 'number'
+          ? global.goalsModalPaneIndex
+          : 0;
+    goalsCarouselGo(saved);
+  }
+
+  global.goalsCarouselGo = goalsCarouselGo;
+  global.goalsCarouselStep = goalsCarouselStep;
+  global.initGoalsCarouselUI = initGoalsCarouselUI;
+})(typeof window !== 'undefined' ? window : globalThis);
