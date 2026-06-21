@@ -1172,37 +1172,21 @@
 
 
 
-  function bindChartsPresentationMode() {
+  function bindWeeklyReviewModule() {
 
-    var toggle = document.getElementById('chartsPresentationModeToggle');
+    var closeBtn = document.getElementById('weeklyReviewModalClose');
 
-    if (!toggle || !global.appSettings) return;
+    if (closeBtn) closeBtn.onclick = closeWeeklyReviewModal;
 
-    var on = global.appSettings.chartsPresentationMode === true;
+    if (global.RianellI18n && typeof global.RianellI18n.onLocaleChange === 'function') {
 
-    toggle.classList.toggle('active', on);
+      global.RianellI18n.onLocaleChange(function () { refreshOpenModalI18n(); });
 
-    document.body.classList.toggle('charts-presentation-mode', on);
+    }
 
-    if (on && typeof global.setChartDateRange === 'function') global.setChartDateRange(7);
-
-  }
-
-
-
-  function toggleChartsPresentationMode() {
-
-    if (!global.appSettings) global.appSettings = {};
-
-    global.appSettings.chartsPresentationMode = !global.appSettings.chartsPresentationMode;
-
-    if (typeof global.saveSettings === 'function') global.saveSettings();
-
-    bindChartsPresentationMode();
+    withCatalogsReady(renderSettingsPerformanceLearn);
 
   }
-
-
 
   function renderSettingsPerformanceLearn() {
 
@@ -1234,30 +1218,6 @@
 
 
 
-  function bindWeeklyReviewModule() {
-
-    var closeBtn = document.getElementById('weeklyReviewModalClose');
-
-    if (closeBtn) closeBtn.onclick = closeWeeklyReviewModal;
-
-    var presToggle = document.getElementById('chartsPresentationModeToggle');
-
-    if (presToggle) presToggle.onclick = toggleChartsPresentationMode;
-
-    if (global.RianellI18n && typeof global.RianellI18n.onLocaleChange === 'function') {
-
-      global.RianellI18n.onLocaleChange(function () { refreshOpenModalI18n(); });
-
-    }
-
-    withCatalogsReady(renderSettingsPerformanceLearn);
-
-    bindChartsPresentationMode();
-
-  }
-
-
-
   global.RianellWeeklyReview = {
 
     openWeeklyReviewModal: openWeeklyReviewModal,
@@ -1267,8 +1227,6 @@
     renderHomeWeeklyReviewCard: renderHomeWeeklyReviewCard,
 
     bindWeeklyReviewModule: bindWeeklyReviewModule,
-
-    bindChartsPresentationMode: bindChartsPresentationMode,
 
     renderSettingsPerformanceLearn: renderSettingsPerformanceLearn,
 

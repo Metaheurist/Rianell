@@ -41,7 +41,7 @@ flowchart LR
 ### v1.114.0+ Smartlook session recording (opt-in)
 
 - **Purpose:** Optional EU session recordings (Smartlook) to improve usability — **off by default**.
-- **Controls:** Settings → Privacy & region → **Session recording**; **Consent dashboard** revoke; blocked in **local-only mode**.
+- **Controls:** Settings → Privacy & region → **Session recording**; **Consent dashboard** (Data management, expandable) to revoke; blocked in **local-only mode**.
 - **Platforms:** PWA (`apps/pwa-webapp/smartlook.js`); RN (`react-native-smartlook-analytics`, `apps/rn-app/src/analytics/sessionRecording.ts`).
 - **Docs:** [privacy/smartlook-session-recording.md](privacy/smartlook-session-recording.md), [subprocessors.md](privacy/subprocessors.md), RoPA **PA-10**.
 

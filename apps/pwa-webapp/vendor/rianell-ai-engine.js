@@ -675,6 +675,22 @@ var RianellAIEngine = (() => {
     return null;
   }
 
+  // packages/shared/src/logging/cycleTracking.mjs
+  var CYCLE_PHASES = [
+    { id: "menstrual", i18n: "wizard.cycle.phase.menstrual", tone: "menstrual" },
+    { id: "follicular", i18n: "wizard.cycle.phase.follicular", tone: "follicular" },
+    { id: "ovulation", i18n: "wizard.cycle.phase.ovulation", tone: "ovulation" },
+    { id: "luteal", i18n: "wizard.cycle.phase.luteal", tone: "luteal" }
+  ];
+  var CYCLE_FLOW_LEVELS = [
+    { id: "none", i18n: "wizard.cycle.flow.none", drops: 0 },
+    { id: "light", i18n: "wizard.cycle.flow.light", drops: 1 },
+    { id: "medium", i18n: "wizard.cycle.flow.medium", drops: 2 },
+    { id: "heavy", i18n: "wizard.cycle.flow.heavy", drops: 3 }
+  ];
+  var PHASE_IDS = new Set(CYCLE_PHASES.map((p) => p.id));
+  var FLOW_IDS = new Set(CYCLE_FLOW_LEVELS.map((f) => f.id));
+
   // packages/shared/src/home/homeWeather.mjs
   var WEATHER_CACHE_MS = 60 * 60 * 1e3;
 
@@ -802,7 +818,7 @@ var RianellAIEngine = (() => {
     ovulation: "#ffd54f",
     luteal: "#9575cd"
   };
-  var CYCLE_PHASES = /* @__PURE__ */ new Set(["menstrual", "follicular", "ovulation", "luteal"]);
+  var CYCLE_PHASES2 = /* @__PURE__ */ new Set(["menstrual", "follicular", "ovulation", "luteal"]);
   function toDateStr(d) {
     return d.toISOString().slice(0, 10);
   }
@@ -828,7 +844,7 @@ var RianellAIEngine = (() => {
     };
   }
   function buildCyclePhaseBands(logs) {
-    const sorted = [...Array.isArray(logs) ? logs : []].filter((l) => l?.cycle?.phase && CYCLE_PHASES.has(l.cycle.phase)).sort(byDateAsc);
+    const sorted = [...Array.isArray(logs) ? logs : []].filter((l) => l?.cycle?.phase && CYCLE_PHASES2.has(l.cycle.phase)).sort(byDateAsc);
     if (!sorted.length) return { bands: [], markers: [] };
     const bands = [];
     let runPhase = sorted[0].cycle.phase;

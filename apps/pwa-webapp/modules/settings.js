@@ -3,10 +3,18 @@
  * Exports init helpers; keeps window.toggleSettings / closeSettings contract for inline handlers.
  */
 
+/** True when overlay is open or mid open/close transition (not merely display:block during rAF). */
+function settingsOverlayIsOpen(overlay) {
+  if (!overlay) return false;
+  if (overlay.classList.contains('settings-overlay--open')) return true;
+  var state = overlay.dataset.settingsState;
+  return state === 'opening' || state === 'closing';
+}
 /** Minimal overlay open/close used before full module install. */
 function settingsOverlaySetOpen(overlay, open, deps) {
   if (!overlay) return;
   if (open) {
+    overlay.dataset.settingsState = 'opening';
     document.body.style.overflow = 'hidden';
     overlay.style.display = 'block';
     overlay.style.visibility = 'visible';
@@ -21,6 +29,7 @@ function settingsOverlaySetOpen(overlay, open, deps) {
     document.body.classList.add('modal-active');
     requestAnimationFrame(function () {
       overlay.classList.add('settings-overlay--open');
+      overlay.dataset.settingsState = 'open';
     });
     if (deps.loadSettingsState) deps.loadSettingsState();
     if (typeof window !== 'undefined' && window.RianellPrivacy && typeof window.RianellPrivacy.renderSettingsPane === 'function') {
@@ -28,6 +37,7 @@ function settingsOverlaySetOpen(overlay, open, deps) {
     }
     if (deps.initSettingsCarouselUI) deps.initSettingsCarouselUI();
   } else {
+    overlay.dataset.settingsState = 'closing';
     overlay.classList.remove('settings-overlay--open');
     var cleaned = false;
     function doCleanup() {
@@ -37,6 +47,7 @@ function settingsOverlaySetOpen(overlay, open, deps) {
       if (t) clearTimeout(t);
       overlay.style.display = 'none';
       overlay.style.visibility = 'hidden';
+      delete overlay.dataset.settingsState;
       document.body.classList.remove('modal-active');
       document.body.style.overflow = '';
     }
@@ -55,10 +66,7 @@ export function installSettingsEarlyPlaceholder(deps) {
   window.toggleSettings = function () {
     const overlay = document.getElementById('settingsOverlay');
     if (!overlay) return;
-    const isVisible =
-      overlay.classList.contains('settings-overlay--open') ||
-      overlay.style.display === 'block' ||
-      overlay.style.display === 'flex';
+    const isVisible = settingsOverlayIsOpen(overlay);
     if (isVisible) {
       settingsOverlaySetOpen(overlay, false, deps);
     } else {
@@ -355,16 +363,18 @@ export function installSettingsModule(deps) {
   function settingsOverlayDoCloseCleanup(overlay, onDone) {
     overlay.style.display = 'none';
     overlay.style.visibility = 'hidden';
+    delete overlay.dataset.settingsState;
     document.body.classList.remove('modal-active');
     document.body.style.overflow = '';
     if (onDone) onDone();
   }
 
   function settingsOverlayCloseWithTransition(overlay, onDone) {
-    if (!overlay.classList.contains('settings-overlay--open')) {
+    if (!settingsOverlayIsOpen(overlay)) {
       settingsOverlayDoCloseCleanup(overlay, onDone);
       return;
     }
+    overlay.dataset.settingsState = 'closing';
     overlay.classList.remove('settings-overlay--open');
     var cleaned = false;
     function doCleanup() {
@@ -385,10 +395,7 @@ export function installSettingsModule(deps) {
   const fullToggleSettings = function () {
     const overlay = document.getElementById('settingsOverlay');
     if (!overlay) return;
-    const isVisible =
-      overlay.classList.contains('settings-overlay--open') ||
-      overlay.style.display === 'block' ||
-      overlay.style.display === 'flex';
+    const isVisible = settingsOverlayIsOpen(overlay);
 
     if (isVisible) {
       captureSettingsModalCarouselState(overlay);
@@ -402,9 +409,10 @@ export function installSettingsModule(deps) {
         }
       });
     } else {
-      if (overlay.style.display === 'block' && !overlay.classList.contains('settings-overlay--open')) {
+      if (overlay.style.display === 'block' && !settingsOverlayIsOpen(overlay)) {
         settingsOverlayDoCloseCleanup(overlay, null);
       }
+      overlay.dataset.settingsState = 'opening';
       _settingsPreviousActiveElement = document.activeElement;
       document.body.style.overflow = 'hidden';
       window.scrollTo(0, 0);
@@ -440,6 +448,7 @@ export function installSettingsModule(deps) {
       }
       requestAnimationFrame(function () {
         overlay.classList.add('settings-overlay--open');
+        overlay.dataset.settingsState = 'open';
       });
       initSettingsCarouselUI();
       setTimeout(function () {
@@ -450,8 +459,14 @@ export function installSettingsModule(deps) {
         if (pane && window.settingsModalScrollPosition !== undefined) pane.scrollTop = window.settingsModalScrollPosition;
       }, 50);
       if (window.settingsModalConditionSelectorOpen) {
-        const conditionSelector = document.getElementById('medicalConditionSelector');
-        if (conditionSelector) conditionSelector.style.display = 'block';
+        if (typeof window.setMedicalConditionSelectorOpen === 'function') {
+          window.setMedicalConditionSelectorOpen(true);
+        } else {
+          const conditionSelector = document.getElementById('medicalConditionSelector');
+          const displayContainer = document.getElementById('medicalConditionDisplayContainer');
+          if (conditionSelector) conditionSelector.style.display = 'block';
+          if (displayContainer) displayContainer.style.display = 'none';
+        }
       }
       _settingsEscapeAndTrapHandler = function (e) {
         if (e.key === 'Escape') {
@@ -508,7 +523,7 @@ export function installSettingsModule(deps) {
         _settingsPreviousActiveElement = null;
       }
     };
-    if (overlay.classList.contains('settings-overlay--open')) {
+    if (settingsOverlayIsOpen(overlay)) {
       settingsOverlayCloseWithTransition(overlay, focusBack);
     } else {
       settingsOverlayDoCloseCleanup(overlay, focusBack);

@@ -32,7 +32,11 @@ function initializeEventHandlers() {
   }
   
   if (settingsButtonTop) {
-    settingsButtonTop.addEventListener('click', toggleSettings);
+    settingsButtonTop.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof toggleSettings === 'function') toggleSettings();
+    });
   }
   
   // Settings form handlers

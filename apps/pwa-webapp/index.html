@@ -904,7 +904,7 @@
     body.loaded #appShell {
       min-height: 100vh;
       min-height: 100dvh;
-      display: block;
+      /* display comes from styles.css: flex column on mobile, block on desktop */
     }
     body.loaded #loadingOverlay.hidden {
       display: none !important;
@@ -1000,8 +1000,8 @@
     <symbol id="icon-bundle" viewBox="0 0 24 24"><path d="M8 3h9l3 3v14H8Z"/><path d="M16 3v4h4"/><path d="M5 7h9l2 2v12H5Z"/><path d="M12 7v3h3"/></symbol>
     <symbol id="icon-cloud-up" viewBox="0 0 24 24"><path d="M7 18h10.5a4 4 0 0 0 .3-8 6 6 0 0 0-11.3-1.9A5 5 0 0 0 7 18Z"/><path d="M12 11v6"/><path d="m9.5 14.5 2.5-3.5 2.5 3.5"/></symbol>
     <symbol id="icon-import-arrow" viewBox="0 0 24 24"><path d="M12 4v10"/><path d="m8.5 11.5 3.5 3.5 3.5-3.5"/><path d="M5 20h14"/></symbol>
-    <symbol id="icon-android" viewBox="0 0 24 24"><path d="M8 6.5 6.5 4.5"/><path d="M16 6.5 17.5 4.5"/><rect x="6" y="7" width="12" height="11" rx="2"/><circle cx="9.5" cy="11.5" r="1"/><circle cx="14.5" cy="11.5" r="1"/><path d="M9 18.5v2.5M15 18.5v2.5"/></symbol>
-    <symbol id="icon-apple" viewBox="0 0 24 24"><path d="M16.5 13.2c0 2.8 2.4 3.7 2.5 3.7-.1.3-.4 1.1-1.3 2.2-.8 1-1.6 2-2.9 2s-1.6-.7-3-.7-1.7.7-3 .7-2-1-2.9-2.1c-1.5-2.1-2.7-5.3-2.7-8.4 0-2.2.8-4.2 2.5-5.7 1.3-1.2 3-1.9 4.7-1.9.9 0 1.8.2 2.6.6.6.3 1.1.7 1.6 1.2.3-.1.7-.2 1.1-.2 1.1 0 2.2.4 3.1 1.1-.9.5-1.7 1.3-2.1 2.4-.4 1.1-.2 2.3.5 3.2Z"/><path d="M14.8 4.2c.1 1.3-.5 2.5-1.4 3.3-.9.8-2.2 1.3-3.4 1.2-.1-1.2.5-2.4 1.3-3.2.9-.9 2.1-1.4 3.5-1.3Z"/></symbol>
+    <symbol id="icon-android" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M17.523 15.341c-.551 0-.999-.449-.999-.999s.448-.999.999-.999.999.448.999.999-.448.999-.999.999m-11.046 0c-.551 0-.999-.449-.999-.999s.448-.999.999-.999c.55 0 .999.448.999.999 0 .55-.449.999-.999.999m11.312-6.02 1.977-3.422c.097-.096.097-.252 0-.348a.246.246 0 0 0-.348 0l-2.012 3.484C14.858 8.342 13.47 7.877 12 7.877c-1.47 0-2.858.465-4.058 1.174L5.929 5.567a.246.246 0 0 0-.348 0 .245.245 0 0 0 0 .348l1.977 3.422C3.677 10.225 2 12.587 2 15.306h20c0-2.719-1.677-5.081-4.212-5.984Z"/></symbol>
+    <symbol id="icon-apple" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M16.365 20.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C2.905 17 1.595 12.45 3.355 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M12.655 4.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11Z"/></symbol>
     <symbol id="icon-life-ring" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></symbol>
     <symbol id="icon-run" viewBox="0 0 24 24"><circle cx="14.5" cy="4.5" r="2.2"/><path d="M12 8 9 12 7.5 19"/><path d="M12 8 15.5 10.5 19.5 9"/><path d="M9 12 13.5 14"/><path d="M13.5 14 17 20"/></symbol>
     <symbol id="icon-stethoscope" viewBox="0 0 24 24"><path d="M7 5.5a2.5 2.5 0 1 1 5 0"/><path d="M9.5 8v5.5a4 4 0 0 0 8 0V9"/><circle cx="19" cy="17" r="2.8"/><path d="M19 14.2V12"/></symbol>
@@ -1009,7 +1009,7 @@
     <symbol id="icon-pill" viewBox="0 0 24 24"><path d="M8.2 5.2a4.8 4.8 0 0 1 6.8 0l2.8 2.8a4.8 4.8 0 0 1 0 6.8l-2.8 2.8a4.8 4.8 0 0 1-6.8 0L5.4 12a4.8 4.8 0 0 1 0-6.8Z"/><path d="m14.8 7.2 2 2"/></symbol>
     <symbol id="icon-stress" viewBox="0 0 24 24"><path d="M7 14H5.5a3.5 3.5 0 0 1-.4-7A4.5 4.5 0 0 1 13.5 6a3.5 3.5 0 0 1 6.8 1.2 3 3 0 0 1-.3 6.8H7"/><path d="M13 18v3M11 21h4"/></symbol>
     <symbol id="icon-activity" viewBox="0 0 24 24"><path d="M4 12h4l2-7 4 14 2-7h4"/></symbol>
-    <symbol id="icon-checkin-am" viewBox="0 0 24 24"><path d="M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 16V6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m8 10 4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="icon-checkin-am" viewBox="0 0 24 24"><path d="M3 18h18"/><path d="M6 18a6 6 0 0 1 12 0"/><path d="M12 12V6"/><path d="M8.4 14.1 6.8 9.8"/><path d="M15.6 14.1 17.2 9.8"/></symbol>
     <symbol id="icon-checkin-midday" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
     <symbol id="icon-learn" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M8 7h8"/></symbol>
     <symbol id="icon-checkin-pm" viewBox="0 0 24 24"><path d="M20 14.5A7.5 7.5 0 0 1 8.6 8.6 6.5 6.5 0 1 0 20 14.5Z" fill="currentColor" stroke="none"/></symbol>
@@ -1126,7 +1126,7 @@
           <div class="settings-carousel-dots" id="settingsCarouselDots" role="tablist" aria-label="Settings sections" data-i18n-aria="common.settings.sections"></div>
           <input type="search" id="settingsSearchInput" class="settings-search-input" data-i18n-placeholder="settings.search.placeholder" placeholder="Search settings…" aria-label="Search settings" oninput="filterSettingsPanes(this.value)" />
         </div>
-        <button type="button" class="settings-close" onclick="event.preventDefault(); event.stopPropagation(); closeSettings();">&times;</button>
+        <button type="button" class="settings-close">&times;</button>
       </div>
       <div class="settings-content settings-carousel-viewport" id="settingsCarouselViewport">
       <div class="settings-carousel-track" id="settingsCarouselTrack" data-settings-index="0">
@@ -1164,29 +1164,30 @@
           <label data-i18n="settings.privacy.sessionRecording.title">Session recording</label>
           <div class="toggle-switch" id="sessionRecordingToggle" onclick="toggleSessionRecordingSetting()"></div>
         </div>
-        <p class="settings-hint" id="sessionRecordingHint" data-i18n="settings.privacy.sessionRecording.hint">Optional screen recordings (Smartlook) to help improve the app. Off by default. May capture health screens you visit. Turn off here at any time.</p>
-        <div class="settings-consent-dashboard" id="consentDashboardSection">
-          <h5 data-i18n="settings.consent.dashboardTitle">Consent dashboard</h5>
-          <div id="consentDashboardList" class="consent-dashboard-list"></div>
-        </div>
+        <p class="settings-hint" id="sessionRecordingHint" data-i18n="settings.privacy.sessionRecording.hint">Optional session analytics (Smartlook, EU) to improve the app. Off by default. Screens are anonymised and used only for heatmaps and error tracking—not for reviewing your health data. Turn off here anytime.</p>
         <p class="settings-hint" id="privacyActivityLogHint" data-i18n="settings.privacy.activity.empty">No processing events recorded yet.</p>
       </div>
       </div>
       <div class="settings-carousel-pane" data-settings-pane-title="Personal & cloud sync" data-i18n-title="settings.personal.title" data-settings-pane-i18n="settings.personal.title" role="tabpanel" aria-hidden="true">
-      <div class="settings-section">
+      <div class="settings-section settings-section--personal">
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-user"></use></svg>Personal &amp; Cloud Sync</h4>
+        <div class="settings-personal-fields">
         <div class="settings-option">
           <label for="userNameInput" data-i18n="common.your.name">Your Name</label>
           <input type="text" id="userNameInput" placeholder="Enter your name..." data-i18n-placeholder="common.enter.your.name" onchange="updateUserName()" />
         </div>
-        <div class="settings-option">
-          <label for="medicalConditionInput" data-i18n="common.medical.condition">Medical Condition</label>
-          <div id="medicalConditionDisplayContainer" style="width: 100%;">
+        <div class="settings-option settings-option--stacked settings-option--condition">
+          <div id="medicalConditionDisplayContainer" class="settings-personal-condition-collapsed">
+            <label for="medicalConditionInput" data-i18n="common.medical.condition">Medical Condition</label>
             <button type="button" class="settings-data-btn" id="medicalConditionBtn" onclick="toggleConditionSelector()" style="width: 100%; text-align: left; justify-content: space-between;">
               <span id="medicalConditionDisplay" data-i18n="common.medical.condition">Medical Condition</span>
             </button>
           </div>
-          <div id="medicalConditionSelector" style="display: none; margin-top: 16px; padding: 16px; background: rgba(55, 65, 81, 0.3); border-radius: 8px; width: 100%;">
+          <div id="medicalConditionSelector" class="settings-personal-condition-editor" style="display: none;">
+            <div class="settings-condition-editor-header">
+              <span class="settings-condition-editor-title" data-i18n="common.medical.condition">Medical Condition</span>
+              <button type="button" class="settings-condition-editor-done" onclick="toggleConditionSelector()" data-i18n="common.done">Done</button>
+            </div>
             <div style="margin-bottom: 20px;">
               <label style="font-size: 0.9rem; display: block; margin-bottom: 8px; color: rgba(224, 242, 241, 0.9);" data-i18n="common.choose.from.existing.conditions">Choose from existing conditions:</label>
               <select id="existingConditionsSelect" class="item-input" style="width: 100%; padding: 10px;" onchange="selectExistingCondition()">
@@ -1210,7 +1211,8 @@
             </div>
           </div>
         </div>
-        <div class="settings-option" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid color-mix(in srgb, var(--primary-color) 28%, transparent);"></div>
+        </div>
+        <div class="settings-personal-cloud">
         <h4><svg class="settings-icon-svg" aria-hidden="true"><use href="#icon-cloud"></use></svg>Cloud Sync</h4>
         <div id="cloudSyncStatus" class="cloud-status">
           <div class="cloud-status-text" id="cloudStatusText" data-i18n="settings.cloud.notConnected">Not connected</div>
@@ -1268,6 +1270,7 @@
         </div>
         <div class="cloud-setup-info">
           <small><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-cloud"></use></svg> <strong>Free cloud storage</strong> - Your data is encrypted and synced securely. Create an account to get started.</small>
+        </div>
         </div>
       </div>
       </div>
@@ -1553,10 +1556,10 @@
           </div>
           <div class="data-management-buttons data-management-buttons--install">
             <div class="data-management-buttons__cell" id="androidRnCliDownloadOption">
-              <a id="downloadRnCliApkLink" class="settings-data-btn install-android-btn app-install-store-link" target="_blank" rel="noopener" href="javascript:void(0)"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-android"></use></svg></span><span class="app-install-store-link__text"><span id="downloadRnCliAndroidLabel" data-i18n="common.download.android.react.native.cli">Download Android (React Native CLI)</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></span><span class="android-version app-install-build-meta" aria-hidden="true"></span></a>
+              <a id="downloadRnCliApkLink" class="settings-data-btn install-android-btn app-install-store-link" target="_blank" rel="noopener" href="javascript:void(0)"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon ui-svg-icon--brand" aria-hidden="true"><use href="#icon-android"></use></svg></span><span class="app-install-store-link__text"><span id="downloadRnCliAndroidLabel" data-i18n="common.download.android.react.native.cli">Download Android (React Native CLI)</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></span><span class="android-version app-install-build-meta" aria-hidden="true"></span></a>
             </div>
             <div class="data-management-buttons__cell" id="iosDownloadOption">
-              <a id="downloadIosLink" class="settings-data-btn install-ios-btn app-install-store-link" target="_blank" rel="noopener" href="javascript:void(0)"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-apple"></use></svg></span><span class="app-install-store-link__text"><span id="downloadIosLabel" data-i18n="common.download.for.ios">Download for iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span></span><span class="ios-version app-install-build-meta" aria-hidden="true"></span></a>
+              <a id="downloadIosLink" class="settings-data-btn install-ios-btn app-install-store-link" target="_blank" rel="noopener" href="javascript:void(0)"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon ui-svg-icon--brand" aria-hidden="true"><use href="#icon-apple"></use></svg></span><span class="app-install-store-link__text"><span id="downloadIosLabel" data-i18n="common.download.for.ios">Download for iOS</span><span class="install-channel-badge install-channel-badge--alpha">Alpha</span></span><span class="ios-version app-install-build-meta" aria-hidden="true"></span></a>
             </div>
             <div class="data-management-buttons__cell" id="installWebAppOption">
               <button type="button" class="settings-data-btn install-app-btn app-install-store-link" onclick="installOrLaunchPWA()"><span class="data-management-buttons__icon" aria-hidden="true"><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-globe"></use></svg></span><span class="app-install-store-link__text"><span id="installWebAppLabel" data-i18n="common.install.web.app">Install web app</span><span class="install-channel-badge install-channel-badge--beta">Beta</span></span><span class="app-install-build-meta app-install-build-meta--spacer" aria-hidden="true"></span></button>
@@ -1599,6 +1602,18 @@
           </div>
           </div>
         </div>
+        <details class="settings-performance-advanced settings-consent-dashboard-panel" id="settingsConsentDashboardPanel">
+          <summary class="settings-performance-advanced-summary" aria-controls="consentDashboardBody" aria-expanded="false">
+            <span class="settings-performance-advanced-summary__label">
+              <svg class="settings-learn-icon" aria-hidden="true"><use href="#icon-document"></use></svg>
+              <span data-i18n="settings.consent.dashboardTitle">Consent dashboard</span>
+            </span>
+            <span class="settings-performance-advanced-summary__hint" data-i18n="settings.consent.dashboardHint">Review and revoke consent for optional data features.</span>
+          </summary>
+          <div class="settings-performance-advanced-body settings-consent-dashboard-body" id="consentDashboardBody">
+            <div id="consentDashboardList" class="consent-dashboard-list"></div>
+          </div>
+        </details>
         <div class="danger-zone">
           <button class="settings-data-btn danger-btn" onclick="clearData()"><svg class="ui-svg-icon icon-danger" aria-hidden="true"><use href="#icon-trash"></use></svg> Clear All Data</button>
         </div>
@@ -1821,7 +1836,7 @@
           <path d="M7 13H4M20 13h-3M6 17H3M21 17h-3M8 21H5M19 21h-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
       </button>
-      <button type="button" class="settings-button-top" data-benchmark="open-settings" onclick="toggleSettings()" title="Settings" data-i18n-title="settings.title" aria-label="Settings" data-i18n-aria="settings.title">
+      <button type="button" class="settings-button-top" data-benchmark="open-settings" title="Settings" data-i18n-title="settings.title" aria-label="Settings" data-i18n-aria="settings.title">
         <svg class="settings-cog" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12A3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5a3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97c0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.4-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1c0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z" fill="currentColor"/>
         </svg>
@@ -1963,30 +1978,26 @@
         </div>
       </div>
       <div class="log-required-block hidden" id="logCycleBlock">
-        <p class="settings-hint" data-i18n="wizard.cycle.title">Cycle tracking</p>
-        <label for="logCycleDay" data-i18n="wizard.cycle.day">Cycle day</label>
-        <div class="input-container">
-          <input type="number" id="logCycleDay" min="1" max="45" />
-        </div>
-        <label for="logCyclePhase" data-i18n="wizard.cycle.phase">Phase</label>
-        <div class="input-container">
-          <select id="logCyclePhase">
-            <option value="">-</option>
-            <option value="menstrual">Menstrual</option>
-            <option value="follicular">Follicular</option>
-            <option value="ovulation">Ovulation</option>
-            <option value="luteal">Luteal</option>
-          </select>
-        </div>
-        <label for="logCycleFlow" data-i18n="wizard.cycle.flow">Flow</label>
-        <div class="input-container">
-          <select id="logCycleFlow">
-            <option value="">-</option>
-            <option value="none">None</option>
-            <option value="light">Light</option>
-            <option value="medium">Medium</option>
-            <option value="heavy">Heavy</option>
-          </select>
+        <div class="cycle-track-panel">
+          <p class="cycle-track-title" data-i18n="wizard.cycle.title">Cycle tracking</p>
+          <p class="cycle-track-lead" data-i18n="wizard.cycle.lead">Tap where you are in your cycle today.</p>
+          <input type="hidden" id="logCycleDay" value="" />
+          <input type="hidden" id="logCyclePhase" value="" />
+          <input type="hidden" id="logCycleFlow" value="" />
+          <div class="cycle-track-section">
+            <span class="cycle-track-label" id="logCycleDayLabel" data-i18n="wizard.cycle.day">Cycle day</span>
+            <div class="cycle-day-scroll" id="logCycleDayScroll" role="group" aria-labelledby="logCycleDayLabel"></div>
+            <p class="cycle-day-readout" id="logCycleDayReadout" aria-live="polite"></p>
+          </div>
+          <div class="cycle-track-section">
+            <span class="cycle-track-label" id="logCyclePhaseLabel" data-i18n="wizard.cycle.phase">Phase</span>
+            <div class="cycle-phase-grid" id="logCyclePhaseGrid" role="group" aria-labelledby="logCyclePhaseLabel"></div>
+          </div>
+          <div class="cycle-track-section">
+            <span class="cycle-track-label" id="logCycleFlowLabel" data-i18n="wizard.cycle.flow">Flow</span>
+            <div class="cycle-flow-row" id="logCycleFlowRow" role="group" aria-labelledby="logCycleFlowLabel"></div>
+          </div>
+          <button type="button" class="cycle-track-clear" id="logCycleClear" data-i18n="wizard.cycle.clear">Clear cycle info</button>
         </div>
       </div>
       <p class="settings-hint log-quick-log-hint" data-i18n="common.only.need.date.and.flare.save.a.minimal.">Only need date and flare? Save a minimal entry and add details later.</p>
@@ -2560,10 +2571,6 @@
     <div id="chartsTab" class="tab-content" role="tabpanel" aria-labelledby="tab-charts">
       <section class="tab-filters" aria-label="Chart view and date range" data-i18n-aria="common.chart.view.and.date.range">
         <div class="tab-header">
-          <div class="settings-option settings-option-row charts-presentation-row">
-            <label data-i18n="charts.presentation.toggle">Telehealth presentation mode</label>
-            <div class="toggle-switch" id="chartsPresentationModeToggle" title="Large fonts, 7-day snapshot" data-i18n-title="charts.presentation.lead"></div>
-          </div>
           <div class="chart-view-toggle">
             <button class="view-toggle-btn" onclick="toggleChartView('balance')" id="balanceViewBtn">
               <span><svg class="ui-svg-icon" aria-hidden="true"><use href="#icon-balance"></use></svg></span> Balance
@@ -3877,6 +3884,7 @@
   </script>
   <script defer src="vendor/rianell-shared.js?v=6"></script>
   <script defer src="modules/app-lock.js?v=1"></script>
+  <script defer src="modules/cycle-tracking-ui.js?v=1"></script>
   <script defer src="modules/weekly-review.js?v=5"></script>
   <script defer src="modules/mood-tab.js?v=1"></script>
   <script defer src="i18n-pwa.js?v=3"></script>

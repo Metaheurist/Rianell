@@ -29,6 +29,11 @@ var RianellShared = (() => {
     BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS: () => BLOCKED_COMMERCIAL_LLM_HOST_PATTERNS,
     CAREGIVER_RELATIONSHIPS: () => CAREGIVER_RELATIONSHIPS,
     CONTRIBUTION_EXPORT_FORMAT: () => CONTRIBUTION_EXPORT_FORMAT,
+    CYCLE_DAY_MAX: () => CYCLE_DAY_MAX,
+    CYCLE_DAY_MIN: () => CYCLE_DAY_MIN,
+    CYCLE_DAY_TYPICAL_MAX: () => CYCLE_DAY_TYPICAL_MAX,
+    CYCLE_FLOW_LEVELS: () => CYCLE_FLOW_LEVELS,
+    CYCLE_PHASES: () => CYCLE_PHASES,
     DEFAULT_GOALS: () => DEFAULT_GOALS,
     DEFAULT_LOCALE: () => DEFAULT_LOCALE,
     DEFAULT_PRIVACY_REGION: () => DEFAULT_PRIVACY_REGION,
@@ -69,7 +74,6 @@ var RianellShared = (() => {
     POOL_INSIGHT_MIN_K: () => POOL_INSIGHT_MIN_K,
     PREDICTION_STATE_KEY: () => PREDICTION_STATE_KEY,
     PREFS_STORAGE_KEY_MOBILE: () => PREFS_STORAGE_KEY_MOBILE,
-    PRESENTATION_CHART_RANGE_DAYS: () => PRESENTATION_CHART_RANGE_DAYS,
     PRIVACY_REGIONS: () => PRIVACY_REGIONS,
     PROCESSING_ACTIVITY_LOG_KEY: () => PROCESSING_ACTIVITY_LOG_KEY,
     PROCESSING_ACTIVITY_LOG_MAX: () => PROCESSING_ACTIVITY_LOG_MAX,
@@ -226,7 +230,6 @@ var RianellShared = (() => {
     getPolicyDocumentsForRegion: () => getPolicyDocumentsForRegion,
     getPolicyDocumentsForRegionI18n: () => getPolicyDocumentsForRegionI18n,
     getPolicyPack: () => getPolicyPack,
-    getPresentationChartRange: () => getPresentationChartRange,
     getProgressiveDisclosureMilestones: () => getProgressiveDisclosureMilestones,
     getRegionLabels: () => getRegionLabels,
     getResidencyChooserOptions: () => getResidencyChooserOptions,
@@ -259,6 +262,8 @@ var RianellShared = (() => {
     isRtlLocale: () => isRtlLocale,
     isSundayReviewDay: () => isSundayReviewDay,
     isTrackingProfileConfigured: () => isTrackingProfileConfigured,
+    isValidCycleFlow: () => isValidCycleFlow,
+    isValidCyclePhase: () => isValidCyclePhase,
     isValidLocaleId: () => isValidLocaleId,
     isValidMedicalConditionForPool: () => isValidMedicalConditionForPool,
     isValidPrivacyRegion: () => isValidPrivacyRegion,
@@ -306,7 +311,6 @@ var RianellShared = (() => {
     normalizeMedicationDoses: () => normalizeMedicationDoses,
     normalizePoolInsightsRpcResult: () => normalizePoolInsightsRpcResult,
     normalizePreferencesPartial: () => normalizePreferencesPartial,
-    normalizePresentationModePrefs: () => normalizePresentationModePrefs,
     normalizeProfileAvatar: () => normalizeProfileAvatar,
     normalizeSubEntries: () => normalizeSubEntries,
     normalizeSubEntry: () => normalizeSubEntry,
@@ -360,12 +364,12 @@ var RianellShared = (() => {
     shouldFireMissedLogNudge: () => shouldFireMissedLogNudge,
     shouldFireReEngagementNudge: () => shouldFireReEngagementNudge,
     shouldFireStreakReminderNudge: () => shouldFireStreakReminderNudge,
-    shouldLockChartRangeInPresentation: () => shouldLockChartRangeInPresentation,
     shouldShowAppointmentCard: () => shouldShowAppointmentCard,
     shouldShowWizardCategory: () => shouldShowWizardCategory,
     shouldSkipFirstRunStep: () => shouldSkipFirstRunStep,
     stampLogEntryForCaregiver: () => stampLogEntryForCaregiver,
     stampLogSavedAtForSave: () => stampLogSavedAtForSave,
+    suggestCyclePhaseForDay: () => suggestCyclePhaseForDay,
     suggestPrivacyRegionFromHint: () => suggestPrivacyRegionFromHint,
     summarizeCorrelationStep: () => summarizeCorrelationStep,
     summarizeDigestStep: () => summarizeDigestStep,
@@ -1027,7 +1031,7 @@ var RianellShared = (() => {
     "global-baseline": [
       "Rianell is a personal wellness tracker. Your health logs are stored on your device unless you turn on optional cloud backup.",
       "Optional features (encrypted cloud backup, anonymised research contribution, on-device AI, and optional session recording) each need separate consent. You can change or withdraw consent in Settings.",
-      "Session recording (Smartlook) is off by default. When enabled, it may capture screens you view, including health data you have entered. You can turn it off at any time under Settings \u2192 Privacy.",
+      "Session recording (Smartlook) is off by default. When enabled, anonymised session data is used only for heatmaps and error tracking in the EU\u2014not for reviewing your health screens. You can turn it off at any time under Settings \u2192 Privacy.",
       "You can export your data or delete local and cloud copies at any time from Settings \u2192 Data options."
     ],
     "eu-gdpr": [
@@ -3238,6 +3242,39 @@ ${hist}`);
     return { settings, goals, exportedAt: parsed.exportedAt || null };
   }
 
+  // packages/shared/src/logging/cycleTracking.mjs
+  var CYCLE_DAY_MIN = 1;
+  var CYCLE_DAY_TYPICAL_MAX = 28;
+  var CYCLE_DAY_MAX = 45;
+  var CYCLE_PHASES = [
+    { id: "menstrual", i18n: "wizard.cycle.phase.menstrual", tone: "menstrual" },
+    { id: "follicular", i18n: "wizard.cycle.phase.follicular", tone: "follicular" },
+    { id: "ovulation", i18n: "wizard.cycle.phase.ovulation", tone: "ovulation" },
+    { id: "luteal", i18n: "wizard.cycle.phase.luteal", tone: "luteal" }
+  ];
+  var CYCLE_FLOW_LEVELS = [
+    { id: "none", i18n: "wizard.cycle.flow.none", drops: 0 },
+    { id: "light", i18n: "wizard.cycle.flow.light", drops: 1 },
+    { id: "medium", i18n: "wizard.cycle.flow.medium", drops: 2 },
+    { id: "heavy", i18n: "wizard.cycle.flow.heavy", drops: 3 }
+  ];
+  var PHASE_IDS = new Set(CYCLE_PHASES.map((p) => p.id));
+  var FLOW_IDS = new Set(CYCLE_FLOW_LEVELS.map((f) => f.id));
+  function suggestCyclePhaseForDay(day) {
+    const n = typeof day === "number" ? day : typeof day === "string" ? parseInt(day, 10) : NaN;
+    if (!Number.isFinite(n) || n < CYCLE_DAY_MIN) return void 0;
+    if (n <= 5) return "menstrual";
+    if (n <= 13) return "follicular";
+    if (n <= 16) return "ovulation";
+    return "luteal";
+  }
+  function isValidCyclePhase(id) {
+    return PHASE_IDS.has(id);
+  }
+  function isValidCycleFlow(id) {
+    return FLOW_IDS.has(id);
+  }
+
   // packages/shared/src/logging/microCheckin.mjs
   var HOME_CHECKIN_PERIODS = ["AM", "midday", "PM"];
   function periodForHour(hour) {
@@ -4163,22 +4200,6 @@ ${hist}`);
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${bars}</svg>`;
   }
 
-  // packages/shared/src/crossCutting/presentationMode.mjs
-  var PRESENTATION_CHART_RANGE_DAYS = 7;
-  function normalizePresentationModePrefs(raw) {
-    const v = raw && typeof raw === "object" ? raw : {};
-    return {
-      chartsPresentationMode: v.chartsPresentationMode === true,
-      weeklyReviewDismissedWeek: typeof v.weeklyReviewDismissedWeek === "string" ? v.weeklyReviewDismissedWeek : null
-    };
-  }
-  function getPresentationChartRange(currentRange) {
-    return PRESENTATION_CHART_RANGE_DAYS;
-  }
-  function shouldLockChartRangeInPresentation(presentationMode) {
-    return presentationMode === true;
-  }
-
   // packages/shared/src/home/homeDashboardPrefs.mjs
   function normalizeHomeDashboardPrefs(raw) {
     const v = raw && typeof raw === "object" ? raw : {};
@@ -4204,7 +4225,7 @@ ${hist}`);
       treatmentStarts: normalizeTreatmentStarts(v.treatmentStarts),
       homeGapQuestionCache: v.homeGapQuestionCache && typeof v.homeGapQuestionCache === "object" ? v.homeGapQuestionCache : null,
       homeQuestionAnswerState: v.homeQuestionAnswerState && typeof v.homeQuestionAnswerState === "object" ? v.homeQuestionAnswerState : null,
-      ...normalizePresentationModePrefs(v)
+      weeklyReviewDismissedWeek: typeof v.weeklyReviewDismissedWeek === "string" ? v.weeklyReviewDismissedWeek : null
     };
   }
 

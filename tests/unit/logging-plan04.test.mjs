@@ -27,6 +27,14 @@ test('normalizeLogEntry preserves plan 04 extensions', () => {
   assert.equal(entry.medicationDoses?.[0]?.status, 'taken');
 });
 
+test('suggestCyclePhaseForDay maps typical cycle pattern', async () => {
+  const { suggestCyclePhaseForDay } = await import('@rianell/shared');
+  assert.equal(suggestCyclePhaseForDay(3), 'menstrual');
+  assert.equal(suggestCyclePhaseForDay(10), 'follicular');
+  assert.equal(suggestCyclePhaseForDay(15), 'ovulation');
+  assert.equal(suggestCyclePhaseForDay(22), 'luteal');
+});
+
 test('mergeLogEntriesForDate merges sub-entries by id', () => {
   const merged = mergeLogEntriesForDate(
     { date: '2026-06-18', subEntries: [{ id: 'a', period: 'AM', mood: 4 }] },
