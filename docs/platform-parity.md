@@ -418,6 +418,13 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Web/Capacitor:** notification behaviour includes reminder controls tied to runtime delivery paths.
 - **React Native:** Settings now includes notification preference controls (enable, reminder time, sound) plus permission status/request baseline. Full OS scheduling/channel parity remains open.
 
+### v1.118.0 parity note (Onboarding UX & Smartlook default-on)
+
+- **First-run wizard:** PWA + RN share `buildFirstRunPlan` — session recording disclosure step after cookies; tracking profile deferred to Settings.
+- **Smartlook:** Default-on preference with disclosure gate (`shouldActivateSessionRecording`); PWA `first-run-wizard.js` + RN `FirstRunWizard.tsx`; Settings revoke unchanged.
+- **Settings PWA:** Consent dashboard on Privacy pane; Goals carousel script load fix (IIFE).
+- **Icons:** AM check-in sun uses theme tokens; sized to midday check-in.
+
 ### v1.117.1 parity note (Supabase pool RPC grants)
 
 - **No app parity change** — PWA/RN still call pool RPCs only when signed in with research opt-in.

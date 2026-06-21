@@ -34,7 +34,11 @@
     var s = getSettings();
     if (s.demoMode) return false;
     if (s.localOnlyMode) return false;
-    if (s.sessionRecording !== true) return false;
+    if (global.RianellShared && typeof global.RianellShared.shouldActivateSessionRecording === 'function') {
+      if (!global.RianellShared.shouldActivateSessionRecording(s)) return false;
+    } else if (s.sessionRecording !== true) {
+      return false;
+    }
     if (global.RianellPrivacy && typeof global.RianellPrivacy.checkFeature === 'function') {
       var check = global.RianellPrivacy.checkFeature('sessionRecording');
       if (check && check.available === false) return false;

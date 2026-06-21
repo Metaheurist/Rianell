@@ -1,14 +1,14 @@
-# Smartlook session recording (opt-in)
+# Smartlook session recording (default-on after disclosure)
 
 **Product:** Rianell  
-**Last updated:** 2026-06-20  
+**Last updated:** 2026-06-21  
 **Related:** [subprocessors.md](subprocessors.md) · [global-baseline.md](global-baseline.md) · [ropa.json](ropa.json) (PA-10) · [FREE-TIER-POLICY.md](../plans/FREE-TIER-POLICY.md)
 
 ---
 
 ## 1. Purpose
 
-Optional **session recording** helps improve Rianell usability. It is **off by default** and requires explicit consent. Recordings may include screens the user visits, including health data visible on screen.
+Optional **session recording** helps improve Rianell usability. It is **on by default after onboarding disclosure** — users are notified during first-run setup and can turn it off immediately or later in Settings. Recordings may include screens the user visits, including health data visible on screen.
 
 **Provider:** [Smartlook Analytics s.r.o.](https://www.smartlook.com/)  
 **Data region:** EU (`region: eu`)
@@ -19,26 +19,42 @@ Optional **session recording** helps improve Rianell usability. It is **off by d
 
 | Control | Location |
 |---------|----------|
-| Opt in | Settings → **Privacy & region** → **Session recording** (confirmation dialog) |
-| Opt out | Same toggle, or **Consent dashboard → Revoke** |
+| First-run disclosure | First-run wizard step **Session recording** (after cookies) — toggle default **on** |
+| Opt out | Same toggle during onboarding, or Settings → **Privacy & region** → **Session recording** |
+| Opt out (revoke) | **Consent dashboard** on Privacy pane → Revoke |
 | Blocked in local-only mode | Listed under local-only blocked features |
 
 Requires **health data consent** (GDPR Art. 9) before the feature is available in EEA/UK policy packs.
 
+Users who previously opted out (`sessionRecording: false` in saved settings) remain off after upgrade.
+
 ---
 
-## 3. Platform implementation
+## 3. Activation gate
+
+Smartlook SDK does **not** start until both conditions hold:
+
+1. Preference `sessionRecording === true`
+2. Either `sessionRecordingDisclosureAt` (onboarding) or `sessionRecordingAt` (Settings enable) is set
+
+Shared helper: `shouldActivateSessionRecording()` in `packages/shared/src/analytics/sessionRecordingPrefs.mjs`.
+
+---
+
+## 4. Platform implementation
 
 | Platform | SDK / module | Init |
 |----------|--------------|------|
-| **PWA (web)** | Smartlook Web SDK (`https://web-sdk.smartlook.com/recorder.js`) | `apps/pwa-webapp/smartlook.js` — loaded after settings; gated by `appSettings.sessionRecording` |
+| **PWA (web)** | Smartlook Web SDK (`https://web-sdk.smartlook.com/recorder.js`) | `apps/pwa-webapp/smartlook.js` — gated by `shouldActivateSessionRecording` |
 | **React Native** | `react-native-smartlook-analytics` | `apps/rn-app/src/analytics/sessionRecording.ts` — requires dev build / prebuild (not Expo Go) |
 
-**Shared consent model:** preference field `sessionRecording` + `sessionRecordingAt`; policy feature key `sessionRecording`; consent dashboard row `sessionRecording`.
+**Shared consent model:** `sessionRecording`, `sessionRecordingAt`, `sessionRecordingDisclosureAt`; policy feature key `sessionRecording`; consent dashboard row `sessionRecording`.
+
+**First-run step:** `sessionRecording` in `packages/shared/src/onboarding/firstRunSteps.mjs` — skipped when already disclosed or feature disabled for region.
 
 ---
 
-## 4. Security and CSP (PWA)
+## 5. Security and CSP (PWA)
 
 CSP in `apps/pwa-webapp/index.html` allows:
 
@@ -51,7 +67,7 @@ If Cloudflare adds a narrower HTTP CSP, mirror these hosts in edge headers — s
 
 ---
 
-## 5. Operator notes
+## 6. Operator notes
 
 - Project key: `packages/shared/src/analytics/smartlookConfig.mjs` (PWA `smartlook-config.js`, RN `app.config.js` + env `EXPO_PUBLIC_SMARTLOOK_PROJECT_KEY`). GitHub Actions secret `SMARTLOOK_PROJECT_KEY` overrides on Pages deploy when set.
 - Web init: `smartlook('init', projectKey, { region: 'eu' })` in `apps/pwa-webapp/smartlook.js`.
@@ -62,15 +78,18 @@ If Cloudflare adds a narrower HTTP CSP, mirror these hosts in edge headers — s
 
 ---
 
-## 6. Key source paths
+## 7. Key source paths
 
 ```
+packages/shared/src/analytics/sessionRecordingPrefs.mjs
 apps/pwa-webapp/smartlook.js
+apps/pwa-webapp/first-run-wizard.js
 apps/pwa-webapp/app.js                    # toggle, consent dashboard, loadSettings hook
 apps/rn-app/src/analytics/sessionRecording.ts
+apps/rn-app/src/components/FirstRunWizard.tsx
 apps/rn-app/src/settings/SettingsPrivacyTrustPane.tsx
+packages/shared/src/onboarding/firstRunSteps.mjs
 packages/shared/src/privacy/getFeatureAvailability.mjs
 packages/shared/src/settings/consentDashboard.mjs
-packages/shared/src/privacy/localOnlyMode.mjs
-i18n-packs/locale-packs/v1/en-GB.json     # settings.privacy.sessionRecording.*
+i18n-packs/locale-packs/v1/en-GB.json     # onboarding.sessionRecording.*, settings.privacy.sessionRecording.*
 ```

@@ -47,10 +47,11 @@ Open `http://localhost:8080`. See [[Developer-Setup]] for Node, Supabase, and Re
 
 ## First steps in the app
 
-1. **Log a day** — tap **+**, pick date and flare (Yes/No), add any vitals you track, then save.
-2. **Explore tabs** — **Home** (summary), **View logs** (history), **Charts** (trends), **AI Analysis** (insights).
-3. **Settings** (gear icon) — language, theme, goals, privacy, and optional cloud sync.
-4. **Demo mode** — try sample data without affecting your real logs (Settings → Data options).
+1. **First-run setup** — confirm your privacy region, accept cookies, review **session recording** (on by default; you can turn it off), then take the quick tour. Medical condition and tracking profile are configured later in **Settings**.
+2. **Log a day** — tap **+**, pick date and flare (Yes/No), add any vitals you track, then save.
+3. **Explore tabs** — **Home** (summary), **View logs** (history), **Charts** (trends), **Mood**, **AI Analysis** (insights).
+4. **Settings** (gear icon) — language, theme, goals, privacy, consent dashboard, and optional cloud sync.
+5. **Demo mode** — try sample data without affecting your real logs (Settings → Data options).
 
 ---
 

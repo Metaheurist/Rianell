@@ -202,6 +202,7 @@ function ensureSettingsCarouselDots(panes, svgIcon) {
 
   function settingsIconForTitle(title, idx, paneEl) {
     var paneKey = paneEl && paneEl.getAttribute ? paneEl.getAttribute('data-settings-pane-i18n') : '';
+    if (paneKey === 'settings.privacy.title') return 'check';
     if (paneKey === 'settings.security.title') {
       var enabled = typeof window !== 'undefined' && window.appSettings && window.appSettings.appLockEnabled;
       return enabled ? 'lock' : 'lock-open';

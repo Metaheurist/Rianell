@@ -61,6 +61,14 @@ export function SettingsPrivacyTrustPane({ prefs, onChangePrefs, onRequestAnonPo
                 Alert.alert(t('gate.title'), t('common.this.feature.is.not.available.for.your.p'));
                 return;
               }
+              if (prefs.sessionRecordingDisclosureAt) {
+                onChangePrefs({
+                  ...prefs,
+                  sessionRecording: true,
+                  sessionRecordingAt: new Date().toISOString(),
+                });
+                return;
+              }
               Alert.alert(
                 t('settings.privacy.sessionRecording.consentTitle'),
                 t('settings.privacy.sessionRecording.consentBody'),

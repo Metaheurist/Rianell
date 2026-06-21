@@ -53,7 +53,7 @@
     "settings.privacy.localOnly.bugReportBlocked": "Bug reports are disabled while local-only mode is on.",
     "settings.privacy.localOnly.modelDownloadBlocked": "Model download is disabled while local-only mode is on.",
     "settings.privacy.sessionRecording.title": "Session recording",
-    "settings.privacy.sessionRecording.hint": "Optional session analytics (Smartlook, EU) to improve the app. Off by default. Screens are anonymised and used only for heatmaps and error tracking—not for reviewing your health data. Turn off here anytime.",
+    "settings.privacy.sessionRecording.hint": "Optional session analytics (Smartlook, EU) to improve the app. On by default after onboarding. Screens are anonymised and used only for heatmaps and error tracking—not for reviewing your health data. Turn off here anytime.",
     "settings.privacy.sessionRecording.consentTitle": "Enable session recording?",
     "settings.privacy.sessionRecording.consentBody": "Smartlook collects anonymised session data (heatmaps and error tracking only) to help improve Rianell. Screens are not reviewed individually and are not stored for viewing your health details. Data is processed in the EU. You can turn this off anytime in Settings → Privacy.",
     "settings.privacy.appLock.enable": "App lock (passcode)",
@@ -1683,6 +1683,9 @@
     "settings.accessibility.chartPaletteStandard": "Standard",
     "settings.accessibility.chartPaletteHighContrast": "High contrast",
     "settings.accessibility.chartPaletteHint": "Chart colours are separate from the app theme.",
-    "home.action.readTodayEntry": "Read today's entry"
+    "home.action.readTodayEntry": "Read today's entry",
+    "onboarding.step.sessionRecording": "Session recording",
+    "onboarding.sessionRecording.body": "To help improve Rianell, session recording (Smartlook, EU) is turned on by default. It collects anonymised heatmaps and error data—not individual reviews of your health entries. You can turn this off now or anytime in Settings → Privacy.",
+    "onboarding.sessionRecording.toggleLabel": "Session recording"
   }
 }

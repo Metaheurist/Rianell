@@ -2,7 +2,18 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.117.1** - Supabase pool RPC hardening (revoke anon EXECUTE; Security Advisor lint 0028).
+**Latest: v1.118.0** - Onboarding UX, Smartlook default-on with disclosure, Goals carousel fix.
+
+### v1.118.0 - 2026-06-21 - Onboarding UX & Smartlook default-on
+- **First-run wizard (PWA + RN):** Tracking profile step deferred to Settings (defaults applied on wizard complete); fixed nested tutorial/install modals and skip controls; medical condition configured in Settings like other users.
+- **Smartlook:** Session recording **on by default** after onboarding disclosure — new first-run step after cookies with toggle (default on); `shouldActivateSessionRecording()` gates SDK until `sessionRecordingDisclosureAt` or explicit Settings enable; existing opt-outs preserved; Settings toggle skips consent modal when already disclosed.
+- **Settings (PWA):** Consent dashboard moved to **Privacy & region** pane (tick icon on carousel dot); privacy fields use stacked layout; inactive carousel panes no longer bleed adjacent content.
+- **Goals modal (PWA):** Carousel navigation fixed — `goals-carousel.js` rewritten as IIFE (was ES module in plain script tag); flex arrow layout, hidden inactive panes, scrollbar fixes on targets/achievements panes.
+- **Icons:** Morning check-in sun tokenized (`currentColor`), sized to match midday; horizon semicircle + upper rays.
+- **Shared:** `packages/shared/src/analytics/sessionRecordingPrefs.mjs`; first-run step `sessionRecording` in `firstRunSteps.mjs`.
+- **i18n:** `onboarding.step.sessionRecording`, `onboarding.sessionRecording.*`; settings hint updated to “on by default after onboarding”; policy bodies sync; 14 locale packs.
+- **Tests:** `shouldActivateSessionRecording` + disclosure skip; first-run plan includes sessionRecording step; Goals carousel IIFE contract; **359** unit tests total.
+- **Docs:** smartlook-session-recording.md, project-reference, app-and-features, platform-parity, wiki Privacy/Getting-Started/Release-Notes/Features/Settings.
 
 ### v1.117.1 - 2026-06-21 - Supabase pool RPC security hardening
 - **Schema:** `supabase/Schema.sql` §4 — explicit `REVOKE EXECUTE … FROM anon` on `get_k_anon_pool_insights` and `count_pool_contribution_days` (Plan 13 RE1). Clears Security Advisor **0028** (`anon_security_definer_function_executable`); **0029** for `authenticated` remains accepted (signed-in-only RPC by design).

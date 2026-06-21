@@ -76,6 +76,7 @@ export function FirstRunWizard({
   const [fields, setFields] = useState(() => ({ ...normalizeTrackingProfile(prefs.trackingProfile).fields }));
   const [tutorialPos, setTutorialPos] = useState(0);
   const [aiEnabledLocal, setAiEnabledLocal] = useState(localPrefs.aiEnabled !== false);
+  const [sessionRecordingLocal, setSessionRecordingLocal] = useState(localPrefs.sessionRecording !== false);
 
   const tutorialSlides = useMemo(() => visibleSlideIndices(aiEnabledLocal), [aiEnabledLocal]);
   const tutorialSlideIndex = tutorialSlides[Math.min(tutorialPos, tutorialSlides.length - 1)] ?? 0;
@@ -135,6 +136,17 @@ export function FirstRunWizard({
     patchPrefs({ cookieConsent: true, cookieConsentAt: now });
     goNext();
   }, [patchPrefs, goNext]);
+
+  const confirmSessionRecording = useCallback(() => {
+    const now = new Date().toISOString();
+    const enabled = sessionRecordingLocal;
+    patchPrefs({
+      sessionRecording: enabled,
+      sessionRecordingAt: enabled ? now : null,
+      sessionRecordingDisclosureAt: now,
+    });
+    goNext();
+  }, [sessionRecordingLocal, patchPrefs, goNext]);
 
   const saveTrackingProfile = useCallback(() => {
     const profile = normalizeTrackingProfile({
@@ -199,6 +211,23 @@ export function FirstRunWizard({
       case 'cookies':
         return (
           <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>{t('common.cookie.bannerText')}</Text>
+        );
+      case 'sessionRecording':
+        return (
+          <>
+            <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>
+              {t('onboarding.sessionRecording.body')}
+            </Text>
+            <View style={styles.toggleRow}>
+              <Text style={{ color: theme.tokens.color.textSecondary, flex: 1 }}>
+                {t('onboarding.sessionRecording.toggleLabel')}
+              </Text>
+              <Switch value={sessionRecordingLocal} onValueChange={setSessionRecordingLocal} />
+            </View>
+            <Text style={[styles.hint, { color: theme.tokens.color.textMuted, marginTop: 8 }]}>
+              {t('settings.privacy.sessionRecording.hint')}
+            </Text>
+          </>
         );
       case 'trackingProfile':
         return (
@@ -293,6 +322,9 @@ export function FirstRunWizard({
         break;
       case 'cookies':
         acceptCookies();
+        break;
+      case 'sessionRecording':
+        confirmSessionRecording();
         break;
       case 'trackingProfile':
         saveTrackingProfile();

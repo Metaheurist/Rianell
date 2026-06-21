@@ -1,17 +1,18 @@
-import { isTrackingProfileConfigured } from '../settings/trackingProfile.mjs';
+import { resolvePolicyPack } from '../privacy/resolvePolicyPack.mjs';
 
 /** First-run wizard step ids (shared PWA + RN). */
 export const FIRST_RUN_STEP_IDS = [
   'region',
   'healthConsent',
   'cookies',
+  'sessionRecording',
   'trackingProfile',
   'tutorial',
   'aiDownload',
   'install',
 ];
 
-/** @typedef {'region'|'healthConsent'|'cookies'|'trackingProfile'|'tutorial'|'aiDownload'|'install'} FirstRunStepId */
+/** @typedef {'region'|'healthConsent'|'cookies'|'sessionRecording'|'trackingProfile'|'tutorial'|'aiDownload'|'install'} FirstRunStepId */
 
 /** @typedef {{ platform: 'pwa'|'rn', cookieConsentAccepted?: boolean, installModalSeen?: boolean, standalonePwa?: boolean, tutorialSeenLegacy?: boolean }} FirstRunPlatformContext */
 
@@ -19,6 +20,7 @@ export const FIRST_RUN_STEP_META = {
   region: { titleKey: 'onboarding.step.region' },
   healthConsent: { titleKey: 'onboarding.step.healthConsent' },
   cookies: { titleKey: 'onboarding.step.cookies' },
+  sessionRecording: { titleKey: 'onboarding.step.sessionRecording' },
   trackingProfile: { titleKey: 'onboarding.step.trackingProfile' },
   tutorial: { titleKey: 'onboarding.step.tutorial' },
   aiDownload: { titleKey: 'onboarding.step.aiDownload' },
@@ -43,8 +45,20 @@ export function shouldSkipFirstRunStep(stepId, prefs, ctx) {
       if (p.cookieConsent === true) return true;
       if (c.cookieConsentAccepted === true) return true;
       return false;
+    case 'sessionRecording':
+      if (typeof p.sessionRecordingDisclosureAt === 'string' && p.sessionRecordingDisclosureAt.length > 0) {
+        return true;
+      }
+      {
+        const regionId = typeof p.privacyRegion === 'string' && p.privacyRegion ? p.privacyRegion : 'other';
+        const resolved = resolvePolicyPack(regionId);
+        const feat = resolved.features?.sessionRecording;
+        if (!feat || feat.enabled === false) return true;
+      }
+      return false;
     case 'trackingProfile':
-      return isTrackingProfileConfigured(p.trackingProfile);
+      // Deferred to Settings; defaults applied when the wizard completes.
+      return true;
     case 'tutorial':
       return false;
     case 'aiDownload':

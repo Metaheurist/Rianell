@@ -42,14 +42,14 @@ Contact: **jan.andersson@rianell.com** for account deletion or access requests t
 
 ## Optional session recording (Smartlook)
 
-Rianell can record how you use the app to help fix usability issues. This is **optional** and **off by default**.
+Rianell uses optional session analytics to improve usability. This is **on by default after onboarding**, with a clear disclosure step where you can turn it off immediately.
 
 | | |
 |---|---|
-| **When it runs** | Only after you turn on **Session recording** in Settings → Privacy & region and confirm |
-| **What it may capture** | Screens you visit, taps, and scrolling — including health data visible on screen |
+| **When it runs** | After you complete the first-run **Session recording** step (default on), or when you explicitly enable it in Settings |
+| **What it may capture** | Anonymised heatmaps and error data — screens you visit may be included, but recordings are not reviewed individually for health content |
 | **Where data goes** | Smartlook Analytics (EU region) — see [subprocessor register](https://github.com/Metaheurist/Rianell/blob/main/docs/privacy/subprocessors.md) |
-| **How to stop** | Turn the toggle off, or **Consent dashboard → Revoke** |
+| **How to stop** | Turn the toggle off during onboarding, in Settings → Privacy & region, or **Consent dashboard → Revoke** |
 | **Local-only mode** | Blocks session recording along with other network features |
 
 Technical details: [Smartlook session recording](https://github.com/Metaheurist/Rianell/blob/main/docs/privacy/smartlook-session-recording.md).
@@ -60,7 +60,7 @@ Technical details: [Smartlook session recording](https://github.com/Metaheurist/
 
 - Sell your health logs
 - Send logs to third-party LLM APIs by default (on-device model optional)
-- Record your sessions by default (Smartlook is opt-in only)
+- Start session recording before onboarding disclosure (you can opt out during setup)
 - Auto-translate your personal notes or symptom text
 
 ---

@@ -2295,6 +2295,7 @@ function getTutorialVisibleIndices() {
   if (aiOn) return [0, 1, 2, 3, 4, 5, 6, 7];
   return [0, 1, 5, 7];
 }
+window.getTutorialVisibleIndices = getTutorialVisibleIndices;
 var _tutorialSwipeStartX = 0;
 var _tutorialSwipeStartY = 0;
 var _tutorialSwipeHandlersAttached = false;
@@ -2448,6 +2449,9 @@ function showTutorialSlide(index) {
   if (index === 3 && typeof updateTutorialConditionDisplay === 'function') updateTutorialConditionDisplay();
   if (index === 4 && typeof updateTutorialDataTogglesState === 'function') updateTutorialDataTogglesState();
   if (index === 5 && typeof updateTutorialAccessibilityState === 'function') updateTutorialAccessibilityState();
+  if (typeof window !== 'undefined' && window.RianellFirstRunWizard && typeof window.RianellFirstRunWizard.syncTutorialFooter === 'function') {
+    window.RianellFirstRunWizard.syncTutorialFooter();
+  }
 }
 
 function tutorialNextSlide() {
@@ -9885,7 +9889,6 @@ function openGoalsModal(paneIndex) {
   document.addEventListener('keydown', escapeHandler);
   tickAchievements();
   if (typeof initGoalsCarouselUI === 'function') initGoalsCarouselUI(typeof paneIndex === 'number' ? paneIndex : 0);
-  if (typeof paneIndex === 'number' && typeof goalsCarouselGo === 'function') goalsCarouselGo(paneIndex);
 }
 
 function closeGoalsModal() {
@@ -15784,8 +15787,9 @@ let appSettings = {
   barcodeFoodLoggingEnabled: false,
   guidedVoiceLogEnabled: false,
   localOnlyMode: false,
-  sessionRecording: false,
+  sessionRecording: true,
   sessionRecordingAt: null,
+  sessionRecordingDisclosureAt: null,
   appLockEnabled: false,
   processingActivityLog: [],
   cloudAutoSyncOnOpen: false,
@@ -16022,6 +16026,8 @@ function loadSettings() {
   appSettings.localOnlyMode = appSettings.localOnlyMode === true;
   appSettings.sessionRecording = appSettings.sessionRecording === true;
   appSettings.sessionRecordingAt = typeof appSettings.sessionRecordingAt === 'string' ? appSettings.sessionRecordingAt : null;
+  appSettings.sessionRecordingDisclosureAt =
+    typeof appSettings.sessionRecordingDisclosureAt === 'string' ? appSettings.sessionRecordingDisclosureAt : null;
   appSettings.appLockEnabled = appSettings.appLockEnabled === true;
   appSettings.cloudAutoSyncOnOpen = appSettings.cloudAutoSyncOnOpen === true;
   if (window.RianellShared && typeof window.RianellShared.normalizeCaregiverSettings === 'function') {
@@ -17951,12 +17957,14 @@ function toggleSessionRecordingSetting() {
       showAlertModal(tUi('common.this.feature.is.not.available.for.your.p'), tUi('gate.title'));
       return;
     }
-    var body = tUi('settings.privacy.sessionRecording.consentBody');
-    var title = tUi('settings.privacy.sessionRecording.consentTitle');
-    var onConfirm = function () { toggleSetting('sessionRecording'); };
-    if (typeof showConfirmModal === 'function') {
-      showConfirmModal(body, title, onConfirm, tUi('common.i.agree.continue'));
-      return;
+    if (!appSettings.sessionRecordingDisclosureAt) {
+      var body = tUi('settings.privacy.sessionRecording.consentBody');
+      var title = tUi('settings.privacy.sessionRecording.consentTitle');
+      var onConfirm = function () { toggleSetting('sessionRecording'); };
+      if (typeof showConfirmModal === 'function') {
+        showConfirmModal(body, title, onConfirm, tUi('common.i.agree.continue'));
+        return;
+      }
     }
   }
   toggleSetting('sessionRecording');

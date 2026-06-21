@@ -4,6 +4,13 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v1.118.0 documentation sync (Onboarding UX & Smartlook default-on)
+
+- **First-run wizard:** Shared step order — region → health consent (EEA/UK) → cookies → **session recording disclosure** → tutorial → AI download → install (PWA). Tracking profile deferred; defaults from `completeFirstRunWizard()`.
+- **Smartlook:** Default-on **preference** with disclosure gate — recording starts only after onboarding step or explicit Settings enable. See [smartlook-session-recording.md](privacy/smartlook-session-recording.md).
+- **Settings PWA:** Consent dashboard on Privacy & region pane; Goals modal carousel IIFE fix.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.118.0; [platform-parity.md](platform-parity.md) v1.118.0 note.
+
 ### v1.117.1 documentation sync (Supabase pool RPC hardening)
 
 - **Schema §4:** `REVOKE EXECUTE ON FUNCTION … FROM anon` for `get_k_anon_pool_insights` and `count_pool_contribution_days`; `GRANT EXECUTE` remains **`authenticated`** only.

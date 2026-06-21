@@ -53,7 +53,7 @@
     "settings.privacy.localOnly.bugReportBlocked": "Les rapports de bug sont désactivés en mode local uniquement.",
     "settings.privacy.localOnly.modelDownloadBlocked": "Le téléchargement du modèle est désactivé en mode local uniquement.",
     "settings.privacy.sessionRecording.title": "Session recording",
-    "settings.privacy.sessionRecording.hint": "Optional screen recordings (Smartlook, EU) to help improve the app. Off by default. May capture health screens you visit. Turn off here at any time.",
+    "settings.privacy.sessionRecording.hint": "Optional session analytics (Smartlook, EU) to improve the app. On by default after onboarding. Screens are anonymised and used only for heatmaps and error tracking—not for reviewing your health data. Turn off here anytime.",
     "settings.privacy.sessionRecording.consentTitle": "Enable session recording?",
     "settings.privacy.sessionRecording.consentBody": "Smartlook may record how you use Rianell, including screens that show health data you have entered. Recordings are stored by Smartlook in the EU. You can turn this off at any time in Settings → Privacy.",
     "settings.privacy.appLock.enable": "Bloqueo de app (código)",
@@ -1683,7 +1683,10 @@
     "settings.accessibility.chartPaletteStandard": "Padrão",
     "settings.accessibility.chartPaletteHighContrast": "Alto contraste",
     "settings.accessibility.chartPaletteHint": "As cores dos gráficos são separadas do tema da app.",
-    "home.action.readTodayEntry": "Ler entrada de hoje"
+    "home.action.readTodayEntry": "Ler entrada de hoje",
+    "onboarding.step.sessionRecording": "Session recording",
+    "onboarding.sessionRecording.body": "To help improve Rianell, session recording (Smartlook, EU) is turned on by default. It collects anonymised heatmaps and error data—not individual reviews of your health entries. You can turn this off now or anytime in Settings → Privacy.",
+    "onboarding.sessionRecording.toggleLabel": "Session recording"
   },
   "machineTranslatedUi": true
 }
