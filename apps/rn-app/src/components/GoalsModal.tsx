@@ -29,9 +29,11 @@ const PANE_KEYS = ['common.goals.targets', 'achievements.title'] as const;
 
 export function GoalsModal({ visible, initialPane = 0, prefs, onChangePrefs, onClose }: Props) {
   const theme = useTheme();
-  const t = useT();
+  const { t } = useT();
   const { width } = useWindowDimensions();
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<{ scrollTo: (options: { x: number; animated?: boolean }) => void } | null>(
+    null,
+  );
   const [paneIndex, setPaneIndex] = useState(initialPane);
 
   const paneTitles = PANE_KEYS.map((k) => t(k));

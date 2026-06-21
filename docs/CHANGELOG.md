@@ -7,6 +7,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 ### v1.117.1 - 2026-06-21 - Supabase pool RPC security hardening
 - **Schema:** `supabase/Schema.sql` §4 — explicit `REVOKE EXECUTE … FROM anon` on `get_k_anon_pool_insights` and `count_pool_contribution_days` (Plan 13 RE1). Clears Security Advisor **0028** (`anon_security_definer_function_executable`); **0029** for `authenticated` remains accepted (signed-in-only RPC by design).
 - **Docs:** SECURITY.md pool RPC section; APPLY.md Security Advisor note.
+- **RN:** Fix `typecheck:mobile` — `useT()` destructuring, GoalsModal carousel ref, dynamic `expo-notifications` import, `HomeScreen` bug-report attachment import.
 - **Tests:** Schema RLS test asserts anon revoke on both pool RPCs; **353** unit tests total.
 
 ### v1.117.0 - 2026-06-21 - Achievements & progressive logging unlock
