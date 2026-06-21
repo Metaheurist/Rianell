@@ -300,8 +300,8 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
     setScreeningKind(kind);
     setScreeningPhase('initial');
     setResponses(initial);
-    setInitialResponses({});
-    setMergedResponses({});
+    setInitialResponses({} as Record<string, number>);
+    setMergedResponses({} as Record<string, number>);
     setScreeningFullInstrument(false);
     setShowResult(false);
     setScreeningOpen(true);
@@ -331,7 +331,7 @@ export function MoodScreen({ prefs }: { prefs: Preferences }) {
         screeningKind === 'phq2'
           ? mergePhq9Responses(initialResponses, responses)
           : mergeGad7Responses(initialResponses, responses);
-      setMergedResponses(merged);
+      setMergedResponses(merged as Record<string, number>);
       setScreeningFullInstrument(true);
     }
     setScreeningPhase('result');
