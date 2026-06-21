@@ -34,14 +34,15 @@ test('PWA gates runAppInit behind privacy gate', () => {
   assert.match(appJs, /__rianellRunAppInit/);
 });
 
-test('PWA index.html includes region gate overlay', () => {
+test('PWA index.html includes region gate and first-run wizard overlays', () => {
   const html = readFileSync('apps/pwa-webapp/index.html', 'utf8');
   assert.match(html, /privacyRegionGateOverlay/);
+  assert.match(html, /firstRunWizardOverlay/);
   assert.match(html, /privacyRegionSettingsPane/);
 });
 
-test('RN App blocks navigator until region configured', () => {
+test('RN App blocks navigator until first-run wizard complete', () => {
   const app = readFileSync('apps/rn-app/App.tsx', 'utf8');
-  assert.match(app, /isPrivacyRegionConfigured/);
-  assert.match(app, /RegionGateScreen/);
+  assert.match(app, /isFirstRunWizardComplete/);
+  assert.match(app, /FirstRunWizard/);
 });

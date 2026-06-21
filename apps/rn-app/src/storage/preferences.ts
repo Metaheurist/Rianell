@@ -54,6 +54,7 @@ export type Preferences = {
   trackingProfile: TrackingProfile;
   tutorialSeen: boolean;
   replayTutorial: boolean;
+  firstRunWizardCompletedAt: string | null;
   simpleMode: boolean;
   dateFormat: DateFormatPref;
   firstDayOfWeek: number;
@@ -175,6 +176,7 @@ export function getDefaultPreferences(): Preferences {
     trackingProfile: normalizeTrackingProfile(null),
     tutorialSeen: false,
     replayTutorial: false,
+    firstRunWizardCompletedAt: null,
     simpleMode: false,
     dateFormat: 'locale',
     firstDayOfWeek: 1,
@@ -303,6 +305,8 @@ export async function loadPreferences(): Promise<Preferences> {
       trackingProfile: normalizeTrackingProfile(parsed.trackingProfile),
       tutorialSeen: parsed.tutorialSeen === true || tutorialFlag === '1',
       replayTutorial: parsed.replayTutorial === true,
+      firstRunWizardCompletedAt:
+        typeof parsed.firstRunWizardCompletedAt === 'string' ? parsed.firstRunWizardCompletedAt : d.firstRunWizardCompletedAt,
       simpleMode: parsed.simpleMode === true,
       dateFormat:
         parsed.dateFormat === 'DMY' || parsed.dateFormat === 'MDY' || parsed.dateFormat === 'YMD' || parsed.dateFormat === 'locale'

@@ -30,22 +30,30 @@ function killHeadless() {
 }
 
 async function clickThrough(page) {
-  const sels = [
-    '#perfBenchmarkContinueBtn',
-    '#privacyRegionGateConfirm',
-    '#healthDataConsentOverlay button.modal-save-btn:not(.modal-cancel-btn)',
-    '.cookie-banner-accept',
-    '#aiModelDownloadOverlay .modal-save-btn',
-  ];
-  for (const sel of sels) {
-    await page.evaluate((s) => {
-      const el = document.querySelector(s);
-      if (!el) return false;
-      const r = el.getBoundingClientRect();
-      if (r.width <= 0 || r.height <= 0) return false;
-      el.click();
-      return true;
-    }, sel).catch(() => false);
+  for (let i = 0; i < 8; i++) {
+    const clicked = await page.evaluate(() => {
+      const order = [
+        '#perfBenchmarkContinueBtn',
+        '#firstRunWizardContinueBtn',
+        '.tutorial-ai-skip',
+        '#tutorialFinishBtn',
+        '#privacyRegionGateConfirm',
+        '#healthDataConsentOverlay button.modal-save-btn:not(.modal-cancel-btn)',
+        '.cookie-banner-accept',
+        '#aiModelDownloadOverlay .modal-save-btn',
+      ];
+      for (const sel of order) {
+        const el = document.querySelector(sel);
+        if (!el) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width <= 0 || r.height <= 0) continue;
+        el.click();
+        return true;
+      }
+      return false;
+    }).catch(() => false);
+    if (!clicked) break;
+    await page.waitForTimeout(600);
   }
 }
 
@@ -65,6 +73,7 @@ async function runOnce() {
         localStorage.setItem('rianellEnableStaticSW', '0');
         localStorage.setItem('rianellCookieConsent', 'accepted');
         localStorage.setItem('rianellHealthDataConsent', 'accepted');
+        localStorage.setItem('rianellTutorialSeen', '1');
         localStorage.setItem('rianellSettings', JSON.stringify(Object.assign({
           privacyRegion: 'eea_uk',
           uiLocale: 'en-GB',
@@ -72,6 +81,8 @@ async function runOnce() {
           policyAcknowledgedVersion: 'v1.0.0',
           aiModelDownloadConsent: 'granted',
           preferredLlmModelSize: 'tier' + tier,
+          firstRunWizardCompletedAt: new Date().toISOString(),
+          tutorialSeen: true,
         }, extraSettings || {})));
         localStorage.setItem('rianellPerfBenchmark', JSON.stringify({
           version: 5,

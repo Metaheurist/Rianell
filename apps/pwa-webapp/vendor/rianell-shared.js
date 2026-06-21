@@ -34,6 +34,8 @@ var RianellShared = (() => {
     DEFAULT_PRIVACY_REGION: () => DEFAULT_PRIVACY_REGION,
     ENCRYPTED_EXPORT_FORMAT: () => ENCRYPTED_EXPORT_FORMAT,
     ENCRYPTED_EXPORT_KDF_ITERATIONS: () => ENCRYPTED_EXPORT_KDF_ITERATIONS,
+    FIRST_RUN_STEP_IDS: () => FIRST_RUN_STEP_IDS,
+    FIRST_RUN_STEP_META: () => FIRST_RUN_STEP_META,
     GAD2_QUESTIONS: () => GAD2_QUESTIONS,
     GOALS_STORAGE_KEY: () => GOALS_STORAGE_KEY,
     GOLDEN_LLM_INTENTS: () => GOLDEN_LLM_INTENTS,
@@ -83,6 +85,9 @@ var RianellShared = (() => {
     SETTINGS_STORAGE_KEY: () => SETTINGS_STORAGE_KEY,
     SHARE_LINK_FORMAT: () => SHARE_LINK_FORMAT,
     SHIPPED_LOCALES: () => SHIPPED_LOCALES,
+    SMARTLOOK_PROJECT_KEY: () => SMARTLOOK_PROJECT_KEY,
+    SMARTLOOK_REGION: () => SMARTLOOK_REGION,
+    SMARTLOOK_SDK_URL: () => SMARTLOOK_SDK_URL,
     SMART_REMINDER_GRACE_MINUTES: () => SMART_REMINDER_GRACE_MINUTES,
     SMART_REMINDER_MIN_SAMPLES: () => SMART_REMINDER_MIN_SAMPLES,
     SMART_REMINDER_WINDOW_DAYS: () => SMART_REMINDER_WINDOW_DAYS,
@@ -121,6 +126,7 @@ var RianellShared = (() => {
     buildExplainChartContext: () => buildExplainChartContext,
     buildExplainChartFallback: () => buildExplainChartFallback,
     buildExplainChartPrompt: () => buildExplainChartPrompt,
+    buildFirstRunPlan: () => buildFirstRunPlan,
     buildFlareRiskNotificationContent: () => buildFlareRiskNotificationContent,
     buildHomeQuestionContext: () => buildHomeQuestionContext,
     buildHomeQuestionFallback: () => buildHomeQuestionFallback,
@@ -162,6 +168,7 @@ var RianellShared = (() => {
     collectFlareCalendarEntries: () => collectFlareCalendarEntries,
     collectMedicationList: () => collectMedicationList,
     collectMoodReadings: () => collectMoodReadings,
+    completeFirstRunWizard: () => completeFirstRunWizard,
     completedCheckinPeriods: () => completedCheckinPeriods,
     computeFlareFreeDays: () => computeFlareFreeDays,
     computeGoodDayStreak: () => computeGoodDayStreak,
@@ -239,6 +246,7 @@ var RianellShared = (() => {
     isCloudSyncBlockedByMigration: () => isCloudSyncBlockedByMigration,
     isConfiguredVapidPublicKey: () => isConfiguredVapidPublicKey,
     isCustomMetricField: () => isCustomMetricField,
+    isFirstRunWizardComplete: () => isFirstRunWizardComplete,
     isGoodDayLog: () => isGoodDayLog,
     isLlmInferenceAllowed: () => isLlmInferenceAllowed,
     isLocalOnlyModeEnabled: () => isLocalOnlyModeEnabled,
@@ -272,6 +280,7 @@ var RianellShared = (() => {
     mergeHealthLogs: () => mergeHealthLogs,
     mergeHealthLogsWithConflictPolicy: () => mergeHealthLogsWithConflictPolicy,
     mergeLogEntriesForDate: () => mergeLogEntriesForDate,
+    migrateFirstRunWizardPrefs: () => migrateFirstRunWizardPrefs,
     minutesToHHMM: () => minutesToHHMM,
     moodQualitativeKey: () => moodQualitativeKey,
     needsDataResidencyMigration: () => needsDataResidencyMigration,
@@ -324,6 +333,7 @@ var RianellShared = (() => {
     readCustomMetricRadarValue: () => readCustomMetricRadarValue,
     readProcessingActivity: () => readProcessingActivity,
     readTextFileSync: () => readTextFileSync,
+    rebuildFirstRunPlanFromStep: () => rebuildFirstRunPlanFromStep,
     resolveActiveLocale: () => resolveActiveLocale,
     resolveAqiIconId: () => resolveAqiIconId,
     resolveAuthResidencyCode: () => resolveAuthResidencyCode,
@@ -334,6 +344,8 @@ var RianellShared = (() => {
     resolvePolicyPack: () => resolvePolicyPack,
     resolvePressureIconId: () => resolvePressureIconId,
     resolveSmartReminderTime: () => resolveSmartReminderTime,
+    resolveSmartlookProjectKey: () => resolveSmartlookProjectKey,
+    resolveSmartlookRegion: () => resolveSmartlookRegion,
     resolveTempIconId: () => resolveTempIconId,
     resolveWeatherIconTone: () => resolveWeatherIconTone,
     roundWeatherCoord: () => roundWeatherCoord,
@@ -351,6 +363,7 @@ var RianellShared = (() => {
     shouldLockChartRangeInPresentation: () => shouldLockChartRangeInPresentation,
     shouldShowAppointmentCard: () => shouldShowAppointmentCard,
     shouldShowWizardCategory: () => shouldShowWizardCategory,
+    shouldSkipFirstRunStep: () => shouldSkipFirstRunStep,
     stampLogEntryForCaregiver: () => stampLogEntryForCaregiver,
     stampLogSavedAtForSave: () => stampLogSavedAtForSave,
     suggestPrivacyRegionFromHint: () => suggestPrivacyRegionFromHint,
@@ -5271,6 +5284,113 @@ ${questionsBlock}
     if (n <= 5) return "mood.qualitative.moderate";
     if (n <= 7) return "mood.qualitative.okay";
     return "mood.qualitative.good";
+  }
+
+  // packages/shared/src/analytics/smartlookConfig.mjs
+  var SMARTLOOK_PROJECT_KEY = "c205987c47aef0b2da2a93569620b15a81bef013";
+  var SMARTLOOK_REGION = "eu";
+  var SMARTLOOK_SDK_URL = "https://web-sdk.smartlook.com/recorder.js";
+  function resolveSmartlookProjectKey(candidate) {
+    const key = typeof candidate === "string" ? candidate.trim() : "";
+    if (key && key !== "YOUR_SMARTLOOK_PROJECT_KEY") return key;
+    return SMARTLOOK_PROJECT_KEY;
+  }
+  function resolveSmartlookRegion(candidate) {
+    const region = typeof candidate === "string" ? candidate.trim() : "";
+    return region || SMARTLOOK_REGION;
+  }
+
+  // packages/shared/src/onboarding/firstRunSteps.mjs
+  var FIRST_RUN_STEP_IDS = [
+    "region",
+    "healthConsent",
+    "cookies",
+    "trackingProfile",
+    "tutorial",
+    "aiDownload",
+    "install"
+  ];
+  var FIRST_RUN_STEP_META = {
+    region: { titleKey: "onboarding.step.region" },
+    healthConsent: { titleKey: "onboarding.step.healthConsent" },
+    cookies: { titleKey: "onboarding.step.cookies" },
+    trackingProfile: { titleKey: "onboarding.step.trackingProfile" },
+    tutorial: { titleKey: "onboarding.step.tutorial" },
+    aiDownload: { titleKey: "onboarding.step.aiDownload" },
+    install: { titleKey: "onboarding.step.install" }
+  };
+  function shouldSkipFirstRunStep(stepId, prefs, ctx) {
+    const p = prefs && typeof prefs === "object" ? prefs : {};
+    const c = ctx && typeof ctx === "object" ? ctx : { platform: "pwa" };
+    switch (stepId) {
+      case "region":
+        return false;
+      case "healthConsent":
+        return p.privacyRegion !== "eea_uk" || p.healthDataConsent === true;
+      case "cookies":
+        if (p.cookieConsent === true) return true;
+        if (c.cookieConsentAccepted === true) return true;
+        return false;
+      case "trackingProfile":
+        return isTrackingProfileConfigured(p.trackingProfile);
+      case "tutorial":
+        return false;
+      case "aiDownload":
+        if (p.aiEnabled === false) return true;
+        if (p.aiModelDownloadConsent === "granted" || p.aiModelDownloadConsent === "deferred") return true;
+        return false;
+      case "install":
+        if (c.platform !== "pwa") return true;
+        if (c.installModalSeen === true) return true;
+        if (c.standalonePwa === true) return true;
+        return false;
+      default:
+        return true;
+    }
+  }
+
+  // packages/shared/src/onboarding/firstRunOrchestrator.mjs
+  function buildFirstRunPlan(prefs, ctx) {
+    return FIRST_RUN_STEP_IDS.filter((id) => !shouldSkipFirstRunStep(id, prefs, ctx)).map((id) => ({ id }));
+  }
+  function isFirstRunWizardComplete(prefs, ctx) {
+    const p = prefs && typeof prefs === "object" ? prefs : {};
+    const c = ctx && typeof ctx === "object" ? ctx : {};
+    if (typeof p.firstRunWizardCompletedAt === "string" && p.firstRunWizardCompletedAt.length > 0) {
+      return true;
+    }
+    const tutorialDone = p.tutorialSeen === true || c.tutorialSeenLegacy === true;
+    if (isPrivacyRegionConfigured(p) && tutorialDone) {
+      return true;
+    }
+    return false;
+  }
+  function migrateFirstRunWizardPrefs(prefs, ctx) {
+    const p = prefs && typeof prefs === "object" ? { ...prefs } : {};
+    if (p.firstRunWizardCompletedAt) return p;
+    if (!isFirstRunWizardComplete(p, ctx)) return p;
+    const migratedAt = typeof p.tutorialSeenAt === "string" && p.tutorialSeenAt || typeof p.policyAcknowledgedAt === "string" && p.policyAcknowledgedAt || (/* @__PURE__ */ new Date()).toISOString();
+    return {
+      ...p,
+      firstRunWizardCompletedAt: migratedAt,
+      tutorialSeen: p.tutorialSeen !== false
+    };
+  }
+  function completeFirstRunWizard(prefs) {
+    const p = prefs && typeof prefs === "object" ? { ...prefs } : {};
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    return {
+      ...p,
+      firstRunWizardCompletedAt: now,
+      tutorialSeen: true
+    };
+  }
+  function rebuildFirstRunPlanFromStep(prefs, ctx, currentStepId) {
+    const plan = buildFirstRunPlan(prefs, ctx);
+    if (!currentStepId) return plan;
+    const idx = plan.findIndex((s) => s.id === currentStepId);
+    if (idx < 0) return plan;
+    return plan.slice(idx);
   }
 
   // packages/shared/src/index.mjs

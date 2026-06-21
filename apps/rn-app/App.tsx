@@ -2,7 +2,12 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { AppState, I18nManager } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
-import { isRtlLocale, isTrackingProfileConfigured, resolveActiveLocale } from '@rianell/shared';
+import {
+  isRtlLocale,
+  isFirstRunWizardComplete,
+  migrateFirstRunWizardPrefs,
+  resolveActiveLocale,
+} from '@rianell/shared';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { syncEngagementNotifications } from './src/notifications/smartReminderSync';
@@ -20,17 +25,25 @@ import { ToastProvider } from './src/components/ui';
 import { refreshDemoModeLogsOnLaunch } from './src/demo/demoMode';
 import { installBugReportConsoleCapture } from './src/utils/bugReportLogs';
 import { flushOfflineQueue } from './src/storage/offlineQueue';
-import { RegionGateScreen } from './src/screens/RegionGateScreen';
-import { isPrivacyRegionConfigured } from './src/privacy/helpers';
 import { fetchPrivacyProfileAndApply, upsertPrivacyProfile } from './src/cloud/privacyProfile';
 import { syncToCloud } from './src/cloud/sync';
 import { getSupabaseClient } from './src/cloud/supabaseClient';
 import { TutorialModal } from './src/components/TutorialModal';
-import { TrackingProfileWizard } from './src/components/TrackingProfileWizard';
+import { FirstRunWizard } from './src/components/FirstRunWizard';
 import { markTutorialSeen } from './src/storage/preferences';
 import { AppLockGate } from './src/components/AppLockGate';
 import { I18nProvider } from './src/i18n/I18nProvider';
 import { applySessionRecording } from './src/analytics/sessionRecording';
+
+function firstRunPlatformContext(prefs: Preferences) {
+  return {
+    platform: 'rn' as const,
+    cookieConsentAccepted: prefs.cookieConsent === true,
+    installModalSeen: true,
+    standalonePwa: false,
+    tutorialSeenLegacy: prefs.tutorialSeen,
+  };
+}
 
 export default function App() {
   const [prefs, setPrefs] = useState<Preferences | null>(null);
@@ -57,7 +70,15 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    loadPreferences().then(setPrefs).catch(() => setPrefs(getDefaultPreferences()));
+    loadPreferences().then((loaded) => {
+      const ctx = firstRunPlatformContext(loaded);
+      const migrated = migrateFirstRunWizardPrefs(loaded, ctx) as Preferences;
+      if (migrated.firstRunWizardCompletedAt && migrated.firstRunWizardCompletedAt !== loaded.firstRunWizardCompletedAt) {
+        void savePreferences(migrated).then(() => setPrefs(migrated));
+      } else {
+        setPrefs(migrated);
+      }
+    }).catch(() => setPrefs(getDefaultPreferences()));
   }, []);
 
   useEffect(() => {
@@ -140,25 +161,18 @@ export default function App() {
 
   if (!prefs) return <BootLoadingScreen team={bootTeam} />;
 
-  if (!isPrivacyRegionConfigured(prefs)) {
+  const firstRunCtx = firstRunPlatformContext(prefs);
+  const wizardComplete = isFirstRunWizardComplete(prefs, firstRunCtx);
+
+  if (!wizardComplete) {
     return (
       <SafeAreaProvider>
         <ThemeProvider prefs={prefs}>
           <I18nProvider prefs={prefs} onLocaleChange={setPrefs}>
-            <RegionGateScreen
+            <FirstRunWizard
               prefs={prefs}
-              onConfirm={(next) => {
+              onComplete={(next) => {
                 setPrefs(next);
-                if (next.privacyRegion === 'eea_uk' && !next.healthDataConsent) {
-                  const withConsent = {
-                    ...next,
-                    healthDataConsent: true,
-                    healthDataConsentAt: new Date().toISOString(),
-                  };
-                  setPrefs(withConsent);
-                  void upsertPrivacyProfile(withConsent);
-                  return;
-                }
                 void upsertPrivacyProfile(next);
               }}
             />
@@ -174,7 +188,12 @@ export default function App() {
       <ThemeProvider prefs={prefs}>
         <I18nProvider prefs={prefs} onLocaleChange={setPrefs}>
           <ToastProvider>
-            {!prefs.tutorialSeen ? (
+            <AiModelDownloadGate prefs={prefs} onChangePrefs={setPrefs}>
+              <AppLockGate enabled={prefs.appLockEnabled}>
+                <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
+              </AppLockGate>
+            </AiModelDownloadGate>
+            {prefs.replayTutorial ? (
               <TutorialModal
                 prefs={prefs}
                 visible
@@ -183,37 +202,7 @@ export default function App() {
                   void markTutorialSeen({ ...prefs, replayTutorial: false }).then(setPrefs);
                 }}
               />
-            ) : !isTrackingProfileConfigured(prefs.trackingProfile) ? (
-              <TrackingProfileWizard
-                prefs={prefs}
-                visible
-                onComplete={(profile, medicalCondition) => {
-                  setPrefs({
-                    ...prefs,
-                    trackingProfile: profile,
-                    medicalCondition: medicalCondition || prefs.medicalCondition,
-                  });
-                }}
-              />
-            ) : (
-              <>
-                <AiModelDownloadGate prefs={prefs} onChangePrefs={setPrefs}>
-                  <AppLockGate enabled={prefs.appLockEnabled}>
-                    <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
-                  </AppLockGate>
-                </AiModelDownloadGate>
-                {prefs.replayTutorial ? (
-                  <TutorialModal
-                    prefs={prefs}
-                    visible
-                    onSetAiEnabled={(enabled) => setPrefs({ ...prefs, aiEnabled: enabled })}
-                    onFinish={() => {
-                      void markTutorialSeen({ ...prefs, replayTutorial: false }).then(setPrefs);
-                    }}
-                  />
-                ) : null}
-              </>
-            )}
+            ) : null}
           </ToastProvider>
         </I18nProvider>
         <StatusBar style="auto" />
