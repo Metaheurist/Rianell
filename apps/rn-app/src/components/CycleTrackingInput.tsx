@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Svg, { Circle, Path } from 'react-native-svg';
 import {
   CYCLE_DAY_MAX,
   CYCLE_FLOW_LEVELS,
@@ -18,14 +19,61 @@ export type CycleTrackingValue = {
 type Props = {
   value: CycleTrackingValue;
   onChange: (next: CycleTrackingValue) => void;
+  suggestHint?: string | null;
 };
 
-const PHASE_ICON: Record<string, string> = {
-  menstrual: '🩸',
-  follicular: '🌱',
-  ovulation: '✨',
-  luteal: '🌙',
+const PHASE_TONE: Record<string, string> = {
+  menstrual: '#e91e63',
+  follicular: '#66bb6a',
+  ovulation: '#ffc107',
+  luteal: '#ab47bc',
 };
+
+function CyclePhaseIcon({ phaseId, color }: { phaseId: string; color: string }) {
+  const props = { stroke: color, fill: 'none', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+  switch (phaseId) {
+    case 'menstrual':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24" accessibilityElementsHidden>
+          <Path
+            {...props}
+            d="M12 4.5c-3.2 0-5.8 2.4-5.8 5.4 0 2.2 1.3 4.1 3.2 5v5.1h5.2v-5.1c1.9-.9 3.2-2.8 3.2-5 0-3-2.6-5.4-5.8-5.4Z"
+          />
+        </Svg>
+      );
+    case 'follicular':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24" accessibilityElementsHidden>
+          <Path {...props} d="M12 20V8.5M12 8.5C10.2 8.5 8.8 7 8.8 5.2S10.2 1.8 12 1.8 15.2 3.4 15.2 5.2 13.8 8.5 12 8.5Z" />
+          <Path {...props} d="M9.5 14.5c.8 1.6 2.2 2.5 2.5 2.5s1.7-.9 2.5-2.5" />
+        </Svg>
+      );
+    case 'ovulation':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24" accessibilityElementsHidden>
+          <Circle cx={12} cy={12} r={3.6} stroke={color} fill="none" strokeWidth={1.8} />
+          <Path
+            stroke={color}
+            fill="none"
+            strokeWidth={1.6}
+            strokeLinecap="round"
+            d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"
+          />
+        </Svg>
+      );
+    case 'luteal':
+      return (
+        <Svg width={24} height={24} viewBox="0 0 24 24" accessibilityElementsHidden>
+          <Path
+            {...props}
+            d="M19 14.5A7.5 7.5 0 0 1 8.6 8.6 6.5 6.5 0 1 0 19 14.5Z"
+          />
+        </Svg>
+      );
+    default:
+      return null;
+  }
+}
 
 function FlowDrops({ count, accent }: { count: number; accent: string }) {
   return (
@@ -43,7 +91,7 @@ function FlowDrops({ count, accent }: { count: number; accent: string }) {
   );
 }
 
-export function CycleTrackingInput({ value, onChange }: Props) {
+export function CycleTrackingInput({ value, onChange, suggestHint }: Props) {
   const theme = useTheme();
   const { t } = useT();
   const phaseManualRef = useRef(false);
@@ -91,6 +139,11 @@ export function CycleTrackingInput({ value, onChange }: Props) {
       <Text style={[styles.lead, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
         {t('wizard.cycle.lead')}
       </Text>
+      {suggestHint ? (
+        <Text style={[styles.suggestHint, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
+          {suggestHint}
+        </Text>
+      ) : null}
 
       <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
         {t('wizard.cycle.day')}
@@ -129,6 +182,7 @@ export function CycleTrackingInput({ value, onChange }: Props) {
       <View style={styles.phaseGrid}>
         {CYCLE_PHASES.map((phase) => {
           const selected = value.cyclePhase === phase.id;
+          const toneColor = PHASE_TONE[phase.tone] || theme.tokens.color.accent;
           return (
             <Pressable
               key={phase.id}
@@ -137,10 +191,13 @@ export function CycleTrackingInput({ value, onChange }: Props) {
               onPress={() => selectPhase(phase.id)}
               style={[
                 styles.phaseTile,
+                { borderColor: `${toneColor}66` },
                 selected ? { borderColor: theme.tokens.color.accent, backgroundColor: `${theme.tokens.color.accent}22` } : null,
               ]}
             >
-              <Text style={styles.phaseIcon}>{PHASE_ICON[phase.id] || '•'}</Text>
+              <View style={styles.phaseIconWrap}>
+                <CyclePhaseIcon phaseId={phase.id} color={toneColor} />
+              </View>
               <Text style={[styles.phaseLabel, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
                 {t(phase.i18n)}
               </Text>
@@ -195,6 +252,7 @@ const styles = StyleSheet.create({
   },
   title: { fontWeight: '700' },
   lead: { opacity: 0.82, marginBottom: 6 },
+  suggestHint: { opacity: 0.72, fontStyle: 'italic', marginBottom: 6 },
   label: { fontWeight: '600', marginBottom: 6 },
   hint: { opacity: 0.75, marginTop: 2 },
   dayRow: { gap: 6, paddingVertical: 4 },
@@ -225,7 +283,7 @@ const styles = StyleSheet.create({
     padding: 8,
     backgroundColor: 'rgba(255,255,255,0.06)',
   },
-  phaseIcon: { fontSize: 20, marginBottom: 4 },
+  phaseIconWrap: { marginBottom: 4, alignItems: 'center', justifyContent: 'center' },
   phaseLabel: { textAlign: 'center', fontWeight: '600' },
   flowRow: { flexDirection: 'row', gap: 8 },
   flowBtn: {

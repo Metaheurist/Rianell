@@ -3,10 +3,10 @@
 
   var S = global.RianellShared || {};
   var PHASES = S.CYCLE_PHASES || [
-    { id: 'menstrual', i18n: 'wizard.cycle.phase.menstrual', tone: 'menstrual' },
-    { id: 'follicular', i18n: 'wizard.cycle.phase.follicular', tone: 'follicular' },
-    { id: 'ovulation', i18n: 'wizard.cycle.phase.ovulation', tone: 'ovulation' },
-    { id: 'luteal', i18n: 'wizard.cycle.phase.luteal', tone: 'luteal' },
+    { id: 'menstrual', i18n: 'wizard.cycle.phase.menstrual', tone: 'menstrual', icon: 'cycle-menstrual' },
+    { id: 'follicular', i18n: 'wizard.cycle.phase.follicular', tone: 'follicular', icon: 'cycle-follicular' },
+    { id: 'ovulation', i18n: 'wizard.cycle.phase.ovulation', tone: 'ovulation', icon: 'cycle-ovulation' },
+    { id: 'luteal', i18n: 'wizard.cycle.phase.luteal', tone: 'luteal', icon: 'cycle-luteal' },
   ];
   var FLOWS = S.CYCLE_FLOW_LEVELS || [
     { id: 'none', i18n: 'wizard.cycle.flow.none', drops: 0 },
@@ -23,15 +23,23 @@
     if (n <= 16) return 'ovulation';
     return 'luteal';
   };
+  var suggestForDate = S.suggestCycleForDate || null;
 
   var phaseManual = false;
   var built = false;
+  var scrollBound = false;
+  var suggestionAppliedForDate = '';
+  var autoFilled = false;
 
   function t(key, params) {
-    if (global.RianellI18n && typeof global.RianellI18n.t === 'function') {
-      return global.RianellI18n.t(key, params);
+    if (typeof global.tUi === 'function') {
+      var ui = global.tUi(key, params);
+      if (ui && ui !== key) return ui;
     }
-    if (typeof global.tUi === 'function') return global.tUi(key, params);
+    if (global.RianellI18n && typeof global.RianellI18n.t === 'function') {
+      var v = global.RianellI18n.t(key, params);
+      if (v && v !== key) return v;
+    }
     return key;
   }
 
@@ -59,6 +67,12 @@
     if (flowEl) flowEl.value = flow || '';
   }
 
+  function phaseSvg(name, className) {
+    var safe = String(name || '').replace(/[^a-z0-9-]/gi, '');
+    var cls = className || 'cycle-phase-icon-svg ui-svg-icon';
+    return '<svg class="' + cls + '" aria-hidden="true"><use href="#icon-' + safe + '"></use></svg>';
+  }
+
   function updateReadout() {
     var readout = document.getElementById('logCycleDayReadout');
     if (!readout) return;
@@ -67,7 +81,33 @@
       readout.textContent = '';
       return;
     }
-    readout.textContent = t('wizard.cycle.dayHint', { day: vals.day });
+    var hint = t('wizard.cycle.dayHint', { day: vals.day });
+    if (vals.phase && !phaseManual) {
+      var phaseMeta = PHASES.find(function (p) { return p.id === vals.phase; });
+      if (phaseMeta) {
+        hint += ' · ' + t('wizard.cycle.suggestedPhase', { phase: t(phaseMeta.i18n) });
+      }
+    }
+    readout.textContent = hint;
+  }
+
+  function refreshLabels() {
+    document.querySelectorAll('#logCyclePhaseGrid [data-i18n]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n');
+      if (key) el.textContent = t(key);
+    });
+    document.querySelectorAll('#logCycleFlowRow [data-i18n]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n');
+      if (key) el.textContent = t(key);
+    });
+    var suggestEl = document.getElementById('logCycleSuggestHint');
+    if (suggestEl && suggestEl.dataset.suggestKey) {
+      suggestEl.textContent = t(suggestEl.dataset.suggestKey, {
+        day: suggestEl.dataset.suggestDay || '',
+        phase: suggestEl.dataset.suggestPhaseLabel || '',
+      });
+    }
+    updateReadout();
   }
 
   function refreshActiveStates() {
@@ -78,6 +118,13 @@
         var active = btn.getAttribute('data-day') === vals.day;
         btn.classList.toggle('cycle-day-pill--active', active);
         btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        if (active) {
+          try {
+            btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+          } catch (e) {
+            btn.scrollIntoView(true);
+          }
+        }
       });
     }
     var phaseGrid = document.getElementById('logCyclePhaseGrid');
@@ -100,6 +147,7 @@
   }
 
   function selectDay(day) {
+    autoFilled = false;
     var vals = syncHidden();
     var nextDay = vals.day === String(day) ? '' : String(day);
     var nextPhase = vals.phase;
@@ -112,6 +160,7 @@
   }
 
   function selectPhase(phaseId) {
+    autoFilled = false;
     var vals = syncHidden();
     var next = vals.phase === phaseId ? '' : phaseId;
     phaseManual = !!next;
@@ -120,6 +169,7 @@
   }
 
   function selectFlow(flowId) {
+    autoFilled = false;
     var vals = syncHidden();
     var next = vals.flow === flowId ? '' : flowId;
     setHidden(vals.day, vals.phase, next);
@@ -128,16 +178,15 @@
 
   function clearCycleTracking() {
     phaseManual = false;
+    autoFilled = false;
+    suggestionAppliedForDate = '';
     setHidden('', '', '');
+    var suggestEl = document.getElementById('logCycleSuggestHint');
+    if (suggestEl) {
+      suggestEl.textContent = '';
+      suggestEl.hidden = true;
+    }
     refreshActiveStates();
-  }
-
-  function phaseIcon(id) {
-    if (id === 'menstrual') return '\u{1FA78}';
-    if (id === 'follicular') return '\u{1F331}';
-    if (id === 'ovulation') return '\u2728';
-    if (id === 'luteal') return '\u{1F319}';
-    return '\u2022';
   }
 
   function buildFlowDrops(count) {
@@ -152,8 +201,46 @@
     return wrap;
   }
 
+  function initHorizontalScroll(el) {
+    if (!el || scrollBound) return;
+    scrollBound = true;
+    var dragging = false;
+    var startX = 0;
+    var startScroll = 0;
+
+    el.addEventListener(
+      'wheel',
+      function (e) {
+        if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+        el.scrollLeft += e.deltaY;
+        e.preventDefault();
+      },
+      { passive: false },
+    );
+
+    el.addEventListener('mousedown', function (e) {
+      if (e.button !== 0) return;
+      dragging = true;
+      startX = e.pageX;
+      startScroll = el.scrollLeft;
+      el.classList.add('cycle-day-scroll--dragging');
+    });
+    global.addEventListener('mouseup', function () {
+      if (!dragging) return;
+      dragging = false;
+      el.classList.remove('cycle-day-scroll--dragging');
+    });
+    global.addEventListener('mousemove', function (e) {
+      if (!dragging) return;
+      el.scrollLeft = startScroll - (e.pageX - startX);
+    });
+  }
+
   function buildUi() {
-    if (built) return;
+    if (built) {
+      refreshLabels();
+      return;
+    }
     built = true;
 
     var dayScroll = document.getElementById('logCycleDayScroll');
@@ -172,6 +259,7 @@
         });
         dayScroll.appendChild(pill);
       }
+      initHorizontalScroll(dayScroll);
     }
 
     var phaseGrid = document.getElementById('logCyclePhaseGrid');
@@ -182,9 +270,15 @@
         tile.className = 'cycle-phase-tile cycle-phase-tile--' + phase.tone;
         tile.setAttribute('data-phase', phase.id);
         tile.setAttribute('aria-pressed', 'false');
-        tile.innerHTML =
-          '<span class="cycle-phase-icon" aria-hidden="true">' + phaseIcon(phase.id) + '</span>' +
-          '<span class="cycle-phase-label">' + t(phase.i18n) + '</span>';
+        var iconWrap = document.createElement('span');
+        iconWrap.className = 'cycle-phase-icon';
+        iconWrap.innerHTML = phaseSvg(phase.icon || 'cycle-menstrual');
+        tile.appendChild(iconWrap);
+        var label = document.createElement('span');
+        label.className = 'cycle-phase-label';
+        label.setAttribute('data-i18n', phase.i18n);
+        label.textContent = t(phase.i18n);
+        tile.appendChild(label);
         tile.addEventListener('click', function () {
           selectPhase(phase.id);
         });
@@ -203,6 +297,7 @@
         btn.appendChild(buildFlowDrops(flow.drops));
         var label = document.createElement('span');
         label.className = 'cycle-flow-label';
+        label.setAttribute('data-i18n', flow.i18n);
         label.textContent = t(flow.i18n);
         btn.appendChild(label);
         btn.addEventListener('click', function () {
@@ -213,13 +308,61 @@
     }
 
     var clearBtn = document.getElementById('logCycleClear');
-    if (clearBtn) clearBtn.addEventListener('click', clearCycleTracking);
+    if (clearBtn && !clearBtn.dataset.bound) {
+      clearBtn.dataset.bound = '1';
+      clearBtn.addEventListener('click', clearCycleTracking);
+    }
 
+    if (!global.__rianellCycleLocaleHook && global.RianellI18n && typeof global.RianellI18n.onLocaleChange === 'function') {
+      global.RianellI18n.onLocaleChange(function () {
+        refreshLabels();
+        refreshActiveStates();
+      });
+      global.__rianellCycleLocaleHook = true;
+    }
+
+    refreshLabels();
+    refreshActiveStates();
+  }
+
+  function applySuggestionFromLogs(logs, targetDateIso) {
+    if (!suggestForDate || typeof targetDateIso !== 'string' || !targetDateIso) return;
+    var vals = syncHidden();
+    if (targetDateIso !== suggestionAppliedForDate && autoFilled && !phaseManual) {
+      setHidden('', '', '');
+      vals = syncHidden();
+      autoFilled = false;
+      suggestionAppliedForDate = '';
+      var suggestElReset = document.getElementById('logCycleSuggestHint');
+      if (suggestElReset) {
+        suggestElReset.textContent = '';
+        suggestElReset.hidden = true;
+      }
+    }
+    if (vals.day || vals.phase || vals.flow) return;
+    if (suggestionAppliedForDate === targetDateIso) return;
+    var suggestion = suggestForDate(logs, targetDateIso);
+    if (!suggestion || !suggestion.cycleDay) return;
+    phaseManual = false;
+    autoFilled = true;
+    setHidden(String(suggestion.cycleDay), suggestion.phase || suggestPhase(suggestion.cycleDay) || '', '');
+    suggestionAppliedForDate = targetDateIso;
+    var suggestEl = document.getElementById('logCycleSuggestHint');
+    if (suggestEl) {
+      var phaseMeta = PHASES.find(function (p) { return p.id === suggestion.phase; });
+      var phaseLabel = phaseMeta ? t(phaseMeta.i18n) : '';
+      suggestEl.dataset.suggestKey = 'wizard.cycle.suggestedFromLast';
+      suggestEl.dataset.suggestDay = String(suggestion.cycleDay);
+      suggestEl.dataset.suggestPhaseLabel = phaseLabel;
+      suggestEl.textContent = t('wizard.cycle.suggestedFromLast', { day: suggestion.cycleDay, phase: phaseLabel });
+      suggestEl.hidden = false;
+    }
     refreshActiveStates();
   }
 
   function bindCycleTrackingUi() {
     buildUi();
+    refreshLabels();
     refreshActiveStates();
   }
 
@@ -227,11 +370,7 @@
     bind: bindCycleTrackingUi,
     clear: clearCycleTracking,
     refresh: refreshActiveStates,
+    refreshLabels: refreshLabels,
+    applySuggestionFromLogs: applySuggestionFromLogs,
   };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindCycleTrackingUi);
-  } else {
-    bindCycleTrackingUi();
-  }
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -418,6 +418,13 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Web/Capacitor:** notification behaviour includes reminder controls tied to runtime delivery paths.
 - **React Native:** Settings now includes notification preference controls (enable, reminder time, sound) plus permission status/request baseline. Full OS scheduling/channel parity remains open.
 
+### v1.119.0 parity note (Cycle tracking UX & Home cards)
+
+- **Cycle tracking:** PWA + RN log wizard step 1 — SVG phase icons, hidden-scrollbar day row, `suggestCycleForDate` from shared package; tutorial slide 8 (cycle enable) on both platforms.
+- **Home:** Recent patterns icon + white text; Weekly review **Enable AI** vs **Start review** based on LLM ready state.
+- **Mood tab (PWA):** Responsive sparkline in metrics grid (mobile overflow fix).
+- **Logging modules:** Settings UI shows cycle toggle only; barcode/voice hidden until feature ships.
+
 ### v1.118.0 parity note (Onboarding UX & Smartlook default-on)
 
 - **First-run wizard:** PWA + RN share `buildFirstRunPlan` — session recording disclosure step after cookies; tracking profile deferred to Settings.
@@ -451,7 +458,7 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Home:** Merged hero streak nudge; pacing widget card removed (Charts C9 series may still exist).
 - **Charts:** Insights panel removed on both platforms.
 - **Screening:** PHQ-2/GAD-2 slider UX aligned PWA/RN.
-- **Logging modules:** Cycle wizard fields both platforms; **barcode food** and **guided voice extraction** wizard UI **RN only** today (PWA toggles without wizard hooks).
+- **Logging modules:** Cycle wizard fields both platforms when enabled; **barcode food** and **guided voice extraction** deferred (Settings toggles removed).
 
 ### v1.113.0 parity note (Mood tab and Home UX)
 

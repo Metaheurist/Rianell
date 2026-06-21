@@ -1873,10 +1873,25 @@ body.light-mode #logTab.log-wizard-mode .section-header {
   display: flex;
   gap: 6px;
   overflow-x: auto;
+  overflow-y: hidden;
   padding: 4px 2px 8px;
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  cursor: grab;
+  touch-action: pan-x;
+}
+
+.cycle-day-scroll::-webkit-scrollbar {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
+.cycle-day-scroll--dragging {
+  cursor: grabbing;
+  user-select: none;
 }
 
 .cycle-day-pill {
@@ -1946,8 +1961,31 @@ body.light-mode #logTab.log-wizard-mode .section-header {
 }
 
 .cycle-phase-icon {
-  font-size: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
   line-height: 1;
+}
+
+.cycle-phase-icon-svg {
+  width: 1.55rem;
+  height: 1.55rem;
+  color: var(--cycle-phase-icon, currentColor);
+}
+
+.cycle-phase-tile--menstrual .cycle-phase-icon-svg { color: var(--cycle-tone-menstrual, #e91e63); }
+.cycle-phase-tile--follicular .cycle-phase-icon-svg { color: var(--cycle-tone-follicular, #66bb6a); }
+.cycle-phase-tile--ovulation .cycle-phase-icon-svg { color: var(--cycle-tone-ovulation, #ffc107); }
+.cycle-phase-tile--luteal .cycle-phase-icon-svg { color: var(--cycle-tone-luteal, #ab47bc); }
+
+.cycle-suggest-hint {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: rgba(224, 242, 241, 0.72);
+  font-style: italic;
 }
 
 .cycle-phase-label {
@@ -16644,7 +16682,40 @@ body.log-wizard-active .header-buttons-wrap {
   margin: 0;
   line-height: 1.45;
   font-size: 0.92rem;
-  color: var(--text-secondary, var(--text-primary));
+  color: var(--text-primary);
+}
+
+.home-inset-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.home-inset-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 28%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  color: var(--primary-color);
+}
+
+.home-inset-icon .ui-svg-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.home-inset-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-inset-copy .home-inset-title {
+  padding-inline-end: 1.75rem;
 }
 
 .home-inset-actions {
@@ -16673,19 +16744,22 @@ body.log-wizard-active .header-buttons-wrap {
   gap: 0.65rem;
 }
 
-.home-weekly-review-icon {
+.home-weekly-review-icon,
+.home-inset-head .home-inset-icon {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--primary-color) 16%, rgba(0, 0, 0, 0.35));
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 28%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
   color: var(--primary-color);
 }
 
-.home-weekly-review-icon .ui-svg-icon {
+.home-weekly-review-icon .ui-svg-icon,
+.home-inset-head .home-inset-icon .ui-svg-icon {
   width: 1.25rem;
   height: 1.25rem;
 }
@@ -16693,6 +16767,10 @@ body.log-wizard-active .header-buttons-wrap {
 .home-weekly-review-copy {
   flex: 1;
   min-width: 0;
+}
+
+.home-weekly-review-copy .home-inset-title {
+  padding-inline-end: 1.75rem;
 }
 
 .weekly-review-btn-icon {
@@ -17198,9 +17276,14 @@ body.privacy-gate-active #cookieBanner {
 }
 .mood-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 1.25rem;
+}
+@media (min-width: 640px) {
+  .mood-metrics-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 .mood-metric-card {
   background: var(--card-bg-glass);
@@ -17211,6 +17294,8 @@ body.privacy-gate-active #cookieBanner {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  min-width: 0;
+  overflow: hidden;
 }
 .mood-metric-label {
   font-size: 0.78rem;
@@ -17234,9 +17319,19 @@ body.privacy-gate-active #cookieBanner {
   opacity: 0.8;
   line-height: 1.35;
 }
-.mood-sparkline {
-  color: var(--accent-primary, #4caf50);
+.mood-sparkline-wrap {
+  width: 100%;
+  max-width: 100%;
   margin-top: 0.25rem;
+  overflow: hidden;
+}
+
+.mood-sparkline {
+  display: block;
+  width: 100%;
+  height: 2.75rem;
+  max-width: 100%;
+  color: var(--accent-primary, #4caf50);
 }
 .mood-section-title {
   margin: 0 0 0.65rem;

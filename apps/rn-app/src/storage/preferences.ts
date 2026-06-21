@@ -477,8 +477,8 @@ export async function loadPreferences(): Promise<Preferences> {
       symptomTemplates: normalizeSymptomTemplates(parsed.symptomTemplates),
       medSchedule: normalizeMedSchedule(parsed.medSchedule),
       cycleModuleEnabled: parsed.cycleModuleEnabled === true,
-      barcodeFoodLoggingEnabled: parsed.barcodeFoodLoggingEnabled === true,
-      guidedVoiceLogEnabled: parsed.guidedVoiceLogEnabled === true,
+      barcodeFoodLoggingEnabled: false,
+      guidedVoiceLogEnabled: false,
       localOnlyMode: parsed.localOnlyMode === true,
       sessionRecording: parsed.sessionRecording === true,
       sessionRecordingAt:

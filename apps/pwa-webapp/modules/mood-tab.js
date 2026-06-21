@@ -72,14 +72,18 @@
     var max = 10;
     var w = 200;
     var h = 48;
-    var step = dailyAverages.length > 1 ? w / (dailyAverages.length - 1) : 0;
+    var padX = 4;
+    var padY = 4;
+    var innerW = w - padX * 2;
+    var step = dailyAverages.length > 1 ? innerW / (dailyAverages.length - 1) : 0;
     var pts = dailyAverages.map(function (d, i) {
-      var x = dailyAverages.length > 1 ? i * step : w / 2;
-      var y = h - (d.average / max) * (h - 8) - 4;
+      var x = dailyAverages.length > 1 ? padX + i * step : w / 2;
+      var y = h - padY - (d.average / max) * (h - padY * 2);
       return x.toFixed(1) + ',' + y.toFixed(1);
     }).join(' ');
-    return '<svg class="mood-sparkline" viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '" aria-hidden="true">' +
-      '<polyline fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="' + pts + '"/></svg>';
+    return '<div class="mood-sparkline-wrap" aria-hidden="true">' +
+      '<svg class="mood-sparkline" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' +
+      '<polyline fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="' + pts + '"/></svg></div>';
   }
 
   function renderMoodCheckinSection(todayStr, simpleMode) {

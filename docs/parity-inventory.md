@@ -32,8 +32,8 @@ Generated: 2026-06-21T21:30:02.605Z
 | symptomTemplates | yes | yes |
 | medSchedule | yes | yes |
 | cycleModuleEnabled | yes | yes |
-| barcodeFoodLoggingEnabled | yes | yes |
-| guidedVoiceLogEnabled | yes | yes |
+| barcodeFoodLoggingEnabled | deferred (hidden) | deferred (hidden) |
+| guidedVoiceLogEnabled | deferred (hidden) | deferred (hidden) |
 | localOnlyMode | yes | yes |
 | appLockEnabled | yes | yes |
 | processingActivityLog | yes | yes |

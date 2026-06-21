@@ -1014,6 +1014,10 @@
     <symbol id="icon-checkin-midday" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
     <symbol id="icon-learn" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M8 7h8"/></symbol>
     <symbol id="icon-checkin-pm" viewBox="0 0 24 24"><path d="M20 14.5A7.5 7.5 0 0 1 8.6 8.6 6.5 6.5 0 1 0 20 14.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-cycle-menstrual" viewBox="0 0 24 24"><path d="M12 4.5c-3.2 0-5.8 2.4-5.8 5.4 0 2.2 1.3 4.1 3.2 5v5.1h5.2v-5.1c1.9-.9 3.2-2.8 3.2-5 0-3-2.6-5.4-5.8-5.4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-cycle-follicular" viewBox="0 0 24 24"><path d="M12 20V8.5M12 8.5C10.2 8.5 8.8 7 8.8 5.2S10.2 1.8 12 1.8 15.2 3.4 15.2 5.2 13.8 8.5 12 8.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.5 14.5c.8 1.6 2.2 2.5 2.5 2.5s1.7-.9 2.5-2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="icon-cycle-ovulation" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="icon-cycle-luteal" viewBox="0 0 24 24"><path d="M19 14.5A7.5 7.5 0 0 1 8.6 8.6 6.5 6.5 0 1 0 19 14.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
     <symbol id="icon-weather-clear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></symbol>
     <symbol id="icon-weather-partly-cloudy" viewBox="0 0 24 24"><circle cx="8.5" cy="9" r="3"/><path d="M8.5 5.5V4M8.5 14v1.5M4.5 9H3M14 9h1.5M5.4 5.4 4.3 4.3M11.7 12.7l1.1 1.1M5.4 12.6 4.3 13.7M11.7 5.4 12.8 4.3"/><path d="M7 18h10.5a4 4 0 0 0 .3-8 5.5 5.5 0 0 0-10.5 1.8A4 4 0 0 0 7 18Z"/></symbol>
     <symbol id="icon-weather-cloudy" viewBox="0 0 24 24"><path d="M7 18h11a4 4 0 0 0 .3-8 6 6 0 0 0-11.3-1.9A5 5 0 0 0 7 18Z"/></symbol>
@@ -1457,14 +1461,6 @@
         <div class="settings-option">
           <label data-i18n="settings.logging.cycleModule">Cycle tracking module</label>
           <div class="toggle-switch" id="cycleModuleToggle" onclick="toggleSetting('cycleModuleEnabled')"></div>
-        </div>
-        <div class="settings-option">
-          <label data-i18n="settings.logging.barcodeFood">Barcode food logging</label>
-          <div class="toggle-switch" id="barcodeFoodToggle" onclick="toggleSetting('barcodeFoodLoggingEnabled')"></div>
-        </div>
-        <div class="settings-option">
-          <label data-i18n="settings.logging.guidedVoice">Guided voice log extraction</label>
-          <div class="toggle-switch" id="guidedVoiceToggle" onclick="toggleSetting('guidedVoiceLogEnabled')"></div>
         </div>
       </div>
       </div>
@@ -2002,6 +1998,7 @@
         <div class="cycle-track-panel">
           <p class="cycle-track-title" data-i18n="wizard.cycle.title">Cycle tracking</p>
           <p class="cycle-track-lead" data-i18n="wizard.cycle.lead">Tap where you are in your cycle today.</p>
+          <p class="cycle-suggest-hint" id="logCycleSuggestHint" hidden></p>
           <input type="hidden" id="logCycleDay" value="" />
           <input type="hidden" id="logCyclePhase" value="" />
           <input type="hidden" id="logCycleFlow" value="" />
@@ -3308,6 +3305,14 @@
         <div class="tutorial-slide" id="tutorialSlide1" data-slide="1">
           <p class="tutorial-text" data-i18n="tutorial.slide1.body">Track your health daily: log symptoms, food, exercise, pain areas, and more in one place.</p>
         </div>
+        <div class="tutorial-slide" id="tutorialSlide8" data-slide="8">
+          <p class="tutorial-text" data-i18n="tutorial.slide8.body">Optional cycle tracking on step 1 of the log wizard records cycle day, phase, and flow. Rianell can suggest your phase from your last entry and today&apos;s date.</p>
+          <div class="tutorial-toggle-option" style="margin-top: 12px;">
+            <label class="tutorial-toggle-label" data-i18n="tutorial.slide8.toggleLabel">Enable cycle tracking</label>
+            <div class="toggle-switch" id="tutorialCycleModuleToggle" onclick="toggleTutorialCycleModule()"></div>
+          </div>
+          <small class="tutorial-toggle-hint" data-i18n="tutorial.slide8.hint">You can change this anytime in Settings → Data options.</small>
+        </div>
         <div class="tutorial-slide" id="tutorialSlide2" data-slide="2" data-tutorial-ai-only="true">
           <p class="tutorial-text" data-i18n="tutorial.slide2.body"><strong  data-i18n="logs.title">View Logs</strong> shows your history. <strong>AI Analysis</strong> finds patterns and correlations across your data.</p>
         </div>
@@ -3905,9 +3910,9 @@
   </script>
   <script defer src="vendor/rianell-shared.js?v=6"></script>
   <script defer src="modules/app-lock.js?v=1"></script>
-  <script defer src="modules/cycle-tracking-ui.js?v=1"></script>
-  <script defer src="modules/weekly-review.js?v=5"></script>
-  <script defer src="modules/mood-tab.js?v=1"></script>
+  <script defer src="modules/cycle-tracking-ui.js?v=2"></script>
+  <script defer src="modules/weekly-review.js?v=6"></script>
+  <script defer src="modules/mood-tab.js?v=2"></script>
   <script defer src="i18n-pwa.js?v=3"></script>
   <script defer src="privacy-region.js?v=7"></script>
   <script defer src="first-run-wizard.js?v=1"></script>

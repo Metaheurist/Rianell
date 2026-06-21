@@ -1,18 +1,17 @@
 # Release Notes
 
-## Latest release (v1.118.0)
+## Latest release (v1.119.0)
 
 **Date:** 2026-06-21
 
 ### Highlights
 
-- **Onboarding:** First-run wizard streamlined — tracking profile deferred to Settings; session recording disclosed during setup (on by default, opt out anytime).
-- **Smartlook:** Default-on after onboarding disclosure; SDK gated until you see the notice or enable in Settings.
-- **Settings (web):** Consent dashboard on Privacy & region pane; Goals modal carousel navigation fixed.
-- **Achievements (v1.117):** Goals modal two-pane carousel with progressive logging unlock badges (food/exercise/meds).
-- **Screening (v1.116):** Stepped PHQ-9/GAD-7 follow-up when quick checks score ≥ 3.
+- **Cycle tracking:** SVG phase icons, smoother day picker (scroll without visible bar), auto-suggest day/phase from your last log and selected date; tutorial slide to enable the module.
+- **Home:** Recent patterns card styling; Weekly Health Review shows **Enable AI** until the on-device model is downloaded.
+- **Mood tab (web):** Trend sparkline fits narrow screens.
+- **Logging modules:** Barcode food and guided voice logging removed from Settings for now (not shipped); cycle tracking remains.
 
-### Previous (v1.117.1)
+### Previous (v1.118.0)
 
 - **Supabase:** Pool insight RPCs no longer executable by `anon` (Security Advisor lint 0028).
 - **RN:** Typecheck fixes for Goals modal and achievements.
@@ -33,7 +32,8 @@
 
 | Version | Theme |
 |---------|-------|
-| v1.116.0 | Stepped PHQ-9/GAD-7 screening follow-up |
+| v1.119.0 | Cycle tracking UX, Home cards, Mood sparkline, deferred barcode/voice |
+| v1.118.0 | Onboarding UX, Smartlook default-on, Goals carousel fix |
 | v1.115.0 | PWA boot shell fix, Smartlook infrastructure |
 | v1.114.0 | Security lock settings tab, Home/Charts UX trim |
 | v1.113.0 | Mood tab, Home weather inline, i18n fixes |

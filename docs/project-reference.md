@@ -4,6 +4,15 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v1.119.0 documentation sync (Cycle tracking UX & Home cards)
+
+- **Cycle tracking:** Log wizard step 1 when `cycleModuleEnabled` — day pills (1–45), phase tiles (SVG), flow levels; auto-suggest from prior logs; first-run tutorial slide 8 to enable.
+- **Cycle day range:** `CYCLE_DAY_MAX = 45` supports long/irregular cycles; phase **hints** follow a simplified ~28-day map (days 17+ → luteal).
+- **Logging modules:** Settings → Data options shows **cycle module only**; barcode food and guided voice prefs exist but are forced off and hidden until a future release ships scanner/extraction UI.
+- **Home:** Recent patterns inset (icon + streak summary); Weekly review card gates on LLM ready — **Enable AI** triggers download consent when model not loaded.
+- **Mood tab:** Sparkline in metrics grid scales to card width on narrow viewports.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.119.0; [platform-parity.md](platform-parity.md) v1.119.0 note; [data-model.md](data-model.md) § Cycle.
+
 ### v1.118.0 documentation sync (Onboarding UX & Smartlook default-on)
 
 - **First-run wizard:** Shared step order — region → health consent (EEA/UK) → cookies → **session recording disclosure** → tutorial → AI download → install (PWA). Tracking profile deferred; defaults from `completeFirstRunWizard()`.
@@ -44,7 +53,7 @@
 - **Home:** Single hero status card merges streak nudge when applicable; pacing/energy-budget card removed.
 - **Charts:** Insights side panel removed; core chart series and presentation mode unchanged.
 - **Screening:** PHQ-2/GAD-2 sliders in weekly-review modal (PWA) and Mood tab (RN).
-- **Logging modules** (Settings → Data options): `cycleModuleEnabled` shows cycle fields on **log wizard step 1**; `barcodeFoodLoggingEnabled` and `guidedVoiceLogEnabled` are **RN-only** in the wizard today (food step day 7+; notes voice extraction). PWA toggles persist but wizard UI for barcode/voice is not wired yet.
+- **Logging modules** (Settings → Data options): `cycleModuleEnabled` shows cycle fields on **log wizard step 1** (SVG icons, phase suggest from last log). **Barcode food** and **guided voice extraction** are **deferred** — toggles removed from Settings; prefs forced off until scanner/extraction UI ships.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.114.0; [platform-parity.md](platform-parity.md) v1.114.0 note.
 
 ### v1.113.0 documentation sync (Mood tab and Home UX)
