@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-20T20:15:36.887Z",
+  "generatedAt": "2026-06-21T18:44:22.044Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4006256,
-    "cssBytes": 418803,
-    "jsGzipBytes": 956647,
-    "cssGzipBytes": 73079
+    "jsBytes": 4034074,
+    "cssBytes": 419890,
+    "jsGzipBytes": 962467,
+    "cssGzipBytes": 73268
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 920948,
-      "gzipBytes": 199228
+      "bytes": 922298,
+      "gzipBytes": 199395
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.c4ea5e2e69d0.min.js",
-      "bytes": 658564,
-      "gzipBytes": 149650
+      "file": "ci-minified/site/app.6eda00b649fc.min.js",
+      "bytes": 659561,
+      "gzipBytes": 149768
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -29,14 +29,14 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.3d6796a940db.css",
-      "bytes": 404600,
-      "gzipBytes": 69250
+      "file": "ci-minified/site/styles.39caa7fd8e04.css",
+      "bytes": 405687,
+      "gzipBytes": 69439
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 242310,
-      "gzipBytes": 56521
+      "bytes": 246325,
+      "gzipBytes": 57403
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -94,14 +94,19 @@
       "gzipBytes": 4961
     },
     {
-      "file": "ci-minified/site/import-utils.js",
-      "bytes": 19409,
-      "gzipBytes": 5029
+      "file": "ci-minified/site/first-run-wizard.js",
+      "bytes": 19754,
+      "gzipBytes": 4482
     },
     {
       "file": "ci-minified/site/privacy-region.js",
-      "bytes": 17790,
-      "gzipBytes": 4017
+      "bytes": 19492,
+      "gzipBytes": 4188
+    },
+    {
+      "file": "ci-minified/site/import-utils.js",
+      "bytes": 19409,
+      "gzipBytes": 5029
     },
     {
       "file": "ci-minified/site/event-handlers.js",
