@@ -35,4 +35,5 @@ paths = [
   '''^apps/pwa-webapp/smartlook-config\.js$''',
   '''^apps/pwa-webapp/smartlook-config\.example\.js$''',
   '''^apps/pwa-webapp/smartlook\.js$''',
+  '''^apps/pwa-webapp/vendor/rianell-shared\.js$''',
 ]
