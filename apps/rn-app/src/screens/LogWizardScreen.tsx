@@ -18,6 +18,7 @@ import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { CycleTrackingInput } from '../components/CycleTrackingInput';
 import { useT } from '../i18n/I18nProvider';
+import { useTheme } from '../theme/ThemeProvider';
 import { addLogEntry, getFrequentLogItems, loadLogs, type LogEntry } from '../storage/logs';
 import { persistWizardLogEntry } from '../storage/wizardPersist';
 import { getDefaultPreferences, type Preferences } from '../storage/preferences';
