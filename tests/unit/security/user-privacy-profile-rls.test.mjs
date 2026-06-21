@@ -47,4 +47,6 @@ test('Schema.sql defines Plan 13 RE1 pool insight RPCs', () => {
   assert.match(sql, /CREATE OR REPLACE FUNCTION public\.get_k_anon_pool_insights/);
   assert.match(sql, /CREATE OR REPLACE FUNCTION public\.count_pool_contribution_days/);
   assert.match(sql, /GRANT EXECUTE ON FUNCTION public\.get_k_anon_pool_insights/);
+  assert.match(sql, /REVOKE EXECUTE ON FUNCTION public\.get_k_anon_pool_insights\(text, integer\) FROM anon/);
+  assert.match(sql, /REVOKE EXECUTE ON FUNCTION public\.count_pool_contribution_days\(text\) FROM anon/);
 });

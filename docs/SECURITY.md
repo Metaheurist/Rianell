@@ -109,6 +109,20 @@ Supabase ships the `pg_graphql` extension. When `anon` or `authenticated` hold `
 
 To clear `pg_graphql_anon_table_exposed` and `pg_graphql_authenticated_table_exposed` on `anonymized_data`, `health_data`, `user_keys`, and `bug_reports`, run [../supabase/Schema.sql](../supabase/Schema.sql) in the SQL Editor (§3 drops `pg_graphql`, revokes `anon` access, and re-applies least-privilege grants). Re-run **Security Advisor** afterward to confirm the warnings are gone.
 
+### Pool insight RPCs (Plan 13 RE1; Security Advisor lints 0028 / 0029)
+
+Plan 13 k-anonymous pool insights use two **`SECURITY DEFINER`** functions in `public`: `get_k_anon_pool_insights` and `count_pool_contribution_days`. They aggregate **`research_facets`** across opted-in contributors (k≥5 suppression); they never decrypt `anonymized_log` blobs or return per-user rows.
+
+| Control | Implementation |
+|---------|----------------|
+| **Why SECURITY DEFINER** | Cross-user cohort aggregation; per-user RLS would block reads under `SECURITY INVOKER`. |
+| **`search_path`** | `SET search_path = public` on both functions. |
+| **`anon`** | `REVOKE EXECUTE` — pool RPCs are **not** callable without sign-in (clears lint **0028**). |
+| **`authenticated`** | `GRANT EXECUTE` only — PWA/RN call via signed-in session after opt-in gates. Lint **0029** is an expected review warning, not a misconfiguration. |
+| **Client gates** | Research pool opt-in, medical condition set, 90-day contribution gate before RPC. |
+
+Re-apply [../supabase/Schema.sql](../supabase/Schema.sql) §4 after schema changes; see [../supabase/APPLY.md](../supabase/APPLY.md).
+
 ## Data classification (v1.50.0)
 
 | Class | Examples | Storage | Encryption | Retention |
