@@ -716,7 +716,6 @@ export function SettingsScreen({
                 onChangePrefs={onChangePrefs}
                 onRequestAnonPoolEnable={() => setAnonPoolOpen(true)}
               />
-              <SettingsConsentDashboard prefs={prefs} onChangePrefs={onChangePrefs} />
             </Section>
           </ScrollView>
         </View>
@@ -725,7 +724,9 @@ export function SettingsScreen({
 
         <View style={[styles.paneOuter, { width }]}>
 
-          <ScrollView style={styles.paneScroll} contentContainerStyle={styles.content} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+          <ScrollView style={styles.paneScroll} contentContainerStyle={[styles.content, styles.contentPersonal]} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+
+            <View style={styles.personalPaneLayout}>
 
             <Section title={t('settings.personal.title')}>
 
@@ -807,9 +808,26 @@ export function SettingsScreen({
                 />
               </Row>
 
-              <SettingsCloudPane />
-
             </Section>
+
+            <View
+              style={[
+                styles.personalCloudAnchor,
+                { borderTopColor: `${theme.tokens.color.accent}47` },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.personalCloudTitle,
+                  { fontSize: theme.font(18), color: theme.tokens.color.accent },
+                ]}
+              >
+                {t('settings.privacy.activity.cloudSync')}
+              </Text>
+              <SettingsCloudPane />
+            </View>
+
+            </View>
 
           </ScrollView>
 
@@ -2195,6 +2213,8 @@ export function SettingsScreen({
 
               </Pressable>
 
+              <SettingsConsentDashboard prefs={prefs} onChangePrefs={onChangePrefs} />
+
             </Section>
 
           </ScrollView>
@@ -2493,6 +2513,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   content: { padding: 16, gap: 16, paddingBottom: 48 },
+  contentPersonal: { flexGrow: 1 },
+  personalPaneLayout: { flexGrow: 1, gap: 16 },
+  personalCloudAnchor: {
+    marginTop: 'auto',
+    paddingTop: 16,
+    borderTopWidth: 1,
+    gap: 10,
+  },
+  personalCloudTitle: { fontWeight: '700', marginBottom: 2 },
   section: { borderRadius: 16, padding: 14 },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 10 },
   sectionBody: { gap: 10 },

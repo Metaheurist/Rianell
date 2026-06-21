@@ -441,7 +441,9 @@ function getBugReportConsoleOutput() {
 function closeSettingsModalIfOpen() {
   const settingsOverlay = document.getElementById('settingsOverlay');
   if (!settingsOverlay) return;
-  const isOpen = settingsOverlay.classList.contains('settings-overlay--open') || settingsOverlay.style.display === 'flex' || settingsOverlay.style.display === 'block';
+  const isOpen = settingsOverlay.classList.contains('settings-overlay--open') ||
+    settingsOverlay.dataset.settingsState === 'opening' ||
+    settingsOverlay.dataset.settingsState === 'closing';
   if (!isOpen) return;
   if (typeof captureSettingsModalCarouselState === 'function') captureSettingsModalCarouselState(settingsOverlay);
   else {
@@ -3987,18 +3989,6 @@ function initMotdScrollBlurForMobile() {
 }
 
 window.addEventListener('DOMContentLoaded', function() {
-  // Ensure settings button works - add direct event listener as backup
-  const settingsButton = document.querySelector('.settings-button-top');
-  if (settingsButton) {
-    settingsButton.addEventListener('click', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (typeof window.toggleSettings === 'function') {
-        window.toggleSettings();
-      }
-    });
-  }
-  
   // Clear Cache Storage on startup only when the PWA service worker is not active (SW manages rianell-static-* caches)
   if ('caches' in window && typeof rianellSwManagesCaches === 'function' && !rianellSwManagesCaches()) {
     caches.keys().then(function(names) {
@@ -6621,7 +6611,8 @@ document.addEventListener('keydown', function(event) {
   const settingsOverlay = document.getElementById('settingsOverlay');
   if (!settingsOverlay) return;
   const settingsOpen = settingsOverlay.classList.contains('settings-overlay--open') ||
-    settingsOverlay.style.display === 'flex' || settingsOverlay.style.display === 'block';
+    settingsOverlay.dataset.settingsState === 'opening' ||
+    settingsOverlay.dataset.settingsState === 'closing';
   if (settingsOpen) {
     if (typeof toggleSettings === 'function') toggleSettings();
     return;
@@ -15677,7 +15668,6 @@ let appSettings = {
   treatmentStarts: [],
   homeGapQuestionCache: null,
   homeQuestionAnswerState: null,
-  chartsPresentationMode: false,
   weeklyReviewDismissedWeek: null,
 };
 
@@ -17124,9 +17114,11 @@ function loadSettingsState() {
       medicalConditionBtn.style.opacity = '1';
       medicalConditionBtn.style.cursor = 'pointer';
       
-      // Ensure display container is visible
+      // Ensure collapsed view is visible when editor is closed
       const displayContainer = document.getElementById('medicalConditionDisplayContainer');
-      if (displayContainer) {
+      const selector = document.getElementById('medicalConditionSelector');
+      const selectorOpen = selector && selector.style.display !== 'none';
+      if (displayContainer && !selectorOpen) {
         displayContainer.style.display = 'block';
         displayContainer.style.visibility = 'visible';
       }
@@ -17444,23 +17436,17 @@ function openSettingsToMedicalCondition() {
       settingsCarouselGo(personalPaneIndex);
     }
     window.settingsModalConditionSelectorOpen = true;
-    var selector = document.getElementById('medicalConditionSelector');
-    var displayContainer = document.getElementById('medicalConditionDisplayContainer');
-    if (selector && selector.style.display === 'none') {
-      if (typeof toggleConditionSelector === 'function') toggleConditionSelector();
-    } else if (selector) {
-      selector.style.display = 'block';
-      if (displayContainer) displayContainer.style.display = 'none';
-      if (typeof loadAvailableConditions === 'function') {
-        loadAvailableConditions('existingConditionsSelect');
-      }
+    if (typeof setMedicalConditionSelectorOpen === 'function') {
+      setMedicalConditionSelectorOpen(true);
+    } else if (typeof toggleConditionSelector === 'function') {
+      var selector = document.getElementById('medicalConditionSelector');
+      if (selector && selector.style.display === 'none') toggleConditionSelector();
     }
     setTimeout(function() {
       var panes = document.querySelectorAll('.settings-carousel-pane');
       var pane = panes[personalPaneIndex];
       var focusTarget = document.getElementById('newConditionInput')
-        || document.getElementById('existingConditionsSelect')
-        || document.getElementById('medicalConditionBtn');
+        || document.getElementById('existingConditionsSelect');
       if (pane && focusTarget) {
         try {
           focusTarget.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -18214,6 +18200,23 @@ function updateUserName() {
 }
 
 // Toggle condition selector within settings modal
+function setMedicalConditionSelectorOpen(open) {
+  const selector = document.getElementById('medicalConditionSelector');
+  const displayContainer = document.getElementById('medicalConditionDisplayContainer');
+  if (!selector) return;
+  if (open) {
+    selector.style.display = 'block';
+    if (displayContainer) displayContainer.style.display = 'none';
+    if (typeof loadAvailableConditions === 'function') {
+      loadAvailableConditions('existingConditionsSelect');
+    }
+  } else {
+    selector.style.display = 'none';
+    if (displayContainer) displayContainer.style.display = 'block';
+  }
+}
+if (typeof window !== 'undefined') window.setMedicalConditionSelectorOpen = setMedicalConditionSelectorOpen;
+
 function toggleConditionSelector() {
   // Disable in demo mode
   if (appSettings.demoMode) {
@@ -18222,24 +18225,10 @@ function toggleConditionSelector() {
   }
   
   const selector = document.getElementById('medicalConditionSelector');
-  const displayContainer = document.getElementById('medicalConditionDisplayContainer');
-  
   if (!selector) return;
   
   const isVisible = selector.style.display !== 'none';
-  
-  if (isVisible) {
-    // Hide selector, show display button
-    selector.style.display = 'none';
-    if (displayContainer) displayContainer.style.display = 'block';
-  } else {
-    // Show selector, hide display button
-    selector.style.display = 'block';
-    if (displayContainer) displayContainer.style.display = 'none';
-    
-    // Load existing conditions from Supabase
-    loadAvailableConditions('existingConditionsSelect');
-  }
+  setMedicalConditionSelectorOpen(!isVisible);
 }
 
 // Safe placeholder for <select> (avoid innerHTML for static messages)
@@ -21102,6 +21091,9 @@ function syncLogWizardPlan04Ui() {
   if (cycleBlock) {
     cycleBlock.classList.toggle('hidden', !appSettings.cycleModuleEnabled);
   }
+  if (appSettings.cycleModuleEnabled && window.RianellCycleTracking && typeof window.RianellCycleTracking.bind === 'function') {
+    window.RianellCycleTracking.bind();
+  }
 }
 
 function collectPlan04LogFields(dateValue) {
@@ -21225,7 +21217,11 @@ function clearLogWizardStepData(step) {
     });
   }
 
-  if (step === 2) {
+  if (step === 0) {
+    if (window.RianellCycleTracking && typeof window.RianellCycleTracking.clear === 'function') {
+      window.RianellCycleTracking.clear();
+    }
+  } else if (step === 2) {
     if (typeof resetPainBodyDiagram === 'function') resetPainBodyDiagram('painBodyDiagram', 'painLocation');
     if (typeof logFormSymptomsItems !== 'undefined') logFormSymptomsItems = [];
     if (typeof renderLogSymptomsItems === 'function') renderLogSymptomsItems();

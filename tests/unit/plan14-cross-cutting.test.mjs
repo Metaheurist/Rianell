@@ -19,9 +19,7 @@ import {
   GAD2_QUESTIONS,
   SCREENING_RESPONSE_OPTIONS,
   MENTAL_HEALTH_DISCLAIMER_I18N,
-  normalizePresentationModePrefs,
-  getPresentationChartRange,
-  shouldLockChartRangeInPresentation,
+  normalizeHomeDashboardPrefs,
 } from '@rianell/shared';
 import { t } from '../../packages/shared/src/i18n/translate.mjs';
 
@@ -85,12 +83,9 @@ test('getCrisisResourcesForRegion returns regional links', () => {
   assert.ok(getCrisisResourcesForRegion('us').some((r) => r.url.includes('988')));
 });
 
-test('presentation mode prefs normalize and lock 7-day range', () => {
-  const prefs = normalizePresentationModePrefs({ chartsPresentationMode: true, weeklyReviewDismissedWeek: '2026-06-02' });
-  assert.equal(prefs.chartsPresentationMode, true);
+test('home dashboard prefs normalize weekly review dismissed week', () => {
+  const prefs = normalizeHomeDashboardPrefs({ weeklyReviewDismissedWeek: '2026-06-02' });
   assert.equal(prefs.weeklyReviewDismissedWeek, '2026-06-02');
-  assert.equal(getPresentationChartRange(30), 7);
-  assert.equal(shouldLockChartRangeInPresentation(true), true);
 });
 
 test('on-device moat and progressive disclosure keys exported', () => {

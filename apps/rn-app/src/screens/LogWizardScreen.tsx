@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
-import { useTheme } from '../theme/ThemeProvider';
+import { CycleTrackingInput } from '../components/CycleTrackingInput';
 import { useT } from '../i18n/I18nProvider';
 import { addLogEntry, getFrequentLogItems, loadLogs, type LogEntry } from '../storage/logs';
 import { persistWizardLogEntry } from '../storage/wizardPersist';
@@ -737,7 +737,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   const [energyPickerOpen, setEnergyPickerOpen] = useState(true);
   const [painRegionSearch, setPainRegionSearch] = useState('');
   const [subEntryPeriod, setSubEntryPeriod] = useState<'AM' | 'PM' | 'partial'>('partial');
-  const [cycleDay, setCycleDay] = useState('');
+  const [cycleDay, setCycleDay] = useState<number | null>(null);
   const [cyclePhase, setCyclePhase] = useState('');
   const [cycleFlow, setCycleFlow] = useState('');
   const [barcodeInput, setBarcodeInput] = useState('');
@@ -901,9 +901,9 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             ]
           : undefined,
       cycle:
-        prefs.cycleModuleEnabled && (cycleDay || cyclePhase || cycleFlow)
+        prefs.cycleModuleEnabled && (cycleDay != null || cyclePhase || cycleFlow)
           ? {
-              cycleDay: cycleDay ? Number(cycleDay) : undefined,
+              cycleDay: cycleDay ?? undefined,
               phase: cyclePhase || undefined,
               flow: cycleFlow || undefined,
             }
@@ -1134,10 +1134,14 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
               <Choice label={t('wizard.subEntry.fullDay')} selected={subEntryPeriod === 'partial'} onPress={() => setSubEntryPeriod('partial')} />
             </View>
             {prefs.cycleModuleEnabled ? (
-              <View style={{ marginTop: 8 }}>
-                <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.cycle.title')}</Text>
-                <TextInput value={cycleDay} onChangeText={setCycleDay} style={[styles.input, { color: theme.tokens.color.text }]} keyboardType="number-pad" placeholder={t('wizard.cycle.day')} placeholderTextColor="rgba(255,255,255,0.6)" />
-              </View>
+              <CycleTrackingInput
+                value={{ cycleDay, cyclePhase, cycleFlow }}
+                onChange={({ cycleDay: nextDay, cyclePhase: nextPhase, cycleFlow: nextFlow }) => {
+                  setCycleDay(nextDay);
+                  setCyclePhase(nextPhase);
+                  setCycleFlow(nextFlow);
+                }}
+              />
             ) : null}
 
             <Pressable
