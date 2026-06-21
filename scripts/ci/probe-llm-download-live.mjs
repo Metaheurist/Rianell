@@ -9,6 +9,8 @@ const ATTEMPT_DELAY_MS = Number(process.env.PROBE_ATTEMPT_DELAY_MS || 120000);
 const TIER = Number(process.env.PROBE_TIER || 1);
 const GPU_AVAILABLE = process.env.PROBE_GPU_AVAILABLE !== '0';
 const GPU_BACKEND = process.env.PROBE_GPU_BACKEND || (GPU_AVAILABLE ? 'webgpu' : 'none');
+/** Cloudflare often blocks datacenter Playwright from loading self-hosted ort-wasm *.mjs on rianell.com. */
+const TRANSFORMERS_CDN = process.env.PROBE_TRANSFORMERS_CDN === '1';
 const USER_AGENT = process.env.PROBE_USER_AGENT
   || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123 Safari/537.36';
 const EXTRA_SETTINGS = (() => {
@@ -68,9 +70,10 @@ async function runOnce() {
       userAgent: USER_AGENT,
       viewport: { width: 1280, height: 720 },
     });
-    await ctx.addInitScript(({ tier, gpuAvailable, gpuBackend, extraSettings }) => {
+    await ctx.addInitScript(({ tier, gpuAvailable, gpuBackend, extraSettings, transformersCdn }) => {
       try {
         localStorage.setItem('rianellEnableStaticSW', '0');
+        if (transformersCdn) localStorage.setItem('rianellTransformersCdn', '1');
         localStorage.setItem('rianellCookieConsent', 'accepted');
         localStorage.setItem('rianellHealthDataConsent', 'accepted');
         localStorage.setItem('rianellTutorialSeen', '1');
@@ -104,7 +107,13 @@ async function runOnce() {
           }));
         } catch (_) {}
       } catch (_) {}
-    }, { tier: TIER, gpuAvailable: GPU_AVAILABLE, gpuBackend: GPU_BACKEND, extraSettings: EXTRA_SETTINGS });
+    }, {
+      tier: TIER,
+      gpuAvailable: GPU_AVAILABLE,
+      gpuBackend: GPU_BACKEND,
+      extraSettings: EXTRA_SETTINGS,
+      transformersCdn: TRANSFORMERS_CDN,
+    });
 
     const page = await ctx.newPage();
     const hf = [];
