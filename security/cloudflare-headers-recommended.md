@@ -31,6 +31,28 @@ If the console shows `Fetch API cannot load https://api.open-meteo.com/... viola
 
 **Permissions-Policy:** Weather opt-in needs geolocation. Keep `geolocation=(self)` in the edge header (do not use `geolocation=()`).
 
+## Barcode food lookup (Plan 04) — required `connect-src`
+
+Barcode logging fetches **[Open Food Facts](https://world.openfoodfacts.org/)** (`GET https://world.openfoodfacts.org/api/v2/product/{barcode}`). No API key.
+
+| Host | Purpose |
+|------|---------|
+| `https://world.openfoodfacts.org` | Product lookup when user enables barcode food logging |
+
+If missing from **HTTP** CSP, lookups fail with `violates Content Security Policy` even when the meta tag allows the host.
+
+## Smartlook session recording — required `script-src` + `connect-src`
+
+Opt-in session recording loads the Smartlook Web SDK and sends analytics to EU hosts. Required in **both** directives when edge CSP is set:
+
+| Host | Purpose |
+|------|---------|
+| `https://web-sdk.smartlook.com` | Web SDK script |
+| `https://*.smartlook.com` | Analytics API |
+| `https://*.smartlook.cloud` | Analytics API (EU) |
+
+See [docs/privacy/smartlook-session-recording.md](../docs/privacy/smartlook-session-recording.md).
+
 **Verify locally after the change:**
 
 ```bash
@@ -65,7 +87,7 @@ If you must set CSP at the edge, copy the **`content`** value from the **`<meta 
 Single-line reference (keep in sync with that file when editing):
 
 ```http
-Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.paypal.com; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co https://*.aws.cdn.hf.co https://raw.githubusercontent.com https://api.open-meteo.com https://air-quality-api.open-meteo.com https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://api.paypal.com https://api.sandbox.paypal.com https://c.paypal.com; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://www.paypal.com https://web-sdk.smartlook.com https://*.smartlook.com https://*.smartlook.cloud; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://tcoynycktablxankyriw.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://cas-bridge.xethub.hf.co https://*.xethub.hf.co https://*.aws.cdn.hf.co https://raw.githubusercontent.com https://api.open-meteo.com https://air-quality-api.open-meteo.com https://world.openfoodfacts.org https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://api.paypal.com https://api.sandbox.paypal.com https://c.paypal.com https://web-sdk.smartlook.com https://*.smartlook.com https://*.smartlook.cloud; frame-src 'self' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com; form-action 'self' https://www.paypal.com https://www.paypalobjects.com; base-uri 'self';
 ```
 
 **Note:** Project-specific Supabase host and PayPal endpoints are embedded above; adjust **`connect-src`** / **`frame-src`** if your deployment uses different hosts.
