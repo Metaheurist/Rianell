@@ -4,6 +4,13 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v1.117.0 documentation sync (Achievements & logging unlock)
+
+- **Progressive unlock:** Food/exercise/medication wizard steps remain gated by `getUnlockedLogCategories`; achievements surface the same schedule as themed badges with optional unlock notifications.
+- **Goals modal:** PWA `#goalsModal` and RN `GoalsModal` — carousel panes 0 (targets) and 1 (achievements); Home **Goals & targets** opens pane 0 on both platforms.
+- **Persistence:** Local `appSettings.achievements` (PWA) / `prefs.achievements` (RN); cloud row in **`user_achievements`** when signed in with backup enabled.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.117.0; [platform-parity.md](platform-parity.md) v1.117.0 note; [data-model.md](data-model.md) § Achievements.
+
 ### v1.116.0 documentation sync (Stepped PHQ-9/GAD-7 screening)
 
 - **Mental health screeners:** PHQ-2/GAD-2 remain entry points on Mood tab (hidden in simple mode). Initial score ≥ 3 triggers stepped PHQ-9 or GAD-7 follow-up questions in the weekly-review modal (PWA) and Mood screening modal (RN).

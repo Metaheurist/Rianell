@@ -32,8 +32,10 @@ import { TutorialModal } from './src/components/TutorialModal';
 import { FirstRunWizard } from './src/components/FirstRunWizard';
 import { markTutorialSeen } from './src/storage/preferences';
 import { AppLockGate } from './src/components/AppLockGate';
+import { GoalsModalHost } from './src/components/GoalsModalHost';
 import { I18nProvider } from './src/i18n/I18nProvider';
 import { applySessionRecording } from './src/analytics/sessionRecording';
+import { initAchievementsOnBoot, syncAchievementsIfSignedIn, tickAchievements } from './src/achievements/achievementTick';
 
 function firstRunPlatformContext(prefs: Preferences) {
   return {
@@ -138,6 +140,14 @@ export default function App() {
     if (!prefs) return;
     const run = () => {
       void syncEngagementNotifications(prefs, setPrefs).catch(() => {});
+      void tickAchievements(prefs, (key) => key)
+        .then((next) => {
+          if (next !== prefs) {
+            setPrefs(next);
+            void syncAchievementsIfSignedIn(next);
+          }
+        })
+        .catch(() => {});
     };
     run();
     const sub = AppState.addEventListener('change', (state) => {
@@ -191,6 +201,7 @@ export default function App() {
             <AiModelDownloadGate prefs={prefs} onChangePrefs={setPrefs}>
               <AppLockGate enabled={prefs.appLockEnabled}>
                 <RootNavigator prefs={prefs} onChangePrefs={setPrefs} />
+                <GoalsModalHost prefs={prefs} onChangePrefs={setPrefs} />
               </AppLockGate>
             </AiModelDownloadGate>
             {prefs.replayTutorial ? (

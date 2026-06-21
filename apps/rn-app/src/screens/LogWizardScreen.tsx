@@ -17,6 +17,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { CycleTrackingInput } from '../components/CycleTrackingInput';
+import { requestOpenGoalsModal } from '../achievements/goalsModalBridge';
 import { useT } from '../i18n/I18nProvider';
 import { useTheme } from '../theme/ThemeProvider';
 import { addLogEntry, getFrequentLogItems, loadLogs, type LogEntry } from '../storage/logs';
@@ -1649,6 +1650,11 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             {!showFoodStep ? (
               <>
                 <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('wizard.progressive.foodLocked')}</Text>
+                <Pressable onPress={() => requestOpenGoalsModal(1)} accessibilityRole="button">
+                  <Text style={[styles.helper, { color: theme.tokens.color.accent, fontSize: theme.font(13), textDecorationLine: 'underline' }]}>
+                    {t('achievements.viewInGoals')}
+                  </Text>
+                </Pressable>
                 <View style={[styles.navRow, { flexDirection: rowDir }]}>
                   <Pressable onPress={() => goToStep(5)} style={styles.secondaryBtn} accessibilityRole="button">
                     <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
@@ -1829,6 +1835,11 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             {!showExerciseStep ? (
               <>
                 <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('wizard.progressive.exerciseLocked')}</Text>
+                <Pressable onPress={() => requestOpenGoalsModal(1)} accessibilityRole="button">
+                  <Text style={[styles.helper, { color: theme.tokens.color.accent, fontSize: theme.font(13), textDecorationLine: 'underline' }]}>
+                    {t('achievements.viewInGoals')}
+                  </Text>
+                </Pressable>
                 <View style={[styles.navRow, { flexDirection: rowDir }]}>
                   <Pressable onPress={() => goToStep(6)} style={styles.secondaryBtn} accessibilityRole="button">
                     <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>
@@ -1936,6 +1947,11 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             {!showMedicationsStep ? (
               <>
                 <Text style={[styles.helper, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>{t('wizard.progressive.medsLocked')}</Text>
+                <Pressable onPress={() => requestOpenGoalsModal(1)} accessibilityRole="button">
+                  <Text style={[styles.helper, { color: theme.tokens.color.accent, fontSize: theme.font(13), textDecorationLine: 'underline' }]}>
+                    {t('achievements.viewInGoals')}
+                  </Text>
+                </Pressable>
                 <View style={[styles.navRow, { flexDirection: rowDir }]}>
                   <Pressable onPress={() => goToStep(7)} style={styles.secondaryBtn} accessibilityRole="button">
                     <Text style={[styles.btnText, { fontSize: theme.font(14) }]}>{t('wizard.action.back')}</Text>

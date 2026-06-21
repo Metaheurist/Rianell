@@ -4,7 +4,7 @@ import { normalizeTrackingProfile } from '../settings/trackingProfile.mjs';
 
 export const PROGRESSIVE_CATEGORIES = ['core', 'sleep', 'food', 'exercise', 'medications', 'cycle'];
 
-const UNLOCK_DAYS = {
+export const UNLOCK_DAYS = {
   core: 0,
   sleep: 3,
   food: 7,
@@ -12,6 +12,10 @@ const UNLOCK_DAYS = {
   medications: 21,
   cycle: 28,
 };
+
+export function getUnlockDaysForCategory(category) {
+  return UNLOCK_DAYS[category] ?? 0;
+}
 
 export function daysSinceTrackingProfileStart(profile) {
   const p = normalizeTrackingProfile(profile);

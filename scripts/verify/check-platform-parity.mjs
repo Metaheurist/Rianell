@@ -66,6 +66,9 @@ expectAbsent('apps/capacitor-app/package.json', '.', 'Capacitor app removed');
 
 if (platform === 'web') {
   expectContains('apps/pwa-webapp/vendor/rianell-shared.js', 'mergeHealthLogs', 'PWA shared vendor bundle');
+  expectContains('apps/pwa-webapp/vendor/rianell-shared.js', 'computeAchievementSnapshots', 'PWA vendor exports achievements');
+  expectContains('apps/pwa-webapp/achievements-sync.js', 'syncAchievementsToCloud', 'PWA achievements cloud sync');
+  expectContains('apps/pwa-webapp/modules/goals-carousel.js', 'goalsCarouselGo', 'PWA goals carousel module');
   expectContains('apps/pwa-webapp/vendor/rianell-ai-engine.js', 'analyzeHealthMetrics', 'PWA AI engine vendor bundle');
   expectAbsent('apps/pwa-webapp/summary-llm.js', /flan-t5|Xenova\/flan/i, 'no legacy flan-t5 in LLM module');
   expectAbsent('apps/pwa-webapp/app.js', 'function legacyEmojiIcon', 'legacy emoji shim removed');
@@ -81,6 +84,8 @@ if (platform === 'android' || platform === 'ios') {
   expectContains('apps/rn-app/src/cloud/sync.ts', 'export async function loadFromCloud', 'RN cloud loadFromCloud');
   expectContains('apps/rn-app/src/cloud/sync.ts', 'export async function syncAnonymizedData', 'RN anonymized sync');
   expectContains('apps/rn-app/src/cloud/sync.ts', 'export async function deleteCloudLogs', 'RN delete cloud logs');
+  expectContains('apps/rn-app/src/cloud/achievementsSync.ts', 'export async function syncAchievementsToCloud', 'RN achievements cloud sync');
+  expectContains('apps/rn-app/src/components/GoalsModal.tsx', 'GoalsModal', 'RN goals modal with carousel');
   expectContains('apps/rn-app/src/storage/preferences.ts', 'userName:', 'RN personal profile field');
   expectContains('apps/rn-app/src/storage/preferences.ts', 'contributeAnonData:', 'RN anon contribution field');
   expectContains('apps/rn-app/src/ai/engine.ts', '@rianell/ai-engine', 'RN AI engine uses shared package');

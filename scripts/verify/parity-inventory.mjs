@@ -47,6 +47,7 @@ const PWA_SETTINGS_KEYS = [
   'processingActivityLog',
   'cloudAutoSyncOnOpen',
   'cloudAutoSyncDailyTime',
+  'achievements',
 ];
 
 const RN_PREF_FIELDS = [
@@ -81,6 +82,7 @@ const RN_PREF_FIELDS = [
   'processingActivityLog',
   'cloudAutoSyncOnOpen',
   'cloudAutoSyncDailyTime',
+  'achievements',
 ];
 
 const CLOUD_EXPORTS = [
@@ -94,12 +96,20 @@ const CLOUD_EXPORTS = [
   'upsertPrivacyProfile',
 ];
 
+const ACHIEVEMENT_SYNC_EXPORTS = [
+  'loadAchievementsFromCloud',
+  'syncAchievementsToCloud',
+  'mergeLocalAndCloudAchievements',
+];
+
 const lines = ['# Platform parity inventory', '', `Generated: ${new Date().toISOString()}`, ''];
 
 const appJs = exists('apps/pwa-webapp/app.js') ? read('apps/pwa-webapp/app.js') : '';
 const prefsTs = exists('apps/rn-app/src/storage/preferences.ts') ? read('apps/rn-app/src/storage/preferences.ts') : '';
 const cloudSyncJs = exists('apps/pwa-webapp/cloud-sync.js') ? read('apps/pwa-webapp/cloud-sync.js') : '';
 const rnSyncTs = exists('apps/rn-app/src/cloud/sync.ts') ? read('apps/rn-app/src/cloud/sync.ts') : '';
+const achievementsSyncJs = exists('apps/pwa-webapp/achievements-sync.js') ? read('apps/pwa-webapp/achievements-sync.js') : '';
+const rnAchievementsTs = exists('apps/rn-app/src/cloud/achievementsSync.ts') ? read('apps/rn-app/src/cloud/achievementsSync.ts') : '';
 
 lines.push('## Settings / preferences field parity', '');
 lines.push('| Field | PWA appSettings | RN preferences |');
@@ -130,6 +140,23 @@ for (const sym of CLOUD_EXPORTS) {
     (sym === 'mergeHealthLogs' && rnSyncTs.includes(`export { mergeHealthLogs`));
   lines.push(`| ${sym} | ${pwa ? 'yes' : 'no'} | ${rn ? 'yes' : 'no'} |`);
   if (pwa && !rn && sym !== 'mergeHealthLogs') gaps.push(`RN missing cloud export: ${sym}`);
+}
+
+lines.push('', '## Achievements cloud sync exports', '');
+lines.push('| Symbol | PWA achievements-sync.js | RN cloud/achievementsSync.ts |');
+lines.push('|--------|--------------------------|------------------------------|');
+
+for (const sym of ACHIEVEMENT_SYNC_EXPORTS) {
+  const pwa =
+    achievementsSyncJs.includes(`function ${sym}`) ||
+    achievementsSyncJs.includes(`${sym}(`) ||
+    achievementsSyncJs.includes(`window.${sym}`);
+  const rn =
+    rnAchievementsTs.includes(`export async function ${sym}`) ||
+    rnAchievementsTs.includes(`export function ${sym}`);
+  lines.push(`| ${sym} | ${pwa ? 'yes' : 'no'} | ${rn ? 'yes' : 'no'} |`);
+  if (pwa && !rn) gaps.push(`RN missing achievement sync export: ${sym}`);
+  if (rn && !pwa && sym !== 'mergeLocalAndCloudAchievements') gaps.push(`PWA missing achievement sync export: ${sym}`);
 }
 
 lines.push('', '## Legacy Capacitor (must be absent post-sunset)', '');

@@ -120,6 +120,14 @@ CREATE TABLE IF NOT EXISTS public.bug_reports (
   CONSTRAINT bug_reports_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id)
 );
 
+CREATE TABLE IF NOT EXISTS public.user_achievements (
+  user_id uuid NOT NULL,
+  achievements jsonb NOT NULL DEFAULT '{}'::jsonb,
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT user_achievements_pkey PRIMARY KEY (user_id),
+  CONSTRAINT user_achievements_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id) ON DELETE CASCADE
+);
+
 -- =============================================================================
 -- §2 ROW LEVEL SECURITY
 -- =============================================================================
@@ -129,6 +137,7 @@ ALTER TABLE public.anonymized_data ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.health_data ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_keys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bug_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_achievements ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "user_privacy_profile_select_own" ON public.user_privacy_profile;
 CREATE POLICY "user_privacy_profile_select_own"
@@ -224,6 +233,27 @@ CREATE POLICY "bug_reports_select_own"
   ON public.bug_reports FOR SELECT TO authenticated
   USING (user_id IS NOT NULL AND auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "user_achievements_select_own" ON public.user_achievements;
+CREATE POLICY "user_achievements_select_own"
+  ON public.user_achievements FOR SELECT TO authenticated
+  USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "user_achievements_insert_own" ON public.user_achievements;
+CREATE POLICY "user_achievements_insert_own"
+  ON public.user_achievements FOR INSERT TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "user_achievements_update_own" ON public.user_achievements;
+CREATE POLICY "user_achievements_update_own"
+  ON public.user_achievements FOR UPDATE TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "user_achievements_delete_own" ON public.user_achievements;
+CREATE POLICY "user_achievements_delete_own"
+  ON public.user_achievements FOR DELETE TO authenticated
+  USING (auth.uid() = user_id);
+
 -- =============================================================================
 -- §3 GRANTS + GRAPHQL HARDENING (Security Advisor lints 0026/0027)
 -- =============================================================================
@@ -235,12 +265,15 @@ REVOKE ALL ON public.health_data FROM anon;
 REVOKE ALL ON public.user_keys FROM anon;
 REVOKE ALL ON public.bug_reports FROM anon;
 
+REVOKE ALL ON public.user_achievements FROM anon;
+
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_privacy_profile TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.anonymized_data TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.health_data TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_keys TO authenticated;
 GRANT INSERT ON public.bug_reports TO anon, authenticated;
 GRANT SELECT ON public.bug_reports TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_achievements TO authenticated;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM anon;
 
@@ -347,13 +380,13 @@ COMMIT;
 -- =============================================================================
 -- §5 POST-APPLY VERIFICATION — run after §1–§4 succeed (select this block + Run)
 -- =============================================================================
--- Expected: 5 tables, all rowsecurity = true, 2 RPCs, research_facets column present.
+-- Expected: 6 tables, all rowsecurity = true, 2 RPCs, research_facets column present.
 
 SELECT 'tables' AS check_type, table_name AS name, 'ok' AS status
 FROM information_schema.tables
 WHERE table_schema = 'public'
   AND table_name IN (
-    'user_privacy_profile', 'anonymized_data', 'health_data', 'user_keys', 'bug_reports'
+    'user_privacy_profile', 'anonymized_data', 'health_data', 'user_keys', 'bug_reports', 'user_achievements'
   )
 ORDER BY table_name;
 
@@ -362,7 +395,7 @@ SELECT 'rls_enabled' AS check_type, tablename AS name,
 FROM pg_tables
 WHERE schemaname = 'public'
   AND tablename IN (
-    'user_privacy_profile', 'anonymized_data', 'health_data', 'user_keys', 'bug_reports'
+    'user_privacy_profile', 'anonymized_data', 'health_data', 'user_keys', 'bug_reports', 'user_achievements'
   )
 ORDER BY tablename;
 

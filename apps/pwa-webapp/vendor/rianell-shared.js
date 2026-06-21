@@ -20,6 +20,7 @@ var RianellShared = (() => {
   // packages/shared/src/index.mjs
   var index_exports = {};
   __export(index_exports, {
+    ACHIEVEMENTS_STORAGE_KEY: () => ACHIEVEMENTS_STORAGE_KEY,
     ALLOWED_LLM_MODEL_HOSTS: () => ALLOWED_LLM_MODEL_HOSTS,
     ANON_POOL_EXCLUDED_FIELDS: () => ANON_POOL_EXCLUDED_FIELDS,
     ANON_POOL_INCLUDED_FIELDS: () => ANON_POOL_INCLUDED_FIELDS,
@@ -55,6 +56,7 @@ var RianellShared = (() => {
     HOME_SUGGESTIONS_RANGE_DAYS: () => HOME_SUGGESTIONS_RANGE_DAYS,
     LLM_COACH_PERSONAS: () => LLM_COACH_PERSONAS,
     LOCAL_ONLY_NETWORK_FEATURES: () => LOCAL_ONLY_NETWORK_FEATURES,
+    LOGGING_ACHIEVEMENTS: () => LOGGING_ACHIEVEMENTS,
     LOGS_BACKUP_KEY: () => LOGS_BACKUP_KEY,
     LOGS_STORAGE_KEY_MOBILE_LEGACY: () => LOGS_STORAGE_KEY_MOBILE_LEGACY,
     LOGS_STORAGE_KEY_V1: () => LOGS_STORAGE_KEY_V1,
@@ -106,6 +108,7 @@ var RianellShared = (() => {
     SMART_REMINDER_WINDOW_DAYS: () => SMART_REMINDER_WINDOW_DAYS,
     STREAK_REMINDER_MIN_STREAK: () => STREAK_REMINDER_MIN_STREAK,
     TRACKING_PROFILE_FIELD_KEYS: () => TRACKING_PROFILE_FIELD_KEYS,
+    UNLOCK_DAYS: () => UNLOCK_DAYS,
     UNSET_PRIVACY_REGION: () => UNSET_PRIVACY_REGION,
     WEATHER_CACHE_MS: () => WEATHER_CACHE_MS,
     WEEKLY_REVIEW_MIN_LOG_DAYS: () => WEEKLY_REVIEW_MIN_LOG_DAYS,
@@ -122,6 +125,7 @@ var RianellShared = (() => {
     applyRegionDowngradeToggles: () => applyRegionDowngradeToggles,
     appointmentCountdownLabelKey: () => appointmentCountdownLabelKey,
     auditGoldenPrompt: () => auditGoldenPrompt,
+    buildAchievementUnlockNotificationContent: () => buildAchievementUnlockNotificationContent,
     buildAirQualityUrl: () => buildAirQualityUrl,
     buildAnonymizedInsertRow: () => buildAnonymizedInsertRow,
     buildAnonymizedLogPayload: () => buildAnonymizedLogPayload,
@@ -183,6 +187,7 @@ var RianellShared = (() => {
     collectMoodReadings: () => collectMoodReadings,
     completeFirstRunWizard: () => completeFirstRunWizard,
     completedCheckinPeriods: () => completedCheckinPeriods,
+    computeAchievementSnapshots: () => computeAchievementSnapshots,
     computeFlareFreeDays: () => computeFlareFreeDays,
     computeGoodDayStreak: () => computeGoodDayStreak,
     computeHomeAnalysisSnapshot: () => computeHomeAnalysisSnapshot,
@@ -206,6 +211,7 @@ var RianellShared = (() => {
     deriveFirstDayOfWeekFromLocale: () => deriveFirstDayOfWeekFromLocale,
     deriveWeightUnitFromLocale: () => deriveWeightUnitFromLocale,
     detectHomeLoggingGaps: () => detectHomeLoggingGaps,
+    detectNewlyUnlocked: () => detectNewlyUnlocked,
     encryptExportWithPassphrase: () => encryptExportWithPassphrase,
     evaluateFatigueWeekAnomaly: () => evaluateFatigueWeekAnomaly,
     existsSync: () => existsSync,
@@ -241,12 +247,14 @@ var RianellShared = (() => {
     getPolicyPack: () => getPolicyPack,
     getProgressiveDisclosureMilestones: () => getProgressiveDisclosureMilestones,
     getRegionLabels: () => getRegionLabels,
+    getRequiredDaysForAchievement: () => getRequiredDaysForAchievement,
     getResidencyChooserOptions: () => getResidencyChooserOptions,
     getResidencyConfigFromEnv: () => getResidencyConfigFromEnv,
     getResidencyDisplayLabel: () => getResidencyDisplayLabel,
     getResidencyRegistry: () => getResidencyRegistry,
     getSupportedLocalesForRegion: () => getSupportedLocalesForRegion,
     getSymptomChipsForCondition: () => getSymptomChipsForCondition,
+    getUnlockDaysForCategory: () => getUnlockDaysForCategory,
     getUnlockedLogCategories: () => getUnlockedLogCategories,
     getVisibleTrackingFields: () => getVisibleTrackingFields,
     hasEnabledMedSchedule: () => hasEnabledMedSchedule,
@@ -293,7 +301,10 @@ var RianellShared = (() => {
     logToFhirObservations: () => logToFhirObservations,
     logsToCsv: () => logsToCsv,
     logsToFhirBundle: () => logsToFhirBundle,
+    markAchievementNotified: () => markAchievementNotified,
+    markAchievementSeen: () => markAchievementSeen,
     medDoseReminderNotificationId: () => medDoseReminderNotificationId,
+    mergeAchievementState: () => mergeAchievementState,
     mergeGad7Responses: () => mergeGad7Responses,
     mergeHealthLogs: () => mergeHealthLogs,
     mergeHealthLogsWithConflictPolicy: () => mergeHealthLogsWithConflictPolicy,
@@ -305,6 +316,7 @@ var RianellShared = (() => {
     needsDataResidencyMigration: () => needsDataResidencyMigration,
     nextHomeQuestionAnswerState: () => nextHomeQuestionAnswerState,
     normalizeAccessibilitySettings: () => normalizeAccessibilitySettings,
+    normalizeAchievementState: () => normalizeAchievementState,
     normalizeActivityEntry: () => normalizeActivityEntry,
     normalizeCaregiverSettings: () => normalizeCaregiverSettings,
     normalizeCustomChartMetric: () => normalizeCustomChartMetric,
@@ -375,6 +387,7 @@ var RianellShared = (() => {
     setPolicyPack: () => setPolicyPack,
     shareEnvelopeToPortableJson: () => shareEnvelopeToPortableJson,
     shouldAllowNetworkOperation: () => shouldAllowNetworkOperation,
+    shouldFireAchievementUnlockNotification: () => shouldFireAchievementUnlockNotification,
     shouldFireFlareRiskNudge: () => shouldFireFlareRiskNudge,
     shouldFireMedDoseReminder: () => shouldFireMedDoseReminder,
     shouldFireMissedLogNudge: () => shouldFireMissedLogNudge,
@@ -3469,6 +3482,9 @@ ${hist}`);
     medications: 21,
     cycle: 28
   };
+  function getUnlockDaysForCategory(category) {
+    return UNLOCK_DAYS[category] ?? 0;
+  }
   function daysSinceTrackingProfileStart(profile) {
     const p = normalizeTrackingProfile(profile);
     if (!p.configuredAt) return 0;
@@ -5514,6 +5530,171 @@ ${questionsBlock}
     const idx = plan.findIndex((s) => s.id === currentStepId);
     if (idx < 0) return plan;
     return plan.slice(idx);
+  }
+
+  // packages/shared/src/achievements/achievements.mjs
+  var ACHIEVEMENTS_STORAGE_KEY = "rianellAchievements";
+  var LOGGING_ACHIEVEMENTS = [
+    {
+      id: "food_logging",
+      category: "food",
+      icon: "food",
+      i18nTitle: "achievements.food.title",
+      i18nDescription: "achievements.food.description",
+      i18nNotificationTitle: "achievements.food.notificationTitle",
+      i18nNotificationBody: "achievements.food.notificationBody"
+    },
+    {
+      id: "exercise_logging",
+      category: "exercise",
+      icon: "run",
+      i18nTitle: "achievements.exercise.title",
+      i18nDescription: "achievements.exercise.description",
+      i18nNotificationTitle: "achievements.exercise.notificationTitle",
+      i18nNotificationBody: "achievements.exercise.notificationBody"
+    },
+    {
+      id: "medication_logging",
+      category: "medications",
+      icon: "pill",
+      i18nTitle: "achievements.medication.title",
+      i18nDescription: "achievements.medication.description",
+      i18nNotificationTitle: "achievements.medication.notificationTitle",
+      i18nNotificationBody: "achievements.medication.notificationBody"
+    }
+  ];
+  function getRequiredDaysForAchievement(achievementId) {
+    const def = LOGGING_ACHIEVEMENTS.find((a) => a.id === achievementId);
+    if (!def) return 0;
+    return getUnlockDaysForCategory(def.category);
+  }
+  function normalizePersistedEntry(value) {
+    if (!value || typeof value !== "object") return {};
+    const out = {};
+    if (typeof value.notifiedAt === "string" && value.notifiedAt) out.notifiedAt = value.notifiedAt;
+    if (typeof value.seenAt === "string" && value.seenAt) out.seenAt = value.seenAt;
+    return out;
+  }
+  function normalizeAchievementState(value) {
+    const raw = value && typeof value === "object" ? value : {};
+    const achievements = {};
+    for (const def of LOGGING_ACHIEVEMENTS) {
+      achievements[def.id] = normalizePersistedEntry(raw[def.id] ?? raw.achievements?.[def.id]);
+    }
+    const updatedAt = typeof raw.updatedAt === "string" ? raw.updatedAt : null;
+    return { achievements, updatedAt };
+  }
+  function computeAchievementSnapshots(profile, persisted = {}, now = /* @__PURE__ */ new Date()) {
+    const normalized = normalizeAchievementState(persisted);
+    const days = daysSinceTrackingProfileStart(profile);
+    const snapshots = LOGGING_ACHIEVEMENTS.map((def) => {
+      const requiredDays = getUnlockDaysForCategory(def.category);
+      const unlocked = isLogCategoryUnlocked(profile, def.category);
+      const progress = requiredDays > 0 ? Math.min(1, days / requiredDays) : 1;
+      const daysRemaining = unlocked ? 0 : Math.max(0, requiredDays - days);
+      const entry = normalized.achievements[def.id] || {};
+      return {
+        id: def.id,
+        category: def.category,
+        icon: def.icon,
+        i18nTitle: def.i18nTitle,
+        i18nDescription: def.i18nDescription,
+        i18nNotificationTitle: def.i18nNotificationTitle,
+        i18nNotificationBody: def.i18nNotificationBody,
+        requiredDays,
+        daysElapsed: days,
+        daysRemaining,
+        progress,
+        unlocked,
+        notifiedAt: entry.notifiedAt ?? null,
+        seenAt: entry.seenAt ?? null
+      };
+    });
+    return { snapshots, daysSinceStart: days, updatedAt: normalized.updatedAt };
+  }
+  function pickLatestIso(a, b) {
+    if (!a) return b || null;
+    if (!b) return a || null;
+    return Date.parse(a) >= Date.parse(b) ? a : b;
+  }
+  function mergeAchievementState(local, remote) {
+    const loc = normalizeAchievementState(local);
+    const rem = normalizeAchievementState(remote);
+    const achievements = {};
+    for (const def of LOGGING_ACHIEVEMENTS) {
+      const l = loc.achievements[def.id] || {};
+      const r = rem.achievements[def.id] || {};
+      achievements[def.id] = {
+        ...l.notifiedAt || r.notifiedAt ? { notifiedAt: pickLatestIso(l.notifiedAt, r.notifiedAt) } : {},
+        ...l.seenAt || r.seenAt ? { seenAt: pickLatestIso(l.seenAt, r.seenAt) } : {}
+      };
+    }
+    const localTs = loc.updatedAt ? Date.parse(loc.updatedAt) : 0;
+    const remoteTs = rem.updatedAt ? Date.parse(rem.updatedAt) : 0;
+    const updatedAt = remoteTs > localTs ? rem.updatedAt : loc.updatedAt || rem.updatedAt || (/* @__PURE__ */ new Date()).toISOString();
+    return { achievements, updatedAt };
+  }
+  function detectNewlyUnlocked(prevSnapshots, nextSnapshots) {
+    const prev = Array.isArray(prevSnapshots) ? prevSnapshots : [];
+    const next = Array.isArray(nextSnapshots) ? nextSnapshots : [];
+    const prevMap = new Map(prev.map((s) => [s.id, s]));
+    return next.filter((s) => {
+      if (!s.unlocked) return false;
+      const was = prevMap.get(s.id);
+      if (was?.unlocked) return false;
+      if (s.notifiedAt) return false;
+      return true;
+    });
+  }
+  function markAchievementNotified(state, achievementId, iso = (/* @__PURE__ */ new Date()).toISOString()) {
+    const normalized = normalizeAchievementState(state);
+    const entry = { ...normalized.achievements[achievementId], notifiedAt: iso };
+    return {
+      achievements: { ...normalized.achievements, [achievementId]: entry },
+      updatedAt: iso
+    };
+  }
+  function markAchievementSeen(state, achievementId, iso = (/* @__PURE__ */ new Date()).toISOString()) {
+    const normalized = normalizeAchievementState(state);
+    const entry = { ...normalized.achievements[achievementId], seenAt: iso };
+    return {
+      achievements: { ...normalized.achievements, [achievementId]: entry },
+      updatedAt: iso
+    };
+  }
+
+  // packages/shared/src/achievements/achievementUnlockNotification.mjs
+  var DEFAULT_STRINGS = {
+    "achievements.food.notificationTitle": "Food logging unlocked",
+    "achievements.food.notificationBody": "You can now log meals in the daily wizard.",
+    "achievements.exercise.notificationTitle": "Exercise logging unlocked",
+    "achievements.exercise.notificationBody": "You can now log activity in the daily wizard.",
+    "achievements.medication.notificationTitle": "Medication logging unlocked",
+    "achievements.medication.notificationBody": "You can now log medications in the daily wizard."
+  };
+  function shouldFireAchievementUnlockNotification(snapshot2, opts = {}) {
+    if (opts.notificationsEnabled === false) return { fire: false, reason: "disabled" };
+    if (!snapshot2?.unlocked) return { fire: false, reason: "locked" };
+    if (snapshot2.notifiedAt) return { fire: false, reason: "already-notified" };
+    return { fire: true, reason: "new-unlock", achievementId: snapshot2.id };
+  }
+  function buildAchievementUnlockNotificationContent(achievementId, t2) {
+    const def = LOGGING_ACHIEVEMENTS.find((a) => a.id === achievementId);
+    const translate = typeof t2 === "function" ? t2 : (key) => DEFAULT_STRINGS[key] || key;
+    if (!def) {
+      return {
+        title: translate("achievements.notification.title"),
+        body: translate("achievements.notification.body"),
+        url: "/?quick=true",
+        achievementId
+      };
+    }
+    return {
+      title: translate(def.i18nNotificationTitle),
+      body: translate(def.i18nNotificationBody),
+      url: "/?quick=true",
+      achievementId: def.id
+    };
   }
 
   // packages/shared/src/index.mjs

@@ -38,6 +38,9 @@ jest.mock('../performance/benchmark', () => ({
 jest.mock('../utils/submitBugReport', () => ({
   submitBugReport: jest.fn(async () => undefined),
 }));
+jest.mock('../achievements/goalsModalBridge', () => ({
+  requestOpenGoalsModal: jest.fn(),
+}));
 jest.mock('../storage/preferences', () => {
   const actual = jest.requireActual('../storage/preferences');
   return {
@@ -48,6 +51,7 @@ jest.mock('../storage/preferences', () => {
 
 import { loadLogs } from '../storage/logs';
 import { submitBugReport } from '../utils/submitBugReport';
+import { requestOpenGoalsModal } from '../achievements/goalsModalBridge';
 import { answerHomeQuestion } from '../ai/llm';
 
 function isoDaysAgo(n: number) {
@@ -82,6 +86,7 @@ beforeEach(() => {
   mockNavigate.mockClear();
   (loadLogs as jest.Mock).mockResolvedValue([]);
   (submitBugReport as jest.Mock).mockClear();
+  (requestOpenGoalsModal as jest.Mock).mockClear();
 });
 
 test('home shows title and prompts to log when no entry today', async () => {
@@ -110,13 +115,13 @@ test('FAB navigates to Log wizard', async () => {
   expect(mockNavigate).toHaveBeenCalledWith('LogWizard');
 });
 
-test('header Goals and targets navigates to Charts in Balance', async () => {
+test('header Goals and targets opens Goals modal', async () => {
   const { getByLabelText } = renderHome();
   await waitFor(() => {
     expect(loadLogs).toHaveBeenCalled();
   });
   fireEvent.press(getByLabelText('Goals and targets'));
-  expect(mockNavigate).toHaveBeenCalledWith('Charts', { initialView: 'balance' });
+  expect(requestOpenGoalsModal).toHaveBeenCalledWith(0);
 });
 
 test('header Report a bug opens bug report modal and submits', async () => {

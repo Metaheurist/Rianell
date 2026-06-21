@@ -55,7 +55,7 @@ import Constants from 'expo-constants';
 import { buildLogReviewSummary } from '../log/buildLogReviewSummary';
 import { speakLabel } from '../accessibility/tts';
 import { submitBugReport } from '../utils/submitBugReport';
-import { getBugReportAttachmentText } from '../utils/bugReportLogs';
+import { requestOpenGoalsModal } from '../achievements/goalsModalBridge';
 
 /** Web `index.html` parity: top chrome includes bug-report modal entry. */
 const SECURITY_DOC_URL = 'https://github.com/Metaheurist/Rianell/blob/main/docs/SECURITY.md';
@@ -590,8 +590,8 @@ export function HomeScreen({
   }, [prefs.accessibility.ttsEnabled, t]);
 
   const onGoalsTargets = useCallback(() => {
-    navigation.navigate('Charts', { initialView: 'balance' });
-  }, [navigation]);
+    requestOpenGoalsModal(0);
+  }, []);
 
   const onBugReport = useCallback(() => {
     setBugModalOpen(true);
@@ -959,7 +959,7 @@ export function HomeScreen({
             style={({ pressed }) => [styles.chromeBtn, chromeShadow(accent), { borderColor: accent, opacity: pressed ? 0.88 : 1 }]}
             accessibilityRole="button"
             accessibilityLabel="Goals and targets"
-            accessibilityHint="Opens Charts in Balance view with targets"
+            accessibilityHint="Opens Goals and targets modal"
           >
             <TargetBullseyeIcon color={accent} />
           </Pressable>

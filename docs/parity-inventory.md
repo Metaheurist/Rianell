@@ -1,6 +1,6 @@
 # Platform parity inventory
 
-Generated: 2026-06-18T21:31:19.864Z
+Generated: 2026-06-21T21:30:02.605Z
 
 ## Settings / preferences field parity
 
@@ -39,6 +39,7 @@ Generated: 2026-06-18T21:31:19.864Z
 | processingActivityLog | yes | yes |
 | cloudAutoSyncOnOpen | yes | yes |
 | cloudAutoSyncDailyTime | yes | yes |
+| achievements | yes | yes |
 
 ## Cloud sync exports
 
@@ -52,6 +53,14 @@ Generated: 2026-06-18T21:31:19.864Z
 | deleteAllUserDataFromCloud | yes | yes |
 | fetchPrivacyProfileAndApply | yes | yes |
 | upsertPrivacyProfile | yes | yes |
+
+## Achievements cloud sync exports
+
+| Symbol | PWA achievements-sync.js | RN cloud/achievementsSync.ts |
+|--------|--------------------------|------------------------------|
+| loadAchievementsFromCloud | yes | yes |
+| syncAchievementsToCloud | yes | yes |
+| mergeLocalAndCloudAchievements | no | yes |
 
 ## Legacy Capacitor (must be absent post-sunset)
 

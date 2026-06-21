@@ -9,6 +9,7 @@ import {
   normalizeTrackingProfile,
   normalizeCustomChartMetrics,
   normalizeHomeDashboardPrefs,
+  normalizeAchievementState,
   readProcessingActivity,
 } from '@rianell/shared';
 
@@ -160,6 +161,10 @@ export type Preferences = {
   homeGapQuestionCache: { date: string; gapId: string } | null;
   homeQuestionAnswerState: { date: string; count: number } | null;
   weeklyReviewDismissedWeek: string | null;
+  achievements: {
+    achievements: Record<string, { notifiedAt?: string; seenAt?: string }>;
+    updatedAt: string | null;
+  };
 };
 
 export function getDefaultPreferences(): Preferences {
@@ -272,6 +277,7 @@ export function getDefaultPreferences(): Preferences {
     homeGapQuestionCache: null,
     homeQuestionAnswerState: null,
     weeklyReviewDismissedWeek: null,
+    achievements: normalizeAchievementState(null) as Preferences['achievements'],
   };
 }
 
@@ -489,6 +495,7 @@ export async function loadPreferences(): Promise<Preferences> {
           ? parsed.caregiverRelationship
           : 'parent',
       customChartMetrics: normalizeCustomChartMetrics(parsed.customChartMetrics),
+      achievements: normalizeAchievementState(parsed.achievements) as Preferences['achievements'],
       ...normalizeHomeDashboardPrefs(parsed),
     };
     return applyLocaleDefaultsToPrefs(base, base.uiLocale) as Preferences;

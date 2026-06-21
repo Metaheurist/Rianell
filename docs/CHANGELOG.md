@@ -2,7 +2,18 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.116.0** - Stepped PHQ-9/GAD-7 mental health follow-up when initial screening score is elevated.
+**Latest: v1.117.0** - Achievements layer for progressive logging unlocks (food 7d, exercise 14d, medication 21d).
+
+### v1.117.0 - 2026-06-21 - Achievements & progressive logging unlock
+- **Achievements:** Food (day 7), exercise (day 14), and medication (day 21) logging unlocks derived from `progressiveTracking.mjs` — unlock state computed from `trackingProfile.configuredAt`, not client-trusted flags.
+- **Goals modal:** PWA + RN **2-pane carousel** — Goals targets + Achievements grid with theme-tokenized icons; wizard lock CTAs open Achievements pane.
+- **Notifications:** One-shot unlock toasts when notifications enabled; `notifiedAt` dedup in local + cloud state.
+- **Shared:** `packages/shared/src/achievements/achievements.mjs`, `achievementUnlockNotification.mjs`; PWA vendor rebuild.
+- **Cloud:** Supabase **`user_achievements`** table (jsonb `achievements`, owner RLS); PWA `achievements-sync.js`; RN `achievementsSync.ts`; included in unified cloud deletion.
+- **RN:** New `GoalsModal` + `AchievementsPane`; Home targets button opens modal (not Charts); achievement tick on foreground.
+- **i18n:** `achievements.*`, `common.goals.hint`, streak-hint clarification; synced 14 locale packs.
+- **Tests:** 12 new achievement tests (core, notifications, RLS, cloud deletion); **353** unit tests total.
+- **Docs:** data-model, SECURITY, APPLY.md (6 tables), platform-parity, project-reference sync.
 
 ### v1.116.0 - 2026-06-21 - Stepped PHQ-9/GAD-7 screening follow-up
 - **Screening (X14.5):** Quick mood check (PHQ-2) and Quick anxiety check (GAD-2) now offer **stepped follow-up** when initial score ≥ 3 — PHQ-9 items 3–9 (7 questions) or GAD-7 items 3–7 (5 questions). Low scores still show `/6` result without follow-up; full instruments score `/27` or `/21` with severity bands.

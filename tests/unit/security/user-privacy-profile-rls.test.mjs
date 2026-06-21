@@ -25,6 +25,22 @@ test('Schema.sql does not require llm-models storage bucket (HF-only weights)', 
   assert.doesNotMatch(sql, /'llm-models'/);
 });
 
+test('Schema.sql defines user_achievements with RLS policies', () => {
+  const sql = readFileSync('supabase/Schema.sql', 'utf8');
+  assert.match(sql, /CREATE TABLE IF NOT EXISTS public\.user_achievements/);
+  assert.match(sql, /ALTER TABLE public\.user_achievements ENABLE ROW LEVEL SECURITY/);
+  assert.match(sql, /user_achievements_select_own/);
+  assert.match(sql, /user_achievements_insert_own/);
+  assert.match(sql, /user_achievements_update_own/);
+  assert.match(sql, /user_achievements_delete_own/);
+});
+
+test('Schema grants authenticated CRUD on user_achievements', () => {
+  const sql = readFileSync('supabase/Schema.sql', 'utf8');
+  assert.match(sql, /GRANT SELECT, INSERT, UPDATE, DELETE ON public\.user_achievements TO authenticated/);
+  assert.match(sql, /REVOKE ALL ON public\.user_achievements FROM anon/);
+});
+
 test('Schema.sql defines Plan 13 RE1 pool insight RPCs', () => {
   const sql = readFileSync('supabase/Schema.sql', 'utf8');
   assert.match(sql, /research_facets jsonb/);

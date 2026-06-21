@@ -81,7 +81,7 @@ flowchart LR
 ### v1.52.0 privacy region and UI localization
 
 - **Health data consent (GDPR Art. 9):** PWA modal before first cloud use; RN `healthDataConsent` / `healthDataConsentAt` in preferences. See [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
-- **Unified cloud deletion:** **Delete cloud data** removes rows from **`health_data`**, **`user_keys`**, **`anonymized_data`**, and **`bug_reports`** for the signed-in user (PWA + RN). RN anonymised sync now targets **`anonymized_data`** (not legacy table names).
+- **Unified cloud deletion:** **Delete cloud data** removes rows from **`health_data`**, **`user_keys`**, **`user_privacy_profile`**, **`user_achievements`**, **`anonymized_data`**, and **`bug_reports`** for the signed-in user (PWA + RN). RN anonymised sync now targets **`anonymized_data`** (not legacy table names).
 - **XSS (P0):** Import preview in **`import-utils.js`** escapes user-derived HTML before display.
 
 ### v1.49.0 platform parity (Capacitor sunset)
@@ -382,7 +382,7 @@ flowchart LR
 - **i18n:** Settings cross-cutting sections and PHQ/GAD screening modals resolve locale keys after catalogs load; em-dash cleanup in UI copy.
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.113.0; [platform-parity.md](platform-parity.md) v1.113.0 note.
 
-- **React Native Home (web parity):** same three **top-right** actions as **`apps/pwa-webapp/index.html`** **`.header-buttons-wrap`**: **Goals & targets** (opens **Charts** in **Balance** with targets strip), **Report a bug** (**?** — now in-app RN bug modal + submit flow), **Settings** (jumps to the **Settings** tab). Home now also shows an AI MOTD line via RN LLM wrapper (with deterministic fallback).
+- **React Native Home (web parity):** same three **top-right** actions as **`apps/pwa-webapp/index.html`** **`.header-buttons-wrap`**: **Goals & targets** (opens **Goals modal** pane 0), **Report a bug** (**?** — now in-app RN bug modal + submit flow), **Settings** (jumps to the **Settings** tab). Home now also shows an AI MOTD line via RN LLM wrapper (with deterministic fallback).
 
 ### v1.45.29 documentation sync
 
@@ -475,7 +475,9 @@ flowchart LR
 - **Responsiveness**: Analysis yields to the main thread between layers; loading states ("Analysing…", "Calculating predictions…"); optional Web Worker for AI preload on multi-core devices.
 
 ### Goals and targets
-- **Goals**: Targets for steps, hydration, sleep quality, and "good days"; progress visible in a dedicated Goals view; stored in settings and synced to cloud when signed in.
+- **Goals modal (v1.117.0):** PWA and RN open a **2-pane carousel** from Home **Goals & targets** — pane 0 sets steps, hydration, sleep quality, and good-days/week targets; pane 1 shows **Achievements** for progressive logging unlocks.
+- **Achievements:** Food (day 7), exercise (day 14), and medication (day 21) badges derived from `trackingProfile.configuredAt`; theme-tokenized icons; one-shot unlock notification when notifications are enabled; wizard lock steps link to Achievements pane.
+- **Goals**: Targets stored in settings (`rianellGoals` / RN preferences) and synced to cloud when signed in.
 - **Medications**: Optional medications list in settings (stored locally and in cloud with settings).
 
 ### Data management
@@ -493,7 +495,7 @@ flowchart LR
 ### Cloud sync (Supabase)
 - **Anonymised contribution**: Optional "Contribute anonymised data" in Settings; GDPR-compliant consent; data anonymised before upload; inserts into **`anonymized_data`**; medical condition used for server-side aggregation only.
 - **Health data consent**: Art. 9 modal (PWA) and preference fields (RN) required before cloud backup or anonymised upload.
-- **Cloud erasure**: Settings → delete encrypted backup, anonymised contribution, or **all cloud data** (`health_data`, `user_keys`, `anonymized_data`, `bug_reports`).
+- **Cloud erasure**: Settings → delete encrypted backup, anonymised contribution, or **all cloud data** (`health_data`, `user_keys`, `user_privacy_profile`, `user_achievements`, `anonymized_data`, `bug_reports`).
 - **Auth**: Sign in / sign out; session state; auth state reflected in sync and settings sync.
 - **Settings sync**: Goals and app settings synced to Supabase when signed in (e.g. app_settings table).
 - **Deploy**: On GitHub Pages, Supabase URL and anon key are injected at deploy time from repository secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`); no credentials in the repo.

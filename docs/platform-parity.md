@@ -418,6 +418,14 @@ The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm ru
 - **Web/Capacitor:** notification behaviour includes reminder controls tied to runtime delivery paths.
 - **React Native:** Settings now includes notification preference controls (enable, reminder time, sound) plus permission status/request baseline. Full OS scheduling/channel parity remains open.
 
+### v1.117.0 parity note (Achievements & Goals carousel)
+
+- **Goals modal:** PWA + RN two-pane carousel — **Goals** (steps, hydration, sleep, good-days targets) and **Achievements** (logging unlock badges).
+- **Unlock schedule:** Shared `LOGGING_ACHIEVEMENTS` / `computeAchievementSnapshots` — food day 7, exercise day 14, medications day 21 from `trackingProfile.configuredAt`.
+- **Wizard locks:** Locked food/exercise/meds steps show **View achievements** CTA → Achievements pane.
+- **Notifications:** Unlock toast once per achievement when notifications enabled; streak reminders (R6) remain achievement-free.
+- **Cloud:** `user_achievements` sync on sign-in; merged with local `notifiedAt`/`seenAt`; deleted with unified cloud erasure.
+
 ### v1.116.0 parity note (Stepped PHQ-9/GAD-7 screening)
 
 - **Screening:** PHQ-2/GAD-2 initial phase unchanged; score ≥ 3 unlocks PHQ-9 (7 follow-up items) or GAD-7 (5 follow-up items) on PWA + RN.

@@ -11508,7 +11508,230 @@ body.light-mode .settings-button-top:hover {
   max-width: 420px;
   width: 100%;
   max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.goals-modal-carousel-shell {
+  position: relative;
+  max-width: 460px;
+  padding: 0 36px;
+}
+
+.goals-modal-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  max-height: 90vh;
+}
+
+.goals-modal-header {
+  flex-shrink: 0;
+}
+
+.goals-header-text h3 {
+  margin: 0;
+}
+
+.goals-carousel-meta {
+  margin: 4px 0 8px;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.goals-carousel-dots {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.goals-carousel-dot {
+  border: none;
+  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  color: var(--ui-icon-muted);
+}
+
+.goals-carousel-dot--active {
+  background: color-mix(in srgb, var(--primary-color) 22%, transparent);
+  color: var(--primary-color);
+  box-shadow: var(--ui-icon-glow);
+}
+
+.goals-dot-icon-svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.goals-carousel-viewport {
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+.goals-carousel-track {
+  display: flex;
+  width: calc(var(--goals-pane-count, 2) * 100%);
+  --goals-pane-index: 0;
+  transform: translateX(calc(-1 * var(--goals-pane-index) * 100% / var(--goals-pane-count, 2)));
+  transition: transform 0.3s var(--ease-fluid, ease);
+  min-height: 0;
+}
+
+.goals-carousel-pane {
+  flex: 0 0 calc(100% / var(--goals-pane-count, 2));
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: min(58vh, 420px);
+}
+
+.goals-carousel-side {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  border: none;
+  background: color-mix(in srgb, var(--primary-color) 16%, transparent);
+  color: var(--primary-color);
+  width: 28px;
+  height: 44px;
+  border-radius: 8px;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.goals-carousel-side--prev { left: 4px; }
+.goals-carousel-side--next { right: 4px; }
+.goals-carousel-side:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+@media (max-width: 520px) {
+  .goals-carousel-side { display: none; }
+  .goals-modal-carousel-shell { padding: 0; }
+}
+
+.achievements-lede {
+  margin-bottom: 14px;
+}
+
+.achievements-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.achievement-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: var(--radius-md, 12px);
+  background: color-mix(in srgb, var(--primary-color) 8%, var(--card-bg, #1a1a1a));
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
+}
+
+.achievement-icon-wrap {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(
+    var(--primary-color) calc(var(--achievement-progress, 0) * 360deg),
+    color-mix(in srgb, var(--text-dim) 40%, transparent) 0
+  );
+  padding: 3px;
+}
+
+.achievement-icon-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--card-bg, #121212);
+}
+
+.achievement-icon-inner .ui-svg-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.achievement-icon--locked .ui-svg-icon {
+  color: var(--ui-icon-muted);
+}
+
+.achievement-icon--unlocked .ui-svg-icon {
+  color: var(--ui-icon-success, var(--primary-color));
+  filter: drop-shadow(var(--ui-icon-glow));
+}
+
+.achievement-lock-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+  color: var(--ui-icon-muted);
+}
+
+.achievement-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.achievement-card-title {
+  margin: 0 0 4px;
+  font-weight: 600;
+  color: var(--text-light);
+}
+
+.achievement-card-desc {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.35;
+}
+
+.achievement-status-pill {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.achievement-status-pill--locked {
+  background: color-mix(in srgb, var(--text-dim) 25%, transparent);
+  color: var(--text-dim);
+}
+
+.achievement-status-pill--unlocked {
+  background: color-mix(in srgb, var(--ui-icon-success, var(--primary-color)) 22%, transparent);
+  color: var(--ui-icon-success, var(--primary-color));
+}
+
+.wizard-progressive-lock-cta {
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+
+.wizard-progressive-lock-cta button {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
 }
 
 .bug-report-modal-overlay {
