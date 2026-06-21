@@ -35,6 +35,21 @@ Save after **date + flare** only. Missing numeric scores are filled with mid-sca
 
 ---
 
+## Cycle tracking (optional)
+
+Enable in **Settings → Data options** or during first-run tutorial.
+
+| Field | Notes |
+|-------|-------|
+| **Cycle day** | 1–45 (supports long/irregular cycles) |
+| **Phase** | Menstrual, follicular, ovulation, luteal — theme icons, not emoji |
+| **Flow** | Optional light / medium / heavy |
+| **PMS symptoms** | Optional list |
+
+When you pick a date, day and phase may be **suggested** from your most recent cycle log. Phase hints use a simplified ~28-day pattern — not medical advice.
+
+---
+
 ## Viewing and editing
 
 - **View logs** tab — tap a day card to expand full detail.

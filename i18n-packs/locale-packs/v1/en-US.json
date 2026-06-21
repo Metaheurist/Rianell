@@ -1686,6 +1686,12 @@
     "home.action.readTodayEntry": "Read today's entry",
     "onboarding.step.sessionRecording": "Session recording",
     "onboarding.sessionRecording.body": "To help improve Rianell, session recording (Smartlook, EU) is turned on by default. It collects anonymised heatmaps and error data—not individual reviews of your health entries. You can turn this off now or anytime in Settings → Privacy.",
-    "onboarding.sessionRecording.toggleLabel": "Session recording"
+    "onboarding.sessionRecording.toggleLabel": "Session recording",
+    "tutorial.slide8.body": "Optional cycle tracking on step 1 of the log wizard records cycle day, phase, and flow. Rianell can suggest your phase from your last entry and today's date.",
+    "tutorial.slide8.toggleLabel": "Enable cycle tracking",
+    "tutorial.slide8.hint": "You can change this anytime in Settings → Data options.",
+    "wizard.cycle.suggestedFromLast": "Suggested from your last entry: day {day}, {phase} phase.",
+    "wizard.cycle.suggestedPhase": "{phase} phase",
+    "weeklyReview.card.enableAi": "Enable AI"
   }
 }

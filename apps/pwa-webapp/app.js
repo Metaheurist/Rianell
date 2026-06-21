@@ -2288,12 +2288,12 @@ window.closeDonateModal = closeDonateModal;
 // ============================================
 // Tutorial Modal (new users + backtick ` to reopen)
 // ============================================
-const TUTORIAL_SLIDE_TITLES = ['Enable AI & Goals?', 'Welcome', 'View & AI', 'Settings & data', 'Data options', 'Accessibility', 'Goals & targets', "You're all set"];
+const TUTORIAL_SLIDE_TITLES = ['Enable AI & Goals?', 'Welcome', 'Cycle tracking', 'View & AI', 'Settings & data', 'Data options', 'Accessibility', 'Goals & targets', "You're all set"];
 
 function getTutorialVisibleIndices() {
   var aiOn = typeof appSettings !== 'undefined' && appSettings.aiEnabled !== false;
-  if (aiOn) return [0, 1, 2, 3, 4, 5, 6, 7];
-  return [0, 1, 5, 7];
+  if (aiOn) return [0, 1, 8, 2, 3, 4, 5, 6, 7];
+  return [0, 1, 8, 5, 7];
 }
 window.getTutorialVisibleIndices = getTutorialVisibleIndices;
 var _tutorialSwipeStartX = 0;
@@ -2435,8 +2435,9 @@ function showTutorialSlide(index) {
   const isLast = pos >= 0 && pos === visible.length - 1;
   const isFirst = pos <= 0;
   if (titleEl) titleEl.textContent = TUTORIAL_SLIDE_TITLES[index] || 'Tutorial';
-  document.querySelectorAll('.tutorial-slide').forEach(function(el, i) {
-    el.classList.toggle('tutorial-slide-active', i === index);
+  document.querySelectorAll('.tutorial-slide').forEach(function(el) {
+    var slideIdx = parseInt(el.dataset.slide, 10);
+    el.classList.toggle('tutorial-slide-active', slideIdx === index);
   });
   if (arrowLeft) arrowLeft.style.display = isFirst ? 'none' : 'flex';
   if (arrowRight) {
@@ -2449,6 +2450,7 @@ function showTutorialSlide(index) {
   if (index === 3 && typeof updateTutorialConditionDisplay === 'function') updateTutorialConditionDisplay();
   if (index === 4 && typeof updateTutorialDataTogglesState === 'function') updateTutorialDataTogglesState();
   if (index === 5 && typeof updateTutorialAccessibilityState === 'function') updateTutorialAccessibilityState();
+  if (index === 8 && typeof updateTutorialCycleModuleState === 'function') updateTutorialCycleModuleState();
   if (typeof window !== 'undefined' && window.RianellFirstRunWizard && typeof window.RianellFirstRunWizard.syncTutorialFooter === 'function') {
     window.RianellFirstRunWizard.syncTutorialFooter();
   }
@@ -16030,6 +16032,8 @@ function loadSettings() {
     typeof appSettings.sessionRecordingDisclosureAt === 'string' ? appSettings.sessionRecordingDisclosureAt : null;
   appSettings.appLockEnabled = appSettings.appLockEnabled === true;
   appSettings.cloudAutoSyncOnOpen = appSettings.cloudAutoSyncOnOpen === true;
+  appSettings.barcodeFoodLoggingEnabled = false;
+  appSettings.guidedVoiceLogEnabled = false;
   if (window.RianellShared && typeof window.RianellShared.normalizeCaregiverSettings === 'function') {
     var cg = window.RianellShared.normalizeCaregiverSettings(appSettings);
     appSettings.caregiverModeEnabled = cg.caregiverModeEnabled;
@@ -16097,6 +16101,8 @@ function loadSettings() {
 }
 
 function saveSettings() {
+  appSettings.barcodeFoodLoggingEnabled = false;
+  appSettings.guidedVoiceLogEnabled = false;
   var settingsJson = JSON.stringify(appSettings);
   if (window.PerformanceUtils?.StorageBatcher) {
     window.PerformanceUtils.StorageBatcher.setItem('rianellSettings', settingsJson);
@@ -16370,6 +16376,7 @@ function ensureSummaryLlmLoadedForSettings() {
   }
   return Promise.resolve();
 }
+if (typeof window !== 'undefined') window.ensureSummaryLlmLoadedForSettings = ensureSummaryLlmLoadedForSettings;
 
 var __rianellLlmStoragePollId = null;
 var __rianellLlmStorageBaseline = null;
@@ -17229,10 +17236,6 @@ function loadSettingsState() {
 
   var cycleModuleToggle = document.getElementById('cycleModuleToggle');
   if (cycleModuleToggle) cycleModuleToggle.classList.toggle('active', !!appSettings.cycleModuleEnabled);
-  var barcodeFoodToggle = document.getElementById('barcodeFoodToggle');
-  if (barcodeFoodToggle) barcodeFoodToggle.classList.toggle('active', !!appSettings.barcodeFoodLoggingEnabled);
-  var guidedVoiceToggle = document.getElementById('guidedVoiceToggle');
-  if (guidedVoiceToggle) guidedVoiceToggle.classList.toggle('active', !!appSettings.guidedVoiceLogEnabled);
   if (typeof syncLogWizardPlan04Ui === 'function') syncLogWizardPlan04Ui();
   
   // Update medical condition display and disable in demo mode
@@ -17568,6 +17571,24 @@ function toggleTutorialAccessibilityReadMode() {
   updateTutorialAccessibilityState();
 }
 if (typeof window !== 'undefined') window.toggleTutorialAccessibilityReadMode = toggleTutorialAccessibilityReadMode;
+
+function updateTutorialCycleModuleState() {
+  try {
+    var toggle = document.getElementById('tutorialCycleModuleToggle');
+    if (toggle && typeof appSettings !== 'undefined') {
+      toggle.classList.toggle('active', !!appSettings.cycleModuleEnabled);
+    }
+  } catch (e) {}
+}
+
+function toggleTutorialCycleModule() {
+  if (typeof appSettings === 'undefined') return;
+  appSettings.cycleModuleEnabled = !appSettings.cycleModuleEnabled;
+  if (typeof saveSettings === 'function') saveSettings();
+  if (typeof loadSettingsState === 'function') loadSettingsState();
+  updateTutorialCycleModuleState();
+}
+if (typeof window !== 'undefined') window.toggleTutorialCycleModule = toggleTutorialCycleModule;
 
 function openSettingsToMedicalCondition() {
   var personalPaneIndex = getSettingsPaneIndexByI18nKey('settings.personal.title');
@@ -20498,8 +20519,12 @@ function renderHomeStreakCard(logArr, streakSnap, ctx) {
     : (streakSnap.goodDayStreak + ' good · ' + streakSnap.flareFreeDays + ' flare-free');
   card.innerHTML =
     homeInsetDismissButtonHtml() +
+    '<div class="home-inset-head">' +
+    '<span class="home-inset-icon" aria-hidden="true">' + svgIcon('chart-up') + '</span>' +
+    '<div class="home-inset-copy">' +
     '<h4 class="home-inset-title">' + escapeHTML(title) + '</h4>' +
-    '<p class="home-inset-body">' + escapeHTML(summary) + '</p>';
+    '<p class="home-inset-body">' + escapeHTML(summary) + '</p>' +
+    '</div></div>';
   var btn = card.querySelector('.home-inset-dismiss');
   if (btn) {
     btn.onclick = function() {
@@ -20953,6 +20978,9 @@ if (typeof window !== 'undefined') window.refreshAllTabsForLocaleChange = refres
 function refreshLogWizardDynamicI18n() {
   if (typeof renderLogFoodItems === 'function') renderLogFoodItems();
   if (typeof renderLogExerciseItems === 'function') renderLogExerciseItems();
+  if (window.RianellCycleTracking && typeof window.RianellCycleTracking.refreshLabels === 'function') {
+    window.RianellCycleTracking.refreshLabels();
+  }
   var review = document.getElementById('logReviewSummary');
   if (review && currentLogWizardStep === LOG_WIZARD_TOTAL_STEPS - 1) {
     review.innerHTML = buildLogReviewSummaryHtml();
@@ -21236,8 +21264,28 @@ function syncLogWizardPlan04Ui() {
   }
   if (appSettings.cycleModuleEnabled && window.RianellCycleTracking && typeof window.RianellCycleTracking.bind === 'function') {
     window.RianellCycleTracking.bind();
+    if (typeof window.RianellCycleTracking.applySuggestionFromLogs === 'function') {
+      var dateEl = document.getElementById('date');
+      var dateVal = dateEl && dateEl.value ? dateEl.value : '';
+      var logList = typeof logs !== 'undefined' && Array.isArray(logs) ? logs : [];
+      window.RianellCycleTracking.applySuggestionFromLogs(logList, dateVal);
+    }
   }
 }
+
+(function bindLogCycleDateSuggest() {
+  var dateEl = document.getElementById('date');
+  if (!dateEl || dateEl.dataset.cycleSuggestBound) return;
+  dateEl.dataset.cycleSuggestBound = '1';
+  function onLogDateForCycle() {
+    if (!appSettings.cycleModuleEnabled) return;
+    if (!window.RianellCycleTracking || typeof window.RianellCycleTracking.applySuggestionFromLogs !== 'function') return;
+    var logList = typeof logs !== 'undefined' && Array.isArray(logs) ? logs : [];
+    window.RianellCycleTracking.applySuggestionFromLogs(logList, dateEl.value || '');
+  }
+  dateEl.addEventListener('change', onLogDateForCycle);
+  dateEl.addEventListener('input', onLogDateForCycle);
+})();
 
 function collectPlan04LogFields(dateValue) {
   var out = {};

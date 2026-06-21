@@ -8,7 +8,7 @@ Rianell helps you log daily health metrics, spot trends, and optionally run AI-a
 
 | Tab | Purpose |
 |-----|---------|
-| **Home** | Today’s summary, goals progress, optional AI suggestion chips |
+| **Home** | Today’s summary, goals progress, streak patterns, weekly review card, optional AI suggestion chips |
 | **View logs** | Browse, expand, edit, share, or delete past entries |
 | **Charts** | ApexCharts visualisations with optional predictions |
 | **AI Analysis** | Rule-based insights plus optional on-device LLM summaries |
@@ -34,6 +34,8 @@ flowchart LR
 
 Step through date, vitals, symptoms, food, exercise, medications, and notes. You can **quick-save** after date + flare only; missing numeric scores get sensible defaults so charts still work.
 
+When **cycle tracking** is enabled (Settings → Data options or first-run tutorial), step 1 includes cycle day (1–45), phase, and optional flow — with suggested values from your previous logs.
+
 Detailed field reference: [[Logging-Data]].
 
 ---
@@ -54,7 +56,7 @@ Swipe or use arrows to move between panes. Locked wizard steps link here when a 
 Open the gear icon for a scrollable settings carousel:
 
 - **Display** — theme, colour-blind mode, notifications
-- **Data options** — demo mode, export/import, clear data
+- **Data options** — demo mode, export/import, clear data, **cycle tracking module**
 - **Performance** — on-device AI model download and benchmarks
 - **Privacy & region** — language, region gate, policy documents, consent
 - **Cloud** — sign-in, sync, delete cloud data

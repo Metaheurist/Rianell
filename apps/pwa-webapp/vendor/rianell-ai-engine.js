@@ -677,10 +677,10 @@ var RianellAIEngine = (() => {
 
   // packages/shared/src/logging/cycleTracking.mjs
   var CYCLE_PHASES = [
-    { id: "menstrual", i18n: "wizard.cycle.phase.menstrual", tone: "menstrual" },
-    { id: "follicular", i18n: "wizard.cycle.phase.follicular", tone: "follicular" },
-    { id: "ovulation", i18n: "wizard.cycle.phase.ovulation", tone: "ovulation" },
-    { id: "luteal", i18n: "wizard.cycle.phase.luteal", tone: "luteal" }
+    { id: "menstrual", i18n: "wizard.cycle.phase.menstrual", tone: "menstrual", icon: "cycle-menstrual" },
+    { id: "follicular", i18n: "wizard.cycle.phase.follicular", tone: "follicular", icon: "cycle-follicular" },
+    { id: "ovulation", i18n: "wizard.cycle.phase.ovulation", tone: "ovulation", icon: "cycle-ovulation" },
+    { id: "luteal", i18n: "wizard.cycle.phase.luteal", tone: "luteal", icon: "cycle-luteal" }
   ];
   var CYCLE_FLOW_LEVELS = [
     { id: "none", i18n: "wizard.cycle.flow.none", drops: 0 },

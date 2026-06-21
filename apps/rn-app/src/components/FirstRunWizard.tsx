@@ -25,20 +25,21 @@ import { useT } from '../i18n/I18nProvider';
 import type { Preferences, TrackingProfile } from '../storage/preferences';
 import { upsertPrivacyProfile } from '../cloud/privacyProfile';
 
-const SLIDE_BODIES = [
-  'tutorial.slide0.body',
-  'tutorial.slide1.body',
-  'tutorial.slide2.body',
-  'tutorial.slide3.body',
-  'tutorial.slide4.body',
-  'tutorial.slide5.body',
-  'tutorial.slide6.body',
-  'tutorial.slide7.body',
-] as const;
+const SLIDE_BODIES: Partial<Record<number, string>> = {
+  0: 'tutorial.slide0.body',
+  1: 'tutorial.slide1.body',
+  8: 'tutorial.slide8.body',
+  2: 'tutorial.slide2.body',
+  3: 'tutorial.slide3.body',
+  4: 'tutorial.slide4.body',
+  5: 'tutorial.slide5.body',
+  6: 'tutorial.slide6.body',
+  7: 'tutorial.slide7.body',
+};
 
 function visibleSlideIndices(aiEnabled: boolean): number[] {
-  if (aiEnabled) return [0, 1, 2, 3, 4, 5, 6, 7];
-  return [0, 1, 5, 7];
+  if (aiEnabled) return [0, 1, 8, 2, 3, 4, 5, 6, 7];
+  return [0, 1, 8, 5, 7];
 }
 
 export function FirstRunWizard({
@@ -269,7 +270,7 @@ export function FirstRunWizard({
         return (
           <>
             <Text style={[styles.lead, { color: theme.tokens.color.textSecondary }]}>
-              {t(SLIDE_BODIES[tutorialSlideIndex])}
+              {t(SLIDE_BODIES[tutorialSlideIndex] || 'tutorial.slide1.body')}
             </Text>
             {tutorialSlideIndex === 0 ? (
               <View style={styles.row}>
@@ -296,6 +297,22 @@ export function FirstRunWizard({
                   <Text style={{ color: theme.tokens.color.textSecondary }}>{t('common.skip.for.now')}</Text>
                 </Pressable>
               </View>
+            ) : null}
+            {tutorialSlideIndex === 8 ? (
+              <>
+                <View style={[styles.toggleRow, { marginTop: 12 }]}>
+                  <Text style={{ color: theme.tokens.color.textSecondary, flex: 1 }}>
+                    {t('tutorial.slide8.toggleLabel')}
+                  </Text>
+                  <Switch
+                    value={localPrefs.cycleModuleEnabled === true}
+                    onValueChange={(v) => patchPrefs({ cycleModuleEnabled: v })}
+                  />
+                </View>
+                <Text style={[styles.hint, { color: theme.tokens.color.textMuted, marginTop: 8 }]}>
+                  {t('tutorial.slide8.hint')}
+                </Text>
+              </>
             ) : null}
           </>
         );

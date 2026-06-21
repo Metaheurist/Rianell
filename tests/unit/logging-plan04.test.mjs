@@ -35,6 +35,24 @@ test('suggestCyclePhaseForDay maps typical cycle pattern', async () => {
   assert.equal(suggestCyclePhaseForDay(22), 'luteal');
 });
 
+test('suggestCycleForDate infers day and phase from latest anchor log', async () => {
+  const { suggestCycleForDate } = await import('@rianell/shared');
+  const logs = [
+    { date: '2026-06-10', cycle: { cycleDay: 5, phase: 'menstrual' } },
+    { date: '2026-06-01', cycle: { cycleDay: 12, phase: 'follicular' } },
+  ];
+  const result = suggestCycleForDate(logs, '2026-06-15');
+  assert.equal(result?.cycleDay, 10);
+  assert.equal(result?.phase, 'follicular');
+  assert.equal(result?.fromDate, '2026-06-10');
+});
+
+test('suggestCycleForDate returns null when target is before anchor', async () => {
+  const { suggestCycleForDate } = await import('@rianell/shared');
+  const logs = [{ date: '2026-06-10', cycle: { cycleDay: 5 } }];
+  assert.equal(suggestCycleForDate(logs, '2026-06-08'), null);
+});
+
 test('mergeLogEntriesForDate merges sub-entries by id', () => {
   const merged = mergeLogEntriesForDate(
     { date: '2026-06-18', subEntries: [{ id: 'a', period: 'AM', mood: 4 }] },

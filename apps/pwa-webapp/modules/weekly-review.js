@@ -1244,6 +1244,80 @@
 
 
 
+  function isWeeklyReviewLlmReady() {
+
+    var settings = getSettings();
+
+    if (!settings || settings.aiEnabled === false) return false;
+
+    var status = (typeof global.getAiModelStatus === 'function') ? global.getAiModelStatus() : null;
+
+    return !!(status && status.state === 'ready');
+
+  }
+
+
+
+  function requestWeeklyReviewAi() {
+
+    var settings = getSettings();
+
+    if (settings && settings.aiEnabled === false) {
+
+      if (global.appSettings) global.appSettings.aiEnabled = true;
+
+      if (typeof global.saveSettings === 'function') global.saveSettings();
+
+      if (typeof global.loadSettingsState === 'function') global.loadSettingsState();
+
+      if (typeof global.applyAIFeatureVisibility === 'function') global.applyAIFeatureVisibility();
+
+    }
+
+    if (isWeeklyReviewLlmReady()) {
+
+      openWeeklyReviewModal();
+
+      return;
+
+    }
+
+    var ensure = (typeof global.ensureSummaryLlmLoadedForSettings === 'function')
+
+      ? global.ensureSummaryLlmLoadedForSettings()
+
+      : Promise.resolve();
+
+    ensure.then(function () {
+
+      if (isWeeklyReviewLlmReady()) {
+
+        openWeeklyReviewModal();
+
+        return;
+
+      }
+
+      if (typeof global.promptAiModelDownloadConsent === 'function') {
+
+        global.promptAiModelDownloadConsent().then(function (granted) {
+
+          if (granted && typeof global.preloadSummaryLLM === 'function') {
+
+            global.preloadSummaryLLM().catch(function () {});
+
+          }
+
+        });
+
+      }
+
+    });
+
+  }
+
+
+
   function renderHomeWeeklyReviewCard(todayStr, ctx) {
 
     var card = document.getElementById('homeWeeklyReviewCard');
@@ -1261,6 +1335,12 @@
     }
 
     card.hidden = false;
+
+    var aiReady = isWeeklyReviewLlmReady();
+
+    var actionKey = aiReady ? 'weeklyReview.card.action' : 'weeklyReview.card.enableAi';
+
+    var actionIcon = aiReady ? 'chart-bars' : 'brain';
 
     card.innerHTML =
 
@@ -1282,15 +1362,15 @@
 
       '<button type="button" class="action-btn home-weekly-review-start" data-ripple>' +
 
-      svgIcon('chart-bars', 'weekly-review-btn-icon') +
+      svgIcon(actionIcon, 'weekly-review-btn-icon') +
 
-      '<span>' + escapeHTML(t('weeklyReview.card.action')) + '</span></button>' +
+      '<span>' + escapeHTML(t(actionKey)) + '</span></button>' +
 
       '</div>';
 
     var startBtn = card.querySelector('.home-weekly-review-start');
 
-    if (startBtn) startBtn.onclick = openWeeklyReviewModal;
+    if (startBtn) startBtn.onclick = aiReady ? openWeeklyReviewModal : requestWeeklyReviewAi;
 
     var dismissBtn = card.querySelector('.home-inset-dismiss');
 

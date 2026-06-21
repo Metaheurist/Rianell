@@ -34,7 +34,9 @@ Machine-readable contract: `docs/platform-parity.json` (v2).
 | On-device LLM | Yes | Yes | Yes |
 | Cloud sync + consent | Yes | Yes | Yes |
 | 13 UI locales + RTL ar/he | Yes | Yes | Yes |
-| Settings carousel | 9 panes | 8+ panes | 8+ panes |
+| Settings carousel | 10 panes | 10 panes | 10 panes |
+| Cycle tracking (log wizard) | Yes | Yes | Yes |
+| Mood tab | Yes | Yes | Yes |
 | Export / import JSON | Yes | Yes | Yes |
 | PWA install prompts | Yes | N/A | N/A |
 | Native release links in Settings | N/A | Yes | Yes |

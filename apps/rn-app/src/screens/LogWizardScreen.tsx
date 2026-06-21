@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   LayoutAnimation,
@@ -29,12 +29,11 @@ import {
   normalizeLogEntry,
   getSymptomChipsForCondition,
   shouldShowWizardCategory,
-  extractLogFieldsFromVoiceTranscript,
   stampLogEntryForCaregiver,
   buildTodayMedDoseStatuses,
-  fetchOpenFoodFactsProduct,
-  formatBarcodeFoodLabel,
   formatIsoDate,
+  suggestCycleForDate,
+  CYCLE_PHASES,
 } from '@rianell/shared';
 import { buildLogReviewSummary, parseMedicationNamesCsv } from '../log/buildLogReviewSummary';
 import type { RootStackParamList } from '../navigation/RootNavigator';
@@ -742,8 +741,10 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   const [cycleDay, setCycleDay] = useState<number | null>(null);
   const [cyclePhase, setCyclePhase] = useState('');
   const [cycleFlow, setCycleFlow] = useState('');
-  const [barcodeInput, setBarcodeInput] = useState('');
-  const [barcodeBusy, setBarcodeBusy] = useState(false);
+  const [cycleSuggestHint, setCycleSuggestHint] = useState<string | null>(null);
+  const cycleAutoFilledRef = useRef(false);
+  const cycleSuggestedDateRef = useRef('');
+  const cycleStateRef = useRef({ cycleDay: null as number | null, cyclePhase: '', cycleFlow: '' });
   const [medDoseStatus, setMedDoseStatus] = useState<Record<string, 'taken' | 'skipped' | 'missed'>>({});
 
   if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -845,6 +846,47 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     () => parseMedicationNamesCsv(medicationText, medicationTaken),
     [medicationText, medicationTaken]
   );
+
+  useEffect(() => {
+    cycleStateRef.current = { cycleDay, cyclePhase, cycleFlow };
+  }, [cycleDay, cyclePhase, cycleFlow]);
+
+  useEffect(() => {
+    if (!prefs.cycleModuleEnabled) {
+      setCycleSuggestHint(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { cycleDay: d, cyclePhase: p, cycleFlow: f } = cycleStateRef.current;
+      if (date !== cycleSuggestedDateRef.current && cycleAutoFilledRef.current) {
+        setCycleDay(null);
+        setCyclePhase('');
+        setCycleFlow('');
+        cycleAutoFilledRef.current = false;
+        setCycleSuggestHint(null);
+      } else if (d != null || p || f) {
+        return;
+      }
+      if (cycleSuggestedDateRef.current === date) return;
+      const loadedLogs = await loadLogs();
+      if (cancelled) return;
+      const suggestion = suggestCycleForDate(loadedLogs, date);
+      if (!suggestion?.cycleDay) return;
+      cycleAutoFilledRef.current = true;
+      cycleSuggestedDateRef.current = date;
+      setCycleDay(suggestion.cycleDay);
+      setCyclePhase(suggestion.phase || '');
+      const phaseMeta = CYCLE_PHASES.find((phase) => phase.id === suggestion.phase);
+      const phaseLabel = phaseMeta ? t(phaseMeta.i18n) : '';
+      setCycleSuggestHint(
+        t('wizard.cycle.suggestedFromLast', { day: String(suggestion.cycleDay), phase: phaseLabel }),
+      );
+    })().catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [date, prefs.cycleModuleEnabled, t]);
 
   useEffect(() => {
     loadLogs()
@@ -989,38 +1031,8 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     setStep(next);
   }
 
-  async function lookupBarcodeFood() {
-    if (!prefs.barcodeFoodLoggingEnabled || barcodeBusy || !barcodeInput.trim()) return;
-    setBarcodeBusy(true);
-    try {
-      const product = await fetchOpenFoodFactsProduct(barcodeInput.trim());
-      const label = formatBarcodeFoodLabel(product);
-      if (label) setBreakfastText((prev) => addCsvItem(prev, label));
-      toast.show(t('wizard.barcode.added', { name: label }));
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : t('wizard.barcode.failed');
-      Alert.alert(t('common.error'), msg);
-    } finally {
-      setBarcodeBusy(false);
-    }
-  }
-
   function applyNotesFromVoice(nextNotes: string) {
-    const trimmed = nextNotes.slice(0, 500);
-    setNotes(trimmed);
-    if (!prefs.guidedVoiceLogEnabled) return;
-    const extracted = extractLogFieldsFromVoiceTranscript(trimmed) as {
-      mood?: number;
-      fatigue?: number;
-      sleep?: number;
-      jointPain?: number;
-      flare?: string;
-    };
-    if (extracted.mood != null) setMood(String(extracted.mood));
-    if (extracted.fatigue != null) setFatigue(String(extracted.fatigue));
-    if (extracted.sleep != null) setSleep(String(extracted.sleep));
-    if (extracted.jointPain != null) setPainLocation(String(extracted.jointPain));
-    if (extracted.flare === 'Yes') setFlare('Yes');
+    setNotes(nextNotes.slice(0, 500));
   }
 
   async function saveQuickMinimal() {
@@ -1138,7 +1150,11 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             {prefs.cycleModuleEnabled ? (
               <CycleTrackingInput
                 value={{ cycleDay, cyclePhase, cycleFlow }}
+                suggestHint={cycleSuggestHint}
                 onChange={({ cycleDay: nextDay, cyclePhase: nextPhase, cycleFlow: nextFlow }) => {
+                  cycleAutoFilledRef.current = false;
+                  cycleSuggestedDateRef.current = '';
+                  setCycleSuggestHint(null);
                   setCycleDay(nextDay);
                   setCyclePhase(nextPhase);
                   setCycleFlow(nextFlow);
@@ -1674,22 +1690,6 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
                     <Choice key={`fav-meal-${item}`} label={item} selected={breakfastItems.includes(item)} onPress={() => setBreakfastText((prev) => addCsvItem(prev, item))} />
                   ))}
                 </View>
-              </View>
-            ) : null}
-            {prefs.barcodeFoodLoggingEnabled ? (
-              <View style={{ marginBottom: 8 }}>
-                <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>{t('wizard.barcode.title')}</Text>
-                <TextInput
-                  value={barcodeInput}
-                  onChangeText={setBarcodeInput}
-                  style={[styles.input, { color: theme.tokens.color.text }]}
-                  keyboardType="number-pad"
-                  placeholder={t('wizard.barcode.placeholder')}
-                  placeholderTextColor="rgba(255,255,255,0.6)"
-                />
-                <Pressable onPress={() => void lookupBarcodeFood()} style={[styles.secondaryBtn, { marginTop: 6 }]} disabled={barcodeBusy}>
-                  <Text style={[styles.btnText, { fontSize: theme.font(13) }]}>{barcodeBusy ? t('common.loading') : t('wizard.barcode.lookup')}</Text>
-                </Pressable>
               </View>
             ) : null}
             <View style={{ marginTop: 6, marginBottom: 8, alignItems: 'flex-start' }}>

@@ -2,7 +2,17 @@
 
 Changelog is derived from project commit history. Versions follow semantic versioning (major.minor.patch).
 
-**Latest: v1.118.0** - Onboarding UX, Smartlook default-on with disclosure, Goals carousel fix.
+**Latest: v1.119.0** - Cycle tracking UX, Home cards, Mood sparkline fix, deferred barcode/voice logging.
+
+### v1.119.0 - 2026-06-21 - Cycle tracking, Home UX, logging module trim
+- **Cycle tracking (PWA + RN):** Theme-token **SVG phase icons** (no emoji); i18n labels refresh after catalog load; horizontal day row scrolls via wheel/drag/swipe with **hidden scrollbar**; **suggest cycle day + phase** from last log entry and selected date; tutorial **slide 8** explains and toggles `cycleModuleEnabled`.
+- **Shared:** `suggestCycleForDate`, `findLatestCycleAnchor`, `daysBetweenIsoDates` in `cycleTracking.mjs`; `CYCLE_DAY_MAX` **45** (typical phase hints use ~28-day pattern; extended range supports long/irregular cycles).
+- **Logging modules:** **Barcode food** and **guided voice extraction** toggles **removed from Settings** (no scanner / extraction UI shipped); prefs forced off on load — cycle module remains.
+- **Home (PWA + RN):** **Recent patterns** card gets icon + white body text; **Weekly Health Review** shows **Enable AI** (opens on-device model download) when LLM not ready; **Start review** when model loaded.
+- **Mood tab (PWA):** Trend sparkline constrained to card width on mobile (responsive SVG, 2-column metric grid).
+- **i18n:** `tutorial.slide8.*`, `wizard.cycle.suggestedFromLast`, `weeklyReview.card.enableAi`; synced 14 locale packs.
+- **Tests:** `suggestCycleForDate` unit tests; **362** unit tests total.
+- **Docs:** CHANGELOG, project-reference, app-and-features, platform-parity, data-model, wiki Release-Notes/Features/Logging-Data/Getting-Started/Platforms-and-Parity.
 
 ### v1.118.0 - 2026-06-21 - Onboarding UX & Smartlook default-on
 - **First-run wizard (PWA + RN):** Tracking profile step deferred to Settings (defaults applied on wizard complete); fixed nested tutorial/install modals and skip controls; medical condition configured in Settings like other users.

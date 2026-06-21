@@ -38,6 +38,18 @@ flowchart LR
 - **Runtime:** `ensureAppShellDomPlacement()` in `app.js`; boot logs via `logBootState()` / `window.__rianellBootLog`.
 - **Verify:** `npm run audit:probe-shell:layout`; `tests/unit/pwa-boot-shell.test.mjs`.
 
+### v1.119.0+ Cycle tracking (log wizard step 1)
+
+- **Enable:** Settings → Data options → Cycle tracking module, or first-run tutorial slide **Cycle tracking**.
+- **UI:** Cycle day scroll row (days 1–45), phase tiles with theme SVG icons, optional flow level; labels from i18n (not raw keys).
+- **Suggest:** When fields are empty, day + phase pre-fill from your most recent cycle log and the wizard date.
+- **Day 45 cap:** Accommodates long/irregular cycles; phase hints use a simplified 28-day pattern (not medical diagnosis).
+
+### v1.119.0+ Home card polish
+
+- **Recent patterns:** Icon + white summary text in hero inset when streak card visible.
+- **Weekly Health Review:** **Start review** when on-device LLM is loaded; **Enable AI** opens model download when not ready.
+
 ### v1.118.0+ Smartlook session recording (default-on after disclosure)
 
 - **Purpose:** Optional EU session analytics (Smartlook) — **on by default after onboarding disclosure**; opt out during first-run or in Settings anytime.
@@ -374,7 +386,7 @@ flowchart LR
 - **Home:** Hero status card includes streak nudge text when relevant; energy-budget/pacing card removed.
 - **Charts:** Correlation/forecast/compare/pacing insights panel removed.
 - **Screening:** PHQ-2/GAD-2 slider UX and friendlier copy on PWA and RN.
-- **Logging modules:** Cycle/barcode/voice toggles affect the **log wizard** only; barcode and guided-voice flows are RN-complete; PWA wizard wiring for those two is pending.
+- **Logging modules:** Cycle wizard fields both platforms when enabled; barcode food and guided voice **deferred** (Settings toggles removed; prefs forced off).
 - **See:** [CHANGELOG.md](CHANGELOG.md) v1.114.0.
 
 ### v1.113.0 documentation sync

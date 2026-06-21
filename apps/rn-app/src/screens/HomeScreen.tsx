@@ -32,6 +32,11 @@ import { savePreferences } from '../storage/preferences';
 import { loadCachedBenchmark } from '../performance/benchmark';
 import { generateMotd, answerHomeQuestion } from '../ai/llm';
 import {
+  getNativeAiModelStatus,
+  preloadNativeLlm,
+  setAiModelDownloadConsent,
+} from '../ai/llmNative';
+import {
   pickHomeAiSuggestionBundle,
   analysisSnapshotFromSummary,
   computeHomeCardContext,
@@ -721,6 +726,28 @@ export function HomeScreen({
     void persistPrefs({ ...prefs, weeklyReviewDismissedWeek: isoWeekMondayKey(todayStr) });
   }, [persistPrefs, prefs, todayStr]);
 
+  const weeklyReviewAiReady = useMemo(() => {
+    if (prefs.aiEnabled === false) return false;
+    if (prefs.aiModelDownloadConsent !== 'granted') return false;
+    return getNativeAiModelStatus().state === 'ready';
+  }, [prefs.aiEnabled, prefs.aiModelDownloadConsent]);
+
+  const onWeeklyReviewPress = useCallback(async () => {
+    if (weeklyReviewAiReady) {
+      navigation.navigate('WeeklyReview');
+      return;
+    }
+    const next: Preferences = { ...prefs, aiEnabled: true };
+    if (prefs.aiModelDownloadConsent !== 'granted') {
+      await setAiModelDownloadConsent('granted');
+      next.aiModelDownloadConsent = 'granted';
+    }
+    await persistPrefs(next);
+    if (prefs.aiModelDownloadConsent === 'granted') {
+      void preloadNativeLlm(next).catch(() => {});
+    }
+  }, [navigation, persistPrefs, prefs, weeklyReviewAiReady]);
+
   const onEnableWeather = useCallback(async () => {
     setWeatherLoading(true);
     try {
@@ -806,15 +833,22 @@ export function HomeScreen({
               >
                 <Ionicons name="close" size={18} color={accent} />
               </Pressable>
-              <Text style={[styles.insetTitle, { color: theme.tokens.color.textPrimary, fontSize: theme.font(15) }]}>
-                {t('home.streak.title')}
-              </Text>
-              <Text style={[styles.insetBody, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                {t('home.streak.summary', {
-                  goodDays: streakSnapshot.goodDayStreak,
-                  flareFree: streakSnapshot.flareFreeDays,
-                })}
-              </Text>
+              <View style={styles.insetHeadRow}>
+                <View style={[styles.insetIconWrap, { borderColor: `${accent}44`, backgroundColor: `${accent}18` }]}>
+                  <Ionicons name="trending-up-outline" size={18} color={accent} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.insetTitle, { color: theme.tokens.color.textPrimary, fontSize: theme.font(15) }]}>
+                    {t('home.streak.title')}
+                  </Text>
+                  <Text style={[styles.insetBody, { color: theme.tokens.color.textPrimary, fontSize: theme.font(14) }]}>
+                    {t('home.streak.summary', {
+                      goodDays: streakSnapshot.goodDayStreak,
+                      flareFree: streakSnapshot.flareFreeDays,
+                    })}
+                  </Text>
+                </View>
+              </View>
             </View>
           ) : null}
           {cardContext.showCheckin ? (
@@ -902,20 +936,31 @@ export function HomeScreen({
               >
                 <Ionicons name="close" size={18} color={accent} />
               </Pressable>
-              <Text style={[styles.insetTitle, { color: accent, fontSize: theme.font(16) }]}>{t('weeklyReview.card.title')}</Text>
-              <Text style={[styles.insetBody, { color: theme.tokens.color.text, fontSize: theme.font(14) }]}>
-                {t('weeklyReview.card.lead')}
-              </Text>
+              <View style={styles.insetHeadRow}>
+                <View style={[styles.insetIconWrap, { borderColor: `${accent}44`, backgroundColor: `${accent}18` }]}>
+                  <Ionicons name="calendar-outline" size={18} color={accent} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.insetTitle, { color: theme.tokens.color.textPrimary, fontSize: theme.font(15) }]}>
+                    {t('weeklyReview.card.title')}
+                  </Text>
+                  <Text style={[styles.insetBody, { color: theme.tokens.color.textPrimary, fontSize: theme.font(14) }]}>
+                    {t('weeklyReview.card.lead')}
+                  </Text>
+                </View>
+              </View>
               <Pressable
-                onPress={() => navigation.navigate('WeeklyReview')}
+                onPress={() => void onWeeklyReviewPress()}
                 style={({ pressed }) => [
                   styles.readTodayBtn,
                   { borderColor: `${accent}66`, opacity: pressed ? 0.88 : 1, marginTop: 8 },
                 ]}
                 accessibilityRole="button"
-                accessibilityLabel={t('weeklyReview.card.action')}
+                accessibilityLabel={weeklyReviewAiReady ? t('weeklyReview.card.action') : t('weeklyReview.card.enableAi')}
               >
-                <Text style={{ color: accent, fontSize: theme.font(14) }}>{t('weeklyReview.card.action')}</Text>
+                <Text style={{ color: accent, fontSize: theme.font(14) }}>
+                  {weeklyReviewAiReady ? t('weeklyReview.card.action') : t('weeklyReview.card.enableAi')}
+                </Text>
               </Pressable>
             </View>
           ) : null}
@@ -1346,7 +1391,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.35)',
   },
   insetTitle: { fontWeight: '700', marginBottom: 4 },
-  insetBody: { lineHeight: 20, opacity: 0.92 },
+  insetBody: { lineHeight: 20 },
+  insetHeadRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  insetIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   cardHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   heroStreakNudgeCard: {
     backgroundColor: 'rgba(76,175,80,0.12)',
