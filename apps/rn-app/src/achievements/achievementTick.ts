@@ -7,7 +7,6 @@ import {
   normalizeAchievementState,
   shouldFireAchievementUnlockNotification,
 } from '@rianell/shared';
-import * as Notifications from 'expo-notifications';
 import { getSupabaseClient } from '../cloud/supabaseClient';
 import {
   loadAchievementsFromCloud,
@@ -18,7 +17,23 @@ import type { Preferences } from '../storage/preferences';
 
 let prevSnapshots: ReturnType<typeof computeAchievementSnapshots>['snapshots'] | null = null;
 
+async function loadExpoNotifications(): Promise<any | null> {
+  try {
+    const moduleName = 'expo-notifications';
+    const mod = await import(moduleName);
+    return mod?.default ?? mod;
+  } catch {
+    return null;
+  }
+}
+
+function toPrefsAchievements(state: ReturnType<typeof normalizeAchievementState>): Preferences['achievements'] {
+  return state as Preferences['achievements'];
+}
+
 async function presentUnlockNotification(title: string, body: string) {
+  const Notifications = await loadExpoNotifications();
+  if (!Notifications) return;
   try {
     await Notifications.scheduleNotificationAsync({
       content: { title, body, data: { url: '/?quick=true' } },
@@ -54,7 +69,7 @@ export async function tickAchievements(
   prevSnapshots = snapshots.map((s) => ({ ...s }));
 
   if (changed) {
-    return { ...prefs, achievements: nextState };
+    return { ...prefs, achievements: toPrefsAchievements(nextState) };
   }
   return prefs;
 }
@@ -67,7 +82,7 @@ export async function mergeAchievementsOnSignIn(prefs: Preferences): Promise<Pre
   if (!user) return prefs;
   const remote = await loadAchievementsFromCloud(user.id);
   const merged = mergeLocalAndCloudAchievements(prefs.achievements, remote);
-  return { ...prefs, achievements: merged };
+  return { ...prefs, achievements: toPrefsAchievements(merged) };
 }
 
 export async function syncAchievementsIfSignedIn(prefs: Preferences): Promise<void> {

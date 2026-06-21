@@ -55,6 +55,7 @@ import Constants from 'expo-constants';
 import { buildLogReviewSummary } from '../log/buildLogReviewSummary';
 import { speakLabel } from '../accessibility/tts';
 import { submitBugReport } from '../utils/submitBugReport';
+import { getBugReportAttachmentText } from '../utils/bugReportLogs';
 import { requestOpenGoalsModal } from '../achievements/goalsModalBridge';
 
 /** Web `index.html` parity: top chrome includes bug-report modal entry. */

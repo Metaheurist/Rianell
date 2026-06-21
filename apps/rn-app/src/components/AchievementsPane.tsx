@@ -17,7 +17,7 @@ type Props = {
 
 export function AchievementsPane({ trackingProfile, achievementState }: Props) {
   const theme = useTheme();
-  const t = useT();
+  const { t } = useT();
   const normalized = normalizeAchievementState(achievementState);
   const { snapshots } = useMemo(
     () => computeAchievementSnapshots(trackingProfile, normalized),
