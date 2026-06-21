@@ -9731,7 +9731,139 @@ function saveGoalsFromModal() {
   return g;
 }
 
-function openGoalsModal() {
+var _achievementSnapshotsPrev = null;
+var _achievementTickTimer = null;
+
+function getAchievementState() {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  try {
+    var raw = localStorage.getItem('rianellAchievements');
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      if (S && typeof S.normalizeAchievementState === 'function') return S.normalizeAchievementState(parsed);
+      return parsed;
+    }
+  } catch (e) {}
+  if (appSettings && appSettings.achievements && S && typeof S.normalizeAchievementState === 'function') {
+    return S.normalizeAchievementState(appSettings.achievements);
+  }
+  return S && typeof S.normalizeAchievementState === 'function' ? S.normalizeAchievementState({}) : { achievements: {}, updatedAt: null };
+}
+
+function saveAchievementState(state) {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  var normalized = S && typeof S.normalizeAchievementState === 'function' ? S.normalizeAchievementState(state) : state;
+  try {
+    localStorage.setItem('rianellAchievements', JSON.stringify(normalized));
+    if (appSettings) {
+      appSettings.achievements = normalized;
+      if (typeof saveSettings === 'function') saveSettings();
+    }
+  } catch (e) {}
+  if (typeof syncAchievementsToCloud === 'function') {
+    clearTimeout(_achievementTickTimer);
+    _achievementTickTimer = setTimeout(function () {
+      syncAchievementsToCloud(normalized);
+    }, 500);
+  }
+  return normalized;
+}
+
+function computeCurrentAchievementSnapshots() {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!S || typeof S.computeAchievementSnapshots !== 'function') return { snapshots: [] };
+  var profile = appSettings && appSettings.trackingProfile ? appSettings.trackingProfile : null;
+  return S.computeAchievementSnapshots(profile, getAchievementState());
+}
+
+function renderAchievementsPane() {
+  var grid = document.getElementById('achievementsGrid');
+  if (!grid) return;
+  var result = computeCurrentAchievementSnapshots();
+  var snapshots = result.snapshots || [];
+  var t = typeof tUi === 'function' ? tUi : function (k) { return k; };
+  grid.innerHTML = snapshots.map(function (s) {
+    var title = t(s.i18nTitle);
+    var desc = t(s.i18nDescription);
+    var statusKey = s.unlocked ? 'achievements.unlocked' : 'achievements.locked';
+    var progressText = s.unlocked
+      ? t('achievements.unlocked')
+      : t('achievements.progress').replace('{days}', String(s.daysElapsed)).replace('{required}', String(s.requiredDays));
+    var iconCls = s.unlocked ? 'achievement-icon--unlocked' : 'achievement-icon--locked';
+    var pillCls = s.unlocked ? 'achievement-status-pill--unlocked' : 'achievement-status-pill--locked';
+    var lockSvg = s.unlocked ? '' : '<svg class="achievement-lock-badge ui-svg-icon" aria-hidden="true"><use href="#icon-lock"></use></svg>';
+    return (
+      '<article class="achievement-card" data-achievement-id="' + s.id + '">' +
+        '<div class="achievement-icon-wrap" style="--achievement-progress:' + s.progress + '">' +
+          '<div class="achievement-icon-inner ' + iconCls + '">' +
+            svgIcon(s.icon, 'ui-svg-icon') +
+            lockSvg +
+          '</div>' +
+        '</div>' +
+        '<div class="achievement-card-body">' +
+          '<h4 class="achievement-card-title">' + title + '</h4>' +
+          '<p class="achievement-card-desc">' + desc + '</p>' +
+          '<span class="achievement-status-pill ' + pillCls + '">' + progressText + '</span>' +
+        '</div>' +
+      '</article>'
+    );
+  }).join('');
+}
+
+async function mergeAchievementsFromCloudIfNeeded() {
+  if (typeof mergeAchievementsWithCloud !== 'function') return;
+  var merged = await mergeAchievementsWithCloud(getAchievementState());
+  saveAchievementState(merged);
+}
+
+function fireAchievementUnlockNotifications(newlyUnlocked) {
+  if (!newlyUnlocked || !newlyUnlocked.length) return;
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  var notificationsOn = appSettings && appSettings.notifications && appSettings.notifications.enabled !== false;
+  var t = typeof tUi === 'function' ? tUi : function (k) { return k; };
+  var state = getAchievementState();
+  newlyUnlocked.forEach(function (snap) {
+    if (S && typeof S.shouldFireAchievementUnlockNotification === 'function') {
+      var gate = S.shouldFireAchievementUnlockNotification(snap, { notificationsEnabled: notificationsOn });
+      if (!gate.fire) return;
+    }
+    if (S && typeof S.buildAchievementUnlockNotificationContent === 'function' && typeof NotificationManager !== 'undefined') {
+      var content = S.buildAchievementUnlockNotificationContent(snap.id, t);
+      NotificationManager.showNotification(content.title, content.body, content.url || '/?quick=true');
+    }
+    if (S && typeof S.markAchievementNotified === 'function') {
+      state = S.markAchievementNotified(state, snap.id);
+    }
+  });
+  if (newlyUnlocked.length) saveAchievementState(state);
+}
+
+function tickAchievements() {
+  var S = typeof window !== 'undefined' ? window.RianellShared : null;
+  if (!S || typeof S.computeAchievementSnapshots !== 'function') return;
+  var result = computeCurrentAchievementSnapshots();
+  var snapshots = result.snapshots || [];
+  if (S.detectNewlyUnlocked && _achievementSnapshotsPrev) {
+    var newly = S.detectNewlyUnlocked(_achievementSnapshotsPrev, snapshots);
+    fireAchievementUnlockNotifications(newly);
+  }
+  _achievementSnapshotsPrev = snapshots.map(function (s) { return Object.assign({}, s); });
+  var grid = document.getElementById('achievementsGrid');
+  if (grid && grid.childElementCount) renderAchievementsPane();
+}
+
+async function initAchievementsOnBoot() {
+  await mergeAchievementsFromCloudIfNeeded();
+  tickAchievements();
+}
+
+if (typeof window !== 'undefined') {
+  window.renderAchievementsPane = renderAchievementsPane;
+  window.tickAchievements = tickAchievements;
+  window.initAchievementsOnBoot = initAchievementsOnBoot;
+}
+
+function openGoalsModal(paneIndex) {
   var overlay = document.getElementById('goalsModalOverlay');
   if (!overlay) return;
   var goals = getGoals();
@@ -9751,6 +9883,9 @@ function openGoalsModal() {
   overlay.onclick = function(e) { if (e.target === overlay) closeGoalsModal(); };
   var escapeHandler = function(e) { if (e.key === 'Escape') { closeGoalsModal(); document.removeEventListener('keydown', escapeHandler); } };
   document.addEventListener('keydown', escapeHandler);
+  tickAchievements();
+  if (typeof initGoalsCarouselUI === 'function') initGoalsCarouselUI(typeof paneIndex === 'number' ? paneIndex : 0);
+  if (typeof paneIndex === 'number' && typeof goalsCarouselGo === 'function') goalsCarouselGo(paneIndex);
 }
 
 function closeGoalsModal() {
@@ -21151,6 +21286,18 @@ function syncLogWizardProgressiveLocks() {
     }
     lockEl.textContent = typeof tUi === 'function' ? tUi(cfg.i18nKey) : '';
     lockEl.hidden = unlocked;
+    var ctaEl = stepEl.querySelector('.wizard-progressive-lock-cta');
+    if (!unlocked) {
+      if (!ctaEl) {
+        ctaEl = document.createElement('p');
+        ctaEl.className = 'wizard-progressive-lock-cta';
+        lockEl.insertAdjacentElement('afterend', ctaEl);
+      }
+      ctaEl.innerHTML = '<button type="button" onclick="openGoalsModal(1)">' + (typeof tUi === 'function' ? tUi('achievements.viewInGoals') : 'View achievements') + '</button>';
+      ctaEl.hidden = false;
+    } else if (ctaEl) {
+      ctaEl.hidden = true;
+    }
     var content = stepEl.querySelector(cfg.sectionSelector);
     if (content) {
       var section = content.closest('.form-section');
@@ -21981,6 +22128,7 @@ function runRianellBootAfterDomReady() {
     initializeSections();
     /* initializeSections() clears .open on all accordions; log wizard needs .open so tile picker rows and section children are not stuck at opacity 0 from slideInUp */
     if (typeof initializeLogWizardSections === 'function') initializeLogWizardSections();
+    if (typeof initAchievementsOnBoot === 'function') initAchievementsOnBoot();
     initializeOneOpenDetails();
     
     const toggleBtn = document.getElementById('predictionToggle');

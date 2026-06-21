@@ -482,6 +482,7 @@ export async function deleteAllUserDataFromCloud(): Promise<{ ok: boolean; messa
     'anonymized_data',
     'bug_reports',
     'user_privacy_profile',
+    'user_achievements',
   ]);
   if (err) return { ok: false, message: err };
   return { ok: true, message: 'All cloud data deleted for this account.' };

@@ -2283,7 +2283,7 @@ async function deleteAllUserDataFromCloud() {
     const userId = cloudSyncState.user.id;
     console.log('Starting full cloud erasure for user:', userId);
 
-    const tables = ['health_data', 'user_keys', 'anonymized_data', 'bug_reports', 'user_privacy_profile'];
+    const tables = ['health_data', 'user_keys', 'anonymized_data', 'bug_reports', 'user_privacy_profile', 'user_achievements'];
     for (const table of tables) {
       const { error } = await client.from(table).delete().eq('user_id', userId);
       if (error) {
@@ -2344,6 +2344,8 @@ if (typeof window !== 'undefined') {
         updateCloudSyncUI();
         fetchPrivacyProfileAndApply(true).then(function () {
           return loadFromCloud();
+        }).then(function () {
+          if (typeof initAchievementsOnBoot === 'function') return initAchievementsOnBoot();
         });
       } else if (event === 'SIGNED_OUT') {
         cloudSyncState.isAuthenticated = false;
@@ -2368,6 +2370,8 @@ if (typeof window !== 'undefined') {
       if (cloudSyncState.isAuthenticated) {
         fetchPrivacyProfileAndApply(true).then(function () {
           return loadFromCloud();
+        }).then(function () {
+          if (typeof initAchievementsOnBoot === 'function') return initAchievementsOnBoot();
         });
       }
     });

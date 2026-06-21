@@ -101,7 +101,27 @@
     {
       "id": "settings_goals",
       "status": { "web": "supported", "android": "supported", "ios": "supported" },
-      "notes": "rianellGoals: steps, hydration, sleep score, good-days/week."
+      "notes": "Goals modal carousel pane 0: rianellGoals steps, hydration, sleep score, good-days/week."
+    },
+    {
+      "id": "goals_modal_achievements_carousel",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "Goals modal 2-pane carousel: targets + Achievements grid; goals-carousel.js (PWA), GoalsModal.tsx (RN)."
+    },
+    {
+      "id": "achievements_logging_unlock",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "Food/exercise/medication unlock badges from progressiveTracking schedule; shared achievements.mjs."
+    },
+    {
+      "id": "achievement_unlock_notifications",
+      "status": { "web": "supported", "android": "supported", "ios": "partial" },
+      "notes": "One-shot unlock notification when category unlocks; notifiedAt dedup; iOS delivery varies by OS policy."
+    },
+    {
+      "id": "achievements_cloud_sync",
+      "status": { "web": "supported", "android": "supported", "ios": "supported" },
+      "notes": "user_achievements Supabase table; achievements-sync.js / achievementsSync.ts; cloud deletion coverage."
     },
     {
       "id": "settings_anon_contribution",
@@ -161,7 +181,7 @@
     {
       "id": "ui_string_catalog_full",
       "status": { "web": "supported", "android": "supported", "ios": "supported" },
-      "notes": "861 en-GB keys; PWA index.html data-i18n + app.js tUi(); RN useT(); audit --check + --require-wiring + verify-no-hardcoded-ui --strict in CI."
+      "notes": "1416 en-GB keys; PWA index.html data-i18n + app.js tUi(); RN useT(); audit --check + --require-wiring + verify-no-hardcoded-ui --strict in CI."
     },
     {
       "id": "llm_prompt_i18n",

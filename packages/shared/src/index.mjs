@@ -223,6 +223,8 @@ export * from './crossCutting/index.mjs';
 export * from './mood/index.mjs';
 export * from './analytics/index.mjs';
 export * from './onboarding/index.mjs';
+export * from './achievements/achievements.mjs';
+export * from './achievements/achievementUnlockNotification.mjs';
 
 export function createSampleLogEntry() {
   return normalizeLogEntry({

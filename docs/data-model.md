@@ -49,6 +49,17 @@ Stored in app settings / RN `Preferences` (not in each log entry):
 
 `trackingProfile` (Plan 03) gates progressive wizard categories (L1): food, exercise, medications unlock on a day schedule.
 
+## Achievements (v1.117.0)
+
+Unlock badges mirror the L1 schedule (food day 7, exercise day 14, medications day 21). Unlock is **derived** from `trackingProfile.configuredAt` via shared `computeAchievementSnapshots` — not stored as trusted client flags.
+
+| Field | Storage | Notes |
+| :--- | :--- | :--- |
+| `achievements` | PWA `appSettings.achievements`; RN `prefs.achievements` | Map of achievement id → `{ notifiedAt?, seenAt? }` only |
+| `rianellAchievements` | PWA `localStorage` (legacy mirror) | Kept in sync with `appSettings.achievements` on write |
+
+Cloud backup when signed in: one row per user in **`user_achievements.achievements`** (jsonb). Merge unions `notifiedAt`/`seenAt` timestamps with latest-wins semantics.
+
 ## Minimal log (quick save)
 
 Both web and RN support saving after **date + flare** only. Normalization fills missing numeric scores with defaults (typically mid-scale 5s) so charts and summaries remain valid.
@@ -63,12 +74,14 @@ Encrypted backups use AES-GCM. The encryption key for cloud sync is stored in Su
 | :--- | :--- | :--- |
 | **`health_data`** | Encrypted log backup blobs per user | Owner-only |
 | **`user_keys`** | Per-user AES key (hex) for backup encryption | Owner-only |
+| **`user_privacy_profile`** | Privacy region, locale, consent flags | Owner-only |
+| **`user_achievements`** | Achievement notification/seen timestamps (jsonb) | Owner-only |
 | **`anonymized_data`** | Opt-in encrypted anonymised payloads + condition label | Owner CRUD |
 | **`bug_reports`** | In-app bug reports (insert-only for clients) | Insert-only |
 
-## Cloud deletion semantics (v1.50.0)
+## Cloud deletion semantics (v1.50.0+)
 
-Unified **Delete cloud data** (PWA `deleteAllUserDataFromCloud`, RN `deleteAllUserDataFromCloud`) deletes all rows where **`user_id`** matches the signed-in user across **`health_data`**, **`user_keys`**, **`anonymized_data`**, and **`bug_reports`**. Narrower actions: delete encrypted backup only (`health_data` + `user_keys`) or anonymised contribution only (`anonymized_data`). Does not delete the Supabase **`auth.users`** record — sign out or contact operator for full account removal. See [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
+Unified **Delete cloud data** (PWA `deleteAllUserDataFromCloud`, RN `deleteAllUserDataFromCloud`) deletes all rows where **`user_id`** matches the signed-in user across **`health_data`**, **`user_keys`**, **`user_privacy_profile`**, **`user_achievements`**, **`anonymized_data`**, and **`bug_reports`**. Narrower actions: delete encrypted backup only (`health_data` + `user_keys`) or anonymised contribution only (`anonymized_data`). Does not delete the Supabase **`auth.users`** record — sign out or contact operator for full account removal. See [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
 
 ## Related
 

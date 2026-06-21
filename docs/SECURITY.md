@@ -101,7 +101,7 @@ Authenticated cloud sync stores a per-user AES key in Supabase **`user_keys.encr
 
 ## Supabase and Row Level Security (RLS)
 
-The anon key is present in client bundles by design. **Authorization must be enforced in Supabase** with RLS and least-privilege policies. **Shipped schema:** [../supabase/Schema.sql](../supabase/Schema.sql) enables RLS on `anonymized_data`, `health_data`, `user_keys`, `user_privacy_profile`, and `bug_reports`. On login, **`user_privacy_profile` overwrites local privacy region** (see [privacy/region-policy-execution-plan.md](privacy/region-policy-execution-plan.md)).
+The anon key is present in client bundles by design. **Authorization must be enforced in Supabase** with RLS and least-privilege policies. **Shipped schema:** [../supabase/Schema.sql](../supabase/Schema.sql) enables RLS on `anonymized_data`, `health_data`, `user_keys`, `user_privacy_profile`, `user_achievements`, and `bug_reports`. On login, **`user_privacy_profile` overwrites local privacy region** (see [privacy/region-policy-execution-plan.md](privacy/region-policy-execution-plan.md)).
 
 ### GraphQL schema exposure (Security Advisor lints 0026 / 0027)
 
@@ -121,7 +121,7 @@ To clear `pg_graphql_anon_table_exposed` and `pg_graphql_authenticated_table_exp
 | **Bug reports** | Summary, console snapshot | Supabase `bug_reports` | TLS in transit | Until user cloud erasure |
 | **Server logs** | IPs, sync metadata | Local `logs/` (dev server) | N/A | Rotating files |
 
-Unified **Delete cloud data** removes user-linked rows from `health_data`, `user_keys`, `anonymized_data`, and `bug_reports`. See [data-model.md](data-model.md) and [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
+Unified **Delete cloud data** removes user-linked rows from `health_data`, `user_keys`, `user_privacy_profile`, `user_achievements`, `anonymized_data`, and `bug_reports`. Achievement payloads contain notification timestamps only (non-PHI). See [data-model.md](data-model.md) and [privacy/data-subject-rights.md](privacy/data-subject-rights.md).
 
 ### React Native: Supabase auth in SecureStore (v1.50.0)
 

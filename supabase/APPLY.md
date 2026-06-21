@@ -22,9 +22,9 @@ Scroll to **§5 POST-APPLY VERIFICATION** at the bottom of `Schema.sql`, select 
 
 | Check | Expected |
 |-------|----------|
-| `tables` | 5 rows: `anonymized_data`, `bug_reports`, `health_data`, `user_keys`, `user_privacy_profile` |
-| `rls_enabled` | All 5 tables → `ok` |
-| `policy_count` | Policies on each table (17 total across tables) |
+| `tables` | 6 rows: `anonymized_data`, `bug_reports`, `health_data`, `user_keys`, `user_privacy_profile`, `user_achievements` |
+| `rls_enabled` | All 6 tables → `ok` |
+| `policy_count` | Policies on each table (21 total across tables) |
 | `rpc` | 2 rows: `count_pool_contribution_days`, `get_k_anon_pool_insights` |
 | `column` | `anonymized_data.research_facets` → `ok` |
 
@@ -35,6 +35,7 @@ Then: **Database → Security Advisor** — GraphQL exposure warnings (0026/0027
 1. Open https://rianell.com → Settings → sign in (if configured).
 2. Toggle cloud sync / privacy profile save — no console errors referencing missing tables.
 3. Research pool (Plan 13): opt-in + condition set — RPC should not 404.
+4. Achievements (v1.117.0): sign in with backup → log through day 7+ → open Goals modal Achievements pane → no `user_achievements` RLS errors on upsert.
 
 ## If something fails
 

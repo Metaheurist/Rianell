@@ -1667,45 +1667,65 @@
 
   <!-- Goals & Targets Modal -->
   <div class="modal-overlay goals-modal-overlay" id="goalsModalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-label="Goals and targets" data-i18n-aria="common.goals.and.targets">
-    <div class="modal-content goals-modal-content" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <h3  data-i18n="common.goals.targets">Goals & targets</h3>
-        <button type="button" class="modal-close" onclick="closeGoalsModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
+    <div class="modal-content goals-modal-content goals-modal-carousel-shell" onclick="event.stopPropagation()">
+      <button type="button" class="goals-carousel-side goals-carousel-side--prev" id="goalsCarouselPrev" onclick="goalsCarouselStep(-1)" aria-label="Previous section" data-i18n-aria="common.previous.settings.section">‹</button>
+      <div class="goals-modal-inner">
+        <div class="modal-header goals-modal-header">
+          <div class="goals-header-text">
+            <h3 data-i18n="common.goals.targets">Goals & targets</h3>
+            <p class="goals-carousel-meta" id="goalsCarouselMeta" aria-live="polite"></p>
+            <div class="goals-carousel-dots" id="goalsCarouselDots" role="tablist" aria-label="Goals sections" data-i18n-aria="common.goals.sections"></div>
+          </div>
+          <button type="button" class="modal-close" onclick="closeGoalsModal()" aria-label="Close" data-i18n-aria="common.close">&times;</button>
+        </div>
+        <div class="goals-carousel-viewport" id="goalsCarouselViewport">
+          <div class="goals-carousel-track" id="goalsCarouselTrack" data-goals-index="0">
+            <div class="goals-carousel-pane goals-carousel-pane--active" data-pane-title="Goals" data-i18n-title="common.goals.targets" role="tabpanel" aria-hidden="false">
+              <div class="modal-body goals-modal-body">
+                <p class="field-hint" style="margin-bottom: 16px;" data-i18n="common.goals.hint">Set daily or weekly targets. Progress appears on the Home tab. Use 0 to leave a goal off.</p>
+                <div class="goals-slider-group">
+                  <label for="goalSteps" data-i18n="common.steps.per.day">Steps per day</label>
+                  <div class="goals-slider-row">
+                    <input type="range" id="goalSteps" min="0" max="20000" step="500" value="0" oninput="updateGoalLabel('goalSteps', 'goalStepsLabel', 0, 'steps')">
+                    <span id="goalStepsLabel" class="goals-value-label" data-i18n="common.off">Off</span>
+                  </div>
+                </div>
+                <div class="goals-slider-group">
+                  <label for="goalHydration" data-i18n="common.hydration.glasses.per.day">Hydration (glasses per day)</label>
+                  <div class="goals-slider-row">
+                    <input type="range" id="goalHydration" min="0" max="20" step="1" value="0" oninput="updateGoalLabel('goalHydration', 'goalHydrationLabel', 0, 'glasses')">
+                    <span id="goalHydrationLabel" class="goals-value-label" data-i18n="common.off">Off</span>
+                  </div>
+                </div>
+                <div class="goals-slider-group">
+                  <label for="goalSleep" data-i18n="common.sleep.quality.score.1.10">Sleep quality (score 1-10)</label>
+                  <div class="goals-slider-row">
+                    <input type="range" id="goalSleep" min="0" max="10" step="1" value="0" oninput="updateGoalLabel('goalSleep', 'goalSleepLabel', 0, 'score')">
+                    <span id="goalSleepLabel" class="goals-value-label" data-i18n="common.off">Off</span>
+                  </div>
+                </div>
+                <div class="goals-slider-group">
+                  <label for="goalGoodDays" data-i18n="common.good.days.per.week.no.flare.mood.6">Good days per week (no flare, mood ≥ 6)</label>
+                  <div class="goals-slider-row">
+                    <input type="range" id="goalGoodDays" min="0" max="7" step="1" value="0" oninput="updateGoalLabel('goalGoodDays', 'goalGoodDaysLabel', 0, 'days')">
+                    <span id="goalGoodDaysLabel" class="goals-value-label" data-i18n="common.off">Off</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="goals-carousel-pane" data-pane-title="Achievements" data-i18n-title="achievements.title" role="tabpanel" aria-hidden="true">
+              <div class="modal-body goals-modal-body achievements-modal-body">
+                <p class="field-hint achievements-lede" data-i18n="achievements.subtitle">Unlock food, exercise, and medication logging by tracking consistently.</p>
+                <div id="achievementsGrid" class="achievements-grid" aria-live="polite"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="modal-save-btn" onclick="saveGoalsAndClose()" data-i18n="common.save">Save</button>
+        </div>
       </div>
-      <div class="modal-body goals-modal-body">
-        <p class="field-hint" style="margin-bottom: 16px;">Set daily or weekly targets. Progress appears on the Home tab. Use 0 to leave a goal off.</p>
-        <div class="goals-slider-group">
-          <label for="goalSteps" data-i18n="common.steps.per.day">Steps per day</label>
-          <div class="goals-slider-row">
-            <input type="range" id="goalSteps" min="0" max="20000" step="500" value="0" oninput="updateGoalLabel('goalSteps', 'goalStepsLabel', 0, 'steps')">
-            <span id="goalStepsLabel" class="goals-value-label" data-i18n="common.off">Off</span>
-          </div>
-        </div>
-        <div class="goals-slider-group">
-          <label for="goalHydration" data-i18n="common.hydration.glasses.per.day">Hydration (glasses per day)</label>
-          <div class="goals-slider-row">
-            <input type="range" id="goalHydration" min="0" max="20" step="1" value="0" oninput="updateGoalLabel('goalHydration', 'goalHydrationLabel', 0, 'glasses')">
-            <span id="goalHydrationLabel" class="goals-value-label" data-i18n="common.off">Off</span>
-          </div>
-        </div>
-        <div class="goals-slider-group">
-          <label for="goalSleep" data-i18n="common.sleep.quality.score.1.10">Sleep quality (score 1-10)</label>
-          <div class="goals-slider-row">
-            <input type="range" id="goalSleep" min="0" max="10" step="1" value="0" oninput="updateGoalLabel('goalSleep', 'goalSleepLabel', 0, 'score')">
-            <span id="goalSleepLabel" class="goals-value-label" data-i18n="common.off">Off</span>
-          </div>
-        </div>
-        <div class="goals-slider-group">
-          <label for="goalGoodDays" data-i18n="common.good.days.per.week.no.flare.mood.6">Good days per week (no flare, mood ≥ 6)</label>
-          <div class="goals-slider-row">
-            <input type="range" id="goalGoodDays" min="0" max="7" step="1" value="0" oninput="updateGoalLabel('goalGoodDays', 'goalGoodDaysLabel', 0, 'days')">
-            <span id="goalGoodDaysLabel" class="goals-value-label" data-i18n="common.off">Off</span>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="modal-save-btn" onclick="saveGoalsAndClose()" data-i18n="common.save">Save</button>
-      </div>
+      <button type="button" class="goals-carousel-side goals-carousel-side--next" id="goalsCarouselNext" onclick="goalsCarouselStep(1)" aria-label="Next section" data-i18n-aria="common.next.settings.section">›</button>
     </div>
   </div>
 
@@ -3895,6 +3915,8 @@
   <script type="module" defer src="app.js?v=42"></script>
   <script defer src="security-utils.js"></script>
   <script defer src="encryption-utils.js"></script>
+  <script defer src="modules/goals-carousel.js?v=1"></script>
+  <script defer src="achievements-sync.js?v=1"></script>
   <script defer src="cloud-sync.js?v=2"></script>
   <script>
     (function() {
