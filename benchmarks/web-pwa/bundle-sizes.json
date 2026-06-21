@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-06-21T20:49:39.414Z",
+  "generatedAt": "2026-06-21T21:50:58.055Z",
   "distDir": "ci-minified/site",
   "totals": {
-    "jsBytes": 4054301,
-    "cssBytes": 427174,
-    "jsGzipBytes": 966901,
-    "cssGzipBytes": 74536
+    "jsBytes": 4082310,
+    "cssBytes": 431615,
+    "jsGzipBytes": 973770,
+    "cssGzipBytes": 75267
   },
   "files": [
     {
       "file": "ci-minified/site/app.js",
-      "bytes": 922391,
-      "gzipBytes": 199394
+      "bytes": 929228,
+      "gzipBytes": 200930
     },
     {
       "file": "ci-minified/site/vendor/transformers/transformers.min.js",
@@ -19,9 +19,9 @@
       "gzipBytes": 207722
     },
     {
-      "file": "ci-minified/site/app.f67abfb94139.min.js",
-      "bytes": 660365,
-      "gzipBytes": 149970
+      "file": "ci-minified/site/app.25762392bec3.min.js",
+      "bytes": 665879,
+      "gzipBytes": 151342
     },
     {
       "file": "ci-minified/site/apexcharts.min.js",
@@ -29,14 +29,14 @@
       "gzipBytes": 153833
     },
     {
-      "file": "ci-minified/site/styles.7a9189174f3f.css",
-      "bytes": 412971,
-      "gzipBytes": 70707
+      "file": "ci-minified/site/styles.325d2a4d98d9.css",
+      "bytes": 417412,
+      "gzipBytes": 71438
     },
     {
       "file": "ci-minified/site/vendor/rianell-shared.js",
-      "bytes": 251865,
-      "gzipBytes": 58526
+      "bytes": 259962,
+      "gzipBytes": 60170
     },
     {
       "file": "ci-minified/site/AIEngine.js",
@@ -45,8 +45,8 @@
     },
     {
       "file": "ci-minified/site/cloud-sync.js",
-      "bytes": 96868,
-      "gzipBytes": 20736
+      "bytes": 97135,
+      "gzipBytes": 20771
     },
     {
       "file": "ci-minified/site/summary-llm.js",
@@ -184,6 +184,11 @@
       "gzipBytes": 1572
     },
     {
+      "file": "ci-minified/site/modules/goals-carousel.js",
+      "bytes": 4707,
+      "gzipBytes": 1519
+    },
+    {
       "file": "ci-minified/site/android-update-check.js",
       "bytes": 3731,
       "gzipBytes": 1412
@@ -222,6 +227,11 @@
       "file": "ci-minified/site/supabase-config.js",
       "bytes": 2891,
       "gzipBytes": 939
+    },
+    {
+      "file": "ci-minified/site/achievements-sync.js",
+      "bytes": 2587,
+      "gzipBytes": 763
     },
     {
       "file": "ci-minified/site/print-styles.css",
