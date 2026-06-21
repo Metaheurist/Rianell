@@ -1,6 +1,6 @@
 # PWA bundle sizes
 
-Generated: 2026-06-21T18:44:22.044Z
+Generated: 2026-06-21T19:09:59.016Z
 
 | File | Raw | Gzip |
 |------|-----|------|
