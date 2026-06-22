@@ -9,7 +9,7 @@ Changelog is derived from project commit history. Versions follow semantic versi
 - **Runtime theme helpers:** `getThemePrimaryColor()`, `getThemeAccentSoft()`, `themePrimaryRgba()`, `colorToRgba()` read from **`document.body`** (not `:root`) so non-mint themes apply to ApexCharts, AI inline colours, and sliders. `setGlobalTheme()` refreshes charts and re-renders AI summary when results are visible.
 - **Themed body overrides:** `body.theme-*` sets `--ui-icon-color` and `--home-checkin-icon-color` so SVG icons follow the active global theme.
 - **Unified onboarding counter (PWA + RN):** `packages/shared/src/onboarding/unifiedOnboardingProgress.mjs` — one continuous **step X of Y** across first-run wizard + per-slide tutorial (9 slides with AI on, 5 with AI off). PWA `first-run-wizard.js` and RN `FirstRunWizard.tsx` use shared resolver; tutorial slide titles keyed by slide id (fixes wrong title mapping).
-- **i18n:** `tutorial.slide1.title` … `tutorial.slide8.title` in en-GB canonical pack.
+- **i18n:** `tutorial.slide1.title` … `tutorial.slide8.title` in en-GB canonical pack; Tier-A overrides in `plan03-tier-a-overrides.mjs`; synced 14 locale packs.
 - **Tests:** `unifiedOnboardingProgress.test.mjs`, `theme-accent-tokens.test.mjs`; **368** unit tests total.
 - **Docs:** CHANGELOG, project-reference, app-and-features, styling.md, platform-parity, wiki Release-Notes/Features/Settings/Getting-Started/Charts-and-AI.
 
