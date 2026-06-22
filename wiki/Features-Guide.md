@@ -34,7 +34,7 @@ flowchart LR
 
 Step through date, vitals, symptoms, food, exercise, medications, and notes. You can **quick-save** after date + flare only; missing numeric scores get sensible defaults so charts still work.
 
-When **cycle tracking** is enabled (Settings → Data options or first-run tutorial), step 1 includes cycle day (1–45), phase, and optional flow — with suggested values from your previous logs.
+When **cycle tracking** is enabled (Settings → Data options or first-run tutorial), step 1 includes **Period started today**, cycle day (1–35, expandable to 45), phase, and optional flow — with suggested values from your last period start.
 
 **First-run:** The onboarding footer shows a single step counter across wizard screens and tutorial slides (same on web and native).
 

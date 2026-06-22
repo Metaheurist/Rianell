@@ -1,5 +1,7 @@
 /** Plan 04 — extended log entry fields (L7 cycle, L8 sub-entries, L3 med doses). */
 
+import { CYCLE_DAY_MAX } from './cycleTracking.mjs';
+
 const SUB_ENTRY_PERIODS = new Set(['AM', 'midday', 'PM', 'partial']);
 
 function clampInt(raw, min, max) {
@@ -23,11 +25,12 @@ export function normalizeCycleFields(value) {
       ? v.phase
       : undefined;
   const flow = v.flow === 'none' || v.flow === 'light' || v.flow === 'medium' || v.flow === 'heavy' ? v.flow : undefined;
-  const cycleDay = clampInt(v.cycleDay, 1, 45);
+  const cycleDay = clampInt(v.cycleDay, 1, CYCLE_DAY_MAX);
+  const periodStart = v.periodStart === true ? true : undefined;
   const pmsSymptoms = Array.isArray(v.pmsSymptoms)
     ? v.pmsSymptoms.filter((x) => typeof x === 'string' && x.trim()).map((x) => x.trim()).slice(0, 20)
     : undefined;
-  const out = { cycleDay, phase, flow, pmsSymptoms };
+  const out = { cycleDay, periodStart, phase, flow, pmsSymptoms };
   Object.keys(out).forEach((k) => {
     if (out[k] === undefined || (Array.isArray(out[k]) && out[k].length === 0)) delete out[k];
   });

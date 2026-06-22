@@ -1,6 +1,15 @@
 # Release Notes
 
-## Latest release (v1.120.0)
+## Latest release (v1.121.0)
+
+**Date:** 2026-06-22
+
+### Highlights
+
+- **Cycle tracking (web + native):** Tap **Period started today** to anchor day 1; future logs auto-count cycle days from that date. Day picker shows **1–35** by default with an option for **36–45** when cycles run long.
+- **Late-cycle hint:** Days above 35 show informational copy (symptom logging only — not medical advice).
+
+### Previous (v1.120.0)
 
 **Date:** 2026-06-21
 

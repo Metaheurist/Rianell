@@ -106,7 +106,7 @@
     {
       "id": "goals_modal_achievements_carousel",
       "status": { "web": "supported", "android": "supported", "ios": "supported" },
-      "notes": "Goals modal 2-pane carousel: targets + Achievements grid; goals-carousel.js (PWA), GoalsModal.tsx (RN)."
+      "notes": "Goals modal 2-pane carousel: targets + Achievements grid; goals-carousel.js (PWA, RianellI18n meta + themed dots), GoalsModal.tsx (RN)."
     },
     {
       "id": "achievements_logging_unlock",

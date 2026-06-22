@@ -1,10 +1,13 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import {
   CYCLE_DAY_MAX,
+  CYCLE_DAY_SELECTOR_MAX,
   CYCLE_FLOW_LEVELS,
   CYCLE_PHASES,
+  daysSincePeriodStart,
+  isCycleDayLate,
   suggestCyclePhaseForDay,
 } from '@rianell/shared';
 import { useTheme } from '../theme/ThemeProvider';
@@ -14,12 +17,15 @@ export type CycleTrackingValue = {
   cycleDay: number | null;
   cyclePhase: string;
   cycleFlow: string;
+  periodStart?: boolean;
 };
 
 type Props = {
   value: CycleTrackingValue;
   onChange: (next: CycleTrackingValue) => void;
   suggestHint?: string | null;
+  logDateIso?: string;
+  periodAnchorDate?: string | null;
 };
 
 const PHASE_TONE: Record<string, string> = {
@@ -91,23 +97,47 @@ function FlowDrops({ count, accent }: { count: number; accent: string }) {
   );
 }
 
-export function CycleTrackingInput({ value, onChange, suggestHint }: Props) {
+export function CycleTrackingInput({ value, onChange, suggestHint, logDateIso, periodAnchorDate }: Props) {
   const theme = useTheme();
   const { t } = useT();
   const phaseManualRef = useRef(false);
+  const [longCycleExpanded, setLongCycleExpanded] = useState(
+    value.cycleDay != null && value.cycleDay > CYCLE_DAY_SELECTOR_MAX,
+  );
+
+  const visibleDays = useMemo(() => {
+    const max = longCycleExpanded ? CYCLE_DAY_MAX : CYCLE_DAY_SELECTOR_MAX;
+    return Array.from({ length: max }, (_, i) => i + 1);
+  }, [longCycleExpanded]);
 
   const selectDay = useCallback(
     (day: number) => {
       const nextDay = value.cycleDay === day ? null : day;
       let nextPhase = value.cyclePhase;
+      let nextPeriodStart = value.periodStart;
+      if (nextDay != null && nextDay !== 1) nextPeriodStart = false;
       if (nextDay != null && !phaseManualRef.current) {
         nextPhase = suggestCyclePhaseForDay(nextDay) || '';
       }
-      if (nextDay == null) phaseManualRef.current = false;
-      onChange({ ...value, cycleDay: nextDay, cyclePhase: nextPhase });
+      if (nextDay == null) {
+        phaseManualRef.current = false;
+        nextPeriodStart = false;
+      }
+      if (nextDay != null && nextDay > CYCLE_DAY_SELECTOR_MAX) setLongCycleExpanded(true);
+      onChange({ ...value, cycleDay: nextDay, cyclePhase: nextPhase, periodStart: nextPeriodStart });
     },
     [onChange, value],
   );
+
+  const markPeriodStartedToday = useCallback(() => {
+    phaseManualRef.current = false;
+    onChange({
+      ...value,
+      cycleDay: 1,
+      cyclePhase: 'menstrual',
+      periodStart: true,
+    });
+  }, [onChange, value]);
 
   const selectPhase = useCallback(
     (phaseId: string) => {
@@ -128,8 +158,33 @@ export function CycleTrackingInput({ value, onChange, suggestHint }: Props) {
 
   const clearAll = useCallback(() => {
     phaseManualRef.current = false;
-    onChange({ cycleDay: null, cyclePhase: '', cycleFlow: '' });
+    setLongCycleExpanded(false);
+    onChange({ cycleDay: null, cyclePhase: '', cycleFlow: '', periodStart: false });
   }, [onChange]);
+
+  const dayReadout = useMemo(() => {
+    if (value.cycleDay == null) return '';
+    let hint = t('wizard.cycle.dayHint', { day: String(value.cycleDay) });
+    if (value.cyclePhase && !phaseManualRef.current) {
+      const phaseMeta = CYCLE_PHASES.find((p) => p.id === value.cyclePhase);
+      if (phaseMeta) {
+        hint += ` · ${t('wizard.cycle.suggestedPhase', { phase: t(phaseMeta.i18n) })}`;
+      }
+    }
+    const anchor = value.periodStart && logDateIso ? logDateIso : periodAnchorDate;
+    if (anchor && logDateIso) {
+      const since = daysSincePeriodStart(anchor, logDateIso);
+      if (since != null && since >= 0) {
+        hint += ` · ${t('wizard.cycle.daysSincePeriod', { days: String(since) })}`;
+      }
+    }
+    if (isCycleDayLate(value.cycleDay)) {
+      hint += ` · ${t('wizard.cycle.lateHint')}`;
+    }
+    return hint;
+  }, [logDateIso, periodAnchorDate, t, value.cycleDay, value.cyclePhase, value.periodStart]);
+
+  const periodStartedActive = value.periodStart === true && value.cycleDay === 1;
 
   return (
     <View style={[styles.panel, { borderColor: `${theme.tokens.color.accent}44` }]}>
@@ -145,13 +200,37 @@ export function CycleTrackingInput({ value, onChange, suggestHint }: Props) {
         </Text>
       ) : null}
 
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ selected: periodStartedActive }}
+        onPress={markPeriodStartedToday}
+        style={[
+          styles.periodStartBtn,
+          {
+            borderColor: `${theme.tokens.color.accent}66`,
+            backgroundColor: `${theme.tokens.color.accent}22`,
+          },
+          periodStartedActive
+            ? {
+                borderColor: theme.tokens.color.accent,
+                backgroundColor: `${theme.tokens.color.accent}33`,
+              }
+            : null,
+        ]}
+      >
+        <Text style={{ color: theme.tokens.color.text, fontWeight: '700', fontSize: theme.font(13) }}>
+          {t('wizard.cycle.periodStartedToday')}
+        </Text>
+      </Pressable>
+
       <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(13) }]}>
         {t('wizard.cycle.day')}
       </Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayRow}>
-        {Array.from({ length: CYCLE_DAY_MAX }, (_, i) => i + 1).map((day) => {
+        {visibleDays.map((day) => {
           const tone = suggestCyclePhaseForDay(day) || 'unknown';
           const selected = value.cycleDay === day;
+          const late = isCycleDayLate(day);
           return (
             <Pressable
               key={day}
@@ -162,6 +241,7 @@ export function CycleTrackingInput({ value, onChange, suggestHint }: Props) {
               style={[
                 styles.dayPill,
                 DAY_TONE_STYLE[tone as keyof typeof DAY_TONE_STYLE] ?? styles.dayTone_unknown,
+                late && !selected ? styles.dayTone_late : null,
                 selected ? { borderColor: theme.tokens.color.accent, transform: [{ scale: 1.06 }] } : null,
               ]}
             >
@@ -170,10 +250,15 @@ export function CycleTrackingInput({ value, onChange, suggestHint }: Props) {
           );
         })}
       </ScrollView>
-      {value.cycleDay != null ? (
-        <Text style={[styles.hint, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>
-          {t('wizard.cycle.dayHint', { day: String(value.cycleDay) })}
-        </Text>
+      {!longCycleExpanded ? (
+        <Pressable accessibilityRole="button" onPress={() => setLongCycleExpanded(true)} style={styles.longToggle}>
+          <Text style={{ color: theme.tokens.color.accent, fontSize: theme.font(12), textDecorationLine: 'underline' }}>
+            {t('wizard.cycle.showLongCycle')}
+          </Text>
+        </Pressable>
+      ) : null}
+      {dayReadout ? (
+        <Text style={[styles.hint, { color: theme.tokens.color.text, fontSize: theme.font(12) }]}>{dayReadout}</Text>
       ) : null}
 
       <Text style={[styles.label, { color: theme.tokens.color.text, fontSize: theme.font(13), marginTop: 10 }]}>
@@ -253,8 +338,17 @@ const styles = StyleSheet.create({
   title: { fontWeight: '700' },
   lead: { opacity: 0.82, marginBottom: 6 },
   suggestHint: { opacity: 0.72, fontStyle: 'italic', marginBottom: 6 },
+  periodStartBtn: {
+    marginBottom: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
   label: { fontWeight: '600', marginBottom: 6 },
   hint: { opacity: 0.75, marginTop: 2 },
+  longToggle: { alignSelf: 'flex-start', marginTop: 4, marginBottom: 2 },
   dayRow: { gap: 6, paddingVertical: 4 },
   dayPill: {
     width: 38,
@@ -270,6 +364,7 @@ const styles = StyleSheet.create({
   dayTone_follicular: { backgroundColor: 'rgba(76,175,80,0.18)', borderColor: 'rgba(76,175,80,0.42)' },
   dayTone_ovulation: { backgroundColor: 'rgba(255,193,7,0.2)', borderColor: 'rgba(255,193,7,0.48)' },
   dayTone_luteal: { backgroundColor: 'rgba(156,39,176,0.2)', borderColor: 'rgba(156,39,176,0.42)' },
+  dayTone_late: { borderColor: 'rgba(255,183,77,0.55)', backgroundColor: 'rgba(255,183,77,0.14)' },
   dayTone_unknown: {},
   phaseGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   phaseTile: {

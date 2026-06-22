@@ -41,12 +41,13 @@ Enable in **Settings → Data options** or during first-run tutorial.
 
 | Field | Notes |
 |-------|-------|
-| **Cycle day** | 1–45 (supports long/irregular cycles) |
+| **Period start** | Tap **Period started today** on the log date to set day 1 and anchor future auto-suggestions |
+| **Cycle day** | 1–35 in the default selector; expand to 45 for longer/irregular cycles |
 | **Phase** | Menstrual, follicular, ovulation, luteal — theme icons, not emoji |
 | **Flow** | Optional light / medium / heavy |
 | **PMS symptoms** | Optional list |
 
-When you pick a date, day and phase may be **suggested** from your most recent cycle log. Phase hints use a simplified ~28-day pattern — not medical advice.
+When you pick a date, cycle day and phase may be **suggested** from your last logged **period start** (or legacy cycle entries). Days above 35 show a late-cycle hint. Phase hints use a simplified ~28-day pattern — not medical advice.
 
 ---
 

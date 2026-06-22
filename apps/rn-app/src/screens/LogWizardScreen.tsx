@@ -741,10 +741,17 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   const [cycleDay, setCycleDay] = useState<number | null>(null);
   const [cyclePhase, setCyclePhase] = useState('');
   const [cycleFlow, setCycleFlow] = useState('');
+  const [cyclePeriodStart, setCyclePeriodStart] = useState(false);
+  const [cyclePeriodAnchorDate, setCyclePeriodAnchorDate] = useState<string | null>(null);
   const [cycleSuggestHint, setCycleSuggestHint] = useState<string | null>(null);
   const cycleAutoFilledRef = useRef(false);
   const cycleSuggestedDateRef = useRef('');
-  const cycleStateRef = useRef({ cycleDay: null as number | null, cyclePhase: '', cycleFlow: '' });
+  const cycleStateRef = useRef({
+    cycleDay: null as number | null,
+    cyclePhase: '',
+    cycleFlow: '',
+    cyclePeriodStart: false,
+  });
   const [medDoseStatus, setMedDoseStatus] = useState<Record<string, 'taken' | 'skipped' | 'missed'>>({});
 
   if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -848,8 +855,8 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
   );
 
   useEffect(() => {
-    cycleStateRef.current = { cycleDay, cyclePhase, cycleFlow };
-  }, [cycleDay, cyclePhase, cycleFlow]);
+    cycleStateRef.current = { cycleDay, cyclePhase, cycleFlow, cyclePeriodStart };
+  }, [cycleDay, cyclePhase, cycleFlow, cyclePeriodStart]);
 
   useEffect(() => {
     if (!prefs.cycleModuleEnabled) {
@@ -863,6 +870,8 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
         setCycleDay(null);
         setCyclePhase('');
         setCycleFlow('');
+        setCyclePeriodStart(false);
+        setCyclePeriodAnchorDate(null);
         cycleAutoFilledRef.current = false;
         setCycleSuggestHint(null);
       } else if (d != null || p || f) {
@@ -877,11 +886,16 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
       cycleSuggestedDateRef.current = date;
       setCycleDay(suggestion.cycleDay);
       setCyclePhase(suggestion.phase || '');
+      setCyclePeriodAnchorDate(suggestion.periodStartDate || suggestion.fromDate || null);
       const phaseMeta = CYCLE_PHASES.find((phase) => phase.id === suggestion.phase);
       const phaseLabel = phaseMeta ? t(phaseMeta.i18n) : '';
-      setCycleSuggestHint(
-        t('wizard.cycle.suggestedFromLast', { day: String(suggestion.cycleDay), phase: phaseLabel }),
-      );
+      if (suggestion.periodStartDate) {
+        setCycleSuggestHint(t('wizard.cycle.autoFromPeriodStart', { date: suggestion.periodStartDate }));
+      } else {
+        setCycleSuggestHint(
+          t('wizard.cycle.suggestedFromLast', { day: String(suggestion.cycleDay), phase: phaseLabel }),
+        );
+      }
     })().catch(() => {});
     return () => {
       cancelled = true;
@@ -945,11 +959,12 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             ]
           : undefined,
       cycle:
-        prefs.cycleModuleEnabled && (cycleDay != null || cyclePhase || cycleFlow)
+        prefs.cycleModuleEnabled && (cycleDay != null || cyclePhase || cycleFlow || cyclePeriodStart)
           ? {
               cycleDay: cycleDay ?? undefined,
               phase: cyclePhase || undefined,
               flow: cycleFlow || undefined,
+              periodStart: cyclePeriodStart || undefined,
             }
           : undefined,
       medicationDoses: todayMedDoses.length
@@ -989,6 +1004,7 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
     cycleDay,
     cyclePhase,
     cycleFlow,
+    cyclePeriodStart,
     prefs.cycleModuleEnabled,
     todayMedDoses,
     medDoseStatus,
@@ -1149,15 +1165,20 @@ export function LogWizardScreen({ prefs: prefsProp }: LogWizardScreenProps = {})
             </View>
             {prefs.cycleModuleEnabled ? (
               <CycleTrackingInput
-                value={{ cycleDay, cyclePhase, cycleFlow }}
+                value={{ cycleDay, cyclePhase, cycleFlow, periodStart: cyclePeriodStart }}
                 suggestHint={cycleSuggestHint}
-                onChange={({ cycleDay: nextDay, cyclePhase: nextPhase, cycleFlow: nextFlow }) => {
+                logDateIso={date}
+                periodAnchorDate={cyclePeriodAnchorDate}
+                onChange={({ cycleDay: nextDay, cyclePhase: nextPhase, cycleFlow: nextFlow, periodStart: nextPeriodStart }) => {
                   cycleAutoFilledRef.current = false;
                   cycleSuggestedDateRef.current = '';
                   setCycleSuggestHint(null);
                   setCycleDay(nextDay);
                   setCyclePhase(nextPhase);
                   setCycleFlow(nextFlow);
+                  setCyclePeriodStart(!!nextPeriodStart);
+                  if (nextPeriodStart && date) setCyclePeriodAnchorDate(date);
+                  else if (!nextPeriodStart) setCyclePeriodAnchorDate(cyclePeriodAnchorDate);
                 }}
               />
             ) : null}

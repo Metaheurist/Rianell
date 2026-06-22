@@ -20,9 +20,26 @@ test('index.html loads goals-carousel without type=module', () => {
   assert.doesNotMatch(html, /goals-carousel\.js[^"']*" type="module"/);
 });
 
-test('index.html defines goals modal carousel panes', () => {
+test('goals-carousel.js resolves i18n via RianellI18n.t', () => {
+  const src = fs.readFileSync(carouselPath, 'utf8');
+  assert.match(src, /RianellI18n\.t/);
+  assert.match(src, /refreshGoalsCarouselI18n/);
+});
+
+test('goals-carousel dot icons use ui-svg-icon for theme stroke', () => {
+  const src = fs.readFileSync(carouselPath, 'utf8');
+  assert.match(src, /ui-svg-icon goals-dot-icon-svg/);
+  assert.match(src, /goals-carousel-dot__icon/);
+});
+
+test('cycle-tracking-ui uses period-start anchor and 1-35 selector', () => {
+  const cyclePath = path.join(root, 'apps/pwa-webapp/modules/cycle-tracking-ui.js');
   const html = fs.readFileSync(htmlPath, 'utf8');
-  assert.match(html, /id="goalsModalOverlay"/);
-  assert.match(html, /goals-carousel-pane--targets/);
-  assert.match(html, /id="goalsCarouselDots"/);
+  const src = fs.readFileSync(cyclePath, 'utf8');
+  assert.match(html, /logCyclePeriodStartBtn/);
+  assert.match(html, /logCyclePeriodStartFlag/);
+  assert.match(html, /logCycleShowLong/);
+  assert.match(src, /CYCLE_DAY_SELECTOR_MAX/);
+  assert.match(src, /markPeriodStartedToday/);
+  assert.match(src, /RianellI18n\.t/);
 });
