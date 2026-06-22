@@ -36,6 +36,8 @@ Step through date, vitals, symptoms, food, exercise, medications, and notes. You
 
 When **cycle tracking** is enabled (Settings → Data options or first-run tutorial), step 1 includes cycle day (1–45), phase, and optional flow — with suggested values from your previous logs.
 
+**First-run:** The onboarding footer shows a single step counter across wizard screens and tutorial slides (same on web and native).
+
 Detailed field reference: [[Logging-Data]].
 
 ---

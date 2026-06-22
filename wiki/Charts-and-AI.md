@@ -7,10 +7,10 @@ Rianell combines **interactive charts** with a **deterministic AI engine** and a
 ## Charts tab
 
 - Built with **ApexCharts** — trends for vitals, scales, and activity over time.
-- Optional **predictions** on supported metrics.
+- Optional **predictions** on supported metrics; prediction start marker and info box follow the **active global theme** on web (v1.120.0).
 - Chart time axes stay **left-to-right** even in RTL languages (Arabic, Hebrew).
 
-Explore patterns visually before diving into the AI Analysis tab.
+Explore patterns visually before diving into the AI Analysis tab. On mobile, AI sections use horizontal slides with theme-aware navigation controls (v1.120.0).
 
 ---
 

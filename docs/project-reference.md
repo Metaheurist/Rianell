@@ -4,6 +4,13 @@
 
 **Canonical layout:** see **[architecture-standard.md](architecture-standard.md)** for the directory map, workspace graph, dependency rules, and migration log. The sections below are version-sync notes moved toward CHANGELOG over time.
 
+### v1.120.0 documentation sync (Theme tokens & unified onboarding)
+
+- **Theme accents (PWA):** `--accent-primary`, `--accent-soft`, `--accent-border*`, `--accent-fill-*`, `--accent-glow-*` in `styles.css` `:root`; bulk migration off hardcoded Material green. Chart/AI JS uses `getThemePrimaryColor()` from **`document.body`**; `setGlobalTheme()` triggers `refreshCharts()` + AI re-render.
+- **Semantic colours unchanged:** Food/exercise tile group hues and per-metric chart line colours remain data-visualization semantics; UI chrome (modals, nav accents, AI cards, mood scores) follows global theme.
+- **Onboarding:** `buildUnifiedOnboardingSteps()` / `resolveUnifiedOnboardingProgress()` — single step counter for wizard + tutorial slides on PWA and RN.
+- **See:** [CHANGELOG.md](CHANGELOG.md) v1.120.0; [styling.md](styling.md) § Theme accent tokens; [platform-parity.md](platform-parity.md) v1.120.0 note.
+
 ### v1.119.0 documentation sync (Cycle tracking UX & Home cards)
 
 - **Cycle tracking:** Log wizard step 1 when `cycleModuleEnabled` — day pills (1–45), phase tiles (SVG), flow levels; auto-suggest from prior logs; first-run tutorial slide 8 to enable.

@@ -108,6 +108,8 @@ var RianellShared = (() => {
     SMART_REMINDER_WINDOW_DAYS: () => SMART_REMINDER_WINDOW_DAYS,
     STREAK_REMINDER_MIN_STREAK: () => STREAK_REMINDER_MIN_STREAK,
     TRACKING_PROFILE_FIELD_KEYS: () => TRACKING_PROFILE_FIELD_KEYS,
+    TUTORIAL_SLIDE_ORDER_AI_OFF: () => TUTORIAL_SLIDE_ORDER_AI_OFF,
+    TUTORIAL_SLIDE_ORDER_AI_ON: () => TUTORIAL_SLIDE_ORDER_AI_ON,
     UNLOCK_DAYS: () => UNLOCK_DAYS,
     UNSET_PRIVACY_REGION: () => UNSET_PRIVACY_REGION,
     WEATHER_CACHE_MS: () => WEATHER_CACHE_MS,
@@ -164,6 +166,7 @@ var RianellShared = (() => {
     buildSummaryPrompt: () => buildSummaryPrompt,
     buildTimelineSvg: () => buildTimelineSvg,
     buildTodayMedDoseStatuses: () => buildTodayMedDoseStatuses,
+    buildUnifiedOnboardingSteps: () => buildUnifiedOnboardingSteps,
     buildUserCohortsFromFacets: () => buildUserCohortsFromFacets,
     buildWeatherDisplayMetrics: () => buildWeatherDisplayMetrics,
     buildWeatherForecastUrl: () => buildWeatherForecastUrl,
@@ -256,6 +259,7 @@ var RianellShared = (() => {
     getResidencyRegistry: () => getResidencyRegistry,
     getSupportedLocalesForRegion: () => getSupportedLocalesForRegion,
     getSymptomChipsForCondition: () => getSymptomChipsForCondition,
+    getTutorialVisibleIndices: () => getTutorialVisibleIndices,
     getUnlockDaysForCategory: () => getUnlockDaysForCategory,
     getUnlockedLogCategories: () => getUnlockedLogCategories,
     getVisibleTrackingFields: () => getVisibleTrackingFields,
@@ -379,6 +383,7 @@ var RianellShared = (() => {
     resolveSmartlookProjectKey: () => resolveSmartlookProjectKey,
     resolveSmartlookRegion: () => resolveSmartlookRegion,
     resolveTempIconId: () => resolveTempIconId,
+    resolveUnifiedOnboardingProgress: () => resolveUnifiedOnboardingProgress,
     resolveWeatherIconTone: () => resolveWeatherIconTone,
     roundWeatherCoord: () => roundWeatherCoord,
     runGoldenPromptAudit: () => runGoldenPromptAudit,
@@ -5598,6 +5603,48 @@ ${questionsBlock}
     const idx = plan.findIndex((s) => s.id === currentStepId);
     if (idx < 0) return plan;
     return plan.slice(idx);
+  }
+
+  // packages/shared/src/onboarding/unifiedOnboardingProgress.mjs
+  var TUTORIAL_SLIDE_ORDER_AI_ON = [0, 1, 8, 2, 3, 4, 5, 6, 7];
+  var TUTORIAL_SLIDE_ORDER_AI_OFF = [0, 1, 8, 5, 7];
+  function getTutorialVisibleIndices(aiEnabled) {
+    return aiEnabled !== false ? [...TUTORIAL_SLIDE_ORDER_AI_ON] : [...TUTORIAL_SLIDE_ORDER_AI_OFF];
+  }
+  function buildUnifiedOnboardingSteps(prefs, ctx, options = {}) {
+    const plan = buildFirstRunPlan(prefs, ctx);
+    const tutorialIndices = options.tutorialSlideIndices ?? getTutorialVisibleIndices(prefs?.aiEnabled !== false);
+    const steps = [];
+    for (const { id } of plan) {
+      if (id === "tutorial") {
+        tutorialIndices.forEach((slideIndex, tutorialPos) => {
+          steps.push({ type: "tutorial", slideIndex, tutorialPos });
+        });
+      } else {
+        steps.push({ type: "wizard", id });
+      }
+    }
+    return steps;
+  }
+  function resolveUnifiedOnboardingProgress(state) {
+    const {
+      prefs,
+      ctx,
+      wizardStepId,
+      tutorialPos = 0,
+      tutorialSlideIndices
+    } = state;
+    const indices = tutorialSlideIndices ?? getTutorialVisibleIndices(prefs?.aiEnabled !== false);
+    const steps = buildUnifiedOnboardingSteps(prefs, ctx, { tutorialSlideIndices: indices });
+    const total = steps.length || 1;
+    if (wizardStepId === "tutorial") {
+      const idx2 = steps.findIndex(
+        (s) => s.type === "tutorial" && s.tutorialPos === tutorialPos
+      );
+      return { current: idx2 >= 0 ? idx2 + 1 : 1, total };
+    }
+    const idx = steps.findIndex((s) => s.type === "wizard" && s.id === wizardStepId);
+    return { current: idx >= 0 ? idx + 1 : 1, total };
   }
 
   // packages/shared/src/achievements/achievements.mjs

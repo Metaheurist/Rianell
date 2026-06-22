@@ -48,7 +48,9 @@ AI prompts use your **active UI locale**. Arabic and Hebrew use rule-based insig
 
 ## Themes
 
-Global theme persists from first paint (including loading overlay). Report theme bugs with theme name + screenshots of Home, navbar, and goals block.
+Global theme persists from first paint (including loading overlay). **v1.120.0:** Non-mint themes (Red/Black, Mono, Rainbow) now apply to Food/Exercise modals, AI Analysis carousel controls, Mood tab scores, and chart prediction markers — not only the top navigation bar.
+
+Report theme bugs with theme name + screenshots of Home, navbar, modals, and AI Analysis.
 
 ---
 

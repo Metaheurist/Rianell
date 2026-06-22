@@ -88,9 +88,9 @@ body.chart-palette-high-contrast {
 
 /* Chart Info Box for Non-Technical Users */
 .chart-info-box {
-  background: rgba(76, 175, 80, 0.1);
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(76, 175, 80, 0.3);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 30%, transparent);
   border-radius: 12px;
   padding: 15px 20px;
   margin-bottom: 15px;
@@ -114,6 +114,7 @@ body.chart-palette-high-contrast {
   font-size: 1.5rem;
   flex-shrink: 0;
   margin-top: 2px;
+  color: var(--primary-color);
 }
 
 .chart-info-box .info-content {
@@ -160,7 +161,7 @@ body.chart-palette-high-contrast {
 
 body.light-mode .chart-container {
   background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(129, 199, 132, 0.32);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 32%, transparent);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
@@ -196,7 +197,7 @@ body.light-mode .chart-info-box .info-content small {
   display: inline-block;
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(76, 175, 80, 0.3);
+  border: 2px solid color-mix(in srgb, var(--primary-color) 30%, transparent);
   border-top-color: var(--primary-color);
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
@@ -219,11 +220,11 @@ body.light-mode .chart-predictions-loading-overlay {
   font-weight: bold;
   background: linear-gradient(90deg, 
     rgba(255, 255, 255, 0.05) 0%, 
-    rgba(76, 175, 80, 0.1) 50%, 
+    color-mix(in srgb, var(--primary-color) 10%, transparent) 50%, 
     rgba(255, 255, 255, 0.05) 100%);
   background-size: 200% 100%;
   border-radius: 12px;
-  border: 2px dashed rgba(76, 175, 80, 0.3);
+  border: 2px dashed color-mix(in srgb, var(--primary-color) 30%, transparent);
   animation: loadingPulse 2s ease-in-out infinite, shimmer 3s linear infinite;
   position: relative;
   overflow: hidden;
@@ -236,7 +237,7 @@ body.light-mode .chart-predictions-loading-overlay {
   left: 50%;
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(76, 175, 80, 0.3);
+  border: 3px solid color-mix(in srgb, var(--primary-color) 30%, transparent);
   border-top-color: var(--primary-color);
   border-radius: 50%;
   transform: translate(-50%, -50%);
@@ -247,9 +248,9 @@ body.light-mode .chart-loading {
   color: var(--text-dark);
   background: linear-gradient(
     90deg,
-    rgba(76, 175, 80, 0.06) 0%,
-    rgba(76, 175, 80, 0.12) 50%,
-    rgba(76, 175, 80, 0.06) 100%
+    color-mix(in srgb, var(--primary-color) 6%, transparent) 0%,
+    color-mix(in srgb, var(--primary-color) 12%, transparent) 50%,
+    color-mix(in srgb, var(--primary-color) 6%, transparent) 100%
   );
 }
 
@@ -406,8 +407,8 @@ body.light-mode .chart-loading {
 }
 
 .apexcharts-menu-item:hover {
-  background: rgba(76, 175, 80, 0.2) !important;
-  color: #81c784 !important;
+  background: color-mix(in srgb, var(--primary-color) 20%, transparent) !important;
+  color: var(--accent-soft) !important;
 }
 
 .apexcharts-menu-icon {
@@ -415,7 +416,7 @@ body.light-mode .chart-loading {
 }
 
 .apexcharts-menu-icon:hover {
-  color: #81c784 !important;
+  color: var(--accent-soft) !important;
 }
 
 /* ApexCharts Toolbar Buttons Styling */
@@ -428,7 +429,7 @@ body.light-mode .chart-loading {
 }
 
 .apexcharts-toolbar svg:hover {
-  fill: #81c784 !important;
+  fill: var(--accent-soft) !important;
 }
 
 .apexcharts-zoom-icon,
@@ -446,7 +447,7 @@ body.light-mode .chart-loading {
 .apexcharts-pan-icon:hover,
 .apexcharts-reset-icon:hover,
 .apexcharts-menu-icon:hover {
-  fill: #81c784 !important;
+  fill: var(--accent-soft) !important;
 }
 
 /* Mono theme: remove remaining mint accents from chart empty states/tooling */

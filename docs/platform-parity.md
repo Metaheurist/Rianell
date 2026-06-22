@@ -7,6 +7,11 @@ This document defines the expected behaviour contract across:
 
 The machine-readable source is `docs/platform-parity.json` (v2). CI runs `npm run parity:web`, `parity:android`, `parity:ios`, and `parity:inventory:check` on every PR.
 
+### v1.120.0 parity note (Theme tokens & unified onboarding)
+
+- **Theme (PWA):** Global theme (Mint, Red/Black, Mono, Rainbow) now drives modal borders, AI carousel controls, mood metric accents, and chart prediction annotations via CSS `--accent-*` tokens + runtime helpers. RN global theme tokens unchanged in this release (PWA-focused pass).
+- **Onboarding counter:** PWA first-run wizard and RN `FirstRunWizard` share `resolveUnifiedOnboardingProgress()` — one **step N of M** across wizard panes and individual tutorial slides.
+
 ### Home AI suggestions (PWA + RN)
 
 - **Shared engine:** `packages/shared/src/ai/homeSuggestions.mjs` — rule-based chip selection (0–3 chips).

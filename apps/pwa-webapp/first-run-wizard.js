@@ -101,14 +101,40 @@
     return document.getElementById('firstRunWizardOverlay');
   }
 
+  function getActiveTutorialPos() {
+    var activeSlide = document.querySelector('.tutorial-slide.tutorial-slide-active');
+    if (!activeSlide) return 0;
+    var idx = parseInt(activeSlide.dataset.slide, 10);
+    var visible = getTutorialVisibleIndicesSafe();
+    var pos = visible.indexOf(idx);
+    return pos >= 0 ? pos : 0;
+  }
+
   function setStepMeta() {
     var titleEl = document.getElementById('firstRunWizardTitle');
     var metaEl = document.getElementById('firstRunWizardStepMeta');
     var step = plan[stepIndex];
     if (!step) return;
     var meta = S.FIRST_RUN_STEP_META && S.FIRST_RUN_STEP_META[step.id];
-    if (titleEl) titleEl.textContent = meta && meta.titleKey ? t(meta.titleKey) : step.id;
-    if (metaEl) metaEl.textContent = t('onboarding.stepCounter', { current: stepIndex + 1, total: plan.length });
+    if (titleEl && step.id !== 'tutorial') {
+      titleEl.textContent = meta && meta.titleKey ? t(meta.titleKey) : step.id;
+    }
+    if (metaEl && typeof S.resolveUnifiedOnboardingProgress === 'function') {
+      var prefs = readPrefs();
+      var progress = S.resolveUnifiedOnboardingProgress({
+        prefs: prefs,
+        ctx: platformContext(),
+        wizardStepId: step.id,
+        tutorialPos: step.id === 'tutorial' ? getActiveTutorialPos() : undefined,
+        tutorialSlideIndices: getTutorialVisibleIndicesSafe(),
+      });
+      metaEl.textContent = t('onboarding.stepCounter', {
+        current: progress.current,
+        total: progress.total,
+      });
+    } else if (metaEl) {
+      metaEl.textContent = t('onboarding.stepCounter', { current: stepIndex + 1, total: plan.length });
+    }
   }
 
   function showFooter(show) {
@@ -231,7 +257,11 @@
 
   function getTutorialVisibleIndicesSafe() {
     if (typeof global.getTutorialVisibleIndices === 'function') return global.getTutorialVisibleIndices();
-    return [0, 1, 2, 3, 4, 5, 6, 7];
+    if (typeof S.getTutorialVisibleIndices === 'function') {
+      var prefs = readPrefs();
+      return S.getTutorialVisibleIndices(prefs.aiEnabled !== false);
+    }
+    return [0, 1, 8, 2, 3, 4, 5, 6, 7];
   }
 
   function syncTutorialWizardFooter() {
@@ -260,6 +290,7 @@
     if (titleEl && tutorialTitle && tutorialTitle.textContent) {
       titleEl.textContent = tutorialTitle.textContent;
     }
+    setStepMeta();
   }
 
   function mountTutorialStep(body) {
